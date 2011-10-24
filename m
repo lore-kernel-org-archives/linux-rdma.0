@@ -1,45 +1,49 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH-v2] ib_srpt: Initial SRP Target merge for v3.2-rc1
-Date: Mon, 24 Oct 2011 18:45:09 +0200
-Message-ID: <CAO+b5-rch-mPgXKjs4=t4ubfb9SFhDiR26EoeJgyZjWfhRJ9DA@mail.gmail.com>
-References: <1319435841-19046-1-git-send-email-nab@linux-iscsi.org>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] An argument for allowing applications to manually send
+ RMPP packets if desired
+Date: Mon, 24 Oct 2011 12:04:55 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CC9B0EDCC@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387E899@MNEXMB1.qlogic.org>
+ <CAL1RGDUXM9-Ey1aF8xQo3X_L1PLrVyyLPYvqmy6Qeu5M2JnJPA@mail.gmail.com>
+ <20110912172334.GC18574@obsidianresearch.com>
+ <CAL1RGDVPZzMKmMg7mokhG0btX+3NH_+tL-9P5guV10h6X6i0iw@mail.gmail.com>
+ <20110912190623.GD18574@obsidianresearch.com>
+ <4C2744E8AD2982428C5BFE523DF8CDCB4A5387ECDF@MNEXMB1.qlogic.org>
+ <20110917034251.GA6056@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E5B763@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1319435841-19046-1-git-send-email-nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E5B763-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 24, 2011 at 7:57 AM, Nicholas A. Bellinger
-<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> This v2 patch adds the kernel module ib_srpt SCSI RDMA Protocol (SRP) target
-> implementation conforming to the SRP r16a specification for the mainline
-> drivers/target infrastructure.
->
-> This driver was originally developed by Vu Pham and has been optimized by
-> Bart Van Assche and merged into upstream LIO based on his srpt-lio-4.1 branch.
-> This patch is made against the current pending target-core changes for
-> v3.2-rc1, the full tree is available here:
+I'm not sure I understand the resistance to this patch.  The patch does not break existing functionality and can demonstrably improve the performance of tools that can take advantage of it.
 
-Maybe you remember that the reason why I developed this patch was to
-be able to run performance measurements ? The following changes are
-necessary to convert this patch into a robust kernel driver:
-- Handle the case where the last WQE event arrives before the
-corresponding queue pair is reset (r3870 in the SCST SVN repo).
-- Handle IB completion timeouts. Although the InfiniBand Architecture
-Manual specifies that a HCA must generate an error completion for each
-pending work item when a queue pair reset is issued, an important
-class of HCAs doesn't do this (that includes the HCA in your test
-setup). In the SCST version of this driver such timeouts are handled
-by the function srpt_pending_cmd_timeout().
+What's wrong with implementing this patch now and working on an improved mechanism for the future?
 
-Both issues mentioned above can lead to sessions not being cleaned up
-properly and hence all future logins from the initiator associated
-with that session to be blocked.
+-----Original Message-----
+From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+Sent: Sunday, September 18, 2011 8:35 PM
+To: Jason Gunthorpe; Mike Heinz
+Cc: Roland Dreier; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Todd Rimmer
+Subject: RE: [PATCH] An argument for allowing applications to manually send RMPP packets if desired
 
-Bart.
+> Ultimately I think the scalable/compatible answer is to move these
+> RMPP work loads to a verbs QP and we need to have a user space RMPP
+> implementation for that anyhow.
+
+Many to one is never scalable.  The applications simply cannot rely on every node querying the SA at the same time, especially for large amounts of data.  And the overhead of MADs and RMPP is too high to be a useful solution to scaling.
+
+
+
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
