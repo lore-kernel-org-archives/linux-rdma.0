@@ -1,48 +1,48 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/qib: Fix kernel panic on QME7342 boards
-Date: Tue, 25 Oct 2011 12:42:07 -0400
-Message-ID: <20111025164207.31124.13380.stgit@kop-dev-sles11-04.qlogic.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: mlx4 missing completions (was Re: [PATCH-v2] ib_srpt: Initial SRP
+ Target merge for v3.2-rc1)
+Date: Tue, 25 Oct 2011 20:09:38 +0200
+Message-ID: <CAO+b5-oc9KQ5Uw+7RbY1Z6fqbK+x4Bnw8wCrLAaediaqHMPAhA@mail.gmail.com>
+References: <CAL1RGDV7jhRexKowk9JLcVJhb832RX672Da8UQSPK82OHEsw7A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDV7jhRexKowk9JLcVJhb832RX672Da8UQSPK82OHEsw7A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "Nicholas A. Bellinger\"" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+On Tue, Oct 25, 2011 at 1:17 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>=
+ wrote:
+> On Mon, Oct 24, 2011 at 11:07 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org=
+> wrote:
+> >> As far as I know every HCA supported by Linux does implement this
+> >> correctly. =A0Which class did you have in mind as not doing that?
+> >
+> > At least QDR ConnectX 2 HCAs with fairly recent firmware. This
+> > behavior can be reproduced easily with the SCST version of ib_srpt =
+as
+> > follows:
+> > 1. Log in from an SRP initiator to ib_srpt.
+> > 2. Start a direct I/O read test, e.g. with fio.
+> > 3. Issue the command "rmmod ib_srpt" on the target during I/O.
+>
+> OK, this is a pretty serious bug in mlx4_ib if true. =A0Are
+> you sure that you really are seeing some pending work
+> requests not generating a flush error when the QP transitions
+> to the error state?
 
-Fix a kernel panic on QME7342 (and any Mezz boards without
-QSFP connectors) caused by scheduling work on uninitialized
-workqueue introduced by 62066fc8df4632c772d723813ce7af456d62ddf7.
+It's a little more complex than that. The original version of ib_srpt
+stops polling for completions as soon as the last WQE event has been
+received and after that the queue has been drained. So I don't know
+whether these flush errors were not delivered or whether these were
+delivered too late.
 
-Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_iba7322.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 62005c7..3e40cff 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -5285,8 +5285,10 @@ static int qib_7322_ib_updown(struct qib_pportdata *ppd, int ibup, u64 ibcs)
- 			qib_7322_mini_pcs_reset(ppd);
- 			/* schedule the qsfp refresh which should turn the link
- 			   off */
--			qd->t_insert = get_jiffies_64();
--			schedule_work(&qd->work);
-+			if (ppd->dd->flags & QIB_HAS_QSFP) {
-+				qd->t_insert = get_jiffies_64();
-+				schedule_work(&qd->work);
-+			}
- 			spin_lock_irqsave(&ppd->sdma_lock, flags);
- 			if (__qib_sdma_running(ppd))
- 				__qib_sdma_process_event(ppd,
-
-
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
