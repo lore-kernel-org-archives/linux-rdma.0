@@ -1,51 +1,41 @@
-From: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb4: Mark the QP in error before disabling the Q in the firmware
-Date: Tue, 25 Oct 2011 16:38:30 +0530
-Message-ID: <1319540910-443-1-git-send-email-kumaras@chelsio.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: mlx4 missing completions (was Re: [PATCH-v2] ib_srpt: Initial SRP
+ Target merge for v3.2-rc1)
+Date: Tue, 25 Oct 2011 04:17:39 -0700
+Message-ID: <CAL1RGDV7jhRexKowk9JLcVJhb832RX672Da8UQSPK82OHEsw7A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, tom-/Yg/VP3ZvrM@public.gmane.org, Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "Nicholas A. Bellinger\"" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
+On Mon, Oct 24, 2011 at 11:07 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> =
+wrote:
+>> As far as I know every HCA supported by Linux does implement this
+>> correctly. =A0Which class did you have in mind as not doing that?
+>
+> At least QDR ConnectX 2 HCAs with fairly recent firmware. This
+> behavior can be reproduced easily with the SCST version of ib_srpt as
+> follows:
+> - Log in from an SRP initiator to ib_srpt.
+> - Start a direct I/O read test, e.g. with fio.
+> - Issue the command "rmmod ib_srpt" on the target during I/O.
 
-The QP needs to be moved to error before telling the firwmare
-to shutdown the queue. Otherwise, the application can submit
-WR that will never get fetched by the hardware and never
-flushed by the driver.
+OK, this is a pretty serious bug in mlx4_ib if true.  Are
+you sure that you really are seeing some pending work
+requests not generating a flush error when the QP transitions
+to the error state?
 
-Signed-off-by: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/qp.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+Keep in mind that transitioning the QP to the reset state
+can cause completion entries to disappear after they
+are generated.
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index a391a4a..d6ccc7e 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1226,6 +1226,8 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
- 				disconnect = 1;
- 				c4iw_get_ep(&qhp->ep->com);
- 			}
-+			if (qhp->ibqp.uobject)
-+				t4_set_wq_in_error(&qhp->wq);
- 			ret = rdma_fini(rhp, qhp, ep);
- 			if (ret)
- 				goto err;
-@@ -1244,6 +1246,8 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
- 			break;
- 		case C4IW_QP_STATE_ERROR:
- 			set_state(qhp, C4IW_QP_STATE_ERROR);
-+			if (qhp->ibqp.uobject)
-+				t4_set_wq_in_error(&qhp->wq);
- 			if (!internal) {
- 				abort = 1;
- 				disconnect = 1;
--- 
-1.7.1
-
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
