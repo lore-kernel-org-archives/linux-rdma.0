@@ -1,41 +1,49 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH 7/9] ib_srpt: Convert srp_max_rdma_size into per port
- configfs attribute
-Date: Tue, 25 Oct 2011 03:35:53 -0700
-Message-ID: <1319538953.20828.0.camel@haakon2.linux-iscsi.org>
-References: <1319434422-15354-1-git-send-email-nab@linux-iscsi.org>
-	 <1319434422-15354-8-git-send-email-nab@linux-iscsi.org>
-	 <1319488195.17450.73.camel@haakon2.linux-iscsi.org>
-	 <CAO+b5-p9xXB_sWes=uet6skkFn=xWD+vKuoOeuGwjbxYhE-ctg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] RDMA/cxgb4: Mark the QP in error before disabling the Q in the firmware
+Date: Tue, 25 Oct 2011 16:38:30 +0530
+Message-ID: <1319540910-443-1-git-send-email-kumaras@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-p9xXB_sWes=uet6skkFn=xWD+vKuoOeuGwjbxYhE-ctg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, tom-/Yg/VP3ZvrM@public.gmane.org, Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2011-10-25 at 12:32 +0200, Bart Van Assche wrote:
-> On Mon, Oct 24, 2011 at 10:29 PM, Nicholas A. Bellinger
-> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> >> @@ -114,6 +114,7 @@ enum {
-> >>       MIN_SRPT_SRQ_SIZE = 4,
-> >>       DEFAULT_SRPT_SRQ_SIZE = 4095,
-> >>       MAX_SRPT_SRQ_SIZE = 65535,
-> >> +     MAX_SRPT_RDMA_SIZE = 256U,
-> >>
-> >
-> > Hey btw, what should the proper MAX_SRPT_RDMA_SIZE be here..?
-> 
-> As you can see in the ib_srpt source code, the largest value filled in
-> for this parameter in the IOC profile is 1U << 24.
+From: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
 
-Thanks Bart.  Fixing this up now.
+The QP needs to be moved to error before telling the firwmare
+to shutdown the queue. Otherwise, the application can submit
+WR that will never get fetched by the hardware and never
+flushed by the driver.
 
---nab
+Signed-off-by: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/qp.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index a391a4a..d6ccc7e 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -1226,6 +1226,8 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 				disconnect = 1;
+ 				c4iw_get_ep(&qhp->ep->com);
+ 			}
++			if (qhp->ibqp.uobject)
++				t4_set_wq_in_error(&qhp->wq);
+ 			ret = rdma_fini(rhp, qhp, ep);
+ 			if (ret)
+ 				goto err;
+@@ -1244,6 +1246,8 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 			break;
+ 		case C4IW_QP_STATE_ERROR:
+ 			set_state(qhp, C4IW_QP_STATE_ERROR);
++			if (qhp->ibqp.uobject)
++				t4_set_wq_in_error(&qhp->wq);
+ 			if (!internal) {
+ 				abort = 1;
+ 				disconnect = 1;
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
