@@ -1,31 +1,28 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH 07/10] RDMA/cxgb4: DB Drop Recovery for RDMA and LLD
- queues.
-Date: Mon, 24 Oct 2011 17:12:09 -0400 (EDT)
-Message-ID: <20111024.171209.1856294221956226756.davem@davemloft.net>
-References: <4EA05A27.9090605@opengridcomputing.com>
-	<20111020.165703.1713724038045504243.davem@davemloft.net>
-	<4EA5814F.6080801@chelsio.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH-v2] ib_srpt: Initial SRP Target merge for v3.2-rc1
+Date: Tue, 25 Oct 2011 08:00:13 +0200
+Message-ID: <CAO+b5-oF=BB0YeTAMFqCwVUE7C2aC9z15tRiqQdcZ6nVpmTKrA@mail.gmail.com>
+References: <1319435841-19046-1-git-send-email-nab@linux-iscsi.org>
+ <CAO+b5-rch-mPgXKjs4=t4ubfb9SFhDiR26EoeJgyZjWfhRJ9DA@mail.gmail.com> <1319481232.17450.11.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EA5814F.6080801-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1319481232.17450.11.camel@haakon2.linux-iscsi.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Christoph Hellwig <hch@lst.de>, Vu Pham <vu@mellanox.com>, David Dillow <dillowda@ornl.gov>, target-devel <target-devel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Date: Mon, 24 Oct 2011 20:46:31 +0530
+On Mon, Oct 24, 2011 at 8:33 PM, Nicholas A. Bellinger
+<nab@linux-iscsi.org> wrote:
+> It would have been nice if you bothered to mention these in any of the
+> pre merge window reviews, but given your delay responsed on these items
+> they will have to be something we'll fix post merge.
 
-> 1. We would like to recommend that all the patches get included in
-> Roland's infiniband tree since it has build dependencies.
+Sorry for that - it took some time though before I remembered myself
+about all this.
 
-This is fine with me.  It just means that Roland's tree has to have
-net-next included in it already, because otherwise the paths to
-the cxgb4 driver under drivers/net won't be right.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If you are looking for a test case: pulling an IB cable during I/O a
+few times should allow to trigger this.
+
+Bart.
