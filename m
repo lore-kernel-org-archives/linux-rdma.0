@@ -1,55 +1,41 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-3.2] IBoE fixes
-Date: Wed, 26 Oct 2011 09:04:00 +0200
-Message-ID: <4EA7B0E0.6070400@mellanox.com>
-References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LRH.2.00.1110101047420.10901-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marcel Apfelbaum <marcela-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: [PATCH] ib_srpt: Make srpt_map_sg_to_ib_sge() failure case return -EAGAIN
+Date: Wed, 26 Oct 2011 07:13:32 +0000
+Message-ID: <1319613212-8519-1-git-send-email-nab@linux-iscsi.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+Cc: target-devel <target-devel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Nicholas Bellinger <nab@linux-iscsi.org>, Bart Van Assche <bvanassche@acm.org>, Christoph Hellwig <hch@lst.de>, Roland Dreier <roland@purestorage.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/10/2011 10:51 AM, Or Gerlitz wrote:
-> This is a batch of IBoE related fixes plus addition of extended PMA counters.
+From: Nicholas Bellinger <nab@linux-iscsi.org>
 
-Hi Roland,
+This patch makes the failure case in srpt_map_sg_to_ib_sge() for ib_dma_map_sg()
+return -EAGAIN so that this failure will trigger target-core QUEUE_FULL logic
+from srpt_xfer_data() for srpt_write_pending() WRITEs and srpt_queue_response()
+for READs.
 
-With the merge window opening around yesterday, just checking if we're 
-on track
-for merging this patch set into 3.2 (I sent V1 for patch #3 as you asked).
+Reported-by: Bart Van Assche <bvanassche@acm.org>
+Cc: Bart Van Assche <bvanassche@acm.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas A. Bellinger <nab@linux-iscsi.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Also, for the FDR set, Marcel has sent a fix to the "[... v2 3/5] 
-ib/mlx4: Add extended
-port capabilities support" patch along the lines you were suggesting, so 
-we'll be
-happy to know if you're fine with this patch and also the fourth patch 
-which depends
-on it, thanks!
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index f7174b3..7892efc 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1112,7 +1112,7 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
+ 	count = ib_dma_map_sg(ch->sport->sdev->device, sg, sg_cnt,
+ 			      opposite_dma_dir(dir));
+ 	if (unlikely(!count))
+-		return -EBUSY;
++		return -EAGAIN;
+ 
+ 	ioctx->mapped_sg_count = count;
+ 
+-- 
+1.7.2.5
 
-Or.
-
->
->
->
-> Or Gerlitz (5):
->        ib/mlx4: enable 4K MTU for IBoE
->        ib/mlx4: remove setting of vlan in IBoE WQEs control segment
->        net/mlx4_core: remove module param controlling the vlan table size
->        ib/core: add support for extended performance counters in sysfs
->        ib/mlx4: add support for extended PMA counters under IBoE
->
->   drivers/infiniband/core/sysfs.c   |  100 ++++++++++++++++++++++++++++++++++++-
->   drivers/infiniband/hw/mlx4/mad.c  |   49 +++++++++++++++---
->   drivers/infiniband/hw/mlx4/main.c |    2 +-
->   drivers/infiniband/hw/mlx4/qp.c   |   11 +---
->   drivers/net/mlx4/main.c           |   12 +---
->   include/rdma/ib_pma.h             |    1 +
->   6 files changed, 148 insertions(+), 27 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
