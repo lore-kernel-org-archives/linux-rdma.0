@@ -1,39 +1,86 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] DAPL v2.0: scm: dat_psp_create returns wrong error code
- on bind/listen failure
-Date: Wed, 26 Oct 2011 21:11:00 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F916E885A9@ORSMSX101.amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags: clean up build
+Date: Wed, 26 Oct 2011 14:26:25 -0700
+Message-ID: <20111026142625.bf2c8ca1.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhlIFNDTSBwcm92aWRlciBjaGFuZ2VkIHRvIHJldHVybiBEQVRfSU5WQUxJRF9QQVJBTVRFUiBp
-bnN0ZWFkIG9mDQppbmNvcnJlY3QgREFUX0NPTk5fUVVBTF9VTkFWQUlMQUJMRSBlcnJvciBjb2Rl
-IG9uIGFueSBiaW5kIG9yDQpsaXN0ZW4gZmFpbHVyZS4NCg0KU2lnbmVkLW9mZi1ieTogQXJsaW4g
-RGF2aXMgPGFybGluLnIuZGF2aXNAaW50ZWwuY29tPg0KLS0tDQogZGFwbC9vcGVuaWJfc2NtL2Nt
-LmMgfCAgIDExICsrKysrKy0tLS0tDQogMSBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyks
-IDUgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9kYXBsL29wZW5pYl9zY20vY20uYyBiL2Rh
-cGwvb3BlbmliX3NjbS9jbS5jDQppbmRleCA5NjhkOWI5Li5iOWNiMWJjIDEwMDY0NA0KLS0tIGEv
-ZGFwbC9vcGVuaWJfc2NtL2NtLmMNCisrKyBiL2RhcGwvb3BlbmliX3NjbS9jbS5jDQpAQCAtOTkx
-LDEzICs5OTEsMTQgQEAgZGFwbGlfc29ja2V0X2xpc3RlbihEQVBMX0lBICogaWFfcHRyLCBEQVRf
-Q09OTl9RVUFMIHNlcnZpY2VJRCwgREFQTF9TUCAqIHNwX3B0cikNCiAJaWYgKChiaW5kKGNtX3B0
-ci0+c29ja2V0LCAoc3RydWN0IHNvY2thZGRyICopJmFkZHIsIHNpemVvZihhZGRyKSkgPCAwKQ0K
-IAkgICAgfHwgKGxpc3RlbihjbV9wdHItPnNvY2tldCwgMTI4KSA8IDApKSB7DQogCQlpbnQgZXJy
-ID0gZGFwbF9zb2NrZXRfZXJybm8oKTsNCi0JCWRhcGxfbG9nKERBUExfREJHX1RZUEVfQ00sDQot
-CQkJICIgbGlzdGVuOiBFUlJPUiAweCV4ICVzIG9uIHBvcnQgJWRcbiIsDQotCQkJIGVyciwgc3Ry
-ZXJyb3IoZXJyKSwgc2VydmljZUlEICsgMTAwMCk7DQogCQlpZiAoZXJyID09IEVBRERSSU5VU0Up
-DQogCQkJZGF0X3N0YXR1cyA9IERBVF9DT05OX1FVQUxfSU5fVVNFOw0KLQkJZWxzZQ0KLQkJCWRh
-dF9zdGF0dXMgPSBEQVRfQ09OTl9RVUFMX1VOQVZBSUxBQkxFOw0KKwkJZWxzZSB7DQorCQkJZGFw
-bF9sb2coREFQTF9EQkdfVFlQRV9XQVJOLA0KKwkJCQkgIiBsaXN0ZW46IEVSUk9SIDB4JXggJXMg
-b24gcG9ydCAlZFxuIiwNCisJCQkJIGVyciwgc3RyZXJyb3IoZXJyKSwgc2VydmljZUlEICsgMTAw
-MCk7DQorCQkJZGF0X3N0YXR1cyA9IERBVF9JTlZBTElEX1BBUkFNRVRFUjsNCisJCX0NCiAJCWdv
-dG8gYmFpbDsNCiAJfQ0KIA0KLS0gDQoxLjcuMw0KDQoNCg0K
+
+
+
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ Makefile.am  |    1 -
+ configure.in |   12 ------------
+ 2 files changed, 0 insertions(+), 13 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index d7e8ce7..ea85280 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -42,7 +42,6 @@ AM_CFLAGS = -Wall $(DBGFLAGS)
+ LDADD = libcommon.a
+ 
+ libcommon_a_SOURCES = src/ibdiag_common.c
+-libcommon_a_LDFLAGS = -libumad -libmad -losmcomp
+ src_ibaddr_SOURCES = src/ibaddr.c
+ src_ibnetdiscover_SOURCES = src/ibnetdiscover.c
+ src_ibnetdiscover_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
+diff --git a/configure.in b/configure.in
+index 59de9f1..41e3f53 100644
+--- a/configure.in
++++ b/configure.in
+@@ -10,12 +10,6 @@ AM_INIT_AUTOMAKE
+ AC_SUBST(RELEASE, ${RELEASE:-unknown})
+ AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
+ 
+-AC_ARG_ENABLE(libcheck, [  --disable-libcheck      do not test for presence of ib libraries],
+-[       if test x$enableval = xno ; then
+-                disable_libcheck=yes
+-        fi
+-])
+-
+ dnl support debug mode
+ AC_ARG_ENABLE(debug,
+ [  --enable-debug Turn on debug mode],
+@@ -30,8 +24,6 @@ dnl Checks for programs
+ AC_PROG_CC
+ AC_PROG_LIBTOOL
+ 
+-if test "$disable_libcheck" != "yes"
+-then
+ dnl Checks for libraries
+ AC_CHECK_LIB(ibumad, umad_init, [],
+ 	AC_MSG_ERROR([umad_init() not found. diags require libibumad.]))
+@@ -49,20 +41,16 @@ if test "$ac_have_umad_port_link_layer" = "yes"; then
+ fi
+ AC_CHECK_LIB(osmcomp, cl_qmap_insert, [],
+ 	AC_MSG_ERROR([cl_qmap_insert() not found. diags require libosmcomp.]))
+-fi
+ 
+ dnl Checks for header files.
+ AC_HEADER_STDC
+ AC_CHECK_HEADERS([stdlib.h string.h unistd.h fcntl.h inttypes.h netinet/in.h sys/ioctl.h])
+-if test "$disable_libcheck" != "yes"
+-then
+ AC_CHECK_HEADER(infiniband/umad.h, [],
+ 	AC_MSG_ERROR([<infiniband/umad.h> not found. diags require libibumad.])
+ )
+ AC_CHECK_HEADER(infiniband/mad.h, [],
+ 	AC_MSG_ERROR([<infiniband/mad.h> not found. diags require libibmad.])
+ )
+-fi
+ 
+ dnl Checks for library functions
+ AC_FUNC_ERROR_AT_LINE
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
