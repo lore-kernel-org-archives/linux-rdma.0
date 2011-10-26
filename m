@@ -1,54 +1,51 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: mlx4 missing completions (was Re: [PATCH-v2] ib_srpt: Initial SRP
- Target merge for v3.2-rc1)
-Date: Wed, 26 Oct 2011 20:05:14 +0200
-Message-ID: <CAO+b5-qs4PBrERtErfuYVZxhyshsxiFHOgzmFfbyomYZgYk47Q@mail.gmail.com>
-References: <CAL1RGDV7jhRexKowk9JLcVJhb832RX672Da8UQSPK82OHEsw7A@mail.gmail.com>
- <CAO+b5-oc9KQ5Uw+7RbY1Z6fqbK+x4Bnw8wCrLAaediaqHMPAhA@mail.gmail.com> <CAL1RGDX=B4=3wJuBN6st429xarYqdnGAnmZ=r-7zX=8pQ_RjTA@mail.gmail.com>
+Subject: Re: [PATCH 5/9] ib_srpt: Fix sport->port_guid formatting code
+Date: Wed, 26 Oct 2011 20:23:47 +0200
+Message-ID: <CAO+b5-qjOT2rqeLn=DJi5ogk+KTV8_Fi0tYwj4gECtcSNNhHRQ@mail.gmail.com>
+References: <1319434422-15354-1-git-send-email-nab@linux-iscsi.org>
+ <1319434422-15354-6-git-send-email-nab@linux-iscsi.org> <CAO+b5-pcNWgt1uxT2gH6KvDhdkkP1hbBbYnt81f-gHVr_UhdBg@mail.gmail.com>
+ <1319487952.17450.72.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDX=B4=3wJuBN6st429xarYqdnGAnmZ=r-7zX=8pQ_RjTA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1319487952.17450.72.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 26, 2011 at 12:04 AM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org=
-> wrote:
-> Sorry, but now I confused about what the bug is. =A0You have a QP
-> associated with an SRQ, and you transition the QP to error. =A0At som=
-e
-> point you get a "last WQE received" event for that QP (which means
-> all receive requests for that QP have completed), and you drain the
-> CQ after that, which means you are guaranteed to have processed
-> all the receive requests for that QP. =A0(At least this is how the ve=
-rbs
-> are supposed to work).
+On Mon, Oct 24, 2011 at 10:25 PM, Nicholas A. Bellinger
+<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
+> On Mon, 2011-10-24 at 21:57 +0200, Bart Van Assche wrote:
+>> On Mon, Oct 24, 2011 at 7:33 AM, Nicholas A. Bellinger
+>> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 snprintf(sport->port_guid, sizeof(sp=
+ort->port_guid),
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "0x0=
+000000000000000%016llx",
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 be64=
+_to_cpu(sport->gid.global.interface_id));
+>>
+>> If I interpret Roland's e-mail correctly Roland asked to use GID tab=
+le
+>> entry 0 (http://www.spinics.net/lists/linux-rdma/msg09751.html) ?
+>>
 >
-> I don't think there is any way to guarantee that every request posted
-> to the SRQ is taken by a QP. =A0You just have to make sure that you
-> tear down every QP as above, and then you know when there are
-> no more QPs associated to the SRQ that any receive requests that
-> haven't completed are still on the SRQ, and you can free their
-> resources after you destroy the SRQ.
+> I'll defer to Roland on this, as the port->gid.global.interface_id yo=
+u
+> recommended does exactly what we need. =A0I'm happy to test another c=
+ode
+> snippet if you have one handy.
 
-I've learned something since I posted the message at the start of this
-thread: all error completions are posted on the CQ but draining the CQ
-immediately after having received the last WQE event is not
-sufficient. The CQ polling loop has to remain active a little longer
-in order to receive all receive and send error completions. Issuing
-"rmmod ib_srpt" during I/O works now without delay for SVN trunk
-r3900.
+Something like this should generate GID 0 in ASCII format (not tested
+in any way, and using separators will help to make the output easier
+to read):
 
-I've had another look at the LIO version of ib_srpt and the way it
-handles completions should ensure that all error completions get
-processed (if any such completions are generated of course).
-
-Can I conclude from your reply that the "last WQE" event refers to the
-SRQ only and that it does not provide any information about the send
-queue associated with the same QP ?
+snprintf(sport->port_gid, sizeof(sport->port_gid),
+            "0x%016llx%016llx",
+             be64_to_cpu(sport->gid.global.subnet_prefix),
+             be64_to_cpu(sport->gid.global.interface_id));
 
 Bart.
 --
