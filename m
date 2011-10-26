@@ -1,41 +1,70 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: [PATCH] ib_srpt: Make srpt_map_sg_to_ib_sge() failure case return -EAGAIN
-Date: Wed, 26 Oct 2011 07:13:32 +0000
-Message-ID: <1319613212-8519-1-git-send-email-nab@linux-iscsi.org>
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Sender: linux-scsi-owner@vger.kernel.org
-Cc: target-devel <target-devel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Nicholas Bellinger <nab@linux-iscsi.org>, Bart Van Assche <bvanassche@acm.org>, Christoph Hellwig <hch@lst.de>, Roland Dreier <roland@purestorage.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Are there are problems using the CMA with IPv6?
+Date: Wed, 26 Oct 2011 14:04:47 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E82E4D@ORSMSX101.amr.corp.intel.com>
+References: <CALvMawp6xMcBF2Nxswq9WG-w=wXdTsM9Yk2PcWdL=e-s450YkA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CALvMawp6xMcBF2Nxswq9WG-w=wXdTsM9Yk2PcWdL=e-s450YkA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Nicholas Bellinger <nab@linux-iscsi.org>
+> Subject: Are there are problems using the CMA with IPv6?
 
-This patch makes the failure case in srpt_map_sg_to_ib_sge() for ib_dma_map_sg()
-return -EAGAIN so that this failure will trigger target-core QUEUE_FULL logic
-from srpt_xfer_data() for srpt_write_pending() WRITEs and srpt_queue_response()
-for READs.
+IPv6 should work fine.
 
-Reported-by: Bart Van Assche <bvanassche@acm.org>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Roland Dreier <roland@purestorage.com>
-Signed-off-by: Nicholas A. Bellinger <nab@linux-iscsi.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> I noticed the following code in the cmatose/rping examples:
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index f7174b3..7892efc 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1112,7 +1112,7 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 	count = ib_dma_map_sg(ch->sport->sdev->device, sg, sg_cnt,
- 			      opposite_dma_dir(dir));
- 	if (unlikely(!count))
--		return -EBUSY;
-+		return -EAGAIN;
- 
- 	ioctx->mapped_sg_count = count;
- 
--- 
-1.7.2.5
+but, I can't say whether all of the examples support ipv6.  I believe that they do.
 
+> <snip start>
+> static int get_addr(char *dst, struct sockaddr *addr)
+> {
+>         struct addrinfo *res;
+>         int ret;
+> 
+>         ret = getaddrinfo(dst, NULL, NULL, &res);
+>         if (ret) {
+>                 printf("getaddrinfo failed - invalid hostname or IP
+> address\n");
+>                 return ret;
+>         }
+> 
+>         if (res->ai_family == PF_INET)
+>                 memcpy(addr, res->ai_addr, sizeof(struct sockaddr_in));
+>         else if (res->ai_family == PF_INET6)
+>                 memcpy(addr, res->ai_addr, sizeof(struct sockaddr_in6));
+>         else
+>                 ret = -1;
+> 
+>         freeaddrinfo(res);
+>         return ret;
+> }
+> <snip end>
+> And it noticed that in case of IPv6 there might be overrun on the variable
+> addr,
+> since sizeof(struct sockaddr) is 16, and in case of IPv6 sizeof (struct
+> sockaddr_in6) is 28.
+
+It might overrun, but then the user shouldn't have set ai_family to AF_INET6.  struct sockaddr * should always point to a struct sockaddr_X of the correct size.  If ai_family is AF_INET6, then struct sockaddr * should point to struct sockaddr_in6.  struct sockaddr itself is never used beyond accessing the address family.  Btw, in theory, there's no guarantee that struct sockaddr and struct sockaddr_in are the same size.
+
+>  int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr);
+> 
+> which seems to only support IPv4.
+> 
+> Am i missing something?
+
+It may help to reference the man page for the socket bind call for the use of sockaddr.
+
+- Sean
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
