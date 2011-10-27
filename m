@@ -1,100 +1,72 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH 5/9] ib_srpt: Fix sport->port_guid formatting code
-Date: Wed, 26 Oct 2011 17:37:10 -0700
-Message-ID: <1319675830.21607.99.camel@haakon2.linux-iscsi.org>
-References: <1319434422-15354-1-git-send-email-nab@linux-iscsi.org>
-	 <1319434422-15354-6-git-send-email-nab@linux-iscsi.org>
-	 <CAO+b5-pcNWgt1uxT2gH6KvDhdkkP1hbBbYnt81f-gHVr_UhdBg@mail.gmail.com>
-	 <1319487952.17450.72.camel@haakon2.linux-iscsi.org>
-	 <CAO+b5-qjOT2rqeLn=DJi5ogk+KTV8_Fi0tYwj4gECtcSNNhHRQ@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: mlx4 missing completions (was Re: [PATCH-v2] ib_srpt: Initial SRP
+ Target merge for v3.2-rc1)
+Date: Thu, 27 Oct 2011 08:18:45 +0200
+Message-ID: <CAO+b5-qF10SsF1L4ba8pZQZbfLgKHuG1GuGqX++ZTj0btZKuZg@mail.gmail.com>
+References: <CAL1RGDV7jhRexKowk9JLcVJhb832RX672Da8UQSPK82OHEsw7A@mail.gmail.com>
+ <CAO+b5-oc9KQ5Uw+7RbY1Z6fqbK+x4Bnw8wCrLAaediaqHMPAhA@mail.gmail.com>
+ <CAL1RGDX=B4=3wJuBN6st429xarYqdnGAnmZ=r-7zX=8pQ_RjTA@mail.gmail.com>
+ <CAO+b5-qs4PBrERtErfuYVZxhyshsxiFHOgzmFfbyomYZgYk47Q@mail.gmail.com> <CAL1RGDUmbkCkNYQ_YQYZfNaXvRktG0KU1Pdp6f85UMgocbWrNw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-qjOT2rqeLn=DJi5ogk+KTV8_Fi0tYwj4gECtcSNNhHRQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAL1RGDUmbkCkNYQ_YQYZfNaXvRktG0KU1Pdp6f85UMgocbWrNw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2011-10-26 at 20:23 +0200, Bart Van Assche wrote:
-> On Mon, Oct 24, 2011 at 10:25 PM, Nicholas A. Bellinger
-> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> > On Mon, 2011-10-24 at 21:57 +0200, Bart Van Assche wrote:
-> >> On Mon, Oct 24, 2011 at 7:33 AM, Nicholas A. Bellinger
-> >> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> >> > +               snprintf(sport->port_guid, sizeof(sport->port_guid),
-> >> > +                               "0x0000000000000000%016llx",
-> >> > +                               be64_to_cpu(sport->gid.global.interface_id));
-> >>
-> >> If I interpret Roland's e-mail correctly Roland asked to use GID table
-> >> entry 0 (http://www.spinics.net/lists/linux-rdma/msg09751.html) ?
-> >>
-> >
-> > I'll defer to Roland on this, as the port->gid.global.interface_id you
-> > recommended does exactly what we need.  I'm happy to test another code
-> > snippet if you have one handy.
-> 
-> Something like this should generate GID 0 in ASCII format (not tested
-> in any way, and using separators will help to make the output easier
-> to read):
-> 
-> snprintf(sport->port_gid, sizeof(sport->port_gid),
->             "0x%016llx%016llx",
->              be64_to_cpu(sport->gid.global.subnet_prefix),
->              be64_to_cpu(sport->gid.global.interface_id));
-> 
+On Wed, Oct 26, 2011 at 10:06 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org=
+> wrote:
+> On Wed, Oct 26, 2011 at 11:05 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org=
+> wrote:
+> > Can I conclude from your reply that the "last WQE" event refers to =
+the
+> > SRQ only and that it does not provide any information about the sen=
+d
+> > queue associated with the same QP ?
+>
+> That is correct as I understand things. =A0The "last WQE" event was a=
+dded
+> to handle the fact that if you have a QP associated to an SRQ, you ca=
+n't
+> know how many receives have been taken from the SRQ and are in flight
+> on the receive queue. =A0The IB spec is a bit vague on what "last WQE=
+"
+> actually means but based on the background, I believe it means that t=
+he
+> last request on the receive queue has been processed, without saying
+> anything about the send queue.
 
-So adding the subnet_prefix here works as expected, and as previously
-mentioned I'm OK to change the /var/target/fabric/ib_srpt.spec
-formatting in rtslib for SRP target ports to accommodate this..
+Are you sure about this ? There is a paragraph in the InfiniBand
+Architecture Manual that can only be correct if "last WQE" refers to
+both SRQ and send queue and not to the SRQ only. It is mentioned in
+that manual that it is safe to reset the QP immediately after the last
+WQE event has been received. A quote:
 
-But the bit that now looks kinda odd with this change is that NodeACLs
-would still not be using the subnet_prefix.  Here's a bit of targetcli
-output to demonstrate:
+Note, for QPs that are associated with an SRQ, the Consumer should
+take the QP through the Error State before invoking a Destroy QP or a
+Modify QP to the Reset State. The Consumer may invoke the Destroy QP
+without first performing a Modify QP to the Error State and waiting
+for the Affiliated Asynchronous Last WQE Reached Event. However, if
+the Consumer does not wait for the Affiliated Asynchronous Last WQE
+Reached Event, then WQE and Data Segment leakage may occur. Therefore,
+it is good programming practice to tear down a QP that is associated
+with an SRQ by using the following process:
+=95 Put the QP in the Error State;
+=95 wait for the Affiliated Asynchronous Last WQE Reached Event;
+=95 either:
+=95 drain the CQ by invoking the Poll CQ verb and either wait for CQ to
+be empty or the number of Poll CQ operations has exceeded CQ capacity
+size; or
+=95 post another WR that completes on the same CQ and wait for this WR
+to return as a WC;
+=95 and then invoke a Destroy QP or Reset QP.
 
-/ib_srpt> info
-Fabric module name: ib_srpt
-ConfigFS path: /sys/kernel/config/target/srpt
-Allowed WWNs list (free type): 0xfe800000000000000002c903000e8ace, 0xfe800000000000000002c903000e8acd
-Fabric module specfile: /var/target/fabric/ib_srpt.spec
-Fabric module features: acls
-Corresponding kernel module: ib_srpt
-/ib_srpt> ls
-o- ib_srpt ......................................................... [2 Targets]
-  o- 0xfe800000000000000002c903000e8acd .............................. [enabled]
-  | o- acls ............................................................ [1 ACL]
-  | | o- 0x00000000000000000002c903000e8be9 .................... [1 Mapped LUNs]
-  | |   o- mapped_lun0 ............................................. [lun0 (rw)]
-  | o- luns ........................................................... [1 LUNs]
-  |   o- lun0 ................................... [iblock/scsi_debug (/dev/sdb)]
-  o- 0xfe800000000000000002c903000e8ace .............................. [enabled]
-    o- acls ............................................................ [1 ACL]
-    | o- 0x00000000000000000002c903000e8bea .................... [1 Mapped LUNs]
-    |   o- mapped_lun0 ............................................. [lun0 (rw)]
-    o- luns ........................................................... [1 LUNs]
-      o- lun0 .................................. [iblock/scsi_debug2 (/dev/sdc)]
-/ib_srpt> 
-
-So I don't see an easy way to get subnet_prefix for the incoming
-initiator port in srpt_cm_req_recv(), as what's being passed in from
-srp_login_req->initiator_port_id seems to have subnet_prefix already
-stripped off..?
-
-So the two question here for Roland and yourself are:  Is using a real
-subnet prefix for target ports, but not the explict NodeACLs for
-initiator ports acceptable for an initial merge..?  If not, how is it
-possible to obtain the remote initiator port's subnet_prefix during
-login in srpt_cm_req_recv() so we can keep subnet_prefix usage
-consistent between target ports and explict NodeACL initiator ports
-in /sys/kernel/config/target/srpt/
-
-Thank you,
-.
---nab
-
-
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
