@@ -1,33 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: REQ GID enforcement in the CM
-Date: Thu, 27 Oct 2011 10:55:22 -0600
-Message-ID: <20111027165522.GA16878@obsidianresearch.com>
-References: <4EA9672F.2010601@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_link_mgr.c: Remove no longer needed memset
+Date: Thu, 27 Oct 2011 12:55:51 -0400
+Message-ID: <4EA98D17.6090006@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4EA9672F.2010601-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leonid Keller <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Stan Smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 27, 2011 at 04:14:07PM +0200, Or Gerlitz wrote:
 
-> Looking on that case, I noted that the CM code (SB) checks that the
-> GID in the incoming REQ is present in at least of one the ports of
-> the relevant device, but not specifically on the port this request
-> arrived to, is that following IBTA? I thought it could be
-> problematic e.g in the case of RC QP being set by this
-> establishment, later the RC packets would be dropped by the device
-> if they have GRH and the GID isn't on that port table, isn't that?
+Since PortInfo attribute is now IB_SMP_DATA_SIZE (64 bytes),
+there is no remaining space at the end of the attribute as
+it now fills the entire SMP data size.
 
-You can use the CM to establish a connection on another port, eg send
-CM GMPs to port 1, specify the primary data path is port 2 and specify
-the alternate data path is port 1.
+Found-by: Leonid Keller <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
-Jason
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_link_mgr.c b/opensm/osm_link_mgr.c
+index aaefa78..e834d16 100644
+--- a/opensm/osm_link_mgr.c
++++ b/opensm/osm_link_mgr.c
+@@ -157,8 +157,6 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 	}
+ 
+ 	memcpy(payload, p_old_pi, sizeof(ib_port_info_t));
+-	memset(payload + sizeof(ib_port_info_t), 0,
+-	       IB_SMP_DATA_SIZE - sizeof(ib_port_info_t));
+ 
+ 	/*
+ 	   Should never write back a value that is bigger then 3 in
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
