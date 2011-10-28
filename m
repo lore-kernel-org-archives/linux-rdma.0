@@ -1,30 +1,35 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cxgb4: Mark the QP in error before disabling the
- Q in the firmware
-Date: Fri, 28 Oct 2011 08:56:29 -0500
-Message-ID: <4EAAB48D.1000100@opengridcomputing.com>
-References: <1319540910-443-1-git-send-email-kumaras@chelsio.com>
+Subject: Re: [PATCH 1/2] RDMA/cxgb4: Serialize calls to cq's comp_handler
+ by lock
+Date: Fri, 28 Oct 2011 08:57:17 -0500
+Message-ID: <4EAAB4BD.5070201@opengridcomputing.com>
+References: <1319471422-30113-1-git-send-email-kumaras@chelsio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1319540910-443-1-git-send-email-kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1319471422-30113-1-git-send-email-kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, tom-/Yg/VP3ZvrM@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/25/2011 06:08 AM, Kumar Sanghvi wrote:
-> From: Tom Tucker<tom-/Yg/VP3ZvrM@public.gmane.org>
+On 10/24/2011 10:50 AM, Kumar Sanghvi wrote:
+> Commit 01e7da6ba53ca4d6189a1eae45607c0331c871f2 introduced a potential
+> problem wherein the cq's comp_handler can get called simultaneously from
+> different places in iw_cxgb4 driver. This does not comply with
+> Documentation/infiniband/core_locking.txt, which states that at a given
+> point of time, there should be only one callback per CQ should be active.
 >
-> The QP needs to be moved to error before telling the firwmare
-> to shutdown the queue. Otherwise, the application can submit
-> WR that will never get fetched by the hardware and never
-> flushed by the driver.
+> This problem was reported by Parav Pandit<Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>.
+> Based on discussion between Parav Pandit and Steve Wise, this patch
+> aims to correct above problem by serializing the calls to cq's comp_handler
+> using a spin_lock.
 >
+> Reported-by: Parav Pandit<Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Kumar Sanghvi<kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 
-Acked-by: Steve Wise <swsie-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
