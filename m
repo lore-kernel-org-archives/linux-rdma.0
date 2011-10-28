@@ -1,25 +1,22 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: ip address print changes
-Date: Fri, 28 Oct 2011 10:49:44 -0700
-Message-ID: <CAL1RGDWnY5184vOfTUdaNWpfbsMmg6v6dk=fXFNHv5bEX4i+8g@mail.gmail.com>
-References: <20111027161058.GA1092@FLATIF-MOBL4>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH V2 02/10] cxgb4: Common platform specific changes for DB
+ Drop Recovery
+Date: Fri, 28 Oct 2011 10:59:47 -0700
+Message-ID: <CAL1RGDXoeJNYz3R58bU-ixRyY1uKNgGPdUrWZ4nbcuyRDjL6Cg@mail.gmail.com>
+References: <1319130620-9240-1-git-send-email-vipul@chelsio.com> <8A71B368A89016469F72CD08050AD3340A3D3120@maui.asicdesigners.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111027161058.GA1092@FLATIF-MOBL4>
+In-Reply-To: <8A71B368A89016469F72CD08050AD3340A3D3120-utt48SW1nMZEErodcbzraFjMPmZJtkid@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felix Marti <felix-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dimitrios Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Kumar A S <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 27, 2011 at 9:10 AM, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Fix printing of ip addresses to use %pI4.
+On Thu, Oct 20, 2011 at 10:18 AM, Felix Marti <felix-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> wrote:
+> Don't add stuff to the t4fw_interface.h, that is owned by firmware.
 
-Thanks, looks fine, I'll apply this.
-
-But looking at this patch makes me wonder why nes ever stores IPv4
-addresses in host order?  Couldn't a ton of swapping be eliminated
-by just making eg cm_node->rem_addr etc. be in network order?
+Vipul, do you plan to respin to handle Felix's comment?
 
  - R.
 --
