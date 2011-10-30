@@ -1,27 +1,28 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH V2 02/10] cxgb4: Common platform specific changes for DB
- Drop Recovery
-Date: Fri, 28 Oct 2011 11:28:21 -0700
-Message-ID: <CAL1RGDVQJUb2sM+Yo1sYVO5o-GhyBCOGo3_Q0U7YkR0GAoFgfg@mail.gmail.com>
-References: <1319130620-9240-1-git-send-email-vipul@chelsio.com>
- <8A71B368A89016469F72CD08050AD3340A3D3120@maui.asicdesigners.com>
- <CAL1RGDXoeJNYz3R58bU-ixRyY1uKNgGPdUrWZ4nbcuyRDjL6Cg@mail.gmail.com> <20111028182234.GA11554@kumars-PC.asicdesigners.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: REQ GID enforcement in the CM
+Date: Sun, 30 Oct 2011 12:14:50 +0200
+Message-ID: <4EAD239A.2050702@mellanox.com>
+References: <4EA9672F.2010601@mellanox.com> <20111027165522.GA16878@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111028182234.GA11554-ZuiPNEE88OINxtijsoNbcrBI9BrxbZE7QQ4Iyu8u01E@public.gmane.org>
+In-Reply-To: <20111027165522.GA16878-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: Felix Marti <felix-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dimitrios Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Vipul did a respin of this patch, and posted the V3 version.
-> Its available here:
-> http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg09659.html
+On 10/27/2011 6:55 PM, Jason Gunthorpe wrote:
+> You can use the CM to establish a connection on another port, eg send 
+> CM GMPs to port 1, specify the primary data path is port 2 and specify 
+> the alternate data path is port 1. Jason 
 
-Got it, thanks.
+makes sense, still, maybe the code here could/should be made more strict 
+here for
+the case of a REQ sent with primary path only, agree?
 
- - R.
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
