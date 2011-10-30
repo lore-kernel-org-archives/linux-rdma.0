@@ -1,42 +1,34 @@
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] rdma/cma: minor code refactoring when saving a string content
-Date: Sun, 30 Oct 2011 13:48:04 +0200
-Message-ID: <201110301348.05062.dotanb@sw.voltaire.com>
+From: Vlad Weinbaum <vlad.weinbaum-adSD+vzF2QdBDgjK7y7TUQ@public.gmane.org>
+Subject: cq error timeout issue
+Date: Sun, 30 Oct 2011 14:51:09 +0200
+Message-ID: <CAFAcbYPXqcOc79fcWHK7iHkfEX0ecmg4CBSUgUk=C=xiScSRRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In this case, using strdup will provide a cleaner code
-(and maybe a little bit faster too).
+Hi,
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
+I try to use ibv_poll_cq to identify connectivity problems. The
+scenario is following, based on modified rping example:
 
- src/addrinfo.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+1) preliminary steps done and rdma connection established between
+Client and Server, retry_count in rdma_conn_param is set 1;
+2) Server lost its link (corresponding switch port disabled), Client
+is still connected to the switch;
+3) Client calls ibv_post_send
+4) Client polls cq with ibv_poll_cq and gets expected
+IBV_WC_RETRY_EXC_ERR after about 1 second.
 
-diff --git a/src/addrinfo.c b/src/addrinfo.c
-index 695430b..34c7fb4 100755
---- a/src/addrinfo.c
-+++ b/src/addrinfo.c
-@@ -137,9 +137,7 @@ static int ucma_convert_to_rai(struct rdma_addrinfo *rai,
- 	if (!addr)
- 		return ERR(ENOMEM);
- 
--	canonname = ai->ai_canonname ? malloc(strlen(ai->ai_canonname) + 1) : NULL;
--	if (canonname)
--		strcpy(canonname, ai->ai_canonname);
-+	canonname = ai->ai_canonname ? strdup(ai->ai_canonname) : NULL;
- 
- 	memcpy(addr, ai->ai_addr, ai->ai_addrlen);
- 	if (ai->ai_flags & RAI_PASSIVE) {
+Can this timeout be decreased? If it is impossible, can you suggest
+something else?
+
+Used software is Ofed-1.5.3.1, IB device is Mellanox MT26428.
+
+Thanks,
+Vlad
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
