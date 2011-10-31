@@ -1,62 +1,37 @@
-From: Vlad Weinbaum <vlad.weinbaum-adSD+vzF2QdBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: cq error timeout issue
-Date: Mon, 31 Oct 2011 09:08:00 +0200
-Message-ID: <CAFAcbYNJFH0n=gFwki0uLUzDd6cu7MxuHR99x9i9wUY3xp+Hdg@mail.gmail.com>
-References: <CAFAcbYPXqcOc79fcWHK7iHkfEX0ecmg4CBSUgUk=C=xiScSRRw@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237316E8B236@ORSMSX101.amr.corp.intel.com>
+From: James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
+Subject: Re: srp_transport: Fix atttribute registration race
+Date: Mon, 31 Oct 2011 13:33:28 +0400
+Message-ID: <1320053608.8283.29.camel@dabdike>
+References: <201110211857.23622.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E8B236-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <201110211857.23622.bvanassche-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Fujita Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thank you Sean,
+On Fri, 2011-10-21 at 18:57 +0200, Bart Van Assche wrote: 
+> Register transport attributes after the attribute array has been
+> set up instead of before. The current code is racy because there
+> is no guarantee that the CPU examining the attribute container
+> will see all values written to the container.
 
-I have an access to OpenSM configuration on the switch in my testing
-environment. I tried to reduce the timout there (subnet_timeout,
-packet_life_time), but unsuccessfully.
-Btw, I found detail that I cannot explain. I query the QP after
-connect and get timeout value 16, that must be 4 us * 2^ 16 =3D 256 ms,
-but I get about 800 ms.
+I don't agree with this change log.  As far as the kernel is concerned,
+nothing happens until that function returns because the only way to use
+anything is to get a match to succeed, and they all check for
+->transportt which will be NULL.
 
-Thanks,
-Vlad
+I can accept that it's best practise to initialise something before
+registering it, because the reverse excites everyone's bogosity sensors,
+it's just not a bug in this case.
 
-On Mon, Oct 31, 2011 at 8:51 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wro=
-te:
->> I try to use ibv_poll_cq to identify connectivity problems. The
->> scenario is following, based on modified rping example:
->>
->> 1) preliminary steps done and rdma connection established between
->> Client and Server, retry_count in rdma_conn_param is set 1;
->> 2) Server lost its link (corresponding switch port disabled), Client
->> is still connected to the switch;
->> 3) Client calls ibv_post_send
->> 4) Client polls cq with ibv_poll_cq and gets expected
->> IBV_WC_RETRY_EXC_ERR after about 1 second.
->>
->> Can this timeout be decreased? If it is impossible, can you suggest
->> something else?
->
-> I don't believe easily. =A0The timeout is based on the path record re=
-turned by the SM, which is really what an app should use. =A0If you can=
- adjust the timeout at the SM, that would be best.
->
-> If you can use a newer kernel, another alternative is to use rdma_set=
-_option to provide your own path record as input in place of calling rd=
-ma_resolve_route.
->
-> Btw, with a small timeout and few retries, if you're not using QoS, y=
-ou may want to enable that to prevent false timeouts.
->
-> - Sean
->
+James
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
