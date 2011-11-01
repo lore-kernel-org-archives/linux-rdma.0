@@ -1,72 +1,54 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/5] ib/core: add support for extended performance
- counters in sysfs
-Date: Tue, 1 Nov 2011 08:40:12 +0200
-Message-ID: <CAJZOPZ+K3u+u5XutGfBhKh3DaBpNRKV_bw67CLK6jy3060OHqA@mail.gmail.com>
-References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com>
-	<alpine.LRH.2.00.1110101055570.11243@ogerlitz.voltaire.com>
-	<CAL1RGDXdkiZNtAsnqDtgbCJGLXLFvk8s-YA5mR189kmg6FkabQ@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH][TRIVIAL] opensm: Fix typo in routing section in man page
+ and doc
+Date: Tue, 01 Nov 2011 08:37:55 -0400
+Message-ID: <4EAFE823.1000100@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXdkiZNtAsnqDtgbCJGLXLFvk8s-YA5mR189kmg6FkabQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 31, 2011 at 9:38 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrot=
-e:
 
-> Sorry for the late review here
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ doc/current-routing.txt |    2 +-
+ man/opensm.8.in         |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Oh yes... BTW this is patch 4/5, I don't see patches 1,2,3 on your for-=
-next
-tree/branch @ kernel.org, have you accepted them?
+diff --git a/doc/current-routing.txt b/doc/current-routing.txt
+index f97bc3f..ae2c65f 100644
+--- a/doc/current-routing.txt
++++ b/doc/current-routing.txt
+@@ -69,7 +69,7 @@ a decision is made as to what port should be used to get to that LID.
+    This step is common to standard and Up/Down routing. Each port has a
+ counter counting the number of target LIDs going through it.
+    When there are multiple alternative ports with same MinHop to a LID,
+-the one with less previously assigned ports is selected.
++the one with less previously assigned LIDs is selected.
+    If LMC > 0, more checks are added: Within each group of LIDs assigned to
+ same target port,
+    a. use only ports which have same MinHop
+diff --git a/man/opensm.8.in b/man/opensm.8.in
+index 042bee3..029e3b8 100644
+--- a/man/opensm.8.in
++++ b/man/opensm.8.in
+@@ -756,7 +756,7 @@ decision is made as to what port should be used to get to that LID.
+    This step is common to standard and Up/Down routing. Each port has a
+ counter counting the number of target LIDs going through it.
+    When there are multiple alternative ports with same MinHop to a LID,
+-the one with less previously assigned ports is selected.
++the one with less previously assigned LIDs is selected.
+    If LMC > 0, more checks are added: Within each group of LIDs assigned to
+ same target port,
+    a. use only ports which have same MinHop
+-- 
+1.7.6.1
 
-
-> Sorry for the late review here, but does it seem like the best
-> approach to have a separate "counters_ext" directory for
-> some subset of performance counters? =A0Instead we could
-> have two attribute_groups, one the basic counters and one
-> the basic and extended counters, and basically do
->
-> =A0 =A0 =A0 =A0if (is_pma_class_cap_ext_width(device, port_num) =3D=3D=
- 0)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0sysfs_create_group(...basic and extend=
-ed counters...)
-> =A0 =A0 =A0 else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0sysfs_create_group(...basic counters..=
-=2E)
-
-Basically, I don't see a problem to have one directory along the lines
-of your suggestion
-
-> Or is there some reason why users would want to make the
-> distinction between basic and extended counters?
-
-Today, e.g in some IBoE perf monitoring scripts we wrote, the
-distinction is done by if (the ext counter directory exists) then go
-and read the counters from there, else read from the non extended
-counters directory. With the change you propose, that if (.) would
-become a little less elegant and would check if this or that --file--
-exists (e.g the 64 bit tx data counter) and if yes, would read the
-four 64 bit counters (rx/tx packets/data) else the four 32 bits
-counters, so from our user standpoint, diff dirs seems better, but we
-can get along with same dir with diff contents depending on the
-device.
-
-> (by the way, is_pma_class_cap_ext_width() seems backwards
-> since it returns 0 for true. =A0How about bool pma_has_ext_width()
-> and have it return true if the extended counters ARE supported?)
-
-sure, I will be able to handle this little change Wed, but we should
-be okay / enough time for the  current merge window, correct?
-
-Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
