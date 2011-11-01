@@ -1,8 +1,8 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH 4/5] ib/core: add support for extended performance
  counters in sysfs
-Date: Tue, 1 Nov 2011 15:52:00 -0600
-Message-ID: <20111101215200.GN26974@obsidianresearch.com>
+Date: Tue, 1 Nov 2011 15:58:43 -0600
+Message-ID: <20111101215843.GO26974@obsidianresearch.com>
 References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com>
  <alpine.LRH.2.00.1110101055570.11243@ogerlitz.voltaire.com>
  <CAL1RGDXdkiZNtAsnqDtgbCJGLXLFvk8s-YA5mR189kmg6FkabQ@mail.gmail.com>
@@ -12,41 +12,58 @@ References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com>
  <20111101173625.GH26974@obsidianresearch.com>
  <CAJZOPZJCY5ehTGw8htsxw0dJgMXJJAS-=LGJde9ddcMsmhqvMg@mail.gmail.com>
  <20111101183730.GI26974@obsidianresearch.com>
- <CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com>
+ <CAJZOPZ+zmwTdHva5C7k0QhBmEzxSGTa1Ajszz3eSH=WpP3A4fg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com>
+In-Reply-To: <CAJZOPZ+zmwTdHva5C7k0QhBmEzxSGTa1Ajszz3eSH=WpP3A4fg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 01, 2011 at 02:42:33PM -0700, Roland Dreier wrote:
+On Tue, Nov 01, 2011 at 11:46:08PM +0200, Or Gerlitz wrote:
 
-> I agree that it definitely is more appealing, if we have a 64-bit
-> version of a counter, that we should just export that counter
-> where we used to export the 32-bit version.
+> > In the same vien adding saturating but non-resettable PMA-esque
+> > counters for IBoE seems pretty hackish to me.. Though I agree it is
+> > not terribly relevant for 64 bit counters.
+ 
+> To put things in place, the IB stack PMA counters aren't resettable
+> through sysfs, still, under IB, the same counter set is readable
+> through both mads and sysfs and resettable through mads.
 
-I think this falls under the 'undocumented, beware' API design.  This
-interface isn't specified so exactly as to have set out how many bytes
-are in the files and how many bits are in the numbers.
+Right, the sysfs interface is pretty much unusable for IB. Your work
+to make it go on IBoE makes something is very nearly usuable, but you
+can't write a tool that collects these counters from a port in IBoE
+mode and also expect it to work in IB mode because the semantics are
+different.
 
-If you wrote a reader that can't handle a 20 byte integer with leading
-zeros then your user space isn't following the API.
+My argument here is that the semantics we have for the IB case are not
+useful. Let us define sane semantics for the IBoE case and have a
+longer term clean up to make the IB case follow them as well.
 
-If your reader doesn't elegantly handle overflow to whatever type your
-reader picked, then you aren't following the API.
+Sane semantics for a sysfs counter are:
+  - Free-running
+  - Non-saturating
+  - No reset
+  - 64 or 32 bit value, detectable by user-space
 
-There are many examples of the kernel tweaking APIs along this
-undocumented axis, and theoritically the text-free-form nature of
-sysfs is supposed to save us from having to worry about exactly this
-sort of case.
+No 6 bit counters. No counters that saturate. No counters that
+randomly reset.
 
-And again, this is a useless interface in IB. IBoE is going to be
-first real, serious, long term user, let's make it saner instead of
-keeping it as is forever?
+To this end, I think exporting 64 bit and 32 bit counts of the same
+value is not the way to go.
+
+> As for the saturation thing, I didn't think about that, but you're
+> probably right and all the IBA PMA counters are saturating, but as
+> your comment said, the 64 bit case is practically okay
+
+Will any counters that get exposed when IBoE is turned on not be 64
+bits? There are not very many 64 bit PMA counters.
+
+If yes, maybe you should patch to un-export them until things can be
+fixed sanely...
 
 Jason
 --
