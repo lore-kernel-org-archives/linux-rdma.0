@@ -1,34 +1,33 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 4/5] ib/core: add support for extended performance counters
- in sysfs
-Date: Wed, 2 Nov 2011 19:16:41 +0200
-Message-ID: <4EB17AF9.3000608@mellanox.com>
-References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com> <alpine.LRH.2.00.1110101055570.11243@ogerlitz.voltaire.com> <CAL1RGDXdkiZNtAsnqDtgbCJGLXLFvk8s-YA5mR189kmg6FkabQ@mail.gmail.com> <CAJZOPZ+K3u+u5XutGfBhKh3DaBpNRKV_bw67CLK6jy3060OHqA@mail.gmail.com> <20111101162218.GA10710@obsidianresearch.com> <CAJZOPZLXZL=vEDdXE3rE5Jzw840SrdY=73M7QgKSNzOysRE6MQ@mail.gmail.com> <20111101173625.GH26974@obsidianresearch.com> <CAJZOPZJCY5ehTGw8htsxw0dJgMXJJAS-=LGJde9ddcMsmhqvMg@mail.gmail.com> <20111101183730.GI26974@obsidianresearch.com> <CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] DAPL v2.0: common: remote ia address null pointer creates
+ seg fault
+Date: Wed, 2 Nov 2011 21:34:27 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F916E930EF@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/1/2011 11:42 PM, Roland Dreier wrote:
-> The least bad way forward does seem like it is probably the separate 
-> new directory thing
-
-Hi Roland,
-
-I suggest we go that least bad way along the lines of your comment.
-
-If/when on some future point something constructive can be formed from 
-Jason's observations, changes will follow, agree?
-
-
-
-Or.
-
+YWRkIE5VTEwgcHRyIGNoZWNrIGFuZCByZXR1cm4gREFUX0lOVkFMSURfUEFSQU1FVEVSLCBEQVRf
+SU5WQUxJRF9BUkcyDQoNClNpZ25lZC1vZmYtYnk6IEFybGluIERhdmlzIDxhcmxpbi5yLmRhdmlz
+QGludGVsLmNvbT4NCi0tLQ0KIGRhcGwvY29tbW9uL2RhcGxfZXBfY29ubmVjdC5jIHwgICAgNSAr
+KysrKw0KIDEgZmlsZXMgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQ0K
+DQpkaWZmIC0tZ2l0IGEvZGFwbC9jb21tb24vZGFwbF9lcF9jb25uZWN0LmMgYi9kYXBsL2NvbW1v
+bi9kYXBsX2VwX2Nvbm5lY3QuYw0KaW5kZXggODBhZmVhZC4uNTkwZDBlZCAxMDA3NTUNCi0tLSBh
+L2RhcGwvY29tbW9uL2RhcGxfZXBfY29ubmVjdC5jDQorKysgYi9kYXBsL2NvbW1vbi9kYXBsX2Vw
+X2Nvbm5lY3QuYw0KQEAgLTgxLDYgKzgxLDExIEBAIGRhcGxfZXBfY29ubmVjdChJTiBEQVRfRVBf
+SEFORExFIGVwX2hhbmRsZSwNCiAJREFUX0NPVU5UIHJlcV9oZHJfc2l6ZTsNCiAJdm9pZCAqcHJp
+dmF0ZV9kYXRhX3B0cjsNCiANCisJaWYgKHJlbW90ZV9pYV9hZGRyZXNzID09IE5VTEwpIHsNCisJ
+CWRhdF9zdGF0dXMgPSBEQVRfRVJST1IoREFUX0lOVkFMSURfUEFSQU1FVEVSLCBEQVRfSU5WQUxJ
+RF9BUkcyKTsNCisJCWdvdG8gYmFpbDsNCisJfQ0KKw0KIAlkYXBsX2RiZ19sb2coREFQTF9EQkdf
+VFlQRV9BUEkgfCBEQVBMX0RCR19UWVBFX0NNLA0KIAkJICAgICAiZGFwbF9lcF9jb25uZWN0ICgl
+cCwgeyV1LiV1LiV1LiV1fSwgJVgsICVkLCAlZCwgJXAsICV4LCAleClcbiIsDQogCQkgICAgIGVw
+X2hhbmRsZSwNCi0tIA0KMS43LjMNCg0KDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
