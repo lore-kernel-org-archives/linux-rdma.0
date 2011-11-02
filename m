@@ -1,25 +1,24 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osmtest/osmtest.c: inventory file parsing bugfix
-Date: Wed, 2 Nov 2011 15:55:53 +0200
-Message-ID: <20111102135553.GA2710@calypso.mtl.com>
-References: <20111102123518.GA3118@UBU02>
+Subject: Re: [PATCH][TRIVIAL] opensm: Fix typo in routing section in man page
+ and doc
+Date: Wed, 2 Nov 2011 15:56:56 +0200
+Message-ID: <20111102135656.GB2710@calypso.mtl.com>
+References: <4EAFE823.1000100@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20111102123518.GA3118@UBU02>
+In-Reply-To: <4EAFE823.1000100-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Daniel,
+Hi Hal,
 
-On 14:35 Wed 02 Nov     , Daniel Klein wrote:
-> Parsing of 'mkey' field from inventory file fails due to precedences.
-> Instead of parsing 'mkey' field, it parsed 'mkey_violations'.
+On 08:37 Tue 01 Nov     , Hal Rosenstock wrote:
 > 
-> Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
 
 Applied, thanks.
