@@ -1,39 +1,30 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] RDMA/cm: check that idr_pre_get didn't fail and clean
- it in error flow
-Date: Thu, 3 Nov 2011 13:52:07 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E8CCD4@ORSMSX101.amr.corp.intel.com>
-References: <201111031519.48018.dotanb@sw.voltaire.com>
+From: Kelly Burkhart <kelly.burkhart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: rdma_cm UD sendto without connect
+Date: Thu, 3 Nov 2011 10:20:08 -0500
+Message-ID: <CAND8VyAYHTg3T2rMmPPMMjXbkN4dZJSDukXhQZFJnVYT2fW+1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201111031519.48018.dotanb-g2bIKuvJtcQanlnWow0HJg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> The function idr_pre_get may fail, so there is a need to check the status of
-> it. Since this function allocate resources, we need to clean them during the
-> resource cleaning in case of error.
+Is it possible to send/recv datagrams with no previous connection
+similar to UDP sendto/recvfrom?  UD examples I've seen are connection
+oriented and listen/connect/accept, establishing a connection prior to
+conversing.
 
-We should add the cleanup code below, but I don't think we care if idr_pre_get fails here.  We'll just try again later.
+It appears that in order to do what I want, I need an ibv_ah to put in
+the send wr.  But how do I create one of these from an IP address/port
+without doing an rdma_connect and waiting for
+RDMA_CM_EVENT_ESTABLISHED?
 
-> -error2:
-> +error3:
->  	destroy_workqueue(cm.wq);
-> -error1:
-> +error2:
->  	class_unregister(&cm_class);
-> +error1:
-> +	idr_destroy(&cm.local_id_table);
->  	return ret;
->  }
-> 
+>From the receiving side, it looks like I can construct an ah from the
+wc.  Is that a low-cost operation?
 
-- Sean
+Thanks,
+
+-Kelly
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
