@@ -1,81 +1,36 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: [GIT PULL] ib_srpt: Initial SRP Target merge for v3.2-rc1
-Date: Fri, 04 Nov 2011 13:10:52 -0700
-Message-ID: <1320437452.5859.96.camel@haakon2.linux-iscsi.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [GIT PULL] ib_srpt: Initial SRP Target merge for v3.2-rc1
+Date: Fri, 4 Nov 2011 13:27:28 -0700
+Message-ID: <CAL1RGDXLOXwJJcPXf8z_QAPAcNR6LywYX4OZk-48g24=NqStHQ@mail.gmail.com>
+References: <1320437452.5859.96.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-Sender: target-devel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Christoph Hellwig <hch@lst.de>, Bart Van Assche <bart.vanassche@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1320437452.5859.96.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+On Fri, Nov 4, 2011 at 1:10 PM, Nicholas A. Bellinger
+<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
+> At this point should we should have a stable userspace API for the
+> layout of /sys/kernel/config/target/srpt/, and a number of legacy mod=
+ule
+> parameters have been removed or converted into per endpoint attribute=
+s
+> as per Roland's feedback. =A0This code has been getting build testing=
+ in
+> next the past week, and does not touch any external code.
 
-This is the PULL request for an initial merge of the ib_srpt driver
-using mainline target infrastructure into v3.2-rc1.  Please go ahead and
-pull from:
+Given the confidence that the userspace ABI is stable,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nab/target-pending.git for-next-merge
+Acked-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-Note that 'target: Updates for v3.2-rc1 (round two)' should be pulled
-first via target-pending.git/for-next, and has gone out in a separate
-PULL request. 
-
-At this point should we should have a stable userspace API for the
-layout of /sys/kernel/config/target/srpt/, and a number of legacy module
-parameters have been removed or converted into per endpoint attributes
-as per Roland's feedback.  This code has been getting build testing in
-next the past week, and does not touch any external code.
-
-There is an known issue with active I/O shutdown is currently being
-addressed using the new generic active I/O shutdown bits in for-next,
-and will be sent out post merge after more testing and feedback.  I also
-see a few patches from DanC this morning to address a handful of non
-critical issues that will be included post merge as well.
-
-Here are full set of review changes from Roland and Bart that have been
-made:
-
-v1 -> v2 review changes:
-
-ib_srpt: Fix potential out-of-bounds array access
-ib_srpt: Avoid failed multipart RDMA transfers
-ib_srpt: Fix srpt_alloc_fabric_acl failure case return value
-ib_srpt: Update comments to reference $driver/$port layout
-ib_srpt: Fix sport->port_guid formatting code
-ib_srpt: Remove legacy use_port_guid_in_session_name module parameter
-ib_srpt: Convert srp_max_rdma_size into per port configfs attribute
-ib_srpt: Convert srp_max_rsp_size into per port configfs attribute
-ib_srpt: Convert srpt_sq_size into per port configfs attribute
-
-v2 -> v3 review changes:
-
-ib_srpt: Fix possible race with srp_sq_size in srpt_create_ch_ib
-ib_srpt: Fix possible race with srp_max_rsp_size in srpt_release_channel_work
-ib_srpt: Fix up MAX_SRPT_RDMA_SIZE define
-ib_srpt: Make srpt_map_sg_to_ib_sge() failure case return -EAGAIN
-ib_srpt: Convert port_guid to use subnet_prefix + interface_id formatting
-ib_srpt: Make srpt_check_stop_free return kref_put status
-
-Thanks!
-
---nab
-
-Bart Van Assche (1):
-  ib_srpt: Initial SRP Target merge for v3.2-rc1
-
- drivers/infiniband/Kconfig              |    1 +
- drivers/infiniband/Makefile             |    1 +
- drivers/infiniband/ulp/srpt/Kconfig     |   12 +
- drivers/infiniband/ulp/srpt/Makefile    |    2 +
- drivers/infiniband/ulp/srpt/ib_dm_mad.h |  139 ++
- drivers/infiniband/ulp/srpt/ib_srpt.c   | 4081 +++++++++++++++++++++++++++++++
- drivers/infiniband/ulp/srpt/ib_srpt.h   |  444 ++++
- 7 files changed, 4680 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/ulp/srpt/Kconfig
- create mode 100644 drivers/infiniband/ulp/srpt/Makefile
- create mode 100644 drivers/infiniband/ulp/srpt/ib_dm_mad.h
- create mode 100644 drivers/infiniband/ulp/srpt/ib_srpt.c
- create mode 100644 drivers/infiniband/ulp/srpt/ib_srpt.h
+ - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
