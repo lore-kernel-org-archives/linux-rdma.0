@@ -1,159 +1,58 @@
-From: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE} libnes-1.1.2 release
-Date: Fri, 4 Nov 2011 14:18:57 -0700
-Message-ID: <2EFBCAEF10980645BBCFB605689E08E904F0CC62E3@azsmsx506.amr.corp.intel.com>
+From: "Nicholas A. Bellinger" <nab@risingtidesystems.com>
+Subject: Re: [patch 1/3] ib_srpt: fixup error handling in
+ srpt_alloc_ioctx_ring()
+Date: Fri, 04 Nov 2011 14:52:24 -0700
+Message-ID: <1320443544.5859.168.camel@haakon2.linux-iscsi.org>
+References: <20111104182701.GG5796@elgon.mountain>
+Reply-To: nab@risingtidesystems.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0528992667=="
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20111104182701.GG5796@elgon.mountain>
+Sender: target-devel-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, target-devel <target-devel@vger.kernel.org>, Bart Van Assche <bart.vanassche@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
---===============0528992667==
-Content-Language: en-US
-Content-Type: multipart/alternative;
-	boundary="_000_2EFBCAEF10980645BBCFB605689E08E904F0CC62E3azsmsx506amrc_"
+On Fri, 2011-11-04 at 21:27 +0300, Dan Carpenter wrote:
+> We returned a freed value instead of NULL on certain error paths.
+> Complicated error handling generally more error prone, so I've tried
+> to simplify it a little by removing some gotos.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
 
---_000_2EFBCAEF10980645BBCFB605689E08E904F0CC62E3azsmsx506amrc_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Looks like a reasonable cleanup.  Thanks Dan!
 
+--nab
 
-Libnes-1.1.2 is released. tarball is available at
-
-http://ww.opefabrics.org/downloads/nes/libnes-1.1.2.tar.gz
-
-It has patch for
-
-*        Fix build against upstream libibverbs
-
-I have updated latest.txt to be included in OFED-1.5.4 daily builds
-
-Thanks
-Faisal
-
-
-
---_000_2EFBCAEF10980645BBCFB605689E08E904F0CC62E3azsmsx506amrc_
-Content-Type: text/html; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
-osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:x=3D"urn:schemas-microsoft-com:office:excel" xmlns:m=3D"http://schema=
-s.microsoft.com/office/2004/12/omml" xmlns=3D"http://www.w3.org/TR/REC-html=
-40"><head><meta http-equiv=3DContent-Type content=3D"text/html; charset=3Du=
-s-ascii"><meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medi=
-um)"><style><!--
-/* Font Definitions */
-@font-face
-	{font-family:Wingdings;
-	panose-1:5 0 0 0 0 0 0 0 0 0;}
-@font-face
-	{font-family:"Cambria Math";
-	panose-1:2 4 5 3 5 4 6 3 2 4;}
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
-/* Style Definitions */
-p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
-	{mso-style-priority:34;
-	margin-top:0in;
-	margin-right:0in;
-	margin-bottom:0in;
-	margin-left:.5in;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:"Calibri","sans-serif";
-	color:windowtext;}
-.MsoChpDefault
-	{mso-style-type:export-only;}
-@page WordSection1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.0in 1.0in 1.0in;}
-div.WordSection1
-	{page:WordSection1;}
-/* List Definitions */
-@list l0
-	{mso-list-id:201676570;
-	mso-list-type:hybrid;
-	mso-list-template-ids:-2028453308 904194118 67698691 67698693 67698689 676=
-98691 67698693 67698689 67698691 67698693;}
-@list l0:level1
-	{mso-level-start-at:0;
-	mso-level-number-format:bullet;
-	mso-level-text:\F0B7;
-	mso-level-tab-stop:none;
-	mso-level-number-position:left;
-	margin-left:.75in;
-	text-indent:-.25in;
-	font-family:Symbol;
-	mso-fareast-font-family:Calibri;
-	mso-bidi-font-family:"Times New Roman";}
-ol
-	{margin-bottom:0in;}
-ul
-	{margin-bottom:0in;}
---></style><!--[if gte mso 9]><xml>
-<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
-<o:shapelayout v:ext=3D"edit">
-<o:idmap v:ext=3D"edit" data=3D"1" />
-</o:shapelayout></xml><![endif]--></head><body lang=3DEN-US link=3Dblue vli=
-nk=3Dpurple><div class=3DWordSection1><p class=3DMsoNormal><o:p>&nbsp;</o:p=
-></p><p class=3DMsoNormal>Libnes-1.1.2 is released. tarball is available at=
-<o:p></o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNorm=
-al><a href=3D"http://ww.opefabrics.org/downloads/nes/libnes-1.1.2.tar.gz">h=
-ttp://ww.opefabrics.org/downloads/nes/libnes-1.1.2.tar.gz</a><o:p></o:p></p=
-><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>It has patc=
-h for<o:p></o:p></p><p class=3DMsoListParagraph style=3D'margin-left:.75in;=
-text-indent:-.25in;mso-list:l0 level1 lfo1'><![if !supportLists]><span styl=
-e=3D'font-family:Symbol'><span style=3D'mso-list:Ignore'>&middot;<span styl=
-e=3D'font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p; </span></span></span><![endif]>Fix build against upstream libibverbs<o:p=
-></o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>I=
- have updated latest.txt to be included in OFED-1.5.4 daily builds<o:p></o:=
-p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>Thanks=
-<o:p></o:p></p><p class=3DMsoNormal>Faisal<o:p></o:p></p><p class=3DMsoNorm=
-al><o:p>&nbsp;</o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p></div></b=
-ody></html>=
-
---_000_2EFBCAEF10980645BBCFB605689E08E904F0CC62E3azsmsx506amrc_--
-
---===============0528992667==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-ewg mailing list
-ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
---===============0528992667==--
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index 1c29679..937b4bc 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -680,21 +680,20 @@ static struct srpt_ioctx **srpt_alloc_ioctx_ring(struct srpt_device *sdev,
+>  
+>  	ring = kmalloc(ring_size * sizeof(ring[0]), GFP_KERNEL);
+>  	if (!ring)
+> -		goto out;
+> +		return NULL;
+>  	for (i = 0; i < ring_size; ++i) {
+>  		ring[i] = srpt_alloc_ioctx(sdev, ioctx_size, dma_size, dir);
+>  		if (!ring[i])
+>  			goto err;
+>  		ring[i]->index = i;
+>  	}
+> -	goto out;
+> +	return ring;
+>  
+>  err:
+>  	while (--i >= 0)
+>  		srpt_free_ioctx(sdev, ring[i], dma_size, dir);
+>  	kfree(ring);
+> -out:
+> -	return ring;
+> +	return NULL;
+>  }
+>  
+>  /**
