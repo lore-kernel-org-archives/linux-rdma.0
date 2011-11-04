@@ -1,36 +1,159 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [GIT PULL] ib_srpt: Initial SRP Target merge for v3.2-rc1
-Date: Fri, 4 Nov 2011 13:27:28 -0700
-Message-ID: <CAL1RGDXLOXwJJcPXf8z_QAPAcNR6LywYX4OZk-48g24=NqStHQ@mail.gmail.com>
-References: <1320437452.5859.96.camel@haakon2.linux-iscsi.org>
+From: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE} libnes-1.1.2 release
+Date: Fri, 4 Nov 2011 14:18:57 -0700
+Message-ID: <2EFBCAEF10980645BBCFB605689E08E904F0CC62E3@azsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1320437452.5859.96.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============0528992667=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 4, 2011 at 1:10 PM, Nicholas A. Bellinger
-<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> At this point should we should have a stable userspace API for the
-> layout of /sys/kernel/config/target/srpt/, and a number of legacy mod=
-ule
-> parameters have been removed or converted into per endpoint attribute=
-s
-> as per Roland's feedback. =A0This code has been getting build testing=
- in
-> next the past week, and does not touch any external code.
+--===============0528992667==
+Content-Language: en-US
+Content-Type: multipart/alternative;
+	boundary="_000_2EFBCAEF10980645BBCFB605689E08E904F0CC62E3azsmsx506amrc_"
 
-Given the confidence that the userspace ABI is stable,
+--_000_2EFBCAEF10980645BBCFB605689E08E904F0CC62E3azsmsx506amrc_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Libnes-1.1.2 is released. tarball is available at
+
+http://ww.opefabrics.org/downloads/nes/libnes-1.1.2.tar.gz
+
+It has patch for
+
+*        Fix build against upstream libibverbs
+
+I have updated latest.txt to be included in OFED-1.5.4 daily builds
+
+Thanks
+Faisal
+
+
+
+--_000_2EFBCAEF10980645BBCFB605689E08E904F0CC62E3azsmsx506amrc_
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
+osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:x=3D"urn:schemas-microsoft-com:office:excel" xmlns:m=3D"http://schema=
+s.microsoft.com/office/2004/12/omml" xmlns=3D"http://www.w3.org/TR/REC-html=
+40"><head><meta http-equiv=3DContent-Type content=3D"text/html; charset=3Du=
+s-ascii"><meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medi=
+um)"><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{mso-style-priority:34;
+	margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+.MsoChpDefault
+	{mso-style-type:export-only;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+/* List Definitions */
+@list l0
+	{mso-list-id:201676570;
+	mso-list-type:hybrid;
+	mso-list-template-ids:-2028453308 904194118 67698691 67698693 67698689 676=
+98691 67698693 67698689 67698691 67698693;}
+@list l0:level1
+	{mso-level-start-at:0;
+	mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:none;
+	mso-level-number-position:left;
+	margin-left:.75in;
+	text-indent:-.25in;
+	font-family:Symbol;
+	mso-fareast-font-family:Calibri;
+	mso-bidi-font-family:"Times New Roman";}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]--></head><body lang=3DEN-US link=3Dblue vli=
+nk=3Dpurple><div class=3DWordSection1><p class=3DMsoNormal><o:p>&nbsp;</o:p=
+></p><p class=3DMsoNormal>Libnes-1.1.2 is released. tarball is available at=
+<o:p></o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNorm=
+al><a href=3D"http://ww.opefabrics.org/downloads/nes/libnes-1.1.2.tar.gz">h=
+ttp://ww.opefabrics.org/downloads/nes/libnes-1.1.2.tar.gz</a><o:p></o:p></p=
+><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>It has patc=
+h for<o:p></o:p></p><p class=3DMsoListParagraph style=3D'margin-left:.75in;=
+text-indent:-.25in;mso-list:l0 level1 lfo1'><![if !supportLists]><span styl=
+e=3D'font-family:Symbol'><span style=3D'mso-list:Ignore'>&middot;<span styl=
+e=3D'font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p; </span></span></span><![endif]>Fix build against upstream libibverbs<o:p=
+></o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>I=
+ have updated latest.txt to be included in OFED-1.5.4 daily builds<o:p></o:=
+p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>Thanks=
+<o:p></o:p></p><p class=3DMsoNormal>Faisal<o:p></o:p></p><p class=3DMsoNorm=
+al><o:p>&nbsp;</o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p></div></b=
+ody></html>=
+
+--_000_2EFBCAEF10980645BBCFB605689E08E904F0CC62E3azsmsx506amrc_--
+
+--===============0528992667==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+--===============0528992667==--
