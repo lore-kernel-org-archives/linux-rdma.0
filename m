@@ -1,98 +1,92 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/5] rdma/cm: Allow user to specify AF_IB when binding
-Date: Fri, 4 Nov 2011 07:09:12 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E8D161@ORSMSX101.amr.corp.intel.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: Fix panic in RC error flushing logic
+Date: Fri, 4 Nov 2011 08:26:52 -0400
+Message-ID: <20111104122651.27217.8670.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Modify rdma_bind_addr to allow the user to specify AF_IB when
-binding to a device.  AF_IB indicates that the user is not
-mapping an IP address to the native IB addressing.  (The mapping
-may have already been done, or is not needed.)
+The following panic can occur when flushing a QP:
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+RIP: 0010:[<ffffffffa0168e8b>]
+[<ffffffffa0168e8b>] qib_send_complete+0x3b/0x190 [ib_qib]
+RSP: 0018:ffff8803cdc6fc90  EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8803d84ba000 RCX: 0000000000000000
+RDX: 0000000000000005 RSI: ffffc90015a53430 RDI: ffff8803d84ba000
+RBP: ffff8803cdc6fce0 R08: ffff8803cdc6fc90 R09: 0000000000000001
+R10: 00000000ffffffff R11: 0000000000000000 R12: ffff8803d84ba0c0
+R13: ffff8803d84ba5cc R14: 0000000000000800 R15: 0000000000000246
+FS:  0000000000000000(0000) GS:ffff880036600000(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+CR2: 0000000000000034 CR3: 00000003e44f9000 CR4: 00000000000406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process qib/0 (pid: 1350, threadinfo ffff8803cdc6e000, task ffff88042728a100)
+Stack:
+53544c5553455201 0000000100000005
+0000000000000000 ffff8803d84ba000
+<0> 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+<0> 0000000000000000 0000000000000001 ffff8803cdc6fd30 ffffffffa0165d7a
+Call Trace:
+[<ffffffffa0165d7a>] qib_make_rc_req+0x36a/0xe80 [ib_qib]
+[<ffffffffa0165a10>] ?  qib_make_rc_req+0x0/0xe80 [ib_qib]
+[<ffffffffa01698b3>] qib_do_send+0xf3/0xb60 [ib_qib]
+[<ffffffff814db757>] ? thread_return+0x4e/0x777
+[<ffffffffa01697c0>] ? qib_do_send+0x0/0xb60 [ib_qib]
+[<ffffffff81088bf0>] worker_thread+0x170/0x2a0
+[<ffffffff8108e530>] ?  autoremove_wake_function+0x0/0x40
+[<ffffffff81088a80>] ? worker_thread+0x0/0x2a0
+[<ffffffff8108e1c6>] kthread+0x96/0xa0
+[<ffffffff8100c1ca>] child_rip+0xa/0x20
+[<ffffffff8108e130>] ? kthread+0x0/0xa0
+[<ffffffff8100c1c0>] ? child_rip+0x0/0x20
+RIP  [<ffffffffa0168e8b>] qib_send_complete+0x3b/0x190 [ib_qib]
+
+The RC error state flush logic in qib_make_rc_req() could return all of the
+acked wqes and potentially have emptied the queue.  It would then
+unconditionally try return a flush completion via qib_send_complete() for
+an invalid wqe, or worse a valid one that is not queued. The panic results
+when the completion code tries to maintain an MR reference count for a
+NULL MR.
+
+This fix modifies logic to only send one completion per qib_make_rc_req()
+call and changing the completion status from IB_WC_SUCCESS to
+IB_WC_WR_FLUSH_ERR as the completions progress.
+
+The outer loop will call as many times as necessary to flush the queue.
+
+Reviewed-by: Ram Vepa <ram.vepa-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c |   34 ++++++++++++++++++++++++++++------
- 1 files changed, 28 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/qib/qib_rc.c |   10 +++-------
+ 1 files changed, 3 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 99b9c8e..523441a 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -351,6 +351,27 @@ static int find_gid_port(struct ib_device *device, union ib_gid *gid, u8 port_nu
- 	return -EAGAIN;
- }
- 
-+static void cma_translate_ib(struct sockaddr_ib *sib, struct rdma_dev_addr *dev_addr)
-+{
-+	dev_addr->dev_type = ARPHRD_INFINIBAND;
-+	rdma_addr_set_sgid(dev_addr, (union ib_gid *) &sib->sib_addr);
-+	ib_addr_set_pkey(dev_addr, ntohs(sib->sib_pkey));
-+}
-+
-+static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
-+{
-+	int ret;
-+
-+	if (addr->sa_family != AF_IB) {
-+		ret = rdma_translate_ip(addr, dev_addr);
-+	} else {
-+		cma_translate_ib((struct sockaddr_ib *) addr, dev_addr);
-+		ret = 0;
-+	}
-+
-+	return ret;
-+}
-+
- static int cma_acquire_dev(struct rdma_id_private *id_priv)
- {
- 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
-@@ -1130,8 +1151,8 @@ static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
- 		rdma_addr_set_sgid(&rt->addr.dev_addr, &rt->path_rec[0].sgid);
- 		ib_addr_set_pkey(&rt->addr.dev_addr, rt->path_rec[0].pkey);
- 	} else {
--		ret = rdma_translate_ip((struct sockaddr *) &rt->addr.src_addr,
--					&rt->addr.dev_addr);
-+		ret = cma_translate_addr((struct sockaddr *) &rt->addr.src_addr,
-+					 &rt->addr.dev_addr);
- 		if (ret)
- 			goto destroy_id;
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index 23c905e..bcf5738 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -271,13 +271,9 @@ int qib_make_rc_req(struct qib_qp *qp)
+ 			goto bail;
+ 		}
+ 		wqe = get_swqe_ptr(qp, qp->s_last);
+-		while (qp->s_last != qp->s_acked) {
+-			qib_send_complete(qp, wqe, IB_WC_SUCCESS);
+-			if (++qp->s_last >= qp->s_size)
+-				qp->s_last = 0;
+-			wqe = get_swqe_ptr(qp, qp->s_last);
+-		}
+-		qib_send_complete(qp, wqe, IB_WC_WR_FLUSH_ERR);
++		qib_send_complete(qp, wqe, qp->s_last != qp->s_acked ?
++			IB_WC_SUCCESS : IB_WC_WR_FLUSH_ERR);
++		/* will get called again */
+ 		goto done;
  	}
-@@ -1171,8 +1192,8 @@ static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
- 			  ip_ver, port, src, dst);
- 
- 	if (!cma_any_addr((struct sockaddr *) &id->route.addr.src_addr)) {
--		ret = rdma_translate_ip((struct sockaddr *) &id->route.addr.src_addr,
--					&id->route.addr.dev_addr);
-+		ret = cma_translate_addr((struct sockaddr *) &id->route.addr.src_addr,
-+					 &id->route.addr.dev_addr);
- 		if (ret)
- 			goto err;
- 	}
-@@ -2407,7 +2428,8 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 	struct rdma_id_private *id_priv;
- 	int ret;
- 
--	if (addr->sa_family != AF_INET && addr->sa_family != AF_INET6)
-+	if (addr->sa_family != AF_INET && addr->sa_family != AF_INET6 &&
-+	    addr->sa_family != AF_IB)
- 		return -EAFNOSUPPORT;
- 
- 	id_priv = container_of(id, struct rdma_id_private, id);
-@@ -2419,7 +2441,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 		goto err1;
- 
- 	if (!cma_any_addr(addr)) {
--		ret = rdma_translate_ip(addr, &id->route.addr.dev_addr);
-+		ret = cma_translate_addr(addr, &id->route.addr.dev_addr);
- 		if (ret)
- 			goto err1;
  
 
 
