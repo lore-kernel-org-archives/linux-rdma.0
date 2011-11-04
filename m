@@ -1,1229 +1,323 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH V2] opensm: Add the precreation of multicast groups
-Date: Thu, 3 Nov 2011 15:32:41 -0700
-Message-ID: <20111103153241.0d7c8ebb.weiny2@llnl.gov>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] [libibverbs] Allow 3rd party extensions to verb routines
+Date: Fri, 4 Nov 2011 06:33:25 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E8D0DA@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+In order to support OFED, vendor specific calls, or new ibverbs
+operations, define a generic extension mechanism.  This allows
+OFED, an RDMA vendor, or another registered 3rd party (for
+example, the librdmacm) to define RDMA extensions, plus provides
+a backwards compatible way to add new features to ibverbs.
 
-Allow for the pre-creation of these groups on a partition by partition basis.
+Users which make use extensions are aware that they are not
+only using an extended call, but are given information regarding
+how widely the extension by be supported based on the name of the
+extension.  E.g. a VENDOR extension is specific to a vendor, whereas
+an OFA extension is standardized within an organization.
+Support for extended functions, data structures, and enums are defined.
 
-P_Key is taken from Partition Definition.  Q_Key, TClass, rate, FlowRate and
-mtu can be specified.
+Extensions are referenced by name.  There is an assumption that
+extension names are prefixed relative to the supporting party.
+Until an extension has been incorporated into libibverbs, it
+should be defined in an appropriate external header file.
 
-For IP groups, rate and mtu are verified to match the broadcast groups
-parameters.  The P_Key bits in the mgid itself is verified to match the P_Key
-in the Partition Definition.  If the P_Key bits in the mgid are 0x0000 then the
-P_Key is taken from the Partition Definition.
+Driver libraries that support extensions are given a new
+registration call, ibv_register_device_ext().  Use of this call
+indicates to libibverbs that the library allocates extended
+versions of struct ibv_device and struct ibv_context.
 
-The syntax extends the existing syntax by allowing MC groups to be specified
-one per line, intermixed with the port specifications.
+The following new APIs are added to libibverbs to applications
+to use to determine if an extension is supported and to obtain the
+extended function calls.
 
-Changes from V1:
+ibv_have_ext_ops - returns true if an extension is supported
+ibv_get_device_ext_ops - return extended operations for a device
+ibv_get_ext_ops - return extended operations for an open context
 
-	Incorporate Hal's comments:
-		Add FlowLabel
-		copy documentation from man page to doc/partition-config.txt
-		code format cleanup
-		Remove "ERR:" from messages
+To maintain backwards compatibility with existing applications,
+internally, the library uses the last byte of the device name
+to record if the device was registered with extension support.
 
-	Move group flag parsing to common function for broadcast and generic
-	groups.  Update documentation for the support of the other flags in the
-	broadcast group.
-	Error message clean up
-	Update commit message
-
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- doc/partition-config.txt       |  179 +++++++++++++--------
- include/opensm/osm_base.h      |    5 +
- include/opensm/osm_partition.h |   12 +-
- man/opensm.8.in                |  125 ++++++++++-----
- opensm/osm_prtn.c              |  113 ++++++++++----
- opensm/osm_prtn_config.c       |  345 +++++++++++++++++++++++++++++++++++-----
- opensm/osm_qos_policy.c        |   48 +++---
- opensm/osm_subnet.c            |    2 +-
- 8 files changed, 619 insertions(+), 210 deletions(-)
+This patch should be identical to the previous posting.  I'd like to reach
+agreement on an approach for supporting extensions, so that it can be used
+for supporting XRC from user space.  I'm withholding sending the XRC patches
+again at this time; however, they are available from my libibverbs.git tree
+on openfabrics.org.
 
-diff --git a/doc/partition-config.txt b/doc/partition-config.txt
-index 537f6a7..cb5d66f 100644
---- a/doc/partition-config.txt
-+++ b/doc/partition-config.txt
-@@ -2,8 +2,9 @@ OpenSM Partition configuration
- ===============================
+XRC support will extend the verbs interface with new functionality, but make
+use of extended calls into the verbs provider library.
+
+ include/infiniband/driver.h |    1 +
+ include/infiniband/verbs.h  |   40 +++++++++++++++++++++++++++++++++++++++-
+ src/device.c                |   18 ++++++++++++++++++
+ src/ibverbs.h               |   18 ++++++++++++++++++
+ src/init.c                  |   17 ++++++++++++++++-
+ src/libibverbs.map          |    5 +++++
+ src/verbs.c                 |    9 +++++++++
+ 7 files changed, 106 insertions(+), 2 deletions(-)
+
+diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+index 9a81416..e48abfd 100644
+--- a/include/infiniband/driver.h
++++ b/include/infiniband/driver.h
+@@ -57,6 +57,7 @@ typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
+ 						   int abi_version);
  
- The default name of OpenSM partitions configuration file is
--'/etc/opensm/partitions.conf'. The default may be changed by
--using the --Pconfig (-P) option with OpenSM.
-+'$(OPENSM_CONFIG_DIR)/partitions.conf' (where $(OPENSM_CONFIG_DIR) is set at
-+configure time and defaults to ${sysconfdir}/opensm). The default may be
-+changed at run time by using the --Pconfig (-P) option with OpenSM.
+ void ibv_register_driver(const char *name, ibv_driver_init_func init_func);
++void ibv_register_driver_ext(const char *name, ibv_driver_init_func init_func);
+ int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
+ 			size_t cmd_size, struct ibv_get_context_resp *resp,
+ 			size_t resp_size);
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 0f1cb2e..b82cd3a 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -55,6 +55,15 @@
  
- The default partition will be created by OpenSM unconditionally even
- when partition configuration file does not exist or cannot be accessed.
-@@ -26,73 +27,105 @@ File Format
- ===========
+ BEGIN_C_DECLS
  
- Comments:
----------
- 
--Line content followed after '#' character is comment and ignored by
-+Line content followed after \'#\' character is comment and ignored by
- parser.
- 
--
- General file format:
---------------------
--
--<Partition Definition>:<PortGUIDs list> ;
--
--
--Partition Definition:
----------------------
--
--[PartitionName][=PKey][,flag[=value]][,defmember=full|limited]
--
--PartitionName - string, to be used with logging. When omitted
--                empty string will be used.
--PKey          - P_Key value for this partition. Only low 15 bits will
--                be used. When omitted will be autogenerated.
--flag          - used to indicate IPoIB capability of this partition.
--defmember=full|limited - specifies default membership for port guid
--                list. Default is limited.
--
--Currently recognized flags are:
--
--ipoib       - indicates that this partition may be used for IPoIB, as
--              result IPoIB capable MC group will be created.
--rate=<val>  - specifies rate for this IPoIB MC group (default is 3 (10GBps))
--mtu=<val>   - specifies MTU for this IPoIB MC group (default is 4 (2048))
--sl=<val>    - specifies SL for this IPoIB MC group (default is 0)
--scope=<val> - specifies scope for this IPoIB MC group (default is 2 (link
--local))
--
--Note that values for 'rate', 'mtu'. and 'scope' should be specified as defined
--in the IBTA specification (for example mtu=4 for 2048).
- 
--
--PortGUIDs list:
----------------
--
--[PortGUID[=full|=limited]] [,PortGUID[=full|=limited]] [,PortGUID] ...
--
--PortGUID     - GUID of partition member EndPort. Hexadecimal numbers
--               should start from 0x, decimal numbers are accepted too.
--full or      - indicates full or limited membership for this port. When
--  limited      omitted (or unrecognized) limited membership is assumed.
-+<Partition Definition>:[<newline>]<Partition Properties>;
-+
-+     Partition Definition:
-+       [PartitionName][=PKey][,ipoib_bc_flags][,defmember=full|limited]
-+
-+        PartitionName  - string, will be used with logging. When omitted
-+                         empty string will be used.
-+        PKey           - P_Key value for this partition. Only low 15 bits will
-+                         be used. When omitted will be autogenerated.
-+        ipoib_bc_flags - used to indicate/specify IPoIB capability of this partition.
-+
-+        defmember=full|limited - specifies default membership for port guid
-+                        list. Default is limited.
-+
-+     ipoib_bc_flags:
-+        ipoib_flag|[mgroup_flag]*
-+
-+        ipoib_flag - indicates that this partition may be used for IPoIB, as
-+		     a result the IPoIB broadcast group will be created with
-+		     the flags given, if any.
-+
-+     Partition Properties:
-+       [<Port list>|<MCast Group>]* | <Port list>
-+
-+     Port list:
-+        <Port Specifier>[,<Port Specifier>]
-+
-+     Port Specifier:
-+        <PortGUID>[=[full|limited]]
-+
-+        PortGUID         - GUID of partition member EndPort. Hexadecimal
-+                           numbers should start from 0x, decimal numbers
-+                           are accepted too.
-+        full or limited  - indicates full or limited membership for this
-+                           port.  When omitted (or unrecognized) limited
-+                           membership is assumed.
-+
-+     MCast Group:
-+        mgid=gid[,mgroup_flag]*<newline>
-+
-+	            - gid specified is verified to be a Multicast address
-+		      IP groups are verified to match the rate and mtu of the
-+		      broadcast group.  The P_Key bits of the mgid for IP
-+		      groups are verified to either match the P_Key specified
-+		      in by "Partition Definition" or if they are 0x0000 the
-+		      P_Key will be copied into those bits.
-+
-+     mgroup_flag:
-+        rate=<val>  - specifies rate for this MC group
-+                      (default is 3 (10GBps))
-+        mtu=<val>   - specifies MTU for this MC group
-+                      (default is 4 (2048))
-+        sl=<val>    - specifies SL for this MC group
-+                      (default is 0)
-+        scope=<val> - specifies scope for this MC group
-+                      (default is 2 (link local)).  Multiple scope settings
-+                      are permitted for a partition.
-+		      NOTE: This overwrites the scope nibble of the specified
-+			    mgid.  Furthermore specifying multiple scope
-+			    settings will result in multiple MC groups
-+			    being created.
-+        qkey=<val>      - specifies the Q_Key for this MC group
-+                          (default: 0x0b1b for IP groups, 0 for other groups)
-+                          WARNING: changing this for the broadcast group may
-+			           break IPoIB on client nodes!!!
-+        tclass=<val>    - specifies tclass for this MC group
-+                          (default is 0)
-+        FlowLabel=<val> - specifies FlowLabel for this MC group
-+                          (default is 0)
-+
-+     newline: '\n'
-+
-+
-+Note that values for rate, mtu, and scope, for both partitions and multicast
-+groups, should be specified as defined in the IBTA specification (for example,
-+mtu=4 for 2048).
- 
- There are several useful keywords for PortGUID definition:
- 
--- 'ALL' means all end ports in this subnet.
--- 'ALL_CAS' means all Channel Adapter end ports in this subnet.
--- 'ALL_SWITCHES' means all Switch end ports in this subnet.
--- 'ALL_ROUTERS' means all Router end ports in this subnet.
--- 'SELF' means subnet manager's port.
-+ - 'ALL' means all end ports in this subnet.
-+ - 'ALL_CAS' means all Channel Adapter end ports in this subnet.
-+ - 'ALL_SWITCHES' means all Switch end ports in this subnet.
-+ - 'ALL_ROUTERS' means all Router end ports in this subnet.
-+ - 'SELF' means subnet manager's port.
- 
- Empty list means no ports in this partition.
- 
- 
-+
- Notes:
- -----
- 
--White spaces are permitted between delimiters ('=', ',',':',';').
--
--The Line can be wrapped after ':' followed after Partition Definition and
--between.
-+White space is permitted between delimiters ('=', ',',':',';').
- 
- PartitionName does not need to be unique, PKey does need to be unique.
- If PKey is repeated then those partition configurations will be merged
-@@ -103,22 +136,34 @@ definition, but then PKey should be explicitly specified (otherwise
- different PKey values will be generated for those definitions).
- 
- 
-+
- Examples:
- --------
- 
--Default=0x7fff : ALL, SELF=full ;
--Default=0x7fff : ALL, ALL_SWITCHES=full, SELF=full ;
--
--NewPartition , ipoib : 0x123456=full, 0x3456789034=limi, 0x2134af2306 ;
--
--YetAnotherOne = 0x300 : SELF=full ;
--YetAnotherOne = 0x300 : ALL=limited ;
--
--ShareIO = 0x80 , defmember=full : 0x123451, 0x123452; # 0x123453, 0x123454 will be limited
--ShareIO = 0x80 : 0x123453, 0x123454, 0x123455=full; # 0x123456, 0x123457 will be limited
--ShareIO = 0x80 : defmember=limited : 0x123456, 0x123457, 0x123458=full;
--ShareIO = 0x80 , defmember=full : 0x123459, 0x12345a;
--ShareIO = 0x80 , defmember=full : 0x12345b, 0x12345c=limited, 0x12345d;
-+ Default=0x7fff : ALL, SELF=full ;
-+ Default=0x7fff : ALL, ALL_SWITCHES=full, SELF=full ;
-+
-+ NewPartition , ipoib : 0x123456=full, 0x3456789034=limi, 0x2134af2306 ;
-+
-+ YetAnotherOne = 0x300 : SELF=full ;
-+ YetAnotherOne = 0x300 : ALL=limited ;
-+
-+ ShareIO = 0x80 , defmember=full : 0x123451, 0x123452;
-+ # 0x123453, 0x123454 will be limited
-+ ShareIO = 0x80 : 0x123453, 0x123454, 0x123455=full;
-+ # 0x123456, 0x123457 will be limited
-+ ShareIO = 0x80 : defmember=limited : 0x123456, 0x123457, 0x123458=full;
-+ ShareIO = 0x80 , defmember=full : 0x123459, 0x12345a;
-+ ShareIO = 0x80 , defmember=full : 0x12345b, 0x12345c=limited, 0x12345d;
-+
-+ # multicast groups added to default
-+ Default=0x7fff,ipoib:
-+        mgid=ff12:401b::0707,sl=1 # random IPv4 group
-+        mgid=ff12:601b::16    # MLDv2-capable routers
-+        mgid=ff12:401b::16    # IGMP
-+        mgid=ff12:601b::2     # All routers
-+        mgid=ff12::1,sl=1,Q_Key=0xDEADBEEF,rate=3,mtu=2 # random group
-+        ALL=full;
- 
- 
- Note:
-diff --git a/include/opensm/osm_base.h b/include/opensm/osm_base.h
-index e558c55..869ba9c 100644
---- a/include/opensm/osm_base.h
-+++ b/include/opensm/osm_base.h
-@@ -53,6 +53,7 @@
- #endif
- 
- #include <complib/cl_types.h>
-+#include <iba/ib_types.h>
- 
- #ifdef __cplusplus
- #  define BEGIN_C_DECLS extern "C" {
-@@ -954,6 +955,10 @@ typedef enum _osm_sm_signal {
- #define OSM_VENDOR_ID_HP4           0x00237D
- #define OSM_VENDOR_ID_OPENIB        0x001405
- 
-+/* IPoIB Broadcast Defaults */
-+#define OSM_IPOIB_BROADCAST_MGRP_QKEY 0x0b1b
-+extern const ib_gid_t osm_ipoib_broadcast_mgid;
-+
- /**********/
- 
- END_C_DECLS
-diff --git a/include/opensm/osm_partition.h b/include/opensm/osm_partition.h
-index fdb34b9..629bad2 100644
---- a/include/opensm/osm_partition.h
-+++ b/include/opensm/osm_partition.h
-@@ -94,10 +94,11 @@ typedef struct osm_prtn {
- 	cl_map_item_t map_item;
- 	ib_net16_t pkey;
- 	uint8_t sl;
--	osm_mgrp_t *mgrp;
- 	cl_map_t full_guid_tbl;
- 	cl_map_t part_guid_tbl;
- 	char name[32];
-+	osm_mgrp_t **mgrps;
-+	int nmgrps;
- } osm_prtn_t;
- /*
- * FIELDS
-@@ -110,9 +111,10 @@ typedef struct osm_prtn {
- *	sl
- *		The Service Level (SL) associated with this Partiton.
- *
--*	mgrp
--*		The pointer to the well known Multicast Group
--*		that was created for this partition (when configured).
-+*       mgrps
-+*		List of well known Multicast Groups
-+*		that were created for this partition (when configured).
-+*		This includes the IPoIB broadcast group.
- *
- *	full_guid_tbl
- *		Container of pointers to all Port objects in the Partition
-@@ -139,7 +141,7 @@ typedef struct osm_prtn {
- *
- * SYNOPSIS
- */
--void osm_prtn_delete(IN OUT osm_prtn_t ** pp_prtn);
-+void osm_prtn_delete(IN osm_subn_t * p_subn, IN OUT osm_prtn_t ** pp_prtn);
- /*
- * PARAMETERS
- *	pp_prtn
-diff --git a/man/opensm.8.in b/man/opensm.8.in
-index 042bee3..ce54c8f 100644
---- a/man/opensm.8.in
-+++ b/man/opensm.8.in
-@@ -523,45 +523,80 @@ parser.
- 
- General file format:
- 
--<Partition Definition>:<PortGUIDs list> ;
--
--Partition Definition:
--
--[PartitionName][=PKey][,flag[=value]][,defmember=full|limited]
--
-- PartitionName - string, will be used with logging. When omitted
--                 empty string will be used.
-- PKey          - P_Key value for this partition. Only low 15 bits will
--                 be used. When omitted will be autogenerated.
-- flag          - used to indicate IPoIB capability of this partition.
-- defmember=full|limited - specifies default membership for port guid
--                 list. Default is limited.
--
--Currently recognized flags are:
--
-- ipoib       - indicates that this partition may be used for IPoIB, as
--               result IPoIB capable MC group will be created.
-- rate=<val>  - specifies rate for this IPoIB MC group
--               (default is 3 (10GBps))
-- mtu=<val>   - specifies MTU for this IPoIB MC group
--               (default is 4 (2048))
-- sl=<val>    - specifies SL for this IPoIB MC group
--               (default is 0)
-- scope=<val> - specifies scope for this IPoIB MC group
--               (default is 2 (link local)).  Multiple scope settings
--               are permitted for a partition.
--
--Note that values for rate, mtu, and scope should be specified as
--defined in the IBTA specification (for example, mtu=4 for 2048).
--
--PortGUIDs list:
--
-- PortGUID         - GUID of partition member EndPort. Hexadecimal
--                    numbers should start from 0x, decimal numbers
--                    are accepted too.
-- full or limited  - indicates full or limited membership for this
--                    port.  When omitted (or unrecognized) limited
--                    membership is assumed.
-+<Partition Definition>:[<newline>]<Partition Properties>;
-+
-+     Partition Definition:
-+       [PartitionName][=PKey][,ipoib_bc_flags][,defmember=full|limited]
-+
-+        PartitionName  - string, will be used with logging. When omitted
-+                         empty string will be used.
-+        PKey           - P_Key value for this partition. Only low 15 bits will
-+                         be used. When omitted will be autogenerated.
-+        ipoib_bc_flags - used to indicate/specify IPoIB capability of this partition.
-+
-+        defmember=full|limited - specifies default membership for port guid
-+                        list. Default is limited.
-+
-+     ipoib_bc_flags:
-+        ipoib_flag|[mgroup_flag]*
-+
-+        ipoib_flag - indicates that this partition may be used for IPoIB, as
-+                     a result the IPoIB broadcast group will be created with
-+                     the flags given, if any.
-+
-+     Partition Properties:
-+       [<Port list>|<MCast Group>]* | <Port list>
-+
-+     Port list:
-+        <Port Specifier>[,<Port Specifier>]
-+
-+     Port Specifier:
-+        <PortGUID>[=[full|limited]]
-+
-+        PortGUID         - GUID of partition member EndPort. Hexadecimal
-+                           numbers should start from 0x, decimal numbers
-+                           are accepted too.
-+        full or limited  - indicates full or limited membership for this
-+                           port.  When omitted (or unrecognized) limited
-+                           membership is assumed.
-+
-+     MCast Group:
-+        mgid=gid[,mgroup_flag]*<newline>
-+
-+                         - gid specified is verified to be a Multicast address
-+                           IP groups are verified to match the rate and mtu of the
-+                           broadcast group.  The P_Key bits of the mgid for IP
-+                           groups are verified to either match the P_Key specified
-+                           in by "Partition Definition" or if they are 0x0000 the
-+                           P_Key will be copied into those bits.
-+
-+     mgroup_flag:
-+        rate=<val>  - specifies rate for this MC group
-+                      (default is 3 (10GBps))
-+        mtu=<val>   - specifies MTU for this MC group
-+                      (default is 4 (2048))
-+        sl=<val>    - specifies SL for this MC group
-+                      (default is 0)
-+        scope=<val> - specifies scope for this MC group
-+                      (default is 2 (link local)).  Multiple scope settings
-+                      are permitted for a partition.
-+                      NOTE: This overwrites the scope nibble of the specified
-+                            mgid.  Furthermore specifying multiple scope
-+                            settings will result in multiple MC groups
-+                            being created.
-+        qkey=<val>      - specifies the Q_Key for this MC group
-+                          (default: 0x0b1b for IP groups, 0 for other groups)
-+        tclass=<val>    - specifies tclass for this MC group
-+                          (default is 0)
-+        FlowLabel=<val> - specifies FlowLabel for this MC group
-+                          (default is 0)
-+
-+     newline: '\n'
-+
-+
-+Note that values for rate, mtu, and scope, for both partitions and multicast
-+groups, should be specified as defined in the IBTA specification (for example,
-+mtu=4 for 2048).
- 
- There are several useful keywords for PortGUID definition:
- 
-@@ -577,9 +612,6 @@ Notes:
- 
- White space is permitted between delimiters ('=', ',',':',';').
- 
--The line can be wrapped after ':' followed after Partition Definition and
--between.
--
- PartitionName does not need to be unique, PKey does need to be unique.
- If PKey is repeated then those partition configurations will be merged
- and first PartitionName will be used (see also next note).
-@@ -606,6 +638,15 @@ Examples:
-  ShareIO = 0x80 , defmember=full : 0x123459, 0x12345a;
-  ShareIO = 0x80 , defmember=full : 0x12345b, 0x12345c=limited, 0x12345d;
- 
-+ # multicast groups added to default
-+ Default=0x7fff,ipoib:
-+        mgid=ff12:401b::0707,sl=1 # random IPv4 group
-+        mgid=ff12:601b::16    # MLDv2-capable routers
-+        mgid=ff12:401b::16    # IGMP
-+        mgid=ff12:601b::2     # All routers
-+        mgid=ff12::1,sl=1,Q_Key=0xDEADBEEF,rate=3,mtu=2 # random group
-+        ALL=full;
-+
- 
- Note:
- 
-diff --git a/opensm/osm_prtn.c b/opensm/osm_prtn.c
-index 3fd4fc0..668cd9a 100644
---- a/opensm/osm_prtn.c
-+++ b/opensm/osm_prtn.c
-@@ -53,6 +53,8 @@
- #include <opensm/osm_node.h>
- #include <opensm/osm_sa.h>
- #include <opensm/osm_multicast.h>
-+#include <arpa/inet.h>
-+#include <errno.h>
- 
- extern int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
- 				      const char *file_name);
-@@ -68,6 +70,8 @@ osm_prtn_t *osm_prtn_new(IN const char *name, IN uint16_t pkey)
- 	memset(p, 0, sizeof(*p));
- 	p->pkey = pkey;
- 	p->sl = OSM_DEFAULT_SL;
-+	p->mgrps = NULL;
-+	p->nmgrps = 0;
- 	cl_map_construct(&p->full_guid_tbl);
- 	cl_map_init(&p->full_guid_tbl, 32);
- 	cl_map_construct(&p->part_guid_tbl);
-@@ -81,14 +85,35 @@ osm_prtn_t *osm_prtn_new(IN const char *name, IN uint16_t pkey)
- 	return p;
- }
- 
--void osm_prtn_delete(IN OUT osm_prtn_t ** pp_prtn)
-+void osm_prtn_delete(IN osm_subn_t * p_subn, IN OUT osm_prtn_t ** pp_prtn)
- {
-+	char gid_str[INET6_ADDRSTRLEN];
-+	int i = 0;
- 	osm_prtn_t *p = *pp_prtn;
- 
- 	cl_map_remove_all(&p->full_guid_tbl);
- 	cl_map_destroy(&p->full_guid_tbl);
- 	cl_map_remove_all(&p->part_guid_tbl);
- 	cl_map_destroy(&p->part_guid_tbl);
-+
-+	if (p->mgrps) {
-+		/* Clean up mgrps */
-+		for (i = 0; i < p->nmgrps; i++) {
-+			/* osm_mgrp_cleanup will not delete
-+			 * "well_known" groups */
-+			p->mgrps[i]->well_known = FALSE;
-+			osm_mgrp_cleanup(p_subn, p->mgrps[i]);
-+			OSM_LOG(&p_subn->p_osm->log, OSM_LOG_DEBUG,
-+				"removing mgroup %s from partition (0x%x)\n",
-+				inet_ntop(AF_INET6,
-+						p->mgrps[i]->mcmember_rec.mgid.raw,
-+						gid_str, sizeof gid_str),
-+					cl_hton16(p->pkey));
-+		}
-+
-+		free(p->mgrps);
-+	}
-+
- 	free(p);
- 	*pp_prtn = NULL;
- }
-@@ -156,21 +181,48 @@ _err:
- 	return status;
- }
- 
--static const ib_gid_t osm_ipoib_mgid = {
--	{
--	 0xff,			/*  multicast field */
--	 0x12,			/*  non-permanent bit, link local scope */
--	 0x40, 0x1b,		/*  IPv4 signature */
--	 0xff, 0xff,		/*  16 bits of P_Key (to be filled in) */
--	 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	/*  48 bits of zeros */
--	 0xff, 0xff, 0xff, 0xff,	/*  32 bit IPv4 broadcast address */
--	 },
--};
-+static ib_api_status_t
-+track_mgrp_w_partition(osm_log_t *p_log, osm_prtn_t *p, osm_mgrp_t *mgrp,
-+			osm_subn_t *p_subn, const ib_gid_t *mgid,
-+			ib_net16_t pkey)
-+{
-+	char gid_str[INET6_ADDRSTRLEN];
-+	osm_mgrp_t **tmp;
-+	int i = 0;
-+
-+	/* check if we are already tracking this group */
-+	for (i = 0; i< p->nmgrps; i++)
-+		if (p->mgrps[i] == mgrp)
-+			return (IB_SUCCESS);
-+
-+	/* otherwise add it to our list */
-+	tmp = realloc(p->mgrps, (p->nmgrps +1) * sizeof(*p->mgrps));
-+	if (tmp) {
-+		p->mgrps = tmp;
-+		p->mgrps[p->nmgrps] = mgrp;
-+		p->nmgrps++;
-+	} else {
-+		OSM_LOG(p_log, OSM_LOG_ERROR,
-+		        "realloc error to create MC group (%s) in "
-+		        "partition (pkey 0x%04x)\n",
-+		        inet_ntop(AF_INET6, mgid->raw,
-+		                gid_str, sizeof gid_str),
-+		        cl_ntoh16(pkey));
-+		mgrp->well_known = FALSE;
-+		osm_mgrp_cleanup(p_subn, mgrp);
-+		return (IB_ERROR);
-+	}
-+	mgrp->well_known = TRUE;
-+	return (IB_SUCCESS);
-+}
- 
- ib_api_status_t osm_prtn_add_mcgroup(osm_log_t * p_log, osm_subn_t * p_subn,
- 				     osm_prtn_t * p, uint8_t rate, uint8_t mtu,
--				     uint8_t scope)
-+				     uint8_t sl, uint8_t scope, uint32_t Q_Key,
-+				     uint8_t tclass, uint32_t FlowLabel,
-+				     const ib_gid_t *mgid)
- {
-+	char gid_str[INET6_ADDRSTRLEN];
- 	ib_member_rec_t mc_rec;
- 	ib_net64_t comp_mask;
- 	ib_net16_t pkey;
-@@ -185,16 +237,15 @@ ib_api_status_t osm_prtn_add_mcgroup(osm_log_t * p_log, osm_subn_t * p_subn,
- 
- 	memset(&mc_rec, 0, sizeof(mc_rec));
- 
--	mc_rec.mgid = osm_ipoib_mgid;	/* ipv4 broadcast group */
--	memcpy(&mc_rec.mgid.raw[4], &pkey, sizeof(pkey));
-+	mc_rec.mgid = *mgid;
- 
--	mc_rec.qkey = CL_HTON32(0x0b1b);
--	mc_rec.mtu = (mtu ? mtu : OSM_DEFAULT_MGRP_MTU) | (2 << 6);	/* 2048 Bytes */
--	mc_rec.tclass = 0;
-+	mc_rec.qkey = CL_HTON32(Q_Key);
-+	mc_rec.mtu = mtu | (2 << 6);	/* 2048 Bytes */
-+	mc_rec.tclass = tclass;
- 	mc_rec.pkey = pkey;
--	mc_rec.rate = (rate ? rate : OSM_DEFAULT_MGRP_RATE) | (2 << 6);	/* 10Gb/sec */
-+	mc_rec.rate = rate | (2 << 6);	/* 10Gb/sec */
- 	mc_rec.pkt_life = p_subn->opt.subnet_timeout;
--	mc_rec.sl_flow_hop = ib_member_set_sl_flow_hop(p->sl, 0, hop_limit);
-+	mc_rec.sl_flow_hop = ib_member_set_sl_flow_hop(sl, FlowLabel, hop_limit);
- 	/* Scope in MCMemberRecord (if present) needs to be consistent with MGID */
- 	mc_rec.scope_state =
- 	    ib_member_set_scope_state(scope, IB_MC_REC_STATE_FULL_MEMBER);
-@@ -206,15 +257,13 @@ ib_api_status_t osm_prtn_add_mcgroup(osm_log_t * p_log, osm_subn_t * p_subn,
- 	mgrp = osm_mcmr_rcv_find_or_create_new_mgrp(p_sa, comp_mask, &mc_rec);
- 	if (!mgrp) {
- 		OSM_LOG(p_log, OSM_LOG_ERROR,
--			"Failed to create MC group with pkey 0x%04x\n",
-+			"Failed to create MC group (%s) with pkey 0x%04x\n",
-+			inet_ntop(AF_INET6, mgid->raw, gid_str, sizeof gid_str),
- 			cl_ntoh16(pkey));
- 		return IB_ERROR;
- 	}
- 
--	mgrp->well_known = TRUE;
--	p->mgrp = mgrp;
--
--	return IB_SUCCESS;
-+	return (track_mgrp_w_partition(p_log, p, mgrp, p_subn, mgid, pkey));
- }
- 
- static uint16_t generate_pkey(osm_subn_t * p_subn)
-@@ -274,7 +323,7 @@ osm_prtn_t *osm_prtn_make_new(osm_log_t * p_log, osm_subn_t * p_subn,
- 			" definition: \'%s\' (0x%04x) prev name \'%s\'"
- 			".  Will use it\n",
- 			name, cl_ntoh16(pkey), p_check->name);
--		osm_prtn_delete(&p);
-+		osm_prtn_delete(p_subn, &p);
- 		p = p_check;
- 	}
- 
-@@ -298,8 +347,12 @@ static ib_api_status_t prtn_make_default(osm_log_t * p_log, osm_subn_t * p_subn,
- 	status =
- 	    osm_prtn_add_port(p_log, p_subn, p, p_subn->sm_port_guid, TRUE);
- 
-+	/* ipv4 broadcast group */
- 	if (no_config)
--		osm_prtn_add_mcgroup(p_log, p_subn, p, 0, 0, 0);
-+		osm_prtn_add_mcgroup(p_log, p_subn, p, OSM_DEFAULT_MGRP_RATE,
-+					OSM_DEFAULT_MGRP_MTU, OSM_DEFAULT_SL,
-+					0, OSM_IPOIB_BROADCAST_MGRP_QKEY, 0, 0,
-+					&osm_ipoib_broadcast_mgid);
- 
- _err:
- 	return status;
-@@ -316,8 +369,12 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
- 
- 	file_name = p_subn->opt.partition_config_file ?
- 	    p_subn->opt.partition_config_file : OSM_DEFAULT_PARTITION_CONFIG_FILE;
--	if (stat(file_name, &statbuf))
-+	if (stat(file_name, &statbuf)) {
-+		OSM_LOG(p_log, OSM_LOG_ERROR, "Partition configuration "
-+			"%s is not accesible (%s)\n", file_name,
-+			strerror(errno));
- 		is_config = FALSE;
-+	}
- 
- 	/* clean up current port maps */
- 	p_next = cl_qmap_head(&p_subn->prtn_pkey_tbl);
-@@ -347,7 +404,7 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
- 		    cl_map_count(&p->full_guid_tbl) == 0) {
- 			cl_qmap_remove_item(&p_subn->prtn_pkey_tbl,
- 					    (cl_map_item_t *) p);
--			osm_prtn_delete(&p);
-+			osm_prtn_delete(p_subn, &p);
- 		}
- 	}
- 
-diff --git a/opensm/osm_prtn_config.c b/opensm/osm_prtn_config.c
-index 0d02597..72cea5a 100644
---- a/opensm/osm_prtn_config.c
-+++ b/opensm/osm_prtn_config.c
-@@ -51,13 +51,36 @@
- #include <opensm/osm_partition.h>
- #include <opensm/osm_subnet.h>
- #include <opensm/osm_log.h>
-+#include <arpa/inet.h>
-+
-+const ib_gid_t osm_ipoib_broadcast_mgid = {
-+	{
-+	 0xff,			/*  multicast field */
-+	 0x12,			/*  non-permanent bit, link local scope */
-+	 0x40, 0x1b,		/*  IPv4 signature */
-+	 0xff, 0xff,		/*  16 bits of P_Key (to be filled in) */
-+	 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	/*  48 bits of zeros */
-+	 0xff, 0xff, 0xff, 0xff,	/*  32 bit IPv4 broadcast address */
-+	 },
++enum ibv_extension_type {
++	IBV_EXTENSION_COMMON,
++	IBV_EXTENSION_VENDOR,
++	IBV_EXTENSION_OFA,
++	IBV_EXTENSION_RDMA_CM
 +};
- 
-+struct group_flags {
-+	unsigned mtu, rate, sl, scope_mask;
-+	uint32_t Q_Key;
-+	uint8_t TClass;
-+	uint32_t FlowLabel;
-+};
-+struct precreate_mgroup {
-+	ib_gid_t mgid;
-+	struct group_flags flags;
-+};
- struct part_conf {
- 	osm_log_t *p_log;
- 	osm_subn_t *p_subn;
- 	osm_prtn_t *p_prtn;
--	unsigned is_ipoib, mtu, rate, sl, scope_mask;
-+	unsigned is_ipoib;
- 	boolean_t full;
-+	struct group_flags flags;
++#define IBV_EXTENSION_BASE_SHIFT 24
++#define IBV_EXTENSION_MASK 0xFF000000
++
+ union ibv_gid {
+ 	uint8_t			raw[16];
+ 	struct {
+@@ -92,7 +101,8 @@ enum ibv_device_cap_flags {
+ 	IBV_DEVICE_SYS_IMAGE_GUID	= 1 << 11,
+ 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
+ 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
+-	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14
++	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
++	IBV_DEVICE_EXTENSIONS		= 1 << (IBV_EXTENSION_BASE_SHIFT - 1)
  };
  
- extern osm_prtn_t *osm_prtn_make_new(osm_log_t * p_log, osm_subn_t * p_subn,
-@@ -68,16 +91,117 @@ extern ib_api_status_t osm_prtn_add_all(osm_log_t * p_log, osm_subn_t * p_subn,
- extern ib_api_status_t osm_prtn_add_port(osm_log_t * p_log,
- 					 osm_subn_t * p_subn, osm_prtn_t * p,
- 					 ib_net64_t guid, boolean_t full);
--extern ib_api_status_t osm_prtn_add_mcgroup(osm_log_t * p_log,
--					    osm_subn_t * p_subn, osm_prtn_t * p,
--					    uint8_t rate,
--					    uint8_t mtu, uint8_t scope);
+ enum ibv_atomic_cap {
+@@ -623,6 +633,13 @@ struct ibv_device {
+ 	char			dev_path[IBV_SYSFS_PATH_MAX];
+ 	/* Path to infiniband class device in sysfs */
+ 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
 +
-+ib_api_status_t osm_prtn_add_mcgroup(osm_log_t * p_log, osm_subn_t * p_subn,
-+				     osm_prtn_t * p, uint8_t rate, uint8_t mtu,
-+				     uint8_t sl, uint8_t scope, uint32_t Q_Key,
-+				     uint8_t TClass, uint32_t FlowLabel,
-+				     const ib_gid_t *mgid);
-+
-+
-+static inline int mgid_is_broadcast(const ib_gid_t *mgid)
-+{
-+	return (memcmp(mgid, &osm_ipoib_broadcast_mgid,
-+			sizeof(osm_ipoib_broadcast_mgid)) == 0);
-+}
-+
-+static inline int mgid_is_ip(const ib_gid_t *mgid)
-+{
-+	ib_net16_t ipsig = *(ib_net16_t *)&mgid->raw[2];
-+	return (ipsig == cl_hton16(0x401b) || ipsig == cl_hton16(0x601b));
-+}
-+
-+static inline int ip_mgroup_pkey_ok(struct part_conf *conf,
-+				struct precreate_mgroup *group)
-+{
-+	ib_net16_t mpkey = *(ib_net16_t *)&group->mgid.raw[4];
-+	char gid_str[INET6_ADDRSTRLEN];
-+
-+	if (mgid_is_broadcast(&group->mgid)
-+	    || mpkey == 0x0000 /* user requested "wild card" of pkey */
-+	    || mpkey == conf->p_prtn->pkey) /* user was smart enough to match */
-+		return (1);
-+
-+	OSM_LOG(conf->p_log, OSM_LOG_ERROR,
-+		"IP MC group (%s) specified with invalid pkey 0x%04x "
-+		"for partition pkey = 0x%04x (%s)\n",
-+		inet_ntop(AF_INET6, group->mgid.raw, gid_str, sizeof gid_str),
-+		cl_ntoh16(mpkey), cl_ntoh16(conf->p_prtn->pkey), conf->p_prtn->name);
-+	return (0);
-+}
-+
-+static inline int ip_mgroup_rate_ok(struct part_conf *conf,
-+				struct precreate_mgroup *group)
-+{
-+	char gid_str[INET6_ADDRSTRLEN];
-+
-+	if (group->flags.rate == conf->flags.rate)
-+		return (1);
-+
-+	OSM_LOG(conf->p_log, OSM_LOG_ERROR,
-+		"IP MC group (%s) specified with invalid rate (%d): "
-+		"partition pkey = 0x%04x (%s) "
-+		"[Partition broadcast group rate = %d]\n",
-+		inet_ntop(AF_INET6, group->mgid.raw, gid_str, sizeof gid_str),
-+		group->flags.rate, cl_ntoh16(conf->p_prtn->pkey),
-+		conf->p_prtn->name, conf->flags.rate);
-+	return (0);
-+}
-+
-+static inline int ip_mgroup_mtu_ok(struct part_conf *conf,
-+				struct precreate_mgroup *group)
-+{
-+	char gid_str[INET6_ADDRSTRLEN];
-+
-+	if (group->flags.mtu == conf->flags.mtu)
-+		return (1);
-+
-+	OSM_LOG(conf->p_log, OSM_LOG_ERROR,
-+		"IP MC group (%s) specified with invalid mtu (%d): "
-+		"partition pkey = 0x%04x (%s) "
-+		"[Partition broadcast group mtu = %d]\n",
-+		inet_ntop(AF_INET6, group->mgid.raw, gid_str, sizeof gid_str),
-+		group->flags.mtu, cl_ntoh16(conf->p_prtn->pkey),
-+		conf->p_prtn->name, conf->flags.mtu);
-+	return (0);
-+}
-+
-+static void __create_mgrp(struct part_conf *conf, struct precreate_mgroup *group)
-+{
-+	unsigned int scope;
-+
-+	if (!group->flags.scope_mask) {
-+		osm_prtn_add_mcgroup(conf->p_log, conf->p_subn, conf->p_prtn,
-+				     (uint8_t) group->flags.rate,
-+				     (uint8_t) group->flags.mtu,
-+				     group->flags.sl,
-+				     0,
-+				     group->flags.Q_Key,
-+				     group->flags.TClass,
-+				     group->flags.FlowLabel,
-+				     &group->mgid);
-+	} else {
-+		for (scope = 0; scope < 16; scope++) {
-+			if (((1<<scope) & group->flags.scope_mask) == 0)
-+				continue;
-+
-+			osm_prtn_add_mcgroup(conf->p_log, conf->p_subn, conf->p_prtn,
-+					     (uint8_t)group->flags.rate,
-+					     (uint8_t)group->flags.mtu,
-+					     (uint8_t)group->flags.sl,
-+					     (uint8_t)scope,
-+					     group->flags.Q_Key,
-+					     group->flags.TClass,
-+					     group->flags.FlowLabel,
-+					     &group->mgid);
-+		}
-+	}
-+}
++	/* Following fields only available if device supports extensions */
++	void		       *private;
++	int			(*have_ext_ops)(struct ibv_device *device,
++						const char *ext_name);
++	void *			(*get_device_ext_ops)(struct ibv_device *device,
++						      const char *ext_name);
+ };
  
- static int partition_create(unsigned lineno, struct part_conf *conf,
- 			    char *name, char *id, char *flag, char *flag_val)
+ struct ibv_context_ops {
+@@ -691,6 +708,11 @@ struct ibv_context {
+ 	int			num_comp_vectors;
+ 	pthread_mutex_t		mutex;
+ 	void		       *abi_compat;
++
++	/* Following fields only available if device supports extensions */
++	void		       *private;
++	void *			(*get_ext_ops)(struct ibv_context *context,
++					       const char *ext_name);
+ };
+ 
+ /**
+@@ -724,6 +746,17 @@ const char *ibv_get_device_name(struct ibv_device *device);
+ uint64_t ibv_get_device_guid(struct ibv_device *device);
+ 
+ /**
++ * ibv_have_ext_ops - Return true if device supports the requested
++ * extended operations.
++ */
++int ibv_have_ext_ops(struct ibv_device *device, const char *name);
++
++/**
++ * ibv_get_device_ext_ops - Return extended operations.
++ */
++void *ibv_get_device_ext_ops(struct ibv_device *device, const char *name);
++
++/**
+  * ibv_open_device - Initialize device for use
+  */
+ struct ibv_context *ibv_open_device(struct ibv_device *device);
+@@ -734,6 +767,11 @@ struct ibv_context *ibv_open_device(struct ibv_device *device);
+ int ibv_close_device(struct ibv_context *context);
+ 
+ /**
++ * ibv_get_ext_ops - Return extended operations.
++ */
++void *ibv_get_ext_ops(struct ibv_context *context, const char *name);
++
++/**
+  * ibv_get_async_event - Get next async event
+  * @event: Pointer to use to return async event
+  *
+diff --git a/src/device.c b/src/device.c
+index 185f4a6..78d9d35 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -181,6 +181,24 @@ int __ibv_close_device(struct ibv_context *context)
+ }
+ default_symver(__ibv_close_device, ibv_close_device);
+ 
++int __ibv_have_ext_ops(struct ibv_device *device, const char *name)
++{
++	if (!ibv_get_ext_support(device))
++		return ENOSYS;
++
++	return device->have_ext_ops(device, name);
++}
++default_symver(__ibv_have_ext_ops, ibv_have_ext_ops);
++
++void *__ibv_get_device_ext_ops(struct ibv_device *device, const char *name)
++{
++	if (!ibv_get_ext_support(device) || !device->get_device_ext_ops)
++		return NULL;
++
++	return device->get_device_ext_ops(device, name);
++}
++default_symver(__ibv_get_device_ext_ops, ibv_get_device_ext_ops);
++
+ int __ibv_get_async_event(struct ibv_context *context,
+ 			  struct ibv_async_event *event)
  {
- 	uint16_t pkey;
--	unsigned int scope;
+diff --git a/src/ibverbs.h b/src/ibverbs.h
+index 6a6e3c8..33bdee2 100644
+--- a/src/ibverbs.h
++++ b/src/ibverbs.h
+@@ -35,6 +35,7 @@
+ #define IB_VERBS_H
  
- 	if (!id && name && isdigit(*name)) {
- 		id = name;
-@@ -98,77 +222,120 @@ static int partition_create(unsigned lineno, struct part_conf *conf,
- 	if (!conf->p_prtn)
- 		return -1;
+ #include <pthread.h>
++#include <string.h>
  
--	if (!conf->p_subn->opt.qos && conf->sl != OSM_DEFAULT_SL) {
-+	if (!conf->p_subn->opt.qos && conf->flags.sl != OSM_DEFAULT_SL) {
- 		OSM_LOG(conf->p_log, OSM_LOG_DEBUG, "Overriding SL %d"
- 			" to default SL %d on partition %s"
- 			" as QoS is not enabled.\n",
--			conf->sl, OSM_DEFAULT_SL, name);
--		conf->sl = OSM_DEFAULT_SL;
-+			conf->flags.sl, OSM_DEFAULT_SL, name);
-+		conf->flags.sl = OSM_DEFAULT_SL;
- 	}
--	conf->p_prtn->sl = (uint8_t) conf->sl;
--
--	if (!conf->is_ipoib)
--		return 0;
--
--	if (!conf->scope_mask) {
--		osm_prtn_add_mcgroup(conf->p_log, conf->p_subn, conf->p_prtn,
--				     (uint8_t) conf->rate,
--				     (uint8_t) conf->mtu,
--				     0);
--		return 0;
-+	conf->p_prtn->sl = (uint8_t) conf->flags.sl;
+ #include <infiniband/driver.h>
+ 
+@@ -102,4 +103,21 @@ HIDDEN int ibverbs_init(struct ibv_device ***list);
+ 		(cmd)->response  = (uintptr_t) (out);			\
+ 	} while (0)
+ 
++/*
++ * Support for extended operations is recorded at the end of
++ * the name character array.  This way we don't need to query
++ * for the device capabilities with every call.
++ */
++static inline int ibv_get_ext_support(struct ibv_device *device)
++{
++	return device->name[IBV_SYSFS_NAME_MAX - 1];
++}
 +
-+	if (conf->is_ipoib) {
-+		struct precreate_mgroup broadcast_mgroup;
-+		memset(&broadcast_mgroup, 0, sizeof(broadcast_mgroup));
-+		broadcast_mgroup.mgid = osm_ipoib_broadcast_mgid;
-+		broadcast_mgroup.flags.mtu = conf->flags.mtu;
-+		broadcast_mgroup.flags.rate = conf->flags.rate;
-+		broadcast_mgroup.flags.sl = conf->flags.sl;
-+		broadcast_mgroup.flags.Q_Key = conf->flags.Q_Key ? 
-+						conf->flags.Q_Key :
-+						OSM_IPOIB_BROADCAST_MGRP_QKEY;
-+		broadcast_mgroup.flags.TClass = conf->flags.TClass;
-+		broadcast_mgroup.flags.FlowLabel = conf->flags.FlowLabel;
-+		__create_mgrp(conf, &broadcast_mgroup);
- 	}
++static inline void ibv_set_ext_support(struct ibv_device *device,
++				       int ext_supported)
++{
++	if (strlen(device->name) < IBV_SYSFS_NAME_MAX - 1)
++		device->name[IBV_SYSFS_NAME_MAX - 1] = (char) ext_supported;
++}
++
+ #endif /* IB_VERBS_H */
+diff --git a/src/init.c b/src/init.c
+index 4f0130e..419ab31 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -71,6 +71,7 @@ struct ibv_driver {
+ 	const char	       *name;
+ 	ibv_driver_init_func	init_func;
+ 	struct ibv_driver      *next;
++	int			ext_support;
+ };
  
--	for (scope = 0; scope < 16; scope++) {
--		if (((1<<scope) & conf->scope_mask) == 0)
--			continue;
--
--		osm_prtn_add_mcgroup(conf->p_log, conf->p_subn, conf->p_prtn,
--				     (uint8_t) conf->rate,
--				     (uint8_t) conf->mtu,
--				     (uint8_t) scope);
--	}
- 	return 0;
+ static struct ibv_sysfs_dev *sysfs_dev_list;
+@@ -153,7 +154,8 @@ static int find_sysfs_devs(void)
+ 	return ret;
  }
  
--static int partition_add_flag(unsigned lineno, struct part_conf *conf,
--			      char *flag, char *val)
-+/* returns 1 if processed 0 if _not_ */
-+static int parse_group_flag(unsigned lineno, osm_log_t * p_log,
-+			    struct group_flags *flags,
-+			    char *flag, char *val)
+-void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
++static void __ibv_register_driver(const char *name, ibv_driver_init_func init_func,
++				  int ext_support)
  {
-+	int rc = 0;
- 	int len = strlen(flag);
--	if (!strncmp(flag, "ipoib", len)) {
--		conf->is_ipoib = 1;
--	} else if (!strncmp(flag, "mtu", len)) {
--		if (!val || (conf->mtu = strtoul(val, NULL, 0)) == 0)
--			OSM_LOG(conf->p_log, OSM_LOG_VERBOSE,
-+	if (!strncmp(flag, "mtu", len)) {
-+		rc = 1;
-+		if (!val || (flags->mtu = strtoul(val, NULL, 0)) == 0)
-+			OSM_LOG(p_log, OSM_LOG_VERBOSE,
- 				"PARSE WARN: line %d: "
- 				"flag \'mtu\' requires valid value"
- 				" - skipped\n", lineno);
- 	} else if (!strncmp(flag, "rate", len)) {
--		if (!val || (conf->rate = strtoul(val, NULL, 0)) == 0)
--			OSM_LOG(conf->p_log, OSM_LOG_VERBOSE,
-+		rc = 1;
-+		if (!val || (flags->rate = strtoul(val, NULL, 0)) == 0)
-+			OSM_LOG(p_log, OSM_LOG_VERBOSE,
- 				"PARSE WARN: line %d: "
- 				"flag \'rate\' requires valid value"
- 				" - skipped\n", lineno);
- 	} else if (!strncmp(flag, "scope", len)) {
- 		unsigned int scope;
-+		rc = 1;
- 		if (!val || (scope = strtoul(val, NULL, 0)) == 0 || scope > 0xF)
--			OSM_LOG(conf->p_log, OSM_LOG_VERBOSE,
-+			OSM_LOG(p_log, OSM_LOG_VERBOSE,
- 				"PARSE WARN: line %d: "
- 				"flag \'scope\' requires valid value"
- 				" - skipped\n", lineno);
- 		else
--			conf->scope_mask |= (1<<scope);
-+			flags->scope_mask |= (1<<scope);
-+	} else if (!strncmp(flag, "Q_Key", strlen(flag))) {
-+		if (!val || (flags->Q_Key = strtoul(val, NULL, 0)) == 0)
-+			OSM_LOG(p_log, OSM_LOG_VERBOSE,
-+				"PARSE WARN: line %d: "
-+				"flag \'Q_Key\' requires valid value"
-+				" - using '0'\n", lineno);
-+	} else if (!strncmp(flag, "TClass", strlen(flag))) {
-+		if (!val || (flags->TClass = strtoul(val, NULL, 0)) == 0)
-+			OSM_LOG(p_log, OSM_LOG_VERBOSE,
-+				"PARSE WARN: line %d: "
-+				"flag \'TClass\' requires valid value"
-+				" - using '0'\n", lineno);
- 	} else if (!strncmp(flag, "sl", len)) {
- 		unsigned sl;
- 		char *end;
-+		rc = 1;
+ 	struct ibv_driver *driver;
  
- 		if (!val || !*val || (sl = strtoul(val, &end, 0)) > 15 ||
- 		    (*end && !isspace(*end)))
--			OSM_LOG(conf->p_log, OSM_LOG_VERBOSE,
-+			OSM_LOG(p_log, OSM_LOG_VERBOSE,
- 				"PARSE WARN: line %d: "
- 				"flag \'sl\' requires valid value"
- 				" - skipped\n", lineno);
- 		else
--			conf->sl = sl;
-+			flags->sl = sl;
-+	} else if (!strncmp(flag, "FlowLabel", len)) {
-+		uint32_t FlowLabel;
-+		char *end;
-+		rc = 1;
-+
-+		if (!val || !*val ||
-+		    (FlowLabel = strtoul(val, &end, 0)) > 0xFFFFF ||
-+		    (*end && !isspace(*end)))
-+			OSM_LOG(p_log, OSM_LOG_VERBOSE,
-+				"PARSE WARN: line %d: "
-+				"flag \'FlowLabel\' requires valid value"
-+				" - skipped\n", lineno);
-+		else
-+			flags->FlowLabel = FlowLabel;
-+	}
-+
-+	return rc;
-+}
-+
-+static int partition_add_flag(unsigned lineno, struct part_conf *conf,
-+			      char *flag, char *val)
-+{
-+	int len = strlen(flag);
-+
-+	/* ipoib gc group flags are processed here. */
-+	if (parse_group_flag(lineno, conf->p_log, &conf->flags, flag, val))
-+		return 0;
-+
-+	/* partition flags go here. */
-+	if (!strncmp(flag, "ipoib", len)) {
-+		conf->is_ipoib = 1;
- 	} else if (!strncmp(flag, "defmember", len)) {
- 		if (!val || (strncmp(val, "limited", strlen(val))
- 			     && strncmp(val, "full", strlen(val))))
-@@ -288,6 +455,87 @@ static int parse_name_token(char *str, char **name, char **val)
- 	return len;
+@@ -166,6 +168,7 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
+ 	driver->name      = name;
+ 	driver->init_func = init_func;
+ 	driver->next      = NULL;
++	driver->ext_support = ext_support;
+ 
+ 	if (tail_driver)
+ 		tail_driver->next = driver;
+@@ -174,6 +177,16 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
+ 	tail_driver = driver;
  }
  
-+static int parse_mgroup_flags(osm_log_t * p_log,
-+				struct precreate_mgroup *mgroup,
-+				char *p, unsigned lineno)
++void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
 +{
-+	int ret, len = 0;
-+	char *flag, *val, *q;
-+	do {
-+		flag = val = NULL;
-+		q = strchr(p, ',');
-+		if (q)
-+			*q++ = '\0';
-+
-+		ret = parse_name_token(p, &flag, &val);
-+
-+		if (!parse_group_flag(lineno, p_log, &mgroup->flags,
-+				     flag, val)) {
-+			OSM_LOG(p_log, OSM_LOG_VERBOSE,
-+				"PARSE WARN: line %d: "
-+				"unrecognized mgroup flag \'%s\'"
-+				" - ignored\n", lineno, flag);
-+		}
-+		p += ret;
-+		len += ret;
-+	} while (q);
-+
-+	return (len);
++	__ibv_register_driver(name, init_func, 0);
 +}
 +
-+static int mgroup_create(char *p, char *mgid, unsigned lineno, struct part_conf *conf)
++void ibv_register_driver_ext(const char *name, ibv_driver_init_func init_func)
 +{
-+	int ret = 0;
-+	struct precreate_mgroup mgroup;
-+
-+	memset(&mgroup, 0, sizeof(mgroup));
-+
-+	if (inet_pton(AF_INET6, mgid, &mgroup.mgid) != 1
-+	    || mgroup.mgid.raw[0] != 0xff) {
-+		OSM_LOG(conf->p_log, OSM_LOG_ERROR,
-+			"PARSE ERROR partition conf file line %d: "
-+			"mgid \"%s\": gid is not multicast\n", lineno, mgid);
-+		return 0;
-+	}
-+
-+	/* inherit partition flags */
-+	mgroup.flags.mtu = conf->flags.mtu;
-+	mgroup.flags.rate = conf->flags.rate;
-+	mgroup.flags.sl = conf->flags.sl;
-+	mgroup.flags.Q_Key = conf->flags.Q_Key;
-+	mgroup.flags.FlowLabel = conf->flags.FlowLabel;
-+	mgroup.flags.scope_mask = conf->flags.scope_mask;
-+
-+	/* override with user specified flags */
-+	ret = parse_mgroup_flags(conf->p_log, &mgroup, p, lineno);
-+
-+	/* check/verify special IP group parameters */
-+	if (mgid_is_ip(&mgroup.mgid)) {
-+		ib_net16_t pkey = conf->p_prtn->pkey | cl_hton16(0x8000);
-+
-+		if (!ip_mgroup_pkey_ok(conf, &mgroup)
-+		    || !ip_mgroup_rate_ok(conf, &mgroup)
-+		    || !ip_mgroup_mtu_ok(conf, &mgroup))
-+			goto error;
-+
-+		/* set special IP settings */
-+		memcpy(&mgroup.mgid.raw[4], &pkey, sizeof(pkey));
-+
-+		if (mgroup.flags.Q_Key == 0)
-+			mgroup.flags.Q_Key = OSM_IPOIB_BROADCAST_MGRP_QKEY;
-+	}
-+
-+	/* don't create multiple copies of the group */
-+	if (osm_get_mgrp_by_mgid(conf->p_subn, &mgroup.mgid))
-+		goto error;
-+
-+	/* create the group */
-+	__create_mgrp(conf, &mgroup);
-+
-+error:
-+	return ret;
++	__ibv_register_driver(name, init_func, 1);
 +}
 +
- static struct part_conf *new_part_conf(osm_log_t * p_log, osm_subn_t * p_subn)
+ static void load_driver(const char *name)
  {
- 	static struct part_conf part;
-@@ -298,7 +546,9 @@ static struct part_conf *new_part_conf(osm_log_t * p_log, osm_subn_t * p_subn)
- 	conf->p_subn = p_subn;
- 	conf->p_prtn = NULL;
- 	conf->is_ipoib = 0;
--	conf->sl = OSM_DEFAULT_SL;
-+	conf->flags.sl = OSM_DEFAULT_SL;
-+	conf->flags.rate = OSM_DEFAULT_MGRP_RATE;
-+	conf->flags.mtu = OSM_DEFAULT_MGRP_MTU;
- 	conf->full = FALSE;
- 	return conf;
- }
-@@ -382,6 +632,12 @@ skip_header:
- 		if (q)
- 			*q++ = '\0';
- 		ret = parse_name_token(p, &name, &flag);
-+
-+		if (strcmp(name, "mgid") == 0) {
-+			/* parse an mgid line if specified. */
-+			len += mgroup_create(p+ret, flag, lineno, conf);
-+			goto done; /* We're done: this consumes the line */
-+		}
- 		if (partition_add_port(lineno, conf, name, flag) < 0) {
- 			OSM_LOG(conf->p_log, OSM_LOG_ERROR,
- 				"PARSE ERROR: line %d: "
-@@ -394,13 +650,14 @@ skip_header:
- 		len += ret;
- 	} while (q);
+ 	char *so_name;
+@@ -368,6 +381,8 @@ static struct ibv_device *try_driver(struct ibv_driver *driver,
+ 	strcpy(dev->name,       sysfs_dev->ibdev_name);
+ 	strcpy(dev->ibdev_path, sysfs_dev->ibdev_path);
  
-+done:
- 	return len;
++	ibv_set_ext_support(dev, driver->ext_support);
++
+ 	return dev;
  }
  
- int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
- 			       const char *file_name)
- {
--	char line[1024];
-+	char line[4096];
- 	struct part_conf *conf = NULL;
- 	FILE *file;
- 	int lineno;
-diff --git a/opensm/osm_qos_policy.c b/opensm/osm_qos_policy.c
-index 3780968..9f8697e 100644
---- a/opensm/osm_qos_policy.c
-+++ b/opensm/osm_qos_policy.c
-@@ -770,9 +770,7 @@ static void __qos_policy_validate_pkey(
- 			osm_qos_match_rule_t * p_qos_match_rule,
- 			osm_prtn_t * p_prtn)
- {
--	uint8_t sl;
--	uint32_t flow;
--	uint8_t hop;
-+	int i = 0;
- 
- 	if (!p_qos_policy || !p_qos_match_rule || !p_prtn)
- 		return;
-@@ -790,26 +788,30 @@ static void __qos_policy_validate_pkey(
- 	p_prtn->sl = p_qos_match_rule->p_qos_level->sl;
- 
- 
--	/* If this partition is an IPoIB partition, there should
--	   be a matching MCast group. Fix this group's SL too */
--	if (!p_prtn->mgrp)
--		return;
--
--	CL_ASSERT((cl_ntoh16(p_prtn->mgrp->mcmember_rec.pkey) & 0x7fff) ==
--		  (cl_ntoh16(p_prtn->pkey) & 0x7fff));
--
--	ib_member_get_sl_flow_hop(p_prtn->mgrp->mcmember_rec.sl_flow_hop,
--				  &sl, &flow, &hop);
--	if (sl != p_prtn->sl) {
--		char gid_str[INET6_ADDRSTRLEN];
--		OSM_LOG(&p_qos_policy->p_subn->p_osm->log, OSM_LOG_DEBUG,
--			"Updating MCGroup (MGID %s) SL to "
--			"match partition SL (%u)\n",
--			inet_ntop(AF_INET6, p_prtn->mgrp->mcmember_rec.mgid.raw,
--				  gid_str, sizeof gid_str),
--			p_prtn->sl);
--		p_prtn->mgrp->mcmember_rec.sl_flow_hop =
--			ib_member_set_sl_flow_hop(p_prtn->sl, flow, hop);
-+	/* If this partition has default MCast groups.
-+	 * Fix those group's SL too */
-+	for (i = 0; i < p_prtn->nmgrps; i++)
-+	{
-+		uint8_t sl;
-+		uint32_t flow;
-+		uint8_t hop;
+diff --git a/src/libibverbs.map b/src/libibverbs.map
+index 1827da0..422e07f 100644
+--- a/src/libibverbs.map
++++ b/src/libibverbs.map
+@@ -96,4 +96,9 @@ IBVERBS_1.1 {
+ 		ibv_port_state_str;
+ 		ibv_event_type_str;
+ 		ibv_wc_status_str;
 +
-+		CL_ASSERT((cl_ntoh16(p_prtn->mgrps[i]->mcmember_rec.pkey) & 0x7fff) ==
-+			  (cl_ntoh16(p_prtn->pkey) & 0x7fff));
-+
-+		ib_member_get_sl_flow_hop(p_prtn->mgrps[i]->mcmember_rec.sl_flow_hop,
-+					  &sl, &flow, &hop);
-+		if (sl != p_prtn->sl) {
-+			char gid_str[INET6_ADDRSTRLEN];
-+			OSM_LOG(&p_qos_policy->p_subn->p_osm->log, OSM_LOG_DEBUG,
-+				"Updating MCGroup (MGID %s) SL to "
-+				"match partition SL (%u)\n",
-+				inet_ntop(AF_INET6, p_prtn->mgrps[i]->mcmember_rec.mgid.raw,
-+					  gid_str, sizeof gid_str),
-+				p_prtn->sl);
-+			p_prtn->mgrps[i]->mcmember_rec.sl_flow_hop =
-+				ib_member_set_sl_flow_hop(p_prtn->sl, flow, hop);
-+		}
++		ibv_register_driver_ext;
++		ibv_have_ext_ops;
++		ibv_get_device_ext_ops;
++		ibv_get_ext_ops;
+ } IBVERBS_1.0;
+diff --git a/src/verbs.c b/src/verbs.c
+index ba3c0a4..a34a784 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -76,6 +76,15 @@ enum ibv_rate mult_to_ibv_rate(int mult)
  	}
  }
  
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index 8d636bc..810160c 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -492,7 +492,7 @@ void osm_subn_destroy(IN osm_subn_t * p_subn)
- 	       (osm_prtn_t *) cl_qmap_end(&p_subn->prtn_pkey_tbl)) {
- 		p_prtn = p_next_prtn;
- 		p_next_prtn = (osm_prtn_t *) cl_qmap_next(&p_prtn->map_item);
--		osm_prtn_delete(&p_prtn);
-+		osm_prtn_delete(p_subn, &p_prtn);
- 	}
- 
- 	cl_fmap_remove_all(&p_subn->mgrp_mgid_tbl);
--- 
-1.7.1
++void *__ibv_get_ext_ops(struct ibv_context *context, const char *name)
++{
++	if (!ibv_get_ext_support(context->device) || !context->get_ext_ops)
++		return NULL;
++
++	return context->get_ext_ops(context, name);
++}
++default_symver(__ibv_get_ext_ops, ibv_get_ext_ops);
++
+ int __ibv_query_device(struct ibv_context *context,
+ 		       struct ibv_device_attr *device_attr)
+ {
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
