@@ -1,56 +1,45 @@
 From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 1/2] ib_srpt: Make srp_max_req_size module parameter use S_IRUGO|S_IWUSR
-Date: Sun, 6 Nov 2011 13:54:23 +0100
-Message-ID: <CAO+b5-qeurR2=oH6Gtcrg=nW1N3Mc-jSUMMC-0sarFxKAm=-TQ@mail.gmail.com>
-References: <1320578141-27048-1-git-send-email-nab@linux-iscsi.org>
-	<CAO+b5-qEUcheRYWfiak1p=a01YZNX+ggQNT5phfDtOYtJZLmOw@mail.gmail.com>
-	<1320581400.5859.449.camel@haakon2.linux-iscsi.org>
+Subject: Re: [GIT PULL] ib_srpt: Initial SRP Target merge for v3.2-rc1
+Date: Sun, 6 Nov 2011 14:20:47 +0100
+Message-ID: <CAO+b5-p0gLueksp7a8RVm9A1Qe_9xc-fNSNX0NY0W7CNtGnSYw@mail.gmail.com>
+References: <1320437452.5859.96.camel@haakon2.linux-iscsi.org>
+	<CAO+b5-pOi_+Y+jcExxEzParHOdU6YB4WaB-onH_PLXugzLKjzg@mail.gmail.com>
+	<1320516243.5859.184.camel@haakon2.linux-iscsi.org>
+	<CAO+b5-rjKdZtBjZ=qyRnavDubtHWSGihROHEUok6o+bCNc3TpA@mail.gmail.com>
+	<1320574170.5859.370.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1320581400.5859.449.camel@haakon2.linux-iscsi.org>
-Sender: linux-scsi-owner@vger.kernel.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1320574170.5859.370.camel@haakon2.linux-iscsi.org>
+Sender: target-devel-owner@vger.kernel.org
 To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
-Met vriendelijke groeten,
-
-On Sun, Nov 6, 2011 at 1:10 PM, Nicholas A. Bellinger
+On Sun, Nov 6, 2011 at 11:09 AM, Nicholas A. Bellinger
 <nab@linux-iscsi.org> wrote:
-> On Sun, 2011-11-06 at 12:46 +0100, Bart Van Assche wrote:
->> On Sun, Nov 6, 2011 at 12:15 PM, Nicholas A. Bellinger
->> <nab@linux-iscsi.org> wrote:
->> > This patch converts the srp_max_req_size module parameter to R/W a=
-ccess
->> > so that it's accessable when built as CONFIG_INFINIBAND_SRPT=3Dy. =
-=A0This
->> > includes adding srpt_device->max_req_size that is assigned during
->> > srpt_add_one() and referenced directly from there.
->>
->> I'm not sure it makes sense to store a copy of this parameter in the
->> srpt_device structure. If the HCA driver code (e.g. mlx4) is also
->> built into the kernel instead of as a separate module, any changes o=
-f
->> srp_max_req_size after ib_srpt and HCA driver initialization finishe=
-d
->> won't have any effect.
->
-> So it sounds like srp_max_req_size with CONFIG_INFINIBAND_SRPT=3Dy is=
- not
-> really going to be of much use anyways. =A0What about just leaving it=
- as
-> read-only..?
+> We have also discussed srpt_service_guid a bit before, which you
+> indicated needed to stay in current code as global scope, and presuma=
+bly
+> should not change value after loading. =A0Looking at the actual usage=
+, one
+> post merge improvement we can consider is seeing if it's possible to
+> move ib_cm_listen() out of srpt_add_one() and have it driven instead =
+by
+> configfs context in order to optionally set srpt_service_guid on a pe=
+r
+> target endpoint basis to get us some more flexibility.
 
-Another option is to copy the value of that parameter into struct
-srpt_rdma_ch at SRP login time. That way any change of that parameter
-won't have any effect for active sessions but will have effect for all
-future logins.
+ib_sprt defines a single I/O controller profile and hence there should
+be exactly one GUID associated with it.
+
+> For the "last WQE" you've mentioned, I'm happy to accept a patch to
+> address this as you know the code better than me. =A0Otherwise, I'll =
+be
+> digging this out of your out-of-tree code as a seperate item and
+> figuring out how to reproduce and test this special case.
+
+I'll post a patch to address last WQE handling.
 
 Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
