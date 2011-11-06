@@ -1,115 +1,141 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [GIT PULL] ib_srpt: Initial SRP Target merge for v3.2-rc1
-Date: Sun, 06 Nov 2011 02:09:30 -0800
-Message-ID: <1320574170.5859.370.camel@haakon2.linux-iscsi.org>
-References: <1320437452.5859.96.camel@haakon2.linux-iscsi.org>
-	 <CAO+b5-pOi_+Y+jcExxEzParHOdU6YB4WaB-onH_PLXugzLKjzg@mail.gmail.com>
-	 <1320516243.5859.184.camel@haakon2.linux-iscsi.org>
-	 <CAO+b5-rjKdZtBjZ=qyRnavDubtHWSGihROHEUok6o+bCNc3TpA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-rjKdZtBjZ=qyRnavDubtHWSGihROHEUok6o+bCNc3TpA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: [PATCH 1/2] ib_srpt: Make srp_max_req_size module parameter use S_IRUGO|S_IWUSR
+Date: Sun,  6 Nov 2011 11:15:40 +0000
+Message-ID: <1320578141-27048-1-git-send-email-nab@linux-iscsi.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: linux-rdma <linux-rdma@vger.kernel.org>
+Cc: target-devel <target-devel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Bart Van Assche <bvanassche@acm.org>, Nicholas Bellinger <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2011-11-06 at 08:34 +0100, Bart Van Assche wrote:
-> On Sat, Nov 5, 2011 at 7:04 PM, Nicholas A. Bellinger
-> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> > On Sat, 2011-11-05 at 08:37 +0100, Bart Van Assche wrote:
-> >> On Fri, Nov 4, 2011 at 9:10 PM, Nicholas A. Bellinger
-> >> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> >> > This is the PULL request for an initial merge of the ib_srpt driver
-> >> > using mainline target infrastructure into v3.2-rc1.
-> >>
-> >> In case anyone is interested, the most important unaddressed comments
-> >> for this version of ib_srpt are:
-> >> - There are still too many module parameters. This makes ib_srpt
-> >> harder to use than necessary because several of these parameters can
-> >> only be set at module load time.
-> >
-> > Can you be more specific here..?  I went through the module parameters
-> > and made the ones that where used in a per-port specific context into
-> > configfs attributes as Roland recommended, but it seems like you are
-> > saying that more should be made into attributes.  Which ones..?
-> 
-> Several read-only kernel module parameters remain. That's fine in
-> out-of-tree code since it will be compiled as a kernel module only.
-> But anyone who tries to build with CONFIG_INFINIBAND_SRPT=y will
-> notice that it's impossible to change the value of these read-only
-> kernel module parameters.
-> 
+From: Nicholas Bellinger <nab@linux-iscsi.org>
 
-So after the cleanups, srp_max_req_size, srpt_srq_size and
-srpt_service_guid appear as the remaining module parameters.  The first
-two are required at srpt_add_one() -> srpt_device allocation time
-(usually at initial load time), and should remain as global scope
-parameters correct..?  To address the point with
-CONFIG_INFINIBAND_SRPT=y, how about assigning these two values for each
-srpt_device during srpt_add_one(), and reference them directly in
-srpt_device so their respective module parameter can become S_IRUGO|
-S_IWUSR...?
+This patch converts the srp_max_req_size module parameter to R/W access
+so that it's accessable when built as CONFIG_INFINIBAND_SRPT=y.  This
+includes adding srpt_device->max_req_size that is assigned during
+srpt_add_one() and referenced directly from there.
 
-We have also discussed srpt_service_guid a bit before, which you
-indicated needed to stay in current code as global scope, and presumably
-should not change value after loading.  Looking at the actual usage, one
-post merge improvement we can consider is seeing if it's possible to
-move ib_cm_listen() out of srpt_add_one() and have it driven instead by
-configfs context in order to optionally set srpt_service_guid on a per
-target endpoint basis to get us some more flexibility. 
+Reported-by: Bart Van Assche <bvanassche@acm.org>
+Cc: Bart Van Assche <bvanassche@acm.org>
+Cc: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c |   20 +++++++++++---------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |    2 ++
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-> >> - The last WQE event can arrive before the queue pair is reset,
-> >> resulting in a hanging session and blocking future logins
-> >> (http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg09678.html).
-> >
-> > Yep, was going to get this resolved post merge along with my patch now
-> > in lio-core.git to address active I/O shutdown with ib_srpt.
-> 
-> Your "active I/O shutdown" patch does not address the "last WQE" issue.
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index aae040d..94e6aff 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -79,7 +79,7 @@ static spinlock_t srpt_dev_lock;       /* Protects srpt_dev_list. */
+ static struct list_head srpt_dev_list; /* List of srpt_device structures. */
+ 
+ static unsigned srp_max_req_size = DEFAULT_MAX_REQ_SIZE;
+-module_param(srp_max_req_size, int, 0444);
++module_param(srp_max_req_size, int, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(srp_max_req_size,
+ 		 "Maximum size of SRP request messages in bytes.");
+ 
+@@ -361,7 +361,7 @@ static void srpt_get_ioc(struct srpt_port *sport, u32 slot,
+ 	iocp->protocol_version = __constant_cpu_to_be16(SRP_PROTOCOL_VERSION);
+ 	iocp->send_queue_depth = cpu_to_be16(sdev->srq_size);
+ 	iocp->rdma_read_depth = 4;
+-	iocp->send_size = cpu_to_be32(srp_max_req_size);
++	iocp->send_size = cpu_to_be32(sdev->max_req_size);
+ 	iocp->rdma_size = cpu_to_be32(min(sport->port_attrib.srp_max_rdma_size,
+ 					  1U << 24));
+ 	iocp->num_svc_entries = 1;
+@@ -786,7 +786,7 @@ static int srpt_post_recv(struct srpt_device *sdev,
+ 	wr.wr_id = encode_wr_id(SRPT_RECV, ioctx->ioctx.index);
+ 
+ 	list.addr = ioctx->ioctx.dma;
+-	list.length = srp_max_req_size;
++	list.length = sdev->max_req_size;
+ 	list.lkey = sdev->mr->lkey;
+ 
+ 	wr.next = NULL;
+@@ -1942,7 +1942,8 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
+ 	BUG_ON(!recv_ioctx);
+ 
+ 	ib_dma_sync_single_for_cpu(ch->sport->sdev->device,
+-				   recv_ioctx->ioctx.dma, srp_max_req_size,
++				   recv_ioctx->ioctx.dma,
++				   ch->sport->sdev->max_req_size,
+ 				   DMA_FROM_DEVICE);
+ 
+ 	ch_state = srpt_get_ch_state(ch);
+@@ -2490,13 +2491,13 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		goto out;
+ 	}
+ 
+-	if (it_iu_len > srp_max_req_size || it_iu_len < 64) {
++	if (it_iu_len > sdev->max_req_size || it_iu_len < 64) {
+ 		rej->reason = __constant_cpu_to_be32(
+ 				SRP_LOGIN_REJ_REQ_IT_IU_LENGTH_TOO_LARGE);
+ 		ret = -EINVAL;
+ 		printk(KERN_ERR "rejected SRP_LOGIN_REQ because its"
+ 		       " length (%d bytes) is out of range (%d .. %d)\n",
+-		       it_iu_len, 64, srp_max_req_size);
++		       it_iu_len, 64, sdev->max_req_size);
+ 		goto reject;
+ 	}
+ 
+@@ -3248,6 +3249,7 @@ static void srpt_add_one(struct ib_device *device)
+ 		goto err_pd;
+ 
+ 	sdev->srq_size = min(srpt_srq_size, sdev->dev_attr.max_srq_wr);
++	sdev->max_req_size = srp_max_req_size;
+ 
+ 	srq_attr.event_handler = srpt_srq_event;
+ 	srq_attr.srq_context = (void *)sdev;
+@@ -3292,7 +3294,7 @@ static void srpt_add_one(struct ib_device *device)
+ 	sdev->ioctx_ring = (struct srpt_recv_ioctx **)
+ 		srpt_alloc_ioctx_ring(sdev, sdev->srq_size,
+ 				      sizeof(*sdev->ioctx_ring[0]),
+-				      srp_max_req_size, DMA_FROM_DEVICE);
++				      sdev->max_req_size, DMA_FROM_DEVICE);
+ 	if (!sdev->ioctx_ring)
+ 		goto err_event;
+ 
+@@ -3335,7 +3337,7 @@ out:
+ 
+ err_ring:
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
+-			     sdev->srq_size, srp_max_req_size,
++			     sdev->srq_size, sdev->max_req_size,
+ 			     DMA_FROM_DEVICE);
+ err_event:
+ 	ib_unregister_event_handler(&sdev->event_handler);
+@@ -3395,7 +3397,7 @@ static void srpt_remove_one(struct ib_device *device)
+ 	ib_dealloc_pd(sdev->pd);
+ 
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)sdev->ioctx_ring, sdev,
+-			     sdev->srq_size, srp_max_req_size, DMA_FROM_DEVICE);
++			sdev->srq_size, sdev->max_req_size, DMA_FROM_DEVICE);
+ 	sdev->ioctx_ring = NULL;
+ 	kfree(sdev);
+ }
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index b4b4bbc..6384316 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -384,6 +384,7 @@ struct srpt_port {
+  * @dev_attr:      Attributes of the InfiniBand device as obtained during the
+  *                 ib_client.add() callback.
+  * @srq_size:      SRQ size.
++ * @max_req_size:  Max request size set via srp_max_req_size module parameter
+  * @ioctx_ring:    Per-HCA SRQ.
+  * @rch_list:      Per-device channel list -- see also srpt_rdma_ch.list.
+  * @ch_releaseQ:   Enables waiting for removal from rch_list.
+@@ -400,6 +401,7 @@ struct srpt_device {
+ 	struct ib_cm_id		*cm_id;
+ 	struct ib_device_attr	dev_attr;
+ 	int			srq_size;
++	int			max_req_size
+ 	struct srpt_recv_ioctx	**ioctx_ring;
+ 	struct list_head	rch_list;
+ 	wait_queue_head_t	ch_releaseQ;
+-- 
+1.7.2.5
 
-The current patch in lio-core allows ib_srpt to push active I/O and
-perform shutdown + unload without hanging (or crashing) at this point.
-Active I/O tests with physical link layer failures also seems to work,
-but mixing to two together still obviously needs more testing.
-
-For the "last WQE" you've mentioned, I'm happy to accept a patch to
-address this as you know the code better than me.  Otherwise, I'll be
-digging this out of your out-of-tree code as a seperate item and
-figuring out how to reproduce and test this special case.
-
-> 
-> >> - The "ib_srpt: Convert srp_max_rdma_size into per port configfs
-> >> attribute" contradicts the I/O controller concept. This is a bug.
-> >> (http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg09677.html).
-> >
-> > As mentioned in the thread, I deferred to Roland's input on that one.
-> > So you're saying this should be made back into a module parameter now,
-> > or what..?
-> 
-> I see two possible ways forward:
-> - Convert the per-port max_rdma_size configfs variable into a
-> per-module configfs variable.
-
-We don't need to add any per-module configfs target variables, we
-already have /sys/module/$NAME/parameters/ for that.  ;)
-
-> - Remove the max_rdma_size variable from configfs entirely and compute
-> the max_rdma_size from the HCA properties in struct ib_device_attr.
-> 
-
-What did you have in mind..?  This should be based on ->max_sge *
-PAGE_SIZE, or something else from ib_device_attr..?  
-
-Thanks,
-
---nab
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
