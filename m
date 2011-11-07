@@ -1,66 +1,156 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: Fix Last WQE handling
-Date: Mon, 07 Nov 2011 12:46:06 -0800
-Message-ID: <1320698766.30780.35.camel@haakon2.linux-iscsi.org>
-References: <201111061831.17756.bvanassche@acm.org>
-	 <CAL1RGDW+um6nT=K+0x4ibR41TeQZVcVvXH1ZS=32tx=Fp5ZtXg@mail.gmail.com>
-	 <CAO+b5-pLv9PeO1E2kG7utsP4_rh49NfmPji2SVxBJQ2+OTZg4w@mail.gmail.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [opensm] [PATCH 2/3] Support source-port-guid QoS policy
+	configuration with ULP 'any'
+Date: Mon, 07 Nov 2011 13:26:33 -0800
+Message-ID: <1320701193.22519.109.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-pLv9PeO1E2kG7utsP4_rh49NfmPji2SVxBJQ2+OTZg4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2011-11-07 at 20:00 +0100, Bart Van Assche wrote:
-> On Mon, Nov 7, 2011 at 7:10 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org=
-> wrote:
-> > On Sun, Nov 6, 2011 at 9:31 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org=
-> wrote:
-> >> Make sure that the last WQE event is handled properly if it arrive=
-s
-> >> before the QP has been transitioned into the error state.
-> >
-> > Do you mean if the event arrives before the modify QP operation
-> > returns?  If so I agree this is a possible order of events...
-> >
-> > Otherwise I'm not sure I follow: the last WQE event can't be
-> > generated until the QP is in the error state (which of course
-> > can happen before ib_modify_qp() returns)
->=20
-> The patch should be fine, but the description is not entirely correct=
-:
-> it should have been "... if it arrives before ib_modify_qp() has been
-> invoked to transition the QP in the error state". Invoking
-> ib_modify_qp() is not the only way via which a QP can reach the error
-> state - transport errors can cause this too.
->=20
+Similar to the target-port-guid option, source-port-guid supports
+the ability to configure a SL based on a specific source port in a path
+record lookup.
 
-Hi Bart,
+Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ doc/QoS_management_in_OpenSM.txt |    4 +++
+ opensm/osm_qos_parser_l.l        |    2 +
+ opensm/osm_qos_parser_y.y        |   41 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 47 insertions(+), 0 deletions(-)
 
-This patch fails to compile with the following:
+diff --git a/doc/QoS_management_in_OpenSM.txt b/doc/QoS_management_in_OpenSM.txt
+index 8c9915f..25b37f4 100644
+--- a/doc/QoS_management_in_OpenSM.txt
++++ b/doc/QoS_management_in_OpenSM.txt
+@@ -292,6 +292,7 @@ Match rules include:
+  - any ULP/application with a specific Service ID in the PR/MPR query
+  - any ULP/application with a specific PKey in the PR/MPR query
+  - any ULP/application with a specific target IB port GUID in the PR/MPR query
++ - any ULP/application with a specific source IB port GUID in the PR/MPR query
+ 
+ Since any section of the policy file is optional, as long as basic rules of
+ the file are kept (such as no referring to nonexisting port group, having
+@@ -332,6 +333,9 @@ Below is an example of simplified QoS policy with all the possible keywords:
+                                           # a specified IB port GUID
+         any, target-port-guid 0x0ABC-0xFFFFF : 6 # match any PR/MPR query with
+                                           # a specific target port GUID
++        any, source-port-guid 0x5678  : 7 # match any PR/MPR query with
++                                          # a specific source port
++                                          # GUID
+     end-qos-ulps
+ 
+ 
+diff --git a/opensm/osm_qos_parser_l.l b/opensm/osm_qos_parser_l.l
+index 559974b..abe34c2 100644
+--- a/opensm/osm_qos_parser_l.l
++++ b/opensm/osm_qos_parser_l.l
+@@ -134,6 +134,7 @@ NAME                    name
+ USE                     use
+ PORT_GUID               port\-guid
+ TARGET_PORT_GUID        target\-port\-guid
++SOURCE_PORT_GUID        source\-port\-guid
+ PORT_NAME               port\-name
+ PARTITION               partition
+ NODE_TYPE               node\-type
+@@ -274,6 +275,7 @@ QUOTED_TEXT             \"[^\"]*\"
+ {ULP_ANY}{WHITE_COMMA_WHITE}{SERVICE_ID}       { SAVE_POS; HANDLE_IF_IN_DESCRIPTION; START_ULP_ANY; return TK_ULP_ANY_SERVICE_ID; }
+ {ULP_ANY}{WHITE_COMMA_WHITE}{PKEY}             { SAVE_POS; HANDLE_IF_IN_DESCRIPTION; START_ULP_ANY; return TK_ULP_ANY_PKEY; }
+ {ULP_ANY}{WHITE_COMMA_WHITE}{TARGET_PORT_GUID} { SAVE_POS; HANDLE_IF_IN_DESCRIPTION; START_ULP_ANY; return TK_ULP_ANY_TARGET_PORT_GUID; }
++{ULP_ANY}{WHITE_COMMA_WHITE}{SOURCE_PORT_GUID} { SAVE_POS; HANDLE_IF_IN_DESCRIPTION; START_ULP_ANY; return TK_ULP_ANY_SOURCE_PORT_GUID; }
+ 
+ {ULP_SDP}{WHITE_DOTDOT_WHITE}                  { SAVE_POS; HANDLE_IF_IN_DESCRIPTION; START_ULP_SDP_DEFAULT; return TK_ULP_SDP_DEFAULT; }
+ {ULP_SDP}{WHITE_COMMA_WHITE}{PORT_NUM}         { SAVE_POS; HANDLE_IF_IN_DESCRIPTION; START_ULP_SDP_PORT; return TK_ULP_SDP_PORT; }
+diff --git a/opensm/osm_qos_parser_y.y b/opensm/osm_qos_parser_y.y
+index 348750d..452ab1b 100644
+--- a/opensm/osm_qos_parser_y.y
++++ b/opensm/osm_qos_parser_y.y
+@@ -260,6 +260,7 @@ static cl_list_t __ulp_match_rules;
+ %token TK_ULP_ANY_SERVICE_ID
+ %token TK_ULP_ANY_PKEY
+ %token TK_ULP_ANY_TARGET_PORT_GUID
++%token TK_ULP_ANY_SOURCE_PORT_GUID
+ %token TK_ULP_SDP_DEFAULT
+ %token TK_ULP_SDP_PORT
+ %token TK_ULP_RDS_DEFAULT
+@@ -306,6 +307,7 @@ qos_policy_entry:     qos_ulps_section
+      *      any, service-id 0x6234        : 2
+      *      any, pkey 0x0ABC              : 3
+      *      any, target-port-guid 0x0ABC-0xFFFFF : 6
++     *      any, source-port-guid 0x1234  : 7
+      *  end-qos-ulps
+      */
+ 
+@@ -632,6 +634,7 @@ qos_match_rule_entry: qos_match_rule_use
+      *   any with service-id
+      *   any with pkey
+      *   any with target-port-guid
++     *   any with source-port-guid
+      */
+ 
+ qos_ulp:            TK_ULP_DEFAULT single_number {
+@@ -729,6 +732,41 @@ qos_ulp:            TK_ULP_DEFAULT single_number {
+ 
+                     } qos_ulp_sl
+ 
++		    | qos_ulp_type_any_source_port_guid list_of_ranges TK_DOTDOT {
++			/* any, source-port-guid ... : sl */
++			uint64_t ** range_arr;
++			unsigned    range_len;
++
++			if (!cl_list_count(&tmp_parser_struct.num_pair_list))
++			{
++				yyerror("ULP rule doesn't have port guids");
++				return 1;
++			}
++
++                        /* create a new port group with these ports */
++                        __parser_port_group_start();
++
++                        p_current_port_group->name = strdup("_ULP_Sources_");
++                        p_current_port_group->use = strdup("Generated from ULP rules");
++
++                        __rangelist2rangearr( &tmp_parser_struct.num_pair_list,
++                                              &range_arr,
++                                              &range_len );
++
++                        __parser_add_guid_range_to_port_map(
++                                              &p_current_port_group->port_map,
++                                              range_arr,
++                                              range_len);
++
++                        /* add this port group to the source
++                           groups of the current match rule */
++                        cl_list_insert_tail(&p_current_qos_match_rule->source_group_list,
++                                            p_current_port_group);
++
++                        __parser_port_group_end();
++
++		    } qos_ulp_sl
++
+                     | qos_ulp_type_sdp_default {
+                         /* "sdp : sl" - default SL for SDP */
+                         uint64_t ** range_arr =
+@@ -968,6 +1006,9 @@ qos_ulp_type_any_pkey: TK_ULP_ANY_PKEY
+ qos_ulp_type_any_target_port_guid: TK_ULP_ANY_TARGET_PORT_GUID
+                     { __parser_ulp_match_rule_start(); };
+ 
++qos_ulp_type_any_source_port_guid: TK_ULP_ANY_SOURCE_PORT_GUID
++                    { __parser_ulp_match_rule_start(); };
++
+ qos_ulp_type_sdp_default: TK_ULP_SDP_DEFAULT
+                     { __parser_ulp_match_rule_start(); };
+ 
+-- 
+1.7.1
 
-drivers/infiniband/ulp/srpt/ib_srpt.c: In function =E2=80=98srpt_perfor=
-m_rdmas=E2=80=99:
-drivers/infiniband/ulp/srpt/ib_srpt.c:2936: error: =E2=80=98CH_RELEASIN=
-G=E2=80=99 undeclared (first use in this function)
-drivers/infiniband/ulp/srpt/ib_srpt.c:2936: error: (Each undeclared ide=
-ntifier is reported only once
-drivers/infiniband/ulp/srpt/ib_srpt.c:2936: error: for each function it=
- appears in.)
 
-I'm assuming this needs to be changed to CH_DRAINING instead, yes..?
-
-Thanks,
-
---nab
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
