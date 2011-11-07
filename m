@@ -1,42 +1,29 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [ANNOUNCE] infiniband-diags 1.5.12 tarball release
-Date: Mon, 7 Nov 2011 09:14:52 -0800
-Message-ID: <20111107091452.456ed172.weiny2@llnl.gov>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] ib_srpt: Fix Last WQE handling
+Date: Mon, 7 Nov 2011 10:10:11 -0800
+Message-ID: <CAL1RGDW+um6nT=K+0x4ibR41TeQZVcVvXH1ZS=32tx=Fp5ZtXg@mail.gmail.com>
+References: <201111061831.17756.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201111061831.17756.bvanassche-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Sun, Nov 6, 2011 at 9:31 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> Make sure that the last WQE event is handled properly if it arrives
+> before the QP has been transitioned into the error state.
 
-There is a new release of infiniband-diags.
-Tarball available at:
+Do you mean if the event arrives before the modify QP operation
+returns?  If so I agree this is a possible order of events...
 
-http://www.openfabrics.org/downloads/management/infiniband-diags-1.5.12.tar.gz
+Otherwise I'm not sure I follow: the last WQE event can't be
+generated until the QP is in the error state (which of course
+can happen before ib_modify_qp() returns)
 
-(listed in http://www.openfabrics.org/downloads/management/latest.txt)
-
-7a823a3f6d9cfa3d19e1ca6889f3c122  infiniband-diags-1.5.12.tar.gz
-
-This is a bug fix release based on the 1.5 branch.
-
-Full list of changes is below.
-
-Author: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-
-    infiniband-diags: check_lft_balance.pl add -C/-P options
-    infiniband-diags: clean up build
-    
-    
-Author: Albert L.Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-
-    check_lft_balance.pl: Add extra check when using -e heuristic flag in check_lft_balance.pl
-    Add -e heuristic flag to check_lft_balance.pl to detect common scenarios where unbalanced routing will occur.
-    Update check_lft_balance.pl to work with newer infiniband-diag tools
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
