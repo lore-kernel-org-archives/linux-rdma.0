@@ -1,7 +1,7 @@
 From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 03/11] Remove lmc from cache
-Date: Mon, 7 Nov 2011 14:19:10 +0530
-Message-ID: <20111107084906.GA11464@shrek.cartoons>
+Subject: [PATCH 04/11] Use cache structure instead of device (gid)
+Date: Mon, 7 Nov 2011 14:19:25 +0530
+Message-ID: <20111107084921.GA11468@shrek.cartoons>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,123 +11,152 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The lmc cache is removed because it cannot be used in this structure.
-Since, there is no call for querying lmc specifically, we cannot use
-it in the device driver.
-
-TODO: Find a better place for lmc cache, perhaps the ib_device
-structure?
+Changes all ib_xxx_cached_gid funcitons to use device structure instead
+of cache structure.
 
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c |   30 +-----------------------------
- include/rdma/ib_cache.h         |   13 -------------
- include/rdma/ib_verbs.h         |    1 -
- 3 files changed, 1 insertions(+), 43 deletions(-)
+ drivers/infiniband/core/cache.c |   41 +++++++++++++++++++++-----------------
+ include/rdma/ib_cache.h         |    4 +-
+ include/rdma/ib_verbs.h         |    2 +
+ 3 files changed, 27 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index c9c9530..efe6d00 100644
+index efe6d00..4797b2b 100644
 --- a/drivers/infiniband/core/cache.c
 +++ b/drivers/infiniband/core/cache.c
-@@ -201,24 +201,6 @@ int ib_find_cached_pkey(struct ib_device *device,
+@@ -71,44 +71,44 @@ static inline int end_port(struct ib_device *device)
+ 		0 : device->phys_port_cnt;
  }
- EXPORT_SYMBOL(ib_find_cached_pkey);
  
--int ib_get_cached_lmc(struct ib_device *device,
--		      u8                port_num,
--		      u8                *lmc)
--{
--	unsigned long flags;
--	int ret = 0;
--
--	if (port_num < start_port(device) || port_num > end_port(device))
--		return -EINVAL;
--
--	read_lock_irqsave(&device->cache.lock, flags);
--	*lmc = device->cache.lmc_cache[port_num - start_port(device)];
--	read_unlock_irqrestore(&device->cache.lock, flags);
--
--	return ret;
--}
--EXPORT_SYMBOL(ib_get_cached_lmc);
--
- static void ib_cache_update(struct ib_device *device,
- 			    u8                port)
+-int ib_get_cached_gid(struct ib_device *device,
++int ib_get_cached_gid(struct ib_cache *cache,
+ 		      u8                port_num,
+ 		      int               index,
+ 		      union ib_gid     *gid)
  {
-@@ -290,8 +272,6 @@ static void ib_cache_update(struct ib_device *device,
- 	device->cache.pkey_cache[port - start_port(device)] = pkey_cache;
- 	device->cache.gid_cache [port - start_port(device)] = gid_cache;
+-	struct ib_gid_cache *cache;
++	struct ib_gid_cache *gc;
+ 	unsigned long flags;
+ 	int ret = 0;
  
--	device->cache.lmc_cache[port - start_port(device)] = tprops->lmc;
--
- 	write_unlock_irq(&device->cache.lock);
+-	if (port_num < start_port(device) || port_num > end_port(device))
++	if (port_num < cache->start_port || port_num > cache->end_port)
+ 		return -EINVAL;
  
- 	kfree(old_pkey_cache);
-@@ -349,13 +329,7 @@ static void ib_cache_setup_one(struct ib_device *device)
- 		kmalloc(sizeof *device->cache.gid_cache *
- 			(end_port(device) - start_port(device) + 1), GFP_KERNEL);
+-	read_lock_irqsave(&device->cache.lock, flags);
++	read_lock_irqsave(&cache->lock, flags);
  
--	device->cache.lmc_cache = kmalloc(sizeof *device->cache.lmc_cache *
--					  (end_port(device) -
--					   start_port(device) + 1),
--					  GFP_KERNEL);
--
--	if (!device->cache.pkey_cache || !device->cache.gid_cache ||
--	    !device->cache.lmc_cache) {
-+	if (!device->cache.pkey_cache || !device->cache.gid_cache) {
- 		printk(KERN_WARNING "Couldn't allocate cache "
- 		       "for %s\n", device->name);
- 		goto err;
-@@ -383,7 +357,6 @@ err_cache:
- err:
- 	kfree(device->cache.pkey_cache);
- 	kfree(device->cache.gid_cache);
--	kfree(device->cache.lmc_cache);
+-	cache = device->cache.gid_cache[port_num - start_port(device)];
++	gc = cache->gid_cache[port_num - cache->start_port];
+ 
+-	if (!test_bit(index, cache->valid_bm)) {
++	if (!test_bit(index, gc->valid_bm)) {
+ 		ret = -ENOENT;
+ 		goto out;
+ 	}
+ 
+-	if (index < 0 || index >= cache->table_len)
++	if (index < 0 || index >= gc->table_len)
+ 		ret = -EINVAL;
+ 	else
+-		*gid = cache->table[index];
++		*gid = gc->table[index];
+ 
+ out:
+-	read_unlock_irqrestore(&device->cache.lock, flags);
++	read_unlock_irqrestore(&cache->lock, flags);
+ 	return ret;
  }
+ EXPORT_SYMBOL(ib_get_cached_gid);
  
- static void ib_cache_cleanup_one(struct ib_device *device)
-@@ -400,7 +373,6 @@ static void ib_cache_cleanup_one(struct ib_device *device)
+-int ib_find_cached_gid(struct ib_device *device,
++int ib_find_cached_gid(struct ib_cache *cache,
+ 		       union ib_gid	*gid,
+ 		       u8               *port_num,
+ 		       u16              *index)
+ {
+-	struct ib_gid_cache *cache;
++	struct ib_gid_cache *gc;
+ 	unsigned long flags;
+ 	int p, i;
+ 	int ret = -ENOENT;
+@@ -117,13 +117,15 @@ int ib_find_cached_gid(struct ib_device *device,
+ 	if (index)
+ 		*index = -1;
  
- 	kfree(device->cache.pkey_cache);
- 	kfree(device->cache.gid_cache);
--	kfree(device->cache.lmc_cache);
+-	read_lock_irqsave(&device->cache.lock, flags);
++	read_lock_irqsave(&cache->lock, flags);
+ 
+-	for (p = 0; p <= end_port(device) - start_port(device); ++p) {
+-		cache = device->cache.gid_cache[p];
+-		for (i = 0; i < cache->table_len; ++i) {
+-			if (!memcmp(gid, &cache->table[i], sizeof *gid)) {
+-				*port_num = p + start_port(device);
++	for (p = 0; p <= cache->end_port - cache->start_port; ++p) {
++		gc = cache->gid_cache[p];
++		for (i = 0; i < gc->table_len; ++i) {
++			if (!test_bit(i, gc->valid_bm))
++				continue;
++			if (!memcmp(gid, &gc->table[i], sizeof *gid)) {
++				*port_num = p + cache->start_port;
+ 				if (index)
+ 					*index = i;
+ 				ret = 0;
+@@ -132,7 +134,7 @@ int ib_find_cached_gid(struct ib_device *device,
+ 		}
+ 	}
+ found:
+-	read_unlock_irqrestore(&device->cache.lock, flags);
++	read_unlock_irqrestore(&cache->lock, flags);
+ 
+ 	return ret;
  }
+@@ -320,6 +322,9 @@ static void ib_cache_setup_one(struct ib_device *device)
+ {
+ 	int p;
  
- static struct ib_client cache_client = {
++	device->cache.start_port = start_port(device);
++	device->cache.end_port = end_port(device);
++
+ 	rwlock_init(&device->cache.lock);
+ 
+ 	device->cache.pkey_cache =
 diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
-index 00a2b8e..e0c360f 100644
+index e0c360f..c18d2ed 100644
 --- a/include/rdma/ib_cache.h
 +++ b/include/rdma/ib_cache.h
-@@ -100,17 +100,4 @@ int ib_find_cached_pkey(struct ib_device    *device,
- 			u16                  pkey,
- 			u16                 *index);
- 
--/**
-- * ib_get_cached_lmc - Returns a cached lmc table entry
-- * @device: The device to query.
-- * @port_num: The port number of the device to query.
-- * @lmc: The lmc value for the specified port for that device.
-- *
-- * ib_get_cached_lmc() fetches the specified lmc table entry stored in
-- * the local software cache.
-- */
--int ib_get_cached_lmc(struct ib_device *device,
--		      u8                port_num,
--		      u8                *lmc);
--
- #endif /* _IB_CACHE_H */
+@@ -47,7 +47,7 @@
+  * ib_get_cached_gid() fetches the specified GID table entry stored in
+  * the local software cache.
+  */
+-int ib_get_cached_gid(struct ib_device    *device,
++int ib_get_cached_gid(struct ib_cache     *cache,
+ 		      u8                   port_num,
+ 		      int                  index,
+ 		      union ib_gid        *gid);
+@@ -64,7 +64,7 @@ int ib_get_cached_gid(struct ib_device    *device,
+  * ib_find_cached_gid() searches for the specified GID value in
+  * the local software cache.
+  */
+-int ib_find_cached_gid(struct ib_device *device,
++int ib_find_cached_gid(struct ib_cache  *cache,
+ 		       union ib_gid	*gid,
+ 		       u8               *port_num,
+ 		       u16              *index);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a6cf9f4..630b09f 100644
+index 630b09f..d047906 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1012,7 +1012,6 @@ struct ib_cache {
+@@ -1010,6 +1010,8 @@ enum ib_mad_result {
+ struct ib_cache {
+ 	rwlock_t                lock;
  	struct ib_event_handler event_handler;
++	u8			start_port;
++	u8			end_port;
  	struct ib_pkey_cache  **pkey_cache;
  	struct ib_gid_cache   **gid_cache;
--	u8                     *lmc_cache;
  };
- 
- struct ib_dma_mapping_ops {
 -- 
 1.7.6
 
