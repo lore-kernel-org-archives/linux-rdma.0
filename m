@@ -1,41 +1,55 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: Fix Last WQE handling
-Date: Tue, 8 Nov 2011 12:24:19 +0100
-Message-ID: <CAO+b5-qgGuGmHM1j_ND_m1huwX9w3h5LLkNQkfJpyc5FJmyQXA@mail.gmail.com>
-References: <201111061831.17756.bvanassche@acm.org>
-	<CAL1RGDW+um6nT=K+0x4ibR41TeQZVcVvXH1ZS=32tx=Fp5ZtXg@mail.gmail.com>
-	<CAO+b5-pLv9PeO1E2kG7utsP4_rh49NfmPji2SVxBJQ2+OTZg4w@mail.gmail.com>
-	<1320698766.30780.35.camel@haakon2.linux-iscsi.org>
-	<CAO+b5-oJx3knOG+6ra3j-TtOuc9y0ueaCofLbwoB5=gcECJ=fA@mail.gmail.com>
-	<1320746408.30780.174.camel@haakon2.linux-iscsi.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [GIT PULL] please pull infiniband.git
+Date: Tue, 8 Nov 2011 15:02:10 +0200
+Message-ID: <4EB92852.6020404@mellanox.com>
+References: <1320166483-21817-1-git-send-email-roland@purestorage.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1320746408.30780.174.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
+In-Reply-To: <1320166483-21817-1-git-send-email-roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 8, 2011 at 11:00 AM, Nicholas A. Bellinger
-<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> Thanks for verifying this one. =A0Pushed into lio-core and will squas=
-h
-> into a single patch for target-pending.
+On 11/1/2011 6:54 PM, Roland Dreier wrote:
+> Hi Linus, Please pull from
+>      git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+> This will get the main batch of changes for 3.2.  One note: my tree is
+> based on 3.1-rc9, and I have some changes to drivers/net/mlx4, but in
+> your tree that driver has moved to drivers/net/ethernet/mellanox/mlx4.
+> With a high enough merge.renamelimit, git handles this merge fine in my test
+>
 
-I've had a quick look at
-http://git.kernel.org/?p=3Dlinux/kernel/git/nab/lio-core.git;a=3Dblob;f=
-=3Ddrivers/infiniband/ulp/srpt/ib_srpt.c.
-Apparently the rdma_size value in the I/O controller profile is still
-port-specific ? This is how the rdma_size is computed now:
+The following commit appears in the kernel "git log" but in not in "git 
+log drivers/net/mlx4/main.c" nor "git log 
+drivers/net/ethernet/mellanox/mlx4/main.c", looking on the latter code I 
+see that the patch was actually applied on the code, just checking if this
+missing log points to some other problem?
 
-iocp->rdma_size =3D
-cpu_to_be32(min(sport->port_attrib.srp_max_rdma_size, 1U << 24));
+Or.
 
-Bart.
+> commit cb29688aaa4caa4d54df2976118fe99a839bb433
+> Author: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date:   Sun Oct 16 10:26:21 2011 +0200
+>
+>     mlx4_core: Deprecate log_num_vlan module param
+>
+>     Enable the maximum size (128) supported by the device for the shadow
+>     vlans table, ignoring the module parameter that overrides it.  This
+>     table is only used by the IBoE control plane for setting a vlan index
+>     into an RC/UC QP context or UD Address Handle.
+>
+>     Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>
+> diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
+> index f0ee35d..0c0c7d9 100644
+> --- a/drivers/net/mlx4/main.c
+> +++ b/drivers/net/mlx4/main.c
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
