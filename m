@@ -1,51 +1,43 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: Fix Last WQE handling
-Date: Tue, 8 Nov 2011 08:21:54 +0100
-Message-ID: <CAO+b5-oJx3knOG+6ra3j-TtOuc9y0ueaCofLbwoB5=gcECJ=fA@mail.gmail.com>
-References: <201111061831.17756.bvanassche@acm.org>
-	<CAL1RGDW+um6nT=K+0x4ibR41TeQZVcVvXH1ZS=32tx=Fp5ZtXg@mail.gmail.com>
-	<CAO+b5-pLv9PeO1E2kG7utsP4_rh49NfmPji2SVxBJQ2+OTZg4w@mail.gmail.com>
-	<1320698766.30780.35.camel@haakon2.linux-iscsi.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: iSER + CentOS 5.7 + Xen lockup
+Date: Tue, 8 Nov 2011 09:35:53 +0200
+Message-ID: <4EB8DBD9.4000008@mellanox.com>
+References: <CAEs876g0rRBzZN59ZWZ4AQTauVbip82BYAXVNOzahojODfO3Bg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1320698766.30780.35.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
+In-Reply-To: <CAEs876g0rRBzZN59ZWZ4AQTauVbip82BYAXVNOzahojODfO3Bg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: Mohammed Naser <mnaser-0fRLFNSEtVVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 7, 2011 at 9:46 PM, Nicholas A. Bellinger
-<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> On Mon, 2011-11-07 at 20:00 +0100, Bart Van Assche wrote:
->> On Mon, Nov 7, 2011 at 7:10 PM, Roland Dreier <roland-BHEL68pLQRHS2c0oH+HQlg@public.gmane.org=
-m> wrote:
->> > On Sun, Nov 6, 2011 at 9:31 AM, Bart Van Assche <bvanassche-y/PYEvSCHaw@public.gmane.org=
-g> wrote:
->> >> Make sure that the last WQE event is handled properly if it arriv=
-es
->> >> before the QP has been transitioned into the error state.
->
-> This patch fails to compile with the following:
->
-> drivers/infiniband/ulp/srpt/ib_srpt.c: In function =91srpt_perform_rd=
-mas=92:
-> drivers/infiniband/ulp/srpt/ib_srpt.c:2936: error: =91CH_RELEASING=92=
- undeclared (first use in this function)
-> drivers/infiniband/ulp/srpt/ib_srpt.c:2936: error: (Each undeclared i=
-dentifier is reported only once
-> drivers/infiniband/ulp/srpt/ib_srpt.c:2936: error: for each function =
-it appears in.)
->
-> I'm assuming this needs to be changed to CH_DRAINING instead, yes..?
+On 11/8/2011 3:14 AM, Mohammed Naser wrote:
+> Hello everyone, we had this server crash a couple of times because of (what seems to
+> me) some iSER problems.  This node runs all the default drivers that ship with CentOS 5.7
 
-Yes. The tests I ran were with that change included - I'm not sure how
-it's possible that that change was not included in the patch I posted.
+You mentioned Xen in your subject line, but later say CentOS 5.7, what
+kernel are you using? is that kernel-xen-2.6.18-274.el5.x86_64.rpm or
+kernel-2.6.18-274.el5.x86_64.rpm or anything else? can you provide some high
+level description for what does it take to get that crash?
 
-Bart.
+
+Or.
+
+Also, could you run with debug prints open and in case the crash still 
+reproduces,
+send me the kernel log (in case it becomes big, compressed offlist will 
+be fine...
+also I guess vger.kernel.org drops attachments anyway)
+
+You should open libiscsi2 and ib_iser logs, use
+"echo 1 > /sys/module/libiscsi2/parameters/debug_libiscsi" and
+"echo 2 > /sys/module/ib_iser/parameters/debug_level"
+
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
