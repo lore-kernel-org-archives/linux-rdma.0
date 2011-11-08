@@ -1,81 +1,71 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 4/5] ib/core: add support for extended performance
- counters in sysfs
-Date: Tue, 8 Nov 2011 08:06:06 -0800
-Message-ID: <20111108080606.7c5dd62c.weiny2@llnl.gov>
-References: <CAL1RGDXdkiZNtAsnqDtgbCJGLXLFvk8s-YA5mR189kmg6FkabQ@mail.gmail.com>
-	<CAJZOPZ+K3u+u5XutGfBhKh3DaBpNRKV_bw67CLK6jy3060OHqA@mail.gmail.com>
-	<20111101162218.GA10710@obsidianresearch.com>
-	<CAJZOPZLXZL=vEDdXE3rE5Jzw840SrdY=73M7QgKSNzOysRE6MQ@mail.gmail.com>
-	<20111101173625.GH26974@obsidianresearch.com>
-	<CAJZOPZJCY5ehTGw8htsxw0dJgMXJJAS-=LGJde9ddcMsmhqvMg@mail.gmail.com>
-	<20111101183730.GI26974@obsidianresearch.com>
-	<CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com>
-	<4EB17AF9.3000608@mellanox.com>
-	<CAG4TOxOYAnuB8oKkJgr9_6EpF+YR-h9WNak+gSWwpV0Nz-LeZg@mail.gmail.com>
-	<20111108010952.GC4934@obsidianresearch.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2] opensm: Add the precreation of multicast groups
+Date: Tue, 8 Nov 2011 18:24:22 +0200
+Message-ID: <20111108162422.GC2313@calypso.mtl.com>
+References: <20111103153241.0d7c8ebb.weiny2@llnl.gov>
+ <4EB4274A.8010006@dev.mellanox.co.il>
+ <20111104122600.9dfe7fe5.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111108010952.GC4934-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20111104122600.9dfe7fe5.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 7 Nov 2011 17:09:52 -0800
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+Hi Ira,
 
-> On Mon, Nov 07, 2011 at 04:54:42PM -0800, Roland Dreier wrote:
-> > On Wed, Nov 2, 2011 at 10:16 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > > I suggest we go that least bad way along the lines of your comment.
-> > >
-> > > If/when on some future point something constructive can be formed from
-> > > Jason's observations, changes will follow, agree?
+On 12:26 Fri 04 Nov     , Ira Weiny wrote:
+> On Fri, 4 Nov 2011 10:56:26 -0700
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> 
+> > Ira,
 > > 
-> > Let's make sure we learn from our mistakes.  Let's say we create a
-> > new "ext_counters" directory.  What should the format of those files
-> > be?  Should they be assumed to be 64-bit quantities?  Do we want to
-> > allow some way of indicating the number of bits (ie 0-padded hex
-> > entries?)?
+> > Looks good to me; just one nit in the commit message:
+> > 
+> > On 11/3/2011 6:32 PM, Ira Weiny wrote:
+> > > P_Key is taken from Partition Definition.  Q_Key, TClass, rate, FlowRate and
+> > > mtu can be specified
+> > 
+> > FlowRate -> FlowLabel
+> > 
 > 
-> That is a good idea. Let's require counters_ext to be sane:
+> New patch with correct commit message:
+> ======================================
 > 
->  1 Hex quantity of unspecified size
->  2 Prefixed with 0x and leading zeros to fill out to size and allow
->    userspace discovery of size
->  3 Size must be a multiple of 4 bits.
->  4 Counters do not saturate
->  5 Counters wrap around at all F's back to 0.
->  6 If the counter is resettable it is only via a local operation
->    through netlink or sysfs or something. Not PMA reset.
+> Allow for the pre-creation of these groups on a partition by partition basis.
 > 
-> Certainly, aside from some minor details and different string
-> formatting, the 64 bit counters Or proposes to add meet these
-> requirements when the port is used in Ethernet mode.
+> P_Key is taken from Partition Definition.  Q_Key, TClass, rate, FlowLabel and
+> mtu can be specified.
 > 
-> How do you feel about having counters_ext appear in ethernet mode and
-> disappear in IB mode?
-
-That might get complicated with ports which can be either mode.
-
-Ira
-
+> For IP groups, rate and mtu are verified to match the broadcast groups
+> parameters.  The P_Key bits in the mgid itself is verified to match the P_Key
+> in the Partition Definition.  If the P_Key bits in the mgid are 0x0000 then the
+> P_Key is taken from the Partition Definition.
 > 
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The syntax extends the existing syntax by allowing MC groups to be specified
+> one per line, intermixed with the port specifications.
+> 
+> Changes from V1:
+> 
+> 	Incorporate Hal's comments:
+> 		Add FlowLabel
+> 		copy documentation from man page to doc/partition-config.txt
+> 		code format cleanup
+> 		Remove "ERR:" from messages
+> 
+> 	Move group flag parsing to common function for broadcast and generic
+> 	groups.  Update documentation for the support of the other flags in the
+> 	broadcast group.
+> 	Error message clean up
+> 	Update commit message
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> ---
 
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
