@@ -1,46 +1,27 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH V2 6/7] IB/qib: memcpy optimizations
-Date: Wed, 9 Nov 2011 08:51:11 -0800
-Message-ID: <35AAF1E4A771E142979F27B51793A488884377602C@AVEXMB1.qlogic.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH V2 6/7] IB/qib: memcpy optimizations
+Date: Wed, 9 Nov 2011 09:26:21 -0800
+Message-ID: <CAL1RGDX_SQ_FtYmjJTrphK0G9kF+4a_3V3K32mwKg7M40ysCig@mail.gmail.com>
 References: <20111109163755.29859.42915.stgit@kop-dev-sles11-04.qlogic.org>
- <1828884A29C6694DAF28B7E6B8A8237316E8DE76@ORSMSX101.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E8DE76@ORSMSX101.amr.corp.intel.com> <35AAF1E4A771E142979F27B51793A488884377602C@AVEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E8DE76-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <35AAF1E4A771E142979F27B51793A488884377602C-HolNjIBXvBOXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhlIGZlYXR1cmUgaXMgY3JpdGljYWwgdG8gb3VyIHBlcmZvcm1hbmNlIGFuZCB1bmZvcnR1bmF0
-ZWx5IGRpZmZlcnMgYnkgQ1BVLg0KDQpJJ20gb3BlbiB0byBwdXNoaW5nIGNvZGUgaW50byBhcmNo
-L2xpYi94ODYuLi4NCg0KTWlrZQ0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZy
-b206IEhlZnR5LCBTZWFuIFttYWlsdG86c2Vhbi5oZWZ0eUBpbnRlbC5jb21dDQo+IFNlbnQ6IFdl
-ZG5lc2RheSwgTm92ZW1iZXIgMDksIDIwMTEgMTE6NDkgQU0NCj4gVG86IE1pa2UgTWFyY2luaXN6
-eW47IHJvbGFuZEBwdXJlc3RvcmFnZS5jb20NCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwu
-b3JnDQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0ggVjIgNi83XSBJQi9xaWI6IG1lbWNweSBvcHRpbWl6
-YXRpb25zDQo+DQo+ID4gVGhpcyBmaXggYWRkcyBhbiB4ODZfNjQgc3BlY2lmaWMgcm91dGluZSB0
-aGF0IDEpIHByb2JlcyBmb3INCj4gPiBYODZfRkVBVFVSRV9SRVBfR09PRA0KPiA+IGFuZCAyKSB1
-c2VzIGFuIGlubGluZSBhc20gcm91dGluZSBidWlsdG9uIHJlcCBtb3ZzcSB0aGF0IHRlc3Rpbmcg
-aGFzDQo+IHNob3duIGlzDQo+ID4gYmV0dGVyIHRoYW4gdGhlIGJ1aWx0aW4gbWVtY3B5IGZvciBh
-bGwgY2FzZXMgdXAgdG8gNEsuICBUaGUgcHJvYmluZw0KPiByb3V0aW5lIGlzDQo+ID4gbm93IGNh
-bGxlZCB3aGVuIHRoZSBxaWIgbW9kdWxlIGlzIGxvYWRlZCB0byBlbmFibGUgdGhlIG9wdGltaXph
-dGlvbi4NCj4gV2hlbg0KPiA+IFg4Nl9GRUFUVVJFX1JFUF9HT09EIGlzIG5vdCBzZXQsIHRoZSBy
-b3V0aW5lIHVzZXMgdGhlIGtlcm5lbCdzDQo+IHVucm9sbGVkDQo+ID4gX19tZW1jcHkNCj4gPiB3
-aGVuIHRoZSBsZW5ndGggaXMgbW9yZSB0aGFuIDY0IGFuZCB0aGUgYnVpbHRpbiBtZW1jcHkgb3Ro
-ZXJ3aXNlLg0KPg0KPiBIYXZpbmcgZXZlcnkgZHJpdmVyIGltcGxlbWVudCB0aGVpciBvd24gdmVy
-c2lvbiBvZiBtZW1jcHkgaXMgYSBiYWQNCj4gaWRlYS4NCg0KDQpUaGlzIG1lc3NhZ2UgYW5kIGFu
-eSBhdHRhY2hlZCBkb2N1bWVudHMgY29udGFpbiBpbmZvcm1hdGlvbiBmcm9tIFFMb2dpYyBDb3Jw
-b3JhdGlvbiBvciBpdHMgd2hvbGx5LW93bmVkIHN1YnNpZGlhcmllcyB0aGF0IG1heSBiZSBjb25m
-aWRlbnRpYWwuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZCByZWNpcGllbnQsIHlvdSBtYXkg
-bm90IHJlYWQsIGNvcHksIGRpc3RyaWJ1dGUsIG9yIHVzZSB0aGlzIGluZm9ybWF0aW9uLiBJZiB5
-b3UgaGF2ZSByZWNlaXZlZCB0aGlzIHRyYW5zbWlzc2lvbiBpbiBlcnJvciwgcGxlYXNlIG5vdGlm
-eSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGJ5IHJlcGx5IGUtbWFpbCBhbmQgdGhlbiBkZWxldGUg
-dGhpcyBtZXNzYWdlLg0K
+On Wed, Nov 9, 2011 at 8:51 AM, Mike Marciniszyn
+<mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+> I'm open to pushing code into arch/lib/x86...
 
+Yes, I think that's the only sane thing to do here: make the standard
+memcpy faster,
+rather than having your own assembly.
+
+Imagine what would happen if every driver did this for every architecture...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
