@@ -1,35 +1,45 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 00/11] New Caching mechanism for ib_core
-Date: Tue, 8 Nov 2011 23:46:50 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E8DDCE@ORSMSX101.amr.corp.intel.com>
-References: <20111107084747.GA11297@shrek.cartoons>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH] ib_srpt: Source code cleanup
+Date: Tue, 08 Nov 2011 23:01:12 -0800
+Message-ID: <1320822072.30780.338.camel@haakon2.linux-iscsi.org>
+References: <201111082048.29209.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111107084747.GA11297-DN/iB9hNKqpUanf73oPxOg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <201111082048.29209.bvanassche-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The main motivations are:
+On Tue, 2011-11-08 at 20:48 +0100, Bart Van Assche wrote:
+> Address the review comments posted by Christoph Hellwig on May 18,
+> 2011 and that haven't been addressed yet (see also
+> http://lkml.org/lkml/2011/5/18/63):
+> - Eliminate the srpt_sdev_name(), srpt_get_ch_state() and
+>   srpt_get_cmd_state() helper functions.
+> - Convert the printk() call in srpt_srq_event() into pr_debug().
 > 
-> 1. Greater degree of control by individual drivers. Drivers have a
->    choice to use it or not.
-
-I believe that some callers need to know that specific query calls will not sleep.  That capability should either be required or exposed through the API.
-
-> 2. The library functions do not sleep, and can be called from any context.
+> Also, remove the test from srpt_handle_new_iu() that ignores a new
+> incoming request if the channel state equals CH_DISCONNECTING or
+> CH_DRAINING. That test is not necessary since during session
+> shutdown arrival of new requests is prevented by transitioning the
+> QP into the error state.
 > 
-> In the bargain we lose the lmc cache. However, if we move it to the device
-> structure like the pkey_tbl_len, it can be accessed directly (TODO).
-> Let me know what you think about it.
+> Change one occurrence of if (e) ... else WARN_ON(!e) into
+> if (e) ... else __WARN().
+> 
+> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/srpt/ib_srpt.c |   80 ++++++++-------------------------
+>  1 files changed, 19 insertions(+), 61 deletions(-)
+> 
 
-The LMC cache is accessed by the MAD layer.  I know that MADs aren't considered a performance path, but we don't want to query the device for every MAD.
+Applied.  Thanks for taking care of this Bart!  
 
-- Sean
+--nab
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
