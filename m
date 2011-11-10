@@ -1,27 +1,33 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: libibverbs: Added the man page verbs.7
-Date: Thu, 10 Nov 2011 12:13:30 +0100
-Message-ID: <CAO+b5-qowK0AhCgReEhqvjrSndhfhnOFdBZT4=2gUtcw-wwibw@mail.gmail.com>
-References: <201111101103.41673.dotanb@sw.voltaire.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] libibmad/rpc.c: On receive, add debug info for dumping incoming
+ MAD address
+Date: Thu, 10 Nov 2011 08:48:46 -0500
+Message-ID: <4EBBD63E.7090405@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201111101103.41673.dotanb-g2bIKuvJtcQanlnWow0HJg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 10, 2011 at 10:03 AM, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> +This library is thread safe library and verbs can be called from every thread in the process (the
 
-Looks like "a" is missing between "is" and "thread safe" ?
-
-> +However, it is up to the user to stop working with a resource after it was destroyed (by the same thread or by any other thread), this may result a segmentation fault.
-
-", this" -> ". Not doing so" ?
-
-Bart.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/rpc.c b/src/rpc.c
+index 19a5a70..6312d42 100644
+--- a/src/rpc.c
++++ b/src/rpc.c
+@@ -166,6 +166,8 @@ _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int agentid, int len,
+ 				return -1;
+ 			}
+ 
++			if (ibdebug > 2)
++				umad_addr_dump(umad_get_mad_addr(rcvbuf));
+ 			if (ibdebug > 1) {
+ 				IBWARN("rcv buf:");
+ 				xdump(stderr, "rcv buf\n", umad_get_mad(rcvbuf),
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
