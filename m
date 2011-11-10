@@ -1,55 +1,40 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [ANNOUNCE] libcxgb4 version 1.2.0 released
-Date: Thu, 10 Nov 2011 11:09:38 -0600
-Message-ID: <4EBC0552.1010104@opengridcomputing.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [opensm] [PATCH 1/2] Fix segfault corner case
+Date: Thu, 10 Nov 2011 10:01:33 -0800
+Message-ID: <1320948093.22519.337.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On rescan, data segment memory could be attempted to be freed by
+config file parsing code.
 
-Version 1.2.0 of libcxgb4 is now available for download at:
-
-http://www.openfabrics.org/downloads/cxgb4/libcxgb4-1.2.0.tar.gz
-
-with md5sum:
-
-9e26aee8ec9975336e27439791bf9615 libcxgb4-1.2.0.tar.gz
-
-This release includes many important bug fixes and features for the T4 device.
-
-Steve.
-
+Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
+ opensm/osm_subnet.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-git shortlog:
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 554a950..c8a8add 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -1159,7 +1159,7 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
+ 		log_report(" Invalid Cached Option Value:console = %s"
+ 			   ", Using Default:%s\n",
+ 			   p_opts->console, OSM_DEFAULT_CONSOLE);
+-		p_opts->console = OSM_DEFAULT_CONSOLE;
++		p_opts->console = strdup(OSM_DEFAULT_CONSOLE);
+ 	}
+ 
+ 	if (p_opts->qos) {
+-- 
+1.7.1
 
-Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> (1):
-       Spin release 1.2.0.
 
-Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> (17):
-       libcxgb4: DB Overflow Avoidance.
-       libcxgb4: put queue idx values in status page for debug.
-       libcxgb4: DB Drop Recovery for RDMA and LLD queues.
-       libcxgb4: cq debug changes
-       libcxgb4: don't write host idx values when wq is in error.
-       libcxgb4: Add debug code to dump state on a stall condition.
-       libcxgb4: Remove auto generated ltmain.sh file.
-       libcxgb4: Correctly flush unsignaled WRs followed by a signaled WR.
-       libcxgb4: Don't flush unsignaled WRs if the QP closed normally
-       libcxgb4: return -ENOSYS in c4iw_resize_cq().
-       libcxgb4: Bug Fix#4410 - Fix 3 segfaults
-       libcxgb4: fixed compilation warnings
-       libcxgb4: Checks iw_cxgb4 ABI version to know door bell drop recovery supp
-       libcxgb4: Support for flushing a CQ bound to multiple QPs
-       libcxgb4: Reset cidx_flush if a active queue starts getting hw cqes
-       libcxgb4: Fix multi-flush logic path....again
-       libcxgb4: Reset flush_cidx before incrementing cidx.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
