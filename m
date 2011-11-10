@@ -1,7 +1,8 @@
 From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [opensm] [PATCH 1/2] Fix segfault corner case
-Date: Thu, 10 Nov 2011 10:01:33 -0800
-Message-ID: <1320948093.22519.337.camel@auk59.llnl.gov>
+Subject: [opensm] [PATCH 2/2] Do not load configs from the default config
+	file and specified config file
+Date: Thu, 10 Nov 2011 10:01:40 -0800
+Message-ID: <1320948100.22519.338.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -10,27 +11,45 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On rescan, data segment memory could be attempted to be freed by
-config file parsing code.
+If a config file is specified on the command line, only that config file should
+be used, it should not be parsed in addition to the default.
 
 Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- opensm/osm_subnet.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ opensm/main.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index 554a950..c8a8add 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -1159,7 +1159,7 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- 		log_report(" Invalid Cached Option Value:console = %s"
- 			   ", Using Default:%s\n",
- 			   p_opts->console, OSM_DEFAULT_CONSOLE);
--		p_opts->console = OSM_DEFAULT_CONSOLE;
-+		p_opts->console = strdup(OSM_DEFAULT_CONSOLE);
- 	}
+diff --git a/opensm/main.c b/opensm/main.c
+index f7a6d83..3edc52f 100644
+--- a/opensm/main.c
++++ b/opensm/main.c
+@@ -660,12 +660,6 @@ int main(int argc, char *argv[])
+ 	printf("-------------------------------------------------\n");
+ 	printf("%s\n", OSM_VERSION);
  
- 	if (p_opts->qos) {
+-	osm_subn_set_default_opt(&opt);
+-
+-	if (osm_subn_parse_conf_file(OSM_DEFAULT_CONFIG_FILE, &opt) < 0)
+-		printf("\nFail to parse config file \'%s\'\n",
+-		       OSM_DEFAULT_CONFIG_FILE);
+-
+ 	do {
+ 		next_option = getopt_long_only(argc, argv, short_option,
+ 					       long_option, NULL);
+@@ -681,7 +675,12 @@ int main(int argc, char *argv[])
+ 
+ 	optind = 0;		/* reset command line */
+ 
+-	if (config_file && osm_subn_parse_conf_file(config_file, &opt) < 0)
++	if (!config_file)
++		config_file = OSM_DEFAULT_CONFIG_FILE;
++
++	osm_subn_set_default_opt(&opt);
++
++	if (osm_subn_parse_conf_file(config_file, &opt) < 0)
+ 		printf("\nFail to parse config file \'%s\'\n", config_file);
+ 
+ 	printf("Command Line Arguments:\n");
 -- 
 1.7.1
 
