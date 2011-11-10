@@ -1,95 +1,57 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/qib: Fix over-scheduling of QSFP work.
-Date: Wed, 9 Nov 2011 17:07:22 -0500
-Message-ID: <20111109220722.22712.28527.stgit@kop-dev-sles11-04.qlogic.org>
+From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 00/11] New Caching mechanism for ib_core
+Date: Thu, 10 Nov 2011 09:50:29 +0530
+Message-ID: <20111110042029.GA7713@shrek.cartoons>
+References: <20111107084747.GA11297@shrek.cartoons>
+ <1828884A29C6694DAF28B7E6B8A8237316E8DDCE@ORSMSX101.amr.corp.intel.com>
+ <20111109121907.GA6763@shrek.cartoons>
+ <1828884A29C6694DAF28B7E6B8A8237316E8DE44@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E8DE44-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Don't over-schedule QSFP work on driver initialization.
-It could end up being run simultaneously on two different
-CPUs resulting in bad EEPROM reads.
-The above, in combination withe setting the physical IB
-link state prior to the IBC being brought out of reset
-can cause the link state machine to start training early
-with wrong settings.
+On Wed, Nov 09, 2011 at 03:12:04PM +0000, Hefty, Sean wrote:
+> > > > 1. Greater degree of control by individual drivers. Drivers have a
+> > > >    choice to use it or not.
+> > >
+> > > I believe that some callers need to know that specific query calls will not
+> > sleep.  That capability should either be required or exposed through the API.
+> > 
+> > The new cache access functions do not sleep. This is the primary
+> > objective of the exercise. See motviation 2 :)
+> > Exceptions are the init functions which may sleep because of kzalloc().
+> > Did you want me to mention this specifically in the comments?
+> 
+> Yes, but the use of the cache is hidden from the user.  
 
-Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_iba7322.c |   16 ++++++++--------
- drivers/infiniband/hw/qib/qib_qsfp.c    |   12 ------------
- 2 files changed, 8 insertions(+), 20 deletions(-)
+user who?
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 9be77c5..9294161 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -2306,19 +2306,11 @@ static int qib_7322_bringup_serdes(struct qib_pportdata *ppd)
- 		SYM_LSB(IBCCtrlA_0, MaxPktLen);
- 	ppd->cpspec->ibcctrl_a = ibc; /* without linkcmd or linkinitcmd! */
- 
--	/* initially come up waiting for TS1, without sending anything. */
--	val = ppd->cpspec->ibcctrl_a | (QLOGIC_IB_IBCC_LINKINITCMD_DISABLE <<
--		QLOGIC_IB_IBCC_LINKINITCMD_SHIFT);
--
--	ppd->cpspec->ibcctrl_a = val;
- 	/*
- 	 * Reset the PCS interface to the serdes (and also ibc, which is still
- 	 * in reset from above).  Writes new value of ibcctrl_a as last step.
- 	 */
- 	qib_7322_mini_pcs_reset(ppd);
--	qib_write_kreg(dd, kr_scratch, 0ULL);
--	/* clear the linkinit cmds */
--	ppd->cpspec->ibcctrl_a &= ~SYM_MASK(IBCCtrlA_0, LinkInitCmd);
- 
- 	if (!ppd->cpspec->ibcctrl_b) {
- 		unsigned lse = ppd->link_speed_enabled;
-@@ -2384,6 +2376,14 @@ static int qib_7322_bringup_serdes(struct qib_pportdata *ppd)
- 	ppd->cpspec->ibcctrl_a |= SYM_MASK(IBCCtrlA_0, IBLinkEn);
- 	set_vls(ppd);
- 
-+	/* initially come up DISABLED, without sending anything. */
-+	val = ppd->cpspec->ibcctrl_a | (QLOGIC_IB_IBCC_LINKINITCMD_DISABLE <<
-+					QLOGIC_IB_IBCC_LINKINITCMD_SHIFT);
-+	qib_write_kreg_port(ppd, krp_ibcctrl_a, val);
-+	qib_write_kreg(dd, kr_scratch, 0ULL);
-+	/* clear the linkinit cmds */
-+	ppd->cpspec->ibcctrl_a = val & ~SYM_MASK(IBCCtrlA_0, LinkInitCmd);
-+
- 	/* be paranoid against later code motion, etc. */
- 	spin_lock_irqsave(&dd->cspec->rcvmod_lock, flags);
- 	ppd->p_rcvctrl |= SYM_MASK(RcvCtrl_0, RcvIBPortEnable);
-diff --git a/drivers/infiniband/hw/qib/qib_qsfp.c b/drivers/infiniband/hw/qib/qib_qsfp.c
-index e06c4ed..fa71b1e 100644
---- a/drivers/infiniband/hw/qib/qib_qsfp.c
-+++ b/drivers/infiniband/hw/qib/qib_qsfp.c
-@@ -480,18 +480,6 @@ void qib_qsfp_init(struct qib_qsfp_data *qd,
- 	udelay(20); /* Generous RST dwell */
- 
- 	dd->f_gpio_mod(dd, mask, mask, mask);
--	/* Spec says module can take up to two seconds! */
--	mask = QSFP_GPIO_MOD_PRS_N;
--	if (qd->ppd->hw_pidx)
--		mask <<= QSFP_GPIO_PORT2_SHIFT;
--
--	/* Do not try to wait here. Better to let event handle it */
--	if (!qib_qsfp_mod_present(qd->ppd))
--		goto bail;
--	/* We see a module, but it may be unwise to look yet. Just schedule */
--	qd->t_insert = get_jiffies_64();
--	queue_work(ib_wq, &qd->work);
--bail:
- 	return;
- }
- 
+> Currently calls like ib_query_gid() are allowed to sleep.  If drivers are given the choice whether or not to use the cache, then there's no way for a user to know whether a query call will sleep or not.
+> 
+
+The cache calls do not sleep. Period.
+AFAIK, the problem is with assuming calls do not sleep, when they
+actually do and not vice versa.
+
+What problems do you forsee if we declare that cache calls do not sleep?
+
+Since the drivers would be users of cache calls, the behavior would be
+as assumed for the query calls for the driver. Refer mthca
+implementation (PATCH 11/11): If the entry is found in cache, it
+will return immediately, and will not sleep. If the entry is not
+found, it will query the device and may sleep. In essence we still
+hold that the query functions may sleep, but if the data is available
+in cache it will return faster.
 
 
+-- 
+Goldwyn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
