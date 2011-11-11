@@ -1,60 +1,37 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [opensm] [PATCH 1/2] Fix segfault corner case
-Date: Fri, 11 Nov 2011 14:19:57 +0200
-Message-ID: <20111111121957.GA2968@calypso.mtl.com>
-References: <1320948093.22519.337.camel@auk59.llnl.gov>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1320948093.22519.337.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH 6/6] infiniband/nes: Disable ASPM
+Date: Fri, 11 Nov 2011 11:05:11 -0500
+Message-ID: <1321027511-31229-7-git-send-email-mjg@redhat.com>
+References: <1321027511-31229-1-git-send-email-mjg@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1321027511-31229-1-git-send-email-mjg@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Matthew Garrett <mjg@redhat.com>, faisal.latif@intel.com, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Al,
+The Windows driver .inf disables ASPM on hpsa devices. Do the same.
 
-On 10:01 Thu 10 Nov     , Albert Chu wrote:
-> On rescan, data segment memory could be attempted to be freed by
-> config file parsing code.
-> 
-> Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> ---
->  opensm/osm_subnet.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-> index 554a950..c8a8add 100644
-> --- a/opensm/osm_subnet.c
-> +++ b/opensm/osm_subnet.c
-> @@ -1159,7 +1159,7 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
->  		log_report(" Invalid Cached Option Value:console = %s"
->  			   ", Using Default:%s\n",
->  			   p_opts->console, OSM_DEFAULT_CONSOLE);
-> -		p_opts->console = OSM_DEFAULT_CONSOLE;
-> +		p_opts->console = strdup(OSM_DEFAULT_CONSOLE);
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: faisal.latif@intel.com
+Cc: linux-rdma@vger.kernel.org
+---
+ drivers/infiniband/hw/nes/nes.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-If console is set to a wrong value, you get some memory leak here, because
-strdup() allocates new buffer and the old one is never free.
-
->  	}
->  
->  	if (p_opts->qos) {
-> -- 
-> 1.7.1
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
+index 5965b3d..2737b7a 100644
+--- a/drivers/infiniband/hw/nes/nes.c
++++ b/drivers/infiniband/hw/nes/nes.c
+@@ -463,6 +463,9 @@ static int __devinit nes_probe(struct pci_dev *pcidev, const struct pci_device_i
+ 	printk(KERN_INFO PFX "NetEffect RNIC driver v%s loading. (%s)\n",
+ 			DRV_VERSION, pci_name(pcidev));
+ 
++	pci_disable_link_state(pcidev, PCIE_LINK_STATE_L0S |
++			       PCIE_LINK_STATE_L1 | PCIE_LINK_STATE_CLKPM);
++
+ 	ret = pci_enable_device(pcidev);
+ 	if (ret) {
+ 		printk(KERN_ERR PFX "Unable to enable PCI device. (%s)\n", pci_name(pcidev));
 -- 
-
--- Alex
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.7.1
