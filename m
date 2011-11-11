@@ -1,26 +1,55 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: libibverbs: Added the man page verbs.7
-Date: Fri, 11 Nov 2011 08:50:51 +0100
-Message-ID: <CAO+b5-pDo9C4+SZ=wbV9HwKE+yX_-i8EK6oeFSckJwtdFzOE_w@mail.gmail.com>
-References: <201111101103.41673.dotanb@sw.voltaire.com>
+Subject: [PATCH 1/3] ib_srpt: Update encode_wr_id() argument type
+Date: Fri, 11 Nov 2011 12:15:14 +0100
+Message-ID: <201111111215.14297.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201111101103.41673.dotanb-g2bIKuvJtcQanlnWow0HJg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 10, 2011 at 10:03 AM, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> +This library is thread safe library and verbs can be called from every thread in the process (the same resource can even be handled from different threads, for example: ibv_poll_cq can be called from more than one thread).
+Since commit 6b7227866 the first argument passed to encode_wr_id()
+is always of type enum srpt_opcode. Make this explicit by updating
+the function declaration. Also insert a blank line between
+function definitions as is done in the rest of the Linux kernel.
 
-I had one more remark myself: if a novice reads the above, she or he
-might start wondering whether the above statement about calling
-ibv_poll_cq() from more than one thread refers to calling that
-function with different or with identical cq arguments.
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.h |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Bart.
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index fe9e81c..a484941 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -138,14 +138,16 @@ enum srpt_opcode {
+ 	SRPT_RDMA_WRITE_LAST,
+ };
+ 
+-static inline u64 encode_wr_id(u8 opcode, u32 idx)
++static inline u64 encode_wr_id(enum srpt_opcode opcode, u32 idx)
+ {
+ 	return ((u64)opcode << 32) | idx;
+ }
++
+ static inline enum srpt_opcode opcode_from_wr_id(u64 wr_id)
+ {
+ 	return wr_id >> 32;
+ }
++
+ static inline u32 idx_from_wr_id(u64 wr_id)
+ {
+ 	return (u32)wr_id;
+-- 
+1.7.3.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
