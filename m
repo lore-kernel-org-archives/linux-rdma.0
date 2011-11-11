@@ -1,34 +1,60 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: Initial SRP Target merge for v3.2-rc1
-Date: Fri, 11 Nov 2011 12:41:04 +0100
-Message-ID: <CAO+b5-oX94=81Gdr2cs0VFoF8Yb+B1DAT2Z+h2UeP6q111Rv7g@mail.gmail.com>
-References: <1318556901-14850-1-git-send-email-nab@linux-iscsi.org>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [opensm] [PATCH 1/2] Fix segfault corner case
+Date: Fri, 11 Nov 2011 14:19:57 +0200
+Message-ID: <20111111121957.GA2968@calypso.mtl.com>
+References: <1320948093.22519.337.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1318556901-14850-1-git-send-email-nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1320948093.22519.337.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> +static void srpt_drop_tport(struct se_wwn *wwn)
-> +{
-> + =A0 =A0 =A0 struct srpt_port *sport =3D container_of(wwn, struct sr=
-pt_port, port_wwn);
-> +
-> + =A0 =A0 =A0 pr_debug("drop_tport(%s\n", config_item_name(&sport->po=
-rt_wwn.wwn_group.cg_item));
+Hi Al,
 
-A minor comment: the above statement always never prints the port name
-- it always prints the following:
+On 10:01 Thu 10 Nov     , Albert Chu wrote:
+> On rescan, data segment memory could be attempted to be freed by
+> config file parsing code.
+> 
+> Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> ---
+>  opensm/osm_subnet.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+> index 554a950..c8a8add 100644
+> --- a/opensm/osm_subnet.c
+> +++ b/opensm/osm_subnet.c
+> @@ -1159,7 +1159,7 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
+>  		log_report(" Invalid Cached Option Value:console = %s"
+>  			   ", Using Default:%s\n",
+>  			   p_opts->console, OSM_DEFAULT_CONSOLE);
+> -		p_opts->console = OSM_DEFAULT_CONSOLE;
+> +		p_opts->console = strdup(OSM_DEFAULT_CONSOLE);
 
-ib_srpt drop_tport((null)
+If console is set to a wrong value, you get some memory leak here, because
+strdup() allocates new buffer and the old one is never free.
 
-Bart.
+>  	}
+>  
+>  	if (p_opts->qos) {
+> -- 
+> 1.7.1
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+
+-- Alex
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
