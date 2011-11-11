@@ -1,50 +1,40 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] libibmad/rpc.c: On receive, add debug info for dumping
- incoming MAD address
-Date: Thu, 10 Nov 2011 11:28:44 -0800
-Message-ID: <20111110112844.9f470e6d.weiny2@llnl.gov>
-References: <4EBBD63E.7090405@dev.mellanox.co.il>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [opensm] [PATCH] Fix potential memleak
+Date: Thu, 10 Nov 2011 16:51:11 -0800
+Message-ID: <1320972671.22519.364.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EBBD63E.7090405-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 10 Nov 2011 05:48:46 -0800
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+Strings may have been already strduped from config file parsing.
 
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ opensm/main.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Thanks, applied,
-Ira
-
-> ---
-> diff --git a/src/rpc.c b/src/rpc.c
-> index 19a5a70..6312d42 100644
-> --- a/src/rpc.c
-> +++ b/src/rpc.c
-> @@ -166,6 +166,8 @@ _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int agentid, int len,
->  				return -1;
->  			}
->  
-> +			if (ibdebug > 2)
-> +				umad_addr_dump(umad_get_mad_addr(rcvbuf));
->  			if (ibdebug > 1) {
->  				IBWARN("rcv buf:");
->  				xdump(stderr, "rcv buf\n", umad_get_mad(rcvbuf),
-
-
+diff --git a/opensm/main.c b/opensm/main.c
+index f7a6d83..10cbef5 100644
+--- a/opensm/main.c
++++ b/opensm/main.c
+@@ -553,6 +553,8 @@ int osm_manager_loop(osm_subn_opt_t * p_opt, osm_opensm_t * p_osm)
+ }
+ 
+ #define SET_STR_OPT(opt, val) do { \
++	if (opt) \
++		free(opt); \
+ 	opt = val ? strdup(val) : NULL ; \
+ } while (0)
+ 
 -- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+1.7.1
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
