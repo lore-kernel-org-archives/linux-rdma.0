@@ -1,101 +1,141 @@
-From: "Bill Boas" <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: RE: srp_transport: Fix atttribute registration race
-Date: Sat, 12 Nov 2011 22:18:04 -0600
-Message-ID: <045e01cca1bb$3dee1070$b9ca3150$@systemfabricworks.com>
-References: <201110211857.23622.bvanassche@acm.org> <1320053608.8283.29.camel@dabdike> <CAO+b5-oxshsL7Dm7vhv4zC8m0P4dG3iNzxU9sdbi5cBkAnTpMQ@mail.gmail.com>
-Reply-To: <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [BUG] Bad page map in process ibv_devinfo
+Date: Sun, 13 Nov 2011 10:26:36 +0200
+Message-ID: <4EBF7F3C.2020804@dev.mellanox.co.il>
+References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-oxshsL7Dm7vhv4zC8m0P4dG3iNzxU9sdbi5cBkAnTpMQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <1321110951.99968.YahooMailNeo-06aSuiz6pSvyX4RqAA4FmIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>, 'James Bottomley' <James.Bottomley-JuX6DAaQMKPCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>, 'David Dillow' <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Fujita Tomonori' <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, 'Brian King' <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, 'Roland Dreier' <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Bart, James, Dave,
-
-At SC we are running a video streaming demo across a 7000 mile fiber
-distance using IB extension boxes from Bay Microsystems at 40 Gbps. The
-video streaming app uses SRP to transmit the streams across this long
-distance link. Performance is not all what we would have hoped. We thin=
-k
-that because SRP uses RC mode between initiator and target that it is t=
-he RC
-behavior over this distance that is impacting performance. Are any of y=
-ou
-aware of an SRP implementation that uses UC mode.
-
-We appreciate your respones in advance,
-
-Bill
-Bill Boas
-Tel: 01-510-375-8840
-Email: bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-
-
-=20
------Original Message-----
-=46rom: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-[mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Bart Van Assche
-Sent: Tuesday, November 01, 2011 1:48 PM
-To: James Bottomley
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Fujita Tomo=
-nori;
-Brian King; David Dillow; Roland Dreier
-Subject: Re: srp_transport: Fix atttribute registration race
-
-On Mon, Oct 31, 2011 at 10:33 AM, James Bottomley
-<James.Bottomley-JuX6DAaQMKPCXq6kfMZ53/egYHeGw8Jk@public.gmane.org> wrote:
-> On Fri, 2011-10-21 at 18:57 +0200, Bart Van Assche wrote:
-> > Register transport attributes after the attribute array has been se=
-t=20
-> > up instead of before. The current code is racy because there is no=20
-> > guarantee that the CPU examining the attribute container will see=20
-> > all values written to the container.
+On 11/12/2011 05:15 PM, Lukas Razik wrote:
+> Hello Mr. Sokolovsky,
 >
-> I don't agree with this change log. =A0As far as the kernel is=20
-> concerned, nothing happens until that function returns because the=20
-> only way to use anything is to get a match to succeed, and they all=20
-> check for
-> ->transportt which will be NULL.
+> i've built OFED-1.5.3.2 for a linux-2.6.39.4 sparc64 (vanilla) kernel. The IPoIB stuff works fine.
 >
-> I can accept that it's best practise to initialise something before=20
-> registering it, because the reverse excites everyone's bogosity=20
-> sensors, it's just not a bug in this case.
+> If I run 'ibv_devinfo' I get:
+> ---
+>
+> hca_id: mlx4_0
+>          transport:                      InfiniBand (0)
+>          fw_ver:                         2.6.628
+>          node_guid:                      0003:ba00:0100:b1d8
+>          sys_image_guid:                 0003:ba00:0100:b1db
+>          vendor_id:                      0x03ba
+>          vendor_part_id:                 25418
+>          hw_ver:                         0xA0
+>          board_id:                       SUN0070000001
+>          phys_port_cnt:                  2
+>                  port:   1
+>                          state:                  PORT_ACTIVE (4)
+>                          max_mtu:                2048 (4)
+>                          active_mtu:             2048 (4)
+>                          sm_lid:                 1
+>                          port_lid:               6
+>                          port_lmc:               0x00
+>                          link_layer:             IB[...]
+> ---
+>
 
-It's very well possible that I have missed something, but it's not clea=
-r to
-me what's wrong with the patch description ? At least with ib_srp devic=
-e
-registration happens from another context than module initialization so=
- it
-can potentially run on another CPU. I don't see any kind of memory barr=
-ier
-after the initialization of the SRP transport attribute array. So at le=
-ast
-in theory and on an architecture with a sufficiently weak memory model =
-(e.g.
-the POWER
-architecture) there is no guarantee that these store operations will be
-observed before an SRP device gets registered. Even more, there is no
-guarantee that the CPU on which device registration happens will observ=
-e
-these store operations in the same order as these were performed on the=
- CPU
-that ran srp_attach_transport().
 
-Bart.
+Hello Lukas,
+Try to update HCA's firmware to the latest version (http://www.mellanox.com/content/pages.php?pg=firmware_download).
+
+Regards,
+Vladimir
+
+
+
+> But I also get this BUG message from the kernel:
+> ---
+> [ 9305.698663] swap_free: Bad swap file entry 100005e000061800
+> [ 9305.698791] BUG: Bad page map in process ibv_devinfo  pte:bc0000c300104848 pmd:00f38054
+> [ 9305.698908] addr:fffff80100114000 vm_flags:000844fa anon_vma:          (null) mapping:fffff807f313a410 index:6180082
+> [ 9305.699087] vma->vm_file->f_op->mmap: ib_uverbs_mmap+0x8/0x38 [ib_uverbs]
+> [ 9305.699135] Call Trace:
+> [ 9305.699174]  [00000000004cd558] unmap_vmas+0x514/0x7f4
+> [ 9305.699302]  [00000000004d1274] unmap_region+0xb4/0x164
+> [ 9305.699383]  [00000000004d22c0] do_munmap+0x2a8/0x31c
+> [ 9305.699467]  [000000000042d350] SyS_64_munmap+0x88/0xa8
+> [ 9305.699550]  [0000000000406154] linux_sparc_syscall+0x34/0x44
+> ---
+>
+>
+> I've the following
+> - System: Sun T5120 (SPARC64)
+>
+> - OS: Debian 6.0.3
+> - IB-card:
+> # lspci -s 12:00
+>
+> 12:00.0 InfiniBand: Mellanox Technologies MT25418 [ConnectX VPI PCIe 2.0 2.5GT/s - IB DDR / 10GigE] (rev a0)
+>
+>
+> And same BUG messages with:
+> - OFED-1.5.3.2 with linux-2.6.38 (vanilla)
+>
+> - OFED-1.5.4-rc4 with linux-2.6.39.4 (vanilla)
+>
+>
+> The problem is that I also get such messages when I run openmpi over openib (naturally with another process name than 'ibv_devinfo'). Then mpirun dies with an error message. Hence I can't use MPI over the Infiniband cards...
+>
+>
+> So is there something I could try to do to get these cards working?
+> Can I give you more debug information?
+>
+>
+> I'm very happy about any help!
+>
+>
+> Regards,
+> Lukas
+>
+>
+>
+> PS:
+> My kernel-config:
+> http://net.razik.de/linux/T5120/config-2.6.39.4-razik-2011-11-05
+>
+>
+> The OFED-packets I've installed:
+>
+> ---
+>
+> kernel-ib
+> ofed-scripts
+> libibverbs
+> libibverbs-devel
+> libibverbs-utils
+> libmlx4
+> libmlx4-devel
+> libibumad
+> libibumad-devel
+> libibmad
+> libibmad-devel
+> librdmacm
+> librdmacm-utils
+> librdmacm-devel
+> opensm-libs
+> ibutils
+> infiniband-diags
+> ofed-docs
+> mpi-selector
+> openmpi_gcc
+> mpitests_openmpi_gcc
+> ---
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n the
-body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
