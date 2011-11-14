@@ -1,32 +1,25 @@
 From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: question on the timewait event of the rdma-cm
-Date: Mon, 14 Nov 2011 23:37:22 +0200
-Message-ID: <CAJZOPZLn3hEYp_kHRs22ttF3ca0iq4s5NtFi4iUYgEie81osBg@mail.gmail.com>
-References: <4EC13EE9.1070103@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237316E9AA8E@ORSMSX101.amr.corp.intel.com>
-	<CAJZOPZJVs=NSky4hQ1sdoF+XiU8_Pg6FzS2AUMjgqVAzs7Oi6Q@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237316E9AAC4@ORSMSX101.amr.corp.intel.com>
-	<CAJZOPZKBaQ2HR4kbidW0Mec2xWhZ5H7-ezG20X-J_aYENd9ibw@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237316E9AAF4@ORSMSX101.amr.corp.intel.com>
+Subject: Re: srp_transport: Fix atttribute registration race
+Date: Mon, 14 Nov 2011 23:43:32 +0200
+Message-ID: <CAJZOPZ+N2OLLHdKAFk=xkXGzFEdisaGsDBf6ra56pcT6zO_8qQ@mail.gmail.com>
+References: <201110211857.23622.bvanassche@acm.org>
+	<1320053608.8283.29.camel@dabdike>
+	<CAO+b5-oxshsL7Dm7vhv4zC8m0P4dG3iNzxU9sdbi5cBkAnTpMQ@mail.gmail.com>
+	<045e01cca1bb$3dee1070$b9ca3150$@systemfabricworks.com>
+	<20111113215523.GA6117@ornl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E9AAF4-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20111113215523.GA6117-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Bill Boas <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, James Bottomley <James.Bottomley-JuX6DAaQMKPCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Fujita Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> By bogus I mean calling disconnect when the QP has never been connected, or calling
-> disconnect twice
+On Sun, Nov 13, 2011 at 11:55 PM, Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
+> SRP uses RDMA, so you cannot use UC mode.
 
-what return value can serve as bogus indication for the application?
-is that -EINVAL? also, basically a QP could have buffers posted to it
-also before being connected (e.g after RTR or there's no point in time
-an rdma-cm consumer for which the cma manages the QP state is exposed
-to such QP in RTR and not RTS?) as for the twice case, still the IB CM
-will go through the timewait status in return for the 1st, not bogus
-call, correct?
+per the IB spec, RDMA write is supported for UC
 
 Or.
 --
