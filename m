@@ -1,64 +1,45 @@
-From: "Paul Grun" <pgrun@systemfabricworks.com>
-Subject: RE: srp_transport: Fix atttribute registration race
-Date: Sun, 13 Nov 2011 14:46:55 -0800
-Message-ID: <000301cca256$279057c0$76b10740$@com>
-References: <201110211857.23622.bvanassche@acm.org> <1320053608.8283.29.camel@dabdike> <CAO+b5-oxshsL7Dm7vhv4zC8m0P4dG3iNzxU9sdbi5cBkAnTpMQ@mail.gmail.com> <045e01cca1bb$3dee1070$b9ca3150$@systemfabricworks.com> <20111113215523.GA6117@ornl.gov>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: question on the timewait event of the rdma-cm
+Date: Mon, 14 Nov 2011 18:16:41 +0200
+Message-ID: <4EC13EE9.1070103@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20111113215523.GA6117@ornl.gov>
-Content-Language: en-us
-Sender: linux-scsi-owner@vger.kernel.org
-To: 'Dave Dillow' <dillowda@ornl.gov>, 'Bill Boas' <bboas@systemfabricworks.com>
-Cc: 'Bart Van Assche' <bvanassche@acm.org>, 'James Bottomley' <James.Bottomley@hansenpartnership.com>, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, 'Fujita Tomonori' <fujita.tomonori@lab.ntt.co.jp>, 'Brian King' <brking@linux.vnet.ibm.com>, 'Roland Dreier' <roland@purestorage.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks for the suggestions. The problem turned out to be much more
-pedestrian...the destination MAC ID of packets being injected into the long
-distance link was wrong and thus many packets were being dropped.  We
-haven't gotten back to trying to run RC over the long distance link.  I
-understand the issues with running SRP over UC, and don't expect to do that.
-Thanks again,
--Paul Grun
+Sean,
 
+I'm debugging some disconnect related race in iser - and wanted to check 
+with you something re the CM/RDMA-CM state machine: I see that when a 
+disconnected is initiated by the passive side (iser target) of a 
+connection, such that the active side (iser initiator) gets 
+RDMA_CM_EVENT_DISCONNECTED, later we call rdma_disconnect (e.g to move 
+the QP into error state, send DREP, etc) - SOMETIMES the active side 
+gets also RDMA_CM_EVENT_TIMEWAIT_EXIT event, AFAIK this should happen  
+if the rdma-cm ID isn't destroyed within X time, correct? if yes, so 
+what is that X? if this description isn't accurate what would be the 
+correct phrasing for the condition to get the timewait event?
 
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> owner@vger.kernel.org] On Behalf Of Dave Dillow
-> Sent: Sunday, November 13, 2011 1:55 PM
-> To: Bill Boas
-> Cc: 'Bart Van Assche'; 'James Bottomley'; linux-scsi@vger.kernel.org;
-> linux-rdma@vger.kernel.org; 'Fujita Tomonori'; 'Brian King'; 'Roland
-> Dreier'
-> Subject: Re: srp_transport: Fix atttribute registration race
-> 
-> On Sat, Nov 12, 2011 at 11:18:04PM -0500, Bill Boas wrote:
-> > Bart, James, Dave,
-> >
-> > At SC we are running a video streaming demo across a 7000 mile fiber
-> > distance using IB extension boxes from Bay Microsystems at 40 Gbps. The
-> > video streaming app uses SRP to transmit the streams across this long
-> > distance link. Performance is not all what we would have hoped. We think
-> > that because SRP uses RC mode between initiator and target that it is
-> the RC
-> > behavior over this distance that is impacting performance. Are any of
-> you
-> > aware of an SRP implementation that uses UC mode.
-> 
-> SRP uses RDMA, so you cannot use UC mode.
-> 
-> Your problem sounds a lot like issues we saw when starting to run over
-> 100m+ optical cables; IIRC it required increasing the credits available
-> the link. You should contact Jason Gunthorpe or Makia Minnich. Makia was
-> involved in that investigation at ORNL, but Jason may also be able to tell
-> you off the top of his head.
-> 
-> Dave
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Or.
 
+the call to rdma_disconnect was made on jiffies count 4295608818
+
+> Nov 14 17:57:50 iser: iser_cma_handler:event 10 status 0 conn 
+> ffff88060c8fb2b0 id ffff88061054dc00 jiffies 4295608742
+> Nov 14 17:57:50 connection399:0: detected conn error (1011)
+> Nov 14 17:57:50 iser: iser_disconnected_handler:more 32 rx 1 tx 
+> completions to reap
+> Nov 14 17:57:50 iser: iscsi_iser_ep_disconnect:ib conn 
+> ffff88060c8fb2b0 state 3 jiffies 4295608818
+> Nov 14 17:57:51 Kernel reported iSCSI connection 399:0 error (1011) 
+> state (3)
+> Nov 14 17:57:52 iser: iser_cma_handler:event 15 status 0 conn 
+> ffff88060c8fb2b0 id ffff88061054dc00 jiffies 4295609333
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
