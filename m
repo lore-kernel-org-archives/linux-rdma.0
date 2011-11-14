@@ -1,45 +1,95 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: question on the timewait event of the rdma-cm
-Date: Mon, 14 Nov 2011 18:16:41 +0200
-Message-ID: <4EC13EE9.1070103@mellanox.com>
+From: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
+Subject: Re: [BUG] Bad page map in process ibv_devinfo
+Date: Mon, 14 Nov 2011 17:10:18 +0000 (GMT)
+Message-ID: <1321290618.98338.YahooMailNeo@web24709.mail.ird.yahoo.com>
+References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com> <4EBF7F3C.2020804@dev.mellanox.co.il> <1321183221.65654.YahooMailNeo@web24703.mail.ird.yahoo.com> <4EC0D87E.6090203@dev.mellanox.co.il>
+Reply-To: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4EC0D87E.6090203-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean,
+>> =A0  hca_id: mlx4_0
 
-I'm debugging some disconnect related race in iser - and wanted to check 
-with you something re the CM/RDMA-CM state machine: I see that when a 
-disconnected is initiated by the passive side (iser target) of a 
-connection, such that the active side (iser initiator) gets 
-RDMA_CM_EVENT_DISCONNECTED, later we call rdma_disconnect (e.g to move 
-the QP into error state, send DREP, etc) - SOMETIMES the active side 
-gets also RDMA_CM_EVENT_TIMEWAIT_EXIT event, AFAIK this should happen  
-if the rdma-cm ID isn't destroyed within X time, correct? if yes, so 
-what is that X? if this description isn't accurate what would be the 
-correct phrasing for the condition to get the timewait event?
-
-Or.
-
-the call to rdma_disconnect was made on jiffies count 4295608818
-
-> Nov 14 17:57:50 iser: iser_cma_handler:event 10 status 0 conn 
-> ffff88060c8fb2b0 id ffff88061054dc00 jiffies 4295608742
-> Nov 14 17:57:50 connection399:0: detected conn error (1011)
-> Nov 14 17:57:50 iser: iser_disconnected_handler:more 32 rx 1 tx 
-> completions to reap
-> Nov 14 17:57:50 iser: iscsi_iser_ep_disconnect:ib conn 
-> ffff88060c8fb2b0 state 3 jiffies 4295608818
-> Nov 14 17:57:51 Kernel reported iSCSI connection 399:0 error (1011) 
-> state (3)
-> Nov 14 17:57:52 iser: iser_cma_handler:event 15 status 0 conn 
-> ffff88060c8fb2b0 id ffff88061054dc00 jiffies 4295609333
+>> =A0 =A0 =A0 =A0 =A0 =A0 transport:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 InfiniBand (0)
+>> =A0 =A0 =A0 =A0 =A0 =A0 fw_ver:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0  2.6.628
+>> =A0 =A0 =A0 =A0 =A0 =A0 node_guid:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 0003:ba00:0100:b1d8
+>> =A0 =A0 =A0 =A0 =A0 =A0 sys_image_guid:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+  0003:ba00:0100:b1db
+>> =A0 =A0 =A0 =A0 =A0 =A0 vendor_id:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 0x03ba
+>> =A0 =A0 =A0 =A0 =A0 =A0 vendor_part_id:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+  25418
+>> =A0 =A0 =A0 =A0 =A0 =A0 hw_ver:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0  0xA0
+>> =A0 =A0 =A0 =A0 =A0 =A0 board_id:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0  SUN0070000001
+>> =A0 =A0 =A0 =A0 =A0 =A0 phys_port_cnt:=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 2
+>>=A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 port:=A0  1
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 state:=A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 PORT_ACTIVE (4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 max_mtu:=A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 2048 (4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 active_mtu:=A0=
+ =A0 =A0 =A0 =A0 =A0  2048 (4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sm_lid:=A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0  1
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 port_lid:=A0=
+ =A0 =A0 =A0 =A0 =A0 =A0  6
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 port_lmc:=A0=
+ =A0 =A0 =A0 =A0 =A0 =A0  0x00
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 link_layer:=A0=
+ =A0 =A0 =A0 =A0 =A0  IB[...]
+>>=A0=20
+>>
+>>  2. problem: For burning the firmware I need the MFT package, right?
+>>  But Mellanox doesn't provide it for sparc64.
+>>  I could build the kernel modules of kernel-mft-2.7.1-7.src.rpm with=
+out any=20
+> problems.
+>>  But the user space stuff is ppc64, x86 and x86_64 only...
+>>  Is there maybe a possibility to get sparc64 binaries?
 >
+> You can burn FW binary image using mstflint.
+> Use MFT (mlxburn) to create the binary image from FW mlx file and ini=
+ file. You=20
+> can install MFT on some Linux or Windows machine.
+
+
+Hello Vladimir,
+
+thanks again for this tip!
+
+I need a "/dev/mst/mt25418_pci_cr0" when I use mstflint.
+Therefore I've extracted the "/etc/init.d/mst" script from the "mft-2.7=
+=2E1-7.x86.rpm"
+which creates a "/dev/mst/mt25418_pci_cr0".
+
+But the script outputs errors and I can't use the created device:
+# mstflint -d /dev/mst/mt25418_pci_cr0 q
+Unable to parse device name /dev/mst/mt25418_pci_cr0
+-E- Can not open /dev/mst/mt25418_pci_cr0: Invalid argument MFE_CR_ERRO=
+R
+
+Maybe it works when I create "/dev/mst/mt25418_pci_cr0" manually but I =
+don't know how.
+So could you maybe write a short instruction list for me what I have to=
+ do after loading the mst_* modules to get the needed device file? Or d=
+o you maybe have another idea how I could flash the firmware?
+
+Regards,
+Lukas
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
