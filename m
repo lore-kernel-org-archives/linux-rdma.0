@@ -1,7 +1,8 @@
 From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [opensm] [PATCH 4/5] Fix potential memleak
-Date: Mon, 14 Nov 2011 14:53:28 -0800
-Message-ID: <1321311208.5518.54.camel@auk59.llnl.gov>
+Subject: [opensm] [PATCH 5/5] Remove duplicate initialization of
+	scatter_ports
+Date: Mon, 14 Nov 2011 14:53:42 -0800
+Message-ID: <1321311222.5518.56.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -10,29 +11,23 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Note that the new config file parsing code, different osm_subn_opt_t
-structures do not share pointers to the same strdup'ed memory.
-Therefore, this memory must be freed before reallocing to avoid
-a memleak.
-
 Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- opensm/main.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ opensm/osm_subnet.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/main.c b/opensm/main.c
-index f7a6d83..10cbef5 100644
---- a/opensm/main.c
-+++ b/opensm/main.c
-@@ -553,6 +553,8 @@ int osm_manager_loop(osm_subn_opt_t * p_opt, osm_opensm_t * p_osm)
- }
- 
- #define SET_STR_OPT(opt, val) do { \
-+	if (opt) \
-+		free(opt); \
- 	opt = val ? strdup(val) : NULL ; \
- } while (0)
- 
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 6b6bd63..f9327a6 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -1009,7 +1009,6 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->lash_start_vl = 0;
+ 	p_opt->sm_sl = OSM_DEFAULT_SL;
+ 	p_opt->log_prefix = NULL;
+-	p_opt->scatter_ports = OSM_DEFAULT_SCATTER_PORTS;
+ 	subn_init_qos_options(&p_opt->qos_options);
+ 	subn_init_qos_options(&p_opt->qos_ca_options);
+ 	subn_init_qos_options(&p_opt->qos_sw0_options);
 -- 
 1.7.1
 
