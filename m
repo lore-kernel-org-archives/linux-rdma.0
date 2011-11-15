@@ -1,83 +1,51 @@
-From: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
-Subject: Can't build ofa-kernel-1.5.4 from OFED-1.5.4-rc4 with linux-3.1.1 on sparc64
-Date: Tue, 15 Nov 2011 08:18:14 +0000 (GMT)
-Message-ID: <1321345094.76211.YahooMailNeo@web24714.mail.ird.yahoo.com>
-Reply-To: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm/osm_drop_mgr.c: GID out trap fix
+Date: Tue, 15 Nov 2011 10:42:41 +0200
+Message-ID: <20111115084241.GA2501@calypso>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello together!
+Because removed port GUID was deleted from port_guid_tbl,
+osm_report_notice() failed when trying to locate source port GUID
 
-I've tried to build ofa-kernel-1.5.4 from OFED-1.5.4-rc4 with linux-3.1=
-=2E1 (vanilla) on sparc64.
-That's the whole log:
-http://net.razik.de/linux/T5120/linux-3.1.1/ofa_kernel-1.5.4.rpmbuild.l=
-og
-
-
-I've got this error during build:
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+ opensm/osm_drop_mgr.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-In file included from include/linux/time.h:9,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from include/linux/skb=
-uff.h:20,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from include/linux/if_=
-ether.h:131,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from include/linux/net=
-device.h:29,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from include/linux/ine=
-tdevice.h:8,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from /var/tmp/OFED_top=
-dir/BUILD/ofa_kernel-1.5.4/drivers/infiniband/core/addr.c:37:
-include/linux/math64.h:5:23: error: asm/div64.h: No such file or direct=
-ory
-In file included from include/linux/if_link.h:5,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from include/linux/net=
-device.h:31,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from include/linux/ine=
-tdevice.h:8,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from /var/tmp/OFED_top=
-dir/BUILD/ofa_kernel-1.5.4/drivers/infiniband/core/addr.c:37:
-include/linux/netlink.h:32: error: expected specifier-qualifier-list be=
-fore '__kernel_sa_family_t'
-/var/tmp/OFED_topdir/BUILD/ofa_kernel-1.5.4/drivers/infiniband/core/add=
-r.c: In function 'addr4_resolve':
-/var/tmp/OFED_topdir/BUILD/ofa_kernel-1.5.4/drivers/infiniband/core/add=
-r.c:191: error: 'struct flowi' has no member named 'nl_u'
-/var/tmp/OFED_topdir/BUILD/ofa_kernel-1.5.4/drivers/infiniband/core/add=
-r.c:192: error: 'struct flowi' has no member named 'nl_u'
----
+diff --git a/opensm/osm_drop_mgr.c b/opensm/osm_drop_mgr.c
+index 10b51e2..31f8970 100644
+--- a/opensm/osm_drop_mgr.c
++++ b/opensm/osm_drop_mgr.c
+@@ -173,8 +173,7 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
+ 		"Unreachable port 0x%016" PRIx64 "\n", cl_ntoh64(port_guid));
+ 
+ 	p_port_check =
+-	    (osm_port_t *) cl_qmap_remove(&sm->p_subn->port_guid_tbl,
+-					  port_guid);
++	    (osm_port_t *) cl_qmap_get(&sm->p_subn->port_guid_tbl, port_guid);
+ 	if (p_port_check != p_port) {
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0101: "
+ 			"Port 0x%016" PRIx64 " not in guid table\n",
+@@ -224,6 +223,8 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
+ 		}
+ 	}
+ 
++	cl_qmap_remove(&sm->p_subn->port_guid_tbl, port_guid);
++
+ 	p_sm_guid_tbl = &sm->p_subn->sm_guid_tbl;
+ 	p_sm = (osm_remote_sm_t *) cl_qmap_remove(p_sm_guid_tbl, port_guid);
+ 	if (p_sm != (osm_remote_sm_t *) cl_qmap_end(p_sm_guid_tbl)) {
+-- 
+1.7.7.1
 
-BTW1:
-I've done a "make headers_install" in linux-3.1.1.
-I have symbolic links
-/usr/include/asm -> /usr/src/linux-3.1.1/usr/include/asm
-/usr/include/linux -> /usr/src/linux-3.1.1/usr/include/linux
-
-etc.
-And there's no
-linux-3.1.1/usr/include/asm/div64.h
-BTW2:=20
-include/linux/math64.h (which tries to include the inexistent asm/div64=
-=2Eh)
-isn't from
-linux-3.1.1/usr/include
-but from
-linux-3.1.1/include
-
-
-
-Regards,
-Lukas
-
+-- Alex
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
