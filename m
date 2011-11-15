@@ -1,32 +1,33 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: question on the timewait event of the rdma-cm
-Date: Tue, 15 Nov 2011 07:26:48 +0200
-Message-ID: <CAJZOPZJ=7dVjN9BVnNDJz66c4bMB=gp1jLb4wXqNaxgwCeshUA@mail.gmail.com>
-References: <4EC13EE9.1070103@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237316E9AA8E@ORSMSX101.amr.corp.intel.com>
-	<CAJZOPZJVs=NSky4hQ1sdoF+XiU8_Pg6FzS2AUMjgqVAzs7Oi6Q@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237316E9AAC4@ORSMSX101.amr.corp.intel.com>
-	<CAJZOPZKBaQ2HR4kbidW0Mec2xWhZ5H7-ezG20X-J_aYENd9ibw@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237316E9AAF4@ORSMSX101.amr.corp.intel.com>
-	<CAJZOPZLn3hEYp_kHRs22ttF3ca0iq4s5NtFi4iUYgEie81osBg@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237316E9AB1E@ORSMSX101.amr.corp.intel.com>
-	<CAJZOPZLB-WvMQwhkx_o5kMD-A33ff8chA1AvQSj+npg4HiOAKQ@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: srp_transport: Fix atttribute registration race
+Date: Tue, 15 Nov 2011 08:04:51 +0100
+Message-ID: <CAO+b5-q9CozVcw0GsxWQk8ORVDOFNgUETMrmWgOxB3X_9smGKw@mail.gmail.com>
+References: <201110211857.23622.bvanassche@acm.org>
+	<1320053608.8283.29.camel@dabdike>
+	<CAO+b5-oxshsL7Dm7vhv4zC8m0P4dG3iNzxU9sdbi5cBkAnTpMQ@mail.gmail.com>
+	<045e01cca1bb$3dee1070$b9ca3150$@systemfabricworks.com>
+	<20111113215523.GA6117@ornl.gov>
+	<CAJZOPZ+N2OLLHdKAFk=xkXGzFEdisaGsDBf6ra56pcT6zO_8qQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLB-WvMQwhkx_o5kMD-A33ff8chA1AvQSj+npg4HiOAKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJZOPZ+N2OLLHdKAFk=xkXGzFEdisaGsDBf6ra56pcT6zO_8qQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Bill Boas <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- On Mon, Nov 14, 2011 at 11:55 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> [...] calling disconnect is one way that a QP may be transitioned into timewait [...]
+On Mon, Nov 14, 2011 at 10:43 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Sun, Nov 13, 2011 at 11:55 PM, Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
+> > SRP uses RDMA, so you cannot use UC mode.
+>
+> per the IB spec, RDMA write is supported for UC
 
-I was talking on the QP "physical" state (e.g error that causes
-flushes) not the state w.r.t the IB CM.
+Agreed. But an SRP target does not only issue RDMA write requests, it
+also issues RDMA read requests. If I interpret the IB spec correctly,
+RDMA reads are not supported for UC.
 
-Or.
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
