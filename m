@@ -1,37 +1,35 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [BUG] Bad page map in process ibv_devinfo
-Date: Tue, 15 Nov 2011 12:59:05 -0800
-Message-ID: <CAL1RGDXa8hy-Hg-eauj3NbPv=YsFjpQkNq1fTF1qpE7cdhRdng@mail.gmail.com>
-References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com>
- <4EBF7F3C.2020804@dev.mellanox.co.il> <CAL1RGDV3X=vrCC4YCuUBRx9UwMQp0LfRG0y6Lh5z6hx4ROZ4yw@mail.gmail.com>
- <1321315430.19223.YahooMailNeo@web24701.mail.ird.yahoo.com>
- <CAL1RGDVas0srOARofFV2e9=9_5z+VTTpa1k+Eh532xxGVC0uyw@mail.gmail.com>
- <CAL1RGDWNJrbVkTTQ9sDod_x5H6FBEWkyqXT=--TomX1DhTRSmA@mail.gmail.com> <1321387415.58210.YahooMailNeo@web24716.mail.ird.yahoo.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: multicast questions
+Date: Tue, 15 Nov 2011 21:08:46 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E9ADC5@ORSMSX101.amr.corp.intel.com>
+References: <20111115100505.41345ixd637umx8h@celticblues.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E9ACEB@ORSMSX101.amr.corp.intel.com>
+ <20111115112308.46843g8f74jro6j0@celticblues.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E9AD2E@ORSMSX101.amr.corp.intel.com>
+ <20111115132322.13706h224483lmwq@celticblues.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1321387415.58210.YahooMailNeo-HXL2TcxrD9byX4RqAA4FmIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
+In-Reply-To: <20111115132322.13706h224483lmwq-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
-Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org" <dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 15, 2011 at 12:03 PM, Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org> wrote:
->> Actually where is your mlx4 driver coming from?=A0 The upstream kern=
-el or OFED?
->
-> It comes from OFED.
+> The following are my eth0 IPs
+> M1 100.100.100.41
+> M2 100.100.100.42
+> M3 100.100.100.43
+> M4 100.100.100.44
+> 
+> The following are my ib0 IPs
+> M1 100.100.100.141
+> M3 100.100.100.143
 
-If it's possible, it would be useful to try with the vanilla kernel
-and all upstream
-modules too.  Otherwise I can't rule out the possiblity that we're chas=
-ing a
-bug that OFED introduces.
-
- - R.
+It looks like you configured your Ethernet and IB networks as being on the same IP network.  (I'm guessing your subnet mask is 255.255.255.0 here.)  If this is the case, you should configure your Ethernet and IB networks to have separate IP networks (and use private IP network addresses unless you really own the 100.100.100 address range).  E.g. put Ethernet on 192.168.0.x / 255.255.255.0 and IB on 192.168.1.x / 255.255.255.0.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
