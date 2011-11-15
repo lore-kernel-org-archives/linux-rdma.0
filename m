@@ -1,34 +1,30 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: srp_transport: Fix atttribute registration race
-Date: Tue, 15 Nov 2011 08:04:51 +0100
-Message-ID: <CAO+b5-q9CozVcw0GsxWQk8ORVDOFNgUETMrmWgOxB3X_9smGKw@mail.gmail.com>
-References: <201110211857.23622.bvanassche@acm.org>
-	<1320053608.8283.29.camel@dabdike>
-	<CAO+b5-oxshsL7Dm7vhv4zC8m0P4dG3iNzxU9sdbi5cBkAnTpMQ@mail.gmail.com>
-	<045e01cca1bb$3dee1070$b9ca3150$@systemfabricworks.com>
-	<20111113215523.GA6117@ornl.gov>
-	<CAJZOPZ+N2OLLHdKAFk=xkXGzFEdisaGsDBf6ra56pcT6zO_8qQ@mail.gmail.com>
+Subject: Re: [opensm] [PATCH 1/5] Free memory from osm_subn_opt_t when
+ osm_subn_t destroyed
+Date: Tue, 15 Nov 2011 08:10:28 +0100
+Message-ID: <CAO+b5-p5RUf502NYBS=q9ot75qo8s_+v0GOEviJZpmhm-qmSGQ@mail.gmail.com>
+References: <1321310989.5518.50.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+N2OLLHdKAFk=xkXGzFEdisaGsDBf6ra56pcT6zO_8qQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1321310989.5518.50.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Bill Boas <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 14, 2011 at 10:43 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Sun, Nov 13, 2011 at 11:55 PM, Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
-> > SRP uses RDMA, so you cannot use UC mode.
->
-> per the IB spec, RDMA write is supported for UC
+On Mon, Nov 14, 2011 at 11:49 PM, Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org> wrote:
+> + =A0 =A0 =A0 if (opt->vlarb_high)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 free(opt->vlarb_high);
 
-Agreed. But an SRP target does not only issue RDMA write requests, it
-also issues RDMA read requests. If I interpret the IB spec correctly,
-RDMA reads are not supported for UC.
+Those if-statements are superfluous - invoking free(NULL) is safe. See
+e.g. http://pubs.opengroup.org/onlinepubs/009695399/functions/free.html=
+=2E
 
 Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
