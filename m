@@ -1,59 +1,88 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [BUG] Bad page map in process ibv_devinfo
-Date: Tue, 15 Nov 2011 11:59:47 +0200
-Message-ID: <4EC23813.2010401@dev.mellanox.co.il>
-References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com> <4EBF7F3C.2020804@dev.mellanox.co.il> <1321183221.65654.YahooMailNeo@web24703.mail.ird.yahoo.com> <4EC0D87E.6090203@dev.mellanox.co.il> <1321290618.98338.YahooMailNeo@web24709.mail.ird.yahoo.com> <1321305022.98364.YahooMailNeo@web24703.mail.ird.yahoo.com> <1321310529.30932.YahooMailNeo@web24708.mail.ird.yahoo.com>
+From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 1/2] libibverbs: fix memory leaks in various error flows in the library source code
+Date: Tue, 15 Nov 2011 14:40:51 +0200
+Message-ID: <201111151440.51561.dotanb@sw.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1321310529.30932.YahooMailNeo-7VlcqDaCG9fyX4RqAA4FmIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/15/2011 12:42 AM, Lukas Razik wrote:
->> Hello again, Vladimir!
->
->>
->> To set up "/dev/mst/mt25418_pci_cr0" manually I've followed up
->> what "/etc/init.d/mst start" does.
->> I've seen that it uses the "minit" tool which is part of the arch
->> dependent mft-package.
->>
->> Is there maybe a possibility to get "minit" for sparc64?
->> Otherwise I can't init "/dev/mst/mt25418_pci_cr0"... :-(
->>
->
-> Oh, I'm sorry! I've read this file from Mellanox:
-> http://www.mellanox.com/pdf/MFT/MFT_user_manual.pdf
-> which I've found here:
-> http://www.mellanox.com/content/pages.php?pg=management_tools&menu_section=34
-> where the firmware flashing procedure is described for flint.
->
-> And I thought flint == mstflint because mstflint shows it's flint:
-> # mstflint
->              FLINT - FLash INTerface
-> SYNOPSIS
->      flint [switches...]<command>  [parameters...]
->
-> Now I've seen that I don't need "/dev/mst/mt25418_pci_cr0" for mstflint.
-> So if I want to burn a firmware on the adapter I only have to write:
-> mstflint -d 12:00.0 -i fw.bin burn
-> Will the guid and the mac stay the same as before?
->
-> A big sorry again!
->
-> Regards,
-> Lukas
->
+Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ src/cmd.c        |    4 +++-
+ src/compat-1_0.c |    5 ++++-
+ src/init.c       |    3 ++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-Hi Lukas,
-GUID and MAC will stay the same as before.
+diff --git a/src/cmd.c b/src/cmd.c
+index 39af833..1a04228 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -68,8 +68,10 @@ static int ibv_cmd_get_context_v2(struct ibv_context *context,
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, GET_CONTEXT, resp, resp_size);
+ 	cmd->cq_fd_tab = (uintptr_t) &cq_fd;
+ 
+-	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
++	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size) {
++		free(t);
+ 		return errno;
++	}
+ 
+ 	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+ 
+diff --git a/src/compat-1_0.c b/src/compat-1_0.c
+index 3f5ff35..fff6412 100644
+--- a/src/compat-1_0.c
++++ b/src/compat-1_0.c
+@@ -238,7 +238,7 @@ struct ibv_device_1_0 **__ibv_get_device_list_1_0(int *num)
+ 
+ 	l = calloc(n + 2, sizeof (struct ibv_device_1_0 *));
+ 	if (!l)
+-		return NULL;
++		goto free_device_list;
+ 
+ 	l[0] = (void *) real_list;
+ 
+@@ -258,6 +258,9 @@ fail:
+ 	for (i = 1; i <= n; ++i)
+ 		if (l[i])
+ 			free(l[i]);
++	free(l);
++
++free_device_list:
+ 	ibv_free_device_list(real_list);
+ 	return NULL;
+ }
+diff --git a/src/init.c b/src/init.c
+index 06e550d..8d6786e 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -309,7 +309,7 @@ static void read_config(void)
+ 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
+ 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
+ 				IBV_CONFIG_DIR, dent->d_name);
+-			return;
++			goto out;
+ 		}
+ 
+ 		if (stat(path, &buf)) {
+@@ -326,6 +326,7 @@ next:
+ 		free(path);
+ 	}
+ 
++out:
+ 	closedir(conf_dir);
+ }
+ 
+-- 
+1.7.0.4
 
-Regards,
-Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
