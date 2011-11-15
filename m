@@ -1,50 +1,59 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_drop_mgr.c: GID out trap fix
-Date: Tue, 15 Nov 2011 10:42:41 +0200
-Message-ID: <20111115084241.GA2501@calypso>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [BUG] Bad page map in process ibv_devinfo
+Date: Tue, 15 Nov 2011 11:59:47 +0200
+Message-ID: <4EC23813.2010401@dev.mellanox.co.il>
+References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com> <4EBF7F3C.2020804@dev.mellanox.co.il> <1321183221.65654.YahooMailNeo@web24703.mail.ird.yahoo.com> <4EC0D87E.6090203@dev.mellanox.co.il> <1321290618.98338.YahooMailNeo@web24709.mail.ird.yahoo.com> <1321305022.98364.YahooMailNeo@web24703.mail.ird.yahoo.com> <1321310529.30932.YahooMailNeo@web24708.mail.ird.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1321310529.30932.YahooMailNeo-7VlcqDaCG9fyX4RqAA4FmIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Because removed port GUID was deleted from port_guid_tbl,
-osm_report_notice() failed when trying to locate source port GUID
+On 11/15/2011 12:42 AM, Lukas Razik wrote:
+>> Hello again, Vladimir!
+>
+>>
+>> To set up "/dev/mst/mt25418_pci_cr0" manually I've followed up
+>> what "/etc/init.d/mst start" does.
+>> I've seen that it uses the "minit" tool which is part of the arch
+>> dependent mft-package.
+>>
+>> Is there maybe a possibility to get "minit" for sparc64?
+>> Otherwise I can't init "/dev/mst/mt25418_pci_cr0"... :-(
+>>
+>
+> Oh, I'm sorry! I've read this file from Mellanox:
+> http://www.mellanox.com/pdf/MFT/MFT_user_manual.pdf
+> which I've found here:
+> http://www.mellanox.com/content/pages.php?pg=management_tools&menu_section=34
+> where the firmware flashing procedure is described for flint.
+>
+> And I thought flint == mstflint because mstflint shows it's flint:
+> # mstflint
+>              FLINT - FLash INTerface
+> SYNOPSIS
+>      flint [switches...]<command>  [parameters...]
+>
+> Now I've seen that I don't need "/dev/mst/mt25418_pci_cr0" for mstflint.
+> So if I want to burn a firmware on the adapter I only have to write:
+> mstflint -d 12:00.0 -i fw.bin burn
+> Will the guid and the mac stay the same as before?
+>
+> A big sorry again!
+>
+> Regards,
+> Lukas
+>
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_drop_mgr.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+Hi Lukas,
+GUID and MAC will stay the same as before.
 
-diff --git a/opensm/osm_drop_mgr.c b/opensm/osm_drop_mgr.c
-index 10b51e2..31f8970 100644
---- a/opensm/osm_drop_mgr.c
-+++ b/opensm/osm_drop_mgr.c
-@@ -173,8 +173,7 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
- 		"Unreachable port 0x%016" PRIx64 "\n", cl_ntoh64(port_guid));
- 
- 	p_port_check =
--	    (osm_port_t *) cl_qmap_remove(&sm->p_subn->port_guid_tbl,
--					  port_guid);
-+	    (osm_port_t *) cl_qmap_get(&sm->p_subn->port_guid_tbl, port_guid);
- 	if (p_port_check != p_port) {
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0101: "
- 			"Port 0x%016" PRIx64 " not in guid table\n",
-@@ -224,6 +223,8 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
- 		}
- 	}
- 
-+	cl_qmap_remove(&sm->p_subn->port_guid_tbl, port_guid);
-+
- 	p_sm_guid_tbl = &sm->p_subn->sm_guid_tbl;
- 	p_sm = (osm_remote_sm_t *) cl_qmap_remove(p_sm_guid_tbl, port_guid);
- 	if (p_sm != (osm_remote_sm_t *) cl_qmap_end(p_sm_guid_tbl)) {
--- 
-1.7.7.1
-
--- Alex
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
