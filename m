@@ -1,40 +1,48 @@
-From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
-Subject: Re: Linux 3.2-rc1 vs. OFED 1.5.4-rc4: Packets are looped back
-Date: Thu, 17 Nov 2011 17:33:09 +0000 (UTC)
-Message-ID: <loom.20111117T182134-82@post.gmane.org>
-References: <alpine.DEB.2.00.1111111007550.10404@router.home>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: linux-next: Tree for Nov 16 (infiniband: ib_srpt.c)
+Date: Thu, 17 Nov 2011 19:51:35 +0100
+Message-ID: <CAO+b5-q8doXbGBVkCD+jSjov8ermfVCgBB+WJUPXj=eVh1z87A@mail.gmail.com>
+References: <20111116133342.3eb15cac16f4c081dc6ed009@canb.auug.org.au>
+	<4EC472A1.6000407@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4EC472A1.6000407@xenotime.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Linux RDMA <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Christoph Lameter <cl@...> writes:
-> 
-> We have an app here that runs fine with OFED. But if I try to use the
-> kernel IB subsystem in 3.2 it complains about packets being looped back to
-> the application.
-> 
-> That seems to be controlled by IB_DEVICE_BLOCK_MULTICAST_LOOPBACK and
-> IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK.
-> 
-> Why does it not work in the kernel IB stack?
+On Thu, Nov 17, 2011 at 3:34 AM, Randy Dunlap <rdunlap@xenotime.net> wr=
+ote:
+> On 11/15/2011 06:33 PM, Stephen Rothwell wrote:
+>> Hi all,
+>
+>
+> When CONFIG_BUG is not enabled:
+>
+> next-2011-1116/drivers/infiniband/ulp/srpt/ib_srpt.c: In function 'sr=
+pt_cm_dreq_recv':
+> next-2011-1116/drivers/infiniband/ulp/srpt/ib_srpt.c:2761:3: error: i=
+mplicit declaration of function '__WARN'
+>
+>
+> jbd2 has a similar issue (still unpatched). =A0One of the comments in=
+ that thread
+> was that ext4 probably should use WARN_ON() instead of __WARN().
+>
+> Or (Arnd said):
+> Hmm, my feeling is that we shouldn't do that either, and that jbd2 sh=
+ould
+> be changed. If we want a function that does what __WARN() does today,=
+ we
+> should probably make a conscious decision about what we want it to be=
+ called
+> and not have it start with "__". <end Arnd>
 
-The only place the 3.2 kernel sets IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK is in
-ipoib_transport_dev_init() so unless you are doing IPoIB you will get loopback
-traffic.
+Thanks for reporting this. The __WARN() statements in ib_srpt are
+present in code paths that should never be reached. I'll post a patch
+that addresses the build failure.
 
-The reason you do not get loopback traffic with OFED is because OFED has the
-following patch that adds the block_loopback module parameter to mlx4_core and
-defaults to blocking-enabled.
-
-http://git.openfabrics.org/git?p=ofed_1_5/linux-2.6.git;a=blob;f=kernel_patches/fixes/mlx4_0290_mcast_loopback.patch;h=786a3926529befac2c2d1fa6d8c36bada79d61a7;hb=HEAD
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
