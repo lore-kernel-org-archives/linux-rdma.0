@@ -1,87 +1,50 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH] ib_srpt: Make compilation with BUG=n proceed
-Date: Thu, 17 Nov 2011 20:25:44 +0100
-Message-ID: <201111172025.44546.bvanassche@acm.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [BUG] Bad page map in process ibv_devinfo
+Date: Thu, 17 Nov 2011 16:49:41 -0500 (EST)
+Message-ID: <20111117.164941.2104520709167256016.davem@davemloft.net>
+References: <1321110951.99968.YahooMailNeo@web24712.mail.ird.yahoo.com>
+	<CAL1RGDXnzQTQuMica3ZsRYbGNhT7GcySQvcAnJ+-5E2P0xw4Ag@mail.gmail.com>
+	<1321471354.5493.YahooMailNeo@web24714.mail.ird.yahoo.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1321471354.5493.YahooMailNeo-tOYT8urs2cbyX4RqAA4FmIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+To: linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org
+Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-With CONFIG_BUG=n the __WARN() macro is not defined. Avoid that
-building with CONFIG_BUG=n fails by replacing __WARN() with
-WARN_ON(true). Also make sure that each such statement is preceeded
-by an appropriate pr_err() statement.
+=46rom: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
+Date: Wed, 16 Nov 2011 19:22:34 +0000 (GMT)
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c |   18 +++++++++++-------
- 1 files changed, 11 insertions(+), 7 deletions(-)
+> I'm wondering if the bug is in the mlx4 code or in the sparc
+> io_remap_pfn_range()
+> code.=A0 From the "Bad page map" pte value, if I understand sparc mm =
+correctly,
+> the PTE is seen as not present.
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 48b3e19..f09d483 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1464,9 +1464,9 @@ static void srpt_handle_rdma_comp(struct srpt_rdma_ch *ch,
- 	} else if (opcode == SRPT_RDMA_ABORT) {
- 		ioctx->rdma_aborted = true;
- 	} else {
--		__WARN();
--		printk(KERN_ERR "%s[%d]: scmnd == NULL (opcode %d)", __func__,
--				__LINE__, opcode);
-+		pr_err("%s[%d]: unexpected opcode %d", __func__, __LINE__,
-+		       opcode);
-+		WARN_ON(true);
- 	}
- }
- 
-@@ -2737,7 +2737,9 @@ static void srpt_cm_dreq_recv(struct ib_cm_id *cm_id)
- 		break;
- 	case CH_DISCONNECTING:
- 	case CH_DRAINING:
--		__WARN();
-+		pr_err("%s[%d]: unexpected state %d\n", __func__, __LINE__,
-+		       ch->state);
-+		WARN_ON(true);
- 		break;
- 	}
- 	spin_unlock_irqrestore(&ch->spinlock, flags);
-@@ -2966,7 +2968,9 @@ static int srpt_write_pending(struct se_cmd *se_cmd)
- 	switch (ch_state) {
- 	case CH_CONNECTING:
- 		/* This code should never be reached. */
--		__WARN();
-+		pr_err("%s[%d]: unexpected state %d\n", __func__, __LINE__,
-+		       ch_state);
-+		WARN_ON(true);
- 		ret = -EINVAL;
- 		goto out;
- 	case CH_LIVE:
-@@ -3030,9 +3034,9 @@ static int srpt_queue_response(struct se_cmd *cmd)
- 		ioctx->state = SRPT_STATE_MGMT_RSP_SENT;
- 		break;
- 	default:
--		printk(KERN_ERR "ch %p; cmd %d: unexpected command state %d\n",
-+		pr_err("ch %p; cmd %d: unexpected command state %d\n",
- 		       ch, ioctx->ioctx.index, ioctx->state);
--		__WARN();
-+		WARN_ON(true);
- 		break;
- 	}
- 	spin_unlock_irqrestore(&ioctx->spinlock, flags);
--- 
-1.7.3.4
+The not-present test is essentially testing the PTE against zero.
 
+This bug check is making sure that there are not already existing mappi=
+ngs
+at that address when the io_remap_pfn_range() call occurs.
+
+x86 uses remap_pfn_range() as the implementation of it's
+io_remap_pfn_range() and it also has the same exact assertion
+check, in remap_pte_range().
+
+I can't see any obvious bug in the mlx4 mmap method.
+
+The only thing I can come up with is that perhaps there is an assumptio=
+n
+hiding around somewhere that PAGE_SIZE is 4096.  Such an assumption wou=
+ld
+go undetected on both 32-bit and 64-bit x86 platforms since PAGE_SIZE i=
+s
+4096 there.  Whereas on sparc64 it is 8192.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
