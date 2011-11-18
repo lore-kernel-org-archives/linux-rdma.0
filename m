@@ -1,67 +1,412 @@
-From: Roland Dreier <roland@purestorage.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Subject: Re: [BUG] Bad page map in process ibv_devinfo
-Date: Thu, 17 Nov 2011 18:17:08 -0800
-Message-ID: <CAL1RGDVRnBQ1aaJn-RhiWpcdW89VBa+QgH8Z8YPJOt-7Wfmbmg@mail.gmail.com>
-References: <1321471354.5493.YahooMailNeo@web24714.mail.ird.yahoo.com>
- <20111117.164941.2104520709167256016.davem@davemloft.net> <CAL1RGDV_AwOOnLvWJKGqBTaptetfVN_gXNG=PcaFUXYSXrQ5AA@mail.gmail.com>
- <20111117.210316.83327515715765011.davem@davemloft.net>
+Date: Thu, 17 Nov 2011 21:28:47 -0500 (EST)
+Message-ID: <20111117.212847.1778246801048496855.davem@davemloft.net>
+References: <20111117.164941.2104520709167256016.davem@davemloft.net>
+	<CAL1RGDV_AwOOnLvWJKGqBTaptetfVN_gXNG=PcaFUXYSXrQ5AA@mail.gmail.com>
+	<20111117.210316.83327515715765011.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <sparclinux-owner@vger.kernel.org>
-In-Reply-To: <20111117.210316.83327515715765011.davem@davemloft.net>
-Sender: sparclinux-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: linux@razik.name, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20111117.210316.83327515715765011.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 17, 2011 at 6:03 PM, David Miller <davem@davemloft.net> wro=
-te:
-> I suspect this is an issue about who is responsible for setting the
-> various VM_* flags in the VMA.
->
-> It at least used to be the case that the caller was responsible, but
-> it seems that this has changed in some regard. =A0And if you look at
-> remap_pfn_range(), which is what x86 uses, it sets things like VM_IO
-> explicitly.
->
-> In fact, sparc is one of the few platforms not using remap_pfn_range(=
-)
-> as it's io_remap_pfn_range() implementation.
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Date: Thu, 17 Nov 2011 21:03:16 -0500 (EST)
 
-Somewhat makes sense but OTOH I don't see the difference between
-arch/sparc/mm/generic_64.c:
+> Patch coming up for testing in a bit.
 
-int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
-                unsigned long pfn, unsigned long size, pgprot_t prot)
-{
-=2E..
-        vma->vm_flags |=3D VM_IO | VM_RESERVED | VM_PFNMAP;
+Can someone with the effected hardware please test this?
 
-and mm/memory.c:
+--------------------
+[PATCH] sparc: Kill custom io_remap_pfn_range().
 
-int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
-                    unsigned long pfn, unsigned long size, pgprot_t pro=
-t)
-{
-=2E..
-        if (addr =3D=3D vma->vm_start && end =3D=3D vma->vm_end) {
-                vma->vm_pgoff =3D pfn;
-                vma->vm_flags |=3D VM_PFN_AT_MMAP;
-        } else if (is_cow_mapping(vma->vm_flags))
-                return -EINVAL;
+To handle the large physical addresses, just make a simple wrapper
+around remap_pfn_range() like MIPS does.
 
-        vma->vm_flags |=3D VM_IO | VM_RESERVED | VM_PFNMAP;
+Signed-off-by: David S. Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+---
+ arch/sparc/include/asm/pgtable_32.h |   20 ++++-
+ arch/sparc/include/asm/pgtable_64.h |   20 ++++-
+ arch/sparc/mm/Makefile              |    1 -
+ arch/sparc/mm/generic_32.c          |   99 ---------------------
+ arch/sparc/mm/generic_64.c          |  165 -----------------------------------
+ 5 files changed, 32 insertions(+), 273 deletions(-)
+ delete mode 100644 arch/sparc/mm/generic_32.c
+ delete mode 100644 arch/sparc/mm/generic_64.c
 
-The only thing sparc seems to be missing is the VM_PFN_AT_MMAP
-but that only gets tested in the x86 PAT code and in the transparent
-hugepage code (which I suspect doesn't get used on sparc either).
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 5b31a8e..a790cc6 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -431,10 +431,6 @@ extern unsigned long *sparc_valid_addr_bitmap;
+ #define kern_addr_valid(addr) \
+ 	(test_bit(__pa((unsigned long)(addr))>>20, sparc_valid_addr_bitmap))
+ 
+-extern int io_remap_pfn_range(struct vm_area_struct *vma,
+-			      unsigned long from, unsigned long pfn,
+-			      unsigned long size, pgprot_t prot);
+-
+ /*
+  * For sparc32&64, the pfn in io_remap_pfn_range() carries <iospace> in
+  * its high 4 bits.  These macros/functions put it there or get it from there.
+@@ -443,6 +439,22 @@ extern int io_remap_pfn_range(struct vm_area_struct *vma,
+ #define GET_IOSPACE(pfn)		(pfn >> (BITS_PER_LONG - 4))
+ #define GET_PFN(pfn)			(pfn & 0x0fffffffUL)
+ 
++extern int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
++			   unsigned long, pgprot_t);
++
++static inline int io_remap_pfn_range(struct vm_area_struct *vma,
++				     unsigned long from, unsigned long pfn,
++				     unsigned long size, pgprot_t prot)
++{
++	unsigned long long offset, space, phys_base;
++
++	offset = ((unsigned long long) GET_PFN(pfn)) << PAGE_SHIFT;
++	space = GET_IOSPACE(pfn);
++	phys_base = offset | (space << 32ULL);
++
++	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
++}
++
+ #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+ #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
+ ({									  \
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index adf8932..38ebb2c 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -757,10 +757,6 @@ static inline bool kern_addr_valid(unsigned long addr)
+ 
+ extern int page_in_phys_avail(unsigned long paddr);
+ 
+-extern int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
+-			       unsigned long pfn,
+-			       unsigned long size, pgprot_t prot);
+-
+ /*
+  * For sparc32&64, the pfn in io_remap_pfn_range() carries <iospace> in
+  * its high 4 bits.  These macros/functions put it there or get it from there.
+@@ -769,6 +765,22 @@ extern int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
+ #define GET_IOSPACE(pfn)		(pfn >> (BITS_PER_LONG - 4))
+ #define GET_PFN(pfn)			(pfn & 0x0fffffffffffffffUL)
+ 
++extern int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
++			   unsigned long, pgprot_t);
++
++static inline int io_remap_pfn_range(struct vm_area_struct *vma,
++				     unsigned long from, unsigned long pfn,
++				     unsigned long size, pgprot_t prot)
++{
++	unsigned long offset = GET_PFN(pfn) << PAGE_SHIFT;
++	int space = GET_IOSPACE(pfn);
++	unsigned long phys_base;
++
++	phys_base = offset | (((unsigned long) space) << 32UL);
++
++	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
++}
++
+ #include <asm-generic/pgtable.h>
+ 
+ /* We provide our own get_unmapped_area to cope with VA holes and
+diff --git a/arch/sparc/mm/Makefile b/arch/sparc/mm/Makefile
+index e3cda21..301421c 100644
+--- a/arch/sparc/mm/Makefile
++++ b/arch/sparc/mm/Makefile
+@@ -8,7 +8,6 @@ obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o gup.o
+ obj-y                   += fault_$(BITS).o
+ obj-y                   += init_$(BITS).o
+ obj-$(CONFIG_SPARC32)   += loadmmu.o
+-obj-y                   += generic_$(BITS).o
+ obj-$(CONFIG_SPARC32)   += extable.o btfixup.o srmmu.o iommu.o io-unit.o
+ obj-$(CONFIG_SPARC32)   += hypersparc.o viking.o tsunami.o swift.o
+ obj-$(CONFIG_SPARC_LEON)+= leon_mm.o
+diff --git a/arch/sparc/mm/generic_32.c b/arch/sparc/mm/generic_32.c
+deleted file mode 100644
+index 6ca39a6..0000000
+--- a/arch/sparc/mm/generic_32.c
++++ /dev/null
+@@ -1,99 +0,0 @@
+-/*
+- * generic.c: Generic Sparc mm routines that are not dependent upon
+- *            MMU type but are Sparc specific.
+- *
+- * Copyright (C) 1996 David S. Miller (davem-CVlFQpJstH5+CIkdHa1UOg@public.gmane.org)
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/mm.h>
+-#include <linux/swap.h>
+-#include <linux/pagemap.h>
+-#include <linux/export.h>
+-
+-#include <asm/pgalloc.h>
+-#include <asm/pgtable.h>
+-#include <asm/page.h>
+-#include <asm/cacheflush.h>
+-#include <asm/tlbflush.h>
+-
+-/* Remap IO memory, the same way as remap_pfn_range(), but use
+- * the obio memory space.
+- *
+- * They use a pgprot that sets PAGE_IO and does not check the
+- * mem_map table as this is independent of normal memory.
+- */
+-static inline void io_remap_pte_range(struct mm_struct *mm, pte_t * pte, unsigned long address, unsigned long size,
+-	unsigned long offset, pgprot_t prot, int space)
+-{
+-	unsigned long end;
+-
+-	address &= ~PMD_MASK;
+-	end = address + size;
+-	if (end > PMD_SIZE)
+-		end = PMD_SIZE;
+-	do {
+-		set_pte_at(mm, address, pte, mk_pte_io(offset, prot, space));
+-		address += PAGE_SIZE;
+-		offset += PAGE_SIZE;
+-		pte++;
+-	} while (address < end);
+-}
+-
+-static inline int io_remap_pmd_range(struct mm_struct *mm, pmd_t * pmd, unsigned long address, unsigned long size,
+-	unsigned long offset, pgprot_t prot, int space)
+-{
+-	unsigned long end;
+-
+-	address &= ~PGDIR_MASK;
+-	end = address + size;
+-	if (end > PGDIR_SIZE)
+-		end = PGDIR_SIZE;
+-	offset -= address;
+-	do {
+-		pte_t *pte = pte_alloc_map(mm, NULL, pmd, address);
+-		if (!pte)
+-			return -ENOMEM;
+-		io_remap_pte_range(mm, pte, address, end - address, address + offset, prot, space);
+-		address = (address + PMD_SIZE) & PMD_MASK;
+-		pmd++;
+-	} while (address < end);
+-	return 0;
+-}
+-
+-int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
+-		       unsigned long pfn, unsigned long size, pgprot_t prot)
+-{
+-	int error = 0;
+-	pgd_t * dir;
+-	unsigned long beg = from;
+-	unsigned long end = from + size;
+-	struct mm_struct *mm = vma->vm_mm;
+-	int space = GET_IOSPACE(pfn);
+-	unsigned long offset = GET_PFN(pfn) << PAGE_SHIFT;
+-
+-	/* See comment in mm/memory.c remap_pfn_range */
+-	vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
+-	vma->vm_pgoff = (offset >> PAGE_SHIFT) |
+-		((unsigned long)space << 28UL);
+-
+-	offset -= from;
+-	dir = pgd_offset(mm, from);
+-	flush_cache_range(vma, beg, end);
+-
+-	while (from < end) {
+-		pmd_t *pmd = pmd_alloc(mm, dir, from);
+-		error = -ENOMEM;
+-		if (!pmd)
+-			break;
+-		error = io_remap_pmd_range(mm, pmd, from, end - from, offset + from, prot, space);
+-		if (error)
+-			break;
+-		from = (from + PGDIR_SIZE) & PGDIR_MASK;
+-		dir++;
+-	}
+-
+-	flush_tlb_range(vma, beg, end);
+-	return error;
+-}
+-EXPORT_SYMBOL(io_remap_pfn_range);
+diff --git a/arch/sparc/mm/generic_64.c b/arch/sparc/mm/generic_64.c
+deleted file mode 100644
+index 9b357dd..0000000
+--- a/arch/sparc/mm/generic_64.c
++++ /dev/null
+@@ -1,165 +0,0 @@
+-/*
+- * generic.c: Generic Sparc mm routines that are not dependent upon
+- *            MMU type but are Sparc specific.
+- *
+- * Copyright (C) 1996 David S. Miller (davem-CVlFQpJstH5+CIkdHa1UOg@public.gmane.org)
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/mm.h>
+-#include <linux/swap.h>
+-#include <linux/export.h>
+-#include <linux/pagemap.h>
+-
+-#include <asm/pgalloc.h>
+-#include <asm/pgtable.h>
+-#include <asm/page.h>
+-#include <asm/tlbflush.h>
+-
+-/* Remap IO memory, the same way as remap_pfn_range(), but use
+- * the obio memory space.
+- *
+- * They use a pgprot that sets PAGE_IO and does not check the
+- * mem_map table as this is independent of normal memory.
+- */
+-static inline void io_remap_pte_range(struct mm_struct *mm, pte_t * pte,
+-				      unsigned long address,
+-				      unsigned long size,
+-				      unsigned long offset, pgprot_t prot,
+-				      int space)
+-{
+-	unsigned long end;
+-
+-	/* clear hack bit that was used as a write_combine side-effect flag */
+-	offset &= ~0x1UL;
+-	address &= ~PMD_MASK;
+-	end = address + size;
+-	if (end > PMD_SIZE)
+-		end = PMD_SIZE;
+-	do {
+-		pte_t entry;
+-		unsigned long curend = address + PAGE_SIZE;
+-		
+-		entry = mk_pte_io(offset, prot, space, PAGE_SIZE);
+-		if (!(address & 0xffff)) {
+-			if (PAGE_SIZE < (4 * 1024 * 1024) &&
+-			    !(address & 0x3fffff) &&
+-			    !(offset & 0x3ffffe) &&
+-			    end >= address + 0x400000) {
+-				entry = mk_pte_io(offset, prot, space,
+-						  4 * 1024 * 1024);
+-				curend = address + 0x400000;
+-				offset += 0x400000;
+-			} else if (PAGE_SIZE < (512 * 1024) &&
+-				   !(address & 0x7ffff) &&
+-				   !(offset & 0x7fffe) &&
+-				   end >= address + 0x80000) {
+-				entry = mk_pte_io(offset, prot, space,
+-						  512 * 1024 * 1024);
+-				curend = address + 0x80000;
+-				offset += 0x80000;
+-			} else if (PAGE_SIZE < (64 * 1024) &&
+-				   !(offset & 0xfffe) &&
+-				   end >= address + 0x10000) {
+-				entry = mk_pte_io(offset, prot, space,
+-						  64 * 1024);
+-				curend = address + 0x10000;
+-				offset += 0x10000;
+-			} else
+-				offset += PAGE_SIZE;
+-		} else
+-			offset += PAGE_SIZE;
+-
+-		if (pte_write(entry))
+-			entry = pte_mkdirty(entry);
+-		do {
+-			BUG_ON(!pte_none(*pte));
+-			set_pte_at(mm, address, pte, entry);
+-			address += PAGE_SIZE;
+-			pte_val(entry) += PAGE_SIZE;
+-			pte++;
+-		} while (address < curend);
+-	} while (address < end);
+-}
+-
+-static inline int io_remap_pmd_range(struct mm_struct *mm, pmd_t * pmd, unsigned long address, unsigned long size,
+-	unsigned long offset, pgprot_t prot, int space)
+-{
+-	unsigned long end;
+-
+-	address &= ~PGDIR_MASK;
+-	end = address + size;
+-	if (end > PGDIR_SIZE)
+-		end = PGDIR_SIZE;
+-	offset -= address;
+-	do {
+-		pte_t *pte = pte_alloc_map(mm, NULL, pmd, address);
+-		if (!pte)
+-			return -ENOMEM;
+-		io_remap_pte_range(mm, pte, address, end - address, address + offset, prot, space);
+-		pte_unmap(pte);
+-		address = (address + PMD_SIZE) & PMD_MASK;
+-		pmd++;
+-	} while (address < end);
+-	return 0;
+-}
+-
+-static inline int io_remap_pud_range(struct mm_struct *mm, pud_t * pud, unsigned long address, unsigned long size,
+-	unsigned long offset, pgprot_t prot, int space)
+-{
+-	unsigned long end;
+-
+-	address &= ~PUD_MASK;
+-	end = address + size;
+-	if (end > PUD_SIZE)
+-		end = PUD_SIZE;
+-	offset -= address;
+-	do {
+-		pmd_t *pmd = pmd_alloc(mm, pud, address);
+-		if (!pud)
+-			return -ENOMEM;
+-		io_remap_pmd_range(mm, pmd, address, end - address, address + offset, prot, space);
+-		address = (address + PUD_SIZE) & PUD_MASK;
+-		pud++;
+-	} while (address < end);
+-	return 0;
+-}
+-
+-int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long from,
+-		unsigned long pfn, unsigned long size, pgprot_t prot)
+-{
+-	int error = 0;
+-	pgd_t * dir;
+-	unsigned long beg = from;
+-	unsigned long end = from + size;
+-	struct mm_struct *mm = vma->vm_mm;
+-	int space = GET_IOSPACE(pfn);
+-	unsigned long offset = GET_PFN(pfn) << PAGE_SHIFT;
+-	unsigned long phys_base;
+-
+-	phys_base = offset | (((unsigned long) space) << 32UL);
+-
+-	/* See comment in mm/memory.c remap_pfn_range */
+-	vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
+-	vma->vm_pgoff = phys_base >> PAGE_SHIFT;
+-
+-	offset -= from;
+-	dir = pgd_offset(mm, from);
+-	flush_cache_range(vma, beg, end);
+-
+-	while (from < end) {
+-		pud_t *pud = pud_alloc(mm, dir, from);
+-		error = -ENOMEM;
+-		if (!pud)
+-			break;
+-		error = io_remap_pud_range(mm, pud, from, end - from, offset + from, prot, space);
+-		if (error)
+-			break;
+-		from = (from + PGDIR_SIZE) & PGDIR_MASK;
+-		dir++;
+-	}
+-
+-	flush_tlb_range(vma, beg, end);
+-	return error;
+-}
+-EXPORT_SYMBOL(io_remap_pfn_range);
+-- 
+1.7.6.401.g6a319
 
-Anyway definitely makes sense as something to check.
-
- - R.
 --
-To unsubscribe from this list: send the line "unsubscribe sparclinux" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
