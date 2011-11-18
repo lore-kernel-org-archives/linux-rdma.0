@@ -1,111 +1,77 @@
-From: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: dapltest-server segfault seen on recent OFED-1.5.4 daily build
-Date: Fri, 18 Nov 2011 14:31:57 +0530
-Message-ID: <20111118090155.GB17346@kumars-PC.asicdesigners.com>
+From: Lukas Razik <linux@razik.name>
+Subject: Re: [BUG] Bad page map in process ibv_devinfo
+Date: Fri, 18 Nov 2011 13:07:53 +0000 (GMT)
+Message-ID: <1321621673.76348.YahooMailNeo@web24705.mail.ird.yahoo.com>
+References: <20111117.212847.1778246801048496855.davem@davemloft.net> <1321592577.354.YahooMailNeo@web24712.mail.ird.yahoo.com> <20111118.011708.677233058349078554.davem@davemloft.net> <20111118.015519.1069441245022002863.davem@davemloft.net>
+Reply-To: Lukas Razik <linux@razik.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <sparclinux-owner@vger.kernel.org>
+In-Reply-To: <20111118.015519.1069441245022002863.davem@davemloft.net>
+Sender: sparclinux-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: "roland@purestorage.com" <roland@purestorage.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Vladimir Sokolovsky <vlad@dev.mellanox.co.il>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+David Miller <davem@davemloft.net> wrote:
+>>  That explains everything.=A0 The problem is that we don't do the sp=
+arc64
+>>  PTE handling code patching in modules.=A0 So it's left at the defau=
+lt 4U
+>>  versions.
+> ...
+>>  I'll work on a fix for this.
+>=20
+> Ok, please test this out, thanks!
+>=20
+> --------------------
+> [PATCH] sparc64: Patch sun4v code sequences properly on module load.
+>=20
+> Some of the sun4v code patching occurs in inline functions visible
+> to, and usable by, modules.
+>=20
+> Therefore we have to patch them up during module load.
+>=20
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+> ---
+> arch/sparc/kernel/entry.h=A0 =A0 |=A0 =A0 7 ++++++
+> arch/sparc/kernel/module.c=A0  |=A0  27 +++++++++++++++++++++++
+> arch/sparc/kernel/setup_64.c |=A0  48 +++++++++++++++++++++++++------=
+----------
+> 3 files changed, 63 insertions(+), 19 deletions(-)
+>=20
 
-I am trying to debug a segfault observed on dapltest-server with OFED-1.5.4.
-I am using the daily-build OFED-1.5.4-20111116-0600 for this test.
-The test setup involves 4 machines connected via switch.
-1 machine acts as dapltest-server while rest 3 machines act as dapltest clients.
+Hi David,
 
-We are running several different kinds of RDMA read/write tests on dapl in continuous
-loop using a script. The test runs fine for around 2 hours or so. And after that, the
-dapltest-server segfaults with below stack trace:
+sorry that it took so long but I had to sleep to avoid mistakes - it wa=
+s 6am here.
+Thanks again for this fast patch!!!
 
------------
-Program received signal SIGSEGV, Segmentation fault.
-[Switching to Thread 0x7ffff6e30710 (LWP 2397)]
-dapl_llist_remove_entry (head=0x636960, entry=0x7ffff0004bf8) at
-dapl/common/dapl_llist.c:272
-272     dapl/common/dapl_llist.c: No such file or directory.
-        in dapl/common/dapl_llist.c
-Missing separate debuginfos, use: debuginfo-install glibc-2.12-1.7.el6.x86_64
-libgcc-4.4.4-13.el6.x86_64
-(gdb) bt
-#0  dapl_llist_remove_entry (head=0x636960, entry=0x7ffff0004bf8) at
-dapl/common/dapl_llist.c:272
-#1  0x00007ffff799fb09 in dapl_sp_remove_cr (sp_ptr=0x6368c0,
-cr_ptr=0x7ffff0004be0) at dapl/common/dapl_sp_util.c:229
-#2  0x00007ffff7998148 in dapli_connection_request (ib_cm_handle=<value
-optimized out>, sp_ptr=0x6368c0, prd_ptr=<value optimized out>, 
-    private_data_size=<value optimized out>, evd_ptr=0x633fb0) at
-dapl/common/dapl_cr_callback.c:424
-#3  0x00007ffff799851e in dapls_cr_callback (ib_cm_handle=0x7ffff0004880,
-ib_cm_event=IB_CME_CONNECTION_REQUEST_PENDING, 
-    private_data_ptr=0x0, private_data_size=0, context=0x6368c0) at
-dapl/common/dapl_cr_callback.c:178
-#4  0x00007ffff79a4c33 in dapli_cm_passive_cb () at dapl/openib_cma/cm.c:524
-#5  dapli_cma_event_cb () at dapl/openib_cma/cm.c:1207
-#6  0x00007ffff79a6657 in dapli_thread (arg=<value optimized out>) at
-dapl/openib_cma/device.c:692
-#7  0x00007ffff79971d1 in dapli_thread_init (thread_draft=0x630320) at
-dapl/udapl/linux/dapl_osd.c:590
-#8  0x0000003b156077e1 in start_thread () from /lib64/libpthread.so.0
-#9  0x0000003b14ee153d in clone () from /lib64/libc.so.6
-(gdb) p
-The history is empty.
-(gdb) info args
-head = 0x636960
-entry = 0x7ffff0004bf8
-(gdb) p *head
-$1 = (DAPL_LLIST_HEAD) 0x7ffff00107d8
-(gdb) p *entry
-$2 = {flink = 0x0, blink = 0x7ffff0003cf8, data = 0x7ffff0004be0, list_head =
-0x0}
-(gdb) info thread
-  950 Thread 0x7ffff7fef710 (LWP 3924)  0x0000003b1560b43c in
-pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libpthread.so.0
-  949 Thread 0x7ffff5f76710 (LWP 3923)  0x0000003b1560eced in nanosleep () from
-/lib64/libpthread.so.0
-* 2 Thread 0x7ffff6e30710 (LWP 2397)  dapl_llist_remove_entry (head=0x636960,
-entry=0x7ffff0004bf8) at dapl/common/dapl_llist.c:272
-  1 Thread 0x7ffff7bb0700 (LWP 2394)  0x0000003b14ed7e33 in poll () from
-/lib64/libc.so.6
-(gdb) p head
-$3 = (DAPL_LLIST_HEAD *) 0x636960
-(gdb) p entry
-$4 = (DAPL_LLIST_ENTRY *) 0x7ffff0004bf8
-(gdb) p *entry
-$5 = {flink = 0x0, blink = 0x7ffff0003cf8, data = 0x7ffff0004be0, list_head =
-0x0}
-(gdb) p *head
-$6 = (DAPL_LLIST_HEAD) 0x7ffff00107d8
-(gdb) 
------------
+Your first patch I could apply against linux-2.6.39.4. Your second patc=
+h I can't.
+I've tried to apply it manually but I've seen too many differences and =
+gave up.
 
+Therefore I applied _both_ patches against linux-3.1.1.
+Then I've tested ibv_devinfo with the builtin mlx drivers from linux-3.=
+1.1 and it seems that the BUG message is away.
 
-The problematic line in dapl source code is:
--------------
-File dapl/common/dapl_llist.c#dapl_llist_remove_entry function:
-....
-        dapl_os_assert(entry->list_head == head);
-        entry->list_head = NULL;
+But I can't do further testing because I would need the mlx modules fro=
+m OFED-1.5.4-rc4 (newest version) which doesn't compile with linux-3.1.=
+1:
+http://thread.gmane.org/gmane.linux.drivers.rdma/10192
 
-        entry->flink->blink = entry->blink; <===== Problem line. flink is NULL
-        entry->blink->flink = entry->flink;
-....
---------------
+Hence I would need your patch against 2.6.39.4 to say for sure if it wo=
+rks now. :-/
+Please don't feel forced by me! It would be nice to have a patch but I =
+see that you work on many areas needing improvement. Then I must wait f=
+or an OFED version that is compatible with linux-3.1.1 ...
 
-Now, it seems that some time back, a new release of dapl (dapl-2.0.34-1.src.rpm) was
-introduced in OFED-1.5.4. So, I am just wondering if this is a regression in the new
-release of dapl?
-Or if anyone is aware of this issue and what could possibly lead to this
-dapltest-server segfault then, it would be helpful if someone can shed some light.
-
-
-Thanks,
-Kumar.
+Regards,
+Lukas
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe sparclinux" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
