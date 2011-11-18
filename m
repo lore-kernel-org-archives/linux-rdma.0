@@ -1,197 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [BUG] Bad page map in process ibv_devinfo
-Date: Fri, 18 Nov 2011 01:55:19 -0500 (EST)
-Message-ID: <20111118.015519.1069441245022002863.davem@davemloft.net>
-References: <20111117.212847.1778246801048496855.davem@davemloft.net>
-	<1321592577.354.YahooMailNeo@web24712.mail.ird.yahoo.com>
-	<20111118.011708.677233058349078554.davem@davemloft.net>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] ib_srpt: Make compilation with BUG=n proceed
+Date: Fri, 18 Nov 2011 08:52:18 +0100
+Message-ID: <CAO+b5-oakXVhbxNMOh2LZ7bLKnuTz3B7Q-KbHF_XKjLjNnqueg@mail.gmail.com>
+References: <201111172025.44546.bvanassche@acm.org>
+	<CAL1RGDV+vgQ7J1VtyeGi-eNw00Bxe35xRJgBu0X4-5PAG4q-nQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <sparclinux-owner@vger.kernel.org>
-In-Reply-To: <20111118.011708.677233058349078554.davem@davemloft.net>
-Sender: sparclinux-owner@vger.kernel.org
-To: linux@razik.name
-Cc: roland@purestorage.com, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDV+vgQ7J1VtyeGi-eNw00Bxe35xRJgBu0X4-5PAG4q-nQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Fri, 18 Nov 2011 01:17:08 -0500 (EST)
+On Fri, Nov 18, 2011 at 12:45 AM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org=
+> wrote:
+> On Thu, Nov 17, 2011 at 11:25 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org=
+> wrote:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s[%d]: unexpected opcode %d",=
+ __func__, __LINE__,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0opcode);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN_ON(true);
+>
+> Not a big deal, but I guess this could just be
+>
+> =A0 =A0 =A0 =A0WARN(1, "unexpected opcode %d", opcode);
 
-> That explains everything.  The problem is that we don't do the sparc64
-> PTE handling code patching in modules.  So it's left at the default 4U
-> versions.
- ...
-> I'll work on a fix for this.
+As far as I can see with CONFIG_BUG=3Dn WARN() is defined as follows:
 
-Ok, please test this out, thanks!
+#define WARN(condition, format...) ({                                  =
+ \
+        int __ret_warn_on =3D !!(condition);                           =
+   \
+        unlikely(__ret_warn_on);                                       =
+ \
+})
 
---------------------
-[PATCH] sparc64: Patch sun4v code sequences properly on module load.
+So the changing pr_err(); WARN_ON(true); into WARN(1, ...) would cause
+no error message to be printed if CONFIG_BUG=3Dn. Is that the way kerne=
+l
+code should behave if CONFIG_BUG=3Dn ?
 
-Some of the sun4v code patching occurs in inline functions visible
-to, and usable by, modules.
-
-Therefore we have to patch them up during module load.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/entry.h    |    7 ++++++
- arch/sparc/kernel/module.c   |   27 +++++++++++++++++++++++
- arch/sparc/kernel/setup_64.c |   48 +++++++++++++++++++++++++----------------
- 3 files changed, 63 insertions(+), 19 deletions(-)
-
-diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index e27f8ea..0c218e4 100644
---- a/arch/sparc/kernel/entry.h
-+++ b/arch/sparc/kernel/entry.h
-@@ -42,6 +42,9 @@ extern void fpsave(unsigned long *fpregs, unsigned long *fsr,
- extern void fpload(unsigned long *fpregs, unsigned long *fsr);
- 
- #else /* CONFIG_SPARC32 */
-+
-+#include <asm/trap_block.h>
-+
- struct popc_3insn_patch_entry {
- 	unsigned int	addr;
- 	unsigned int	insns[3];
-@@ -57,6 +60,10 @@ extern struct popc_6insn_patch_entry __popc_6insn_patch,
- 	__popc_6insn_patch_end;
- 
- extern void __init per_cpu_patch(void);
-+extern void sun4v_patch_1insn_range(struct sun4v_1insn_patch_entry *,
-+				    struct sun4v_1insn_patch_entry *);
-+extern void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *,
-+				    struct sun4v_2insn_patch_entry *);
- extern void __init sun4v_patch(void);
- extern void __init boot_cpu_id_too_large(int cpu);
- extern unsigned int dcache_parity_tl1_occurred;
-diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module.c
-index da0c6c7..e551987 100644
---- a/arch/sparc/kernel/module.c
-+++ b/arch/sparc/kernel/module.c
-@@ -17,6 +17,8 @@
- #include <asm/processor.h>
- #include <asm/spitfire.h>
- 
-+#include "entry.h"
-+
- #ifdef CONFIG_SPARC64
- 
- #include <linux/jump_label.h>
-@@ -203,6 +205,29 @@ int apply_relocate_add(Elf_Shdr *sechdrs,
- }
- 
- #ifdef CONFIG_SPARC64
-+static void do_patch_sections(const Elf_Ehdr *hdr,
-+			      const Elf_Shdr *sechdrs)
-+{
-+	const Elf_Shdr *s, *sun4v_1insn = NULL, *sun4v_2insn = NULL;
-+	char *secstrings = (void *)hdr + sechdrs[hdr->e_shstrndx].sh_offset;
-+
-+	for (s = sechdrs; s < sechdrs + hdr->e_shnum; s++) {
-+		if (!strcmp(".sun4v_1insn_patch", secstrings + s->sh_name))
-+			sun4v_1insn = s;
-+		if (!strcmp(".sun4v_2insn_patch", secstrings + s->sh_name))
-+			sun4v_2insn = s;
-+	}
-+
-+	if (sun4v_1insn && tlb_type == hypervisor) {
-+		void *p = (void *) sun4v_1insn->sh_addr;
-+		sun4v_patch_1insn_range(p, p + sun4v_1insn->sh_size);
-+	}
-+	if (sun4v_2insn && tlb_type == hypervisor) {
-+		void *p = (void *) sun4v_2insn->sh_addr;
-+		sun4v_patch_2insn_range(p, p + sun4v_2insn->sh_size);
-+	}
-+}
-+
- int module_finalize(const Elf_Ehdr *hdr,
- 		    const Elf_Shdr *sechdrs,
- 		    struct module *me)
-@@ -210,6 +235,8 @@ int module_finalize(const Elf_Ehdr *hdr,
- 	/* make jump label nops */
- 	jump_label_apply_nops(me);
- 
-+	do_patch_sections(hdr, sechdrs);
-+
- 	/* Cheetah's I-cache is fully coherent.  */
- 	if (tlb_type == spitfire) {
- 		unsigned long va;
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index c965595a..a854a1c 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -234,40 +234,50 @@ void __init per_cpu_patch(void)
- 	}
- }
- 
--void __init sun4v_patch(void)
-+void sun4v_patch_1insn_range(struct sun4v_1insn_patch_entry *start,
-+			     struct sun4v_1insn_patch_entry *end)
- {
--	extern void sun4v_hvapi_init(void);
--	struct sun4v_1insn_patch_entry *p1;
--	struct sun4v_2insn_patch_entry *p2;
--
--	if (tlb_type != hypervisor)
--		return;
-+	while (start < end) {
-+		unsigned long addr = start->addr;
- 
--	p1 = &__sun4v_1insn_patch;
--	while (p1 < &__sun4v_1insn_patch_end) {
--		unsigned long addr = p1->addr;
--
--		*(unsigned int *) (addr +  0) = p1->insn;
-+		*(unsigned int *) (addr +  0) = start->insn;
- 		wmb();
- 		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
- 
--		p1++;
-+		start++;
- 	}
-+}
- 
--	p2 = &__sun4v_2insn_patch;
--	while (p2 < &__sun4v_2insn_patch_end) {
--		unsigned long addr = p2->addr;
-+void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *start,
-+			     struct sun4v_2insn_patch_entry *end)
-+{
-+	while (start < end) {
-+		unsigned long addr = start->addr;
- 
--		*(unsigned int *) (addr +  0) = p2->insns[0];
-+		*(unsigned int *) (addr +  0) = start->insns[0];
- 		wmb();
- 		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
- 
--		*(unsigned int *) (addr +  4) = p2->insns[1];
-+		*(unsigned int *) (addr +  4) = start->insns[1];
- 		wmb();
- 		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
- 
--		p2++;
-+		start++;
- 	}
-+}
-+
-+void __init sun4v_patch(void)
-+{
-+	extern void sun4v_hvapi_init(void);
-+
-+	if (tlb_type != hypervisor)
-+		return;
-+
-+	sun4v_patch_1insn_range(&__sun4v_1insn_patch,
-+				&__sun4v_1insn_patch_end);
-+
-+	sun4v_patch_2insn_range(&__sun4v_2insn_patch,
-+				&__sun4v_2insn_patch_end);
- 
- 	sun4v_hvapi_init();
- }
--- 
-1.7.6.401.g6a319
-
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
