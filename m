@@ -1,68 +1,197 @@
 From: David Miller <davem@davemloft.net>
 Subject: Re: [BUG] Bad page map in process ibv_devinfo
-Date: Fri, 18 Nov 2011 01:17:08 -0500 (EST)
-Message-ID: <20111118.011708.677233058349078554.davem@davemloft.net>
-References: <20111117.210316.83327515715765011.davem@davemloft.net>
-	<20111117.212847.1778246801048496855.davem@davemloft.net>
+Date: Fri, 18 Nov 2011 01:55:19 -0500 (EST)
+Message-ID: <20111118.015519.1069441245022002863.davem@davemloft.net>
+References: <20111117.212847.1778246801048496855.davem@davemloft.net>
 	<1321592577.354.YahooMailNeo@web24712.mail.ird.yahoo.com>
+	<20111118.011708.677233058349078554.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <sparclinux-owner@vger.kernel.org>
-In-Reply-To: <1321592577.354.YahooMailNeo@web24712.mail.ird.yahoo.com>
+In-Reply-To: <20111118.011708.677233058349078554.davem@davemloft.net>
 Sender: sparclinux-owner@vger.kernel.org
 To: linux@razik.name
 Cc: roland@purestorage.com, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-=46rom: Lukas Razik <linux@razik.name>
-Date: Fri, 18 Nov 2011 05:02:57 +0000 (GMT)
+From: David Miller <davem@davemloft.net>
+Date: Fri, 18 Nov 2011 01:17:08 -0500 (EST)
 
-> After applying your patch I still get the errors:
-> [ 1117.556582] swap_free: Bad swap file entry 100004e000061800
-> [ 1117.556710] BUG: Bad page map in process ibv_devinfo=A0 pte:9c0000=
-c300104608 pmd:00f882d0
+> That explains everything.  The problem is that we don't do the sparc64
+> PTE handling code patching in modules.  So it's left at the default 4U
+> versions.
+ ...
+> I'll work on a fix for this.
 
-This looks almost like it's actually a mapping to physical memory, or
-at least it is a PTE which hasn't had pgprot_noncached() applied to
-it's protections.
+Ok, please test this out, thanks!
 
-Another hint is that pte_mkspecial() hasn't been performed on this PTE
-either.
+--------------------
+[PATCH] sparc64: Patch sun4v code sequences properly on module load.
 
-The PTE is:			0x9c0000c300104608
+Some of the sun4v code patching occurs in inline functions visible
+to, and usable by, modules.
 
-which amounts to:
+Therefore we have to patch them up during module load.
 
-	_PAGE_VALID		0x8000000000000000
-	_PAGE_ACCESSED_4V	0x1000000000000000
-	_PAGE_READ_4V		0x0800000000000000
-	_PAGE_WRITE_4V		0x0400000000000000
-	physical page		0x000000c300104000
-	_PAGE_CP_4V		0x0000000000000400
-	_PAGE_CV_4V		0x0000000000000200
-	_PAGE_RESV_4V		0x0000000000000008
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/entry.h    |    7 ++++++
+ arch/sparc/kernel/module.c   |   27 +++++++++++++++++++++++
+ arch/sparc/kernel/setup_64.c |   48 +++++++++++++++++++++++++----------------
+ 3 files changed, 63 insertions(+), 19 deletions(-)
 
-That last bit is mysterious, there shouldn't be anything setting
-the reserved bit 0x8.
+diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
+index e27f8ea..0c218e4 100644
+--- a/arch/sparc/kernel/entry.h
++++ b/arch/sparc/kernel/entry.h
+@@ -42,6 +42,9 @@ extern void fpsave(unsigned long *fpregs, unsigned long *fsr,
+ extern void fpload(unsigned long *fpregs, unsigned long *fsr);
+ 
+ #else /* CONFIG_SPARC32 */
++
++#include <asm/trap_block.h>
++
+ struct popc_3insn_patch_entry {
+ 	unsigned int	addr;
+ 	unsigned int	insns[3];
+@@ -57,6 +60,10 @@ extern struct popc_6insn_patch_entry __popc_6insn_patch,
+ 	__popc_6insn_patch_end;
+ 
+ extern void __init per_cpu_patch(void);
++extern void sun4v_patch_1insn_range(struct sun4v_1insn_patch_entry *,
++				    struct sun4v_1insn_patch_entry *);
++extern void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *,
++				    struct sun4v_2insn_patch_entry *);
+ extern void __init sun4v_patch(void);
+ extern void __init boot_cpu_id_too_large(int cpu);
+ extern unsigned int dcache_parity_tl1_occurred;
+diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module.c
+index da0c6c7..e551987 100644
+--- a/arch/sparc/kernel/module.c
++++ b/arch/sparc/kernel/module.c
+@@ -17,6 +17,8 @@
+ #include <asm/processor.h>
+ #include <asm/spitfire.h>
+ 
++#include "entry.h"
++
+ #ifdef CONFIG_SPARC64
+ 
+ #include <linux/jump_label.h>
+@@ -203,6 +205,29 @@ int apply_relocate_add(Elf_Shdr *sechdrs,
+ }
+ 
+ #ifdef CONFIG_SPARC64
++static void do_patch_sections(const Elf_Ehdr *hdr,
++			      const Elf_Shdr *sechdrs)
++{
++	const Elf_Shdr *s, *sun4v_1insn = NULL, *sun4v_2insn = NULL;
++	char *secstrings = (void *)hdr + sechdrs[hdr->e_shstrndx].sh_offset;
++
++	for (s = sechdrs; s < sechdrs + hdr->e_shnum; s++) {
++		if (!strcmp(".sun4v_1insn_patch", secstrings + s->sh_name))
++			sun4v_1insn = s;
++		if (!strcmp(".sun4v_2insn_patch", secstrings + s->sh_name))
++			sun4v_2insn = s;
++	}
++
++	if (sun4v_1insn && tlb_type == hypervisor) {
++		void *p = (void *) sun4v_1insn->sh_addr;
++		sun4v_patch_1insn_range(p, p + sun4v_1insn->sh_size);
++	}
++	if (sun4v_2insn && tlb_type == hypervisor) {
++		void *p = (void *) sun4v_2insn->sh_addr;
++		sun4v_patch_2insn_range(p, p + sun4v_2insn->sh_size);
++	}
++}
++
+ int module_finalize(const Elf_Ehdr *hdr,
+ 		    const Elf_Shdr *sechdrs,
+ 		    struct module *me)
+@@ -210,6 +235,8 @@ int module_finalize(const Elf_Ehdr *hdr,
+ 	/* make jump label nops */
+ 	jump_label_apply_nops(me);
+ 
++	do_patch_sections(hdr, sechdrs);
++
+ 	/* Cheetah's I-cache is fully coherent.  */
+ 	if (tlb_type == spitfire) {
+ 		unsigned long va;
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index c965595a..a854a1c 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -234,40 +234,50 @@ void __init per_cpu_patch(void)
+ 	}
+ }
+ 
+-void __init sun4v_patch(void)
++void sun4v_patch_1insn_range(struct sun4v_1insn_patch_entry *start,
++			     struct sun4v_1insn_patch_entry *end)
+ {
+-	extern void sun4v_hvapi_init(void);
+-	struct sun4v_1insn_patch_entry *p1;
+-	struct sun4v_2insn_patch_entry *p2;
+-
+-	if (tlb_type != hypervisor)
+-		return;
++	while (start < end) {
++		unsigned long addr = start->addr;
+ 
+-	p1 = &__sun4v_1insn_patch;
+-	while (p1 < &__sun4v_1insn_patch_end) {
+-		unsigned long addr = p1->addr;
+-
+-		*(unsigned int *) (addr +  0) = p1->insn;
++		*(unsigned int *) (addr +  0) = start->insn;
+ 		wmb();
+ 		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
+ 
+-		p1++;
++		start++;
+ 	}
++}
+ 
+-	p2 = &__sun4v_2insn_patch;
+-	while (p2 < &__sun4v_2insn_patch_end) {
+-		unsigned long addr = p2->addr;
++void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *start,
++			     struct sun4v_2insn_patch_entry *end)
++{
++	while (start < end) {
++		unsigned long addr = start->addr;
+ 
+-		*(unsigned int *) (addr +  0) = p2->insns[0];
++		*(unsigned int *) (addr +  0) = start->insns[0];
+ 		wmb();
+ 		__asm__ __volatile__("flush	%0" : : "r" (addr +  0));
+ 
+-		*(unsigned int *) (addr +  4) = p2->insns[1];
++		*(unsigned int *) (addr +  4) = start->insns[1];
+ 		wmb();
+ 		__asm__ __volatile__("flush	%0" : : "r" (addr +  4));
+ 
+-		p2++;
++		start++;
+ 	}
++}
++
++void __init sun4v_patch(void)
++{
++	extern void sun4v_hvapi_init(void);
++
++	if (tlb_type != hypervisor)
++		return;
++
++	sun4v_patch_1insn_range(&__sun4v_1insn_patch,
++				&__sun4v_1insn_patch_end);
++
++	sun4v_patch_2insn_range(&__sun4v_2insn_patch,
++				&__sun4v_2insn_patch_end);
+ 
+ 	sun4v_hvapi_init();
+ }
+-- 
+1.7.6.401.g6a319
 
-But that just so happens to be equal to the SUN4U PTE's "side effect"
-bit, _PAGE_E_4U.
-
-Hmmm...
-
-That explains everything.  The problem is that we don't do the sparc64
-PTE handling code patching in modules.  So it's left at the default 4U
-versions.
-
-So the PTE did have pgprot_noncached() applied to it's protections,
-it's just that this function is inlined into the driver module and
-hasn't been patched properly by the sun4v code patcher when the module
-got loaded.
-
-I'll work on a fix for this.
---
-To unsubscribe from this list: send the line "unsubscribe sparclinux" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
