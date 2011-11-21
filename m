@@ -1,35 +1,42 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/ipoib: Prevent hung task or softlockup processing
-	multicast response
-Date: Mon, 21 Nov 2011 16:53:03 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E9B9D0@ORSMSX101.amr.corp.intel.com>
-References: <20111121134354.26386.85093.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: RE: Independent server management of Multicasting connections
+Date: Mon, 21 Nov 2011 17:05:22 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E9B9E9@ORSMSX101.amr.corp.intel.com>
+References: <20111121071551.14306gf6ogr9z8yf@celticblues.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111121134354.26386.85093.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
+In-Reply-To: <20111121071551.14306gf6ogr9z8yf-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org" <dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX2liLmMNCj4gKysrIGIv
-ZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9pYi5jDQo+IEBAIC01NywyMSArNTcs
-MjQgQEAgc3RydWN0IGlwb2liX2FoICppcG9pYl9jcmVhdGVfYWgoc3RydWN0IG5ldF9kZXZpY2Ug
-KmRldiwNCj4gIAkJCQkgc3RydWN0IGliX3BkICpwZCwgc3RydWN0IGliX2FoX2F0dHIgKmF0dHIp
-DQo+ICB7DQo+ICAJc3RydWN0IGlwb2liX2FoICphaDsNCj4gKwlzdHJ1Y3QgaWJfYWggKnZhaDsN
-Cj4gDQo+ICAJYWggPSBrbWFsbG9jKHNpemVvZiAqYWgsIEdGUF9LRVJORUwpOw0KPiAgCWlmICgh
-YWgpDQo+IC0JCXJldHVybiBOVUxMOw0KPiArCQlyZXR1cm4gRVJSX1BUUigtRU5PTUVNKTsNCj4g
-DQo+ICAJYWgtPmRldiAgICAgICA9IGRldjsNCj4gIAlhaC0+bGFzdF9zZW5kID0gMDsNCj4gIAlr
-cmVmX2luaXQoJmFoLT5yZWYpOw0KPiANCj4gLQlhaC0+YWggPSBpYl9jcmVhdGVfYWgocGQsIGF0
-dHIpOw0KPiAtCWlmIChJU19FUlIoYWgtPmFoKSkgew0KPiArCXZhaCA9IGliX2NyZWF0ZV9haChw
-ZCwgYXR0cik7DQo+ICsJaWYgKElTX0VSUih2YWgpKSB7DQo+ICAJCWtmcmVlKGFoKTsNCj4gLQkJ
-YWggPSBOVUxMOw0KPiAtCX0gZWxzZQ0KPiArCQlhaCA9IChzdHJ1Y3QgaXBvaWJfYWggKil2YWg7
-DQo+ICsJfSBlbHNlIHsNCj4gKwkJYWgtPmFoID0gdmFoOw0KDQpUaGlzIG5lZWRzIHRvIGJlIGZp
-eGVkLiAgYWggaXMgZnJlZWQsIGFzc2lnbiB0byBhbiBlcnJvciBjb2RlLCB0aGVuIGRlcmVmZXJl
-bmNlZC4NCg0K
+>  From what I understand, and I may not understand correctly, to
+> perform IB Multicast, betweeen two nodes, I need to swap addresses and
+> remote keys for the two nodes.  In the examples I have seen this has
+
+You only need to do this for unicast UD.  Multicast doesn't require exchanging addresses and qkeys, but see below.
+
+> been done via RDMA CM directly between the two nodes.  Does it matter
+> how this information is exchanged?  In my application I will have
+
+For multicast, you need to 1. have the SA create the multicast group and 2. join the group.  To create the group, you need to either have the SA automatically create the group (if this is possible) or create it dynamically.  To create the group dynamically from user space, you should use the rdma_cm or ib_umad interfaces.  The rdma_cm is easier.
+
+To join the group, you need to let the SA know that the node should receive multicast traffic, so that it can program the switches.  This is done through the rdma_cm (easy way) or using ib_umad (hard way that gets harder if you want to support multiple applications joining the same group from the same system).
+
+> several nodes multicasting to several other nodes and I want to manage
+> the connections from a independent application.  What I would like to
+> do is write this application, server, etc. so that each node would
+> request connection with another node and then be provied with the
+> information it needs to multicast.  For example... Node 1 would
+> request a connection (from the server app) Node 2 and Node 2 would
+> request a connection (again, from the server app) to Node 1.  The
+> Server app would provide Node 2's "credentials" to Node 1 and likewise
+> to Node 2.  Is this even possible?
+
+The SA basically does the work that you're describing for your server app.  Node 1 can ask the SA to create a multicast group.  Node 2 can ask to join that group.  Somehow node 2 needs to know what group node 1 created.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
