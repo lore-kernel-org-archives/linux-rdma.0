@@ -1,67 +1,59 @@
-From: dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
-Subject: RE: Independent server management of Multicasting connections
-Date: Mon, 21 Nov 2011 10:16:50 -0700
-Message-ID: <20111121101650.162928ijxrgu49ky@celticblues.com>
-References: <20111121071551.14306gf6ogr9z8yf@celticblues.com>
- <1828884A29C6694DAF28B7E6B8A8237316E9B9E9@ORSMSX101.amr.corp.intel.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] IB/ipoib: Prevent hung task or softlockup processing
+	multicast response
+Date: Mon, 21 Nov 2011 09:18:11 -0800
+Message-ID: <35AAF1E4A771E142979F27B51793A48888478C9BF8@AVEXMB1.qlogic.org>
+References: <20111121134354.26386.85093.stgit@kop-dev-sles11-04.qlogic.org>
+ <1828884A29C6694DAF28B7E6B8A8237316E9B9D0@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E9B9E9-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E9B9D0-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SA = Subnet Administrator?
-
-Quoting "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
-
->>  From what I understand, and I may not understand correctly, to
->> perform IB Multicast, betweeen two nodes, I need to swap addresses and
->> remote keys for the two nodes.  In the examples I have seen this has
->
-> You only need to do this for unicast UD.  Multicast doesn't require  
-> exchanging addresses and qkeys, but see below.
->
->> been done via RDMA CM directly between the two nodes.  Does it matter
->> how this information is exchanged?  In my application I will have
->
-> For multicast, you need to 1. have the SA create the multicast group  
-> and 2. join the group.  To create the group, you need to either have  
-> the SA automatically create the group (if this is possible) or  
-> create it dynamically.  To create the group dynamically from user  
-> space, you should use the rdma_cm or ib_umad interfaces.  The  
-> rdma_cm is easier.
->
-> To join the group, you need to let the SA know that the node should  
-> receive multicast traffic, so that it can program the switches.   
-> This is done through the rdma_cm (easy way) or using ib_umad (hard  
-> way that gets harder if you want to support multiple applications  
-> joining the same group from the same system).
->
->> several nodes multicasting to several other nodes and I want to manage
->> the connections from a independent application.  What I would like to
->> do is write this application, server, etc. so that each node would
->> request connection with another node and then be provied with the
->> information it needs to multicast.  For example... Node 1 would
->> request a connection (from the server app) Node 2 and Node 2 would
->> request a connection (again, from the server app) to Node 1.  The
->> Server app would provide Node 2's "credentials" to Node 1 and likewise
->> to Node 2.  Is this even possible?
->
-> The SA basically does the work that you're describing for your  
-> server app.  Node 1 can ask the SA to create a multicast group.   
-> Node 2 can ask to join that group.  Somehow node 2 needs to know  
-> what group node 1 created.
->
-
-
+VGhlIGRlZmVyZW5jZSBvY2N1cnMgaW4gdGhlIG5vbi1JU19FUlIoKSBwYXRoLiAgSGVyZSBpcyB0
+aGUgcGF0Y2hlZCBjb2RlOg0KDQogICAgICAgIHZhaCA9IGliX2NyZWF0ZV9haChwZCwgYXR0cik7
+DQogICAgICAgIGlmIChJU19FUlIodmFoKSkgew0KICAgICAgICAgICAgICAgIGtmcmVlKGFoKTsN
+CiAgICAgICAgICAgICAgICBhaCA9IChzdHJ1Y3QgaXBvaWJfYWggKil2YWg7DQogICAgICAgIH0g
+ZWxzZSB7DQogICAgICAgICAgICAgICAgYWgtPmFoID0gdmFoOyA8LS0tLS0tLS0tLS0tLS0tLS0t
+IGRlZmVyIHcvbyBmcmVlDQogICAgICAgICAgICAgICAgaXBvaWJfZGJnKG5ldGRldl9wcml2KGRl
+diksICJDcmVhdGVkIGFoICVwXG4iLCBhaC0+YWgpOw0KICAgICAgICB9DQoNCkkgYWdyZWUgdGhh
+dCBwZXJoYXBzIHRoZSBjb2RlIHNob3VsZCBqdXN0IHJldHVybiBhIGNhc3Qgb2YgdmFoIGluIHRo
+ZSBJU19FUlIoKSBjYXNlIHNvIGl0J3MgY2xlYXJlcj8NCg0KTWlrZQ0KDQo+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEhlZnR5LCBTZWFuIFttYWlsdG86c2Vhbi5oZWZ0eUBp
+bnRlbC5jb21dDQo+IFNlbnQ6IE1vbmRheSwgTm92ZW1iZXIgMjEsIDIwMTEgMTE6NTMgQU0NCj4g
+VG86IE1pa2UgTWFyY2luaXN6eW47IHJvbGFuZEBwdXJlc3RvcmFnZS5jb20NCj4gQ2M6IGxpbnV4
+LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0hdIElCL2lwb2liOiBQ
+cmV2ZW50IGh1bmcgdGFzayBvciBzb2Z0bG9ja3VwDQo+IHByb2Nlc3NpbmcgbXVsdGljYXN0IHJl
+c3BvbnNlDQo+DQo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9p
+Yi5jDQo+ID4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9pYi5jDQo+
+ID4gQEAgLTU3LDIxICs1NywyNCBAQCBzdHJ1Y3QgaXBvaWJfYWggKmlwb2liX2NyZWF0ZV9haChz
+dHJ1Y3QNCj4gbmV0X2RldmljZSAqZGV2LA0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgc3RydWN0IGliX3BkICpwZCwgc3RydWN0IGliX2FoX2F0dHIgKmF0dHIpDQo+ID4gIHsNCj4g
+PiAgICAgc3RydWN0IGlwb2liX2FoICphaDsNCj4gPiArICAgc3RydWN0IGliX2FoICp2YWg7DQo+
+ID4NCj4gPiAgICAgYWggPSBrbWFsbG9jKHNpemVvZiAqYWgsIEdGUF9LRVJORUwpOw0KPiA+ICAg
+ICBpZiAoIWFoKQ0KPiA+IC0gICAgICAgICAgIHJldHVybiBOVUxMOw0KPiA+ICsgICAgICAgICAg
+IHJldHVybiBFUlJfUFRSKC1FTk9NRU0pOw0KPiA+DQo+ID4gICAgIGFoLT5kZXYgICAgICAgPSBk
+ZXY7DQo+ID4gICAgIGFoLT5sYXN0X3NlbmQgPSAwOw0KPiA+ICAgICBrcmVmX2luaXQoJmFoLT5y
+ZWYpOw0KPiA+DQo+ID4gLSAgIGFoLT5haCA9IGliX2NyZWF0ZV9haChwZCwgYXR0cik7DQo+ID4g
+LSAgIGlmIChJU19FUlIoYWgtPmFoKSkgew0KPiA+ICsgICB2YWggPSBpYl9jcmVhdGVfYWgocGQs
+IGF0dHIpOw0KPiA+ICsgICBpZiAoSVNfRVJSKHZhaCkpIHsNCj4gPiAgICAgICAgICAgICBrZnJl
+ZShhaCk7DQo+ID4gLSAgICAgICAgICAgYWggPSBOVUxMOw0KPiA+IC0gICB9IGVsc2UNCj4gPiAr
+ICAgICAgICAgICBhaCA9IChzdHJ1Y3QgaXBvaWJfYWggKil2YWg7DQo+ID4gKyAgIH0gZWxzZSB7
+DQo+ID4gKyAgICAgICAgICAgYWgtPmFoID0gdmFoOw0KPg0KPiBUaGlzIG5lZWRzIHRvIGJlIGZp
+eGVkLiAgYWggaXMgZnJlZWQsIGFzc2lnbiB0byBhbiBlcnJvciBjb2RlLCB0aGVuDQo+IGRlcmVm
+ZXJlbmNlZC4NCg0KDQpUaGlzIG1lc3NhZ2UgYW5kIGFueSBhdHRhY2hlZCBkb2N1bWVudHMgY29u
+dGFpbiBpbmZvcm1hdGlvbiBmcm9tIFFMb2dpYyBDb3Jwb3JhdGlvbiBvciBpdHMgd2hvbGx5LW93
+bmVkIHN1YnNpZGlhcmllcyB0aGF0IG1heSBiZSBjb25maWRlbnRpYWwuIElmIHlvdSBhcmUgbm90
+IHRoZSBpbnRlbmRlZCByZWNpcGllbnQsIHlvdSBtYXkgbm90IHJlYWQsIGNvcHksIGRpc3RyaWJ1
+dGUsIG9yIHVzZSB0aGlzIGluZm9ybWF0aW9uLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIHRy
+YW5zbWlzc2lvbiBpbiBlcnJvciwgcGxlYXNlIG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5
+IGJ5IHJlcGx5IGUtbWFpbCBhbmQgdGhlbiBkZWxldGUgdGhpcyBtZXNzYWdlLg0K
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
