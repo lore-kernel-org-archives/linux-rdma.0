@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 3/5] opensm: Add command line option for allow_both_pkeys
-Date: Tue, 22 Nov 2011 15:23:45 -0500
-Message-ID: <4ECC04D1.4060702@dev.mellanox.co.il>
+Subject: [PATCH 4/5] opensm: When allowing both pkeys, on a switch external,
+ (peer) port eliminate limited pkey when full pkey with same base is present
+Date: Tue, 22 Nov 2011 15:23:52 -0500
+Message-ID: <4ECC04D8.7020800@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -14,77 +15,85 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- man/opensm.8.in |    6 ++++++
- opensm/main.c   |   11 ++++++++++-
- 2 files changed, 16 insertions(+), 1 deletions(-)
+ opensm/osm_pkey_mgr.c    |   26 +++++++++++++++++++++++++-
+ opensm/osm_prtn_config.c |    6 ++++--
+ 2 files changed, 29 insertions(+), 3 deletions(-)
 
-diff --git a/man/opensm.8.in b/man/opensm.8.in
-index 864ccee..45b1ee0 100644
---- a/man/opensm.8.in
-+++ b/man/opensm.8.in
-@@ -42,6 +42,7 @@ opensm \- InfiniBand subnet manager and administration (SM/SA)
- [\-L | \-\-log_limit <size in MB>] [\-e(rase_log_file)]
- [\-P(config) <partition config file> ]
- [\-N | \-\-no_part_enforce]
-+[\-W | \-\-allow_both_pkeys]
- [\-Q | \-\-qos [\-Y | \-\-qos_policy_file <file name>]]
- [\-y | \-\-stay_on_fatal]
- [\-B | \-\-daemon]
-@@ -331,6 +332,11 @@ configuring QoS policy via this file.
- \fB\-N\fR, \fB\-\-no_part_enforce\fR
- This option disables partition enforcement on switch external ports.
- .TP
-+\fB\-W\fR, \fB\-\-allow_both_pkeys\fR
-+This option indicates whether both full and limited membership on the
-+same partition can be configured in the PKeyTable. Default is not
-+to allow both pkeys.
-+.TP
- \fB\-y\fR, \fB\-\-stay_on_fatal\fR
- This option will cause SM not to exit on fatal initialization
- issues: if SM discovers duplicated guids or a 12x link with
-diff --git a/opensm/main.c b/opensm/main.c
-index 5be36b6..f1cdaef 100644
---- a/opensm/main.c
-+++ b/opensm/main.c
-@@ -308,6 +308,10 @@ static void show_usage(void)
- 	       OSM_DEFAULT_PARTITION_CONFIG_FILE "\'.\n\n");
- 	printf("--no_part_enforce, -N\n"
- 	       "          This option disables partition enforcement on switch external ports.\n\n");
-+	printf("--allow_both_pkeys, -W\n"
-+	       "          This option indicates whether both full and limited membership\n"
-+	       "          on the same partition can be configured in the PKeyTable.\n"
-+	       "          Default is not to allow both pkeys.\n\n");
- 	printf("--qos, -Q\n" "          This option enables QoS setup.\n\n");
- 	printf("--qos_policy_file, -Y <QoS-policy-file>\n"
- 	       "          This option defines the optional QoS policy file.\n"
-@@ -554,7 +558,7 @@ int main(int argc, char *argv[])
- 	char *conf_template = NULL, *config_file = NULL;
- 	uint32_t val;
- 	const char *const short_option =
--	    "F:c:i:w:O:f:ed:D:g:l:L:s:t:a:u:m:X:R:zM:U:S:P:Y:ANBIQvVhoryxp:n:q:k:C:G:H:";
-+	    "F:c:i:w:O:f:ed:D:g:l:L:s:t:a:u:m:X:R:zM:U:S:P:Y:ANWBIQvVhoryxp:n:q:k:C:G:H:";
+diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
+index 2fff373..6c2a735 100644
+--- a/opensm/osm_pkey_mgr.c
++++ b/opensm/osm_pkey_mgr.c
+@@ -548,6 +548,25 @@ static int update_peer_block(osm_log_t * p_log, osm_sm_t * sm,
+ 	return ret;
+ }
  
- 	/*
- 	   In the array below, the 2nd parameter specifies the number
-@@ -582,6 +586,7 @@ int main(int argc, char *argv[])
- 		{"erase_log_file", 0, NULL, 'e'},
- 		{"Pconfig", 1, NULL, 'P'},
- 		{"no_part_enforce", 0, NULL, 'N'},
-+		{"allow_both_pkeys", 0, NULL, 'W'},
- 		{"qos", 0, NULL, 'Q'},
- 		{"qos_policy_file", 1, NULL, 'Y'},
- 		{"maxsmps", 1, NULL, 'n'},
-@@ -855,6 +860,10 @@ int main(int argc, char *argv[])
- 			opt.no_partition_enforcement = TRUE;
- 			break;
- 
-+		case 'W':
-+			opt.allow_both_pkeys = TRUE;
-+			break;
++static int new_pkey_exists(osm_pkey_tbl_t * p_pkey_tbl, ib_net16_t pkey)
++{
++	uint16_t num_blocks;
++	uint16_t block_index;
++	ib_pkey_table_t *block;
++	uint16_t pkey_idx;
 +
- 		case 'Q':
- 			opt.qos = TRUE;
- 			break;
++	num_blocks = (uint16_t) cl_ptr_vector_get_size(&p_pkey_tbl->new_blocks);
++	for (block_index = 0; block_index < num_blocks; block_index++) {
++		block = osm_pkey_tbl_new_block_get(p_pkey_tbl, block_index);
++		for (pkey_idx = 0; pkey_idx < IB_NUM_PKEY_ELEMENTS_IN_BLOCK;
++		     pkey_idx++) {
++			if (block->pkey_entry[pkey_idx] == pkey)
++				return 1;
++		}
++	}
++	return 0;
++}
++
+ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
+ 				     const osm_subn_t * p_subn,
+ 				     const osm_port_t * const p_port,
+@@ -563,7 +582,7 @@ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
+ 	uint16_t last_index;
+ 	ib_pkey_table_t new_peer_block;
+ 	uint16_t pkey_idx, peer_pkey_idx;
+-	ib_net16_t pkey;
++	ib_net16_t pkey, full_pkey;
+ 	int ret = 0, loop_exit = 0;
+ 
+ 	p_physp = p_port->p_physp;
+@@ -598,6 +617,11 @@ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
+ 			pkey = block->pkey_entry[pkey_idx];
+ 			if (ib_pkey_is_invalid(pkey))
+ 				continue;
++			if (!ib_pkey_is_full_member(pkey)) {
++				full_pkey = pkey | IB_PKEY_TYPE_MASK;
++				if (new_pkey_exists(&p_physp->pkeys, full_pkey))
++					continue;
++			}
+ 			new_peer_block.pkey_entry[peer_pkey_idx] = pkey;
+ 			if (peer_block_idx >= peer_max_blocks) {
+ 				loop_exit = 1;
+diff --git a/opensm/osm_prtn_config.c b/opensm/osm_prtn_config.c
+index 4c4c3a5..996128d 100644
+--- a/opensm/osm_prtn_config.c
++++ b/opensm/osm_prtn_config.c
+@@ -207,7 +207,8 @@ static int partition_add_all(struct part_conf *conf, osm_prtn_t * p,
+ 	if (membership != LIMITED &&
+ 	    osm_prtn_add_all(conf->p_log, conf->p_subn, p, type, TRUE) != IB_SUCCESS)
+ 		return -1;
+-	if (membership != FULL &&
++	if ((membership == LIMITED ||
++	     (membership == BOTH && conf->p_subn->opt.allow_both_pkeys)) &&
+ 	    osm_prtn_add_all(conf->p_log, conf->p_subn, p, type, FALSE) != IB_SUCCESS)
+ 		return -1;
+ 	return 0;
+@@ -261,7 +262,8 @@ static int partition_add_port(unsigned lineno, struct part_conf *conf,
+ 	    osm_prtn_add_port(conf->p_log, conf->p_subn, p,
+ 			      cl_hton64(guid), TRUE) != IB_SUCCESS)
+ 		return -1;
+-	if (membership != FULL &&
++	if ((membership == LIMITED ||
++	    (membership == BOTH && conf->p_subn->opt.allow_both_pkeys)) &&
+ 	    osm_prtn_add_port(conf->p_log, conf->p_subn, p,
+ 			      cl_hton64(guid), FALSE) != IB_SUCCESS)
+ 		return -1;
 -- 
 1.7.6.1
 
