@@ -1,27 +1,27 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [BUG?] OpenMPI with openib on SPARC64: Signal: Bus error (10)
-Date: Tue, 22 Nov 2011 10:44:00 -0800
-Message-ID: <CAL1RGDVsj_cZ7qJZAmjAGAPd2a3wvs3-7jELtTN6Z1Vn88Z9OQ@mail.gmail.com>
-References: <1321926674.44951.YahooMailNeo@web24715.mail.ird.yahoo.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Independent server management of Multicasting connections
+Date: Tue, 22 Nov 2011 18:47:22 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E9BD4D@ORSMSX101.amr.corp.intel.com>
+References: <20111121071551.14306gf6ogr9z8yf@celticblues.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E9B9E9@ORSMSX101.amr.corp.intel.com>
+ <20111122110030.112519gpho0ikta6@celticblues.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E9BD23@ORSMSX101.amr.corp.intel.com>
+ <20111122112723.153527yw26bz6n4b@celticblues.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1321926674.44951.YahooMailNeo-Igr0H0yBZInyX4RqAA4FmIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
+In-Reply-To: <20111122112723.153527yw26bz6n4b-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org>
-Cc: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "devel-ygRj4skf0tpg9hUCZPvPmw@public.gmane.org" <devel-ygRj4skf0tpg9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org" <dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 21, 2011 at 5:51 PM, Lukas Razik <linux-GLgANOly0l1BDLzU/O5InQ@public.gmane.org> wrote:
-> [cluster1:64027] Signal code: Invalid address alignment (1)
-> [cluster1:64027] Failing at address: 0xaa9053
-> [cluster1:64027] [ 0] /usr/mpi/gcc/openmpi-1.4.3/lib64/openmpi/mca_pml_ob1.so(+0x62f0) [0xfffff8010209e2f0]
+> Are there examples of how to create the multicast group using rdma_cm?
 
-Seems like openmpi is doing a misaligned access somewhere...
+rdma_join_multicast will create the group if it does not exist.
 
-not sure how to turn this into a real location in the code, Open MPI guys??
-
- - R.
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
