@@ -1,61 +1,22 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 14/13] opensm/osm_sa_guidinfo_record.c: In set_guidinfo, better
- SM reassigned guid handing
-Date: Tue, 22 Nov 2011 15:24:09 -0500
-Message-ID: <4ECC04E9.701@dev.mellanox.co.il>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] mlx4_core: enable changing HCA default max resource limits
+Date: Tue, 22 Nov 2011 12:30:03 -0800
+Message-ID: <CAL1RGDXBwDoXs-cRD4b+8WrS0eRzwAaVn4g4+_14YSAsxpkNbw@mail.gmail.com>
+References: <20111108173940.GA23912@mellanox.com> <4ECBDE16.5040200@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4ECBDE16.5040200-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Nov 22, 2011 at 9:38 AM, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Do you have any chance to look at this patch?
 
-When an SM assigned guid is rerequested and one has already been assigned
-at that index for that port, allow this and return the guid in the proper
-index in the SA response rather than indicating ERR 5108 due to duplicate.
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
-index a1bb166..e363e81 100644
---- a/opensm/osm_sa_guidinfo_record.c
-+++ b/opensm/osm_sa_guidinfo_record.c
-@@ -537,7 +537,28 @@ static void set_guidinfo(IN osm_sa_t *sa, IN osm_madw_t *p_madw,
- 				set_alias_guid = p_assigned_guids->assigned_guid[i];
- 				if (set_alias_guid) {
- 					p_rcvd_rec->guid_info.guid[i % 8] = set_alias_guid;
--					goto add_alias_guid;
-+					p_item = cl_qmap_get(&sa->sm->p_subn->alias_port_guid_tbl,
-+							     set_alias_guid);
-+					if (p_item == cl_qmap_end(&sa->sm->p_subn->alias_port_guid_tbl))
-+						goto add_alias_guid;
-+					else {
-+						p_alias_guid = (osm_alias_guid_t *) p_item;
-+						if (p_alias_guid->p_base_port != p_port) {
-+							OSM_LOG(sa->p_log,
-+								OSM_LOG_ERROR,
-+								"ERR 5110: "
-+								" Assigned alias port GUID 0x%" PRIx64
-+								" index %d base port GUID 0x%" PRIx64
-+								" now attempted on port GUID 0x%" PRIx64
-+								"\n",
-+								cl_ntoh64(p_alias_guid->alias_guid), i,
-+								cl_ntoh64(p_alias_guid->p_base_port->guid),
-+								cl_ntoh64(p_port->guid));
-+							/* clear response guid at index to indicate duplicate */
-+							p_rcvd_rec->guid_info.guid[i % 8] = 0;
-+						}
-+						continue;
-+					}
- 				}
- 			}
- 		}
--- 
-1.7.6.1
-
+Yeah, I guess it's sort of OK.  But is there really no better way to
+handle this than making users deal with 7 more module parameters?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
