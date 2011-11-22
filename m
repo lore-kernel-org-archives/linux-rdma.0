@@ -1,92 +1,124 @@
-From: dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
-Subject: Re: Independent server management of Multicasting connections
-Date: Tue, 22 Nov 2011 07:17:00 -0700
-Message-ID: <20111122071700.10712l3tf30i64m4@peddycoart.com>
-References: <20111121071551.14306gf6ogr9z8yf@celticblues.com>
- <1828884A29C6694DAF28B7E6B8A8237316E9B9E9@ORSMSX101.amr.corp.intel.com>
- <20111121110529.5090464a.weiny2@llnl.gov>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] mlx4_core: enable changing HCA default max resource limits
+Date: Tue, 22 Nov 2011 09:38:30 -0800
+Message-ID: <4ECBDE16.5040200@mellanox.com>
+References: <20111108173940.GA23912@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111121110529.5090464a.weiny2-i2BcT+NCU+M@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20111108173940.GA23912-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Where can I find out more on how to do this, i.e. use opensm to create  
-mc groups at startup?
+Hi Roland,
+
+Do you have any chance to look at this patch?
+
+thanks,
+-vu
 
 
-Quoting Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>:
-
-> On Mon, 21 Nov 2011 09:05:22 -0800
-> "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
->> >  From what I understand, and I may not understand correctly, to
->> > perform IB Multicast, betweeen two nodes, I need to swap addresses and
->> > remote keys for the two nodes.  In the examples I have seen this has
->>
->> You only need to do this for unicast UD.  Multicast doesn't require  
->> exchanging addresses and qkeys, but see below.
->>
->> > been done via RDMA CM directly between the two nodes.  Does it matter
->> > how this information is exchanged?  In my application I will have
->>
->> For multicast, you need to 1. have the SA create the multicast  
->> group and 2. join the group.  To create the group, you need to  
->> either have the SA automatically create the group (if this is  
->> possible) or create it dynamically.  To create the group  
->> dynamically from user space, you should use the rdma_cm or ib_umad  
->> interfaces.  The rdma_cm is easier.
->>
->
-> FWIW, OpenSM (current master branch) now has the ability to create  
-> multicast groups at startup, so 1 is possible.
->
-> See: http://www.spinics.net/lists/linux-rdma/msg10021.html
->
-> Ira
->
->> To join the group, you need to let the SA know that the node should  
->> receive multicast traffic, so that it can program the switches.   
->> This is done through the rdma_cm (easy way) or using ib_umad (hard  
->> way that gets harder if you want to support multiple applications  
->> joining the same group from the same system).
->>
->> > several nodes multicasting to several other nodes and I want to manage
->> > the connections from a independent application.  What I would like to
->> > do is write this application, server, etc. so that each node would
->> > request connection with another node and then be provied with the
->> > information it needs to multicast.  For example... Node 1 would
->> > request a connection (from the server app) Node 2 and Node 2 would
->> > request a connection (again, from the server app) to Node 1.  The
->> > Server app would provide Node 2's "credentials" to Node 1 and likewise
->> > to Node 2.  Is this even possible?
->>
->> The SA basically does the work that you're describing for your  
->> server app.  Node 1 can ask the SA to create a multicast group.   
->> Node 2 can ask to join that group.  Somehow node 2 needs to know  
->> what group node 1 created.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-> --
-> Ira Weiny
-> Member of Technical Staff
-> Lawrence Livermore National Lab
-> 925-423-8008
-> weiny2-i2BcT+NCU+M@public.gmane.org
->
-
-
+> Hi Roland,
+> 
+> This patch allow users to change HCA default profile resourses (num_qp, num_cq, num_mpt...)
+> especially for users with big clusters
+> 
+> From 1d85e3d05fb2e6899c32e3b64047c446269f835a Mon Sep 17 00:00:00 2001
+> From: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Wed, 28 Sep 2011 14:07:25 -0700
+> Subject: [PATCH] mlx4_core: enable changing HCA default max resource limits
+> 
+> Enable module-initialization time modification of HCA default
+> maximum resource limits via module parameters, as is done in mthca.
+> 
+> Specify the log of the parameter value, rather than the value itself
+> to avoid the hidden side-effect of rounding up values to next power-of-2.
+> 
+> Signed-off-by: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/net/mlx4/main.c |   58 +++++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 58 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
+> index a7527d1..5878981 100644
+> --- a/drivers/net/mlx4/main.c
+> +++ b/drivers/net/mlx4/main.c
+> @@ -109,6 +109,63 @@ MODULE_PARM_DESC(log_mtts_per_seg, "Log2 number of MTT entries per segment (1-7)
+>  static int rr_proto = MLX4_RR_DEF_PROTO;
+>  module_param(rr_proto , uint, 0444);
+>  
+> +static struct mlx4_profile mod_param_profile = { 0 };
+> +
+> +module_param_named(log_num_qp, mod_param_profile.num_qp, int, 0444);
+> +MODULE_PARM_DESC(log_num_qp, "log maximum number of QPs per HCA ");
+> +
+> +module_param_named(log_num_srq, mod_param_profile.num_srq, int, 0444);
+> +MODULE_PARM_DESC(log_num_srq, "log maximum number of SRQs per HCA ");
+> +
+> +module_param_named(log_rdmarc_per_qp, mod_param_profile.rdmarc_per_qp, int, 0444);
+> +MODULE_PARM_DESC(log_rdmarc_per_qp, "log number of RDMARC buffers per QP ");
+> +
+> +module_param_named(log_num_cq, mod_param_profile.num_cq, int, 0444);
+> +MODULE_PARM_DESC(log_num_cq, "log maximum number of CQs per HCA ");
+> +
+> +module_param_named(log_num_mcg, mod_param_profile.num_mcg, int, 0444);
+> +MODULE_PARM_DESC(log_num_mcg, "log maximum number of multicast groups per HCA ");
+> +
+> +module_param_named(log_num_mpt, mod_param_profile.num_mpt, int, 0444);
+> +MODULE_PARM_DESC(log_num_mpt,
+> +		"log maximum number of memory protection table entries per HCA ");
+> +
+> +module_param_named(log_num_mtt, mod_param_profile.num_mtt, int, 0444);
+> +MODULE_PARM_DESC(log_num_mtt,
+> +		 "log maximum number of memory translation table segments per HCA ");
+> +
+> +static void process_mod_param_profile(void)
+> +{
+> +	if (mod_param_profile.num_qp &&
+> +	    mod_param_profile.num_qp < ilog2(MLX4_NUM_FEXCH) + 1) {
+> +		printk(KERN_WARNING
+> +			"log max QPs=%d is too small - reset to %d\n",
+> +			mod_param_profile.num_qp, ilog2(MLX4_NUM_FEXCH) + 1);
+> +		mod_param_profile.num_qp = ilog2(MLX4_NUM_FEXCH) + 1;
+> +	}
+> +	default_profile.num_qp = (mod_param_profile.num_qp ?
+> +				  1 << mod_param_profile.num_qp :
+> +				  default_profile.num_qp);
+> +	default_profile.num_srq = (mod_param_profile.num_srq ?
+> +				  1 << mod_param_profile.num_srq :
+> +				  default_profile.num_srq);
+> +	default_profile.rdmarc_per_qp = (mod_param_profile.rdmarc_per_qp ?
+> +				  1 << mod_param_profile.rdmarc_per_qp :
+> +				  default_profile.rdmarc_per_qp);
+> +	default_profile.num_cq = (mod_param_profile.num_cq ?
+> +				  1 << mod_param_profile.num_cq :
+> +				  default_profile.num_cq);
+> +	default_profile.num_mcg = (mod_param_profile.num_mcg ?
+> +				  1 << mod_param_profile.num_mcg :
+> +				  default_profile.num_mcg);
+> +	default_profile.num_mpt = (mod_param_profile.num_mpt ?
+> +				  1 << mod_param_profile.num_mpt :
+> +				  default_profile.num_mpt);
+> +	default_profile.num_mtt = (mod_param_profile.num_mtt ?
+> +				  1 << mod_param_profile.num_mtt :
+> +				  default_profile.num_mtt);
+> +}
+> +
+>  int mlx4_check_port_params(struct mlx4_dev *dev,
+>  			   enum mlx4_port_type *port_type)
+>  {
+> @@ -801,6 +858,7 @@ static int mlx4_init_hca(struct mlx4_dev *dev)
+>  		goto err_stop_fw;
+>  	}
+>  
+> +	process_mod_param_profile();
+>  	profile = default_profile;
+>  
+>  	icm_size = mlx4_make_profile(dev, &profile, &dev_cap, &init_hca);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
