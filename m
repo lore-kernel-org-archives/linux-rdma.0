@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 0/5] infiniband-diags: Complete functionality of C based
- tools and move deprecated scripts to "compat rpm"
-Date: Mon, 21 Nov 2011 16:02:30 -0800
-Message-ID: <20111121160230.fca82911.weiny2@llnl.gov>
+Subject: [PATCH 3/5] infiniband-diags: ibqueryerrors add "check"
+ capabilities against ibfabricconf file
+Date: Mon, 21 Nov 2011 16:03:03 -0800
+Message-ID: <20111121160303.7ce69618.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -11,148 +11,191 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series add to the "C" based tools the final "major" functionality
-of the script based tools.  Furthermore, it marks the scripts deprecated and
-creates a compat rpm (_not_ built by default) which contains those scripts for
-those who, heaven forbid, scripted around those scripts.  The motivation
-behind this move is to make the overall functionality of the diags faster and
-simpler.
-
-The specific issues addressed are:
-
-	1) redundant functionality
-		ibcheckerrors vs ibqueryerrors
-		ibstat vs ibstatus
-		ibcheck[net|node] vs new iblinkinfo/ibqueryerrors "check" option
-		ibprint[ca|switch|rt] vs ib[hosts|switches|routers]
-
-	2) Additional functionality
-		iblinkinfo and ibqueryerrors can be configured on a link by
-		link basis for what links should be rather than having
-		ibcheck* scripts look for != 1X links and no check for speed
-		at all.  Furthermore, support for partially populated fabrics
-		is enhanced, for example checking for links which should not
-		be.
-
-	3) Better Scalability.
-		iblinkinfo and ibqueryerrors can scan the fabric up to 30X
-		faster than the scripts.  One example[*] I ran, compared
-		"ibqueryerrors -f" vs ibchecknet on my test nodes.  My test
-		system includes just 2 switches and 2 nodes with 4 HCA's
-		(2/node).  The time difference is staggering.
-
-		ibchecknet:    1.793 seconds
-			VS
-		ibqueryerrors: 0.063 seconds
-
-		This includes the additional functionality of ibqueryerrors!!!
-
-	4) remove outdated/deprecated scripts
-		perl versions of iblinkinfo/ibqueryerrors
-
-	5) Less dependence on GUID's
-		specifically ibfabricconf.xml files use node names rather than
-		node or port guids to resolve their checks.  As large fabrics
-		are maintained CAs and switches are often swapped for
-		maintenance and names are a better abstraction for System
-		Admins rather than having to update GUID's in a config.[**]
-
-One downside to this change is that there will not be any "check"
-functionality which does not have to be configured.  However, I don't believe
-these "checks" were really useful to begin with.  Each fabric is different and
-the user has different expectations for how their fabric should be cabled and
-what speed/width those cables should be.
-
-For further information on the new ibfabricconf.xml support see the iblinkinfo
-man page.
-
-Ira
 
 
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ Makefile.am            |   11 ++++++---
+ man/ibqueryerrors.8.in |   29 ++++++++++++++++++++++++-
+ src/ibqueryerrors.c    |   55 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 88 insertions(+), 7 deletions(-)
 
-[**] Unfortunately, some hardware still exists which can not have node
-descriptions programed into the firmware.  Therefore the configuration of
-NodeGUID to Node Name still must be configured.
-
-[*] Here is an example of the different runs on my test system.  2 nodes, 2
-switches, and 4 HCA's (2/node)
-
-First the ibqueryerrors run:
-
-	bash-4.1# time ibqueryerrors -f
-	Errors for "happy HCA-3"
-	   GUID 0x1175000079da38 port 1: [SymbolErrorCounter == 332] [PortRcvErrors == 6]
-	Errors for 0x66a00e3003b39 "QLogic 12200 GUID=0x00066a00e3003b39"
-	   GUID 0x66a00e3003b39 port ALL: [SymbolErrorCounter == 154] [LinkDownedCounter == 2] [VL15Dropped == 23]
-	   GUID 0x66a00e3003b39 port 35: [SymbolErrorCounter == 154] [LinkDownedCounter == 1] [VL15Dropped == 23]
-	   GUID 0x66a00e3003b39 port 36: [LinkDownedCounter == 1]
-	Errors for 0x2c9020040ff58 "Ira's Switch"
-	   GUID 0x2c9020040ff58 port ALL: [LinkDownedCounter == 18] [PortRcvSwitchRelayErrors == 6940] [PortXmitDiscards == 449] [PortXmitWait == 560]
-	   GUID 0x2c9020040ff58 port 19: [PortXmitDiscards == 8] [PortXmitWait == 560]
-	   GUID 0x2c9020040ff58 port 20: [LinkDownedCounter == 8] [PortXmitDiscards == 1]
-	   GUID 0x2c9020040ff58 port 21: [PortXmitDiscards == 230]
-	   GUID 0x2c9020040ff58 port 22: [LinkDownedCounter == 4] [PortRcvSwitchRelayErrors == 46] [PortXmitDiscards == 146]
-	   GUID 0x2c9020040ff58 port 27: [PortRcvSwitchRelayErrors == 6894]
-	   GUID 0x2c9020040ff58 port 35: [LinkDownedCounter == 4] [PortXmitDiscards == 63]
-	   GUID 0x2c9020040ff58 port 36: [LinkDownedCounter == 2] [PortXmitDiscards == 1]
-	   
-
-	## Summary: 6 nodes checked, 3 bad nodes found
-	##          76 ports checked, 10 ports have errors beyond threshold
-	## Thresholds:
-	## Suppressed:
-	
-	Reading fabric conf file...
-	Evaluating connectively...
-	ERR: port down: "QLogic 12200 GUID=0x00066a00e3003b39" p: 35[  ] <==> p: 35 "Ira's Switch" (Should be: 4X 10.0 Gbps Active)
-	ERR: speed != 10.0 Gbps: "QLogic 12200 GUID=0x00066a00e3003b39" p: 36[  ] <==(4X 5.0 Gbps Active/ LinkUp)==>  p: 36[  ] "Ira's Switch" ( Could be 10.0 Gbps)
-        ERR: Unconfigured active link: "ending HCA-3" p:  2[  ] <==(4X 10.0 Gbps Active/  LinkUp)==>  p: 20[  ] "Ira's Switch" ( )
-	ERR: port disabled: "Ira's Switch" p: 35[  ] <==>  p: 35 "QLogic 12200 GUID=0x00066a00e3003b39" (Should be: 4X 10.0 Gbps Active)
-	
-	Stats Summary: (76 total physical ports) 66 down ports(s) 1 disabled ports(s)
-	   5 link(s) at 4X
-	   1 link(s) at 5.0 Gbps (DDR)
-	   4 link(s) at 10.0 Gbps (QDR)
-	
-	real    0m0.063s
-	user    0m0.003s
-	sys     0m0.015s
-
-
-Now the ibchecknet run:
-
-	bash-4.1# time ./ibchecknet
-	#warn: counter SymbolErrorCounter = 154         (threshold 10) lid 10 port 255
-	Error check on lid 10 (QLogic 12200 GUID=0x00066a00e3003b39) port all:  FAILED
-	#warn: counter LinkDownedCounter = 18   (threshold 10) lid 4 port 255
-	#warn: counter PortRcvSwitchRelayErrors = 6940  (threshold 100) lid 4 port 255
-	#warn: counter PortXmitDiscards = 449   (threshold 100) lid 4 port 255
-	Error check on lid 4 (Infiniscale-IV Mellanox Technologies) port all:  FAILED
-	#warn: counter PortXmitDiscards = 230   (threshold 100) lid 4 port 21
-	Error check on lid 4 (Infiniscale-IV Mellanox Technologies) port 21:  FAILED
-	#warn: counter PortXmitDiscards = 146   (threshold 100) lid 4 port 22
-	Error check on lid 4 (Infiniscale-IV Mellanox Technologies) port 22:  FAILED
-	
-	# Checking Ca: nodeguid 0x001175000079da38
-	#warn: counter SymbolErrorCounter = 332         (threshold 10) lid 5 port 1
-	Error check on lid 5 (happy HCA-3) port 1:  FAILED
-	
-	# Checking Ca: nodeguid 0x0002c90300108f2e
-	
-	# Checking Ca: nodeguid 0x001175000077d90e
-	
-	# Checking Ca: nodeguid 0x0002c903004bebda
-	
-	*** WARNING ***: this command is deprecated; Please use "ibqueryerrors -f"
-	## Summary: 6 nodes checked, 0 bad nodes found
-	##          10 ports checked, 0 bad ports found
-	##          3 ports have errors beyond threshold
-	
-	real    0m1.793s
-	user    0m0.220s
-	sys     0m0.576s
-
-
+diff --git a/Makefile.am b/Makefile.am
+index 4aaa41a..b738806 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -64,11 +64,7 @@ src_saquery_SOURCES = src/saquery.c
+ src_ibsendtrap_SOURCES = src/ibsendtrap.c
+ src_vendstat_SOURCES = src/vendstat.c
+ src_mcm_rereg_test_SOURCES = src/mcm_rereg_test.c
+-src_iblinkinfo_SOURCES = src/iblinkinfo.c
+-src_iblinkinfo_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
+ src_ibccquery_SOURCES = src/ibccquery.c
+-src_ibqueryerrors_SOURCES = src/ibqueryerrors.c
+-src_ibqueryerrors_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
+ src_ibcacheedit_SOURCES = src/ibcacheedit.c
+ src_ibcacheedit_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
+ 
+@@ -78,9 +74,16 @@ src_iblinkinfo_CFLAGS = $(GLIB_CFLAGS)
+ src_iblinkinfo_LDFLAGS = -losmcomp -libmad \
+ 	-L$(top_builddir)/libibnetdisc -libnetdisc \
+ 	-L$(top_builddir)/libibfabricconf -libfabricconf $(GLIB_LIBS)
++src_ibqueryerrors_SOURCES = src/ibqueryerrors.c src/checkfabric.c src/checkfabric.h
++src_ibqueryerrors_CFLAGS = $(GLIB_CFLAGS)
++src_ibqueryerrors_LDFLAGS = -losmcomp -libmad \
++	-L$(top_builddir)/libibnetdisc -libnetdisc \
++	-L$(top_builddir)/libibfabricconf -libfabricconf $(GLIB_LIBS)
+ else
+ src_iblinkinfo_SOURCES = src/iblinkinfo.c
+ src_iblinkinfo_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
++src_ibqueryerrors_SOURCES = src/ibqueryerrors.c
++src_ibqueryerrors_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
+ endif
+ 
+ man_MANS = man/ibaddr.8 man/ibcheckerrors.8 man/ibcheckerrs.8 \
+diff --git a/man/ibqueryerrors.8.in b/man/ibqueryerrors.8.in
+index 372b0e4..bb5dd15 100644
+--- a/man/ibqueryerrors.8.in
++++ b/man/ibqueryerrors.8.in
+@@ -75,6 +75,33 @@ for information on caching ibnetdiscover output.
+ .TP
+ \fB\-R\fR  (This option is obsolete and does nothing)
+ 
++.SH CHECK OPTIONS
++.TP
++"Check" options apply only when XML support was enabled for the build.
++
++.TP
++\fB\-check, \-f\fR
++Check links against ibfabricconf.xml config.
++
++.TP
++\fB\-config <ibfabricconf>\fR
++Specify an alternate config file (default: @IBDIAG_CONFIG_PATH@/ibfabricconf.xml)
++
++.TP
++\fB\-\-downnodes <nodelist>\fR
++Specify nodes which are known to be off thus indicating that links to those
++nodes are known to be down.  "nodelist" is a comma separated list of node
++description names.
++
++.TP
++\fB\-\-smlid <lid>\fR
++Specify an smlid to verify on all active ports.
++
++.TP
++\fB\-\-addr-info <lid>\fR
++Print port GUID and LID information for the ports being reported as errors.
++
++
+ .SH COMMON OPTIONS
+ .PP
+ \-d      raise the IB debugging level.
+@@ -101,7 +128,7 @@ for information on caching ibnetdiscover output.
+ 
+ If a failure to scan the fabric occurs return -1.  If the scan succeeds without
+ errors beyond thresholds return 0.  If errors are found on ports beyond
+-thresholds return 1.
++thresholds or if check mode is used and inconsistencies are found, return 1.
+ 
+ .SH FILES
+ 
+diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
+index e070baf..1ea123c 100644
+--- a/src/ibqueryerrors.c
++++ b/src/ibqueryerrors.c
+@@ -73,6 +73,14 @@ char *dr_path = NULL;
+ uint8_t node_type_to_print = 0;
+ unsigned clear_errors = 0, clear_counts = 0, details = 0;
+ 
++#ifdef HAVE_XML
++#include <infiniband/ibfabricconf.h>
++#include "checkfabric.h"
++
++static int check_mode = 0;
++check_flags_t check_flags;
++#endif
++
+ #define PRINT_SWITCH 0x1
+ #define PRINT_CA     0x2
+ #define PRINT_ROUTER 0x4
+@@ -822,6 +830,23 @@ static int process_opt(void *context, int ch, char *optarg)
+ 	case 9:
+ 		data_counters_only = 1;
+ 		break;
++#ifdef HAVE_XML
++	case 'f': /* check */
++		check_mode = 1;
++		break;
++	case 10: /* config */
++		check_flags.fabricconffile = strdup(optarg);
++		break;
++	case 11: /* downnodes */
++		check_flags.downnodes_str = strdup(optarg);
++		break;
++	case 12: /* smlid */
++		check_flags.sm_lid = (uint16_t)strtoul(optarg, NULL, 0);
++		break;
++	case 13: /* addr-info */
++		check_flags.print_addr_info = 1;
++		break;
++#endif /* HAVE_XML */
+ 	case 'G':
+ 	case 'S':
+ 		port_guid_str = optarg;
+@@ -879,8 +904,6 @@ int main(int argc, char **argv)
+ 		 "report port link information"},
+ 		{"threshold-file", 8, 1, NULL,
+ 		 "specify an alternate threshold file, default: " DEF_THRES_FILE},
+-		{"GNDN", 'R', 0, NULL,
+-		 "(This option is obsolete and does nothing)"},
+ 		{"data", 2, 0, NULL, "include data counters for ports with errors"},
+ 		{"switch", 3, 0, NULL, "print data for switches only"},
+ 		{"ca", 4, 0, NULL, "print data for CA's only"},
+@@ -896,6 +919,23 @@ int main(int argc, char **argv)
+ 		{"outstanding_smps", 'o', 1, NULL,
+ 		 "specify the number of outstanding SMP's which should be "
+ 		 "issued during the scan"},
++#ifdef HAVE_XML
++		{"\nCheck Fabric options:\n", 255, 0, NULL, ""}, /* dummy option */
++		{"check", 'f', 0, NULL,
++		 "check fabric; against ibfabricconf.xml"},
++		{"config", 10, 1, "<ibfabricconf>",
++		 "with '-f': specify an alternate config file default: "IBFC_DEF_CONFIG},
++		{"downnodes", 11, 1, "<nodelist>",
++		 "with '-f': specify nodes which are known to be off.  "
++		 "Suppreses \"down port\" errors on links connected to those nodes"},
++		{"smlid", 12, 1, "<smlid>",
++		 "with '-f': specify an smlid to verify on all active ports\n"},
++		{"addr-info", 13, 0, "",
++		 "with '-f': print node/port GUID and LID information \n"},
++#endif /* HAVE_XML */
++		{"GNDN", 'R', 0, NULL,
++		 "(This option is obsolete and does nothing)\n"
++		"Common Options:\n"},
+ 		{0}
+ 	};
+ 	char usage_args[] = "";
+@@ -996,6 +1036,17 @@ int main(int argc, char **argv)
+ 		ibnd_iter_nodes(fabric, print_node, NULL);
+ 
+ 	rc = print_summary();
++#ifdef HAVE_XML
++	if (check_mode) {
++		printf("\n");
++		check_flags.all = 0;
++		check_flags.guid_str = port_guid_str;
++		check_flags.guid = port_guid;
++		check_flags.dr_path = dr_path;
++		rc |= check_links(&portid, ibmad_port, fabric, node_name_map,
++				&check_flags);
++	}
++#endif /* HAVE_XML */
+ 	if (rc)
+ 		rc = 1;
+ 
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
