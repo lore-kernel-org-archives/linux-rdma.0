@@ -1,118 +1,81 @@
-From: dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: Independent server management of Multicasting connections
-Date: Tue, 22 Nov 2011 12:33:51 -0700
-Message-ID: <20111122123351.3062401wh8eggf8f@celticblues.com>
+Date: Tue, 22 Nov 2011 20:01:44 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E9BDB4@ORSMSX101.amr.corp.intel.com>
 References: <20111121071551.14306gf6ogr9z8yf@celticblues.com>
  <1828884A29C6694DAF28B7E6B8A8237316E9B9E9@ORSMSX101.amr.corp.intel.com>
+ <20111122123351.3062401wh8eggf8f@celticblues.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E9B9E9-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20111122123351.3062401wh8eggf8f-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org" <dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-[These questions are related to my original questions in the post data  
-11/21 7:15 AM MST, subject: Independent server management of  
-Multicasting connections]
+> The original post was to determine if it were possible to have server
+> app that managed the data required to establish multicast IB
+> communctions between 2 or more nodes.  Each node would initialize
+> itself as needed wrt IB and each node would request from the server,
+> as I now understand, the qpn, qkey and address handle for the
+> multicast group it desired to communicate with.  The server, having
+> created dynamically through the SA, the multicast group, would return
+> said data and then the node would be able to begin posting multicast
+> sends, or receives.  Alternatively, if I understand correctly, I can
+> create the multicast group on start up of the opensmd.
 
-The original post was to determine if it were possible to have server  
-app that managed the data required to establish multicast IB  
-communctions between 2 or more nodes.  Each node would initialize  
-itself as needed wrt IB and each node would request from the server,  
-as I now understand, the qpn, qkey and address handle for the  
-multicast group it desired to communicate with.  The server, having  
-created dynamically through the SA, the multicast group, would return  
-said data and then the node would be able to begin posting multicast  
-sends, or receives.  Alternatively, if I understand correctly, I can  
-create the multicast group on start up of the opensmd.
+Every node that wants to participate in a multicast group must join the group.  This is usually done by having the node that wishes to join send a multicast join request directly to the SA.  (Note that the join request can also create the group.)  There are 2 interfaces available to applications that result in sending join requests: umad and the rdma_cm.
 
-In the rdma and multicast examples I have seen, each node sets up an  
-rdma cm event channel.  The node then polls for events.
+Node X cannot join a multicast group and pass its multicast address to Node Y.  Each join request must be for a specific node.  I believe it's architecturally possible for node X to send the join request on behalf of node Y, I don't know if anyone has ever tried that or if the existing implementations support that.
 
-I had hoped to be able to avoid using the rdma_cm and avoid having to  
-monitor an rdma_cm event channel. What I think I would like to do is  
-have each node of my sim initialize it's side of the communiction,  
-which I think should include
+Also, be aware that the SA manages multicast joins per node and not per request.  I.e. If node X joins a group twice, followed by 1 leave request, the node will be removed from the group.  The SA does not perform reference counting.  (It cannot distinguish between 2 separate requests, versus a single request that may have been retried.)
 
-rdma_bind_addr
-rdma_resolve_addr
-ibv_create_ah
-rdma_join_multicast
+> In the rdma and multicast examples I have seen, each node sets up an
+> rdma cm event channel.  The node then polls for events.
 
-then ibv_post_send/ibv_post_recv as required.
+The rdma_cm also supports synchronous operation.  If an rdma_cm_id is created without an event channel, all calls will block until they complete.  Any results (e.g. communication parameters) are returned in the rdma_cm_id.  See rdma_client and rdma_server for examples of synchronous operation.  (Those establish a connection, but the same principals apply.)
 
-However, the rdma_* calls require an rdma_cm_id which I won't have if  
-I don't use the rdma cm.
+> I had hoped to be able to avoid using the rdma_cm and avoid having to
+> monitor an rdma_cm event channel. What I think I would like to do is
+> have each node of my sim initialize it's side of the communiction,
+> which I think should include
+> 
+> rdma_bind_addr
+> rdma_resolve_addr
+> ibv_create_ah
+> rdma_join_multicast
 
-Can I bypass using the rdma cm and the polling of the event channel?   
-Or perhaps am I going to have to establish an event channel between my  
-management server and each individual node?  On the other hand, if I  
-can terminate the polling of the event channel once initialization is  
-done, maybe I don't mind the rdma cm....
+You should be able to eliminate rdma_bind_addr and pass in the source address into rdma_resolve_addr.  If your IP routing tables will resolve a multicast address to an IPoIB device, you can eliminate the source address completely.  (rdma_resolve_addr calls rdma_bind_addr internally.)
 
-Can I bypass the polling of the completion queue?... which would imply  
-I am simply trusting the data arrived at its destination?
+The ibv_create_ah must come after rdma_join_multicast, after you have the join response.
 
-Sorry to ask so many questions.  Are they any good books on this  
-programming infiniband?
+> then ibv_post_send/ibv_post_recv as required.
+> 
+> However, the rdma_* calls require an rdma_cm_id which I won't have if
+> I don't use the rdma cm.
 
-CD
+correct
+ 
+> Can I bypass using the rdma cm and the polling of the event channel?
+> Or perhaps am I going to have to establish an event channel between my
+> management server and each individual node?  On the other hand, if I
+> can terminate the polling of the event channel once initialization is
+> done, maybe I don't mind the rdma cm....
 
+See above to use synchronous operation and avoid polling the event channel.
+ 
+> Can I bypass the polling of the completion queue?... which would imply
+> I am simply trusting the data arrived at its destination?
 
-Quoting "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
+You must poll the CQ to avoid overrunning the send queue.  Multicast is unreliable, so a successful completion simply means that the data was transmitted without error.  It does not guarantee that the receiver has it.  Using QP based communication isn't trivial...
+ 
+> Sorry to ask so many questions.  Are they any good books on this
+> programming infiniband?
 
->>  From what I understand, and I may not understand correctly, to
->> perform IB Multicast, betweeen two nodes, I need to swap addresses and
->> remote keys for the two nodes.  In the examples I have seen this has
->
-> You only need to do this for unicast UD.  Multicast doesn't require  
-> exchanging addresses and qkeys, but see below.
->
->> been done via RDMA CM directly between the two nodes.  Does it matter
->> how this information is exchanged?  In my application I will have
->
-> For multicast, you need to 1. have the SA create the multicast group  
-> and 2. join the group.  To create the group, you need to either have  
-> the SA automatically create the group (if this is possible) or  
-> create it dynamically.  To create the group dynamically from user  
-> space, you should use the rdma_cm or ib_umad interfaces.  The  
-> rdma_cm is easier.
->
-> To join the group, you need to let the SA know that the node should  
-> receive multicast traffic, so that it can program the switches.   
-> This is done through the rdma_cm (easy way) or using ib_umad (hard  
-> way that gets harder if you want to support multiple applications  
-> joining the same group from the same system).
->
->> several nodes multicasting to several other nodes and I want to manage
->> the connections from a independent application.  What I would like to
->> do is write this application, server, etc. so that each node would
->> request connection with another node and then be provied with the
->> information it needs to multicast.  For example... Node 1 would
->> request a connection (from the server app) Node 2 and Node 2 would
->> request a connection (again, from the server app) to Node 1.  The
->> Server app would provide Node 2's "credentials" to Node 1 and likewise
->> to Node 2.  Is this even possible?
->
-> The SA basically does the work that you're describing for your  
-> server app.  Node 1 can ask the SA to create a multicast group.   
-> Node 2 can ask to join that group.  Somehow node 2 needs to know  
-> what group node 1 created.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
+I'm not aware of any books, let alone good ones...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
