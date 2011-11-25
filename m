@@ -1,18 +1,21 @@
 From: Prasanna Vv <prasanna.vv-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: QoS SL=>VL issue in user mode =?UTF-8?B?bGlicmRtYWNt4oCP?=
-Date: Fri, 25 Nov 2011 18:57:09 +0530
-Message-ID: <4ECF97AD.90904@oracle.com>
+Date: Fri, 25 Nov 2011 19:05:23 +0530
+Message-ID: <4ECF999B.9010306@oracle.com>
+References: <4ECF97AD.90904@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4ECF97AD.90904-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Hi
 I configure QoS in user mode  using librdmacm call:
-rdma_set_option(cm_id, RDMA_OPTION_ID,RDMA_OPTION_ID_TOS, &tos, sizeof _tos)
+rdma_set_option(cm_id, RDMA_OPTION_ID,RDMA_OPTION_ID_TOS, &tos, sizeof 
+_tos)
 
 After the connection is established, i query ibv_query_qp (and also 
 cm_id->route.path_rec->sl) to check SL, which is correct as per the qos 
