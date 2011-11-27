@@ -1,45 +1,52 @@
-From: Prasanna Vv <prasanna.vv-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: QoS SL=>VL issue in user mode =?UTF-8?B?bGlicmRtYWNt4oCP?=
-Date: Fri, 25 Nov 2011 19:05:23 +0530
-Message-ID: <4ECF999B.9010306@oracle.com>
-References: <4ECF97AD.90904@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4ECF97AD.90904-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Cong Wang <amwang@redhat.com>
+Subject: [PATCH 16/62] infiniband: remove the second argument of k[un]map_atomic()
+Date: Sun, 27 Nov 2011 13:26:56 +0800
+Message-ID: <1322371662-26166-17-git-send-email-amwang@redhat.com>
+References: <1322371662-26166-1-git-send-email-amwang@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1322371662-26166-1-git-send-email-amwang@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: akpm@linux-foundation.org, Cong Wang <amwang@redhat.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi
-I configure QoS in user mode  using librdmacm call:
-rdma_set_option(cm_id, RDMA_OPTION_ID,RDMA_OPTION_ID_TOS, &tos, sizeof 
-_tos)
 
-After the connection is established, i query ibv_query_qp (and also 
-cm_id->route.path_rec->sl) to check SL, which is correct as per the qos 
-choice from qos_policy.config settings.
+Signed-off-by: Cong Wang <amwang@redhat.com>
+---
+ drivers/infiniband/ulp/iser/iser_memory.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-But the data transfer is not happening in correct VL as per SL=>VL.
-
-For example if SL is 3 the data transfer VL should be 3 (based on 
-SL2VLmaptable).
-Instead data is always transfered on VL:0, irrepective of SL value.
-
-Interestingly, the same thing is working properly in kernel mode when i 
-set tos using the call:
-  rdma_set_service_type(cm_id, conn->c_tos);
-If i use kernel mode rdma cm, SL=>VL is correct, data transfer post send 
-takes place on VL based on SL.
-
-Do you have clue why the user mode libibverb is not tranfering on VL 
-based on SL.
-
-Thanks,
-Prasanna
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index fb88d68..2033a92 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -73,11 +73,11 @@ static int iser_start_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
+ 
+ 		p = mem;
+ 		for_each_sg(sgl, sg, data->size, i) {
+-			from = kmap_atomic(sg_page(sg), KM_USER0);
++			from = kmap_atomic(sg_page(sg));
+ 			memcpy(p,
+ 			       from + sg->offset,
+ 			       sg->length);
+-			kunmap_atomic(from, KM_USER0);
++			kunmap_atomic(from);
+ 			p += sg->length;
+ 		}
+ 	}
+@@ -133,11 +133,11 @@ void iser_finalize_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
+ 
+ 		p = mem;
+ 		for_each_sg(sgl, sg, sg_size, i) {
+-			to = kmap_atomic(sg_page(sg), KM_SOFTIRQ0);
++			to = kmap_atomic(sg_page(sg));
+ 			memcpy(to + sg->offset,
+ 			       p,
+ 			       sg->length);
+-			kunmap_atomic(to, KM_SOFTIRQ0);
++			kunmap_atomic(to);
+ 			p += sg->length;
+ 		}
+ 	}
+-- 
+1.7.4.4
