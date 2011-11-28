@@ -1,90 +1,75 @@
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: ibacm: Check dynamic memory allocation results
-Date: Mon, 28 Nov 2011 14:22:10 +0200
-Message-ID: <201111281422.11012.dotanb@sw.voltaire.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] libibmad: Add support for SA NodeRecord
+Date: Mon, 28 Nov 2011 09:01:28 -0500
+Message-ID: <4ED39438.8050109@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-After allocation of dynamic memory blocks, check that the allocation succeeded,
-if it failed handle it gracefully.
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Erez Shitrit <erezsh-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/parse.c |   22 ++++++++++++++++------
- 1 files changed, 16 insertions(+), 6 deletions(-)
-
-diff --git a/src/parse.c b/src/parse.c
-index d1c820f..6ab6041 100644
---- a/src/parse.c
-+++ b/src/parse.c
-@@ -71,14 +71,15 @@ static char *expand(char *basename, char *args, int *str_cnt, int *str_size)
+diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+index 199b05f..09b334f 100644
+--- a/include/infiniband/mad.h
++++ b/include/infiniband/mad.h
+@@ -1208,6 +1208,24 @@ enum MAD_FIELDS {
+ 	IB_CC_TIMESTAMP_F = IB_CC_TIMESTAMP_FIRST_F,
+ 	IB_CC_TIMESTAMP_LAST_F,
  
- char **parse(char *args, int *count)
- {
--	char **ptrs;
-+	char **ptrs = NULL;
- 	char *str_buf, *cpy, *token, *next;
- 	int cnt = 0, str_size = 0;
- 	int i;
- 
- 	/* make a copy that strtok can modify */
--	cpy = malloc(strlen(args) + 1);
--	strcpy(cpy, args);
-+	cpy = strdup(args);
-+	if (!cpy)
-+		return NULL;
- 
- 	if (args[0] == '[') {
- 		cpy[0] = '\0';
-@@ -92,6 +93,8 @@ char **parse(char *args, int *count)
- 	if (!next) {
- 		str_size = strlen(token) + 1;
- 		str_buf = malloc(str_size);
-+		if (!str_buf)
-+			goto out_cpy;
- 		strcpy(str_buf, token);
- 		cnt = 1;
- 	} else {
-@@ -99,6 +102,9 @@ char **parse(char *args, int *count)
- 	}
- 
- 	ptrs = malloc((sizeof str_buf * (cnt + 1)) + str_size);
-+	if (!ptrs)
-+		goto out_str_buf;
++	/*
++	 * Node Record
++	 */
++	IB_SA_NR_LID_F,
++	IB_SA_NR_BASEVER_F,
++	IB_SA_NR_CLASSVER_F,
++	IB_SA_NR_TYPE_F,
++	IB_SA_NR_NPORTS_F,
++	IB_SA_NR_SYSTEM_GUID_F,
++	IB_SA_NR_GUID_F,
++	IB_SA_NR_PORT_GUID_F,
++	IB_SA_NR_PARTITION_CAP_F,
++	IB_SA_NR_DEVID_F,
++	IB_SA_NR_REVISION_F,
++	IB_SA_NR_LOCAL_PORT_F,
++	IB_SA_NR_VENDORID_F,
++	IB_SA_NR_NODEDESC_F,
 +
- 	memcpy(&ptrs[cnt + 1], str_buf, str_size);
+ 	IB_FIELD_LAST_		/* must be last */
+ };
  
- 	ptrs[0] = (char*) &ptrs[cnt + 1];
-@@ -106,10 +112,14 @@ char **parse(char *args, int *count)
- 		ptrs[i] = index(ptrs[i - 1], 0) + 1;
- 	ptrs[i] = NULL;
+diff --git a/src/fields.c b/src/fields.c
+index c7402b7..68b9682 100644
+--- a/src/fields.c
++++ b/src/fields.c
+@@ -909,6 +909,22 @@ static const ib_field_t ib_mad_f[] = {
+ 	 */
+ 	{0, 32, "Timestamp", mad_dump_uint},
  
--	free(cpy);
--	free(str_buf);
--
- 	if (count)
- 		*count = cnt;
++	/* Node Record */
++	{BITSOFFS(0, 16), "Lid", mad_dump_uint},
++	{BITSOFFS(32, 8), "BaseVers", mad_dump_uint},
++	{BITSOFFS(40, 8), "ClassVers", mad_dump_uint},
++	{BITSOFFS(48, 8), "NodeType", mad_dump_node_type},
++	{BITSOFFS(56, 8), "NumPorts", mad_dump_uint},
++	{64, 64, "SystemGuid", mad_dump_hex},
++	{128, 64, "Guid", mad_dump_hex},
++	{192, 64, "PortGuid", mad_dump_hex},
++	{BITSOFFS(256, 16), "PartCap", mad_dump_uint},
++	{BITSOFFS(272, 16), "DevId", mad_dump_hex},
++	{288, 32, "Revision", mad_dump_hex},
++	{BITSOFFS(320, 8), "LocalPort", mad_dump_uint},
++	{BITSOFFS(328, 24), "VendorId", mad_dump_hex},
++	{352, 64 * 8, "NodeDesc", mad_dump_string},
 +
-+out_str_buf:
-+        free(str_buf);
-+
-+out_cpy:
-+	free(cpy);
-+
- 	return ptrs;
- }
--- 
-1.7.4.1
-
+ 	{0, 0}			/* IB_FIELD_LAST_ */
+ 
+ };
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
