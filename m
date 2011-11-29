@@ -1,20 +1,40 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ibacm: Check dynamic memory allocation results
-Date: Mon, 28 Nov 2011 20:24:50 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E9C78E@ORSMSX101.amr.corp.intel.com>
-References: <201111282135.11283.dotanb@sw.voltaire.com>
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V2 02/10] cxgb4: Common platform specific changes for
+ DB Drop Recovery
+Date: Tue, 29 Nov 2011 15:43:27 +0530
+Message-ID: <4ED4B047.3080906@chelsio.com>
+References: <1319130620-9240-1-git-send-email-vipul@chelsio.com> <8A71B368A89016469F72CD08050AD3340A3D3120@maui.asicdesigners.com> <CAL1RGDXoeJNYz3R58bU-ixRyY1uKNgGPdUrWZ4nbcuyRDjL6Cg@mail.gmail.com> <20111028182234.GA11554@kumars-PC.asicdesigners.com> <CAL1RGDVQJUb2sM+Yo1sYVO5o-GhyBCOGo3_Q0U7YkR0GAoFgfg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201111282135.11283.dotanb-g2bIKuvJtcQanlnWow0HJg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAL1RGDVQJUb2sM+Yo1sYVO5o-GhyBCOGo3_Q0U7YkR0GAoFgfg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dimitrios Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-thanks - applied
+Hi Roland,
+
+This is just a gentle reminder to confirm if this patch series is going
+to get merge for 3.2?
+
+Let us know if something is missing from our side since i don't see the
+patches yet in your infiniband tree's for-next branch.
+
+Thanks,
+Vipul
+
+On 28-10-2011 23:58, Roland Dreier wrote:
+
+>> Vipul did a respin of this patch, and posted the V3 version.
+>> Its available here:
+>> http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg09659.html
+> 
+> Got it, thanks.
+> 
+>  - R.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
