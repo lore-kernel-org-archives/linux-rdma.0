@@ -1,34 +1,45 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Marc Aurele La France <tsi@ualberta.ca>
 Subject: Re: RCU'ed dst_get_neighbour()
-Date: Tue, 29 Nov 2011 12:56:25 -0800
-Message-ID: <CAG4TOxOq0Aj+zt_6s4ebmZP1v3COYpozm7mmaSBHF=1yVaJ8Lw@mail.gmail.com>
-References: <alpine.WNT.2.00.1111291027320.1036@TSI> <1322589661.2596.2.camel@edumazet-laptop>
- <1322599437.2596.10.camel@edumazet-laptop> <CAG4TOxNJfr3X1p358LBWdNQKdkw8KOSekcKpNu6K5_phPEiR4A@mail.gmail.com>
- <1322599991.2596.11.camel@edumazet-laptop>
+Date: Tue, 29 Nov 2011 14:00:44 -0700 (Mountain Standard Time)
+Message-ID: <alpine.WNT.2.00.1111291359290.1036@TSI>
+References: <alpine.WNT.2.00.1111291027320.1036@TSI> <1322589661.2596.2.camel@edumazet-laptop> <1322599437.2596.10.camel@edumazet-laptop> <CAG4TOxNJfr3X1p358LBWdNQKdkw8KOSekcKpNu6K5_phPEiR4A@mail.gmail.com> <1322599991.2596.11.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="17891750-19608-1322600445=:1036"
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1322599991.2596.11.camel@edumazet-laptop>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Marc Aurele La France <tsi-yfeSBMgouQgsA/PxXw9srA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: netdev-owner@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Roland Dreier <roland@kernel.org>, David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-OK, haven't sent it on yet :)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Tue, Nov 29, 2011 at 12:53 PM, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>=
- wrote:
-> Le mardi 29 novembre 2011 =E0 12:47 -0800, Roland Dreier a =E9crit :
+--17891750-19608-1322600445=:1036
+Content-Type: TEXT/PLAIN; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8BIT
+
+On Tue, 29 Nov 2011, Eric Dumazet wrote:
+
+> Le mardi 29 novembre 2011 à 12:47 -0800, Roland Dreier a écrit :
 >> Thanks Eric, I'll send this to Linus shortly.
->
+
 > Oh well, I forgot one rcu_read_unlock(), I'll send a V2...
->
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+This also doesn't address the other dst_get_neighbour() instances 
+introduced by 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=69cce1d1404968f78b177a0314f5822d5afdbbfb
+
+Marc.
+
++----------------------------------+----------------------------------+
+|  Marc Aurele La France           |  work:   1-780-492-9310          |
+|  Academic Information and        |  fax:    1-780-492-1729          |
+|    Communications Technologies   |  email:  tsi@ualberta.ca         |
+|  352 General Services Building   +----------------------------------+
+|  University of Alberta           |                                  |
+|  Edmonton, Alberta               |    Standard disclaimers apply    |
+|  T6G 2H1                         |                                  |
+|  CANADA                          |                                  |
++----------------------------------+----------------------------------+
+--17891750-19608-1322600445=:1036--
