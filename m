@@ -1,55 +1,26 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Wed, 30 Nov 2011 09:50:59 -0800
-Message-ID: <1322675459-24792-1-git-send-email-roland@kernel.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] [libibverbs] Allow 3rd party extensions to verb routines
+Date: Wed, 30 Nov 2011 21:38:09 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237323FC1C38@ORSMSX102.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A8237316E8D0DA@ORSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E8D0DA-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+Roland and everyone else,
 
-Please pull from
+Have you had a chance to think about this patch?  It would be nice to have user space xrc support defined to match up with the kernel.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+Also, any thoughts on the direction of AF_IB for adding support for native IB addresses through the rdma_cm?
 
-This will get a few fixes:
-
- - Fixes for missing RCU read locking due to net neighbour changes
- - Fix for IPoIB softlockup in error path
- - Low-level driver fixes to cxgb4 and qib
-
-Thanks!
-
-Eric Dumazet (1):
-      IB: Fix RCU lockdep splats
-
-Jonathan Lallinger (1):
-      RDMA/cxgb4: Fix iw_cxgb4 count_rcqes() logic
-
-Kumar Sanghvi (1):
-      RDMA/cxgb4: Fix retry with MPAv1 logic for MPAv2
-
-Mike Marciniszyn (3):
-      IB/qib: Don't use schedule_work()
-      IB/qib: Fix over-scheduling of QSFP work
-      IB/ipoib: Prevent hung task or softlockup processing multicast response
-
-Roland Dreier (1):
-      Merge branches 'cxgb4', 'ipoib', 'misc' and 'qib' into for-next
-
- drivers/infiniband/core/addr.c                 |    9 ++++++---
- drivers/infiniband/hw/cxgb3/iwch_cm.c          |    4 ++++
- drivers/infiniband/hw/cxgb4/cm.c               |   10 +++++++++-
- drivers/infiniband/hw/cxgb4/cq.c               |    2 +-
- drivers/infiniband/hw/nes/nes_cm.c             |    6 ++++--
- drivers/infiniband/hw/qib/qib_iba7322.c        |   18 +++++++++---------
- drivers/infiniband/hw/qib/qib_qsfp.c           |   12 ------------
- drivers/infiniband/ulp/ipoib/ipoib_ib.c        |   13 ++++++++-----
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |   20 ++++++++++++--------
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   13 +++++++++----
- 10 files changed, 62 insertions(+), 45 deletions(-)
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
