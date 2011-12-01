@@ -1,46 +1,84 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: =?Windows-1252?Q?[RFC]_=96_Proposal_for_new_process_for_OFED_releases?=
-Date: Thu, 1 Dec 2011 19:53:28 +0000
-Message-ID: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA@MTLDAG01.mtl.com>
+From: chas williams - CONTRACTOR <chas-vT06rRrALxcmhCb6mdbn6A@public.gmane.org>
+Subject: Re: [PATCH 06/14] ib_srp: Micro-optimize completion handlers
+Date: Thu, 1 Dec 2011 16:35:39 -0500
+Message-ID: <20111201163539.572ca669@thirdoffive.cmf.nrl.navy.mil>
+References: <201112011954.25811.bvanassche@acm.org>
+	<201112012002.17829.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <201112012002.17829.bvanassche-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+perhaps this should use the unlikely() macro instead:
 
-We propose a new process for the OFED releases starting from next OFED release:
-- OFED content will be the relevant kernel.org modules and user space released packages
-- OFED will offer only backports to the distros  (no fixes)
-- OFED package will be used for easy installation of all packages in a friendly manner
+	if (unlikely(wc.status)) {
+		...
+	}
 
-The main goals of this change:
-1. Ensure OFED and the upstream kernel are the same
-2. Provide customers a way to use the new features in latest kernels on existing distros
-3. OFED qualification will contribute to the stability of the upstream code 
- 
-We think that at this point of the RDMA technology maturity this is the right way to go.
-In this way OFED is not conflicting with the kernel or the distros, and still provide a valuable value for early adopters of new features.
+	...
 
-Versions:
-We suggest that the OFED version will be the same as kernel.org
-For example, for kernel 3.2 the OFED release would be OFED-3.2. 
-This would make it easy for people to associate the OFED code with the corresponding kernel.org code.
+On Thu, 1 Dec 2011 20:02:17 +0100
+Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
 
-Some open questions that we should consider:
-- How to handle experimental features?
-- Need to follow up kernel stable releases if bug fixes are relevant to OFA modules
-- Should we have a release for every kernel release (I think yes)
-- What should we do with modules like SDP that are not in kernel?
-
-Comments and responses are welcome
-The decision will be taken in the next EWG meeting.
-
-Tziporet & Woody
+> Help the CPU branch predictor by rearranging two if-statements such
+> that the most likely code is in the if-part instead of the else-part.
+> 
+> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/srp/ib_srp.c |   14 +++++++-------
+>  1 files changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index a2624bf..e6d1aef 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -1224,15 +1224,15 @@ static void srp_recv_completion(struct ib_cq *cq, void *target_ptr)
+>  
+>  	ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+>  	while (ib_poll_cq(cq, 1, &wc) > 0) {
+> -		if (wc.status) {
+> +		if (wc.status == IB_WC_SUCCESS) {
+> +			srp_handle_recv(target, &wc);
+> +		} else {
+>  			shost_printk(KERN_ERR, target->scsi_host,
+>  				     PFX "failed receive status %d\n",
+>  				     wc.status);
+>  			target->qp_in_error = 1;
+>  			break;
+>  		}
+> -
+> -		srp_handle_recv(target, &wc);
+>  	}
+>  }
+>  
+> @@ -1243,16 +1243,16 @@ static void srp_send_completion(struct ib_cq *cq, void *target_ptr)
+>  	struct srp_iu *iu;
+>  
+>  	while (ib_poll_cq(cq, 1, &wc) > 0) {
+> -		if (wc.status) {
+> +		if (wc.status == IB_WC_SUCCESS) {
+> +			iu = (struct srp_iu *) (uintptr_t) wc.wr_id;
+> +			list_add(&iu->list, &target->free_tx);
+> +		} else {
+>  			shost_printk(KERN_ERR, target->scsi_host,
+>  				     PFX "failed send status %d\n",
+>  				     wc.status);
+>  			target->qp_in_error = 1;
+>  			break;
+>  		}
+> -
+> -		iu = (struct srp_iu *) (uintptr_t) wc.wr_id;
+> -		list_add(&iu->list, &target->free_tx);
+>  	}
+>  }
+>  
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
