@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 02/14] ib_srp: Consolidate repetitive sysfs code
-Date: Thu, 1 Dec 2011 19:57:19 +0100
-Message-ID: <201112011957.19892.bvanassche@acm.org>
+Subject: [PATCH 03/14] ib_srp: Disallow duplicate logins
+Date: Thu, 1 Dec 2011 19:58:17 +0100
+Message-ID: <201112011958.17339.bvanassche@acm.org>
 References: <201112011954.25811.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -14,148 +14,68 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Dillow <dillowda-1
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove sysfs attributes before removing a target instead of
-testing the target state in every sysfs attribute callback
-method. Note: it is safe to invoke a sysfs attribute removal
-method like device_remove_file() twice on the same attribute.
+Currently the ib_srp driver allows to log in multiple times to the
+same target via its sysfs interface. This leads to each target LUN
+being imported multiple times at the initiator side, something that
+should not be allowed.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   49 ++++++++++++----------------------
- 1 files changed, 17 insertions(+), 32 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   32 ++++++++++++++++++++++++++++++++
+ 1 files changed, 32 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 5093cc6..868e7f8 100644
+index 868e7f8..2e0169b 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -474,6 +474,21 @@ static void srp_free_req_data(struct srp_target_port *target)
- 	}
+@@ -2095,6 +2095,34 @@ out:
+ 	return ret;
  }
  
 +/**
-+ * srp_del_scsi_host_attr() - Remove attributes defined in the host template.
-+ * @shost: SCSI host whose attributes to remove from sysfs.
++ * srp_target_exists() - Check whether a given target already exists.
 + *
-+ * Note: Any attributes defined in the host template and that did not exist
-+ * before invocation of this function will be ignored.
++ * Returns -EEXIST if the target already exists and 0 if not.
 + */
-+static void srp_del_scsi_host_attr(struct Scsi_Host *shost)
++static int srp_target_exists(struct srp_host *host,
++			     struct srp_target_port *target)
 +{
-+	struct device_attribute **attr;
++	struct srp_target_port *t;
++	int ret = 0;
 +
-+	for (attr = shost->hostt->shost_attrs; attr && *attr; ++attr)
-+		device_remove_file(&shost->shost_dev, *attr);
++	spin_lock(&host->target_lock);
++	list_for_each_entry(t, &host->target_list, list) {
++		WARN_ON(t == target);
++		if (target->id_ext == t->id_ext &&
++		    target->ioc_guid == t->ioc_guid &&
++		    memcmp(target->orig_dgid, t->orig_dgid, 16) == 0 &&
++		    target->path.pkey == t->path.pkey &&
++		    target->service_id == t->service_id) {
++			ret = -EEXIST;
++			break;
++		}
++	}
++	spin_unlock(&host->target_lock);
++
++	return ret;
 +}
 +
- static void srp_remove_work(struct work_struct *work)
- {
- 	struct srp_target_port *target =
-@@ -486,6 +501,7 @@ static void srp_remove_work(struct work_struct *work)
- 	list_del(&target->list);
- 	spin_unlock(&target->srp_host->target_lock);
+ static ssize_t srp_create_target(struct device *dev,
+ 				 struct device_attribute *attr,
+ 				 const char *buf, size_t count)
+@@ -2133,6 +2161,10 @@ static ssize_t srp_create_target(struct device *dev,
+ 	if (ret)
+ 		goto err;
  
-+	srp_del_scsi_host_attr(target->scsi_host);
- 	srp_remove_host(target->scsi_host);
- 	scsi_remove_host(target->scsi_host);
- 	ib_destroy_cm_id(target->cm_id);
-@@ -1678,10 +1694,6 @@ static ssize_t show_id_ext(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "0x%016llx\n",
- 		       (unsigned long long) be64_to_cpu(target->id_ext));
- }
-@@ -1691,10 +1703,6 @@ static ssize_t show_ioc_guid(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "0x%016llx\n",
- 		       (unsigned long long) be64_to_cpu(target->ioc_guid));
- }
-@@ -1704,10 +1712,6 @@ static ssize_t show_service_id(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "0x%016llx\n",
- 		       (unsigned long long) be64_to_cpu(target->service_id));
- }
-@@ -1717,10 +1721,6 @@ static ssize_t show_pkey(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "0x%04x\n", be16_to_cpu(target->path.pkey));
- }
- 
-@@ -1729,10 +1729,6 @@ static ssize_t show_dgid(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "%pI6\n", target->path.dgid.raw);
- }
- 
-@@ -1741,10 +1737,6 @@ static ssize_t show_orig_dgid(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "%pI6\n", target->orig_dgid);
- }
- 
-@@ -1753,10 +1745,6 @@ static ssize_t show_req_lim(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "%d\n", target->req_lim);
- }
- 
-@@ -1765,10 +1753,6 @@ static ssize_t show_zero_req_lim(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "%d\n", target->zero_req_lim);
- }
- 
-@@ -2431,6 +2415,7 @@ static void srp_remove_one(struct ib_device *device)
- 
- 		list_for_each_entry_safe(target, tmp_target,
- 					 &host->target_list, list) {
-+			srp_del_scsi_host_attr(target->scsi_host);
- 			srp_remove_host(target->scsi_host);
- 			scsi_remove_host(target->scsi_host);
- 			srp_disconnect_target(target);
++	ret = srp_target_exists(host, target);
++	if (ret)
++		goto err;
++
+ 	if (!host->srp_dev->fmr_pool && !target->allow_ext_sg &&
+ 				target->cmd_sg_cnt < target->sg_tablesize) {
+ 		pr_warn("No FMR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
 -- 
 1.7.3.4
 
