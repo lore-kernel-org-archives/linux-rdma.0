@@ -1,137 +1,47 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCHv2 2/2] infiniband-diags/perfquery.c: Fix reset for
- PortExtendedSpeedsCounters
-Date: Thu, 1 Dec 2011 11:58:08 -0800
-Message-ID: <20111201115808.28ad5c08.weiny2@llnl.gov>
-References: <4ED7B005.3040908@dev.mellanox.co.il>
+From: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: =?Windows-1252?Q?[RFC]_=96_Proposal_for_new_process_for_OFED_releases?=
+Date: Thu, 1 Dec 2011 19:53:28 +0000
+Message-ID: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4ED7B005.3040908-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 1 Dec 2011 08:49:09 -0800
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-> infiniband-diags/perfquery.c: Fix reset for PortExtendedSpeedsCounters
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+We propose a new process for the OFED releases starting from next OFED release:
+- OFED content will be the relevant kernel.org modules and user space released packages
+- OFED will offer only backports to the distros  (no fixes)
+- OFED package will be used for easy installation of all packages in a friendly manner
 
-Thanks applied,
-Ira
+The main goals of this change:
+1. Ensure OFED and the upstream kernel are the same
+2. Provide customers a way to use the new features in latest kernels on existing distros
+3. OFED qualification will contribute to the stability of the upstream code 
+ 
+We think that at this point of the RDMA technology maturity this is the right way to go.
+In this way OFED is not conflicting with the kernel or the distros, and still provide a valuable value for early adopters of new features.
 
-> ---
-> Changes since v1:
-> Patch now against separated/recent infiniband-diags tree
-> 
-> diff --git a/src/perfquery.c b/src/perfquery.c
-> index 859ddbb..3ebf1cc 100644
-> --- a/src/perfquery.c
-> +++ b/src/perfquery.c
-> @@ -401,12 +401,56 @@ static void rcv_err_query(ib_portid_t * portid, int port, int mask)
->  		    mad_dump_perfcounters_rcv_err);
->  }
->  
-> -static void extended_speeds_query(ib_portid_t * portid, int port, int mask)
-> +static uint8_t *ext_speeds_reset_via(void *rcvbuf, ib_portid_t * dest,
-> +				     int port, uint64_t mask, unsigned timeout,
-> +				     const struct ibmad_port * srcport)
->  {
-> -	common_func(portid, port, mask, !reset_only, (reset_only || reset),
-> -		    "PortExtendedSpeedsCounters",
-> -		    IB_GSI_PORT_EXT_SPEEDS_COUNTERS,
-> -		    mad_dump_port_ext_speeds_counters);
-> +	ib_rpc_t rpc = { 0 };
-> +	int lid = dest->lid;
-> +
-> +	DEBUG("lid %u port %d mask 0x%" PRIx64, lid, port, mask);
-> +
-> +	if (lid == -1) {
-> +		IBWARN("only lid routed is supported");
-> +		return NULL;
-> +	}
-> +
-> +	if (!mask)
-> +		mask = ~0;
-> +
-> +	rpc.mgtclass = IB_PERFORMANCE_CLASS;
-> +	rpc.method = IB_MAD_METHOD_SET;
-> +	rpc.attr.id = IB_GSI_PORT_EXT_SPEEDS_COUNTERS;
-> +
-> +	memset(rcvbuf, 0, IB_MAD_SIZE);
-> +
-> +	mad_set_field(rcvbuf, 0, IB_PESC_PORT_SELECT_F, port);
-> +	mad_set_field64(rcvbuf, 0, IB_PESC_COUNTER_SELECT_F, mask);
-> +	rpc.attr.mod = 0;
-> +	rpc.timeout = timeout;
-> +	rpc.datasz = IB_PC_DATA_SZ;
-> +	rpc.dataoffs = IB_PC_DATA_OFFS;
-> +	if (!dest->qp)
-> +		dest->qp = 1;
-> +	if (!dest->qkey)
-> +		dest->qkey = IB_DEFAULT_QP1_QKEY;
-> +
-> +	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
-> +}
-> +
-> +static void extended_speeds_query(ib_portid_t * portid, int port, uint64_t ext_mask)
-> +{
-> +	int mask = ext_mask;
-> +
-> +	if (!reset_only)
-> +		common_func(portid, port, mask, 1, 0,
-> +			    "PortExtendedSpeedsCounters",
-> +			    IB_GSI_PORT_EXT_SPEEDS_COUNTERS,
-> +			    mad_dump_port_ext_speeds_counters);
-> +
-> +	if ((reset_only || reset) &&
-> +	    !ext_speeds_reset_via(pc, portid, port, ext_mask, ibd_timeout, srcport))
-> +		IBERROR("cannot reset PortExtendedSpeedsCounters");
->  }
->  
->  void dump_portsamples_control(ib_portid_t * portid, int port)
-> @@ -472,6 +516,7 @@ int main(int argc, char **argv)
->  	};
->  	ib_portid_t portid = { 0 };
->  	int mask = 0xffff;
-> +	uint64_t ext_mask = 0xffffffffffffffff;
->  	uint16_t cap_mask;
->  	int all_ports_loop = 0;
->  	int node_type, num_ports = 0;
-> @@ -518,8 +563,10 @@ int main(int argc, char **argv)
->  
->  	if (argc > 1)
->  		port = strtoul(argv[1], 0, 0);
-> -	if (argc > 2)
-> -		mask = strtoul(argv[2], 0, 0);
-> +	if (argc > 2) {
-> +		ext_mask = strtoull(argv[2], 0, 0);
-> +		mask = ext_mask;
-> +	}
->  
->  	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 4);
->  	if (!srcport)
-> @@ -569,7 +618,7 @@ int main(int argc, char **argv)
->  	}
->  
->  	if (extended_speeds) {
-> -		extended_speeds_query(&portid, port, mask);
-> +		extended_speeds_query(&portid, port, ext_mask);
->  		goto done;
->  	}
->  
+Versions:
+We suggest that the OFED version will be the same as kernel.org
+For example, for kernel 3.2 the OFED release would be OFED-3.2. 
+This would make it easy for people to associate the OFED code with the corresponding kernel.org code.
 
+Some open questions that we should consider:
+- How to handle experimental features?
+- Need to follow up kernel stable releases if bug fixes are relevant to OFA modules
+- Should we have a release for every kernel release (I think yes)
+- What should we do with modules like SDP that are not in kernel?
 
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Comments and responses are welcome
+The decision will be taken in the next EWG meeting.
+
+Tziporet & Woody
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
