@@ -1,45 +1,34 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 01/14] ib_srp: Introduce pr_fmt()
-Date: Thu, 01 Dec 2011 18:40:05 -0500
-Message-ID: <1322782805.11664.11.camel@lap75545.ornl.gov>
+From: David Dillow <dillowda@ornl.gov>
+Subject: Re: [PATCH 00/14] Make ib_srp better suited for H.A. purposes
+Date: Thu, 01 Dec 2011 18:26:55 -0500
+Message-ID: <1322782015.11664.4.camel@lap75545.ornl.gov>
 References: <201112011954.25811.bvanassche@acm.org>
- <201112011955.47198.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <201112011955.47198.bvanassche-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-reply-to: <201112011954.25811.bvanassche@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Vu Pham <vuhuong@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2011-12-01 at 13:55 -0500, Bart Van Assche wrote:
-> Make the logging code more a little more brief by replacing
-> printk(KERN_WARNING PFX ...) by pr_warn(...) and by replacing
-> printk(KERN_ERR PFX ...) by pr_err(...). Remove one trailing
-> space to avoid a checkpatch warning.
+On Thu, 2011-12-01 at 13:54 -0500, Bart Van Assche wrote:
+> This patch series makes the ib_srp driver better suited for use in a H.A.
+> setup because:
+> - Switchover without triggering read or write errors become possible. Such
+>   errors are bad because these can make a filesystem switch to read-only
+>   mode.
+> - A ping mechanism has been added that allows to reduce the switch-over
+>   time greatly.
+> - Disconnecting from a target without unloading ib_srp becomes possible.
+> - Switchover can be triggered explicitly by deleting an initiator device.
 
-This is a good step; three minor nits:
-1) Please go ahead and merge the multiline strings into one, even though
-checkpatch will complain about the line length. I'm not a huge fan of
-the long lines either, but Linus has clearly stated his preference for
-being able to grep the string in the message
-2) Please re-align the variables on wrapped lines to just after the (;
-below the work token should be pushed over by one space.
-3) All the commit message needs to really say is 'Using pr_* is
-preferred over printk.' Probably can just be the short summary, and no
-commit body needed. 
-
->  			if (token != SRP_REV10_IB_IO_CLASS &&
->  			    token != SRP_REV16A_IB_IO_CLASS) {
-> -				printk(KERN_WARNING PFX "unknown IO class parameter value"
-> +				pr_warn("unknown IO class parameter value"
->  				       " %x specified (use %x or %x).\n",
->  				       token, SRP_REV10_IB_IO_CLASS, SRP_REV16A_IB_IO_CLASS);
->  				goto out;
-
-Thanks!
+In general, I'm glad to see this being done. I won't have the time this
+week for a detailed review, but will take a look as soon as I can. I
+have a number of ideas I'd like to see implemented (and have partially
+done), so it will be interesting to see if we're using similar
+approaches.
 -- 
 Dave Dillow
 National Center for Computational Science
@@ -47,7 +36,3 @@ Oak Ridge National Laboratory
 (865) 241-6602 office
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
