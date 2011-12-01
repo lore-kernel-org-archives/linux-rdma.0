@@ -1,120 +1,32 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 2/2] infiniband-diags/perfquery.c: Fix reset for PortExtendedSpeedsCounters
-Date: Thu, 01 Dec 2011 11:49:09 -0500
-Message-ID: <4ED7B005.3040908@dev.mellanox.co.il>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] [libibverbs] Allow 3rd party extensions to verb routines
+Date: Thu, 1 Dec 2011 09:47:05 -0800
+Message-ID: <CAL1RGDVxfoC1F7EuD56JMspR26ELN1=UGazXN9jJ36+avqHRqQ@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237316E8D0DA@ORSMSX101.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A8237323FC1C38@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237323FC1C38-P5GAC/sN6hlcIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-infiniband-diags/perfquery.c: Fix reset for PortExtendedSpeedsCounters
+On Wed, Nov 30, 2011 at 1:38 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wro=
+te:
+> Have you had a chance to think about this patch? =A0It would be nice =
+to have user space xrc support defined to match up with the kernel.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v1:
-Patch now against separated/recent infiniband-diags tree
+I think this is the right approach -- need to get a big enough chunk
+of time to look into the details.
 
-diff --git a/src/perfquery.c b/src/perfquery.c
-index 859ddbb..3ebf1cc 100644
---- a/src/perfquery.c
-+++ b/src/perfquery.c
-@@ -401,12 +401,56 @@ static void rcv_err_query(ib_portid_t * portid, int port, int mask)
- 		    mad_dump_perfcounters_rcv_err);
- }
- 
--static void extended_speeds_query(ib_portid_t * portid, int port, int mask)
-+static uint8_t *ext_speeds_reset_via(void *rcvbuf, ib_portid_t * dest,
-+				     int port, uint64_t mask, unsigned timeout,
-+				     const struct ibmad_port * srcport)
- {
--	common_func(portid, port, mask, !reset_only, (reset_only || reset),
--		    "PortExtendedSpeedsCounters",
--		    IB_GSI_PORT_EXT_SPEEDS_COUNTERS,
--		    mad_dump_port_ext_speeds_counters);
-+	ib_rpc_t rpc = { 0 };
-+	int lid = dest->lid;
-+
-+	DEBUG("lid %u port %d mask 0x%" PRIx64, lid, port, mask);
-+
-+	if (lid == -1) {
-+		IBWARN("only lid routed is supported");
-+		return NULL;
-+	}
-+
-+	if (!mask)
-+		mask = ~0;
-+
-+	rpc.mgtclass = IB_PERFORMANCE_CLASS;
-+	rpc.method = IB_MAD_METHOD_SET;
-+	rpc.attr.id = IB_GSI_PORT_EXT_SPEEDS_COUNTERS;
-+
-+	memset(rcvbuf, 0, IB_MAD_SIZE);
-+
-+	mad_set_field(rcvbuf, 0, IB_PESC_PORT_SELECT_F, port);
-+	mad_set_field64(rcvbuf, 0, IB_PESC_COUNTER_SELECT_F, mask);
-+	rpc.attr.mod = 0;
-+	rpc.timeout = timeout;
-+	rpc.datasz = IB_PC_DATA_SZ;
-+	rpc.dataoffs = IB_PC_DATA_OFFS;
-+	if (!dest->qp)
-+		dest->qp = 1;
-+	if (!dest->qkey)
-+		dest->qkey = IB_DEFAULT_QP1_QKEY;
-+
-+	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
-+}
-+
-+static void extended_speeds_query(ib_portid_t * portid, int port, uint64_t ext_mask)
-+{
-+	int mask = ext_mask;
-+
-+	if (!reset_only)
-+		common_func(portid, port, mask, 1, 0,
-+			    "PortExtendedSpeedsCounters",
-+			    IB_GSI_PORT_EXT_SPEEDS_COUNTERS,
-+			    mad_dump_port_ext_speeds_counters);
-+
-+	if ((reset_only || reset) &&
-+	    !ext_speeds_reset_via(pc, portid, port, ext_mask, ibd_timeout, srcport))
-+		IBERROR("cannot reset PortExtendedSpeedsCounters");
- }
- 
- void dump_portsamples_control(ib_portid_t * portid, int port)
-@@ -472,6 +516,7 @@ int main(int argc, char **argv)
- 	};
- 	ib_portid_t portid = { 0 };
- 	int mask = 0xffff;
-+	uint64_t ext_mask = 0xffffffffffffffff;
- 	uint16_t cap_mask;
- 	int all_ports_loop = 0;
- 	int node_type, num_ports = 0;
-@@ -518,8 +563,10 @@ int main(int argc, char **argv)
- 
- 	if (argc > 1)
- 		port = strtoul(argv[1], 0, 0);
--	if (argc > 2)
--		mask = strtoul(argv[2], 0, 0);
-+	if (argc > 2) {
-+		ext_mask = strtoull(argv[2], 0, 0);
-+		mask = ext_mask;
-+	}
- 
- 	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 4);
- 	if (!srcport)
-@@ -569,7 +618,7 @@ int main(int argc, char **argv)
- 	}
- 
- 	if (extended_speeds) {
--		extended_speeds_query(&portid, port, mask);
-+		extended_speeds_query(&portid, port, ext_mask);
- 		goto done;
- 	}
- 
+I agree about getting userspace XRC support out there too.  I want to
+do a checkpoint release of libibverbs with IBoE support (ie what's in
+the tree already) and then get XRC in.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
