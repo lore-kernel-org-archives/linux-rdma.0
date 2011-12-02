@@ -1,62 +1,38 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: =?Windows-1252?Q?RE:_[RFC]_=96_Proposal_for_new_process_for_OFED_releases?=
-Date: Fri, 2 Dec 2011 00:04:36 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237323FC20F5@ORSMSX102.amr.corp.intel.com>
+From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] - Proposal for new process for OFED releases
+Date: Thu, 1 Dec 2011 16:13:41 -0800
+Message-ID: <382A478CAD40FA4FB46605CF81FE39F40107F9C50F@orsmsx507.amr.corp.intel.com>
 References: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA@MTLDAG01.mtl.com>
+ <1828884A29C6694DAF28B7E6B8A8237323FC20F5@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237323FC20F5-P5GAC/sN6hlcIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> We propose a new process for the OFED releases starting from next OFED
-> release:
-> - OFED content will be the relevant kernel.org modules and user space released
-> packages
-> - OFED will offer only backports to the distros  (no fixes)
+Sean wrote,
+>> - OFED will offer only backports to the distros  (no fixes)
+> I think this point needs to be clarified - at least to me anyway. :)
 
-I think this point needs to be clarified - at least to me anyway. :)
+What this means is that the OFED code base will be identical to what
+is included in the upstream kernel and libs. 
+OFED will provide only backports to allow that 
+code to be run on other kernels.
 
-> - OFED package will be used for easy installation of all packages in a
-> friendly manner
-> 
-> The main goals of this change:
-> 1. Ensure OFED and the upstream kernel are the same
-> 2. Provide customers a way to use the new features in latest kernels on
-> existing distros
-> 3. OFED qualification will contribute to the stability of the upstream code
+If people find a bug or want a new feature, they need to submit the patch for the bug
+or new code upstream and have it accepted there before it will go into any OFED
+release.
 
-I like this approach.
- 
-> We think that at this point of the RDMA technology maturity this is the right
-> way to go.
-> In this way OFED is not conflicting with the kernel or the distros, and still
-> provide a valuable value for early adopters of new features.
-> 
-> Versions:
-> We suggest that the OFED version will be the same as kernel.org
-> For example, for kernel 3.2 the OFED release would be OFED-3.2.
-> This would make it easy for people to associate the OFED code with the
-> corresponding kernel.org code.
-> 
-> Some open questions that we should consider:
-> - How to handle experimental features?
-> - Need to follow up kernel stable releases if bug fixes are relevant to OFA
-> modules
-> - Should we have a release for every kernel release (I think yes)
+We may need some other way for people to try out experimental new feature/code
+that is not upstream, but we won't include any non-upstream code in the production
+OFED release. 
 
-This would help test upstream submissions, which would be good.  It may be desirable to have stable versions of previous releases, so that customers can get bug fixes without pulling in a bunch of new features.  E.g. OFED-3.2.1, OFED-3.2.2, etc.  If maintaining stable releases of every version is too expensive, maybe mark specific versions (i.e. 3.2) as stable, with intermediate releases (i.e. 3.3, 3.4) as experimental.  Just some ideas.
-
-> - What should we do with modules like SDP that are not in kernel?
-
-Either remove them or carry them forward as experimental features.
-
-- Sean
+Hope this helps clarify the proposal.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
