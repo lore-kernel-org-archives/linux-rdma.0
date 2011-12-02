@@ -1,38 +1,63 @@
-From: David Dillow <dillowda@ornl.gov>
-Subject: Re: [PATCH 00/14] Make ib_srp better suited for H.A. purposes
-Date: Thu, 01 Dec 2011 18:26:55 -0500
-Message-ID: <1322782015.11664.4.camel@lap75545.ornl.gov>
-References: <201112011954.25811.bvanassche@acm.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: =?Windows-1252?Q?RE:_[RFC]_=96_Proposal_for_new_process_for_OFED_releases?=
+Date: Fri, 2 Dec 2011 00:04:36 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237323FC20F5@ORSMSX102.amr.corp.intel.com>
+References: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-reply-to: <201112011954.25811.bvanassche@acm.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Vu Pham <vuhuong@mellanox.com>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2011-12-01 at 13:54 -0500, Bart Van Assche wrote:
-> This patch series makes the ib_srp driver better suited for use in a H.A.
-> setup because:
-> - Switchover without triggering read or write errors become possible. Such
->   errors are bad because these can make a filesystem switch to read-only
->   mode.
-> - A ping mechanism has been added that allows to reduce the switch-over
->   time greatly.
-> - Disconnecting from a target without unloading ib_srp becomes possible.
-> - Switchover can be triggered explicitly by deleting an initiator device.
+> We propose a new process for the OFED releases starting from next OFED
+> release:
+> - OFED content will be the relevant kernel.org modules and user space released
+> packages
+> - OFED will offer only backports to the distros  (no fixes)
 
-In general, I'm glad to see this being done. I won't have the time this
-week for a detailed review, but will take a look as soon as I can. I
-have a number of ideas I'd like to see implemented (and have partially
-done), so it will be interesting to see if we're using similar
-approaches.
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
+I think this point needs to be clarified - at least to me anyway. :)
 
+> - OFED package will be used for easy installation of all packages in a
+> friendly manner
+> 
+> The main goals of this change:
+> 1. Ensure OFED and the upstream kernel are the same
+> 2. Provide customers a way to use the new features in latest kernels on
+> existing distros
+> 3. OFED qualification will contribute to the stability of the upstream code
 
+I like this approach.
+ 
+> We think that at this point of the RDMA technology maturity this is the right
+> way to go.
+> In this way OFED is not conflicting with the kernel or the distros, and still
+> provide a valuable value for early adopters of new features.
+> 
+> Versions:
+> We suggest that the OFED version will be the same as kernel.org
+> For example, for kernel 3.2 the OFED release would be OFED-3.2.
+> This would make it easy for people to associate the OFED code with the
+> corresponding kernel.org code.
+> 
+> Some open questions that we should consider:
+> - How to handle experimental features?
+> - Need to follow up kernel stable releases if bug fixes are relevant to OFA
+> modules
+> - Should we have a release for every kernel release (I think yes)
+
+This would help test upstream submissions, which would be good.  It may be desirable to have stable versions of previous releases, so that customers can get bug fixes without pulling in a bunch of new features.  E.g. OFED-3.2.1, OFED-3.2.2, etc.  If maintaining stable releases of every version is too expensive, maybe mark specific versions (i.e. 3.2) as stable, with intermediate releases (i.e. 3.3, 3.4) as experimental.  Just some ideas.
+
+> - What should we do with modules like SDP that are not in kernel?
+
+Either remove them or carry them forward as experimental features.
+
+- Sean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
