@@ -1,37 +1,48 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 4/5] rdma/cm: Update port reservation to support AF_IB
-Date: Fri, 2 Dec 2011 22:41:59 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373256521A6@ORSMSX102.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E8D150@ORSMSX101.amr.corp.intel.com>
- <4ED73F81.6060605@mellanox.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags/src/ibccquery.c: Fix off by one output
+	bug, ccti_limit is 0 based not 1 based
+Date: Fri, 02 Dec 2011 16:00:10 -0800
+Message-ID: <1322870410.5518.418.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4ED73F81.6060605-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > +static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
-> > [...]
-> > +	if (ps) {
-> > +		sib->sib_sid = cpu_to_be64(sid_ps | ntohs(cma_port((struct
-> sockaddr *) sib)));
-> > +		sib->sib_sid_mask = cpu_to_be64(RDMA_IB_IP_PS_MASK | sib-
-> >sib_sid_mask);
-> > +	}
-> > +	return ps;
-> 
-> looks like ntohs(cma_port((struct sockaddr *) sib)) introduced this sparse
-> warning
-> 
-> > drivers/infiniband/core/cma.c:2338:37: warning: restricted __be64
-> > degrades to integer
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ src/ibccquery.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-What sparse settings did you use to produce this warning?
+diff --git a/src/ibccquery.c b/src/ibccquery.c
+index a7fd79f..69db8d0 100644
+--- a/src/ibccquery.c
++++ b/src/ibccquery.c
+@@ -309,7 +309,7 @@ static char *congestion_control_table(ib_portid_t * dest, char **argv, int argc)
+ 	if (!limit)
+ 		return NULL;
+ 
+-	for (i = 0; i < ((limit - 1)/64) + 1; i++) {
++	for (i = 0; i < (limit/64) + 1; i++) {
+ 
+ 		/* first query done */
+ 		if (i)
+@@ -317,7 +317,7 @@ static char *congestion_control_table(ib_portid_t * dest, char **argv, int argc)
+ 					  i, 0, NULL, srcport, cckey))
+ 				return "congestion control table query failed";
+ 
+-		for (j = 0; j < 64 && outputcount < limit; j++) {
++		for (j = 0; j < 64 && outputcount <= limit; j++) {
+ 			printf("Entry:...........................%u\n", i*64 + j);
+ 			mad_dump_cc_congestioncontroltableentry(buf, sizeof buf,
+ 								data + 4 + j * 2,
+-- 
+1.7.1
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
