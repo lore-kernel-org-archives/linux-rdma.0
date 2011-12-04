@@ -1,24 +1,42 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/5] rdma/cm: Update port reservation to support AF_IB
-Date: Sun, 4 Dec 2011 00:12:09 +0200
-Message-ID: <CAJZOPZ+wAeMg9sQSF3rLe3ZUHC+N5_N1Oy8FhW6WrGCcUF+eTQ@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E8D150@ORSMSX101.amr.corp.intel.com>
-	<4ED73F81.6060605@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A82373256521A6@ORSMSX102.amr.corp.intel.com>
+From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH net-next V0 03/21] mlx4_core: Add "native" argument to
+ mlx4_cmd and its callers (where needed)
+Date: Sun, 4 Dec 2011 10:43:51 +0000
+Message-ID: <953B660C027164448AE903364AC447D22362736D@MTLDAG01.mtl.com>
+References: <4ED8A591.2070705@mellanox.co.il>
+ <CAL1RGDXh0-v075fdxvoA=sL0vOq1ncouNNH5v3y7QFHJmnnQEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373256521A6-P5GAC/sN6hlcIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAL1RGDXh0-v075fdxvoA=sL0vOq1ncouNNH5v3y7QFHJmnnQEA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Dec 3, 2011 at 12:41 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> What sparse settings did you use to produce this warning?
-
-make CF="-D__CHECK_ENDIAN__" C=2
+> > =A0 =A0 =A0 =A0return mlx4_cmd(dev, limit_watermark, srq_num, 0, ML=
+X4_CMD_ARM_SRQ,
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MLX4_CMD_TIME_CLASS_B=
+);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MLX4_CMD_TIME_CLASS_B=
+, 0);
+>=20
+> Instead of a 0 or 1 for the native parameter, can we define something=
+ like
+>=20
+> enum {
+>            MLX4_CMD_NATIVE,
+>            MLX4_CMD_WRAPPED
+> };
+>=20
+> so that all these calls become easier to read?
+=20
+Agree,
+We will change this for next round.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
