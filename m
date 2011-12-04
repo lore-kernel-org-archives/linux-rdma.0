@@ -1,40 +1,119 @@
-From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH net-next V0 03/21] mlx4_core: Add "native" argument to
- mlx4_cmd and its callers (where needed)
-Date: Sun, 4 Dec 2011 10:43:51 +0000
-Message-ID: <953B660C027164448AE903364AC447D22362736D@MTLDAG01.mtl.com>
-References: <4ED8A591.2070705@mellanox.co.il>
- <CAL1RGDXh0-v075fdxvoA=sL0vOq1ncouNNH5v3y7QFHJmnnQEA@mail.gmail.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH net-next V0 19/21] mlx4_core: Modify driver initialization flow to accommodate SRIOV for Ethernet
+Date: Sun, 4 Dec 2011 16:29:41 +0200
+Message-ID: <201112041629.41466.jackm@dev.mellanox.co.il>
+References: <4ED8A636.40901@mellanox.co.il> <CAL1RGDV8LzSOei=aQW7VXUP=G+9qdO+Y4eKZu8mBuHJuUp8UuQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXh0-v075fdxvoA=sL0vOq1ncouNNH5v3y7QFHJmnnQEA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAL1RGDV8LzSOei=aQW7VXUP=G+9qdO+Y4eKZu8mBuHJuUp8UuQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > =A0 =A0 =A0 =A0return mlx4_cmd(dev, limit_watermark, srq_num, 0, ML=
-X4_CMD_ARM_SRQ,
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MLX4_CMD_TIME_CLASS_B=
-);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MLX4_CMD_TIME_CLASS_B=
-, 0);
+On Friday 02 December 2011 19:51, Roland Dreier wrote:
+> > =A0#else /* CONFIG_PCI_IOV */
+> > +static int sr_iov;
+> > +#define probe_vf 0
+> > =A0int mlx4_log_num_mgm_entry_size =3D 9;
+> > =A0#endif /* CONFIG_PCI_IOV */
 >=20
-> Instead of a 0 or 1 for the native parameter, can we define something=
- like
+> I don't think it's a good idea to put module parameters inside an
+> #ifdef. =A0Then depending on the
+> kernel config someone compiles with, their modprobe.conf may or may n=
+ot break.
 >=20
-> enum {
->            MLX4_CMD_NATIVE,
->            MLX4_CMD_WRAPPED
-> };
->=20
-> so that all these calls become easier to read?
+I agree.  I will change this so that the module parameters are always t=
+here.
+
+If the kernel is not configured to support IOV, pci_enable_sriov will f=
+ail.
+Currently, we abort the device startup.  I can change this to simply co=
+ntinue
+without sriov enabled:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
+
+mlx4_core: fix sriov module parameters
+
+Always have the sr_iov module parameters (even if the kernel
+is not compiled with sriov support).  Change device startup logic
+so that if pci_enable_sriov() fails, the PF-driver continues to bring u=
+p
+the device, but in non-sriov mode.
+
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+
+---
+Roland,
+I will roll this change into the original patch set, so that V1 will co=
+ntain
+this code.
+
+
+Index: net-next/drivers/net/ethernet/mellanox/mlx4/main.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- net-next.orig/drivers/net/ethernet/mellanox/mlx4/main.c	2011-12-04 =
+10:38:52.000000000 +0200
++++ net-next/drivers/net/ethernet/mellanox/mlx4/main.c	2011-12-04 16:23=
+:33.000000000 +0200
+@@ -76,8 +76,6 @@ MODULE_PARM_DESC(msi_x, "attempt to use=20
 =20
-Agree,
-We will change this for next round.
+ #endif /* CONFIG_PCI_MSI */
+=20
+-#ifdef CONFIG_PCI_IOV
+-
+ static int sr_iov;
+ module_param(sr_iov, int, 0444);
+ MODULE_PARM_DESC(sr_iov, "enable #sr_iov functions if sr_iov > 0");
+@@ -94,12 +92,6 @@ MODULE_PARM_DESC(log_num_mgm_entry_size,
+ 					 " 10 gives 248.range: 9<=3D"
+ 					 " log_num_mgm_entry_size <=3D 12");
+=20
+-#else /* CONFIG_PCI_IOV */
+-static int sr_iov;
+-#define probe_vf 0
+-int mlx4_log_num_mgm_entry_size =3D 9;
+-#endif /* CONFIG_PCI_IOV */
+-
+ #define MLX4_VF					(1 << 0)
+=20
+ #define HCA_GLOBAL_CAP_MASK	0
+@@ -1732,13 +1724,19 @@ static int __mlx4_init_one(struct pci_de
+=20
+ 		if (sr_iov) {
+ 			mlx4_warn(dev, "Enabling sriov with:%d vfs\n", sr_iov);
+-			if (pci_enable_sriov(pdev, sr_iov)) {
+-				mlx4_err(dev, "Failed to enable sriov, aborting.\n");
+-				goto err_rel_own;
++			err =3D pci_enable_sriov(pdev, sr_iov);
++			if (err) {
++				mlx4_err(dev, "Failed to enable sriov,"
++					 "continuing without sriov enabled"
++					 " (err =3D %d).\n", err);
++				sr_iov =3D 0;
++				err =3D 0;
++			} else {
++				mlx4_warn(dev, "Running in master mode\n");
++				dev->flags |=3D MLX4_FLAG_SRIOV |
++					MLX4_FLAG_MASTER;
++				dev->sr_iov =3D sr_iov;
+ 			}
+-			mlx4_warn(dev, "Running in master mode\n");
+-			dev->flags |=3D MLX4_FLAG_SRIOV | MLX4_FLAG_MASTER;
+-			dev->sr_iov =3D sr_iov;
+ 		}
+=20
+ 		/*
+
+
+- Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
