@@ -1,41 +1,29 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: sparse endianness complaints for drivers/infiniband
-Date: Sun, 4 Dec 2011 16:35:55 +0100
-Message-ID: <CAO+b5-q97ri0YhKcbO1RBOGHXeJh2YMRjShtNDzihU7QjN+UVA@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH net-next V0 19/21] mlx4_core: Modify driver initialization
+ flow to accommodate SRIOV for Ethernet
+Date: Sun, 4 Dec 2011 17:39:27 +0200
+Message-ID: <4EDB942F.1020101@mellanox.com>
+References: <4ED8A636.40901@mellanox.co.il> <CAL1RGDV8LzSOei=aQW7VXUP=G+9qdO+Y4eKZu8mBuHJuUp8UuQ@mail.gmail.com> <201112041629.41466.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201112041629.41466.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On 12/4/2011 4:29 PM, Jack Morgenstein wrote:
+> If the kernel is not configured to support IOV, pci_enable_sriov will 
+> fail.
+Jack,
 
-Has anyone had a look recently at the sparse endianness complaints
-about the code under drivers/infiniband ? I haven't analyzed these
-messages closely yet - these might indicate real bugs.
+If CONFIG_PCI_IOV isn't set, pci_enable_sriov isn't there...
 
-$ make C=2 CF=-D__CHECK_ENDIAN__ M=drivers/infiniband modules
-[ ... ]
-CHECK   drivers/infiniband/core/cma.c
-drivers/infiniband/core/cma.c:1111:69: warning: incorrect type in
-argument 2 (different base types)
-drivers/infiniband/core/cma.c:1111:69:    expected unsigned short
-[unsigned] [usertype] pkey
-drivers/infiniband/core/cma.c:1111:69:    got restricted __be16 [usertype] pkey
-drivers/infiniband/core/cma.c:2894:56: warning: incorrect type in
-argument 3 (different base types)
-drivers/infiniband/core/cma.c:2894:56:    expected unsigned short
-[unsigned] [usertype] lid
-drivers/infiniband/core/cma.c:2894:56:    got restricted __be16 [usertype] mlid
-drivers/infiniband/core/cma.c:3155:70: warning: incorrect type in
-argument 3 (different base types)
-drivers/infiniband/core/cma.c:3155:70:    expected unsigned short
-[unsigned] [usertype] lid
-drivers/infiniband/core/cma.c:3155:70:    got restricted __be16 [usertype] mlid
-[ ... ]
+Or.
 
-Bart.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
