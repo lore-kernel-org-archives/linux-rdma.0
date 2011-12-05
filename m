@@ -1,52 +1,23 @@
-From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/nes: Fix terminate during AE
-Date: Mon, 5 Dec 2011 11:39:12 -0600
-Message-ID: <20111205173912.GA5492@TENIKOLO-MOBL>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: sparse endianness complaints for drivers/infiniband
+Date: Mon, 5 Dec 2011 18:43:46 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237325653495@ORSMSX102.amr.corp.intel.com>
+References: <CAO+b5-q97ri0YhKcbO1RBOGHXeJh2YMRjShtNDzihU7QjN+UVA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <CAO+b5-q97ri0YhKcbO1RBOGHXeJh2YMRjShtNDzihU7QjN+UVA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix for reset which happens right after sending a terminate message.
-Terminate timer is not deleted when the connection is closed.
+> Has anyone had a look recently at the sparse endianness complaints
+> about the code under drivers/infiniband ? I haven't analyzed these
+> messages closely yet - these might indicate real bugs.
 
-Signed-off-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Faisal Latif <Faisal.Latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index fc050aa..793ccd6 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -2836,6 +2836,7 @@ static int nes_cm_disconn_true(struct nes_qp *nesqp)
- 		issue_disconn = 1;
- 		issue_close = 1;
- 		nesqp->cm_id = NULL;
-+		del_timer(&nesqp->terminate_timer);
- 		if (nesqp->flush_issued == 0) {
- 			nesqp->flush_issued = 1;
- 			issue_flush = 1;
-diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
-index 355786c..5bcd645 100644
---- a/drivers/infiniband/hw/nes/nes_hw.c
-+++ b/drivers/infiniband/hw/nes/nes_hw.c
-@@ -3619,10 +3619,6 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
- 			}
- 			break;
- 		case NES_AEQE_AEID_LLP_CLOSE_COMPLETE:
--			if (nesqp->term_flags) {
--				nes_terminate_done(nesqp, 0);
--				return;
--			}
- 			spin_lock_irqsave(&nesqp->lock, flags);
- 			nesqp->hw_iwarp_state = iwarp_state;
- 			nesqp->hw_tcp_state = tcp_state;
---
-1.7.1
+Yes - I looked last week, and I plan on submitting patches for these this week.  Apparently the sparse output gets lost piping the output of make into tee and then examining the resulting file.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
