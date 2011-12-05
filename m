@@ -1,35 +1,34 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH net-next V0 19/21] mlx4_core: Modify driver initialization
- flow to accommodate SRIOV for Ethernet
-Date: Mon, 5 Dec 2011 11:01:42 -0800
-Message-ID: <CAL1RGDWsenbb6Z6pZtQ056itHgom08WryLJ-6=+okSh1xbgP=A@mail.gmail.com>
-References: <4ED8A636.40901@mellanox.co.il> <CAL1RGDV8LzSOei=aQW7VXUP=G+9qdO+Y4eKZu8mBuHJuUp8UuQ@mail.gmail.com>
- <201112041629.41466.jackm@dev.mellanox.co.il>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [ewg] [RFC] =?windows-1252?Q?=96_Proposal_for_new_pr?=
+ =?windows-1252?Q?ocess_for_OFED_releases?=
+Date: Mon, 05 Dec 2011 15:02:03 -0500
+Message-ID: <4EDD233B.1060806@redhat.com>
+References: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201112041629.41466.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 4, 2011 at 6:29 AM, Jack Morgenstein
-<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> If the kernel is not configured to support IOV, pci_enable_sriov will=
- fail.
-> Currently, we abort the device startup. =A0I can change this to simpl=
-y continue
-> without sriov enabled:
+On 12/01/2011 02:53 PM, Tziporet Koren wrote:
+> 
+> We propose a new process for the OFED releases starting from next OFED release:
+> - OFED content will be the relevant kernel.org modules and user space released packages
+> - OFED will offer only backports to the distros  (no fixes)
+> - OFED package will be used for easy installation of all packages in a friendly manner
 
-Agree... we definitely don't want drivers failing just because a
-device has an SR-IOV
-cap but the kernel isn't compiled with SR-IOV support.
+Yay!!!  I'm all in favor.
 
- - R.
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
