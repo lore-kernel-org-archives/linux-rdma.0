@@ -1,25 +1,35 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: sparse endianness complaints for drivers/infiniband
-Date: Mon, 5 Dec 2011 18:43:46 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237325653495@ORSMSX102.amr.corp.intel.com>
-References: <CAO+b5-q97ri0YhKcbO1RBOGHXeJh2YMRjShtNDzihU7QjN+UVA@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH net-next V0 19/21] mlx4_core: Modify driver initialization
+ flow to accommodate SRIOV for Ethernet
+Date: Mon, 5 Dec 2011 11:01:42 -0800
+Message-ID: <CAL1RGDWsenbb6Z6pZtQ056itHgom08WryLJ-6=+okSh1xbgP=A@mail.gmail.com>
+References: <4ED8A636.40901@mellanox.co.il> <CAL1RGDV8LzSOei=aQW7VXUP=G+9qdO+Y4eKZu8mBuHJuUp8UuQ@mail.gmail.com>
+ <201112041629.41466.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-q97ri0YhKcbO1RBOGHXeJh2YMRjShtNDzihU7QjN+UVA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <201112041629.41466.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Has anyone had a look recently at the sparse endianness complaints
-> about the code under drivers/infiniband ? I haven't analyzed these
-> messages closely yet - these might indicate real bugs.
+On Sun, Dec 4, 2011 at 6:29 AM, Jack Morgenstein
+<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> If the kernel is not configured to support IOV, pci_enable_sriov will=
+ fail.
+> Currently, we abort the device startup. =A0I can change this to simpl=
+y continue
+> without sriov enabled:
 
-Yes - I looked last week, and I plan on submitting patches for these this week.  Apparently the sparse output gets lost piping the output of make into tee and then examining the resulting file.
+Agree... we definitely don't want drivers failing just because a
+device has an SR-IOV
+cap but the kernel isn't compiled with SR-IOV support.
 
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
