@@ -1,49 +1,70 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH net-next V0 18/21] mlx4_core: adjust catas operation for
- SRIOV mode
-Date: Sun, 4 Dec 2011 15:45:40 +0000
-Message-ID: <D554B471892C914E90E136467281724D235C0A1C@MTLDAG01.mtl.com>
-References: <4ED8A62D.8080008@mellanox.co.il>
- <CAL1RGDWp2fysTgVgSi30X+nf=66fArPRdXUXedbKxKjyHQqidQ@mail.gmail.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags/src/ibccquery.c: Fix off by one output
+ bug, ccti_limit is 0 based not 1 based
+Date: Sun, 4 Dec 2011 19:46:07 -0800
+Message-ID: <20111204194607.f3042cc7.weiny2@llnl.gov>
+References: <1322870410.5518.418.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWp2fysTgVgSi30X+nf=66fArPRdXUXedbKxKjyHQqidQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1322870410.5518.418.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Fri, Dec 2, 2011 at 2:19 AM, Yevgeny Petrilin
-> <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
-> > When running in SRIOV mode, driver should not automatically
-> start/stop
-> > the mlx4_core upon sensing an HCA internal error -- doing this
-> disables/enables
-> > sriov, which will cause the hypervisor to hang if there are running
-> VMs with
-> > attached VFs.
+On Fri, 2 Dec 2011 16:00:10 -0800
+Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org> wrote:
+
+> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+
+Thanks applied,
+Ira
+
+> ---
+>  src/ibccquery.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> Not sure I understand this -- what happens if the driver doesn't reset
-> the device
-> after a catastrophic error?  Surely all the VFs are pretty screwed at
-> that point?
+> diff --git a/src/ibccquery.c b/src/ibccquery.c
+> index a7fd79f..69db8d0 100644
+> --- a/src/ibccquery.c
+> +++ b/src/ibccquery.c
+> @@ -309,7 +309,7 @@ static char *congestion_control_table(ib_portid_t * dest, char **argv, int argc)
+>  	if (!limit)
+>  		return NULL;
+>  
+> -	for (i = 0; i < ((limit - 1)/64) + 1; i++) {
+> +	for (i = 0; i < (limit/64) + 1; i++) {
+>  
+>  		/* first query done */
+>  		if (i)
+> @@ -317,7 +317,7 @@ static char *congestion_control_table(ib_portid_t * dest, char **argv, int argc)
+>  					  i, 0, NULL, srcport, cckey))
+>  				return "congestion control table query failed";
+>  
+> -		for (j = 0; j < 64 && outputcount < limit; j++) {
+> +		for (j = 0; j < 64 && outputcount <= limit; j++) {
+>  			printf("Entry:...........................%u\n", i*64 + j);
+>  			mad_dump_cc_congestioncontroltableentry(buf, sizeof buf,
+>  								data + 4 + j * 2,
+> -- 
+> 1.7.1
 > 
-> Which hypervisor are we talking about here anyway?
 > 
->  - R.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Indeed, if you don't reset the device after an internal error, the PF/VF might not work properly unless you reload the PF driver.
 
-However, invoking the SW reset by the PF (upon detecting an internal error) currently affects the SRIOV capability on the PCI so we cannot do it before disabling SRIOV first.
-Since the driver is not in charge of passing-through VFs to VMs, it cannot disable SRIOV either so we cannot reset the device while using SRIOV.
-Note that the single-function behavior is not modified.
-
-We intend to post a fix for this in a different patch-set.
---Liran
-
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
