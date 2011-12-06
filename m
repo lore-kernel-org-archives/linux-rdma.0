@@ -1,51 +1,60 @@
-From: Yevgeny Petrilin <yevgenyp@mellanox.com>
-Subject: RE: [PATCH net-next V0 19/21] mlx4_core: Modify driver
- initialization flow to accommodate SRIOV for Ethernet
-Date: Tue, 6 Dec 2011 08:09:14 +0000
-Message-ID: <953B660C027164448AE903364AC447D223628F69@MTLDAG01.mtl.com>
-References: <4ED8A636.40901@mellanox.co.il>
- <1323120413.2887.50.camel@bwh-desktop>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH net-next V0 19/21] mlx4_core: Modify driver initialization flow to accommodate SRIOV for Ethernet
+Date: Tue, 6 Dec 2011 10:35:53 +0200
+Message-ID: <201112061035.54093.jackm@dev.mellanox.co.il>
+References: <4ED8A636.40901@mellanox.co.il> <1323120413.2887.50.camel@bwh-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1323120413.2887.50.camel@bwh-desktop>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Ben Hutchings <bhutchings@solarflare.com>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "roland@purestorage.com" <roland@purestorage.com>, Liran Liss <liranl@mellanox.com>, "jackm@dev.mellanox.co.il" <jackm@dev.mellanox.co.il>, Marcel Apfelbaum <marcela@mellanox.com>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
+Cc: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IDEuIEFkZGVkIG1vZHVsZSBwYXJhbWV0ZXJzIHNyX2lvdiBhbmQgcHJvYmVfdmYgZm9yIGNv
-bnRyb2xsaW5nIGVuYWJsZW1lbnQgb2YNCj4gPiAgICBTUklPViBtb2RlLg0KPiANCj4gVGhpcyBz
-b3J0IG9mIG9wdGlvbiBpcyB1c2VmdWwgaW4gbWFueSBkcml2ZXJzLCBhbmQgaWRlYWxseSB3b3Vs
-ZCBiZQ0KPiBzcGVjaWZpZWQgaW4gc29tZSBnZW5lcmljIHdheSByYXRoZXIgdGhhbiBhIG1vZHVs
-ZSBwYXJhbWV0ZXJzLiAgSG93ZXZlcg0KPiBJIGNhbid0IHNlZSBhIGdvb2Qgd2F5IHRvIG1ha2Ug
-aXQgY29uZmlndXJhYmxlIGFmdGVyIHRoZSBuZXQgZGV2aWNlIGlzDQo+IHJlZ2lzdGVyZWQuDQo+
-IA0KPiBDdXJyZW50bHkgdGhlIGluLXRyZWUgZHJpdmVycyBoYXZlOg0KPiANCj4gYmUybmV0OiBu
-dW1fdmZzDQo+IGN4Z2I0OiAgbnVtX3ZmcyBbYXJyYXldDQo+IGlnYjogICAgbWF4X3Zmcw0KPiBp
-eGdiZTogIG1heF92ZnMNCj4gDQo+IENvbnNpZGVyIHJlbmFtaW5nICdzcl9pb3YnIHRvIG9uZSBv
-ZiB0aGUgYWJvdmUgcmF0aGVyIHRoYW4gYWRkaW5nIHRvIHRoZSB2YXJpYXRpb24uDQoNCkdvb2Qg
-cG9pbnQsIHdlIHByb2JhYmx5IHNob3VsZCByZW5hbWUgaXQuDQoNCj4gDQo+IFRoZSAncHJvYmVf
-dmYnIHBhcmFtZXRlciBpcyB2ZXJ5IG9kZC4gIFdoeSBkbyB5b3UgdGhpbmsgaXQgaXMgbmVjZXNz
-YXJ5DQo+IHRvIG1ha2UgdGhpcyBhIG1vZHVsZSBwYXJhbWV0ZXI/ICBJdCBzaG91bGQgYmUgcG9z
-c2libGUgdG8gYmluZCBhbmQNCj4gdW5iaW5kIHRoZSBkcml2ZXIgZnJvbSBlYWNoIFZGIGR5bmFt
-aWNhbGx5IHZpYSBzeXNmcyBidXQgdGhpcyBwYXJhbWV0ZXINCj4gYXBwZWFycyB0byByZXN0cmlj
-dCB0aGF0Lg0KPg0KIA0KV2UgaGF2ZSBzYW1lIGRyaXZlciBhY3RpbmcgYm90aCBhcyBWRiBhbmQg
-UEYsIHNvIG9uY2UgdGhlIFZGcyBhcmUgYmVpbmcgY3JlYXRlZCAocGNpX2VuYWJsZV9zcmlvdiks
-DQpUaGUgcHJvYmUgZnVuY3Rpb24gaXMgYmVpbmcgY2FsbGVkIGZvciBhbGwgb2YgdGhlbS4NCklu
-IG1hbnkgY2FzZXMgdGhpcyBpcyBub3Qgd2hhdCB3ZSB3YW50LCBidXQgcmF0aGVyIHBhc3MgdGhl
-IHZmcyB0byBndWVzdCBPUy4NClRoZSBtb2R1bGUgcGFyYW1ldGVyIGlzIG1lYW50IHRvIGVhc2Ug
-dGhlIGxpZmUgb2YgdGhlIGFkbWluaXN0cmF0b3IuDQogDQo+IFsuLi5dDQo+ID4gMy4gQWRkZWQg
-cG9ydF90eXBlX2FycmF5IGFzIGEgbW9kdWxlIHBhcmFtZXRlciB0byBhbGxvdyBkcml2ZXIgc3Rh
-cnR1cCB3aXRoDQo+ID4gICAgcG9ydHMgY29uZmlndXJlZCBhcyBkZXNpcmVkLg0KPiA+ICAgIElu
-IFNSSU9WIG1vZGUsIG9ubHkgRVRIIGlzIHN1cHBvcnRlZCwgYW5kIHRoaXMgYXJyYXkgaXMgaWdu
-b3JlZDsgb3RoZXJ3aXNlLA0KPiA+ICAgIGZvciB0aGUgY2FzZSB3aGVyZSB0aGUgRlcgc3VwcG9y
-dHMgYm90aCBwb3J0IHR5cGVzIChFVEggYW5kIElCKSwgdGhlDQo+ID4gICAgcG9ydF90eXBlX2Fy
-cmF5IHBhcmFtZXRlciBpcyB1c2VkLg0KPiA+ICAgIEJ5IGRlZmF1bHQsIHRoZSBwb3J0X3R5cGVf
-YXJyYXkgaXMgc2V0IHRvIGNvbmZpZ3VyZSBib3RoIHBvcnRzIGFzIElCLg0KPiBbLi4uXQ0KPiAN
-Cj4gWW91IHNlZW0gdG8gYmUgc2F5aW5nIHRoYXQgdGhpcyBjYW4gYmUgcmVjb25maWd1cmVkIGFm
-dGVyIHN0YXJ0dXAgLSBpbg0KPiB3aGljaCBjYXNlIGlzIHRoZSBtb2R1bGUgcGFyYW1ldGVyIHJl
-YWxseSBuZWNlc3Nhcnk/ICBNYXliZSBJIG1pc3VuZGVyc3RhbmQuDQoNCkluIFNSSU9WIG1vZGUg
-d2UgZG9uJ3QgYWxsb3cgZHluYW1pYyBsaW5rIGxheWVyIHR5cGUgY2hhbmdlcywgc28gdGhlIHR5
-cGUgaXMgc2V0IGJ5IG1vZHVsZSBwYXJhbWV0ZXIuDQogDQoNClRoYW5rcywNCllldmdlbnkNCg==
+On Monday 05 December 2011 23:26, Ben Hutchings wrote:
+> The 'probe_vf' parameter is very odd. =C2=A0Why do you think it is ne=
+cessary
+> to make this a module parameter? =C2=A0It should be possible to bind =
+and
+> unbind the driver from each VF dynamically via sysfs but this paramet=
+er
+> appears to restrict that.
+>=20
+The host which sees the PF will also see all the VFs once they come up.
+As each VF appears (as seen by 'lspci'), the O/S will invoke the "probe=
+"
+method for that VF.  Without the "probe_vf" parameter, this probe would
+result in all the VFs being bound to the PF host (and thus unavailable =
+for
+guests).
+
+
+The small section of code which makes use of the probe_vf parameter
+(file net/ethernet/mellanox/mlx4_main.c):
+
+	/* Detect if this device is a virtual function */
+	if (id && id->driver_data & MLX4_VF) {
+		/* When acting as pf, we normally skip vfs unless explicitly
+		 * requested to probe them. */
+		if (sr_iov && extended_func_num(pdev) > probe_vf) {
+			mlx4_warn(dev, "Skipping virtual function:%d\n",
+						extended_func_num(pdev));
+			err =3D -ENODEV;
+			goto err_free_dev;
+		}
+
+If you invoke "dmesg" on the PF host, you will see a series of the
+"Skipping... " messages, one per VF.  If probe_vf > 0, the PF-host will
+reserve some VFs for its own use, and not issue the "Skipping..." messa=
+ge
+for those VFs.
+
+-Jack
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
