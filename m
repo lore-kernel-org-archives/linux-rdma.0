@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] rdma/core: Fix sparse errors
-Date: Tue, 6 Dec 2011 21:15:18 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237325653870@ORSMSX102.amr.corp.intel.com>
+Subject: [PATCH for 3.2] rdma/cm: Verify private data length
+Date: Tue, 6 Dec 2011 21:17:11 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237325653882@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,52 +11,46 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix errors reported by sparse in the rdma core stack.  Note that these
-are real bugs, but don't affect any existing code to the best of my
-knowledge.  The mlid issue would only affect kernel users of
-rdma_join_multicast which have the rdma_cm attach/detach its QP.
-There are no current in tree users that do this. (rdma_join_multicast
-may be used called by user space applications, which does not have
-this issue.)  And the pkey setting is simply returned as informational.
+private_data_len is defined as a u8.  If the user specifies a large
+private_data size (> 220 bytes), we will calculate a total length that
+exceeds 255, resulting in private_data_len wrapping back to 0.  This
+can lead to overwriting random kernel memory.  Avoid this by verifying
+that the resulting size fits into a u8.
+
+Problem reported by B. Thery, OFA bug 2335.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-please queue for 3.3
+Please consider queuing for 3.2 if it's not too late.  This bug has been
+around for a while though, so hitting 3.3 is fine.
 
- drivers/infiniband/core/cma.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/cma.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 75ff821..c3a0c62 100644
+index c3a0c62..fdd8ef8 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -1110,7 +1110,7 @@ static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
- 	if (cma_any_addr((struct sockaddr *) &rt->addr.src_addr)) {
- 		rt->addr.dev_addr.dev_type = ARPHRD_INFINIBAND;
- 		rdma_addr_set_sgid(&rt->addr.dev_addr, &rt->path_rec[0].sgid);
--		ib_addr_set_pkey(&rt->addr.dev_addr, rt->path_rec[0].pkey);
-+		ib_addr_set_pkey(&rt->addr.dev_addr, be16_to_cpu(rt->path_rec[0].pkey));
- 	} else {
- 		ret = rdma_translate_ip((struct sockaddr *) &rt->addr.src_addr,
- 					&rt->addr.dev_addr);
-@@ -2920,7 +2920,7 @@ static int cma_ib_mc_handler(int status, struct ib_sa_multicast *multicast)
- 	mutex_lock(&id_priv->qp_mutex);
- 	if (!status && id_priv->id.qp)
- 		status = ib_attach_mcast(id_priv->id.qp, &multicast->rec.mgid,
--					 multicast->rec.mlid);
-+					 be16_to_cpu(multicast->rec.mlid));
- 	mutex_unlock(&id_priv->qp_mutex);
+@@ -2513,6 +2513,9 @@ static int cma_resolve_ib_udp(struct rdma_id_private *id_priv,
  
- 	memset(&event, 0, sizeof event);
-@@ -3181,7 +3181,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 			if (id->qp)
- 				ib_detach_mcast(id->qp,
- 						&mc->multicast.ib->rec.mgid,
--						mc->multicast.ib->rec.mlid);
-+						be16_to_cpu(mc->multicast.ib->rec.mlid));
- 			if (rdma_node_get_transport(id_priv->cma_dev->device->node_type) == RDMA_TRANSPORT_IB) {
- 				switch (rdma_port_get_link_layer(id->device, id->port_num)) {
- 				case IB_LINK_LAYER_INFINIBAND:
+ 	req.private_data_len = sizeof(struct cma_hdr) +
+ 			       conn_param->private_data_len;
++	if (req.private_data_len < conn_param->private_data_len)
++		return -EINVAL;
++
+ 	req.private_data = kzalloc(req.private_data_len, GFP_ATOMIC);
+ 	if (!req.private_data)
+ 		return -ENOMEM;
+@@ -2562,6 +2565,9 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
+ 	memset(&req, 0, sizeof req);
+ 	offset = cma_user_data_offset(id_priv->id.ps);
+ 	req.private_data_len = offset + conn_param->private_data_len;
++	if (req.private_data_len < conn_param->private_data_len)
++		return -EINVAL;
++
+ 	private_data = kzalloc(req.private_data_len, GFP_ATOMIC);
+ 	if (!private_data)
+ 		return -ENOMEM;
 
 
 --
