@@ -1,32 +1,70 @@
-From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] RDMA/nes: Change for phy clock divisor
-Date: Thu, 8 Dec 2011 10:27:17 -0700
-Message-ID: <6616CDC1126C644EA43A3D26F120DDFA02617A0498@azsmsx504.amr.corp.intel.com>
-References: <20111207222406.GA4012@TENIKOLO-MOBL>
- <CAG4TOxMjjT3+NJZFito656=O+cVDw_FXWAZ-vyjWsPF415+5vg@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: kernel BUG at drivers/iommu/intel-iommu.c:1767 on F16 3.1.1-2.fc16.x86_64
+Date: Thu, 8 Dec 2011 09:47:18 -0800
+Message-ID: <CAL1RGDVh7gNTrteiEaGg=4fxW=p3ydZPVf4d1hgtwNT9xUdOMw@mail.gmail.com>
+References: <CALfB72BHLmN_vkpz9j7mi4yQWaYfJOojqopJ6d4911vuf3WRAA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxMjjT3+NJZFito656=O+cVDw_FXWAZ-vyjWsPF415+5vg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CALfB72BHLmN_vkpz9j7mi4yQWaYfJOojqopJ6d4911vuf3WRAA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In the patch we modify a register, which controls the divisor of the core clock for the MDIO bus clock (MDC).
-The maximum standard value of the MDC is 2.5MHz, currently it is set to 3.5MHz.
-We want to comply to the spec.
+ > Any help would be appreciated. Would a firmware upgrade make a difference?
 
------Original Message-----
-From: roland.dreier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [mailto:roland.dreier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Roland Dreier
-Subject: Re: [PATCH] RDMA/nes: Change for phy clock divisor
+Almost certainly not a firmware issue.
 
-<Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Change the MDIO bus clock to frequency 2.5MHz
+ > [  597.412843] kernel BUG at drivers/iommu/intel-iommu.c:1767!
 
-Any comment on why you want to change the bus clock?
+So this is
+
+        BUG_ON(addr_width < BITS_PER_LONG && (iov_pfn + nr_pages - 1)
+>> addr_width);
+
+in __domain_mapping() I believe.  And we have:
+
+        int addr_width = agaw_to_width(domain->agaw) - VTD_PAGE_SHIFT;
+
+How much RAM does you system have?
+
+I don't know too much about the low-level VT-d details, but is it
+possible the setup code
+is choosing a too small "guest address width" to cover all your memory?
+
+drivers/net/ethernet/mellanox/mlx4/main.c has
+
+        err = pci_set_dma_mask(pdev, DMA_BIT_MASK(64));
+        if (err) {
+                dev_warn(&pdev->dev, "Warning: couldn't set 64-bit PCI
+DMA mask.\n");
+                err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+                if (err) {
+                        dev_err(&pdev->dev, "Can't set PCI DMA mask,
+aborting.\n");
+                        goto err_release_regions;
+                }
+        }
+        err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+        if (err) {
+                dev_warn(&pdev->dev, "Warning: couldn't set 64-bit "
+                         "consistent PCI DMA mask.\n");
+                err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+                if (err) {
+                        dev_err(&pdev->dev, "Can't set consistent PCI
+DMA mask, "
+                                "aborting.\n");
+                        goto err_release_regions;
+                }
+        }
+
+do you see any warnings in your kernel log about setting the PCI DMA mask?
+(in any case that should only affect bus addresses, not "guest addresses")
+
+David, any idea?
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
