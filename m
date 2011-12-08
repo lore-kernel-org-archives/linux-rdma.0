@@ -1,28 +1,99 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: RAW Ethernet support for Kernel IB stack?
-Date: Thu, 8 Dec 2011 16:06:26 -0600 (CST)
-Message-ID: <alpine.DEB.2.00.1112081605210.4005@router.home>
-References: <alpine.DEB.2.00.1111231511470.24329@router.home> <CAJZOPZ+PABw9vQn4NZMXRZzXF0xhYe73SeL61Brz-8dwWReUrQ@mail.gmail.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] libibmad: Add support for congestion control config mads.
+Date: Thu, 08 Dec 2011 14:09:34 -0800
+Message-ID: <1323382174.6368.102.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+PABw9vQn4NZMXRZzXF0xhYe73SeL61Brz-8dwWReUrQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 23 Nov 2011, Or Gerlitz wrote:
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ include/infiniband/mad.h |    5 +++++
+ src/cc.c                 |   37 +++++++++++++++++++++++++++++++++++++
+ src/libibmad.map         |    1 +
+ 3 files changed, 43 insertions(+), 0 deletions(-)
 
-> Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
-> > Seems that OFED has this raw ethernet support but the kernel IB stack does not?
-> > Any work in progress on that one?
->
-> Yes, I will be reworking the patches for upstream submission,
-> expected in the coming weeks.
+diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+index a94ca08..5d62307 100644
+--- a/include/infiniband/mad.h
++++ b/include/infiniband/mad.h
+@@ -1496,6 +1496,11 @@ MAD_EXPORT void *cc_query_status_via(void *rcvbuf, ib_portid_t * portid,
+ 				     int *rstatus, const struct ibmad_port * srcport,
+ 				     uint64_t cckey);
+ 
++MAD_EXPORT void *cc_config_status_via(void *payload, void *rcvbuf, ib_portid_t * portid,
++				      unsigned attrid, unsigned mod, unsigned timeout,
++				      int *rstatus, const struct ibmad_port * srcport,
++				      uint64_t cckey);
++
+ /* sa.c */
+ uint8_t *sa_call(void *rcvbuf, ib_portid_t * portid, ib_sa_call_t * sa,
+ 		 unsigned timeout) DEPRECATED;
+diff --git a/src/cc.c b/src/cc.c
+index 36231f7..cae174e 100644
+--- a/src/cc.c
++++ b/src/cc.c
+@@ -79,3 +79,40 @@ void *cc_query_status_via(void *rcvbuf, ib_portid_t * portid,
+ 
+ 	return res;
+ }
++
++void *cc_config_status_via(void *payload, void *rcvbuf, ib_portid_t * portid,
++                           unsigned attrid, unsigned mod, unsigned timeout,
++                           int *rstatus, const struct ibmad_port * srcport,
++                           uint64_t cckey)
++{
++	ib_rpc_cc_t rpc = { 0 };
++	void *res;
++
++	DEBUG("attr 0x%x mod 0x%x route %s", attrid, mod, portid2str(portid));
++	rpc.method = IB_MAD_METHOD_SET;
++	rpc.attr.id = attrid;
++	rpc.attr.mod = mod;
++	rpc.timeout = timeout;
++	if (attrid == IB_CC_ATTR_CONGESTION_LOG) {
++		rpc.datasz = IB_CC_LOG_DATA_SZ;
++		rpc.dataoffs = IB_CC_LOG_DATA_OFFS;
++	}
++	else {
++		rpc.datasz = IB_CC_DATA_SZ;
++		rpc.dataoffs = IB_CC_DATA_OFFS;
++	}
++	rpc.mgtclass = IB_CC_CLASS;
++	rpc.cckey = cckey;
++
++	portid->qp = 1;
++	if (!portid->qkey)
++		portid->qkey = IB_DEFAULT_QP1_QKEY;
++
++	res = mad_rpc(srcport, (ib_rpc_t *)&rpc, portid, payload, rcvbuf);
++	if (rstatus)
++		*rstatus = rpc.rstatus;
++
++	return res;
++}
++
++
+diff --git a/src/libibmad.map b/src/libibmad.map
+index a64288d..7c7587b 100644
+--- a/src/libibmad.map
++++ b/src/libibmad.map
+@@ -145,5 +145,6 @@ IBMAD_1.3 {
+ 		bm_call_via;
+ 		mad_dump_port_ext_speeds_counters;
+ 		cc_query_status_via;
++		cc_config_status_via;
+ 	local: *;
+ };
+-- 
+1.7.1
 
-Are there any prereleases of that available? Or if you just give me a list
-of OFED patches then I can try and see how far I can get on my own.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
