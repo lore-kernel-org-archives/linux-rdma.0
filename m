@@ -1,7 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx4 3/4] add link layer field to mlx4 QPs
-Date: Sun, 11 Dec 2011 16:44:13 +0200
-Message-ID: <alpine.LRH.2.00.1112111643510.3850@ogerlitz.voltaire.com>
+Subject: [PATCH libmlx4 4/4] fix SL to 8021q priority-bits settings under
+ IBoE
+Date: Sun, 11 Dec 2011 16:45:40 +0200
+Message-ID: <alpine.LRH.2.00.1112111645190.3850@ogerlitz.voltaire.com>
 References: <alpine.LRH.2.00.1112111638020.32736@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
@@ -12,47 +13,71 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The link layer field is to be used in few flows
-among them fast path operations such as CQ polling.
+Under IBoE, SLs 0-7 are mapped to Ethernet 8021q user priority bits
+(pbits) which are part of the VLAN tag, SLs 8-15 are reserved.
+
+Under Ethernet, the ConnectX firmware treats (decode/encode) the four
+bit SL field in various constructs such as QPC / UD WQE / CQE as PPP0
+and not as 0PPP. This correlates well to the fact that within the
+vlan tag the pbits are located in bits 15-13 and not 12-14.
+
+The current code was buggy around that - the encoding into the
+address handle was wrong which resulted in wrong priority-bits
+for datagram WQE, and decoding from the CQE was wrong, which
+resulted in wrong input into AH build-up from CQE such as
+done by consumers of ibv_init_ah_from_wc
+
+This is fixed by using PPP0 where relevant, a related
+fix is provided to the kernel mlx4 driver.
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/mlx4.h  |    2 ++
- src/verbs.c |    8 ++++++++
- 2 files changed, 10 insertions(+), 0 deletions(-)
+ src/cq.c    |    5 ++++-
+ src/verbs.c |    5 +++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/src/mlx4.h b/src/mlx4.h
-index 0ad838d..f92611f 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -223,6 +223,8 @@ struct mlx4_qp {
+diff --git a/src/cq.c b/src/cq.c
+index 14f2f4d..628c65b 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -317,12 +317,15 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+ 		}
 
- 	uint32_t		       *db;
- 	struct mlx4_wq			rq;
-+
-+	uint8_t			link_layer;
- };
+ 		wc->slid	   = ntohs(cqe->rlid);
+-		wc->sl		   = ntohs(cqe->sl_vid) >> 12;
+ 		g_mlpath_rqpn	   = ntohl(cqe->g_mlpath_rqpn);
+ 		wc->src_qp	   = g_mlpath_rqpn & 0xffffff;
+ 		wc->dlid_path_bits = (g_mlpath_rqpn >> 24) & 0x7f;
+ 		wc->wc_flags	  |= g_mlpath_rqpn & 0x80000000 ? IBV_WC_GRH : 0;
+ 		wc->pkey_index     = ntohl(cqe->immed_rss_invalid) & 0x7f;
++		if ((*cur_qp)->link_layer == IBV_LINK_LAYER_ETHERNET)
++			wc->sl	   = ntohs(cqe->sl_vid) >> 13;
++		else
++			wc->sl	   = ntohs(cqe->sl_vid) >> 12;
+ 	}
 
- struct mlx4_av {
+ 	return CQ_OK;
 diff --git a/src/verbs.c b/src/verbs.c
-index 199d107..3c8dbaf 100644
+index 3c8dbaf..7ccb0f1 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
-@@ -522,6 +522,14 @@ int mlx4_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- {
- 	struct ibv_modify_qp cmd;
- 	int ret;
-+	struct ibv_port_attr port_attr;
-+	struct mlx4_qp *mqp = to_mqp(qp);
-+
-+	if (attr_mask & IBV_QP_PORT) {
-+		if (ibv_query_port(qp->pd->context, attr->port_num, &port_attr))
-+			return -1;
-+		mqp->link_layer = port_attr.link_layer;
-+	}
+@@ -677,13 +677,14 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	if (port_attr.link_layer != IBV_LINK_LAYER_ETHERNET) {
+ 		ah->av.g_slid = attr->src_path_bits;
+ 		ah->av.dlid   = htons(attr->dlid);
+-	}
++		ah->av.sl_tclass_flowlabel = htonl(attr->sl << 28);
++	} else
++		ah->av.sl_tclass_flowlabel = htonl(attr->sl << 29);
 
- 	if (qp->state == IBV_QPS_RESET &&
- 	    attr_mask & IBV_QP_STATE   &&
+ 	if (attr->static_rate) {
+ 		ah->av.stat_rate = attr->static_rate + MLX4_STAT_RATE_OFFSET;
+ 		/* XXX check rate cap? */
+ 	}
+-	ah->av.sl_tclass_flowlabel = htonl(attr->sl << 28);
+ 	if (attr->is_global) {
+ 		ah->av.g_slid   |= 0x80;
+ 		ah->av.gid_index = attr->grh.sgid_index;
 -- 
 1.7.1
 
