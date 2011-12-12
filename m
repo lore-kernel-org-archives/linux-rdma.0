@@ -1,55 +1,43 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH librdmacm] udaddy/ucmatose: allow easy setting of tos in
- hex
-Date: Sun, 11 Dec 2011 17:40:51 +0200
-Message-ID: <alpine.LRH.2.00.1112111740050.5556@ogerlitz.voltaire.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 06/14] ib_srp: Micro-optimize completion handlers
+Date: Mon, 12 Dec 2011 12:41:41 +0100
+Message-ID: <CAO+b5-pFBEQybN+01heAzr=_dNCb7Sr7ri_o_hF1MnOeX4_idQ@mail.gmail.com>
+References: <201112011954.25811.bvanassche@acm.org>
+	<201112012002.17829.bvanassche@acm.org>
+	<20111201163539.572ca669@thirdoffive.cmf.nrl.navy.mil>
+	<1322782369.11664.5.camel@lap75545.ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1322782369.11664.5.camel-FqX9LgGZnHWDB2HL1qBt2PIbXMQ5te18@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Under IBoE, the 3 MSBits of the TOS map to the SL, hence letting
-the user to specify them in hex makes the interface friendlier.
+On Fri, Dec 2, 2011 at 12:32 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote=
+:
+> On Thu, 2011-12-01 at 16:35 -0500, chas williams - CONTRACTOR wrote:
+>> perhaps this should use the unlikely() macro instead:
+>>
+>> =A0 =A0 =A0 if (unlikely(wc.status)) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ...
+>> =A0 =A0 =A0 }
+>
+> If it needs to change at all, this is the direction it should take.
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- examples/cmatose.c |    2 +-
- examples/udaddy.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Hi Dave,
 
-diff --git a/examples/cmatose.c b/examples/cmatose.c
-index 82e0d7c..ce99f22 100644
---- a/examples/cmatose.c
-+++ b/examples/cmatose.c
-@@ -702,7 +702,7 @@ int main(int argc, char **argv)
- 			break;
- 		case 't':
- 			set_tos = 1;
--			tos = (uint8_t) atoi(optarg);
-+			tos = strtoul(optarg, NULL, 0);
- 			break;
- 		case 'p':
- 			port = atoi(optarg);
-diff --git a/examples/udaddy.c b/examples/udaddy.c
-index 1534df5..365ce4e 100644
---- a/examples/udaddy.c
-+++ b/examples/udaddy.c
-@@ -655,7 +655,7 @@ int main(int argc, char **argv)
- 			break;
- 		case 't':
- 			set_tos = 1;
--			tos = (uint8_t) atoi(optarg);
-+			tos = strtoul(optarg, NULL, 0);
- 			break;
- 		case 'p':
- 			port_space = strtol(optarg, NULL, 0);
--- 
-1.7.1
+Prepatch 3.2-rc5 has been released which means that the 3.3 merge
+window is coming closer. Do you have any other comments about this
+patch series than those already posted to the list ?
 
+Thanks,
+
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
