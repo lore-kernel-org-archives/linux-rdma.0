@@ -1,42 +1,104 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 06/14] ib_srp: Micro-optimize completion handlers
-Date: Mon, 12 Dec 2011 18:12:29 -0500
-Message-ID: <1323731549.8787.1.camel@lap75545.ornl.gov>
-References: <201112011954.25811.bvanassche@acm.org>
-	 <201112012002.17829.bvanassche@acm.org>
-	 <20111201163539.572ca669@thirdoffive.cmf.nrl.navy.mil>
-	 <1322782369.11664.5.camel@lap75545.ornl.gov>
-	 <CAO+b5-pFBEQybN+01heAzr=_dNCb7Sr7ri_o_hF1MnOeX4_idQ@mail.gmail.com>
+From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH net-next V2 00/21] net/mlx4: SRIOV support
+Date: Tue, 13 Dec 2011 16:10:25 +0200
+Message-ID: <4EE75CD1.7070900@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-pFBEQybN+01heAzr=_dNCb7Sr7ri_o_hF1MnOeX4_idQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2011-12-12 at 06:41 -0500, Bart Van Assche wrote:
-> On Fri, Dec 2, 2011 at 12:32 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
-> > On Thu, 2011-12-01 at 16:35 -0500, chas williams - CONTRACTOR wrote:
-> >> perhaps this should use the unlikely() macro instead:
-> >>
-> >>       if (unlikely(wc.status)) {
-> >>               ...
-> >>       }
-> >
-> > If it needs to change at all, this is the direction it should take.
-> 
-> Hi Dave,
-> 
-> Prepatch 3.2-rc5 has been released which means that the 3.3 merge
-> window is coming closer. Do you have any other comments about this
-> patch series than those already posted to the list ?
+Hello David,
 
-I do; I'm sorry to keep you waiting, but other pressures at work have
-kept me occupied. I'll have feedback for you this week, or will do it
-over the weekend if necessary.
+This is V2 of a patch set that adds SRIOV support for ConnectX2 and ConnectX3 HW for Ethernet Link layer.
+Infiniband and RoCE SRIOV support will be added at later stage
+
+In ConnectX, nearly all device resources can be associated with any function.
+Once allocated, these resources can be manipulated exclusively by their
+associated functions in the same manner as in the single-function case.
+The same driver acts both as pf and vf driver.
+mlx4_en module (Ethernet specific code) remains virtualization unaware and all the multifunction logic is
+implemented in mlx4_core module.
+To keep that separation, some code (mainly port management) moved from mlx4_en to mlx4_core module.
+
+The device continues to use a single HCA Command Register (HCR), which is owned by the pf.
+Thus, the pf is given the role of allocating resources to vfs, and controlling shared resource (such as ports).
+
+A dedicated HW communication channel is used to transfer resource allocation and
+modification requests from vfs to the pf, and events from the pf to the vfs.
+Consequently, no hypervisor-specific services are required for pf-vf communication.
+All vfs resources are tracked by the pf and cleaned up in case the vf doesn't close gracefully.
+The resource tracker also prevents untrusted vfs to manipulate resources that belong to other functions.
+
+---
+Change from V1:
+ - Fixed warnings found by -Wswitch-enum compilation flag.
+Change from V0:
+- Use enum {MLX4_CMD_NATIVE, MLX4_CMD_WRAPPED} instead of 1/0 when calling mlx4_cmd
+- Added pf context behavior to mlx4_func_cap and query func cap
+- Removed ifdef CONFIG_PCI_IOV, all modules parameters do not depend on this define anymore
+- sr_iov module parameter changed to num_vfs
+- made probe_vf parameter writable, allows binding of VF back to hypervisor
+
+mlx4_en: updated driver version to 2.0
+mlx4_core: updated driver version to 1.1
+mlx4_core: Modify driver initialization flow to accommodate SRIOV for Ethernet.
+mlx4_core: adjust catas operation for SRIOV mode.
+mlx4_core: mtts resources units changed to offset
+mlx4_en: Allow communication between functions on same host
+mlx4: Ethernet port management modifications
+mlx4: Traffic steering management support for SRIOV
+mlx4_ib: disable SRIOV mode for IB ports (not yet supported).
+mlx4_core:  resource tracking for HCA resources used by guests.
+mlx4_core: Add wrapper functions and comm channel and slave event support to EQs
+mlx4_core: mtt modifications for SRIOV
+mlx4_core: cq modifications for SRIOV
+mlx4_core: qp modifications for SRIOV
+mlx4_core: srq modifications for SRIOV
+mlx4_core: Added FW commands and their wrappers for supporting SRIOV.
+mlx4_core: Implement the master-slave communication channel.
+mlx4_core: Reduce number of PD bits to 17.
+mlx4_core:  Add "native" argument to mlx4_cmd and its callers (where needed)
+mlx4: Extanding port_mask functionality
+mlx4_core:  initial header-file changes for SRIOV support.
+
+ drivers/infiniband/hw/mlx4/mad.c                      |    6
+ drivers/infiniband/hw/mlx4/main.c                     |   14
+ drivers/net/ethernet/mellanox/mlx4/Makefile           |    2
+ drivers/net/ethernet/mellanox/mlx4/catas.c            |    7
+ drivers/net/ethernet/mellanox/mlx4/cmd.c              | 1308 +++++++
+ drivers/net/ethernet/mellanox/mlx4/cq.c               |  141
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c        |   32
+ drivers/net/ethernet/mellanox/mlx4/en_port.c          |   84
+ drivers/net/ethernet/mellanox/mlx4/en_port.h          |   43
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c            |   15
+ drivers/net/ethernet/mellanox/mlx4/en_selftest.c      |    2
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c            |   20
+ drivers/net/ethernet/mellanox/mlx4/eq.c               |  430 +-
+ drivers/net/ethernet/mellanox/mlx4/fw.c               |  404 ++
+ drivers/net/ethernet/mellanox/mlx4/fw.h               |   26
+ drivers/net/ethernet/mellanox/mlx4/icm.c              |    5
+ drivers/net/ethernet/mellanox/mlx4/intf.c             |    6
+ drivers/net/ethernet/mellanox/mlx4/main.c             |  868 ++++-
+ drivers/net/ethernet/mellanox/mlx4/mcg.c              |  228 +
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h             |  670 +++
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h          |    4
+ drivers/net/ethernet/mellanox/mlx4/mr.c               |  486 ++
+ drivers/net/ethernet/mellanox/mlx4/pd.c               |   19
+ drivers/net/ethernet/mellanox/mlx4/port.c             |  616 ++-
+ drivers/net/ethernet/mellanox/mlx4/profile.c          |    9
+ drivers/net/ethernet/mellanox/mlx4/qp.c               |  238 +
+ drivers/net/ethernet/mellanox/mlx4/resource_tracker.c | 3103 ++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx4/sense.c            |    3
+ drivers/net/ethernet/mellanox/mlx4/srq.c              |  132
+ include/linux/mlx4/cmd.h                              |   51
+ include/linux/mlx4/device.h                           |   72
+ 31 files changed, 8119 insertions(+), 925 deletions(-)
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
