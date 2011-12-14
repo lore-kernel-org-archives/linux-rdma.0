@@ -1,44 +1,54 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Multiple multicast groups
-Date: Wed, 14 Dec 2011 17:14:10 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237325660C03@ORSMSX102.amr.corp.intel.com>
-References: <20111213135346.132670b3va8kdk62@celticblues.com>
- <1828884A29C6694DAF28B7E6B8A8237325660A13@ORSMSX102.amr.corp.intel.com>
- <20111214093009.12962ipxxrmw0avl@celticblues.com>
+From: Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH net-next V2 00/21] net/mlx4: SRIOV support
+Date: Wed, 14 Dec 2011 12:42:13 -0800
+Message-ID: <CAE9FiQU1EwcGBhn2bFksB30nb8p3FEo=vvOJYXq3hAA1ArhqWg@mail.gmail.com>
+References: <4EE75CD1.7070900@mellanox.co.il>
+	<20111213.141413.1872427395829102426.davem@davemloft.net>
+	<953B660C027164448AE903364AC447D2485F0A86@MTLDAG02.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111214093009.12962ipxxrmw0avl-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <953B660C027164448AE903364AC447D2485F0A86-LSMZvP3E4uyuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org" <dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 1.  If I am not using rdma_join_multicast, would I simply use multiple
-> calls to ibv_attach_multicast?
+On Tue, Dec 13, 2011 at 11:16 AM, Yevgeny Petrilin
+<yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> > This is V2 of a patch set that adds SRIOV support for ConnectX2 an=
+d
+>> > ConnectX3 HW for Ethernet Link layer. =A0Infiniband and RoCE SRIOV
+>> > support will be added at later stage
+>>
 
-Yes
- 
-> 2.  My IB code is serving as a pass through layer between two
-> pre-existing simulations which previously communicated via reflective
-> memory.  It is much easier for me to insert this layer rather than
-> modify these existing apps.  So SimApp A passes data to my IBLayer
-> which multicasts it to IBLayers on other machines.  Instances of these
-> IBLayers, upon receiving hte data, place it in shared memory for
-> SimApp B to consume.  There are multiple types of data passing between
-> the SimApps and my IBlayer...  All I want my IBLayer to do is take N
-> Bytes of Data and place it in the correct shared memory location.  But
-> if it doesn't know what type of data it is, it won't know the correct
-> shared memory location...  I thought if I have multiple multicast
-> groups and I use each one for a different type of data, e.g. MG 1 for
-> DataType 1, MG2 for DataType 2 and so on.  Then the IBLayers receving
-> the data would know that data received from MG 1 goes in shared mem
-> segment 1 etc.
+got following warning:
 
-Work completions contain the source QP number and source LID.  I don't think you can tell which multicast group specific data was sent on.  You would probably need to carry that information in a header.  You could try using immediate data for that.  Btw - multicast traffic is unreliable, so you would need to implement your own ack / retry mechanism if you wanted reliability.
+drivers/built-in.o: In function `mlx4_en_set_pauseparam':
+/home/yhlu/xx/xx/kernel/tip/linux-2.6/drivers/net/ethernet/mellanox/mlx=
+4/en_ethtool.c:387:
+undefined reference to `mlx4_SET_PORT_general'
+drivers/built-in.o: In function `mlx4_en_do_set_multicast':
+/home/yhlu/xx/xx/kernel/tip/linux-2.6/drivers/net/ethernet/mellanox/mlx=
+4/en_netdev.c:233:
+undefined reference to `mlx4_SET_PORT_qpn_calc'
+/home/yhlu/xx/xx/kernel/tip/linux-2.6/drivers/net/ethernet/mellanox/mlx=
+4/en_netdev.c:277:
+undefined reference to `mlx4_SET_PORT_qpn_calc'
+drivers/built-in.o: In function `mlx4_en_start_port':
+/home/yhlu/xx/xx/kernel/tip/linux-2.6/drivers/net/ethernet/mellanox/mlx=
+4/en_netdev.c:664:
+undefined reference to `mlx4_SET_PORT_general'
+/home/yhlu/xx/xx/kernel/tip/linux-2.6/drivers/net/ethernet/mellanox/mlx=
+4/en_netdev.c:676:
+undefined reference to `mlx4_SET_PORT_qpn_calc'
+drivers/built-in.o: In function `mlx4_en_init_netdev':
+/home/yhlu/xx/xx/kernel/tip/linux-2.6/drivers/net/ethernet/mellanox/mlx=
+4/en_netdev.c:1138:
+undefined reference to `mlx4_SET_PORT_general'
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
