@@ -1,38 +1,188 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 12/14] ib_srp: Rework error handling
-Date: Thu, 15 Dec 2011 15:20:33 -0500
-Message-ID: <1323980433.16703.78.camel@lap75545.ornl.gov>
-References: <201112011954.25811.bvanassche@acm.org>
-	 <201112012010.37276.bvanassche@acm.org>
+From: Guenter Roeck <guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/15] module_param: avoid bool abuse, add bint for
+ special cases.
+Date: Thu, 15 Dec 2011 12:41:08 -0800
+Message-ID: <20111215204108.GB10672@ericsson.com>
+References: <877h1ytu4d.fsf@rustcorp.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201112012010.37276.bvanassche-HInyCGIudOg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <877h1ytu4d.fsf-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Fujita Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Steve Glendinning <steve.glendinning-sdUf+H5yV5I@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Anton Altaparmakov <anton-yrGDUoBaLx3QT0dZR+AlfA@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2011-12-01 at 20:10 +0100, Bart Van Assche wrote:
-> Add the necessary functions in the SRP transport module to allow
-> an SRP initiator driver to implement transport layer recovery.
+On Wed, Dec 14, 2011 at 10:02:26PM -0500, Rusty Russell wrote:
+> For historical reasons, we allow module_param(bool) to take an int (or
+> an unsigned int).  That's going away.
+> 
+> A few drivers really want an int: they set it to -1 and a parameter
+> will set it to 0 or 1.  This sucks: reading them from sysfs will give
+> 'Y' for both -1 and 1, but if we change it to an int, then the users
+> might be broken (if they did "param" instead of "param=1").
+> 
+> Use a new 'bint' parser for them.
+> 
+> (ntfs has a different problem: it needs an int for debug_msgs because
+> it's also exposed via sysctl.)
+> 
+> Cc: Steve Glendinning <steve.glendinning-sdUf+H5yV5I@public.gmane.org>
+> Cc: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+> Cc: Guenter Roeck <guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>
+> Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+> Cc: Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+> Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org
+> Cc: Anton Altaparmakov <anton-yrGDUoBaLx3QT0dZR+AlfA@public.gmane.org>
+> Cc: Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>
+> Cc: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
+> Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+> Signed-off-by: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+> ---
+>  drivers/hwmon/emc2103.c                |    2 +-
 
-I've run out of time today to look further, but I did want to point out
-that I think you're doing way too much in this patch. I like that you're
-moving some pieces into the transport, as it would be good to handle
-in-fabric/out-of-fabric there as well, as done for the FC transport.
-Getting there needs to be done through a series of patches rather one
-big patches, especially since you're touching code that multiple drivers
-use and need to get the core changes reviewed by so many people. I would
-need some quite some persuasion to be comfortable making large changes
-to srp_transport through the IB tree without ack's by Fujita and Brian.
+For the hwmon driver:
+
+Acked-by: Guenter Roeck <guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>
+
+>  drivers/infiniband/hw/ehca/ehca_main.c |    2 +-
+>  drivers/s390/cio/cmf.c                 |    2 +-
+>  fs/ntfs/super.c                        |    2 +-
+>  include/linux/moduleparam.h            |    6 ++++++
+>  kernel/params.c                        |   24 ++++++++++++++++++++++++
+>  sound/pci/intel8x0.c                   |    4 ++--
+>  7 files changed, 36 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/hwmon/emc2103.c b/drivers/hwmon/emc2103.c
+> --- a/drivers/hwmon/emc2103.c
+> +++ b/drivers/hwmon/emc2103.c
+> @@ -55,7 +55,7 @@ static const u8 REG_TEMP_MAX[4] = { 0x34
+>   * it.  Default is to leave the device in the state it's already in (-1).
+>   * This parameter allows APD mode to be optionally forced on or off */
+>  static int apd = -1;
+> -module_param(apd, bool, 0);
+> +module_param(apd, bint, 0);
+>  MODULE_PARM_DESC(init, "Set to zero to disable anti-parallel diode mode");
+>  
+>  struct temperature {
+> diff --git a/drivers/infiniband/hw/ehca/ehca_main.c b/drivers/infiniband/hw/ehca/ehca_main.c
+> --- a/drivers/infiniband/hw/ehca/ehca_main.c
+> +++ b/drivers/infiniband/hw/ehca/ehca_main.c
+> @@ -82,7 +82,7 @@ module_param_named(port_act_time, ehca_p
+>  module_param_named(poll_all_eqs,  ehca_poll_all_eqs,  bool, S_IRUGO);
+>  module_param_named(static_rate,   ehca_static_rate,   int,  S_IRUGO);
+>  module_param_named(scaling_code,  ehca_scaling_code,  bool, S_IRUGO);
+> -module_param_named(lock_hcalls,   ehca_lock_hcalls,   bool, S_IRUGO);
+> +module_param_named(lock_hcalls,   ehca_lock_hcalls,   bint, S_IRUGO);
+>  module_param_named(number_of_cqs, ehca_max_cq,        int,  S_IRUGO);
+>  module_param_named(number_of_qps, ehca_max_qp,        int,  S_IRUGO);
+>  
+> diff --git a/drivers/s390/cio/cmf.c b/drivers/s390/cio/cmf.c
+> --- a/drivers/s390/cio/cmf.c
+> +++ b/drivers/s390/cio/cmf.c
+> @@ -98,7 +98,7 @@ enum cmb_format {
+>   * enum cmb_format.
+>   */
+>  static int format = CMF_AUTODETECT;
+> -module_param(format, bool, 0444);
+> +module_param(format, bint, 0444);
+>  
+>  /**
+>   * struct cmb_operations - functions to use depending on cmb_format
+> diff --git a/fs/ntfs/super.c b/fs/ntfs/super.c
+> --- a/fs/ntfs/super.c
+> +++ b/fs/ntfs/super.c
+> @@ -3198,7 +3198,7 @@ MODULE_DESCRIPTION("NTFS 1.2/3.x driver 
+>  MODULE_VERSION(NTFS_VERSION);
+>  MODULE_LICENSE("GPL");
+>  #ifdef DEBUG
+> -module_param(debug_msgs, bool, 0);
+> +module_param(debug_msgs, bint, 0);
+>  MODULE_PARM_DESC(debug_msgs, "Enable debug messages.");
+>  #endif
+>  
+> diff --git a/include/linux/moduleparam.h b/include/linux/moduleparam.h
+> --- a/include/linux/moduleparam.h
+> +++ b/include/linux/moduleparam.h
+> @@ -367,6 +367,12 @@ extern int param_set_invbool(const char 
+>  extern int param_get_invbool(char *buffer, const struct kernel_param *kp);
+>  #define param_check_invbool(name, p) __param_check(name, p, bool)
+>  
+> +/* An int, which can only be set like a bool (though it shows as an int). */
+> +extern struct kernel_param_ops param_ops_bint;
+> +extern int param_set_bint(const char *val, const struct kernel_param *kp);
+> +#define param_get_bint param_get_int
+> +#define param_check_bint param_check_int
+> +
+>  /**
+>   * module_param_array - a parameter which is an array of some type
+>   * @name: the name of the array variable
+> diff --git a/kernel/params.c b/kernel/params.c
+> --- a/kernel/params.c
+> +++ b/kernel/params.c
+> @@ -369,6 +369,30 @@ struct kernel_param_ops param_ops_invboo
+>  };
+>  EXPORT_SYMBOL(param_ops_invbool);
+>  
+> +int param_set_bint(const char *val, const struct kernel_param *kp)
+> +{
+> +	struct kernel_param boolkp;
+> +	bool v;
+> +	int ret;
+> +
+> +	/* Match bool exactly, by re-using it. */
+> +	boolkp = *kp;
+> +	boolkp.arg = &v;
+> +	boolkp.flags |= KPARAM_ISBOOL;
+> +
+> +	ret = param_set_bool(val, &boolkp);
+> +	if (ret == 0)
+> +		*(int *)kp->arg = v;
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(param_set_bint);
+> +
+> +struct kernel_param_ops param_ops_bint = {
+> +	.set = param_set_bint,
+> +	.get = param_get_int,
+> +};
+> +EXPORT_SYMBOL(param_ops_bint);
+> +
+>  /* We break the rule and mangle the string. */
+>  static int param_array(const char *name,
+>  		       const char *val,
+> diff --git a/sound/pci/intel8x0.c b/sound/pci/intel8x0.c
+> --- a/sound/pci/intel8x0.c
+> +++ b/sound/pci/intel8x0.c
+> @@ -95,13 +95,13 @@ module_param(ac97_quirk, charp, 0444);
+>  MODULE_PARM_DESC(ac97_quirk, "AC'97 workaround for strange hardware.");
+>  module_param(buggy_semaphore, bool, 0444);
+>  MODULE_PARM_DESC(buggy_semaphore, "Enable workaround for hardwares with problematic codec semaphores.");
+> -module_param(buggy_irq, bool, 0444);
+> +module_param(buggy_irq, bint, 0444);
+>  MODULE_PARM_DESC(buggy_irq, "Enable workaround for buggy interrupts on some motherboards.");
+>  module_param(xbox, bool, 0444);
+>  MODULE_PARM_DESC(xbox, "Set to 1 for Xbox, if you have problems with the AC'97 codec detection.");
+>  module_param(spdif_aclink, int, 0444);
+>  MODULE_PARM_DESC(spdif_aclink, "S/PDIF over AC-link.");
+> -module_param(inside_vm, bool, 0444);
+> +module_param(inside_vm, bint, 0444);
+>  MODULE_PARM_DESC(inside_vm, "KVM/Parallels optimization.");
+>  
+>  /* just for backward compatibility */
+
 -- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
-
+Guenter Roeck
+Distinguished Engineer
+PDU IP Systems
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
