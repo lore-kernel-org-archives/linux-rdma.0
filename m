@@ -1,297 +1,248 @@
-From: Gerben Roest <g.roest-99SnrGqf+M9mR6Xm/wNWPw@public.gmane.org>
-Subject: Re: Problems with link, opensm complains IB_SA_MAD_STATUS_REQ_INVALID
-Date: Fri, 16 Dec 2011 13:55:47 +0100
-Message-ID: <4EEB3FD3.3080409@grepit.nl>
-References: <4EEA8004.4060103@grepit.nl> <20111215160600.ebccb033.weiny2@llnl.gov> <4EEB07C3.90803@grepit.nl> <20111216091416.GA3448@calypso> <4EEB216D.2010407@grepit.nl> <4EEB39E8.5030601@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] opensm: on MAD error call back print DR PATH or LID of
+ request MAD
+Date: Fri, 16 Dec 2011 08:03:27 -0500
+Message-ID: <4EEB419F.8020308@dev.mellanox.co.il>
+References: <20111213210918.9cf79850.weiny2@llnl.gov> <4EE959A8.3000409@dev.mellanox.co.il> <20111214191840.a3a80cf3.weiny2@llnl.gov> <4EEA00ED.2080609@dev.mellanox.co.il> <20111215094006.8aa8f198.weiny2@llnl.gov> <4EEA72A5.8080602@dev.mellanox.co.il> <20111215145430.20f6adee.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EEB39E8.5030601-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20111215145430.20f6adee.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Alex, Hal,
-
-On 16-12-2011 13:30, Hal Rosenstock wrote:
-> On 12/16/2011 5:46 AM, Gerben Roest wrote:
->> On 16-12-2011 10:14, Alex Netes wrote:
->>> Hi Gerben,
+On 12/15/2011 5:54 PM, Ira Weiny wrote:
+> On Thu, 15 Dec 2011 14:20:21 -0800
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> 
+>> On 12/15/2011 12:40 PM, Ira Weiny wrote:
+>>> On Thu, 15 Dec 2011 06:15:09 -0800
+>>> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 >>>
->>> It's complaining about the link rate:
->>>
->>> Dec 15 23:35:05 792236 [46B9F940] 0x04 -> validate_port_caps: Port's RATE 2 is less than 3
->>>
->>> Probably, the host that is trying to join is connected via 1x cable.
->>> The rate is defined by the capabilities of the host that opened a group, so
->>> you see this problem only when the host with higher rate created the MC group.
->>
->> Is it possible to force them to some specified speed?
-> 
-> The easiest way to fix this is to specify rate=2 in the partition file
-> for the default partition as documented in the man page under PARTITION
-> CONFIGURATION SECTION as follows:
-> 
-> Default=0x7fff,ipoib,rate=2:ALL=full;
-
-This does the trick! Thanks!
-
-> 
->> The strange thing is that both hosts show this problem if they start
->> opensm, 
-> 
-> What OpenSM version is this ?
-
-opensm-3.3.9-1.x86_64
-
-But opensm from OFED-1.5.4 gave the same error.
-
-> 
->> they have the same errors in /var/log/opensm.log. This is what
->> both hosts have:
->>
->> [root@titus ~]# lspci -v |grep Infini
->> 0a:00.0 InfiniBand: Mellanox Technologies MT26418 [ConnectX VPI PCIe 2.0
->> 5GT/s - IB DDR / 10GigE] (rev a0)
->>
->> [root@vespasianus ~]# lspci -v |grep Infini
->> 0a:00.0 InfiniBand: Mellanox Technologies MT26418 [ConnectX VPI PCIe 2.0
->> 5GT/s - IB DDR / 10GigE] (rev a0)
-> 
-> What (rate) is shown in ibstat or ibstatus for each port ?
-
-Both machines have one port each. Both machines give Rate=2, before and
-after the opensm partitions.conf edit.
-
-> 
->> The hosts are connected to each other's single port via one IB cable.
-> 
-> I hope they have the same rate on both ports then.
-
-yes, they had, and have. They should be identical on-board "cards".
-
-Could this be a cable problem? They should be DDR cards. Does Rate=2
-mean DDR?
-
-thanks,
-
-Gerben
-
->> [root@vespasianus ~]# grep -A1 -B1 INVALID /var/log/opensm.log| tail
->>
->> Dec 16 11:35:10 041359 [483D2940] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B12:
->> validate_more_comp_fields, validate_port_caps, or JoinState = 0 failed
->> from port 0x001e8c0000c84b62 (titus HCA-1), sending
->> IB_SA_MAD_STATUS_REQ_INVALID
->> Dec 16 11:35:10 041365 [483D2940] 0x10 -> osm_sa_send_error: [
->> --
->> Dec 16 11:35:17 351591 [429C9940] 0x04 -> validate_port_caps: Port's
->> RATE 2 is less than 3
->> Dec 16 11:35:17 351598 [429C9940] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B12:
->> validate_more_comp_fields, validate_port_caps, or JoinState = 0 failed
->> from port 0x001e8c0000b90641 (vespasianus HCA-1), sending
->> IB_SA_MAD_STATUS_REQ_INVALID
->> Dec 16 11:35:17 351604 [429C9940] 0x10 -> osm_sa_send_error: [
->> --
->> Dec 16 11:35:18 042907 [43DCB940] 0x04 -> validate_port_caps: Port's
->> RATE 2 is less than 3
->> Dec 16 11:35:18 042914 [43DCB940] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B12:
->> validate_more_comp_fields, validate_port_caps, or JoinState = 0 failed
->> from port 0x001e8c0000c84b62 (titus HCA-1), sending
->> IB_SA_MAD_STATUS_REQ_INVALID
->> Dec 16 11:35:18 042920 [43DCB940] 0x10 -> osm_sa_send_error: [
->>
->> Gerben
->>
->>
->>>
->>> On 09:56 Fri 16 Dec     , Gerben Roest wrote:
->>>> On 16-12-2011 1:06, Ira Weiny wrote:
->>>>> On Thu, 15 Dec 2011 15:17:24 -0800
->>>>> Gerben Roest <g.roest-99SnrGqf+M9mR6Xm/wNWPw@public.gmane.org> wrote:
+>>>> On 12/14/2011 10:18 PM, Ira Weiny wrote:
+>>>>> On Wed, 14 Dec 2011 18:21:28 -0800
+>>>>> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 >>>>>
->>>>>> Hi,
+>>>>>> On 12/14/2011 12:09 AM, Ira Weiny wrote:
+>>>>>>>
+>>>>>>> In addition print transaction ID of all DR PATH dumps to make sure we know
+>>>>>>> which MAD's they refer to.
+>>>>>>>
+>>>>>>> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+>>>>>>> ---
+>>>>>>>  opensm/osm_helper.c      |    5 +++--
+>>>>>>>  opensm/osm_sm_mad_ctrl.c |    7 +++++++
+>>>>>>>  2 files changed, 10 insertions(+), 2 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
+>>>>>>> index f9f3d9d..b6591c4 100644
+>>>>>>> --- a/opensm/osm_helper.c
+>>>>>>> +++ b/opensm/osm_helper.c
+>>>>>>> @@ -2059,8 +2059,9 @@ void osm_dump_smp_dr_path(IN osm_log_t * p_log, IN const ib_smp_t * p_smp,
+>>>>>>>  		char buf[BUF_SIZE];
+>>>>>>>  		unsigned n;
+>>>>>>>  
+>>>>>>> -		n = sprintf(buf, "Received SMP on a %u hop path: "
+>>>>>>> -			    "Initial path = ", p_smp->hop_count);
+>>>>>>> +		n = sprintf(buf, "Received SMP (TID 0x%" PRIx64 ") on a %u hop path: "
+>>>>>>> +			    "Initial path = ",
+>>>>>>> +			    cl_ntoh64(p_smp->trans_id), p_smp->hop_count);
+>>>>>>>  		n += sprint_uint8_arr(buf + n, sizeof(buf) - n,
+>>>>>>>  				      p_smp->initial_path,
+>>>>>>>  				      p_smp->hop_count + 1);
+>>>>>>> diff --git a/opensm/osm_sm_mad_ctrl.c b/opensm/osm_sm_mad_ctrl.c
+>>>>>>> index ee92c66..6abf8b8 100644
+>>>>>>> --- a/opensm/osm_sm_mad_ctrl.c
+>>>>>>> +++ b/opensm/osm_sm_mad_ctrl.c
+>>>>>>> @@ -721,6 +721,13 @@ static void sm_mad_ctrl_send_err_cb(IN void *context, IN osm_madw_t * p_madw)
+>>>>>>>  		ib_get_sm_attr_str(p_smp->attr_id), cl_ntoh32(p_smp->attr_mod),
+>>>>>>>  		cl_ntoh64(p_smp->trans_id));
+>>>>>>>  
+>>>>>>> +	if (p_smp->mgmt_class == IB_MCLASS_SUBN_DIR) {
+>>>>>>> +		osm_dump_smp_dr_path(p_ctrl->p_log, p_smp, OSM_LOG_ERROR);
 >>>>>>
->>>>>> Starting opensm from OFED 1.5.1, 1.5.3.2, 1.5.4 on a Scientific Linux 5
->>>>>> machine, directly linked to its neighbour (a twin 1U setup) gives me no
->>>>>> connection but lots of errors in /var/log/opensm.log, like these:
->>>>>>
->>>>>> Dec 15 22:38:35 685651 [45AFD940] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B12:
->>>>>> validate_more_comp_fields, validate_port_caps, or JoinState = 0 failed
->>>>>> from port 0x001e8c0000b90641 (vespasianus HCA-1), sending
->>>>>> IB_SA_MAD_STATUS_REQ_INVALID
->>>>>> Dec 15 22:38:35 686174 [464FE940] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B12:
->>>>>> validate_more_comp_fields, validate_port_caps, or JoinState = 0 failed
->>>>>> from port 0x001e8c0000c84b62 (titus HCA-1), sending
->>>>>> IB_SA_MAD_STATUS_REQ_INVALID
->>>>>>
->>>>>> Does anyone know what happens here? Another twin node has no problems,
->>>>>> that one uses OFED-1.5.1.
->>>>>>
->>>>>> I can send a "-V" log of opensm or any config files if you like,
+>>>>>> Rather than here, should this be in osm_vendor_ibumad.c ? There's
+>>>>>> already one similar log there but looks like evicted entry logging was
+>>>>>> not done. If not, then do any logs there need to be removed as redundant ?
 >>>>>
->>>>> Just set -D 0x7 which adds VERBOSE and send the snippet around the above errors.
+>>>>> Yes looking a bit closer I see that is redundant with the current umad_status
+>>>>> implementation.  
 >>>>
->>>> Dec 15 23:35:05 791001 [4399A940] 0x10 -> osm_vendor_send: [
->>>> Dec 15 23:35:05 791008 [4399A940] 0x04 -> osm_vendor_send: RMPP 0 length 256
->>>> Dec 15 23:35:05 791021 [4399A940] 0x10 -> osm_vendor_put: [
->>>> Dec 15 23:35:05 791028 [4399A940] 0x08 -> osm_vendor_put: Retiring UMAD
->>>> 0x3dd9290
->>>> Dec 15 23:35:05 791034 [4399A940] 0x10 -> osm_vendor_put: ]
->>>> Dec 15 23:35:05 791040 [4399A940] 0x08 -> osm_vendor_send: Completed
->>>> sending response or unsolicited p_madw = 0x3ddf5c0
->>>> Dec 15 23:35:05 791046 [4399A940] 0x10 -> osm_vendor_send: ]
->>>> Dec 15 23:35:05 791051 [4399A940] 0x10 -> osm_sa_send_error: ]
->>>> Dec 15 23:35:05 791057 [4399A940] 0x10 -> mcmr_rcv_join_mgrp: ]
->>>> Dec 15 23:35:05 791062 [4399A940] 0x10 -> osm_mcmr_rcv_process: ]
->>>> Dec 15 23:35:05 791068 [4399A940] 0x10 -> sa_mad_ctrl_disp_done_callback: [
->>>> Dec 15 23:35:05 791073 [4399A940] 0x10 -> osm_vendor_put: [
->>>> Dec 15 23:35:05 791079 [4399A940] 0x08 -> osm_vendor_put: Retiring UMAD
->>>> 0x3dd7290
->>>> Dec 15 23:35:05 791084 [4399A940] 0x10 -> osm_vendor_put: ]
->>>> Dec 15 23:35:05 791090 [4399A940] 0x10 -> sa_mad_ctrl_disp_done_callback: ]
->>>> Dec 15 23:35:05 792086 [4B1A6940] 0x10 -> osm_vendor_get: [
->>>> Dec 15 23:35:05 792106 [4B1A6940] 0x08 -> osm_vendor_get: Acquiring UMAD
->>>> for p_madw = 0x3ddf5d8, size = 256
->>>> Dec 15 23:35:05 792117 [4B1A6940] 0x08 -> osm_vendor_get: Acquired UMAD
->>>> 0x3dd7290, size = 256
->>>> Dec 15 23:35:05 792126 [4B1A6940] 0x10 -> osm_vendor_get: ]
->>>> Dec 15 23:35:05 792132 [4B1A6940] 0x10 -> sa_mad_ctrl_rcv_callback: [
->>>> Dec 15 23:35:05 792139 [4B1A6940] 0x08 -> sa_mad_ctrl_rcv_callback: 4 SA
->>>> MADs received
->>>> Dec 15 23:35:05 792152 [4B1A6940] 0x20 -> SA MAD dump:
->>>>                                 base_ver................0x1
->>>>                                 mgmt_class..............0x3
->>>>                                 class_ver...............0x2
->>>>                                 method..................0x2 (SubnAdmSet)
->>>>                                 status..................0x0
->>>>                                 resv....................0x0
->>>>                                 trans_id................0x53bf6d21e
->>>>                                 attr_id.................0x38
->>>> (MCMemberRecord)
->>>>                                 resv1...................0x0
->>>>                                 attr_mod................0x0
->>>>                                 rmpp_version............0x0
->>>>                                 rmpp_type...............0x0
->>>>                                 rmpp_flags..............0x0
->>>>                                 rmpp_status.............0x0
->>>>                                 seg_num.................0x0
->>>>                                 payload_len/new_win.....0x0
->>>>                                 sm_key..................0x0000000000000000
->>>>                                 attr_offset.............0x0
->>>>                                 resv2...................0x0
->>>>                                 comp_mask...............0x0000000000010083
+>>>> Well, not quite. That logs on any send error and osm_dump_smp_dr_path is
+>>>> only currently called for NodeInfo. That's one reason why it's down at
+>>>> that layer right now. I can see your v2 patch addresses this.
 >>>>
+>>>>> IE the message you get is:
+>>>>>
+>>>>> 	Dec 14 18:31:54 137584 [AEB0C700] 0x01 -> Received SMP on a 4 hop path: Initial path = 0,0,0,0,0, Return path  = 0,0,0,0,0
+>>>>>
+>>>>> That is useless.  I can alter the patch to remove that as well.
 >>>>
->>>> Dec 15 23:35:05 792158 [4B1A6940] 0x10 -> sa_mad_ctrl_process: [
->>>> Dec 15 23:35:05 792165 [4B1A6940] 0x08 -> sa_mad_ctrl_process: Posting
->>>> Dispatcher message OSM_MSG_MAD_MCMEMBER_RECORD
->>>> Dec 15 23:35:05 792187 [4B1A6940] 0x10 -> sa_mad_ctrl_process: ]
->>>> Dec 15 23:35:05 792194 [4B1A6940] 0x10 -> sa_mad_ctrl_rcv_callback: ]
->>>> Dec 15 23:35:05 792204 [46B9F940] 0x10 -> osm_mcmr_rcv_process: [
->>>> Dec 15 23:35:05 792211 [46B9F940] 0x10 -> mcmr_rcv_join_mgrp: [
->>>> Dec 15 23:35:05 792216 [46B9F940] 0x08 -> mcmr_rcv_join_mgrp: Dump of
->>>> incoming record
->>>> Dec 15 23:35:05 792228 [46B9F940] 0x08 -> MCMember Record dump:
+>>>> Another alternative is that if it's a bug, why not just fix that ?
+>>>
+>>> I was not sure if it was a bug (but I did not dig through the umad and kernel
+>>> layers to verify that).  It looks to me like umad_status only returns TIMEOUT
+>>> as an error.  Furthermore, I think the "response" MAD returned (and printed in
+>>> the above logs) does not include a DR path since it is not really a response
+>>> but just a place holder.
+>>
+>> I thought that the sent MAD is returned in the timeout case. That would
+>> include the DR paths in the SMP case. It seems to work only some of the
+>> time though and I'm not sure why that is.
+> 
+> I did not see this in umad_recv but the man page for umad_send does say.
+> 
+>      "If  reply is not received within the specified value [TIMEOUT], the original
+>      buffer is returned in the read channel with the status field set (to non
+>      zero)."
+>
+> So I guess this is a bug.  :-(
+
+The kernel (mad/user_mad) documentation is more definitive.
+
+>>
+>>> Does the kernel/umad layer copy the request MAD into the "response" MAD on
+>>> timeout?[*]
+>>
+>> See above and below under [*]
+>>
+>>>  (It looks to me like only some of the data is copied into the
+>>> "response" MAD; method, attr_id, and transaction ID).  
+>>
+>> That's certainly the observation in some but not all cases...
+> 
+> I am not dead set against leaving the DR path print in if you think it might
+> be valid.  I was unsure of the behaviour in this area.
+> 
+>>
+>>> If the entire request
+>>> is to be copied then the above might be bug.  
+>>
+>> I thought the request MAD is supposed to be returned on a send error
+>> (including timeout). Maybe some shortcut/optimization was taken here
+>> in some cases.
+>>
+>>> If not then the print statement
+>>> I removed is useless but the other one at least confirms the "fake" MAD is
+>>> equivalent to the one printed in the error call back.
+>>
+>> Yes, but why have the extra log message just for that ?
+> 
+> I guess for the reason above.  To check the response MAD.
+
+But your v2 patch is pushing that up to the callback so why log that twice ?
+
+>>
+>>> If you want to keep the error printing at the vendor layer then I guess the
+>>> appropriate place to print the error would be on the request mad like this...
+>>>
+>>> 			} else {
+>>> 				p_req_madw->status = IB_TIMEOUT;
+>>> 				/* cb frees req_madw */
+>>> 				pthread_mutex_lock(&p_vend->cb_mutex);
+>>> 				pthread_cleanup_push(unlock_mutex,
+>>> 						     &p_vend->cb_mutex);
+>>> // dump p_req_madw here before callback
+>>> 				(*p_bind->send_err_callback) (p_bind->
+>>> 							      client_context,
+>>> 							      p_req_madw);
+>>> 				pthread_cleanup_pop(1);
+>>> 			}
+>>
+>> There's also the cancelled case too that calls send_err_callback.
+> 
+> Isn't this more reason to print the address information in the error callback?
+
+Not really. It's the tradeoff of doing it twice in the vendor layer
+(could be combined into one routine called from the 2 places) to doing
+it in every per class send error callback routine. Also, it becomes an
+unwritten rule that any new GS managers using the vendor layer would
+need (to know to) implement this. That's why this approach was
+originally chosen (albeit with the bug where the DR path is not accurate).
+
+>>
+>>> Or you are correct we could just remove all the logging in the vendor layer
+>>> here.  
+>>>
+>>> Alex, any opinions?
+>>>
+>>> Ira
+>>>
+>>> [*] I don't think the request MAD should be copied except for the TID as is
+>>> documented so you can find the request MAD.
+>>
+>> What documentation are you referring to ?
+> 
+> man page for umad_status.  It does not mention anything other than the TID.
+> After reading the umad_send man page I guess we could assume the other fields
+> are also valid.
+> 
+> 	"ETIMEDOUT means that the packet had a send-timeout indication. In this case, the transaction ID will be set to the TID of the original request."
+
+This documentation may not be complete/perfect.
+
+I think it comes down to choosing the approach: in the vendor layer or
+in the send error callbacks (your v3 patch is mainly fine). Neither is a
+very large change and I think this is largely stylistic more than
+anything else. It's up to Alex.
+
+-- Hal
+
+> Ira
+> 
+>>
+>> -- Hal
+>>
 >>>>
->>>> MGID....................ff12:401b:ffff::ffff:ffff
->>>>                                 PortGid.................fe80::1e:8c00:b9:641
->>>>                                 qkey....................0x0
->>>>                                 mlid....................0x0
->>>>                                 mtu.....................0x0
->>>>                                 TClass..................0x0
->>>>                                 pkey....................0xFFFF
->>>>                                 rate....................0x0
->>>>                                 pkt_life................0x0
->>>>                                 SLFlowLabelHopLimit.....0x0
->>>>                                 ScopeState..............0x1
->>>>                                 ProxyJoin...............0x0
->>>> Dec 15 23:35:05 792236 [46B9F940] 0x04 -> validate_port_caps: Port's
->>>> RATE 2 is less than 3
->>>> Dec 15 23:35:05 792243 [46B9F940] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B12:
->>>> validate_more_comp_fields, validate_port_caps, or JoinState = 0 failed
->>>> from port 0x001e8c0000b90641 (vespasianus HCA-1), sending
->>>> IB_SA_MAD_STATUS_REQ_INVALID
->>>> Dec 15 23:35:05 792253 [46B9F940] 0x10 -> osm_sa_send_error: [
->>>> Dec 15 23:35:05 792260 [46B9F940] 0x10 -> osm_vendor_get: [
->>>> Dec 15 23:35:05 792266 [46B9F940] 0x08 -> osm_vendor_get: Acquiring UMAD
->>>> for p_madw = 0x3dd73f8, size = 256
->>>> Dec 15 23:35:05 792273 [46B9F940] 0x08 -> osm_vendor_get: Acquired UMAD
->>>> 0x3dd9290, size = 256
->>>> Dec 15 23:35:05 792279 [46B9F940] 0x10 -> osm_vendor_get: ]
->>>> Dec 15 23:35:05 792291 [46B9F940] 0x20 -> SA MAD dump:
->>>>                                 base_ver................0x1
->>>>                                 mgmt_class..............0x3
->>>>                                 class_ver...............0x2
->>>>                                 method..................0x81
->>>> (SubnAdmGetResp)
->>>>                                 status..................0x200
->>>>                                 resv....................0x0
->>>>                                 trans_id................0x53bf6d21e
->>>>                                 attr_id.................0x38
->>>> (MCMemberRecord)
->>>>                                 resv1...................0x0
->>>>                                 attr_mod................0x0
->>>>                                 rmpp_version............0x0
->>>>                                 rmpp_type...............0x0
->>>>                                 rmpp_flags..............0x0
->>>>                                 rmpp_status.............0x0
->>>>                                 seg_num.................0x0
->>>>                                 payload_len/new_win.....0x0
->>>>                                 sm_key..................0x0000000000000000
->>>>                                 attr_offset.............0x0
->>>>                                 resv2...................0x0
->>>>                                 comp_mask...............0x0000000000010083
+>>>>>>
+>>>>>> Also, does this log every timeout (at error level) ? If so, that might
+>>>>>> not be a good thing in all subnets as timeouts are common.
+>>>>>
+>>>>> Why would you say that?  I think it is very valid to know what nodes are
+>>>>> timeing out.  When would you not want to know the destination of what is
+>>>>> timing out?
 >>>>
+>>>> Yes, but I'm concerned about spamming the log. Timeouts are "normal" in
+>>>> many subnets; maybe not yours.
 >>>>
->>>> Dec 15 23:35:05 792298 [46B9F940] 0x10 -> osm_vendor_send: [
->>>> Dec 15 23:35:05 792304 [46B9F940] 0x04 -> osm_vendor_send: RMPP 0 length 256
->>>> Dec 15 23:35:05 792318 [46B9F940] 0x10 -> osm_vendor_put: [
->>>> Dec 15 23:35:05 792325 [46B9F940] 0x08 -> osm_vendor_put: Retiring UMAD
->>>> 0x3dd9290
->>>> Dec 15 23:35:05 792331 [46B9F940] 0x10 -> osm_vendor_put: ]
->>>> Dec 15 23:35:05 792337 [46B9F940] 0x08 -> osm_vendor_send: Completed
->>>> sending response or unsolicited p_madw = 0x3dd73e0
->>>> Dec 15 23:35:05 792343 [46B9F940] 0x10 -> osm_vendor_send: ]
->>>> Dec 15 23:35:05 792360 [46B9F940] 0x10 -> osm_sa_send_error: ]
->>>> Dec 15 23:35:05 792366 [46B9F940] 0x10 -> mcmr_rcv_join_mgrp: ]
->>>> Dec 15 23:35:05 792371 [46B9F940] 0x10 -> osm_mcmr_rcv_process: ]
->>>> Dec 15 23:35:05 792377 [46B9F940] 0x10 -> sa_mad_ctrl_disp_done_callback: [
->>>> Dec 15 23:35:05 792383 [46B9F940] 0x10 -> osm_vendor_put: [
->>>> Dec 15 23:35:05 792388 [46B9F940] 0x08 -> osm_vendor_put: Retiring UMAD
->>>> 0x3dd7e40
->>>> Dec 15 23:35:05 792394 [46B9F940] 0x10 -> osm_vendor_put: ]
->>>> Dec 15 23:35:05 792400 [46B9F940] 0x10 -> sa_mad_ctrl_disp_done_callback: ]
->>>> Dec 15 23:35:09 759207 [4A7A5940] 0x08 -> sm_sweeper: Off schedule sweep
->>>> signalled
->>>> Dec 15 23:35:09 759229 [4A7A5940] 0x10 -> osm_state_mgr_process: [
->>>> Dec 15 23:35:09 759240 [4A7A5940] 0x08 -> osm_state_mgr_process:
->>>> Received signal OSM_SIGNAL_SWEEP in state MASTER
->>>> Dec 15 23:35:09 759249 [4A7A5940] 0x10 -> state_mgr_sweep_hop_0: [
->>>> Dec 15 23:35:09 759258 [4A7A5940] 0x04 -> state_mgr_sweep_hop_0:
+>>>> I was just saying level might be reduced but I can see 5411 is error
+>>>> level too.
 >>>>
+>>>>>>
+>>>>>>> +	} else {
+>>>>>>> +		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "LID %u\n",
+>>>>>>> +			cl_ntoh16(p_madw->mad_addr.dest_lid));
+>>>>>>
+>>>>>> Log the TID here too ?
+>>>>>
+>>>>> Actually I think moving that into the error print above is better.
 >>>>
+>>>> Sure; that's another way of accomplishing the same thing.
 >>>>
->>>> thanks,
+>>>> -- Hal
 >>>>
->>>> Gerben
+>>>>> Sending V2 now,
+>>>>> Ira
+>>>>>
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>
+>>>>
 >>>> --
 >>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 >>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 >>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>>
->>
+>>>
 >>
 > 
+> 
 
-
--- 
-
-Grep IT                      tel: 0252-769005
-Egelantier 3                 fax: 0252-769006
-2211 NN Noordwijkerhout     g.roest-99SnrGqf+M9mR6Xm/wNWPw@public.gmane.org
-The Netherlands
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
