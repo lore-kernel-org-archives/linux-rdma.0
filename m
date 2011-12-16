@@ -1,50 +1,226 @@
-From: Gerben Roest <g.roest-99SnrGqf+M9mR6Xm/wNWPw@public.gmane.org>
-Subject: Re: Problems with link, opensm complains IB_SA_MAD_STATUS_REQ_INVALID
-Date: Fri, 16 Dec 2011 16:56:15 +0100
-Message-ID: <4EEB6A1F.6010200@grepit.nl>
-References: <4EEA8004.4060103@grepit.nl> <20111215160600.ebccb033.weiny2@llnl.gov> <4EEB07C3.90803@grepit.nl> <20111216091416.GA3448@calypso> <4EEB216D.2010407@grepit.nl> <4EEB39E8.5030601@dev.mellanox.co.il> <4EEB3FD3.3080409@grepit.nl> <4EEB4362.1050505@dev.mellanox.co.il> <4EEB65D0.8040802@grepit.nl> <4EEB6729.8070600@dev.mellanox.co.il>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH V2] opensm: on MAD error call back print DR PATH or LID
+ of request MAD
+Date: Fri, 16 Dec 2011 09:37:07 -0800
+Message-ID: <20111216093707.34940213.weiny2@llnl.gov>
+References: <20111214191843.35cecd64.weiny2@llnl.gov>
+	<4EEA00F5.7040505@dev.mellanox.co.il>
+	<20111215094956.32f1abad.weiny2@llnl.gov>
+	<4EEA72AC.7060103@dev.mellanox.co.il>
+	<20111215163346.a26d5c22.weiny2@llnl.gov>
+	<4EEB41AE.4050504@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EEB6729.8070600-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4EEB41AE.4050504-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 16-12-2011 16:43, Hal Rosenstock wrote:
-> On 12/16/2011 10:37 AM, Gerben Roest wrote:
->> On 16-12-2011 14:10, Hal Rosenstock wrote:
->>
->>>> They should be DDR cards. Does Rate=2 mean DDR?
->>>
->>> No; it means 1x SDR (lowest speed/width). 4x DDR would be rate 6 (20
->>> Gbps). See IBA 1.2.1 vol 1 PathRecord SA attribute Rate component.
->>>
->>> By default, OpenSM sets the rate for the IPoIB broadcast groups when not
->>> explicitly specified is rate 3 (10 Gbps) which is 4x SDR.
->>
->> I have a similar twin node that does work correctly (has DDR IB) and it
->> says at ibstat: "Rate: 20"
->> whereas the two that are having problems say "Rate: 2".
->>
->> Testing with openmpi osu_bw show:
->>
->> Rate=2:	max bw: 245 MB/s
->> Rate=20: max bw: 1970 MB/s
+On Fri, 16 Dec 2011 05:03:42 -0800
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+
+> On 12/15/2011 7:33 PM, Ira Weiny wrote:
+> > On Thu, 15 Dec 2011 14:20:28 -0800
+> > Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> > 
+> >> On 12/15/2011 12:49 PM, Ira Weiny wrote:
+> >>> On Thu, 15 Dec 2011 06:15:17 -0800
+> >>> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> >>>
+> >>>> On 12/14/2011 10:18 PM, Ira Weiny wrote:
+> >>>>>
+
+[snip]
+
+> >>
+> >> Since the callback is made for both DR and LR SMPs, the logging at the
+> >> vendor layer isn't needed for those. It's still needed for GMPs though
+> >> (like PerfMgr).
+> > 
+> > The PerfMgr prints the address info in it's error call back.  
 > 
-> Yes, that's consistent.
+> I see other info there but not LID and TID being logged there.
+
+Ah forgive me that is the NodeGuid not the PortGuid.  I was thinking PortGuid when I read the code which would have been just as good as LID (perhaps better?)
+
+I will fix the typo in V3 and update that message.
+
+Ira
+
 > 
-> Can you temporarily try the cable that is known to work (for rate 20)
-> between the ports that come up at rate 2 and see if they come up
-> properly (at rate 20) ?
+> -- Hal
+> 
+> > The SA however does not.  :-(
+> > 
+> > So I will add it there.
+> > 
+> >>
+> >>> Why would you care about the other classes which
+> >>> timeout?  Wouldn't they have the same issue of a response which is "fake"?
+> >>
+> >> No; the issue is only with DR path. Isn't LID fine ?
+> > 
+> > Yep it would be.
+> > 
+> >>
+> >>> If we want to remove the logging at this layer I think we should consider
+> >>> this.
+> >>>
+> >>> diff --git a/libvendor/osm_vendor_ibumad.c b/libvendor/osm_vendor_ibumad.c           
+> >>> index b2872c8..b352cef 100644
+> >>> --- a/libvendor/osm_vendor_ibumad.c
+> >>> +++ b/libvendor/osm_vendor_ibumad.c
+> >>> @@ -327,29 +327,6 @@ static void *umad_receiver(void *p_ptr)
+> >>>                 /* if status != 0 then we are handling recv timeout on send */
+> >>>                 if (umad_status(p_madw->vend_wrap.umad)) {
+> >>>
+> >>> -                       if (mad->mgmt_class != IB_MCLASS_SUBN_DIR) {
+> >>> -                               /* LID routed */
+> >>> -                               OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5410: "
+> >>> -                                       "Send completed with error -- dropping\n"
+> >>> -                                       "\t\t\tClass 0x%x, Method 0x%X, Attr 0x%X, "
+> >>> -                                       "TID 0x%" PRIx64 ", LID %u\n",
+> >>> -                                       mad->mgmt_class, mad->method,
+> >>> -                                       cl_ntoh16(mad->attr_id),
+> >>> -                                       cl_ntoh64(mad->trans_id),
+> >>> -                                       cl_ntoh16(ib_mad_addr->lid));
+> >>> -                       } else {
+> >>> -                               ib_smp_t *smp;
+> >>> -
+> >>> -                               /* Direct routed SMP */
+> >>> -                               smp = (ib_smp_t *) mad;
+> >>> -                               OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5411: "
+> >>> -                                       "DR SMP Send completed with error -- dropping\n"
+> >>> -                                       "\t\t\tMethod 0x%X, Attr 0x%X, TID 0x%" PRIx64
+> >>> -                                       ", Hop Ptr: 0x%X\n",
+> >>> -                                       mad->method, cl_ntoh16(mad->attr_id),
+> >>> -                                       cl_ntoh64(mad->trans_id), smp->hop_ptr);
+> >>> -                       }
+> >>> -
+> >>>                         if (!(p_req_madw = get_madw(p_vend, &mad->trans_id))) {
+> >>>                                 OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
+> >>>                                         "ERR 5412: "
+> >>>
+> >>>
+> >>> But I felt that was a bit draconian, and it was not my initial intent.
+> >>
+> >> Yes that's overkill. I think it is more like the below:
+> >>
+> >>                 /* if status != 0 and GMP then we are handling recv
+> >> timeout on send */
+> >>                 if (umad_status(p_madw->vend_wrap.umad)) {
+> >>
+> >>                         if ((mad->mgmt_class != IB_MCLASS_SUBN_DIR) &&
+> >> 			    (mad->mgmt_class != IB_MCLASS_SUBN_LID)) {
+> >>                                 /* LID routed */
+> >>                                 OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
+> >> "ERR 5410: "
+> >>                                         "Send completed with error --
+> >> dropping\n"
+> >>                                         "\t\t\tClass 0x%x, Method 0x%X,
+> >> Attr 0x%X, "
+> >>                                         "TID 0x%" PRIx64 ", LID %u\n",
+> >>                                         mad->mgmt_class, mad->method,
+> >>                                         cl_ntoh16(mad->attr_id),
+> >>                                         cl_ntoh64(mad->trans_id),
+> >>                                         cl_ntoh16(ib_mad_addr->lid));
+> >>                         }
+> >>
+> >> removing the else clause totally.
+> > 
+> > New patch which logs this in the SA so we can make the above:
+> > 
+> >                        OSM_LOG(p_vend->p_log, OSM_LOG_VERBOSE, "ERR 5410: "
+> >                                "Recieve Timeout on Send -- dropping "
+> >                                "TID 0x%" PRIx64 "\n", cl_ntoh64(mad->trans_id));
+> > 
+> > Just for reference of where the call back is coming from if needed,
+> > Ira
+> > 
+> >>
+> >> -- Hal
+> >>
+> >>> Ira
+> >>>
+> >>>>
+> >>>> -- Hal
+> >>>>
+> >>>>>  			}
+> >>>>>  
+> >>>>>  			if (!(p_req_madw = get_madw(p_vend, &mad->trans_id))) {
+> >>>>> diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
+> >>>>> index f9f3d9d..b968679 100644
+> >>>>> --- a/opensm/osm_helper.c
+> >>>>> +++ b/opensm/osm_helper.c
+> >>>>> @@ -2059,8 +2059,9 @@ void osm_dump_smp_dr_path(IN osm_log_t * p_log, IN const ib_smp_t * p_smp,
+> >>>>>  		char buf[BUF_SIZE];
+> >>>>>  		unsigned n;
+> >>>>>  
+> >>>>> -		n = sprintf(buf, "Received SMP on a %u hop path: "
+> >>>>> -			    "Initial path = ", p_smp->hop_count);
+> >>>>> +		n = sprintf(buf, "   DR SMP (TID 0x%" PRIx64 ") on a %u hop path: "
+> >>>>> +			    "Initial path = ",
+> >>>>> +			    cl_ntoh64(p_smp->trans_id), p_smp->hop_count);
+> >>>>>  		n += sprint_uint8_arr(buf + n, sizeof(buf) - n,
+> >>>>>  				      p_smp->initial_path,
+> >>>>>  				      p_smp->hop_count + 1);
+> >>>>> diff --git a/opensm/osm_sm_mad_ctrl.c b/opensm/osm_sm_mad_ctrl.c
+> >>>>> index ee92c66..a3b444a 100644
+> >>>>> --- a/opensm/osm_sm_mad_ctrl.c
+> >>>>> +++ b/opensm/osm_sm_mad_ctrl.c
+> >>>>> @@ -704,6 +704,7 @@ Exit:
+> >>>>>   */
+> >>>>>  static void (IN void *context, IN osm_madw_t * p_madw)
+> >>>>>  {
+> >>>>> +	char lidstr[8];
+> >>>>>  	osm_sm_mad_ctrl_t *p_ctrl = context;
+> >>>>>  	ib_api_status_t status;
+> >>>>>  	ib_smp_t *p_smp;
+> >>>>> @@ -713,13 +714,24 @@ static void sm_mad_ctrl_send_err_cb(IN void *context, IN osm_madw_t * p_madw)
+> >>>>>  	CL_ASSERT(p_madw);
+> >>>>>  
+> >>>>>  	p_smp = osm_madw_get_smp_ptr(p_madw);
+> >>>>> +
+> >>>>> +	if (p_smp->mgmt_class == IB_MCLASS_SUBN_DIR)
+> >>>>> +		lidstr[0] = '\0';
+> >>>>> +	else
+> >>>>> +		snprintf(lidstr, 8, " DLID %u",
+> >>>>> +			cl_ntoh16(p_madw->mad_addr.dest_lid));
+> >>>>> +
+> >>>>>  	OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3113: "
+> >>>>>  		"MAD completed in error (%s): "
+> >>>>> -		"%s(%s), attr_mod 0x%x, TID 0x%" PRIx64 "\n",
+> >>>>> +		"%s(%s), attr_mod 0x%x, TID 0x%" PRIx64 " %s\n",
+> >>>>>  		ib_get_err_str(p_madw->status),
+> >>>>>  		ib_get_sm_method_str(p_smp->method),
+> >>>>>  		ib_get_sm_attr_str(p_smp->attr_id), cl_ntoh32(p_smp->attr_mod),
+> >>>>> -		cl_ntoh64(p_smp->trans_id));
+> >>>>> +		cl_ntoh64(p_smp->trans_id),
+> >>>>> +		lidstr);
+> >>>>> +
+> >>>>> +	if (p_smp->mgmt_class == IB_MCLASS_SUBN_DIR)
+> >>>>> +		osm_dump_smp_dr_path(p_ctrl->p_log, p_smp, OSM_LOG_ERROR);
+> >>>>>  
+> >>>>>  	/*
+> >>>>>  	   If this was a SubnSet MAD, then this error might indicate a problem
+> >>>>
+> >>>
+> >>>
+> >>
+> > 
+> > 
+> 
 
-Yes, I'll try that but that will be next week or so. I'll get back to
-you on that.
 
-thanks for your help,
-
-Gerben
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
