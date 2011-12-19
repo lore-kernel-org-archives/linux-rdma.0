@@ -1,68 +1,24 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 12/14] ib_srp: Rework error handling
-Date: Mon, 19 Dec 2011 10:38:48 +0000
-Message-ID: <CAO+b5-q332RKkLrUV7X_D73SHBrLpt=6Xz=W7ZtOwZ+9iSOyDw@mail.gmail.com>
-References: <201112011954.25811.bvanassche@acm.org>
-	<201112012010.37276.bvanassche@acm.org>
-	<1324265791.17849.92.camel@obelisk.thedillows.org>
+From: dev-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
+Subject: "illegal seek" with ibv_post_recv
+Date: Mon, 19 Dec 2011 10:11:43 -0700
+Message-ID: <20111219101143.725484ctnfedibm7@celticblues.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1324265791.17849.92.camel@obelisk.thedillows.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: David Dillow <dillowda@ornl.gov>
-Cc: linux-rdma@vger.kernel.org, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>, Roland Dreier <roland@purestorage.com>, linux-scsi@vger.kernel.org
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 19, 2011 at 3:36 AM, David Dillow <dillowda@ornl.gov> wrote=
-:
-> On Thu, 2011-12-01 at 20:10 +0100, Bart Van Assche wrote:
->> Rework ib_srp transport layer error handling. Instead of letting SCS=
-I
->> commands time out if a transport layer error occurs,
->
-> This is good, but should probably be part of the initial disconnect. =
-We
-> want to run the receive queue dry, processing responses to avoid
-> unnecessarily resetting a command that was successful.
+When I make a call to ibv_post_recv I sometimes get an error...  
+calling perror prints out "illegal seek" as the reason for the  
+error... What does this mean?
 
-Blocking the SCSI host doesn't prevent ib_srp from continuing to
-process IB completion notifications.
-
->> block the SCSI
->> host and try to reconnect until the reconnect timeout elapses or unt=
-il
->> the maximum number of reconnect attempts has been exceeded, whicheve=
-r
->> happens first.
->
-> When we're blocked for a disconnected target, we may want to call the
-> state something other than SRP_TARGET_BLOCKED. I'd like to eventually
-> handle the case where the target leaves the fabric temporarily -- we
-> don't necessarily disconnect in that case, but we need to block comma=
-nds
-> until it comes back or we give up on it.
-
-The case where the target leaves the fabric temporarily should already
-be covered by this patch series.
-
->> +static void srp_remove_target(struct srp_target_port *target)
->> =A0{
->
->> =A0 =A0 =A0 srp_del_scsi_host_attr(target->scsi_host);
->> + =A0 =A0 cancel_work_sync(&target->block_work);
->> + =A0 =A0 mutex_lock(&target->mutex);
->> + =A0 =A0 mutex_unlock(&target->mutex);
->
-> You lock and unlock here without doing anything in the critical secti=
-on.
-
-That's on purpose.
-
-Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
