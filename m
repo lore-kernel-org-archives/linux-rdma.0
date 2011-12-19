@@ -1,39 +1,37 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] ib/cm: fix layout of APR message
-Date: Mon, 19 Dec 2011 09:47:16 +0200
-Message-ID: <20111219074716.GA12058@mtldesk30>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 11/14] ib_srp: Document sysfs attributes
+Date: Mon, 19 Dec 2011 08:46:06 +0000
+Message-ID: <CAO+b5-rb=Gtch0UCZPwTSCHhOdsUBecSpgYjaLvj5pbo9_1AeQ@mail.gmail.com>
+References: <201112011954.25811.bvanassche@acm.org>
+	<201112012009.12815.bvanassche@acm.org>
+	<1324254811.17849.65.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1324254811.17849.65.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a missing 16 bit reserved field between ap_status and info fields.
+On Mon, Dec 19, 2011 at 12:33 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrot=
+e:
+> On Thu, 2011-12-01 at 20:09 +0100, Bart Van Assche wrote:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 * cmd_sg_entries, the maximum number of me=
+mory descriptors
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 that fit in a single SRP command when =
+using the direct data
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 buffer descriptor format.
+>
+> s/direct/indirect/
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cm_msgs.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+=46or the current ib_srp implementation cmd_sg_entries is the maximum
+number of direct data buffer descriptors allocated.
 
-diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 7e63c08..686ac1a 100644
---- a/drivers/infiniband/core/cm_msgs.h
-+++ b/drivers/infiniband/core/cm_msgs.h
-@@ -771,6 +771,7 @@ struct cm_apr_msg {
- 
- 	u8 info_length;
- 	u8 ap_status;
-+	u16 rsvd;
- 	u8 info[IB_CM_APR_INFO_LENGTH];
- 
- 	u8 private_data[IB_CM_APR_PRIVATE_DATA_SIZE];
--- 
-1.7.8
-
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
