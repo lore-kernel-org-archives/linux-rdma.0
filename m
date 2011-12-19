@@ -1,70 +1,83 @@
 From: David Dillow <dillowda@ornl.gov>
-Subject: Re: [PATCH 13/14] ib_srp: Implement transport layer ping
-Date: Mon, 19 Dec 2011 17:32:11 -0500
-Message-ID: <1324333931.7043.52.camel@lap75545.ornl.gov>
+Subject: Re: [PATCH 12/14] ib_srp: Rework error handling
+Date: Mon, 19 Dec 2011 17:51:23 -0500
+Message-ID: <1324335083.7043.66.camel@lap75545.ornl.gov>
 References: <201112011954.25811.bvanassche@acm.org>
-	 <201112012011.45444.bvanassche@acm.org>
-	 <1324255806.17849.68.camel@obelisk.thedillows.org>
-	 <CAO+b5-o+-JF61a+8vFWj1rxMuVWuG-CVLQKorr5cKzi-Kc44Ag@mail.gmail.com>
+	 <201112012010.37276.bvanassche@acm.org>
+	 <1324265791.17849.92.camel@obelisk.thedillows.org>
+	 <CAO+b5-q332RKkLrUV7X_D73SHBrLpt=6Xz=W7ZtOwZ+9iSOyDw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <CAO+b5-o+-JF61a+8vFWj1rxMuVWuG-CVLQKorr5cKzi-Kc44Ag@mail.gmail.com>
+In-Reply-To: <CAO+b5-q332RKkLrUV7X_D73SHBrLpt=6Xz=W7ZtOwZ+9iSOyDw@mail.gmail.com>
 Sender: linux-scsi-owner@vger.kernel.org
 To: Bart Van Assche <bvanassche@acm.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>, Roland Dreier <roland@purestorage.com>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2011-12-19 at 05:16 -0500, Bart Van Assche wrote:
-> On Mon, Dec 19, 2011 at 12:50 AM, David Dillow <dillowda@ornl.gov> wrote:
-> > On Thu, 2011-12-01 at 20:11 +0100, Bart Van Assche wrote:
-> >> Add a time-based transport layer test such that fail-over in a multipath
-> >> setup can happen quickly.
+On Mon, 2011-12-19 at 05:38 -0500, Bart Van Assche wrote:
+> On Mon, Dec 19, 2011 at 3:36 AM, David Dillow <dillowda@ornl.gov> wrote:
+> > On Thu, 2011-12-01 at 20:10 +0100, Bart Van Assche wrote:
+> >> Rework ib_srp transport layer error handling. Instead of letting SCSI
+> >> commands time out if a transport layer error occurs,
 > >
-> > Why should this be done in the kernel? multipathd already verifies all
-> > paths to a SCSI device are up and that the device is reachable.
+> > This is good, but should probably be part of the initial disconnect. We
+> > want to run the receive queue dry, processing responses to avoid
+> > unnecessarily resetting a command that was successful.
 > 
-> I'm afraid it's impossible to make a transport layer check work
-> reliably from user space. As an example, srp_reset_host() blocks the
-> SCSI host before reconnecting. Before starting to attempt to
-> reconnect, that action does block the SCSI host and hence also all
-> transport layer checks issued from user space. I doubt it's possible
-> to fix the resulting race between a transport layer reconnect issued
-> from srp_reset_host() and a transport layer reconnect triggered from
-> user space.
+> Blocking the SCSI host doesn't prevent ib_srp from continuing to
+> process IB completion notifications.
 
-Part of the problem is introduced by allowing for permanent connections
-rather than using the familiar dev_loss_tmo and fast_io_fail_tmo
-parameters from other SCSI transports. For instance, in the FC
-transport, rports are allowed to disappear for up to dev_loss_tmo
-seconds before being removed from the SCSI device tree. Until they have
-been gone for fast_fail_io_tmo seconds, they are blocked (as is error
-handling to prevent offlining devices). Once they have been gone longer
-that fast_fail_io_tmo, they become unblocked and new IO will be failed.
+In your series, it doesn't -- and I was wrong about the message spam,
+you check for the proper state and the work being queued.
 
-Now, the FC transport is probably a bit more complex than we want right
-now, but following it (and the SAS transport's) lead should keep us in
-sync with where the rest of the SCSI stack is headed.
+I haven't parsed it all out from your changes just yet, but I think part
+of the reason you may have had problems with req->scmd being null in
+srp_handle_recv() is due to a new race between the tear down of the
+connection and continuing to process completion notifications.
 
-As for reliability from user space, multipathd checks that the SCSI
-initiator is not blocked before checking the liveness of the path;
-blocked paths are assumed to be down. It still seems to default to a 30
-second timeout for the test TUR/directIO/etc check, and that doesn't
-currently look to be configurable (fixable). These timeouts are
-independent of the SCSI layer, and will mark a path down for new traffic
-without waiting for the lower level timeout.
+> >> block the SCSI
+> >> host and try to reconnect until the reconnect timeout elapses or until
+> >> the maximum number of reconnect attempts has been exceeded, whichever
+> >> happens first.
+> >
+> > When we're blocked for a disconnected target, we may want to call the
+> > state something other than SRP_TARGET_BLOCKED. I'd like to eventually
+> > handle the case where the target leaves the fabric temporarily -- we
+> > don't necessarily disconnect in that case, but we need to block commands
+> > until it comes back or we give up on it.
+> 
+> The case where the target leaves the fabric temporarily should already
+> be covered by this patch series.
 
-The transport layer reconnect from user space (I'm assuming you were
-thinking ioctl or using the sg device) would coordinated by the
-SCSI-midlayer, using calls to srp_reset_host(), so I think we avoid any
-race condition. Or did you mean a manual reconnect attempt from
-manipulating srp_host/X/reconnect_tmo via sysfs -- in which case it is
-in our code, so we can certainly avoid race conditions.
+Only once a command is sent to it and timesout or we get a QP error. The
+idea here would be to start the dev_loss_tmo timer once it was detected
+that it left the fabric. This was handled in OFED via sysfs attributes,
+but it seems like we could register for the events ourselves.
 
-I still think this is already solved in user space, but the new
-reconnect model you've implemented doesn't match up with the expected
-semantics. It'd be better to match the rest of the SCSI stack for this.
+This isn't something I expect you to implement, but I'd like to leave
+room for it in the future.
+
+> >> +static void srp_remove_target(struct srp_target_port *target)
+> >>  {
+> >
+> >>       srp_del_scsi_host_attr(target->scsi_host);
+> >> +     cancel_work_sync(&target->block_work);
+> >> +     mutex_lock(&target->mutex);
+> >> +     mutex_unlock(&target->mutex);
+> >
+> > You lock and unlock here without doing anything in the critical section.
+> 
+> That's on purpose.
+
+I'm assuming you do this to ensure that everyone has seen the
+appropriate state and exited the critical section, then? Best to add a
+comment to that effect. Actually, is there any reason to unlock it again
+since we're removing the target? I don't have the code in front of me
+ATM, so I'm assuming that you don't call any other routines that need
+the lock after this. sparse may complain, though.
+
 -- 
 Dave Dillow
 National Center for Computational Science
