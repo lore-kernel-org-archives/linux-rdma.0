@@ -1,33 +1,73 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] ib/core: Protect QP mcast list
-Date: Mon, 19 Dec 2011 13:54:36 -0800
-Message-ID: <CAL1RGDUpqz+26fKcHj=0NbNqU_8vYV6zOresyYzFZTasGwD_oA@mail.gmail.com>
-References: <20111219070952.GA11530@mtldesk30>
+From: David Dillow <dillowda@ornl.gov>
+Subject: Re: [PATCH 13/14] ib_srp: Implement transport layer ping
+Date: Mon, 19 Dec 2011 17:32:11 -0500
+Message-ID: <1324333931.7043.52.camel@lap75545.ornl.gov>
+References: <201112011954.25811.bvanassche@acm.org>
+	 <201112012011.45444.bvanassche@acm.org>
+	 <1324255806.17849.68.camel@obelisk.thedillows.org>
+	 <CAO+b5-o+-JF61a+8vFWj1rxMuVWuG-CVLQKorr5cKzi-Kc44Ag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111219070952.GA11530@mtldesk30>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <CAO+b5-o+-JF61a+8vFWj1rxMuVWuG-CVLQKorr5cKzi-Kc44Ag@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 18, 2011 at 11:09 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> Multicast attach/detach operations on a QP are carried under the
-> readers'/writers' lock of the QP. Such protection is not sufficient since a
-> reader's lock allows more than one reader to acquire the lock. However, list
-> manipulation implies write operations on the list variable. Use a spinlock to
-> provide protection.
+On Mon, 2011-12-19 at 05:16 -0500, Bart Van Assche wrote:
+> On Mon, Dec 19, 2011 at 12:50 AM, David Dillow <dillowda@ornl.gov> wrote:
+> > On Thu, 2011-12-01 at 20:11 +0100, Bart Van Assche wrote:
+> >> Add a time-based transport layer test such that fail-over in a multipath
+> >> setup can happen quickly.
+> >
+> > Why should this be done in the kernel? multipathd already verifies all
+> > paths to a SCSI device are up and that the device is reachable.
+> 
+> I'm afraid it's impossible to make a transport layer check work
+> reliably from user space. As an example, srp_reset_host() blocks the
+> SCSI host before reconnecting. Before starting to attempt to
+> reconnect, that action does block the SCSI host and hence also all
+> transport layer checks issued from user space. I doubt it's possible
+> to fix the resulting race between a transport layer reconnect issued
+> from srp_reset_host() and a transport layer reconnect triggered from
+> user space.
 
-Did you consider taking the QP's rwsem for writing across these operations
-instead?  How did that approach compare?
+Part of the problem is introduced by allowing for permanent connections
+rather than using the familiar dev_loss_tmo and fast_io_fail_tmo
+parameters from other SCSI transports. For instance, in the FC
+transport, rports are allowed to disappear for up to dev_loss_tmo
+seconds before being removed from the SCSI device tree. Until they have
+been gone for fast_fail_io_tmo seconds, they are blocked (as is error
+handling to prevent offlining devices). Once they have been gone longer
+that fast_fail_io_tmo, they become unblocked and new IO will be failed.
 
-Assuming there's some problem with that, would it make sense to put
-the mcast_lock next to the mcast_list in struct ib_uqp_object, instead of
-hiding it in struct ib_qp?
+Now, the FC transport is probably a bit more complex than we want right
+now, but following it (and the SAS transport's) lead should keep us in
+sync with where the rest of the SCSI stack is headed.
 
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As for reliability from user space, multipathd checks that the SCSI
+initiator is not blocked before checking the liveness of the path;
+blocked paths are assumed to be down. It still seems to default to a 30
+second timeout for the test TUR/directIO/etc check, and that doesn't
+currently look to be configurable (fixable). These timeouts are
+independent of the SCSI layer, and will mark a path down for new traffic
+without waiting for the lower level timeout.
+
+The transport layer reconnect from user space (I'm assuming you were
+thinking ioctl or using the sg device) would coordinated by the
+SCSI-midlayer, using calls to srp_reset_host(), so I think we avoid any
+race condition. Or did you mean a manual reconnect attempt from
+manipulating srp_host/X/reconnect_tmo via sysfs -- in which case it is
+in our code, so we can certainly avoid race conditions.
+
+I still think this is already solved in user space, but the new
+reconnect model you've implemented doesn't match up with the expected
+semantics. It'd be better to match the rest of the SCSI stack for this.
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
+
