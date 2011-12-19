@@ -1,44 +1,32 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 11/14] ib_srp: Document sysfs attributes
-Date: Mon, 19 Dec 2011 16:27:59 -0500
-Message-ID: <1324330079.7043.27.camel@lap75545.ornl.gov>
-References: <201112011954.25811.bvanassche@acm.org>
-	 <201112012009.12815.bvanassche@acm.org>
-	 <1324254811.17849.65.camel@obelisk.thedillows.org>
-	 <CAO+b5-rb=Gtch0UCZPwTSCHhOdsUBecSpgYjaLvj5pbo9_1AeQ@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] ib/core: Protect QP mcast list
+Date: Mon, 19 Dec 2011 13:54:36 -0800
+Message-ID: <CAL1RGDUpqz+26fKcHj=0NbNqU_8vYV6zOresyYzFZTasGwD_oA@mail.gmail.com>
+References: <20111219070952.GA11530@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-rb=Gtch0UCZPwTSCHhOdsUBecSpgYjaLvj5pbo9_1AeQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20111219070952.GA11530@mtldesk30>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2011-12-19 at 03:46 -0500, Bart Van Assche wrote:
-> On Mon, Dec 19, 2011 at 12:33 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
-> > On Thu, 2011-12-01 at 20:09 +0100, Bart Van Assche wrote:
-> >> +             * cmd_sg_entries, the maximum number of memory descriptors
-> >> +               that fit in a single SRP command when using the direct data
-> >> +               buffer descriptor format.
-> >
-> > s/direct/indirect/
-> 
-> For the current ib_srp implementation cmd_sg_entries is the maximum
-> number of direct data buffer descriptors allocated.
+On Sun, Dec 18, 2011 at 11:09 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> Multicast attach/detach operations on a QP are carried under the
+> readers'/writers' lock of the QP. Such protection is not sufficient since a
+> reader's lock allows more than one reader to acquire the lock. However, list
+> manipulation implies write operations on the list variable. Use a spinlock to
+> provide protection.
 
-The direct memory descriptor format is only used when there is a single
-memory region for the command; all other cases are described by an
-indirect table; cmd_sg_entries limits the number of memory descriptors
-from that table that will be cached in the command packet.
+Did you consider taking the QP's rwsem for writing across these operations
+instead?  How did that approach compare?
 
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
+Assuming there's some problem with that, would it make sense to put
+the mcast_lock next to the mcast_list in struct ib_uqp_object, instead of
+hiding it in struct ib_qp?
 
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
