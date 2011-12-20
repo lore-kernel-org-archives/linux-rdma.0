@@ -1,53 +1,43 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: IB/iSER with Linux 3.0 and Debian: Lesson learned
-Date: Tue, 20 Dec 2011 13:01:10 +0200
-Message-ID: <4EF06AF6.6080901@mellanox.com>
-References: <4EEA0577.5030304@profitbricks.com> <CAFr+87sPBQnhWEs08JxDrgbS_t9qCtEhHgVwHjw4b=iKF_9U3g@mail.gmail.com> <CAFr+87tzqHzRttxAV=rZmjpAFCFGtiO3ns2F4XVfmD+GTzCL8A@mail.gmail.com> <4EF02E10.4070501@mellanox.com> <CAFr+87tQ2Vw9X3A25WUVstWfNhANj-FktXs6ZtU6d4as_j1k8A@mail.gmail.com>
+Subject: Re: [PATCH 4/5] ib/core: add support for extended performance counters
+ in sysfs
+Date: Tue, 20 Dec 2011 13:49:16 +0200
+Message-ID: <4EF0763C.1080609@mellanox.com>
+References: <CAL1RGDXdkiZNtAsnqDtgbCJGLXLFvk8s-YA5mR189kmg6FkabQ@mail.gmail.com> <CAJZOPZ+K3u+u5XutGfBhKh3DaBpNRKV_bw67CLK6jy3060OHqA@mail.gmail.com> <20111101162218.GA10710@obsidianresearch.com> <CAJZOPZLXZL=vEDdXE3rE5Jzw840SrdY=73M7QgKSNzOysRE6MQ@mail.gmail.com> <20111101173625.GH26974@obsidianresearch.com> <CAJZOPZJCY5ehTGw8htsxw0dJgMXJJAS-=LGJde9ddcMsmhqvMg@mail.gmail.com> <20111101183730.GI26974@obsidianresearch.com> <CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com> <4EB17AF9.3000608@mellanox.com> <CAG4TOxOYAnuB8oKkJgr9_6EpF+YR-h9WNak+gSWwpV0Nz-LeZg@mail.gmail.com> <20111108010952.GC4934@obsidianresearch.com> <20111108080606.7c5dd62c.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAFr+87tQ2Vw9X3A25WUVstWfNhANj-FktXs6ZtU6d4as_j1k8A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20111108080606.7c5dd62c.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sebastian Riemer wrote:
-> Debian Squeeze (in general 2.6.32 based) comes with open-iscsi 
-> 2.0.871.3-2squeeze1. We've used that version together with the in-tree 
-> mainline kernel 3.0 OFA kernel modules and Debian Squeeze OFED-1.4 
-> user-space. But there were lots of iSER connection aborts (and even 
-> log-outs) after only 5s connection loss instead of 120s 
-> node.session.timeo.replacement_timeout. 
-> Btw.: We need such a new kernel because of some cool virtualization,
-> cgroups and performance features.
+Ira Weiny wrote:
+> Jason Gunthorpe<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>  wrote:
+> How do you feel about having counters_ext appear in ethernet mode and
+> disappear in IB mode?
 >
+> That might get complicated with ports which can be either mode.
 
-Beep(2), so your system has distro which is based on kernel 2.6.32 and 
-iscsi initiator tools version 2.0.871 and per your needs, you've booted 
-it with kernel 3.0 .
+Ira (reviving this thread),
 
-At this point should you have stop and make sure that this combo works, 
-iscsi wise (simpler to test iscsi/tcp... no need in rdma knowledge), did 
-you do this validation?
+At the ib core level, the link layer sysfs attribute is read only.
 
-If this combo isn't working, you have to update the iscsi tools to a 
-version which supports your kernel.
+At the mlx4 VPI level support, a port has given link layer at certain 
+point of time, and further, AFAIK, this isn't something that can be 
+changed in the life-cycle of the ib device exported by mlx4_ib, which is 
+deleted/re-added when the port link  layer change, see commit 
+7ff93f8b7ecbc36e7ffc5c11a61643821c1bfee5 which states " When the type of 
+a port is changed, all mlx4 interfaces are unregistered, and then 
+registered again with the new port types"
 
-If this combo is working iscsi/tcp wise but not ib_iser wise, its seems 
-to be a bug, and I'd be happy to help with finding the root cause, etc.
-
-But this way or another, OFA isn't an iscsi tools factory, nor have 
-anyone that can/want to support iscsi tools, we (folks from the rdma 
-vendors community that deal with iscsi) are working with the upstream 
-iscsi maintainer to address iscsi issues. The fact that OFA ships iscsi 
-code except for ib_iser/cxgb4i/etc modules is a bug, BTW, I'll act to 
-change that.
-
+Still, this patch makes the decision when the ib device is added, so you 
+have a point here w.r.t to future devices which could change their link 
+layer at run time, I'll look on that.
 
 Or.
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
