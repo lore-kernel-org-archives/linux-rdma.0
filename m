@@ -1,8 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 18/25 v2] rdma/ucm: Support querying when IB paths are not
- reversible
-Date: Tue, 20 Dec 2011 21:44:14 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237325661B98@ORSMSX102.amr.corp.intel.com>
+Subject: [PATCH 20/25 v2] rdma/ucm: Add ability to query GID addresses
+Date: Tue, 20 Dec 2011 21:44:15 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237325661BA8@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,110 +12,106 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The current query_route call can return up to two path records.
-The assumption being that one is the primary path, with optional
-support for an alternate path.  In both cases, the paths are
-assumed to be reversible and are used to send CM MADs.
-
-With the ability to manually set IB path data, the rdma cm
-can eventually be capable of using up to 6 paths per
-connection:
-
-	forward primary, reverse primary,
-	forward alternate, reverse alternate,
-	reversible primary path for CM MADs
-	reversible alternate path for CM MADs.
-
-(It is unclear at this time if IB routing will complicate this.)
-In order to handle more flexible routing topologies, add a new
-command to report any number of paths.
+Part of address resolution is mapping IP addresses to IB GIDs.
+With the changes to support querying larger addresses and more
+path records, also provide a way to query IB GIDs after
+resolution completes.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/ucma.c |   35 +++++++++++++++++++++++++++++++++++
- include/rdma/rdma_user_cm.h    |    9 ++++++++-
- 2 files changed, 43 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/ucma.c |   50 ++++++++++++++++++++++++++++++++++++++++
+ include/rdma/rdma_user_cm.h    |    3 ++
+ 2 files changed, 52 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 94ead98..0766011 100644
+index 0766011..83208be 100644
 --- a/drivers/infiniband/core/ucma.c
 +++ b/drivers/infiniband/core/ucma.c
-@@ -774,6 +774,38 @@ static ssize_t ucma_query_addr(struct ucma_context *ctx,
+@@ -48,6 +48,7 @@
+ #include <rdma/rdma_cm.h>
+ #include <rdma/rdma_cm_ib.h>
+ #include <rdma/ib_addr.h>
++#include <rdma/ib.h>
+ 
+ MODULE_AUTHOR("Sean Hefty");
+ MODULE_DESCRIPTION("RDMA Userspace Connection Manager Access");
+@@ -806,6 +807,52 @@ static ssize_t ucma_query_path(struct ucma_context *ctx,
  	return ret;
  }
  
-+static ssize_t ucma_query_path(struct ucma_context *ctx,
-+			       void __user *response, int out_len)
++static ssize_t ucma_query_gid(struct ucma_context *ctx,
++			      void __user *response, int out_len)
 +{
-+	struct rdma_ucm_query_path_resp *resp;
-+	int i, ret = 0;
++	struct rdma_ucm_query_addr_resp resp;
++	struct sockaddr_ib *addr;
++	int ret = 0;
 +
-+	if (out_len < sizeof(*resp))
++	if (out_len < sizeof(resp))
 +		return -ENOSPC;
 +
-+	resp = kzalloc(out_len, GFP_KERNEL);
-+	if (!resp)
-+		return -ENOMEM;
++	memset(&resp, 0, sizeof resp);
 +
-+	resp->num_paths = ctx->cm_id->route.num_paths;
-+	for (i = 0, out_len -= sizeof(*resp);
-+	     i < resp->num_paths && out_len > sizeof(struct ib_path_rec_data);
-+	     i++, out_len -= sizeof(struct ib_path_rec_data)) {
++	ucma_query_device_addr(ctx->cm_id, &resp);
 +
-+		resp->path_data[i].flags = IB_PATH_GMP | IB_PATH_PRIMARY |
-+					   IB_PATH_BIDIRECTIONAL;
-+		ib_sa_pack_path(&ctx->cm_id->route.path_rec[i],
-+				&resp->path_data[i].path_rec);
++	addr = (struct sockaddr_ib *) &resp.src_addr;
++	resp.src_size = sizeof(*addr);
++	if (ctx->cm_id->route.addr.src_addr.ss_family == AF_IB) {
++		memcpy(addr, &ctx->cm_id->route.addr.src_addr, resp.src_size);
++	} else {
++		addr->sib_family = AF_IB;
++		addr->sib_pkey = (__force __be16) resp.pkey;
++		rdma_addr_get_sgid(&ctx->cm_id->route.addr.dev_addr,
++				   (union ib_gid *) &addr->sib_addr);
++		addr->sib_sid = rdma_get_service_id(ctx->cm_id, (struct sockaddr *)
++						    &ctx->cm_id->route.addr.src_addr);
 +	}
 +
-+	if (copy_to_user(response, resp,
-+			 sizeof(*resp) + (i * sizeof(struct ib_path_rec_data))))
++	addr = (struct sockaddr_ib *) &resp.dst_addr;
++	resp.dst_size = sizeof(*addr);
++	if (ctx->cm_id->route.addr.dst_addr.ss_family == AF_IB) {
++		memcpy(addr, &ctx->cm_id->route.addr.dst_addr, resp.dst_size);
++	} else {
++		addr->sib_family = AF_IB;
++		addr->sib_pkey = (__force __be16) resp.pkey;
++		rdma_addr_get_dgid(&ctx->cm_id->route.addr.dev_addr,
++				   (union ib_gid *) &addr->sib_addr);
++		addr->sib_sid = rdma_get_service_id(ctx->cm_id, (struct sockaddr *)
++						    &ctx->cm_id->route.addr.dst_addr);
++	}
++
++	if (copy_to_user(response, &resp, sizeof(resp)))
 +		ret = -EFAULT;
 +
-+	kfree(resp);
 +	return ret;
 +}
 +
  static ssize_t ucma_query(struct ucma_file *file,
  			  const char __user *inbuf,
  			  int in_len, int out_len)
-@@ -795,6 +827,9 @@ static ssize_t ucma_query(struct ucma_file *file,
- 	case RDMA_USER_CM_QUERY_ADDR:
- 		ret = ucma_query_addr(ctx, response, out_len);
+@@ -830,6 +877,9 @@ static ssize_t ucma_query(struct ucma_file *file,
+ 	case RDMA_USER_CM_QUERY_PATH:
+ 		ret = ucma_query_path(ctx, response, out_len);
  		break;
-+	case RDMA_USER_CM_QUERY_PATH:
-+		ret = ucma_query_path(ctx, response, out_len);
++	case RDMA_USER_CM_QUERY_GID:
++		ret = ucma_query_gid(ctx, response, out_len);
 +		break;
  	default:
  		ret = -ENOSYS;
  		break;
 diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
-index 4037c48..effcb75 100644
+index effcb75..b0634d4 100644
 --- a/include/rdma/rdma_user_cm.h
 +++ b/include/rdma/rdma_user_cm.h
-@@ -115,7 +115,8 @@ struct rdma_ucm_resolve_route {
- };
+@@ -116,7 +116,8 @@ struct rdma_ucm_resolve_route {
  
  enum {
--	RDMA_USER_CM_QUERY_ADDR
-+	RDMA_USER_CM_QUERY_ADDR,
-+	RDMA_USER_CM_QUERY_PATH
+ 	RDMA_USER_CM_QUERY_ADDR,
+-	RDMA_USER_CM_QUERY_PATH
++	RDMA_USER_CM_QUERY_PATH,
++	RDMA_USER_CM_QUERY_GID
  };
  
  struct rdma_ucm_query {
-@@ -145,6 +146,12 @@ struct rdma_ucm_query_addr_resp {
- 	struct sockaddr_storage dst_addr;
- };
- 
-+struct rdma_ucm_query_path_resp {
-+	__u32 num_paths;
-+	__u32 reserved;
-+	struct ib_path_rec_data path_data[0];
-+};
-+
- struct rdma_ucm_conn_param {
- 	__u32 qp_num;
- 	__u32 qkey;
 
 
 --
