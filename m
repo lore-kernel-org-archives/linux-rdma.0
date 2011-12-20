@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 13/25 v2] rdma/cm: Expose private data when using AF_IB
-Date: Tue, 20 Dec 2011 21:44:12 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237325661B63@ORSMSX102.amr.corp.intel.com>
+Subject: [PATCH 22/25 v2] rdma/ucm: Allow user space to bind to AF_IB
+Date: Tue, 20 Dec 2011 21:44:15 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237325661BCA@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,91 +12,90 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If the source or destination address is AF_IB, then do not
-reserve a portion of the private data in the IB CM REQ or SIDR
-REQ messages for the cma header.  Instead, all private data
-should be exported to the user.  When AF_IB is used, the
-rdma cm does not have sufficient information to fill in the
-cma header.  Additionally, this will be necessary to support
-any IB connection through the rdma cm interface,
+Support user space binding to addresses using AF_IB.  Since
+sockaddr_ib is larger than sockaddr_in6, we need to define
+a larger structure when binding using AF_IB.  This time we
+use sockaddr_storage to cover future cases.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c |   24 ++++++++++--------------
- 1 files changed, 10 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/ucma.c |   27 ++++++++++++++++++++++++++-
+ include/rdma/rdma_user_cm.h    |   10 +++++++++-
+ 2 files changed, 35 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 66c751f..389ec68 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -906,14 +906,10 @@ static void cma_save_net_info(struct rdma_addr *addr,
- 	}
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index af8bbe4..ceb800b 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -555,6 +555,30 @@ static ssize_t ucma_bind_ip(struct ucma_file *file, const char __user *inbuf,
+ 	return ret;
  }
  
--static inline int cma_user_data_offset(enum rdma_port_space ps)
-+static inline int cma_user_data_offset(struct rdma_id_private *id_priv)
- {
--	switch (ps) {
--	case RDMA_PS_SDP:
--		return 0;
--	default:
--		return sizeof(struct cma_hdr);
--	}
-+	return (cma_family(id_priv) == AF_IB || id_priv->id.ps == RDMA_PS_SDP) ?
-+		0 : sizeof(struct cma_hdr);
- }
++static ssize_t ucma_bind(struct ucma_file *file, const char __user *inbuf,
++			 int in_len, int out_len)
++{
++	struct rdma_ucm_bind cmd;
++	struct sockaddr *addr;
++	struct ucma_context *ctx;
++	int ret;
++
++	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
++		return -EFAULT;
++
++	addr = (struct sockaddr *) &cmd.addr;
++	if (cmd.reserved || !cmd.addr_size || (cmd.addr_size != rdma_addr_size(addr)))
++		return -EINVAL;
++
++	ctx = ucma_get_ctx(file, cmd.id);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++
++	ret = rdma_bind_addr(ctx->cm_id, addr);
++	ucma_put_ctx(ctx);
++	return ret;
++}
++
+ static ssize_t ucma_resolve_ip(struct ucma_file *file,
+ 			       const char __user *inbuf,
+ 			       int in_len, int out_len)
+@@ -1417,7 +1441,8 @@ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
+ 	[RDMA_USER_CM_CMD_JOIN_IP_MCAST] = ucma_join_ip_multicast,
+ 	[RDMA_USER_CM_CMD_LEAVE_MCAST]	 = ucma_leave_multicast,
+ 	[RDMA_USER_CM_CMD_MIGRATE_ID]	 = ucma_migrate_id,
+-	[RDMA_USER_CM_CMD_QUERY]	 = ucma_query
++	[RDMA_USER_CM_CMD_QUERY]	 = ucma_query,
++	[RDMA_USER_CM_CMD_BIND]		 = ucma_bind
+ };
  
- static void cma_cancel_route(struct rdma_id_private *id_priv)
-@@ -1309,7 +1305,7 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 		return -ECONNABORTED;
+ static ssize_t ucma_write(struct file *filp, const char __user *buf,
+diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
+index bfb2ca7..cae3e27 100644
+--- a/include/rdma/rdma_user_cm.h
++++ b/include/rdma/rdma_user_cm.h
+@@ -62,7 +62,8 @@ enum {
+ 	RDMA_USER_CM_CMD_JOIN_IP_MCAST,
+ 	RDMA_USER_CM_CMD_LEAVE_MCAST,
+ 	RDMA_USER_CM_CMD_MIGRATE_ID,
+-	RDMA_USER_CM_CMD_QUERY
++	RDMA_USER_CM_CMD_QUERY,
++	RDMA_USER_CM_CMD_BIND
+ };
  
- 	memset(&event, 0, sizeof event);
--	offset = cma_user_data_offset(listen_id->id.ps);
-+	offset = cma_user_data_offset(listen_id);
- 	event.event = RDMA_CM_EVENT_CONNECT_REQUEST;
- 	if (ib_event->event == IB_CM_SIDR_REQ_RECEIVED) {
- 		conn_id = cma_new_udp_id(&listen_id->id, ib_event);
-@@ -2631,7 +2627,7 @@ static int cma_format_hdr(void *hdr, struct rdma_id_private *id_priv)
- 			cma_hdr->port = src4->sin_port;
- 			break;
- 		}
--	} else {
-+	} else if (cma_family(id_priv) == AF_INET6) {
- 		struct sockaddr_in6 *src6, *dst6;
+ /*
+@@ -102,6 +103,13 @@ struct rdma_ucm_bind_ip {
+ 	__u32 id;
+ };
  
- 		src6 = (struct sockaddr_in6 *) cma_src_addr(id_priv);
-@@ -2729,10 +2725,10 @@ static int cma_resolve_ib_udp(struct rdma_id_private *id_priv,
- {
- 	struct ib_cm_sidr_req_param req;
- 	struct ib_cm_id	*id;
--	int ret;
-+	int offset, ret;
- 
--	req.private_data_len = sizeof(struct cma_hdr) +
--			       conn_param->private_data_len;
-+	offset = cma_user_data_offset(id_priv);
-+	req.private_data_len = offset + conn_param->private_data_len;
- 	if (req.private_data_len < conn_param->private_data_len)
- 		return -EINVAL;
- 
-@@ -2741,7 +2737,7 @@ static int cma_resolve_ib_udp(struct rdma_id_private *id_priv,
- 		return -ENOMEM;
- 
- 	if (conn_param->private_data && conn_param->private_data_len)
--		memcpy((void *) req.private_data + sizeof(struct cma_hdr),
-+		memcpy((void *) req.private_data + offset,
- 		       conn_param->private_data, conn_param->private_data_len);
- 
- 	ret = cma_format_hdr((void *) req.private_data, id_priv);
-@@ -2781,7 +2777,7 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
- 	int offset, ret;
- 
- 	memset(&req, 0, sizeof req);
--	offset = cma_user_data_offset(id_priv->id.ps);
-+	offset = cma_user_data_offset(id_priv);
- 	req.private_data_len = offset + conn_param->private_data_len;
- 	if (req.private_data_len < conn_param->private_data_len)
- 		return -EINVAL;
++struct rdma_ucm_bind {
++	__u32 id;
++	__u16 addr_size;
++	__u16 reserved;
++	struct sockaddr_storage addr;
++};
++
+ struct rdma_ucm_resolve_ip {
+ 	struct sockaddr_in6 src_addr;
+ 	struct sockaddr_in6 dst_addr;
 
 
 --
