@@ -1,42 +1,232 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][TRIVIAL] opensm/osmeventplugin/src/osmeventplugin.c: Output
- LIDs in decimal
-Date: Tue, 20 Dec 2011 15:08:50 -0500
-Message-ID: <4EF0EB52.8070206@dev.mellanox.co.il>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: IB/iSER with Linux 3.0 and Debian: Lesson learned
+Date: Tue, 20 Dec 2011 21:33:39 +0100
+Message-ID: <CAFr+87sHu6YksMhKFxQitRpi2pd77r0WCJ5JzTQfwJ2qoNUD1g@mail.gmail.com>
+References: <4EEA0577.5030304@profitbricks.com>
+	<CAFr+87sPBQnhWEs08JxDrgbS_t9qCtEhHgVwHjw4b=iKF_9U3g@mail.gmail.com>
+	<CAFr+87tzqHzRttxAV=rZmjpAFCFGtiO3ns2F4XVfmD+GTzCL8A@mail.gmail.com>
+	<4EF02E10.4070501@mellanox.com>
+	<CAFr+87tQ2Vw9X3A25WUVstWfNhANj-FktXs6ZtU6d4as_j1k8A@mail.gmail.com>
+	<4EF06AF6.6080901@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary=20cf300fb08d7793ba04b48bfb22
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4EF06AF6.6080901-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+--20cf300fb08d7793ba04b48bfb22
+Content-Type: text/plain; charset=ISO-8859-1
 
-rather than in hex
+2011/12/20 Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>:
+>
+> Beep(2), so your system has distro which is based on kernel 2.6.32 and iscsi
+> initiator tools version 2.0.871 and per your needs, you've booted it with
+> kernel 3.0 .
+>
+> At this point should you have stop and make sure that this combo works,
+> iscsi wise (simpler to test iscsi/tcp... no need in rdma knowledge), did you
+> do this validation?
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/osmeventplugin/src/osmeventplugin.c b/osmeventplugin/src/osmeventplugin.c
-index 9caf184..e4e51a0 100644
---- a/osmeventplugin/src/osmeventplugin.c
-+++ b/osmeventplugin/src/osmeventplugin.c
-@@ -141,13 +141,13 @@ static void handle_trap_event(_log_events_t *log, ib_mad_notice_attr_t *p_ntc)
- {
- 	if (ib_notice_is_generic(p_ntc)) {
- 		fprintf(log->log_file,
--			"Generic trap type %d; event %d; from LID 0x%x\n",
-+			"Generic trap type %d; event %d; from LID %u\n",
- 			ib_notice_get_type(p_ntc),
- 			cl_ntoh16(p_ntc->g_or_v.generic.trap_num),
- 			cl_ntoh16(p_ntc->issuer_lid));
- 	} else {
- 		fprintf(log->log_file,
--			"Vendor trap type %d; from LID 0x%x\n",
-+			"Vendor trap type %d; from LID %u\n",
- 			ib_notice_get_type(p_ntc),
- 			cl_ntoh16(p_ntc->issuer_lid));
- 	}
+Yes, of cause I did - TCP worked very well. I've also updated from git
+to latest 2.0.872 (latest change 2011-11-01) for testing. TCP always
+worked and iSER was always unusable.
+
+>
+> If this combo isn't working, you have to update the iscsi tools to a version
+> which supports your kernel.
+>
+
+Yes, I even took the max. 2.6.35 supported kernel stuff from
+open-iscsi git and have changed the Makefile to make it compile
+against my kernel. With that I ensured that open-iscsi kernel code and
+user-space match. TCP O.K. - no iSER with that!
+
+> If this combo is working iscsi/tcp wise but not ib_iser wise, its seems to
+> be a bug, and I'd be happy to help with finding the root cause, etc.
+
+Have you ever developed/tested the ib_iser module for/with > 2.6.30
+kernels? I've seen that there were lots of changes in the whole
+open-iscsi kernel stack between 2.6.30 and 2.6.32. The whole ABI has
+changed in libiscsi. They added stuff e.g. at the first position in
+enums. If ib_iser isn't aware of such changes lots of crap can happen.
+...and happened to me while testing by the way.
+
+>
+> But this way or another, OFA isn't an iscsi tools factory, nor have anyone
+> that can/want to support iscsi tools, we (folks from the rdma vendors
+> community that deal with iscsi) are working with the upstream iscsi
+> maintainer to address iscsi issues. The fact that OFA ships iscsi code
+> except for ib_iser/cxgb4i/etc modules is a bug, BTW, I'll act to change
+> that.
+>
+
+ib_iser has tight dependencies to open-iscsi code (see attached). In
+my opinion an ib_iser developer should work that tight together with
+the open-iscsi guys. They should inform you about all ABI and API
+changes in libiscsi so that you can react on that. As an user of
+IB/iSER it is really confusing that this isn't the case and that OFA
+only provides 2.6.30 based open-iscsi stuff which only works for iSER
+due to missing libiscsi_tcp in there. At least this could be fixed
+easily.
+
+Now I know why everybody has his own OFED - so do we now. E.g. the
+QLogic stuff isn't even compilable without the QLogic OFED, because
+they only put their patches in there. Luckily, we have only Mellanox
+HCAs in our productive environment.
+
+Would it help, if we provide our patches for open-iscsi and IB/iSER >
+2.6.32 to bring that into mainline OFED?
+
+Sebastian
+
+--20cf300fb08d7793ba04b48bfb22
+Content-Type: image/png; name="open-iscsi.png"
+Content-Disposition: attachment; filename="open-iscsi.png"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gwfcjk2v0
+
+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
+53/0I9vTT/v6+iZaYsDrvbh/v/nuu6k05+HDUywfAADZgJhApVJptdppyKb3xRf9djvz1fHXv/Zs
+23blraO9veSMUNlczMkJuFyD//wnGeXivn3M9IVHHmEyXFi9eri+PjA87B8YoP/2ZWdPtESHUGjb
+vNlntfqdzotfvdV00vIBAJANiAnKysqmJxtfdzf7teu++7znzo0GKwZDqGz8wTfLUehz1fStt3LE
+LkND5p/+dKIlUhRFJY+vxtTLBwBANuCaMb17NmPuylxp3H2+0S8+X6hsOGdhp0c+/7z797+noIRS
+rnyCF+W4lxi6CN4yL+OmEQCQDYg1NBpNeXn5DGVzVWRjNE5dNjSjS632DwxcDgT8g4M8kpgosoFs
+AIBsQBxgNBqlUukMZXPlns327X673dfX17N169RlY77rrqETJwJut/f8+d4XX+SRhOOttzjv2UA2
+AEA2IA7wer0CgSDc94qOac0DIyN9r7xy/rbbulauHNMbjV8GQ5WVll/+0nTrrZZVqwaOHOGRxJXe
+aPv2kZzMd9458P77kA0AkA2IMyorK6dxJQ0AACAbEAbDw8MikailpQWbAgAA2YAI0tvbS76pqqoi
+8Vzzyoz2TAv5YAcBANmABGFwcFClUgkEArVardVqST+xIB4AAGQDEhCHw9HY2KhUKsViMYknJ7HA
+/gXg2vL/PCrY6soVer8AAAAASUVORK5CYII=
+--20cf300fb08d7793ba04b48bfb22--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
