@@ -1,25 +1,42 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] ib/cm: fix layout of APR message
-Date: Tue, 20 Dec 2011 08:44:18 +0200
-Message-ID: <4EF02EC2.4060506@mellanox.com>
-References: <20111219074716.GA12058@mtldesk30> <1828884A29C6694DAF28B7E6B8A8237325661791@ORSMSX102.amr.corp.intel.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] ib/core: Protect QP mcast list
+Date: Tue, 20 Dec 2011 09:19:44 +0200
+Message-ID: <CAL3tnx7u9_Yrqr0QZ=c2tKnJtyFe97XR2QKh0=DQuP77XYn9Kg@mail.gmail.com>
+References: <20111219070952.GA11530@mtldesk30>
+	<CAL1RGDUpqz+26fKcHj=0NbNqU_8vYV6zOresyYzFZTasGwD_oA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237325661791-P5GAC/sN6hlcIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAL1RGDUpqz+26fKcHj=0NbNqU_8vYV6zOresyYzFZTasGwD_oA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/19/2011 9:10 PM, Hefty, Sean wrote:
-> Thanks for catching this. Let's hope very few/no people are using APR 
-> in such a way that fixing this bug will bite them. 
+On Mon, Dec 19, 2011 at 11:54 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org=
+> wrote:
+>
+> Did you consider taking the QP's rwsem for writing across these opera=
+tions
+> instead? =A0How did that approach compare?
+>
+I considered this but that means that you serialize attach/detach
+operations at ib core. Using a spinlock to protect the list allows
+more concurrency. After all, we hit this bug since concurrency of such
+operations occur in real life applications.
 
-no in-tree users so... I tend to agree there's no other choice here.
+> Assuming there's some problem with that, would it make sense to put
+> the mcast_lock next to the mcast_list in struct ib_uqp_object, instea=
+d of
+> hiding it in struct ib_qp?
+>
+Yes, it makes more sense to me.
 
+If it is agreed to use a spinlock and put it next to mcast_list I will
+prepare another patch.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
