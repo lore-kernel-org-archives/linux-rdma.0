@@ -1,39 +1,120 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/5] ib/core: add support for extended performance
- counters in sysfs
-Date: Tue, 20 Dec 2011 21:56:30 +0200
-Message-ID: <CAJZOPZLRvkyuJqa1f_Po1hnz_yFwFWKJiSi6NYX8FFHfPYAdqg@mail.gmail.com>
-References: <20111101173625.GH26974@obsidianresearch.com>
-	<CAJZOPZJCY5ehTGw8htsxw0dJgMXJJAS-=LGJde9ddcMsmhqvMg@mail.gmail.com>
-	<20111101183730.GI26974@obsidianresearch.com>
-	<CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com>
-	<4EB17AF9.3000608@mellanox.com>
-	<CAG4TOxOYAnuB8oKkJgr9_6EpF+YR-h9WNak+gSWwpV0Nz-LeZg@mail.gmail.com>
-	<20111108010952.GC4934@obsidianresearch.com>
-	<4EF07993.2090900@mellanox.com>
-	<20111220174639.GE25774@obsidianresearch.com>
-	<CAJZOPZ+rBKck50kmyhLZ3VNLNmoS_K6cA3Pj3L6XQjcBQo6DjA@mail.gmail.com>
-	<20111220195014.GH25774@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH v2 1/3] opensm/libvendor/osm_vendor_ibumad.c: Fix DR path
+ printing on send timeouts
+Date: Tue, 20 Dec 2011 15:08:14 -0500
+Message-ID: <4EF0EB2E.9060407@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111220195014.GH25774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> We're talking now only on the IB extended counters who are all 64 bits
 
-> netdev counters are 32 bit or 64 bit, depending on how the kernel was
-> compiled. I think indicating the size explicitly, or always being 64
-> bit (and extending all the lessor counters in future) is the way to go for IB..
+Also, make log_send_error routine and call when MAD is cancelled
 
-So for the extended counters which we are dealing with now,  and who
-are all 64bit, anything I should change in my patches?
+This patch is an alternative to Ira's v4 patch entitled 
+"opensm: Move Error printing to MAD error call back functions"
+which pushes this functionality up into the send error callbacks.
 
-Or.
+This patch is currently compile tested only.
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Change since v1:
+Removed hop pointer from ERR 5411 log message
+
+diff --git a/libvendor/osm_vendor_ibumad.c b/libvendor/osm_vendor_ibumad.c
+index e2ebd8e..4e98763 100644
+--- a/libvendor/osm_vendor_ibumad.c
++++ b/libvendor/osm_vendor_ibumad.c
+@@ -98,6 +98,35 @@ typedef struct _umad_receiver {
+ 
+ static void osm_vendor_close_port(osm_vendor_t * const p_vend);
+ 
++static void log_send_error(osm_vendor_t * const p_vend, osm_madw_t *p_madw)
++{
++	if (p_madw->p_mad->mgmt_class != IB_MCLASS_SUBN_DIR) {
++		/* LID routed */
++		OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5410: "
++			"Send completed with error (%s) -- dropping\n"
++			"\t\t\tClass 0x%x, Method 0x%X, Attr 0x%X, "
++			"TID 0x%" PRIx64 ", LID %u\n",
++			ib_get_err_str(p_madw->status),
++			p_madw->p_mad->mgmt_class, p_madw->p_mad->method,
++			cl_ntoh16(p_madw->p_mad->attr_id),
++			cl_ntoh64(p_madw->p_mad->trans_id),
++			cl_ntoh16(p_madw->mad_addr.dest_lid));
++	} else {
++		ib_smp_t *p_smp;
++
++		/* Direct routed SMP */
++		p_smp = osm_madw_get_smp_ptr(p_madw);
++		OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5411: "
++			"DR SMP Send completed with error (%s) -- dropping\n"
++			"\t\t\tMethod 0x%X, Attr 0x%X, TID 0x%" PRIx64 "\n",
++			ib_get_err_str(p_madw->status),
++			p_madw->p_mad->method,
++			cl_ntoh16(p_madw->p_mad->attr_id),
++			cl_ntoh64(p_madw->p_mad->trans_id));
++		osm_dump_smp_dr_path(p_vend->p_log, p_smp, OSM_LOG_ERROR);
++	}
++}
++
+ static void clear_madw(osm_vendor_t * p_vend)
+ {
+ 	umad_match_t *m, *e, *old_m;
+@@ -185,6 +214,7 @@ put_madw(osm_vendor_t * p_vend, osm_madw_t * p_madw, ib_net64_t tid)
+ 	p_req_madw = old_lru->v;
+ 	p_bind = p_req_madw->h_bind;
+ 	p_req_madw->status = IB_CANCELED;
++	log_send_error(p_vend, p_req_madw);
+ 	pthread_mutex_lock(&p_vend->cb_mutex);
+ 	(*p_bind->send_err_callback) (p_bind->client_context, p_req_madw);
+ 	pthread_mutex_unlock(&p_vend->cb_mutex);
+@@ -326,32 +356,6 @@ static void *umad_receiver(void *p_ptr)
+ 
+ 		/* if status != 0 then we are handling recv timeout on send */
+ 		if (umad_status(p_madw->vend_wrap.umad)) {
+-
+-			if (mad->mgmt_class != IB_MCLASS_SUBN_DIR) {
+-				/* LID routed */
+-				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5410: "
+-					"Send completed with error -- dropping\n"
+-					"\t\t\tClass 0x%x, Method 0x%X, Attr 0x%X, "
+-					"TID 0x%" PRIx64 ", LID %u\n",
+-					mad->mgmt_class, mad->method,
+-					cl_ntoh16(mad->attr_id),
+-					cl_ntoh64(mad->trans_id),
+-					cl_ntoh16(ib_mad_addr->lid));
+-			} else {
+-				ib_smp_t *smp;
+-
+-				/* Direct routed SMP */
+-				smp = (ib_smp_t *) mad;
+-				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5411: "
+-					"DR SMP Send completed with error -- dropping\n"
+-					"\t\t\tMethod 0x%X, Attr 0x%X, TID 0x%" PRIx64
+-					", Hop Ptr: 0x%X\n",
+-					mad->method, cl_ntoh16(mad->attr_id),
+-					cl_ntoh64(mad->trans_id), smp->hop_ptr);
+-				osm_dump_smp_dr_path(p_vend->p_log, smp,
+-						     OSM_LOG_ERROR);
+-			}
+-
+ 			if (!(p_req_madw = get_madw(p_vend, &mad->trans_id))) {
+ 				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
+ 					"ERR 5412: "
+@@ -361,6 +365,7 @@ static void *umad_receiver(void *p_ptr)
+ 					cl_ntoh64(mad->trans_id));
+ 			} else {
+ 				p_req_madw->status = IB_TIMEOUT;
++				log_send_error(p_vend, p_req_madw);
+ 				/* cb frees req_madw */
+ 				pthread_mutex_lock(&p_vend->cb_mutex);
+ 				pthread_cleanup_push(unlock_mutex,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
