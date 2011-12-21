@@ -1,51 +1,62 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 12/14] ib_srp: Rework error handling
-Date: Tue, 20 Dec 2011 22:33:07 -0500
-Message-ID: <1324438387.7621.53.camel@obelisk.thedillows.org>
-References: <201112011954.25811.bvanassche@acm.org>
-	 <201112012010.37276.bvanassche@acm.org>
-	 <1324265791.17849.92.camel@obelisk.thedillows.org>
-	 <CAO+b5-q332RKkLrUV7X_D73SHBrLpt=6Xz=W7ZtOwZ+9iSOyDw@mail.gmail.com>
-	 <1324335083.7043.66.camel@lap75545.ornl.gov>
-	 <CAO+b5-qF2taG0B4n9SBwqnuh0wajH5fXFLTb-VAaDrfT9TZ6aQ@mail.gmail.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] ib/core: Protect QP mcast list
+Date: Wed, 21 Dec 2011 09:10:24 +0200
+Message-ID: <20111221071024.GA27134@mtldesk30>
+References: <20111219070952.GA11530@mtldesk30>
+ <CAL1RGDUpqz+26fKcHj=0NbNqU_8vYV6zOresyYzFZTasGwD_oA@mail.gmail.com>
+ <CAL3tnx7u9_Yrqr0QZ=c2tKnJtyFe97XR2QKh0=DQuP77XYn9Kg@mail.gmail.com>
+ <CAL1RGDUdrAK20fTOQUTgBHw-PnPjkojC8hE7oAePd=NCLSnGrg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-qF2taG0B4n9SBwqnuh0wajH5fXFLTb-VAaDrfT9TZ6aQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAL1RGDUdrAK20fTOQUTgBHw-PnPjkojC8hE7oAePd=NCLSnGrg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Fujita Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2011-12-20 at 09:01 +0000, Bart Van Assche wrote:
-> On Mon, Dec 19, 2011 at 10:51 PM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
-> > I haven't parsed it all out from your changes just yet, but I think part
-> > of the reason you may have had problems with req->scmd being null in
-> > srp_handle_recv() is due to a new race between the tear down of the
-> > connection and continuing to process completion notifications.
+On Tue, Dec 20, 2011 at 04:36:35PM -0800, Roland Dreier wrote:
+> On Mon, Dec 19, 2011 at 11:19 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> > I considered this but that means that you serialize attach/detach
+> > operations at ib core. Using a spinlock to protect the list allows
+> > more concurrency. After all, we hit this bug since concurrency of such
+> > operations occur in real life applications.
 > 
-> The resources used by the QP completion handler are the srp_target
-> port data structure and the QP data structure. And as you can see in
-> srp_remove_target(), the scsi_host_put() call is invoked after
-> srp_disconnect_target(). That last function waits for the DREP
-> notification from the IB CM. That should guarantee that no IB
-> completions arrive during or after the scsi_host_put() call. Or did I
-> miss something ?
+> Looking closer at it, I don't see how we can avoid serializing multicast
+> operations.
+> 
+> At least, I don't see how your proposed patch can work for all the crazy
+> things userspace might do.
+> 
+> For example suppose two threads join the same QP to the same MCG at
+> the same time.  In that case it might happen that both threads check the
+> list and don't find the group there, since you drop the lock before the
+> actual low-level verbs attach (and you don't and can't hold the lock across
+> that sleeping call).
+> 
+> In that case both calls to attach will succeed (underlying verb is
+> idempotent) and the membership info will be added to the list twice.
+> 
+> Then all sorts of problems ensue, eg a detach will succeed but only
+> remove one list entry, and so a subsequent re-attach will silently do
+> nothing.
+> 
+> Also I'm sure racing attach/detach can get into trouble too, eg
+> detach succeeds but list entry ends up still on the list.
+> 
+> I don't see any obvious way to close all these holes except to
+> make sure that adding/removing a list entry is done atomically
+> along with the actual attach/detach operation -- ie hold some
+> sort of sleepable lock (like an rwsem) across checking the list,
+> doing the attach/detach and doing the list add/remove.
+> 
 
-What keeps the srp_recv_completion() --> srp_handle_recv() -->
-srp_process_rsp() --> etc. call chain from racing with
-srp_reconnect_target()?
-
-It looks like the srp_reset_req() in srp_reconnect_tartget() could race
-with srp_process_rsp() if receive completions continue to be processed
-after a send failure, but perhaps it is I who is missing something.
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
-
+I see...
+I think there is not much point in introducing a new semaphore. We can
+simply use the existing rw_semaphore. This requires defining
+idr_write_qp and put_qp_write. I will prepare a patch and run some
+testing.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
