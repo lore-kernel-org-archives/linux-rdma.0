@@ -1,48 +1,39 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: IB/iSER with Linux 3.0 and Debian: Lesson learned
-Date: Wed, 21 Dec 2011 12:34:36 +0100
-Message-ID: <CAFr+87tzRffgTsM=M8YKJQLSkFaOX7+=czf5L5L7K0-UiJJFxg@mail.gmail.com>
-References: <4EEA0577.5030304@profitbricks.com>
-	<CAFr+87sPBQnhWEs08JxDrgbS_t9qCtEhHgVwHjw4b=iKF_9U3g@mail.gmail.com>
-	<CAFr+87tzqHzRttxAV=rZmjpAFCFGtiO3ns2F4XVfmD+GTzCL8A@mail.gmail.com>
-	<4EF02E10.4070501@mellanox.com>
-	<CAFr+87tQ2Vw9X3A25WUVstWfNhANj-FktXs6ZtU6d4as_j1k8A@mail.gmail.com>
-	<4EF06AF6.6080901@mellanox.com>
-	<CAFr+87sHu6YksMhKFxQitRpi2pd77r0WCJ5JzTQfwJ2qoNUD1g@mail.gmail.com>
-	<CAJZOPZLweaD19nS94Enh1rxXwRt+bHr=cPMxdg2zcCP_d4bzfw@mail.gmail.com>
-	<CAFr+87vvqx=yTDBKVqdDpfEOnbewXMUaahgO=0yqdY=+RV6NsA@mail.gmail.com>
-	<4EF1C15B.1000907@mellanox.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 12/14] ib_srp: Rework error handling
+Date: Wed, 21 Dec 2011 13:26:26 +0000
+Message-ID: <CAO+b5-q-71L_xNNL8CHpO4fX8vRp9p4jsaS14jLiLU4ns8eucA@mail.gmail.com>
+References: <201112011954.25811.bvanassche@acm.org>
+	<201112012010.37276.bvanassche@acm.org>
+	<1324265791.17849.92.camel@obelisk.thedillows.org>
+	<CAO+b5-q332RKkLrUV7X_D73SHBrLpt=6Xz=W7ZtOwZ+9iSOyDw@mail.gmail.com>
+	<1324335083.7043.66.camel@lap75545.ornl.gov>
+	<CAO+b5-qF2taG0B4n9SBwqnuh0wajH5fXFLTb-VAaDrfT9TZ6aQ@mail.gmail.com>
+	<1324438387.7621.53.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EF1C15B.1000907-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1324438387.7621.53.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Fujita Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, Brian King <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2011/12/21 Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>:
-> I tested the upstream kernel iser against the upstream iscsi tools =A0=
-from
-> git://github.com/mikechristie/open-iscsi
-> (commit 4323e342d2c9fb8ed7233ce855001c189ec55b23), it works
+On Wed, Dec 21, 2011 at 3:33 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
+> What keeps the srp_recv_completion() --> srp_handle_recv() -->
+> srp_process_rsp() --> etc. call chain from racing with
+> srp_reconnect_target()?
 >
+> It looks like the srp_reset_req() in srp_reconnect_target() could race
+> with srp_process_rsp() if receive completions continue to be processed
+> after a send failure, but perhaps it is I who is missing something.
 
-To bring this to an end: I believe you. Most likely I had that much
-trouble because of the OFED-1.4 user-space which did not match the
-kernel code.
+In the tests I ran so far no issues came up most likely because the
+decision to reconnect is taken a long time after the most recent
+response has been received. I'll see what has to change to make this
+safe even if there wouldn't be any such delay.
 
-As you don't answer my question how I can find out what's the matching
-user-space for a given upstream kernel - I will just use what I have
-now (should work like on RedHat) and will be looking forward to the
-new OFED release approach.
-
-Thanks for taking the time to make things clear to me.
-
-Sebastian
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
