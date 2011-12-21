@@ -1,81 +1,56 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: IB/iSER with Linux 3.0 and Debian: Lesson learned
-Date: Wed, 21 Dec 2011 08:54:13 +0100
-Message-ID: <CAFr+87vvqx=yTDBKVqdDpfEOnbewXMUaahgO=0yqdY=+RV6NsA@mail.gmail.com>
-References: <4EEA0577.5030304@profitbricks.com>
-	<CAFr+87sPBQnhWEs08JxDrgbS_t9qCtEhHgVwHjw4b=iKF_9U3g@mail.gmail.com>
-	<CAFr+87tzqHzRttxAV=rZmjpAFCFGtiO3ns2F4XVfmD+GTzCL8A@mail.gmail.com>
-	<4EF02E10.4070501@mellanox.com>
-	<CAFr+87tQ2Vw9X3A25WUVstWfNhANj-FktXs6ZtU6d4as_j1k8A@mail.gmail.com>
-	<4EF06AF6.6080901@mellanox.com>
-	<CAFr+87sHu6YksMhKFxQitRpi2pd77r0WCJ5JzTQfwJ2qoNUD1g@mail.gmail.com>
-	<CAJZOPZLweaD19nS94Enh1rxXwRt+bHr=cPMxdg2zcCP_d4bzfw@mail.gmail.com>
+Date: Wed, 21 Dec 2011 10:15:08 +0200
+Message-ID: <4EF1958C.3080305@mellanox.com>
+References: <4EEA0577.5030304@profitbricks.com> <CAFr+87sPBQnhWEs08JxDrgbS_t9qCtEhHgVwHjw4b=iKF_9U3g@mail.gmail.com> <CAFr+87tzqHzRttxAV=rZmjpAFCFGtiO3ns2F4XVfmD+GTzCL8A@mail.gmail.com> <4EF02E10.4070501@mellanox.com> <CAFr+87tQ2Vw9X3A25WUVstWfNhANj-FktXs6ZtU6d4as_j1k8A@mail.gmail.com> <4EF06AF6.6080901@mellanox.com> <CAFr+87sHu6YksMhKFxQitRpi2pd77r0WCJ5JzTQfwJ2qoNUD1g@mail.gmail.com> <4EF18C84.2040500@mellanox.com> <CAFr+87u5b7GX-NaA229MD5S_wOrds5yUuqjjjUBz=p-HLWiKTA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLweaD19nS94Enh1rxXwRt+bHr=cPMxdg2zcCP_d4bzfw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAFr+87u5b7GX-NaA229MD5S_wOrds5yUuqjjjUBz=p-HLWiKTA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2011/12/20 Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->
-> horses, please, stay at home, or at least run a little bit slower,
-> just for you - from 2 minutes
-> ago - iser works well with 3.2.0-rc5 (its say -dirty b/c its a
-> development system and the kernel has some patches, but not iser ones=
-)
-> and iscsi-initiator-utils of 6.2.0.872-21.el6, I will try tomorrow
-> with upstream iscsi-initiator-utils and see if there's a problem
-> there.
->
+On 12/21/2011 10:01 AM, Sebastian Riemer wrote:
+>> could you provide quick pointers / 1-2 examples  for such API/ABI changes
+>> which aren't deployed in the upstream iser code?
+>>
 
-O.K., sorry - I just wanted to know how this is developed. Even if the
-kernel code matches 100%, how do I know which is the matching tested
-user-space code for that?
+you wrote long emails, I'm asking for one concrete example for that enum 
+crunching  of adding entries
+not at the end, can you, please?
 
 >
-> I don't use ofed at all, work only with upstream or distro code.
-> AFAIK, the upstream kernel is functional with iser at all times,
-> again, I will do the validation with the iscsi =A0tools and if the
-> upstream iscsi tools aren't functional with the upstream iser code bu=
-t
-> are functional with the upstream iscsi/tcp code, we will (the iscsi
-> maintainer and myself) fix that, and thanks for this possible heads
-> up.
->
+> Sorry, I've meant the OFED code and not the mainline. In the mainline
+> kernel this always would be fixed at least to make it compile.
 
-Thanks for that info. In OFED I thought I would have everything needed
-and matching together. Due to the new kernel we have our own
-distribution extends, packet repo, build server,... So, for OFED we're
-the distribution.
+I want to double check I'm with you - so when you said that iser didn't 
+work e.g "TCP worked very well. I've also updated from git to latest 
+2.0.872 (latest change 2011-11-01) for testing. TCP always worked and 
+iSER was always unusable." you actually wanted to say "iser from ofed" 
+and not iser from this or that upstream kernel?
 
->
-> no way, OFA isn't iscsi factory, we can't support the iscsi kernel
-> modules except for iser, nor any of the iscsi user space tools - and
-> its a historic bug that someone with wrong ambitions added iscsi
-> modules/tools info the ofa stack. The OFA stack should be compatible
-> with the kernel/distro it is running on. As you can see in the
-> maintainers file, I act as the iser maintainer, and I do work closely
-> with the iscsi maintainer, maybe should work closer if indeed you
-> stepped on a problem with the upstream iscsi tools, as for the iscsi
-> tools provided with debian, I am not sure what was the problem, send
-> me tgz with the sources to my @mellanox address and I can try look on
-> that.
->
 
-Perhaps, I really stepped on a rare case where this was broken. As
-I've already asked: How do I find the matching, tested open-iscsi and
-OFA user-space code for a mainline kernel?
 
-Sorry again, I didn't want provoke. I just want to understand and make
-things work.
+> If something is in the mainline It doesn't mean that it really works perfectly from there.
+> Some drivers are better from out-of-tree. I thought that this is also the case with OFED.
 
-Sebastian
+as life, mainline isn't perfect, but it doesn't say that ofed is perfect 
+nor that by any bit its better then mainline, you may know and if you 
+don't here are the news: the ofa community has to decided to stop 
+producing ofed in the way it was done over the years, namely from now 
+(Jan 2012) and onward, ofed will be only backports provided from 
+mainline, no additions, so this false betterness claim can't even be 
+stated anymore. Now, even this "backporting only" new mode has to be 
+defined - since for example, is the iscsi case... except for iser, ofed 
+will not provide the iscsi modules nor tools, so its not clear/how 
+trivial/for someone takes (say) iser from 3.2 and backport it to (say) 
+3.6.35 in manner that it will be operable with 3.6.35 and unknown 
+version of the tools.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
