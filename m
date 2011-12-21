@@ -1,53 +1,76 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] ib/core: Protect QP mcast list
-Date: Tue, 20 Dec 2011 16:36:35 -0800
-Message-ID: <CAL1RGDUdrAK20fTOQUTgBHw-PnPjkojC8hE7oAePd=NCLSnGrg@mail.gmail.com>
-References: <20111219070952.GA11530@mtldesk30> <CAL1RGDUpqz+26fKcHj=0NbNqU_8vYV6zOresyYzFZTasGwD_oA@mail.gmail.com>
- <CAL3tnx7u9_Yrqr0QZ=c2tKnJtyFe97XR2QKh0=DQuP77XYn9Kg@mail.gmail.com>
+From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+Subject: [PATCH 0/8] Fix virtual and physical address types
+Date: Wed, 21 Dec 2011 01:29:00 +0000
+Message-ID: <1324430940.2844.144.camel@deadeye>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-auuee/X1upD+bQMYrTHk"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL3tnx7u9_Yrqr0QZ=c2tKnJtyFe97XR2QKh0=DQuP77XYn9Kg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Curtis <kevin.curtis-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "James E.J. Bottomley" <JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hans J. Koch" <hjk-vqZO0P4V72/QD6PfKP4TzA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, Anil Ravindranath <anil_ravindranath-4W7cOCfLBmzY0TyS/+Ba5Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 19, 2011 at 11:19 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> I considered this but that means that you serialize attach/detach
-> operations at ib core. Using a spinlock to protect the list allows
-> more concurrency. After all, we hit this bug since concurrency of such
-> operations occur in real life applications.
 
-Looking closer at it, I don't see how we can avoid serializing multicast
-operations.
+--=-auuee/X1upD+bQMYrTHk
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-At least, I don't see how your proposed patch can work for all the crazy
-things userspace might do.
+This series fixes compiler warnings on some architectures about implicit
+conversions and narrowing conversions between pointer and integer types.
 
-For example suppose two threads join the same QP to the same MCG at
-the same time.  In that case it might happen that both threads check the
-list and don't find the group there, since you drop the lock before the
-actual low-level verbs attach (and you don't and can't hold the lock across
-that sleeping call).
+Please apply these to the appropriate trees.
 
-In that case both calls to attach will succeed (underlying verb is
-idempotent) and the membership info will be added to the list twice.
+Ben.
 
-Then all sorts of problems ensue, eg a detach will succeed but only
-remove one list entry, and so a subsequent re-attach will silently do
-nothing.
+Ben Hutchings (8):
+  IB/cxgb4: Fix formatting of physical address
+  farsync: Fix confusion about DMA address and buffer offset types
+  drm: Do not include page offset in argument to virt_to_page()
+  drm: Pass pointers to virt_to_page()
+  [SCSI] tgt: Pass pointers to virt_to_page(), not integers
+  uio: Pass pointers to virt_to_page(), not integers
+  rds: Pass pointers to virt_to_page(), not integers
+  pmcraid: Pass pointers to access_ok(), not integers
 
-Also I'm sure racing attach/detach can get into trouble too, eg
-detach succeeds but list entry ends up still on the list.
+ drivers/gpu/drm/drm_pci.c            |    4 ++--
+ drivers/gpu/drm/drm_vm.c             |    2 +-
+ drivers/infiniband/hw/cxgb4/device.c |    4 ++--
+ drivers/net/wan/farsync.c            |   19 +++++++------------
+ drivers/scsi/pmcraid.c               |    3 ++-
+ drivers/scsi/scsi_tgt_if.c           |    2 +-
+ drivers/uio/uio.c                    |    6 ++++--
+ net/rds/message.c                    |    2 +-
+ 8 files changed, 20 insertions(+), 22 deletions(-)
 
-I don't see any obvious way to close all these holes except to
-make sure that adding/removing a list entry is done atomically
-along with the actual attach/detach operation -- ie hold some
-sort of sleepable lock (like an rwsem) across checking the list,
-doing the attach/detach and doing the list add/remove.
+--=20
+1.7.7.3
 
- - R.
+
+
+--=-auuee/X1upD+bQMYrTHk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIVAwUATvE2XOe/yOyVhhEJAQpCPBAAzxsxERWWaiZhuyPldAGrhVCYw5gYv014
+kiOOfmLRnZXeRxRVFi7ZJlV603NvxDWL3/FGtjFvwDI5CTxb6wqWjjzvp+fCcaET
+O6pv6ehpvSISQM0mmkpv2shy8+f7+IZtVB9xRpPmWnQ4lE2Nbc5JhjqQcmBb4bPx
+QYymccb4Xivg1a4i9R0zMeKsQ9oNS+SqZy3zJmGNhUFVVc7f/OChbXfGueFHtJ0u
+NOZz7bA9wD+tbm6PkGjjHpZ7vWPIDcJQ/n5CRo9LSgSY7BwwTLHd8Cwgz7tzrfTt
+emvQHA8kqN9tob486h02GAj3ny9GwfQZb6wDRsrmbhw4ahbeULlzfOxjLW76f0kf
+OmyE4xqFx7PqCJD8bT3Sw/JDCtF08CguJabEXpqzAPkgc+rmGdYr9pTxlJ1WeHCZ
+Q+Sv/pD88Jmn2USwg5fTNZcrTny39e4wMmLY1qKU5md5Z01RfQhEpzXWczrjIWeH
+hBR3GJr29lS4uodvex9hoMIK+N+KxIeWQe6o4lTcKuCQ6RjanB+z9CKTe7yejQri
+rvoHHmdkFFa/6nKDYNkp9UmODE4Aja3f1BRn/9VLEtztT4GRL2C+DY+bSI2ZpZXn
+wb/MG88Q00OZi5qQaHR2V2/fT+0V93xCgx+YLqHEei22Y75tQxgbujzXnzlOYjrn
+jju3au81Fks=
+=gkq1
+-----END PGP SIGNATURE-----
+
+--=-auuee/X1upD+bQMYrTHk--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
