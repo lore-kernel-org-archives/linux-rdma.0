@@ -1,76 +1,52 @@
 From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
-Subject: [PATCH 0/8] Fix virtual and physical address types
-Date: Wed, 21 Dec 2011 01:29:00 +0000
-Message-ID: <1324430940.2844.144.camel@deadeye>
+Subject: [PATCH 1/8] IB/cxgb4: Fix formatting of physical address
+Date: Wed, 21 Dec 2011 01:32:07 +0000
+Message-ID: <1324431127.2844.146.camel@deadeye>
+References: <1324430940.2844.144.camel@deadeye>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-auuee/X1upD+bQMYrTHk"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1324430940.2844.144.camel@deadeye>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Curtis <kevin.curtis-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "James E.J. Bottomley" <JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hans J. Koch" <hjk-vqZO0P4V72/QD6PfKP4TzA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, Anil Ravindranath <anil_ravindranath-4W7cOCfLBmzY0TyS/+Ba5Q@public.gmane.org>
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Physical addresses may be wider than virtual addresses (e.g. on i386
+with PAE) and must not be formatted with %p.
 
---=-auuee/X1upD+bQMYrTHk
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-This series fixes compiler warnings on some architectures about implicit
-conversions and narrowing conversions between pointer and integer types.
-
-Please apply these to the appropriate trees.
+Signed-off-by: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+---
+The resource could alternately be formatted with %Pr.
 
 Ben.
 
-Ben Hutchings (8):
-  IB/cxgb4: Fix formatting of physical address
-  farsync: Fix confusion about DMA address and buffer offset types
-  drm: Do not include page offset in argument to virt_to_page()
-  drm: Pass pointers to virt_to_page()
-  [SCSI] tgt: Pass pointers to virt_to_page(), not integers
-  uio: Pass pointers to virt_to_page(), not integers
-  rds: Pass pointers to virt_to_page(), not integers
-  pmcraid: Pass pointers to access_ok(), not integers
-
- drivers/gpu/drm/drm_pci.c            |    4 ++--
- drivers/gpu/drm/drm_vm.c             |    2 +-
  drivers/infiniband/hw/cxgb4/device.c |    4 ++--
- drivers/net/wan/farsync.c            |   19 +++++++------------
- drivers/scsi/pmcraid.c               |    3 ++-
- drivers/scsi/scsi_tgt_if.c           |    2 +-
- drivers/uio/uio.c                    |    6 ++++--
- net/rds/message.c                    |    2 +-
- 8 files changed, 20 insertions(+), 22 deletions(-)
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
---=20
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 6d0df6e..d395623 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -318,10 +318,10 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 	     rdev->lldi.vr->qp.size,
+ 	     rdev->lldi.vr->cq.start,
+ 	     rdev->lldi.vr->cq.size);
+-	PDBG("udb len 0x%x udb base %p db_reg %p gts_reg %p qpshift %lu "
++	PDBG("udb len 0x%x udb base %llx db_reg %p gts_reg %p qpshift %lu "
+ 	     "qpmask 0x%x cqshift %lu cqmask 0x%x\n",
+ 	     (unsigned)pci_resource_len(rdev->lldi.pdev, 2),
+-	     (void *)pci_resource_start(rdev->lldi.pdev, 2),
++	     (u64)pci_resource_start(rdev->lldi.pdev, 2),
+ 	     rdev->lldi.db_reg,
+ 	     rdev->lldi.gts_reg,
+ 	     rdev->qpshift, rdev->qpmask,
+-- 
 1.7.7.3
 
 
 
---=-auuee/X1upD+bQMYrTHk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIVAwUATvE2XOe/yOyVhhEJAQpCPBAAzxsxERWWaiZhuyPldAGrhVCYw5gYv014
-kiOOfmLRnZXeRxRVFi7ZJlV603NvxDWL3/FGtjFvwDI5CTxb6wqWjjzvp+fCcaET
-O6pv6ehpvSISQM0mmkpv2shy8+f7+IZtVB9xRpPmWnQ4lE2Nbc5JhjqQcmBb4bPx
-QYymccb4Xivg1a4i9R0zMeKsQ9oNS+SqZy3zJmGNhUFVVc7f/OChbXfGueFHtJ0u
-NOZz7bA9wD+tbm6PkGjjHpZ7vWPIDcJQ/n5CRo9LSgSY7BwwTLHd8Cwgz7tzrfTt
-emvQHA8kqN9tob486h02GAj3ny9GwfQZb6wDRsrmbhw4ahbeULlzfOxjLW76f0kf
-OmyE4xqFx7PqCJD8bT3Sw/JDCtF08CguJabEXpqzAPkgc+rmGdYr9pTxlJ1WeHCZ
-Q+Sv/pD88Jmn2USwg5fTNZcrTny39e4wMmLY1qKU5md5Z01RfQhEpzXWczrjIWeH
-hBR3GJr29lS4uodvex9hoMIK+N+KxIeWQe6o4lTcKuCQ6RjanB+z9CKTe7yejQri
-rvoHHmdkFFa/6nKDYNkp9UmODE4Aja3f1BRn/9VLEtztT4GRL2C+DY+bSI2ZpZXn
-wb/MG88Q00OZi5qQaHR2V2/fT+0V93xCgx+YLqHEei22Y75tQxgbujzXnzlOYjrn
-jju3au81Fks=
-=gkq1
------END PGP SIGNATURE-----
-
---=-auuee/X1upD+bQMYrTHk--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
