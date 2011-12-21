@@ -1,75 +1,62 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: Re: [PATCH 1/8] IB/cxgb4: Fix formatting of physical address
-Date: Wed, 21 Dec 2011 02:47:30 +0000
-Message-ID: <1324435650.2844.182.camel@deadeye>
-References: <1324430940.2844.144.camel@deadeye>
-	 <1324431127.2844.146.camel@deadeye> <1324434950.14214.3.camel@joe2Laptop>
+From: David Dillow <dillowda@ornl.gov>
+Subject: Re: [PATCH 13/14] ib_srp: Implement transport layer ping
+Date: Tue, 20 Dec 2011 22:05:36 -0500
+Message-ID: <1324436736.7621.38.camel@obelisk.thedillows.org>
+References: <201112011954.25811.bvanassche@acm.org>
+	 <201112012011.45444.bvanassche@acm.org>
+	 <1324255806.17849.68.camel@obelisk.thedillows.org>
+	 <CAO+b5-o+-JF61a+8vFWj1rxMuVWuG-CVLQKorr5cKzi-Kc44Ag@mail.gmail.com>
+	 <1324333931.7043.52.camel@lap75545.ornl.gov>
+	 <CAO+b5-r4AZymMkVyFSXbBzpcc86hL0RJm2j3FnT3=uXSLUkj9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-rR6XqhiWyN5RW7QTcWIx"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1324434950.14214.3.camel@joe2Laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Steve Wise <swise@chelsio.com>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <CAO+b5-r4AZymMkVyFSXbBzpcc86hL0RJm2j3FnT3=uXSLUkj9A@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 2011-12-20 at 10:27 +0000, Bart Van Assche wrote:
+> On Mon, Dec 19, 2011 at 10:32 PM, David Dillow <dillowda@ornl.gov> wrote:
+> > Part of the problem is introduced by allowing for permanent connections
+> > rather than using the familiar dev_loss_tmo and fast_io_fail_tmo
+> > parameters from other SCSI transports. For instance, in the FC
+> > transport, rports are allowed to disappear for up to dev_loss_tmo
+> > seconds before being removed from the SCSI device tree. Until they have
+> > been gone for fast_fail_io_tmo seconds, they are blocked (as is error
+> > handling to prevent offlining devices). Once they have been gone longer
+> > that fast_fail_io_tmo, they become unblocked and new IO will be failed.
+> 
+> I'm not convinced an equivalent of fast_fail_io_tmo is necessary for
+> the SRP transport. If a target disappears briefly from the IB fabric
+> what will happen with the posted patch series is that the initiator is
+> blocked during one ping interval and also that a reconnect is
+> triggered. Also, some SCSI commands may be reissued after
+> reconnecting. But that shouldn't have any adverse consequences, isn't
+> it ?
 
---=-rR6XqhiWyN5RW7QTcWIx
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+We don't want to leave a target blocked indefinitely -- commands caught
+in the blocked queue won't be reissued until the queue is unblocked --
+but we may want to keep the sdX mappings around for a long time.
+fast_io_fail_tmo gives us the ability to do that -- the expiration of
+fast_io_fail_tmo unblocks the queue and allows commands to be failed due
+to the transport error. See commit f2818663.
 
-On Tue, 2011-12-20 at 18:35 -0800, Joe Perches wrote:
-> On Wed, 2011-12-21 at 01:32 +0000, Ben Hutchings wrote:
-> > Physical addresses may be wider than virtual addresses (e.g. on i386
-> > with PAE) and must not be formatted with %p.
-> []
-> > The resource could alternately be formatted with %Pr.
-> > diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/=
-hw/cxgb4/device.c
-> []
-> > @@ -318,10 +318,10 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
-> >  	     rdev->lldi.vr->qp.size,
-> >  	     rdev->lldi.vr->cq.start,
-> >  	     rdev->lldi.vr->cq.size);
-> > -	PDBG("udb len 0x%x udb base %p db_reg %p gts_reg %p qpshift %lu "
-> > +	PDBG("udb len 0x%x udb base %llx db_reg %p gts_reg %p qpshift %lu "
-> >  	     "qpmask 0x%x cqshift %lu cqmask 0x%x\n",
-> >  	     (unsigned)pci_resource_len(rdev->lldi.pdev, 2),
-> > -	     (void *)pci_resource_start(rdev->lldi.pdev, 2),
-> > +	     (u64)pci_resource_start(rdev->lldi.pdev, 2),
->=20
-> Probably should be unsigned long long
+Also, these settings can be used to help tune multipath failover for
+devices with relatively long LUN transfer times (say with RDAC) vs short
+ones (ALUA). You still don't want the mappings to go away, but you want
+to move data to the other paths in a reasonably quick fashion.
+http://lkml.org/lkml/2008/1/7/244 talks about this a bit.
 
-unsigned long long is so long long long to type.  And u64 is now defined
-as unsigned long long on all architectures, partly because of that.
+As for reissued commands, most shouldn't be an issue -- once they get
+out of the blocked queue. I would expect there to be problems with
+certain vendor specific commands, and tape drives will have issues, but
+those are common to any multipath solution.
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 
-Ben.
-
---=20
-Ben Hutchings
-Humans are not rational beings; they are rationalising beings.
-
---=-rR6XqhiWyN5RW7QTcWIx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIVAwUATvFIwue/yOyVhhEJAQpbUg/+OfseC8ZndYGQT1BZ3Loti6gyw7uTTCqF
-lmQPdEGf4MN/LfkMTI6rEPO9atBzljxT7KCAcMVplzhJHpBziSuzw6rpLKxyB4lK
-TKqkLIb8yBkpmswFTQ8VfxI14DUg4iFxm8jNhGv3vjgkkHlZ4TH7aMq4CTNAcNqj
-amJ7h8cPyDSkV5Bof8WzpnPbtUr3ovZZ4tLhegOCguStpSiehvfQYKhhRgKdhA/6
-fljT4xhRWDnMZixxuCUiWQchbFNgg/g51yOC4gNEPoDzNd1RdTgwWG5GQE+uu/Q0
-fI6yyiUBEuujqp842nG6lfPrXfO0mhaIvOiCdr6+Fh0CZKz6MxnwMK9225p2pJMW
-fJevvywXllI482wvAfPqt8APc2KtYaRtPAzXk5N0wq6dbW8jgqkUavUKv74zcCgE
-+6Srn/IqX51qM2PDULaegi2k2f82v2CqCJ5Q5UhmUzKwB2TTCFJVERLW7ByAbtMU
-JGPGPJhylky2gRAYoNHaBPpggPCvAM0bfLgq0s9d3V8ER2lvBS/Bl2cuagVca6K6
-EzmOzdYJA7UffcziIML8IEmfXLCq+pzH9Z0P2eFVp7BjemroNt0+OLRtAzMWtdsB
-1U0P6S+Gl7eI+RIhYSgmF1z1rWRLIYS6IWzPaFbpEtLLXY6IwXtyykncC4dmdM61
-pq3dQviQOJs=
-=ohY7
------END PGP SIGNATURE-----
-
---=-rR6XqhiWyN5RW7QTcWIx--
