@@ -1,70 +1,63 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/qib: Default some module parameters optimally
-Date: Fri, 23 Dec 2011 11:12:10 -0500
-Message-ID: <20111223161210.17995.66362.stgit@kop-dev-sles11-04.qlogic.org>
+From: David Dillow <dillowda@ornl.gov>
+Subject: Re: [PATCH 13/14] ib_srp: Implement transport layer ping
+Date: Fri, 23 Dec 2011 17:34:56 -0500
+Message-ID: <1324679698.3004.12.camel@obelisk.thedillows.org>
+References: <201112011954.25811.bvanassche@acm.org>
+	 <201112012011.45444.bvanassche@acm.org>
+	 <1324255806.17849.68.camel@obelisk.thedillows.org>
+	 <CAO+b5-o+-JF61a+8vFWj1rxMuVWuG-CVLQKorr5cKzi-Kc44Ag@mail.gmail.com>
+	 <1324333931.7043.52.camel@lap75545.ornl.gov>
+	 <CAO+b5-r4AZymMkVyFSXbBzpcc86hL0RJm2j3FnT3=uXSLUkj9A@mail.gmail.com>
+	 <1324436736.7621.38.camel@obelisk.thedillows.org>
+	 <CAO+b5-p=01KyDv7swOP_K39+i1rSMDsd_VVvSi5rBWveMaov1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <CAO+b5-p=01KyDv7swOP_K39+i1rSMDsd_VVvSi5rBWveMaov1Q@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Minimize the need for users to have to set module parameters to
-get good performance.
+On Wed, 2011-12-21 at 14:07 +0000, Bart Van Assche wrote:
+> On Wed, Dec 21, 2011 at 3:05 AM, David Dillow <dillowda@ornl.gov> wrote:
+> > We don't want to leave a target blocked indefinitely -- commands caught
+> > in the blocked queue won't be reissued until the queue is unblocked --
+> > but we may want to keep the sdX mappings around for a long time.
+> > fast_io_fail_tmo gives us the ability to do that -- the expiration of
+> > fast_io_fail_tmo unblocks the queue and allows commands to be failed due
+> > to the transport error. See commit f2818663.
+> 
+> Our opinions may differ here. My opinion is that for some use cases it
+> is crucial to be able to block a target indefinitely, e.g. when there
+> is only a single path between initiator and target and when the user
+> prefers that I/O blocks instead of encountering I/O errors. See e.g.
+> the "iSCSI settings for iSCSI root" section in the iSCSI README
+> (http://www.open-iscsi.org/docs/README).
 
-The following two parameters are changed:
-- rcvhdrcnt to twice the rcvegrcnt
-- pcie_caps=0x51
+I can see admins desiring that option, but it's also handled by putting
+your root on a dm-multipath volume. Either way, I'm open to letting
+things block indefinitely, but I do think we should look into why the
+SCSI stack has a concept of the maximum blocking time.
 
-The rcvhdrcnt at twice the egrcount allows the preemptive NAK code during
-reception to function in 100% of the cases rather than a sender
-jiffies-based timeout.
+> Regarding commit f2818663: as far as I can see what that commit does
+> is to make it impossible for a user to set fast_io_fail_tmo == -1
 
-The pcie_caps default of 0x51 will set the proposed MaxPayload
-and MaxReceiveReqest to 256 and 4096 respectively.  The capabilities
-on the root complex will be used to limit those values.
+I was pointing to the commit message as evidence of more prominent SCSI
+developer's line of thought on handling missing devices. As you note,
+the actual diff is uninteresting.
 
-Reviewed-by: Ram Vepa <ram.vepa-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_iba7322.c |    2 +-
- drivers/infiniband/hw/qib/qib_pcie.c    |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+We should match the rest of the SCSI stack unless there is good reason
+to go our own way. The iSCSI transport can do what it does because it
+has a native ping, but I'm not convinced they should have introduced new
+semantics and/or names when taking advantage of that. As far as I can
+tell without deeply studying it, replacement_timeout is equivalent to
+fast_io_fail_tmo.
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 5a070e8..5036106 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -3602,7 +3602,7 @@ static void qib_7322_config_ctxts(struct qib_devdata *dd)
- 	if (qib_rcvhdrcnt)
- 		dd->rcvhdrcnt = max(dd->cspec->rcvegrcnt, qib_rcvhdrcnt);
- 	else
--		dd->rcvhdrcnt = max(dd->cspec->rcvegrcnt,
-+		dd->rcvhdrcnt = 2 * max(dd->cspec->rcvegrcnt,
- 				    dd->num_pports > 1 ? 1024U : 2048U);
- }
- 
-diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
-index 97a8bdf..f695061 100644
---- a/drivers/infiniband/hw/qib/qib_pcie.c
-+++ b/drivers/infiniband/hw/qib/qib_pcie.c
-@@ -560,9 +560,9 @@ static int qib_tune_pcie_coalesce(struct qib_devdata *dd)
-  * BIOS may not set PCIe bus-utilization parameters for best performance.
-  * Check and optionally adjust them to maximize our throughput.
-  */
--static int qib_pcie_caps;
-+static int qib_pcie_caps = 0x51;
- module_param_named(pcie_caps, qib_pcie_caps, int, S_IRUGO);
--MODULE_PARM_DESC(pcie_caps, "Max PCIe tuning: Payload (4lsb), ReadReq (D4..7)");
-+MODULE_PARM_DESC(pcie_caps, "Max PCIe tuning: Payload (0..3), ReadReq (4..7)");
- 
- static int qib_tune_pcie_caps(struct qib_devdata *dd)
- {
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
