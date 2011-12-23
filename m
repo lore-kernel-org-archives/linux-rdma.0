@@ -1,50 +1,158 @@
-From: Valdis.Kletnieks-PjAqaU27lzQ@public.gmane.org
-Subject: Re: [PATCH 1/8] IB/cxgb4: Fix formatting of physical address
-Date: Thu, 22 Dec 2011 14:52:30 -0500
-Message-ID: <7831.1324583550@turing-police.cc.vt.edu>
-References: <1324430940.2844.144.camel@deadeye> <1324431127.2844.146.camel@deadeye>
-            <1324434950.14214.3.camel@joe2Laptop>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re:
+	=?windows-1252?q?=5BRFC=5D_=96_Proposal_for_new_process_for?=
+	=?windows-1252?q?_OFED_releases?=
+Date: Fri, 23 Dec 2011 10:40:46 +0000
+Message-ID: <CAO+b5-q1hEr+b2j3e7_oGpZZDP_6_vptKF_B5Ec+tNza=MBiWQ@mail.gmail.com>
+References: <AcywYuukNsUYemDYTNKYAFgsoWs2mw==>
+	<CD250C48050CFB4D95E78C95F2FDDD6E237661EA@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1324583550_2451P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: Your message of "Tue, 20 Dec 2011 18:35:50 PST."
-             <1324434950.14214.3.camel@joe2Laptop>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============1539815206=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <CD250C48050CFB4D95E78C95F2FDDD6E237661EA-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---==_Exmh_1324583550_2451P
-Content-Type: text/plain; charset=us-ascii
+--===============1539815206==
+Content-Type: multipart/alternative; boundary=00504502cec0b75cb904b4c00c8d
 
-On Tue, 20 Dec 2011 18:35:50 PST, Joe Perches said:
-> On Wed, 2011-12-21 at 01:32 +0000, Ben Hutchings wrote:
-> > Physical addresses may be wider than virtual addresses (e.g. on i386
-> > with PAE) and must not be formatted with %p.
-> []
-> > The resource could alternately be formatted with %Pr.
+--00504502cec0b75cb904b4c00c8d
+Content-Type: text/plain; charset=ISO-8859-1
 
-> Probably should be unsigned long long
+On Thu, Dec 1, 2011 at 7:53 PM, Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>wrote:
 
-I don't have a dog in this fight, but the %Pr sounds better to me.
+>
+> We propose a new process for the OFED releases starting from next OFED
+> release:
+> - OFED content will be the relevant kernel.org modules and user space
+> released packages
+> - OFED will offer only backports to the distros  (no fixes)
+> - OFED package will be used for easy installation of all packages in a
+> friendly manner
+>
+> The main goals of this change:
+> 1. Ensure OFED and the upstream kernel are the same
+> 2. Provide customers a way to use the new features in latest kernels on
+> existing distros
+> 3. OFED qualification will contribute to the stability of the upstream code
+>
+> We think that at this point of the RDMA technology maturity this is the
+> right way to go.
+> In this way OFED is not conflicting with the kernel or the distros, and
+> still provide a valuable value for early adopters of new features.
+>
+> Versions:
+> We suggest that the OFED version will be the same as kernel.org
+> For example, for kernel 3.2 the OFED release would be OFED-3.2.
+> This would make it easy for people to associate the OFED code with the
+> corresponding kernel.org code.
+>
+> Some open questions that we should consider:
+> - How to handle experimental features?
+> - Need to follow up kernel stable releases if bug fixes are relevant to
+> OFA modules
+> - Should we have a release for every kernel release (I think yes)
+> - What should we do with modules like SDP that are not in kernel?
+>
+> Comments and responses are welcome
+>
 
---==_Exmh_1324583550_2451P
-Content-Type: application/pgp-signature
+Personally I would appreciate it a lot if everything that is not a kernel
+module would be moved out of the kernel-ib RPM. That would make it a lot
+easier to use the OFED user space components in combination with upstream
+or distro-provided kernel IB modules. The relevant files are:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
+# rpm -ql kernel-ib | grep -v lib/modules
+/etc/infiniband
+/etc/infiniband/connectx.conf
+/etc/infiniband/info
+/etc/infiniband/openib.conf
+/etc/init.d/openibd
+/etc/modprobe.d/ib_ipoib.conf
+/etc/modprobe.d/mlx4_en.conf
+/etc/udev/rules.d/90-ib.rules
+/sbin/connectx_port_config
+/sbin/sysctl_perf_tuning
+/usr/bin/ibdev2netdev
 
-iD8DBQFO84p+cC3lWbTT17ARAlyQAKD+hI0oj4y43ZHN4rB1YX9BZnXJIACfZqrh
-D0CWeD2hmcN0W+pDpL0Owmk=
-=HFH0
------END PGP SIGNATURE-----
+Bart.
 
---==_Exmh_1324583550_2451P--
+--00504502cec0b75cb904b4c00c8d
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+<div class=3D"gmail_quote">On Thu, Dec 1, 2011 at 7:53 PM, Tziporet Koren <=
+span dir=3D"ltr">&lt;<a href=3D"mailto:tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org">tziporet@mell=
+anox.com</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" style=
+=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">
+<br>
+We propose a new process for the OFED releases starting from next OFED rele=
+ase:<br>
+- OFED content will be the relevant <a href=3D"http://kernel.org" target=3D=
+"_blank">kernel.org</a> modules and user space released packages<br>
+- OFED will offer only backports to the distros =A0(no fixes)<br>
+- OFED package will be used for easy installation of all packages in a frie=
+ndly manner<br>
+<br>
+The main goals of this change:<br>
+1. Ensure OFED and the upstream kernel are the same<br>
+2. Provide customers a way to use the new features in latest kernels on exi=
+sting distros<br>
+3. OFED qualification will contribute to the stability of the upstream code=
+<br>
+<br>
+We think that at this point of the RDMA technology maturity this is the rig=
+ht way to go.<br>
+In this way OFED is not conflicting with the kernel or the distros, and sti=
+ll provide a valuable value for early adopters of new features.<br>
+<br>
+Versions:<br>
+We suggest that the OFED version will be the same as <a href=3D"http://kern=
+el.org" target=3D"_blank">kernel.org</a><br>
+For example, for kernel 3.2 the OFED release would be OFED-3.2.<br>
+This would make it easy for people to associate the OFED code with the corr=
+esponding <a href=3D"http://kernel.org" target=3D"_blank">kernel.org</a> co=
+de.<br>
+<br>
+Some open questions that we should consider:<br>
+- How to handle experimental features?<br>
+- Need to follow up kernel stable releases if bug fixes are relevant to OFA=
+ modules<br>
+- Should we have a release for every kernel release (I think yes)<br>
+- What should we do with modules like SDP that are not in kernel?<br>
+<br>
+Comments and responses are welcome<br></blockquote></div><br>Personally I w=
+ould appreciate it a lot if everything that is not a kernel module would be=
+ moved out of the kernel-ib RPM. That would make it a lot easier to use the=
+ OFED user space components in combination with upstream or distro-provided=
+ kernel IB modules. The relevant files are:<br>
+<br># rpm -ql kernel-ib | grep -v lib/modules<br>/etc/infiniband<br>/etc/in=
+finiband/connectx.conf<br>/etc/infiniband/info<br>/etc/infiniband/openib.co=
+nf<br>/etc/init.d/openibd<br>/etc/modprobe.d/ib_ipoib.conf<br>/etc/modprobe=
+.d/mlx4_en.conf<br>
+/etc/udev/rules.d/90-ib.rules<br>/sbin/connectx_port_config<br>/sbin/sysctl=
+_perf_tuning<br>/usr/bin/ibdev2netdev<br><br>Bart.<br>
+
+--00504502cec0b75cb904b4c00c8d--
+
+--===============1539815206==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+--===============1539815206==--
