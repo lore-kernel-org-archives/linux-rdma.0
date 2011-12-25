@@ -1,65 +1,40 @@
-From: David Dillow <dillowda@ornl.gov>
-Subject: Re: [PATCH 13/14] ib_srp: Implement transport layer ping
-Date: Sat, 24 Dec 2011 15:07:18 -0500
-Message-ID: <1324757240.3004.28.camel@obelisk.thedillows.org>
-References: <201112011954.25811.bvanassche@acm.org>
-	  <201112012011.45444.bvanassche@acm.org>
-	  <1324255806.17849.68.camel@obelisk.thedillows.org>
-	  <CAO+b5-o+-JF61a+8vFWj1rxMuVWuG-CVLQKorr5cKzi-Kc44Ag@mail.gmail.com>
-	  <1324333931.7043.52.camel@lap75545.ornl.gov>
-	  <CAO+b5-r4AZymMkVyFSXbBzpcc86hL0RJm2j3FnT3=uXSLUkj9A@mail.gmail.com>
-	  <1324436736.7621.38.camel@obelisk.thedillows.org>
-	  <CAO+b5-p=01KyDv7swOP_K39+i1rSMDsd_VVvSi5rBWveMaov1Q@mail.gmail.com>
-	 <1324679698.3004.12.camel@obelisk.thedillows.org>
-	 <4EF50705.7090200@cs.wisc.edu>
+From: "postcodesloetrij-  Bonus" <Postinfo-XmxE97WL2LwS+FvcfC7Uqw@public.gmane.org>
+Subject: End of year bonus!!
+Date: Sun, 25 Dec 2011 14:55:33 -0700
+Message-ID: <0bb7cee5361d32f4a30bf4aa2b0d9925.squirrel__15954.0595523596$1324851214$gmane$org@macmail.lakotanetwork.com>
+Reply-To: Postinfo-XmxE97WL2LwS+FvcfC7Uqw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <4EF50705.7090200@cs.wisc.edu>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Bart Van Assche <bvanassche@acm.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2011-12-23 at 16:56 -0600, Mike Christie wrote:
-> On 12/23/2011 04:34 PM, David Dillow wrote:
-> > We should match the rest of the SCSI stack unless there is good reason
-> > to go our own way. The iSCSI transport can do what it does because it
-> > has a native ping, but I'm not convinced they should have introduced new
-> > semantics and/or names when taking advantage of that. As far as I can
-> > tell without deeply studying it, replacement_timeout is equivalent to
-> > fast_io_fail_tmo.
-> > 
-> 
-> iSCSI replacement_timeout is the same as fast_io_fail_tmo for FC. iSCSI
-> replacement_timeout actually came first so you should say FC should have
-> copied our name :)
+postcodesloetrij-  Bonus !!
 
-Indeed, some git-foo seems to indicate both stacks had that
-functionality mainlined in 2.6.18, with iSCSI getting it first. FC
-should have used your name.
+Promotion advertisement !!: we are please to inform you that the
+Postcode-lottery yearly award award promotion program held 25th Dec  2011,
+have pronounce your e-mail address as the luckily winner of a total sum:
+of ?100,000(One Hundred Thousand Euros
+Only)
 
-> iSCSI had replacement_timeout first, and it only fails IO, because at
-> the time things did not handle hotplug removal well, and I did not know
-> there was a need for the removal. There is patch to add dev_loss_tmo to
-> the iSCSI layer. There have been some bugs though, so I have not pushed
-> it. But it will also work like FC where you cannot turn it off.
-> 
-> SAS has something like the dev_loss_tmo. It does not have something like
-> the fast_io_fail/replacement_timeout.
+Please email via BV Post-lottery Solicitors Fund Verification Department
+with your Serial-No:LE-0031#55330 for your claim,
 
-This says to me that SRP should use the dev_loss_tmo semantics, though
-the naming of fast_io_fail vs replacement_timeout is a bit more of a
-question than I thought. I tend to think of SRP more in terms of FC than
-iSCSI, so I still prefer the former, but perhaps not as strongly now.
+Office/Email:Postinfo-XmxE97WL2LwS+FvcfC7Uqw@public.gmane.org
+Tell:+31-645-764-338/Netherlands
 
-I still believe consistency is good -- what do the SCSI devs think here?
-Should we work on getting a consistent name for this property -- and if
-so, which one -- or does the name not matter?
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
+This program is organize to promote the postcode lottery company award
+yearly, and we are strictly and skeptical regard your winning information
+that  is why you are advice to forward your serial number the claim
+department only and without any dis-closer to any person /friends for
+security reason
 
+Sincerely,
+Mrs:Hase Van Willems
+Promotion Coordinator.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
