@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche@acm.org>
 Subject: Re: [PATCH 13/14] ib_srp: Implement transport layer ping
-Date: Mon, 26 Dec 2011 19:39:01 +0000
-Message-ID: <CAO+b5-rShXpP_LQzHauD7GHwAhNrYfhqE8C5+EQ4Gf7JcY--gg@mail.gmail.com>
+Date: Mon, 26 Dec 2011 20:01:13 +0000
+Message-ID: <CAO+b5-pbRgbJxH-_5-Pk-CeNBpAgiv4Qc+p3Xi1YsAmBi6khFw@mail.gmail.com>
 References: <201112011954.25811.bvanassche@acm.org>
 	<201112012011.45444.bvanassche@acm.org>
 	<1324255806.17849.68.camel@obelisk.thedillows.org>
@@ -12,25 +12,22 @@ References: <201112011954.25811.bvanassche@acm.org>
 	<CAO+b5-p=01KyDv7swOP_K39+i1rSMDsd_VVvSi5rBWveMaov1Q@mail.gmail.com>
 	<1324679698.3004.12.camel@obelisk.thedillows.org>
 	<4EF50705.7090200@cs.wisc.edu>
-	<1324757240.3004.28.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1324757240.3004.28.camel@obelisk.thedillows.org>
+In-Reply-To: <4EF50705.7090200@cs.wisc.edu>
 Sender: linux-scsi-owner@vger.kernel.org
-To: David Dillow <dillowda@ornl.gov>
-Cc: Mike Christie <michaelc@cs.wisc.edu>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>
+To: Mike Christie <michaelc@cs.wisc.edu>
+Cc: David Dillow <dillowda@ornl.gov>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Dec 24, 2011 at 8:07 PM, David Dillow <dillowda@ornl.gov> wrote:
-> This says to me that SRP should use the dev_loss_tmo semantics, though
-> the naming of fast_io_fail vs replacement_timeout is a bit more of a
-> question than I thought. I tend to think of SRP more in terms of FC than
-> iSCSI, so I still prefer the former, but perhaps not as strongly now.
+On Fri, Dec 23, 2011 at 10:56 PM, Mike Christie <michaelc@cs.wisc.edu> wrote:
+> iSCSI replacement_timeout is the same as fast_io_fail_tmo for FC. iSCSI
+> replacement_timeout actually came first so you should say FC should have
+> copied our name :)
 
-Do we need dev_loss_tmo functionality ? Since multipathd switches over
-if the active path is in the blocked state, the posted patch set
-already provides a way to make multipathd switch over if communication
-is lost.
+Agreed. But as far as I can see multipathd only supports the FC name
+(fast_io_fail_tmo) and not the iSCSI name (recovery_tmo). That looks
+like an argument to me to switch to the FC name for ib_srp.
 
 Bart.
