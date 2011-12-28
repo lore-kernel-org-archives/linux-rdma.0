@@ -1,41 +1,49 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: ib_srp and sg_tablesize
-Date: Wed, 28 Dec 2011 16:04:04 -0500
-Message-ID: <1325106244.3004.31.camel@obelisk.thedillows.org>
-References: <CAO+b5-ow93i7RuZuzg8XLO-wveVjJuZOG+weaHLvbH8H09=+RQ@mail.gmail.com>
-	 <20111228152054.718e5be5@thirdoffive.cmf.nrl.navy.mil>
+From: David Dillow <dillowda@ornl.gov>
+Subject: Re: [PATCH 13/14] ib_srp: Implement transport layer ping
+Date: Wed, 28 Dec 2011 18:53:48 -0500
+Message-ID: <1325116430.3004.36.camel@obelisk.thedillows.org>
+References: <201112011954.25811.bvanassche@acm.org>
+	 <201112012011.45444.bvanassche@acm.org>
+	 <1324255806.17849.68.camel@obelisk.thedillows.org>
+	 <CAO+b5-o+-JF61a+8vFWj1rxMuVWuG-CVLQKorr5cKzi-Kc44Ag@mail.gmail.com>
+	 <1324333931.7043.52.camel@lap75545.ornl.gov>
+	 <CAO+b5-r4AZymMkVyFSXbBzpcc86hL0RJm2j3FnT3=uXSLUkj9A@mail.gmail.com>
+	 <1324436736.7621.38.camel@obelisk.thedillows.org>
+	 <CAO+b5-p=01KyDv7swOP_K39+i1rSMDsd_VVvSi5rBWveMaov1Q@mail.gmail.com>
+	 <1324679698.3004.12.camel@obelisk.thedillows.org>
+	 <4EF50705.7090200@cs.wisc.edu>
+	 <1324757240.3004.28.camel@obelisk.thedillows.org>
+	 <CAO+b5-rShXpP_LQzHauD7GHwAhNrYfhqE8C5+EQ4Gf7JcY--gg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111228152054.718e5be5-KCdNrDJlFBBhNwqIksvPR6qiWZVw4kCD+aIohriVLy8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: chas williams - CONTRACTOR <chas-vT06rRrALxcmhCb6mdbn6A@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <CAO+b5-rShXpP_LQzHauD7GHwAhNrYfhqE8C5+EQ4Gf7JcY--gg@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Mike Christie <michaelc@cs.wisc.edu>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Fujita Tomonori <fujita.tomonori@lab.ntt.co.jp>, Brian King <brking@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2011-12-28 at 15:20 -0500, chas williams - CONTRACTOR wrote:
-> On Wed, 28 Dec 2011 19:46:14 +0000
-> Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+On Mon, 2011-12-26 at 19:39 +0000, Bart Van Assche wrote:
+> On Sat, Dec 24, 2011 at 8:07 PM, David Dillow <dillowda@ornl.gov> wrote:
+> > This says to me that SRP should use the dev_loss_tmo semantics, though
+> > the naming of fast_io_fail vs replacement_timeout is a bit more of a
+> > question than I thought. I tend to think of SRP more in terms of FC than
+> > iSCSI, so I still prefer the former, but perhaps not as strongly now.
 > 
-> > value of sg_tablesize in the SRP login string but ignores that value
-> > entirely. Was that on purpose ? Shouldn't the statement
-> > "target->sg_tablesize = indirect_sg_entries ? : cmd_sg_entries" rather
-> > have been something like "if (!target->sg_tablesize)
-> > target->sg_tablesize = indirect_sg_entries ? : cmd_sg_entries" ?
-> 
-> srp_parse_options() happens after target->sg_tablesize is initialized
-> by this statement.
+> Do we need dev_loss_tmo functionality ? Since multipathd switches over
+> if the active path is in the blocked state, the posted patch set
+> already provides a way to make multipathd switch over if communication
+> is lost.
 
-Right, we set defaults based on module parameters, then let the user
-override them with the login string.
+I think so. multipathd isn't the only use case, though I think we need
+to reorganize the SRP device model to fully take advantage of
+dev_loss_tmo -- but that can come later. I'd like to see dev_loss_tmo
+take the place of max_reconnects to give admins an easy way to set a
+maximum time.
 -- 
 Dave Dillow
 National Center for Computational Science
 Oak Ridge National Laboratory
 (865) 241-6602 office
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
