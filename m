@@ -1,27 +1,28 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/6 v2] libibverbs: Using extensions to define XRC support
-Date: Thu, 29 Dec 2011 17:56:32 +0200
-Message-ID: <4EFC8DB0.9000802@mellanox.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E41B58@FMSMSX151.amr.corp.intel.com>
+From: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
+Subject: When is it safe to release connection resources?
+Date: Thu, 29 Dec 2011 17:42:35 +0100
+Message-ID: <4EFC987B.6070901@list-group.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E41B58-Q3cL8pyY+6ukrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/19/2011 5:47 AM, Hefty, Sean wrote:
-> Define a common libibverbs driver side extension to support XRC.
-I would split this patch and its such to two/tree,
+Hello,
 
-1. adding ibv_cmd_new_feature calls against the kernel and verbs.h changes
-2. adding the code which relates to verbs extensions
+I'm new to RDMA development and I have a question regarding resource release.
+If I understood correctly, when ibv_get_cq_event returns, it holds some sort of lock over the completion queue, which is 
+released when I call ibv_req_notify_cq. This lock is checked also in ibv_destroy_cq, so that:
+1) When ibv_destroy_cq returns, I am certain that there is no thread running somewhere between ibv_get_cq_event and 
+ibv_req_notify_cq
+2) When ibv_destroy_cq returns, I am certain that ibv_get_cq_event will not return the destroyed cq any more.
 
-Or.
+Is all this correct?
 
+Thanks
+Flavio
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
