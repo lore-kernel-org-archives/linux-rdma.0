@@ -1,28 +1,186 @@
-From: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
-Subject: When is it safe to release connection resources?
-Date: Thu, 29 Dec 2011 17:42:35 +0100
-Message-ID: <4EFC987B.6070901@list-group.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 1/2] opensm: Add documentation for SRIOV support
+Date: Thu, 29 Dec 2011 21:45:03 -0500
+Message-ID: <4EFD25AF.40701@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
 
-I'm new to RDMA development and I have a question regarding resource release.
-If I understood correctly, when ibv_get_cq_event returns, it holds some sort of lock over the completion queue, which is 
-released when I call ibv_req_notify_cq. This lock is checked also in ibv_destroy_cq, so that:
-1) When ibv_destroy_cq returns, I am certain that there is no thread running somewhere between ibv_get_cq_event and 
-ibv_req_notify_cq
-2) When ibv_destroy_cq returns, I am certain that ibv_get_cq_event will not return the destroyed cq any more.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ doc/opensm-sriov.txt |  154 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 154 insertions(+), 0 deletions(-)
+ create mode 100644 doc/opensm-sriov.txt
 
-Is all this correct?
+diff --git a/doc/opensm-sriov.txt b/doc/opensm-sriov.txt
+new file mode 100644
+index 0000000..9febe21
+--- /dev/null
++++ b/doc/opensm-sriov.txt
+@@ -0,0 +1,154 @@
++OpenSM SRIOV (Alias GUID) Support
++12/9/11
++
++Overview
++
++In order to support virtualized environments, alias GUID support is added to OpenSM.
++This support allows an SA client to add and remove additional port GUIDs based on
++SubAdmSet/SubAdmDelete of GUIDInfoRecord. A set with a GUID of 0 in a valid GUIDInfoRecord
++index as indicated by the component mask indicates that the additional GUID is to
++be SM assigned. The OpenIB OUI (0x001405), along with a configured byte and a 
++pseudorandom number is currently used for this algorithm (which may be changed in the future).
++
++Most SA queries are updated to handle alias GUIDs as part of any GID specified inside
++the query. These include SA path record, multipath record, multicast record, and service record.
++There are only a few SA queries (InformInfoRecord, InformInfo) that are not currently updated
++for alias GUID support.
++
++In terms of the IBA spec, alias GUIDs are termed additional port GUIDs.
++
++
++IBA 1.2.1 Volume 1 Changes for Alias GUID Support
++
++The following are MgtWG WG APPROVED spec changes to IBA 1.2.1 volume 1 relative to this support:
++
++RefID 4704
++15.2.5.18 GUIDInfoRecord p. 932 line 14
++Table 213 GUIDInfoRecord
++
++An entity that wishes to add or remove additional port GUIDs can do so using the SubnAdmSet() and SubnAdmDelete() methods 
++with the GUIDInfoRecord attribute. This causes the SM to set the updated GUIDs in the specified port via the SM GUIDInfo attribute.
++
++SubnAdmSet() method is used to add additional port GUIDs. SubnAdmDelete() method is used to remove previously added additional 
++port GUIDs.
++
++o15-0.x.y: If SA supports additional port GUIDs, then both SubAdmSet(GUIDInfoRecord) and SubnAdmDelete(GUIDInfoRecord) are 
++supported.
++
++o15-0.x.y: If SA supports additional port GUIDs, the component mask for SubAdmSet(GUIDInfoRecord) and 
++SubnAdmDelete(GUIDInfoRecord) is required to include both LID and block number. If the component mask does not include both of 
++these, SA shall return an error status of ERR_REQ_INSUFFICIENT_COMPONENTS in its response to the corresponding method.
++
++o15-0.x.y: If SA supports additional port GUIDs, for a SubAdmSet(GUIDInfoRecord), the component mask indicates which GUID indices 
++are to be set. A GUID can either be added or replaced. A GUID of 0 indicates that the GUID for this index is to be assigned by 
++the SM. 
++
++o15-0.x.y: If SA supports additional port GUIDs, for a SubAdmDelete(GUIDInfoRecord), the component mask indicates which GUID 
++indices are to be removed.
++
++o15-0.x.y: If SA supports additional port GUIDs, the SA shall return an error status of ERR_REQ_INVALID to any attempt to set 
++or delete block number 0 index 0.
++
++
++RefID 4705
++p.899 line 26 15.2.4
++Table 188 SA-Specific Optional Capabilities
++
++<add table entry:>
++IsAdditionalGUIDsSupported | CM2 | 5 | If this value is 1, SA shall support the ability to add and remove additional port GUIDs 
++                                       via SubAdmSet/SubnAdmDelete(GUIDInfoRecord) as described in 
++                                       <ref to 15.2.5.18 GUIDInfoRecord>
++
++
++RefID 4706
++p.904 line 21 15.2.5.1
++Table 192 Subnet Administration Attribute / Method Map
++
++<Add an "X" to the "Set" and "Delete" columns for GUIDInfoRecord>
++<Add footnote "b" to GUIDInfoRecord where footnote "b" is as shown below:> 
++b: SubAdmSet and SubAdmDelete of GUIDInfoRecord are supported if SA:ClassPortInfo.CapabilityMask2 indicates 
++IsAdditionalGUIDsSupported.
++
++RefID 4714
++Clarify GUID 0 in SA Set GUIDInfoRecord response
++p.932 line 14 15.2.18
++
++<change:>
++o15-0.x.y: If SA supports additional port GUIDs, for a SubAdmSet(GUIDInfoRecord), the component mask indicates which GUID indices 
++are to be set. A GUID can either be added or replaced. A GUID of 0 indicates that the GUID for this index is to be assigned by 
++the SM. 
++
++<to:>
++o15-0.x.y: If SA supports additional port GUIDs, for a SubAdmSet(GUIDInfoRecord), the component mask indicates which GUID indices 
++are to be set. A GUID can either be added or replaced. In the request, a GUID of 0 indicates that the GUID for this index is to 
++be assigned by the SM. In the response, a GUID of 0 indicates that the GUID requested for this index was not accepted by the SA.
++
++RefID 4776
++SM GUIDInfo initialization
++
++<change:>
++GUIDInfo Description
++
++The requirements for setting additional
++
++GUIDs are beyond the scope of the specification.
++
++
++<to:>
++<none>
++
++
++OpenSM SRIOV Configuration
++
++Some new options were added for SRIOV configuration of OpenSM.
++
++1. Allow both pkeys
++-W or --allow_both_pkeys on the command line or
++allow_both_pkeys TRUE
++in the options file. Default is false.
++
++allow_both_pkeys indicates whether both full and
++limited membership on the same partition is allowed or not.
++    
++In order to support allow_both_pkeys, the partition file syntax is
++extended with "both" flag (in addition to "full" and "limited").
++
++defmember=full|limited|both
++or
++[PortGUID[=full|=limited|=both]]
++
++2. SM assigned GUID byte
++sm_assigned_guid
++in the options file. Default is 0.
++
++An SM assigned GUID byte is added as a configuration option
++where an alias GUID is formed from OpenFabrics OUI
++followed by 40 bits xy 00 ab cd ef where xy is the SM assigned guid byte
++and ab cd ef is an SM autogenerated 24 bits.
++    
++The SM assigned GUID byte should be configured as subnet unique.
++    
++Also, the algorithm to obtain a "unique" SM assigned GUID is changing from
++being based on a static monatomically incrementing counter for the SM 
++autogenerated part (like SA MCMemberRecord SM assigned MGIDs). 
++The number of retries to find an unused GUID is currently hardcoded at 1000.
++
++Note that it is not a current requirement to maintain SM assigned GUIDs across OpenSM
++failover. Note also that on reregistration, a host may reregister the previously SM
++assigned GUID.
++
++
++Operational Notes
++
++Duplicated alias GUIDs are detected against alias and physical GUIDs and result in 
++rejection of such registrations.
++
++When a port is dropped, any alias GUID registrations are removed. These are 
++reregistered by client reregistration mechanism. The exception
++to this is service registrations as these are not currently reregistered by
++the ULPs/applications that use them.
++
++Futures
++
++1. An alias GUID enforcement feature to which physical ports are allowed to request which
++alias GUIDs.
+-- 
+1.7.6.1
 
-Thanks
-Flavio
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
