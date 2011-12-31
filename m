@@ -1,39 +1,38 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 1/2] libibverbs: Allow 3rd party extensions to verb routines
-Date: Sat, 31 Dec 2011 11:01:02 +0000
-Message-ID: <CAO+b5-qnSSeieJwnxxPENfHPGF4CJeJ8e5_9c9S57PRdL1j1hg@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237302123C@ORSMSX101.amr.corp.intel.com>
-	<201108011508.06521.jackm@dev.mellanox.co.il>
-	<20110802053824.GA23512@obsidianresearch.com>
-	<201108021053.05311.jackm@dev.mellanox.co.il>
-	<1828884A29C6694DAF28B7E6B8A82373136F935C@ORSMSX101.amr.corp.intel.com>
-	<4EFC8A85.4020803@mellanox.com>
+From: Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH net-next V2 00/21] net/mlx4: SRIOV support
+Date: Sat, 31 Dec 2011 10:37:36 -0800
+Message-ID: <CAE9FiQX1q+qFHrGJdX5aZ9ix0bZ-vH3xEWPqFcRab87a9y2vrQ@mail.gmail.com>
+References: <4EE75CD1.7070900@mellanox.co.il>
+	<20111213.141413.1872427395829102426.davem@davemloft.net>
+	<953B660C027164448AE903364AC447D2485F0A86@MTLDAG02.mtl.com>
+	<CAE9FiQU1EwcGBhn2bFksB30nb8p3FEo=vvOJYXq3hAA1ArhqWg@mail.gmail.com>
+	<CAJZOPZJ+BxAa_OcB0f5nPAjnW7eZfsDdXz_o-VSCW7dsp5p2wg@mail.gmail.com>
+	<CAE9FiQW2ZB3VUrg9z-=UVp=s3w1LQhY81hRUjfMXwW3d1dNaig@mail.gmail.com>
+	<CAL1RGDWa+8gv8WZrCtQBpzAQUkD982ONODE7qRjUs_Gn2m4DKA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EFC8A85.4020803-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAL1RGDWa+8gv8WZrCtQBpzAQUkD982ONODE7qRjUs_Gn2m4DKA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 29, 2011 at 3:43 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> 5. what happens if we just want to enhance an -- existing -- function -
-> suppose we want to enhance ibv_post_send / ibv_poll_cq to support features
-> like LSO, checksum offload, masked atomic operations, fast memory remote
-> invalidate, etc so we add IBV_WR_NEW_FEATURE / IB_WC_NEW_FEATURE enum
-> values, this step is simple, again if we go the way of the applicayion
-> ensuring through dependencies that they are loaded against libibverbs that
-> supports IB_{WR,WC}_NEW_FEATURE.
+On Fri, Dec 30, 2011 at 9:57 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
+> On Fri, Dec 30, 2011 at 2:23 PM, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>
+>> hotplug removal is broken...
+>
+> Is this a new regression with these patches?
+>
 
-Not only for the ABI between the Linux kernel and Linux user space but
-also for Linux shared libraries it is required that the ABI of a new
-version is backwards compatible with previous versions. So any
-functionality that can't be added in a backwards compatible way to an
-existing function should be added as a new system call, sysfs file or
-shared library function - whatever is appropriate.
+yes.
 
-Bart.
+after reverting those patches, removal work well without problem.
+
+Thanks
+
+Yinghai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
