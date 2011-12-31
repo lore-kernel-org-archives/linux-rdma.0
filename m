@@ -1,27 +1,34 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH net-next V2 00/21] net/mlx4: SRIOV support
-Date: Fri, 30 Dec 2011 21:57:11 -0800
-Message-ID: <CAL1RGDWa+8gv8WZrCtQBpzAQUkD982ONODE7qRjUs_Gn2m4DKA@mail.gmail.com>
-References: <4EE75CD1.7070900@mellanox.co.il> <20111213.141413.1872427395829102426.davem@davemloft.net>
- <953B660C027164448AE903364AC447D2485F0A86@MTLDAG02.mtl.com>
- <CAE9FiQU1EwcGBhn2bFksB30nb8p3FEo=vvOJYXq3hAA1ArhqWg@mail.gmail.com>
- <CAJZOPZJ+BxAa_OcB0f5nPAjnW7eZfsDdXz_o-VSCW7dsp5p2wg@mail.gmail.com> <CAE9FiQW2ZB3VUrg9z-=UVp=s3w1LQhY81hRUjfMXwW3d1dNaig@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: When is it safe to release connection resources?
+Date: Sat, 31 Dec 2011 10:55:57 +0000
+Message-ID: <CAO+b5-roeptjJSQ3HyP3r8zY7EOZT=bH-BG7eB3_ZabefFsVAw@mail.gmail.com>
+References: <4EFC987B.6070901@list-group.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAE9FiQW2ZB3VUrg9z-=UVp=s3w1LQhY81hRUjfMXwW3d1dNaig-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4EFC987B.6070901-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 30, 2011 at 2:23 PM, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On Thu, Dec 29, 2011 at 4:42 PM, Flavio Baronti
+<f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org> wrote:
+> I'm new to RDMA development and I have a question regarding resource release.
+> If I understood correctly, when ibv_get_cq_event returns, it holds some sort
+> of lock over the completion queue, which is released when I call
+> ibv_req_notify_cq. This lock is checked also in ibv_destroy_cq, so that:
+> 1) When ibv_destroy_cq returns, I am certain that there is no thread running
+> somewhere between ibv_get_cq_event and ibv_req_notify_cq
+> 2) When ibv_destroy_cq returns, I am certain that ibv_get_cq_event will not
+> return the destroyed cq any more.
 
-> hotplug removal is broken...
+There is a paragraph in the IBTA that warns that the above sequence
+can cause WQE and data segment leakage in the HCA for QPs associated
+with an SRQ. I don't know though whether this can also occur for QPs
+with a private receive queue - I'm not a HCA firmware expert.
 
-Is this a new regression with these patches?
-
- - R.
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
