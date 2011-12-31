@@ -1,32 +1,37 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: When is it safe to release connection resources?
-Date: Sat, 31 Dec 2011 10:55:57 +0000
-Message-ID: <CAO+b5-roeptjJSQ3HyP3r8zY7EOZT=bH-BG7eB3_ZabefFsVAw@mail.gmail.com>
-References: <4EFC987B.6070901@list-group.com>
+Subject: Re: [PATCH 1/2] libibverbs: Allow 3rd party extensions to verb routines
+Date: Sat, 31 Dec 2011 11:01:02 +0000
+Message-ID: <CAO+b5-qnSSeieJwnxxPENfHPGF4CJeJ8e5_9c9S57PRdL1j1hg@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237302123C@ORSMSX101.amr.corp.intel.com>
+	<201108011508.06521.jackm@dev.mellanox.co.il>
+	<20110802053824.GA23512@obsidianresearch.com>
+	<201108021053.05311.jackm@dev.mellanox.co.il>
+	<1828884A29C6694DAF28B7E6B8A82373136F935C@ORSMSX101.amr.corp.intel.com>
+	<4EFC8A85.4020803@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EFC987B.6070901-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
+In-Reply-To: <4EFC8A85.4020803-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 29, 2011 at 4:42 PM, Flavio Baronti
-<f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org> wrote:
-> I'm new to RDMA development and I have a question regarding resource release.
-> If I understood correctly, when ibv_get_cq_event returns, it holds some sort
-> of lock over the completion queue, which is released when I call
-> ibv_req_notify_cq. This lock is checked also in ibv_destroy_cq, so that:
-> 1) When ibv_destroy_cq returns, I am certain that there is no thread running
-> somewhere between ibv_get_cq_event and ibv_req_notify_cq
-> 2) When ibv_destroy_cq returns, I am certain that ibv_get_cq_event will not
-> return the destroyed cq any more.
+On Thu, Dec 29, 2011 at 3:43 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> 5. what happens if we just want to enhance an -- existing -- function -
+> suppose we want to enhance ibv_post_send / ibv_poll_cq to support features
+> like LSO, checksum offload, masked atomic operations, fast memory remote
+> invalidate, etc so we add IBV_WR_NEW_FEATURE / IB_WC_NEW_FEATURE enum
+> values, this step is simple, again if we go the way of the applicayion
+> ensuring through dependencies that they are loaded against libibverbs that
+> supports IB_{WR,WC}_NEW_FEATURE.
 
-There is a paragraph in the IBTA that warns that the above sequence
-can cause WQE and data segment leakage in the HCA for QPs associated
-with an SRQ. I don't know though whether this can also occur for QPs
-with a private receive queue - I'm not a HCA firmware expert.
+Not only for the ABI between the Linux kernel and Linux user space but
+also for Linux shared libraries it is required that the ABI of a new
+version is backwards compatible with previous versions. So any
+functionality that can't be added in a backwards compatible way to an
+existing function should be added as a new system call, sysfs file or
+shared library function - whatever is appropriate.
 
 Bart.
 --
