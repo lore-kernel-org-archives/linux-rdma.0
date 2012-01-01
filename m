@@ -1,38 +1,44 @@
-From: Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH net-next V2 00/21] net/mlx4: SRIOV support
-Date: Sat, 31 Dec 2011 10:37:36 -0800
-Message-ID: <CAE9FiQX1q+qFHrGJdX5aZ9ix0bZ-vH3xEWPqFcRab87a9y2vrQ@mail.gmail.com>
-References: <4EE75CD1.7070900@mellanox.co.il>
-	<20111213.141413.1872427395829102426.davem@davemloft.net>
-	<953B660C027164448AE903364AC447D2485F0A86@MTLDAG02.mtl.com>
-	<CAE9FiQU1EwcGBhn2bFksB30nb8p3FEo=vvOJYXq3hAA1ArhqWg@mail.gmail.com>
-	<CAJZOPZJ+BxAa_OcB0f5nPAjnW7eZfsDdXz_o-VSCW7dsp5p2wg@mail.gmail.com>
-	<CAE9FiQW2ZB3VUrg9z-=UVp=s3w1LQhY81hRUjfMXwW3d1dNaig@mail.gmail.com>
-	<CAL1RGDWa+8gv8WZrCtQBpzAQUkD982ONODE7qRjUs_Gn2m4DKA@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/2] libibverbs: Allow 3rd party extensions to verb routines
+Date: Sun, 1 Jan 2012 07:13:32 +0200
+Message-ID: <4EFFEB7C.6090202@mellanox.com>
+References: <1828884A29C6694DAF28B7E6B8A8237302123C@ORSMSX101.amr.corp.intel.com> <201108011508.06521.jackm@dev.mellanox.co.il> <20110802053824.GA23512@obsidianresearch.com> <201108021053.05311.jackm@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373136F935C@ORSMSX101.amr.corp.intel.com> <4EFC8A85.4020803@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWa+8gv8WZrCtQBpzAQUkD982ONODE7qRjUs_Gn2m4DKA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4EFC8A85.4020803-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 30, 2011 at 9:57 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
-> On Fri, Dec 30, 2011 at 2:23 PM, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+
 >
->> hotplug removal is broken...
+>> or call an existing function with some new enum value
 >
-> Is this a new regression with these patches?
->
+> 5. what happens if we just want to enhance an -- existing -- function 
+> - suppose we want to enhance ibv_post_send / ibv_poll_cq to support 
+> features like LSO, checksum offload, masked atomic operations, fast 
+> memory remote invalidate, etc so we add IBV_WR_NEW_FEATURE / 
+> IB_WC_NEW_FEATURE enum values, this step is simple, again if we go the 
+> way of the applicayion ensuring through dependencies that they are 
+> loaded against libibverbs that supports IB_{WR,WC}_NEW_FEATURE.
 
-yes.
+Another element to take into account / use here, is the device 
+capabilities, in the kernel RDMA stack this is the way to go for 
+supporting extended features - those who are not common to all devices, 
+e.g the way ipoib queries the device and concludes if checksum/lso 
+offloads can be exposed to the network stack, or the rpc/rdma layer 
+decides what memory management model to use for rdma conditioned if 
+memory extensions etc are supported. But the kernel is one piece, so if 
+a cap is defined and there's a driver down there advertizing it, all is 
+in place software wise, where in user space, there are some more layers 
+to address, as this thread attempts to do.
 
-after reverting those patches, removal work well without problem.
+Or.
 
-Thanks
 
-Yinghai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
