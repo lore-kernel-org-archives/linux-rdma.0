@@ -1,40 +1,65 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] libibverbs: Allow 3rd party extensions to verb
- routines
-Date: Tue, 3 Jan 2012 16:40:55 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823732566A072@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237302123C@ORSMSX101.amr.corp.intel.com>
- <201108011508.06521.jackm@dev.mellanox.co.il>
- <20110802053824.GA23512@obsidianresearch.com>
- <201108021053.05311.jackm@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373136F935C@ORSMSX101.amr.corp.intel.com>
- <4EFC8A85.4020803@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A8237325662BCE@ORSMSX102.amr.corp.intel.com>
- <4F03280A.80305@mellanox.com>
+From: Greg I Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
+Subject: Re: Write Packets to InfiniBand HCA
+Date: Tue, 3 Jan 2012 11:43:19 -0500
+Message-ID: <CANtVasebZqgxoZOVMJ7uRGN7subRZqgq1vWjh_r11vXxa--Qog@mail.gmail.com>
+References: <CANtVascW3aRunBOSevwJgv8vN6gnNjmZM=8vLii=pUsDaFam3w@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB5CCCCCFB63@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F03280A.80305-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CCCCCFB63-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I'd like to better understand the "allocated by the caller ... are more
-> difficult to deal with" part of your response -  for ibv_send_wr - if
-> the caller have set a new IBV_WR_NEW_FEATURE value for the wr type, they
-> surely aware to the new fields and actually the size of the structure
-> can change as of structs allocated by the library. As for ibv_wc, yep,
-> looks like we can't change the size unless we want to write a copatility
-> layer that also comes into play in fast path calls, specifically
-> ibv_poll_cq and translates from the new ibv_wc to the old ibv_wc structure.
+Yes I should have mentioned that I am using a Mellanox Connect-X
+adapter. Do you know where I can find documentation for QLogic's
+iPath? A quick google search didn't seem to turn anything up.
 
-You're right.  I was thinking more of ibv_wc, which has issues, since it may be used as an array.  ibv_send_wr is probably okay, since we walk a list using pointers.
+Thanks for the information.
 
-- Sean
+- Greg Kerr
+
+On Tue, Jan 3, 2012 at 9:53 AM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> w=
+rote:
+> That would depend on which HCA you are using. I know that you can use=
+ QLogic's iPath interface to do what you want, but I don't think it is =
+possible through the verbs interface available through stock OFED.
+>
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner@vger.=
+kernel.org] On Behalf Of Greg I Kerr
+> Sent: Monday, January 02, 2012 9:50 PM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Write Packets to InfiniBand HCA
+>
+> Hi,
+>
+> Does anyone know if it is or isn't possible to put the HCA in some ki=
+nd of "raw" mode where I can compose a packet in software and write it =
+to the card? This is obviously in comparison to calling ibv_post_send a=
+nd having a work request converted into a packet.
+>
+> Thanks,
+>
+> Greg Kerr
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo i=
+nfo at =A0http://vger.kernel.org/majordomo-info.html
+>
+>
+> This message and any attached documents contain information from QLog=
+ic Corporation or its wholly-owned subsidiaries that may be confidentia=
+l. If you are not the intended recipient, you may not read, copy, distr=
+ibute, or use this information. If you have received this transmission =
+in error, please notify the sender immediately by reply e-mail and then=
+ delete this message.
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
