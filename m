@@ -1,65 +1,29 @@
-From: Greg I Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
-Subject: Re: Write Packets to InfiniBand HCA
-Date: Tue, 3 Jan 2012 11:43:19 -0500
-Message-ID: <CANtVasebZqgxoZOVMJ7uRGN7subRZqgq1vWjh_r11vXxa--Qog@mail.gmail.com>
-References: <CANtVascW3aRunBOSevwJgv8vN6gnNjmZM=8vLii=pUsDaFam3w@mail.gmail.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB5CCCCCFB63@MNEXMB1.qlogic.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Send with immediate data completion
+Date: Tue, 3 Jan 2012 16:55:58 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823732566A099@ORSMSX101.amr.corp.intel.com>
+References: <11EC89F0-2BFD-4727-BC45-AD30E0F10348@ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CCCCCFB63-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <11EC89F0-2BFD-4727-BC45-AD30E0F10348-1Heg1YXhbW8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Yes I should have mentioned that I am using a Mellanox Connect-X
-adapter. Do you know where I can find documentation for QLogic's
-iPath? A quick google search didn't seem to turn anything up.
+> I have a question about a completion for a send with immediate data. The IB
+> spec (1.2.1) only mentions that the WC's immediate data be present at the
+> receiver. It is silent on the value on the sender at completion. It does say
+> that it is only valid if the WC's immediate data indicator is set.
 
-Thanks for the information.
+Can you provide a section reference to the spec on the areas that you're looking at?  Looking quickly, section 11.4.2.1 reads like immediate data should be available in either case.
 
-- Greg Kerr
+I've never checked imm data on the send wc.  I'm just trying to determine if there's an issue in the spec that should be addressed, or if this is simply a bug in the hca/driver.
 
-On Tue, Jan 3, 2012 at 9:53 AM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> w=
-rote:
-> That would depend on which HCA you are using. I know that you can use=
- QLogic's iPath interface to do what you want, but I don't think it is =
-possible through the verbs interface available through stock OFED.
->
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner@vger.=
-kernel.org] On Behalf Of Greg I Kerr
-> Sent: Monday, January 02, 2012 9:50 PM
-> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Write Packets to InfiniBand HCA
->
-> Hi,
->
-> Does anyone know if it is or isn't possible to put the HCA in some ki=
-nd of "raw" mode where I can compose a packet in software and write it =
-to the card? This is obviously in comparison to calling ibv_post_send a=
-nd having a work request converted into a packet.
->
-> Thanks,
->
-> Greg Kerr
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo i=
-nfo at =A0http://vger.kernel.org/majordomo-info.html
->
->
-> This message and any attached documents contain information from QLog=
-ic Corporation or its wholly-owned subsidiaries that may be confidentia=
-l. If you are not the intended recipient, you may not read, copy, distr=
-ibute, or use this information. If you have received this transmission =
-in error, please notify the sender immediately by reply e-mail and then=
- delete this message.
->
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
