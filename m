@@ -1,7 +1,7 @@
 From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
 Subject: Re: Send with immediate data completion
-Date: Tue, 3 Jan 2012 12:35:20 -0500
-Message-ID: <9A17BA94-61E0-4176-81CF-98BE023320AF@ornl.gov>
+Date: Tue, 3 Jan 2012 12:38:17 -0500
+Message-ID: <1DB8F21E-E3C4-4B0C-A8A6-5A9E4A221692@ornl.gov>
 References: <11EC89F0-2BFD-4727-BC45-AD30E0F10348@ornl.gov>
  <1828884A29C6694DAF28B7E6B8A823732566A099@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
@@ -26,32 +26,17 @@ On Jan 3, 2012, at 11:55 AM, Hefty, Sean wrote:
 > 
 > I've never checked imm data on the send wc.  I'm just trying to determine if there's an issue in the spec that should be addressed, or if this is simply a bug in the hca/driver.
 
-There is the definition in the glossary:
+For the record, I am using:
 
-Immediate Data
-
-Data contained in a Work Queue Element that is sent along with the payload to the remote Channel Adapter and placed in a Receive Work Completion.
-
-Section 3.7.4 Transport Layer:
-
-The Immediate Data (IMMDT) field is optionally present in RDMA WRITE and SEND messages. It contains data that the consumer placed in the Send or RDMA Write request and the receiving QP will place that value in the current receive WQE. An RDMA Write with immediate data will consume a receive WQE even though the QP did not place any data into the receive buffer since the IMMDT is placed in a CQE that references the receive WQE and indicates that the WQE has completed.
-
-Section 11.4.1.1 Post Send Request has:
-
-Immediate Data Indicator. This is set if Immediate Data is to
-be included in the outgoing request. Valid only for Send or
-Write RDMA operations.
-
-4-byte Immediate Data. Valid only for Send or Write RDMA operations.
-
-11.4.2.1 Poll for Completion
-
-Immediate data indicator. This is set if immediate data is present.
-
-4-byte immediate data.
-
-
-None specifically mention the sender's completion event.
+hca_id: mlx4_0
+        transport:                      InfiniBand (0)
+        fw_ver:                         2.7.626
+        node_guid:                      0002:c903:000b:64e8
+        sys_image_guid:                 0002:c903:000b:64eb
+        vendor_id:                      0x02c9
+        vendor_part_id:                 26428
+        hw_ver:                         0xB0
+        board_id:                       MT_0D90110009
 
 Scott--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
