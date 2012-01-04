@@ -1,79 +1,133 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: Write Packets to InfiniBand HCA
-Date: Wed, 4 Jan 2012 08:12:52 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CCCCCFC36@MNEXMB1.qlogic.org>
-References: <CANtVascW3aRunBOSevwJgv8vN6gnNjmZM=8vLii=pUsDaFam3w@mail.gmail.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB5CCCCCFB63@MNEXMB1.qlogic.org>
- <CANtVasebZqgxoZOVMJ7uRGN7subRZqgq1vWjh_r11vXxa--Qog@mail.gmail.com>
- <CAL1RGDUOZw-+8R+rbsErd7PdB4gUH=zv1NYN-W1bxO5_ZgpdXQ@mail.gmail.com>
+From: Marc Aurele La France <tsi-yfeSBMgouQgsA/PxXw9srA@public.gmane.org>
+Subject: RFC:  NFS/RDMA, IPoIB MTU and [rw]size
+Date: Wed, 4 Jan 2012 07:39:07 -0700 (MST)
+Message-ID: <alpine.LNX.2.00.1201040450050.6572@abcyxhiz.tuyoix.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUOZw-+8R+rbsErd7PdB4gUH=zv1NYN-W1bxO5_ZgpdXQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg I Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Greg,
+Greetings.
 
-I don't think the iPath interface is documented outside the headers, which are included as part of the QLogic PSM package. I believe that package is included with stock OFED. iPath is basically the hardware interface at the very bottom of the QLogic software stack, it wasn't intended for normal use.
+I am currently in the process of moving a cluster I administer from 
+NFS/TCP to NFS/RDMA, and am running into a number of issues I'd like some 
+assistance with.  Googling these doesn't help.
 
------Original Message-----
-From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]
-Sent: Tuesday, January 03, 2012 6:41 PM
-To: Greg I Kerr
-Cc: Mike Heinz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: Write Packets to InfiniBand HCA
+For background on what caused me to move to NFS/TCP in the first place, 
+please see the thread that starts at http://lkml.org/lkml/2010/8/23/204
 
-It is possible with ConnectX (cf "MLX QPs" in the kernel driver).
-However I don't know what documentation
-is available and some hacking would be needed to use this for something more general than sending MADs on special QPs.
+The main reason I'm moving away from NFS/TCP is that something happened in 
+the later kernels that reduces its resilience.  Specifically, the client 
+now permanently loses contact with the server whenever the latter fails to 
+allocate an RPC sk_buff due to memory fragmentation.  Restarting the 
+server's nfsd's fixes this problem, at least temporarily.
 
-On Tue, Jan 3, 2012 at 8:43 AM, Greg I Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org> wrote:
-> Yes I should have mentioned that I am using a Mellanox Connect-X
-> adapter. Do you know where I can find documentation for QLogic's
-> iPath? A quick google search didn't seem to turn anything up.
->
-> Thanks for the information.
->
-> - Greg Kerr
->
-> On Tue, Jan 3, 2012 at 9:53 AM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
->> That would depend on which HCA you are using. I know that you can use QLogic's iPath interface to do what you want, but I don't think it is possible through the verbs interface available through stock OFED.
->>
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Greg I Kerr
->> Sent: Monday, January 02, 2012 9:50 PM
->> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Write Packets to InfiniBand HCA
->>
->> Hi,
->>
->> Does anyone know if it is or isn't possible to put the HCA in some kind of "raw" mode where I can compose a packet in software and write it to the card? This is obviously in comparison to calling ibv_post_send and having a work request converted into a packet.
->>
->> Thanks,
->>
->> Greg Kerr
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
->> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
->> info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->> This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+I haven't nailed down when this started happening (somewhere since 
+2.6.38), nor am I inclined to do so.  This new experience (for me) with 
+NFS/TCP has conclusively shown me that it is much more responsive with 
+smaller IPoIB MTU's.  Thus I will instead be reducing that MTU from its 
+connected mode maximum of 65520, perhaps all the way down to datagram 
+mode's 2044, to completely factor out memory fragmentation effects.  More 
+on that below.
 
+In moving to NFS/RDMA and reducing the IPoIB MTU, I have seen the 
+following behaviours.
 
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+--
 
+1) Random client-side BUG()'outs.  In fact, these never finish producing a 
+complete stack trace.  I've tracked this down to duplicate replies being 
+encountered by rpcrdma_reply_handler() in net/sunrpc/xprtrdma/rpc_rdma.c. 
+Frankly I don't see why rpcrdma_reply_handler() should BUG() out in that 
+case given TCP's behaviour in similar situations, documented requirements 
+for the use of BUG() & friends in the first place, and the fact that 
+rpcrdma_reply_handler() essentially "ignores" replies for which it cannot 
+find a corresponding request.
+
+For the past few days now, I've been running the following on some of my 
+nodes with no ill effects.  And yes, I do see the log message this 
+produces.  This changes rpcrdma_reply_handler() to treat duplicate replies 
+in much the same way it treats replies for which it cannot find a request.
+
+diff -adNpru linux-3.1.6/net/sunrpc/xprtrdma/rpc_rdma.c devel-3.1.6/net/sunrpc/xprtrdma/rpc_rdma.c
+--- linux-3.1.6/net/sunrpc/xprtrdma/rpc_rdma.c	2011-12-21 14:00:46.000000000 -0700
++++ devel-3.1.6/net/sunrpc/xprtrdma/rpc_rdma.c	2011-12-29 07:25:59.000000000 -0700
+@@ -776,7 +776,13 @@ repost:
+ 		"                   RPC request 0x%p xid 0x%08x\n",
+ 			__func__, rep, req, rqst, headerp->rm_xid);
+
+-	BUG_ON(!req || req->rl_reply);
++	/* req cannot be NULL here */
++	if (req->rl_reply) {
++		spin_unlock(&xprt->transport_lock);
++		printk(KERN_NOTICE "RPC: %s: duplicate replies to request 0x%p: "
++			"0x%p and 0x%p\n", __func__, req, req->rl_reply, rep);
++		goto repost;
++	}
+
+ 	/* from here on, the reply is no longer an orphan */
+ 	req->rl_reply = rep;
+
+This would also apply, modulo patch fuzz, all the way back to 2.6.24.
+
+--
+
+2) Still client-side, I'm seeing a lot of these sequences ...
+
+rpcrdma: connection to 10.0.6.1:20049 on mthca0, memreg 6 slots 32 ird 4
+rpcrdma: connection to 10.0.6.1:20049 closed (-103)
+
+103 is ECONNABORTED.  memreg 6 is RPCRDMA_ALLPHYSICAL, so I'm assuming my 
+Mellanox adapters don't support the default RPCRDMA_FRMR (memreg 5).  I've 
+traced these aborted connections to IB_CM_DREP_RECEIVED events being 
+received by cma_ib_handler() in drivers/infiniband/core/cma.c, but can go 
+no further given my limited understanding of what this code is supposed to 
+do.  I am guessing though, that these would presumably disappear when 
+switching back to datagram mode (cm == connected mode).  These messages 
+don't appear to affect anything (the client simply reconnects and I've 
+seen no data corruption), but it would still be nice to know what's going 
+on here.
+
+--
+
+3) isn't related to NFS/RDMA per se, but to my attempts at reducing the 
+IPoIB MTU.  Whenever I do so on the fly across the cluster, some but not 
+all, IPoIB traffic simply times out.  Even, in some cases, TCP connections 
+accept()'ed after the MTU reduction.  Oddly, neither NFS/TCP nor NFS/RDMA 
+seem affected, but other things (MPI apps, torque, etc.) are, whether 
+started before or after the change.  So, something, somewhere, remembers 
+the previous (larger) MTU (opensm?).  It seems that the only way to clear 
+this "memory" is to reboot the entire cluster, something I'd rather avoid 
+if possible.
+
+--
+
+4) Lastly, I would like to ask for a better understanding of the 
+relationship, if any, between NFS/RDMA and the IPoIB MTU, and between 
+NFS/RDMA and [rw]size NFS mount parameters.  What effect do these have on 
+NFS/RDMA?
+
+--
+
+Please CC me on any comments/flames about any of the above as I am not 
+subscribed to this list.
+
+Thanks.
+
+Marc.
+
++----------------------------------+----------------------------------+
+|  Marc Aurele La France           |  work:   1-780-492-9310          |
+|  Academic Information and        |  fax:    1-780-492-1729          |
+|    Communications Technologies   |  email:  tsi-yfeSBMgouQgsA/PxXw9srA@public.gmane.org         |
+|  352 General Services Building   +----------------------------------+
+|  University of Alberta           |                                  |
+|  Edmonton, Alberta               |    Standard disclaimers apply    |
+|  T6G 2H1                         |                                  |
+|  CANADA                          |                                  |
++----------------------------------+----------------------------------+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
