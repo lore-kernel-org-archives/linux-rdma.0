@@ -1,60 +1,46 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/5] ib/core: add support for extended performance
- counters in sysfs
-Date: Wed, 4 Jan 2012 21:29:13 +0200
-Message-ID: <CAJZOPZK2VUhT+UZMONn_ChaybVdozQaWQK3PmGmykMXfn68kvQ@mail.gmail.com>
-References: <20111101173625.GH26974@obsidianresearch.com>
-	<CAJZOPZJCY5ehTGw8htsxw0dJgMXJJAS-=LGJde9ddcMsmhqvMg@mail.gmail.com>
-	<20111101183730.GI26974@obsidianresearch.com>
-	<CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com>
-	<4EB17AF9.3000608@mellanox.com>
-	<CAG4TOxOYAnuB8oKkJgr9_6EpF+YR-h9WNak+gSWwpV0Nz-LeZg@mail.gmail.com>
-	<20111108010952.GC4934@obsidianresearch.com>
-	<4EF07993.2090900@mellanox.com>
-	<20111220174639.GE25774@obsidianresearch.com>
-	<CAJZOPZ+rBKck50kmyhLZ3VNLNmoS_K6cA3Pj3L6XQjcBQo6DjA@mail.gmail.com>
-	<20111220195014.GH25774@obsidianresearch.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: When is it safe to release connection resources?
+Date: Wed, 4 Jan 2012 19:53:43 +0000
+Message-ID: <CAO+b5-qHFFg-KKQQkEZ2sS_+TWAFCJ0Ed4XGV15cs==_9zttSw@mail.gmail.com>
+References: <4EFC987B.6070901@list-group.com>
+	<1828884A29C6694DAF28B7E6B8A8237325662B63@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111220195014.GH25774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237325662B63-P5GAC/sN6hlcIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 20, 2011 Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Tue, Dec 20, 2011 Or Gerlitz wrote:
->> Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> > The netdev counters are all the same size and there is some other way
->> > to discover what the size is. I'd like to see that for IB counters
->> > too, but it is probably infeasible. So if we have counters that are
->> > not the same size as netdev counters then some kind of size indicator
->> > is required for sane userspace.
->> We're talking now only on the IB extended counters who are all 64 bits
+On Mon, Jan 2, 2012 at 4:39 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrot=
+e:
+>> If I understood correctly, when ibv_get_cq_event returns, it holds s=
+ome sort
+>> of lock over the completion queue, which is
+>> ibv_destroy_cq, so that:
+>> 1) When ibv_destroy_cq returns, I am certain that there is no thread=
+ running
+>> somewhere between ibv_get_cq_event and
+>> ibv_req_notify_cq
+>
+> ibv_destroy_cq will block until all outstanding references on the cq =
+have been released.
+>=A0The intent is to protect the user from ibv_get_cq_event from return=
+ing a reference to a cq
+> that is being destroyed from another thread, which could result in a =
+crash in the user's code.
 
-> netdev counters are 32 bit or 64 bit, depending on how the kernel was
-> compiled. I think indicating the size explicitly, or always being 64
-> bit (and extending all the lessor counters in future) is the way to go for IB..
+I've just had a look at the kernel code that implements all this
+(uverbs_cmd.c and uverbs_main.c). I haven't found any precautions
+against ib_uverbs_comp_handler() accessing *uobj after
+ib_uverbs_destroy_cq() has invoked put_uobj(uobj). Did I miss
+something ?
 
-Roland/Jason,
-
-Any concrete preference here? I'd like to fix the patch so it can go
-into 3.3-rc1
-
-* do we want that directory to be present only when  the port link
-type is Ethernet (I assume the ib device will be re-created across
-link type change as the per port HW elements need to be
-re-initialized).
-
-*  decimal display as all the network counters and the other IB counters are?
-
-* could clarify "indicating the size explicitly"
-
-* "always being 64 bit" applies to hex decimal only, I guess
-
-Or.
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
