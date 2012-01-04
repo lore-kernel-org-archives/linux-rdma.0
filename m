@@ -1,28 +1,59 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: When is it safe to release connection resources?
-Date: Wed, 4 Jan 2012 16:04:33 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823732566B26E@ORSMSX101.amr.corp.intel.com>
-References: <4EFC987B.6070901@list-group.com>
- <1828884A29C6694DAF28B7E6B8A8237325662B63@ORSMSX102.amr.corp.intel.com>
- <4F041F19.1070608@list-group.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 4/5] ib/core: add support for extended performance
+ counters in sysfs
+Date: Wed, 4 Jan 2012 21:29:13 +0200
+Message-ID: <CAJZOPZK2VUhT+UZMONn_ChaybVdozQaWQK3PmGmykMXfn68kvQ@mail.gmail.com>
+References: <20111101173625.GH26974@obsidianresearch.com>
+	<CAJZOPZJCY5ehTGw8htsxw0dJgMXJJAS-=LGJde9ddcMsmhqvMg@mail.gmail.com>
+	<20111101183730.GI26974@obsidianresearch.com>
+	<CAG4TOxMOPaTy+Y+M+4xuO_uQ-vqs+Z=GV172UJcqdMrA+mPv=w@mail.gmail.com>
+	<4EB17AF9.3000608@mellanox.com>
+	<CAG4TOxOYAnuB8oKkJgr9_6EpF+YR-h9WNak+gSWwpV0Nz-LeZg@mail.gmail.com>
+	<20111108010952.GC4934@obsidianresearch.com>
+	<4EF07993.2090900@mellanox.com>
+	<20111220174639.GE25774@obsidianresearch.com>
+	<CAJZOPZ+rBKck50kmyhLZ3VNLNmoS_K6cA3Pj3L6XQjcBQo6DjA@mail.gmail.com>
+	<20111220195014.GH25774@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F041F19.1070608-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20111220195014.GH25774-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> So in order to safely call ibv_destroy_cq, I should call ibv_ack_cq_events
-> *after* ibv_poll_cq? The example on the man
-> page for ibv_get_cq_event calls it before, is it an error?
+On Tue, Dec 20, 2011 Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Tue, Dec 20, 2011 Or Gerlitz wrote:
+>> Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> > The netdev counters are all the same size and there is some other way
+>> > to discover what the size is. I'd like to see that for IB counters
+>> > too, but it is probably infeasible. So if we have counters that are
+>> > not the same size as netdev counters then some kind of size indicator
+>> > is required for sane userspace.
+>> We're talking now only on the IB extended counters who are all 64 bits
 
-You should call ibv_ack_cq_events after ibv_get_cq_events but before ibv_destroy_cq.  That can come before or after calling ibv_poll_cq.  And, although it's probably easiest to call ack after get, note that you don't need a 1:1 call ratio between get/ack.  You can keep a count of the number of times that ibv_get_cq_events returns a specific cq, and then call ibv_ack_cq_events for that amount just before calling ibv_destroy_cq.
+> netdev counters are 32 bit or 64 bit, depending on how the kernel was
+> compiled. I think indicating the size explicitly, or always being 64
+> bit (and extending all the lessor counters in future) is the way to go for IB..
 
-- Sean
+Roland/Jason,
+
+Any concrete preference here? I'd like to fix the patch so it can go
+into 3.3-rc1
+
+* do we want that directory to be present only when  the port link
+type is Ethernet (I assume the ib device will be re-created across
+link type change as the per port HW elements need to be
+re-initialized).
+
+*  decimal display as all the network counters and the other IB counters are?
+
+* could clarify "indicating the size explicitly"
+
+* "always being 64 bit" applies to hex decimal only, I guess
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
