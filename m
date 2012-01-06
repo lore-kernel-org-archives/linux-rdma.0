@@ -1,39 +1,78 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: When is it safe to release connection resources?
-Date: Thu, 5 Jan 2012 09:29:31 -0800
-Message-ID: <CAL1RGDXtZA=6uvCE73isD7cu2=LU4b3CGPs4g7UMPmW=1xqgww@mail.gmail.com>
-References: <4EFC987B.6070901@list-group.com> <1828884A29C6694DAF28B7E6B8A8237325662B63@ORSMSX102.amr.corp.intel.com>
- <CAO+b5-qHFFg-KKQQkEZ2sS_+TWAFCJ0Ed4XGV15cs==_9zttSw@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A823732566B335@ORSMSX101.amr.corp.intel.com> <CAO+b5-pk8v-1+STkYXmwTv2nKyQJcZd575dJW6Hipfo5_AchwA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-pk8v-1+STkYXmwTv2nKyQJcZd575dJW6Hipfo5_AchwA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Fri,  6 Jan 2012 09:38:57 -0800
+Message-ID: <1325871537-22436-1-git-send-email-roland@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 5, 2012 at 3:23 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
-> Sorry if I wasn't clear enough, but I was referring to the case where
-> the kernel completion handler gets invoked after
-> ib_uverbs_destroy_cq() has started but before that function has
-> invoked ib_destroy_cq().
+Hi Linus,
 
-That should be OK.  ib_uverbs_destroy_cq() doesn't really do anything
-until ib_destroy_cq() has returned, and at that point it is guaranteed
-that the completion handler for the CQ is done.
+[Trying the signed tag thing for the first time here]
 
-> More in general - assuming that completion notifications have been
-> enabled - I'm wondering whether it is possible to shut down a queue
-> pair without triggering a race condition if that queue pair hasn't
-> been transitioned to the reset or error state first.
+Please pull from
 
-destroying a QP is pretty much equivalent to transitioning it to the
-reset state.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git infiniband-for-linus
 
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This will get my small batch of stuff for 3.3:
+ - Fix for userspace-provokable multicast membership list corruption
+ - Fix for CM protocol message layout
+ - Fixes and cleanups for qib hardware driver
+ - Fixes and cleanup for nes hardware driver
+ - Fix for mlx4 handling of Ethernet priority bits
+ - Fix for bugs and warnings found by sparse in core code
+
+Eli Cohen (2):
+      IB/uverbs: Protect QP multicast list
+      IB/cm: Fix layout of APR message
+
+Mike Marciniszyn (4):
+      IB/qib: Fix style issues
+      IB/qib: Eliminate 64-bit jiffies use
+      IB/qib: Optimize locking for get_txreq()
+      IB/qib: Default some module parameters optimally
+
+Or Gerlitz (1):
+      IB/mlx4: Fix SL to 802.1Q priority-bits mapping for IBoE
+
+Ram Vepa (1):
+      IB/qib: Fix a possible data corruption when receiving packets
+
+Roland Dreier (1):
+      Merge branches 'cma', 'misc', 'mlx4', 'nes', 'qib' and 'uverbs' into for-next
+
+Sean Hefty (2):
+      RDMA/cma: Fix endianness bugs
+      rdma/core: Fix sparse warnings
+
+Tatyana Nikolova (3):
+      RDMA/nes: Change MDIO bus clock to 2.5MHz
+      RDMA/nes: Make unnecessarily global nes_set_pau() static
+      RDMA/nes: Fix terminate during AE
+
+ drivers/infiniband/core/cm_msgs.h       |    1 +
+ drivers/infiniband/core/cma.c           |    6 ++--
+ drivers/infiniband/core/ucm.c           |    3 --
+ drivers/infiniband/core/uverbs_cmd.c    |   27 ++++++++++++++-----
+ drivers/infiniband/hw/mlx4/ah.c         |    2 +-
+ drivers/infiniband/hw/mlx4/cq.c         |    6 +++-
+ drivers/infiniband/hw/mlx4/qp.c         |    4 +-
+ drivers/infiniband/hw/nes/nes_cm.c      |    1 +
+ drivers/infiniband/hw/nes/nes_hw.c      |    6 +---
+ drivers/infiniband/hw/nes/nes_utils.c   |    2 +-
+ drivers/infiniband/hw/qib/qib_7220.h    |    2 +-
+ drivers/infiniband/hw/qib/qib_driver.c  |    3 +-
+ drivers/infiniband/hw/qib/qib_iba6120.c |    4 ++-
+ drivers/infiniband/hw/qib/qib_iba7220.c |   10 ++++---
+ drivers/infiniband/hw/qib/qib_iba7322.c |   40 ++++++++++++++--------------
+ drivers/infiniband/hw/qib/qib_init.c    |    2 +-
+ drivers/infiniband/hw/qib/qib_pcie.c    |    4 +-
+ drivers/infiniband/hw/qib/qib_qsfp.h    |    2 +-
+ drivers/infiniband/hw/qib/qib_sd7220.c  |    2 +-
+ drivers/infiniband/hw/qib/qib_sysfs.c   |    2 +-
+ drivers/infiniband/hw/qib/qib_verbs.c   |   43 +++++++++++++++++++++++-------
+ include/rdma/ib_addr.h                  |    2 +-
+ include/rdma/ib_cm.h                    |    3 ++
+ 23 files changed, 109 insertions(+), 68 deletions(-)
