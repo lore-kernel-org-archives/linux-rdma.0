@@ -1,78 +1,29 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Fri,  6 Jan 2012 09:38:57 -0800
-Message-ID: <1325871537-22436-1-git-send-email-roland@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Possible event on cm_id after rdma_accept() fails?
+Date: Fri, 6 Jan 2012 12:08:34 -0800
+Message-ID: <CAL1RGDVhFP+yESH4pnYPA7co1WkY2HSV7vGB-eM34cgv7Tvpgw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+Hi Sean,
 
-[Trying the signed tag thing for the first time here]
+If I get a new cm_id from a RDMA_CM_EVENT_CONNECT_REQUEST
+event, and call rdma_accept(), and then rdma_accept() returns an error
+for whatever reason, is it safe to assume I won't get any other events
+for the cm_id I failed to accept?
 
-Please pull from
+ie there's no race where another thread might get a disconnect event
+on that cm_id too, right?  So it's safe to just start cleaning up after
+I get a failed status from rdma_accept().
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git infiniband-for-linus
-
-This will get my small batch of stuff for 3.3:
- - Fix for userspace-provokable multicast membership list corruption
- - Fix for CM protocol message layout
- - Fixes and cleanups for qib hardware driver
- - Fixes and cleanup for nes hardware driver
- - Fix for mlx4 handling of Ethernet priority bits
- - Fix for bugs and warnings found by sparse in core code
-
-Eli Cohen (2):
-      IB/uverbs: Protect QP multicast list
-      IB/cm: Fix layout of APR message
-
-Mike Marciniszyn (4):
-      IB/qib: Fix style issues
-      IB/qib: Eliminate 64-bit jiffies use
-      IB/qib: Optimize locking for get_txreq()
-      IB/qib: Default some module parameters optimally
-
-Or Gerlitz (1):
-      IB/mlx4: Fix SL to 802.1Q priority-bits mapping for IBoE
-
-Ram Vepa (1):
-      IB/qib: Fix a possible data corruption when receiving packets
-
-Roland Dreier (1):
-      Merge branches 'cma', 'misc', 'mlx4', 'nes', 'qib' and 'uverbs' into for-next
-
-Sean Hefty (2):
-      RDMA/cma: Fix endianness bugs
-      rdma/core: Fix sparse warnings
-
-Tatyana Nikolova (3):
-      RDMA/nes: Change MDIO bus clock to 2.5MHz
-      RDMA/nes: Make unnecessarily global nes_set_pau() static
-      RDMA/nes: Fix terminate during AE
-
- drivers/infiniband/core/cm_msgs.h       |    1 +
- drivers/infiniband/core/cma.c           |    6 ++--
- drivers/infiniband/core/ucm.c           |    3 --
- drivers/infiniband/core/uverbs_cmd.c    |   27 ++++++++++++++-----
- drivers/infiniband/hw/mlx4/ah.c         |    2 +-
- drivers/infiniband/hw/mlx4/cq.c         |    6 +++-
- drivers/infiniband/hw/mlx4/qp.c         |    4 +-
- drivers/infiniband/hw/nes/nes_cm.c      |    1 +
- drivers/infiniband/hw/nes/nes_hw.c      |    6 +---
- drivers/infiniband/hw/nes/nes_utils.c   |    2 +-
- drivers/infiniband/hw/qib/qib_7220.h    |    2 +-
- drivers/infiniband/hw/qib/qib_driver.c  |    3 +-
- drivers/infiniband/hw/qib/qib_iba6120.c |    4 ++-
- drivers/infiniband/hw/qib/qib_iba7220.c |   10 ++++---
- drivers/infiniband/hw/qib/qib_iba7322.c |   40 ++++++++++++++--------------
- drivers/infiniband/hw/qib/qib_init.c    |    2 +-
- drivers/infiniband/hw/qib/qib_pcie.c    |    4 +-
- drivers/infiniband/hw/qib/qib_qsfp.h    |    2 +-
- drivers/infiniband/hw/qib/qib_sd7220.c  |    2 +-
- drivers/infiniband/hw/qib/qib_sysfs.c   |    2 +-
- drivers/infiniband/hw/qib/qib_verbs.c   |   43 +++++++++++++++++++++++-------
- include/rdma/ib_addr.h                  |    2 +-
- include/rdma/ib_cm.h                    |    3 ++
- 23 files changed, 109 insertions(+), 68 deletions(-)
+Thanks,
+ - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
