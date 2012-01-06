@@ -1,28 +1,26 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Possible event on cm_id after rdma_accept() fails?
-Date: Fri, 6 Jan 2012 12:08:34 -0800
-Message-ID: <CAL1RGDVhFP+yESH4pnYPA7co1WkY2HSV7vGB-eM34cgv7Tvpgw@mail.gmail.com>
+From: "gooday_aburey-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org" <gooday_aburey-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: Hi dear.
+Date: Fri, 6 Jan 2012 23:07:47 +0100 (CET)
+Message-ID: <735125.10629711325887667258.JavaMail.defaultUser@defaultHost>
+Reply-To: "gooday_aburey-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org" <gooday_aburey-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sean,
-
-If I get a new cm_id from a RDMA_CM_EVENT_CONNECT_REQUEST
-event, and call rdma_accept(), and then rdma_accept() returns an error
-for whatever reason, is it safe to assume I won't get any other events
-for the cm_id I failed to accept?
-
-ie there's no race where another thread might get a disconnect event
-on that cm_id too, right?  So it's safe to just start cleaning up after
-I get a failed status from rdma_accept().
-
-Thanks,
- - R.
+Hi dear.
+how are you doing today hope fine. my name is Faith, 
+may be surprise how i get your email on my way searching for good 
+relationship, and 
+hones person partner after i got your email then i feel to drop this few line
+it i found you interesting hope you don't mind if you feel like knowing
+more about me.and for we to share our feelings to each other. hope to hear
+from you and Remember the distance does not matter what matters is the love we 
+share
+with each other,
+Yours Faith (faithaburey_60-/E1597aS9LQAvxtiuMwx3w@public.gmane.org)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
