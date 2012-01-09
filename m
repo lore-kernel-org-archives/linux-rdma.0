@@ -1,70 +1,39 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IPoIB/cm: Add connected mode support for devices without SRQs
-Date: Mon, 9 Jan 2012 14:58:40 +0300
-Message-ID: <20120109115840.GA12634@elgon.mountain>
+From: Mike Marciniszyn <mike.marciniszyn@qlogic.com>
+Subject: RE: [PATCH 1/4] drivers/infiniband/hw/qib/qib_iba6120.c: convert
+ GFP_KERNEL to GFP_ATOMIC
+Date: Mon, 9 Jan 2012 08:49:56 -0800
+Message-ID: <35AAF1E4A771E142979F27B51793A4888885970586@AVEXMB1.qlogic.org>
+References: <1326102050-30265-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1326102050-30265-1-git-send-email-Julia.Lawall@lip6.fr>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>, Dept_Infinipath <Dept_Infinipath@qlogic.com>
+Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Pradeep Satyanarayana,
 
-This is a semi-automatic email about new static checker warnings.
+> Subject: [PATCH 1/4] drivers/infiniband/hw/qib/qib_iba6120.c: convert
+> GFP_KERNEL to GFP_ATOMIC
+>
+> From: Julia Lawall <julia.lawall@lip6.fr>
+>
+> The function is called with locks held and thus should not use
+> GFP_KERNEL.
+>
+> The semantic patch that makes this report is available
+> in scripts/coccinelle/locks/call_kern.cocci.
+>
+> More information about semantic patching is available at
+> http://coccinelle.lip6.fr/
+>
+> Signed-off-by: Julia Lawall <julia.lawall@lip6.fr>
 
-The patch 68e995a29572: "IPoIB/cm: Add connected mode support for 
-devices without SRQs" from Jan 25, 2008, leads to the following 
-Smatch complaint:
+Thanks for the patch!
 
-drivers/infiniband/ulp/ipoib/ipoib_cm.c +684 ipoib_cm_handle_rx_wc()
-	 error: we previously assumed 'p' could be null (see line 611)
+Acked-by: Mike Marciniszyn <mike.marciniszyn@qlogic.com>
 
-drivers/infiniband/ulp/ipoib/ipoib_cm.c
-   610		if (unlikely(!(wr_id & IPOIB_CM_RX_UPDATE_MASK))) {
-   611			if (p && time_after_eq(jiffies, p->jiffies + IPOIB_CM_RX_UPDATE_TIME)) {
-                            ^
-Old check.  This was added in d6ef7d68 to fix a NULL deref that people
-were hitting in production but the code has been rewritten since then
-and I don't know if the check is still needed.
-
-   612				spin_lock_irqsave(&priv->lock, flags);
-   613				p->jiffies = jiffies;
-   614				/* Move this entry to list head, but do not re-add it
-   615				 * if it has been moved out of list. */
-   616				if (p->state == IPOIB_CM_RX_LIVE)
-   617					list_move(&p->list, &priv->cm.passive_ids);
-   618				spin_unlock_irqrestore(&priv->lock, flags);
-   619			}
-   620		}
-   621	
-   622		if (wc->byte_len < IPOIB_CM_COPYBREAK) {
-
-[snipped]
-
-   674	repost:
-   675		if (has_srq) {
-   676			if (unlikely(ipoib_cm_post_receive_srq(dev, wr_id)))
-   677				ipoib_warn(priv, "ipoib_cm_post_receive_srq failed "
-   678					   "for buf %d\n", wr_id);
-   679		} else {
-   680			if (unlikely(ipoib_cm_post_receive_nonsrq(dev, p,
-   681								  &priv->cm.rx_wr,
-   682								  priv->cm.rx_sge,
-   683								  wr_id))) {
-   684				--p->recv_count;
-                                  ^^^
-New dereference.
-
-   685				ipoib_warn(priv, "ipoib_cm_post_receive_nonsrq failed "
-   686					   "for buf %d\n", wr_id);
-
-regards,
-dan carpenter
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
