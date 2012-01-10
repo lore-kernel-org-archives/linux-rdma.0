@@ -1,14 +1,14 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [opensm] [PATCH 2/2] Do not load configs from the default config
- file and specified config file
-Date: Tue, 10 Jan 2012 18:26:35 +0200
-Message-ID: <20120110162635.GC25032@calypso>
-References: <1320948100.22519.338.camel@auk59.llnl.gov>
+Subject: Re: [opensm] [PATCH 1/5] Free memory from osm_subn_opt_t when
+ osm_subn_t destroyed
+Date: Tue, 10 Jan 2012 18:29:24 +0200
+Message-ID: <20120110162924.GD25032@calypso>
+References: <1321310989.5518.50.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1320948100.22519.338.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <1321310989.5518.50.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -16,12 +16,11 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Al,
 
-On 10:01 Thu 10 Nov     , Albert Chu wrote:
-> If a config file is specified on the command line, only that config file should
-> be used, it should not be parsed in addition to the default.
-> 
+On 14:49 Mon 14 Nov     , Albert Chu wrote:
 > Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 > ---
+
+Removed unneeded checks before free.
 
 Applied, thanks.
 --
