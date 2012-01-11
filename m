@@ -1,68 +1,45 @@
-From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: Send with immediate data completion
-Date: Wed, 11 Jan 2012 09:50:12 -0500
-Message-ID: <7B006904-1749-4562-B2FD-1A0E5212A449@ornl.gov>
-References: <11EC89F0-2BFD-4727-BC45-AD30E0F10348@ornl.gov>
- <1828884A29C6694DAF28B7E6B8A823732566A099@ORSMSX101.amr.corp.intel.com>
- <9A17BA94-61E0-4176-81CF-98BE023320AF@ornl.gov>
+From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+Subject: Re: Upstream support for multicast IBoE
+Date: Wed, 11 Jan 2012 08:59:25 -0600
+Message-ID: <20120111145924.GA2296@BohrerMBP.rgmadvisors.com>
+References: <20111122223812.GB2131@BohrerMBP.rgmadvisors.com>
+ <CAL1RGDVF5FuVuToN56pmue1cUvHRw9kjaKC9xLOt51zeDJwMag@mail.gmail.com>
+ <CAJZOPZ+mdMYqMZKYNmVas=cAUYiQRw_r=8ty7j5wB2mXJSs5bw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9A17BA94-61E0-4176-81CF-98BE023320AF-1Heg1YXhbW8@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAJZOPZ+mdMYqMZKYNmVas=cAUYiQRw_r=8ty7j5wB2mXJSs5bw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jan 3, 2012, at 12:35 PM, Atchley, Scott wrote:
+On Wed, Nov 23, 2011 at 11:17:02PM +0200, Or Gerlitz wrote:
+> Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
+> > looks like the libmlx4 patches I applied from you are missing multicast AH support?
+> 
+> Yes, when I reworked the patches for submission I went from easier
+> (RC) to harder (ucast UD + Vlans) and eventually didn't nailed down
+> the multicast front. I probably planned getting there on a later point
+> but it remained behind, anyway, if you're okay to have the "ad hoc
+> MGID -> ethernet address mapping" as you commented on this thread, I
+> can make the patch to add that.
 
-> On Jan 3, 2012, at 11:55 AM, Hefty, Sean wrote:
-> 
->>> I have a question about a completion for a send with immediate data. The IB
->>> spec (1.2.1) only mentions that the WC's immediate data be present at the
->>> receiver. It is silent on the value on the sender at completion. It does say
->>> that it is only valid if the WC's immediate data indicator is set.
->> 
->> Can you provide a section reference to the spec on the areas that you're looking at?  Looking quickly, section 11.4.2.1 reads like immediate data should be available in either case.
->> 
->> I've never checked imm data on the send wc.  I'm just trying to determine if there's an issue in the spec that should be addressed, or if this is simply a bug in the hca/driver.
-> 
-> There is the definition in the glossary:
-> 
-> Immediate Data
-> 
-> Data contained in a Work Queue Element that is sent along with the payload to the remote Channel Adapter and placed in a Receive Work Completion.
-> 
-> Section 3.7.4 Transport Layer:
-> 
-> The Immediate Data (IMMDT) field is optionally present in RDMA WRITE and SEND messages. It contains data that the consumer placed in the Send or RDMA Write request and the receiving QP will place that value in the current receive WQE. An RDMA Write with immediate data will consume a receive WQE even though the QP did not place any data into the receive buffer since the IMMDT is placed in a CQE that references the receive WQE and indicates that the WQE has completed.
-> 
-> Section 11.4.1.1 Post Send Request has:
-> 
-> Immediate Data Indicator. This is set if Immediate Data is to
-> be included in the outgoing request. Valid only for Send or
-> Write RDMA operations.
-> 
-> 4-byte Immediate Data. Valid only for Send or Write RDMA operations.
-> 
-> 11.4.2.1 Poll for Completion
-> 
-> Immediate data indicator. This is set if immediate data is present.
-> 
-> 4-byte immediate data.
-> 
-> 
-> None specifically mention the sender's completion event.
+Is there any estimate on when we might see something like this
+upstream?
 
-Sean,
+Thanks,
+Shawn
 
-Any thoughts?
 
-Personally, I would like to have it in the send completion, but it might not be possible for all drivers to implement. If not, then the spec should be clarified.
+---------------------------------------------------------------
+This email, along with any attachments, is confidential. If you 
+believe you received this message in error, please contact the 
+sender immediately and delete all copies of the message.  
+Thank you.
 
-Scott--
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
