@@ -1,46 +1,90 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] infiniband-diags/configure.in: Fix typo
-Date: Wed, 11 Jan 2012 23:17:24 -0800
-Message-ID: <20120111231724.723a8b77.weiny2@llnl.gov>
-References: <4F0C9E22.7010308@dev.mellanox.co.il>
+Subject: Re: ibswitches command displays wrong information when switch
+ description string includes "base"
+Date: Wed, 11 Jan 2012 23:36:54 -0800
+Message-ID: <20120111233654.7b91b2bd.weiny2@llnl.gov>
+References: <4F079048.8050709@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F0C9E22.7010308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4F079048.8050709-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: pierre orzechowski <pierre.e.orzechowski-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 10 Jan 2012 12:22:58 -0800
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+While Jason is correct that I am working to deprecate the scripts this bug still exists in the 1.5 branch.
 
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Thanks for pointing this out.  As Open Fabrics is doing an additional 1.5 release I will attempt to fix before that release.
 
-Thanks applied,
+Thanks,
 Ira
 
-> ---
-> diff --git a/configure.in b/configure.in
-> index 5a596dc..215c1ea 100644
-> --- a/configure.in
-> +++ b/configure.in
-> @@ -65,7 +65,7 @@ IBDIAG_CONFIG_PATH_TMP1="`eval echo ${sysconfdir}`"
->  IBDIAG_CONFIG_PATH_TMP2="`echo $IBDIAG_CONFIG_PATH_TMP1 | sed 's/^NONE/$ac_default_prefix/'`"
->  IBDIAG_CONFIG_PATH="`eval echo $IBDIAG_CONFIG_PATH_TMP2`/infiniband-diags"
->  AC_SUBST(IBDIAG_CONFIG_PATH)
-> -AC_DEFINE_UNQUOTED([IBDIAG_CONFIG_PATH], "$IBDIAG_CONFIG_PATH", [Define the path to configuratios])
-> +AC_DEFINE_UNQUOTED([IBDIAG_CONFIG_PATH], "$IBDIAG_CONFIG_PATH", [Define the path to configurations])
->  
->  dnl Check if we should include test utilities
->  AC_MSG_CHECKING(for --enable-test-utils)
+On Fri, 6 Jan 2012 16:22:32 -0800
+pierre orzechowski <pierre.e.orzechowski-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+
+> Hello,
+> 
+> We have a customer reporting an issue with the "ibswitches" command part 
+> of the infiniband-diags package.
+> If the switch description includes the string "base" anywhere, then the 
+> match operation in the awk section of ibwitches does not behave as 
+> expected and output is garbled.
+> 
+> Example :
+> 
+> [root@slcc09sw-ib2 tmp]# grep Switch ibnetdisc.out
+> Switch  36 "S-002128468ee1a0a0"         # "SUN DCS 36P QDR basesw-ib3 
+> 10.242.48.23" enhanced port 0 lid 1 lmc 0
+> Switch  36 "S-0021286cc8a3a0a0"         # "SUN DCS 46P QDR slcc09sw-ib3 
+> 10.242.48.24" enhanced port 0 lid 12 lmc 0
+> [root@slcc09sw-ib2 tmp]# ibswitches ibnetdisc.out
+> Switch  : 0x002128468ee1a0a0 ports 36 "SUN DCS 36P QDR base port 0 lid 1 
+> lmc 0
+> Switch  : 0x0021286cc8a3a0a0 ports 36 "SUN DCS 46P QDR slcc09sw-ib3 
+> 10.242.48.24" enhanced port 0 lid 12 lmc 0
+> 
+> The 1 liner workaround we have is to replace in red :
+> echo "$text" | awk '
+> /^Switch/       {
+>                          l=$0
+>                          desc=substr(l, match(l, "#[ \t]*")+RLENGTH)
+>                          pi=match(desc, "port 0.*")
+>                          pinfo=substr(desc, pi)
+>                          desc=substr(desc, 1, pi-2)
+> type="base"
+>                          ti=match(desc, type)
+> ...
+> 
+> With
+> 
+> echo "$text" | awk '
+> /^Switch/       {
+>                          l=$0
+>                          desc=substr(l, match(l, "#[ \t]*")+RLENGTH)
+>                          pi=match(desc, "port 0.*")
+>                          pinfo=substr(desc, pi)
+>                          desc=substr(desc, 1, pi-2)
+> type="\base\"
+>                          ti=match(desc, type)
+> ...
+> 
+> Thanks for your help in reviewing this potential defect.
+> Apologies if posting to the wrong mailing list.
+> 
+> Best regards,
+> Pierre Orzechowski
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 -- 
 Ira Weiny
-Math Programmer/Computer Scientist
+Member of Technical Staff
 Lawrence Livermore National Lab
 925-423-8008
 weiny2-i2BcT+NCU+M@public.gmane.org
