@@ -1,335 +1,179 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 1/6] IB: use central enum for speed instead of hard-coded
- values
-Date: Thu, 12 Jan 2012 19:34:05 +0200
-Message-ID: <alpine.LRH.2.00.1201121932160.5886@ogerlitz.voltaire.com>
-References: <alpine.LRH.2.00.1201111850330.10264@ogerlitz.voltaire.com> <alpine.LRH.2.00.1201111854190.10264@ogerlitz.voltaire.com>
+From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] opensm: Get correct guid in case of multiple ports
+Date: Thu, 12 Jan 2012 12:45:34 -0600
+Message-ID: <20120112184533.GA8168@shrek.cartoons>
+References: <20111005183610.GA18253@shrek.cartoons>
+ <20120111121005.GB2254@calypso>
+ <20120111160231.GA3498@shrek.cartoons>
+ <20120112172330.GD6571@calypso>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LRH.2.00.1201111854190.10264-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20120112172330.GD6571@calypso>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The kernel IB stack uses one enumeration for IB speed, which wasn't
-explicitly specified in the verbs header file. Add that enum, and
-use it all over the code. Note that the IB speed/width notation is
-also used by iWARP and IBoE hw drivers who apply the convention of
-rate = speed X width, to advertize their port link rate.
+Hi Alex,
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+On Thu, Jan 12, 2012 at 07:23:30PM +0200, Alex Netes wrote:
+> Hi Goldwyn,
+> 
+> On 10:02 Wed 11 Jan     , Goldwyn Rodrigues wrote:
+> > 
+> > Hi Alex,
+> > 
+> > Let me start with how we encountered the problem:
+> > This problem came up when our customer was using a 2 port card with only
+> > one of the port active. opensm could not get the guid of the port
+> > that was active in daemon mode.
+> 
+> I guess it's because your costumer runs opensm with "-g 0 -B" in command line.
+> 
+> > 
+> > > On 13:36 Wed 05 Oct     , Goldwyn Rodrigues wrote:
+> > > > 
+> > > > In case of multiple ports and running in daemon mode, the active port is not selected because opt.guid is set to INVALID_GUID in main() but the check in get_port_guid is done against zero: 
+> > > > 	if (port_guid == 0) {
+> > > 
+> > > opt.guid is set to 0 by default.
+> > > opt.guid is set to INVALID_GUID if a user used "-g WRONG_GUID" command line
+> > > option when executing the SM. 
+> > 
+> > What happens when "-g 0 -B" is specified? Check the getopt code. It sets guid
+> > to INVALID_GUID. Consider /etc/sysconfig/opensm  as well.
+> 
+> You are correct. Setting argument "-g 0" will set port_guid to INVALID_GUID.
+> From OpenSM man page:
+> -g, --guid <GUID in hex>
+> 	This option specifies the local port GUID value with which OpenSM
+> 	should bind.  OpenSM may be bound to 1 port at a time.  If GUID given
+> 	is 0, OpenSM displays a list of possible port GUIDs and waits for user
+> 	input.  Without -g, OpenSM tries to use the default port.
+> 
+> So I guess the behavior of running OpenSM with "-g 0 -B" is undefined. I think
+> it's better to exit than execute OpenSM with wrong parameter.
 
-changes from v0:
- fixed typo in the enum type name (was ib_port_seed instead of ib_port_speed)
+Think from a user POV instead of a programmer's POV. A user will be
+confused when he attempts to start the daemon and the daemon just exits.
+Could opensm atleast complain about it saying that the options
+are incompatible or it does not want to use the available guids?
 
- drivers/infiniband/core/sysfs.c              |   15 +++++++-----
- drivers/infiniband/core/uverbs_cmd.c         |    3 ++
- drivers/infiniband/core/verbs.c              |    1 +
- drivers/infiniband/hw/amso1100/c2_provider.c |    2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 +-
- drivers/infiniband/hw/cxgb4/provider.c       |    2 +-
- drivers/infiniband/hw/ehca/ehca_hca.c        |    2 +-
- drivers/infiniband/hw/mlx4/main.c            |   10 ++++----
- drivers/infiniband/hw/mlx4/qp.c              |   31 +++++++++++++++++++++----
- drivers/infiniband/hw/nes/nes_verbs.c        |    2 +-
- include/rdma/ib_verbs.h                      |   11 ++++++++-
- 11 files changed, 59 insertions(+), 22 deletions(-)
+> 
+> Moreover, there is no problem when you set "guid 0" in the opensm.conf and run
+> opensm as a daemon (actually this is the default).
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index c61bca3..9ce70ca 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -189,21 +189,24 @@ static ssize_t rate_show(struct ib_port *p, struct port_attribute *unused,
- 	rate = (25 * attr.active_speed) / 10;
+Have you tried it with multi-port? For 1 port, get_port_guid() selects the
+default one because num_ports is 1 and the daemon will not exit, even if
+you supply " -g 0 -B". 
 
- 	switch (attr.active_speed) {
--	case 2:
-+	case IB_SPEED_SDR:
-+		speed = " SDR";
-+		break;
-+	case IB_SPEED_DDR:
- 		speed = " DDR";
- 		break;
--	case 4:
-+	case IB_SPEED_QDR:
- 		speed = " QDR";
- 		break;
--	case 8:
-+	case IB_SPEED_FDR10:
- 		speed = " FDR10";
- 		rate = 10;
- 		break;
--	case 16:
-+	case IB_SPEED_FDR:
- 		speed = " FDR";
- 		rate = 14;
- 		break;
--	case 32:
-+	case IB_SPEED_EDR:
- 		speed = " EDR";
- 		rate = 25;
- 		break;
-@@ -214,7 +217,7 @@ static ssize_t rate_show(struct ib_port *p, struct port_attribute *unused,
- 		return -EINVAL;
+BTW, We are using SLES 11.
 
- 	return sprintf(buf, "%d%s Gb/sec (%dX%s)\n",
--		       rate, (attr.active_speed == 1) ? ".5" : "",
-+		       rate, (attr.active_speed == IB_SPEED_SDR) ? ".5" : "",
- 		       ib_width_enum_to_int(attr.active_width), speed);
- }
+> > 
+> > What happens when you provide "-g WRONG_GUID -B"?
+> > I think in this case, -B should take priority and set with the first
+> > active port available.
+> 
+> I think that in that case, a user intended to bind OpenSM on specific port and
+> it could be a major issue if OpenSM will automatically binds to a different
+> port.
+> 
+> > 
+> > 
+> > > In that case, when SM runs not in daemon mode,
+> > > SM prompts the user to choose available port GUID out of available range.
+> > > In case when SM runs in daemon mode, it can't prompt the user so it just exits.
+> > > 
+> > > > 
+> > > > On second thoughts, passing port_guid is worthless because this function is called only when no guid is supplied at the command prompt. So, removed the port_guid parameter from the function altogether.
+> > > > 
+> > > > If not in daemon mode, it would show the list of ports as intended.
+> > > > 
+> > > > Also added error message if no ports are found.
+> > > > 
+> > > > Signed-off-by: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+> > > > 
+> > > > diff --git a/opensm/main.c b/opensm/main.c
+> > > > index 51c8291..a236859 100644
+> > > > --- a/opensm/main.c
+> > > > +++ b/opensm/main.c
+> > > > @@ -403,7 +403,7 @@ static void show_usage(void)
+> > > >  	exit(2);
+> > > >  }
+> > > >  
+> > > > -static ib_net64_t get_port_guid(IN osm_opensm_t * p_osm, uint64_t port_guid)
+> > > > +static ib_net64_t get_port_guid(IN osm_opensm_t *p_osm)
+> > > >  {
+> > > >  	ib_port_attr_t attr_array[MAX_LOCAL_IBPORTS];
+> > > >  	uint32_t num_ports = MAX_LOCAL_IBPORTS;
+> > > > @@ -436,21 +436,19 @@ static ib_net64_t get_port_guid(IN osm_opensm_t * p_osm, uint64_t port_guid)
+> > > >  		       cl_hton64(attr_array[0].port_guid));
+> > > >  		return attr_array[0].port_guid;
+> > > >  	}
+> > > > -	/* If port_guid is 0 - use the first connected port */
+> > > > -	if (port_guid == 0) {
+> > > > +	/* If in daemon mode autoselect first available port */
+> > > > +	if (p_osm->subn.opt.daemon) {
+> > > >  		for (i = 0; i < num_ports; i++)
+> > > >  			if (attr_array[i].link_state > IB_LINK_DOWN)
+> > > >  				break;
+> > > > +		/* No port found which is available */
+> > > >  		if (i == num_ports)
+> > > > -			i = 0;
+> > > > +			return 0;
+> > > >  		printf("Using default GUID 0x%" PRIx64 "\n",
+> > > >  		       cl_hton64(attr_array[i].port_guid));
+> > > >  		return attr_array[i].port_guid;
+> > > >  	}
+> > > >  
+> > > > -	if (p_osm->subn.opt.daemon)
+> > > > -		return 0;
+> > > > -
+> > > >  	/* More than one possible port - list all ports and let the user
+> > > >  	 * to choose. */
+> > > >  	while (1) {
+> > > > @@ -1106,10 +1104,12 @@ int main(int argc, char *argv[])
+> > > >  	   then get a port GUID value with which to bind.
+> > > >  	 */
+> > > >  	if (opt.guid == 0 || cl_hton64(opt.guid) == CL_HTON64(INVALID_GUID))
+> > > > -		opt.guid = get_port_guid(&osm, opt.guid);
+> > > > +		opt.guid = get_port_guid(&osm);
+> > > >  
+> > > > -	if (opt.guid == 0)
+> > > > +	if (opt.guid == 0) {
+> > > > +		printf("\nError: No available ports\n");
+> > > >  		goto Exit;
+> > > > +	}
+> > > >  
+> > > >  	status = osm_opensm_bind(&osm, opt.guid);
+> > > >  	if (status != IB_SUCCESS) {
+> > > > 
+> > > > -- 
+> > > > Goldwyn
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > 
+> > > -- 
+> > > 
+> > > -- Alex
+> > 
+> > -- 
+> > Goldwyn
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> 
+> -- Alex
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index b930da4..8722e96 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1399,6 +1399,9 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
-
-+	if (cmd.qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
-+		return -EPERM;
-+
- 	INIT_UDATA(&udata, buf + sizeof cmd,
- 		   (unsigned long) cmd.response + sizeof resp,
- 		   in_len - sizeof cmd, out_len - sizeof resp);
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 602b1bd..f73e15b 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -479,6 +479,7 @@ static const struct {
- 				[IB_QPT_UD]  = (IB_QP_PKEY_INDEX		|
- 						IB_QP_PORT			|
- 						IB_QP_QKEY),
-+				[IB_QPT_RAW_PACKET] = IB_QP_PORT,
- 				[IB_QPT_UC]  = (IB_QP_PKEY_INDEX		|
- 						IB_QP_PORT			|
- 						IB_QP_ACCESS_FLAGS),
-diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
-index 12f923d..07eb3a8 100644
---- a/drivers/infiniband/hw/amso1100/c2_provider.c
-+++ b/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -94,7 +94,7 @@ static int c2_query_port(struct ib_device *ibdev,
- 	props->pkey_tbl_len = 1;
- 	props->qkey_viol_cntr = 0;
- 	props->active_width = 1;
--	props->active_speed = 1;
-+	props->active_speed = IB_SPEED_SDR;
-
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 37c224f..0bdf09a 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1227,7 +1227,7 @@ static int iwch_query_port(struct ib_device *ibdev,
- 	props->gid_tbl_len = 1;
- 	props->pkey_tbl_len = 1;
- 	props->active_width = 2;
--	props->active_speed = 2;
-+	props->active_speed = IB_SPEED_DDR;
- 	props->max_msg_sz = -1;
-
- 	return 0;
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 247fe70..be1c18f 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -329,7 +329,7 @@ static int c4iw_query_port(struct ib_device *ibdev, u8 port,
- 	props->gid_tbl_len = 1;
- 	props->pkey_tbl_len = 1;
- 	props->active_width = 2;
--	props->active_speed = 2;
-+	props->active_speed = IB_SPEED_DDR;
- 	props->max_msg_sz = -1;
-
- 	return 0;
-diff --git a/drivers/infiniband/hw/ehca/ehca_hca.c b/drivers/infiniband/hw/ehca/ehca_hca.c
-index 73edc36..9ed4d25 100644
---- a/drivers/infiniband/hw/ehca/ehca_hca.c
-+++ b/drivers/infiniband/hw/ehca/ehca_hca.c
-@@ -233,7 +233,7 @@ int ehca_query_port(struct ib_device *ibdev,
- 		props->phys_state      = 5;
- 		props->state           = rblock->state;
- 		props->active_width    = IB_WIDTH_12X;
--		props->active_speed    = 0x1;
-+		props->active_speed    = IB_SPEED_SDR;
- 	}
-
- query_port1:
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 7b445df..6ff6bdf 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -215,16 +215,16 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
-
- 		switch (ext_active_speed) {
- 		case 1:
--			props->active_speed = 16; /* FDR */
-+			props->active_speed = IB_SPEED_FDR;
- 			break;
- 		case 2:
--			props->active_speed = 32; /* EDR */
-+			props->active_speed = IB_SPEED_EDR;
- 			break;
- 		}
- 	}
-
- 	/* If reported active speed is QDR, check if is FDR-10 */
--	if (props->active_speed == 4) {
-+	if (props->active_speed == IB_SPEED_QDR) {
- 		if (to_mdev(ibdev)->dev->caps.ext_port_cap[port] &
- 		    MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO) {
- 			init_query_mad(in_mad);
-@@ -238,7 +238,7 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
-
- 			/* Checking LinkSpeedActive for FDR-10 */
- 			if (out_mad->data[15] & 0x1)
--				props->active_speed = 8;
-+				props->active_speed = IB_SPEED_FDR10;
- 		}
- 	}
-
-@@ -259,7 +259,7 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 	enum ib_mtu tmp;
-
- 	props->active_width	= IB_WIDTH_1X;
--	props->active_speed	= 4;
-+	props->active_speed	= IB_SPEED_QDR;
- 	props->port_cap_flags	= IB_PORT_CM_SUP;
- 	props->gid_tbl_len	= to_mdev(ibdev)->dev->caps.gid_table_len[port];
- 	props->max_msg_sz	= to_mdev(ibdev)->dev->caps.max_msg_sz;
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index aa2aefa..3b434f8 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -84,6 +84,10 @@ enum {
- 	MLX4_IB_CACHE_LINE_SIZE	= 64,
- };
-
-+enum {
-+	IB_MTU_RAW_QP = 7,
-+};
-+
- static const __be32 mlx4_ib_opcode[] = {
- 	[IB_WR_SEND]				= cpu_to_be32(MLX4_OPCODE_SEND),
- 	[IB_WR_LSO]				= cpu_to_be32(MLX4_OPCODE_LSO),
-@@ -573,7 +577,12 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 	if (sqpn) {
- 		qpn = sqpn;
- 	} else {
--		err = mlx4_qp_reserve_range(dev->dev, 1, 1, &qpn);
-+		/* Raw packet QPNs must be aligned to 8 bits.
-+		   If not, the blueflame setup code runs over the vlan bits */
-+		if (init_attr->qp_type == IB_QPT_RAW_PACKET)
-+			err = mlx4_qp_reserve_range(dev->dev, 1, 1 << 8, &qpn);
-+		else
-+			err = mlx4_qp_reserve_range(dev->dev, 1, 1, &qpn);
- 		if (err)
- 			goto err_wrid;
- 	}
-@@ -791,6 +800,7 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
- 	case IB_QPT_RC:
- 	case IB_QPT_UC:
- 	case IB_QPT_UD:
-+	case IB_QPT_RAW_PACKET:
- 	{
- 		qp = kzalloc(sizeof *qp, GFP_KERNEL);
- 		if (!qp)
-@@ -872,7 +882,8 @@ static int to_mlx4_st(enum ib_qp_type type)
- 	case IB_QPT_XRC_INI:
- 	case IB_QPT_XRC_TGT:	return MLX4_QP_ST_XRC;
- 	case IB_QPT_SMI:
--	case IB_QPT_GSI:	return MLX4_QP_ST_MLX;
-+	case IB_QPT_GSI:
-+	case IB_QPT_RAW_PACKET:	return MLX4_QP_ST_MLX;
- 	default:		return -1;
- 	}
- }
-@@ -1039,8 +1050,9 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 			break;
- 		}
- 	}
--
--	if (ibqp->qp_type == IB_QPT_GSI || ibqp->qp_type == IB_QPT_SMI)
-+	if (ibqp->qp_type == IB_QPT_RAW_PACKET)
-+		context->mtu_msgmax = (IB_MTU_RAW_QP << 5) | 31;
-+	else if (ibqp->qp_type == IB_QPT_GSI || ibqp->qp_type == IB_QPT_SMI)
- 		context->mtu_msgmax = (IB_MTU_4096 << 5) | 11;
- 	else if (ibqp->qp_type == IB_QPT_UD) {
- 		if (qp->flags & MLX4_IB_QP_LSO)
-@@ -1200,7 +1212,8 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	if (cur_state == IB_QPS_INIT &&
- 	    new_state == IB_QPS_RTR  &&
- 	    (ibqp->qp_type == IB_QPT_GSI || ibqp->qp_type == IB_QPT_SMI ||
--	     ibqp->qp_type == IB_QPT_UD)) {
-+	     ibqp->qp_type == IB_QPT_UD ||
-+	     ibqp->qp_type == IB_QPT_RAW_PACKET)) {
- 		context->pri_path.sched_queue = (qp->port - 1) << 6;
- 		if (is_qp0(dev, qp))
- 			context->pri_path.sched_queue |= MLX4_IB_DEFAULT_QP0_SCHED_QUEUE;
-@@ -1319,6 +1332,14 @@ int mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		goto out;
- 	}
-
-+	if ((attr_mask & IB_QP_PORT) && (ibqp->qp_type == IB_QPT_RAW_PACKET) &&
-+		(rdma_port_get_link_layer(&dev->ib_dev, attr->port_num)
-+				!= IB_LINK_LAYER_ETHERNET)) {
-+		printk(KERN_WARNING "mlx4_ib: RAW PACKET QPs can "
-+			"only be used over Ethernet ports\n");
-+		goto out;
-+	}
-+
- 	if (attr_mask & IB_QP_PKEY_INDEX) {
- 		int p = attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
- 		if (attr->pkey_index >= dev->dev->caps.pkey_table_len[p])
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 5095bc4..b7b9c85 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -597,7 +597,7 @@ static int nes_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr
- 	props->pkey_tbl_len = 1;
- 	props->qkey_viol_cntr = 0;
- 	props->active_width = IB_WIDTH_4X;
--	props->active_speed = 1;
-+	props->active_speed = IB_SPEED_SDR;
- 	props->max_msg_sz = 0x80000000;
-
- 	return 0;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index bf5daaf..857dbd5 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -239,6 +239,15 @@ static inline int ib_width_enum_to_int(enum ib_port_width width)
- 	}
- }
-
-+enum ib_port_speed {
-+	IB_SPEED_SDR	= 1,
-+	IB_SPEED_DDR	= 2,
-+	IB_SPEED_QDR	= 4,
-+	IB_SPEED_FDR10	= 8,
-+	IB_SPEED_FDR	= 16,
-+	IB_SPEED_EDR	= 32
-+};
-+
- struct ib_protocol_stats {
- 	/* TBD... */
- };
-@@ -596,7 +605,7 @@ enum ib_qp_type {
- 	IB_QPT_UD,
- 	IB_QPT_RAW_IPV6,
- 	IB_QPT_RAW_ETHERTYPE,
--	/* Save 8 for RAW_PACKET */
-+ 	IB_QPT_RAW_PACKET = 8,
- 	IB_QPT_XRC_INI = 9,
- 	IB_QPT_XRC_TGT,
- 	IB_QPT_MAX
 -- 
-1.7.1
-
+Goldwyn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
