@@ -1,38 +1,32 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ibv_req_notify_cq and multithreading
-Date: Thu, 12 Jan 2012 15:52:34 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237325676B8F@ORSMSX101.amr.corp.intel.com>
-References: <4F0EC562.2040709@list-group.com>
+From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: Send with immediate data completion
+Date: Thu, 12 Jan 2012 10:57:14 -0500
+Message-ID: <DC666D1E-6636-4E1A-BF5D-5D42F73A7516@ornl.gov>
+References: <1828884A29C6694DAF28B7E6B8A82373256758E5@ORSMSX101.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A823732567591B@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F0EC562.2040709-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732567591B-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I'm trying to have N threads reading from the same completion channel, bounded
-> to M completion queues. I would like to
-> have N << M, and to ensure that only a single thread at time can call
-> ibv_poll_cq() on a given queue, to process the
-> events in the same order they were put in the queue.
-> 
-> I can't understand how to properly achieve this, since:
-> 1- If I call ibv_req_notify_cq() before ibv_poll_cq(), I might end up with two
-> threads polling the same queue.
-> 2- If I call ibv_req_notify_cq() after ibv_poll_cq(), I could end up with
-> events in the cq not being notified in the
-> channel (I read this on the IBTA 11.4.2.2, and I *think* I actually
-> experienced this under load).
-> 
-> I can use option 1 with an additional lock before ibv_req_notify_cq(), but I
-> would like to know if there is a simpler
-> way which I can't see.
+On Jan 11, 2012, at 5:22 PM, Hefty, Sean wrote:
 
-I can't think of a simpler way.  You just don't have any idea which CQ will be returned from the completion channel.  Does your traffic pattern work to create N completion channels and distributed the CQs among them?
---
+>> I'm still waiting on feedback from the IBTA, but they are looking into the
+>> matter.
+> 
+> The intent is for immediate data only to be provided on receive work completions.  The IBTA will clarify the spec on this.  I'll submit patches that remove setting the wc flag, which may help avoid this confusion some.
+
+Sean,
+
+Thanks for looking into this.
+
+Scott--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
