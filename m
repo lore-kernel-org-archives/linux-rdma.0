@@ -1,61 +1,61 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: endian question about struct srp_direct_buf
-Date: Thu, 12 Jan 2012 12:52:49 +0100
-Message-ID: <CAO+b5-q5UrjL9YUg5gvN4PUVBzGtjLh8rD6M-sTDYK0YA46wXA@mail.gmail.com>
-References: <20120112114122.GA29021@elgon.mountain>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm: fixed segfault in osm_destroy
+Date: Thu, 12 Jan 2012 16:14:35 +0200
+Message-ID: <20120112141435.GC6571@calypso>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120112114122.GA29021-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dale Purdy <purdy-sJ/iWh9BUns@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 12, 2012 at 12:41 PM, Dan Carpenter
-<dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> Sparse complains because len in struct srp_direct_buf is declared as
-> big endian but it's used throughout as CPU endian. =A0struct
-> srp_indirect_buf has the same thing. =A0It's declared one way but use=
-d the
-> other way.
->
-> $ grep -w len drivers/scsi -R | grep -w md
-> drivers/scsi/ibmvscsi/ibmvfc.c: =A0 =A0 =A0 =A0 md[i].len =3D sg_dma_=
-len(sg);
-> drivers/scsi/ibmvscsi/ibmvstgt.c: =A0 =A0 =A0 =A0 =A0 =A0 =A0 mlen =3D=
- min(rest, md[i].len);
-> drivers/scsi/libsrp.c: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0md->len, sc=
-si_sg_count(sc));
-> drivers/scsi/libsrp.c: =A0 =A0 =A0 =A0 =A0len =3D min(scsi_bufflen(sc=
-), md->len);
-> drivers/scsi/libsrp.c: =A0 =A0 =A0 =A0 =A0len =3D md->len;
-> drivers/scsi/libsrp.c: =A0err =3D rdma_io(sc, sg, nsg, md, 1, dir, le=
-n);
-> drivers/scsi/libsrp.c: =A0 =A0 =A0 =A0 =A0md =3D dma_alloc_coherent(i=
-ue->target->dev, id->table_desc.len,
-> drivers/scsi/libsrp.c: =A0 =A0 =A0 =A0 =A0sg_init_one(&dummy, md, id-=
->table_desc.len);
-> drivers/scsi/libsrp.c: =A0err =3D rdma_io(sc, sg, nsg, md, nmd, dir, =
-len);
-> drivers/scsi/libsrp.c: =A0 =A0 =A0 =A0 =A0dma_free_coherent(iue->targ=
-et->dev, id->table_desc.len, md, token);
-> drivers/scsi/libsrp.c: =A0 =A0 =A0 =A0 =A0len =3D md->len;
->
-> Probably we should just change the declaration to u32?
+Fixed segfault in osm_destroy() when hop_weights_file,
+port_search_ordering_file or io_guid_file are configured.
 
-(resending as plain text)
+The segfault introduced by d71a924736707400bed47a3c69395cf864c970bb.
 
-No. The SRP spec says that that field is big endian and the ib_srp
-driver uses that field as a big endian field. The output above (libsrp
-+ ibmvstgt) is code that is used by the ibmvstgt driver only, and the
-reason that driver works fine without endianness conversion is because
-it is only used on PowerPC systems.
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/main.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Bart.
+diff --git a/opensm/main.c b/opensm/main.c
+index 3edc52f..c75d220 100644
+--- a/opensm/main.c
++++ b/opensm/main.c
+@@ -724,13 +724,13 @@ int main(int argc, char *argv[])
+ 			break;
+ 
+ 		case 'w':
+-			opt.hop_weights_file = optarg;
++			SET_STR_OPT(opt.hop_weights_file, optarg);
+ 			printf(" Hop Weights File = %s\n",
+ 			       opt.hop_weights_file);
+ 			break;
+ 
+ 		case 'O':
+-			opt.port_search_ordering_file = optarg;
++			SET_STR_OPT(opt.port_search_ordering_file, optarg);
+ 			printf(" Port Search Ordering/Dimension Ports File = %s\n",
+ 			       opt.port_search_ordering_file);
+ 			break;
+@@ -959,7 +959,7 @@ int main(int argc, char *argv[])
+ 			break;
+ 
+ 		case 'G':
+-			opt.io_guid_file = optarg;
++			SET_STR_OPT(opt.io_guid_file, optarg);
+ 			printf(" I/O Node Guid File: %s\n", opt.io_guid_file);
+ 			break;
+ 		case 11:
+-- 
+1.7.1
+
+-- 
+
+-- Alex
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
