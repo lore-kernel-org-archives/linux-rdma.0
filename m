@@ -1,39 +1,37 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Leak in rdma_get_cm_event on pthread_cancel?
-Date: Fri, 13 Jan 2012 10:59:25 -0700
-Message-ID: <20120113175925.GE6798@obsidianresearch.com>
-References: <4F101978.6010608@list-group.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/13] DAPL v2.0: common: CR EVD overflow causes segfault.
+Date: Fri, 13 Jan 2012 23:54:42 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F92AF8095F@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4F101978.6010608-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 13, 2012 at 12:46:00PM +0100, Flavio Baronti wrote:
-> When I want to stop the thread reading rdma events, I kill it with a
-> pthread_cancel(), since it is blocked in a rdma_get_cm_event(). This
-> causes a leak of the evt variable in the rdma_get_cm_event()
-> function. Not a big deal, of course, but a couple of
-> pthread_cleanup_push(free, evt) and pthread_cleanup_pop() should
-> solve it.
-
-None of the IB libraries have been audited for posix async cancellation
-safety.
-
-To do this work someone would have to review every call to determine
-if it is a cancelation point, and document this as part of the API.
-
-Then review if any of the internal cancelation points in the
-cancelable functions require a resource clean up, and add it.
-
-IHMO, cancelation should not be used with threads that call into the
-ib libraries.
-
-Jason
+Q2xlYW4gdXAgQnVnemlsbGEgYnVncy4gUGF0Y2ggc2V0IHJlc3VsdGluZyBmcm9tIG5lZ2F0aXZl
+IHRlc3Rpbmcgb2YgY29ubmVjdGlvbg0KcHJvdG9jb2wgYW5kIERBVCBpbnRlcmZhY2VzIGZvciBh
+bGwgT3BlbkZhYnJpY3MgREFQTCBwcm92aWRlcnMgKGNtYSwgc2NtLCB1Y20pLiANCg0KVGhlIENS
+IGlzIGZyZWVkIHVwIGluY29ycmVjdGx5IGJlZm9yZSB1bmxpbmtpbmcgd2l0aCBTUC4NCg0KU2ln
+bmVkLW9mZi1ieTogQXJsaW4gRGF2aXMgPGFybGluLnIuZGF2aXNAaW50ZWwuY29tPg0KLS0tDQog
+ZGFwbC9jb21tb24vZGFwbF9jcl9jYWxsYmFjay5jIHwgICAgMiArLQ0KIDEgZmlsZXMgY2hhbmdl
+ZCwgMSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZGFwbC9j
+b21tb24vZGFwbF9jcl9jYWxsYmFjay5jIGIvZGFwbC9jb21tb24vZGFwbF9jcl9jYWxsYmFjay5j
+DQppbmRleCAzOTk3YjM4Li5jNTg0NDRiIDEwMDY0NA0KLS0tIGEvZGFwbC9jb21tb24vZGFwbF9j
+cl9jYWxsYmFjay5jDQorKysgYi9kYXBsL2NvbW1vbi9kYXBsX2NyX2NhbGxiYWNrLmMNCkBAIC00
+MTQsNyArNDE0LDYgQEAgZGFwbGlfY29ubmVjdGlvbl9yZXF1ZXN0KElOIGRwX2liX2NtX2hhbmRs
+ZV90IGliX2NtX2hhbmRsZSwNCiAJCQkJCQkgICAgIChEQVRfQ1JfSEFORExFKSBjcl9wdHIpOw0K
+IA0KIAlpZiAoZGF0X3N0YXR1cyAhPSBEQVRfU1VDQ0VTUykgew0KLQkJZGFwbHNfY3JfZnJlZShj
+cl9wdHIpOw0KIAkJKHZvaWQpZGFwbHNfaWJfcmVqZWN0X2Nvbm5lY3Rpb24oaWJfY21faGFuZGxl
+LA0KIAkJCQkJCSBEQVRfQ09OTkVDVElPTl9FVkVOVF9CUk9LRU4sDQogCQkJCQkJIDAsIE5VTEwp
+Ow0KQEAgLTQyMyw2ICs0MjIsNyBAQCBkYXBsaV9jb25uZWN0aW9uX3JlcXVlc3QoSU4gZHBfaWJf
+Y21faGFuZGxlX3QgaWJfY21faGFuZGxlLA0KIAkJZGFwbF9vc19sb2NrKCZzcF9wdHItPmhlYWRl
+ci5sb2NrKTsNCiAJCWRhcGxfc3BfcmVtb3ZlX2NyKHNwX3B0ciwgY3JfcHRyKTsNCiAJCWRhcGxf
+b3NfdW5sb2NrKCZzcF9wdHItPmhlYWRlci5sb2NrKTsNCisJCWRhcGxzX2NyX2ZyZWUoY3JfcHRy
+KTsNCiAJCXJldHVybiBEQVRfSU5TVUZGSUNJRU5UX1JFU09VUkNFUzsNCiAJfQ0KIA0KLS0gDQox
+LjcuMw0KDQoNCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
