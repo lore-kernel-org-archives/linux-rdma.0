@@ -1,36 +1,20 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: RDMA/nes: Add support for MPAv2 Enhanced RDMA Negotiation
-Date: Fri, 13 Jan 2012 13:05:24 +0300
-Message-ID: <20120113100524.GA26353@elgon.mountain>
+From: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
+Subject: Leak in rdma_get_cm_event on pthread_cancel?
+Date: Fri, 13 Jan 2012 12:46:00 +0100
+Message-ID: <4F101978.6010608@list-group.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Tatyana Nikolova,
+When I want to stop the thread reading rdma events, I kill it with a pthread_cancel(), since it is blocked in a 
+rdma_get_cm_event(). This causes a leak of the evt variable in the rdma_get_cm_event() function. Not a big deal, of 
+course, but a couple of pthread_cleanup_push(free, evt) and pthread_cleanup_pop() should solve it.
 
-The patch 615eb715ae10: "RDMA/nes: Add support for MPAv2 Enhanced 
-RDMA Negotiation" from Sep 25, 2011, leads to a number of endian
-warnings.
-
-For example, struct ietf_rtr_msg is declared as holding big endian
-values, but it's used to hold cpu endian values.
-
-+struct ietf_rtr_msg {
-+       __be16 ctrl_ird;
-+       __be16 ctrl_ord;
-+};
-
-Sparse can find many of these problems automatically.  Lwn had an
-article on how that works.  http://lwn.net/Articles/205624/
-
-regards,
-dan carpenter
-
+Flavio
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
