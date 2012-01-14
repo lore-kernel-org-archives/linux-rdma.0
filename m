@@ -1,66 +1,230 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 00/18, v2] Make ib_srp better suited for H.A. purposes
-Date: Sat, 14 Jan 2012 12:36 +0000
-Message-ID: <3109536.qySrY1Ts3e@asus>
+Subject: [PATCH 01/18] ib_srp: Introduce pr_fmt()
+Date: Sat, 14 Jan 2012 12:39:44 +0000
+Message-ID: <2235456.14ddII0dbk@asus>
+References: <3109536.qySrY1Ts3e@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3109536.qySrY1Ts3e@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series makes the ib_srp driver better suited for use in a H.A.
-setup because:
-- Switchover without triggering read or write errors become possible. Such
-  errors are bad because these can make a filesystem switch to read-only
-  mode.
-- A ping mechanism has been added that allows to reduce the switch-over
-  time.
-- Disconnecting from a target without unloading ib_srp becomes possible.
-- Switchover can be triggered explicitly by deleting an initiator device.
+Make the logging code a little more brief by replacing
+printk(KERN_WARNING PFX ...) by pr_warn(...) and by replacing
+printk(KERN_ERR PFX ...) by pr_err(...).  Join log messages
+split over multiple lines into a single line to make it easier
+to grep for these messages. Change the severity of the log
+statement in srp_qp_event() from "error" to "debug". Change a
+double space into a single in the "bad IO class parameter" error
+message. Remove one trailing space to avoid a checkpatch warning.
 
-Changes since v1:
-- Switched from iSCSI-style sysfs parameters to FC-style sysfs parameters
-  (fast_io_fail_tmo and dev_loss_tmo).
-- Restored the original behavior of "add_target": a second login to a target
-  is again allowed and also stops error recovery for previously created
-  sessions.
-- Changed srp_disconnect_target() such that it waits for the last completion
-  after a disconnect.
-- Moved code for enlarging block layer timeout from srp_slave_alloc() to
-  srp_slave_configure(), and moved that function to after srp_reset_host().
-  Also addressed Dave's other comments to the code for enlarging the
-  timeout value.
-- Split the "ib_srp: Rework error handling" patch in three separate patches to
-  make reviewing easier.
-- Added a patch that slightly improves ib_srp performance.
-- Made comment more detailed of patch 09/14 "srp_transport: Fix attribute
-  registration"
-- Merged multiline log strings into a single line.
-- Dropped patch 05/14 "ib_srp: Avoid that late SRP replies cause trouble".
-- Implemented several other small changes.
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |   54 ++++++++++++++++++----------------
+ 1 files changed, 29 insertions(+), 25 deletions(-)
 
-The individual patches are:
-0001-ib_srp-Introduce-pr_fmt.patch
-0002-ib_srp-Consolidate-repetitive-sysfs-code.patch
-0003-ib_srp-Enlarge-block-layer-timeout.patch
-0004-ib_srp-Micro-optimize-completion-handlers.patch
-0005-ib_srp-Separate-connection-and-host-state.patch
-0006-ib_srp-Wait-for-last-completion-when-disconnecting.patch
-0007-ib_srp-Introduce-three-helper-functions.patch
-0008-ib_srp-Eliminate-state-SRP_TARGET_DEAD.patch
-0009-srp_transport-Fix-atttribute-registration.patch
-0010-srp_transport-Simplify-attribute-initialization-code.patch
-0011-srp_transport-Document-sysfs-attributes.patch
-0012-ib_srp-Document-sysfs-attributes.patch
-0013-ib_srp-Allow-SRP-disconnect-through-sysfs.patch
-0014-ib_srp-Move-target-port-removal-code.patch
-0015-ib_srp-Maintain-a-single-connection-per-I_T-nexus.patch
-0016-scsi-Add-scsi_host_template.slave_delete-callback.patch
-0017-srp_transport-Add-transport-layer-recovery-support.patch
-0018-ib_srp-Rework-error-handling.patch
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 0bfa545..895a9ff 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -30,6 +30,8 @@
+  * SOFTWARE.
+  */
+ 
++#define pr_fmt(fmt) PFX fmt
++
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+@@ -165,7 +167,7 @@ static void srp_free_iu(struct srp_host *host, struct srp_iu *iu)
+ 
+ static void srp_qp_event(struct ib_event *event, void *context)
+ {
+-	printk(KERN_ERR PFX "QP event %d\n", event->event);
++	pr_debug("QP event %d\n", event->event);
+ }
+ 
+ static int srp_init_qp(struct srp_target_port *target,
+@@ -1989,7 +1991,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 				goto out;
+ 			}
+ 			if (strlen(p) != 32) {
+-				printk(KERN_WARNING PFX "bad dest GID parameter '%s'\n", p);
++				pr_warn("bad dest GID parameter '%s'\n", p);
+ 				kfree(p);
+ 				goto out;
+ 			}
+@@ -2004,7 +2006,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 
+ 		case SRP_OPT_PKEY:
+ 			if (match_hex(args, &token)) {
+-				printk(KERN_WARNING PFX "bad P_Key parameter '%s'\n", p);
++				pr_warn("bad P_Key parameter '%s'\n", p);
+ 				goto out;
+ 			}
+ 			target->path.pkey = cpu_to_be16(token);
+@@ -2023,7 +2025,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 
+ 		case SRP_OPT_MAX_SECT:
+ 			if (match_int(args, &token)) {
+-				printk(KERN_WARNING PFX "bad max sect parameter '%s'\n", p);
++				pr_warn("bad max sect parameter '%s'\n", p);
+ 				goto out;
+ 			}
+ 			target->scsi_host->max_sectors = token;
+@@ -2031,7 +2033,8 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 
+ 		case SRP_OPT_MAX_CMD_PER_LUN:
+ 			if (match_int(args, &token)) {
+-				printk(KERN_WARNING PFX "bad max cmd_per_lun parameter '%s'\n", p);
++				pr_warn("bad max cmd_per_lun parameter '%s'\n",
++					p);
+ 				goto out;
+ 			}
+ 			target->scsi_host->cmd_per_lun = min(token, SRP_CMD_SQ_SIZE);
+@@ -2039,14 +2042,14 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 
+ 		case SRP_OPT_IO_CLASS:
+ 			if (match_hex(args, &token)) {
+-				printk(KERN_WARNING PFX "bad  IO class parameter '%s' \n", p);
++				pr_warn("bad IO class parameter '%s'\n", p);
+ 				goto out;
+ 			}
+ 			if (token != SRP_REV10_IB_IO_CLASS &&
+ 			    token != SRP_REV16A_IB_IO_CLASS) {
+-				printk(KERN_WARNING PFX "unknown IO class parameter value"
+-				       " %x specified (use %x or %x).\n",
+-				       token, SRP_REV10_IB_IO_CLASS, SRP_REV16A_IB_IO_CLASS);
++				pr_warn("unknown IO class parameter value %x specified (use %x or %x).\n",
++					token, SRP_REV10_IB_IO_CLASS,
++					SRP_REV16A_IB_IO_CLASS);
+ 				goto out;
+ 			}
+ 			target->io_class = token;
+@@ -2064,7 +2067,8 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 
+ 		case SRP_OPT_CMD_SG_ENTRIES:
+ 			if (match_int(args, &token) || token < 1 || token > 255) {
+-				printk(KERN_WARNING PFX "bad max cmd_sg_entries parameter '%s'\n", p);
++				pr_warn("bad max cmd_sg_entries parameter '%s'\n",
++					p);
+ 				goto out;
+ 			}
+ 			target->cmd_sg_cnt = token;
+@@ -2072,7 +2076,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 
+ 		case SRP_OPT_ALLOW_EXT_SG:
+ 			if (match_int(args, &token)) {
+-				printk(KERN_WARNING PFX "bad allow_ext_sg parameter '%s'\n", p);
++				pr_warn("bad allow_ext_sg parameter '%s'\n", p);
+ 				goto out;
+ 			}
+ 			target->allow_ext_sg = !!token;
+@@ -2081,15 +2085,16 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 		case SRP_OPT_SG_TABLESIZE:
+ 			if (match_int(args, &token) || token < 1 ||
+ 					token > SCSI_MAX_SG_CHAIN_SEGMENTS) {
+-				printk(KERN_WARNING PFX "bad max sg_tablesize parameter '%s'\n", p);
++				pr_warn("bad max sg_tablesize parameter '%s'\n",
++					p);
+ 				goto out;
+ 			}
+ 			target->sg_tablesize = token;
+ 			break;
+ 
+ 		default:
+-			printk(KERN_WARNING PFX "unknown parameter or missing value "
+-			       "'%s' in target creation request\n", p);
++			pr_warn("unknown parameter or missing value '%s' in target creation request\n",
++				p);
+ 			goto out;
+ 		}
+ 	}
+@@ -2100,9 +2105,8 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 		for (i = 0; i < ARRAY_SIZE(srp_opt_tokens); ++i)
+ 			if ((srp_opt_tokens[i].token & SRP_OPT_ALL) &&
+ 			    !(srp_opt_tokens[i].token & opt_mask))
+-				printk(KERN_WARNING PFX "target creation request is "
+-				       "missing parameter '%s'\n",
+-				       srp_opt_tokens[i].pattern);
++				pr_warn("target creation request is missing parameter '%s'\n",
++					srp_opt_tokens[i].pattern);
+ 
+ out:
+ 	kfree(options);
+@@ -2149,7 +2153,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 
+ 	if (!host->srp_dev->fmr_pool && !target->allow_ext_sg &&
+ 				target->cmd_sg_cnt < target->sg_tablesize) {
+-		printk(KERN_WARNING PFX "No FMR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
++		pr_warn("No FMR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
+ 		target->sg_tablesize = target->cmd_sg_cnt;
+ 	}
+ 
+@@ -2309,8 +2313,7 @@ static void srp_add_one(struct ib_device *device)
+ 		return;
+ 
+ 	if (ib_query_device(device, dev_attr)) {
+-		printk(KERN_WARNING PFX "Query device failed for %s\n",
+-		       device->name);
++		pr_warn("Query device failed for %s\n", device->name);
+ 		goto free_attr;
+ 	}
+ 
+@@ -2459,7 +2462,7 @@ static int __init srp_init_module(void)
+ 	BUILD_BUG_ON(FIELD_SIZEOF(struct ib_wc, wr_id) < sizeof(void *));
+ 
+ 	if (srp_sg_tablesize) {
+-		printk(KERN_WARNING PFX "srp_sg_tablesize is deprecated, please use cmd_sg_entries\n");
++		pr_warn("srp_sg_tablesize is deprecated, please use cmd_sg_entries\n");
+ 		if (!cmd_sg_entries)
+ 			cmd_sg_entries = srp_sg_tablesize;
+ 	}
+@@ -2468,14 +2471,15 @@ static int __init srp_init_module(void)
+ 		cmd_sg_entries = SRP_DEF_SG_TABLESIZE;
+ 
+ 	if (cmd_sg_entries > 255) {
+-		printk(KERN_WARNING PFX "Clamping cmd_sg_entries to 255\n");
++		pr_warn("Clamping cmd_sg_entries to 255\n");
+ 		cmd_sg_entries = 255;
+ 	}
+ 
+ 	if (!indirect_sg_entries)
+ 		indirect_sg_entries = cmd_sg_entries;
+ 	else if (indirect_sg_entries < cmd_sg_entries) {
+-		printk(KERN_WARNING PFX "Bumping up indirect_sg_entries to match cmd_sg_entries (%u)\n", cmd_sg_entries);
++		pr_warn("Bumping up indirect_sg_entries to match cmd_sg_entries (%u)\n",
++			cmd_sg_entries);
+ 		indirect_sg_entries = cmd_sg_entries;
+ 	}
+ 
+@@ -2486,7 +2490,7 @@ static int __init srp_init_module(void)
+ 
+ 	ret = class_register(&srp_class);
+ 	if (ret) {
+-		printk(KERN_ERR PFX "couldn't register class infiniband_srp\n");
++		pr_err("couldn't register class infiniband_srp\n");
+ 		srp_release_transport(ib_srp_transport_template);
+ 		return ret;
+ 	}
+@@ -2495,7 +2499,7 @@ static int __init srp_init_module(void)
+ 
+ 	ret = ib_register_client(&srp_client);
+ 	if (ret) {
+-		printk(KERN_ERR PFX "couldn't register IB client\n");
++		pr_err("couldn't register IB client\n");
+ 		srp_release_transport(ib_srp_transport_template);
+ 		ib_sa_unregister_client(&srp_sa_client);
+ 		class_unregister(&srp_class);
+-- 
+1.7.7
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
