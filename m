@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 01/18] ib_srp: Introduce pr_fmt()
-Date: Sat, 14 Jan 2012 12:39:44 +0000
-Message-ID: <2235456.14ddII0dbk@asus>
+Subject: [PATCH 02/18] ib_srp: Consolidate repetitive sysfs code
+Date: Sat, 14 Jan 2012 12:40:44 +0000
+Message-ID: <1500127.hxDoVn5zlk@asus>
 References: <3109536.qySrY1Ts3e@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,215 +13,148 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Make the logging code a little more brief by replacing
-printk(KERN_WARNING PFX ...) by pr_warn(...) and by replacing
-printk(KERN_ERR PFX ...) by pr_err(...).  Join log messages
-split over multiple lines into a single line to make it easier
-to grep for these messages. Change the severity of the log
-statement in srp_qp_event() from "error" to "debug". Change a
-double space into a single in the "bad IO class parameter" error
-message. Remove one trailing space to avoid a checkpatch warning.
+Remove sysfs attributes before removing a target instead of
+testing the target state in every sysfs attribute callback
+method. Note: it is safe to invoke a sysfs attribute removal
+method like device_remove_file() twice on the same attribute.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   54 ++++++++++++++++++----------------
- 1 files changed, 29 insertions(+), 25 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   49 ++++++++++++----------------------
+ 1 files changed, 17 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 0bfa545..895a9ff 100644
+index 895a9ff..bcbf22e 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -30,6 +30,8 @@
-  * SOFTWARE.
-  */
- 
-+#define pr_fmt(fmt) PFX fmt
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-@@ -165,7 +167,7 @@ static void srp_free_iu(struct srp_host *host, struct srp_iu *iu)
- 
- static void srp_qp_event(struct ib_event *event, void *context)
- {
--	printk(KERN_ERR PFX "QP event %d\n", event->event);
-+	pr_debug("QP event %d\n", event->event);
+@@ -474,6 +474,21 @@ static void srp_free_req_data(struct srp_target_port *target)
+ 	}
  }
  
- static int srp_init_qp(struct srp_target_port *target,
-@@ -1989,7 +1991,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				goto out;
- 			}
- 			if (strlen(p) != 32) {
--				printk(KERN_WARNING PFX "bad dest GID parameter '%s'\n", p);
-+				pr_warn("bad dest GID parameter '%s'\n", p);
- 				kfree(p);
- 				goto out;
- 			}
-@@ -2004,7 +2006,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
++/**
++ * srp_del_scsi_host_attr() - Remove attributes defined in the host template.
++ * @shost: SCSI host whose attributes to remove from sysfs.
++ *
++ * Note: Any attributes defined in the host template and that did not exist
++ * before invocation of this function will be ignored.
++ */
++static void srp_del_scsi_host_attr(struct Scsi_Host *shost)
++{
++	struct device_attribute **attr;
++
++	for (attr = shost->hostt->shost_attrs; attr && *attr; ++attr)
++		device_remove_file(&shost->shost_dev, *attr);
++}
++
+ static void srp_remove_work(struct work_struct *work)
+ {
+ 	struct srp_target_port *target =
+@@ -486,6 +501,7 @@ static void srp_remove_work(struct work_struct *work)
+ 	list_del(&target->list);
+ 	spin_unlock(&target->srp_host->target_lock);
  
- 		case SRP_OPT_PKEY:
- 			if (match_hex(args, &token)) {
--				printk(KERN_WARNING PFX "bad P_Key parameter '%s'\n", p);
-+				pr_warn("bad P_Key parameter '%s'\n", p);
- 				goto out;
- 			}
- 			target->path.pkey = cpu_to_be16(token);
-@@ -2023,7 +2025,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
++	srp_del_scsi_host_attr(target->scsi_host);
+ 	srp_remove_host(target->scsi_host);
+ 	scsi_remove_host(target->scsi_host);
+ 	ib_destroy_cm_id(target->cm_id);
+@@ -1678,10 +1694,6 @@ static ssize_t show_id_ext(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
  
- 		case SRP_OPT_MAX_SECT:
- 			if (match_int(args, &token)) {
--				printk(KERN_WARNING PFX "bad max sect parameter '%s'\n", p);
-+				pr_warn("bad max sect parameter '%s'\n", p);
- 				goto out;
- 			}
- 			target->scsi_host->max_sectors = token;
-@@ -2031,7 +2033,8 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
+-		return -ENODEV;
+-
+ 	return sprintf(buf, "0x%016llx\n",
+ 		       (unsigned long long) be64_to_cpu(target->id_ext));
+ }
+@@ -1691,10 +1703,6 @@ static ssize_t show_ioc_guid(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
  
- 		case SRP_OPT_MAX_CMD_PER_LUN:
- 			if (match_int(args, &token)) {
--				printk(KERN_WARNING PFX "bad max cmd_per_lun parameter '%s'\n", p);
-+				pr_warn("bad max cmd_per_lun parameter '%s'\n",
-+					p);
- 				goto out;
- 			}
- 			target->scsi_host->cmd_per_lun = min(token, SRP_CMD_SQ_SIZE);
-@@ -2039,14 +2042,14 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
+-		return -ENODEV;
+-
+ 	return sprintf(buf, "0x%016llx\n",
+ 		       (unsigned long long) be64_to_cpu(target->ioc_guid));
+ }
+@@ -1704,10 +1712,6 @@ static ssize_t show_service_id(struct device *dev,
+ {
+ 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
  
- 		case SRP_OPT_IO_CLASS:
- 			if (match_hex(args, &token)) {
--				printk(KERN_WARNING PFX "bad  IO class parameter '%s' \n", p);
-+				pr_warn("bad IO class parameter '%s'\n", p);
- 				goto out;
- 			}
- 			if (token != SRP_REV10_IB_IO_CLASS &&
- 			    token != SRP_REV16A_IB_IO_CLASS) {
--				printk(KERN_WARNING PFX "unknown IO class parameter value"
--				       " %x specified (use %x or %x).\n",
--				       token, SRP_REV10_IB_IO_CLASS, SRP_REV16A_IB_IO_CLASS);
-+				pr_warn("unknown IO class parameter value %x specified (use %x or %x).\n",
-+					token, SRP_REV10_IB_IO_CLASS,
-+					SRP_REV16A_IB_IO_CLASS);
- 				goto out;
- 			}
- 			target->io_class = token;
-@@ -2064,7 +2067,8 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
+-		return -ENODEV;
+-
+ 	return sprintf(buf, "0x%016llx\n",
+ 		       (unsigned long long) be64_to_cpu(target->service_id));
+ }
+@@ -1717,10 +1721,6 @@ static ssize_t show_pkey(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
  
- 		case SRP_OPT_CMD_SG_ENTRIES:
- 			if (match_int(args, &token) || token < 1 || token > 255) {
--				printk(KERN_WARNING PFX "bad max cmd_sg_entries parameter '%s'\n", p);
-+				pr_warn("bad max cmd_sg_entries parameter '%s'\n",
-+					p);
- 				goto out;
- 			}
- 			target->cmd_sg_cnt = token;
-@@ -2072,7 +2076,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
+-		return -ENODEV;
+-
+ 	return sprintf(buf, "0x%04x\n", be16_to_cpu(target->path.pkey));
+ }
  
- 		case SRP_OPT_ALLOW_EXT_SG:
- 			if (match_int(args, &token)) {
--				printk(KERN_WARNING PFX "bad allow_ext_sg parameter '%s'\n", p);
-+				pr_warn("bad allow_ext_sg parameter '%s'\n", p);
- 				goto out;
- 			}
- 			target->allow_ext_sg = !!token;
-@@ -2081,15 +2085,16 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 		case SRP_OPT_SG_TABLESIZE:
- 			if (match_int(args, &token) || token < 1 ||
- 					token > SCSI_MAX_SG_CHAIN_SEGMENTS) {
--				printk(KERN_WARNING PFX "bad max sg_tablesize parameter '%s'\n", p);
-+				pr_warn("bad max sg_tablesize parameter '%s'\n",
-+					p);
- 				goto out;
- 			}
- 			target->sg_tablesize = token;
- 			break;
+@@ -1729,10 +1729,6 @@ static ssize_t show_dgid(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
  
- 		default:
--			printk(KERN_WARNING PFX "unknown parameter or missing value "
--			       "'%s' in target creation request\n", p);
-+			pr_warn("unknown parameter or missing value '%s' in target creation request\n",
-+				p);
- 			goto out;
- 		}
- 	}
-@@ -2100,9 +2105,8 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 		for (i = 0; i < ARRAY_SIZE(srp_opt_tokens); ++i)
- 			if ((srp_opt_tokens[i].token & SRP_OPT_ALL) &&
- 			    !(srp_opt_tokens[i].token & opt_mask))
--				printk(KERN_WARNING PFX "target creation request is "
--				       "missing parameter '%s'\n",
--				       srp_opt_tokens[i].pattern);
-+				pr_warn("target creation request is missing parameter '%s'\n",
-+					srp_opt_tokens[i].pattern);
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
+-		return -ENODEV;
+-
+ 	return sprintf(buf, "%pI6\n", target->path.dgid.raw);
+ }
  
- out:
- 	kfree(options);
-@@ -2149,7 +2153,7 @@ static ssize_t srp_create_target(struct device *dev,
+@@ -1741,10 +1737,6 @@ static ssize_t show_orig_dgid(struct device *dev,
+ {
+ 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
  
- 	if (!host->srp_dev->fmr_pool && !target->allow_ext_sg &&
- 				target->cmd_sg_cnt < target->sg_tablesize) {
--		printk(KERN_WARNING PFX "No FMR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
-+		pr_warn("No FMR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
- 		target->sg_tablesize = target->cmd_sg_cnt;
- 	}
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
+-		return -ENODEV;
+-
+ 	return sprintf(buf, "%pI6\n", target->orig_dgid);
+ }
  
-@@ -2309,8 +2313,7 @@ static void srp_add_one(struct ib_device *device)
- 		return;
+@@ -1753,10 +1745,6 @@ static ssize_t show_req_lim(struct device *dev,
+ {
+ 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
  
- 	if (ib_query_device(device, dev_attr)) {
--		printk(KERN_WARNING PFX "Query device failed for %s\n",
--		       device->name);
-+		pr_warn("Query device failed for %s\n", device->name);
- 		goto free_attr;
- 	}
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
+-		return -ENODEV;
+-
+ 	return sprintf(buf, "%d\n", target->req_lim);
+ }
  
-@@ -2459,7 +2462,7 @@ static int __init srp_init_module(void)
- 	BUILD_BUG_ON(FIELD_SIZEOF(struct ib_wc, wr_id) < sizeof(void *));
+@@ -1765,10 +1753,6 @@ static ssize_t show_zero_req_lim(struct device *dev,
+ {
+ 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
  
- 	if (srp_sg_tablesize) {
--		printk(KERN_WARNING PFX "srp_sg_tablesize is deprecated, please use cmd_sg_entries\n");
-+		pr_warn("srp_sg_tablesize is deprecated, please use cmd_sg_entries\n");
- 		if (!cmd_sg_entries)
- 			cmd_sg_entries = srp_sg_tablesize;
- 	}
-@@ -2468,14 +2471,15 @@ static int __init srp_init_module(void)
- 		cmd_sg_entries = SRP_DEF_SG_TABLESIZE;
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
+-		return -ENODEV;
+-
+ 	return sprintf(buf, "%d\n", target->zero_req_lim);
+ }
  
- 	if (cmd_sg_entries > 255) {
--		printk(KERN_WARNING PFX "Clamping cmd_sg_entries to 255\n");
-+		pr_warn("Clamping cmd_sg_entries to 255\n");
- 		cmd_sg_entries = 255;
- 	}
+@@ -2432,6 +2416,7 @@ static void srp_remove_one(struct ib_device *device)
  
- 	if (!indirect_sg_entries)
- 		indirect_sg_entries = cmd_sg_entries;
- 	else if (indirect_sg_entries < cmd_sg_entries) {
--		printk(KERN_WARNING PFX "Bumping up indirect_sg_entries to match cmd_sg_entries (%u)\n", cmd_sg_entries);
-+		pr_warn("Bumping up indirect_sg_entries to match cmd_sg_entries (%u)\n",
-+			cmd_sg_entries);
- 		indirect_sg_entries = cmd_sg_entries;
- 	}
- 
-@@ -2486,7 +2490,7 @@ static int __init srp_init_module(void)
- 
- 	ret = class_register(&srp_class);
- 	if (ret) {
--		printk(KERN_ERR PFX "couldn't register class infiniband_srp\n");
-+		pr_err("couldn't register class infiniband_srp\n");
- 		srp_release_transport(ib_srp_transport_template);
- 		return ret;
- 	}
-@@ -2495,7 +2499,7 @@ static int __init srp_init_module(void)
- 
- 	ret = ib_register_client(&srp_client);
- 	if (ret) {
--		printk(KERN_ERR PFX "couldn't register IB client\n");
-+		pr_err("couldn't register IB client\n");
- 		srp_release_transport(ib_srp_transport_template);
- 		ib_sa_unregister_client(&srp_sa_client);
- 		class_unregister(&srp_class);
+ 		list_for_each_entry_safe(target, tmp_target,
+ 					 &host->target_list, list) {
++			srp_del_scsi_host_attr(target->scsi_host);
+ 			srp_remove_host(target->scsi_host);
+ 			scsi_remove_host(target->scsi_host);
+ 			srp_disconnect_target(target);
 -- 
 1.7.7
 
