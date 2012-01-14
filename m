@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 02/18] ib_srp: Consolidate repetitive sysfs code
-Date: Sat, 14 Jan 2012 12:40:44 +0000
-Message-ID: <1500127.hxDoVn5zlk@asus>
+Subject: [PATCH 03/18] ib_srp: Enlarge block layer timeout
+Date: Sat, 14 Jan 2012 12:41:44 +0000
+Message-ID: <2007426.PROb5t3CLZ@asus>
 References: <3109536.qySrY1Ts3e@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,148 +13,112 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove sysfs attributes before removing a target instead of
-testing the target state in every sysfs attribute callback
-method. Note: it is safe to invoke a sysfs attribute removal
-method like device_remove_file() twice on the same attribute.
+Enlarge the block layer timeout such that it is above the
+InfiniBand transport layer timeout. This is necessary to avoid
+that an SRP response is received after the SCSI layer has
+already killed the associated SCSI command. Note: the timeout is
+only set for SCSI disk devices but not for any other type of
+SCSI device (M/O disk, tape, CD-ROM, ...).
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   49 ++++++++++++----------------------
- 1 files changed, 17 insertions(+), 32 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   46 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/ulp/srp/ib_srp.h |    2 +
+ 2 files changed, 48 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 895a9ff..bcbf22e 100644
+index bcbf22e..b1327c6 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -474,6 +474,21 @@ static void srp_free_req_data(struct srp_target_port *target)
- 	}
+@@ -1372,6 +1372,33 @@ err:
+ 	return -ENOMEM;
  }
  
-+/**
-+ * srp_del_scsi_host_attr() - Remove attributes defined in the host template.
-+ * @shost: SCSI host whose attributes to remove from sysfs.
-+ *
-+ * Note: Any attributes defined in the host template and that did not exist
-+ * before invocation of this function will be ignored.
-+ */
-+static void srp_del_scsi_host_attr(struct Scsi_Host *shost)
++static uint32_t srp_compute_rq_tmo(struct ib_qp_attr *qp_attr, int attr_mask)
 +{
-+	struct device_attribute **attr;
++	uint64_t T_tr_ns, max_compl_time_ms;
++	uint32_t rq_tmo_jiffies;
 +
-+	for (attr = shost->hostt->shost_attrs; attr && *attr; ++attr)
-+		device_remove_file(&shost->shost_dev, *attr);
++	/*
++	 * According to section 11.2.4.2 in the IBTA spec (Modify Queue Pair,
++	 * table 91), both the QP timeout and the retry count have to be set
++	 * for RC QP's during the RTR to RTS transition.
++	 */
++	WARN_ON((attr_mask & (IB_QP_TIMEOUT | IB_QP_RETRY_CNT)) !=
++		(IB_QP_TIMEOUT | IB_QP_RETRY_CNT));
++
++	/*
++	 * Set target->rq_tmo_jiffies to one second more than the largest time
++	 * it can take before an error completion is generated. See also
++	 * C9-140..C9-142 in the IBTA spec for more information about how to
++	 * convert the QP Local ACK Timeout value to nanoseconds.
++	 */
++	T_tr_ns = 1ULL << (12 + qp_attr->timeout);
++	max_compl_time_ms = qp_attr->retry_cnt * 4 * T_tr_ns;
++	do_div(max_compl_time_ms, NSEC_PER_MSEC);
++	rq_tmo_jiffies = msecs_to_jiffies(max_compl_time_ms + 1000);
++
++	return rq_tmo_jiffies;
 +}
 +
- static void srp_remove_work(struct work_struct *work)
- {
- 	struct srp_target_port *target =
-@@ -486,6 +501,7 @@ static void srp_remove_work(struct work_struct *work)
- 	list_del(&target->list);
- 	spin_unlock(&target->srp_host->target_lock);
+ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+ 			       struct srp_login_rsp *lrsp,
+ 			       struct srp_target_port *target)
+@@ -1431,6 +1458,8 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+ 	if (ret)
+ 		goto error_free;
  
-+	srp_del_scsi_host_attr(target->scsi_host);
- 	srp_remove_host(target->scsi_host);
- 	scsi_remove_host(target->scsi_host);
- 	ib_destroy_cm_id(target->cm_id);
-@@ -1678,10 +1694,6 @@ static ssize_t show_id_ext(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "0x%016llx\n",
- 		       (unsigned long long) be64_to_cpu(target->id_ext));
- }
-@@ -1691,10 +1703,6 @@ static ssize_t show_ioc_guid(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "0x%016llx\n",
- 		       (unsigned long long) be64_to_cpu(target->ioc_guid));
- }
-@@ -1704,10 +1712,6 @@ static ssize_t show_service_id(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "0x%016llx\n",
- 		       (unsigned long long) be64_to_cpu(target->service_id));
- }
-@@ -1717,10 +1721,6 @@ static ssize_t show_pkey(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "0x%04x\n", be16_to_cpu(target->path.pkey));
++	target->rq_tmo_jiffies = srp_compute_rq_tmo(qp_attr, attr_mask);
++
+ 	ret = ib_modify_qp(target->qp, qp_attr, attr_mask);
+ 	if (ret)
+ 		goto error_free;
+@@ -1689,6 +1718,22 @@ static int srp_reset_host(struct scsi_cmnd *scmnd)
+ 	return ret;
  }
  
-@@ -1729,10 +1729,6 @@ static ssize_t show_dgid(struct device *dev, struct device_attribute *attr,
++static int srp_slave_configure(struct scsi_device *sdev)
++{
++	struct Scsi_Host *shost = sdev->host;
++	struct srp_target_port *target = host_to_target(shost);
++	struct request_queue *q = sdev->request_queue;
++	unsigned long timeout;
++
++	WARN_ON(target->rq_tmo_jiffies == 0);
++	if (sdev->type == TYPE_DISK) {
++		timeout = max_t(unsigned, 30 * HZ, target->rq_tmo_jiffies);
++		blk_queue_rq_timeout(q, timeout);
++	}
++
++	return 0;
++}
++
+ static ssize_t show_id_ext(struct device *dev, struct device_attribute *attr,
+ 			   char *buf)
  {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
+@@ -1821,6 +1866,7 @@ static struct scsi_host_template srp_template = {
+ 	.module				= THIS_MODULE,
+ 	.name				= "InfiniBand SRP initiator",
+ 	.proc_name			= DRV_NAME,
++	.slave_configure		= srp_slave_configure,
+ 	.info				= srp_target_info,
+ 	.queuecommand			= srp_queuecommand,
+ 	.eh_abort_handler		= srp_abort,
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 020caf0..e3a6304 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -163,6 +163,8 @@ struct srp_target_port {
+ 	struct ib_sa_query     *path_query;
+ 	int			path_query_id;
  
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "%pI6\n", target->path.dgid.raw);
- }
++	u32			rq_tmo_jiffies;
++
+ 	struct ib_cm_id	       *cm_id;
  
-@@ -1741,10 +1737,6 @@ static ssize_t show_orig_dgid(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "%pI6\n", target->orig_dgid);
- }
- 
-@@ -1753,10 +1745,6 @@ static ssize_t show_req_lim(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "%d\n", target->req_lim);
- }
- 
-@@ -1765,10 +1753,6 @@ static ssize_t show_zero_req_lim(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
--		return -ENODEV;
--
- 	return sprintf(buf, "%d\n", target->zero_req_lim);
- }
- 
-@@ -2432,6 +2416,7 @@ static void srp_remove_one(struct ib_device *device)
- 
- 		list_for_each_entry_safe(target, tmp_target,
- 					 &host->target_list, list) {
-+			srp_del_scsi_host_attr(target->scsi_host);
- 			srp_remove_host(target->scsi_host);
- 			scsi_remove_host(target->scsi_host);
- 			srp_disconnect_target(target);
+ 	int			max_ti_iu_len;
 -- 
 1.7.7
 
