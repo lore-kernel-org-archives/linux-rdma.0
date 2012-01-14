@@ -1,66 +1,67 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 12/13] DAPL v2.0: common: extended CR event processing
- missing rejects on errors
-Date: Fri, 13 Jan 2012 23:55:53 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F92AF82A15@ORSMSX106.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH 00/18, v2] Make ib_srp better suited for H.A. purposes
+Date: Sat, 14 Jan 2012 12:36 +0000
+Message-ID: <3109536.qySrY1Ts3e@asus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-V2hlbiBwcm9jZXNzaW5nIGFuIGluYm91bmQgQ1IgZXZlbnQgY2FsbGJhY2sgYSBub24tdXNlciBy
-ZWplY3Qgc2hvdWxkIGJlDQpzZW50IHRvIGNsaWVudCBpbiB0aGUgY2FzZSBvZiBhIG5vbi1saXN0
-ZW5pbmcgU1AsIGFsbG9jYXRpb24gZXJyb3IsDQpvciBFVkQgb3ZlcnJ1bi4gQ2hhbmdlcyBtYWRl
-IHRvIGRhcGxzX2V2ZF9wb3N0X2NyX2V2ZW50X2V4dCBjYWxsYmFjay4NCg0KU2lnbmVkLW9mZi1i
-eTogQXJsaW4gRGF2aXMgPGFybGluLnIuZGF2aXNAaW50ZWwuY29tPg0KLS0tDQogZGFwbC9jb21t
-b24vZGFwbF9ldmRfdXRpbC5jIHwgICAzNSArKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0t
-LS0tLQ0KIDEgZmlsZXMgY2hhbmdlZCwgMjQgaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0p
-DQoNCmRpZmYgLS1naXQgYS9kYXBsL2NvbW1vbi9kYXBsX2V2ZF91dGlsLmMgYi9kYXBsL2NvbW1v
-bi9kYXBsX2V2ZF91dGlsLmMNCmluZGV4IGE3YjhjNTQuLjc4ZDJhMWYgMTAwNjQ0DQotLS0gYS9k
-YXBsL2NvbW1vbi9kYXBsX2V2ZF91dGlsLmMNCisrKyBiL2RhcGwvY29tbW9uL2RhcGxfZXZkX3V0
-aWwuYw0KQEAgLTkzNywxNiArOTM3LDEzIEBAIGRhcGxzX2V2ZF9wb3N0X2NyX2V2ZW50X2V4dChJ
-TiBEQVBMX1NQICogc3BfcHRyLA0KIHsNCiAJREFQTF9DUiAqY3JfcHRyOw0KIAlEQVBMX0VQICpl
-cF9wdHI7DQorCWludCByZWFzb24gPSBEQVRfQ09OTkVDVElPTl9FVkVOVF9CUk9LRU47DQogDQog
-CWRhcGxfb3NfbG9jaygmc3BfcHRyLT5oZWFkZXIubG9jayk7DQogCWlmIChzcF9wdHItPmxpc3Rl
-bmluZyA9PSBEQVRfRkFMU0UpIHsNCiAJCWRhcGxfb3NfdW5sb2NrKCZzcF9wdHItPmhlYWRlci5s
-b2NrKTsNCi0JCWRhcGxfZGJnX2xvZyhEQVBMX0RCR19UWVBFX0NNLA0KLQkJCSAgICAgIi0tLT4g
-cG9zdF9jcl9ldmVudF9leHQ6IGNvbm4gZXZlbnQgb24gZG93biBTUFxuIik7DQotCQkodm9pZClk
-YXBsc19pYl9yZWplY3RfY29ubmVjdGlvbihpYl9jbV9oYW5kbGUsDQotCQkJCQkJIERBVF9DT05O
-RUNUSU9OX0VWRU5UX1VOUkVBQ0hBQkxFLA0KLQkJCQkJCSAwLCBOVUxMKTsNCi0JCXJldHVybiBE
-QVRfQ09OTl9RVUFMX1VOQVZBSUxBQkxFOw0KKwkJcmVhc29uID0gREFUX0NPTk5FQ1RJT05fRVZF
-TlRfVU5SRUFDSEFCTEU7DQorCQlnb3RvIGJhaWw7DQogCX0NCiANCiAJLyoNCkBAIC05NjEsNyAr
-OTU4LDcgQEAgZGFwbHNfZXZkX3Bvc3RfY3JfZXZlbnRfZXh0KElOIERBUExfU1AgKiBzcF9wdHIs
-DQogCS8qIGFsbG9jYXRlIG5ldyBjb25uZWN0IHJlcXVlc3QgKi8NCiAJY3JfcHRyID0gZGFwbHNf
-Y3JfYWxsb2Moc3BfcHRyLT5oZWFkZXIub3duZXJfaWEpOw0KIAlpZiAoY3JfcHRyID09IE5VTEwp
-DQotCQlyZXR1cm4gREFUX0lOU1VGRklDSUVOVF9SRVNPVVJDRVM7DQorCQlnb3RvIGJhaWw7DQog
-DQogCS8qIFNldCB1cCB0aGUgQ1IgKi8NCiAJY3JfcHRyLT5zcF9wdHIgPSBzcF9wdHI7CS8qIG1h
-aW50YWluIHNwX3B0ciBpbiBjYXNlIG9mIHJlamVjdCAqLw0KQEAgLTk5NCw4ICs5OTEsNyBAQCBk
-YXBsc19ldmRfcG9zdF9jcl9ldmVudF9leHQoSU4gREFQTF9TUCAqIHNwX3B0ciwNCiAJCWVwX3B0
-ciA9IGRhcGxfZXBfYWxsb2MoaWFfcHRyLCBOVUxMKTsNCiAJCWlmIChlcF9wdHIgPT0gTlVMTCkg
-ew0KIAkJCWRhcGxzX2NyX2ZyZWUoY3JfcHRyKTsNCi0JCQkvKiBJbnZva2luZyBmdW5jdGlvbiB3
-aWxsIGNhbGwgZGFwbHNfaWJfY21fcmVqZWN0KCkgKi8NCi0JCQlyZXR1cm4gREFUX0lOU1VGRklD
-SUVOVF9SRVNPVVJDRVM7DQorCQkJZ290byBiYWlsOw0KIAkJfQ0KIAkJZXBfcHRyLT5wYXJhbS5p
-YV9oYW5kbGUgPSBpYV9wdHI7DQogCQllcF9wdHItPnBhcmFtLmxvY2FsX2lhX2FkZHJlc3NfcHRy
-ID0NCkBAIC0xMDI1LDggKzEwMjEsMjUgQEAgZGFwbHNfZXZkX3Bvc3RfY3JfZXZlbnRfZXh0KElO
-IERBUExfU1AgKiBzcF9wdHIsDQogCS8qIGxpbmsgdGhlIENSIG9udG8gdGhlIFNQIHNvIHdlIGNh
-biBwaWNrIGl0IHVwIGxhdGVyICovDQogCWRhcGxfc3BfbGlua19jcihzcF9wdHIsIGNyX3B0cik7
-DQogDQotCXJldHVybiBkYXBsc19ldmRfZG9fcG9zdF9jcl9ldmVudF9leHQoc3BfcHRyLT5ldmRf
-aGFuZGxlLCBldmVudF9udW1iZXIsDQotCQkJCQkgICAgICBzcF9wdHIsIGNyX3B0ciwgZXh0X2Rh
-dGEpOw0KKwlpZiAoZGFwbHNfZXZkX2RvX3Bvc3RfY3JfZXZlbnRfZXh0KHNwX3B0ci0+ZXZkX2hh
-bmRsZSwNCisJCQkJCSAgIGV2ZW50X251bWJlciwNCisJCQkJCSAgIHNwX3B0ciwgY3JfcHRyLA0K
-KwkJCQkJICAgZXh0X2RhdGEpID09IERBVF9TVUNDRVNTKSB7DQorCQlyZXR1cm4gREFUX1NVQ0NF
-U1M7DQorCX0NCisNCisJLyogZXJyb3I6IHRha2UgQ1Igb2ZmIHRoZSBsaXN0LCB3ZSBjYW4ndCB1
-c2UgaXQgKi8NCisJZGFwbF9vc19sb2NrKCZzcF9wdHItPmhlYWRlci5sb2NrKTsNCisJZGFwbF9z
-cF9yZW1vdmVfY3Ioc3BfcHRyLCBjcl9wdHIpOw0KKwlkYXBsX29zX3VubG9jaygmc3BfcHRyLT5o
-ZWFkZXIubG9jayk7DQorCWRhcGxzX2NyX2ZyZWUoY3JfcHRyKTsNCitiYWlsOg0KKwlkYXBsX2xv
-ZyhEQVBMX0RCR19UWVBFX1dBUk4sDQorCQkiIGNyX2V2ZW50X2V4dDogRVJST1IgcmVhc29uID0g
-MHgleFxuIiwgcmVhc29uKTsNCisNCisJKHZvaWQpZGFwbHNfaWJfcmVqZWN0X2Nvbm5lY3Rpb24o
-aWJfY21faGFuZGxlLCByZWFzb24sIDAsIE5VTEwpOw0KKw0KKwlyZXR1cm4gREFUX0lOVEVSTkFM
-X0VSUk9SOw0KIH0NCiANCiBEQVRfUkVUVVJODQotLSANCjEuNy4zDQoNCg0KDQo=
+This patch series makes the ib_srp driver better suited for use in a H.A.
+setup because:
+- Switchover without triggering read or write errors become possible. Such
+  errors are bad because these can make a filesystem switch to read-only
+  mode.
+- A ping mechanism has been added that allows to reduce the switch-over
+  time.
+- Disconnecting from a target without unloading ib_srp becomes possible.
+- Switchover can be triggered explicitly by deleting an initiator device.
+
+Changes since v1:
+- Switched from iSCSI-style sysfs parameters to FC-style sysfs parameters
+  (fast_io_fail_tmo and dev_loss_tmo).
+- Restored the original behavior of "add_target": a second login to a target
+  is again allowed and also stops error recovery for previously created
+  sessions.
+- Changed srp_disconnect_target() such that it waits for the last completion
+  after a disconnect.
+- Moved code for enlarging block layer timeout from srp_slave_alloc() to
+  srp_slave_configure(), and moved that function to after srp_reset_host().
+  Also addressed Dave's other comments to the code for enlarging the
+  timeout value.
+- Split the "ib_srp: Rework error handling" patch in three separate patches to
+  make reviewing easier.
+- Added a patch that slightly improves ib_srp performance.
+- Made comment more detailed of patch 09/14 "srp_transport: Fix attribute
+  registration"
+- Merged multiline log strings into a single line.
+- Dropped patch 05/14 "ib_srp: Avoid that late SRP replies cause trouble".
+- Implemented several other small changes.
+
+The individual patches are:
+0001-ib_srp-Introduce-pr_fmt.patch
+0002-ib_srp-Consolidate-repetitive-sysfs-code.patch
+0003-ib_srp-Enlarge-block-layer-timeout.patch
+0004-ib_srp-Micro-optimize-completion-handlers.patch
+0005-ib_srp-Separate-connection-and-host-state.patch
+0006-ib_srp-Wait-for-last-completion-when-disconnecting.patch
+0007-ib_srp-Introduce-three-helper-functions.patch
+0008-ib_srp-Eliminate-state-SRP_TARGET_DEAD.patch
+0009-srp_transport-Fix-atttribute-registration.patch
+0010-srp_transport-Simplify-attribute-initialization-code.patch
+0011-srp_transport-Document-sysfs-attributes.patch
+0012-ib_srp-Document-sysfs-attributes.patch
+0013-ib_srp-Allow-SRP-disconnect-through-sysfs.patch
+0014-ib_srp-Move-target-port-removal-code.patch
+0015-ib_srp-Maintain-a-single-connection-per-I_T-nexus.patch
+0016-scsi-Add-scsi_host_template.slave_delete-callback.patch
+0017-srp_transport-Add-transport-layer-recovery-support.patch
+0018-ib_srp-Rework-error-handling.patch
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
