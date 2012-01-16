@@ -1,29 +1,39 @@
-From: Roland Dreier <roland.dreier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: Change for phy clock divisor
-Date: Mon, 16 Jan 2012 13:09:30 -0800
-Message-ID: <CAL1RGDWk=-sPy3b-1Q7b_kd_B3TGPZNAwXiEoSHtiJoM9=uxfQ@mail.gmail.com>
-References: <20111207222406.GA4012@TENIKOLO-MOBL> <CAG4TOxMjjT3+NJZFito656=O+cVDw_FXWAZ-vyjWsPF415+5vg@mail.gmail.com>
- <13AA599688F47243B14FCFCCC2C803BBA51E@FMSMSX108.amr.corp.intel.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: IB/iSER problems with Linux 3.0
+Date: Mon, 16 Jan 2012 23:16:35 +0200
+Message-ID: <CAJZOPZL=bV4SjdD2eakX9MhOhw=91xzCK=BEkirhRQd8oPA6bg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <13AA599688F47243B14FCFCCC2C803BBA51E-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 16, 2012 at 1:07 PM, Nikolova, Tatyana E
-<tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> By mistake I had sent the response to your question using your old email @kernel.org and you probably never got it.
+Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> wrote:
+> On 12/01/12 17:14, Or Gerlitz wrote:
 
-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org is not old and still works fine.  It's probably the
-best address
-for open source stuff.
+>> you didn't send the kernel logs from the failure after opening the iser
+>> (debug_level=2) and libiscsi (debug_libiscsi_session=1
+>> debug_libiscsi_conn=1) debug prints
 
-> I have submitted a few more patches after this one. Could you please review and apply them?
+> OK, I've also set mlx4_core debug_level=2
 
-yes, I will get to them.
+Sebastian, I asked for the **iser** (ib_iser) and not mlx4_core debug_level=2
+
+> I've also attached the log from the working stuff from OFED-1.5.4 for a
+> compare and the settings from discovery. I'll try to backport the IB + iSCSI
+> kernel code from 3.2.1 to 3.0.15 next.
+
+Two comments:
+
+1. yes, the logs (correct ones, please!) from success login on the
+very same kernel would help
+
+2. don't bother to backport ib/iscsi from 3.2.1 to 3.0.15, lets debug
+it on 3.0.15
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
