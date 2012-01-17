@@ -1,42 +1,28 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx4 4/4] add Raw Packet QP support
-Date: Tue, 17 Jan 2012 13:42:25 +0200
-Message-ID: <alpine.LRH.2.00.1201171342030.26871@ogerlitz.voltaire.com>
-References: <alpine.LRH.2.00.1201171330540.24946@ogerlitz.voltaire.com>
+Subject: Re: IB/iSER problems with Linux 3.0
+Date: Tue, 17 Jan 2012 16:56:13 +0200
+Message-ID: <4F158C0D.7070302@mellanox.com>
+References: <CAJZOPZL=bV4SjdD2eakX9MhOhw=91xzCK=BEkirhRQd8oPA6bg@mail.gmail.com> <4F154CF2.7030504@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LRH.2.00.1201171330540.24946-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
+In-Reply-To: <4F154CF2.7030504-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Basic support for RAW Packet QP.
+On 1/17/2012 12:26 PM, Sebastian Riemer wrote:
+> In the log from working iSER there is the RDMA mapping debug message 
+> at the position of the error in the other log
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/qp.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+I didn't understand that comment, please clarify, anyway, could you try 
+and patch your 3.0.15 kernel with commit 
+52439540ea30396982b69662dd21aede6b336288 "IB/iser: DMA unmap TX bufs 
+used for iSCSI/iSER headers" from upstream, this could help here.
 
-diff --git a/src/qp.c b/src/qp.c
-index 40a6689..90c4e80 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -286,6 +286,10 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
- 			break;
-
-+		case IBV_QPT_RAW_PACKET:
-+			/* For raw eth, the MLX4_WQE_CTRL_SOLICIT flag is used
-+			 * to indicate that no icrc should be calculated */
-+			ctrl->srcrb_flags |= htonl(MLX4_WQE_CTRL_SOLICIT);
- 		default:
- 			break;
- 		}
--- 
-1.6.5.5
-
+Or.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
