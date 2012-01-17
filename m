@@ -1,122 +1,41 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] libibmad: Add support for congestion control config
- mads.
-Date: Mon, 16 Jan 2012 15:41:09 -0800
-Message-ID: <20120116154109.07a25adf.weiny2@llnl.gov>
-References: <1323382174.6368.102.camel@auk59.llnl.gov>
+From: Flavio Baronti <f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>
+Subject: Re: Leak in rdma_get_cm_event on pthread_cancel?
+Date: Tue, 17 Jan 2012 09:52:54 +0100
+Message-ID: <4F1536E6.9080903@list-group.com>
+References: <4F101978.6010608@list-group.com> <20120113175925.GE6798@obsidianresearch.com> <4F13E3ED.3010708@list-group.com> <CAJZOPZ+ik7DdXJHbEyr-PKyOQ3yEoWa6H=rhEe4cwc__61DUrQ@mail.gmail.com> <20120116223541.GA2892@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1323382174.6368.102.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <20120116223541.GA2892-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 8 Dec 2011 14:09:34 -0800
-Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org> wrote:
+Il 1/16/2012 23:35 PM, Jason Gunthorpe ha scritto:
+> On Tue, Jan 17, 2012 at 12:15:23AM +0200, Or Gerlitz wrote:
+>> Flavio Baronti<f.baronti-ngIpsMLAhaq41k5uCYKmRQ@public.gmane.org>  wrote:
+>>> what is then the proper way to stop a thread blocked on
+>>> rdma_get_cm_event() (or on ibv_get_cq_event())?
+>>
+>> Oh, this is simple - don't get there... have your code
+>>
+>> 1. get the FDs associated with IB - which you can retrieve from
+>> librdmacm and from libibverbs
+>>
+>> 2. make them non blocking
+>>
+>> 3. add them to you select/poll  FD group
+>
+> 4. Use an eventfd or otherwise to break out of the select/poll loop
+> and then exit your thread.
+>
+> Jason
 
-> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Thanks, I did not think about eventfd+select.
 
-Thanks applied,
-Ira
-
-> ---
->  include/infiniband/mad.h |    5 +++++
->  src/cc.c                 |   37 +++++++++++++++++++++++++++++++++++++
->  src/libibmad.map         |    1 +
->  3 files changed, 43 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
-> index a94ca08..5d62307 100644
-> --- a/include/infiniband/mad.h
-> +++ b/include/infiniband/mad.h
-> @@ -1496,6 +1496,11 @@ MAD_EXPORT void *cc_query_status_via(void *rcvbuf, ib_portid_t * portid,
->  				     int *rstatus, const struct ibmad_port * srcport,
->  				     uint64_t cckey);
->  
-> +MAD_EXPORT void *cc_config_status_via(void *payload, void *rcvbuf, ib_portid_t * portid,
-> +				      unsigned attrid, unsigned mod, unsigned timeout,
-> +				      int *rstatus, const struct ibmad_port * srcport,
-> +				      uint64_t cckey);
-> +
->  /* sa.c */
->  uint8_t *sa_call(void *rcvbuf, ib_portid_t * portid, ib_sa_call_t * sa,
->  		 unsigned timeout) DEPRECATED;
-> diff --git a/src/cc.c b/src/cc.c
-> index 36231f7..cae174e 100644
-> --- a/src/cc.c
-> +++ b/src/cc.c
-> @@ -79,3 +79,40 @@ void *cc_query_status_via(void *rcvbuf, ib_portid_t * portid,
->  
->  	return res;
->  }
-> +
-> +void *cc_config_status_via(void *payload, void *rcvbuf, ib_portid_t * portid,
-> +                           unsigned attrid, unsigned mod, unsigned timeout,
-> +                           int *rstatus, const struct ibmad_port * srcport,
-> +                           uint64_t cckey)
-> +{
-> +	ib_rpc_cc_t rpc = { 0 };
-> +	void *res;
-> +
-> +	DEBUG("attr 0x%x mod 0x%x route %s", attrid, mod, portid2str(portid));
-> +	rpc.method = IB_MAD_METHOD_SET;
-> +	rpc.attr.id = attrid;
-> +	rpc.attr.mod = mod;
-> +	rpc.timeout = timeout;
-> +	if (attrid == IB_CC_ATTR_CONGESTION_LOG) {
-> +		rpc.datasz = IB_CC_LOG_DATA_SZ;
-> +		rpc.dataoffs = IB_CC_LOG_DATA_OFFS;
-> +	}
-> +	else {
-> +		rpc.datasz = IB_CC_DATA_SZ;
-> +		rpc.dataoffs = IB_CC_DATA_OFFS;
-> +	}
-> +	rpc.mgtclass = IB_CC_CLASS;
-> +	rpc.cckey = cckey;
-> +
-> +	portid->qp = 1;
-> +	if (!portid->qkey)
-> +		portid->qkey = IB_DEFAULT_QP1_QKEY;
-> +
-> +	res = mad_rpc(srcport, (ib_rpc_t *)&rpc, portid, payload, rcvbuf);
-> +	if (rstatus)
-> +		*rstatus = rpc.rstatus;
-> +
-> +	return res;
-> +}
-> +
-> +
-> diff --git a/src/libibmad.map b/src/libibmad.map
-> index a64288d..7c7587b 100644
-> --- a/src/libibmad.map
-> +++ b/src/libibmad.map
-> @@ -145,5 +145,6 @@ IBMAD_1.3 {
->  		bm_call_via;
->  		mad_dump_port_ext_speeds_counters;
->  		cc_query_status_via;
-> +		cc_config_status_via;
->  	local: *;
->  };
-> -- 
-> 1.7.1
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Flavio
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
