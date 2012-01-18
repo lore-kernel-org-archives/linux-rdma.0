@@ -1,41 +1,71 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-Date: Wed, 18 Jan 2012 14:19:16 -0700
-Message-ID: <20120118211916.GM2892@obsidianresearch.com>
-References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
- <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
- <1828884A29C6694DAF28B7E6B8A823732DC03E16@ORSMSX101.amr.corp.intel.com>
- <20120118190214.GK2892@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A823732DC04EFB@ORSMSX101.amr.corp.intel.com>
+Date: Wed, 18 Jan 2012 17:30:10 -0500
+Message-ID: <4F1747F2.3020308@dev.mellanox.co.il>
+References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org> <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732DC04EFB-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20120118084311.18560.22509.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 18, 2012 at 07:30:03PM +0000, Hefty, Sean wrote:
-
-> > I feel if the base version is not supported then a GetResp should be
-> > returned without a memcpy. The base version set to the highest
-> > supported value and the TID copied over from the reply but everything
-> > else 0'd. This allows base version discovery which might be important
-> > some day.
+On 1/18/2012 3:43 AM, Swapna Thete wrote:
+> Setup a response with appropriate error status and
+> send it for the MADs that are not supported by a
+> specific class/version.
+> Signed-off-by: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/core/mad.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
 > 
-> If the BaseVersion isn't supported, then I don't know that the code
-> should assume anything about the rest of the MAD format, including
-> the location or size of any other fields.  If we at least know that
-> BaseVersion = 1, then we should be safe checking for common methods.
-> If BaseVersion > 1, then maybe we're better off just dropping the
-> MAD still.
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index 2fe428b..734d846 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -1963,6 +1963,16 @@ local:
+>  		 * or via recv_handler in ib_mad_complete_recv()
+>  		 */
+>  		recv = NULL;
+> +	} else {
+> +		memcpy(response, recv, sizeof(*response));
 
-Yes, that is why the compliance statement is sort of short sighted..
-The flowchart makes more sense.
+Isn't this overkill as the bad MAD status precludes looking at the MAD
+data ?
 
-Jason
+> +		response->header.recv_wc.wc = &response->header.wc;
+> +		response->header.recv_wc.recv_buf.mad = &response->mad.mad;
+> +		response->header.recv_wc.recv_buf.grh = &response->grh;
+> +		response->mad.mad.mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
+> +		response->mad.mad.mad_hdr.status =
+> +				__be16_to_cpu(IB_MGMT_MAD_STATUS_BAD_VERSION);
+
+While this is the best status for class not supported, that's not all
+the cases that get to here. Attribute not supported (in a supported
+class) could also occur here for which unsupported method/attribute
+combination is more appropriate as a MAD status. I'm not sure it's worth
+the effort to discern that (as any invalid MAD status is treated the
+same) but I think it could be done if we want to be more precise about
+the error.
+
+-- Hal
+
+> +		agent_send_response(&response->mad.mad, &recv->grh, wc,
+> +			port_priv->device, port_num, qp_info->qp->qp_num);
+>  	}
+>  
+>  out:
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
