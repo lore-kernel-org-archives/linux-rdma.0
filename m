@@ -1,43 +1,36 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH][TRIVIAL] opensm: fixed description in osm_routing_engine
-Date: Wed, 18 Jan 2012 20:16:22 +0200
-Message-ID: <20120118181622.GA6228@calypso>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/4] IB/mlx4: add Raw Packet QP support
+Date: Wed, 18 Jan 2012 18:47:50 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823732DC04E97@ORSMSX101.amr.corp.intel.com>
+References: <alpine.LRH.2.00.1201171330540.24946@ogerlitz.voltaire.com>
+ <alpine.LRH.2.00.1201171338430.26871@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.00.1201171338430.26871-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Changed delete to destroy in osm_routing_engine struct description.
+> +enum {
+> +	MLX4_RAW_QP_MTU		= 7,
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/opensm/osm_opensm.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Is there any special meaning for MTU 7 that should be standardized in ib_verbs.h?
 
-diff --git a/include/opensm/osm_opensm.h b/include/opensm/osm_opensm.h
-index 8f4113a..6509d6e 100644
---- a/include/opensm/osm_opensm.h
-+++ b/include/opensm/osm_opensm.h
-@@ -173,8 +173,8 @@ struct osm_routing_engine {
- *		The callback for building the spanning tree for multicast
- *		forwarding, called per MLID.
- *
--*	delete
--*		The delete method, may be used for routing engine
-+*	destroy
-+*		The destroy method, may be used for routing engine
- *		internals cleanup.
- *
- *	next
--- 
-1.7.7.5
+In other places, the code uses IB_MTU_4096 (5):
 
--- 
-
--- Alex
+> @@ -1042,6 +1054,8 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+> 
+>  	if (ibqp->qp_type == IB_QPT_GSI || ibqp->qp_type == IB_QPT_SMI)
+>  		context->mtu_msgmax = (IB_MTU_4096 << 5) | 11;
+> +	else if (ibqp->qp_type == IB_QPT_RAW_PACKET)
+> +		context->mtu_msgmax = (MLX4_RAW_QP_MTU << 5) | MLX4_RAW_QP_MSGMAX;
+>  	else if (ibqp->qp_type == IB_QPT_UD) {
+>  		if (qp->flags & MLX4_IB_QP_LSO)
+>  			context->mtu_msgmax = (IB_MTU_4096 << 5) |
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
