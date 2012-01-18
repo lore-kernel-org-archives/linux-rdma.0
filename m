@@ -1,59 +1,39 @@
-From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-Date: Wed, 18 Jan 2012 04:14:22 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F65E@MNEXMB1.qlogic.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
+Date: Wed, 18 Jan 2012 08:52:33 -0800
+Message-ID: <CAL1RGDUh1AEMdok69RJP1cTchvCW7C7HJFTmYm=kUNu7hWA_5Q@mail.gmail.com>
 References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
  <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
- <4F169940.5090007@mellanox.com>
+ <4F169940.5090007@mellanox.com> <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F65E@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F169940.5090007-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F65E-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SSBkaWQgZXhwbG9yZSB0aGF0IG9wdGlvbiwgaG93ZXZlciwNCkJhZCBWZXJzaW9uIGVzc2VudGlh
-bGx5IGdpdmVzIG1lc3NhZ2UgYXMNCg0K4oCcTUFEIHJldHVybmVkIHdpdGggQmFkIFN0YXR1czog
-VW5zdXBwb3J0ZWQgQ2xhc3Mgb3IgVmVyc2lvbuKAnQ0KDQp3aGljaCBzZWVtcyBiZXR0ZXIgYW5k
-IGFwcHJvcHJpYXRlIHRoYW4gSUJfTUdNVF9NQURfU1RBVFVTX1VOU1VQUE9SVEVEX01FVEhPRF9B
-VFRSSUINCg0K4oCcTUFEIHJldHVybmVkIHdpdGggQmFkIFN0YXR1czogVW5zdXBwb3J0ZWQgTWV0
-aG9kL0F0dHJpYnV0ZSBDb21iaW5hdGlvbuKAnS4NCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
-LS0NCkZyb206IE9yIEdlcmxpdHogW21haWx0bzpvZ2VybGl0ekBtZWxsYW5veC5jb21dDQpTZW50
-OiBXZWRuZXNkYXksIEphbnVhcnkgMTgsIDIwMTIgMzozNSBQTQ0KVG86IFN3YXBuYSBUaGV0ZQ0K
-Q2M6IHJvbGFuZEBrZXJuZWwub3JnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgSmFjayBN
-b3JnZW5zdGVpbg0KU3ViamVjdDogUmU6IFtQQVRDSCAyLzJdIElCL21hZDogUmV0dXJuIHVuc3Vw
-cG9ydGVkIGZvciBNQURzIGFzIGFwcHJvcHJpYXRlDQoNCk9uIDEvMTgvMjAxMiAxMDo0MyBBTSwg
-U3dhcG5hIFRoZXRlIHdyb3RlOg0KPiBAQCAtMTk2Myw2ICsxOTYzLDE2IEBAIGxvY2FsOg0KPiAr
-ICAgICB9IGVsc2Ugew0KPiArICAgICAgICAgICAgIG1lbWNweShyZXNwb25zZSwgcmVjdiwgc2l6
-ZW9mKCpyZXNwb25zZSkpOw0KPiArICAgICAgICAgICAgIHJlc3BvbnNlLT5oZWFkZXIucmVjdl93
-Yy53YyA9JnJlc3BvbnNlLT5oZWFkZXIud2M7DQo+ICsgICAgICAgICAgICAgcmVzcG9uc2UtPmhl
-YWRlci5yZWN2X3djLnJlY3ZfYnVmLm1hZCA9JnJlc3BvbnNlLT5tYWQubWFkOw0KPiArICAgICAg
-ICAgICAgIHJlc3BvbnNlLT5oZWFkZXIucmVjdl93Yy5yZWN2X2J1Zi5ncmggPSZyZXNwb25zZS0+
-Z3JoOw0KPiArICAgICAgICAgICAgIHJlc3BvbnNlLT5tYWQubWFkLm1hZF9oZHIubWV0aG9kID0g
-SUJfTUdNVF9NRVRIT0RfR0VUX1JFU1A7DQo+ICsgICAgICAgICAgICAgcmVzcG9uc2UtPm1hZC5t
-YWQubWFkX2hkci5zdGF0dXMgPQ0KPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICBfX2Jl
-MTZfdG9fY3B1KElCX01HTVRfTUFEX1NUQVRVU19CQURfVkVSU0lPTik7DQpEb24ndCB3ZSB3YW50
-IGhlcmUgSUJfTUdNVF9NQURfU1RBVFVTX1VOU1VQUE9SVEVEX01FVEhPRF9BVFRSSUIgPw0KDQpP
-ci4NCj4gKyAgICAgICAgICAgICBhZ2VudF9zZW5kX3Jlc3BvbnNlKCZyZXNwb25zZS0+bWFkLm1h
-ZCwmcmVjdi0+Z3JoLCB3YywNCj4gKyAgICAgICAgICAgICAgICAgICAgIHBvcnRfcHJpdi0+ZGV2
-aWNlLCBwb3J0X251bSwgcXBfaW5mby0+cXAtPnFwX251bSk7DQo+ICAgICAgIH0NCj4NCj4gICBv
-dXQ6DQo+DQo+DQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
-ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3Nh
-Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0
-ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg0KDQoNClRoaXMg
-bWVzc2FnZSBhbmQgYW55IGF0dGFjaGVkIGRvY3VtZW50cyBjb250YWluIGluZm9ybWF0aW9uIGZy
-b20gUUxvZ2ljIENvcnBvcmF0aW9uIG9yIGl0cyB3aG9sbHktb3duZWQgc3Vic2lkaWFyaWVzIHRo
-YXQgbWF5IGJlIGNvbmZpZGVudGlhbC4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkIHJlY2lw
-aWVudCwgeW91IG1heSBub3QgcmVhZCwgY29weSwgZGlzdHJpYnV0ZSwgb3IgdXNlIHRoaXMgaW5m
-b3JtYXRpb24uIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRoaXMgdHJhbnNtaXNzaW9uIGluIGVycm9y
-LCBwbGVhc2Ugbm90aWZ5IHRoZSBzZW5kZXIgaW1tZWRpYXRlbHkgYnkgcmVwbHkgZS1tYWlsIGFu
-ZCB0aGVuIGRlbGV0ZSB0aGlzIG1lc3NhZ2UuDQo=
+On Wed, Jan 18, 2012 at 2:14 AM, Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>=
+ wrote:
+> I did explore that option, however,
+> Bad Version essentially gives message as
+>
+> =93MAD returned with Bad Status: Unsupported Class or Version=94
+>
+> which seems better and appropriate than IB_MGMT_MAD_STATUS_UNSUPPORTE=
+D_METHOD_ATTRIB
+>
+> =93MAD returned with Bad Status: Unsupported Method/Attribute Combina=
+tion=94.
 
+Surely we should be picking the response status based on the IB spec
+rather than on the error message that some arbitrary tool prints?
+
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
