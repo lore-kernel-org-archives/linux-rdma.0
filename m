@@ -1,7 +1,7 @@
 From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/2] IB/mad: Add MAD error codes per IBTA spec
-Date: Wed, 18 Jan 2012 03:43:03 -0500
-Message-ID: <20120118084303.18560.82171.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
+Date: Wed, 18 Jan 2012 03:43:11 -0500
+Message-ID: <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,34 +13,35 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add appropriate MAD error codes so that
-they can be used while returning appropriate
-error responses.
+Setup a response with appropriate error status and
+send it for the MADs that are not supported by a
+specific class/version.
 Signed-off-by: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- include/rdma/ib_mad.h |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/mad.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index d3b9401..d9751b7 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -77,6 +77,15 @@
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 2fe428b..734d846 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1963,6 +1963,16 @@ local:
+ 		 * or via recv_handler in ib_mad_complete_recv()
+ 		 */
+ 		recv = NULL;
++	} else {
++		memcpy(response, recv, sizeof(*response));
++		response->header.recv_wc.wc = &response->header.wc;
++		response->header.recv_wc.recv_buf.mad = &response->mad.mad;
++		response->header.recv_wc.recv_buf.grh = &response->grh;
++		response->mad.mad.mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
++		response->mad.mad.mad_hdr.status =
++				__be16_to_cpu(IB_MGMT_MAD_STATUS_BAD_VERSION);
++		agent_send_response(&response->mad.mad, &recv->grh, wc,
++			port_priv->device, port_num, qp_info->qp->qp_num);
+ 	}
  
- #define IB_MGMT_MAX_METHODS			128
- 
-+/* MAD Status field bit masks */
-+#define IB_MGMT_MAD_STATUS_SUCCESS					0x0000
-+#define IB_MGMT_MAD_STATUS_BUSY						0x0001
-+#define IB_MGMT_MAD_STATUS_REDIRECT_REQD				0x0002
-+#define IB_MGMT_MAD_STATUS_BAD_VERSION					0x0004
-+#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD			0x0008
-+#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB	0x000c
-+#define IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE			0x001c
-+
- /* RMPP information */
- #define IB_MGMT_RMPP_VERSION			1
- 
+ out:
 
 
 --
