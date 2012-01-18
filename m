@@ -1,41 +1,22 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-Date: Wed, 18 Jan 2012 18:06:11 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823732DC03E16@ORSMSX101.amr.corp.intel.com>
-References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
- <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
+From: Roland Dreier <roland@kernel.org>
+Subject: Re: [GIT PULL]: ib_srpt: Initial SRP target merge for v3.3-rc1
+Date: Wed, 18 Jan 2012 10:06:57 -0800
+Message-ID: <CAL1RGDUifg_dD4JVO8O=z=JRrMcAdX1SM3iHwbeA4kBau0Ag5A@mail.gmail.com>
+References: <1326836021.16983.38.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120118084311.18560.22509.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1326836021.16983.38.camel@haakon2.linux-iscsi.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, target-devel <target-devel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Bart Van Assche <bvanassche@acm.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiArCX0gZWxzZSB7DQo+ICsJCW1lbWNweShyZXNwb25zZSwgcmVjdiwgc2l6ZW9mKCpyZXNwb25z
-ZSkpOw0KPiArCQlyZXNwb25zZS0+aGVhZGVyLnJlY3Zfd2Mud2MgPSAmcmVzcG9uc2UtPmhlYWRl
-ci53YzsNCj4gKwkJcmVzcG9uc2UtPmhlYWRlci5yZWN2X3djLnJlY3ZfYnVmLm1hZCA9ICZyZXNw
-b25zZS0+bWFkLm1hZDsNCj4gKwkJcmVzcG9uc2UtPmhlYWRlci5yZWN2X3djLnJlY3ZfYnVmLmdy
-aCA9ICZyZXNwb25zZS0+Z3JoOw0KPiArCQlyZXNwb25zZS0+bWFkLm1hZC5tYWRfaGRyLm1ldGhv
-ZCA9IElCX01HTVRfTUVUSE9EX0dFVF9SRVNQOw0KPiArCQlyZXNwb25zZS0+bWFkLm1hZC5tYWRf
-aGRyLnN0YXR1cyA9DQo+ICsJCQkJX19iZTE2X3RvX2NwdShJQl9NR01UX01BRF9TVEFUVVNfQkFE
-X1ZFUlNJT04pOw0KPiArCQlhZ2VudF9zZW5kX3Jlc3BvbnNlKCZyZXNwb25zZS0+bWFkLm1hZCwg
-JnJlY3YtPmdyaCwgd2MsDQo+ICsJCQlwb3J0X3ByaXYtPmRldmljZSwgcG9ydF9udW0sIHFwX2lu
-Zm8tPnFwLT5xcF9udW0pOw0KPiAgCX0NCg0KSSB0aGluayB3ZSBuZWVkIHRvIGRvIG1vcmUgaGVy
-ZSB0aGFuIGp1c3QgZ2VuZXJhdGUgYSBHZXRSZXNwIGZvciBhbiB1bm1hdGNoZWQgcmVjZWl2ZS4g
-IFRoZSByZWNlaXZlZCBNQUQgaW4gcXVlc3Rpb24gY291bGQgaXRzZWxmIGJlIGEgR2V0UmVzcCBv
-ciBhIFNlbmQsIFRyYXAsIFJlcG9ydCwgZXRjLiAgTWF5YmUgYWRkIGEgY2hlY2s6DQoNCn0gZWxz
-ZSBpZiBnZW5lcmF0ZV91bm1hdGNoZWRfcmVzcChyZWN2LCAuLikgew0KCWFnZW50X3NlbmRfcmVz
-cG9uc2UoLi4uKQ0KfQ0KDQphbmQgbGV0IGdlbmVyYXRlX3VubWF0Y2hlZF9yZXNwKCkgZGV0ZXJt
-aW5lIGlmIGFuIGFjdHVhbCByZXNwb25zZSBzaG91bGQgYmUgZ2VuZXJhdGVkIGFuZCB3aGF0IHRo
-ZSBjb250ZW50cyBzaG91bGQgYmUsIGlmIHRoZXJlIGFyZSBhbnkgZGlmZmVyZW5jZXMgaW4gdGhl
-IHJlc3BvbnNlLCBzdWNoIGFzIGRpZmZlcmVudCBtZXRob2RzLiAgVGhlIGluaXRpYWwgc3VibWlz
-c2lvbiBjb3VsZCBsaW1pdCB3aGljaCBNQURzIGEgcmVzcG9uc2UgaXMgZ2VuZXJhdGVkIGZvci4N
-Cg0KLSBTZWFuDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think this is definitely OK to go upstream at this point ... we can do further
+cleanups once upstream but there isn't anything close to a merge blocker
+at this point.
+
+Linus, this has been essentially unchanged since the 3.2 merge window.
+Any way we can get this in the 3.3 cycle?
+
+ - R.
