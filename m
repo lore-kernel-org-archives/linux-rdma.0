@@ -1,46 +1,50 @@
-From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Subject: races in ipathfs
-Date: Thu, 19 Jan 2012 20:20:04 +0000
-Message-ID: <20120119202003.GZ23916@ZenIV.linux.org.uk>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] core/verb.c: fix kernel panic: always initialize struct
+ ib_qp *qp->usecnt
+Date: Thu, 19 Jan 2012 20:29:16 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823732DC0C33E@ORSMSX106.amr.corp.intel.com>
+References: <20120119194641.1391553.39048.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20120119194641.1391553.39048.stgit-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, "linux-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-	Use of qib_super is seriously racy.  qibfs_add() (and worse,
-qibfs_remove()) can happen during qibfs_mount() and qibfs_kill_super().
-
-	1) CPU1: qib_init_one().  The sucker is allocated and placed
-on the list.  CPU2: ipathfs is mounted, directory created.  CPU1: finally
-gets around to qibfs_add(); by now qib_super is non-NULL and off we go,
-trying to create it again.  The worst part is, that code doesn't even
-notice that dentry is there and positive; you silently leak the old inode.
-
-	2) CPU1: qib_init_one().  Allocated the sucker.  CPU2: ipathfs
-is getting mounted.  Picked the first device off the list, creating
-directory for it.  CPU1: inserted new device into the head of the list,
-continued working.  Got around to qibfs_add(); qib_super is NULL, so
-we do nothing.  CPU2: walked the rest of the list, creating directories
-for all devices.  Our device is missed, since we are past that point in
-the list.  Worse, shift the timing a bit and it doesn't matter whether
-you add to the head or to the tail of the list - if qibfs_add() happens
-just before we set qib_super, we are screwed again.
-
-	3) CPU1: qib_remove_one().  CPU2: mount ipathfs is walking that
-list and decides to try and create a directory for the device that is
-being freed.  Oops...
-
-	4) CPU1: qib_init_one() or qib_remove_one(), doesn't matter which.
-CPU2: final umount of ipathfs already got through setting sb->s_root to
-NULL but still hadn't set qib_super to the same.  Oops...  And no,
-moving that qib_super = NULL; up prior to kill_litter_super() won't
-fix the race either, of course.
-
-AFAICS, the older driver (in hw/ipath) has the same problems.
+PiBXZSBoYXZlIGp1c3QgYmVlbiBpbnZlc3RpZ2F0aW5nIGtlcm5lbCBwYW5pY3MgcmVsYXRlZCB0
+bw0KPiBjcS0+aWJjcS5ldmVudF9oYW5kbGVyKCkgY29tcGxldGlvbiBjYWxscy4NCj4gDQo+IFJl
+YXNvbiBpcyB0aGF0IGliX2Rlc3Ryb3lfcXAoKSBmYWlscyB3aXRoIC1FQlVTWS4gRnVydGhlciBp
+bnZlc3RpZ2F0aW9uDQo+IHJldmVhbGVkIHFwLT51c2VjbnQgaXMgbm90IGluaXRpYWxpemVkLiBU
+aGlzIGNvdW50ZXIgd2FzIGludHJvZHVjZWQNCj4gaW4gbGludXgtMy4yIGJ5IGNvbW1pdCAwZTBl
+YzdlMDYzOGVmNDhlMGM2NjE4NzNkZmNjOGNhY2NhYjk4NGM2DQo+IGFuZCBpcyBvbmx5IGluaXRp
+YWxpemVkIGZvciBJQl9RUFRfWFJDX1RHVCwgYnV0IGFsc28gY2hlY2tlZCBpbg0KPiBpYl9kZXN0
+cm95X3FwKCkNCj4gZm9yIGFueSBxcCB0eXBlLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogQmVybmQg
+U2NodWJlcnQgPGJlcm5kLnNjaHViZXJ0QGl0d20uZnJhdW5ob2Zlci5kZT4NCj4gU2lnbmVkLW9m
+Zi1ieTogU3ZlbiBCcmV1bmVyIDxzdmVuLmJyZXVuZXJAaXR3bS5mcmF1bmhvZmVyLmRlPg0KDQpS
+ZXZpZXdlZC1ieTogU2VhbiBIZWZ0eSA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+DQoNCj4gLS0tDQoN
+Ckdvb2QgY2F0Y2guICBJIGRpZCBhbGwgbXkgdGVzdGluZyB3aXRoIG1seDQsIHdoaWNoIGp1c3Qg
+aGFwcGVucyB0byB1c2Uga3phbGxvYyB3aGVuIGFsbG9jYXRpbmcgdGhlIFFQLg0KDQo+ICBkcml2
+ZXJzL2luZmluaWJhbmQvY29yZS92ZXJicy5jIHwgICAgMiArLQ0KPiAgMSBmaWxlcyBjaGFuZ2Vk
+LCAxIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9pbmZpbmliYW5kL2NvcmUvdmVyYnMuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3Zl
+cmJzLmMNCj4gaW5kZXggNjAyYjFiZC4uNTc1Yjc4MCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9p
+bmZpbmliYW5kL2NvcmUvdmVyYnMuYw0KPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS92
+ZXJicy5jDQo+IEBAIC00MjEsNiArNDIxLDcgQEAgc3RydWN0IGliX3FwICppYl9jcmVhdGVfcXAo
+c3RydWN0IGliX3BkICpwZCwNCj4gIAkJcXAtPnVvYmplY3QgICAgPSBOVUxMOw0KPiAgCQlxcC0+
+cXBfdHlwZSAgICA9IHFwX2luaXRfYXR0ci0+cXBfdHlwZTsNCj4gDQo+ICsJCWF0b21pY19zZXQo
+JnFwLT51c2VjbnQsIDApOw0KPiAgCQlpZiAocXBfaW5pdF9hdHRyLT5xcF90eXBlID09IElCX1FQ
+VF9YUkNfVEdUKSB7DQo+ICAJCQlxcC0+ZXZlbnRfaGFuZGxlciA9IF9faWJfc2hhcmVkX3FwX2V2
+ZW50X2hhbmRsZXI7DQo+ICAJCQlxcC0+cXBfY29udGV4dCA9IHFwOw0KPiBAQCAtNDMwLDcgKzQz
+MSw2IEBAIHN0cnVjdCBpYl9xcCAqaWJfY3JlYXRlX3FwKHN0cnVjdCBpYl9wZCAqcGQsDQo+ICAJ
+CQlxcC0+eHJjZCA9IHFwX2luaXRfYXR0ci0+eHJjZDsNCj4gIAkJCWF0b21pY19pbmMoJnFwX2lu
+aXRfYXR0ci0+eHJjZC0+dXNlY250KTsNCj4gIAkJCUlOSVRfTElTVF9IRUFEKCZxcC0+b3Blbl9s
+aXN0KTsNCj4gLQkJCWF0b21pY19zZXQoJnFwLT51c2VjbnQsIDApOw0KPiANCj4gIAkJCXJlYWxf
+cXAgPSBxcDsNCj4gIAkJCXFwID0gX19pYl9vcGVuX3FwKHJlYWxfcXAsIHFwX2luaXRfYXR0ci0+
+ZXZlbnRfaGFuZGxlciwNCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
