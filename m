@@ -1,53 +1,46 @@
-From: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Subject: [PATCH] core/verb.c: fix kernel panic: always initialize struct ib_qp
- *qp->usecnt
-Date: Thu, 19 Jan 2012 20:46:41 +0100
-Message-ID: <20120119194641.1391553.39048.stgit@localhost.localdomain>
+From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Subject: races in ipathfs
+Date: Thu, 19 Jan 2012 20:20:04 +0000
+Message-ID: <20120119202003.GZ23916@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We have just been investigating kernel panics related to
-cq->ibcq.event_handler() completion calls.
+	Use of qib_super is seriously racy.  qibfs_add() (and worse,
+qibfs_remove()) can happen during qibfs_mount() and qibfs_kill_super().
 
-Reason is that ib_destroy_qp() fails with -EBUSY. Further investigation
-revealed qp->usecnt is not initialized. This counter was introduced
-in linux-3.2 by commit 0e0ec7e0638ef48e0c661873dfcc8caccab984c6
-and is only initialized for IB_QPT_XRC_TGT, but also checked in ib_destroy_qp()
-for any qp type.
+	1) CPU1: qib_init_one().  The sucker is allocated and placed
+on the list.  CPU2: ipathfs is mounted, directory created.  CPU1: finally
+gets around to qibfs_add(); by now qib_super is non-NULL and off we go,
+trying to create it again.  The worst part is, that code doesn't even
+notice that dentry is there and positive; you silently leak the old inode.
 
-Signed-off-by: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Signed-off-by: Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
----
- drivers/infiniband/core/verbs.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+	2) CPU1: qib_init_one().  Allocated the sucker.  CPU2: ipathfs
+is getting mounted.  Picked the first device off the list, creating
+directory for it.  CPU1: inserted new device into the head of the list,
+continued working.  Got around to qibfs_add(); qib_super is NULL, so
+we do nothing.  CPU2: walked the rest of the list, creating directories
+for all devices.  Our device is missed, since we are past that point in
+the list.  Worse, shift the timing a bit and it doesn't matter whether
+you add to the head or to the tail of the list - if qibfs_add() happens
+just before we set qib_super, we are screwed again.
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 602b1bd..575b780 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -421,6 +421,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 		qp->uobject    = NULL;
- 		qp->qp_type    = qp_init_attr->qp_type;
- 
-+		atomic_set(&qp->usecnt, 0);
- 		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
- 			qp->event_handler = __ib_shared_qp_event_handler;
- 			qp->qp_context = qp;
-@@ -430,7 +431,6 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 			qp->xrcd = qp_init_attr->xrcd;
- 			atomic_inc(&qp_init_attr->xrcd->usecnt);
- 			INIT_LIST_HEAD(&qp->open_list);
--			atomic_set(&qp->usecnt, 0);
- 
- 			real_qp = qp;
- 			qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
+	3) CPU1: qib_remove_one().  CPU2: mount ipathfs is walking that
+list and decides to try and create a directory for the device that is
+being freed.  Oops...
 
+	4) CPU1: qib_init_one() or qib_remove_one(), doesn't matter which.
+CPU2: final umount of ipathfs already got through setting sb->s_root to
+NULL but still hadn't set qib_super to the same.  Oops...  And no,
+moving that qib_super = NULL; up prior to kill_litter_super() won't
+fix the race either, of course.
+
+AFAICS, the older driver (in hw/ipath) has the same problems.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
