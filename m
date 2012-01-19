@@ -1,65 +1,61 @@
 From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Subject: RE: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-Date: Thu, 19 Jan 2012 06:34:40 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F749@MNEXMB1.qlogic.org>
+Date: Thu, 19 Jan 2012 06:35:36 -0600
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F74A@MNEXMB1.qlogic.org>
 References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
  <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
  <1828884A29C6694DAF28B7E6B8A823732DC03E16@ORSMSX101.amr.corp.intel.com>
- <20120118190214.GK2892@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A823732DC04EFB@ORSMSX101.amr.corp.intel.com>
- <20120118211916.GM2892@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120118211916.GM2892-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732DC03E16-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is taken care of in validate_mad() function before
-code in my patch gets called. So it should work as Sean
-points out, basically if Baseversion is not 1, MAD
-would get dropped.
-
-Thanks,
-Swapna
-
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-Sent: Thursday, January 19, 2012 2:49 AM
-To: Hefty, Sean
-Cc: Swapna Thete; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-
-On Wed, Jan 18, 2012 at 07:30:03PM +0000, Hefty, Sean wrote:
-
-> > I feel if the base version is not supported then a GetResp should be
-> > returned without a memcpy. The base version set to the highest
-> > supported value and the TID copied over from the reply but everything
-> > else 0'd. This allows base version discovery which might be important
-> > some day.
->
-> If the BaseVersion isn't supported, then I don't know that the code
-> should assume anything about the rest of the MAD format, including
-> the location or size of any other fields.  If we at least know that
-> BaseVersion = 1, then we should be safe checking for common methods.
-> If BaseVersion > 1, then maybe we're better off just dropping the
-> MAD still.
-
-Yes, that is why the compliance statement is sort of short sighted..
-The flowchart makes more sense.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+WWVzLiBJIHdpbGwgbG9vayBpbnRvIHRoaXMgYW5kIGluY29ycG9yYXRlIHRoZSBjaGFuZ2UNCkFu
+ZCBnZXQgYmFjay4NCg0KVGhhbmtzLA0KU3dhcG5hDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
+LS0tDQpGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4
+LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSGVmdHksIFNlYW4NClNl
+bnQ6IFdlZG5lc2RheSwgSmFudWFyeSAxOCwgMjAxMiAxMTozNiBQTQ0KVG86IFN3YXBuYSBUaGV0
+ZTsgcm9sYW5kQGtlcm5lbC5vcmcNCkNjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KU3Vi
+amVjdDogUkU6IFtQQVRDSCAyLzJdIElCL21hZDogUmV0dXJuIHVuc3VwcG9ydGVkIGZvciBNQURz
+IGFzIGFwcHJvcHJpYXRlDQoNCj4gKyAgICAgfSBlbHNlIHsNCj4gKyAgICAgICAgICAgICBtZW1j
+cHkocmVzcG9uc2UsIHJlY3YsIHNpemVvZigqcmVzcG9uc2UpKTsNCj4gKyAgICAgICAgICAgICBy
+ZXNwb25zZS0+aGVhZGVyLnJlY3Zfd2Mud2MgPSAmcmVzcG9uc2UtPmhlYWRlci53YzsNCj4gKyAg
+ICAgICAgICAgICByZXNwb25zZS0+aGVhZGVyLnJlY3Zfd2MucmVjdl9idWYubWFkID0gJnJlc3Bv
+bnNlLT5tYWQubWFkOw0KPiArICAgICAgICAgICAgIHJlc3BvbnNlLT5oZWFkZXIucmVjdl93Yy5y
+ZWN2X2J1Zi5ncmggPSAmcmVzcG9uc2UtPmdyaDsNCj4gKyAgICAgICAgICAgICByZXNwb25zZS0+
+bWFkLm1hZC5tYWRfaGRyLm1ldGhvZCA9IElCX01HTVRfTUVUSE9EX0dFVF9SRVNQOw0KPiArICAg
+ICAgICAgICAgIHJlc3BvbnNlLT5tYWQubWFkLm1hZF9oZHIuc3RhdHVzID0NCj4gKyAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgX19iZTE2X3RvX2NwdShJQl9NR01UX01BRF9TVEFUVVNfQkFE
+X1ZFUlNJT04pOw0KPiArICAgICAgICAgICAgIGFnZW50X3NlbmRfcmVzcG9uc2UoJnJlc3BvbnNl
+LT5tYWQubWFkLCAmcmVjdi0+Z3JoLCB3YywNCj4gKyAgICAgICAgICAgICAgICAgICAgIHBvcnRf
+cHJpdi0+ZGV2aWNlLCBwb3J0X251bSwgcXBfaW5mby0+cXAtPnFwX251bSk7DQo+ICAgICAgIH0N
+Cg0KSSB0aGluayB3ZSBuZWVkIHRvIGRvIG1vcmUgaGVyZSB0aGFuIGp1c3QgZ2VuZXJhdGUgYSBH
+ZXRSZXNwIGZvciBhbiB1bm1hdGNoZWQgcmVjZWl2ZS4gIFRoZSByZWNlaXZlZCBNQUQgaW4gcXVl
+c3Rpb24gY291bGQgaXRzZWxmIGJlIGEgR2V0UmVzcCBvciBhIFNlbmQsIFRyYXAsIFJlcG9ydCwg
+ZXRjLiAgTWF5YmUgYWRkIGEgY2hlY2s6DQoNCn0gZWxzZSBpZiBnZW5lcmF0ZV91bm1hdGNoZWRf
+cmVzcChyZWN2LCAuLikgew0KICAgICAgICBhZ2VudF9zZW5kX3Jlc3BvbnNlKC4uLikNCn0NCg0K
+YW5kIGxldCBnZW5lcmF0ZV91bm1hdGNoZWRfcmVzcCgpIGRldGVybWluZSBpZiBhbiBhY3R1YWwg
+cmVzcG9uc2Ugc2hvdWxkIGJlIGdlbmVyYXRlZCBhbmQgd2hhdCB0aGUgY29udGVudHMgc2hvdWxk
+IGJlLCBpZiB0aGVyZSBhcmUgYW55IGRpZmZlcmVuY2VzIGluIHRoZSByZXNwb25zZSwgc3VjaCBh
+cyBkaWZmZXJlbnQgbWV0aG9kcy4gIFRoZSBpbml0aWFsIHN1Ym1pc3Npb24gY291bGQgbGltaXQg
+d2hpY2ggTUFEcyBhIHJlc3BvbnNlIGlzIGdlbmVyYXRlZCBmb3IuDQoNCi0gU2Vhbg0KE++/ve+/
+vey5uxzvv70m77+9fu+/vSbvv70Y77+977+9Ky3vv73vv73dthfvv73vv71377+977+9y5vvv73v
+v73vv71t77+9Yu+/ve+/vWt2Zu+/ve+/ve+/vV5u77+9cu+/ve+/ve+/vXrvv70a77+977+9aO+/
+ve+/ve+/ve+/vSbvv73vv70e77+9R++/ve+/ve+/vWjvv70DKO+/vemaju+/vd2iaiLvv73vv70a
+77+9G23vv73vv73vv73vv73vv71677+93pbvv73vv73vv71m77+977+977+9aO+/ve+/ve+/vX7v
+v71t77+9DQoNClRoaXMgbWVzc2FnZSBhbmQgYW55IGF0dGFjaGVkIGRvY3VtZW50cyBjb250YWlu
+IGluZm9ybWF0aW9uIGZyb20gUUxvZ2ljIENvcnBvcmF0aW9uIG9yIGl0cyB3aG9sbHktb3duZWQg
+c3Vic2lkaWFyaWVzIHRoYXQgbWF5IGJlIGNvbmZpZGVudGlhbC4gSWYgeW91IGFyZSBub3QgdGhl
+IGludGVuZGVkIHJlY2lwaWVudCwgeW91IG1heSBub3QgcmVhZCwgY29weSwgZGlzdHJpYnV0ZSwg
+b3IgdXNlIHRoaXMgaW5mb3JtYXRpb24uIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRoaXMgdHJhbnNt
+aXNzaW9uIGluIGVycm9yLCBwbGVhc2Ugbm90aWZ5IHRoZSBzZW5kZXIgaW1tZWRpYXRlbHkgYnkg
+cmVwbHkgZS1tYWlsIGFuZCB0aGVuIGRlbGV0ZSB0aGlzIG1lc3NhZ2UuDQo=
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
