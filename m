@@ -1,61 +1,79 @@
-From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-Date: Thu, 19 Jan 2012 06:35:36 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F74A@MNEXMB1.qlogic.org>
-References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
- <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
- <1828884A29C6694DAF28B7E6B8A823732DC03E16@ORSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
+Date: Thu, 19 Jan 2012 07:58:09 -0500
+Message-ID: <4F181361.4050505@dev.mellanox.co.il>
+References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org> <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org> <4F1747F2.3020308@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732DC03E16-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4F1747F2.3020308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-WWVzLiBJIHdpbGwgbG9vayBpbnRvIHRoaXMgYW5kIGluY29ycG9yYXRlIHRoZSBjaGFuZ2UNCkFu
-ZCBnZXQgYmFjay4NCg0KVGhhbmtzLA0KU3dhcG5hDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
-LS0tDQpGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4
-LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSGVmdHksIFNlYW4NClNl
-bnQ6IFdlZG5lc2RheSwgSmFudWFyeSAxOCwgMjAxMiAxMTozNiBQTQ0KVG86IFN3YXBuYSBUaGV0
-ZTsgcm9sYW5kQGtlcm5lbC5vcmcNCkNjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KU3Vi
-amVjdDogUkU6IFtQQVRDSCAyLzJdIElCL21hZDogUmV0dXJuIHVuc3VwcG9ydGVkIGZvciBNQURz
-IGFzIGFwcHJvcHJpYXRlDQoNCj4gKyAgICAgfSBlbHNlIHsNCj4gKyAgICAgICAgICAgICBtZW1j
-cHkocmVzcG9uc2UsIHJlY3YsIHNpemVvZigqcmVzcG9uc2UpKTsNCj4gKyAgICAgICAgICAgICBy
-ZXNwb25zZS0+aGVhZGVyLnJlY3Zfd2Mud2MgPSAmcmVzcG9uc2UtPmhlYWRlci53YzsNCj4gKyAg
-ICAgICAgICAgICByZXNwb25zZS0+aGVhZGVyLnJlY3Zfd2MucmVjdl9idWYubWFkID0gJnJlc3Bv
-bnNlLT5tYWQubWFkOw0KPiArICAgICAgICAgICAgIHJlc3BvbnNlLT5oZWFkZXIucmVjdl93Yy5y
-ZWN2X2J1Zi5ncmggPSAmcmVzcG9uc2UtPmdyaDsNCj4gKyAgICAgICAgICAgICByZXNwb25zZS0+
-bWFkLm1hZC5tYWRfaGRyLm1ldGhvZCA9IElCX01HTVRfTUVUSE9EX0dFVF9SRVNQOw0KPiArICAg
-ICAgICAgICAgIHJlc3BvbnNlLT5tYWQubWFkLm1hZF9oZHIuc3RhdHVzID0NCj4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgX19iZTE2X3RvX2NwdShJQl9NR01UX01BRF9TVEFUVVNfQkFE
-X1ZFUlNJT04pOw0KPiArICAgICAgICAgICAgIGFnZW50X3NlbmRfcmVzcG9uc2UoJnJlc3BvbnNl
-LT5tYWQubWFkLCAmcmVjdi0+Z3JoLCB3YywNCj4gKyAgICAgICAgICAgICAgICAgICAgIHBvcnRf
-cHJpdi0+ZGV2aWNlLCBwb3J0X251bSwgcXBfaW5mby0+cXAtPnFwX251bSk7DQo+ICAgICAgIH0N
-Cg0KSSB0aGluayB3ZSBuZWVkIHRvIGRvIG1vcmUgaGVyZSB0aGFuIGp1c3QgZ2VuZXJhdGUgYSBH
-ZXRSZXNwIGZvciBhbiB1bm1hdGNoZWQgcmVjZWl2ZS4gIFRoZSByZWNlaXZlZCBNQUQgaW4gcXVl
-c3Rpb24gY291bGQgaXRzZWxmIGJlIGEgR2V0UmVzcCBvciBhIFNlbmQsIFRyYXAsIFJlcG9ydCwg
-ZXRjLiAgTWF5YmUgYWRkIGEgY2hlY2s6DQoNCn0gZWxzZSBpZiBnZW5lcmF0ZV91bm1hdGNoZWRf
-cmVzcChyZWN2LCAuLikgew0KICAgICAgICBhZ2VudF9zZW5kX3Jlc3BvbnNlKC4uLikNCn0NCg0K
-YW5kIGxldCBnZW5lcmF0ZV91bm1hdGNoZWRfcmVzcCgpIGRldGVybWluZSBpZiBhbiBhY3R1YWwg
-cmVzcG9uc2Ugc2hvdWxkIGJlIGdlbmVyYXRlZCBhbmQgd2hhdCB0aGUgY29udGVudHMgc2hvdWxk
-IGJlLCBpZiB0aGVyZSBhcmUgYW55IGRpZmZlcmVuY2VzIGluIHRoZSByZXNwb25zZSwgc3VjaCBh
-cyBkaWZmZXJlbnQgbWV0aG9kcy4gIFRoZSBpbml0aWFsIHN1Ym1pc3Npb24gY291bGQgbGltaXQg
-d2hpY2ggTUFEcyBhIHJlc3BvbnNlIGlzIGdlbmVyYXRlZCBmb3IuDQoNCi0gU2Vhbg0KE++/ve+/
-vey5uxzvv70m77+9fu+/vSbvv70Y77+977+9Ky3vv73vv73dthfvv73vv71377+977+9y5vvv73v
-v73vv71t77+9Yu+/ve+/vWt2Zu+/ve+/ve+/vV5u77+9cu+/ve+/ve+/vXrvv70a77+977+9aO+/
-ve+/ve+/ve+/vSbvv73vv70e77+9R++/ve+/ve+/vWjvv70DKO+/vemaju+/vd2iaiLvv73vv70a
-77+9G23vv73vv73vv73vv73vv71677+93pbvv73vv73vv71m77+977+977+9aO+/ve+/ve+/vX7v
-v71t77+9DQoNClRoaXMgbWVzc2FnZSBhbmQgYW55IGF0dGFjaGVkIGRvY3VtZW50cyBjb250YWlu
-IGluZm9ybWF0aW9uIGZyb20gUUxvZ2ljIENvcnBvcmF0aW9uIG9yIGl0cyB3aG9sbHktb3duZWQg
-c3Vic2lkaWFyaWVzIHRoYXQgbWF5IGJlIGNvbmZpZGVudGlhbC4gSWYgeW91IGFyZSBub3QgdGhl
-IGludGVuZGVkIHJlY2lwaWVudCwgeW91IG1heSBub3QgcmVhZCwgY29weSwgZGlzdHJpYnV0ZSwg
-b3IgdXNlIHRoaXMgaW5mb3JtYXRpb24uIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRoaXMgdHJhbnNt
-aXNzaW9uIGluIGVycm9yLCBwbGVhc2Ugbm90aWZ5IHRoZSBzZW5kZXIgaW1tZWRpYXRlbHkgYnkg
-cmVwbHkgZS1tYWlsIGFuZCB0aGVuIGRlbGV0ZSB0aGlzIG1lc3NhZ2UuDQo=
+On 1/18/2012 5:30 PM, Hal Rosenstock wrote:
+> On 1/18/2012 3:43 AM, Swapna Thete wrote:
+>> Setup a response with appropriate error status and
+>> send it for the MADs that are not supported by a
+>> specific class/version.
+>> Signed-off-by: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/mad.c |   10 ++++++++++
+>>  1 files changed, 10 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+>> index 2fe428b..734d846 100644
+>> --- a/drivers/infiniband/core/mad.c
+>> +++ b/drivers/infiniband/core/mad.c
+>> @@ -1963,6 +1963,16 @@ local:
+>>  		 * or via recv_handler in ib_mad_complete_recv()
+>>  		 */
+>>  		recv = NULL;
+>> +	} else {
+>> +		memcpy(response, recv, sizeof(*response));
+> 
+> Isn't this overkill as the bad MAD status precludes looking at the MAD
+> data ?
+> 
+>> +		response->header.recv_wc.wc = &response->header.wc;
+>> +		response->header.recv_wc.recv_buf.mad = &response->mad.mad;
+>> +		response->header.recv_wc.recv_buf.grh = &response->grh;
+>> +		response->mad.mad.mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
+>> +		response->mad.mad.mad_hdr.status =
+>> +				__be16_to_cpu(IB_MGMT_MAD_STATUS_BAD_VERSION);
+> 
+> While this is the best status for class not supported, that's not all
+> the cases that get to here. Attribute not supported (in a supported
+> class) could also occur here for which unsupported method/attribute
+> combination is more appropriate as a MAD status. I'm not sure it's worth
+> the effort to discern that (as any invalid MAD status is treated the
+> same) but I think it could be done if we want to be more precise about
+> the error.
+
+The other alternative is to just return method/attribute combination not
+supported (STATUS_FIELD[4:2] = 0x3 (MAD status 0xc)) for all this as
+Jack and Or have indicated. FWIW that's my preference.
+
+-- Hal
+
+> 
+> -- Hal
+> 
+>> +		agent_send_response(&response->mad.mad, &recv->grh, wc,
+>> +			port_priv->device, port_num, qp_info->qp->qp_num);
+>>  	}
+>>  
+>>  out:
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
