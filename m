@@ -1,57 +1,54 @@
-From: Yann Droneaud <yann-WYdEh2jsUj5Wj0EZb7rXcA@public.gmane.org>
-Subject: OT: netmap - a novel framework for fast packet I/O
-Date: Thu, 19 Jan 2012 17:50:41 +0100
-Message-ID: <1326991841.18772.42.camel@deela.quest-ce.net>
+From: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+Subject: [PATCH] core/verb.c: fix kernel panic: always initialize struct ib_qp
+ *qp->usecnt
+Date: Thu, 19 Jan 2012 20:46:41 +0100
+Message-ID: <20120119194641.1391553.39048.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+We have just been investigating kernel panics related to
+cq->ibcq.event_handler() completion calls.
 
-I have discovered today the netmap project[1] through an ACM Queue
-article[2].
+Reason is that ib_destroy_qp() fails with -EBUSY. Further investigation
+revealed qp->usecnt is not initialized. This counter was introduced
+in linux-3.2 by commit 0e0ec7e0638ef48e0c661873dfcc8caccab984c6
+and is only initialized for IB_QPT_XRC_TGT, but also checked in ib_destroy_qp()
+for any qp type.
 
-Netmap is a new interface to send and receive packets through an
-Ethernet interface (NIC). It seems to provide a raw access to network
-interface in order to process packets at high rate with a low overhead.
+Signed-off-by: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+Signed-off-by: Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+---
+ drivers/infiniband/core/verbs.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-This is an another example of "kernel-bypass"/"zero-copy" which are cor=
-e
-features of InfiniBand verbs/RDMA.
-
-But unlike InfiniBand verbs/RDMA, Netmap seems to have a very small API=
-=2E
-
-Such API could be enough to build an unreliable datagram messaging
-system on "low cost" hardware (without concerns of determinism, flow
-control, etc.).
-
-I'm asking myself if the way netmap exposes internal NIC rings could be
-applicable for IB/IBoE HCA ? e.g. beyond 10GbE NIC, is netmap relevant =
-?
-
-Regards.
-
-[1] http://info.iet.unipi.it/~luigi/netmap/
-
-netmap - a novel framework for fast packet I/O
-Luigi Rizzo Universit=C3=A0 di Pisa
-
-[2] http://queue.acm.org/detail.cfm?id=3D2103536
-
-Revisiting Network I/O APIs: The netmap Framework=20
-Luigi Rizzo, 2012-01-17 =20
-
---=20
-Yann Droneaud
-
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 602b1bd..575b780 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -421,6 +421,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 		qp->uobject    = NULL;
+ 		qp->qp_type    = qp_init_attr->qp_type;
+ 
++		atomic_set(&qp->usecnt, 0);
+ 		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
+ 			qp->event_handler = __ib_shared_qp_event_handler;
+ 			qp->qp_context = qp;
+@@ -430,7 +431,6 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 			qp->xrcd = qp_init_attr->xrcd;
+ 			atomic_inc(&qp_init_attr->xrcd->usecnt);
+ 			INIT_LIST_HEAD(&qp->open_list);
+-			atomic_set(&qp->usecnt, 0);
+ 
+ 			real_qp = qp;
+ 			qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
