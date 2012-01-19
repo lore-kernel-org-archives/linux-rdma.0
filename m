@@ -1,50 +1,42 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] core/verb.c: fix kernel panic: always initialize struct
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] core/verb.c: fix kernel panic: always initialize struct
  ib_qp *qp->usecnt
-Date: Thu, 19 Jan 2012 20:29:16 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823732DC0C33E@ORSMSX106.amr.corp.intel.com>
+Date: Thu, 19 Jan 2012 15:38:16 -0500
+Message-ID: <20120119203816.GA8574@kroah.com>
 References: <20120119194641.1391553.39048.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20120119194641.1391553.39048.stgit-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, "linux-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBXZSBoYXZlIGp1c3QgYmVlbiBpbnZlc3RpZ2F0aW5nIGtlcm5lbCBwYW5pY3MgcmVsYXRlZCB0
-bw0KPiBjcS0+aWJjcS5ldmVudF9oYW5kbGVyKCkgY29tcGxldGlvbiBjYWxscy4NCj4gDQo+IFJl
-YXNvbiBpcyB0aGF0IGliX2Rlc3Ryb3lfcXAoKSBmYWlscyB3aXRoIC1FQlVTWS4gRnVydGhlciBp
-bnZlc3RpZ2F0aW9uDQo+IHJldmVhbGVkIHFwLT51c2VjbnQgaXMgbm90IGluaXRpYWxpemVkLiBU
-aGlzIGNvdW50ZXIgd2FzIGludHJvZHVjZWQNCj4gaW4gbGludXgtMy4yIGJ5IGNvbW1pdCAwZTBl
-YzdlMDYzOGVmNDhlMGM2NjE4NzNkZmNjOGNhY2NhYjk4NGM2DQo+IGFuZCBpcyBvbmx5IGluaXRp
-YWxpemVkIGZvciBJQl9RUFRfWFJDX1RHVCwgYnV0IGFsc28gY2hlY2tlZCBpbg0KPiBpYl9kZXN0
-cm95X3FwKCkNCj4gZm9yIGFueSBxcCB0eXBlLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogQmVybmQg
-U2NodWJlcnQgPGJlcm5kLnNjaHViZXJ0QGl0d20uZnJhdW5ob2Zlci5kZT4NCj4gU2lnbmVkLW9m
-Zi1ieTogU3ZlbiBCcmV1bmVyIDxzdmVuLmJyZXVuZXJAaXR3bS5mcmF1bmhvZmVyLmRlPg0KDQpS
-ZXZpZXdlZC1ieTogU2VhbiBIZWZ0eSA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+DQoNCj4gLS0tDQoN
-Ckdvb2QgY2F0Y2guICBJIGRpZCBhbGwgbXkgdGVzdGluZyB3aXRoIG1seDQsIHdoaWNoIGp1c3Qg
-aGFwcGVucyB0byB1c2Uga3phbGxvYyB3aGVuIGFsbG9jYXRpbmcgdGhlIFFQLg0KDQo+ICBkcml2
-ZXJzL2luZmluaWJhbmQvY29yZS92ZXJicy5jIHwgICAgMiArLQ0KPiAgMSBmaWxlcyBjaGFuZ2Vk
-LCAxIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9pbmZpbmliYW5kL2NvcmUvdmVyYnMuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3Zl
-cmJzLmMNCj4gaW5kZXggNjAyYjFiZC4uNTc1Yjc4MCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9p
-bmZpbmliYW5kL2NvcmUvdmVyYnMuYw0KPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS92
-ZXJicy5jDQo+IEBAIC00MjEsNiArNDIxLDcgQEAgc3RydWN0IGliX3FwICppYl9jcmVhdGVfcXAo
-c3RydWN0IGliX3BkICpwZCwNCj4gIAkJcXAtPnVvYmplY3QgICAgPSBOVUxMOw0KPiAgCQlxcC0+
-cXBfdHlwZSAgICA9IHFwX2luaXRfYXR0ci0+cXBfdHlwZTsNCj4gDQo+ICsJCWF0b21pY19zZXQo
-JnFwLT51c2VjbnQsIDApOw0KPiAgCQlpZiAocXBfaW5pdF9hdHRyLT5xcF90eXBlID09IElCX1FQ
-VF9YUkNfVEdUKSB7DQo+ICAJCQlxcC0+ZXZlbnRfaGFuZGxlciA9IF9faWJfc2hhcmVkX3FwX2V2
-ZW50X2hhbmRsZXI7DQo+ICAJCQlxcC0+cXBfY29udGV4dCA9IHFwOw0KPiBAQCAtNDMwLDcgKzQz
-MSw2IEBAIHN0cnVjdCBpYl9xcCAqaWJfY3JlYXRlX3FwKHN0cnVjdCBpYl9wZCAqcGQsDQo+ICAJ
-CQlxcC0+eHJjZCA9IHFwX2luaXRfYXR0ci0+eHJjZDsNCj4gIAkJCWF0b21pY19pbmMoJnFwX2lu
-aXRfYXR0ci0+eHJjZC0+dXNlY250KTsNCj4gIAkJCUlOSVRfTElTVF9IRUFEKCZxcC0+b3Blbl9s
-aXN0KTsNCj4gLQkJCWF0b21pY19zZXQoJnFwLT51c2VjbnQsIDApOw0KPiANCj4gIAkJCXJlYWxf
-cXAgPSBxcDsNCj4gIAkJCXFwID0gX19pYl9vcGVuX3FwKHJlYWxfcXAsIHFwX2luaXRfYXR0ci0+
-ZXZlbnRfaGFuZGxlciwNCg0K
+On Thu, Jan 19, 2012 at 08:46:41PM +0100, Bernd Schubert wrote:
+> We have just been investigating kernel panics related to
+> cq->ibcq.event_handler() completion calls.
+> 
+> Reason is that ib_destroy_qp() fails with -EBUSY. Further investigation
+> revealed qp->usecnt is not initialized. This counter was introduced
+> in linux-3.2 by commit 0e0ec7e0638ef48e0c661873dfcc8caccab984c6
+> and is only initialized for IB_QPT_XRC_TGT, but also checked in ib_destroy_qp()
+> for any qp type.
+> 
+> Signed-off-by: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+> Signed-off-by: Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+> ---
+>  drivers/infiniband/core/verbs.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+
+<formletter>
+
+This is not the correct way to submit patches for inclusion in the
+stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
+for how to do this properly.
+
+</formletter>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
