@@ -1,74 +1,121 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: races in ipathfs
-Date: Fri, 20 Jan 2012 05:55:21 -0800
-Message-ID: <35AAF1E4A771E142979F27B51793A4888885B23067@AVEXMB1.qlogic.org>
-References: <20120119202003.GZ23916@ZenIV.linux.org.uk>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
+Date: Fri, 20 Jan 2012 08:56:52 -0500
+Message-ID: <4F1972A4.5090303@dev.mellanox.co.il>
+References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org> <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org> <4F1747F2.3020308@dev.mellanox.co.il> <4F181361.4050505@dev.mellanox.co.il> <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F82C@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120119202003.GZ23916-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F82C-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Dept_Infinipath <Dept_Infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We are currently investigating this.
+On 1/20/2012 7:12 AM, Swapna Thete wrote:
+> Thank you all for your suggestions.
+> However, I just wanted to understand that given this code is for the
+> case of an entire class not supported, 
 
-Thanks for the review on this issue!
+There's more than just "class not supported" which gets to that point in
+the MAD code flow. For example, SMInfo can and that is more appropriate
+as "method/attribute not supported" rather than "class not supported".
+The one example cited so far is SMInfo is part of SM class and that is
+required to be supported by SMA in every node.
 
-Mike
+> isn't this error code
+> IB_MGMT_MAD_STATUS_BAD_VERSION (MAD returned with Bad Status: Unsupported Class or Version) more appropriate? Also this is
+> Part of IB spec error codes.
 
+Yes, class not supported is indicated by this code.
+
+We can either choose to discern which case it is and return the correct
+error code (preferable if not too much overhead) or pick one of the two
+(in the case where it's an incoming get/set). If we pick one, which one
+causes less confusion when it comes to answering why that MAD status was
+returned ? I don't think it would/should cause any behavioral difference
+as any bad MAD status is/should be treated as an error.
+
+-- Hal
+
+> Also I did not make any changes to the handling of SMA Get(SmInfo
+> attribute). Let me know if I am missing something.
+> 
+> Thanks,
+> Swapna
 > -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Al Viro
-> Sent: Thursday, January 19, 2012 3:20 PM
-> To: Dept_Infinipath
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel
-> Subject: races in ipathfs
->
->       Use of qib_super is seriously racy.  qibfs_add() (and worse,
-> qibfs_remove()) can happen during qibfs_mount() and qibfs_kill_super().
->
->       1) CPU1: qib_init_one().  The sucker is allocated and placed
-> on the list.  CPU2: ipathfs is mounted, directory created.  CPU1:
-> finally
-> gets around to qibfs_add(); by now qib_super is non-NULL and off we go,
-> trying to create it again.  The worst part is, that code doesn't even
-> notice that dentry is there and positive; you silently leak the old
-> inode.
->
->       2) CPU1: qib_init_one().  Allocated the sucker.  CPU2: ipathfs
-> is getting mounted.  Picked the first device off the list, creating
-> directory for it.  CPU1: inserted new device into the head of the list,
-> continued working.  Got around to qibfs_add(); qib_super is NULL, so
-> we do nothing.  CPU2: walked the rest of the list, creating directories
-> for all devices.  Our device is missed, since we are past that point in
-> the list.  Worse, shift the timing a bit and it doesn't matter whether
-> you add to the head or to the tail of the list - if qibfs_add() happens
-> just before we set qib_super, we are screwed again.
->
->       3) CPU1: qib_remove_one().  CPU2: mount ipathfs is walking that
-> list and decides to try and create a directory for the device that is
-> being freed.  Oops...
->
->       4) CPU1: qib_init_one() or qib_remove_one(), doesn't matter
-> which.
-> CPU2: final umount of ipathfs already got through setting sb->s_root to
-> NULL but still hadn't set qib_super to the same.  Oops...  And no,
-> moving that qib_super = NULL; up prior to kill_litter_super() won't
-> fix the race either, of course.
->
-> AFAICS, the older driver (in hw/ipath) has the same problems.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> Sent: Thursday, January 19, 2012 6:28 PM
+> To: Swapna Thete
+> Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Jack Morgenstein
+> Subject: Re: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
+> 
+> On 1/18/2012 5:30 PM, Hal Rosenstock wrote:
+>> On 1/18/2012 3:43 AM, Swapna Thete wrote:
+>>> Setup a response with appropriate error status and
+>>> send it for the MADs that are not supported by a
+>>> specific class/version.
+>>> Signed-off-by: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>>  drivers/infiniband/core/mad.c |   10 ++++++++++
+>>>  1 files changed, 10 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+>>> index 2fe428b..734d846 100644
+>>> --- a/drivers/infiniband/core/mad.c
+>>> +++ b/drivers/infiniband/core/mad.c
+>>> @@ -1963,6 +1963,16 @@ local:
+>>>               * or via recv_handler in ib_mad_complete_recv()
+>>>               */
+>>>              recv = NULL;
+>>> +    } else {
+>>> +            memcpy(response, recv, sizeof(*response));
+>>
+>> Isn't this overkill as the bad MAD status precludes looking at the MAD
+>> data ?
+>>
+>>> +            response->header.recv_wc.wc = &response->header.wc;
+>>> +            response->header.recv_wc.recv_buf.mad = &response->mad.mad;
+>>> +            response->header.recv_wc.recv_buf.grh = &response->grh;
+>>> +            response->mad.mad.mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
+>>> +            response->mad.mad.mad_hdr.status =
+>>> +                            __be16_to_cpu(IB_MGMT_MAD_STATUS_BAD_VERSION);
+>>
+>> While this is the best status for class not supported, that's not all
+>> the cases that get to here. Attribute not supported (in a supported
+>> class) could also occur here for which unsupported method/attribute
+>> combination is more appropriate as a MAD status. I'm not sure it's worth
+>> the effort to discern that (as any invalid MAD status is treated the
+>> same) but I think it could be done if we want to be more precise about
+>> the error.
+> 
+> The other alternative is to just return method/attribute combination not
+> supported (STATUS_FIELD[4:2] = 0x3 (MAD status 0xc)) for all this as
+> Jack and Or have indicated. FWIW that's my preference.
+> 
+> -- Hal
+> 
+>>
+>> -- Hal
+>>
+>>> +            agent_send_response(&response->mad.mad, &recv->grh, wc,
+>>> +                    port_priv->device, port_num, qp_info->qp->qp_num);
+>>>      }
+>>>
+>>>  out:
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+> 
+> 
+> 
+> This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
