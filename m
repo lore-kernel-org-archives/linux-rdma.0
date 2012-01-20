@@ -1,57 +1,46 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] core/verb.c: fix kernel panic: always initialize struct
- ib_qp *qp->usecnt
-Date: Fri, 20 Jan 2012 10:43:51 -0800
-Message-ID: <CAL1RGDW=XfCd3aCmB0mE1WcOUeDj=17=s2K0A3zpFmBF6Rg_Rg@mail.gmail.com>
-References: <20120119194641.1391553.39048.stgit@localhost.localdomain>
- <1828884A29C6694DAF28B7E6B8A823732DC0C33E@ORSMSX106.amr.corp.intel.com>
- <4F1992F6.9070103@itwm.fraunhofer.de> <CAL1RGDWSh3HpVY5dui549EoqhzTYaSnsCPGdEU+hPZ9NWx6ttw@mail.gmail.com>
+From: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: kernel BUG at drivers/iommu/intel-iommu.c:1767 on F16 3.1.1-2.fc16.x86_64
+Date: Fri, 20 Jan 2012 21:02:17 +0200
+Message-ID: <CALfB72BqSEKwGdNUnenMjEujKjObhq12jFjmu6VukuA1AtYHrQ@mail.gmail.com>
+References: <CALfB72BHLmN_vkpz9j7mi4yQWaYfJOojqopJ6d4911vuf3WRAA@mail.gmail.com>
+ <CAL1RGDVh7gNTrteiEaGg=4fxW=p3ydZPVf4d1hgtwNT9xUdOMw@mail.gmail.com>
+ <CALfB72BUDiZOZY8f4wvYej5Ozur2FZN3h3FNgc78Ur=tUsSCmA@mail.gmail.com>
+ <CAL1RGDX9P7tmGTkByEid17FrSFwdAW+4=mb9eUxc_uHvmFOeSg@mail.gmail.com>
+ <CALfB72CAwzRe3u2+yQ15+coY9kNgFTZ_Be-b-+aMe6QvbZy-HA@mail.gmail.com>
+ <CALfB72CLZMrS+gTR3=0QcGry4vA3wKmgbhjp9Lc06UZtVcxzZg@mail.gmail.com>
+ <CALfB72A+A9UDieFtYOMLB9c+XHO8nt8Lr-2pkikaqM=0fJ4OAQ@mail.gmail.com> <CAL1RGDVWDsNhHywkmzaGWxZ5ERYatXVh4fGFC_tmOkkLt3Dg+w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWSh3HpVY5dui549EoqhzTYaSnsCPGdEU+hPZ9NWx6ttw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAL1RGDVWDsNhHywkmzaGWxZ5ERYatXVh4fGFC_tmOkkLt3Dg+w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 20, 2012 at 10:40 AM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org=
-> wrote:
-> On Fri, Jan 20, 2012 at 8:14 AM, Bernd Schubert
-> <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org> wrote:
->> I *guess* the qp allocated by pd->context->ops.create_qp() does not =
-have
->> qp->usecnt initialized (not does it know anything about it). So its =
-random
->> value will fail the destruction later. A simple workaround that woul=
-d work
->> for us, is to extend the patch I send to
->>
->> diff --git a/drivers/infiniband/core/verbs.c
->> b/drivers/infiniband/core/verbs.c
->> index 602b1bd..fba1675 100644
->> --- a/drivers/infiniband/core/verbs.c
->> +++ b/drivers/infiniband/core/verbs.c
->> @@ -874,7 +874,7 @@ int ib_destroy_qp(struct ib_qp *qp)
->> =A0 =A0 =A0 =A0struct ib_srq *srq;
->> =A0 =A0 =A0 =A0int ret;
->>
->> - =A0 =A0 =A0 if (atomic_read(&qp->usecnt))
->> + =A0 =A0 =A0 if (qp->qp_type =3D=3D IB_QPT_XRC_TGT && atomic_read(&=
-qp->usecnt))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EBUSY;
->>
->> =A0 =A0 =A0 =A0if (qp->real_qp !=3D qp)
->
-> It looks like this is sufficient and correct without the other patch?
+Hello
 
-But maybe it's cleaner to initialize qp->usecnt in
-both ib_create_qp() and ib_uverbs_create_qp().
+On Fri, Jan 20, 2012 at 10:23 AM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
+> On Thu, Jan 19, 2012 at 12:57 AM, Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Just checking up on this issue. Is there any further testing or
+>> information we can provide to help make a fix happen?
+> I'm not likely to be much help on VT-d issues, but maybe it
+> would be useful to dump all the values in the BUG_ON if its
+> going to trigger, ie just before
 
- - R.
+Just retested with 3.2.1-1.fc16.x86_64 and the bug seems to be gone.
+
+I confirmed that my test program triggers the bug on 3.1.1-1.fc16.x86_64.
+
+It seems a bunch of IOMMU fixes went in on 9 and 10 January, so it
+seems to have fixed this problem in 3.2.
+
+Thanks!
+
+Regards
+
+Albert
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
