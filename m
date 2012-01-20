@@ -1,45 +1,30 @@
-From: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: kernel BUG at drivers/iommu/intel-iommu.c:1767 on F16 3.1.1-2.fc16.x86_64
-Date: Fri, 20 Jan 2012 21:02:17 +0200
-Message-ID: <CALfB72BqSEKwGdNUnenMjEujKjObhq12jFjmu6VukuA1AtYHrQ@mail.gmail.com>
-References: <CALfB72BHLmN_vkpz9j7mi4yQWaYfJOojqopJ6d4911vuf3WRAA@mail.gmail.com>
- <CAL1RGDVh7gNTrteiEaGg=4fxW=p3ydZPVf4d1hgtwNT9xUdOMw@mail.gmail.com>
- <CALfB72BUDiZOZY8f4wvYej5Ozur2FZN3h3FNgc78Ur=tUsSCmA@mail.gmail.com>
- <CAL1RGDX9P7tmGTkByEid17FrSFwdAW+4=mb9eUxc_uHvmFOeSg@mail.gmail.com>
- <CALfB72CAwzRe3u2+yQ15+coY9kNgFTZ_Be-b-+aMe6QvbZy-HA@mail.gmail.com>
- <CALfB72CLZMrS+gTR3=0QcGry4vA3wKmgbhjp9Lc06UZtVcxzZg@mail.gmail.com>
- <CALfB72A+A9UDieFtYOMLB9c+XHO8nt8Lr-2pkikaqM=0fJ4OAQ@mail.gmail.com> <CAL1RGDVWDsNhHywkmzaGWxZ5ERYatXVh4fGFC_tmOkkLt3Dg+w@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
+Date: Fri, 20 Jan 2012 15:07:50 -0500
+Message-ID: <4F19C996.10901@dev.mellanox.co.il>
+References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org> <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org> <4F1747F2.3020308@dev.mellanox.co.il> <4F181361.4050505@dev.mellanox.co.il> <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F82C@MNEXMB1.qlogic.org> <1828884A29C6694DAF28B7E6B8A823732DC0E524@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDVWDsNhHywkmzaGWxZ5ERYatXVh4fGFC_tmOkkLt3Dg+w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732DC0E524-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello
+On 1/20/2012 10:27 AM, Hefty, Sean wrote:
+> As Jason pointed out, see figure 169, but, yes, this is the correct value for your case.
 
-On Fri, Jan 20, 2012 at 10:23 AM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
-> On Thu, Jan 19, 2012 at 12:57 AM, Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> Just checking up on this issue. Is there any further testing or
->> information we can provide to help make a fix happen?
-> I'm not likely to be much help on VT-d issues, but maybe it
-> would be useful to dump all the values in the BUG_ON if its
-> going to trigger, ie just before
+Figure 169 is GMP Check. SMInfo is SM class so it's a different case.
+When SMInfo is not handled due to no SM present, method/attribute not
+supported is most appropriate as a MAD status as SMA handles SM class so
+it's always present. I think there are other similar cases (when GS
+class is partially supported) too. The only way to return the optimal
+MAD status is to look at the port's MAD registrations to really figure
+this out.
 
-Just retested with 3.2.1-1.fc16.x86_64 and the bug seems to be gone.
-
-I confirmed that my test program triggers the bug on 3.1.1-1.fc16.x86_64.
-
-It seems a bunch of IOMMU fixes went in on 9 and 10 January, so it
-seems to have fixed this problem in 3.2.
-
-Thanks!
-
-Regards
-
-Albert
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
