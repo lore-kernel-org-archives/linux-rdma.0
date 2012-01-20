@@ -1,32 +1,72 @@
 From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: memory region limit at 32 GB?
-Date: Fri, 20 Jan 2012 10:38:08 -0800
-Message-ID: <CAL1RGDU8sFGyx9WQtLQ6kYN9HhhCctQvm+_dYthpAmMUs2RmkQ@mail.gmail.com>
-References: <CALfB72D_bp-XEBtAyntZzxF6RvxGyHJjsmsVEzjP8LyVxgAi7A@mail.gmail.com>
- <CAL1RGDV8R1S3L-RH-fWH=LfFegJzwNZPhdNyoQG0ZBEtQQwPjQ@mail.gmail.com>
- <CAL1RGDWKg_+VZ0Gxqvf9-4W9O-YU_6euE7jOqbmdN6=zWiNS8A@mail.gmail.com> <CALfB72DdN9onmiqUhWqbPNC6Qf00TB_pC3UkM0xKQQJMg+zMKA@mail.gmail.com>
+Subject: Re: [PATCH] core/verb.c: fix kernel panic: always initialize struct
+ ib_qp *qp->usecnt
+Date: Fri, 20 Jan 2012 10:40:49 -0800
+Message-ID: <CAL1RGDWSh3HpVY5dui549EoqhzTYaSnsCPGdEU+hPZ9NWx6ttw@mail.gmail.com>
+References: <20120119194641.1391553.39048.stgit@localhost.localdomain>
+ <1828884A29C6694DAF28B7E6B8A823732DC0C33E@ORSMSX106.amr.corp.intel.com> <4F1992F6.9070103@itwm.fraunhofer.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALfB72DdN9onmiqUhWqbPNC6Qf00TB_pC3UkM0xKQQJMg+zMKA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4F1992F6.9070103-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 20, 2012 at 10:30 AM, Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> FYI, new Sandy Bridge motherboards will be out soon that do 512 GB and
-> even 768 GB.
+On Fri, Jan 20, 2012 at 8:14 AM, Bernd Schubert
+<bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org> wrote:
+> I *guess* the qp allocated by pd->context->ops.create_qp() does not h=
+ave
+> qp->usecnt initialized (not does it know anything about it). So its r=
+andom
+> value will fail the destruction later. A simple workaround that would=
+ work
+> for us, is to extend the patch I send to
+>
+> diff --git a/drivers/infiniband/core/verbs.c
+> b/drivers/infiniband/core/verbs.c
+> index 602b1bd..fba1675 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -874,7 +874,7 @@ int ib_destroy_qp(struct ib_qp *qp)
+> =A0 =A0 =A0 =A0struct ib_srq *srq;
+> =A0 =A0 =A0 =A0int ret;
+>
+> - =A0 =A0 =A0 if (atomic_read(&qp->usecnt))
+> + =A0 =A0 =A0 if (qp->qp_type =3D=3D IB_QPT_XRC_TGT && atomic_read(&q=
+p->usecnt))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EBUSY;
+>
+> =A0 =A0 =A0 =A0if (qp->real_qp !=3D qp)
 
-Yeah, Cisco UCS C260 goes up to 1TB in a 2socket 2U already so we really
-should fix this.  I'll cook something up.
+It looks like this is sufficient and correct without the other patch?
 
-The good news is that the overhead is that we use more memory for adapter
-context, but if you have 1TB of RAM you probably don't care about a few
-more MB over overhead :)
+>
+>
+> However, what is is with user space setting type to IB_QPT_XRC_TGT? I=
+ guess
+> this could be solved by letting the kernel zero the memory returned b=
+y
+> ->ops.create_qp(pd, qp_init_attr).
+> Btw, I didn't figure out yet, how this translates at all in kernel sp=
+ace? Is
+> this op directly going to the device driver?
+>
+> But even if we are properly going to initialize the qp, what is with =
+user
+> space mischievously trying to crash the system by manipulating struct=
+ ib_qp
+> *qp?
+
+I don't follow this.  Isn't *qp completely allocated and manipulated
+in the kernel?  How can userspace touch it except by having the
+kernel do something via the uverbs interface?
 
  - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
