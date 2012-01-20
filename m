@@ -1,84 +1,74 @@
-From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-Date: Fri, 20 Jan 2012 06:12:58 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F82C@MNEXMB1.qlogic.org>
-References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
- <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
- <4F1747F2.3020308@dev.mellanox.co.il> <4F181361.4050505@dev.mellanox.co.il>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: races in ipathfs
+Date: Fri, 20 Jan 2012 05:55:21 -0800
+Message-ID: <35AAF1E4A771E142979F27B51793A4888885B23067@AVEXMB1.qlogic.org>
+References: <20120119202003.GZ23916@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F181361.4050505-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20120119202003.GZ23916-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Dept_Infinipath <Dept_Infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhhbmsgeW91IGFsbCBmb3IgeW91ciBzdWdnZXN0aW9ucy4NCkhvd2V2ZXIsIEkganVzdCB3YW50
-ZWQgdG8gdW5kZXJzdGFuZCB0aGF0IGdpdmVuIHRoaXMgY29kZSBpcyBmb3IgdGhlDQpjYXNlIG9m
-IGFuIGVudGlyZSBjbGFzcyBub3Qgc3VwcG9ydGVkLCBpc24ndCB0aGlzIGVycm9yIGNvZGUNCklC
-X01HTVRfTUFEX1NUQVRVU19CQURfVkVSU0lPTiAoTUFEIHJldHVybmVkIHdpdGggQmFkIFN0YXR1
-czogVW5zdXBwb3J0ZWQgQ2xhc3Mgb3IgVmVyc2lvbikgbW9yZSBhcHByb3ByaWF0ZT8gQWxzbyB0
-aGlzIGlzDQpQYXJ0IG9mIElCIHNwZWMgZXJyb3IgY29kZXMuDQoNCkFsc28gSSBkaWQgbm90IG1h
-a2UgYW55IGNoYW5nZXMgdG8gdGhlIGhhbmRsaW5nIG9mIFNNQSBHZXQoU21JbmZvDQphdHRyaWJ1
-dGUpLiBMZXQgbWUga25vdyBpZiBJIGFtIG1pc3Npbmcgc29tZXRoaW5nLg0KDQpUaGFua3MsDQpT
-d2FwbmENCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBIYWwgUm9zZW5zdG9jayBb
-bWFpbHRvOmhhbEBkZXYubWVsbGFub3guY28uaWxdDQpTZW50OiBUaHVyc2RheSwgSmFudWFyeSAx
-OSwgMjAxMiA2OjI4IFBNDQpUbzogU3dhcG5hIFRoZXRlDQpDYzogcm9sYW5kQGtlcm5lbC5vcmc7
-IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBKYWNrIE1vcmdlbnN0ZWluDQpTdWJqZWN0OiBS
-ZTogW1BBVENIIDIvMl0gSUIvbWFkOiBSZXR1cm4gdW5zdXBwb3J0ZWQgZm9yIE1BRHMgYXMgYXBw
-cm9wcmlhdGUNCg0KT24gMS8xOC8yMDEyIDU6MzAgUE0sIEhhbCBSb3NlbnN0b2NrIHdyb3RlOg0K
-PiBPbiAxLzE4LzIwMTIgMzo0MyBBTSwgU3dhcG5hIFRoZXRlIHdyb3RlOg0KPj4gU2V0dXAgYSBy
-ZXNwb25zZSB3aXRoIGFwcHJvcHJpYXRlIGVycm9yIHN0YXR1cyBhbmQNCj4+IHNlbmQgaXQgZm9y
-IHRoZSBNQURzIHRoYXQgYXJlIG5vdCBzdXBwb3J0ZWQgYnkgYQ0KPj4gc3BlY2lmaWMgY2xhc3Mv
-dmVyc2lvbi4NCj4+IFNpZ25lZC1vZmYtYnk6IFN3YXBuYSBUaGV0ZSA8c3dhcG5hLnRoZXRlQHFs
-b2dpYy5jb20+DQo+PiAtLS0NCj4+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYyB8ICAg
-MTAgKysrKysrKysrKw0KPj4gIDEgZmlsZXMgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMCBk
-ZWxldGlvbnMoLSkNCj4+DQo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUv
-bWFkLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYw0KPj4gaW5kZXggMmZlNDI4Yi4u
-NzM0ZDg0NiAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZC5jDQo+
-PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYw0KPj4gQEAgLTE5NjMsNiArMTk2
-MywxNiBAQCBsb2NhbDoNCj4+ICAgICAgICAgICAgICAgKiBvciB2aWEgcmVjdl9oYW5kbGVyIGlu
-IGliX21hZF9jb21wbGV0ZV9yZWN2KCkNCj4+ICAgICAgICAgICAgICAgKi8NCj4+ICAgICAgICAg
-ICAgICByZWN2ID0gTlVMTDsNCj4+ICsgICAgfSBlbHNlIHsNCj4+ICsgICAgICAgICAgICBtZW1j
-cHkocmVzcG9uc2UsIHJlY3YsIHNpemVvZigqcmVzcG9uc2UpKTsNCj4NCj4gSXNuJ3QgdGhpcyBv
-dmVya2lsbCBhcyB0aGUgYmFkIE1BRCBzdGF0dXMgcHJlY2x1ZGVzIGxvb2tpbmcgYXQgdGhlIE1B
-RA0KPiBkYXRhID8NCj4NCj4+ICsgICAgICAgICAgICByZXNwb25zZS0+aGVhZGVyLnJlY3Zfd2Mu
-d2MgPSAmcmVzcG9uc2UtPmhlYWRlci53YzsNCj4+ICsgICAgICAgICAgICByZXNwb25zZS0+aGVh
-ZGVyLnJlY3Zfd2MucmVjdl9idWYubWFkID0gJnJlc3BvbnNlLT5tYWQubWFkOw0KPj4gKyAgICAg
-ICAgICAgIHJlc3BvbnNlLT5oZWFkZXIucmVjdl93Yy5yZWN2X2J1Zi5ncmggPSAmcmVzcG9uc2Ut
-PmdyaDsNCj4+ICsgICAgICAgICAgICByZXNwb25zZS0+bWFkLm1hZC5tYWRfaGRyLm1ldGhvZCA9
-IElCX01HTVRfTUVUSE9EX0dFVF9SRVNQOw0KPj4gKyAgICAgICAgICAgIHJlc3BvbnNlLT5tYWQu
-bWFkLm1hZF9oZHIuc3RhdHVzID0NCj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgX19i
-ZTE2X3RvX2NwdShJQl9NR01UX01BRF9TVEFUVVNfQkFEX1ZFUlNJT04pOw0KPg0KPiBXaGlsZSB0
-aGlzIGlzIHRoZSBiZXN0IHN0YXR1cyBmb3IgY2xhc3Mgbm90IHN1cHBvcnRlZCwgdGhhdCdzIG5v
-dCBhbGwNCj4gdGhlIGNhc2VzIHRoYXQgZ2V0IHRvIGhlcmUuIEF0dHJpYnV0ZSBub3Qgc3VwcG9y
-dGVkIChpbiBhIHN1cHBvcnRlZA0KPiBjbGFzcykgY291bGQgYWxzbyBvY2N1ciBoZXJlIGZvciB3
-aGljaCB1bnN1cHBvcnRlZCBtZXRob2QvYXR0cmlidXRlDQo+IGNvbWJpbmF0aW9uIGlzIG1vcmUg
-YXBwcm9wcmlhdGUgYXMgYSBNQUQgc3RhdHVzLiBJJ20gbm90IHN1cmUgaXQncyB3b3J0aA0KPiB0
-aGUgZWZmb3J0IHRvIGRpc2Nlcm4gdGhhdCAoYXMgYW55IGludmFsaWQgTUFEIHN0YXR1cyBpcyB0
-cmVhdGVkIHRoZQ0KPiBzYW1lKSBidXQgSSB0aGluayBpdCBjb3VsZCBiZSBkb25lIGlmIHdlIHdh
-bnQgdG8gYmUgbW9yZSBwcmVjaXNlIGFib3V0DQo+IHRoZSBlcnJvci4NCg0KVGhlIG90aGVyIGFs
-dGVybmF0aXZlIGlzIHRvIGp1c3QgcmV0dXJuIG1ldGhvZC9hdHRyaWJ1dGUgY29tYmluYXRpb24g
-bm90DQpzdXBwb3J0ZWQgKFNUQVRVU19GSUVMRFs0OjJdID0gMHgzIChNQUQgc3RhdHVzIDB4Yykp
-IGZvciBhbGwgdGhpcyBhcw0KSmFjayBhbmQgT3IgaGF2ZSBpbmRpY2F0ZWQuIEZXSVcgdGhhdCdz
-IG15IHByZWZlcmVuY2UuDQoNCi0tIEhhbA0KDQo+DQo+IC0tIEhhbA0KPg0KPj4gKyAgICAgICAg
-ICAgIGFnZW50X3NlbmRfcmVzcG9uc2UoJnJlc3BvbnNlLT5tYWQubWFkLCAmcmVjdi0+Z3JoLCB3
-YywNCj4+ICsgICAgICAgICAgICAgICAgICAgIHBvcnRfcHJpdi0+ZGV2aWNlLCBwb3J0X251bSwg
-cXBfaW5mby0+cXAtPnFwX251bSk7DQo+PiAgICAgIH0NCj4+DQo+PiAgb3V0Og0KPj4NCj4+DQo+
-PiAtLQ0KPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVu
-c3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQo+PiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFq
-b3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDov
-L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo+Pg0KPg0KDQoNCg0KVGhpcyBt
-ZXNzYWdlIGFuZCBhbnkgYXR0YWNoZWQgZG9jdW1lbnRzIGNvbnRhaW4gaW5mb3JtYXRpb24gZnJv
-bSBRTG9naWMgQ29ycG9yYXRpb24gb3IgaXRzIHdob2xseS1vd25lZCBzdWJzaWRpYXJpZXMgdGhh
-dCBtYXkgYmUgY29uZmlkZW50aWFsLiBJZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5kZWQgcmVjaXBp
-ZW50LCB5b3UgbWF5IG5vdCByZWFkLCBjb3B5LCBkaXN0cmlidXRlLCBvciB1c2UgdGhpcyBpbmZv
-cm1hdGlvbi4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhpcyB0cmFuc21pc3Npb24gaW4gZXJyb3Is
-IHBsZWFzZSBub3RpZnkgdGhlIHNlbmRlciBpbW1lZGlhdGVseSBieSByZXBseSBlLW1haWwgYW5k
-IHRoZW4gZGVsZXRlIHRoaXMgbWVzc2FnZS4NCg==
+We are currently investigating this.
+
+Thanks for the review on this issue!
+
+Mike
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Al Viro
+> Sent: Thursday, January 19, 2012 3:20 PM
+> To: Dept_Infinipath
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel
+> Subject: races in ipathfs
+>
+>       Use of qib_super is seriously racy.  qibfs_add() (and worse,
+> qibfs_remove()) can happen during qibfs_mount() and qibfs_kill_super().
+>
+>       1) CPU1: qib_init_one().  The sucker is allocated and placed
+> on the list.  CPU2: ipathfs is mounted, directory created.  CPU1:
+> finally
+> gets around to qibfs_add(); by now qib_super is non-NULL and off we go,
+> trying to create it again.  The worst part is, that code doesn't even
+> notice that dentry is there and positive; you silently leak the old
+> inode.
+>
+>       2) CPU1: qib_init_one().  Allocated the sucker.  CPU2: ipathfs
+> is getting mounted.  Picked the first device off the list, creating
+> directory for it.  CPU1: inserted new device into the head of the list,
+> continued working.  Got around to qibfs_add(); qib_super is NULL, so
+> we do nothing.  CPU2: walked the rest of the list, creating directories
+> for all devices.  Our device is missed, since we are past that point in
+> the list.  Worse, shift the timing a bit and it doesn't matter whether
+> you add to the head or to the tail of the list - if qibfs_add() happens
+> just before we set qib_super, we are screwed again.
+>
+>       3) CPU1: qib_remove_one().  CPU2: mount ipathfs is walking that
+> list and decides to try and create a directory for the device that is
+> being freed.  Oops...
+>
+>       4) CPU1: qib_init_one() or qib_remove_one(), doesn't matter
+> which.
+> CPU2: final umount of ipathfs already got through setting sb->s_root to
+> NULL but still hadn't set qib_super to the same.  Oops...  And no,
+> moving that qib_super = NULL; up prior to kill_litter_super() won't
+> fix the race either, of course.
+>
+> AFAICS, the older driver (in hw/ipath) has the same problems.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
