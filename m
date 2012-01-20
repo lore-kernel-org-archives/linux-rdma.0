@@ -1,80 +1,57 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] core/verb.c: fix kernel panic: always initialize struct
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] core/verb.c: fix kernel panic: always initialize struct
  ib_qp *qp->usecnt
-Date: Fri, 20 Jan 2012 18:43:54 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823732DC115E2@ORSMSX101.amr.corp.intel.com>
+Date: Fri, 20 Jan 2012 10:43:51 -0800
+Message-ID: <CAL1RGDW=XfCd3aCmB0mE1WcOUeDj=17=s2K0A3zpFmBF6Rg_Rg@mail.gmail.com>
+References: <20120119194641.1391553.39048.stgit@localhost.localdomain>
+ <1828884A29C6694DAF28B7E6B8A823732DC0C33E@ORSMSX106.amr.corp.intel.com>
+ <4F1992F6.9070103@itwm.fraunhofer.de> <CAL1RGDWSh3HpVY5dui549EoqhzTYaSnsCPGdEU+hPZ9NWx6ttw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAL1RGDWSh3HpVY5dui549EoqhzTYaSnsCPGdEU+hPZ9NWx6ttw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBIb3dldmVyLCB3aGF0IGlzIGlzIHdpdGggdXNlciBzcGFjZSBzZXR0aW5nIHR5cGUgdG8gSUJf
-UVBUX1hSQ19UR1Q/IEkNCj4gZ3Vlc3MgdGhpcyBjb3VsZCBiZSBzb2x2ZWQgYnkgbGV0dGluZyB0
-aGUga2VybmVsIHplcm8gdGhlIG1lbW9yeQ0KPiByZXR1cm5lZCBieSAtPm9wcy5jcmVhdGVfcXAo
-cGQsIHFwX2luaXRfYXR0cikuDQo+IEJ0dywgSSBkaWRuJ3QgZmlndXJlIG91dCB5ZXQsIGhvdyB0
-aGlzIHRyYW5zbGF0ZXMgYXQgYWxsIGluIGtlcm5lbA0KPiBzcGFjZT8gSXMgdGhpcyBvcCBkaXJl
-Y3RseSBnb2luZyB0byB0aGUgZGV2aWNlIGRyaXZlcj8NCg0Kb3BzLmNyZWF0ZV9xcCBiYXNpY2Fs
-bHkgZW5kcyB1cCBnb2luZyBpbnRvIHRoZSBrZXJuZWwgaW50byBpYl91dmVyYnNfY3JlYXRlX3Fw
-KCkuDQoNCj4gQnV0IGV2ZW4gaWYgd2UgYXJlIHByb3Blcmx5IGdvaW5nIHRvIGluaXRpYWxpemUg
-dGhlIHFwLCB3aGF0IGlzIHdpdGgNCj4gdXNlciBzcGFjZSBtaXNjaGlldm91c2x5IHRyeWluZyB0
-byBjcmFzaCB0aGUgc3lzdGVtIGJ5IG1hbmlwdWxhdGluZw0KPiBzdHJ1Y3QgaWJfcXAgKnFwPw0K
-DQpUaGVyZSdzIGNsZWFudXAgaW4gdXZlcmJzIHRoYXQgaWdub3JlcyB0aGUgcmV0dXJuIHZhbHVl
-IGZyb20gaWJfZGVzdHJveV9xcCgpLCBiYXNpY2FsbHkgYmVjYXVzZSBpdCBzaG91bGRuJ3QgZmFp
-bCBpbiB0aG9zZSBjaXJjdW1zdGFuY2VzLiAgQWZ0ZXIgY2FsbGluZyBpYl9kZXN0cm95X3FwLCB1
-dmVyYnMgd2lsbCBmcmVlIHNvbWUgaW50ZXJuYWwgc3RydWN0dXJlcyB0aGF0IHNvbWUgb2YgdGhl
-IGNhbGxiYWNrIGhhbmRsZXJzIGV4cGVjdCB0byBhY2Nlc3MuICBUaGlzIGxlYWRzIHRvIHRoZSBj
-cmFzaGVzIHRoYXQgeW91J3JlIHNlZWluZy4NCg0KSSB0aGluayB0aGUgcHJvYmxlbSBpcyB0aGF0
-IHlvdXIgZmlyc3QgcGF0Y2ggaXMgaW5jb21wbGV0ZS4gIGliX3V2ZXJic19jcmVhdGVfcXAoKSB3
-aWxsIGNyZWF0ZSBhIFFQIGJ5IGVpdGhlciBjYWxsaW5nIGliX2NyZWF0ZV9xcCgpIG9yIGJ5IGNh
-bGxpbmcgdGhlIGRldmljZSBkaXJlY3RseSAoZGV2aWNlLT5jcmVhdGVfcXApLiAgcXAtPnVzZWNu
-dCBuZWVkcyB0byBiZSBpbml0aWFsaXplZCBpbiBib3RoIGNhc2VzLiAgQ2FuIHlvdSB0cnkgdGhp
-cyBtb2RpZmljYXRpb24gdG8geW91ciBvcmlnaW5hbCBwYXRjaD8NCg0KRnJvbTogQmVybmQgU2No
-dWJlcnQgPGJlcm5kLnNjaHViZXJ0QGl0d20uZnJhdW5ob2Zlci5kZT4NCg0KRnJvbTogU2VhbiBI
-ZWZ0eSA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+DQoNCnJkbWEvY29yZTogRml4IGtlcm5lbCBwYW5p
-YyBieSBhbHdheXMgaW5pdGlhbGl6aW5nIHFwLT51c2VjbnQNCg0KV2UgaGF2ZSBqdXN0IGJlZW4g
-aW52ZXN0aWdhdGluZyBrZXJuZWwgcGFuaWNzIHJlbGF0ZWQgdG8NCmNxLT5pYmNxLmV2ZW50X2hh
-bmRsZXIoKSBjb21wbGV0aW9uIGNhbGxzLg0KDQpSZWFzb24gaXMgdGhhdCBpYl9kZXN0cm95X3Fw
-KCkgZmFpbHMgd2l0aCAtRUJVU1kuICBGdXJ0aGVyIGludmVzdGlnYXRpb24NCnJldmVhbGVkIHFw
-LT51c2VjbnQgaXMgbm90IGluaXRpYWxpemVkLiAgVGhpcyBjb3VudGVyIHdhcyBpbnRyb2R1Y2Vk
-DQppbiBsaW51eC0zLjIgYnkgY29tbWl0IDBlMGVjN2UwNjM4ZWY0OGUwYzY2MTg3M2RmY2M4Y2Fj
-Y2FiOTg0YzYNCmFuZCBpcyBvbmx5IGluaXRpYWxpemVkIGZvciBJQl9RUFRfWFJDX1RHVCwgYnV0
-IGFsc28gY2hlY2tlZCBpbiBpYl9kZXN0cm95X3FwKCkNCmZvciBhbnkgcXAgdHlwZS4NCg0KU2ln
-bmVkLW9mZi1ieTogQmVybmQgU2NodWJlcnQgPGJlcm5kLnNjaHViZXJ0QGl0d20uZnJhdW5ob2Zl
-ci5kZT4NClNpZ25lZC1vZmYtYnk6IFN2ZW4gQnJldW5lciA8c3Zlbi5icmV1bmVyQGl0d20uZnJh
-dW5ob2Zlci5kZT4NClNpZ25lZC1vZmYtYnk6IFNlYW4gSGVmdHkgPHNlYW4uaGVmdHlAaW50ZWwu
-Y29tPg0KLS0tDQogZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2NtZC5jIHwgICAgMSAr
-DQogZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdmVyYnMuYyAgICAgIHwgICAgMiArLQ0KIDIgZmls
-ZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2NtZC5jIGIvZHJpdmVycy9pbmZpbmli
-YW5kL2NvcmUvdXZlcmJzX2NtZC5jDQppbmRleCBlMjYxOTNmLi5lNDdkYmYxIDEwMDY0NA0KLS0t
-IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2NtZC5jDQorKysgYi9kcml2ZXJzL2lu
-ZmluaWJhbmQvY29yZS91dmVyYnNfY21kLmMNCkBAIC0xNDcyLDYgKzE0NzIsNyBAQCBzc2l6ZV90
-IGliX3V2ZXJic19jcmVhdGVfcXAoc3RydWN0IGliX3V2ZXJic19maWxlICpmaWxlLA0KIAkJcXAt
-PmV2ZW50X2hhbmRsZXIgPSBhdHRyLmV2ZW50X2hhbmRsZXI7DQogCQlxcC0+cXBfY29udGV4dAkg
-ID0gYXR0ci5xcF9jb250ZXh0Ow0KIAkJcXAtPnFwX3R5cGUJICA9IGF0dHIucXBfdHlwZTsNCisJ
-CWF0b21pY19zZXQoJnFwLT51c2VjbnQsIDApOw0KIAkJYXRvbWljX2luYygmcGQtPnVzZWNudCk7
-DQogCQlhdG9taWNfaW5jKCZhdHRyLnNlbmRfY3EtPnVzZWNudCk7DQogCQlpZiAoYXR0ci5yZWN2
-X2NxKQ0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJzLmMgYi9kcml2
-ZXJzL2luZmluaWJhbmQvY29yZS92ZXJicy5jDQppbmRleCA2MDJiMWJkLi41NzViNzgwIDEwMDY0
-NA0KLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdmVyYnMuYw0KKysrIGIvZHJpdmVycy9p
-bmZpbmliYW5kL2NvcmUvdmVyYnMuYw0KQEAgLTQyMSw2ICs0MjEsNyBAQCBzdHJ1Y3QgaWJfcXAg
-KmliX2NyZWF0ZV9xcChzdHJ1Y3QgaWJfcGQgKnBkLA0KIAkJcXAtPnVvYmplY3QgICAgPSBOVUxM
-Ow0KIAkJcXAtPnFwX3R5cGUgICAgPSBxcF9pbml0X2F0dHItPnFwX3R5cGU7DQogDQorCQlhdG9t
-aWNfc2V0KCZxcC0+dXNlY250LCAwKTsNCiAJCWlmIChxcF9pbml0X2F0dHItPnFwX3R5cGUgPT0g
-SUJfUVBUX1hSQ19UR1QpIHsNCiAJCQlxcC0+ZXZlbnRfaGFuZGxlciA9IF9faWJfc2hhcmVkX3Fw
-X2V2ZW50X2hhbmRsZXI7DQogCQkJcXAtPnFwX2NvbnRleHQgPSBxcDsNCkBAIC00MzAsNyArNDMx
-LDYgQEAgc3RydWN0IGliX3FwICppYl9jcmVhdGVfcXAoc3RydWN0IGliX3BkICpwZCwNCiAJCQlx
-cC0+eHJjZCA9IHFwX2luaXRfYXR0ci0+eHJjZDsNCiAJCQlhdG9taWNfaW5jKCZxcF9pbml0X2F0
-dHItPnhyY2QtPnVzZWNudCk7DQogCQkJSU5JVF9MSVNUX0hFQUQoJnFwLT5vcGVuX2xpc3QpOw0K
-LQkJCWF0b21pY19zZXQoJnFwLT51c2VjbnQsIDApOw0KIA0KIAkJCXJlYWxfcXAgPSBxcDsNCiAJ
-CQlxcCA9IF9faWJfb3Blbl9xcChyZWFsX3FwLCBxcF9pbml0X2F0dHItPmV2ZW50X2hhbmRsZXIs
-DQoNCg0K
+On Fri, Jan 20, 2012 at 10:40 AM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org=
+> wrote:
+> On Fri, Jan 20, 2012 at 8:14 AM, Bernd Schubert
+> <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org> wrote:
+>> I *guess* the qp allocated by pd->context->ops.create_qp() does not =
+have
+>> qp->usecnt initialized (not does it know anything about it). So its =
+random
+>> value will fail the destruction later. A simple workaround that woul=
+d work
+>> for us, is to extend the patch I send to
+>>
+>> diff --git a/drivers/infiniband/core/verbs.c
+>> b/drivers/infiniband/core/verbs.c
+>> index 602b1bd..fba1675 100644
+>> --- a/drivers/infiniband/core/verbs.c
+>> +++ b/drivers/infiniband/core/verbs.c
+>> @@ -874,7 +874,7 @@ int ib_destroy_qp(struct ib_qp *qp)
+>> =A0 =A0 =A0 =A0struct ib_srq *srq;
+>> =A0 =A0 =A0 =A0int ret;
+>>
+>> - =A0 =A0 =A0 if (atomic_read(&qp->usecnt))
+>> + =A0 =A0 =A0 if (qp->qp_type =3D=3D IB_QPT_XRC_TGT && atomic_read(&=
+qp->usecnt))
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EBUSY;
+>>
+>> =A0 =A0 =A0 =A0if (qp->real_qp !=3D qp)
+>
+> It looks like this is sufficient and correct without the other patch?
+
+But maybe it's cleaner to initialize qp->usecnt in
+both ib_create_qp() and ib_uverbs_create_qp().
+
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
