@@ -1,30 +1,67 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-Date: Fri, 20 Jan 2012 15:07:50 -0500
-Message-ID: <4F19C996.10901@dev.mellanox.co.il>
-References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org> <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org> <4F1747F2.3020308@dev.mellanox.co.il> <4F181361.4050505@dev.mellanox.co.il> <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F82C@MNEXMB1.qlogic.org> <1828884A29C6694DAF28B7E6B8A823732DC0E524@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+Subject: Server Hosting Solution - - - Hong Kong Data Center
+Date: Sat, 21 Jan 2012 15:46:25 +0800 (HKT)
+Message-ID: <kcYnYRCwUECeV@tpts1.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732DC0E524-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/20/2012 10:27 AM, Hefty, Sean wrote:
-> As Jason pointed out, see figure 169, but, yes, this is the correct value for your case.
+Dear Sir / Madam, 
 
-Figure 169 is GMP Check. SMInfo is SM class so it's a different case.
-When SMInfo is not handled due to no SM present, method/attribute not
-supported is most appropriate as a MAD status as SMA handles SM class so
-it's always present. I think there are other similar cases (when GS
-class is partially supported) too. The only way to return the optimal
-MAD status is to look at the port's MAD registrations to really figure
-this out.
+Good morning, this is Otto from Dedicated Server Hong Kong.
 
--- Hal
+In this Jan and Feb, we offered the following special server hosting plan to you. Please check. 
+
+Server Hosting Package
+
+**********************************************************
+1) Value Server Hosting Plan
+
+Specification: 
+CPU: Xeon Processor x 1
+Ram: 4G
+HDD: 150 GB Harddisk
+OS:  Linux CentOS
+IDC: Hong Kong Data Center
+
+Price: USD $100 x 12 mth =3D USD $1,200 / yr
+
+2) Enterprise Server Hosting Plan
+
+Specification: 
+CPU: Xeon Processor x 2
+Ram: 8G
+HDD: 300 GB Harddisk
+OS:  Linux CentOS
+IDC: Hong Kong Data Center
+
+Price: USD $300 x 12 mth =3D USD $3,600 / yr
+************************************************************
+
+All the service are hosting in Hong Kong ISO Certificated and TIA 942 Tier3+ Data Center. 
+
+If you are interested in the above server hosting package, please feel free to contact me. 
+
+The following is my contact information. 
+
+Contact No: (852) 5108 9664
+
+Skype: yschiu2001 (yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org)
+
+MSN: yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
+
+Email: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+
+If you do not wish to further receive this event message, email "subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org" to unsubscribe this message or remove your email from the list. 
+
+Best Regards
+Otto Chiu
+Dedicated Server Hong Kong
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
