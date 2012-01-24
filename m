@@ -1,118 +1,65 @@
-From: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Subject: Re: [PATCH] core/verb.c: fix kernel panic: always initialize struct
- ib_qp *qp->usecnt
-Date: Mon, 23 Jan 2012 17:11:45 +0100
-Message-ID: <4F1D86C1.8050709@itwm.fraunhofer.de>
-References: <1828884A29C6694DAF28B7E6B8A823732DC115E2@ORSMSX101.amr.corp.intel.com>
+From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
+Date: Tue, 24 Jan 2012 06:32:19 -0600
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F98E@MNEXMB1.qlogic.org>
+References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
+ <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
+ <4F1747F2.3020308@dev.mellanox.co.il> <4F181361.4050505@dev.mellanox.co.il>
+ <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F82C@MNEXMB1.qlogic.org>
+ <1828884A29C6694DAF28B7E6B8A823732DC0E524@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732DC115E2-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732DC0E524-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/20/2012 07:43 PM, Hefty, Sean wrote:
->> However, what is is with user space setting type to IB_QPT_XRC_TGT?
->> I guess this could be solved by letting the kernel zero the memory
->> returned by ->ops.create_qp(pd, qp_init_attr). Btw, I didn't figure
->> out yet, how this translates at all in kernel space? Is this op
->> directly going to the device driver?
->
-> ops.create_qp basically ends up going into the kernel into
-> ib_uverbs_create_qp().
-
-Thanks, I didn't find this.
-
->
->> But even if we are properly going to initialize the qp, what is
->> with user space mischievously trying to crash the system by
->> manipulating struct ib_qp *qp?
->
-> There's cleanup in uverbs that ignores the return value from
-> ib_destroy_qp(), basically because it shouldn't fail in those
-> circumstances.  After calling ib_destroy_qp, uverbs will free some
-> internal structures that some of the callback handlers expect to
-> access.  This leads to the crashes that you're seeing.
->
-> I think the problem is that your first patch is incomplete.
-> ib_uverbs_create_qp() will create a QP by either calling
-> ib_create_qp() or by calling the device directly (device->create_qp).
-> qp->usecnt needs to be initialized in both cases.  Can you try this
-> modification to your original patch?
-
-Thanks, this works either. But a question here, couldn't we just add the 
-"struct ib_udata *udata" as third parameter to ib_create_qp() and then 
-remove the if-condition in ib_uverbs_create_qp()?
-
-	if (cmd.qp_type == IB_QPT_XRC_TGT)
-		qp = ib_create_qp(pd, &attr);
-	else
-		qp = device->create_qp(pd, &attr, &udata);
-
-
-So reduce this to
-	qp = ib_create_qp(pd, &attr, &attr);
-
-
-Other callers of ib_create_qp() are not that many and would pass NULL 
-instead.
-
-
-Cheers,
-Bernd
-
->
-> From: Bernd Schubert<bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
->
-> From: Sean Hefty<sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> rdma/core: Fix kernel panic by always initializing qp->usecnt
->
-> We have just been investigating kernel panics related to
-> cq->ibcq.event_handler() completion calls.
->
-> Reason is that ib_destroy_qp() fails with -EBUSY.  Further
-> investigation revealed qp->usecnt is not initialized.  This counter
-> was introduced in linux-3.2 by commit
-> 0e0ec7e0638ef48e0c661873dfcc8caccab984c6 and is only initialized for
-> IB_QPT_XRC_TGT, but also checked in ib_destroy_qp() for any qp type.
->
-> Signed-off-by: Bernd Schubert<bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-> Signed-off-by: Sven Breuner<sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-> Signed-off-by: Sean Hefty<sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> ---
-> drivers/infiniband/core/uverbs_cmd.c |    1 +
-> drivers/infiniband/core/verbs.c      |    2 +- 2 files changed, 2
-> insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c
-> b/drivers/infiniband/core/uverbs_cmd.c index e26193f..e47dbf1 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c +++
-> b/drivers/infiniband/core/uverbs_cmd.c @@ -1472,6 +1472,7 @@ ssize_t
-> ib_uverbs_create_qp(struct ib_uverbs_file *file, qp->event_handler =
-> attr.event_handler; qp->qp_context	  = attr.qp_context; qp->qp_type
-> = attr.qp_type; +		atomic_set(&qp->usecnt, 0);
-> atomic_inc(&pd->usecnt); atomic_inc(&attr.send_cq->usecnt); if
-> (attr.recv_cq) diff --git a/drivers/infiniband/core/verbs.c
-> b/drivers/infiniband/core/verbs.c index 602b1bd..575b780 100644 ---
-> a/drivers/infiniband/core/verbs.c +++
-> b/drivers/infiniband/core/verbs.c @@ -421,6 +421,7 @@ struct ib_qp
-> *ib_create_qp(struct ib_pd *pd, qp->uobject    = NULL; qp->qp_type
-> = qp_init_attr->qp_type;
->
-> +		atomic_set(&qp->usecnt, 0); if (qp_init_attr->qp_type ==
-> IB_QPT_XRC_TGT) { qp->event_handler = __ib_shared_qp_event_handler;
-> qp->qp_context = qp; @@ -430,7 +431,6 @@ struct ib_qp
-> *ib_create_qp(struct ib_pd *pd, qp->xrcd = qp_init_attr->xrcd;
-> atomic_inc(&qp_init_attr->xrcd->usecnt);
-> INIT_LIST_HEAD(&qp->open_list); -			atomic_set(&qp->usecnt, 0);
->
-> real_qp = qp; qp = __ib_open_qp(real_qp,
-> qp_init_attr->event_handler,
->
->
+WWVzIFNlYW4uIEkgZ290IHlvdXIgcG9pbnQuIEFzIEkgbWVudGlvbmVkIGVhcmxpZXIsIHRoZXJl
+IGlzIGFscmVhZHkgYSBmdW5jdGlvbiBjYWxsZWQgdmFsaWRhdGVfbWFkKCksIHdoaWNoIGNoZWNr
+cyBmb3INCkJhc2UgdmVyc2lvbiBhbmQgY2xhc3MgdmVyc2lvbiBhcyBwZXIgZmlndXJlIDE2OSB0
+aGF0IEphc29uDQpQb2ludGVkIG91dC4gSWYgaXQncyBub3QgbWF0Y2hpbmcsIG5vIHJlc3BvbnNl
+IHdpbGwgYmUgZ2VuZXJhdGVkDQpBbmQgcGFja2V0IHdpbGwgYmUgZHJvcHBlZC4gSSB3aWxsIGFk
+ZCBhIGZ1bmN0aW9uIGxpa2UgZ2VuZXJhdGVfdW5tYXRjaGVkX3Jlc3AoKSB0aGUgd2F5IHlvdSBz
+dWdnZXN0ZWQgdG8gY2hlY2sgZm9yIG1ldGhvZCBnZXQvc2V0IGFuZCByZXR1cm4gcmVzcG9uc2Ug
+YXMgSUJfTUdNVF9NQURfU1RBVFVTX0JBRF9WRVJTSU9OIG9ubHkNClRoZW4uIEZvciBvdGhlciBt
+ZXRob2RzLCBhZ2FpbiB0aGUgcGFja2V0IHdvdWxkIGJlIGRyb3BwZWQuDQoNCkhvd2V2ZXIsIEhh
+bCBhbmQgSmFjayB3ZXJlIHN0aWxsIGNvbmNlcm5lZCB0aGF0IHRoaXMgaXMgbm90IHRoZSBjb3Jy
+ZWN0IFN0YXR1cyBjb2RlIGFuZCBpdCBzaG91bGQgaW5zdGVhZCBiZSAiTWV0aG9kL2F0dHJpYnV0
+ZSB1bnN1cHBvcnRlZCIuIElmIHRoZXJlIGlzIGEgY29uc2Vuc3VzIG9uIHRoaXMgc3RhdHVzIGNv
+ZGUsIEkgY2FuDQpJbmNsdWRlIHRoYXQgYXMgd2VsbCBhbG9uZyB3aXRoIHRoZSBjaGFuZ2UgZm9y
+IGdlbmVyYXRlX3VubWF0Y2hlZF9yZXNwKCkuDQoNClRoYW5rcywNClN3YXBuYQ0KDQotLS0tLU9y
+aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogSGVmdHksIFNlYW4gW21haWx0bzpzZWFuLmhlZnR5
+QGludGVsLmNvbV0NClNlbnQ6IEZyaWRheSwgSmFudWFyeSAyMCwgMjAxMiA4OjU4IFBNDQpUbzog
+U3dhcG5hIFRoZXRlOyBIYWwgUm9zZW5zdG9jaw0KQ2M6IHJvbGFuZEBrZXJuZWwub3JnOyBsaW51
+eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgSmFjayBNb3JnZW5zdGVpbg0KU3ViamVjdDogUkU6IFtQ
+QVRDSCAyLzJdIElCL21hZDogUmV0dXJuIHVuc3VwcG9ydGVkIGZvciBNQURzIGFzIGFwcHJvcHJp
+YXRlDQoNCj4gVGhhbmsgeW91IGFsbCBmb3IgeW91ciBzdWdnZXN0aW9ucy4NCj4gSG93ZXZlciwg
+SSBqdXN0IHdhbnRlZCB0byB1bmRlcnN0YW5kIHRoYXQgZ2l2ZW4gdGhpcyBjb2RlIGlzIGZvciB0
+aGUNCj4gY2FzZSBvZiBhbiBlbnRpcmUgY2xhc3Mgbm90IHN1cHBvcnRlZCwgaXNuJ3QgdGhpcyBl
+cnJvciBjb2RlDQo+IElCX01HTVRfTUFEX1NUQVRVU19CQURfVkVSU0lPTiAoTUFEIHJldHVybmVk
+IHdpdGggQmFkIFN0YXR1czogVW5zdXBwb3J0ZWQNCj4gQ2xhc3Mgb3IgVmVyc2lvbikgbW9yZSBh
+cHByb3ByaWF0ZT8gQWxzbyB0aGlzIGlzDQo+IFBhcnQgb2YgSUIgc3BlYyBlcnJvciBjb2Rlcy4N
+Cg0KQXMgSmFzb24gcG9pbnRlZCBvdXQsIHNlZSBmaWd1cmUgMTY5LCBidXQsIHllcywgdGhpcyBp
+cyB0aGUgY29ycmVjdCB2YWx1ZSBmb3IgeW91ciBjYXNlLiAgV2hhdCBJIHdhcyBzdWdnZXN0aW5n
+IGlzIG1vdmluZyB0aGVzZSBjaGVja3Mgb3V0IGludG8gYW5vdGhlciBmdW5jdGlvbiwgZGVhbGlu
+ZyB3aXRoIHRoZSBzcGVjaWZpYyBjYXNlKHMpIHRoYXQgeW91IGFyZSBpbnRlcmVzdGVkIGluLCBh
+bmQgZGVmZXJyaW5nIHdvcmsgb24gb3RoZXIgY2FzZXMuICBUaGUgZnVuY3Rpb24gSSdtIHJlZmVy
+cmluZyB0byB3b3VsZCB1c2UgcG9zaXRpdmUgY2hlY2tzIHRvIGRldGVybWluZSBpZiBhIHJlcGx5
+IHNob3VsZCBiZSBnZW5lcmF0ZWQgYW5kIHdoYXQgdHlwZSBvZiByZXBseSBpdCBuZWVkcyB0byBi
+ZSwgd2l0aCB0aGUgZGVmYXVsdCBjYXNlIHRvIHNpbXBseSBkaXNjYXJkIHRoZSBNQUQuICBTaWxl
+bnRseSBkcm9wcGluZyB0aGVzZSBNQURzIGlzIHBlcm1pc3NpYmxlIHVuZGVyIHRoZSBzcGVjLCBh
+dXRvbWF0aWNhbGx5IGdlbmVyYXRpbmcgYSBjYW5uZWQgcmVwbHkgaXMgbm90Lg0KDQotIFNlYW4N
+Cg0KVGhpcyBtZXNzYWdlIGFuZCBhbnkgYXR0YWNoZWQgZG9jdW1lbnRzIGNvbnRhaW4gaW5mb3Jt
+YXRpb24gZnJvbSBRTG9naWMgQ29ycG9yYXRpb24gb3IgaXRzIHdob2xseS1vd25lZCBzdWJzaWRp
+YXJpZXMgdGhhdCBtYXkgYmUgY29uZmlkZW50aWFsLiBJZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5k
+ZWQgcmVjaXBpZW50LCB5b3UgbWF5IG5vdCByZWFkLCBjb3B5LCBkaXN0cmlidXRlLCBvciB1c2Ug
+dGhpcyBpbmZvcm1hdGlvbi4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhpcyB0cmFuc21pc3Npb24g
+aW4gZXJyb3IsIHBsZWFzZSBub3RpZnkgdGhlIHNlbmRlciBpbW1lZGlhdGVseSBieSByZXBseSBl
+LW1haWwgYW5kIHRoZW4gZGVsZXRlIHRoaXMgbWVzc2FnZS4NCg==
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
