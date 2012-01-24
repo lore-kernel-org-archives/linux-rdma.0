@@ -1,67 +1,47 @@
-From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 2/2] IB/mad: Return unsupported for MADs as appropriate
-Date: Tue, 24 Jan 2012 06:32:19 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F98E@MNEXMB1.qlogic.org>
-References: <20120118084255.18560.40844.stgit@kop-dev-sles11-04.qlogic.org>
- <20120118084311.18560.22509.stgit@kop-dev-sles11-04.qlogic.org>
- <4F1747F2.3020308@dev.mellanox.co.il> <4F181361.4050505@dev.mellanox.co.il>
- <4C2744E8AD2982428C5BFE523DF8CDCB5CD590F82C@MNEXMB1.qlogic.org>
- <1828884A29C6694DAF28B7E6B8A823732DC0E524@ORSMSX101.amr.corp.intel.com>
+From: Josh Boyer <jwboyer@gmail.com>
+Subject: Re: kernel BUG at drivers/iommu/intel-iommu.c:1767 on F16 3.1.1-2.fc16.x86_64
+Date: Tue, 24 Jan 2012 10:00:16 -0500
+Message-ID: <CA+5PVA6aE_9+g_UngHeoL3qzPSHL0oX-8N0SbsZpGRdsoXRWsw@mail.gmail.com>
+References: <CALfB72BHLmN_vkpz9j7mi4yQWaYfJOojqopJ6d4911vuf3WRAA@mail.gmail.com>
+	<CAL1RGDVh7gNTrteiEaGg=4fxW=p3ydZPVf4d1hgtwNT9xUdOMw@mail.gmail.com>
+	<CALfB72BUDiZOZY8f4wvYej5Ozur2FZN3h3FNgc78Ur=tUsSCmA@mail.gmail.com>
+	<CAL1RGDX9P7tmGTkByEid17FrSFwdAW+4=mb9eUxc_uHvmFOeSg@mail.gmail.com>
+	<CALfB72CAwzRe3u2+yQ15+coY9kNgFTZ_Be-b-+aMe6QvbZy-HA@mail.gmail.com>
+	<CALfB72CLZMrS+gTR3=0QcGry4vA3wKmgbhjp9Lc06UZtVcxzZg@mail.gmail.com>
+	<CALfB72A+A9UDieFtYOMLB9c+XHO8nt8Lr-2pkikaqM=0fJ4OAQ@mail.gmail.com>
+	<CAL1RGDVWDsNhHywkmzaGWxZ5ERYatXVh4fGFC_tmOkkLt3Dg+w@mail.gmail.com>
+	<CALfB72BqSEKwGdNUnenMjEujKjObhq12jFjmu6VukuA1AtYHrQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823732DC0E524-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CALfB72BqSEKwGdNUnenMjEujKjObhq12jFjmu6VukuA1AtYHrQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Albert Strasheim <fullung@gmail.com>
+Cc: Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-WWVzIFNlYW4uIEkgZ290IHlvdXIgcG9pbnQuIEFzIEkgbWVudGlvbmVkIGVhcmxpZXIsIHRoZXJl
-IGlzIGFscmVhZHkgYSBmdW5jdGlvbiBjYWxsZWQgdmFsaWRhdGVfbWFkKCksIHdoaWNoIGNoZWNr
-cyBmb3INCkJhc2UgdmVyc2lvbiBhbmQgY2xhc3MgdmVyc2lvbiBhcyBwZXIgZmlndXJlIDE2OSB0
-aGF0IEphc29uDQpQb2ludGVkIG91dC4gSWYgaXQncyBub3QgbWF0Y2hpbmcsIG5vIHJlc3BvbnNl
-IHdpbGwgYmUgZ2VuZXJhdGVkDQpBbmQgcGFja2V0IHdpbGwgYmUgZHJvcHBlZC4gSSB3aWxsIGFk
-ZCBhIGZ1bmN0aW9uIGxpa2UgZ2VuZXJhdGVfdW5tYXRjaGVkX3Jlc3AoKSB0aGUgd2F5IHlvdSBz
-dWdnZXN0ZWQgdG8gY2hlY2sgZm9yIG1ldGhvZCBnZXQvc2V0IGFuZCByZXR1cm4gcmVzcG9uc2Ug
-YXMgSUJfTUdNVF9NQURfU1RBVFVTX0JBRF9WRVJTSU9OIG9ubHkNClRoZW4uIEZvciBvdGhlciBt
-ZXRob2RzLCBhZ2FpbiB0aGUgcGFja2V0IHdvdWxkIGJlIGRyb3BwZWQuDQoNCkhvd2V2ZXIsIEhh
-bCBhbmQgSmFjayB3ZXJlIHN0aWxsIGNvbmNlcm5lZCB0aGF0IHRoaXMgaXMgbm90IHRoZSBjb3Jy
-ZWN0IFN0YXR1cyBjb2RlIGFuZCBpdCBzaG91bGQgaW5zdGVhZCBiZSAiTWV0aG9kL2F0dHJpYnV0
-ZSB1bnN1cHBvcnRlZCIuIElmIHRoZXJlIGlzIGEgY29uc2Vuc3VzIG9uIHRoaXMgc3RhdHVzIGNv
-ZGUsIEkgY2FuDQpJbmNsdWRlIHRoYXQgYXMgd2VsbCBhbG9uZyB3aXRoIHRoZSBjaGFuZ2UgZm9y
-IGdlbmVyYXRlX3VubWF0Y2hlZF9yZXNwKCkuDQoNClRoYW5rcywNClN3YXBuYQ0KDQotLS0tLU9y
-aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogSGVmdHksIFNlYW4gW21haWx0bzpzZWFuLmhlZnR5
-QGludGVsLmNvbV0NClNlbnQ6IEZyaWRheSwgSmFudWFyeSAyMCwgMjAxMiA4OjU4IFBNDQpUbzog
-U3dhcG5hIFRoZXRlOyBIYWwgUm9zZW5zdG9jaw0KQ2M6IHJvbGFuZEBrZXJuZWwub3JnOyBsaW51
-eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgSmFjayBNb3JnZW5zdGVpbg0KU3ViamVjdDogUkU6IFtQ
-QVRDSCAyLzJdIElCL21hZDogUmV0dXJuIHVuc3VwcG9ydGVkIGZvciBNQURzIGFzIGFwcHJvcHJp
-YXRlDQoNCj4gVGhhbmsgeW91IGFsbCBmb3IgeW91ciBzdWdnZXN0aW9ucy4NCj4gSG93ZXZlciwg
-SSBqdXN0IHdhbnRlZCB0byB1bmRlcnN0YW5kIHRoYXQgZ2l2ZW4gdGhpcyBjb2RlIGlzIGZvciB0
-aGUNCj4gY2FzZSBvZiBhbiBlbnRpcmUgY2xhc3Mgbm90IHN1cHBvcnRlZCwgaXNuJ3QgdGhpcyBl
-cnJvciBjb2RlDQo+IElCX01HTVRfTUFEX1NUQVRVU19CQURfVkVSU0lPTiAoTUFEIHJldHVybmVk
-IHdpdGggQmFkIFN0YXR1czogVW5zdXBwb3J0ZWQNCj4gQ2xhc3Mgb3IgVmVyc2lvbikgbW9yZSBh
-cHByb3ByaWF0ZT8gQWxzbyB0aGlzIGlzDQo+IFBhcnQgb2YgSUIgc3BlYyBlcnJvciBjb2Rlcy4N
-Cg0KQXMgSmFzb24gcG9pbnRlZCBvdXQsIHNlZSBmaWd1cmUgMTY5LCBidXQsIHllcywgdGhpcyBp
-cyB0aGUgY29ycmVjdCB2YWx1ZSBmb3IgeW91ciBjYXNlLiAgV2hhdCBJIHdhcyBzdWdnZXN0aW5n
-IGlzIG1vdmluZyB0aGVzZSBjaGVja3Mgb3V0IGludG8gYW5vdGhlciBmdW5jdGlvbiwgZGVhbGlu
-ZyB3aXRoIHRoZSBzcGVjaWZpYyBjYXNlKHMpIHRoYXQgeW91IGFyZSBpbnRlcmVzdGVkIGluLCBh
-bmQgZGVmZXJyaW5nIHdvcmsgb24gb3RoZXIgY2FzZXMuICBUaGUgZnVuY3Rpb24gSSdtIHJlZmVy
-cmluZyB0byB3b3VsZCB1c2UgcG9zaXRpdmUgY2hlY2tzIHRvIGRldGVybWluZSBpZiBhIHJlcGx5
-IHNob3VsZCBiZSBnZW5lcmF0ZWQgYW5kIHdoYXQgdHlwZSBvZiByZXBseSBpdCBuZWVkcyB0byBi
-ZSwgd2l0aCB0aGUgZGVmYXVsdCBjYXNlIHRvIHNpbXBseSBkaXNjYXJkIHRoZSBNQUQuICBTaWxl
-bnRseSBkcm9wcGluZyB0aGVzZSBNQURzIGlzIHBlcm1pc3NpYmxlIHVuZGVyIHRoZSBzcGVjLCBh
-dXRvbWF0aWNhbGx5IGdlbmVyYXRpbmcgYSBjYW5uZWQgcmVwbHkgaXMgbm90Lg0KDQotIFNlYW4N
-Cg0KVGhpcyBtZXNzYWdlIGFuZCBhbnkgYXR0YWNoZWQgZG9jdW1lbnRzIGNvbnRhaW4gaW5mb3Jt
-YXRpb24gZnJvbSBRTG9naWMgQ29ycG9yYXRpb24gb3IgaXRzIHdob2xseS1vd25lZCBzdWJzaWRp
-YXJpZXMgdGhhdCBtYXkgYmUgY29uZmlkZW50aWFsLiBJZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5k
-ZWQgcmVjaXBpZW50LCB5b3UgbWF5IG5vdCByZWFkLCBjb3B5LCBkaXN0cmlidXRlLCBvciB1c2Ug
-dGhpcyBpbmZvcm1hdGlvbi4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhpcyB0cmFuc21pc3Npb24g
-aW4gZXJyb3IsIHBsZWFzZSBub3RpZnkgdGhlIHNlbmRlciBpbW1lZGlhdGVseSBieSByZXBseSBl
-LW1haWwgYW5kIHRoZW4gZGVsZXRlIHRoaXMgbWVzc2FnZS4NCg==
+On Fri, Jan 20, 2012 at 2:02 PM, Albert Strasheim <fullung@gmail.com> wrote:
+> Hello
+>
+> On Fri, Jan 20, 2012 at 10:23 AM, Roland Dreier <roland@purestorage.com> wrote:
+>> On Thu, Jan 19, 2012 at 12:57 AM, Albert Strasheim <fullung@gmail.com> wrote:
+>>> Just checking up on this issue. Is there any further testing or
+>>> information we can provide to help make a fix happen?
+>> I'm not likely to be much help on VT-d issues, but maybe it
+>> would be useful to dump all the values in the BUG_ON if its
+>> going to trigger, ie just before
+>
+> Just retested with 3.2.1-1.fc16.x86_64 and the bug seems to be gone.
+>
+> I confirmed that my test program triggers the bug on 3.1.1-1.fc16.x86_64.
+>
+> It seems a bunch of IOMMU fixes went in on 9 and 10 January, so it
+> seems to have fixed this problem in 3.2.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Possibly not.  Fedora disabled the Intel IOMMU by default in 3.1.6 (ish) and
+newer, so if your problem was related to the IOMMU being enabled that might
+explain why it went away.
+
+You might try booting with intel_iommu=on and see if it really is gone.
+
+josh
