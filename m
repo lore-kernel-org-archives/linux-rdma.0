@@ -1,129 +1,128 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/mlx4: pass SMP vendor-specific attribute MADs to
- firmware
-Date: Thu, 26 Jan 2012 10:59:03 -0800
-Message-ID: <20120126105903.3c7e74a0.weiny2@llnl.gov>
-References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
-	<alpine.LRH.2.00.1201261640360.31408@ogerlitz.voltaire.com>
+From: Hugh Dickins <hughd-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH/RFC G-U-P experts] IB/umem: Modernize our get_user_pages()
+ parameters
+Date: Thu, 26 Jan 2012 12:01:53 -0800 (PST)
+Message-ID: <alpine.LSU.2.00.1201261133230.1369@eggly.anvils>
+References: <1327557574-6125-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LRH.2.00.1201261640360.31408-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
+In-Reply-To: <1327557574-6125-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Or,
-
-Thanks for getting this upstream.  Comment below.
-
-On Thu, 26 Jan 2012 06:41:33 -0800
-Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-
-> From: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, 25 Jan 2012, Roland Dreier wrote:
+> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 > 
-> In the current code, such MADs (e.g with the FDR10 attribute) are
-> silently dropped by the driver, resulting in timeouts at the sending
-> side and inability to query/configure the relevant feature. However,
-> the ConnectX firmware is able to handle such mads. For unsupported attributes,
-> the firmware returns a GET_RESPONSE MAD containing an error status.
+> Right now, we always pass write==1 to get_user_pages(), even when we
+> only intend to read the memory.  We pass force==1 if we're going for
+> read-only and force==0 if we want writable.  The reasoning behind this
+> seems to be contained in this out-of-tree changelog from 2005:
 > 
-> Signed-off-by: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>     Always ask get_user_pages() for writable pages, but pass force=1
+>     if the consumer has only asked for read-only pages.  This fixes a
+>     problem registering memory that has just been allocated but not
+>     touched yet, while allowing registration of read-only memory to
+>     continue to work.
+> 
+> However, I don't think the mm works like this today, and indeed GUP
+> will fault in pages for an untouched read-only mapping just fine with
+> write and force set to 0.  In fact, always passing 1 for write causes
+> problems with modern kernels, because we end up hitting the "early
+> C-O-W break" case in __do_fault(), even for read-only mappings where
+> this makes no sense.
+> 
+> Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+
+I'd love to say go ahead with this, it looks so obviously correct...
+... so obviously correct that it made me wonder why on earth the old
+code was writing for read, and how to make make sense of the paragraph
+you very helpfully quote above.
+
+I think this is largely about the ZERO_PAGE.  If you do a read fault
+on an untouched anonymous area, it maps in the ZERO_PAGE, and will
+only give you your own private zeroed page when there's a write fault
+to touch it.
+
+I think your ib_umem_get() is making sure to give the process its own
+private zeroed page: if the area is PROT_READ, MAP_PRIVATE, userspace
+will not be wanting to write into it, but presumably it expects to see
+data placed in that page by the underlying driver, and it would be very
+bad news if the driver wrote its data into the ZERO_PAGE.
+
+We did go through a phase (2.6.24 through 2.6.31) of not using the
+ZERO_PAGE, but that presented its own problems, so it was reinstated.
+
+So, ugly as it looks, I think you have to stick with write=1 force=!write.
+Does that make sense now?
+
+And although the ZERO_PAGE gives the most vivid example, I think it goes
+beyond that to the wider issue of pages COWed after fork() - GUPping in
+this way fixes the easy cases (and I've no desire again to go down that
+rathole of fixing the most general cases).
+
+Hugh
+
 > ---
+> This patch comes from me trying to do userspace RDMA on a memory
+> region exported from a character driver and mapped with
 > 
-> For example, this FDR10 node with LID 11
+>     mmap(... PROT_READ, MAP_PRIVATE ...)
 > 
-> # ibstat mlx4_0 1
+> The character driver has a trivial mmap method that just sets vm_ops
+> and and equally trivial fault method that essentially just does
 > 
-> CA: 'mlx4_0'
-> Port 1:
-> State: Active
-> Physical state: LinkUp
-> Rate: 40 (FDR10)
-> Base lid: 11
-> LMC: 0
-> SM lid: 24
-> Capability mask: 0x02514868
-> Port GUID: 0x0002c903002e65d1
-> Link layer: InfiniBand
+>     vmf->page = vmalloc_to_page(buf + (vmf->pgoff << PAGE_SHIFT));
 > 
-> Extended Port Query (EPI) vendor mad timeouts before the patch
-
-This option is MEPI in the upstream infiniband-diags.  I believe EPI was used before the patches for FDR-10 were submitted to the infiniband-diags package.
-
-Just wanted to let people know in case they were testing this.
-
-Thanks,
-Ira
-
+> ie the most elementary way to export a vmalloc'ed buffer to userspace.
 > 
-> # smpquery EPI 11 -d
+> However, when I tried doing
 > 
-> ibwarn: [4196] smp_query_via: attr 0xff90 mod 0x0 route Lid 11
-> ibwarn: [4196] _do_madrpc: retry 1 (timeout 1000 ms)
-> ibwarn: [4196] _do_madrpc: retry 2 (timeout 1000 ms)
-> ibwarn: [4196] _do_madrpc: timeout after 3 retries, 3000 ms
-> ibwarn: [4196] mad_rpc: _do_madrpc failed; dport (Lid 11)
-> smpquery: iberror: [pid 4196] main: failed: operation EPI: ext port info query failed
+>     ibv_reg_mr(... IBV_ACCESS_REMOTE_READ ...)
 > 
-> EPI query works okay with the patch
+> in userspace on that mmap region, I found that COW was happening and
+> so neither userspace nor the registered memory ended up pointing at
+> the kernel buffer anymore, exactly because of the COW in __do_fault()
+> I mention in the changelog above.
 > 
-> # smpquery EPI 11 -d
+> The patch below fixes my test case, and doesn't seem to break any of
+> the ibverbs examples and other simple tests of userspace verbs that I
+> tried.  But that's far from an exhaustive test suite.
 > 
-> ibwarn: [6548] smp_query_via: attr 0xff90 mod 0x0 route Lid 11
-> ibwarn: [6548] mad_rpc: data offs 64 sz 64
-> mad data
-> 0000 0000 0000 0001 0000 0001 0000 0001
-> 0000 0000 0000 0000 0000 0000 0000 0000
-> 0000 0000 0000 0000 0000 0000 0000 0000
-> 0000 0000 0000 0000 0000 0000 0000 0000
-> # Ext Port info: Lid 11 port 0
-> StateChangeEnable:...............0x00
-> LinkSpeedSupported:..............0x01
-> LinkSpeedEnabled:................0x01
-> LinkSpeedActive:.................0x01
+> I'd definitely appreciate comments from MM experts here, since I'm not
+> positive of my understand of G-U-P and friends, and I don't want to
+> apps because this is wrong in some special case I didn't try.
 > 
->  drivers/infiniband/hw/mlx4/mad.c |    7 ++-----
->  1 files changed, 2 insertions(+), 5 deletions(-)
+> Also testing from anyone with an RDMA app that does anything at all
+> fancy with memory allocation or registration would be helpful.
 > 
-> diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-> index 95c94d8..259b067 100644
-> --- a/drivers/infiniband/hw/mlx4/mad.c
-> +++ b/drivers/infiniband/hw/mlx4/mad.c
-> @@ -257,12 +257,9 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
->  			return IB_MAD_RESULT_SUCCESS;
+> Thanks!
 > 
->  		/*
-> -		 * Don't process SMInfo queries or vendor-specific
-> -		 * MADs -- the SMA can't handle them.
-> +		 * Don't process SMInfo queries -- the SMA can't handle them.
->  		 */
-> -		if (in_mad->mad_hdr.attr_id == IB_SMP_ATTR_SM_INFO ||
-> -		    ((in_mad->mad_hdr.attr_id & IB_SMP_ATTR_VENDOR_MASK) ==
-> -		     IB_SMP_ATTR_VENDOR_MASK))
-> +		if (in_mad->mad_hdr.attr_id == IB_SMP_ATTR_SM_INFO)
->  			return IB_MAD_RESULT_SUCCESS;
->  	} else if (in_mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_PERF_MGMT ||
->  		   in_mad->mad_hdr.mgmt_class == MLX4_IB_VENDOR_CLASS1   ||
+> PS Let me know if I didn't go on long enough about this one-line patch
+> and I can write some more.
+> 
+>  drivers/infiniband/core/umem.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+> index 71f0c0f..fb5abd3 100644
+> --- a/drivers/infiniband/core/umem.c
+> +++ b/drivers/infiniband/core/umem.c
+> @@ -152,7 +152,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+>  		ret = get_user_pages(current, current->mm, cur_base,
+>  				     min_t(unsigned long, npages,
+>  					   PAGE_SIZE / sizeof (struct page *)),
+> -				     1, !umem->writable, page_list, vma_list);
+> +				     umem->writable, 0, page_list, vma_list);
+>  
+>  		if (ret < 0)
+>  			goto out;
 > -- 
-> 1.6.5.5
+> 1.7.8.3
 > 
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
