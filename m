@@ -1,63 +1,85 @@
-From: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
-Subject: Re: memory region limit at 32 GB?
-Date: Fri, 27 Jan 2012 09:37:33 +1100
-Message-ID: <CAOzFzEi=Q2kZvTBt9RN=1c4irzGWeSDeN2qULbL_ep5G9_j5Vw@mail.gmail.com>
-References: <CALfB72D_bp-XEBtAyntZzxF6RvxGyHJjsmsVEzjP8LyVxgAi7A@mail.gmail.com>
-	<CAL1RGDV8R1S3L-RH-fWH=LfFegJzwNZPhdNyoQG0ZBEtQQwPjQ@mail.gmail.com>
-	<CAL1RGDWKg_+VZ0Gxqvf9-4W9O-YU_6euE7jOqbmdN6=zWiNS8A@mail.gmail.com>
-	<CALfB72DdN9onmiqUhWqbPNC6Qf00TB_pC3UkM0xKQQJMg+zMKA@mail.gmail.com>
-	<CAL1RGDU8sFGyx9WQtLQ6kYN9HhhCctQvm+_dYthpAmMUs2RmkQ@mail.gmail.com>
+From: Roland Dreier <roland@kernel.org>
+Subject: Re: [PATCH/RFC G-U-P experts] IB/umem: Modernize our get_user_pages() parameters
+Date: Thu, 26 Jan 2012 14:45:58 -0800
+Message-ID: <CAG4TOxNEV2VY9wOE86p9RnKGqpruB32ci9Wq3yBt8O2zc7f05w@mail.gmail.com>
+References: <1327557574-6125-1-git-send-email-roland@kernel.org> <alpine.LSU.2.00.1201261133230.1369@eggly.anvils>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDU8sFGyx9WQtLQ6kYN9HhhCctQvm+_dYthpAmMUs2RmkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.00.1201261133230.1369@eggly.anvils>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hugh Dickins <hughd@google.com>
+Cc: linux-rdma@vger.kernel.org, Andrea Arcangeli <aarcange@redhat.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hi Hugh,
 
-Romley is likely to support >1TB in 2 and 4 socket boards.
-I rememeber when it was hard to fit 1TB in a rack let alone a 1U chasis=
-=2E.
+Thanks for the thoughtful answer...
 
-Joseph.
-
-On 21 January 2012 05:38, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
-> On Fri, Jan 20, 2012 at 10:30 AM, Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org=
-> wrote:
->> FYI, new Sandy Bridge motherboards will be out soon that do 512 GB a=
-nd
->> even 768 GB.
+> I think this is largely about the ZERO_PAGE. =A0If you do a read faul=
+t
+> on an untouched anonymous area, it maps in the ZERO_PAGE, and will
+> only give you your own private zeroed page when there's a write fault
+> to touch it.
 >
-> Yeah, Cisco UCS C260 goes up to 1TB in a 2socket 2U already so we rea=
-lly
-> should fix this. =A0I'll cook something up.
->
-> The good news is that the overhead is that we use more memory for ada=
-pter
-> context, but if you have 1TB of RAM you probably don't care about a f=
-ew
-> more MB over overhead :)
->
-> =A0- R.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> I think your ib_umem_get() is making sure to give the process its own
+> private zeroed page: if the area is PROT_READ, MAP_PRIVATE, userspace
+> will not be wanting to write into it, but presumably it expects to se=
+e
+> data placed in that page by the underlying driver, and it would be ve=
+ry
+> bad news if the driver wrote its data into the ZERO_PAGE.
 
+I think we are actually OK.  If umem->writable =3D=3D 0, that is actual=
+ly
+a promise by the driver/HW that they are not going to write to this
+memory.  Mapping ZERO_PAGE to the hardware is fine in this case,
+since the hardware will just read zeroes exactly as it should.
 
+One question is whether we're OK if userspace maps some
+anonymous memory with PROT_WRITE but doesn't touch it,
+and then tries to map it to the hardware read-only.  In that case
+we hit get_user_pages() with write =3D=3D 0.  If I understand the code
+correctly, we end up mapping ZERO_PAGE in do_anonymous_page().
 
---=20
-=46ounder | Director | VP Research
-Orion Virtualisation Solutions=A0|=A0www.orionvm.com.au=A0| Phone: 1300=
- 56
-99 52 | Mobile: 0428 754 846
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But then if userspace writes to this anonymous memory, a COW
+will be triggered and the hardware will be left holding a different
+page than the one that is mapped into userspace (ie the device
+won't read what userspace writes).  Kind of the inverse of the
+problem I hit.
+
+I don't have a good understanding of what force =3D=3D 1 means -- I
+guess the question is what happens if userspace tells us to
+write to a read-only mapping that userspace could have mapped
+writable?
+
+> And although the ZERO_PAGE gives the most vivid example, I think it g=
+oes
+> beyond that to the wider issue of pages COWed after fork() - GUPping =
+in
+> this way fixes the easy cases (and I've no desire again to go down th=
+at
+> rathole of fixing the most general cases).
+
+=46or IB / RDMA we kind of explicitly give up on COW after fork().
+But I guess I don't know what issue you're thinking of.  Is it
+similar to what I described above?  In other words, we have
+a readable mapping that we'll COW on a write fault, but the driver
+is only following the mapping for reading and so a COW will
+mess us up.
+
+Sigh, what a mess ... it seems what we really want to do is know
+if userspace might trigger a COW because or not, and only do a
+preemptive COW in that case.  (We're not really concerned with
+userspace fork()ing and setting up a COW in the future, since that's
+what we have MADV_DONTFORK for)
+
+The status quo works for userspace anonymous mappings but
+it doesn't work for my case of mapping a kernel buffer read-only
+into userspace.  And fixing my case breaks the anonymous case.
+Do you see a way out of this dilemma?  Do we need to add yet
+another flag to get_user_pages()?
+
+Thanks!
+  Roland
