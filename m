@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 1/2] IB/mlx4: pass SMP vendor-specific attribute MADs to
- firmware
-Date: Thu, 26 Jan 2012 16:41:33 +0200
-Message-ID: <alpine.LRH.2.00.1201261640360.31408@ogerlitz.voltaire.com>
+Subject: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB originated
+ TCP streams
+Date: Thu, 26 Jan 2012 16:43:25 +0200
+Message-ID: <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>
 References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
@@ -10,87 +10,62 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <alpine.LRH.2.00.1201261624540.30384-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In the current code, such MADs (e.g with the FDR10 attribute) are
-silently dropped by the driver, resulting in timeouts at the sending
-side and inability to query/configure the relevant feature. However,
-the ConnectX firmware is able to handle such mads. For unsupported attributes,
-the firmware returns a GET_RESPONSE MAD containing an error status.
+The GRO flow makes a check in every layer to ensure the packets
+are actually merged only if they match at all layers.
 
-Signed-off-by: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The first GRO check, at L2 always fails for IPoIB, since it assumes
+that all packets have 14 bytes of Ethernet link layer header. Using the
+IPoIB header will not help here either, since its only four bytes. To
+overcome this, the skb mac header pointer is set to an area within the
+packet IB GRH headroom, such that later, the L2 check done by GRO
+succeeds and it can move to checks at the network and transport layers.
+
+Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
 
-For example, this FDR10 node with LID 11
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 4115be5..89cfaf7 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -228,6 +228,7 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	struct sk_buff *skb;
+ 	u64 mapping[IPOIB_UD_RX_SG];
+ 	union ib_gid *dgid;
++	unsigned char *psgid;
 
-# ibstat mlx4_0 1
+ 	ipoib_dbg_data(priv, "recv completion: id %d, status: %d\n",
+ 		       wr_id, wc->status);
+@@ -286,10 +287,20 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	else
+ 		skb->pkt_type = PACKET_MULTICAST;
 
-CA: 'mlx4_0'
-Port 1:
-State: Active
-Physical state: LinkUp
-Rate: 40 (FDR10)
-Base lid: 11
-LMC: 0
-SM lid: 24
-Capability mask: 0x02514868
-Port GUID: 0x0002c903002e65d1
-Link layer: InfiniBand
+-	skb_pull(skb, IB_GRH_BYTES);
++	/*
++	 * GRO first does L2 compares (14 bytes). We must not let it start from
++	 * the IPoIB header as ten octets of the IP header, containing fields
++	 * which vary from packet to packet will cause non-merging of packets.
++	 * from the same TCP stream.
++	 */
++	psgid = skb_pull(skb, offsetof(struct ib_grh, sgid));
++	/* if there's no GRH, that area could contain random data */
++	if (!(wc->wc_flags & IB_WC_GRH))
++		memset(psgid, 0, 16);
++	skb_reset_mac_header(skb);
++	skb_pull(skb, IB_GRH_BYTES - offsetof(struct ib_grh, sgid));
 
-Extended Port Query (EPI) vendor mad timeouts before the patch
+ 	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
+-	skb_reset_mac_header(skb);
+ 	skb_pull(skb, IPOIB_ENCAP_LEN);
 
-# smpquery EPI 11 -d
-
-ibwarn: [4196] smp_query_via: attr 0xff90 mod 0x0 route Lid 11
-ibwarn: [4196] _do_madrpc: retry 1 (timeout 1000 ms)
-ibwarn: [4196] _do_madrpc: retry 2 (timeout 1000 ms)
-ibwarn: [4196] _do_madrpc: timeout after 3 retries, 3000 ms
-ibwarn: [4196] mad_rpc: _do_madrpc failed; dport (Lid 11)
-smpquery: iberror: [pid 4196] main: failed: operation EPI: ext port info query failed
-
-EPI query works okay with the patch
-
-# smpquery EPI 11 -d
-
-ibwarn: [6548] smp_query_via: attr 0xff90 mod 0x0 route Lid 11
-ibwarn: [6548] mad_rpc: data offs 64 sz 64
-mad data
-0000 0000 0000 0001 0000 0001 0000 0001
-0000 0000 0000 0000 0000 0000 0000 0000
-0000 0000 0000 0000 0000 0000 0000 0000
-0000 0000 0000 0000 0000 0000 0000 0000
-# Ext Port info: Lid 11 port 0
-StateChangeEnable:...............0x00
-LinkSpeedSupported:..............0x01
-LinkSpeedEnabled:................0x01
-LinkSpeedActive:.................0x01
-
- drivers/infiniband/hw/mlx4/mad.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 95c94d8..259b067 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -257,12 +257,9 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 			return IB_MAD_RESULT_SUCCESS;
-
- 		/*
--		 * Don't process SMInfo queries or vendor-specific
--		 * MADs -- the SMA can't handle them.
-+		 * Don't process SMInfo queries -- the SMA can't handle them.
- 		 */
--		if (in_mad->mad_hdr.attr_id == IB_SMP_ATTR_SM_INFO ||
--		    ((in_mad->mad_hdr.attr_id & IB_SMP_ATTR_VENDOR_MASK) ==
--		     IB_SMP_ATTR_VENDOR_MASK))
-+		if (in_mad->mad_hdr.attr_id == IB_SMP_ATTR_SM_INFO)
- 			return IB_MAD_RESULT_SUCCESS;
- 	} else if (in_mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_PERF_MGMT ||
- 		   in_mad->mad_hdr.mgmt_class == MLX4_IB_VENDOR_CLASS1   ||
+ 	++dev->stats.rx_packets;
 -- 
 1.6.5.5
 
