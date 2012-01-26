@@ -1,33 +1,41 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [patch] infiniband: calling PTR_ERR() on wrong variable in
- create_file()
-Date: Thu, 26 Jan 2012 05:20:51 -0800
-Message-ID: <35AAF1E4A771E142979F27B51793A4888885B23834@AVEXMB1.qlogic.org>
-References: <20120126061529.GC15856@elgon.mountain>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/2] IB/{mlx4,ipoib}: bug fixes for vendor mads and
+ ipoib/gro
+Date: Thu, 26 Jan 2012 16:39:11 +0200
+Message-ID: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120126061529.GC15856-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Dept-ENG Infinipath <Dept_Infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Dan Carpenter [mailto:dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> Subject: [patch] infiniband: calling PTR_ERR() on wrong variable in
->
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->
+This short series fixes two kind of badly hurting bugs that we
+stepped on lately. We would be happy to have them treated quickly
+so they can be pushed further to -stable, distros, etc.
 
-I double checked the qib driver, and the equivalent code is ok there.
+The 1st bug is in the mlx4_ib driver where vendor mads are just silently
+dropped, which means that vendor specific features such as FDR10 can't be
+queried and configured - with the fix being to let the firmware handle them...
 
-Thanks for the patch!
+The 2nd bug relates to GRO with IPoIB, it turns out that the GRO stack assumes
+an Ethernet Link layer (MAC) header to be present for all packets, and
+without passing an L2 similarity check, no GRO merging will be done - the
+fix is to let that check pass successfully by pointing the skb mac header
+to an area within the GRH headroom location in the packet buffer.
 
-Acked-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Or.
 
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+Jack Morgenstein (1):
+  IB/mlx4: pass SMP vendor-specific attribute MADs to firmware
+
+Shlomo Pongratz (1):
+  IB/ipoib: fix GRO merge failure for IPoIB originated TCP streams
+
+ drivers/infiniband/hw/mlx4/mad.c        |    7 ++-----
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |   15 +++++++++++++--
+ 2 files changed, 15 insertions(+), 7 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
