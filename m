@@ -1,30 +1,53 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] core/verb.c: fix kernel panic: always initialize struct
- ib_qp *qp->usecnt
-Date: Fri, 27 Jan 2012 09:20:42 -0800
-Message-ID: <CAL1RGDXXYG48d2P0h4G+z4W8HebjrQ7HTWyx5FqgB0_2OqC4Ng@mail.gmail.com>
-References: <20120119194641.1391553.39048.stgit@localhost.localdomain>
- <1828884A29C6694DAF28B7E6B8A823732DC0C33E@ORSMSX106.amr.corp.intel.com>
- <4F1992F6.9070103@itwm.fraunhofer.de> <CAL1RGDWSh3HpVY5dui549EoqhzTYaSnsCPGdEU+hPZ9NWx6ttw@mail.gmail.com>
- <CAL1RGDW=XfCd3aCmB0mE1WcOUeDj=17=s2K0A3zpFmBF6Rg_Rg@mail.gmail.com> <4F22CF82.2060606@itwm.fraunhofer.de>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH/RFC G-U-P experts] IB/umem: Modernize our get_user_pages() parameters
+Date: Fri, 27 Jan 2012 09:28:03 -0800
+Message-ID: <CAL1RGDVBR49QrAbkZ0Wa9Gh98HTwjtsQbFQ4Ws3Ra7rEjT1Mng@mail.gmail.com>
+References: <1327557574-6125-1-git-send-email-roland@kernel.org>
+ <alpine.LSU.2.00.1201261133230.1369@eggly.anvils> <CAG4TOxNEV2VY9wOE86p9RnKGqpruB32ci9Wq3yBt8O2zc7f05w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F22CF82.2060606-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+In-Reply-To: <CAG4TOxNEV2VY9wOE86p9RnKGqpruB32ci9Wq3yBt8O2zc7f05w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA-XMD5yJDbdMReXY1tMh2IBg@public.gmane.org, Bernd Schubert <public-bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX-1dZseelyfdZg9hUCZPvPmw@public.gmane.org>, "Hefty, Sean" <public-sean.hefty-ral2JQCrhuEAvxtiuMwx3w-1dZseelyfdZg9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <public-linux-rdma-u79uwXL29TY76Z2rM5mHXA-1dZseelyfdZg9hUCZPvPmw@public.gmane.org>
+To: Hugh Dickins <hughd-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 27, 2012 at 8:23 AM, Sven Breuner
-<sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org> wrote:
-> is there any progress on this? We have already reached Linux stable 3.2.2
-> and IB still appears to be broken (at least for mthca) because of this.
+> Sigh, what a mess ... it seems what we really want to do is know
+> if userspace might trigger a COW because or not, and only do a
+> preemptive COW in that case. =A0(We're not really concerned with
+> userspace fork()ing and setting up a COW in the future, since that's
+> what we have MADV_DONTFORK for)
+>
+> The status quo works for userspace anonymous mappings but
+> it doesn't work for my case of mapping a kernel buffer read-only
+> into userspace. =A0And fixing my case breaks the anonymous case.
+> Do you see a way out of this dilemma? =A0Do we need to add yet
+> another flag to get_user_pages()?
 
-I've applied it and will send it to Linus soon.
+So thinking about this a bit more... it seems what we want is at least
+to first order that we do the equivalent of write=3D=3D1 exactly when t=
+he vma
+for a mapping has VM_WRITE set (or is it VMA_MAYWRITE / force=3D=3D1?
+I don't quite understand the distinction between WRITE and MAYWRITE).
 
- - R.
+Right now, one call to get_user_pages() might involve more than one vma=
+,
+but we could simulate the above by doing find_vma() and making sure our
+call to get_user_pages() goes one vma at a time.  Of course that would =
+be
+inefficient since get_user_pages() will redo the find_vma() internally,=
+ so it
+would I guess make sense to add another FOLL_ flag to tell
+get_user_pages() to do this?
+
+Am I all wet, or am I becoming an MM hacker?
+
+Thanks,
+  Roland
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
