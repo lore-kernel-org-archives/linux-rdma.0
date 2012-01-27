@@ -1,39 +1,55 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: Infiniband stack allows references to freed memory
-Date: Wed, 01 Feb 2012 20:21:28 -0500 (EST)
-Message-ID: <20120201.202128.703330634975191244.davem@davemloft.net>
-References: <CAG4TOxNNTOc0hwjOuEa-p2SBf5GBnEjVQyOERiTq5gkprLioYQ@mail.gmail.com>
-	<20120201.171703.1299449838314569881.davem@davemloft.net>
-	<CAG4TOxN75jXze4iy_nCBO1vwqvXnwKcqbAFAEFR=n-PdiG4moA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+Subject: Server Hosting Service --- SunnyVision
+Date: Fri, 27 Jan 2012 17:56:34 +0800 (HKT)
+Message-ID: <3TujvwQU@tpts5.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxN75jXze4iy_nCBO1vwqvXnwKcqbAFAEFR=n-PdiG4moA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: otto-j9JOuk8lBRVOB9p2dxiE2wC/G2K4zDHf@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Date: Wed, 1 Feb 2012 15:28:18 -0800
+Dear Sir / Madam, 
 
-> I'm happy to do it but I'm still not quite sure I understand what the
-> end state is.  Is it just a matter of peeking into the skb contents
-> to get at the daddr, looking up the neigh based on that and then
-> continuing to handle neighs as we do now?
+Good morning, this is Otto from Dedicated Server Hong Kong. 
 
-Right, you also will now have a reference to the neigh so you must
-release it.
+Due to Chinese New Year Festival, we offered the following special server hosting plan to you. Please check. 
 
-> Does that also work for ARP packets?
+100GB Dell PowerEdge Server Hosting Service
+Hardware Configuration
+- CPU: CPU x 2
+- RAM: 4G RAM
+- HardDisk:  100GB Storage
+- IP Address: 2 IP Addresses
+Software Configuration
+Linux Platform: CentOS 5.7 or upper version Operation System
 
-ARP packets have no dst_entry, so would need to be handled specially
-right now anyways.
+$688/mth    x      12 months =3D HKD $8,256.00
 
-> Are there any examples in your tree I can crib off of?
+All the service are hosting in Hong Kong ISO Certificated and TIA 942 Tier3+ Data Center. 
 
-grep for dst_neigh_lookup() in the net-next tree.
+If you are interested in the above server hosting package, please feel free to contact me. 
+
+The following is my contact information. 
+
+Contact No: (852) 5108 9664
+
+Skype: yschiu2001 (yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org)
+
+MSN: yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
+
+Email: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+
+Best Regards
+Otto Chiu
+Dedicated Server Hong Kong
+
+****************************************************************************************************************
+If you do not wish to further receive this event message, 
+please email to subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org to unsubscribe this message or remove your emailfrom the list. 
+****************************************************************************************************************
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
