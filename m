@@ -1,16 +1,19 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: Re: [PATCH 1/4] drivers/infiniband/hw/qib/qib_iba6120.c: convert
- GFP_KERNEL to GFP_ATOMIC
-Date: Fri, 27 Jan 2012 09:59:44 -0800
-Message-ID: <CAL1RGDXxNZCdbsEkBjFdzKKg769pA1E3Vs2zCCVM2HBWVPUS0w@mail.gmail.com>
-References: <1326102050-30265-1-git-send-email-Julia.Lawall@lip6.fr> <35AAF1E4A771E142979F27B51793A4888885970586@AVEXMB1.qlogic.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] IB/qib: unwind pcie change
+Date: Fri, 27 Jan 2012 10:04:43 -0800
+Message-ID: <CAL1RGDVDkeSZW-DazZT8kcwrFzG31LQK68TENhqG4knXp+JD6Q@mail.gmail.com>
+References: <20120113022959.14320.23730.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <35AAF1E4A771E142979F27B51793A4888885970586@AVEXMB1.qlogic.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Marciniszyn <mike.marciniszyn@qlogic.com>
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>, Dept_Infinipath <Dept_Infinipath@qlogic.com>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120113022959.14320.23730.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Thanks, applied.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
