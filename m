@@ -1,85 +1,61 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: Re: [PATCH/RFC G-U-P experts] IB/umem: Modernize our get_user_pages() parameters
-Date: Thu, 26 Jan 2012 14:45:58 -0800
-Message-ID: <CAG4TOxNEV2VY9wOE86p9RnKGqpruB32ci9Wq3yBt8O2zc7f05w@mail.gmail.com>
-References: <1327557574-6125-1-git-send-email-roland@kernel.org> <alpine.LSU.2.00.1201261133230.1369@eggly.anvils>
+From: Sven Breuner <sven.breuner-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+Subject: Re: [PATCH] core/verb.c: fix kernel panic: always initialize struct
+ ib_qp *qp->usecnt
+Date: Fri, 27 Jan 2012 17:23:30 +0100
+Message-ID: <4F22CF82.2060606@itwm.fraunhofer.de>
+References: <20120119194641.1391553.39048.stgit@localhost.localdomain> <1828884A29C6694DAF28B7E6B8A823732DC0C33E@ORSMSX106.amr.corp.intel.com> <4F1992F6.9070103@itwm.fraunhofer.de> <CAL1RGDWSh3HpVY5dui549EoqhzTYaSnsCPGdEU+hPZ9NWx6ttw@mail.gmail.com> <CAL1RGDW=XfCd3aCmB0mE1WcOUeDj=17=s2K0A3zpFmBF6Rg_Rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.00.1201261133230.1369@eggly.anvils>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hugh Dickins <hughd@google.com>
-Cc: linux-rdma@vger.kernel.org, Andrea Arcangeli <aarcange@redhat.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDW=XfCd3aCmB0mE1WcOUeDj=17=s2K0A3zpFmBF6Rg_Rg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bernd Schubert <public-bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX-1dZseelyfdZg9hUCZPvPmw@public.gmane.org>, "Hefty, Sean" <public-sean.hefty-ral2JQCrhuEAvxtiuMwx3w-1dZseelyfdZg9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA-XMD5yJDbdMReXY1tMh2IBg@public.gmane.org" <public-linux-rdma-u79uwXL29TY76Z2rM5mHXA-1dZseelyfdZg9hUCZPvPmw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hugh,
+Hi,
 
-Thanks for the thoughtful answer...
-
-> I think this is largely about the ZERO_PAGE. =A0If you do a read faul=
-t
-> on an untouched anonymous area, it maps in the ZERO_PAGE, and will
-> only give you your own private zeroed page when there's a write fault
-> to touch it.
+Roland Dreier wrote on 01/20/2012 07:43 PM:
+> On Fri, Jan 20, 2012 at 10:40 AM, Roland Dreier<roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>  wrote:
+>> On Fri, Jan 20, 2012 at 8:14 AM, Bernd Schubert
+>> <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>  wrote:
+>>> I *guess* the qp allocated by pd->context->ops.create_qp() does not have
+>>> qp->usecnt initialized (not does it know anything about it). So its random
+>>> value will fail the destruction later. A simple workaround that would work
+>>> for us, is to extend the patch I send to
+>>>
+>>> diff --git a/drivers/infiniband/core/verbs.c
+>>> b/drivers/infiniband/core/verbs.c
+>>> index 602b1bd..fba1675 100644
+>>> --- a/drivers/infiniband/core/verbs.c
+>>> +++ b/drivers/infiniband/core/verbs.c
+>>> @@ -874,7 +874,7 @@ int ib_destroy_qp(struct ib_qp *qp)
+>>>         struct ib_srq *srq;
+>>>         int ret;
+>>>
+>>> -       if (atomic_read(&qp->usecnt))
+>>> +       if (qp->qp_type == IB_QPT_XRC_TGT&&  atomic_read(&qp->usecnt))
+>>>                 return -EBUSY;
+>>>
+>>>         if (qp->real_qp != qp)
+>>
+>> It looks like this is sufficient and correct without the other patch?
 >
-> I think your ib_umem_get() is making sure to give the process its own
-> private zeroed page: if the area is PROT_READ, MAP_PRIVATE, userspace
-> will not be wanting to write into it, but presumably it expects to se=
-e
-> data placed in that page by the underlying driver, and it would be ve=
-ry
-> bad news if the driver wrote its data into the ZERO_PAGE.
+> But maybe it's cleaner to initialize qp->usecnt in
+> both ib_create_qp() and ib_uverbs_create_qp().
+>
+>   - R.
 
-I think we are actually OK.  If umem->writable =3D=3D 0, that is actual=
-ly
-a promise by the driver/HW that they are not going to write to this
-memory.  Mapping ZERO_PAGE to the hardware is fine in this case,
-since the hardware will just read zeroes exactly as it should.
 
-One question is whether we're OK if userspace maps some
-anonymous memory with PROT_WRITE but doesn't touch it,
-and then tries to map it to the hardware read-only.  In that case
-we hit get_user_pages() with write =3D=3D 0.  If I understand the code
-correctly, we end up mapping ZERO_PAGE in do_anonymous_page().
+is there any progress on this? We have already reached Linux stable 
+3.2.2 and IB still appears to be broken (at least for mthca) because of 
+this.
 
-But then if userspace writes to this anonymous memory, a COW
-will be triggered and the hardware will be left holding a different
-page than the one that is mapped into userspace (ie the device
-won't read what userspace writes).  Kind of the inverse of the
-problem I hit.
+Best regards,
+Sven
 
-I don't have a good understanding of what force =3D=3D 1 means -- I
-guess the question is what happens if userspace tells us to
-write to a read-only mapping that userspace could have mapped
-writable?
-
-> And although the ZERO_PAGE gives the most vivid example, I think it g=
-oes
-> beyond that to the wider issue of pages COWed after fork() - GUPping =
-in
-> this way fixes the easy cases (and I've no desire again to go down th=
-at
-> rathole of fixing the most general cases).
-
-=46or IB / RDMA we kind of explicitly give up on COW after fork().
-But I guess I don't know what issue you're thinking of.  Is it
-similar to what I described above?  In other words, we have
-a readable mapping that we'll COW on a write fault, but the driver
-is only following the mapping for reading and so a COW will
-mess us up.
-
-Sigh, what a mess ... it seems what we really want to do is know
-if userspace might trigger a COW because or not, and only do a
-preemptive COW in that case.  (We're not really concerned with
-userspace fork()ing and setting up a COW in the future, since that's
-what we have MADV_DONTFORK for)
-
-The status quo works for userspace anonymous mappings but
-it doesn't work for my case of mapping a kernel buffer read-only
-into userspace.  And fixing my case breaks the anonymous case.
-Do you see a way out of this dilemma?  Do we need to add yet
-another flag to get_user_pages()?
-
-Thanks!
-  Roland
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
