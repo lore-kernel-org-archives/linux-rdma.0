@@ -1,27 +1,52 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/2] IB/{mlx4,ipoib}: bug fixes for vendor mads and ipoib/gro
-Date: Sun, 29 Jan 2012 09:28:31 +0200
-Message-ID: <4F24F51F.20309@mellanox.com>
-References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: Server Rental Service in Hong Kong
+Date: Sat, 28 Jan 2012 15:55:31 +0800 (HKT)
+Message-ID: <3KWzR@gcn.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LRH.2.00.1201261624540.30384-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/26/2012 4:39 PM, Or Gerlitz wrote:
-> This short series fixes two kind of badly hurting bugs that we
-> stepped on lately. We would be happy to have them treated quickly
-> so they can be pushed further to -stable, distros, etc.
+Dear All,
 
-Roland, when (hopefully soon) accepting these, could you please add CC 
-to stable in the commits so they go there automatically?
+We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
 
-Or.
+Dell=99 PowerEdge=99 EnterpriseRack Mount Server
+-Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
+-8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
+-500GB, 3.5", 6Gbps SAS x 2
+-Raid 1 Mirroring Protection
+-Remote KVM (iDRAC6 Enterprise)
+
+Dell(TM) PowerEdge(TM) R410 Rack Mount Server
+-Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
+-4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
+-500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
+-iDRAC6 Enterprise or Express (Remote KVM Management)
+
+Every Dedicated Server Hosting Solution Also Includes: 
+ 
+Software Specification 
+- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
+- Full root-level access 
+- Data Center Facilities 
+- Shared Local & International Bandwidth 
+- 2 IP Addresses Allocation 
+- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
+- FM200=93based fire suppression system 
+- 24x7 CRAC Air Conditioning and Humidity Control 
+- 24x7 Security Control 
+- 24x7 Remote Hand Service 
+
+Pls send us email for further information.Thanks,
+
+Boris 
+boris-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org 
+
+If you do not wish to further receive this event message, email "borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
