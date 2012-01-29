@@ -1,49 +1,28 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH/RFC G-U-P experts] IB/umem: Modernize our
- get_user_pages() parameters
-Date: Sat, 28 Jan 2012 12:25:53 -0700
-Message-ID: <20120128192553.GA16231@obsidianresearch.com>
-References: <1327557574-6125-1-git-send-email-roland@kernel.org>
- <alpine.LSU.2.00.1201261133230.1369@eggly.anvils>
- <CAG4TOxNEV2VY9wOE86p9RnKGqpruB32ci9Wq3yBt8O2zc7f05w@mail.gmail.com>
- <CAL1RGDVBR49QrAbkZ0Wa9Gh98HTwjtsQbFQ4Ws3Ra7rEjT1Mng@mail.gmail.com>
- <alpine.LSU.2.00.1201271819260.3402@eggly.anvils>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/2] IB/{mlx4,ipoib}: bug fixes for vendor mads and ipoib/gro
+Date: Sun, 29 Jan 2012 09:28:31 +0200
+Message-ID: <4F24F51F.20309@mellanox.com>
+References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.00.1201271819260.3402@eggly.anvils>
-Sender: owner-linux-mm@kvack.org
-To: Hugh Dickins <hughd@google.com>
-Cc: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, Andrea Arcangeli <aarcange@redhat.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LRH.2.00.1201261624540.30384-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 27, 2012 at 06:31:07PM -0800, Hugh Dickins wrote:
+On 1/26/2012 4:39 PM, Or Gerlitz wrote:
+> This short series fixes two kind of badly hurting bugs that we
+> stepped on lately. We would be happy to have them treated quickly
+> so they can be pushed further to -stable, distros, etc.
 
-> My first impression is that that's not what you want at all: that will
-> not do a preliminary COW of anonymous page to be written into by the
-> driver when the user only wants VM_READ access.  But perhaps I'm
-> worrying about the second order while you're sticking to first order.
+Roland, when (hopefully soon) accepting these, could you please add CC 
+to stable in the commits so they go there automatically?
 
-IMHO, in this instance, the RDMA driver should not violate the
-mprotect flags of the page, ie if you ask to register memory for
-RDMA WRITE that the process cannot write to, that should be denied.
-
-I know accessing system memory (eg obtained via mmap on
-/sys/bus/pci/devices/0000:00:02.0/resource0) has been asked for in the
-past, and IIRC, the problem was that some of the common code, (GUP?)
-errored on these maps. I don't know if Roland's case is similar.
-
-The main point (at least before) was to have a uniform userspace API
-for memory registration that worked on any address range mapped into
-the process no matter where it came from. Currently the API just calls
-GUP unconditionally...
-
-Jason
-
+Or.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
