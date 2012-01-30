@@ -1,31 +1,90 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB originated
- TCP streams
-Date: Mon, 30 Jan 2012 11:00:19 -0800
-Message-ID: <CAL1RGDVcz5N7u2T-4RV4uqbYjq+Q2vKeuW+ha=DN14Rx5QRkQw@mail.gmail.com>
-References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
- <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>
- <CAL1RGDUm8ROxFFMa+D1ZD5jF+cK+kV8aEVzspgnZFNXeuai+fA@mail.gmail.com>
- <36F7E4A28C18BE4DB7C86058E7B607240BE9687A@MTRDAG01.mtl.com>
- <CAL1RGDXjjQ-PhCv-9WJX45NuovC9XiS=_7507OsyvLW_gBaJ5g@mail.gmail.com> <CAJZOPZLhgDysSASyMLNpOrmGzEyfyHAQjGLVei6ZNSFfb7TM1w@mail.gmail.com>
+Subject: Re: [PATCH/RFC G-U-P experts] IB/umem: Modernize our get_user_pages() parameters
+Date: Mon, 30 Jan 2012 11:16:04 -0800
+Message-ID: <CAL1RGDXqguZ2QKV=yjLXtk2n_Ag4Nf3CW+kF2BFQFR4ySTNaRA@mail.gmail.com>
+References: <1327557574-6125-1-git-send-email-roland@kernel.org>
+ <alpine.LSU.2.00.1201261133230.1369@eggly.anvils> <CAG4TOxNEV2VY9wOE86p9RnKGqpruB32ci9Wq3yBt8O2zc7f05w@mail.gmail.com>
+ <alpine.LSU.2.00.1201271458130.3402@eggly.anvils>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLhgDysSASyMLNpOrmGzEyfyHAQjGLVei6ZNSFfb7TM1w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <alpine.LSU.2.00.1201271458130.3402-fupSdm12i1nKWymIFiNcPA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hugh Dickins <hughd-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 30, 2012 at 10:16 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> Realistically if we add this hack to ipoib then we'll have that ugly
->> memset in our fast path forever.
+On Fri, Jan 27, 2012 at 6:19 PM, Hugh Dickins <hughd-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wrote:
+>> > > This patch comes from me trying to do userspace RDMA on a memory
+>> > > region exported from a character driver and mapped with
+>> > >
+>> > > =A0 =A0 mmap(... PROT_READ, MAP_PRIVATE ...)
 >
-> forever, why? once a clever fix is found, we can revert that memset, etc.
+> Why MAP_PRIVATE? =A0There you are explicitly asking for COW: okay,
+> you wouldn't normally expect any COW while it's just PROT_READ, but
+> once you bring GUP into the picture, with use of write and force,
+> then you are just begging for COW with that MAP_PRIVATE. =A0Please
+> change it to MAP_SHARED - any reason why not?
 
-Because no one is ever going to work on the right fix if we add a
-bandaid to ipoib now.
+I have no idea of the history there... probably could be changed with
+no problems.
+
+However, get_user_pages has this comment:
+
+ * @force:	whether to force write access even if user mapping is
+ *		readonly. This will result in the page being COWed even
+ *		in MAP_SHARED mappings. You do not want this.
+
+but I don't see where in the code FOLL_FORCE does COW
+for MAP_SHARED mappings.  But on the OTOH I don't see
+why we set force in the first place.  Why wouldn't we respect
+the user's mapping permissions.
+
+> I feel you're trying to handle two very different cases (rdma into
+> user-supplied anonymous memory, and exporting driver memory to the
+> user) with the same set of args to get_user_pages(). =A0In fact, I
+> don't even see why you need get_user_pages() at all when exporting
+> driver memory to the user. =A0Ah, perhaps you don't, but you do want
+> your standard access method (which already involves GUP) not to
+> mess up when applied to such a mapping - is that it?
+
+Exactly.  Right now we have the libibverbs userspace API, which
+basically lets userspace create an abstract "memory region" (MR)
+that is then given to the RDMA hardware to do IO on.  Userspace does
+
+    mr =3D ibv_reg_mr(..., buf, size, access_flags);
+
+where access flags say whether we're going to let the hardware
+read and/or write the memory.
+
+Ideally userspace should not have to know where the memory
+underlying its "buf" came from or what type of mapping it is.
+
+Certainly there are still more unresolved issues around the case
+where userspace wants to map, say, part of a GPUs PCI memory
+(which won't have any underlying page structs at all), but I'm at
+least hoping we can come up with a way to handle both anonymous
+private maps (which will be COWed from the zero page when
+the memory is touched for writing) and shared mappings of kernel
+memory exported by a driver's mmap method.
+
+
+So I guess I'm left thinking that it seems at least plausible that
+what we want is a new FOLL_ flag for __get_user_pages() that triggers
+COW exactly on the pages that userspace might trigger COW on,
+and avoids COW otherwise -- ie do FOLL_WRITE exactly for the
+pages that have VM_WRITE in their mapping.
+
+I don't think we want to do the "force" semantics or deal with the
+VM_MAYWRITE possiblity -- the access we give the hardware on
+behalf of userspace should just match the access that userspace
+actually has.  It seems that if we don't try to get pages for writing
+when VM_WRITE isn't set, we don't need force anymore.
+
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
