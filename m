@@ -1,32 +1,33 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB
- originated TCP streams
-Date: Mon, 30 Jan 2012 11:43:33 -0500 (EST)
-Message-ID: <20120130.114333.298582192453706008.davem@davemloft.net>
-References: <20120130081849.GA7848@gondor.apana.org.au>
-	<1327913583.2288.5.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	<20120130085742.GA8262@gondor.apana.org.au>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB originated
+ TCP streams
+Date: Mon, 30 Jan 2012 10:11:18 -0800
+Message-ID: <CAL1RGDXjjQ-PhCv-9WJX45NuovC9XiS=_7507OsyvLW_gBaJ5g@mail.gmail.com>
+References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
+ <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>
+ <CAL1RGDUm8ROxFFMa+D1ZD5jF+cK+kV8aEVzspgnZFNXeuai+fA@mail.gmail.com> <36F7E4A28C18BE4DB7C86058E7B607240BE9687A@MTRDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120130085742.GA8262-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
+In-Reply-To: <36F7E4A28C18BE4DB7C86058E7B607240BE9687A-SlGPd/IId7auSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org
-Cc: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Herbert Xu <herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org>
-Date: Mon, 30 Jan 2012 19:57:42 +1100
+On Sun, Jan 29, 2012 at 11:44 PM, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> I see this fix as part of a more general fix, one that will enable more protocols (e.g. X25, PPP) to enjoy the benefit of GRO.
+> I think that the more general fix should include adding a MAC comparison function to the header_ops structure in netdev.h.
+> Then network drivers which are not Ethernet will register their own comparison function, and the GRO code will check if such routine exists and if so will use it.
+> The problem with this approach is that until such a major fix is integrated the IPoIB performance will suffer.
+> This simple fix will enable us to use the benefit of GRO until the more general fix is integrated.
 
-> On Mon, Jan 30, 2012 at 09:53:03AM +0100, Eric Dumazet wrote:
->>
->> If this is an attack, TCP will merge the frames anyway on the same
->> socket.
-> 
-> Not if we have a MAC-level filter in place or VLANs.
+But is this general fix so difficult that we can't just do the right thing?
 
-Right.
+Realistically if we add this hack to ipoib then we'll have that ugly
+memset in our fast path forever.
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
