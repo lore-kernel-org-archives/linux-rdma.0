@@ -1,29 +1,69 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 0/2] IB/{mlx4,ipoib}: bug fixes for vendor mads and
- ipoib/gro
-Date: Wed, 1 Feb 2012 17:26:47 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237333499FCE@ORSMSX101.amr.corp.intel.com>
-References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
- <4F24F51F.20309@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A8237333498CF8@ORSMSX101.amr.corp.intel.com>
- <CAL1RGDW-uSrgpBhOr5gm4gWVrP3bqv2jihKqjpoPmbPoga_DJg@mail.gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Infiniband stack allows references to freed memory
+Date: Wed, 01 Feb 2012 15:22:13 -0500 (EST)
+Message-ID: <20120201.152213.433850213028883896.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDW-uSrgpBhOr5gm4gWVrP3bqv2jihKqjpoPmbPoga_DJg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Did you try 3.1?  ie do you know that the 3.2 bad results are a recent
-> regression?
 
-I don't know if this is a recent regression, but then the test is new.  I tried it on another system yesterday, but it was running 2.6.18 (RH EL 5?) with some OFED installation.  My plan is to start pulling older versions of the kernel.
+Any time an ipoib_neigh is changed, a sequence like the following is made:
 
-- Sean
+			spin_lock_irqsave(&priv->lock, flags);
+			/*
+			 * It's safe to call ipoib_put_ah() inside
+			 * priv->lock here, because we know that
+			 * path->ah will always hold one more reference,
+			 * so ipoib_put_ah() will never do more than
+			 * decrement the ref count.
+			 */
+			if (neigh->ah)
+				ipoib_put_ah(neigh->ah);
+			list_del(&neigh->list);
+			ipoib_neigh_free(dev, neigh);
+			spin_unlock_irqrestore(&priv->lock, flags);
+			ipoib_path_lookup(skb, n, dev);
+
+This doesn't work, because you're leaving a stale pointer to the freed up
+ipoib_neigh in the special neigh->ha pointer cookie.  Yes, it even fails
+with all the locking done to protect _changes_ to *ipoib_neigh(n), and
+with the code in ipoib_neigh_free() that NULLs out the pointer.
+
+The core issue is that read side calls to *to_ipoib_neigh(n) are not
+being synchronized at all, they are performed without any locking.  So
+whether we hold the lock or not when making changes to *ipoib_neigh(n)
+you still can have threads see references to freed up ipoib_neigh
+objects.
+
+	cpu 1			cpu 2
+	n = *ipoib_neigh()
+				*ipoib_neigh() = NULL
+				kfree(n)
+	n->foo == OOPS
+
+To be honest I wouldn't mind if ipoib managed it's neighbour entries
+differently.  The way it works now is getting in the way of some
+changes I want to make.  Namely that I want to make it so that
+dst_entry objects do not have an attached neighbour, instead
+neighbours are always looked up on demand.
+
+Such on-demand neigh lookups require having access to the ipv4/ipv6
+header destination address of the packet, and in these ipoib paths we
+don't have a real obvious way to get at that without lots of kludgy
+tests.
+
+Sticking datastructure pointers into the hardware address of the neigh
+is not pretty either :-)
+
+Perhaps the ipoib code can have a private path database it manages
+entirely itself, which holds all the necessary information and is
+looked up by some generic key which is available easily at transmit
+time and does not involve generic neighbour entries.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
