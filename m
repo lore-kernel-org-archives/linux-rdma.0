@@ -1,46 +1,32 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB originated
- TCP streams
-Date: Thu, 2 Feb 2012 17:43:16 +0200
-Message-ID: <4F2AAF14.5060701@mellanox.com>
-References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>   <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>   <CAL1RGDUm8ROxFFMa+D1ZD5jF+cK+kV8aEVzspgnZFNXeuai+fA@mail.gmail.com>   <4F264A6C.3070706@mellanox.com> <1327910672.2891.12.camel@edumazet-laptop>   <20120130081849.GA7848@gondor.apana.org.au>   <1327913583.2288.5.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>   <20120130085742.GA8262@gondor.apana.org.au>   <CAJZOPZJb1HvcS0XXKLvoDuoi1EfYTY-awwY2g0aHWoS=4qmdyQ@mail.gmail.com>   <20120201083837.GA7081@gondor.apana.org.au>   <CAJZOPZJVAQoy0B30zqkROOBp_-bF6=EdU2L9V025fJgTexVuFQ@mail.gmail.com>  <1328105262.2595.24.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>  <4F2A974B.209@mellanox.com> <1328193495.2279.51.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/2] IB/{mlx4,ipoib}: bug fixes for vendor mads and
+ ipoib/gro
+Date: Thu, 2 Feb 2012 16:50:31 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823733349A32B@ORSMSX101.amr.corp.intel.com>
+References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
+ <4F24F51F.20309@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A8237333498CF8@ORSMSX101.amr.corp.intel.com>
+ <CAL1RGDW-uSrgpBhOr5gm4gWVrP3bqv2jihKqjpoPmbPoga_DJg@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A8237333499FCE@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1328193495.2279.51.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237333499FCE-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/2/2012 4:38 PM, Eric Dumazet wrote:
->>> Maybe we can keep a fastpath for ethernet case... (the "if (hlen == ETH_HLEN) being always predicted) Maybe need to introduce gro_hard_header_len as well)
->>
->> today, IPoIB advertizes hard_header_len which is bigger than the IPoIB
->> header len, this is done such that skbs sent by the network stack have
->> enough headroom for a "pseudoheader" which for few flows (e.g unicast
->> arp replies and multicast) is placed there by the ipoib hard_header
->> function and later used by the xmit function.
->>
->> So we can either try and change that, such that hard_header_len will be equal to the ipoib header len or add gro_hard_header_len as you  suggested, any preferences?
->
-> I guess changing hard_header_len might be difficult (for you).
-> Adding gro_mac_header_len sounds the easy way. [ You'll need to set it in your device setup() ]
+> I don't know if this is a recent regression, but then the test is new.  I
+> tried it on another system yesterday, but it was running 2.6.18 (RH EL 5?)
+> with some OFED installation.  My plan is to start pulling older versions of
+> the kernel.
 
+I don't understand why, but the GRO issue seems to be the problem that I see with low performance (0.06 Gbps transferring 4k packets in one direction).  2.6.36 and 2.6.37 work fine for me.  I see problems with 2.6.38, 3.0, and 3.2.  I didn't test other versions.  I applied the 'fix GRO merge failure for IPoIB' patch to 2.6.38 and 3.2, and in both cases the performance improved.  I'll wait for and test the final fix.
 
-Eric, yep, I'm okay with adding gro_mac_header_len, such that if the 
-device setup function doesn't touch it, the core sets it to 
-hard_header_len and later the gro code uses that len in the comparison 
-you have placed in your patch.  The ipoib setup code will set that field 
-to the IPoIB header size. If you enhance a bit your patch to include 
-that I could do the testing or you prefer me to do that? do you think we 
-need two or one patch here?
-
-Or.
-
-
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
