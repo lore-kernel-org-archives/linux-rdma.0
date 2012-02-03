@@ -1,25 +1,37 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] IB/qib: Add logic for affinity hint
-Date: Fri, 3 Feb 2012 10:13:51 -0800
-Message-ID: <CAL1RGDVVhCyq3rZd-4tn7OVrHN_n+aq9EP-0o-bG7jTCJBA60g@mail.gmail.com>
-References: <20110923171723.14688.53921.stgit@kop-dev-sles11-04.qlogic.org> <35AAF1E4A771E142979F27B51793A4888885C4DF06@AVEXMB1.qlogic.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB
+ originated TCP streams
+Date: Fri, 3 Feb 2012 20:24:00 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823733349A6C9@ORSMSX101.amr.corp.intel.com>
+References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
+	 <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>
+	 <alpine.LRH.2.00.1202022352560.30300@ogerlitz.voltaire.com>
+	 <1828884A29C6694DAF28B7E6B8A823733349A5D2@ORSMSX101.amr.corp.intel.com>
+ <1328259640.2480.43.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <35AAF1E4A771E142979F27B51793A4888885C4DF06-HolNjIBXvBOXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <1328259640.2480.43.camel@edumazet-laptop>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I haven't seen this merged.
-
-Yeah, realized I missed it after the 3.3 merge window closed.  I'll
-get it in for 3.4.
-
-Sorry about the long delay.
-
- - R.
+PiA+ID4gSGkgU2VhbiwgdGhpcyBpcyB0aGUgcGF0Y2ggcG9zdGVkIGVhcmxpZXIgYnkgRXJpYyBl
+bmhhbmNlZCB0bw0KPiA+ID4gaGF2ZSBJUG9JQiB0byBzZXQgZ3JvX21hY19oZWFkZXJfbGVuIHRv
+IHRoZSBpcG9pYiBoZWFkZXIgbGVuLCBkb2VzDQo+ID4gPiBpdCBtYWtlIHRoaW5ncyB0byB3b3Jr
+IG9rYXkgZm9yIHlvdT8NCj4gPg0KPiA+IEkgcmFuIGEgcXVpY2sgdGVzdC4gIEl0IGhlbHBzIHNv
+bWUsIGJ1dCB0aGUgcGVyZm9ybWFuY2UgZm9yIHN0cmVhbWluZw0KPiBwYWNrZXRzIGluIG9uZSBk
+aXJlY3Rpb24gaXMgc3RpbGwgb25seSAwLjExIEdicHMuICBJdCBzaG91bGQgYmUgY2xvc2VyIHRv
+IDEwLQ0KPiAxNSBHYnBzIGZvciBpcG9pYiBvbiBteSBzeXN0ZW1zLg0KPiA+DQo+ID4gLSBTZWFu
+DQo+IA0KPiBIbW0uLi4gYSB0Y3BkdW1wIHdvdWxkIGhlbHAgdG8gdW5kZXJzdGFuZCB3aGF0IGlz
+IGdvaW5nIG9uIChmb3IgZXhhbXBsZQ0KPiBpZiBHUk8ga2lja3MgaW4pDQoNCkkgc2hvdWxkIHN0
+b3AgdHJ5aW5nIHRvIGFwcGx5IHBhdGNoZXMgc28gbGF0ZS4gIEkgbXVzdCBoYXZlIGRvbmUgc29t
+ZXRoaW5nIHdyb25nIHdpdGggbXkgcXVpY2sgdGVzdC4gIFJlLWFwcGx5aW5nIHRoZSBwYXRjaCBv
+biAzLjIsIHRoZSBpcG9pYiBVRCBwZXJmb3JtYW5jZSBsb29rcyBva2F5IHRvIG1lIHdpdGggRXJp
+YydzIHBhdGNoLiAgU29ycnkgYWJvdXQgdGhlIGZsdWIuDQoNCi0gU2Vhbg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
