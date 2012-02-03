@@ -1,69 +1,32 @@
-From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2] IB/mad: Return unsupported for MADs as appropriate
-Date: Fri, 3 Feb 2012 05:08:23 -0500
-Message-ID: <20120203100823.16938.37899.stgit@kop-dev-sles11-04.qlogic.org>
+From: Dan Carpenter <error27@gmail.com>
+Subject: Re: [patch 2/3] ib_srpt: checking NULL instead of ERR_PTR
+Date: Fri, 3 Feb 2012 16:01:49 +0300
+Message-ID: <CA+_b7DK-=ORJQ20aHE_aVgEud4vAPQG_sskOeMqftabzun0h+A@mail.gmail.com>
+References: <20111104182732.GH5796@elgon.mountain>
+	<1320443697.5859.171.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1320443697.5859.171.camel@haakon2.linux-iscsi.org>
+Sender: target-devel-owner@vger.kernel.org
+To: nab@risingtidesystems.com
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, target-devel <target-devel@vger.kernel.org>, Bart Van Assche <bart.vanassche@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Setup a response with appropriate error status and send
-it for the MADs that are not supported by a specific
-class/version.
+On 11/5/11, Nicholas A. Bellinger <nab@risingtidesystems.com> wrote:
+> On Fri, 2011-11-04 at 21:27 +0300, Dan Carpenter wrote:
+>> transport_init_session() and target_fabric_configfs_init() don't
+>> return NULL pointers, they only return ERR_PTRs or valid pointers.
+>>
+>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+> Thanks for catching this breakage.  It appears that are a few other
+> locations outside of ib_srpt where return checking for these two
+> functions needs to be fixed as well.  I'll fix this up shortly.
+>
 
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/mad.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+All the others seem to fixed up.  It's just these two place which need
+to be fixed still.  My patch still applies fine with a little fuzz.  ;)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 2fe428b..c1c7617 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1842,6 +1842,25 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
- 	}
- }
- 
-+static int generate_unmatched_resp(struct ib_mad_private *recv,
-+				   struct ib_mad_private *response)
-+{
-+	int matched = 0;
-+
-+	if ((recv->mad.mad.mad_hdr.method == IB_MGMT_METHOD_GET) ||
-+		(recv->mad.mad.mad_hdr.method == IB_MGMT_METHOD_SET)) {
-+		memcpy(response, recv, sizeof(*response));
-+		response->header.recv_wc.wc = &response->header.wc;
-+		response->header.recv_wc.recv_buf.mad = &response->mad.mad;
-+		response->header.recv_wc.recv_buf.grh = &response->grh;
-+		response->mad.mad.mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
-+		response->mad.mad.mad_hdr.status =
-+		   __be16_to_cpu(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB);
-+		matched = 1;
-+	}
-+
-+	return matched;
-+}
- static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
- 				     struct ib_wc *wc)
- {
-@@ -1963,6 +1982,9 @@ local:
- 		 * or via recv_handler in ib_mad_complete_recv()
- 		 */
- 		recv = NULL;
-+	} else if (generate_unmatched_resp(recv, response)) {
-+		agent_send_response(&response->mad.mad, &recv->grh, wc,
-+			port_priv->device, port_num, qp_info->qp->qp_num);
- 	}
- 
- out:
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+dan carpenter
