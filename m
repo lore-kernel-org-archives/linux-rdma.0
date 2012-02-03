@@ -1,32 +1,36 @@
-From: Dan Carpenter <error27@gmail.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [patch 2/3] ib_srpt: checking NULL instead of ERR_PTR
-Date: Fri, 3 Feb 2012 16:01:49 +0300
-Message-ID: <CA+_b7DK-=ORJQ20aHE_aVgEud4vAPQG_sskOeMqftabzun0h+A@mail.gmail.com>
-References: <20111104182732.GH5796@elgon.mountain>
-	<1320443697.5859.171.camel@haakon2.linux-iscsi.org>
+Date: Fri, 3 Feb 2012 09:08:57 -0800
+Message-ID: <CAL1RGDU0HkrS_ME12H6j43e=Fkn=C9Ms64mXNjxf4_dS_PV7EQ@mail.gmail.com>
+References: <20111104182732.GH5796@elgon.mountain> <1320443697.5859.171.camel@haakon2.linux-iscsi.org>
+ <CA+_b7DK-=ORJQ20aHE_aVgEud4vAPQG_sskOeMqftabzun0h+A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1320443697.5859.171.camel@haakon2.linux-iscsi.org>
-Sender: target-devel-owner@vger.kernel.org
-To: nab@risingtidesystems.com
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, target-devel <target-devel@vger.kernel.org>, Bart Van Assche <bart.vanassche@gmail.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CA+_b7DK-=ORJQ20aHE_aVgEud4vAPQG_sskOeMqftabzun0h+A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: nab-4mckEHfoRW3KI0RCH6AXYZqQE7yCjDx5@public.gmane.org, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/5/11, Nicholas A. Bellinger <nab@risingtidesystems.com> wrote:
-> On Fri, 2011-11-04 at 21:27 +0300, Dan Carpenter wrote:
->> transport_init_session() and target_fabric_configfs_init() don't
->> return NULL pointers, they only return ERR_PTRs or valid pointers.
->>
->> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> Thanks for catching this breakage.  It appears that are a few other
-> locations outside of ib_srpt where return checking for these two
-> functions needs to be fixed as well.  I'll fix this up shortly.
->
+On Fri, Feb 3, 2012 at 5:01 AM, Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote=
+:
+> All the others seem to fixed up. =A0It's just these two place which n=
+eed
+> to be fixed still. =A0My patch still applies fine with a little fuzz.=
+ =A0;)
 
-All the others seem to fixed up.  It's just these two place which need
-to be fixed still.  My patch still applies fine with a little fuzz.  ;)
+I have a few pending srpt patches, coincidentally including one that hi=
+ts
+very near yours leading to a trivial conflict.  So I just merged yours =
+into
+your tree as well and I guess I'll send to Linus shortly.
 
-regards,
-dan carpenter
+Thanks,
+  Roland
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
