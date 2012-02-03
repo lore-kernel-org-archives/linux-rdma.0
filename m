@@ -1,41 +1,69 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB
- originated TCP streams
-Date: Fri, 03 Feb 2012 10:00:40 +0100
-Message-ID: <1328259640.2480.43.camel@edumazet-laptop>
-References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>
-	 <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>
-	 <alpine.LRH.2.00.1202022352560.30300@ogerlitz.voltaire.com>
-	 <1828884A29C6694DAF28B7E6B8A823733349A5D2@ORSMSX101.amr.corp.intel.com>
+From: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2] IB/mad: Return unsupported for MADs as appropriate
+Date: Fri, 3 Feb 2012 05:08:23 -0500
+Message-ID: <20120203100823.16938.37899.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823733349A5D2-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Le vendredi 03 f=C3=A9vrier 2012 =C3=A0 07:18 +0000, Hefty, Sean a =C3=A9=
-crit :
-> > Hi Sean, this is the patch posted earlier by Eric enhanced to
-> > have IPoIB to set gro_mac_header_len to the ipoib header len, does
-> > it make things to work okay for you?
->=20
-> I ran a quick test.  It helps some, but the performance for streaming=
- packets in one direction is still only 0.11 Gbps.  It should be closer=
- to 10-15 Gbps for ipoib on my systems.
->=20
-> - Sean
+Setup a response with appropriate error status and send
+it for the MADs that are not supported by a specific
+class/version.
 
-Hmm... a tcpdump would help to understand what is going on (for example
-if GRO kicks in)
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 2fe428b..c1c7617 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1842,6 +1842,25 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 	}
+ }
+ 
++static int generate_unmatched_resp(struct ib_mad_private *recv,
++				   struct ib_mad_private *response)
++{
++	int matched = 0;
++
++	if ((recv->mad.mad.mad_hdr.method == IB_MGMT_METHOD_GET) ||
++		(recv->mad.mad.mad_hdr.method == IB_MGMT_METHOD_SET)) {
++		memcpy(response, recv, sizeof(*response));
++		response->header.recv_wc.wc = &response->header.wc;
++		response->header.recv_wc.recv_buf.mad = &response->mad.mad;
++		response->header.recv_wc.recv_buf.grh = &response->grh;
++		response->mad.mad.mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
++		response->mad.mad.mad_hdr.status =
++		   __be16_to_cpu(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB);
++		matched = 1;
++	}
++
++	return matched;
++}
+ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ 				     struct ib_wc *wc)
+ {
+@@ -1963,6 +1982,9 @@ local:
+ 		 * or via recv_handler in ib_mad_complete_recv()
+ 		 */
+ 		recv = NULL;
++	} else if (generate_unmatched_resp(recv, response)) {
++		agent_send_response(&response->mad.mad, &recv->grh, wc,
++			port_priv->device, port_num, qp_info->qp->qp_num);
+ 	}
+ 
+ out:
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
