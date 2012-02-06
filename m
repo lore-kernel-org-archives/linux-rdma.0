@@ -1,38 +1,36 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB originated
- TCP streams
-Date: Mon, 6 Feb 2012 17:05:26 +0200
-Message-ID: <4F2FEC36.6090800@mellanox.com>
-References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>  <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>  <alpine.LRH.2.00.1202022352560.30300@ogerlitz.voltaire.com>  <1828884A29C6694DAF28B7E6B8A823733349A5D2@ORSMSX101.amr.corp.intel.com> <1328259640.2480.43.camel@edumazet-laptop> <1828884A29C6694DAF28B7E6B8A823733349A6C9@ORSMSX101.amr.corp.intel.com>
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V2 02/10] cxgb4: Common platform specific changes for
+ DB Drop Recovery
+Date: Mon, 06 Feb 2012 20:50:30 +0530
+Message-ID: <4F2FEFBE.1060503@chelsio.com>
+References: <1319130620-9240-1-git-send-email-vipul@chelsio.com> <8A71B368A89016469F72CD08050AD3340A3D3120@maui.asicdesigners.com> <CAL1RGDXoeJNYz3R58bU-ixRyY1uKNgGPdUrWZ4nbcuyRDjL6Cg@mail.gmail.com> <20111028182234.GA11554@kumars-PC.asicdesigners.com> <CAL1RGDVQJUb2sM+Yo1sYVO5o-GhyBCOGo3_Q0U7YkR0GAoFgfg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823733349A6C9-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAL1RGDVQJUb2sM+Yo1sYVO5o-GhyBCOGo3_Q0U7YkR0GAoFgfg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Felix Marti <felix-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dimitrios Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/3/2012 10:24 PM, Hefty, Sean wrote:
->> Hmm... a tcpdump would help to understand what is going on (for example if GRO kicks in)
->
-> I should stop trying to apply patches so late.  I must have done something wrong with my quick test.  Re-applying the patch on 3.2, the ipoib UD performance looks okay to me with Eric's patch.  Sorry about the flub.
->
+Hi Roland,
 
-Sean, same here, with both 3.2 and 3.3-rc1 I see with tcpdump that no 
-GRO aggregation is done in the receiving side, when applying the patch I 
-sent (Eric's patch enhanced to change ipoib code such that it sets 
-gro_mac_header_lento the ipoib header len), I can see GRO aggregation 
-and the performance goes well up. So how do we go from here? Herbert, 
-Roland, are you okay with the patch?
+On 28-10-2011 23:58, Roland Dreier wrote:
 
-Eric, if this we're going on that patch, could you please add 
-Reported-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> to the change-log.
+>> Vipul did a respin of this patch, and posted the V3 version.
+>> Its available here:
+>> http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg09659.html
+> 
+> Got it, thanks.
+> 
+>  - R.
 
-Or.
+Will this series be coming out with 3.3?
+let me know if anything is required from my side.
 
-Or.
+Thanks,
+Vipul Pandya
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
