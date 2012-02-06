@@ -1,34 +1,37 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH V2 02/10] cxgb4: Common platform specific changes for DB
- Drop Recovery
-Date: Mon, 6 Feb 2012 10:00:11 -0800
-Message-ID: <CAL1RGDVyvm2+9n9P=v1yuCJXtXVnNQTpAvbAFbtafDN_siZgzA@mail.gmail.com>
-References: <1319130620-9240-1-git-send-email-vipul@chelsio.com>
- <8A71B368A89016469F72CD08050AD3340A3D3120@maui.asicdesigners.com>
- <CAL1RGDXoeJNYz3R58bU-ixRyY1uKNgGPdUrWZ4nbcuyRDjL6Cg@mail.gmail.com>
- <20111028182234.GA11554@kumars-PC.asicdesigners.com> <CAL1RGDVQJUb2sM+Yo1sYVO5o-GhyBCOGo3_Q0U7YkR0GAoFgfg@mail.gmail.com>
- <4F2FEFBE.1060503@chelsio.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next V2] gro: introduce gro_mac_header_len
+Date: Mon, 06 Feb 2012 14:12:23 -0500 (EST)
+Message-ID: <20120206.141223.332863167187002998.davem@davemloft.net>
+References: <1328546834.2220.79.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	<20120206.115859.1384761795375582044.davem@davemloft.net>
+	<CAG4TOxOBCbEEOtP62ZM1R3-6umebdbJFkK0bnjphLCZOgHzt1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F2FEFBE.1060503-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <CAG4TOxOBCbEEOtP62ZM1R3-6umebdbJFkK0bnjphLCZOgHzt1g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Felix Marti <felix-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dimitrios Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 6, 2012 at 7:20 AM, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> wrote:
-> Will this series be coming out with 3.3?
-> let me know if anything is required from my side.
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Date: Mon, 6 Feb 2012 09:23:58 -0800
 
-No, this series is not in 3.3.
+> IMHO the problem is in the IPoIB RFC: (4391) which makes
+> a distinction between an "encapsulation header" and the "link
+> layer address".  The LL address is what we put into ARP and
+> ND packets, and so I think we are forced into exposing that
+> to the network stack as our hardware address.
 
-Sorry, but this kind of got lost in the shuffle.
+An address is not a hardware MAC header, we're only talking
+about the length of the latter.
 
-Can you resend the series against the latest kernel, and explain again
-which parts are for net-next and which parts are for my RDMA tree?
-
- - R.
+If the addressing is such that you need to put the GID
+into the ARP/NDISC packets, and that's different from what
+ends up in the final encapsulation header, I really don't
+see what the problem is specificially with respect to the
+MAC header size.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
