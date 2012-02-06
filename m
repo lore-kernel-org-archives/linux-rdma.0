@@ -1,29 +1,27 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB originated
- TCP streams
-Date: Mon, 6 Feb 2012 17:22:56 +0200
-Message-ID: <4F2FF050.7040400@mellanox.com>
-References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>   <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>   <alpine.LRH.2.00.1202022352560.30300@ogerlitz.voltaire.com>   <1828884A29C6694DAF28B7E6B8A823733349A5D2@ORSMSX101.amr.corp.intel.com>  <1328259640.2480.43.camel@edumazet-laptop>  <1828884A29C6694DAF28B7E6B8A823733349A6C9@ORSMSX101.amr.corp.intel.com>  <4F2FEC36.6090800@mellanox.com> <1328541706.2220.50.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 00/18, v2] Make ib_srp better suited for H.A. purposes
+Date: Mon, 6 Feb 2012 17:16:25 +0100
+Message-ID: <CAO+b5-q7q+-spucP821tpmQW5Qp7GXg+kTyL9TxesA32hAVbFA@mail.gmail.com>
+References: <3109536.qySrY1Ts3e@asus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1328541706.2220.50.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+In-Reply-To: <3109536.qySrY1Ts3e@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/6/2012 5:21 PM, Eric Dumazet wrote:
-> Sure, I suggest two patches then. One from me (the one I sent 
-> earlier), introducing the core infrastructure, and one from you adding 
-> the "dev->gro_mac_header_len = IPOIB_ENCAP_LEN;" in 
-> drivers/infiniband/ulp/ipoib/ipoib_main.c If you agree, I'll resend my 
-> part with official submission, and you'll send your patch after ? 
+On Sat, Jan 14, 2012 at 1:36 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> This patch series makes the ib_srp driver better suited for use in a H.A.
 
-sure, sounds excellent, lets do that
+Hi Dave,
 
-Or.
+Do you have any review comments about this patch series ?
+
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
