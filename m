@@ -1,44 +1,38 @@
-From: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>
-Subject: [PATCH] IB: Don't return freed pointer from
- srpt_alloc_ioctx_ring()
-Date: Sat, 4 Feb 2012 23:49:40 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1202042346510.30244@swampdragon.chaosbits.net>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/ipoib: fix GRO merge failure for IPoIB originated
+ TCP streams
+Date: Mon, 6 Feb 2012 17:05:26 +0200
+Message-ID: <4F2FEC36.6090800@mellanox.com>
+References: <alpine.LRH.2.00.1201261624540.30384@ogerlitz.voltaire.com>  <alpine.LRH.2.00.1201261642340.31408@ogerlitz.voltaire.com>  <alpine.LRH.2.00.1202022352560.30300@ogerlitz.voltaire.com>  <1828884A29C6694DAF28B7E6B8A823733349A5D2@ORSMSX101.amr.corp.intel.com> <1328259640.2480.43.camel@edumazet-laptop> <1828884A29C6694DAF28B7E6B8A823733349A6C9@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823733349A6C9-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Nicholas A. Bellinger" <nab-4mckEHfoRW3KI0RCH6AXYZqQE7yCjDx5@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On 2/3/2012 10:24 PM, Hefty, Sean wrote:
+>> Hmm... a tcpdump would help to understand what is going on (for example if GRO kicks in)
+>
+> I should stop trying to apply patches so late.  I must have done something wrong with my quick test.  Re-applying the patch on 3.2, the ipoib UD performance looks okay to me with Eric's patch.  Sorry about the flub.
+>
 
- compile tested only.
+Sean, same here, with both 3.2 and 3.3-rc1 I see with tcpdump that no 
+GRO aggregation is done in the receiving side, when applying the patch I 
+sent (Eric's patch enhanced to change ipoib code such that it sets 
+gro_mac_header_lento the ipoib header len), I can see GRO aggregation 
+and the performance goes well up. So how do we go from here? Herbert, 
+Roland, are you okay with the patch?
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index cd5d05e..a59c685 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -687,6 +687,7 @@ err:
- 	while (--i >= 0)
- 		srpt_free_ioctx(sdev, ring[i], dma_size, dir);
- 	kfree(ring);
-+	ring = NULL;
- out:
- 	return ring;
- }
--- 
-1.7.9
+Eric, if this we're going on that patch, could you please add 
+Reported-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> to the change-log.
 
+Or.
 
--- 
-Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
