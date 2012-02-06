@@ -1,65 +1,35 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: Re: [PATCH/RFC G-U-P experts] IB/umem: Modernize our get_user_pages() parameters
-Date: Mon, 6 Feb 2012 09:46:23 -0800
-Message-ID: <CAL1RGDUzYTVJJNwYzraObNvkZmOT=1oR4gBL2hKhB2harAiLLw@mail.gmail.com>
-References: <1327557574-6125-1-git-send-email-roland@kernel.org>
- <alpine.LSU.2.00.1201261133230.1369@eggly.anvils> <CAG4TOxNEV2VY9wOE86p9RnKGqpruB32ci9Wq3yBt8O2zc7f05w@mail.gmail.com>
- <alpine.LSU.2.00.1201271458130.3402@eggly.anvils> <CAL1RGDXqguZ2QKV=yjLXtk2n_Ag4Nf3CW+kF2BFQFR4ySTNaRA@mail.gmail.com>
- <20120130202013.GJ30782@redhat.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH V2 02/10] cxgb4: Common platform specific changes for DB
+ Drop Recovery
+Date: Mon, 6 Feb 2012 10:00:11 -0800
+Message-ID: <CAL1RGDVyvm2+9n9P=v1yuCJXtXVnNQTpAvbAFbtafDN_siZgzA@mail.gmail.com>
+References: <1319130620-9240-1-git-send-email-vipul@chelsio.com>
+ <8A71B368A89016469F72CD08050AD3340A3D3120@maui.asicdesigners.com>
+ <CAL1RGDXoeJNYz3R58bU-ixRyY1uKNgGPdUrWZ4nbcuyRDjL6Cg@mail.gmail.com>
+ <20111028182234.GA11554@kumars-PC.asicdesigners.com> <CAL1RGDVQJUb2sM+Yo1sYVO5o-GhyBCOGo3_Q0U7YkR0GAoFgfg@mail.gmail.com>
+ <4F2FEFBE.1060503@chelsio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20120130202013.GJ30782@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4F2FEFBE.1060503-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Felix Marti <felix-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Dimitrios Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Andrea, sorry for the slow reply, had to work on other stuff for a bit.
+On Mon, Feb 6, 2012 at 7:20 AM, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> wrote:
+> Will this series be coming out with 3.3?
+> let me know if anything is required from my side.
 
-On Mon, Jan 30, 2012 at 12:20 PM, Andrea Arcangeli <aarcange@redhat.com> wrote:
-> If you map it with an mmap(PROT_READ|PROT_WRITE), force or not force
-> won't change a thing in terms of cows. Just make sure you map your
-> control memory right, then safely remove force=1 and you won't get the
-> control page cowed by mistake. Then if you map it with MAP_SHARED it
-> won't be mapped read-only by fork() (leading to either parent or child
-> losing the control on the device), Hugh already suggested you to use
-> MAP_SHARED instead of MAP_PRIVATE.
+No, this series is not in 3.3.
 
-Actually this isn't about control memory for the RDMA adapter...
-as you mentioned that typically is MMIO and mapped with remap_pfn
-stuff, without using any GUP stuff.
+Sorry, but this kind of got lost in the shuffle.
 
-I'm talking about the registration of other memory for reading/writing
-by a remote system via RDMA.
-
-The reason I'm talking about exporting kernel memory is that I wanted
-to do a debugging trick where a kernel module exposed some state
-into an mmap'able buffer.  And I wanted to be able to read that state
-even if my broken module killed the whole system (in fact exactly
-when things crash I want to be able to read the state to figure out
-why I crashed!).
-
-So I wrote a trivial userspace program that does nothing but mmap
-the buffer, accept RDMA connections from remote systems, and
-map the buffer for reading over those connections.  Then I can have
-a second system that connects to that process and polls the buffer.
-
-Because all the RDMA state is setup in advance, I can keep polling
-even after the first system panics.  It's sort of like that firewire remote
-debugging, except I only get access to a limited memory buffer.
-
-The only difficulty is the problem that started this thread, ie a bogus
-COW so the remote system ends up polling the wrong pages.  So with
-my original patch, I'm able to debug but I guess we agree it's the
-wrong fix for the general problem, and I'll write up a patch that adds
-what I think is the correct fix (the new FOLL flag) soon.
+Can you resend the series against the latest kernel, and explain again
+which parts are for net-next and which parts are for my RDMA tree?
 
  - R.
-
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
