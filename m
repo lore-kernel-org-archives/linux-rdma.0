@@ -1,65 +1,50 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [PATCH] IPoIB: Stop lying about hard_header_len and use skb->cb
- to stash LL addresses
-Date: Wed, 8 Feb 2012 16:28:47 +0200
-Message-ID: <4F32869F.3090605@mellanox.com>
-References: <CAG4TOxP2iEgT64L8vAR6P139U-HyHSxU8gdWw+cLsDwWSGkrwA@mail.gmail.com>  <1328662281-16256-1-git-send-email-roland@kernel.org>  <1828884A29C6694DAF28B7E6B8A82373374C1C26@ORSMSX101.amr.corp.intel.com> <1328687424.4736.5.camel@edumazet-laptop>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] Infiniband-Diags: ibping server sends responses even after
+ the client has terminated
+Date: Wed, 8 Feb 2012 08:34:47 -0600
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8E20@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1328687424.4736.5.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>, Roland Dreier <roland@kernel.org>
-Cc: "Hefty, Sean" <sean.hefty@intel.com>, David Miller <davem@davemloft.net>, "herbert@gondor.hengli.com.au" <herbert@gondor.hengli.com.au>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "shlomop@mellanox.com" <shlomop@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "weiny2-i2BcT+NCU+M@public.gmane.org" <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/8/2012 9:50 AM, Eric Dumazet wrote:
-> Le mercredi 08 f=C3=A9vrier 2012 =C3=A0 07:29 +0000, Hefty, Sean a =C3=
-=A9crit :
->> I tested this with Dave's patch and Eric's first patch against Linus=
-' latest tree 3.3-rc2+, and things look good so far.
->>
->
-> Thanks for testing, I'll resend my (updated) patch today.
+This is OFED bug 1974, it's been open for a couple of years now. Ira, I think you're the ib-diags guy now, right?
 
-same here, I used Roland's patch on top of net-next plus the below patc=
-h=20
-and got GRO to aggregate okay,
-great doing! Eric, could you please post your work to Dave after=20
-Roland's patch is applied?
+In any case, it's a trivial issue: ibping -S treats receive errors as if they were valid incoming MAD packets and tries to send responses to them. The fix is easy, just check the status field of the received umad structure:
 
-Or.
+Index: ibping.c
+===================================================================
+RCS file: /cvs/vendor/OFA/Ofed/infiniband-diags/src/src/ibping.c,v
+retrieving revision 1.34
+diff -u -d -w -r1.34 ibping.c
+--- ibping.c    7 Feb 2012 17:29:12 -0000       1.34
++++ ibping.c    8 Feb 2012 14:24:39 -0000
+@@ -83,7 +83,7 @@
+        DEBUG("starting to serve...");
 
-> diff --git a/net/core/dev.c b/net/core/dev.c
-> index f124947..9b8e2fa 100644
-> --- a/net/core/dev.c
-> +++ b/net/core/dev.c
-> @@ -3491,14 +3491,20 @@ static inline gro_result_t
->  __napi_gro_receive(struct napi_struct *napi, struct sk_buff *skb)
->  {
->         struct sk_buff *p;
-> +       unsigned int maclen =3D skb->dev->hard_header_len;
->
->         for (p =3D napi->gro_list; p; p =3D p->next) {
->                 unsigned long diffs;
->
->                 diffs =3D (unsigned long)p->dev ^ (unsigned long)skb-=
->dev;
->                 diffs |=3D p->vlan_tci ^ skb->vlan_tci;
-> -               diffs |=3D compare_ether_header(skb_mac_header(p),
-> -                                             skb_gro_mac_header(skb)=
-);
-> +               if (maclen =3D=3D ETH_HLEN)
-> +                       diffs |=3D compare_ether_header(skb_mac_heade=
-r(p),
-> +                                                    =20
-> skb_gro_mac_header(skb));
-> +               else if (!diffs)
-> +                       diffs =3D memcmp(skb_mac_header(p),
-> +                                       skb_gro_mac_header(skb),
-> +                                       maclen);
->                 NAPI_GRO_CB(p)->same_flow =3D !diffs;
->                 NAPI_GRO_CB(p)->flush =3D 0;
->         }
+        while ((umad = mad_receive_via(0, -1, srcport))) {
+-
++               if (umad_status(umad) == 0) {
+                mad = umad_get_mad(umad);
+                data = (char *)mad + IB_VENDOR_RANGE2_DATA_OFFS;
+
+@@ -94,6 +94,7 @@
+                if (mad_respond_via(umad, 0, 0, srcport) < 0)
+                        DEBUG("respond failed");
+
++               }
+                mad_free(umad);
+        }
+
+===================================================================
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
