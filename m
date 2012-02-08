@@ -1,25 +1,46 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Possibly serious bug in ib_mad: processing packets from ibping
- can consume 100% of CPU and may leave user processes locked in umad_recv
-Date: Thu, 9 Feb 2012 00:48:57 +0200
-Message-ID: <CAJZOPZK+fyQSOF3od3OyR8Hj8=WxF+dgkqXzMfTTr9AT=T5zpA@mail.gmail.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8E9A@MNEXMB1.qlogic.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next] gro: more generic L2 header check
+Date: Wed, 08 Feb 2012 18:09:17 -0500 (EST)
+Message-ID: <20120208.180917.586628615268005115.davem@davemloft.net>
+References: <CAJZOPZL_zEbNwUfVOmQeODny7HDf24gOc1HStfBxim_UtD-kvA@mail.gmail.com>
+	<20120208.163159.2229331610142060560.davem@davemloft.net>
+	<CAJZOPZLLteDbm0prTN3-npubtFun=kO2DYT7ea=E-HyJ84gaiA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8E9A-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <CAJZOPZLLteDbm0prTN3-npubtFun=kO2DYT7ea=E-HyJ84gaiA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 9, 2012 at 12:41 AM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Wed, 8 Feb 2012 23:49:43 +0200
 
-> This behavior has been demonstrated on 1.5.4 and 1.5.4.1, and on RHEL6.0, 6.1 and 5.7
+> On Wed, Feb 8, 2012 at 11:31 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
+>> From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> 
+>>> Hi Dave, for correct operation / future bisection, you should 1st
+>>> apply Roland's patch which reduces the hard header len advertized by
+>>> ipoib to be only the size of the ipoib header without that 20 bytes
+>>> headroom, else the gro memcmp will be issued on the ipoib header and
+>>> then 20 bytes of the ip header, kind of back to square one...
+> 
+>> I did.
+> 
+> Yep, I missed your earlier response to Roland's patch. So a question
+> here, how would you recommend to get that out... since the fix for the
+> problem includes two patches to core networking and one patch to
+> ipoib, we can't just ship a patch to ipoib which people can apply
+> build against their kernels. You've placed this work in net-next and
+> not net, so I assume we should wait for 3.4-rc1 and then push to
+> -stable? any other method to use here that you can recommend? thanks,
 
-tried kernel.org? this list deals with kernels from that fabric.
+I don't think this is an appropriate bug fix at all.
 
-Or.
+Apparently this problem has existed since day one and the world has
+kept on spinning meanwhile.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
