@@ -1,37 +1,25 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: mlx4_wq_overflow question
-Date: Thu, 9 Feb 2012 00:45:46 +0200
-Message-ID: <20120208224546.GA31369@mtldesk30>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Possibly serious bug in ib_mad: processing packets from ibping
+ can consume 100% of CPU and may leave user processes locked in umad_recv
+Date: Thu, 9 Feb 2012 00:48:57 +0200
+Message-ID: <CAJZOPZK+fyQSOF3od3OyR8Hj8=WxF+dgkqXzMfTTr9AT=T5zpA@mail.gmail.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8E9A@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8E9A-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+On Thu, Feb 9, 2012 at 12:41 AM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
 
-referring to the function below, I can't find a strong reason to check
-again after acquiring the cq spinlock. Any idea?
+> This behavior has been demonstrated on 1.5.4 and 1.5.4.1, and on RHEL6.0, 6.1 and 5.7
 
-static int mlx4_wq_overflow(struct mlx4_ib_wq *wq, int nreq, struct
-ib_cq *ib_cq)
-{
-        unsigned cur;
-        struct mlx4_ib_cq *cq;
+tried kernel.org? this list deals with kernels from that fabric.
 
-        cur = wq->head - wq->tail;
-        if (likely(cur + nreq < wq->max_post))
-                return 0;
-
-        cq = to_mcq(ib_cq);
-        spin_lock(&cq->lock);
-        cur = wq->head - wq->tail;
-        spin_unlock(&cq->lock);
-
-        return cur + nreq >= wq->max_post;
-}
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
