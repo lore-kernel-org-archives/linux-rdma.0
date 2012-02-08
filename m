@@ -1,32 +1,34 @@
-From: woody-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
-Subject: Cloud server solutions - more stable, powerful, flexible and cheap
-Date: Wed,  8 Feb 2012 17:54:38 +0800 (HKT)
-Message-ID: <0YW8JICv@tpts7.seed.net.tw>
+From: boris-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+Subject: Run Your Dedicated Server with Sufficient IP
+Date: Wed,  8 Feb 2012 21:50:54 +0800 (HKT)
+Message-ID: <8GhsQyuYUFO@mail.sysnet.net.tw>
 Content-Type: text/plain;
 Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Have a nice day
+With servers located off-site, enterprises can devote all their bandwidth resources to company email communication, file transfer, networked applications, and other Internet needs.
+Our dedicated server plan include:
 
-We are one of the top Cloud Solution provider base in Hong Kong, with over 10+ years experience,
-we providing better than good and lower cost service of CLoud Hosting (Cloud Server / Hosting / CDN)
-
-Starting at $1.99, let's come to experience and enjoy our powerful cloud system.
-
-Thanks for your time and appreciated to look arround our website.
-
-http://www.dedicatedserver.com.hk/ 
-
+o    7/24/365 Support via Helpdesk
+o    Plesk Panel
+o    IPV4 / IPV6
+o    Unlimited FTP accounts
+o    Unlimited Email Accounts
+o    Unlimited datatransfer bandwidth
+o    PHP 5
+o    Spam Assassin
+o    Allow multi-domain hosting
+o    Daily/Weekly Backup
+ 
+For more details, please send email to boris-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+ 
 Best Regards,
-The 36cloud Team
-
-
-
-
-
-If you do not wish to further receive this event message, email "subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org" to unsubscribe this message or revoe your email from the list.
+Boris Lam
+Senior Sales Executive
+Dedicated Server Hong Kong
+Mobile: (852)9408 8762
 
 
 --
