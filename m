@@ -1,41 +1,69 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH net-next] gro: more generic L2 header check
-Date: Wed, 8 Feb 2012 23:49:43 +0200
-Message-ID: <CAJZOPZLLteDbm0prTN3-npubtFun=kO2DYT7ea=E-HyJ84gaiA@mail.gmail.com>
-References: <1328727110.2631.8.camel@edumazet-laptop>
-	<20120208.155027.599792363539233740.davem@davemloft.net>
-	<CAJZOPZL_zEbNwUfVOmQeODny7HDf24gOc1HStfBxim_UtD-kvA@mail.gmail.com>
-	<20120208.163159.2229331610142060560.davem@davemloft.net>
+From: Or Gerlitz <or.gerlitz@gmail.com>
+Subject: Re: [PATCH] IB/ehca: use kthread_create_on_node
+Date: Thu, 9 Feb 2012 00:28:46 +0200
+Message-ID: <CAJZOPZJs6KpcRTc2HH0rEiParY=ZQUkXZmoUzh2OwZw9+rDjsQ@mail.gmail.com>
+References: <1311923731.7845.25.camel@edumazet-laptop>
+	<1328181135.2279.9.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	<CAG4TOxMVmEe3KiDuaO6ZWq0vNchi1Mrf=mr2RSNJY2oXX0hD+Q@mail.gmail.com>
+	<CAJZOPZJtXGq36Hx5BQAc2Q7znErJ-Uaiqs-DaJQ=jCSy49uTiQ@mail.gmail.com>
+	<CAG4TOxPwcdw+CwyczAVXBqovpECVj8ad+RsraqmchuQdM2bCXw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120208.163159.2229331610142060560.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAG4TOxPwcdw+CwyczAVXBqovpECVj8ad+RsraqmchuQdM2bCXw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 8, 2012 at 11:31 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
-> From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On Wed, Feb 8, 2012 at 11:35 PM, Roland Dreier <roland@kernel.org> wrot=
+e:
+> On Wed, Feb 8, 2012 at 1:26 PM, Or Gerlitz <or.gerlitz@gmail.com> wro=
+te:
 
->> Hi Dave, for correct operation / future bisection, you should 1st
->> apply Roland's patch which reduces the hard header len advertized by
->> ipoib to be only the size of the ipoib header without that 20 bytes
->> headroom, else the gro memcmp will be issued on the ipoib header and
->> then 20 bytes of the ip header, kind of back to square one...
+>> [...] This means that the window of time when features are actually =
+accepted
+>> into your tree is kind of very limited. Would it be possible to
+>> maintain two branches: for-next and (say) rc-fixes, such that
+>> practically patches are reviewed/accepted to for-next at almost all =
+times?
 
-> I did.
+>> BTW I see that networking and scsi maintainers use two trees (net/ne=
+t-next)
+>> and (scsi-misc/scsi-rc-fixes), maybe it would be eaiser for you go t=
+his way?
 
-Yep, I missed your earlier response to Roland's patch. So a question
-here, how would you recommend to get that out... since the fix for the
-problem includes two patches to core networking and one patch to
-ipoib, we can't just ship a patch to ipoib which people can apply
-build against their kernels. You've placed this work in net-next and
-not net, so I assume we should wait for 3.4-rc1 and then push to
--stable? any other method to use here that you can recommend? thanks,
+> It's not really an issue of not having a tree to put things into. =A0=
+It's
+> more that the window when I actually review major things is not
+> as big as perhaps it should be.
+
+> So I generally try to get fixes in expeditiously because they're
+> easy to deal with, whereas I only dedicate time to merging bigger
+> things when I feel the pressure of the impending merge window.
+
+but bigger things need bigger time to deal with... but even before we
+address that -
+
+> I do usually have some small patches that are fine for the next windo=
+w
+> but which I have only marked "to apply" in my mailbox, which it
+> might be a good idea to apply sooner so they get more -next tree cove=
+rage.
+
+Yep, having a branch where patches you accept are applied sooner
+rather then later,
+will be a little but surely nice && important step in the right
+direction... it would be great to have this, could you make that
+happen?
+
+Also, to except for patches which you reviewed and willing to accept,
+it happens that Sean Hefty who is also a maintainer, reviews patches
+and provides his reviewed-by signature. I would say such patches could
+(should) go to that branch as well and not wait to the pressure of the
+impending merge window.
+
+How does all this sound?
 
 Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
