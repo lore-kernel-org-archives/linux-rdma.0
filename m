@@ -1,38 +1,35 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IPoIB: Stop lying about hard_header_len and use skb->cb
- to stash LL addresses
-Date: Wed, 08 Feb 2012 08:50:24 +0100
-Message-ID: <1328687424.4736.5.camel@edumazet-laptop>
-References: <CAG4TOxP2iEgT64L8vAR6P139U-HyHSxU8gdWw+cLsDwWSGkrwA@mail.gmail.com>
-	 <1328662281-16256-1-git-send-email-roland@kernel.org>
-	 <1828884A29C6694DAF28B7E6B8A82373374C1C26@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: woody-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+Subject: Cloud server solutions - more stable, powerful, flexible and cheap
+Date: Wed,  8 Feb 2012 17:54:38 +0800 (HKT)
+Message-ID: <0YW8JICv@tpts7.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373374C1C26-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org" <herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le mercredi 08 f=C3=A9vrier 2012 =C3=A0 07:29 +0000, Hefty, Sean a =C3=A9=
-crit :
-> > OK, this works for me.  Definitely looks cleaner and also looks
-> > obvious enough that it's probably even correct.
->=20
-> I tested this with Dave's patch and Eric's first patch against Linus'=
- latest tree 3.3-rc2+, and things look good so far.
->=20
-> Thanks,
-> - Sean
+Have a nice day
 
-Thanks for testing, I'll resend my (updated) patch today.
+We are one of the top Cloud Solution provider base in Hong Kong, with over 10+ years experience,
+we providing better than good and lower cost service of CLoud Hosting (Cloud Server / Hosting / CDN)
 
+Starting at $1.99, let's come to experience and enjoy our powerful cloud system.
+
+Thanks for your time and appreciated to look arround our website.
+
+http://www.dedicatedserver.com.hk/ 
+
+Best Regards,
+The 36cloud Team
+
+
+
+
+
+If you do not wish to further receive this event message, email "subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org" to unsubscribe this message or revoe your email from the list.
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
