@@ -1,92 +1,72 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] Infiniband-Diags: ibping server sends responses even
- after the client has terminated
-Date: Wed, 8 Feb 2012 12:21:47 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8E68@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8E20@MNEXMB1.qlogic.org>
- <20120208101947.63a0f26d.weiny2@llnl.gov>
+From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH net-next] gro: more generic L2 header check
+Date: Wed, 08 Feb 2012 19:51:50 +0100
+Message-ID: <1328727110.2631.8.camel@edumazet-laptop>
+References: <1328541706.2220.50.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	 <4F2FF050.7040400@mellanox.com>
+	 <1328545627.2220.72.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	 <20120206.113145.1284864994961472499.davem@davemloft.net>
+	 <1328546834.2220.79.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120208101947.63a0f26d.weiny2-i2BcT+NCU+M@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1328546834.2220.79.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Absolutely.
+Shlomo Pongratz reported GRO L2 header check was suited for Ethernet
+only, and failed on IB/ipoib traffic.
 
-Sorry, I knocked the patch out quickly because I came across it while looking at another problem, next time I'll be sure to do the full procedure.
+He provided a patch faking a zeroed header to let GRO aggregates frames.
 
------Original Message-----
-From: Ira Weiny [mailto:weiny2-i2BcT+NCU+M@public.gmane.org]
-Sent: Wednesday, February 08, 2012 1:20 PM
-To: Mike Heinz
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH] Infiniband-Diags: ibping server sends responses even after the client has terminated
+Roland Dreier, Herbert Xu, and others suggested we change GRO L2 header
+check to be more generic, ie not assuming L2 header is 14 bytes, but
+taking into account hard_header_len.
 
-On Wed, 8 Feb 2012 06:34:47 -0800
-Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+__napi_gro_receive() has special handling for the common case (Ethernet)
+to avoid a memcmp() call and use an inline optimized function instead.
 
-> This is OFED bug 1974, it's been open for a couple of years now. Ira, I think you're the ib-diags guy now, right?
->
-> In any case, it's a trivial issue: ibping -S treats receive errors as if they were valid incoming MAD packets and tries to send responses to them. The fix is easy, just check the status field of the received umad structure:
->
+Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Reported-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
+Tested-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ net/core/dev.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-Mike,
+diff --git a/net/core/dev.c b/net/core/dev.c
+index f124947..763a0ed 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -3491,14 +3491,20 @@ static inline gro_result_t
+ __napi_gro_receive(struct napi_struct *napi, struct sk_buff *skb)
+ {
+ 	struct sk_buff *p;
++	unsigned int maclen = skb->dev->hard_header_len;
+ 
+ 	for (p = napi->gro_list; p; p = p->next) {
+ 		unsigned long diffs;
+ 
+ 		diffs = (unsigned long)p->dev ^ (unsigned long)skb->dev;
+ 		diffs |= p->vlan_tci ^ skb->vlan_tci;
+-		diffs |= compare_ether_header(skb_mac_header(p),
+-					      skb_gro_mac_header(skb));
++		if (maclen == ETH_HLEN)
++			diffs |= compare_ether_header(skb_mac_header(p),
++						      skb_gro_mac_header(skb));
++		else if (!diffs)
++			diffs = memcmp(skb_mac_header(p),
++				       skb_gro_mac_header(skb),
++				       maclen);
+ 		NAPI_GRO_CB(p)->same_flow = !diffs;
+ 		NAPI_GRO_CB(p)->flush = 0;
+ 	}
 
-Next time could you base the patch off of:
-
-git://git.openfabrics.org/~iraweiny/infiniband-diags.git
-
-Also the formatting of the if block should be indented.
-
-I went ahead and made the fix by hand.
-
-Thanks,
-Ira
-
-> Index: ibping.c
-> ===================================================================
-> RCS file: /cvs/vendor/OFA/Ofed/infiniband-diags/src/src/ibping.c,v
-> retrieving revision 1.34
-> diff -u -d -w -r1.34 ibping.c
-> --- ibping.c    7 Feb 2012 17:29:12 -0000       1.34
-> +++ ibping.c    8 Feb 2012 14:24:39 -0000
-> @@ -83,7 +83,7 @@
->         DEBUG("starting to serve...");
->
->         while ((umad = mad_receive_via(0, -1, srcport))) {
-> -
-> +               if (umad_status(umad) == 0) {
->                 mad = umad_get_mad(umad);
->                 data = (char *)mad + IB_VENDOR_RANGE2_DATA_OFFS;
->
-> @@ -94,6 +94,7 @@
->                 if (mad_respond_via(umad, 0, 0, srcport) < 0)
->                         DEBUG("respond failed");
->
-> +               }
->                 mad_free(umad);
->         }
->
-> ===================================================================
->
-> This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
->
-
-
---
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
-
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
