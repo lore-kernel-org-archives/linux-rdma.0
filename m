@@ -1,74 +1,36 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH net-next] gro: more generic L2 header check
-Date: Wed, 08 Feb 2012 19:51:50 +0100
-Message-ID: <1328727110.2631.8.camel@edumazet-laptop>
-References: <1328541706.2220.50.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	 <4F2FF050.7040400@mellanox.com>
-	 <1328545627.2220.72.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	 <20120206.113145.1284864994961472499.davem@davemloft.net>
-	 <1328546834.2220.79.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] IPoIB: Stop lying about hard_header_len and use
+ skb->cb to stash LL addresses
+Date: Wed, 08 Feb 2012 15:50:18 -0500 (EST)
+Message-ID: <20120208.155018.1656553782073149044.davem@davemloft.net>
+References: <CAG4TOxP2iEgT64L8vAR6P139U-HyHSxU8gdWw+cLsDwWSGkrwA@mail.gmail.com>
+	<1328662281-16256-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1328546834.2220.79.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1328662281-16256-1-git-send-email-roland@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: roland@kernel.org
+Cc: eric.dumazet@gmail.com, ogerlitz@mellanox.com, sean.hefty@intel.com, herbert@gondor.hengli.com.au, linux-rdma@vger.kernel.org, shlomop@mellanox.com, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Shlomo Pongratz reported GRO L2 header check was suited for Ethernet
-only, and failed on IB/ipoib traffic.
+From: Roland Dreier <roland@kernel.org>
+Date: Tue,  7 Feb 2012 16:51:21 -0800
 
-He provided a patch faking a zeroed header to let GRO aggregates frames.
+> From: Roland Dreier <roland@purestorage.com>
+> 
+> Commit a0417fa3a18a ("net: Make qdisc_skb_cb upper size bound
+> explicit.") made it possible for a netdev driver to use skb->cb
+> between its header_ops.create method and its .ndo_start_xmit
+> method.  Use this in ipoib_hard_header() to stash away the LL address
+> (GID + QPN), instead of the "ipoib_pseudoheader" hack.  This allows
+> IPoIB to stop lying about its hard_header_len, which will let us fix
+> the L2 check for GRO.
+> 
+> Signed-off-by: Roland Dreier <roland@purestorage.com>
+> ---
+> OK, this works for me.  Definitely looks cleaner and also looks
+> obvious enough that it's probably even correct.
 
-Roland Dreier, Herbert Xu, and others suggested we change GRO L2 header
-check to be more generic, ie not assuming L2 header is 14 bytes, but
-taking into account hard_header_len.
-
-__napi_gro_receive() has special handling for the common case (Ethernet)
-to avoid a memcmp() call and use an inline optimized function instead.
-
-Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Reported-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Tested-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- net/core/dev.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/net/core/dev.c b/net/core/dev.c
-index f124947..763a0ed 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -3491,14 +3491,20 @@ static inline gro_result_t
- __napi_gro_receive(struct napi_struct *napi, struct sk_buff *skb)
- {
- 	struct sk_buff *p;
-+	unsigned int maclen = skb->dev->hard_header_len;
- 
- 	for (p = napi->gro_list; p; p = p->next) {
- 		unsigned long diffs;
- 
- 		diffs = (unsigned long)p->dev ^ (unsigned long)skb->dev;
- 		diffs |= p->vlan_tci ^ skb->vlan_tci;
--		diffs |= compare_ether_header(skb_mac_header(p),
--					      skb_gro_mac_header(skb));
-+		if (maclen == ETH_HLEN)
-+			diffs |= compare_ether_header(skb_mac_header(p),
-+						      skb_gro_mac_header(skb));
-+		else if (!diffs)
-+			diffs = memcmp(skb_mac_header(p),
-+				       skb_gro_mac_header(skb),
-+				       maclen);
- 		NAPI_GRO_CB(p)->same_flow = !diffs;
- 		NAPI_GRO_CB(p)->flush = 0;
- 	}
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll toss this, and Eric's updated patch into net-next, thanks!
