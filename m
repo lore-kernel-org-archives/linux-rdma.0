@@ -1,37 +1,40 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH net-next] gro: more generic L2 header check
-Date: Thu, 9 Feb 2012 12:46:20 +0200
-Message-ID: <4F33A3FC.1050205@mellanox.com>
-References: <CAJZOPZLLteDbm0prTN3-npubtFun=kO2DYT7ea=E-HyJ84gaiA@mail.gmail.com> <20120208.180917.586628615268005115.davem@davemloft.net> <CAJZOPZ+SyGsDpnK89wNWtBn4Jdzc2tg1diKjbHSv=n75XiG+ug@mail.gmail.com> <20120208.182629.1816927738607872730.davem@davemloft.net>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Possibly serious bug in ib_mad: processing packets from ibping
+ can consume 100% of CPU and may leave user processes locked in umad_recv
+Date: Thu, 9 Feb 2012 07:33:24 -0600
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8EB8@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD8E9A@MNEXMB1.qlogic.org>
+ <1828884A29C6694DAF28B7E6B8A82373374C1F5D@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120208.182629.1816927738607872730.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373374C1F5D-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, herbert-F6s6mLieUQo7FNHlEwC/lvQIK84fMopw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/9/2012 1:26 AM, David Miller wrote:
-> the bug was introduced on 2.6.38 when LRO was removed from IPoIB
-> and GRO added, so users who run distributions containing pre 2.6.38
-> kernels don't hit the bug.
->
-> This I didn't know, Ok I'll apply this stuff to the net tree and add it
-> to my -stable queue as well.
+I think there is. After I posted that trace I began running through the code - since the only (relevant) place agent_send_response is called is in response process_mad(), that is a distinct possibility. I've forwarded the information to the qib driver team.
 
-Dave,
+If that's true, it would actually be good news - I posted the trace because was concerned that this could affect all fabrics.
 
-Thanks, going net and -stable will help here. I'm still cloning net, but 
-from git web looking it seems that you've applied Roland's and Eric's 
-patches on net but not yours... e.g net-next commit 
-a0417fa3a18a14be1f4d9cffcf378a7c42d92a91 
-"net: Make qdisc_skb_cb upper size bound explicit" is missing from net, 
-and it has to be applied before Roland's.
+-----Original Message-----
+From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+Sent: Thursday, February 09, 2012 2:57 AM
+To: Mike Heinz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Todd Rimmer
+Subject: RE: Possibly serious bug in ib_mad: processing packets from ibping can consume 100% of CPU and may leave user processes locked in umad_recv
 
-Or.
+> Subject: Possibly serious bug in ib_mad: processing packets from
+> ibping can consume 100% of CPU and may leave user processes locked in
+> umad_recv
 
+Is there a chance that the low level driver is asking to send the MAD to itself over and over again?
+
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
