@@ -1,31 +1,29 @@
-From: David Miller <davem@davemloft.net>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH net-next] gro: more generic L2 header check
-Date: Thu, 09 Feb 2012 15:29:43 -0500 (EST)
-Message-ID: <20120209.152943.1123862542883793404.davem@davemloft.net>
+Date: Fri, 10 Feb 2012 00:18:30 +0200
+Message-ID: <CAJZOPZKUG-tT+Zd=1EiLhgRxg4VEDrisBJQ99XtARMvK68UWfA@mail.gmail.com>
 References: <4F33A3FC.1050205@mellanox.com>
 	<20120209.135235.957414875716615693.davem@davemloft.net>
 	<CAJZOPZJj=rBoss-JiLm6K66D1h+zyerDspDS+358t7u=Mg2pfQ@mail.gmail.com>
+	<20120209.152943.1123862542883793404.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAJZOPZJj=rBoss-JiLm6K66D1h+zyerDspDS+358t7u=Mg2pfQ@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: or.gerlitz@gmail.com
-Cc: eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120209.152943.1123862542883793404.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Or Gerlitz <or.gerlitz@gmail.com>
-Date: Thu, 9 Feb 2012 22:04:34 +0200
+On Thu, Feb 9, 2012 at 10:29 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
+> I cannot rebase my tree, too many people use it and I would break
+> their stuff. We simply have to live with this error.
 
-> On Thu, Feb 9, 2012 at 8:52 PM, David Miller <davem@davemloft.net> wrote:
-> 
->> I've fix this now, thanks.
-> 
-> Yep, I see it there, still, for correctness/biscetion, you should
-> rebase such that the order of commits when pushed to Linus is
+I see, so you will add CC to stable, such that they will be picked
+into -stable once you push them to Linus?
 
-I cannot rebase my tree, too many people use it and I would break
-their stuff.
-
-We simply have to live with this error.
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
