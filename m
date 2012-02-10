@@ -1,52 +1,53 @@
-From: Cong Wang <amwang@redhat.com>
-Subject: [PATCH 16/60] infiniband: remove the second argument of k[un]map_atomic()
-Date: Fri, 10 Feb 2012 13:39:37 +0800
-Message-ID: <1328852421-19678-17-git-send-email-amwang@redhat.com>
-References: <1328852421-19678-1-git-send-email-amwang@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1328852421-19678-1-git-send-email-amwang@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Cong Wang <amwang@redhat.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: Avoid filtering lid on SMA portinfo
+Date: Fri, 10 Feb 2012 17:03:18 -0500
+Message-ID: <20120210220318.22930.77380.stgit@kop-dev-sles11-04.qlogic.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Roland Dreier <roland@purestorage.com>
-Signed-off-by: Cong Wang <amwang@redhat.com>
----
- drivers/infiniband/ulp/iser/iser_memory.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+The current get portinfo handling filters the lid being
+sent, modifying zero to 0xffff.
 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index fb88d68..2033a92 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -73,11 +73,11 @@ static int iser_start_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
- 
- 		p = mem;
- 		for_each_sg(sgl, sg, data->size, i) {
--			from = kmap_atomic(sg_page(sg), KM_USER0);
-+			from = kmap_atomic(sg_page(sg));
- 			memcpy(p,
- 			       from + sg->offset,
- 			       sg->length);
--			kunmap_atomic(from, KM_USER0);
-+			kunmap_atomic(from);
- 			p += sg->length;
- 		}
- 	}
-@@ -133,11 +133,11 @@ void iser_finalize_rdma_unaligned_sg(struct iscsi_iser_task *iser_task,
- 
- 		p = mem;
- 		for_each_sg(sgl, sg, sg_size, i) {
--			to = kmap_atomic(sg_page(sg), KM_SOFTIRQ0);
-+			to = kmap_atomic(sg_page(sg));
- 			memcpy(to + sg->offset,
- 			       p,
- 			       sg->length);
--			kunmap_atomic(to, KM_SOFTIRQ0);
-+			kunmap_atomic(to);
- 			p += sg->length;
- 		}
- 	}
--- 
-1.7.7.6
+The causes issues with OpenSM logging excessive warning
+messages.
+
+Reviewed-by: Edward Mascarenhas <edward.mascarenhas-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_mad.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index f06df90..373f8a6 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -447,7 +447,6 @@ static int subn_get_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 	struct qib_pportdata *ppd;
+ 	struct qib_ibport *ibp;
+ 	struct ib_port_info *pip = (struct ib_port_info *)smp->data;
+-	u16 lid;
+ 	u8 mtu;
+ 	int ret;
+ 	u32 state;
+@@ -483,8 +482,7 @@ static int subn_get_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 	      ibp->mkeyprot == 1))
+ 		pip->mkey = ibp->mkey;
+ 	pip->gid_prefix = ibp->gid_prefix;
+-	lid = ppd->lid;
+-	pip->lid = lid ? cpu_to_be16(lid) : IB_LID_PERMISSIVE;
++	pip->lid = cpu_to_be16(ppd->lid);
+ 	pip->sm_lid = cpu_to_be16(ibp->sm_lid);
+ 	pip->cap_mask = cpu_to_be32(ibp->port_cap_flags);
+ 	/* pip->diag_code; */
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
