@@ -1,29 +1,65 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: user space FMR support
-Date: Mon, 13 Feb 2012 15:13:50 -0800
-Message-ID: <CABgxfbGDVEUS=017Ts7L2zfSzRnyF=t+xFKLXeqxT4Biiq=_xw@mail.gmail.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] opensm: Fix opensm handover/relinquish corner case
+Date: Mon, 13 Feb 2012 16:13:47 -0800
+Message-ID: <1329178427.4779.1088.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-To make a long story short ....  FMR = fast memory registration ...
+When in master state and performing light sweeps, openSM ignores
+other subnet managers in master state and fails to perform
+handovers or relinquish control.  Handovers and relinquishing
+master is only performed after a heavy sweep.  This can result
+in two subnet managers being in master state, seeing each other
+SM in master state, but both choose to do nothing about it.
 
-I "had" been using a set of FMR patches that exported the existing
-kernel FMR support to user space (with mlx4 driver) for about a year.
-A mistake in re-installing the development cluster this morning wiped
-out the private OFED package that contained the changes. I could
-probably be able to repatch everything in a couple of days but it is a
-very annoying process. I can't be the only person who needs the FMR in
-user space (?).
+This patch initiates a heavy sweep when another master subnet
+manager is found during a light sweep.  This is sufficient to
+start a handover or relinquish scenario.
 
-Does anyone have a handy set of patches that can make public (or
-better, push upstream with newer set of kernels) ?
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ opensm/osm_sminfo_rcv.c |   18 ++++++++++++++++--
+ 1 files changed, 16 insertions(+), 2 deletions(-)
 
-Thanks,
-Wendy
+diff --git a/opensm/osm_sminfo_rcv.c b/opensm/osm_sminfo_rcv.c
+index 66eb886..d4ae7c9 100644
+--- a/opensm/osm_sminfo_rcv.c
++++ b/opensm/osm_sminfo_rcv.c
+@@ -385,8 +385,22 @@ static void smi_rcv_process_get_sm(IN osm_sm_t * sm,
+ 				osm_sm_state_mgr_signal_master_is_alive(sm);
+ 			else {
+ 				/* This is a response we got while sweeping the subnet.
+-				   We will handle a case of handover needed later on, when the sweep
+-				   is done and all SMs are recongnized. */
++ 				 * 
++ 				 * If this is during a heavy sweep, we will handle a case of
++ 				 * handover needed later on, when the sweep is done and all
++ 				 * SMs are recognized.
++ 				 *
++ 				 * If this is during a light sweep, initiate a heavy sweep
++ 				 * to initiate handover scenarios.
++ 				 *
++ 				 * Note that it does not matter if the remote SM is lower
++ 				 * or higher priority.  If it is lower priority, we must
++ 				 * wait for it HANDOVER.  If it is higher priority, we need
++ 				 * to HANDOVER to it.  Both cases are handled after doing
++ 				 * a heavy sweep.
++ 				 */
++				if (light_sweep)
++					sm->p_subn->force_heavy_sweep = TRUE;
+ 			}
+ 			break;
+ 		case IB_SMINFO_STATE_STANDBY:
+-- 
+1.7.1
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
