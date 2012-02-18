@@ -1,72 +1,65 @@
-From: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
-Subject: Web Design Service
-Date: Sat, 18 Feb 2012 14:39:58 +0800 (HKT)
-Message-ID: <SjLtTv0ogn4Q1G__39535.8271700845$1329554772$gmane$org@mail.sysnet.net.tw>
+From: =?utf-8?B?5LuFMzAw5YWD77yM5paw5bm054m55oOg44CC?= <admin-QCucF4yk9+TtRgLqZ5aouw@public.gmane.org>
+Subject: =?utf-8?B?5pyA5pawQjJC6K+i55uY5Lmw5a6244CB5bGV5Lya5Lmw5a62LOa1t+WFs+aVsOaNriw=?=
+	=?utf-8?B?576k5Y+R6L2v5Lu277yM5bm/5Lqk5Lya5Lmw5a62IOWFsTEwMDDkuIcg5LuFMw==?=
+	=?utf-8?B?MDDlhYMh?=
+Date: Sat, 18 Feb 2012 21:00:18 +0000 (UTC)
+Message-ID: <B19806CB58C9985C4C1520C9B4CCCD69@nbqm>
+Mime-Version: 1.0
 Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Date: Fri, 19 Feb 2016 04:46:06 +0800
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: otto-j9JOuk8lBRVOB9p2dxiE2wC/G2K4zDHf@public.gmane.org
+To: banks_13-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, yufengjn-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, ilovejacket-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, info-aehxg2LTgGhBDgjK7y7TUQ@public.gmane.org, thaipan-rdc5FV7LByhBDgjK7y7TUQ@public.gmane.org, plasma-vQ/s4o71SV0@public.gmane.org, admin-EttIFN2ke4GWy8yDR7RH3laTQe2KTcn/@public.gmane.org, ucia06-YDxpq3io04c@public.gmane.org, kaigen-tarot-EMRzualFZlQ@public.gmane.org, alksharma-QOiod4cnrWAN+BqQ9rBEUg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dear Sir / Madam, 
-
-Good morning, this is Otto from DS Hong Kong. 
-
-We are a web design house and programming service provider. As 14 years experience, we are professional to develop a website for your business. 
-
-In the Chinese New Year Festival, we have the following offer for your corporate. Please check. 
-
-Service=09Package
-
-Web Development and Programing Service
-*********************************************************
-1)=09Website Design Service =09=09=09($13,000)
-
-=09Maximum 10 Web Pages Development                                                 
-=09(Site Map will be confirmed later)
-=09All the tailor-made webpage design is included:
--=09Theme / Visual Concept Development;
--=09Design Study and Analysis / Art Direction;
--=09Original Artwork & Layout Design;
--=09Steady Web page development;
--=09HTML Development for Search Engine Applicable;
-
-2)=09Web Programing Service =09=09=09($15,000)
-
-Content Management System (For 5 web pages)                                 
--=09Standard CMS function for add / edit fields 
--=09Max. 10 fields per each CMS section
--=09CMS fields only for Text fields and photos upload fields
--=09Photos upload only support (.jpg / .png / .bmp) 
--=09Each field for one photos
--=0920 pages / section for CMS function
--=09Database support with un-limit data create;
--=09Admin Panel with Login function (1 login account)
-
-
-*********************************************************
-
-Promotion Price: =09HKD $28,000.00
-Lead Time: =09=0932 working days
-
-If you have more special requirement, please let us know and we will provide more detail to you. 
-
-Please feel free to contact me.The following is my contact information. 
-
-Contact No: (852) 5108 9664
-
-Skype: yschiu2001 (yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org)
-
-MSN: yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
-
-Email: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
-
-If you do not wish to further receive this event message, email "subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org" to unsubscribe this message or remove your email from the list. 
-
-Best Regards
-Otto Chiu
-Dedicated Server Hong Kong
+MjAwOC0yMDEx5bm0OOWxiuW5v+S6pOS8muaVsOaNru+8jDIwMTDmtbflhbPmj5DljZVwaWVyc+eJ
+iDEwMDDkuIfmlbDmja7vvIzlhY3otLnmm7TmlrAyMDEy5bm05bm/5Lqk5Lya5Lmw5a625pWw5o2u
+44CCDQoNCuS4gOWFsTEw5Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeFp+ihjOS4
+muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeaPkOWPluWHuuadpeeahCnv
+vJogDQox77yMMjAxMeeni+WtoyvmmKXlraPlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jmlbDm
+ja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7vvIzl
+rrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAxMuaYpeWt
+o+W5v+S6pOS8misyMDEy56eL5a2j5bm/5Lqk5Lya5Lmw5a625pWw5o2u44CC5aSq6LaF5YC85LqG
+44CCDQoz77yMMjAxMuacgOaWsOWFqOeQg+WxleS8mueOsOWcuuS5sOWutuW6kyjkuI7otLjlj5Hl
+kIzmraUpLOWFsTQ25LiH5p2h5pWw5o2u44CCICjmjInnhafooYzkuJrliIbnsbspDQo077yMMjAx
+MOW5tCwyMDA55bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8
+jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0K
+Ne+8jDQ4LjY45LiH5p2h5pyA5paw5Lmw5a626K+i55uY77yM6YO95bim5pyJRW1haWzvvIzmnIDm
+nInku7flgLznmoTor6Lnm5jjgIINCjbvvIwyMDEx5pyA5pawIEIyQiDoi7Hmloflm73pmYXnq5k2
+MOS4h+W4puiBlOe7nOaWueW8j+ivouebmCDmnIDmnInku7flgLzor6Lnm5jkuYvkuIAuDQo377yM
+MjAxMOa1t+WFs+aPkOWNlXBpZXJz54mIMTAwMOS4h+aVsOaNri4NCjjvvIwyMDEx5bm05Yiw6aaZ
+5riv6YeH6LSt55qE5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzo
+toXnuqfph43opoHnmoTkubDlrrbjgIINCjnvvIwyMDEx5bm05paw5aKe5Yqg55qELee+juWbvUIy
+QiB0aG9tYXNuZXQg6YeH6LSt5ZWG5ZCN5Y2V44CCDQoxMO+8jOe+pOWPkei9r+S7tuWuieijheS4
+jumDqOe9suacjeWKoeOAgg0KDQrov5nkupvlhajmnInvvIzlhbExMjgw5LiHIOaVsOaNruOAgg0K
+DQogDQropoHnmoTmipPntKfogZTns7tRUTogMTMzMDYwOTA3MiAgIOaIluiAheeri+WNs+WbnuWk
+jemCrueusTogMTMzMDYwOTA3MkBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzMwNjA5
+MDcyICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzMwNjA5MDcyQHFxLmNvbQ0K6KaB55qE
+5oqT57Sn6IGU57O7UVE6IDEzMzA2MDkwNzIgICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEz
+MzA2MDkwNzJAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzMDYwOTA3MiAgIOaIluiA
+heeri+WNs+WbnuWkjemCrueusTogMTMzMDYwOTA3MkBxcS5jb20NCg0KDQoNCuivmuS/oeS4uuac
+rO+8jOWmguaenOS4jeS/oeS7u+acrOS6uizlj6/ku6XotbDmt5jlrp3kuqTmmJMs5pS25Yiw5pWw
+5o2u6aqM6K+BMTDlpKnlkI7lho3ku5jmrL4s6L+Z5piv5a+55oKo5pyA5aW955qE5L+d6Zqc5LqG
+44CCIA0KDQoNCg0K5bCP5oqA5ben77yaIA0K5oqKNTAw5LiH5Lmw5a62576k5Y+R5Lul5LiA6YGN
+77yM5Z2H5Lya5pyJ5pWw5Y2D5Liq5Zue5aSN55qE77yM6L+Z5Lqb5bCx5piv6Z2e5bi46auY6LSo
+6YeP55qE5Lmw5a6244CCIA0K5L2/55So5oiR5Lus6YCB55qE576k5Y+R6L2v5Lu277yMMS0y5ZGo
+5bCx5Y+v5a6M5YWo5Y+R5a6M44CCDQoNCg0KDQoNCg0K5bm/5Lqk5Lya5Lmw5a625oyJ5Lqn5ZOB
+57G75Yir5YiG57G777yM5YiG5Li65Lul5LiL5Yeg57G777yaDQoxIOWKnuWFrOiuvuWkhw0KMiDn
+vJbnu4flj4rol6Tpk4Hlt6Xoibrlk4ENCjMg546755KDDQo0IOmkkOWOqOeUqOWFtw0KNSDovabo
+voYNCjYg5aSn5Z6L5py65qKw5Y+K6K6+5aSHDQo3IOeUteWtkOeUteawlA0KOCDnlLXlrZDmtojo
+tLnlk4ENCjkg57q657uHDQoxMCDmnI3oo4UNCjExIOS4quS6uuaKpOeQhg0KMTIg5bel56iL5py6
+5qKwDQoxMyDlt6XlhbcNCjE0IOWMluW3pQ0KMTUg6K6h566X5py65Y+K6YCa6K6vDQoxNiDlrrbl
+sYXnlKjlk4ENCjE3IOWutuWxheijhemlsA0KMTgg5a625YW3DQoxOSDlrrbnlKjnlLXlmagNCjIw
+IOW7uuetkeWPiuijhemlsOadkOaWmQ0KMjEg6IqC5pel55So5ZOBDQoyMiDnpLzlk4Hlj4rotaDl
+k4ENCjIzIOaRqeaJmOi9pg0KMjQg5rG96L2m6YWN5Lu2DQoyNSDpo5/lk4ENCjI2IOmZtueTtw0K
+Mjcg6ZOB55+zDQoyOCDnjqnlhbcNCjI5IOWNq+a1tA0KMzAg5LqU6YeRDQozMSDlsI/lnovmnLrm
+orANCjMyIOmeiw0KMzMg5LyR6Zey55So5ZOBDQozNCDljLvnlpcNCjM1IOa1tOWupOS6p+WTgQ0K
+MzYg5Zut5p6XDQozNyDnhafmmI7kuqflk4ENCjM4IOmSn+ihqOecvOmVnA0KMzkg6Ieq6KGM6L2m
+DQo0MCDljIUNCg0KDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t
+5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDm
+ja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQo=
 
 
 --
