@@ -1,95 +1,33 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [Patch] mlx4: fix ppc64 build issue
-Date: Mon, 20 Feb 2012 12:19:03 -0500 (EST)
-Message-ID: <5f917e4e-a0fb-4865-846e-38308c79c12d@zmail13.collab.prod.int.phx2.redhat.com>
-References: <ede05f6b-b195-4af3-9400-2667b360590d@zmail13.collab.prod.int.phx2.redhat.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="=_0f3cfba6-74da-4397-9ba1-3339ef0ffa5f"
+From: woodyng1985-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
+Subject: Hong Kong Server Rental Solution
+Date: Tue, 21 Feb 2012 00:11:55 +0800 (HKT)
+Message-ID: <Dtd1L__24929.140872746$1329764957$gmane$org@giga.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ede05f6b-b195-4af3-9400-2667b360590d-HOthUlaS0a9+R5eDjrG6zsCp5Q1pQRjfhaY/URYTgi6ny3qCrzbmXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---=_0f3cfba6-74da-4397-9ba1-3339ef0ffa5f
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+For now, our TIA TIER 3+ IDC Dedicated Server Rental service is on a discount period!!
 
-This may not be an issue with current gcc, I simply haven't tried it
-to know.  But with the gcc shipped in rhel6 (gcc 4.4.6), you can't
-both define a function as static and also EXPORT_SYMBOL that function
-on ppc.  This fixes that in the mlx4 driver.
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-	      http://people.redhat.com/dledford
+-=09   Intel(R) Xeon(R) E3-1220 Processor (3.10GHz, 8M Cache, Turbo, 4C/4T, 80W)
+-=09   4GB RAM, 1x4GB, 1333MHz, DDR-3, Single Ranked UDIMMs
+-=09   500GB, 3.5", SATA II x 2 Enterprise Hard Disk
+-=09   Raid 1 Mirroring Protection
+-                  Un-limit Data Transfer Bandwidth
 
 
---=_0f3cfba6-74da-4397-9ba1-3339ef0ffa5f
-Content-Type: text/x-patch; name=mlx4-static.patch
-Content-Disposition: attachment; filename=mlx4-static.patch
-Content-Transfer-Encoding: base64
+Please contact +852 6756 9148 or email to woody-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org for any enquiry. Thanks.
 
-Y29tbWl0IDVlM2RkZmQxNjE2Mjk1YjQ3Nzg1YWI4MWUzMzAxNzdjYjk2MjA3MGEKQXV0aG9yOiBE
-b3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+CkRhdGU6ICAgRnJpIEZlYiAxNyAxMDoz
-NToyOSAyMDEyIC0wNTAwCgogICAgbWx4NDogZml4IGJ1aWxkIGVycm9yCiAgICAKICAgIHBvd2Vy
-cGMgaXMgcGlja3ksIGlmIHlvdSBzZXQgYSBmdW5jdGlvbiB0byBzdGF0aWMgYW5kIHRoZW4gdHJ5
-IHRvCiAgICBFWFBPUlRfU1lNQk9MX0dQTCB0aGF0IGZ1bmN0aW9uLCB5b3UgZ2V0IHRoaXMgZXJy
-b3IgbWVzc2FnZToKICAgIAogICAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9m
-dy5jOjY4NzogZXJyb3I6CiAgICBfX2tzeW10YWJfbWx4NF9RVUVSWV9QT1JUIGNhdXNlcyBhIHNl
-Y3Rpb24gdHlwZSBjb25mbGljdAogICAgCiAgICBTaWduZWQtb2ZmLWJ5OiBEb3VnIExlZGZvcmQg
-PGRsZWRmb3JkQHJlZGhhdC5jb20+CgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQv
-bWVsbGFub3gvbWx4NC9mdy5jIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9m
-dy5jCmluZGV4IDhhMjFlMTAuLjllYTdjYWIgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbmV0L2V0aGVy
-bmV0L21lbGxhbm94L21seDQvZncuYworKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
-eC9tbHg0L2Z3LmMKQEAgLTY4NSw3ICs2ODUsNyBAQCBpbnQgbWx4NF9RVUVSWV9QT1JUX3dyYXBw
-ZXIoc3RydWN0IG1seDRfZGV2ICpkZXYsIGludCBzbGF2ZSwKIAlyZXR1cm4gZXJyOwogfQogCi1z
-dGF0aWMgaW50IG1seDRfUVVFUllfUE9SVChzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgdm9pZCAqcHRy
-LCB1OCBwb3J0KQoraW50IG1seDRfUVVFUllfUE9SVChzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgdm9p
-ZCAqcHRyLCB1OCBwb3J0KQogewogCXN0cnVjdCBtbHg0X2NtZF9tYWlsYm94ICpvdXRib3ggPSBw
-dHI7CiAKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvbXIu
-YyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvbXIuYwppbmRleCA4ZGVlZWY5
-Li4yNWE4MGQ3IDEwMDY0NAotLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0
-L21yLmMKKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9tci5jCkBAIC0z
-MDQsNyArMzA0LDcgQEAgc3RhdGljIGludCBtbHg0X0hXMlNXX01QVChzdHJ1Y3QgbWx4NF9kZXYg
-KmRldiwgc3RydWN0IG1seDRfY21kX21haWxib3ggKm1haWxib3gKIAkJCSAgICBNTFg0X0NNRF9U
-SU1FX0NMQVNTX0IsIE1MWDRfQ01EX1dSQVBQRUQpOwogfQogCi1zdGF0aWMgaW50IG1seDRfbXJf
-cmVzZXJ2ZV9yYW5nZShzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgaW50IGNudCwgaW50IGFsaWduLAor
-aW50IG1seDRfbXJfcmVzZXJ2ZV9yYW5nZShzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgaW50IGNudCwg
-aW50IGFsaWduLAogCQkJICB1MzIgKmJhc2VfbXJpZHgpCiB7CiAJc3RydWN0IG1seDRfcHJpdiAq
-cHJpdiA9IG1seDRfcHJpdihkZXYpOwpAQCAtMzIwLDE0ICszMjAsMTQgQEAgc3RhdGljIGludCBt
-bHg0X21yX3Jlc2VydmVfcmFuZ2Uoc3RydWN0IG1seDRfZGV2ICpkZXYsIGludCBjbnQsIGludCBh
-bGlnbiwKIH0KIEVYUE9SVF9TWU1CT0xfR1BMKG1seDRfbXJfcmVzZXJ2ZV9yYW5nZSk7CiAKLXN0
-YXRpYyB2b2lkIG1seDRfbXJfcmVsZWFzZV9yYW5nZShzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgdTMy
-IGJhc2VfbXJpZHgsIGludCBjbnQpCit2b2lkIG1seDRfbXJfcmVsZWFzZV9yYW5nZShzdHJ1Y3Qg
-bWx4NF9kZXYgKmRldiwgdTMyIGJhc2VfbXJpZHgsIGludCBjbnQpCiB7CiAJc3RydWN0IG1seDRf
-cHJpdiAqcHJpdiA9IG1seDRfcHJpdihkZXYpOwogCW1seDRfYml0bWFwX2ZyZWVfcmFuZ2UoJnBy
-aXYtPm1yX3RhYmxlLm1wdF9iaXRtYXAsIGJhc2VfbXJpZHgsIGNudCk7CiB9CiBFWFBPUlRfU1lN
-Qk9MX0dQTChtbHg0X21yX3JlbGVhc2VfcmFuZ2UpOwogCi1zdGF0aWMgaW50IG1seDRfbXJfYWxs
-b2NfcmVzZXJ2ZWQoc3RydWN0IG1seDRfZGV2ICpkZXYsIHUzMiBtcmlkeCwgdTMyIHBkLAoraW50
-IG1seDRfbXJfYWxsb2NfcmVzZXJ2ZWQoc3RydWN0IG1seDRfZGV2ICpkZXYsIHUzMiBtcmlkeCwg
-dTMyIHBkLAogCQkJICAgdTY0IGlvdmEsIHU2NCBzaXplLCB1MzIgYWNjZXNzLCBpbnQgbnBhZ2Vz
-LAogCQkJICAgaW50IHBhZ2Vfc2hpZnQsIHN0cnVjdCBtbHg0X21yICptcikKIHsKQEAgLTQ1Nyw3
-ICs0NTcsNyBAQCBpbnQgbWx4NF9tcl9hbGxvYyhzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgdTMyIHBk
-LCB1NjQgaW92YSwgdTY0IHNpemUsIHUzMiBhY2Nlc3MsCiB9CiBFWFBPUlRfU1lNQk9MX0dQTCht
-bHg0X21yX2FsbG9jKTsKIAotc3RhdGljIHZvaWQgbWx4NF9tcl9mcmVlX3Jlc2VydmVkKHN0cnVj
-dCBtbHg0X2RldiAqZGV2LCBzdHJ1Y3QgbWx4NF9tciAqbXIpCit2b2lkIG1seDRfbXJfZnJlZV9y
-ZXNlcnZlZChzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgc3RydWN0IG1seDRfbXIgKm1yKQogewogCWlu
-dCBlcnI7CiAKQEAgLTg1Miw3ICs4NTIsNyBAQCBlcnJfZnJlZToKIH0KIEVYUE9SVF9TWU1CT0xf
-R1BMKG1seDRfZm1yX2FsbG9jKTsKIAotc3RhdGljIGludCBtbHg0X2Ztcl9hbGxvY19yZXNlcnZl
-ZChzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgdTMyIG1yaWR4LAoraW50IG1seDRfZm1yX2FsbG9jX3Jl
-c2VydmVkKHN0cnVjdCBtbHg0X2RldiAqZGV2LCB1MzIgbXJpZHgsCiAJCQkgICAgdTMyIHBkLCB1
-MzIgYWNjZXNzLCBpbnQgbWF4X3BhZ2VzLAogCQkJICAgIGludCBtYXhfbWFwcywgdTggcGFnZV9z
-aGlmdCwgc3RydWN0IG1seDRfZm1yICpmbXIpCiB7CkBAIC05NTQsNyArOTU0LDcgQEAgaW50IG1s
-eDRfZm1yX2ZyZWUoc3RydWN0IG1seDRfZGV2ICpkZXYsIHN0cnVjdCBtbHg0X2ZtciAqZm1yKQog
-fQogRVhQT1JUX1NZTUJPTF9HUEwobWx4NF9mbXJfZnJlZSk7CiAKLXN0YXRpYyBpbnQgbWx4NF9m
-bXJfZnJlZV9yZXNlcnZlZChzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgc3RydWN0IG1seDRfZm1yICpm
-bXIpCitpbnQgbWx4NF9mbXJfZnJlZV9yZXNlcnZlZChzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgc3Ry
-dWN0IG1seDRfZm1yICpmbXIpCiB7CiAJaWYgKGZtci0+bWFwcykKIAkJcmV0dXJuIC1FQlVTWTsK
 
---=_0f3cfba6-74da-4397-9ba1-3339ef0ffa5f--
+Best Regards,
+Woody Ng
+
+
+
+If you do not wish to further receive this event message, email "subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org" to unsubscribe this message or revoe your email from the list.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
