@@ -1,53 +1,81 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] iw_cm: Call provider listen_destroy function before changing
-	state.
-Date: Wed, 22 Feb 2012 13:43:38 -0600
-Message-ID: <20120222194337.21025.30754.stgit@build.ogc.int>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: design-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+Subject: Cloud server Promotion!!
+Date: Thu, 23 Feb 2012 01:53:28 +0800 (HKT)
+Message-ID: <wxAaC8hBkjR039@gcn.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When destroying a listening cmid, the iwcm first sets the cmid state to
-DESTROYING, then releases the lock and calls into the iwarp provider
-to destroy the listening endpoint.  Since the cmid is not locked, its
-possible for the iwarp provider to pass a connection request event to
-the iwcm before the provider has destroyed the listening endpoint. This
-connect request will be silently dropped by the iwcm because the state
-of the cmid is DESTROYING.  The iwarp provider, however, doesn't know the
-connect request was dropped.  This causes the iwarp provider to never free
-up the resources from this connection because the assumption is the iwcm
-will _always_ either accept or reject this connection.  The solution is
-to only change the cmid state  after the iwarp provider has destroyed its
-listening endpoint, and thus no more connection requests will be posted.
+Dear all, 
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+Please see below price list for cloud server package.
 
- drivers/infiniband/core/iwcm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+SuperCloud 512
+=A1E Dedicated CPU: 1.8GHZ
+=A1E Dedicated RAM: 512MB
+=A1E Disk Space: 20GB
+=A1E Bandwidth: 200GB
+HK$199/month
 
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index 1a696f7..3b43bba 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -340,11 +340,11 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
- 	switch (cm_id_priv->state) {
- 	case IW_CM_STATE_LISTEN:
--		cm_id_priv->state = IW_CM_STATE_DESTROYING;
- 		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 		/* destroy the listening endpoint */
- 		ret = cm_id->device->iwcm->destroy_listen(cm_id);
- 		spin_lock_irqsave(&cm_id_priv->lock, flags);
-+		cm_id_priv->state = IW_CM_STATE_DESTROYING;
- 		break;
- 	case IW_CM_STATE_ESTABLISHED:
- 		cm_id_priv->state = IW_CM_STATE_DESTROYING;
+SuperCloud 768
+=A1E Dedicated CPU: 2.4GHZ
+=A1E Dedicated RAM: 768MB
+=A1E Disk Space: 40GB
+=A1E Bandwidth: 300GB
+HK$399/month
+
+SuperCloud 1024
+=A1E Dedicated CPU: 3.0GHZ
+=A1E Dedicated RAM: 1024MB
+=A1E Disk Space: 60GB
+=A1E Bandwidth: 400GB
+HK$599/month
+
+SuperCloud 1536
+=A1E Dedicated CPU: 3.6GHZ
+=A1E Dedicated RAM: 1536MB
+=A1E Disk Space: 80GB
+=A1E Bandwidth: 600GB
+HK$699/month
+
+SuperCloud 2048
+=A1E Dedicated CPU: 4.2GHZ
+=A1E Dedicated RAM: 2048MB
+=A1E Disk Space: 100GB
+=A1E Bandwidth: 800GB
+HK$799/month
+
+SuperCoud 4096
+=A1E Dedicated CPU: 5.4GHZ
+=A1E Dedicated RAM: 4096MB
+=A1E Disk Space: 150GB
+=A1E Bandwidth: 1600GB
+HK$999/month
+
+SuperCloud 8G
+=A1E Dedicated CPU: 9.6GHZ
+=A1E Dedicated RAM: 8GB
+=A1E Disk Space: 300GB
+=A1E Bandwidth: 3000GB
+HK$1,299/month
+
+SuperCloud 12G
+=A1E Dedicated CPU: 12GHZ
+=A1E Dedicated RAM: 12GB
+=A1E Disk Space: 500GB
+=A1E Bandwidth: 5000GB
+HK$1,499/month
+
+Should you have any need. Please feel free to contact me, Thanks.
+
+Best Regards,
+Eric Chan
+Senior Sales Executive
+
+If you do not wish to further receive this event message, email subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org to unsubscribe this message or remove your email from the list.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
