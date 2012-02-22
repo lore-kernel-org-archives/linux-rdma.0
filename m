@@ -1,60 +1,46 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] iw_cm: Call provider listen_destroy function before changing
- state.
-Date: Wed, 22 Feb 2012 15:01:30 -0600
-Message-ID: <4F4557AA.4040000@opengridcomputing.com>
-References: <20120222194337.21025.30754.stgit@build.ogc.int> <CAG4TOxMXTzLDynza4KOaccx2C+Nn0485Xk_hXgg_bG0CiCTSEQ@mail.gmail.com> <4F45536A.3050501@opengridcomputing.com>
+Subject: [PATCH] iw_cm: reject connect requests if cmid is not in LISTEN
+Date: Wed, 22 Feb 2012 15:43:08 -0600
+Message-ID: <20120222214307.23921.83903.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F45536A.3050501-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/22/2012 02:43 PM, Steve Wise wrote:
-> On 02/22/2012 02:32 PM, Roland Dreier wrote:
->> On Wed, Feb 22, 2012 at 11:43 AM, Steve Wise
->> <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>  wrote:
->>>       spin_lock_irqsave(&cm_id_priv->lock, flags);
->>>         switch (cm_id_priv->state) {
->>>         case IW_CM_STATE_LISTEN:
->>> -               cm_id_priv->state = IW_CM_STATE_DESTROYING;
->>>                 spin_unlock_irqrestore(&cm_id_priv->lock, flags);
->>>                 /* destroy the listening endpoint */
->>>                 ret = cm_id->device->iwcm->destroy_listen(cm_id);
->>>                 spin_lock_irqsave(&cm_id_priv->lock, flags);
->>> +               cm_id_priv->state = IW_CM_STATE_DESTROYING;
->>>                 break;
->>>         case IW_CM_STATE_ESTABLISHED:
->>>                 cm_id_priv->state = IW_CM_STATE_DESTROYING;
->> This seems a bit wonky to me... with the old code, we set the state to
->> DESTROYING inside the lock, so we know all previous connections
->> were either done with their locked region or saw the new state.
->>
->> Now we have a window where are done with destroy_listen() but
->> the state is still not DESTROYING.
->>
->> Is it possible to have the provider reject requests instead of silently
->> dropping them?  Would that be a better fix?
->>
->
-> Perhaps.   Or the connect request event handler could return a status indicating whether or not it queued the request 
-> and will subsequently accept or reject it.
+When destroying a listening cmid, the iwcm first marks the state of
+the cmid as DESTROYING, then releases the lock and calls into the
+iwarp provider to destroy the endpoint.  Since the cmid is not locked,
+its possible for the iwarp provider to pass a connection request event
+to the iwcm, which will be silently dropped by the iwcm.  This causes
+the iwarp provider to never free up the resources from this connection
+because the assumption is the iwcm will accept or reject this connection.
 
-Actually, the events are deferred and scheduled so my idea doesn't hold water.
+The solution is to reject these connection requests.
 
-I'll code up and test your reject idea.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-Thanks,
+ drivers/infiniband/core/iwcm.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Steve.
+diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
+index 1a696f7..6847d76 100644
+--- a/drivers/infiniband/core/iwcm.c
++++ b/drivers/infiniband/core/iwcm.c
+@@ -631,6 +631,8 @@ static void cm_conn_req_handler(struct iwcm_id_private *listen_id_priv,
+ 	spin_lock_irqsave(&listen_id_priv->lock, flags);
+ 	if (listen_id_priv->state != IW_CM_STATE_LISTEN) {
+ 		spin_unlock_irqrestore(&listen_id_priv->lock, flags);
++		iw_cm_reject(cm_id, NULL, 0);
++		iw_destroy_cm_id(cm_id);
+ 		goto out;
+ 	}
+ 	spin_unlock_irqrestore(&listen_id_priv->lock, flags);
 
-
->
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
