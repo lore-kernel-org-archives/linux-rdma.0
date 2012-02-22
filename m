@@ -1,82 +1,31 @@
-From: design-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
-Subject: Cloud server Promotion!!
-Date: Thu, 23 Feb 2012 01:53:28 +0800 (HKT)
-Message-ID: <wxAaC8hBkjR039@gcn.net.tw>
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] iw_cm: Call provider listen_destroy function before
+ changing	state.
+Date: Wed, 22 Feb 2012 19:50:06 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373374F1119@ORSMSX102.amr.corp.intel.com>
+References: <20120222194337.21025.30754.stgit@build.ogc.int>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120222194337.21025.30754.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dear all, 
-
-Please see below price list for cloud server package.
-
-SuperCloud 512
-=A1E Dedicated CPU: 1.8GHZ
-=A1E Dedicated RAM: 512MB
-=A1E Disk Space: 20GB
-=A1E Bandwidth: 200GB
-HK$199/month
-
-SuperCloud 768
-=A1E Dedicated CPU: 2.4GHZ
-=A1E Dedicated RAM: 768MB
-=A1E Disk Space: 40GB
-=A1E Bandwidth: 300GB
-HK$399/month
-
-SuperCloud 1024
-=A1E Dedicated CPU: 3.0GHZ
-=A1E Dedicated RAM: 1024MB
-=A1E Disk Space: 60GB
-=A1E Bandwidth: 400GB
-HK$599/month
-
-SuperCloud 1536
-=A1E Dedicated CPU: 3.6GHZ
-=A1E Dedicated RAM: 1536MB
-=A1E Disk Space: 80GB
-=A1E Bandwidth: 600GB
-HK$699/month
-
-SuperCloud 2048
-=A1E Dedicated CPU: 4.2GHZ
-=A1E Dedicated RAM: 2048MB
-=A1E Disk Space: 100GB
-=A1E Bandwidth: 800GB
-HK$799/month
-
-SuperCoud 4096
-=A1E Dedicated CPU: 5.4GHZ
-=A1E Dedicated RAM: 4096MB
-=A1E Disk Space: 150GB
-=A1E Bandwidth: 1600GB
-HK$999/month
-
-SuperCloud 8G
-=A1E Dedicated CPU: 9.6GHZ
-=A1E Dedicated RAM: 8GB
-=A1E Disk Space: 300GB
-=A1E Bandwidth: 3000GB
-HK$1,299/month
-
-SuperCloud 12G
-=A1E Dedicated CPU: 12GHZ
-=A1E Dedicated RAM: 12GB
-=A1E Disk Space: 500GB
-=A1E Bandwidth: 5000GB
-HK$1,499/month
-
-Should you have any need. Please feel free to contact me, Thanks.
-
-Best Regards,
-Eric Chan
-Senior Sales Executive
-
-If you do not wish to further receive this event message, email subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org to unsubscribe this message or remove your email from the list.
-
-
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvaXdjbS5jIGIvZHJpdmVycy9p
+bmZpbmliYW5kL2NvcmUvaXdjbS5jDQo+IGluZGV4IDFhNjk2ZjcuLjNiNDNiYmEgMTAwNjQ0DQo+
+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2l3Y20uYw0KPiArKysgYi9kcml2ZXJzL2lu
+ZmluaWJhbmQvY29yZS9pd2NtLmMNCj4gQEAgLTM0MCwxMSArMzQwLDExIEBAIHN0YXRpYyB2b2lk
+IGRlc3Ryb3lfY21faWQoc3RydWN0IGl3X2NtX2lkICpjbV9pZCkNCj4gIAlzcGluX2xvY2tfaXJx
+c2F2ZSgmY21faWRfcHJpdi0+bG9jaywgZmxhZ3MpOw0KPiAgCXN3aXRjaCAoY21faWRfcHJpdi0+
+c3RhdGUpIHsNCj4gIAljYXNlIElXX0NNX1NUQVRFX0xJU1RFTjoNCj4gLQkJY21faWRfcHJpdi0+
+c3RhdGUgPSBJV19DTV9TVEFURV9ERVNUUk9ZSU5HOw0KPiAgCQlzcGluX3VubG9ja19pcnFyZXN0
+b3JlKCZjbV9pZF9wcml2LT5sb2NrLCBmbGFncyk7DQoNCldoYXQgZG9lcyB0aGlzIHNwaW5sb2Nr
+IHByb3RlY3QgYWdhaW5zdCBpZiBhbGwgd2UgZG8gaXMgcmVhZCB0aGUgc3RhdGUgdW5kZXIgaXQ/
+DQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
