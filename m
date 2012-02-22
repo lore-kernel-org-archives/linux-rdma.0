@@ -1,43 +1,53 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] iw_cm: Call provider listen_destroy function before changing
- state.
-Date: Wed, 22 Feb 2012 14:20:58 -0600
-Message-ID: <4F454E2A.6060600@opengridcomputing.com>
-References: <20120222194337.21025.30754.stgit@build.ogc.int> <1828884A29C6694DAF28B7E6B8A82373374F1119@ORSMSX102.amr.corp.intel.com> <4F4549E9.3090102@opengridcomputing.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] iw_cm: Call provider listen_destroy function before
+ changing state.
+Date: Wed, 22 Feb 2012 12:32:24 -0800
+Message-ID: <CAG4TOxMXTzLDynza4KOaccx2C+Nn0485Xk_hXgg_bG0CiCTSEQ@mail.gmail.com>
+References: <20120222194337.21025.30754.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F4549E9.3090102-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20120222194337.21025.30754.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/22/2012 02:02 PM, Steve Wise wrote:
-> On 02/22/2012 01:50 PM, Hefty, Sean wrote:
->>> diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
->>> index 1a696f7..3b43bba 100644
->>> --- a/drivers/infiniband/core/iwcm.c
->>> +++ b/drivers/infiniband/core/iwcm.c
->>> @@ -340,11 +340,11 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
->>>       spin_lock_irqsave(&cm_id_priv->lock, flags);
->>>       switch (cm_id_priv->state) {
->>>       case IW_CM_STATE_LISTEN:
->>> -        cm_id_priv->state = IW_CM_STATE_DESTROYING;
->>>           spin_unlock_irqrestore(&cm_id_priv->lock, flags);
->> What does this spinlock protect against if all we do is read the state under it?
->>
->
-> Probably nothing in this particular path.  It seems to serialize adding/removing references to the qp and manipulating 
-> cm_id_priv->qp.  But I don't want to revisit the entire serialization of this module. :)
->
-> But the point of the patch is to destroy the listening endpoint in the provider _before_ we stop accepting connect 
-> requests.
->
+On Wed, Feb 22, 2012 at 11:43 AM, Steve Wise
+<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> =A0 =A0 =A0spin_lock_irqsave(&cm_id_priv->lock, flags);
+> =A0 =A0 =A0 =A0switch (cm_id_priv->state) {
+> =A0 =A0 =A0 =A0case IW_CM_STATE_LISTEN:
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 cm_id_priv->state =3D IW_CM_STATE_DESTR=
+OYING;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock_irqrestore(&cm_id_priv->lo=
+ck, flags);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* destroy the listening endpoint */
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D cm_id->device->iwcm->destroy_l=
+isten(cm_id);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_lock_irqsave(&cm_id_priv->lock, f=
+lags);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cm_id_priv->state =3D IW_CM_STATE_DESTR=
+OYING;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
+> =A0 =A0 =A0 =A0case IW_CM_STATE_ESTABLISHED:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cm_id_priv->state =3D IW_CM_STATE_DEST=
+ROYING;
 
-Oh you were pointing out that I could rearrange the spin lock usage here since we no longer set the state in this one case?
+This seems a bit wonky to me... with the old code, we set the state to
+DESTROYING inside the lock, so we know all previous connections
+were either done with their locked region or saw the new state.
+
+Now we have a window where are done with destroy_listen() but
+the state is still not DESTROYING.
+
+Is it possible to have the provider reject requests instead of silently
+dropping them?  Would that be a better fix?
+
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
