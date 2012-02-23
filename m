@@ -1,42 +1,42 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] iw_cm: reject connect requests if cmid is not in LISTEN
-Date: Wed, 22 Feb 2012 23:46:18 -0800
-Message-ID: <CAL1RGDV7ZoKWgbh+ERF+af3_B7K2USAkXSPKWeQEg5atpHY0og@mail.gmail.com>
-References: <20120222214307.23921.83903.stgit@build.ogc.int>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_ucast_ftree.c: Fix some typos
+Date: Thu, 23 Feb 2012 07:41:36 -0500
+Message-ID: <4F463400.8060106@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120222214307.23921.83903.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 22, 2012 at 1:43 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+v7I7tHvgBF7@public.gmane.org=
-m> wrote:
-> diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core=
-/iwcm.c
-> index 1a696f7..6847d76 100644
-> --- a/drivers/infiniband/core/iwcm.c
-> +++ b/drivers/infiniband/core/iwcm.c
-> @@ -631,6 +631,8 @@ static void cm_conn_req_handler(struct iwcm_id_pr=
-ivate *listen_id_priv,
-> =A0 =A0 =A0 =A0spin_lock_irqsave(&listen_id_priv->lock, flags);
-> =A0 =A0 =A0 =A0if (listen_id_priv->state !=3D IW_CM_STATE_LISTEN) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock_irqrestore(&listen_id_priv=
-->lock, flags);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 iw_cm_reject(cm_id, NULL, 0);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 iw_destroy_cm_id(cm_id);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
-> =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0spin_unlock_irqrestore(&listen_id_priv->lock, flags);
 
-Thanks, this makes more sense to my brain at least.
-
-I assume this works just as well in your testing? :)
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_ucast_ftree.c b/opensm/osm_ucast_ftree.c
+index 5828e8f..ee4c34b 100644
+--- a/opensm/osm_ucast_ftree.c
++++ b/opensm/osm_ucast_ftree.c
+@@ -63,7 +63,7 @@
+  *    Switches are stored in two cl_qmaps - one is
+  *    ordered by guid, and the other by a key that is
+  *    generated from tuple. Since cl_qmap supports only
+- *    a 64-bit key, the maximal tuple lenght is 8 bytes.
++ *    a 64-bit key, the maximal tuple length is 8 bytes.
+  *    which means that maximal tree rank is 8.
+  * Note that the above also implies that each switch
+  * can have at max 255 up/down ports.
+@@ -2216,7 +2216,7 @@ fabric_route_upgoing_by_going_down(IN ftree_fabric_t * p_ftree,
+ 			/* Loop in the fabric - we already routed the remote switch
+ 			   on our way UP, and now we see it again on our way DOWN */
+ 			OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
+-				"Loop of lenght %d in the fabric:\n                             "
++				"Loop of length %d in the fabric:\n                             "
+ 				"Switch %s (LID %u) closes loop through switch %s (LID %u)\n",
+ 				current_hops,
+ 				tuple_to_str(p_remote_sw->tuple),
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
