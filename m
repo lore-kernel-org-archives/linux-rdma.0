@@ -1,37 +1,74 @@
-From: =?iso-8859-1?Q?=22Xavier_R=2E_Gu=E9rin=22?= <guerinx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Used of deprecated CAP_SYS_MODULE leads to inconsistent network device and routing info
-Date: Thu, 23 Feb 2012 10:03:27 -0500
-Message-ID: <9EDB02ED-6562-4AF1-A5E8-101DAD423050@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1426\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: design-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+Subject: Web Development Service~~~
+Date: Thu, 23 Feb 2012 23:24:09 +0800 (HKT)
+Message-ID: <g2lTNzrle6gnQ5@tpts7.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello list,
+Dear all,
+Please see below is our general job reference and web design package, 
 
-The problem appears using IPoIB with OFED 1.5.4 over RoCEE on a Mellanox
-Technologies MT26448 [ConnectX EN 10GigE, PCIe 2.0 5GT/s] board.
+Total 12 pages web design service
+- Two language version
+- All the webpage design is included:
+- Theme development;
+- Design Study;
+- Original Layout / Artwork Design;
+- Steady HTML / Flash Web page development;
+- Search Engine Applicable;
+- Basic Graphic Flash Banner x1;
+- All text contents, logos and related product photos should be provided by client
+ Product eCatalogue (Product Page)
 
-The kernel complains about the use of CAP_SYS_MODULE, deprecated in favor of
-CAP_SYS_ADMIN. Consequently, ifup of ib0 or ib1 end up in eth2, and the routing
-information are completely screwed-up, borrowing some configuration from eth0.
+- CMS Function of add /edit Products with Contents & Photos
+- Maximum 10 fields include Photos and Contents
+- Text Editor for Detail Contents (if need)
+- Support text descriptions and photos updating
+- 1 Level categories management
+- Database support with un-limit Products create
+- Not include Data input
+- Standard Admin panel with login function (1 admin account)
+Content management system (Activities page)
 
-The linux kernel version used is 2.6.32-220.4.2.el6.x86_64 on a AMD64 RHEL 6.1.
+- Basic CMS function of add / edit items
+- Max. 5 fields per item
+- Support photos and text descriptions
+- Front-end support 1 page only (Comapny activities page)
+- Database support with un-limit Products create
+- Not include Data input
+- Integrated Admin Panel
+Enquiry form function (Contact Us)
+- Form to mail
+Package price : $38,000
 
-<snip title="dmesg output">
+Yoy may click the hyperlink to see some of our design reference.
 
-Loading kernel module for a network device with CAP_SYS_MODULE (deprecated). 
-Use CAP_NET_ADMIN and alias netdev-ib0 instead.
+Job reference
 
-</snip>
+http://www.hk-belle.com/
+http://www.mirabell.com.hk/
+http://www.nikijodi.com/
+http://www.joy-peace.com/
+http://www.staccato.com
+http://www.chicks.com.hk/
 
-Is this a known issue (I did not find any related bug in the bugzilla)? How do I fix this?
 
-Thanks,
-Xavier--
+Program reference
+http://www.gloryskygroup.com/index.aspx=3Flang=3Dbig5
+http://www.mydriver.com.hk/
+ 
+Best Regards,
+Eric Chan
+Senior Sales Executive
+Mobile: 9533 6486
+
+If you do not wish to further receive this event message, email subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org to unsubscribe this message
+
+
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
