@@ -1,45 +1,62 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] iw_cm: reject connect requests if cmid is not in LISTEN
-Date: Wed, 22 Feb 2012 15:43:08 -0600
-Message-ID: <20120222214307.23921.83903.stgit@build.ogc.int>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+Subject: Professional Web Design Service
+Date: Thu, 23 Feb 2012 12:39:34 +0800 (HKT)
+Message-ID: <Q0AsIb@tpts7.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When destroying a listening cmid, the iwcm first marks the state of
-the cmid as DESTROYING, then releases the lock and calls into the
-iwarp provider to destroy the endpoint.  Since the cmid is not locked,
-its possible for the iwarp provider to pass a connection request event
-to the iwcm, which will be silently dropped by the iwcm.  This causes
-the iwarp provider to never free up the resources from this connection
-because the assumption is the iwcm will accept or reject this connection.
+Dear Sir / Madam, 
 
-The solution is to reject these connection requests.
+Good morning, this is Otto from DS Hong Kong. 
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+We are a web design house and programming service provider. As 14 years experience, we are professional to develop a website for your business. 
 
- drivers/infiniband/core/iwcm.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+If you are looking for the web design or related programming service, we are offering the following special offer for our client. 
 
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index 1a696f7..6847d76 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -631,6 +631,8 @@ static void cm_conn_req_handler(struct iwcm_id_private *listen_id_priv,
- 	spin_lock_irqsave(&listen_id_priv->lock, flags);
- 	if (listen_id_priv->state != IW_CM_STATE_LISTEN) {
- 		spin_unlock_irqrestore(&listen_id_priv->lock, flags);
-+		iw_cm_reject(cm_id, NULL, 0);
-+		iw_destroy_cm_id(cm_id);
- 		goto out;
- 	}
- 	spin_unlock_irqrestore(&listen_id_priv->lock, flags);
+*********************************************************
+1) Web Page Development
+- Maximum 20 Web Page 
+- Art and Theme Design Include
+- Unlimited web layout revise
+
+2) Content Management System
+- HTML Editor 
+- Support Product, Photo and Text updating. 
+- Maximum 10 Web Page 
+- Admin Panel with 1 Admin Login
+
+
+*********************************************************
+
+Promotion Price: =09HKD $28,000.00
+Lead Time: =09=0932 working days
+
+Our Reference
+http://mirabell.com.hk/slideshow/index.html
+http://www.gome.com.hk/
+http://www.joy-peace.com/
+
+If you have more special requirement, please let us know and we will provide more detail to you. 
+
+Please feel free to contact me.The following is my contact information. 
+
+Contact No: (852) 5108 9664
+
+Skype: yschiu2001 (yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org)
+
+MSN: yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
+
+Email: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+
+If you do not wish to further receive this event message, email "subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org" to unsubscribe this message or remove your email from the list. 
+
+Best Regards
+Otto Chiu
+Dedicated Server Hong Kong
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
