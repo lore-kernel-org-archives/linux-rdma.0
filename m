@@ -1,51 +1,108 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] iw_cm: reject connect requests if cmid is not in LISTEN
-Date: Fri, 24 Feb 2012 08:16:22 -0600
-Message-ID: <4F479BB6.7060101@opengridcomputing.com>
-References: <20120222214307.23921.83903.stgit@build.ogc.int> <CAL1RGDV7ZoKWgbh+ERF+af3_B7K2USAkXSPKWeQEg5atpHY0og@mail.gmail.com> <4F465A46.3060301@opengridcomputing.com> <4F4699A1.7030402@opengridcomputing.com> <CAL1RGDWkVJxEDZ5SaaSa8oA_y6a0u1NCbzTK9agsJE+V_YzimQ@mail.gmail.com>
+From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+Subject: [PATCH resend] libmlx4: Add multicast IBoE support
+Date: Fri, 24 Feb 2012 10:32:30 -0600
+Message-ID: <1330101150-1253-1-git-send-email-sbohrer@rgmadvisors.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWkVJxEDZ5SaaSa8oA_y6a0u1NCbzTK9agsJE+V_YzimQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/23/2012 07:57 PM, Roland Dreier wrote:
-> On Thu, Feb 23, 2012 at 11:55 AM, Steve Wise
-> <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>  wrote:
->> RIP: 0010:[<0000000000200200>]  [<0000000000200200>]
-> 0x200200 is LIST_POISON2, which is set when something is removed
-> from a Linux list.
->
->>   [<ffffffff8008c846>] __wake_up_common+0x3e/0x68
->>   [<ffffffff8002e261>] __wake_up+0x38/0x4f
->>   [<ffffffff8867410b>] :iw_cm:iw_cm_reject+0x5a/0xa7
-> So in the code
->
->         if (cm_id_priv->state != IW_CM_STATE_CONN_RECV) {
->                 spin_unlock_irqrestore(&cm_id_priv->lock, flags);
->                 clear_bit(IWCM_F_CONNECT_WAIT,&cm_id_priv->flags);
->                 wake_up_all(&cm_id_priv->connect_wait);
->                 return -EINVAL;
->         }
->
-> the cm_id_priv->connect_wait is being corrupted before
-> or during the call to wake_up_all...
->
-> could the HW or low-level driver be generating events for
-> the incoming connections that are associated with the
-> listen ID, as the listen ID is being destroyed?
->
-> Maybe that's why the code silently ignored these requests
-> before :)
->
+Add multicast support for IBoE to the address handle creation flow.
+Derived from work by Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
-The low level driver at this point doesn't have the cm_id for this connect request because it has not been accepted or 
-rejected by the iwcm.  So there's no way it can post any events.
+Signed-off-by: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+---
+ src/verbs.c |   38 +++++++++++++++++++++++++++++++-------
+ 1 files changed, 31 insertions(+), 7 deletions(-)
 
+diff --git a/src/verbs.c b/src/verbs.c
+index 199d107..2772de5 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -624,6 +624,11 @@ static int link_local_gid(const union ibv_gid *gid)
+ 	return 0;
+ }
+ 
++static int is_multicast_gid(const union ibv_gid *gid)
++{
++	return gid->raw[0] == 0xff;
++}
++
+ static uint16_t get_vlan_id(union ibv_gid *gid)
+ {
+ 	uint16_t vid;
+@@ -631,9 +636,12 @@ static uint16_t get_vlan_id(union ibv_gid *gid)
+ 	return vid < 0x1000 ? vid : 0xffff;
+ }
+ 
+-static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
++static int mlx4_resolve_grh_to_l2(struct ibv_pd *pd, struct mlx4_ah *ah,
++				  struct ibv_ah_attr *attr)
+ {
++	int err, i;
+ 	uint16_t vid;
++	union ibv_gid sgid;
+ 
+ 	if (link_local_gid(&attr->grh.dgid)) {
+ 		memcpy(ah->mac, &attr->grh.dgid.raw[8], 3);
+@@ -641,13 +649,29 @@ static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
+ 		ah->mac[0] ^= 2;
+ 
+ 		vid = get_vlan_id(&attr->grh.dgid);
+-		if (vid != 0xffff) {
+-			ah->av.port_pd |= htonl(1 << 29);
+-			ah->vlan = vid | ((attr->sl & 7) << 13);
+-		}
+-		return 0;
++	} else if (is_multicast_gid(&attr->grh.dgid)) {
++		ah->mac[0] = 0x33;
++		ah->mac[1] = 0x33;
++		for (i = 2; i < 6; ++i)
++			ah->mac[i] = attr->grh.dgid.raw[i + 10];
++
++		err = ibv_query_gid(pd->context, attr->port_num,
++				    attr->grh.sgid_index, &sgid);
++		if (err)
++			return err;
++
++		ah->av.dlid = htons(0xc0000);
++		ah->av.port_pd |= htonl(1 << 31);
++
++		vid = get_vlan_id(&sgid);
+ 	} else
+ 		return 1;
++
++	if (vid != 0xFFFF) {
++		ah->av.port_pd |= htonl(1 << 29);
++		ah->vlan = vid | ((attr->sl & 7) << 13);
++	}
++	return 0;
+ }
+ 
+ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+@@ -687,7 +711,7 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	}
+ 
+ 	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET)
+-		if (mlx4_resolve_grh_to_l2(ah, attr)) {
++		if (mlx4_resolve_grh_to_l2(pd, ah, attr)) {
+ 			free(ah);
+ 			return NULL;
+ 		}
+-- 
+1.7.7.5
+
+
+-- 
+
+---------------------------------------------------------------
+This email, along with any attachments, is confidential. If you 
+believe you received this message in error, please contact the 
+sender immediately and delete all copies of the message.  
+Thank you.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
