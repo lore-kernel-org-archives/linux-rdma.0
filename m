@@ -1,73 +1,53 @@
-From: otto-3GeZWEQ5Z0yB+jHODAdFcQ@public.gmane.org
-Subject: Web Design Service
-Date: Fri, 24 Feb 2012 01:13:10 +0800 (HKT)
-Message-ID: <mwz__18329.1649715558$1330041554$gmane$org@ara.seed.net.tw>
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] iw_cm: reject connect requests if cmid is not in LISTEN
+Date: Thu, 23 Feb 2012 17:57:38 -0800
+Message-ID: <CAL1RGDWkVJxEDZ5SaaSa8oA_y6a0u1NCbzTK9agsJE+V_YzimQ@mail.gmail.com>
+References: <20120222214307.23921.83903.stgit@build.ogc.int>
+ <CAL1RGDV7ZoKWgbh+ERF+af3_B7K2USAkXSPKWeQEg5atpHY0og@mail.gmail.com>
+ <4F465A46.3060301@opengridcomputing.com> <4F4699A1.7030402@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4F4699A1.7030402-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dear Sir / Madam, 
+On Thu, Feb 23, 2012 at 11:55 AM, Steve Wise
+<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> RIP: 0010:[<0000000000200200>] =A0[<0000000000200200>]
 
-Good morning, this is Otto from Cloudluca.com. 
+0x200200 is LIST_POISON2, which is set when something is removed
+from a Linux list.
 
-We are a web design house and programming service provider. As 14 years experience, we are professional to develop a website for your business. 
+> =A0[<ffffffff8008c846>] __wake_up_common+0x3e/0x68
+> =A0[<ffffffff8002e261>] __wake_up+0x38/0x4f
+> =A0[<ffffffff8867410b>] :iw_cm:iw_cm_reject+0x5a/0xa7
 
-In the Chinese New Year Festival, we have the following offer for your corporate. Please check. 
+So in the code
 
-Service=09Package
+       if (cm_id_priv->state !=3D IW_CM_STATE_CONN_RECV) {
+               spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+               clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
+               wake_up_all(&cm_id_priv->connect_wait);
+               return -EINVAL;
+       }
 
-Web Development and Programing Service
-*********************************************************
-1)=09Website Design Service =09=09=09($13,000)
+the cm_id_priv->connect_wait is being corrupted before
+or during the call to wake_up_all...
 
-=09Maximum 10 Web Pages Development                                                 
-=09(Site Map will be confirmed later)
-=09All the tailor-made webpage design is included:
--=09Theme / Visual Concept Development;
--=09Design Study and Analysis / Art Direction;
--=09Original Artwork & Layout Design;
--=09Steady Web page development;
--=09HTML Development for Search Engine Applicable;
+could the HW or low-level driver be generating events for
+the incoming connections that are associated with the
+listen ID, as the listen ID is being destroyed?
 
-2)=09Web Programing Service =09=09=09($15,000)
+Maybe that's why the code silently ignored these requests
+before :)
 
-Content Management System (For 5 web pages)                                 
--=09Standard CMS function for add / edit fields 
--=09Max. 10 fields per each CMS section
--=09CMS fields only for Text fields and photos upload fields
--=09Photos upload only support (.jpg / .png / .bmp) 
--=09Each field for one photos
--=0920 pages / section for CMS function
--=09Database support with un-limit data create;
--=09Admin Panel with Login function (1 login account)
-
-
-*********************************************************
-
-Promotion Price: =09HKD $28,000.00
-Lead Time: =09=0932 working days
-
-If you have more special requirement, please let us know and we will provide more detail to you. 
-
-Please feel free to contact me.The following is my contact information. 
-
-Contact No: (852) 5108 9664
-
-Skype: yschiu2001 (yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org)
-
-MSN: yschiu2001-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
-
-Email: otto-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
-
-If you do not wish to further receive this event message, email "subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org" to unsubscribe this message or remove your email from the list. 
-
-Best Regards
-Otto Chiu
-
-
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
