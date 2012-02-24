@@ -1,108 +1,125 @@
-From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
-Subject: [PATCH resend] libmlx4: Add multicast IBoE support
-Date: Fri, 24 Feb 2012 10:32:30 -0600
-Message-ID: <1330101150-1253-1-git-send-email-sbohrer@rgmadvisors.com>
+From: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB: Fix potential mem leak in schedule_nes_timer()
+Date: Fri, 24 Feb 2012 16:54:31 +0000
+Message-ID: <1EEBC91386407A4A8D1EBE1DD5AA5212D36E22@FMSMSX105.amr.corp.intel.com>
+References: <alpine.LNX.2.00.1202202153230.20998@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LNX.2.00.1202202153230.20998-h2p7t3/P30RzeRGmFJ5qR7ZzlVVXadcDXqFh9Ls21Oc@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+To: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add multicast support for IBoE to the address handle creation flow.
-Derived from work by Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+I do not approve this patch. 
 
-Signed-off-by: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
----
- src/verbs.c |   38 +++++++++++++++++++++++++++++++-------
- 1 files changed, 31 insertions(+), 7 deletions(-)
+The type field is always set to either NES_TIMER_TYPE_SEND or NES_TIMER_TYPE_CLOSE when schedule_nes_timer() is called. Even if we wanted to make sure the value of type is one or the other, proper patch can be just a if stmt to check the type before new_send allocation.
 
-diff --git a/src/verbs.c b/src/verbs.c
-index 199d107..2772de5 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -624,6 +624,11 @@ static int link_local_gid(const union ibv_gid *gid)
- 	return 0;
- }
- 
-+static int is_multicast_gid(const union ibv_gid *gid)
-+{
-+	return gid->raw[0] == 0xff;
-+}
-+
- static uint16_t get_vlan_id(union ibv_gid *gid)
- {
- 	uint16_t vid;
-@@ -631,9 +636,12 @@ static uint16_t get_vlan_id(union ibv_gid *gid)
- 	return vid < 0x1000 ? vid : 0xffff;
- }
- 
--static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
-+static int mlx4_resolve_grh_to_l2(struct ibv_pd *pd, struct mlx4_ah *ah,
-+				  struct ibv_ah_attr *attr)
- {
-+	int err, i;
- 	uint16_t vid;
-+	union ibv_gid sgid;
- 
- 	if (link_local_gid(&attr->grh.dgid)) {
- 		memcpy(ah->mac, &attr->grh.dgid.raw[8], 3);
-@@ -641,13 +649,29 @@ static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
- 		ah->mac[0] ^= 2;
- 
- 		vid = get_vlan_id(&attr->grh.dgid);
--		if (vid != 0xffff) {
--			ah->av.port_pd |= htonl(1 << 29);
--			ah->vlan = vid | ((attr->sl & 7) << 13);
--		}
--		return 0;
-+	} else if (is_multicast_gid(&attr->grh.dgid)) {
-+		ah->mac[0] = 0x33;
-+		ah->mac[1] = 0x33;
-+		for (i = 2; i < 6; ++i)
-+			ah->mac[i] = attr->grh.dgid.raw[i + 10];
-+
-+		err = ibv_query_gid(pd->context, attr->port_num,
-+				    attr->grh.sgid_index, &sgid);
-+		if (err)
-+			return err;
-+
-+		ah->av.dlid = htons(0xc0000);
-+		ah->av.port_pd |= htonl(1 << 31);
-+
-+		vid = get_vlan_id(&sgid);
- 	} else
- 		return 1;
-+
-+	if (vid != 0xFFFF) {
-+		ah->av.port_pd |= htonl(1 << 29);
-+		ah->vlan = vid | ((attr->sl & 7) << 13);
-+	}
-+	return 0;
- }
- 
- struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
-@@ -687,7 +711,7 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 	}
- 
- 	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET)
--		if (mlx4_resolve_grh_to_l2(ah, attr)) {
-+		if (mlx4_resolve_grh_to_l2(pd, ah, attr)) {
- 			free(ah);
- 			return NULL;
- 		}
--- 
-1.7.7.5
+Thanks
+Faisal
 
 
--- 
-
----------------------------------------------------------------
-This email, along with any attachments, is confidential. If you 
-believe you received this message in error, please contact the 
-sender immediately and delete all copies of the message.  
-Thank you.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jesper Juhl
+> Sent: Monday, February 20, 2012 2:56 PM
+> To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Hal Rosenstock; Hefty, Sean; Roland
+> Dreier; Latif, Faisal
+> Subject: [PATCH] IB: Fix potential mem leak in schedule_nes_timer()
+> 
+> In drivers/infiniband/hw/nes/nes_cm.c::schedule_nes_timer(), if we do
+> not take the true branch of either the
+>   (type == NES_TIMER_TYPE_SEND)
+> or
+>   (type == NES_TIMER_TYPE_SEND)
+> 'if' statements (which it looks like we potentially could since that
+> enum can have other values), then we'll leak the memory allocated to
+> 'new_send'.
+> 
+> This (admittedly, rather clumsy) patch addresses that issue by turning
+> the two 'if's into 'if' 'else if' and then adding a 'else' branch
+> where we note that we need to free the mem and then later, when we are
+> done with it, does a conditional kfree() based on the bool we set in
+> the 'else' branch.
+> 
+> I also removed a redundant variable ('was_timer_set').
+> 
+> Signed-off-by: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/nes/nes_cm.c |   15 ++++++++-------
+>  1 files changed, 8 insertions(+), 7 deletions(-)
+> 
+>  Compile tested only.
+> 
+> diff --git a/drivers/infiniband/hw/nes/nes_cm.c
+> b/drivers/infiniband/hw/nes/nes_cm.c
+> index a4972ab..434a25b 100644
+> --- a/drivers/infiniband/hw/nes/nes_cm.c
+> +++ b/drivers/infiniband/hw/nes/nes_cm.c
+> @@ -663,8 +663,8 @@ int schedule_nes_timer(struct nes_cm_node *cm_node,
+> struct sk_buff *skb,
+>  	unsigned long flags;
+>  	struct nes_cm_core *cm_core = cm_node->cm_core;
+>  	struct nes_timer_entry *new_send;
+> +	bool free_new_send = false;
+>  	int ret = 0;
+> -	u32 was_timer_set;
+> 
+>  	new_send = kzalloc(sizeof(*new_send), GFP_ATOMIC);
+>  	if (!new_send)
+> @@ -688,9 +688,7 @@ int schedule_nes_timer(struct nes_cm_node *cm_node,
+> struct sk_buff *skb,
+>  			return -EINVAL;
+>  		}
+>  		cm_node->recv_entry = new_send;
+> -	}
+> -
+> -	if (type == NES_TIMER_TYPE_SEND) {
+> +	} else if (type == NES_TIMER_TYPE_SEND) {
+>  		new_send->seq_num = ntohl(tcp_hdr(skb)->seq);
+>  		atomic_inc(&new_send->skb->users);
+>  		spin_lock_irqsave(&cm_node->retrans_list_lock, flags);
+> @@ -714,15 +712,18 @@ int schedule_nes_timer(struct nes_cm_node
+> *cm_node, struct sk_buff *skb,
+>  				return ret;
+>  			}
+>  		}
+> +	} else {
+> +		free_new_send = true;
+>  	}
+> 
+> -	was_timer_set = timer_pending(&cm_core->tcp_timer);
+> -
+> -	if (!was_timer_set) {
+> +	if (!timer_pending(&cm_core->tcp_timer)) {
+>  		cm_core->tcp_timer.expires = new_send->timetosend;
+>  		add_timer(&cm_core->tcp_timer);
+>  	}
+> 
+> +	if (free_new_send)
+> +		kfree(new_send);
+> +
+>  	return ret;
+>  }
+> 
+> --
+> 1.7.9.1
+> 
+> 
+> --
+> Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>       http://www.chaosbits.net/
+> Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+> Plain text mails only, please.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
