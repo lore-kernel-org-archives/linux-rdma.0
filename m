@@ -1,33 +1,69 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Fri, 24 Feb 2012 18:32:41 -0800
-Message-ID: <1330137161-2314-1-git-send-email-roland@kernel.org>
-Mime-Version: 1.0
+From: eric-eco5KOwniiqtG0bUXCXiUA@public.gmane.org
+Subject: Web Development Service
+Date: Sat, 25 Feb 2012 17:24:35 +0800 (HKT)
+Message-ID: <JrrKz9@ksts.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+Dear All,
 
-Please pull from
+Below is our web design package,
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git rdma-for-linus
+Total 12 pages web design service
+- One language version
+- All the webpage design is included:
+- Theme development;
+- Design Study;
+- Original Layout / Artwork Design;
+- Steady HTML Web page development;
+- Search Engine Applicable;
+- Basic Graphic Flash Banner x1;
+- All text contents, logos and related product photos should be provided by client
+ Product eCatalogue (Product Page)
 
-----------------------------------------------------------------
-One InfiniBand/RDMA regression fix for 3.3:
+- CMS Function of add /edit Products with Contents & Photos
+- Maximum 10 fields include Photos and Contents
+- Text Editor for Detail Contents (if need)
+- Support text descriptions and photos updating
+- 1 Level categories management
+- Database support with un-limit Products create
+- Not include Data input
+- Standard Admin panel with login function (1 admin account)
+Content management system (Activities page)
 
- - mlx4 SR-IOV changes added static exported functions, which doesn't
-   build on powerpc at least.  Fix from Doug Ledford for this.
+- Basic CMS function of add / edit items
+- Max. 5 fields per item
+- Support photos and text descriptions
+- Front-end support 1 page only (Comapny activities page)
+- Database support with un-limit Products create
+- Not include Data input
+- Integrated Admin Panel
+Enquiry form function (Contact Us)
+- Form to mail
+Package price : HK $33,000
 
-----------------------------------------------------------------
-Doug Ledford (1):
-      mlx4_core: Exported functions can't be static
+Yoy may click the hyperlink to see some of our design reference.
 
- drivers/net/ethernet/mellanox/mlx4/fw.c |    2 +-
- drivers/net/ethernet/mellanox/mlx4/mr.c |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+Flash reference
+http://www.hk-belle.com/
+http://www.ecomelife.com/
+Program reference
+http://www.gloryskygroup.com/index.aspx=3Flang=3Dbig5
+http://www.mydriver.com.hk/
+
+
+We would like to ask if your side considering to revamp your website, co-locate or make a server site in our datacenter. Please let us know if you have any enquiry. We wish to be a long term partner for your company.
+Best Regards,
+Boris Lam
+Sales Executive
+Mobile : (852) 9408 8762
+
+If you do not wish to further receive this event message, email subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org to unsubscribe this message
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
