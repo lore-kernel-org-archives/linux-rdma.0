@@ -1,39 +1,33 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] iw_cm: reject connect requests if cmid is not in LISTEN
-Date: Fri, 24 Feb 2012 15:41:45 -0600
-Message-ID: <4F480419.5050706@opengridcomputing.com>
-References: <20120222214307.23921.83903.stgit@build.ogc.int> <CAL1RGDWb0ocYN5oM3QtxRj5VWCAWrp3Jtx6N1UHSrNDP2A1WEw@mail.gmail.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Fri, 24 Feb 2012 18:32:41 -0800
+Message-ID: <1330137161-2314-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWb0ocYN5oM3QtxRj5VWCAWrp3Jtx6N1UHSrNDP2A1WEw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/24/2012 03:32 PM, Roland Dreier wrote:
-> On Wed, Feb 22, 2012 at 1:43 PM, Steve Wise<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>  wrote:
->> @@ -631,6 +631,8 @@ static void cm_conn_req_handler(struct iwcm_id_private *listen_id_priv,
->>         spin_lock_irqsave(&listen_id_priv->lock, flags);
->>         if (listen_id_priv->state != IW_CM_STATE_LISTEN) {
->>                 spin_unlock_irqrestore(&listen_id_priv->lock, flags);
->> +               iw_cm_reject(cm_id, NULL, 0);
->> +               iw_destroy_cm_id(cm_id);
->>                 goto out;
->>         }
->>         spin_unlock_irqrestore(&listen_id_priv->lock, flags);
-> I think I see your bug.  Look at the whole cm_conn_req_handler()
-> function.  Where is this new code relative to where you initialize cm_id?
->
->   - R.
+Hi Linus,
 
-duh. jeeze. ok, lemme try again.  I'll add printks to make sure I'm really hitting this path too.
+Please pull from
 
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git rdma-for-linus
 
+----------------------------------------------------------------
+One InfiniBand/RDMA regression fix for 3.3:
 
+ - mlx4 SR-IOV changes added static exported functions, which doesn't
+   build on powerpc at least.  Fix from Doug Ledford for this.
 
+----------------------------------------------------------------
+Doug Ledford (1):
+      mlx4_core: Exported functions can't be static
+
+ drivers/net/ethernet/mellanox/mlx4/fw.c |    2 +-
+ drivers/net/ethernet/mellanox/mlx4/mr.c |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
