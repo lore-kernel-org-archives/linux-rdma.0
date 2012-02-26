@@ -1,44 +1,45 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 08/18] ib_srp: Eliminate state SRP_TARGET_DEAD
-Date: Sun, 26 Feb 2012 01:33:06 -0500
-Message-ID: <1330237986.1026.86.camel@obelisk.thedillows.org>
-References: <3109536.qySrY1Ts3e@asus> <1542335.oobt4mZRgv@asus>
+Subject: Re: [PATCH 07/18] ib_srp: Introduce three helper functions
+Date: Sun, 26 Feb 2012 01:32:49 -0500
+Message-ID: <1330237969.1026.85.camel@obelisk.thedillows.org>
+References: <3109536.qySrY1Ts3e@asus> <3639113.Zct32Hvp8M@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1542335.oobt4mZRgv@asus>
+In-Reply-To: <3639113.Zct32Hvp8M@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2012-01-14 at 12:46 +0000, Bart Van Assche wrote:
-> Only queue removal work after having changed the target state
-> into SRP_TARGET_REMOVED and not if that state was already equal
-> to SRP_TARGET_REMOVED. That allows to remove the state
-> SRP_TARGET_DEAD. Add a call to srp_disconnect_target() in
-> srp_remove_target() - due to previous changes it is now safe to
-> invoke that last function even if the IB connection has already
-> been disconnected. Rename srp_target_port.work into
-> srp_target_port.remove_work and move function srp_change_state()
-> to just before srp_change_state_to_removed().
+On Sat, 2012-01-14 at 12:45 +0000, Bart Van Assche wrote:
+> Introduce srp_remove_target(), srp_change_state_to_removed() and
+> srp_scan_target().
 
-Again, commit messages should be about why you changed, not a mechanical
-listing of what you change.
+> +static bool srp_change_state_to_removed(struct srp_target_port *target)
+> +{
+> +	bool changed = false;
+> +
+> +	spin_lock_irq(&target->lock);
+> +	if (target->state != SRP_TARGET_REMOVED) {
+> +		target->state = SRP_TARGET_REMOVED;
+> +		changed = true;
+> +	}
+> +	spin_unlock_irq(&target->lock);
+> +
+> +	return changed;
+> +}
 
-"Rename srp_target_port.work into srp_target_port.remove_work" doesn't
-tell me anything. I had to read later patches to see that what you mean
-was really "Rename srp_target_port.work to reflect its usage and remove
-a future conflict when push the SCSI scan into it's own work task."
+I'm not sure why you introduce this here, just to move
+srp_change_state() up and change this back to
+	srp_change_state(target, SRP_TARGET_LIVE, SRP_TARGET_REMOVED);
+in the next patch.
 
-This would have saved me some head scratching, and is why I try to
-review as much as I can of a series in one go -- all too often you make
-changes that leave me wondering until I see a later patch.
+There also doesn't seem to be much of a reason to introduce
+srp_scan_target() now rather than in patch 18 where you add another use
+of it.
 
-I'm also not keen on how the code looks after these changes, but I do
-like getting rid of the DEAD state... I'm not sure there is a good way
-to handle the removal of the module that doesn't look a bit ugly.
 -- 
 Dave Dillow
 National Center for Computational Science
