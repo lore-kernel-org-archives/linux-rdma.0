@@ -1,39 +1,29 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 18/18] ib_srp: Rework error handling
-Date: Sun, 26 Feb 2012 01:39:13 -0500
-Message-ID: <1330238354.1026.93.camel@obelisk.thedillows.org>
-References: <3109536.qySrY1Ts3e@asus> <2527465.kS0UWM2o6z@asus>
+Subject: Re: [PATCH 05/18] ib_srp: Separate connection and host state
+Date: Sun, 26 Feb 2012 01:32:28 -0500
+Message-ID: <1330237948.1026.83.camel@obelisk.thedillows.org>
+References: <3109536.qySrY1Ts3e@asus> <2010394.C571grUHsm@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2527465.kS0UWM2o6z@asus>
+In-Reply-To: <2010394.C571grUHsm@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2012-01-14 at 12:57 +0000, Bart Van Assche wrote:
-> Add fast_io_fail_tmo and dev_loss_tmo sysfs attributes. Block
-> the SCSI target as soon as a transport layer error has been
-> detected (ping timeout, disconnect or IB error completion). Try
-> to reconnect until dev_loss_tmo elapses.
-> 
-> Disconnect the IB connection earlier in srp_remove_target() to
-> make sure that error recovery is not triggered during host
-> removal. Swap the "connected" and "removed" tests in
-> srp_queuecommand() because of this change.
-> 
-> Rescan LUNs after having unblocked a SCSI target controlled by
-> ib_srp.
+On Sat, 2012-01-14 at 12:43 +0000, Bart Van Assche wrote:
+> Separate connection and host state. Only report QP errors while
+> connected. Only invoke ib_send_cm_dreq() from inside
+> srp_disconnect_target() when connected such that invoking
+> srp_disconnect_target() after having received a DREQ does not
+> cause an error message to be printed.
 
-The inclusion of the ping gets 16..18 a NAK from me. As I've previously
-said, this is better handled by user space and you add additional
-failure cases when you try to retrofit a transport ping into SRP. Just
-don't do it.
-
-I'll try to parse through the rest of this soon to give you feedback on
-the conversion to dev_loss_tmo etc.
+I'm not sure that splitting connection state from the target state is
+really buying you anything other than more storage and complexity.
+I looked to later patches for a reason this makes sense, but I'm coming
+up short, so maybe I'm just missing it.
 
 -- 
 Dave Dillow
