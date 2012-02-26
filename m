@@ -1,29 +1,33 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 06/18] ib_srp: Wait for last completion when
- disconnecting
-Date: Sun, 26 Feb 2012 01:32:40 -0500
-Message-ID: <1330237960.1026.84.camel@obelisk.thedillows.org>
-References: <3109536.qySrY1Ts3e@asus> <1559902.bolRMFhoqP@asus>
+Subject: Re: [PATCH 01/18] ib_srp: Introduce pr_fmt()
+Date: Sun, 26 Feb 2012 01:31:38 -0500
+Message-ID: <1330237900.1026.79.camel@obelisk.thedillows.org>
+References: <3109536.qySrY1Ts3e@asus> <2235456.14ddII0dbk@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1559902.bolRMFhoqP@asus>
+In-Reply-To: <2235456.14ddII0dbk@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2012-01-14 at 12:44 +0000, Bart Van Assche wrote:
-> When disconnecting the IB connection via the IB CM, wait until
-> any invoked completion handlers have finished processing SRP
-> protocol data and prevent that new work completions are queued.
-> Change the IB completion handlers such that all error completions
-> are processed instead of a subset and also such that receiving a
-> completion with zero wr_id is recognized as an end-of-work marker.
+On Sat, 2012-01-14 at 12:39 +0000, Bart Van Assche wrote:
+> Make the logging code a little more brief by replacing
+> printk(KERN_WARNING PFX ...) by pr_warn(...) and by replacing
+> printk(KERN_ERR PFX ...) by pr_err(...).  Join log messages
+> split over multiple lines into a single line to make it easier
+> to grep for these messages. Change the severity of the log
+> statement in srp_qp_event() from "error" to "debug". Change a
+> double space into a single in the "bad IO class parameter" error
+> message. Remove one trailing space to avoid a checkpatch warning.
 
-This seems really ugly, and a bit of overkill. There must be a better
-way.
+All you really need for the commit message is "Using pr_* is preferred
+over printk". The rest is superfluous and readily apparent from the
+patch itself.
+
+Otherwise, this patch is fine.
 -- 
 Dave Dillow
 National Center for Computational Science
