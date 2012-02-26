@@ -1,85 +1,83 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 12/18] ib_srp: Document sysfs attributes
-Date: Sun, 26 Feb 2012 01:33:25 -0500
-Message-ID: <1330238006.1026.87.camel@obelisk.thedillows.org>
-References: <3109536.qySrY1Ts3e@asus> <2235458.XAcSoXLofn@asus>
+Subject: Re: [PATCH 03/18] ib_srp: Enlarge block layer timeout
+Date: Sun, 26 Feb 2012 01:32:01 -0500
+Message-ID: <1330237921.1026.81.camel@obelisk.thedillows.org>
+References: <3109536.qySrY1Ts3e@asus> <2007426.PROb5t3CLZ@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2235458.XAcSoXLofn@asus>
+In-Reply-To: <2007426.PROb5t3CLZ@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2012-01-14 at 12:51 +0000, Bart Van Assche wrote:
-> +		* cmd_sg_entries, a number in the range 1..255 that specifies
-> +		  the maximum number of direct data buffer descriptors in an
+On Sat, 2012-01-14 at 12:41 +0000, Bart Van Assche wrote:
+> Enlarge the block layer timeout such that it is above the
+> InfiniBand transport layer timeout. This is necessary to avoid
+> that an SRP response is received after the SCSI layer has
+> already killed the associated SCSI command. Note: the timeout is
+> only set for SCSI disk devices but not for any other type of
+> SCSI device (M/O disk, tape, CD-ROM, ...).
 
-s/direct/indirect/
+Why disk only? Different default timeouts? If so, there's a better
+solution.
 
-> +		  SRP_CMD. Direct data buffer descriptors are communicated via
-> +		  the SRP_CMD header. With allow_ext_sg=0 the parameter
+> +static uint32_t srp_compute_rq_tmo(struct ib_qp_attr *qp_attr, int attr_mask)
+> +{
+> +	uint64_t T_tr_ns, max_compl_time_ms;
+> +	uint32_t rq_tmo_jiffies;
+> +
+> +	/*
+> +	 * According to section 11.2.4.2 in the IBTA spec (Modify Queue Pair,
+> +	 * table 91), both the QP timeout and the retry count have to be set
+> +	 * for RC QP's during the RTR to RTS transition.
+> +	 */
+> +	WARN_ON((attr_mask & (IB_QP_TIMEOUT | IB_QP_RETRY_CNT)) !=
+> +		(IB_QP_TIMEOUT | IB_QP_RETRY_CNT));
 
-So are indirect buffer descriptors, which is actually what this
-parameter controls.
+Are you guaranteed to get those attributes set if they aren't changed
+from the default? You'd get a splat from this non-error case. The user
+at least can go looking for the cause of the splat and find a pointer to
+why, but I contend it is more user-friendly to just cope:
 
-> +		  cmd_sg_entries defines the maximum S/G list length for a
-> +		  single SRP_CMD. Also, commands whose S/G list length exceeds
+	/* Use the defaults from ITBA spec if CM doesn't supply them */
+	timeout = (attr_mask * IP_QP_TIMEOUT) ? qp_attr->timeout : 19;
+	retries = (attr_mask & IP_QP_RETRY_CNT) ? qp_attr->retry_cnt : 7;
 
-s/. Also,/ and/
+> +	 * Set target->rq_tmo_jiffies to one second more than the largest time
+> +	 * it can take before an error completion is generated. See also
+> +	 * C9-140..C9-142 in the IBTA spec for more information about how to
+> +	 * convert the QP Local ACK Timeout value to nanoseconds.
+> +	 */
+> +	T_tr_ns = 1ULL << (12 + qp_attr->timeout);
 
-> +		  this limit after S/G list collapsing will fail.
-> +		* allow_ext_sg, whether ib_srp is allowed to use indirect data
-> +		  buffer descriptors when communicating with an SRP target.
+I still think T_tr_ns = 4096 * (1ULL << timeout) is more readable, and
+the compiler will do the right thing -- not that it matters in this slow
+path.
 
-allow_ext_sg, if true, the initiator is allowed to use more indirect
-data buffer descriptors than will fit in the SRP_CMD, allowing for
-larger requests to be handled. If false (the default), the length of the
-S/G list after merging is limited to cmd_sg_entries. Target support for
-retrieving the indirect descriptor table via RDMA is required to set
-this to true.
+> +static int srp_slave_configure(struct scsi_device *sdev)
+> +{
+> +	struct Scsi_Host *shost = sdev->host;
+> +	struct srp_target_port *target = host_to_target(shost);
+> +	struct request_queue *q = sdev->request_queue;
+> +	unsigned long timeout;
+> +
+> +	WARN_ON(target->rq_tmo_jiffies == 0);
+> +	if (sdev->type == TYPE_DISK) {
+> +		timeout = max_t(unsigned, 30 * HZ, target->rq_tmo_jiffies);
+> +		blk_queue_rq_timeout(q, timeout);
+> +	}
 
-> +		* sg_tablesize, a number in the range 1..2048 specifying the
-> +		  maximum S/G list length the SCSI layer is allowed to pass to
-> +		  ib_srp. Specifying a value that exceeds cmd_sg_entries is
-> +		  only safe with indirect data buffer support enabled
-> +		  (allow_ext_sg=1).
+I think you can get rid of any dependency on the default values by just
+doing
 
-s/only safe/only completely safe/
+	if (q->rq_timeout < target->rq_tmo_jiffies)
+		blk_queue_rq_timeout(q, timeout);
 
-If this value exceeds cmd_sg_entries and a failure occurs while
-collapsing the list into fewer S/G entries, the command will fail. This
-failure case only appears to be possible on IBM HCAs.
-
-> +What:		/sys/class/scsi_host/host<n>/allow_ext_sg
-> +Date:		May 19, 2011
-> +KernelVersion:	2.6.39
-> +Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> +Description:	Whether ib_srp is allowed to use indirect data buffer
-> +		descriptors when communicating with an SRP target.
-
-Whether the initiator is allowed to use more S/G entries than will fit
-in the command request when communicating with an SRP target.
-
-> +What:		/sys/class/scsi_host/host<n>/cmd_sg_entries
-> +Date:		May 19, 2011
-> +KernelVersion:	2.6.39
-> +Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> +Description:	Maximum number of direct data buffer descriptors to send to
-> +		the target in a single SRP_CMD.
-
-s/direct/indirect/
-
-
-> +What:		/sys/class/scsi_host/host<n>/failed_reconnects
->+What:		/sys/class/scsi_host/host<n>/reconnect_tmo
-
-These attributes does not exist at this point in the patch series.
-Perhaps this patch should be the last one in the series?
-
-
+This -- or the changes to srp_compute_rq_tmo() -- would also avoid the
+need for the WARN_ON().
 -- 
 Dave Dillow
 National Center for Computational Science
