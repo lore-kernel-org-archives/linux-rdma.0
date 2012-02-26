@@ -1,30 +1,25 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 05/18] ib_srp: Separate connection and host state
-Date: Sun, 26 Feb 2012 01:32:28 -0500
-Message-ID: <1330237948.1026.83.camel@obelisk.thedillows.org>
-References: <3109536.qySrY1Ts3e@asus> <2010394.C571grUHsm@asus>
+Subject: Re: [PATCH 02/18] ib_srp: Consolidate repetitive sysfs code
+Date: Sun, 26 Feb 2012 01:31:50 -0500
+Message-ID: <1330237910.1026.80.camel@obelisk.thedillows.org>
+References: <3109536.qySrY1Ts3e@asus> <1500127.hxDoVn5zlk@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2010394.C571grUHsm@asus>
+In-Reply-To: <1500127.hxDoVn5zlk@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2012-01-14 at 12:43 +0000, Bart Van Assche wrote:
-> Separate connection and host state. Only report QP errors while
-> connected. Only invoke ib_send_cm_dreq() from inside
-> srp_disconnect_target() when connected such that invoking
-> srp_disconnect_target() after having received a DREQ does not
-> cause an error message to be printed.
+On Sat, 2012-01-14 at 12:40 +0000, Bart Van Assche wrote:
+> Remove sysfs attributes before removing a target instead of
+> testing the target state in every sysfs attribute callback
+> method. Note: it is safe to invoke a sysfs attribute removal
+> method like device_remove_file() twice on the same attribute.
 
-I'm not sure that splitting connection state from the target state is
-really buying you anything other than more storage and complexity.
-I looked to later patches for a reason this makes sense, but I'm coming
-up short, so maybe I'm just missing it.
-
+This patch is fine.
 -- 
 Dave Dillow
 National Center for Computational Science
