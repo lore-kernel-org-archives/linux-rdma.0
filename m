@@ -1,123 +1,97 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: possible circular locking dependency in ucma
-Date: Mon, 27 Feb 2012 11:20:52 +0200
-Message-ID: <alpine.LRH.2.00.1202271115070.22652@ogerlitz.voltaire.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/6] IB/core: fix wrong display of rate in sysfs
+Date: Mon, 27 Feb 2012 09:23:42 -0800
+Message-ID: <CAL1RGDWNh1_fFWS=gMxo8vm-n46TOTxbu+GmRNE1YEmAyuE1Tw@mail.gmail.com>
+References: <alpine.LRH.2.00.1201111850330.10264@ogerlitz.voltaire.com>
+ <alpine.LRH.2.00.1201111856160.10264@ogerlitz.voltaire.com>
+ <1828884A29C6694DAF28B7E6B8A82373256757DB@ORSMSX101.amr.corp.intel.com>
+ <CAJZOPZJHbuyfXbQdEQ3QZt3O+bLTdzpBJOfUmB-Rqrvi9WUXuQ@mail.gmail.com> <4F49EBD1.7030900@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4F49EBD1.7030900-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sean,
+> Could you please let me know if you want a change in this patch, or this fix
+> can go in using the current form for 3.4?
 
-I run into the below ucma related warnings from the kernel with 3.3-rc5
-when I stepped over crash of process as of wrong libs/etc (not the point
-here...). Do you see here a real bug? basically the process was exiting
-and the cleanup code in the kernel was running rdma_destroy_id when a
-callback on that id was arriving from the IB CM. I saw that you lately
-touched that/similar area in commit 9ced69ca5296567033804950d8d2161f454c5012
-"RDMA/ucma: Discard all events for new connections until accepted"
+It doesn't really work if everything needs me to micromanage every step...
+the original patch obviously made some ugly code uglier, Sean pointed out an
+obvious way to make things cleaner.
 
-Or.
+If no one has a problem, I'll just go ahead with the following...
 
-======================================================
-[ INFO: possible circular locking dependency detected ]
-3.3.0-rc5-00008-g79f1e43-dirty #34 Tainted: G          I
--------------------------------------------------------
-tgtd/9018 is trying to acquire lock:
- (&id_priv->handler_mutex){+.+.+.}, at: [<ffffffffa0359a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
+--
 
-but task is already holding lock:
- (&file->mut){+.+.+.}, at: [<ffffffffa02470fe>] ucma_free_ctx+0xb6/0x196 [rdma_ucm]
+    IB/core: Fix SDR rates in sysfs
 
-which lock already depends on the new lock.
+    Commit 71eeba16 ("IB: Add new InfiniBand link speeds") introduced a bug
+    where eg the rate for IB 4X SDR links iss displayed as "8.5 Gb/sec"
+    instead of "10 Gb/sec" as it used to be.  Fix that.
 
+    Reported-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+    Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-the existing dependency chain (in reverse order) is:
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index c61bca3..29cd9d5 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -179,33 +179,36 @@ static ssize_t rate_show(struct ib_port *p,
+struct port_attribute *unused,
+ {
+ 	struct ib_port_attr attr;
+ 	char *speed = "";
+-	int rate;
++	int rate = -1;		/* in deci-Gb/sec */
+ 	ssize_t ret;
 
--> #1 (&file->mut){+.+.+.}:
-       [<ffffffff810682f3>] lock_acquire+0xf0/0x116
-       [<ffffffff8135f179>] mutex_lock_nested+0x64/0x2e6
-       [<ffffffffa0247636>] ucma_event_handler+0x148/0x1dc [rdma_ucm]
-       [<ffffffffa035a79a>] cma_ib_handler+0x1a7/0x1f7 [rdma_cm]
-       [<ffffffffa0333e88>] cm_process_work+0x32/0x119 [ib_cm]
-       [<ffffffffa03362ab>] cm_work_handler+0xfb8/0xfe5 [ib_cm]
-       [<ffffffff810423e2>] process_one_work+0x2bd/0x4a6
-       [<ffffffff810429e2>] worker_thread+0x1d6/0x350
-       [<ffffffff810462a6>] kthread+0x84/0x8c
-       [<ffffffff81369624>] kernel_thread_helper+0x4/0x10
+ 	ret = ib_query_port(p->ibdev, p->port_num, &attr);
+ 	if (ret)
+ 		return ret;
 
--> #0 (&id_priv->handler_mutex){+.+.+.}:
-       [<ffffffff81067b86>] __lock_acquire+0x10d5/0x1752
-       [<ffffffff810682f3>] lock_acquire+0xf0/0x116
-       [<ffffffff8135f179>] mutex_lock_nested+0x64/0x2e6
-       [<ffffffffa0359a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
-       [<ffffffffa024715f>] ucma_free_ctx+0x117/0x196 [rdma_ucm]
-       [<ffffffffa0247255>] ucma_close+0x77/0xb4 [rdma_ucm]
-       [<ffffffff810df6ef>] fput+0x117/0x1cf
-       [<ffffffff810dc76e>] filp_close+0x6d/0x78
-       [<ffffffff8102b667>] put_files_struct+0xbd/0x17d
-       [<ffffffff8102b76d>] exit_files+0x46/0x4e
-       [<ffffffff8102d057>] do_exit+0x299/0x75d
-       [<ffffffff8102d599>] do_group_exit+0x7e/0xa9
-       [<ffffffff8103ae4b>] get_signal_to_deliver+0x536/0x555
-       [<ffffffff81001717>] do_signal+0x39/0x634
-       [<ffffffff81001d39>] do_notify_resume+0x27/0x69
-       [<ffffffff81361c03>] retint_signal+0x46/0x83
+-	rate = (25 * attr.active_speed) / 10;
+-
+ 	switch (attr.active_speed) {
++	case 1:
++		/* SDR */
++		rate = 25;
+ 	case 2:
+ 		speed = " DDR";
++		rate = 50;
+ 		break;
+ 	case 4:
+ 		speed = " QDR";
++		rate = 100;
+ 		break;
+ 	case 8:
+ 		speed = " FDR10";
+-		rate = 10;
++		rate = 100;
+ 		break;
+ 	case 16:
+ 		speed = " FDR";
+-		rate = 14;
++		rate = 140;
+ 		break;
+ 	case 32:
+ 		speed = " EDR";
+-		rate = 25;
++		rate = 250;
+ 		break;
+ 	}
 
-other info that might help us debug this:
+@@ -214,7 +217,7 @@ static ssize_t rate_show(struct ib_port *p, struct
+port_attribute *unused,
+ 		return -EINVAL;
 
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(&file->mut);
-                               lock(&id_priv->handler_mutex);
-                               lock(&file->mut);
-  lock(&id_priv->handler_mutex);
-
- *** DEADLOCK ***
-
-1 lock held by tgtd/9018:
- #0:  (&file->mut){+.+.+.}, at: [<ffffffffa02470fe>] ucma_free_ctx+0xb6/0x196 [rdma_ucm]
-
-stack backtrace:
-Pid: 9018, comm: tgtd Tainted: G          I  3.3.0-rc5-00008-g79f1e43-dirty #34
-Call Trace:
- [<ffffffff81029e9c>] ? console_unlock+0x18e/0x207
- [<ffffffff81066433>] print_circular_bug+0x28e/0x29f
- [<ffffffff81067b86>] __lock_acquire+0x10d5/0x1752
- [<ffffffff810682f3>] lock_acquire+0xf0/0x116
- [<ffffffffa0359a41>] ? rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffff8135f179>] mutex_lock_nested+0x64/0x2e6
- [<ffffffffa0359a41>] ? rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffff8106546d>] ? trace_hardirqs_on_caller+0x11e/0x155
- [<ffffffff810654b1>] ? trace_hardirqs_on+0xd/0xf
- [<ffffffffa0359a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffffa024715f>] ucma_free_ctx+0x117/0x196 [rdma_ucm]
- [<ffffffffa0247255>] ucma_close+0x77/0xb4 [rdma_ucm]
- [<ffffffff810df6ef>] fput+0x117/0x1cf
- [<ffffffff810dc76e>] filp_close+0x6d/0x78
- [<ffffffff8102b667>] put_files_struct+0xbd/0x17d
- [<ffffffff8102b5cc>] ? put_files_struct+0x22/0x17d
- [<ffffffff8102b76d>] exit_files+0x46/0x4e
- [<ffffffff8102d057>] do_exit+0x299/0x75d
- [<ffffffff8102d599>] do_group_exit+0x7e/0xa9
- [<ffffffff8103ae4b>] get_signal_to_deliver+0x536/0x555
- [<ffffffff810654b1>] ? trace_hardirqs_on+0xd/0xf
- [<ffffffff81001717>] do_signal+0x39/0x634
- [<ffffffff8135e037>] ? printk+0x3c/0x45
- [<ffffffff8106546d>] ? trace_hardirqs_on_caller+0x11e/0x155
- [<ffffffff810654b1>] ? trace_hardirqs_on+0xd/0xf
- [<ffffffff81361803>] ? _raw_spin_unlock_irq+0x2b/0x40
- [<ffffffff81039011>] ? set_current_blocked+0x44/0x49
- [<ffffffff81361bce>] ? retint_signal+0x11/0x83
- [<ffffffff81001d39>] do_notify_resume+0x27/0x69
- [<ffffffff8118a1fe>] ? trace_hardirqs_on_thunk+0x3a/0x3f
- [<ffffffff81361c03>] retint_signal+0x46/0x83
-
+ 	return sprintf(buf, "%d%s Gb/sec (%dX%s)\n",
+-		       rate, (attr.active_speed == 1) ? ".5" : "",
++		       rate / 10, rate % 10 ? ".5" : "",
+ 		       ib_width_enum_to_int(attr.active_width), speed);
+ }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
