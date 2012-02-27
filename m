@@ -1,60 +1,49 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: ibv_fork_init() question
-Date: Mon, 27 Feb 2012 11:58:45 -0800
-Message-ID: <CAG4TOxMSS_2V8peLn6fcd9q6oWgWOFnCsxazAxKvhdRhnes46w@mail.gmail.com>
-References: <4F4BDF8D.7070902@opengridcomputing.com>
+From: Kyle McMartin <kmcmartin-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] ib_ehca: fix compile failure on ppc64
+Date: Mon, 27 Feb 2012 17:02:56 -0500
+Message-ID: <20120227220255.GE29211@redacted.bos.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F4BDF8D.7070902-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 27, 2012 at 11:54 AM, Steve Wise
-<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> I'm experimenting with doing RDMA operations from a child process and=
- I have
-> a question. =A0My application calls ibv_fork_init() at startup (first=
- thing in
-> main()) =A0and it succeeds, and I see, for instance, that libibverbs =
-has
-> initialized mm_root. =A0Next my application registers page-aligned me=
-mory that
-> is 8KB in size. =A0The memory was allocated with memalign(). =A0Then =
-the app
-> sets up a connection to an RDMA peer. =A0Next the application calls f=
-ork().
-> =A0The parent does a wait() and the child does an rdma read operation=
- into
-> this registered memory from a valid mr of the peer. =A0The read succe=
-eds from
-> the rdma device perspective. =A0But when the child process tries to r=
-ead the
-> memory (to verify the rdma operation worked), I get a seg fault.
->
-> Q: Am I doing something incorrect here? =A0I can't find much document=
-ation on
-> how this all should work.
+I'm getting compile failures building this driver, which I narrowed down
+to the ilog2 call in ehca_get_max_hwpage_size...
 
-Yeah, unfortunately this isn't really intended to work and I don't have=
- a
-good suggestion on how to make it work.
+ERROR: ".____ilog2_NaN" [drivers/infiniband/hw/ehca/ib_ehca.ko]
+undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
-Even with the libibverbs fork support, the expectation is that all RDMA
-stuff will be done from the master process.  All that the ibv_fork_init=
-()
-call does is trigger tracking so that the address space that is used fo=
-r
-RDMA isn't mapped into the child process at all.
+The use of shca->hca_cap_mr_pgsize is confusing the compiler, and
+resulting in the __builtin_constant_p in ilog2 going insane.
 
-So yeah, what you see happening is exactly what I would expect.
+I tried making it take the u32 pgsize as an argument and the expansion
+of shca->_pgsize in the caller, but that failed as well. Adding a
+temporary variable as below got it building again though (as did
+replacing the ilog2 with fls(x) - 1.)
 
- - R.
+With this patch in place, the driver compiles on my GCC 4.6.2 here.
+
+Signed-off-by: Kyle McMartin <kmcmarti-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+
+--- a/drivers/infiniband/hw/ehca/ehca_mrmw.c
++++ b/drivers/infiniband/hw/ehca/ehca_mrmw.c
+@@ -112,7 +112,8 @@ static u32 ehca_encode_hwpage_size(u32 pgsize)
+ 
+ static u64 ehca_get_max_hwpage_size(struct ehca_shca *shca)
+ {
+-	return 1UL << ilog2(shca->hca_cap_mr_pgsize);
++	u32 pgsize = shca->hca_cap_mr_pgsize;
++	return 1UL << ilog2(pgsize);
+ }
+ 
+ static struct ehca_mr *ehca_mr_new(void)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
