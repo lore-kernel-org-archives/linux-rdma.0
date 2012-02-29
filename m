@@ -1,25 +1,31 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] opensm/osm_helper.c: Fix commentary typo
-Date: Wed, 29 Feb 2012 19:12:01 +0200
-Message-ID: <20120229171201.GF2662@calypso>
-References: <4F300007.3080603@dev.mellanox.co.il>
+Subject: Re: [PATCH] opensm: Reset client reregistration when receiving
+ handover
+Date: Wed, 29 Feb 2012 19:12:45 +0200
+Message-ID: <20120229171245.GG2662@calypso>
+References: <1329418015.4779.1197.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4F300007.3080603-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1329418015.4779.1197.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hal,
+Hi Albert,
 
-On 11:29 Mon 06 Feb     , Hal Rosenstock wrote:
+On 10:46 Thu 16 Feb     , Albert Chu wrote:
+> When in master state and receiving a handover from another SM, reset the
+> client reregistration bit while reconfguring PortInfo settings.  While
+> this is normally handled only the first time a master sweep is done,
+> this is a special case in which it is required, because we do not know how
+> the other master SM may have configured/setup the fabric.  Most notably,
+> this is needed when multicast groups are re-created and we wish for
+> end nodes to re-join the multicast group of the new master SM.
 > 
-> 12x FDR is 168 rather than 158 Gbps
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 > ---
 
 Applied, thanks.
