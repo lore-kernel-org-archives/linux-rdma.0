@@ -1,149 +1,75 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: osm_subnet.c: Patch to add error-reporting to
- the parsing of opensm.conf
-Date: Wed, 29 Feb 2012 13:45:32 +0200
-Message-ID: <20120229114532.GA2662@calypso>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD9BF4@MNEXMB1.qlogic.org>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] mlx4: prevent the device from being removed concurrently
+Date: Wed, 29 Feb 2012 16:47:52 +0200
+Message-ID: <201202291647.53161.jackm@dev.mellanox.co.il>
+References: <1330454176-17768-1-git-send-email-cascardo@linux.vnet.ibm.com> <20120228203438.GA12028@oc1711230544.ibm.com> <20120228.154657.1817512578346429850.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120228.154657.1817512578346429850.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5AD9BF4-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Mike,
+On Tuesday 28 February 2012 22:46, David Miller wrote:
+> From: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+> Date: Tue, 28 Feb 2012 17:34:38 -0300
+> 
+> > On Tue, Feb 28, 2012 at 02:30:51PM -0500, David Miller wrote:
+> >> From: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+> >> Date: Tue, 28 Feb 2012 15:36:16 -0300
+> >> 
+> >> > When a EEH happens, the catas poll code will try to restart the device,
+> >> > removing it and adding it back again. The EEH code will try to do the
+> >> > same. One of the threads ends up accessing memory that was freed by the
+> >> > other thread and we get a crash.
+> >> 
+> >> Stop adding bandaids to the locking.
+> >> 
+> >> If the EEH infrastructure doesn't synchronize parallel operations
+> >> on the same device, that is the real bug, and that's where the real
+> >> fix belongs.
+> >> 
+> >> I refuse to apply this patch.
+> >> 
+> > 
+> > It's not EEH that does not synchronize removal. The problem is that the
+> > driver itself calls the driver remove function through mlx4_restart_one.
+> 
+> Then reuse the existing intf_mutex this driver has, export it to
+> main.c and add a new __mlx4_unregister_device that can be called
+> with the intf_mutex held already.
+> 
+Some comments.
 
-On 14:14 Tue 28 Feb     , Mike Heinz wrote:
-> I've recently seen two different users on different fabrics make the same
-> mistake: They made a syntax error in their opensm.conf file and then couldn't
-> figure out why their changes didn't take effect.
-> 
-> Looking at the code that parses the opensm.conf file, it appears to treat any
-> line it cannot parse as a comment and silently passes over it.
-> 
-> This patch tweaks the parser to use the following work flow:
-> 
-> 1. Truncate the line at the first '#' character.
-> 2. If the result is blank, skip to the next line.
-> 3. If the first token in the line can be matched against a known token,
->    process it as usual.
-> 4. If the token cannot be matched against a known token, log an error message.
-> 
-> The result is that if, for example, the user typed "force_link_speed=5" the log
-> will read:
-> 
-> Feb 24 14:57:09 ifs001 OpenSM[17517]: OpenSM 3.3.13
-> Feb 24 14:57:09 ifs001 OpenSM[17517]: Entering DISCOVERING state
-> Feb 24 14:57:09 ifs001 OpenSM[17517]: Unrecognized token: "force_link_speed=5"
-> Feb 24 14:57:09 ifs001 opensm[17517]: Entering MASTER state
-> Feb 24 14:57:09 ifs001 opensm[17517]: SUBNET UP
-> .
-> .
-> .
-> 
-> Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-> ---
-> diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-> index 1b30e1e..999c567 100644
-> --- a/opensm/osm_subnet.c
-> +++ b/opensm/osm_subnet.c
-> @@ -1264,6 +1264,13 @@ int osm_subn_parse_conf_file(char *file_name, osm_subn_opt_t * p_opts)
->         p_opts->file_opts->file_opts = NULL;
-> 
->         while (fgets(line, 1023, opts_file) != NULL) {
-> +               char *pound_sign = strchr(line,'#');
-> +               int token_matched = 0;
-> +
-> +               /* Truncate any comments. */
-> +               if (pound_sign)
-> +                       *pound_sign = '\0';
-> +
->                 /* get the first token */
->                 p_key = strtok_r(line, " \t\n", &p_val);
->                 if (!p_key)
-> @@ -1275,6 +1282,7 @@ int osm_subn_parse_conf_file(char *file_name, osm_subn_opt_t * p_opts)
->                         if (strcmp(r->name, p_key))
->                                 continue;
-> 
-> +                       token_matched = 1;
->                         p_field1 = (void *)p_opts->file_opts + r->opt_offset;
->                         p_field2 = (void *)p_opts + r->opt_offset;
->                         /* don't call setup function first time */
-> @@ -1282,6 +1290,12 @@ int osm_subn_parse_conf_file(char *file_name, osm_subn_opt_t * p_opts)
->                                     NULL);
->                         break;
->                 }
-> +
-> +               if (!token_matched) {
-> +                       char buf[256];
-> +                       snprintf(buf,sizeof(buf),"Unrecognized token: \"%s\"",p_key);
-> +                       cl_log_event("OpenSM", CL_LOG_ERROR, buf, NULL, 0);
+1. Mr Cascardo's solution is only partial, and does not cover all the problem cases. He
+   simply uncovered one of several examples of what lack-of-sync will do when removing a device.
+   Mr. Cascardo found the kernel Oops that happens when a catastrophic error occurs during device
+   removal. What if we receive a catas error while doing "init_one"?  What if we are in the middle
+   of catas error recovery (in the init_one stage), and we get a remove_one request from higher up?
 
-I think it's better also to print the error to the screen, like "Invalid
-Cached Option Value" messages using log_report().
+   There is a solution for this precise problem in the mthca driver (infiniband/hw/mthca/mthca_main.c
+   infiniband/hw/mthca/mthca_catas.c). In the mthca driver, we DO in fact use an "mthca_device_mutex"
+   for precisely the reason given in a. above.  I see no reason not to do the same thing here.
 
-> +               }
->         }
->         fclose(opts_file);
-> 
-> @@ -1324,6 +1338,13 @@ int osm_subn_rescan_conf_files(IN osm_subn_t * p_subn)
->                               &p_opts->file_opts->qos_rtr_options);
-> 
->         while (fgets(line, 1023, opts_file) != NULL) {
-> +               char *pound_sign = strchr(line,'#');
-> +               int token_matched = 0;
-> +
-> +               /* Truncate any comments. */
-> +               if (pound_sign)
-> +                       *pound_sign = '\0';
-> +
->                 /* get the first token */
->                 p_key = strtok_r(line, " \t\n", &p_val);
->                 if (!p_key)
-> @@ -1332,7 +1353,12 @@ int osm_subn_rescan_conf_files(IN osm_subn_t * p_subn)
->                 p_val = clean_val(p_val);
-> 
->                 for (r = opt_tbl; r->name; r++) {
-> -                       if (!r->can_update || strcmp(r->name, p_key))
-> +                       if (strcmp(r->name, p_key))
-> +                               continue;
-> +
-> +                       token_matched = 1;
-> +
-> +                       if (!r->can_update)
->                                 continue;
-> 
->                         p_field1 = (void *)p_opts->file_opts + r->opt_offset;
-> @@ -1341,6 +1367,12 @@ int osm_subn_rescan_conf_files(IN osm_subn_t * p_subn)
->                                     r->setup_fn);
->                         break;
->                 }
-> +
-> +               if (!token_matched) {
-> +                       char buf[256];
-> +                       snprintf(buf,sizeof(buf),"Unrecognized token: \"%s\"",p_key);
-> +                       cl_log_event("OpenSM", CL_LOG_ERROR, buf, NULL, 0);
+   This requires:
+	1. mlx4_init_one(), mlx4_remove_one() and mlx4_restart_one all grab an mlx4_device_mutex.
+        2. new procedure __mlx4_remove_one(), which does not grab the mutex.
 
-Same as above.
+   Note that it is NOT enough to simply protect the removal operation.  The protection must wrap the
+   ENTIRE restart operation (both removal and init), because allowing a remove in the middle of init_one
+   or restart_one would probably also cause a kernel Oops.
 
-> +               }
->         }
->         fclose(opts_file);
-> 
-> 
-> This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2. The intf_mutex is used with mlx4_un/register_device and mlx4_un/register_interface. unregister_device is
+   used both in remove_one and in mlx4_change_port_types.  I would hesitate to grab that mutex for a more
+   global use.  I think it is cleaner to add a device mutex (mlx4_device_mutex) for initializing/removing/
+   restarting the device.
 
--- 
-
--- Alex
+-Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
