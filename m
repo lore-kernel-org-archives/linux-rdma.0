@@ -1,13 +1,13 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/opensm.8.in: Fix cut 'n paste error
-Date: Wed, 29 Feb 2012 19:10:14 +0200
-Message-ID: <20120229171014.GC2662@calypso>
-References: <4F463408.5010700@dev.mellanox.co.il>
+Subject: Re: [PATCH] opensm/osm_ucast_ftree.c: Fix some typos
+Date: Wed, 29 Feb 2012 19:10:40 +0200
+Message-ID: <20120229171040.GD2662@calypso>
+References: <4F463400.8060106@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4F463408.5010700-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4F463400.8060106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
