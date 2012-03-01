@@ -1,120 +1,81 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Patch opensm] Allow for easily configuring multiple fabrics
- on one opensm server
-Date: Wed, 29 Feb 2012 14:47:00 -0500
-Message-ID: <4F4E80B4.5010508@redhat.com>
-References: <4F4DB11C.5080203@redhat.com> <20120229112229.136f25b7.weiny2@llnl.gov>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] mlx4: prevent the device from being removed concurrently
+Date: Thu, 1 Mar 2012 09:51:58 +0200
+Message-ID: <201203010951.59186.jackm@dev.mellanox.co.il>
+References: <1330454176-17768-1-git-send-email-cascardo@linux.vnet.ibm.com> <201202291647.53161.jackm@dev.mellanox.co.il> <201202291719.50764.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigBD0A7DB5B645B06D556AAC70"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120229112229.136f25b7.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <201202291719.50764.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigBD0A7DB5B645B06D556AAC70
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Mr Cascardo,
 
-On 02/29/2012 02:22 PM, Ira Weiny wrote:
-> Doug,
->=20
-> First thanks for this.  Some comments below.
->=20
-> On Wed, 29 Feb 2012 00:01:16 -0500
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->=20
->> There are two things that stand in the way of opensm being run on
->> redundant fabrics easily:
->>
->> 1) The opensm init script only starts one instance of opensm and opens=
-m
->> will only work on one fabric per instance
->> 2) Even if you start multiple instances, you have to hand modify confi=
-g
->> files for each instance and then when you upgrade the opensm rpm you
->> either loose your modifications or loose getting new default settings
->>
->> I worked around both of these issues, I've attached the files I used t=
-o
->> do so.
->>
->> First, I have an opensm init script that allows starting multiple open=
-sm
->> instances.  It supports configuring this in one of two ways:
->>
->> 1) Create multiple opensm.conf files, each with a numbered suffix (so
->> opensm.conf.1, opensm.conf.2, etc.) and it will start one opensm
->> instance per config file.  This allows an admin to copy the default
->> config over and edit the things they need, and on rpm upgrade there wi=
-ll
->> be a new default opensm.conf file so they can diff between their edite=
-d
->> version and the new default and see if there are changes they need to
->> bring back in.  This also allows for complete flexibility in setting u=
-p
->> the different fabrics, for instance you could use one type of routing =
-on
->> one and a totally different type on the others.
->>
->> 2) Edit the file /etc/sysconfig/opensm and define more than one GUID i=
-n
->> the GUIDs variable.  This will cause the opensm init script to
->> automatically start one instance per GUID, passing the GUID in on the
->> command line.
->=20
-> I know you are going for ease of use here, which is good, however, I wo=
-rry about this file becoming a redefinition of opensm.conf.
+If this is at a customer site, there is a workaround available for you.
 
-Hehehe, I don't think you'll ever have to worry about that.  You have
-looked at opensm.conf in recent times I take it?  Replacing that with
-command line options in a shell startup script isn't reasonable.
+In file /etc/modprobe.d/mlx4_core.conf, enter a line:
+options mlx4_core internal_err_reset=0
 
-However, if you are going to run a redundant fabric setup, then the two
-things you *know* you will have to set are the guid and subnet_prefix
-(assuming you want to use openmpi).  If you are going to run
-master/slave setup, then the one thing you *know* you will have to set
-is the priority.  Supporting setting those items in an init script is
-reasonable.  Beyond that, I would agree, you should just edit the config
-files.
+(do "modinfo mlx4_core" to see a description of the module parameter).
 
+Setting this parameter to 0 in the modprobe conf file will cause the driver to simply report the
+internal error failure (in /var/log/messages), but the device will not be restarted.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-	      http://people.redhat.com/dledford
+This will avoid your Oops -- the EEH flow will then be the only flow restarting the device.
 
+(Note that even if you implement my suggestion, you will still have a situation where the device
+will be reset TWICE).
 
+Again, this is a workaround for current users.  The issue needs to be fixed so that even when the
+internal error does cause a reset, the kernel will not crash.
 
---------------enigBD0A7DB5B645B06D556AAC70
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Unfortunately, I do not have the time now to generate a patch.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+-Jack
 
-iQIcBAEBAgAGBQJPToC0AAoJELgmozMOVy/d5FgP/01d2CX5lBNpnY1qLtxbin+G
-5611n2r/xWoH0ROltpQP2v0X2ow8nGxGXYJy65W2AicsbE/fk/cON+8oOQN/+ARB
-ZCc2O+8ry7mTGIQ7uOO+EnVmCmpPRHidkjb0IB8z+HEVTDAxcyVH41fb+YXH73vg
-jZRHbMON8YuiFO04KGjHYcJRcwWQWV6iI97vLedcfo1r95e0MeIp3sUhKO5ARakX
-k9yN9+fmqDY/9uDBI/NN8clJ2nwTlzlOkzoye2Z6+R9A/MC9bIyzwMsMQ6rrPtcQ
-9qlFZAl3D5xBwP5+W3oQtYNYrOAnJsqSg/HQ+IEbYQztWF8zqHaJvrTIomwxm4/m
-x6rggS4Qb507LMv7UUgQu4EWnrU8q7wC7nHIdGFii7A4nZeTAd6t8Y8Pv9De1Dn/
-SJq+bORJ5Ff1No7It0cHZ1YpXFaWrxkaVq6fN0VzF7Pk2OfKkD3P9VCDnGk7zAD1
-lTawwOASr/fux8x2zUzfzFGPdur+4cpiGPenMoJHWDwRzrKpOk9wFrxCrp+pPss5
-YbKoOhPQu4yWLnq4uajyaaIAZKpwVurXh/qA+Pi1K3ZF37CNM5UssshypUBlNGti
-G2fT2V/wGpRhw/x0xVovNL7ujvj5DeQeBRAZPkYrcp9z2CpKzlwU8f6ND7tYtLfD
-8VmdA76o4m5yU907XsEN
-=0jiz
------END PGP SIGNATURE-----
-
---------------enigBD0A7DB5B645B06D556AAC70--
+On Wednesday 29 February 2012 17:19, Jack Morgenstein wrote:
+> On Wednesday 29 February 2012 16:47, Jack Morgenstein wrote:
+> > Some comments.
+> > 
+> > 1. Mr Cascardo's solution is only partial, and does not cover all the problem cases. He
+> >    simply uncovered one of several examples of what lack-of-sync will do when removing a device.
+> >    Mr. Cascardo found the kernel Oops that happens when a catastrophic error occurs during device
+> >    removal. What if we receive a catas error while doing "init_one"?  What if we are in the middle
+> >    of catas error recovery (in the init_one stage), and we get a remove_one request from higher up?
+> > 
+> >    There is a solution for this precise problem in the mthca driver (infiniband/hw/mthca/mthca_main.c
+> >    infiniband/hw/mthca/mthca_catas.c). In the mthca driver, we DO in fact use an "mthca_device_mutex"
+> >    for precisely the reason given in a. above.  I see no reason not to do the same thing here.
+> > 
+> >    This requires:
+> > 	1. mlx4_init_one(), mlx4_remove_one() and mlx4_restart_one all grab an mlx4_device_mutex.
+> >         2. new procedure __mlx4_remove_one(), which does not grab the mutex.
+> > 
+> >    Note that it is NOT enough to simply protect the removal operation.  The protection must wrap the
+> >    ENTIRE restart operation (both removal and init), because allowing a remove in the middle of init_one
+> >    or restart_one would probably also cause a kernel Oops.
+> > 
+> > 2. The intf_mutex is used with mlx4_un/register_device and mlx4_un/register_interface. unregister_device is
+> >    used both in remove_one and in mlx4_change_port_types.  I would hesitate to grab that mutex for a more
+> >    global use.  I think it is cleaner to add a device mutex (mlx4_device_mutex) for initializing/removing/
+> >    restarting the device.
+> > 
+> > -Jack
+> > 
+> Another thing -- what about the desired final state of the device?  Say we do a remove one, and in the middle
+> of this, we get a catas restart.  The catas restart will wait until the remove-in-progress completes, and
+> then will do its remove/init -- with the net result that the device is UP rather than DOWN.
+> 
+> This implies that we need some sort of state machine here.
+> 
+> -Jack
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
