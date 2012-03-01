@@ -1,81 +1,79 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] mlx4: prevent the device from being removed concurrently
-Date: Thu, 1 Mar 2012 09:51:58 +0200
-Message-ID: <201203010951.59186.jackm@dev.mellanox.co.il>
-References: <1330454176-17768-1-git-send-email-cascardo@linux.vnet.ibm.com> <201202291647.53161.jackm@dev.mellanox.co.il> <201202291719.50764.jackm@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 1/4] IB/core: add RAW Packet QP type
+Date: Thu, 1 Mar 2012 12:17:51 +0200
+Message-ID: <alpine.LRH.2.00.1203011217020.19663@ogerlitz.voltaire.com>
+References: <alpine.LRH.2.00.1201171330540.24946@ogerlitz.voltaire.com> <alpine.LRH.2.00.1201171337040.26871@ogerlitz.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201202291719.50764.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.00.1201171337040.26871-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Mr Cascardo,
+Applications that use this qp type should build the whole packet,
+including L2 headers when sending. On the receive side, the HW isn't
+expected to strip any headers. The new qp type designated usage is
+from user-space in Ethernet environments, e.g by applications that do
+TCP/IP offloading. Only processes with the NET_RAW capability may open
+such qp. The name raw packet was selected to resemble the similarity
+to AF_PACKET / SOL_RAW sockets.
 
-If this is at a customer site, there is a workaround available for you.
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-In file /etc/modprobe.d/mlx4_core.conf, enter a line:
-options mlx4_core internal_err_reset=0
+changes from V0:
+ removed spaces at ib_verbs.h that went in by mistake
 
-(do "modinfo mlx4_core" to see a description of the module parameter).
+ drivers/infiniband/core/uverbs_cmd.c |    3 +++
+ drivers/infiniband/core/verbs.c      |    1 +
+ include/rdma/ib_verbs.h              |    2 +-
+ 3 files changed, 5 insertions(+), 1 deletions(-)
 
-Setting this parameter to 0 in the modprobe conf file will cause the driver to simply report the
-internal error failure (in /var/log/messages), but the device will not be restarted.
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 4d27e4c..7d801e6 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1399,6 +1399,9 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
 
-This will avoid your Oops -- the EEH flow will then be the only flow restarting the device.
++	if (cmd.qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
++		return -EPERM;
++
+ 	INIT_UDATA(&udata, buf + sizeof cmd,
+ 		   (unsigned long) cmd.response + sizeof resp,
+ 		   in_len - sizeof cmd, out_len - sizeof resp);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 575b780..140f9a5 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -479,6 +479,7 @@ static const struct {
+ 				[IB_QPT_UD]  = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_PORT			|
+ 						IB_QP_QKEY),
++				[IB_QPT_RAW_PACKET] = IB_QP_PORT,
+ 				[IB_QPT_UC]  = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_PORT			|
+ 						IB_QP_ACCESS_FLAGS),
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index c3cca5a..a3fa323 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -605,7 +605,7 @@ enum ib_qp_type {
+ 	IB_QPT_UD,
+ 	IB_QPT_RAW_IPV6,
+ 	IB_QPT_RAW_ETHERTYPE,
+-	/* Save 8 for RAW_PACKET */
++	IB_QPT_RAW_PACKET = 8,
+ 	IB_QPT_XRC_INI = 9,
+ 	IB_QPT_XRC_TGT,
+ 	IB_QPT_MAX
+-- 
+1.7.1
 
-(Note that even if you implement my suggestion, you will still have a situation where the device
-will be reset TWICE).
 
-Again, this is a workaround for current users.  The issue needs to be fixed so that even when the
-internal error does cause a reset, the kernel will not crash.
-
-Unfortunately, I do not have the time now to generate a patch.
-
--Jack
-
-On Wednesday 29 February 2012 17:19, Jack Morgenstein wrote:
-> On Wednesday 29 February 2012 16:47, Jack Morgenstein wrote:
-> > Some comments.
-> > 
-> > 1. Mr Cascardo's solution is only partial, and does not cover all the problem cases. He
-> >    simply uncovered one of several examples of what lack-of-sync will do when removing a device.
-> >    Mr. Cascardo found the kernel Oops that happens when a catastrophic error occurs during device
-> >    removal. What if we receive a catas error while doing "init_one"?  What if we are in the middle
-> >    of catas error recovery (in the init_one stage), and we get a remove_one request from higher up?
-> > 
-> >    There is a solution for this precise problem in the mthca driver (infiniband/hw/mthca/mthca_main.c
-> >    infiniband/hw/mthca/mthca_catas.c). In the mthca driver, we DO in fact use an "mthca_device_mutex"
-> >    for precisely the reason given in a. above.  I see no reason not to do the same thing here.
-> > 
-> >    This requires:
-> > 	1. mlx4_init_one(), mlx4_remove_one() and mlx4_restart_one all grab an mlx4_device_mutex.
-> >         2. new procedure __mlx4_remove_one(), which does not grab the mutex.
-> > 
-> >    Note that it is NOT enough to simply protect the removal operation.  The protection must wrap the
-> >    ENTIRE restart operation (both removal and init), because allowing a remove in the middle of init_one
-> >    or restart_one would probably also cause a kernel Oops.
-> > 
-> > 2. The intf_mutex is used with mlx4_un/register_device and mlx4_un/register_interface. unregister_device is
-> >    used both in remove_one and in mlx4_change_port_types.  I would hesitate to grab that mutex for a more
-> >    global use.  I think it is cleaner to add a device mutex (mlx4_device_mutex) for initializing/removing/
-> >    restarting the device.
-> > 
-> > -Jack
-> > 
-> Another thing -- what about the desired final state of the device?  Say we do a remove one, and in the middle
-> of this, we get a catas restart.  The catas restart will wait until the remove-in-progress completes, and
-> then will do its remove/init -- with the net result that the device is UP rather than DOWN.
-> 
-> This implies that we need some sort of state machine here.
-> 
-> -Jack
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
