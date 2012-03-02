@@ -1,209 +1,133 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] rdma/ucm: Fix circular locking resulting in deadlock
-Date: Fri, 2 Mar 2012 00:01:19 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823733B765E01@ORSMSX101.amr.corp.intel.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [Patch opensm] Allow for easily configuring multiple fabrics on
+ one opensm server
+Date: Fri, 2 Mar 2012 12:13:24 +0200
+Message-ID: <20120302101324.GA6644@calypso>
+References: <4F4DB11C.5080203@redhat.com>
+ <20120229112229.136f25b7.weiny2@llnl.gov>
+ <4F4E80B4.5010508@redhat.com>
+ <20120301021501.GB961@bukharin.us.cray.com>
+ <20120301144645.09aa0d80.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20120301144645.09aa0d80.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Or Gerlitz (ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Brian Ginsbach <ginsbach-WVYJKLFxKCc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When we destroy a cm_id, we must purge associated events from the
-event queue.  If the cm_id is for a listen request, we also purge
-corresponding pending connect requests.  This requires destroying
-the cm_id's associated with the connect requests by calling
-rdma_destroy_id().  rdma_destroy_id() blocks until all outstanding
-callbacks have completed.
+On 14:46 Thu 01 Mar     , Ira Weiny wrote:
+> On Wed, 29 Feb 2012 20:15:02 -0600
+> Brian Ginsbach <ginsbach-WVYJKLFxKCc@public.gmane.org> wrote:
+> 
+> > On Wed, Feb 29, 2012 at 02:47:00PM -0500, Doug Ledford wrote:
+> > > On 02/29/2012 02:22 PM, Ira Weiny wrote:
+> > > > Doug,
+> > > > 
+> > > > First thanks for this.  Some comments below.
+> > > > 
+> > > > On Wed, 29 Feb 2012 00:01:16 -0500
+> > > > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> > > > 
+> > > >> There are two things that stand in the way of opensm being run on
+> > > >> redundant fabrics easily:
+> > > >>
+> > > >> 1) The opensm init script only starts one instance of opensm and opensm
+> > > >> will only work on one fabric per instance
+> > > >> 2) Even if you start multiple instances, you have to hand modify config
+> > > >> files for each instance and then when you upgrade the opensm rpm you
+> > > >> either loose your modifications or loose getting new default settings
+> > > >>
+> > > >> I worked around both of these issues, I've attached the files I used to
+> > > >> do so.
+> > > >>
+> > > >> First, I have an opensm init script that allows starting multiple opensm
+> > > >> instances.  It supports configuring this in one of two ways:
+> > > >>
+> > > >> 1) Create multiple opensm.conf files, each with a numbered suffix (so
+> > > >> opensm.conf.1, opensm.conf.2, etc.) and it will start one opensm
+> > > >> instance per config file.  This allows an admin to copy the default
+> > > >> config over and edit the things they need, and on rpm upgrade there will
+> > > >> be a new default opensm.conf file so they can diff between their edited
+> > > >> version and the new default and see if there are changes they need to
+> > > >> bring back in.  This also allows for complete flexibility in setting up
+> > > >> the different fabrics, for instance you could use one type of routing on
+> > > >> one and a totally different type on the others.
+> > > >>
+> > > >> 2) Edit the file /etc/sysconfig/opensm and define more than one GUID in
+> > > >> the GUIDs variable.  This will cause the opensm init script to
+> > > >> automatically start one instance per GUID, passing the GUID in on the
+> > > >> command line.
+> > > > 
+> > > > I know you are going for ease of use here, which is good, however, I worry about this file becoming a redefinition of opensm.conf.
+> > > 
+> > > Hehehe, I don't think you'll ever have to worry about that.  You have
+> > > looked at opensm.conf in recent times I take it?  Replacing that with
+> > > command line options in a shell startup script isn't reasonable.
+> > > 
+> > > However, if you are going to run a redundant fabric setup, then the two
+> > > things you *know* you will have to set are the guid and subnet_prefix
+> > > (assuming you want to use openmpi).  If you are going to run
+> > 
+> > Assuming you are doing this for openmpi.  The subnet_prefix should
+> > not be needed if the separate subnets are for disjoint networks
+> > (mpi and storage) or multiple storage networks.
+> > 
+> > > master/slave setup, then the one thing you *know* you will have to set
+> > > is the priority.  Supporting setting those items in an init script is
+> > > reasonable.  Beyond that, I would agree, you should just edit the config
+> > > files.
+> > > 
+> > 
+> > Not everything can be done in the config files.  I'm not sure that
+> > it is a good idea to have every opensm instance using the same
+> > temporary and cache directories (OSM_TMP_DIR and OSM_CACHE_DIR
+> > environment variables).  Seems like these fall into the *know* you
+> > will have to set category.
+> 
+> Brian brings up a really good point.  Even though some things can't be configured now, opensm.conf is the better way to configure log file placement etc.  So in my mind this re-emphasises the need to simply allow for multiple opensm.conf's and not introduce another config file.  But as I said before it is Alex's call.
+> 
+> Ira
+> 
 
-The issue is that we hold file->mut while purging events from the
-event queue.  We also acquire file->mut in our event handler.
-Calling rdma_destroy_id() while holding file->mut can lead to a
-deadlock, since the event handler callback cannot acquire file->mut,
-which prevents rdma_destroy_id() from completing.
+I agree with Ira on that point. sysconfig/opensm is being used for syncing
+guid2lid cache file between remote SMs, which is out of scope of opensm
+configuration and it's completely external mechanism.
 
-Fix this by moving events to purge from the event queue to a
-temporary list.  We can then release file->mut and call
-rdma_destroy_id() outside of holding any locks.
+Regarding the first approach (using multiple opensm.conf files), I think that
+beyond starting all opensm instances, the init script should be able to
+manipulate (restart/stop/signal HUP,USR1) to any of the instances of opensm
+separately.
+Moreover, OSM_TMP_DIR and OSM_CACHE_DIR can be added as options to opensm.conf
+so if configured will overwrite the global setting or alternatively add pid or
+opensm id as a suffix to the log/state files.
 
-Bug report by Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>:
+> > 
+> > You'd also want to make sure that other potentially very useful
+> > things are configured in the config files (e.g. log_file and
+> > log_prefix).  Aren't these also things you *know* you will have to
+> > set.
+> > 
+> > -- 
+> > Brian Ginsbach                          Cray Inc.
+> 
+> 
+> -- 
+> Ira Weiny
+> Member of Technical Staff
+> Lawrence Livermore National Lab
+> 925-423-8008
+> weiny2-i2BcT+NCU+M@public.gmane.org
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-[ INFO: possible circular locking dependency detected ]
-3.3.0-rc5-00008-g79f1e43-dirty #34 Tainted: G          I
+-- 
 
-tgtd/9018 is trying to acquire lock:
- (&id_priv->handler_mutex){+.+.+.}, at: [<ffffffffa0359a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
-
-but task is already holding lock:
- (&file->mut){+.+.+.}, at: [<ffffffffa02470fe>] ucma_free_ctx+0xb6/0x196 [rdma_ucm]
-
-which lock already depends on the new lock.
-
-
-the existing dependency chain (in reverse order) is:
-
--> #1 (&file->mut){+.+.+.}:
-       [<ffffffff810682f3>] lock_acquire+0xf0/0x116
-       [<ffffffff8135f179>] mutex_lock_nested+0x64/0x2e6
-       [<ffffffffa0247636>] ucma_event_handler+0x148/0x1dc [rdma_ucm]
-       [<ffffffffa035a79a>] cma_ib_handler+0x1a7/0x1f7 [rdma_cm]
-       [<ffffffffa0333e88>] cm_process_work+0x32/0x119 [ib_cm]
-       [<ffffffffa03362ab>] cm_work_handler+0xfb8/0xfe5 [ib_cm]
-       [<ffffffff810423e2>] process_one_work+0x2bd/0x4a6
-       [<ffffffff810429e2>] worker_thread+0x1d6/0x350
-       [<ffffffff810462a6>] kthread+0x84/0x8c
-       [<ffffffff81369624>] kernel_thread_helper+0x4/0x10
-
--> #0 (&id_priv->handler_mutex){+.+.+.}:
-       [<ffffffff81067b86>] __lock_acquire+0x10d5/0x1752
-       [<ffffffff810682f3>] lock_acquire+0xf0/0x116
-       [<ffffffff8135f179>] mutex_lock_nested+0x64/0x2e6
-       [<ffffffffa0359a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
-       [<ffffffffa024715f>] ucma_free_ctx+0x117/0x196 [rdma_ucm]
-       [<ffffffffa0247255>] ucma_close+0x77/0xb4 [rdma_ucm]
-       [<ffffffff810df6ef>] fput+0x117/0x1cf
-       [<ffffffff810dc76e>] filp_close+0x6d/0x78
-       [<ffffffff8102b667>] put_files_struct+0xbd/0x17d
-       [<ffffffff8102b76d>] exit_files+0x46/0x4e
-       [<ffffffff8102d057>] do_exit+0x299/0x75d
-       [<ffffffff8102d599>] do_group_exit+0x7e/0xa9
-       [<ffffffff8103ae4b>] get_signal_to_deliver+0x536/0x555
-       [<ffffffff81001717>] do_signal+0x39/0x634
-       [<ffffffff81001d39>] do_notify_resume+0x27/0x69
-       [<ffffffff81361c03>] retint_signal+0x46/0x83
-
-other info that might help us debug this:
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(&file->mut);
-                               lock(&id_priv->handler_mutex);
-                               lock(&file->mut);
-  lock(&id_priv->handler_mutex);
-
- *** DEADLOCK ***
-
-1 lock held by tgtd/9018:
- #0:  (&file->mut){+.+.+.}, at: [<ffffffffa02470fe>] ucma_free_ctx+0xb6/0x196 [rdma_ucm]
-
-stack backtrace:
-Pid: 9018, comm: tgtd Tainted: G          I  3.3.0-rc5-00008-g79f1e43-dirty #34
-Call Trace:
- [<ffffffff81029e9c>] ? console_unlock+0x18e/0x207
- [<ffffffff81066433>] print_circular_bug+0x28e/0x29f
- [<ffffffff81067b86>] __lock_acquire+0x10d5/0x1752
- [<ffffffff810682f3>] lock_acquire+0xf0/0x116
- [<ffffffffa0359a41>] ? rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffff8135f179>] mutex_lock_nested+0x64/0x2e6
- [<ffffffffa0359a41>] ? rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffff8106546d>] ? trace_hardirqs_on_caller+0x11e/0x155
- [<ffffffff810654b1>] ? trace_hardirqs_on+0xd/0xf
- [<ffffffffa0359a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffffa024715f>] ucma_free_ctx+0x117/0x196 [rdma_ucm]
- [<ffffffffa0247255>] ucma_close+0x77/0xb4 [rdma_ucm]
- [<ffffffff810df6ef>] fput+0x117/0x1cf
- [<ffffffff810dc76e>] filp_close+0x6d/0x78
- [<ffffffff8102b667>] put_files_struct+0xbd/0x17d
- [<ffffffff8102b5cc>] ? put_files_struct+0x22/0x17d
- [<ffffffff8102b76d>] exit_files+0x46/0x4e
- [<ffffffff8102d057>] do_exit+0x299/0x75d
- [<ffffffff8102d599>] do_group_exit+0x7e/0xa9
- [<ffffffff8103ae4b>] get_signal_to_deliver+0x536/0x555
- [<ffffffff810654b1>] ? trace_hardirqs_on+0xd/0xf
- [<ffffffff81001717>] do_signal+0x39/0x634
- [<ffffffff8135e037>] ? printk+0x3c/0x45
- [<ffffffff8106546d>] ? trace_hardirqs_on_caller+0x11e/0x155
- [<ffffffff810654b1>] ? trace_hardirqs_on+0xd/0xf
- [<ffffffff81361803>] ? _raw_spin_unlock_irq+0x2b/0x40
- [<ffffffff81039011>] ? set_current_blocked+0x44/0x49
- [<ffffffff81361bce>] ? retint_signal+0x11/0x83
- [<ffffffff81001d39>] do_notify_resume+0x27/0x69
- [<ffffffff8118a1fe>] ? trace_hardirqs_on_thunk+0x3a/0x3f
- [<ffffffff81361c03>] retint_signal+0x46/0x83
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-This bug has been in the code for quite a while, and this is the first time
-that it's been detected.  Given the likelihood of hitting it, it's probably
-safe to wait for 3.4
-
- drivers/infiniband/core/ucma.c |   37 ++++++++++++++++++-------------------
- 1 files changed, 18 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 5034a87..5861cdb 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -449,24 +449,6 @@ static void ucma_cleanup_multicast(struct ucma_context *ctx)
- 	mutex_unlock(&mut);
- }
- 
--static void ucma_cleanup_events(struct ucma_context *ctx)
--{
--	struct ucma_event *uevent, *tmp;
--
--	list_for_each_entry_safe(uevent, tmp, &ctx->file->event_list, list) {
--		if (uevent->ctx != ctx)
--			continue;
--
--		list_del(&uevent->list);
--
--		/* clear incoming connections. */
--		if (uevent->resp.event == RDMA_CM_EVENT_CONNECT_REQUEST)
--			rdma_destroy_id(uevent->cm_id);
--
--		kfree(uevent);
--	}
--}
--
- static void ucma_cleanup_mc_events(struct ucma_multicast *mc)
- {
- 	struct ucma_event *uevent, *tmp;
-@@ -480,9 +462,16 @@ static void ucma_cleanup_mc_events(struct ucma_multicast *mc)
- 	}
- }
- 
-+/*
-+ * We cannot hold file->mut when calling rdma_destroy_id() or we can
-+ * deadlock.  We also acquire file->mut in ucma_event_handler(), and
-+ * rdma_destroy_id() will wait until all callbacks have completed.
-+ */
- static int ucma_free_ctx(struct ucma_context *ctx)
- {
- 	int events_reported;
-+	struct ucma_event *uevent, *tmp;
-+	LIST_HEAD(list);
- 
- 	/* No new events will be generated after destroying the id. */
- 	rdma_destroy_id(ctx->cm_id);
-@@ -491,10 +480,20 @@ static int ucma_free_ctx(struct ucma_context *ctx)
- 
- 	/* Cleanup events not yet reported to the user. */
- 	mutex_lock(&ctx->file->mut);
--	ucma_cleanup_events(ctx);
-+	list_for_each_entry_safe(uevent, tmp, &ctx->file->event_list, list) {
-+		if (uevent->ctx == ctx)
-+			list_move_tail(&uevent->list, &list);
-+	}
- 	list_del(&ctx->list);
- 	mutex_unlock(&ctx->file->mut);
- 
-+	list_for_each_entry_safe(uevent, tmp, &list, list) {
-+		list_del(&uevent->list);
-+		if (uevent->resp.event == RDMA_CM_EVENT_CONNECT_REQUEST)
-+			rdma_destroy_id(uevent->cm_id);
-+		kfree(uevent);
-+	}
-+
- 	events_reported = ctx->events_reported;
- 	kfree(ctx);
- 	return events_reported;
-
-
+-- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
