@@ -1,120 +1,54 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [Patch opensm] Allow for easily configuring multiple fabrics
  on one opensm server
-Date: Fri, 02 Mar 2012 10:31:26 -0500
-Message-ID: <4F50E7CE.6050204@redhat.com>
-References: <4F4DB11C.5080203@redhat.com> <20120229112229.136f25b7.weiny2@llnl.gov> <20120302103015.GB6644@calypso>
+Date: Fri, 02 Mar 2012 10:47:10 -0500
+Message-ID: <4F50EB7E.20900@redhat.com>
+References: <4F4DB11C.5080203@redhat.com> <20120229112229.136f25b7.weiny2@llnl.gov> <20120302103015.GB6644@calypso> <4F50E7CE.6050204@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="------------enig3F612EDB8892B535E6706F4E"
+ boundary="------------enig0AFD245AA62CCEFE19F35707"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120302103015.GB6644@calypso>
+In-Reply-To: <4F50E7CE.6050204-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig3F612EDB8892B535E6706F4E
+--------------enig0AFD245AA62CCEFE19F35707
+Content-Type: multipart/mixed;
+ boundary="------------080709050107050501060505"
+
+This is a multi-part message in MIME format.
+--------------080709050107050501060505
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 3/2/2012 5:30 AM, Alex Netes wrote:
-> On 11:22 Wed 29 Feb     , Ira Weiny wrote:
->> Doug,
->>
->> First thanks for this.  Some comments below.
->>
->> On Wed, 29 Feb 2012 00:01:16 -0500
->> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>
->>> There are two things that stand in the way of opensm being run on
->>> redundant fabrics easily:
->>>
->>> 1) The opensm init script only starts one instance of opensm and open=
-sm
->>> will only work on one fabric per instance
->>> 2) Even if you start multiple instances, you have to hand modify conf=
-ig
->>> files for each instance and then when you upgrade the opensm rpm you
->>> either loose your modifications or loose getting new default settings=
-
->>>
->>> I worked around both of these issues, I've attached the files I used =
-to
->>> do so.
->>>
->>> First, I have an opensm init script that allows starting multiple ope=
-nsm
->>> instances.  It supports configuring this in one of two ways:
->>>
->>> 1) Create multiple opensm.conf files, each with a numbered suffix (so=
-
->>> opensm.conf.1, opensm.conf.2, etc.) and it will start one opensm
->>> instance per config file.  This allows an admin to copy the default
->>> config over and edit the things they need, and on rpm upgrade there w=
-ill
->>> be a new default opensm.conf file so they can diff between their edit=
-ed
->>> version and the new default and see if there are changes they need to=
-
->>> bring back in.  This also allows for complete flexibility in setting =
-up
->>> the different fabrics, for instance you could use one type of routing=
- on
->>> one and a totally different type on the others.
->>>
->>> 2) Edit the file /etc/sysconfig/opensm and define more than one GUID =
-in
->>> the GUIDs variable.  This will cause the opensm init script to
->>> automatically start one instance per GUID, passing the GUID in on the=
-
->>> command line.
->>
->> I know you are going for ease of use here, which is good, however, I w=
-orry about this file becoming a redefinition of opensm.conf.
->>
->>>
->>> For the most part, this works well.  However, openmpi in particular
->>> doesn't like you to have physically separate fabrics that have the sa=
-me
->>> subnet_prefix, and you can't specify a subnet_prefix on the command l=
-ine
->>> to go along with the GUIDs.  So I wrote a patch for that and made the=
-
->>> init script unilaterally increment the subnet prefix for each differe=
-nt
->>> GUID it's attaching to.
->>
->> If you only allow option 1 above this takes care of itself by making t=
-he admin configure his subnet prefixes in each config file as appropriate=
-=2E  The only down side is the loss of new configuration options as you u=
-pgrade.  However, that is probably better taken care of by a default conf=
-ig file with each package.  I mentioned this to Sasha years back and was =
-denied since "you can always generate a new one with '-c'".  :-(
->>
->> Alex would a default config file be acceptable?  It would mean more wo=
-rk on your part.
->>
+On 3/2/2012 10:31 AM, Doug Ledford wrote:
+> On 3/2/2012 5:30 AM, Alex Netes wrote:
+>> What the default opensm.conf would be used for? Just as a reference to=
+ the
+>> default values?
 >=20
-> What the default opensm.conf would be used for? Just as a reference to =
-the
-> default values?
+> No, he's referring to having a default config file that is parsed, then=
 
-No, he's referring to having a default config file that is parsed, then
-an override config file that is parsed where you only put options you
-want to update in the override config file.  That way you could have,
-for instance, a default opensm.conf in the normal location and totally
-unedited so that it gets updated with each update of the opensm rpm,
-then you could create an opensm.conf.1 that is empty except for just a
-guid setting, a subnet_prefix setting, maybe a cache dir setting, etc.
-In that way, if say the default routing engine gets a new option in the
-future, your override config file won't already be populated with the
-old stuff.  It's a means of inheritance that is functionally identical
-to specifying all this stuff on the command line, but doesn't require a
-huge command line or a complex init script.
+> an override config file that is parsed where you only put options you
+> want to update in the override config file.  That way you could have,
+> for instance, a default opensm.conf in the normal location and totally
+> unedited so that it gets updated with each update of the opensm rpm,
+> then you could create an opensm.conf.1 that is empty except for just a
+> guid setting, a subnet_prefix setting, maybe a cache dir setting, etc.
+> In that way, if say the default routing engine gets a new option in the=
 
+> future, your override config file won't already be populated with the
+> old stuff.  It's a means of inheritance that is functionally identical
+> to specifying all this stuff on the command line, but doesn't require a=
+
+> huge command line or a complex init script.
+
+And for what it's worth, it could be as simply done as the attached
+(untested, but compiled) patch.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -124,8 +58,98 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Infiniband specific RPMs available at
 	      http://people.redhat.com/dledford/Infiniband
 
+--------------080709050107050501060505
+Content-Type: text/plain;
+ name="opensm-config.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="opensm-config.patch"
 
---------------enig3F612EDB8892B535E6706F4E
+diff -up opensm-3.3.13/opensm/main.c.config opensm-3.3.13/opensm/main.c
+--- opensm-3.3.13/opensm/main.c.config	2012-03-02 10:35:26.783996345 -050=
+0
++++ opensm-3.3.13/opensm/main.c	2012-03-02 10:46:33.471939369 -0500
+@@ -131,6 +131,13 @@ static void show_usage(void)
+ 	       "          The name of the OpenSM config file. When not specifie=
+d\n"
+ 	       "          " OSM_DEFAULT_CONFIG_FILE
+ 	       " will be used (if exists).\n\n");
++	printf("--extra-config, -E <file-name>\n"
++	       "          The name of an OpenSM config file used to over ride\n=
+"
++	       "          the entries in the primary config file.  This is\n"
++	       "          useful when you have more than one opensm instance\n"=
+
++	       "          to manage and you want them all to have a central,\n"=
+
++	       "          shared set of options and you want a second, smaller\=
+n"
++	       "          config file to hold their fabric specific options.\n\=
+n");
+ 	printf("--create-config, -c <file-name>\n"
+ 	       "          OpenSM will dump its configuration to the specified f=
+ile and exit.\n"
+ 	       "          This is a way to generate OpenSM configuration file t=
+emplate.\n\n");
+@@ -569,10 +576,10 @@ int main(int argc, char *argv[])
+ 	boolean_t run_once_flag =3D FALSE;
+ 	int32_t vendor_debug =3D 0;
+ 	int next_option;
+-	char *conf_template =3D NULL, *config_file =3D NULL;
++	char *conf_template, *config_file, *extra_config_file;
+ 	uint32_t val;
+ 	const char *const short_option =3D
+-	    "F:c:i:w:O:f:ed:D:g:l:L:s:t:a:u:m:X:R:zM:U:S:P:Y:ANBIQvVhoryxp:n:q:=
+k:C:G:H:";
++	    "F:E:c:i:w:O:f:ed:D:g:l:L:s:t:a:u:m:X:R:zM:U:S:P:Y:ANBIQvVhoryxp:n:=
+q:k:C:G:H:";
+=20
+ 	/*
+ 	   In the array below, the 2nd parameter specifies the number
+@@ -584,6 +591,7 @@ int main(int argc, char *argv[])
+ 	const struct option long_option[] =3D {
+ 		{"version", 0, NULL, 12},
+ 		{"config", 1, NULL, 'F'},
++		{"extra-config", 1, NULL, 'E'},
+ 		{"create-config", 1, NULL, 'c'},
+ 		{"debug", 1, NULL, 'd'},
+ 		{"guid", 1, NULL, 'g'},
+@@ -647,6 +655,7 @@ int main(int argc, char *argv[])
+ 		{"torus_config", 1, NULL, 10},
+ 		{NULL, 0, NULL, 0}	/* Required at the end of the array */
+ 	};
++	conf_template =3D config_file =3D extra_config_file =3D NULL;
+=20
+ 	/* force stdout to be line-buffered */
+ 	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
+@@ -672,6 +681,11 @@ int main(int argc, char *argv[])
+ 			config_file =3D optarg;
+ 			printf("Config file is `%s`:\n", config_file);
+ 			break;
++		case 'E':
++			extra_config_file =3D optarg;
++			printf("Extra Config file is `%s`:\n",
++			       extra_config_file);
++			break;
+ 		default:
+ 			break;
+ 		}
+@@ -687,6 +701,11 @@ int main(int argc, char *argv[])
+ 	if (osm_subn_parse_conf_file(config_file, &opt) < 0)
+ 		printf("\nFail to parse config file \'%s\'\n", config_file);
+=20
++	if (extra_config_file)
++		if (osm_subn_parse_conf_file(extra_config_file, &opt) < 0)
++			printf("\nFailed to parse extra config file `%s`\n",
++			       extra_config_file);
++
+ 	printf("Command Line Arguments:\n");
+ 	do {
+ 		next_option =3D getopt_long_only(argc, argv, short_option,
+
+--------------080709050107050501060505--
+
+--------------enig0AFD245AA62CCEFE19F35707
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -134,22 +158,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2.0.17 (MingW32)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-iQIcBAEBAgAGBQJPUOfUAAoJELgmozMOVy/dHgMP/jmtiC+hwtXsqNRclnXrqJsP
-uM8+78a1SQBbygZrJzi1EyjmTlsEier8TMrEXohlW9J2koV27rDWJklIjP3gsBa3
-PcoiUHwLjc67NmBPOCY/PsACtPNeG4bMHtirSVn8EKTwozJqfbVr+GCPtaiZFG1y
-4JmJeJGQh57khvot89ki8St13zI1Sffg6GBWfAaUQu1lOYQvIUWPq1+Jkdl4iNK4
-/po4It8xaMdTgsFn88fTNYh4Jf0eb3nX19V64m8W+JnU79MWCqlFAQfbbepk2cLk
-uRIt/Tj9kX+0eV+J+Czo+cMLHlwXgTJMyocP1pjKy1Nxuf0XBSshrFns8rKn1rEy
-AFe4w2KI0M3PyU87Z2zpRY2410P9o066fWmYJyiTyLmrQ296Fyasw6vHB9nhQEUQ
-zrRfh/4Vi3gIpJnAgHw1WZNnfHiApJ2nF6jvjQg81V35al0mC05wmfR40vTeDQQA
-3zGi0If1ndszZFb1UYHacdRC8kLjS0pwMZ+ODyGL15cpQpJ9Xg1xfnIsZ+ndTv6r
-6+rE6ESTt7IPKAvQJjHA/iFbwufs9SOn/ZG27DdwuMeLII8pmg19zXIV7RjTGV+k
-eboGU2gbOJfSCg21/i7ZlIVtYwYJbggpSDfW492cKvCa5mFrHG5sTFfa3vMkhWOG
-Fs41hozsVWWY0pEtJM5B
-=5Xrw
+iQIcBAEBAgAGBQJPUOt/AAoJELgmozMOVy/dANIQAKA7lAMn9DKo7BGKwxkJeIce
+xEuXVlGqrLHSZu40d12O4GVoFSihxU5RwDBVfqUw3aj6tlL2m9rjZuSIeSjo5f0w
+lyeEUitHIFj7iIF1KfwCrKyryxqkdg79BMfIsxHqv2L7MnUUhmKGnpoVyxd5/IMK
+UKMFXb4Ae1N4rJEDhqg4iAe+Qss9/A43b+kLGSiIcfa755GtzlIFzoB9AFuhQl4z
+gWI+nMc5ezlINSC4MG7xlpoVRaaHdBtXs9J5yXEjo3aIWiHMhS6tURCd+Qx3IqmU
+hbROjx1XDGOfWlAdob9MkGpJCB/JuMFW/2whOSpyZb3UsAmGqaXLXflEAviGGQhQ
+zjgOQlVkP50uIok4vjPC5vBg13/h7EGJUfl6uP5qKzW483qw5XhZ3vMRoLy2BQ20
+9rXGK78PtTcgQ8AjZsxaBxTRU+VSzdsAXxh94d1bt2sKBD9omQ+WGx/0738jZJ8k
+BefeKa/RZqplw3fyVcUh4HkNzKzlk40M3z+mrRIMCF3lVjz4kfG+LWNZcymNZg7w
+EM28J1JklC7/+d4oFNuO+Dguhc3CgiDJvhokibf3VbuG54c8lyOkee9DZxjon1aE
+a/aekteiNWSWUXEcljec8SBoAUkIxtRAIT1SOSRJl7lF93TuKtkvGsYeKDFaECNt
+v7NTQoSytmSJ0NJpihyX
+=Kcnq
 -----END PGP SIGNATURE-----
 
---------------enig3F612EDB8892B535E6706F4E--
+--------------enig0AFD245AA62CCEFE19F35707--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
