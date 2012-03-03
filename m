@@ -1,45 +1,35 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 07/18] ib_srp: Introduce three helper functions
-Date: Sat, 03 Mar 2012 14:41:45 +0000
-Message-ID: <4F522DA9.1080604@acm.org>
-References: <3109536.qySrY1Ts3e@asus> <3639113.Zct32Hvp8M@asus> <1330237969.1026.85.camel@obelisk.thedillows.org>
+Subject: Re: [PATCH 06/18] ib_srp: Wait for last completion when disconnecting
+Date: Sat, 03 Mar 2012 14:58:39 +0000
+Message-ID: <4F52319F.6070705@acm.org>
+References: <3109536.qySrY1Ts3e@asus> <1559902.bolRMFhoqP@asus> <1330237960.1026.84.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1330237969.1026.85.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+In-Reply-To: <1330237960.1026.84.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 02/26/12 06:32, David Dillow wrote:
-> On Sat, 2012-01-14 at 12:45 +0000, Bart Van Assche wrote:
->> Introduce srp_remove_target(), srp_change_state_to_removed() and
->> srp_scan_target().
->> +static bool srp_change_state_to_removed(struct srp_target_port *target)
->> +{
->> +	bool changed = false;
->> +
->> +	spin_lock_irq(&target->lock);
->> +	if (target->state != SRP_TARGET_REMOVED) {
->> +		target->state = SRP_TARGET_REMOVED;
->> +		changed = true;
->> +	}
->> +	spin_unlock_irq(&target->lock);
->> +
->> +	return changed;
->> +}
-> I'm not sure why you introduce this here, just to move
-> srp_change_state() up and change this back to
-> 	srp_change_state(target, SRP_TARGET_LIVE, SRP_TARGET_REMOVED);
-> in the next patch.
->
-> There also doesn't seem to be much of a reason to introduce
-> srp_scan_target() now rather than in patch 18 where you add another use
-> of it.
+> On Sat, 2012-01-14 at 12:44 +0000, Bart Van Assche wrote:
+>> When disconnecting the IB connection via the IB CM, wait until
+>> any invoked completion handlers have finished processing SRP
+>> protocol data and prevent that new work completions are queued.
+>> Change the IB completion handlers such that all error completions
+>> are processed instead of a subset and also such that receiving a
+>> completion with zero wr_id is recognized as an end-of-work marker.
+> This seems really ugly, and a bit of overkill. There must be a better
+> way.
 
-I'll move these changes to a later point in the patch series.
+The only alternative I know of for waiting until completion processing
+stopped is to destroy and recreate the queue pair. The reason I had not
+chosen for that approach is that some srp_disconnect_target() calls are
+from outside a CM callback function and hence destroying the QP inside
+srp_disconnect_target() would race with QP manipulations from inside CM
+callbacks.
 
 Bart.
 --
