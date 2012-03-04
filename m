@@ -1,60 +1,44 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 18/18] ib_srp: Rework error handling
-Date: Sun, 04 Mar 2012 15:03:06 -0500
-Message-ID: <1330891386.1243.18.camel@obelisk.thedillows.org>
-References: <3109536.qySrY1Ts3e@asus> <2527465.kS0UWM2o6z@asus>
-	 <1330238354.1026.93.camel@obelisk.thedillows.org>
-	 <4F53A0E2.3080101@acm.org>
+Subject: Re: [PATCH 05/18] ib_srp: Separate connection and host state
+Date: Sun, 04 Mar 2012 15:12:14 -0500
+Message-ID: <1330891934.1243.22.camel@obelisk.thedillows.org>
+References: <3109536.qySrY1Ts3e@asus> <2010394.C571grUHsm@asus>
+	 <1330237948.1026.83.camel@obelisk.thedillows.org>
+	 <4F522C8F.3020503@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F53A0E2.3080101-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <4F522C8F.3020503-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2012-03-04 at 17:05 +0000, Bart Van Assche wrote:
-> On 02/26/12 06:39, David Dillow wrote:
-> > As I've previously said, this is better handled by user space and
-> > you add additional failure cases when you try to retrofit a transport
-> > ping into SRP.
+On Sat, 2012-03-03 at 14:37 +0000, Bart Van Assche wrote:
+> On 02/26/12 06:32, David Dillow wrote:
+> > On Sat, 2012-01-14 at 12:43 +0000, Bart Van Assche wrote:
+> >> Separate connection and host state. Only report QP errors while
+> >> connected. Only invoke ib_send_cm_dreq() from inside
+> >> srp_disconnect_target() when connected such that invoking
+> >> srp_disconnect_target() after having received a DREQ does not
+> >> cause an error message to be printed.
+> > I'm not sure that splitting connection state from the target state is
+> > really buying you anything other than more storage and complexity.
+> > I looked to later patches for a reason this makes sense, but I'm coming
+> > up short, so maybe I'm just missing it.
 > 
-> Let's look at this from another point of view. If it's possible for the
-> SRP protocol to implement most of the transport layer checking and error
-> handling in user space then that's possible for iSCSI and FC too. Are
-> you claiming that the device mapper layer and the multipath software
-> should be redesigned such that certain parts of the transport checking
-> and recovery mechanisms are moved from kernel space to user space,
-> including a backwards-incompatible change of the kernel ABI (sysfs) the
-> multipath software uses today ?
+> As explained in the description of this patch, this patch makes sense
+> even without the later changes.
 
-You mean, let's do it the way it already works?
+No, the patch description says simply "Separate connection and host
+state."  That tells the reader only what you did and nothing about why
+it is a good idea.
 
-multipath implements path-checking on a *per-LUN* basis from user space.
-Today. No redesign needed. It already works on all SCSI transports.
-
-iSCSI has a protocol-defined mechanism to tell us when all LUNs on a
-given target are unavailable without waiting for the connection to be
-broken on a command timeout. I don't think FC has that, but it does have
-notification that a target is out of the fabric -- and all LUNs are
-unavailable. Both of these situations are communicated via an existing
-sysfs ABI, and the user space multipath code knows how to fail over and
-avoid checking those paths that are known to be bad.
-
-SRP does not have a protocol-defined way to check the link to the
-target. IB can tell us when a target leaves the fabric, like FC, but
-that's not what you're trying to implement -- you are attempting to fake
-the ping capability of iSCSI.
-
-Implementing "most" of the transport layer checking gives you a partial
-kernel implementation of the pinging already performed by user space,
-and adds bugs to it in that a single LUN experiencing issues may fail
-the whole path when the rest of the target is perfectly fine.
-
-Adding bugs while re-implementing user space prevents me from signing
-off on it.
+If this was all to avoid printing a message after getting a DREQ, then
+the commit message should reflect that as the main thrust of the patch,
+and not "Separate connection and host state" -- that's a mechanical step
+on your path to the goal.
 -- 
 Dave Dillow
 National Center for Computational Science
