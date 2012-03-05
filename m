@@ -1,157 +1,67 @@
-From: "Heinz, Michael William" <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] opensm: osm_subnet.c: Updated patch to add
- error-reporting to the parsing of opensm.conf
-Date: Mon, 5 Mar 2012 16:27:43 +0000
-Message-ID: <F93D748CDCC46C42B498F40A38D9036963682F@FMSMSX107.amr.corp.intel.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5B8B5D0@MNEXMB1.qlogic.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Patch opensm] Allow for easily configuring multiple fabrics on one opensm server
+Date: Mon, 05 Mar 2012 12:25:47 -0500 (EST)
+Message-ID: <342bed2a-d5c1-476e-82c1-d5fd870ab262@zmail13.collab.prod.int.phx2.redhat.com>
+References: <4F54E177.9030302@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5B8B5D0-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4F54E177.9030302-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Brian Ginsbach <ginsbach-WVYJKLFxKCc@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Alex - is this patch acceptable? My connectivity has been knocked for a loop by the transition to Intel and I'm not sure if you received this or not.
+----- Original Message -----
+> On 3/5/2012 10:28 AM, Doug Ledford wrote:
+> > ----- Original Message -----
+> >> On 3/1/2012 8:31 AM, Doug Ledford wrote:
+> >>> I would say we are simply getting to the point where we *know* we
+> >>> need
+> >>> opensm to handle more than one fabric from a single instance ;-)
+> >>
+> >> Why does a single OpenSM need to handle multiple subnets/fabrics ?
+> >> What's the issue with running multiple OpenSMs with each handling
+> >> it's
+> >> own subnet/fabric ?
+> > 
+> > Because it wasn't built with the idea in mind of sharing logs or
+> > cache
+> > directories, etc.
+> 
+> Yes, each instance has it's own configuration and output files.
+> 
+> > Not to mention that the proliferation of files when
+> > you start multiple instances of opensm is pretty insane (have you
+> > counted how many different files opensm can be configured to
+> > require
+> > now a days...).
+> 
+> I'm not disagreeing with the fact that there are numerous config
+> files
+> (the main config file is already large enough without the myriad of
+> features with their own separate config files) but different subnets
+> have totally different configuration requirements. It's not just the
+> subnet prefix, SM priority, and the few other config items that you
+> identified.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Mike Heinz
-Sent: Wednesday, February 29, 2012 1:54 PM
-To: alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Hal Rosenstock; Todd Rimmer
-Subject: [PATCH] opensm: osm_subnet.c: Updated patch to add error-reporting to the parsing of opensm.conf
+In some cases, and in other cases the different subnets are perfect mirrors
+of each other (redundant, identical fabrics).
 
-I've recently seen two different users on different fabrics make the same
-mistake: They made a syntax error in their opensm.conf file and then couldn't figure out why their changes didn't take effect.
+> So what would make this better in your mind ?
 
-Looking at the code that parses the opensm.conf file, it appears to treat any line it cannot parse as a comment and silently passes over it.
-
-This patch modifies the parse logic as follows:
-
-1. Truncate the line at the first '#' character.
-2. If the result is blank, skip to the next line.
-3. If the first token in the line can be matched against a known token,
-   process it as usual.
-4. If the token cannot be matched against a known token, log an error message.
-
-The result is that if, for example, the user typed "force_link_speed=5" the system log will read:
-
-Feb 24 14:57:09 ifs001 OpenSM[17517]: OpenSM 3.3.13 Feb 24 14:57:09 ifs001 OpenSM[17517]: Entering DISCOVERING state Feb 24 14:57:09 ifs001 OpenSM[17517]: Unrecognized token: "force_link_speed=5"
-Feb 24 14:57:09 ifs001 opensm[17517]: Entering MASTER state Feb 24 14:57:09 ifs001 opensm[17517]: SUBNET UP .
-.
-.
-
-In addition, error messages will also be reported to the command line and the opensm logfile. For example:
-
-[root@ifs001]# opensm
--------------------------------------------------
-OpenSM 3.3.13
- Reading Cached Option File: /etc/opensm/opensm.conf Unrecognized token: "1`243561"
-Command Line Arguments:
- Log File: /var/log/opensm.log
--------------------------------------------------
-OpenSM 3.3.13
-
-Entering DISCOVERING state
-
-Using default GUID 0x117500007918d2
-Unrecognized token: "1`243561"
-Entering MASTER state
-
-SUBNET UP
-.
-.
-.
-
-Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c index 1b30e1e..faccea2 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -1264,6 +1264,13 @@ int osm_subn_parse_conf_file(char *file_name, osm_subn_opt_t * p_opts)
-        p_opts->file_opts->file_opts = NULL;
-
-        while (fgets(line, 1023, opts_file) != NULL) {
-+               char *pound_sign = strchr(line,'#');
-+               int token_matched = 0;
-+
-+               /* Truncate any comments. */
-+               if (pound_sign)
-+                       *pound_sign = '\0';
-+
-                /* get the first token */
-                p_key = strtok_r(line, " \t\n", &p_val);
-                if (!p_key)
-@@ -1275,6 +1282,7 @@ int osm_subn_parse_conf_file(char *file_name, osm_subn_opt_t * p_opts)
-                        if (strcmp(r->name, p_key))
-                                continue;
-
-+                       token_matched = 1;
-                        p_field1 = (void *)p_opts->file_opts + r->opt_offset;
-                        p_field2 = (void *)p_opts + r->opt_offset;
-                        /* don't call setup function first time */ @@ -1282,6 +1290,13 @@ int osm_subn_parse_conf_file(char *file_name, osm_subn_opt_t * p_opts)
-                                    NULL);
-                        break;
-                }
-+
-+               if (!token_matched) {
-+                       char buf[256];
-+                       snprintf(buf,sizeof(buf),"Unrecognized token: \"%s\"",p_key);
-+                       cl_log_event("OpenSM", CL_LOG_ERROR, buf, NULL, 0);
-+                       log_report("%s\n",buf);
-+               }
-        }
-        fclose(opts_file);
-
-@@ -1324,6 +1339,13 @@ int osm_subn_rescan_conf_files(IN osm_subn_t * p_subn)
-                              &p_opts->file_opts->qos_rtr_options);
-
-        while (fgets(line, 1023, opts_file) != NULL) {
-+               char *pound_sign = strchr(line,'#');
-+               int token_matched = 0;
-+
-+               /* Truncate any comments. */
-+               if (pound_sign)
-+                       *pound_sign = '\0';
-+
-                /* get the first token */
-                p_key = strtok_r(line, " \t\n", &p_val);
-                if (!p_key)
-@@ -1332,7 +1354,12 @@ int osm_subn_rescan_conf_files(IN osm_subn_t * p_subn)
-                p_val = clean_val(p_val);
-
-                for (r = opt_tbl; r->name; r++) {
--                       if (!r->can_update || strcmp(r->name, p_key))
-+                       if (strcmp(r->name, p_key))
-+                               continue;
-+
-+                       token_matched = 1;
-+
-+                       if (!r->can_update)
-                                continue;
-
-                        p_field1 = (void *)p_opts->file_opts + r->opt_offset; @@ -1341,6 +1368,13 @@ int osm_subn_rescan_conf_files(IN osm_subn_t * p_subn)
-                                    r->setup_fn);
-                        break;
-                }
-+
-+               if (!token_matched) {
-+                       char buf[256];
-+                       snprintf(buf,sizeof(buf),"Unrecognized token: \"%s\"",p_key);
-+                       cl_log_event("OpenSM", CL_LOG_ERROR, buf, NULL, 0);
-+                       log_report("%s\n",buf);
-+               }
-        }
-        fclose(opts_file);
+If I got to wave a magic wand, I would say it's time that opensm
+management started getting simpler, not more complex.  With all of
+the various options for routing engines and QoS and partitions, it's
+gotten to where you need the equivalent of the old Cisco CNA in order
+to configure opensm ;-)
 
 
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+	      http://people.redhat.com/dledford
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
