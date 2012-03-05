@@ -1,10 +1,11 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: [PATCH/RFC] mxl4_core: Scale size of MTT table with system RAM
-Date: Mon,  5 Mar 2012 10:09:31 -0800
-Message-ID: <1330970972-10225-1-git-send-email-roland@kernel.org>
+Date: Mon,  5 Mar 2012 10:09:45 -0800
+Message-ID: <1330970985-10267-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
