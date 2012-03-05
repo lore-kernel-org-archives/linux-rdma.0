@@ -1,42 +1,63 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 18/18] ib_srp: Rework error handling
-Date: Mon, 05 Mar 2012 19:42:24 +0000
-Message-ID: <4F551720.9010604@acm.org>
-References: <3109536.qySrY1Ts3e@asus> <2527465.kS0UWM2o6z@asus>  <1330238354.1026.93.camel@obelisk.thedillows.org>  <4F53A0E2.3080101@acm.org> <1330891386.1243.18.camel@obelisk.thedillows.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH 1/25 v2] rdma/cm: define native IB address
+Date: Mon, 5 Mar 2012 12:34:17 -0800
+Message-ID: <CAL1RGDV-oYkNwQQUkAuUEHTH=HbmLk6Kv7JRnJ3XxN1DMNzLNQ@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237325661ADD@ORSMSX102.amr.corp.intel.com>
+ <CAL1RGDUu9sUbeWgBwivnAeXf+OWX_m5MRrizfzP4ni-FOGxiTQ@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A82373374F1A64@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1330891386.1243.18.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373374F1A64-P5GAC/sN6hlcIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/04/12 20:03, David Dillow wrote:
-> multipath implements path-checking on a *per-LUN* basis from user space.
-> Today. No redesign needed. It already works on all SCSI transports.
+On Mon, Feb 27, 2012 at 2:22 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wro=
+te:
+>> > --- a/include/linux/socket.h
+>> > +++ b/include/linux/socket.h
+>> > @@ -184,6 +184,7 @@ struct ucred {
+>> > =A0#define AF_PPPOX =A0 =A0 =A0 24 =A0 =A0 =A0/* PPPoX sockets =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+>> > =A0#define AF_WANPIPE =A0 =A0 25 =A0 =A0 =A0/* Wanpipe API Sockets=
+ */
+>> > =A0#define AF_LLC =A0 =A0 =A0 =A0 26 =A0 =A0 =A0/* Linux LLC =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+>> > +#define AF_IB =A0 =A0 =A0 =A0 =A027 =A0 =A0 =A0/* Native InfiniBa=
+nd address =A0 =A0*/
+>> > =A0#define AF_CAN =A0 =A0 =A0 =A0 29 =A0 =A0 =A0/* Controller Area=
+ Network =A0 =A0 =A0*/
+>> > =A0#define AF_TIPC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A030 =A0 =A0 =A0/*=
+ TIPC sockets =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
+>> > =A0#define AF_BLUETOOTH =A0 31 =A0 =A0 =A0/* Bluetooth sockets =A0=
+ =A0 =A0 =A0 =A0 =A0*/
+>> > @@ -227,6 +228,7 @@ struct ucred {
+>> > =A0#define PF_PPPOX =A0 =A0 =A0 AF_PPPOX
+>> > =A0#define PF_WANPIPE =A0 =A0 AF_WANPIPE
+>> > =A0#define PF_LLC =A0 =A0 =A0 =A0 AF_LLC
+>> > +#define PF_IB =A0 =A0 =A0 =A0 =A0AF_IB
+>> > =A0#define PF_CAN =A0 =A0 =A0 =A0 AF_CAN
+>> > =A0#define PF_TIPC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0AF_TIPC
+>> > =A0#define PF_BLUETOOTH =A0 AF_BLUETOOTH
+>>
+>> Has this been run by the networking community? =A0Are they OK with t=
+his
+>> assignment?
 >
-> iSCSI has a protocol-defined mechanism to tell us when all LUNs on a
-> given target are unavailable without waiting for the connection to be
-> broken on a command timeout. I don't think FC has that, but it does have
-> notification that a target is out of the fabric -- and all LUNs are
-> unavailable. Both of these situations are communicated via an existing
-> sysfs ABI, and the user space multipath code knows how to fail over and
-> avoid checking those paths that are known to be bad.
->
-> SRP does not have a protocol-defined way to check the link to the
-> target. IB can tell us when a target leaves the fabric, like FC, but
-> that's not what you're trying to implement -- you are attempting to fake
-> the ping capability of iSCSI.
+> I did copy netdev on the original submissions, but I don't remember a=
+ny explicit ack or nack.
 
-Let's focus on what we agree about. I'll repost the patch series but
-without the last two patches (those that add dev_loss_tmo,
-fast_io_fail_tmo, ping_interval, ping_timeout, failed_reconnects and
-reconnect_tmo).
+David, any feeling yay or nay about adding these?
 
-Bart.
+Is the kernel the final arbiter of AF_xxx / PF_xxx assignments, or
+is there anything else we have to worry about?
+
+Thanks,
+  Roland
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
