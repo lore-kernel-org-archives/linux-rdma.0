@@ -1,55 +1,52 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 15/18] ib_srp: Maintain a single connection per I_T nexus
-Date: Sun, 04 Mar 2012 15:50:36 -0500
-Message-ID: <1330894237.1243.30.camel@obelisk.thedillows.org>
-References: <3109536.qySrY1Ts3e@asus> <6527223.rH6NsR1Dga@asus>
-	 <1330238040.1026.89.camel@obelisk.thedillows.org>
-	 <4F5238FC.1040703@acm.org>
+Subject: Re: [PATCH 00/18, v2] Make ib_srp better suited for H.A. purposes
+Date: Mon, 05 Mar 2012 01:13:28 -0500
+Message-ID: <1330928009.31361.9.camel@obelisk.thedillows.org>
+References: <3109536.qySrY1Ts3e@asus>
+	 <1326579013.8227.4.camel@obelisk.thedillows.org>
+	 <CAO+b5-qv0LRFZ3QkyS+bFXF7Sx7WPeqgSX3q5Ph-jCFKNU0uCw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F5238FC.1040703-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <CAO+b5-qv0LRFZ3QkyS+bFXF7Sx7WPeqgSX3q5Ph-jCFKNU0uCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2012-03-03 at 15:30 +0000, Bart Van Assche wrote:
-> On 02/26/12 06:34, David Dillow wrote:
-> > I was OK before with preventing the addition of a duplicate connection,
-> > but the initiator shouldn't be enforcing the removal of previous
-> > connections -- that should happen via the target issuing a DREQ.
-> >
-> > If you're going to disallow duplicate requests, then just disallow
-> > adding the new one, don't tear down the old one -- let the admin
-> > manually do that if desired.
+On Sun, 2012-01-15 at 09:28 +0000, Bart Van Assche wrote:
+> On Sat, Jan 14, 2012 at 10:10 PM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
+> > Patch 17 (srp_transport: Add transport layer recovery support) doesn't
+> > apply with 'git am'. I haven't investigated why yet, so it may be quite
+> > simple.
 > 
-> But why to wait with disconnecting stale connections until the target
-> sends a DREQ if we know the target is going to send it anyway ? Such an
-> approach would make it necessary to introduce an extra state ("stale
-> connection but not yet cleaned up by target"). Does that approach have
-> any advantage over the approach followed in the patch I posted ?
+> Hmm, that's strange. As far as I can see what arrived on the
+> linux-scsi mailing list is identical to the patches I prepared, and
+> I've just checked that these apply cleanly on top of Linus' tree. By
+> the way, this patch series is available on github too:
+> http://github.com/bvanassche/linux/commits/srp-ha/
 
-Only code cleanliness. I'm not happy with the need to keep track of
-whether or not this host has been added to the SCSI midlayer. I don't
-think you need an extra state -- just leave it live; it will die on the
-next command if the DREQ doesn't happen before the login is accepted
-(which the spec says should be the case). Of course that's a bit ugly
-from a behavioral viewpoint.
+I suspect it was the local Exchange server substituting spaces for the
+tabs; git am was upset with the white space damage. If you can put a URL
+in the cover letter, that will be quite helpful for future reviews.
 
-> Please note that this behavior was introduced because one of your
-> comments on the v1 series was that you considered allowing an
-> administrator to issue a duplicate login request as useful functionality
-> (http://www.spinics.net/lists/linux-rdma/msg10451.html).
+I'm a bit worried about the lack of comments from others about your
+changes to scsi_transport_srp.*. We really should see some ACKs from the
+SCSI guys, and while I would think they should go via James Bottomley
+rather than Roland, I don't think that going through the InfiniBand tree
+will be a real issue if James is OK with them.
 
-Yes, I recall. I also said that I was OK with disallowing a duplicate
-login, as the re-login case is enabled by the admin's ability to
-disconnect a single target.
+However, given the lack of any comments from that side, I wonder if it
+makes any sense to contain the changes to the initiator for now, and
+then migrate the common functionality to the transport layer via the
+SCSI tree as we can get the right people's attention?
 
-I figured you would go that route, as it was the easier path. Let no one
-say you back down from a challenge!
+I'm not particularly happy with that approach, as I'd rather we do it
+correctly the first time, but I know people would like to see the
+improvements in the SRP initiator as well.
 
+What do others think?
 -- 
 Dave Dillow
 National Center for Computational Science
