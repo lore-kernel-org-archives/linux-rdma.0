@@ -1,67 +1,91 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Patch opensm] Allow for easily configuring multiple fabrics on one opensm server
-Date: Mon, 05 Mar 2012 12:25:47 -0500 (EST)
-Message-ID: <342bed2a-d5c1-476e-82c1-d5fd870ab262@zmail13.collab.prod.int.phx2.redhat.com>
-References: <4F54E177.9030302@dev.mellanox.co.il>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH/RFC] mxl4_core: Scale size of MTT table with system RAM
+Date: Mon,  5 Mar 2012 10:09:31 -0800
+Message-ID: <1330970972-10225-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F54E177.9030302-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Brian Ginsbach <ginsbach-WVYJKLFxKCc@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
------ Original Message -----
-> On 3/5/2012 10:28 AM, Doug Ledford wrote:
-> > ----- Original Message -----
-> >> On 3/1/2012 8:31 AM, Doug Ledford wrote:
-> >>> I would say we are simply getting to the point where we *know* we
-> >>> need
-> >>> opensm to handle more than one fabric from a single instance ;-)
-> >>
-> >> Why does a single OpenSM need to handle multiple subnets/fabrics ?
-> >> What's the issue with running multiple OpenSMs with each handling
-> >> it's
-> >> own subnet/fabric ?
-> > 
-> > Because it wasn't built with the idea in mind of sharing logs or
-> > cache
-> > directories, etc.
-> 
-> Yes, each instance has it's own configuration and output files.
-> 
-> > Not to mention that the proliferation of files when
-> > you start multiple instances of opensm is pretty insane (have you
-> > counted how many different files opensm can be configured to
-> > require
-> > now a days...).
-> 
-> I'm not disagreeing with the fact that there are numerous config
-> files
-> (the main config file is already large enough without the myriad of
-> features with their own separate config files) but different subnets
-> have totally different configuration requirements. It's not just the
-> subnet prefix, SM priority, and the few other config items that you
-> identified.
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-In some cases, and in other cases the different subnets are perfect mirrors
-of each other (redundant, identical fabrics).
+The current driver defaults to 1M MTT segments, where each segment holds
+8 MTT entries.  This limits the total memory registered to 8M * PAGE_SIZE
+which is 32GB with 4K pages.  Since systems that have much more memory
+are pretty common now (at least among systems with InfiniBand hardware),
+this limit ends up getting hit in practice quite a bit.
 
-> So what would make this better in your mind ?
+Handle this by having the driver allocate at least enough MTT entries to
+cover 2 * totalram pages.
 
-If I got to wave a magic wand, I would say it's time that opensm
-management started getting simpler, not more complex.  With all of
-the various options for routing engines and QoS and partitions, it's
-gotten to where you need the equivalent of the old Cisco CNA in order
-to configure opensm ;-)
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+Albert, if you could try this on one of your 192GB systems and see if
+you still are able to register enough memory, that would be great.
 
+(Of course please remove any local hacks you have to work around the
+problem in any other way.  And actually I'd be curious to know how
+much you're bumping up num_mtt and/or log_mtts_per_seg to use 192GB
+right now ... I'd like to validate the (2*totalram) heuristic)
 
+Thanks!
+
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h    |    2 +-
+ drivers/net/ethernet/mellanox/mlx4/profile.c |   19 +++++++++++++++++++
+ 2 files changed, 20 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index c92269f..c846152 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -399,7 +399,7 @@ struct mlx4_profile {
+ 	int			num_cq;
+ 	int			num_mcg;
+ 	int			num_mpt;
+-	int			num_mtt;
++	unsigned		num_mtt;
+ };
+ 
+ struct mlx4_fw {
+diff --git a/drivers/net/ethernet/mellanox/mlx4/profile.c b/drivers/net/ethernet/mellanox/mlx4/profile.c
+index 1129677..06e5ade 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/profile.c
++++ b/drivers/net/ethernet/mellanox/mlx4/profile.c
+@@ -83,12 +83,31 @@ u64 mlx4_make_profile(struct mlx4_dev *dev,
+ 	u64 total_size = 0;
+ 	struct mlx4_resource *profile;
+ 	struct mlx4_resource tmp;
++	struct sysinfo si;
+ 	int i, j;
+ 
+ 	profile = kcalloc(MLX4_RES_NUM, sizeof(*profile), GFP_KERNEL);
+ 	if (!profile)
+ 		return -ENOMEM;
+ 
++	/*
++	 * We want to scale the number of MTTs with the size of the
++	 * system memory, since it makes sense to register a lot of
++	 * memory on a system with a lot of memory.  As a heuristic,
++	 * make sure we have enough MTTs to cover twice the system
++	 * memory (with PAGE_SIZE entries).
++	 *
++	 * This number has to be a power of two and fit into 32 bits
++	 * due to device limitations, so cap this at 2^31 as well.
++	 * That limits us to 8TB of memory registration per HCA with
++	 * 4KB pages, which is probably OK for the next few months.
++	 */
++	si_meminfo(&si);
++	request->num_mtt =
++		roundup_pow_of_two(max_t(unsigned, request->num_mtt,
++					 min(1UL << 31,
++					     si.totalram >> (log_mtts_per_seg - 1))));
++
+ 	profile[MLX4_RES_QP].size     = dev_cap->qpc_entry_sz;
+ 	profile[MLX4_RES_RDMARC].size = dev_cap->rdmarc_entry_sz;
+ 	profile[MLX4_RES_ALTC].size   = dev_cap->altc_entry_sz;
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-	      http://people.redhat.com/dledford
+1.7.9
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
