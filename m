@@ -1,93 +1,41 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH/RFC] mxl4_core: Scale size of MTT table with system RAM
-Date: Mon,  5 Mar 2012 10:09:45 -0800
-Message-ID: <1330970985-10267-1-git-send-email-roland@kernel.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 18/18] ib_srp: Rework error handling
+Date: Mon, 05 Mar 2012 19:42:24 +0000
+Message-ID: <4F551720.9010604@acm.org>
+References: <3109536.qySrY1Ts3e@asus> <2527465.kS0UWM2o6z@asus>  <1330238354.1026.93.camel@obelisk.thedillows.org>  <4F53A0E2.3080101@acm.org> <1330891386.1243.18.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1330891386.1243.18.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+On 03/04/12 20:03, David Dillow wrote:
+> multipath implements path-checking on a *per-LUN* basis from user space.
+> Today. No redesign needed. It already works on all SCSI transports.
+>
+> iSCSI has a protocol-defined mechanism to tell us when all LUNs on a
+> given target are unavailable without waiting for the connection to be
+> broken on a command timeout. I don't think FC has that, but it does have
+> notification that a target is out of the fabric -- and all LUNs are
+> unavailable. Both of these situations are communicated via an existing
+> sysfs ABI, and the user space multipath code knows how to fail over and
+> avoid checking those paths that are known to be bad.
+>
+> SRP does not have a protocol-defined way to check the link to the
+> target. IB can tell us when a target leaves the fabric, like FC, but
+> that's not what you're trying to implement -- you are attempting to fake
+> the ping capability of iSCSI.
 
-The current driver defaults to 1M MTT segments, where each segment holds
-8 MTT entries.  This limits the total memory registered to 8M * PAGE_SIZE
-which is 32GB with 4K pages.  Since systems that have much more memory
-are pretty common now (at least among systems with InfiniBand hardware),
-this limit ends up getting hit in practice quite a bit.
+Let's focus on what we agree about. I'll repost the patch series but
+without the last two patches (those that add dev_loss_tmo,
+fast_io_fail_tmo, ping_interval, ping_timeout, failed_reconnects and
+reconnect_tmo).
 
-Handle this by having the driver allocate at least enough MTT entries to
-cover 2 * totalram pages.
-
-Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
----
-Albert, if you could try this on one of your 192GB systems and see if
-you still are able to register enough memory, that would be great.
-
-(Of course please remove any local hacks you have to work around the
-problem in any other way.  And actually I'd be curious to know how
-much you're bumping up num_mtt and/or log_mtts_per_seg to use 192GB
-right now ... I'd like to validate the (2*totalram) heuristic)
-
-Thanks!
-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h    |    2 +-
- drivers/net/ethernet/mellanox/mlx4/profile.c |   19 +++++++++++++++++++
- 2 files changed, 20 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index c92269f..c846152 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -399,7 +399,7 @@ struct mlx4_profile {
- 	int			num_cq;
- 	int			num_mcg;
- 	int			num_mpt;
--	int			num_mtt;
-+	unsigned		num_mtt;
- };
- 
- struct mlx4_fw {
-diff --git a/drivers/net/ethernet/mellanox/mlx4/profile.c b/drivers/net/ethernet/mellanox/mlx4/profile.c
-index 1129677..06e5ade 100644
---- a/drivers/net/ethernet/mellanox/mlx4/profile.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/profile.c
-@@ -83,12 +83,31 @@ u64 mlx4_make_profile(struct mlx4_dev *dev,
- 	u64 total_size = 0;
- 	struct mlx4_resource *profile;
- 	struct mlx4_resource tmp;
-+	struct sysinfo si;
- 	int i, j;
- 
- 	profile = kcalloc(MLX4_RES_NUM, sizeof(*profile), GFP_KERNEL);
- 	if (!profile)
- 		return -ENOMEM;
- 
-+	/*
-+	 * We want to scale the number of MTTs with the size of the
-+	 * system memory, since it makes sense to register a lot of
-+	 * memory on a system with a lot of memory.  As a heuristic,
-+	 * make sure we have enough MTTs to cover twice the system
-+	 * memory (with PAGE_SIZE entries).
-+	 *
-+	 * This number has to be a power of two and fit into 32 bits
-+	 * due to device limitations, so cap this at 2^31 as well.
-+	 * That limits us to 8TB of memory registration per HCA with
-+	 * 4KB pages, which is probably OK for the next few months.
-+	 */
-+	si_meminfo(&si);
-+	request->num_mtt =
-+		roundup_pow_of_two(max_t(unsigned, request->num_mtt,
-+					 min(1UL << 31,
-+					     si.totalram >> (log_mtts_per_seg - 1))));
-+
- 	profile[MLX4_RES_QP].size     = dev_cap->qpc_entry_sz;
- 	profile[MLX4_RES_RDMARC].size = dev_cap->rdmarc_entry_sz;
- 	profile[MLX4_RES_ALTC].size   = dev_cap->altc_entry_sz;
--- 
-1.7.9
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
