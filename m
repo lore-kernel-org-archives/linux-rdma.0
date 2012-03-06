@@ -1,37 +1,39 @@
-From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: mlx4 verbs question
-Date: Mon, 5 Mar 2012 21:44:30 -0600
-Message-ID: <006501ccfb4b$703c49e0$50b4dda0$@systemfabricworks.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/3] batch of mlx4 patches for 3.4
+Date: Tue,  6 Mar 2012 15:50:48 +0200
+Message-ID: <1331041851-20498-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hi Roland,
 
-It has been a long time since I looked at this but I was looking at
-ibv_modify_qp on an mlx4 system.
-I noticed the following which seems incorrect to me.
+Here's a small batch of patches for 3.4 to the mlx4 driver, its made of
+a fix from Eli, report on  thermal error event from Jack and a cleanup
+from me.
 
->From the RTS state issuing a modify qp with qp_attr_mask only set to state
-to the SQD state
-Returns qp_attr with qp_state = SQD but if you then issue ibv_query_qp the
-state is reported as RTS.
-No amount of waiting seems to change this. According to the IBA spec this
-should just work without anything special required.
+Or.
 
-Also for what it's worth most of the errors returned from mlx4 these days
-are EXXX e.g. EINVAL.
-An exception is the failure of a mailbox command which returns the error
-value in the command context i.e. 1.
-It would seem better to be consistent in style.
 
-Bob Pearson
+Eli Cohen (1):
+  IB/mlx4: Fix mlx4_ib_poll_cq possible missed completion
+
+Jack Morgenstein (1):
+  net/mlx4: report thermal error event
+
+Or Gerlitz (1):
+  net/mlx4: remove redundant maintainance of extended port capabilities
+
+ drivers/infiniband/hw/mlx4/cq.c           |    3 +-
+ drivers/infiniband/hw/mlx4/main.c         |   27 ++++++++----------
+ drivers/net/ethernet/mellanox/mlx4/eq.c   |   32 +++++++++++++++++++++-
+ drivers/net/ethernet/mellanox/mlx4/main.c |    7 -----
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h |    5 +++-
+ drivers/net/ethernet/mellanox/mlx4/port.c |   43 -----------------------------
+ include/linux/mlx4/device.h               |   10 +++---
+ 7 files changed, 53 insertions(+), 74 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
