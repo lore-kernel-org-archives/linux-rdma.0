@@ -1,25 +1,72 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: mlx4 verbs question
-Date: Tue, 6 Mar 2012 19:15:53 +0200
-Message-ID: <4F564649.5080301@mellanox.com>
-References: <006501ccfb4b$703c49e0$50b4dda0$@systemfabricworks.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: rds cq event handler issue
+Date: Tue, 06 Mar 2012 12:05:25 -0600
+Message-ID: <4F5651E5.1020005@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <006501ccfb4b$703c49e0$50b4dda0$@systemfabricworks.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/6/2012 5:44 AM, Bob Pearson wrote:
->  From the RTS state issuing a modify qp with qp_attr_mask only set to state to the SQD state
->
+Hey Venkat,
 
-AFAIK SQD isn't supported by connectx
+I think I see a bug in the RDS RDMA module where RDS is not adhering to the RDMA locking context.  From the kernel tree 
+Documentation/infiniband/core_locking.txt:
 
-Or.
+---
+   The context in which completion event and asynchronous event
+   callbacks run is not defined.  Depending on the low-level driver, it
+   may be process context, softirq context, or interrupt context.
+   Upper level protocol consumers may not sleep in a callback.
+---
+
+So RDMA ULPs cannot assume any certain context for their callback functions.  Yet I get a BUG_ON() when running RDS with 
+iw_cxgb3 where RDS is bugging in rds_rdma_free_op():
+
+---
+                 /* Mark page dirty if it was possibly modified, which
+                  * is the case for a RDMA_READ which copies from remote
+                  * to local memory */
+                 if (!ro->op_write) {
+                         BUG_ON(irqs_disabled());
+                         set_page_dirty(page);
+                 }
+---
+
+And rds_rdma_free_op() can be called in the cq callback path.  Here's a stack trace when it bugged:
+
+---
+Call Trace:
+<IRQ> [<ffffffff886ca0fc>] :rds:rds_message_purge+0x54/0x79
+[<ffffffff886ca162>] :rds:rds_message_put+0x41/0x4c
+[<ffffffff886f616b>] :rds_rdma:rds_iw_send_unmap_rm+0xe2/0xf2
+[<ffffffff886f63c4>] :rds_rdma:rds_iw_send_cq_comp_handler+0x193/0x2e5
+[<ffffffff88698a56>] :iw_cxgb3:iwch_ev_dispatch+0x1df/0x2b1
+[<ffffffff8869f0b2>] :iw_cxgb3:cxio_hal_ev_handler+0x6b/0xb4
+[<ffffffff882746cd>] :cxgb3:process_rx+0x3d/0xa0
+[<ffffffff8827b28c>] :cxgb3:process_responses+0x120c/0x1350
+---
+
+iwch_ev_dispatch() explicitly disables irqs to ensure proper serialization:
+
+---
+         spin_lock_irqsave(&chp->comp_handler_lock, flag);
+         (*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
+         spin_unlock_irqrestore(&chp->comp_handler_lock, flag);
+---
+
+I'm not sure if that BUG_ON() in rds_rdma_free_op() is valid or not.  If it is valid, then RDS needs to run this logic 
+in a safe context, not in the context of the CQ callback.  It BUG_ON() is not valid, we can remove it :).
+
+Can you comment?
+
+Thanks,
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
