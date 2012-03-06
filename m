@@ -1,7 +1,7 @@
 From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Subject: RE: mlx4 verbs question
 Date: Tue, 6 Mar 2012 16:22:05 -0600
-Message-ID: <013301ccfbe7$949f5970$bdde0c50$@systemfabricworks.com>
+Message-ID: <013401ccfbe7$968f69a0$c3ae3ce0$@systemfabricworks.com>
 References: <006501ccfb4b$703c49e0$50b4dda0$@systemfabricworks.com> <4F564649.5080301@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -15,8 +15,6 @@ To: 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tziporet Koren' <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Oops. Take that back. It didn't work in fact that was the one that returned
-the '1'.
 
 > -----Original Message-----
 > From: Or Gerlitz [mailto:ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
@@ -32,6 +30,10 @@ state
 > >
 > 
 > AFAIK SQD isn't supported by connectx
+
+But the ibv_modify_qp to SQD works doesn't return an error?! That is where I
+was led astray.
+
 > 
 > Or.
 
