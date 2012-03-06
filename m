@@ -1,61 +1,37 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH][TRIVIAL] include/opensm/osm_subnet.h: fix comment typos
-Date: Mon, 05 Mar 2012 17:39:18 -0800
-Message-ID: <1330997958.4779.1586.camel@auk59.llnl.gov>
+From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: mlx4 verbs question
+Date: Mon, 5 Mar 2012 21:44:30 -0600
+Message-ID: <006501ccfb4b$703c49e0$50b4dda0$@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- include/opensm/osm_subnet.h |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+Hi,
 
-diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
-index e444ee5..219dfb3 100644
---- a/include/opensm/osm_subnet.h
-+++ b/include/opensm/osm_subnet.h
-@@ -572,19 +572,19 @@ typedef struct osm_subn {
- /*
- * FIELDS
- *	sw_guid_tbl
--*		Container of pointers to all Switch objects in the subent.
-+*		Container of pointers to all Switch objects in the subnet.
- *		Indexed by node GUID.
- *
- *	node_guid_tbl
--*		Container of pointers to all Node objects in the subent.
-+*		Container of pointers to all Node objects in the subnet.
- *		Indexed by node GUID.
- *
- *	port_guid_tbl
--*		Container of pointers to all Port objects in the subent.
-+*		Container of pointers to all Port objects in the subnet.
- *		Indexed by port GUID - network order!
- *
- *	rtr_guid_tbl
--*		Container of pointers to all Router objects in the subent.
-+*		Container of pointers to all Router objects in the subnet.
- *		Indexed by node GUID.
- *
- *	prtn_pkey_tbl
-@@ -596,7 +596,7 @@ typedef struct osm_subn {
- *		on the subnet.
- *
- *	port_lid_tbl
--*		Container of pointers to all Port objects in the subent.
-+*		Container of pointers to all Port objects in the subnet.
- *		Indexed by port LID.
- *
- *	master_sm_base_lid
--- 
-1.7.1
+It has been a long time since I looked at this but I was looking at
+ibv_modify_qp on an mlx4 system.
+I noticed the following which seems incorrect to me.
 
+>From the RTS state issuing a modify qp with qp_attr_mask only set to state
+to the SQD state
+Returns qp_attr with qp_state = SQD but if you then issue ibv_query_qp the
+state is reported as RTS.
+No amount of waiting seems to change this. According to the IBA spec this
+should just work without anything special required.
 
+Also for what it's worth most of the errors returned from mlx4 these days
+are EXXX e.g. EINVAL.
+An exception is the failure of a mailbox command which returns the error
+value in the command context i.e. 1.
+It would seem better to be consistent in style.
+
+Bob Pearson
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
