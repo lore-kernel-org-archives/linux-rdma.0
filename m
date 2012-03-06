@@ -1,65 +1,39 @@
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 3/3 fixed] infiniband-diags: Add mkey support to config file
-Date: Tue, 06 Mar 2012 14:18:55 -0800
-Message-ID: <1331072335.17729.17.camel@auk75.llnl.gov>
-References: <1331065620.10889.16.camel@auk75.llnl.gov>
+From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: RE: mlx4 verbs question
+Date: Tue, 6 Mar 2012 16:22:05 -0600
+Message-ID: <013301ccfbe7$949f5970$bdde0c50$@systemfabricworks.com>
+References: <006501ccfb4b$703c49e0$50b4dda0$@systemfabricworks.com> <4F564649.5080301@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1331065620.10889.16.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <4F564649.5080301-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tziporet Koren' <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Oops. Take that back. It didn't work in fact that was the one that returned
+the '1'.
 
-Support for "m_key=" parameter, plus config file
-now installs user-read-only.
-
-Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
----
- Makefile.am         |    2 +-
- etc/ibdiag.conf     |    2 ++
- src/ibdiag_common.c |    2 ++
- 3 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/Makefile.am b/Makefile.am
-index 950f95b..ef59bd2 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -112,4 +112,4 @@ install-data-hook:
- 	fi
- 	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/scripts/IBswcountlimits.pm $(DESTDIR)/$(PERL_INSTALLDIR)/IBswcountlimits.pm
- 	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
--	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
-+	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
-diff --git a/etc/ibdiag.conf b/etc/ibdiag.conf
-index 77f3ce9..2a2334f 100644
---- a/etc/ibdiag.conf
-+++ b/etc/ibdiag.conf
-@@ -15,3 +15,5 @@
- # Default = true
- #MLX_EPI=false
- 
-+# define a default m_key
-+#m_key=0x00
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index 0901231..2089847 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -155,6 +155,8 @@ void read_ibdiag_config(const char *file)
- 			} else {
- 				ibd_ibnetdisc_flags &= ~IBND_CONFIG_MLX_EPI;
- 			}
-+		} else if (strncmp(name, "m_key", strlen("m_key")) == 0) {
-+			ibd_mkey = strtoull(val_str, 0, 0);
- 		}
- 	}
- 
--- 
-1.7.1
-
-
+> -----Original Message-----
+> From: Or Gerlitz [mailto:ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+> Sent: Tuesday, March 06, 2012 11:16 AM
+> To: Bob Pearson
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Tziporet Koren
+> Subject: Re: mlx4 verbs question
+> 
+> On 3/6/2012 5:44 AM, Bob Pearson wrote:
+> >  From the RTS state issuing a modify qp with qp_attr_mask only set to
+state
+> to the SQD state
+> >
+> 
+> AFAIK SQD isn't supported by connectx
+> 
+> Or.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
