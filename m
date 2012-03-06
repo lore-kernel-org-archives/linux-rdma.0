@@ -1,95 +1,108 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: rds cq event handler issue
-Date: Tue, 06 Mar 2012 13:18:55 -0600
-Message-ID: <4F56631F.8050500@opengridcomputing.com>
-References: <4F5651E5.1020005@opengridcomputing.com> <4F565E3D.8030206@oracle.com>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] libibmad: Add MKey support to SMP requests via
+	smp_mkey_get/set()
+Date: Tue, 06 Mar 2012 12:09:54 -0800
+Message-ID: <1331064594.10889.8.camel@auk75.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F565E3D.8030206-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/06/2012 12:58 PM, Venkat Venkatsubra wrote:
-> On 3/6/2012 12:05 PM, Steve Wise wrote:
->> Hey Venkat,
->>
->> I think I see a bug in the RDS RDMA module where RDS is not adhering to the RDMA locking context.  From the kernel 
->> tree Documentation/infiniband/core_locking.txt:
->>
->> ---
->>   The context in which completion event and asynchronous event
->>   callbacks run is not defined.  Depending on the low-level driver, it
->>   may be process context, softirq context, or interrupt context.
->>   Upper level protocol consumers may not sleep in a callback.
->> ---
->>
->> So RDMA ULPs cannot assume any certain context for their callback functions.  Yet I get a BUG_ON() when running RDS 
->> with iw_cxgb3 where RDS is bugging in rds_rdma_free_op():
->>
->> ---
->>                 /* Mark page dirty if it was possibly modified, which
->>                  * is the case for a RDMA_READ which copies from remote
->>                  * to local memory */
->>                 if (!ro->op_write) {
->>                         BUG_ON(irqs_disabled());
->>                         set_page_dirty(page);
->>                 }
->> ---
->>
->> And rds_rdma_free_op() can be called in the cq callback path.  Here's a stack trace when it bugged:
->>
->> ---
->> Call Trace:
->> <IRQ> [<ffffffff886ca0fc>] :rds:rds_message_purge+0x54/0x79
->> [<ffffffff886ca162>] :rds:rds_message_put+0x41/0x4c
->> [<ffffffff886f616b>] :rds_rdma:rds_iw_send_unmap_rm+0xe2/0xf2
->> [<ffffffff886f63c4>] :rds_rdma:rds_iw_send_cq_comp_handler+0x193/0x2e5
->> [<ffffffff88698a56>] :iw_cxgb3:iwch_ev_dispatch+0x1df/0x2b1
->> [<ffffffff8869f0b2>] :iw_cxgb3:cxio_hal_ev_handler+0x6b/0xb4
->> [<ffffffff882746cd>] :cxgb3:process_rx+0x3d/0xa0
->> [<ffffffff8827b28c>] :cxgb3:process_responses+0x120c/0x1350
->> ---
->>
->> iwch_ev_dispatch() explicitly disables irqs to ensure proper serialization:
->>
->> ---
->>         spin_lock_irqsave(&chp->comp_handler_lock, flag);
->>         (*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
->>         spin_unlock_irqrestore(&chp->comp_handler_lock, flag);
->> ---
->>
->> I'm not sure if that BUG_ON() in rds_rdma_free_op() is valid or not.  If it is valid, then RDS needs to run this 
->> logic in a safe context, not in the context of the CQ callback.  It BUG_ON() is not valid, we can remove it :).
->>
->> Can you comment?
->>
->> Thanks,
->>
->> Steve.
->>
-> Hi Steve,
->
-> Our internal latest code has a WARN_ON instead:
-> ---------------------
->                 /* Mark page dirty if it was possibly modified, which
->                  * is the case for a RDMA_READ which copies from remote
->                  * to local memory */
->                 if (!ro->op_write) {
->                         WARN_ON_ONCE(page_mapping(page) && irqs_disabled());
->                         set_page_dirty(page);
->                 }
-> ---------------------
->
-> Venkat
 
-That helps with the crashing. :)   Does set_page_dirty() require irqs enabled?  If so, RDS needs to change such that it 
-doesn't do this work in the CQ event handler callback context.
+Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+---
+ include/infiniband/mad.h |    2 ++
+ src/libibmad.map         |    2 ++
+ src/mad_internal.h       |    1 +
+ src/smp.c                |   12 ++++++++++++
+ 4 files changed, 17 insertions(+), 0 deletions(-)
 
-Steve.
+diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+index 5d62307..278b9bc 100644
+--- a/include/infiniband/mad.h
++++ b/include/infiniband/mad.h
+@@ -1489,6 +1489,8 @@ MAD_EXPORT uint8_t *smp_set_status_via(void *data,
+ib_portid_t * portid,
+ 				       unsigned attrid, unsigned mod,
+ 				       unsigned timeout, int *rstatus,
+ 				       const struct ibmad_port *srcport);
++MAD_EXPORT void smp_mkey_set(struct ibmad_port *srcport, uint64_t
+mkey);
++MAD_EXPORT uint64_t smp_mkey_get(const struct ibmad_port *srcport);
+ 
+ /* cc.c */
+ MAD_EXPORT void *cc_query_status_via(void *rcvbuf, ib_portid_t *
+portid,
+diff --git a/src/libibmad.map b/src/libibmad.map
+index 7c7587b..a4d4418 100644
+--- a/src/libibmad.map
++++ b/src/libibmad.map
+@@ -146,5 +146,7 @@ IBMAD_1.3 {
+ 		mad_dump_port_ext_speeds_counters;
+ 		cc_query_status_via;
+ 		cc_config_status_via;
++		smp_mkey_get;
++		smp_mkey_set;
+ 	local: *;
+ };
+diff --git a/src/mad_internal.h b/src/mad_internal.h
+index 3c32d10..5deac27 100644
+--- a/src/mad_internal.h
++++ b/src/mad_internal.h
+@@ -40,6 +40,7 @@ struct ibmad_port {
+ 	int port_id;		/* file descriptor returned by umad_open() */
+ 	int class_agents[MAX_CLASS];	/* class2agent mapper */
+ 	int timeout, retries;
++	uint64_t smp_mkey;
+ };
+ 
+ extern struct ibmad_port *ibmp;
+diff --git a/src/smp.c b/src/smp.c
+index a337663..14c74ed 100644
+--- a/src/smp.c
++++ b/src/smp.c
+@@ -46,6 +46,16 @@
+ #undef DEBUG
+ #define DEBUG 	if (ibdebug)	IBWARN
+ 
++void smp_mkey_set(struct ibmad_port *srcport, uint64_t mkey)
++{
++	srcport->smp_mkey = mkey;
++}
++
++uint64_t smp_mkey_get(const struct ibmad_port *srcport)
++{
++	return srcport->smp_mkey;
++}
++
+ uint8_t *smp_set_status_via(void *data, ib_portid_t * portid, unsigned
+attrid,
+ 			    unsigned mod, unsigned timeout, int *rstatus,
+ 			    const struct ibmad_port *srcport)
+@@ -67,6 +77,7 @@ uint8_t *smp_set_status_via(void *data, ib_portid_t *
+portid, unsigned attrid,
+ 	rpc.timeout = timeout;
+ 	rpc.datasz = IB_SMP_DATA_SIZE;
+ 	rpc.dataoffs = IB_SMP_DATA_OFFS;
++	rpc.mkey = srcport->smp_mkey;
+ 
+ 	portid->sl = 0;
+ 	portid->qp = 0;
+@@ -105,6 +116,7 @@ uint8_t *smp_query_status_via(void *rcvbuf,
+ib_portid_t * portid,
+ 	rpc.timeout = timeout;
+ 	rpc.datasz = IB_SMP_DATA_SIZE;
+ 	rpc.dataoffs = IB_SMP_DATA_OFFS;
++	rpc.mkey = srcport->smp_mkey;
+ 
+ 	if ((portid->lid <= 0) ||
+ 	    (portid->drpath.drslid == 0xffff) ||
+-- 
+1.7.1
+
 
 
 --
