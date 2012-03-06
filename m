@@ -1,116 +1,177 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 1/3] net/mlx4: report thermal error event
-Date: Tue,  6 Mar 2012 15:50:49 +0200
-Message-ID: <1331041851-20498-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH 2/3] net/mlx4: remove redundant maintainance of extended port capabilities
+Date: Tue,  6 Mar 2012 15:50:50 +0200
+Message-ID: <1331041851-20498-3-git-send-email-ogerlitz@mellanox.com>
 References: <1331041851-20498-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1331041851-20498-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Dotan Barak <dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+While doing the work for commit a6f7feae6d "IB/mlx4: pass SMP vendor-specific
+attribute MADs to firmware" we realized that the firmware would respond
+on all sorts of vendor specific mads. Hence, commit 97285b7817 "mlx4_core:
+Add extended port capabilities support" adds redundant code into the driver,
+since there's no real reaon to maintain the extended capabilities of the port,
+as they can be queried on demand (e.g the FDR10 one). This patch reverts
+commit 97285b7817 and removes the check for extended caps from the mlx4_ib
+driver port query flow.
 
-Print an error message when an async event of thermal error is
-being reported by the HW.
-
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Dotan Barak <dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/eq.c   |   32 ++++++++++++++++++++++++++++-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h |    4 +++
- include/linux/mlx4/device.h               |    5 ++++
- 3 files changed, 40 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c         |   27 ++++++++----------
+ drivers/net/ethernet/mellanox/mlx4/main.c |    7 -----
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h |    1 -
+ drivers/net/ethernet/mellanox/mlx4/port.c |   43 -----------------------------
+ include/linux/mlx4/device.h               |    5 ---
+ 5 files changed, 12 insertions(+), 71 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
-index 8fa41f3..780b5ad 100644
---- a/drivers/net/ethernet/mellanox/mlx4/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
-@@ -79,7 +79,8 @@ enum {
- 			       (1ull << MLX4_EVENT_TYPE_SRQ_LIMIT)	    | \
- 			       (1ull << MLX4_EVENT_TYPE_CMD)		    | \
- 			       (1ull << MLX4_EVENT_TYPE_COMM_CHANNEL)       | \
--			       (1ull << MLX4_EVENT_TYPE_FLR_EVENT))
-+			       (1ull << MLX4_EVENT_TYPE_FLR_EVENT)	    | \
-+			       (1ull << MLX4_EVENT_TYPE_FATAL_WARNING))
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 2749f73..5e00eb2 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -225,21 +225,18 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
  
- static void eq_set_ci(struct mlx4_eq *eq, int req_not)
- {
-@@ -443,6 +444,35 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
- 			queue_work(priv->mfunc.master.comm_wq,
- 				   &priv->mfunc.master.slave_flr_event_work);
- 			break;
+ 	/* If reported active speed is QDR, check if is FDR-10 */
+ 	if (props->active_speed == IB_SPEED_QDR) {
+-		if (to_mdev(ibdev)->dev->caps.ext_port_cap[port] &
+-		    MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO) {
+-			init_query_mad(in_mad);
+-			in_mad->attr_id = MLX4_ATTR_EXTENDED_PORT_INFO;
+-			in_mad->attr_mod = cpu_to_be32(port);
+-
+-			err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port,
+-					   NULL, NULL, in_mad, out_mad);
+-			if (err)
+-				return err;
++		init_query_mad(in_mad);
++		in_mad->attr_id = MLX4_ATTR_EXTENDED_PORT_INFO;
++		in_mad->attr_mod = cpu_to_be32(port);
+ 
+-			/* Checking LinkSpeedActive for FDR-10 */
+-			if (out_mad->data[15] & 0x1)
+-				props->active_speed = IB_SPEED_FDR10;
+-		}
++		err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port,
++				   NULL, NULL, in_mad, out_mad);
++		if (err)
++			return err;
 +
-+		case MLX4_EVENT_TYPE_FATAL_WARNING:
-+			if (eqe->subtype == MLX4_FATAL_WARNING_SUBTYPE_WARMING) {
-+				if (mlx4_is_master(dev))
-+					for (i = 0; i < dev->num_slaves; i++) {
-+						mlx4_dbg(dev, "%s: Sending "
-+							"MLX4_FATAL_WARNING_SUBTYPE_WARMING"
-+							" to slave: %d\n", __func__, i);
-+						if (i == dev->caps.function)
-+							continue;
-+						mlx4_slave_event(dev, i, eqe);
-+					}
-+				mlx4_err(dev, "Temperature Threshold was reached! "
-+					"Threshold: %d celsius degrees; "
-+					"Current Temperature: %d\n",
-+					be16_to_cpu(eqe->event.warming.warning_threshold),
-+					be16_to_cpu(eqe->event.warming.current_temperature));
-+			} else
-+				mlx4_warn(dev, "Unhandled event FATAL WARNING (%02x), "
-+					  "subtype %02x on EQ %d at index %u. owner=%x, "
-+					  "nent=0x%x, slave=%x, ownership=%s\n",
-+					  eqe->type, eqe->subtype, eq->eqn,
-+					  eq->cons_index, eqe->owner, eq->nent,
-+					  eqe->slave_id,
-+					  !!(eqe->owner & 0x80) ^
-+					  !!(eq->cons_index & eq->nent) ? "HW" : "SW");
-+
-+			break;
-+
- 		case MLX4_EVENT_TYPE_EEC_CATAS_ERROR:
- 		case MLX4_EVENT_TYPE_ECC_DETECT:
- 		default:
++		/* Checking LinkSpeedActive for FDR-10 */
++		if (out_mad->data[15] & 0x1)
++			props->active_speed = IB_SPEED_FDR10;
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index f057896..f8f8f51 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -1363,13 +1363,6 @@ static int mlx4_setup_hca(struct mlx4_dev *dev)
+ 					  "with caps = 0\n", port, err);
+ 			dev->caps.ib_port_def_cap[port] = ib_port_default_caps;
+ 
+-			err = mlx4_check_ext_port_caps(dev, port);
+-			if (err)
+-				mlx4_warn(dev, "failed to get port %d extended "
+-					  "port capabilities support info (%d)."
+-					  " Assuming not supported\n",
+-					  port, err);
+-
+ 			err = mlx4_SET_PORT(dev, port);
+ 			if (err) {
+ 				mlx4_err(dev, "Failed to set port %d, aborting\n",
 diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index c92269f..ac2d606 100644
+index ac2d606..30dc606 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
 +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -363,6 +363,10 @@ struct mlx4_eqe {
- 		struct {
- 			__be32	slave_id;
- 		} __packed flr_event;
-+		struct {
-+			__be16  current_temperature;
-+			__be16  warning_threshold;
-+		} __packed warming;
- 	}			event;
- 	u8			slave_id;
- 	u8			reserved3[2];
+@@ -1029,7 +1029,6 @@ int mlx4_QUERY_PORT_wrapper(struct mlx4_dev *dev, int slave,
+ 			    struct mlx4_cmd_mailbox *outbox,
+ 			    struct mlx4_cmd_info *cmd);
+ int mlx4_get_port_ib_caps(struct mlx4_dev *dev, u8 port, __be32 *caps);
+-int mlx4_check_ext_port_caps(struct mlx4_dev *dev, u8 port);
+ 
+ 
+ int mlx4_QP_ATTACH_wrapper(struct mlx4_dev *dev, int slave,
+diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+index f44ae55..51708dd 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/port.c
++++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+@@ -590,49 +590,6 @@ int mlx4_get_port_ib_caps(struct mlx4_dev *dev, u8 port, __be32 *caps)
+ 	return err;
+ }
+ 
+-int mlx4_check_ext_port_caps(struct mlx4_dev *dev, u8 port)
+-{
+-	struct mlx4_cmd_mailbox *inmailbox, *outmailbox;
+-	u8 *inbuf, *outbuf;
+-	int err, packet_error;
+-
+-	inmailbox = mlx4_alloc_cmd_mailbox(dev);
+-	if (IS_ERR(inmailbox))
+-		return PTR_ERR(inmailbox);
+-
+-	outmailbox = mlx4_alloc_cmd_mailbox(dev);
+-	if (IS_ERR(outmailbox)) {
+-		mlx4_free_cmd_mailbox(dev, inmailbox);
+-		return PTR_ERR(outmailbox);
+-	}
+-
+-	inbuf = inmailbox->buf;
+-	outbuf = outmailbox->buf;
+-	memset(inbuf, 0, 256);
+-	memset(outbuf, 0, 256);
+-	inbuf[0] = 1;
+-	inbuf[1] = 1;
+-	inbuf[2] = 1;
+-	inbuf[3] = 1;
+-
+-	*(__be16 *) (&inbuf[16]) = MLX4_ATTR_EXTENDED_PORT_INFO;
+-	*(__be32 *) (&inbuf[20]) = cpu_to_be32(port);
+-
+-	err = mlx4_cmd_box(dev, inmailbox->dma, outmailbox->dma, port, 3,
+-			   MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C,
+-			   MLX4_CMD_NATIVE);
+-
+-	packet_error = be16_to_cpu(*(__be16 *) (outbuf + 4));
+-
+-	dev->caps.ext_port_cap[port] = (!err && !packet_error) ?
+-				       MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO
+-				       : 0;
+-
+-	mlx4_free_cmd_mailbox(dev, inmailbox);
+-	mlx4_free_cmd_mailbox(dev, outmailbox);
+-	return err;
+-}
+-
+ static int mlx4_common_set_port(struct mlx4_dev *dev, int slave, u32 in_mod,
+ 				u8 op_mod, struct mlx4_cmd_mailbox *inbox)
+ {
 diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 263d2ae..4b3fbf1 100644
+index 4b3fbf1..5397262 100644
 --- a/include/linux/mlx4/device.h
 +++ b/include/linux/mlx4/device.h
-@@ -133,6 +133,7 @@ enum mlx4_event {
- 	MLX4_EVENT_TYPE_CMD		   = 0x0a,
- 	MLX4_EVENT_TYPE_VEP_UPDATE	   = 0x19,
- 	MLX4_EVENT_TYPE_COMM_CHANNEL	   = 0x18,
-+	MLX4_EVENT_TYPE_FATAL_WARNING	   = 0x1b,
- 	MLX4_EVENT_TYPE_FLR_EVENT	   = 0x1c,
- 	MLX4_EVENT_TYPE_NONE		   = 0xff,
- };
-@@ -143,6 +144,10 @@ enum {
- };
+@@ -101,10 +101,6 @@ enum {
+ #define MLX4_ATTR_EXTENDED_PORT_INFO	cpu_to_be16(0xff90)
  
  enum {
-+	MLX4_FATAL_WARNING_SUBTYPE_WARMING = 0,
-+};
-+
-+enum {
- 	MLX4_PERM_LOCAL_READ	= 1 << 10,
- 	MLX4_PERM_LOCAL_WRITE	= 1 << 11,
- 	MLX4_PERM_REMOTE_READ	= 1 << 12,
+-	MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO	= 1 <<  0
+-};
+-
+-enum {
+ 	MLX4_BMME_FLAG_LOCAL_INV	= 1 <<  6,
+ 	MLX4_BMME_FLAG_REMOTE_INV	= 1 <<  7,
+ 	MLX4_BMME_FLAG_TYPE_2_WIN	= 1 <<  9,
+@@ -314,7 +310,6 @@ struct mlx4_caps {
+ 	u32			port_mask[MLX4_MAX_PORTS + 1];
+ 	enum mlx4_port_type	possible_type[MLX4_MAX_PORTS + 1];
+ 	u32			max_counters;
+-	u8			ext_port_cap[MLX4_MAX_PORTS + 1];
+ };
+ 
+ struct mlx4_buf_list {
 -- 
 1.6.5.5
 
