@@ -1,62 +1,61 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: saquery further error value clean up.
-Date: Mon,  5 Mar 2012 13:45:41 -0800
-Message-ID: <1330983941-13727-1-git-send-email-weiny2@llnl.gov>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH][TRIVIAL] include/opensm/osm_subnet.h: fix comment typos
+Date: Mon, 05 Mar 2012 17:39:18 -0800
+Message-ID: <1330997958.4779.1586.camel@auk59.llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- src/saquery.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ include/opensm/osm_subnet.h |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/src/saquery.c b/src/saquery.c
-index 097d9dd..e5fdb25 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -798,7 +798,7 @@ static int get_lid_from_name(bind_handle_t h, const char *name, uint16_t * lid)
- 	if (ret)
- 		return ret;
- 
--	ret = IB_NOT_FOUND;
-+	ret = ENONET;
- 	for (i = 0; i < result.result_cnt; i++) {
- 		node_record = sa_get_query_rec(result.p_result_madw, i);
- 		p_ni = &(node_record->node_info);
-@@ -807,7 +807,7 @@ static int get_lid_from_name(bind_handle_t h, const char *name, uint16_t * lid)
- 			       sizeof(node_record->node_desc.description)) ==
- 		    0) {
- 			*lid = cl_ntoh16(node_record->lid);
--			ret = IB_SUCCESS;
-+			ret = 0;
- 			break;
- 		}
- 	}
-@@ -817,14 +817,16 @@ static int get_lid_from_name(bind_handle_t h, const char *name, uint16_t * lid)
- 
- static uint16_t get_lid(bind_handle_t h, const char *name)
- {
-+	int rc = 0;
- 	uint16_t rc_lid = 0;
- 
- 	if (!name)
- 		return 0;
- 	if (isalpha(name[0])) {
--		if (get_lid_from_name(h, name, &rc_lid) != 0) {
--			fprintf(stderr, "Failed to find lid for \"%s\"\n", name);
--			exit(EINVAL);
-+		if ((rc = get_lid_from_name(h, name, &rc_lid)) != 0) {
-+			fprintf(stderr, "Failed to find lid for \"%s\": %s\n",
-+				name, strerror(rc));
-+			exit(rc);
- 		}
- 	} else {
- 		long val;
+diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
+index e444ee5..219dfb3 100644
+--- a/include/opensm/osm_subnet.h
++++ b/include/opensm/osm_subnet.h
+@@ -572,19 +572,19 @@ typedef struct osm_subn {
+ /*
+ * FIELDS
+ *	sw_guid_tbl
+-*		Container of pointers to all Switch objects in the subent.
++*		Container of pointers to all Switch objects in the subnet.
+ *		Indexed by node GUID.
+ *
+ *	node_guid_tbl
+-*		Container of pointers to all Node objects in the subent.
++*		Container of pointers to all Node objects in the subnet.
+ *		Indexed by node GUID.
+ *
+ *	port_guid_tbl
+-*		Container of pointers to all Port objects in the subent.
++*		Container of pointers to all Port objects in the subnet.
+ *		Indexed by port GUID - network order!
+ *
+ *	rtr_guid_tbl
+-*		Container of pointers to all Router objects in the subent.
++*		Container of pointers to all Router objects in the subnet.
+ *		Indexed by node GUID.
+ *
+ *	prtn_pkey_tbl
+@@ -596,7 +596,7 @@ typedef struct osm_subn {
+ *		on the subnet.
+ *
+ *	port_lid_tbl
+-*		Container of pointers to all Port objects in the subent.
++*		Container of pointers to all Port objects in the subnet.
+ *		Indexed by port LID.
+ *
+ *	master_sm_base_lid
 -- 
 1.7.1
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
