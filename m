@@ -1,74 +1,149 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v3] iw_cm: reject connect requests if cmid is not in LISTEN
-Date: Wed, 07 Mar 2012 16:48:11 -0600
-Message-ID: <20120307224809.7641.13115.stgit@build.ogc.int>
+Subject: [PATCH] iw_cxgb3: don't pass irq flags to flush_qp().
+Date: Wed, 07 Mar 2012 16:48:46 -0600
+Message-ID: <20120307224845.7669.63849.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When destroying a listening cmid, the iwcm first marks the state of
-the cmid as DESTROYING, then releases the lock and calls into the
-iwarp provider to destroy the endpoint.  Since the cmid is not locked,
-its possible for the iwarp provider to pass a connection request event
-to the iwcm, which will be silently dropped by the iwcm.  This causes
-the iwarp provider to never free up the resources from this connection
-because the assumption is the iwcm will accept or reject this connection.
+Since flush_qp() is always called with irqs disabled, all the locking
+inside flush_qp() and __flush_qp() doesn't need irq save/restore.
 
-The solution is to reject these connection requests.
+Further, passing the flag variable from iwch_modify_qp() is just wrong
+and causes a WARN_ON() in local_bh_enable().
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/core/iwcm.c |   24 +++++++++++++-----------
- 1 files changed, 13 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/cxgb3/iwch_qp.c |   40 +++++++++++++++++----------------
+ 1 files changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index 1a696f7..0bb99bb 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -624,17 +624,6 @@ static void cm_conn_req_handler(struct iwcm_id_private *listen_id_priv,
- 	 */
- 	BUG_ON(iw_event->status);
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+index bea5839..6de8463 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+@@ -803,7 +803,7 @@ int iwch_post_terminate(struct iwch_qp *qhp, struct respQ_msg_t *rsp_msg)
+  * Assumes qhp lock is held.
+  */
+ static void __flush_qp(struct iwch_qp *qhp, struct iwch_cq *rchp,
+-				struct iwch_cq *schp, unsigned long *flag)
++				struct iwch_cq *schp)
+ {
+ 	int count;
+ 	int flushed;
+@@ -812,44 +812,44 @@ static void __flush_qp(struct iwch_qp *qhp, struct iwch_cq *rchp,
+ 	PDBG("%s qhp %p rchp %p schp %p\n", __func__, qhp, rchp, schp);
+ 	/* take a ref on the qhp since we must release the lock */
+ 	atomic_inc(&qhp->refcnt);
+-	spin_unlock_irqrestore(&qhp->lock, *flag);
++	spin_unlock(&qhp->lock);
  
--	/*
--	 * We could be destroying the listening id. If so, ignore this
--	 * upcall.
--	 */
--	spin_lock_irqsave(&listen_id_priv->lock, flags);
--	if (listen_id_priv->state != IW_CM_STATE_LISTEN) {
--		spin_unlock_irqrestore(&listen_id_priv->lock, flags);
--		goto out;
--	}
--	spin_unlock_irqrestore(&listen_id_priv->lock, flags);
--
- 	cm_id = iw_create_cm_id(listen_id_priv->id.device,
- 				listen_id_priv->id.cm_handler,
- 				listen_id_priv->id.context);
-@@ -649,6 +638,19 @@ static void cm_conn_req_handler(struct iwcm_id_private *listen_id_priv,
- 	cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
- 	cm_id_priv->state = IW_CM_STATE_CONN_RECV;
+ 	/* locking hierarchy: cq lock first, then qp lock. */
+-	spin_lock_irqsave(&rchp->lock, *flag);
++	spin_lock(&rchp->lock);
+ 	spin_lock(&qhp->lock);
+ 	cxio_flush_hw_cq(&rchp->cq);
+ 	cxio_count_rcqes(&rchp->cq, &qhp->wq, &count);
+ 	flushed = cxio_flush_rq(&qhp->wq, &rchp->cq, count);
+ 	spin_unlock(&qhp->lock);
+-	spin_unlock_irqrestore(&rchp->lock, *flag);
++	spin_unlock(&rchp->lock);
+ 	if (flushed) {
+-		spin_lock_irqsave(&rchp->comp_handler_lock, *flag);
++		spin_lock(&rchp->comp_handler_lock);
+ 		(*rchp->ibcq.comp_handler)(&rchp->ibcq, rchp->ibcq.cq_context);
+-		spin_unlock_irqrestore(&rchp->comp_handler_lock, *flag);
++		spin_unlock(&rchp->comp_handler_lock);
+ 	}
  
-+	/*
-+	 * We could be destroying the listening id. If so, ignore this
-+	 * upcall.
-+	 */
-+	spin_lock_irqsave(&listen_id_priv->lock, flags);
-+	if (listen_id_priv->state != IW_CM_STATE_LISTEN) {
-+		spin_unlock_irqrestore(&listen_id_priv->lock, flags);
-+		iw_cm_reject(cm_id, NULL, 0);
-+		iw_destroy_cm_id(cm_id);
-+		goto out;
-+	}
-+	spin_unlock_irqrestore(&listen_id_priv->lock, flags);
-+
- 	ret = alloc_work_entries(cm_id_priv, 3);
- 	if (ret) {
- 		iw_cm_reject(cm_id, NULL, 0);
+ 	/* locking hierarchy: cq lock first, then qp lock. */
+-	spin_lock_irqsave(&schp->lock, *flag);
++	spin_lock(&schp->lock);
+ 	spin_lock(&qhp->lock);
+ 	cxio_flush_hw_cq(&schp->cq);
+ 	cxio_count_scqes(&schp->cq, &qhp->wq, &count);
+ 	flushed = cxio_flush_sq(&qhp->wq, &schp->cq, count);
+ 	spin_unlock(&qhp->lock);
+-	spin_unlock_irqrestore(&schp->lock, *flag);
++	spin_unlock(&schp->lock);
+ 	if (flushed) {
+-		spin_lock_irqsave(&schp->comp_handler_lock, *flag);
++		spin_lock(&schp->comp_handler_lock);
+ 		(*schp->ibcq.comp_handler)(&schp->ibcq, schp->ibcq.cq_context);
+-		spin_unlock_irqrestore(&schp->comp_handler_lock, *flag);
++		spin_unlock(&schp->comp_handler_lock);
+ 	}
+ 
+ 	/* deref */
+ 	if (atomic_dec_and_test(&qhp->refcnt))
+ 	        wake_up(&qhp->wait);
+ 
+-	spin_lock_irqsave(&qhp->lock, *flag);
++	spin_lock(&qhp->lock);
+ }
+ 
+-static void flush_qp(struct iwch_qp *qhp, unsigned long *flag)
++static void flush_qp(struct iwch_qp *qhp)
+ {
+ 	struct iwch_cq *rchp, *schp;
+ 
+@@ -859,19 +859,19 @@ static void flush_qp(struct iwch_qp *qhp, unsigned long *flag)
+ 	if (qhp->ibqp.uobject) {
+ 		cxio_set_wq_in_error(&qhp->wq);
+ 		cxio_set_cq_in_error(&rchp->cq);
+-		spin_lock_irqsave(&rchp->comp_handler_lock, *flag);
++		spin_lock(&rchp->comp_handler_lock);
+ 		(*rchp->ibcq.comp_handler)(&rchp->ibcq, rchp->ibcq.cq_context);
+-		spin_unlock_irqrestore(&rchp->comp_handler_lock, *flag);
++		spin_unlock(&rchp->comp_handler_lock);
+ 		if (schp != rchp) {
+ 			cxio_set_cq_in_error(&schp->cq);
+-			spin_lock_irqsave(&schp->comp_handler_lock, *flag);
++			spin_lock(&schp->comp_handler_lock);
+ 			(*schp->ibcq.comp_handler)(&schp->ibcq,
+ 						   schp->ibcq.cq_context);
+-			spin_unlock_irqrestore(&schp->comp_handler_lock, *flag);
++			spin_unlock(&schp->comp_handler_lock);
+ 		}
+ 		return;
+ 	}
+-	__flush_qp(qhp, rchp, schp, flag);
++	__flush_qp(qhp, rchp, schp);
+ }
+ 
+ 
+@@ -1030,7 +1030,7 @@ int iwch_modify_qp(struct iwch_dev *rhp, struct iwch_qp *qhp,
+ 			break;
+ 		case IWCH_QP_STATE_ERROR:
+ 			qhp->attr.state = IWCH_QP_STATE_ERROR;
+-			flush_qp(qhp, &flag);
++			flush_qp(qhp);
+ 			break;
+ 		default:
+ 			ret = -EINVAL;
+@@ -1078,7 +1078,7 @@ int iwch_modify_qp(struct iwch_dev *rhp, struct iwch_qp *qhp,
+ 		}
+ 		switch (attrs->next_state) {
+ 			case IWCH_QP_STATE_IDLE:
+-				flush_qp(qhp, &flag);
++				flush_qp(qhp);
+ 				qhp->attr.state = IWCH_QP_STATE_IDLE;
+ 				qhp->attr.llp_stream_handle = NULL;
+ 				put_ep(&qhp->ep->com);
+@@ -1132,7 +1132,7 @@ err:
+ 	free=1;
+ 	wake_up(&qhp->wait);
+ 	BUG_ON(!ep);
+-	flush_qp(qhp, &flag);
++	flush_qp(qhp);
+ out:
+ 	spin_unlock_irqrestore(&qhp->lock, flag);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
