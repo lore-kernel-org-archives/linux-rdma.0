@@ -1,73 +1,60 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/25 v2] rdma/cm: define native IB address
-Date: Wed, 7 Mar 2012 17:45:08 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823733B7669D7@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237325661ADD@ORSMSX102.amr.corp.intel.com>
- <CAL1RGDUu9sUbeWgBwivnAeXf+OWX_m5MRrizfzP4ni-FOGxiTQ@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373374F1A64@ORSMSX102.amr.corp.intel.com>
- <CAL1RGDV-oYkNwQQUkAuUEHTH=HbmLk6Kv7JRnJ3XxN1DMNzLNQ@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [RFC 0/2] be2net: Added functionality to support RoCE driver
+Date: Wed, 7 Mar 2012 11:02:02 -0800
+Message-ID: <CAL1RGDWqmdpU7U4robRs0J1xHPirW3ScmbycLNpZA--hO47mYg@mail.gmail.com>
+References: <102ec66a-5bd6-4e64-81b2-87ea6111e466@exht1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDV-oYkNwQQUkAuUEHTH=HbmLk6Kv7JRnJ3XxN1DMNzLNQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <102ec66a-5bd6-4e64-81b2-87ea6111e466-nbYkmrCdWxmgMrCBcu8zE0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Mon, Feb 27, 2012 at 2:22 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> w=
-rote:
-> >> > --- a/include/linux/socket.h
-> >> > +++ b/include/linux/socket.h
-> >> > @@ -184,6 +184,7 @@ struct ucred {
-> >> > =A0#define AF_PPPOX =A0 =A0 =A0 24 =A0 =A0 =A0/* PPPoX sockets =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> >> > =A0#define AF_WANPIPE =A0 =A0 25 =A0 =A0 =A0/* Wanpipe API Socke=
-ts */
-> >> > =A0#define AF_LLC =A0 =A0 =A0 =A0 26 =A0 =A0 =A0/* Linux LLC =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> >> > +#define AF_IB =A0 =A0 =A0 =A0 =A027 =A0 =A0 =A0/* Native Infini=
-Band address =A0 =A0*/
-> >> > =A0#define AF_CAN =A0 =A0 =A0 =A0 29 =A0 =A0 =A0/* Controller Ar=
-ea Network =A0 =A0 =A0*/
-> >> > =A0#define AF_TIPC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A030 =A0 =A0 =A0=
-/* TIPC
-> sockets =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
-> >> > =A0#define AF_BLUETOOTH =A0 31 =A0 =A0 =A0/* Bluetooth sockets =A0=
- =A0 =A0 =A0 =A0 =A0*/
-> >> > @@ -227,6 +228,7 @@ struct ucred {
-> >> > =A0#define PF_PPPOX =A0 =A0 =A0 AF_PPPOX
-> >> > =A0#define PF_WANPIPE =A0 =A0 AF_WANPIPE
-> >> > =A0#define PF_LLC =A0 =A0 =A0 =A0 AF_LLC
-> >> > +#define PF_IB =A0 =A0 =A0 =A0 =A0AF_IB
-> >> > =A0#define PF_CAN =A0 =A0 =A0 =A0 AF_CAN
-> >> > =A0#define PF_TIPC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0AF_TIPC
-> >> > =A0#define PF_BLUETOOTH =A0 AF_BLUETOOTH
-> >>
-> >> Has this been run by the networking community? =A0Are they OK with=
- this
-> >> assignment?
-> >
-> > I did copy netdev on the original submissions, but I don't remember=
- any
-> explicit ack or nack.
->=20
-> David, any feeling yay or nay about adding these?
->=20
-> Is the kernel the final arbiter of AF_xxx / PF_xxx assignments, or
-> is there anything else we have to worry about?
+On Wed, Mar 7, 2012 at 9:47 AM,  <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+>
+> This patch is against roland's below Infiniband tree.
+> http://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git
+> Simiilar patch against netdev net-next tree will be made based on thi=
+s patch.
+>
+> This patch adds functionality to support RoCE (RDMA over Ethernet) dr=
+iver.
+> - Detecting RoCE supported adapters and creating linked list of them.
+> - Enabling 5 more MSIX vectors for RoCE functionality.
+> - Calling registered callback functions of the RoCE driver
+> =A0whenever new RoCE capable device is added/removed.
+> - Notifying events to RoCE driver when interface is up or down.
+> - Provides device specific details to RoCE driver for each roce devic=
+e.
+> - Provides low level mailbox command to be issued by RoCE driver
+> =A0before it can have it own MQ.
+>
+> Parav Pandit (2):
+> =A0be2net: Added function to issue mailbox cmd on MQ.
+> =A0be2net: Added functionality to support RoCE driver
 
-To clarify the intent of this change:
+Great, I'm really excited to be getting another upstream driver.
 
-The RDMA CM allows users to specify addresses using struct sockaddr.  T=
-oday, only INET/6 are supported.  The intent is to allow a user to spec=
-ify native InfiniBand addresses through that interface.  In the more im=
-mediate, this helps to solve InfiniBand scaling issues.  Longer term, t=
-his can also be used to control path failover.
+I would suggest that when the actual RoCE driver is posted, we
+merge these 2 prerequisite patches + the driver through my tree,
+to avoid the hassle of a dependency between my tree and Dave's
+net-next tree.
 
-- Sean
+(Assuming these patches are OK with Dave and everyone else...
+they look pretty reasonable to me after a quick read)
+
+When do you expect to post the actual RoCE driver?  If that's
+going to be a while, another possibility is to just merge these
+patches through net-next for 3.4, although I'm not sure about
+how Dave feels about merging all this stuff without seeing what
+will actually use it.
+
+Thanks,
+  Roland
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
