@@ -1,84 +1,119 @@
-From: <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/2] be2net: Added function to issue mailbox cmd on MQ.
-Date: Wed, 7 Mar 2012 23:15:15 +0530
-Message-ID: <c67f2a7a-af96-4551-bef9-d340ebbd58e6@exht1.ad.emulex.com>
-References: <1331142316-23681-1-git-send-email-parav.pandit@emulex.com>
+From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+Subject: Re: [PATCH resend] libmlx4: Add multicast IBoE support
+Date: Wed, 7 Mar 2012 09:56:12 -0600
+Message-ID: <20120307155612.GA2469@BohrerMBP.rgmadvisors.com>
+References: <1330101150-1253-1-git-send-email-sbohrer@rgmadvisors.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1331142316-23681-1-git-send-email-parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1330101150-1253-1-git-send-email-sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+On Fri, Feb 24, 2012 at 10:32:30AM -0600, Shawn Bohrer wrote:
+> Add multicast support for IBoE to the address handle creation flow.
+> Derived from work by Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+> 
+> Signed-off-by: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+> ---
+>  src/verbs.c |   38 +++++++++++++++++++++++++++++++-------
+>  1 files changed, 31 insertions(+), 7 deletions(-)
+> 
+> diff --git a/src/verbs.c b/src/verbs.c
+> index 199d107..2772de5 100644
+> --- a/src/verbs.c
+> +++ b/src/verbs.c
+> @@ -624,6 +624,11 @@ static int link_local_gid(const union ibv_gid *gid)
+>  	return 0;
+>  }
+>  
+> +static int is_multicast_gid(const union ibv_gid *gid)
+> +{
+> +	return gid->raw[0] == 0xff;
+> +}
+> +
+>  static uint16_t get_vlan_id(union ibv_gid *gid)
+>  {
+>  	uint16_t vid;
+> @@ -631,9 +636,12 @@ static uint16_t get_vlan_id(union ibv_gid *gid)
+>  	return vid < 0x1000 ? vid : 0xffff;
+>  }
+>  
+> -static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
+> +static int mlx4_resolve_grh_to_l2(struct ibv_pd *pd, struct mlx4_ah *ah,
+> +				  struct ibv_ah_attr *attr)
+>  {
+> +	int err, i;
+>  	uint16_t vid;
+> +	union ibv_gid sgid;
+>  
+>  	if (link_local_gid(&attr->grh.dgid)) {
+>  		memcpy(ah->mac, &attr->grh.dgid.raw[8], 3);
+> @@ -641,13 +649,29 @@ static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
+>  		ah->mac[0] ^= 2;
+>  
+>  		vid = get_vlan_id(&attr->grh.dgid);
+> -		if (vid != 0xffff) {
+> -			ah->av.port_pd |= htonl(1 << 29);
+> -			ah->vlan = vid | ((attr->sl & 7) << 13);
+> -		}
+> -		return 0;
+> +	} else if (is_multicast_gid(&attr->grh.dgid)) {
+> +		ah->mac[0] = 0x33;
+> +		ah->mac[1] = 0x33;
+> +		for (i = 2; i < 6; ++i)
+> +			ah->mac[i] = attr->grh.dgid.raw[i + 10];
+> +
+> +		err = ibv_query_gid(pd->context, attr->port_num,
+> +				    attr->grh.sgid_index, &sgid);
+> +		if (err)
+> +			return err;
+> +
+> +		ah->av.dlid = htons(0xc0000);
+> +		ah->av.port_pd |= htonl(1 << 31);
+> +
+> +		vid = get_vlan_id(&sgid);
+>  	} else
+>  		return 1;
+> +
+> +	if (vid != 0xFFFF) {
+> +		ah->av.port_pd |= htonl(1 << 29);
+> +		ah->vlan = vid | ((attr->sl & 7) << 13);
+> +	}
+> +	return 0;
+>  }
+>  
+>  struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+> @@ -687,7 +711,7 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+>  	}
+>  
+>  	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET)
+> -		if (mlx4_resolve_grh_to_l2(ah, attr)) {
+> +		if (mlx4_resolve_grh_to_l2(pd, ah, attr)) {
+>  			free(ah);
+>  			return NULL;
+>  		}
+> -- 
+> 1.7.7.5
 
-- Added generic function to issue mailbox cmd on MQ as export function.
-- RoCE driver will use this before it setups its own MQ.
+Hey Roland, is there any chance we can get this applied?  Also are
+there any plans for another libmlx4 release?  There hasn't been an
+upstream release that includes IBoE support.
 
-Signed-off-by: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/net/ethernet/emulex/benet/be_cmds.c |   39 +++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/net/ethernet/emulex/benet/be_cmds.c b/drivers/net/ethernet/emulex/benet/be_cmds.c
-index 0fcb456..19037b0 100644
---- a/drivers/net/ethernet/emulex/benet/be_cmds.c
-+++ b/drivers/net/ethernet/emulex/benet/be_cmds.c
-@@ -15,6 +15,7 @@
-  * Costa Mesa, CA 92626
-  */
+Thanks,
+Shawn
  
-+#include <linux/module.h>
- #include "be.h"
- #include "be_cmds.h"
- 
-@@ -2391,3 +2392,41 @@ err:
- 	spin_unlock_bh(&adapter->mcc_lock);
- 	return status;
- }
-+
-+int be_roce_mcc_cmd(void *netdev_handle, void *wrb_payload,
-+			int wrb_payload_size, u16 *cmd_status, u16 *ext_status)
-+{
-+	struct be_adapter *adapter = netdev_priv(netdev_handle);
-+	struct be_mcc_wrb *wrb;
-+	struct be_cmd_req_hdr *hdr = (struct be_cmd_req_hdr *) wrb_payload;
-+	struct be_cmd_req_hdr *req;
-+	struct be_cmd_resp_hdr *resp;
-+	int status;
-+
-+	spin_lock_bh(&adapter->mcc_lock);
-+
-+	wrb = wrb_from_mccq(adapter);
-+	if (!wrb) {
-+		status = -EBUSY;
-+		goto err;
-+	}
-+	req = embedded_payload(wrb);
-+	resp = embedded_payload(wrb);
-+
-+	be_wrb_cmd_hdr_prepare(req, hdr->subsystem,
-+			       hdr->opcode, wrb_payload_size, wrb, NULL);
-+	memcpy(req, wrb_payload, wrb_payload_size);
-+	be_dws_cpu_to_le(req, wrb_payload_size);
-+
-+	status = be_mcc_notify_wait(adapter);
-+	if (cmd_status)
-+		*cmd_status = (status & 0xffff);
-+	if (ext_status)
-+		*ext_status = 0;
-+	memcpy(wrb_payload, resp, sizeof(*resp) + resp->response_length);
-+	be_dws_le_to_cpu(wrb_payload, sizeof(*resp) + resp->response_length);
-+err:
-+	spin_unlock_bh(&adapter->mcc_lock);
-+	return status;
-+}
-+EXPORT_SYMBOL(be_roce_mcc_cmd);
+
 -- 
-1.6.0.2
 
+---------------------------------------------------------------
+This email, along with any attachments, is confidential. If you 
+believe you received this message in error, please contact the 
+sender immediately and delete all copies of the message.  
+Thank you.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
