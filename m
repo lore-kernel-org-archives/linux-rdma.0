@@ -1,120 +1,75 @@
-From: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
-Subject: Re: [PATCH resend] libmlx4: Add multicast IBoE support
-Date: Wed, 7 Mar 2012 09:56:12 -0600
-Message-ID: <20120307155612.GA2469@BohrerMBP.rgmadvisors.com>
-References: <1330101150-1253-1-git-send-email-sbohrer@rgmadvisors.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/25 v2] rdma/cm: define native IB address
+Date: Wed, 7 Mar 2012 17:45:08 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823733B7669D7@ORSMSX101.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A8237325661ADD@ORSMSX102.amr.corp.intel.com>
+ <CAL1RGDUu9sUbeWgBwivnAeXf+OWX_m5MRrizfzP4ni-FOGxiTQ@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373374F1A64@ORSMSX102.amr.corp.intel.com>
+ <CAL1RGDV-oYkNwQQUkAuUEHTH=HbmLk6Kv7JRnJ3XxN1DMNzLNQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1330101150-1253-1-git-send-email-sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <CAL1RGDV-oYkNwQQUkAuUEHTH=HbmLk6Kv7JRnJ3XxN1DMNzLNQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 24, 2012 at 10:32:30AM -0600, Shawn Bohrer wrote:
-> Add multicast support for IBoE to the address handle creation flow.
-> Derived from work by Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-> 
-> Signed-off-by: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
-> ---
->  src/verbs.c |   38 +++++++++++++++++++++++++++++++-------
->  1 files changed, 31 insertions(+), 7 deletions(-)
-> 
-> diff --git a/src/verbs.c b/src/verbs.c
-> index 199d107..2772de5 100644
-> --- a/src/verbs.c
-> +++ b/src/verbs.c
-> @@ -624,6 +624,11 @@ static int link_local_gid(const union ibv_gid *gid)
->  	return 0;
->  }
->  
-> +static int is_multicast_gid(const union ibv_gid *gid)
-> +{
-> +	return gid->raw[0] == 0xff;
-> +}
-> +
->  static uint16_t get_vlan_id(union ibv_gid *gid)
->  {
->  	uint16_t vid;
-> @@ -631,9 +636,12 @@ static uint16_t get_vlan_id(union ibv_gid *gid)
->  	return vid < 0x1000 ? vid : 0xffff;
->  }
->  
-> -static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
-> +static int mlx4_resolve_grh_to_l2(struct ibv_pd *pd, struct mlx4_ah *ah,
-> +				  struct ibv_ah_attr *attr)
->  {
-> +	int err, i;
->  	uint16_t vid;
-> +	union ibv_gid sgid;
->  
->  	if (link_local_gid(&attr->grh.dgid)) {
->  		memcpy(ah->mac, &attr->grh.dgid.raw[8], 3);
-> @@ -641,13 +649,29 @@ static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
->  		ah->mac[0] ^= 2;
->  
->  		vid = get_vlan_id(&attr->grh.dgid);
-> -		if (vid != 0xffff) {
-> -			ah->av.port_pd |= htonl(1 << 29);
-> -			ah->vlan = vid | ((attr->sl & 7) << 13);
-> -		}
-> -		return 0;
-> +	} else if (is_multicast_gid(&attr->grh.dgid)) {
-> +		ah->mac[0] = 0x33;
-> +		ah->mac[1] = 0x33;
-> +		for (i = 2; i < 6; ++i)
-> +			ah->mac[i] = attr->grh.dgid.raw[i + 10];
-> +
-> +		err = ibv_query_gid(pd->context, attr->port_num,
-> +				    attr->grh.sgid_index, &sgid);
-> +		if (err)
-> +			return err;
-> +
-> +		ah->av.dlid = htons(0xc0000);
-> +		ah->av.port_pd |= htonl(1 << 31);
-> +
-> +		vid = get_vlan_id(&sgid);
->  	} else
->  		return 1;
-> +
-> +	if (vid != 0xFFFF) {
-> +		ah->av.port_pd |= htonl(1 << 29);
-> +		ah->vlan = vid | ((attr->sl & 7) << 13);
-> +	}
-> +	return 0;
->  }
->  
->  struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
-> @@ -687,7 +711,7 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
->  	}
->  
->  	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET)
-> -		if (mlx4_resolve_grh_to_l2(ah, attr)) {
-> +		if (mlx4_resolve_grh_to_l2(pd, ah, attr)) {
->  			free(ah);
->  			return NULL;
->  		}
-> -- 
-> 1.7.7.5
+> On Mon, Feb 27, 2012 at 2:22 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> w=
+rote:
+> >> > --- a/include/linux/socket.h
+> >> > +++ b/include/linux/socket.h
+> >> > @@ -184,6 +184,7 @@ struct ucred {
+> >> > =A0#define AF_PPPOX =A0 =A0 =A0 24 =A0 =A0 =A0/* PPPoX sockets =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> >> > =A0#define AF_WANPIPE =A0 =A0 25 =A0 =A0 =A0/* Wanpipe API Socke=
+ts */
+> >> > =A0#define AF_LLC =A0 =A0 =A0 =A0 26 =A0 =A0 =A0/* Linux LLC =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> >> > +#define AF_IB =A0 =A0 =A0 =A0 =A027 =A0 =A0 =A0/* Native Infini=
+Band address =A0 =A0*/
+> >> > =A0#define AF_CAN =A0 =A0 =A0 =A0 29 =A0 =A0 =A0/* Controller Ar=
+ea Network =A0 =A0 =A0*/
+> >> > =A0#define AF_TIPC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A030 =A0 =A0 =A0=
+/* TIPC
+> sockets =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
+> >> > =A0#define AF_BLUETOOTH =A0 31 =A0 =A0 =A0/* Bluetooth sockets =A0=
+ =A0 =A0 =A0 =A0 =A0*/
+> >> > @@ -227,6 +228,7 @@ struct ucred {
+> >> > =A0#define PF_PPPOX =A0 =A0 =A0 AF_PPPOX
+> >> > =A0#define PF_WANPIPE =A0 =A0 AF_WANPIPE
+> >> > =A0#define PF_LLC =A0 =A0 =A0 =A0 AF_LLC
+> >> > +#define PF_IB =A0 =A0 =A0 =A0 =A0AF_IB
+> >> > =A0#define PF_CAN =A0 =A0 =A0 =A0 AF_CAN
+> >> > =A0#define PF_TIPC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0AF_TIPC
+> >> > =A0#define PF_BLUETOOTH =A0 AF_BLUETOOTH
+> >>
+> >> Has this been run by the networking community? =A0Are they OK with=
+ this
+> >> assignment?
+> >
+> > I did copy netdev on the original submissions, but I don't remember=
+ any
+> explicit ack or nack.
+>=20
+> David, any feeling yay or nay about adding these?
+>=20
+> Is the kernel the final arbiter of AF_xxx / PF_xxx assignments, or
+> is there anything else we have to worry about?
 
-Hey Roland, is there any chance we can get this applied?  Also are
-there any plans for another libmlx4 release?  There hasn't been an
-upstream release that includes IBoE support.
+To clarify the intent of this change:
 
-Thanks,
-Shawn
- 
+The RDMA CM allows users to specify addresses using struct sockaddr.  T=
+oday, only INET/6 are supported.  The intent is to allow a user to spec=
+ify native InfiniBand addresses through that interface.  In the more im=
+mediate, this helps to solve InfiniBand scaling issues.  Longer term, t=
+his can also be used to control path failover.
 
--- 
-
----------------------------------------------------------------
-This email, along with any attachments, is confidential. If you 
-believe you received this message in error, please contact the 
-sender immediately and delete all copies of the message.  
-Thank you.
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
