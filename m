@@ -1,41 +1,42 @@
-From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: RE: mlx4 verbs question
-Date: Tue, 6 Mar 2012 16:22:05 -0600
-Message-ID: <013401ccfbe7$968f69a0$c3ae3ce0$@systemfabricworks.com>
-References: <006501ccfb4b$703c49e0$50b4dda0$@systemfabricworks.com> <4F564649.5080301@mellanox.com>
+From: <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] be2net: Added functionality to support RoCE driver
+Date: Wed, 7 Mar 2012 23:15:14 +0530
+Message-ID: <2659ae1d-6cbb-4fbf-98ef-d80ffee2714d@exht1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F564649.5080301-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tziporet Koren' <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-> -----Original Message-----
-> From: Or Gerlitz [mailto:ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> Sent: Tuesday, March 06, 2012 11:16 AM
-> To: Bob Pearson
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Tziporet Koren
-> Subject: Re: mlx4 verbs question
-> 
-> On 3/6/2012 5:44 AM, Bob Pearson wrote:
-> >  From the RTS state issuing a modify qp with qp_attr_mask only set to
-state
-> to the SQD state
-> >
-> 
-> AFAIK SQD isn't supported by connectx
+This patch adds functionality to support RoCE (RDMA over Ethernet) driver.
+- Detecting RoCE supported adapters and creating linked list of them.
+- Enabling 5 more MSIX vectors for RoCE functionality.
+- Calling registered callback functions of the RoCE driver
+  whenever new RoCE capable device is added/removed.
+- Notifying events to RoCE driver when interface is up or down.
+- Provides device specific details to RoCE driver for each roce device.
+- Provides low level mailbox command to be issued by RoCE driver
+  before it can have it own MQ.
 
-But the ibv_modify_qp to SQD works doesn't return an error?! That is where I
-was led astray.
+Parav Pandit (2):
+  be2net: Added function to issue mailbox cmd on MQ.
+  be2net: Added functionality to support RoCE driver
 
-> 
-> Or.
+ drivers/net/ethernet/emulex/benet/Makefile  |    2 +-
+ drivers/net/ethernet/emulex/benet/be.h      |   28 ++++-
+ drivers/net/ethernet/emulex/benet/be_cmds.c |   39 ++++++
+ drivers/net/ethernet/emulex/benet/be_cmds.h |    1 +
+ drivers/net/ethernet/emulex/benet/be_hw.h   |    4 +-
+ drivers/net/ethernet/emulex/benet/be_main.c |   83 +++++++++++--
+ drivers/net/ethernet/emulex/benet/be_roce.c |  185 +++++++++++++++++++++++++++
+ drivers/net/ethernet/emulex/benet/be_roce.h |   75 +++++++++++
+ 8 files changed, 404 insertions(+), 13 deletions(-)
+ create mode 100644 drivers/net/ethernet/emulex/benet/be_roce.c
+ create mode 100644 drivers/net/ethernet/emulex/benet/be_roce.h
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
