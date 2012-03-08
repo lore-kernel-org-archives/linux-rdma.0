@@ -1,7 +1,7 @@
 From: design-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
 Subject: Web development service
 Date: Thu,  8 Mar 2012 19:24:13 +0800 (HKT)
-Message-ID: <9jlejsZTgTYWeq__2873.31230142645$1331205969$gmane$org@tcts.seed.net.tw>
+Message-ID: <O7OSSiHaA@tcts1.seed.net.tw>
 Content-Type: text/plain;
 Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
