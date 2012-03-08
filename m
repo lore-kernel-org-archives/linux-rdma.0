@@ -1,34 +1,64 @@
-From: Roland Dreier <roland@purestorage.com>
-Subject: Re: [RFC 2/2] be2net: Added functionality to support RoCE driver
-Date: Thu, 8 Mar 2012 10:08:19 -0800
-Message-ID: <CAL1RGDWB3jgBMZAiE6guNgFy-QVvh4NBj1sXd6k7eK1hDnv51Q@mail.gmail.com>
-References: <1331142427-23721-1-git-send-email-parav.pandit@emulex.com>
- <1331142427-23721-2-git-send-email-parav.pandit@emulex.com>
- <470f5ea2-9344-42d5-b130-130d90a42250@exht1.ad.emulex.com> <20120308114859.GA23807@electric-eye.fr.zoreil.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH][TRIVIAL] opensm/include/iba/ib_types.h: fix comment typos
+	and errors
+Date: Thu, 08 Mar 2012 15:45:27 -0800
+Message-ID: <1331250327.25470.46.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120308114859.GA23807@electric-eye.fr.zoreil.com>
-Sender: netdev-owner@vger.kernel.org
-To: Francois Romieu <romieu@fr.zoreil.com>
-Cc: parav.pandit@emulex.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 8, 2012 at 3:48 AM, Francois Romieu <romieu@fr.zoreil.com> wrote:
-> Are there real use-cases where the device and the ocrdma_drv could be
-> loaded in different relative ordering ?
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ include/iba/ib_types.h |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-Yes -- two cases are pretty standard:
+diff --git a/include/iba/ib_types.h b/include/iba/ib_types.h
+index 4a11b89..d28de17 100644
+--- a/include/iba/ib_types.h
++++ b/include/iba/ib_types.h
+@@ -11201,7 +11201,7 @@ ib_cc_mad_get_cc_key(IN const ib_cc_mad_t * const p_cc_mad)
+ 
+ /****f* IBA Base: Types/ib_cc_mad_get_log_data_ptr
+ * NAME
+-*	ib_cc_mad_get_mgt_data_ptr
++*	ib_cc_mad_get_log_data_ptr
+ *
+ * DESCRIPTION
+ *	Gets a pointer to the CC MAD's log data area.
+@@ -11504,16 +11504,16 @@ typedef struct _ib_sw_cong_setting {
+ *		  bits [254..1]: ports [254..1]
+ *		  bit 255: reserved
+ *
+-*	threshold
+-*		bits [15..12] Indicates how agressive cong. marking should be
+-*		bits [11..0] Reserved
++*	threshold_resv
++*		bits [7..4] Indicates how aggressive cong. marking should be
++*		bits [3..0] Reserved
+ *
+ *	packet_size
+ *		Any packet less than this size won't be marked with FECN
+ *
+-*	cs_threshold
+-*		bits [7..4] How agressive Credit Starvation should be
+-*		bits [3..0] Reserved
++*	cs_threshold_resv
++*		bits [15..12] How aggressive Credit Starvation should be
++*		bits [11..0] Reserved
+ *
+ *	cs_return_delay
+ *		Value that controls credit return rate.
+-- 
+1.7.1
 
- - be2net driver loads, probes all devices, then roce driver loads
- - be2net and roce driver loads, then a device is probed later
-   (PCI hotplug, new SR-IOV virtual function, etc)
 
-so we need to deal with the case where both the core be2net driver
-is probing devices and the roce driver loads later, and also the case
-where the roce driver loads first and then gets notified as the be2net
-driver probes a device.
 
-(This is pretty much the same as mlx4_core / mlx4_ib BTW)
 
- - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
