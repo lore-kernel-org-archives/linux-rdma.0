@@ -1,70 +1,37 @@
-From: design-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
-Subject: Web development service
-Date: Thu,  8 Mar 2012 19:24:13 +0800 (HKT)
-Message-ID: <O7OSSiHaA@tcts1.seed.net.tw>
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_console.c: Add display of FDR10 ports to portstatus_parse
+Date: Thu, 08 Mar 2012 08:04:14 -0500
+Message-ID: <4F58AE4E.10006@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dear all,
-Please see below is our general job reference and web design package, 
 
-Total 12 pages web design service
-- Two language version
-- All the webpage design is included:
-- Theme development;
-- Design Study;
-- Original Layout / Artwork Design;
-- Steady HTML / Flash Web page development;
-- Search Engine Applicable;
-- Basic Graphic Flash Banner x1;
-- All text contents, logos and related product photos should be provided by client
- Product eCatalogue (Product Page)
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_console.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-- CMS Function of add /edit Products with Contents & Photos
-- Maximum 10 fields include Photos and Contents
-- Text Editor for Detail Contents (if need)
-- Support text descriptions and photos updating
-- 1 Level categories management
-- Database support with un-limit Products create
-- Not include Data input
-- Standard Admin panel with login function (1 admin account)
-Content management system (Activities page)
-
-- Basic CMS function of add / edit items
-- Max. 5 fields per item
-- Support photos and text descriptions
-- Front-end support 1 page only (Comapny activities page)
-- Database support with un-limit Products create
-- Not include Data input
-- Integrated Admin Panel
-Enquiry form function (Contact Us)
-- Form to mail
-Package price : $38,000
-
-Yoy may click the hyperlink to see some of our design reference.
-
-Job reference
-
-http://www.hk-belle.com/
-http://www.mirabell.com.hk/
-http://www.nikijodi.com/
-http://www.joy-peace.com/
-http://www.staccato.com
-http://www.chicks.com.hk/
-
-Program reference
-http://www.gloryskygroup.com/index.aspx=3Flang=3Dbig5
-http://www.mydriver.com.hk/
- 
-Best Regards,
-Eric Chan
-Senior Sales Executive
-
-If you do not wish to further receive this event message, email subscriber-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org to unsubscribe this message
-
+diff --git a/opensm/osm_console.c b/opensm/osm_console.c
+index 0465868..e521421 100644
+--- a/opensm/osm_console.c
++++ b/opensm/osm_console.c
+@@ -899,6 +899,8 @@ static void portstatus_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+ 		fprintf(out, "   %" PRIu64 " at 5.0 Gbps\n", fs.ports_ddr);
+ 	if (fs.ports_qdr)
+ 		fprintf(out, "   %" PRIu64 " at 10.0 Gbps\n", fs.ports_qdr);
++	if (fs.ports_fdr10)
++		fprintf(out, "   %" PRIu64 " at 10.0 Gbps (FDR10)\n", fs.ports_fdr10);
+ 	if (fs.ports_fdr)
+ 		fprintf(out, "   %" PRIu64 " at 14.0625 Gbps\n", fs.ports_fdr);
+ 	if (fs.ports_edr)
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
