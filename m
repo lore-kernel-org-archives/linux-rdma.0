@@ -1,151 +1,82 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] iw_cxgb3: don't pass irq flags to flush_qp().
-Date: Wed, 07 Mar 2012 16:48:46 -0600
-Message-ID: <20120307224845.7669.63849.stgit@build.ogc.int>
+From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFC 0/2] be2net: Added functionality to support RoCE driver
+Date: Wed, 7 Mar 2012 21:47:56 -0800
+Message-ID: <88B766C272F2C64B944B21AD078333151C961A0E37@EXMAIL.ad.emulex.com>
+References: <102ec66a-5bd6-4e64-81b2-87ea6111e466@exht1.ad.emulex.com>
+ <CAL1RGDWqmdpU7U4robRs0J1xHPirW3ScmbycLNpZA--hO47mYg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDWqmdpU7U4robRs0J1xHPirW3ScmbycLNpZA--hO47mYg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Since flush_qp() is always called with irqs disabled, all the locking
-inside flush_qp() and __flush_qp() doesn't need irq save/restore.
 
-Further, passing the flag variable from iwch_modify_qp() is just wrong
-and causes a WARN_ON() in local_bh_enable().
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+-----Original Message-----
+=46rom: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]=20
+Sent: Thursday, March 08, 2012 12:32 AM
+To: Pandit, Parav; David Miller
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [RFC 0/2] be2net: Added functionality to support RoCE driv=
+er
 
- drivers/infiniband/hw/cxgb3/iwch_qp.c |   40 +++++++++++++++++----------------
- 1 files changed, 20 insertions(+), 20 deletions(-)
+On Wed, Mar 7, 2012 at 9:47 AM,  <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+>
+> This patch is against roland's below Infiniband tree.
+> http://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git
+> Simiilar patch against netdev net-next tree will be made based on thi=
+s patch.
+>
+> This patch adds functionality to support RoCE (RDMA over Ethernet) dr=
+iver.
+> - Detecting RoCE supported adapters and creating linked list of them.
+> - Enabling 5 more MSIX vectors for RoCE functionality.
+> - Calling registered callback functions of the RoCE driver
+> =A0whenever new RoCE capable device is added/removed.
+> - Notifying events to RoCE driver when interface is up or down.
+> - Provides device specific details to RoCE driver for each roce devic=
+e.
+> - Provides low level mailbox command to be issued by RoCE driver
+> =A0before it can have it own MQ.
+>
+> Parav Pandit (2):
+> =A0be2net: Added function to issue mailbox cmd on MQ.
+> =A0be2net: Added functionality to support RoCE driver
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-index bea5839..6de8463 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-@@ -803,7 +803,7 @@ int iwch_post_terminate(struct iwch_qp *qhp, struct respQ_msg_t *rsp_msg)
-  * Assumes qhp lock is held.
-  */
- static void __flush_qp(struct iwch_qp *qhp, struct iwch_cq *rchp,
--				struct iwch_cq *schp, unsigned long *flag)
-+				struct iwch_cq *schp)
- {
- 	int count;
- 	int flushed;
-@@ -812,44 +812,44 @@ static void __flush_qp(struct iwch_qp *qhp, struct iwch_cq *rchp,
- 	PDBG("%s qhp %p rchp %p schp %p\n", __func__, qhp, rchp, schp);
- 	/* take a ref on the qhp since we must release the lock */
- 	atomic_inc(&qhp->refcnt);
--	spin_unlock_irqrestore(&qhp->lock, *flag);
-+	spin_unlock(&qhp->lock);
- 
- 	/* locking hierarchy: cq lock first, then qp lock. */
--	spin_lock_irqsave(&rchp->lock, *flag);
-+	spin_lock(&rchp->lock);
- 	spin_lock(&qhp->lock);
- 	cxio_flush_hw_cq(&rchp->cq);
- 	cxio_count_rcqes(&rchp->cq, &qhp->wq, &count);
- 	flushed = cxio_flush_rq(&qhp->wq, &rchp->cq, count);
- 	spin_unlock(&qhp->lock);
--	spin_unlock_irqrestore(&rchp->lock, *flag);
-+	spin_unlock(&rchp->lock);
- 	if (flushed) {
--		spin_lock_irqsave(&rchp->comp_handler_lock, *flag);
-+		spin_lock(&rchp->comp_handler_lock);
- 		(*rchp->ibcq.comp_handler)(&rchp->ibcq, rchp->ibcq.cq_context);
--		spin_unlock_irqrestore(&rchp->comp_handler_lock, *flag);
-+		spin_unlock(&rchp->comp_handler_lock);
- 	}
- 
- 	/* locking hierarchy: cq lock first, then qp lock. */
--	spin_lock_irqsave(&schp->lock, *flag);
-+	spin_lock(&schp->lock);
- 	spin_lock(&qhp->lock);
- 	cxio_flush_hw_cq(&schp->cq);
- 	cxio_count_scqes(&schp->cq, &qhp->wq, &count);
- 	flushed = cxio_flush_sq(&qhp->wq, &schp->cq, count);
- 	spin_unlock(&qhp->lock);
--	spin_unlock_irqrestore(&schp->lock, *flag);
-+	spin_unlock(&schp->lock);
- 	if (flushed) {
--		spin_lock_irqsave(&schp->comp_handler_lock, *flag);
-+		spin_lock(&schp->comp_handler_lock);
- 		(*schp->ibcq.comp_handler)(&schp->ibcq, schp->ibcq.cq_context);
--		spin_unlock_irqrestore(&schp->comp_handler_lock, *flag);
-+		spin_unlock(&schp->comp_handler_lock);
- 	}
- 
- 	/* deref */
- 	if (atomic_dec_and_test(&qhp->refcnt))
- 	        wake_up(&qhp->wait);
- 
--	spin_lock_irqsave(&qhp->lock, *flag);
-+	spin_lock(&qhp->lock);
- }
- 
--static void flush_qp(struct iwch_qp *qhp, unsigned long *flag)
-+static void flush_qp(struct iwch_qp *qhp)
- {
- 	struct iwch_cq *rchp, *schp;
- 
-@@ -859,19 +859,19 @@ static void flush_qp(struct iwch_qp *qhp, unsigned long *flag)
- 	if (qhp->ibqp.uobject) {
- 		cxio_set_wq_in_error(&qhp->wq);
- 		cxio_set_cq_in_error(&rchp->cq);
--		spin_lock_irqsave(&rchp->comp_handler_lock, *flag);
-+		spin_lock(&rchp->comp_handler_lock);
- 		(*rchp->ibcq.comp_handler)(&rchp->ibcq, rchp->ibcq.cq_context);
--		spin_unlock_irqrestore(&rchp->comp_handler_lock, *flag);
-+		spin_unlock(&rchp->comp_handler_lock);
- 		if (schp != rchp) {
- 			cxio_set_cq_in_error(&schp->cq);
--			spin_lock_irqsave(&schp->comp_handler_lock, *flag);
-+			spin_lock(&schp->comp_handler_lock);
- 			(*schp->ibcq.comp_handler)(&schp->ibcq,
- 						   schp->ibcq.cq_context);
--			spin_unlock_irqrestore(&schp->comp_handler_lock, *flag);
-+			spin_unlock(&schp->comp_handler_lock);
- 		}
- 		return;
- 	}
--	__flush_qp(qhp, rchp, schp, flag);
-+	__flush_qp(qhp, rchp, schp);
- }
- 
- 
-@@ -1030,7 +1030,7 @@ int iwch_modify_qp(struct iwch_dev *rhp, struct iwch_qp *qhp,
- 			break;
- 		case IWCH_QP_STATE_ERROR:
- 			qhp->attr.state = IWCH_QP_STATE_ERROR;
--			flush_qp(qhp, &flag);
-+			flush_qp(qhp);
- 			break;
- 		default:
- 			ret = -EINVAL;
-@@ -1078,7 +1078,7 @@ int iwch_modify_qp(struct iwch_dev *rhp, struct iwch_qp *qhp,
- 		}
- 		switch (attrs->next_state) {
- 			case IWCH_QP_STATE_IDLE:
--				flush_qp(qhp, &flag);
-+				flush_qp(qhp);
- 				qhp->attr.state = IWCH_QP_STATE_IDLE;
- 				qhp->attr.llp_stream_handle = NULL;
- 				put_ep(&qhp->ep->com);
-@@ -1132,7 +1132,7 @@ err:
- 	free=1;
- 	wake_up(&qhp->wait);
- 	BUG_ON(!ep);
--	flush_qp(qhp, &flag);
-+	flush_qp(qhp);
- out:
- 	spin_unlock_irqrestore(&qhp->lock, flag);
- 
+Great, I'm really excited to be getting another upstream driver.
 
+I would suggest that when the actual RoCE driver is posted, we merge th=
+ese 2 prerequisite patches + the driver through my tree, to avoid the h=
+assle of a dependency between my tree and Dave's net-next tree.
+[PP] There are minor differences in be2net driver in your tree and net-=
+next tree. So if we are fine with the interface between RoCE driver and=
+ NIC driver which is already available in this patch, then you can just=
+ merge RoCE driver patch from  your tree to net-next tree. There will b=
+e separate patch against net-next tree for NIC driver which will be alm=
+ost similar to this one.
+
+ (Assuming these patches are OK with Dave and everyone else...
+they look pretty reasonable to me after a quick read)
+
+When do you expect to post the actual RoCE driver?  If that's going to =
+be a while, another possibility is to just merge these patches through =
+net-next for 3.4, although I'm not sure about how Dave feels about merg=
+ing all this stuff without seeing what will actually use it.
+[PP] I was just waiting for comments on this RFC/PATCH to submit separa=
+te patch for RoCE driver. But surely if RoCE driver patch helps review,=
+ I can send it right away. I'll prepare the patch for Roland's tree and=
+ send in few hours.
+
+Thanks,
+  Roland
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
