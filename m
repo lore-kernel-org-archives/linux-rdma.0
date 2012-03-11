@@ -1,110 +1,46 @@
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH fixed] libibmad: Add MKey support to SMP requests via
-	smp_mkey_get/set()
-Date: Fri, 09 Mar 2012 17:09:07 -0800
-Message-ID: <1331341747.17729.253.camel@auk75.llnl.gov>
-References: <1331064594.10889.8.camel@auk75.llnl.gov>
-	 <1331071949.17729.11.camel@auk75.llnl.gov>
-	 <4F59FECE.4030107@dev.mellanox.co.il>
-	 <20120309180459.GB29961@obsidianresearch.com>
-	 <1331325175.17729.112.camel@auk75.llnl.gov>
-	 <20120309210151.GA32353@obsidianresearch.com>
+From: <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V1 0/2] be2net: Added functionality to support RoCE driver
+Date: Sun, 11 Mar 2012 16:19:03 +0530
+Message-ID: <b64e1169-c758-4bcb-84a2-d16c9b05824a@exht1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120309210151.GA32353-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-On Fri, 2012-03-09 at 13:01 -0800, Jason Gunthorpe wrote:
-> On Fri, Mar 09, 2012 at 12:32:55PM -0800, Jim Foraker wrote:
-> > 
-> > On Fri, 2012-03-09 at 10:04 -0800, Jason Gunthorpe wrote:
-> > > On Fri, Mar 09, 2012 at 07:59:58AM -0500, Hal Rosenstock wrote:
-> > > 
-> > > > What mkey model is being proposed here ? It looks to me like it is a
-> > > > single mkey for all ports in the subnet which is the simplest but least
-> > > > flexible model. If so, I think we need something more flexible as IBA
-> > > > allows each port to have it's own different mkey.
-> > > 
-> > > I would like to see some general agreement on a generator for mkey,
-> > > something like:
-> > > 
-> > >   MKey = HMAC(Subnet_KEY,PortGUID)
-> > > 
-> > > This blinds the mkey incase a port is compromised but still lets
-> > > privileged entities compute it from a single key.
-> >      I've been thinking about a model like that.  In particular,
-> > 
-> > MKey = 64 bits of PBKDF2(HMAC-SHA1,password,PortGUID,n)
-> 
-> I don't think using passwords for this sort of thing is really a good
-> idea. It has been shown again and again the extrapolating keys from
-> passwords does not stand up. Better to design around a large true
-> random key (eg how bind's rndc works) than a password. In that
-> instance truncated HMAC-SHA2-512 is entirely sufficient.
-     Large random strings end up having to be stored on disk, which may
-be its own issue.  An attacker need not bother with a preimage attack at
-all if the admin has copied a bulky keyfile to every host so as to make
-their lives tenable.  "Well they shouldn't do that" may not be listened
-to any better than "don't use weak passwords" has been.
-     I like PBKDF2 because it's simple to add on top of a HMAC, and
-provides easily-tunable key stretching.  Going to SHA2-512 makes the
-stretching far less important with sufficient key material, but it's
-still of benefit, particularly if that material isn't as good as you
-wish it was.
+This patch addresses all the review comments given by Francois Romieu &
+David Laight for past patch except be_roce_supported() macro as it
+breaks the modularity of be_cmds.x
 
-> >      I've got some concerns however.  There are a number of ways that an
-> > attacker on a host connected to the fabric may attempt to compromise the
-> > local CA's mkey, and/or other mkeys on the fabric in well short of
-> > brute-force time.  That may mean digging thru kernel memory for the
-> > local key, or it might mean slyly convincing the SM to just hand over
-> > the mkey for some other CA.
-> 
-> The IBA architecture is such that a end port should never be able to learn
-> the mkey of another port. Any bugs that let that happen can be
-> fixed.
-      Oh, that's certainly the intent.  The reality though is that at
-multiple layers, mkeys have not been thought about, not been
-well-tested, or have been hacked in clearly as an afterthought in
-current codebases.  My hope is that there are not any inherent
-weaknesses in the spec.  My expectation is that there are several
-exploitable weaknesses in the code.  If we want to install a stronger
-front door, it would behoove us to make sure the windows aren't already
-the weakest link.
+This patch adds functionality to support RoCE (RDMA over Ethernet) driver.
+- Detecting RoCE supported adapters and creating linked list of them.
+- Enabling 5 more MSIX vectors for RoCE functionality.
+- Calling registered callback functions of the RoCE driver
+  whenever new RoCE capable device is added/removed.
+- Notifying events to RoCE driver when interface is up or down.
+- Provides device specific details to RoCE driver for each roce device.
+- Provides low level mailbox command to be issued by RoCE driver
+  before it can have it own MQ.
 
-> Leaking an end port's MKey to things on the end port is pretty much
-> expected (although should be guarded against as much as possible) -
-> that is why we want to have distinct mkeys on every port. The only
-> desired property is that a single compromised mkey not lead to knowing
-> all mkeys.
-> 
-> >      Other than a KDF, the models that I can think of would be a)
-> > per-host mkeys specified in a config file, and b) random per-host keys
-> > generated by the SM.  I think before we implement a configuration model
-> > beyond OpenSM's though, we need to make sure we understand the attack
-> > surface first, lest we promote a false sense of security.
-> 
-> I think these are both basically equivalent to using HMAC or KDF with
-> a strong key.. ie 'random' would really boil down to iterative HMAC
-> with a state you throw away.
-     B is potentially equivalent to using a perfectly secure KDF of some
-sort.  "Perfect security" being what it is though, there may be some
-folks who just don't want to risk any sort of preimage attack. A's
-security depends on how that config file is generated and distributed.
-Its key benefit is simplicity and configurability -- the admin gets free
-reign to generate keys however they want, according to local needs and
-policy.  They also get to keep the file up to date with new guids as
-hardware comes and goes.
-     In my mind, the most useful way forward is derived keys of some
-sort.  However, I don't think it's necessarily a one-size-fits-all
-solution, and supporting a few differing schemes seems reasonable to me.
+Parav Pandit (2):
+  be2net: Added function to issue mailbox cmd on MQ.
+  be2net: Added functionality to support RoCE driver
 
-     Jim
+ drivers/net/ethernet/emulex/benet/Makefile  |    2 +-
+ drivers/net/ethernet/emulex/benet/be.h      |   38 ++++++-
+ drivers/net/ethernet/emulex/benet/be_cmds.c |   39 ++++++
+ drivers/net/ethernet/emulex/benet/be_cmds.h |    1 +
+ drivers/net/ethernet/emulex/benet/be_hw.h   |    4 +-
+ drivers/net/ethernet/emulex/benet/be_main.c |   83 ++++++++++--
+ drivers/net/ethernet/emulex/benet/be_roce.c |  183 +++++++++++++++++++++++++++
+ drivers/net/ethernet/emulex/benet/be_roce.h |   75 +++++++++++
+ 8 files changed, 409 insertions(+), 16 deletions(-)
+ create mode 100644 drivers/net/ethernet/emulex/benet/be_roce.c
+ create mode 100644 drivers/net/ethernet/emulex/benet/be_roce.h
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
