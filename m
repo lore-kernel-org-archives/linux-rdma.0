@@ -1,105 +1,67 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 3/3 fixed] infiniband-diags: Add mkey support to config
- file
-Date: Tue, 13 Mar 2012 08:29:41 -0400
-Message-ID: <4F5F3DB5.90201@dev.mellanox.co.il>
-References: <1331065620.10889.16.camel@auk75.llnl.gov>  <1331072335.17729.17.camel@auk75.llnl.gov>  <4F59FEE0.8090007@dev.mellanox.co.il> <1331321258.17729.49.camel@auk75.llnl.gov>
+Subject: Re: [PATCH 2/3 fixed] infiniband-diags: Allow specification of an
+ mkey on the command line
+Date: Tue, 13 Mar 2012 08:30:23 -0400
+Message-ID: <4F5F3DDF.9090307@dev.mellanox.co.il>
+References: <1331065551.10889.14.camel@auk75.llnl.gov> <1331072283.17729.16.camel@auk75.llnl.gov> <4F59FEDB.7050605@dev.mellanox.co.il> <20120309120931.609233da.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1331321258.17729.49.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <20120309120931.609233da.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/9/2012 2:27 PM, Jim Foraker wrote:
+On 3/9/2012 3:09 PM, Ira Weiny wrote:
+> On Fri, 09 Mar 2012 08:00:11 -0500
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 > 
-> On Fri, 2012-03-09 at 05:00 -0800, Hal Rosenstock wrote:
 >> On 3/6/2012 5:18 PM, Jim Foraker wrote:
 >>>
->>> Support for "m_key=" parameter, 
+>>> Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+>>> ---
+>>>  include/ibdiag_common.h                     |    1 +
+>>>  libibnetdisc/include/infiniband/ibnetdisc.h |    3 ++-
+>>>  libibnetdisc/src/ibnetdisc.c                |    1 +
+>>>  man/ibaddr.8                                |    2 ++
+>>>  src/ibaddr.c                                |    2 ++
+>>>  src/ibccconfig.c                            |    2 ++
+>>>  src/ibccquery.c                             |    2 ++
+>>>  src/ibdiag_common.c                         |    5 +++++
+>>>  src/iblinkinfo.c                            |    3 +++
+>>>  src/ibping.c                                |    2 ++
+>>>  src/ibportstate.c                           |    2 ++
+>>>  src/ibqueryerrors.c                         |    3 +++
+>>>  src/ibroute.c                               |    2 ++
+>>>  src/ibsendtrap.c                            |    2 ++
+>>>  src/ibsysstat.c                             |    2 ++
+>>>  src/ibtracert.c                             |    2 ++
+>>>  src/mcm_rereg_test.c                        |    3 +++
+>>>  src/perfquery.c                             |    2 ++
+>>>  src/sminfo.c                                |    2 ++
+>>>  src/smpquery.c                              |    2 ++
+>>>  src/vendstat.c                              |    2 ++
+>>>  21 files changed, 46 insertions(+), 1 deletions(-)
 >>
->> Shouldn't mkey be on a per port basis rather than a single mkey for all
->> ports ?
->      In the long run, I agree.  However, adding this support brings the
-> diags up to speed with the "one mkey per subnet" model that OpenSM
-> currently (sort of) supports.  
+>> Why do all these tools need mkey ? Isn't it only tools that require SMPs
+>> needing this support ?
+> 
+> Unfortunately many of the diags issue SMP's when they should not.  To keep
+> them working in the short term with mkey's this patch will have to be applied
+> until an audit can be performed of every tool.  You may have noted I already
+> fixed saquery with previous patches.
 
-OpenSM mkey support is not complete for even that model. IMO the diags
-should not just be in sync with the current OpenSM (a minimum bar for
-this support) but support the general requirement. In the end, I suspect
-there will be several mkey policies supported by OpenSM.
-
-> We should do better down the road, but I
-> don't think this patch gets in the way of that.
-
-I wouldn't think the approach for a per port MKey would use a single
-MKey parameter and store it in the source port structure.
+Yes, I saw that. It doesn't seem like it would be much work to fix the
+ones that should be fixed for this (easy for me to say ;-) and IMO this
+should be done prior to this rather than adding MKey in places where it
+shouldn't be and then removing that later.
 
 -- Hal
 
->>> plus config file now installs user-read-only.
->>
->> This part is best as a separate patch.
->      I agree.  I was worried that applying the config change without the
-> permissions change may open a potential vulnerability, but the answer
-> there is just to have the permissions change earlier in the tree than
-> the new parameter.
 > 
->      Jim
->>
->> -- Hal
->>
->>> Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
->>> ---
->>>  Makefile.am         |    2 +-
->>>  etc/ibdiag.conf     |    2 ++
->>>  src/ibdiag_common.c |    2 ++
->>>  3 files changed, 5 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/Makefile.am b/Makefile.am
->>> index 950f95b..ef59bd2 100644
->>> --- a/Makefile.am
->>> +++ b/Makefile.am
->>> @@ -112,4 +112,4 @@ install-data-hook:
->>>  	fi
->>>  	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/scripts/IBswcountlimits.pm $(DESTDIR)/$(PERL_INSTALLDIR)/IBswcountlimits.pm
->>>  	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
->>> -	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
->>> +	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
->>> diff --git a/etc/ibdiag.conf b/etc/ibdiag.conf
->>> index 77f3ce9..2a2334f 100644
->>> --- a/etc/ibdiag.conf
->>> +++ b/etc/ibdiag.conf
->>> @@ -15,3 +15,5 @@
->>>  # Default = true
->>>  #MLX_EPI=false
->>>  
->>> +# define a default m_key
->>> +#m_key=0x00
->>> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
->>> index 0901231..2089847 100644
->>> --- a/src/ibdiag_common.c
->>> +++ b/src/ibdiag_common.c
->>> @@ -155,6 +155,8 @@ void read_ibdiag_config(const char *file)
->>>  			} else {
->>>  				ibd_ibnetdisc_flags &= ~IBND_CONFIG_MLX_EPI;
->>>  			}
->>> +		} else if (strncmp(name, "m_key", strlen("m_key")) == 0) {
->>> +			ibd_mkey = strtoull(val_str, 0, 0);
->>>  		}
->>>  	}
->>>  
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+> Ira
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
