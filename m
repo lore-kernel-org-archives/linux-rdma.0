@@ -1,58 +1,51 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH fixed] libibmad: Add MKey support to SMP requests via
- smp_mkey_get/set()
-Date: Wed, 14 Mar 2012 08:41:40 -0400
-Message-ID: <4F609204.1020107@dev.mellanox.co.il>
-References: <1331064594.10889.8.camel@auk75.llnl.gov> <1331071949.17729.11.camel@auk75.llnl.gov> <4F59FECE.4030107@dev.mellanox.co.il> <20120309180459.GB29961@obsidianresearch.com> <4F5F3E36.9010600@dev.mellanox.co.il> <20120313163505.GC9585@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: boris-3GeZWEQ5Z0yB+jHODAdFcQ@public.gmane.org
+Subject: Server Rental Service in HK
+Date: Wed, 14 Mar 2012 20:45:44 +0800 (HKT)
+Message-ID: <IIb79c1WSQt@tpts1.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120313163505.GC9585-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/13/2012 12:35 PM, Jason Gunthorpe wrote:
-> On Tue, Mar 13, 2012 at 08:31:50AM -0400, Hal Rosenstock wrote:
->> On 3/9/2012 1:04 PM, Jason Gunthorpe wrote:
->>> On Fri, Mar 09, 2012 at 07:59:58AM -0500, Hal Rosenstock wrote:
->>>
->>>> What mkey model is being proposed here ? It looks to me like it is a
->>>> single mkey for all ports in the subnet which is the simplest but least
->>>> flexible model. If so, I think we need something more flexible as IBA
->>>> allows each port to have it's own different mkey.
->>>
->>> I would like to see some general agreement on a generator for mkey,
->>> something like:
->>>
->>>   MKey = HMAC(Subnet_KEY,PortGUID)
->>>
->>> This blinds the mkey incase a port is compromised but still lets
->>> privileged entities compute it from a single key.
->>
->> As there is no standard for this and there are various different
->> requirements here, I'm not sure that one algorithm fits all so IMO it's
->> best to make this as flexible as possible and allow for various
->> algorithms/approaches to be open sourced.
-> 
-> That would be a disaster from a usability and security perspective. We
-> need one really good standard, not tens of half baked ideas. MKey
-> generation is such a minor point in the grand scheme of things, giving
-> people lots of choice makes no sense.
+Dear All,
 
-I've already heard several ideas on what MKey generation should be and
-not just the ones on the list so far. I doubt there will be agreement by
-all parties on this and I think different schemes can be accommodated.
-It's either that or the standard tools will support one scheme and there
-will be several "proprietary" variants of the tools in those
-environments which I think would not be good.
+We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
 
--- Hal
+Dell=3F PowerEdge=3F EnterpriseRack Mount Server
+-Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
+-8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
+-500GB, 3.5", 6Gbps SAS x 2
+-Raid 1 Mirroring Protection
+-Remote KVM (iDRAC6 Enterprise)
 
-> Jason
-> 
+Dell(TM) PowerEdge(TM) R410 Rack Mount Server
+-Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
+-4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
+-500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
+-iDRAC6 Enterprise or Express (Remote KVM Management)
+
+Every Dedicated Server Hosting Solution Also Includes: 
+ 
+Software Specification 
+- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
+- Full root-level access 
+- Data Center Facilities 
+- Shared Local & International Bandwidth 
+- 2 IP Addresses Allocation 
+- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
+- FM200=A1=A7based fire suppression system 
+- 24x7 CRAC Air Conditioning and Humidity Control 
+- 24x7 Security Control 
+- 24x7 Remote Hand Service 
+
+Pls send us email for further information.Thanks,
+
+Boris 
+boris-3GeZWEQ5Z0yB+jHODAdFcQ@public.gmane.org
+
+If you do not wish to further receive this event message, email "borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
