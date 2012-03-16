@@ -1,188 +1,60 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 3/3 fixed] infiniband-diags: Add mkey support to config
- file
-Date: Fri, 16 Mar 2012 12:05:17 -0400
-Message-ID: <4F6364BD.8010109@dev.mellanox.co.il>
-References: <1331065620.10889.16.camel@auk75.llnl.gov> <1331072335.17729.17.camel@auk75.llnl.gov> <4F59FEE0.8090007@dev.mellanox.co.il> <1331321258.17729.49.camel@auk75.llnl.gov> <4F5F3DB5.90201@dev.mellanox.co.il> <1331835782.17729.539.camel@auk75.llnl.gov> <4F63597C.2060406@dev.mellanox.co.il> <20120316084422.3cd0e5dd.weiny2@llnl.gov>
+From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Subject: ipoib and nfs in circular dependency deadlock
+Date: Fri, 16 Mar 2012 12:44:07 -0500
+Message-ID: <4F637BE7.7000700@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120316084422.3cd0e5dd.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, jjolly-IBi9RG/b67k@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/16/2012 11:44 AM, Ira Weiny wrote:
-> On Fri, 16 Mar 2012 11:17:16 -0400
-> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> 
->> On 3/15/2012 2:23 PM, Jim Foraker wrote:
->>>
->>> On Tue, 2012-03-13 at 05:29 -0700, Hal Rosenstock wrote:
->>>> On 3/9/2012 2:27 PM, Jim Foraker wrote:
->>>>>
->>>>> On Fri, 2012-03-09 at 05:00 -0800, Hal Rosenstock wrote:
->>>>>> On 3/6/2012 5:18 PM, Jim Foraker wrote:
->>>>>>>
->>>>>>> Support for "m_key=" parameter, 
->>>>>>
->>>>>> Shouldn't mkey be on a per port basis rather than a single mkey for all
->>>>>> ports ?
->>>>>      In the long run, I agree.  However, adding this support brings the
->>>>> diags up to speed with the "one mkey per subnet" model that OpenSM
->>>>> currently (sort of) supports.  
->>>>
->>>> OpenSM mkey support is not complete for even that model. IMO the diags
->>>> should not just be in sync with the current OpenSM (a minimum bar for
->>>> this support) but support the general requirement. In the end, I suspect
->>>> there will be several mkey policies supported by OpenSM.
->>>      I've got some tentative OpenSM patches which I'll hopefully be
->>> ready to post once we've hashed out the tools side.  
->>
->> Does the OpenSM side need to wait for that ?
-> 
-> I don't believe so.  This whole thing started a few months back when I was looking into using the mkey 
-> and found that even "one mkey" was not fully and correctly supported.  
+Hi,
 
-Yes, there are a number of aspects missing in OpenSM for even that.
+I have dump which has all communications using ipoib blocking. The dump 
+has the following trace for ipoib:
 
-> Jim has been kind enough to pick up the torch.
+crash> bt ffff880601bbc600
+PID: 5861   TASK: ffff880601bbc600  CPU: 5   COMMAND: "ipoib"
+  #0 [ffff880614b6d410] schedule at ffffffff813988d4
+  #1 [ffff880614b6d4c8] rpc_wait_bit_killable at ffffffffa03de655 [sunrpc]
+  #2 [ffff880614b6d4d8] __wait_on_bit at ffffffff813991f0
+  #3 [ffff880614b6d518] out_of_line_wait_on_bit at ffffffff81399299
+  #4 [ffff880614b6d588] __rpc_execute at ffffffffa03def25 [sunrpc]
+  #5 [ffff880614b6d5b8] rpc_run_task at ffffffffa03d7ad8 [sunrpc]
+  #6 [ffff880614b6d5d8] nfs_commit_rpcsetup at ffffffffa048b088 [nfs]
+  #7 [ffff880614b6d658] nfs_commit_inode at ffffffffa048cbce [nfs]
+  #8 [ffff880614b6d698] nfs_release_page at ffffffffa047b98e [nfs]
+  #9 [ffff880614b6d6b8] shrink_page_list at ffffffff810c2c9e
+#10 [ffff880614b6d7c8] shrink_inactive_list at ffffffff810c30ba
+#11 [ffff880614b6d958] shrink_zone at ffffffff810c3d64
+#12 [ffff880614b6d9f8] shrink_zones at ffffffff810c3e63
+#13 [ffff880614b6da38] do_try_to_free_pages at ffffffff810c50dd
+#14 [ffff880614b6da98] try_to_free_pages at ffffffff810c5492
+#15 [ffff880614b6daf8] __alloc_pages_slowpath at ffffffff810bba58
+#16 [ffff880614b6dbb8] __alloc_pages_nodemask at ffffffff810bbe7a
+#17 [ffff880614b6dc18] __vmalloc_area_node at ffffffff810de512
+#18 [ffff880614b6dc68] ipoib_cm_tx_start at ffffffffa03647f9 [ib_ipoib]
+#19 [ffff880614b6de38] run_workqueue at ffffffff810604f8
+#20 [ffff880614b6de78] worker_thread at ffffffff81060616
+#21 [ffff880614b6dee8] kthread at ffffffff810646b6
+#22 [ffff880614b6df48] kernel_thread at ffffffff81003fba
 
-Indeed.
+This is a low memory situation where ipoib is trying to shrink cache and 
+nfs is waiting on a bit to clear it's pages creating the circular 
+dependency.
 
-> In my opinion, the first step was to get OpenSM and the diags to correctly support a single mkey.
+So my question is, should ipoib_cm_tx_init() call a simple kmalloc(.. , 
+GFP_NOFS) instead of vzalloc()? The allocation size does not seem large 
+enough to use vmalloc().
 
-That's fine; I just want to be sure about future extensibility
-especially of anything exposed in API or to user.
+This problem was observed on SLES11SP1 (2.6.32.36 based), but I feel the 
+problem exists in the upstream kernel as well.
 
-> This should have been straight forward and in fact I think Jim has spent more time discussing this 
-> on the list than he did "fixing" OpenSM and the diags.
-
-Maybe more than the diags side; not sure about OpenSM. But this is often
-the case with patches...
-
-> I still believe a single mkey is better than what we have now and would be a valid option for 
-> someone looking for very basic security such as an accidental change from non-management nodes 
-> or looking to verify that all hardware in a large fabric is indeed responding to mkey's correctly.
-
-Agreed.
-
-> If you can guarantee that once we figure out this algorithm it will be the only one used for all SM's 
-> then I can see the point in not supporting a single mkey parameter.  (And perhaps for tools like 
-> ibnetdiscover that should be removed because it will only work with the "one mkey" approach.)  
-
-Maybe that's the case now but IMO it would need to be updated to work
-when there an mkey per port model is in use.
-
-> That said, in general for diagnostic purposes, having an mkey option is not a bad idea; 
-> especially on single port utilities.
-
-Sure; but what does that mean in an mkey per port model ?
-
--- Hal
-
-> Going forward the diags will have to support an "mkeypassword" or the like to seed mkey generation.  
-> But I believe that can be supported moving forward from a single mkey approach both in OpenSM and the diags.
-> 
-> Ira
-> 
->>
->> -- Hal
->>
->>> At the moment,
->>> they're centered around the "one mkey to rule them all" model too, but
->>> should make it easier to support other model(s).
->>>
->>>>
->>>>> We should do better down the road, but I
->>>>> don't think this patch gets in the way of that.
->>>>
->>>> I wouldn't think the approach for a per port MKey would use a single
->>>> MKey parameter and store it in the source port structure.
->>>      I was referring specifically to this patch, and in particular the
->>> visible change, adding a "m_key" option to the config file.
->>>      Dumping the mkey in the source port structure is absolutely a hack.
->>> The problem is that no real context is kept on the destination port in
->>> the current API, which near as I can tell means supporting mkeys
->>> (particularly multiple mkeys) cleanly requires either bumping the API
->>> version, or falling back on the deprecated saving of global state in the
->>> library.  This would need to be cleaned up, but we could bunch that
->>> change with others as part of a future API rev.
->>>
->>>>
->>>> -- Hal
->>>>
->>>>>>> plus config file now installs user-read-only.
->>>>>>
->>>>>> This part is best as a separate patch.
->>>>>      I agree.  I was worried that applying the config change without the
->>>>> permissions change may open a potential vulnerability, but the answer
->>>>> there is just to have the permissions change earlier in the tree than
->>>>> the new parameter.
->>>>>
->>>>>      Jim
->>>>>>
->>>>>> -- Hal
->>>>>>
->>>>>>> Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
->>>>>>> ---
->>>>>>>  Makefile.am         |    2 +-
->>>>>>>  etc/ibdiag.conf     |    2 ++
->>>>>>>  src/ibdiag_common.c |    2 ++
->>>>>>>  3 files changed, 5 insertions(+), 1 deletions(-)
->>>>>>>
->>>>>>> diff --git a/Makefile.am b/Makefile.am
->>>>>>> index 950f95b..ef59bd2 100644
->>>>>>> --- a/Makefile.am
->>>>>>> +++ b/Makefile.am
->>>>>>> @@ -112,4 +112,4 @@ install-data-hook:
->>>>>>>  	fi
->>>>>>>  	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/scripts/IBswcountlimits.pm $(DESTDIR)/$(PERL_INSTALLDIR)/IBswcountlimits.pm
->>>>>>>  	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
->>>>>>> -	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
->>>>>>> +	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
->>>>>>> diff --git a/etc/ibdiag.conf b/etc/ibdiag.conf
->>>>>>> index 77f3ce9..2a2334f 100644
->>>>>>> --- a/etc/ibdiag.conf
->>>>>>> +++ b/etc/ibdiag.conf
->>>>>>> @@ -15,3 +15,5 @@
->>>>>>>  # Default = true
->>>>>>>  #MLX_EPI=false
->>>>>>>  
->>>>>>> +# define a default m_key
->>>>>>> +#m_key=0x00
->>>>>>> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
->>>>>>> index 0901231..2089847 100644
->>>>>>> --- a/src/ibdiag_common.c
->>>>>>> +++ b/src/ibdiag_common.c
->>>>>>> @@ -155,6 +155,8 @@ void read_ibdiag_config(const char *file)
->>>>>>>  			} else {
->>>>>>>  				ibd_ibnetdisc_flags &= ~IBND_CONFIG_MLX_EPI;
->>>>>>>  			}
->>>>>>> +		} else if (strncmp(name, "m_key", strlen("m_key")) == 0) {
->>>>>>> +			ibd_mkey = strtoull(val_str, 0, 0);
->>>>>>>  		}
->>>>>>>  	}
->>>>>>>  
->>>>>>
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>>>
->>>
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+-- 
+Goldwyn
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
