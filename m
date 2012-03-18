@@ -1,61 +1,75 @@
-From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: ipoib and nfs in circular dependency deadlock
-Date: Fri, 16 Mar 2012 12:44:07 -0500
-Message-ID: <4F637BE7.7000700@suse.de>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm: osm_subnet.c: Updated patch to add
+ error-reporting to the parsing of opensm.conf
+Date: Sun, 18 Mar 2012 14:57:14 +0200
+Message-ID: <20120318125714.GE2417@calypso>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5B8B5D0@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB5CD5B8B5D0-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, jjolly-IBi9RG/b67k@public.gmane.org
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On 12:54 Wed 29 Feb     , Mike Heinz wrote:
+> I've recently seen two different users on different fabrics make the same
+> mistake: They made a syntax error in their opensm.conf file and then couldn't
+> figure out why their changes didn't take effect.
+> 
+> Looking at the code that parses the opensm.conf file, it appears to treat any
+> line it cannot parse as a comment and silently passes over it.
+> 
+> This patch modifies the parse logic as follows:
+> 
+> 1. Truncate the line at the first '#' character.
+> 2. If the result is blank, skip to the next line.
+> 3. If the first token in the line can be matched against a known token,
+>    process it as usual.
+> 4. If the token cannot be matched against a known token, log an error message.
+> 
+> The result is that if, for example, the user typed "force_link_speed=5" the
+> system log will read:
+> 
+> Feb 24 14:57:09 ifs001 OpenSM[17517]: OpenSM 3.3.13
+> Feb 24 14:57:09 ifs001 OpenSM[17517]: Entering DISCOVERING state
+> Feb 24 14:57:09 ifs001 OpenSM[17517]: Unrecognized token: "force_link_speed=5"
+> Feb 24 14:57:09 ifs001 opensm[17517]: Entering MASTER state
+> Feb 24 14:57:09 ifs001 opensm[17517]: SUBNET UP
+> .
+> .
+> .
+> 
+> In addition, error messages will also be reported to the command line and
+> the opensm logfile. For example:
+> 
+> [root@ifs001]# opensm
+> -------------------------------------------------
+> OpenSM 3.3.13
+>  Reading Cached Option File: /etc/opensm/opensm.conf
+> Unrecognized token: "1`243561"
+> Command Line Arguments:
+>  Log File: /var/log/opensm.log
+> -------------------------------------------------
+> OpenSM 3.3.13
+> 
+> Entering DISCOVERING state
+> 
+> Using default GUID 0x117500007918d2
+> Unrecognized token: "1`243561"
+> Entering MASTER state
+> 
+> SUBNET UP
+> .
+> .
+> .
+> 
+> Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+> ---
 
-I have dump which has all communications using ipoib blocking. The dump 
-has the following trace for ipoib:
-
-crash> bt ffff880601bbc600
-PID: 5861   TASK: ffff880601bbc600  CPU: 5   COMMAND: "ipoib"
-  #0 [ffff880614b6d410] schedule at ffffffff813988d4
-  #1 [ffff880614b6d4c8] rpc_wait_bit_killable at ffffffffa03de655 [sunrpc]
-  #2 [ffff880614b6d4d8] __wait_on_bit at ffffffff813991f0
-  #3 [ffff880614b6d518] out_of_line_wait_on_bit at ffffffff81399299
-  #4 [ffff880614b6d588] __rpc_execute at ffffffffa03def25 [sunrpc]
-  #5 [ffff880614b6d5b8] rpc_run_task at ffffffffa03d7ad8 [sunrpc]
-  #6 [ffff880614b6d5d8] nfs_commit_rpcsetup at ffffffffa048b088 [nfs]
-  #7 [ffff880614b6d658] nfs_commit_inode at ffffffffa048cbce [nfs]
-  #8 [ffff880614b6d698] nfs_release_page at ffffffffa047b98e [nfs]
-  #9 [ffff880614b6d6b8] shrink_page_list at ffffffff810c2c9e
-#10 [ffff880614b6d7c8] shrink_inactive_list at ffffffff810c30ba
-#11 [ffff880614b6d958] shrink_zone at ffffffff810c3d64
-#12 [ffff880614b6d9f8] shrink_zones at ffffffff810c3e63
-#13 [ffff880614b6da38] do_try_to_free_pages at ffffffff810c50dd
-#14 [ffff880614b6da98] try_to_free_pages at ffffffff810c5492
-#15 [ffff880614b6daf8] __alloc_pages_slowpath at ffffffff810bba58
-#16 [ffff880614b6dbb8] __alloc_pages_nodemask at ffffffff810bbe7a
-#17 [ffff880614b6dc18] __vmalloc_area_node at ffffffff810de512
-#18 [ffff880614b6dc68] ipoib_cm_tx_start at ffffffffa03647f9 [ib_ipoib]
-#19 [ffff880614b6de38] run_workqueue at ffffffff810604f8
-#20 [ffff880614b6de78] worker_thread at ffffffff81060616
-#21 [ffff880614b6dee8] kthread at ffffffff810646b6
-#22 [ffff880614b6df48] kernel_thread at ffffffff81003fba
-
-This is a low memory situation where ipoib is trying to shrink cache and 
-nfs is waiting on a bit to clear it's pages creating the circular 
-dependency.
-
-So my question is, should ipoib_cm_tx_init() call a simple kmalloc(.. , 
-GFP_NOFS) instead of vzalloc()? The allocation size does not seem large 
-enough to use vmalloc().
-
-This problem was observed on SLES11SP1 (2.6.32.36 based), but I feel the 
-problem exists in the upstream kernel as well.
-
--- 
-Goldwyn
-
+Applied. Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
