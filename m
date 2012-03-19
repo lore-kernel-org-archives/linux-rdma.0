@@ -1,128 +1,30 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Mon, 19 Mar 2012 10:11:19 -0700
-Message-ID: <1332177079-14339-1-git-send-email-roland@kernel.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: Kernel Panic with bonding + IPoIB on 3.2.9
+Date: Mon, 19 Mar 2012 12:05:36 -0700
+Message-ID: <CAL1RGDVAd-LiS0sy6RAFNzkUuXrcuGv829nADcnxUnC2tfx3bw@mail.gmail.com>
+References: <CAOzFzEiufg40gKBH6D7zeB47SebfPvgzqOLxhF5eQqpYd-r4zQ@mail.gmail.com>
+ <CAOzFzEi=UOnwiV+qVks7+RnYU3PFbaQ+3OaEE3YFG2HHuD5ydQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAOzFzEi=UOnwiV+qVks7+RnYU3PFbaQ+3OaEE3YFG2HHuD5ydQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+On Sun, Mar 18, 2012 at 1:21 PM, Joseph Glanville
+<joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org> wrote:
+> [ =A0422.047024] kernel BUG at net/core/dev.c:1896!
 
-Please pull from
+So this line is
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git rdma-for-linus
+        BUG_ON(offset >=3D skb_headlen(skb));
 
-----------------------------------------------------------------
-
-InfiniBand/RDMA changes for the 3.4 merge window.  Nothing big really
-stands out; by patch count lots of fixes to the mlx4 driver plus some
-cleanups and fixes to the core and other drivers.
-
-----------------------------------------------------------------
-Bart Van Assche (2):
-      IB/srp: Use pr_fmt() and pr_err()/pr_warn()
-      IB/srp: Consolidate repetitive sysfs code
-
-Doug Ledford (1):
-      IB/iser: Free IB connection resources in the proper place
-
-Eli Cohen (3):
-      IB/mlx4: Set bad_wr for invalid send opcode
-      mlx4: Enforce device max FMR maps in FMR alloc
-      IB/mlx4: Fix possible missed completion event
-
-Eric Dumazet (1):
-      IB/ehca: Use kthread_create_on_node()
-
-Hefty, Sean (1):
-      RDMA/ucma: Fix AB-BA deadlock
-
-Jack Morgenstein (1):
-      mlx4_core: Report thermal error events
-
-Kumar Sanghvi (1):
-      RDMA/cxgb4: Add missing peer2peer check in MPAv2 code
-
-Kyle McMartin (1):
-      IB/ehca: Fix ilog2() compile failure
-
-Masanari Iida (1):
-      IB/srpt: Fix typo "alocate" -> "allocate"
-
-Mike Marciniszyn (2):
-      IB/qib: Add logic for affinity hint
-      IB/qib: Avoid filtering LID on SMA portinfo
-
-Or Gerlitz (6):
-      IB/iser: Post initial receive buffers before sending the final login request
-      IB: Use central enum for speed instead of hard-coded values
-      mlx4_core: Get rid of redundant ext_port_cap flags
-      IB: Change CQE "csum_ok" field to a bit flag
-      IB/mlx4: Fix info returned when querying IBoE ports
-      mlx4_core: Allow dynamic MTU configuration for IB ports
-
-Roland Dreier (5):
-      IB/core: Fix SDR rates in sysfs
-      mlx4_core: Fix one more static exported function
-      mlx4_core: Scale size of MTT table with system RAM
-      Merge branches 'misc' and 'mlx4' into for-next
-      Merge branches 'cma', 'cxgb3', 'cxgb4', 'ehca', 'iser', 'mad', 'nes', 'qib', 'srp' and 'srpt' into for-next
-
-Steve Wise (2):
-      RDMA/cxgb3: Don't pass irq flags to flush_qp()
-      RDMA/iwcm: Reject connect requests if cmid is not in LISTEN state
-
-Swapna Thete (2):
-      IB/mad: Add MAD error codes from IBA spec
-      IB/mad: Return error response for unsupported MADs
-
-Tatyana Nikolova (1):
-      RDMA/nes: Fixes for sparse endianness warnings
-
- drivers/infiniband/core/iwcm.c               |   24 +++--
- drivers/infiniband/core/mad.c                |   21 ++++
- drivers/infiniband/core/sysfs.c              |   27 +++---
- drivers/infiniband/core/ucma.c               |   37 ++++----
- drivers/infiniband/hw/amso1100/c2_provider.c |    2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 +-
- drivers/infiniband/hw/cxgb3/iwch_qp.c        |   40 ++++----
- drivers/infiniband/hw/cxgb4/cm.c             |    2 +-
- drivers/infiniband/hw/cxgb4/provider.c       |    2 +-
- drivers/infiniband/hw/ehca/ehca_hca.c        |    2 +-
- drivers/infiniband/hw/ehca/ehca_irq.c        |    3 +-
- drivers/infiniband/hw/ehca/ehca_mrmw.c       |    2 +-
- drivers/infiniband/hw/mlx4/cq.c              |    6 +-
- drivers/infiniband/hw/mlx4/main.c            |  130 +++++++++++++------------
- drivers/infiniband/hw/mlx4/qp.c              |    1 +
- drivers/infiniband/hw/mthca/mthca_cq.c       |    3 +-
- drivers/infiniband/hw/nes/nes_cm.c           |   39 +++++----
- drivers/infiniband/hw/nes/nes_verbs.c        |    2 +-
- drivers/infiniband/hw/qib/qib.h              |   10 ++-
- drivers/infiniband/hw/qib/qib_iba7322.c      |  107 +++++++++++++++------
- drivers/infiniband/hw/qib/qib_mad.c          |    4 +-
- drivers/infiniband/hw/qib/qib_pcie.c         |   21 ++++-
- drivers/infiniband/hw/qib/qib_rc.c           |    1 -
- drivers/infiniband/hw/qib/qib_uc.c           |    1 -
- drivers/infiniband/ulp/ipoib/ipoib_ib.c      |    3 +-
- drivers/infiniband/ulp/iser/iscsi_iser.c     |   18 +---
- drivers/infiniband/ulp/iser/iscsi_iser.h     |    1 +
- drivers/infiniband/ulp/iser/iser_initiator.c |   42 ++++-----
- drivers/infiniband/ulp/iser/iser_verbs.c     |   12 +++
- drivers/infiniband/ulp/srp/ib_srp.c          |  103 +++++++++-----------
- drivers/infiniband/ulp/srpt/ib_srpt.c        |    2 +-
- drivers/net/ethernet/mellanox/mlx4/eq.c      |   32 ++++++-
- drivers/net/ethernet/mellanox/mlx4/main.c    |  126 +++++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx4/mlx4.h    |    9 ++-
- drivers/net/ethernet/mellanox/mlx4/mr.c      |    3 +
- drivers/net/ethernet/mellanox/mlx4/port.c    |   68 +++++---------
- drivers/net/ethernet/mellanox/mlx4/profile.c |   19 ++++
- include/linux/mlx4/device.h                  |   12 ++-
- include/rdma/ib_mad.h                        |    9 ++
- include/rdma/ib_verbs.h                      |   11 ++-
- 40 files changed, 607 insertions(+), 352 deletions(-)
+right?  No paritcular idea how we hit this, though...
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
