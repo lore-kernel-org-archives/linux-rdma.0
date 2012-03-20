@@ -1,10 +1,13 @@
 From: <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 0/2] ocrdma: Driver for Emulex OneConnect RDMA device.
-Date: Tue, 20 Mar 2012 22:48:28 +0530
-Message-ID: <dab89943-5634-4b5d-be76-c686a11fba3a@exht1.ad.emulex.com>
+Subject: [PATCH 2/2] ocrdma: Driver for Emulex OneConnect RDMA device.
+Date: Tue, 20 Mar 2012 22:48:30 +0530
+Message-ID: <ab7ae7fc-362f-432b-b6db-7578b1502992@exht1.ad.emulex.com>
+References: <1332263910-23086-1-git-send-email-parav.pandit@emulex.com>
+ <1332263910-23086-2-git-send-email-parav.pandit@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1332263910-23086-2-git-send-email-parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
@@ -12,58 +15,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Emulex One Connect Adapter is RDMA (RoCE) capable multi-function
-PCI Express device.
-This driver patch enables RoCE support on such adapter.
+- Added entries to build ocrdma driver.
 
-This ocrdma driver depends on be2net NIC driver.
-This patch depends on the previously submitted be2net NIC driver patch.
+Signed-off-by: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/Kconfig  |    1 +
+ drivers/infiniband/Makefile |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-Code organization:
-- ocrdma.h       : driver header file.
-- ocrdma_main.c  : driver registration with stack.
-- ocrdma_sli.h   : driver-adapter interface definitions.
-- ocrdma_hw.*    : hardware specific initialization, mailbox cmds.
-- ocrdma_verbs.* : verbs interface functionality.
-- ocrdma_ah.*    : address handle related functionaliy.
-- ocrdma_abi.h   : user space library interaction definitions.
-
-This patch is made against the current git tree.
-Please provide your review comments.
-
-Thank you.
-
-Parav Pandit (2):
-  ocrdma: Driver for Emulex OneConnect RDMA device.
-  ocrdma: Driver for Emulex OneConnect RDMA device.
-
- drivers/infiniband/Kconfig                  |    1 +
- drivers/infiniband/Makefile                 |    1 +
- drivers/infiniband/hw/ocrdma/Kconfig        |    8 +
- drivers/infiniband/hw/ocrdma/Makefile       |    5 +
- drivers/infiniband/hw/ocrdma/ocrdma.h       |  392 ++++
- drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |  134 ++
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |  172 ++
- drivers/infiniband/hw/ocrdma/ocrdma_ah.h    |   42 +
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 2640 +++++++++++++++++++++++++++
- drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |  132 ++
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  558 ++++++
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 1672 +++++++++++++++++
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2542 ++++++++++++++++++++++++++
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |   94 +
- 14 files changed, 8393 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/ocrdma/Kconfig
- create mode 100644 drivers/infiniband/hw/ocrdma/Makefile
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma.h
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_abi.h
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_ah.c
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_ah.h
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_hw.c
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_hw.h
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_main.c
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_sli.h
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index eb0add3..a0f29c1 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -51,6 +51,7 @@ source "drivers/infiniband/hw/cxgb3/Kconfig"
+ source "drivers/infiniband/hw/cxgb4/Kconfig"
+ source "drivers/infiniband/hw/mlx4/Kconfig"
+ source "drivers/infiniband/hw/nes/Kconfig"
++source "drivers/infiniband/hw/ocrdma/Kconfig"
+ 
+ source "drivers/infiniband/ulp/ipoib/Kconfig"
+ 
+diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
+index a3b2d8e..bf846a1 100644
+--- a/drivers/infiniband/Makefile
++++ b/drivers/infiniband/Makefile
+@@ -8,6 +8,7 @@ obj-$(CONFIG_INFINIBAND_CXGB3)		+= hw/cxgb3/
+ obj-$(CONFIG_INFINIBAND_CXGB4)		+= hw/cxgb4/
+ obj-$(CONFIG_MLX4_INFINIBAND)		+= hw/mlx4/
+ obj-$(CONFIG_INFINIBAND_NES)		+= hw/nes/
++obj-$(CONFIG_INFINIBAND_OCRDMA)		+= hw/ocrdma/
+ obj-$(CONFIG_INFINIBAND_IPOIB)		+= ulp/ipoib/
+ obj-$(CONFIG_INFINIBAND_SRP)		+= ulp/srp/
+ obj-$(CONFIG_INFINIBAND_SRPT)		+= ulp/srpt/
+-- 
+1.6.0.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
