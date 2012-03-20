@@ -1,12 +1,13 @@
 From: <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
-Date: Wed, 21 Mar 2012 04:09:06 +0530
-Message-ID: <3f46a051-ee2e-4e18-becf-60f6c023c3c6@exht1.ad.emulex.com>
+Subject: [PATCH 2/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
+Date: Wed, 21 Mar 2012 04:09:07 +0530
+Message-ID: <24c5b654-d6a5-418d-8187-fba4ad47a3ce@exht1.ad.emulex.com>
 References: <1332283154-16369-1-git-send-email-parav.pandit@emulex.com>
+ <1332283154-16369-2-git-send-email-parav.pandit@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1332283154-16369-1-git-send-email-parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1332283154-16369-2-git-send-email-parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
@@ -14,20 +15,20 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-- Header file for device and resource specific data structures.
+- Header file for userspace library and kernel driver interface.
 
 Signed-off-by: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h |  392 +++++++++++++++++++++++++++++++++
- 1 files changed, 392 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma.h
+ drivers/infiniband/hw/ocrdma/ocrdma_abi.h |  134 +++++++++++++++++++++++++++++
+ 1 files changed, 134 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_abi.h
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h b/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
 new file mode 100644
-index 0000000..d7a44b8
+index 0000000..a411a4e
 --- /dev/null
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -0,0 +1,392 @@
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
+@@ -0,0 +1,134 @@
 +/*******************************************************************
 + * This file is part of the Emulex RoCE Device Driver for          *
 + * RoCE (RDMA over Converged Ethernet) adapters.                   *
@@ -55,371 +56,113 @@ index 0000000..d7a44b8
 + * Costa Mesa, CA 92626
 + *******************************************************************/
 +
-+#ifndef __OCRDMA_H__
-+#define __OCRDMA_H__
++#ifndef __OCRDMA_ABI_H__
++#define __OCRDMA_ABI_H__
 +
-+#include <linux/mutex.h>
-+#include <linux/list.h>
-+#include <linux/spinlock.h>
-+#include <linux/pci.h>
-+
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_user_verbs.h>
-+
-+#include <be_roce.h>
-+#include "ocrdma_sli.h"
-+
-+#define OCRDMA_ROCE_DEV_VERSION "1.0.0"
-+#define OCRDMA_NODE_DESC "Emulex OneConnect RoCE HCA"
-+
-+#define ocrdma_err(format, arg...) printk(KERN_ERR format, ##arg)
-+
-+#define OCRDMA_MAX_AH 512
-+
-+#define OCRDMA_UVERBS(CMD_NAME) (1ull << IB_USER_VERBS_CMD_##CMD_NAME)
-+
-+struct ocrdma_dev_attr {
-+	u8 fw_ver[32];
-+	u32 vendor_id;
-+	u32 device_id;
-+	u16 max_pd;
-+	u16 max_cq;
-+	u16 max_cqe;
-+	u16 max_qp;
-+	u16 max_wqe;
-+	u16 max_rqe;
-+	u32 max_inline_data;
-+	int max_send_sge;
-+	int max_recv_sge;
-+	int max_mr;
-+	u64 max_mr_size;
-+	u32 max_num_mr_pbl;
-+	int max_fmr;
-+	int max_map_per_fmr;
-+	int max_pages_per_frmr;
-+	u16 max_ord_per_qp;
-+	u16 max_ird_per_qp;
-+
-+	int device_cap_flags;
-+	u8 cq_overflow_detect;
-+	u8 srq_supported;
-+
++struct ocrdma_alloc_ucontext_resp {
++	u32 dev_id;
 +	u32 wqe_size;
-+	u32 rqe_size;
-+	u32 ird_page_size;
-+	u8 local_ca_ack_delay;
-+	u8 ird;
-+	u8 num_ird_pages;
-+};
-+
-+struct ocrdma_pbl {
-+	void *va;
-+	dma_addr_t pa;
-+};
-+
-+struct ocrdma_queue_info {
-+	void *va;
-+	dma_addr_t dma;
-+	u32 size;
-+	u16 len;
-+	u16 entry_size;		/* Size of an element in the queue */
-+	u16 id;			/* qid, where to ring the doorbell. */
-+	u16 head, tail;
-+	bool created;
-+	atomic_t used;		/* Number of valid elements in the queue */
-+};
-+
-+struct ocrdma_eq {
-+	struct ocrdma_queue_info q;
-+	u32 vector;
-+	int cq_cnt;
-+	struct ocrdma_dev *dev;
-+	char irq_name[32];
-+};
-+
-+struct ocrdma_mq {
-+	struct ocrdma_queue_info sq;
-+	struct ocrdma_queue_info cq;
-+	bool rearm_cq;
-+};
-+
-+struct mqe_ctx {
-+	struct mutex lock; /* for serializing mailbox commands on MQ */
-+	wait_queue_head_t cmd_wait;
-+	u32 tag;
-+	u16 cqe_status;
-+	u16 ext_status;
-+	bool cmd_done;
-+};
-+
-+struct ocrdma_dev {
-+	struct ib_device ibdev;
-+	struct ocrdma_dev_attr attr;
-+
-+	struct mutex dev_lock; /* provides syncronise access to device data */
-+	spinlock_t flush_q_lock ____cacheline_aligned;
-+
-+	struct ocrdma_cq **cq_tbl;
-+	struct ocrdma_qp **qp_tbl;
-+
-+	struct ocrdma_eq meq;
-+	struct ocrdma_eq *qp_eq_tbl;
-+	int eq_cnt;
-+	u16 base_eqid;
-+	u16 max_eq;
-+
-+	union ib_gid *sgid_tbl;
-+	/* provided synchronization to sgid table for
-+	 * updating gid entries triggered by notifier.
-+	 */
-+	spinlock_t sgid_lock;
-+
-+	int gsi_qp_created;
-+	struct ocrdma_cq *gsi_sqcq;
-+	struct ocrdma_cq *gsi_rqcq;
-+
-+	struct {
-+		struct ocrdma_av *va;
-+		dma_addr_t pa;
-+		u32 size;
-+		u32 num_ah;
-+		/* provide synchronization for av
-+		 * entry allocations.
-+		 */
-+		spinlock_t lock;
-+		u32 ahid;
-+		struct ocrdma_pbl pbl;
-+	} av_tbl;
-+
-+	void *mbx_cmd;
-+	struct ocrdma_mq mq;
-+	struct mqe_ctx mqe_ctx;
-+
-+	struct be_dev_info nic_info;
-+
-+	struct list_head entry;
-+	int id;
-+};
-+
-+struct ocrdma_cq {
-+	struct ib_cq ibcq;
-+	struct ocrdma_dev *dev;
-+	struct ocrdma_cqe *va;
-+	u32 phase;
-+	u32 getp;	/* pointer to pending wrs to
-+			 * return to stack, wrap arounds
-+			 * at max_hw_cqe
-+			 */
-+	u32 max_hw_cqe;
-+	bool phase_change;
-+	bool armed, solicited;
-+	bool arm_needed;
-+
-+	spinlock_t cq_lock ____cacheline_aligned; /* provide synchronization
-+						   * to cq polling
-+						   */
-+	/* syncronizes cq completion handler invoked from multiple context */
-+	spinlock_t comp_handler_lock ____cacheline_aligned;
-+	u16 id;
-+	u16 eqn;
-+
-+	struct ocrdma_ucontext *ucontext;
-+	dma_addr_t pa;
-+	u32 len;
-+	atomic_t use_cnt;
-+
-+	/* head of all qp's sq and rq for which cqes need to be flushed
-+	 * by the software.
-+	 */
-+	struct list_head sq_head, rq_head;
-+};
-+
-+struct ocrdma_pd {
-+	struct ib_pd ibpd;
-+	struct ocrdma_dev *dev;
-+	struct ocrdma_ucontext *uctx;
-+	atomic_t use_cnt;
-+	u32 id;
-+	int num_dpp_qp;
-+	u32 dpp_page;
-+	bool dpp_enabled;
-+};
-+
-+struct ocrdma_ah {
-+	struct ib_ah ibah;
-+	struct ocrdma_dev *dev;
-+	struct ocrdma_av *av;
-+	u16 sgid_index;
-+	u32 id;
-+};
-+
-+struct ocrdma_qp_hwq_info {
-+	u8 *va;			/* virtual address */
-+	u32 max_sges;
-+	u32 head, tail;
-+	u32 entry_size;
-+	u32 max_cnt;
-+	u32 max_wqe_idx;
-+	u32 free_delta;
-+	u16 dbid;		/* qid, where to ring the doorbell. */
-+	u32 len;
-+	dma_addr_t pa;
-+};
-+
-+struct ocrdma_srq {
-+	struct ib_srq ibsrq;
-+	struct ocrdma_dev *dev;
-+	u8 __iomem *db;
-+	/* provide synchronization to multiple context(s) posting rqe */
-+	spinlock_t q_lock ____cacheline_aligned;
-+
-+	struct ocrdma_qp_hwq_info rq;
-+	struct ocrdma_pd *pd;
-+	atomic_t use_cnt;
-+	u32 id;
-+	u64 *rqe_wr_id_tbl;
-+	u32 *idx_bit_fields;
-+	u32 bit_fields_len;
-+};
-+
-+struct ocrdma_qp {
-+	struct ib_qp ibqp;
-+	struct ocrdma_dev *dev;
-+
-+	u8 __iomem *sq_db;
-+	/* provide synchronization to multiple context(s) posting wqe, rqe */
-+	spinlock_t q_lock ____cacheline_aligned;
-+	struct ocrdma_qp_hwq_info sq;
-+	struct {
-+		uint64_t wrid;
-+		uint16_t dpp_wqe_idx;
-+		uint16_t dpp_wqe;
-+		uint8_t  signaled;
-+		uint8_t  rsvd[3];
-+	} *wqe_wr_id_tbl;
 +	u32 max_inline_data;
-+	struct ocrdma_cq *sq_cq;
-+	/* list maintained per CQ to flush SQ errors */
-+	struct list_head sq_entry;
++	u32 dpp_wqe_size;
++	u64 ah_tbl_page;
++	u32 ah_tbl_len;
++	u32 rsvd;
++	u8 fw_ver[32];
++	u32 rqe_size;
++	u64 rsvd1;
++} __packed;
 +
-+	u8 __iomem *rq_db;
-+	struct ocrdma_qp_hwq_info rq;
-+	u64 *rqe_wr_id_tbl;
-+	struct ocrdma_cq *rq_cq;
-+	struct ocrdma_srq *srq;
-+	/* list maintained per CQ to flush RQ errors */
-+	struct list_head rq_entry;
++/* user kernel communication data structures. */
++struct ocrdma_alloc_pd_ureq {
++	u64 rsvd1;
++} __packed;
 +
-+	enum ocrdma_qp_state state;	/*  QP state */
-+	int cap_flags;
-+	u32 max_ord, max_ird;
-+
++struct ocrdma_alloc_pd_uresp {
 +	u32 id;
-+	struct ocrdma_pd *pd;
++	u32 dpp_enabled;
++	u32 dpp_page_addr_hi;
++	u32 dpp_page_addr_lo;
++	u64 rsvd1;
++} __packed;
 +
-+	enum ib_qp_type qp_type;
++struct ocrdma_create_cq_ureq {
++	u32 dpp_cq;
++	u32 rsvd;
++} __packed;
 +
-+	int sgid_idx;
-+	u32 qkey;
-+	bool dpp_enabled;
-+	u8 *ird_q_va;
-+};
++#define MAX_CQ_PAGES 8
++struct ocrdma_create_cq_uresp {
++	u32 cq_id;
++	u32 page_size;
++	u32 num_pages;
++	u32 max_hw_cqe;
++	u64 page_addr[MAX_CQ_PAGES];
++	u64 db_page_addr;
++	u32 db_page_size;
++	u32 phase_change;
++	u64 rsvd1;
++	u64 rsvd2;
++} __packed;
 +
-+#define OCRDMA_GET_NUM_POSTED_SHIFT_VAL(qp) \
-+	(((qp->dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) && \
-+		(qp->id < 64)) ? 24 : 16)
++#define MAX_QP_PAGES 8
++#define MAX_UD_AV_PAGES 8
 +
-+struct ocrdma_hw_mr {
-+	struct ocrdma_dev *dev;
-+	u32 lkey;
-+	u8 fr_mr;
-+	u8 remote_atomic;
-+	u8 remote_rd;
-+	u8 remote_wr;
-+	u8 local_rd;
-+	u8 local_wr;
-+	u8 mw_bind;
++struct ocrdma_create_qp_ureq {
++	u8 enable_dpp_cq;
 +	u8 rsvd;
-+	u64 len;
-+	struct ocrdma_pbl *pbl_table;
-+	u32 num_pbls;
-+	u32 num_pbes;
-+	u32 pbl_size;
-+	u32 pbe_size;
-+	u64 fbo;
-+	u64 va;
++	u16 dpp_cq_id;
++	u32 rsvd1;
 +};
 +
-+struct ocrdma_mr {
-+	struct ib_mr ibmr;
-+	struct ib_umem *umem;
-+	struct ocrdma_hw_mr hwmr;
-+	struct ocrdma_pd *pd;
-+};
++struct ocrdma_create_qp_uresp {
++	u16 qp_id;
++	u16 sq_dbid;
++	u16 rq_dbid;
++	u16 resv0;
++	u32 sq_page_size;
++	u32 rq_page_size;
++	u32 num_sq_pages;
++	u32 num_rq_pages;
++	u64 sq_page_addr[MAX_QP_PAGES];
++	u64 rq_page_addr[MAX_QP_PAGES];
++	u64 db_page_addr;
++	u32 db_page_size;
++	u32 dpp_credit;
++	u32 dpp_offset;
++	u32 rsvd1;
++	u32 num_wqe_allocated;
++	u32 num_rqe_allocated;
++	u32 free_wqe_delta;
++	u32 free_rqe_delta;
++	u32 db_sq_offset;
++	u32 db_rq_offset;
++	u32 db_shift;
++	u64 rsvd2;
++	u64 rsvd3;
++} __packed;
 +
-+struct ocrdma_ucontext {
-+	struct ib_ucontext ibucontext;
-+	struct ocrdma_dev *dev;
++struct ocrdma_create_srq_uresp {
++	u16 rq_dbid;
++	u16 resv0;
++	u32 resv1;
 +
-+	struct list_head mm_head;
-+	struct mutex mm_list_lock; /* protects list entries of mm type */
-+	struct {
-+		u32 *va;
-+		dma_addr_t pa;
-+		u32 len;
-+	} ah_tbl;
-+};
++	u32 rq_page_size;
++	u32 num_rq_pages;
 +
-+struct ocrdma_mm {
-+	struct {
-+		u64 phy_addr;
-+		unsigned long len;
-+	} key;
-+	struct list_head entry;
-+};
++	u64 rq_page_addr[MAX_QP_PAGES];
++	u64 db_page_addr;
 +
-+static inline struct ocrdma_dev *get_ocrdma_dev(struct ib_device *ibdev)
-+{
-+	return container_of(ibdev, struct ocrdma_dev, ibdev);
-+}
++	u32 db_page_size;
++	u32 num_rqe_allocated;
++	u32 db_rq_offset;
++	u32 db_shift;
 +
-+static inline struct ocrdma_ucontext *get_ocrdma_ucontext(struct ib_ucontext
-+							  *ibucontext)
-+{
-+	return container_of(ibucontext, struct ocrdma_ucontext, ibucontext);
-+}
++	u32 free_rqe_delta;
++	u32 rsvd2;
++	u64 rsvd3;
++} __packed;
 +
-+static inline struct ocrdma_pd *get_ocrdma_pd(struct ib_pd *ibpd)
-+{
-+	return container_of(ibpd, struct ocrdma_pd, ibpd);
-+}
-+
-+static inline struct ocrdma_cq *get_ocrdma_cq(struct ib_cq *ibcq)
-+{
-+	return container_of(ibcq, struct ocrdma_cq, ibcq);
-+}
-+
-+static inline struct ocrdma_qp *get_ocrdma_qp(struct ib_qp *ibqp)
-+{
-+	return container_of(ibqp, struct ocrdma_qp, ibqp);
-+}
-+
-+static inline struct ocrdma_mr *get_ocrdma_mr(struct ib_mr *ibmr)
-+{
-+	return container_of(ibmr, struct ocrdma_mr, ibmr);
-+}
-+
-+static inline struct ocrdma_ah *get_ocrdma_ah(struct ib_ah *ibah)
-+{
-+	return container_of(ibah, struct ocrdma_ah, ibah);
-+}
-+
-+static inline struct ocrdma_srq *get_ocrdma_srq(struct ib_srq *ibsrq)
-+{
-+	return container_of(ibsrq, struct ocrdma_srq, ibsrq);
-+}
-+
-+#endif
++#endif				/* __OCRDMA_ABI_H__ */
 -- 
 1.6.0.2
 
