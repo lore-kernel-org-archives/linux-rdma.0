@@ -1,40 +1,78 @@
-From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] ocrdma: Driver for Emulex OneConnect RDMA device.
-Date: Tue, 20 Mar 2012 10:34:09 -0700
-Message-ID: <88B766C272F2C64B944B21AD078333151C964A60E8@EXMAIL.ad.emulex.com>
-References: <dab89943-5634-4b5d-be76-c686a11fba3a@exht1.ad.emulex.com>
- <4F68B374.5030609@mellanox.com>
- <CAL1RGDUcApn9odU9bwu1u5r0Uu9_xYx5eubV=0=gVZjytyNQFQ@mail.gmail.com>
+From: <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/9] ocrdma: Driver for Emulex OneConnect RDMA
+Date: Wed, 21 Mar 2012 04:09:05 +0530
+Message-ID: <cdc8267d-7cc4-4364-ade7-0b10f02a7c49@exht1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUcApn9odU9bwu1u5r0Uu9_xYx5eubV=0=gVZjytyNQFQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ok. I'll resend it with smaller patches.
-Parav
+From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-> -----Original Message-----
-> From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]
-> Sent: Tuesday, March 20, 2012 10:21 PM
-> To: Or Gerlitz
-> Cc: Pandit, Parav; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 0/2] ocrdma: Driver for Emulex OneConnect RDMA
-> device.
-> 
-> On Tue, Mar 20, 2012 at 9:42 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > patch 1/2 didn't reach the list, if it happens to be > 100KB
-> > vger.kernel.org probably dropped it
-> 
-> Parav, can you split the patch into a few pieces and resend?
-> 
-> Thanks,
->   Roland
+Emulex One Connect Adapter is RDMA (RoCE) capable multi-function
+PCI Express device.
+This driver patch enables RoCE support on such adapter.
+
+This ocrdma driver depends on be2net NIC driver.
+This patch depends on the previously submitted be2net NIC driver patch.
+
+Code organization:
+- ocrdma.h       : driver header file.
+- ocrdma_main.c  : driver registration with stack.
+- ocrdma_sli.h   : driver-adapter interface definitions.
+- ocrdma_hw.*    : hardware specific initialization, mailbox cmds.
+- ocrdma_verbs.* : verbs interface functionality.
+- ocrdma_ah.*    : address handle related functionaliy.
+- ocrdma_abi.h   : user space library interaction definitions.
+
+This patch is made against the current git tree.
+Please provide your review comments.
+
+I have resent this patch as previous bigger patch was dropped by vger.kernel.org.
+Thank you.
+
+Parav Pandit (9):
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+  ocrdma: Driver for Emulex OneConnect RDMA adapter
+
+ drivers/infiniband/Kconfig                  |    1 +
+ drivers/infiniband/Makefile                 |    1 +
+ drivers/infiniband/hw/ocrdma/Kconfig        |    8 +
+ drivers/infiniband/hw/ocrdma/Makefile       |    5 +
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |  392 ++++
+ drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |  134 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |  172 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h    |   42 +
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 2640 +++++++++++++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |  132 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  558 ++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 1672 +++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2542 ++++++++++++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |   94 +
+ 14 files changed, 8393 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/ocrdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/ocrdma/Makefile
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_abi.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_ah.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_hw.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_main.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
