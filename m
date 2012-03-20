@@ -1,74 +1,71 @@
-From: Jay Vosburgh <fubar@us.ibm.com>
-Subject: Re: Kernel Panic with bonding + IPoIB on 3.2.9
-Date: Mon, 19 Mar 2012 21:30:26 -0700
-Message-ID: <5560.1332217826@death.nxdomain>
-References: <CAOzFzEiufg40gKBH6D7zeB47SebfPvgzqOLxhF5eQqpYd-r4zQ@mail.gmail.com> <CAOzFzEi=UOnwiV+qVks7+RnYU3PFbaQ+3OaEE3YFG2HHuD5ydQ@mail.gmail.com> <CAL1RGDVAd-LiS0sy6RAFNzkUuXrcuGv829nADcnxUnC2tfx3bw@mail.gmail.com> <CAOzFzEgSWHqabw9yq6JxhD+CxQY61O+gqGwPMdbWPC=M+_oZAw@mail.gmail.com>
+From: <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] ocrdma: Driver for Emulex OneConnect RDMA device.
+Date: Tue, 20 Mar 2012 22:48:28 +0530
+Message-ID: <dab89943-5634-4b5d-be76-c686a11fba3a@exht1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <CAOzFzEgSWHqabw9yq6JxhD+CxQY61O+gqGwPMdbWPC=M+_oZAw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joseph Glanville <joseph.glanville@orionvm.com.au>
-Cc: Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Joseph Glanville <joseph.glanville@orionvm.com.au> wrote:
+From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
->On 20 March 2012 06:05, Roland Dreier <roland@purestorage.com> wrote:
->> On Sun, Mar 18, 2012 at 1:21 PM, Joseph Glanville
->> <joseph.glanville@orionvm.com.au> wrote:
->>> [ =C2=A0422.047024] kernel BUG at net/core/dev.c:1896!
->>
->> So this line is
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0BUG_ON(offset >=3D skb_headlen(skb));
->>
->> right? =C2=A0No paritcular idea how we hit this, though...
->
->Yep... I have looked through most of /drivers/net/bonding and I can't
->really see why it should be blowing up there.. it really should cause
->the BUG_ON under normal IPoIB if the MTU was the cause - yet I have
->not experienced this.
->The bonding code doesn't seem to do anything special with the MTU
->other than propagating changes to the slaves.
+Emulex One Connect Adapter is RDMA (RoCE) capable multi-function
+PCI Express device.
+This driver patch enables RoCE support on such adapter.
 
-	For IPoIB, though, there is some extra initialization stuff in
-bond_setup_by_slave(), and the hard_header_len will end up being set to
-something different from the usual Ethernet value.
+This ocrdma driver depends on be2net NIC driver.
+This patch depends on the previously submitted be2net NIC driver patch.
 
-	In looking at ipoib_setup, I see that hard_header_len appears to
-be set to 4 (IPOIB_ENCAP_LEN).  My recollection was that the IPoIB
-hard_header_len was quite a bit larger than that; it looks like it
-changed very recently from IPOIB_ENCAP_LEN + INFINIBAND_ALEN to what it
-is now:
+Code organization:
+- ocrdma.h       : driver header file.
+- ocrdma_main.c  : driver registration with stack.
+- ocrdma_sli.h   : driver-adapter interface definitions.
+- ocrdma_hw.*    : hardware specific initialization, mailbox cmds.
+- ocrdma_verbs.* : verbs interface functionality.
+- ocrdma_ah.*    : address handle related functionaliy.
+- ocrdma_abi.h   : user space library interaction definitions.
 
-commit afd87adacb5de00768b2e54f0bd851278f2e6179
-Author: Roland Dreier <roland@purestorage.com>
-Date:   Tue Feb 7 14:51:21 2012 +0000
+This patch is made against the current git tree.
+Please provide your review comments.
 
-    IPoIB: Stop lying about hard_header_len and use skb->cb to stash LL=
- addresses
-   =20
-    [ Upstream commit 936d7de3d736e0737542641269436f4b5968e9ef ]
-   =20
-    Commit a0417fa3a18a ("net: Make qdisc_skb_cb upper size bound
-    explicit.") made it possible for a netdev driver to use skb->cb
-    between its header_ops.create method and its .ndo_start_xmit
-    method.  Use this in ipoib_hard_header() to stash away the LL addre=
-ss
-    (GID + QPN), instead of the "ipoib_pseudoheader" hack.  This allows
-    IPoIB to stop lying about its hard_header_len, which will let us fi=
-x
-    the L2 check for GRO.
+Thank you.
 
+Parav Pandit (2):
+  ocrdma: Driver for Emulex OneConnect RDMA device.
+  ocrdma: Driver for Emulex OneConnect RDMA device.
 
-	I don't know if this change could be causing the problem (it
-appears to be new in 3.2.9), but the hard_header_len is one of the few
-areas in the TX path of bonding that IPoIB ends up being different from
-regular Ethernet.
+ drivers/infiniband/Kconfig                  |    1 +
+ drivers/infiniband/Makefile                 |    1 +
+ drivers/infiniband/hw/ocrdma/Kconfig        |    8 +
+ drivers/infiniband/hw/ocrdma/Makefile       |    5 +
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |  392 ++++
+ drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |  134 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |  172 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h    |   42 +
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 2640 +++++++++++++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |  132 ++
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  558 ++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 1672 +++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2542 ++++++++++++++++++++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |   94 +
+ 14 files changed, 8393 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/ocrdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/ocrdma/Makefile
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_abi.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_ah.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_hw.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_main.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_sli.h
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+ create mode 100644 drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
 
-	-J
-
----
-	-Jay Vosburgh, IBM Linux Technology Center, fubar@us.ibm.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
