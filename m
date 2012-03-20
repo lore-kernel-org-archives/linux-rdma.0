@@ -1,30 +1,40 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+From: Joseph Glanville <joseph.glanville@orionvm.com.au>
 Subject: Re: Kernel Panic with bonding + IPoIB on 3.2.9
-Date: Mon, 19 Mar 2012 12:05:36 -0700
-Message-ID: <CAL1RGDVAd-LiS0sy6RAFNzkUuXrcuGv829nADcnxUnC2tfx3bw@mail.gmail.com>
+Date: Tue, 20 Mar 2012 14:33:03 +1100
+Message-ID: <CAOzFzEgSWHqabw9yq6JxhD+CxQY61O+gqGwPMdbWPC=M+_oZAw@mail.gmail.com>
 References: <CAOzFzEiufg40gKBH6D7zeB47SebfPvgzqOLxhF5eQqpYd-r4zQ@mail.gmail.com>
- <CAOzFzEi=UOnwiV+qVks7+RnYU3PFbaQ+3OaEE3YFG2HHuD5ydQ@mail.gmail.com>
+	<CAOzFzEi=UOnwiV+qVks7+RnYU3PFbaQ+3OaEE3YFG2HHuD5ydQ@mail.gmail.com>
+	<CAL1RGDVAd-LiS0sy6RAFNzkUuXrcuGv829nADcnxUnC2tfx3bw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOzFzEi=UOnwiV+qVks7+RnYU3PFbaQ+3OaEE3YFG2HHuD5ydQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAL1RGDVAd-LiS0sy6RAFNzkUuXrcuGv829nADcnxUnC2tfx3bw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@purestorage.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 18, 2012 at 1:21 PM, Joseph Glanville
-<joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org> wrote:
-> [ =A0422.047024] kernel BUG at net/core/dev.c:1896!
+On 20 March 2012 06:05, Roland Dreier <roland@purestorage.com> wrote:
+> On Sun, Mar 18, 2012 at 1:21 PM, Joseph Glanville
+> <joseph.glanville@orionvm.com.au> wrote:
+>> [ =A0422.047024] kernel BUG at net/core/dev.c:1896!
+>
+> So this line is
+>
+> =A0 =A0 =A0 =A0BUG_ON(offset >=3D skb_headlen(skb));
+>
+> right? =A0No paritcular idea how we hit this, though...
 
-So this line is
+Yep... I have looked through most of /drivers/net/bonding and I can't
+really see why it should be blowing up there.. it really should cause
+the BUG_ON under normal IPoIB if the MTU was the cause - yet I have
+not experienced this.
+The bonding code doesn't seem to do anything special with the MTU
+other than propagating changes to the slaves.
 
-        BUG_ON(offset >=3D skb_headlen(skb));
-
-right?  No paritcular idea how we hit this, though...
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+=46ounder | Director | VP Research
+Orion Virtualisation Solutions=A0|=A0www.orionvm.com.au=A0| Phone: 1300=
+ 56
+99 52 | Mobile: 0428 754 846
