@@ -1,55 +1,63 @@
-From: <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/2] ocrdma: Driver for Emulex OneConnect RDMA device.
-Date: Tue, 20 Mar 2012 22:48:30 +0530
-Message-ID: <ab7ae7fc-362f-432b-b6db-7578b1502992@exht1.ad.emulex.com>
-References: <1332263910-23086-1-git-send-email-parav.pandit@emulex.com>
- <1332263910-23086-2-git-send-email-parav.pandit@emulex.com>
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: rds_iw_send_ack issue in Fedora14
+Date: Tue, 20 Mar 2012 20:49:13 +0530
+Message-ID: <4F689FF1.3030107@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1332263910-23086-2-git-send-email-parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-- Added entries to build ocrdma driver.
+Hi Venkat,
 
-Signed-off-by: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/Kconfig  |    1 +
- drivers/infiniband/Makefile |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+We are seeing an issue with rds_iw_send_ack function in Fedora14 OS.
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index eb0add3..a0f29c1 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -51,6 +51,7 @@ source "drivers/infiniband/hw/cxgb3/Kconfig"
- source "drivers/infiniband/hw/cxgb4/Kconfig"
- source "drivers/infiniband/hw/mlx4/Kconfig"
- source "drivers/infiniband/hw/nes/Kconfig"
-+source "drivers/infiniband/hw/ocrdma/Kconfig"
- 
- source "drivers/infiniband/ulp/ipoib/Kconfig"
- 
-diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
-index a3b2d8e..bf846a1 100644
---- a/drivers/infiniband/Makefile
-+++ b/drivers/infiniband/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_INFINIBAND_CXGB3)		+= hw/cxgb3/
- obj-$(CONFIG_INFINIBAND_CXGB4)		+= hw/cxgb4/
- obj-$(CONFIG_MLX4_INFINIBAND)		+= hw/mlx4/
- obj-$(CONFIG_INFINIBAND_NES)		+= hw/nes/
-+obj-$(CONFIG_INFINIBAND_OCRDMA)		+= hw/ocrdma/
- obj-$(CONFIG_INFINIBAND_IPOIB)		+= ulp/ipoib/
- obj-$(CONFIG_INFINIBAND_SRP)		+= ulp/srp/
- obj-$(CONFIG_INFINIBAND_SRPT)		+= ulp/srpt/
--- 
-1.6.0.2
+The issue is as follows:
+RDS protocol requires to send an acknowledgement back to the sender for
+the data it has received. RDS can send that acknowledgment by two ways:
+1. It can send a piggyback ack while sending data
+2. It can send only ACK packet without any data.
 
+The issue occurs in case 2 above. For sending an ACK only packet RDS
+takes another path and different variables and calls rds_iw_attempt_ack
+function. This function forms RDS header by putting ACK number in it. It
+puts rest of the fields in RDS header as zero. After that it calculates
+checksum of that header and puts that checksum also in the header. After
+this it calls ib_post_send.
+
+Now the problem is in calculating the checksum. What happens is checksum
+gets calculated perfectly fine for the "first time". For the second time
+it calculates the checksum as same as first time even though ACK number
+is different for the second time. Thus it results into checksum
+verification failure on the peer side and connection gets torn down and
+receiver request gets flushed. We see "WC Error:  status = 5 opcode = 0"
+errors in dmesg on the sender side. I suspect here that it is a dma
+mapping or flushing issue.
+
+To be sure that the issue is with rds_iw_send_ack i used the same
+sg_list for forming work request in rds_iw_send_ack what is being used
+by the rds_iw_xmit. After this issue is resolved. So, i think something
+is wrong with the dma mapping in rds_iw_send_ack function.
+
+I only changed the following line in rds_iw_recv_init_ack and it started
+working.
+
+-       sge->addr = ic->i_ack_dma;
++       sge->addr = ic->i_send_hdrs_dma;
+
+Interestingly, the issue occurs only on Fedora14(2.6.35.6-45) OS. The
+issue does not occur with both RHEL6.0(2.6.32-71.el6.x86_64) and
+RHEL6.1(2.6.32-131.el6.x86_64) OS. The RDS module code is similar for
+both the OSes.
+
+Can you please share your thoughts?
+
+Thanks,
+Vipul Pandya
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
