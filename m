@@ -1,76 +1,158 @@
-From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 3/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
-Date: Wed, 21 Mar 2012 12:04:58 -0700
-Message-ID: <88B766C272F2C64B944B21AD078333151C964A63F1@EXMAIL.ad.emulex.com>
+From: <Parav.Pandit@Emulex.Com>
+Subject: RE: [PATCH 4/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
+Date: Wed, 21 Mar 2012 12:09:09 -0700
+Message-ID: <88B766C272F2C64B944B21AD078333151C964A63FB@EXMAIL.ad.emulex.com>
 References: <1332283154-16369-1-git-send-email-parav.pandit@emulex.com>
  <1332283154-16369-2-git-send-email-parav.pandit@emulex.com>
  <1332283154-16369-3-git-send-email-parav.pandit@emulex.com>
- <339d9e05-38fd-45b1-83ed-f06277bd1326@exht1.ad.emulex.com>
- <CAL1RGDWnc478=ToFQEC51Usn6LLZgLen=CymFZ0C0GnRp9BAsw@mail.gmail.com>
+ <1332283154-16369-4-git-send-email-parav.pandit@emulex.com>
+ <a5e59a7c-d6ff-4c78-89a7-fad7492260b0@exht1.ad.emulex.com>
+ <CAL1RGDWRm7GVCBgAdSvAt72WQAP4a-1xa18Hk-rFjEfKDEHZNg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWnc478=ToFQEC51Usn6LLZgLen=CymFZ0C0GnRp9BAsw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAL1RGDWRm7GVCBgAdSvAt72WQAP4a-1xa18Hk-rFjEfKDEHZNg@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: netdev-owner@vger.kernel.org
+To: roland@purestorage.com
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
 > -----Original Message-----
-> From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]
-> Sent: Wednesday, March 21, 2012 9:56 PM
+> From: Roland Dreier [mailto:roland@purestorage.com]
+> Sent: Wednesday, March 21, 2012 10:04 PM
 > To: Pandit, Parav
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 3/9] ocrdma: Driver for Emulex OneConnect RDMA
+> Cc: linux-rdma@vger.kernel.org; netdev@vger.kernel.org
+> Subject: Re: [PATCH 4/9] ocrdma: Driver for Emulex OneConnect RDMA
 > adapter
 >=20
-> > +/* mailbox cmd response */
-> > +struct ocrdma_mbx_rsp {
-> > + =A0 =A0 =A0 u32 subsys_op;
-> > + =A0 =A0 =A0 u32 status;
-> > + =A0 =A0 =A0 u32 rsp_len;
-> > + =A0 =A0 =A0 u32 add_rsp_len;
-> > +} __packed;
+> > +int ocrdma_qp_state_machine(struct ocrdma_qp *qp, enum ib_qp_state
+> > +new_ib_state,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 enum ib_qp_st=
+ate *old_ib_state) {
+> > + =A0 =A0 =A0 unsigned long flags;
+> > + =A0 =A0 =A0 int status =3D 0;
+> > + =A0 =A0 =A0 enum ocrdma_qp_state new_state;
+> > + =A0 =A0 =A0 new_state =3D get_ocrdma_qp_state(new_ib_state);
+> > +
+> > + =A0 =A0 =A0 /* sync with wqe and rqe posting */
+> > + =A0 =A0 =A0 spin_lock_irqsave(&qp->q_lock, flags);
+> > +
+> > + =A0 =A0 =A0 if (old_ib_state)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 *old_ib_state =3D get_ibqp_state(qp->=
+state);
+> > + =A0 =A0 =A0 if (new_state =3D=3D qp->state) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&qp->q_lock, f=
+lags);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
+> > + =A0 =A0 =A0 }
+> > +
+> > + =A0 =A0 =A0 switch (qp->state) {
+> > + =A0 =A0 =A0 case OCRDMA_QPS_RST:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch (new_state) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_RST:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_INIT:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -EINVAL;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 case OCRDMA_QPS_INIT:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* qps: INIT->XXX */
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch (new_state) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_INIT:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_RTR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_ERR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ocrdma_flush_qp(qp);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -EINVAL;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 case OCRDMA_QPS_RTR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* qps: RTS->XXX */
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch (new_state) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_RTS:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_ERR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ocrdma_flush_qp(qp);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -EINVAL;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 case OCRDMA_QPS_RTS:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* qps: RTS->XXX */
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch (new_state) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_SQD:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_SQE:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_ERR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ocrdma_flush_qp(qp);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -EINVAL;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 case OCRDMA_QPS_SQD:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* qps: SQD->XXX */
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch (new_state) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_RTS:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_SQE:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_ERR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -EINVAL;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 case OCRDMA_QPS_SQE:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch (new_state) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_RTS:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_ERR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -EINVAL;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 case OCRDMA_QPS_ERR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* qps: ERR->XXX */
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch (new_state) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case OCRDMA_QPS_RST:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -EINVAL;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 default:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 status =3D -EINVAL;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> > + =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 if (!status)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 qp->state =3D new_state;
+> > +
+> > + =A0 =A0 =A0 spin_unlock_irqrestore(&qp->q_lock, flags);
+> > + =A0 =A0 =A0 return status;
+> > +}
 >=20
-> ...similar comments about only using __packed where you really need i=
-t...
-This pack is required as it is shared with hardware and need to be of 1=
-6 bytes for 32 and 64 bit architecture. Do not wanted to take risk of d=
-ifferent compiler versions. So keeping it packed.
-
->=20
-> > +#define is_cqe_valid(cq, cqe) \
-> > + =A0 =A0 =A0 (((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE=
-_VALID)\
-> > + =A0 =A0 =A0 =3D=3D cq->phase) ? 1 : 0)
-> > +#define is_cqe_for_sq(cqe) \
-> > + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_=
-QTYPE) ?
-> > +0 : 1) #define is_cqe_for_rq(cqe) \
-> > + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_=
-QTYPE) ?
-> > +1 : 0) #define is_cqe_invalidated(cqe) \
-> > + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) &
-> > +OCRDMA_CQE_INVALIDATE) ? \
-> > + =A0 =A0 =A0 1 : 0)
-> > +#define is_cqe_imm(cqe) \
-> > + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_=
-IMM) ? 1
-> > +: 0) #define is_cqe_wr_imm(cqe) \
-> > + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) &
-> > +OCRDMA_CQE_WRITE_IMM) ? 1 : 0)
->=20
-> ...similar comment about using readable typesafe inline functions ins=
-tead of
-> macros...
-
-Yes, I'll change to inline function.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The switch statement here seems to largely reimpliment
+> ib_modify_qp_is_ok() (which is exported from the rdma midlayer).  Is =
+there
+> some reason that doesn't work for your driver?  I'd rather fix / gene=
+ralize the
+> core helper function instead of having something mostly duplicate in =
+a
+> hardware driver.
+Yes. Driver needs to put QP to flush state. So that appropriate CQEs ca=
+n be returned during poll_cq() phase.
+So state machine is implemented above.
