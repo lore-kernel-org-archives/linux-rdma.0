@@ -1,54 +1,54 @@
 From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH 2/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
-Date: Wed, 21 Mar 2012 09:20:00 -0700
-Message-ID: <CAL1RGDVxCE--P78bk0Me5o+ekSzgBYG0UJT6y3O7cK3mUGBjuQ@mail.gmail.com>
+Subject: Re: [PATCH 3/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
+Date: Wed, 21 Mar 2012 09:26:06 -0700
+Message-ID: <CAL1RGDWnc478=ToFQEC51Usn6LLZgLen=CymFZ0C0GnRp9BAsw@mail.gmail.com>
 References: <1332283154-16369-1-git-send-email-parav.pandit@emulex.com>
- <1332283154-16369-2-git-send-email-parav.pandit@emulex.com> <24c5b654-d6a5-418d-8187-fba4ad47a3ce@exht1.ad.emulex.com>
+ <1332283154-16369-2-git-send-email-parav.pandit@emulex.com>
+ <1332283154-16369-3-git-send-email-parav.pandit@emulex.com> <339d9e05-38fd-45b1-83ed-f06277bd1326@exht1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <24c5b654-d6a5-418d-8187-fba4ad47a3ce-nbYkmrCdWxmgMrCBcu8zE0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <339d9e05-38fd-45b1-83ed-f06277bd1326-nbYkmrCdWxmgMrCBcu8zE0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 20, 2012 at 3:39 PM,  <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
->
-> - Header file for userspace library and kernel driver interface.
-
-> +struct ocrdma_alloc_ucontext_resp {
-> + =A0 =A0 =A0 u32 dev_id;
-> + =A0 =A0 =A0 u32 wqe_size;
-> + =A0 =A0 =A0 u32 max_inline_data;
-> + =A0 =A0 =A0 u32 dpp_wqe_size;
-> + =A0 =A0 =A0 u64 ah_tbl_page;
-> + =A0 =A0 =A0 u32 ah_tbl_len;
-> + =A0 =A0 =A0 u32 rsvd;
-> + =A0 =A0 =A0 u8 fw_ver[32];
-> + =A0 =A0 =A0 u32 rqe_size;
-> + =A0 =A0 =A0 u64 rsvd1;
+> +/* mailbox cmd response */
+> +struct ocrdma_mbx_rsp {
+> + =A0 =A0 =A0 u32 subsys_op;
+> + =A0 =A0 =A0 u32 status;
+> + =A0 =A0 =A0 u32 rsp_len;
+> + =A0 =A0 =A0 u32 add_rsp_len;
 > +} __packed;
 
-If I'm reading this correctly, you have the 8-byte rsvd1 member at an
-offset only aligned to 4 bytes, because of the __packed directive.  It
-would be much better to have these structures laid out so they are
-naturally the same on both 32-bit and 64-bit ABIs, and get rid of the
-__packed directive, which wrecks gcc code generation in some cases.
+=2E..similar comments about only using __packed where you really need i=
+t...
 
-In this particular case, it seems you could just move rqe_size into the
-slot where rsvd is, and get rid of rsvd1?
+> +#define is_cqe_valid(cq, cqe) \
+> + =A0 =A0 =A0 (((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_V=
+ALID)\
+> + =A0 =A0 =A0 =3D=3D cq->phase) ? 1 : 0)
+> +#define is_cqe_for_sq(cqe) \
+> + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_QT=
+YPE) ? 0 : 1)
+> +#define is_cqe_for_rq(cqe) \
+> + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_QT=
+YPE) ? 1 : 0)
+> +#define is_cqe_invalidated(cqe) \
+> + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_IN=
+VALIDATE) ? \
+> + =A0 =A0 =A0 1 : 0)
+> +#define is_cqe_imm(cqe) \
+> + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_IM=
+M) ? 1 : 0)
+> +#define is_cqe_wr_imm(cqe) \
+> + =A0 =A0 =A0 ((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_WR=
+ITE_IMM) ? 1 : 0)
 
-> +/* user kernel communication data structures. */
-> +struct ocrdma_alloc_pd_ureq {
-> + =A0 =A0 =A0 u64 rsvd1;
-> +} __packed;
-
-Similar comment -- __packed is silly for a structure with one reserved
-member (and which you don't seem to use anywhere)... why not just
-delete this struct?
+=2E..similar comment about using readable typesafe inline functions
+instead of macros...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
