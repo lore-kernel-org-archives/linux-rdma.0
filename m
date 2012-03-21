@@ -1,74 +1,98 @@
-From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 6/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
-Date: Wed, 21 Mar 2012 11:56:12 -0700
-Message-ID: <88B766C272F2C64B944B21AD078333151C964A63E7@EXMAIL.ad.emulex.com>
+From: <Parav.Pandit@Emulex.Com>
+Subject: RE: [PATCH 1/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
+Date: Wed, 21 Mar 2012 11:58:31 -0700
+Message-ID: <88B766C272F2C64B944B21AD078333151C964A63EC@EXMAIL.ad.emulex.com>
 References: <1332283154-16369-1-git-send-email-parav.pandit@emulex.com>
- <1332283154-16369-2-git-send-email-parav.pandit@emulex.com>
- <1332283154-16369-3-git-send-email-parav.pandit@emulex.com>
- <1332283154-16369-4-git-send-email-parav.pandit@emulex.com>
- <1332283154-16369-5-git-send-email-parav.pandit@emulex.com>
- <1332283154-16369-6-git-send-email-parav.pandit@emulex.com>
- <5abe3043-81f8-448a-9e55-b29e23f4eb9a@exht1.ad.emulex.com>
- <4F6A130E.2030602@systemfabricworks.com>
- <CAL1RGDXaV5nWoa5eHBHPCAomx04NHK2bA+yuuf4cqmF6RodrkQ@mail.gmail.com>
+ <3f46a051-ee2e-4e18-becf-60f6c023c3c6@exht1.ad.emulex.com>
+ <CAL1RGDVFTjsF43A9ebXwtgiuY5s1yuhFg2CRajABZ=MTeT0+Pg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXaV5nWoa5eHBHPCAomx04NHK2bA+yuuf4cqmF6RodrkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAL1RGDVFTjsF43A9ebXwtgiuY5s1yuhFg2CRajABZ=MTeT0+Pg@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: netdev-owner@vger.kernel.org
+To: roland@purestorage.com
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Inline.
+
 
 > -----Original Message-----
-> From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]
-> Sent: Wednesday, March 21, 2012 11:27 PM
-> To: frank zago
-> Cc: Pandit, Parav; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 6/9] ocrdma: Driver for Emulex OneConnect RDMA
+> From: Roland Dreier [mailto:roland@purestorage.com]
+> Sent: Wednesday, March 21, 2012 9:44 PM
+> To: Pandit, Parav
+> Cc: linux-rdma@vger.kernel.org; netdev@vger.kernel.org
+> Subject: Re: [PATCH 1/9] ocrdma: Driver for Emulex OneConnect RDMA
 > adapter
 >=20
-> On Wed, Mar 21, 2012 at 10:42 AM, frank zago
-> <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
-> > On 03/20/2012 05:39 PM, parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org wrote:
-> >> +struct ib_mr *ocrdma_get_dma_mr(struct ib_pd *ibpd, int acc) {
-> >> + =A0 =A0 struct ocrdma_mr *mr;
-> >> +
-> >> + =A0 =A0 mr =3D ocrdma_alloc_lkey(ibpd, acc, 0,
-> >> + OCRDMA_ADDR_CHECK_DISABLE);
-> >> + =A0 =A0 if (!mr)
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 return ERR_PTR(-ENOMEM);
-> >
-> > ocrdma_alloc_lkey does not return NULL on error.
+> > +#define ocrdma_err(format, arg...) printk(KERN_ERR format, ##arg)
 >=20
-I'll fix this part.
+> I think you'd be better off using pr_err() rather than defining your =
+own
+> macro.
+o.k. I'll change it.
 
-> Good catch!  Even more to the point, ocrdma_alloc_lkey() doesn't retu=
-rn a
-> struct ocrdma_mr* on success.  So this function is totally broken.
 >=20
-It does returns ocrdma_mr* on success. Why do you think it doesn't retu=
-rn? Below is the snippet.
+>=20
+> > +struct ocrdma_cq {
+> > + =A0 =A0 =A0 struct ib_cq ibcq;
+> > + =A0 =A0 =A0 struct ocrdma_dev *dev;
+> > + =A0 =A0 =A0 struct ocrdma_cqe *va;
+> > + =A0 =A0 =A0 u32 phase;
+> > + =A0 =A0 =A0 u32 getp; =A0 =A0 =A0 /* pointer to pending wrs to
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* return to stack,=
+ wrap arounds
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* at max_hw_cqe
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> > + =A0 =A0 =A0 u32 max_hw_cqe;
+> > + =A0 =A0 =A0 bool phase_change;
+> > + =A0 =A0 =A0 bool armed, solicited;
+> > + =A0 =A0 =A0 bool arm_needed;
+> > +
+> > + =A0 =A0 =A0 spinlock_t cq_lock ____cacheline_aligned; /* provide
+> > + synchronization
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* to cq polling
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> > + =A0 =A0 =A0 /* syncronizes cq completion handler invoked from mul=
+tiple
+> > + context */
+> > + =A0 =A0 =A0 spinlock_t comp_handler_lock ____cacheline_aligned;
+>=20
+> You have quite a few of these alignment directives in the middle of
+> structures.
+> Have you measured that leaving all these gaps gives a reall performan=
+ce
+> boost?
+>=20
+=46rom beginning its cacheline aligned. So didn't tested it without it,=
+ but yes this is considered. I'll be shifting other widely used element=
+s before the lock so that hole is smaller.
 
-        status =3D ocrdma_mbx_alloc_lkey(dev, &mr->hwmr, pd->id, addr_c=
-heck);
-        if (status) {
-                kfree(mr);
-                return ERR_PTR(-ENOMEM);
-        }
-        mr->pd =3D pd;
-        atomic_inc(&pd->use_cnt);
-        mr->ibmr.lkey =3D mr->hwmr.lkey;
-        if (mr->hwmr.remote_wr || mr->hwmr.remote_rd)
-                mr->ibmr.rkey =3D mr->hwmr.lkey;
-        return mr;
->  - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > + =A0 =A0 =A0 u16 id;
+> > + =A0 =A0 =A0 u16 eqn;
+> > +
+> > + =A0 =A0 =A0 struct ocrdma_ucontext *ucontext;
+> > + =A0 =A0 =A0 dma_addr_t pa;
+> > + =A0 =A0 =A0 u32 len;
+> > + =A0 =A0 =A0 atomic_t use_cnt;
+> > +
+> > + =A0 =A0 =A0 /* head of all qp's sq and rq for which cqes need to =
+be
+> > +flushed
+> > + =A0 =A0 =A0 =A0* by the software.
+> > + =A0 =A0 =A0 =A0*/
+> > + =A0 =A0 =A0 struct list_head sq_head, rq_head; };
+>=20
+>=20
+> > +#define OCRDMA_GET_NUM_POSTED_SHIFT_VAL(qp) \
+> > + =A0 =A0 =A0 (((qp->dev->nic_info.dev_family =3D=3D OCRDMA_GEN2_FA=
+MILY) && \
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (qp->id < 64)) ? 24 : 16)
+>=20
+> In general it's better to use inline functions when possible instead =
+of macros,
+> which are less type-safe and harder to read.
+o.k. I'll change it.
