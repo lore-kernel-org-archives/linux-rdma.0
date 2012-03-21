@@ -1,52 +1,26 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
-Date: Wed, 21 Mar 2012 14:54:26 -0600
-Message-ID: <20120321205426.GA12492@obsidianresearch.com>
-References: <1332283154-16369-1-git-send-email-parav.pandit@emulex.com>
- <1332283154-16369-2-git-send-email-parav.pandit@emulex.com>
- <1332283154-16369-3-git-send-email-parav.pandit@emulex.com>
- <339d9e05-38fd-45b1-83ed-f06277bd1326@exht1.ad.emulex.com>
- <CAL1RGDWnc478=ToFQEC51Usn6LLZgLen=CymFZ0C0GnRp9BAsw@mail.gmail.com>
- <88B766C272F2C64B944B21AD078333151C964A63F1@EXMAIL.ad.emulex.com>
- <CAL1RGDWmz4Yr8mqWMywN9X+refDEJ4W=ieBvOtZZc32qMDA5_w@mail.gmail.com>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [GIT PULL] please pull infiniband.git
+Date: Wed, 21 Mar 2012 16:03:11 -0500 (CDT)
+Message-ID: <alpine.DEB.2.00.1203211602380.25567@router.home>
+References: <1332177079-14339-1-git-send-email-roland@kernel.org> <CAJZOPZ+UFp9SWe71dnPxkmHPB4+7R+z=BvWwXiiMf9T0JC9s8A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL1RGDWmz4Yr8mqWMywN9X+refDEJ4W=ieBvOtZZc32qMDA5_w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJZOPZ+UFp9SWe71dnPxkmHPB4+7R+z=BvWwXiiMf9T0JC9s8A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 21, 2012 at 12:33:00PM -0700, Roland Dreier wrote:
-> On Wed, Mar 21, 2012 at 12:04 PM,  <Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> >> > +/* mailbox cmd response */
-> >> > +struct ocrdma_mbx_rsp {
-> >> > + ? ? ? u32 subsys_op;
-> >> > + ? ? ? u32 status;
-> >> > + ? ? ? u32 rsp_len;
-> >> > + ? ? ? u32 add_rsp_len;
-> >> > +} __packed;
-> 
-> >> ...similar comments about only using __packed where you really need it...
-> 
-> > This pack is required as it is shared with hardware and need to be
-> > of 16 bytes for 32 and 64 bit architecture. Do not wanted to take
-> > risk of different compiler versions. So keeping it packed.
-> 
-> I really think if you can't trust your compiler to lay this
-> structure out properly, you have a lot of bigger problems.  But
-> whatever, it's not a big deal.
+On Wed, 21 Mar 2012, Or Gerlitz wrote:
 
-Doesn't packed penalize all access to the structure on some
-architectures, eg sparc?
+> So again, any reason not to merge the RAW QP patches for 3.4? they
+> have been posted few months ago, its two kernel patches and we have
+> Sean's reviewd-by Signature for the core patch (see
+> http://marc.info/?l=linux-rdma&m=132693668105264&w=2)
 
-A static assert is a better choice than packed...
+Yes please. Can we can talk about this next week at the OFA conference?
 
-BUILD_BUG_ON(sizeof(ocrdma_mbx_rsp) != 16);
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
