@@ -1,8 +1,8 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 1/4] opensm/osm_pkey_mgr.c: fix segfault when trying to
- access not allocated block
-Date: Thu, 22 Mar 2012 10:36:02 +0200
-Message-ID: <20120322083602.GB2613@calypso>
+Subject: [PATCH 2/4] opensm/osm_sa_guidinfo_record.c: end error resoponse to
+ invalid LID in GUIDInfo request
+Date: Thu, 22 Mar 2012 10:36:58 +0200
+Message-ID: <20120322083658.GC2613@calypso>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,31 +11,32 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the program decides to add a pkey to block 1. It might not allocate memory
-for block 0. As a result, when the program searches for a pkey, it might try
-access a not allocated block.
+Sending IB_SA_MAD_STATUS_NO_RECORDS for SA GUIDInfo requests with
+invalid LID in record identifier.
 
 Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_pkey_mgr.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ opensm/osm_sa_guidinfo_record.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
-index 52c2280..d051026 100644
---- a/opensm/osm_pkey_mgr.c
-+++ b/opensm/osm_pkey_mgr.c
-@@ -556,6 +556,9 @@ static int new_pkey_exists(osm_pkey_tbs_t * p_pkey_tbl, ib_net16_t pkey)
- 	num_blocks = (uint16_t) cl_ptr_vector_get_size(&p_pkey_tbl->new_blocks);
- 	for (block_index = 0; block_index < num_blocks; block_index++) {
- 		block = osm_pkey_tbl_new_block_get(p_pkey_tbl, block_index);
-+		if (!block)
-+			continue;
-+
- 		for (pkey_idx = 0; pkey_idx < IB_NUM_PKEY_ELEMENTS_IN_BLOCK;
- 		     pkey_idx++) {
- 			if (block->pkey_entry[pkey_idx] == pkey)
+diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
+index b23bc28..b100da1 100644
+--- a/opensm/osm_sa_guidinfo_record.c
++++ b/opensm/osm_sa_guidinfo_record.c
+@@ -748,9 +748,10 @@ void osm_gir_rcv_process(IN void *ctx, IN void *data)
+ 		p_rcvd_rec = (ib_guidinfo_record_t *) ib_sa_mad_get_payload_ptr(p_rcvd_mad);
+ 		p_port = osm_get_port_by_lid(sa->p_subn, p_rcvd_rec->lid);
+ 		if (!p_port) {
+-			OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
++			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5117: "
+ 				"Port with LID %u not found\n",
+ 				cl_ntoh16(p_rcvd_rec->lid));
++			osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_NO_RECORDS);
+ 			goto Exit;
+ 		}
+ 		if (!osm_physp_share_pkey(sa->p_log, p_req_physp,
 -- 
 1.7.7.6
 
