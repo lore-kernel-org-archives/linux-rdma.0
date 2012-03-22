@@ -1,8 +1,8 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 3/4] opensm: Fix continous looping when clearing accum_pkeys
- table
-Date: Thu, 22 Mar 2012 10:37:42 +0200
-Message-ID: <20120322083742.GD2613@calypso>
+Subject: [PATCH 4/4] opensm/osm_sa_guidinfo_record.c: Check block_num
+ validity in set_guidinfo() and del_guidinfo() requests
+Date: Thu, 22 Mar 2012 10:38:25 +0200
+Message-ID: <20120322083825.GE2613@calypso>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,60 +11,62 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-p_pkey_tbl->accum_pkeys maximal size is 0x10000 (last used index is 0xFFFF),
-so when we itterate over accum_pkeys we should make sure we don't go over the
-bounds of uint16_t.
+block_num should be less than port's Alias GUID capability.
 
 Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_pkey.c     |    5 +++--
- opensm/osm_pkey_mgr.c |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ opensm/osm_sa_guidinfo_record.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-diff --git a/opensm/osm_pkey.c b/opensm/osm_pkey.c
-index 632d44d..30a5767 100644
---- a/opensm/osm_pkey.c
-+++ b/opensm/osm_pkey.c
-@@ -205,7 +205,8 @@ void osm_pkey_tbl_clear_accum_pkeys(IN osm_pkey_tbl_t * p_pkey_tbl,
+diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
+index b100da1..37451b3 100644
+--- a/opensm/osm_sa_guidinfo_record.c
++++ b/opensm/osm_sa_guidinfo_record.c
+@@ -373,6 +373,7 @@ static void del_guidinfo(IN osm_sa_t *sa, IN osm_madw_t *p_madw,
+ 			 IN osm_port_t *p_port, IN uint8_t block_num)
  {
- 	void *ptr;
- 	uintptr_t pkey_idx_ptr;
--	uint16_t pkey_idx, last_pkey_idx, i;
-+	uint16_t pkey_idx, last_pkey_idx;
-+	uint32_t i;
+ 	int i;
++	uint32_t max_block;
+ 	ib_sa_mad_t *p_sa_mad;
+ 	ib_guidinfo_record_t *p_rcvd_rec;
+ 	ib_net64_t del_alias_guid;
+@@ -386,6 +387,19 @@ static void del_guidinfo(IN osm_sa_t *sa, IN osm_madw_t *p_madw,
+ 	if (!p_port->p_physp->p_guids)
+ 		goto Exit;
  
- 	ptr = cl_ptr_vector_get(&p_pkey_tbl->accum_pkeys, pkey);
- 	if (ptr == NULL)
-@@ -218,7 +219,7 @@ void osm_pkey_tbl_clear_accum_pkeys(IN osm_pkey_tbl_t * p_pkey_tbl,
++	max_block = (p_port->p_physp->port_info.guid_cap + GUID_TABLE_MAX_ENTRIES - 1) /
++		     GUID_TABLE_MAX_ENTRIES;
++
++	if (block_num > max_block) {
++		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5116: "
++			"block_num %d is higher than Max GUID Cap block %d "
++			"for port GUID 0x%" PRIx64 "\n",
++			block_num, max_block, cl_ntoh64(p_port->p_physp->port_guid));
++		osm_sa_send_error(sa, p_madw,
++				  IB_SA_MAD_STATUS_NO_RECORDS);
++		return;
++	}
++
+ 	p_sa_mad = osm_madw_get_sa_mad_ptr(p_madw);
+ 	p_rcvd_rec =
+ 		(ib_guidinfo_record_t *) ib_sa_mad_get_payload_ptr(p_sa_mad);
+@@ -479,6 +493,15 @@ static void set_guidinfo(IN osm_sa_t *sa, IN osm_madw_t *p_madw,
  
- 	if (p_pkey_tbl->last_pkey_idx == pkey_idx) {
- 		last_pkey_idx = 0;
--		for (i = 0; i < cl_ptr_vector_get_size(&p_pkey_tbl->accum_pkeys); i++) {
-+		for (i = 1; i < cl_ptr_vector_get_size(&p_pkey_tbl->accum_pkeys); i++) {
- 			ptr = cl_ptr_vector_get(&p_pkey_tbl->accum_pkeys, i);
- 			if (ptr != NULL) {
- 				pkey_idx_ptr = (uintptr_t) ptr;
-diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
-index d051026..f7e6eae 100644
---- a/opensm/osm_pkey_mgr.c
-+++ b/opensm/osm_pkey_mgr.c
-@@ -255,12 +255,13 @@ pkey_mgr_enforce_partition(IN osm_log_t * p_log, osm_sm_t * sm,
- static void clear_accum_pkey_index(osm_pkey_tbl_t * p_pkey_tbl,
-                                    uint16_t pkey_index)
- {
--	uint16_t i, pkey_idx_bias, pkey_idx;
-+	uint16_t pkey_idx_bias, pkey_idx;
-+	uint32_t i;
- 	void *ptr;
- 	uintptr_t pkey_idx_ptr;
- 
- 	pkey_idx_bias = pkey_index + 1; // adjust for pkey index bias in accum_pkeys
--	for (i = 0; i < cl_ptr_vector_get_size(&p_pkey_tbl->accum_pkeys); i++) {
-+	for (i = 1; i < cl_ptr_vector_get_size(&p_pkey_tbl->accum_pkeys); i++) {
- 		ptr = cl_ptr_vector_get(&p_pkey_tbl->accum_pkeys, i);
- 		if (ptr != NULL) {
- 			pkey_idx_ptr = (uintptr_t) ptr;
+ 	max_block = (p_port->p_physp->port_info.guid_cap + GUID_TABLE_MAX_ENTRIES - 1) /
+ 		     GUID_TABLE_MAX_ENTRIES;
++	if (block_num > max_block) {
++		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5118: "
++			"block_num %d is higher than Max GUID Cap block %d "
++			"for port GUID 0x%" PRIx64 "\n",
++			block_num, max_block, cl_ntoh64(p_port->p_physp->port_guid));
++		osm_sa_send_error(sa, p_madw,
++				  IB_SA_MAD_STATUS_NO_RECORDS);
++		return;
++	}
+ 	if (!p_port->p_physp->p_guids) {
+ 		p_port->p_physp->p_guids = calloc(max_block * GUID_TABLE_MAX_ENTRIES,
+ 						  sizeof(ib_net64_t));
 -- 
 1.7.7.6
 
