@@ -1,42 +1,87 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH 2/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
-Date: Thu, 22 Mar 2012 16:45:43 -0700
-Message-ID: <CAL1RGDU13hB5sYoEnsG5VcY2uH53WzWpGwAfkbi_moBfqb84HA@mail.gmail.com>
-References: <CAL1RGDVxCE--P78bk0Me5o+ekSzgBYG0UJT6y3O7cK3mUGBjuQ@mail.gmail.com>
- <AE90C24D6B3A694183C094C60CF0A2F6026B6EB4@saturn3.aculab.com>
- <88B766C272F2C64B944B21AD078333151C964A66EF@EXMAIL.ad.emulex.com>
- <20120322205824.GC9614@obsidianresearch.com> <88B766C272F2C64B944B21AD078333151C964A670B@EXMAIL.ad.emulex.com>
- <3ae9829d-f8dd-4268-918a-94616eff0915@exht1.ad.emulex.com> <20120322224429.GA12980@obsidianresearch.com>
+From: "David Laight" <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
+Subject: RE: [PATCH 2/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
+Date: Fri, 23 Mar 2012 09:41:25 -0000
+Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6026B6EB7@saturn3.aculab.com>
+References: <20120322224429.GA12980@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-class: urn:content-classes:message
 In-Reply-To: <20120322224429.GA12980-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, David.Laight-JxhZ9S5GRejQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 22, 2012 at 3:44 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+ 
+> > struct {
+> >       u64 fielda
+> > 	u32 field;
+> > };
+> 
+> In this case: On 64 bit: the u64 is aligned to 8 and the u32 
+> is aligned to 4. So
+> the structure is aligned to 8. A pad is inserted at the end of the
+> struct to bring it out. On 32 bit, the u64 is aligned to 4, so the
+> struct is aligned to 4, so no pad is added.
+
+That is true for 32bit i386, some 32bit ABI may require 64bit
+alignment for 64bit items.
+
+...
+> The aligned attribute overrides the automatic determination of the
+> alignment based on the contents and just forces it.
+> 
+> So, as an example, if you have this hardware layout:
+> 
+> struct {
+>   u32 fielda;
+>   u64 fieldb;
+> } attribute ((aligned(4));
+> 
+> David is saying you will get a 12 byte struct and fieldb will be
+> unaligned. Since 12 is aligned to 4 no padding is added.
+
+I was actually suggesting defining (modulo syntax errors):
+typedef u64 u64_aligned_8 attribute ((aligned(8));
+
+Then you can define:
+struct foo {
+	u32 fielda;
+	u64_aligned_8 fieldb;
+};
+and know that the aligment should be the same on all systems.
+(But I'd still add the explicit pad in the above.)
+
+This is actually more useful when you need to process structures
+that have misaligned 64bit items - as happens when doing 'compat 32'
+code in a 64bit kernel. Or trying to map the x86 disk mbr.
+
 > For hardware facing structures I'd combine this with a static assert
 > to verify structure size at compile time.
->
+
+Also useful if you need to ensure a structure doesn't accidentally
+change size when you need to preserve a userspace interface.
+
 > So..
->
+> 
 > 1) Avoid using attributes unless the structure has unaligned members.
 > 2) Avoid creating structures with unaligned members (eg for userspace
-> =A0 communication)
+>    communication)
 > 3) Frown at hardware/firmware developers who make communication
-> =A0 structures with unaligned members :)
+>    structures with unaligned members :)
 > 4) Be explicit about padding in your layout for 64/32
-> =A0 compatibility.
+>    compatibility.
 
-Excellent summary, thanks Jason.
+Agreed.
 
- - R.
+	David
+ 
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
