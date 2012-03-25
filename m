@@ -1,88 +1,44 @@
-From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 2/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
-Date: Fri, 23 Mar 2012 12:16:52 -0700
-Message-ID: <88B766C272F2C64B944B21AD078333151C964A68E3@EXMAIL.ad.emulex.com>
-References: <CAL1RGDVxCE--P78bk0Me5o+ekSzgBYG0UJT6y3O7cK3mUGBjuQ@mail.gmail.com>
- <AE90C24D6B3A694183C094C60CF0A2F6026B6EB4@saturn3.aculab.com>
- <88B766C272F2C64B944B21AD078333151C964A66EF@EXMAIL.ad.emulex.com>
- <20120322205824.GC9614@obsidianresearch.com>
- <88B766C272F2C64B944B21AD078333151C964A670B@EXMAIL.ad.emulex.com>
- <3ae9829d-f8dd-4268-918a-94616eff0915@exht1.ad.emulex.com>
- <20120322224429.GA12980@obsidianresearch.com>
- <88B766C272F2C64B944B21AD078333151C964A67E0@EXMAIL.ad.emulex.com>
- <20120323165414.GA15260@obsidianresearch.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH 00/15, v3] Make ib_srp better suited for H.A. purposes
+Date: Sun, 25 Mar 2012 14:45:44 +0000
+Message-ID: <5207288.nSt5MkVMpO@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120323165414.GA15260-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
-Cc: David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dillowda-1Heg1YXhbW8@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Got it. You did mention about typedef in email chain, but I understood as different way to achieve same.
+This patch series makes the ib_srp driver better suited for use in a H.A. setup because:
+- Switchover can be triggered explicitly by deleting an initiator device.
+- Disconnecting from a target without unloading ib_srp becomes possible.
 
-I reviewed my code and found that most of the fields between driver-adapter doesn't need attribute.
-So far (a) removing packed and (b) BUILD_BUG_ON looks sufficient for current set of structures. Initial test suffice the need.
+Changes since v2:
+- Addressed the v2 review comments.
+- Dropped the patches that have already been merged.
+- Dropped the patches for integration with multipathd.
+- Dropped the micro-optimization of the IB completion handlers.
 
-Thanks.
-Parav
+The individual patches are:
+0001-ib_srp-Enlarge-block-layer-timeout.patch
+0002-ib_srp-Introduce-srp_handle_qp_err.patch
+0003-ib_srp-Micro-optimize-srp_queuecommand.patch
+0004-ib_srp-Suppress-superfluous-error-messages.patch
+0005-ib_srp-Avoid-that-error-handling-triggers-a-crash.patch
+0006-ib_srp-Introduce-the-helper-function-srp_remove_targ.patch
+0007-ib_srp-Eliminate-state-SRP_TARGET_DEAD.patch
+0008-ib_srp-Fix-race-triggered-by-module-removal.patch
+0009-srp_transport-Fix-atttribute-registration.patch
+0010-srp_transport-Simplify-attribute-initialization-code.patch
+0011-srp_transport-Document-sysfs-attributes.patch
+0012-ib_srp-Document-sysfs-attributes.patch
+0013-ib_srp-Allow-SRP-disconnect-through-sysfs.patch
+0014-ib_srp-Introduce-temporary-variable-in-srp_remove_ta.patch
+0015-ib_srp-Maintain-a-single-connection-per-I_T-nexus.patch
 
-> -----Original Message-----
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Friday, March 23, 2012 10:24 PM
-> To: Pandit, Parav
-> Cc: David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org; roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 2/9] ocrdma: Driver for Emulex OneConnect RDMA
-> adapter
-> 
-> On Fri, Mar 23, 2012 at 07:03:37AM -0700, Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org wrote:
-> 
-> > > David is saying you will get a 12 byte struct and fieldb will be
-> > > unaligned. Since
-> > > 12 is aligned to 4 no padding is added.
-> >
-> > So I decided to experiment above example before implementing in
-> > driver. However I find structure of 16 bytes (instead of 12) with
-> > padding after fielda in below example.  Am I missing some compiler
-> > option or syntax error in attribute? Sorry to ask this silly question.
-> > I tried __attribute__((__aligned__(4))); too based on usage in other
-> > kernel code.
-> 
-> I got the syntax wrong for that specific case (it is a little unintuitive.. IMHO,
-> capping the alignment of a container should cap the alignment of all
-> members, otherwise it is nonsense!):
-> 
-> typedef uint64_t u64_unaligned_8 __attribute__((__aligned__(4)));
-> 
-> struct foo {
->         uint32_t fielda;
->         u64_unaligned_8 fieldb;
-> };
-> 
-> struct foo2 {
->         uint32_t fielda;
->         uint64_t fieldb;
-> };
-> 
-> int main(int argc,const char *argv[])
-> {
-> 	printf("sizeof(foo) = %zu, fieldb = %zu\n",sizeof(struct foo),
-> 	       offsetof(struct foo,fieldb));
-> 	printf("sizeof(foo2) = %zu, fieldb = %zu\n",sizeof(struct foo2),
-> 	       offsetof(struct foo2,fieldb));
-> 	return 0;
-> }
-> 
-> sizeof(foo) = 12, fieldb = 4
-> sizeof(foo2) = 16, fieldb = 8
-> 
-> gcc version 4.6.1 (Ubuntu/Linaro 4.6.1-9ubuntu3)
-> 
-> Jason
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
