@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 06/15] ib_srp: Introduce the helper function srp_remove_target()
-Date: Sun, 25 Mar 2012 14:54:05 +0000
-Message-ID: <1370610.Xtmk9thkuZ@asus>
+Subject: [PATCH 07/15] ib_srp: Eliminate state SRP_TARGET_DEAD
+Date: Sun, 25 Mar 2012 14:55:30 +0000
+Message-ID: <5031839.IRal8oFZf7@asus>
 References: <5207288.nSt5MkVMpO@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,50 +13,242 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dillowda-1Heg1YXhbW8@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Only queue removal work after having changed the target state
+into SRP_TARGET_REMOVED and not if that state was already equal
+to SRP_TARGET_REMOVED. That allows to remove the state
+SRP_TARGET_DEAD. Add a call to srp_disconnect_target() in
+srp_remove_target() - due to previous changes it is now safe to
+invoke that last function even if the IB connection has already
+been disconnected. This change allows to replace the target
+removal code in srp_remove_one() by a call to srp_remove_target().
+Rename srp_target_port.work into srp_target_port.remove_work to
+reflect its usage. Move function srp_change_state() to just
+before srp_change_state_to_removed() to avoid having to
+introduce a forward declaration.
+
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   19 ++++++++++++-------
- 1 files changed, 12 insertions(+), 7 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |  108 +++++++++++++++--------------------
+ drivers/infiniband/ulp/srp/ib_srp.h |    5 +-
+ 2 files changed, 49 insertions(+), 64 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 2c265ae..b4b825d 100644
+index b4b825d..9125a9c 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -506,6 +506,17 @@ static void srp_del_scsi_host_attr(struct Scsi_Host *shost)
- 		device_remove_file(&shost->shost_dev, *attr);
+@@ -428,6 +428,27 @@ static int srp_send_req(struct srp_target_port *target)
+ 	return status;
  }
  
-+static void srp_remove_target(struct srp_target_port *target)
++static bool srp_change_state(struct srp_target_port *target,
++			     enum srp_target_state old,
++			     enum srp_target_state new)
 +{
-+	srp_del_scsi_host_attr(target->scsi_host);
-+	srp_remove_host(target->scsi_host);
-+	scsi_remove_host(target->scsi_host);
-+	ib_destroy_cm_id(target->cm_id);
-+	srp_free_target_ib(target);
-+	srp_free_req_data(target);
-+	scsi_host_put(target->scsi_host);
++	bool changed = false;
++
++	spin_lock_irq(&target->lock);
++	if (target->state == old) {
++		target->state = new;
++		changed = true;
++	}
++	spin_unlock_irq(&target->lock);
++
++	return changed;
 +}
 +
++static bool srp_change_state_to_removed(struct srp_target_port *target)
++{
++	return srp_change_state(target, SRP_TARGET_LIVE, SRP_TARGET_REMOVED);
++}
++
+ static bool srp_change_conn_state(struct srp_target_port *target,
+ 				  bool connected)
+ {
+@@ -458,21 +479,6 @@ static void srp_disconnect_target(struct srp_target_port *target)
+ 	}
+ }
+ 
+-static bool srp_change_state(struct srp_target_port *target,
+-			    enum srp_target_state old,
+-			    enum srp_target_state new)
+-{
+-	bool changed = false;
+-
+-	spin_lock_irq(&target->lock);
+-	if (target->state == old) {
+-		target->state = new;
+-		changed = true;
+-	}
+-	spin_unlock_irq(&target->lock);
+-	return changed;
+-}
+-
+ static void srp_free_req_data(struct srp_target_port *target)
+ {
+ 	struct ib_device *ibdev = target->srp_host->srp_dev->dev;
+@@ -508,9 +514,12 @@ static void srp_del_scsi_host_attr(struct Scsi_Host *shost)
+ 
+ static void srp_remove_target(struct srp_target_port *target)
+ {
++	WARN_ON(target->state != SRP_TARGET_REMOVED);
++
+ 	srp_del_scsi_host_attr(target->scsi_host);
+ 	srp_remove_host(target->scsi_host);
+ 	scsi_remove_host(target->scsi_host);
++	srp_disconnect_target(target);
+ 	ib_destroy_cm_id(target->cm_id);
+ 	srp_free_target_ib(target);
+ 	srp_free_req_data(target);
+@@ -520,10 +529,9 @@ static void srp_remove_target(struct srp_target_port *target)
  static void srp_remove_work(struct work_struct *work)
  {
  	struct srp_target_port *target =
-@@ -518,13 +529,7 @@ static void srp_remove_work(struct work_struct *work)
+-		container_of(work, struct srp_target_port, work);
++		container_of(work, struct srp_target_port, remove_work);
+ 
+-	if (!srp_change_state(target, SRP_TARGET_DEAD, SRP_TARGET_REMOVED))
+-		return;
++	WARN_ON(target->state != SRP_TARGET_REMOVED);
+ 
+ 	spin_lock(&target->srp_host->target_lock);
  	list_del(&target->list);
- 	spin_unlock(&target->srp_host->target_lock);
+@@ -695,17 +703,9 @@ err:
+ 	 * However, we have to defer the real removal because we
+ 	 * are in the context of the SCSI error handler now, which
+ 	 * will deadlock if we call scsi_remove_host().
+-	 *
+-	 * Schedule our work inside the lock to avoid a race with
+-	 * the flush_scheduled_work() in srp_remove_one().
+ 	 */
+-	spin_lock_irq(&target->lock);
+-	if (target->state == SRP_TARGET_LIVE) {
+-		target->state = SRP_TARGET_DEAD;
+-		INIT_WORK(&target->work, srp_remove_work);
+-		queue_work(ib_wq, &target->work);
+-	}
+-	spin_unlock_irq(&target->lock);
++	if (srp_change_state_to_removed(target))
++		queue_work(ib_wq, &target->remove_work);
  
--	srp_del_scsi_host_attr(target->scsi_host);
--	srp_remove_host(target->scsi_host);
--	scsi_remove_host(target->scsi_host);
--	ib_destroy_cm_id(target->cm_id);
--	srp_free_target_ib(target);
--	srp_free_req_data(target);
--	scsi_host_put(target->scsi_host);
-+	srp_remove_target(target);
- }
+ 	scsi_target_unblock(&shost->shost_gendev);
  
- static int srp_connect_target(struct srp_target_port *target)
+@@ -1300,9 +1300,7 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 	unsigned long flags;
+ 	int len;
+ 
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED ||
+-	    !target->connected) {
++	if (target->state == SRP_TARGET_REMOVED || !target->connected) {
+ 		scmnd->result = DID_BAD_TARGET << 16;
+ 		scmnd->scsi_done(scmnd);
+ 		return 0;
+@@ -1652,9 +1650,7 @@ static int srp_send_tsk_mgmt(struct srp_target_port *target,
+ 	struct srp_iu *iu;
+ 	struct srp_tsk_mgmt *tsk_mgmt;
+ 
+-	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED ||
+-	    !target->connected)
++	if (target->state == SRP_TARGET_REMOVED || !target->connected)
+ 		return -1;
+ 
+ 	init_completion(&target->tsk_mgmt_done);
+@@ -2229,6 +2225,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 			     sizeof (struct srp_indirect_buf) +
+ 			     target->cmd_sg_cnt * sizeof (struct srp_direct_buf);
+ 
++	INIT_WORK(&target->remove_work, srp_remove_work);
+ 	spin_lock_init(&target->lock);
+ 	INIT_LIST_HEAD(&target->free_tx);
+ 	INIT_LIST_HEAD(&target->free_reqs);
+@@ -2462,8 +2459,7 @@ static void srp_remove_one(struct ib_device *device)
+ {
+ 	struct srp_device *srp_dev;
+ 	struct srp_host *host, *tmp_host;
+-	LIST_HEAD(target_list);
+-	struct srp_target_port *target, *tmp_target;
++	struct srp_target_port *target;
+ 
+ 	srp_dev = ib_get_client_data(device, &srp_client);
+ 
+@@ -2476,36 +2472,26 @@ static void srp_remove_one(struct ib_device *device)
+ 		wait_for_completion(&host->released);
+ 
+ 		/*
+-		 * Mark all target ports as removed, so we stop queueing
+-		 * commands and don't try to reconnect.
++		 * Remove all target ports. Wait for any removal tasks that
++		 * may already have been started.
+ 		 */
+ 		spin_lock(&host->target_lock);
+-		list_for_each_entry(target, &host->target_list, list) {
+-			spin_lock_irq(&target->lock);
+-			target->state = SRP_TARGET_REMOVED;
+-			spin_unlock_irq(&target->lock);
++		while (!list_empty(&host->target_list)) {
++			target = list_first_entry(&host->target_list,
++						  struct srp_target_port, list);
++			if (srp_change_state_to_removed(target)) {
++				list_del(&target->list);
++				spin_unlock(&host->target_lock);
++				srp_remove_target(target);
++				spin_lock(&host->target_lock);
++			} else {
++				spin_unlock(&host->target_lock);
++				flush_work(&target->remove_work);
++				spin_lock(&host->target_lock);
++			}
+ 		}
+ 		spin_unlock(&host->target_lock);
+ 
+-		/*
+-		 * Wait for any reconnection tasks that may have
+-		 * started before we marked our target ports as
+-		 * removed, and any target port removal tasks.
+-		 */
+-		flush_workqueue(ib_wq);
+-
+-		list_for_each_entry_safe(target, tmp_target,
+-					 &host->target_list, list) {
+-			srp_del_scsi_host_attr(target->scsi_host);
+-			srp_remove_host(target->scsi_host);
+-			scsi_remove_host(target->scsi_host);
+-			srp_disconnect_target(target);
+-			ib_destroy_cm_id(target->cm_id);
+-			srp_free_target_ib(target);
+-			srp_free_req_data(target);
+-			scsi_host_put(target->scsi_host);
+-		}
+-
+ 		kfree(host);
+ 	}
+ 
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index ef95fa4..de2d0b3 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -80,8 +80,7 @@ enum {
+ 
+ enum srp_target_state {
+ 	SRP_TARGET_LIVE,
+-	SRP_TARGET_DEAD,
+-	SRP_TARGET_REMOVED
++	SRP_TARGET_REMOVED,
+ };
+ 
+ enum srp_iu_type {
+@@ -175,7 +174,7 @@ struct srp_target_port {
+ 	struct srp_iu	       *rx_ring[SRP_RQ_SIZE];
+ 	struct srp_request	req_ring[SRP_CMD_SQ_SIZE];
+ 
+-	struct work_struct	work;
++	struct work_struct	remove_work;
+ 
+ 	struct list_head	list;
+ 	struct completion	done;
 -- 
 1.7.7
 
