@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 04/15] ib_srp: Suppress superfluous error messages
-Date: Sun, 25 Mar 2012 14:52:11 +0000
-Message-ID: <1531008.zEvvBjTGSI@asus>
+Subject: [PATCH 05/15] ib_srp: Avoid that SCSI error handling triggers a crash
+Date: Sun, 25 Mar 2012 14:53:23 +0000
+Message-ID: <4903375.rt8yAAnAoX@asus>
 References: <5207288.nSt5MkVMpO@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,125 +13,44 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dillowda-1Heg1YXhbW8@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Keep track of the connection state. Don't send any data over the
-QP after it has been disconnected. Only report QP errors while
-connected. Only invoke ib_send_cm_dreq() when connected such that
-invoking srp_disconnect_target() after having received a DREQ
-does not cause an error message to be printed.
+Sending any data over a queue pair associated with a closed
+connection is wrong. The HCA will send the data anyway and such
+data may be sent to another system to a queue pair that is in use.
+The data will get processed and a response will be sent back. That
+can result in ib_srp complaining about "Null scmnd for RSP ..."
+followed by a kernel oops.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   43 +++++++++++++++++++++++++++-------
- drivers/infiniband/ulp/srp/ib_srp.h |    1 +
- 2 files changed, 35 insertions(+), 9 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 04fbc43..c88dde3 100644
+index c88dde3..2c265ae 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -428,17 +428,34 @@ static int srp_send_req(struct srp_target_port *target)
- 	return status;
- }
+@@ -1296,7 +1296,8 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 	int len;
  
-+static bool srp_change_conn_state(struct srp_target_port *target,
-+				  bool connected)
-+{
-+	bool changed = false;
-+
-+	spin_lock_irq(&target->lock);
-+	if (target->connected != connected) {
-+		target->connected = connected;
-+		changed = true;
-+	}
-+	spin_unlock_irq(&target->lock);
-+
-+	return changed;
-+}
-+
- static void srp_disconnect_target(struct srp_target_port *target)
- {
--	/* XXX should send SRP_I_LOGOUT request */
-+	if (srp_change_conn_state(target, false)) {
-+		/* XXX should send SRP_I_LOGOUT request */
+ 	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED) {
++	    target->state == SRP_TARGET_REMOVED ||
++	    !target->connected) {
+ 		scmnd->result = DID_BAD_TARGET << 16;
+ 		scmnd->scsi_done(scmnd);
+ 		return 0;
+@@ -1647,7 +1648,8 @@ static int srp_send_tsk_mgmt(struct srp_target_port *target,
+ 	struct srp_tsk_mgmt *tsk_mgmt;
  
--	init_completion(&target->done);
--	if (ib_send_cm_dreq(target->cm_id, NULL, 0)) {
--		shost_printk(KERN_DEBUG, target->scsi_host,
--			     PFX "Sending CM DREQ failed\n");
--		return;
-+		init_completion(&target->done);
-+		if (ib_send_cm_dreq(target->cm_id, NULL, 0)) {
-+			shost_printk(KERN_DEBUG, target->scsi_host,
-+				     PFX "Sending CM DREQ failed\n");
-+		} else {
-+			wait_for_completion(&target->done);
-+		}
- 	}
--	wait_for_completion(&target->done);
- }
+ 	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
++	    target->state == SRP_TARGET_REMOVED ||
++	    !target->connected)
+ 		return -1;
  
- static bool srp_change_state(struct srp_target_port *target,
-@@ -515,6 +532,8 @@ static int srp_connect_target(struct srp_target_port *target)
- 	int retries = 3;
- 	int ret;
- 
-+	WARN_ON(target->connected);
-+
- 	target->qp_in_error = false;
- 
- 	ret = srp_lookup_path(target);
-@@ -536,6 +555,7 @@ static int srp_connect_target(struct srp_target_port *target)
- 		 */
- 		switch (target->status) {
- 		case 0:
-+			srp_change_conn_state(target, true);
- 			return 0;
- 
- 		case SRP_PORT_REDIRECT:
-@@ -1224,8 +1244,11 @@ static void srp_handle_qp_err(enum ib_wc_status wc_status,
- 			      enum ib_wc_opcode wc_opcode,
- 			      struct srp_target_port *target)
- {
--	shost_printk(KERN_ERR, target->scsi_host, PFX "failed %s status %d\n",
--		     wc_opcode & IB_WC_RECV ? "receive" : "send", wc_status);
-+	if (target->connected)
-+		shost_printk(KERN_ERR, target->scsi_host,
-+			     PFX "failed %s status %d\n",
-+			     wc_opcode & IB_WC_RECV ? "receive" : "send",
-+			     wc_status);
- 	target->qp_in_error = true;
- }
- 
-@@ -1585,6 +1608,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 	case IB_CM_DREQ_RECEIVED:
- 		shost_printk(KERN_WARNING, target->scsi_host,
- 			     PFX "DREQ received - connection closed\n");
-+		srp_change_conn_state(target, false);
- 		if (ib_send_cm_drep(cm_id, NULL, 0))
- 			shost_printk(KERN_ERR, target->scsi_host,
- 				     PFX "Sending CM DREP failed\n");
-@@ -1908,6 +1932,7 @@ static int srp_add_target(struct srp_host *host, struct srp_target_port *target)
- 	spin_unlock(&host->target_lock);
- 
- 	target->state = SRP_TARGET_LIVE;
-+	target->connected = false;
- 
- 	scsi_scan_target(&target->scsi_host->shost_gendev,
- 			 0, target->scsi_id, SCAN_WILD_CARD, 0);
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 02dc3ac..ef95fa4 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -163,6 +163,7 @@ struct srp_target_port {
- 	int			path_query_id;
- 
- 	u32			rq_tmo_jiffies;
-+	bool			connected;
- 
- 	struct ib_cm_id	       *cm_id;
- 
+ 	init_completion(&target->tsk_mgmt_done);
 -- 
 1.7.7
 
