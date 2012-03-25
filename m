@@ -1,196 +1,181 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 12/15] ib_srp: Document sysfs attributes
-Date: Sun, 25 Mar 2012 15:00:17 +0000
-Message-ID: <1517458.XXScRDPx90@asus>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH 13/15] ib_srp: Allow SRP disconnect through sysfs
+Date: Sun, 25 Mar 2012 15:01:40 +0000
+Message-ID: <12137079.5Hhh1ukOmv@asus>
 References: <5207288.nSt5MkVMpO@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
 In-Reply-To: <5207288.nSt5MkVMpO@asus>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dillowda-1Heg1YXhbW8@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Sender: linux-scsi-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org
+Cc: dillowda@ornl.gov, roland@purestorage.com, fujita.tomonori@lab.ntt.co.jp, brking@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-Document the sysfs attributes of the SRP initiator (ib_srp) according
-to the rules specified in Documentation/ABI/README.
+Make it possible to disconnect the IB RC connection used by the
+SRP protocol to communicate with a target.
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Let the SRP transport layer create a sysfs "delete" attribute for
+initiator drivers that support this functionality.
+
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Cc: David Dillow <dillowda@ornl.gov>
+Cc: Roland Dreier <roland@purestorage.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Brian King <brking@linux.vnet.ibm.com>
 ---
- Documentation/ABI/stable/sysfs-driver-ib_srp |  156 ++++++++++++++++++++++++++
- 1 files changed, 156 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/ABI/stable/sysfs-driver-ib_srp
+ Documentation/ABI/stable/sysfs-transport-srp |    7 +++++++
+ drivers/infiniband/ulp/srp/ib_srp.c          |   24 +++++++++++++++++++++---
+ drivers/scsi/scsi_transport_srp.c            |   22 +++++++++++++++++++++-
+ include/scsi/scsi_transport_srp.h            |    8 ++++++++
+ 4 files changed, 57 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/ABI/stable/sysfs-driver-ib_srp b/Documentation/ABI/stable/sysfs-driver-ib_srp
-new file mode 100644
-index 0000000..cfc1ce2
---- /dev/null
-+++ b/Documentation/ABI/stable/sysfs-driver-ib_srp
-@@ -0,0 +1,156 @@
-+What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/add_target
-+Date:		January 2, 2006
-+KernelVersion:	2.6.15
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Interface for making ib_srp connect to a new target.
-+		One can request ib_srp to connect to a new target by writing
-+		a comma-separated list of login parameters to this sysfs
-+		attribute. The supported parameters are:
-+		* id_ext, a 16-digit hexadecimal number specifying the eight
-+		  byte identifier extension in the 16-byte SRP target port
-+		  identifier. The target port identifier is sent by ib_srp
-+		  to the target in the SRP_LOGIN_REQ request.
-+		* ioc_guid, a 16-digit hexadecimal number specifying the eight
-+		  byte I/O controller GUID portion of the 16-byte target port
-+		  identifier.
-+		* dgid, a 32-digit hexadecimal number specifying the
-+		  destination GID.
-+		* pkey, a four-digit hexadecimal number specifying the
-+		  InfiniBand partition key.
-+		* service_id, a 16-digit hexadecimal number specifying the
-+		  InfiniBand service ID used to establish communication with
-+		  the SRP target. How to find out the value of the service ID
-+		  is specified in the documentation of the SRP target.
-+		* max_sect, a decimal number specifying the maximum number of
-+		  512-byte sectors to be transferred via a single SCSI command.
-+		* max_cmd_per_lun, a decimal number specifying the maximum
-+		  number of outstanding commands for a single LUN.
-+		* io_class, a hexadecimal number specifying the SRP I/O class.
-+		  Must be either 0xff00 (rev 10) or 0x0100 (rev 16a). The I/O
-+		  class defines the format of the SRP initiator and target
-+		  port identifiers.
-+		* initiator_ext, a 16-digit hexadecimal number specifying the
-+		  identifier extension portion of the SRP initiator port
-+		  identifier. This data is sent by the initiator to the target
-+		  in the SRP_LOGIN_REQ request.
-+		* cmd_sg_entries, a number in the range 1..255 that specifies
-+		  the maximum number of data buffer descriptors stored in the
-+		  SRP_CMD information unit itself. With allow_ext_sg=0 the
-+		  parameter cmd_sg_entries defines the maximum S/G list length
-+		  for a single SRP_CMD, and commands whose S/G list length
-+		  exceeds this limit after S/G list collapsing will fail.
-+		* allow_ext_sg, whether ib_srp is allowed to include a partial
-+		  memory descriptor list in an SRP_CMD instead of the entire
-+		  list. If a partial memory descriptor list has been included
-+		  in an SRP_CMD the remaining memory descriptors are
-+		  communicated from initiator to target via an additional RDMA
-+		  transfer. Setting allow_ext_sg to 1 increases the maximum
-+		  amount of data that can be transferred between initiator and
-+		  target via a single SCSI command. Since not all SRP target
-+		  implementations support partial memory descriptor lists the
-+		  default value for this option is 0.
-+		* sg_tablesize, a number in the range 1..2048 specifying the
-+		  maximum S/G list length the SCSI layer is allowed to pass to
-+		  ib_srp. Specifying a value that exceeds cmd_sg_entries is
-+		  only safe with partial memory descriptor list support enabled
-+		  (allow_ext_sg=1).
+diff --git a/Documentation/ABI/stable/sysfs-transport-srp b/Documentation/ABI/stable/sysfs-transport-srp
+index 7b0d4a5..9fbc703 100644
+--- a/Documentation/ABI/stable/sysfs-transport-srp
++++ b/Documentation/ABI/stable/sysfs-transport-srp
+@@ -1,3 +1,10 @@
++What:		/sys/class/srp_remote_ports/port-<h>:<n>/delete
++Date:		January 1, 2012
++KernelVersion:	3.4
++Contact:	linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
++Description:	Instructs an SRP initiator to disconnect from a target and to
++		remove all LUNs imported from that target.
 +
-+What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/ibdev
-+Date:		January 2, 2006
-+KernelVersion:	2.6.15
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	HCA name (<hca>).
+ What:		/sys/class/srp_remote_ports/port-<h>:<n>/port_id
+ Date:		June 27, 2007
+ KernelVersion:	2.6.24
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 564ff08..9f940a5 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -612,6 +612,21 @@ static void srp_remove_work(struct work_struct *work)
+ 	srp_remove_target(target);
+ }
+ 
++/*
++ * Note: it is up to the caller to ensure that invoking srp_rport_delete()
++ * does not trigger a race against target port removal in srp_remove_target().
++ * As an example, invoking srp_rport_delete() from the SCSI EH is not safe.
++ */
++static void srp_rport_delete(struct srp_rport *rport)
++{
++	struct srp_target_port *target = rport->lld_data;
 +
-+What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/port
-+Date:		January 2, 2006
-+KernelVersion:	2.6.15
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	HCA port number (<port_number>).
++	BUG_ON(!target);
 +
-+What:		/sys/class/scsi_host/host<n>/allow_ext_sg
-+Date:		May 19, 2011
-+KernelVersion:	2.6.39
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Whether ib_srp is allowed to include a partial memory
-+		descriptor list in an SRP_CMD when communicating with an SRP
-+		target.
++	if (srp_change_state_to_removed(target))
++		queue_work(system_long_wq, &target->remove_work);
++}
 +
-+What:		/sys/class/scsi_host/host<n>/cmd_sg_entries
-+Date:		May 19, 2011
-+KernelVersion:	2.6.39
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Maximum number of data buffer descriptors that may be sent to
-+		the target in a single SRP_CMD request.
+ static int srp_connect_target(struct srp_target_port *target)
+ {
+ 	int retries = 3;
+@@ -1982,6 +1997,10 @@ static struct scsi_host_template srp_template = {
+ 	.shost_attrs			= srp_host_attrs
+ };
+ 
++static struct srp_function_template ib_srp_transport_functions = {
++	.rport_delete		 = srp_rport_delete,
++};
 +
-+What:		/sys/class/scsi_host/host<n>/dgid
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	InfiniBand destination GID used for communication with the SRP
-+		target. Differs from orig_dgid if port redirection has happened.
+ static int srp_add_target(struct srp_host *host, struct srp_target_port *target)
+ {
+ 	struct srp_rport_identifiers ids;
+@@ -2002,6 +2021,8 @@ static int srp_add_target(struct srp_host *host, struct srp_target_port *target)
+ 		return PTR_ERR(rport);
+ 	}
+ 
++	rport->lld_data = target;
 +
-+What:		/sys/class/scsi_host/host<n>/id_ext
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Eight-byte identifier extension portion of the 16-byte target
-+		port identifier.
+ 	spin_lock(&host->target_lock);
+ 	list_add_tail(&target->list, &host->target_list);
+ 	spin_unlock(&host->target_lock);
+@@ -2576,9 +2597,6 @@ static void srp_remove_one(struct ib_device *device)
+ 	kfree(srp_dev);
+ }
+ 
+-static struct srp_function_template ib_srp_transport_functions = {
+-};
+-
+ static int __init srp_init_module(void)
+ {
+ 	int ret;
+diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
+index 0d85f79..f379c7f 100644
+--- a/drivers/scsi/scsi_transport_srp.c
++++ b/drivers/scsi/scsi_transport_srp.c
+@@ -38,7 +38,7 @@ struct srp_host_attrs {
+ #define to_srp_host_attrs(host)	((struct srp_host_attrs *)(host)->shost_data)
+ 
+ #define SRP_HOST_ATTRS 0
+-#define SRP_RPORT_ATTRS 2
++#define SRP_RPORT_ATTRS 3
+ 
+ struct srp_internal {
+ 	struct scsi_transport_template t;
+@@ -116,6 +116,24 @@ show_srp_rport_roles(struct device *dev, struct device_attribute *attr,
+ 
+ static DEVICE_ATTR(roles, S_IRUGO, show_srp_rport_roles, NULL);
+ 
++static ssize_t store_srp_rport_delete(struct device *dev,
++				      struct device_attribute *attr,
++				      const char *buf, size_t count)
++{
++	struct srp_rport *rport = transport_class_to_srp_rport(dev);
++	struct Scsi_Host *shost = dev_to_shost(dev);
++	struct srp_internal *i = to_srp_internal(shost->transportt);
 +
-+What:		/sys/class/scsi_host/host<n>/ioc_guid
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Eight-byte I/O controller GUID portion of the 16-byte target
-+		port identifier.
++	if (i->f->rport_delete) {
++		i->f->rport_delete(rport);
++		return count;
++	} else {
++		return -ENOSYS;
++	}
++}
 +
-+What:		/sys/class/scsi_host/host<n>/local_ib_device
-+Date:		November 29, 2006
-+KernelVersion:	2.6.19
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Name of the InfiniBand HCA used for communicating with the
-+		SRP target.
++static DEVICE_ATTR(delete, S_IWUSR, NULL, store_srp_rport_delete);
 +
-+What:		/sys/class/scsi_host/host<n>/local_ib_port
-+Date:		November 29, 2006
-+KernelVersion:	2.6.19
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Number of the HCA port used for communicating with the
-+		SRP target.
+ static void srp_rport_release(struct device *dev)
+ {
+ 	struct srp_rport *rport = dev_to_rport(dev);
+@@ -309,6 +327,8 @@ srp_attach_transport(struct srp_function_template *ft)
+ 	count = 0;
+ 	i->rport_attrs[count++] = &dev_attr_port_id;
+ 	i->rport_attrs[count++] = &dev_attr_roles;
++	if (ft->rport_delete)
++		i->rport_attrs[count++] = &dev_attr_delete;
+ 	i->rport_attrs[count++] = NULL;
+ 	BUG_ON(count > ARRAY_SIZE(i->rport_attrs));
+ 
+diff --git a/include/scsi/scsi_transport_srp.h b/include/scsi/scsi_transport_srp.h
+index 9c60ca1..f47549f 100644
+--- a/include/scsi/scsi_transport_srp.h
++++ b/include/scsi/scsi_transport_srp.h
+@@ -14,13 +14,21 @@ struct srp_rport_identifiers {
+ };
+ 
+ struct srp_rport {
++	/* for initiator and target drivers */
 +
-+What:		/sys/class/scsi_host/host<n>/orig_dgid
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	InfiniBand destination GID specified in the parameters
-+		written to the add_target sysfs attribute.
+ 	struct device dev;
+ 
+ 	u8 port_id[16];
+ 	u8 roles;
 +
-+What:		/sys/class/scsi_host/host<n>/pkey
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	A 16-bit number representing the InfiniBand partition key used
-+		for communication with the SRP target.
++	/* for initiator drivers */
 +
-+What:		/sys/class/scsi_host/host<n>/req_lim
-+Date:		October 20, 2010
-+KernelVersion:	2.6.36
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Number of requests ib_srp can send to the target before it has
-+		to wait for more credits. For more information see also the
-+		SRP credit algorithm in the SRP specification.
-+
-+What:		/sys/class/scsi_host/host<n>/service_id
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	InfiniBand service ID used for establishing communication with
-+		the SRP	target.
-+
-+What:		/sys/class/scsi_host/host<n>/zero_req_lim
-+Date:		September 20, 2006
-+KernelVersion:	2.6.18
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Number of times the initiator had to wait with sending a
-+		request to the target because it ran out of credits. For more
-+		information see also the SRP credit algorithm in the SRP
-+		specification.
++	void			*lld_data;	/* LLD private data */
+ };
+ 
+ struct srp_function_template {
++	/* for initiator drivers */
++	void (*rport_delete)(struct srp_rport *rport);
+ 	/* for target drivers */
+ 	int (* tsk_mgmt_response)(struct Scsi_Host *, u64, u64, int);
+ 	int (* it_nexus_response)(struct Scsi_Host *, u64, int);
 -- 
 1.7.7
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
