@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 05/15] ib_srp: Avoid that SCSI error handling triggers a crash
-Date: Sun, 25 Mar 2012 14:53:23 +0000
-Message-ID: <4903375.rt8yAAnAoX@asus>
+Subject: [PATCH 06/15] ib_srp: Introduce the helper function srp_remove_target()
+Date: Sun, 25 Mar 2012 14:54:05 +0000
+Message-ID: <1370610.Xtmk9thkuZ@asus>
 References: <5207288.nSt5MkVMpO@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,44 +13,50 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dillowda-1Heg1YXhbW8@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sending any data over a queue pair associated with a closed
-connection is wrong. The HCA will send the data anyway and such
-data may be sent to another system to a queue pair that is in use.
-The data will get processed and a response will be sent back. That
-can result in ib_srp complaining about "Null scmnd for RSP ..."
-followed by a kernel oops.
-
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   19 ++++++++++++-------
+ 1 files changed, 12 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index c88dde3..2c265ae 100644
+index 2c265ae..b4b825d 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1296,7 +1296,8 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
- 	int len;
+@@ -506,6 +506,17 @@ static void srp_del_scsi_host_attr(struct Scsi_Host *shost)
+ 		device_remove_file(&shost->shost_dev, *attr);
+ }
  
- 	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED) {
-+	    target->state == SRP_TARGET_REMOVED ||
-+	    !target->connected) {
- 		scmnd->result = DID_BAD_TARGET << 16;
- 		scmnd->scsi_done(scmnd);
- 		return 0;
-@@ -1647,7 +1648,8 @@ static int srp_send_tsk_mgmt(struct srp_target_port *target,
- 	struct srp_tsk_mgmt *tsk_mgmt;
++static void srp_remove_target(struct srp_target_port *target)
++{
++	srp_del_scsi_host_attr(target->scsi_host);
++	srp_remove_host(target->scsi_host);
++	scsi_remove_host(target->scsi_host);
++	ib_destroy_cm_id(target->cm_id);
++	srp_free_target_ib(target);
++	srp_free_req_data(target);
++	scsi_host_put(target->scsi_host);
++}
++
+ static void srp_remove_work(struct work_struct *work)
+ {
+ 	struct srp_target_port *target =
+@@ -518,13 +529,7 @@ static void srp_remove_work(struct work_struct *work)
+ 	list_del(&target->list);
+ 	spin_unlock(&target->srp_host->target_lock);
  
- 	if (target->state == SRP_TARGET_DEAD ||
--	    target->state == SRP_TARGET_REMOVED)
-+	    target->state == SRP_TARGET_REMOVED ||
-+	    !target->connected)
- 		return -1;
+-	srp_del_scsi_host_attr(target->scsi_host);
+-	srp_remove_host(target->scsi_host);
+-	scsi_remove_host(target->scsi_host);
+-	ib_destroy_cm_id(target->cm_id);
+-	srp_free_target_ib(target);
+-	srp_free_req_data(target);
+-	scsi_host_put(target->scsi_host);
++	srp_remove_target(target);
+ }
  
- 	init_completion(&target->tsk_mgmt_done);
+ static int srp_connect_target(struct srp_target_port *target)
 -- 
 1.7.7
 
