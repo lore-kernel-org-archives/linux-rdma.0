@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 03/15] ib_srp: Micro-optimize srp_queuecommand()
-Date: Sun, 25 Mar 2012 14:50:21 +0000
-Message-ID: <28993193.JhpOJ9jIEO@asus>
+Subject: [PATCH 04/15] ib_srp: Suppress superfluous error messages
+Date: Sun, 25 Mar 2012 14:52:11 +0000
+Message-ID: <1531008.zEvvBjTGSI@asus>
 References: <5207288.nSt5MkVMpO@asus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,96 +13,125 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dillowda-1Heg1YXhbW8@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Block the SCSI host while reconnecting instead of representing
-the reconnect activity as a distinct SRP target state.
+Keep track of the connection state. Don't send any data over the
+QP after it has been disconnected. Only report QP errors while
+connected. Only invoke ib_send_cm_dreq() when connected such that
+invoking srp_disconnect_target() after having received a DREQ
+does not cause an error message to be printed.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   16 ++++++++--------
- drivers/infiniband/ulp/srp/ib_srp.h |    1 -
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   43 +++++++++++++++++++++++++++-------
+ drivers/infiniband/ulp/srp/ib_srp.h |    1 +
+ 2 files changed, 35 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 6279343..04fbc43 100644
+index 04fbc43..c88dde3 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -610,13 +610,16 @@ static void srp_reset_req(struct srp_target_port *target, struct srp_request *re
+@@ -428,17 +428,34 @@ static int srp_send_req(struct srp_target_port *target)
+ 	return status;
+ }
  
- static int srp_reconnect_target(struct srp_target_port *target)
++static bool srp_change_conn_state(struct srp_target_port *target,
++				  bool connected)
++{
++	bool changed = false;
++
++	spin_lock_irq(&target->lock);
++	if (target->connected != connected) {
++		target->connected = connected;
++		changed = true;
++	}
++	spin_unlock_irq(&target->lock);
++
++	return changed;
++}
++
+ static void srp_disconnect_target(struct srp_target_port *target)
  {
-+	struct Scsi_Host *shost = target->scsi_host;
- 	struct ib_qp_attr qp_attr;
- 	struct ib_wc wc;
- 	int i, ret;
+-	/* XXX should send SRP_I_LOGOUT request */
++	if (srp_change_conn_state(target, false)) {
++		/* XXX should send SRP_I_LOGOUT request */
  
--	if (!srp_change_state(target, SRP_TARGET_LIVE, SRP_TARGET_CONNECTING))
-+	if (target->state != SRP_TARGET_LIVE)
- 		return -EAGAIN;
- 
-+	scsi_target_block(&shost->shost_gendev);
-+
- 	srp_disconnect_target(target);
- 	/*
- 	 * Now get a new local CM ID so that we avoid confusing the
-@@ -654,8 +657,7 @@ static int srp_reconnect_target(struct srp_target_port *target)
- 	if (ret)
- 		goto err;
- 
--	if (!srp_change_state(target, SRP_TARGET_CONNECTING, SRP_TARGET_LIVE))
--		ret = -EAGAIN;
-+	scsi_target_unblock(&shost->shost_gendev);
- 
- 	return ret;
- 
-@@ -673,13 +675,15 @@ err:
- 	 * the flush_scheduled_work() in srp_remove_one().
- 	 */
- 	spin_lock_irq(&target->lock);
--	if (target->state == SRP_TARGET_CONNECTING) {
-+	if (target->state == SRP_TARGET_LIVE) {
- 		target->state = SRP_TARGET_DEAD;
- 		INIT_WORK(&target->work, srp_remove_work);
- 		queue_work(ib_wq, &target->work);
+-	init_completion(&target->done);
+-	if (ib_send_cm_dreq(target->cm_id, NULL, 0)) {
+-		shost_printk(KERN_DEBUG, target->scsi_host,
+-			     PFX "Sending CM DREQ failed\n");
+-		return;
++		init_completion(&target->done);
++		if (ib_send_cm_dreq(target->cm_id, NULL, 0)) {
++			shost_printk(KERN_DEBUG, target->scsi_host,
++				     PFX "Sending CM DREQ failed\n");
++		} else {
++			wait_for_completion(&target->done);
++		}
  	}
- 	spin_unlock_irq(&target->lock);
+-	wait_for_completion(&target->done);
+ }
  
-+	scsi_target_unblock(&shost->shost_gendev);
+ static bool srp_change_state(struct srp_target_port *target,
+@@ -515,6 +532,8 @@ static int srp_connect_target(struct srp_target_port *target)
+ 	int retries = 3;
+ 	int ret;
+ 
++	WARN_ON(target->connected);
 +
- 	return ret;
+ 	target->qp_in_error = false;
+ 
+ 	ret = srp_lookup_path(target);
+@@ -536,6 +555,7 @@ static int srp_connect_target(struct srp_target_port *target)
+ 		 */
+ 		switch (target->status) {
+ 		case 0:
++			srp_change_conn_state(target, true);
+ 			return 0;
+ 
+ 		case SRP_PORT_REDIRECT:
+@@ -1224,8 +1244,11 @@ static void srp_handle_qp_err(enum ib_wc_status wc_status,
+ 			      enum ib_wc_opcode wc_opcode,
+ 			      struct srp_target_port *target)
+ {
+-	shost_printk(KERN_ERR, target->scsi_host, PFX "failed %s status %d\n",
+-		     wc_opcode & IB_WC_RECV ? "receive" : "send", wc_status);
++	if (target->connected)
++		shost_printk(KERN_ERR, target->scsi_host,
++			     PFX "failed %s status %d\n",
++			     wc_opcode & IB_WC_RECV ? "receive" : "send",
++			     wc_status);
+ 	target->qp_in_error = true;
  }
  
-@@ -1268,9 +1272,6 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
- 	unsigned long flags;
- 	int len;
+@@ -1585,6 +1608,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 	case IB_CM_DREQ_RECEIVED:
+ 		shost_printk(KERN_WARNING, target->scsi_host,
+ 			     PFX "DREQ received - connection closed\n");
++		srp_change_conn_state(target, false);
+ 		if (ib_send_cm_drep(cm_id, NULL, 0))
+ 			shost_printk(KERN_ERR, target->scsi_host,
+ 				     PFX "Sending CM DREP failed\n");
+@@ -1908,6 +1932,7 @@ static int srp_add_target(struct srp_host *host, struct srp_target_port *target)
+ 	spin_unlock(&host->target_lock);
  
--	if (target->state == SRP_TARGET_CONNECTING)
--		goto err;
--
- 	if (target->state == SRP_TARGET_DEAD ||
- 	    target->state == SRP_TARGET_REMOVED) {
- 		scmnd->result = DID_BAD_TARGET << 16;
-@@ -1334,7 +1335,6 @@ err_iu:
- err_unlock:
- 	spin_unlock_irqrestore(&target->lock, flags);
+ 	target->state = SRP_TARGET_LIVE;
++	target->connected = false;
  
--err:
- 	return SCSI_MLQUEUE_HOST_BUSY;
- }
- 
+ 	scsi_scan_target(&target->scsi_host->shost_gendev,
+ 			 0, target->scsi_id, SCAN_WILD_CARD, 0);
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index f0daeb3..02dc3ac 100644
+index 02dc3ac..ef95fa4 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.h
 +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -80,7 +80,6 @@ enum {
+@@ -163,6 +163,7 @@ struct srp_target_port {
+ 	int			path_query_id;
  
- enum srp_target_state {
- 	SRP_TARGET_LIVE,
--	SRP_TARGET_CONNECTING,
- 	SRP_TARGET_DEAD,
- 	SRP_TARGET_REMOVED
- };
+ 	u32			rq_tmo_jiffies;
++	bool			connected;
+ 
+ 	struct ib_cm_id	       *cm_id;
+ 
 -- 
 1.7.7
 
