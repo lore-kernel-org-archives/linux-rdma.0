@@ -1,24 +1,49 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 00/15, v3] Make ib_srp better suited for H.A. purposes
-Date: Sun, 25 Mar 2012 15:18:09 +0000
-Message-ID: <2758264.LCH3RCDGs4@asus>
-References: <5207288.nSt5MkVMpO@asus>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [ANNOUNCE] libmlx4 1.0.3 is released
+Date: Mon, 26 Mar 2012 10:17:23 -0700
+Message-ID: <1332782243-26729-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5207288.nSt5MkVMpO@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dillowda-1Heg1YXhbW8@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sunday 25 March 2012 15:17, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
-> This patch series makes the ib_srp driver better suited for use in a H.A. setup because [ ... ]
+libmlx4 is a userspace driver for Mellanox ConnectX InfiniBand/IBoE
+HCAs.  It si a plug-in module for libibverbs that allows programs to
+use Mellanox hardware directly from userspace.
 
-The patch series is also available here: http://github.com/bvanassche/linux/commits/srp-ha/.
+A new stable release is available from
 
-Bart.
+    http://www.openfabrics.org/downloads/mlx4/libmlx4-1.0.3.tar.gz
+
+with sha1sum
+
+    0fea988f8cf9b3b02cd038949aee3ad86281976a  libmlx4-1.0.3.tar.gz
+
+I also pushed the latest tree and tag out to kernel.org:
+
+    git://git.kernel.org/pub/scm/libs/infiniband/libmlx4.git
+
+(the name of the tags is libmlx4-1.0.3)
+
+This release contains support for IBoE and ConnectX-3 adapters.
+
+The git shortlog since libmlx4 1.0.2 is:
+
+Or Gerlitz (6):
+      Add IBoE support
+      Add IBoE UD/VLANs support
+      Align the list of supported ConnectX devices with kernel
+      Use Ethernet 802.1Q VLAN-related fields in CQE
+      Add link_layer field to mlx4 QPs
+      Fix IBoE SL -> 802.1Q priority-bits mapping
+
+Roland Dreier (6):
+      Update to Debian standards version 3.9.2
+      Acknowledge Debian NMU
+      Moving plugin out of /usr/lib means we now depend on libibverbs 1.1.3
+      Add "foreign" option to AM_INIT_AUTOMAKE
+      Fix possible missed completion event
+      Roll libmlx4 1.0.3 release
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
