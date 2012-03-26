@@ -1,65 +1,36 @@
-From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 8/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
-Date: Tue, 27 Mar 2012 07:50:13 +0530
-Message-ID: <dcda9862-8b37-4344-be0a-4b613bd135f7@exht1.ad.emulex.com>
-References: <1332814814-7643-1-git-send-email-parav.pandit@emulex.com>
- <1332814814-7643-2-git-send-email-parav.pandit@emulex.com>
- <1332814814-7643-3-git-send-email-parav.pandit@emulex.com>
- <1332814814-7643-4-git-send-email-parav.pandit@emulex.com>
- <1332814814-7643-5-git-send-email-parav.pandit@emulex.com>
- <1332814814-7643-6-git-send-email-parav.pandit@emulex.com>
- <1332814814-7643-7-git-send-email-parav.pandit@emulex.com>
- <1332814814-7643-8-git-send-email-parav.pandit@emulex.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH resend] libmlx4: Add multicast IBoE support
+Date: Mon, 26 Mar 2012 23:27:33 +0000
+Message-ID: <CFE9BFE80FFE4D4892AA5D31387E310F61794FB5@MTLDAG02.mtl.com>
+References: <1330101150-1253-1-git-send-email-sbohrer@rgmadvisors.com>
+ <CAL1RGDWe8fSFdQXrTXpDps1G+q4-eWodh0g2mmnHiqA8UgSuUA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1332814814-7643-8-git-send-email-parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAL1RGDWe8fSFdQXrTXpDps1G+q4-eWodh0g2mmnHiqA8UgSuUA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Correct.
 
-- build files for building ocrdma driver
+-----Original Message-----
+=46rom: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]=20
+Sent: Tuesday, March 27, 2012 12:10 AM
+To: Shawn Bohrer
+Cc: Or Gerlitz; Eli Cohen; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [PATCH resend] libmlx4: Add multicast IBoE support
 
-Signed-off-by: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/Kconfig  |    8 ++++++++
- drivers/infiniband/hw/ocrdma/Makefile |    5 +++++
- 2 files changed, 13 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/ocrdma/Kconfig
- create mode 100644 drivers/infiniband/hw/ocrdma/Makefile
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ah->av.dlid =3D htons(0xc0000);
 
-diff --git a/drivers/infiniband/hw/ocrdma/Kconfig b/drivers/infiniband/hw/ocrdma/Kconfig
-new file mode 100644
-index 0000000..cf99342
---- /dev/null
-+++ b/drivers/infiniband/hw/ocrdma/Kconfig
-@@ -0,0 +1,8 @@
-+config INFINIBAND_OCRDMA
-+	tristate "Emulex One Connect HCA support"
-+	depends on ETHERNET && NETDEVICES && PCI
-+	select NET_VENDOR_EMULEX
-+	select BE2NET
-+	---help---
-+	  This driver provides low-level InfiniBand over Ethernet
-+	  support for Emulex One Connect host channel adapters (HCAs).
-diff --git a/drivers/infiniband/hw/ocrdma/Makefile b/drivers/infiniband/hw/ocrdma/Makefile
-new file mode 100644
-index 0000000..06a5bed
---- /dev/null
-+++ b/drivers/infiniband/hw/ocrdma/Makefile
-@@ -0,0 +1,5 @@
-+ccflags-y := -Idrivers/net/ethernet/emulex/benet
-+
-+obj-$(CONFIG_INFINIBAND_OCRDMA)	+= ocrdma.o
-+
-+ocrdma-y :=	ocrdma_main.o ocrdma_verbs.o ocrdma_hw.o ocrdma_ah.o
--- 
-1.6.0.2
+Presumably this should be 0xc000 not 0xc0000?
 
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
