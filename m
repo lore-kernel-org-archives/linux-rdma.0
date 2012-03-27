@@ -1,49 +1,45 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [ANNOUNCE] libmlx4 1.0.3 is released
-Date: Mon, 26 Mar 2012 10:17:23 -0700
-Message-ID: <1332782243-26729-1-git-send-email-roland@kernel.org>
+From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] be2net: Added functionality to support RoCE driver
+Date: Tue, 27 Mar 2012 05:57:11 +0530
+Message-ID: <820977c9-ce23-4d7c-8d04-41bb37158ecf@exht1.ad.emulex.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-libmlx4 is a userspace driver for Mellanox ConnectX InfiniBand/IBoE
-HCAs.  It si a plug-in module for libibverbs that allows programs to
-use Mellanox hardware directly from userspace.
+From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-A new stable release is available from
+This patch is for netdev net-next tree. It is based on previous RFC.
+Those review comments are addressed.
+This patch adds functionality to support RoCE (RDMA over Ethernet) driver.
+- Detecting RoCE supported adapters and creating linked list of them.
+- Enabling 5 more MSIX vectors for RoCE functionality.
+- Calling registered callback functions of the RoCE driver
+  whenever new RoCE capable device is added/removed.
+- Notifying events to RoCE driver when interface is up or down.
+- Provides device specific details to RoCE driver for each roce device.
+- Provides low level mailbox command to be issued by RoCE driver
+  before it can have it own MQ.
 
-    http://www.openfabrics.org/downloads/mlx4/libmlx4-1.0.3.tar.gz
+Parav Pandit (2):
+  be2net: Added function to issue mailbox cmd on MQ.
+  be2net: Added functionality to support RoCE driver
 
-with sha1sum
+ drivers/net/ethernet/emulex/benet/Makefile  |    2 +-
+ drivers/net/ethernet/emulex/benet/be.h      |   38 ++++++-
+ drivers/net/ethernet/emulex/benet/be_cmds.c |   39 ++++++
+ drivers/net/ethernet/emulex/benet/be_cmds.h |    1 +
+ drivers/net/ethernet/emulex/benet/be_hw.h   |    4 +-
+ drivers/net/ethernet/emulex/benet/be_main.c |   88 +++++++++++--
+ drivers/net/ethernet/emulex/benet/be_roce.c |  182 +++++++++++++++++++++++++++
+ drivers/net/ethernet/emulex/benet/be_roce.h |   75 +++++++++++
+ 8 files changed, 414 insertions(+), 15 deletions(-)
+ create mode 100644 drivers/net/ethernet/emulex/benet/be_roce.c
+ create mode 100644 drivers/net/ethernet/emulex/benet/be_roce.h
 
-    0fea988f8cf9b3b02cd038949aee3ad86281976a  libmlx4-1.0.3.tar.gz
-
-I also pushed the latest tree and tag out to kernel.org:
-
-    git://git.kernel.org/pub/scm/libs/infiniband/libmlx4.git
-
-(the name of the tags is libmlx4-1.0.3)
-
-This release contains support for IBoE and ConnectX-3 adapters.
-
-The git shortlog since libmlx4 1.0.2 is:
-
-Or Gerlitz (6):
-      Add IBoE support
-      Add IBoE UD/VLANs support
-      Align the list of supported ConnectX devices with kernel
-      Use Ethernet 802.1Q VLAN-related fields in CQE
-      Add link_layer field to mlx4 QPs
-      Fix IBoE SL -> 802.1Q priority-bits mapping
-
-Roland Dreier (6):
-      Update to Debian standards version 3.9.2
-      Acknowledge Debian NMU
-      Moving plugin out of /usr/lib means we now depend on libibverbs 1.1.3
-      Add "foreign" option to AM_INIT_AUTOMAKE
-      Fix possible missed completion event
-      Roll libmlx4 1.0.3 release
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
