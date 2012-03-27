@@ -1,30 +1,37 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [GIT PULL] please pull infiniband.git
-Date: Tue, 27 Mar 2012 16:33:06 +0000
-Message-ID: <CD250C48050CFB4D95E78C95F2FDDD6E61A7B8E9@MTLDAG02.mtl.com>
-References: <1332177079-14339-1-git-send-email-roland@kernel.org>
- <CD250C48050CFB4D95E78C95F2FDDD6E61A79B2E@MTLDAG02.mtl.com>
- <CAG4TOxPHziBpJ5hAoVCQTJWeR+-uC+2vM9S0aKE-6-B9JCEkWQ@mail.gmail.com>
+From: Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [PATCH 00/15, v3] Make ib_srp better suited for H.A. purposes
+Date: Tue, 27 Mar 2012 12:37:24 -0400
+Message-ID: <20120327163724.GA22205@ornl.gov>
+References: <5207288.nSt5MkVMpO@asus>
+ <2758264.LCH3RCDGs4@asus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxPHziBpJ5hAoVCQTJWeR+-uC+2vM9S0aKE-6-B9JCEkWQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <2758264.LCH3RCDGs4@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> What about the IPoIB patches (e.g. use Interrupt moderation)
+On Sun, Mar 25, 2012 at 11:18:09AM -0400, Bart Van Assche wrote:
+> On Sunday 25 March 2012 15:17, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> wrote:
+> > This patch series makes the ib_srp driver better suited for use in a
+> > H.A. setup because [ ... ]
+> 
+> The patch series is also available here:
+> http://github.com/bvanassche/linux/commits/srp-ha/.
 
-> I have no idea what patch that might be.  We've had the modify_cq call in ipoib for years now, with moderation parameters set through ethtool.
+Thanks Bart, seems the work mail server is still mangling whitespace, so
+the repo link is much appreciated. I'll try to review these tomorrow
+afternoon.
 
-http://www.spinics.net/lists/linux-rdma/msg09142.html
- and
-http://www.spinics.net/lists/linux-rdma/msg09143.html
-
-Tziporet
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
