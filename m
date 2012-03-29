@@ -1,33 +1,48 @@
-From: Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ANNOUNCE] libmlx4 1.0.4 is released
-Date: Thu, 29 Mar 2012 10:35:29 -0500
-Message-ID: <CAKBbMu01CCzv_8TwE0C73Mty5Ww3=nEG-K+AmDsG-vSKJAb-jQ@mail.gmail.com>
-References: <1332960145-8598-1-git-send-email-roland@kernel.org>
-	<CAJZOPZKwt=Cy5N=ih_2LHtizdSC33nHNLDt9Wmx24XFohHMG0A@mail.gmail.com>
+From: Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [PATCH 01/15] ib_srp: Enlarge block layer timeout
+Date: Thu, 29 Mar 2012 12:59:31 -0400
+Message-ID: <20120329165931.GA19700@ornl.gov>
+References: <5207288.nSt5MkVMpO@asus>
+ <1385797.u8D4MDGaaX@asus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZKwt=Cy5N=ih_2LHtizdSC33nHNLDt9Wmx24XFohHMG0A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1385797.u8D4MDGaaX@asus>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 28, 2012 at 4:45 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrot=
-e:
-> On Wed, Mar 28, 2012 at 8:42 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wr=
-ote:
->> =A0 =A0=A0 Update maintainer now that I'm a DD
->
-> So what is DD?
+On Sun, Mar 25, 2012 at 10:47:06AM -0400, Bart Van Assche wrote:
+> Enlarge the block layer timeout for disks such that it is above
+> the InfiniBand transport layer timeout. This is necessary to avoid
+> that an SRP response is received after the SCSI layer has already
+> killed the associated SCSI command.
 
-Looking at the patch it appears it means Debian Developer.
+> +
+> +	/*
+> +	 * According to section 11.2.4.2 in the IBTA spec (Modify Queue Pair,
+> +	 * table 91), both the QP timeout and the retry count have to be set
+> +	 * for RC QP's during the RTR to RTS transition.
+> +	 */
+> +	WARN_ON((attr_mask & (IB_QP_TIMEOUT | IB_QP_RETRY_CNT)) !=
+> +		(IB_QP_TIMEOUT | IB_QP_RETRY_CNT));
 
+I still don't like this useless splat when it could be written in a
+more safe manner, but not enough to kick it back again.
+
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+
+I haven't chewed on the rest yet, but would like to see this one at
+least in 3.4 if possible.
+
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 --
-Shawn
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
