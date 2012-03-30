@@ -1,47 +1,25 @@
-From: Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 01/15] ib_srp: Enlarge block layer timeout
-Date: Thu, 29 Mar 2012 12:59:31 -0400
-Message-ID: <20120329165931.GA19700@ornl.gov>
-References: <5207288.nSt5MkVMpO@asus>
- <1385797.u8D4MDGaaX@asus>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v1 4/9] ocrdma: Driver for Emulex OneConnect RDMA adapter
+Date: Fri, 30 Mar 2012 17:22:16 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237345199E92@ORSMSX101.amr.corp.intel.com>
+References: <1332814814-7643-1-git-send-email-parav.pandit@emulex.com>
+ <1332814814-7643-2-git-send-email-parav.pandit@emulex.com>
+ <1332814814-7643-3-git-send-email-parav.pandit@emulex.com>
+ <1332814814-7643-4-git-send-email-parav.pandit@emulex.com>
+ <ffae965c-1bff-4735-bc2f-db9b026f69e3@exht1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1385797.u8D4MDGaaX@asus>
+In-Reply-To: <ffae965c-1bff-4735-bc2f-db9b026f69e3-nbYkmrCdWxmgMrCBcu8zE0EOCMrvLtNR@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 25, 2012 at 10:47:06AM -0400, Bart Van Assche wrote:
-> Enlarge the block layer timeout for disks such that it is above
-> the InfiniBand transport layer timeout. This is necessary to avoid
-> that an SRP response is received after the SCSI layer has already
-> killed the associated SCSI command.
+> - async event handling.
 
-> +
-> +	/*
-> +	 * According to section 11.2.4.2 in the IBTA spec (Modify Queue Pair,
-> +	 * table 91), both the QP timeout and the retry count have to be set
-> +	 * for RC QP's during the RTR to RTS transition.
-> +	 */
-> +	WARN_ON((attr_mask & (IB_QP_TIMEOUT | IB_QP_RETRY_CNT)) !=
-> +		(IB_QP_TIMEOUT | IB_QP_RETRY_CNT));
-
-I still don't like this useless splat when it could be written in a
-more safe manner, but not enough to kick it back again.
-
-Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-
-I haven't chewed on the rest yet, but would like to see this one at
-least in 3.4 if possible.
-
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
+Can you briefly explain how the code synchronizes between async event reporting and the user trying to free the same object?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
