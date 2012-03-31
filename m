@@ -1,35 +1,72 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: mlx4 catas_reset hangs when using the CM
-Date: Fri, 30 Mar 2012 11:33:56 -0700
-Message-ID: <CAL1RGDV-j7A7vEXuWkK6Q96u09woB2vx92gp9LS2=uWFrDmCbw@mail.gmail.com>
-References: <20120329134110.0683d873@b012350-ux>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [RFC] Proposal to change Node Description naming scheme for HCA's
+Date: Fri, 30 Mar 2012 17:39:08 -0700
+Message-ID: <20120330173908.0abdd264.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120329134110.0683d873@b012350-ux>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vincent <jean-vincent.ficet-6ktuUTfB/bM@public.gmane.org>, Celine <Celine.Bourde-6ktuUTfB/bM@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>, James Silva <jsilva-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 29, 2012 at 4:41 AM, sebastien dugue
-<sebastien.dugue-6ktuUTfB/bM@public.gmane.org> wrote:
-> =A0So it looks like that cma_process_remove() did all it's job cleani=
-ng up
-> but is hung waiting for the client refcount to reach 0, which never h=
-appens.
+First, a question: what package installs the openibd script in OFED?  For the
+life of me I can't find this script in 1.5.4.1 or 3.2 ...  :-/  [*]
 
-This is unfortunately expected with the current implementation.  Becaus=
-e we
-don't have a way to revoke active userspace users of the device, we jus=
-t send
-them a catastrophic error async event and then expect them to clsoe the
-device.  But if they never close the device, we just wait forever.
+Right now the "standard" for node description is, AFAIK, "<hostname> HCA-<num>",
+where num is simply a counter for the HCA's as they are found in
+/sys/class/infiniband.
 
- - R.
+The problem is resolving this "random" HCA number to an actual HCA on the
+host.  I thought about including the node description in ibstat but that seems
+a bit short sighted.  I think the better solution would be to append the hca
+name (ie mlx4_X, qibX, etc) to the hostname for the Node Description.
+
+Hacking the RHEL start up script is really easy to do this and results in nice
+names on the fabric which are easily resolved by the infiniband-diags,
+ibverbs, and perftest utilities.
+
+bash-4.1# ibhosts
+Ca      : 0x0002c90300325280 ports 1 "ending mlx4_2"
+Ca      : 0x001175000079da38 ports 1 "happy qib0"
+Ca      : 0x0002c90300108f2e ports 1 "ending mlx4_1"
+Ca      : 0x001175000077d90e ports 2 "ending qib0"
+Ca      : 0x0002c903004bebda ports 2 "happy mlx4_0"
+bash-4.1# hostname
+happy
+bash-4.1# ibstat mlx4_0
+CA 'mlx4_0'
+        CA type: MT26428
+        Number of ports: 2
+        Firmware version: 2.8.600
+...
+bash-4.1# ibv_rc_pingpong -d mlx4_0
+  local address:  LID 0x0008, QPN 0x16004a, PSN 0x2e8316
+...
+bash-4.1# rdma_bw -d mlx4_0
+6089: | port=18515 | ib_port=1 | size=65536 | tx_depth=100 | sl=0 | iters=1000 | duplex=0 | cma=0 |
+...
+
+I realize this is really a distro thing but it would be nice if we could agree
+to change the current "standard".
+
+I can send a patch for RHEL and OFED (if I someone can point me to the openibd
+script or srpm).
+
+Thoughts?
+Ira
+
+
+[*] Last I knew openibd does the same as RHEL's rdma start up script in this regard.
+
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
