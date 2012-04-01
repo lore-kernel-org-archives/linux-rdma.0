@@ -1,71 +1,29 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [RFC] Proposal to change Node Description naming scheme for HCA's
-Date: Fri, 30 Mar 2012 17:39:08 -0700
-Message-ID: <20120330173908.0abdd264.weiny2@llnl.gov>
+From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: be2net: when can I expect roce support patch will be merged?
+Date: Sun, 1 Apr 2012 01:36:50 -0700
+Message-ID: <88B766C272F2C64B944B21AD078333151C965B92D3@EXMAIL.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>, James Silva <jsilva-i2BcT+NCU+M@public.gmane.org>
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-First, a question: what package installs the openibd script in OFED?  For the
-life of me I can't find this script in 1.5.4.1 or 3.2 ...  :-/  [*]
+Hi,
 
-Right now the "standard" for node description is, AFAIK, "<hostname> HCA-<num>",
-where num is simply a counter for the HCA's as they are found in
-/sys/class/infiniband.
+Did you get chance to merge below be2net patch for supporing RoCE driver?
+http://marc.info/?l=linux-rdma&m=133279326217836&w=2
 
-The problem is resolving this "random" HCA number to an actual HCA on the
-host.  I thought about including the node description in ibstat but that seems
-a bit short sighted.  I think the better solution would be to append the hca
-name (ie mlx4_X, qibX, etc) to the hostname for the Node Description.
+Once this is done, Roland can merge ocrdma RoCE driver addition to his tree. This NIC driver patch is required to merge ocrdma patch.
+When can I expect this patch to be merged to net-next git tree?
+Let me know if there any issue with the patch that I got to resolve.
 
-Hacking the RHEL start up script is really easy to do this and results in nice
-names on the fabric which are easily resolved by the infiniband-diags,
-ibverbs, and perftest utilities.
+Regards,
+Parav Pandit
 
-bash-4.1# ibhosts
-Ca      : 0x0002c90300325280 ports 1 "ending mlx4_2"
-Ca      : 0x001175000079da38 ports 1 "happy qib0"
-Ca      : 0x0002c90300108f2e ports 1 "ending mlx4_1"
-Ca      : 0x001175000077d90e ports 2 "ending qib0"
-Ca      : 0x0002c903004bebda ports 2 "happy mlx4_0"
-bash-4.1# hostname
-happy
-bash-4.1# ibstat mlx4_0
-CA 'mlx4_0'
-        CA type: MT26428
-        Number of ports: 2
-        Firmware version: 2.8.600
-...
-bash-4.1# ibv_rc_pingpong -d mlx4_0
-  local address:  LID 0x0008, QPN 0x16004a, PSN 0x2e8316
-...
-bash-4.1# rdma_bw -d mlx4_0
-6089: | port=18515 | ib_port=1 | size=65536 | tx_depth=100 | sl=0 | iters=1000 | duplex=0 | cma=0 |
-...
-
-I realize this is really a distro thing but it would be nice if we could agree
-to change the current "standard".
-
-I can send a patch for RHEL and OFED (if I someone can point me to the openibd
-script or srpm).
-
-Thoughts?
-Ira
-
-
-[*] Last I knew openibd does the same as RHEL's rdma start up script in this regard.
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
