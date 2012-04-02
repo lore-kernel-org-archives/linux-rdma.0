@@ -1,51 +1,42 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/core: add missing string for the display of SDR
- rates in sysfs
-Date: Mon, 2 Apr 2012 21:50:19 +0300
-Message-ID: <CAJZOPZLWmBDBc7HpzWYa9etiiq4ZKeqP6XTYOat6mino8en3aA@mail.gmail.com>
-References: <1333377921-8349-1-git-send-email-ogerlitz@mellanox.com>
-	<1333377921-8349-3-git-send-email-ogerlitz@mellanox.com>
-	<CAL1RGDUCO+ijdYyaPsx7X9eYssj-qDEqeYm-gSAY30NwYo1Qpg@mail.gmail.com>
+From: "Heinz, Michael William" <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] Proposal to change Node Description naming scheme for
+ HCA's
+Date: Mon, 2 Apr 2012 18:52:53 +0000
+Message-ID: <F93D748CDCC46C42B498F40A38D903696411EF@FMSMSX107.amr.corp.intel.com>
+References: <20120330173908.0abdd264.weiny2@llnl.gov>
+ <F93D748CDCC46C42B498F40A38D90369641004@FMSMSX107.amr.corp.intel.com>
+ <20120402184545.GA1311@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUCO+ijdYyaPsx7X9eYssj-qDEqeYm-gSAY30NwYo1Qpg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20120402184545.GA1311-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 2, 2012 at 8:42 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote=
-:
-> On Mon, Apr 2, 2012 at 7:45 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wr=
-ote:
-> > =A0 =A0 =A0 =A0switch (attr.active_speed) {
-> > =A0 =A0 =A0 =A0case IB_SPEED_SDR:
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D " SDR";
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rate =3D 25;
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
-> > =A0 =A0 =A0 =A0case IB_SPEED_DDR:
->
-> I don't think we want this -- old kernels didn't print "SDR" so I thi=
-nk
-> we shouldn't change the interface at this point.
+I'd agree but the network up/down functionality tends to vary significantly from distro to distro. There's also the question of "what package would we add this functionality to?" I mean, I assume it wouldn't be part of ofa_kernel. Might actually be the installer script that has to patch the DHCP chain.
 
-Oh, I see what you mean - and I don't think we need to consider this
-as interface change - these is an interface - namely "nGbs (mX DDD)
-where n is number  m is number and DDD is string (SDR, DDR, QDR,
-=46DR10, etc) and this interface was buggy to wrong print certain cases=
-,
-which we fixed in the two commits I mentioned. Now we found another
-bug ("SDR" not printed) and we fix it (hopefully the last one in this
-function) - that's all. I don't think we should assume there are
-apps/libs up their who set their code to match the exact bugs we had
-in sysfs, it was just not important enough the report on, or they
-didn't hit it (e.g SDR is pretty not common now), thoughts?
+-----Original Message-----
+From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org] 
+Sent: Monday, April 02, 2012 2:46 PM
+To: Heinz, Michael William
+Cc: Ira Weiny; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Doug Ledford; Bob Ciotti; James Silva
+Subject: Re: [RFC] Proposal to change Node Description naming scheme for HCA's
 
-Or.
+On Mon, Apr 02, 2012 at 03:27:35PM +0000, Heinz, Michael William wrote:
+
+> Any ideas on how we could solve the hostname problem while we're 
+> changing the description?
+
+The node description needs to be set from the DCHP notifier script chain (eg /etc/network/if-up.d/ on Debian) and also from a udev rule triggered on device insertion.
+
+It should probably not be set from the openibd script..
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
