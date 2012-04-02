@@ -1,41 +1,54 @@
-From: "Heinz, Michael William" <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] Proposal to change Node Description naming scheme for
- HCA's
-Date: Mon, 2 Apr 2012 18:52:53 +0000
-Message-ID: <F93D748CDCC46C42B498F40A38D903696411EF@FMSMSX107.amr.corp.intel.com>
-References: <20120330173908.0abdd264.weiny2@llnl.gov>
- <F93D748CDCC46C42B498F40A38D90369641004@FMSMSX107.amr.corp.intel.com>
- <20120402184545.GA1311@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Does the CM know how to handle bad packets?
+Date: Mon, 2 Apr 2012 19:08:58 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823734519A4A8@ORSMSX101.amr.corp.intel.com>
+References: <CALvMawr3KQS=EJ+DG13skKcyVwTCGiy1v-VPPz-5Feygbx+5Pg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120402184545.GA1311-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CALvMawr3KQS=EJ+DG13skKcyVwTCGiy1v-VPPz-5Feygbx+5Pg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I'd agree but the network up/down functionality tends to vary significantly from distro to distro. There's also the question of "what package would we add this functionality to?" I mean, I assume it wouldn't be part of ofa_kernel. Might actually be the installer script that has to patch the DHCP chain.
+> We noticed the following interesting scenario:
+> 
+> One host sent a CM request to a remote host.
+> 
+> The remote host, which doesn't have any CM support, performed the following
+> steps:
+> 
+> 
+> *	Replaced the sLID with the dLID
+> *	Added an indication that this is a response MAD
+> *	Set an error indication in the MAD status
+> *	Left the payload (the CM req.) untouched
+> *	Send the MAD back to the original host that tried to establish the
+> connection using the CM
 
------Original Message-----
-From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org] 
-Sent: Monday, April 02, 2012 2:46 PM
-To: Heinz, Michael William
-Cc: Ira Weiny; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Doug Ledford; Bob Ciotti; James Silva
-Subject: Re: [RFC] Proposal to change Node Description naming scheme for HCA's
+What kernel were you running?
 
-On Mon, Apr 02, 2012 at 03:27:35PM +0000, Heinz, Michael William wrote:
+This sounds non-compliant, specifically the part about "added an indication that this is a response MAD" and a non-0 status value in the MAD header.
 
-> Any ideas on how we could solve the hostname problem while we're 
-> changing the description?
+> We noticed that the host that sent the the CM req. MAD, got it back and tried
+> to handle it.
+> 
+> My questions are:
+> 
+> *	Does the CM (or maybe a lower module) know to drop a packet (or handle
+> it in any other way) when there is a MAD error?
 
-The node description needs to be set from the DCHP notifier script chain (eg /etc/network/if-up.d/ on Debian) and also from a udev rule triggered on device insertion.
+It depends on the error, but the CM will detect and drop certain types of errors.  The MAD layer may drop other errors before handing them up the stack.
 
-It should probably not be set from the openibd script..
+> *	Does a CM req. which is being sent in a MAD response is a valid CM
+> request?
 
-Jason
+Based on what you listed above, the MAD sounds like it's invalid.  I don't know if the CM would detect the error without walking through the code path.  Some work may be needed to detect more errors (in cm_recv_handler?) and drop the MADs.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
