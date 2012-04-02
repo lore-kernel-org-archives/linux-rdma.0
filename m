@@ -1,8 +1,7 @@
 From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 4/6] [ofa_kernel] Add
-  ipath_0000_-sched_and_mount_changes.patch
-Date: Mon, 2 Apr 2012 00:05:44 -0500
-Message-ID: <20120402050541.GA20007@shrek.cartoons>
+Subject: [PATCH 5/6] [ofa_kernel] Add nfsrdma_0000_sysctl-changes.patch
+Date: Mon, 2 Apr 2012 00:06:01 -0500
+Message-ID: <20120402050558.GA20012@shrek.cartoons>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -15,145 +14,258 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
 ---
- .../ipath_0000_-sched_and_mount_changes.patch      |  129 ++++++++++++++++++++
- 1 files changed, 129 insertions(+), 0 deletions(-)
- create mode 100644 kernel_patches/backport/3.0_sles11sp2/ipath_0000_-sched_and_mount_changes.patch
+ .../nfsrdma_0000_sysctl-changes.patch              |  242 ++++++++++++++++++++
+ 1 files changed, 242 insertions(+), 0 deletions(-)
+ create mode 100644 kernel_patches/backport/3.0_sles11sp2/nfsrdma_0000_sysctl-changes.patch
 
-diff --git a/kernel_patches/backport/3.0_sles11sp2/ipath_0000_-sched_and_mount_changes.patch b/kernel_patches/backport/3.0_sles11sp2/ipath_0000_-sched_and_mount_changes.patch
+diff --git a/kernel_patches/backport/3.0_sles11sp2/nfsrdma_0000_sysctl-changes.patch b/kernel_patches/backport/3.0_sles11sp2/nfsrdma_0000_sysctl-changes.patch
 new file mode 100644
-index 0000000..4f548d2
+index 0000000..f243b63
 --- /dev/null
-+++ b/kernel_patches/backport/3.0_sles11sp2/ipath_0000_-sched_and_mount_changes.patch
-@@ -0,0 +1,129 @@
++++ b/kernel_patches/backport/3.0_sles11sp2/nfsrdma_0000_sysctl-changes.patch
+@@ -0,0 +1,242 @@
 +From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-+Subject: [PATCH] ipath - add sched.h and change get_sb to mount
++Subject: nfsrdma - sysctl usage changes
 +
-+Add linux/sched.h where required.
-+commit fc14f2fef682df677d64a145256dbd263df2aa7b convert get_sb_single() users
-+commit b5c84bf6f6fa3a7dfdcb556023a62953574b60ee fs: dcache remove dcache_lock
-+
-+Index: ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_file_ops.c
++Index: ofa_kernel-1.5.4.1/net/sunrpc/xprtrdma/svc_rdma.c
 +===================================================================
-+--- ofa_kernel-1.5.4.1.orig/drivers/infiniband/hw/ipath/ipath_file_ops.c
-++++ ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_file_ops.c
-+@@ -40,7 +40,6 @@
-+ #include <linux/highmem.h>
-+ #include <linux/io.h>
-+ #include <linux/jiffies.h>
-+-#include <linux/smp_lock.h>
-+ #include <asm/pgtable.h>
-+ 
-+ #include "ipath_kernel.h"
-+@@ -1822,7 +1821,6 @@ done:
-+ static int ipath_open(struct inode *in, struct file *fp)
++--- ofa_kernel-1.5.4.1.orig/net/sunrpc/xprtrdma/svc_rdma.c
+++++ ofa_kernel-1.5.4.1/net/sunrpc/xprtrdma/svc_rdma.c
++@@ -80,8 +80,7 @@ struct kmem_cache *svc_rdma_ctxt_cachep;
++  * current value.
++  */
++ static int read_reset_stat(ctl_table *table, int write,
++-			   struct file *filp, void __user *buffer, size_t *lenp,
++-			   loff_t *ppos)
+++			   void __user *buffer, size_t *lenp, loff_t *ppos)
 + {
-+ 	/* The real work is performed later in ipath_assign_port() */
-+-	cycle_kernel_lock();
-+ 	fp->private_data = kzalloc(sizeof(struct ipath_filedata), GFP_KERNEL);
-+ 	return fp->private_data ? 0 : -ENOMEM;
-+ }
-+Index: ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_fs.c
-+===================================================================
-+--- ofa_kernel-1.5.4.1.orig/drivers/infiniband/hw/ipath/ipath_fs.c
-++++ ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_fs.c
-+@@ -273,18 +273,14 @@ static int remove_file(struct dentry *pa
-+ 		goto bail;
-+ 	}
++ 	atomic_t *stat = (atomic_t *)table->data;
 + 
-+-	spin_lock(&dcache_lock);
-+ 	spin_lock(&tmp->d_lock);
-+ 	if (!(d_unhashed(tmp) && tmp->d_inode)) {
-+-		dget_locked(tmp);
-++		dget_dlock(tmp);
-+ 		__d_drop(tmp);
-+ 		spin_unlock(&tmp->d_lock);
-+-		spin_unlock(&dcache_lock);
-+ 		simple_unlink(parent->d_inode, tmp);
-+-	} else {
-++	} else
-+ 		spin_unlock(&tmp->d_lock);
-+-		spin_unlock(&dcache_lock);
-+-	}
-+ 
-+ 	ret = 0;
-+ bail:
-+@@ -360,13 +356,13 @@ bail:
-+ 	return ret;
-+ }
-+ 
-+-static int ipathfs_get_sb(struct file_system_type *fs_type, int flags,
-+-			const char *dev_name, void *data, struct vfsmount *mnt)
-++static struct dentry *ipathfs_mount(struct file_system_type *fs_type,
-++			int flags, const char *dev_name, void *data)
-+ {
-+-	int ret = get_sb_single(fs_type, flags, data,
-+-				    ipathfs_fill_super, mnt);
-+-	if (ret >= 0)
-+-		ipath_super = mnt->mnt_sb;
-++	struct dentry *ret;
-++	ret = mount_single(fs_type, flags, data, ipathfs_fill_super);
-++	if (!IS_ERR(ret))
-++		ipath_super = ret->d_sb;
-+ 	return ret;
-+ }
-+ 
-+@@ -409,7 +405,7 @@ bail:
-+ static struct file_system_type ipathfs_fs_type = {
-+ 	.owner =	THIS_MODULE,
-+ 	.name =		"ipathfs",
-+-	.get_sb =	ipathfs_get_sb,
-++	.mount =	ipathfs_mount,
-+ 	.kill_sb =	ipathfs_kill_super,
++@@ -121,7 +120,6 @@ static ctl_table svcrdma_parm_table[] =
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec_minmax,
++-		.strategy	= &sysctl_intvec,
++ 		.extra1		= &min_max_requests,
++ 		.extra2		= &max_max_requests
++ 	},
++@@ -131,7 +129,6 @@ static ctl_table svcrdma_parm_table[] =
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec_minmax,
++-		.strategy	= &sysctl_intvec,
++ 		.extra1		= &min_max_inline,
++ 		.extra2		= &max_max_inline
++ 	},
++@@ -141,7 +138,6 @@ static ctl_table svcrdma_parm_table[] =
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec_minmax,
++-		.strategy	= &sysctl_intvec,
++ 		.extra1		= &min_ord,
++ 		.extra2		= &max_ord,
++ 	},
++@@ -209,9 +205,7 @@ static ctl_table svcrdma_parm_table[] =
++ 		.mode		= 0644,
++ 		.proc_handler	= &read_reset_stat,
++ 	},
++-	{
++-		.ctl_name = 0,
++-	},
+++	{ },
 + };
 + 
-+Index: ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_intr.c
++ static ctl_table svcrdma_table[] = {
++@@ -220,21 +214,16 @@ static ctl_table svcrdma_table[] = {
++ 		.mode		= 0555,
++ 		.child		= svcrdma_parm_table
++ 	},
++-	{
++-		.ctl_name = 0,
++-	},
+++	{ },
++ };
++ 
++ static ctl_table svcrdma_root_table[] = {
++ 	{
++-		.ctl_name	= CTL_SUNRPC,
++ 		.procname	= "sunrpc",
++ 		.mode		= 0555,
++ 		.child		= svcrdma_table
++ 	},
++-	{
++-		.ctl_name = 0,
++-	},
+++	{ },
++ };
++ 
++ void svc_rdma_cleanup(void)
++Index: ofa_kernel-1.5.4.1/net/sunrpc/xprtrdma/transport.c
 +===================================================================
-+--- ofa_kernel-1.5.4.1.orig/drivers/infiniband/hw/ipath/ipath_intr.c
-++++ ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_intr.c
-+@@ -33,6 +33,7 @@
++--- ofa_kernel-1.5.4.1.orig/net/sunrpc/xprtrdma/transport.c
+++++ ofa_kernel-1.5.4.1/net/sunrpc/xprtrdma/transport.c
++@@ -86,79 +86,63 @@ static struct ctl_table_header *sunrpc_t
 + 
-+ #include <linux/pci.h>
-+ #include <linux/delay.h>
-++#include <linux/sched.h>
++ static ctl_table xr_tunables_table[] = {
++ 	{
++-		.ctl_name       = CTL_UNNUMBERED,
++ 		.procname	= "rdma_slot_table_entries",
++ 		.data		= &xprt_rdma_slot_table_entries,
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec_minmax,
++-		.strategy	= &sysctl_intvec,
++ 		.extra1		= &min_slot_table_size,
++ 		.extra2		= &max_slot_table_size
++ 	},
++ 	{
++-		.ctl_name       = CTL_UNNUMBERED,
++ 		.procname	= "rdma_max_inline_read",
++ 		.data		= &xprt_rdma_max_inline_read,
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec,
++-		.strategy	= &sysctl_intvec,
++ 	},
++ 	{
++-		.ctl_name       = CTL_UNNUMBERED,
++ 		.procname	= "rdma_max_inline_write",
++ 		.data		= &xprt_rdma_max_inline_write,
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec,
++-		.strategy	= &sysctl_intvec,
++ 	},
++ 	{
++-		.ctl_name       = CTL_UNNUMBERED,
++ 		.procname	= "rdma_inline_write_padding",
++ 		.data		= &xprt_rdma_inline_write_padding,
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec_minmax,
++-		.strategy	= &sysctl_intvec,
++ 		.extra1		= &zero,
++ 		.extra2		= &max_padding,
++ 	},
++ 	{
++-		.ctl_name       = CTL_UNNUMBERED,
++ 		.procname	= "rdma_memreg_strategy",
++ 		.data		= &xprt_rdma_memreg_strategy,
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec_minmax,
++-		.strategy	= &sysctl_intvec,
++ 		.extra1		= &min_memreg,
++ 		.extra2		= &max_memreg,
++ 	},
++ 	{
++-		.ctl_name       = CTL_UNNUMBERED,
++ 		.procname	= "rdma_pad_optimize",
++ 		.data		= &xprt_rdma_pad_optimize,
++ 		.maxlen		= sizeof(unsigned int),
++ 		.mode		= 0644,
++ 		.proc_handler	= &proc_dointvec,
++ 	},
++-	{
++-		.ctl_name = 0,
++-	},
+++	{ },
++ };
 + 
-+ #include "ipath_kernel.h"
-+ #include "ipath_verbs.h"
-+Index: ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_ruc.c
-+===================================================================
-+--- ofa_kernel-1.5.4.1.orig/drivers/infiniband/hw/ipath/ipath_ruc.c
-++++ ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_ruc.c
-+@@ -31,6 +31,7 @@
-+  * SOFTWARE.
-+  */
++ static ctl_table sunrpc_table[] = {
++ 	{
++-		.ctl_name	= CTL_SUNRPC,
++ 		.procname	= "sunrpc",
++ 		.mode		= 0555,
++ 		.child		= xr_tunables_table
++ 	},
++-	{
++-		.ctl_name = 0,
++-	},
+++	{ },
++ };
 + 
-++#include <linux/sched.h>
-+ #include <linux/spinlock.h>
++ #endif
++@@ -168,47 +152,24 @@ static struct rpc_xprt_ops xprt_rdma_pro
++ static void
++ xprt_rdma_format_addresses(struct rpc_xprt *xprt)
++ {
++-	struct sockaddr_in *addr = (struct sockaddr_in *)
++-					&rpcx_to_rdmad(xprt).addr;
++-	char *buf;
++-
++-	buf = kzalloc(20, GFP_KERNEL);
++-	if (buf)
++-		snprintf(buf, 20, "%pI4", &addr->sin_addr.s_addr);
++-	xprt->address_strings[RPC_DISPLAY_ADDR] = buf;
++-
++-	buf = kzalloc(8, GFP_KERNEL);
++-	if (buf)
++-		snprintf(buf, 8, "%u", ntohs(addr->sin_port));
++-	xprt->address_strings[RPC_DISPLAY_PORT] = buf;
+++	struct sockaddr *sap = (struct sockaddr *)
+++		&rpcx_to_rdmad(xprt).addr;
+++	struct sockaddr_in *sin = (struct sockaddr_in *)sap;
+++	char buf[64];
+++
+++	(void)rpc_ntop(sap, buf, sizeof(buf));
+++	xprt->address_strings[RPC_DISPLAY_ADDR] = kstrdup(buf, GFP_KERNEL);
+++
+++	snprintf(buf, sizeof(buf), "%u", rpc_get_port(sap));
+++	xprt->address_strings[RPC_DISPLAY_PORT] = kstrdup(buf, GFP_KERNEL);
 + 
-+ #include "ipath_verbs.h"
-+Index: ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_ud.c
-+===================================================================
-+--- ofa_kernel-1.5.4.1.orig/drivers/infiniband/hw/ipath/ipath_ud.c
-++++ ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_ud.c
-+@@ -31,6 +31,7 @@
-+  * SOFTWARE.
-+  */
++ 	xprt->address_strings[RPC_DISPLAY_PROTO] = "rdma";
 + 
-++#include <linux/sched.h>
-+ #include <rdma/ib_smi.h>
++-	buf = kzalloc(48, GFP_KERNEL);
++-	if (buf)
++-		snprintf(buf, 48, "addr=%pI4 port=%u proto=%s",
++-			&addr->sin_addr.s_addr,
++-			ntohs(addr->sin_port), "rdma");
++-	xprt->address_strings[RPC_DISPLAY_ALL] = buf;
++-
++-	buf = kzalloc(10, GFP_KERNEL);
++-	if (buf)
++-		snprintf(buf, 10, "%02x%02x%02x%02x",
++-			NIPQUAD(addr->sin_addr.s_addr));
++-	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = buf;
++-
++-	buf = kzalloc(8, GFP_KERNEL);
++-	if (buf)
++-		snprintf(buf, 8, "%4hx", ntohs(addr->sin_port));
++-	xprt->address_strings[RPC_DISPLAY_HEX_PORT] = buf;
++-
++-	buf = kzalloc(30, GFP_KERNEL);
++-	if (buf)
++-		snprintf(buf, 30, "%pI4.%u.%u",
++-			&addr->sin_addr.s_addr,
++-			ntohs(addr->sin_port) >> 8,
++-			ntohs(addr->sin_port) & 0xff);
++-	xprt->address_strings[RPC_DISPLAY_UNIVERSAL_ADDR] = buf;
+++	snprintf(buf, sizeof(buf), "%08x", ntohl(sin->sin_addr.s_addr));
+++	xprt->address_strings[RPC_DISPLAY_HEX_ADDR] = kstrdup(buf, GFP_KERNEL);
+++
+++	snprintf(buf, sizeof(buf), "%4hx", rpc_get_port(sap));
+++	xprt->address_strings[RPC_DISPLAY_HEX_PORT] = kstrdup(buf, GFP_KERNEL);
 + 
-+ #include "ipath_verbs.h"
-+Index: ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_user_sdma.c
-+===================================================================
-+--- ofa_kernel-1.5.4.1.orig/drivers/infiniband/hw/ipath/ipath_user_sdma.c
-++++ ofa_kernel-1.5.4.1/drivers/infiniband/hw/ipath/ipath_user_sdma.c
-+@@ -33,6 +33,7 @@
-+ #include <linux/types.h>
-+ #include <linux/device.h>
-+ #include <linux/dmapool.h>
-++#include <linux/sched.h>
-+ #include <linux/slab.h>
-+ #include <linux/list.h>
-+ #include <linux/highmem.h>
++ 	/* netid */
++ 	xprt->address_strings[RPC_DISPLAY_NETID] = "rdma";
++@@ -343,7 +304,6 @@ xprt_setup_rdma(struct xprt_create *args
++ 	/* 60 second timeout, no retries */
++ 	xprt->timeout = &xprt_rdma_default_timeout;
++ 	xprt->bind_timeout = (60U * HZ);
++-	xprt->connect_timeout = (60U * HZ);
++ 	xprt->reestablish_timeout = (5U * HZ);
++ 	xprt->idle_timeout = (5U * 60 * HZ);
++ 
++@@ -715,7 +675,7 @@ xprt_rdma_send_request(struct rpc_task *
++ 	if (rpcrdma_ep_post(&r_xprt->rx_ia, &r_xprt->rx_ep, req))
++ 		goto drop_connection;
++ 
++-	task->tk_bytes_sent += rqst->rq_snd_buf.len;
+++	rqst->rq_xmit_bytes_sent += rqst->rq_snd_buf.len;
++ 	rqst->rq_bytes_sent = 0;
++ 	return 0;
++ 
 -- 
 1.7.7
 
