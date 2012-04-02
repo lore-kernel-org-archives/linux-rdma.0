@@ -1,94 +1,49 @@
-From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 6/6] [ofa_kernel] Add
- qib_0000_dcache_lock-and-mount-changes.patch
-Date: Mon, 2 Apr 2012 00:06:17 -0500
-Message-ID: <20120402050614.GA20016@shrek.cartoons>
+From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+Subject: Re: mlx4 catas_reset hangs when using the CM
+Date: Mon, 2 Apr 2012 09:02:25 +0200
+Message-ID: <20120402090225.42087ad3@b012350-ux>
+References: <20120329134110.0683d873@b012350-ux>
+	<CAL1RGDV-j7A7vEXuWkK6Q96u09woB2vx92gp9LS2=uWFrDmCbw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <CAL1RGDV-j7A7vEXuWkK6Q96u09woB2vx92gp9LS2=uWFrDmCbw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vincent <jean-vincent.ficet-6ktuUTfB/bM@public.gmane.org>, Celine <Celine.Bourde-6ktuUTfB/bM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, 30 Mar 2012 11:33:56 -0700
+Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
----
- .../qib_0000_dcache_lock-and-mount-changes.patch   |   57 ++++++++++++++++++++
- 1 files changed, 57 insertions(+), 0 deletions(-)
- create mode 100644 kernel_patches/backport/3.0_sles11sp2/qib_0000_dcache_lock-and-mount-changes.patch
+> On Thu, Mar 29, 2012 at 4:41 AM, sebastien dugue
+> <sebastien.dugue-6ktuUTfB/bM@public.gmane.org> wrote:
+> > =C2=A0So it looks like that cma_process_remove() did all it's job c=
+leaning up
+> > but is hung waiting for the client refcount to reach 0, which never=
+ happens.
+>=20
+> This is unfortunately expected with the current implementation.  Beca=
+use we
+> don't have a way to revoke active userspace users of the device, we j=
+ust send
+> them a catastrophic error async event and then expect them to clsoe t=
+he
+> device.  But if they never close the device, we just wait forever.
 
-diff --git a/kernel_patches/backport/3.0_sles11sp2/qib_0000_dcache_lock-and-mount-changes.patch b/kernel_patches/backport/3.0_sles11sp2/qib_0000_dcache_lock-and-mount-changes.patch
-new file mode 100644
-index 0000000..17bbdf2
---- /dev/null
-+++ b/kernel_patches/backport/3.0_sles11sp2/qib_0000_dcache_lock-and-mount-changes.patch
-@@ -0,0 +1,57 @@
-+From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-+Subject: qib: dcache_lock and mount changes
-+
-+Index: ofa_kernel-1.5.4.1/drivers/infiniband/hw/qib/qib_fs.c
-+===================================================================
-+--- ofa_kernel-1.5.4.1.orig/drivers/infiniband/hw/qib/qib_fs.c
-++++ ofa_kernel-1.5.4.1/drivers/infiniband/hw/qib/qib_fs.c
-+@@ -386,17 +386,14 @@ static int remove_file(struct dentry *pa
-+ 		goto bail;
-+ 	}
-+ 
-+-	spin_lock(&dcache_lock);
-+ 	spin_lock(&tmp->d_lock);
-+ 	if (!(d_unhashed(tmp) && tmp->d_inode)) {
-+-		dget_locked(tmp);
-++		dget_dlock(tmp);
-+ 		__d_drop(tmp);
-+ 		spin_unlock(&tmp->d_lock);
-+-		spin_unlock(&dcache_lock);
-+ 		simple_unlink(parent->d_inode, tmp);
-+ 	} else {
-+ 		spin_unlock(&tmp->d_lock);
-+-		spin_unlock(&dcache_lock);
-+ 	}
-+ 
-+ 	ret = 0;
-+@@ -486,14 +483,14 @@ bail:
-+ 	return ret;
-+ }
-+ 
-+-static int qibfs_get_sb(struct file_system_type *fs_type, int flags,
-+-			const char *dev_name, void *data, struct vfsmount *mnt)
-++static struct dentry *qibfs_mount(struct file_system_type *fs_type, int flags,
-++                        const char *dev_name, void *data)
-+ {
-+-	int ret = get_sb_single(fs_type, flags, data,
-+-				qibfs_fill_super, mnt);
-+-	if (ret >= 0)
-+-		qib_super = mnt->mnt_sb;
-+-	return ret;
-++        struct dentry *ret;
-++        ret = mount_single(fs_type, flags, data, qibfs_fill_super);
-++        if (!IS_ERR(ret))
-++                qib_super = ret->d_sb;
-++        return ret;
-+ }
-+ 
-+ static void qibfs_kill_super(struct super_block *s)
-+@@ -534,7 +531,7 @@ int qibfs_remove(struct qib_devdata *dd)
-+ static struct file_system_type qibfs_fs_type = {
-+ 	.owner =        THIS_MODULE,
-+ 	.name =         "ipathfs",
-+-	.get_sb =       qibfs_get_sb,
-++	.mount =        qibfs_mount,
-+ 	.kill_sb =      qibfs_kill_super,
-+ };
-+ 
--- 
-1.7.7
+  Yep, that's what I gathered and unfortunately, having lustre as a cli=
+ent
+is not going to help.
 
+  Thanks,
 
--- 
-Goldwyn
+  S=C3=A9bastien.
+
+>=20
+>  - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
