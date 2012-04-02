@@ -1,52 +1,34 @@
-From: boris-3GeZWEQ5Z0yB+jHODAdFcQ@public.gmane.org
-Subject: Server Rental Service in HK
-Date: Mon,  2 Apr 2012 17:47:46 +0800 (HKT)
-Message-ID: <N98gTes@mail.ht.net.tw>
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: mlx4: kernel 3.4-rc1 breaks libumad
+Date: Mon, 2 Apr 2012 13:33:13 +0300
+Message-ID: <4F798069.4030305@mellanox.com>
+References: <4F795880.4070306@acm.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4F795880.4070306-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dear All,
+On 4/2/2012 10:42 AM, Bart Van Assche wrote:
+> # uname -r
+> 3.4.0-rc1
+> # ls /sys/class/infiniband/mlx4_0/ports/1/rate
+> /sys/class/infiniband/mlx4_0/ports/1/rate
+> # cat /sys/class/infiniband/mlx4_0/ports/1/rate
+> cat: /sys/class/infiniband/mlx4_0/ports/1/rate: Invalid argument
+>
 
-We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
+seems that this happens when the link layer is "wrong" e.g does 
+/sys/class/infiniband/mlx4_0/ports/1/link_layer shows the actual link 
+which is your hca port 1 is connected through? looking on this.
 
-Dell=3F PowerEdge=3F EnterpriseRack Mount Server
--Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
--8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
--500GB, 3.5", 6Gbps SAS x 2
--Raid 1 Mirroring Protection
--Remote KVM (iDRAC6 Enterprise)
+Or.
 
-Dell(TM) PowerEdge(TM) R410 Rack Mount Server
--Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
--4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
--500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
--iDRAC6 Enterprise or Express (Remote KVM Management)
-
-Every Dedicated Server Hosting Solution Also Includes: 
- 
-Software Specification 
-- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
-- Full root-level access 
-- Data Center Facilities 
-- Shared Local & International Bandwidth 
-- 2 IP Addresses Allocation 
-- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
-- FM200=A1=A7based fire suppression system 
-- 24x7 CRAC Air Conditioning and Humidity Control 
-- 24x7 Security Control 
-- 24x7 Remote Hand Service 
-
-Pls send us email for further information.Thanks,
-
-Boris 
-boris-3GeZWEQ5Z0yB+jHODAdFcQ@public.gmane.org
-
-If you do not wish to further receive this event message, email "borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
-
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
