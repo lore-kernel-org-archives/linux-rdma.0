@@ -1,29 +1,37 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC] Proposal to change Node Description naming scheme for HCA's
-Date: Mon, 2 Apr 2012 12:45:45 -0600
-Message-ID: <20120402184545.GA1311@obsidianresearch.com>
-References: <20120330173908.0abdd264.weiny2@llnl.gov>
- <F93D748CDCC46C42B498F40A38D90369641004@FMSMSX107.amr.corp.intel.com>
+Subject: Re: [PATCH 1/2] IB/mlx4: fix the case of invalid speed value
+ returned when the port is down
+Date: Mon, 2 Apr 2012 12:47:25 -0600
+Message-ID: <20120402184725.GB1311@obsidianresearch.com>
+References: <1333377921-8349-1-git-send-email-ogerlitz@mellanox.com>
+ <1333377921-8349-2-git-send-email-ogerlitz@mellanox.com>
+ <4F79D558.1000908@dev.mellanox.co.il>
+ <4F79D826.9070605@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A823734519A40B@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F93D748CDCC46C42B498F40A38D90369641004-AtyAts71sc9zLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823734519A40B-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Heinz, Michael William" <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>, James Silva <jsilva-i2BcT+NCU+M@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 02, 2012 at 03:27:35PM +0000, Heinz, Michael William wrote:
+On Mon, Apr 02, 2012 at 06:39:36PM +0000, Hefty, Sean wrote:
+> > On 4/2/2012 7:35 PM, Hal Rosenstock wrote:
+> > > Rather than always overwriting active_speed in this case, wouldn't it
+> > > be better to only do that for invalid values?
+> > 
+> > Yes, I have thought about that, however, spotting invalid values would
+> > make the code a bit ugly, so I took this approach, Roland?
+> 
+> Does the active speed even make sense if the port is down?  If not,
+> should we assume that any value returned by the FW is correct?
 
-> Any ideas on how we could solve the hostname problem while we're
-> changing the description?
-
-The node description needs to be set from the DCHP notifier script
-chain (eg /etc/network/if-up.d/ on Debian) and also from a udev rule
-triggered on device insertion.
-
-It should probably not be set from the openibd script..
+Force returning SDR makes sense to me. The link width probably has a
+similar problem too... Returning EINVAL from any sysfs query is really
+unfriendly.
 
 Jason
 --
