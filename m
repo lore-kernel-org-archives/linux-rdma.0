@@ -1,44 +1,31 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/core: add missing string for the display of SDR
- rates in sysfs
-Date: Mon, 2 Apr 2012 21:20:53 +0300
-Message-ID: <CAJZOPZJY-c0QwM=QpYY7sqqyix5cuMS7QinvxmJy77og=mkESQ@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/2] IB/mlx4: fix the case of invalid speed value
+ returned when the port is down
+Date: Mon, 2 Apr 2012 18:39:36 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823734519A40B@ORSMSX101.amr.corp.intel.com>
 References: <1333377921-8349-1-git-send-email-ogerlitz@mellanox.com>
-	<1333377921-8349-3-git-send-email-ogerlitz@mellanox.com>
-	<CAL1RGDUCO+ijdYyaPsx7X9eYssj-qDEqeYm-gSAY30NwYo1Qpg@mail.gmail.com>
+ <1333377921-8349-2-git-send-email-ogerlitz@mellanox.com>
+ <4F79D558.1000908@dev.mellanox.co.il> <4F79D826.9070605@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUCO+ijdYyaPsx7X9eYssj-qDEqeYm-gSAY30NwYo1Qpg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4F79D826.9070605-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 2, 2012 at 8:42 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote=
-:
->
-> On Mon, Apr 2, 2012 at 7:45 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wr=
-ote:
-> > =A0 =A0 =A0 =A0switch (attr.active_speed) {
-> > =A0 =A0 =A0 =A0case IB_SPEED_SDR:
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D " SDR";
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rate =3D 25;
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
-> > =A0 =A0 =A0 =A0case IB_SPEED_DDR:
->
-> I don't think we want this -- old kernels didn't print "SDR" so I thi=
-nk
-> we shouldn't change the interface at this point.
+> On 4/2/2012 7:35 PM, Hal Rosenstock wrote:
+> > Rather than always overwriting active_speed in this case, wouldn't it
+> > be better to only do that for invalid values?
+> 
+> Yes, I have thought about that, however, spotting invalid values would
+> make the code a bit ugly, so I took this approach, Roland?
 
-In other words, you want this fix for 3.5 and not 3.4 as this being
-non-regression? its obviously a fix, since for SDR you just see emtpy
-string.
-
-Or.
+Does the active speed even make sense if the port is down?  If not, should we assume that any value returned by the FW is correct?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
