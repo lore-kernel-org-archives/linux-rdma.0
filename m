@@ -1,80 +1,86 @@
-From: "Heinz, Michael William" <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] Proposal to change Node Description naming scheme for
- HCA's
-Date: Mon, 2 Apr 2012 15:27:35 +0000
-Message-ID: <F93D748CDCC46C42B498F40A38D90369641004@FMSMSX107.amr.corp.intel.com>
-References: <20120330173908.0abdd264.weiny2@llnl.gov>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] libmlx4: Fix a compiler warning
+Date: Mon, 02 Apr 2012 15:56:55 +0000
+Message-ID: <4F79CC47.5020203@acm.org>
+References: <201110101947.34035.bvanassche@acm.org> <CAL1RGDVNoh1Fdm5pvDaeB9YykRpfXMe-s+P_iHs=8Z_r5_DpBQ@mail.gmail.com> <4F78A7F2.7020903@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120330173908.0abdd264.weiny2-i2BcT+NCU+M@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4F78A7F2.7020903-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>, James Silva <jsilva-i2BcT+NCU+M@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I like this idea - but it reminds me of a related issue I raised a while back: nodes can often set the HCA description before they received a hostname from DHCP - in which case you end up with saqueries full of "localhost HCA-1".
+On 04/01/12 19:09, Bart Van Assche wrote:
 
-At the time, QLogic's proposal was to modify the kernel stack so that it extracted the hostname at the time of the query instead of at boot time - but the linux_rdma list did not like that solution.
-
-Any ideas on how we could solve the hostname problem while we're changing the description?
-
-As for what installs the openibd script, I'm pretty sure that's part of ofa_kernel.
-
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ira Weiny
-Sent: Friday, March 30, 2012 8:39 PM
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford; Bob Ciotti; James Silva
-Subject: [RFC] Proposal to change Node Description naming scheme for HCA's
-
-First, a question: what package installs the openibd script in OFED?  For the life of me I can't find this script in 1.5.4.1 or 3.2 ...  :-/  [*]
-
-Right now the "standard" for node description is, AFAIK, "<hostname> HCA-<num>", where num is simply a counter for the HCA's as they are found in /sys/class/infiniband.
-
-The problem is resolving this "random" HCA number to an actual HCA on the host.  I thought about including the node description in ibstat but that seems a bit short sighted.  I think the better solution would be to append the hca name (ie mlx4_X, qibX, etc) to the hostname for the Node Description.
-
-Hacking the RHEL start up script is really easy to do this and results in nice names on the fabric which are easily resolved by the infiniband-diags, ibverbs, and perftest utilities.
-
-bash-4.1# ibhosts
-Ca      : 0x0002c90300325280 ports 1 "ending mlx4_2"
-Ca      : 0x001175000079da38 ports 1 "happy qib0"
-Ca      : 0x0002c90300108f2e ports 1 "ending mlx4_1"
-Ca      : 0x001175000077d90e ports 2 "ending qib0"
-Ca      : 0x0002c903004bebda ports 2 "happy mlx4_0"
-bash-4.1# hostname
-happy
-bash-4.1# ibstat mlx4_0
-CA 'mlx4_0'
-        CA type: MT26428
-        Number of ports: 2
-        Firmware version: 2.8.600
-...
-bash-4.1# ibv_rc_pingpong -d mlx4_0
-  local address:  LID 0x0008, QPN 0x16004a, PSN 0x2e8316 ...
-bash-4.1# rdma_bw -d mlx4_0
-6089: | port=18515 | ib_port=1 | size=65536 | tx_depth=100 | sl=0 | iters=1000 | duplex=0 | cma=0 | ...
-
-I realize this is really a distro thing but it would be nice if we could agree to change the current "standard".
-
-I can send a patch for RHEL and OFED (if I someone can point me to the openibd script or srpm).
-
-Thoughts?
-Ira
+> On 10/11/11 00:41, Roland Dreier wrote:
+>> On Mon, Oct 10, 2011 at 10:47 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+>>> -       uint32_t hi = *(uint32_t *)(gid->raw);
+>>> -       uint32_t lo = *(uint32_t *)(gid->raw + 4);
+>>> -       if (hi == htonl(0xfe800000) && lo == 0)
+>>> -               return 1;
+>>> +       uint32_t hi = gid->u32[0];
+>>> +       uint32_t lo = gid->u32[1];
+>>
+>> Thanks, however I like to keep libmlx4 backwards compatible
+>> if possible.  So we can't do this unconditionally.
+> 
+> How about the patch below ?
 
 
-[*] Last I knew openibd does the same as RHEL's rdma start up script in this regard.
+Sorry, but the patch I sent yesterday was wrong. Please replace by the patch below:
 
---
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[PATCH] libmlx4: Fix a compiler warning
+
+Avoid that link_local_gid() triggers the following compiler warning:
+dereferencing type-punned pointer will break strict-aliasing rules
+
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+---
+ configure.in |    9 +++++++++
+ src/verbs.c  |    5 +++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/configure.in b/configure.in
+index 8aad5ff..eeb4430 100644
+--- a/configure.in
++++ b/configure.in
+@@ -63,6 +63,15 @@ AM_CONDITIONAL(HAVE_IBV_DEVICE_LIBRARY_EXTENSION,
+     test $IBV_DEVICE_LIBRARY_EXTENSION != IBV_DEVICE_LIBRARY_EXTENSION)
+ AC_SUBST(IBV_DEVICE_LIBRARY_EXTENSION)
+ 
++# Check whether ibv_gid has a member called u32.
++
++AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <infiniband/verbs.h>]],
++                                   [[union ibv_gid g; return sizeof(g.u32);]])],
++                  [AC_DEFINE([HAVE_IBV_GID_U32],
++                             [1],
++                             [Define to 1 if ibv_gid has a member called u32.])
++                  ])
++
+ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+     [if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
+         ac_cv_version_script=yes
+diff --git a/src/verbs.c b/src/verbs.c
+index 408fc6d..b52f799 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -624,8 +624,13 @@ int mlx4_destroy_qp(struct ibv_qp *ibqp)
+ 
+ static int link_local_gid(const union ibv_gid *gid)
+ {
++#ifdef HAVE_IBV_GID_U32
++	uint32_t hi = gid->u32[0];
++	uint32_t lo = gid->u32[1];
++#else
+ 	uint32_t hi = *(uint32_t *)(gid->raw);
+ 	uint32_t lo = *(uint32_t *)(gid->raw + 4);
++#endif
+ 	if (hi == htonl(0xfe800000) && lo == 0)
+ 		return 1;
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
