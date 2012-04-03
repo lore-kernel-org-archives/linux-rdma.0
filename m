@@ -1,30 +1,81 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: be2net: when can I expect roce support patch will be merged?
-Date: Mon, 2 Apr 2012 16:26:02 -0700
-Message-ID: <CAL1RGDUJTE4vjr6+XiBogbE3xigShkDasovnDBC+ZSCvw6kt=g@mail.gmail.com>
-References: <88B766C272F2C64B944B21AD078333151C965B92D3@EXMAIL.ad.emulex.com>
- <20120401.151154.1033862070046707491.davem@davemloft.net> <CAL1RGDVsXvMJ58Xa8BUoXRnWmnG2=7CVtJ5GF_cdFQAk61ng7g@mail.gmail.com>
- <20120401.174852.1630093843785755332.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/4] IB/ipath: use for_each_set_bit and for_each_set_bit_from
+Date: Tue,  3 Apr 2012 17:47:13 +0900
+Message-ID: <1333442836-9947-1-git-send-email-akinobu.mita@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120401.174852.1630093843785755332.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Apr 1, 2012 at 2:48 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
-> No problem, feel free to add:
->
-> Acked-by: David S. Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Use for_each_set_bit() and for_each_set_bit_from() to iterate over all
+the set bit in a memory region.
 
-Great, I pulled in these two patches, and I'll add the full ocrdma
-driver soon and push it out for -next coverage (with the plan being
-a merge to 3.5).
+Signed-off-by: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+ drivers/infiniband/hw/ipath/ipath_file_ops.c |   17 +++--------------
+ drivers/infiniband/hw/ipath/ipath_intr.c     |    5 ++---
+ 2 files changed, 5 insertions(+), 17 deletions(-)
 
-Thanks!
-  Roland
+diff --git a/drivers/infiniband/hw/ipath/ipath_file_ops.c b/drivers/infiniband/hw/ipath/ipath_file_ops.c
+index 736d9ed..f74079e 100644
+--- a/drivers/infiniband/hw/ipath/ipath_file_ops.c
++++ b/drivers/infiniband/hw/ipath/ipath_file_ops.c
+@@ -438,10 +438,7 @@ static int ipath_tid_update(struct ipath_portdata *pd, struct file *fp,
+ 		if (limit > tidcnt)
+ 			/* just in case size changes in future */
+ 			limit = tidcnt;
+-		tid = find_first_bit((const unsigned long *)tidmap, limit);
+-		for (; tid < limit; tid++) {
+-			if (!test_bit(tid, tidmap))
+-				continue;
++		for_each_set_bit(tid, tidmap, limit) {
+ 			if (dd->ipath_pageshadow[porttid + tid]) {
+ 				ipath_cdbg(VERBOSE, "Freeing TID %u\n",
+ 					   tid);
+@@ -548,16 +545,8 @@ static int ipath_tid_free(struct ipath_portdata *pd, unsigned subport,
+ 	ipath_cdbg(VERBOSE, "Port%u free %u tids; first bit (max=%d) "
+ 		   "set is %d, porttid %u\n", pd->port_port, ti->tidcnt,
+ 		   limit, tid, porttid);
+-	for (cnt = 0; tid < limit; tid++) {
+-		/*
+-		 * small optimization; if we detect a run of 3 or so without
+-		 * any set, use find_first_bit again.  That's mainly to
+-		 * accelerate the case where we wrapped, so we have some at
+-		 * the beginning, and some at the end, and a big gap
+-		 * in the middle.
+-		 */
+-		if (!test_bit(tid, tidmap))
+-			continue;
++	cnt = 0;
++	for_each_set_bit_from(tid, tidmap, limit) {
+ 		cnt++;
+ 		if (dd->ipath_pageshadow[porttid + tid]) {
+ 			struct page *p;
+diff --git a/drivers/infiniband/hw/ipath/ipath_intr.c b/drivers/infiniband/hw/ipath/ipath_intr.c
+index c0a03ac..ee8d0d7 100644
+--- a/drivers/infiniband/hw/ipath/ipath_intr.c
++++ b/drivers/infiniband/hw/ipath/ipath_intr.c
+@@ -79,9 +79,8 @@ void ipath_disarm_senderrbufs(struct ipath_devdata *dd)
+ 			printk("\n");
+ 		}
+ 
+-		for (i = 0; i < piobcnt; i++)
+-			if (test_bit(i, sbuf))
+-				ipath_disarm_piobufs(dd, i, 1);
++		for_each_set_bit(i, sbuf, piobcnt)
++			ipath_disarm_piobufs(dd, i, 1);
+ 		/* ignore armlaunch errs for a bit */
+ 		dd->ipath_lastcancel = jiffies+3;
+ 	}
+-- 
+1.7.4.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
