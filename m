@@ -1,32 +1,34 @@
-From: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/4] IB/ipath: use for_each_set_bit and for_each_set_bit_from
-Date: Tue,  3 Apr 2012 17:47:13 +0900
-Message-ID: <1333442836-9947-1-git-send-email-akinobu.mita@gmail.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: [PATCH 2/4] IB/qib: use for_each_set_bit and for_each_set_bit_from
+Date: Tue,  3 Apr 2012 17:47:14 +0900
+Message-ID: <1333442836-9947-2-git-send-email-akinobu.mita@gmail.com>
+References: <1333442836-9947-1-git-send-email-akinobu.mita@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1333442836-9947-1-git-send-email-akinobu.mita@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <infinipath@qlogic.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 Use for_each_set_bit() and for_each_set_bit_from() to iterate over all
 the set bit in a memory region.
 
-Signed-off-by: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Mike Marciniszyn <infinipath@qlogic.com>
+Cc: linux-rdma@vger.kernel.org
 ---
- drivers/infiniband/hw/ipath/ipath_file_ops.c |   17 +++--------------
- drivers/infiniband/hw/ipath/ipath_intr.c     |    5 ++---
- 2 files changed, 5 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/qib/qib_file_ops.c |   22 ++++------------------
+ drivers/infiniband/hw/qib/qib_tx.c       |   14 +++++---------
+ 2 files changed, 9 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_file_ops.c b/drivers/infiniband/hw/ipath/ipath_file_ops.c
-index 736d9ed..f74079e 100644
---- a/drivers/infiniband/hw/ipath/ipath_file_ops.c
-+++ b/drivers/infiniband/hw/ipath/ipath_file_ops.c
-@@ -438,10 +438,7 @@ static int ipath_tid_update(struct ipath_portdata *pd, struct file *fp,
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index a740324..7c901d9 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -399,10 +399,7 @@ cleanup:
  		if (limit > tidcnt)
  			/* just in case size changes in future */
  			limit = tidcnt;
@@ -35,13 +37,14 @@ index 736d9ed..f74079e 100644
 -			if (!test_bit(tid, tidmap))
 -				continue;
 +		for_each_set_bit(tid, tidmap, limit) {
- 			if (dd->ipath_pageshadow[porttid + tid]) {
- 				ipath_cdbg(VERBOSE, "Freeing TID %u\n",
- 					   tid);
-@@ -548,16 +545,8 @@ static int ipath_tid_free(struct ipath_portdata *pd, unsigned subport,
- 	ipath_cdbg(VERBOSE, "Port%u free %u tids; first bit (max=%d) "
- 		   "set is %d, porttid %u\n", pd->port_port, ti->tidcnt,
- 		   limit, tid, porttid);
+ 			if (dd->pageshadow[ctxttid + tid]) {
+ 				dma_addr_t phys;
+ 
+@@ -504,17 +501,8 @@ static int qib_tid_free(struct qib_ctxtdata *rcd, unsigned subctxt,
+ 	if (limit > tidcnt)
+ 		/* just in case size changes in future */
+ 		limit = tidcnt;
+-	tid = find_first_bit(tidmap, limit);
 -	for (cnt = 0; tid < limit; tid++) {
 -		/*
 -		 * small optimization; if we detect a run of 3 or so without
@@ -53,30 +56,60 @@ index 736d9ed..f74079e 100644
 -		if (!test_bit(tid, tidmap))
 -			continue;
 +	cnt = 0;
-+	for_each_set_bit_from(tid, tidmap, limit) {
++	for_each_set_bit(tid, tidmap, limit) {
  		cnt++;
- 		if (dd->ipath_pageshadow[porttid + tid]) {
+ 		if (dd->pageshadow[ctxttid + tid]) {
  			struct page *p;
-diff --git a/drivers/infiniband/hw/ipath/ipath_intr.c b/drivers/infiniband/hw/ipath/ipath_intr.c
-index c0a03ac..ee8d0d7 100644
---- a/drivers/infiniband/hw/ipath/ipath_intr.c
-+++ b/drivers/infiniband/hw/ipath/ipath_intr.c
-@@ -79,9 +79,8 @@ void ipath_disarm_senderrbufs(struct ipath_devdata *dd)
- 			printk("\n");
- 		}
+@@ -1948,9 +1936,7 @@ static int qib_user_event_ack(struct qib_ctxtdata *rcd, int subctxt,
+ {
+ 	int ret = 0, i;
  
--		for (i = 0; i < piobcnt; i++)
--			if (test_bit(i, sbuf))
--				ipath_disarm_piobufs(dd, i, 1);
-+		for_each_set_bit(i, sbuf, piobcnt)
-+			ipath_disarm_piobufs(dd, i, 1);
- 		/* ignore armlaunch errs for a bit */
- 		dd->ipath_lastcancel = jiffies+3;
+-	for (i = 0; i <= _QIB_MAX_EVENT_BIT; i++) {
+-		if (!test_bit(i, &events))
+-			continue;
++	for_each_set_bit(i, &events, _QIB_MAX_EVENT_BIT + 1) {
+ 		if (i == _QIB_EVENT_DISARM_BUFS_BIT) {
+ 			(void)qib_disarm_piobufs_ifneeded(rcd);
+ 			ret = disarm_req_delay(rcd);
+diff --git a/drivers/infiniband/hw/qib/qib_tx.c b/drivers/infiniband/hw/qib/qib_tx.c
+index 1bf626c..93d236a 100644
+--- a/drivers/infiniband/hw/qib/qib_tx.c
++++ b/drivers/infiniband/hw/qib/qib_tx.c
+@@ -82,7 +82,6 @@ int qib_disarm_piobufs_ifneeded(struct qib_ctxtdata *rcd)
+ 	struct qib_devdata *dd = rcd->dd;
+ 	unsigned i;
+ 	unsigned last;
+-	unsigned n = 0;
+ 
+ 	last = rcd->pio_base + rcd->piocnt;
+ 	/*
+@@ -101,11 +100,10 @@ int qib_disarm_piobufs_ifneeded(struct qib_ctxtdata *rcd)
+ 				  &rcd->user_event_mask[i]);
  	}
+ 	spin_lock_irq(&dd->pioavail_lock);
+-	for (i = rcd->pio_base; i < last; i++) {
+-		if (__test_and_clear_bit(i, dd->pio_need_disarm)) {
+-			n++;
+-			dd->f_sendctrl(rcd->ppd, QIB_SENDCTRL_DISARM_BUF(i));
+-		}
++	i = rcd->pio_base;
++	for_each_set_bit_from(i, dd->pio_need_disarm, last) {
++		__clear_bit(i, dd->pio_need_disarm);
++		dd->f_sendctrl(rcd->ppd, QIB_SENDCTRL_DISARM_BUF(i));
+ 	}
+ 	spin_unlock_irq(&dd->pioavail_lock);
+ 	return 0;
+@@ -178,10 +176,8 @@ void qib_disarm_piobufs_set(struct qib_devdata *dd, unsigned long *mask,
+ 	for (i = 0; i < dd->num_pports; i++)
+ 		pppd[i] = NULL;
+ 
+-	for (i = 0; i < cnt; i++) {
++	for_each_set_bit(i, mask, cnt) {
+ 		int which;
+-		if (!test_bit(i, mask))
+-			continue;
+ 		/*
+ 		 * If the buffer is owned by the DMA hardware,
+ 		 * reset the DMA engine.
 -- 
 1.7.4.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
