@@ -1,72 +1,63 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Don't return EINVAL from sysfs rate attribute
- for invalid speeds
-Date: Wed, 04 Apr 2012 19:23:56 +0000
-Message-ID: <4F7C9FCC.8010509@acm.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] librdmacm: Automatically detect if ibacm is installed
+Date: Wed, 4 Apr 2012 21:25:11 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823734519AC8F@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> 
-> Commit e9319b0cb00d ("IB/core: Fix SDR rates in sysfs") changed our
-> sysfs rate attribute to return EINVAL to userspace if the underlying
-> device driver returns an invalid rate.  Apparently some drivers do this
-> when the link is down and some userspace pukes if it gets an error when
-> reading this attribute, so avoid a regression by not return an error to
-> match the old code.
-> 
-> Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> ---
-> I think I'd rather just add this, to get back closer to the original
-> behavior even for non-fixed drivers (but I'll still merge the mlx4
-> patch, since that makes sense too).
-> 
->  drivers/infiniband/core/sysfs.c |    9 +++++----
->  1 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-> index 83b720e..246fdc1 100644
-> --- a/drivers/infiniband/core/sysfs.c
-> +++ b/drivers/infiniband/core/sysfs.c
-> @@ -179,7 +179,7 @@ static ssize_t rate_show(struct ib_port *p, struct port_attribute *unused,
->  {
->  	struct ib_port_attr attr;
->  	char *speed = "";
-> -	int rate = -1;		/* in deci-Gb/sec */
-> +	int rate;		/* in deci-Gb/sec */
->  	ssize_t ret;
->  
->  	ret = ib_query_port(p->ibdev, p->port_num, &attr);
-> @@ -187,9 +187,6 @@ static ssize_t rate_show(struct ib_port *p, struct port_attribute *unused,
->  		return ret;
->  
->  	switch (attr.active_speed) {
-> -	case IB_SPEED_SDR:
-> -		rate = 25;
-> -		break;
->  	case IB_SPEED_DDR:
->  		speed = " DDR";
->  		rate = 50;
-> @@ -210,6 +207,10 @@ static ssize_t rate_show(struct ib_port *p, struct port_attribute *unused,
->  		speed = " EDR";
->  		rate = 250;
->  		break;
-> +	case IB_SPEED_SDR:
-> +	default:		/* default to SDR for invalid rates */
-> +		rate = 25;
-> +		break;
->  	}
->  
->  	rate *= ib_width_enum_to_int(attr.active_width);
-> -- 
-> 1.7.9.1
+If the ibacm header file is available, automatically have the
+librdmacm configured to use it.  This removes the --with-ib_acm
+configure option.
 
-Tested-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ configure.in |   16 ++--------------
+ 1 files changed, 2 insertions(+), 14 deletions(-)
+
+diff --git a/configure.in b/configure.in
+index 8d89741..238ee59 100644
+--- a/configure.in
++++ b/configure.in
+@@ -23,15 +23,6 @@ if test "$with_valgrind" != "" && test "$with_valgrind" != "no"; then
+ 	fi
+ fi
+ 
+-AC_ARG_WITH([ib_acm],
+-    AC_HELP_STRING([--with-ib_acm],
+-		   [Use IB ACM for route resolution - default NO]))
+-
+-if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
+-	AC_DEFINE([USE_IB_ACM], 1,
+-		  [Define to 1 to use IB ACM for endpoint resolution])
+-fi
+-
+ AC_ARG_ENABLE(libcheck, [  --disable-libcheck      do not test for presence of ib libraries],
+ [       if test "$enableval" = "no"; then
+                 disable_libcheck=yes
+@@ -67,13 +58,10 @@ if test "$with_valgrind" != "" && test "$with_valgrind" != "no"; then
+ AC_CHECK_HEADER(valgrind/memcheck.h, [],
+     AC_MSG_ERROR([valgrind requested but <valgrind/memcheck.h> not found.]))
+ fi
+-
+-if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
+-AC_CHECK_HEADER(infiniband/acm.h, [],
+-    AC_MSG_ERROR([IB ACM requested but <infiniband/acm.h> not found.]))
+ fi
+ 
+-fi
++AC_CHECK_HEADER(infiniband/acm.h, 
++	AC_DEFINE([USE_IB_ACM], 1, [setting IBACM support]), [])
+ 
+ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+     if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
