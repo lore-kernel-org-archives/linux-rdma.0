@@ -1,33 +1,72 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC] Proposal to change Node Description naming scheme for HCA's
-Date: Wed, 4 Apr 2012 11:25:16 -0600
-Message-ID: <20120404172516.GA24353@obsidianresearch.com>
-References: <20120330173908.0abdd264.weiny2@llnl.gov>
- <F93D748CDCC46C42B498F40A38D90369641004@FMSMSX107.amr.corp.intel.com>
- <20120402184545.GA1311@obsidianresearch.com>
- <20120403191442.ce88dc0a.weiny2@llnl.gov>
- <20120404171200.GC20889@obsidianresearch.com>
- <F93D748CDCC46C42B498F40A38D903696420A5@FMSMSX107.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Don't return EINVAL from sysfs rate attribute
+ for invalid speeds
+Date: Wed, 04 Apr 2012 19:23:56 +0000
+Message-ID: <4F7C9FCC.8010509@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F93D748CDCC46C42B498F40A38D903696420A5-AtyAts71sc9zLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Heinz, Michael William" <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 04, 2012 at 05:17:48PM +0000, Heinz, Michael William wrote:
-> I agree that setting it via the network scripts is preferable - if
-> we can find a fairly consistent way to do it across distros.
+> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> 
+> Commit e9319b0cb00d ("IB/core: Fix SDR rates in sysfs") changed our
+> sysfs rate attribute to return EINVAL to userspace if the underlying
+> device driver returns an invalid rate.  Apparently some drivers do this
+> when the link is down and some userspace pukes if it gets an error when
+> reading this attribute, so avoid a regression by not return an error to
+> match the old code.
+> 
+> Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> ---
+> I think I'd rather just add this, to get back closer to the original
+> behavior even for non-fixed drivers (but I'll still merge the mlx4
+> patch, since that makes sense too).
+> 
+>  drivers/infiniband/core/sysfs.c |    9 +++++----
+>  1 files changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+> index 83b720e..246fdc1 100644
+> --- a/drivers/infiniband/core/sysfs.c
+> +++ b/drivers/infiniband/core/sysfs.c
+> @@ -179,7 +179,7 @@ static ssize_t rate_show(struct ib_port *p, struct port_attribute *unused,
+>  {
+>  	struct ib_port_attr attr;
+>  	char *speed = "";
+> -	int rate = -1;		/* in deci-Gb/sec */
+> +	int rate;		/* in deci-Gb/sec */
+>  	ssize_t ret;
+>  
+>  	ret = ib_query_port(p->ibdev, p->port_num, &attr);
+> @@ -187,9 +187,6 @@ static ssize_t rate_show(struct ib_port *p, struct port_attribute *unused,
+>  		return ret;
+>  
+>  	switch (attr.active_speed) {
+> -	case IB_SPEED_SDR:
+> -		rate = 25;
+> -		break;
+>  	case IB_SPEED_DDR:
+>  		speed = " DDR";
+>  		rate = 50;
+> @@ -210,6 +207,10 @@ static ssize_t rate_show(struct ib_port *p, struct port_attribute *unused,
+>  		speed = " EDR";
+>  		rate = 250;
+>  		break;
+> +	case IB_SPEED_SDR:
+> +	default:		/* default to SDR for invalid rates */
+> +		rate = 25;
+> +		break;
+>  	}
+>  
+>  	rate *= ib_width_enum_to_int(attr.active_width);
+> -- 
+> 1.7.9.1
 
-OFED only supports two distros, we don't really need to be
-distro-agnostic. At this point it is better to integrate well with
-each supported distro and 'do things the distro way'. The OFA
-direction is now 'upstream first' and 'better distro collaboration'..
-
-Jason
+Tested-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
