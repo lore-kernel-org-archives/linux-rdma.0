@@ -1,43 +1,91 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/mlx4: fix the case of invalid speed value returned
- when the port is down
-Date: Wed, 4 Apr 2012 00:36:21 -0700
-Message-ID: <CAL1RGDUPeGfABU=BM1+iEywJsH_g=8+F5WoMdOBVLh1BfZUWBg@mail.gmail.com>
-References: <1333377921-8349-1-git-send-email-ogerlitz@mellanox.com>
- <1333377921-8349-2-git-send-email-ogerlitz@mellanox.com> <CAL1RGDXvR-kk7TE3O33PrifuYoKkgdgAJ9aY5JkduywEf56w+Q@mail.gmail.com>
- <4F7BEC4B.2030503@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC] Proposal to change Node Description naming scheme for HCA's
+Date: Wed, 4 Apr 2012 11:12:00 -0600
+Message-ID: <20120404171200.GC20889@obsidianresearch.com>
+References: <20120330173908.0abdd264.weiny2@llnl.gov>
+ <F93D748CDCC46C42B498F40A38D90369641004@FMSMSX107.amr.corp.intel.com>
+ <20120402184545.GA1311@obsidianresearch.com>
+ <20120403191442.ce88dc0a.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F7BEC4B.2030503-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20120403191442.ce88dc0a.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "Heinz, Michael William" <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>, James Silva <jsilva-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 3, 2012 at 11:38 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wro=
-te:
-> On 4/2/2012 10:27 PM, Roland Dreier wrote:
->>
->> This looks reasonable, applied
->
->
-> Thanks, so we're in a situation where there are / will be fixes for 3=
-=2E4 and
-> new code for 3.5 is coming, how about that suggestion I made lately -
-> =A0for-next to contain code for the next kernel (e.g 3.5 at this poin=
-t) and
-> have a different branch (maybe rc-fixes) to track fixes for the curre=
-nt
-> kernel (e.g 3.4)?
+On Tue, Apr 03, 2012 at 07:14:42PM -0700, Ira Weiny wrote:
+> On Mon, 2 Apr 2012 12:45:45 -0600
+> Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> 
+> > On Mon, Apr 02, 2012 at 03:27:35PM +0000, Heinz, Michael William wrote:
+> > 
+> > > Any ideas on how we could solve the hostname problem while we're
+> > > changing the description?
+> > 
+> > The node description needs to be set from the DCHP notifier script
+> > chain (eg /etc/network/if-up.d/ on Debian) and also from a udev rule
+> > triggered on device insertion.
+> 
+> Jason, I'm confused.  Do you mean DHCP?
 
-Yes, I am planning on doing that, and also never rebasing my for-next b=
-ranch.
+Yes..
 
- - R.
+> It seems are you indicating you would like to see if[up/down] bring
+> ports up/down like they do for IP?
+
+No..
+
+> On my ubuntu box (the closest thing I have to Debian) it looks like
+> ifupdown owns /etc/network/if-up.d and that is not specific to DHCP.
+> I don't think DHCP should be required for IB.
+
+if-up.d/ is a '.d' directory, the idea is individual packages drop
+their script files in the directory and the system runs them at
+defined times. No package owns the directory.
+
+The purpose of placing a hook here is this call path is used when the
+hostname changes via DHCP so you can have a chance to reset the node
+description.
+
+> Using udev to set this __seems__ like a better idea although I have
+> not prototyped it.
+
+The purpose of the udev hook path is to set the node description on
+initial device insertion, which may be before, or after the DHCP
+process completes, in such cases.
+
+It may also be before or after the openibd script.. Having init.d
+scripts depend on the ordering of hardware discovery and module
+loading is considered sketchy these days with all the parallel boot
+fancyness and what not.
+
+IMHO we should have a udev rule that also loads the higher level IB
+modules when any RDMA capable device is discovered, including the mlx4
+IB layer, uverbs, umad, etc. This way systems that have RDMA will load
+the right modules and systems that don't, won't. Fully supporting hot
+plug, of course.
+
+This would broadly eliminate the openibd script, integrate more
+correctly with the modern distro world, be better prepared for systemd
+and just be an overall better example for distros to follow :)
+
+> > It should probably not be set from the openibd script..
+> 
+> I agree there might be better ways but I am not sure I follow your
+> proposal.  Furthermore, I don't know that a start up script of some
+> sort is all that evil.
+> 
+> Finally, I think Michael brings up a good point about which package
+> should own any such scripts.
+
+udev is like if-up.d/, there is a rules directory packages can drop
+hook scripts into that run at the appropriate time.
+ 
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
