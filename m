@@ -1,24 +1,52 @@
-From: Jinghao Printing - CHINA <viki51je-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: hi
-Date: Thu, 5 Apr 2012 09:24:38 +0800
-Message-ID: <CAJexCsEeD-D72sWxWgZze13m7+rvZ1i4g82JGeJe4B8f-c6d5w@mail.gmail.com>
-References: <CAJexCsH4EOqLj+BbDf6fuFHuOqp=MrXQ_9H9FtacEQTOoiympQ@mail.gmail.com>
-	<CAJexCsGN7k=SF5Zx=RxVZS-d7U_22anZT3KviuKtv9mTz9sxyQ@mail.gmail.com>
-	<CAJexCsGa5sm_QkY0YtFT3JhmSRFx10qopgCjviqL3r+tzaTmJw@mail.gmail.com>
-	<CAJexCsGnHVputNhC8RUHcP41PKuy=dOFLYkUWZqE9KX_CRvRCg@mail.gmail.com>
-	<CAJexCsFg5_2vOhvYgK0pB0iHE55cWROCJ_m6msdRqXZXsX1QnA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: boris-3GeZWEQ5Z0yB+jHODAdFcQ@public.gmane.org
+Subject: Server Rental Service in Hong Kong
+Date: Thu,  5 Apr 2012 22:14:00 +0800 (HKT)
+Message-ID: <i0b8mY__33466.6858580478$1333636538$gmane$org@party.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJexCsFg5_2vOhvYgK0pB0iHE55cWROCJ_m6msdRqXZXsX1QnA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, we are a printing company, we can print hang tags, color box,
-labels. Please reply if you need it.
+Dear All,
 
-Best regards,
-David Wu
+We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
+
+Dell=3F PowerEdge=3F EnterpriseRack Mount Server
+-Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
+-8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
+-500GB, 3.5", 6Gbps SAS x 2
+-Raid 1 Mirroring Protection
+-Remote KVM (iDRAC6 Enterprise)
+
+Dell(TM) PowerEdge(TM) R410 Rack Mount Server
+-Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
+-4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
+-500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
+-iDRAC6 Enterprise or Express (Remote KVM Management)
+
+Every Dedicated Server Hosting Solution Also Includes: 
+ 
+Software Specification 
+- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
+- Full root-level access 
+- Data Center Facilities 
+- Shared Local & International Bandwidth 
+- 2 IP Addresses Allocation 
+- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
+- FM200=A1=A7based fire suppression system 
+- 24x7 CRAC Air Conditioning and Humidity Control 
+- 24x7 Security Control 
+- 24x7 Remote Hand Service 
+
+Pls send us email for further information.Thanks,
+
+Boris 
+boris-3GeZWEQ5Z0yB+jHODAdFcQ@public.gmane.org
+
+If you do not wish to further receive this event message, email "borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
