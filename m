@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][TRIVIAL] ibacm/acme.c: Change format for LIDs
-Date: Thu, 05 Apr 2012 16:05:14 -0400
-Message-ID: <4F7DFAFA.7020908@dev.mellanox.co.il>
+Subject: [PATCH] ibacm/libacm.c: Use IPv4 rather than IPv6 for ACM server
+ communication
+Date: Thu, 05 Apr 2012 16:05:24 -0400
+Message-ID: <4F7DFB04.2030803@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,25 +13,25 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-"Standard" format for unicast LIDs is decimal rather than hex
+When both IPv4 and IPv6 are running, getaddrinfo indicates IPv6
+rather than IPv4 and that currently causes a failure to connect to
+the ACM server. Fix is to set the address family in the hint to
+getaddrinfo to IPv4.
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/src/acme.c b/src/acme.c
-index 3d7461b..def8942 100644
---- a/src/acme.c
-+++ b/src/acme.c
-@@ -413,8 +413,8 @@ static void show_path(struct ibv_path_record *path)
- 	printf("  dgid: %s\n", gid);
- 	inet_ntop(AF_INET6, path->sgid.raw, gid, sizeof gid);
- 	printf("  sgid: %s\n", gid);
--	printf("  dlid: 0x%x\n", ntohs(path->dlid));
--	printf("  slid: 0x%x\n", ntohs(path->slid));
-+	printf("  dlid: %u\n", ntohs(path->dlid));
-+	printf("  slid: %u\n", ntohs(path->slid));
- 	fl_hop = ntohl(path->flowlabel_hoplimit);
- 	printf("  flow label: 0x%x\n", fl_hop >> 8);
- 	printf("  hop limit: %d\n", (uint8_t) fl_hop);
+diff --git a/src/libacm.c b/src/libacm.c
+index 727741f..5ca1abc 100644
+--- a/src/libacm.c
++++ b/src/libacm.c
+@@ -75,6 +75,7 @@ int ib_acm_connect(char *dest)
+ 
+ 	acm_set_server_port();
+ 	memset(&hint, 0, sizeof hint);
++	hint.ai_family = AF_INET;
+ 	hint.ai_protocol = IPPROTO_TCP;
+ 	ret = getaddrinfo(dest, NULL, &hint, &res);
+ 	if (ret)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
