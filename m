@@ -1,54 +1,44 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ibacm: Fixes to ACM package to support distros
-Date: Fri, 6 Apr 2012 04:43:37 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823734519B304@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A823734519A805@ORSMSX101.amr.corp.intel.com>
- <4F7DC3F8.2030406@redhat.com>
- <1828884A29C6694DAF28B7E6B8A823734519B048@ORSMSX101.amr.corp.intel.com>
- <4F7DF0D4.5040101@redhat.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH][TRIVIAL] ibacm/acm.c: LID format should be unsigned decimal
+Date: Fri, 06 Apr 2012 09:31:10 -0400
+Message-ID: <4F7EF01E.8020300@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F7DF0D4.5040101-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > I create a .tar.gz package using 'make dist', copy it to another
-> > system, then install it using 'configure && make install'.  When I do
-> > that, sysconfdir defaults to /usr/local/etc, sbindir /usr/local/sbin,
-> > and bindir to /usr/local/bin.  I added /usr/local to PATH, so that
-> > the init script would work.  Otherwise I get a 'command not found'
-> > error when running the script.  On a side note, my ibacm
-> > configuration files end up in /usr/local/etc/rdma.
-> 
-> configure --prefix=/usr --sysconfdir=/etc && make && make install
 
-I should have mentioned that this is on my development systems.  I'd like to avoid using rmp's or needing to pass in extra configure options.  I'd like it to 'just work' in all cases.  :/
+so that unicast LIDs >= 0x8000 and < 0xc000 display as
+positive rather than negative numbers.
 
-> > To say that I'm not sure what autotools and the init scripts are
-> > doing is an understatement...  The init script finds ibacm in
-> > /usr/sbin,
-> 
-> Which means some time it got installed there, either by an rpm or
-> something else.
-
-I manually copied the file there to see if the init script would find it.
-
-> make dist
-> rpmbuild --rebuild <name_of_tarball>
-> rpm -Uvh ~/rpmbuild/RPMS/<arch>/<rpmlist>
-> 
-> You might need this in your ~/.rpmmacros file:
-> 
-> %_topdir %(echo $HOME)/rpmbuild
-
-thanks - I'll try to test the rmp installation as well.
-
-- Sean
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/acm.c b/src/acm.c
+index d47f9d6..e17b8a6 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -267,7 +267,7 @@ acm_format_name(int level, char *name, size_t name_size,
+ 	case ACM_EP_INFO_PATH:
+ 		path = (struct ibv_path_record *) addr;
+ 		if (path->dlid) {
+-			sprintf(name, "SLID(%d) DLID(%d)",
++			sprintf(name, "SLID(%u) DLID(%u)",
+ 				ntohs(path->slid), ntohs(path->dlid));
+ 		} else {
+ 			acm_format_name(level, name, name_size, ACM_ADDRESS_GID,
+@@ -275,7 +275,7 @@ acm_format_name(int level, char *name, size_t name_size,
+ 		}
+ 		break;
+ 	case ACM_ADDRESS_LID:
+-		sprintf(name, "LID(%d)", ntohs(*((uint16_t *) addr)));
++		sprintf(name, "LID(%u)", ntohs(*((uint16_t *) addr)));
+ 		break;
+ 	default:
+ 		strcpy(name, "Unknown");
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
