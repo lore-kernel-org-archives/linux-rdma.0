@@ -1,38 +1,52 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [PATCH] ibacm: Fixes to ACM package to support distros
-Date: Fri, 6 Apr 2012 04:35:28 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823734519B2EC@ORSMSX101.amr.corp.intel.com>
+Date: Fri, 6 Apr 2012 04:43:37 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823734519B304@ORSMSX101.amr.corp.intel.com>
 References: <1828884A29C6694DAF28B7E6B8A823734519A805@ORSMSX101.amr.corp.intel.com>
  <4F7DC3F8.2030406@redhat.com>
  <1828884A29C6694DAF28B7E6B8A823734519B048@ORSMSX101.amr.corp.intel.com>
- <20120405204038.GA6575@obsidianresearch.com>
+ <4F7DF0D4.5040101@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120405204038.GA6575-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <4F7DF0D4.5040101-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> In this instance you need to have configure variable substitute your
-> init script as well. You should not manipulate PATH from an init.d
-> script, and you should use an absolute path to the daemon to avoid
-> contamination from the invoking user's environment.
-
-This is exactly what I wanted to do...
-
-> So you want:
+> > I create a .tar.gz package using 'make dist', copy it to another
+> > system, then install it using 'configure && make install'.  When I do
+> > that, sysconfdir defaults to /usr/local/etc, sbindir /usr/local/sbin,
+> > and bindir to /usr/local/bin.  I added /usr/local to PATH, so that
+> > the init script would work.  Otherwise I get a 'command not found'
+> > error when running the script.  On a side note, my ibacm
+> > configuration files end up in /usr/local/etc/rdma.
 > 
-> %prefix$/bin/IBACM_BIN -foo
+> configure --prefix=/usr --sysconfdir=/etc && make && make install
 
-In other places, I used sbindir.  But when I try to use that in the init script, I end up with something like this
+I should have mentioned that this is on my development systems.  I'd like to avoid using rmp's or needing to pass in extra configure options.  I'd like it to 'just work' in all cases.  :/
 
-${exec_prefix}/sbin/ibacm
+> > To say that I'm not sure what autotools and the init scripts are
+> > doing is an understatement...  The init script finds ibacm in
+> > /usr/sbin,
+> 
+> Which means some time it got installed there, either by an rpm or
+> something else.
 
-in the final init script, which doesn't actually work.  I can get @prefix@/sbin to work, but that seems less flexible.
+I manually copied the file there to see if the init script would find it.
+
+> make dist
+> rpmbuild --rebuild <name_of_tarball>
+> rpm -Uvh ~/rpmbuild/RPMS/<arch>/<rpmlist>
+> 
+> You might need this in your ~/.rpmmacros file:
+> 
+> %_topdir %(echo $HOME)/rpmbuild
+
+thanks - I'll try to test the rmp installation as well.
 
 - Sean
 --
