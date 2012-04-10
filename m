@@ -1,40 +1,36 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] OpenSM/osm_prtn_config.c: Fix non-initialized pointer usage
-Date: Tue, 10 Apr 2012 11:58:56 +0300
-Message-ID: <20120410085856.GA6613@calypso>
+From: Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Subject: =?UTF-8?Q?ib=5Fsrpt=20and=20mellanox=20mthca=20device?=
+Date: Tue, 10 Apr 2012 17:52:37 +0300
+Message-ID: <5f95768153388b91a2ffa0cd118d7ad8@omrb.pnpi.spb.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If conf wasn't initialized, use p_log pointer to print to the log
-directly.
+Hi all!
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_prtn_config.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I'm  trying to use ib_srpt from mainline kernel (3.3.x and 3.4-rcX)
+But right after loading ib_srpt i always get error in dmesg
 
-diff --git a/opensm/osm_prtn_config.c b/opensm/osm_prtn_config.c
-index bc53148..3d5d79e 100644
---- a/opensm/osm_prtn_config.c
-+++ b/opensm/osm_prtn_config.c
-@@ -727,7 +727,7 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
- 				break;
- 
- 			if (!conf && !(conf = new_part_conf(p_log, p_subn))) {
--				OSM_LOG(conf->p_log, OSM_LOG_ERROR,
-+				OSM_LOG(p_log, OSM_LOG_ERROR,
- 					"PARSE ERROR: line %d: "
- 					"internal: cannot create config\n",
- 					lineno);
+
+srpt_add_one(mthca0) failed.
+
+so ib_srpt cannot be used as target
+
 -- 
-1.7.7.6
-
--- Alex
+Best Regards,
+Alexey 'Alexxy' Shvetsov
+Petersburg Nuclear Physics Institute, Russia
+Department of Molecular and Radiation Biophysics
+Gentoo Team Ru
+Gentoo Linux Dev
+mailto:alexxyum-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+mailto:alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org
+mailto:alexxy-heEE5zn7HfaV8fSEjHp0FA@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
