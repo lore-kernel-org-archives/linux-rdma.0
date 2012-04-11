@@ -1,52 +1,37 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: ib_srpt and mellanox mthca device
-Date: Tue, 10 Apr 2012 16:09:21 -0700
-Message-ID: <CAL1RGDWNqMdQGrXbh2gj==_KvVRF1mUQw2D3NqEhjvuq2q2+6Q@mail.gmail.com>
-References: <5f95768153388b91a2ffa0cd118d7ad8@omrb.pnpi.spb.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 02/11] ipath: replace open-coded ARRAY_SIZE with macro
+Date: Tue, 10 Apr 2012 18:55:25 -0600
+Message-ID: <1334105725-9081-1-git-send-email-jim.cromie@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5f95768153388b91a2ffa0cd118d7ad8-heEE5zn7HfaV8fSEjHp0FA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+Cc: trivial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 10, 2012 at 7:52 AM, Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org> wr=
-ote:
-> I'm =A0trying to use ib_srpt from mainline kernel (3.3.x and 3.4-rcX)
-> But right after loading ib_srpt i always get error in dmesg
->
-> srpt_add_one(mthca0) failed.
 
-I would suggest the following: make sure ib_mthca is NOT loaded, and lo=
-ad
-the srpt module.  Then enable ftrace -- config options
+Signed-off-by: Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/ipath/ipath_intr.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-    CONFIG_FUNCTION_TRACER
-    CONFIG_DYNAMIC_FTRACE
-    CONFIG_FUNCTION_GRAPH_TRACER
+diff --git a/drivers/infiniband/hw/ipath/ipath_intr.c b/drivers/infiniband/hw/ipath/ipath_intr.c
+index c0a03ac..26dfbc8 100644
+--- a/drivers/infiniband/hw/ipath/ipath_intr.c
++++ b/drivers/infiniband/hw/ipath/ipath_intr.c
+@@ -209,8 +209,7 @@ void ipath_format_hwerrors(u64 hwerrs,
+ {
+ 	int i;
+ 	const int glen =
+-	    sizeof(ipath_generic_hwerror_msgs) /
+-	    sizeof(ipath_generic_hwerror_msgs[0]);
++	    ARRAY_SIZE(ipath_generic_hwerror_msgs);
+ 
+ 	for (i=0; i<glen; i++) {
+ 		if (hwerrs & ipath_generic_hwerror_msgs[i].mask) {
+-- 
+1.7.8.1
 
-and use the function graph tracer to see what srpt_add_one() calls:
-
-# cd /sys/kernel/debug/trace
-# echo srpt_add_one > set_graph_function
-# echo function_graph > current_tracer
-# modprobe ib_mthca
-# cat trace
-
-and send the output of that "cat trace" command to the list.  Then we c=
-an
-see what step of initialization fails and debug from there.
-
-(cf the section "the function_graph tracer" in https://lwn.net/Articles=
-/370423/)
-
-Thanks!
- - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
