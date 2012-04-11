@@ -1,31 +1,33 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: ib_srpt and mellanox mthca device
-Date: Wed, 11 Apr 2012 13:06:25 -0700
-Message-ID: <CAL1RGDVbqOQP+AH4f9cs+mEngXVTOy7r7gRjJ=SU_rMmvCg3Qg@mail.gmail.com>
-References: <5f95768153388b91a2ffa0cd118d7ad8@omrb.pnpi.spb.ru>
- <CAL1RGDWNqMdQGrXbh2gj==_KvVRF1mUQw2D3NqEhjvuq2q2+6Q@mail.gmail.com> <97cccba5ba7ddc74e87b0791050fa755@omrb.pnpi.spb.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <97cccba5ba7ddc74e87b0791050fa755-heEE5zn7HfaV8fSEjHp0FA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Wed, 11 Apr 2012 13:07:22 -0700
+Message-ID: <1334174842-13632-1-git-send-email-roland@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 11, 2012 at 2:21 AM, Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org> wrote:
-> I made tracing for srpt_add_one function. Trace log attached to mail
+Hi Linus,
 
-It looks like the call to ib_create_srq() is failing.
+Please pull from
 
-What specific HCA type do you have?  Do you have up-to-date firmware?
-I thought all mthca hardware is SRQ-capable, but you may need new enough
-firmware.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
 
-What does "ibv_devinfo -v" show with ib_mthca and ib_uverbs loaded?
+----------------------------------------------------------------
+Fix regression in the /sys/class/infiniband/.../rate attribute -- old
+kernels used to just return something, even if the underlying value was
+out-of-bounds, while 3.4-rc1 returned EINVAL to userspace.  This breaks
+some applications that check for the error, so go back to the old
+behavior.
 
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------
+Or Gerlitz (1):
+      IB/mlx4: Don't return an invalid speed when a port is down
+
+Roland Dreier (1):
+      IB/core: Don't return EINVAL from sysfs rate attribute for invalid speeds
+
+ drivers/infiniband/core/sysfs.c   |    9 +++++----
+ drivers/infiniband/hw/mlx4/main.c |    5 +++++
+ 2 files changed, 10 insertions(+), 4 deletions(-)
