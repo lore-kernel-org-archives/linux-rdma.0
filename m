@@ -1,8 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 4/4] rsocket: Allow use of LD_PRELOAD to intercept
- socket calls
+Subject: [RFC] [PATCH 2/4] rsocket: Add example program that uses rsocket
 Date: Wed, 11 Apr 2012 18:29:28 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373451ACEB7@ORSMSX101.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373451ACEAB@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,38 +12,60 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Intercept socket calls and convert TCP socket operation to
-streaming over RDMA.
-
-Allow falling back from rsockets to normal sockets on error
-or when trying to bind/connect to a reserved port.  This is
-needed to handle MPI job startup, where MPI should use rsockets,
-but mpiexect needs to communicate using ssh over normal sockets.
+rstream provides an example that uses either rsocket or socket
+APIs.  The latter allows rstream to be used to verify rsocket
+behavior compared to socket.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-This was intentionally added separately from the rsocket implementation.
-I wanted a user to specifically request hooking socket / file calls and
-not have this done by the librdmacm.
+ Makefile.am        |    5 
+ examples/rstream.c |  570 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ man/rstream.1      |   60 +++++
+ 3 files changed, 634 insertions(+), 1 deletions(-)
+ create mode 100644 examples/rstream.c
+ create mode 100644 man/rstream.1
 
- src/preload.c |  667 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 667 insertions(+), 0 deletions(-)
- create mode 100644 src/preload.c
-
-diff --git a/src/preload.c b/src/preload.c
+diff --git a/Makefile.am b/Makefile.am
+index ea64f7a..15423f4 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -21,7 +21,7 @@ src_librdmacm_la_DEPENDENCIES =  $(srcdir)/src/librdmacm.map
+ 
+ bin_PROGRAMS = examples/ucmatose examples/rping examples/udaddy examples/mckey \
+ 	       examples/rdma_client examples/rdma_server examples/rdma_xclient \
+-	       examples/rdma_xserver
++	       examples/rdma_xserver examples/rstream
+ examples_ucmatose_SOURCES = examples/cmatose.c examples/common.c
+ examples_ucmatose_LDADD = $(top_builddir)/src/librdmacm.la
+ examples_rping_SOURCES = examples/rping.c
+@@ -38,6 +38,8 @@ examples_rdma_xclient_SOURCES = examples/rdma_xclient.c
+ examples_rdma_xclient_LDADD = $(top_builddir)/src/librdmacm.la
+ examples_rdma_xserver_SOURCES = examples/rdma_xserver.c
+ examples_rdma_xserver_LDADD = $(top_builddir)/src/librdmacm.la
++examples_rstream_SOURCES = examples/rstream.c
++examples_rstream_LDADD = $(top_builddir)/src/librdmacm.la
+ 
+ librdmacmincludedir = $(includedir)/rdma
+ infinibandincludedir = $(includedir)/infiniband
+@@ -107,6 +109,7 @@ man_MANS = \
+ 	man/rdma_client.1 \
+ 	man/rdma_xserver.1 \
+ 	man/rdma_xclient.1 \
++	man/rstream.1 \
+ 	man/rdma_cm.7
+ 
+ EXTRA_DIST = src/cma.h src/indexer.h src/librdmacm.map \
+diff --git a/examples/rstream.c b/examples/rstream.c
 new file mode 100644
-index 0000000..87778eb
+index 0000000..8aa089d
 --- /dev/null
-+++ b/src/preload.c
-@@ -0,0 +1,667 @@
++++ b/examples/rstream.c
+@@ -0,0 +1,570 @@
 +/*
 + * Copyright (c) 2011-2012 Intel Corporation.  All rights reserved.
 + *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
++ * This software is available to you under the OpenIB.org BSD license
++ * below:
 + *
 + *     Redistribution and use in source and binary forms, with or
 + *     without modification, are permitted provided that the following
@@ -61,649 +82,621 @@ index 0000000..87778eb
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AWV
 + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
 + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
 + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
-+ *
 + */
 +
-+/*
-+ * Build:
-+ * gcc -lrdmacm -Wall -shared -fPIC -o preload.so -D_GNU_SOURCE preload.c indexer.c
-+ *
-+ * Use:
-+ * LD_PRELOAD=preload.so binary --plus_args
-+ */
-+
-+#if HAVE_CONFIG_H
-+#  include <config.h>
-+#endif /* HAVE_CONFIG_H */
-+
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <strings.h>
++#include <errno.h>
++#include <getopt.h>
 +#include <sys/types.h>
 +#include <sys/socket.h>
-+#include <sys/stat.h>
-+#include <stdarg.h>
-+#include <dlfcn.h>
++#include <sys/time.h>
 +#include <netdb.h>
-+#include <unistd.h>
 +#include <fcntl.h>
-+#include <string.h>
++#include <unistd.h>
 +#include <netinet/in.h>
 +#include <netinet/tcp.h>
 +
 +#include <rdma/rdma_cma.h>
-+#include <rdma/rdma_verbs.h>
 +#include <rdma/rsocket.h>
-+#include "cma.h"
-+#include "indexer.h"
 +
-+static int (*real_socket)(int domain, int type, int protocol);
-+static int (*real_bind)(int socket, const struct sockaddr *addr,
-+			socklen_t addrlen);
-+static int (*real_listen)(int socket, int backlog);
-+static int (*real_accept)(int socket, struct sockaddr *addr,
-+			  socklen_t *addrlen);
-+static int (*real_connect)(int socket, const struct sockaddr *addr,
-+			   socklen_t addrlen);
-+static ssize_t (*real_recv)(int socket, void *buf, size_t len, int flags);
-+static ssize_t (*real_recvfrom)(int socket, void *buf, size_t len, int flags,
-+				struct sockaddr *src_addr, socklen_t *addrlen);
-+static ssize_t (*real_recvmsg)(int socket, struct msghdr *msg, int flags);
-+static ssize_t (*real_read)(int socket, void *buf, size_t count);
-+static ssize_t (*real_readv)(int socket, const struct iovec *iov, int iovcnt);
-+static ssize_t (*real_send)(int socket, const void *buf, size_t len, int flags);
-+static ssize_t (*real_sendto)(int socket, const void *buf, size_t len, int flags,
-+			      const struct sockaddr *dest_addr, socklen_t addrlen);
-+static ssize_t (*real_sendmsg)(int socket, const struct msghdr *msg, int flags);
-+static ssize_t (*real_write)(int socket, const void *buf, size_t count);
-+static ssize_t (*real_writev)(int socket, const struct iovec *iov, int iovcnt);
-+static int (*real_poll)(struct pollfd *fds, nfds_t nfds, int timeout);
-+static int (*real_shutdown)(int socket, int how);
-+static int (*real_close)(int socket);
-+static int (*real_getpeername)(int socket, struct sockaddr *addr,
-+			       socklen_t *addrlen);
-+static int (*real_getsockname)(int socket, struct sockaddr *addr,
-+			       socklen_t *addrlen);
-+static int (*real_setsockopt)(int socket, int level, int optname,
-+			      const void *optval, socklen_t optlen);
-+static int (*real_getsockopt)(int socket, int level, int optname,
-+			      void *optval, socklen_t *optlen);
-+static int (*real_fcntl)(int socket, int cmd, ... /* arg */);
-+
-+static struct index_map idm;
-+static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
-+
-+enum fd_type {
-+	fd_normal,
-+	fd_rsocket
++static int test_size[] = {
++	64,
++	4096,
++	65536,
++	1048576
 +};
++#define TEST_CNT (sizeof test_size / sizeof test_size[0])
 +
-+struct fd_info {
-+	enum fd_type type;
-+	int fd;
-+};
++static int use_rs = 1;
++static int use_async;
++static int verify;
++static int flags;
++static int no_delay;
++static int custom;
++static int iterations = 1;
++static int transfer_size = 1000;
++static int transfer_count = 1000;
++static char test_name[9] = "custom";
++static char *port = "7471";
++static char *dst_addr;
++static char *src_addr;
++static struct timeval start, end;
++static void *buf;
 +
-+static int fd_open(void)
++#define rs_socket(f,t,p)  use_rs ? rsocket(f,t,p)  : socket(f,t,p)
++#define rs_bind(s,a,l)    use_rs ? rbind(s,a,l)    : bind(s,a,l)
++#define rs_listen(s,b)    use_rs ? rlisten(s,b)    : listen(s,b)
++#define rs_connect(s,a,l) use_rs ? rconnect(s,a,l) : connect(s,a,l)
++#define rs_accept(s,a,l)  use_rs ? raccept(s,a,l)  : accept(s,a,l)
++#define rs_shutdown(s,h)  use_rs ? rshutdown(s,h)  : shutdown(s,h)
++#define rs_close(s)       use_rs ? rclose(s)       : close(s)
++#define rs_recv(s,b,l,f)  use_rs ? rrecv(s,b,l,f)  : recv(s,b,l,f)
++#define rs_send(s,b,l,f)  use_rs ? rsend(s,b,l,f)  : send(s,b,l,f)
++#define rs_poll(f,n,t)	  use_rs ? rpoll(f,n,t)	   : poll(f,n,t)
++#define rs_fcntl(s,c,p)   use_rs ? rfcntl(s,c,p)   : fcntl(s,c,p)
++#define rs_setsockopt(s,l,n,v,ol) \
++	use_rs ? rsetsockopt(s,l,n,v,ol) : setsockopt(s,l,n,v,ol)
++#define rs_getsockopt(s,l,n,v,ol) \
++	use_rs ? rgetsockopt(s,l,n,v,ol) : getsockopt(s,l,n,v,ol)
++
++static void size_str(char *str, long long size)
 +{
-+	struct fd_info *fdi;
-+	int ret, index;
-+
-+	fdi = calloc(1, sizeof *fdi);
-+	if (!fdi)
-+		return ERR(ENOMEM);
-+
-+	index = open("/dev/null", O_RDONLY);
-+	if (index < 0) {
-+		ret = index;
-+		goto err1;
-+	}
-+
-+	pthread_mutex_lock(&mut);
-+	ret = idm_set(&idm, index, fdi);
-+	pthread_mutex_unlock(&mut);
-+	if (ret < 0)
-+		goto err2;
-+
-+	return index;
-+
-+err2:
-+	close(index);
-+err1:
-+	free(fdi);
-+	return ret;
++	if (size >= (1 << 30))
++		sprintf(str, "%lldg", size / (1 << 30));
++	else if (size >= (1 << 20))
++		sprintf(str, "%lldm", size / (1 << 20));
++	else if (size >= (1 << 10))
++		sprintf(str, "%lldk", size / (1 << 10));
++	else
++		sprintf(str, "%lld", size);
 +}
 +
-+static void fd_store(int index, int fd, enum fd_type type)
++static void cnt_str(char *str, long long cnt)
 +{
-+	struct fd_info *fdi;
-+
-+	fdi = idm_at(&idm, index);
-+	fdi->fd = fd;
-+	fdi->type = type;
++	if (cnt >= 1000000000)
++		sprintf(str, "%lldb", cnt / 1000000000);
++	else if (cnt >= 1000000)
++		sprintf(str, "%lldm", cnt / 1000000);
++	else if (cnt >= 1000)
++		sprintf(str, "%lldk", cnt / 1000);
++	else
++		sprintf(str, "%lld", cnt);
 +}
 +
-+static inline enum fd_type fd_get(int index, int *fd)
++static void show_perf(void)
 +{
-+	struct fd_info *fdi;
++	char str[32];
++	float usec;
++	long long bytes;
 +
-+	fdi = idm_lookup(&idm, index);
-+	if (fdi) {
-+		*fd = fdi->fd;
-+		return fdi->type;
++	usec = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
++	bytes = (long long) iterations * transfer_count * transfer_size * 2;
 +
-+	} else {
-+		*fd = index;
-+		return fd_normal;
-+	}
++	/* name size transfers iterations bytes seconds Gb/sec usec/xfer */
++	printf("%s\t", test_name);
++	size_str(str, transfer_size);
++	printf("%s\t", str);
++	cnt_str(str, transfer_count);
++	printf("%s\t", str);
++	cnt_str(str, iterations);
++	printf("%s\t", str);
++	size_str(str, bytes);
++	printf("%s\t", str);
++	printf("%.2fs \t%.2f \t%.2f\n",
++		usec / 1000000., (bytes * 8) / (1000. * usec),
++		(usec / iterations) / (transfer_count * 2));
 +}
 +
-+static inline int fd_getd(int index)
++static int size_to_count(int size)
 +{
-+	struct fd_info *fdi;
-+
-+	fdi = idm_lookup(&idm, index);
-+	return fdi ? fdi->fd : index;
++	if (size >= 1000000)
++		return 100;
++	else if (size >= 100000)
++		return 1000;
++	else if (size >= 10000)
++		return 10000;
++	else if (size >= 1000)
++		return 100000;
++	else
++		return 1000000;
 +}
 +
-+static inline enum fd_type fd_gett(int index)
++static void init_latency_test(int size)
 +{
-+	struct fd_info *fdi;
-+
-+	fdi = idm_lookup(&idm, index);
-+	return fdi ? fdi->type : fd_normal;
++	size_str(test_name, size);
++	sprintf(test_name, "%s_lat", test_name);
++	no_delay = 1;
++	flags |= MSG_DONTWAIT;
++	transfer_count = 1;
++	transfer_size = size;
++	iterations = size_to_count(transfer_size);
 +}
 +
-+static enum fd_type fd_close(int index, int *fd)
++static void init_bandwidth_test(int size)
 +{
-+	struct fd_info *fdi;
-+	enum fd_type type;
-+
-+	fdi = idm_lookup(&idm, index);
-+	if (fdi) {
-+		idm_clear(&idm, index);
-+		*fd = fdi->fd;
-+		type = fdi->type;
-+		close(index);
-+		free(fdi);
-+	} else {
-+		*fd = index;
-+		type = fd_normal;
-+	}
-+	return type;
++	size_str(test_name, size);
++	sprintf(test_name, "%s_bw", test_name);
++	no_delay = 1;
++	flags |= MSG_DONTWAIT;
++	iterations = 1;
++	transfer_size = size;
++	transfer_count = size_to_count(transfer_size);
 +}
 +
-+static void init_preload(void)
++static void format_buf(void *buf, int size)
 +{
-+	static int init;
++	uint8_t *array = buf;
++	static uint8_t data;
++	int i;
 +
-+	/* Quick check without lock */
-+	if (init)
-+		return;
-+
-+	pthread_mutex_lock(&mut);
-+	if (init)
-+		goto out;
-+
-+	real_socket = dlsym(RTLD_NEXT, "socket");
-+	real_bind = dlsym(RTLD_NEXT, "bind");
-+	real_listen = dlsym(RTLD_NEXT, "listen");
-+	real_accept = dlsym(RTLD_NEXT, "accept");
-+	real_connect = dlsym(RTLD_NEXT, "connect");
-+	real_recv = dlsym(RTLD_NEXT, "recv");
-+	real_recvfrom = dlsym(RTLD_NEXT, "recvfrom");
-+	real_recvmsg = dlsym(RTLD_NEXT, "recvmsg");
-+	real_read = dlsym(RTLD_NEXT, "read");
-+	real_readv = dlsym(RTLD_NEXT, "readv");
-+	real_send = dlsym(RTLD_NEXT, "send");
-+	real_sendto = dlsym(RTLD_NEXT, "sendto");
-+	real_sendmsg = dlsym(RTLD_NEXT, "sendmsg");
-+	real_write = dlsym(RTLD_NEXT, "write");
-+	real_writev = dlsym(RTLD_NEXT, "writev");
-+	real_poll = dlsym(RTLD_NEXT, "poll");
-+	real_shutdown = dlsym(RTLD_NEXT, "shutdown");
-+	real_close = dlsym(RTLD_NEXT, "close");
-+	real_getpeername = dlsym(RTLD_NEXT, "getpeername");
-+	real_getsockname = dlsym(RTLD_NEXT, "getsockname");
-+	real_setsockopt = dlsym(RTLD_NEXT, "setsockopt");
-+	real_getsockopt = dlsym(RTLD_NEXT, "getsockopt");
-+	real_fcntl = dlsym(RTLD_NEXT, "fcntl");
-+	init = 1;
-+out:
-+	pthread_mutex_unlock(&mut);
++	for (i = 0; i < size; i++)
++		array[i] = data++;
 +}
 +
-+/*
-+ * Convert from an rsocket to a normal socket.  The new socket should have the
-+ * same settings and bindings as the rsocket.  We currently only handle setting
-+ * a few of the more common values.
-+ */
-+static int socket_fallback(int socket, int *fd)
++static int verify_buf(void *buf, int size)
 +{
-+	socklen_t len = 0;
-+	int new_fd, param, ret;
++	static long long total_bytes;
++	uint8_t *array = buf;
++	static uint8_t data;
++	int i;
 +
-+	ret = rgetsockname(*fd, NULL, &len);
-+	if (ret)
-+		return ret;
-+
-+	param = (len == sizeof(struct sockaddr_in6)) ? PF_INET6 : PF_INET;
-+	new_fd = real_socket(param, SOCK_STREAM, IPPROTO_TCP);
-+	if (new_fd < 0)
-+		return new_fd;
-+
-+	ret = rfcntl(*fd, F_GETFL);
-+	if (ret > 0)
-+		ret = real_fcntl(new_fd, F_SETFL, ret);
-+	if (ret)
-+		goto err;
-+
-+	len = sizeof param;
-+	ret = rgetsockopt(*fd, SOL_SOCKET, SO_REUSEADDR, &param, &len);
-+	if (param && !ret)
-+		ret = real_setsockopt(new_fd, SOL_SOCKET, SO_REUSEADDR, &param, len);
-+	if (ret)
-+		goto err;
-+
-+	len = sizeof param;
-+	ret = rgetsockopt(*fd, IPPROTO_TCP, TCP_NODELAY, &param, &len);
-+	if (param && !ret)
-+		ret = real_setsockopt(new_fd, IPPROTO_TCP, TCP_NODELAY, &param, len);
-+	if (ret)
-+		goto err;
-+
-+	rclose(*fd);
-+	fd_store(socket, new_fd, fd_normal);
-+	*fd = new_fd;
-+	return 0;
-+
-+err:
-+	real_close(new_fd);
-+	return ret;
-+}
-+
-+int socket(int domain, int type, int protocol)
-+{
-+	int index, ret;
-+
-+	init_preload();
-+	index = fd_open();
-+	if (index < 0)
-+		return index;
-+
-+	ret = rsocket(domain, type, protocol);
-+	if (ret >= 0) {
-+		fd_store(index, ret, fd_rsocket);
-+		return index;
-+	} else {
-+		fd_close(index, &ret);
-+		return real_socket(domain, type, protocol);
-+	}
-+}
-+
-+int bind(int socket, const struct sockaddr *addr, socklen_t addrlen)
-+{
-+	struct sockaddr_in *sin;
-+	int fd, ret;
-+
-+	if (fd_get(socket, &fd) == fd_rsocket) {
-+		sin = (struct sockaddr_sin *) addr;
-+		if (!sin->sin_port || ntohs(sin->sin_port) > 1024)
-+			return rbind(fd, addr, addrlen);
-+
-+		ret = socket_fallback(socket, &fd);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return real_bind(fd, addr, addrlen);
-+}
-+
-+int listen(int socket, int backlog)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rlisten(fd, backlog) : real_listen(fd, backlog);
-+}
-+
-+int accept(int socket, struct sockaddr *addr, socklen_t *addrlen)
-+{
-+	int fd, index, ret;
-+
-+	if (fd_get(socket, &fd) == fd_rsocket) {
-+		index = fd_open();
-+		if (index < 0)
-+			return index;
-+
-+		ret = raccept(fd, addr, addrlen);
-+		if (ret < 0) {
-+			fd_close(index, &fd);
-+			return ret;
++	for (i = 0; i < size; i++, total_bytes++) {
++		if (array[i] != data++) {
++			printf("data verification failed byte %lld\n", total_bytes);
++			return -1;
 +		}
-+
-+		fd_store(index, ret, fd_rsocket);
-+		return index;
-+	} else {
-+		return real_accept(fd, addr, addrlen);
 +	}
++	return 0;
 +}
 +
-+int connect(int socket, const struct sockaddr *addr, socklen_t addrlen)
++static int send_xfer(int rs, int size)
 +{
-+	struct sockaddr_in *sin;
-+	int fd, ret;
++	struct pollfd fds;
++	int offset, ret;
 +
-+	if (fd_get(socket, &fd) == fd_rsocket) {
-+		sin = (struct sockaddr_sin *) addr;
-+		if (ntohs(sin->sin_port) > 1024) {
-+			ret = rconnect(fd, addr, addrlen);
-+			if (!ret || errno == EINPROGRESS)
++	if (verify)
++		format_buf(buf, size);
++
++	if (use_async) {
++		fds.fd = rs;
++		fds.events = POLLOUT;
++	}
++
++	for (offset = 0; offset < size; ) {
++		if (use_async) {
++			ret = rs_poll(&fds, 1, -1);
++			if (ret != 1)
 +				return ret;
 +		}
 +
-+		ret = socket_fallback(socket, &fd);
++		ret = rs_send(rs, buf + offset, size - offset, flags);
++		if (ret > 0) {
++			offset += ret;
++		} else if (errno != EWOULDBLOCK && errno != EAGAIN) {
++			perror("rsend");
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++static int recv_xfer(int rs, int size)
++{
++	struct pollfd fds;
++	int offset, ret;
++
++	if (use_async) {
++		fds.fd = rs;
++		fds.events = POLLIN;
++	}
++
++	for (offset = 0; offset < size; ) {
++		if (use_async) {
++			ret = rs_poll(&fds, 1, -1);
++			if (ret != 1)
++				return ret;
++		}
++
++		ret = rs_recv(rs, buf + offset, size - offset, flags);
++		if (ret > 0) {
++			offset += ret;
++		} else if (errno != EWOULDBLOCK && errno != EAGAIN) {
++			perror("rrecv");
++			return ret;
++		}
++	}
++
++	if (verify) {
++		ret = verify_buf(buf, size);
 +		if (ret)
 +			return ret;
 +	}
 +
-+	return real_connect(fd, addr, addrlen);
++	return 0;
 +}
 +
-+ssize_t recv(int socket, void *buf, size_t len, int flags)
++static int sync_test(int rs)
 +{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rrecv(fd, buf, len, flags) : real_recv(fd, buf, len, flags);
-+}
-+
-+ssize_t recvfrom(int socket, void *buf, size_t len, int flags,
-+		 struct sockaddr *src_addr, socklen_t *addrlen)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rrecvfrom(fd, buf, len, flags, src_addr, addrlen) :
-+		real_recvfrom(fd, buf, len, flags, src_addr, addrlen);
-+}
-+
-+ssize_t recvmsg(int socket, struct msghdr *msg, int flags)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rrecvmsg(fd, msg, flags) : real_recvmsg(fd, msg, flags);
-+}
-+
-+ssize_t read(int socket, void *buf, size_t count)
-+{
-+	int fd;
-+	init_preload();
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rread(fd, buf, count) : real_read(fd, buf, count);
-+}
-+
-+ssize_t readv(int socket, const struct iovec *iov, int iovcnt)
-+{
-+	int fd;
-+	init_preload();
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rreadv(fd, iov, iovcnt) : real_readv(fd, iov, iovcnt);
-+}
-+
-+ssize_t send(int socket, const void *buf, size_t len, int flags)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rsend(fd, buf, len, flags) : real_send(fd, buf, len, flags);
-+}
-+
-+ssize_t sendto(int socket, const void *buf, size_t len, int flags,
-+		const struct sockaddr *dest_addr, socklen_t addrlen)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rsendto(fd, buf, len, flags, dest_addr, addrlen) :
-+		real_sendto(fd, buf, len, flags, dest_addr, addrlen);
-+}
-+
-+ssize_t sendmsg(int socket, const struct msghdr *msg, int flags)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rsendmsg(fd, msg, flags) : real_sendmsg(fd, msg, flags);
-+}
-+
-+ssize_t write(int socket, const void *buf, size_t count)
-+{
-+	int fd;
-+	init_preload();
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rwrite(fd, buf, count) : real_write(fd, buf, count);
-+}
-+
-+ssize_t writev(int socket, const struct iovec *iov, int iovcnt)
-+{
-+	int fd;
-+	init_preload();
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rwritev(fd, iov, iovcnt) : real_writev(fd, iov, iovcnt);
-+}
-+
-+static struct pollfd *fds_alloc(nfds_t nfds)
-+{
-+	static __thread struct pollfd *rfds;
-+	static __thread nfds_t rnfds;
-+
-+	if (nfds > rnfds) {
-+		if (rfds)
-+			free(rfds);
-+
-+		rfds = malloc(sizeof *rfds * nfds);
-+		rnfds = rfds ? nfds : 0;
-+	}
-+
-+	return rfds;
-+}
-+
-+int poll(struct pollfd *fds, nfds_t nfds, int timeout)
-+{
-+	struct pollfd *rfds;
-+	int i, ret;
-+
-+	init_preload();
-+	for (i = 0; i < nfds; i++) {
-+		if (fd_gett(fds[i].fd) == fd_rsocket)
-+			goto use_rpoll;
-+	}
-+
-+	return real_poll(fds, nfds, timeout);
-+
-+use_rpoll:
-+	rfds = fds_alloc(nfds);
-+	if (!rfds)
-+		return ERR(ENOMEM);
-+
-+	for (i = 0; i < nfds; i++) {
-+		rfds[i].fd = fd_getd(fds[i].fd);
-+		rfds[i].events = fds[i].events;
-+		rfds[i].revents = 0;
-+	}
-+
-+	ret = rpoll(rfds, nfds, timeout);
-+
-+	for (i = 0; i < nfds; i++)
-+		fds[i].revents = rfds[i].revents;
-+
-+	return ret;
-+}
-+
-+static void select_to_rpoll(struct pollfd *fds, int *nfds,
-+			    fd_set *readfds, fd_set *writefds, fd_set *exceptfds)
-+{
-+	int fd, events, i = 0;
-+
-+	for (fd = 0; fd < *nfds; fd++) {
-+		events = (readfds && FD_ISSET(fd, readfds)) ? POLLIN : 0;
-+		if (writefds && FD_ISSET(fd, writefds))
-+			events |= POLLOUT;
-+
-+		if (events || (exceptfds && FD_ISSET(fd, exceptfds))) {
-+			fds[i].fd = fd_getd(fd);
-+			fds[i++].events = events;
-+		}
-+	}
-+
-+	*nfds = i;
-+}
-+
-+static int rpoll_to_select(struct pollfd *fds, int nfds,
-+			   fd_set *readfds, fd_set *writefds, fd_set *exceptfds)
-+{
-+	int fd, rfd, i, cnt = 0;
-+
-+	for (i = 0, fd = 0; i < nfds; fd++) {
-+		rfd = fd_getd(fd);
-+		if (rfd != fds[i].fd)
-+			continue;
-+
-+		if (readfds && (fds[i].revents & POLLIN)) {
-+			FD_SET(fd, readfds);
-+			cnt++;
-+		}
-+
-+		if (writefds && (fds[i].revents & POLLOUT)) {
-+			FD_SET(fd, writefds);
-+			cnt++;
-+		}
-+
-+		if (exceptfds && (fds[i].revents & ~(POLLIN | POLLOUT))) {
-+			FD_SET(fd, exceptfds);
-+			cnt++;
-+		}
-+		i++;
-+	}
-+
-+	return cnt;
-+}
-+
-+static int rs_convert_timeout(struct timeval *timeout)
-+{
-+	return !timeout ? -1 : timeout->tv_sec * 1000 + timeout->tv_usec / 1000;
-+}
-+
-+int select(int nfds, fd_set *readfds, fd_set *writefds,
-+	   fd_set *exceptfds, struct timeval *timeout)
-+{
-+	struct pollfd *fds;
 +	int ret;
 +
-+	fds = fds_alloc(nfds);
-+	if (!fds)
-+		return ERR(ENOMEM);
++	ret = dst_addr ? send_xfer(rs, 4) : recv_xfer(rs, 4);
++	if (ret)
++		return ret;
 +
-+	select_to_rpoll(fds, &nfds, readfds, writefds, exceptfds);
-+	ret = rpoll(fds, nfds, rs_convert_timeout(timeout));
-+
-+	if (readfds)
-+		FD_ZERO(readfds);
-+	if (writefds)
-+		FD_ZERO(writefds);
-+	if (exceptfds)
-+		FD_ZERO(exceptfds);
-+
-+	if (ret > 0)
-+		ret = rpoll_to_select(fds, nfds, readfds, writefds, exceptfds);
-+
-+	return ret;
++	return dst_addr ? recv_xfer(rs, 4) : send_xfer(rs, 4);
 +}
 +
-+int shutdown(int socket, int how)
++static int run_test(int rs)
 +{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rshutdown(fd, how) : real_shutdown(fd, how);
-+}
++	int ret, i, t;
 +
-+int close(int socket)
-+{
-+	int fd;
-+	init_preload();
-+	return (fd_close(socket, &fd) == fd_rsocket) ? rclose(fd) : real_close(fd);
-+}
++	ret = sync_test(rs);
++	if (ret)
++		goto out;
 +
-+int getpeername(int socket, struct sockaddr *addr, socklen_t *addrlen)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rgetpeername(fd, addr, addrlen) :
-+		real_getpeername(fd, addr, addrlen);
-+}
++	gettimeofday(&start, NULL);
++	for (i = 0; i < iterations; i++) {
++		for (t = 0; t < transfer_count; t++) {
++			ret = dst_addr ? send_xfer(rs, transfer_size) :
++					 recv_xfer(rs, transfer_size);
++			if (ret)
++				goto out;
++		}
 +
-+int getsockname(int socket, struct sockaddr *addr, socklen_t *addrlen)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rgetsockname(fd, addr, addrlen) :
-+		real_getsockname(fd, addr, addrlen);
-+}
-+
-+int setsockopt(int socket, int level, int optname,
-+		const void *optval, socklen_t optlen)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rsetsockopt(fd, level, optname, optval, optlen) :
-+		real_setsockopt(fd, level, optname, optval, optlen);
-+}
-+
-+int getsockopt(int socket, int level, int optname,
-+		void *optval, socklen_t *optlen)
-+{
-+	int fd;
-+	return (fd_get(socket, &fd) == fd_rsocket) ?
-+		rgetsockopt(fd, level, optname, optval, optlen) :
-+		real_getsockopt(fd, level, optname, optval, optlen);
-+}
-+
-+int fcntl(int socket, int cmd, ... /* arg */)
-+{
-+	va_list args;
-+	long lparam;
-+	void *pparam;
-+	int fd, ret;
-+
-+	init_preload();
-+	va_start(args, cmd);
-+	switch (cmd) {
-+	case F_GETFD:
-+	case F_GETFL:
-+	case F_GETOWN:
-+	case F_GETSIG:
-+	case F_GETLEASE:
-+		ret = (fd_get(socket, &fd) == fd_rsocket) ?
-+			rfcntl(fd, cmd) : real_fcntl(fd, cmd);
-+		break;
-+	case F_DUPFD:
-+	/*case F_DUPFD_CLOEXEC:*/
-+	case F_SETFD:
-+	case F_SETFL:
-+	case F_SETOWN:
-+	case F_SETSIG:
-+	case F_SETLEASE:
-+	case F_NOTIFY:
-+		lparam = va_arg(args, long);
-+		ret = (fd_get(socket, &fd) == fd_rsocket) ?
-+			rfcntl(fd, cmd, lparam) : real_fcntl(fd, cmd, lparam);
-+		break;
-+	default:
-+		pparam = va_arg(args, void *);
-+		ret = (fd_get(socket, &fd) == fd_rsocket) ?
-+			rfcntl(fd, cmd, pparam) : real_fcntl(fd, cmd, pparam);
-+		break;
++		for (t = 0; t < transfer_count; t++) {
++			ret = dst_addr ? recv_xfer(rs, transfer_size) :
++					 send_xfer(rs, transfer_size);
++			if (ret)
++				goto out;
++		}
 +	}
-+	va_end(args);
++	gettimeofday(&end, NULL);
++	show_perf();
++	ret = 0;
++
++out:
 +	return ret;
 +}
++
++static void set_options(int rs)
++{
++	int val, optname, ret;
++	long long bytes;
++	socklen_t size;
++
++	bytes = transfer_size * transfer_count * iterations;
++	for (optname = SO_SNDBUF; ; optname = SO_RCVBUF) {
++		size = sizeof val;
++		ret = rs_getsockopt(rs, SOL_SOCKET, optname, (void *) &val, &size);
++		if (ret)
++			break;
++
++		if (val < bytes) {
++			size = sizeof val;
++			val = ((val << 2) > bytes) ? bytes : (val << 2);
++			rs_setsockopt(rs, SOL_SOCKET, optname, (void *) &val, size);
++		}
++
++		if (optname == SO_RCVBUF)
++			break;
++	}
++
++	if (no_delay) {
++		rs_setsockopt(rs, IPPROTO_TCP, TCP_NODELAY,
++			      (void *) &no_delay, sizeof(no_delay));
++	}
++
++	if (flags & MSG_DONTWAIT) {
++		rs_fcntl(rs, F_SETFL, O_NONBLOCK);
++	}
++}
++
++static int server_connect(void)
++{
++	struct pollfd fds;
++	struct addrinfo hints, *res;
++	int rs, lrs, ret;
++
++	memset(&hints, 0, sizeof hints);
++	hints.ai_flags = RAI_PASSIVE;
++ 	ret = getaddrinfo(src_addr, port, &hints, &res);
++	if (ret) {
++		perror("getaddrinfo");
++		return ret;
++	}
++
++	lrs = rs_socket(res->ai_family, res->ai_socktype, res->ai_protocol);
++	if (lrs < 0) {
++		perror("rsocket");
++		rs = lrs;
++		goto free;
++	}
++
++	set_options(lrs);
++	rs = 1;
++	rs = rs_setsockopt(lrs, SOL_SOCKET, SO_REUSEADDR, &rs, sizeof rs);
++	if (rs) {
++		perror("rsetsockopt SO_REUSEADDR");
++		goto close;
++	}
++
++	rs = rs_bind(lrs, res->ai_addr, res->ai_addrlen);
++	if (rs) {
++		perror("rbind");
++		goto close;
++	}
++
++	rs = rs_listen(lrs, 1);
++	if (rs) {
++		perror("rlisten");
++		goto close;
++	}
++
++	do {
++		if (use_async) {
++			fds.fd = lrs;
++			fds.events = POLLIN;
++
++			ret = rs_poll(&fds, 1, -1);
++			if (ret != 1) {
++				perror("rpoll");
++				goto close;
++			}
++		}
++
++		rs = rs_accept(lrs, NULL, 0);
++	} while (rs < 0 && (errno == EAGAIN || errno == EWOULDBLOCK));
++	if (rs < 0)
++		perror("raccept");
++
++	set_options(rs);
++close:
++	rs_close(lrs);
++free:
++	freeaddrinfo(res);
++	return rs;
++}
++
++static int client_connect(void)
++{
++	struct addrinfo *res;
++	struct pollfd fds;
++	int ret, rs;
++
++ 	ret = getaddrinfo(dst_addr, port, NULL, &res);
++	if (ret) {
++		perror("getaddrinfo");
++		return ret;
++	}
++
++	rs = rs_socket(res->ai_family, res->ai_socktype, res->ai_protocol);
++	if (rs < 0) {
++		perror("rsocket");
++		goto free;
++	}
++
++	set_options(rs);
++	/* TODO: bind client to src_addr */
++
++	ret = rs_connect(rs, res->ai_addr, res->ai_addrlen);
++	if (ret && (errno != EINPROGRESS)) {
++		perror("rconnect");
++		rs_close(rs);
++		rs = ret;
++	}
++
++	if (errno == EINPROGRESS) {
++		fds.fd = rs;
++		fds.events = POLLOUT;
++		do {
++			ret = rs_poll(&fds, 1, -1);
++		} while (!ret);
++	}
++
++free:
++	freeaddrinfo(res);
++	return rs;
++}
++
++static int run(void)
++{
++	int i, rs, ret = 0;
++
++	buf = malloc(!custom ? test_size[TEST_CNT - 1] : transfer_size);
++	if (!buf) {
++		perror("malloc");
++		return -1;
++	}
++
++	rs = dst_addr ? client_connect() : server_connect();
++	if (rs < 0) {
++		ret = rs;
++		goto free;
++	}
++
++	printf("name \tbytes \txfers \titers \ttotal \ttime \tGb/sec \tusec/xfer\n");
++	if (!custom) {
++		for (i = 0; i < TEST_CNT; i++) {
++			init_latency_test(test_size[i]);
++			run_test(rs);
++			init_bandwidth_test(test_size[i]);
++			run_test(rs);
++		}
++	} else {
++		ret = run_test(rs);
++	}
++
++	rs_shutdown(rs, SHUT_RDWR);
++	rs_close(rs);
++free:
++	free(buf);
++	return ret;
++}
++
++static int set_test_opt(char *optarg)
++{
++	if (strlen(optarg) == 1) {
++		switch (optarg[0]) {
++		case 's':
++			use_rs = 0;
++			break;
++		case 'a':
++			use_async = 1;
++			break;
++		case 'n':
++			flags |= MSG_DONTWAIT;
++			no_delay = 1;
++			break;
++		case 'v':
++			verify = 1;
++			break;
++		default:
++			return -1;
++		}
++	} else {
++		if (!strncasecmp("socket", optarg, 6)) {
++			use_rs = 0;
++		} else if (!strncasecmp("async", optarg, 5)) {
++			use_async = 1;
++		} else if (!strncasecmp("nonblock", optarg, 8)) {
++			flags |= MSG_DONTWAIT;
++			no_delay = 1;
++		} else if (!strncasecmp("verify", optarg, 6)) {
++			verify = 1;
++		} else {
++			return -1;
++		}
++	}
++	return 0;
++}
++
++int main(int argc, char **argv)
++{
++	int op, ret;
++
++	while ((op = getopt(argc, argv, "s:b:I:C:S:p:T:")) != -1) {
++		switch (op) {
++		case 's':
++			dst_addr = optarg;
++			break;
++		case 'b':
++			src_addr = optarg;
++			break;
++		case 'I':
++			custom = 1;
++			iterations = atoi(optarg);
++			break;
++		case 'C':
++			custom = 1;
++			transfer_count = atoi(optarg);
++			break;
++		case 'S':
++			custom = 1;
++			transfer_size = atoi(optarg);
++			break;
++		case 'p':
++			port = optarg;
++			break;
++		case 'T':
++			if (!set_test_opt(optarg))
++				break;
++			/* invalid option - fall through */
++		default:
++			printf("usage: %s\n", argv[0]);
++			printf("\t[-s server_address]\n");
++			printf("\t[-b bind_address]\n");
++			printf("\t[-I iterations]\n");
++			printf("\t[-C transfer_count]\n");
++			printf("\t[-S transfer_size]\n");
++			printf("\t[-p port_number]\n");
++			printf("\t[-T test_option]\n");
++			printf("\t    s|sockets - use standard tcp/ip sockets\n");
++			printf("\t    a|async - asynchronous operation\n");
++			printf("\t    n|nonblocking - use nonblocking calls\n");
++			printf("\t    v|verify - verify data\n");
++			exit(1);
++		}
++	}
++
++	ret = run();
++	return ret;
++}
+diff --git a/man/rstream.1 b/man/rstream.1
+new file mode 100644
+index 0000000..701db3a
+--- /dev/null
++++ b/man/rstream.1
+@@ -0,0 +1,60 @@
++.TH "RSTREAM" 1 "2011-11-16" "librdmacm" "librdmacm" librdmacm
++.SH NAME
++rstream \- streaming over RDMA ping-pong test.
++.SH SYNOPSIS
++.sp
++.nf
++\fIrstream\fR [-s server_address] [-b bind_address]
++			[-I iterations] [-C transfer_count]
++			[-S transfer_size] [-p server_port] [-T test_option]
++.fi
++.SH "DESCRIPTION"
++Uses the streaming over RDMA protocol (rsocket) to connect and exchange
++data between a client and server application.
++.SH "OPTIONS"
++.TP
++\-s server_address
++The network name or IP address of the server system listening for
++connections.  The used name or address must route over an RDMA device.
++This option must be specified by the client.
++.TP
++\-b bind_address
++The local network address to bind to.
++.TP
++\-I iterations
++The number of times that the specified number of messages will be
++exchanged between the client and server.  (default 1000)
++.TP
++\-C transfer_count
++The number of messages to transfer from the client to the server and
++back again on each iteration.  (default 1)
++.TP
++\-S transfer_size
++The size of each send transfer, in bytes.  (default 1000)
++.TP
++\-p server_port
++The server's port number.
++.TP
++\-T test_option
++Specifies test parameters.  Available options are:
++.P
++s | socket  - uses standard socket calls to transfer data
++.P
++a | async - uses asynchronous operation (e.g. select / poll)
++.P
++n | nonblocking - uses non-blocking calls
++.P
++v | verify - verifies data transfers
++.SH "NOTES"
++Basic usage is to start rstream on a server system, then run
++rstream -s server_name on a client system.  By default, rstream
++will run a series of latency and bandwidth performance tests.
++Specifying a different iterations, transfer_count, or transfer_size
++will run a user customized test using default values where none
++have been specified.
++.P
++Because this test maps RDMA resources to userspace, users must ensure
++that they have available system resources and permissions.  See the
++libibverbs README file for additional details.
++.SH "SEE ALSO"
++rdma_cm(7)
 
 
 --
