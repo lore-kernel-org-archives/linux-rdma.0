@@ -1,40 +1,26 @@
-From: Andy Grover <agrover@redhat.com>
-Subject: Re: ib_srpt and mellanox mthca device
-Date: Thu, 12 Apr 2012 15:01:30 -0700
-Message-ID: <4F8750BA.5030201@redhat.com>
-References: <5f95768153388b91a2ffa0cd118d7ad8@omrb.pnpi.spb.ru> <CAL1RGDWNqMdQGrXbh2gj==_KvVRF1mUQw2D3NqEhjvuq2q2+6Q@mail.gmail.com> <97cccba5ba7ddc74e87b0791050fa755@omrb.pnpi.spb.ru> <CAL1RGDVbqOQP+AH4f9cs+mEngXVTOy7r7gRjJ=SU_rMmvCg3Qg@mail.gmail.com> <fa3a67e9423946c0bbd23abb3f60921a@omrb.pnpi.spb.ru> <CAL1RGDVn1Roo-KaZW_r_WAQudbEZ2+mXD2RqNS68Rg=UBTRe7Q@mail.gmail.com> <806c99edea592c69d0aa9073bae2a3b9@omrb.pnpi.spb.ru> <CAL1RGDXT1gshgxA+c9M==zxarKnjKZtcy4dROtOnKVmc9+u9HQ@mail.gmail.com> <2f4564980ae4cdafdc456a8e41b4ab04@omrb.pnpi.spb.ru> <CAL1RGDVh=n5rEB5GqmPaDvuNAKRkoVEro9LYr785zQpz7xR0vg@mail.gmail.com> <CAL1RGDXFVTD88ZF9rWoaDpOU7PuzdPcF7PSP4Ac6icgD=FPQLQ@mail.gmail.com> <41b9ab2a9c7e7a58c7e7a5b41bf1d9e8@omrb.pnpi.spb.ru> <CAL1RGDVjhpzSDUvkpdkG8u2YPwAWmt_szUw=wb3j3=gsb-iW-g@mail.gmai
- l.com> <4F87423D.8010104@redhat.com> <7d60e33d04e8dbae38f7cbf79a830801@omrb.pnpi.spb.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Thu, 12 Apr 2012 16:45:44 -0700
+Message-ID: <1334274344-12422-1-git-send-email-roland@kernel.org>
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <7d60e33d04e8dbae38f7cbf79a830801@omrb.pnpi.spb.ru>
 Sender: target-devel-owner@vger.kernel.org
-To: Alexey Shvetsov <alexxy@gentoo.org>
-Cc: Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/12/2012 02:18 PM, Alexey Shvetsov wrote:
->>>> Also another question. I still cannot create target with targetcli
->>>> nor with
->>>> configfs. It alays said that wwn is invalid and seems cannot
+Hi Linus,
 
->> I also have no experience as yet using srpt, but see this post, it may
->> help use targetcli with it? Although if you also are having trouble via
->> configfs directly, then perhaps not.
->>
->> http://permalink.gmane.org/gmane.linux.scsi.target.devel/1513
+Please pull from
 
-> Well this were exactly this issue. Can someone commit fix to rtslib
-> git?
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/srpt-srq-type fixes
 
-I've applied this fix to rtslib-fb[1] but haven't seen it picked up
-upstream yet.
+----------------------------------------------------------------
+Add a fix for a bug hit by Alexey Shvetsov in ib_srtp that hits on
+non-mlx4 hardware.
 
-> PS i have patch with gentoo init.d for lio-utils
+----------------------------------------------------------------
+Roland Dreier (1):
+      IB/srpt: Set srq_type to IB_SRQT_BASIC
 
-rtslib-fb doesn't need lio-utils, to me this is a major selling point :)
-
-Regards -- Andy
-
-[1] https://github.com/agrover/rtslib-fb
+ drivers/infiniband/ulp/srpt/ib_srpt.c |    1 +
+ 1 file changed, 1 insertion(+)
