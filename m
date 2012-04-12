@@ -1,7 +1,7 @@
 From: Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
 Subject: Re: =?UTF-8?Q?ib=5Fsrpt=20and=20mellanox=20mthca=20device?=
-Date: Thu, 12 Apr 2012 21:58:34 +0300
-Message-ID: <920db26ccfacebedeeb8ab9c864dbfa5@omrb.pnpi.spb.ru>
+Date: Thu, 12 Apr 2012 22:02:58 +0300
+Message-ID: <41b9ab2a9c7e7a58c7e7a5b41bf1d9e8@omrb.pnpi.spb.ru>
 References: <5f95768153388b91a2ffa0cd118d7ad8@omrb.pnpi.spb.ru>
  <CAL1RGDWNqMdQGrXbh2gj==_KvVRF1mUQw2D3NqEhjvuq2q2+6Q@mail.gmail.com>
  <97cccba5ba7ddc74e87b0791050fa755@omrb.pnpi.spb.ru>
@@ -23,6 +23,17 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
+
+Hi Roland!
+
+Also another question. I still cannot create target with targetcli nor=20
+with configfs. It alays said that wwn is invalid and seems cannot=20
+register ib device. Can it be related to order of module loading. I hav=
+e=20
+this problems both with mlx4 and mthca device. Or may it be related to=20
+firmware version. Its branded HP devices. Can I use non OEM firmware fo=
+r=20
+them?
 
 Roland Dreier =D0=BF=D0=B8=D1=81=D0=B0=D0=BB 2012-04-12 17:46:
 > On Thu, Apr 12, 2012 at 2:09 AM, Roland Dreier
@@ -47,8 +58,6 @@ f
 > Thanks,
 >   Roland
 
-Yep patch seems work with 3.3 kernel. But i still cannot create target=20
-=3D\
 --=20
 Best Regards,
 Alexey 'Alexxy' Shvetsov
