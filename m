@@ -1,55 +1,57 @@
 From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH] IB/srpt: Set srq_type to IB_SRQT_BASIC
-Date: Thu, 12 Apr 2012 20:05:44 -0700
-Message-ID: <1334286344.3137.4881.camel@haakon2.linux-iscsi.org>
-References: <1334243053-6302-1-git-send-email-roland@kernel.org>
+Subject: Re: ib_srpt and mellanox mthca device
+Date: Thu, 12 Apr 2012 21:00:38 -0700
+Message-ID: <1334289638.3137.4938.camel@haakon2.linux-iscsi.org>
+References: <5f95768153388b91a2ffa0cd118d7ad8@omrb.pnpi.spb.ru>
+	 <CAL1RGDWNqMdQGrXbh2gj==_KvVRF1mUQw2D3NqEhjvuq2q2+6Q@mail.gmail.com>
+	 <97cccba5ba7ddc74e87b0791050fa755@omrb.pnpi.spb.ru>
+	 <CAL1RGDVbqOQP+AH4f9cs+mEngXVTOy7r7gRjJ=SU_rMmvCg3Qg@mail.gmail.com>
+	 <fa3a67e9423946c0bbd23abb3f60921a@omrb.pnpi.spb.ru>
+	 <CAL1RGDVn1Roo-KaZW_r_WAQudbEZ2+mXD2RqNS68Rg=UBTRe7Q@mail.gmail.com>
+	 <806c99edea592c69d0aa9073bae2a3b9@omrb.pnpi.spb.ru>
+	 <CAL1RGDXT1gshgxA+c9M==zxarKnjKZtcy4dROtOnKVmc9+u9HQ@mail.gmail.com>
+	 <2f4564980ae4cdafdc456a8e41b4ab04@omrb.pnpi.spb.ru>
+	 <CAL1RGDVh=n5rEB5GqmPaDvuNAKRkoVEro9LYr785zQpz7xR0vg@mail.gmail.com>
+	 <CAL1RGDXFVTD88ZF9rWoaDpOU7PuzdPcF7PSP4Ac6icgD=FPQLQ@mail.gmail.com>
+	 <41b9ab2a9c7e7a58c7e7a5b41bf1d9e8@omrb.pnpi.spb.ru>
+	 <CAL1RGDVjhpzSDUvkpdkG8u2YPwAWmt_szUw=wb3j3=gsb-iW-g@mail.gmail.com>
+	 <4F87423D.8010104@redhat.com>
+	 <7d60e33d04e8dbae38f7cbf79a830801@omrb.pnpi.spb.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1334243053-6302-1-git-send-email-roland@kernel.org>
+In-Reply-To: <7d60e33d04e8dbae38f7cbf79a830801@omrb.pnpi.spb.ru>
 Sender: target-devel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+To: Alexey Shvetsov <alexxy@gentoo.org>
+Cc: Andy Grover <agrover@redhat.com>, Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2012-04-12 at 08:04 -0700, Roland Dreier wrote:
-> From: Roland Dreier <roland@purestorage.com>
+On Fri, 2012-04-13 at 00:18 +0300, Alexey Shvetsov wrote:
+> Hi Andy!
 > 
-> Since commit 96104eda0169 ("RDMA/core: Add SRQ type field"), kernel
-> users of SRQs need to specify srq_type = IB_SRQT_BASIC in struct
-> ib_srq_init_attr, or else most low-level drivers will fail in
-> when srpt_add_one() calls ib_create_srq() and gets -ENOSYS.
+> Well this were exactly this issue. Can someone commit fix to rtslib 
+> git?
 > 
-> (mlx4_ib works OK nearly all of the time, because it just needs
-> srq_type != IB_SRQT_XRC.  And apparently nearly everyone using
-> ib_srpt is using mlx4 hardware)
-> 
-> Reported-by: Alexey Shvetsov <alexxy@gentoo.org>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Roland Dreier <roland@purestorage.com>
-> ---
-> I'll send this on to Linus shortly...
-> 
->  drivers/infiniband/ulp/srpt/ib_srpt.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index 69e2ad0..daf21b8 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -3232,6 +3232,7 @@ static void srpt_add_one(struct ib_device *device)
->  	srq_attr.attr.max_wr = sdev->srq_size;
->  	srq_attr.attr.max_sge = 1;
->  	srq_attr.attr.srq_limit = 0;
-> +	srq_attr.srq_type = IB_SRQT_BASIC;
->  
->  	sdev->srq = ib_create_srq(sdev->pd, &srq_attr);
->  	if (IS_ERR(sdev->srq))
 
-<nod>, unfortunately I've only been able to run this on mlx4 HCAs so
-far..  Pulled into lio-core/master.
+Hi Alexey,
 
-Thanks alot for the patch Roland!
+Thanks for the heads up here..  Pushed this patch into rtslib.git.
+
+> PS i have patch with gentoo init.d for lio-utils
+> 
+
+Sure, please feel free to post your init.d patch.  :)
+
+Btw, we've been updating the TargetCLI wiki entries to point to the
+downstream distro packages + installation instructions for end users of
+LIO here:
+
+http://linux-iscsi.org/wiki/Targetcli#Download
+
+If you mind taking a moment, and please let me know what information for
+Gentoo should be added and will get it added into the wiki.
+
+Thanks!
 
 --nab
