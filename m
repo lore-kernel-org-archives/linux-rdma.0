@@ -1,98 +1,58 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] [PATCH 1/4] librdmacm: Define streaming over RDMA
- interface (rsockets)
-Date: Fri, 13 Apr 2012 19:54:09 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373451AD6B9@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373451ACEA5@ORSMSX101.amr.corp.intel.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: ib_srpt and mellanox mthca device
+Date: Fri, 13 Apr 2012 18:27:17 -0700
+Message-ID: <1334366837.12540.16.camel@haakon2.linux-iscsi.org>
+References: <5f95768153388b91a2ffa0cd118d7ad8@omrb.pnpi.spb.ru>
+	 <CAL1RGDWNqMdQGrXbh2gj==_KvVRF1mUQw2D3NqEhjvuq2q2+6Q@mail.gmail.com>
+	 <97cccba5ba7ddc74e87b0791050fa755@omrb.pnpi.spb.ru>
+	 <CAL1RGDVbqOQP+AH4f9cs+mEngXVTOy7r7gRjJ=SU_rMmvCg3Qg@mail.gmail.com>
+	 <fa3a67e9423946c0bbd23abb3f60921a@omrb.pnpi.spb.ru>
+	 <CAL1RGDVn1Roo-KaZW_r_WAQudbEZ2+mXD2RqNS68Rg=UBTRe7Q@mail.gmail.com>
+	 <806c99edea592c69d0aa9073bae2a3b9@omrb.pnpi.spb.ru>
+	 <CAL1RGDXT1gshgxA+c9M==zxarKnjKZtcy4dROtOnKVmc9+u9HQ@mail.gmail.com>
+	 <2f4564980ae4cdafdc456a8e41b4ab04@omrb.pnpi.spb.ru>
+	 <CAL1RGDVh=n5rEB5GqmPaDvuNAKRkoVEro9LYr785zQpz7xR0vg@mail.gmail.com>
+	 <CAL1RGDXFVTD88ZF9rWoaDpOU7PuzdPcF7PSP4Ac6icgD=FPQLQ@mail.gmail.com>
+	 <41b9ab2a9c7e7a58c7e7a5b41bf1d9e8@omrb.pnpi.spb.ru>
+	 <CAL1RGDVjhpzSDUvkpdkG8u2YPwAWmt_szUw=wb3j3=gsb-iW-g@mail.gmail.com>
+	 <4F87423D.8010104@redhat.com>
+	 <7d60e33d04e8dbae38f7cbf79a830801@omrb.pnpi.spb.ru>
+	 <1334289638.3137.4938.camel@haakon2.linux-iscsi.org>
+	 <273131eb997f295f6b1f3d103a7013d4@omrb.pnpi.spb.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373451ACEA5-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <273131eb997f295f6b1f3d103a7013d4-heEE5zn7HfaV8fSEjHp0FA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Cc: Andy Grover <agrover-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I'm a little slow writing this up, but for anyone interested, see below for details on the wire protocol.
+On Fri, 2012-04-13 at 11:47 +0300, Alexey Shvetsov wrote:
+> Hi Nicholas!
+> 
+> Sure i'll post init.d for gentoo.
 
-> +#define RS_QP_CTRL_SIZE 4
+Thanks, I'll look for your patch.  :)
 
-4 entries on the send queue are reserved for control messages.  (At least 1 is needed to avoid deadlock.)
+>  Also there is question about lio* and 
+> related libs tarballs. Where i can find them?
+> 
 
-User data is only transferred if there is an available entry on the local send queue, an entry on the remote receive queue, local send buffer space, and remote receive buffer space.  Control messages may be sent as long as there is space available on the local send queue.  Link level flow control (RNR NACKs) is used to prevent control messages from overflowing the remote receive queue.
+configshell/rtslib/targetcli will generate a release tarball from doing
+'make release' with the respective git trees.
 
-> +/*
-> + * Immediate data format is determined by the upper bits
-> + * bit 31: message type, 0 - data, 1 - control
-> + * bit 30: buffers updated, 0 - target, 1 - direct-receive
-> + * bit 29: more data, 0 - end of transfer, 1 - more data available
-> + *
-> + * for data transfers:
-> + * bits [28:0]: bytes transfered, 0 = 1 GB
-> + * for control messages:
-> + * bits [28-0]: receive credits granted
-> + */
+The lio-utils.git tarball is generated while making a rpm or deb
+package, but currently does not have a method for 'make release'.
 
-rsockets uses RDMA writes with immediate data.  The RDMA write portion usually carries the user data, but may also specify the remote buffer.  The immediate data is used to generate a CQ entry and contains information about the write as listed below:
+As Andy has done with this tree, we will end up merging the necessary
+init.d/python pieces from lio-utils.git directly into the targetcli.git
+tree in the near future and deprecate lio-utils.
 
-> +enum {
-> +	RS_OP_DATA,
+--nab
 
-The RDMA write carried user data.  The size of the transfer is specified in the lower 29 bits in the immediate data.
 
-> +	RS_OP_DATA_MORE,
-> +	RS_OP_DRA,
-> +	RS_OP_DRA_MORE,
-
-The above 3 operations are not currently implemented.  They are defined for use with a direct data placement algorithm.
-
-> +	RS_OP_SGL,
-
-rsockets transfers user data by:
-
-1. Copying the source application buffer to a send buffer
-2. Performing an RDMA write from the send buffer to a remote receive buffer
-3. Copying from the receive buffer to the target application buffer
-
-The location of the remote receive buffers mentioned in step 2 are stored in an SGL.  The size and location of the SGL is exchanged during connection setup, along with 1 receive buffer.  To expose additional receive buffers, the remote peer performs an RDMA write into the SGL.
-
-The SGL message is used for two purposes.  It indicates that the above mentioned SGL has been updated and/or indicates that additional receive queue entries are available.
-
-> +	RS_OP_RSVD1,
-> +	RS_OP_DRA_SGL,
-
-The above two messages are unused, but the latter is defined for use with a direct data placement algorithm.
-
-> +	RS_OP_CTRL
-
-Defines additional messages used for control purposes.  The only control message defined is:
-
-> +enum {
-> +	RS_CTRL_DISCONNECT
-> +};
-
-Disconnection is done over the underlying queue pair, rather than through the rdma_cm.  This simplifies select/poll handling, since the rdma_cm and verbs do not share fd's.
-
-> +#define rs_host_is_net() (1 == htonl(1))
-> +#define RS_CONN_FLAG_NET 1
-
-During connection setup, a flag indicates if the host is little or big endian.  The format of data written into the remote SGL using RDMA writes are adjusted accordingly.
-
-> +struct rs_conn_data {
-> +	uint8_t		  version;
-> +	uint8_t		  flags;
-> +	uint16_t	  credits;
-> +	uint32_t	  reserved2;
-> +	struct rs_sge	  target_sgl;
-> +	struct rs_sge	  data_buf;
-> +};
-
-This structure defines what information is exchanged during connection setup.
-
-The wire protocol is designed around IB.  I've started looking at what modifications would be needed to support other RDMA devices, with the goal of optimizing the protocol/implementation for each specific device type. 
-
-- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
