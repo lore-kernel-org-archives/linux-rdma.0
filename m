@@ -1,24 +1,21 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [PATCH] IB: mlx4: Fix mem leaks in ib_link_query_port()
-Date: Mon, 16 Apr 2012 11:20:03 +0300
-Message-ID: <4F8BD633.5080207@mellanox.com>
-References: <alpine.LNX.2.00.1204112340360.2137@swampdragon.chaosbits.net> <4F8A7A15.4060908@mellanox.com> <CAL1RGDXeny6ouGBD67OKYEa+m9cZ_x=NOaEGjPT6S62_BzWvuw@mail.gmail.com>
+From: TATA LOAN OFFER <hod.ece-exSpdMmTGqHtBvl7jLqR1f8+0UxHXcjY@public.gmane.org>
+Subject: (unknown)
+Date: Mon, 16 Apr 2012 15:43:32 +0530 (IST)
+Message-ID: <678364433.4857.1334571212162.JavaMail.root@mail>
+Reply-To: TATA LOAN OFFER <tata-loans-r4eEsPZvwYY@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL1RGDXeny6ouGBD67OKYEa+m9cZ_x=NOaEGjPT6S62_BzWvuw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Jesper Juhl <jj@chaosbits.net>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Subject: 
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/16/2012 8:05 AM, Roland Dreier wrote:
-> thanks, applied (looks like a 3.4 regression so I'll send the fix to Linus with my next batch)
-
-not sure to follow on the next branch part, it is a regression 
-introduced in 3.4-rc1 so it should be in your fixes branch
-and submitted within a batch possibly containing more fixes, isn't that?
 
 
-Or.
+DO YOU NEED A LOAN? IF YES, CONTACT US VIA E-MAIL: tata-loans-r4eEsPZvwYY@public.gmane.org FOR MORE INFO.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
