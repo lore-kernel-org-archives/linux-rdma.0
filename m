@@ -1,35 +1,16 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][TRIVIAL] opensm/osm_state_mgr.c: Cosmetic change to log message
-Date: Sun, 15 Apr 2012 11:56:29 -0400
-Message-ID: <4F8AEFAD.8060504@dev.mellanox.co.il>
+From: Roland Dreier <roland@kernel.org>
+Subject: Re: [PATCH] IB: mlx4: Fix mem leaks in ib_link_query_port()
+Date: Sun, 15 Apr 2012 22:05:55 -0700
+Message-ID: <CAL1RGDXeny6ouGBD67OKYEa+m9cZ_x=NOaEGjPT6S62_BzWvuw@mail.gmail.com>
+References: <alpine.LNX.2.00.1204112340360.2137@swampdragon.chaosbits.net> <4F8A7A15.4060908@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4F8A7A15.4060908@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Jesper Juhl <jj@chaosbits.net>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-
-It's been quite a while since QoS setup was completed here
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
-index eb5ddee..4e6c880 100644
---- a/opensm/osm_state_mgr.c
-+++ b/opensm/osm_state_mgr.c
-@@ -1311,7 +1311,7 @@ repeat_discovery:
- 		return;
- 
- 	OSM_LOG_MSG_BOX_V2(sm->p_log, OSM_LOG_VERBOSE,
--			   "PKEY and QOS setup completed - STARTING SM LID CONFIG");
-+			   "PKEY setup completed - STARTING SM LID CONFIG");
- 
- 	osm_lid_mgr_process_sm(&sm->lid_mgr);
- 	if (wait_for_pending_transactions(&sm->p_subn->p_osm->stats))
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks, applied (looks like a 3.4 regression so I'll send the fix to
+Linus with my next batch)
