@@ -1,159 +1,79 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] infiniband-diags/vendstat.c: Support IS4 firmware version
- info
-Date: Mon, 16 Apr 2012 12:29:58 -0400
-Message-ID: <4F8C4906.3030503@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Infiniband stack allows references to freed memory
+Date: Tue, 17 Apr 2012 11:02:40 +0300
+Message-ID: <4F8D23A0.7000109@mellanox.com>
+References: <CAG4TOxNNTOc0hwjOuEa-p2SBf5GBnEjVQyOERiTq5gkprLioYQ@mail.gmail.com> <20120201.171703.1299449838314569881.davem@davemloft.net> <CAG4TOxN75jXze4iy_nCBO1vwqvXnwKcqbAFAEFR=n-PdiG4moA@mail.gmail.com> <20120201.202128.703330634975191244.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120201.202128.703330634975191244.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Adam Habari <adamh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 2/2/2012 3:21 AM, David Miller wrote:
+> From: Roland Dreier<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>
+>> I'm happy to do it but I'm still not quite sure I understand what the
+>> end state is.  Is it just a matter of peeking into the skb contents
+>> to get at the daddr, looking up the neigh based on that and then
+>> continuing to handle neighs as we do now?
+>
+> Right, you also will now have a reference to the neigh so you must release it.
+>
+>> Does that also work for ARP packets?
+>
+> ARP packets have no dst_entry, so would need to be handled specially right now anyways.
+>
+>> Are there any examples in your tree I can crib off of?
+>
+> grep for dst_neigh_lookup() in the net-next tree.
 
-Signed-off-by: Adam Habari <adamh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/src/vendstat.c b/src/vendstat.c
-index 1d3d78c..4b9ad84 100644
---- a/src/vendstat.c
-+++ b/src/vendstat.c
-@@ -1,4 +1,5 @@
- /*
-+ * Copyright (c) 2012 Mellanox Technologies LTD.  All rights reserved.
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-@@ -57,6 +58,8 @@
- /* Config space addresses */
- #define IB_MLX_IS3_PORT_XMIT_WAIT	0x10013C
- 
-+#define IS4_DEV_ID 0x01b3
-+
- struct ibmad_port *srcport;
- 
- typedef struct {
-@@ -86,6 +89,24 @@ typedef struct {
- 	uint8_t major;
- 	uint8_t minor;
- 	uint8_t sub_minor;
-+	uint32_t build_id;
-+	uint8_t month;
-+	uint8_t day;
-+	uint16_t year;
-+	uint16_t resv2;
-+	uint16_t hour;
-+	uint8_t psid[16];
-+	uint32_t ini_file_version;
-+	uint32_t ext_major;
-+	uint32_t ext_minor;
-+	uint32_t ext_sub_minor;
-+} is4_fw_info_t;
-+
-+typedef struct {
-+	uint8_t resv1;
-+	uint8_t major;
-+	uint8_t minor;
-+	uint8_t sub_minor;
- 	uint8_t resv2[28];
- } is3_sw_info_t;
- 
-@@ -96,6 +117,14 @@ typedef struct {
- 	is3_sw_info_t sw_info;
- } is3_general_info_t;
- 
-+/* Firmware info changed for is4 */
-+typedef struct {
-+	uint8_t reserved[8];
-+	is3_hw_info_t hw_info;
-+	is4_fw_info_t fw_info;
-+	is3_sw_info_t sw_info;
-+} is4_general_info_t;
-+
- typedef struct {
- 	uint8_t reserved[8];
- 	struct is3_record {
-@@ -291,8 +320,11 @@ int main(int argc, char **argv)
- 	ib_portid_t portid = { 0 };
- 	int port = 0;
- 	char buf[1024];
--	is3_general_info_t *gi;
--
-+	uint32_t fw_ver_major = 0;
-+	uint32_t fw_ver_minor = 0;
-+	uint32_t fw_ver_sub_minor = 0;
-+	is3_general_info_t *gi_is3;
-+	is4_general_info_t *gi_is4;
- 	const struct ibdiag_opt opts[] = {
- 		{"N", 'N', 0, NULL, "show IS3 or IS4 general information"},
- 		{"w", 'w', 0, NULL, "show IS3 port xmit wait counters"},
-@@ -372,37 +404,47 @@ int main(int argc, char **argv)
- 		IBERROR("classportinfo query");
- 
- 	memset(&buf, 0, sizeof(buf));
--	gi = (is3_general_info_t *) & buf;
-+	gi_is3 = (is3_general_info_t *) &buf;
- 	if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
--		      IB_MLX_IS3_GENERAL_INFO, 0, gi))
-+		      IB_MLX_IS3_GENERAL_INFO, 0, gi_is3))
- 		IBERROR("generalinfo query");
- 
-+	if (IS4_DEV_ID == ntohs(gi_is3->hw_info.device_id)) {
-+		gi_is4 = (is4_general_info_t *) &buf;
-+		fw_ver_major = gi_is4->fw_info.ext_major;
-+		fw_ver_minor = gi_is4->fw_info.ext_minor;
-+		fw_ver_sub_minor = gi_is4->fw_info.ext_sub_minor;
-+	} else {
-+		fw_ver_major = gi_is3->fw_info.major;
-+		fw_ver_minor = gi_is3->fw_info.minor;
-+		fw_ver_sub_minor = gi_is3->fw_info.sub_minor;
-+	}
-+
- 	if (general_info) {
- 		/* dump IS3 or IS4 general info here */
--		printf("hw_dev_rev:  0x%04x\n", ntohs(gi->hw_info.hw_revision));
--		printf("hw_dev_id:   0x%04x\n", ntohs(gi->hw_info.device_id));
--		printf("hw_uptime:   0x%08x\n", ntohl(gi->hw_info.uptime));
-+		printf("hw_dev_rev:  0x%04x\n", ntohs(gi_is3->hw_info.hw_revision));
-+		printf("hw_dev_id:   0x%04x\n", ntohs(gi_is3->hw_info.device_id));
-+		printf("hw_uptime:   0x%08x\n", ntohl(gi_is3->hw_info.uptime));
- 		printf("fw_version:  %02d.%02d.%02d\n",
--		       gi->fw_info.major, gi->fw_info.minor,
--		       gi->fw_info.sub_minor);
--		printf("fw_build_id: 0x%04x\n", ntohl(gi->fw_info.build_id));
--		printf("fw_date:     %02d/%02d/%04x\n",
--		       gi->fw_info.month, gi->fw_info.day,
--		       ntohs(gi->fw_info.year));
--		printf("fw_psid:     '%s'\n", gi->fw_info.psid);
-+		       fw_ver_major, fw_ver_minor, fw_ver_sub_minor);
-+		printf("fw_build_id: 0x%04x\n", ntohl(gi_is3->fw_info.build_id));
-+		printf("fw_date:     %02x/%02x/%04x\n",
-+		       gi_is3->fw_info.month, gi_is3->fw_info.day,
-+		       ntohs(gi_is3->fw_info.year));
-+		printf("fw_psid:     '%s'\n", gi_is3->fw_info.psid);
- 		printf("fw_ini_ver:  %d\n",
--		       ntohl(gi->fw_info.ini_file_version));
--		printf("sw_version:  %02d.%02d.%02d\n", gi->sw_info.major,
--		       gi->sw_info.minor, gi->sw_info.sub_minor);
-+		       ntohl(gi_is3->fw_info.ini_file_version));
-+		printf("sw_version:  %02d.%02d.%02d\n", gi_is3->sw_info.major,
-+		       gi_is3->sw_info.minor, gi_is3->sw_info.sub_minor);
- 	}
- 
- 	if (xmit_wait) {
- 		is3_config_space_t *cs;
- 		unsigned i;
- 
--		if (ntohs(gi->hw_info.device_id) != IS3_DEVICE_ID)
-+		if (ntohs(gi_is3->hw_info.device_id) != IS3_DEVICE_ID)
- 			IBERROR("Unsupported device ID 0x%x",
--				ntohs(gi->hw_info.device_id));
-+				ntohs(gi_is3->hw_info.device_id));
- 
- 		memset(&buf, 0, sizeof(buf));
- 		/* Set record addresses for each port */
+Hi Dave, Roland,
+
+As was indicated over the thread @ 
+http://marc.info/?t=132812805900004&r=1&w=2 the current situation can 
+surely lead to races, and I'd be happy to revive it, hopefully towards 
+somehow addressing the issue.From my reading through the thread, I 
+understand that more or less the following paths (...) were suggested:
+
+#1 convert ipoib to use dst_neigh_lookup instead of dst_get_neighbour_noref
+#2 do some RCU-ing where we don't actually free the ipoib_neigh 
+immediately, etc
+
+Dave commented that #1 conversion step will allow to merge a change 
+where dst_entry objects will not have an attached neighbour any more. 
+Alternatively, IPoIB could manage a data structure where ipoib_neighs 
+are looked up the packet ipv4/ipv6 header and not from the neighbour.
+
+Performance wise, it seems that the two suggestions should introduce the 
+~same overhead, since in the ipv4 case for example, from 
+dst_neigh_lookup we would land in __ipv4_neigh_lookup which does a hash 
+lookup and we ipoib doesn't use the neighbours any more, some data 
+structure lookup (e.g hash) will be used to resolve the ipoib_neigh from 
+the destination address.
+
+Dave, as for the conversion to dst_neigh_lookup, looking on net-next, I 
+see about 30 hits for dst_get_neighbour_noref vs 13 hits for 
+dst_neigh_lookup, so I wasn't sure about your comment re the ipoib 
+conversion being what actually remains to make that change happen, can 
+you elaborate here a little further?
+
+Also, if ipoib moves to use that api, you made a comment that it will 
+have a reference on the neighbour which will need to be released. I took 
+a look on the net/atm use case which should to some extent be similar to 
+ipoib, I see that neigh_release is called for neighbours retrieved by 
+that API, okay.
+
+Just for the sake of example, does the atm code free from the races you 
+mention re ipoib? I see that it does stick its own object on the 
+neighbour through the priv pointer but wasn't sure if it helps in that 
+respect without further RCU-ing things.
+
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
