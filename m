@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][MINOR] opensm: Add additional IBM vendor ID/OUI
-Date: Tue, 17 Apr 2012 07:49:41 -0400
-Message-ID: <4F8D58D5.9060809@dev.mellanox.co.il>
+Subject: [PATCH][TRIVIAL] opensm/complib/cl_[ptr_]vector.h: Commentary change
+ for consistency
+Date: Tue, 17 Apr 2012 07:49:45 -0400
+Message-ID: <4F8D58D9.4060403@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -14,30 +15,32 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/include/opensm/osm_base.h b/include/opensm/osm_base.h
-index de78f67..bedc179 100644
---- a/include/opensm/osm_base.h
-+++ b/include/opensm/osm_base.h
-@@ -984,6 +984,7 @@ typedef enum _osm_sm_signal {
- #define OSM_VENDOR_ID_HP3           0x0019BB
- #define OSM_VENDOR_ID_HP4           0x00237D
- #define OSM_VENDOR_ID_OPENIB        0x001405
-+#define OSM_VENDOR_ID_IBM2	    0x5CF3FC
- 
- /* IPoIB Broadcast Defaults */
- #define OSM_IPOIB_BROADCAST_MGRP_QKEY 0x0b1b
-diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
-index b97c8f2..2be9061 100644
---- a/opensm/osm_helper.c
-+++ b/opensm/osm_helper.c
-@@ -2218,6 +2218,7 @@ const char *osm_get_manufacturer_str(IN uint64_t guid_ho)
- 	case OSM_VENDOR_ID_PATHSCALE:
- 		return pathscale_str;
- 	case OSM_VENDOR_ID_IBM:
-+	case OSM_VENDOR_ID_IBM2:
- 		return ibm_str;
- 	case OSM_VENDOR_ID_DIVERGENET:
- 		return divergenet_str;
+diff --git a/include/complib/cl_ptr_vector.h b/include/complib/cl_ptr_vector.h
+index d4af0fe..c767f31 100644
+--- a/include/complib/cl_ptr_vector.h
++++ b/include/complib/cl_ptr_vector.h
+@@ -254,7 +254,7 @@ cl_ptr_vector_init(IN cl_ptr_vector_t * const p_vector,
+ *	p_vector
+ *		[in] Pointer to a cl_ptr_vector_t structure to inititalize.
+ *
+-*	initial_size
++*	min_size
+ *		[in] Initial number of elements.
+ *
+ *	grow_size
+diff --git a/include/complib/cl_vector.h b/include/complib/cl_vector.h
+index 11c45f8..f66172b 100644
+--- a/include/complib/cl_vector.h
++++ b/include/complib/cl_vector.h
+@@ -393,7 +393,7 @@ cl_vector_init(IN cl_vector_t * const p_vector,
+ *	p_vector
+ *		[in] Pointer to a cl_vector_t structure to inititalize.
+ *
+-*	initial_size
++*	min_size
+ *		[in] Initial number of elements.
+ *
+ *	grow_size
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
