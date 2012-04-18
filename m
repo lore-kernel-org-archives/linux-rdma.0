@@ -1,153 +1,40 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCHv2] infiniband-diags/vendstat.c: Support IS4/SX firmware
- version info
-Date: Wed, 18 Apr 2012 11:14:07 +0300
-Message-ID: <20120418081407.GA5326@calypso>
+From: Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Subject: kernel: rejected =?UTF-8?Q?SRP=5FLOGIN=5FREQ=20because=20creating?=
+ =?UTF-8?Q?=20a=20new=20RDMA=20channel=20failed=2E?=
+Date: Wed, 18 Apr 2012 12:07:11 +0300
+Message-ID: <105692b8ae6e4f11fae2848be32f88d7@omrb.pnpi.spb.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Adam Habari <adamh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Adam Habari <adamh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v1:
-	- Fixed endianness parsing of is4 fw_version
-	- Minor code styling
+Hi all!
+Sometimes after srp initiator tryed to relogin to srpt in mainline 
+kernel i get the following error. After that no one can create new 
+seesion to srp target
 
- src/vendstat.c |   69 ++++++++++++++++++++++++++++++++++++++++---------------
- 1 files changed, 50 insertions(+), 19 deletions(-)
+Apr 18 13:04:01 store kernel: Received SRP_LOGIN_REQ with i_port_id 
+0x0:0x1e0bffff4c6dd9, t_port_id 0x1e0bffff4c7d38:0x1e0bffff4c7d38 and 
+it_iu_len 260 on port 1 (guid=0xfe80000000000000:0x1e0bffff4c7d39)
+Apr 18 13:04:01 store kernel: mlx4_core 0000:4b:00.0: command 0x19 
+failed: fw status = 0x9
+Apr 18 13:04:01 store kernel: rejected SRP_LOGIN_REQ because creating a 
+new RDMA channel failed.
 
-diff --git a/src/vendstat.c b/src/vendstat.c
-index 8dbd1ee..8086fe1 100644
---- a/src/vendstat.c
-+++ b/src/vendstat.c
-@@ -57,6 +57,9 @@
- /* Config space addresses */
- #define IB_MLX_IS3_PORT_XMIT_WAIT	0x10013C
- 
-+#define IS4_DEV_ID 0x01b3
-+#define SX_DEV_ID 0x0245
-+
- struct ibmad_port *srcport;
- 
- typedef struct {
-@@ -82,6 +85,12 @@ typedef struct {
- } is3_fw_info_t;
- 
- typedef struct {
-+	uint32_t ext_major;
-+	uint32_t ext_minor;
-+	uint32_t ext_sub_minor;
-+} is4_fw_ext_info_t;
-+
-+typedef struct {
- 	uint8_t resv1;
- 	uint8_t major;
- 	uint8_t minor;
-@@ -98,6 +107,14 @@ typedef struct {
- 
- typedef struct {
- 	uint8_t reserved[8];
-+	is3_hw_info_t hw_info;
-+	is3_fw_info_t fw_info;
-+	is4_fw_ext_info_t ext_fw_info;
-+	is3_sw_info_t sw_info;
-+} is4_general_info_t;
-+
-+typedef struct {
-+	uint8_t reserved[8];
- 	struct is3_record {
- 		uint32_t address;
- 		uint32_t data;
-@@ -291,8 +308,11 @@ int main(int argc, char **argv)
- 	ib_portid_t portid = { 0 };
- 	int port = 0;
- 	char buf[1024];
--	is3_general_info_t *gi;
--
-+	uint32_t fw_ver_major=0;
-+	uint32_t fw_ver_minor=0;
-+	uint32_t fw_ver_sub_minor=0;
-+	is3_general_info_t *gi_is3;
-+	is4_general_info_t *gi_is4;
- 	const struct ibdiag_opt opts[] = {
- 		{"N", 'N', 0, NULL, "show IS3 or IS4 general information"},
- 		{"w", 'w', 0, NULL, "show IS3 port xmit wait counters"},
-@@ -372,37 +392,48 @@ int main(int argc, char **argv)
- 		IBERROR("classportinfo query");
- 
- 	memset(&buf, 0, sizeof(buf));
--	gi = (is3_general_info_t *) & buf;
-+	gi_is3 = (is3_general_info_t *) & buf;
- 	if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
--		      IB_MLX_IS3_GENERAL_INFO, 0, gi))
-+		      IB_MLX_IS3_GENERAL_INFO, 0, gi_is3))
- 		IBERROR("generalinfo query");
- 
-+	if(IS4_DEV_ID == ntohs(gi_is3->hw_info.device_id) ||
-+	   SX_DEV_ID == ntohs(gi_is3->hw_info.device_id)) {
-+		gi_is4 = (is4_general_info_t *) & buf;
-+		fw_ver_major = ntohl(gi_is4->ext_fw_info.ext_major);
-+		fw_ver_minor = ntohl(gi_is4->ext_fw_info.ext_minor);
-+		fw_ver_sub_minor = ntohl(gi_is4->ext_fw_info.ext_sub_minor);
-+	} else {
-+		fw_ver_major = gi_is3->fw_info.major;
-+		fw_ver_minor = gi_is3->fw_info.minor;
-+		fw_ver_sub_minor = gi_is3->fw_info.sub_minor;
-+	}
-+
- 	if (general_info) {
- 		/* dump IS3 or IS4 general info here */
--		printf("hw_dev_rev:  0x%04x\n", ntohs(gi->hw_info.hw_revision));
--		printf("hw_dev_id:   0x%04x\n", ntohs(gi->hw_info.device_id));
--		printf("hw_uptime:   0x%08x\n", ntohl(gi->hw_info.uptime));
-+		printf("hw_dev_rev:  0x%04x\n", ntohs(gi_is3->hw_info.hw_revision));
-+		printf("hw_dev_id:   0x%04x\n", ntohs(gi_is3->hw_info.device_id));
-+		printf("hw_uptime:   0x%08x\n", ntohl(gi_is3->hw_info.uptime));
- 		printf("fw_version:  %02d.%02d.%02d\n",
--		       gi->fw_info.major, gi->fw_info.minor,
--		       gi->fw_info.sub_minor);
--		printf("fw_build_id: 0x%04x\n", ntohl(gi->fw_info.build_id));
--		printf("fw_date:     %02d/%02d/%04x\n",
--		       gi->fw_info.month, gi->fw_info.day,
--		       ntohs(gi->fw_info.year));
--		printf("fw_psid:     '%s'\n", gi->fw_info.psid);
-+		       fw_ver_major, fw_ver_minor, fw_ver_sub_minor);
-+		printf("fw_build_id: 0x%04x\n", ntohl(gi_is3->fw_info.build_id));
-+		printf("fw_date:     %02x/%02x/%04x\n",
-+		       gi_is3->fw_info.month, gi_is3->fw_info.day,
-+		       ntohs(gi_is3->fw_info.year));
-+		printf("fw_psid:     '%s'\n", gi_is3->fw_info.psid);
- 		printf("fw_ini_ver:  %d\n",
--		       ntohl(gi->fw_info.ini_file_version));
--		printf("sw_version:  %02d.%02d.%02d\n", gi->sw_info.major,
--		       gi->sw_info.minor, gi->sw_info.sub_minor);
-+		       ntohl(gi_is3->fw_info.ini_file_version));
-+		printf("sw_version:  %02d.%02d.%02d\n", gi_is3->sw_info.major,
-+		       gi_is3->sw_info.minor, gi_is3->sw_info.sub_minor);
- 	}
- 
- 	if (xmit_wait) {
- 		is3_config_space_t *cs;
- 		unsigned i;
- 
--		if (ntohs(gi->hw_info.device_id) != IS3_DEVICE_ID)
-+		if (ntohs(gi_is3->hw_info.device_id) != IS3_DEVICE_ID)
- 			IBERROR("Unsupported device ID 0x%x",
--				ntohs(gi->hw_info.device_id));
-+				ntohs(gi_is3->hw_info.device_id));
- 
- 		memset(&buf, 0, sizeof(buf));
- 		/* Set record addresses for each port */
 -- 
-1.7.1
-
+Best Regards,
+Alexey 'Alexxy' Shvetsov
+Petersburg Nuclear Physics Institute, Russia
+Department of Molecular and Radiation Biophysics
+Gentoo Team Ru
+Gentoo Linux Dev
+mailto:alexxyum-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+mailto:alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org
+mailto:alexxy-heEE5zn7HfaV8fSEjHp0FA@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
