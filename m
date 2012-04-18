@@ -1,27 +1,29 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 02/11] ipath: replace open-coded ARRAY_SIZE with macro
-Date: Wed, 18 Apr 2012 18:14:54 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0D3E25EF@FMSMSX108.amr.corp.intel.com>
-References: <1334105725-9081-1-git-send-email-jim.cromie@gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: kernel: rejected SRP_LOGIN_REQ because creating a new RDMA
+ channel failed.
+Date: Wed, 18 Apr 2012 13:21:43 -0700
+Message-ID: <CAL1RGDXCtfK8L_Gt2BWwYWKySMjMY6sS8eOzUJXe9S6UW9Qkkw@mail.gmail.com>
+References: <105692b8ae6e4f11fae2848be32f88d7@omrb.pnpi.spb.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1334105725-9081-1-git-send-email-jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <105692b8ae6e4f11fae2848be32f88d7-heEE5zn7HfaV8fSEjHp0FA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "trivial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <trivial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jim Cromie [mailto:jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Subject: [PATCH 02/11] ipath: replace open-coded ARRAY_SIZE with macro
-> 
-> Signed-off-by: Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On Wed, Apr 18, 2012 at 2:07 AM, Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org> wrote:
+> Apr 18 13:04:01 store kernel: mlx4_core 0000:4b:00.0: command 0x19 failed: fw status = 0x9
 
-Thanks for the patch!
+status 0x9 is:
 
-Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+        /* Resource is not in the appropriate state or ownership: */
+        CMD_STAT_BAD_RES_STATE  = 0x09,
+
+Bart, I seem to remember you had tracked this down to a bug in the SRPT code?
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
