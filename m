@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: [PATCHv3] infiniband-diags/vendstat.c: Support IS4/SX firmware version
  info
-Date: Wed, 18 Apr 2012 09:01:09 -0400
-Message-ID: <4F8EBB15.1000806@dev.mellanox.co.il>
+Date: Wed, 18 Apr 2012 09:01:21 -0400
+Message-ID: <4F8EBB21.2070003@dev.mellanox.co.il>
 References: <20120418081407.GA5326@calypso>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
