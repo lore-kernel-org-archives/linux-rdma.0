@@ -1,97 +1,152 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Infiniband stack allows references to freed memory
-Date: Wed, 18 Apr 2012 10:55:48 +0300
-Message-ID: <4F8E7384.9000505@mellanox.com>
-References: <4F8D23A0.7000109@mellanox.com> <20120417.230418.1898458010494189728.davem@davemloft.net> <4F8E57F8.9050703@mellanox.com> <20120418.021558.255251358104374047.davem@davemloft.net>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCHv2] infiniband-diags/vendstat.c: Support IS4/SX firmware
+ version info
+Date: Wed, 18 Apr 2012 11:14:07 +0300
+Message-ID: <20120418081407.GA5326@calypso>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120418.021558.255251358104374047.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Adam Habari <adamh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/18/2012 9:15 AM, David Miller wrote:
-> I would need to have to go back to the original thread and reread and 
-> reabsorb the full analysis I did back then to answer this, and I 
-> really don't have time to do that right now. You're going to have to 
-> figure out how to fix this race properly on your own or with someone 
-> else's help.
+Signed-off-by: Adam Habari <adamh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Changes since v1:
+	- Fixed endianness parsing of is4 fw_version
+	- Minor code styling
 
-Sure, I didn't ask you to redo the analysis for the ipoib use case, its 
-well understood.
+ src/vendstat.c |   69 ++++++++++++++++++++++++++++++++++++++++---------------
+ 1 files changed, 50 insertions(+), 19 deletions(-)
 
-I just wanted to see if you can spare few sentences regarding the 
-neighbour priv mechanism you added in the below sequence, all are your 
-patches from July 2011 which I think means they were introduced in 3.1.0
-
-Specifically, is there an existing RCU neighbour related framework/call 
-that a driver which uses neighbour_priv(n) and probably also the 
-neigh_construct/destroy ndo callbacks, can use to make sure that 
-modifying the private area isn't racy with readers of that area?
-
-BTW I see that in commit 596b9b68ef118f7409afbc78487263e08ef96261 you 
-changed IPoIB to set
-dev->neigh_priv_len to be sizeof(ipoib_neigh), so you've started a 
-possible porting here..
-
-Or.
-
-I took a look on the below series and also commit 
-32092ecf0644e91070f9eff4f6e1edda8f90aecc
-"atm: clip: Use device neigh support on top of "arp_tbl" " which made 
-atm to use the neigh_construct call.
-
-
-> commit da6a8fa0275e2178c44a875374cae80d057538d1
->
->     neigh: Add device constructor/destructor capability.
->
->     If the neigh entry has device private state, it will need
->     constructor/destructor ops.
->
-> commit 869759b9e4160fb8a8d25bc3b4ce3b658523aebb
->
->     atm: clip: Convert over to neighbour_priv()
->
->
-> commit 76cc714ed5fe6ed90aad5c52ff3030f1f4e22a48
->
->     neigh: Do not set tbl->entry_size in ipv4/ipv6 neigh tables.
->
->     Let the core self-size the neigh entry based upon the key length.
->
->
-> commit 596b9b68ef118f7409afbc78487263e08ef96261
->
->     neigh: Add infrastructure for allocating device neigh privates.
->
->     netdev->neigh_priv_len records the private area length.
->
->     This will trigger for neigh_table objects which set tbl->entry_size
->     to zero, and the first instances of this will be forthcoming.
->
->
-> commit 5b8b0060cbd6332ae5d1fa0bec0e8e211248d0e7
->
->     neigh: Get rid of neigh_table->kmem_cachep
->
->     We are going to alloc for device specific private areas for
->     neighbour entries, and in order to do that we have to move
->     away from the fixed allocation size enforced by using
->     neigh_table->kmem_cachep
->
->     As a nice side effect we can now use kfree_rcu().
->
->     Signed-off-by: David S. Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
->
-> commit 1026fec8739663621d64216ba939c23bc1d089b7
->
->     neigh: Create mechanism for generic neigh private areas.
->
->     The implementation private sits right after the primary_key memory.
+diff --git a/src/vendstat.c b/src/vendstat.c
+index 8dbd1ee..8086fe1 100644
+--- a/src/vendstat.c
++++ b/src/vendstat.c
+@@ -57,6 +57,9 @@
+ /* Config space addresses */
+ #define IB_MLX_IS3_PORT_XMIT_WAIT	0x10013C
+ 
++#define IS4_DEV_ID 0x01b3
++#define SX_DEV_ID 0x0245
++
+ struct ibmad_port *srcport;
+ 
+ typedef struct {
+@@ -82,6 +85,12 @@ typedef struct {
+ } is3_fw_info_t;
+ 
+ typedef struct {
++	uint32_t ext_major;
++	uint32_t ext_minor;
++	uint32_t ext_sub_minor;
++} is4_fw_ext_info_t;
++
++typedef struct {
+ 	uint8_t resv1;
+ 	uint8_t major;
+ 	uint8_t minor;
+@@ -98,6 +107,14 @@ typedef struct {
+ 
+ typedef struct {
+ 	uint8_t reserved[8];
++	is3_hw_info_t hw_info;
++	is3_fw_info_t fw_info;
++	is4_fw_ext_info_t ext_fw_info;
++	is3_sw_info_t sw_info;
++} is4_general_info_t;
++
++typedef struct {
++	uint8_t reserved[8];
+ 	struct is3_record {
+ 		uint32_t address;
+ 		uint32_t data;
+@@ -291,8 +308,11 @@ int main(int argc, char **argv)
+ 	ib_portid_t portid = { 0 };
+ 	int port = 0;
+ 	char buf[1024];
+-	is3_general_info_t *gi;
+-
++	uint32_t fw_ver_major=0;
++	uint32_t fw_ver_minor=0;
++	uint32_t fw_ver_sub_minor=0;
++	is3_general_info_t *gi_is3;
++	is4_general_info_t *gi_is4;
+ 	const struct ibdiag_opt opts[] = {
+ 		{"N", 'N', 0, NULL, "show IS3 or IS4 general information"},
+ 		{"w", 'w', 0, NULL, "show IS3 port xmit wait counters"},
+@@ -372,37 +392,48 @@ int main(int argc, char **argv)
+ 		IBERROR("classportinfo query");
+ 
+ 	memset(&buf, 0, sizeof(buf));
+-	gi = (is3_general_info_t *) & buf;
++	gi_is3 = (is3_general_info_t *) & buf;
+ 	if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
+-		      IB_MLX_IS3_GENERAL_INFO, 0, gi))
++		      IB_MLX_IS3_GENERAL_INFO, 0, gi_is3))
+ 		IBERROR("generalinfo query");
+ 
++	if(IS4_DEV_ID == ntohs(gi_is3->hw_info.device_id) ||
++	   SX_DEV_ID == ntohs(gi_is3->hw_info.device_id)) {
++		gi_is4 = (is4_general_info_t *) & buf;
++		fw_ver_major = ntohl(gi_is4->ext_fw_info.ext_major);
++		fw_ver_minor = ntohl(gi_is4->ext_fw_info.ext_minor);
++		fw_ver_sub_minor = ntohl(gi_is4->ext_fw_info.ext_sub_minor);
++	} else {
++		fw_ver_major = gi_is3->fw_info.major;
++		fw_ver_minor = gi_is3->fw_info.minor;
++		fw_ver_sub_minor = gi_is3->fw_info.sub_minor;
++	}
++
+ 	if (general_info) {
+ 		/* dump IS3 or IS4 general info here */
+-		printf("hw_dev_rev:  0x%04x\n", ntohs(gi->hw_info.hw_revision));
+-		printf("hw_dev_id:   0x%04x\n", ntohs(gi->hw_info.device_id));
+-		printf("hw_uptime:   0x%08x\n", ntohl(gi->hw_info.uptime));
++		printf("hw_dev_rev:  0x%04x\n", ntohs(gi_is3->hw_info.hw_revision));
++		printf("hw_dev_id:   0x%04x\n", ntohs(gi_is3->hw_info.device_id));
++		printf("hw_uptime:   0x%08x\n", ntohl(gi_is3->hw_info.uptime));
+ 		printf("fw_version:  %02d.%02d.%02d\n",
+-		       gi->fw_info.major, gi->fw_info.minor,
+-		       gi->fw_info.sub_minor);
+-		printf("fw_build_id: 0x%04x\n", ntohl(gi->fw_info.build_id));
+-		printf("fw_date:     %02d/%02d/%04x\n",
+-		       gi->fw_info.month, gi->fw_info.day,
+-		       ntohs(gi->fw_info.year));
+-		printf("fw_psid:     '%s'\n", gi->fw_info.psid);
++		       fw_ver_major, fw_ver_minor, fw_ver_sub_minor);
++		printf("fw_build_id: 0x%04x\n", ntohl(gi_is3->fw_info.build_id));
++		printf("fw_date:     %02x/%02x/%04x\n",
++		       gi_is3->fw_info.month, gi_is3->fw_info.day,
++		       ntohs(gi_is3->fw_info.year));
++		printf("fw_psid:     '%s'\n", gi_is3->fw_info.psid);
+ 		printf("fw_ini_ver:  %d\n",
+-		       ntohl(gi->fw_info.ini_file_version));
+-		printf("sw_version:  %02d.%02d.%02d\n", gi->sw_info.major,
+-		       gi->sw_info.minor, gi->sw_info.sub_minor);
++		       ntohl(gi_is3->fw_info.ini_file_version));
++		printf("sw_version:  %02d.%02d.%02d\n", gi_is3->sw_info.major,
++		       gi_is3->sw_info.minor, gi_is3->sw_info.sub_minor);
+ 	}
+ 
+ 	if (xmit_wait) {
+ 		is3_config_space_t *cs;
+ 		unsigned i;
+ 
+-		if (ntohs(gi->hw_info.device_id) != IS3_DEVICE_ID)
++		if (ntohs(gi_is3->hw_info.device_id) != IS3_DEVICE_ID)
+ 			IBERROR("Unsupported device ID 0x%x",
+-				ntohs(gi->hw_info.device_id));
++				ntohs(gi_is3->hw_info.device_id));
+ 
+ 		memset(&buf, 0, sizeof(buf));
+ 		/* Set record addresses for each port */
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
