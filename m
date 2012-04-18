@@ -1,60 +1,53 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: preserve long_opts global for use in
- ibdiag_show_usage
-Date: Tue, 17 Apr 2012 11:01:25 -0700
-Message-ID: <20120417110125.7980ff8b.weiny2@llnl.gov>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: Infiniband stack allows references to freed memory
+Date: Tue, 17 Apr 2012 23:04:18 -0400 (EDT)
+Message-ID: <20120417.230418.1898458010494189728.davem@davemloft.net>
+References: <CAG4TOxN75jXze4iy_nCBO1vwqvXnwKcqbAFAEFR=n-PdiG4moA@mail.gmail.com>
+	<20120201.202128.703330634975191244.davem@davemloft.net>
+	<4F8D23A0.7000109@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4F8D23A0.7000109-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Tue, 17 Apr 2012 11:02:40 +0300
 
-	Calling ibdiag_show_usage after ibdiag_process_opts will result in
-	using free'd memory.
+> Dave, as for the conversion to dst_neigh_lookup, looking on net-next,
+> I see about 30 hits for dst_get_neighbour_noref vs 13 hits for
+> dst_neigh_lookup, so I wasn't sure about your comment re the ipoib
+> conversion being what actually remains to make that change happen, can
+> you elaborate here a little further?
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- src/ibdiag_common.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+It is the only major instance that I don't personally have plans for
+a dst_neigh_lookup() conversion.
 
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index 5752f95..d53398b 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -74,7 +74,7 @@ uint32_t ibd_ibnetdisc_flags = IBND_CONFIG_MLX_EPI;
- static const char *prog_name;
- static const char *prog_args;
- static const char **prog_examples;
--static struct option *long_opts;
-+static struct option *long_opts = NULL;
- static const struct ibdiag_opt *opts_map[256];
- 
- const static char *get_build_version(void)
-@@ -357,6 +357,9 @@ int ibdiag_process_opts(int argc, char *const argv[], void *cxt,
- 	prog_args = usage_args;
- 	prog_examples = usage_examples;
- 
-+	if (long_opts)
-+		free(long_opts);
-+
- 	long_opts = make_long_opts(exclude_common_str, custom_opts, opts_map);
- 	if (!long_opts)
- 		return -1;
-@@ -380,8 +383,6 @@ int ibdiag_process_opts(int argc, char *const argv[], void *cxt,
- 			ibdiag_show_usage();
- 	}
- 
--	free(long_opts);
--
- 	return 0;
- }
- 
--- 
-1.7.1
+I can't do some of those transformations to dst_neigh_lookup() in
+net/ipv4 and net/ipv6 until the others are out of the way.
 
+> Also, if ipoib moves to use that api, you made a comment that it will
+> have a reference on the neighbour which will need to be released. I
+> took a look on the net/atm use case which should to some extent be
+> similar to ipoib, I see that neigh_release is called for neighbours
+> retrieved by that API, okay.
+
+Right.
+
+> Just for the sake of example, does the atm code free from the races
+> you mention re ipoib? I see that it does stick its own object on the
+> neighbour through the priv pointer but wasn't sure if it helps in that
+> respect without further RCU-ing things.
+
+I haven't audited ATM for races of any kind, and I have no plans to
+do so, sorry.
+
+Please, I did fully audit and analyze the IPoIB case, so please use
+one of the approaches suggsted.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
