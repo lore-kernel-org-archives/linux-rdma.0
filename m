@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDS: correct ib api use with sg_dma_address/sg_dma_len
-Date: Thu, 19 Apr 2012 12:15:17 -0400
-Message-ID: <20120419161517.713.76674.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH] RDS: suppress incompatible protocol when version is known
+Date: Thu, 19 Apr 2012 12:15:29 -0400
+Message-ID: <20120419161529.744.17527.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -13,44 +13,36 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-0b088e00 ("RDS: Use page_remainder_alloc() for recv bufs")
-added uses of sg_dma_len() and sg_dma_address().
-
-IB ulps should use ib_sg_dma_len() and ib_sg_dma_address
-respectively since some HCAs overload ib_sg_dma* operations.
+Add an else to only print the incompatible protocol message
+when version hasn't been established.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- net/rds/ib_recv.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ net/rds/ib_cm.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index 8d19491..cd44ed3 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -339,8 +339,8 @@ static int rds_ib_recv_refill_one(struct rds_connection *conn,
- 	sge->length = sizeof(struct rds_header);
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index a1e1162..31b74f5 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -434,12 +434,11 @@ static u32 rds_ib_protocol_compatible(struct rdma_cm_event *event)
+ 		version = RDS_PROTOCOL_3_0;
+ 		while ((common >>= 1) != 0)
+ 			version++;
+-	}
+-	printk_ratelimited(KERN_NOTICE "RDS: Connection from %pI4 using "
+-			"incompatible protocol version %u.%u\n",
+-			&dp->dp_saddr,
+-			dp->dp_protocol_major,
+-			dp->dp_protocol_minor);
++	} else
++		printk_ratelimited(KERN_NOTICE "RDS: Connection from %pI4 using incompatible protocol version %u.%u\n",
++				&dp->dp_saddr,
++				dp->dp_protocol_major,
++				dp->dp_protocol_minor);
+ 	return version;
+ }
  
- 	sge = &recv->r_sge[1];
--	sge->addr = sg_dma_address(&recv->r_frag->f_sg);
--	sge->length = sg_dma_len(&recv->r_frag->f_sg);
-+	sge->addr = ib_sg_dma_address(ic->i_cm_id->device, &recv->r_frag->f_sg);
-+	sge->length = ib_sg_dma_len(ic->i_cm_id->device, &recv->r_frag->f_sg);
- 
- 	ret = 0;
- out:
-@@ -381,7 +381,10 @@ void rds_ib_recv_refill(struct rds_connection *conn, int prefill)
- 		ret = ib_post_recv(ic->i_cm_id->qp, &recv->r_wr, &failed_wr);
- 		rdsdebug("recv %p ibinc %p page %p addr %lu ret %d\n", recv,
- 			 recv->r_ibinc, sg_page(&recv->r_frag->f_sg),
--			 (long) sg_dma_address(&recv->r_frag->f_sg), ret);
-+			 (long) ib_sg_dma_address(
-+				ic->i_cm_id->device,
-+				&recv->r_frag->f_sg),
-+			ret);
- 		if (ret) {
- 			rds_ib_conn_error(conn, "recv post on "
- 			       "%pI4 returned %d, disconnecting and "
 
 
 --
