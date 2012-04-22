@@ -1,31 +1,28 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 01/15] ib_srp: Enlarge block layer timeout
-Date: Sun, 22 Apr 2012 16:01:56 +0000
-Message-ID: <4F942B74.4040106@acm.org>
-References: <5207288.nSt5MkVMpO@asus> <1385797.u8D4MDGaaX@asus> <20120329165931.GA19700@ornl.gov>
+From: Daniel Ng <daniel.ng1234-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: How to use IB netlink infrastructure
+Date: Sun, 22 Apr 2012 23:54:30 +0000 (UTC)
+Message-ID: <loom.20120423T015347-107@post.gmane.org>
+References: <loom.20120418T090823-45@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120329165931.GA19700-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/29/12 16:59, Dave Dillow wrote:
+Hi,
 
-> [ ... ]
-> 
-> I haven't chewed on the rest yet, but would like to see this one at
-> least in 3.4 if possible.
+It's been a few days since I posted this question,
+but I've had no responses so far.
 
-Hi Dave,
+Can anyone help please?
 
-If you have further comments about any of the patches in this series,
-these are welcome. The 3.5 merge window isn't that far away anymore.
+If I'm asking on the wrong list, please suggest an alternative one.
 
-Bart.
+Cheers,
+Daniel
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
