@@ -1,14 +1,13 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] opensm/osm_state_mgr.c: Cosmetic change to log
- message
-Date: Sun, 22 Apr 2012 14:44:24 +0300
-Message-ID: <20120422114424.GA9412@calypso>
-References: <4F8AEFAD.8060504@dev.mellanox.co.il>
+Subject: Re: [PATCH][MINOR] opensm: Add additional IBM vendor ID/OUI
+Date: Sun, 22 Apr 2012 14:45:10 +0300
+Message-ID: <20120422114510.GB9412@calypso>
+References: <4F8D58D5.9060809@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4F8AEFAD.8060504-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4F8D58D5.9060809-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -16,9 +15,7 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 11:56 Sun 15 Apr     , Hal Rosenstock wrote:
-> 
-> It's been quite a while since QoS setup was completed here
+On 07:49 Tue 17 Apr     , Hal Rosenstock wrote:
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
