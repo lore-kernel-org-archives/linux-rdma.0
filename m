@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 08/15] uDAPL v2.0 ucm: UD send failures at scale, ucm_send
- ERR: get_smsg(hd=149,tl=150)
-Date: Mon, 23 Apr 2012 20:01:01 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F948120272@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 05/15] uDAPL v2.0 cma, scm, ucm: allow EP (QP) creation
+ without EVD (CQ)
+Date: Mon, 23 Apr 2012 20:00:55 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F948120257@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,84 +13,113 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Full sendq should retry polling completions instead of failing.
-When sendq is full and all requests are pending the get send message
-code should retry polling for completions and not return error on first
-empty CQ attempt. Give HCA a chance to complete some batched requests.
-Also, clean up the send message error logging.
+Provide ability to create a EP/QP with no EVD/CQ on either the
+request or receive queue. The current implementation allows on
+receive queue but not request queue. Not all ofa devices support
+a null CQ so if necessary create a dummy CQ at the time of
+QP creation. Also, if no CQ is specified set appropriate QP
+max wr/sge attributes to zero.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_ucm/cm.c |   26 +++++++++++++++-----------
- 1 files changed, 15 insertions(+), 11 deletions(-)
+ dapl/openib_common/qp.c |   41 +++++++++++++++++------------------------
+ 1 files changed, 17 insertions(+), 24 deletions(-)
 
-diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
-index 39ef28d..6b5867a 100644
---- a/dapl/openib_ucm/cm.c
-+++ b/dapl/openib_ucm/cm.c
-@@ -234,38 +234,42 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
- static ib_cm_msg_t *ucm_get_smsg(ib_hca_transport_t *tp)
- {
- 	ib_cm_msg_t *msg = NULL; 
--	int ret, polled = 0, hd = tp->s_hd;
-+	int ret, polled = 1, hd = tp->s_hd;
+diff --git a/dapl/openib_common/qp.c b/dapl/openib_common/qp.c
+index 94bb1ed..16ce594 100644
+--- a/dapl/openib_common/qp.c
++++ b/dapl/openib_common/qp.c
+@@ -79,29 +79,30 @@ dapls_ib_qp_alloc(IN DAPL_IA * ia_ptr,
+ 	 * Create a CQ with zero entries under the covers to support and 
+ 	 * catch any invalid posting. 
+ 	 */
+-	if (rcv_evd != DAT_HANDLE_NULL)
+-		rcv_cq = rcv_evd->ib_cq_handle;
+-	else if (!ia_ptr->hca_ptr->ib_trans.ib_cq_empty)
+-		rcv_cq = ia_ptr->hca_ptr->ib_trans.ib_cq_empty;
+-	else {
++	if ((!rcv_evd || !req_evd) && !ia_ptr->hca_ptr->ib_trans.ib_cq_empty) {
+ 		struct ibv_comp_channel *channel;
  
- 	hd++;
+ 		channel = ibv_create_comp_channel(ia_ptr->hca_ptr->ib_hca_handle);
+ 		if (!channel)
+-			return (dapl_convert_errno(ENOMEM, "create_cq"));
++			return (dapl_convert_errno(ENOMEM, "create_cq_chan"));
+ 		  
+ 		/* Call IB verbs to create CQ */
+ 		rcv_cq = ibv_create_cq(ia_ptr->hca_ptr->ib_hca_handle,
+-				       0, NULL, channel, 0);
++				       1, NULL, channel, 0);
  
- 	if (hd == tp->qpe)
- 		hd = 0;
- retry:
--	if (hd == tp->s_tl)
-+	if (hd == tp->s_tl) {
- 		msg = NULL;
-+		if (polled % 1000000 == 0)
-+			dapl_log(DAPL_DBG_TYPE_WARN,
-+				 " ucm_get_smsg: FULLq hd %d == tl %d,"
-+				 " completions stalled, polls=%d\n",
-+				 hd, tp->s_tl, polled);
-+	}
- 	else {
- 		msg = &tp->sbuf[hd];
- 		tp->s_hd = hd; /* new hd */
- 	}
- 
- 	/* if empty, process some completions */
--	if ((msg == NULL) && (!polled)) {
-+	if (msg == NULL) {
- 		struct ibv_wc wc;
- 
- 		/* process completions, based on UCM_TX_BURST */
- 		ret = ibv_poll_cq(tp->scq, 1, &wc);
- 		if (ret < 0) {
- 			dapl_log(DAPL_DBG_TYPE_WARN,
--				" get_smsg: cq %p %s\n", 
-+				" get_smsg: cq %p %s\n",
- 				tp->scq, strerror(errno));
-+			return NULL;
+ 		if (rcv_cq == IB_INVALID_HANDLE) {
+ 			ibv_destroy_comp_channel(channel);
+ 			return (dapl_convert_errno(ENOMEM, "create_cq"));
  		}
- 		/* free up completed sends, update tail */
--		if (ret > 0) {
-+		if (ret > 0)
- 			tp->s_tl = (int)wc.wr_id;
--			dapl_log(DAPL_DBG_TYPE_CM,
--				" get_smsg: wr_cmp (%d) s_tl=%d\n", 
--				wc.status, tp->s_tl);
--		}
-+
- 		polled++;
- 		goto retry;
+-
+ 		ia_ptr->hca_ptr->ib_trans.ib_cq_empty = rcv_cq;
  	}
-@@ -1000,8 +1004,8 @@ dapli_cm_connect(DAPL_EP *ep, dp_ib_cm_handle_t cm)
+-	if (req_evd != DAT_HANDLE_NULL)
++
++	if (rcv_evd)
++		rcv_cq = rcv_evd->ib_cq_handle;
++	else
++		rcv_cq = ia_ptr->hca_ptr->ib_trans.ib_cq_empty;
++
++	if (req_evd)
+ 		req_cq = req_evd->ib_cq_handle;
+ 	else
+ 		req_cq = ia_ptr->hca_ptr->ib_trans.ib_cq_empty;
+@@ -133,9 +134,12 @@ dapls_ib_qp_alloc(IN DAPL_IA * ia_ptr,
+ #endif
+ 	/* Setup attributes and create qp */
+ 	dapl_os_memzero((void *)&qp_create, sizeof(qp_create));
++	qp_create.recv_cq = rcv_cq;
++	qp_create.cap.max_recv_wr = rcv_evd ? attr->max_recv_dtos:0;
++	qp_create.cap.max_recv_sge = rcv_evd ? attr->max_recv_iov:0;
+ 	qp_create.send_cq = req_cq;
+-	qp_create.cap.max_send_wr = attr->max_request_dtos;
+-	qp_create.cap.max_send_sge = attr->max_request_iov;
++	qp_create.cap.max_send_wr = req_evd ? attr->max_request_dtos:0;
++	qp_create.cap.max_send_sge = req_evd ? attr->max_request_iov:0;
+ 	qp_create.cap.max_inline_data =
+ 	    ia_ptr->hca_ptr->ib_trans.max_inline_send;
+ 	qp_create.qp_type = IBV_QPT_RC;
+@@ -153,17 +157,6 @@ dapls_ib_qp_alloc(IN DAPL_IA * ia_ptr,
+ 		}
+ 	}
+ #endif
+-	
+-	/* ibv assumes rcv_cq is never NULL, set to req_cq */
+-	if (rcv_cq == NULL) {
+-		qp_create.recv_cq = req_cq;
+-		qp_create.cap.max_recv_wr = 0;
+-		qp_create.cap.max_recv_sge = 0;
+-	} else {
+-		qp_create.recv_cq = rcv_cq;
+-		qp_create.cap.max_recv_wr = attr->max_recv_dtos;
+-		qp_create.cap.max_recv_sge = attr->max_recv_iov;
+-	}
  
- bail:
- 	dapl_log(DAPL_DBG_TYPE_WARN, 
--		 " connect: ERR %s -> cm_lid %x cm_qpn %x r_psp %x p_sz=%d\n",
--		 strerror(errno), htons(cm->msg.daddr.ib.lid), 
-+		 " connect: snd ERR -> cm_lid %x cm_qpn %x r_psp %x p_sz=%d\n",
-+		 htons(cm->msg.daddr.ib.lid),
- 		 htonl(cm->msg.dqpn), htons(cm->msg.dport), 
- 		 htons(cm->msg.p_size));
- 
+ #ifdef _OPENIB_CMA_
+ 	if (rdma_create_qp(conn->cm_id, ib_pd_handle, &qp_create)) {
+@@ -178,7 +171,7 @@ dapls_ib_qp_alloc(IN DAPL_IA * ia_ptr,
+ 	ep_ptr->qp_handle = ibv_create_qp(ib_pd_handle, &qp_create);
+ 	if (!ep_ptr->qp_handle)
+ 		return (dapl_convert_errno(ENOMEM, "create_qp"));
+-		
++
+ 	/* Setup QP attributes for INIT state on the way out */
+ 	if (dapls_modify_qp_state(ep_ptr->qp_handle,
+ 				  IBV_QPS_INIT, 0, 0, 0) != DAT_SUCCESS) {
+@@ -188,7 +181,7 @@ dapls_ib_qp_alloc(IN DAPL_IA * ia_ptr,
+ 	}
+ #endif
+ 	dapl_dbg_log(DAPL_DBG_TYPE_EP,
+-		     " qp_alloc: qpn %p type %d sq %d,%d rq %d,%d\n",
++		     " qp_alloc: qpn 0x%x type %d sq %d,%d rq %d,%d\n",
+ 		     ep_ptr->qp_handle->qp_num, ep_ptr->qp_handle->qp_type,
+ 		     qp_create.cap.max_send_wr, qp_create.cap.max_send_sge,
+ 		     qp_create.cap.max_recv_wr, qp_create.cap.max_recv_sge);
 -- 
 1.7.3
 
