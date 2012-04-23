@@ -1,96 +1,83 @@
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] [TRIVIAL] ibacm: security fix: replace sprintf with snprintf
-Date: Mon, 23 Apr 2012 08:41:23 +0300
-Message-ID: <201204230841.23270.dotanb@sw.voltaire.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH fixes] IB/core: fix generation of unmatched responses for unhandled MADs
+Date: Mon, 23 Apr 2012 18:20:13 +0300
+Message-ID: <1335194413-27436-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Replace sprintf with snprintf to protects from buffer overflow.
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Commit 0b307043049f34211affdde46f82e7abbe8c4590 "IB/mad: Return 
+error response for unsupported MADs" introduced two problems:
+
+1. If the "unsupported" MAD is a Directed-route get/set, it fails
+   to set the "D" bit in the response MAD status field. This is
+   a problem for SM_INFO MADs when the receiver does not have
+   an SM running.
+
+2. It sends out automatic error responses for failed get/set MADs
+   (e.g., for MADs which return IB_MAD_RETURN_FAILURE).
+   These MADs should be silently discarded. (We should not force
+   the lower-layer drivers to return SUCCESS | CONSUMED in this
+   case, since the MAD is NOT successful).
+   Note that unsupported MADs are not failures -- they return
+   SUCCESS, but with an "unsupported error" status value inside
+   the response MAD.
+
+This patch fixes these two problems.
+
+CC: Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Found-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- linux/acme_linux.c |    4 ++--
- src/acm.c          |    6 +++---
- src/parse.c        |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/mad.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/linux/acme_linux.c b/linux/acme_linux.c
-index 9477d29..1039645 100644
---- a/linux/acme_linux.c
-+++ b/linux/acme_linux.c
-@@ -53,7 +53,7 @@ get_pkey(struct ifreq *ifreq, uint16_t *pkey)
- 	FILE *f;
- 	int ret;
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 426bb76..d4b1ba7 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1854,6 +1854,8 @@ static bool generate_unmatched_resp(struct ib_mad_private *recv,
+ 		response->mad.mad.mad_hdr.method = IB_MGMT_METHOD_GET_RESP;
+ 		response->mad.mad.mad_hdr.status =
+ 			cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB);
++		if (recv->mad.mad.mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
++			response->mad.mad.mad_hdr.status |= IB_SMP_DIRECTION;
  
--	sprintf(buf, "//sys//class//net//%s//pkey", ifreq->ifr_name);
-+	snprintf(buf, sizeof buf, "//sys//class//net//%s//pkey", ifreq->ifr_name);
- 	f = fopen(buf, "r");
- 	if (!f) {
- 		printf("failed to open %s\n", buf);
-@@ -79,7 +79,7 @@ get_sgid(struct ifreq *ifr, union ibv_gid *sgid)
- 	FILE *f;
- 	int i, p, ret;
+ 		return true;
+ 	} else {
+@@ -1869,6 +1871,7 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ 	struct ib_mad_list_head *mad_list;
+ 	struct ib_mad_agent_private *mad_agent;
+ 	int port_num;
++	int ret = IB_MAD_RESULT_SUCCESS;
  
--	sprintf(buf, "//sys//class//net//%s//address", ifr->ifr_name);
-+	snprintf(buf, sizeof buf, "//sys//class//net//%s//address", ifr->ifr_name);
- 	f = fopen(buf, "r");
- 	if (!f) {
- 		printf("failed to open %s\n", buf);
-diff --git a/src/acm.c b/src/acm.c
-index 099e84e..376f294 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -268,7 +268,7 @@ acm_format_name(int level, char *name, size_t name_size,
- 	case ACM_EP_INFO_PATH:
- 		path = (struct ibv_path_record *) addr;
- 		if (path->dlid) {
--			sprintf(name, "SLID(%u) DLID(%u)",
-+			snprintf(name, name_size, "SLID(%u) DLID(%u)",
- 				ntohs(path->slid), ntohs(path->dlid));
- 		} else {
- 			acm_format_name(level, name, name_size, ACM_ADDRESS_GID,
-@@ -276,7 +276,7 @@ acm_format_name(int level, char *name, size_t name_size,
- 		}
- 		break;
- 	case ACM_ADDRESS_LID:
--		sprintf(name, "LID(%u)", ntohs(*((uint16_t *) addr)));
-+		snprintf(name, name_size, "LID(%u)", ntohs(*((uint16_t *) addr)));
- 		break;
- 	default:
- 		strcpy(name, "Unknown");
-@@ -3125,7 +3125,7 @@ static int acm_open_lock_file(void)
- 		return -1;
+ 	mad_list = (struct ib_mad_list_head *)(unsigned long)wc->wr_id;
+ 	qp_info = mad_list->mad_queue->qp_info;
+@@ -1952,7 +1955,6 @@ static void ib_mad_recv_done_handler(struct ib_mad_port_private *port_priv,
+ local:
+ 	/* Give driver "right of first refusal" on incoming MAD */
+ 	if (port_priv->device->process_mad) {
+-		int ret;
+ 
+ 		ret = port_priv->device->process_mad(port_priv->device, 0,
+ 						     port_priv->port_num,
+@@ -1981,7 +1983,8 @@ local:
+ 		 * or via recv_handler in ib_mad_complete_recv()
+ 		 */
+ 		recv = NULL;
+-	} else if (generate_unmatched_resp(recv, response)) {
++	} else if ((ret & IB_MAD_RESULT_SUCCESS) &&
++		   generate_unmatched_resp(recv, response)) {
+ 		agent_send_response(&response->mad.mad, &recv->grh, wc,
+ 				    port_priv->device, port_num, qp_info->qp->qp_num);
  	}
- 
--	sprintf(pid, "%d\n", getpid());
-+	snprintf(pid, sizeof pid, "%d\n", getpid());
- 	write(lock_fd, pid, strlen(pid));
- 	return 0;
- }
-diff --git a/src/parse.c b/src/parse.c
-index 9a01afb..83ce843 100644
---- a/src/parse.c
-+++ b/src/parse.c
-@@ -52,7 +52,7 @@ static char *expand(char *basename, char *args, int *str_cnt, int *str_size)
- 		}
- 
- 		while (from <= to) {
--			sprintf(buf, "%s%0*d", basename, width, from);
-+			snprintf(buf, sizeof buf, "%s%0*d", basename, width, from);
- 			str_buf = realloc(str_buf, size + strlen(buf)+1);
- 			strcpy(&str_buf[size], buf);
- 
 -- 
-1.7.8.2
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
