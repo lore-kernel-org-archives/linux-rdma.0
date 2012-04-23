@@ -1,54 +1,65 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 14/15] uDAPL v2.0 config: clean up help option displays with
- ext-type options
-Date: Mon, 23 Apr 2012 20:01:16 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F9481202C5@ORSMSX101.amr.corp.intel.com>
+Subject: [ANNOUNCE] dapl-2.0.35
+Date: Mon, 23 Apr 2012 23:29:25 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F9481203F3@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use AS_HELP_STRING to format help text
+New release for v2.0 (2.0.35) available at http://www.openfabrics.org/downloads/dapl
 
-Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- configure.in |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Vlad, please pull into current OFED 3.2 RC. 
 
-diff --git a/configure.in b/configure.in
-index d577525..832574f 100644
---- a/configure.in
-+++ b/configure.in
-@@ -116,8 +116,8 @@ AC_ARG_ENABLE([counters],
- AM_CONDITIONAL(DEFINE_COUNTERS, test x$counters = xtrue)
+Thanks, Arlin
+
+----------------
+
+Latest Packages (see ChangeLog for recent changes):
+
+ md5sum: ff01d9fbae488e849472d00d6fb14a43 dapl-2.0.35.tar.gz 
+
+For 2.0 support, including development, install RPM packages as follow: 
+  dapl-2.0.35-1 
+  dapl-utils-2.0.35-1 
+  dapl-devel-2.0.35-1 
+  dapl-debuginfo-2.0.35-1 
  
- dnl Support ib_extension build - if enable-ext-type == ib 
--AC_ARG_ENABLE(ext-type,
--[  --enable-ext-type Enable extensions support for library: ib, none, default=ib],
-+AC_ARG_ENABLE([ext-type],
-+ AS_HELP_STRING([--enable-ext-type],[enable extensions support for library: ib, none, default=ib]),
-  [ if   test "x$enableval" = "xib" ; then
-       ext_type=ib
-    elif test "x$enableval" = "xnone" ; then
-@@ -132,8 +132,8 @@ AC_ARG_ENABLE(ext-type,
- AM_CONDITIONAL(EXT_TYPE_IB, test "$ext_type" = "ib")
+Release 2.0.35 fixes (OFED 3.2 RC): 
  
- dnl Support IB MPI collective extension build - if enable-coll-type == vendor_name 
--AC_ARG_ENABLE(coll-type,
--[  --enable-coll-type Enable IB collective support: fca, none, default=fca],
-+AC_ARG_ENABLE([coll-type],
-+ AS_HELP_STRING([--enable-coll-type],[enable IB collective support: fca, none, default=fca]),
-  [ if   test "x$enableval" = "xfca" ; then
-       coll_type=fca
-       AC_CHECK_HEADER(fca/fca_api.h, [],
--- 
-1.7.3
-
+* config/build: remove post/postun hacking used to modify dat.conf 
+* config: clean up help option displays with ext-type options 
+* windows: Provide auto-detect between RoCE and Infiniband for Windows. 
+* ucm: update UD cm provider to support new CM stat and error counters 
+* scm: update socket cm provider to support new CM stat and error counters 
+* commom: add cm, link, and diag event counters in IB extended builds 
+* scm: use ioctl SIOCIFCONF to get complete list of configured netdev interfaces 
+* ucm: UD send failures at scale, ucm_send ERR: get_smsg(hd=149,tl=150) 
+* scm: fix retry count on connection pending timeout 
+* ucm: cleanup debug message, ntohl on p_size is incorrect 
+* cma, scm, ucm: allow EP (QP) creation without EVD (CQ) 
+* common: add DAPL_DBG_TYPE_CM_STATS (0x40000) to debug log options 
+* common: dapls_ep_flush_cq will segfault when no CQ is attached to EP 
+* common: ep_create should allow max_request_iov attribute setting of zero 
+* common: add check for NULL handle on ext calls, SRQ free, and helper functions 
+* common: add missing sub-types to dat_strerror() 
+* common: extended CR event processing missing rejects on errors 
+* ucm: incorrectly sends user reject during CR callback errors 
+* common: change dbg level on CR callback if not listening on SP 
+* scm: incorrectly sends user reject during CR callback errors 
+* dat: add check for NULL handle on IA calls 
+* cma,scm,ucm: extra reference on EP, with RSP, causes dat_ep_free() to hang 
+* common: RSP service points incorrectly freed during CR callback 
+* common: clean up dat_rsp_create log message 
+* common: cleanup debug message on EVD overflows 
+* scm: return correct event error code when remote host refuses requests 
+* dapltest: server CR EVD is too small for multi-client configurations. 
+* Common: CR EVD overflow causes segfault. 
 
 
 --
