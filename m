@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 02/15] uDAPL v2.0 common: ep_create should allow
- max_request_iov attribute setting of zero
-Date: Mon, 23 Apr 2012 20:00:47 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F94812023C@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 01/15] uDAPL v2.0 common: add check for NULL handle on ext
+ calls, SRQ free, and helper functions
+Date: Mon, 23 Apr 2012 20:00:39 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F948120232@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,29 +13,102 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When creating an EP without a request EVD (cq) the max_request_iov
-and max_request_sge will be 0. Allow this combination when checking
-attribute settings for ARG6.
+Series of bug fixes, package cleanup, and debug counters.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/common/dapl_ep_create.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ dat/common/dat_api.c |   29 ++++++++++++++++++++++++++---
+ 1 files changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/dapl/common/dapl_ep_create.c b/dapl/common/dapl_ep_create.c
-index e154b8d..c7dedde 100644
---- a/dapl/common/dapl_ep_create.c
-+++ b/dapl/common/dapl_ep_create.c
-@@ -171,7 +171,8 @@ dapl_ep_create(IN DAT_IA_HANDLE ia_handle,
- 					   && ep_attr->max_request_dtos == 0)
- 				       || (recv_evd_handle != DAT_HANDLE_NULL
- 					   && ep_attr->max_recv_iov == 0)
--				       || ep_attr->max_request_iov == 0
-+				       || (request_evd_handle == DAT_HANDLE_NULL
-+					   && ep_attr->max_request_iov != 0)
- 				       || (DAT_SUCCESS !=
- 					   dapl_ep_check_recv_completion_flags
- 					   (ep_attr->recv_completion_flags)))) {
+diff --git a/dat/common/dat_api.c b/dat/common/dat_api.c
+index f53ead7..50ffa2c 100755
+--- a/dat/common/dat_api.c
++++ b/dat/common/dat_api.c
+@@ -292,6 +292,11 @@ DAT_RETURN DAT_API dat_ia_query(IN DAT_IA_HANDLE ia_handle,
+ DAT_RETURN DAT_API dat_set_consumer_context(IN DAT_HANDLE dat_handle,
+ 					    IN DAT_CONTEXT context)
+ {
++	if (dat_handle == NULL) {
++		return DAT_ERROR(DAT_INVALID_HANDLE,
++				 DAT_INVALID_HANDLE1);
++	}
++
+ 	if (dats_is_ia_handle(dat_handle)) {
+ 		DAT_IA_HANDLE dapl_ia_handle;
+ 		DAT_RETURN dat_status;
+@@ -301,7 +306,7 @@ DAT_RETURN DAT_API dat_set_consumer_context(IN DAT_HANDLE dat_handle,
+ 
+ 		/* failure to map the handle is unlikely but possible */
+ 		/* in a mult-threaded environment                     */
+-		if (DAT_SUCCESS == dat_status) {
++		if (DAT_SUCCESS != dat_status) {
+ 			return DAT_ERROR(DAT_INVALID_HANDLE,
+ 					 DAT_INVALID_HANDLE1);
+ 		}
+@@ -315,6 +320,11 @@ DAT_RETURN DAT_API dat_set_consumer_context(IN DAT_HANDLE dat_handle,
+ DAT_RETURN DAT_API dat_get_consumer_context(IN DAT_HANDLE dat_handle,
+ 					    OUT DAT_CONTEXT * context)
+ {
++	if (dat_handle == NULL) {
++		return DAT_ERROR(DAT_INVALID_HANDLE,
++				 DAT_INVALID_HANDLE1);
++	}
++
+ 	if (dats_is_ia_handle(dat_handle)) {
+ 		DAT_IA_HANDLE dapl_ia_handle;
+ 		DAT_RETURN dat_status;
+@@ -324,7 +334,7 @@ DAT_RETURN DAT_API dat_get_consumer_context(IN DAT_HANDLE dat_handle,
+ 
+ 		/* failure to map the handle is unlikely but possible */
+ 		/* in a mult-threaded environment                     */
+-		if (DAT_SUCCESS == dat_status) {
++		if (DAT_SUCCESS != dat_status) {
+ 			return DAT_ERROR(DAT_INVALID_HANDLE,
+ 					 DAT_INVALID_HANDLE1);
+ 		}
+@@ -338,6 +348,11 @@ DAT_RETURN DAT_API dat_get_consumer_context(IN DAT_HANDLE dat_handle,
+ DAT_RETURN DAT_API dat_get_handle_type(IN DAT_HANDLE dat_handle,
+ 				       OUT DAT_HANDLE_TYPE * type)
+ {
++	if (dat_handle == NULL) {
++		return DAT_ERROR(DAT_INVALID_HANDLE,
++				 DAT_INVALID_HANDLE1);
++	}
++
+ 	if (dats_is_ia_handle(dat_handle)) {
+ 		DAT_IA_HANDLE dapl_ia_handle;
+ 		DAT_RETURN dat_status;
+@@ -347,7 +362,7 @@ DAT_RETURN DAT_API dat_get_handle_type(IN DAT_HANDLE dat_handle,
+ 
+ 		/* failure to map the handle is unlikely but possible */
+ 		/* in a mult-threaded environment                     */
+-		if (DAT_SUCCESS == dat_status) {
++		if (DAT_SUCCESS != dat_status) {
+ 			return DAT_ERROR(DAT_INVALID_HANDLE,
+ 					 DAT_INVALID_HANDLE1);
+ 		}
+@@ -1009,6 +1024,9 @@ DAT_RETURN DAT_API dat_srq_create(IN DAT_IA_HANDLE ia_handle,
+ 
+ DAT_RETURN DAT_API dat_srq_free(IN DAT_SRQ_HANDLE srq_handle)
+ {
++	if (srq_handle == NULL) {
++		return DAT_ERROR(DAT_INVALID_HANDLE, DAT_INVALID_HANDLE_SRQ);
++	}
+ 	return DAT_SRQ_FREE(srq_handle);
+ }
+ 
+@@ -1063,6 +1081,11 @@ DAT_RETURN DAT_API dat_extension_op(IN DAT_HANDLE handle,
+ 	DAT_IA_HANDLE dapl_handle;
+ 	va_list args;
+ 
++	if (handle == NULL) {
++		return DAT_ERROR(DAT_INVALID_HANDLE,
++				 DAT_INVALID_HANDLE1);
++	}
++
+ 	/* If not IA handle then just passthrough */
+ 	if (dats_get_ia_handle(handle, &dapl_handle) != DAT_SUCCESS) {
+ 		dapl_handle = handle;
 -- 
 1.7.3
 
