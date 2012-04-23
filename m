@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 09/15] uDAPL v2.0 scm: use ioctl SIOCIFCONF to get complete
- list of configured netdev interfaces
-Date: Mon, 23 Apr 2012 20:01:03 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F94812027B@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 07/15] uDAPL v2.0 scm: fix retry count on connection pending
+ timeout
+Date: Mon, 23 Apr 2012 20:00:59 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F948120269@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,98 +13,64 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-replace usage of getaddrinfo since is doesnt actually return bound addresses
-and can return the loopback address in some configurations. Some
-systems may not have eth0 configured so you cannot assume eth0 as a non-loopback
-default netdev.
+Retry count not being decremented on connection TIMEOUT.
+Also, cleanup log messages on CONN and REP pending and
+add local port to output.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_common/util.c |   55 ++++++++++++++------------------------------
- 1 files changed, 18 insertions(+), 37 deletions(-)
+ dapl/openib_scm/cm.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/dapl/openib_common/util.c b/dapl/openib_common/util.c
-index 053c376..c118ca9 100644
---- a/dapl/openib_common/util.c
-+++ b/dapl/openib_common/util.c
-@@ -155,12 +155,11 @@ char *dapl_ib_mtu_str(enum ibv_mtu mtu)
- DAT_RETURN getlocalipaddr(char *addr, int addr_len)
- {
- 	struct sockaddr_in *sin;
--	struct addrinfo *res, hint, *ai;
--	int ret;
--	char hostname[256];
-+	int ret, skfd, i;
- 	char *netdev = getenv("DAPL_SCM_NETDEV");
-+	struct ifreq ifr[10];
-+	struct ifconf ifc;
+diff --git a/dapl/openib_scm/cm.c b/dapl/openib_scm/cm.c
+index a34965b..cac6a72 100644
+--- a/dapl/openib_scm/cm.c
++++ b/dapl/openib_scm/cm.c
+@@ -505,19 +505,18 @@ static void dapli_socket_connected(dp_ib_cm_handle_t cm_ptr, int err)
+ 	struct dapl_ep *ep_ptr = cm_ptr->ep;
  
--retry:
- 	/* use provided netdev instead of default hostname */
- 	if (netdev != NULL) {
- 		ret = getipaddr_netdev(netdev, addr, addr_len);
-@@ -174,46 +173,28 @@ retry:
- 			return DAT_SUCCESS;
- 	}
+ 	if (err) {
+-		dapl_log(DAPL_DBG_TYPE_WARN,
+-			 " CONN_REQUEST: %s ERR %s -> %s %d - %s %d\n",
++		dapl_log(DAPL_DBG_TYPE_CM_WARN,
++			 " CONN_PENDING: %s ERR %s -> %s PORT L-%x R-%x %s cnt=%d\n",
+ 			 err == -1 ? "POLL" : "SOCKOPT",
+ 			 err == -1 ? strerror(dapl_socket_errno()) : strerror(err), 
+-			 inet_ntoa(((struct sockaddr_in *)
+-				&cm_ptr->addr)->sin_addr), 
+-			 ntohs(((struct sockaddr_in *)
+-				&cm_ptr->addr)->sin_port),
++			 inet_ntoa(((struct sockaddr_in *)&cm_ptr->addr)->sin_addr),
++			 ntohs(((struct sockaddr_in *)&cm_ptr->msg.daddr.so)->sin_port),
++			 ntohs(((struct sockaddr_in *)&cm_ptr->addr)->sin_port),
+ 			 (err == ETIMEDOUT || err == ECONNREFUSED) ? 
+ 			 "RETRYING...":"ABORTING", cm_ptr->retry);
  
--	if (addr_len < sizeof(*sin)) {
-+	if (addr_len < sizeof(*sin))
- 		return DAT_INTERNAL_ERROR;
--	}
+ 		/* retry a timeout */
+-		if ((err == ETIMEDOUT) || (err == ECONNREFUSED && --cm_ptr->retry)) {
++		if (((err == ETIMEDOUT) || (err == ECONNREFUSED)) && --cm_ptr->retry) {
+ 			closesocket(cm_ptr->socket);
+ 			cm_ptr->socket = DAPL_INVALID_SOCKET;
+ 			dapli_socket_connect(cm_ptr->ep, (DAT_IA_ADDRESS_PTR)&cm_ptr->addr, 
+@@ -715,14 +714,15 @@ static void dapli_socket_connect_rtu(dp_ib_cm_handle_t cm_ptr)
+ 	len = recv(cm_ptr->socket, (char *)&cm_ptr->msg, exp, 0);
+ 	if (len != exp || ntohs(cm_ptr->msg.ver) < DCM_VER_MIN) {
+ 		int err = dapl_socket_errno();
+-		dapl_log(DAPL_DBG_TYPE_WARN,
+-			 " CONN_RTU read: sk %d ERR 0x%x, rcnt=%d, v=%d -> %s PORT L-%x R-%x PID L-%x R-%x\n",
++		dapl_log(DAPL_DBG_TYPE_CM_WARN,
++			 " CONN_REP_PENDING: sk %d ERR 0x%x, rcnt=%d, v=%d ->"
++			 " %s PORT L-%x R-%x PID L-%x R-%x %d\n",
+ 			 cm_ptr->socket, err, len, ntohs(cm_ptr->msg.ver),
+ 			 inet_ntoa(((struct sockaddr_in *)&cm_ptr->addr)->sin_addr),
+ 			 ntohs(((struct sockaddr_in *)&cm_ptr->msg.daddr.so)->sin_port),
+ 			 ntohs(((struct sockaddr_in *)&cm_ptr->addr)->sin_port),
+ 			 ntohs(*(uint16_t*)&cm_ptr->msg.resv[0]),
+-			 ntohs(*(uint16_t*)&cm_ptr->msg.resv[2]));
++			 ntohs(*(uint16_t*)&cm_ptr->msg.resv[2]),cm_ptr->retry);
  
--	ret = gethostname(hostname, 256);
-+	memset(&ifc,0,sizeof(ifc));
-+	ifc.ifc_buf = (char *)ifr;
-+	ifc.ifc_len = sizeof(ifr);
-+
-+	skfd = socket(PF_INET, SOCK_STREAM, 0);
-+	ret = ioctl(skfd, SIOCGIFCONF, &ifc);
- 	if (ret)
--		return dapl_convert_errno(ret, "gethostname");
--
--	memset(&hint, 0, sizeof hint);
--	hint.ai_flags = AI_PASSIVE;
--	hint.ai_family = AF_INET;
--	hint.ai_socktype = SOCK_STREAM;
--	hint.ai_protocol = IPPROTO_TCP;
--
--	ret = getaddrinfo(hostname, NULL, &hint, &res);
--	if (ret) {
--		dapl_log(DAPL_DBG_TYPE_ERR,
--			 " getaddrinfo ERR: %d %s\n", ret, gai_strerror(ret));
--		return DAT_INVALID_ADDRESS;
--	}
-+		goto bail;
- 
--	ret = DAT_INVALID_ADDRESS;
--	for (ai = res; ai; ai = ai->ai_next) {
--		sin = (struct sockaddr_in *)ai->ai_addr;
--		if (*((uint32_t *) & sin->sin_addr) != htonl(0x7f000001)) {
--			*((struct sockaddr_in *)addr) = *sin;
--			ret = DAT_SUCCESS;
-+	/* first non-loopback interface in list */
-+	for (i=0; i < ifc.ifc_len/sizeof(struct ifreq); i++) {
-+		if (strcmp(ifr[i].ifr_name, "lo"))
- 			break;
--		}
- 	}
-+	memcpy(addr, &ifr[i].ifr_addr, sizeof(struct sockaddr_in));
- 
--	freeaddrinfo(res);
--
--	/* only loopback found, retry netdev eth0 */
--	if (ret == DAT_INVALID_ADDRESS) {
--		netdev = "eth0";
--		goto retry;
--	}
--
--	return ret;
-+bail:
-+	close(skfd);
-+	return dapl_convert_errno(ret, "getlocalipaddr");
- }
- 
- /*
+ 		/* Retry; corner case where server tcp stack resets under load */
+ 		if (err == ECONNRESET && --cm_ptr->retry) {
 -- 
 1.7.3
 
