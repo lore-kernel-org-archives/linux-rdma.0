@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 03/15] uDAPL v2.0 common: dapls_ep_flush_cq will segfault
- when no CQ is attached to EP
-Date: Mon, 23 Apr 2012 20:00:50 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F948120245@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 06/15] uDAPL v2.0 ucm: cleanup debug message, ntohl on
+ p_size is incorrect
+Date: Mon, 23 Apr 2012 20:00:57 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F948120260@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,32 +13,26 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-add check for NULL request/receive EVD (cq) before flushing.
+private data size is a short, change to ntohs on log message
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/common/dapl_ep_util.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ dapl/openib_ucm/cm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/dapl/common/dapl_ep_util.c b/dapl/common/dapl_ep_util.c
-index 6646528..5133f59 100644
---- a/dapl/common/dapl_ep_util.c
-+++ b/dapl/common/dapl_ep_util.c
-@@ -620,9 +620,11 @@ static void dapli_ep_flush_evd(DAPL_EVD *evd_ptr)
+diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
+index 6efcad2..39ef28d 100644
+--- a/dapl/openib_ucm/cm.c
++++ b/dapl/openib_ucm/cm.c
+@@ -1003,7 +1003,7 @@ bail:
+ 		 " connect: ERR %s -> cm_lid %x cm_qpn %x r_psp %x p_sz=%d\n",
+ 		 strerror(errno), htons(cm->msg.daddr.ib.lid), 
+ 		 htonl(cm->msg.dqpn), htons(cm->msg.dport), 
+-		 htonl(cm->msg.p_size));
++		 htons(cm->msg.p_size));
  
- void dapls_ep_flush_cqs(DAPL_EP * ep_ptr)
- {
--	dapli_ep_flush_evd((DAPL_EVD *) ep_ptr->param.request_evd_handle);
--	while (dapls_cb_pending(&ep_ptr->recv_buffer))
--		dapli_ep_flush_evd((DAPL_EVD *) ep_ptr->param.recv_evd_handle);
-+	if (ep_ptr->param.request_evd_handle)
-+		dapli_ep_flush_evd((DAPL_EVD *) ep_ptr->param.request_evd_handle);
-+	if (ep_ptr->param.recv_evd_handle)
-+		while (dapls_cb_pending(&ep_ptr->recv_buffer))
-+			dapli_ep_flush_evd((DAPL_EVD *) ep_ptr->param.recv_evd_handle);
- }
- 
- /*
+ 	dapli_cm_free(cm);
+ 	return DAT_INSUFFICIENT_RESOURCES;
 -- 
 1.7.3
 
