@@ -1,66 +1,39 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] dapl-2.0.35
-Date: Mon, 23 Apr 2012 23:29:25 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F9481203F3@ORSMSX101.amr.corp.intel.com>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH V2 0/5] Mkey support in infiniband-diags
+Date: Mon, 23 Apr 2012 17:53:57 -0700
+Message-ID: <1335228837.17237.302.camel@auk75.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-New release for v2.0 (2.0.35) available at http://www.openfabrics.org/downloads/dapl
+     I am about to send version 2 of the mkey patches for
+infiniband-diags to the list.  Notable changes are:
 
-Vlad, please pull into current OFED 3.2 RC. 
+. both current mkey and new mkey (for ibportstate) may now be prompted
+for in addition to specified on the command line (ie, identical to
+saquery smkey support)
 
-Thanks, Arlin
+. mkey support touches (sadly, just a few) fewer files, due to SMP
+handling cleanups committed earlier
 
-----------------
+. saquery's smkey handling has been fixed to allow the return of
+authenticated SA data (this worked for only a few record types before)
 
-Latest Packages (see ChangeLog for recent changes):
+. config file chmod and mkey option patches have been split out
 
- md5sum: ff01d9fbae488e849472d00d6fb14a43 dapl-2.0.35.tar.gz 
+     I think this covers most/all of the comments received from V1, with
+the exception of the discussions surrounding multiple-mkey policies.
+Given that the diags likely should support operations with a
+single/specified mkey regardless of subnet policy, I think these patches
+get us closer to that goal without standing in the way of future
+discussions on how to get there.
 
-For 2.0 support, including development, install RPM packages as follow: 
-  dapl-2.0.35-1 
-  dapl-utils-2.0.35-1 
-  dapl-devel-2.0.35-1 
-  dapl-debuginfo-2.0.35-1 
- 
-Release 2.0.35 fixes (OFED 3.2 RC): 
- 
-* config/build: remove post/postun hacking used to modify dat.conf 
-* config: clean up help option displays with ext-type options 
-* windows: Provide auto-detect between RoCE and Infiniband for Windows. 
-* ucm: update UD cm provider to support new CM stat and error counters 
-* scm: update socket cm provider to support new CM stat and error counters 
-* commom: add cm, link, and diag event counters in IB extended builds 
-* scm: use ioctl SIOCIFCONF to get complete list of configured netdev interfaces 
-* ucm: UD send failures at scale, ucm_send ERR: get_smsg(hd=149,tl=150) 
-* scm: fix retry count on connection pending timeout 
-* ucm: cleanup debug message, ntohl on p_size is incorrect 
-* cma, scm, ucm: allow EP (QP) creation without EVD (CQ) 
-* common: add DAPL_DBG_TYPE_CM_STATS (0x40000) to debug log options 
-* common: dapls_ep_flush_cq will segfault when no CQ is attached to EP 
-* common: ep_create should allow max_request_iov attribute setting of zero 
-* common: add check for NULL handle on ext calls, SRQ free, and helper functions 
-* common: add missing sub-types to dat_strerror() 
-* common: extended CR event processing missing rejects on errors 
-* ucm: incorrectly sends user reject during CR callback errors 
-* common: change dbg level on CR callback if not listening on SP 
-* scm: incorrectly sends user reject during CR callback errors 
-* dat: add check for NULL handle on IA calls 
-* cma,scm,ucm: extra reference on EP, with RSP, causes dat_ep_free() to hang 
-* common: RSP service points incorrectly freed during CR callback 
-* common: clean up dat_rsp_create log message 
-* common: cleanup debug message on EVD overflows 
-* scm: return correct event error code when remote host refuses requests 
-* dapltest: server CR EVD is too small for multi-client configurations. 
-* Common: CR EVD overflow causes segfault. 
-
+     Jim
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
