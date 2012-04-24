@@ -1,106 +1,89 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: linux-next: manual merge of the net-next tree with the infiniband
- tree
-Date: Tue, 24 Apr 2012 12:06:11 +1000
-Message-ID: <20120424120611.cce0e2cdee61b60c700725a8@canb.auug.org.au>
+From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] libibverbs-xrc: Rename the attribute private -> private_data
+Date: Tue, 24 Apr 2012 09:13:59 +0300
+Message-ID: <201204240913.59380.dotanb@sw.voltaire.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Tue__24_Apr_2012_12_06_11_+1000_QBc0z=7ZcH=PXpsO"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Ajit Khaparde <ajitkhaparde-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Tue__24_Apr_2012_12_06_11_+1000_QBc0z=7ZcH=PXpsO
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Since "private" is a reserved word in C++, it shouldn't be used as a name of a
+structure attribute.
 
-Hi all,
+Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ include/infiniband/ofverbs.h |    2 +-
+ include/infiniband/verbs.h   |    4 ++--
+ src/ofverbs.c                |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-Today's linux-next merge of the net-next tree got a conflict in
-drivers/net/ethernet/emulex/benet/be.h between commit c72adfd767af
-("be2net: Add functionality to support RoCE driver") from the infiniband
-tree and commit 42f11cf20cc5 ("be2net: fix ethtool get settings") from
-the net-next tree.
+diff --git a/include/infiniband/ofverbs.h b/include/infiniband/ofverbs.h
+index b03d7ae..841e689 100644
+--- a/include/infiniband/ofverbs.h
++++ b/include/infiniband/ofverbs.h
+@@ -102,7 +102,7 @@ struct ofv_async_event {
+ 		uint32_t	xrc_qp_num;
+ 	} element;
+ 	enum ibv_event_type	event_type;
+-	void                   *private;
++	void                   *private_data;
+ };
+ 
+ int ofv_get_async_event(struct ibv_context *context,
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 1dcd17f..ddc8722 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -706,7 +706,7 @@ struct ibv_device {
+ 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
+ 
+ 	/* Following fields only available if device supports extensions */
+-	void		       *private;
++	void		       *private_data;
+ 	int			(*have_ext_ops)(struct ibv_device *device,
+ 						const char *ext_name);
+ 	void *			(*get_device_ext_ops)(struct ibv_device *device,
+@@ -791,7 +791,7 @@ struct ibv_context {
+ 	void		       *abi_compat;
+ 
+ 	/* Following fields only available if device supports extensions */
+-	void		       *private;
++	void		       *private_data;
+ 	void *			(*get_ext_ops)(struct ibv_context *context,
+ 					       const char *ext_name);
+ };
+diff --git a/src/ofverbs.c b/src/ofverbs.c
+index 0486552..2ee5e81 100644
+--- a/src/ofverbs.c
++++ b/src/ofverbs.c
+@@ -61,7 +61,7 @@ int __ofv_get_async_event(struct ibv_context *context,
+ 		case IBV_EVENT_PATH_MIG_ERR:
+ 		case IBV_EVENT_QP_LAST_WQE_REACHED:
+ 			if (event->element.qp->qp_type == IBV_QPT_XRC_RECV) {
+-				event->private = event->element.qp;
++				event->private_data = event->element.qp;
+ 				event->event_type |= OFV_XRC_QP_EVENT_FLAG;
+ 				event->element.xrc_qp_num = event->element.qp->qp_num;
+ 			}
+@@ -76,7 +76,7 @@ default_symver(__ofv_get_async_event, ofv_get_async_event);
+ void ofv_ack_async_event(struct ofv_async_event *event)
+ {
+ 	if (event->event_type & OFV_XRC_QP_EVENT_FLAG) {
+-		event->element.qp = event->private;
++		event->element.qp = event->private_data;
+ 		event->event_type &= ~OFV_XRC_QP_EVENT_FLAG;
+ 	}
+ 	ibv_ack_async_event((struct ibv_async_event *) event);
+-- 
+1.7.8.2
 
-Just context changes.  I fixed it up (see below) and can carry the fix as
-necessary.
---=20
-Cheers,
-Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
-
-diff --cc drivers/net/ethernet/emulex/benet/be.h
-index 7bb2e97,ad69cf8..0000000
---- a/drivers/net/ethernet/emulex/benet/be.h
-+++ b/drivers/net/ethernet/emulex/benet/be.h
-@@@ -379,22 -394,7 +396,18 @@@ struct be_adapter=20
-  	u32 rx_fc;		/* Rx flow control */
-  	u32 tx_fc;		/* Tx flow control */
-  	bool stats_cmd_sent;
-- 	int link_speed;
-- 	u8 port_type;
-- 	u8 transceiver;
-- 	u8 autoneg;
-  	u8 generation;		/* BladeEngine ASIC generation */
- +	u32 if_type;
- +	struct {
- +		u8 __iomem *base;	/* Door Bell */
- +		u32 size;
- +		u32 total_size;
- +		u64 io_addr;
- +	} roce_db;
- +	u32 num_msix_roce_vec;
- +	struct ocrdma_dev *ocrdma_dev;
- +	struct list_head entry;
- +
-  	u32 flash_status;
-  	struct completion flash_compl;
- =20
-@@@ -606,17 -597,5 +620,18 @@@ extern void be_link_status_update(struc
-  extern void be_parse_stats(struct be_adapter *adapter);
-  extern int be_load_fw(struct be_adapter *adapter, u8 *func);
-  extern bool be_is_wol_supported(struct be_adapter *adapter);
-+ extern bool be_pause_supported(struct be_adapter *adapter);
- +
- +/*
- + * internal function to initialize-cleanup roce device.
- + */
- +extern void be_roce_dev_add(struct be_adapter *);
- +extern void be_roce_dev_remove(struct be_adapter *);
- +
- +/*
- + * internal function to open-close roce device during ifup-ifdown.
- + */
- +extern void be_roce_dev_open(struct be_adapter *);
- +extern void be_roce_dev_close(struct be_adapter *);
- +
-  #endif				/* BE_H */
-
---Signature=_Tue__24_Apr_2012_12_06_11_+1000_QBc0z=7ZcH=PXpsO
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJPlgqTAAoJEECxmPOUX5FEbUAP/jIf5CKRfbZXwM2tRgh1wg+Z
-kipdXKoFPouQoHLtyyOx3Vcs39j0wL12qQqa2O2bhHO+vQzmTyEtOMczGPytbEd5
-XPmv2w8Qoi4ZexbCi6eVPhJYlwRP3cluQZhH7pAIvEaJt9VWg2q0In4VSXUhKggY
-iydQAYBhyFx55wQ5ZqahGdx4UKFeP/wyjDYImXXGvJ9gn86PRW8qXw1QsrVPSoPR
-uNp2EOKZBW0Q9NMUkuqzHtgpz3TSiO30A/2IxmN6GB6HSJcyIylyMVGQWzMyv5df
-8v9SjAS0k8BITNJOsoFcJytkzCv/5Tv2Hme4uVaBGQLkdPyYjvqnJ+A/jOoyKGXI
-TEwhr4/HSRwbQOJZwIfswLTZIgFMkiCHzn5icxpbK/bLTS3K7BYno+awGxzcv9YF
-C/sh8738jthBUzvimDGqUKakc2bVvs9owHowAvcokKcgzAZDdTGOae/Dnz7hC6o3
-r5jEvpnD0SthlOQjilO09D1ke4vCbk35K9G5jON6+PQ1YZd5F1ft+a2HIIcaYmqq
-gVMX+td4sCj4RFzaqoG0mxS5GsNgQs3haYvF3lv+qGOIx4AMDzP0yfDn3M5b58Vc
-aQ6gVU/uPEyJV/SSxRUMtvX6cCXI8KfXk1LKImSVq3DMP29f5fhvvcPWhupK18Yu
-UkPngkPoiG9LnCXrrrqe
-=H1b7
------END PGP SIGNATURE-----
-
---Signature=_Tue__24_Apr_2012_12_06_11_+1000_QBc0z=7ZcH=PXpsO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
