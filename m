@@ -1,89 +1,84 @@
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] libibverbs-xrc: Rename the attribute private -> private_data
-Date: Tue, 24 Apr 2012 09:13:59 +0300
-Message-ID: <201204240913.59380.dotanb@sw.voltaire.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: possible recursive locking detected in tne cma?
+Date: Tue, 24 Apr 2012 14:36:38 +0300
+Message-ID: <alpine.LRH.2.00.1203061550210.10585@ogerlitz.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since "private" is a reserved word in C++, it shouldn't be used as a name of a
-structure attribute.
+Hi Sean,
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- include/infiniband/ofverbs.h |    2 +-
- include/infiniband/verbs.h   |    4 ++--
- src/ofverbs.c                |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+I hitted this one few days ago, problem is that I'm not sure
+what **exactly** was the kernel I was using... surely it was
+upstream post 3.3 something but not clear whose tree.
 
-diff --git a/include/infiniband/ofverbs.h b/include/infiniband/ofverbs.h
-index b03d7ae..841e689 100644
---- a/include/infiniband/ofverbs.h
-+++ b/include/infiniband/ofverbs.h
-@@ -102,7 +102,7 @@ struct ofv_async_event {
- 		uint32_t	xrc_qp_num;
- 	} element;
- 	enum ibv_event_type	event_type;
--	void                   *private;
-+	void                   *private_data;
- };
- 
- int ofv_get_async_event(struct ibv_context *context,
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 1dcd17f..ddc8722 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -706,7 +706,7 @@ struct ibv_device {
- 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
- 
- 	/* Following fields only available if device supports extensions */
--	void		       *private;
-+	void		       *private_data;
- 	int			(*have_ext_ops)(struct ibv_device *device,
- 						const char *ext_name);
- 	void *			(*get_device_ext_ops)(struct ibv_device *device,
-@@ -791,7 +791,7 @@ struct ibv_context {
- 	void		       *abi_compat;
- 
- 	/* Following fields only available if device supports extensions */
--	void		       *private;
-+	void		       *private_data;
- 	void *			(*get_ext_ops)(struct ibv_context *context,
- 					       const char *ext_name);
- };
-diff --git a/src/ofverbs.c b/src/ofverbs.c
-index 0486552..2ee5e81 100644
---- a/src/ofverbs.c
-+++ b/src/ofverbs.c
-@@ -61,7 +61,7 @@ int __ofv_get_async_event(struct ibv_context *context,
- 		case IBV_EVENT_PATH_MIG_ERR:
- 		case IBV_EVENT_QP_LAST_WQE_REACHED:
- 			if (event->element.qp->qp_type == IBV_QPT_XRC_RECV) {
--				event->private = event->element.qp;
-+				event->private_data = event->element.qp;
- 				event->event_type |= OFV_XRC_QP_EVENT_FLAG;
- 				event->element.xrc_qp_num = event->element.qp->qp_num;
- 			}
-@@ -76,7 +76,7 @@ default_symver(__ofv_get_async_event, ofv_get_async_event);
- void ofv_ack_async_event(struct ofv_async_event *event)
- {
- 	if (event->event_type & OFV_XRC_QP_EVENT_FLAG) {
--		event->element.qp = event->private;
-+		event->element.qp = event->private_data;
- 		event->event_type &= ~OFV_XRC_QP_EVENT_FLAG;
- 	}
- 	ibv_ack_async_event((struct ibv_async_event *) event);
--- 
-1.7.8.2
+Specifically, I see that your commit 186834b5de69 "RDMA/ucma: Fix
+AB-BA deadlock" deals only with the ucma and this trace doesn't
+have ucma  symbols, so is that a different race? or false alarm?
 
+Or.
+
+=============================================
+[ INFO: possible recursive locking detected ]
+3.3.0-32035-g1b2649e-dirty #4 Not tainted
+---------------------------------------------
+kworker/5:1/418 is trying to acquire lock:
+ (&id_priv->handler_mutex){+.+.+.}, at: [<ffffffffa0138a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
+
+but task is already holding lock:
+ (&id_priv->handler_mutex){+.+.+.}, at: [<ffffffffa0135130>] cma_disable_callback+0x24/0x45 [rdma_cm]
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&id_priv->handler_mutex);
+  lock(&id_priv->handler_mutex);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+3 locks held by kworker/5:1/418:
+ #0:  (ib_cm){.+.+.+}, at: [<ffffffff81042ac1>] process_one_work+0x210/0x4a6
+ #1:  ((&(&work->work)->work)){+.+.+.}, at: [<ffffffff81042ac1>] process_one_work+0x210/0x4a6
+ #2:  (&id_priv->handler_mutex){+.+.+.}, at: [<ffffffffa0135130>] cma_disable_callback+0x24/0x45 [rdma_cm]
+
+stack backtrace:
+Pid: 418, comm: kworker/5:1 Not tainted 3.3.0-32035-g1b2649e-dirty #4
+Call Trace:
+ [<ffffffff8102b0fb>] ? console_unlock+0x1f4/0x204
+ [<ffffffff81068771>] __lock_acquire+0x16b5/0x174e
+ [<ffffffff8106461f>] ? save_trace+0x3f/0xb3
+ [<ffffffff810688fa>] lock_acquire+0xf0/0x116
+ [<ffffffffa0138a41>] ? rdma_destroy_id+0x33/0x1f0 [rdma_cm]
+ [<ffffffff81364351>] mutex_lock_nested+0x64/0x2ce
+ [<ffffffffa0138a41>] ? rdma_destroy_id+0x33/0x1f0 [rdma_cm]
+ [<ffffffff81065a78>] ? trace_hardirqs_on_caller+0x11e/0x155
+ [<ffffffff81065abc>] ? trace_hardirqs_on+0xd/0xf
+ [<ffffffffa0138a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
+ [<ffffffffa0139c02>] cma_req_handler+0x418/0x644 [rdma_cm]
+ [<ffffffffa012ee88>] cm_process_work+0x32/0x119 [ib_cm]
+ [<ffffffffa0130299>] cm_req_handler+0x928/0x982 [ib_cm]
+ [<ffffffffa01302f3>] ? cm_req_handler+0x982/0x982 [ib_cm]
+ [<ffffffffa0130326>] cm_work_handler+0x33/0xfe5 [ib_cm]
+ [<ffffffff81065a78>] ? trace_hardirqs_on_caller+0x11e/0x155
+ [<ffffffffa01302f3>] ? cm_req_handler+0x982/0x982 [ib_cm]
+ [<ffffffff81042b6e>] process_one_work+0x2bd/0x4a6
+ [<ffffffff81042ac1>] ? process_one_work+0x210/0x4a6
+ [<ffffffff813669f3>] ? _raw_spin_unlock_irq+0x2b/0x40
+ [<ffffffff8104316e>] worker_thread+0x1d6/0x350
+ [<ffffffff81042f98>] ? rescuer_thread+0x241/0x241
+ [<ffffffff81046a32>] kthread+0x84/0x8c
+ [<ffffffff8136e854>] kernel_thread_helper+0x4/0x10
+ [<ffffffff81366d59>] ? retint_restore_args+0xe/0xe
+ [<ffffffff810469ae>] ? __init_kthread_worker+0x56/0x56
+ [<ffffffff8136e850>] ? gs_change+0xb/0xb
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
