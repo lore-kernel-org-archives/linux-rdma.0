@@ -1,225 +1,297 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH V2 1/5] infiniband-diags/ibportstate.c: Support MKey, lease, and protect bits
-Date: Mon, 23 Apr 2012 17:56:53 -0700
-Message-ID: <1335229017-10677-1-git-send-email-foraker1@llnl.gov>
+Subject: [PATCH V2 2/5] infiniband-diags: Allow specification of an mkey to use on the command line
+Date: Mon, 23 Apr 2012 17:56:54 -0700
+Message-ID: <1335229017-10677-2-git-send-email-foraker1@llnl.gov>
 References: <1335228837.17237.302.camel@auk75.llnl.gov>
+ <1335229017-10677-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1335228837.17237.302.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <1335229017-10677-1-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: weiny2-i2BcT+NCU+M@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow user to both display and change mkey-related values.
 
 Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 ---
- src/ibportstate.c |   98 ++++++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 79 insertions(+), 19 deletions(-)
+ include/ibdiag_common.h                     |    1 +
+ libibnetdisc/include/infiniband/ibnetdisc.h |    3 ++-
+ libibnetdisc/src/ibnetdisc.c                |    1 +
+ man/ibaddr.8                                |    2 ++
+ src/ibaddr.c                                |    2 ++
+ src/ibccconfig.c                            |    2 ++
+ src/ibccquery.c                             |    2 ++
+ src/ibdiag_common.c                         |   13 +++++++++++++
+ src/iblinkinfo.c                            |    3 +++
+ src/ibportstate.c                           |    2 ++
+ src/ibqueryerrors.c                         |    3 +++
+ src/ibroute.c                               |    2 ++
+ src/ibsendtrap.c                            |    2 ++
+ src/ibtracert.c                             |    2 ++
+ src/perfquery.c                             |    2 ++
+ src/sminfo.c                                |    2 ++
+ src/smpquery.c                              |    2 ++
+ 17 files changed, 45 insertions(+), 1 deletion(-)
 
+diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
+index 09dc319..409abdb 100644
+--- a/include/ibdiag_common.h
++++ b/include/ibdiag_common.h
+@@ -50,6 +50,7 @@ extern enum MAD_DEST ibd_dest_type;
+ extern ib_portid_t *ibd_sm_id;
+ extern int ibd_timeout;
+ extern uint32_t ibd_ibnetdisc_flags;
++extern uint64_t ibd_mkey;
+ 
+ /*========================================================*/
+ /*                External interface                      */
+diff --git a/libibnetdisc/include/infiniband/ibnetdisc.h b/libibnetdisc/include/infiniband/ibnetdisc.h
+index 2ae2b06..335ad83 100644
+--- a/libibnetdisc/include/infiniband/ibnetdisc.h
++++ b/libibnetdisc/include/infiniband/ibnetdisc.h
+@@ -151,7 +151,8 @@ typedef struct ibnd_config {
+ 	unsigned timeout_ms;
+ 	unsigned retries;
+ 	uint32_t flags;
+-	uint8_t pad[52];
++	uint64_t mkey;
++	uint8_t pad[44];
+ } ibnd_config_t;
+ 
+ /** =========================================================================
+diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+index 8d38ab7..a0cbe3e 100644
+--- a/libibnetdisc/src/ibnetdisc.c
++++ b/libibnetdisc/src/ibnetdisc.c
+@@ -711,6 +711,7 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 	}
+ 	mad_rpc_set_timeout(scan.ibmad_port, cfg->timeout_ms);
+ 	mad_rpc_set_retries(scan.ibmad_port, cfg->retries);
++	smp_mkey_set(scan.ibmad_port, cfg->mkey);
+ 
+ 	IBND_DEBUG("from %s\n", portid2str(from));
+ 
+diff --git a/man/ibaddr.8 b/man/ibaddr.8
+index 51f5a1c..86ede0a 100644
+--- a/man/ibaddr.8
++++ b/man/ibaddr.8
+@@ -73,6 +73,8 @@ using the util_name -h syntax.
+ \-P <ca_port>    use the specified ca_port.
+ .PP
+ \-t <timeout_ms> override the default timeout for the solicited mads.
++.PP
++\-m <M_Key> Use specified M_Key (default 0)
+ 
+ Multiple CA/Multiple Port Support
+ 
+diff --git a/src/ibaddr.c b/src/ibaddr.c
+index 455d941..dc50046 100644
+--- a/src/ibaddr.c
++++ b/src/ibaddr.c
+@@ -149,6 +149,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+ 
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	if (argc) {
+ 		if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[0],
+ 				       ibd_dest_type, ibd_sm_id, srcport) < 0)
+diff --git a/src/ibccconfig.c b/src/ibccconfig.c
+index 71d408a..e3a10ae 100644
+--- a/src/ibccconfig.c
++++ b/src/ibccconfig.c
+@@ -636,6 +636,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+ 
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[1],
+ 			       ibd_dest_type, ibd_sm_id, srcport) < 0)
+ 		IBERROR("can't resolve destination %s", argv[1]);
+diff --git a/src/ibccquery.c b/src/ibccquery.c
+index 2bf62fa..e7cae5a 100644
+--- a/src/ibccquery.c
++++ b/src/ibccquery.c
+@@ -416,6 +416,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+ 
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[1],
+ 			       ibd_dest_type, ibd_sm_id, srcport) < 0)
+ 		IBERROR("can't resolve destination %s", argv[1]);
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index 5752f95..2288ab3 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -70,6 +70,7 @@ char *ibd_ca = NULL;
+ int ibd_ca_port = 0;
+ int ibd_timeout = 0;
+ uint32_t ibd_ibnetdisc_flags = IBND_CONFIG_MLX_EPI;
++uint64_t ibd_mkey;
+ 
+ static const char *prog_name;
+ static const char *prog_args;
+@@ -261,6 +262,17 @@ static int process_opt(int ch, char *optarg)
+ 				optarg);
+ 		ibd_sm_id = &sm_portid;
+ 		break;
++	case 'm':
++		errno = 0;
++		ibd_mkey = strtoull(optarg, &endp, 0);
++		if (errno || *endp != '\0') {
++			errno = 0;
++			ibd_mkey = strtoull(getpass("M_Key: "), &endp, 0);
++			if (errno || *endp != '\0') {
++				IBERROR("Bad M_Key");
++			}
++                }
++                break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -277,6 +289,7 @@ static const struct ibdiag_opt common_opts[] = {
+ 	{"Guid", 'G', 0, NULL, "use GUID address argument"},
+ 	{"timeout", 't', 1, "<ms>", "timeout in ms"},
+ 	{"sm_port", 's', 1, "<lid>", "SM port lid"},
++	{"m_key", 'm', 1, "<key>", "M_Key to use in request"},
+ 	{"errors", 'e', 0, NULL, "show send and receive errors"},
+ 	{"verbose", 'v', 0, NULL, "increase verbosity level"},
+ 	{"debug", 'd', 0, NULL, "raise debug level"},
+diff --git a/src/iblinkinfo.c b/src/iblinkinfo.c
+index 36aa6d1..acaab54 100644
+--- a/src/iblinkinfo.c
++++ b/src/iblinkinfo.c
+@@ -632,12 +632,15 @@ int main(int argc, char **argv)
+ 		exit(1);
+ 	}
+ 
++	smp_mkey_set(ibmad_port, ibd_mkey);
++
+ 	if (ibd_timeout) {
+ 		mad_rpc_set_timeout(ibmad_port, ibd_timeout);
+ 		config.timeout_ms = ibd_timeout;
+ 	}
+ 
+ 	config.flags = ibd_ibnetdisc_flags;
++	config.mkey = ibd_mkey;
+ 
+ 	node_name_map = open_node_name_map(node_name_map_file);
+ 
 diff --git a/src/ibportstate.c b/src/ibportstate.c
-index 5559d18..21cd431 100644
+index 21cd431..c7d89f3 100644
 --- a/src/ibportstate.c
 +++ b/src/ibportstate.c
-@@ -41,6 +41,7 @@
- #include <unistd.h>
- #include <string.h>
- #include <getopt.h>
-+#include <errno.h>
+@@ -401,6 +401,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
  
- #include <infiniband/umad.h>
- #include <infiniband/mad.h>
-@@ -64,22 +65,28 @@ enum port_ops {
- 	LID,
- 	SMLID,
- 	LMC,
-+	MKEY,
-+	MKEYLEASE,
-+	MKEYPROT,
- };
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[0],
+ 			       ibd_dest_type, ibd_sm_id, srcport) < 0)
+ 		IBERROR("can't resolve destination port %s", argv[0]);
+diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
+index 4fec240..77c57fc 100644
+--- a/src/ibqueryerrors.c
++++ b/src/ibqueryerrors.c
+@@ -914,12 +914,15 @@ int main(int argc, char **argv)
+ 	if (!ibmad_port)
+ 		IBERROR("Failed to open port; %s:%d\n", ibd_ca, ibd_ca_port);
  
- struct ibmad_port *srcport;
--int speed = 0; /* no state change */
--int espeed = 0; /* no state change */
--int fdr10 = 0; /* no state change */
--int width = 0; /* no state change */
--int lid;
--int smlid;
--int lmc;
--int mtu;
--int vls = 0; /* no state change */
-+uint64_t speed = 0; /* no state change */
-+uint64_t espeed = 0; /* no state change */
-+uint64_t fdr10 = 0; /* no state change */
-+uint64_t width = 0; /* no state change */
-+uint64_t lid;
-+uint64_t smlid;
-+uint64_t lmc;
-+uint64_t mtu;
-+uint64_t vls = 0; /* no state change */
-+uint64_t mkey;
-+uint64_t mkeylease;
-+uint64_t mkeyprot;
- 
- struct {
- 	const char *name;
--	int *val;
-+	uint64_t *val;
- 	int set;
- } port_args[] = {
- 	{"query", NULL, 0},	/* QUERY */
-@@ -98,6 +105,9 @@ struct {
- 	{"lid", &lid, 0},	/* LID */
- 	{"smlid", &smlid, 0},	/* SMLID */
- 	{"lmc", &lmc, 0},	/* LMC */
-+	{"mkey", &mkey, 0},	/* MKEY */
-+	{"mkeylease", &mkeylease, 0},	/* MKEY LEASE */
-+	{"mkeyprot", &mkeyprot, 0},	/* MKEY PROTECT BITS */
- };
- 
- #define NPORT_ARGS (sizeof(port_args) / sizeof(port_args[0]))
-@@ -142,7 +152,7 @@ static int get_port_info(ib_portid_t * dest, uint8_t * data, int portnum,
- }
- 
- static void show_port_info(ib_portid_t * dest, uint8_t * data, int portnum,
--			   int espeed_cap)
-+			   int espeed_cap, int is_switch)
- {
- 	char buf[2300];
- 	char val[64];
-@@ -201,18 +211,32 @@ static void show_port_info(ib_portid_t * dest, uint8_t * data, int portnum,
- 			       val);
- 		sprintf(buf + strlen(buf), "%s", "\n");
++	smp_mkey_set(ibmad_port, ibd_mkey);
++
+ 	if (ibd_timeout) {
+ 		mad_rpc_set_timeout(ibmad_port, ibd_timeout);
+ 		config.timeout_ms = ibd_timeout;
  	}
-+	if (!is_switch || portnum == 0) {
-+		mad_decode_field(data, IB_PORT_MKEY_F, val);
-+		mad_dump_field(IB_PORT_MKEY_F, buf + strlen(buf),
-+			       sizeof buf - strlen(buf), val);
-+		sprintf(buf+strlen(buf), "%s", "\n");
-+		mad_decode_field(data, IB_PORT_MKEY_LEASE_F, val);
-+		mad_dump_field(IB_PORT_MKEY_LEASE_F, buf + strlen(buf),
-+			       sizeof buf - strlen(buf), val);
-+		sprintf(buf+strlen(buf), "%s", "\n");
-+		mad_decode_field(data, IB_PORT_MKEY_PROT_BITS_F, val);
-+		mad_dump_field(IB_PORT_MKEY_PROT_BITS_F, buf + strlen(buf),
-+			       sizeof buf - strlen(buf), val);
-+		sprintf(buf+strlen(buf), "%s", "\n");
-+	}
  
- 	printf("# Port info: %s port %d\n%s", portid2str(dest), portnum, buf);
- }
+ 	config.flags = ibd_ibnetdisc_flags;
++	config.mkey = ibd_mkey;
  
- static void set_port_info(ib_portid_t * dest, uint8_t * data, int portnum,
--			  int espeed_cap)
-+			  int espeed_cap, int is_switch)
- {
- 	if (!smp_set_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
- 		IBERROR("smp set portinfo failed");
+ 	node_name_map = open_node_name_map(node_name_map_file);
  
- 	printf("\nAfter PortInfo set:\n");
--	show_port_info(dest, data, portnum, espeed_cap);
-+	show_port_info(dest, data, portnum, espeed_cap, is_switch);
- }
+diff --git a/src/ibroute.c b/src/ibroute.c
+index faff34d..b8dcc54 100644
+--- a/src/ibroute.c
++++ b/src/ibroute.c
+@@ -432,6 +432,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
  
- static void get_ext_port_info(ib_portid_t * dest, uint8_t * data, int portnum)
-@@ -349,9 +373,10 @@ int main(int argc, char **argv)
- 	int i;
- 	uint16_t devid, rem_devid;
- 	long val;
-+	char *endp;
- 	char usage_args[] = "<dest dr_path|lid|guid> <portnum> [<op>]\n"
- 	    "\nSupported ops: enable, disable, reset, speed, width, query,\n"
--	    "\tdown, arm, active, vls, mtu, lid, smlid, lmc\n";
-+	    "\tdown, arm, active, vls, mtu, lid, smlid, lmc, mkey, mkeylease, mkeyprot\n";
- 	const char *usage_examples[] = {
- 		"3 1 disable\t\t\t# by lid",
- 		"-G 0x2C9000100D051 1 enable\t# by guid",
-@@ -403,7 +428,7 @@ int main(int argc, char **argv)
- 			if (++i >= argc)
- 				IBERROR("%s requires an additional parameter",
- 					port_args[j].name);
--			val = strtol(argv[i], 0, 0);
-+			val = strtoull(argv[i], 0, 0);
- 			switch (j) {
- 			case SPEED:
- 				if (val < 0 || val > 15)
-@@ -441,8 +466,29 @@ int main(int argc, char **argv)
- 			case LMC:
- 				if (val < 0 || val > 7)
- 					IBERROR("invalid lmc value %ld", val);
-+				break;
-+			case MKEY:
-+				errno = 0;
-+				val = strtoull(argv[i], &endp, 0);
-+				if (errno || *endp != '\0') {
-+					errno = 0;
-+					val = strtoull(getpass("New M_Key: "),
-+						       &endp, 0);
-+					if (errno || *endp != '\0') {
-+						IBERROR("Bad new M_Key\n");
-+					}
-+				}
-+				/* All 64-bit values are legal */
-+				break;
-+			case MKEYLEASE:
-+				if (val < 0 || val > 0xFFFF)
-+					IBERROR("invalid mkey lease time %ld", val);
-+				break;
-+			case MKEYPROT:
-+				if (val < 0 || val > 3)
-+					IBERROR("invalid mkey protection bit setting %ld", val);
- 			}
--			*port_args[j].val = (int)val;
-+			*port_args[j].val = val;
- 			changed = 1;
- 			break;
- 		}
-@@ -455,12 +501,16 @@ int main(int argc, char **argv)
- 	is_switch = get_node_info(&portid, data);
- 	devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
- 
-+	if ((port_args[MKEY].set || port_args[MKEYLEASE].set ||
-+	     port_args[MKEYPROT].set) && is_switch && portnum != 0)
-+		IBERROR("Can't set M_Key fields on switch port != 0");
++	smp_mkey_set(srcport, ibd_mkey);
 +
- 	if (port_op != QUERY || changed)
- 		printf("Initial %s PortInfo:\n", is_switch ? "Switch" : "CA");
- 	else
- 		printf("%s PortInfo:\n", is_switch ? "Switch" : "CA");
- 	espeed_cap = get_port_info(&portid, data, portnum, is_switch);
--	show_port_info(&portid, data, portnum, espeed_cap);
-+	show_port_info(&portid, data, portnum, espeed_cap, is_switch);
- 	if (is_mlnx_ext_port_info_supported(devid)) {
- 		get_ext_port_info(&portid, data2, portnum);
- 		show_ext_port_info(&portid, data2, portnum);
-@@ -527,7 +577,17 @@ int main(int argc, char **argv)
- 				      fdr10);
- 			set_ext_port_info(&portid, data2, portnum);
- 		}
--		set_port_info(&portid, data, portnum, is_switch);
-+
-+		if (port_args[MKEY].set)
-+			mad_set_field64(data, 0, IB_PORT_MKEY_F, mkey);
-+		if (port_args[MKEYLEASE].set)
-+			mad_set_field(data, 0, IB_PORT_MKEY_LEASE_F,
-+				      mkeylease);
-+		if (port_args[MKEYPROT].set)
-+			mad_set_field(data, 0, IB_PORT_MKEY_PROT_BITS_F,
-+				      mkeyprot);
-+
-+		set_port_info(&portid, data, portnum, espeed_cap, is_switch);
+ 	if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[0],
+ 			       ibd_dest_type, ibd_sm_id, srcport) < 0)
+ 		IBERROR("can't resolve destination port %s", argv[1]);
+diff --git a/src/ibsendtrap.c b/src/ibsendtrap.c
+index 2d63e35..b9bf5c0 100644
+--- a/src/ibsendtrap.c
++++ b/src/ibsendtrap.c
+@@ -209,6 +209,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
  
- 	} else if (is_switch && portnum) {
- 		/* Now, make sure PortState is Active */
-@@ -596,7 +656,7 @@ int main(int argc, char **argv)
- 				get_ext_port_info(&peerportid, data2,
- 						  peerlocalportnum);
- 			show_port_info(&peerportid, data, peerlocalportnum,
--				       peer_espeed_cap);
-+				       peer_espeed_cap, is_peer_switch);
- 			if (is_mlnx_ext_port_info_supported(rem_devid))
- 				show_ext_port_info(&peerportid, data2,
- 						   peerlocalportnum);
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	rc = process_send_trap(trap_name);
+ 	mad_rpc_close_port(srcport);
+ 	return rc;
+diff --git a/src/ibtracert.c b/src/ibtracert.c
+index e8fedf3..32aba19 100644
+--- a/src/ibtracert.c
++++ b/src/ibtracert.c
+@@ -774,6 +774,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+ 
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	node_name_map = open_node_name_map(node_name_map_file);
+ 
+ 	if (resolve_portid_str(ibd_ca, ibd_ca_port, &src_portid, argv[0],
+diff --git a/src/perfquery.c b/src/perfquery.c
+index 8835d3d..388d04a 100644
+--- a/src/perfquery.c
++++ b/src/perfquery.c
+@@ -729,6 +729,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+ 
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	if (argc) {
+ 		if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[0],
+ 				       ibd_dest_type, ibd_sm_id, srcport) < 0)
+diff --git a/src/sminfo.c b/src/sminfo.c
+index f1abc6a..0f723d0 100644
+--- a/src/sminfo.c
++++ b/src/sminfo.c
+@@ -122,6 +122,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+ 
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	if (argc) {
+ 		if (resolve_portid_str(ibd_ca, ibd_ca_port, &portid, argv[0],
+ 				       ibd_dest_type, 0, srcport) < 0)
+diff --git a/src/smpquery.c b/src/smpquery.c
+index 533b2c3..2ef2086 100644
+--- a/src/smpquery.c
++++ b/src/smpquery.c
+@@ -480,6 +480,8 @@ int main(int argc, char **argv)
+ 	if (!srcport)
+ 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+ 
++	smp_mkey_set(srcport, ibd_mkey);
++
+ 	node_name_map = open_node_name_map(node_name_map_file);
+ 
+ 	if (ibd_dest_type != IB_DEST_DRSLID) {
 -- 
 1.7.9.2
 
