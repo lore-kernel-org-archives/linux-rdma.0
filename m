@@ -1,7 +1,7 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH V2 4/5] infiniband-diags: install config file mode 400
-Date: Mon, 23 Apr 2012 17:56:56 -0700
-Message-ID: <1335229017-10677-4-git-send-email-foraker1@llnl.gov>
+Subject: [PATCH V2 5/5] infiniband-diags: Add m_key option to config file
+Date: Mon, 23 Apr 2012 17:56:57 -0700
+Message-ID: <1335229017-10677-5-git-send-email-foraker1@llnl.gov>
 References: <1335228837.17237.302.camel@auk75.llnl.gov>
  <1335229017-10677-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,23 +11,36 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: weiny2-i2BcT+NCU+M@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Necessary so that we may add credentials (ie, mkey) to it
 
 Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 ---
- Makefile.am |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ etc/ibdiag.conf     |    2 ++
+ src/ibdiag_common.c |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff --git a/Makefile.am b/Makefile.am
-index 950f95b..ef59bd2 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -112,4 +112,4 @@ install-data-hook:
- 	fi
- 	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/scripts/IBswcountlimits.pm $(DESTDIR)/$(PERL_INSTALLDIR)/IBswcountlimits.pm
- 	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
--	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
-+	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
+diff --git a/etc/ibdiag.conf b/etc/ibdiag.conf
+index 77f3ce9..2a2334f 100644
+--- a/etc/ibdiag.conf
++++ b/etc/ibdiag.conf
+@@ -15,3 +15,5 @@
+ # Default = true
+ #MLX_EPI=false
+ 
++# define a default m_key
++#m_key=0x00
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index 2288ab3..5aa43e8 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -155,6 +155,8 @@ void read_ibdiag_config(const char *file)
+ 			} else {
+ 				ibd_ibnetdisc_flags &= ~IBND_CONFIG_MLX_EPI;
+ 			}
++		} else if (strncmp(name, "m_key", strlen("m_key")) == 0) {
++			ibd_mkey = strtoull(val_str, 0, 0);
+ 		}
+ 	}
+ 
 -- 
 1.7.9.2
 
