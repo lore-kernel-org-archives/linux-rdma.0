@@ -1,28 +1,25 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: possible recursive locking detected in the cma?
-Date: Tue, 24 Apr 2012 21:58:09 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373469D81D6@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373469D8171@ORSMSX101.amr.corp.intel.com>
- <CAL1RGDUZMAOrAQG_sg9iuF4tEWSgb2Zaun01C1VXkm1RVC7WMA@mail.gmail.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH fixes] IB/core: fix generation of unmatched responses for
+ unhandled MADs
+Date: Tue, 24 Apr 2012 16:13:44 -0700
+Message-ID: <CAL1RGDWSAt_+QJnR2zVYoM6w53Z4reN6nppg=LcaTxC5O_=wxg@mail.gmail.com>
+References: <1335194413-27436-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUZMAOrAQG_sg9iuF4tEWSgb2Zaun01C1VXkm1RVC7WMA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1335194413-27436-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Swapna Thete <swapna.thete-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The usual fix is to use mutex_lock_nested, cf "Exception: Nested data
-> dependencies leading to nested locking" in
-> Documentation/lockdep-design.txt.  I haven't looked at how easy that
-> is to do in this case.
+> Commit 0b307043049f34211affdde46f82e7abbe8c4590 "IB/mad: Return
+> error response for unsupported MADs" introduced two problems:
 
-I think in this case, it's easier to just delay the call to rdma_destroy_id() until after the listen's handler_mutex has been released.  mutex_lock_nested() is still used within cma_req_handler() to deal with the more explicit locking.  I'll try to get a patch for that this week.
+Thanks, applied as two patches, since AFAICT the two fixes are
+not tied to each other.
 
-- Sean
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
