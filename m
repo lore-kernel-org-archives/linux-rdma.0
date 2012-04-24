@@ -1,266 +1,106 @@
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH V2 3/5] ib-diags/saquery: Fix smkey handling
-Date: Mon, 23 Apr 2012 17:56:55 -0700
-Message-ID: <1335229017-10677-3-git-send-email-foraker1@llnl.gov>
-References: <1335228837.17237.302.camel@auk75.llnl.gov>
- <1335229017-10677-1-git-send-email-foraker1@llnl.gov>
+From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Subject: linux-next: manual merge of the net-next tree with the infiniband
+ tree
+Date: Tue, 24 Apr 2012 12:06:11 +1000
+Message-ID: <20120424120611.cce0e2cdee61b60c700725a8@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Tue__24_Apr_2012_12_06_11_+1000_QBc0z=7ZcH=PXpsO"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1335229017-10677-1-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: weiny2-i2BcT+NCU+M@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Ajit Khaparde <ajitkhaparde-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-smkey is already defined as a global inside saquery.c, so remove
-broken support for passing it around as a function parameter
+--Signature=_Tue__24_Apr_2012_12_06_11_+1000_QBc0z=7ZcH=PXpsO
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
----
- src/saquery.c |   59 ++++++++++++++++++++++++++++-----------------------------
- 1 file changed, 29 insertions(+), 30 deletions(-)
+Hi all,
 
-diff --git a/src/saquery.c b/src/saquery.c
-index e5fdb25..029228c 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -85,7 +85,7 @@ struct query_cmd {
- 
- static char *node_name_map_file = NULL;
- static nn_map_t *node_name_map = NULL;
--static uint64_t smkey = 1;
-+static uint64_t smkey = 0;
- 
- /**
-  * Declare some globals because I don't want this to be too complex.
-@@ -726,11 +726,11 @@ static void dump_results(struct sa_query_result *r, void (*dump_func) (void *))
-  */
- static int get_any_records(bind_handle_t h,
- 			   uint16_t attr_id, uint32_t attr_mod,
--			   ib_net64_t comp_mask, void *attr, uint64_t sm_key,
-+			   ib_net64_t comp_mask, void *attr,
- 			   struct sa_query_result *result)
- {
- 	int ret = sa_query(h, IB_MAD_METHOD_GET_TABLE, attr_id, attr_mod,
--			   cl_ntoh64(comp_mask), sm_key, attr, result);
-+			   cl_ntoh64(comp_mask), smkey, attr, result);
- 	if (ret) {
- 		fprintf(stderr, "Query SA failed: %s\n", strerror(ret));
- 		return ret;
-@@ -746,12 +746,12 @@ static int get_any_records(bind_handle_t h,
- 
- static int get_and_dump_any_records(bind_handle_t h, uint16_t attr_id,
- 				    uint32_t attr_mod, ib_net64_t comp_mask,
--				    void *attr, uint64_t sm_key,
-+				    void *attr,
- 				    void (*dump_func) (void *))
- {
- 	struct sa_query_result result;
- 	int ret = get_any_records(h, attr_id, attr_mod, comp_mask, attr,
--				  sm_key, &result);
-+				  &result);
- 	if (ret)
- 		return ret;
- 
-@@ -763,18 +763,17 @@ static int get_and_dump_any_records(bind_handle_t h, uint16_t attr_id,
- /**
-  * Get all the records available for requested query type.
-  */
--static int get_all_records(bind_handle_t h, uint16_t attr_id, int trusted,
-+static int get_all_records(bind_handle_t h, uint16_t attr_id,
- 			   struct sa_query_result *result)
- {
--	return get_any_records(h, attr_id, 0, 0, NULL, trusted ? smkey : 0,
--			       result);
-+	return get_any_records(h, attr_id, 0, 0, NULL, result);
- }
- 
- static int get_and_dump_all_records(bind_handle_t h, uint16_t attr_id,
--				    int trusted, void (*dump_func) (void *))
-+				    void (*dump_func) (void *))
- {
- 	struct sa_query_result result;
--	int ret = get_all_records(h, attr_id, 0, &result);
-+	int ret = get_all_records(h, attr_id, &result);
- 	if (ret)
- 		return ret;
- 
-@@ -794,7 +793,7 @@ static int get_lid_from_name(bind_handle_t h, const char *name, uint16_t * lid)
- 	int ret;
- 	struct sa_query_result result;
- 
--	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0, &result);
-+	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, &result);
- 	if (ret)
- 		return ret;
- 
-@@ -894,7 +893,7 @@ static int get_issm_records(bind_handle_t h, ib_net32_t capability_mask,
- 	attr.port_info.capability_mask = capability_mask;
- 
- 	return get_any_records(h, IB_SA_ATTR_PORTINFORECORD, 1 << 31,
--			       IB_PIR_COMPMASK_CAPMASK, &attr, 0, result);
-+			       IB_PIR_COMPMASK_CAPMASK, &attr, result);
- }
- 
- static int print_node_records(bind_handle_t h)
-@@ -903,7 +902,7 @@ static int print_node_records(bind_handle_t h)
- 	int ret;
- 	struct sa_query_result result;
- 
--	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0, &result);
-+	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, &result);
- 	if (ret)
- 		return ret;
- 
-@@ -946,7 +945,7 @@ static int get_print_class_port_info(bind_handle_t h)
- {
- 	struct sa_query_result result;
- 	int ret = sa_query(h, IB_MAD_METHOD_GET, CLASS_PORT_INFO, 0, 0,
--			   0, NULL, &result);
-+			   smkey, NULL, &result);
- 	if (ret) {
- 		fprintf(stderr, "ERROR: Query SA failed: %s\n", strerror(ret));
- 		return ret;
-@@ -993,7 +992,7 @@ static int query_path_records(const struct query_cmd *q, bind_handle_t h,
- 				  SELEC);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_PATHRECORD, 0, comp_mask,
--					&pr, 0, dump_path_record);
-+					&pr, dump_path_record);
- }
- 
- static int print_issm_records(bind_handle_t h)
-@@ -1029,11 +1028,11 @@ static int print_multicast_member_records(bind_handle_t h)
- 	int ret;
- 	unsigned i;
- 
--	ret = get_all_records(h, IB_SA_ATTR_MCRECORD, 1, &mc_group_result);
-+	ret = get_all_records(h, IB_SA_ATTR_MCRECORD, &mc_group_result);
- 	if (ret)
- 		return ret;
- 
--	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0, &nr_result);
-+	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, &nr_result);
- 	if (ret)
- 		goto return_mc;
- 
-@@ -1054,7 +1053,7 @@ return_mc:
- 
- static int print_multicast_group_records(bind_handle_t h)
- {
--	return get_and_dump_all_records(h, IB_SA_ATTR_MCRECORD, 0,
-+	return get_and_dump_all_records(h, IB_SA_ATTR_MCRECORD,
- 					dump_multicast_group_record);
- }
- 
-@@ -1078,7 +1077,7 @@ static int query_node_records(const struct query_cmd *q, bind_handle_t h,
- 	CHECK_AND_SET_VAL(lid, 16, 0, nr.lid, NR, LID);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_NODERECORD, 0, comp_mask,
--					&nr, 0, dump_node_record);
-+					&nr, dump_node_record);
- }
- 
- static int query_portinfo_records(const struct query_cmd *q,
-@@ -1098,7 +1097,7 @@ static int query_portinfo_records(const struct query_cmd *q,
- 	CHECK_AND_SET_VAL(options, 8, -1, pir.options, PIR, OPTIONS);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_PORTINFORECORD, 0,
--					comp_mask, &pir, 0,
-+					comp_mask, &pir,
- 					dump_one_portinfo_record);
- }
- 
-@@ -1131,13 +1130,13 @@ static int query_mcmember_records(const struct query_cmd *q,
- 	CHECK_AND_SET_VAL(p->proxy_join, 8, -1, mr.proxy_join, MCR, PROXY);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_MCRECORD, 0, comp_mask,
--					&mr, smkey, dump_one_mcmember_record);
-+					&mr, dump_one_mcmember_record);
- }
- 
- static int query_service_records(const struct query_cmd *q, bind_handle_t h,
- 				 struct query_params *p, int argc, char *argv[])
- {
--	return get_and_dump_all_records(h, IB_SA_ATTR_SERVICERECORD, 0,
-+	return get_and_dump_all_records(h, IB_SA_ATTR_SERVICERECORD,
- 					dump_service_record);
- }
- 
-@@ -1145,7 +1144,7 @@ static int query_informinfo_records(const struct query_cmd *q,
- 				    bind_handle_t h, struct query_params *p,
- 				    int argc, char *argv[])
- {
--	return get_and_dump_all_records(h, IB_SA_ATTR_INFORMINFORECORD, 0,
-+	return get_and_dump_all_records(h, IB_SA_ATTR_INFORMINFORECORD,
- 					dump_inform_info_record);
- }
- 
-@@ -1169,7 +1168,7 @@ static int query_link_records(const struct query_cmd *q, bind_handle_t h,
- 	CHECK_AND_SET_VAL(to_port, 8, -1, lr.to_port_num, LR, TO_PORT);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_LINKRECORD, 0, comp_mask,
--					&lr, 0, dump_one_link_record);
-+					&lr, dump_one_link_record);
- }
- 
- static int query_sl2vl_records(const struct query_cmd *q, bind_handle_t h,
-@@ -1188,7 +1187,7 @@ static int query_sl2vl_records(const struct query_cmd *q, bind_handle_t h,
- 	CHECK_AND_SET_VAL(out_port, 8, -1, slvl.out_port_num, SLVL, OUT_PORT);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_SL2VLTABLERECORD, 0,
--					comp_mask, &slvl, 0,
-+					comp_mask, &slvl,
- 					dump_one_slvl_record);
- }
- 
-@@ -1208,7 +1207,7 @@ static int query_vlarb_records(const struct query_cmd *q, bind_handle_t h,
- 	CHECK_AND_SET_VAL(block, 8, -1, vlarb.block_num, VLA, BLOCK);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_VLARBTABLERECORD, 0,
--					comp_mask, &vlarb, 0,
-+					comp_mask, &vlarb,
- 					dump_one_vlarb_record);
- }
- 
-@@ -1229,7 +1228,7 @@ static int query_pkey_tbl_records(const struct query_cmd *q,
- 	CHECK_AND_SET_VAL(block, 16, -1, pktr.block_num, PKEY, BLOCK);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_PKEYTABLERECORD, 0,
--					comp_mask, &pktr, smkey,
-+					comp_mask, &pktr,
- 					dump_one_pkey_tbl_record);
- }
- 
-@@ -1248,7 +1247,7 @@ static int query_lft_records(const struct query_cmd *q, bind_handle_t h,
- 	CHECK_AND_SET_VAL(block, 16, -1, lftr.block_num, LFTR, BLOCK);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_LFTRECORD, 0, comp_mask,
--					&lftr, 0, dump_one_lft_record);
-+					&lftr, dump_one_lft_record);
- }
- 
- static int query_guidinfo_records(const struct query_cmd *q, bind_handle_t h,
-@@ -1266,7 +1265,7 @@ static int query_guidinfo_records(const struct query_cmd *q, bind_handle_t h,
- 	CHECK_AND_SET_VAL(block, 8, -1, gir.block_num, GIR, BLOCKNUM);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_GUIDINFORECORD, 0,
--					comp_mask, &gir, 0,
-+					comp_mask, &gir,
- 					dump_one_guidinfo_record);
- }
- 
-@@ -1289,7 +1288,7 @@ static int query_mft_records(const struct query_cmd *q, bind_handle_t h,
- 	mftr.position_block_num |= cl_hton16(pos << 12);
- 
- 	return get_and_dump_any_records(h, IB_SA_ATTR_MFTRECORD, 0, comp_mask,
--					&mftr, 0, dump_one_mft_record);
-+					&mftr, dump_one_mft_record);
- }
- 
- static const struct query_cmd query_cmds[] = {
--- 
-1.7.9.2
+Today's linux-next merge of the net-next tree got a conflict in
+drivers/net/ethernet/emulex/benet/be.h between commit c72adfd767af
+("be2net: Add functionality to support RoCE driver") from the infiniband
+tree and commit 42f11cf20cc5 ("be2net: fix ethtool get settings") from
+the net-next tree.
 
+Just context changes.  I fixed it up (see below) and can carry the fix as
+necessary.
+--=20
+Cheers,
+Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+
+diff --cc drivers/net/ethernet/emulex/benet/be.h
+index 7bb2e97,ad69cf8..0000000
+--- a/drivers/net/ethernet/emulex/benet/be.h
++++ b/drivers/net/ethernet/emulex/benet/be.h
+@@@ -379,22 -394,7 +396,18 @@@ struct be_adapter=20
+  	u32 rx_fc;		/* Rx flow control */
+  	u32 tx_fc;		/* Tx flow control */
+  	bool stats_cmd_sent;
+- 	int link_speed;
+- 	u8 port_type;
+- 	u8 transceiver;
+- 	u8 autoneg;
+  	u8 generation;		/* BladeEngine ASIC generation */
+ +	u32 if_type;
+ +	struct {
+ +		u8 __iomem *base;	/* Door Bell */
+ +		u32 size;
+ +		u32 total_size;
+ +		u64 io_addr;
+ +	} roce_db;
+ +	u32 num_msix_roce_vec;
+ +	struct ocrdma_dev *ocrdma_dev;
+ +	struct list_head entry;
+ +
+  	u32 flash_status;
+  	struct completion flash_compl;
+ =20
+@@@ -606,17 -597,5 +620,18 @@@ extern void be_link_status_update(struc
+  extern void be_parse_stats(struct be_adapter *adapter);
+  extern int be_load_fw(struct be_adapter *adapter, u8 *func);
+  extern bool be_is_wol_supported(struct be_adapter *adapter);
++ extern bool be_pause_supported(struct be_adapter *adapter);
+ +
+ +/*
+ + * internal function to initialize-cleanup roce device.
+ + */
+ +extern void be_roce_dev_add(struct be_adapter *);
+ +extern void be_roce_dev_remove(struct be_adapter *);
+ +
+ +/*
+ + * internal function to open-close roce device during ifup-ifdown.
+ + */
+ +extern void be_roce_dev_open(struct be_adapter *);
+ +extern void be_roce_dev_close(struct be_adapter *);
+ +
+  #endif				/* BE_H */
+
+--Signature=_Tue__24_Apr_2012_12_06_11_+1000_QBc0z=7ZcH=PXpsO
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJPlgqTAAoJEECxmPOUX5FEbUAP/jIf5CKRfbZXwM2tRgh1wg+Z
+kipdXKoFPouQoHLtyyOx3Vcs39j0wL12qQqa2O2bhHO+vQzmTyEtOMczGPytbEd5
+XPmv2w8Qoi4ZexbCi6eVPhJYlwRP3cluQZhH7pAIvEaJt9VWg2q0In4VSXUhKggY
+iydQAYBhyFx55wQ5ZqahGdx4UKFeP/wyjDYImXXGvJ9gn86PRW8qXw1QsrVPSoPR
+uNp2EOKZBW0Q9NMUkuqzHtgpz3TSiO30A/2IxmN6GB6HSJcyIylyMVGQWzMyv5df
+8v9SjAS0k8BITNJOsoFcJytkzCv/5Tv2Hme4uVaBGQLkdPyYjvqnJ+A/jOoyKGXI
+TEwhr4/HSRwbQOJZwIfswLTZIgFMkiCHzn5icxpbK/bLTS3K7BYno+awGxzcv9YF
+C/sh8738jthBUzvimDGqUKakc2bVvs9owHowAvcokKcgzAZDdTGOae/Dnz7hC6o3
+r5jEvpnD0SthlOQjilO09D1ke4vCbk35K9G5jON6+PQ1YZd5F1ft+a2HIIcaYmqq
+gVMX+td4sCj4RFzaqoG0mxS5GsNgQs3haYvF3lv+qGOIx4AMDzP0yfDn3M5b58Vc
+aQ6gVU/uPEyJV/SSxRUMtvX6cCXI8KfXk1LKImSVq3DMP29f5fhvvcPWhupK18Yu
+UkPngkPoiG9LnCXrrrqe
+=H1b7
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__24_Apr_2012_12_06_11_+1000_QBc0z=7ZcH=PXpsO--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
