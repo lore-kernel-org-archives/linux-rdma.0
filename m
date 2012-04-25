@@ -1,162 +1,169 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] rdma/cm: Fix false possible recursive locking
-Date: Wed, 25 Apr 2012 17:42:35 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373469D8371@ORSMSX101.amr.corp.intel.com>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH V2 3/5] ib-diags/saquery: Fix smkey handling
+Date: Wed, 25 Apr 2012 16:24:22 -0700
+Message-ID: <1335396262.17237.494.camel@auk75.llnl.gov>
+References: <1335228837.17237.302.camel@auk75.llnl.gov>
+	 <1335229017-10677-1-git-send-email-foraker1@llnl.gov>
+	 <1335229017-10677-3-git-send-email-foraker1@llnl.gov>
+	 <4F96B5F8.8070801@dev.mellanox.co.il>
+	 <1335310971.17237.407.camel@auk75.llnl.gov>
+	 <4F97F4A5.40007@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4F97F4A5.40007-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following lockdep problem was reported by Or Gerlitz
-<ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>.
 
-=============================================
-[ INFO: possible recursive locking detected ]
-3.3.0-32035-g1b2649e-dirty #4 Not tainted
----------------------------------------------
-kworker/5:1/418 is trying to acquire lock:
- (&id_priv->handler_mutex){+.+.+.}, at: [<ffffffffa0138a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
+On Wed, 2012-04-25 at 05:57 -0700, Hal Rosenstock wrote:
+> On 4/24/2012 7:42 PM, Jim Foraker wrote:
+> > 
+> > On Tue, 2012-04-24 at 07:17 -0700, Hal Rosenstock wrote:
+> >> On 4/23/2012 8:56 PM, Jim Foraker wrote:
+> >>> smkey is already defined as a global inside saquery.c, so remove
+> >>> broken support for passing it around as a function parameter
+> >>>
+> >>> Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+> >>> ---
+> >>>  src/saquery.c |   59 ++++++++++++++++++++++++++++-----------------------------
+> >>>  1 file changed, 29 insertions(+), 30 deletions(-)
+> >>>
+> >>> diff --git a/src/saquery.c b/src/saquery.c
+> >>> index e5fdb25..029228c 100644
+> >>> --- a/src/saquery.c
+> >>> +++ b/src/saquery.c
+> >>> @@ -85,7 +85,7 @@ struct query_cmd {
+> >>>  
+> >>>  static char *node_name_map_file = NULL;
+> >>>  static nn_map_t *node_name_map = NULL;
+> >>> -static uint64_t smkey = 1;
+> >>> +static uint64_t smkey = 0;
+> >>
+> >> Why is the default for smkey being changed from 1 to 0 ? Note that even
+> >> though the name is smkey (due to the spec), it is really the default SA key.
+> >      Previous to the patch, smkey was defined as 1, but rarely passed
+> > thru to functions.  In particular, the only SA requests that were using
+> > the default value of 1 were MCMember records, via either the -m option
+> > or the MCMR query.  All other types were hard coded to smkey values of
+> > 0, and hence executing untrusted SA requests, regardless of either the
+> > smkey variable defaulting to 1 or of any "--smkey" being passed on the
+> > command line.
+> 
+> In addition to MCMemberRecords, trust is supported for
+> P_KeyTableRecords, PortInfoRecords, and ServiceRecords AFAIT. Patch
+> shortly for InformInfoRecords and InformInfo.
+     Trust may be implemented in OpenSM, but it is not being used by the
+diags.  The vast majority of the patch deals with removing the smkey or
+trusted parameters to calls to get_{all,any}_records() and
+get_and_dump_{all,any}_records().  In almost every one of those cases, a
+value of "0" was being passed in the trusted/smkey field, either of
+which results in sa_query() being called with the smkey set to 0 --
+hence, an untrusted request.
+     In addition, get_and_dump_all_records() did not pass the trusted
+parameter on when it called get_all_records(), so it _always_ generates
+untrusted requests.
 
-but task is already holding lock:
- (&id_priv->handler_mutex){+.+.+.}, at: [<ffffffffa0135130>] cma_disable_callback+0x24/0x45 [rdma_cm]
+> 
+> >      Changing the variable default to 0 causes the patch to effect the
+> > least change in observable behavior.  
+> 
+> Not sure what you mean by that.
+     What I mean is that if we leave smkey at 0 in the patch, the output
+that users of saquery will see (without passing a smkey on the command
+line) will change very little post-patch -- only MCMember records will
+change.
+     If we apply the patch but with smkey changed to 1, users will see
+far more new behavior.  If the subnet is partitioned, they will see more
+results for every record type other than MCMember than they did
+previously.  They will also begin to see valid Mkeys, ServiceKeys, and
+QPNs in their results.  Conversely, if they have changed their SA smkey
+away from 1, they will get no results whatsoever, from any request,
+until they pass an smkey on the command line.
 
-other info that might help us debug this:
- Possible unsafe locking scenario:
+> > In particular, for commands not
+> > specifying a smkey on the command line, the visible changes are limited
+> > to MCMember records.  For subnets not using partitioning, the change in
+> > MCMember records is limited to the specifics for that record type
+> > covered in C15-0.2-1.16.
+> 
+> Even without partitioning, this is important for validating all members
+> in MC group (for IPoIB debug).
+     That information would still be available, it just would require
+configuring/passing the right smkey.
 
-       CPU0
-       ----
-  lock(&id_priv->handler_mutex);
-  lock(&id_priv->handler_mutex);
+> 
+> It also affects the previously aforementioned SA records as well.
+     It only affects them if the user passes an smkey.  Currently, all
+record types other than MCMember are queried for with an smkey of 0,
+even if smkey is passed on the command line.  Fixing the handling and
+then changing the default to 0 means most SA records are still queried
+with an smkey of 0, resulting in identical behavior as before, but now
+the user can actually usefully change what smkey is used.
 
- *** DEADLOCK ***
+> 
+> >      Setting the default to 1 may provide better behavior, in terms of
+> > making the diags "just work" for an out-of-the-box OpenSM config, 
+> 
+> Yes, that was the original intention.
+> 
+> > but it
+> > seems to me that the continued existence of this bug shows that
+> > authenticated requests might not be particularly important for simple
+> > configs.  Plus, it extracts a penalty -- post-patch, if the default is
+> > set to 1, a user who chooses to change their SA smkey will be penalized
+> > in the sense that they will always need to pass an smkey on the command
+> > line, either the correct one or "--smkey 0" to execute an untrusted
+> > request (packets with incorrect smkeys are dropped, not considered
+> > untrusted).  
+> 
+> That is the tradeoff and it was the decision made. I can dig out the
+> threads on the list if need be.
+> 
+> > With a default of 0, we are not providing users
+> > encouragement to leave their SA smkey (which in turn protects other
+> > authentication keys on the fabric) at a well-known, insecure value.
+> 
+> Yes, it comes down ease of use v. "security". Also, changing this now
+> becomes a flag day/backward compatibility issue (at least in terms of
+> support).
+     How does this warrant a flag day?  It's a bug fix to a query
+utility, which as currently implemented, preserves most current
+behavior, and in the two cases it doesn't, the current behavior can be
+recaptured by passing one command line parameter.
 
- May be due to missing lock nesting notation
+     Jim
 
-3 locks held by kworker/5:1/418:
- #0:  (ib_cm){.+.+.+}, at: [<ffffffff81042ac1>] process_one_work+0x210/0x4a6
- #1:  ((&(&work->work)->work)){+.+.+.}, at: [<ffffffff81042ac1>] process_one_work+0x210/0x4a6
- #2:  (&id_priv->handler_mutex){+.+.+.}, at: [<ffffffffa0135130>] cma_disable_callback+0x24/0x45 [rdma_cm]
-
-stack backtrace:
-Pid: 418, comm: kworker/5:1 Not tainted 3.3.0-32035-g1b2649e-dirty #4
-Call Trace:
- [<ffffffff8102b0fb>] ? console_unlock+0x1f4/0x204
- [<ffffffff81068771>] __lock_acquire+0x16b5/0x174e
- [<ffffffff8106461f>] ? save_trace+0x3f/0xb3
- [<ffffffff810688fa>] lock_acquire+0xf0/0x116
- [<ffffffffa0138a41>] ? rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffff81364351>] mutex_lock_nested+0x64/0x2ce
- [<ffffffffa0138a41>] ? rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffff81065a78>] ? trace_hardirqs_on_caller+0x11e/0x155
- [<ffffffff81065abc>] ? trace_hardirqs_on+0xd/0xf
- [<ffffffffa0138a41>] rdma_destroy_id+0x33/0x1f0 [rdma_cm]
- [<ffffffffa0139c02>] cma_req_handler+0x418/0x644 [rdma_cm]
- [<ffffffffa012ee88>] cm_process_work+0x32/0x119 [ib_cm]
- [<ffffffffa0130299>] cm_req_handler+0x928/0x982 [ib_cm]
- [<ffffffffa01302f3>] ? cm_req_handler+0x982/0x982 [ib_cm]
- [<ffffffffa0130326>] cm_work_handler+0x33/0xfe5 [ib_cm]
- [<ffffffff81065a78>] ? trace_hardirqs_on_caller+0x11e/0x155
- [<ffffffffa01302f3>] ? cm_req_handler+0x982/0x982 [ib_cm]
- [<ffffffff81042b6e>] process_one_work+0x2bd/0x4a6
- [<ffffffff81042ac1>] ? process_one_work+0x210/0x4a6
- [<ffffffff813669f3>] ? _raw_spin_unlock_irq+0x2b/0x40
- [<ffffffff8104316e>] worker_thread+0x1d6/0x350
- [<ffffffff81042f98>] ? rescuer_thread+0x241/0x241
- [<ffffffff81046a32>] kthread+0x84/0x8c
- [<ffffffff8136e854>] kernel_thread_helper+0x4/0x10
- [<ffffffff81366d59>] ? retint_restore_args+0xe/0xe
- [<ffffffff810469ae>] ? __init_kthread_worker+0x56/0x56
- [<ffffffff8136e850>] ? gs_change+0xb/0xb
-
-The actual locking is fine, since we're dealing with different locks, but
-from the same lock class.  cma_disable_callback() acquires the listening
-id mutex, whereas rdma_destroy_id() acquires the mutex for the new
-connection id.  To fix this, delay the call to rdma_destroy_id() until
-we've released the listening id mutex.
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/cma.c |   42 +++++++++++++++++++++--------------------
- 1 files changed, 22 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index e3e470f..79c7eeb 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1218,13 +1218,13 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	}
- 	if (!conn_id) {
- 		ret = -ENOMEM;
--		goto out;
-+		goto err1;
- 	}
- 
- 	mutex_lock_nested(&conn_id->handler_mutex, SINGLE_DEPTH_NESTING);
- 	ret = cma_acquire_dev(conn_id);
- 	if (ret)
--		goto release_conn_id;
-+		goto err2;
- 
- 	conn_id->cm_id.ib = cm_id;
- 	cm_id->context = conn_id;
-@@ -1236,31 +1236,33 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	 */
- 	atomic_inc(&conn_id->refcount);
- 	ret = conn_id->id.event_handler(&conn_id->id, &event);
--	if (!ret) {
--		/*
--		 * Acquire mutex to prevent user executing rdma_destroy_id()
--		 * while we're accessing the cm_id.
--		 */
--		mutex_lock(&lock);
--		if (cma_comp(conn_id, RDMA_CM_CONNECT) && (conn_id->id.qp_type != IB_QPT_UD))
--			ib_send_cm_mra(cm_id, CMA_CM_MRA_SETTING, NULL, 0);
--		mutex_unlock(&lock);
--		mutex_unlock(&conn_id->handler_mutex);
--		cma_deref_id(conn_id);
--		goto out;
--	}
-+	if (ret)
-+		goto err3;
-+
-+	/*
-+	 * Acquire mutex to prevent user executing rdma_destroy_id()
-+	 * while we're accessing the cm_id.
-+	 */
-+	mutex_lock(&lock);
-+	if (cma_comp(conn_id, RDMA_CM_CONNECT) && (conn_id->id.qp_type != IB_QPT_UD))
-+		ib_send_cm_mra(cm_id, CMA_CM_MRA_SETTING, NULL, 0);
-+	mutex_unlock(&lock);
-+	mutex_unlock(&conn_id->handler_mutex);
-+	mutex_unlock(&listen_id->handler_mutex);
- 	cma_deref_id(conn_id);
-+	return 0;
- 
-+err3:
-+	cma_deref_id(conn_id);
- 	/* Destroy the CM ID by returning a non-zero value. */
- 	conn_id->cm_id.ib = NULL;
--
--release_conn_id:
-+err2:
- 	cma_exch(conn_id, RDMA_CM_DESTROYING);
- 	mutex_unlock(&conn_id->handler_mutex);
--	rdma_destroy_id(&conn_id->id);
--
--out:
-+err1:
- 	mutex_unlock(&listen_id->handler_mutex);
-+	if (conn_id)
-+		rdma_destroy_id(&conn_id->id);
- 	return ret;
- }
- 
-
+> 
+> >      A compromise would be for someone to write a patch that adds
+> > support for a default SA smkey to the diags config file.
+> 
+> Makes sense.
+> 
+> > In that case, I think the right behavior would be for the compiled utility to still
+> > default to 0 so that saquery works on hosts without an smkey set in the
+> > conf (the default config file might set the value to 1), which means
+> > this patch as written does not get in the way.
+> 
+> OK but IMO we shouldn't change the smkey value here until this occurs.
+> 
+> -- Hal
+> 
+> >      Jim
+> > 
+> >>
+> >> -- Hal
+> >>
+> >> <snip...>
+> > 
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
