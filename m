@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 2/2] infiniband-diags: move deprecated scripts to "compat"
- rpm
-Date: Wed, 25 Apr 2012 16:45:28 -0700
-Message-ID: <20120425164528.d46fd31a.weiny2@llnl.gov>
+Subject: [PATCH 1/2] infiniband-diags: mark duplicate/lower performing
+ scripts as deprecated.
+Date: Wed, 25 Apr 2012 16:45:22 -0700
+Message-ID: <20120425164522.230b1f25.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -11,308 +11,540 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+I am moving forward with this to get the man pages cleaned up.  I don't want to work on man pages for tools I am deprecating.
 
-
-In addition remove them from the make install target unless autoconf'ed on.
+Inform user of alternatives if available.
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- Makefile.am               |   77 +++++++++++++++++------------
- configure.in              |   12 +++++
- infiniband-diags.spec.in  |  115 +++++++++++++++++++++++++++++++++++++++++++--
- man/infiniband-diags.8.in |    3 +-
- 4 files changed, 169 insertions(+), 38 deletions(-)
+ man/infiniband-diags.8.in   |    2 +-
+ scripts/ibcheckerrors.in    |    7 ++++---
+ scripts/ibcheckerrs.in      |    8 ++++++++
+ scripts/ibchecknet.in       |    9 +++++----
+ scripts/ibchecknode.in      |    8 ++++++++
+ scripts/ibcheckport.in      |    8 ++++++++
+ scripts/ibcheckportstate.in |    8 ++++++++
+ scripts/ibcheckportwidth.in |    8 ++++++++
+ scripts/ibcheckstate.in     |    6 ++++--
+ scripts/ibcheckwidth.in     |    5 +++--
+ scripts/ibclearcounters.in  |    1 +
+ scripts/ibclearerrors.in    |    1 +
+ scripts/ibdatacounters.in   |    8 +++++---
+ scripts/ibdatacounts.in     |    8 ++++++++
+ scripts/ibdiscover.pl       |    9 +++++++++
+ scripts/iblinkinfo.pl.in    |    4 +++-
+ scripts/ibprintca.pl        |    2 ++
+ scripts/ibprintrt.pl        |    2 ++
+ scripts/ibprintswitch.pl    |    2 ++
+ scripts/ibqueryerrors.pl.in |    5 +++--
+ 20 files changed, 93 insertions(+), 18 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 950f95b..4de99b1 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -21,21 +21,50 @@ if ENABLE_TEST_UTILS
- sbin_PROGRAMS += src/ibsendtrap src/mcm_rereg_test
- endif
- 
--sbin_SCRIPTS = scripts/ibcheckerrs scripts/ibchecknet scripts/ibchecknode \
--               scripts/ibcheckport scripts/ibhosts scripts/ibstatus \
--	       scripts/ibswitches scripts/ibnodes scripts/ibrouters \
--	       scripts/ibcheckwidth scripts/ibcheckportwidth \
--	       scripts/ibcheckstate scripts/ibcheckportstate \
--	       scripts/ibcheckerrors scripts/ibclearerrors \
--	       scripts/ibclearcounters scripts/ibdatacounts \
--	       scripts/ibdatacounters scripts/ibdiscover.pl \
--	       scripts/dump_lfts.sh scripts/dump_mfts.sh \
--	       scripts/set_nodedesc.sh \
--	       scripts/ibqueryerrors.pl scripts/ibswportwatch.pl \
--	       scripts/iblinkinfo.pl scripts/ibprintswitch.pl \
--	       scripts/ibprintca.pl scripts/ibprintrt.pl \
--	       scripts/ibfindnodesusing.pl scripts/ibidsverify.pl \
--	       scripts/check_lft_balance.pl
-+sbin_SCRIPTS = scripts/ibhosts \
-+		scripts/ibswitches scripts/ibnodes scripts/ibrouters \
-+		scripts/ibfindnodesusing.pl scripts/ibidsverify.pl \
-+		scripts/set_nodedesc.sh scripts/check_lft_balance.pl \
-+		scripts/dump_lfts.sh scripts/dump_mfts.sh \
-+		scripts/ibclearerrors scripts/ibclearcounters scripts/ibstatus
-+
-+if ENABLE_COMPAT_UTILS
-+sbin_SCRIPTS += scripts/ibcheckerrs scripts/ibchecknet scripts/ibchecknode \
-+		scripts/ibcheckport \
-+		scripts/ibcheckwidth scripts/ibcheckportwidth \
-+		scripts/ibcheckstate scripts/ibcheckportstate \
-+		scripts/ibcheckerrors scripts/ibdatacounts \
-+		scripts/ibdatacounters scripts/ibdiscover.pl \
-+		scripts/ibqueryerrors.pl scripts/ibswportwatch.pl \
-+		scripts/iblinkinfo.pl scripts/ibprintswitch.pl \
-+		scripts/ibprintca.pl scripts/ibprintrt.pl
-+endif
-+
-+man_MANS = man/ibaddr.8 man/ibping.8 \
-+		man/ibnodes.8 man/ibhosts.8 man/ibnetdiscover.8 \
-+		man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
-+		man/ibswitches.8 man/ibtracert.8 man/perfquery.8 man/sminfo.8 \
-+		man/smpdump.8 man/smpquery.8 man/saquery.8 man/vendstat.8 \
-+		man/dump_lfts.8 man/dump_mfts.8 man/ibsysstat.8 \
-+		man/iblinkinfo.8 man/ibqueryerrors.8 man/ibfindnodesusing.8 \
-+		man/ibrouters.8 man/check_lft_balance.8 man/ibcacheedit.8 \
-+		man/infiniband-diags.8 man/ibclearcounters.8 man/ibclearerrors.8 \
-+		man/ibstatus.8 man/ibccquery.8
-+
-+# define this for the dist target
-+compat_man_pages = man/ibdiscover.8 man/ibcheckerrors.8 man/ibcheckerrs.8 \
-+		man/ibchecknet.8 man/ibchecknode.8 man/ibcheckport.8 \
-+		man/ibcheckportstate.8 man/ibcheckportwidth.8 \
-+		man/ibcheckstate.8 man/ibcheckwidth.8 \
-+		man/ibswportwatch.8 \
-+		man/ibswportwatch.8 \
-+		man/ibprintswitch.8 man/ibprintca.8 man/ibdatacounts.8 \
-+		man/ibdatacounters.8 man/ibprintrt.8 man/ibidsverify.8
-+
-+# but only actually install them if specified
-+if ENABLE_COMPAT_UTILS
-+man_MANS += $(compat_man_pages)
-+endif
- 
- noinst_LIBRARIES = libcommon.a
- 
-@@ -69,22 +98,6 @@ src_ibqueryerrors_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
- src_ibcacheedit_SOURCES = src/ibcacheedit.c
- src_ibcacheedit_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
- 
--man_MANS = man/ibaddr.8 man/ibcheckerrors.8 man/ibcheckerrs.8 \
--	man/ibchecknet.8 man/ibchecknode.8 man/ibcheckport.8 \
--	man/ibcheckportstate.8 man/ibcheckportwidth.8 man/ibcheckstate.8 \
--	man/ibcheckwidth.8 man/ibclearcounters.8 man/ibclearerrors.8 \
--	man/ibhosts.8 man/ibnetdiscover.8 man/ibnodes.8 man/ibping.8 \
--	man/ibportstate.8 man/ibroute.8 man/ibstat.8 man/ibstatus.8 \
--	man/ibswitches.8 man/ibtracert.8 man/perfquery.8 man/sminfo.8 \
--	man/smpdump.8 man/smpquery.8 man/saquery.8 man/vendstat.8 \
--	man/dump_lfts.8 man/dump_mfts.8 man/ibdiscover.8 man/ibsysstat.8 \
--	man/iblinkinfo.8 man/ibqueryerrors.8 man/ibswportwatch.8 \
--	man/ibprintswitch.8 man/ibprintca.8 man/ibfindnodesusing.8 \
--	man/ibdatacounts.8 man/ibdatacounters.8 \
--	man/ibrouters.8 man/ibprintrt.8 man/ibidsverify.8 \
--	man/check_lft_balance.8 man/ibcacheedit.8 \
--	man/infiniband-diags.8 man/ibccquery.8 man/ibccconfig.8
--
- BUILT_SOURCES = ibdiag_version
- ibdiag_version:
- 	if [ -x $(top_srcdir)/gen_ver.sh ] ; then \
-@@ -98,7 +111,7 @@ ibdiag_version:
- 	fi
- 
- EXTRA_DIST = scripts include infiniband-diags.spec.in infiniband-diags.spec \
--	$(man_MANS) autogen.sh etc/*
-+	$(man_MANS) $(compat_man_pages) autogen.sh etc/*
- 
- dist-hook:
- 	if [ -x $(top_srcdir)/gen_chlog.sh ] ; then \
-diff --git a/configure.in b/configure.in
-index 53304d2..7b051a5 100644
---- a/configure.in
-+++ b/configure.in
-@@ -79,6 +79,18 @@ esac],[tutils=no])
- AM_CONDITIONAL(ENABLE_TEST_UTILS, test x$tutils = xyes)
- AC_MSG_RESULT(${tutils=no})
- 
-+dnl Check if we should include compat utils
-+AC_MSG_CHECKING(for --enable-compat-utils)
-+AC_ARG_ENABLE(compat-utils,
-+[  --enable-compat-utils build deprecated compatibility utilities (default=no)],
-+[case "${enableval}" in
-+  yes) cutils=yes ;;
-+  no)  cutils=no ;;
-+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-compat-utils) ;;
-+esac],[cutils=no])
-+AM_CONDITIONAL(ENABLE_COMPAT_UTILS, test x$cutils = xyes)
-+AC_MSG_RESULT(${cutils=no})
-+
- dnl Check for perl and perl install location
- AC_MSG_CHECKING(for --with-perl-path )
- AC_ARG_WITH(perl-path,
-diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
-index 6b05483..dece81d 100644
---- a/infiniband-diags.spec.in
-+++ b/infiniband-diags.spec.in
-@@ -20,11 +20,22 @@ Obsoletes: openib-diags
- This package provides IB diagnostic programs and scripts needed to
- diagnose an IB subnet.
- 
-+%package compat
-+Summary: OpenFabrics Alliance InfiniBand Diagnostic Tools
-+Group: System Environment/Libraries
-+BuildRequires: libibmad-devel, opensm-devel, libibumad-devel
-+Requires: libibmad, opensm-libs, libibumad
-+
-+%description compat
-+Deprecated scripts and utilities which provide duplicated functionality, most
-+often at a reduced performance.  These are maintained for the time being for
-+compatibility reasons.
-+
- %prep
- %setup -q
- 
- %build
--%configure
-+%configure --enable-compat-utils
- make
- 
- %install
-@@ -36,24 +47,118 @@ rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
- %clean
- rm -rf $RPM_BUILD_ROOT
- 
-+%files compat
-+%defattr(-,root,root)
-+%{_sbindir}/iblinkinfo.pl
-+%{_sbindir}/ibqueryerrors.pl
-+%{_sbindir}/ibdiscover.pl
-+%{_mandir}/man8/ibdiscover.8.gz
-+%{_sbindir}/ibprintswitch.pl
-+%{_mandir}/man8/ibprintswitch.8.gz
-+%{_sbindir}/ibprintrt.pl
-+%{_mandir}/man8/ibprintrt.8.gz
-+%{_sbindir}/ibprintca.pl
-+%{_mandir}/man8/ibprintca.8.gz
-+%{_sbindir}/ibswportwatch.pl
-+%{_mandir}/man8/ibswportwatch.8.gz
-+%{_sbindir}/ibcheckerrors
-+%{_mandir}/man8/ibcheckerrors.8.gz
-+%{_sbindir}/ibcheckerrs
-+%{_mandir}/man8/ibcheckerrs.8.gz
-+%{_sbindir}/ibchecknet
-+%{_mandir}/man8/ibchecknet.8.gz
-+%{_sbindir}/ibchecknode
-+%{_mandir}/man8/ibchecknode.8.gz
-+%{_sbindir}/ibcheckport
-+%{_mandir}/man8/ibcheckport.8.gz
-+%{_sbindir}/ibcheckportstate
-+%{_mandir}/man8/ibcheckportstate.8.gz
-+%{_sbindir}/ibcheckportwidth
-+%{_mandir}/man8/ibcheckportwidth.8.gz
-+%{_sbindir}/ibcheckstate
-+%{_mandir}/man8/ibcheckstate.8.gz
-+%{_sbindir}/ibcheckwidth
-+%{_mandir}/man8/ibcheckwidth.8.gz
-+%{_sbindir}/ibdatacounts
-+%{_mandir}/man8/ibdatacounts.8.gz
-+%{_sbindir}/ibdatacounters
-+%{_mandir}/man8/ibdatacounters.8.gz
-+%{_sbindir}/ibparsefabricconf
-+%{_mandir}/man8/ibparsefabricconf.8.gz
-+%{_sbindir}/ibccquery
-+%{_mandir}/man8/ibccquery.8.gz
-+
-+
- %files
- %defattr(-,root,root)
--%{_sbindir}/ib*
-+%{_sbindir}/ibparsefabricconf
-+%{_mandir}/man8/ibparsefabricconf.8.gz
-+%{_sbindir}/ibfindnodesusing.pl
-+%{_mandir}/man8/ibfindnodesusing.8.gz
-+%{_sbindir}/ibidsverify.pl
-+%{_mandir}/man8/ibidsverify.8.gz
-+%{_sbindir}/ibhosts
-+%{_mandir}/man8/ibhosts.8.gz
-+%{_sbindir}/ibswitches
-+%{_mandir}/man8/ibswitches.8.gz
-+%{_sbindir}/ibnodes
-+%{_mandir}/man8/ibnodes.8.gz
-+%{_sbindir}/ibrouters
-+%{_mandir}/man8/ibrouters.8.gz
-+%{_sbindir}/ibaddr
-+%{_mandir}/man8/ibaddr.8.gz
-+%{_sbindir}/ibnetdiscover
-+%{_mandir}/man8/ibnetdiscover.8.gz
-+%{_sbindir}/ibping
-+%{_mandir}/man8/ibping.8.gz
-+%{_sbindir}/ibportstate
-+%{_mandir}/man8/ibportstate.8.gz
-+%{_sbindir}/ibroute
-+%{_mandir}/man8/ibroute.8.gz
-+%{_sbindir}/ibstat
-+%{_mandir}/man8/ibstat.8.gz
-+%{_sbindir}/ibstatus
-+%{_mandir}/man8/ibstatus.8.gz
-+%{_sbindir}/ibsysstat
-+%{_mandir}/man8/ibsysstat.8.gz
-+%{_sbindir}/ibtracert
-+%{_mandir}/man8/ibtracert.8.gz
- %{_sbindir}/perfquery
-+%{_mandir}/man8/perfquery.8.gz
-+%{_sbindir}/sminfo
-+%{_mandir}/man8/sminfo.8.gz
-+%{_sbindir}/smpdump
-+%{_mandir}/man8/smpdump.8.gz
-+%{_sbindir}/smpquery
-+%{_mandir}/man8/smpquery.8.gz
- %{_sbindir}/saquery
-+%{_mandir}/man8/saquery.8.gz
- %{_sbindir}/vendstat
-+%{_mandir}/man8/vendstat.8.gz
-+%{_sbindir}/iblinkinfo
-+%{_mandir}/man8/iblinkinfo.8.gz
-+%{_sbindir}/ibqueryerrors
-+%{_mandir}/man8/ibqueryerrors.8.gz
-+%{_sbindir}/ibcacheedit
-+%{_mandir}/man8/ibcacheedit.8.gz
-+%{_sbindir}/ibclearcounters
-+%{_mandir}/man8/ibclearcounters.8.gz
-+%{_sbindir}/ibclearerrors
-+%{_mandir}/man8/ibclearerrors.8.gz
- %{_sbindir}/dump_mfts.sh
-+%{_mandir}/man8/dump_mfts.8.gz
- %{_sbindir}/dump_lfts.sh
-+%{_mandir}/man8/dump_lfts.8.gz
- %{_sbindir}/check_lft_balance.pl
-+%{_mandir}/man8/check_lft_balance.8.gz
-+%{_mandir}/man8/infiniband-diags.8.gz
- %{_sbindir}/set_nodedesc.sh
--%{_sbindir}/sm*
- %{_libdir}/*.a
- %{_libdir}/*.so*
-+%{_mandir}/man3/*
- %{_includedir}/infiniband/*.h
- %define _perldir %(perl -e 'use Config; $T=$Config{installvendorlib}; print $T;')
- %{_perldir}/*
--%{_mandir}/man8/*
--%{_mandir}/man3/*
- %{_sysconfdir}/*
- %doc README COPYING ChangeLog
- 
 diff --git a/man/infiniband-diags.8.in b/man/infiniband-diags.8.in
-index c1e9995..b7059a8 100644
+index f0671ca..c1e9995 100644
 --- a/man/infiniband-diags.8.in
 +++ b/man/infiniband-diags.8.in
-@@ -199,7 +199,8 @@ perform the lookup.
- .SH Backwards compatibility scripts
+@@ -183,7 +183,7 @@ perform the lookup.
+ .TP
+ \fBLocal HCA info\fR
  
- The following scripts have been identified as redundant and/or lower performing
--as compared to the above scripts.  They are provided as legacy scripts.
-+as compared to the above scripts.  They are provided as legacy scripts when
-+--enable-compat-utils is specified at build time.
+-	See: ibstat, ibstatus,
++	See: ibstat, ibstatus
  
- ibcheckerrors, ibclearcounters, ibclearerrors, ibdatacounters
- ibchecknet, ibchecknode, ibcheckport, ibcheckportstate,
+ .TP
+ \fBConnectivity check\fR
+diff --git a/scripts/ibcheckerrors.in b/scripts/ibcheckerrors.in
+index fef503c..ca40a68 100644
+--- a/scripts/ibcheckerrors.in
++++ b/scripts/ibcheckerrors.in
+@@ -80,12 +80,12 @@ BEGIN {
+ }
+ function check_node(lid, port)
+ {
+-	if (system("'$IBPATH'/ibchecknode '"$ca_info"' '$gflags' '$verbose' " lid)) {
++	if (system("'$IBPATH'/ibchecknode -S '"$ca_info"' '$gflags' '$verbose' " lid)) {
+ 		ne++
+ 		print "\n# " ntype ": nodeguid 0x" nodeguid " failed"
+ 		return 1;
+ 	}
+-	if (system("'$IBPATH'/ibcheckerrs '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
++	if (system("'$IBPATH'/ibcheckerrs -S '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
+ 		return 2;
+ 	return 0;
+ }
+@@ -115,7 +115,7 @@ function check_node(lid, port)
+ 			if (check_node(lid, port) == 2)
+ 				pcnterr++;
+ 		} else if (err &&
+-			   system("'$IBPATH'/ibcheckerrs '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
++			   system("'$IBPATH'/ibcheckerrs -S '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
+ 			pcnterr++;
+ }
+ 
+@@ -125,6 +125,7 @@ function check_node(lid, port)
+ /iberror:/	{print $0}
+ 
+ END {
++	printf "\n*** WARNING ***: this command is deprecated; Please use \"ibqueryerrors\""
+ 	printf "\n## Summary: %d nodes checked, %d bad nodes found\n", nnodes, ne
+ 	printf "##          %d ports checked, %d ports have errors beyond threshold\n", nports, pcnterr
+ 	exit (ne + pcnterr)
+diff --git a/scripts/ibcheckerrs.in b/scripts/ibcheckerrs.in
+index 4db0929..4b34efc 100644
+--- a/scripts/ibcheckerrs.in
++++ b/scripts/ibcheckerrs.in
+@@ -67,6 +67,7 @@ bw=""
+ verbose=""
+ brief=""
+ ca_info=""
++suppress_deprecated="no"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+@@ -96,6 +97,9 @@ while [ "$1" ]; do
+ 		show_thresholds
+ 		exit 0
+ 		;;
++	-S)
++		suppress_deprecated="yes"
++		;;
+ 	-P | -C | -t | -timeout)
+ 		case $2 in
+ 		-*)
+@@ -135,6 +139,10 @@ else
+ 	portname=$2
+ fi
+ 
++if [ "$suppress_deprecated" = "no" ]; then
++echo "*** WARNING ***: this command is deprecated; Please use \"ibqueryerrors\"\n\n" 1>&2
++fi
++
+ if [ "$guid_addr" ]; then
+ 	if ! lid=`$IBPATH/ibaddr $ca_info -G -L $1 | awk '/failed/{exit -1} {print $3}'`; then
+ 		echo -n "guid $1 address resolution: "
+diff --git a/scripts/ibchecknet.in b/scripts/ibchecknet.in
+index a6d5b1a..75bc45a 100644
+--- a/scripts/ibchecknet.in
++++ b/scripts/ibchecknet.in
+@@ -74,12 +74,12 @@ BEGIN {
+ }
+ function check_node(lid, port)
+ {
+-	if (system("'$IBPATH'/ibchecknode '"$ca_info"' '$gflags' '$verbose' " lid)) {
++	if (system("'$IBPATH'/ibchecknode -S '"$ca_info"' '$gflags' '$verbose' " lid)) {
+ 		ne++
+ 		print "\n# " ntype ": nodeguid 0x" nodeguid " failed"
+ 		return 1;
+ 	}
+-	if (system("'$IBPATH'/ibcheckerrs '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
++	if (system("'$IBPATH'/ibcheckerrs -S '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
+ 		return  2;
+ 	return 0;
+ }
+@@ -109,9 +109,9 @@ function check_node(lid, port)
+ 			if (check_node(lid, port) == 2)
+   				pcnterr++;
+ 		} else if (err &&
+-			   system("'$IBPATH'/ibcheckerrs '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
++			   system("'$IBPATH'/ibcheckerrs -S '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
+ 			pcnterr++;
+-		if (system("'$IBPATH'/ibcheckport'"$ca_info"' '$gflags' '$verbose' " lid " " port)) {
++		if (system("'$IBPATH'/ibcheckport -S '"$ca_info"' '$gflags' '$verbose' " lid " " port)) {
+ 			if (!'$v' && oldlid != lid) {
+ 				print "# Checked " ntype ": nodeguid 0x" nodeguid " with failure"
+ 				oldlid = lid
+@@ -126,6 +126,7 @@ function check_node(lid, port)
+ /iberror:/	{print $0}
+ 
+ END {
++	printf "\n*** WARNING ***: this command is deprecated; Please use \"ibqueryerrors -f\""
+ 	printf "\n## Summary: %d nodes checked, %d bad nodes found\n", nnodes, ne
+ 	printf "##          %d ports checked, %d bad ports found\n", nports, pe
+ 	printf "##          %d ports have errors beyond threshold\n", pcnterr
+diff --git a/scripts/ibchecknode.in b/scripts/ibchecknode.in
+index d105430..eac8069 100644
+--- a/scripts/ibchecknode.in
++++ b/scripts/ibchecknode.in
+@@ -32,6 +32,7 @@ guid_addr=""
+ bw=""
+ verbose=""
+ ca_info=""
++suppress_deprecated="no"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+@@ -56,6 +57,9 @@ while [ "$1" ]; do
+ 		ca_info="$ca_info $1 $2"
+ 		shift
+ 		;;
++	-S)
++		suppress_deprecated="yes"
++		;;
+ 	-*)
+ 		usage
+ 		;;
+@@ -70,6 +74,10 @@ if [ -z "$1" ]; then
+ 	usage
+ fi
+ 
++if [ "$suppress_deprecated" = "no" ]; then
++echo "*** WARNING ***: this command is deprecated; Please use \"smpquery nodeinfo\"\n\n" 1>&2
++fi
++
+ if [ "$guid_addr" ]; then
+ 	if ! lid=`$IBPATH/ibaddr $ca_info -G -L $1 | awk '/failed/{exit -1} {print $3}'`; then
+ 		echo -n "guid $1 address resolution: "
+diff --git a/scripts/ibcheckport.in b/scripts/ibcheckport.in
+index 9717288..3c8588e 100644
+--- a/scripts/ibcheckport.in
++++ b/scripts/ibcheckport.in
+@@ -32,6 +32,7 @@ guid_addr=""
+ bw=""
+ verbose=""
+ ca_info=""
++suppress_deprecated="no"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+@@ -56,6 +57,9 @@ while [ "$1" ]; do
+ 		ca_info="$ca_info $1 $2"
+ 		shift
+ 		;;
++	-S)
++		suppress_deprecated="yes"
++		;;
+ 	-*)
+ 		usage
+ 		;;
+@@ -72,6 +76,10 @@ fi
+ 
+ portnum=$2
+ 
++if [ "$suppress_deprecated" = "no" ]; then
++echo "*** WARNING ***: this command is deprecated\n\n" 1>&2
++fi
++
+ if [ "$guid_addr" ]; then
+ 	if ! lid=`$IBPATH/ibaddr $ca_info -G -L $1 | awk '/failed/{exit -1} {print $3}'`; then
+ 		echo -n "guid $1 address resolution: "
+diff --git a/scripts/ibcheckportstate.in b/scripts/ibcheckportstate.in
+index 549d427..eb5e304 100644
+--- a/scripts/ibcheckportstate.in
++++ b/scripts/ibcheckportstate.in
+@@ -32,6 +32,7 @@ guid_addr=""
+ bw=""
+ verbose=""
+ ca_info=""
++suppress_deprecated="no"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+@@ -44,6 +45,9 @@ while [ "$1" ]; do
+ 	-v)
+ 		verbose=yes
+ 		;;
++	-S)
++		suppress_deprecated="yes"
++		;;
+ 	-P | -C | -t | -timeout)
+ 		case $2 in
+ 		-*)
+@@ -72,6 +76,10 @@ fi
+ 
+ portnum=$2
+ 
++if [ "$suppress_deprecated" = "no" ]; then
++echo "*** WARNING ***: this command is deprecated\n\n" 1>&2
++fi
++
+ if [ "$guid_addr" ]; then
+ 	if ! lid=`$IBPATH/ibaddr $ca_info -G -L $1 | awk '/failed/{exit -1} {print $3}'`; then
+ 		echo -n "guid $1 address resolution: "
+diff --git a/scripts/ibcheckportwidth.in b/scripts/ibcheckportwidth.in
+index 3b387be..0df7a11 100644
+--- a/scripts/ibcheckportwidth.in
++++ b/scripts/ibcheckportwidth.in
+@@ -32,6 +32,7 @@ guid_addr=""
+ bw=""
+ verbose=""
+ ca_info=""
++suppress_deprecated="no"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+@@ -44,6 +45,9 @@ while [ "$1" ]; do
+ 	-v)
+ 		verbose=yes
+ 		;;
++	-S)
++		suppress_deprecated="yes"
++		;;
+ 	-P | -C | -t | -timeout)
+ 		case $2 in
+ 		-*)
+@@ -72,6 +76,10 @@ fi
+ 
+ portnum=$2
+ 
++if [ "$suppress_deprecated" = "no" ]; then
++echo "*** WARNING ***: this command is deprecated\n\n" 1>&2
++fi
++
+ if [ "$guid_addr" ]; then
+ 	if ! lid=`$IBPATH/ibaddr $ca_info -G -L $1 | awk '/failed/{exit -1} {print $3}'`; then
+ 		echo -n "guid $1 address resolution: "
+diff --git a/scripts/ibcheckstate.in b/scripts/ibcheckstate.in
+index 78359d8..8f85f7b 100644
+--- a/scripts/ibcheckstate.in
++++ b/scripts/ibcheckstate.in
+@@ -77,13 +77,14 @@ BEGIN {
+ function check_node(lid)
+ {
+ 	nodechecked=1
+-	if (system("'$IBPATH'/ibchecknode'"$ca_info"' '$gflags' '$verbose' " lid)) {
++	if (system("'$IBPATH'/ibchecknode -S '"$ca_info"' '$gflags' '$verbose' " lid)) {
+ 		ne++
+ 		badnode=1
+ 		return
+ 	}
+ }
+ 
++
+ /^Ca/ || /^Switch/ || /^Rt/ {
+ 			nnodes++
+ 			ntype=$1; nodeguid=substr($3, 4, 16); ports=$2
+@@ -113,7 +114,7 @@ function check_node(lid)
+ 		}
+ 		sub("\\(.*\\)", "", port)
+ 		gsub("[\\[\\]]", "", port)
+-		if (system("'$IBPATH'/ibcheckportstate'"$ca_info"' '$gflags' '$verbose' " lid " " port)) {
++		if (system("'$IBPATH'/ibcheckportstate -S '"$ca_info"' '$gflags' '$verbose' " lid " " port)) {
+ 			if (!'$v' && oldlid != lid) {
+ 				print "# Checked " ntype ": nodeguid 0x" nodeguid " with failure"
+ 				oldlid = lid
+@@ -128,6 +129,7 @@ function check_node(lid)
+ /iberror:/	{print $0}
+ 
+ END {
++	printf "\n*** WARNING ***: this command is deprecated\n"
+ 	printf "\n## Summary: %d nodes checked, %d bad nodes found\n", nnodes, ne
+ 	printf "##          %d ports checked, %d ports with bad state found\n", nports, pe
+ }
+diff --git a/scripts/ibcheckwidth.in b/scripts/ibcheckwidth.in
+index 49e8d1d..bf917fb 100644
+--- a/scripts/ibcheckwidth.in
++++ b/scripts/ibcheckwidth.in
+@@ -77,7 +77,7 @@ BEGIN {
+ function check_node(lid)
+ {
+ 	nodechecked=1
+-	if (system("'$IBPATH'/ibchecknode '"$ca_info"' '$gflags' '$verbose' " lid)) {
++	if (system("'$IBPATH'/ibchecknode -S '"$ca_info"' '$gflags' '$verbose' " lid)) {
+ 		ne++
+ 		badnode=1
+ 		return
+@@ -113,7 +113,7 @@ function check_node(lid)
+ 		}
+ 		sub("\\(.*\\)", "", port)
+ 		gsub("[\\[\\]]", "", port)
+-		if (system("'$IBPATH'/ibcheckportwidth '"$ca_info"' '$gflags' '$verbose' " lid " " port)) {
++		if (system("'$IBPATH'/ibcheckportwidth -S '"$ca_info"' '$gflags' '$verbose' " lid " " port)) {
+ 			if (!'$v' && oldlid != lid) {
+ 				print "# Checked " ntype ": nodeguid 0x" nodeguid " with failure"
+ 				oldlid = lid
+@@ -128,6 +128,7 @@ function check_node(lid)
+ /iberror:/	{print $0}
+ 
+ END {
++	printf "\n*** WARNING ***: this command is deprecated\n"
+ 	printf "\n## Summary: %d nodes checked, %d bad nodes found\n", nnodes, ne
+ 	printf "##          %d ports checked, %d ports with 1x width in error found\n", nports, pe
+ }
+diff --git a/scripts/ibclearcounters.in b/scripts/ibclearcounters.in
+index 429018a..318fa84 100644
+--- a/scripts/ibclearcounters.in
++++ b/scripts/ibclearcounters.in
+@@ -101,6 +101,7 @@ function clear_port_counters(lid, port)
+ /iberror:/	{print $0}
+ 
+ END {
++	printf "\n*** WARNING ***: this command is deprecated; Please use \"ibqueryerrors -K\"\n"
+ 	printf "\n## Summary: %d nodes cleared %d errors\n", nnodes, nodeerr
+ }
+ '
+diff --git a/scripts/ibclearerrors.in b/scripts/ibclearerrors.in
+index f7f1ccc..4329ae6 100644
+--- a/scripts/ibclearerrors.in
++++ b/scripts/ibclearerrors.in
+@@ -105,6 +105,7 @@ function clear_errors(lid, port)
+ /iberror:/	{print $0}
+ 
+ END {
++	printf "\n*** WARNING ***: this command is deprecated; Please use \"ibqueryerrors -k\"\n"
+ 	printf "\n## Summary: %d nodes cleared %d errors\n", nnodes, nodeerr
+ }
+ '
+diff --git a/scripts/ibdatacounters.in b/scripts/ibdatacounters.in
+index 8fad62e..d7bf185 100644
+--- a/scripts/ibdatacounters.in
++++ b/scripts/ibdatacounters.in
+@@ -80,12 +80,12 @@ BEGIN {
+ }
+ function check_node(lid, port)
+ {
+-	if (system("'$IBPATH'/ibchecknode '"$ca_info"' '$gflags' '$verbose' " lid)) {
++	if (system("'$IBPATH'/ibchecknode -S '"$ca_info"' '$gflags' '$verbose' " lid)) {
+ 		ne++
+ 		print "\n# " ntype ": nodeguid 0x" nodeguid " failed"
+ 		return 1;
+ 	}
+-	return system("'$IBPATH'/ibdatacounts '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port);
++	return system("'$IBPATH'/ibdatacounts -S '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port);
+ }
+ 
+ /^Ca/ || /^Switch/ || /^Rt/ {
+@@ -112,7 +112,7 @@ function check_node(lid, port)
+ 			lid = substr(lid, 1, index(lid, " ") - 1)
+ 			check_node(lid, port)
+ 		} else if (err)
+-			system("'$IBPATH'/ibdatacounts '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port);
++			system("'$IBPATH'/ibdatacounts -S '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port);
+ }
+ 
+ /^ib/	{print $0; next}
+@@ -121,9 +121,11 @@ function check_node(lid, port)
+ /iberror:/	{print $0}
+ 
+ END {
++   printf "*** WARNING ***: this command is deprecated; Please use \"ibqueryerrors --counters\n"
+ 	printf "\n## Summary: %d nodes checked, %d bad nodes found\n", nnodes, ne
+ 	printf "##          %d ports checked\n", nports
+ 	exit (ne )
+ }
+ '
++
+ exit $rv
+diff --git a/scripts/ibdatacounts.in b/scripts/ibdatacounts.in
+index b64547b..ed5f85d 100644
+--- a/scripts/ibdatacounts.in
++++ b/scripts/ibdatacounts.in
+@@ -34,6 +34,7 @@ bw=""
+ verbose=""
+ brief=""
+ ca_info=""
++suppress_deprecated="no"
+ 
+ while [ "$1" ]; do
+ 	case $1 in
+@@ -63,6 +64,9 @@ while [ "$1" ]; do
+ 		ca_info="$ca_info $1 $2"
+ 		shift
+ 		;;
++	-S)
++		suppress_deprecated="yes"
++		;;
+ 	-*)
+ 		usage
+ 		;;
+@@ -108,6 +112,10 @@ fi
+ 
+ nodename=`$IBPATH/smpquery $ca_info nodedesc $lid | sed -e "s/^Node Description:\.*\(.*\)/\1/"`
+ 
++if [ "$suppress_deprecated" = "no" ]; then
++echo "*** WARNING ***: this command is deprecated; Please use \"ibqueryerrors --counters\"\n\n" 1>&2
++fi
++
+ text="`eval $IBPATH/perfquery $ca_info $lid $portnum`"
+ rv=$?
+ if echo "$text" | awk -v mono=$bw -v brief=$brief -F '[.:]*' '
+diff --git a/scripts/ibdiscover.pl b/scripts/ibdiscover.pl
+index 8606919..1462584 100755
+--- a/scripts/ibdiscover.pl
++++ b/scripts/ibdiscover.pl
+@@ -1,5 +1,9 @@
+ #!/usr/bin/perl
+ 
++printf (STDERR "*** WARNING ***; this command is deprecated;\n");
++printf (STDERR "                 see ibnetdiscover cache features\n");
++printf (STDERR "                 and/or iblinkinfo \"check\" features\n\n");
++
+ #
+ # Read mapfile
+ #
+@@ -84,3 +88,8 @@ foreach $el (keys %topo) {
+ 			$val{$lg}, $val{$rg});
+ 	}
+ }
++
++printf (STDERR "*** WARNING ***; this command is deprecated;\n");
++printf (STDERR "                 see ibnetdiscover cache features\n");
++printf (STDERR "                 and/or iblinkinfo \"check\" features\n\n");
++
+diff --git a/scripts/iblinkinfo.pl.in b/scripts/iblinkinfo.pl.in
+index 0ce33ab..865be49 100755
+--- a/scripts/iblinkinfo.pl.in
++++ b/scripts/iblinkinfo.pl.in
+@@ -37,4 +37,6 @@
+ 
+ # this is now just a wrapper for the C based utility
+ $str = join " ",@ARGV;
+-exec "@IBSCRIPTPATH@/iblinkinfo $str";
++system "@IBSCRIPTPATH@/iblinkinfo $str";
++printf (STDERR "\n*** WARNING ***: this command has been replaced by iblinkinfo\n\n");
++
+diff --git a/scripts/ibprintca.pl b/scripts/ibprintca.pl
+index 9832ac0..598229d 100755
+--- a/scripts/ibprintca.pl
++++ b/scripts/ibprintca.pl
+@@ -40,6 +40,8 @@ use strict;
+ use Getopt::Std;
+ use IBswcountlimits;
+ 
++printf (STDERR "*** WARNING ***: this command is deprecated; Please use \"ibhosts\"\n\n");
++
+ # =========================================================================
+ #
+ sub usage_and_exit
+diff --git a/scripts/ibprintrt.pl b/scripts/ibprintrt.pl
+index 48c20f8..616be88 100755
+--- a/scripts/ibprintrt.pl
++++ b/scripts/ibprintrt.pl
+@@ -40,6 +40,8 @@ use strict;
+ use Getopt::Std;
+ use IBswcountlimits;
+ 
++printf (STDERR "*** WARNING ***: this command is deprecated; Please use \"ibrouters\"\n\n");
++
+ # =========================================================================
+ #
+ sub usage_and_exit
+diff --git a/scripts/ibprintswitch.pl b/scripts/ibprintswitch.pl
+index f20bd4b..69d506a 100755
+--- a/scripts/ibprintswitch.pl
++++ b/scripts/ibprintswitch.pl
+@@ -40,6 +40,8 @@ use strict;
+ use Getopt::Std;
+ use IBswcountlimits;
+ 
++printf (STDERR "*** WARNING ***: this command is deprecated; Please use \"ibswitches\"\n\n");
++
+ # =========================================================================
+ #
+ sub usage_and_exit
+diff --git a/scripts/ibqueryerrors.pl.in b/scripts/ibqueryerrors.pl.in
+index 30e610c..3d48751 100644
+--- a/scripts/ibqueryerrors.pl.in
++++ b/scripts/ibqueryerrors.pl.in
+@@ -34,7 +34,8 @@
+ # SOFTWARE.
+ #
+ 
+-
+ # this is now just a wrapper for the C based utility
+ $str = join " ",@ARGV;
+-exec "@IBSCRIPTPATH@/ibqueryerrors $str";
++system "@IBSCRIPTPATH@/ibqueryerrors $str";
++printf (STDERR "\n*** WARNING ***: this command has been replaced by ibqueryerrors\n\n");
++
 -- 
 1.7.1
 
