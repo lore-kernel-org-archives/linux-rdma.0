@@ -1,23 +1,29 @@
-From: Daniel Ng <daniel.ng1234-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: rapidio?
-Date: Thu, 26 Apr 2012 00:22:50 +0000 (UTC)
-Message-ID: <loom.20120426T022041-764@post.gmane.org>
+From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rapidio?
+Date: Thu, 26 Apr 2012 00:31:05 +0000
+Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C15BC912C@ORSMSX104.amr.corp.intel.com>
 References: <loom.20120419T022329-274@post.gmane.org>
+ <loom.20120426T022041-764@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <loom.20120426T022041-764-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Ng <daniel.ng1234-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Ryan, Jim" <jim.ryan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bill Boas <bill.boas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Daniel wrote, 
+>It's been a week since I posted this question. Being new to this list, I would
+>really appreciate some constructive responses...
 
-It's been a week since I posted this question. Being new to this list, I would
-really appreciate some constructive responses...
+There are some companies that are using OFED over rapidio,
+they presented at the OFA workshop last year, but so far I do not think they
+have not open sourced their driver.  I forgot the name of the company,
+maybe Jim or Bill know.
 
-Cheers,
-Daniel
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
