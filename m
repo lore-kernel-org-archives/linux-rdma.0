@@ -1,23 +1,35 @@
-From: Jinghao Printing - CHINA <shalandasx0i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: hi
-Date: Fri, 27 Apr 2012 12:53:13 +0800
-Message-ID: <CAPxS-sTzZXrZ7fEX7VH355y=Wy2HQSaZSEY81MCVgGgGZ0N40g@mail.gmail.com>
-References: <CAPxS-sSsXb+Rp6_G7RA7tb63r7BaKMuuK0Hw1XZxJdKcAurvfw@mail.gmail.com>
-	<CAPxS-sRYuyxb8VqrpuomME3RU-J+nq1oSweJrS1rQaWNv0bj8Q@mail.gmail.com>
-	<CAPxS-sSJtfCwqA_HNGrV+x4H7V5jgOi09ivn6cF8tOnafcXdgw@mail.gmail.com>
-	<CAPxS-sSc7-mbFFKVLBKGHML3Dr=8QpdHevyhq7Yqt5Lb+UzjGA@mail.gmail.com>
+From: Daniel Ng <daniel.ng1234-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: How to use IB netlink infrastructure
+Date: Fri, 27 Apr 2012 05:25:46 +0000 (UTC)
+Message-ID: <loom.20120427T065509-752@post.gmane.org>
+References: <loom.20120418T090823-45@post.gmane.org> <loom.20120423T015347-107@post.gmane.org> <1828884A29C6694DAF28B7E6B8A82373469D7D42@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPxS-sSc7-mbFFKVLBKGHML3Dr=8QpdHevyhq7Yqt5Lb+UzjGA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, we are a printing company, we can print hang tags, color box,
-labels. Please reply if you need it.
+Hefty, Sean <sean.hefty@...> writes:
+>> What is the actual entry point in the IB kernel code
+>> that results in a call to get_user_pages()?
+> 
+> I believe the memory registration calls will result in this being called.  
+>Look for ib_uverbs_reg_mr.
 
-Best regards,
-David Wu
+Thanks for your helpful suggestions Sean.
+
+I've noticed this article on LWN.net:
+
+http://lwn.net/Articles/133649/
+
+It was written in 2005 and points out some shortcomings with using
+get_user_pages() for RDMA. Do you know if these shortcomings have been addressed
+since 2005?
+
+If not, is there perhaps another way RDMA has been implemented in the kernel?
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
