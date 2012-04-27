@@ -1,41 +1,26 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: use dst parameter in import_ep().
-Date: Fri, 27 Apr 2012 10:24:33 -0500
-Message-ID: <20120427152433.27398.80383.stgit@build.ogc.int>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: ib_destroy_cm_id() versus cm callback race ?
+Date: Fri, 27 Apr 2012 15:57:38 +0000
+Message-ID: <4F9AC1F2.5070007@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: yangfanlinux <yangfanlinux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Function import_ep() is incorrectly using ep->dst instead of the dst
-ptr passed in.  This causes a crash when accepting new rdma connections
-becase ep->dst is not initialized yet.
+Hello,
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
+If I interpret the source code in drivers/infiniband/core/cm.c correctly
+ib_destroy_cm_id() can return before an ongoing cm_id callback has
+finished. Is this on purpose ? If not, isn't there a
+flush_workqueue(cm.wq) call missing in cm_destroy_id() ?
 
- drivers/infiniband/hw/cxgb4/cm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Thanks,
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 3d0e40a..2a71dd5 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1596,7 +1596,7 @@ static int import_ep(struct c4iw_ep *ep, __be32 peer_ip, struct dst_entry *dst,
- 					n, n->dev, 0);
- 		if (!ep->l2t)
- 			goto out;
--		ep->mtu = dst_mtu(ep->dst);
-+		ep->mtu = dst_mtu(dst);
- 		ep->tx_chan = cxgb4_port_chan(n->dev);
- 		ep->smac_idx = (cxgb4_port_viid(n->dev) & 0x7F) << 1;
- 		step = cdev->rdev.lldi.ntxq /
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
