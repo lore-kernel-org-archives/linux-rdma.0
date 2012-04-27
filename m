@@ -1,44 +1,40 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/2] iw_cxgb4: don't BUG_ON if we get an abort with no
-	endpoint found.
-Date: Fri, 27 Apr 2012 09:59:22 -0500
-Message-ID: <20120427145922.27184.74574.stgit@build.ogc.int>
-References: <20120427145915.27184.35216.stgit@build.ogc.int>
+Subject: [PATCH] iw_cxgb4: use dst parameter in import_ep().
+Date: Fri, 27 Apr 2012 10:24:33 -0500
+Message-ID: <20120427152433.27398.80383.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120427145915.27184.35216.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sbest-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Just log a warning.
+Function import_ep() is incorrectly using ep->dst instead of the dst
+ptr passed in.  This causes a crash when accepting new rdma connections
+becase ep->dst is not initialized yet.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 ---
 
- drivers/infiniband/hw/cxgb4/cm.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 8f43143..3d0e40a 100644
+index 3d0e40a..2a71dd5 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1362,7 +1362,10 @@ static int abort_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 
- 	ep = lookup_tid(t, tid);
- 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
--	BUG_ON(!ep);
-+	if (!ep) {
-+		printk(KERN_WARNING MOD "Abort rpl to freed endpoint\n");
-+		return 0;
-+	}
- 	mutex_lock(&ep->com.mutex);
- 	switch (ep->com.state) {
- 	case ABORTING:
+@@ -1596,7 +1596,7 @@ static int import_ep(struct c4iw_ep *ep, __be32 peer_ip, struct dst_entry *dst,
+ 					n, n->dev, 0);
+ 		if (!ep->l2t)
+ 			goto out;
+-		ep->mtu = dst_mtu(ep->dst);
++		ep->mtu = dst_mtu(dst);
+ 		ep->tx_chan = cxgb4_port_chan(n->dev);
+ 		ep->smac_idx = (cxgb4_port_viid(n->dev) & 0x7F) << 1;
+ 		step = cdev->rdev.lldi.ntxq /
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
