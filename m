@@ -1,56 +1,55 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ib_destroy_cm_id() versus cm callback race ?
-Date: Mon, 30 Apr 2012 19:27:01 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A00D4A@ORSMSX101.amr.corp.intel.com>
-References: <4F9AC1F2.5070007@acm.org>
- <1828884A29C6694DAF28B7E6B8A82373469D891F@ORSMSX101.amr.corp.intel.com>
- <4F9BBEEB.40806@acm.org>
- <1828884A29C6694DAF28B7E6B8A82373469FED01@ORSMSX101.amr.corp.intel.com>
- <4F9EE22A.4020000@acm.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 2/2] iw_cxgb4: don't BUG_ON if we get an abort with no
+ endpoint found.
+Date: Mon, 30 Apr 2012 14:33:42 -0500
+Message-ID: <4F9EE916.9010708@opengridcomputing.com>
+References: <20120427145915.27184.35216.stgit@build.ogc.int> <20120427145922.27184.74574.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F9EE22A.4020000-HInyCGIudOg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20120427145922.27184.74574.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, yangfanlinux <yangfanlinux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sbest-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBBcmUgeW91IHN1cmUgdGhhdCBvbmx5IG9uZSB0aHJlYWQgYXQgYSB0aW1lIHdpbGwgaW52b2tl
-IGEgQ00gY2FsbGJhY2sgPyBBcw0KPiBmYXIgYXMgSSBjYW4gc2VlIGNtX3JlY3ZfaGFuZGxlcigp
-IHF1ZXVlcyB3b3JrIHdpdGhvdXQgY2hlY2tpbmcgd2hldGhlcg0KPiBhbnkgb3RoZXIgd29yayBp
-cyBvbmdvaW5nLiBGcm9tIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtLmM6DQoNCkFsbCBjYWxs
-YmFja3MgZm9yIGEgc2luZ2xlIElEIHNob3VsZCBiZSBzZXJpYWxpemVkLiAgKEkgdGhpbmsgdGhl
-IGxpc3RlbiBJRCBpcyBhbiBleGNlcHRpb24sIHdoaWNoIHdvdWxkIGFsbG93IHJlcG9ydGluZyBt
-dWx0aXBsZSBjb25uZWN0aW9uIHJlcXVlc3RzLikNCg0KY21fd29ya19oYW5kbGVyIGRpc3BhdGNo
-ZXMgd29yayB0byBzcGVjaWZpYyBoYW5kbGVycyBiYXNlZCBvbiB0aGUgdHlwZSBvZiBDTSBtZXNz
-YWdlLiAgVGhlIHNlcmlhbGl6YXRpb24gZG9lc24ndCBvY2N1ciB1bnRpbCB3ZSBrbm93IHdoaWNo
-IElEIHdlJ3JlIGRlYWxpbmcgd2l0aCBhbmQgaXRzIHN0YXRlLiAgU2VlIHRoZSBjbV8qX2hhbmRs
-ZXIod29yaykgY2FsbHMuDQogDQo+IFdoYXQgSSBoYXZlIG5vdGljZWQgY291bGQgYmUgZXhwbGFp
-bmVkIGJ5IHRoZSBmb2xsb3dpbmcgc2VxdWVuY2Ugb2YgZXZlbnRzOg0KPiAqIElCIENNIGNvcmUg
-cmVjZWl2ZXMgYSBjb25uZWN0aW9uIHJlcXVlc3QgYW5kIGludm9rZXMgdGhlIGNhbGxiYWNrIGZv
-ciBldmVudA0KPiAgIElCX0NNX1JFUV9SRUNFSVZFRC4NCg0KVGhlIGZsb3cgc2hvdWxkIGJlOiBj
-bV93b3JrX2hhbmRsZXIoKSAtPiBjbV9yZXFfaGFuZGxlcigpIC0+IGNtX21hdGNoX3JlcSgpLCB3
-aGljaCBpbmNyZW1lbnRzIHdvcmtfY291bnQgKHRvIDEgaW4gdGhpcyBjYXNlKS4NCg0KPiAqIFRo
-YXQgY2FsbGJhY2sgYWRkcyBjb25uZWN0aW9uIGluZm9ybWF0aW9uIHRvIGEgZ2xvYmFsIGxpc3Qg
-KGFuZCBrZWVwcw0KPiBydW5uaW5nKS4NCg0KRG8geW91IG1lYW4gdGhhdCB0aGUgY2FsbGJhY2sg
-ZG9lc24ndCByZXR1cm4gdG8gdGhlIENNPw0KDQo+ICogVXNlciByZXF1ZXN0cyBzaHV0ZG93biBh
-bmQgaGVuY2UgZnJvbSBhbm90aGVyIHRocmVhZCBpYl9zZW5kX2NtX2RyZXEoKSBpcw0KPiBpbnZv
-a2VkLg0KDQppYl9zZW5kX2NtX2RyZXEoKSBhdCB0aGlzIHBvaW50IHNob3VsZCBmYWlsIHdpdGgg
-RUlOVkFMLCBhcyB0aGUgY29ubmVjdGlvbiBzdGF0ZSBpcyBub3QgeWV0IGVzdGFibGlzaGVkLiAg
-U28sIEkgZG9uJ3QgdGhpbmsgSSdtIHF1aXRlIGZvbGxvd2luZyB0aGUgb3BlcmF0aW9uIHlldC4N
-Cg0KPiAqIElCIENNIGNvcmUgcmVjZWl2ZXMgYSBEUkVQIG1lc3NhZ2UgYW5kIGludm9rZXMgdGhl
-IGNhbGxiYWNrIGZvciBldmVudA0KPiAgIElCX0NNX0RSRVBfUkVDRUlWRUQuIFRoYXQgY2FsbGJh
-Y2sgZnVuY3Rpb24gZ2V0cyBjb25mdXNlZCBiZWNhdXNlIG9mIHRoZQ0KPiAgIGNvbmN1cnJlbnQg
-Y29ubmVjdGlvbiBzdGF0ZSBtYW5pcHVsYXRpb25zIGJ5IHRoZSBJQl9DTV9SRVFfUkVDRUlWRUQg
-aGFuZGxlcg0KPiAgICh3aGljaCBpcyBzdGlsbCBydW5uaW5nKS4NCg0KVGhlIGNtX2RyZXBfaGFu
-ZGxlcigpIGNvZGUgaW5jcmVtZW50cyB3b3JrX2NvdW50IGFuZCBjaGVja3MgdGhlIHJlc3VsdC4g
-IElmIHdvcmtfY291bnQgd2FzIG5vbi16ZXJvLCB0aGVuIHRoZSBEUkVQIGV2ZW50IHNob3VsZCBi
-ZSBxdWV1ZWQgb24gdGhlIGlkJ3Mgd29ya19saXN0LiAgVGhlIHRocmVhZCB3aGljaCBzZXQgd29y
-a19jb3VudCB0byAxLCB3aWxsIGV2ZW50dWFsbHkgaW52b2tlIHRoZSBjYWxsYmFjayBmb3IgdGhh
-dCBldmVudC4NCg0KLSBTZWFuDQoNCg==
+Hey Roland, this patch is incorrect.  It erroneously changes abort_rpl() 
+instead of peer_abort_intr().  I will resubmit the correct patch asap.
+
+
+On 04/27/2012 09:59 AM, Steve Wise wrote:
+> Just log a warning.
+>
+> Signed-off-by: Steve Wise<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> ---
+>
+>   drivers/infiniband/hw/cxgb4/cm.c |    5 ++++-
+>   1 files changed, 4 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+> index 8f43143..3d0e40a 100644
+> --- a/drivers/infiniband/hw/cxgb4/cm.c
+> +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> @@ -1362,7 +1362,10 @@ static int abort_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+>
+>   	ep = lookup_tid(t, tid);
+>   	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+> -	BUG_ON(!ep);
+> +	if (!ep) {
+> +		printk(KERN_WARNING MOD "Abort rpl to freed endpoint\n");
+> +		return 0;
+> +	}
+>   	mutex_lock(&ep->com.mutex);
+>   	switch (ep->com.state) {
+>   	case ABORTING:
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
