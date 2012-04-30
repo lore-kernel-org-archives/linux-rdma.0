@@ -1,30 +1,45 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] iw_cxgb4: don't BUG_ON if we get an abort with no
- endpoint found.
-Date: Mon, 30 Apr 2012 13:22:09 -0700
-Message-ID: <CAL1RGDWSYyw0G3gW=tyOXDCSfYbJV_3OxBGcM9HEZNWK=hKqNg@mail.gmail.com>
-References: <20120427145915.27184.35216.stgit@build.ogc.int>
- <20120427145922.27184.74574.stgit@build.ogc.int> <4F9EE916.9010708@opengridcomputing.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] iw_cxgb4: Drop peer_abort when no endpoint found.
+Date: Mon, 30 Apr 2012 15:31:29 -0500
+Message-ID: <20120430203129.14228.19855.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4F9EE916.9010708-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sbest-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 30, 2012 at 12:33 PM, Steve Wise
-<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> Hey Roland, this patch is incorrect. =A0It erroneously changes abort_=
-rpl()
-> instead of peer_abort_intr(). =A0I will resubmit the correct patch as=
-ap.
+Log a warning and drop the abort message.  Otherwise
+we will do a bogus wake_up() and crash.
 
-OK, consider it dropped.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+
+ drivers/infiniband/hw/cxgb4/cm.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 8f43143..b75d407 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -2656,6 +2656,12 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	unsigned int tid = GET_TID(req);
+ 
+ 	ep = lookup_tid(t, tid);
++	if (!ep) {
++		printk(KERN_WARNING MOD
++		       "Abort on non-existent endpoint, tid %d\n", tid);
++		kfree_skb(skb);
++		return 0;
++	}
+ 	if (is_neg_adv_abort(req->status)) {
+ 		PDBG("%s neg_adv_abort ep %p tid %u\n", __func__, ep,
+ 		     ep->hwtid);
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
