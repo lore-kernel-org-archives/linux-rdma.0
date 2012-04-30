@@ -1,70 +1,56 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: ib_destroy_cm_id() versus cm callback race ?
-Date: Mon, 30 Apr 2012 19:04:10 +0000
-Message-ID: <4F9EE22A.4020000@acm.org>
-References: <4F9AC1F2.5070007@acm.org> <1828884A29C6694DAF28B7E6B8A82373469D891F@ORSMSX101.amr.corp.intel.com> <4F9BBEEB.40806@acm.org> <1828884A29C6694DAF28B7E6B8A82373469FED01@ORSMSX101.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ib_destroy_cm_id() versus cm callback race ?
+Date: Mon, 30 Apr 2012 19:27:01 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A00D4A@ORSMSX101.amr.corp.intel.com>
+References: <4F9AC1F2.5070007@acm.org>
+ <1828884A29C6694DAF28B7E6B8A82373469D891F@ORSMSX101.amr.corp.intel.com>
+ <4F9BBEEB.40806@acm.org>
+ <1828884A29C6694DAF28B7E6B8A82373469FED01@ORSMSX101.amr.corp.intel.com>
+ <4F9EE22A.4020000@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373469FED01-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4F9EE22A.4020000-HInyCGIudOg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, yangfanlinux <yangfanlinux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/30/12 18:29, Hefty, Sean wrote:
-
->> That makes me wonder how it is prevented that two CM callbacks for the
->> same CM ID run concurrently on different CPUs ?
-> 
-> The callback code ends up looking like this:
-> 
->         ret = atomic_inc_and_test(&cm_id_priv->work_count);
->         if (!ret)
->                 list_add_tail(&work->list, &cm_id_priv->work_list);
->         spin_unlock_irq(&cm_id_priv->lock);
-> 
->         if (ret)
->                 cm_process_work(cm_id_priv, work);
-> 
-> Only 1 thread will end up invoking callbacks to the user.  Other events
-
-> end up being queued on the work_list for a given id.
-
-Are you sure that only one thread at a time will invoke a CM callback ? As
-far as I can see cm_recv_handler() queues work without checking whether
-any other work is ongoing. From drivers/infiniband/core/cm.c:
-
-static void cm_recv_handler(...)
-{
-        [ ... ]
-
-        work = kmalloc(sizeof *work + sizeof(struct ib_sa_path_rec) * paths,
-                       GFP_KERNEL);
-        if (!work) {
-                ib_free_recv_mad(mad_recv_wc);
-                return;
-        }
-
-        INIT_DELAYED_WORK(&work->work, cm_work_handler);
-        work->cm_event.event = event;
-        work->mad_recv_wc = mad_recv_wc;
-        work->port = port;
-        queue_delayed_work(cm.wq, &work->work, 0);
-}
-
-What I have noticed could be explained by the following sequence of events:
-* IB CM core receives a connection request and invokes the callback for event
-  IB_CM_REQ_RECEIVED.
-* That callback adds connection information to a global list (and keeps running).
-* User requests shutdown and hence from another thread ib_send_cm_dreq() is invoked.
-* IB CM core receives a DREP message and invokes the callback for event
-  IB_CM_DREP_RECEIVED. That callback function gets confused because of the
-  concurrent connection state manipulations by the IB_CM_REQ_RECEIVED handler
-  (which is still running).
-
-Bart.
+PiBBcmUgeW91IHN1cmUgdGhhdCBvbmx5IG9uZSB0aHJlYWQgYXQgYSB0aW1lIHdpbGwgaW52b2tl
+IGEgQ00gY2FsbGJhY2sgPyBBcw0KPiBmYXIgYXMgSSBjYW4gc2VlIGNtX3JlY3ZfaGFuZGxlcigp
+IHF1ZXVlcyB3b3JrIHdpdGhvdXQgY2hlY2tpbmcgd2hldGhlcg0KPiBhbnkgb3RoZXIgd29yayBp
+cyBvbmdvaW5nLiBGcm9tIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtLmM6DQoNCkFsbCBjYWxs
+YmFja3MgZm9yIGEgc2luZ2xlIElEIHNob3VsZCBiZSBzZXJpYWxpemVkLiAgKEkgdGhpbmsgdGhl
+IGxpc3RlbiBJRCBpcyBhbiBleGNlcHRpb24sIHdoaWNoIHdvdWxkIGFsbG93IHJlcG9ydGluZyBt
+dWx0aXBsZSBjb25uZWN0aW9uIHJlcXVlc3RzLikNCg0KY21fd29ya19oYW5kbGVyIGRpc3BhdGNo
+ZXMgd29yayB0byBzcGVjaWZpYyBoYW5kbGVycyBiYXNlZCBvbiB0aGUgdHlwZSBvZiBDTSBtZXNz
+YWdlLiAgVGhlIHNlcmlhbGl6YXRpb24gZG9lc24ndCBvY2N1ciB1bnRpbCB3ZSBrbm93IHdoaWNo
+IElEIHdlJ3JlIGRlYWxpbmcgd2l0aCBhbmQgaXRzIHN0YXRlLiAgU2VlIHRoZSBjbV8qX2hhbmRs
+ZXIod29yaykgY2FsbHMuDQogDQo+IFdoYXQgSSBoYXZlIG5vdGljZWQgY291bGQgYmUgZXhwbGFp
+bmVkIGJ5IHRoZSBmb2xsb3dpbmcgc2VxdWVuY2Ugb2YgZXZlbnRzOg0KPiAqIElCIENNIGNvcmUg
+cmVjZWl2ZXMgYSBjb25uZWN0aW9uIHJlcXVlc3QgYW5kIGludm9rZXMgdGhlIGNhbGxiYWNrIGZv
+ciBldmVudA0KPiAgIElCX0NNX1JFUV9SRUNFSVZFRC4NCg0KVGhlIGZsb3cgc2hvdWxkIGJlOiBj
+bV93b3JrX2hhbmRsZXIoKSAtPiBjbV9yZXFfaGFuZGxlcigpIC0+IGNtX21hdGNoX3JlcSgpLCB3
+aGljaCBpbmNyZW1lbnRzIHdvcmtfY291bnQgKHRvIDEgaW4gdGhpcyBjYXNlKS4NCg0KPiAqIFRo
+YXQgY2FsbGJhY2sgYWRkcyBjb25uZWN0aW9uIGluZm9ybWF0aW9uIHRvIGEgZ2xvYmFsIGxpc3Qg
+KGFuZCBrZWVwcw0KPiBydW5uaW5nKS4NCg0KRG8geW91IG1lYW4gdGhhdCB0aGUgY2FsbGJhY2sg
+ZG9lc24ndCByZXR1cm4gdG8gdGhlIENNPw0KDQo+ICogVXNlciByZXF1ZXN0cyBzaHV0ZG93biBh
+bmQgaGVuY2UgZnJvbSBhbm90aGVyIHRocmVhZCBpYl9zZW5kX2NtX2RyZXEoKSBpcw0KPiBpbnZv
+a2VkLg0KDQppYl9zZW5kX2NtX2RyZXEoKSBhdCB0aGlzIHBvaW50IHNob3VsZCBmYWlsIHdpdGgg
+RUlOVkFMLCBhcyB0aGUgY29ubmVjdGlvbiBzdGF0ZSBpcyBub3QgeWV0IGVzdGFibGlzaGVkLiAg
+U28sIEkgZG9uJ3QgdGhpbmsgSSdtIHF1aXRlIGZvbGxvd2luZyB0aGUgb3BlcmF0aW9uIHlldC4N
+Cg0KPiAqIElCIENNIGNvcmUgcmVjZWl2ZXMgYSBEUkVQIG1lc3NhZ2UgYW5kIGludm9rZXMgdGhl
+IGNhbGxiYWNrIGZvciBldmVudA0KPiAgIElCX0NNX0RSRVBfUkVDRUlWRUQuIFRoYXQgY2FsbGJh
+Y2sgZnVuY3Rpb24gZ2V0cyBjb25mdXNlZCBiZWNhdXNlIG9mIHRoZQ0KPiAgIGNvbmN1cnJlbnQg
+Y29ubmVjdGlvbiBzdGF0ZSBtYW5pcHVsYXRpb25zIGJ5IHRoZSBJQl9DTV9SRVFfUkVDRUlWRUQg
+aGFuZGxlcg0KPiAgICh3aGljaCBpcyBzdGlsbCBydW5uaW5nKS4NCg0KVGhlIGNtX2RyZXBfaGFu
+ZGxlcigpIGNvZGUgaW5jcmVtZW50cyB3b3JrX2NvdW50IGFuZCBjaGVja3MgdGhlIHJlc3VsdC4g
+IElmIHdvcmtfY291bnQgd2FzIG5vbi16ZXJvLCB0aGVuIHRoZSBEUkVQIGV2ZW50IHNob3VsZCBi
+ZSBxdWV1ZWQgb24gdGhlIGlkJ3Mgd29ya19saXN0LiAgVGhlIHRocmVhZCB3aGljaCBzZXQgd29y
+a19jb3VudCB0byAxLCB3aWxsIGV2ZW50dWFsbHkgaW52b2tlIHRoZSBjYWxsYmFjayBmb3IgdGhh
+dCBldmVudC4NCg0KLSBTZWFuDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
