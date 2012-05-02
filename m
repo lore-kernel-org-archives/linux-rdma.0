@@ -1,48 +1,42 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch 2/2] RDMA/ocrdma: tiny locking cleanup
-Date: Wed, 2 May 2012 09:14:47 +0300
-Message-ID: <20120502061447.GB28894@elgon.mountain>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] x86: insure ARCH_HAS_PREFETCH is set for x86_64
+Date: Wed, 2 May 2012 11:20:37 -0400
+Message-ID: <20120502152037.28837.71266.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We only need to disable the IRQs one time.
+This patch allows prefetch_range() to function on
+64 bit x86.
 
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ arch/x86/include/asm/processor.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 0d1872f..df7836d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1431,7 +1431,7 @@ int ocrdma_destroy_qp(struct ib_qp *ibqp)
- 	struct ocrdma_dev *dev;
- 	struct ib_qp_attr attrs;
- 	int attr_mask = IB_QP_STATE;
--	unsigned long wq_flags = 0, rq_flags = 0;
-+	unsigned long wq_flags;
+diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+index 4fa7dcc..95bcaf4 100644
+--- a/arch/x86/include/asm/processor.h
++++ b/arch/x86/include/asm/processor.h
+@@ -764,10 +764,10 @@ extern char			ignore_fpu_irq;
  
- 	qp = get_ocrdma_qp(ibqp);
- 	dev = qp->dev;
-@@ -1455,12 +1455,12 @@ int ocrdma_destroy_qp(struct ib_qp *ibqp)
- 	 */
- 	spin_lock_irqsave(&qp->sq_cq->cq_lock, wq_flags);
- 	if (qp->rq_cq && (qp->rq_cq != qp->sq_cq))
--		spin_lock_irqsave(&qp->rq_cq->cq_lock, rq_flags);
-+		spin_lock(&qp->rq_cq->cq_lock);
+ #ifdef CONFIG_X86_32
+ # define BASE_PREFETCH		ASM_NOP4
+-# define ARCH_HAS_PREFETCH
+ #else
+ # define BASE_PREFETCH		"prefetcht0 (%1)"
+ #endif
++# define ARCH_HAS_PREFETCH
  
- 	ocrdma_del_qpn_map(dev, qp);
- 
- 	if (qp->rq_cq && (qp->rq_cq != qp->sq_cq))
--		spin_unlock_irqrestore(&qp->rq_cq->cq_lock, rq_flags);
-+		spin_unlock(&qp->rq_cq->cq_lock);
- 	spin_unlock_irqrestore(&qp->sq_cq->cq_lock, wq_flags);
- 
- 	if (!pd->uctx) {
+ /*
+  * Prefetch instructions for Pentium III (+) and AMD Athlon (+)
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
