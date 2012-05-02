@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: add prefetch for eager buffers
-Date: Wed, 2 May 2012 11:21:53 -0400
-Message-ID: <20120502152153.29126.96770.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH] IB/qib: compile qib_verbs.c for optimal memcpy performance
+Date: Wed, 2 May 2012 11:24:02 -0400
+Message-ID: <20120502152402.29436.77513.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -11,40 +11,27 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When a packet is been stored, add the prefetch call.
-
-The nature of the prefetch is correctly determined by
-the alternatives mechanism.
+This patch changes the compilation for qib_verbs.c when the
+patch is x86_64 and the -mstringop-strategy is supported by
+the compiler.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_driver.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/qib/Makefile |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
-index 6fc9365..8895cfe 100644
---- a/drivers/infiniband/hw/qib/qib_driver.c
-+++ b/drivers/infiniband/hw/qib/qib_driver.c
-@@ -38,6 +38,7 @@
- #include <linux/netdevice.h>
- #include <linux/vmalloc.h>
- #include <linux/module.h>
-+#include <linux/prefetch.h>
+diff --git a/drivers/infiniband/hw/qib/Makefile b/drivers/infiniband/hw/qib/Makefile
+index f12d7bb..4c7f6c3 100644
+--- a/drivers/infiniband/hw/qib/Makefile
++++ b/drivers/infiniband/hw/qib/Makefile
+@@ -13,3 +13,7 @@ ib_qib-$(CONFIG_PCI_MSI) += qib_iba6120.o
  
- #include "qib.h"
- 
-@@ -481,8 +482,10 @@ u32 qib_kreceive(struct qib_ctxtdata *rcd, u32 *llic, u32 *npkts)
- 			etail = qib_hdrget_index(rhf_addr);
- 			updegr = 1;
- 			if (tlen > sizeof(*hdr) ||
--			    etype >= RCVHQ_RCV_TYPE_NON_KD)
-+			    etype >= RCVHQ_RCV_TYPE_NON_KD) {
- 				ebuf = qib_get_egrbuf(rcd, etail);
-+				prefetch_range(ebuf, tlen - sizeof(*hdr));
-+			}
- 		}
- 		if (!eflags) {
- 			u16 lrh_len = be16_to_cpu(hdr->lrh[2]) << 2;
+ ib_qib-$(CONFIG_X86_64) += qib_wc_x86_64.o
+ ib_qib-$(CONFIG_PPC64) += qib_wc_ppc64.o
++
++ifeq ($(CONFIG_X86_64),y)
++CFLAGS_qib_verbs.o += $(call cc-option,-mstringop-strategy=rep_8byte)
++endif
 
 
 --
