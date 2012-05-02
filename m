@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: correct ordering of reregister vs. port active event
-Date: Wed, 2 May 2012 14:35:18 -0400
-Message-ID: <20120502183518.1595.6540.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH] IB/qib: Fix qib driver mkey lease timeout handling
+Date: Wed, 2 May 2012 14:39:11 -0400
+Message-ID: <20120502183911.1978.26720.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -11,87 +11,96 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 
-When a port first goes active with SMA Set(PortInfo) and reregister bit set, the
-driver sends up the reregister event followed by a port active event.
+If a port has a MKey lease set, the MKey protect bits set to 1,
+and a SubnSet arrives with an invalid MKey, a MKey mismatch trap is
+generated, the lease timer begins as expected, and eventually the MKey
+protect bits will be set back to 0 as per the spec.  However, if any
+other SMP with an invalid MKey arrives, the lease timer is expired and
+the MKey protect bits remain in force.
 
-The problem is that in response to reregister event most apps try to issue a SA
-query of some sort, but that fails because port is not active.
+This is not according to to spec.  In particular, C14-17 says that
+a lease timer that is underway is not affected by protection level
+checks (ie, at protection level 1, a SubnGet with a bad MKey may be
+successful, but does not stop the timer), and C14-19 says that the timer
+shall stop when a valid MKey has been received.  C14-19 is the only
+compliance statement that specifies a stopping condition for the timer.
 
-The qib driver needs to a trivial change to correct this behavior.
-
-This issue has been there for a while, however the recent serdes
-work has probably made the delay between the reregister event and the active
-event larger and hence opened the race far enough so that its being seen more
-often.
-
-This fragment in subn_set_portinfo needs to move:
-
-if (pip->clientrereg_resv_subnetto & 0x80) {
-        clientrereg = 1;
-        event.event = IB_EVENT_CLIENT_REREGISTER;
-        ib_dispatch_event(&event);
-}
-
-This patch moves the code to just before the nested call to subn_get_portinfo():
-
-    TO HERE
-    ret = subn_get_portinfo(smp, ibdev, port);
-
-The patch also changes the clientrereg local to a u8 and saves off the rereg bit into
-it.  The code following the nested subn_get_portinfo() now restores that bit per o14-12.2.1
-with a logical from that copy.
+This behavior is magnified if the port's Master SM LID attribute
+points at itself.  In that case, the MKey mismatch trap is sufficient to
+expire the timer, and the mkey lease attribute is rendered useless.
 
 Reviewed-by: Ram Vepa <ram.vepa-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_mad.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/qib/qib_mad.c |   44 +++++++++++++++++++++++------------
+ 1 files changed, 29 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index c4ff788..9292c76 100644
+index 9292c76..ed611e8 100644
 --- a/drivers/infiniband/hw/qib/qib_mad.c
 +++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -631,7 +631,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 	struct qib_devdata *dd;
- 	struct qib_pportdata *ppd;
- 	struct qib_ibport *ibp;
--	char clientrereg = 0;
-+	u8 clientrereg = (pip->clientrereg_resv_subnetto & 0x80);
- 	unsigned long flags;
- 	u16 lid, smlid;
- 	u8 lwe;
-@@ -781,12 +781,6 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+@@ -396,6 +396,7 @@ static int get_linkdowndefaultstate(struct qib_pportdata *ppd)
  
- 	ibp->subnet_timeout = pip->clientrereg_resv_subnetto & 0x1F;
+ static int check_mkey(struct qib_ibport *ibp, struct ib_smp *smp, int mad_flags)
+ {
++	int valid_mkey = 0;
+ 	int ret = 0;
  
--	if (pip->clientrereg_resv_subnetto & 0x80) {
--		clientrereg = 1;
--		event.event = IB_EVENT_CLIENT_REREGISTER;
--		ib_dispatch_event(&event);
--	}
--
- 	/*
- 	 * Do the port state change now that the other link parameters
- 	 * have been set.
-@@ -844,10 +838,15 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 		smp->status |= IB_SMP_INVALID_FIELD;
+ 	/* Is the mkey in the process of expiring? */
+@@ -406,23 +407,36 @@ static int check_mkey(struct qib_ibport *ibp, struct ib_smp *smp, int mad_flags)
+ 		ibp->mkeyprot = 0;
  	}
  
-+	if (clientrereg) {
-+		event.event = IB_EVENT_CLIENT_REREGISTER;
-+		ib_dispatch_event(&event);
+-	/* M_Key checking depends on Portinfo:M_Key_protect_bits */
+-	if ((mad_flags & IB_MAD_IGNORE_MKEY) == 0 && ibp->mkey != 0 &&
+-	    ibp->mkey != smp->mkey &&
+-	    (smp->method == IB_MGMT_METHOD_SET ||
+-	     smp->method == IB_MGMT_METHOD_TRAP_REPRESS ||
+-	     (smp->method == IB_MGMT_METHOD_GET && ibp->mkeyprot >= 2))) {
+-		if (ibp->mkey_violations != 0xFFFF)
+-			++ibp->mkey_violations;
+-		if (!ibp->mkey_lease_timeout && ibp->mkey_lease_period)
+-			ibp->mkey_lease_timeout = jiffies +
+-				ibp->mkey_lease_period * HZ;
+-		/* Generate a trap notice. */
+-		qib_bad_mkey(ibp, smp);
+-		ret = IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
+-	} else if (ibp->mkey_lease_timeout)
++	if ((mad_flags & IB_MAD_IGNORE_MKEY) ||  ibp->mkey == 0 ||
++	    ibp->mkey == smp->mkey)
++		valid_mkey = 1;
++
++	/* Unset lease timeout on any valid Get/Set/TrapRepress */
++	if (valid_mkey && ibp->mkey_lease_timeout &&
++	    (smp->method == IB_MGMT_METHOD_GET ||
++	     smp->method == IB_MGMT_METHOD_SET ||
++	     smp->method == IB_MGMT_METHOD_TRAP_REPRESS))
+ 		ibp->mkey_lease_timeout = 0;
+ 
++	if (!valid_mkey) {
++		switch (smp->method) {
++		case IB_MGMT_METHOD_GET:
++			/* Bad mkey not a violation below level 2 */
++			if (ibp->mkeyprot < 2)
++				break;
++		case IB_MGMT_METHOD_SET:
++		case IB_MGMT_METHOD_TRAP_REPRESS:
++			if (ibp->mkey_violations != 0xFFFF)
++				++ibp->mkey_violations;
++			if (!ibp->mkey_lease_timeout && ibp->mkey_lease_period)
++				ibp->mkey_lease_timeout = jiffies +
++					ibp->mkey_lease_period * HZ;
++			/* Generate a trap notice. */
++			qib_bad_mkey(ibp, smp);
++			ret = IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
++		}
 +	}
 +
- 	ret = subn_get_portinfo(smp, ibdev, port);
- 
--	if (clientrereg)
--		pip->clientrereg_resv_subnetto |= 0x80;
-+	/* restore re-reg bit per o14-12.2.1 */
-+	pip->clientrereg_resv_subnetto |= clientrereg;
- 
- 	goto get_only;
+ 	return ret;
+ }
  
 
 
