@@ -1,8 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] If a MAD is sent directly to the local HCA rather than placed
-	on a QP and the MAD fails mkey checks,
-Date: Wed, 2 May 2012 14:48:35 -0400
-Message-ID: <20120502184835.2971.14859.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH V2] IB/qib: MADs should return failure with misset mkeys
+Date: Wed, 2 May 2012 14:57:23 -0400
+Message-ID: <20120502185723.3446.57069.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -14,6 +13,7 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 
+If a MAD is sent directly to the local HCA rather than placed on a QP and the MAD fails mkey checks,
 there is no means to generate a timeout for the client, which may hang.  Instead we report
 IB_MAD_RESULT_FAILURE, which operates the same for on-the-wire packets, but will generate a send
 failure back to the client.
