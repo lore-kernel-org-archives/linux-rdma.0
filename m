@@ -1,60 +1,60 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2] IB/qib: MADs should return failure with misset mkeys
-Date: Wed, 2 May 2012 14:57:23 -0400
-Message-ID: <20120502185723.3446.57069.stgit@kop-dev-sles11-04.qlogic.org>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] If a MAD is sent directly to the local HCA rather than
+ placed	on a QP and the MAD fails mkey checks,
+Date: Wed, 2 May 2012 18:32:52 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC0D400022@ORSMSX152.amr.corp.intel.com>
+References: <20120502184835.2971.14859.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120502184835.2971.14859.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-
-If a MAD is sent directly to the local HCA rather than placed on a QP and the MAD fails mkey checks,
-there is no means to generate a timeout for the client, which may hang.  Instead we report
-IB_MAD_RESULT_FAILURE, which operates the same for on-the-wire packets, but will generate a send
-failure back to the client.
-
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_mad.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index ed611e8..4339021 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -433,7 +433,7 @@ static int check_mkey(struct qib_ibport *ibp, struct ib_smp *smp, int mad_flags)
- 					ibp->mkey_lease_period * HZ;
- 			/* Generate a trap notice. */
- 			qib_bad_mkey(ibp, smp);
--			ret = IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
-+			ret = 1;
- 		}
- 	}
- 
-@@ -464,6 +464,7 @@ static int subn_get_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 			ibp = to_iport(ibdev, port_num);
- 			ret = check_mkey(ibp, smp, 0);
- 			if (ret)
-+				ret = IB_MAD_RESULT_FAILURE;
- 				goto bail;
- 		}
- 	}
-@@ -1848,6 +1849,7 @@ static int process_subn(struct ib_device *ibdev, int mad_flags,
- 		    port_num && port_num <= ibdev->phys_port_cnt &&
- 		    port != port_num)
- 			(void) check_mkey(to_iport(ibdev, port_num), smp, 0);
-+		ret = IB_MAD_RESULT_FAILURE;
- 		goto bail;
- 	}
- 
-
-
+SWdub3JlIHRoaXMuDQoNCkknbSByZWlzc3Vpbmcgd2l0aCBhIGNvcnJlY3RlZCBzdWJqZWN0IGxp
+bmUhDQoNCk1pa2UNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51
+eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+IG93bmVy
+QHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIE1pa2UgTWFyY2luaXN6eW4NCj4gU2VudDog
+V2VkbmVzZGF5LCBNYXkgMDIsIDIwMTIgMjo0OSBQTQ0KPiBUbzogcm9sYW5kQHB1cmVzdG9yYWdl
+LmNvbQ0KPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogW1BBVENI
+XSBJZiBhIE1BRCBpcyBzZW50IGRpcmVjdGx5IHRvIHRoZSBsb2NhbCBIQ0EgcmF0aGVyIHRoYW4g
+cGxhY2VkDQo+IG9uIGEgUVAgYW5kIHRoZSBNQUQgZmFpbHMgbWtleSBjaGVja3MsDQo+IA0KPiBG
+cm9tOiBKaW0gRm9yYWtlciA8Zm9yYWtlcjFAbGxubC5nb3Y+DQo+IA0KPiB0aGVyZSBpcyBubyBt
+ZWFucyB0byBnZW5lcmF0ZSBhIHRpbWVvdXQgZm9yIHRoZSBjbGllbnQsIHdoaWNoIG1heSBoYW5n
+Lg0KPiBJbnN0ZWFkIHdlIHJlcG9ydCBJQl9NQURfUkVTVUxUX0ZBSUxVUkUsIHdoaWNoIG9wZXJh
+dGVzIHRoZSBzYW1lIGZvcg0KPiBvbi10aGUtd2lyZSBwYWNrZXRzLCBidXQgd2lsbCBnZW5lcmF0
+ZSBhIHNlbmQgZmFpbHVyZSBiYWNrIHRvIHRoZSBjbGllbnQuDQo+IA0KPiBSZXZpZXdlZC1ieTog
+TWlrZSBNYXJjaW5pc3p5biA8bWlrZS5tYXJjaW5pc3p5bkBpbnRlbC5jb20+DQo+IFNpZ25lZC1v
+ZmYtYnk6IEppbSBGb3Jha2VyIDxmb3Jha2VyMUBsbG5sLmdvdj4NCj4gLS0tDQo+ICBkcml2ZXJz
+L2luZmluaWJhbmQvaHcvcWliL3FpYl9tYWQuYyB8ICAgIDQgKysrLQ0KPiAgMSBmaWxlcyBjaGFu
+Z2VkLCAzIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfbWFkLmMNCj4gYi9kcml2ZXJzL2luZmluaWJh
+bmQvaHcvcWliL3FpYl9tYWQuYw0KPiBpbmRleCBlZDYxMWU4Li40MzM5MDIxIDEwMDY0NA0KPiAt
+LS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9tYWQuYw0KPiArKysgYi9kcml2ZXJz
+L2luZmluaWJhbmQvaHcvcWliL3FpYl9tYWQuYw0KPiBAQCAtNDMzLDcgKzQzMyw3IEBAIHN0YXRp
+YyBpbnQgY2hlY2tfbWtleShzdHJ1Y3QgcWliX2licG9ydCAqaWJwLCBzdHJ1Y3QNCj4gaWJfc21w
+ICpzbXAsIGludCBtYWRfZmxhZ3MpDQo+ICAJCQkJCWlicC0+bWtleV9sZWFzZV9wZXJpb2QgKiBI
+WjsNCj4gIAkJCS8qIEdlbmVyYXRlIGEgdHJhcCBub3RpY2UuICovDQo+ICAJCQlxaWJfYmFkX21r
+ZXkoaWJwLCBzbXApOw0KPiAtCQkJcmV0ID0gSUJfTUFEX1JFU1VMVF9TVUNDRVNTIHwNCj4gSUJf
+TUFEX1JFU1VMVF9DT05TVU1FRDsNCj4gKwkJCXJldCA9IDE7DQo+ICAJCX0NCj4gIAl9DQo+IA0K
+PiBAQCAtNDY0LDYgKzQ2NCw3IEBAIHN0YXRpYyBpbnQgc3Vibl9nZXRfcG9ydGluZm8oc3RydWN0
+IGliX3NtcCAqc21wLA0KPiBzdHJ1Y3QgaWJfZGV2aWNlICppYmRldiwNCj4gIAkJCWlicCA9IHRv
+X2lwb3J0KGliZGV2LCBwb3J0X251bSk7DQo+ICAJCQlyZXQgPSBjaGVja19ta2V5KGlicCwgc21w
+LCAwKTsNCj4gIAkJCWlmIChyZXQpDQo+ICsJCQkJcmV0ID0gSUJfTUFEX1JFU1VMVF9GQUlMVVJF
+Ow0KPiAgCQkJCWdvdG8gYmFpbDsNCj4gIAkJfQ0KPiAgCX0NCj4gQEAgLTE4NDgsNiArMTg0OSw3
+IEBAIHN0YXRpYyBpbnQgcHJvY2Vzc19zdWJuKHN0cnVjdCBpYl9kZXZpY2UgKmliZGV2LCBpbnQN
+Cj4gbWFkX2ZsYWdzLA0KPiAgCQkgICAgcG9ydF9udW0gJiYgcG9ydF9udW0gPD0gaWJkZXYtPnBo
+eXNfcG9ydF9jbnQgJiYNCj4gIAkJICAgIHBvcnQgIT0gcG9ydF9udW0pDQo+ICAJCQkodm9pZCkg
+Y2hlY2tfbWtleSh0b19pcG9ydChpYmRldiwgcG9ydF9udW0pLCBzbXAsDQo+IDApOw0KPiArCQly
+ZXQgPSBJQl9NQURfUkVTVUxUX0ZBSUxVUkU7DQo+ICAJCWdvdG8gYmFpbDsNCj4gIAl9DQo+IA0K
+PiANCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
+aW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbiB0aGUNCj4gYm9keSBvZiBhIG1lc3NhZ2Ug
+dG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0DQo+IGh0
+dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KPiANCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
