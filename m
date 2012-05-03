@@ -1,18 +1,32 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] rdma/cm: Fix false possible recursive locking
-Date: Wed, 2 May 2012 17:57:41 -0700
-Message-ID: <CAL1RGDXvHKdvp7Rm_JGXH0EovNi6xPC1GHPzNxLNxz9iq0mqag@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A82373469D8371@ORSMSX101.amr.corp.intel.com>
+From: Christian Kniep <c.kniep-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org>
+Subject: infiniband-diags needs libibmad with =?utf-8?b?J21hZF9kdW1wX21sbnhfZXh0X3BvcnRfaW5mbyc=?=
+Date: Thu, 3 May 2012 06:26:04 +0000 (UTC)
+Message-ID: <loom.20120503T081916-361@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373469D8371-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied
+Hey list,
+
+I just compiled the newest version of libibumad,-ibmad, opensm and
+infiniband-diags and I got an error I am not able to eliminate.
+####
+checking for mad_dump_mlnx_ext_port_info in -libmad... no
+configure: error: mad_dump_mlnx_ext_port_info() not found.
+        diags require libibmad with mad_dump_mlnx_ext_port_info support.
+####
+My installation on centos6.2 is discribed here:
+https://github.com/ChristianKniep/QNIB/wiki/Installation
+
+How could I fix this?
+
+Thanks & kind regards
+Christian
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
