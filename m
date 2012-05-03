@@ -1,94 +1,45 @@
-From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Subject: Re: infiniband-diags needs libibmad with
- 'mad_dump_mlnx_ext_port_info'
-Date: Thu, 3 May 2012 10:59:56 +0200
-Message-ID: <20120503105956.0f32a657@b012350-ux>
-References: <loom.20120503T081916-361@post.gmane.org>
-	<20120503095144.708d32a6@b012350-ux>
-	<4FA247ED.2030702@science-computing.de>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags: remove -u common option
+Date: Thu, 3 May 2012 09:14:51 -0700
+Message-ID: <20120503091451.c764d06d.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FA247ED.2030702-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christian Kniep <C.Kniep-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 03 May 2012 10:55:09 +0200
-Christian Kniep <C.Kniep-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org> wrote:
 
-> Salut S=C3=A9bastian,
->=20
-> omg, I am stupid... :)
-> Found the bad files:
-> /usr/lib64/libibmad.so
-> /usr/lib64/libibmad.so.5
-> /usr/lib64/libibmad.so.5.1.2
->=20
-> 'yum erase libibmad' solved my problem.
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ src/ibdiag_common.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-  OK good. I've already been bitten by this kind of thing.
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index a4e8cfa..2f12c46 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -209,7 +209,6 @@ static int process_opt(int ch, char *optarg)
+ 		read_ibdiag_config(optarg);
+ 		break;
+ 	case 'h':
+-	case 'u':
+ 		ibdiag_show_usage();
+ 		break;
+ 	case 'V':
+@@ -280,7 +279,6 @@ static const struct ibdiag_opt common_opts[] = {
+ 	{"errors", 'e', 0, NULL, "show send and receive errors"},
+ 	{"verbose", 'v', 0, NULL, "increase verbosity level"},
+ 	{"debug", 'd', 0, NULL, "raise debug level"},
+-	{"usage", 'u', 0, NULL, "usage message"},
+ 	{"help", 'h', 0, NULL, "help message"},
+ 	{"version", 'V', 0, NULL, "show version"},
+ 	{0}
+-- 
+1.7.1
 
->=20
-> Merci
-
-  De rien ;)
-
-  S=C3=A9bastien.
-
-> Christian
->=20
->=20
-> Am 03.05.2012 09:51, schrieb sebastien dugue:
-> >=20
-> >   Hi Christian,
-> >=20
-> > On Thu, 3 May 2012 06:26:04 +0000 (UTC)
-> > Christian Kniep <c.kniep-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org> wrote:
-> >=20
-> >> Hey list,
-> >>
-> >> I just compiled the newest version of libibumad,-ibmad, opensm and
-> >> infiniband-diags and I got an error I am not able to eliminate.
-> >> ####
-> >> checking for mad_dump_mlnx_ext_port_info in -libmad... no
-> >> configure: error: mad_dump_mlnx_ext_port_info() not found.
-> >>         diags require libibmad with mad_dump_mlnx_ext_port_info su=
-pport.
-> >> ####mad_dump_mlnx_ext_port_info
-> >> My installation on centos6.2 is discribed here:
-> >> https://github.com/ChristianKniep/QNIB/wiki/Installation
-> >>
-> >> How could I fix this?
-> >=20
-> >   what does config.log tells you regarding the check for mad_dump_m=
-lnx_ext_port_info?
-> >=20
-> >   has libibmad been installed in the standard place? Maybe configur=
-e is finding an old
-> > libibmad that's previously been installed (and without mad_dump_mln=
-x_ext_port_info).
-> >=20
-> >   Also beware of the lib vs lib64 thingy.
-> >=20
-> >   Regards,
-> >=20
-> >   S=C3=A9bastien.
-> >=20
-> >>
-> >> Thanks & kind regards
-> >> Christian
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rd=
-ma" in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
