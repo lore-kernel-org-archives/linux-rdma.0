@@ -1,61 +1,94 @@
-From: Christian Kniep <C.Kniep-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org>
-Subject: Re: infiniband-diags needs libibmad with 'mad_dump_mlnx_ext_port_info'
-Date: Thu, 03 May 2012 10:55:09 +0200
-Message-ID: <4FA247ED.2030702@science-computing.de>
-References: <loom.20120503T081916-361@post.gmane.org> <20120503095144.708d32a6@b012350-ux>
+From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+Subject: Re: infiniband-diags needs libibmad with
+ 'mad_dump_mlnx_ext_port_info'
+Date: Thu, 3 May 2012 10:59:56 +0200
+Message-ID: <20120503105956.0f32a657@b012350-ux>
+References: <loom.20120503T081916-361@post.gmane.org>
+	<20120503095144.708d32a6@b012350-ux>
+	<4FA247ED.2030702@science-computing.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120503095144.708d32a6@b012350-ux>
+In-Reply-To: <4FA247ED.2030702-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+To: Christian Kniep <C.Kniep-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-U2FsdXQgU8OpYmFzdGlhbiwKCm9tZywgSSBhbSBzdHVwaWQuLi4gOikKRm91bmQgdGhlIGJhZCBm
-aWxlczoKL3Vzci9saWI2NC9saWJpYm1hZC5zbwovdXNyL2xpYjY0L2xpYmlibWFkLnNvLjUKL3Vz
-ci9saWI2NC9saWJpYm1hZC5zby41LjEuMgoKJ3l1bSBlcmFzZSBsaWJpYm1hZCcgc29sdmVkIG15
-IHByb2JsZW0uCgpNZXJjaQpDaHJpc3RpYW4KCgpBbSAwMy4wNS4yMDEyIDA5OjUxLCBzY2hyaWVi
-IHNlYmFzdGllbiBkdWd1ZToKPiAKPiAgIEhpIENocmlzdGlhbiwKPiAKPiBPbiBUaHUsIDMgTWF5
-IDIwMTIgMDY6MjY6MDQgKzAwMDAgKFVUQykKPiBDaHJpc3RpYW4gS25pZXAgPGMua25pZXBAc2Np
-ZW5jZS1jb21wdXRpbmcuZGU+IHdyb3RlOgo+IAo+PiBIZXkgbGlzdCwKPj4KPj4gSSBqdXN0IGNv
-bXBpbGVkIHRoZSBuZXdlc3QgdmVyc2lvbiBvZiBsaWJpYnVtYWQsLWlibWFkLCBvcGVuc20gYW5k
-Cj4+IGluZmluaWJhbmQtZGlhZ3MgYW5kIEkgZ290IGFuIGVycm9yIEkgYW0gbm90IGFibGUgdG8g
-ZWxpbWluYXRlLgo+PiAjIyMjCj4+IGNoZWNraW5nIGZvciBtYWRfZHVtcF9tbG54X2V4dF9wb3J0
-X2luZm8gaW4gLWxpYm1hZC4uLiBubwo+PiBjb25maWd1cmU6IGVycm9yOiBtYWRfZHVtcF9tbG54
-X2V4dF9wb3J0X2luZm8oKSBub3QgZm91bmQuCj4+ICAgICAgICAgZGlhZ3MgcmVxdWlyZSBsaWJp
-Ym1hZCB3aXRoIG1hZF9kdW1wX21sbnhfZXh0X3BvcnRfaW5mbyBzdXBwb3J0Lgo+PiAjIyMjbWFk
-X2R1bXBfbWxueF9leHRfcG9ydF9pbmZvCj4+IE15IGluc3RhbGxhdGlvbiBvbiBjZW50b3M2LjIg
-aXMgZGlzY3JpYmVkIGhlcmU6Cj4+IGh0dHBzOi8vZ2l0aHViLmNvbS9DaHJpc3RpYW5LbmllcC9R
-TklCL3dpa2kvSW5zdGFsbGF0aW9uCj4+Cj4+IEhvdyBjb3VsZCBJIGZpeCB0aGlzPwo+IAo+ICAg
-d2hhdCBkb2VzIGNvbmZpZy5sb2cgdGVsbHMgeW91IHJlZ2FyZGluZyB0aGUgY2hlY2sgZm9yIG1h
-ZF9kdW1wX21sbnhfZXh0X3BvcnRfaW5mbz8KPiAKPiAgIGhhcyBsaWJpYm1hZCBiZWVuIGluc3Rh
-bGxlZCBpbiB0aGUgc3RhbmRhcmQgcGxhY2U/IE1heWJlIGNvbmZpZ3VyZSBpcyBmaW5kaW5nIGFu
-IG9sZAo+IGxpYmlibWFkIHRoYXQncyBwcmV2aW91c2x5IGJlZW4gaW5zdGFsbGVkIChhbmQgd2l0
-aG91dCBtYWRfZHVtcF9tbG54X2V4dF9wb3J0X2luZm8pLgo+IAo+ICAgQWxzbyBiZXdhcmUgb2Yg
-dGhlIGxpYiB2cyBsaWI2NCB0aGluZ3kuCj4gCj4gICBSZWdhcmRzLAo+IAo+ICAgU8OpYmFzdGll
-bi4KPiAKPj4KPj4gVGhhbmtzICYga2luZCByZWdhcmRzCj4+IENocmlzdGlhbgo+Pgo+PiAtLQo+
-PiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3Jp
-YmUgbGludXgtcmRtYSIgaW4KPj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2
-Z2VyLmtlcm5lbC5vcmcKPj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2Vy
-bmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCgotLSAKRnJldW5kbGljaGUgR3J1ZXNzZQpDaHJp
-c3RpYW4gS25pZXAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19jcmVhdGluZyBJVCBz
-b2x1dGlvbnMKQ2hyaXN0aWFuIEtuaWVwLCBCLlNjLiBJbmYgICAgIHNjaWVuY2UgKyBjb21wdXRp
-bmcgYWcKU2VuaW9yIFN5c3RlbXMgRW5naW5lZXIgICAgICAgIEhhZ2VsbG9jaGVyIFdlZyA3MwpD
-QXggUHJvZmVzc2lvbmFsIFNlcnZpY2VzICAgICAgRC03MjA3MCBUdWViaW5nZW4sIEdlcm1hbnkK
-cGhvbmUgICAgKzQ5KDApNzA3MSA5NDU3LTI4MyAgIGZheCAgICs0OSgwKTcwNzEgOTQ1Ny00MTEK
-dGVhbWxpbmUgKzQ5KDApNzA3MSA5NDU3LTY4MSAgIHd3dy5zY2llbmNlLWNvbXB1dGluZy5kZQot
-LSANClZvcnN0YW5kc3ZvcnNpdHplbmRlci9DaGFpcm1hbiBvZiB0aGUgYm9hcmQgb2YgbWFuYWdl
-bWVudDoNCkdlcmQtTG90aGFyIExlb25oYXJ0DQpWb3JzdGFuZC9Cb2FyZCBvZiBNYW5hZ2VtZW50
-Og0KRHIuIEJlcm5kIEZpbmtiZWluZXIsIE1pY2hhZWwgSGVpbnJpY2hzLCANCkRyLiBBcm5vIFN0
-ZWl0eiwgRHIuIEluZ3JpZCBaZWNoDQpWb3JzaXR6ZW5kZXIgZGVzIEF1ZnNpY2h0c3JhdHMvDQpD
-aGFpcm1hbiBvZiB0aGUgU3VwZXJ2aXNvcnkgQm9hcmQ6DQpQaGlsaXBwZSBNaWx0aW4NClNpdHov
-UmVnaXN0ZXJlZCBPZmZpY2U6IFR1ZWJpbmdlbg0KUmVnaXN0ZXJnZXJpY2h0L1JlZ2lzdHJhdGlv
-biBDb3VydDogU3R1dHRnYXJ0DQpSZWdpc3Rlcm51bW1lci9Db21tZXJjaWFsIFJlZ2lzdGVyIE5v
-LjogSFJCIDM4MjE5Ngo=
+On Thu, 03 May 2012 10:55:09 +0200
+Christian Kniep <C.Kniep-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org> wrote:
 
+> Salut S=C3=A9bastian,
+>=20
+> omg, I am stupid... :)
+> Found the bad files:
+> /usr/lib64/libibmad.so
+> /usr/lib64/libibmad.so.5
+> /usr/lib64/libibmad.so.5.1.2
+>=20
+> 'yum erase libibmad' solved my problem.
+
+  OK good. I've already been bitten by this kind of thing.
+
+>=20
+> Merci
+
+  De rien ;)
+
+  S=C3=A9bastien.
+
+> Christian
+>=20
+>=20
+> Am 03.05.2012 09:51, schrieb sebastien dugue:
+> >=20
+> >   Hi Christian,
+> >=20
+> > On Thu, 3 May 2012 06:26:04 +0000 (UTC)
+> > Christian Kniep <c.kniep-Pt+Xe7GJXK+P2YhJcF5u+nqWYbMAw+HU@public.gmane.org> wrote:
+> >=20
+> >> Hey list,
+> >>
+> >> I just compiled the newest version of libibumad,-ibmad, opensm and
+> >> infiniband-diags and I got an error I am not able to eliminate.
+> >> ####
+> >> checking for mad_dump_mlnx_ext_port_info in -libmad... no
+> >> configure: error: mad_dump_mlnx_ext_port_info() not found.
+> >>         diags require libibmad with mad_dump_mlnx_ext_port_info su=
+pport.
+> >> ####mad_dump_mlnx_ext_port_info
+> >> My installation on centos6.2 is discribed here:
+> >> https://github.com/ChristianKniep/QNIB/wiki/Installation
+> >>
+> >> How could I fix this?
+> >=20
+> >   what does config.log tells you regarding the check for mad_dump_m=
+lnx_ext_port_info?
+> >=20
+> >   has libibmad been installed in the standard place? Maybe configur=
+e is finding an old
+> > libibmad that's previously been installed (and without mad_dump_mln=
+x_ext_port_info).
+> >=20
+> >   Also beware of the lib vs lib64 thingy.
+> >=20
+> >   Regards,
+> >=20
+> >   S=C3=A9bastien.
+> >=20
+> >>
+> >> Thanks & kind regards
+> >> Christian
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-rd=
+ma" in
+> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
