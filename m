@@ -1,7 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: ibidsverify exit status 1 on errors found
-Date: Fri, 4 May 2012 12:19:15 -0700
-Message-ID: <20120504121915.af395323.weiny2@llnl.gov>
+Subject: [PATCH] infiniband-diags: fix ibidsverify portguid validation.
+Date: Fri, 4 May 2012 12:19:10 -0700
+Message-ID: <20120504121910.9074eca4.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -11,97 +11,72 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+
+PortGUID may be equal to the NodeGUID of it's own node for 1 port.  Duplicate
+PortGUID's on that node will be detected in insert_portguid
+
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- man/ibidsverify.8      |    4 ++++
- scripts/ibidsverify.pl |   14 ++++++++++++++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+ scripts/ibidsverify.pl |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/man/ibidsverify.8 b/man/ibidsverify.8
-index e3d9a03..d617387 100644
---- a/man/ibidsverify.8
-+++ b/man/ibidsverify.8
-@@ -27,6 +27,10 @@ information.  This option is slower but should be used if the diag tools have
- not been used for some time or if there are other reasons to believe the
- fabric has changed.
- 
-+.SH EXIT STATUS
-+
-+Exit status is 1 if errors are found, 0 otherwise.
-+
- .SH SEE ALSO
- .BR ibnetdiscover(8)
- 
 diff --git a/scripts/ibidsverify.pl b/scripts/ibidsverify.pl
-index 6114718..07142d1 100755
+index 2552a7b..6f3d309 100755
 --- a/scripts/ibidsverify.pl
 +++ b/scripts/ibidsverify.pl
-@@ -37,6 +37,8 @@ use strict;
- use Getopt::Std;
- use IBswcountlimits;
- 
-+my $return_code = 0;
-+
- sub usage_and_exit
+@@ -136,12 +136,11 @@ sub insert_nodeguid
+ sub validate_portguid
  {
- 	my $prog = $_[0];
-@@ -106,10 +108,13 @@ sub insert_lid
- 		if (defined($insert_lid::lids{$lid})) {
- 			print
- "LID $lid already defined for NodeGUID $insert_lid::lids{$lid}->{nodeguid}\n";
-+			$return_code = 1;
- 		} else {
- 			$rec = {lid => $lid, nodeguid => $nodeguid};
- 			$insert_lid::lids{$lid} = $rec;
- 		}
-+	} else {
-+		$return_code = $status;
+ 	my ($portguid)  = shift(@_);
+-	my ($firstport) = shift(@_);
++	my ($nodeguid)  = shift(@_);
+ 
+-	if (defined($insert_nodeguid::nodeguids{$portguid})
+-		&& ($firstport ne "yes"))
+-	{
+-		print "PortGUID $portguid is invalid duplicate of a NodeGUID\n";
++	if (($nodeguid ne $portguid)
++		&& defined($insert_nodeguid::nodeguids{$portguid})) {
++		print "PortGUID $portguid is an invalid duplicate of a NodeGUID\n";
  	}
  }
  
-@@ -126,10 +131,13 @@ sub insert_nodeguid
- 		if (defined($insert_nodeguid::nodeguids{$nodeguid})) {
- 			print
- "NodeGUID $nodeguid already defined for LID $insert_nodeguid::nodeguids{$nodeguid}->{lid}\n";
-+			$return_code = 1;
- 		} else {
- 			$rec = {lid => $lid, nodeguid => $nodeguid};
- 			$insert_nodeguid::nodeguids{$nodeguid} = $rec;
- 		}
-+	} else {
-+		$return_code = $status;
- 	}
- }
+@@ -150,7 +149,7 @@ sub insert_portguid
+ 	my ($lid)       = shift(@_);
+ 	my ($portguid)  = shift(@_);
+ 	my ($nodetype)  = shift(@_);
+-	my ($firstport) = shift(@_);
++	my ($nodeguid)  = shift(@_);
+ 	my $rec         = undef;
+ 	my $status      = "";
  
-@@ -141,6 +149,7 @@ sub validate_portguid
- 	if (($nodeguid ne $portguid)
- 		&& defined($insert_nodeguid::nodeguids{$portguid})) {
- 		print "PortGUID $portguid is an invalid duplicate of a NodeGUID\n";
-+		$return_code = 1;
- 	}
- }
- 
-@@ -158,11 +167,14 @@ sub insert_portguid
- 		if (defined($insert_portguid::portguids{$portguid})) {
- 			print
- "PortGUID $portguid already defined for LID $insert_portguid::portguids{$portguid}->{lid}\n";
-+			$return_code = 1;
+@@ -162,7 +161,7 @@ sub insert_portguid
  		} else {
  			$rec = {lid => $lid, portguid => $portguid};
  			$insert_portguid::portguids{$portguid} = $rec;
- 			validate_portguid($portguid, $nodeguid);
+-			validate_portguid($portguid, $firstport);
++			validate_portguid($portguid, $nodeguid);
  		}
-+	} else {
-+		$return_code = $status;
  	}
  }
+@@ -208,7 +207,7 @@ sub main
+ 			insert_lid($lid, $nodeguid, $nodetype);
+ 			insert_nodeguid($lid, $nodeguid, $nodetype);
+ 			if ($portguid ne "") {
+-				insert_portguid($lid, $portguid, $nodetype, $firstport);
++				insert_portguid($lid, $portguid, $nodetype, $nodeguid);
+ 			}
+ 		}
+ 		if ($line =~ /^Ca.*/) {
+@@ -247,7 +246,7 @@ sub main
+ 			}
+ 			if ($line =~ /^\[(\d+)\]\((.*)\)/) {
+ 				$portguid = "0x" . $2;
+-				insert_portguid($lid, $portguid, $nodetype, $firstport);
++				insert_portguid($lid, $portguid, $nodetype, $nodeguid);
+ 			}
+ 		}
  
-@@ -256,3 +268,5 @@ sub main
- }
- main;
- 
-+exit ($return_code);
-+
 -- 
 1.7.1
 
