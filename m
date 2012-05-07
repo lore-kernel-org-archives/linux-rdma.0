@@ -1,341 +1,426 @@
-From: Klaus Wacker <Klaus.Wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Subject: RE: Mellanox/RoCE
-Date: Mon, 7 May 2012 09:42:03 +0200
-Message-ID: <OF42BAA817.DDA1AF7C-ONC12579F7.002A2D00-C12579F7.002A5018@de.ibm.com>
-References: <OF11A843C0.B83CA9CD-ONC12579ED.004252F0-C12579ED.0042969B@de.ibm.com> <4F9A8FF2.9090104@dev.mellanox.co.il> <196072F1C8E91D46B78B7E46E094F7F31D116F5A@MTIDAG01.mtl.com> <OF0CABEC7E.4612AA0B-ONC12579F4.002E7F03-C12579F4.002F99D4@de.ibm.com> <OF276B9773.8FB55E28-ON852579F4.004A5051-852579F4.004A8071@ca.ibm.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: add cache line awareness to qib_qp and qib_devdata
+	structures
+Date: Mon, 7 May 2012 14:02:31 -0400
+Message-ID: <20120507180231.3516.657.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	Boundary="0__=4EBBF364DFB9AB908f9e8a93df938690918c4EBBF364DFB9AB90"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <OF276B9773.8FB55E28-ON852579F4.004A5051-852579F4.004A8071-G1DYhSM1WHTQT0dZR+AlfA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Y Lee <ykalee-G1DYhSM1WHTQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---0__=4EBBF364DFB9AB908f9e8a93df938690918c4EBBF364DFB9AB90
-Content-type: text/plain; charset=US-ASCII
+This patch reorganizes the QP and devdata files to be more cache line aware.
+
+qib_qp fields in particular are split into read-mostly, send, and receive fields.
+
+qib_devdata fields are split into read-mostly and read/write fields
+
+Testing has show that bidirectional tests increase by as much as 100%
+with this patch.
+
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib.h       |   26 +++---
+ drivers/infiniband/hw/qib/qib_qp.c    |    7 ++
+ drivers/infiniband/hw/qib/qib_rc.c    |    4 -
+ drivers/infiniband/hw/qib/qib_ruc.c   |   12 +--
+ drivers/infiniband/hw/qib/qib_uc.c    |    4 -
+ drivers/infiniband/hw/qib/qib_ud.c    |   16 ++--
+ drivers/infiniband/hw/qib/qib_verbs.h |  145 +++++++++++++++++++--------------
+ 7 files changed, 120 insertions(+), 94 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 6b811e3..39e20b7 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -530,8 +530,6 @@ struct qib_pportdata {
+ 	/* qib_lflags driver is waiting for */
+ 	u32 state_wanted;
+ 	spinlock_t lflags_lock;
+-	/* number of (port-specific) interrupts for this port -- saturates... */
+-	u32 int_counter;
+ 
+ 	/* ref count for each pkey */
+ 	atomic_t pkeyrefs[4];
+@@ -543,24 +541,26 @@ struct qib_pportdata {
+ 	u64 *statusp;
+ 
+ 	/* SendDMA related entries */
+-	spinlock_t            sdma_lock;
+-	struct qib_sdma_state sdma_state;
+-	unsigned long         sdma_buf_jiffies;
++
++	/* read mostly */
+ 	struct qib_sdma_desc *sdma_descq;
++	struct qib_sdma_state sdma_state;
++	dma_addr_t       sdma_descq_phys;
++	volatile __le64 *sdma_head_dma; /* DMA'ed by chip */
++	dma_addr_t       sdma_head_phys;
++	u16                   sdma_descq_cnt;
++
++	/* read/write using lock */
++	spinlock_t            sdma_lock ____cacheline_aligned_in_smp;
++	struct list_head      sdma_activelist;
+ 	u64                   sdma_descq_added;
+ 	u64                   sdma_descq_removed;
+-	u16                   sdma_descq_cnt;
+ 	u16                   sdma_descq_tail;
+ 	u16                   sdma_descq_head;
+-	u16                   sdma_next_intr;
+-	u16                   sdma_reset_wait;
+ 	u8                    sdma_generation;
+-	struct tasklet_struct sdma_sw_clean_up_task;
+-	struct list_head      sdma_activelist;
+ 
+-	dma_addr_t       sdma_descq_phys;
+-	volatile __le64 *sdma_head_dma; /* DMA'ed by chip */
+-	dma_addr_t       sdma_head_phys;
++	struct tasklet_struct sdma_sw_clean_up_task
++		____cacheline_aligned_in_smp;
+ 
+ 	wait_queue_head_t state_wait; /* for state_wanted */
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 7e7e16f..1ce56b5 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -1038,6 +1038,11 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 			goto bail_swq;
+ 		}
+ 		RCU_INIT_POINTER(qp->next, NULL);
++		qp->s_hdr = kzalloc(sizeof(*qp->s_hdr), GFP_KERNEL);
++		if (!qp->s_hdr) {
++			ret = ERR_PTR(-ENOMEM);
++			goto bail_qp;
++		}
+ 		qp->timeout_jiffies =
+ 			usecs_to_jiffies((4096UL * (1UL << qp->timeout)) /
+ 				1000UL);
+@@ -1159,6 +1164,7 @@ bail_ip:
+ 		vfree(qp->r_rq.wq);
+ 	free_qpn(&dev->qpn_table, qp->ibqp.qp_num);
+ bail_qp:
++	kfree(qp->s_hdr);
+ 	kfree(qp);
+ bail_swq:
+ 	vfree(swq);
+@@ -1214,6 +1220,7 @@ int qib_destroy_qp(struct ib_qp *ibqp)
+ 	else
+ 		vfree(qp->r_rq.wq);
+ 	vfree(qp->s_wq);
++	kfree(qp->s_hdr);
+ 	kfree(qp);
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index 765b4cb..b641416 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -244,9 +244,9 @@ int qib_make_rc_req(struct qib_qp *qp)
+ 	int ret = 0;
+ 	int delta;
+ 
+-	ohdr = &qp->s_hdr.u.oth;
++	ohdr = &qp->s_hdr->u.oth;
+ 	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
+-		ohdr = &qp->s_hdr.u.l.oth;
++		ohdr = &qp->s_hdr->u.l.oth;
+ 
+ 	/*
+ 	 * The lock is needed to synchronize between the sending tasklet,
+diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+index b4b37e4..c0ee7e0 100644
+--- a/drivers/infiniband/hw/qib/qib_ruc.c
++++ b/drivers/infiniband/hw/qib/qib_ruc.c
+@@ -688,17 +688,17 @@ void qib_make_ruc_header(struct qib_qp *qp, struct qib_other_headers *ohdr,
+ 	nwords = (qp->s_cur_size + extra_bytes) >> 2;
+ 	lrh0 = QIB_LRH_BTH;
+ 	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
+-		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr.u.l.grh,
++		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr->u.l.grh,
+ 					       &qp->remote_ah_attr.grh,
+ 					       qp->s_hdrwords, nwords);
+ 		lrh0 = QIB_LRH_GRH;
+ 	}
+ 	lrh0 |= ibp->sl_to_vl[qp->remote_ah_attr.sl] << 12 |
+ 		qp->remote_ah_attr.sl << 4;
+-	qp->s_hdr.lrh[0] = cpu_to_be16(lrh0);
+-	qp->s_hdr.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
+-	qp->s_hdr.lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
+-	qp->s_hdr.lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
++	qp->s_hdr->lrh[0] = cpu_to_be16(lrh0);
++	qp->s_hdr->lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
++	qp->s_hdr->lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
++	qp->s_hdr->lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
+ 				       qp->remote_ah_attr.src_path_bits);
+ 	bth0 |= qib_get_pkey(ibp, qp->s_pkey_index);
+ 	bth0 |= extra_bytes << 20;
+@@ -758,7 +758,7 @@ void qib_do_send(struct work_struct *work)
+ 			 * If the packet cannot be sent now, return and
+ 			 * the send tasklet will be woken up later.
+ 			 */
+-			if (qib_verbs_send(qp, &qp->s_hdr, qp->s_hdrwords,
++			if (qib_verbs_send(qp, qp->s_hdr, qp->s_hdrwords,
+ 					   qp->s_cur_sge, qp->s_cur_size))
+ 				break;
+ 			/* Record that s_hdr is empty. */
+diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
+index 7ce2ac2..ce7387f 100644
+--- a/drivers/infiniband/hw/qib/qib_uc.c
++++ b/drivers/infiniband/hw/qib/qib_uc.c
+@@ -72,9 +72,9 @@ int qib_make_uc_req(struct qib_qp *qp)
+ 		goto done;
+ 	}
+ 
+-	ohdr = &qp->s_hdr.u.oth;
++	ohdr = &qp->s_hdr->u.oth;
+ 	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
+-		ohdr = &qp->s_hdr.u.l.oth;
++		ohdr = &qp->s_hdr->u.l.oth;
+ 
+ 	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
+ 	hwords = 5;
+diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
+index 828609f..a468bf2 100644
+--- a/drivers/infiniband/hw/qib/qib_ud.c
++++ b/drivers/infiniband/hw/qib/qib_ud.c
+@@ -321,11 +321,11 @@ int qib_make_ud_req(struct qib_qp *qp)
+ 
+ 	if (ah_attr->ah_flags & IB_AH_GRH) {
+ 		/* Header size in 32-bit words. */
+-		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr.u.l.grh,
++		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr->u.l.grh,
+ 					       &ah_attr->grh,
+ 					       qp->s_hdrwords, nwords);
+ 		lrh0 = QIB_LRH_GRH;
+-		ohdr = &qp->s_hdr.u.l.oth;
++		ohdr = &qp->s_hdr->u.l.oth;
+ 		/*
+ 		 * Don't worry about sending to locally attached multicast
+ 		 * QPs.  It is unspecified by the spec. what happens.
+@@ -333,7 +333,7 @@ int qib_make_ud_req(struct qib_qp *qp)
+ 	} else {
+ 		/* Header size in 32-bit words. */
+ 		lrh0 = QIB_LRH_BTH;
+-		ohdr = &qp->s_hdr.u.oth;
++		ohdr = &qp->s_hdr->u.oth;
+ 	}
+ 	if (wqe->wr.opcode == IB_WR_SEND_WITH_IMM) {
+ 		qp->s_hdrwords++;
+@@ -346,15 +346,15 @@ int qib_make_ud_req(struct qib_qp *qp)
+ 		lrh0 |= 0xF000; /* Set VL (see ch. 13.5.3.1) */
+ 	else
+ 		lrh0 |= ibp->sl_to_vl[ah_attr->sl] << 12;
+-	qp->s_hdr.lrh[0] = cpu_to_be16(lrh0);
+-	qp->s_hdr.lrh[1] = cpu_to_be16(ah_attr->dlid);  /* DEST LID */
+-	qp->s_hdr.lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
++	qp->s_hdr->lrh[0] = cpu_to_be16(lrh0);
++	qp->s_hdr->lrh[1] = cpu_to_be16(ah_attr->dlid);  /* DEST LID */
++	qp->s_hdr->lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
+ 	lid = ppd->lid;
+ 	if (lid) {
+ 		lid |= ah_attr->src_path_bits & ((1 << ppd->lmc) - 1);
+-		qp->s_hdr.lrh[3] = cpu_to_be16(lid);
++		qp->s_hdr->lrh[3] = cpu_to_be16(lid);
+ 	} else
+-		qp->s_hdr.lrh[3] = IB_LID_PERMISSIVE;
++		qp->s_hdr->lrh[3] = IB_LID_PERMISSIVE;
+ 	if (wqe->wr.send_flags & IB_SEND_SOLICITED)
+ 		bth0 |= IB_BTH_SOLICITED;
+ 	bth0 |= extra_bytes << 20;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index 0c19ef0..4876060 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -367,9 +367,10 @@ struct qib_rwq {
+ 
+ struct qib_rq {
+ 	struct qib_rwq *wq;
+-	spinlock_t lock; /* protect changes in this struct */
+ 	u32 size;               /* size of RWQE array */
+ 	u8 max_sge;
++	spinlock_t lock /* protect changes in this struct */
++		____cacheline_aligned_in_smp;
+ };
+ 
+ struct qib_srq {
+@@ -412,31 +413,75 @@ struct qib_ack_entry {
+  */
+ struct qib_qp {
+ 	struct ib_qp ibqp;
+-	struct qib_qp *next;            /* link list for QPN hash table */
+-	struct qib_qp *timer_next;      /* link list for qib_ib_timer() */
+-	struct list_head iowait;        /* link for wait PIO buf */
+-	struct list_head rspwait;       /* link for waititing to respond */
++	/* read mostly fields above and below */
+ 	struct ib_ah_attr remote_ah_attr;
+ 	struct ib_ah_attr alt_ah_attr;
+-	struct qib_ib_header s_hdr;     /* next packet header to send */
+-	atomic_t refcount;
+-	wait_queue_head_t wait;
+-	wait_queue_head_t wait_dma;
+-	struct timer_list s_timer;
+-	struct work_struct s_work;
++	struct qib_qp *next;            /* link list for QPN hash table */
++	struct qib_swqe *s_wq;  /* send work queue */
+ 	struct qib_mmap_info *ip;
++	struct qib_ib_header *s_hdr;     /* next packet header to send */
++	unsigned long timeout_jiffies;  /* computed from timeout */
++
++	enum ib_mtu path_mtu;
++	u32 remote_qpn;
++	u32 pmtu;		/* decoded from path_mtu */
++	u32 qkey;               /* QKEY for this QP (for UD or RD) */
++	u32 s_size;             /* send work queue size */
++	u32 s_rnr_timeout;      /* number of milliseconds for RNR timeout */
++
++	u8 state;               /* QP state */
++	u8 qp_access_flags;
++	u8 alt_timeout;         /* Alternate path timeout for this QP */
++	u8 timeout;             /* Timeout for this QP */
++	u8 s_srate;
++	u8 s_mig_state;
++	u8 port_num;
++	u8 s_pkey_index;        /* PKEY index to use */
++	u8 s_alt_pkey_index;    /* Alternate path PKEY index to use */
++	u8 r_max_rd_atomic;     /* max number of RDMA read/atomic to receive */
++	u8 s_max_rd_atomic;     /* max number of RDMA read/atomic to send */
++	u8 s_retry_cnt;         /* number of times to retry */
++	u8 s_rnr_retry_cnt;
++	u8 r_min_rnr_timer;     /* retry timeout value for RNR NAKs */
++	u8 s_max_sge;           /* size of s_wq->sg_list */
++	u8 s_draining;
++
++	/* start of read/write fields */
++
++	atomic_t refcount ____cacheline_aligned_in_smp;
++	wait_queue_head_t wait;
++
++
++	struct qib_ack_entry s_ack_queue[QIB_MAX_RDMA_ATOMIC + 1]
++		____cacheline_aligned_in_smp;
++	struct qib_sge_state s_rdma_read_sge;
++
++	spinlock_t r_lock ____cacheline_aligned_in_smp;      /* used for APM */
++	unsigned long r_aflags;
++	u64 r_wr_id;            /* ID for current receive WQE */
++	u32 r_ack_psn;          /* PSN for next ACK or atomic ACK */
++	u32 r_len;              /* total length of r_sge */
++	u32 r_rcv_len;          /* receive data len processed */
++	u32 r_psn;              /* expected rcv packet sequence number */
++	u32 r_msn;              /* message sequence number */
++
++	u8 r_state;             /* opcode of last packet received */
++	u8 r_flags;
++	u8 r_head_ack_queue;    /* index into s_ack_queue[] */
++
++	struct list_head rspwait;       /* link for waititing to respond */
++
++	struct qib_sge_state r_sge;     /* current receive data */
++	struct qib_rq r_rq;             /* receive work queue */
++
++	spinlock_t s_lock ____cacheline_aligned_in_smp;
+ 	struct qib_sge_state *s_cur_sge;
++	u32 s_flags;
+ 	struct qib_verbs_txreq *s_tx;
+-	struct qib_mregion *s_rdma_mr;
++	struct qib_swqe *s_wqe;
+ 	struct qib_sge_state s_sge;     /* current send request data */
+-	struct qib_ack_entry s_ack_queue[QIB_MAX_RDMA_ATOMIC + 1];
+-	struct qib_sge_state s_ack_rdma_sge;
+-	struct qib_sge_state s_rdma_read_sge;
+-	struct qib_sge_state r_sge;     /* current receive data */
+-	spinlock_t r_lock;      /* used for APM */
+-	spinlock_t s_lock;
++	struct qib_mregion *s_rdma_mr;
+ 	atomic_t s_dma_busy;
+-	u32 s_flags;
+ 	u32 s_cur_size;         /* size of send packet in bytes */
+ 	u32 s_len;              /* total length of s_sge */
+ 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
+@@ -447,60 +492,34 @@ struct qib_qp {
+ 	u32 s_psn;              /* current packet sequence number */
+ 	u32 s_ack_rdma_psn;     /* PSN for sending RDMA read responses */
+ 	u32 s_ack_psn;          /* PSN for acking sends and RDMA writes */
+-	u32 s_rnr_timeout;      /* number of milliseconds for RNR timeout */
+-	u32 r_ack_psn;          /* PSN for next ACK or atomic ACK */
+-	u64 r_wr_id;            /* ID for current receive WQE */
+-	unsigned long r_aflags;
+-	u32 r_len;              /* total length of r_sge */
+-	u32 r_rcv_len;          /* receive data len processed */
+-	u32 r_psn;              /* expected rcv packet sequence number */
+-	u32 r_msn;              /* message sequence number */
++	u32 s_head;             /* new entries added here */
++	u32 s_tail;             /* next entry to process */
++	u32 s_cur;              /* current work queue entry */
++	u32 s_acked;            /* last un-ACK'ed entry */
++	u32 s_last;             /* last completed entry */
++	u32 s_ssn;              /* SSN of tail entry */
++	u32 s_lsn;              /* limit sequence number (credit) */
+ 	u16 s_hdrwords;         /* size of s_hdr in 32 bit words */
+ 	u16 s_rdma_ack_cnt;
+-	u8 state;               /* QP state */
+ 	u8 s_state;             /* opcode of last packet sent */
+ 	u8 s_ack_state;         /* opcode of packet to ACK */
+ 	u8 s_nak_state;         /* non-zero if NAK is pending */
+-	u8 r_state;             /* opcode of last packet received */
+ 	u8 r_nak_state;         /* non-zero if NAK is pending */
+-	u8 r_min_rnr_timer;     /* retry timeout value for RNR NAKs */
+-	u8 r_flags;
+-	u8 r_max_rd_atomic;     /* max number of RDMA read/atomic to receive */
+-	u8 r_head_ack_queue;    /* index into s_ack_queue[] */
+-	u8 qp_access_flags;
+-	u8 s_max_sge;           /* size of s_wq->sg_list */
+-	u8 s_retry_cnt;         /* number of times to retry */
+-	u8 s_rnr_retry_cnt;
+ 	u8 s_retry;             /* requester retry counter */
+ 	u8 s_rnr_retry;         /* requester RNR retry counter */
+-	u8 s_pkey_index;        /* PKEY index to use */
+-	u8 s_alt_pkey_index;    /* Alternate path PKEY index to use */
+-	u8 s_max_rd_atomic;     /* max number of RDMA read/atomic to send */
+ 	u8 s_num_rd_atomic;     /* number of RDMA read/atomic pending */
+ 	u8 s_tail_ack_queue;    /* index into s_ack_queue[] */
+-	u8 s_srate;
+-	u8 s_draining;
+-	u8 s_mig_state;
+-	u8 timeout;             /* Timeout for this QP */
+-	u8 alt_timeout;         /* Alternate path timeout for this QP */
+-	u8 port_num;
+-	enum ib_mtu path_mtu;
+-	u32 pmtu;		/* decoded from path_mtu */
+-	u32 remote_qpn;
+-	u32 qkey;               /* QKEY for this QP (for UD or RD) */
+-	u32 s_size;             /* send work queue size */
+-	u32 s_head;             /* new entries added here */
+-	u32 s_tail;             /* next entry to process */
+-	u32 s_cur;              /* current work queue entry */
+-	u32 s_acked;            /* last un-ACK'ed entry */
+-	u32 s_last;             /* last completed entry */
+-	u32 s_ssn;              /* SSN of tail entry */
+-	u32 s_lsn;              /* limit sequence number (credit) */
+-	unsigned long timeout_jiffies;  /* computed from timeout */
+-	struct qib_swqe *s_wq;  /* send work queue */
+-	struct qib_swqe *s_wqe;
+-	struct qib_rq r_rq;             /* receive work queue */
+-	struct qib_sge r_sg_list[0];    /* verified SGEs */
++
++	struct qib_sge_state s_ack_rdma_sge;
++	struct timer_list s_timer;
++	struct list_head iowait;        /* link for wait PIO buf */
++
++	struct work_struct s_work;
++
++	wait_queue_head_t wait_dma;
++
++	struct qib_sge r_sg_list[0] /* verified SGEs */
++		____cacheline_aligned_in_smp;
+ };
+ 
+ /*
 
-Hello Alan, thanks for your posting. Both systems have set:
-
-bc2x03:~ # sysctl -a | grep rp_filter
-net.ipv4.conf.all.rp_filter = 1
-net.ipv4.conf.all.arp_filter = 0
-net.ipv4.conf.default.rp_filter = 0
-net.ipv4.conf.default.arp_filter = 0
-net.ipv4.conf.lo.rp_filter = 0
-net.ipv4.conf.lo.arp_filter = 0
-net.ipv4.conf.eth0.rp_filter = 0
-net.ipv4.conf.eth0.arp_filter = 0
-net.ipv4.conf.eth1.rp_filter = 0
-net.ipv4.conf.eth1.arp_filter = 0
-net.ipv4.conf.usb0.rp_filter = 0
-net.ipv4.conf.usb0.arp_filter = 0
-net.ipv4.conf.eth2.rp_filter = 0
-net.ipv4.conf.eth2.arp_filter = 0
-net.ipv4.conf.eth3.rp_filter = 0
-net.ipv4.conf.eth3.arp_filter = 0
-bc2x03:~ # sysctl -a | grep arp_ignore
-net.ipv4.conf.all.arp_ignore = 0
-net.ipv4.conf.default.arp_ignore = 0
-net.ipv4.conf.lo.arp_ignore = 0
-net.ipv4.conf.eth0.arp_ignore = 0
-net.ipv4.conf.eth1.arp_ignore = 0
-net.ipv4.conf.usb0.arp_ignore = 0
-net.ipv4.conf.eth2.arp_ignore = 0
-net.ipv4.conf.eth3.arp_ignore = 0
-
-
-Klaus-Dieter Wacker
-IBM
-
-
-|------------>
-| From:      |
-|------------>
-  >--------------------------------------------------------------------------------------------------------------------------------------------------|
-  |Alan Y Lee <ykalee-G1DYhSM1WHTQT0dZR+AlfA@public.gmane.org>                                                                                                                    |
-  >--------------------------------------------------------------------------------------------------------------------------------------------------|
-|------------>
-| To:        |
-|------------>
-  >--------------------------------------------------------------------------------------------------------------------------------------------------|
-  |Klaus Wacker/Germany/IBM@IBMDE,                                                                                                                   |
-  >--------------------------------------------------------------------------------------------------------------------------------------------------|
-|------------>
-| Date:      |
-|------------>
-  >--------------------------------------------------------------------------------------------------------------------------------------------------|
-  |04/05/2012 15:33                                                                                                                                  |
-  >--------------------------------------------------------------------------------------------------------------------------------------------------|
-|------------>
-| Subject:   |
-|------------>
-  >--------------------------------------------------------------------------------------------------------------------------------------------------|
-  |RE: Mellanox/RoCE                                                                                                                                 |
-  >--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-
-
-
-
-Hi Klaus, saw your question from the distribution list ... just curious at
-what is the following set to in your server and client boxes ?
-
-sysctl -a | grep rp_filter
-sysctl -a | grep arp_ignore
-
-Regards,
-
-Alan Y Lee
-DB2 LUW Kernel Development
-Phone: 905-413-2380, Tie-Line: 313-2380,
-ITN : 23132380, Fax: 905-413-4849
-Email: ykalee-G1DYhSM1WHTQT0dZR+AlfA@public.gmane.org
-
-
-(Embedded image moved to file: pic62702.gif)Inactive hide details for Klaus
-Wacker ---05/04/2012 04:40:22 AM---Hi all, the follow-up on my
-Mellanox/RoCE setup gave me the Klaus Wacker ---05/04/2012 04:40:22 AM---Hi
-all, the follow-up on my Mellanox/RoCE setup gave me the following:
-
-From: Klaus Wacker <Klaus.Wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Date: 05/04/2012 04:40 AM
-Subject: RE: Mellanox/RoCE
-Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-
-
-
-Hi all,
-the follow-up on my Mellanox/RoCE setup gave me the following:
-I checked the BNT 10Gb Virtual Fabric switch and found that the ports of my
-blades have "Flow Control = both Rx/Tx" whcih enables "global pause".
-I did the failing ibv_rc_pingpong again and monitored the port stats
-in /sys/class/infiniband/mlx4_0/ports/2/counters/... and found the
-following:
-Server:
-bc2x04:/sys/class/infiniband/mlx4_0/ports/2/counters/port_rcv_packets:
-21457
-bc2x04:/sys/class/infiniband/mlx4_0/ports/2/counters/port_xmit_packets:
-21329
-bc2x04:~ # ibv_rc_pingpong -g 0 -s 128 -d mlx4_0 -i 2
-local address: LID 0x0000, QPN 0x180048, PSN 0x35e068, GID
-fe80::202:c9ff:fe4c:5aeb
-remote address: LID 0x0000, QPN 0x6c0048, PSN 0x99a3c6, GID
-fe80::202:c9ff:fe4c:5aa3
-
-
-bc2x04:/sys/class/infiniband/mlx4_0/ports/2/counters/port_rcv_packets:
-21465
-bc2x04:/sys/class/infiniband/mlx4_0/ports/2/counters/port_xmit_packets:
-21329
-
-===============================================================
-Client:
-bc2x03:/sys/class/infiniband/mlx4_0/ports/2/counters/port_rcv_packets:
-11034
-bc2x03:/sys/class/infiniband/mlx4_0/ports/2/counters/port_xmit_packets:
-11290
-bc2x03:~ # ibv_rc_pingpong -g 0 -s 128 -d mlx4_0 -i 2 10.100.10.24
-local address: LID 0x0000, QPN 0x700048, PSN 0x5b1244, GID
-fe80::202:c9ff:fe4c:5aa3
-remote address: LID 0x0000, QPN 0x1c0048, PSN 0x24fe44, GID
-fe80::202:c9ff:fe4c:5aeb
-Failed status transport retry counter exceeded (12) for wr_id 2
-
-
-bc2x03:/sys/class/infiniband/mlx4_0/ports/2/counters/port_rcv_packets:
-11034
-bc2x03:/sys/class/infiniband/mlx4_0/ports/2/counters/port_xmit_packets:
-11298
-
-==============================================================
-
-Looks like the packets go over the wire and reach the target RoCE card but
-do not make it into the servers receive buffer.
-I use mlnx-ofed 1.5.3 on sles11.2, downloaded it from Mellanox site
-recently.
-
-Any suggestions how to go from here?
-
-Regards,
-Klaus-Dieter Wacker
-IBM
-
-
-|------------>
-| From: |
-|------------>
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|Boris Shpolyansky <boris-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> |
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|------------>
-| To: |
-|------------>
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Klaus Wacker/Germany/IBM@IBMDE, |
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|------------>
-| Cc: |
-|------------>
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|"linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thomas Husemann
-<thomash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nir Gal <nirgal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> |
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|------------>
-| Date: |
-|------------>
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|27/04/2012 18:26 |
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|------------>
-| Subject: |
-|------------>
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-|RE: Mellanox/RoCE |
->--------------------------------------------------------------------------------------------------------------------------------------------------|
-
-
-
-
-
-
-Klaus,
-
-You may be experiencing frame drops on our Ethernet fabric.
-Is flow control (pause frames) enabled?
-RDMA traffic requires lossless layer-2 network, it is not designed to
-handle situation where multiple frames are re-transmitted due to packets
-being dropped.
-
-Boris Shpolyansky
-Director of Field Application Engineering, North America
-
-Mellanox Technologies Inc.
-350 Oakmead Parkway, Suite 100
-Sunnyvale, CA 94085
-Tel.: (408) 916 0014
-Fax: (408) 585 0314
-Cell: (408) 834 9365
-www.mellanox.com
-Mellanox on Twitter and Facebook
-
-
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [
-mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hal Rosenstock
-Sent: Friday, April 27, 2012 5:25 AM
-To: Klaus Wacker
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: Mellanox/RoCE
-
-Hi Klaus,
-
-On 4/27/2012 8:07 AM, Klaus Wacker wrote:
->
-> Hi,
-> i want to setup Mellanox/RoCE. My system is SUSE SLES11.2 with
-> Mellanox-OFED-1.5.3
-> I have ping on the ethernet interface working and also ibv_ud_pingpong.
-> ibv_rc_pingpong fails:
-> bc2x03:~ # ibv_rc_pingpong -g 0 -s 128 -d mlx4_0 -i 2 10.100.10.24
-> local address: LID 0x0000, QPN 0x600048, PSN 0x5e836d, GID
-> fe80::202:c9ff:fe4c:5aa3
-> remote address: LID 0x0000, QPN 0x0c0048, PSN 0x2ced8f, GID
-> fe80::202:c9ff:fe4c:5aeb Failed status transport retry counter
-> exceeded (12) for wr_id 2
->
-> The ibstat info is:
-> bc2x03:~ # ibstat
-> CA 'mlx4_0'
-> CA type: MT26448
-> Number of ports: 2
-> Firmware version: 2.9.1100
-> Hardware version: b0
-> Node GUID: 0x0002c903004c5aa2
-> System image GUID: 0x0002c903004c5aa5
-> Port 1:
-> State: Active
-> Physical state: LinkUp
-> Rate: 10
-> Base lid: 0
-> LMC: 0
-> SM lid: 0
-> Capability mask: 0x00010000
-> Port GUID: 0x0202c9fffe4c5aa2
-> Link layer: Ethernet
-> Port 2:
-> State: Active
-> Physical state: LinkUp
-> Rate: 10
-> Base lid: 0
-> LMC: 0
-> SM lid: 0
-> Capability mask: 0x00010000
-> Port GUID: 0x0202c9fffe4c5aa3
-> Link layer: Ethernet
->
-> The Capability mask shows weak settings, gives this an indication for
-> the failure? where is the capability mask described?
-
-CapabilityMask is showing bit 16 which means:
-16: IsCommunicationManagementSupported
-which is accurate for RoCE since only CM is supported.
-
-I'm not sure what capabilities you are looking for here (they are
-management related) or what the relationship is to the "transport retry
-counter exceeded" problem.
-
--- Hal
-
-> Thanks for your time.
->
-> Kind regards
->
-> Klaus Wacker
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
-> info at http://vger.kernel.org/majordomo-info.html
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-http://vger.kernel.org/majordomo-info.html
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at http://vger.kernel.org/majordomo-info.html
-
-
-
---0__=4EBBF364DFB9AB908f9e8a93df938690918c4EBBF364DFB9AB90
-Content-type: image/gif;
-	name="pic62702.gif"
-Content-Disposition: attachment; filename="pic62702.gif"
-Content-transfer-encoding: base64
-
-R0lGODlhEAAQAKECAMzMzAAAAP///wAAACH5BAEAAAIALAAAAAAQABAAAAIXlI+py+0PopwxUbpu
-ZRfKZ2zgSJbmSRYAIf4fT3B0aW1pemVkIGJ5IFVsZWFkIFNtYXJ0U2F2ZXIhAAA7
-
---0__=4EBBF364DFB9AB908f9e8a93df938690918c4EBBF364DFB9AB90--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
