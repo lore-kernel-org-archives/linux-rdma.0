@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: optimize pio ack buffer allocation
-Date: Mon, 7 May 2012 14:02:42 -0400
-Message-ID: <20120507180242.3577.26880.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH] IB/qib: Fix QLE734X link cycling
+Date: Mon, 7 May 2012 14:02:53 -0400
+Message-ID: <20120507180252.3609.88446.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -11,169 +11,33 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch optimizes pio buffer allocation in the kernel.
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-For the qib, kernel pio buffers are used for sending acks.  The code
-to allocate the buffer would always start at 0 until it found a buffer.
+The SERDES was using the incorrect Frequency Loop
+Bandwidth setting causing the link to cycle through
+the Physical link negotiation state machine.
+Fixing the Frequency Loop Bandwidth setting in the
+SERDES helps the link come up faster and more
+reliably.
 
-This means that an average of 64 comparisions were done on each allocate, since
-the busy bit won't be cleared until the bits are refreshed when buffers are
-exhausted.
-
-This patch adds two new fields in the devdata struct, last_pio and
-min_kernel_pio.  last_pio is the last buffer that was allocated.
-min_kernel_pio is the lowest potential available buffer.
-
-min_kernel_pio is modifed as contexts are allocated and
-deallocted.
-
-Reviewed-by: Ramkrishna Vepa <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib.h         |    9 ++++++++-
- drivers/infiniband/hw/qib/qib_iba6120.c |    1 +
- drivers/infiniband/hw/qib/qib_iba7220.c |    1 +
- drivers/infiniband/hw/qib/qib_iba7322.c |    1 +
- drivers/infiniband/hw/qib/qib_tx.c      |   25 +++++++++++++++++--------
- 5 files changed, 28 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/qib/qib_iba7322.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 39e20b7..7e62f41 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -873,7 +873,14 @@ struct qib_devdata {
- 	 * pio_writing.
- 	 */
- 	spinlock_t pioavail_lock;
--
-+	/*
-+	 * index of last buffer to optimize search for next
-+	 */
-+	u32 last_pio;
-+	/*
-+	 * min kernel pio buffer to optimize search
-+	 */
-+	u32 min_kernel_pio;
- 	/*
- 	 * Shadow copies of registers; size indicates read access size.
- 	 * Most of them are readonly, but some are write-only register,
-diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
-index d0c64d5..4d352b9 100644
---- a/drivers/infiniband/hw/qib/qib_iba6120.c
-+++ b/drivers/infiniband/hw/qib/qib_iba6120.c
-@@ -3132,6 +3132,7 @@ static void get_6120_chip_params(struct qib_devdata *dd)
- 	val = qib_read_kreg64(dd, kr_sendpiobufcnt);
- 	dd->piobcnt2k = val & ~0U;
- 	dd->piobcnt4k = val >> 32;
-+	dd->last_pio = dd->piobcnt4k + dd->piobcnt2k - 1;
- 	/* these may be adjusted in init_chip_wc_pat() */
- 	dd->pio2kbase = (u32 __iomem *)
- 		(((char __iomem *)dd->kregbase) + dd->pio2k_bufbase);
-diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
-index 3c722f7..86a0ba7 100644
---- a/drivers/infiniband/hw/qib/qib_iba7220.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -4157,6 +4157,7 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
- 		dd->cspec->sdmabufcnt;
- 	dd->lastctxt_piobuf = dd->cspec->lastbuf_for_pio - sbufs;
- 	dd->cspec->lastbuf_for_pio--; /* range is <= , not < */
-+	dd->last_pio = dd->cspec->lastbuf_for_pio;
- 	dd->pbufsctxt = dd->lastctxt_piobuf /
- 		(dd->cfgctxts - dd->first_user_ctxt);
- 
 diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 060b960..e7b9ad3 100644
+index e7b9ad3..c881e74 100644
 --- a/drivers/infiniband/hw/qib/qib_iba7322.c
 +++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -6379,6 +6379,7 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
- 		dd->cspec->sdmabufcnt;
- 	dd->lastctxt_piobuf = dd->cspec->lastbuf_for_pio - sbufs;
- 	dd->cspec->lastbuf_for_pio--; /* range is <= , not < */
-+	dd->last_pio = dd->cspec->lastbuf_for_pio;
- 	dd->pbufsctxt = (dd->cfgctxts > dd->first_user_ctxt) ?
- 		dd->lastctxt_piobuf / (dd->cfgctxts - dd->first_user_ctxt) : 0;
- 
-diff --git a/drivers/infiniband/hw/qib/qib_tx.c b/drivers/infiniband/hw/qib/qib_tx.c
-index 1bf626c..31d3561 100644
---- a/drivers/infiniband/hw/qib/qib_tx.c
-+++ b/drivers/infiniband/hw/qib/qib_tx.c
-@@ -295,6 +295,7 @@ u32 __iomem *qib_getsendbuf_range(struct qib_devdata *dd, u32 *pbufnum,
- 
- 	nbufs = last - first + 1; /* number in range to check */
- 	if (dd->upd_pio_shadow) {
-+update_shadow:
- 		/*
- 		 * Minor optimization.  If we had no buffers on last call,
- 		 * start out by doing the update; continue and do scan even
-@@ -304,37 +305,39 @@ u32 __iomem *qib_getsendbuf_range(struct qib_devdata *dd, u32 *pbufnum,
- 		updated++;
- 	}
- 	i = first;
--rescan:
- 	/*
- 	 * While test_and_set_bit() is atomic, we do that and then the
- 	 * change_bit(), and the pair is not.  See if this is the cause
- 	 * of the remaining armlaunch errors.
- 	 */
- 	spin_lock_irqsave(&dd->pioavail_lock, flags);
-+	if (dd->last_pio >= first && dd->last_pio <= last)
-+		i = dd->last_pio + 1;
-+	if (!first)
-+		/* adjust to min possible  */
-+		nbufs = last - dd->min_kernel_pio + 1;
- 	for (j = 0; j < nbufs; j++, i++) {
- 		if (i > last)
--			i = first;
-+			i = !first ? dd->min_kernel_pio : first;
- 		if (__test_and_set_bit((2 * i) + 1, shadow))
- 			continue;
- 		/* flip generation bit */
- 		__change_bit(2 * i, shadow);
- 		/* remember that the buffer can be written to now */
- 		__set_bit(i, dd->pio_writing);
-+		if (!first && first != last) /* first == last on VL15, avoid */
-+			dd->last_pio = i;
- 		break;
- 	}
- 	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
- 
- 	if (j == nbufs) {
--		if (!updated) {
-+		if (!updated)
- 			/*
- 			 * First time through; shadow exhausted, but may be
- 			 * buffers available, try an update and then rescan.
- 			 */
--			update_send_bufs(dd);
--			updated++;
--			i = first;
--			goto rescan;
--		}
-+			goto update_shadow;
- 		no_send_bufs(dd);
- 		buf = NULL;
- 	} else {
-@@ -422,14 +425,20 @@ void qib_chg_pioavailkernel(struct qib_devdata *dd, unsigned start,
- 				__clear_bit(QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT
- 					    + start, dd->pioavailshadow);
- 			__set_bit(start, dd->pioavailkernel);
-+			if ((start >> 1) < dd->min_kernel_pio)
-+				dd->min_kernel_pio = start >> 1;
- 		} else {
- 			__set_bit(start + QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT,
- 				  dd->pioavailshadow);
- 			__clear_bit(start, dd->pioavailkernel);
-+			if ((start >> 1) > dd->min_kernel_pio)
-+				dd->min_kernel_pio = start >> 1;
- 		}
- 		start += 2;
- 	}
- 
-+	if (dd->min_kernel_pio > 0 && dd->last_pio < dd->min_kernel_pio - 1)
-+		dd->last_pio = dd->min_kernel_pio - 1;
- 	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
- 
- 	dd->f_txchk_change(dd, ostart, len, avail, rcd);
+@@ -7709,7 +7709,7 @@ static int serdes_7322_init_new(struct qib_pportdata *ppd)
+ 	ibsd_wr_allchans(ppd, 5, 0, BMASK(0, 0));
+ 	msleep(20);
+ 	/*       Set Frequency Loop Bandwidth */
+-	ibsd_wr_allchans(ppd, 2, (7 << 5), BMASK(8, 5));
++	ibsd_wr_allchans(ppd, 2, (15 << 5), BMASK(8, 5));
+ 	/*       Enable Frequency Loop */
+ 	ibsd_wr_allchans(ppd, 2, (1 << 4), BMASK(4, 4));
+ 	/*       Set Timing Loop Bandwidth */
 
 
 --
