@@ -1,8 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: add cache line awareness to qib_qp and qib_devdata
-	structures
-Date: Mon, 7 May 2012 14:02:31 -0400
-Message-ID: <20120507180231.3516.657.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH] IB/qib: optimize pio ack buffer allocation
+Date: Mon, 7 May 2012 14:02:42 -0400
+Message-ID: <20120507180242.3577.26880.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -12,414 +11,169 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch reorganizes the QP and devdata files to be more cache line aware.
+This patch optimizes pio buffer allocation in the kernel.
 
-qib_qp fields in particular are split into read-mostly, send, and receive fields.
+For the qib, kernel pio buffers are used for sending acks.  The code
+to allocate the buffer would always start at 0 until it found a buffer.
 
-qib_devdata fields are split into read-mostly and read/write fields
+This means that an average of 64 comparisions were done on each allocate, since
+the busy bit won't be cleared until the bits are refreshed when buffers are
+exhausted.
 
-Testing has show that bidirectional tests increase by as much as 100%
-with this patch.
+This patch adds two new fields in the devdata struct, last_pio and
+min_kernel_pio.  last_pio is the last buffer that was allocated.
+min_kernel_pio is the lowest potential available buffer.
 
+min_kernel_pio is modifed as contexts are allocated and
+deallocted.
+
+Reviewed-by: Ramkrishna Vepa <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib.h       |   26 +++---
- drivers/infiniband/hw/qib/qib_qp.c    |    7 ++
- drivers/infiniband/hw/qib/qib_rc.c    |    4 -
- drivers/infiniband/hw/qib/qib_ruc.c   |   12 +--
- drivers/infiniband/hw/qib/qib_uc.c    |    4 -
- drivers/infiniband/hw/qib/qib_ud.c    |   16 ++--
- drivers/infiniband/hw/qib/qib_verbs.h |  145 +++++++++++++++++++--------------
- 7 files changed, 120 insertions(+), 94 deletions(-)
+ drivers/infiniband/hw/qib/qib.h         |    9 ++++++++-
+ drivers/infiniband/hw/qib/qib_iba6120.c |    1 +
+ drivers/infiniband/hw/qib/qib_iba7220.c |    1 +
+ drivers/infiniband/hw/qib/qib_iba7322.c |    1 +
+ drivers/infiniband/hw/qib/qib_tx.c      |   25 +++++++++++++++++--------
+ 5 files changed, 28 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 6b811e3..39e20b7 100644
+index 39e20b7..7e62f41 100644
 --- a/drivers/infiniband/hw/qib/qib.h
 +++ b/drivers/infiniband/hw/qib/qib.h
-@@ -530,8 +530,6 @@ struct qib_pportdata {
- 	/* qib_lflags driver is waiting for */
- 	u32 state_wanted;
- 	spinlock_t lflags_lock;
--	/* number of (port-specific) interrupts for this port -- saturates... */
--	u32 int_counter;
- 
- 	/* ref count for each pkey */
- 	atomic_t pkeyrefs[4];
-@@ -543,24 +541,26 @@ struct qib_pportdata {
- 	u64 *statusp;
- 
- 	/* SendDMA related entries */
--	spinlock_t            sdma_lock;
--	struct qib_sdma_state sdma_state;
--	unsigned long         sdma_buf_jiffies;
-+
-+	/* read mostly */
- 	struct qib_sdma_desc *sdma_descq;
-+	struct qib_sdma_state sdma_state;
-+	dma_addr_t       sdma_descq_phys;
-+	volatile __le64 *sdma_head_dma; /* DMA'ed by chip */
-+	dma_addr_t       sdma_head_phys;
-+	u16                   sdma_descq_cnt;
-+
-+	/* read/write using lock */
-+	spinlock_t            sdma_lock ____cacheline_aligned_in_smp;
-+	struct list_head      sdma_activelist;
- 	u64                   sdma_descq_added;
- 	u64                   sdma_descq_removed;
--	u16                   sdma_descq_cnt;
- 	u16                   sdma_descq_tail;
- 	u16                   sdma_descq_head;
--	u16                   sdma_next_intr;
--	u16                   sdma_reset_wait;
- 	u8                    sdma_generation;
--	struct tasklet_struct sdma_sw_clean_up_task;
--	struct list_head      sdma_activelist;
- 
--	dma_addr_t       sdma_descq_phys;
--	volatile __le64 *sdma_head_dma; /* DMA'ed by chip */
--	dma_addr_t       sdma_head_phys;
-+	struct tasklet_struct sdma_sw_clean_up_task
-+		____cacheline_aligned_in_smp;
- 
- 	wait_queue_head_t state_wait; /* for state_wanted */
- 
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 7e7e16f..1ce56b5 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -1038,6 +1038,11 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 			goto bail_swq;
- 		}
- 		RCU_INIT_POINTER(qp->next, NULL);
-+		qp->s_hdr = kzalloc(sizeof(*qp->s_hdr), GFP_KERNEL);
-+		if (!qp->s_hdr) {
-+			ret = ERR_PTR(-ENOMEM);
-+			goto bail_qp;
-+		}
- 		qp->timeout_jiffies =
- 			usecs_to_jiffies((4096UL * (1UL << qp->timeout)) /
- 				1000UL);
-@@ -1159,6 +1164,7 @@ bail_ip:
- 		vfree(qp->r_rq.wq);
- 	free_qpn(&dev->qpn_table, qp->ibqp.qp_num);
- bail_qp:
-+	kfree(qp->s_hdr);
- 	kfree(qp);
- bail_swq:
- 	vfree(swq);
-@@ -1214,6 +1220,7 @@ int qib_destroy_qp(struct ib_qp *ibqp)
- 	else
- 		vfree(qp->r_rq.wq);
- 	vfree(qp->s_wq);
-+	kfree(qp->s_hdr);
- 	kfree(qp);
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index 765b4cb..b641416 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -244,9 +244,9 @@ int qib_make_rc_req(struct qib_qp *qp)
- 	int ret = 0;
- 	int delta;
- 
--	ohdr = &qp->s_hdr.u.oth;
-+	ohdr = &qp->s_hdr->u.oth;
- 	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
--		ohdr = &qp->s_hdr.u.l.oth;
-+		ohdr = &qp->s_hdr->u.l.oth;
- 
+@@ -873,7 +873,14 @@ struct qib_devdata {
+ 	 * pio_writing.
+ 	 */
+ 	spinlock_t pioavail_lock;
+-
++	/*
++	 * index of last buffer to optimize search for next
++	 */
++	u32 last_pio;
++	/*
++	 * min kernel pio buffer to optimize search
++	 */
++	u32 min_kernel_pio;
  	/*
- 	 * The lock is needed to synchronize between the sending tasklet,
-diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
-index b4b37e4..c0ee7e0 100644
---- a/drivers/infiniband/hw/qib/qib_ruc.c
-+++ b/drivers/infiniband/hw/qib/qib_ruc.c
-@@ -688,17 +688,17 @@ void qib_make_ruc_header(struct qib_qp *qp, struct qib_other_headers *ohdr,
- 	nwords = (qp->s_cur_size + extra_bytes) >> 2;
- 	lrh0 = QIB_LRH_BTH;
- 	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
--		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr.u.l.grh,
-+		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr->u.l.grh,
- 					       &qp->remote_ah_attr.grh,
- 					       qp->s_hdrwords, nwords);
- 		lrh0 = QIB_LRH_GRH;
- 	}
- 	lrh0 |= ibp->sl_to_vl[qp->remote_ah_attr.sl] << 12 |
- 		qp->remote_ah_attr.sl << 4;
--	qp->s_hdr.lrh[0] = cpu_to_be16(lrh0);
--	qp->s_hdr.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
--	qp->s_hdr.lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
--	qp->s_hdr.lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
-+	qp->s_hdr->lrh[0] = cpu_to_be16(lrh0);
-+	qp->s_hdr->lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
-+	qp->s_hdr->lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
-+	qp->s_hdr->lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
- 				       qp->remote_ah_attr.src_path_bits);
- 	bth0 |= qib_get_pkey(ibp, qp->s_pkey_index);
- 	bth0 |= extra_bytes << 20;
-@@ -758,7 +758,7 @@ void qib_do_send(struct work_struct *work)
- 			 * If the packet cannot be sent now, return and
- 			 * the send tasklet will be woken up later.
- 			 */
--			if (qib_verbs_send(qp, &qp->s_hdr, qp->s_hdrwords,
-+			if (qib_verbs_send(qp, qp->s_hdr, qp->s_hdrwords,
- 					   qp->s_cur_sge, qp->s_cur_size))
- 				break;
- 			/* Record that s_hdr is empty. */
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
-index 7ce2ac2..ce7387f 100644
---- a/drivers/infiniband/hw/qib/qib_uc.c
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -72,9 +72,9 @@ int qib_make_uc_req(struct qib_qp *qp)
- 		goto done;
- 	}
+ 	 * Shadow copies of registers; size indicates read access size.
+ 	 * Most of them are readonly, but some are write-only register,
+diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
+index d0c64d5..4d352b9 100644
+--- a/drivers/infiniband/hw/qib/qib_iba6120.c
++++ b/drivers/infiniband/hw/qib/qib_iba6120.c
+@@ -3132,6 +3132,7 @@ static void get_6120_chip_params(struct qib_devdata *dd)
+ 	val = qib_read_kreg64(dd, kr_sendpiobufcnt);
+ 	dd->piobcnt2k = val & ~0U;
+ 	dd->piobcnt4k = val >> 32;
++	dd->last_pio = dd->piobcnt4k + dd->piobcnt2k - 1;
+ 	/* these may be adjusted in init_chip_wc_pat() */
+ 	dd->pio2kbase = (u32 __iomem *)
+ 		(((char __iomem *)dd->kregbase) + dd->pio2k_bufbase);
+diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
+index 3c722f7..86a0ba7 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7220.c
++++ b/drivers/infiniband/hw/qib/qib_iba7220.c
+@@ -4157,6 +4157,7 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
+ 		dd->cspec->sdmabufcnt;
+ 	dd->lastctxt_piobuf = dd->cspec->lastbuf_for_pio - sbufs;
+ 	dd->cspec->lastbuf_for_pio--; /* range is <= , not < */
++	dd->last_pio = dd->cspec->lastbuf_for_pio;
+ 	dd->pbufsctxt = dd->lastctxt_piobuf /
+ 		(dd->cfgctxts - dd->first_user_ctxt);
  
--	ohdr = &qp->s_hdr.u.oth;
-+	ohdr = &qp->s_hdr->u.oth;
- 	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
--		ohdr = &qp->s_hdr.u.l.oth;
-+		ohdr = &qp->s_hdr->u.l.oth;
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index 060b960..e7b9ad3 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -6379,6 +6379,7 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
+ 		dd->cspec->sdmabufcnt;
+ 	dd->lastctxt_piobuf = dd->cspec->lastbuf_for_pio - sbufs;
+ 	dd->cspec->lastbuf_for_pio--; /* range is <= , not < */
++	dd->last_pio = dd->cspec->lastbuf_for_pio;
+ 	dd->pbufsctxt = (dd->cfgctxts > dd->first_user_ctxt) ?
+ 		dd->lastctxt_piobuf / (dd->cfgctxts - dd->first_user_ctxt) : 0;
  
- 	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
- 	hwords = 5;
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index 828609f..a468bf2 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -321,11 +321,11 @@ int qib_make_ud_req(struct qib_qp *qp)
+diff --git a/drivers/infiniband/hw/qib/qib_tx.c b/drivers/infiniband/hw/qib/qib_tx.c
+index 1bf626c..31d3561 100644
+--- a/drivers/infiniband/hw/qib/qib_tx.c
++++ b/drivers/infiniband/hw/qib/qib_tx.c
+@@ -295,6 +295,7 @@ u32 __iomem *qib_getsendbuf_range(struct qib_devdata *dd, u32 *pbufnum,
  
- 	if (ah_attr->ah_flags & IB_AH_GRH) {
- 		/* Header size in 32-bit words. */
--		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr.u.l.grh,
-+		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr->u.l.grh,
- 					       &ah_attr->grh,
- 					       qp->s_hdrwords, nwords);
- 		lrh0 = QIB_LRH_GRH;
--		ohdr = &qp->s_hdr.u.l.oth;
-+		ohdr = &qp->s_hdr->u.l.oth;
+ 	nbufs = last - first + 1; /* number in range to check */
+ 	if (dd->upd_pio_shadow) {
++update_shadow:
  		/*
- 		 * Don't worry about sending to locally attached multicast
- 		 * QPs.  It is unspecified by the spec. what happens.
-@@ -333,7 +333,7 @@ int qib_make_ud_req(struct qib_qp *qp)
- 	} else {
- 		/* Header size in 32-bit words. */
- 		lrh0 = QIB_LRH_BTH;
--		ohdr = &qp->s_hdr.u.oth;
-+		ohdr = &qp->s_hdr->u.oth;
+ 		 * Minor optimization.  If we had no buffers on last call,
+ 		 * start out by doing the update; continue and do scan even
+@@ -304,37 +305,39 @@ u32 __iomem *qib_getsendbuf_range(struct qib_devdata *dd, u32 *pbufnum,
+ 		updated++;
  	}
- 	if (wqe->wr.opcode == IB_WR_SEND_WITH_IMM) {
- 		qp->s_hdrwords++;
-@@ -346,15 +346,15 @@ int qib_make_ud_req(struct qib_qp *qp)
- 		lrh0 |= 0xF000; /* Set VL (see ch. 13.5.3.1) */
- 	else
- 		lrh0 |= ibp->sl_to_vl[ah_attr->sl] << 12;
--	qp->s_hdr.lrh[0] = cpu_to_be16(lrh0);
--	qp->s_hdr.lrh[1] = cpu_to_be16(ah_attr->dlid);  /* DEST LID */
--	qp->s_hdr.lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
-+	qp->s_hdr->lrh[0] = cpu_to_be16(lrh0);
-+	qp->s_hdr->lrh[1] = cpu_to_be16(ah_attr->dlid);  /* DEST LID */
-+	qp->s_hdr->lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
- 	lid = ppd->lid;
- 	if (lid) {
- 		lid |= ah_attr->src_path_bits & ((1 << ppd->lmc) - 1);
--		qp->s_hdr.lrh[3] = cpu_to_be16(lid);
-+		qp->s_hdr->lrh[3] = cpu_to_be16(lid);
- 	} else
--		qp->s_hdr.lrh[3] = IB_LID_PERMISSIVE;
-+		qp->s_hdr->lrh[3] = IB_LID_PERMISSIVE;
- 	if (wqe->wr.send_flags & IB_SEND_SOLICITED)
- 		bth0 |= IB_BTH_SOLICITED;
- 	bth0 |= extra_bytes << 20;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 0c19ef0..4876060 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -367,9 +367,10 @@ struct qib_rwq {
+ 	i = first;
+-rescan:
+ 	/*
+ 	 * While test_and_set_bit() is atomic, we do that and then the
+ 	 * change_bit(), and the pair is not.  See if this is the cause
+ 	 * of the remaining armlaunch errors.
+ 	 */
+ 	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	if (dd->last_pio >= first && dd->last_pio <= last)
++		i = dd->last_pio + 1;
++	if (!first)
++		/* adjust to min possible  */
++		nbufs = last - dd->min_kernel_pio + 1;
+ 	for (j = 0; j < nbufs; j++, i++) {
+ 		if (i > last)
+-			i = first;
++			i = !first ? dd->min_kernel_pio : first;
+ 		if (__test_and_set_bit((2 * i) + 1, shadow))
+ 			continue;
+ 		/* flip generation bit */
+ 		__change_bit(2 * i, shadow);
+ 		/* remember that the buffer can be written to now */
+ 		__set_bit(i, dd->pio_writing);
++		if (!first && first != last) /* first == last on VL15, avoid */
++			dd->last_pio = i;
+ 		break;
+ 	}
+ 	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
  
- struct qib_rq {
- 	struct qib_rwq *wq;
--	spinlock_t lock; /* protect changes in this struct */
- 	u32 size;               /* size of RWQE array */
- 	u8 max_sge;
-+	spinlock_t lock /* protect changes in this struct */
-+		____cacheline_aligned_in_smp;
- };
+ 	if (j == nbufs) {
+-		if (!updated) {
++		if (!updated)
+ 			/*
+ 			 * First time through; shadow exhausted, but may be
+ 			 * buffers available, try an update and then rescan.
+ 			 */
+-			update_send_bufs(dd);
+-			updated++;
+-			i = first;
+-			goto rescan;
+-		}
++			goto update_shadow;
+ 		no_send_bufs(dd);
+ 		buf = NULL;
+ 	} else {
+@@ -422,14 +425,20 @@ void qib_chg_pioavailkernel(struct qib_devdata *dd, unsigned start,
+ 				__clear_bit(QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT
+ 					    + start, dd->pioavailshadow);
+ 			__set_bit(start, dd->pioavailkernel);
++			if ((start >> 1) < dd->min_kernel_pio)
++				dd->min_kernel_pio = start >> 1;
+ 		} else {
+ 			__set_bit(start + QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT,
+ 				  dd->pioavailshadow);
+ 			__clear_bit(start, dd->pioavailkernel);
++			if ((start >> 1) > dd->min_kernel_pio)
++				dd->min_kernel_pio = start >> 1;
+ 		}
+ 		start += 2;
+ 	}
  
- struct qib_srq {
-@@ -412,31 +413,75 @@ struct qib_ack_entry {
-  */
- struct qib_qp {
- 	struct ib_qp ibqp;
--	struct qib_qp *next;            /* link list for QPN hash table */
--	struct qib_qp *timer_next;      /* link list for qib_ib_timer() */
--	struct list_head iowait;        /* link for wait PIO buf */
--	struct list_head rspwait;       /* link for waititing to respond */
-+	/* read mostly fields above and below */
- 	struct ib_ah_attr remote_ah_attr;
- 	struct ib_ah_attr alt_ah_attr;
--	struct qib_ib_header s_hdr;     /* next packet header to send */
--	atomic_t refcount;
--	wait_queue_head_t wait;
--	wait_queue_head_t wait_dma;
--	struct timer_list s_timer;
--	struct work_struct s_work;
-+	struct qib_qp *next;            /* link list for QPN hash table */
-+	struct qib_swqe *s_wq;  /* send work queue */
- 	struct qib_mmap_info *ip;
-+	struct qib_ib_header *s_hdr;     /* next packet header to send */
-+	unsigned long timeout_jiffies;  /* computed from timeout */
-+
-+	enum ib_mtu path_mtu;
-+	u32 remote_qpn;
-+	u32 pmtu;		/* decoded from path_mtu */
-+	u32 qkey;               /* QKEY for this QP (for UD or RD) */
-+	u32 s_size;             /* send work queue size */
-+	u32 s_rnr_timeout;      /* number of milliseconds for RNR timeout */
-+
-+	u8 state;               /* QP state */
-+	u8 qp_access_flags;
-+	u8 alt_timeout;         /* Alternate path timeout for this QP */
-+	u8 timeout;             /* Timeout for this QP */
-+	u8 s_srate;
-+	u8 s_mig_state;
-+	u8 port_num;
-+	u8 s_pkey_index;        /* PKEY index to use */
-+	u8 s_alt_pkey_index;    /* Alternate path PKEY index to use */
-+	u8 r_max_rd_atomic;     /* max number of RDMA read/atomic to receive */
-+	u8 s_max_rd_atomic;     /* max number of RDMA read/atomic to send */
-+	u8 s_retry_cnt;         /* number of times to retry */
-+	u8 s_rnr_retry_cnt;
-+	u8 r_min_rnr_timer;     /* retry timeout value for RNR NAKs */
-+	u8 s_max_sge;           /* size of s_wq->sg_list */
-+	u8 s_draining;
-+
-+	/* start of read/write fields */
-+
-+	atomic_t refcount ____cacheline_aligned_in_smp;
-+	wait_queue_head_t wait;
-+
-+
-+	struct qib_ack_entry s_ack_queue[QIB_MAX_RDMA_ATOMIC + 1]
-+		____cacheline_aligned_in_smp;
-+	struct qib_sge_state s_rdma_read_sge;
-+
-+	spinlock_t r_lock ____cacheline_aligned_in_smp;      /* used for APM */
-+	unsigned long r_aflags;
-+	u64 r_wr_id;            /* ID for current receive WQE */
-+	u32 r_ack_psn;          /* PSN for next ACK or atomic ACK */
-+	u32 r_len;              /* total length of r_sge */
-+	u32 r_rcv_len;          /* receive data len processed */
-+	u32 r_psn;              /* expected rcv packet sequence number */
-+	u32 r_msn;              /* message sequence number */
-+
-+	u8 r_state;             /* opcode of last packet received */
-+	u8 r_flags;
-+	u8 r_head_ack_queue;    /* index into s_ack_queue[] */
-+
-+	struct list_head rspwait;       /* link for waititing to respond */
-+
-+	struct qib_sge_state r_sge;     /* current receive data */
-+	struct qib_rq r_rq;             /* receive work queue */
-+
-+	spinlock_t s_lock ____cacheline_aligned_in_smp;
- 	struct qib_sge_state *s_cur_sge;
-+	u32 s_flags;
- 	struct qib_verbs_txreq *s_tx;
--	struct qib_mregion *s_rdma_mr;
-+	struct qib_swqe *s_wqe;
- 	struct qib_sge_state s_sge;     /* current send request data */
--	struct qib_ack_entry s_ack_queue[QIB_MAX_RDMA_ATOMIC + 1];
--	struct qib_sge_state s_ack_rdma_sge;
--	struct qib_sge_state s_rdma_read_sge;
--	struct qib_sge_state r_sge;     /* current receive data */
--	spinlock_t r_lock;      /* used for APM */
--	spinlock_t s_lock;
-+	struct qib_mregion *s_rdma_mr;
- 	atomic_t s_dma_busy;
--	u32 s_flags;
- 	u32 s_cur_size;         /* size of send packet in bytes */
- 	u32 s_len;              /* total length of s_sge */
- 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
-@@ -447,60 +492,34 @@ struct qib_qp {
- 	u32 s_psn;              /* current packet sequence number */
- 	u32 s_ack_rdma_psn;     /* PSN for sending RDMA read responses */
- 	u32 s_ack_psn;          /* PSN for acking sends and RDMA writes */
--	u32 s_rnr_timeout;      /* number of milliseconds for RNR timeout */
--	u32 r_ack_psn;          /* PSN for next ACK or atomic ACK */
--	u64 r_wr_id;            /* ID for current receive WQE */
--	unsigned long r_aflags;
--	u32 r_len;              /* total length of r_sge */
--	u32 r_rcv_len;          /* receive data len processed */
--	u32 r_psn;              /* expected rcv packet sequence number */
--	u32 r_msn;              /* message sequence number */
-+	u32 s_head;             /* new entries added here */
-+	u32 s_tail;             /* next entry to process */
-+	u32 s_cur;              /* current work queue entry */
-+	u32 s_acked;            /* last un-ACK'ed entry */
-+	u32 s_last;             /* last completed entry */
-+	u32 s_ssn;              /* SSN of tail entry */
-+	u32 s_lsn;              /* limit sequence number (credit) */
- 	u16 s_hdrwords;         /* size of s_hdr in 32 bit words */
- 	u16 s_rdma_ack_cnt;
--	u8 state;               /* QP state */
- 	u8 s_state;             /* opcode of last packet sent */
- 	u8 s_ack_state;         /* opcode of packet to ACK */
- 	u8 s_nak_state;         /* non-zero if NAK is pending */
--	u8 r_state;             /* opcode of last packet received */
- 	u8 r_nak_state;         /* non-zero if NAK is pending */
--	u8 r_min_rnr_timer;     /* retry timeout value for RNR NAKs */
--	u8 r_flags;
--	u8 r_max_rd_atomic;     /* max number of RDMA read/atomic to receive */
--	u8 r_head_ack_queue;    /* index into s_ack_queue[] */
--	u8 qp_access_flags;
--	u8 s_max_sge;           /* size of s_wq->sg_list */
--	u8 s_retry_cnt;         /* number of times to retry */
--	u8 s_rnr_retry_cnt;
- 	u8 s_retry;             /* requester retry counter */
- 	u8 s_rnr_retry;         /* requester RNR retry counter */
--	u8 s_pkey_index;        /* PKEY index to use */
--	u8 s_alt_pkey_index;    /* Alternate path PKEY index to use */
--	u8 s_max_rd_atomic;     /* max number of RDMA read/atomic to send */
- 	u8 s_num_rd_atomic;     /* number of RDMA read/atomic pending */
- 	u8 s_tail_ack_queue;    /* index into s_ack_queue[] */
--	u8 s_srate;
--	u8 s_draining;
--	u8 s_mig_state;
--	u8 timeout;             /* Timeout for this QP */
--	u8 alt_timeout;         /* Alternate path timeout for this QP */
--	u8 port_num;
--	enum ib_mtu path_mtu;
--	u32 pmtu;		/* decoded from path_mtu */
--	u32 remote_qpn;
--	u32 qkey;               /* QKEY for this QP (for UD or RD) */
--	u32 s_size;             /* send work queue size */
--	u32 s_head;             /* new entries added here */
--	u32 s_tail;             /* next entry to process */
--	u32 s_cur;              /* current work queue entry */
--	u32 s_acked;            /* last un-ACK'ed entry */
--	u32 s_last;             /* last completed entry */
--	u32 s_ssn;              /* SSN of tail entry */
--	u32 s_lsn;              /* limit sequence number (credit) */
--	unsigned long timeout_jiffies;  /* computed from timeout */
--	struct qib_swqe *s_wq;  /* send work queue */
--	struct qib_swqe *s_wqe;
--	struct qib_rq r_rq;             /* receive work queue */
--	struct qib_sge r_sg_list[0];    /* verified SGEs */
-+
-+	struct qib_sge_state s_ack_rdma_sge;
-+	struct timer_list s_timer;
-+	struct list_head iowait;        /* link for wait PIO buf */
-+
-+	struct work_struct s_work;
-+
-+	wait_queue_head_t wait_dma;
-+
-+	struct qib_sge r_sg_list[0] /* verified SGEs */
-+		____cacheline_aligned_in_smp;
- };
++	if (dd->min_kernel_pio > 0 && dd->last_pio < dd->min_kernel_pio - 1)
++		dd->last_pio = dd->min_kernel_pio - 1;
+ 	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
  
- /*
+ 	dd->f_txchk_change(dd, ostart, len, avail, rcd);
 
 
 --
