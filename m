@@ -1,61 +1,46 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 3/7] net/mlx4_core: change bitmap allocator to work in round-robin fashion
-Date: Wed, 9 May 2012 16:04:32 +0300
-Message-ID: <201205091604.33167.jackm@dev.mellanox.co.il>
-References: <1335708267-30284-1-git-send-email-ogerlitz@mellanox.com> <1335708267-30284-4-git-send-email-ogerlitz@mellanox.com> <CAL1RGDXYeGZCWty5ysfOTD_yYaSJb+FCGsDyG3P7pszDnG43tQ@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 4/7] IB/core: Add RSS and TSS QP groups
+Date: Wed, 9 May 2012 18:06:34 +0300
+Message-ID: <4FAA87FA.3060908@mellanox.com>
+References: <1336494151-31050-1-git-send-email-ogerlitz@mellanox.com> <1336494151-31050-5-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXYeGZCWty5ysfOTD_yYaSJb+FCGsDyG3P7pszDnG43tQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1336494151-31050-5-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday 08 May 2012 21:46, Roland Dreier wrote:
-> > --- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
-> > +++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-> > @@ -124,7 +124,6 @@ void mlx4_bitmap_free_range(struct mlx4_bitmap =
-*bitmap, u32 obj, int cnt)
-> >
-> > =A0 =A0 =A0 =A0spin_lock(&bitmap->lock);
-> > =A0 =A0 =A0 =A0bitmap_clear(bitmap->table, obj, cnt);
-> > - =A0 =A0 =A0 bitmap->last =3D min(bitmap->last, obj);
-> > =A0 =A0 =A0 =A0bitmap->top =3D (bitmap->top + bitmap->max + bitmap-=
->reserved_top)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0& bitmap->mask;
-> > =A0 =A0 =A0 =A0bitmap->avail +=3D cnt;
->=20
-> I think this mostly makes sense, although the explanation doesn't qui=
-te
-> make sense.
->=20
-> However I think it would also make sense to get rid of changing the
-> bitmap->top value here when freeing.  Then we would really go
-> round-robin, and only bump bitmap->top each time we wrap around
-> during allocation.
->=20
-> Does that make sense to you?
+On 5/8/2012 7:22 PM, Or Gerlitz wrote:
+> --- a/drivers/infiniband/hw/ehca/ehca_qp.c
+> +++ b/drivers/infiniband/hw/ehca/ehca_qp.c
+> @@ -464,6 +464,9 @@ static struct ehca_qp *internal_create_qp(
+>   	int is_llqp = 0, has_srq = 0, is_user = 0;
+>   	int qp_type, max_send_sge, max_recv_sge, ret;
+>
+> +	if (init_attr->qpg_type != IB_QPG_NONE)
+> +		return ERR_PTR(-ENOSYS);
+> +
+>   	/* h_call's out parameters */
+>   	struct ehca_alloc_qp_parms parms;
+>   	u32 swqe_size = 0, rwqe_size = 0, ib_qp_num;
+> @@ -980,6 +983,9 @@ struct ib_srq *ehca_create_srq(struct ib_pd *pd,
+>   	if (srq_init_attr->srq_type != IB_SRQT_BASIC)
+>   		return ERR_PTR(-ENOSYS);
+>
+> +	if (srq_init_attr->qpg_type != IB_QPG_NONE)
+> +		return ERR_PTR(-ENOSYS);
+> +
+>
+oops, this setting is wrong, will send fixed patch (mark it as V0.1 to 
+allow room for sending V1 later...)
 
-It does make sense.  Very good catch!  If we also get rid of the bitmap=
-_top
-modification in mlx4_bitmap_free_range(), then it will be a VERY long t=
-ime
-before resource numbers repeat. This can only be a good thing.
+Or.
 
-You are correct that if we do not immediately re-use resource numbers,
-then incrementing bitmap_top is only really needed/desirable per wrap-a=
-round of the
-bitmap.
 
--Jack
->=20
->  - R.
->=20
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
