@@ -1,38 +1,30 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Upgrading your "for-next" git to 3.4-RC5
-Date: Wed, 9 May 2012 08:54:25 +0300
-Message-ID: <201205090854.25717.jackm@dev.mellanox.co.il>
-References: <201205071105.43951.jackm@dev.mellanox.co.il> <201205081329.10340.jackm@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 4/7] IB/mlx4: put priority bits in WQE of IBoE
+ MLX QP
+Date: Wed, 9 May 2012 09:25:08 +0300
+Message-ID: <4FAA0DC4.7010300@mellanox.com>
+References: <1335708267-30284-1-git-send-email-ogerlitz@mellanox.com> <1335708267-30284-5-git-send-email-ogerlitz@mellanox.com> <CAL1RGDUeKh7Nu3bAWsbGnjWWpySp5s=8VUUcmTMOn9s8GMPxcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201205081329.10340.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <CAL1RGDUeKh7Nu3bAWsbGnjWWpySp5s=8VUUcmTMOn9s8GMPxcg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday 08 May 2012 13:29, Jack Morgenstein wrote:
-> Hi Roland,
-> 
-> Sorry to bother you, but the commits in your "ib-fixes" tag were taken by Linus into 3.4-rc5.
-> Therefore, I would appreciate it if you could rebase your "for-next" branch to 3.4-rc5 (at least)
-> -- I am in the middle of preparing a patch set for SRIOV-IB on top of your "for-next" branch,
-> so such a rebase would help.
-> 
-> Thanks!
-> 
-> -Jack
+On 5/8/2012 9:48 PM, Roland Dreier wrote:
+> thanks, applied.
 
-I see you rebased "for-next" to 3.4-rc6.
+Hi Roland,
 
-Thanks!
--Jack
+I don't see this patch neither the other two you accepted last night in 
+your kernel.org tree
+for-next branch, maybe this has something to do with the rebase to -rc6 
+you made?
 
- 
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
