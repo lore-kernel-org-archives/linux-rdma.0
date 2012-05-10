@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 5/8] infiniband-diags: move
- man/ibportstate,ibstat,ibroute,ibtracert to rst documentation
-Date: Wed, 9 May 2012 18:45:04 -0700
-Message-ID: <20120509184504.bee06c6e.weiny2@llnl.gov>
+Subject: [PATCH 6/8] infiniband-diags: move
+ man/perfquery,sminfo,smpdump,smpquery to rst documentation
+Date: Wed, 9 May 2012 18:45:08 -0700
+Message-ID: <20120509184508.ff493292.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -16,149 +16,196 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- Makefile.am                  |    7 ++-
- configure.in                 |    4 +
- doc/rst/ibportstate.8.in.rst |  116 ++++++++++++++++++++++++++++++++++++++
- doc/rst/ibroute.8.in.rst     |  108 +++++++++++++++++++++++++++++++++++
- doc/rst/ibstat.8.in.rst      |   83 +++++++++++++++++++++++++++
- doc/rst/ibtracert.8.in.rst   |  106 ++++++++++++++++++++++++++++++++++
- man/ibportstate.8            |  128 ------------------------------------------
- man/ibroute.8                |  122 ----------------------------------------
- man/ibstat.8                 |  111 ------------------------------------
- man/ibtracert.8              |  108 -----------------------------------
- 10 files changed, 422 insertions(+), 471 deletions(-)
- create mode 100644 doc/rst/ibportstate.8.in.rst
- create mode 100644 doc/rst/ibroute.8.in.rst
- create mode 100644 doc/rst/ibstat.8.in.rst
- create mode 100644 doc/rst/ibtracert.8.in.rst
- delete mode 100644 man/ibportstate.8
- delete mode 100644 man/ibroute.8
- delete mode 100644 man/ibstat.8
- delete mode 100644 man/ibtracert.8
+ Makefile.am                |    7 +-
+ configure.in               |    4 +
+ doc/rst/perfquery.8.in.rst |  176 +++++++++++++++++++++++++++++++++++++++++
+ doc/rst/sminfo.8.in.rst    |  101 +++++++++++++++++++++++
+ doc/rst/smpdump.8.in.rst   |  104 ++++++++++++++++++++++++
+ doc/rst/smpquery.8.in.rst  |  112 ++++++++++++++++++++++++++
+ man/perfquery.8            |  189 --------------------------------------------
+ man/sminfo.8               |  107 -------------------------
+ man/smpdump.8              |   99 -----------------------
+ man/smpquery.8             |  122 ----------------------------
+ 10 files changed, 502 insertions(+), 519 deletions(-)
+ create mode 100644 doc/rst/perfquery.8.in.rst
+ create mode 100644 doc/rst/sminfo.8.in.rst
+ create mode 100644 doc/rst/smpdump.8.in.rst
+ create mode 100644 doc/rst/smpquery.8.in.rst
+ delete mode 100644 man/perfquery.8
+ delete mode 100644 man/sminfo.8
+ delete mode 100644 man/smpdump.8
+ delete mode 100644 man/smpquery.8
 
 diff --git a/Makefile.am b/Makefile.am
-index f7bfb57..16a8fd8 100644
+index 16a8fd8..3aa47bf 100644
 --- a/Makefile.am
 +++ b/Makefile.am
 @@ -40,8 +40,7 @@ sbin_SCRIPTS += scripts/ibcheckerrs scripts/ibchecknet scripts/ibchecknode \
  		scripts/set_nodedesc.sh scripts/ibclearerrors scripts/ibclearcounters
  endif
  
--man_MANS = man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
--		man/ibtracert.8 man/perfquery.8 man/sminfo.8 \
-+man_MANS = man/perfquery.8 man/sminfo.8 \
- 		man/smpdump.8 man/smpquery.8 man/saquery.8 man/vendstat.8 \
+-man_MANS = man/perfquery.8 man/sminfo.8 \
+-		man/smpdump.8 man/smpquery.8 man/saquery.8 man/vendstat.8 \
++man_MANS = man/saquery.8 man/vendstat.8 \
  		man/ibsysstat.8 \
  		man/ibfindnodesusing.8 \
-@@ -57,9 +56,13 @@ man_MANS = man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
- 		doc/man/ibnetdiscover.8 \
- 		doc/man/ibnodes.8 \
- 		doc/man/ibping.8 \
-+		doc/man/ibportstate.8 \
- 		doc/man/ibqueryerrors.8 \
-+		doc/man/ibroute.8 \
- 		doc/man/ibrouters.8 \
-+		doc/man/ibstat.8 \
+ 		man/check_lft_balance.8 man/ibcacheedit.8 \
+@@ -63,6 +62,10 @@ man_MANS = man/perfquery.8 man/sminfo.8 \
+ 		doc/man/ibstat.8 \
  		doc/man/ibswitches.8 \
-+		doc/man/ibtracert.8 \
+ 		doc/man/ibtracert.8 \
++		doc/man/perfquery.8 \
++		doc/man/sminfo.8 \
++		doc/man/smpdump.8 \
++		doc/man/smpquery.8 \
  		doc/man/infiniband-diags.8 \
  		man/ibidsverify.8
  
 diff --git a/configure.in b/configure.in
-index 7e49d1a..67d3031 100644
+index 67d3031..66b7fef 100644
 --- a/configure.in
 +++ b/configure.in
-@@ -216,9 +216,13 @@ AC_CONFIG_FILES([\
- 	doc/man/ibnetdiscover.8 \
- 	doc/man/ibnodes.8 \
- 	doc/man/ibping.8 \
-+	doc/man/ibportstate.8 \
- 	doc/man/ibqueryerrors.8 \
-+	doc/man/ibroute.8 \
- 	doc/man/ibrouters.8 \
-+	doc/man/ibstat.8 \
+@@ -223,6 +223,10 @@ AC_CONFIG_FILES([\
+ 	doc/man/ibstat.8 \
  	doc/man/ibswitches.8 \
-+	doc/man/ibtracert.8 \
+ 	doc/man/ibtracert.8 \
++	doc/man/perfquery.8 \
++	doc/man/sminfo.8 \
++	doc/man/smpdump.8 \
++	doc/man/smpquery.8 \
  	doc/man/infiniband-diags.8 \
  	libibnetdisc/Makefile \
  ])
-diff --git a/doc/rst/ibportstate.8.in.rst b/doc/rst/ibportstate.8.in.rst
+diff --git a/doc/rst/perfquery.8.in.rst b/doc/rst/perfquery.8.in.rst
 new file mode 100644
-index 0000000..3af2aaa
+index 0000000..f5d0e61
 --- /dev/null
-+++ b/doc/rst/ibportstate.8.in.rst
-@@ -0,0 +1,116 @@
-+===========
-+IBPORTSTATE
-+===========
-+
-+-----------------------------------------------------------------
-+handle port (physical) state and link speed of an InfiniBand port
-+-----------------------------------------------------------------
++++ b/doc/rst/perfquery.8.in.rst
+@@ -0,0 +1,176 @@
++=========
++PERFQUERY
++=========
 +
 +:Date: @BUILD_DATE@
 +:Manual section: 8
 +:Manual group: Open IB Diagnostics
 +
++-----------------------------------------------
++query InfiniBand port counters on a single port
++-----------------------------------------------
++
 +
 +SYNOPSIS
 +========
 +
-+ibportstate [options] <dest dr_path|lid|guid> <portnum> [<op>]
++perfquery [options] [<lid|guid> [[port] [reset_mask]]]
 +
 +DESCRIPTION
 +===========
 +
-+ibportstate allows the port state and port physical state of an IB port
-+to be queried (in addition to link width and speed being validated
-+relative to the peer port when the port queried is a switch port),
-+or a switch port to be disabled, enabled, or reset. It
-+also allows the link speed/width enabled on any IB port to be adjusted.
++perfquery uses PerfMgt GMPs to obtain the PortCounters (basic performance and
++error counters), PortExtendedCounters, PortXmitDataSL, PortRcvDataSL,
++PortRcvErrorDetails, PortXmitDiscardDetails, PortExtendedSpeedsCounters, or
++PortSamplesControl from the PMA at the node/port specified. Optionally shows
++aggregated counters for all ports of node.  Finally it can, reset after read,
++or just reset the counters.
++
++Note: In PortCounters, PortCountersExtended, PortXmitDataSL, and PortRcvDataSL,
++components that represent Data (e.g. PortXmitData and PortRcvData) indicate
++octets divided by 4 rather than just octets.
++
++Note: Inputting a port of 255 indicates an operation be performed on all ports.
++
 +
 +OPTIONS
 +=======
 +
-+**<op>**
-+        Supported ops: enable, disable, reset, speed, espeed, fdr10, width, query,
-+                        down, arm, active, vls, mtu, lid, smlid, lmc (Default
-+                        is query)
++**-x, --extended**
++	show extended port counters rather than (basic) port counters.
++	Note that extended port counters attribute is optional.
 +
-+        **enable, disable, and reset** are only allowed on switch ports (An
-+        error is indicated if attempted on CA or router ports)
++**-X, --xmtsl**
++	show transmit data SL counter. This is an optional counter for QoS.
 +
-+        **speed and width** are allowed on any port
++**-S, --rcvsl**
++	show receive data SL counter. This is an optional counter for QoS.
 +
-+        **speed** values are the legal values for PortInfo:LinkSpeedEnabled (An
-+        error is indicated if PortInfo:LinkSpeedSupported does not support this
-+        setting)
++**-D, --xmtdisc**
++	show transmit discard details. This is an optional counter.
 +
-+        **espeed** is allowed on any port supporting extended link speeds
++**-E, --rcverr**
++	show receive error details. This is an optional counter.
 +
-+        **fdr10** is allowed on any port supporting fdr10 (An error is
-+        indicated if port's capability mask indicates extended link speeds are
-+        not supported or if PortInfo:LinkSpeedExtSupported does not support
-+        this setting)
++**-D, --xmtdisc**
++	show transmit discard details. This is an optional counter.
 +
-+        **width** values are legal values for PortInfo:LinkWidthEnabled (An
-+        error is indicated if PortInfo:LinkWidthSupported does not support this
-+        setting) (NOTE: Speed and width changes are not effected until the port
-+        goes through link renegotiation)
++**-T, --extended_speeds**
++	show extended speeds port counters. This is an optional counter.
 +
-+        **query** also validates port characteristics (link width, speed,
-+        espeed, and fdr10) based on the peer port. This checking is done when
-+        the port queried is a switch port as it relies on combined routing (an
-+        initial LID route with directed routing to the peer) which can only be
-+        done on a switch. This peer port validation feature of query op
-+        requires LID routing to be functioning in the subnet.
++**--oprcvcounters**
++	show Rcv Counters per Op code. This is an optional counter.
++
++**--flowctlcounters**
++	show flow control counters. This is an optional counter.
++
++**--vloppackets**
++	show packets received per Op code per VL. This is an optional counter.
++
++**--vlopdata**
++	show data received per Op code per VL. This is an optional counter.
++
++**--vlxmitflowctlerrors**
++	show flow control update errors per VL. This is an optional counter.
++
++**--vlxmitcounters**
++	show ticks waiting to transmit counters per VL. This is an optional counter.
++
++**--swportvlcong**
++	show sw port VL congestion. This is an optional counter.
++
++**--rcvcc**
++	show Rcv congestion control counters. This is an optional counter.
++
++**--slrcvfecn**
++	show SL Rcv FECN counters. This is an optional counter.
++
++**--slrcvbecn**
++	show SL Rcv BECN counters. This is an optional counter.
++
++**--xmitcc**
++	show Xmit congestion control counters. This is an optional counter.
++
++**--vlxmittimecc**
++	show VL Xmit Time congestion control counters. This is an optional counter.
++
++**-c, --smplctl**
++	show port samples control.
++
++**-a, --all_ports**
++	show aggregated counters for all ports of the destination lid or reset
++	all counters for all ports.  If the destination lid does not support
++	the AllPortSelect flag, all ports will be iterated through to emulate
++	AllPortSelect behavior.
++
++**-l, --loop_ports**
++	If all ports are selected by the user (either through the **-a** option
++	or port 255) iterate through each port rather than doing than aggregate
++	operation.
++
++**-r, --reset_after_read**
++	reset counters after read
++
++**-R, --Reset_only**
++	only reset counters
 +
 +
 +Addressing Flags
 +----------------
 +
-+.. include:: common/opt_L.rst
 +.. include:: common/opt_G.rst
-+.. include:: common/opt_D.rst
++.. include:: common/opt_L.rst
 +.. include:: common/opt_s.rst
++
 +
 +Port Selection flags
 +--------------------
@@ -167,103 +214,6 @@ index 0000000..3af2aaa
 +.. include:: common/opt_P.rst
 +.. include:: common/sec_portselection.rst
 +
-+Configuration flags
-+-------------------
-+
-+.. include:: common/opt_z-config.rst
-+.. include:: common/opt_t.rst
-+
-+Debugging flags
-+---------------
-+
-+.. include:: common/opt_h.rst
-+.. include:: common/opt_d.rst
-+.. include:: common/opt_e.rst
-+.. include:: common/opt_v.rst
-+.. include:: common/opt_V.rst
-+
-+FILES
-+=====
-+
-+.. include:: common/sec_config-file.rst
-+
-+EXAMPLES
-+========
-+
-+::
-+        ibportstate 3 1 disable                  # by lid
-+        ibportstate -G 0x2C9000100D051 1 enable  # by guid
-+        ibportstate -D 0 1                       # (query) by direct route
-+        ibportstate 3 1 reset                    # by lid
-+        ibportstate 3 1 speed 1                  # by lid
-+        ibportstate 3 1 width 1                  # by lid
-+        ibportstate -D 0 1 lid 0x1234 arm        # by direct route
-+
-+AUTHOR
-+======
-+
-+Hal Rosenstock
-+        < hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
-diff --git a/doc/rst/ibroute.8.in.rst b/doc/rst/ibroute.8.in.rst
-new file mode 100644
-index 0000000..0070dd6
---- /dev/null
-+++ b/doc/rst/ibroute.8.in.rst
-@@ -0,0 +1,108 @@
-+=======
-+IBROUTE
-+=======
-+
-+:Date: @BUILD_DATE@
-+:Manual section: 8
-+:Manual group: Open IB Diagnostics
-+
-+-----------------------------------------
-+query InfiniBand switch forwarding tables
-+-----------------------------------------
-+
-+
-+SYNOPSIS
-+========
-+
-+ibroute [options] [<dest dr_path|lid|guid> [<startlid> [<endlid>]]]
-+
-+DESCRIPTION
-+===========
-+
-+ibroute uses SMPs to display the forwarding tables (unicast
-+(LinearForwardingTable or LFT) or multicast (MulticastForwardingTable or MFT))
-+for the specified switch LID and the optional lid (mlid) range.
-+The default range is all valid entries in the range 1...FDBTop.
-+
-+OPTIONS
-+=======
-+
-+**-a, --all**
-+        show all lids in range, even invalid entries
-+
-+**-n, --no_dests**
-+        do not try to resolve destinations
-+
-+**-M, --Multicast**
-+        show multicast forwarding tables
-+        In this case, the range parameters are specifying the mlid range.
-+
-+
-+Addressing Flags
-+----------------
-+
-+.. include:: common/opt_D.rst
-+.. include:: common/opt_G.rst
-+.. include:: common/opt_L.rst
-+.. include:: common/opt_s.rst
-+
-+Port Selection flags
-+--------------------
-+
-+.. include:: common/opt_C.rst
-+.. include:: common/opt_P.rst
-+.. include:: common/sec_portselection.rst
 +
 +Debugging flags
 +---------------
@@ -281,6 +231,115 @@ index 0000000..0070dd6
 +.. include:: common/opt_t.rst
 +.. include:: common/opt_z-config.rst
 +
++
++FILES
++=====
++
++.. include:: common/sec_config-file.rst
++
++EXAMPLES
++========
++
++::
++	perfquery                # read local port performance counters
++	perfquery 32 1           # read performance counters from lid 32, port 1
++	perfquery -x 32 1        # read extended performance counters from lid 32, port 1
++	perfquery -a 32          # read perf counters from lid 32, all ports
++	perfquery -r 32 1        # read performance counters and reset
++	perfquery -x -r 32 1     # read extended performance counters and reset
++	perfquery -R 0x20 1      # reset performance counters of port 1 only
++	perfquery -x -R 0x20 1   # reset extended performance counters of port 1 only
++	perfquery -R -a 32       # reset performance counters of all ports
++	perfquery -R 32 2 0x0fff # reset only error counters of port 2
++	perfquery -R 32 2 0xf000 # reset only non-error counters of port 2
++
++AUTHOR
++======
++
++Hal Rosenstock
++	< hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
+diff --git a/doc/rst/sminfo.8.in.rst b/doc/rst/sminfo.8.in.rst
+new file mode 100644
+index 0000000..1d7e69f
+--- /dev/null
++++ b/doc/rst/sminfo.8.in.rst
+@@ -0,0 +1,101 @@
++======
++SMINFO
++======
++
++:Date: @BUILD_DATE@
++:Manual section: 8
++:Manual group: Open IB Diagnostics
++
++---------------------------------
++query InfiniBand SMInfo attribute
++---------------------------------
++
++SYNOPSIS
++========
++
++sminfo [options] sm_lid | sm_dr_path [modifier]
++
++DESCRIPTION
++===========
++
++Optionally set and display the output of a sminfo query in human readable
++format. The target SM is the one listed in the local port info, or the SM
++specified by the optional SM lid or by the SM direct routed path.
++
++Note: using sminfo for any purposes other then simple query may be very
++dangerous, and may result in a malfunction of the target SM.
++
++OPTIONS
++=======
++
++**-s, --state <state>** set SM state
++        0 not active
++
++        1 discovering
++
++        2 standby
++
++        3 master
++
++**-p, --priority <priority>** set priority (0-15)
++
++**-a, --activity <val>** set activity count
++
++Addressing Flags
++----------------
++
++.. include:: common/opt_D.rst
++.. include:: common/opt_G.rst
++.. include:: common/opt_L.rst
++
++
++Port Selection flags
++--------------------
++
++.. include:: common/opt_C.rst
++.. include:: common/opt_P.rst
++.. include:: common/sec_portselection.rst
++
++
++Debugging flags
++---------------
++
++.. include:: common/opt_d.rst
++.. include:: common/opt_e.rst
++.. include:: common/opt_h.rst
++.. include:: common/opt_v.rst
++.. include:: common/opt_V.rst
++
++
++Configuration flags
++-------------------
++
++.. include:: common/opt_t.rst
++.. include:: common/opt_z-config.rst
++
++
 +FILES
 +=====
 +
@@ -290,93 +349,88 @@ index 0000000..0070dd6
 +EXAMPLES
 +========
 +
-+Unicast examples
-+
 +::
-+        ibroute 4               # dump all lids with valid out ports of switch with lid 4
-+        ibroute -a 4            # same, but dump all lids, even with invalid out ports
-+        ibroute -n 4            # simple dump format - no destination resolution
-+        ibroute 4 10            # dump lids starting from 10 (up to FDBTop)
-+        ibroute 4 0x10 0x20     # dump lid range
-+        ibroute -G 0x08f1040023 # resolve switch by GUID
-+        ibroute -D 0,1          # resolve switch by direct path
++        sminfo                  # local port\'s sminfo
++        sminfo 32               # show sminfo of lid 32
++        sminfo  -G 0x8f1040023  # same but using guid address
 +
-+Multicast examples
-+
-+::
-+        ibroute -M 4                # dump all non empty mlids of switch with lid 4
-+        ibroute -M 4 0xc010 0xc020  # same, but with range
-+        ibroute -M -n 4             # simple dump format
 +
 +SEE ALSO
 +========
 +
-+ibtracert (8)
++smpdump (8)
 +
 +AUTHOR
 +======
 +
 +Hal Rosenstock
 +        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/doc/rst/ibstat.8.in.rst b/doc/rst/ibstat.8.in.rst
+diff --git a/doc/rst/smpdump.8.in.rst b/doc/rst/smpdump.8.in.rst
 new file mode 100644
-index 0000000..3e19b3e
+index 0000000..38460de
 --- /dev/null
-+++ b/doc/rst/ibstat.8.in.rst
-@@ -0,0 +1,83 @@
-+======
-+IBSTAT
-+======
++++ b/doc/rst/smpdump.8.in.rst
+@@ -0,0 +1,104 @@
++=======
++SMPDUMP
++=======
 +
 +:Date: @BUILD_DATE@
 +:Manual section: 8
 +:Manual group: Open IB Diagnostics
 +
-+------------------------------------------
-+query basic status of InfiniBand device(s)
-+------------------------------------------
++--------------------------------------------
++dump InfiniBand subnet management attributes
++--------------------------------------------
 +
 +
 +SYNOPSIS
 +========
 +
-+ibstat [options] <ca_name> [portnum]
++smpdump [options] <dlid|dr_path> <attribute> [attribute_modifier]
 +
 +DESCRIPTION
 +===========
 +
-+ibstat is a binary which displays basic information obtained from the local
-+IB driver. Output includes LID, SMLID, port state, link width active, and port
-+physical state.
-+
-+It is similar to the ibstatus utility but implemented as a binary rather
-+than a script. It has options to list CAs and/or ports and displays more
-+information than ibstatus.
++smpdump is a general purpose SMP utility which gets SM attributes from a
++specified SMA. The result is dumped in hex by default.
 +
 +OPTIONS
 +=======
 +
-+**-l, --list_of_cas**
-+        list all IB devices
++**dlid|drpath**
++        LID or DR path to SMA
 +
-+**-s, --short**
-+        short output
++**attribute**
++        IBA attribute ID for SM attribute
 +
-+**-p, --port_list**
-+        show port list
++**attribute_modifier**
++        IBA modifier for SM attribute
 +
-+**ca_name**
-+        InfiniBand device name
++**-s, --string**
++        Print strings in packet if possible
 +
-+**portnum**
-+        port number of InfiniBand device
 +
++Addressing Flags
++----------------
++
++.. include:: common/opt_D.rst
++.. include:: common/opt_L.rst
++
++
++Port Selection flags
++--------------------
++
++.. include:: common/opt_C.rst
++.. include:: common/opt_P.rst
++.. include:: common/sec_portselection.rst
 +
 +
 +Debugging flags
 +---------------
 +
 +.. include:: common/opt_d.rst
++.. include:: common/opt_e.rst
 +.. include:: common/opt_h.rst
 +.. include:: common/opt_v.rst
 +.. include:: common/opt_V.rst
@@ -385,75 +439,101 @@ index 0000000..3e19b3e
 +Configuration flags
 +-------------------
 +
++.. include:: common/opt_t.rst
 +.. include:: common/opt_z-config.rst
 +
++
++FILES
++=====
++
++.. include:: common/sec_config-file.rst
 +
 +
 +EXAMPLES
 +========
 +
++Direct Routed Examples
++
 +::
-+        ibstat            # display status of all ports on all IB devices
-+        ibstat -l         # list all IB devices
-+        ibstat -p         # show port guids
-+        ibstat mthca0 2   # show status of port 2 of 'mthca0'
++        smpdump -D 0,1,2,3,5 16 # NODE DESC
++        smpdump -D 0,1,2 0x15 2 # PORT INFO, port 2
++
++LID Routed Examples
++
++::
++        smpdump 3 0x15 2        # PORT INFO, lid 3 port 2
++        smpdump 0xa0 0x11       # NODE INFO, lid 0xa0
 +
 +SEE ALSO
 +========
-+ibstatus (8)
++
++smpquery (8)
++
 +
 +AUTHOR
 +======
 +
 +Hal Rosenstock
 +        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/doc/rst/ibtracert.8.in.rst b/doc/rst/ibtracert.8.in.rst
+diff --git a/doc/rst/smpquery.8.in.rst b/doc/rst/smpquery.8.in.rst
 new file mode 100644
-index 0000000..b002fa8
+index 0000000..3b249df
 --- /dev/null
-+++ b/doc/rst/ibtracert.8.in.rst
-@@ -0,0 +1,106 @@
-+=========
-+IBTRACERT
-+=========
++++ b/doc/rst/smpquery.8.in.rst
+@@ -0,0 +1,112 @@
++========
++SMPQUERY
++========
 +
 +:Date: @BUILD_DATE@
 +:Manual section: 8
 +:Manual group: Open IB Diagnostics
 +
-+---------------------
-+trace InfiniBand path
-+---------------------
++---------------------------------------------
++query InfiniBand subnet management attributes
++---------------------------------------------
++
 +
 +SYNOPSIS
 +========
 +
-+ibtracert [options] [<lid|guid> [<startlid> [<endlid>]]]
-+
++smpquery [options] <op> <dest dr_path|lid|guid> [op params]
 +
 +DESCRIPTION
 +===========
 +
-+ibtracert uses SMPs to trace the path from a source GID/LID to a
-+destination GID/LID. Each hop along the path is displayed until
-+the destination is reached or a hop does not respond. By using
-+the -m option, multicast path tracing can be performed between source
-+and destination nodes.
++smpquery allows a basic subset of standard SMP queries including the following:
++node info, node description, switch info, port info. Fields are displayed in
++human readable format.
 +
 +OPTIONS
 +=======
 +
-+**-n, --no_info**
-+        simple format; don't show additional information
++Current supported operations and their parameters:
 +
-+**-m**
-+        show the multicast trace of the specified mlid
++::
++        nodeinfo <addr>
++        nodedesc <addr>
++        portinfo <addr> [<portnum>]     # default port is zero
++        switchinfo <addr>
++        pkeys <addr> [<portnum>]
++        sl2vl <addr> [<portnum>]
++        vlarb <addr> [<portnum>]
++        guids <addr>
++        mlnxextportinfo <addr> [<portnum>]  # default port is zero
 +
++**-c, --combined**
++        Use Combined route address argument ``<lid> <DR_Path>``
++
++**-x, --extended**
++        Set SMSupportsExtendedSpeeds bit 31 in AttributeModifier
++        (only impacts PortInfo queries).
 +
 +
 +Addressing Flags
 +----------------
 +
++.. include:: common/opt_D.rst
 +.. include:: common/opt_G.rst
 +.. include:: common/opt_L.rst
 +.. include:: common/opt_s.rst
@@ -484,99 +564,152 @@ index 0000000..b002fa8
 +.. include:: common/opt_node_name_map.rst
 +.. include:: common/opt_z-config.rst
 +
++
++
 +FILES
 +=====
 +
 +.. include:: common/sec_config-file.rst
++
 +.. include:: common/sec_node-name-map.rst
 +
 +
 +EXAMPLES
 +========
 +
-+Unicast examples
-+
 +::
-+        ibtracert 4 16                                  # show path between lids 4 and 16
-+        ibtracert -n 4 16                               # same, but using simple output format
-+        ibtracert -G 0x8f1040396522d 0x002c9000100d051  # use guid addresses
-+
-+Multicast example
-+
-+::
-+        ibtracert -m 0xc000 4 16    # show multicast path of mlid 0xc000 between lids 4 and 16
++        smpquery portinfo 3 1                     # portinfo by lid, with port modifier
++        smpquery -G switchinfo 0x2C9000100D051 1  # switchinfo by guid
++        smpquery -D nodeinfo 0                    # nodeinfo by direct route
++        smpquery -c nodeinfo 6 0,12               # nodeinfo by combined route
 +
 +SEE ALSO
 +========
-+ibroute (8)
 +
++smpdump (8)
 +
 +AUTHOR
 +======
 +
 +Hal Rosenstock
-+        <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-+
-+Ira Weiny
-+        <weiny2-i2BcT+NCU+M@public.gmane.org >
-diff --git a/man/ibportstate.8 b/man/ibportstate.8
++        < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
+diff --git a/man/perfquery.8 b/man/perfquery.8
 deleted file mode 100644
-index 0537d7e..0000000
---- a/man/ibportstate.8
+index 8635e41..0000000
+--- a/man/perfquery.8
 +++ /dev/null
-@@ -1,128 +0,0 @@
--.TH IBPORTSTATE 8 "Mar 9, 2011" "OpenIB" "OpenIB Diagnostics"
+@@ -1,189 +0,0 @@
+-.TH PERFQUERY 8 "February 19, 2011" "OpenIB" "OpenIB Diagnostics"
 -
 -.SH NAME
--ibportstate \- handle port (physical) state and link speed of an InfiniBand port
+-perfquery \- query InfiniBand port counters
 -
 -.SH SYNOPSIS
--.B ibportstate
--[\-d(ebug)] [\-e(rr_show)] [\-v(erbose)] [\-D(irect)] [\-G(uid)]
--[\-s smlid] [\-V(ersion)] [\-C ca_name] [\-P ca_port]
--[\-t(imeout) timeout_ms] [\-h(elp)] <dest dr_path|lid|guid> <portnum> [<op>]
+-.B perfquery
+-[\-d(ebug)] [\-G(uid)] [\-x|\-\-extended] [\-X|\-\-xmtsl] [\-S|\-\-rcvsl]
+-[\-D|\-\-xmtdisc] [\-E|\-\-rcverr] [\-T|\-\-extended_speeds][\-\-oprcvcounters] [\-\-flowctlcounters]
+-[\-\-vloppackets] [\-\-vlopdata] [\-\-vlxmitflowctlerrors] [\-\-vlxmitcounters]
+-[\-\-swportvlcong] [\-\-rcvcc] [\-\-slrcvfecn] [\-\-slrcvbecn] [\-\-xmitcc]
+-[\-\-vlxmittimecc] [\-c|\-\-smplctl] [-a(ll_ports)] [-l(oop_ports)]
+-[-r(eset_after_read)] [-R(eset_only)] [\-C ca_name] [\-P ca_port] [\-t(imeout) timeout_ms]
+-[\-V(ersion)] [\-h(elp)] [<lid|guid> [[port] [reset_mask]]]
 -
 -.SH DESCRIPTION
 -.PP
--ibportstate allows the port state and port physical state of an IB port
--to be queried (in addition to link width and speed being validated
--relative to the peer port when the port queried is a switch port),
--or a switch port to be disabled, enabled, or reset. It
--also allows the link speed/width enabled on any IB port to be adjusted.
+-perfquery uses PerfMgt GMPs to obtain the PortCounters (basic performance
+-and error counters), PortExtendedCounters, PortXmitDataSL, PortRcvDataSL,
+-PortRcvErrorDetails, PortXmitDiscardDetails, PortExtendedSpeedsCounters, or PortSamplesControl
+-from the PMA at the node/port specified. Optionally shows aggregated
+-counters for all ports of node.
+-Also, optionally, reset after read, or only reset counters.
+-
+-Note: In PortCounters, PortCountersExtended, PortXmitDataSL, and PortRcvDataSL,
+-components that represent Data (e.g. PortXmitData and PortRcvData) indicate
+-octets divided by 4 rather than just octets.
+-
+-Note: Inputting a port of 255 indicates an operation be performed on all ports.
 -
 -.SH OPTIONS
 -
 -.PP
 -.TP
--op
--Port operations allowed
-- supported ops: enable, disable, reset, speed, espeed, fdr10, width, query,
--		down, arm, active, vls, mtu, lid, smlid, lmc
-- Default is query
--.PP
-- ops enable, disable, and reset are only allowed on switch ports
-- (An error is indicated if attempted on CA or router ports)
-- speed and width ops are allowed on any port
-- speed values are legal values for PortInfo:LinkSpeedEnabled
-- (An error is indicated if PortInfo:LinkSpeedSupported does not support
--  this setting)
-- espeed ops are allowed on any port supporting extended link speeds
-- fdr10 ops are allowed on any port supporting fdr10
--(An error is indicated if port's capability mask indicates extended
-- link speeds are not supported or if PortInfo:LinkSpeedExtSupported
-- does not support this setting)
-- width values are legal values for PortInfo:LinkWidthEnabled
-- (An error is indicated if PortInfo:LinkWidthSupported does not support
--  this setting)
-- (NOTE: Speed and width changes are not effected until the port goes through
--  link renegotiation)
-- query also validates port characteristics (link width, speed, espeed, and fdr10)
--  based on the peer port. This checking is done when the port
--  queried is a switch port as it relies on combined routing
--  (an initial LID route with directed routing to the peer) which
--  can only be done on a switch. This peer port validation feature
--  of query op requires LID routing to be functioning in the subnet.
--
+-\fB\-x\fR, \fB\-\-extended\fR
+-show extended port counters rather than (basic) port counters.
+-Note that extended port counters attribute is optional.
+-.TP
+-\fB\-X\fR, \fB\-\-xmtsl\fR
+-show transmit data SL counter. This is an optional counter for QoS.
+-.TP
+-\fB\-S\fR, \fB\-\-rcvsl\fR
+-show receive data SL counter. This is an optional counter for QoS.
+-.TP
+-\fB\-D\fR, \fB\-\-xmtdisc\fR
+-show transmit discard details. This is an optional counter.
+-.TP
+-\fB\-E\fR, \fB\-\-rcverr\fR
+-show receive error details. This is an optional counter.
+-.TP
+-\fB\-D\fR, \fB\-\-xmtdisc\fR
+-show transmit discard details. This is an optional counter.
+-.TP
+-\fB\-T\fR, \fB\-\-extended_speeds\fR
+-show extended speeds port counters. This is an optional counter.
+-.TP
+-\fB\-\-oprcvcounters\fR
+-show Rcv Counters per Op code. This is an optional counter.
+-.TP
+-\fB\-\-flowctlcounters\fR
+-show flow control counters. This is an optional counter.
+-.TP
+-\fB\-\-vloppackets\fR
+-show packets received per Op code per VL. This is an optional counter.
+-.TP
+-\fB\-\-vlopdata\fR
+-show data received per Op code per VL. This is an optional counter.
+-.TP
+-\fB\-\-vlxmitflowctlerrors\fR
+-show flow control update errors per VL. This is an optional counter.
+-.TP
+-\fB\-\-vlxmitcounters\fR
+-show ticks waiting to transmit counters per VL. This is an optional counter.
+-.TP
+-\fB\-\-swportvlcong\fR
+-show sw port VL congestion. This is an optional counter.
+-.TP
+-\fB\-\-rcvcc\fR
+-show Rcv congestion control counters. This is an optional counter.
+-.TP
+-\fB\-\-slrcvfecn\fR
+-show SL Rcv FECN counters. This is an optional counter.
+-.TP
+-\fB\-\-slrcvbecn\fR
+-show SL Rcv BECN counters. This is an optional counter.
+-.TP
+-\fB\-\-xmitcc\fR
+-show Xmit congestion control counters. This is an optional counter.
+-.TP
+-\fB\-\-vlxmittimecc\fR
+-show VL Xmit Time congestion control counters. This is an optional counter.
+-.TP
+-\fB\-c\fR, \fB\-\-smplctl\fR
+-show port samples control.
+-.TP
+-\fB\-a\fR, \fB\-\-all_ports\fR
+-show aggregated counters for all ports of the destination lid
+-or reset all counters for all ports.  If the destination lid
+-does not support the AllPortSelect flag, all ports will be
+-iterated through to emulate AllPortSelect behavior.
+-.TP
+-\fB\-l\fR, \fB\-\-loop_ports\fR
+-If all ports are selected by the user (either through the
+-\fB\-a\fR option or port 255) iterate through each port
+-rather than doing than aggregate operation.
+-.TP
+-\fB\-r\fR, \fB\-\-reset_after_read\fR
+-reset counters after read
+-.TP
+-\fB\-R\fR, \fB\-\-Reset_only\fR
+-only reset counters
 -
 -.SH COMMON OPTIONS
 -
@@ -599,12 +732,6 @@ index 0537d7e..0000000
 -\-V      show the version info.
 -
 -# Addressing flags
--.PP
--\-D      use directed path address arguments. The path
--        is a comma separated list of out ports.
--        Examples:
--        "0"             # self port
--        "0,1,2,1,4"     # out via port 1, then 2, ...
 -.PP
 -\-G      use GUID address argument. In most cases, it is the Port GUID.
 -        Example:
@@ -635,304 +762,294 @@ index 0537d7e..0000000
 -.SH EXAMPLES
 -
 -.PP
--ibportstate 3 1 disable                 # by lid
+-perfquery               # read local port performance counters
 -.PP
--ibportstate -G 0x2C9000100D051 1 enable # by guid
+-perfquery 32 1          # read performance counters from lid 32, port 1
 -.PP
--ibportstate -D 0 1                      # (query) by direct route
+-perfquery -x 32 1       # read extended performance counters from lid 32, port 1
 -.PP
--ibportstate 3 1 reset				# by lid
+-perfquery -a 32         # read perf counters from lid 32, all ports
 -.PP
--ibportstate 3 1 speed 1				# by lid
+-perfquery -r 32 1       # read performance counters and reset
 -.PP
--ibportstate 3 1 width 1				# by lid
+-perfquery -x -r 32 1    # read extended performance counters and reset
 -.PP
--ibportstate -D 0 1 lid 0x1234 arm		# by direct route
+-perfquery -R 0x20 1     # reset performance counters of port 1 only
+-.PP
+-perfquery -x -R 0x20 1  # reset extended performance counters of port 1 only
+-.PP
+-perfquery -R -a 32      # reset performance counters of all ports
+-.PP
+-perfquery -R 32 2 0x0fff # reset only error counters of port 2
+-.PP
+-perfquery -R 32 2 0xf000 # reset only non-error counters of port 2
 -
 -.SH AUTHOR
 -.TP
 -Hal Rosenstock
 -.RI < hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
-diff --git a/man/ibroute.8 b/man/ibroute.8
+diff --git a/man/sminfo.8 b/man/sminfo.8
 deleted file mode 100644
-index 3e93408..0000000
---- a/man/ibroute.8
+index 49b7461..0000000
+--- a/man/sminfo.8
++++ /dev/null
+@@ -1,107 +0,0 @@
+-.TH SMINFO 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
+-
+-.SH NAME
+-sminfo \- query InfiniBand SMInfo attribute
+-
+-.SH SYNOPSIS
+-.B sminfo
+-[\-d(ebug)] [\-e(rr_show)] -s state -p prio -a activity [\-D(irect)]
+-[\-G(uid)]  [\-C ca_name] [\-P ca_port] [\-t(imeout) timeout_ms]
+-[\-V(ersion)] [\-h(elp)] sm_lid | sm_dr_path [modifier]
+-
+-.SH DESCRIPTION
+-.PP
+-Optionally set and display the output of a sminfo query in human readable
+-format. The target SM is the one listed in the local port info, or the SM
+-specified by the optional SM lid or by the SM direct routed path.
+-.PP
+-Note: using sminfo for any purposes other then simple query may be very
+-dangerous, and may result in a malfunction of the target SM.
+-
+-.SH OPTIONS
+-
+-.PP
+-.TP
+-\fB\-s\fR
+-set SM state
+- 0 - not active
+- 1 - discovering
+- 2 - standby
+- 3 - master
+-.TP
+-\fB\-p\fR
+-set priority (0-15)
+-.TP
+-\fB\-a\fR
+-set activity count
+-
+-.SH COMMON OPTIONS
+-
+-Most OpenIB diagnostics take the following common flags. The exact list of
+-supported flags per utility can be found in the usage message and can be shown
+-using the util_name -h syntax.
+-
+-# Debugging flags
+-.PP
+-\-d      raise the IB debugging level.
+-        May be used several times (-ddd or -d -d -d).
+-.PP
+-\-e      show send and receive errors (timeouts and others)
+-.PP
+-\-h      show the usage message
+-.PP
+-\-v      increase the application verbosity level.
+-        May be used several times (-vv or -v -v -v)
+-.PP
+-\-V      show the version info.
+-
+-# Addressing flags
+-.PP
+-\-D      use directed path address arguments. The path
+-        is a comma separated list of out ports.
+-        Examples:
+-        "0"             # self port
+-        "0,1,2,1,4"     # out via port 1, then 2, ...
+-.PP
+-\-G      use GUID address argument. In most cases, it is the Port GUID.
+-        Example:
+-        "0x08f1040023"
+-.PP
+-\-s <smlid>      use 'smlid' as the target lid for SM/SA queries.
+-
+-# Other common flags:
+-.PP
+-\-C <ca_name>    use the specified ca_name.
+-.PP
+-\-P <ca_port>    use the specified ca_port.
+-.PP
+-\-t <timeout_ms> override the default timeout for the solicited mads.
+-
+-Multiple CA/Multiple Port Support
+-
+-When no IB device or port is specified, the port to use is selected
+-by the following criteria:
+-.PP
+-1. the first port that is ACTIVE.
+-.PP
+-2. if not found, the first port that is UP (physical link up).
+-
+-If a port and/or CA name is specified, the user request is
+-attempted to be fulfilled, and will fail if it is not possible.
+-
+-.SH EXAMPLES
+-
+-.PP
+-sminfo                  # local port\'s sminfo
+-.PP
+-sminfo 32               # show sminfo of lid 32
+-.PP
+-sminfo  -G 0x8f1040023  # same but using guid address
+-
+-.SH SEE ALSO
+-.BR smpdump (8)
+-
+-.SH AUTHOR
+-.TP
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/smpdump.8 b/man/smpdump.8
+deleted file mode 100644
+index e8a5bfa..0000000
+--- a/man/smpdump.8
++++ /dev/null
+@@ -1,99 +0,0 @@
+-.TH SMPDUMP 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
+-
+-.SH NAME
+-smpdump \- dump InfiniBand subnet management attributes
+-
+-.SH SYNOPSIS
+-.B smpdump
+-[\-s(ring)] [\-D(irect)] [\-C ca_name] [\-P ca_port] [\-t(imeout) timeout_ms]
+-[\-V(ersion)] [\-h(elp)] <dlid|dr_path> <attr> [mod]
+-
+-.SH DESCRIPTION
+-.PP
+-smpdump is a general purpose SMP utility which gets SM attributes from a
+-specified SMA. The result is dumped in hex by default.
+-
+-.SH OPTIONS
+-
+-.TP
+-attr
+-IBA attribute ID for SM attribute
+-.TP
+-mod
+-IBA modifier for SM attribute
+-
+-.SH COMMON OPTIONS
+-
+-Most OpenIB diagnostics take the following common flags. The exact list of
+-supported flags per utility can be found in the usage message and can be shown
+-using the util_name -h syntax.
+-
+-# Debugging flags
+-.PP
+-\-d      raise the IB debugging level.
+-        May be used several times (-ddd or -d -d -d).
+-.PP
+-\-e      show send and receive errors (timeouts and others)
+-.PP
+-\-h      show the usage message
+-.PP
+-\-v      increase the application verbosity level.
+-        May be used several times (-vv or -v -v -v)
+-.PP
+-\-V      show the version info.
+-
+-# Addressing flags
+-.PP
+-\-D      use directed path address arguments. The path
+-        is a comma separated list of out ports.
+-        Examples:
+-        "0"             # self port
+-        "0,1,2,1,4"     # out via port 1, then 2, ...
+-.PP
+-\-G      use GUID address argument. In most cases, it is the Port GUID.
+-        Example:
+-        "0x08f1040023"
+-.PP
+-\-s <smlid>      use 'smlid' as the target lid for SM/SA queries.
+-
+-# Other common flags:
+-.PP
+-\-C <ca_name>    use the specified ca_name.
+-.PP
+-\-P <ca_port>    use the specified ca_port.
+-.PP
+-\-t <timeout_ms> override the default timeout for the solicited mads.
+-
+-Multiple CA/Multiple Port Support
+-
+-When no IB device or port is specified, the port to use is selected
+-by the following criteria:
+-.PP
+-1. the first port that is ACTIVE.
+-.PP
+-2. if not found, the first port that is UP (physical link up).
+-
+-If a port and/or CA name is specified, the user request is
+-attempted to be fulfilled, and will fail if it is not possible.
+-
+-.SH EXAMPLES
+-
+-Direct Routed Examples
+-.PP
+-smpdump -D 0,1,2,3,5 16 # NODE DESC
+-.PP
+-smpdump -D 0,1,2 0x15 2 # PORT INFO, port 2
+-
+-LID Routed Examples
+-.PP
+-smpdump 3 0x15 2        # PORT INFO, lid 3 port 2
+-.PP
+-smpdump 0xa0 0x11       # NODE INFO, lid 0xa0
+-
+-.SH SEE ALSO
+-.BR smpquery (8)
+-
+-.SH AUTHOR
+-.TP
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/smpquery.8 b/man/smpquery.8
+deleted file mode 100644
+index c4cb8f2..0000000
+--- a/man/smpquery.8
 +++ /dev/null
 @@ -1,122 +0,0 @@
--.TH IBROUTE 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
+-.TH SMPQUERY 8 "March 9, 2011" "OpenIB" "OpenIB Diagnostics"
 -
 -.SH NAME
--ibroute \- query InfiniBand switch forwarding tables
+-smpquery \- query InfiniBand subnet management attributes
 -
 -.SH SYNOPSIS
--.B ibroute
--[\-d(ebug)] [-a(ll)] [-n(o_dests)] [-v(erbose)] [\-D(irect)] [\-G(uid)]
--[-M(ulticast)] [-s smlid] [\-C ca_name] [\-P ca_port]
--[\-t(imeout) timeout_ms] [\-V(ersion)] [\-h(elp)]
--[<dest dr_path|lid|guid> [<startlid> [<endlid>]]]
+-.B smpquery
+-[\-d(ebug)] [\-e(rr_show)] [\-v(erbose)] [\-D(irect)] [\-G(uid)]
+-[\-x|\-\-extended] [\-C ca_name] [\-P ca_port] [\-t(imeout) timeout_ms]
+-[\-\-node-name-map node-name-map] [\-V(ersion)] [\-h(elp)]
+-<op> <dest dr_path|lid|guid> [op params]
 -
 -.SH DESCRIPTION
 -.PP
--ibroute uses SMPs to display the forwarding tables (unicast
--(LinearForwardingTable or LFT) or multicast (MulticastForwardingTable or MFT))
--for the specified switch LID and the optional lid (mlid) range.
--The default range is all valid entries in the range 1...FDBTop.
+-smpquery allows a basic subset of standard SMP queries including the following:
+-node info, node description, switch info, port info. Fields are displayed in
+-human readable format.
 -
 -.SH OPTIONS
 -
 -.PP
 -.TP
--\fB\-a\fR, \fB\-\-all\fR
--show all lids in range, even invalid entries
+-Current supported operations and their parameters:
+-        nodeinfo <addr>
+-        nodedesc <addr>
+-        portinfo <addr> [<portnum>]     # default port is zero
+-        switchinfo <addr>
+-        pkeys <addr> [<portnum>]
+-        sl2vl <addr> [<portnum>]
+-        vlarb <addr> [<portnum>]
+-        guids <addr>
+-        mlnxextportinfo <addr> [<portnum>]  # default port is zero
+-
 -.TP
--\fB\-n\fR, \fB\-\-no_dests\fR
--do not try to resolve destinations
--.TP
--\fB\-M\fR, \fB\-\-Multicast\fR
--show multicast forwarding tables
--In this case, the range parameters are specifying the mlid range.
+-\fB\-x\fR, \fB\-\-extended\fR
+-Set SMSupportsExtendedSpeeds bit 31 in AttributeModifier
+-(only impacts PortInfo queries).
 -
--.SH COMMON OPTIONS
--
--Most OpenIB diagnostics take the following common flags. The exact list of
--supported flags per utility can be found in the usage message and can be shown
--using the util_name -h syntax.
--
--# Debugging flags
--.PP
--\-d      raise the IB debugging level.
--        May be used several times (-ddd or -d -d -d).
--.PP
--\-e      show send and receive errors (timeouts and others)
--.PP
--\-h      show the usage message
--.PP
--\-v      increase the application verbosity level.
--        May be used several times (-vv or -v -v -v)
--.PP
--\-V      show the version info.
--
--# Addressing flags
--.PP
--\-D      use directed path address arguments. The path
--        is a comma separated list of out ports.
--        Examples:
--        "0"             # self port
--        "0,1,2,1,4"     # out via port 1, then 2, ...
--.PP
--\-G      use GUID address argument. In most cases, it is the Port GUID.
--        Example:
--        "0x08f1040023"
--.PP
--\-s <smlid>      use 'smlid' as the target lid for SM/SA queries.
--
--# Other common flags:
--.PP
--\-C <ca_name>    use the specified ca_name.
--.PP
--\-P <ca_port>    use the specified ca_port.
--.PP
--\-t <timeout_ms> override the default timeout for the solicited mads.
--
--Multiple CA/Multiple Port Support
--
--When no IB device or port is specified, the port to use is selected
--by the following criteria:
--.PP
--1. the first port that is ACTIVE.
--.PP
--2. if not found, the first port that is UP (physical link up).
--
--If a port and/or CA name is specified, the user request is
--attempted to be fulfilled, and will fail if it is not possible.
--
--.SH EXAMPLES
--
--.PP
--Unicast examples
--.PP
--ibroute 4       # dump all lids with valid out ports of switch with lid 4
--.PP
--ibroute -a 4    # same, but dump all lids, even with invalid out ports
--.PP
--ibroute -n 4    # simple dump format - no destination resolution
--.PP
--ibroute 4 10    # dump lids starting from 10 (up to FDBTop)
--.PP
--ibroute 4 0x10 0x20     # dump lid range
--.PP
--ibroute -G 0x08f1040023 # resolve switch by GUID
--.PP
--ibroute -D 0,1  # resolve switch by direct path
--
--.PP
--Multicast examples
--.PP
--ibroute -M 4    # dump all non empty mlids of switch with lid 4
--.PP
--ibroute -M 4 0xc010 0xc020      # same, but with range
--.PP
--ibroute -M -n 4 # simple dump format
--
--.SH SEE ALSO
--.BR ibtracert (8)
--
--.SH AUTHOR
--.TP
--Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/man/ibstat.8 b/man/ibstat.8
-deleted file mode 100644
-index 7d69ff3..0000000
---- a/man/ibstat.8
-+++ /dev/null
-@@ -1,111 +0,0 @@
--.TH IBSTAT 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
--
--.SH NAME
--ibstat \- query basic status of InfiniBand device(s)
--
--.SH SYNOPSIS
--.B ibstat
--[\-d(ebug)] [\-l(ist_of_cas)] [\-s(hort)] [\-p(ort_list)]
--[\-V(ersion)] [\-h] <ca_name> [portnum]
--
--.SH DESCRIPTION
--.PP
--ibstat is a binary which displays basic information obtained from the local
--IB driver. Output includes LID, SMLID, port state, link width active, and port
--physical state.
--
--It is similar to the ibstatus utility but implemented as a binary rather
--than a script. It has options to list CAs and/or ports and displays more
--information than ibstatus.
--
--.SH OPTIONS
--
--.PP
--.TP
--\fB\-l\fR, \fB\-\-list_of_cas\fR
--list all IB devices
--.TP
--\fB\-s\fR, \fB\-\-short\fR
--short output
--.TP
--\fB\-p\fR, \fB\-\-port_list\fR
--show port list
--.TP
--ca_name
--InfiniBand device name
--.TP
--portnum
--port number of InfiniBand device
--
--.SH COMMON OPTIONS
--
--Most OpenIB diagnostics take the following common flags. The exact list of
--supported flags per utility can be found in the usage message and can be shown
--using the util_name -h syntax.
--
--# Debugging flags
--.PP
--\-d      raise the IB debugging level.
--        May be used several times (-ddd or -d -d -d).
--.PP
--\-e      show send and receive errors (timeouts and others)
--.PP
--\-h      show the usage message
--.PP
--\-v      increase the application verbosity level.
--        May be used several times (-vv or -v -v -v)
--.PP
--\-V      show the version info.
--
--# Addressing flags
--.PP
--\-D      use directed path address arguments. The path
--        is a comma separated list of out ports.
--        Examples:
--        "0"             # self port
--        "0,1,2,1,4"     # out via port 1, then 2, ...
--.PP
--\-G      use GUID address argument. In most cases, it is the Port GUID.
--        Example:
--        "0x08f1040023"
--.PP
--\-s <smlid>      use 'smlid' as the target lid for SM/SA queries.
--
--# Other common flags:
--.PP
--\-C <ca_name>    use the specified ca_name.
--.PP
--\-P <ca_port>    use the specified ca_port.
--.PP
--\-t <timeout_ms> override the default timeout for the solicited mads.
--
--Multiple CA/Multiple Port Support
--
--When no IB device or port is specified, the port to use is selected
--by the following criteria:
--.PP
--1. the first port that is ACTIVE.
--.PP
--2. if not found, the first port that is UP (physical link up).
--
--If a port and/or CA name is specified, the user request is
--attempted to be fulfilled, and will fail if it is not possible.
--
--.SH EXAMPLES
--
--.PP
--ibstat            # display status of all ports on all IB devices
--.PP
--ibstat -l         # list all IB devices
--.PP
--ibstat -p         # show port guids
--.PP
--ibstat mthca0 2   # show status of port 2 of 'mthca0'
--
--.SH SEE ALSO
--.BR ibstatus (8)
--
--.SH AUTHOR
--.TP
--Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/man/ibtracert.8 b/man/ibtracert.8
-deleted file mode 100644
-index 674db7e..0000000
---- a/man/ibtracert.8
-+++ /dev/null
-@@ -1,108 +0,0 @@
--.TH IBTRACERT 8 "September 14, 2010" "OpenIB" "OpenIB Diagnostics"
--
--.SH NAME
--ibtracert\- trace InfiniBand path
--
--.SH SYNOPSIS
--.B ibtracert
--[\-d(ebug)] [-v(erbose)] [\-G(uids)] [-n(o_info)] [-m mlid]
--[-s smlid] [\-C ca_name] [\-P ca_port] [\-t(imeout) timeout_ms]
--[\-V(ersion)] [\-\-node\-name\-\-map <node-name-map>] [\-h(elp)]
--[<lid|guid> [<startlid> [<endlid>]]]
--
--.SH DESCRIPTION
--.PP
--ibtracert uses SMPs to trace the path from a source GID/LID to a
--destination GID/LID. Each hop along the path is displayed until
--the destination is reached or a hop does not respond. By using
--the -m option, multicast path tracing can be performed between source
--and destination nodes.
--
--.SH OPTIONS
--
--.PP
--.TP
--\fB\-n\fR, \fB\-\-no_info\fR
--simple format; don't show additional information
--.TP
--\fB\-m\fR
--show the multicast trace of the specified mlid
 -.TP
 -\fB\-\-node\-name\-map\fR <node-name-map>
 -Specify a node name map.  The node name map file maps GUIDs to more
@@ -951,6 +1068,8 @@ index 674db7e..0000000
 -\-d      raise the IB debugging level.
 -        May be used several times (-ddd or -d -d -d).
 -.PP
+-\-e      show send and receive errors (timeouts and others)
+-.PP
 -\-h      show the usage message
 -.PP
 -\-v      increase the application verbosity level.
@@ -959,6 +1078,17 @@ index 674db7e..0000000
 -\-V      show the version info.
 -
 -# Addressing flags
+-.PP
+-\-D      use directed path address arguments. The path
+-        is a comma separated list of out ports.
+-        Examples:
+-        "0"             # self port
+-        "0,1,2,1,4"     # out via port 1, then 2, ...
+-.PP
+-\-c      use combined route address arguments. The
+-        address is a combination of a LID and a direct route path.
+-        The LID specified is the DLID and the local LID is used
+-        as the DrSLID.
 -.PP
 -\-G      use GUID address argument. In most cases, it is the Port GUID.
 -        Example:
@@ -989,29 +1119,21 @@ index 674db7e..0000000
 -.SH EXAMPLES
 -
 -.PP
--Unicast examples
+-smpquery portinfo 3 1        # portinfo by lid, with port modifier
 -.PP
--ibtracert 4 16              # show path between lids 4 and 16
+-smpquery -G switchinfo 0x2C9000100D051 1        # switchinfo by guid
 -.PP
--ibtracert -n 4 16           # same, but using simple output format
+-smpquery -D nodeinfo 0       # nodeinfo by direct route
 -.PP
--ibtracert -G 0x8f1040396522d 0x002c9000100d051  # use guid addresses
--
--.PP
--Multicast example
--.PP
--ibtracert -m 0xc000 4 16    # show multicast path of mlid 0xc000 between lids 4 and 16
+-smpquery -c nodeinfo 6 0,12  # nodeinfo by combined route
 -
 -.SH SEE ALSO
--.BR ibroute (8)
+-.BR smpdump (8)
 -
 -.SH AUTHOR
 -.TP
 -Hal Rosenstock
--.RI < hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
--.TP
--Ira Weiny
--.RI < weiny2-i2BcT+NCU+M@public.gmane.org >
+-.RI < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
 -- 
 1.7.1
 
