@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 4/8] infiniband-diags: move
- man/ibping,ibnodes,ibhosts,ibswitches,ibrouters to rst documentation
-Date: Wed, 9 May 2012 18:45:00 -0700
-Message-ID: <20120509184500.4a438cb5.weiny2@llnl.gov>
+Subject: [PATCH 5/8] infiniband-diags: move
+ man/ibportstate,ibstat,ibroute,ibtracert to rst documentation
+Date: Wed, 9 May 2012 18:45:04 -0700
+Message-ID: <20120509184504.bee06c6e.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -16,224 +16,85 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- Makefile.am                 |   13 ++++--
- configure.in                |    5 ++
- doc/rst/ibhosts.8.in.rst    |   56 +++++++++++++++++++++++++++
- doc/rst/ibnodes.8.in.rst    |   58 ++++++++++++++++++++++++++++
- doc/rst/ibping.8.in.rst     |   86 ++++++++++++++++++++++++++++++++++++++++++
- doc/rst/ibrouters.8.in.rst  |   57 ++++++++++++++++++++++++++++
- doc/rst/ibswitches.8.in.rst |   55 +++++++++++++++++++++++++++
- man/ibhosts.8               |   35 -----------------
- man/ibnodes.8               |   35 -----------------
- man/ibping.8                |   87 -------------------------------------------
- man/ibrouters.8             |   31 ---------------
- man/ibswitches.8            |   35 -----------------
- 12 files changed, 325 insertions(+), 228 deletions(-)
- create mode 100644 doc/rst/ibhosts.8.in.rst
- create mode 100644 doc/rst/ibnodes.8.in.rst
- create mode 100644 doc/rst/ibping.8.in.rst
- create mode 100644 doc/rst/ibrouters.8.in.rst
- create mode 100644 doc/rst/ibswitches.8.in.rst
- delete mode 100644 man/ibhosts.8
- delete mode 100644 man/ibnodes.8
- delete mode 100644 man/ibping.8
- delete mode 100644 man/ibrouters.8
- delete mode 100644 man/ibswitches.8
+ Makefile.am                  |    7 ++-
+ configure.in                 |    4 +
+ doc/rst/ibportstate.8.in.rst |  116 ++++++++++++++++++++++++++++++++++++++
+ doc/rst/ibroute.8.in.rst     |  108 +++++++++++++++++++++++++++++++++++
+ doc/rst/ibstat.8.in.rst      |   83 +++++++++++++++++++++++++++
+ doc/rst/ibtracert.8.in.rst   |  106 ++++++++++++++++++++++++++++++++++
+ man/ibportstate.8            |  128 ------------------------------------------
+ man/ibroute.8                |  122 ----------------------------------------
+ man/ibstat.8                 |  111 ------------------------------------
+ man/ibtracert.8              |  108 -----------------------------------
+ 10 files changed, 422 insertions(+), 471 deletions(-)
+ create mode 100644 doc/rst/ibportstate.8.in.rst
+ create mode 100644 doc/rst/ibroute.8.in.rst
+ create mode 100644 doc/rst/ibstat.8.in.rst
+ create mode 100644 doc/rst/ibtracert.8.in.rst
+ delete mode 100644 man/ibportstate.8
+ delete mode 100644 man/ibroute.8
+ delete mode 100644 man/ibstat.8
+ delete mode 100644 man/ibtracert.8
 
 diff --git a/Makefile.am b/Makefile.am
-index 21f5163..f7bfb57 100644
+index f7bfb57..16a8fd8 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -40,14 +40,12 @@ sbin_SCRIPTS += scripts/ibcheckerrs scripts/ibchecknet scripts/ibchecknode \
+@@ -40,8 +40,7 @@ sbin_SCRIPTS += scripts/ibcheckerrs scripts/ibchecknet scripts/ibchecknode \
  		scripts/set_nodedesc.sh scripts/ibclearerrors scripts/ibclearcounters
  endif
  
--man_MANS = man/ibping.8 \
--		man/ibnodes.8 man/ibhosts.8 \
--		man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
--		man/ibswitches.8 man/ibtracert.8 man/perfquery.8 man/sminfo.8 \
-+man_MANS = man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
-+		man/ibtracert.8 man/perfquery.8 man/sminfo.8 \
+-man_MANS = man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
+-		man/ibtracert.8 man/perfquery.8 man/sminfo.8 \
++man_MANS = man/perfquery.8 man/sminfo.8 \
  		man/smpdump.8 man/smpquery.8 man/saquery.8 man/vendstat.8 \
  		man/ibsysstat.8 \
  		man/ibfindnodesusing.8 \
--		man/ibrouters.8 man/check_lft_balance.8 man/ibcacheedit.8 \
-+		man/check_lft_balance.8 man/ibcacheedit.8 \
- 		man/ibstatus.8 \
- 		doc/man/ibaddr.8 \
- 		doc/man/ibccconfig.8 \
-@@ -55,8 +53,13 @@ man_MANS = man/ibping.8 \
- 		doc/man/dump_lfts.8 \
- 		doc/man/dump_mfts.8 \
- 		doc/man/iblinkinfo.8 \
-+		doc/man/ibhosts.8 \
+@@ -57,9 +56,13 @@ man_MANS = man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
  		doc/man/ibnetdiscover.8 \
-+		doc/man/ibnodes.8 \
-+		doc/man/ibping.8 \
+ 		doc/man/ibnodes.8 \
+ 		doc/man/ibping.8 \
++		doc/man/ibportstate.8 \
  		doc/man/ibqueryerrors.8 \
-+		doc/man/ibrouters.8 \
-+		doc/man/ibswitches.8 \
++		doc/man/ibroute.8 \
+ 		doc/man/ibrouters.8 \
++		doc/man/ibstat.8 \
+ 		doc/man/ibswitches.8 \
++		doc/man/ibtracert.8 \
  		doc/man/infiniband-diags.8 \
  		man/ibidsverify.8
  
 diff --git a/configure.in b/configure.in
-index 0a456c1..7e49d1a 100644
+index 7e49d1a..67d3031 100644
 --- a/configure.in
 +++ b/configure.in
-@@ -211,9 +211,14 @@ AC_CONFIG_FILES([\
- 	doc/man/ibccquery.8 \
- 	doc/man/dump_lfts.8 \
- 	doc/man/dump_mfts.8 \
-+	doc/man/ibhosts.8 \
- 	doc/man/iblinkinfo.8 \
+@@ -216,9 +216,13 @@ AC_CONFIG_FILES([\
  	doc/man/ibnetdiscover.8 \
-+	doc/man/ibnodes.8 \
-+	doc/man/ibping.8 \
+ 	doc/man/ibnodes.8 \
+ 	doc/man/ibping.8 \
++	doc/man/ibportstate.8 \
  	doc/man/ibqueryerrors.8 \
-+	doc/man/ibrouters.8 \
-+	doc/man/ibswitches.8 \
++	doc/man/ibroute.8 \
+ 	doc/man/ibrouters.8 \
++	doc/man/ibstat.8 \
+ 	doc/man/ibswitches.8 \
++	doc/man/ibtracert.8 \
  	doc/man/infiniband-diags.8 \
  	libibnetdisc/Makefile \
  ])
-diff --git a/doc/rst/ibhosts.8.in.rst b/doc/rst/ibhosts.8.in.rst
+diff --git a/doc/rst/ibportstate.8.in.rst b/doc/rst/ibportstate.8.in.rst
 new file mode 100644
-index 0000000..237b89e
+index 0000000..3af2aaa
 --- /dev/null
-+++ b/doc/rst/ibhosts.8.in.rst
-@@ -0,0 +1,56 @@
-+=======
-+IBHOSTS
-+=======
-+
-+--------------------------------------
-+show InfiniBand host nodes in topology
-+--------------------------------------
-+
-+:Date: @BUILD_DATE@
-+:Manual section: 8
-+:Manual group: OpenIB Diagnostics
-+
-+SYNOPSIS
-+========
-+
-+ibhosts [options] [<topology-file>]
-+
-+
-+DESCRIPTION
++++ b/doc/rst/ibportstate.8.in.rst
+@@ -0,0 +1,116 @@
++===========
++IBPORTSTATE
 +===========
 +
-+ibhosts is a script which either walks the IB subnet topology or uses an
-+already saved topology file and extracts the CA nodes.
-+
-+OPTIONS
-+=======
-+
-+.. include:: common/opt_C.rst
-+.. include:: common/opt_P.rst
-+.. include:: common/opt_t.rst
-+.. include:: common/opt_h.rst
-+.. include:: common/opt_z-config.rst
-+
-+.. include:: common/sec_portselection.rst
-+
-+FILES
-+=====
-+
-+.. include:: common/sec_config-file.rst
-+.. include:: common/sec_node-name-map.rst
-+
-+SEE ALSO
-+========
-+
-+ibnetdiscover(8)
-+
-+DEPENDENCIES
-+============
-+
-+ibnetdiscover, ibnetdiscover format
-+
-+AUTHOR
-+======
-+
-+Hal Rosenstock
-+        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/doc/rst/ibnodes.8.in.rst b/doc/rst/ibnodes.8.in.rst
-new file mode 100644
-index 0000000..d36a03e
---- /dev/null
-+++ b/doc/rst/ibnodes.8.in.rst
-@@ -0,0 +1,58 @@
-+=======
-+IBNODES
-+=======
-+
-+---------------------------------
-+show InfiniBand nodes in topology
-+---------------------------------
-+
-+:Date: @BUILD_DATE@
-+:Manual section: 8
-+:Manual group: OpenIB Diagnostics
-+
-+
-+SYNOPSIS
-+========
-+
-+ibnodes [options] [<topology-file>]
-+
-+DESCRIPTION
-+===========
-+
-+ibnodes is a script which either walks the IB subnet topology or uses an
-+already saved topology file and extracts the IB nodes (CAs and switches).
-+
-+
-+OPTIONS
-+=======
-+
-+.. include:: common/opt_C.rst
-+.. include:: common/opt_P.rst
-+.. include:: common/opt_t.rst
-+.. include:: common/opt_h.rst
-+.. include:: common/opt_z-config.rst
-+
-+.. include:: common/sec_portselection.rst
-+
-+FILES
-+=====
-+
-+.. include:: common/sec_config-file.rst
-+.. include:: common/sec_node-name-map.rst
-+
-+
-+SEE ALSO
-+========
-+
-+ibnetdiscover(8)
-+
-+DEPENDENCIES
-+============
-+
-+ibnetdiscover, ibnetdiscover format
-+
-+AUTHOR
-+======
-+
-+Hal Rosenstock
-+        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/doc/rst/ibping.8.in.rst b/doc/rst/ibping.8.in.rst
-new file mode 100644
-index 0000000..8dd2e41
---- /dev/null
-+++ b/doc/rst/ibping.8.in.rst
-@@ -0,0 +1,86 @@
-+======
-+IBPING
-+======
-+
-+--------------------------
-+ping an InfiniBand address
-+--------------------------
++-----------------------------------------------------------------
++handle port (physical) state and link speed of an InfiniBand port
++-----------------------------------------------------------------
 +
 +:Date: @BUILD_DATE@
 +:Manual section: 8
@@ -243,31 +104,52 @@ index 0000000..8dd2e41
 +SYNOPSIS
 +========
 +
-+ibping [options] <dest lid | guid>
++ibportstate [options] <dest dr_path|lid|guid> <portnum> [<op>]
 +
 +DESCRIPTION
 +===========
 +
-+ibping uses vendor mads to validate connectivity between IB nodes.
-+On exit, (IP) ping like output is show. ibping is run as client/server.
-+Default is to run as client. Note also that a default ping server is
-+implemented within the kernel.
-+
++ibportstate allows the port state and port physical state of an IB port
++to be queried (in addition to link width and speed being validated
++relative to the peer port when the port queried is a switch port),
++or a switch port to be disabled, enabled, or reset. It
++also allows the link speed/width enabled on any IB port to be adjusted.
 +
 +OPTIONS
 +=======
 +
-+**-c, --count**
-+stop after count packets
++**<op>**
++        Supported ops: enable, disable, reset, speed, espeed, fdr10, width, query,
++                        down, arm, active, vls, mtu, lid, smlid, lmc (Default
++                        is query)
 +
-+**-f, --flood**
-+flood destination: send packets back to back without delay
++        **enable, disable, and reset** are only allowed on switch ports (An
++        error is indicated if attempted on CA or router ports)
 +
-+**-o, --oui**
-+use specified OUI number to multiplex vendor mads
++        **speed and width** are allowed on any port
 +
-+**-S, --Server**
-+start in server mode (do not return)
++        **speed** values are the legal values for PortInfo:LinkSpeedEnabled (An
++        error is indicated if PortInfo:LinkSpeedSupported does not support this
++        setting)
++
++        **espeed** is allowed on any port supporting extended link speeds
++
++        **fdr10** is allowed on any port supporting fdr10 (An error is
++        indicated if port's capability mask indicates extended link speeds are
++        not supported or if PortInfo:LinkSpeedExtSupported does not support
++        this setting)
++
++        **width** values are legal values for PortInfo:LinkWidthEnabled (An
++        error is indicated if PortInfo:LinkWidthSupported does not support this
++        setting) (NOTE: Speed and width changes are not effected until the port
++        goes through link renegotiation)
++
++        **query** also validates port characteristics (link width, speed,
++        espeed, and fdr10) based on the peer port. This checking is done when
++        the port queried is a switch port as it relies on combined routing (an
++        initial LID route with directed routing to the peer) which can only be
++        done on a switch. This peer port validation feature of query op
++        requires LID routing to be functioning in the subnet.
 +
 +
 +Addressing Flags
@@ -275,8 +157,8 @@ index 0000000..8dd2e41
 +
 +.. include:: common/opt_L.rst
 +.. include:: common/opt_G.rst
++.. include:: common/opt_D.rst
 +.. include:: common/opt_s.rst
-+
 +
 +Port Selection flags
 +--------------------
@@ -285,13 +167,11 @@ index 0000000..8dd2e41
 +.. include:: common/opt_P.rst
 +.. include:: common/sec_portselection.rst
 +
-+
 +Configuration flags
 +-------------------
 +
 +.. include:: common/opt_z-config.rst
 +.. include:: common/opt_t.rst
-+
 +
 +Debugging flags
 +---------------
@@ -307,52 +187,302 @@ index 0000000..8dd2e41
 +
 +.. include:: common/sec_config-file.rst
 +
++EXAMPLES
++========
++
++::
++        ibportstate 3 1 disable                  # by lid
++        ibportstate -G 0x2C9000100D051 1 enable  # by guid
++        ibportstate -D 0 1                       # (query) by direct route
++        ibportstate 3 1 reset                    # by lid
++        ibportstate 3 1 speed 1                  # by lid
++        ibportstate 3 1 width 1                  # by lid
++        ibportstate -D 0 1 lid 0x1234 arm        # by direct route
++
++AUTHOR
++======
++
++Hal Rosenstock
++        < hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
+diff --git a/doc/rst/ibroute.8.in.rst b/doc/rst/ibroute.8.in.rst
+new file mode 100644
+index 0000000..0070dd6
+--- /dev/null
++++ b/doc/rst/ibroute.8.in.rst
+@@ -0,0 +1,108 @@
++=======
++IBROUTE
++=======
++
++:Date: @BUILD_DATE@
++:Manual section: 8
++:Manual group: Open IB Diagnostics
++
++-----------------------------------------
++query InfiniBand switch forwarding tables
++-----------------------------------------
++
++
++SYNOPSIS
++========
++
++ibroute [options] [<dest dr_path|lid|guid> [<startlid> [<endlid>]]]
++
++DESCRIPTION
++===========
++
++ibroute uses SMPs to display the forwarding tables (unicast
++(LinearForwardingTable or LFT) or multicast (MulticastForwardingTable or MFT))
++for the specified switch LID and the optional lid (mlid) range.
++The default range is all valid entries in the range 1...FDBTop.
++
++OPTIONS
++=======
++
++**-a, --all**
++        show all lids in range, even invalid entries
++
++**-n, --no_dests**
++        do not try to resolve destinations
++
++**-M, --Multicast**
++        show multicast forwarding tables
++        In this case, the range parameters are specifying the mlid range.
++
++
++Addressing Flags
++----------------
++
++.. include:: common/opt_D.rst
++.. include:: common/opt_G.rst
++.. include:: common/opt_L.rst
++.. include:: common/opt_s.rst
++
++Port Selection flags
++--------------------
++
++.. include:: common/opt_C.rst
++.. include:: common/opt_P.rst
++.. include:: common/sec_portselection.rst
++
++Debugging flags
++---------------
++
++.. include:: common/opt_d.rst
++.. include:: common/opt_e.rst
++.. include:: common/opt_h.rst
++.. include:: common/opt_v.rst
++.. include:: common/opt_V.rst
++
++
++Configuration flags
++-------------------
++
++.. include:: common/opt_t.rst
++.. include:: common/opt_z-config.rst
++
++FILES
++=====
++
++.. include:: common/sec_config-file.rst
++
++
++EXAMPLES
++========
++
++Unicast examples
++
++::
++        ibroute 4               # dump all lids with valid out ports of switch with lid 4
++        ibroute -a 4            # same, but dump all lids, even with invalid out ports
++        ibroute -n 4            # simple dump format - no destination resolution
++        ibroute 4 10            # dump lids starting from 10 (up to FDBTop)
++        ibroute 4 0x10 0x20     # dump lid range
++        ibroute -G 0x08f1040023 # resolve switch by GUID
++        ibroute -D 0,1          # resolve switch by direct path
++
++Multicast examples
++
++::
++        ibroute -M 4                # dump all non empty mlids of switch with lid 4
++        ibroute -M 4 0xc010 0xc020  # same, but with range
++        ibroute -M -n 4             # simple dump format
++
++SEE ALSO
++========
++
++ibtracert (8)
 +
 +AUTHOR
 +======
 +
 +Hal Rosenstock
 +        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/doc/rst/ibrouters.8.in.rst b/doc/rst/ibrouters.8.in.rst
+diff --git a/doc/rst/ibstat.8.in.rst b/doc/rst/ibstat.8.in.rst
 new file mode 100644
-index 0000000..d6c8639
+index 0000000..3e19b3e
 --- /dev/null
-+++ b/doc/rst/ibrouters.8.in.rst
-@@ -0,0 +1,57 @@
-+=========
-+IBROUTERS
-+=========
-+
-+----------------------------------------
-+show InfiniBand router nodes in topology
-+----------------------------------------
++++ b/doc/rst/ibstat.8.in.rst
+@@ -0,0 +1,83 @@
++======
++IBSTAT
++======
 +
 +:Date: @BUILD_DATE@
 +:Manual section: 8
-+:Manual group: OpenIB Diagnostics
++:Manual group: Open IB Diagnostics
++
++------------------------------------------
++query basic status of InfiniBand device(s)
++------------------------------------------
 +
 +
 +SYNOPSIS
 +========
 +
-+ibrouters [options] [<topology-file>]
++ibstat [options] <ca_name> [portnum]
 +
 +DESCRIPTION
 +===========
 +
-+ibrouters is a script which either walks the IB subnet topology or uses an
-+already saved topology file and extracts the router nodes.
++ibstat is a binary which displays basic information obtained from the local
++IB driver. Output includes LID, SMLID, port state, link width active, and port
++physical state.
++
++It is similar to the ibstatus utility but implemented as a binary rather
++than a script. It has options to list CAs and/or ports and displays more
++information than ibstatus.
 +
 +OPTIONS
 +=======
 +
-+.. include:: common/opt_C.rst
-+.. include:: common/opt_P.rst
-+.. include:: common/opt_t.rst
++**-l, --list_of_cas**
++        list all IB devices
++
++**-s, --short**
++        short output
++
++**-p, --port_list**
++        show port list
++
++**ca_name**
++        InfiniBand device name
++
++**portnum**
++        port number of InfiniBand device
++
++
++
++Debugging flags
++---------------
++
++.. include:: common/opt_d.rst
 +.. include:: common/opt_h.rst
++.. include:: common/opt_v.rst
++.. include:: common/opt_V.rst
++
++
++Configuration flags
++-------------------
++
 +.. include:: common/opt_z-config.rst
 +
++
++
++EXAMPLES
++========
++
++::
++        ibstat            # display status of all ports on all IB devices
++        ibstat -l         # list all IB devices
++        ibstat -p         # show port guids
++        ibstat mthca0 2   # show status of port 2 of 'mthca0'
++
++SEE ALSO
++========
++ibstatus (8)
++
++AUTHOR
++======
++
++Hal Rosenstock
++        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/doc/rst/ibtracert.8.in.rst b/doc/rst/ibtracert.8.in.rst
+new file mode 100644
+index 0000000..b002fa8
+--- /dev/null
++++ b/doc/rst/ibtracert.8.in.rst
+@@ -0,0 +1,106 @@
++=========
++IBTRACERT
++=========
++
++:Date: @BUILD_DATE@
++:Manual section: 8
++:Manual group: Open IB Diagnostics
++
++---------------------
++trace InfiniBand path
++---------------------
++
++SYNOPSIS
++========
++
++ibtracert [options] [<lid|guid> [<startlid> [<endlid>]]]
++
++
++DESCRIPTION
++===========
++
++ibtracert uses SMPs to trace the path from a source GID/LID to a
++destination GID/LID. Each hop along the path is displayed until
++the destination is reached or a hop does not respond. By using
++the -m option, multicast path tracing can be performed between source
++and destination nodes.
++
++OPTIONS
++=======
++
++**-n, --no_info**
++        simple format; don't show additional information
++
++**-m**
++        show the multicast trace of the specified mlid
++
++
++
++Addressing Flags
++----------------
++
++.. include:: common/opt_G.rst
++.. include:: common/opt_L.rst
++.. include:: common/opt_s.rst
++
++
++Port Selection flags
++--------------------
++
++.. include:: common/opt_C.rst
++.. include:: common/opt_P.rst
 +.. include:: common/sec_portselection.rst
++
++
++Debugging flags
++---------------
++
++.. include:: common/opt_d.rst
++.. include:: common/opt_e.rst
++.. include:: common/opt_h.rst
++.. include:: common/opt_v.rst
++.. include:: common/opt_V.rst
++
++
++Configuration flags
++-------------------
++
++.. include:: common/opt_t.rst
++.. include:: common/opt_node_name_map.rst
++.. include:: common/opt_z-config.rst
 +
 +FILES
 +=====
@@ -360,205 +490,93 @@ index 0000000..d6c8639
 +.. include:: common/sec_config-file.rst
 +.. include:: common/sec_node-name-map.rst
 +
-+SEE ALSO
++
++EXAMPLES
 +========
 +
-+ibnetdiscover(8)
++Unicast examples
 +
-+DEPENDENCIES
-+============
++::
++        ibtracert 4 16                                  # show path between lids 4 and 16
++        ibtracert -n 4 16                               # same, but using simple output format
++        ibtracert -G 0x8f1040396522d 0x002c9000100d051  # use guid addresses
 +
-+ibnetdiscover, ibnetdiscover format
++Multicast example
++
++::
++        ibtracert -m 0xc000 4 16    # show multicast path of mlid 0xc000 between lids 4 and 16
++
++SEE ALSO
++========
++ibroute (8)
 +
 +
 +AUTHOR
 +======
 +
 +Hal Rosenstock
-+        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/doc/rst/ibswitches.8.in.rst b/doc/rst/ibswitches.8.in.rst
-new file mode 100644
-index 0000000..3a99337
---- /dev/null
-+++ b/doc/rst/ibswitches.8.in.rst
-@@ -0,0 +1,55 @@
-+==========
-+IBSWITCHES
-+==========
++        <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 +
-+----------------------------------------
-+show InfiniBand switch nodes in topology
-+----------------------------------------
-+
-+:Date: @BUILD_DATE@
-+:Manual section: 8
-+:Manual group: OpenIB Diagnostics
-+
-+
-+SYNOPSIS
-+========
-+
-+ibswitches [options] [<topology-file>]
-+
-+DESCRIPTION
-+===========
-+
-+ibswitches is a script which either walks the IB subnet topology or uses an
-+already saved topology file and extracts the switch nodes.
-+
-+OPTIONS
-+=======
-+
-+.. include:: common/opt_C.rst
-+.. include:: common/opt_P.rst
-+.. include:: common/opt_t.rst
-+.. include:: common/opt_h.rst
-+.. include:: common/opt_z-config.rst
-+
-+.. include:: common/sec_portselection.rst
-+
-+FILES
-+=====
-+
-+.. include:: common/sec_config-file.rst
-+.. include:: common/sec_node-name-map.rst
-+
-+SEE ALSO
-+========
-+ibnetdiscover(8)
-+
-+DEPENDENCIES
-+============
-+
-+ibnetdiscover, ibnetdiscover format
-+
-+AUTHOR
-+======
-+
-+Hal Rosenstock
-+        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/man/ibhosts.8 b/man/ibhosts.8
++Ira Weiny
++        <weiny2-i2BcT+NCU+M@public.gmane.org >
+diff --git a/man/ibportstate.8 b/man/ibportstate.8
 deleted file mode 100644
-index 462380f..0000000
---- a/man/ibhosts.8
+index 0537d7e..0000000
+--- a/man/ibportstate.8
 +++ /dev/null
-@@ -1,35 +0,0 @@
--.TH IBHOSTS 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
+@@ -1,128 +0,0 @@
+-.TH IBPORTSTATE 8 "Mar 9, 2011" "OpenIB" "OpenIB Diagnostics"
 -
 -.SH NAME
--ibhosts \- show InfiniBand host nodes in topology
+-ibportstate \- handle port (physical) state and link speed of an InfiniBand port
 -
 -.SH SYNOPSIS
--.B ibhosts
--[\-h] [<topology-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
+-.B ibportstate
+-[\-d(ebug)] [\-e(rr_show)] [\-v(erbose)] [\-D(irect)] [\-G(uid)]
+-[\-s smlid] [\-V(ersion)] [\-C ca_name] [\-P ca_port]
+-[\-t(imeout) timeout_ms] [\-h(elp)] <dest dr_path|lid|guid> <portnum> [<op>]
 -
 -.SH DESCRIPTION
 -.PP
--ibhosts is a script which either walks the IB subnet topology or uses an
--already saved topology file and extracts the CA nodes.
--
--.SH OPTIONS
--.PP
--\-h      show the usage message
--.PP
--\-C <ca_name>    use the specified ca_name.
--.PP
--\-P <ca_port>    use the specified ca_port.
--.PP
--\-t <timeout_ms> override the default timeout for the solicited mads.
--
--.SH SEE ALSO
--.BR ibnetdiscover(8)
--
--.SH DEPENDENCIES
--
--ibnetdiscover, ibnetdiscover format
--
--.SH AUTHOR
--.TP
--Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/man/ibnodes.8 b/man/ibnodes.8
-deleted file mode 100644
-index 509900b..0000000
---- a/man/ibnodes.8
-+++ /dev/null
-@@ -1,35 +0,0 @@
--.TH IBNODES 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
--
--.SH NAME
--ibnodes \- show InfiniBand nodes in topology
--
--.SH SYNOPSIS
--.B ibnodes
--[\-h] [<topology-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
--
--.SH DESCRIPTION
--.PP
--ibnodes is a script which either walks the IB subnet topology or uses an
--already saved topology file and extracts the IB nodes (CAs and switches).
--
--.SH OPTIONS
--.PP
--\-h      show the usage message
--.PP
--\-C <ca_name>    use the specified ca_name.
--.PP
--\-P <ca_port>    use the specified ca_port.
--.PP
--\-t <timeout_ms> override the default timeout for the solicited mads.
--.SH SEE ALSO
--
--.BR ibnetdiscover(8)
--
--.SH DEPENDENCIES
--
--ibnetdiscover, ibnetdiscover format
--
--.SH AUTHOR
--.TP
--Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/man/ibping.8 b/man/ibping.8
-deleted file mode 100644
-index b5154af..0000000
---- a/man/ibping.8
-+++ /dev/null
-@@ -1,87 +0,0 @@
--.TH IBPING 8 "August 11, 2006" "OpenIB" "OpenIB Diagnostics"
--
--.SH NAME
--ibping \- ping an InfiniBand address
--
--.SH SYNOPSIS
--.B ibping
--[\-d(ebug)] [\-e(rr_show)] [\-v(erbose)] [\-G(uid)] [\-C ca_name]
--[\-P ca_port] [\-s smlid] [\-t(imeout) timeout_ms] [\-V(ersion)]
--[\-c ping_count] [\-f(lood)] [\-o oui] [\-S(erver)] [\-h(elp)]
--<dest lid | guid>
--
--.SH DESCRIPTION
--.PP
--ibping uses vendor mads to validate connectivity between IB nodes.
--On exit, (IP) ping like output is show. ibping is run as client/server.
--Default is to run as client. Note also that a default ping server is
--implemented within the kernel.
+-ibportstate allows the port state and port physical state of an IB port
+-to be queried (in addition to link width and speed being validated
+-relative to the peer port when the port queried is a switch port),
+-or a switch port to be disabled, enabled, or reset. It
+-also allows the link speed/width enabled on any IB port to be adjusted.
 -
 -.SH OPTIONS
 -
 -.PP
 -.TP
--\fB\-c\fR
--stop after count packets
--.TP
--\fB\-f\fR, \fB\-\-flood\fR
--flood destination: send packets back to back without delay
--.TP
--\fB\-o\fR, \fB\-\-oui\fR
--use specified OUI number to multiplex vendor mads
--.TP
--\fB\-S\fR, \fB\-\-Server\fR
--start in server mode (do not return)
+-op
+-Port operations allowed
+- supported ops: enable, disable, reset, speed, espeed, fdr10, width, query,
+-		down, arm, active, vls, mtu, lid, smlid, lmc
+- Default is query
+-.PP
+- ops enable, disable, and reset are only allowed on switch ports
+- (An error is indicated if attempted on CA or router ports)
+- speed and width ops are allowed on any port
+- speed values are legal values for PortInfo:LinkSpeedEnabled
+- (An error is indicated if PortInfo:LinkSpeedSupported does not support
+-  this setting)
+- espeed ops are allowed on any port supporting extended link speeds
+- fdr10 ops are allowed on any port supporting fdr10
+-(An error is indicated if port's capability mask indicates extended
+- link speeds are not supported or if PortInfo:LinkSpeedExtSupported
+- does not support this setting)
+- width values are legal values for PortInfo:LinkWidthEnabled
+- (An error is indicated if PortInfo:LinkWidthSupported does not support
+-  this setting)
+- (NOTE: Speed and width changes are not effected until the port goes through
+-  link renegotiation)
+- query also validates port characteristics (link width, speed, espeed, and fdr10)
+-  based on the peer port. This checking is done when the port
+-  queried is a switch port as it relies on combined routing
+-  (an initial LID route with directed routing to the peer) which
+-  can only be done on a switch. This peer port validation feature
+-  of query op requires LID routing to be functioning in the subnet.
+-
 -
 -.SH COMMON OPTIONS
 -
@@ -572,6 +590,366 @@ index b5154af..0000000
 -        May be used several times (-ddd or -d -d -d).
 -.PP
 -\-e      show send and receive errors (timeouts and others)
+-.PP
+-\-h      show the usage message
+-.PP
+-\-v      increase the application verbosity level.
+-        May be used several times (-vv or -v -v -v)
+-.PP
+-\-V      show the version info.
+-
+-# Addressing flags
+-.PP
+-\-D      use directed path address arguments. The path
+-        is a comma separated list of out ports.
+-        Examples:
+-        "0"             # self port
+-        "0,1,2,1,4"     # out via port 1, then 2, ...
+-.PP
+-\-G      use GUID address argument. In most cases, it is the Port GUID.
+-        Example:
+-        "0x08f1040023"
+-.PP
+-\-s <smlid>      use 'smlid' as the target lid for SM/SA queries.
+-
+-# Other common flags:
+-.PP
+-\-C <ca_name>    use the specified ca_name.
+-.PP
+-\-P <ca_port>    use the specified ca_port.
+-.PP
+-\-t <timeout_ms> override the default timeout for the solicited mads.
+-
+-Multiple CA/Multiple Port Support
+-
+-When no IB device or port is specified, the port to use is selected
+-by the following criteria:
+-.PP
+-1. the first port that is ACTIVE.
+-.PP
+-2. if not found, the first port that is UP (physical link up).
+-
+-If a port and/or CA name is specified, the user request is
+-attempted to be fulfilled, and will fail if it is not possible.
+-
+-.SH EXAMPLES
+-
+-.PP
+-ibportstate 3 1 disable                 # by lid
+-.PP
+-ibportstate -G 0x2C9000100D051 1 enable # by guid
+-.PP
+-ibportstate -D 0 1                      # (query) by direct route
+-.PP
+-ibportstate 3 1 reset				# by lid
+-.PP
+-ibportstate 3 1 speed 1				# by lid
+-.PP
+-ibportstate 3 1 width 1				# by lid
+-.PP
+-ibportstate -D 0 1 lid 0x1234 arm		# by direct route
+-
+-.SH AUTHOR
+-.TP
+-Hal Rosenstock
+-.RI < hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
+diff --git a/man/ibroute.8 b/man/ibroute.8
+deleted file mode 100644
+index 3e93408..0000000
+--- a/man/ibroute.8
++++ /dev/null
+@@ -1,122 +0,0 @@
+-.TH IBROUTE 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
+-
+-.SH NAME
+-ibroute \- query InfiniBand switch forwarding tables
+-
+-.SH SYNOPSIS
+-.B ibroute
+-[\-d(ebug)] [-a(ll)] [-n(o_dests)] [-v(erbose)] [\-D(irect)] [\-G(uid)]
+-[-M(ulticast)] [-s smlid] [\-C ca_name] [\-P ca_port]
+-[\-t(imeout) timeout_ms] [\-V(ersion)] [\-h(elp)]
+-[<dest dr_path|lid|guid> [<startlid> [<endlid>]]]
+-
+-.SH DESCRIPTION
+-.PP
+-ibroute uses SMPs to display the forwarding tables (unicast
+-(LinearForwardingTable or LFT) or multicast (MulticastForwardingTable or MFT))
+-for the specified switch LID and the optional lid (mlid) range.
+-The default range is all valid entries in the range 1...FDBTop.
+-
+-.SH OPTIONS
+-
+-.PP
+-.TP
+-\fB\-a\fR, \fB\-\-all\fR
+-show all lids in range, even invalid entries
+-.TP
+-\fB\-n\fR, \fB\-\-no_dests\fR
+-do not try to resolve destinations
+-.TP
+-\fB\-M\fR, \fB\-\-Multicast\fR
+-show multicast forwarding tables
+-In this case, the range parameters are specifying the mlid range.
+-
+-.SH COMMON OPTIONS
+-
+-Most OpenIB diagnostics take the following common flags. The exact list of
+-supported flags per utility can be found in the usage message and can be shown
+-using the util_name -h syntax.
+-
+-# Debugging flags
+-.PP
+-\-d      raise the IB debugging level.
+-        May be used several times (-ddd or -d -d -d).
+-.PP
+-\-e      show send and receive errors (timeouts and others)
+-.PP
+-\-h      show the usage message
+-.PP
+-\-v      increase the application verbosity level.
+-        May be used several times (-vv or -v -v -v)
+-.PP
+-\-V      show the version info.
+-
+-# Addressing flags
+-.PP
+-\-D      use directed path address arguments. The path
+-        is a comma separated list of out ports.
+-        Examples:
+-        "0"             # self port
+-        "0,1,2,1,4"     # out via port 1, then 2, ...
+-.PP
+-\-G      use GUID address argument. In most cases, it is the Port GUID.
+-        Example:
+-        "0x08f1040023"
+-.PP
+-\-s <smlid>      use 'smlid' as the target lid for SM/SA queries.
+-
+-# Other common flags:
+-.PP
+-\-C <ca_name>    use the specified ca_name.
+-.PP
+-\-P <ca_port>    use the specified ca_port.
+-.PP
+-\-t <timeout_ms> override the default timeout for the solicited mads.
+-
+-Multiple CA/Multiple Port Support
+-
+-When no IB device or port is specified, the port to use is selected
+-by the following criteria:
+-.PP
+-1. the first port that is ACTIVE.
+-.PP
+-2. if not found, the first port that is UP (physical link up).
+-
+-If a port and/or CA name is specified, the user request is
+-attempted to be fulfilled, and will fail if it is not possible.
+-
+-.SH EXAMPLES
+-
+-.PP
+-Unicast examples
+-.PP
+-ibroute 4       # dump all lids with valid out ports of switch with lid 4
+-.PP
+-ibroute -a 4    # same, but dump all lids, even with invalid out ports
+-.PP
+-ibroute -n 4    # simple dump format - no destination resolution
+-.PP
+-ibroute 4 10    # dump lids starting from 10 (up to FDBTop)
+-.PP
+-ibroute 4 0x10 0x20     # dump lid range
+-.PP
+-ibroute -G 0x08f1040023 # resolve switch by GUID
+-.PP
+-ibroute -D 0,1  # resolve switch by direct path
+-
+-.PP
+-Multicast examples
+-.PP
+-ibroute -M 4    # dump all non empty mlids of switch with lid 4
+-.PP
+-ibroute -M 4 0xc010 0xc020      # same, but with range
+-.PP
+-ibroute -M -n 4 # simple dump format
+-
+-.SH SEE ALSO
+-.BR ibtracert (8)
+-
+-.SH AUTHOR
+-.TP
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/ibstat.8 b/man/ibstat.8
+deleted file mode 100644
+index 7d69ff3..0000000
+--- a/man/ibstat.8
++++ /dev/null
+@@ -1,111 +0,0 @@
+-.TH IBSTAT 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
+-
+-.SH NAME
+-ibstat \- query basic status of InfiniBand device(s)
+-
+-.SH SYNOPSIS
+-.B ibstat
+-[\-d(ebug)] [\-l(ist_of_cas)] [\-s(hort)] [\-p(ort_list)]
+-[\-V(ersion)] [\-h] <ca_name> [portnum]
+-
+-.SH DESCRIPTION
+-.PP
+-ibstat is a binary which displays basic information obtained from the local
+-IB driver. Output includes LID, SMLID, port state, link width active, and port
+-physical state.
+-
+-It is similar to the ibstatus utility but implemented as a binary rather
+-than a script. It has options to list CAs and/or ports and displays more
+-information than ibstatus.
+-
+-.SH OPTIONS
+-
+-.PP
+-.TP
+-\fB\-l\fR, \fB\-\-list_of_cas\fR
+-list all IB devices
+-.TP
+-\fB\-s\fR, \fB\-\-short\fR
+-short output
+-.TP
+-\fB\-p\fR, \fB\-\-port_list\fR
+-show port list
+-.TP
+-ca_name
+-InfiniBand device name
+-.TP
+-portnum
+-port number of InfiniBand device
+-
+-.SH COMMON OPTIONS
+-
+-Most OpenIB diagnostics take the following common flags. The exact list of
+-supported flags per utility can be found in the usage message and can be shown
+-using the util_name -h syntax.
+-
+-# Debugging flags
+-.PP
+-\-d      raise the IB debugging level.
+-        May be used several times (-ddd or -d -d -d).
+-.PP
+-\-e      show send and receive errors (timeouts and others)
+-.PP
+-\-h      show the usage message
+-.PP
+-\-v      increase the application verbosity level.
+-        May be used several times (-vv or -v -v -v)
+-.PP
+-\-V      show the version info.
+-
+-# Addressing flags
+-.PP
+-\-D      use directed path address arguments. The path
+-        is a comma separated list of out ports.
+-        Examples:
+-        "0"             # self port
+-        "0,1,2,1,4"     # out via port 1, then 2, ...
+-.PP
+-\-G      use GUID address argument. In most cases, it is the Port GUID.
+-        Example:
+-        "0x08f1040023"
+-.PP
+-\-s <smlid>      use 'smlid' as the target lid for SM/SA queries.
+-
+-# Other common flags:
+-.PP
+-\-C <ca_name>    use the specified ca_name.
+-.PP
+-\-P <ca_port>    use the specified ca_port.
+-.PP
+-\-t <timeout_ms> override the default timeout for the solicited mads.
+-
+-Multiple CA/Multiple Port Support
+-
+-When no IB device or port is specified, the port to use is selected
+-by the following criteria:
+-.PP
+-1. the first port that is ACTIVE.
+-.PP
+-2. if not found, the first port that is UP (physical link up).
+-
+-If a port and/or CA name is specified, the user request is
+-attempted to be fulfilled, and will fail if it is not possible.
+-
+-.SH EXAMPLES
+-
+-.PP
+-ibstat            # display status of all ports on all IB devices
+-.PP
+-ibstat -l         # list all IB devices
+-.PP
+-ibstat -p         # show port guids
+-.PP
+-ibstat mthca0 2   # show status of port 2 of 'mthca0'
+-
+-.SH SEE ALSO
+-.BR ibstatus (8)
+-
+-.SH AUTHOR
+-.TP
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/ibtracert.8 b/man/ibtracert.8
+deleted file mode 100644
+index 674db7e..0000000
+--- a/man/ibtracert.8
++++ /dev/null
+@@ -1,108 +0,0 @@
+-.TH IBTRACERT 8 "September 14, 2010" "OpenIB" "OpenIB Diagnostics"
+-
+-.SH NAME
+-ibtracert\- trace InfiniBand path
+-
+-.SH SYNOPSIS
+-.B ibtracert
+-[\-d(ebug)] [-v(erbose)] [\-G(uids)] [-n(o_info)] [-m mlid]
+-[-s smlid] [\-C ca_name] [\-P ca_port] [\-t(imeout) timeout_ms]
+-[\-V(ersion)] [\-\-node\-name\-\-map <node-name-map>] [\-h(elp)]
+-[<lid|guid> [<startlid> [<endlid>]]]
+-
+-.SH DESCRIPTION
+-.PP
+-ibtracert uses SMPs to trace the path from a source GID/LID to a
+-destination GID/LID. Each hop along the path is displayed until
+-the destination is reached or a hop does not respond. By using
+-the -m option, multicast path tracing can be performed between source
+-and destination nodes.
+-
+-.SH OPTIONS
+-
+-.PP
+-.TP
+-\fB\-n\fR, \fB\-\-no_info\fR
+-simple format; don't show additional information
+-.TP
+-\fB\-m\fR
+-show the multicast trace of the specified mlid
+-.TP
+-\fB\-\-node\-name\-map\fR <node-name-map>
+-Specify a node name map.  The node name map file maps GUIDs to more
+-user friendly names.  See
+-.B ibnetdiscover(8)
+-for node name map file format.
+-
+-.SH COMMON OPTIONS
+-
+-Most OpenIB diagnostics take the following common flags. The exact list of
+-supported flags per utility can be found in the usage message and can be shown
+-using the util_name -h syntax.
+-
+-# Debugging flags
+-.PP
+-\-d      raise the IB debugging level.
+-        May be used several times (-ddd or -d -d -d).
 -.PP
 -\-h      show the usage message
 -.PP
@@ -608,88 +986,32 @@ index b5154af..0000000
 -If a port and/or CA name is specified, the user request is
 -attempted to be fulfilled, and will fail if it is not possible.
 -
--.SH AUTHOR
--.TP
--Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/man/ibrouters.8 b/man/ibrouters.8
-deleted file mode 100644
-index 9c3ef68..0000000
---- a/man/ibrouters.8
-+++ /dev/null
-@@ -1,31 +0,0 @@
--.TH IBROUTERS 8 "May 30, 2007" "OpenIB" "OpenIB Diagnostics"
+-.SH EXAMPLES
 -
--.SH NAME
--ibrouters \- show InfiniBand router nodes in topology
+-.PP
+-Unicast examples
+-.PP
+-ibtracert 4 16              # show path between lids 4 and 16
+-.PP
+-ibtracert -n 4 16           # same, but using simple output format
+-.PP
+-ibtracert -G 0x8f1040396522d 0x002c9000100d051  # use guid addresses
 -
--.SH SYNOPSIS
--.B ibrouters
--[\-h] [<topology-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
--
--.SH DESCRIPTION
 -.PP
--ibrouters is a script which either walks the IB subnet topology or uses an
--already saved topology file and extracts the Rt nodes.
--
--.SH OPTIONS
+-Multicast example
 -.PP
--\-h      show the usage message
--.PP
--\-C <ca_name>    use the specified ca_name.
--.PP
--\-P <ca_port>    use the specified ca_port.
--.PP
--\-t <timeout_ms> override the default timeout for the solicited mads.
+-ibtracert -m 0xc000 4 16    # show multicast path of mlid 0xc000 between lids 4 and 16
 -
 -.SH SEE ALSO
--.BR ibnetdiscover(8)
+-.BR ibroute (8)
 -
 -.SH AUTHOR
 -.TP
 -Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-diff --git a/man/ibswitches.8 b/man/ibswitches.8
-deleted file mode 100644
-index 038f8db..0000000
---- a/man/ibswitches.8
-+++ /dev/null
-@@ -1,35 +0,0 @@
--.TH IBSWITCHES 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
--
--.SH NAME
--ibswitches\- show InfiniBand switch nodes in topology
--
--.SH SYNOPSIS
--.B ibswitches
--[\-h] [<topology-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
--
--.SH DESCRIPTION
--.PP
--ibswitches is a script which either walks the IB subnet topology or uses an
--already saved topology file and extracts the switch nodes.
--
--.SH OPTIONS
--.PP
--\-h      show the usage message
--.PP
--\-C <ca_name>    use the specified ca_name.
--.PP
--\-P <ca_port>    use the specified ca_port.
--.PP
--\-t <timeout_ms> override the default timeout for the solicited mads.
--
--.SH SEE ALSO
--.BR ibnetdiscover(8)
--
--.SH DEPENDENCIES
--
--ibnetdiscover, ibnetdiscover format
--
--.SH AUTHOR
+-.RI < hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 -.TP
--Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+-Ira Weiny
+-.RI < weiny2-i2BcT+NCU+M@public.gmane.org >
 -- 
 1.7.1
 
