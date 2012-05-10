@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 6/6] IB/mlx4: bug fix for mlx4_ib_add error flow
-Date: Thu, 10 May 2012 23:28:09 +0300
-Message-ID: <1336681689-16668-7-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 4/6] IB/core: Fix IB_SA_COMP_MASK macro
+Date: Thu, 10 May 2012 23:28:07 +0300
+Message-ID: <1336681689-16668-5-git-send-email-ogerlitz@mellanox.com>
 References: <1336681689-16668-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1336681689-16668-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,44 +12,27 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Need to use a different looping index for mlx4_counter_alloc()
-and for device_create_file() iterations: the mlx4_counter_alloc()
-loop index is used in the error flow to de-allocate counters.
-
-If the same loop index is used for device_create_file() and, say,
-the device_create_file() loop fails on the first iteration,
-the allocated counters will not be de-allocated.
+It needs parentheses around the argument, so that it can
+be used with complex arguments (e.g., n+5 say).
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ include/rdma/ib_mad.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index bdf7691..c02c75c 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1161,7 +1161,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- {
- 	struct mlx4_ib_dev *ibdev;
- 	int num_ports = 0;
--	int i;
-+	int i, j;
- 	int err;
- 	struct mlx4_ib_iboe *iboe;
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index b513f57..3d81b90 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -160,7 +160,7 @@ struct ib_rmpp_hdr {
  
-@@ -1324,9 +1324,9 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 			goto err_reg;
- 	}
+ typedef u64 __bitwise ib_sa_comp_mask;
  
--	for (i = 0; i < ARRAY_SIZE(mlx4_class_attributes); ++i) {
-+	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
- 		if (device_create_file(&ibdev->ib_dev.dev,
--				       mlx4_class_attributes[i]))
-+				       mlx4_class_attributes[j]))
- 			goto err_notif;
- 	}
+-#define IB_SA_COMP_MASK(n) ((__force ib_sa_comp_mask) cpu_to_be64(1ull << n))
++#define IB_SA_COMP_MASK(n) ((__force ib_sa_comp_mask) cpu_to_be64(1ull << (n)))
  
+ /*
+  * ib_sa_hdr and ib_sa_mad structures must be packed because they have
 -- 
 1.7.1
 
