@@ -1,74 +1,60 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 1/6] net/mlx4_core: Change bitmap allocator to work in round-robin fashion
-Date: Thu, 10 May 2012 23:28:04 +0300
-Message-ID: <1336681689-16668-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 5/6] net/mlx4: Adjust initial value of vl_cap in mlx4_SET_PORT
+Date: Thu, 10 May 2012 23:28:08 +0300
+Message-ID: <1336681689-16668-6-git-send-email-ogerlitz@mellanox.com>
 References: <1336681689-16668-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1336681689-16668-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviad Yehezkel <aviadye-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Adjust the initial value of vl_cap in mlx4_SET_PORT such that only for CX3
+devices we start with 8 VLs, in an attempt to avoid errors such as:
 
-Under most circumstances, the bitmap allocator does not allocate the
-same full 24-bit qp-number immediately after a qp is destroyed.
+ mlx4_core 0000:06:00.0: command 0xc failed: fw status = 0x40
+ mlx4_core 0000:06:00.0: vhcr command:0xc slave:0 failed with error:0, status -12
 
-This operates by using the upper bits of a 24-bit qp number, beyond the
-number of QPs that are actually available in the low level driver.
-For example, say that the HCA is willing to allocate a maximum of 64K qps.
-We use the bits 23..16 as a "counter" which is incremented by 1 at each
-allocation so that even if the same physical QP is re-allocated, it will
-not receive the same 24-bit QP number.
+to appear in the system log.
 
-However, we have seen the following scenario:
-1. Allocate, say, 255 QPs in succession.  This will cause a wrap of the "counter".
-2. Destroy the first QP allocated, then allocate a new QP.  The new QP,
-   because of the counter wraparound, will get the same FULL QP number as
-   the QP just destroyed!
-
-This is a problem, because packets in transit can be erroneously delivered to
-the new QP when they were meant for the old (destroyed) QP, because the full QP
-number of the new QP is identical to the destroyed QP. (The "counter" mechanism
-is meant to prevent this by having the full 24-bit QP numbers differ even if
-the physical QP on the HCA is the same. As we see above, however, this mechanism
-does not always work).
-
-The best fix for this problem is to allocate QPs in round-robin mode,
-so that the physical QP numbers are not immediately re-used.
-
-Per feedback from Roland Dreier, deleted the bitmap->top update as well from
-mlx4_bitmap_free_range. He pointed out that the "top" update was unnecessary if
-bitmap->last only increases until the bitmap wraparound (so there is no chance of
-immediately re-allocating a just-released resource).
-
-Found-by:  Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Aviad Yehezkel <aviadye-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
+ drivers/net/ethernet/mellanox/mlx4/port.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-changes from V0:
-
-Applied the feedback from Roland to delete the bitmap->top update as well from
-mlx4_bitmap_free_range. 
-
- drivers/net/ethernet/mellanox/mlx4/alloc.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-index 8be20e7..06fef5b 100644
---- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-@@ -124,9 +124,6 @@ void mlx4_bitmap_free_range(struct mlx4_bitmap *bitmap, u32 obj, int cnt)
+diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+index 77535ff..53aa531 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/port.c
++++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+@@ -731,6 +731,16 @@ enum {
+ 	MLX4_CHANGE_PORT_MTU_CAP = 22,
+ };
  
- 	spin_lock(&bitmap->lock);
- 	bitmap_clear(bitmap->table, obj, cnt);
--	bitmap->last = min(bitmap->last, obj);
--	bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
--			& bitmap->mask;
- 	bitmap->avail += cnt;
- 	spin_unlock(&bitmap->lock);
- }
++#define CX3_PPF_DEV_ID	0x1003
++
++static int vl_cap_start(struct mlx4_dev *dev)
++{
++	/* for non CX3 devices, start with 4 VLs to avoid errors in syslog */
++	if (dev->pdev->device != CX3_PPF_DEV_ID)
++		return 4;
++	return 8;
++}
++
+ int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port)
+ {
+ 	struct mlx4_cmd_mailbox *mailbox;
+@@ -748,7 +758,7 @@ int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port)
+ 	((__be32 *) mailbox->buf)[1] = dev->caps.ib_port_def_cap[port];
+ 
+ 	/* IB VL CAP enum isn't used by the firmware, just numerical values */
+-	for (vl_cap = 8; vl_cap >= 1; vl_cap >>= 1) {
++	for (vl_cap = vl_cap_start(dev); vl_cap >= 1; vl_cap >>= 1) {
+ 		((__be32 *) mailbox->buf)[0] = cpu_to_be32(
+ 			(1 << MLX4_CHANGE_PORT_MTU_CAP) |
+ 			(1 << MLX4_CHANGE_PORT_VL_CAP)  |
 -- 
 1.7.1
 
