@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 3/8] infiniband-diags: move man/ibcc[config|query] to rst
- documentation
-Date: Wed, 9 May 2012 18:44:52 -0700
-Message-ID: <20120509184452.542fc79f.weiny2@llnl.gov>
+Subject: [PATCH 4/8] infiniband-diags: move
+ man/ibping,ibnodes,ibhosts,ibswitches,ibrouters to rst documentation
+Date: Wed, 9 May 2012 18:45:00 -0700
+Message-ID: <20120509184500.4a438cb5.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -16,60 +16,160 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- Makefile.am                 |    4 +-
- configure.in                |    2 +
- doc/rst/ibccconfig.8.in.rst |   93 +++++++++++++++++++++++++++++++++++++++++++
- doc/rst/ibccquery.8.in.rst  |   89 +++++++++++++++++++++++++++++++++++++++++
- man/ibccconfig.8            |   89 -----------------------------------------
- man/ibccquery.8             |   85 ---------------------------------------
- 6 files changed, 187 insertions(+), 175 deletions(-)
- create mode 100644 doc/rst/ibccconfig.8.in.rst
- create mode 100644 doc/rst/ibccquery.8.in.rst
- delete mode 100644 man/ibccconfig.8
- delete mode 100644 man/ibccquery.8
+ Makefile.am                 |   13 ++++--
+ configure.in                |    5 ++
+ doc/rst/ibhosts.8.in.rst    |   56 +++++++++++++++++++++++++++
+ doc/rst/ibnodes.8.in.rst    |   58 ++++++++++++++++++++++++++++
+ doc/rst/ibping.8.in.rst     |   86 ++++++++++++++++++++++++++++++++++++++++++
+ doc/rst/ibrouters.8.in.rst  |   57 ++++++++++++++++++++++++++++
+ doc/rst/ibswitches.8.in.rst |   55 +++++++++++++++++++++++++++
+ man/ibhosts.8               |   35 -----------------
+ man/ibnodes.8               |   35 -----------------
+ man/ibping.8                |   87 -------------------------------------------
+ man/ibrouters.8             |   31 ---------------
+ man/ibswitches.8            |   35 -----------------
+ 12 files changed, 325 insertions(+), 228 deletions(-)
+ create mode 100644 doc/rst/ibhosts.8.in.rst
+ create mode 100644 doc/rst/ibnodes.8.in.rst
+ create mode 100644 doc/rst/ibping.8.in.rst
+ create mode 100644 doc/rst/ibrouters.8.in.rst
+ create mode 100644 doc/rst/ibswitches.8.in.rst
+ delete mode 100644 man/ibhosts.8
+ delete mode 100644 man/ibnodes.8
+ delete mode 100644 man/ibping.8
+ delete mode 100644 man/ibrouters.8
+ delete mode 100644 man/ibswitches.8
 
 diff --git a/Makefile.am b/Makefile.am
-index 0d0b379..21f5163 100644
+index 21f5163..f7bfb57 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -48,8 +48,10 @@ man_MANS = man/ibping.8 \
+@@ -40,14 +40,12 @@ sbin_SCRIPTS += scripts/ibcheckerrs scripts/ibchecknet scripts/ibchecknode \
+ 		scripts/set_nodedesc.sh scripts/ibclearerrors scripts/ibclearcounters
+ endif
+ 
+-man_MANS = man/ibping.8 \
+-		man/ibnodes.8 man/ibhosts.8 \
+-		man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
+-		man/ibswitches.8 man/ibtracert.8 man/perfquery.8 man/sminfo.8 \
++man_MANS = man/ibportstate.8 man/ibroute.8 man/ibstat.8 \
++		man/ibtracert.8 man/perfquery.8 man/sminfo.8 \
+ 		man/smpdump.8 man/smpquery.8 man/saquery.8 man/vendstat.8 \
  		man/ibsysstat.8 \
  		man/ibfindnodesusing.8 \
- 		man/ibrouters.8 man/check_lft_balance.8 man/ibcacheedit.8 \
--		man/ibstatus.8 man/ibccquery.8 man/ibccconfig.8 \
-+		man/ibstatus.8 \
+-		man/ibrouters.8 man/check_lft_balance.8 man/ibcacheedit.8 \
++		man/check_lft_balance.8 man/ibcacheedit.8 \
+ 		man/ibstatus.8 \
  		doc/man/ibaddr.8 \
-+		doc/man/ibccconfig.8 \
-+		doc/man/ibccquery.8 \
+ 		doc/man/ibccconfig.8 \
+@@ -55,8 +53,13 @@ man_MANS = man/ibping.8 \
  		doc/man/dump_lfts.8 \
  		doc/man/dump_mfts.8 \
  		doc/man/iblinkinfo.8 \
++		doc/man/ibhosts.8 \
+ 		doc/man/ibnetdiscover.8 \
++		doc/man/ibnodes.8 \
++		doc/man/ibping.8 \
+ 		doc/man/ibqueryerrors.8 \
++		doc/man/ibrouters.8 \
++		doc/man/ibswitches.8 \
+ 		doc/man/infiniband-diags.8 \
+ 		man/ibidsverify.8
+ 
 diff --git a/configure.in b/configure.in
-index 81426d4..0a456c1 100644
+index 0a456c1..7e49d1a 100644
 --- a/configure.in
 +++ b/configure.in
-@@ -207,6 +207,8 @@ AC_CONFIG_FILES([\
- 	scripts/iblinkinfo.pl \
- 	scripts/ibqueryerrors.pl \
- 	doc/man/ibaddr.8 \
-+	doc/man/ibccconfig.8 \
-+	doc/man/ibccquery.8 \
+@@ -211,9 +211,14 @@ AC_CONFIG_FILES([\
+ 	doc/man/ibccquery.8 \
  	doc/man/dump_lfts.8 \
  	doc/man/dump_mfts.8 \
++	doc/man/ibhosts.8 \
  	doc/man/iblinkinfo.8 \
-diff --git a/doc/rst/ibccconfig.8.in.rst b/doc/rst/ibccconfig.8.in.rst
+ 	doc/man/ibnetdiscover.8 \
++	doc/man/ibnodes.8 \
++	doc/man/ibping.8 \
+ 	doc/man/ibqueryerrors.8 \
++	doc/man/ibrouters.8 \
++	doc/man/ibswitches.8 \
+ 	doc/man/infiniband-diags.8 \
+ 	libibnetdisc/Makefile \
+ ])
+diff --git a/doc/rst/ibhosts.8.in.rst b/doc/rst/ibhosts.8.in.rst
 new file mode 100644
-index 0000000..3ab31b6
+index 0000000..237b89e
 --- /dev/null
-+++ b/doc/rst/ibccconfig.8.in.rst
-@@ -0,0 +1,93 @@
-+==========
-+IBCCCONFIG
-+==========
++++ b/doc/rst/ibhosts.8.in.rst
+@@ -0,0 +1,56 @@
++=======
++IBHOSTS
++=======
 +
-+-------------------------------------
-+configure congestion control settings
-+-------------------------------------
++--------------------------------------
++show InfiniBand host nodes in topology
++--------------------------------------
++
++:Date: @BUILD_DATE@
++:Manual section: 8
++:Manual group: OpenIB Diagnostics
++
++SYNOPSIS
++========
++
++ibhosts [options] [<topology-file>]
++
++
++DESCRIPTION
++===========
++
++ibhosts is a script which either walks the IB subnet topology or uses an
++already saved topology file and extracts the CA nodes.
++
++OPTIONS
++=======
++
++.. include:: common/opt_C.rst
++.. include:: common/opt_P.rst
++.. include:: common/opt_t.rst
++.. include:: common/opt_h.rst
++.. include:: common/opt_z-config.rst
++
++.. include:: common/sec_portselection.rst
++
++FILES
++=====
++
++.. include:: common/sec_config-file.rst
++.. include:: common/sec_node-name-map.rst
++
++SEE ALSO
++========
++
++ibnetdiscover(8)
++
++DEPENDENCIES
++============
++
++ibnetdiscover, ibnetdiscover format
++
++AUTHOR
++======
++
++Hal Rosenstock
++        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/doc/rst/ibnodes.8.in.rst b/doc/rst/ibnodes.8.in.rst
+new file mode 100644
+index 0000000..d36a03e
+--- /dev/null
++++ b/doc/rst/ibnodes.8.in.rst
+@@ -0,0 +1,58 @@
++=======
++IBNODES
++=======
++
++---------------------------------
++show InfiniBand nodes in topology
++---------------------------------
 +
 +:Date: @BUILD_DATE@
 +:Manual section: 8
@@ -79,46 +179,102 @@ index 0000000..3ab31b6
 +SYNOPSIS
 +========
 +
-+ibccconfig [common_options] [-c cckey] <op> <lid|guid> [port]
++ibnodes [options] [<topology-file>]
 +
 +DESCRIPTION
 +===========
 +
-+**ibccconfig**
-+supports the configuration of congestion control settings on switches
-+and HCAs.
++ibnodes is a script which either walks the IB subnet topology or uses an
++already saved topology file and extracts the IB nodes (CAs and switches).
 +
-+**WARNING -- You should understand what you are doing before using this tool.
-+Misuse of this tool could result in a broken fabric.**
 +
 +OPTIONS
 +=======
 +
-+Current supported operations and their parameters:
-+  CongestionKeyInfo (CK) <lid|guid> <cckey> <cckeyprotectbit> <cckeyleaseperiod> <cckeyviolations>
-+  SwitchCongestionSetting (SS) <lid|guid> <controlmap> <victimmask> <creditmask> <threshold> <packetsize> <csthreshold> <csreturndelay> <markingrate>
-+  SwitchPortCongestionSetting (SP) <lid|guid> <portnum> <valid> <control_type> <threshold> <packet_size> <cong_parm_marking_rate> 
-+  CACongestionSetting (CS) <lid|guid> <port_control> <control_map> <ccti_timer> <ccti_increase> <trigger_threshold> <ccti_min>
-+  CongestionControlTable (CT) <lid|guid> <cctilimit> <index> <cctentry> <cctentry> ...
-+
-+**--cckey, -c, <cckey>**
-+Specify a congestion control (CC) key.  If none is specified, a key of 0 is used.
-+
-+
-+Debugging flags
-+---------------
-+
-+.. include:: common/opt_d.rst
-+.. include:: common/opt_e.rst
++.. include:: common/opt_C.rst
++.. include:: common/opt_P.rst
++.. include:: common/opt_t.rst
 +.. include:: common/opt_h.rst
-+.. include:: common/opt_v.rst
-+.. include:: common/opt_V.rst
++.. include:: common/opt_z-config.rst
++
++.. include:: common/sec_portselection.rst
++
++FILES
++=====
++
++.. include:: common/sec_config-file.rst
++.. include:: common/sec_node-name-map.rst
++
++
++SEE ALSO
++========
++
++ibnetdiscover(8)
++
++DEPENDENCIES
++============
++
++ibnetdiscover, ibnetdiscover format
++
++AUTHOR
++======
++
++Hal Rosenstock
++        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/doc/rst/ibping.8.in.rst b/doc/rst/ibping.8.in.rst
+new file mode 100644
+index 0000000..8dd2e41
+--- /dev/null
++++ b/doc/rst/ibping.8.in.rst
+@@ -0,0 +1,86 @@
++======
++IBPING
++======
++
++--------------------------
++ping an InfiniBand address
++--------------------------
++
++:Date: @BUILD_DATE@
++:Manual section: 8
++:Manual group: Open IB Diagnostics
++
++
++SYNOPSIS
++========
++
++ibping [options] <dest lid | guid>
++
++DESCRIPTION
++===========
++
++ibping uses vendor mads to validate connectivity between IB nodes.
++On exit, (IP) ping like output is show. ibping is run as client/server.
++Default is to run as client. Note also that a default ping server is
++implemented within the kernel.
++
++
++OPTIONS
++=======
++
++**-c, --count**
++stop after count packets
++
++**-f, --flood**
++flood destination: send packets back to back without delay
++
++**-o, --oui**
++use specified OUI number to multiplex vendor mads
++
++**-S, --Server**
++start in server mode (do not return)
++
 +
 +Addressing Flags
 +----------------
 +
-+.. include:: common/opt_G.rst
 +.. include:: common/opt_L.rst
++.. include:: common/opt_G.rst
 +.. include:: common/opt_s.rst
 +
 +
@@ -129,46 +285,47 @@ index 0000000..3ab31b6
 +.. include:: common/opt_P.rst
 +.. include:: common/sec_portselection.rst
 +
++
 +Configuration flags
 +-------------------
 +
 +.. include:: common/opt_z-config.rst
++.. include:: common/opt_t.rst
 +
 +
-+EXAMPLES
-+========
++Debugging flags
++---------------
 +
-+::
-+
-+        ibccconfig SwitchCongestionSetting 2 0x1F 0x1FFFFFFFFF 0x0 0xF 8 0 0:0 1  # Configure Switch Congestion Settings
-+        ibccconfig CACongestionSetting 1 0 0x3 150 1 0 0                          # Configure CA Congestion Settings to SL 0 and SL 1
-+        ibccconfig CACongestionSetting 1 0 0x4 200 1 0 0                          # Configure CA Congestion Settings to SL 2
-+        ibccconfig CongestionControlTable 1 63 0 0:0 0:1 ...                      # Configure first block of Congestion Control Table
-+        ibccconfig CongestionControlTable 1 127 0 0:64 0:65 ...                   # Configure second block of Congestion Control Table
++.. include:: common/opt_h.rst
++.. include:: common/opt_d.rst
++.. include:: common/opt_e.rst
++.. include:: common/opt_v.rst
++.. include:: common/opt_V.rst
 +
 +FILES
 +=====
 +
 +.. include:: common/sec_config-file.rst
 +
++
 +AUTHOR
 +======
 +
-+Albert Chu
-+        < chu11-i2BcT+NCU+M@public.gmane.org >
-diff --git a/doc/rst/ibccquery.8.in.rst b/doc/rst/ibccquery.8.in.rst
++Hal Rosenstock
++        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/doc/rst/ibrouters.8.in.rst b/doc/rst/ibrouters.8.in.rst
 new file mode 100644
-index 0000000..89b741c
+index 0000000..d6c8639
 --- /dev/null
-+++ b/doc/rst/ibccquery.8.in.rst
-@@ -0,0 +1,89 @@
++++ b/doc/rst/ibrouters.8.in.rst
+@@ -0,0 +1,57 @@
 +=========
-+IBCCQUERY
++IBROUTERS
 +=========
 +
-+--------------------------------------
-+query congestion control settings/info
-+--------------------------------------
++----------------------------------------
++show InfiniBand router nodes in topology
++----------------------------------------
 +
 +:Date: @BUILD_DATE@
 +:Manual section: 8
@@ -177,118 +334,231 @@ index 0000000..89b741c
 +
 +SYNOPSIS
 +========
-+ibccquery [common_options] [-c cckey] <op> <lid|guid> [port]
++
++ibrouters [options] [<topology-file>]
 +
 +DESCRIPTION
 +===========
 +
-+ibccquery support the querying of settings and other information related
-+to congestion control.
++ibrouters is a script which either walks the IB subnet topology or uses an
++already saved topology file and extracts the router nodes.
 +
 +OPTIONS
 +=======
 +
-+Current supported operations and their parameters:
-+  CongestionInfo (CI) <addr>
-+  CongestionKeyInfo (CK) <addr>
-+  CongestionLog (CL) <addr>
-+  SwitchCongestionSetting (SS) <addr>
-+  SwitchPortCongestionSetting (SP) <addr> [<portnum>]
-+  CACongestionSetting (CS) <addr>
-+  CongestionControlTable (CT) <addr>
-+  Timestamp (TI) <addr>
-+
-+
-+**--cckey, -c <cckey>**
-+Specify a congestion control (CC) key.  If none is specified, a key of 0 is used.
-+
-+
-+Debugging flags
-+---------------
-+
-+.. include:: common/opt_d.rst
-+.. include:: common/opt_e.rst
-+.. include:: common/opt_h.rst
-+.. include:: common/opt_v.rst
-+.. include:: common/opt_V.rst
-+
-+Addressing Flags
-+----------------
-+
-+.. include:: common/opt_G.rst
-+.. include:: common/opt_L.rst
-+.. include:: common/opt_s.rst
-+
-+
-+Port Selection flags
-+--------------------
-+
 +.. include:: common/opt_C.rst
 +.. include:: common/opt_P.rst
-+.. include:: common/sec_portselection.rst
-+
-+Configuration flags
-+-------------------
-+
++.. include:: common/opt_t.rst
++.. include:: common/opt_h.rst
 +.. include:: common/opt_z-config.rst
++
++.. include:: common/sec_portselection.rst
 +
 +FILES
 +=====
 +
 +.. include:: common/sec_config-file.rst
++.. include:: common/sec_node-name-map.rst
 +
-+EXAMPLES
++SEE ALSO
 +========
 +
-+::
++ibnetdiscover(8)
 +
-+        ibccquery CongestionInfo 3		# Congestion Info by lid
-+        ibccquery SwitchPortCongestionSetting 3	# Query all Switch Port Congestion Settings
-+        ibccquery SwitchPortCongestionSetting 3 1 # Query Switch Port Congestion Setting for port 1
++DEPENDENCIES
++============
++
++ibnetdiscover, ibnetdiscover format
++
 +
 +AUTHOR
 +======
 +
-+Albert Chu
-+        < chu11-i2BcT+NCU+M@public.gmane.org >
-diff --git a/man/ibccconfig.8 b/man/ibccconfig.8
++Hal Rosenstock
++        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/doc/rst/ibswitches.8.in.rst b/doc/rst/ibswitches.8.in.rst
+new file mode 100644
+index 0000000..3a99337
+--- /dev/null
++++ b/doc/rst/ibswitches.8.in.rst
+@@ -0,0 +1,55 @@
++==========
++IBSWITCHES
++==========
++
++----------------------------------------
++show InfiniBand switch nodes in topology
++----------------------------------------
++
++:Date: @BUILD_DATE@
++:Manual section: 8
++:Manual group: OpenIB Diagnostics
++
++
++SYNOPSIS
++========
++
++ibswitches [options] [<topology-file>]
++
++DESCRIPTION
++===========
++
++ibswitches is a script which either walks the IB subnet topology or uses an
++already saved topology file and extracts the switch nodes.
++
++OPTIONS
++=======
++
++.. include:: common/opt_C.rst
++.. include:: common/opt_P.rst
++.. include:: common/opt_t.rst
++.. include:: common/opt_h.rst
++.. include:: common/opt_z-config.rst
++
++.. include:: common/sec_portselection.rst
++
++FILES
++=====
++
++.. include:: common/sec_config-file.rst
++.. include:: common/sec_node-name-map.rst
++
++SEE ALSO
++========
++ibnetdiscover(8)
++
++DEPENDENCIES
++============
++
++ibnetdiscover, ibnetdiscover format
++
++AUTHOR
++======
++
++Hal Rosenstock
++        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/ibhosts.8 b/man/ibhosts.8
 deleted file mode 100644
-index 3a49f0c..0000000
---- a/man/ibccconfig.8
+index 462380f..0000000
+--- a/man/ibhosts.8
 +++ /dev/null
-@@ -1,89 +0,0 @@
--.TH IBCCCONFIG 8 "Dec 1, 2011" "OpenIB" "OpenIB Diagnostics"
+@@ -1,35 +0,0 @@
+-.TH IBHOSTS 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
 -
 -.SH NAME
--ibccconfig \- configure congestion control settings
+-ibhosts \- show InfiniBand host nodes in topology
 -
 -.SH SYNOPSIS
--.B ibccconfig
--[\-d(ebug)] [\-G(uid)] [\-C ca_name] [\-P ca_port] [\-t(imeout) timeout_ms]
--[\-V(ersion)] [\-h(elp)] [\-c cckey] <op> <lid|guid> [port]
+-.B ibhosts
+-[\-h] [<topology-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
 -
 -.SH DESCRIPTION
 -.PP
--.B ibccconfig
--supports the configuration of congestion control settings on switches
--and HCAs.
+-ibhosts is a script which either walks the IB subnet topology or uses an
+-already saved topology file and extracts the CA nodes.
 -
--.B WARNING -- You should understand what you are doing before using this tool.  Misuse of this tool could result in a broken fabric.
+-.SH OPTIONS
+-.PP
+-\-h      show the usage message
+-.PP
+-\-C <ca_name>    use the specified ca_name.
+-.PP
+-\-P <ca_port>    use the specified ca_port.
+-.PP
+-\-t <timeout_ms> override the default timeout for the solicited mads.
+-
+-.SH SEE ALSO
+-.BR ibnetdiscover(8)
+-
+-.SH DEPENDENCIES
+-
+-ibnetdiscover, ibnetdiscover format
+-
+-.SH AUTHOR
+-.TP
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/ibnodes.8 b/man/ibnodes.8
+deleted file mode 100644
+index 509900b..0000000
+--- a/man/ibnodes.8
++++ /dev/null
+@@ -1,35 +0,0 @@
+-.TH IBNODES 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
+-
+-.SH NAME
+-ibnodes \- show InfiniBand nodes in topology
+-
+-.SH SYNOPSIS
+-.B ibnodes
+-[\-h] [<topology-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
+-
+-.SH DESCRIPTION
+-.PP
+-ibnodes is a script which either walks the IB subnet topology or uses an
+-already saved topology file and extracts the IB nodes (CAs and switches).
+-
+-.SH OPTIONS
+-.PP
+-\-h      show the usage message
+-.PP
+-\-C <ca_name>    use the specified ca_name.
+-.PP
+-\-P <ca_port>    use the specified ca_port.
+-.PP
+-\-t <timeout_ms> override the default timeout for the solicited mads.
+-.SH SEE ALSO
+-
+-.BR ibnetdiscover(8)
+-
+-.SH DEPENDENCIES
+-
+-ibnetdiscover, ibnetdiscover format
+-
+-.SH AUTHOR
+-.TP
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/ibping.8 b/man/ibping.8
+deleted file mode 100644
+index b5154af..0000000
+--- a/man/ibping.8
++++ /dev/null
+@@ -1,87 +0,0 @@
+-.TH IBPING 8 "August 11, 2006" "OpenIB" "OpenIB Diagnostics"
+-
+-.SH NAME
+-ibping \- ping an InfiniBand address
+-
+-.SH SYNOPSIS
+-.B ibping
+-[\-d(ebug)] [\-e(rr_show)] [\-v(erbose)] [\-G(uid)] [\-C ca_name]
+-[\-P ca_port] [\-s smlid] [\-t(imeout) timeout_ms] [\-V(ersion)]
+-[\-c ping_count] [\-f(lood)] [\-o oui] [\-S(erver)] [\-h(elp)]
+-<dest lid | guid>
+-
+-.SH DESCRIPTION
+-.PP
+-ibping uses vendor mads to validate connectivity between IB nodes.
+-On exit, (IP) ping like output is show. ibping is run as client/server.
+-Default is to run as client. Note also that a default ping server is
+-implemented within the kernel.
 -
 -.SH OPTIONS
 -
 -.PP
 -.TP
--Current supported operations and their parameters:
--  CongestionKeyInfo (CK) <lid|guid> <cckey> <cckeyprotectbit> <cckeyleaseperiod> <cckeyviolations>
--  SwitchCongestionSetting (SS) <lid|guid> <controlmap> <victimmask> <creditmask> <threshold> <packetsize> <csthreshold> <csreturndelay> <markingrate>
--  SwitchPortCongestionSetting (SP) <lid|guid> <portnum> <valid> <control_type> <threshold> <packet_size> <cong_parm_marking_rate> 
--  CACongestionSetting (CS) <lid|guid> <port_control> <control_map> <ccti_timer> <ccti_increase> <trigger_threshold> <ccti_min>
--  CongestionControlTable (CT) <lid|guid> <cctilimit> <index> <cctentry> <cctentry> ...
--
+-\fB\-c\fR
+-stop after count packets
 -.TP
--\fB\-c\-fR, \fB\-\-cckey\fR <cckey>
--Specify a congestion control (CC) key.  If none is specified, a key of 0 is used.
+-\fB\-f\fR, \fB\-\-flood\fR
+-flood destination: send packets back to back without delay
+-.TP
+-\fB\-o\fR, \fB\-\-oui\fR
+-use specified OUI number to multiplex vendor mads
+-.TP
+-\fB\-S\fR, \fB\-\-Server\fR
+-start in server mode (do not return)
 -
 -.SH COMMON OPTIONS
 -
@@ -326,94 +596,45 @@ index 3a49f0c..0000000
 -.PP
 -\-t <timeout_ms> override the default timeout for the solicited mads.
 -
+-Multiple CA/Multiple Port Support
+-
+-When no IB device or port is specified, the port to use is selected
+-by the following criteria:
+-.PP
+-1. the first port that is ACTIVE.
+-.PP
+-2. if not found, the first port that is UP (physical link up).
+-
 -If a port and/or CA name is specified, the user request is
 -attempted to be fulfilled, and will fail if it is not possible.
 -
--.SH EXAMPLES
--
--.PP
--ibccconfig SwitchCongestionSetting 2 0x1F 0x1FFFFFFFFF 0x0 0xF 8 0 0:0 1    # Configure Switch Congestion Settings
--.PP
--ibccconfig CACongestionSetting 1 0 0x3 150 1 0 0          # Configure CA Congestion Settings to SL 0 and SL 1
--.PP
--ibccconfig CACongestionSetting 1 0 0x4 200 1 0 0          # Configure CA Congestion Settings to SL 2
--.PP
--ibccconfig CongestionControlTable 1 63 0 0:0 0:1 ...        # Configure first block of Congestion Control Table
--.PP
--ibccconfig CongestionControlTable 1 127 0 0:64 0:65 ...     # Configure second block of Congestion Control Table
--
 -.SH AUTHOR
 -.TP
--Albert Chu
--.RI < chu11-i2BcT+NCU+M@public.gmane.org >
-diff --git a/man/ibccquery.8 b/man/ibccquery.8
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/ibrouters.8 b/man/ibrouters.8
 deleted file mode 100644
-index f3e8149..0000000
---- a/man/ibccquery.8
+index 9c3ef68..0000000
+--- a/man/ibrouters.8
 +++ /dev/null
-@@ -1,85 +0,0 @@
--.TH IBCCQUERY 8 "Aug 10, 2011" "OpenIB" "OpenIB Diagnostics"
+@@ -1,31 +0,0 @@
+-.TH IBROUTERS 8 "May 30, 2007" "OpenIB" "OpenIB Diagnostics"
 -
 -.SH NAME
--ibccquery \- query congestion control settings/info
+-ibrouters \- show InfiniBand router nodes in topology
 -
 -.SH SYNOPSIS
--.B ibccquery
--[\-d(ebug)] [\-G(uid)] [\-C ca_name] [\-P ca_port] [\-t(imeout) timeout_ms]
--[\-V(ersion)] [\-h(elp)] [\-c cckey] <op> <lid|guid> [port]
+-.B ibrouters
+-[\-h] [<topology-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
 -
 -.SH DESCRIPTION
 -.PP
--.Bibccquery support the querying of settings and other information related
--to congestion control.
+-ibrouters is a script which either walks the IB subnet topology or uses an
+-already saved topology file and extracts the Rt nodes.
 -
 -.SH OPTIONS
--
--.PP
--.TP
--Current supported operations and their parameters:
--  CongestionInfo (CI) <addr>
--  CongestionKeyInfo (CK) <addr>
--  CongestionLog (CL) <addr>
--  SwitchCongestionSetting (SS) <addr>
--  SwitchPortCongestionSetting (SP) <addr> [<portnum>]
--  CACongestionSetting (CS) <addr>
--  CongestionControlTable (CT) <addr>
--  Timestamp (TI) <addr>
--
--.TP
--\fB\-c\-fR, \fB\-\-cckey\fR <cckey>
--Specify a congestion control (CC) key.  If none is specified, a key of 0 is used.
--
--.SH COMMON OPTIONS
--
--Most OpenIB diagnostics take the following common flags. The exact list of
--supported flags per utility can be found in the usage message and can be shown
--using the util_name -h syntax.
--
--# Debugging flags
--.PP
--\-d      raise the IB debugging level.
--        May be used several times (-ddd or -d -d -d).
--.PP
--\-e      show send and receive errors (timeouts and others)
 -.PP
 -\-h      show the usage message
--.PP
--\-v      increase the application verbosity level.
--        May be used several times (-vv or -v -v -v)
--.PP
--\-V      show the version info.
--
--# Addressing flags
--.PP
--\-G      use GUID address argument. In most cases, it is the Port GUID.
--        Example:
--        "0x08f1040023"
--.PP
--\-s <smlid>      use 'smlid' as the target lid for SM/SA queries.
--
--# Other common flags:
 -.PP
 -\-C <ca_name>    use the specified ca_name.
 -.PP
@@ -421,22 +642,54 @@ index f3e8149..0000000
 -.PP
 -\-t <timeout_ms> override the default timeout for the solicited mads.
 -
--If a port and/or CA name is specified, the user request is
--attempted to be fulfilled, and will fail if it is not possible.
--
--.SH EXAMPLES
--
--.PP
--ibccquery CongestionInfo 3		# Congestion Info by lid
--.PP
--ibccquery SwitchPortCongestionSetting 3	# Query all Switch Port Congestion Settings
--.PP
--ibccquery SwitchPortCongestionSetting 3 1 # Query Switch Port Congestion Setting for port 1
+-.SH SEE ALSO
+-.BR ibnetdiscover(8)
 -
 -.SH AUTHOR
 -.TP
--Albert Chu
--.RI < chu11-i2BcT+NCU+M@public.gmane.org >
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+diff --git a/man/ibswitches.8 b/man/ibswitches.8
+deleted file mode 100644
+index 038f8db..0000000
+--- a/man/ibswitches.8
++++ /dev/null
+@@ -1,35 +0,0 @@
+-.TH IBSWITCHES 8 "July 25, 2006" "OpenIB" "OpenIB Diagnostics"
+-
+-.SH NAME
+-ibswitches\- show InfiniBand switch nodes in topology
+-
+-.SH SYNOPSIS
+-.B ibswitches
+-[\-h] [<topology-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
+-
+-.SH DESCRIPTION
+-.PP
+-ibswitches is a script which either walks the IB subnet topology or uses an
+-already saved topology file and extracts the switch nodes.
+-
+-.SH OPTIONS
+-.PP
+-\-h      show the usage message
+-.PP
+-\-C <ca_name>    use the specified ca_name.
+-.PP
+-\-P <ca_port>    use the specified ca_port.
+-.PP
+-\-t <timeout_ms> override the default timeout for the solicited mads.
+-
+-.SH SEE ALSO
+-.BR ibnetdiscover(8)
+-
+-.SH DEPENDENCIES
+-
+-ibnetdiscover, ibnetdiscover format
+-
+-.SH AUTHOR
+-.TP
+-Hal Rosenstock
+-.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
 -- 
 1.7.1
 
