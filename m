@@ -1,45 +1,44 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] MAINTAINERS: update from QLogic to Intel
-Date: Wed, 9 May 2012 12:43:14 -0400
-Message-ID: <20120509164313.25275.32929.stgit@kop-dev-sles11-04.qlogic.org>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] MAINTAINERS: update from QLogic to Intel
+Date: Tue, 15 May 2012 17:27:17 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC0D42AD9B@FMSMSX108.amr.corp.intel.com>
+References: <20120510132520.15127.79238.stgit@kop-dev-sles11-04.qlogic.org>
+ <CAL1RGDWVZi=Ekg1z1kZn21yb+Tncksc6KDS_C2eYwRcmj5_kqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDWVZi=Ekg1z1kZn21yb+Tncksc6KDS_C2eYwRcmj5_kqQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- MAINTAINERS |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Upon further checking, the following patches are not yet present:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 2dcfca8..450163c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3633,7 +3633,7 @@ S:	Maintained
- F:	drivers/net/ethernet/icplus/ipg.*
- 
- IPATH DRIVER
--M:	Mike Marciniszyn <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-+M:	Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- S:	Maintained
- F:	drivers/infiniband/hw/ipath/
-@@ -5452,7 +5452,7 @@ L:	rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
- S:	Maintained
- 
- QIB DRIVER
--M:	Mike Marciniszyn <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-+M:	Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- S:	Supported
- F:	drivers/infiniband/hw/qib/
+IB/qib: MADs should return failure with misset mkeys				http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11588.html
+IB/qib: Display correct value for number of contexts				http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11615.html
+IB/qib: Fix QLE734X link cycling							http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11614.html
+IB/qib: Fix qib driver mkey lease timeout handling				http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11586.html
+IB/qib: correct ordering of reregister vs. port active event			http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11585.html
+IB/qib: optimize pio ack buffer allocation					http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11613.html
+IB/qib: add cache line awareness to qib_qp and qib_devdata structures	http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11612.html
+IB/qib: compile qib_verbs.c for optimal memcpy performance			http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11583.html
+										http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11584.html
+
+Thanks!
+Mike
 
 
+> -----Original Message-----
+> From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]
+> Sent: Monday, May 14, 2012 3:49 PM
+> To: Marciniszyn, Mike
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH] MAINTAINERS: update from QLogic to Intel
+> 
+> Thanks, applied (I think) all pending qib patches
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
