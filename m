@@ -1,44 +1,61 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] MAINTAINERS: update from QLogic to Intel
-Date: Tue, 15 May 2012 17:27:17 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0D42AD9B@FMSMSX108.amr.corp.intel.com>
-References: <20120510132520.15127.79238.stgit@kop-dev-sles11-04.qlogic.org>
- <CAL1RGDWVZi=Ekg1z1kZn21yb+Tncksc6KDS_C2eYwRcmj5_kqQ@mail.gmail.com>
+From: Alexey Shvetsov <alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Subject: Old SDR IB HBA
+Date: Tue, 15 May 2012 22:16:08 +0300
+Message-ID: <d004e56b0a274ba55134840a93060de4@omrb.pnpi.spb.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWVZi=Ekg1z1kZn21yb+Tncksc6KDS_C2eYwRcmj5_kqQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Upon further checking, the following patches are not yet present:
+Hi all!
 
-IB/qib: MADs should return failure with misset mkeys				http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11588.html
-IB/qib: Display correct value for number of contexts				http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11615.html
-IB/qib: Fix QLE734X link cycling							http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11614.html
-IB/qib: Fix qib driver mkey lease timeout handling				http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11586.html
-IB/qib: correct ordering of reregister vs. port active event			http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11585.html
-IB/qib: optimize pio ack buffer allocation					http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11613.html
-IB/qib: add cache line awareness to qib_qp and qib_devdata structures	http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11612.html
-IB/qib: compile qib_verbs.c for optimal memcpy performance			http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11583.html
-										http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11584.html
+Is it normal that kenrnel reports 8.5G speed on old SDR mellanox HBA?
+c-2-1 1 # ibstatus
+Infiniband device 'mthca0' port 1 status:
+         default gid:     fe80:0000:0000:0000:0002:c902:0023:05a1
+         base lid:        0x2f
+         sm lid:          0xf
+         state:           4: ACTIVE
+         phys state:      5: LinkUp
+         rate:            8.5 Gb/sec (4X)
+         link_layer:      InfiniBand
 
-Thanks!
-Mike
+c-2-1 1 # ibv_devinfo
+hca_id: mthca0
+         transport:                      InfiniBand (0)
+         fw_ver:                         1.0.800
+         node_guid:                      0002:c902:0023:05a0
+         sys_image_guid:                 0002:c902:0023:05a3
+         vendor_id:                      0x02c9
+         vendor_part_id:                 25204
+         hw_ver:                         0xA0
+         board_id:                       MT_03B0120001
+         phys_port_cnt:                  1
+                 port:   1
+                         state:                  PORT_ACTIVE (4)
+                         max_mtu:                2048 (4)
+                         active_mtu:             2048 (4)
+                         sm_lid:                 15
+                         port_lid:               47
+                         port_lmc:               0x00
+                         link_layer:             IB
 
 
-> -----Original Message-----
-> From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]
-> Sent: Monday, May 14, 2012 3:49 PM
-> To: Marciniszyn, Mike
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH] MAINTAINERS: update from QLogic to Intel
-> 
-> Thanks, applied (I think) all pending qib patches
+-- 
+Best Regards,
+Alexey 'Alexxy' Shvetsov
+Petersburg Nuclear Physics Institute, NRC Kurchatov Institute, 
+Gatchina, Russia
+Department of Molecular and Radiation Biophysics
+Gentoo Team Ru
+Gentoo Linux Dev
+mailto:alexxyum-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+mailto:alexxy-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org
+mailto:alexxy-heEE5zn7HfaV8fSEjHp0FA@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
