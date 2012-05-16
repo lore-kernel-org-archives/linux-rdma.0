@@ -1,42 +1,140 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RESEND for-next 3/7] IB/mlx4: increase the number of
- vectors (EQs) available for ULPs
-Date: Wed, 16 May 2012 23:42:11 +0300
-Message-ID: <CAJZOPZ+53S5q+S2ToiqFQFo6oUP7tpO6gZA4Cu4pBWxrjL-wXA@mail.gmail.com>
-References: <1336494151-31050-1-git-send-email-ogerlitz@mellanox.com>
-	<1336494151-31050-4-git-send-email-ogerlitz@mellanox.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 4/4] librdmacm/rstream: Set rsocket nonblocking if set to
+ async operation
+Date: Wed, 16 May 2012 23:07:42 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A22CE3@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1336494151-31050-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 8, 2012 at 7:22 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+If asynchronous use is specified (use of poll/select), set the
+rsocket to nonblocking.  This matches the common usage case for
+asynchronous sockets.
 
-> Enable IB ULPs to use a larger portion of the device EQs (which map
-> to IRQs). The mlx4_ib driver follows the mlx4_core framework of the
-> EQs to be divided among the device ports. In this scheme, for each IB
-> port, the number of allocated EQs follows the number of cores, subject
-> to other system constraints, such as number available MSI-X vectors.
+When asynchronous support is enabled, the nonblocking/blocking
+test option determines whether the poll/select call will block,
+or if rstream will spin on the calls.
 
-Hi Roland,
+This provides more flexibility with how the rsocket is used.
+Specifically, MPI often uses nonblocking sockets, but spins on
+poll/select.  However, many apps will use nonblocking sockets,
+but wait on poll/select.
 
-This patch is kind of following the "occupy wall street" spirit, e.g
-let mlx4/IB consumers get the available EQs reserved/allocated for
-them by mlx4_core, which does so per port. Its basic for RSS later and
-also for optimizations in more ULPs down the road, will be happy to
-get any feedback if you have comments here.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ examples/rstream.c |   40 +++++++++++++++++++++++++++++-----------
+ 1 files changed, 29 insertions(+), 11 deletions(-)
 
-Also, another long pending patch is the one to allow for multiple IPoIB childs @
-http://marc.info/?l=linux-rdma&m=132630202116857&w=2 , which will be
-of use by the eIPoIB - the "Ethernet IPoIB" driver which was presented
-in the last OFA conference, the patch was initially posted back in
-November, so far no comment.
+diff --git a/examples/rstream.c b/examples/rstream.c
+index b73d59a..2b25ef5 100644
+--- a/examples/rstream.c
++++ b/examples/rstream.c
+@@ -57,6 +57,7 @@ static int use_rs = 1;
+ static int use_async;
+ static int verify;
+ static int flags = MSG_DONTWAIT;
++static int poll_timeout = 0;
+ static int custom;
+ static int iterations = 1;
+ static int transfer_size = 1000;
+@@ -190,6 +191,17 @@ static int verify_buf(void *buf, int size)
+ 	return 0;
+ }
+ 
++static int do_poll(struct pollfd *fds)
++{
++	int ret;
++
++	do {
++		ret = rs_poll(fds, 1, poll_timeout);
++	} while (!ret);
++
++	return ret == 1 ? 0 : ret;
++}
++
+ static int send_xfer(int rs, int size)
+ {
+ 	struct pollfd fds;
+@@ -205,8 +217,8 @@ static int send_xfer(int rs, int size)
+ 
+ 	for (offset = 0; offset < size; ) {
+ 		if (use_async) {
+-			ret = rs_poll(&fds, 1, -1);
+-			if (ret != 1)
++			ret = do_poll(&fds);
++			if (ret)
+ 				return ret;
+ 		}
+ 
+@@ -234,8 +246,8 @@ static int recv_xfer(int rs, int size)
+ 
+ 	for (offset = 0; offset < size; ) {
+ 		if (use_async) {
+-			ret = rs_poll(&fds, 1, -1);
+-			if (ret != 1)
++			ret = do_poll(&fds);
++			if (ret)
+ 				return ret;
+ 		}
+ 
+@@ -377,8 +389,8 @@ static int server_connect(void)
+ 			fds.fd = lrs;
+ 			fds.events = POLLIN;
+ 
+-			ret = rs_poll(&fds, 1, -1);
+-			if (ret != 1) {
++			ret = do_poll(&fds);
++			if (ret) {
+ 				perror("rpoll");
+ 				goto close;
+ 			}
+@@ -421,21 +433,24 @@ static int client_connect(void)
+ 	ret = rs_connect(rs, res->ai_addr, res->ai_addrlen);
+ 	if (ret && (errno != EINPROGRESS)) {
+ 		perror("rconnect");
+-		rs_close(rs);
+-		rs = ret;
++		goto err;
+ 	}
+ 
+ 	if (errno == EINPROGRESS) {
+ 		fds.fd = rs;
+ 		fds.events = POLLOUT;
+-		do {
+-			ret = rs_poll(&fds, 1, -1);
+-		} while (!ret);
++		ret = do_poll(&fds);
++		if (ret)
++			goto err;
+ 	}
+ 
+ free:
+ 	freeaddrinfo(res);
+ 	return rs;
++err:
++	freeaddrinfo(res);
++	rs_close(rs);
++	return ret;
+ }
+ 
+ static int run(void)
+@@ -562,6 +577,9 @@ int main(int argc, char **argv)
+ 		}
+ 	}
+ 
++	if (!(flags & MSG_DONTWAIT))
++		poll_timeout = -1;
++
+ 	ret = run();
+ 	return ret;
+ }
 
-Or.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
