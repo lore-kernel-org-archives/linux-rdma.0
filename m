@@ -1,7 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/4] librdmacm/rstream: Always set TCP_NODELAY on rsocket
+Subject: [PATCH 3/4] librdmacm/rstream: Set rsocket nonblocking for base
+ tests
 Date: Wed, 16 May 2012 23:07:42 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A22CD7@ORSMSX101.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A22CDD@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,74 +12,89 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The NODELAY option is coupled with whether the socket is blocking
-or nonblocking.  Remove this coupling and always set the NODELAY
-option.
+The base set of rstream tests want nonblocking rsockets, but don't
+actually set the rsocket to nonblocking.  It instead relies on the
+MSG_DONTWAIT flag.  Make the code match the expected behavior and
+set the rsocket to nonblocking and make nonblocking the default.
 
-NODELAY currently has no effect on rsockets.
+Provide a test option to switch it back to blocking mode.  We keep
+the existing nonblocking test option for compatibility.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- examples/rstream.c |   11 ++---------
- 1 files changed, 2 insertions(+), 9 deletions(-)
+ examples/rstream.c |   10 +++++++---
+ man/rstream.1      |    2 ++
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
 diff --git a/examples/rstream.c b/examples/rstream.c
-index 8aa089d..a313fdb 100644
+index a313fdb..a214b1a 100644
 --- a/examples/rstream.c
 +++ b/examples/rstream.c
-@@ -57,7 +57,6 @@ static int use_rs = 1;
+@@ -56,7 +56,7 @@ static int test_size[] = {
+ static int use_rs = 1;
  static int use_async;
  static int verify;
- static int flags;
--static int no_delay;
+-static int flags;
++static int flags = MSG_DONTWAIT;
  static int custom;
  static int iterations = 1;
  static int transfer_size = 1000;
-@@ -151,7 +150,6 @@ static void init_latency_test(int size)
+@@ -150,7 +150,6 @@ static void init_latency_test(int size)
  {
  	size_str(test_name, size);
  	sprintf(test_name, "%s_lat", test_name);
--	no_delay = 1;
- 	flags |= MSG_DONTWAIT;
+-	flags |= MSG_DONTWAIT;
  	transfer_count = 1;
  	transfer_size = size;
-@@ -162,7 +160,6 @@ static void init_bandwidth_test(int size)
+ 	iterations = size_to_count(transfer_size);
+@@ -160,7 +159,6 @@ static void init_bandwidth_test(int size)
  {
  	size_str(test_name, size);
  	sprintf(test_name, "%s_bw", test_name);
--	no_delay = 1;
- 	flags |= MSG_DONTWAIT;
+-	flags |= MSG_DONTWAIT;
  	iterations = 1;
  	transfer_size = size;
-@@ -328,10 +325,8 @@ static void set_options(int rs)
+ 	transfer_count = size_to_count(transfer_size);
+@@ -485,6 +483,9 @@ static int set_test_opt(char *optarg)
+ 		case 'a':
+ 			use_async = 1;
  			break;
- 	}
- 
--	if (no_delay) {
--		rs_setsockopt(rs, IPPROTO_TCP, TCP_NODELAY,
--			      (void *) &no_delay, sizeof(no_delay));
--	}
-+	val = 1;
-+	rs_setsockopt(rs, IPPROTO_TCP, TCP_NODELAY, (void *) &val, sizeof(val));
- 
- 	if (flags & MSG_DONTWAIT) {
- 		rs_fcntl(rs, F_SETFL, O_NONBLOCK);
-@@ -492,7 +487,6 @@ static int set_test_opt(char *optarg)
- 			break;
++		case 'b':
++			flags &= ~MSG_DONTWAIT;
++			break;
  		case 'n':
  			flags |= MSG_DONTWAIT;
--			no_delay = 1;
  			break;
- 		case 'v':
- 			verify = 1;
-@@ -507,7 +501,6 @@ static int set_test_opt(char *optarg)
+@@ -499,6 +500,8 @@ static int set_test_opt(char *optarg)
+ 			use_rs = 0;
+ 		} else if (!strncasecmp("async", optarg, 5)) {
  			use_async = 1;
++		} else if (!strncasecmp("block", optarg, 5)) {
++			flags &= ~MSG_DONTWAIT;
  		} else if (!strncasecmp("nonblock", optarg, 8)) {
  			flags |= MSG_DONTWAIT;
--			no_delay = 1;
  		} else if (!strncasecmp("verify", optarg, 6)) {
- 			verify = 1;
- 		} else {
+@@ -552,6 +555,7 @@ int main(int argc, char **argv)
+ 			printf("\t[-T test_option]\n");
+ 			printf("\t    s|sockets - use standard tcp/ip sockets\n");
+ 			printf("\t    a|async - asynchronous operation\n");
++			printf("\t    b|blocking - use blocking calls\n");
+ 			printf("\t    n|nonblocking - use nonblocking calls\n");
+ 			printf("\t    v|verify - verify data\n");
+ 			exit(1);
+diff --git a/man/rstream.1 b/man/rstream.1
+index 701db3a..58bd7e3 100644
+--- a/man/rstream.1
++++ b/man/rstream.1
+@@ -42,6 +42,8 @@ s | socket  - uses standard socket calls to transfer data
+ .P
+ a | async - uses asynchronous operation (e.g. select / poll)
+ .P
++b | blocking - uses blocking calls
++.P
+ n | nonblocking - uses non-blocking calls
+ .P
+ v | verify - verifies data transfers
 
 
 --
