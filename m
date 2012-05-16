@@ -1,8 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/4] librdmacm/rstream: Set rsocket nonblocking if set to
- async operation
+Subject: [PATCH 2/4] librdmacm/rstream: Always set TCP_NODELAY on rsocket
 Date: Wed, 16 May 2012 23:07:42 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A22CE3@ORSMSX101.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A22CD7@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,127 +11,74 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If asynchronous use is specified (use of poll/select), set the
-rsocket to nonblocking.  This matches the common usage case for
-asynchronous sockets.
+The NODELAY option is coupled with whether the socket is blocking
+or nonblocking.  Remove this coupling and always set the NODELAY
+option.
 
-When asynchronous support is enabled, the nonblocking/blocking
-test option determines whether the poll/select call will block,
-or if rstream will spin on the calls.
-
-This provides more flexibility with how the rsocket is used.
-Specifically, MPI often uses nonblocking sockets, but spins on
-poll/select.  However, many apps will use nonblocking sockets,
-but wait on poll/select.
+NODELAY currently has no effect on rsockets.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- examples/rstream.c |   40 +++++++++++++++++++++++++++++-----------
- 1 files changed, 29 insertions(+), 11 deletions(-)
+ examples/rstream.c |   11 ++---------
+ 1 files changed, 2 insertions(+), 9 deletions(-)
 
 diff --git a/examples/rstream.c b/examples/rstream.c
-index b73d59a..2b25ef5 100644
+index 8aa089d..a313fdb 100644
 --- a/examples/rstream.c
 +++ b/examples/rstream.c
-@@ -57,6 +57,7 @@ static int use_rs = 1;
+@@ -57,7 +57,6 @@ static int use_rs = 1;
  static int use_async;
  static int verify;
- static int flags = MSG_DONTWAIT;
-+static int poll_timeout = 0;
+ static int flags;
+-static int no_delay;
  static int custom;
  static int iterations = 1;
  static int transfer_size = 1000;
-@@ -190,6 +191,17 @@ static int verify_buf(void *buf, int size)
- 	return 0;
- }
- 
-+static int do_poll(struct pollfd *fds)
-+{
-+	int ret;
-+
-+	do {
-+		ret = rs_poll(fds, 1, poll_timeout);
-+	} while (!ret);
-+
-+	return ret == 1 ? 0 : ret;
-+}
-+
- static int send_xfer(int rs, int size)
+@@ -151,7 +150,6 @@ static void init_latency_test(int size)
  {
- 	struct pollfd fds;
-@@ -205,8 +217,8 @@ static int send_xfer(int rs, int size)
- 
- 	for (offset = 0; offset < size; ) {
- 		if (use_async) {
--			ret = rs_poll(&fds, 1, -1);
--			if (ret != 1)
-+			ret = do_poll(&fds);
-+			if (ret)
- 				return ret;
- 		}
- 
-@@ -234,8 +246,8 @@ static int recv_xfer(int rs, int size)
- 
- 	for (offset = 0; offset < size; ) {
- 		if (use_async) {
--			ret = rs_poll(&fds, 1, -1);
--			if (ret != 1)
-+			ret = do_poll(&fds);
-+			if (ret)
- 				return ret;
- 		}
- 
-@@ -377,8 +389,8 @@ static int server_connect(void)
- 			fds.fd = lrs;
- 			fds.events = POLLIN;
- 
--			ret = rs_poll(&fds, 1, -1);
--			if (ret != 1) {
-+			ret = do_poll(&fds);
-+			if (ret) {
- 				perror("rpoll");
- 				goto close;
- 			}
-@@ -421,21 +433,24 @@ static int client_connect(void)
- 	ret = rs_connect(rs, res->ai_addr, res->ai_addrlen);
- 	if (ret && (errno != EINPROGRESS)) {
- 		perror("rconnect");
--		rs_close(rs);
--		rs = ret;
-+		goto err;
+ 	size_str(test_name, size);
+ 	sprintf(test_name, "%s_lat", test_name);
+-	no_delay = 1;
+ 	flags |= MSG_DONTWAIT;
+ 	transfer_count = 1;
+ 	transfer_size = size;
+@@ -162,7 +160,6 @@ static void init_bandwidth_test(int size)
+ {
+ 	size_str(test_name, size);
+ 	sprintf(test_name, "%s_bw", test_name);
+-	no_delay = 1;
+ 	flags |= MSG_DONTWAIT;
+ 	iterations = 1;
+ 	transfer_size = size;
+@@ -328,10 +325,8 @@ static void set_options(int rs)
+ 			break;
  	}
  
- 	if (errno == EINPROGRESS) {
- 		fds.fd = rs;
- 		fds.events = POLLOUT;
--		do {
--			ret = rs_poll(&fds, 1, -1);
--		} while (!ret);
-+		ret = do_poll(&fds);
-+		if (ret)
-+			goto err;
- 	}
+-	if (no_delay) {
+-		rs_setsockopt(rs, IPPROTO_TCP, TCP_NODELAY,
+-			      (void *) &no_delay, sizeof(no_delay));
+-	}
++	val = 1;
++	rs_setsockopt(rs, IPPROTO_TCP, TCP_NODELAY, (void *) &val, sizeof(val));
  
- free:
- 	freeaddrinfo(res);
- 	return rs;
-+err:
-+	freeaddrinfo(res);
-+	rs_close(rs);
-+	return ret;
- }
- 
- static int run(void)
-@@ -562,6 +577,9 @@ int main(int argc, char **argv)
- 		}
- 	}
- 
-+	if (!(flags & MSG_DONTWAIT))
-+		poll_timeout = -1;
-+
- 	ret = run();
- 	return ret;
- }
+ 	if (flags & MSG_DONTWAIT) {
+ 		rs_fcntl(rs, F_SETFL, O_NONBLOCK);
+@@ -492,7 +487,6 @@ static int set_test_opt(char *optarg)
+ 			break;
+ 		case 'n':
+ 			flags |= MSG_DONTWAIT;
+-			no_delay = 1;
+ 			break;
+ 		case 'v':
+ 			verify = 1;
+@@ -507,7 +501,6 @@ static int set_test_opt(char *optarg)
+ 			use_async = 1;
+ 		} else if (!strncasecmp("nonblock", optarg, 8)) {
+ 			flags |= MSG_DONTWAIT;
+-			no_delay = 1;
+ 		} else if (!strncasecmp("verify", optarg, 6)) {
+ 			verify = 1;
+ 		} else {
 
 
 --
