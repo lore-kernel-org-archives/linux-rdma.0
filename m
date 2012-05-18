@@ -1,74 +1,54 @@
-From: Vipul Pandya <vipul@chelsio.com>
-Subject: [PATCH 08/10] RDMA/cxgb4: Use vmalloc for debugfs qp dump. Allows dumping thousands of qps.
-Date: Fri, 18 May 2012 15:29:31 +0530
-Message-ID: <1337335173-3226-9-git-send-email-vipul@chelsio.com>
-References: <1337335173-3226-1-git-send-email-vipul@chelsio.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1337335173-3226-1-git-send-email-vipul@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Cc: roland@purestorage.com, davem@davemloft.net, divy@chelsio.com, dm@chelsio.com, kumaras@chelsio.com, swise@opengridcomputing.com, Vipul Pandya <vipul@chelsio.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: watchdog timer
+Date: Fri, 18 May 2012 09:07:50 -0400
+Message-ID: <4FB649A6.2060602@dev.mellanox.co.il>
+References: <4FB5E69A.7010602@nasa.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FB5E69A.7010602-NSQ8wuThN14@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Log active open failures of interest.
+On 5/18/2012 2:05 AM, Bob Ciotti wrote:
+> 
+> 
+> I'm seeing lots of these messages in SM log:
+> 
+> May 17 22:36:04 947774 [DA234710] 0x01 -> log_trap_info: Received
+> Generic Notice type:1 num:131 (Flow Control Update watchdog timer
+> expired) Producer:2 (Switch) from LID:444 Port 5 TID:0x0000000000000025
+> 
+> the referenced port is a switch to HCA link.
+> 
+> I've seen this in cases where there was bad hardware. Spec says failure
+> in flow control machine on other end. But lets assume hardware was good.
+> When could this occur?
 
-Signed-off-by: Vipul Pandya <vipul@chelsio.com>
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
----
- drivers/infiniband/hw/cxgb4/cm.c     |   18 ++++++++++++++++++
- drivers/infiniband/hw/cxgb4/device.c |    4 ++--
- 2 files changed, 20 insertions(+), 2 deletions(-)
+Do OperationalVLs match on both sides of the link ? Are you
+using/configuring QoS ?
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 6ce401a..55ab284 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1413,6 +1413,24 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 		return 0;
- 	}
- 
-+	/*
-+	 * Log interesting failures.
-+	 */
-+	switch (status) {
-+	case CPL_ERR_CONN_RESET:
-+	case CPL_ERR_CONN_TIMEDOUT:
-+		break;
-+	default:
-+		printk(KERN_INFO MOD "Active open failure - "
-+		       "atid %u status %u errno %d %pI4:%u->%pI4:%u\n",
-+		       atid, status, status2errno(status),
-+		       &ep->com.local_addr.sin_addr.s_addr,
-+		       ntohs(ep->com.local_addr.sin_port),
-+		       &ep->com.remote_addr.sin_addr.s_addr,
-+		       ntohs(ep->com.remote_addr.sin_port));
-+		break;
-+	}
-+
- 	connect_reply_upcall(ep, status2errno(status));
- 	state_set(&ep->com, DEAD);
- 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index bdb398f..8545629 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -121,7 +121,7 @@ static int qp_release(struct inode *inode, struct file *file)
- 		printk(KERN_INFO "%s null qpd?\n", __func__);
- 		return 0;
- 	}
--	kfree(qpd->buf);
-+	vfree(qpd->buf);
- 	kfree(qpd);
- 	return 0;
- }
-@@ -145,7 +145,7 @@ static int qp_open(struct inode *inode, struct file *file)
- 	spin_unlock_irq(&qpd->devp->lock);
- 
- 	qpd->bufsize = count * 128;
--	qpd->buf = kmalloc(qpd->bufsize, GFP_KERNEL);
-+	qpd->buf = vmalloc(qpd->bufsize);
- 	if (!qpd->buf) {
- 		ret = -ENOMEM;
- 		goto err1;
--- 
-1.7.1
+> Only in the case of FW bug?
+
+I don't think flow control is performed by FW.
+
+> Any tunable's that might impact this?
+
+No IBA standard ones AFAIK. Who's the HCA vendor ?
+
+-- Hal
+
+> bob
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
