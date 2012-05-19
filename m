@@ -1,18 +1,38 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 6/6] IB/mlx4: bug fix for mlx4_ib_add error flow
-Date: Fri, 18 May 2012 17:45:39 -0700
-Message-ID: <CAL1RGDVKqhLyRBQONpMHY19m=v7yM=yX=758S3U0Y7dJUbtUig@mail.gmail.com>
-References: <1336681689-16668-1-git-send-email-ogerlitz@mellanox.com> <1336681689-16668-7-git-send-email-ogerlitz@mellanox.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 01/15] ib_srp: Enlarge block layer timeout
+Date: Sat, 19 May 2012 10:50:22 +0000
+Message-ID: <4FB77AEE.7030100@acm.org>
+References: <5207288.nSt5MkVMpO@asus> <1385797.u8D4MDGaaX@asus>  <20120329165931.GA19700@ornl.gov> <4F942B74.4040106@acm.org> <1335798691.441.2.camel@frustration.ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1336681689-16668-7-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1335798691.441.2.camel-zHLflQxYYDO4Hhoo1DtQwJ9G+ZOsUmrO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied
+On 04/30/12 15:11, David Dillow wrote:
+
+> On Sun, 2012-04-22 at 16:01 +0000, Bart Van Assche wrote:
+>> On 03/29/12 16:59, Dave Dillow wrote:
+>>> I haven't chewed on the rest yet, but would like to see this one at
+>>> least in 3.4 if possible.
+> 
+>> If you have further comments about any of the patches in this series,
+>> these are welcome. The 3.5 merge window isn't that far away anymore.
+> 
+> I will attend to this before the end of the week, sooner if possible.
+
+
+Hello Dave,
+
+I hope you're still doing fine ?
+
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
