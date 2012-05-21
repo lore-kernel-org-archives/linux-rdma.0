@@ -1,37 +1,52 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 5/6] net/mlx4: Adjust initial value of vl_cap in mlx4_SET_PORT
-Date: Mon, 21 May 2012 09:14:25 -0700
-Message-ID: <CAL1RGDX7dBzKZv4nC0jKyoYDuQh6x2Yn8RSuyZsHs_=-YvczKg@mail.gmail.com>
-References: <1336681689-16668-1-git-send-email-ogerlitz@mellanox.com>
- <1336681689-16668-6-git-send-email-ogerlitz@mellanox.com> <CAL1RGDUjNrRnU2_cfbdJd790K9oLD+rRFQDOyR6eX-3R1tWbQA@mail.gmail.com>
- <4FB8D3C0.7040603@mellanox.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: watchdog timer
+Date: Mon, 21 May 2012 10:08:31 -0700
+Message-ID: <20120521100831.a434152f.weiny2@llnl.gov>
+References: <4FB5E69A.7010602@nasa.gov>
+	<4FB649A6.2060602@dev.mellanox.co.il>
+	<4FB65E30.4070805@nasa.gov>
+	<20120518081029.01004d2c.weiny2@llnl.gov>
+	<4FB66A6C.1060703@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FB8D3C0.7040603-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <4FB66A6C.1060703-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aviad Yehezkel <aviadye-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> =A0BTW I noticed
-> that today there IS some CX3 special code in mlx4_core/main.c
->
->> 282- =A0 =A0/* Sense port always allowed on supported devices for Co=
-nnectX1
->> and 2 */
->> 283: =A0 =A0if (dev->pdev->device !=3D 0x1003)
->> 284- =A0 =A0 =A0 =A0 =A0 =A0dev->caps.flags |=3D MLX4_DEV_CAP_FLAG_S=
-ENSE_SUPPORT;
+On Fri, 18 May 2012 11:27:40 -0400
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-Yeah, I think this has similar maintainability problems.  Looks like it
-went through the net tree ... and davem doesn't alway review driver
-changes in depth.
+> Ira,
+> 
+> On 5/18/2012 11:10 AM, Ira Weiny wrote:
+> > In our situation the FW in the switch had a bug.
+> 
+> Do you recall what the bug was, which firmware version had the bug and
+> which one fixed it ?
 
- - R.
+I don't recall but it was not Mellanox hardware.
+
+Ira
+
+> 
+> -- Hal
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
