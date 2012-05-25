@@ -1,66 +1,209 @@
-From: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Question about RDMA_CM_EVENT_ROUTE_ERROR
-Date: Fri, 25 May 2012 12:20:13 -0500
-Message-ID: <4FBFBF4D.9090400@oracle.com>
-References: <4FBEBAD8.5010507@oracle.com> <1828884A29C6694DAF28B7E6B8A8237346A23FFD@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] libibmad/dump.c: clean up boundary conditions in dump routines
+Date: Fri, 25 May 2012 15:33:01 -0700
+Message-ID: <1337985181-25080-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A23FFD-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pierre orzechowski <pierre.e.orzechowski-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Michael Nowak <michael.nowak-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: weiny2-i2BcT+NCU+M@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/24/2012 7:18 PM, Hefty, Sean wrote:
->> We are trying to figure out the cause for RDMA_CM_EVENT_ROUTE_ERROR
->> errors after a failover event of the bonding driver.
->> The event status returned is -EINVAL. To gather further information on
->> when this EINVAL is returned,
->> I added some debug which showed 3 for mad_hdr.status in the below
->> function in drivers/infiniband/core/sa_query.c.
->>
->> [drivers/infiniband/core/sa_query.c]
->> static void recv_handler(struct ib_mad_agent *mad_agent, struct
->> ib_mad_recv_wc *mad_recv_wc)
->> {
->>           struct ib_sa_query *query;
->>           struct ib_mad_send_buf *mad_buf;
->>
->>           mad_buf = (void *) (unsigned long) mad_recv_wc->wc->wr_id;
->>           query = mad_buf->context[0];
->>
->>           if (query->callback) {
->>                   if (mad_recv_wc->wc->status == IB_WC_SUCCESS) {
->>                           query->callback(query,
->>
->> mad_recv_wc->recv_buf.mad->mad_hdr.status ? -EINVAL : 0,
->>                                           (struct ib_sa_mad *)
->> mad_recv_wc->recv_buf.mad);
->>
->> How do I find out what 3 in mad_recv_wc->recv_buf.mad->mad_hdr.status
->> stands for ?
-> You would need to look in the IB spec.  Note that the status field is 16-bits and should be in big endian order.  Assuming, therefore, that the '3' falls into the upper bits of the status field, this would be an SA specific status value of ERR_NO_RECORDS.
-Yes, it is 0x300. My display was in little endian order.
->
->> To test RDS reconnect time we are rebooting one of the switch connected
->> to one port of the bonding driver.
->> It then fails over to the other port, RDMA CM gets notified which then
->> notifies RDS.
->> RDS initiates a reconnect.   rdma_resolve_route results in these errors.
->> There are some 25 connections that try to failover at the same time.
->> We get this error for a couple of seconds and finally the
->> rdma_resolve_route succeeds.
->> Some of them succeed right away. So it may be due to the load generated
->> by too many rdma_resolve_route.
-> You may need to back up and see what rdma_resolve_addr returns in the cases where rdma_resolve_route fails, and compare that with rdma_resolve_addr when rdma_resolve_route succeeds.  Maybe there's be a timing issue with the SA detecting the switch failure.  Can you tell if the RDS traffic is actually migrating to the new ports?
-Ok. I will check what rdma_resolve_addr returns and compare it with a 
-successful case.
-Some other connections completed successfully over the new port during 
-the same period and traffic did go through successfully over them.
-> -Sean 
-Venkat
+If mad_dump_field() exhausts the buffer, _dump_fields() would
+accidentally write 1 byte beyond its end.  Additionally, several
+functions call _dump_fields() repeatedly without checking for
+a negative return; these could clobber memory before the buffer.
+
+Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+---
+ src/dump.c |   53 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 52 insertions(+), 1 deletion(-)
+
+diff --git a/src/dump.c b/src/dump.c
+index d4512c0..9937a82 100644
+--- a/src/dump.c
++++ b/src/dump.c
+@@ -731,7 +731,7 @@ static int _dump_fields(char *buf, int bufsz, void *data, int start, int end)
+ 
+ 	for (field = start; field < end && bufsz > 0; field++) {
+ 		mad_decode_field(data, field, val);
+-		if (!mad_dump_field(field, s, bufsz, val))
++		if (!mad_dump_field(field, s, bufsz-1, val))
+ 			return -1;
+ 		n = strlen(s);
+ 		s += n;
+@@ -768,6 +768,9 @@ void mad_dump_portinfo(char *buf, int bufsz, void *val, int valsz)
+ 	int cnt;
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PORT_FIRST_F, IB_PORT_LAST_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val,
+ 		     IB_PORT_CAPMASK2_F, IB_PORT_LINK_SPEED_EXT_LAST_F);
+ }
+@@ -798,6 +801,9 @@ void mad_dump_perfcounters_xmt_sl(char *buf, int bufsz, void *val, int valsz)
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_XMT_DATA_SL_FIRST_F,
+ 		     IB_PC_XMT_DATA_SL_LAST_F);
+ }
+@@ -808,6 +814,9 @@ void mad_dump_perfcounters_rcv_sl(char *buf, int bufsz, void *val, int valsz)
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_RCV_DATA_SL_FIRST_F,
+ 		     IB_PC_RCV_DATA_SL_LAST_F);
+ }
+@@ -818,6 +827,9 @@ void mad_dump_perfcounters_xmt_disc(char *buf, int bufsz, void *val, int valsz)
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_XMT_INACT_DISC_F,
+ 		     IB_PC_XMT_DISC_LAST_F);
+ }
+@@ -828,6 +840,9 @@ void mad_dump_perfcounters_rcv_err(char *buf, int bufsz, void *val, int valsz)
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_RCV_LOCAL_PHY_ERR_F,
+ 		     IB_PC_RCV_ERR_LAST_F);
+ }
+@@ -848,6 +863,9 @@ void mad_dump_perfcounters_port_op_rcv_counters(char *buf, int bufsz, void *val,
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_PORT_OP_RCV_COUNTERS_FIRST_F,
+ 		     IB_PC_PORT_OP_RCV_COUNTERS_LAST_F);
+ }
+@@ -858,6 +876,9 @@ void mad_dump_perfcounters_port_flow_ctl_counters(char *buf, int bufsz, void *va
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_PORT_FLOW_CTL_COUNTERS_FIRST_F,
+ 		     IB_PC_PORT_FLOW_CTL_COUNTERS_LAST_F);
+ }
+@@ -868,6 +889,9 @@ void mad_dump_perfcounters_port_vl_op_packet(char *buf, int bufsz, void *val, in
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_PORT_VL_OP_PACKETS_FIRST_F,
+ 		     IB_PC_PORT_VL_OP_PACKETS_LAST_F);
+ }
+@@ -878,6 +902,9 @@ void mad_dump_perfcounters_port_vl_op_data(char *buf, int bufsz, void *val, int
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_PORT_VL_OP_DATA_FIRST_F,
+ 		     IB_PC_PORT_VL_OP_DATA_LAST_F);
+ }
+@@ -888,6 +915,9 @@ void mad_dump_perfcounters_port_vl_xmit_flow_ctl_update_errors(char *buf, int bu
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_PORT_VL_XMIT_FLOW_CTL_UPDATE_ERRORS_FIRST_F,
+ 		     IB_PC_PORT_VL_XMIT_FLOW_CTL_UPDATE_ERRORS_LAST_F);
+ }
+@@ -898,6 +928,9 @@ void mad_dump_perfcounters_port_vl_xmit_wait_counters(char *buf, int bufsz, void
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_PORT_VL_XMIT_WAIT_COUNTERS_FIRST_F,
+ 		     IB_PC_PORT_VL_XMIT_WAIT_COUNTERS_LAST_F);
+ }
+@@ -908,6 +941,9 @@ void mad_dump_perfcounters_sw_port_vl_congestion(char *buf, int bufsz, void *val
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_SW_PORT_VL_CONGESTION_FIRST_F,
+ 		     IB_PC_SW_PORT_VL_CONGESTION_LAST_F);
+ }
+@@ -918,6 +954,9 @@ void mad_dump_perfcounters_rcv_con_ctrl(char *buf, int bufsz, void *val, int val
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_RCV_CON_CTRL_FIRST_F,
+ 		     IB_PC_RCV_CON_CTRL_LAST_F);
+ }
+@@ -929,6 +968,9 @@ void mad_dump_perfcounters_sl_rcv_fecn(char *buf, int bufsz, void *val, int vals
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_SL_RCV_FECN_FIRST_F,
+ 		     IB_PC_SL_RCV_FECN_LAST_F);
+ }
+@@ -939,6 +981,9 @@ void mad_dump_perfcounters_sl_rcv_becn(char *buf, int bufsz, void *val, int vals
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_SL_RCV_BECN_FIRST_F,
+ 		     IB_PC_SL_RCV_BECN_LAST_F);
+ }
+@@ -949,6 +994,9 @@ void mad_dump_perfcounters_xmit_con_ctrl(char *buf, int bufsz, void *val, int va
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_XMIT_CON_CTRL_FIRST_F,
+ 		     IB_PC_XMIT_CON_CTRL_LAST_F);
+ }
+@@ -959,6 +1007,9 @@ void mad_dump_perfcounters_vl_xmit_time_cong(char *buf, int bufsz, void *val, in
+ 
+ 	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_PORT_SELECT_F,
+ 			   IB_PC_EXT_XMT_BYTES_F);
++	if (cnt < 0)
++		return;
++
+ 	_dump_fields(buf + cnt, bufsz - cnt, val, IB_PC_VL_XMIT_TIME_CONG_FIRST_F,
+ 		     IB_PC_VL_XMIT_TIME_CONG_LAST_F);
+ }
+-- 
+1.7.9.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
