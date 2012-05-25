@@ -1,126 +1,30 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx4 2/2] Limit qp resources accepted for ibv_create_qp()
-Date: Fri, 25 May 2012 05:57:14 +0300
-Message-ID: <1337914634-13906-3-git-send-email-ogerlitz@mellanox.com>
-References: <1337914634-13906-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH libmlx4 0/2] report correct resources limitations
+Date: Fri, 25 May 2012 05:57:12 +0300
+Message-ID: <1337914634-13906-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1337914634-13906-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagig-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+I'm sending these patches as a response to Sean's query, basically
+I was planning to do so little bit later with more patches, but
+here they are.
 
-Use the limits reported in ib_query_device(). Make sure that the limits
-returned to the caller following qp creation also lie within the
-reported device limits.
+Or.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/mlx4.h  |   16 +++++++++++++++-
+Sagi Grimberg (2):
+  Limit qp resources accepted for ibv_create_qp()
+  Report correct resource limits to a new user context
+
+ src/mlx4.c  |   13 +++++++++++++
+ src/mlx4.h  |   19 ++++++++++++++++++-
  src/qp.c    |    6 ++++--
  src/verbs.c |   18 +++++++++++++-----
- 3 files changed, 32 insertions(+), 8 deletions(-)
+ 4 files changed, 48 insertions(+), 8 deletions(-)
 
-diff --git a/src/mlx4.h b/src/mlx4.h
-index efaa7e9..d9e4822 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -83,10 +83,24 @@
- 
- #define PFX		"mlx4: "
- 
-+#ifndef max
-+#define max(a,b) \
-+ 	({ typeof (a) _a = (a); \
-+ 	   typeof (b) _b = (b); \
-+ 	   _a > _b ? _a : _b; })
-+#endif
-+ 
-+#ifndef min
-+#define min(a,b) \
-+ 	({ typeof (a) _a = (a); \
-+ 	   typeof (b) _b = (b); \
-+ 	   _a < _b ? _a : _b; })
-+#endif
-+
- enum {
- 	MLX4_CQ_ENTRY_SIZE		= 0x20
- };
--
-+  
- enum {
- 	MLX4_STAT_RATE_OFFSET		= 5
- };
-diff --git a/src/qp.c b/src/qp.c
-index 40a6689..8a59568 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -624,6 +624,7 @@ void mlx4_set_sq_sizes(struct mlx4_qp *qp, struct ibv_qp_cap *cap,
- 		       enum ibv_qp_type type)
- {
- 	int wqe_size;
-+	struct mlx4_context *ctx = to_mctx(qp->ibv_qp.context);
- 
- 	wqe_size = (1 << qp->sq.wqe_shift) - sizeof (struct mlx4_wqe_ctrl_seg);
- 	switch (type) {
-@@ -641,8 +642,9 @@ void mlx4_set_sq_sizes(struct mlx4_qp *qp, struct ibv_qp_cap *cap,
- 	}
- 
- 	qp->sq.max_gs	     = wqe_size / sizeof (struct mlx4_wqe_data_seg);
--	cap->max_send_sge    = qp->sq.max_gs;
--	qp->sq.max_post	     = qp->sq.wqe_cnt - qp->sq_spare_wqes;
-+	cap->max_send_sge    = min(ctx->max_sge, qp->sq.max_gs);
-+	qp->sq.max_post	     = min(ctx->max_qp_wr,
-+				   qp->sq.wqe_cnt - qp->sq_spare_wqes);
- 	cap->max_send_wr     = qp->sq.max_post;
- 
- 	/*
-diff --git a/src/verbs.c b/src/verbs.c
-index 408fc6d..f629275 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -390,12 +390,14 @@ struct ibv_qp *mlx4_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
- 	struct ibv_create_qp_resp resp;
- 	struct mlx4_qp		 *qp;
- 	int			  ret;
-+	struct mlx4_context	 *context = to_mctx(pd->context);
-+
- 
- 	/* Sanity check QP size before proceeding */
--	if (attr->cap.max_send_wr     > 65536 ||
--	    attr->cap.max_recv_wr     > 65536 ||
--	    attr->cap.max_send_sge    > 64    ||
--	    attr->cap.max_recv_sge    > 64    ||
-+	if (attr->cap.max_send_wr     > context->max_qp_wr ||
-+	    attr->cap.max_recv_wr     > context->max_qp_wr ||
-+	    attr->cap.max_send_sge    > context->max_sge   ||
-+	    attr->cap.max_recv_sge    > context->max_sge   ||
- 	    attr->cap.max_inline_data > 1024)
- 		return NULL;
- 
-@@ -464,8 +466,14 @@ struct ibv_qp *mlx4_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
- 		goto err_destroy;
- 	pthread_mutex_unlock(&to_mctx(pd->context)->qp_table_mutex);
- 
--	qp->rq.wqe_cnt = qp->rq.max_post = attr->cap.max_recv_wr;
-+	qp->rq.wqe_cnt = attr->cap.max_recv_wr;
- 	qp->rq.max_gs  = attr->cap.max_recv_sge;
-+
-+	/* adjust rq maxima to not exceed reported device maxima */
-+	attr->cap.max_recv_wr = min(context->max_qp_wr, attr->cap.max_recv_wr);
-+	attr->cap.max_recv_sge = min(context->max_sge, attr->cap.max_recv_sge);
-+
-+	qp->rq.max_post = attr->cap.max_recv_wr;
- 	mlx4_set_sq_sizes(qp, &attr->cap, attr->qp_type);
- 
- 	qp->doorbell_qpn    = htonl(qp->ibv_qp.qp_num << 8);
--- 
-1.6.5.5
-
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
