@@ -1,51 +1,51 @@
-From: svserver-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
-Subject: Server Rental Service in HK
-Date: Mon, 28 May 2012 19:31:09 +0800 (HKT)
-Message-ID: <VP1hRT52NxxYw__37258.324356708$1338206750$gmane$org@tpts4.seed.net.tw>
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
+From: Devendra Naga <devendra.aaru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/ocrdma: Remove version.h includes
+Date: Tue, 29 May 2012 12:51:47 +0530
+Message-ID: <1338276107-22169-1-git-send-email-devendra.aaru@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sasha Levin <levinsasha928-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devendra Naga <devendra.aaru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dear All,
+when ran with make versioncheck the ocrdma_verbs.h ocrdma_main.c includes
+version.h which are not needed.
 
-We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
+drivers/infiniband/hw/ocrdma/ocrdma_main.c: 29 linux/version.h not needed.
+drivers/infiniband/hw/ocrdma/ocrdma_verbs.h: 31 linux/version.h not needed.
 
-Dell=3F PowerEdge=3F EnterpriseRack Mount Server
--Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
--8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
--500GB, 3.5", 6Gbps SAS x 2
--Raid 1 Mirroring Protection
--Remote KVM (iDRAC6 Enterprise)
+Signed-off-by: Devendra Naga <devendra.aaru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |    1 -
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |    1 -
+ 2 files changed, 2 deletions(-)
 
-Dell(TM) PowerEdge(TM) R410 Rack Mount Server
--Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
--4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
--500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
--iDRAC6 Enterprise or Express (Remote KVM Management)
-
-Every Dedicated Server Hosting Solution Also Includes: 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index a20d16e..04fef3d 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -26,7 +26,6 @@
+  *******************************************************************/
  
-Software Specification 
-- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
-- Full root-level access 
-- Data Center Facilities 
-- Shared Local & International Bandwidth 
-- 2 IP Addresses Allocation 
-- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
-- FM200=A1=A7based fire suppression system 
-- 24x7 CRAC Air Conditioning and Humidity Control 
-- 24x7 Security Control 
-- 24x7 Remote Hand Service 
-
-Pls send us email for further information.Thanks,
-
-Boris 
-boris-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
-
-If you do not wish to further receive this event message, email "borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
-
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/idr.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_user_verbs.h>
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+index e648343..633f03d 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+@@ -28,7 +28,6 @@
+ #ifndef __OCRDMA_VERBS_H__
+ #define __OCRDMA_VERBS_H__
+ 
+-#include <linux/version.h>
+ int ocrdma_post_send(struct ib_qp *, struct ib_send_wr *,
+ 		     struct ib_send_wr **bad_wr);
+ int ocrdma_post_recv(struct ib_qp *, struct ib_recv_wr *,
+-- 
+1.7.9.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
