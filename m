@@ -1,102 +1,62 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/16] librdmacm/rsocket: Fix hang in rrecv/rsend after
- disconnecting
-Date: Wed, 30 May 2012 17:21:41 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24BE7@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 4/16] librdmacm/acm: Use -1 to indicate an invalid socket
+ rather than 0
+Date: Wed, 30 May 2012 17:21:42 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24BF3@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org" <samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If a user calls rrecv() after a blocking rsocket has been disconnected,
-it will hang.  This problem and the cause was reported by Sridhar Samudrala
-<samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>.  It can be reproduced by running netserver -f -D
-using the rs-preload library.  A similar issue exists with rsend().
-
-Fix this by not blocking on a CQ unless we're connected.
+socket() can return 0 as a valid socket.  This can happen
+when using a daemon that closes stdin/out/err.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Sridhar, can you please let me know if this fixes the hang you were seeing?
-I moved the connected check inside holding the cq lock from the patch that
-you sent me.
+ src/acm.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
- src/rsocket.c |   26 +++++++++++++++++++++++---
- 1 files changed, 23 insertions(+), 3 deletions(-)
-
-diff --git a/src/rsocket.c b/src/rsocket.c
-index 01b7248..8c96dc1 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -908,6 +908,11 @@ static int rs_can_send(struct rsocket *rs)
- 	       (rs->target_sgl[rs->target_sge].length != 0);
+diff --git a/src/acm.c b/src/acm.c
+index bcf11da..9c65919 100755
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -61,7 +61,7 @@ typedef struct acm_msg cma_acm_msg_t;
+ #endif
+ 
+ static pthread_mutex_t acm_lock = PTHREAD_MUTEX_INITIALIZER;
+-static int sock;
++static int sock = -1;
+ static short server_port = 6125;
+ 
+ struct ib_connect_hdr {
+@@ -108,12 +108,12 @@ void ucma_ib_init(void)
+ 
+ err:
+ 	close(sock);
+-	sock = 0;
++	sock = -1;
  }
  
-+static int rs_conn_can_send(struct rsocket *rs)
-+{
-+	return rs_can_send(rs) || (rs->state != rs_connected);
-+}
-+
- static int rs_can_send_ctrl(struct rsocket *rs)
+ void ucma_ib_cleanup(void)
  {
- 	return rs->ctrl_avail;
-@@ -918,6 +923,11 @@ static int rs_have_rdata(struct rsocket *rs)
- 	return (rs->rmsg_head != rs->rmsg_tail);
- }
- 
-+static int rs_conn_have_rdata(struct rsocket *rs)
-+{
-+	return rs_have_rdata(rs) || (rs->state != rs_connected);
-+}
-+
- static int rs_all_sends_done(struct rsocket *rs)
- {
- 	return (rs->sqe_avail + rs->ctrl_avail) == RS_QP_SIZE;
-@@ -980,7 +990,7 @@ ssize_t rrecv(int socket, void *buf, size_t len, int flags)
+-	if (sock > 0) {
++	if (sock >= 0) {
+ 		shutdown(sock, SHUT_RDWR);
+ 		close(sock);
  	}
- 	fastlock_acquire(&rs->rlock);
- 	if (!rs_have_rdata(rs)) {
--		ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_have_rdata);
-+		ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_conn_have_rdata);
- 		if (ret && errno != ECONNRESET)
- 			goto out;
- 	}
-@@ -1084,9 +1094,14 @@ ssize_t rsend(int socket, const void *buf, size_t len, int flags)
- 	fastlock_acquire(&rs->slock);
- 	for (left = len; left; left -= xfer_size, buf += xfer_size) {
- 		if (!rs_can_send(rs)) {
--			ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_can_send);
-+			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
-+					    rs_conn_can_send);
- 			if (ret)
- 				break;
-+			if (rs->state != rs_connected) {
-+				ret = ERR(ECONNRESET);
-+				break;
-+			}
- 		}
+@@ -322,7 +322,7 @@ void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints)
+ 	struct acm_ep_addr_data *data;
+ 	int ret;
  
- 		if (olen < left) {
-@@ -1193,9 +1208,14 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
- 	fastlock_acquire(&rs->slock);
- 	for (left = len; left; left -= xfer_size) {
- 		if (!rs_can_send(rs)) {
--			ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_can_send);
-+			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
-+					    rs_conn_can_send);
- 			if (ret)
- 				break;
-+			if (rs->state != rs_connected) {
-+				ret = ERR(ECONNRESET);
-+				break;
-+			}
- 		}
+-	if (sock <= 0)
++	if (sock < 0)
+ 		return;
  
- 		if (olen < left) {
+ 	memset(&msg, 0, sizeof msg);
 
 
 --
