@@ -1,74 +1,119 @@
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH V3 8/8] infiniband-diags: Add sa_smkey option to config
-	file
-Date: Wed, 30 May 2012 11:43:27 -0700
-Message-ID: <1338403407.17237.860.camel@auk75.llnl.gov>
-References: <1338398414.11948.29.camel@auk75.llnl.gov>
-	 <1338398497-12444-1-git-send-email-foraker1@llnl.gov>
-	 <1338398497-12444-8-git-send-email-foraker1@llnl.gov>
-	 <4FC66196.5030704@dev.mellanox.co.il>
+From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH 3/16] librdmacm/rsocket: Fix hang in rrecv/rsend after
+ disconnecting
+Date: Wed, 30 May 2012 12:10:20 -0700
+Message-ID: <4FC6709C.70304@linux.vnet.ibm.com>
+References: <1828884A29C6694DAF28B7E6B8A8237346A24BE7@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FC66196.5030704-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A24BE7-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org" <samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-On Wed, 2012-05-30 at 11:06 -0700, Hal Rosenstock wrote:
-> On 5/30/2012 1:21 PM, Jim Foraker wrote:
-> > Defines a default for the smkey used in SA requests
-> > 
-> > Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-> > ---
-> >  etc/ibdiag.conf     |    3 +++
-> >  src/ibdiag_common.c |    3 +++
-> >  2 files changed, 6 insertions(+)
-> > 
-> > diff --git a/etc/ibdiag.conf b/etc/ibdiag.conf
-> > index 2a2334f..1e6149d 100644
-> > --- a/etc/ibdiag.conf
-> > +++ b/etc/ibdiag.conf
-> > @@ -17,3 +17,6 @@
-> >  
-> >  # define a default m_key
-> >  #m_key=0x00
-> > +
-> > +# default smkey to be used for SA requests
-> > +#sa_smkey=0x00
-> > diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-> > index c40490a..1301810 100644
-> > --- a/src/ibdiag_common.c
-> > +++ b/src/ibdiag_common.c
-> > @@ -160,6 +160,9 @@ void read_ibdiag_config(const char *file)
-> >  			}
-> >  		} else if (strncmp(name, "m_key", strlen("m_key")) == 0) {
-> >  			ibd_mkey = strtoull(val_str, 0, 0);
-> > +		} else if (strncmp(name, "sa_smkey",
-> > +				   strlen("sa_smkey")) == 0) {
-> 
-> For consistency with OpenSM naming, how about sa_key for this ?
-     That's fine by me.  IIRC, that was actually my first choice, but I
-thought there might be some objections, since it's called smkey in the
-spec.
-
-     Jim
-
-> 
-> -- Hal
-> 
-> > +			ibd_sa_smkey = strtoull(val_str, 0, 0);
-> >  		}
-> >  	}
-> >  
-> 
+On 05/30/2012 10:21 AM, Hefty, Sean wrote:
+> If a user calls rrecv() after a blocking rsocket has been disconnected,
+> it will hang.  This problem and the cause was reported by Sridhar Samudrala
+> <samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>.  It can be reproduced by running netserver -f -D
+> using the rs-preload library.  A similar issue exists with rsend().
+>
+> Fix this by not blocking on a CQ unless we're connected.
+>
+> Signed-off-by: Sean Hefty<sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+> Sridhar, can you please let me know if this fixes the hang you were seeing?
+> I moved the connected check inside holding the cq lock from the patch that
+> you sent me.
+>
+>   src/rsocket.c |   26 +++++++++++++++++++++++---
+>   1 files changed, 23 insertions(+), 3 deletions(-)
+>
+> diff --git a/src/rsocket.c b/src/rsocket.c
+> index 01b7248..8c96dc1 100644
+> --- a/src/rsocket.c
+> +++ b/src/rsocket.c
+> @@ -908,6 +908,11 @@ static int rs_can_send(struct rsocket *rs)
+>   	       (rs->target_sgl[rs->target_sge].length != 0);
+>   }
+>
+> +static int rs_conn_can_send(struct rsocket *rs)
+> +{
+> +	return rs_can_send(rs) || (rs->state != rs_connected);
+> +}
+> +
+>   static int rs_can_send_ctrl(struct rsocket *rs)
+>   {
+>   	return rs->ctrl_avail;
+> @@ -918,6 +923,11 @@ static int rs_have_rdata(struct rsocket *rs)
+>   	return (rs->rmsg_head != rs->rmsg_tail);
+>   }
+>
+> +static int rs_conn_have_rdata(struct rsocket *rs)
+> +{
+> +	return rs_have_rdata(rs) || (rs->state != rs_connected);
+> +}
+> +
+>   static int rs_all_sends_done(struct rsocket *rs)
+>   {
+>   	return (rs->sqe_avail + rs->ctrl_avail) == RS_QP_SIZE;
+> @@ -980,7 +990,7 @@ ssize_t rrecv(int socket, void *buf, size_t len, int flags)
+>   	}
+>   	fastlock_acquire(&rs->rlock);
+>   	if (!rs_have_rdata(rs)) {
+> -		ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_have_rdata);
+> +		ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_conn_have_rdata);
+>   		if (ret&&  errno != ECONNRESET)
+>   			goto out;
+>   	}
+> @@ -1084,9 +1094,14 @@ ssize_t rsend(int socket, const void *buf, size_t len, int flags)
+>   	fastlock_acquire(&rs->slock);
+>   	for (left = len; left; left -= xfer_size, buf += xfer_size) {
+>   		if (!rs_can_send(rs)) {
+> -			ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_can_send);
+> +			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
+> +					    rs_conn_can_send);
+>   			if (ret)
+>   				break;
+> +			if (rs->state != rs_connected) {
+> +				ret = ERR(ECONNRESET);
+> +				break;
+> +			}
+>   		}
+>
+>   		if (olen<  left) {
+> @@ -1193,9 +1208,14 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
+>   	fastlock_acquire(&rs->slock);
+>   	for (left = len; left; left -= xfer_size) {
+>   		if (!rs_can_send(rs)) {
+> -			ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_can_send);
+> +			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
+> +					    rs_conn_can_send);
+>   			if (ret)
+>   				break;
+> +			if (rs->state != rs_connected) {
+> +				ret = ERR(ECONNRESET);
+> +				break;
+> +			}
+>   		}
+>
+>   		if (olen<  left) {
+>
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>
+Sean, Have tested by applying only this patch in the entire series. 
+netperf now seems to be working.
+
+Thanks
+Pradeep
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
