@@ -1,8 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 7/16] librdmacm/rsockets: Reduce QP size if larger than
- hardware maximums
-Date: Wed, 30 May 2012 17:21:43 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24BFF@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 16/16] librdmacm/rstream: Use separate connections for
+ latency/bw tests
+Date: Wed, 30 May 2012 17:21:40 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24BD3@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,279 +12,342 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When porting rsockets to iwarp, it was discovered that the default
-QP size (512) was larger than that supported by the hardware.
-Decrease the size of the QP if the default size is larger than
-the maximum supported by the hardware.
+Optimize each connection for either latency or bandwidth
+results.  This improves small message latency under 384
+bytes by .5 - 1 us, while increasing bandwidth by
+1 - 1.5 Gbps.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/cma.c     |   10 ++++++++
- src/cma.h     |    3 ++-
- src/rsocket.c |   68 ++++++++++++++++++++++++++++++++++++++++++---------------
- 3 files changed, 62 insertions(+), 19 deletions(-)
+ examples/rstream.c |  146 ++++++++++++++++++++++++++++++++++------------------
+ 1 files changed, 96 insertions(+), 50 deletions(-)
 
-diff --git a/src/cma.c b/src/cma.c
-index 2121d06..f688c4c 100755
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -76,6 +76,7 @@ struct cma_device {
- 	struct ibv_pd	   *pd;
- 	uint64_t	    guid;
- 	int		    port_cnt;
-+	int		    max_qpsize;
- 	uint8_t		    max_initiator_depth;
- 	uint8_t		    max_responder_resources;
+diff --git a/examples/rstream.c b/examples/rstream.c
+index 054d11e..48e2771 100644
+--- a/examples/rstream.c
++++ b/examples/rstream.c
+@@ -71,12 +71,20 @@ static struct test_size_param test_size[] = {
  };
-@@ -267,6 +268,7 @@ int ucma_init(void)
- 		}
+ #define TEST_CNT (sizeof test_size / sizeof test_size[0])
  
- 		cma_dev->port_cnt = attr.phys_port_cnt;
-+		cma_dev->max_qpsize = attr.max_qp_wr;
- 		cma_dev->max_initiator_depth = (uint8_t) attr.max_qp_init_rd_atom;
- 		cma_dev->max_responder_resources = (uint8_t) attr.max_qp_rd_atom;
- 		ib += (cma_dev->verbs->device->transport_type == IBV_TRANSPORT_IB);
-@@ -2215,3 +2217,11 @@ void rdma_destroy_ep(struct rdma_cm_id *id)
- 
- 	rdma_destroy_id(id);
- }
++enum rs_optimization {
++	opt_mixed,
++	opt_latency,
++	opt_bandwidth
++};
 +
-+int ucma_max_qpsize(struct rdma_cm_id *id)
-+{
-+	struct cma_id_private *id_priv;
-+
-+	id_priv = container_of(id, struct cma_id_private, id);
-+	return id_priv->cma_dev->max_qpsize;
-+}
-diff --git a/src/cma.h b/src/cma.h
-index 0d94e8b..ffbcbf2 100644
---- a/src/cma.h
-+++ b/src/cma.h
-@@ -67,7 +67,7 @@ static inline uint64_t htonll(uint64_t x) { return x; }
- static inline uint64_t ntohll(uint64_t x) { return x; }
- #endif
- 
--#define min(a, b) (a < b ? a : b)
-+#define min(a, b) ((a) < (b) ? a : b)
- 
- /*
-  * Fast synchronization for low contention locking.
-@@ -104,6 +104,7 @@ static inline void fastlock_release(fastlock_t *lock)
++static int rs, lrs;
+ static int use_rs = 1;
+ static int use_async;
+ static int verify;
+ static int flags = MSG_DONTWAIT;
+ static int poll_timeout = 0;
+ static int custom;
++static enum rs_optimization optimization;
+ static int size_option;
+ static int iterations = 1;
+ static int transfer_size = 1000;
+@@ -242,7 +250,7 @@ static int do_poll(struct pollfd *fds)
+ 	return ret == 1 ? 0 : ret;
  }
- #endif /* DEFINE_ATOMICS */
  
-+int ucma_max_qpsize(struct rdma_cm_id *id);
- int ucma_complete(struct rdma_cm_id *id);
- static inline int ERR(int err)
+-static int send_xfer(int rs, int size)
++static int send_xfer(int size)
  {
-diff --git a/src/rsocket.c b/src/rsocket.c
-index 8c96dc1..59cc13c 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -55,6 +55,8 @@
- #define RS_OLAP_START_SIZE 2048
- #define RS_MAX_TRANSFER 65536
- #define RS_QP_SIZE 512
-+#define RS_QP_MAX_SIZE 0xFFFE
-+#define RS_QP_MIN_SIZE 8
- #define RS_QP_CTRL_SIZE 4
- #define RS_CONN_RETRIES 6
- #define RS_SGL_SIZE 2
-@@ -160,7 +162,9 @@ struct rsocket {
- 	int		  sbuf_bytes_avail;
- 	uint16_t	  sseq_no;
- 	uint16_t	  sseq_comp;
-+	uint16_t	  sq_size;
- 
-+	uint16_t	  rq_size;
- 	uint16_t	  rseq_no;
- 	uint16_t	  rseq_comp;
- 	int		  rbuf_bytes_avail;
-@@ -168,7 +172,7 @@ struct rsocket {
- 	int		  rbuf_offset;
- 	int		  rmsg_head;
- 	int		  rmsg_tail;
--	struct rs_msg	  rmsg[RS_QP_SIZE + 1];
-+	struct rs_msg	  *rmsg;
- 
- 	int		  remote_sge;
- 	struct rs_sge	  remote_sgl;
-@@ -222,8 +226,17 @@ static struct rsocket *rs_alloc(struct rsocket *inherited_rs)
- 		return NULL;
- 
- 	rs->index = -1;
--	rs->sbuf_size = inherited_rs ? inherited_rs->sbuf_size : RS_BUF_SIZE;
--	rs->rbuf_size = inherited_rs ? inherited_rs->rbuf_size : RS_BUF_SIZE;
-+	if (inherited_rs) {
-+		rs->sbuf_size = inherited_rs->sbuf_size;
-+		rs->rbuf_size = inherited_rs->rbuf_size;
-+		rs->sq_size = inherited_rs->sq_size;
-+		rs->rq_size = inherited_rs->rq_size;
-+		rs->ctrl_avail = inherited_rs->ctrl_avail;
-+	} else {
-+		rs->sbuf_size = rs->rbuf_size = RS_BUF_SIZE;
-+		rs->sq_size = rs->rq_size = RS_QP_SIZE;
-+		rs->ctrl_avail = RS_QP_CTRL_SIZE;
-+	}
- 	fastlock_init(&rs->slock);
- 	fastlock_init(&rs->rlock);
- 	fastlock_init(&rs->cq_lock);
-@@ -244,8 +257,24 @@ static int rs_set_nonblocking(struct rsocket *rs, long arg)
- 	return ret;
- }
- 
-+static void rs_set_qp_size(struct rsocket *rs)
-+{
-+	uint16_t max_size;
-+
-+	max_size = min(ucma_max_qpsize(rs->cm_id), RS_QP_MAX_SIZE);
-+
-+	if (rs->sq_size > max_size)
-+		rs->sq_size = max_size;
-+	if (rs->rq_size > max_size)
-+		rs->rq_size = max_size;
-+}
-+
- static int rs_init_bufs(struct rsocket *rs)
- {
-+	rs->rmsg = calloc(rs->rq_size + 1, sizeof(*rs->rmsg));
-+	if (!rs->rmsg)
-+		return -1;
-+
- 	rs->sbuf = calloc(rs->sbuf_size, sizeof(*rs->sbuf));
- 	if (!rs->sbuf)
- 		return -1;
-@@ -273,9 +302,8 @@ static int rs_init_bufs(struct rsocket *rs)
- 
- 	rs->rbuf_free_offset = rs->rbuf_size >> 1;
- 	rs->rbuf_bytes_avail = rs->rbuf_size >> 1;
--	rs->ctrl_avail = RS_QP_CTRL_SIZE;
--	rs->sqe_avail = RS_QP_SIZE - rs->ctrl_avail;
--	rs->rseq_comp = RS_QP_SIZE >> 1;
-+	rs->sqe_avail = rs->sq_size - rs->ctrl_avail;
-+	rs->rseq_comp = rs->rq_size >> 1;
+ 	struct pollfd fds;
+ 	int offset, ret;
+@@ -274,7 +282,7 @@ static int send_xfer(int rs, int size)
  	return 0;
  }
  
-@@ -285,7 +313,7 @@ static int rs_create_cq(struct rsocket *rs)
- 	if (!rs->cm_id->recv_cq_channel)
- 		return -1;
- 
--	rs->cm_id->recv_cq = ibv_create_cq(rs->cm_id->verbs, RS_QP_SIZE * 2,
-+	rs->cm_id->recv_cq = ibv_create_cq(rs->cm_id->verbs, rs->sq_size + rs->rq_size,
- 					   rs->cm_id, rs->cm_id->recv_cq_channel, 0);
- 	if (!rs->cm_id->recv_cq)
- 		goto err1;
-@@ -313,6 +341,7 @@ static int rs_create_ep(struct rsocket *rs)
- 	struct ibv_qp_init_attr qp_attr;
- 	int i, ret;
- 
-+	rs_set_qp_size(rs);
- 	ret = rs_init_bufs(rs);
- 	if (ret)
- 		return ret;
-@@ -327,8 +356,8 @@ static int rs_create_ep(struct rsocket *rs)
- 	qp_attr.recv_cq = rs->cm_id->recv_cq;
- 	qp_attr.qp_type = IBV_QPT_RC;
- 	qp_attr.sq_sig_all = 1;
--	qp_attr.cap.max_send_wr = RS_QP_SIZE;
--	qp_attr.cap.max_recv_wr = RS_QP_SIZE;
-+	qp_attr.cap.max_send_wr = rs->sq_size;
-+	qp_attr.cap.max_recv_wr = rs->rq_size;
- 	qp_attr.cap.max_send_sge = 2;
- 	qp_attr.cap.max_recv_sge = 1;
- 	qp_attr.cap.max_inline_data = RS_INLINE;
-@@ -337,7 +366,7 @@ static int rs_create_ep(struct rsocket *rs)
- 	if (ret)
- 		return ret;
- 
--	for (i = 0; i < RS_QP_SIZE; i++) {
-+	for (i = 0; i < rs->rq_size; i++) {
- 		ret = rdma_post_recvv(rs->cm_id, NULL, NULL, 0);
- 		if (ret)
- 			return ret;
-@@ -350,6 +379,9 @@ static void rs_free(struct rsocket *rs)
- 	if (rs->index >= 0)
- 		rs_remove(rs);
- 
-+	if (rs->rmsg)
-+		free(rs->rmsg);
-+
- 	if (rs->sbuf) {
- 		if (rs->smr)
- 			rdma_dereg_mr(rs->smr);
-@@ -383,7 +415,7 @@ static void rs_set_conn_data(struct rsocket *rs, struct rdma_conn_param *param,
+-static int recv_xfer(int rs, int size)
++static int recv_xfer(int size)
  {
- 	conn->version = 1;
- 	conn->flags = rs_host_is_net() ? RS_CONN_FLAG_NET : 0;
--	conn->credits = htons(RS_QP_SIZE);
-+	conn->credits = htons(rs->rq_size);
- 	conn->reserved2 = 0;
+ 	struct pollfd fds;
+ 	int offset, ret;
+@@ -309,37 +317,37 @@ static int recv_xfer(int rs, int size)
+ 	return 0;
+ }
  
- 	conn->target_sgl.addr = htonll((uintptr_t) rs->target_sgl);
-@@ -703,7 +735,7 @@ static void rs_send_credits(struct rsocket *rs)
- 	struct rs_sge sge;
+-static int sync_test(int rs)
++static int sync_test(void)
+ {
+ 	int ret;
  
- 	rs->ctrl_avail--;
--	rs->rseq_comp = rs->rseq_no + (RS_QP_SIZE >> 1);
-+	rs->rseq_comp = rs->rseq_no + (rs->rq_size >> 1);
- 	if (rs->rbuf_bytes_avail >= (rs->rbuf_size >> 1)) {
- 		if (!(rs->opts & RS_OPT_SWAP_SGL)) {
- 			sge.addr = (uintptr_t) &rs->rbuf[rs->rbuf_free_offset];
-@@ -720,7 +752,7 @@ static void rs_send_credits(struct rsocket *rs)
- 		ibsge.length = sizeof(sge);
+-	ret = dst_addr ? send_xfer(rs, 4) : recv_xfer(rs, 4);
++	ret = dst_addr ? send_xfer(16) : recv_xfer(16);
+ 	if (ret)
+ 		return ret;
  
- 		rs_post_write(rs, 0, &ibsge, 1,
--			      rs_msg_set(RS_OP_SGL, rs->rseq_no + RS_QP_SIZE),
-+			      rs_msg_set(RS_OP_SGL, rs->rseq_no + rs->rq_size),
- 			      IBV_SEND_INLINE,
- 			      rs->remote_sgl.addr +
- 			      rs->remote_sge * sizeof(struct rs_sge),
-@@ -734,7 +766,7 @@ static void rs_send_credits(struct rsocket *rs)
- 			rs->remote_sge = 0;
- 	} else {
- 		rs_post_write(rs, 0, NULL, 0,
--			      rs_msg_set(RS_OP_SGL, rs->rseq_no + RS_QP_SIZE), 0, 0, 0);
-+			      rs_msg_set(RS_OP_SGL, rs->rseq_no + rs->rq_size), 0, 0, 0);
+-	return dst_addr ? recv_xfer(rs, 4) : send_xfer(rs, 4);
++	return dst_addr ? recv_xfer(16) : send_xfer(16);
+ }
+ 
+-static int run_test(int rs)
++static int run_test(void)
+ {
+ 	int ret, i, t;
+ 
+-	ret = sync_test(rs);
++	ret = sync_test();
+ 	if (ret)
+ 		goto out;
+ 
+ 	gettimeofday(&start, NULL);
+ 	for (i = 0; i < iterations; i++) {
+ 		for (t = 0; t < transfer_count; t++) {
+-			ret = dst_addr ? send_xfer(rs, transfer_size) :
+-					 recv_xfer(rs, transfer_size);
++			ret = dst_addr ? send_xfer(transfer_size) :
++					 recv_xfer(transfer_size);
+ 			if (ret)
+ 				goto out;
+ 		}
+ 
+ 		for (t = 0; t < transfer_count; t++) {
+-			ret = dst_addr ? recv_xfer(rs, transfer_size) :
+-					 send_xfer(rs, transfer_size);
++			ret = dst_addr ? recv_xfer(transfer_size) :
++					 send_xfer(transfer_size);
+ 			if (ret)
+ 				goto out;
+ 		}
+@@ -361,6 +369,10 @@ static void set_options(int rs)
+ 			      sizeof buffer_size);
+ 		rs_setsockopt(rs, SOL_SOCKET, SO_RCVBUF, (void *) &buffer_size,
+ 			      sizeof buffer_size);
++	} else {
++		val = 1 << 19;
++		rs_setsockopt(rs, SOL_SOCKET, SO_SNDBUF, (void *) &val, sizeof val);
++		rs_setsockopt(rs, SOL_SOCKET, SO_RCVBUF, (void *) &val, sizeof val);
  	}
+ 
+ 	val = 1;
+@@ -368,13 +380,23 @@ static void set_options(int rs)
+ 
+ 	if (flags & MSG_DONTWAIT)
+ 		rs_fcntl(rs, F_SETFL, O_NONBLOCK);
++
++	if (use_rs) {
++		/* Inline size based on experimental data */
++		if (optimization == opt_latency) {
++			val = 384;
++			rs_setsockopt(rs, SOL_RDMA, RDMA_INLINE, &val, sizeof val);
++		} else if (optimization == opt_bandwidth) {
++			val = 0;
++			rs_setsockopt(rs, SOL_RDMA, RDMA_INLINE, &val, sizeof val);
++		}
++	}
  }
  
-@@ -778,7 +810,7 @@ static int rs_poll_cq(struct rsocket *rs)
- 			default:
- 				rs->rmsg[rs->rmsg_tail].op = rs_msg_op(imm_data);
- 				rs->rmsg[rs->rmsg_tail].data = rs_msg_data(imm_data);
--				if (++rs->rmsg_tail == RS_QP_SIZE + 1)
-+				if (++rs->rmsg_tail == rs->rq_size + 1)
- 					rs->rmsg_tail = 0;
- 				break;
- 			}
-@@ -930,7 +962,7 @@ static int rs_conn_have_rdata(struct rsocket *rs)
- 
- static int rs_all_sends_done(struct rsocket *rs)
+-static int server_connect(void)
++static int server_listen(void)
  {
--	return (rs->sqe_avail + rs->ctrl_avail) == RS_QP_SIZE;
-+	return (rs->sqe_avail + rs->ctrl_avail) == rs->sq_size;
+-	struct pollfd fds;
+ 	struct addrinfo hints, *res;
+-	int rs, lrs, ret;
++	int val, ret;
+ 
+ 	memset(&hints, 0, sizeof hints);
+ 	hints.ai_flags = RAI_PASSIVE;
+@@ -387,30 +409,41 @@ static int server_connect(void)
+ 	lrs = rs_socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+ 	if (lrs < 0) {
+ 		perror("rsocket");
+-		rs = lrs;
++		ret = lrs;
+ 		goto free;
+ 	}
+ 
+-	set_options(lrs);
+-	rs = 1;
+-	rs = rs_setsockopt(lrs, SOL_SOCKET, SO_REUSEADDR, &rs, sizeof rs);
+-	if (rs) {
++	val = 1;
++	ret = rs_setsockopt(lrs, SOL_SOCKET, SO_REUSEADDR, &val, sizeof val);
++	if (ret) {
+ 		perror("rsetsockopt SO_REUSEADDR");
+ 		goto close;
+ 	}
+ 
+-	rs = rs_bind(lrs, res->ai_addr, res->ai_addrlen);
+-	if (rs) {
++	ret = rs_bind(lrs, res->ai_addr, res->ai_addrlen);
++	if (ret) {
+ 		perror("rbind");
+ 		goto close;
+ 	}
+ 
+-	rs = rs_listen(lrs, 1);
+-	if (rs) {
++	ret = rs_listen(lrs, 1);
++	if (ret)
+ 		perror("rlisten");
+-		goto close;
+-	}
+ 
++close:
++	if (ret)
++		rs_close(lrs);
++free:
++	freeaddrinfo(res);
++	return ret;
++}
++
++static int server_connect(void)
++{
++	struct pollfd fds;
++	int ret;
++
++	set_options(lrs);
+ 	do {
+ 		if (use_async) {
+ 			fds.fd = lrs;
+@@ -419,28 +452,26 @@ static int server_connect(void)
+ 			ret = do_poll(&fds);
+ 			if (ret) {
+ 				perror("rpoll");
+-				goto close;
++				return ret;
+ 			}
+ 		}
+ 
+ 		rs = rs_accept(lrs, NULL, 0);
+ 	} while (rs < 0 && (errno == EAGAIN || errno == EWOULDBLOCK));
+-	if (rs < 0)
++	if (rs < 0) {
++		ret = rs;
+ 		perror("raccept");
++	}
+ 
+ 	set_options(rs);
+-close:
+-	rs_close(lrs);
+-free:
+-	freeaddrinfo(res);
+-	return rs;
++	return ret;
  }
  
- static ssize_t rs_peek(struct rsocket *rs, void *buf, size_t len)
-@@ -947,7 +979,7 @@ static ssize_t rs_peek(struct rsocket *rs, void *buf, size_t len)
- 			rsize = left;
- 		} else {
- 			rsize = rs->rmsg[rmsg_head].data;
--			if (++rmsg_head == RS_QP_SIZE + 1)
-+			if (++rmsg_head == rs->rq_size + 1)
- 				rmsg_head = 0;
- 		}
+ static int client_connect(void)
+ {
+ 	struct addrinfo *res;
+ 	struct pollfd fds;
+-	int ret, rs, err;
++	int ret, err;
+ 	socklen_t len;
  
-@@ -1008,7 +1040,7 @@ ssize_t rrecv(int socket, void *buf, size_t len, int flags)
- 		} else {
- 			rs->rseq_no++;
- 			rsize = rs->rmsg[rs->rmsg_head].data;
--			if (++rs->rmsg_head == RS_QP_SIZE + 1)
-+			if (++rs->rmsg_head == rs->rq_size + 1)
- 				rs->rmsg_head = 0;
- 		}
+  	ret = getaddrinfo(dst_addr, port, NULL, &res);
+@@ -452,6 +483,7 @@ static int client_connect(void)
+ 	rs = rs_socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+ 	if (rs < 0) {
+ 		perror("rsocket");
++		ret = rs;
+ 		goto free;
+ 	}
  
+@@ -461,40 +493,38 @@ static int client_connect(void)
+ 	ret = rs_connect(rs, res->ai_addr, res->ai_addrlen);
+ 	if (ret && (errno != EINPROGRESS)) {
+ 		perror("rconnect");
+-		goto err;
++		goto close;
+ 	}
+ 
+-	if (errno == EINPROGRESS) {
++	if (ret && (errno == EINPROGRESS)) {
+ 		fds.fd = rs;
+ 		fds.events = POLLOUT;
+ 		ret = do_poll(&fds);
+ 		if (ret)
+-			goto err;
++			goto close;
+ 
+ 		len = sizeof err;
+ 		ret = rs_getsockopt(rs, SOL_SOCKET, SO_ERROR, &err, &len);
+ 		if (ret)
+-			goto err;
++			goto close;
+ 		if (err) {
+ 			ret = -1;
+ 			errno = err;
+ 			perror("async rconnect");
+-			goto err;
+ 		}
+ 	}
+ 
++close:
++	if (ret)
++		rs_close(rs);
+ free:
+ 	freeaddrinfo(res);
+-	return rs;
+-err:
+-	freeaddrinfo(res);
+-	rs_close(rs);
+ 	return ret;
+ }
+ 
+ static int run(void)
+ {
+-	int i, rs, ret = 0;
++	int i, ret = 0;
+ 
+ 	buf = malloc(!custom ? test_size[TEST_CNT - 1].size : transfer_size);
+ 	if (!buf) {
+@@ -502,29 +532,45 @@ static int run(void)
+ 		return -1;
+ 	}
+ 
+-	rs = dst_addr ? client_connect() : server_connect();
+-	if (rs < 0) {
+-		ret = rs;
+-		goto free;
++	if (!dst_addr) {
++		ret = server_listen();
++		if (ret)
++			goto free;
+ 	}
+ 
+ 	printf("%-10s%-8s%-8s%-8s%-8s%8s %10s%13s\n",
+ 	       "name", "bytes", "xfers", "iters", "total", "time", "Gb/sec", "usec/xfer");
+ 	if (!custom) {
++		optimization = opt_latency;
++		ret = dst_addr ? client_connect() : server_connect();
++		if (ret)
++			goto free;
++
+ 		for (i = 0; i < TEST_CNT; i++) {
+ 			if (test_size[i].option > size_option)
+ 				continue;
+ 			init_latency_test(test_size[i].size);
+-			run_test(rs);
++			run_test();
+ 		}
++		rs_shutdown(rs, SHUT_RDWR);
++		rs_close(rs);
++
++		optimization = opt_bandwidth;
++		ret = dst_addr ? client_connect() : server_connect();
++		if (ret)
++			goto free;
+ 		for (i = 0; i < TEST_CNT; i++) {
+ 			if (test_size[i].option > size_option)
+ 				continue;
+ 			init_bandwidth_test(test_size[i].size);
+-			run_test(rs);
++			run_test();
+ 		}
+ 	} else {
+-		ret = run_test(rs);
++		ret = dst_addr ? client_connect() : server_connect();
++		if (ret)
++			goto free;
++
++		ret = run_test();
+ 	}
+ 
+ 	rs_shutdown(rs, SHUT_RDWR);
 
 
 --
