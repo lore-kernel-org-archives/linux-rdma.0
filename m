@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][RESEND] opensm/osm_ucast_dfsssp.c: Use osm_log_is_active
-Date: Wed, 30 May 2012 10:49:52 -0400
-Message-ID: <4FC63390.5030501@dev.mellanox.co.il>
+Subject: [PATCHv2] opensm/osm_sa_informinfo.c: Add trusted support for InformInfo/InformInfoRecord
+Date: Wed, 30 May 2012 10:58:46 -0400
+Message-ID: <4FC635A6.5070804@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,91 +12,88 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-rather than osm_log_get_level to determine whether log level is active.
-Log level is bit mask so >= doesn't always work properly.
+per C15-0.2-1.16
+
+Compile tested only
+
+Also, fixed one error number (so not duplicated)
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/opensm/osm_ucast_dfsssp.c b/opensm/osm_ucast_dfsssp.c
-index 1e3ade1..3b7b83a 100644
---- a/opensm/osm_ucast_dfsssp.c
-+++ b/opensm/osm_ucast_dfsssp.c
-@@ -1185,7 +1185,7 @@ static int dfsssp_build_graph(void *context)
- 		}
- 	}
- 	/* print the discovered graph */
--	if (osm_log_get_level(p_mgr->p_log) >= OSM_LOG_DEBUG)
-+	if (osm_log_is_active(p_mgr->p_log, OSM_LOG_DEBUG))
- 		dfsssp_print_graph(p_mgr, adj_list, adj_list_size);
+Change since v1:
+Rebased against latest upstream master
+
+diff --git a/opensm/osm_sa_informinfo.c b/opensm/osm_sa_informinfo.c
+index e3f6ffa..772a293 100644
+--- a/opensm/osm_sa_informinfo.c
++++ b/opensm/osm_sa_informinfo.c
+@@ -74,6 +74,7 @@ typedef struct osm_iir_search_ctxt {
+ 	ib_net16_t subscriber_enum;
+ 	osm_sa_t *sa;
+ 	osm_physp_t *p_req_physp;
++	ib_net64_t sm_key;
+ } osm_iir_search_ctxt_t;
  
- 	dfsssp_ctx->adj_list = adj_list;
-@@ -1814,7 +1814,7 @@ static int dfsssp_remove_deadlocks(dfsssp_context_t * dfsssp_ctx)
+ /**********************************************************************
+@@ -291,6 +292,16 @@ static void sa_inform_info_rec_by_comp_mask(IN osm_sa_t * sa,
  
- 	OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
- 		"Virtual Lanes needed: %" PRIu8 "\n", vl_needed);
--	if (osm_log_get_level(p_mgr->p_log) >= OSM_LOG_INFO) {
-+	if (osm_log_is_active(p_mgr->p_log, OSM_LOG_INFO)) {
- 		OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
- 			"Paths per VL (before balancing):\n");
- 		for (i = 0; i < vl_avail; i++)
-@@ -1869,7 +1869,7 @@ static int dfsssp_remove_deadlocks(dfsssp_context_t * dfsssp_ctx)
- 		goto ERROR;
- 	}
- 	/* else { no balancing } */
--	if (osm_log_get_level(p_mgr->p_log) >= OSM_LOG_INFO) {
-+	if (osm_log_is_active(p_mgr->p_log, OSM_LOG_INFO)) {
- 		OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
- 			"Virtual Lanes per src/dest combination after balancing:\n");
- 		vltable_print(p_mgr, srcdest2vl_table);
-@@ -1958,8 +1958,8 @@ static int dfsssp_do_dijkstra_routing(void *context)
- 					     port, lid);
- 				if (err)
- 					return err;
--				if (osm_log_get_level(p_mgr->p_log) >=
--				    OSM_LOG_DEBUG)
-+				if (osm_log_is_active(p_mgr->p_log,
-+				    OSM_LOG_DEBUG))
- 					print_routes(p_mgr, adj_list,
- 						     adj_list_size, port);
+ 	memcpy(&p_rec_item->rec, &p_infr->inform_record,
+ 	       sizeof(ib_inform_info_record_t));
++
++	/*
++	 * Per C15-0.2-1.16, InformInfoRecords shall always be
++	 * provided with the QPN set to 0, except for the case
++	 * of a trusted request, in which case the actual
++	 * subscriber QPN shall be returned.
++	 */
++	if (p_ctxt->sm_key == 0)
++		ib_inform_info_set_qpn(&p_rec_item->rec.inform_info, 0);
++
+ 	cl_qlist_insert_tail(p_ctxt->p_list, &p_rec_item->list_item);
  
-@@ -1974,8 +1974,8 @@ static int dfsssp_do_dijkstra_routing(void *context)
- 				update_weights(p_mgr, adj_list, adj_list_size,
- 					       port);
+ Exit:
+@@ -349,6 +360,7 @@ static void infr_rcv_process_get_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
+ 	context.subscriber_enum = p_rcvd_rec->subscriber_enum;
+ 	context.sa = sa;
+ 	context.p_req_physp = p_req_physp;
++	context.sm_key = p_rcvd_mad->sm_key;
  
--				if (osm_log_get_level(p_mgr->p_log) >=
--				    OSM_LOG_DEBUG)
-+				if (osm_log_is_active(p_mgr->p_log,
-+				    OSM_LOG_DEBUG))
- 					dfsssp_print_graph(p_mgr, adj_list,
- 							   adj_list_size);
- 			}
-@@ -1998,7 +1998,7 @@ static int dfsssp_do_dijkstra_routing(void *context)
- 			    dijkstra(p_mgr, adj_list, adj_list_size, port, lid);
- 			if (err)
- 				return err;
--			if (osm_log_get_level(p_mgr->p_log) >= OSM_LOG_DEBUG)
-+			if (osm_log_is_active(p_mgr->p_log, OSM_LOG_DEBUG))
- 				print_routes(p_mgr, adj_list, adj_list_size,
- 					     port);
+ 	OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
+ 		"Query Subscriber GID:%s(%02X) Enum:0x%X(%02X)\n",
+@@ -440,7 +452,7 @@ static void infr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
+ 	if (p_recvd_inform_info->subscribe > 1) {
+ 		cl_plock_release(sa->p_lock);
  
-@@ -2010,7 +2010,7 @@ static int dfsssp_do_dijkstra_routing(void *context)
- 			/* add weights for calculated routes to adjust the weights for the next cycle */
- 			update_weights(p_mgr, adj_list, adj_list_size, port);
- 
--			if (osm_log_get_level(p_mgr->p_log) >= OSM_LOG_DEBUG)
-+			if (osm_log_is_active(p_mgr->p_log, OSM_LOG_DEBUG))
- 				dfsssp_print_graph(p_mgr, adj_list,
- 						   adj_list_size);
- 		}
-@@ -2032,7 +2032,7 @@ static int dfsssp_do_dijkstra_routing(void *context)
+-		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4308 "
++		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 430A "
+ 			"Invalid subscribe: %d\n",
+ 			p_recvd_inform_info->subscribe);
+ 		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
+@@ -448,6 +460,24 @@ static void infr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
  	}
  
- 	/* print the new_lft for each switch after routing is done */
--	if (osm_log_get_level(p_mgr->p_log) >= OSM_LOG_DEBUG) {
-+	if (osm_log_is_active(p_mgr->p_log, OSM_LOG_DEBUG)) {
- 		for (item = cl_qmap_head(sw_tbl); item != cl_qmap_end(sw_tbl);
- 		     item = cl_qmap_next(item)) {
- 			sw = (osm_switch_t *) item;
+ 	/*
++	 * Per C15-0.2-1.16, SubnAdmSet(InformInfo) subscriptions for
++	 * SM security traps shall be provided only if they come from a
++	 * trusted source.
++	 */
++	if ((p_sa_mad->sm_key == 0) && p_recvd_inform_info->is_generic &&
++	    ((cl_ntoh16(p_recvd_inform_info->g_or_v.generic.trap_num) >= 256) &&
++	     (cl_ntoh16(p_recvd_inform_info->g_or_v.generic.trap_num) <= 259))) {
++		cl_plock_release(sa->p_lock);
++
++		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 430B "
++			"Request for security trap from non-trusted requester: "
++			"Given SM_Key:0x%016" PRIx64 "\n",
++			cl_ntoh64(p_sa_mad->sm_key));
++		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
++		goto Exit;
++	}
++
++	/*
+ 	 * MODIFICATIONS DONE ON INCOMING REQUEST:
+ 	 *
+ 	 * QPN:
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
