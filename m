@@ -1,76 +1,104 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 6/16] librdmacm/rs-preload: Handle recursive socket() calls
-Date: Wed, 30 May 2012 17:21:42 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24BF7@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 12/16] librdmacm/rsockets: Simplify state checks
+Date: Wed, 30 May 2012 17:21:44 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24C1D@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org" <chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
-
-When ACM support is enabled in the librdmacm, it will attempt to
-establish a socket connection to the ACM daemon.  When the rsocket
-preload library is in use, this can result in a recursive call
-to socket() that results in the library hanging.  The resulting
-call stack is:
-
-socket() -> rsocket() -> rdma_create_id() -> ucma_init() ->
-socket() -> rsocket() -> rdma_create_id() -> ucma_init()
-
-The second call to ucma_init() hangs because initialization is
-still pending.
-
-Fix this by checking for recursive calls to socket() in the preload
-library.  When detected, call the real socket() call instead of
-directing the call back into rsockets().  Since rsockets is a part
-of the librdmacm, it can call rsockets directly if it wants to use
-rsockets instead of standard sockets.
-
-This problem and the cause was reported by Chet Murthy <chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org>
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/preload.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+ src/rsocket.c |   26 +++++++++++---------------
+ 1 files changed, 11 insertions(+), 15 deletions(-)
 
-diff --git a/src/preload.c b/src/preload.c
-index 87778eb..99afd26 100644
---- a/src/preload.c
-+++ b/src/preload.c
-@@ -287,21 +287,27 @@ err:
+diff --git a/src/rsocket.c b/src/rsocket.c
+index ef070a8..b89ef42 100644
+--- a/src/rsocket.c
++++ b/src/rsocket.c
+@@ -126,6 +126,9 @@ union rs_wr_id {
+ 	};
+ };
  
- int socket(int domain, int type, int protocol)
- {
-+	static __thread int recursive;
- 	int index, ret;
++/*
++ * rsocket states are ordered as passive, connecting, connected, disconnected.
++ */
+ enum rs_state {
+ 	rs_init,
+ 	rs_bound,
+@@ -134,9 +137,9 @@ enum rs_state {
+ 	rs_resolving_route,
+ 	rs_connecting,
+ 	rs_accepting,
++	rs_connect_error,
+ 	rs_connected,
+ 	rs_disconnected,
+-	rs_connect_error,
+ 	rs_error
+ };
  
-+	if (recursive)
-+		goto real;
+@@ -1021,9 +1024,7 @@ ssize_t rrecv(int socket, void *buf, size_t len, int flags)
+ 	int ret;
+ 
+ 	rs = idm_at(&idm, socket);
+-	if (rs->state != rs_connected &&
+-	    (rs->state == rs_resolving_addr || rs->state == rs_resolving_route ||
+-	     rs->state == rs_connecting || rs->state ==	rs_accepting)) {
++	if (rs->state < rs_connected) {
+ 		ret = rs_do_connect(rs);
+ 		if (ret) {
+ 			if (errno == EINPROGRESS)
+@@ -1125,7 +1126,7 @@ ssize_t rsend(int socket, const void *buf, size_t len, int flags)
+ 	int ret = 0;
+ 
+ 	rs = idm_at(&idm, socket);
+-	if (rs->state != rs_connected) {
++	if (rs->state < rs_connected) {
+ 		ret = rs_do_connect(rs);
+ 		if (ret) {
+ 			if (errno == EINPROGRESS)
+@@ -1234,7 +1235,7 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
+ 	int i, ret = 0;
+ 
+ 	rs = idm_at(&idm, socket);
+-	if (rs->state != rs_connected) {
++	if (rs->state < rs_connected) {
+ 		ret = rs_do_connect(rs);
+ 		if (ret) {
+ 			if (errno == EINPROGRESS)
+@@ -1380,7 +1381,7 @@ static int rs_poll_rs(struct rsocket *rs, int events,
+ 			revents |= POLLOUT;
+ 		if (rs->state == rs_disconnected)
+ 			revents |= POLLHUP;
+-		if (rs->state == rs_error)
++		else if (rs->state == rs_error)
+ 			revents |= POLLERR;
+ 
+ 		return revents;
+@@ -1421,16 +1422,11 @@ static int rs_poll_arm(struct pollfd *rfds, struct pollfd *fds, nfds_t nfds)
+ 			if (fds[i].revents)
+ 				return 1;
+ 
+-			switch (rs->state) {
+-			case rs_connected:
+-			case rs_disconnected:
+-			case rs_error:
++			if (rs->state >= rs_connected)
+ 				rfds[i].fd = rs->cm_id->recv_cq_channel->fd;
+-				break;
+-			default:
++			else
+ 				rfds[i].fd = rs->cm_id->channel->fd;
+-				break;
+-			}
 +
- 	init_preload();
- 	index = fd_open();
- 	if (index < 0)
- 		return index;
- 
-+	recursive = 1;
- 	ret = rsocket(domain, type, protocol);
-+	recursive = 0;
- 	if (ret >= 0) {
- 		fd_store(index, ret, fd_rsocket);
- 		return index;
--	} else {
--		fd_close(index, &ret);
--		return real_socket(domain, type, protocol);
- 	}
-+	fd_close(index, &ret);
-+real:
-+	return real_socket(domain, type, protocol);
- }
- 
- int bind(int socket, const struct sockaddr *addr, socklen_t addrlen)
+ 			rfds[i].events = POLLIN;
+ 		} else {
+ 			rfds[i].fd = fds[i].fd;
 
 
 --
