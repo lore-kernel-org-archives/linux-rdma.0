@@ -1,45 +1,54 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH] srp: convert SRP_RQ_SHIFT into a module parameter
-Date: Wed, 30 May 2012 01:24:25 -0400
-Message-ID: <1338355465.2361.26.camel@obelisk.thedillows.org>
-References: <4FB39D78.9020300@itwm.fraunhofer.de>
-	 <1337177200.2985.71.camel@dabdike.int.hansenpartnership.com>
-	 <4FB3B9DE.1050903@itwm.fraunhofer.de> <4FB3C75F.3070903@cs.wisc.edu>
-	 <4FB3CDC5.9040608@itwm.fraunhofer.de>
-	 <1337187813.21009.14.camel@frustration.ornl.gov>
-	 <4FBA6412.7040505@itwm.fraunhofer.de>
-	 <1338355352.2361.24.camel@obelisk.thedillows.org>
+Subject: Re: [PATCH 01/15] ib_srp: Enlarge block layer timeout
+Date: Wed, 30 May 2012 00:56:21 -0400
+Message-ID: <1338353781.2361.5.camel@obelisk.thedillows.org>
+References: <5207288.nSt5MkVMpO@asus> <1385797.u8D4MDGaaX@asus>
+	  <20120329165931.GA19700@ornl.gov> <4F942B74.4040106@acm.org>
+	 <1335798691.441.2.camel@frustration.ornl.gov> <4FB77AEE.7030100@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1338355352.2361.24.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+In-Reply-To: <4FB77AEE.7030100-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Cc: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2012-05-30 at 01:22 -0400, David Dillow wrote:
-> On Mon, 2012-05-21 at 17:49 +0200, Bernd Schubert wrote:
-> > David, below is a first version to convert SRP_RQ_SHIFT into a new 
-> > module option "srp_rq_size". I already tested it, but I also need to 
-> > re-read it myself.
-> > 
-> > Author: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-> > Date:   Mon May 21 10:25:01 2012 +0200
-> > 
-> >     infiniband/srp: convert SRP_RQ_SHIFT into a module parameter
-> >     
-> >     When SRP_RQ_SHIFT is a fix parameter the optimal value is unclear.
-> >     The current value of 6 might be too small for several storage systems
-> >     and larger values might take too much memory for other systems.
-> >     So make it a parameter and let the admin decide.
+On Sat, 2012-05-19 at 10:50 +0000, Bart Van Assche wrote:
+> On 04/30/12 15:11, David Dillow wrote:
 > 
-> This shouldn't be a module parameter; if at all possible, all new
-> parameters should be specified on a per-target basis, with reasonable
-> defaults. srp_rq_size isn't the right
+> > On Sun, 2012-04-22 at 16:01 +0000, Bart Van Assche wrote:
+> >> On 03/29/12 16:59, Dave Dillow wrote:
+> >>> I haven't chewed on the rest yet, but would like to see this one at
+> >>> least in 3.4 if possible.
+> > 
+> >> If you have further comments about any of the patches in this series,
+> >> these are welcome. The 3.5 merge window isn't that far away anymore.
+> > 
+> > I will attend to this before the end of the week, sooner if possible.
+> 
+> 
+> Hello Dave,
+> 
+> I hope you're still doing fine ?
 
-... name. "queue_depth" or "max_cmd" or "can_queue" would be better.
+Yes, but I've been (mostly) under a rock for the past few weeks on
+higher priority projects at work. Still, that's no excuse for keeping
+you waiting; part of the idea was that I should have faster turn-around
+than Roland...
+
+This first patch was approved and should really go into the current
+merge window if possible. I remain convinced that we should be able to
+do the rest in a cleaner manner, without adding so many additional state
+variables. I may be wrong, though.
+
+My family is leaving Saturday for vacation, so I'll take some evening
+hours this weekend/early next week and see if I can combine our ideas
+into something I'm comfortable with.
+
+Thank you for your exceptional patience,
+
 -- 
 Dave Dillow
 National Center for Computational Science
