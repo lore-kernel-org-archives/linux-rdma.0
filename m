@@ -1,7 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 12/16] librdmacm/rsockets: Simplify state checks
+Subject: [PATCH 10/16] librdmacm/rsocket: Add option to specify size of
+ inline data
 Date: Wed, 30 May 2012 17:21:44 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24C1D@ORSMSX101.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24C0D@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,94 +12,127 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Allow the user to override the default inline data size.
+We still require a minimum size in order to transfer receive
+buffer update message.
+
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/rsocket.c |   26 +++++++++++---------------
- 1 files changed, 11 insertions(+), 15 deletions(-)
+We can eliminate the need for inline entirely by reserving some of the
+send buffer space for control messages, but that work is deferred for
+a later patch.
 
+ include/rdma/rsocket.h |    3 ++-
+ src/rsocket.c          |   21 +++++++++++++++++----
+ 2 files changed, 19 insertions(+), 5 deletions(-)
+
+diff --git a/include/rdma/rsocket.h b/include/rdma/rsocket.h
+index 9fd9929..65feda9 100644
+--- a/include/rdma/rsocket.h
++++ b/include/rdma/rsocket.h
+@@ -75,7 +75,8 @@ int rgetsockname(int socket, struct sockaddr *addr, socklen_t *addrlen);
+ #define SOL_RDMA 0x10000
+ enum {
+ 	RDMA_SQSIZE,
+-	RDMA_RQSIZE
++	RDMA_RQSIZE,
++	RDMA_INLINE
+ };
+ 
+ int rsetsockopt(int socket, int level, int optname,
 diff --git a/src/rsocket.c b/src/rsocket.c
-index ef070a8..b89ef42 100644
+index f94e48a..ef070a8 100644
 --- a/src/rsocket.c
 +++ b/src/rsocket.c
-@@ -126,6 +126,9 @@ union rs_wr_id {
- 	};
+@@ -105,6 +105,7 @@ struct rs_sge {
+ 	uint32_t length;
  };
  
-+/*
-+ * rsocket states are ordered as passive, connecting, connected, disconnected.
-+ */
- enum rs_state {
- 	rs_init,
- 	rs_bound,
-@@ -134,9 +137,9 @@ enum rs_state {
- 	rs_resolving_route,
- 	rs_connecting,
- 	rs_accepting,
-+	rs_connect_error,
- 	rs_connected,
- 	rs_disconnected,
--	rs_connect_error,
- 	rs_error
- };
++#define RS_MIN_INLINE    (sizeof(struct rs_sge))
+ #define rs_host_is_net() (1 == htonl(1))
+ #define RS_CONN_FLAG_NET 1
  
-@@ -1021,9 +1024,7 @@ ssize_t rrecv(int socket, void *buf, size_t len, int flags)
- 	int ret;
+@@ -163,6 +164,7 @@ struct rsocket {
+ 	uint16_t	  sseq_no;
+ 	uint16_t	  sseq_comp;
+ 	uint16_t	  sq_size;
++	uint16_t	  sq_inline;
  
- 	rs = idm_at(&idm, socket);
--	if (rs->state != rs_connected &&
--	    (rs->state == rs_resolving_addr || rs->state == rs_resolving_route ||
--	     rs->state == rs_connecting || rs->state ==	rs_accepting)) {
-+	if (rs->state < rs_connected) {
- 		ret = rs_do_connect(rs);
- 		if (ret) {
- 			if (errno == EINPROGRESS)
-@@ -1125,7 +1126,7 @@ ssize_t rsend(int socket, const void *buf, size_t len, int flags)
- 	int ret = 0;
+ 	uint16_t	  rq_size;
+ 	uint16_t	  rseq_no;
+@@ -229,11 +231,13 @@ static struct rsocket *rs_alloc(struct rsocket *inherited_rs)
+ 	if (inherited_rs) {
+ 		rs->sbuf_size = inherited_rs->sbuf_size;
+ 		rs->rbuf_size = inherited_rs->rbuf_size;
++		rs->sq_inline = inherited_rs->sq_inline;
+ 		rs->sq_size = inherited_rs->sq_size;
+ 		rs->rq_size = inherited_rs->rq_size;
+ 		rs->ctrl_avail = inherited_rs->ctrl_avail;
+ 	} else {
+ 		rs->sbuf_size = rs->rbuf_size = RS_BUF_SIZE;
++		rs->sq_inline = RS_INLINE;
+ 		rs->sq_size = rs->rq_size = RS_QP_SIZE;
+ 		rs->ctrl_avail = RS_QP_CTRL_SIZE;
+ 	}
+@@ -367,7 +371,7 @@ static int rs_create_ep(struct rsocket *rs)
+ 	qp_attr.cap.max_recv_wr = rs->rq_size;
+ 	qp_attr.cap.max_send_sge = 2;
+ 	qp_attr.cap.max_recv_sge = 1;
+-	qp_attr.cap.max_inline_data = RS_INLINE;
++	qp_attr.cap.max_inline_data = rs->sq_inline;
  
- 	rs = idm_at(&idm, socket);
--	if (rs->state != rs_connected) {
-+	if (rs->state < rs_connected) {
- 		ret = rs_do_connect(rs);
- 		if (ret) {
- 			if (errno == EINPROGRESS)
-@@ -1234,7 +1235,7 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
- 	int i, ret = 0;
+ 	ret = rdma_create_qp(rs->cm_id, NULL, &qp_attr);
+ 	if (ret)
+@@ -1156,7 +1160,7 @@ ssize_t rsend(int socket, const void *buf, size_t len, int flags)
+ 		if (xfer_size > rs->target_sgl[rs->target_sge].length)
+ 			xfer_size = rs->target_sgl[rs->target_sge].length;
  
- 	rs = idm_at(&idm, socket);
--	if (rs->state != rs_connected) {
-+	if (rs->state < rs_connected) {
- 		ret = rs_do_connect(rs);
- 		if (ret) {
- 			if (errno == EINPROGRESS)
-@@ -1380,7 +1381,7 @@ static int rs_poll_rs(struct rsocket *rs, int events,
- 			revents |= POLLOUT;
- 		if (rs->state == rs_disconnected)
- 			revents |= POLLHUP;
--		if (rs->state == rs_error)
-+		else if (rs->state == rs_error)
- 			revents |= POLLERR;
- 
- 		return revents;
-@@ -1421,16 +1422,11 @@ static int rs_poll_arm(struct pollfd *rfds, struct pollfd *fds, nfds_t nfds)
- 			if (fds[i].revents)
- 				return 1;
- 
--			switch (rs->state) {
--			case rs_connected:
--			case rs_disconnected:
--			case rs_error:
-+			if (rs->state >= rs_connected)
- 				rfds[i].fd = rs->cm_id->recv_cq_channel->fd;
--				break;
--			default:
-+			else
- 				rfds[i].fd = rs->cm_id->channel->fd;
--				break;
--			}
-+
- 			rfds[i].events = POLLIN;
- 		} else {
- 			rfds[i].fd = fds[i].fd;
+-		if (xfer_size <= RS_INLINE) {
++		if (xfer_size <= rs->sq_inline) {
+ 			sge.addr = (uintptr_t) buf;
+ 			sge.length = xfer_size;
+ 			sge.lkey = 0;
+@@ -1277,7 +1281,7 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
+ 			ret = rs_write_data(rs, rs_wrid(1, xfer_size),
+ 					    rs->ssgl, 1,
+ 					    rs_msg_set(RS_OP_DATA, xfer_size),
+-					    xfer_size <= RS_INLINE ? IBV_SEND_INLINE : 0);
++					    xfer_size <= rs->sq_inline ? IBV_SEND_INLINE : 0);
+ 			if (xfer_size < rs_sbuf_left(rs))
+ 				rs->ssgl[0].addr += xfer_size;
+ 			else
+@@ -1291,7 +1295,7 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
+ 			ret = rs_write_data(rs, rs_wrid(1, xfer_size),
+ 					    rs->ssgl, 2,
+ 					    rs_msg_set(RS_OP_DATA, xfer_size),
+-					    xfer_size <= RS_INLINE ? IBV_SEND_INLINE : 0);
++					    xfer_size <= rs->sq_inline ? IBV_SEND_INLINE : 0);
+ 			rs->ssgl[0].addr = (uintptr_t) rs->sbuf + rs->ssgl[1].length;
+ 		}
+ 		if (ret)
+@@ -1730,6 +1734,11 @@ int rsetsockopt(int socket, int level, int optname,
+ 		case RDMA_RQSIZE:
+ 			rs->rq_size = min((*(uint32_t *) optval), RS_QP_MAX_SIZE);
+ 			break;
++		case RDMA_INLINE:
++			rs->sq_inline = min(*(uint32_t *) optval, RS_QP_MAX_SIZE);
++			if (rs->sq_inline < RS_MIN_INLINE)
++				rs->sq_inline = RS_MIN_INLINE;
++			break;
+ 		default:
+ 			break;
+ 		}
+@@ -1809,6 +1818,10 @@ int rgetsockopt(int socket, int level, int optname,
+ 			*((int *) optval) = rs->rq_size;
+ 			*optlen = sizeof(int);
+ 			break;
++		case RDMA_INLINE:
++			*((int *) optval) = rs->sq_inline;
++			*optlen = sizeof(int);
++			break;
+ 		default:
+ 			ret = ENOTSUP;
+ 			break;
 
 
 --
