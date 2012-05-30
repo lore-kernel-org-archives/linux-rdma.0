@@ -1,8 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 13/16] librdmacm/rsockets: Change the default QP size from
- 512 to 384
-Date: Wed, 30 May 2012 17:21:44 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24C23@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 2/16] librdmacm/rstream: Check for connection error on async
+ connect
+Date: Wed, 30 May 2012 17:21:41 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24BDF@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,30 +12,44 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Simple latency/bandwidth tests using rstream showed minimal
-difference in performance between using a QP sized to 384
-entries versus 512.  Reduce the overhead of a default rsocket
-by using 384 entries.  A user can request a larger size by
-calling rsetsockopt.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/rsocket.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ examples/rstream.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletions(-)
 
-diff --git a/src/rsocket.c b/src/rsocket.c
-index b89ef42..c111797 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -54,7 +54,7 @@
- #define RS_INLINE 64
- #define RS_OLAP_START_SIZE 2048
- #define RS_MAX_TRANSFER 65536
--#define RS_QP_SIZE 512
-+#define RS_QP_SIZE 384
- #define RS_QP_MAX_SIZE 0xFFFE
- #define RS_QP_MIN_SIZE 8
- #define RS_QP_CTRL_SIZE 4
+diff --git a/examples/rstream.c b/examples/rstream.c
+index 104b318..c440f04 100644
+--- a/examples/rstream.c
++++ b/examples/rstream.c
+@@ -448,7 +448,8 @@ static int client_connect(void)
+ {
+ 	struct addrinfo *res;
+ 	struct pollfd fds;
+-	int ret, rs;
++	int ret, rs, err;
++	socklen_t len;
+ 
+  	ret = getaddrinfo(dst_addr, port, NULL, &res);
+ 	if (ret) {
+@@ -477,6 +478,17 @@ static int client_connect(void)
+ 		ret = do_poll(&fds);
+ 		if (ret)
+ 			goto err;
++
++		len = sizeof err;
++		ret = rs_getsockopt(rs, SOL_SOCKET, SO_ERROR, &err, &len);
++		if (ret)
++			goto err;
++		if (err) {
++			ret = -1;
++			errno = err;
++			perror("async rconnect");
++			goto err;
++		}
+ 	}
+ 
+ free:
 
 
 --
