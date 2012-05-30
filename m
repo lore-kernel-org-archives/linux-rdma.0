@@ -1,35 +1,103 @@
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH v3 0/8] Mkey support in infiniband-diags
-Date: Wed, 30 May 2012 10:20:14 -0700
-Message-ID: <1338398414.11948.29.camel@auk75.llnl.gov>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 3/16] librdmacm/rsocket: Fix hang in rrecv/rsend after
+ disconnecting
+Date: Wed, 30 May 2012 17:21:41 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A24BE7@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org" <samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-     I am about to send V3 of the patch set.  Changes include:
+If a user calls rrecv() after a blocking rsocket has been disconnected,
+it will hang.  This problem and the cause was reported by Sridhar Samudrala
+<samudrala-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>.  It can be reproduced by running netserver -f -D
+using the rs-preload library.  A similar issue exists with rsend().
 
-. There is now a common "-K" option which must be passed in order to
-view "sensitive" credentials.  Data is shown as "<not displayed>" rather
-than as invalid/all zeros, as an indication to the user that they should
-pass -K in order to see it.
+Fix this by not blocking on a CQ unless we're connected.
 
-. Documentation is migrated to restructured text and cleaned up
-significantly.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+Sridhar, can you please let me know if this fixes the hang you were seeing?
+I moved the connected check inside holding the cq lock from the patch that
+you sent me.
 
-. The config file now accepts a "sa_smkey" parameter, which sets the
-smkey used in SA requests.  The default config file continues to set
-this to 0 to discourage bad security practice, but the user can now
-configure their own default as they wish.
+ src/rsocket.c |   26 +++++++++++++++++++++++---
+ 1 files changed, 23 insertions(+), 3 deletions(-)
 
-. The changes to ibportstate to display and modify mkey-related
-parameters have been broken out into two separate patches, and the patch
-series reordered into a more logical progression.
+diff --git a/src/rsocket.c b/src/rsocket.c
+index 01b7248..8c96dc1 100644
+--- a/src/rsocket.c
++++ b/src/rsocket.c
+@@ -908,6 +908,11 @@ static int rs_can_send(struct rsocket *rs)
+ 	       (rs->target_sgl[rs->target_sge].length != 0);
+ }
+ 
++static int rs_conn_can_send(struct rsocket *rs)
++{
++	return rs_can_send(rs) || (rs->state != rs_connected);
++}
++
+ static int rs_can_send_ctrl(struct rsocket *rs)
+ {
+ 	return rs->ctrl_avail;
+@@ -918,6 +923,11 @@ static int rs_have_rdata(struct rsocket *rs)
+ 	return (rs->rmsg_head != rs->rmsg_tail);
+ }
+ 
++static int rs_conn_have_rdata(struct rsocket *rs)
++{
++	return rs_have_rdata(rs) || (rs->state != rs_connected);
++}
++
+ static int rs_all_sends_done(struct rsocket *rs)
+ {
+ 	return (rs->sqe_avail + rs->ctrl_avail) == RS_QP_SIZE;
+@@ -980,7 +990,7 @@ ssize_t rrecv(int socket, void *buf, size_t len, int flags)
+ 	}
+ 	fastlock_acquire(&rs->rlock);
+ 	if (!rs_have_rdata(rs)) {
+-		ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_have_rdata);
++		ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_conn_have_rdata);
+ 		if (ret && errno != ECONNRESET)
+ 			goto out;
+ 	}
+@@ -1084,9 +1094,14 @@ ssize_t rsend(int socket, const void *buf, size_t len, int flags)
+ 	fastlock_acquire(&rs->slock);
+ 	for (left = len; left; left -= xfer_size, buf += xfer_size) {
+ 		if (!rs_can_send(rs)) {
+-			ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_can_send);
++			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
++					    rs_conn_can_send);
+ 			if (ret)
+ 				break;
++			if (rs->state != rs_connected) {
++				ret = ERR(ECONNRESET);
++				break;
++			}
+ 		}
+ 
+ 		if (olen < left) {
+@@ -1193,9 +1208,14 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
+ 	fastlock_acquire(&rs->slock);
+ 	for (left = len; left; left -= xfer_size) {
+ 		if (!rs_can_send(rs)) {
+-			ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_can_send);
++			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
++					    rs_conn_can_send);
+ 			if (ret)
+ 				break;
++			if (rs->state != rs_connected) {
++				ret = ERR(ECONNRESET);
++				break;
++			}
+ 		}
+ 
+ 		if (olen < left) {
 
-     Jim
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
