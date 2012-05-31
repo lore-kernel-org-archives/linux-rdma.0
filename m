@@ -1,35 +1,53 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] librdmacm/man/rdma_getaddrinfo.3: Add RDMA_PS_IB to supported
- port spaces
-Date: Thu, 31 May 2012 15:49:25 -0400
-Message-ID: <4FC7CB45.6040608@dev.mellanox.co.il>
+From: "Huang, Parry W." <huang32-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH 1/2] ibsim/ibsim.c: Fixed bug regarding undefined commands
+Date: Thu, 31 May 2012 15:04:11 -0700
+Message-ID: <25EBDF7A-17DB-41FC-9CC8-7F960B6CA304@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+In sim_cmd_file and sim_run_console, fixed bug regarding a new line being kept at the end of the input when an unknown command is processed from console or from file.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Perry Huang <huang32-i2BcT+NCU+M@public.gmane.org>
 ---
-diff --git a/man/rdma_getaddrinfo.3 b/man/rdma_getaddrinfo.3
-index 31c233d..86e00ca 100755
---- a/man/rdma_getaddrinfo.3
-+++ b/man/rdma_getaddrinfo.3
-@@ -55,7 +55,8 @@ are: AF_INET, AF_INET6, and AF_IB.
- Indicates the type of RDMA QP used for communication.  Supported types are:
- IBV_UD (unreliable datagram) and IBV_RC (reliable connected).
- .IP "ai_port_space" 12
--RDMA port space in use.  Supported values are: RDMA_PS_UDP and RDMA_PS_TCP.
-+RDMA port space in use.  Supported values are: RDMA_PS_UDP, RDMA_PS_TCP,
-+and RDMA_PS_IB.
- .IP "ai_src_len" 12
- The length of the source address referenced by ai_src_addr.  This will be 0
- if an appropriate source address could not be discovered for a given
---
+ ibsim/ibsim.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/ibsim/ibsim.c b/ibsim/ibsim.c
+index e720f0d..d894913 100644
+--- a/ibsim/ibsim.c
++++ b/ibsim/ibsim.c
+@@ -546,6 +546,8 @@ int sim_cmd_file(FILE * f, char *s)
+ 	}
+ 
+ 	while (fgets(line, sizeof(line) - 1, cmd_file) != NULL) {
++		if((p = strchr(line, '\n')) != NULL)
++			*p = '\0';
+ 		do_cmd(line, f);
+ 	}
+ 
+@@ -588,11 +590,14 @@ static int sim_run_console(int fd)
+ {
+ 	char line[128];
+ 	int ret = 0;
++	char *p = NULL;
+ 
+ 	ret = readline(fd, line, sizeof(line) - 1);
+ 	if (ret <= 0)
+ 		return ret;
+ 
++	if((p = strchr(line, '\n')) != NULL)
++		*p = '\0';
+ 	do_cmd(line, simout);
+ 	fprintf(simout, "sim%s> ", netstarted ? "" : " (inactive)");
+ 	fflush(simout);
+-- 
+1.7.1--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
