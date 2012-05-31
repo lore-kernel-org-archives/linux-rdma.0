@@ -1,38 +1,56 @@
-From: "Huang, Parry W." <huang32-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 2/2] ibsim/sim_cmd.c: Fixed help output for dump command
-Date: Thu, 31 May 2012 15:05:44 -0700
-Message-ID: <94B19291-0F4A-4AF1-BF1F-D09815D5660D@llnl.gov>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH V3 2/8] infiniband-diags: install config file mode 400
+Date: Thu, 31 May 2012 15:15:27 -0700
+Message-ID: <20120531151527.ac539191.weiny2@llnl.gov>
+References: <1338398414.11948.29.camel@auk75.llnl.gov>
+	<1338398497-12444-1-git-send-email-foraker1@llnl.gov>
+	<1338398497-12444-2-git-send-email-foraker1@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1338398497-12444-2-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In dump_help, fixed help output of the dump command to correspond with the rest of the response.
+On Wed, 30 May 2012 10:21:31 -0700
+Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org> wrote:
 
-Signed-off-by: Perry Huang <huang32-i2BcT+NCU+M@public.gmane.org>
----
- ibsim/sim_cmd.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Necessary so that we may add credentials (ie, mkey) to it
+> 
+> Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 
-diff --git a/ibsim/sim_cmd.c b/ibsim/sim_cmd.c
-index 6d3a893..2da8c28 100644
---- a/ibsim/sim_cmd.c
-+++ b/ibsim/sim_cmd.c
-@@ -799,7 +799,7 @@ static int dump_help(FILE * f)
- 	fprintf(f, "sim> Commands:\n");
- 	fprintf(f, "\t!<filename> - run commands from the file\n");
- 	fprintf(f, "\tStart network\n");
--	fprintf(f, "\tDump [nodeid] (def all network)\n");
-+        fprintf(f, "\tDump [\"nodeid\"] : dump node information in network\n");
- 	fprintf(f, "\tRoute <from-lid> <to-lid>\n");
- 	fprintf(f, "\tLink \"nodeid\"[port] \"remoteid\"[port]\n");
- 	fprintf(f, "\tReLink \"nodeid\" : restore previously unconnected link(s) of the node\n");
+Thanks, applied,
+Ira
+
+> ---
+>  Makefile.am |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/Makefile.am b/Makefile.am
+> index f861000..33b5f90 100644
+> --- a/Makefile.am
+> +++ b/Makefile.am
+> @@ -148,4 +148,4 @@ install-data-hook:
+>  	fi
+>  	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/scripts/IBswcountlimits.pm $(DESTDIR)/$(PERL_INSTALLDIR)/IBswcountlimits.pm
+>  	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
+> -	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
+> +	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
+> -- 
+> 1.7.9.2
+> 
+
+
 -- 
-1.7.1--
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
