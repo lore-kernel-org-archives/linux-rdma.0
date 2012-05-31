@@ -1,88 +1,84 @@
-From: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Question about RDMA_CM_EVENT_ROUTE_ERROR
-Date: Thu, 31 May 2012 13:53:01 -0500
-Message-ID: <4FC7BE0D.2040102@oracle.com>
-References: <4FBEBAD8.5010507@oracle.com> <1828884A29C6694DAF28B7E6B8A8237346A23FFD@ORSMSX101.amr.corp.intel.com> <4FBFBF4D.9090400@oracle.com>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH V3 4/8] infiniband-diags: Allow specification of an
+	mkey to use on the command line
+Date: Thu, 31 May 2012 12:08:17 -0700
+Message-ID: <1338491297.19133.30.camel@auk75.llnl.gov>
+References: <1338398414.11948.29.camel@auk75.llnl.gov>
+	 <1338398497-12444-1-git-send-email-foraker1@llnl.gov>
+	 <1338398497-12444-4-git-send-email-foraker1@llnl.gov>
+	 <4FC75A97.7080106@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FBFBF4D.9090400-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <4FC75A97.7080106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pierre orzechowski <pierre.e.orzechowski-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Michael Nowak <michael.nowak-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/25/2012 12:20 PM, Venkat Venkatsubra wrote:
-> On 5/24/2012 7:18 PM, Hefty, Sean wrote:
->>> We are trying to figure out the cause for RDMA_CM_EVENT_ROUTE_ERROR
->>> errors after a failover event of the bonding driver.
->>> The event status returned is -EINVAL. To gather further information on
->>> when this EINVAL is returned,
->>> I added some debug which showed 3 for mad_hdr.status in the below
->>> function in drivers/infiniband/core/sa_query.c.
->>>
->>> [drivers/infiniband/core/sa_query.c]
->>> static void recv_handler(struct ib_mad_agent *mad_agent, struct
->>> ib_mad_recv_wc *mad_recv_wc)
->>> {
->>>           struct ib_sa_query *query;
->>>           struct ib_mad_send_buf *mad_buf;
->>>
->>>           mad_buf = (void *) (unsigned long) mad_recv_wc->wc->wr_id;
->>>           query = mad_buf->context[0];
->>>
->>>           if (query->callback) {
->>>                   if (mad_recv_wc->wc->status == IB_WC_SUCCESS) {
->>>                           query->callback(query,
->>>
->>> mad_recv_wc->recv_buf.mad->mad_hdr.status ? -EINVAL : 0,
->>>                                           (struct ib_sa_mad *)
->>> mad_recv_wc->recv_buf.mad);
->>>
->>> How do I find out what 3 in mad_recv_wc->recv_buf.mad->mad_hdr.status
->>> stands for ?
->> You would need to look in the IB spec.  Note that the status field is 
->> 16-bits and should be in big endian order.  Assuming, therefore, that 
->> the '3' falls into the upper bits of the status field, this would be 
->> an SA specific status value of ERR_NO_RECORDS.
-> Yes, it is 0x300. My display was in little endian order.
->>
->>> To test RDS reconnect time we are rebooting one of the switch connected
->>> to one port of the bonding driver.
->>> It then fails over to the other port, RDMA CM gets notified which then
->>> notifies RDS.
->>> RDS initiates a reconnect.   rdma_resolve_route results in these 
->>> errors.
->>> There are some 25 connections that try to failover at the same time.
->>> We get this error for a couple of seconds and finally the
->>> rdma_resolve_route succeeds.
->>> Some of them succeed right away. So it may be due to the load generated
->>> by too many rdma_resolve_route.
->> You may need to back up and see what rdma_resolve_addr returns in the 
->> cases where rdma_resolve_route fails, and compare that with 
->> rdma_resolve_addr when rdma_resolve_route succeeds.  Maybe there's be 
->> a timing issue with the SA detecting the switch failure.  Can you 
->> tell if the RDS traffic is actually migrating to the new ports?
-> Ok. I will check what rdma_resolve_addr returns and compare it with a 
-> successful case.
-> Some other connections completed successfully over the new port during 
-> the same period and traffic did go through successfully over them.
->> -Sean 
-> Venkat
-rdma_resolve_addr returned the old GID for the destination IP during 
-these rdma_resolve_route failures.
-Then we found the arp entry for these destination IPs continued pointing 
-to the old GID and did not get updated with the failed over GID.
-Aren't they supposed to be updated through gratuitous arp on a failover 
-? Looks like some entries did not get updated.
-Anyway this is a missing arp entry update issue now. Nothing to do with 
-rdma_resolve_*. ping over ipoib also shows the same failure.
-For testing purpose we tried flushing the arp table right after the 
-failover so that arp requests go out right away and relearn the new GID.
-That worked fine.
 
-Venkat
+On Thu, 2012-05-31 at 04:48 -0700, Hal Rosenstock wrote:
+> On 5/30/2012 1:21 PM, Jim Foraker wrote:
+> > Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+> > ---
+> >  doc/rst/common/opt_m.rst                    |    6 ++++++
+> >  doc/rst/ibaddr.8.in.rst                     |    1 +
+> >  doc/rst/ibccconfig.8.in.rst                 |    1 +
+> >  doc/rst/ibccquery.8.in.rst                  |    1 +
+> >  doc/rst/iblinkinfo.8.in.rst                 |    1 +
+> >  doc/rst/ibnetdiscover.8.in.rst              |    1 +
+> >  doc/rst/ibportstate.8.in.rst                |    1 +
+> >  doc/rst/ibqueryerrors.8.in.rst              |    1 +
+> >  doc/rst/ibroute.8.in.rst                    |    1 +
+> >  doc/rst/ibtracert.8.in.rst                  |    6 ++++++
+> >  doc/rst/perfquery.8.in.rst                  |    1 +
+> >  doc/rst/sminfo.8.in.rst                     |    1 +
+> >  doc/rst/smpquery.8.in.rst                   |    1 +
+> >  include/ibdiag_common.h                     |    1 +
+> >  libibnetdisc/include/infiniband/ibnetdisc.h |    3 ++-
+> >  libibnetdisc/src/ibnetdisc.c                |    1 +
+> >  src/ibaddr.c                                |    2 ++
+> >  src/ibcacheedit.c                           |    2 +-
+> >  src/ibccconfig.c                            |    2 ++
+> >  src/ibccquery.c                             |    2 ++
+> >  src/ibdiag_common.c                         |   13 +++++++++++++
+> >  src/iblinkinfo.c                            |    3 +++
+> >  src/ibnetdiscover.c                         |    2 +-
+> >  src/ibping.c                                |    2 +-
+> >  src/ibportstate.c                           |    2 ++
+> >  src/ibqueryerrors.c                         |    3 +++
+> >  src/ibroute.c                               |    2 ++
+> >  src/ibsendtrap.c                            |    2 ++
+> >  src/ibstat.c                                |    2 +-
+> >  src/ibsysstat.c                             |    2 +-
+> >  src/ibtracert.c                             |    4 +++-
+> >  src/perfquery.c                             |    2 ++
+> >  src/saquery.c                               |    2 +-
+> >  src/sminfo.c                                |    2 ++
+> >  src/smpquery.c                              |    2 ++
+> >  src/vendstat.c                              |    2 +-
+> >  36 files changed, 74 insertions(+), 9 deletions(-)
+> >  create mode 100644 doc/rst/common/opt_m.rst
+> 
+> Do all these tools require mkeys ? AFAIK ibping, ibstat, ibsysstat,
+> perfquery, and vendstat don't.
+     As Ira alluded to, for many of the tools, the only change in this
+patch is to exclude the mkey flag from their options processing.
+     That said, I'm about to post a new version of this patch with two
+changes.  The small one is a fix to mkey handling in libibnetdiscover.
+The big one is a change from using '-m' for the mkey short flag to '-y'.
+It was pointed out that ibnetdiscover has a conflict with -m (display
+max hops).  ibnetdiscover being a popular tool, we didn't want to
+require users to use the long form '--m_key', so we decided to change
+the short flag to one that had no conflicts -- unfortunately, no more
+obvious letters were available, so '-y' it is.
+
+     Jim
+> 
+> Also, for ibccquery/config why is mkey needed ? What about cckey ?
+> 
+> -- Hal
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
