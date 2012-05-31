@@ -1,92 +1,76 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH V3 4/8] infiniband-diags: Allow specification of an mkey
- to use on the command line
-Date: Thu, 31 May 2012 08:18:01 -0700
-Message-ID: <20120531081801.62ccd8b1.weiny2@llnl.gov>
-References: <1338398414.11948.29.camel@auk75.llnl.gov>
-	<1338398497-12444-1-git-send-email-foraker1@llnl.gov>
-	<1338398497-12444-4-git-send-email-foraker1@llnl.gov>
-	<4FC75A97.7080106@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/25 v2] rdma/cm: define native IB address
+Date: Thu, 31 May 2012 11:53:51 -0400
+Message-ID: <4FC7940F.5010309@dev.mellanox.co.il>
+References: <1828884A29C6694DAF28B7E6B8A8237325661ADD@ORSMSX102.amr.corp.intel.com> <CAL1RGDUu9sUbeWgBwivnAeXf+OWX_m5MRrizfzP4ni-FOGxiTQ@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A82373374F1A64@ORSMSX102.amr.corp.intel.com> <CAL1RGDV-oYkNwQQUkAuUEHTH=HbmLk6Kv7JRnJ3XxN1DMNzLNQ@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A823733B7669D7@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FC75A97.7080106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823733B7669D7-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 31 May 2012 07:48:39 -0400
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-
-> On 5/30/2012 1:21 PM, Jim Foraker wrote:
-> > Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-> > ---
-> >  doc/rst/common/opt_m.rst                    |    6 ++++++
-> >  doc/rst/ibaddr.8.in.rst                     |    1 +
-> >  doc/rst/ibccconfig.8.in.rst                 |    1 +
-> >  doc/rst/ibccquery.8.in.rst                  |    1 +
-> >  doc/rst/iblinkinfo.8.in.rst                 |    1 +
-> >  doc/rst/ibnetdiscover.8.in.rst              |    1 +
-> >  doc/rst/ibportstate.8.in.rst                |    1 +
-> >  doc/rst/ibqueryerrors.8.in.rst              |    1 +
-> >  doc/rst/ibroute.8.in.rst                    |    1 +
-> >  doc/rst/ibtracert.8.in.rst                  |    6 ++++++
-> >  doc/rst/perfquery.8.in.rst                  |    1 +
-> >  doc/rst/sminfo.8.in.rst                     |    1 +
-> >  doc/rst/smpquery.8.in.rst                   |    1 +
-> >  include/ibdiag_common.h                     |    1 +
-> >  libibnetdisc/include/infiniband/ibnetdisc.h |    3 ++-
-> >  libibnetdisc/src/ibnetdisc.c                |    1 +
-> >  src/ibaddr.c                                |    2 ++
-> >  src/ibcacheedit.c                           |    2 +-
-> >  src/ibccconfig.c                            |    2 ++
-> >  src/ibccquery.c                             |    2 ++
-> >  src/ibdiag_common.c                         |   13 +++++++++++++
-> >  src/iblinkinfo.c                            |    3 +++
-> >  src/ibnetdiscover.c                         |    2 +-
-> >  src/ibping.c                                |    2 +-
-> >  src/ibportstate.c                           |    2 ++
-> >  src/ibqueryerrors.c                         |    3 +++
-> >  src/ibroute.c                               |    2 ++
-> >  src/ibsendtrap.c                            |    2 ++
-> >  src/ibstat.c                                |    2 +-
-> >  src/ibsysstat.c                             |    2 +-
-> >  src/ibtracert.c                             |    4 +++-
-> >  src/perfquery.c                             |    2 ++
-> >  src/saquery.c                               |    2 +-
-> >  src/sminfo.c                                |    2 ++
-> >  src/smpquery.c                              |    2 ++
-> >  src/vendstat.c                              |    2 +-
-> >  36 files changed, 74 insertions(+), 9 deletions(-)
-> >  create mode 100644 doc/rst/common/opt_m.rst
+On 3/7/2012 12:45 PM, Hefty, Sean wrote:
+>> On Mon, Feb 27, 2012 at 2:22 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>>>>> --- a/include/linux/socket.h
+>>>>> +++ b/include/linux/socket.h
+>>>>> @@ -184,6 +184,7 @@ struct ucred {
+>>>>>  #define AF_PPPOX       24      /* PPPoX sockets                */
+>>>>>  #define AF_WANPIPE     25      /* Wanpipe API Sockets */
+>>>>>  #define AF_LLC         26      /* Linux LLC                    */
+>>>>> +#define AF_IB          27      /* Native InfiniBand address    */
+>>>>>  #define AF_CAN         29      /* Controller Area Network      */
+>>>>>  #define AF_TIPC                30      /* TIPC
+>> sockets                 */
+>>>>>  #define AF_BLUETOOTH   31      /* Bluetooth sockets            */
+>>>>> @@ -227,6 +228,7 @@ struct ucred {
+>>>>>  #define PF_PPPOX       AF_PPPOX
+>>>>>  #define PF_WANPIPE     AF_WANPIPE
+>>>>>  #define PF_LLC         AF_LLC
+>>>>> +#define PF_IB          AF_IB
+>>>>>  #define PF_CAN         AF_CAN
+>>>>>  #define PF_TIPC                AF_TIPC
+>>>>>  #define PF_BLUETOOTH   AF_BLUETOOTH
+>>>>
+>>>> Has this been run by the networking community?  Are they OK with this
+>>>> assignment?
+>>>
+>>> I did copy netdev on the original submissions, but I don't remember any
+>> explicit ack or nack.
+>>
+>> David, any feeling yay or nay about adding these?
+>>
+>> Is the kernel the final arbiter of AF_xxx / PF_xxx assignments, or
+>> is there anything else we have to worry about?
 > 
-> Do all these tools require mkeys ? AFAIK ibping, ibstat, ibsysstat,
-> perfquery, and vendstat don't.
-
-Same issue here as with the "-K" common option.
-
+> To clarify the intent of this change:
 > 
-> Also, for ibccquery/config why is mkey needed ? What about cckey ?
+> The RDMA CM allows users to specify addresses using struct sockaddr.  Today, only INET/6 are supported.  
+> The intent is to allow a user to specify native InfiniBand addresses through that interface.  
+> In the more immediate, this helps to solve InfiniBand scaling issues.
 
-Because ibccquery still does SMP NodeInfo queries for some information about nodes.
+Yes, this is key for InfiniBand scaling.
 
-I think cckey will be a separate patch.  Indeed it will probably use "-K" for obfuscation.
+> Longer term, this can also be used to control path failover.
 
-One thing at a time...  ;-)
-Ira
+This AF_IB patch series appears to be stalled unless I missed something
+on the list. What needs to be done to revive it/move it along ?
+
+Thanks.
+
+-- Hal
 
 > 
-> -- Hal
+> - Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
