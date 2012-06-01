@@ -1,105 +1,168 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: Add SMP/QP0 usage explanation to
- general man page
-Date: Thu, 31 May 2012 18:13:30 -0700
-Message-ID: <20120531181330.e79a903f.weiny2@llnl.gov>
-References: <20120531160249.f23247ea.weiny2@llnl.gov>
-	<4FC80044.8010508@dev.mellanox.co.il>
-	<20120531165831.7282b711.weiny2@llnl.gov>
-	<4FC8157B.7040107@dev.mellanox.co.il>
+Subject: [ANNOUNCE] infiniband-diags 1.6.0 release
+Date: Thu, 31 May 2012 18:15:59 -0700
+Message-ID: <20120531181559.2dd20fa3.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FC8157B.7040107-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 31 May 2012 21:06:03 -0400
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+There is a new release of infiniband-diags.
 
-> On 5/31/2012 7:58 PM, Ira Weiny wrote:
-> > On Thu, 31 May 2012 19:35:32 -0400
-> > Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> > 
-> >> On 5/31/2012 7:02 PM, Ira Weiny wrote:
-> >>>
-> >>>
-> >>> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> >>> ---
-> >>>  doc/rst/infiniband-diags.8.in.rst |   12 ++++++++++++
-> >>>  1 files changed, 12 insertions(+), 0 deletions(-)
-> >>>
-> >>> diff --git a/doc/rst/infiniband-diags.8.in.rst b/doc/rst/infiniband-diags.8.in.rst
-> >>> index 6a86ae2..9cd4524 100644
-> >>> --- a/doc/rst/infiniband-diags.8.in.rst
-> >>> +++ b/doc/rst/infiniband-diags.8.in.rst
-> >>> @@ -23,6 +23,18 @@ may therefore work even in unconfigured subnets.  Other, higher level
-> >>>  utilities, require LID routed MAD's and to some extent SA/SM access.
-> >>>  
-> >>>  
-> >>> +THE USE OF SMP's (QP0)
-> >>> +======================
-> >>> +
-> >>> +Many of the tools in this package rely on the use of SMP's via QP0 to acquire
-> >>
-> >> SMPs
-> > 
-> > done
-> > 
-> >>
-> >>> +data directly from hardware.  
-> >>
-> >> SMA rather than hardware
-> > 
-> > done.
-> > 
-> >>
-> >>> While this mode of operation is not technically
-> >>> +in compliance with the InfiniBand specification, 
-> >>
-> >> I think this is a grey area.
-> > 
-> > I agree. However, I thought with SRIOV support and MKey support it was worth
-> mentioning this.
-> 
-> For SRIOV (guests), the only diags are ibstat and ibstatus right now.
-> Should there be a separate guest package with just those and their man
-> pages ?
+The tarball is available at:
+http://downloads.openfabrics.org/management/infiniband-diags-1.6.0.tar.gz
 
-I don't think so.  Some other tools will work saquery, perfquery, etc.  I know that it can be difficult for users to understand where the use of SMPs might hang them up, but at least this may give them a clue.  Going forward it would be nice to have less dependencies on SMPs.  But I think we agree it will always be nice to query the hardware (SMA) directly.
+60c0e5365f1394ccc88d4f22ae2de09a  infiniband-diags-1.6.0.tar.gz
 
-Ira
+Dependencies:
 
-> 
-> -- Hal
-> 
-> > 
-> > Ira
-> > 
-> >>
-> >> -- Hal
-> >>
-> >>> practical experience has found
-> >>> +that this level of diagnostics is valuable when working with a fabric which is
-> >>> +broken or only partially configured.  For this reason many of these tools may
-> >>> +require the use of an MKey or operation from Virtual Machines may be restricted
-> >>> +for security reasons.
-> >>> +
-> >>> +
-> >>>  COMMON OPTIONS
-> >>>  ==============
-> >>>  
-> >>
-> > 
-> > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        1) libibmad >= 1.3.9
+        2) libibumad >= 1.3.7
+        3) opensm-libs >= 3.3.10
+        4) ib_umad kernel module
+
+
+Release notes v1.5.13 => v1.6.0
+
+   1) Fixed "sa_key" (SA smkey) in saquery.  Along with this the default smkey
+      has been changed to 0.  This means the default queries are "untrusted".
+      A different default (for example to match OpenSM) can be configured in
+      the ibdiags.conf to have "trusted" queries by default.
+
+   2) Some older tools have been deprecated and are no longer in the default
+      build.
+
+        ibcheckerrs ibchecknet ibchecknode ibcheckport ibcheckportwidth
+        ibcheckportstate ibcheckwidth ibcheckstate ibcheckerrors ibdatacounts
+        ibdatacounters ibdiscover.pl ibswportwatch.pl ibqueryerrors.pl
+        iblinkinfo.pl ibprintca.pl ibprintswitch.pl ibprintrt.pl
+        set_nodedesc.sh ibclearerrors ibclearcounters
+
+      Building these tools can be enabled through configure with the
+      --enable-compat-utils option.
+
+      infinband-diags-1.6.x.tar.gz includes this option and will generate the
+      *-compat rpm by default.
+
+   3) mkey support
+
+   4) Additional tools ibccquery ibccconfig
+
+   5) "-u" option is no longer supported (use "-h" instead)
+
+   6) New updated man pages
+
+   7) support for new hardware in vendstat
+
+   8) bug fixes and code clean up
+
+
+
+Git log
+-------
+
+Albert Chu (7):
+      Support ibccquery, congestion control query tool.
+      support --switches-only and --cas-only options in iblinkinfo
+      Fix typo in ibccquery manpage
+      infiniband-diags/src/ibccquery.c: Fix off by one output bug, ccti_limit is 0 based not 1 based
+      infiniband-diags: Support ibccconfig, congestion control setting tool
+      infiniband-diags/src/ibccquery.c: Fix CACongestionSetting inputs
+      infiniband-diags ibcconfig: Update documentation examples
+
+Albert L.Chu (2):
+      Update check_lft_balance.pl to work with newer infiniband-diag tools
+      Add -e heuristic flag to check_lft_balance.pl to detect common scenarios where unbalanced routing will occur.
+
+Alex Netes (1):
+      infiniband-diags/scripts/ibcheckport.in: ignore lid/sm lid checks on non zero port switches
+
+Hal Rosenstock (6):
+      infiniband-diags/perfquery.c: Fix display of PortExtendedSpeedsCounters
+      infiniband-diags/perfquery.c: Fix reset for PortExtendedSpeedsCounters
+      infiniband-diags/configure.in: Fix typo
+      infiniband-diags/vendstat.c: Support IS4/SX firmware version info
+      infiniband-diags/ibportstate.c: Add newly added options to usage
+      infiniband-diags/ibportstate.c: Remove an extra space from warning message
+
+Hefty, Sean (1):
+      RE: [PATCH v2] ib-diags: Add cast to fix build on windows
+
+Ira Weiny (50):
+      infiniband-diags: ibnetdisc Wrap header for use in C++ code
+      infiniband-diags: ibqueryerrors add query failure count
+      Update version in prep for next release
+      Master branch is not moving on to 1.6
+      infiniband-diags: fix installation of error_thresholds file
+      infiniband-diags: iblinkinfo: fix error message
+      infiniband-diags: saquery: use ib-node-name-map file
+      infiniband-diags: iblinkinfo flag ports which were not scanned
+      infiniband-diags: clean up build
+      infiniband-diags: add ibccquery man page to build
+      infiniband-diags: add a general config file
+      infiniband-diags: ibqueryerrors: don't exit on reset error
+      check_lft_balance.pl: Add extra check when using -e heuristic flag in check_lft_balance.pl
+      infiniband-diags: check_lft_balance.pl add -C/-P options
+      infiniband-diags: fix printing of extended speeds when port is down
+      infiniband-diags: move is_mlnx_ext_port_info_supported to common code
+      infiniband-diags: add config file option for Mellanox ExtPortInfo queries
+      infiniband-diags/ibccquery Fix field name
+      ibswitches: fix output when switch names have "base" or "enhanced" in them
+      Fix ibping server when client stops sending.
+      infiniband-diags: Fix saquery error reporting
+      infiniband-diags: remove ib_resolve_smlid_via requirement for sa queries
+      infiniband-diags: remove unused options from check_lft_balance.pl
+      infiniband-diags: saquery further error value clean up.
+      infiniband-diags: preserve long_opts global for use in ibdiag_show_usage
+      infiniband-diags: mark duplicate/lower performing scripts as deprecated.
+      infiniband-diags: move deprecated scripts to "compat" rpm
+      infiniband-diags: remove mad.h from ibstat
+      infiniband-diags: remove SMI class registration where possible
+      infiniband-diags: remove -u common option
+      infiniband-diags: smpdump fix option 'string'
+      infiniband-diags: update ib[hosts|switches|routers] to standard options
+      infiniband-diags: move deprecated scripts to "compat" rpm
+      infiniband-diags: move ibidsverify man page to main rpm
+      infiniband-diags: fix ibidsverify portguid validation.
+      infiniband-diags: ibidsverify exit status 1 on errors found
+      infiniband-diags: check_lft_balance.pl remove unused options
+      infiniband-diags: convert documentation from nroff to rst
+      infiniband-diags: move man/dump_[ml]fts to rst documentation
+      infiniband-diags: move man/ibcc[config|query] to rst documentation
+      infiniband-diags: move man/ibping,ibnodes,ibhosts,ibswitches,ibrouters to rst documentation
+      infiniband-diags: move man/ibportstate,ibstat,ibroute,ibtracert to rst documentation
+      infiniband-diags: move man/perfquery,sminfo,smpdump,smpquery to rst documentation
+      infiniband-diags: move man/saquery,vendstat,ibsysstat,ibfindnodesusing to rst documentation
+      infiniband-diags: move man/check_lft_balance,ibcacheedit,ibstatus,ibidsverify to rst documentation
+      infiniband-diags: fix autogen with new rst documentation
+      infiniband-diags: saquery clarify default smkey option value
+      infiniband-diags: Add SMP/QP0 usage explanation to general man page
+      infiniband-diags: udpate smp documentation in infiniband-diags page
+      infiniband-diags: update README for 1.6.0 release
+
+Jim Foraker (14):
+      infiniband-diags/ibroute.c: Dead code removal
+      infiniband-diags/mcm_rereg_test.c: dead code removal
+      infiniband-diags/mcm_rereg_test.c: Include ib_types.h
+      infiniband-diags: Remove dependencies on ib_resolve_smlid/ib_resolve_self
+      infiniband-diags: migrate resolve_portid_str in from libibmad
+      infiniband-diags: clean up exclude arguments to ibdiag_process_opts()
+      infiniband-diags: Obfuscate sensitive output by default
+      infiniband-diags: install config file mode 400
+      infiniband-diags/ibportstate.c: Display MKey, lease, and protect bits
+      infiniband-diags: Allow specification of an mkey to use on the command line
+      infiniband-diags/ibportstate.c: Support changing MKey, lease, and protect bits
+      infiniband-diags: Add m_key option to config file
+      ib-diags/saquery: Fix smkey handling
+      infiniband-diags: Add SA smkey option to config file
+
+Marcus R Epperson (2):
+      infiniband-diags/src/ibqueryerrors.c: fix segv due to CA port 0 reference
+      infiniband-diags/src/ibqueryerrors.c: don't increment bad_ports for port ALL
+
 
 
 -- 
