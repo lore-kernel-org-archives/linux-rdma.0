@@ -1,97 +1,90 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [ANNOUNCE] libibmad 1.3.9 release
-Date: Thu, 31 May 2012 17:25:58 -0700
-Message-ID: <20120531172558.8c11c4cf.weiny2@llnl.gov>
-References: <20120531165945.fecda3c7.weiny2@llnl.gov>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags: Add SMP/QP0 usage explanation to general
+ man page
+Date: Thu, 31 May 2012 21:06:03 -0400
+Message-ID: <4FC8157B.7040107@dev.mellanox.co.il>
+References: <20120531160249.f23247ea.weiny2@llnl.gov> <4FC80044.8010508@dev.mellanox.co.il> <20120531165831.7282b711.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120531165945.fecda3c7.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20120531165831.7282b711.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 31 May 2012 16:59:45 -0700
-Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+On 5/31/2012 7:58 PM, Ira Weiny wrote:
+> On Thu, 31 May 2012 19:35:32 -0400
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> 
+>> On 5/31/2012 7:02 PM, Ira Weiny wrote:
+>>>
+>>>
+>>> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+>>> ---
+>>>  doc/rst/infiniband-diags.8.in.rst |   12 ++++++++++++
+>>>  1 files changed, 12 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/doc/rst/infiniband-diags.8.in.rst b/doc/rst/infiniband-diags.8.in.rst
+>>> index 6a86ae2..9cd4524 100644
+>>> --- a/doc/rst/infiniband-diags.8.in.rst
+>>> +++ b/doc/rst/infiniband-diags.8.in.rst
+>>> @@ -23,6 +23,18 @@ may therefore work even in unconfigured subnets.  Other, higher level
+>>>  utilities, require LID routed MAD's and to some extent SA/SM access.
+>>>  
+>>>  
+>>> +THE USE OF SMP's (QP0)
+>>> +======================
+>>> +
+>>> +Many of the tools in this package rely on the use of SMP's via QP0 to acquire
+>>
+>> SMPs
+> 
+> done
+> 
+>>
+>>> +data directly from hardware.  
+>>
+>> SMA rather than hardware
+> 
+> done.
+> 
+>>
+>>> While this mode of operation is not technically
+>>> +in compliance with the InfiniBand specification, 
+>>
+>> I think this is a grey area.
+> 
+> I agree. However, I thought with SRIOV support and MKey support it was worth
+mentioning this.
 
-> There is a new release of libibmad.
-> 
-> Tarball available at:[*]
+For SRIOV (guests), the only diags are ibstat and ibstatus right now.
+Should there be a separate guest package with just those and their man
+pages ?
 
-I have managed to fix this problem.  I was confused on the server change.  libibmad is now available at:
+-- Hal
 
-http://downloads.openfabrics.org/management/libibmad-1.3.9.tar.gz
-or
-https://www.openfabrics.org/downloads/management/libibmad-1.3.9.tar.gz
+> 
+> Ira
+> 
+>>
+>> -- Hal
+>>
+>>> practical experience has found
+>>> +that this level of diagnostics is valuable when working with a fabric which is
+>>> +broken or only partially configured.  For this reason many of these tools may
+>>> +require the use of an MKey or operation from Virtual Machines may be restricted
+>>> +for security reasons.
+>>> +
+>>> +
+>>>  COMMON OPTIONS
+>>>  ==============
+>>>  
+>>
+> 
+> 
 
-Sorry,
-Ira
-
-> http://sofa.openfabrics.org/downloads/management/libibmad-1.3.9.tar.gz
-> 
-> 5bff1406b95d6165ae31acc9f01482e0  libibmad-1.3.9.tar.gz
-> 
-> Dependencies:
-> 
-> 	1) libibumad >= 1.3.7
-> 	2) opensm-libs >= 3.3.10
-> 	3) ib_umad kernel module
-> 
-> Release notes for 1.3.8 to 1.3.9 are:
-> 
->    1) bug fixes
->    2) Add support for Congestion Control MAD's
->    3) Add SA NodeRecord
->    4) Add MKey support to ibmad_port object
->    5) Update counter offsets for PortExtendedSpeedsCounters
->    6) Additional print functions
->         classportinfo dump function
-> 	additional debugging
-> 
->    These changes increment the soname to 8 but the library is backwards
->    compatible to soname 5.
-> 
-> 
-> Git log
-> =======
-> 
-> Author: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-> 
->     libibmad/dump.c: clean up boundary conditions in dump routines
->     libibmad: Add MKey support to SMP requests via smp_mkey_get/set()
-> 
-> Author: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> 
->     libibmad/fields.c: Update counter offsets for PortExtendedSpeedsCounters
->     libibmad: Add support for SA NodeRecord
->     libibmad/rpc.c: On receive, add debug info for dumping incoming MAD address
-> 
-> Author: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> 
->     libibmad: fix misspelling
->     libibmad: Add support for congestion control config mads.
->     Support classportinfo dump function
->     Add support for congestion control mads
-> 
-> 
-> [*] I am not sure why the tarball does not appear on www.openfabrics.org/downloads or downloads.openfabrics.org.
-> 
-> -- 
-> Ira Weiny
-> Member of Technical Staff
-> Lawrence Livermore National Lab
-> 925-423-8008
-> weiny2-i2BcT+NCU+M@public.gmane.org
-
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
