@@ -1,73 +1,57 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [ANNOUNCE] libibmad 1.3.9 release
-Date: Thu, 31 May 2012 16:59:45 -0700
-Message-ID: <20120531165945.fecda3c7.weiny2@llnl.gov>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ibacm/acme.c: Eliminate seg fault when source not
+ supplied
+Date: Fri, 1 Jun 2012 00:04:13 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A255F3@ORSMSX101.amr.corp.intel.com>
+References: <4FC6919E.9090805@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FC6919E.9090805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new release of libibmad.
+> diff --git a/src/acme.c b/src/acme.c
+> index d3f8174..533588c 100644
+> --- a/src/acme.c
+> +++ b/src/acme.c
+> @@ -618,12 +618,18 @@ static void resolve(char *svc)
+>  				ret = resolve_name(&path);
+>  				break;
+>  			case 'l':
+> -				memset(&path, 0, sizeof path);
+> -				ret = resolve_lid(&path);
+> +				if (src_addr) {
+> +					memset(&path, 0, sizeof path);
+> +					ret = resolve_lid(&path);
+> +				} else
+> +					ret = -1;
+>  				break;
+>  			case 'g':
+> -				memset(&path, 0, sizeof path);
+> -				ret = resolve_gid(&path);
+> +				if (src_addr) {
+> +					memset(&path, 0, sizeof path);
+> +					ret = resolve_gid(&path);
+> +				} else
+> +					ret = -1;
+>  				break;
+>  			default:
+>  				break;
 
-Tarball available at:[*]
-http://sofa.openfabrics.org/downloads/management/libibmad-1.3.9.tar.gz
+Thanks.
 
-5bff1406b95d6165ae31acc9f01482e0  libibmad-1.3.9.tar.gz
+For this problem, I'd prefer to check for a NULL src_addr in resolve_lid and resolve_gid.  The ibacm service could then select a SLID/SGID based on the specified DLID/DGID.  This makes things easier for the user.
 
-Dependencies:
+But until ibacm handles a 0 SLID/SGID, have ib_acme provide a more usable failure message.
 
-	1) libibumad >= 1.3.7
-	2) opensm-libs >= 3.3.10
-	3) ib_umad kernel module
+I can make this patch if this sounds workable to you.
 
-Release notes for 1.3.8 to 1.3.9 are:
-
-   1) bug fixes
-   2) Add support for Congestion Control MAD's
-   3) Add SA NodeRecord
-   4) Add MKey support to ibmad_port object
-   5) Update counter offsets for PortExtendedSpeedsCounters
-   6) Additional print functions
-        classportinfo dump function
-	additional debugging
-
-   These changes increment the soname to 8 but the library is backwards
-   compatible to soname 5.
-
-
-Git log
-=======
-
-Author: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-
-    libibmad/dump.c: clean up boundary conditions in dump routines
-    libibmad: Add MKey support to SMP requests via smp_mkey_get/set()
-
-Author: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-
-    libibmad/fields.c: Update counter offsets for PortExtendedSpeedsCounters
-    libibmad: Add support for SA NodeRecord
-    libibmad/rpc.c: On receive, add debug info for dumping incoming MAD address
-
-Author: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-
-    libibmad: fix misspelling
-    libibmad: Add support for congestion control config mads.
-    Support classportinfo dump function
-    Add support for congestion control mads
-
-
-[*] I am not sure why the tarball does not appear on www.openfabrics.org/downloads or downloads.openfabrics.org.
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
