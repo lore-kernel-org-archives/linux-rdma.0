@@ -1,42 +1,43 @@
-From: Daniel Klein <danielk-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osmtest: fix timeout and max_retries
-Date: Sun, 03 Jun 2012 11:56:46 +0300
-Message-ID: <4FCB26CE.6040209@dev.mellanox.co.il>
-References: <4FCB2387.3050904@dev.mellanox.co.il>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm: fix locking in osm_guid_mgr_process
+Date: Sun, 3 Jun 2012 12:08:42 +0300
+Message-ID: <20120603090842.GA5279@calypso>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FCB2387.3050904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fix: osmtest doesnt bind to port with given timeout / max_retries
-parameters.
+osm_guid_mgr_process() should take lock when processing alias_guid_list.
 
-Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libvendor/osm_vendor_ibumad_sa.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ opensm/osm_guid_mgr.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/libvendor/osm_vendor_ibumad_sa.c b/libvendor/osm_vendor_ibumad_sa.c
-index 1470624..ce5ee5e 100644
---- a/libvendor/osm_vendor_ibumad_sa.c
-+++ b/libvendor/osm_vendor_ibumad_sa.c
-@@ -240,8 +240,8 @@ osmv_bind_sa(IN osm_vendor_t * const p_vend,
- 	bind_info.is_report_processor = FALSE;
- 	bind_info.send_q_size = OSM_SM_DEFAULT_QP1_RCV_SIZE;
- 	bind_info.recv_q_size = OSM_SM_DEFAULT_QP1_SEND_SIZE;
--	bind_info.timeout = OSM_DEFAULT_TRANS_TIMEOUT_MILLISEC;
--	bind_info.retries = OSM_DEFAULT_RETRY_COUNT;
-+	bind_info.timeout = p_vend->timeout;
-+	bind_info.retries = p_vend->max_retries;
+diff --git a/opensm/osm_guid_mgr.c b/opensm/osm_guid_mgr.c
+index 73a32ac..42c7794 100644
+--- a/opensm/osm_guid_mgr.c
++++ b/opensm/osm_guid_mgr.c
+@@ -129,6 +129,7 @@ void osm_guid_mgr_process(IN osm_sm_t * sm) {
  
- 	/* allocate the new sa bind info */
- 	p_sa_bind_info =
+ 	OSM_LOG(sm->p_log, OSM_LOG_DEBUG, "Processing alias guid list\n");
+ 
++	CL_PLOCK_EXCL_ACQUIRE(sm->p_lock);
+ 	while (cl_qlist_count(&sm->p_subn->alias_guid_list)) {
+ 		p_obj = (osm_guidinfo_work_obj_t *) cl_qlist_remove_head(&sm->p_subn->alias_guid_list);
+ 		guidinfo_set(&sm->p_subn->p_osm->sa, p_obj->p_port,
+@@ -136,5 +137,6 @@ void osm_guid_mgr_process(IN osm_sm_t * sm) {
+ 		osm_guid_work_obj_delete(p_obj);
+ 	}
+ 
++	CL_PLOCK_RELEASE(sm->p_lock);
+ 	OSM_LOG_EXIT(sm->p_log);
+ }
 -- 
-1.7.1
+1.7.10.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
