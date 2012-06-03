@@ -1,13 +1,14 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_ucast_ftree.c: Add a couple of asserts
-Date: Sun, 3 Jun 2012 12:37:54 +0300
-Message-ID: <20120603093754.GC5279@calypso>
-References: <4FC62FBB.30107@dev.mellanox.co.il>
+Subject: Re: [PATCH][TRIVIAL] opensm/include/opensm/osm_log.h: Fix commentary
+ cut 'n paste error
+Date: Sun, 3 Jun 2012 15:02:31 +0300
+Message-ID: <20120603120231.GD5279@calypso>
+References: <4FC631EF.4080209@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4FC62FBB.30107-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4FC631EF.4080209-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -15,9 +16,7 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 10:33 Wed 30 May     , Hal Rosenstock wrote:
-> 
-> Also, fix some commentary typos
+On 10:42 Wed 30 May     , Hal Rosenstock wrote:
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
