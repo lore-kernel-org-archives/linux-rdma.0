@@ -1,58 +1,43 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] ibacm/acme: Eliminate segfault when SLID/SGID not given
-Date: Mon, 4 Jun 2012 19:19:51 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A25C2C@ORSMSX101.amr.corp.intel.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V1 0/4] IB/IPoIB TSS and RSS support for datagram mode
+Date: Tue, 5 Jun 2012 01:19:26 +0300
+Message-ID: <CAJZOPZ+WX6gXAXESWge4ZsQVBun+bhWoui+f5DeKkqB3uEB2Hg@mail.gmail.com>
+References: <1338810598-9488-1-git-send-email-ogerlitz@mellanox.com>
+	<1828884A29C6694DAF28B7E6B8A8237346A25BFF@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A25BFF-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Problem and cause reported by Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, Jun 4, 2012 at 8:06 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- src/acme.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+> > Still, the 1st and most thing to handle here is feedback on the QP
+> > groups concept suggested by this patch set to support TSS/RSS over
+> > verbs. The plan is for this concept to (with little help from a
+> > framework for verbs extension) apply to user space RSS as well,
+> > for both UD and RAW QPs.
 
-diff --git a/src/acme.c b/src/acme.c
-index e6ae188..0e1d4ed 100644
---- a/src/acme.c
-+++ b/src/acme.c
-@@ -495,7 +495,8 @@ static int resolve_lid(struct ibv_path_record *path)
- {
- 	int ret;
- 
--	path->slid = htons((uint16_t) atoi(src_addr));
-+	if (src_addr)
-+		path->slid = htons((uint16_t) atoi(src_addr));
- 	path->dlid = htons((uint16_t) atoi(dest_addr));
- 	path->reversible_numpath = IBV_PATH_RECORD_REVERSIBLE | 1;
- 
-@@ -510,10 +511,13 @@ static int resolve_gid(struct ibv_path_record *path)
- {
- 	int ret;
- 
--	ret = inet_pton(AF_INET6, src_addr, &path->sgid);
--	if (ret <= 0) {
--		printf("inet_pton error on source address (%s): 0x%x\n", src_addr, ret);
--		return ret ? ret : -1;
-+	if (src_addr) {
-+		ret = inet_pton(AF_INET6, src_addr, &path->sgid);
-+		if (ret <= 0) {
-+			printf("inet_pton error on source address (%s): 0x%x\n",
-+			       src_addr, ret);
-+			return ret ? ret : -1;
-+		}
- 	}
- 
- 	ret = inet_pton(AF_INET6, dest_addr, &path->dgid);
+> Conceptually, it seems that there should be more alignment with XRC, which also
+> ends up with an associated group of QPs.
+> Is the use of these QPs restricted to TCP/UDP/IP traffic?
 
+Yep, sure, if its possible to align/squeez/unite these QP groups into
+the XRC interfaces
+could be nice to go that way.
 
+As for you question on the nature of the traffic, for example, RX
+wise, its one QP (the parent) which dispatches traffic to set of
+(child) QPs where with RSS the dispatching is based on hashing which
+is based on the assumptions that the packets are TCP/UDP/IP, below the
+RSS hood, packets for which the HW fails to apply hash on are
+dispatched to a default QP in that set. The suggested scheme matches
+well IB/UD QPs and Ethernet RAW packet QPs.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
