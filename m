@@ -1,111 +1,51 @@
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add per module logging support
-Date: Mon, 04 Jun 2012 17:28:38 -0700
-Message-ID: <1338856118.17237.927.camel@auk75.llnl.gov>
-References: <4FC6918A.9080503@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: Server Rental Service in Hong Kong
+Date: Mon,  4 Jun 2012 16:45:13 +0800 (HKT)
+Message-ID: <Oxt7fy9qztjdh@venus.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FC6918A.9080503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Dear All,
 
-On Wed, 2012-05-30 at 14:30 -0700, Hal Rosenstock wrote:
-> Add _v2 APIs for osm_log, osm_log_is_active, and osm_log_msg_box
-> Also, add these to libopensm.map
-> Add _V2 forms of the various OSM_LOG macros
-     Why are the _V2 macros necessary?  It appears that the calling
-semantics/effect are the same, so why create new macros instead of
-reusing the old ones?  In particular, it seems like you could move the
-FILE_ID defines above the #includes, and then in osm_log.h say things
-like:
+We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
 
-#ifdef FILE_ID
-#define OSM_LOG_ENTER( OSM_LOG_PTR ) \
-        osm_log_v2( OSM_LOG_PTR, OSM_LOG_FUNCS, FILE_ID, \
-                    "%s: [\n", __func__);
-#else
-#define OSM_LOG_ENTER( OSM_LOG_PTR ) \
-        osm_log( OSM_LOG_PTR, OSM_LOG_FUNCS, \
-                 "%s: [\n", __func__);
-#endif
+Dell=3F PowerEdge=3F EnterpriseRack Mount Server
+-Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
+-8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
+-500GB, 3.5", 6Gbps SAS x 2
+-Raid 1 Mirroring Protection
+-Remote KVM (iDRAC6 Enterprise)
 
-     Or just define FILE_ID everywhere (it seems to be missing from many
-of the libvendor files) and make OSM_LOG* always call the v2 functions.
-It seems like this would drastically reduce the patch's footprint.
+Dell(TM) PowerEdge(TM) R410 Rack Mount Server
+-Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
+-4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
+-500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
+-iDRAC6 Enterprise or Express (Remote KVM Management)
 
-> 
-> All of above pass additional parameter to identify module.
-> Each module defines a unique FILE_ID from 0-254.
-> 255 is reserved to indicate "name not found".
-> FILE_ID must match index in osm_subnet.c:module_name_str
-> table. Note also currently that subnet's
-> per_mod_log_tbl is 128 entries (which is enough
-> more than the number of modules).
->  
-     Why are there so many magic numbers here?  It seems like
-per_mod_log_tbl's size could be defined in terms of the final value in
-osm_file_ids_enum (ie, you could add a OSM_FILE_LAST_ENTRY to the enum).
-If find_module_name() is changed to return an int (which is what
-osm_log_v2() already uses as file_id's type, so consistency would be
-improved), it could return -1 on failure, making the limit at 255
-irrelevant as well.
-     Also, how is this expected to work with plugins?  Will plugins be
-expected to use their own logging?
-     Would it be desirable to put FILE_ID (or better yet, module name)
-into the log messages as well?  This would make it a bit easier to find
-where the relevant code is.  We could then phase out the "ERR XXYY"
-scheme, particularly since the XX numbers do not seem to correlate at
-all with FILE_ID.
+Every Dedicated Server Hosting Solution Also Includes: 
+ 
+Software Specification 
+- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
+- Full root-level access 
+- Data Center Facilities 
+- Shared Local & International Bandwidth 
+- 2 IP Addresses Allocation 
+- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
+- FM200=A1=A7based fire suppression system 
+- 24x7 CRAC Air Conditioning and Humidity Control 
+- 24x7 Security Control 
+- 24x7 Remote Hand Service 
 
-     Jim
+Pls send us email for further information.Thanks,
 
-> 
-> Use version 2 API (osm_log_v2) and macros (OSM_LOG_V2_xxxx)
-> in OpenSM client code
-> 
-> Added options to enable/disable per module logging and
-> it's configuration file
-> 
-> Config file format
-> Set of lines with module name and logging level as follows:
-> <module name><separator><logging level>
-> where:
-> module name is file name including .c
-> separator is either = , space, or tab
-> logging level is the same levels as used in the coarse/overall logging
-> as follows:
-> 
->  BIT    LOG LEVEL ENABLED
->  ----   -----------------
->  0x01 - ERROR (error messages)
->  0x02 - INFO (basic messages, low volume)
->  0x04 - VERBOSE (interesting stuff, moderate volume)
->  0x08 - DEBUG (diagnostic, high volume)
->  0x10 - FUNCS (function entry/exit, very high volume)
->  0x20 - FRAMES (dumps all SMP and GMP frames)
->  0x40 - ROUTING (dump FDB routing information)
->  0x80 - currently unused
-> 
-> Add parsing of the configuration file into table of log levels
-> indexed by FILE_ID
-> 
-> Added osm_get_log_per_module routine to obtain the configured info
-> for a supplied module name. This is a new library function.
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> As this patch is too large for email, please find this @
-> https://www.openfabrics.org/~halr/0001-opensm-Add-per-module-logging-support.patch
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Boris 
+boris-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
+
+If you do not wish to further receive this event message, email "borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
