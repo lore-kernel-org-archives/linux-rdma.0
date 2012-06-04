@@ -1,31 +1,53 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next V1 0/4] IB/IPoIB TSS and RSS support for
- datagram mode
-Date: Mon, 4 Jun 2012 17:06:23 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A25BFF@ORSMSX101.amr.corp.intel.com>
-References: <1338810598-9488-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH 2/2] ibacm: Automatically select local port if not specified
+ by path record
+Date: Mon, 4 Jun 2012 19:20:46 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A25C3E@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1338810598-9488-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Still, the 1st and most thing to handle here is feedback on the QP
-> groups concept suggested by this patch set to support TSS/RSS over
-> verbs. The plan is for this concept to (with little help from a
-> framework for verbs extension) apply to user space RSS as well,
-> for both UD and RAW QPs.
+If the user specifies a DLID or DGID as part of a path record lookup,
+automatically select a local port.  This allows a user to query an SA
+without needing to specify the local SLID or SGID.
 
-Conceptually, it seems that there should be more alignment with XRC, which also ends up with an associated group of QPs.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/acm.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-Is the use of these QPs restricted to TCP/UDP/IP traffic?
+diff --git a/src/acm.c b/src/acm.c
+index c940df3..b6fa32f 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -956,7 +956,7 @@ acm_record_path_addr(struct acm_ep *ep, struct acm_dest *dest,
+ 		dest->path.sgid = path->sgid;
+ 		dest->path.slid = path->slid;
+ 	} else {
+-		dest->path.slid = ep->port->lid;
++		dest->path.slid = htons(ep->port->lid);
+ 	}
+ 	dest->path.dlid = path->dlid;
+ 	dest->state = ACM_ADDR_RESOLVED;
+@@ -1762,6 +1762,10 @@ acm_is_path_from_port(struct acm_port *port, struct ibv_path_record *path)
+ 		return (port->lid == (ntohs(path->slid) & port->lid_mask));
+ 	}
+ 
++	if (ib_any_gid(&path->dgid)) {
++		return 1;
++	}
++
+ 	if (acm_gid_index(port, &path->dgid) < port->gid_cnt) {
+ 		return 1;
+ 	}
 
-- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
