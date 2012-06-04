@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 2/4] IB/mlx4: Add support for RSS and TSS QP groups
-Date: Mon,  4 Jun 2012 14:49:56 +0300
-Message-ID: <1338810598-9488-3-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next V1 1/4] IB/core: Add RSS and TSS QP groups
+Date: Mon,  4 Jun 2012 14:49:55 +0300
+Message-ID: <1338810598-9488-2-git-send-email-ogerlitz@mellanox.com>
 References: <1338810598-9488-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1338810598-9488-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,474 +12,326 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Depending on the mlx4 device capabilities, support the RSS IB device
-capability, using Topelitz or XOR hash functions. Support creating QP
-groups where all RX and TX QPs have contiguous QP numbers.
+RSS (Receive Side Scaling) TSS (Transmit Side Scaling, better known as
+MQ/Multi-Queue) are common networking techniques which allow to use
+contemporary NICs that support multiple receive and transmit descriptor
+queues (multi-queue), see also Documentation/networking/scaling.txt
+
+This patch introduces the concept of RSS and TSS QP groups which
+allows for implementing them by low level drivers and using it
+by IPoIB and later also by user space ULPs.
+
+A QP group is a set of QPs consists of a parent QP and two disjoint sets
+of RSS and TSS QPs. The creation of a QP group is a two stage process:
+
+In the the 1st stage, the parent QP is created.
+
+In the 2nd stage the children QPs of the parent are created.
+
+Each child QP indicates if its a RSS or TSS QP. Both the TSS
+and RSS sets of QPs should have contiguous QP numbers.
+
+A few new elements/concepts are introduced to support this:
+
+Three new device capabilities that can be set by the low level driver:
+
+- IB_DEVICE_QPG which is set to indicate QP groups are supported.
+
+- IB_DEVICE_UD_RSS which is set to indicate that the device supports
+RSS, that is applying hash function on incoming TCP/UDP/IP packets and
+dispatching them to multiple "rings" (child QPs).
+
+- IB_DEVICE_UD_TSS which is set to indicate that the device supports
+"HW TSS" which means that the HW is capable of over-riding the source
+UD QPN present in sent IB datagram header (DTH) with the parent's QPN.
+
+Low level drivers not supporting HW TSS, could still support QP groups, such
+as combination is referred as "SW TSS". Where in this case, the low level drive
+fills in the qpg_tss_mask_sz field of struct ib_qp_cap returned from
+ib_create_qp. Such that this mask can be used to retrieve the parent QPN from
+incoming packets carrying a child QPN (as of the contiguous QP numbers requirement).
+
+- max rss table size device attribute, which is the maximal size of the RSS
+indirection table  supported by the device
+
+- qp group type attribute for qp creation saying whether this is a parent QP
+or rx/tx (rss/tss) child QP or none of the above for non rss/tss QPs.
+
+- per qp group type, another attribute is added, for parent QPs, the number
+of rx/tx child QPs and for child QPs pointer to the parent.
+
+- IB_QP_GROUP_RSS attribute mask, which should be used when modifying
+the parent QP state from reset to init
 
 Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c    |    5 +
- drivers/infiniband/hw/mlx4/mlx4_ib.h |   13 ++
- drivers/infiniband/hw/mlx4/qp.c      |  342 ++++++++++++++++++++++++++++++++-
- 3 files changed, 349 insertions(+), 11 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c         |    1 +
+ drivers/infiniband/core/verbs.c              |    3 +++
+ drivers/infiniband/hw/amso1100/c2_provider.c |    3 +++
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 ++
+ drivers/infiniband/hw/cxgb4/qp.c             |    3 +++
+ drivers/infiniband/hw/ehca/ehca_qp.c         |    3 +++
+ drivers/infiniband/hw/ipath/ipath_qp.c       |    3 +++
+ drivers/infiniband/hw/mlx4/qp.c              |    3 +++
+ drivers/infiniband/hw/mthca/mthca_provider.c |    3 +++
+ drivers/infiniband/hw/nes/nes_verbs.c        |    3 +++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    5 +++++
+ drivers/infiniband/hw/qib/qib_qp.c           |    5 +++++
+ include/rdma/ib_verbs.h                      |   26 +++++++++++++++++++++++++-
+ 13 files changed, 62 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 8afea12..c77072c 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -131,6 +131,11 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC)
- 		props->device_cap_flags |= IB_DEVICE_XRC;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index f9d0d7c..09e410e 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1466,6 +1466,7 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ 	attr.sq_sig_type   = cmd.sq_sig_all ? IB_SIGNAL_ALL_WR : IB_SIGNAL_REQ_WR;
+ 	attr.qp_type       = cmd.qp_type;
+ 	attr.create_flags  = 0;
++	attr.qpg_type      = IB_QPG_NONE;
  
-+	props->device_cap_flags |= IB_DEVICE_QPG;
-+	if (dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS) {
-+		props->device_cap_flags |= IB_DEVICE_UD_RSS;
-+		props->max_rss_tbl_sz = dev->dev->caps.max_rss_tbl_sz;
-+	}
- 	props->vendor_id	   = be32_to_cpup((__be32 *) (out_mad->data + 36)) &
- 		0xffffff;
- 	props->vendor_part_id	   = be16_to_cpup((__be16 *) (out_mad->data + 30));
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index e62297c..61b5010 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -126,6 +126,17 @@ struct mlx4_ib_gid_entry {
- 	u8			port;
- };
+ 	attr.cap.max_send_wr     = cmd.max_send_wr;
+ 	attr.cap.max_recv_wr     = cmd.max_recv_wr;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 30f199e..bbe0e5f 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -496,6 +496,9 @@ static const struct {
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_QKEY),
++			},
++			.opt_param = {
++				[IB_QPT_UD]  = IB_QP_GROUP_RSS
+ 			}
+ 		},
+ 	},
+diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
+index 07eb3a8..546760b 100644
+--- a/drivers/infiniband/hw/amso1100/c2_provider.c
++++ b/drivers/infiniband/hw/amso1100/c2_provider.c
+@@ -241,6 +241,9 @@ static struct ib_qp *c2_create_qp(struct ib_pd *pd,
+ 	if (init_attr->create_flags)
+ 		return ERR_PTR(-EINVAL);
  
-+struct mlx4_ib_qpg_data {
-+	unsigned long *tss_bitmap;
-+	unsigned long *rss_bitmap;
-+	struct mlx4_ib_qp *qpg_parent;
-+	int tss_qpn_base;
-+	int rss_qpn_base;
-+	u32 tss_child_count;
-+	u32 rss_child_count;
-+	u32 qpg_tss_mask_sz;
-+};
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
 +
- struct mlx4_ib_qp {
- 	struct ib_qp		ibqp;
- 	struct mlx4_qp		mqp;
-@@ -154,6 +165,8 @@ struct mlx4_ib_qp {
- 	u8			sq_no_prefetch;
- 	u8			state;
- 	int			mlx_type;
-+	enum ib_qpg_type	qpg_type;
-+	struct mlx4_ib_qpg_data *qpg_data;
- 	struct list_head	gid_list;
- };
+ 	switch (init_attr->qp_type) {
+ 	case IB_QPT_RC:
+ 		qp = kzalloc(sizeof(*qp), GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index 0bdf09a..49850f6 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -902,6 +902,8 @@ static struct ib_qp *iwch_create_qp(struct ib_pd *pd,
+ 	PDBG("%s ib_pd %p\n", __func__, pd);
+ 	if (attrs->qp_type != IB_QPT_RC)
+ 		return ERR_PTR(-EINVAL);
++	if (attrs->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
+ 	php = to_iwch_pd(pd);
+ 	rhp = php->rhp;
+ 	schp = get_chp(rhp, ((struct iwch_cq *) attrs->send_cq)->cq.cqid);
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 45aedf1..a15f9d3 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -1474,6 +1474,9 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
+ 	if (attrs->qp_type != IB_QPT_RC)
+ 		return ERR_PTR(-EINVAL);
  
++	if (attrs->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	php = to_c4iw_pd(pd);
+ 	rhp = php->rhp;
+ 	schp = get_chp(rhp, ((struct c4iw_cq *)attrs->send_cq)->cq.cqid);
+diff --git a/drivers/infiniband/hw/ehca/ehca_qp.c b/drivers/infiniband/hw/ehca/ehca_qp.c
+index 964f855..07832b7 100644
+--- a/drivers/infiniband/hw/ehca/ehca_qp.c
++++ b/drivers/infiniband/hw/ehca/ehca_qp.c
+@@ -464,6 +464,9 @@ static struct ehca_qp *internal_create_qp(
+ 	int is_llqp = 0, has_srq = 0, is_user = 0;
+ 	int qp_type, max_send_sge, max_recv_sge, ret;
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	/* h_call's out parameters */
+ 	struct ehca_alloc_qp_parms parms;
+ 	u32 swqe_size = 0, rwqe_size = 0, ib_qp_num;
+diff --git a/drivers/infiniband/hw/ipath/ipath_qp.c b/drivers/infiniband/hw/ipath/ipath_qp.c
+index 0857a9c..117b775 100644
+--- a/drivers/infiniband/hw/ipath/ipath_qp.c
++++ b/drivers/infiniband/hw/ipath/ipath_qp.c
+@@ -755,6 +755,9 @@ struct ib_qp *ipath_create_qp(struct ib_pd *ibpd,
+ 		goto bail;
+ 	}
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	if (init_attr->cap.max_send_sge > ib_ipath_max_sges ||
+ 	    init_attr->cap.max_send_wr > ib_ipath_max_qp_wrs) {
+ 		ret = ERR_PTR(-EINVAL);
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index cac76da..c2df3e0 100644
+index ceb3332..cac76da 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -34,6 +34,8 @@
- #include <linux/log2.h>
- #include <linux/slab.h>
- #include <linux/netdevice.h>
-+#include <linux/bitmap.h>
-+#include <linux/bitops.h>
- 
- #include <rdma/ib_cache.h>
- #include <rdma/ib_pack.h>
-@@ -475,6 +477,241 @@ static int qp_has_rq(struct ib_qp_init_attr *attr)
- 	return !attr->srq;
- }
- 
-+static int init_qpg_parent(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *pqp,
-+			   struct ib_qp_init_attr *attr, int *qpn)
-+{
-+	struct mlx4_ib_qpg_data *qpg_data;
-+	int tss_num, rss_num;
-+	int tss_align_num, rss_align_num;
-+	int tss_base, rss_base;
-+	int err;
-+
-+	/* Parent is part of the TSS range (in SW TSS ARP is sent via parent) */
-+	tss_num = 1 + attr->parent_attrib.tss_child_count;
-+	tss_align_num = roundup_pow_of_two(tss_num);
-+	rss_num = attr->parent_attrib.rss_child_count;
-+	rss_align_num = roundup_pow_of_two(rss_num);
-+
-+	if (rss_num > 1) {
-+		/* RSS is requested */
-+		if (!(dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS))
-+			return -ENOSYS;
-+		if (rss_align_num > dev->dev->caps.max_rss_tbl_sz)
-+			return -EINVAL;
-+		/* We must work with power of two */
-+		attr->parent_attrib.rss_child_count = rss_align_num;
-+	}
-+
-+	qpg_data = kzalloc(sizeof *qpg_data, GFP_KERNEL);
-+	if (!qpg_data)
-+		return -ENOMEM;
-+
-+	err = mlx4_qp_reserve_range(dev->dev, tss_align_num,
-+				    tss_align_num, &tss_base);
-+	if (err)
-+		goto err1;
-+
-+	if (tss_num > 1) {
-+		u32 alloc = BITS_TO_LONGS(tss_align_num)  * sizeof(long);
-+		qpg_data->tss_bitmap = kzalloc(alloc, GFP_KERNEL);
-+		if (qpg_data->tss_bitmap == NULL) {
-+			err = -ENOMEM;
-+			goto err2;
-+		}
-+		bitmap_fill(qpg_data->tss_bitmap, tss_num);
-+		/* Note parent takes first index */
-+		clear_bit(0, qpg_data->tss_bitmap);
-+	}
-+
-+	if (rss_num > 1) {
-+		u32 alloc = BITS_TO_LONGS(rss_align_num) * sizeof(long);
-+		err = mlx4_qp_reserve_range(dev->dev, rss_align_num,
-+					    rss_align_num, &rss_base);
-+		if (err)
-+			goto err3;
-+		qpg_data->rss_bitmap = kzalloc(alloc, GFP_KERNEL);
-+		if (qpg_data->rss_bitmap == NULL) {
-+			err = -ENOMEM;
-+			goto err4;
-+		}
-+		bitmap_fill(qpg_data->rss_bitmap, rss_align_num);
-+	}
-+
-+	qpg_data->tss_child_count = attr->parent_attrib.tss_child_count;
-+	qpg_data->rss_child_count = attr->parent_attrib.rss_child_count;
-+	qpg_data->qpg_parent = pqp;
-+	qpg_data->qpg_tss_mask_sz = ilog2(tss_align_num);
-+	qpg_data->tss_qpn_base = tss_base;
-+	qpg_data->rss_qpn_base = rss_base;
-+
-+	pqp->qpg_data = qpg_data;
-+	*qpn = tss_base;
-+
-+	return 0;
-+
-+err4:
-+	mlx4_qp_release_range(dev->dev, rss_base, rss_align_num);
-+
-+err3:
-+	if (tss_num > 1)
-+		kfree(qpg_data->tss_bitmap);
-+
-+err2:
-+	mlx4_qp_release_range(dev->dev, tss_base, tss_align_num);
-+
-+err1:
-+	kfree(qpg_data);
-+	return err;
-+}
-+
-+static void free_qpg_parent(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *pqp)
-+{
-+	struct mlx4_ib_qpg_data *qpg_data = pqp->qpg_data;
-+	int align_num;
-+
-+	if (qpg_data->tss_child_count > 1)
-+		kfree(qpg_data->tss_bitmap);
-+
-+	align_num = roundup_pow_of_two(1 + qpg_data->tss_child_count);
-+	mlx4_qp_release_range(dev->dev, qpg_data->tss_qpn_base, align_num);
-+
-+	if (qpg_data->rss_child_count > 1) {
-+		kfree(qpg_data->rss_bitmap);
-+		align_num = roundup_pow_of_two(qpg_data->rss_child_count);
-+		mlx4_qp_release_range(dev->dev, qpg_data->rss_qpn_base,
-+					align_num);
-+	}
-+
-+	kfree(qpg_data);
-+}
-+
-+static int alloc_qpg_qpn(struct ib_qp_init_attr *init_attr,
-+			 struct mlx4_ib_qp *pqp, int *qpn)
-+{
-+	struct mlx4_ib_qp *mqp = to_mqp(init_attr->qpg_parent);
-+	struct mlx4_ib_qpg_data *qpg_data = mqp->qpg_data;
-+	u32 idx, old;
-+
-+	switch (init_attr->qpg_type) {
-+	case IB_QPG_CHILD_TX:
-+		if (qpg_data->tss_child_count == 0)
-+			return -EINVAL;
-+		do {
-+			/* Parent took index 0 */
-+			idx = find_first_bit(qpg_data->tss_bitmap,
-+					     qpg_data->tss_child_count + 1);
-+			if (idx >= qpg_data->tss_child_count + 1)
-+				return -ENOMEM;
-+			old = test_and_clear_bit(idx, qpg_data->tss_bitmap);
-+		} while (old == 0);
-+		idx += qpg_data->tss_qpn_base;
-+		break;
-+	case IB_QPG_CHILD_RX:
-+		if (qpg_data->rss_child_count == 0)
-+			return -EINVAL;
-+		do {
-+			idx = find_first_bit(qpg_data->rss_bitmap,
-+					     qpg_data->rss_child_count);
-+			if (idx >= qpg_data->rss_child_count)
-+				return -ENOMEM;
-+			old = test_and_clear_bit(idx, qpg_data->rss_bitmap);
-+		} while (old == 0);
-+		idx += qpg_data->rss_qpn_base;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	pqp->qpg_data = qpg_data;
-+	*qpn = idx;
-+
-+	return 0;
-+}
-+
-+static void free_qpg_qpn(struct mlx4_ib_qp *mqp, int qpn)
-+{
-+	struct mlx4_ib_qpg_data *qpg_data = mqp->qpg_data;
-+
-+	switch (mqp->qpg_type) {
-+	case IB_QPG_CHILD_TX:
-+		/* Do range check */
-+		qpn -= qpg_data->tss_qpn_base;
-+		set_bit(qpn, qpg_data->tss_bitmap);
-+		break;
-+	case IB_QPG_CHILD_RX:
-+		qpn -= qpg_data->rss_qpn_base;
-+		set_bit(qpn, qpg_data->rss_bitmap);
-+		break;
-+	default:
-+		/* error */
-+		pr_warn("wrong qpg type (%d)\n", mqp->qpg_type);
-+		break;
-+	}
-+}
-+
-+static int alloc_qpn_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
-+			    struct ib_qp_init_attr *attr, int *qpn)
-+{
-+	int err = 0;
-+
-+	switch (attr->qpg_type) {
-+	case IB_QPG_NONE:
-+		/* Raw packet QPNs must be aligned to 8 bits. If not, the WQE
-+		 * BlueFlame setup flow wrongly causes VLAN insertion. */
-+		if (attr->qp_type == IB_QPT_RAW_PACKET)
-+			err = mlx4_qp_reserve_range(dev->dev, 1, 1 << 8, qpn);
-+		else
-+			err = mlx4_qp_reserve_range(dev->dev, 1, 1, qpn);
-+		break;
-+	case IB_QPG_PARENT:
-+		err = init_qpg_parent(dev, qp, attr, qpn);
-+		break;
-+	case IB_QPG_CHILD_TX:
-+	case IB_QPG_CHILD_RX:
-+		err = alloc_qpg_qpn(attr, qp, qpn);
-+		break;
-+	default:
-+		qp->qpg_type = IB_QPG_NONE;
-+		err = -EINVAL;
-+		break;
-+	}
-+	if (err)
-+		return err;
-+	qp->qpg_type = attr->qpg_type;
-+	return 0;
-+}
-+
-+static void free_qpn_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
-+			enum ib_qpg_type qpg_type, int qpn)
-+{
-+	switch (qpg_type) {
-+	case IB_QPG_NONE:
-+		mlx4_qp_release_range(dev->dev, qpn, 1);
-+		break;
-+	case IB_QPG_PARENT:
-+		free_qpg_parent(dev, qp);
-+		break;
-+	case IB_QPG_CHILD_TX:
-+	case IB_QPG_CHILD_RX:
-+		free_qpg_qpn(qp, qpn);
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+/* Revert allocation on create_qp_common */
-+static void unalloc_qpn_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
-+			       struct ib_qp_init_attr *attr, int qpn)
-+{
-+	free_qpn_common(dev, qp, attr->qpg_type, qpn);
-+}
-+
-+static void release_qpn_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
-+{
-+	free_qpn_common(dev, qp, qp->qpg_type, qp->mqp.qpn);
-+}
-+
- static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 			    struct ib_qp_init_attr *init_attr,
- 			    struct ib_udata *udata, int sqpn, struct mlx4_ib_qp *qp)
-@@ -578,12 +815,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 	if (sqpn) {
- 		qpn = sqpn;
- 	} else {
--		/* Raw packet QPNs must be aligned to 8 bits. If not, the WQE
--		 * BlueFlame setup flow wrongly causes VLAN insertion. */
--		if (init_attr->qp_type == IB_QPT_RAW_PACKET)
--			err = mlx4_qp_reserve_range(dev->dev, 1, 1 << 8, &qpn);
--		else
--			err = mlx4_qp_reserve_range(dev->dev, 1, 1, &qpn);
-+		err = alloc_qpn_common(dev, qp, init_attr, &qpn);
- 		if (err)
- 			goto err_wrid;
- 	}
-@@ -607,8 +839,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 	return 0;
- 
- err_qpn:
--	if (!sqpn)
--		mlx4_qp_release_range(dev->dev, qpn, 1);
-+	unalloc_qpn_common(dev, qp, init_attr, qpn);
- 
- err_wrid:
- 	if (pd->uobject) {
-@@ -746,7 +977,7 @@ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
- 	mlx4_qp_free(dev->dev, &qp->mqp);
- 
- 	if (!is_sqp(dev, qp))
--		mlx4_qp_release_range(dev->dev, qp->mqp.qpn, 1);
-+		release_qpn_common(dev, qp);
- 
- 	mlx4_mtt_cleanup(dev->dev, &qp->mtt);
- 
-@@ -766,6 +997,52 @@ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
- 	del_gid_entries(qp);
- }
- 
-+static int check_qpg_attr(struct mlx4_ib_dev *dev,
-+			  struct ib_qp_init_attr *attr)
-+{
-+	if (attr->qpg_type == IB_QPG_NONE)
-+		return 0;
-+
-+	if (attr->qp_type != IB_QPT_UD)
-+		return -EINVAL;
-+
-+	if (attr->qpg_type == IB_QPG_PARENT) {
-+		if (attr->parent_attrib.tss_child_count == 1)
-+			return -EINVAL; /* Doesn't make sense */
-+		if (attr->parent_attrib.rss_child_count == 1)
-+			return -EINVAL; /* Doesn't make sense */
-+		if ((attr->parent_attrib.tss_child_count == 0) &&
-+			(attr->parent_attrib.rss_child_count == 0))
-+			/* Should be called with IP_QPG_NONE */
-+			return -EINVAL;
-+		if (attr->parent_attrib.rss_child_count > 1) {
-+			int rss_align_num;
-+			if (!(dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS))
-+				return -ENOSYS;
-+			rss_align_num = roundup_pow_of_two(
-+					attr->parent_attrib.rss_child_count);
-+			if (rss_align_num > dev->dev->caps.max_rss_tbl_sz)
-+				return -EINVAL;
-+		}
-+	} else {
-+		struct mlx4_ib_qpg_data *qpg_data;
-+		if (attr->qpg_parent == NULL)
-+			return -EINVAL;
-+		if (IS_ERR(attr->qpg_parent))
-+			return -EINVAL;
-+		qpg_data = to_mqp(attr->qpg_parent)->qpg_data;
-+		if (qpg_data == NULL)
-+			return -EINVAL;
-+		if (attr->qpg_type == IB_QPG_CHILD_TX &&
-+		    !qpg_data->tss_child_count)
-+			return -EINVAL;
-+		if (attr->qpg_type == IB_QPG_CHILD_RX &&
-+		    !qpg_data->rss_child_count)
-+			return -EINVAL;
-+	}
-+	return 0;
-+}
-+
- struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
- 				struct ib_qp_init_attr *init_attr,
- 				struct ib_udata *udata)
-@@ -787,8 +1064,9 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+@@ -787,6 +787,9 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
  	    (udata || init_attr->qp_type != IB_QPT_UD))
  		return ERR_PTR(-EINVAL);
  
--	if (init_attr->qpg_type != IB_QPG_NONE)
--		return ERR_PTR(-ENOSYS);
-+	err = check_qpg_attr(to_mdev(pd->device), init_attr);
-+	if (err)
-+		return ERR_PTR(err);
- 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
  	switch (init_attr->qp_type) {
  	case IB_QPT_XRC_TGT:
-@@ -1235,6 +1513,43 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
- 		context->rlkey |= (1 << 4);
+ 		pd = to_mxrcd(init_attr->xrcd)->pd;
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 5b71d43..120aa1e 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -518,6 +518,9 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
+ 	if (init_attr->create_flags)
+ 		return ERR_PTR(-EINVAL);
  
-+	if ((attr_mask & IB_QP_GROUP_RSS) &&
-+		(qp->qpg_data->rss_child_count > 1)) {
-+		struct mlx4_ib_qpg_data *qpg_data = qp->qpg_data;
-+		void *rss_context_base = &context->pri_path;
-+		struct mlx4_rss_context *rss_context =
-+			(struct mlx4_rss_context *) (rss_context_base
-+					+ MLX4_RSS_OFFSET_IN_QPC_PRI_PATH);
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
 +
-+		context->flags |= cpu_to_be32(1 << MLX4_RSS_QPC_FLAG_OFFSET);
+ 	switch (init_attr->qp_type) {
+ 	case IB_QPT_RC:
+ 	case IB_QPT_UC:
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 8b8812d..24825b5 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -1131,6 +1131,9 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
+ 	if (init_attr->create_flags)
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
 +
-+		/* This should be tbl_sz_base_qpn */
-+		rss_context->base_qpn = cpu_to_be32(qpg_data->rss_qpn_base |
-+				(ilog2(qpg_data->rss_child_count) << 24));
-+		rss_context->default_qpn = cpu_to_be32(qpg_data->rss_qpn_base);
-+		/* This should be flags_hash_fn */
-+		rss_context->flags = MLX4_RSS_TCP_IPV6 |
-+				     MLX4_RSS_TCP_IPV4;
-+		if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_UDP_RSS) {
-+			rss_context->base_qpn_udp = rss_context->default_qpn;
-+			rss_context->flags |= MLX4_RSS_IPV6 |
-+					MLX4_RSS_IPV4     |
-+					MLX4_RSS_UDP_IPV6 |
-+					MLX4_RSS_UDP_IPV4;
-+		}
-+		if (dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS_TOP) {
-+			static const u32 rsskey[10] = { 0xD181C62C, 0xF7F4DB5B,
-+				0x1983A2FC, 0x943E1ADB, 0xD9389E6B, 0xD1039C2C,
-+				0xA74499AD, 0x593D56D9, 0xF3253C06, 0x2ADC1FFC};
-+			rss_context->hash_fn = MLX4_RSS_HASH_TOP;
-+			memcpy(rss_context->rss_key, rsskey,
-+				sizeof(rss_context->rss_key));
-+		} else {
-+			rss_context->hash_fn = MLX4_RSS_HASH_XOR;
-+			memset(rss_context->rss_key, 0,
-+				sizeof(rss_context->rss_key));
-+		}
+ 	atomic_inc(&qps_created);
+ 	switch (init_attr->qp_type) {
+ 		case IB_QPT_RC:
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index d16d172..5fd7614 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -841,6 +841,11 @@ static int ocrdma_check_qp_params(struct ib_pd *ibpd, struct ocrdma_dev *dev,
+ 			   __func__, dev->id, attrs->qp_type);
+ 		return -EINVAL;
+ 	}
++	if (attrs->qpg_type != IB_QPG_NONE) {
++		ocrdma_err("%s(%d) unsupported qpg type=0x%x requested\n",
++			   __func__, dev->id, attrs->qpg_type);
++		return -ENOSYS;
 +	}
- 	/*
- 	 * Before passing a kernel QP to the HW, make sure that the
- 	 * ownership bits of the send queue are set and the SQ
-@@ -2191,6 +2506,11 @@ done:
- 	if (qp->flags & MLX4_IB_QP_LSO)
- 		qp_init_attr->create_flags |= IB_QP_CREATE_IPOIB_UD_LSO;
+ 	if (attrs->cap.max_send_wr > dev->attr.max_wqe) {
+ 		ocrdma_err("%s(%d) unsupported send_wr=0x%x requested\n",
+ 			   __func__, dev->id, attrs->cap.max_send_wr);
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 1ce56b5..14bfe93 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -986,6 +986,11 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 		goto bail;
+ 	}
  
-+	qp_init_attr->qpg_type = ibqp->qpg_type;
-+	if (ibqp->qpg_type == IB_QPG_PARENT)
-+		qp_attr->cap.qpg_tss_mask_sz = qp->qpg_data->qpg_tss_mask_sz;
-+	else
-+		qp_attr->cap.qpg_tss_mask_sz = 0;
- out:
- 	mutex_unlock(&qp->mutex);
- 	return err;
++	if (init_attr->qpg_type != IB_QPG_NONE) {
++		ret = ERR_PTR(-ENOSYS);
++		goto bail;
++	}
++
+ 	/* Check receive queue parameters if no SRQ is specified. */
+ 	if (!init_attr->srq) {
+ 		if (init_attr->cap.max_recv_sge > ib_qib_max_sges ||
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 07996af..2e30f89 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -115,6 +115,9 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_XRC			= (1<<20),
+ 	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
+ 	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
++	IB_DEVICE_QPG			= (1<<23),
++	IB_DEVICE_UD_RSS		= (1<<24),
++	IB_DEVICE_UD_TSS		= (1<<25)
+ };
+ 
+ enum ib_atomic_cap {
+@@ -162,6 +165,7 @@ struct ib_device_attr {
+ 	int			max_srq_wr;
+ 	int			max_srq_sge;
+ 	unsigned int		max_fast_reg_page_list_len;
++	int			max_rss_tbl_sz;
+ 	u16			max_pkeys;
+ 	u8			local_ca_ack_delay;
+ };
+@@ -584,6 +588,7 @@ struct ib_qp_cap {
+ 	u32	max_send_sge;
+ 	u32	max_recv_sge;
+ 	u32	max_inline_data;
++	u32	qpg_tss_mask_sz;
+ };
+ 
+ enum ib_sig_type {
+@@ -616,6 +621,18 @@ enum ib_qp_create_flags {
+ 	IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK	= 1 << 1,
+ };
+ 
++enum ib_qpg_type {
++	IB_QPG_NONE	= 0,
++	IB_QPG_PARENT	= (1<<0),
++	IB_QPG_CHILD_RX = (1<<1),
++	IB_QPG_CHILD_TX = (1<<2)
++};
++
++struct ib_qpg_init_attrib {
++	u32 tss_child_count;
++	u32 rss_child_count;
++};
++
+ struct ib_qp_init_attr {
+ 	void                  (*event_handler)(struct ib_event *, void *);
+ 	void		       *qp_context;
+@@ -624,9 +641,14 @@ struct ib_qp_init_attr {
+ 	struct ib_srq	       *srq;
+ 	struct ib_xrcd	       *xrcd;     /* XRC TGT QPs only */
+ 	struct ib_qp_cap	cap;
++	union {
++		struct ib_qp *qpg_parent; /* see qpg_type */
++		struct ib_qpg_init_attrib parent_attrib;
++	};
+ 	enum ib_sig_type	sq_sig_type;
+ 	enum ib_qp_type		qp_type;
+ 	enum ib_qp_create_flags	create_flags;
++	enum ib_qpg_type	qpg_type;
+ 	u8			port_num; /* special QP types only */
+ };
+ 
+@@ -693,7 +715,8 @@ enum ib_qp_attr_mask {
+ 	IB_QP_MAX_DEST_RD_ATOMIC	= (1<<17),
+ 	IB_QP_PATH_MIG_STATE		= (1<<18),
+ 	IB_QP_CAP			= (1<<19),
+-	IB_QP_DEST_QPN			= (1<<20)
++	IB_QP_DEST_QPN			= (1<<20),
++	IB_QP_GROUP_RSS			= (1<<21)
+ };
+ 
+ enum ib_qp_state {
+@@ -972,6 +995,7 @@ struct ib_qp {
+ 	void		       *qp_context;
+ 	u32			qp_num;
+ 	enum ib_qp_type		qp_type;
++	enum ib_qpg_type	qpg_type;
+ };
+ 
+ struct ib_mr {
 -- 
 1.7.1
 
