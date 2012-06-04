@@ -1,48 +1,21 @@
-From: Sachin Kamat <sachin.kamat-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] ocrdma: Remove version.h header file inclusion
-Date: Sun,  3 Jun 2012 22:35:05 +0530
-Message-ID: <1338743105-11304-1-git-send-email-sachin.kamat@linaro.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] iw_cxgb4: do not crash when peer address is 0.0.0.0
+Date: Sun, 3 Jun 2012 22:59:43 -0700
+Message-ID: <CAL1RGDWu7qQ2pYgjgmNHrcpCY8NM00EzbpAhP6j_gg6f8z7SOQ@mail.gmail.com>
+References: <1337287913-7294-1-git-send-email-cascardo@linux.vnet.ibm.com>
+ <4FC8E4E5.7060501@opengridcomputing.com> <4FC90EF4.9050600@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FC90EF4.9050600-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sachin.kamat-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-version.h header file is no longer required.
+> Roland, can you please merge this?
 
-Signed-off-by: Sachin Kamat <sachin.kamat-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |    1 -
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index a20d16e..04fef3d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -26,7 +26,6 @@
-  *******************************************************************/
- 
- #include <linux/module.h>
--#include <linux/version.h>
- #include <linux/idr.h>
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_user_verbs.h>
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-index e648343..633f03d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-@@ -28,7 +28,6 @@
- #ifndef __OCRDMA_VERBS_H__
- #define __OCRDMA_VERBS_H__
- 
--#include <linux/version.h>
- int ocrdma_post_send(struct ib_qp *, struct ib_send_wr *,
- 		     struct ib_send_wr **bad_wr);
- int ocrdma_post_recv(struct ib_qp *, struct ib_recv_wr *,
--- 
-1.7.5.4
-
+Done, thanks for the patch and the analysis guys.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
