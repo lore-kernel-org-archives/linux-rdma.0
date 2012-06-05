@@ -1,52 +1,67 @@
-From: borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: Server Rental Service in Hong Kong
-Date: Mon,  4 Jun 2012 16:45:13 +0800 (HKT)
-Message-ID: <Oxt7fy9qztjdh@venus.seed.net.tw>
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/2] ibacm/acme: Eliminate segfault when SLID/SGID not
+ given
+Date: Tue, 05 Jun 2012 11:21:49 -0400
+Message-ID: <4FCE240D.7030404@dev.mellanox.co.il>
+References: <1828884A29C6694DAF28B7E6B8A8237346A25C2C@ORSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A25C2C-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dear All,
+On 6/4/2012 3:19 PM, Hefty, Sean wrote:
+> Problem and cause reported by Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
+Thanks.
 
-Dell=3F PowerEdge=3F EnterpriseRack Mount Server
--Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
--8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
--500GB, 3.5", 6Gbps SAS x 2
--Raid 1 Mirroring Protection
--Remote KVM (iDRAC6 Enterprise)
+Tested-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Dell(TM) PowerEdge(TM) R410 Rack Mount Server
--Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
--4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
--500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
--iDRAC6 Enterprise or Express (Remote KVM Management)
-
-Every Dedicated Server Hosting Solution Also Includes: 
- 
-Software Specification 
-- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
-- Full root-level access 
-- Data Center Facilities 
-- Shared Local & International Bandwidth 
-- 2 IP Addresses Allocation 
-- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
-- FM200=A1=A7based fire suppression system 
-- 24x7 CRAC Air Conditioning and Humidity Control 
-- 24x7 Security Control 
-- 24x7 Remote Hand Service 
-
-Pls send us email for further information.Thanks,
-
-Boris 
-boris-JYBpPTDdvJEqwVFMiTZqHLZc9IWuHzk0@public.gmane.org
-
-If you do not wish to further receive this event message, email "borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
-
-
+> ---
+>  src/acme.c |   14 +++++++++-----
+>  1 files changed, 9 insertions(+), 5 deletions(-)
+> 
+> diff --git a/src/acme.c b/src/acme.c
+> index e6ae188..0e1d4ed 100644
+> --- a/src/acme.c
+> +++ b/src/acme.c
+> @@ -495,7 +495,8 @@ static int resolve_lid(struct ibv_path_record *path)
+>  {
+>  	int ret;
+>  
+> -	path->slid = htons((uint16_t) atoi(src_addr));
+> +	if (src_addr)
+> +		path->slid = htons((uint16_t) atoi(src_addr));
+>  	path->dlid = htons((uint16_t) atoi(dest_addr));
+>  	path->reversible_numpath = IBV_PATH_RECORD_REVERSIBLE | 1;
+>  
+> @@ -510,10 +511,13 @@ static int resolve_gid(struct ibv_path_record *path)
+>  {
+>  	int ret;
+>  
+> -	ret = inet_pton(AF_INET6, src_addr, &path->sgid);
+> -	if (ret <= 0) {
+> -		printf("inet_pton error on source address (%s): 0x%x\n", src_addr, ret);
+> -		return ret ? ret : -1;
+> +	if (src_addr) {
+> +		ret = inet_pton(AF_INET6, src_addr, &path->sgid);
+> +		if (ret <= 0) {
+> +			printf("inet_pton error on source address (%s): 0x%x\n",
+> +			       src_addr, ret);
+> +			return ret ? ret : -1;
+> +		}
+>  	}
+>  
+>  	ret = inet_pton(AF_INET6, dest_addr, &path->dgid);
+> 
+> 
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
