@@ -1,43 +1,112 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next V1 0/4] IB/IPoIB TSS and RSS support for datagram mode
-Date: Tue, 5 Jun 2012 01:19:26 +0300
-Message-ID: <CAJZOPZ+WX6gXAXESWge4ZsQVBun+bhWoui+f5DeKkqB3uEB2Hg@mail.gmail.com>
-References: <1338810598-9488-1-git-send-email-ogerlitz@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A25BFF@ORSMSX101.amr.corp.intel.com>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] opensm: Add per module logging support
+Date: Mon, 04 Jun 2012 17:28:38 -0700
+Message-ID: <1338856118.17237.927.camel@auk75.llnl.gov>
+References: <4FC6918A.9080503@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A25BFF-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4FC6918A.9080503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 4, 2012 at 8:06 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-> > Still, the 1st and most thing to handle here is feedback on the QP
-> > groups concept suggested by this patch set to support TSS/RSS over
-> > verbs. The plan is for this concept to (with little help from a
-> > framework for verbs extension) apply to user space RSS as well,
-> > for both UD and RAW QPs.
+On Wed, 2012-05-30 at 14:30 -0700, Hal Rosenstock wrote:
+> Add _v2 APIs for osm_log, osm_log_is_active, and osm_log_msg_box
+> Also, add these to libopensm.map
+> Add _V2 forms of the various OSM_LOG macros
+     Why are the _V2 macros necessary?  It appears that the calling
+semantics/effect are the same, so why create new macros instead of
+reusing the old ones?  In particular, it seems like you could move the
+FILE_ID defines above the #includes, and then in osm_log.h say things
+like:
 
-> Conceptually, it seems that there should be more alignment with XRC, which also
-> ends up with an associated group of QPs.
-> Is the use of these QPs restricted to TCP/UDP/IP traffic?
+#ifdef FILE_ID
+#define OSM_LOG_ENTER( OSM_LOG_PTR ) \
+        osm_log_v2( OSM_LOG_PTR, OSM_LOG_FUNCS, FILE_ID, \
+                    "%s: [\n", __func__);
+#else
+#define OSM_LOG_ENTER( OSM_LOG_PTR ) \
+        osm_log( OSM_LOG_PTR, OSM_LOG_FUNCS, \
+                 "%s: [\n", __func__);
+#endif
 
-Yep, sure, if its possible to align/squeez/unite these QP groups into
-the XRC interfaces
-could be nice to go that way.
+     Or just define FILE_ID everywhere (it seems to be missing from many
+of the libvendor files) and make OSM_LOG* always call the v2 functions.
+It seems like this would drastically reduce the patch's footprint.
 
-As for you question on the nature of the traffic, for example, RX
-wise, its one QP (the parent) which dispatches traffic to set of
-(child) QPs where with RSS the dispatching is based on hashing which
-is based on the assumptions that the packets are TCP/UDP/IP, below the
-RSS hood, packets for which the HW fails to apply hash on are
-dispatched to a default QP in that set. The suggested scheme matches
-well IB/UD QPs and Ethernet RAW packet QPs.
+> 
+> All of above pass additional parameter to identify module.
+> Each module defines a unique FILE_ID from 0-254.
+> 255 is reserved to indicate "name not found".
+> FILE_ID must match index in osm_subnet.c:module_name_str
+> table. Note also currently that subnet's
+> per_mod_log_tbl is 128 entries (which is enough
+> more than the number of modules).
+>  
+     Why are there so many magic numbers here?  It seems like
+per_mod_log_tbl's size could be defined in terms of the final value in
+osm_file_ids_enum (ie, you could add a OSM_FILE_LAST_ENTRY to the enum).
+If find_module_name() is changed to return an int (which is what
+osm_log_v2() already uses as file_id's type, so consistency would be
+improved), it could return -1 on failure, making the limit at 255
+irrelevant as well.
+     Also, how is this expected to work with plugins?  Will plugins be
+expected to use their own logging?
+     Would it be desirable to put FILE_ID (or better yet, module name)
+into the log messages as well?  This would make it a bit easier to find
+where the relevant code is.  We could then phase out the "ERR XXYY"
+scheme, particularly since the XX numbers do not seem to correlate at
+all with FILE_ID.
 
-Or.
+     Jim
+
+> 
+> Use version 2 API (osm_log_v2) and macros (OSM_LOG_V2_xxxx)
+> in OpenSM client code
+> 
+> Added options to enable/disable per module logging and
+> it's configuration file
+> 
+> Config file format
+> Set of lines with module name and logging level as follows:
+> <module name><separator><logging level>
+> where:
+> module name is file name including .c
+> separator is either = , space, or tab
+> logging level is the same levels as used in the coarse/overall logging
+> as follows:
+> 
+>  BIT    LOG LEVEL ENABLED
+>  ----   -----------------
+>  0x01 - ERROR (error messages)
+>  0x02 - INFO (basic messages, low volume)
+>  0x04 - VERBOSE (interesting stuff, moderate volume)
+>  0x08 - DEBUG (diagnostic, high volume)
+>  0x10 - FUNCS (function entry/exit, very high volume)
+>  0x20 - FRAMES (dumps all SMP and GMP frames)
+>  0x40 - ROUTING (dump FDB routing information)
+>  0x80 - currently unused
+> 
+> Add parsing of the configuration file into table of log levels
+> indexed by FILE_ID
+> 
+> Added osm_get_log_per_module routine to obtain the configured info
+> for a supplied module name. This is a new library function.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> As this patch is too large for email, please find this @
+> https://www.openfabrics.org/~halr/0001-opensm-Add-per-module-logging-support.patch
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
