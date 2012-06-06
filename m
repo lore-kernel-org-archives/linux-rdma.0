@@ -1,36 +1,60 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 2/3] IB/mlx4: Fix max_wqe capacity report for query device
-Date: Wed, 6 Jun 2012 20:29:00 +0300
-Message-ID: <201206062029.00930.jackm@dev.mellanox.co.il>
-References: <1337864889-20886-1-git-send-email-ogerlitz@mellanox.com> <1337864889-20886-3-git-send-email-ogerlitz@mellanox.com> <CAL1RGDVG5o8j1sFQY6HFsfS6YNnbujRD9vQx06gJ_iCyMtjC7Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDVG5o8j1sFQY6HFsfS6YNnbujRD9vQx06gJ_iCyMtjC7Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Wed,  6 Jun 2012 10:44:07 -0700
+Message-ID: <1339004647-16362-1-git-send-email-roland@kernel.org>
+References: <1337562868-9887-1-git-send-email-roland@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1337562868-9887-1-git-send-email-roland@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wednesday 06 June 2012 20:05, Roland Dreier wrote:
-> Looks OK, applied. =A0One question:
->=20
-P.S., thanks for taking this so quickly!
+Hi Linus,
 
--Jack
+Please pull from
 
-P.S. it would help us with our SRIOV IB work if you could
-rebase your for-next git to 3.5-rc1. There are a couple of
-commits to the mlx4_core there which impact the SRIOV-IB
-patch set.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-fixes
 
-Thanks in advance!
+----------------------------------------------------------------
 
--Jack
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+InfiniBand/RDMA fixes for 3.5-rc2, all in hardware drivers:
+ - Fix crash in cxgb4
+ - Fixes to new ocrdma driver
+ - Regression fixes for mlx4
+
+----------------------------------------------------------------
+Devendra Naga (1):
+      RDMA/ocrdma: Remove unnecessary version.h includes
+
+Jack Morgenstein (1):
+      mlx4_core: Fix setting VL_cap in mlx4_SET_PORT wrapper flow
+
+Parav Pandit (2):
+      RDMA/ocrdma: Correct queue free count math
+      RDMA/ocrdma: Fix signaled event for SRQ_LIMIT_REACHED
+
+Roland Dreier (1):
+      Merge branches 'cxgb4', 'mlx4' and 'ocrdma' into for-linus
+
+Sagi Grimberg (1):
+      IB/mlx4: Fix max_wqe capacity reported from query device
+
+Shlomo Pongratz (1):
+      IB/mlx4: Fix EQ deallocation in legacy mode
+
+Thadeu Lima de Souza Cascardo (1):
+      RDMA/cxgb4: Fix crash when peer address is 0.0.0.0
+
+ drivers/infiniband/hw/cxgb4/cm.c            |    4 ++++
+ drivers/infiniband/hw/mlx4/main.c           |   21 ++++++++-------------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h        |    8 ++++++++
+ drivers/infiniband/hw/mlx4/qp.c             |   21 +++++++++++++++------
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |    1 -
+ drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |    5 +----
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |    9 +--------
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |    1 -
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    5 -----
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |    1 -
+ drivers/net/ethernet/mellanox/mlx4/port.c   |    4 ++--
+ 11 files changed, 39 insertions(+), 41 deletions(-)
