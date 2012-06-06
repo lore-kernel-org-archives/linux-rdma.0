@@ -1,8 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/4] librdamcm/rsocket: Use configuration files to specify
- default settings
+Subject: [PATCH 3/4] librdamcm/rsocket: Spin before blocking on an rsocket
 Date: Wed, 6 Jun 2012 18:42:02 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A2F1CD@ORSMSX101.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A2F1C7@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,111 +11,222 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Give an administrator control over the default settings
-used by rsockets.  Use files under %sysconfig%/rdma/rsocket as shown:
+The latency cost of blocking is significant compared to round
+trip ping-pong time.  Spin briefly on rsockets before calling
+into the kernel and blocking.
 
-mem_default - default size of receive buffer(s)
-wmem_default - default size of send buffer(s)
-sqsize_default - default size of send queue
-rqsize_default - default size of receive queue
-inline_default - default size of inline data
+The time to spin before blocking is read from an rsocket
+configuration file %sysconfig%/rdma/rsocket/polling_time.  This
+is user adjustable.
 
-If configuration files are not available, rsockets will continue to
-use internal defaults.
+As a completely unintentional side effect, this just happens to
+improve application performance in benchmarks, like netpipe and
+iperf, significantly. ;)
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-I have adding an rsocket man page that includes this information on my
-to do list.
+ Makefile.am   |    2 +-
+ configure.in  |    5 ++++
+ src/cma.h     |    9 +++++++
+ src/rsocket.c |   76 +++++++++++++++++++++++++++++++++++++++++++++++++++------
+ 4 files changed, 83 insertions(+), 9 deletions(-)
 
- src/rsocket.c |   51 ++++++++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 44 insertions(+), 7 deletions(-)
-
+diff --git a/Makefile.am b/Makefile.am
+index cbd874d..1dc61e1 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -3,7 +3,7 @@ INCLUDES = -I$(srcdir)/include
+ lib_LTLIBRARIES = src/librdmacm.la
+ 
+ ACLOCAL_AMFLAGS = -I config
+-AM_CFLAGS = -g -Wall -D_GNU_SOURCE
++AM_CFLAGS = -g -Wall -D_GNU_SOURCE -DSYSCONFDIR=\"$(sysconfdir)\" -DRDMADIR=\"@rdmadir@\"
+ 
+ src_librdmacm_la_CFLAGS = $(AM_CFLAGS)
+ 
+diff --git a/configure.in b/configure.in
+index dec6064..3ee7f9b 100644
+--- a/configure.in
++++ b/configure.in
+@@ -87,5 +87,10 @@ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+ 
+ AM_CONDITIONAL(HAVE_LD_VERSION_SCRIPT, test "$ac_cv_version_script" = "yes")
+ 
++AC_ARG_VAR(rdmadir, [Directory for configuration files])
++if test "x$rdmadir" = "x"; then
++   AC_SUBST(rdmadir, rdma)
++fi
++
+ AC_CONFIG_FILES([Makefile librdmacm.spec])
+ AC_OUTPUT
+diff --git a/src/cma.h b/src/cma.h
+index 2ee4767..cedc0c3 100644
+--- a/src/cma.h
++++ b/src/cma.h
+@@ -166,4 +166,13 @@ struct ibv_path_data
+ };
+ #endif
+ 
++#ifndef SYSCONFDIR
++#define SYSCONFDIR "/etc"
++#endif
++#ifndef RDMADIR
++#define RDMADIR "rdma"
++#endif
++#define RDMA_CONF_DIR  SYSCONFDIR "/" RDMADIR
++#define RS_CONF_DIR RDMA_CONF_DIR "/rsocket"
++
+ #endif /* CMA_H */
 diff --git a/src/rsocket.c b/src/rsocket.c
-index d7344c7..5e0e413 100644
+index 2fd106a..d7344c7 100644
 --- a/src/rsocket.c
 +++ b/src/rsocket.c
-@@ -53,19 +53,20 @@
- #include "cma.h"
- #include "indexer.h"
+@@ -37,10 +37,12 @@
  
--#define RS_INLINE 64
- #define RS_OLAP_START_SIZE 2048
- #define RS_MAX_TRANSFER 65536
--#define RS_QP_SIZE 384
- #define RS_QP_MAX_SIZE 0xFFFE
--#define RS_QP_MIN_SIZE 8
- #define RS_QP_CTRL_SIZE 4
- #define RS_CONN_RETRIES 6
- #define RS_SGL_SIZE 2
--#define RS_BUF_SIZE (1 << 17)
+ #include <sys/types.h>
+ #include <sys/socket.h>
++#include <sys/time.h>
+ #include <stdarg.h>
+ #include <netdb.h>
+ #include <unistd.h>
+ #include <fcntl.h>
++#include <stdio.h>
+ #include <string.h>
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
+@@ -64,6 +66,8 @@
  static struct index_map idm;
  static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
  
-+static uint16_t def_inline = 64;
-+static uint16_t def_sqsize = 384;
-+static uint16_t def_rqsize = 384;
-+static uint32_t def_mem = (1 << 17);
-+static uint32_t def_wmem = (1 << 17);
- static uint32_t polling_time = 10;
- 
++static uint32_t polling_time = 10;
++
  /*
-@@ -216,6 +217,40 @@ void rs_configure(void)
- 		fscanf(f, "%u", &polling_time);
- 		fclose(f);
+  * Immediate data format is determined by the upper bits
+  * bit 31: message type, 0 - data, 1 - control
+@@ -196,6 +200,27 @@ struct rsocket {
+ 	uint8_t		  *sbuf;
+ };
+ 
++void rs_configure(void)
++{
++	FILE *f;
++	static int init;
++
++	if (init)
++		return;
++
++	pthread_mutex_lock(&mut);
++	if (init)
++		goto out;
++
++	if ((f = fopen(RS_CONF_DIR "/polling_time", "r"))) {
++		fscanf(f, "%u", &polling_time);
++		fclose(f);
++	}
++	init = 1;
++out:
++	pthread_mutex_unlock(&mut);
++}
++
+ /*
+  * We currently generate a completion per send.  sqe_count = 1
+  */
+@@ -470,6 +495,7 @@ int rsocket(int domain, int type, int protocol)
+ 	    (type != SOCK_STREAM) || (protocol && protocol != IPPROTO_TCP))
+ 		return ERR(ENOTSUP);
+ 
++	rs_configure();
+ 	rs = rs_alloc(NULL);
+ 	if (!rs)
+ 		return ERR(ENOMEM);
+@@ -923,6 +949,29 @@ static int rs_process_cq(struct rsocket *rs, int nonblock, int (*test)(struct rs
+ 	return ret;
+ }
+ 
++static int rs_get_comp(struct rsocket *rs, int nonblock, int (*test)(struct rsocket *rs))
++{
++	struct timeval s, e;
++	uint32_t poll_time = 0;
++	int ret;
++
++	do {
++		ret = rs_process_cq(rs, 1, test);
++		if (!ret || nonblock || errno != EWOULDBLOCK)
++			return ret;
++
++		if (!poll_time)
++			gettimeofday(&s, NULL);
++
++		gettimeofday(&e, NULL);
++		poll_time = (e.tv_sec - s.tv_sec) * 1000000 +
++			    (e.tv_usec - s.tv_usec) + 1;
++	} while (poll_time <= polling_time);
++
++	ret = rs_process_cq(rs, 0, test);
++	return ret;
++}
++
+ static int rs_nonblocking(struct rsocket *rs, int flags)
+ {
+ 	return (rs->fd_flags & O_NONBLOCK) || (flags & MSG_DONTWAIT);
+@@ -1034,7 +1083,7 @@ ssize_t rrecv(int socket, void *buf, size_t len, int flags)
  	}
-+
-+	if ((f = fopen(RS_CONF_DIR "/inline_default", "r"))) {
-+		fscanf(f, "%hu", &def_inline);
-+		fclose(f);
-+
-+		if (def_inline < RS_MIN_INLINE)
-+			def_inline = RS_MIN_INLINE;
-+	}
-+
-+	if ((f = fopen(RS_CONF_DIR "/sqsize_default", "r"))) {
-+		fscanf(f, "%hu", &def_sqsize);
-+		fclose(f);
-+	}
-+
-+	if ((f = fopen(RS_CONF_DIR "/rqsize_default", "r"))) {
-+		fscanf(f, "%hu", &def_rqsize);
-+		fclose(f);
-+	}
-+
-+	if ((f = fopen(RS_CONF_DIR "/mem_default", "r"))) {
-+		fscanf(f, "%u", &def_mem);
-+		fclose(f);
-+
-+		if (def_mem < 1)
-+			def_mem = 1;
-+	}
-+
-+	if ((f = fopen(RS_CONF_DIR "/wmem_default", "r"))) {
-+		fscanf(f, "%u", &def_wmem);
-+		fclose(f);
-+
-+		if (def_wmem < 1)
-+			def_wmem = 1;
-+	}
- 	init = 1;
- out:
- 	pthread_mutex_unlock(&mut);
-@@ -264,9 +299,11 @@ static struct rsocket *rs_alloc(struct rsocket *inherited_rs)
- 		rs->rq_size = inherited_rs->rq_size;
- 		rs->ctrl_avail = inherited_rs->ctrl_avail;
- 	} else {
--		rs->sbuf_size = rs->rbuf_size = RS_BUF_SIZE;
--		rs->sq_inline = RS_INLINE;
--		rs->sq_size = rs->rq_size = RS_QP_SIZE;
-+		rs->sbuf_size = def_wmem;
-+		rs->rbuf_size = def_mem;
-+		rs->sq_inline = def_inline;
-+		rs->sq_size = def_sqsize;
-+		rs->rq_size = def_rqsize;
- 		rs->ctrl_avail = RS_QP_CTRL_SIZE;
+ 	fastlock_acquire(&rs->rlock);
+ 	if (!rs_have_rdata(rs)) {
+-		ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_conn_have_rdata);
++		ret = rs_get_comp(rs, rs_nonblocking(rs, flags), rs_conn_have_rdata);
+ 		if (ret && errno != ECONNRESET)
+ 			goto out;
  	}
- 	fastlock_init(&rs->slock);
+@@ -1138,8 +1187,8 @@ ssize_t rsend(int socket, const void *buf, size_t len, int flags)
+ 	fastlock_acquire(&rs->slock);
+ 	for (left = len; left; left -= xfer_size, buf += xfer_size) {
+ 		if (!rs_can_send(rs)) {
+-			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
+-					    rs_conn_can_send);
++			ret = rs_get_comp(rs, rs_nonblocking(rs, flags),
++					  rs_conn_can_send);
+ 			if (ret)
+ 				break;
+ 			if (rs->state != rs_connected) {
+@@ -1252,8 +1301,8 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
+ 	fastlock_acquire(&rs->slock);
+ 	for (left = len; left; left -= xfer_size) {
+ 		if (!rs_can_send(rs)) {
+-			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
+-					    rs_conn_can_send);
++			ret = rs_get_comp(rs, rs_nonblocking(rs, flags),
++					  rs_conn_can_send);
+ 			if (ret)
+ 				break;
+ 			if (rs->state != rs_connected) {
+@@ -1468,12 +1517,23 @@ static int rs_poll_events(struct pollfd *rfds, struct pollfd *fds, nfds_t nfds)
+  */
+ int rpoll(struct pollfd *fds, nfds_t nfds, int timeout)
+ {
++	struct timeval s, e;
+ 	struct pollfd *rfds;
++	uint32_t poll_time = 0;
+ 	int ret;
+ 
+-	ret = rs_poll_check(fds, nfds);
+-	if (ret || !timeout)
+-		return ret;
++	do {
++		ret = rs_poll_check(fds, nfds);
++		if (ret || !timeout)
++			return ret;
++
++		if (!poll_time)
++			gettimeofday(&s, NULL);
++
++		gettimeofday(&e, NULL);
++		poll_time = (e.tv_sec - s.tv_sec) * 1000000 +
++			    (e.tv_usec - s.tv_usec) + 1;
++	} while (poll_time <= polling_time);
+ 
+ 	rfds = rs_fds_alloc(nfds);
+ 	if (!rfds)
 
 
 --
