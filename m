@@ -1,60 +1,57 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Wed,  6 Jun 2012 10:44:07 -0700
-Message-ID: <1339004647-16362-1-git-send-email-roland@kernel.org>
-References: <1337562868-9887-1-git-send-email-roland@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1337562868-9887-1-git-send-email-roland@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2/4] librdamcm/rsocket: Handle TCP_MAXSEG socket option
+Date: Wed, 6 Jun 2012 18:42:02 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A2F1C1@ORSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+netperf uses the TCP_MAXSEG socket option.  Add support for it.
+Problem reported by Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 
-Please pull from
+getsockopt returns the path MTU as the TCP_MAXSEG.  setsockopt
+currently ignores the value.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-fixes
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/rsocket.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-----------------------------------------------------------------
+diff --git a/src/rsocket.c b/src/rsocket.c
+index 8f20b4a..2fd106a 100644
+--- a/src/rsocket.c
++++ b/src/rsocket.c
+@@ -1716,6 +1716,9 @@ int rsetsockopt(int socket, int level, int optname,
+ 			opt_on = *(int *) optval;
+ 			ret = 0;
+ 			break;
++		case TCP_MAXSEG:
++			ret = 0;
++			break;
+ 		default:
+ 			break;
+ 		}
+@@ -1802,6 +1805,12 @@ int rgetsockopt(int socket, int level, int optname,
+ 			*((int *) optval) = !!(rs->tcp_opts & (1 << optname));
+ 			*optlen = sizeof(int);
+ 			break;
++		case TCP_MAXSEG:
++			*((int *) optval) = (rs->cm_id && rs->cm_id->route.num_paths) ?
++					    1 << (7 + rs->cm_id->route.path_rec->mtu) :
++					    2048;
++			*optlen = sizeof(int);
++			break;
+ 		default:
+ 			ret = ENOTSUP;
+ 			break;
 
-InfiniBand/RDMA fixes for 3.5-rc2, all in hardware drivers:
- - Fix crash in cxgb4
- - Fixes to new ocrdma driver
- - Regression fixes for mlx4
 
-----------------------------------------------------------------
-Devendra Naga (1):
-      RDMA/ocrdma: Remove unnecessary version.h includes
-
-Jack Morgenstein (1):
-      mlx4_core: Fix setting VL_cap in mlx4_SET_PORT wrapper flow
-
-Parav Pandit (2):
-      RDMA/ocrdma: Correct queue free count math
-      RDMA/ocrdma: Fix signaled event for SRQ_LIMIT_REACHED
-
-Roland Dreier (1):
-      Merge branches 'cxgb4', 'mlx4' and 'ocrdma' into for-linus
-
-Sagi Grimberg (1):
-      IB/mlx4: Fix max_wqe capacity reported from query device
-
-Shlomo Pongratz (1):
-      IB/mlx4: Fix EQ deallocation in legacy mode
-
-Thadeu Lima de Souza Cascardo (1):
-      RDMA/cxgb4: Fix crash when peer address is 0.0.0.0
-
- drivers/infiniband/hw/cxgb4/cm.c            |    4 ++++
- drivers/infiniband/hw/mlx4/main.c           |   21 ++++++++-------------
- drivers/infiniband/hw/mlx4/mlx4_ib.h        |    8 ++++++++
- drivers/infiniband/hw/mlx4/qp.c             |   21 +++++++++++++++------
- drivers/infiniband/hw/ocrdma/ocrdma.h       |    1 -
- drivers/infiniband/hw/ocrdma/ocrdma_abi.h   |    5 +----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |    9 +--------
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |    1 -
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    5 -----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |    1 -
- drivers/net/ethernet/mellanox/mlx4/port.c   |    4 ++--
- 11 files changed, 39 insertions(+), 41 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
