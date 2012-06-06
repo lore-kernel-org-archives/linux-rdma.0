@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/4] librdamcm/rsocket: Handle TCP_MAXSEG socket option
-Date: Wed, 6 Jun 2012 18:42:02 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A2F1C1@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 1/4] librdamcm/rsocket: Handle SHUT_RD/WR shutdown flags
+Date: Wed, 6 Jun 2012 18:42:10 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A2F1ED@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,44 +11,37 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-netperf uses the TCP_MAXSEG socket option.  Add support for it.
-Problem reported by Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org> reported an error (EOPNOTSUPP)
+after calling select().
 
-getsockopt returns the path MTU as the TCP_MAXSEG.  setsockopt
-currently ignores the value.
+The issue is that rshutdown(SHUT_WR) was called before select().
+As part of shutdown, rsockets switches the underlying fd from
+nonblocking to blocking to ensure that previously sent data has
+completed.  shutdown(SHUT_WR) indicates that the socket should be
+kept open for receiving data.
+
+Delay handling the actual shutdown unless SHUT_RDWR is specified,
+or the socket is closed.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/rsocket.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ src/rsocket.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
 diff --git a/src/rsocket.c b/src/rsocket.c
-index 8f20b4a..2fd106a 100644
+index c111797..8f20b4a 100644
 --- a/src/rsocket.c
 +++ b/src/rsocket.c
-@@ -1716,6 +1716,9 @@ int rsetsockopt(int socket, int level, int optname,
- 			opt_on = *(int *) optval;
- 			ret = 0;
- 			break;
-+		case TCP_MAXSEG:
-+			ret = 0;
-+			break;
- 		default:
- 			break;
- 		}
-@@ -1802,6 +1805,12 @@ int rgetsockopt(int socket, int level, int optname,
- 			*((int *) optval) = !!(rs->tcp_opts & (1 << optname));
- 			*optlen = sizeof(int);
- 			break;
-+		case TCP_MAXSEG:
-+			*((int *) optval) = (rs->cm_id && rs->cm_id->route.num_paths) ?
-+					    1 << (7 + rs->cm_id->route.path_rec->mtu) :
-+					    2048;
-+			*optlen = sizeof(int);
-+			break;
- 		default:
- 			ret = ENOTSUP;
- 			break;
+@@ -1592,6 +1592,9 @@ int rshutdown(int socket, int how)
+ 	struct rsocket *rs;
+ 	int ret = 0;
+ 
++	if (how != SHUT_RDWR)
++		return 0;
++
+ 	rs = idm_at(&idm, socket);
+ 	if (rs->fd_flags & O_NONBLOCK)
+ 		rs_set_nonblocking(rs, 0);
 
 
 --
