@@ -1,149 +1,462 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add per module logging support
-Date: Tue, 05 Jun 2012 13:53:04 -0400
-Message-ID: <4FCE4780.7010201@dev.mellanox.co.il>
-References: <4FC6918A.9080503@dev.mellanox.co.il> <1338856118.17237.927.camel@auk75.llnl.gov>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED-3.2-rc1 is available
+Date: Wed, 06 Jun 2012 18:59:14 +0300
+Message-ID: <4FCF7E52.1050306@dev.mellanox.co.il>
+References: <4F1D61F6.2040007@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------010901040501030708040209"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1338856118.17237.927.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <4F1D61F6.2040007-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/4/2012 8:28 PM, Jim Foraker wrote:
-> 
-> On Wed, 2012-05-30 at 14:30 -0700, Hal Rosenstock wrote:
->> Add _v2 APIs for osm_log, osm_log_is_active, and osm_log_msg_box
->> Also, add these to libopensm.map
->> Add _V2 forms of the various OSM_LOG macros
->      Why are the _V2 macros necessary?  It appears that the calling
-> semantics/effect are the same, so why create new macros instead of
-> reusing the old ones?  In particular, it seems like you could move the
-> FILE_ID defines above the #includes, and then in osm_log.h say things
-> like:
-> 
-> #ifdef FILE_ID
-> #define OSM_LOG_ENTER( OSM_LOG_PTR ) \
->         osm_log_v2( OSM_LOG_PTR, OSM_LOG_FUNCS, FILE_ID, \
->                     "%s: [\n", __func__);
-> #else
-> #define OSM_LOG_ENTER( OSM_LOG_PTR ) \
->         osm_log( OSM_LOG_PTR, OSM_LOG_FUNCS, \
->                  "%s: [\n", __func__);
-> #endif
+This is a multi-part message in MIME format.
+--------------010901040501030708040209
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Good idea; I'll rework the patch.
+Hi,
+OFED 3.2-rc1 is available.
 
->      Or just define FILE_ID everywhere (it seems to be missing from many
-> of the libvendor files) 
+The tarball is available on:
+http://www.openfabrics.org/downloads/OFED/ofed-3.2/OFED-3.2-rc1.tgz
 
-Most of libvendor files are historical and on verge of deprecation so it
-wasn't worth the effort there.
+To get BUILD_ID run ofed_info
 
-> and make OSM_LOG* always call the v2 functions.
+Please report any issues in bugzilla https://bugs.openfabrics.org/ for OFED 3.2
 
-> It seems like this would drastically reduce the patch's footprint.
+Regards,
+Vladimir
 
-If by footprint, you mean changed lines of code (rather than object code
-size), then yes, this makes sense.
 
->>
->> All of above pass additional parameter to identify module.
->> Each module defines a unique FILE_ID from 0-254.
->> 255 is reserved to indicate "name not found".
->> FILE_ID must match index in osm_subnet.c:module_name_str
->> table. Note also currently that subnet's
->> per_mod_log_tbl is 128 entries (which is enough
->> more than the number of modules).
->>  
->      Why are there so many magic numbers here?
+OFED-3.2-rc1 Main Changes from OFED 1.5.4.1
+-------------------------------------------------------------------------------
+1. Based on linux-3.2 kernel
+2. kernel-ib RPM renamed to compat-rdma
+3. Removed MPI packages
+4. Updated packages:
+    libibverbs-1.1.6
+    libmlx4-1.0.4
+    dapl-2.0.35
+    ibacm-1.0.6
+    perftest-1.4.0-0.66.g9074687
 
-There are 2 magic numbers. One is to use 255 as not found rather than
-explicit status. 128 is to limit the array size but that can be
-eliminated at the cost of the array size being larger.
+    Management:
+    libibmad-1.3.9
+    opensm-3.3.14
+    infiniband-diags-1.6.0
 
-> It seems like
-> per_mod_log_tbl's size could be defined in terms of the final value in
-> osm_file_ids_enum (ie, you could add a OSM_FILE_LAST_ENTRY to the enum).
-> If find_module_name() is changed to return an int (which is what
-> osm_log_v2() already uses as file_id's type, so consistency would be
-> improved), it could return -1 on failure, making the limit at 255
-> irrelevant as well.
+Supported Platforms and Operating Systems
+---------------------------------------------
+   o   CPU architectures:
+         - x86_64
+         - x86
+         - ppc64
+         - ia64
 
-Yes, that is an alternative to using 255 as indicating this.
+   o   Linux Operating Systems:
+         - RedHat EL6.2          2.6.32-220.el6
+         - SLES11 SP2            3.0.13-0.27-default
+         - kernel.org            3.0 - 3.2    *
 
->      Also, how is this expected to work with plugins?  Will plugins be
-> expected to use their own logging?
+       * Minimal QA for these versions.
 
-Plugins still use the original/coarse logging or their own logging. In
-order to use the per module logging, they'd need to reserve file IDs.
+--------------010901040501030708040209
+Content-Type: text/plain; charset=UTF-8;
+ name="OFED_release_notes.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="OFED_release_notes.txt"
 
->      Would it be desirable to put FILE_ID (or better yet, module name)
-> into the log messages as well?  This would make it a bit easier to find
-> where the relevant code is.  We could then phase out the "ERR XXYY"
-> scheme, particularly since the XX numbers do not seem to correlate at
-> all with FILE_ID.
+	    Open Fabrics Enterprise Distribution (OFED)
+	               Version 3.2-rc1
+	               Release Notes
+	               June 2012
 
-If we decide to change the ERR logs to include name all we need is __FILE__.
 
-If we want to keep current ERR XXYY scheme, for modules with FILE_ID
-that could be used as the XX in ERR XXYY. The issues with doing this are
-with original logging uses where that's not the case and any conflict
-between FILE_ID as the XX in the ERR and the current ERR XXs used now.
-Anyhow, this seems like a follow on patch and needs more discussion/thought.
+===============================================================================
+Table of Contents
+===============================================================================
+1. Overview, which includes:
+	- OFED Distribution Rev 3.2 Contents
+	- Supported Platforms and Operating Systems
+	- Supported HCA and RNIC Adapter Cards and Firmware Versions
+	- Tested Switch Platforms
+	- Third party Test Packages
+	- OFED sources
+2. Change log
+3. Known Issues
 
--- Hal
 
->      Jim
-> 
->>
->> Use version 2 API (osm_log_v2) and macros (OSM_LOG_V2_xxxx)
->> in OpenSM client code
->>
->> Added options to enable/disable per module logging and
->> it's configuration file
->>
->> Config file format
->> Set of lines with module name and logging level as follows:
->> <module name><separator><logging level>
->> where:
->> module name is file name including .c
->> separator is either = , space, or tab
->> logging level is the same levels as used in the coarse/overall logging
->> as follows:
->>
->>  BIT    LOG LEVEL ENABLED
->>  ----   -----------------
->>  0x01 - ERROR (error messages)
->>  0x02 - INFO (basic messages, low volume)
->>  0x04 - VERBOSE (interesting stuff, moderate volume)
->>  0x08 - DEBUG (diagnostic, high volume)
->>  0x10 - FUNCS (function entry/exit, very high volume)
->>  0x20 - FRAMES (dumps all SMP and GMP frames)
->>  0x40 - ROUTING (dump FDB routing information)
->>  0x80 - currently unused
->>
->> Add parsing of the configuration file into table of log levels
->> indexed by FILE_ID
->>
->> Added osm_get_log_per_module routine to obtain the configured info
->> for a supplied module name. This is a new library function.
->>
->> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->> As this patch is too large for email, please find this @
->> https://www.openfabrics.org/~halr/0001-opensm-Add-per-module-logging-support.patch
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+===============================================================================
+1. Overview
+===============================================================================
+These are the release notes of OpenFabrics Enterprise Distribution (OFED)
+release 3.2. The OFED software package is composed of several software modules,
+and is intended for use on a computer cluster constructed as an InfiniBand
+subnet or iWARP network. 
 
+Note: If you plan to upgrade the OFED package on your cluster, please upgrade
+all of its nodes to this new version.
+
+
+1.1 OFED 3.2 Contents
+-----------------------
+The OFED package contains the following components:
+ - OpenFabrics core and ULPs:
+	- IB HCA drivers (mthca, mlx4, qib, ehca)
+	- iWARP RNIC driver (cxgb3, cxgb4, nes)
+	- core
+	- Upper Layer Protocols: IPoIB, SRP Initiator and target, iSER 
+	  Initiator and target, RDS, uDAPL, qlgc_vnic and NFS-RDMA*.
+ - OpenFabrics utilities:
+	- OpenSM (OSM): InfiniBand Subnet Manager
+	- Diagnostic tools
+	- Performance tests
+ - Extra packages:
+	- infinipath-psm: Performance-Scaled Messaging API, an accelerated 
+	  interface to QLogic HCAs
+ - Sources of all software modules (under conditions mentioned in the modules'
+   LICENSE files)
+ - Documentation
+
+1.2 Supported Platforms and Operating Systems
+---------------------------------------------
+  o   CPU architectures:
+	- x86_64
+	- x86
+	- ppc64
+	- ia64
+	
+  o   Linux Operating Systems:
+	- RedHat EL6.2 		2.6.32-220.el6
+	- SLES11 SP2 		3.0.13-0.27-default
+	- kernel.org		3.0 - 3.2    *
+
+      * Minimal QA for these versions.
+	
+1.3 HCAs and RNICs Supported
+----------------------------
+This release supports IB HCAs by Mellanox Technologies, Qlogic and IBM as
+well as iWARP RNICs by Chelsio Communications and Intel.
+
+  o   Mellanox Technologies HCAs (SDR, DDR and QDR Modes are Supported):
+	- ConnectX(R) and ConnectX EN (fw-25408 Rev 2.9.1000)
+	- ConnectX-2 (fw-ConnectX2 Rev 2.9.1000)
+	- ConnectX-2 EN (fw-ConnectX2 Rev 2.9.1000)
+	- ConnectX-3 (fw-ConnectX3 Rev 2.10.0000)  (FDR and FDR10 Modes are Supported)
+
+	For official firmware versions please see:
+	http://www.mellanox.com/content/pages.php?pg=firmware_download
+
+  o   Qlogic HCAs:
+	- QLogic TrueScale DDR PCIe x8 and x16 HCAs
+	- QLogic TrueScale QDR PCIe x8 Gen2 HCAs
+
+  o   IBM HCAs:
+	- GX Dual-port SDR 4x IB HCA
+	- GX Dual-port SDR 12x IB HCA
+	- GX Dual-port DDR 4x IB HCA
+	- GX Dual-port DDR 12x IB HCA
+
+  o   Chelsio RNICs:
+	- S310/S320 10GbE Storage Accelerators
+	- R310/R320 10GbE iWARP Adapters
+
+  o   Intel RNICs:
+	- NE020 10Gb iWARP Adapter
+
+
+1.4 Switches Supported
+----------------------
+This release was tested with switches and gateways provided by the following
+companies:
+	- Qlogic
+	- Flextronics
+	- Oracle (Sun)
+	- Mellanox
+
+1.5 Third Party Packages
+------------------------
+The following third party packages have been tested with OFED 3.2:
+- Open MPI, Version 1.4.5
+- Intel MPI, Version 4.0.3
+
+1.6 OFED Sources
+----------------
+All sources are located under git://git.openfabrics.org/
+
+Linux:
+------
+URL: git://git.openfabrics.org/compat-rdma/linux-3.2.git
+Branch: for-ofed-3.2
+
+- Linux kernel subtree that includes files relevant for the OFED project only.
+  Based on v3.2. Used to shorten git clone time.
+  Note: the regular Linux git tree can be used as well.
+
+compat:
+-------
+URL: git://git.openfabrics.org/compat-rdma/compat.git
+Branch: ofed
+
+- Based on compat project (https://github.com/mcgrof/compat). The compat module
+  provides functionality introduced in newer kernels to older kernels through a
+  set of header files and exported symbols.
+  See https://github.com/mcgrof/compat/wiki for details.
+- Used to replace kernel_addons in the previous OFED kernel tree.
+
+compat-rdma:
+------------
+URL: git://git.openfabrics.org/compat-rdma/compat-rdma.git
+Branch: master
+
+User level Sources are downloaded from http://www.openfabrics.org/downloads/
+as written in the BUILD_ID
+
+The kernel sources are based on Linux 3.2 mainline kernel. Its patches
+are included in the OFED sources directory.
+For details see HOWTO.build_ofed.
+
+The list of maintainers is available under:
+http://www.openfabrics.org/downloads/MAINTAINERS
+
+===============================================================================
+2. Change log
+===============================================================================
+OFED-3.2-rc1 Main Changes from OFED 1.5.4.1
+-------------------------------------------------------------------------------
+1. Based on linux-3.2 kernel
+2. kernel-ib RPM renamed to compat-rdma
+3. Removed MPI packages
+4. Updated packages:
+   libibverbs-1.1.6
+   libmlx4-1.0.4
+   dapl-2.0.35
+   ibacm-1.0.6
+   perftest-1.4.0-0.66.g9074687
+
+   Management:
+   libibmad-1.3.9
+   opensm-3.3.14
+   infiniband-diags-1.6.0
+   
+
+OFED-1.5.4 Main Changes from OFED 1.5.3.2
+-------------------------------------------------------------------------------
+1. Add kernel 3.0 support
+2. Add RHEL6.2 support
+3. Add NFSRDMA to the list of packages to be installed by default on supported
+   platforms
+4. Add new InfiniBand link speeds: EDR/FDR/FDR10
+5. OFA Kernel: See ofa_kernel.changelog.txt
+
+6. Updated packages:
+   libibverbs-1.1.4-1.24.gb89d4d7
+   libmlx4-1.0.1-1.20.g6771d22
+   libnes-1.1.3
+   libcxgb3-1.3.1
+   libcxgb4-1.2.0
+   dapl-2.0.34
+   ibacm-1.0.5
+   librdmacm-1.0.15
+   infinipath-psm-2.9-926.1005_open
+   ibutils-1.5.7-0.1.g05a9d1a
+   perftest-1.3.0-0.56.gd6f6093
+   mstflint-1.4-1.18.g1adcfbf
+   
+   Management:
+   libibmad-1.3.8
+   infiniband-diags-1.5.12
+   opensm-3.3.12
+   
+   MPI:
+   mvapich2-1.7-5.2011svn5031
+
+OFED-1.5.3.2 Main Changes from OFED 1.5.3.1
+-------------------------------------------------------------------------------
+1. Add RHEL5.7 support
+2. Add RHEL6.1 support
+3. Add kernel.org 2.6.37 - 2.6.39 support
+4. ib-bonding-0.9.0-43 (SLES10 SP4 support)
+
+OFED-1.5.3.1 Main Changes from OFED 1.5.3
+-------------------------------------------------------------------------------
+1. Fix QIB support on SLES10 SP3
+
+OFED-1.5.3 Main Changes from OFED 1.5.2
+-------------------------------------------------------------------------------
+1. Updated packages:
+   dapl-2.0.32
+   librdmacm-1.0.14.1
+   ibacm-1.0.4
+   libibmad-1.3.7
+   libibumad-1.3.7
+   infiniband-diags-1.5.8
+   opensm-3.3.9
+   ibutils-1.5.7
+   libibverbs-1.1.4-1.22.g7257cd3.tar.gz
+   libmlx4-1.0.1-1.18.gb810a27.tar.gz
+   libnes-1.1.1
+   infinipath-psm-1.14
+   libsdp-1.1.108-0.15.gd7fdb72
+   mstflint-1.4-0.9.gc683022
+   sdpnetstat-1.60-0.3.gb6e7425
+   perftest-1.3.0-0.42.gf350d3d
+
+   - MPI
+     openmpi-1.4.3-1
+     mvapich2-1.6-2
+
+2. Added RHEL6 support
+3. Added RHEL5.6 support
+4. Improved RAW Ethernet QP support (requires ConnectX/ConnectX2 FW >= 2.8.0600)
+5. NFSoRDMA was removed from the list of packages in the install script to
+   prevent its installation by default.
+   To force NFSoRDMA installation, add the following lines to the ofed.conf:
+   nfsrdma=y
+   rnfs-utils=y
+   
+   To get ofed.conf, run 
+   # ./install.pl -p
+   
+   After adding the lines above to ofed.conf, to install OFED run 
+   # ./install.pl -c ofed.conf
+
+OFED-1.5.2 Main Changes from OFED 1.5.1
+-------------------------------------------------------------------------------
+1. Added RHEL5.5, SLES11 SP1 and kernel 2.6.33 support
+2. /etc/modprobe.conf deprecated
+   ib_ipoib use /etc/modprobe.d/ib_ipoib.conf
+   ib_sdp use /etc/modprobe.d/ib_sdp.conf
+   mlx4_en use /etc/modprobe.d/mlx4_en.conf
+3. Added RAW Ethernet QP support in libibverbs
+4. Added multicast support in perftest
+5. Added new package: ibacm. See ibacm_release_notes.txt
+6. Added new package infinipath-psm.
+7. Updated packages:
+        libibverbs to rev 1.1.4-0.14.gb6c138b
+        libehca to rev 1.2.2-0.1.g69e1a88
+        libmlx4 to rev 1.0-0.13.g4e5c43f
+        libnes to rev 1.1.0
+        librdmacm to rev 1.0.13
+        dapl to rev 2.0.30
+        compat-depl to rev 1.2.19
+        libsdp to rev 1.1.103
+        mstflint to rev 1.4-0.6.g63179f4
+        perftest to rev 1.3.0-0.27
+        rds-tools to rev 2.0.4
+        Management:
+            opensm to rev 3.3.7
+            libibmad to rev 1.3.6
+            libibumad to rev 1.3.6
+            infiniband-diags to rev 1.5.7
+        MPI:
+            openmpi to rev 1.4.2-1
+            mvapich2 to rev 1.5.1-2.p1
+            mpitests to rev 3.2-923
+
+OFED-1.5.1 Main Changes from OFED 1.5
+-------------------------------------------------------------------------------
+1. Added RoCEE support - see RoCEE_README.txt
+2. Added enhanced atomic operations to ConnectX (kernel only).
+   See mlx4_release_notes.txt.
+3. Updated Open MPI to rev 1.4.1-2ofed
+4. Updated MVAPICH2 to rev 1.4.1
+5. Updated DAPL to rev 2.0.27
+6. Updated libnes to rev 1.0.1
+7. Updated librdmacm to rev 1.0.11
+8. Removed tvflash RPM
+9. NFS-RDMA is not supported on SLES10 SP3
+10. Fixed IPv6 support and IPv4 routing corner cases for RDMA CM
+11. Bug fixes
+
+OFED-1.5 Main Changes from OFED 1.4.2
+-------------------------------------------------------------------------------
+Note: For details regarding the various changes,  please see the release notes
+for each package in the docs directory.
+
+    2.1 General changes
+	o Kernel code based on 2.6.30
+	o libraries location - all userspace libraries can be downloaded from
+	  http://www.openfabrics.org/downloads/
+	  See BUILD_ID for exact locations
+	o Qlogic moved the low level driver from ipath to qib.
+
+    2.2 SDP
+	o Performance improvements
+	o Zero copy in beta level
+
+    2.3 uDAPL
+	o New UCM provider (ofa-v2-mlx4_0-1u) with IB UD-based CM per process.
+          It is more scalable than rdma_cm (cma) or socket cm (scm). 
+	o Common code base with WinOF 2.1
+	o Bug fixes
+
+
+    2.4 perftest
+	o Renamed tests:
+	  ib_rdma_bw  -> rdma_bw
+	  ib_rdma_lat -> rdma_lat
+
+    2.5 Management 
+	o OpenSM
+	  - Support for Mesh Analysis for LASH routing algorithm
+          - Reloadable OpenSM configuration (preliminary implementation)
+          - Routing paths sorted balancing (for UpDown and MinHops)
+          - Weighted LID matrices calculation (for UpDown, MinHop and DOR)
+          - I/O nodes connectivity (for FatTree)
+
+    2.6 MPI:
+	a. OSU MVAPICH 1.2.0
+	b. Open MPI 1.4
+	c. OSU MVAPICH2 1.4
+	d. MPI tests 3.2
+
+    2.7 iSER:
+	o Available on:
+          - kernel.org: 2.6.30 and higher
+          - RHEL5.4
+
+    2.8 NFS-RDMA
+	o Added support for RHEL5.4, SLES10 SP3, kernel.org 2.6.25 and 2.6.30.
+	  Kernels 2.6.26 and 2.6.27 are not supported
+	o NFS-RDMA is in Beta level
+
+===============================================================================
+3. Known Issues
+===============================================================================
+The following is a list of general limitations and known issues of the various
+components of the OFED 3.2-rc1 release.
+
+1. When upgrading from an earlier OFED version, the installation script does
+   not stop the earlier OFED version prior to uninstalling it. 
+   Workaround: Stop the old OFED stack (/etc/init.d/openibd stop) before 
+   upgrading to OFED 3.2 or reboot the server after OFED installation.
+2. Memory registration by the user is limited according to administrator
+   setting. See "Pinning (Locking) User Memory Pages" in OFED_tips.txt for
+   system configuration.
+3. Fork support from kernel 2.6.12 and above is available provided
+   that applications do not use threads. fork() is supported as long as the
+   parent process does not run before the child exits or calls exec().
+   The former can be achieved by calling wait(childpid), and the latter can be
+   achieved by application specific means.  The Posix system() call is
+   supported.
+4. The qib driver is supported only on 64-bit platforms.
+5. IPoIB: brctl utilities do not work on IPoIB interfaces. The reason for that
+   is that these utilities support devices of type Ethernet only.
+6. On SLES11, and in case uninstall is failing, check the error log and remove
+   the remaining RPMs manually using 'rpm -e <rpms list>'.
+7. On SLES11, set allow_unsupported_modules parameter to 1 in file:
+    /etc/modprobe.d/unsupported-modules. Without this the modules will not
+    load.
+
+Note: See the release notes of each component for additional issues.
+
+--------------010901040501030708040209--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
