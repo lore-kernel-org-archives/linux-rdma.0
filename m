@@ -1,7 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/4] librdamcm/rsocket: Handle SHUT_RD/WR shutdown flags
-Date: Wed, 6 Jun 2012 18:42:10 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A2F1ED@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 4/4] librdamcm/rsocket: Use configuration files to specify
+ default settings
+Date: Wed, 6 Jun 2012 18:42:02 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A2F1CD@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,37 +12,111 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org> reported an error (EOPNOTSUPP)
-after calling select().
+Give an administrator control over the default settings
+used by rsockets.  Use files under %sysconfig%/rdma/rsocket as shown:
 
-The issue is that rshutdown(SHUT_WR) was called before select().
-As part of shutdown, rsockets switches the underlying fd from
-nonblocking to blocking to ensure that previously sent data has
-completed.  shutdown(SHUT_WR) indicates that the socket should be
-kept open for receiving data.
+mem_default - default size of receive buffer(s)
+wmem_default - default size of send buffer(s)
+sqsize_default - default size of send queue
+rqsize_default - default size of receive queue
+inline_default - default size of inline data
 
-Delay handling the actual shutdown unless SHUT_RDWR is specified,
-or the socket is closed.
+If configuration files are not available, rsockets will continue to
+use internal defaults.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/rsocket.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+I have adding an rsocket man page that includes this information on my
+to do list.
+
+ src/rsocket.c |   51 ++++++++++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 44 insertions(+), 7 deletions(-)
 
 diff --git a/src/rsocket.c b/src/rsocket.c
-index c111797..8f20b4a 100644
+index d7344c7..5e0e413 100644
 --- a/src/rsocket.c
 +++ b/src/rsocket.c
-@@ -1592,6 +1592,9 @@ int rshutdown(int socket, int how)
- 	struct rsocket *rs;
- 	int ret = 0;
+@@ -53,19 +53,20 @@
+ #include "cma.h"
+ #include "indexer.h"
  
-+	if (how != SHUT_RDWR)
-+		return 0;
+-#define RS_INLINE 64
+ #define RS_OLAP_START_SIZE 2048
+ #define RS_MAX_TRANSFER 65536
+-#define RS_QP_SIZE 384
+ #define RS_QP_MAX_SIZE 0xFFFE
+-#define RS_QP_MIN_SIZE 8
+ #define RS_QP_CTRL_SIZE 4
+ #define RS_CONN_RETRIES 6
+ #define RS_SGL_SIZE 2
+-#define RS_BUF_SIZE (1 << 17)
+ static struct index_map idm;
+ static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+ 
++static uint16_t def_inline = 64;
++static uint16_t def_sqsize = 384;
++static uint16_t def_rqsize = 384;
++static uint32_t def_mem = (1 << 17);
++static uint32_t def_wmem = (1 << 17);
+ static uint32_t polling_time = 10;
+ 
+ /*
+@@ -216,6 +217,40 @@ void rs_configure(void)
+ 		fscanf(f, "%u", &polling_time);
+ 		fclose(f);
+ 	}
 +
- 	rs = idm_at(&idm, socket);
- 	if (rs->fd_flags & O_NONBLOCK)
- 		rs_set_nonblocking(rs, 0);
++	if ((f = fopen(RS_CONF_DIR "/inline_default", "r"))) {
++		fscanf(f, "%hu", &def_inline);
++		fclose(f);
++
++		if (def_inline < RS_MIN_INLINE)
++			def_inline = RS_MIN_INLINE;
++	}
++
++	if ((f = fopen(RS_CONF_DIR "/sqsize_default", "r"))) {
++		fscanf(f, "%hu", &def_sqsize);
++		fclose(f);
++	}
++
++	if ((f = fopen(RS_CONF_DIR "/rqsize_default", "r"))) {
++		fscanf(f, "%hu", &def_rqsize);
++		fclose(f);
++	}
++
++	if ((f = fopen(RS_CONF_DIR "/mem_default", "r"))) {
++		fscanf(f, "%u", &def_mem);
++		fclose(f);
++
++		if (def_mem < 1)
++			def_mem = 1;
++	}
++
++	if ((f = fopen(RS_CONF_DIR "/wmem_default", "r"))) {
++		fscanf(f, "%u", &def_wmem);
++		fclose(f);
++
++		if (def_wmem < 1)
++			def_wmem = 1;
++	}
+ 	init = 1;
+ out:
+ 	pthread_mutex_unlock(&mut);
+@@ -264,9 +299,11 @@ static struct rsocket *rs_alloc(struct rsocket *inherited_rs)
+ 		rs->rq_size = inherited_rs->rq_size;
+ 		rs->ctrl_avail = inherited_rs->ctrl_avail;
+ 	} else {
+-		rs->sbuf_size = rs->rbuf_size = RS_BUF_SIZE;
+-		rs->sq_inline = RS_INLINE;
+-		rs->sq_size = rs->rq_size = RS_QP_SIZE;
++		rs->sbuf_size = def_wmem;
++		rs->rbuf_size = def_mem;
++		rs->sq_inline = def_inline;
++		rs->sq_size = def_sqsize;
++		rs->rq_size = def_rqsize;
+ 		rs->ctrl_avail = RS_QP_CTRL_SIZE;
+ 	}
+ 	fastlock_init(&rs->slock);
 
 
 --
