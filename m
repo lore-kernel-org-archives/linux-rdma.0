@@ -1,70 +1,54 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv3 1/3] opensm: Add per module logging support
-Date: Thu, 07 Jun 2012 13:03:18 -0400
-Message-ID: <4FD0DED6.6020801@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH] opensm: Fix pthread_create() return value checks
+Date: Thu, 07 Jun 2012 19:16:55 +0000
+Message-ID: <4FD0FE27.6080700@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add _v2 APIs for osm_log, osm_log_is_active, and osm_log_msg_box
-Also, add these to libopensm.map
+Just like other POSIX thread functions, pthread_create() either returns zero
+or a positive error code. Found this through source code review. See also
+http://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_create.html
 
-All of above pass additional parameter to identify module.
-Each module defines a unique FILE_ID from 0-255.
-FILE_ID must match index in osm_subnet.c:module_name_str
-table.
-
-Modify OSM_LOG macros to use version 2 log APIs when FILE_ID
-is defined. Modify OpenSM client code to use version 2 log
-APIs when used log functions and not macros.
-
-Added options to enable/disable per module logging and
-it's configuration file
-
-Config file format
-Set of lines with module name and logging level as follows:
-<module name><separator><logging level>
-where:
-module name is file name including .c
-separator is either = , space, or tab
-logging level is the same levels as used in the coarse/overall logging
-as follows:
-
- BIT    LOG LEVEL ENABLED
- ----   -----------------
- 0x01 - ERROR (error messages)
- 0x02 - INFO (basic messages, low volume)
- 0x04 - VERBOSE (interesting stuff, moderate volume)
- 0x08 - DEBUG (diagnostic, high volume)
- 0x10 - FUNCS (function entry/exit, very high volume)
- 0x20 - FRAMES (dumps all SMP and GMP frames)
- 0x40 - ROUTING (dump FDB routing information)
- 0x80 - SYS (syslog at LOG_INFO level in addition to OpenSM logging)
-
-Add parsing of the configuration file into table of log levels
-indexed by FILE_ID
-
-Added osm_get_log_per_module routine to obtain the configured info
-for a supplied module name. This is a new library function.
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
-Changes since v2:
-Fixed find_module_name bug/typo
-Found and fixed by Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ complib/cl_threadpool.c       |    2 +-
+ libvendor/osm_vendor_ibumad.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Changes since v1:
-Modify OSM_LOG macros to use version 2 log APIs when FILE_ID defined
-Eliminate magic numbers around per module logging table
-Based on comments from Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
----
-As this patch still is too large for email, please find this @
-https://www.openfabrics.org/~halr/0001-opensm-Add-per-module-logging-support.patch
+diff --git a/complib/cl_threadpool.c b/complib/cl_threadpool.c
+index 4440808..0f6498b 100644
+--- a/complib/cl_threadpool.c
++++ b/complib/cl_threadpool.c
+@@ -105,7 +105,7 @@ cl_status_t cl_thread_pool_init(IN cl_thread_pool_t * const p_thread_pool,
+ 
+ 	for (i = 0; i < count; i++) {
+ 		if (pthread_create(&p_thread_pool->tid[i], NULL,
+-				   thread_pool_routine, p_thread_pool) < 0) {
++				   thread_pool_routine, p_thread_pool) != 0) {
+ 			cl_thread_pool_destroy(p_thread_pool);
+ 			return CL_INSUFFICIENT_RESOURCES;
+ 		}
+diff --git a/libvendor/osm_vendor_ibumad.c b/libvendor/osm_vendor_ibumad.c
+index 9b7168b..bb40e8b 100644
+--- a/libvendor/osm_vendor_ibumad.c
++++ b/libvendor/osm_vendor_ibumad.c
+@@ -425,7 +425,7 @@ static int umad_receiver_start(osm_vendor_t * p_vend)
+ 	p_ur->p_vend = p_vend;
+ 	p_ur->p_log = p_vend->p_log;
+ 
+-	if (pthread_create(&p_ur->tid, NULL, umad_receiver, p_ur) < 0)
++	if (pthread_create(&p_ur->tid, NULL, umad_receiver, p_ur) != 0)
+ 		return -1;
+ 
+ 	return 0;
+-- 
+1.7.7
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
