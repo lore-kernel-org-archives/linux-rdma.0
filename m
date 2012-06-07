@@ -1,233 +1,156 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/4] librdamcm/rsocket: Spin before blocking on an rsocket
-Date: Wed, 6 Jun 2012 18:42:02 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A2F1C7@ORSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 2/3] opensm: Cosmetic changes
+Date: Wed, 06 Jun 2012 20:34:56 -0400
+Message-ID: <4FCFF730.3080704@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The latency cost of blocking is significant compared to round
-trip ping-pong time.  Spin briefly on rsockets before calling
-into the kernel and blocking.
+>From d3795beefe4a023f043ae522a7ac040d4f232dfb Mon Sep 17 00:00:00 2001
+From: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Thu, 7 Jun 2012 03:04:49 +0300
+Subject: [PATCH 2/3] opensm: Cosmetic changes
 
-The time to spin before blocking is read from an rsocket
-configuration file %sysconfig%/rdma/rsocket/polling_time.  This
-is user adjustable.
+Fix some typos
+Fix some formatting (replaces spaces with tabs)
 
-As a completely unintentional side effect, this just happens to
-improve application performance in benchmarks, like netpipe and
-iperf, significantly. ;)
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- Makefile.am   |    2 +-
- configure.in  |    5 ++++
- src/cma.h     |    9 +++++++
- src/rsocket.c |   76 +++++++++++++++++++++++++++++++++++++++++++++++++++------
- 4 files changed, 83 insertions(+), 9 deletions(-)
+ opensm/osm_mesh.c               |    2 +-
+ opensm/osm_prtn.c               |   10 +++++-----
+ opensm/osm_sa_guidinfo_record.c |    2 +-
+ opensm/osm_torus.c              |    6 +++---
+ opensm/osm_ucast_dfsssp.c       |    2 +-
+ opensm/osm_ucast_dnup.c         |    6 +++---
+ 6 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index cbd874d..1dc61e1 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -3,7 +3,7 @@ INCLUDES = -I$(srcdir)/include
- lib_LTLIBRARIES = src/librdmacm.la
- 
- ACLOCAL_AMFLAGS = -I config
--AM_CFLAGS = -g -Wall -D_GNU_SOURCE
-+AM_CFLAGS = -g -Wall -D_GNU_SOURCE -DSYSCONFDIR=\"$(sysconfdir)\" -DRDMADIR=\"@rdmadir@\"
- 
- src_librdmacm_la_CFLAGS = $(AM_CFLAGS)
- 
-diff --git a/configure.in b/configure.in
-index dec6064..3ee7f9b 100644
---- a/configure.in
-+++ b/configure.in
-@@ -87,5 +87,10 @@ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
- 
- AM_CONDITIONAL(HAVE_LD_VERSION_SCRIPT, test "$ac_cv_version_script" = "yes")
- 
-+AC_ARG_VAR(rdmadir, [Directory for configuration files])
-+if test "x$rdmadir" = "x"; then
-+   AC_SUBST(rdmadir, rdma)
-+fi
-+
- AC_CONFIG_FILES([Makefile librdmacm.spec])
- AC_OUTPUT
-diff --git a/src/cma.h b/src/cma.h
-index 2ee4767..cedc0c3 100644
---- a/src/cma.h
-+++ b/src/cma.h
-@@ -166,4 +166,13 @@ struct ibv_path_data
- };
- #endif
- 
-+#ifndef SYSCONFDIR
-+#define SYSCONFDIR "/etc"
-+#endif
-+#ifndef RDMADIR
-+#define RDMADIR "rdma"
-+#endif
-+#define RDMA_CONF_DIR  SYSCONFDIR "/" RDMADIR
-+#define RS_CONF_DIR RDMA_CONF_DIR "/rsocket"
-+
- #endif /* CMA_H */
-diff --git a/src/rsocket.c b/src/rsocket.c
-index 2fd106a..d7344c7 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -37,10 +37,12 @@
- 
- #include <sys/types.h>
- #include <sys/socket.h>
-+#include <sys/time.h>
- #include <stdarg.h>
- #include <netdb.h>
- #include <unistd.h>
- #include <fcntl.h>
-+#include <stdio.h>
- #include <string.h>
- #include <netinet/in.h>
- #include <netinet/tcp.h>
-@@ -64,6 +66,8 @@
- static struct index_map idm;
- static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
- 
-+static uint32_t polling_time = 10;
-+
- /*
-  * Immediate data format is determined by the upper bits
-  * bit 31: message type, 0 - data, 1 - control
-@@ -196,6 +200,27 @@ struct rsocket {
- 	uint8_t		  *sbuf;
- };
- 
-+void rs_configure(void)
-+{
-+	FILE *f;
-+	static int init;
-+
-+	if (init)
-+		return;
-+
-+	pthread_mutex_lock(&mut);
-+	if (init)
+diff --git a/opensm/osm_mesh.c b/opensm/osm_mesh.c
+index d66703e..aede1db 100644
+--- a/opensm/osm_mesh.c
++++ b/opensm/osm_mesh.c
+@@ -1660,7 +1660,7 @@ int osm_do_mesh_analysis(lash_t *p_lash)
+ 	 * find dominant switch class
+ 	 */
+ 	OSM_LOG(p_log, OSM_LOG_INFO, "found %d node class%s\n",
+-		mesh->num_class, (mesh->num_class == 1)? "" : "es");
++		mesh->num_class, (mesh->num_class == 1) ? "" : "es");
+ 	for (i = 0; i < mesh->num_class; i++) {
+ 		OSM_LOG(p_log, OSM_LOG_INFO,
+ 			"class[%d] has %d members with type = %d\n",
+diff --git a/opensm/osm_prtn.c b/opensm/osm_prtn.c
+index a1a870d..129fe51 100644
+--- a/opensm/osm_prtn.c
++++ b/opensm/osm_prtn.c
+@@ -215,11 +215,11 @@ track_mgrp_w_partition(osm_log_t *p_log, osm_prtn_t *p, osm_mgrp_t *mgrp,
+ 		p->nmgrps++;
+ 	} else {
+ 		OSM_LOG(p_log, OSM_LOG_ERROR,
+-		        "realloc error to create MC group (%s) in "
+-		        "partition (pkey 0x%04x)\n",
+-		        inet_ntop(AF_INET6, mgid->raw,
+-		                gid_str, sizeof gid_str),
+-		        cl_ntoh16(pkey));
++			"realloc error to create MC group (%s) in "
++			"partition (pkey 0x%04x)\n",
++			inet_ntop(AF_INET6, mgid->raw,
++				  gid_str, sizeof gid_str),
++			cl_ntoh16(pkey));
+ 		mgrp->well_known = FALSE;
+ 		osm_mgrp_cleanup(p_subn, mgrp);
+ 		return (IB_ERROR);
+diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
+index 2b4baf3..a19d526 100644
+--- a/opensm/osm_sa_guidinfo_record.c
++++ b/opensm/osm_sa_guidinfo_record.c
+@@ -763,7 +763,7 @@ void osm_gir_rcv_process(IN void *ctx, IN void *data)
+ 		if (!check_mod_comp_mask(p_rcvd_mad->comp_mask)) {
+ 			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5106: "
+ 				"component mask = 0x%016" PRIx64 ", "
+-                                "expected comp mask = 0x%016" PRIx64 "\n",
++				"expected comp mask = 0x%016" PRIx64 "\n",
+ 				cl_ntoh64(p_rcvd_mad->comp_mask),
+ 				CL_NTOH64(MOD_GIR_COMP_MASK));
+ 			osm_sa_send_error(sa, p_madw,
+diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
+index 051505b..e157229 100644
+--- a/opensm/osm_torus.c
++++ b/opensm/osm_torus.c
+@@ -718,14 +718,14 @@ bool build_link(struct fabric *f,
+ 		OSM_LOG(&f->osm->log, OSM_LOG_ERROR,
+ 			"ERR 4E0A: missing switch w/GUID 0x%04"PRIx64"\n",
+ 			cl_ntoh64(sw_guid0));
+-			goto out;
 +		goto out;
-+
-+	if ((f = fopen(RS_CONF_DIR "/polling_time", "r"))) {
-+		fscanf(f, "%u", &polling_time);
-+		fclose(f);
-+	}
-+	init = 1;
-+out:
-+	pthread_mutex_unlock(&mut);
-+}
-+
- /*
-  * We currently generate a completion per send.  sqe_count = 1
-  */
-@@ -470,6 +495,7 @@ int rsocket(int domain, int type, int protocol)
- 	    (type != SOCK_STREAM) || (protocol && protocol != IPPROTO_TCP))
- 		return ERR(ENOTSUP);
+ 	}
+ 	sw1 = find_f_sw(f, sw_guid1);
+ 	if (!sw1) {
+ 		OSM_LOG(&f->osm->log, OSM_LOG_ERROR,
+ 			"ERR 4E0B: missing switch w/GUID 0x%04"PRIx64"\n",
+ 			cl_ntoh64(sw_guid1));
+-			goto out;
++		goto out;
+ 	}
+ 	l = alloc_flink(f);
+ 	if (!l)
+@@ -7054,7 +7054,7 @@ bool verify_setup(struct torus *t, struct fabric *f)
+ 					"ERR 4E21: port_order configured using "
+ 					"port %u, but only %u ports in "
+ 					"switch w/ GUID 0x%04"PRIx64"\n",
+-					t->port_order[p],  sw->port_cnt - 1,
++					t->port_order[p], sw->port_cnt - 1,
+ 					cl_ntoh64(sw->n_id));
+ 				goto out;
+ 			}
+diff --git a/opensm/osm_ucast_dfsssp.c b/opensm/osm_ucast_dfsssp.c
+index 8687459..20b02cb 100644
+--- a/opensm/osm_ucast_dfsssp.c
++++ b/opensm/osm_ucast_dfsssp.c
+@@ -2038,7 +2038,7 @@ static int dfsssp_do_dijkstra_routing(void *context)
+ 		     item = cl_qmap_next(item)) {
+ 			sw = (osm_switch_t *) item;
+ 			OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
+-				"Summery of the (new) LFT for switch 0x%" PRIx64
++				"Summary of the (new) LFT for switch 0x%" PRIx64
+ 				" (%s):\n",
+ 				cl_ntoh64(osm_node_get_node_guid(sw->p_node)),
+ 				sw->p_node->print_desc);
+diff --git a/opensm/osm_ucast_dnup.c b/opensm/osm_ucast_dnup.c
+index a35284d..2afff79 100644
+--- a/opensm/osm_ucast_dnup.c
++++ b/opensm/osm_ucast_dnup.c
+@@ -176,7 +176,7 @@ static int dnup_bfs_by_node(IN osm_log_t * p_log, IN osm_subn_t * p_subn,
+ 					current_min_hop+=prune_weight;
+ 					if(current_min_hop >= 64) {
+ 						OSM_LOG(p_log, OSM_LOG_ERROR,
+-							"ERR AE02 Too many hops on subnet,"
++							"ERR AE02: Too many hops on subnet,"
+ 							" can't relax illegal Dn/Up transition.");
+ 						osm_switch_set_hops(p_remote_sw, lid,
+ 								    pn_rem, OSM_NO_PATH);
+@@ -480,7 +480,7 @@ int osm_ucast_dnup_setup(struct osm_routing_engine *r, osm_opensm_t *osm)
+ {
+ 	dnup_t *dnup;
  
-+	rs_configure();
- 	rs = rs_alloc(NULL);
- 	if (!rs)
- 		return ERR(ENOMEM);
-@@ -923,6 +949,29 @@ static int rs_process_cq(struct rsocket *rs, int nonblock, int (*test)(struct rs
- 	return ret;
+-        OSM_LOG_ENTER(&osm->log);
++	OSM_LOG_ENTER(&osm->log);
+ 
+ 	dnup = malloc(sizeof(dnup_t));
+ 	if (!dnup)
+@@ -493,6 +493,6 @@ int osm_ucast_dnup_setup(struct osm_routing_engine *r, osm_opensm_t *osm)
+ 	r->destroy = dnup_delete;
+ 	r->build_lid_matrices = dnup_lid_matrices;
+ 
+-        OSM_LOG_EXIT(&osm->log);
++	OSM_LOG_EXIT(&osm->log);
+ 	return 0;
  }
- 
-+static int rs_get_comp(struct rsocket *rs, int nonblock, int (*test)(struct rsocket *rs))
-+{
-+	struct timeval s, e;
-+	uint32_t poll_time = 0;
-+	int ret;
-+
-+	do {
-+		ret = rs_process_cq(rs, 1, test);
-+		if (!ret || nonblock || errno != EWOULDBLOCK)
-+			return ret;
-+
-+		if (!poll_time)
-+			gettimeofday(&s, NULL);
-+
-+		gettimeofday(&e, NULL);
-+		poll_time = (e.tv_sec - s.tv_sec) * 1000000 +
-+			    (e.tv_usec - s.tv_usec) + 1;
-+	} while (poll_time <= polling_time);
-+
-+	ret = rs_process_cq(rs, 0, test);
-+	return ret;
-+}
-+
- static int rs_nonblocking(struct rsocket *rs, int flags)
- {
- 	return (rs->fd_flags & O_NONBLOCK) || (flags & MSG_DONTWAIT);
-@@ -1034,7 +1083,7 @@ ssize_t rrecv(int socket, void *buf, size_t len, int flags)
- 	}
- 	fastlock_acquire(&rs->rlock);
- 	if (!rs_have_rdata(rs)) {
--		ret = rs_process_cq(rs, rs_nonblocking(rs, flags), rs_conn_have_rdata);
-+		ret = rs_get_comp(rs, rs_nonblocking(rs, flags), rs_conn_have_rdata);
- 		if (ret && errno != ECONNRESET)
- 			goto out;
- 	}
-@@ -1138,8 +1187,8 @@ ssize_t rsend(int socket, const void *buf, size_t len, int flags)
- 	fastlock_acquire(&rs->slock);
- 	for (left = len; left; left -= xfer_size, buf += xfer_size) {
- 		if (!rs_can_send(rs)) {
--			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
--					    rs_conn_can_send);
-+			ret = rs_get_comp(rs, rs_nonblocking(rs, flags),
-+					  rs_conn_can_send);
- 			if (ret)
- 				break;
- 			if (rs->state != rs_connected) {
-@@ -1252,8 +1301,8 @@ static ssize_t rsendv(int socket, const struct iovec *iov, int iovcnt, int flags
- 	fastlock_acquire(&rs->slock);
- 	for (left = len; left; left -= xfer_size) {
- 		if (!rs_can_send(rs)) {
--			ret = rs_process_cq(rs, rs_nonblocking(rs, flags),
--					    rs_conn_can_send);
-+			ret = rs_get_comp(rs, rs_nonblocking(rs, flags),
-+					  rs_conn_can_send);
- 			if (ret)
- 				break;
- 			if (rs->state != rs_connected) {
-@@ -1468,12 +1517,23 @@ static int rs_poll_events(struct pollfd *rfds, struct pollfd *fds, nfds_t nfds)
-  */
- int rpoll(struct pollfd *fds, nfds_t nfds, int timeout)
- {
-+	struct timeval s, e;
- 	struct pollfd *rfds;
-+	uint32_t poll_time = 0;
- 	int ret;
- 
--	ret = rs_poll_check(fds, nfds);
--	if (ret || !timeout)
--		return ret;
-+	do {
-+		ret = rs_poll_check(fds, nfds);
-+		if (ret || !timeout)
-+			return ret;
-+
-+		if (!poll_time)
-+			gettimeofday(&s, NULL);
-+
-+		gettimeofday(&e, NULL);
-+		poll_time = (e.tv_sec - s.tv_sec) * 1000000 +
-+			    (e.tv_usec - s.tv_usec) + 1;
-+	} while (poll_time <= polling_time);
- 
- 	rfds = rs_fds_alloc(nfds);
- 	if (!rfds)
-
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
