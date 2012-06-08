@@ -1,78 +1,68 @@
-From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDMA/ocrdma: Corrected Queue max values.
-Date: Fri, 8 Jun 2012 21:25:52 +0530
-Message-ID: <bb3bb1ac-9ff5-4980-b851-cf598ea6bf30@exht1.ad.emulex.com>
+From: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/4] librdamcm/rsocket: Handle TCP_MAXSEG socket option
+Date: Fri, 08 Jun 2012 10:13:29 -0700
+Message-ID: <1339175609.31214.230.camel@oc1677441337.ibm.com>
+References: <1828884A29C6694DAF28B7E6B8A8237346A2F1C1@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A2F1C1-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Mahesh.Vardhamanaiah-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org, Mahesh Vardhamanaiah <mahesh.vardhamanaiah-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mahesh Vardhamanaiah <mahesh.vardhamanaiah-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+On Wed, 2012-06-06 at 18:42 +0000, Hefty, Sean wrote:
+> netperf uses the TCP_MAXSEG socket option.  Add support for it.
+> Problem reported by Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+> 
+> getsockopt returns the path MTU as the TCP_MAXSEG.  setsockopt
+> currently ignores the value.
+> 
+> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Fixed  code to read the max wqe and max rqe values from
-mailbox response.
+Acked-by: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 
-Signed-off-by: Mahesh Vardhamanaiah <mahesh.vardhamanaiah-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c  |   15 +++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h |    2 +-
- 2 files changed, 6 insertions(+), 11 deletions(-)
+> ---
+>  src/rsocket.c |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/src/rsocket.c b/src/rsocket.c
+> index 8f20b4a..2fd106a 100644
+> --- a/src/rsocket.c
+> +++ b/src/rsocket.c
+> @@ -1716,6 +1716,9 @@ int rsetsockopt(int socket, int level, int optname,
+>  			opt_on = *(int *) optval;
+>  			ret = 0;
+>  			break;
+> +		case TCP_MAXSEG:
+> +			ret = 0;
+> +			break;
+>  		default:
+>  			break;
+>  		}
+> @@ -1802,6 +1805,12 @@ int rgetsockopt(int socket, int level, int optname,
+>  			*((int *) optval) = !!(rs->tcp_opts & (1 << optname));
+>  			*optlen = sizeof(int);
+>  			break;
+> +		case TCP_MAXSEG:
+> +			*((int *) optval) = (rs->cm_id && rs->cm_id->route.num_paths) ?
+> +					    1 << (7 + rs->cm_id->route.path_rec->mtu) :
+> +					    2048;
+> +			*optlen = sizeof(int);
+> +			break;
+>  		default:
+>  			ret = ENOTSUP;
+>  			break;
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index f26314f..5704bb9 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -990,8 +990,6 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 			      struct ocrdma_dev_attr *attr,
- 			      struct ocrdma_mbx_query_config *rsp)
- {
--	int max_q_mem;
--
- 	attr->max_pd =
- 	    (rsp->max_pd_ca_ack_delay & OCRDMA_MBX_QUERY_CFG_MAX_PD_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_MAX_PD_SHIFT;
-@@ -1037,18 +1035,15 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 	attr->max_inline_data =
- 	    attr->wqe_size - (sizeof(struct ocrdma_hdr_wqe) +
- 			      sizeof(struct ocrdma_sge));
--	max_q_mem = OCRDMA_Q_PAGE_BASE_SIZE << (OCRDMA_MAX_Q_PAGE_SIZE_CNT - 1);
--	/* hw can queue one less then the configured size,
--	 * so publish less by one to stack.
--	 */
- 	if (dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) {
--		dev->attr.max_wqe = max_q_mem / dev->attr.wqe_size;
- 		attr->ird = 1;
- 		attr->ird_page_size = OCRDMA_MIN_Q_PAGE_SIZE;
- 		attr->num_ird_pages = MAX_OCRDMA_IRD_PAGES;
--	} else
--		dev->attr.max_wqe = (max_q_mem / dev->attr.wqe_size) - 1;
--	dev->attr.max_rqe = (max_q_mem / dev->attr.rqe_size) - 1;
-+	}
-+	dev->attr.max_wqe = rsp->max_wqes_rqes_per_q >>
-+		 OCRDMA_MBX_QUERY_CFG_MAX_WQES_PER_WQ_OFFSET;
-+	dev->attr.max_rqe = rsp->max_wqes_rqes_per_q &
-+		OCRDMA_MBX_QUERY_CFG_MAX_RQES_PER_RQ_MASK;
- }
- 
- static int ocrdma_check_fw_config(struct ocrdma_dev *dev,
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 7fd80cc..8411441 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -458,7 +458,7 @@ enum {
- 				OCRDMA_MBX_QUERY_CFG_MAX_WQES_PER_WQ_OFFSET,
- 	OCRDMA_MBX_QUERY_CFG_MAX_RQES_PER_RQ_OFFSET	= 0,
- 	OCRDMA_MBX_QUERY_CFG_MAX_RQES_PER_RQ_MASK	= 0xFFFF <<
--				OCRDMA_MBX_QUERY_CFG_MAX_WQES_PER_WQ_OFFSET,
-+				OCRDMA_MBX_QUERY_CFG_MAX_RQES_PER_RQ_OFFSET,
- 
- 	OCRDMA_MBX_QUERY_CFG_MAX_CQ_OFFSET		= 16,
- 	OCRDMA_MBX_QUERY_CFG_MAX_CQ_MASK		= 0xFFFF <<
--- 
-1.6.0.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
