@@ -1,7 +1,7 @@
 From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDMA/ocrdma: Corrected queue SGE calculation.
-Date: Fri, 8 Jun 2012 21:26:11 +0530
-Message-ID: <5503e0d3-a509-46f5-b59f-13eb8993094c@exht1.ad.emulex.com>
+Subject: [PATCH] RDMA/ocrdma: Corrected Queue max values.
+Date: Fri, 8 Jun 2012 21:25:52 +0530
+Message-ID: <bb3bb1ac-9ff5-4980-b851-cf598ea6bf30@exht1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,80 +12,65 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mahesh Vardhamanaiah <mahesh.vardhamanaiah-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Fixed max sge calculation for sq, rq, srq for all hardware types.
+Fixed  code to read the max wqe and max rqe values from
+mailbox response.
 
 Signed-off-by: Mahesh Vardhamanaiah <mahesh.vardhamanaiah-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h       |    1 +
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |    3 +++
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |    3 +++
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    6 +++---
- 4 files changed, 10 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c  |   15 +++++----------
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h |    2 +-
+ 2 files changed, 6 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 037f5ce..48970af 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -61,6 +61,7 @@ struct ocrdma_dev_attr {
- 	u32 max_inline_data;
- 	int max_send_sge;
- 	int max_recv_sge;
-+	int max_srq_sge;
- 	int max_mr;
- 	u64 max_mr_size;
- 	u32 max_num_mr_pbl;
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 5704bb9..ea94caf 100644
+index f26314f..5704bb9 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1002,6 +1002,9 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 	attr->max_recv_sge = (rsp->max_write_send_sge &
- 			      OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_SHIFT;
-+	attr->max_srq_sge = (rsp->max_srq_rqe_sge &
-+			      OCRDMA_MBX_QUERY_CFG_MAX_SRQ_SGE_MASK) >>
-+	    OCRDMA_MBX_QUERY_CFG_MAX_SRQ_SGE_OFFSET;
- 	attr->max_ord_per_qp = (rsp->max_ird_ord_per_qp &
- 				OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_SHIFT;
+@@ -990,8 +990,6 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
+ 			      struct ocrdma_dev_attr *attr,
+ 			      struct ocrdma_mbx_query_config *rsp)
+ {
+-	int max_q_mem;
+-
+ 	attr->max_pd =
+ 	    (rsp->max_pd_ca_ack_delay & OCRDMA_MBX_QUERY_CFG_MAX_PD_MASK) >>
+ 	    OCRDMA_MBX_QUERY_CFG_MAX_PD_SHIFT;
+@@ -1037,18 +1035,15 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
+ 	attr->max_inline_data =
+ 	    attr->wqe_size - (sizeof(struct ocrdma_hdr_wqe) +
+ 			      sizeof(struct ocrdma_sge));
+-	max_q_mem = OCRDMA_Q_PAGE_BASE_SIZE << (OCRDMA_MAX_Q_PAGE_SIZE_CNT - 1);
+-	/* hw can queue one less then the configured size,
+-	 * so publish less by one to stack.
+-	 */
+ 	if (dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) {
+-		dev->attr.max_wqe = max_q_mem / dev->attr.wqe_size;
+ 		attr->ird = 1;
+ 		attr->ird_page_size = OCRDMA_MIN_Q_PAGE_SIZE;
+ 		attr->num_ird_pages = MAX_OCRDMA_IRD_PAGES;
+-	} else
+-		dev->attr.max_wqe = (max_q_mem / dev->attr.wqe_size) - 1;
+-	dev->attr.max_rqe = (max_q_mem / dev->attr.rqe_size) - 1;
++	}
++	dev->attr.max_wqe = rsp->max_wqes_rqes_per_q >>
++		 OCRDMA_MBX_QUERY_CFG_MAX_WQES_PER_WQ_OFFSET;
++	dev->attr.max_rqe = rsp->max_wqes_rqes_per_q &
++		OCRDMA_MBX_QUERY_CFG_MAX_RQES_PER_RQ_MASK;
+ }
+ 
+ static int ocrdma_check_fw_config(struct ocrdma_dev *dev,
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 8411441..c75cbdf 100644
+index 7fd80cc..8411441 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -418,6 +418,9 @@ enum {
+@@ -458,7 +458,7 @@ enum {
+ 				OCRDMA_MBX_QUERY_CFG_MAX_WQES_PER_WQ_OFFSET,
+ 	OCRDMA_MBX_QUERY_CFG_MAX_RQES_PER_RQ_OFFSET	= 0,
+ 	OCRDMA_MBX_QUERY_CFG_MAX_RQES_PER_RQ_MASK	= 0xFFFF <<
+-				OCRDMA_MBX_QUERY_CFG_MAX_WQES_PER_WQ_OFFSET,
++				OCRDMA_MBX_QUERY_CFG_MAX_RQES_PER_RQ_OFFSET,
  
- 	OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_SHIFT		= 0,
- 	OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_MASK		= 0xFFFF,
-+	OCRDMA_MBX_QUERY_CFG_MAX_WRITE_SGE_SHIFT	= 16,
-+	OCRDMA_MBX_QUERY_CFG_MAX_WRITE_SGE_MASK		= 0xFFFF <<
-+				OCRDMA_MBX_QUERY_CFG_MAX_WRITE_SGE_SHIFT,
- 
- 	OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_SHIFT	= 0,
- 	OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_MASK	= 0xFFFF,
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index d16d172..0e88088 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -83,8 +83,8 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
- 					IB_DEVICE_SHUTDOWN_PORT |
- 					IB_DEVICE_SYS_IMAGE_GUID |
- 					IB_DEVICE_LOCAL_DMA_LKEY;
--	attr->max_sge = dev->attr.max_send_sge;
--	attr->max_sge_rd = dev->attr.max_send_sge;
-+	attr->max_sge = min(dev->attr.max_send_sge, dev->attr.max_srq_sge);
-+	attr->max_sge_rd = 0;
- 	attr->max_cq = dev->attr.max_cq;
- 	attr->max_cqe = dev->attr.max_cqe;
- 	attr->max_mr = dev->attr.max_mr;
-@@ -97,7 +97,7 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
- 	    min(dev->attr.max_ord_per_qp, dev->attr.max_ird_per_qp);
- 	attr->max_qp_init_rd_atom = dev->attr.max_ord_per_qp;
- 	attr->max_srq = (dev->attr.max_qp - 1);
--	attr->max_srq_sge = attr->max_sge;
-+	attr->max_srq_sge = attr->max_srq_sge;
- 	attr->max_srq_wr = dev->attr.max_rqe;
- 	attr->local_ca_ack_delay = dev->attr.local_ca_ack_delay;
- 	attr->max_fast_reg_page_list_len = 0;
+ 	OCRDMA_MBX_QUERY_CFG_MAX_CQ_OFFSET		= 16,
+ 	OCRDMA_MBX_QUERY_CFG_MAX_CQ_MASK		= 0xFFFF <<
 -- 
 1.6.0.2
 
