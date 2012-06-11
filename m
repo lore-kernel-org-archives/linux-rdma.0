@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 18/29] {NET,IB}/mlx4: MAD_IFC paravirtualization
-Date: Mon, 11 Jun 2012 13:45:59 +0300
-Message-ID: <1339411570-4689-19-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next 24/29] IB/mlx4: Add iov directory in sysfs under the ib device
+Date: Mon, 11 Jun 2012 13:46:05 +0300
+Message-ID: <1339411570-4689-25-git-send-email-jackm@dev.mellanox.co.il>
 References: <1339411570-4689-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1339411570-4689-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,512 +10,1120 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The MAD_IFC firmware command fulfills two functions.
+This directory is added only for the master -- slaves do
+not have it.
 
-In the first case, it is used in the QP0/QP1 MAD-handling flow to
-obtain information from the FW (for answering queries), and for
-setting variables in the HCA (MAD SET packets).
+The sysfs iov directory is used to manage and examine the port
+pkey and guid paravirtualization.
 
-In this function, MAD_IFC should provide the FW (physical) view
-of the data.  This is the view that OpenSM needs for its functioning.
-We call this the "network view".
+Under iov/ports, the administrator may examine the gid and pkey
+tables as they are present in the device (and as are seen in the
+"network view" presented to the SM).
 
-In the second case, MAD_IFC is used by various verbs to obtain data
-regarding the local HCA (e.g., ib_query_device() ).
-We call this the "host view".
+Under the iov/<pci slot number> directories, the admin may map
+the index numbers in the physical tables (as under iov/ports)
+to the paravirtualized index numbers that guests see.
 
-This data needs to be paravirtualized.
+Thus, for example, if the administrator, for port 1 on guest 2, say,
+maps physical pkey index 10 to virtual index 1, that guest, whenever
+it uses its pkey index 1 will actually be using the real pkey index 10.
 
-MAD_IFC thus needs a wrapper function, and also needs another flag
-indicating whether it should provide the network view (when it is
-called by ib_process_mad in special-qp packet handling), or the
-host view (when it is called while implementing a verb).
+Note: this patch may require some slight cleanup.
 
-There are currently 2 flag parameters in mlx4_MAD_IFC already:
-ignore_bkey and ignore_mkey.  These two parameters are replaced
-by a single "mad_ifc_flags" parameter, with different bits set
-for each flag.  A third flag is added: "network-view/host-view".
+Originally developed by: Erez Shitrit of Mellanox.
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c         |   20 ++--
- drivers/infiniband/hw/mlx4/main.c        |   64 +++++++++---
- drivers/infiniband/hw/mlx4/mlx4_ib.h     |   14 +++-
- drivers/net/ethernet/mellanox/mlx4/cmd.c |  162 ++++++++++++++++++++++++++++++
- 4 files changed, 234 insertions(+), 26 deletions(-)
+ drivers/infiniband/hw/mlx4/Makefile     |    2 +-
+ drivers/infiniband/hw/mlx4/alias_GUID.c |    7 +-
+ drivers/infiniband/hw/mlx4/mad.c        |    9 +
+ drivers/infiniband/hw/mlx4/mcg.c        |   67 +++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h    |   43 ++
+ drivers/infiniband/hw/mlx4/sysfs.c      |  808 +++++++++++++++++++++++++++++++
+ 6 files changed, 932 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mlx4/sysfs.c
 
+diff --git a/drivers/infiniband/hw/mlx4/Makefile b/drivers/infiniband/hw/mlx4/Makefile
+index 31d4c8a..f4213b3 100644
+--- a/drivers/infiniband/hw/mlx4/Makefile
++++ b/drivers/infiniband/hw/mlx4/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_MLX4_INFINIBAND)	+= mlx4_ib.o
+ 
+-mlx4_ib-y :=	ah.o cq.o doorbell.o mad.o main.o mr.o qp.o srq.o mcg.o cm.o alias_GUID.o
++mlx4_ib-y :=	ah.o cq.o doorbell.o mad.o main.o mr.o qp.o srq.o mcg.o cm.o alias_GUID.o sysfs.o
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index 66427c7..89db286 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -120,7 +120,7 @@ static __be64 get_cached_alias_guid(struct mlx4_ib_dev *dev, int port, int index
+ }
+ 
+ 
+-static ib_sa_comp_mask get_alias_guid_comp_mask_from_index(int index)
++ib_sa_comp_mask mlx4_ib_get_alias_guid_comp_mask_from_ix(int index)
+ {
+ 		return IB_SA_COMP_MASK(4 + index);
+ }
+@@ -302,7 +302,7 @@ static void aliasguid_query_handler(int status,
+ 				rec->status = MLX4_GUID_INFO_STATUS_IDLE;
+ 				rec->guid_indexes =
+ 					rec->guid_indexes |
+-					get_alias_guid_comp_mask_from_index(i);
++					mlx4_ib_get_alias_guid_comp_mask_from_ix(i);
+ 			}
+ 		} else {
+ 		       /* properly assigned record. */
+@@ -385,7 +385,8 @@ static void invalidate_guid_record(struct mlx4_ib_dev *dev, u8 port, int index)
+ 		    ports_guid[port - 1].all_rec_per_port[index].ownership) {
+ 			continue;
+ 		}
+-		comp_mask = comp_mask | get_alias_guid_comp_mask_from_index(i);
++		comp_mask = comp_mask |
++				mlx4_ib_get_alias_guid_comp_mask_from_ix(i);
+ 	}
+ 	dev->sriov.alias_guid.ports_guid[port - 1].
+ 		all_rec_per_port[index].guid_indexes = comp_mask;
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 25a9244..aa7ee21 100644
+index a72afe9..6aff431 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -78,7 +78,7 @@ struct mlx4_rcv_tunnel_mad {
- static void handle_lid_change_event(struct mlx4_ib_dev *dev, u8 port_num);
- static void handle_client_rereg_event(struct mlx4_ib_dev *dev, u8 port_num);
+@@ -2011,6 +2011,11 @@ int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
+ 			mlx4_ib_warn(&dev->ib_dev, "Failed init alias guid process.\n");
+ 			goto paravirt_err;
+ 		}
++		err = mlx4_ib_device_register_sysfs(dev);
++		if (err) {
++			mlx4_ib_warn(&dev->ib_dev, "Failed to register sysfs\n");
++			goto sysfs_err;
++		}
  
--int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
-+int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
- 		 int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
- 		 void *in_mad, void *response_mad)
- {
-@@ -105,10 +105,13 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
- 	 * Key check traps can't be generated unless we have in_wc to
- 	 * tell us where to send the trap.
- 	 */
--	if (ignore_mkey || !in_wc)
-+	if ((mad_ifc_flags & MLX4_MAD_IFC_IGNORE_MKEY) || !in_wc)
- 		op_modifier |= 0x1;
--	if (ignore_bkey || !in_wc)
-+	if ((mad_ifc_flags & MLX4_MAD_IFC_IGNORE_BKEY) || !in_wc)
- 		op_modifier |= 0x2;
-+	if (mlx4_is_mfunc(dev->dev) &&
-+	    (mad_ifc_flags & MLX4_MAD_IFC_NET_VIEW || in_wc))
-+		op_modifier |= 0x8;
+ 		mlx4_ib_warn(&dev->ib_dev, "initializing demux service for %d qp1 clients\n",
+ 			     dev->dev->caps.sqp_demux);
+@@ -2033,6 +2038,9 @@ demux_err:
+ 		mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
+ 		--i;
+ 	}
++	mlx4_ib_device_unregister_sysfs(dev);
++
++sysfs_err:
+ 	mlx4_ib_clear_alias_guid_work(dev);
  
- 	if (in_wc) {
- 		struct {
-@@ -141,10 +144,10 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
- 		in_modifier |= in_wc->slid << 16;
+ paravirt_err:
+@@ -2063,5 +2071,6 @@ void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev)
+ 
+ 		mlx4_ib_cm_paravirt_clean(dev, -1);
+ 		mlx4_ib_clear_alias_guid_work(dev);
++		mlx4_ib_device_unregister_sysfs(dev);
+ 	}
+ }
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index 52a02b3..6b93d25 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -110,6 +110,7 @@ struct mcast_group {
+ 	__be64			last_req_tid;
+ 
+ 	char			name[33]; /* MGID string */
++	struct device_attribute	dentry;
+ 
+ 	/* refcount is the reference count for the following:
+ 	   1. Each queued request
+@@ -445,6 +446,8 @@ static int release_group(struct mcast_group *group, int from_timeout_handler)
+ 		}
+ 
+ 		nzgroup = memcmp(&group->rec.mgid, &mgid0, sizeof mgid0);
++		if (nzgroup)
++			del_sysfs_port_mcg_attr(ctx->dev, ctx->port, &group->dentry.attr);
+ 		if (!list_empty(&group->pending_list))
+ 			mcg_warn_group(group, "releasing a group with non empty pending list\n");
+ 		if (nzgroup)
+@@ -769,6 +772,7 @@ static struct mcast_group *search_relocate_mgid0_group(struct mlx4_ib_demux_ctx
+ 				}
+ 
+ 				atomic_inc(&group->refcount);
++				add_sysfs_port_mcg_attr(ctx->dev, ctx->port, &group->dentry.attr);
+ 				mutex_unlock(&group->lock);
+ 				mutex_unlock(&ctx->mcg_table_lock);
+ 				return group;
+@@ -796,6 +800,9 @@ static struct mcast_group *search_relocate_mgid0_group(struct mlx4_ib_demux_ctx
+ 	return NULL;
+ }
+ 
++static ssize_t sysfs_show_group(struct device *dev,
++		struct device_attribute *attr, char *buf);
++
+ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
+ 					 union ib_gid *mgid, int create,
+ 					 gfp_t gfp_mask)
+@@ -830,6 +837,11 @@ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
+ 	sprintf(group->name, "%016llx%016llx",
+ 			be64_to_cpu(group->rec.mgid.global.subnet_prefix),
+ 			be64_to_cpu(group->rec.mgid.global.interface_id));
++	sysfs_attr_init(&group->dentry.attr);
++	group->dentry.show = sysfs_show_group;
++	group->dentry.store = NULL;
++	group->dentry.attr.name = group->name;
++	group->dentry.attr.mode = 0400;
+ 	group->state = MCAST_IDLE;
+ 
+ 	if (is_mgid0) {
+@@ -844,6 +856,8 @@ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
+ 		return ERR_PTR(-EINVAL);
  	}
  
--	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma,
--			   in_modifier, op_modifier,
-+	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma, in_modifier,
-+			   mlx4_is_master(dev->dev) ? (op_modifier & ~0x8) : op_modifier,
- 			   MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C,
--			   MLX4_CMD_NATIVE);
-+			   (op_modifier & 0x8) ? MLX4_CMD_NATIVE : MLX4_CMD_WRAPPED);
- 
- 	if (!err)
- 		memcpy(response_mad, outmailbox->buf, 256);
-@@ -589,8 +592,9 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 		prev_lid = pattr.lid;
- 
- 	err = mlx4_MAD_IFC(to_mdev(ibdev),
--			   mad_flags & IB_MAD_IGNORE_MKEY,
--			   mad_flags & IB_MAD_IGNORE_BKEY,
-+			   (mad_flags & IB_MAD_IGNORE_MKEY ? MLX4_MAD_IFC_IGNORE_MKEY : 0) |
-+			   (mad_flags & IB_MAD_IGNORE_BKEY ? MLX4_MAD_IFC_IGNORE_BKEY : 0) |
-+			   MLX4_MAD_IFC_NET_VIEW,
- 			   port_num, in_wc, in_grh, in_mad, out_mad);
- 	if (err)
- 		return IB_MAD_RESULT_FAILURE;
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 213d459..84cbd0a 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -106,7 +106,8 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 	init_query_mad(in_mad);
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
- 
--	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, 1, NULL, NULL, in_mad, out_mad);
-+	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS,
-+			   1, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
- 
-@@ -190,11 +191,12 @@ mlx4_ib_port_link_layer(struct ib_device *device, u8 port_num)
++	add_sysfs_port_mcg_attr(ctx->dev, ctx->port, &group->dentry.attr);
++
+ found:
+ 	atomic_inc(&group->refcount);
+ 	return group;
+@@ -969,6 +983,58 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
+ 	}
  }
  
- static int ib_link_query_port(struct ib_device *ibdev, u8 port,
--			      struct ib_port_attr *props)
-+			      struct ib_port_attr *props, int netw_view)
- {
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
- 	int ext_active_speed;
-+	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
- 	int err = -ENOMEM;
- 
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
-@@ -206,7 +208,10 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
- 	in_mad->attr_id  = IB_SMP_ATTR_PORT_INFO;
- 	in_mad->attr_mod = cpu_to_be32(port);
- 
--	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port, NULL, NULL,
-+	if (mlx4_is_mfunc(to_mdev(ibdev)->dev) && netw_view)
-+		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
++static ssize_t sysfs_show_group(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct mcast_group *group =
++		container_of(attr, struct mcast_group, dentry);
++	struct mcast_req *req = NULL;
++	char pending_str[40];
++	char state_str[40];
++	ssize_t len = 0;
++	int f;
 +
-+	err = mlx4_MAD_IFC(to_mdev(ibdev), mad_ifc_flags, port, NULL, NULL,
- 				in_mad, out_mad);
- 	if (err)
- 		goto out;
-@@ -219,7 +224,10 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
- 	props->state		= out_mad->data[32] & 0xf;
- 	props->phys_state	= out_mad->data[33] >> 4;
- 	props->port_cap_flags	= be32_to_cpup((__be32 *) (out_mad->data + 20));
--	props->gid_tbl_len	= to_mdev(ibdev)->dev->caps.gid_table_len[port];
-+	if (netw_view)
-+		props->gid_tbl_len = out_mad->data[50];
++	if (group->state == MCAST_IDLE)
++		sprintf(state_str, "%s", get_state_string(group->state));
 +	else
-+		props->gid_tbl_len = to_mdev(ibdev)->dev->caps.gid_table_len[port];
- 	props->max_msg_sz	= to_mdev(ibdev)->dev->caps.max_msg_sz;
- 	props->pkey_tbl_len	= to_mdev(ibdev)->dev->caps.pkey_table_len[port];
- 	props->bad_pkey_cntr	= be16_to_cpup((__be16 *) (out_mad->data + 46));
-@@ -252,7 +260,7 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
- 		in_mad->attr_id = MLX4_ATTR_EXTENDED_PORT_INFO;
- 		in_mad->attr_mod = cpu_to_be32(port);
- 
--		err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port,
-+		err = mlx4_MAD_IFC(to_mdev(ibdev), mad_ifc_flags, port,
- 				   NULL, NULL, in_mad, out_mad);
- 		if (err)
- 			goto out;
-@@ -278,7 +286,7 @@ static u8 state_to_phys_state(enum ib_port_state state)
- }
- 
- static int eth_link_query_port(struct ib_device *ibdev, u8 port,
--			       struct ib_port_attr *props)
-+			       struct ib_port_attr *props, int netw_view)
- {
- 
- 	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
-@@ -328,20 +336,27 @@ out:
- 	return err;
- }
- 
--static int mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
--			      struct ib_port_attr *props)
-+int __mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
-+			 struct ib_port_attr *props, int netw_view)
- {
- 	int err;
- 
- 	memset(props, 0, sizeof *props);
- 
- 	err = mlx4_ib_port_link_layer(ibdev, port) == IB_LINK_LAYER_INFINIBAND ?
--		ib_link_query_port(ibdev, port, props) :
--				eth_link_query_port(ibdev, port, props);
-+		ib_link_query_port(ibdev, port, props, netw_view) :
-+				eth_link_query_port(ibdev, port, props, netw_view);
- 
- 	return err;
- }
- 
-+static int mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
-+			      struct ib_port_attr *props)
-+{
-+	/* returns host view */
-+	return __mlx4_ib_query_port(ibdev, port, props, 0);
++		sprintf(state_str, "%s(TID=0x%llx)",
++				get_state_string(group->state),
++				be64_to_cpu(group->last_req_tid));
++	if (list_empty(&group->pending_list)) {
++		sprintf(pending_str, "No");
++	} else {
++		req = list_first_entry(&group->pending_list, struct mcast_req, group_list);
++		sprintf(pending_str, "Yes(TID=0x%llx)",
++				be64_to_cpu(req->sa_mad.mad_hdr.tid));
++	}
++	len += sprintf(buf + len, "%1d [%02d,%02d,%02d] %4d %4s %5s     ",
++			group->rec.scope_join_state & 0xf,
++			group->members[2], group->members[1], group->members[0],
++			atomic_read(&group->refcount),
++			pending_str,
++			state_str);
++	for (f = 0; f < MAX_VFS; ++f)
++		if (group->func[f].state == MCAST_MEMBER)
++			len += sprintf(buf + len, "%d[%1x] ",
++					f, group->func[f].join_state);
++
++	len += sprintf(buf + len, "\t\t(%4hx %4x %2x %2x %2x %2x %2x "
++		"%4x %4x %2x %2x)\n",
++		be16_to_cpu(group->rec.pkey),
++		be32_to_cpu(group->rec.qkey),
++		(group->rec.mtusel_mtu & 0xc0) >> 6,
++		group->rec.mtusel_mtu & 0x3f,
++		group->rec.tclass,
++		(group->rec.ratesel_rate & 0xc0) >> 6,
++		group->rec.ratesel_rate & 0x3f,
++		(be32_to_cpu(group->rec.sl_flowlabel_hoplimit) & 0xf0000000) >> 28,
++		(be32_to_cpu(group->rec.sl_flowlabel_hoplimit) & 0x0fffff00) >> 8,
++		be32_to_cpu(group->rec.sl_flowlabel_hoplimit) & 0x000000ff,
++		group->rec.proxy_join);
++
++	return len;
 +}
 +
- static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 			       union ib_gid *gid)
+ int mlx4_ib_mcg_port_init(struct mlx4_ib_demux_ctx *ctx)
  {
-@@ -358,7 +373,8 @@ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 	in_mad->attr_id  = IB_SMP_ATTR_PORT_INFO;
- 	in_mad->attr_mod = cpu_to_be32(port);
- 
--	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port, NULL, NULL, in_mad, out_mad);
-+	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS, port,
-+			   NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
- 
-@@ -368,7 +384,8 @@ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 	in_mad->attr_id  = IB_SMP_ATTR_GUID_INFO;
- 	in_mad->attr_mod = cpu_to_be32(index / 8);
- 
--	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port, NULL, NULL, in_mad, out_mad);
-+	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS, port,
-+			   NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
- 
-@@ -399,11 +416,12 @@ static int mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 		return iboe_query_gid(ibdev, port, index, gid);
+ 	char name[20];
+@@ -995,6 +1061,7 @@ static void force_clean_group(struct mcast_group *group)
+ 		list_del(&req->group_list);
+ 		kfree(req);
+ 	}
++	del_sysfs_port_mcg_attr(group->demux->dev, group->demux->port, &group->dentry.attr);
+ 	rb_erase(&group->node, &group->demux->mcg_table);
+ 	kfree(group);
  }
- 
--static int mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
--			      u16 *pkey)
-+int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
-+			 u16 *pkey, int netw_view)
- {
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
-+	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
- 	int err = -ENOMEM;
- 
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
-@@ -415,7 +433,11 @@ static int mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
- 	in_mad->attr_id  = IB_SMP_ATTR_PKEY_TABLE;
- 	in_mad->attr_mod = cpu_to_be32(index / 32);
- 
--	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port, NULL, NULL, in_mad, out_mad);
-+	if (mlx4_is_mfunc(to_mdev(ibdev)->dev) && netw_view)
-+		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
-+
-+	err = mlx4_MAD_IFC(to_mdev(ibdev), mad_ifc_flags, port, NULL, NULL,
-+			   in_mad, out_mad);
- 	if (err)
- 		goto out;
- 
-@@ -427,6 +449,11 @@ out:
- 	return err;
- }
- 
-+static int mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index, u16 *pkey)
-+{
-+	return __mlx4_ib_query_pkey(ibdev, port, index, pkey, 0);
-+}
-+
- static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
- 				 struct ib_device_modify *props)
- {
-@@ -808,6 +835,7 @@ static int init_node_data(struct mlx4_ib_dev *dev)
- {
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
-+	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
- 	int err = -ENOMEM;
- 
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
-@@ -817,8 +845,10 @@ static int init_node_data(struct mlx4_ib_dev *dev)
- 
- 	init_query_mad(in_mad);
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_DESC;
-+	if (mlx4_is_master(dev->dev))
-+		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
- 
--	err = mlx4_MAD_IFC(dev, 1, 1, 1, NULL, NULL, in_mad, out_mad);
-+	err = mlx4_MAD_IFC(dev, mad_ifc_flags, 1, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
- 
-@@ -826,7 +856,7 @@ static int init_node_data(struct mlx4_ib_dev *dev)
- 
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
- 
--	err = mlx4_MAD_IFC(dev, 1, 1, 1, NULL, NULL, in_mad, out_mad);
-+	err = mlx4_MAD_IFC(dev, mad_ifc_flags, 1, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
- 
 diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 058881f..69a42d4 100644
+index b600e27..66d821b 100644
 --- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
 +++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -184,6 +184,14 @@ enum mlx4_ib_qp_type {
- 	MLX4_IB_QPT_TUN_GSI,
+@@ -427,6 +427,35 @@ struct pkey_mgt {
+ 	struct kobject	       *device_parent[MLX4_MFUNC_MAX];
  };
  
-+enum mlx4_ib_mad_ifc_flags {
-+	MLX4_MAD_IFC_IGNORE_MKEY	= 1,
-+	MLX4_MAD_IFC_IGNORE_BKEY	= 2,
-+	MLX4_MAD_IFC_IGNORE_KEYS	= (MLX4_MAD_IFC_IGNORE_MKEY |
-+					   MLX4_MAD_IFC_IGNORE_BKEY),
-+	MLX4_MAD_IFC_NET_VIEW		= 4,
++struct mlx4_ib_iov_sysfs_attr {
++	void *ctx;
++	struct kobject *kobj;
++	unsigned long data;
++	u32 entry_num;
++	char name[15];
++	struct device_attribute dentry;
++	struct device *dev;
 +};
 +
- enum {
- 	MLX4_NUM_TUNNEL_BUFS		= 256,
++struct mlx4_ib_iov_sysfs_attr_ar {
++	struct mlx4_ib_iov_sysfs_attr dentries[3 * NUM_ALIAS_GUID_PER_PORT + 1];
++};
++
++struct mlx4_ib_iov_port {
++	char name[100];
++	u8 num;
++	struct mlx4_ib_dev *dev;
++	struct list_head list;
++	struct mlx4_ib_iov_sysfs_attr_ar *dentr_ar;
++	struct ib_port_attr attr;
++	struct kobject	*cur_port;
++	struct kobject	*admin_alias_parent;
++	struct kobject	*gids_parent;
++	struct kobject	*pkeys_parent;
++	struct kobject	*mcgs_parent;
++	struct mlx4_ib_iov_sysfs_attr mcg_dentry;
++};
++
+ struct mlx4_ib_dev {
+ 	struct ib_device	ib_dev;
+ 	struct mlx4_dev	       *dev;
+@@ -448,6 +477,10 @@ struct mlx4_ib_dev {
+ 	int			counters[MLX4_MAX_PORTS];
+ 	int		       *eq_table;
+ 	int			eq_added;
++	struct kobject	       *iov_parent;
++	struct kobject	       *ports_parent;
++	struct kobject	       *dev_ports_parent[MLX4_MFUNC_MAX];
++	struct mlx4_ib_iov_port	iov_ports[MLX4_MAX_PORTS];
+ 	struct pkey_mgt		pkeys;
  };
-@@ -520,7 +528,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- int mlx4_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 		      struct ib_recv_wr **bad_wr);
  
--int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
-+int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
- 		 int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
- 		 void *in_mad, void *response_mad);
- int mlx4_ib_process_mad(struct ib_device *ibdev, int mad_flags,	u8 port_num,
-@@ -535,6 +543,10 @@ int mlx4_ib_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list, int npages,
- 			 u64 iova);
- int mlx4_ib_unmap_fmr(struct list_head *fmr_list);
- int mlx4_ib_fmr_dealloc(struct ib_fmr *fmr);
-+int __mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
-+			 struct ib_port_attr *props, int netw_view);
-+int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
-+			 u16 *pkey, int netw_view);
+@@ -687,4 +720,14 @@ void mlx4_ib_update_cache_on_guid_change(struct mlx4_ib_dev *dev,
+ 					 int block_num, u8 port_num,
+ 					 u8 *p_data);
  
- int mlx4_ib_resolve_grh(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah_attr,
- 			u8 *mac, int *is_mcast, u8 port);
-diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-index bf55be6..1a7eec4 100644
---- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-@@ -40,6 +40,7 @@
- 
- #include <linux/mlx4/cmd.h>
- #include <linux/semaphore.h>
-+#include <rdma/ib_smi.h>
- 
- #include <asm/io.h>
- 
-@@ -582,6 +583,149 @@ static int mlx4_ACCESS_MEM(struct mlx4_dev *dev, u64 master_addr,
- 			    MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
- }
- 
-+static int query_pkey_block(struct mlx4_dev *dev, u8 port, u16 index, u16 *pkey,
-+			       struct mlx4_cmd_mailbox *inbox,
-+			       struct mlx4_cmd_mailbox *outbox)
++int add_sysfs_port_mcg_attr(struct mlx4_ib_dev *device, int port_num,
++			    struct attribute *attr);
++void del_sysfs_port_mcg_attr(struct mlx4_ib_dev *device, int port_num,
++			     struct attribute *attr);
++ib_sa_comp_mask mlx4_ib_get_alias_guid_comp_mask_from_ix(int index);
++
++int mlx4_ib_device_register_sysfs(struct mlx4_ib_dev *device) ;
++
++void mlx4_ib_device_unregister_sysfs(struct mlx4_ib_dev *device);
++
+ #endif /* MLX4_IB_H */
+diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
+new file mode 100644
+index 0000000..7c16472
+--- /dev/null
++++ b/drivers/infiniband/hw/mlx4/sysfs.c
+@@ -0,0 +1,808 @@
++/*
++ * Copyright (c) 2012 Mellanox Technologies.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++/*#include "core_priv.h"*/
++#include "mlx4_ib.h"
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/stat.h>
++
++#include <rdma/ib_mad.h>
++/*The function returns the administartively value of that GUID.
++meaning, the value that was setted by the administrator.
++Values:
++	0 - let the opensm to assign.
++	0xff - delete this entry.
++	other - assigned by administrator.
++*/
++static ssize_t show_admin_alias_guid(struct device *dev,
++			      struct device_attribute *attr, char *buf)
 +{
-+	struct ib_smp *in_mad = (struct ib_smp *)(inbox->buf);
-+	struct ib_smp *out_mad = (struct ib_smp *)(outbox->buf);
-+	int err;
-+	int i;
++	int record_num;/*0-15*/
++	int guid_index_in_rec; /*0 - 7*/
++	struct mlx4_ib_iov_sysfs_attr *mlx4_ib_iov_dentry =
++		container_of(attr, struct mlx4_ib_iov_sysfs_attr, dentry);
++	struct mlx4_ib_iov_port *port = mlx4_ib_iov_dentry->ctx;
++	struct mlx4_ib_dev *mdev = port->dev;
 +
-+	if (index & 0x1f)
-+		return -EINVAL;
++	record_num = mlx4_ib_iov_dentry->entry_num / 8 ;
++	guid_index_in_rec = mlx4_ib_iov_dentry->entry_num % 8 ;
 +
-+	in_mad->attr_mod = cpu_to_be32(index / 32);
-+
-+	err = mlx4_cmd_box(dev, inbox->dma, outbox->dma, port, 3,
-+			   MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C,
-+			   MLX4_CMD_NATIVE);
-+	if (err)
-+		return err;
-+
-+	for (i = 0; i < 32; ++i)
-+		pkey[i] = be16_to_cpu(((__be16 *) out_mad->data)[i]);
-+
-+	return err;
++	return sprintf(buf, "%llx\n",
++		       be64_to_cpu(*(__be64 *)&mdev->sriov.alias_guid.
++				   ports_guid[port->num - 1].
++				   all_rec_per_port[record_num].
++				   all_recs[8 * guid_index_in_rec]));
 +}
 +
-+static int get_full_pkey_table(struct mlx4_dev *dev, u8 port, u16 *table,
-+			       struct mlx4_cmd_mailbox *inbox,
-+			       struct mlx4_cmd_mailbox *outbox)
++/*The function stors the (new)administartively value of that GUID.
++Values:
++	0 - let the opensm to assign.
++	0xff - delete this entry.
++	other - assigned by administrator.
++*/
++static ssize_t store_admin_alias_guid(struct device *dev,
++				      struct device_attribute *attr,
++				      const char *buf, size_t count)
++{
++	int record_num;/*0-15*/
++	int guid_index_in_rec; /*0 - 7*/
++	struct mlx4_ib_iov_sysfs_attr *mlx4_ib_iov_dentry =
++		container_of(attr, struct mlx4_ib_iov_sysfs_attr, dentry);
++	struct mlx4_ib_iov_port *port = mlx4_ib_iov_dentry->ctx;
++	struct mlx4_ib_dev *mdev = port->dev;
++	u64 sysadmin_ag_val;
++
++	record_num = mlx4_ib_iov_dentry->entry_num / 8;
++	guid_index_in_rec = mlx4_ib_iov_dentry->entry_num % 8;
++	if (0 == record_num && 0 == guid_index_in_rec) {
++		pr_err("GUID 0 block 0 is RO\n");
++		return count;
++	}
++	sscanf(buf, "%llx", &sysadmin_ag_val);
++	*(__be64 *)&mdev->sriov.alias_guid.ports_guid[port->num - 1].
++		all_rec_per_port[record_num].
++		all_recs[GUID_REC_SIZE * guid_index_in_rec] =
++			cpu_to_be64(sysadmin_ag_val);
++
++	/*change the state to be be pending for update*/
++	mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].status
++		 = MLX4_GUID_INFO_STATUS_IDLE ;
++
++	mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].method
++	= MLX4_GUID_INFO_RECORD_SET;
++
++	/*set the method, is it set or delete*/
++	switch (sysadmin_ag_val) {
++	case MLX4_GUID_FOR_DELETE_VAL:
++		mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].method
++			= MLX4_GUID_INFO_RECORD_DELETE;
++		mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].ownership
++			= MLX4_GUID_SYSADMIN_ASSIGN;
++		break;
++	/*if the sysadmin asks for the SM to re-assign:*/
++	case MLX4_NOT_SET_GUID:
++		mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].ownership
++			= MLX4_GUID_DRIVER_ASSIGN;
++		break;
++	/*The sysadmin asks for specific value.*/
++	default:
++		mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].ownership
++			= MLX4_GUID_SYSADMIN_ASSIGN;
++		break;
++	}
++
++	/*set the record index*/
++	mdev->sriov.alias_guid.ports_guid[port->num - 1].all_rec_per_port[record_num].guid_indexes
++		= mlx4_ib_get_alias_guid_comp_mask_from_ix(guid_index_in_rec);
++
++	mlx4_ib_init_alias_guid_work(mdev, port->num - 1);
++
++	return count;
++}
++
++static ssize_t show_port_gid(struct device *dev,
++			     struct device_attribute *attr,
++			     char *buf)
++{
++	struct mlx4_ib_iov_sysfs_attr *mlx4_ib_iov_dentry =
++		container_of(attr, struct mlx4_ib_iov_sysfs_attr, dentry);
++	struct mlx4_ib_iov_port *port = mlx4_ib_iov_dentry->ctx;
++	struct mlx4_ib_dev *mdev = port->dev;
++	union ib_gid gid;
++	ssize_t ret;
++
++	ret = mlx4_ib_get_indexed_gid(&mdev->ib_dev, port->num,
++				      mlx4_ib_iov_dentry->entry_num, &gid);
++	if (ret)
++		return ret;
++	ret = sprintf(buf, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n",
++		      be16_to_cpu(((__be16 *) gid.raw)[0]),
++		      be16_to_cpu(((__be16 *) gid.raw)[1]),
++		      be16_to_cpu(((__be16 *) gid.raw)[2]),
++		      be16_to_cpu(((__be16 *) gid.raw)[3]),
++		      be16_to_cpu(((__be16 *) gid.raw)[4]),
++		      be16_to_cpu(((__be16 *) gid.raw)[5]),
++		      be16_to_cpu(((__be16 *) gid.raw)[6]),
++		      be16_to_cpu(((__be16 *) gid.raw)[7]));
++	return ret;
++}
++
++static ssize_t show_phys_port_pkey(struct device *dev,
++				   struct device_attribute *attr,
++				   char *buf)
++{
++	struct mlx4_ib_iov_sysfs_attr *mlx4_ib_iov_dentry =
++		container_of(attr, struct mlx4_ib_iov_sysfs_attr, dentry);
++	struct mlx4_ib_iov_port *port = mlx4_ib_iov_dentry->ctx;
++	struct mlx4_ib_dev *mdev = port->dev;
++	u16 pkey;
++	ssize_t ret;
++
++	ret = __mlx4_ib_query_pkey(&mdev->ib_dev, port->num,
++				   mlx4_ib_iov_dentry->entry_num, &pkey, 1);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "0x%04x\n", pkey);
++}
++
++#define DENTRY_REMOVE(_dentry)						\
++do {									\
++	sysfs_remove_file((_dentry)->kobj, &(_dentry)->dentry.attr);	\
++} while (0);
++
++static int create_sysfs_entry(void *_ctx, struct mlx4_ib_iov_sysfs_attr *_dentry,
++			       char *_name, struct kobject *_kobj,
++			      ssize_t (*show)(struct device *dev,
++					      struct device_attribute *attr,
++					      char *buf),
++			      ssize_t (*store)(struct device *dev,
++					       struct device_attribute *attr,
++					       const char *buf, size_t count)
++			      )
++{
++	int ret = 0;
++	struct mlx4_ib_iov_sysfs_attr *vdentry = _dentry;
++
++	vdentry->ctx = _ctx;
++	vdentry->dentry.show = show;
++	vdentry->dentry.store = store;
++	sysfs_attr_init(&vdentry->dentry.attr);
++	vdentry->dentry.attr.name = vdentry->name;
++	vdentry->dentry.attr.mode = 0;
++	vdentry->kobj = _kobj;
++	snprintf(vdentry->name, 15, "%s", _name);
++
++	if (vdentry->dentry.store)
++		vdentry->dentry.attr.mode |= S_IWUSR;
++
++	if (vdentry->dentry.show)
++		vdentry->dentry.attr.mode |= S_IRUGO;
++
++	ret = sysfs_create_file(vdentry->kobj, &vdentry->dentry.attr);
++	if (ret) {
++		pr_err("failed to create %s\n", vdentry->dentry.attr.name);
++		vdentry->ctx = NULL;
++		return ret;
++	}
++
++	return ret;
++}
++
++int add_sysfs_port_mcg_attr(struct mlx4_ib_dev *device, int port_num,
++		struct attribute *attr)
++{
++	struct mlx4_ib_iov_port *port = &device->iov_ports[port_num - 1];
++	int ret;
++
++	ret = sysfs_create_file(port->mcgs_parent, attr);
++	if (ret)
++		pr_err("failed to create %s\n", attr->name);
++
++	return ret;
++}
++
++void del_sysfs_port_mcg_attr(struct mlx4_ib_dev *device, int port_num,
++		struct attribute *attr)
++{
++	struct mlx4_ib_iov_port *port = &device->iov_ports[port_num - 1];
++
++	sysfs_remove_file(port->mcgs_parent, attr);
++}
++
++static int add_port_entries(struct mlx4_ib_dev *device, int port_num)
 +{
 +	int i;
++	char buff[10];
++	struct mlx4_ib_iov_port *port = NULL;
++	int ret = 0 ;
++	struct ib_port_attr attr;
++	/*get the physical table size.*/
++	ret = __mlx4_ib_query_port(&device->ib_dev, port_num, &attr, 1);
++	if (ret)
++		goto err;
++
++	port = &device->iov_ports[port_num - 1];
++	port->dev = device;
++	port->num = port_num;
++/*	iov -
++		port num -
++			--admin_guids
++			--(operational)gids
++			--mcg_table
++*/
++	port->dentr_ar = kzalloc(sizeof(struct mlx4_ib_iov_sysfs_attr_ar),
++				 GFP_KERNEL);
++	if (!port->dentr_ar) {
++		pr_err("add_port_entries: could not allocate dentry array\n");
++		ret = -ENOMEM;
++		goto err;
++	}
++	sprintf(buff, "%d", port_num);
++	port->cur_port = kobject_create_and_add(buff,
++				 kobject_get(device->ports_parent));
++	if (!port->cur_port) {
++		ret = -ENOMEM;
++		goto kobj_create_err;
++	}
++	/*setting the admin GUID*/
++	port->admin_alias_parent = kobject_create_and_add("admin_guids",
++						  kobject_get(port->cur_port));
++	if (!port->admin_alias_parent) {
++		ret = -ENOMEM;
++		goto err_admin_guids1;
++	}
++
++	for (i = 0 ; i < attr.gid_tbl_len; i++) {
++		sprintf(buff, "%d", i);
++		port->dentr_ar->dentries[i].entry_num = i;
++		ret = create_sysfs_entry(port, &port->dentr_ar->dentries[i],
++					  buff, port->admin_alias_parent,
++					  show_admin_alias_guid, store_admin_alias_guid);
++		if (ret)
++			goto err_admin_guids2;
++	}
++
++	/*setting the operational GUID*/
++	port->gids_parent = kobject_create_and_add("gids",
++						  kobject_get(port->cur_port));
++	if (!port->gids_parent) {
++		ret = -ENOMEM;
++		goto err_gids1;
++	}
++
++	for (i = 0 ; i < attr.gid_tbl_len; i++) {
++		sprintf(buff, "%d", i);
++		port->dentr_ar->dentries[attr.gid_tbl_len + i].entry_num = i;
++		ret = create_sysfs_entry(port,
++					 &port->dentr_ar->dentries[attr.gid_tbl_len + i],
++					 buff,
++					 port->gids_parent, show_port_gid, NULL);
++		if (ret)
++			goto err_gids2;
++	}
++
++	/* physical port pkey table */
++	port->pkeys_parent =
++		kobject_create_and_add("pkeys", kobject_get(port->cur_port));
++	if (!port->pkeys_parent) {
++		ret = -ENOMEM;
++		goto err_pkeys1;
++	}
++
++	for (i = 0 ; i < attr.pkey_tbl_len; i++) {
++		sprintf(buff, "%d", i);
++		port->dentr_ar->dentries[2 * attr.gid_tbl_len + i].entry_num = i;
++		ret = create_sysfs_entry(port,
++					 &port->dentr_ar->dentries[2 * attr.gid_tbl_len + i],
++					 buff, port->pkeys_parent,
++					 show_phys_port_pkey, NULL);
++		if (ret)
++			goto err_pkeys2;
++	}
++
++	/* MCGs table */
++	port->mcgs_parent =
++		kobject_create_and_add("mcgs", kobject_get(port->cur_port));
++	if (!port->mcgs_parent) {
++		ret = -ENOMEM;
++		goto err_mcgs1;
++	}
++
++	return 0 ;
++
++err_mcgs1:
++err_pkeys2:
++	kobject_put(port->pkeys_parent);
++
++err_pkeys1:
++err_gids2:
++	kobject_put(port->gids_parent);
++
++err_gids1:
++
++err_admin_guids2:
++	kobject_put(port->admin_alias_parent);
++
++err_admin_guids1:
++	kobject_put(port->cur_port);
++
++kobj_create_err:
++	kfree(port->dentr_ar);
++
++err:
++	pr_err("add_port_entries FAILED: for port:%d, error: %d\n",
++	       port_num, ret);
++	return ret;
++}
++
++static void get_name(struct mlx4_ib_dev *dev, char *name, int i, int max)
++{
++	char base_name[9];
++
++	/* pci_name format is: bus:dev:func -> xxxx:yy:zz.n */
++	strlcpy(name, pci_name(dev->dev->pdev), max);
++	strncpy(base_name, name, 8); /*till xxxx:yy:*/
++	base_name[8] = '\0';
++	/* with no ARI only 3 last bits are used so when the fn it higher than 8
++	 * need to add it to the dev num, so till 8 will be count in the
++	 * last number */
++	sprintf(name, "%s%.2d.%d", base_name, (i/8), (i%8));
++}
++
++struct mlx4_port {
++	struct kobject         kobj;
++	struct mlx4_ib_dev    *dev;
++	struct attribute_group pkey_group;
++	struct attribute_group gid_group;
++	u8                     port_num;
++	int		       slave;
++};
++
++
++static void mlx4_port_release(struct kobject *kobj)
++{
++	struct mlx4_port *p = container_of(kobj, struct mlx4_port, kobj);
++	struct attribute *a;
++	int i;
++
++	for (i = 0; (a = p->pkey_group.attrs[i]); ++i)
++		kfree(a);
++
++	kfree(p->pkey_group.attrs);
++
++	for (i = 0; (a = p->gid_group.attrs[i]); ++i)
++		kfree(a);
++
++	kfree(p->gid_group.attrs);
++
++	kfree(p);
++}
++
++struct port_attribute {
++	struct attribute attr;
++	ssize_t (*show)(struct mlx4_port *, struct port_attribute *, char *buf);
++	ssize_t (*store)(struct mlx4_port *, struct port_attribute *,
++			 const char *buf, size_t count);
++};
++
++static ssize_t port_attr_show(struct kobject *kobj,
++			      struct attribute *attr, char *buf)
++{
++	struct port_attribute *port_attr =
++		container_of(attr, struct port_attribute, attr);
++	struct mlx4_port *p = container_of(kobj, struct mlx4_port, kobj);
++
++	if (!port_attr->show)
++		return -EIO;
++
++	return port_attr->show(p, port_attr, buf);
++}
++
++static ssize_t port_attr_store(struct kobject *kobj,
++			       struct attribute *attr,
++			       const char *buf, size_t size)
++{
++	struct port_attribute *port_attr =
++		container_of(attr, struct port_attribute, attr);
++	struct mlx4_port *p = container_of(kobj, struct mlx4_port, kobj);
++
++	if (!port_attr->store)
++		return -EIO;
++
++	return port_attr->store(p, port_attr, buf, size);
++}
++
++static const struct sysfs_ops port_sysfs_ops = {
++	.show = port_attr_show,
++	.store = port_attr_store,
++};
++
++static struct kobj_type port_type = {
++	.release    = mlx4_port_release,
++	.sysfs_ops  = &port_sysfs_ops,
++};
++
++struct port_table_attribute {
++	struct port_attribute	attr;
++	char			name[8];
++	int			index;
++};
++
++static ssize_t show_port_pkey(struct mlx4_port *p, struct port_attribute *attr,
++			      char *buf)
++{
++	struct port_table_attribute *tab_attr =
++		container_of(attr, struct port_table_attribute, attr);
++	ssize_t ret = -ENODEV;
++
++	if (p->dev->pkeys.virt2phys_pkey[p->slave][p->port_num - 1][tab_attr->index] >=
++	    (p->dev->dev->caps.pkey_table_len[p->port_num]))
++		ret = sprintf(buf, "none\n");
++	else
++		ret = sprintf(buf, "%d\n",
++			      p->dev->pkeys.virt2phys_pkey[p->slave]
++			      [p->port_num - 1][tab_attr->index]);
++	return ret;
++}
++
++static ssize_t store_port_pkey(struct mlx4_port *p, struct port_attribute *attr,
++			       const char *buf, size_t count)
++{
++	struct port_table_attribute *tab_attr =
++		container_of(attr, struct port_table_attribute, attr);
++	int idx;
 +	int err;
 +
-+	for (i = 0; i < dev->caps.pkey_table_len[port]; i += 32) {
-+		err = query_pkey_block(dev, port, i, table + i, inbox, outbox);
++	/* do not allow remapping Dom0 virtual pkey table */
++	if (p->slave == p->dev->dev->caps.function)
++		return -EINVAL;
++
++	if (!strncasecmp(buf, "no", 2))
++		idx = p->dev->dev->phys_caps.pkey_phys_table_len[p->port_num] - 1;
++	else if (sscanf(buf, "%i", &idx) != 1 ||
++		 idx >= p->dev->dev->caps.pkey_table_len[p->port_num] ||
++		 idx < 0)
++		return -EINVAL;
++
++	p->dev->pkeys.virt2phys_pkey[p->slave][p->port_num - 1]
++				    [tab_attr->index] = idx;
++	mlx4_sync_pkey_table(p->dev->dev, p->slave, p->port_num,
++			     tab_attr->index, idx);
++	err = mlx4_gen_pkey_eqe(p->dev->dev, p->slave, p->port_num);
++	if (err) {
++		pr_err("mlx4_gen_pkey_eqe failed for slave %d,"
++		       " port %d, index %d\n", p->slave, p->port_num, idx);
++		return err;
++	}
++
++	return count;
++}
++
++static ssize_t show_port_gid_idx(struct mlx4_port *p,
++				 struct port_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", p->slave);
++}
++
++
++static struct attribute **
++alloc_group_attrs(ssize_t (*show)(struct mlx4_port *,
++				  struct port_attribute *, char *buf),
++		  ssize_t (*store)(struct mlx4_port *, struct port_attribute *,
++				   const char *buf, size_t count),
++		  int len)
++{
++	struct attribute **tab_attr;
++	struct port_table_attribute *element;
++	int i;
++
++	tab_attr = kcalloc(1 + len, sizeof(struct attribute *), GFP_KERNEL);
++	if (!tab_attr)
++		return NULL;
++
++	for (i = 0; i < len; i++) {
++		element = kzalloc(sizeof(struct port_table_attribute),
++				  GFP_KERNEL);
++		if (!element)
++			goto err;
++
++		if (snprintf(element->name, sizeof(element->name),
++			     "%d", i) >= sizeof(element->name)) {
++			kfree(element);
++			goto err;
++		}
++		sysfs_attr_init(&element->attr.attr);
++		element->attr.attr.name  = element->name;
++		if (store) {
++			element->attr.attr.mode  = S_IWUSR | S_IRUGO;
++			element->attr.store	 = store;
++		} else
++			element->attr.attr.mode  = S_IRUGO;
++
++		element->attr.show       = show;
++		element->index		 = i;
++
++		tab_attr[i] = &element->attr.attr;
++	}
++
++	return tab_attr;
++
++err:
++	while (--i >= 0)
++		kfree(tab_attr[i]);
++	kfree(tab_attr);
++	return NULL;
++}
++
++static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
++{
++	struct mlx4_port *p;
++	int i;
++	int ret;
++
++	p = kzalloc(sizeof *p, GFP_KERNEL);
++	if (!p)
++		return -ENOMEM;
++
++	p->dev = dev;
++	p->port_num = port_num;
++	p->slave = slave;
++
++	ret = kobject_init_and_add(&p->kobj, &port_type,
++				   kobject_get(dev->dev_ports_parent[slave]),
++				   "%d", port_num);
++	if (ret)
++		goto err_alloc;
++
++	p->pkey_group.name  = "pkey_idx";
++	p->pkey_group.attrs =
++		alloc_group_attrs(show_port_pkey, store_port_pkey,
++				  dev->dev->caps.pkey_table_len[port_num]);
++	if (!p->pkey_group.attrs)
++		goto err_put;
++
++	ret = sysfs_create_group(&p->kobj, &p->pkey_group);
++	if (ret)
++		goto err_free_pkey;
++
++	p->gid_group.name  = "gid_idx";
++	p->gid_group.attrs = alloc_group_attrs(show_port_gid_idx, NULL, 1);
++	if (!p->gid_group.attrs)
++		goto err_free_pkey;
++
++	ret = sysfs_create_group(&p->kobj, &p->gid_group);
++	if (ret)
++		goto err_free_gid;
++
++	list_add_tail(&p->kobj.entry, &dev->pkeys.pkey_port_list[slave]);
++	return 0;
++
++err_free_gid:
++	kfree(p->gid_group.attrs[0]);
++
++	kfree(p->gid_group.attrs);
++
++err_free_pkey:
++	for (i = 0; i < dev->dev->caps.pkey_table_len[port_num]; ++i)
++		kfree(p->pkey_group.attrs[i]);
++
++	kfree(p->pkey_group.attrs);
++
++err_put:
++	kobject_put(dev->dev_ports_parent[slave]);
++
++err_alloc:
++	kfree(p);
++
++	return ret;
++}
++
++static int register_one_pkey_tree(struct mlx4_ib_dev *device, int slave)
++{
++	char name[32];
++	int err;
++	int port;
++
++	get_name(device, name, slave, sizeof name);
++
++	device->pkeys.device_parent[slave] =
++		kobject_create_and_add(name, kobject_get(device->iov_parent));
++
++	if (!device->pkeys.device_parent[slave]) {
++		err = -ENOMEM;
++		goto fail_dev;
++	}
++
++	INIT_LIST_HEAD(&device->pkeys.pkey_port_list[slave]);
++
++	device->dev_ports_parent[slave] =
++		kobject_create_and_add("ports",
++				       kobject_get(device->pkeys.device_parent[slave]));
++
++	if (!device->dev_ports_parent[slave]) {
++		err = -ENOMEM;
++		goto err_ports;
++	}
++
++	for (port = 1; port <= device->dev->caps.num_ports; ++port) {
++		err = add_port(device, port, slave);
 +		if (err)
-+			return err;
++			goto err_add;
 +	}
 +
 +	return 0;
-+}
-+#define PORT_CAPABILITY_LOCATION_IN_SMP 20
-+#define PORT_STATE_OFFSET 32
 +
-+static enum ib_port_state vf_port_state(struct mlx4_dev *dev, int port, int vf)
-+{
-+	/* will be modified when add alias_guid feature */
-+	return IB_PORT_DOWN;
-+}
++err_add:
++	{
++		struct kobject *p, *t;
++		struct mlx4_port *mport;
 +
-+static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
-+				struct mlx4_vhcr *vhcr,
-+				struct mlx4_cmd_mailbox *inbox,
-+				struct mlx4_cmd_mailbox *outbox,
-+				struct mlx4_cmd_info *cmd)
-+{
-+	struct ib_smp *smp = inbox->buf;
-+	u32 index;
-+	u8 port;
-+	u16 *table;
-+	int err;
-+	int vidx, pidx;
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	struct ib_smp *outsmp = outbox->buf;
-+	__be16 *outtab = (__be16 *)(outsmp->data);
-+	__be32 slave_cap_mask;
-+	port = vhcr->in_modifier;
-+
-+	if (smp->base_version == 1 &&
-+	    smp->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED &&
-+	    smp->class_version == 1) {
-+		if (smp->method	== IB_MGMT_METHOD_GET) {
-+			if (smp->attr_id == IB_SMP_ATTR_PKEY_TABLE) {
-+				index = be32_to_cpu(smp->attr_mod);
-+				if (port < 1 || port > dev->caps.num_ports)
-+					return -EINVAL;
-+				table = kzalloc(dev->caps.pkey_table_len[port] * sizeof *table, GFP_KERNEL);
-+				if (!table)
-+					return -ENOMEM;
-+				/* need to get the full pkey table because the paravirtualized
-+				 * pkeys may be scattered among several pkey blocks.
-+				 */
-+				err = get_full_pkey_table(dev, port, table, inbox, outbox);
-+				if (!err) {
-+					for (vidx = index * 32; vidx < (index + 1) * 32; ++vidx) {
-+						pidx = priv->virt2phys_pkey[slave][port - 1][vidx];
-+						outtab[vidx % 32] = cpu_to_be16(table[pidx]);
-+					}
-+				}
-+				kfree(table);
-+				return err;
-+			}
-+			if (smp->attr_id == IB_SMP_ATTR_PORT_INFO) {
-+				/*get the slave specific caps:*/
-+				/*do the command */
-+				err = mlx4_cmd_box(dev, inbox->dma, outbox->dma,
-+					    vhcr->in_modifier, vhcr->op_modifier,
-+					    vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
-+				/* modify the response for slaves */
-+				if (!err && slave != dev->caps.function) {
-+					u8 *state = outsmp->data + PORT_STATE_OFFSET;
-+
-+					*state = (*state & 0xf0) | vf_port_state(dev, port, slave);
-+					slave_cap_mask = priv->mfunc.master.slave_state[slave].ib_cap_mask[port];
-+					memcpy(outsmp->data + PORT_CAPABILITY_LOCATION_IN_SMP, &slave_cap_mask, 4);
-+				}
-+				return err;
-+			}
-+			if (smp->attr_id == IB_SMP_ATTR_GUID_INFO) {
-+				/* compute slave's gid block */
-+				smp->attr_mod = cpu_to_be32(slave / 8);
-+				/* execute cmd */
-+				err = mlx4_cmd_box(dev, inbox->dma, outbox->dma,
-+					     vhcr->in_modifier, vhcr->op_modifier,
-+					     vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
-+				if (!err) {
-+					/* if needed, move slave gid to index 0 */
-+					if (slave % 8)
-+						memcpy(outsmp->data,
-+						       outsmp->data + (slave % 8) * 8, 8);
-+					/* delete all other gids */
-+					memset(outsmp->data + 8, 0, 56);
-+				}
-+				return err;
-+			}
++		list_for_each_entry_safe(p, t,
++					 &device->pkeys.pkey_port_list[slave],
++					 entry) {
++			list_del(&p->entry);
++			mport = container_of(p, struct mlx4_port, kobj);
++			sysfs_remove_group(p, &mport->pkey_group);
++			sysfs_remove_group(p, &mport->gid_group);
++			kobject_put(p);
 +		}
 +	}
-+	if (slave != dev->caps.function &&
-+	    ((smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE) ||
-+	     (smp->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED &&
-+	      smp->method == IB_MGMT_METHOD_SET))) {
-+		mlx4_err(dev, "slave %d is trying to execute a Subnet MGMT MAD, "
-+			 "class 0x%x, method 0x%x for attr 0x%x. Rejecting\n",
-+			 slave, smp->method, smp->mgmt_class,
-+			 be16_to_cpu(smp->attr_id));
-+		return -EPERM;
-+	}
-+	/*default:*/
-+	return mlx4_cmd_box(dev, inbox->dma, outbox->dma,
-+				    vhcr->in_modifier, vhcr->op_modifier,
-+				    vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
++	kobject_put(device->dev_ports_parent[slave]);
++err_ports:
++	kobject_put(device->pkeys.device_parent[slave]);
++
++fail_dev:
++	return err;
 +}
 +
- int mlx4_DMA_wrapper(struct mlx4_dev *dev, int slave,
- 		     struct mlx4_vhcr *vhcr,
- 		     struct mlx4_cmd_mailbox *inbox,
-@@ -1016,6 +1160,24 @@ static struct mlx4_cmd_info cmd_info[] = {
- 		.wrapper = mlx4_GEN_QP_wrapper
- 	},
- 	{
-+		.opcode = MLX4_CMD_CONF_SPECIAL_QP,
-+		.has_inbox = false,
-+		.has_outbox = false,
-+		.out_is_imm = false,
-+		.encode_slave_id = false,
-+		.verify = NULL, /* XXX verify: only demux can do this */
-+		.wrapper = NULL
-+	},
-+	{
-+		.opcode = MLX4_CMD_MAD_IFC,
-+		.has_inbox = true,
-+		.has_outbox = true,
-+		.out_is_imm = false,
-+		.encode_slave_id = false,
-+		.verify = NULL,
-+		.wrapper = mlx4_MAD_IFC_wrapper
-+	},
-+	{
- 		.opcode = MLX4_CMD_QUERY_IF_STAT,
- 		.has_inbox = false,
- 		.has_outbox = true,
++static int register_pkey_tree(struct mlx4_ib_dev *device)
++{
++	int i;
++
++	if (!mlx4_is_master(device->dev))
++		return 0;
++
++	for (i = 0; i <= device->dev->num_vfs; ++i)
++		register_one_pkey_tree(device, i);
++
++	return 0;
++}
++
++static void unregister_pkey_tree(struct mlx4_ib_dev *device)
++{
++	int slave;
++	struct kobject *p, *t;
++	struct mlx4_port *port;
++
++	if (!mlx4_is_master(device->dev))
++		return;
++
++	for (slave = device->dev->num_vfs; slave >= 0; --slave) {
++		list_for_each_entry_safe(p, t,
++					 &device->pkeys.pkey_port_list[slave],
++					 entry) {
++			list_del(&p->entry);
++			port = container_of(p, struct mlx4_port, kobj);
++			sysfs_remove_group(p, &port->pkey_group);
++			sysfs_remove_group(p, &port->gid_group);
++			kobject_put(p);
++			kobject_put(device->dev_ports_parent[slave]);
++		}
++		kobject_put(device->dev_ports_parent[slave]);
++		kobject_put(device->pkeys.device_parent[slave]);
++		kobject_put(device->pkeys.device_parent[slave]);
++		kobject_put(device->iov_parent);
++	}
++}
++
++int mlx4_ib_device_register_sysfs(struct mlx4_ib_dev *device)
++{
++
++	int i;
++	int ret = 0;
++
++	if (!mlx4_is_master(device->dev))
++		return 0;
++
++	device->iov_parent =
++		kobject_create_and_add("iov",
++				       kobject_get(device->ib_dev.ports_parent->parent));
++	if (!device->iov_parent) {
++		ret = -ENOMEM;
++		goto err;
++	}
++	device->ports_parent =
++		kobject_create_and_add("ports",
++				       kobject_get(device->iov_parent));
++	if (!device->iov_parent) {
++		ret = -ENOMEM;
++		goto err_port;
++	}
++
++	for (i = 1; i <= device->ib_dev.phys_port_cnt; ++i) {
++		ret = add_port_entries(device, i);
++		if (ret)
++			goto err_port;
++	}
++
++	ret = register_pkey_tree(device);
++	if (ret)
++		goto err_pkey;
++
++	return ret;
++
++
++err_pkey:
++
++err_port:
++	kobject_put(device->ib_dev.ports_parent->parent);
++err:
++	pr_err("mlx4_ib_device_register_sysfs Error\n");
++	return ret;
++
++}
++
++static void unregister_alias_guid_tree(struct mlx4_ib_dev *device)
++{
++	struct mlx4_ib_iov_port *p;
++	int i;
++
++	if (!mlx4_is_master(device->dev))
++		return;
++
++	for (i = 0; i < device->dev->caps.num_ports; i++) {
++		p = &device->iov_ports[i];
++		kobject_put(p->admin_alias_parent);
++		kobject_put(p->gids_parent);
++		kobject_put(p->pkeys_parent);
++		kobject_put(p->mcgs_parent);
++		kobject_put(p->cur_port);
++		kobject_put(p->cur_port);
++		kobject_put(p->cur_port);
++		kobject_put(p->cur_port);
++		kobject_put(p->cur_port);
++		kobject_put(p->dev->ports_parent);
++		kfree(p->dentr_ar);
++	}
++}
++
++void mlx4_ib_device_unregister_sysfs(struct mlx4_ib_dev *device)
++{
++	unregister_alias_guid_tree(device);
++	unregister_pkey_tree(device);
++	kobject_put(device->ports_parent);
++	kobject_put(device->iov_parent);
++	kobject_put(device->iov_parent);
++	kobject_put(device->ib_dev.ports_parent->parent);
++}
 -- 
 1.7.1
 
