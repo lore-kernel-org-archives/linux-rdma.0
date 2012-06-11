@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 26/29] IB/mlx4: Initialize guid-cache index 0 (default guid)
-Date: Mon, 11 Jun 2012 13:46:07 +0300
-Message-ID: <1339411570-4689-27-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next 28/29] IB/mlx4: Miscellaneous adjustments to SRIOV IB support
+Date: Mon, 11 Jun 2012 13:46:09 +0300
+Message-ID: <1339411570-4689-29-git-send-email-jackm@dev.mellanox.co.il>
 References: <1339411570-4689-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1339411570-4689-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,128 +10,125 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The guid cache introduced by the alias guid feature contains the all the
-GUIDs for each port.  GUIDs 1..127 are obtained from the subnet manager.
-GUID 0, however, is obtained from the FW and cannot be modified by the
-subnet manager. It must be introduced separately into the guid cache.
-
-Initialize the value of GUID 0 in the guid cache (since this cannot be
-obtained via the GUID CHANGE event flow, since it does not change).
-
-To accomplish this easily, add capability to __mlx4_ib_query_gid()
-to obtain the network view (i.e., physical view) gid at index X,
-not just the host (paravirtualized) view.
+1. allow only master to change node description
+2. prevent ah leakage in send mads
+3. take device part number from PCI structure, so that
+   guests see the VF part number (and not the PF part number)
+4. place the device revision ID into caps structure at startup
+5. SET_PORT in update_gids_task needs to go through wrapper on master.
+6. in mlx4_ib_event, PORT_MGMT_EVENT needs be handled in a work queue
+   on the master, since it propagates events to slaves using GEN_EQE
+7. Do not support FMR on slaves.
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c     |    5 +++++
- drivers/infiniband/hw/mlx4/main.c    |   28 ++++++++++++++++++++++------
- drivers/infiniband/hw/mlx4/mlx4_ib.h |    3 +++
- 3 files changed, 30 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c  |    6 +++++-
+ drivers/infiniband/hw/mlx4/main.c |   26 ++++++++++++++++++--------
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 6aff431..6f74335 100644
+index 6f74335..76212bd 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -2020,6 +2020,11 @@ int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
- 		mlx4_ib_warn(&dev->ib_dev, "initializing demux service for %d qp1 clients\n",
- 			     dev->dev->caps.sqp_demux);
- 		for (i = 0; i < dev->num_ports; i++) {
-+			union ib_gid gid;
-+			err = __mlx4_ib_query_gid(&dev->ib_dev, i + 1, 0, &gid, 1);
-+			if (err)
-+				goto demux_err;
-+			dev->sriov.demux[i].guid_cache[0] = gid.global.interface_id;
- 			err = alloc_pv_object(dev, slave_num(dev), i + 1,
- 					      &dev->sriov.sqps[i]);
- 			if (err)
+@@ -713,7 +713,9 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 	if (!out_mad->mad_hdr.status) {
+ 		if (!(to_mdev(ibdev)->dev->caps.flags & MLX4_DEV_CAP_FLAG_PORT_MNG_CHG_EV))
+ 			smp_snoop(ibdev, port_num, in_mad, prev_lid);
+-		node_desc_override(ibdev, out_mad);
++		/* slaves get node desc from FW */
++		if (!mlx4_is_slave(to_mdev(ibdev)->dev))
++			node_desc_override(ibdev, out_mad);
+ 	}
+ 
+ 	/* set return bit in status of directed route responses */
+@@ -796,6 +798,8 @@ int mlx4_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ static void send_handler(struct ib_mad_agent *agent,
+ 			 struct ib_mad_send_wc *mad_send_wc)
+ {
++	if (mad_send_wc->send_buf->context[0])
++		ib_destroy_ah(mad_send_wc->send_buf->context[0]);
+ 	ib_free_send_mad(mad_send_wc->send_buf);
+ }
+ 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 074b475..14bb028 100644
+index 14bb028..444c2fb 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -361,12 +361,15 @@ static int mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
- 	return __mlx4_ib_query_port(ibdev, port, props, 0);
- }
+@@ -146,7 +146,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
  
--static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
--			       union ib_gid *gid)
-+int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
-+			union ib_gid *gid, int netw_view)
- {
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
- 	int err = -ENOMEM;
-+	struct mlx4_ib_dev *dev = to_mdev(ibdev);
-+	int clear = 0;
-+	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 	props->vendor_id	   = be32_to_cpup((__be32 *) (out_mad->data + 36)) &
+ 		0xffffff;
+-	props->vendor_part_id	   = be16_to_cpup((__be16 *) (out_mad->data + 30));
++	props->vendor_part_id	   = dev->dev->pdev->device;
+ 	props->hw_ver		   = be32_to_cpup((__be32 *) (out_mad->data + 32));
+ 	memcpy(&props->sys_image_guid, out_mad->data +	4, 8);
  
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-@@ -377,18 +380,29 @@ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 	in_mad->attr_id  = IB_SMP_ATTR_PORT_INFO;
- 	in_mad->attr_mod = cpu_to_be32(port);
+@@ -485,6 +485,9 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
+ 	if (!(mask & IB_DEVICE_MODIFY_NODE_DESC))
+ 		return 0;
  
--	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS, port,
--			   NULL, NULL, in_mad, out_mad);
-+	if (mlx4_is_mfunc(dev->dev) && netw_view)
-+		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
++	if (mlx4_is_slave(to_mdev(ibdev)->dev))
++		return -EOPNOTSUPP;
 +
-+	err = mlx4_MAD_IFC(dev, mad_ifc_flags, port, NULL, NULL, in_mad, out_mad);
+ 	spin_lock(&to_mdev(ibdev)->sm_lock);
+ 	memcpy(ibdev->node_desc, props->node_desc, 64);
+ 	spin_unlock(&to_mdev(ibdev)->sm_lock);
+@@ -500,7 +503,7 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
+ 	memset(mailbox->buf, 0, 256);
+ 	memcpy(mailbox->buf, props->node_desc, 64);
+ 	mlx4_cmd(to_mdev(ibdev)->dev, mailbox->dma, 1, 0,
+-		 MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A, MLX4_CMD_WRAPPED);
++		 MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
+ 
+ 	mlx4_free_cmd_mailbox(to_mdev(ibdev)->dev, mailbox);
+ 
+@@ -880,6 +883,7 @@ static int init_node_data(struct mlx4_ib_dev *dev)
  	if (err)
  		goto out;
  
- 	memcpy(gid->raw, out_mad->data + 8, 8);
- 
-+	if (mlx4_is_mfunc(dev->dev) && !netw_view) {
-+		if (index) {
-+			/* For any index > 0, return the null guid */
-+			err = 0;
-+			clear = 1;
-+			goto out;
-+		}
-+	}
-+
- 	init_query_mad(in_mad);
- 	in_mad->attr_id  = IB_SMP_ATTR_GUID_INFO;
- 	in_mad->attr_mod = cpu_to_be32(index / 8);
- 
--	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS, port,
-+	err = mlx4_MAD_IFC(dev, mad_ifc_flags, port,
- 			   NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
-@@ -396,6 +410,8 @@ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 	memcpy(gid->raw + 8, out_mad->data + (index % 8) * 8, 8);
++	dev->dev->rev_id = be32_to_cpup((__be32 *) (out_mad->data + 32));
+ 	memcpy(&dev->ib_dev.node_guid, out_mad->data + 12, 8);
  
  out:
-+	if (clear)
-+		memset(gid->raw + 8, 0, 8);
- 	kfree(in_mad);
- 	kfree(out_mad);
- 	return err;
-@@ -415,7 +431,7 @@ static int mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 			     union ib_gid *gid)
- {
- 	if (rdma_port_get_link_layer(ibdev, port) == IB_LINK_LAYER_INFINIBAND)
--		return __mlx4_ib_query_gid(ibdev, port, index, gid);
-+		return __mlx4_ib_query_gid(ibdev, port, index, gid, 0);
- 	else
- 		return iboe_query_gid(ibdev, port, index, gid);
- }
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 66d821b..e48e90e 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -650,6 +650,9 @@ int __mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
- int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
- 			 u16 *pkey, int netw_view);
+@@ -969,7 +973,7 @@ static void update_gids_task(struct work_struct *work)
  
-+int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
-+			union ib_gid *gid, int netw_view);
-+
- int mlx4_ib_resolve_grh(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah_attr,
- 			u8 *mac, int *is_mcast, u8 port);
+ 	err = mlx4_cmd(dev, mailbox->dma, MLX4_SET_PORT_GID_TABLE << 8 | gw->port,
+ 		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
+-		       MLX4_CMD_NATIVE);
++		       MLX4_CMD_WRAPPED);
+ 	if (err)
+ 		pr_warn("set port command failed\n");
+ 	else {
+@@ -1362,10 +1366,12 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
+ 	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
  
+-	ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
+-	ibdev->ib_dev.map_phys_fmr	= mlx4_ib_map_phys_fmr;
+-	ibdev->ib_dev.unmap_fmr		= mlx4_ib_unmap_fmr;
+-	ibdev->ib_dev.dealloc_fmr	= mlx4_ib_fmr_dealloc;
++	if (!mlx4_is_slave(ibdev->dev)) {
++		ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
++		ibdev->ib_dev.map_phys_fmr	= mlx4_ib_map_phys_fmr;
++		ibdev->ib_dev.unmap_fmr		= mlx4_ib_unmap_fmr;
++		ibdev->ib_dev.dealloc_fmr	= mlx4_ib_fmr_dealloc;
++	}
+ 
+ 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC) {
+ 		ibdev->ib_dev.alloc_xrcd = mlx4_ib_alloc_xrcd;
+@@ -1577,7 +1583,11 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 		INIT_WORK(&ew->work, handle_port_mgmt_change_event);
+ 		memcpy(&ew->ib_eqe, eqe, sizeof *eqe);
+ 		ew->ib_dev = ibdev;
+-		handle_port_mgmt_change_event(&ew->work);
++		/* need to queue only for port owner, which uses GEN_EQE */
++		if (mlx4_is_master(dev))
++			queue_work(wq, &ew->work);
++		else
++			handle_port_mgmt_change_event(&ew->work);
+ 		return;
+ 
+ 	case MLX4_DEV_EVENT_SLAVE_INIT:
 -- 
 1.7.1
 
