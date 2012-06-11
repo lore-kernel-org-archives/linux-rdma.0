@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 09/29] net/mlx4_core: For SRIOV, initialize ib port-capabilities for all slaves
-Date: Mon, 11 Jun 2012 13:45:50 +0300
-Message-ID: <1339411570-4689-10-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next 05/29] IB/core: Add ib_find_exact_cached_pkey() to search for 16-bit pkey match
+Date: Mon, 11 Jun 2012 13:45:46 +0300
+Message-ID: <1339411570-4689-6-git-send-email-jackm@dev.mellanox.co.il>
 References: <1339411570-4689-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1339411570-4689-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,40 +10,97 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Under SRIOV-IB, each slave has its own separate copy of the port-capabilities
-flags.  Thus, for example, the master can run a subnet manager
-(which causes the IS_SM bit to be set in the master's port capabilities)
-without affecting the port capabilities seen by the slaves
-(i.e., the IS_SM bit will be seen as cleared in the slaves).
+When port pkey table potentially contains both full and partial
+membership copies for the same pkey, we need a function to find
+the exact (16-bit) pkey index.
+
+This is particularly necessary when the master forwards QP1 MADS
+sent by guests.  If the guest has sent the MAD with a limited
+membership pkey, we wish to forward the MAD using the same limited
+membership pkey.  Since master may have both the limited and
+the full member pkeys in its table, we must make sure to retrieve
+the limited membership pkey in this case.
+
+This requires the 16-bit pkey lookup function (which includes the
+membership bit).
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/main.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/cache.c |   32 ++++++++++++++++++++++++++++++++
+ include/rdma/ib_cache.h         |   16 ++++++++++++++++
+ 2 files changed, 48 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index ee6f4fe..7ea68ce 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -1477,6 +1477,17 @@ static int mlx4_setup_hca(struct mlx4_dev *dev)
- 					  "with caps = 0\n", port, err);
- 			dev->caps.ib_port_def_cap[port] = ib_port_default_caps;
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 0f2f2b7..d8a8c83 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -198,6 +198,38 @@ int ib_find_cached_pkey(struct ib_device *device,
+ }
+ EXPORT_SYMBOL(ib_find_cached_pkey);
  
-+			/* initialize per-slave default ib port capabilities */
-+			if (mlx4_is_master(dev)) {
-+				int i;
-+				for (i = 0; i < dev->num_slaves; i++) {
-+					if (i == dev->caps.function)
-+						continue;
-+					priv->mfunc.master.slave_state[i].ib_cap_mask[port] =
-+							ib_port_default_caps;
-+				}
-+			}
++int ib_find_exact_cached_pkey(struct ib_device *device,
++			      u8                port_num,
++			      u16               pkey,
++			      u16              *index)
++{
++	struct ib_pkey_cache *cache;
++	unsigned long flags;
++	int i;
++	int ret = -ENOENT;
 +
- 			if (mlx4_is_mfunc(dev))
- 				dev->caps.port_ib_mtu[port] = IB_MTU_2048;
- 			else
++	if (port_num < start_port(device) || port_num > end_port(device))
++		return -EINVAL;
++
++	read_lock_irqsave(&device->cache.lock, flags);
++
++	cache = device->cache.pkey_cache[port_num - start_port(device)];
++
++	*index = -1;
++
++	for (i = 0; i < cache->table_len; ++i)
++		if (cache->table[i] == pkey) {
++			*index = i;
++			ret = 0;
++			break;
++		}
++
++	read_unlock_irqrestore(&device->cache.lock, flags);
++
++	return ret;
++}
++EXPORT_SYMBOL(ib_find_exact_cached_pkey);
++
+ int ib_get_cached_lmc(struct ib_device *device,
+ 		      u8                port_num,
+ 		      u8                *lmc)
+diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+index 00a2b8e..ad9a3c2 100644
+--- a/include/rdma/ib_cache.h
++++ b/include/rdma/ib_cache.h
+@@ -101,6 +101,22 @@ int ib_find_cached_pkey(struct ib_device    *device,
+ 			u16                 *index);
+ 
+ /**
++ * ib_find_exact_cached_pkey - Returns the PKey table index where a specified
++ *   PKey value occurs. Comparison uses the FULL 16 bits (incl membership bit)
++ * @device: The device to query.
++ * @port_num: The port number of the device to search for the PKey.
++ * @pkey: The PKey value to search for.
++ * @index: The index into the cached PKey table where the PKey was found.
++ *
++ * ib_find_exact_cached_pkey() searches the specified PKey table in
++ * the local software cache.
++ */
++int ib_find_exact_cached_pkey(struct ib_device    *device,
++			      u8                   port_num,
++			      u16                  pkey,
++			      u16                 *index);
++
++/**
+  * ib_get_cached_lmc - Returns a cached lmc table entry
+  * @device: The device to query.
+  * @port_num: The port number of the device to query.
 -- 
 1.7.1
 
