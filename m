@@ -1,575 +1,72 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 20/29] IB/mlx4: Add CM paravirtualization
-Date: Mon, 11 Jun 2012 13:46:01 +0300
-Message-ID: <1339411570-4689-21-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next 07/29] IB/core: move macros from cm_msgs.h to ib_cm.h
+Date: Mon, 11 Jun 2012 13:45:48 +0300
+Message-ID: <1339411570-4689-8-git-send-email-jackm@dev.mellanox.co.il>
 References: <1339411570-4689-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1339411570-4689-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+These macros will be reused by the mlx4 SRIOV-IB CM
+paravirtualization code, and there is no reason to have
+them declared both in the IB core in the mlx4 IB driver.
 
-In CM para-virtualization:
-1. Incoming requests are steered to the correct vHCA according to the embedded GID
-2. Communication IDs on outgoing requests are replaced by a globally unique ID, generated
-   by the PPF, since there is no synchronization of ID generation between guests (and so these
-   IDs are not guaranteed to be globally unique).
-   The guest's comm ID is stored, and is returned to the response MAD when it arrives.
-
-Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/Makefile  |    2 +-
- drivers/infiniband/hw/mlx4/cm.c      |  437 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx4/mad.c     |   16 ++-
- drivers/infiniband/hw/mlx4/mlx4_ib.h |   13 +
- 4 files changed, 466 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx4/cm.c
+ drivers/infiniband/core/cm_msgs.h |   12 ------------
+ include/rdma/ib_cm.h              |   12 ++++++++++++
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/Makefile b/drivers/infiniband/hw/mlx4/Makefile
-index 20d627d..bf0aa90 100644
---- a/drivers/infiniband/hw/mlx4/Makefile
-+++ b/drivers/infiniband/hw/mlx4/Makefile
-@@ -1,3 +1,3 @@
- obj-$(CONFIG_MLX4_INFINIBAND)	+= mlx4_ib.o
+diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
+index 7da9b21..be068f4 100644
+--- a/drivers/infiniband/core/cm_msgs.h
++++ b/drivers/infiniband/core/cm_msgs.h
+@@ -44,18 +44,6 @@
  
--mlx4_ib-y :=	ah.o cq.o doorbell.o mad.o main.o mr.o qp.o srq.o mcg.o
-+mlx4_ib-y :=	ah.o cq.o doorbell.o mad.o main.o mr.o qp.o srq.o mcg.o cm.o
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-new file mode 100644
-index 0000000..fd57a28
---- /dev/null
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -0,0 +1,437 @@
-+/*
-+ * Copyright (c) 2012 Mellanox Technologies. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <rdma/ib_mad.h>
-+
-+#include <linux/mlx4/cmd.h>
-+#include <linux/rbtree.h>
-+#include <linux/idr.h>
-+#include <rdma/ib_cm.h>
-+
-+#include "mlx4_ib.h"
-+
-+#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
-+
-+struct id_map_entry {
-+	struct rb_node node;
-+
-+	u32 sl_cm_id;
-+	u32 pv_cm_id;
-+	int slave_id;
-+	int scheduled_delete;
-+	struct mlx4_ib_dev *dev;
-+
-+	struct list_head list;
-+	struct delayed_work timeout;
-+};
-+
-+struct cm_generic_msg {
-+	struct ib_mad_hdr hdr;
-+
-+	__be32 local_comm_id;
-+	__be32 remote_comm_id;
-+};
-+
-+struct cm_req_msg {
-+	unsigned char unused[0x60];
-+	union ib_gid primary_path_sgid;
-+};
-+
-+
-+static void set_local_comm_id(struct ib_mad *mad, u32 cm_id)
-+{
-+	struct cm_generic_msg *msg = (struct cm_generic_msg *)mad;
-+	msg->local_comm_id = cpu_to_be32(cm_id);
-+}
-+
-+static u32 get_local_comm_id(struct ib_mad *mad)
-+{
-+	struct cm_generic_msg *msg = (struct cm_generic_msg *)mad;
-+
-+	return be32_to_cpu(msg->local_comm_id);
-+}
-+
-+static void set_remote_comm_id(struct ib_mad *mad, u32 cm_id)
-+{
-+	struct cm_generic_msg *msg = (struct cm_generic_msg *)mad;
-+	msg->remote_comm_id = cpu_to_be32(cm_id);
-+}
-+
-+static u32 get_remote_comm_id(struct ib_mad *mad)
-+{
-+	struct cm_generic_msg *msg = (struct cm_generic_msg *)mad;
-+
-+	return be32_to_cpu(msg->remote_comm_id);
-+}
-+
-+static union ib_gid gid_from_req_msg(struct ib_device *ibdev, struct ib_mad *mad)
-+{
-+	struct cm_req_msg *msg = (struct cm_req_msg *)mad;
-+
-+	return msg->primary_path_sgid;
-+}
-+
-+/* Lock should be taken before called */
-+static struct id_map_entry *
-+id_map_find_by_sl_id(struct ib_device *ibdev, u32 slave_id, u32 sl_cm_id)
-+{
-+	struct rb_root *sl_id_map = &to_mdev(ibdev)->sriov.sl_id_map;
-+	struct rb_node *node = sl_id_map->rb_node;
-+
-+	while (node) {
-+		struct id_map_entry *id_map_entry =
-+			rb_entry(node, struct id_map_entry, node);
-+
-+		if (id_map_entry->sl_cm_id > sl_cm_id)
-+			node = node->rb_left;
-+		else if (id_map_entry->sl_cm_id < sl_cm_id)
-+			node = node->rb_right;
-+		else if (id_map_entry->slave_id > slave_id)
-+			node = node->rb_left;
-+		else if (id_map_entry->slave_id < slave_id)
-+			node = node->rb_right;
-+		else
-+			return id_map_entry;
-+	}
-+	return NULL;
-+}
-+
-+static void id_map_ent_timeout(struct work_struct *work)
-+{
-+	struct delayed_work *delay = to_delayed_work(work);
-+	struct id_map_entry *ent = container_of(delay, struct id_map_entry, timeout);
-+	struct id_map_entry *db_ent, *found_ent;
-+	struct mlx4_ib_dev *dev = ent->dev;
-+	struct mlx4_ib_sriov *sriov = &dev->sriov;
-+	struct rb_root *sl_id_map = &sriov->sl_id_map;
-+	int pv_id = (int) ent->pv_cm_id;
-+
-+	spin_lock(&sriov->id_map_lock);
-+	db_ent = (struct id_map_entry *)idr_find(&sriov->pv_id_table, pv_id);
-+	if (!db_ent)
-+		goto out;
-+	found_ent = id_map_find_by_sl_id(&dev->ib_dev, ent->slave_id, ent->sl_cm_id);
-+	if (found_ent && found_ent == ent)
-+		rb_erase(&found_ent->node, sl_id_map);
-+	idr_remove(&sriov->pv_id_table, pv_id);
-+
-+out:
-+	list_del(&ent->list);
-+	spin_unlock(&sriov->id_map_lock);
-+	kfree(ent);
-+}
-+
-+static void id_map_find_del(struct ib_device *ibdev, int pv_cm_id)
-+{
-+	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
-+	struct rb_root *sl_id_map = &sriov->sl_id_map;
-+	struct id_map_entry *ent, *found_ent;
-+
-+	spin_lock(&sriov->id_map_lock);
-+	ent = (struct id_map_entry *)idr_find(&sriov->pv_id_table, pv_cm_id);
-+	if (!ent)
-+		goto out;
-+	found_ent = id_map_find_by_sl_id(ibdev, ent->slave_id, ent->sl_cm_id);
-+	if (found_ent && found_ent == ent)
-+		rb_erase(&found_ent->node, sl_id_map);
-+	idr_remove(&sriov->pv_id_table, pv_cm_id);
-+out:
-+	spin_unlock(&sriov->id_map_lock);
-+}
-+
-+static void sl_id_map_add(struct ib_device *ibdev, struct id_map_entry *new)
-+{
-+	struct rb_root *sl_id_map = &to_mdev(ibdev)->sriov.sl_id_map;
-+	struct rb_node **link = &sl_id_map->rb_node, *parent = NULL;
-+	struct id_map_entry *ent;
-+	int slave_id = new->slave_id;
-+	int sl_cm_id = new->sl_cm_id;
-+
-+	ent = id_map_find_by_sl_id(ibdev, slave_id, sl_cm_id);
-+	if (ent) {
-+		mlx4_ib_dbg("overriding existing sl_id_map entry (cm_id = %x)\n",
-+				sl_cm_id);
-+
-+		rb_replace_node(&ent->node, &new->node, sl_id_map);
-+		return;
-+	}
-+
-+	/* Go to the bottom of the tree */
-+	while (*link) {
-+		parent = *link;
-+		ent = rb_entry(parent, struct id_map_entry, node);
-+
-+		if (ent->sl_cm_id > sl_cm_id || (ent->sl_cm_id == sl_cm_id && ent->slave_id > slave_id))
-+			link = &(*link)->rb_left;
-+		else
-+			link = &(*link)->rb_right;
-+	}
-+
-+	rb_link_node(&new->node, parent, link);
-+	rb_insert_color(&new->node, sl_id_map);
-+}
-+
-+static struct id_map_entry *
-+id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
-+{
-+	int ret, id;
-+	static int next_id;
-+	struct id_map_entry *ent;
-+	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
-+
-+	ent = kmalloc(sizeof(struct id_map_entry), GFP_KERNEL);
-+	if (!ent) {
-+		mlx4_ib_warn(ibdev, "Couldn't allocate id cache entry - out of memory\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	ent->sl_cm_id = sl_cm_id;
-+	ent->slave_id = slave_id;
-+	ent->scheduled_delete = 0;
-+	ent->dev = to_mdev(ibdev);
-+	INIT_DELAYED_WORK(&ent->timeout, id_map_ent_timeout);
-+
-+	do {
-+		spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
-+		ret = idr_get_new_above(&sriov->pv_id_table, ent,
-+					next_id, &id);
-+		if (!ret) {
-+			next_id = ((unsigned) id + 1) & MAX_ID_MASK;
-+			ent->pv_cm_id = (u32)id;
-+			sl_id_map_add(ibdev, ent);
-+		}
-+
-+		spin_unlock(&sriov->id_map_lock);
-+	} while (ret == -EAGAIN && idr_pre_get(&sriov->pv_id_table, GFP_KERNEL));
-+	/*the function idr_get_new_above can return -ENOSPC, so don't insert in that case.*/
-+	if (!ret) {
-+		spin_lock(&sriov->id_map_lock);
-+		list_add_tail(&ent->list, &sriov->cm_list);
-+		spin_unlock(&sriov->id_map_lock);
-+		return ent;
-+	}
-+	/*error flow*/
-+	kfree(ent);
-+	mlx4_ib_warn(ibdev, "No more space in the idr (err:0x%x)\n", ret);
-+	return ERR_PTR(-ENOMEM);
-+}
-+
-+static struct id_map_entry *
-+id_map_get(struct ib_device *ibdev, int *pv_cm_id, int sl_cm_id, int slave_id)
-+{
-+	struct id_map_entry *ent;
-+	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
-+
-+	spin_lock(&sriov->id_map_lock);
-+	if (*pv_cm_id == -1) {
-+		ent = id_map_find_by_sl_id(ibdev, sl_cm_id, slave_id);
-+		if (ent)
-+			*pv_cm_id = (int) ent->pv_cm_id;
-+	} else
-+		ent = (struct id_map_entry *)idr_find(&sriov->pv_id_table, *pv_cm_id);
-+	spin_unlock(&sriov->id_map_lock);
-+
-+	return ent;
-+}
-+
-+static void schedule_delayed(struct ib_device *ibdev, struct id_map_entry *id)
-+{
-+	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&sriov->going_down_lock, flags);
-+	spin_lock(&sriov->id_map_lock);
-+	/*make sure that there is no schedule inside the scheduled work.*/
-+	if (!sriov->is_going_down) {
-+		id->scheduled_delete = 1;
-+		schedule_delayed_work(&id->timeout, CM_CLEANUP_CACHE_TIMEOUT);
-+	}
-+	spin_unlock(&sriov->id_map_lock);
-+	spin_unlock_irqrestore(&sriov->going_down_lock, flags);
-+}
-+
-+int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id,
-+		struct ib_mad *mad)
-+{
-+	struct id_map_entry *id;
-+	u32 sl_cm_id;
-+	int pv_cm_id = -1;
-+
-+	sl_cm_id = get_local_comm_id(mad);
-+
-+	if (mad->mad_hdr.attr_id == CM_REQ_ATTR_ID ||
-+			mad->mad_hdr.attr_id == CM_REP_ATTR_ID) {
-+		id = id_map_alloc(ibdev, slave_id, sl_cm_id);
-+		if (IS_ERR(id)) {
-+			mlx4_ib_warn(ibdev, "%s: id{slave: %d, sl_cm_id: 0x%x} Failed to id_map_alloc\n",
-+				__func__, slave_id, sl_cm_id);
-+			return PTR_ERR(id);
-+		}
-+	} else if (mad->mad_hdr.attr_id == CM_REJ_ATTR_ID) {
-+		return 0;
-+	} else {
-+		id = id_map_get(ibdev, &pv_cm_id, slave_id, sl_cm_id);
-+	}
-+
-+	if (!id) {
-+		mlx4_ib_dbg("id{slave: %d, sl_cm_id: 0x%x} is NULL!\n",
-+				slave_id, sl_cm_id);
-+		return -EINVAL;
-+	}
-+
-+	set_local_comm_id(mad, id->pv_cm_id);
-+
-+	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID)
-+		schedule_delayed(ibdev, id);
-+	else if (mad->mad_hdr.attr_id == CM_DREP_ATTR_ID)
-+		id_map_find_del(ibdev, pv_cm_id);
-+
-+	return 0;
-+}
-+
-+int mlx4_ib_demux_cm_handler(struct ib_device *ibdev, int port, int *slave,
-+							     struct ib_mad *mad)
-+{
-+	u32 pv_cm_id;
-+	struct id_map_entry *id;
-+
-+	if (mad->mad_hdr.attr_id == CM_REQ_ATTR_ID) {
-+		union ib_gid gid;
-+
-+		gid = gid_from_req_msg(ibdev, mad);
-+		*slave = mlx4_ib_find_real_gid(ibdev, port, gid.global.interface_id);
-+		if (*slave < 0) {
-+			mlx4_ib_warn(ibdev, "failed matching slave_id by gid (0x%llx)\n",
-+					gid.global.interface_id);
-+			return -ENOENT;
-+		}
-+		return 0;
-+	}
-+
-+	pv_cm_id = get_remote_comm_id(mad);
-+	id = id_map_get(ibdev, (int *)&pv_cm_id, -1, -1);
-+
-+	if (!id) {
-+		mlx4_ib_dbg("Couldn't find an entry for pv_cm_id 0x%x\n", pv_cm_id);
-+		return -ENOENT;
-+	}
-+
-+	*slave = id->slave_id;
-+	set_remote_comm_id(mad, id->sl_cm_id);
-+
-+	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID)
-+		schedule_delayed(ibdev, id);
-+	else if (mad->mad_hdr.attr_id == CM_REJ_ATTR_ID ||
-+			mad->mad_hdr.attr_id == CM_DREP_ATTR_ID) {
-+		id_map_find_del(ibdev, (int) pv_cm_id);
-+	}
-+
-+	return 0;
-+}
-+
-+void mlx4_ib_cm_paravirt_init(struct mlx4_ib_dev *dev)
-+{
-+	spin_lock_init(&dev->sriov.id_map_lock);
-+	INIT_LIST_HEAD(&dev->sriov.cm_list);
-+	dev->sriov.sl_id_map = RB_ROOT;
-+	idr_init(&dev->sriov.pv_id_table);
-+	idr_pre_get(&dev->sriov.pv_id_table, GFP_KERNEL);
-+}
-+
-+/* slave = -1 ==> all slaves */
-+/* TBD -- call paravirt clean for single slave.  Need for slave RESET event */
-+void mlx4_ib_cm_paravirt_clean(struct mlx4_ib_dev *dev, int slave)
-+{
-+	struct mlx4_ib_sriov *sriov = &dev->sriov;
-+	struct rb_root *sl_id_map = &sriov->sl_id_map;
-+	struct list_head lh;
-+	struct rb_node *nd;
-+	int need_flush = 1;
-+	struct id_map_entry *map, *tmp_map;
-+	/* cancel all delayed work queue entries */
-+	INIT_LIST_HEAD(&lh);
-+	spin_lock(&sriov->id_map_lock);
-+	list_for_each_entry_safe(map, tmp_map, &dev->sriov.cm_list, list) {
-+		if (slave < 0 || slave == map->slave_id) {
-+			if (map->scheduled_delete)
-+				need_flush &= !!cancel_delayed_work(&map->timeout);
-+		}
-+	}
-+
-+	spin_unlock(&sriov->id_map_lock);
-+
-+	if (!need_flush)
-+		flush_scheduled_work(); /* make sure all timers were flushed */
-+
-+	/* now, remove all leftover entries from databases*/
-+	spin_lock(&sriov->id_map_lock);
-+	if (slave < 0) {
-+		while (rb_first(sl_id_map)) {
-+			struct id_map_entry *ent =
-+				rb_entry(rb_first(sl_id_map),
-+					 struct id_map_entry, node);
-+
-+			rb_erase(&ent->node, sl_id_map);
-+			idr_remove(&sriov->pv_id_table, (int) ent->pv_cm_id);
-+		}
-+		list_splice_init(&dev->sriov.cm_list, &lh);
-+	} else {
-+		/* first, move nodes belonging to slave to db remove list */
-+		nd = rb_first(sl_id_map);
-+		while (nd) {
-+			struct id_map_entry *ent =
-+				rb_entry(nd, struct id_map_entry, node);
-+			nd = rb_next(nd);
-+			if (ent->slave_id == slave)
-+				list_move_tail(&ent->list, &lh);
-+		}
-+		/* remove those nodes from databases */
-+		list_for_each_entry_safe(map, tmp_map, &lh, list) {
-+			rb_erase(&map->node, sl_id_map);
-+			idr_remove(&sriov->pv_id_table, (int) map->pv_cm_id);
-+		}
-+
-+		/* add remaining nodes from cm_list */
-+		list_for_each_entry_safe(map, tmp_map, &dev->sriov.cm_list, list) {
-+			if (slave == map->slave_id)
-+				list_move_tail(&map->list, &lh);
-+		}
-+	}
-+
-+	spin_unlock(&sriov->id_map_lock);
-+
-+	/* free any map entries left behind due to cancel_delayed_work above */
-+	list_for_each_entry_safe(map, tmp_map, &lh, list) {
-+		list_del(&map->list);
-+		kfree(map);
-+	}
-+}
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 1aa8c3f..f49f16c 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -518,6 +518,10 @@ static int mlx4_ib_demux_mad(struct ib_device *ibdev, u8 port,
- 					     (struct ib_sa_mad *) mad))
- 			return 0;
- 		break;
-+	case IB_MGMT_CLASS_CM:
-+		if (mlx4_ib_demux_cm_handler(ibdev, port, &slave, mad))
-+			return 0;
-+		break;
- 	case IB_MGMT_CLASS_DEVICE_MGMT:
- 		if (mad->mad_hdr.method != IB_MGMT_METHOD_GET_RESP)
- 			return 0;
-@@ -1084,6 +1088,11 @@ static void mlx4_ib_multiplex_mad(struct mlx4_ib_demux_pv_ctx *ctx, struct ib_wc
- 			      (struct ib_sa_mad *) &tunnel->mad))
- 			return;
- 		break;
-+	case IB_MGMT_CLASS_CM:
-+		if (mlx4_ib_multiplex_cm_handler(ctx->ib_dev, ctx->port, slave,
-+			      (struct ib_mad *) &tunnel->mad))
-+			return;
-+		break;
- 	case IB_MGMT_CLASS_DEVICE_MGMT:
- 		if (tunnel->mad.mad_hdr.method != IB_MGMT_METHOD_GET &&
- 		    tunnel->mad.mad_hdr.method != IB_MGMT_METHOD_SET)
-@@ -1798,6 +1807,7 @@ int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
+ #define IB_CM_CLASS_VERSION	2 /* IB specification 1.2 */
  
- 	dev->sriov.is_going_down = 0;
- 	spin_lock_init(&dev->sriov.going_down_lock);
-+	mlx4_ib_cm_paravirt_init(dev);
+-#define CM_REQ_ATTR_ID		cpu_to_be16(0x0010)
+-#define CM_MRA_ATTR_ID		cpu_to_be16(0x0011)
+-#define CM_REJ_ATTR_ID		cpu_to_be16(0x0012)
+-#define CM_REP_ATTR_ID		cpu_to_be16(0x0013)
+-#define CM_RTU_ATTR_ID		cpu_to_be16(0x0014)
+-#define CM_DREQ_ATTR_ID		cpu_to_be16(0x0015)
+-#define CM_DREP_ATTR_ID		cpu_to_be16(0x0016)
+-#define CM_SIDR_REQ_ATTR_ID	cpu_to_be16(0x0017)
+-#define CM_SIDR_REP_ATTR_ID	cpu_to_be16(0x0018)
+-#define CM_LAP_ATTR_ID		cpu_to_be16(0x0019)
+-#define CM_APR_ATTR_ID		cpu_to_be16(0x001A)
+-
+ enum cm_msg_sequence {
+ 	CM_MSG_SEQUENCE_REQ,
+ 	CM_MSG_SEQUENCE_LAP,
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 83f77ac..0e3ff30 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -262,6 +262,18 @@ struct ib_cm_event {
+ 	void			*private_data;
+ };
  
- 	mlx4_ib_warn(&dev->ib_dev, "multi-function enabled\n");
- 
-@@ -1825,6 +1835,7 @@ demux_err:
- 		mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
- 		--i;
- 	}
-+	mlx4_ib_cm_paravirt_clean(dev, -1);
- 
- 	return err;
- }
-@@ -1840,7 +1851,7 @@ void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev)
- 	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
- 	dev->sriov.is_going_down = 1;
- 	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
--	if (mlx4_is_master(dev->dev))
-+	if (mlx4_is_master(dev->dev)) {
- 		for (i = 0; i < dev->num_ports; i++) {
- 			flush_workqueue(dev->sriov.demux[i].ud_wq);
- 			mlx4_ib_free_sqp_ctx(dev->sriov.sqps[i]);
-@@ -1848,4 +1859,7 @@ void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev)
- 			dev->sriov.sqps[i] = NULL;
- 			mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
- 		}
++#define CM_REQ_ATTR_ID		cpu_to_be16(0x0010)
++#define CM_MRA_ATTR_ID		cpu_to_be16(0x0011)
++#define CM_REJ_ATTR_ID		cpu_to_be16(0x0012)
++#define CM_REP_ATTR_ID		cpu_to_be16(0x0013)
++#define CM_RTU_ATTR_ID		cpu_to_be16(0x0014)
++#define CM_DREQ_ATTR_ID		cpu_to_be16(0x0015)
++#define CM_DREP_ATTR_ID		cpu_to_be16(0x0016)
++#define CM_SIDR_REQ_ATTR_ID	cpu_to_be16(0x0017)
++#define CM_SIDR_REP_ATTR_ID	cpu_to_be16(0x0018)
++#define CM_LAP_ATTR_ID		cpu_to_be16(0x0019)
++#define CM_APR_ATTR_ID		cpu_to_be16(0x001A)
 +
-+		mlx4_ib_cm_paravirt_clean(dev, -1);
-+	}
- }
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 21e0dad..b9ed846 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -346,6 +346,10 @@ struct mlx4_ib_demux_ctx {
- struct mlx4_ib_sriov {
- 	struct mlx4_ib_demux_ctx demux[MLX4_MAX_PORTS];
- 	u16 local_lid[MLX4_MAX_PORTS];
-+	struct list_head cm_list;
-+	spinlock_t id_map_lock;
-+	struct rb_root sl_id_map;
-+	struct idr pv_id_table;
- 	struct mlx4_ib_demux_pv_ctx *sqps[MLX4_MAX_PORTS];
- 	/* when using this spinlock you should use "irq" because
- 	 * it may be called from interrupt context.*/
-@@ -596,4 +600,13 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
- 			 u32 qkey, struct ib_ah_attr *attr, struct ib_mad *mad);
- __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx);
- 
-+int mlx4_ib_demux_cm_handler(struct ib_device *ibdev, int port, int *slave,
-+		struct ib_mad *mad);
-+
-+int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id,
-+		struct ib_mad *mad);
-+
-+void mlx4_ib_cm_paravirt_init(struct mlx4_ib_dev *dev);
-+void mlx4_ib_cm_paravirt_clean(struct mlx4_ib_dev *dev, int slave_id);
-+
- #endif /* MLX4_IB_H */
+ /**
+  * ib_cm_handler - User-defined callback to process communication events.
+  * @cm_id: Communication identifier associated with the reported event.
 -- 
 1.7.1
 
