@@ -1,66 +1,150 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 00/29] Add SRIOV support for IB interfaces
-Date: Tue, 12 Jun 2012 10:22:46 +0300
-Message-ID: <4FD6EE46.20900@mellanox.com>
-References: <1339411570-4689-1-git-send-email-jackm@dev.mellanox.co.il> <CAL1RGDVsGUBHUBOaajnzO4NcFjA1xBZczLA=vxV3=oRKme+LrQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Bernhard Reutner-Fischer <rep.dot.nop-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] perftest: Fix typo in informational string
+Date: Tue, 12 Jun 2012 14:03:28 +0200
+Message-ID: <1339502608-26453-1-git-send-email-rep.dot.nop@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDVsGUBHUBOaajnzO4NcFjA1xBZczLA=vxV3=oRKme+LrQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bernhard Reutner-Fischer <rep.dot.nop-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/12/2012 10:00 AM, Roland Dreier wrote:
-> Jack Morgenstein<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>  wrote:
->> several of the patches have notations indicating things that will be fixed in V1
->
-> Not sure what you want me to do with this -- it seems you yourself are saying this series is not ready to merge yet?
+s/deivce/device/g
 
-Roland,
+Signed-off-by: Bernhard Reutner-Fischer <rep.dot.nop-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ atomic_lat.c          |    2 +-
+ perftest_parameters.h |    2 +-
+ perftest_resources.h  |    4 ++--
+ read_lat.c            |    2 +-
+ send_bw.c             |    2 +-
+ send_lat.c            |    2 +-
+ write_bw.c            |    2 +-
+ write_bw_postlist.c   |    2 +-
+ write_lat.c           |    2 +-
+ 9 files changed, 10 insertions(+), 10 deletions(-)
 
-We observed few last minute issues and preferred not to further defer 
-submission,
-with the reasons being:
-
-1. be sure that the submitted code passed through regression, not even a 
-bit change since
-
-2. the issues we spotted are all fairly simple to fix and V1 will be out 
-quickly
-
-3. the design --> resulted code is a bit complex, wanted it to see the 
-day light such that review can start (thank you for the quick feedback 
-on patch 03)
-
-All in all, V1 is coming soon, and if you prefer starting from there, 
-let it be, but
-still, will love to get any comments / questions / corrections.
-
-Or.
-
-The known issues to be fixed in V1, with NNN being the patch number:
-
-002 illegal use here of the MSB of the port_num field in the ib core ah 
-structure
-
-013 add patch which will indicate some of the most-significant bits in
-     ib_qp_create_flags as reserved for low-level driver use.
-
-015 modify the slave_num macro defined here to be usable in mlx4_core as 
-well
-
-022 require some slight cleanup
-
-024 require some slight cleanup
-
-029 change the patch to reflect that RoCE is still not supported on slaves
-
-also librdmacm will currently not support multiple VF/PF on the same host,
-we will change the patch set to solve that, no change in the library
-
+diff --git a/atomic_lat.c b/atomic_lat.c
+index 4c394ac..d19d594 100644
+--- a/atomic_lat.c
++++ b/atomic_lat.c
+@@ -325,7 +325,7 @@ int __cdecl main(int argc, char *argv[]) {
+ 	// Finding the IB device selected (or defalut if no selected).
+ 	ib_dev = ctx_find_dev(user_param.ib_devname);
+ 	if (!ib_dev) {
+-		fprintf(stderr," Unable to find the Infiniband/RoCE deivce\n");
++		fprintf(stderr," Unable to find the Infiniband/RoCE device\n");
+ 		return FAILURE;
+ 	}
+ 
+diff --git a/perftest_parameters.h b/perftest_parameters.h
+index 65dee5c..56165d9 100644
+--- a/perftest_parameters.h
++++ b/perftest_parameters.h
+@@ -256,7 +256,7 @@ int parser(struct perftest_parameters *user_param,char *argv[], int argc);
+  *
+  * Parameters :
+  *
+- *	 context    - Context of the deivce.
++ *	 context    - Context of the device.
+  *	 user_param - Perftest parameters.
+  *
+  * Return Value : SUCCESS, FAILURE.
+diff --git a/perftest_resources.h b/perftest_resources.h
+index a088258..658f840 100644
+--- a/perftest_resources.h
++++ b/perftest_resources.h
+@@ -185,9 +185,9 @@ int check_add_port(char **service,int port,
+  *
+  * Parameters : 
+  *	
+- *	ib_devname - The name of the deivce requested or NULL for the first one.
++ *	ib_devname - The name of the device requested or NULL for the first one.
+  *
+- * Return Value : the deivce or NULL in case of failure.
++ * Return Value : the device or NULL in case of failure.
+  */
+ struct ibv_device* ctx_find_dev(const char *ib_devname);
+ 
+diff --git a/read_lat.c b/read_lat.c
+index f9343de..b8a282e 100644
+--- a/read_lat.c
++++ b/read_lat.c
+@@ -314,7 +314,7 @@ int __cdecl main(int argc, char *argv[]) {
+ 	// Finding the IB device selected (or defalut if no selected).
+ 	ib_dev = ctx_find_dev(user_param.ib_devname);
+ 	if (!ib_dev) {
+-		fprintf(stderr," Unable to find the Infiniband/RoCE deivce\n");
++		fprintf(stderr," Unable to find the Infiniband/RoCE device\n");
+ 		return FAILURE;
+ 	}
+ 
+diff --git a/send_bw.c b/send_bw.c
+index 58c394a..a217b04 100644
+--- a/send_bw.c
++++ b/send_bw.c
+@@ -693,7 +693,7 @@ int __cdecl main(int argc, char *argv[]) {
+ 	// Finding the IB device selected (or defalut if no selected).
+ 	ib_dev = ctx_find_dev(user_param.ib_devname);
+ 	if (!ib_dev) {
+-		fprintf(stderr," Unable to find the Infiniband/RoCE deivce\n");
++		fprintf(stderr," Unable to find the Infiniband/RoCE device\n");
+ 		return 1;
+ 	}
+ 
+diff --git a/send_lat.c b/send_lat.c
+index c1d5572..1445a34 100644
+--- a/send_lat.c
++++ b/send_lat.c
+@@ -673,7 +673,7 @@ int __cdecl main(int argc, char *argv[]) {
+ 	// Finding the IB device selected (or defalut if no selected).
+ 	ib_dev = ctx_find_dev(user_param.ib_devname);
+ 	if (!ib_dev) {
+-		fprintf(stderr," Unable to find the Infiniband/RoCE deivce\n");
++		fprintf(stderr," Unable to find the Infiniband/RoCE device\n");
+ 		return 1;
+ 	}
+ 
+diff --git a/write_bw.c b/write_bw.c
+index 6c3746e..71064c2 100644
+--- a/write_bw.c
++++ b/write_bw.c
+@@ -322,7 +322,7 @@ int __cdecl main(int argc, char *argv[]) {
+ 	// Finding the IB device selected (or defalut if no selected).
+ 	ib_dev = ctx_find_dev(user_param.ib_devname);
+ 	if (!ib_dev) {
+-		fprintf(stderr," Unable to find the Infiniband/RoCE deivce\n");
++		fprintf(stderr," Unable to find the Infiniband/RoCE device\n");
+ 		return 1;
+ 	}
+ 
+diff --git a/write_bw_postlist.c b/write_bw_postlist.c
+index 54f7689..53e0fda 100644
+--- a/write_bw_postlist.c
++++ b/write_bw_postlist.c
+@@ -282,7 +282,7 @@ int main(int argc, char *argv[]) {
+ 	// Finding the IB device selected (or defalut if no selected).
+ 	ib_dev = ctx_find_dev(user_param.ib_devname);
+ 	if (!ib_dev) {
+-		fprintf(stderr," Unable to find the Infiniband/RoCE deivce\n");
++		fprintf(stderr," Unable to find the Infiniband/RoCE device\n");
+ 		return 1;
+ 	}
+ 
+diff --git a/write_lat.c b/write_lat.c
+index 7db9644..14ad1e3 100644
+--- a/write_lat.c
++++ b/write_lat.c
+@@ -347,7 +347,7 @@ int __cdecl main(int argc, char *argv[]) {
+ 	// Finding the IB device selected (or defalut if no selected).
+ 	ib_dev = ctx_find_dev(user_param.ib_devname);
+ 	if (!ib_dev) {
+-		fprintf(stderr," Unable to find the Infiniband/RoCE deivce\n");
++		fprintf(stderr," Unable to find the Infiniband/RoCE device\n");
+ 		return FAILURE;
+ 	}
+ 
+-- 
+1.7.10
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
