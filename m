@@ -1,41 +1,74 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ibv_poll_cq() and wc->byte_len
-Date: Wed, 13 Jun 2012 14:19:55 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A31355@ORSMSX101.amr.corp.intel.com>
-References: <ede34732991cf26d52569692a20d7ae0.squirrel@webmail.ocsa-data.net>
+Subject: [PATCH 2/3] rdma/cm: Listen on specific address family
+Date: Wed, 13 Jun 2012 22:54:30 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A3152A@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ede34732991cf26d52569692a20d7ae0.squirrel-2RFepEojUI2lDZmfZ6uX/xeHL2rgt/dS@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> In a parallel universe, struct ibv_wc would have a bitmap field indicating
-> which others fields are valid. In this part of the multiverse, a more
-> complete documentation would be welcome. If libmlx4/libmthca behavior is
-> the compliant one, I can provide an updated man page.
+The rdma_cm maps IPv4 and IPv6 addresses to the same service
+ID.  This prevents apps from listening only for IPv4 or IPv6
+addresses.  It also results in an app binding to an IPv4
+address receiving connection requests for an IPv6 address.
 
-The best documentation available regarding expected verbs behavior is the IB spec (chapter 11).  For this specific field, see section 11.4.2:
+Match socket behavior.  Restrict listens on IPv4 addresses
+to only IPv4 addresses.  If a listen is on an IPv6 address,
+allow it to receive either IPv4 or IPv6 addresses.
 
-The number of bytes transferred.
-The number of bytes transferred is returned in Work Completions
-for Receive Work Requests for incoming Sends and
-RDMA Writes with Immediate Data. This does not include the
-length of any immediate data.
-The number of bytes transferred is returned in Work Completions
-for Send Work Requests for RDMA Read and Atomic Operations.
-For the RQ of a UD QP that is not associated with an SRQ or
-for an SRQ that is associated with a UD QP, the number of
-bytes transferred is the payload of the message plus the 40
-bytes reserved for the GRH. For the RQ of a UD QP that is not
-associated with an SRQ or for an SRQ that is associated with
-a UD QP, the 40 bytes is always included, whether or not the
-GRH is present.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
-- Sean
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index ef7f04c..72b0b06 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1297,8 +1297,10 @@ static void cma_set_compare_data(enum rdma_port_space ps, struct sockaddr *addr,
+ 		} else {
+ 			cma_set_ip_ver(cma_data, 4);
+ 			cma_set_ip_ver(cma_mask, 0xF);
+-			cma_data->dst_addr.ip4.addr = ip4_addr;
+-			cma_mask->dst_addr.ip4.addr = htonl(~0);
++			if (!cma_any_addr(addr)) {
++				cma_data->dst_addr.ip4.addr = ip4_addr;
++				cma_mask->dst_addr.ip4.addr = htonl(~0);
++			}
+ 		}
+ 		break;
+ 	case AF_INET6:
+@@ -1312,9 +1314,11 @@ static void cma_set_compare_data(enum rdma_port_space ps, struct sockaddr *addr,
+ 		} else {
+ 			cma_set_ip_ver(cma_data, 6);
+ 			cma_set_ip_ver(cma_mask, 0xF);
+-			cma_data->dst_addr.ip6 = ip6_addr;
+-			memset(&cma_mask->dst_addr.ip6, 0xFF,
+-			       sizeof cma_mask->dst_addr.ip6);
++			if (!cma_any_addr(addr)) {
++				cma_data->dst_addr.ip6 = ip6_addr;
++				memset(&cma_mask->dst_addr.ip6, 0xFF,
++				       sizeof cma_mask->dst_addr.ip6);
++			}
+ 		}
+ 		break;
+ 	default:
+@@ -1499,7 +1503,7 @@ static int cma_ib_listen(struct rdma_id_private *id_priv)
+ 
+ 	addr = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
+ 	svc_id = cma_get_service_id(id_priv->id.ps, addr);
+-	if (cma_any_addr(addr))
++	if (cma_any_addr(addr) && !id_priv->afonly)
+ 		ret = ib_cm_listen(id_priv->cm_id.ib, svc_id, 0, NULL);
+ 	else {
+ 		cma_set_compare_data(id_priv->id.ps, addr, &compare_data);
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
