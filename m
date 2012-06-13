@@ -1,56 +1,41 @@
-From: "Yann Droneaud" <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: ibv_poll_cq() and wc->byte_len
-Date: Wed, 13 Jun 2012 15:33:14 +0200
-Message-ID: <ede34732991cf26d52569692a20d7ae0.squirrel@webmail.ocsa-data.net>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ibv_poll_cq() and wc->byte_len
+Date: Wed, 13 Jun 2012 14:19:55 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A31355@ORSMSX101.amr.corp.intel.com>
+References: <ede34732991cf26d52569692a20d7ae0.squirrel@webmail.ocsa-data.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ede34732991cf26d52569692a20d7ae0.squirrel-2RFepEojUI2lDZmfZ6uX/xeHL2rgt/dS@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+> In a parallel universe, struct ibv_wc would have a bitmap field indicating
+> which others fields are valid. In this part of the multiverse, a more
+> complete documentation would be welcome. If libmlx4/libmthca behavior is
+> the compliant one, I can provide an updated man page.
 
-I was trying to use byte_len field from struct ibv_wc to report
-the total number of bytes actually sent after a ibv_post_send() with
-opcode IBV_WR_SEND.
+The best documentation available regarding expected verbs behavior is the IB spec (chapter 11).  For this specific field, see section 11.4.2:
 
-After polling the completion queue (CQ) and ensuring status field of
-struct ibv_wc has value IBV_WC_SUCCESS, the field byte_len of the
-structure seems to be invalid.
+The number of bytes transferred.
+The number of bytes transferred is returned in Work Completions
+for Receive Work Requests for incoming Sends and
+RDMA Writes with Immediate Data. This does not include the
+length of any immediate data.
+The number of bytes transferred is returned in Work Completions
+for Send Work Requests for RDMA Read and Atomic Operations.
+For the RQ of a UD QP that is not associated with an SRQ or
+for an SRQ that is associated with a UD QP, the number of
+bytes transferred is the payload of the message plus the 40
+bytes reserved for the GRH. For the RQ of a UD QP that is not
+associated with an SRQ or for an SRQ that is associated with
+a UD QP, the 40 bytes is always included, whether or not the
+GRH is present.
 
-Indeed, according to libmlx4 sources and mlx_poll_one() function, byte_len
-is not always set for a send operation. It's set only for
-IBV_WC_RDMA_READ, IBV_WC_COMP_SWAP and IBV_WC_FETCH_ADD, and not set for
-IBV_WC_RDMA_WRITE and IBV_WC_SEND (and also not for IBV_WC_BIND_MW). This
-is the same thing for libmthca.
-
-I haven't checked for QLogic/Intel libipathverbs since it does a direct
-memcpy() to the destination struct ibv_wc, looking at the library code
-doesn't help me a lot.
-
-Note: Hopefully, for receive operation, byte_len is always valid.
-
-ibv_poll_cq(3) man page is not really helpful to know which field will be
-valid depending on the opcode field of struct ibv_wc, exception when
-status is not IBV_WC_SUCCESS.
-
-Is libmlx4, libmthca behavior correct ?
-
-In a parallel universe, struct ibv_wc would have a bitmap field indicating
-which others fields are valid. In this part of the multiverse, a more
-complete documentation would be welcome. If libmlx4/libmthca behavior is
-the compliant one, I can provide an updated man page.
-
-Regards.
-
--- 
-Yann Droneaud
-OPTEYA
-
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
