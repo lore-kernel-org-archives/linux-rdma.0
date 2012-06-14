@@ -1,35 +1,39 @@
 From: "Yann Droneaud" <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: RE: ibv_poll_cq() and wc->byte_len
-Date: Thu, 14 Jun 2012 14:39:21 +0200
-Message-ID: <b4389bf80441286279cf3aa5f730f4ea.squirrel@webmail.ocsa-data.net>
-References: <ede34732991cf26d52569692a20d7ae0.squirrel@webmail.ocsa-data.net>
-    <1828884A29C6694DAF28B7E6B8A8237346A31355@ORSMSX101.amr.corp.intel.com>
+Subject: Re: [PATCH for-next 00/29] Add SRIOV support for IB interfaces
+Date: Thu, 14 Jun 2012 15:21:37 +0200
+Message-ID: <9e8965c740ff0e889a097a722b9fff90.squirrel@webmail.ocsa-data.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A31355-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Hi,
 
->> In a parallel universe, struct ibv_wc would have a bitmap field
->> indicating
->> which others fields are valid. In this part of the multiverse, a more
->> complete documentation would be welcome. If libmlx4/libmthca behavior is
->> the compliant one, I can provide an updated man page.
->
-> The best documentation available regarding expected verbs behavior is the
-> IB spec (chapter 11).  For this specific field, see section 11.4.2:
->
+> This patch set adds SRIOV support for IB interfaces.
+> Patches 1-13 are "precondition" patches.
+> Patches 14-29 actually implement the feature.
+> This patch set introduces Infiniband SRIOV support for ConnectX2 and
+ConnectX3
+> devices.  Each function presents itself as an independent vHCA (virtual
+HCA) to
+> the host while a single HCA is observable by the network, which is
+unaware
+> of
+> the vHCAs.  No changes are required by the IB subsystem, ULPs, and apps
+to
+> support SRIOV, and vHCAs are interoperable with any existing
+> (non-virtualized)
+> IB deployments.
 
-Thanks a lot for the link.
-Once again, I forgot to go through the IB spec.
+Please forgive me, I haven't tried the patches or go deeper in reading them.
 
-Regards
+How will interact vHCA/HCA regarding Automatic Path Migration (APM) and
+IPoIB bonding with fail-over (HA), with RDMA_CM and IP usages in mind ?
+
+Regards.
 
 -- 
 Yann Droneaud
