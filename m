@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] librdmacm/rsocket: Support IPV6_V6ONLY socket option
-Date: Thu, 14 Jun 2012 20:31:40 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A31781@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 1/3 v2] rdma/cm: Bind to a specific address family
+Date: Thu, 14 Jun 2012 20:31:39 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A31769@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,74 +11,92 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The rdma cm uses a single port space for all associated (tcp, udp,
+etc.) port bindings, regardless of the address family that the
+user binds to.  The result is that if a user binds to AF_INET,
+but does not specify an IP address, the bind will occur for AF_INET6.
+This causes an attempt to bind to the same port using AF_INET6 to
+fail, and connection requests to AF_INET6 will match with the AF_INET
+listener.  Align the behavior with sockets and restrict the bind
+to AF_INET only.
+
+If a user binds to AF_INET6, we bind the port to AF_INET6 and
+AF_INET depending on the value of bindv6only.
+
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Patch is dependent on proposed kernel changes.
+Changes from v1: Use bindv6only value for default AF_INET6 binding.
 
- include/rdma/rdma_cma.h |    1 +
- src/rsocket.c           |   23 +++++++++++++++++++++++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/cma.c |   30 +++++++++++++++++++-----------
+ 1 files changed, 19 insertions(+), 11 deletions(-)
 
-diff --git a/include/rdma/rdma_cma.h b/include/rdma/rdma_cma.h
-index c0f83b1..1487f8f 100755
---- a/include/rdma/rdma_cma.h
-+++ b/include/rdma/rdma_cma.h
-@@ -650,6 +650,7 @@ enum {
- enum {
- 	RDMA_OPTION_ID_TOS	 = 0,	/* uint8_t: RFC 2474 */
- 	RDMA_OPTION_ID_REUSEADDR = 1,   /* int: ~SO_REUSEADDR */
-+	RDMA_OPTION_ID_AFONLY	 = 2,   /* int: ~IPV6_V6ONLY */
- 	RDMA_OPTION_IB_PATH	 = 1	/* struct ibv_path_data[] */
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 79c7eeb..d6bb63e 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -139,6 +139,7 @@ struct rdma_id_private {
+ 	u8			srq;
+ 	u8			tos;
+ 	u8			reuseaddr;
++	u8			afonly;
  };
  
-diff --git a/src/rsocket.c b/src/rsocket.c
-index a3c2c6a..860c63e 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -161,6 +161,7 @@ struct rsocket {
- 	long		  fd_flags;
- 	uint64_t	  so_opts;
- 	uint64_t	  tcp_opts;
-+	uint64_t	  ipv6_opts;
- 	enum rs_state	  state;
- 	int		  cq_armed;
- 	int		  retries;
-@@ -1817,6 +1818,18 @@ int rsetsockopt(int socket, int level, int optname,
- 			break;
- 		}
- 		break;
-+	case IPPROTO_IPV6:
-+		opts = &rs->ipv6_opts;
-+		switch (optname) {
-+		case IPV6_V6ONLY:
-+			ret = rdma_set_option(rs->cm_id, RDMA_OPTION_ID,
-+					      RDMA_OPTION_ID_AFONLY,
-+					      (void *) optval, optlen);
-+			opt_on = *(int *) optval;
-+			break;
-+		default:
-+			break;
-+		}
- 	case SOL_RDMA:
- 		if (rs->state > rs_listening) {
- 			ret = ERR(EINVAL);
-@@ -1910,6 +1923,16 @@ int rgetsockopt(int socket, int level, int optname,
- 			break;
- 		}
- 		break;
-+	case IPPROTO_IPV6:
-+		switch (optname) {
-+		case IPV6_V6ONLY:
-+			*((int *) optval) = !!(rs->ipv6_opts & (1 << optname));
-+			*optlen = sizeof(int);
-+			break;
-+		default:
-+			ret = ENOTSUP;
-+			break;
-+		}
- 	case SOL_RDMA:
- 		switch (optname) {
- 		case RDMA_SQSIZE:
+ struct cma_multicast {
+@@ -1572,6 +1573,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
+ 	list_add_tail(&dev_id_priv->listen_list, &id_priv->listen_list);
+ 	atomic_inc(&id_priv->refcount);
+ 	dev_id_priv->internal_id = 1;
++	dev_id_priv->afonly = id_priv->afonly;
+ 
+ 	ret = rdma_listen(id, id_priv->backlog);
+ 	if (ret)
+@@ -2183,22 +2185,24 @@ static int cma_check_port(struct rdma_bind_list *bind_list,
+ 	struct hlist_node *node;
+ 
+ 	addr = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
+-	if (cma_any_addr(addr) && !reuseaddr)
+-		return -EADDRNOTAVAIL;
+-
+ 	hlist_for_each_entry(cur_id, node, &bind_list->owners, node) {
+ 		if (id_priv == cur_id)
+ 			continue;
+ 
+-		if ((cur_id->state == RDMA_CM_LISTEN) ||
+-		    !reuseaddr || !cur_id->reuseaddr) {
+-			cur_addr = (struct sockaddr *) &cur_id->id.route.addr.src_addr;
+-			if (cma_any_addr(cur_addr))
+-				return -EADDRNOTAVAIL;
++		if ((cur_id->state != RDMA_CM_LISTEN) && reuseaddr &&
++		    cur_id->reuseaddr)
++			continue;
+ 
+-			if (!cma_addr_cmp(addr, cur_addr))
+-				return -EADDRINUSE;
+-		}
++		cur_addr = (struct sockaddr *) &cur_id->id.route.addr.src_addr;
++		if (id_priv->afonly && cur_id->afonly &&
++		    (addr->sa_family != cur_addr->sa_family))
++			continue;
++
++		if (cma_any_addr(addr) || cma_any_addr(cur_addr))
++			return -EADDRNOTAVAIL;
++
++		if (!cma_addr_cmp(addr, cur_addr))
++			return -EADDRINUSE;
+ 	}
+ 	return 0;
+ }
+@@ -2367,6 +2371,10 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 	}
+ 
+ 	memcpy(&id->route.addr.src_addr, addr, ip_addr_size(addr));
++	if (addr->sa_family == AF_INET)
++		id_priv->afonly = 1;
++	else if (addr->sa_family == AF_INET6)
++		id_priv->afonly = init_net.ipv6.sysctl.bindv6only;
+ 	ret = cma_get_port(id_priv);
+ 	if (ret)
+ 		goto err2;
 
 
 --
