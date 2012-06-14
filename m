@@ -1,47 +1,34 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rsockets and other performance
-Date: Thu, 14 Jun 2012 11:22:45 -0600
-Message-ID: <20120614172245.GC6552@obsidianresearch.com>
-References: <4FDA0233.6090409@linux.vnet.ibm.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] RDMA/ocrdma: off by one in ocrdma_query_gid()
+Date: Thu, 14 Jun 2012 21:36:09 +0300
+Message-ID: <20120614183609.GE6383@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4FDA0233.6090409-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kashyapv-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Mahesh Vardhamanaiah <mahesh.vardhamanaiah-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 14, 2012 at 08:24:35AM -0700, Pradeep Satyanarayana wrote:
+The dev->sgid_tbl[] array is allocated in ocrdma_alloc_resources().  It
+has OCRDMA_MAX_SGID elements so the test here is off by one.
 
-> With these minimal changes IPoIB throughput reached between
-> 19-20Gb/s with just 2 threads. This was really unexpected. Given
-> that, we wanted to revisit the usage of checksums in IPoIB.
-> So, it looks worthwhile to allow for 'checksum-less' IPoIB-CM within
-> a cluster on a single subnet. From a checksum perspective, this
-> would be no different from RDMA. What are your thoughts?
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-There have been discussions around a 'checksum-less' IPoIB operation
-for a little while.
-
-The basic notion was to enable the checksum offload mechanism, pass
-the information from Linux for offload straight through to the other
-side (eg via an extra header or something), have the other side
-reconstruct the offload indication on RX and inject back to into the
-net stack.
-
-This would be similar to the way checksum bypass works in
-virtualization (Xen/KVM) where the virtualized net TX just packages
-the offload data and sends it to the hyperviser kernel which then RX's
-it and restores the very same checksum offload information.
-
-During the CM process this feature would be negotiated.
-
-I don't think anyone ever made patches for this, but considering the
-performance delta you see it really seems worthwhile.
-
-Jason
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index d55d459..2e2e7ae 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -53,7 +53,7 @@ int ocrdma_query_gid(struct ib_device *ibdev, u8 port,
+ 
+ 	dev = get_ocrdma_dev(ibdev);
+ 	memset(sgid, 0, sizeof(*sgid));
+-	if (index > OCRDMA_MAX_SGID)
++	if (index >= OCRDMA_MAX_SGID)
+ 		return -EINVAL;
+ 
+ 	memcpy(sgid, &dev->sgid_tbl[index], sizeof(*sgid));
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
