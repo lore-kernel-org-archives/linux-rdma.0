@@ -1,43 +1,50 @@
-From: "Yann Droneaud" <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 00/29] Add SRIOV support for IB interfaces
-Date: Thu, 14 Jun 2012 15:21:37 +0200
-Message-ID: <9e8965c740ff0e889a097a722b9fff90.squirrel@webmail.ocsa-data.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: trtr678678-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: Server Rental services in Hong Kong
+Date: Thu, 14 Jun 2012 23:22:41 +0800 (HKT)
+Message-ID: <Zxq0Jhbrpskrnz4@ara.seed.net.tw>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Dear All,
 
-> This patch set adds SRIOV support for IB interfaces.
-> Patches 1-13 are "precondition" patches.
-> Patches 14-29 actually implement the feature.
-> This patch set introduces Infiniband SRIOV support for ConnectX2 and
-ConnectX3
-> devices.  Each function presents itself as an independent vHCA (virtual
-HCA) to
-> the host while a single HCA is observable by the network, which is
-unaware
-> of
-> the vHCAs.  No changes are required by the IB subsystem, ULPs, and apps
-to
-> support SRIOV, and vHCAs are interoperable with any existing
-> (non-virtualized)
-> IB deployments.
+We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
 
-Please forgive me, I haven't tried the patches or go deeper in reading them.
+Dell=3F PowerEdge=3F EnterpriseRack Mount Server
+-Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
+-8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
+-500GB, 3.5", 6Gbps SAS x 2
+-Raid 1 Mirroring Protection
+-Remote KVM (iDRAC6 Enterprise)
 
-How will interact vHCA/HCA regarding Automatic Path Migration (APM) and
-IPoIB bonding with fail-over (HA), with RDMA_CM and IP usages in mind ?
+Dell(TM) PowerEdge(TM) R410 Rack Mount Server
+-Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
+-4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
+-500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
+-iDRAC6 Enterprise or Express (Remote KVM Management)
 
-Regards.
+Every Dedicated Server Hosting Solution Also Includes: 
+ 
+Software Specification 
+- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
+- Full root-level access 
+- Data Center Facilities 
+- Shared Local & International Bandwidth 
+- 2 IP Addresses Allocation 
+- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
+- FM200=A1=A7based fire suppression system 
+- 24x7 CRAC Air Conditioning and Humidity Control 
+- 24x7 Security Control 
+- 24x7 Remote Hand Service 
 
--- 
-Yann Droneaud
-OPTEYA
+Pls send us email for further information.Thanks,
+
+Ron 
+trtr678678-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org 
+
+If you do not wish to further receive this event message, email "trtr789789-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
 
 
 --
