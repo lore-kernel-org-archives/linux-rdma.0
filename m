@@ -1,32 +1,40 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][TRIVIAL] opensm/osm_port.h: Fix commentary typo
-Date: Fri, 15 Jun 2012 06:32:08 -0400
-Message-ID: <4FDB0F28.20404@dev.mellanox.co.il>
+From: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: IPoIB and RDMA CM
+Date: Fri, 15 Jun 2012 15:06:13 +0200
+Message-ID: <CALfB72CA5+c21pwVT10yMamOy4UXR+B2dqF-vvZykoO1_gOYhA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello all
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/include/opensm/osm_port.h b/include/opensm/osm_port.h
-index 473b269..56e9c37 100644
---- a/include/opensm/osm_port.h
-+++ b/include/opensm/osm_port.h
-@@ -245,7 +245,7 @@ void osm_physp_init(IN osm_physp_t * p_physp, IN ib_net64_t port_guid,
- *
- *	h_bind
- *		[in] Bind handle on which this port is accessed.
--*		Caller should use OSM_INVALID_BIND_HANDLE if the bind
-+*		Caller should use OSM_BIND_INVALID_HANDLE if the bind
- *		handle to this port is unknown.
- *
- *	hop_count
+Can anyone recommend something I can read to find out more about how
+IPoIB bonding and librdmacm work together?
+
+Some googling seems to allude to the fact that patches in this area
+went in a few years ago, but I'd like to find some detailed
+information about how it works.
+
+I would also like to echo this question from Yann Droneaud:
+
+http://www.spinics.net/lists/linux-rdma/msg12130.html
+
+He said:
+
+"How will interact vHCA/HCA regarding Automatic Path Migration (APM)
+and IPoIB bonding with fail-over (HA), with RDMA_CM and IP usages in
+mind?"
+
+Will it make sense to run guests on top of KVM in future, with SR-IOV
+exposing a single HCA to the guest, regardless of whether the host has
+one or many HCAs with one or two ports?
+
+Regards
+
+Albert
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
