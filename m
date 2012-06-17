@@ -1,40 +1,29 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: rsockets and other performance
-Date: Fri, 15 Jun 2012 11:19:19 -0600
-Message-ID: <20120615171919.GA17224@obsidianresearch.com>
-References: <4FDA0233.6090409@linux.vnet.ibm.com>
- <20120614172245.GC6552@obsidianresearch.com>
- <alpine.LRH.2.00.1206142336220.13728@oc4747053027.ibm.com>
+Date: Sun, 17 Jun 2012 10:22:27 +0300
+Message-ID: <4FDD85B3.2090406@mellanox.com>
+References: <4FDA0233.6090409@linux.vnet.ibm.com> <1339690194.14317.5.camel@oc1677441337.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.00.1206142336220.13728-Nzfcc2Us4m+Xfo/+vza+31aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1339690194.14317.5.camel-5vSEHtyIv2TJ4MwkZ4db91aTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vivek Kashyap <kashyapv-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+To: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kashyapv-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 14, 2012 at 11:48:09PM -0700, Vivek Kashyap wrote:
-> >I don't think anyone ever made patches for this, but considering the
-> >performance delta you see it really seems worthwhile.
-> 
-> How about something like below? Basically the the 'checksum-less'
-> operation is only between hosts that both support it by extending
-> the existing IB connection setup mechanism. The following also keeps
-> the changes confined to ipoib-cm module.
+On 6/14/2012 7:09 PM, Sridhar Samudrala wrote:
+> Enabling NETIF_F_SG improves the throughput further by avoiding a 
+> additional kernel memcpy caused by skb_linearize() in dev_queue_xmit().
 
-It is much better to do things properly (as I described) so you don't
-have a gotcha when a packet gets routed.
+Hi Sridhar,
 
-We don't want to fake that we are doing csum, we want to forward the
-csum offload data to the other side, which might discard it or might
-use it to forward the packet out another interface. This is not hard,
-just fiddly work.
+If you **only** enable NETIF_F_SG for CM, does this yields any gain? did 
+you had to patch the code for that end?
 
--- 
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>        (780)4406067x832
-Chief Technology Officer, Obsidian Research Corp         Edmonton, Canada
+Or.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
