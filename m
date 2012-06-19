@@ -1,131 +1,266 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V1 10/29] net/mlx4_core: Implement mechanism for reserved qkeys
-Date: Tue, 19 Jun 2012 11:21:42 +0300
-Message-ID: <1340094121-14858-11-git-send-email-jackm@dev.mellanox.co.il>
-References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V1 00/29] Add SRIOV support for IB interfaces
+Date: Tue, 19 Jun 2012 11:21:32 +0300
+Message-ID: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The sriov special-qp tunneling mechanism uses proxy special-qp's
-(instead of the real special qps) for MADs on guests.  These proxy qp's
-send their packets to a "tunnel" qp owned by the master.  The master
-then forwards the MAD (after any required paravirtualization) to the
-real special QP, which sends out the MAD.
+This patch set adds SRIOV support for IB interfaces.
 
-For security reasons (i.e., to prevent guests from sending MADs to tunnel QPs
-belonging to other guests), each proxy-tunnel qp pair is assigned a unique,
-reserved, qkey.  These qkeys are available only for proxy and tunnel qp's --
-if the guest tries to use these qkeys with other qp's, it will fail.
+Patches 1-13 are "precondition" patches.
+Patches 14-29 actually implement the feature.
 
-This patch introduces a mechanism for reserving a block of 64K Qkeys for
-proxy/tunneling use.
+This patch set introduces Infiniband SRIOV support for ConnectX2 and Co=
+nnectX3
+devices.  Each function presents itself as an independent vHCA (virtual=
+ HCA) to
+the host while a single HCA is observable by the network, which is unaw=
+are of
+the vHCAs.  No changes are required by the IB subsystem, ULPs, and apps=
+ to
+support SRIOV, and vHCAs are interoperable with any existing (non-virtu=
+alized)
+IB deployments.
+=20
+We term this model for SRIOV implementation the shared-port model.
 
-The patch introduces also two new fields into mlx4_dev:
-base_sqpn and base_tunnel_sqpn.
+Sharing the same physical port(s) among multiple vHCAs is achieved as f=
+ollows:
+=20
+1. Each vHCA port presents its own virtual GID table.
+=20
+Currently, the virtual GID table comprises a single entry (at index 0) =
+that
+maps to a unique index in the physical GID table.  The vHCA of the PF m=
+aps to
+physical GID index 0. To obtain GIDs for other vHCAs, alias GUIDs are r=
+equested
+from the SM.  These are GUIDs which the SM places, per port, in the por=
+t's guid
+table after the 0'th slot (which is read-only and determined by the FW)=
+=2E
+The host admin can assign GIDs to vHCAs using a sysfs interface (see be=
+low).
+=20
+2. Each vHCA port presents its own virtual PKey table.
+=20
+The virtual PKey table is a mapping of selected indexes of the physical=
+ pkey table.
+The host admin can control which pkey indexes are mapped to which virtu=
+al indexes
+using a sysfs interface (see below). Note that the physical PKey table =
+may contain
+both full and partial memberships of the same PKey to allow different m=
+embership
+types in different virtual tables.
+=20
+3. Each vHCA port has its own virtual port state.
+=20
+A vHCA port is up if the following conditions apply:
+- The physical port is up
+- The virtual GID table contains the GIDs requested by the host admin
+- The SM has acknowledged the requested GIDs since the last time that
+  the physical port came up
+=20
+4. Other port attributes are shared, e.g., GID prefix, LID,  SM LID, LM=
+C mask.
+=20
+5. Special QPs are para-virtualized.
+=20
+vHCAs are not given direct access to QP0/1. Rather, these QPs are opera=
+ted by a
+special context hosted by the PF, which mediates access to/from vHCAs.
+This is done by opening a =E2=80=9Ctunnel=E2=80=9D per vHCA port per QP=
+0/1. A tunnel comprises
+a pair of UD QPs:  a =E2=80=9CTunnel QP=E2=80=9D in the PF-context and =
+a =E2=80=9CProxy QP=E2=80=9D in the vHCA.
+All vHCA MAD traffic must pass through the corresponding tunnel.
+vHCA QPs cannot be assigned to VL15 and are denied of the well-known QK=
+ey.=20
+=20
+QP0 access is restricted to the PF vHCA. VF vHCAs also have (virtual) Q=
+P0=E2=80=99s,
+but they never receive any SMPs and all SMPs sent are discarded.
+QP1 traffic is allowed for all vHCAs, but special care is required to b=
+ridge
+the gap between the host and network views.
 
-In SRIOV mode, the qp numbers for the "real", proxy, and tunnel sqps
-are added to the reserved-qp number area (so that they will not change).
-There are 8 special QPs per port in the HCA, and each of them is assigned
-both a proxy and a tunnel qp, for each VF and for the PF as well in SRIOV mode.
+Specifically:
+- Transaction IDs are mapped to guarantee uniqueness among vHCAs
+- CM para-virtualization
+  o   Incoming requests are steered to the correct vHCA according to th=
+e embedded GID
+  o   Local communication IDs are mapped to ensure uniqueness among vHC=
+As
+- Multicast para-virtualization
+  o   The PF context aggregates membership state from all vHCAs
+  o   The SA is contacted only when the aggregate membership changes
+  o   If the aggregate does not change, the PF context will provide the
+       requesting vHCA with the proper response
+=20
+Incoming MADs are steered according to:
+- the DGID If a GRH is present
+- the mapped transaction ID for response MADs
+- the embedded GID in CM requests
+- the remote communication ID in other CM messages
 
-The qp numbers for these qp's are arranged as follows:
-1. The Real SQP numbers (8)
-2. The proxy sqp's (8 * (max number of VFs + max number of PFs)
-3. The tunnel sqp's (8 * (max number of VFs + max number of PFs)
+To allow the host admin to control the virtual GID and PKey tables of v=
+HCAs,
+a new sysfs =E2=80=98iov=E2=80=99 sub-tree has been added under the PF =
+infiniband device.
+Details on this mechanism can be found in the change log of:
+   IB/mlx4: Add iov directory in sysfs under the ib device
 
-To support these QPs, two new fields are added to struct mlx4_dev:
-base_sqp:  this is the QP number of the first of the real SQPs
+Some Limitations
+----------------
+1. FMRs are not currently supported on slaves. This will be corrected i=
+n a
+   future submission.
+2. RoCE is not currently supported on slaves. This will be corrected in=
+ a
+   future submission.
+3. Due to a (correct) change in kernel IRQ management in kernel 3.5-rc1=
+ (see
+   commit 1c6c69525b40), the KVM module no longer succeeds in passing i=
+nterrupts
+   through to guests.  (see the discussion thread beginning at
+   https://lkml.org/lkml/2012/6/1/261).  Until this KVM issue is fixed,=
+ anyone
+   wishing to use SRIOV-IB (or SRIOV-Ethernet) with ConnectX2 or Connec=
+tX3
+   devices on guest O/Ses should revert commit 1c6c69525b40
+   (as a TEMPORARY workaround) in order to enable the guests to operate=
+ the mlx4 driver.
 
-base_tunnel_sqp:  this is the qp number of the first qp in the
-                  tunnel sqp region. (On guests, this is the first
-                  tunnel sqp of the 8 which are assigned to that guest).
+   VFs may still be bound to the host (via setting the "probe_vf" mlx4_=
+core
+   module parameter to a non-zero value in a conf file under /etc/modpr=
+obe.d)=20
+   without reverting the commit mentioned above.
 
-In addition, in SRIOV mode, sqp_start is the number of the first proxy
-sqp in the proxy sqp region.(On guests, this is the first proxy sqp
-of the 8 which are assigned to that guest).
 
-Note that in non-SRIOV mode, there are no proxies and no tunnels.
-In this case, sqp_start is set to sqp_base -- which minimizes code
-changes.
+Changes for V1
+--------------
 
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx4/main.c |   17 +++++++++++++++++
- include/linux/mlx4/device.h               |   12 ++++++++++++
- 2 files changed, 29 insertions(+), 0 deletions(-)
+1. librdmacm now supports multiple VF/PF on the same host (patch 29).
+2. Several patches cleaned up (these were indicated in the V0 changelog=
+s).
+   Major cleanups in patch 22 and patch 24.
+3. Eliminated code duplication in Port Management Change event code (pa=
+tch 8).
+4. Now use pr_debug, instead of mlx4_ib_debug, and there is no module p=
+arameter
+   (Roland's recommendation).
+5. mlx4_master_func_num() to get the master's "slave_id", to make code =
+more readable.
+6. Fixed illegal use of port num field for a force-loopback bit in ib_a=
+h structure
+   (V0 patch 2 -- eliminated). The force-loopback bit is now set for Tu=
+nnel QPs in=20
+   mlx4_ib_post send (patch 17).
+7. New patch 2 (not related to 6 above) to reserve bits in enum ib_qp_c=
+reate_flags.
+8. V0 patch 26 is now rolled into V1 patch 22. This allowed us to elimi=
+nate function
+   mlx4_ib_indexed_gid from patch 22 (replaced by using __mlx4_ib_query=
+_gid() from V0 patch 26).
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 00953f4..7e65cea 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -391,6 +391,23 @@ static int mlx4_how_many_lives_vf(struct mlx4_dev *dev)
- 	return ret;
- }
- 
-+int mlx4_get_parav_qkey(struct mlx4_dev *dev, u32 qpn, u32 *qkey)
-+{
-+	u32 qk = MLX4_RESERVED_QKEY_BASE;
-+	if (qpn >= dev->caps.base_tunnel_sqpn + 8 * MLX4_MFUNC_MAX ||
-+	    qpn < dev->caps.sqp_start)
-+		return -EINVAL;
-+
-+	if (qpn >= dev->caps.base_tunnel_sqpn)
-+		/* tunnel qp */
-+		qk += qpn - dev->caps.base_tunnel_sqpn;
-+	else
-+		qk += qpn - dev->caps.sqp_start;
-+	*qkey = qk;
-+	return 0;
-+}
-+EXPORT_SYMBOL(mlx4_get_parav_qkey);
-+
- int mlx4_is_slave_active(struct mlx4_dev *dev, int slave)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 7fbdc89..c0df6c9 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -56,6 +56,14 @@ enum {
- 	MLX4_MAX_PORTS		= 2
- };
- 
-+/* base qkey for use in sriov tunnel-qp/proxy-qp communication.
-+ * These qkeys must not be allowed for general use. This is a 64k range,
-+ * and to test for violation, we use the mask (protect against future chg).
-+ */
-+#define MLX4_RESERVED_QKEY_BASE  (0xFFFF0000)
-+#define MLX4_RESERVED_QKEY_MASK  (0xFFFF0000)
-+
-+
- enum {
- 	MLX4_BOARD_ID_LEN = 64
- };
-@@ -293,6 +301,8 @@ struct mlx4_caps {
- 	int			max_qp_init_rdma;
- 	int			max_qp_dest_rdma;
- 	int			sqp_start;
-+	u32			base_sqpn;
-+	u32			base_tunnel_sqpn;
- 	int			num_srqs;
- 	int			max_srq_wqes;
- 	int			max_srq_sge;
-@@ -772,4 +782,6 @@ int mlx4_wol_write(struct mlx4_dev *dev, u64 config, int port);
- int mlx4_counter_alloc(struct mlx4_dev *dev, u32 *idx);
- void mlx4_counter_free(struct mlx4_dev *dev, u32 idx);
- 
-+int mlx4_get_parav_qkey(struct mlx4_dev *dev, u32 qpn, u32 *qkey);
-+
- #endif /* MLX4_DEVICE_H */
--- 
-1.7.1
 
+Amir Vadai (1):
+  IB/mlx4: Add CM paravirtualization
+
+Erez Shitrit (1):
+  IB/sa: Add GuidInfoRecord query support.
+
+Jack Morgenstein (26):
+  net/mlx4_core: Pass an invalid PCI id number to VFs
+  IB/core: Reserve bits in enum ib_qp_create_flags for low-level driver
+    use
+  IB/mlx4: Add debug printouts
+  IB/core: change pkey table lookups to support full and partial
+    membership for the same pkey
+  IB/core: Add ib_find_exact_cached_pkey() to search for 16-bit pkey
+    match
+  IB/core: move macros from cm_msgs.h to ib_cm.h
+  {NET,IB}/mlx4: Use port management change event instead of smp_snoop
+  net/mlx4_core: For SRIOV, initialize ib port-capabilities for all
+    slaves
+  net/mlx4_core: Implement mechanism for reserved qkeys
+  net/mlx4_core: Allow guests to support IB ports
+  {NET,IB}/mlx4_core: place phys gid and pkey tbl sizes in
+    mlx4_phys_caps struct and paravirtualize them
+  IB/mlx4: SRIOV IB context objects and proxy/tunnel sqp support
+  net/mlx4_core: Add proxy and tunnel QPs to the reserved QP area
+  IB/mlx4: Initialize SRIOV IB support for slaves in master context
+  {NET,IB}/mlx4: Implement QP paravirtualization and maintain
+    phys_pkey_cache for smp_snoop
+  IB/mlx4: SRIOV multiplex and demultiplex MADs
+  {NET,IB}/mlx4: MAD_IFC paravirtualization
+  net/mlx4_core: Add IB port-state machine, and port mgmt event
+    propagation infrastructure
+  {NET,IB}/mlx4: Add alias_guid mechanism
+  IB/mlx4: Propagate pkey and guid change port management events to
+    slaves
+  IB/mlx4: Add iov directory in sysfs under the ib device
+  net/mlx4_core: Adjustments to SET_PORT for SRIOV-IB
+  net/mlx4_core: INIT/CLOSE port logic for IB ports in SRIOV mode
+  IB/mlx4: Miscellaneous adjustments to SRIOV IB support
+  {NET,IB}/mlx4: Activate SRIOV mode for IB
+  {NET,IB}/mlx4: Paravirtualize Node Guids for slaves.
+
+Oren Duer (1):
+  IB/mlx4: Added Multicast Groups (MCG) para-virtualization for SRIOV
+
+ drivers/infiniband/core/cache.c                    |   42 +-
+ drivers/infiniband/core/cm_msgs.h                  |   12 -
+ drivers/infiniband/core/device.c                   |   17 +-
+ drivers/infiniband/core/sa_query.c                 |  133 ++
+ drivers/infiniband/hw/mlx4/Makefile                |    2 +-
+ drivers/infiniband/hw/mlx4/alias_GUID.c            |  688 ++++++++
+ drivers/infiniband/hw/mlx4/cm.c                    |  437 +++++
+ drivers/infiniband/hw/mlx4/cq.c                    |   31 +-
+ drivers/infiniband/hw/mlx4/mad.c                   | 1684 ++++++++++++=
++++++++-
+ drivers/infiniband/hw/mlx4/main.c                  |  285 +++-
+ drivers/infiniband/hw/mlx4/mcg.c                   | 1254 ++++++++++++=
++++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h               |  360 +++++-
+ drivers/infiniband/hw/mlx4/qp.c                    |  651 +++++++-
+ drivers/infiniband/hw/mlx4/sysfs.c                 |  794 +++++++++
+ drivers/net/ethernet/mellanox/mlx4/cmd.c           |  190 +++-
+ drivers/net/ethernet/mellanox/mlx4/en_main.c       |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/eq.c            |  259 +++-
+ drivers/net/ethernet/mellanox/mlx4/fw.c            |  227 +++-
+ drivers/net/ethernet/mellanox/mlx4/fw.h            |    3 +
+ drivers/net/ethernet/mellanox/mlx4/intf.c          |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/main.c          |  124 ++-
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h          |  116 +-
+ drivers/net/ethernet/mellanox/mlx4/port.c          |   21 +-
+ drivers/net/ethernet/mellanox/mlx4/qp.c            |   67 +-
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  220 +++-
+ include/linux/mlx4/device.h                        |  179 ++-
+ include/linux/mlx4/driver.h                        |    5 +-
+ include/linux/mlx4/qp.h                            |    3 +-
+ include/rdma/ib_cache.h                            |   16 +
+ include/rdma/ib_cm.h                               |   12 +
+ include/rdma/ib_sa.h                               |   33 +
+ include/rdma/ib_verbs.h                            |    3 +
+ 32 files changed, 7520 insertions(+), 358 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mlx4/alias_GUID.c
+ create mode 100644 drivers/infiniband/hw/mlx4/cm.c
+ create mode 100644 drivers/infiniband/hw/mlx4/mcg.c
+ create mode 100644 drivers/infiniband/hw/mlx4/sysfs.c
+
+Cc: dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
