@@ -1,624 +1,577 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V1 16/29] {NET,IB}/mlx4: Implement QP paravirtualization and maintain phys_pkey_cache for smp_snoop
-Date: Tue, 19 Jun 2012 11:21:48 +0300
-Message-ID: <1340094121-14858-17-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V1 20/29] IB/mlx4: Add CM paravirtualization
+Date: Tue, 19 Jun 2012 11:21:52 +0300
+Message-ID: <1340094121-14858-21-git-send-email-jackm@dev.mellanox.co.il>
 References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The requires:
-1. Replacing the paravirtualized pkey index (inserted
-   by the guest) with the real pkey index
+From: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
-2. For UD qp's, placing the guest's true source gid index
-   in the address path structure mgid field, and setting
-   the ud_force_mgid bit so that the mgid is taken from
-   the qp context and not from the WQE when posting sends.
+In CM para-virtualization:
+1. Incoming requests are steered to the correct vHCA according to the embedded GID
+2. Communication IDs on outgoing requests are replaced by a globally unique ID, generated
+   by the PPF, since there is no synchronization of ID generation between guests (and so these
+   IDs are not guaranteed to be globally unique).
+   The guest's comm ID is stored, and is returned to the response MAD when it arrives.
 
-3. For UC and RC QPs, placing the guest's true source gid index
-   in the address path structure mgid field.
-
-4. For tunnel and proxy QPs, setting the QKEY value reserved for
-   that proxy/tunnel pair.
-
-Since not all the above adjustments occur in all the QP transitions,
-the QP transitions require separate wrapper functions.
-
-Secondly, initialize the pkey virtualization table to its default
-values: Master virtualized table is 1-1 with the real pkey table,
-guest virtualized table has pkey index 0 mapped to the real
-pkey index 0, and all the other pkey indices mapped to the
-reserved (invalid) pkey at index 127.
-
-Finally, Add logic in smp_snoop for maintaining the phys_pkey_cache.
-and generating events on the master only if a pkey actually changed.
-
+Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c                   |   33 +++-
- drivers/infiniband/hw/mlx4/main.c                  |   35 +++
- drivers/net/ethernet/mellanox/mlx4/cmd.c           |   12 +-
- drivers/net/ethernet/mellanox/mlx4/main.c          |   11 +
- drivers/net/ethernet/mellanox/mlx4/mlx4.h          |   47 +++++
- .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  217 +++++++++++++++++++-
- include/linux/mlx4/device.h                        |    3 +
- 7 files changed, 344 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/mlx4/Makefile  |    2 +-
+ drivers/infiniband/hw/mlx4/cm.c      |  437 ++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx4/mad.c     |   16 ++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |   15 ++
+ 4 files changed, 468 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mlx4/cm.c
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index c8a6db8..d508597 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -185,6 +185,10 @@ static void smp_snoop(struct ib_device *ibdev, u8 port_num, struct ib_mad *mad,
- {
- 	struct ib_port_info *pinfo;
- 	u16 lid;
-+	__be16 *base;
-+	u32 bn, pkey_change_bitmap;
-+	int i;
+diff --git a/drivers/infiniband/hw/mlx4/Makefile b/drivers/infiniband/hw/mlx4/Makefile
+index 20d627d..bf0aa90 100644
+--- a/drivers/infiniband/hw/mlx4/Makefile
++++ b/drivers/infiniband/hw/mlx4/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_MLX4_INFINIBAND)	+= mlx4_ib.o
+ 
+-mlx4_ib-y :=	ah.o cq.o doorbell.o mad.o main.o mr.o qp.o srq.o mcg.o
++mlx4_ib-y :=	ah.o cq.o doorbell.o mad.o main.o mr.o qp.o srq.o mcg.o cm.o
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+new file mode 100644
+index 0000000..0a52146
+--- /dev/null
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -0,0 +1,437 @@
++/*
++ * Copyright (c) 2012 Mellanox Technologies. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
- 
- 	struct mlx4_ib_dev *dev = to_mdev(ibdev);
- 	if ((mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED ||
-@@ -209,8 +213,33 @@ static void smp_snoop(struct ib_device *ibdev, u8 port_num, struct ib_mad *mad,
- 			break;
- 
- 		case IB_SMP_ATTR_PKEY_TABLE:
--			mlx4_ib_dispatch_event(dev, port_num,
--					       IB_EVENT_PKEY_CHANGE);
-+			if (!mlx4_is_mfunc(dev->dev)) {
-+				mlx4_ib_dispatch_event(dev, port_num,
-+						       IB_EVENT_PKEY_CHANGE);
-+				break;
-+			}
++#include <rdma/ib_mad.h>
 +
-+			bn  = be32_to_cpu(((struct ib_smp *)mad)->attr_mod) & 0xFFFF;
-+			base = (__be16 *) &(((struct ib_smp *)mad)->data[0]);
-+			pkey_change_bitmap = 0;
-+			for (i = 0; i < 32; i++) {
-+				pr_debug("PKEY[%d] = x%x\n",
-+					 i + bn*32, be16_to_cpu(base[i]));
-+				if (be16_to_cpu(base[i]) !=
-+				    dev->pkeys.phys_pkey_cache[port_num - 1][i + bn*32]) {
-+					pkey_change_bitmap |= (1 << i);
-+					dev->pkeys.phys_pkey_cache[port_num - 1][i + bn*32] =
-+						be16_to_cpu(base[i]);
-+				}
-+			}
-+			pr_debug("PKEY Change event: port=%d, "
-+				 "block=0x%x, change_bitmap=0x%x\n",
-+				 port_num, bn, pkey_change_bitmap);
++#include <linux/mlx4/cmd.h>
++#include <linux/rbtree.h>
++#include <linux/idr.h>
++#include <rdma/ib_cm.h>
 +
-+			if (pkey_change_bitmap)
-+				mlx4_ib_dispatch_event(dev, port_num,
-+						       IB_EVENT_PKEY_CHANGE);
++#include "mlx4_ib.h"
 +
- 			break;
- 
- 		case IB_SMP_ATTR_GUID_INFO:
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index a5b3875..d69d96a 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1072,6 +1072,38 @@ static int mlx4_ib_netdev_event(struct notifier_block *this, unsigned long event
- 	return NOTIFY_DONE;
- }
- 
-+static void init_pkeys(struct mlx4_ib_dev *ibdev)
-+{
-+	int port;
-+	int slave;
-+	int i;
++#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
 +
-+	if (mlx4_is_master(ibdev->dev)) {
-+		for (slave = 0; slave <= ibdev->dev->num_vfs; ++slave) {
-+			for (port = 1; port <= ibdev->dev->caps.num_ports; ++port) {
-+				for (i = 0;
-+				     i < ibdev->dev->phys_caps.pkey_phys_table_len[port];
-+				     ++i) {
-+					ibdev->pkeys.virt2phys_pkey[slave][port - 1][i] =
-+					/* master has the identity virt2phys pkey mapping */
-+						(slave == mlx4_master_func_num(ibdev->dev) || !i) ? i :
-+							ibdev->dev->phys_caps.pkey_phys_table_len[port] - 1;
-+					mlx4_sync_pkey_table(ibdev->dev, slave, port, i,
-+							     ibdev->pkeys.virt2phys_pkey[slave][port - 1][i]);
-+				}
-+			}
-+		}
-+		/* initialize pkey cache */
-+		for (port = 1; port <= ibdev->dev->caps.num_ports; ++port) {
-+			for (i = 0;
-+			     i < ibdev->dev->phys_caps.pkey_phys_table_len[port];
-+			     ++i)
-+				ibdev->pkeys.phys_pkey_cache[port-1][i] =
-+					(i) ? 0 : 0xFFFF;
-+		}
-+	}
-+}
++struct id_map_entry {
++	struct rb_node node;
 +
- static void mlx4_ib_alloc_eqs(struct mlx4_dev *dev, struct mlx4_ib_dev *ibdev)
- {
- 	char name[32];
-@@ -1325,6 +1357,9 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 
- 	ibdev->ib_active = true;
- 
-+	if (mlx4_is_mfunc(ibdev->dev))
-+		init_pkeys(ibdev);
++	u32 sl_cm_id;
++	u32 pv_cm_id;
++	int slave_id;
++	int scheduled_delete;
++	struct mlx4_ib_dev *dev;
 +
- 	return ibdev;
- 
- err_notif:
-diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-index fc5e701..bf55be6 100644
---- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-@@ -905,7 +905,7 @@ static struct mlx4_cmd_info cmd_info[] = {
- 		.out_is_imm = false,
- 		.encode_slave_id = false,
- 		.verify = NULL,
--		.wrapper = mlx4_GEN_QP_wrapper
-+		.wrapper = mlx4_INIT2INIT_QP_wrapper
- 	},
- 	{
- 		.opcode = MLX4_CMD_INIT2RTR_QP,
-@@ -923,7 +923,7 @@ static struct mlx4_cmd_info cmd_info[] = {
- 		.out_is_imm = false,
- 		.encode_slave_id = false,
- 		.verify = NULL,
--		.wrapper = mlx4_GEN_QP_wrapper
-+		.wrapper = mlx4_RTR2RTS_QP_wrapper
- 	},
- 	{
- 		.opcode = MLX4_CMD_RTS2RTS_QP,
-@@ -932,7 +932,7 @@ static struct mlx4_cmd_info cmd_info[] = {
- 		.out_is_imm = false,
- 		.encode_slave_id = false,
- 		.verify = NULL,
--		.wrapper = mlx4_GEN_QP_wrapper
-+		.wrapper = mlx4_RTS2RTS_QP_wrapper
- 	},
- 	{
- 		.opcode = MLX4_CMD_SQERR2RTS_QP,
-@@ -941,7 +941,7 @@ static struct mlx4_cmd_info cmd_info[] = {
- 		.out_is_imm = false,
- 		.encode_slave_id = false,
- 		.verify = NULL,
--		.wrapper = mlx4_GEN_QP_wrapper
-+		.wrapper = mlx4_SQERR2RTS_QP_wrapper
- 	},
- 	{
- 		.opcode = MLX4_CMD_2ERR_QP,
-@@ -968,7 +968,7 @@ static struct mlx4_cmd_info cmd_info[] = {
- 		.out_is_imm = false,
- 		.encode_slave_id = false,
- 		.verify = NULL,
--		.wrapper = mlx4_GEN_QP_wrapper
-+		.wrapper = mlx4_SQD2SQD_QP_wrapper
- 	},
- 	{
- 		.opcode = MLX4_CMD_SQD2RTS_QP,
-@@ -977,7 +977,7 @@ static struct mlx4_cmd_info cmd_info[] = {
- 		.out_is_imm = false,
- 		.encode_slave_id = false,
- 		.verify = NULL,
--		.wrapper = mlx4_GEN_QP_wrapper
-+		.wrapper = mlx4_SQD2RTS_QP_wrapper
- 	},
- 	{
- 		.opcode = MLX4_CMD_2RST_QP,
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 53b5592..c54003b 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -403,6 +403,17 @@ int mlx4_get_parav_qkey(struct mlx4_dev *dev, u32 qpn, u32 *qkey)
- }
- EXPORT_SYMBOL(mlx4_get_parav_qkey);
- 
-+void mlx4_sync_pkey_table(struct mlx4_dev *dev, int slave, int port, int i, int val)
-+{
-+	struct mlx4_priv *priv = container_of(dev, struct mlx4_priv, dev);
-+
-+	if (!mlx4_is_master(dev))
-+		return;
-+
-+	priv->virt2phys_pkey[slave][port - 1][i] = val;
-+}
-+EXPORT_SYMBOL(mlx4_sync_pkey_table);
-+
- int mlx4_is_slave_active(struct mlx4_dev *dev, int slave)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index cde6e51..87cc0d8 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -716,6 +716,8 @@ struct mlx4_priv {
- 	struct mutex		bf_mutex;
- 	struct io_mapping	*bf_mapping;
- 	int			reserved_mtts;
-+	u8 virt2phys_pkey[MLX4_MFUNC_MAX][MLX4_MAX_PORTS][MLX4_MAX_PORT_PKEYS];
-+
- };
- 
- static inline struct mlx4_priv *mlx4_priv(struct mlx4_dev *dev)
-@@ -920,16 +922,61 @@ int mlx4_RST2INIT_QP_wrapper(struct mlx4_dev *dev, int slave,
- 			     struct mlx4_cmd_mailbox *inbox,
- 			     struct mlx4_cmd_mailbox *outbox,
- 			     struct mlx4_cmd_info *cmd);
-+int mlx4_INIT2INIT_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			      struct mlx4_vhcr *vhcr,
-+			      struct mlx4_cmd_mailbox *inbox,
-+			      struct mlx4_cmd_mailbox *outbox,
-+			      struct mlx4_cmd_info *cmd);
- int mlx4_INIT2RTR_QP_wrapper(struct mlx4_dev *dev, int slave,
- 			     struct mlx4_vhcr *vhcr,
- 			     struct mlx4_cmd_mailbox *inbox,
- 			     struct mlx4_cmd_mailbox *outbox,
- 			     struct mlx4_cmd_info *cmd);
-+int mlx4_RTR2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd);
-+int mlx4_RTS2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd);
-+int mlx4_SQERR2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			      struct mlx4_vhcr *vhcr,
-+			      struct mlx4_cmd_mailbox *inbox,
-+			      struct mlx4_cmd_mailbox *outbox,
-+			      struct mlx4_cmd_info *cmd);
-+int mlx4_2ERR_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			 struct mlx4_vhcr *vhcr,
-+			 struct mlx4_cmd_mailbox *inbox,
-+			 struct mlx4_cmd_mailbox *outbox,
-+			 struct mlx4_cmd_info *cmd);
-+int mlx4_RTS2SQD_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd);
-+int mlx4_SQD2SQD_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd);
-+int mlx4_SQD2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd);
- int mlx4_2RST_QP_wrapper(struct mlx4_dev *dev, int slave,
- 			 struct mlx4_vhcr *vhcr,
- 			 struct mlx4_cmd_mailbox *inbox,
- 			 struct mlx4_cmd_mailbox *outbox,
- 			 struct mlx4_cmd_info *cmd);
-+int mlx4_QUERY_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			  struct mlx4_vhcr *vhcr,
-+			  struct mlx4_cmd_mailbox *inbox,
-+			  struct mlx4_cmd_mailbox *outbox,
-+			  struct mlx4_cmd_info *cmd);
- 
- int mlx4_GEN_EQE(struct mlx4_dev *dev, int slave, struct mlx4_eqe *eqe);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-index e3a3b24..7785dec 100644
---- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-@@ -189,6 +189,15 @@ struct res_xrcdn {
- 	int			port;
- };
- 
-+enum qp_transition {
-+	QP_TRANS_INIT2RTR,
-+	QP_TRANS_RTR2RTS,
-+	QP_TRANS_RTS2RTS,
-+	QP_TRANS_SQERR2RTS,
-+	QP_TRANS_SQD2SQD,
-+	QP_TRANS_SQD2RTS
++	struct list_head list;
++	struct delayed_work timeout;
 +};
 +
- /* For Debug uses */
- static const char *ResourceType(enum mlx4_resource rt)
- {
-@@ -255,14 +264,41 @@ void mlx4_free_resource_tracker(struct mlx4_dev *dev,
- 	}
- }
- 
--static void update_ud_gid(struct mlx4_dev *dev,
--			  struct mlx4_qp_context *qp_ctx, u8 slave)
-+static void update_pkey_index(struct mlx4_dev *dev, int slave,
-+			      struct mlx4_cmd_mailbox *inbox)
- {
--	u32 ts = (be32_to_cpu(qp_ctx->flags) >> 16) & 0xff;
-+	u8 sched = *(u8 *)(inbox->buf + 64);
-+	u8 orig_index = *(u8 *)(inbox->buf + 35);
-+	u8 new_index;
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	int port;
++struct cm_generic_msg {
++	struct ib_mad_hdr hdr;
 +
-+	port = (sched >> 6 & 1) + 1;
++	__be32 local_comm_id;
++	__be32 remote_comm_id;
++};
 +
-+	new_index = priv->virt2phys_pkey[slave][port - 1][orig_index];
-+	*(u8 *)(inbox->buf + 35) = new_index;
++struct cm_req_msg {
++	unsigned char unused[0x60];
++	union ib_gid primary_path_sgid;
++};
 +
-+	mlx4_dbg(dev, "port = %d, orig pkey index = %d, "
-+		 "new pkey index = %d\n", port, orig_index, new_index);
++
++static void set_local_comm_id(struct ib_mad *mad, u32 cm_id)
++{
++	struct cm_generic_msg *msg = (struct cm_generic_msg *)mad;
++	msg->local_comm_id = cpu_to_be32(cm_id);
 +}
 +
-+static void update_gid(struct mlx4_dev *dev, struct mlx4_cmd_mailbox *inbox,
-+		       u8 slave)
++static u32 get_local_comm_id(struct ib_mad *mad)
 +{
-+	struct mlx4_qp_context	*qp_ctx = inbox->buf + 8;
-+	enum mlx4_qp_optpar	optpar = be32_to_cpu(*(__be32 *) inbox->buf);
-+	u32			ts = (be32_to_cpu(qp_ctx->flags) >> 16) & 0xff;
- 
- 	if (MLX4_QP_ST_UD == ts)
- 		qp_ctx->pri_path.mgid_index = 0x80 | slave;
- 
-+	if (MLX4_QP_ST_RC == ts || MLX4_QP_ST_UC == ts) {
-+		if (optpar & MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH)
-+			qp_ctx->pri_path.mgid_index = slave & 0x7F;
-+		if (optpar & MLX4_QP_OPTPAR_ALT_ADDR_PATH)
-+			qp_ctx->alt_path.mgid_index = slave & 0x7F;
++	struct cm_generic_msg *msg = (struct cm_generic_msg *)mad;
++
++	return be32_to_cpu(msg->local_comm_id);
++}
++
++static void set_remote_comm_id(struct ib_mad *mad, u32 cm_id)
++{
++	struct cm_generic_msg *msg = (struct cm_generic_msg *)mad;
++	msg->remote_comm_id = cpu_to_be32(cm_id);
++}
++
++static u32 get_remote_comm_id(struct ib_mad *mad)
++{
++	struct cm_generic_msg *msg = (struct cm_generic_msg *)mad;
++
++	return be32_to_cpu(msg->remote_comm_id);
++}
++
++static union ib_gid gid_from_req_msg(struct ib_device *ibdev, struct ib_mad *mad)
++{
++	struct cm_req_msg *msg = (struct cm_req_msg *)mad;
++
++	return msg->primary_path_sgid;
++}
++
++/* Lock should be taken before called */
++static struct id_map_entry *
++id_map_find_by_sl_id(struct ib_device *ibdev, u32 slave_id, u32 sl_cm_id)
++{
++	struct rb_root *sl_id_map = &to_mdev(ibdev)->sriov.sl_id_map;
++	struct rb_node *node = sl_id_map->rb_node;
++
++	while (node) {
++		struct id_map_entry *id_map_entry =
++			rb_entry(node, struct id_map_entry, node);
++
++		if (id_map_entry->sl_cm_id > sl_cm_id)
++			node = node->rb_left;
++		else if (id_map_entry->sl_cm_id < sl_cm_id)
++			node = node->rb_right;
++		else if (id_map_entry->slave_id > slave_id)
++			node = node->rb_left;
++		else if (id_map_entry->slave_id < slave_id)
++			node = node->rb_right;
++		else
++			return id_map_entry;
++	}
++	return NULL;
++}
++
++static void id_map_ent_timeout(struct work_struct *work)
++{
++	struct delayed_work *delay = to_delayed_work(work);
++	struct id_map_entry *ent = container_of(delay, struct id_map_entry, timeout);
++	struct id_map_entry *db_ent, *found_ent;
++	struct mlx4_ib_dev *dev = ent->dev;
++	struct mlx4_ib_sriov *sriov = &dev->sriov;
++	struct rb_root *sl_id_map = &sriov->sl_id_map;
++	int pv_id = (int) ent->pv_cm_id;
++
++	spin_lock(&sriov->id_map_lock);
++	db_ent = (struct id_map_entry *)idr_find(&sriov->pv_id_table, pv_id);
++	if (!db_ent)
++		goto out;
++	found_ent = id_map_find_by_sl_id(&dev->ib_dev, ent->slave_id, ent->sl_cm_id);
++	if (found_ent && found_ent == ent)
++		rb_erase(&found_ent->node, sl_id_map);
++	idr_remove(&sriov->pv_id_table, pv_id);
++
++out:
++	list_del(&ent->list);
++	spin_unlock(&sriov->id_map_lock);
++	kfree(ent);
++}
++
++static void id_map_find_del(struct ib_device *ibdev, int pv_cm_id)
++{
++	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
++	struct rb_root *sl_id_map = &sriov->sl_id_map;
++	struct id_map_entry *ent, *found_ent;
++
++	spin_lock(&sriov->id_map_lock);
++	ent = (struct id_map_entry *)idr_find(&sriov->pv_id_table, pv_cm_id);
++	if (!ent)
++		goto out;
++	found_ent = id_map_find_by_sl_id(ibdev, ent->slave_id, ent->sl_cm_id);
++	if (found_ent && found_ent == ent)
++		rb_erase(&found_ent->node, sl_id_map);
++	idr_remove(&sriov->pv_id_table, pv_cm_id);
++out:
++	spin_unlock(&sriov->id_map_lock);
++}
++
++static void sl_id_map_add(struct ib_device *ibdev, struct id_map_entry *new)
++{
++	struct rb_root *sl_id_map = &to_mdev(ibdev)->sriov.sl_id_map;
++	struct rb_node **link = &sl_id_map->rb_node, *parent = NULL;
++	struct id_map_entry *ent;
++	int slave_id = new->slave_id;
++	int sl_cm_id = new->sl_cm_id;
++
++	ent = id_map_find_by_sl_id(ibdev, slave_id, sl_cm_id);
++	if (ent) {
++		pr_debug("overriding existing sl_id_map entry (cm_id = %x)\n",
++			 sl_cm_id);
++
++		rb_replace_node(&ent->node, &new->node, sl_id_map);
++		return;
 +	}
 +
- 	mlx4_dbg(dev, "slave %d, new gid index: 0x%x ",
- 		slave, qp_ctx->pri_path.mgid_index);
- }
-@@ -1027,6 +1063,11 @@ static int valid_reserved(struct mlx4_dev *dev, int slave, int qpn)
- 		(mlx4_is_master(dev) || mlx4_is_guest_proxy(dev, slave, qpn));
- }
- 
-+static int fw_reserved(struct mlx4_dev *dev, int qpn)
-+{
-+	return qpn < dev->caps.reserved_qps_cnt[MLX4_QP_REGION_FW];
++	/* Go to the bottom of the tree */
++	while (*link) {
++		parent = *link;
++		ent = rb_entry(parent, struct id_map_entry, node);
++
++		if (ent->sl_cm_id > sl_cm_id || (ent->sl_cm_id == sl_cm_id && ent->slave_id > slave_id))
++			link = &(*link)->rb_left;
++		else
++			link = &(*link)->rb_right;
++	}
++
++	rb_link_node(&new->node, parent, link);
++	rb_insert_color(&new->node, sl_id_map);
 +}
 +
- static int qp_alloc_res(struct mlx4_dev *dev, int slave, int op, int cmd,
- 			u64 in_param, u64 *out_param)
- {
-@@ -1064,7 +1105,7 @@ static int qp_alloc_res(struct mlx4_dev *dev, int slave, int op, int cmd,
- 		if (err)
- 			return err;
- 
--		if (!valid_reserved(dev, slave, qpn)) {
-+		if (!fw_reserved(dev, qpn)) {
- 			err = __mlx4_qp_alloc_icm(dev, qpn);
- 			if (err) {
- 				res_abort_move(dev, slave, RES_QP, qpn);
-@@ -1417,7 +1458,7 @@ static int qp_free_res(struct mlx4_dev *dev, int slave, int op, int cmd,
- 		if (err)
- 			return err;
- 
--		if (!valid_reserved(dev, slave, qpn))
-+		if (!fw_reserved(dev, qpn))
- 			__mlx4_qp_free_icm(dev, qpn);
- 
- 		res_end_move(dev, slave, RES_QP, qpn);
-@@ -1857,6 +1898,19 @@ static u32 qp_get_srqn(struct mlx4_qp_context *qpc)
- 	return be32_to_cpu(qpc->srqn) & 0x1ffffff;
- }
- 
-+static void adjust_proxy_tun_qkey(struct mlx4_dev *dev, struct mlx4_vhcr *vhcr,
-+				  struct mlx4_qp_context *context)
++static struct id_map_entry *
++id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
 +{
-+	u32 qpn = vhcr->in_modifier & 0xffffff;
-+	u32 qkey = 0;
++	int ret, id;
++	static int next_id;
++	struct id_map_entry *ent;
++	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
 +
-+	if (mlx4_get_parav_qkey(dev, qpn, &qkey))
-+		return;
++	ent = kmalloc(sizeof(struct id_map_entry), GFP_KERNEL);
++	if (!ent) {
++		mlx4_ib_warn(ibdev, "Couldn't allocate id cache entry - out of memory\n");
++		return ERR_PTR(-ENOMEM);
++	}
 +
-+	/* adjust qkey in qp context */
-+	context->qkey = cpu_to_be32(qkey);
-+}
++	ent->sl_cm_id = sl_cm_id;
++	ent->slave_id = slave_id;
++	ent->scheduled_delete = 0;
++	ent->dev = to_mdev(ibdev);
++	INIT_DELAYED_WORK(&ent->timeout, id_map_ent_timeout);
 +
- int mlx4_RST2INIT_QP_wrapper(struct mlx4_dev *dev, int slave,
- 			     struct mlx4_vhcr *vhcr,
- 			     struct mlx4_cmd_mailbox *inbox,
-@@ -1909,6 +1963,8 @@ int mlx4_RST2INIT_QP_wrapper(struct mlx4_dev *dev, int slave,
- 			goto ex_put_scq;
- 	}
- 
-+	adjust_proxy_tun_qkey(dev, vhcr, qpc);
-+	update_pkey_index(dev, slave, inbox);
- 	err = mlx4_DMA_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
- 	if (err)
- 		goto ex_put_srq;
-@@ -2054,6 +2110,48 @@ static int get_containing_mtt(struct mlx4_dev *dev, int slave, int start,
- 	return err;
- }
- 
-+static int verify_qp_parameters(struct mlx4_dev *dev,
-+				struct mlx4_cmd_mailbox *inbox,
-+				enum qp_transition transition, u8 slave)
-+{
-+	u32			qp_type;
-+	struct mlx4_qp_context	*qp_ctx;
-+	enum mlx4_qp_optpar	optpar;
-+
-+	qp_ctx  = inbox->buf + 8;
-+	qp_type	= (be32_to_cpu(qp_ctx->flags) >> 16) & 0xff;
-+	optpar	= be32_to_cpu(*(__be32 *) inbox->buf);
-+
-+	switch (qp_type) {
-+	case MLX4_QP_ST_RC:
-+	case MLX4_QP_ST_UC:
-+		switch (transition) {
-+		case QP_TRANS_INIT2RTR:
-+		case QP_TRANS_RTR2RTS:
-+		case QP_TRANS_RTS2RTS:
-+		case QP_TRANS_SQD2SQD:
-+		case QP_TRANS_SQD2RTS:
-+			if (slave != mlx4_master_func_num(dev))
-+				/* slaves have only gid index 0 */
-+				if (optpar & MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH)
-+					if (qp_ctx->pri_path.mgid_index)
-+						return -EINVAL;
-+				if (optpar & MLX4_QP_OPTPAR_ALT_ADDR_PATH)
-+					if (qp_ctx->alt_path.mgid_index)
-+						return -EINVAL;
-+			break;
-+		default:
-+			break;
++	do {
++		spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
++		ret = idr_get_new_above(&sriov->pv_id_table, ent,
++					next_id, &id);
++		if (!ret) {
++			next_id = ((unsigned) id + 1) & MAX_ID_MASK;
++			ent->pv_cm_id = (u32)id;
++			sl_id_map_add(ibdev, ent);
 +		}
 +
-+		break;
-+	default:
-+		break;
++		spin_unlock(&sriov->id_map_lock);
++	} while (ret == -EAGAIN && idr_pre_get(&sriov->pv_id_table, GFP_KERNEL));
++	/*the function idr_get_new_above can return -ENOSPC, so don't insert in that case.*/
++	if (!ret) {
++		spin_lock(&sriov->id_map_lock);
++		list_add_tail(&ent->list, &sriov->cm_list);
++		spin_unlock(&sriov->id_map_lock);
++		return ent;
++	}
++	/*error flow*/
++	kfree(ent);
++	mlx4_ib_warn(ibdev, "No more space in the idr (err:0x%x)\n", ret);
++	return ERR_PTR(-ENOMEM);
++}
++
++static struct id_map_entry *
++id_map_get(struct ib_device *ibdev, int *pv_cm_id, int sl_cm_id, int slave_id)
++{
++	struct id_map_entry *ent;
++	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
++
++	spin_lock(&sriov->id_map_lock);
++	if (*pv_cm_id == -1) {
++		ent = id_map_find_by_sl_id(ibdev, sl_cm_id, slave_id);
++		if (ent)
++			*pv_cm_id = (int) ent->pv_cm_id;
++	} else
++		ent = (struct id_map_entry *)idr_find(&sriov->pv_id_table, *pv_cm_id);
++	spin_unlock(&sriov->id_map_lock);
++
++	return ent;
++}
++
++static void schedule_delayed(struct ib_device *ibdev, struct id_map_entry *id)
++{
++	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
++	unsigned long flags;
++
++	spin_lock_irqsave(&sriov->going_down_lock, flags);
++	spin_lock(&sriov->id_map_lock);
++	/*make sure that there is no schedule inside the scheduled work.*/
++	if (!sriov->is_going_down) {
++		id->scheduled_delete = 1;
++		schedule_delayed_work(&id->timeout, CM_CLEANUP_CACHE_TIMEOUT);
++	}
++	spin_unlock(&sriov->id_map_lock);
++	spin_unlock_irqrestore(&sriov->going_down_lock, flags);
++}
++
++int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id,
++		struct ib_mad *mad)
++{
++	struct id_map_entry *id;
++	u32 sl_cm_id;
++	int pv_cm_id = -1;
++
++	sl_cm_id = get_local_comm_id(mad);
++
++	if (mad->mad_hdr.attr_id == CM_REQ_ATTR_ID ||
++			mad->mad_hdr.attr_id == CM_REP_ATTR_ID) {
++		id = id_map_alloc(ibdev, slave_id, sl_cm_id);
++		if (IS_ERR(id)) {
++			mlx4_ib_warn(ibdev, "%s: id{slave: %d, sl_cm_id: 0x%x} Failed to id_map_alloc\n",
++				__func__, slave_id, sl_cm_id);
++			return PTR_ERR(id);
++		}
++	} else if (mad->mad_hdr.attr_id == CM_REJ_ATTR_ID) {
++		return 0;
++	} else {
++		id = id_map_get(ibdev, &pv_cm_id, slave_id, sl_cm_id);
++	}
++
++	if (!id) {
++		pr_debug("id{slave: %d, sl_cm_id: 0x%x} is NULL!\n",
++			 slave_id, sl_cm_id);
++		return -EINVAL;
++	}
++
++	set_local_comm_id(mad, id->pv_cm_id);
++
++	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID)
++		schedule_delayed(ibdev, id);
++	else if (mad->mad_hdr.attr_id == CM_DREP_ATTR_ID)
++		id_map_find_del(ibdev, pv_cm_id);
++
++	return 0;
++}
++
++int mlx4_ib_demux_cm_handler(struct ib_device *ibdev, int port, int *slave,
++							     struct ib_mad *mad)
++{
++	u32 pv_cm_id;
++	struct id_map_entry *id;
++
++	if (mad->mad_hdr.attr_id == CM_REQ_ATTR_ID) {
++		union ib_gid gid;
++
++		gid = gid_from_req_msg(ibdev, mad);
++		*slave = mlx4_ib_find_real_gid(ibdev, port, gid.global.interface_id);
++		if (*slave < 0) {
++			mlx4_ib_warn(ibdev, "failed matching slave_id by gid (0x%llx)\n",
++					gid.global.interface_id);
++			return -ENOENT;
++		}
++		return 0;
++	}
++
++	pv_cm_id = get_remote_comm_id(mad);
++	id = id_map_get(ibdev, (int *)&pv_cm_id, -1, -1);
++
++	if (!id) {
++		pr_debug("Couldn't find an entry for pv_cm_id 0x%x\n", pv_cm_id);
++		return -ENOENT;
++	}
++
++	*slave = id->slave_id;
++	set_remote_comm_id(mad, id->sl_cm_id);
++
++	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID)
++		schedule_delayed(ibdev, id);
++	else if (mad->mad_hdr.attr_id == CM_REJ_ATTR_ID ||
++			mad->mad_hdr.attr_id == CM_DREP_ATTR_ID) {
++		id_map_find_del(ibdev, (int) pv_cm_id);
 +	}
 +
 +	return 0;
 +}
 +
- int mlx4_WRITE_MTT_wrapper(struct mlx4_dev *dev, int slave,
- 			   struct mlx4_vhcr *vhcr,
- 			   struct mlx4_cmd_mailbox *inbox,
-@@ -2541,16 +2639,123 @@ out:
++void mlx4_ib_cm_paravirt_init(struct mlx4_ib_dev *dev)
++{
++	spin_lock_init(&dev->sriov.id_map_lock);
++	INIT_LIST_HEAD(&dev->sriov.cm_list);
++	dev->sriov.sl_id_map = RB_ROOT;
++	idr_init(&dev->sriov.pv_id_table);
++	idr_pre_get(&dev->sriov.pv_id_table, GFP_KERNEL);
++}
++
++/* slave = -1 ==> all slaves */
++/* TBD -- call paravirt clean for single slave.  Need for slave RESET event */
++void mlx4_ib_cm_paravirt_clean(struct mlx4_ib_dev *dev, int slave)
++{
++	struct mlx4_ib_sriov *sriov = &dev->sriov;
++	struct rb_root *sl_id_map = &sriov->sl_id_map;
++	struct list_head lh;
++	struct rb_node *nd;
++	int need_flush = 1;
++	struct id_map_entry *map, *tmp_map;
++	/* cancel all delayed work queue entries */
++	INIT_LIST_HEAD(&lh);
++	spin_lock(&sriov->id_map_lock);
++	list_for_each_entry_safe(map, tmp_map, &dev->sriov.cm_list, list) {
++		if (slave < 0 || slave == map->slave_id) {
++			if (map->scheduled_delete)
++				need_flush &= !!cancel_delayed_work(&map->timeout);
++		}
++	}
++
++	spin_unlock(&sriov->id_map_lock);
++
++	if (!need_flush)
++		flush_scheduled_work(); /* make sure all timers were flushed */
++
++	/* now, remove all leftover entries from databases*/
++	spin_lock(&sriov->id_map_lock);
++	if (slave < 0) {
++		while (rb_first(sl_id_map)) {
++			struct id_map_entry *ent =
++				rb_entry(rb_first(sl_id_map),
++					 struct id_map_entry, node);
++
++			rb_erase(&ent->node, sl_id_map);
++			idr_remove(&sriov->pv_id_table, (int) ent->pv_cm_id);
++		}
++		list_splice_init(&dev->sriov.cm_list, &lh);
++	} else {
++		/* first, move nodes belonging to slave to db remove list */
++		nd = rb_first(sl_id_map);
++		while (nd) {
++			struct id_map_entry *ent =
++				rb_entry(nd, struct id_map_entry, node);
++			nd = rb_next(nd);
++			if (ent->slave_id == slave)
++				list_move_tail(&ent->list, &lh);
++		}
++		/* remove those nodes from databases */
++		list_for_each_entry_safe(map, tmp_map, &lh, list) {
++			rb_erase(&map->node, sl_id_map);
++			idr_remove(&sriov->pv_id_table, (int) map->pv_cm_id);
++		}
++
++		/* add remaining nodes from cm_list */
++		list_for_each_entry_safe(map, tmp_map, &dev->sriov.cm_list, list) {
++			if (slave == map->slave_id)
++				list_move_tail(&map->list, &lh);
++		}
++	}
++
++	spin_unlock(&sriov->id_map_lock);
++
++	/* free any map entries left behind due to cancel_delayed_work above */
++	list_for_each_entry_safe(map, tmp_map, &lh, list) {
++		list_del(&map->list);
++		kfree(map);
++	}
++}
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 513bb0d..03eeafa 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -541,6 +541,10 @@ static int mlx4_ib_demux_mad(struct ib_device *ibdev, u8 port,
+ 					     (struct ib_sa_mad *) mad))
+ 			return 0;
+ 		break;
++	case IB_MGMT_CLASS_CM:
++		if (mlx4_ib_demux_cm_handler(ibdev, port, &slave, mad))
++			return 0;
++		break;
+ 	case IB_MGMT_CLASS_DEVICE_MGMT:
+ 		if (mad->mad_hdr.method != IB_MGMT_METHOD_GET_RESP)
+ 			return 0;
+@@ -1073,6 +1077,11 @@ static void mlx4_ib_multiplex_mad(struct mlx4_ib_demux_pv_ctx *ctx, struct ib_wc
+ 			      (struct ib_sa_mad *) &tunnel->mad))
+ 			return;
+ 		break;
++	case IB_MGMT_CLASS_CM:
++		if (mlx4_ib_multiplex_cm_handler(ctx->ib_dev, ctx->port, slave,
++			      (struct ib_mad *) &tunnel->mad))
++			return;
++		break;
+ 	case IB_MGMT_CLASS_DEVICE_MGMT:
+ 		if (tunnel->mad.mad_hdr.method != IB_MGMT_METHOD_GET &&
+ 		    tunnel->mad.mad_hdr.method != IB_MGMT_METHOD_SET)
+@@ -1787,6 +1796,7 @@ int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
+ 
+ 	dev->sriov.is_going_down = 0;
+ 	spin_lock_init(&dev->sriov.going_down_lock);
++	mlx4_ib_cm_paravirt_init(dev);
+ 
+ 	mlx4_ib_warn(&dev->ib_dev, "multi-function enabled\n");
+ 
+@@ -1815,6 +1825,7 @@ demux_err:
+ 		mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
+ 		--i;
+ 	}
++	mlx4_ib_cm_paravirt_clean(dev, -1);
+ 
  	return err;
  }
- 
-+int mlx4_INIT2INIT_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			      struct mlx4_vhcr *vhcr,
-+			      struct mlx4_cmd_mailbox *inbox,
-+			      struct mlx4_cmd_mailbox *outbox,
-+			      struct mlx4_cmd_info *cmd)
-+{
-+	struct mlx4_qp_context *context = inbox->buf + 8;
-+	adjust_proxy_tun_qkey(dev, vhcr, context);
-+	update_pkey_index(dev, slave, inbox);
-+	return mlx4_GEN_QP_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
-+}
+@@ -1830,7 +1841,7 @@ void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev)
+ 	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
+ 	dev->sriov.is_going_down = 1;
+ 	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
+-	if (mlx4_is_master(dev->dev))
++	if (mlx4_is_master(dev->dev)) {
+ 		for (i = 0; i < dev->num_ports; i++) {
+ 			flush_workqueue(dev->sriov.demux[i].ud_wq);
+ 			mlx4_ib_free_sqp_ctx(dev->sriov.sqps[i]);
+@@ -1838,4 +1849,7 @@ void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev)
+ 			dev->sriov.sqps[i] = NULL;
+ 			mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
+ 		}
 +
- int mlx4_INIT2RTR_QP_wrapper(struct mlx4_dev *dev, int slave,
- 			     struct mlx4_vhcr *vhcr,
- 			     struct mlx4_cmd_mailbox *inbox,
- 			     struct mlx4_cmd_mailbox *outbox,
- 			     struct mlx4_cmd_info *cmd)
- {
-+	int err;
- 	struct mlx4_qp_context *qpc = inbox->buf + 8;
- 
--	update_ud_gid(dev, qpc, (u8)slave);
-+	err = verify_qp_parameters(dev, inbox, QP_TRANS_INIT2RTR, slave);
-+	if (err)
-+		return err;
-+
-+	update_pkey_index(dev, slave, inbox);
-+	update_gid(dev, inbox, (u8)slave);
-+	adjust_proxy_tun_qkey(dev, vhcr, qpc);
-+
-+	return mlx4_GEN_QP_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
-+}
-+
-+int mlx4_RTR2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd)
-+{
-+	int err;
-+	struct mlx4_qp_context *context = inbox->buf + 8;
-+
-+	err = verify_qp_parameters(dev, inbox, QP_TRANS_RTR2RTS, slave);
-+	if (err)
-+		return err;
-+
-+	update_pkey_index(dev, slave, inbox);
-+	update_gid(dev, inbox, (u8)slave);
-+	adjust_proxy_tun_qkey(dev, vhcr, context);
-+	return mlx4_GEN_QP_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
-+}
-+
-+int mlx4_RTS2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd)
-+{
-+	int err;
-+	struct mlx4_qp_context *context = inbox->buf + 8;
-+
-+	err = verify_qp_parameters(dev, inbox, QP_TRANS_RTS2RTS, slave);
-+	if (err)
-+		return err;
-+
-+	update_pkey_index(dev, slave, inbox);
-+	update_gid(dev, inbox, (u8)slave);
-+	adjust_proxy_tun_qkey(dev, vhcr, context);
-+	return mlx4_GEN_QP_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
-+}
-+
-+
-+int mlx4_SQERR2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			      struct mlx4_vhcr *vhcr,
-+			      struct mlx4_cmd_mailbox *inbox,
-+			      struct mlx4_cmd_mailbox *outbox,
-+			      struct mlx4_cmd_info *cmd)
-+{
-+	struct mlx4_qp_context *context = inbox->buf + 8;
-+	adjust_proxy_tun_qkey(dev, vhcr, context);
-+	return mlx4_GEN_QP_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
-+}
-+
-+int mlx4_SQD2SQD_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd)
-+{
-+	int err;
-+	struct mlx4_qp_context *context = inbox->buf + 8;
-+
-+	err = verify_qp_parameters(dev, inbox, QP_TRANS_SQD2SQD, slave);
-+	if (err)
-+		return err;
-+
-+	adjust_proxy_tun_qkey(dev, vhcr, context);
-+	update_gid(dev, inbox, (u8)slave);
-+	update_pkey_index(dev, slave, inbox);
-+	return mlx4_GEN_QP_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
-+}
-+
-+int mlx4_SQD2RTS_QP_wrapper(struct mlx4_dev *dev, int slave,
-+			    struct mlx4_vhcr *vhcr,
-+			    struct mlx4_cmd_mailbox *inbox,
-+			    struct mlx4_cmd_mailbox *outbox,
-+			    struct mlx4_cmd_info *cmd)
-+{
-+	int err;
-+	struct mlx4_qp_context *context = inbox->buf + 8;
-+
-+	err = verify_qp_parameters(dev, inbox, QP_TRANS_SQD2RTS, slave);
-+	if (err)
-+		return err;
- 
-+	adjust_proxy_tun_qkey(dev, vhcr, context);
-+	update_gid(dev, inbox, (u8)slave);
-+	update_pkey_index(dev, slave, inbox);
- 	return mlx4_GEN_QP_wrapper(dev, slave, vhcr, inbox, outbox, cmd);
++		mlx4_ib_cm_paravirt_clean(dev, -1);
++	}
  }
- 
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 9e95fdf..bb878a9 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -797,6 +797,9 @@ int mlx4_wol_write(struct mlx4_dev *dev, u64 config, int port);
- int mlx4_counter_alloc(struct mlx4_dev *dev, u32 *idx);
- void mlx4_counter_free(struct mlx4_dev *dev, u32 idx);
- 
-+void mlx4_sync_pkey_table(struct mlx4_dev *dev, int slave, int port,
-+			  int i, int val);
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index ab1d7f9..6d297b2 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -347,6 +347,12 @@ struct mlx4_ib_sriov {
+ 	 * it may be called from interrupt context.*/
+ 	spinlock_t going_down_lock;
+ 	int is_going_down;
 +
- int mlx4_get_parav_qkey(struct mlx4_dev *dev, u32 qpn, u32 *qkey);
++	/* CM paravirtualization fields */
++	struct list_head cm_list;
++	spinlock_t id_map_lock;
++	struct rb_root sl_id_map;
++	struct idr pv_id_table;
+ };
  
- #endif /* MLX4_DEVICE_H */
+ struct mlx4_ib_iboe {
+@@ -590,4 +596,13 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 			 u32 qkey, struct ib_ah_attr *attr, struct ib_mad *mad);
+ __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx);
+ 
++int mlx4_ib_demux_cm_handler(struct ib_device *ibdev, int port, int *slave,
++		struct ib_mad *mad);
++
++int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id,
++		struct ib_mad *mad);
++
++void mlx4_ib_cm_paravirt_init(struct mlx4_ib_dev *dev);
++void mlx4_ib_cm_paravirt_clean(struct mlx4_ib_dev *dev, int slave_id);
++
+ #endif /* MLX4_IB_H */
 -- 
 1.7.1
 
