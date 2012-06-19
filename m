@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V1 03/29] IB/mlx4: Add debug printouts
-Date: Tue, 19 Jun 2012 11:21:35 +0300
-Message-ID: <1340094121-14858-4-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V1 12/29] {NET,IB}/mlx4_core: place phys gid and pkey tbl sizes in mlx4_phys_caps struct and paravirtualize them
+Date: Tue, 19 Jun 2012 11:21:44 +0300
+Message-ID: <1340094121-14858-13-git-send-email-jackm@dev.mellanox.co.il>
 References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,138 +10,296 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Define pr_fmt and add some pr_debug prints.
+To allow easy paravirtualization of pkey and gid table sizes,
+keep paravirtualized sizes in mlx4_dev->caps, but save the
+actual physical sizes in FW in struct: mlx4_dev->phys_cap.
+
+In addition, in SRIOV mode, do the following:
+
+1. Reduce reported pkey table size by 1.
+   This is done to reserve the highest pkey index for internal use,
+   for declaring an invalid pkey in pkey paravirtualization.
+   We require a pkey index which always contain an invalid pkey
+   value for this purpose (i.e., one which cannot be modified by
+   the subnet manager).  The way to do this is to reduce the
+   pkey table size reported to the subnet manager by 1, so that
+   it will not attempt to access the pkey at index #127.
+
+2. Paravirtualize the gid table size to 1. Thus, each guest sees
+   only a single gid (at its paravirtualized index 0).
+
+In addition, since we are paravirtualizing the GID table size to 1,
+we add paravirtualization of the master GID event here
+(i.e., we do not do ib_dispatch_event for the GUID change
+event on the master, since its (only) GUID never changes).
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c     |   19 +++++++++++++++++++
- drivers/infiniband/hw/mlx4/main.c    |    2 +-
- drivers/infiniband/hw/mlx4/mlx4_ib.h |   10 ++++++++++
- drivers/infiniband/hw/mlx4/qp.c      |   27 +++++++++++++++++++++++++--
- 4 files changed, 55 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c          |   10 +++++--
+ drivers/net/ethernet/mellanox/mlx4/fw.c   |   43 +++++++++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx4/main.c |   32 +++++++++++++++++++---
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h |    4 ++-
+ drivers/net/ethernet/mellanox/mlx4/port.c |   11 ++++++-
+ include/linux/mlx4/device.h               |    2 +
+ 6 files changed, 92 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 259b067..84786a9 100644
+index dbf315f..ff23063 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -242,6 +242,25 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+@@ -185,8 +185,10 @@ static void smp_snoop(struct ib_device *ibdev, u8 port_num, struct ib_mad *mad,
+ 			break;
+ 
+ 		case IB_SMP_ATTR_GUID_INFO:
+-			mlx4_ib_dispatch_event(dev, port_num,
+-					       IB_EVENT_GID_CHANGE);
++			/* paravirtualized master's guid is guid 0 -- does not change */
++			if (!mlx4_is_master(dev->dev))
++				mlx4_ib_dispatch_event(dev, port_num,
++						       IB_EVENT_GID_CHANGE);
+ 			break;
+ 		default:
+ 			break;
+@@ -488,7 +490,9 @@ void handle_port_mgmt_change_event(struct work_struct *work)
+ 		mlx4_ib_dispatch_event(dev, port, IB_EVENT_PKEY_CHANGE);
+ 		break;
+ 	case MLX4_DEV_PMC_SUBTYPE_GUID_INFO:
+-		mlx4_ib_dispatch_event(dev, port, IB_EVENT_GID_CHANGE);
++		/* paravirtualized master's guid is guid 0 -- does not change */
++		if (!mlx4_is_master(dev->dev))
++			mlx4_ib_dispatch_event(dev, port, IB_EVENT_GID_CHANGE);
+ 		break;
+ 	default:
+ 		pr_warn("Unsupported subtype 0x%x for "
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index d7fa22e..dacbdfb 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -738,9 +738,12 @@ int mlx4_QUERY_PORT_wrapper(struct mlx4_dev *dev, int slave,
+ {
+ 	u64 def_mac;
+ 	u8 port_type;
++	u16 short_field;
  	int err;
- 	struct ib_port_attr pattr;
  
-+	if (in_wc && in_wc->qp->qp_num) {
-+		pr_debug("received MAD: slid:%d sqpn:%d "
-+			"dlid_bits:%d dqpn:%d wc_flags:0x%x, cls %x, mtd %x, atr %x\n",
-+			in_wc->slid, in_wc->src_qp,
-+			in_wc->dlid_path_bits,
-+			in_wc->qp->qp_num,
-+			in_wc->wc_flags,
-+			in_mad->mad_hdr.mgmt_class, in_mad->mad_hdr.method,
-+			be16_to_cpu(in_mad->mad_hdr.attr_id));
-+		if (in_wc->wc_flags & IB_WC_GRH) {
-+			pr_debug("sgid_hi:0x%016llx sgid_lo:0x%016llx\n",
-+				 be64_to_cpu(in_grh->sgid.global.subnet_prefix),
-+				 be64_to_cpu(in_grh->sgid.global.interface_id));
-+			pr_debug("dgid_hi:0x%016llx dgid_lo:0x%016llx\n",
-+				 be64_to_cpu(in_grh->dgid.global.subnet_prefix),
-+				 be64_to_cpu(in_grh->dgid.global.interface_id));
-+		}
+ #define MLX4_VF_PORT_NO_LINK_SENSE_MASK	0xE0
++#define QUERY_PORT_CUR_MAX_PKEY_OFFSET	0x0c
++#define QUERY_PORT_CUR_MAX_GID_OFFSET	0x0e
+ 
+ 	err = mlx4_cmd_box(dev, 0, outbox->dma, vhcr->in_modifier, 0,
+ 			   MLX4_CMD_QUERY_PORT, MLX4_CMD_TIME_CLASS_B,
+@@ -763,11 +766,51 @@ int mlx4_QUERY_PORT_wrapper(struct mlx4_dev *dev, int slave,
+ 
+ 		MLX4_PUT(outbox->buf, port_type,
+ 			 QUERY_PORT_SUPPORTED_TYPE_OFFSET);
++
++		short_field = 1; /* slave max gids */
++		MLX4_PUT(outbox->buf, short_field,
++			 QUERY_PORT_CUR_MAX_GID_OFFSET);
++
++		short_field = dev->caps.pkey_table_len[vhcr->in_modifier];
++		MLX4_PUT(outbox->buf, short_field,
++			 QUERY_PORT_CUR_MAX_PKEY_OFFSET);
+ 	}
+ 
+ 	return err;
+ }
+ 
++int mlx4_get_slave_pkey_gid_tbl_len(struct mlx4_dev *dev, u8 port,
++				    int *gid_tbl_len, int *pkey_tbl_len)
++{
++	struct mlx4_cmd_mailbox *mailbox;
++	u32			*outbox;
++	u16			field;
++	int			err;
++
++	mailbox = mlx4_alloc_cmd_mailbox(dev);
++	if (IS_ERR(mailbox))
++		return PTR_ERR(mailbox);
++
++	err =  mlx4_cmd_box(dev, 0, mailbox->dma, port, 0,
++			    MLX4_CMD_QUERY_PORT, MLX4_CMD_TIME_CLASS_B,
++			    MLX4_CMD_WRAPPED);
++	if (err)
++		goto out;
++
++	outbox = mailbox->buf;
++
++	MLX4_GET(field, outbox, QUERY_PORT_CUR_MAX_GID_OFFSET);
++	*gid_tbl_len = field;
++
++	MLX4_GET(field, outbox, QUERY_PORT_CUR_MAX_PKEY_OFFSET);
++	*pkey_tbl_len = field;
++
++out:
++	mlx4_free_cmd_mailbox(dev, mailbox);
++	return err;
++}
++EXPORT_SYMBOL(mlx4_get_slave_pkey_gid_tbl_len);
++
+ int mlx4_map_cmd(struct mlx4_dev *dev, u16 op, struct mlx4_icm *icm, u64 virt)
+ {
+ 	struct mlx4_cmd_mailbox *mailbox;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 71cd6a4..f8867c2 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -215,6 +215,10 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 	for (i = 1; i <= dev->caps.num_ports; ++i) {
+ 		dev->caps.vl_cap[i]	    = dev_cap->max_vl[i];
+ 		dev->caps.ib_mtu_cap[i]	    = dev_cap->ib_mtu[i];
++		dev->phys_caps.gid_phys_table_len[i]  = dev_cap->max_gids[i];
++		dev->phys_caps.pkey_phys_table_len[i] = dev_cap->max_pkeys[i];
++		/* set gid and pkey table operating lengths by default
++		 * to non-sriov values */
+ 		dev->caps.gid_table_len[i]  = dev_cap->max_gids[i];
+ 		dev->caps.pkey_table_len[i] = dev_cap->max_pkeys[i];
+ 		dev->caps.port_width_cap[i] = dev_cap->max_port_width[i];
+@@ -498,8 +502,13 @@ static int mlx4_slave_cap(struct mlx4_dev *dev)
+ 		return -ENODEV;
+ 	}
+ 
+-	for (i = 1; i <= dev->caps.num_ports; ++i)
++	for (i = 1; i <= dev->caps.num_ports; ++i) {
+ 		dev->caps.port_mask[i] = dev->caps.port_type[i];
++		if (mlx4_get_slave_pkey_gid_tbl_len(dev, i,
++						    &dev->caps.gid_table_len[i],
++						    &dev->caps.pkey_table_len[i]))
++			return -ENODEV;
 +	}
-+
- 	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
  
- 	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0) {
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 3530c41..5266b49 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -50,7 +50,7 @@
- #include "mlx4_ib.h"
- #include "user.h"
+ 	if (dev->caps.uar_page_size * (dev->caps.num_uars -
+ 				       dev->caps.reserved_uars) >
+@@ -536,7 +545,7 @@ int mlx4_change_port_types(struct mlx4_dev *dev,
+ 		for (port = 1; port <= dev->caps.num_ports; port++) {
+ 			mlx4_CLOSE_PORT(dev, port);
+ 			dev->caps.port_type[port] = port_types[port - 1];
+-			err = mlx4_SET_PORT(dev, port);
++			err = mlx4_SET_PORT(dev, port, -1);
+ 			if (err) {
+ 				mlx4_err(dev, "Failed to set port %d, "
+ 					      "aborting\n", port);
+@@ -722,7 +731,7 @@ static ssize_t set_port_ib_mtu(struct device *dev,
+ 	mlx4_unregister_device(mdev);
+ 	for (port = 1; port <= mdev->caps.num_ports; port++) {
+ 		mlx4_CLOSE_PORT(mdev, port);
+-		err = mlx4_SET_PORT(mdev, port);
++		err = mlx4_SET_PORT(mdev, port, -1);
+ 		if (err) {
+ 			mlx4_err(mdev, "Failed to set port %d, "
+ 				      "aborting\n", port);
+@@ -1173,6 +1182,17 @@ err:
+ 	return -EIO;
+ }
  
--#define DRV_NAME	"mlx4_ib"
-+#define DRV_NAME	MLX4_IB_DRV_NAME
- #define DRV_VERSION	"1.0"
- #define DRV_RELDATE	"April 4, 2008"
++static void mlx4_parav_master_pf_caps(struct mlx4_dev *dev)
++{
++	int i;
++
++	for (i = 1; i <= dev->caps.num_ports; i++) {
++		dev->caps.gid_table_len[i] = 1;
++		dev->caps.pkey_table_len[i] =
++			dev->phys_caps.pkey_phys_table_len[i] - 1;
++	}
++}
++
+ static int mlx4_init_hca(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_priv	  *priv = mlx4_priv(dev);
+@@ -1212,6 +1232,9 @@ static int mlx4_init_hca(struct mlx4_dev *dev)
+ 			goto err_stop_fw;
+ 		}
  
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index ff36655..5f298af 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -44,6 +44,16 @@
- #include <linux/mlx4/device.h>
- #include <linux/mlx4/doorbell.h>
++		if (mlx4_is_master(dev))
++			mlx4_parav_master_pf_caps(dev);
++
+ 		profile = default_profile;
  
-+#define MLX4_IB_DRV_NAME	"mlx4_ib"
-+
-+#ifdef pr_fmt
-+#undef pr_fmt
-+#endif
-+#define pr_fmt(fmt)	"<" MLX4_IB_DRV_NAME "> %s: " fmt, __func__
-+
-+#define mlx4_ib_warn(ibdev, format, arg...) \
-+	dev_warn((ibdev)->dma_device, MLX4_IB_DRV_NAME ": " format, ## arg)
-+
+ 		icm_size = mlx4_make_profile(dev, &profile, &dev_cap,
+@@ -1500,7 +1523,8 @@ static int mlx4_setup_hca(struct mlx4_dev *dev)
+ 			else
+ 				dev->caps.port_ib_mtu[port] = IB_MTU_4096;
+ 
+-			err = mlx4_SET_PORT(dev, port);
++			err = mlx4_SET_PORT(dev, port, mlx4_is_master(dev) ?
++					    dev->caps.pkey_table_len[port] : -1);
+ 			if (err) {
+ 				mlx4_err(dev, "Failed to set port %d, aborting\n",
+ 					port);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index 4d11d12..cde6e51 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -969,7 +969,7 @@ int mlx4_change_port_types(struct mlx4_dev *dev,
+ void mlx4_init_mac_table(struct mlx4_dev *dev, struct mlx4_mac_table *table);
+ void mlx4_init_vlan_table(struct mlx4_dev *dev, struct mlx4_vlan_table *table);
+ 
+-int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port);
++int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port, int pkey_tbl_sz);
+ /* resource tracker functions*/
+ int mlx4_get_slave_from_resource_id(struct mlx4_dev *dev,
+ 				    enum mlx4_resource resource_type,
+@@ -1012,6 +1012,8 @@ int mlx4_QUERY_PORT_wrapper(struct mlx4_dev *dev, int slave,
+ 			    struct mlx4_cmd_info *cmd);
+ int mlx4_get_port_ib_caps(struct mlx4_dev *dev, u8 port, __be32 *caps);
+ 
++int mlx4_get_slave_pkey_gid_tbl_len(struct mlx4_dev *dev, u8 port,
++				    int *gid_tbl_len, int *pkey_tbl_len);
+ 
+ int mlx4_QP_ATTACH_wrapper(struct mlx4_dev *dev, int slave,
+ 			   struct mlx4_vhcr *vhcr,
+diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+index a8fb529..90dc475 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/port.c
++++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+@@ -726,14 +726,15 @@ int mlx4_SET_PORT_wrapper(struct mlx4_dev *dev, int slave,
  enum {
- 	MLX4_IB_SQ_MIN_WQE_SHIFT = 6,
- 	MLX4_IB_MAX_HEADROOM	 = 2048
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 8d4ed24..1b54e41 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1335,11 +1335,21 @@ int mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	cur_state = attr_mask & IB_QP_CUR_STATE ? attr->cur_qp_state : qp->state;
- 	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
+ 	MLX4_SET_PORT_VL_CAP	 = 4, /* bits 7:4 */
+ 	MLX4_SET_PORT_MTU_CAP	 = 12, /* bits 15:12 */
++	MLX4_CHANGE_PORT_PKEY_TBL_SZ = 20,
+ 	MLX4_CHANGE_PORT_VL_CAP	 = 21,
+ 	MLX4_CHANGE_PORT_MTU_CAP = 22,
+ };
  
--	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type, attr_mask))
-+	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type, attr_mask)) {
-+		pr_debug("qpn 0x%x: invalid attribute mask specified "
-+			 "for transition %d to %d. qp_type %d,"
-+			 " attr_mask 0x%x\n",
-+			 ibqp->qp_num, cur_state, new_state,
-+			 ibqp->qp_type, attr_mask);
- 		goto out;
+-int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port)
++int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port, int pkey_tbl_sz)
+ {
+ 	struct mlx4_cmd_mailbox *mailbox;
+-	int err, vl_cap;
++	int err, vl_cap, pkey_tbl_flag = 0;
+ 
+ 	if (dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH)
+ 		return 0;
+@@ -746,11 +747,17 @@ int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port)
+ 
+ 	((__be32 *) mailbox->buf)[1] = dev->caps.ib_port_def_cap[port];
+ 
++	if (pkey_tbl_sz >= 0 && mlx4_is_master(dev)) {
++		pkey_tbl_flag = 1;
++		((__be16 *) mailbox->buf)[20] = cpu_to_be16(pkey_tbl_sz);
 +	}
++
+ 	/* IB VL CAP enum isn't used by the firmware, just numerical values */
+ 	for (vl_cap = 8; vl_cap >= 1; vl_cap >>= 1) {
+ 		((__be32 *) mailbox->buf)[0] = cpu_to_be32(
+ 			(1 << MLX4_CHANGE_PORT_MTU_CAP) |
+ 			(1 << MLX4_CHANGE_PORT_VL_CAP)  |
++			(pkey_tbl_flag << MLX4_CHANGE_PORT_PKEY_TBL_SZ) |
+ 			(dev->caps.port_ib_mtu[port] << MLX4_SET_PORT_MTU_CAP) |
+ 			(vl_cap << MLX4_SET_PORT_VL_CAP));
+ 		err = mlx4_cmd(dev, mailbox->dma, port, 0, MLX4_CMD_SET_PORT,
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index c0df6c9..19cc6db 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -269,6 +269,8 @@ static inline u64 mlx4_fw_ver(u64 major, u64 minor, u64 subminor)
+ }
  
- 	if ((attr_mask & IB_QP_PORT) &&
- 	    (attr->port_num == 0 || attr->port_num > dev->dev->caps.num_ports)) {
-+		pr_debug("qpn 0x%x: invalid port number (%d) specified "
-+			 "for transition %d to %d. qp_type %d\n",
-+			 ibqp->qp_num, attr->port_num, cur_state,
-+			 new_state, ibqp->qp_type);
- 		goto out;
- 	}
- 
-@@ -1350,17 +1360,30 @@ int mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 
- 	if (attr_mask & IB_QP_PKEY_INDEX) {
- 		int p = attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
--		if (attr->pkey_index >= dev->dev->caps.pkey_table_len[p])
-+		if (attr->pkey_index >= dev->dev->caps.pkey_table_len[p]) {
-+			pr_debug("qpn 0x%x: invalid pkey index (%d) specified "
-+				 "for transition %d to %d. qp_type %d\n",
-+				 ibqp->qp_num, attr->pkey_index, cur_state,
-+				 new_state, ibqp->qp_type);
- 			goto out;
-+		}
- 	}
- 
- 	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC &&
- 	    attr->max_rd_atomic > dev->dev->caps.max_qp_init_rdma) {
-+		pr_debug("qpn 0x%x: max_rd_atomic (%d) too large. "
-+			 "Transition %d to %d. qp_type %d\n",
-+			 ibqp->qp_num, attr->max_rd_atomic, cur_state,
-+			 new_state, ibqp->qp_type);
- 		goto out;
- 	}
- 
- 	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC &&
- 	    attr->max_dest_rd_atomic > dev->dev->caps.max_qp_dest_rdma) {
-+		pr_debug("qpn 0x%x: max_dest_rd_atomic (%d) too large. "
-+			 "Transition %d to %d. qp_type %d\n",
-+			 ibqp->qp_num, attr->max_dest_rd_atomic, cur_state,
-+			 new_state, ibqp->qp_type);
- 		goto out;
- 	}
+ struct mlx4_phys_caps {
++	u32			gid_phys_table_len[MLX4_MAX_PORTS + 1];
++	u32			pkey_phys_table_len[MLX4_MAX_PORTS + 1];
+ 	u32			num_phys_eqs;
+ };
  
 -- 
 1.7.1
