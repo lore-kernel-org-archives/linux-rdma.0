@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V1 26/29] net/mlx4_core: INIT/CLOSE port logic for IB ports in SRIOV mode
-Date: Tue, 19 Jun 2012 11:21:58 +0300
-Message-ID: <1340094121-14858-27-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V1 29/29] {NET,IB}/mlx4: Paravirtualize Node Guids for slaves.
+Date: Tue, 19 Jun 2012 11:22:01 +0300
+Message-ID: <1340094121-14858-30-git-send-email-jackm@dev.mellanox.co.il>
 References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,191 +10,156 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Normally, INIT_PORT and CLOSE_PORT are invoked when special QP0
-transitions to RTR, or transitions to ERR/RESET respectively.
-
-In SRIOV mode, however, the master is also paravirtualized.
-This in turn requires that we not do INIT_PORT until the
-entire QP0 path (real QP0 and proxy QP0) is ready to receive.
-When the real QP0 goes down, we indicate that the port is not active.
+This is necessary in order to support more than one VF/PF on a VM for software
+that uses the node guid as a discriminator, such as librdmacm.
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/fw.c |   71 +++++++++++++++++++++++++------
- drivers/net/ethernet/mellanox/mlx4/qp.c |   38 +++++++++++++++--
- 2 files changed, 92 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c          |   14 ++++++++++++++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h      |    3 +++
+ drivers/net/ethernet/mellanox/mlx4/cmd.c  |   11 +++++++++++
+ drivers/net/ethernet/mellanox/mlx4/main.c |   22 ++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h |    1 +
+ include/linux/mlx4/device.h               |    2 ++
+ 6 files changed, 53 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index 5d19750..d72595f 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -1316,6 +1316,19 @@ out:
- 	return err;
- }
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 6a485d0..e01309b 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -35,6 +35,7 @@
+ #include <rdma/ib_sa.h>
+ #include <rdma/ib_cache.h>
  
-+/* for IB-type ports only in SRIOV mode. Checks that both proxy QP0
-+ * and real QP0 are active, so that the paravirtualized QP0 is ready
-+ * to operate */
-+static int check_qp0_state(struct mlx4_dev *dev, int function, int port)
++#include <linux/random.h>
+ #include <linux/mlx4/cmd.h>
+ #include <linux/gfp.h>
+ #include <rdma/ib_pma.h>
+@@ -89,6 +90,12 @@ static void handle_lid_change_event(struct mlx4_ib_dev *dev, u8 port_num);
+ static void __propagate_pkey_ev(struct mlx4_ib_dev *dev, int port_num,
+ 				int block, u32 change_bitmap);
+ 
++__be64 mlx4_ib_gen_node_guid(void)
 +{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	/* irrelevant if not infiniband */
-+	if (priv->mfunc.master.qp0_state[port].proxy_qp0_active &&
-+	    priv->mfunc.master.qp0_state[port].qp0_active)
-+		return 1;
-+	return 0;
++#define NODE_GUID_HI	((u64) (((u64)IB_OPENIB_OUI) << 40))
++	return (cpu_to_be64( NODE_GUID_HI | random32()));
 +}
 +
- int mlx4_INIT_PORT_wrapper(struct mlx4_dev *dev, int slave,
- 			   struct mlx4_vhcr *vhcr,
- 			   struct mlx4_cmd_mailbox *inbox,
-@@ -1332,14 +1345,29 @@ int mlx4_INIT_PORT_wrapper(struct mlx4_dev *dev, int slave,
- 	if (dev->caps.port_mask[port] == MLX4_PORT_TYPE_IB)
- 		return -ENODEV;
- 
--	/* Enable port only if it was previously disabled */
--	if (!priv->mfunc.master.init_port_ref[port]) {
--		err = mlx4_cmd(dev, 0, port, 0, MLX4_CMD_INIT_PORT,
--			       MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
--		if (err)
--			return err;
-+	if (dev->caps.port_mask[port] != MLX4_PORT_TYPE_IB) {
-+		/* Enable port only if it was previously disabled */
-+		if (!priv->mfunc.master.init_port_ref[port]) {
-+			err = mlx4_cmd(dev, 0, port, 0, MLX4_CMD_INIT_PORT,
-+				       MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
-+			if (err)
-+				return err;
-+		}
-+		priv->mfunc.master.slave_state[slave].init_port_mask |= (1 << port);
-+	} else {
-+		if (slave == mlx4_master_func_num(dev)) {
-+			if (check_qp0_state(dev, slave, port) &&
-+			    !priv->mfunc.master.qp0_state[port].port_active) {
-+				err = mlx4_cmd(dev, 0, port, 0, MLX4_CMD_INIT_PORT,
-+					       MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
-+				if (err)
-+					return err;
-+				priv->mfunc.master.qp0_state[port].port_active = 1;
-+				priv->mfunc.master.slave_state[slave].init_port_mask |= (1 << port);
-+			}
-+		} else
-+			priv->mfunc.master.slave_state[slave].init_port_mask |= (1 << port);
- 	}
--	priv->mfunc.master.slave_state[slave].init_port_mask |= (1 << port);
- 	++priv->mfunc.master.init_port_ref[port];
- 	return 0;
- }
-@@ -1414,13 +1442,30 @@ int mlx4_CLOSE_PORT_wrapper(struct mlx4_dev *dev, int slave,
- 
- 	if (dev->caps.port_mask[port] == MLX4_PORT_TYPE_IB)
- 		return -ENODEV;
--	if (priv->mfunc.master.init_port_ref[port] == 1) {
--		err = mlx4_cmd(dev, 0, port, 0, MLX4_CMD_CLOSE_PORT, 1000,
--			       MLX4_CMD_NATIVE);
--		if (err)
--			return err;
-+
-+	if (dev->caps.port_mask[port] != MLX4_PORT_TYPE_IB) {
-+		if (priv->mfunc.master.init_port_ref[port] == 1) {
-+			err = mlx4_cmd(dev, 0, port, 0, MLX4_CMD_CLOSE_PORT,
-+				       1000, MLX4_CMD_NATIVE);
-+			if (err)
-+				return err;
-+		}
-+		priv->mfunc.master.slave_state[slave].init_port_mask &= ~(1 << port);
-+	} else {
-+		/* infiniband port */
-+		if (slave == mlx4_master_func_num(dev)) {
-+			if (!priv->mfunc.master.qp0_state[port].qp0_active &&
-+			    priv->mfunc.master.qp0_state[port].port_active) {
-+				err = mlx4_cmd(dev, 0, port, 0, MLX4_CMD_CLOSE_PORT,
-+					       1000, MLX4_CMD_NATIVE);
-+				if (err)
-+					return err;
-+				priv->mfunc.master.slave_state[slave].init_port_mask &= ~(1 << port);
-+				priv->mfunc.master.qp0_state[port].port_active = 0;
-+			}
-+		} else
-+			priv->mfunc.master.slave_state[slave].init_port_mask &= ~(1 << port);
- 	}
--	priv->mfunc.master.slave_state[slave].init_port_mask &= ~(1 << port);
- 	--priv->mfunc.master.init_port_ref[port];
- 	return 0;
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx4/qp.c b/drivers/net/ethernet/mellanox/mlx4/qp.c
-index b8da72b..436ef6c 100644
---- a/drivers/net/ethernet/mellanox/mlx4/qp.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/qp.c
-@@ -67,10 +67,18 @@ void mlx4_qp_event(struct mlx4_dev *dev, u32 qpn, int event_type)
- 		complete(&qp->free);
- }
- 
--static int is_qp0(struct mlx4_dev *dev, struct mlx4_qp *qp)
-+/* used for INIT/CLOSE port logic */
-+static int is_qp0(struct mlx4_dev *dev, struct mlx4_qp *qp, int *real_qp0, int *proxy_qp0)
+ __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx)
  {
--	return qp->qpn >= dev->caps.sqp_start &&
-+	/* qp0 is either the proxy qp0, or the real qp0 */
-+	*proxy_qp0 = qp->qpn >= dev->caps.sqp_start &&
- 		qp->qpn <= dev->caps.sqp_start + 1;
-+
-+	*real_qp0 = mlx4_is_master(dev) &&
-+		qp->qpn >= dev->caps.base_sqpn &&
-+		qp->qpn <= dev->caps.base_sqpn + 1;
-+
-+	return *real_qp0 || *proxy_qp0;
- }
- 
- static int __mlx4_qp_modify(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
-@@ -122,6 +130,8 @@ static int __mlx4_qp_modify(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
- 	struct mlx4_priv *priv = mlx4_priv(dev);
- 	struct mlx4_cmd_mailbox *mailbox;
- 	int ret = 0;
-+	int real_qp0 = 0;
-+	int proxy_qp0 = 0;
- 	u8 port;
- 
- 	if (cur_state >= MLX4_QP_NUM_STATE || new_state >= MLX4_QP_NUM_STATE ||
-@@ -133,9 +143,12 @@ static int __mlx4_qp_modify(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
- 			MLX4_CMD_2RST_QP, MLX4_CMD_TIME_CLASS_A, native);
- 		if (mlx4_is_master(dev) && cur_state != MLX4_QP_STATE_ERR &&
- 		    cur_state != MLX4_QP_STATE_RST &&
--		    is_qp0(dev, qp)) {
-+		    is_qp0(dev, qp, &real_qp0, &proxy_qp0)) {
- 			port = (qp->qpn & 1) + 1;
--			priv->mfunc.master.qp0_state[port].qp0_active = 0;
-+			if (proxy_qp0)
-+				priv->mfunc.master.qp0_state[port].proxy_qp0_active = 0;
-+			else
-+				priv->mfunc.master.qp0_state[port].qp0_active = 0;
- 		}
- 		return ret;
+ 	return cpu_to_be64(atomic_inc_return(&ctx->tid)) |
+@@ -1959,6 +1966,13 @@ int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
+ 		return 0;
  	}
-@@ -162,6 +175,23 @@ static int __mlx4_qp_modify(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
- 		       new_state == MLX4_QP_STATE_RST ? 2 : 0,
- 		       op[cur_state][new_state], MLX4_CMD_TIME_CLASS_C, native);
  
-+	if (mlx4_is_master(dev) && is_qp0(dev, qp, &real_qp0, &proxy_qp0)) {
-+		port = (qp->qpn & 1) + 1;
-+		if (cur_state != MLX4_QP_STATE_ERR &&
-+		    cur_state != MLX4_QP_STATE_RST &&
-+		    new_state == MLX4_QP_STATE_ERR) {
-+			if (proxy_qp0)
-+				priv->mfunc.master.qp0_state[port].proxy_qp0_active = 0;
-+			else
-+				priv->mfunc.master.qp0_state[port].qp0_active = 0;
-+		} else if (new_state == MLX4_QP_STATE_RTR) {
-+			if (proxy_qp0)
-+				priv->mfunc.master.qp0_state[port].proxy_qp0_active = 1;
-+			else
-+				priv->mfunc.master.qp0_state[port].qp0_active = 1;
-+		}
++	for (i = 0; i < dev->dev->caps.sqp_demux; i++) {
++		if (i == mlx4_master_func_num(dev->dev))
++			mlx4_put_slave_node_guid(dev->dev, i, dev->ib_dev.node_guid);
++		else
++			mlx4_put_slave_node_guid(dev->dev, i, mlx4_ib_gen_node_guid());
 +	}
 +
- 	mlx4_free_cmd_mailbox(dev, mailbox);
- 	return ret;
+ 	err = mlx4_ib_init_alias_guid_service(dev);
+ 	if (err) {
+ 		mlx4_ib_warn(&dev->ib_dev, "Failed init alias guid process.\n");
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 5e5fc70..68b1cd5 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -722,4 +722,7 @@ int mlx4_ib_device_register_sysfs(struct mlx4_ib_dev *device) ;
+ 
+ void mlx4_ib_device_unregister_sysfs(struct mlx4_ib_dev *device);
+ 
++__be64 mlx4_ib_gen_node_guid(void);
++
++
+ #endif /* MLX4_IB_H */
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+index 0629341..621bcd0 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+@@ -651,6 +651,7 @@ static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
+ 	struct ib_smp *outsmp = outbox->buf;
+ 	__be16 *outtab = (__be16 *)(outsmp->data);
+ 	__be32 slave_cap_mask;
++	__be64 slave_node_guid;
+ 	port = vhcr->in_modifier;
+ 
+ 	if (smp->base_version == 1 &&
+@@ -710,6 +711,16 @@ static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
+ 				}
+ 				return err;
+ 			}
++			if (smp->attr_id == IB_SMP_ATTR_NODE_INFO) {
++				err = mlx4_cmd_box(dev, inbox->dma, outbox->dma,
++					     vhcr->in_modifier, vhcr->op_modifier,
++					     vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
++				if (!err) {
++					slave_node_guid =  mlx4_get_slave_node_guid(dev, slave);
++					memcpy(outsmp->data + 12, &slave_node_guid, 8);
++				}
++				return err;
++			}
+ 		}
+ 	}
+ 	if (slave != mlx4_master_func_num(dev) &&
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index c54003b..398c3f4 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -414,6 +414,28 @@ void mlx4_sync_pkey_table(struct mlx4_dev *dev, int slave, int port, int i, int
  }
+ EXPORT_SYMBOL(mlx4_sync_pkey_table);
+ 
++void mlx4_put_slave_node_guid(struct mlx4_dev *dev, int slave, __be64 guid)
++{
++	struct mlx4_priv *priv = container_of(dev, struct mlx4_priv, dev);
++
++	if (!mlx4_is_master(dev))
++		return;
++
++	priv->slave_node_guids[slave] = guid;
++}
++EXPORT_SYMBOL(mlx4_put_slave_node_guid);
++
++__be64 mlx4_get_slave_node_guid(struct mlx4_dev *dev, int slave)
++{
++	struct mlx4_priv *priv = container_of(dev, struct mlx4_priv, dev);
++
++	if (!mlx4_is_master(dev))
++		return 0;
++
++	return priv->slave_node_guids[slave];
++}
++EXPORT_SYMBOL(mlx4_get_slave_node_guid);
++
+ int mlx4_is_slave_active(struct mlx4_dev *dev, int slave)
+ {
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index 5b25412..a2ed8fb 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -718,6 +718,7 @@ struct mlx4_priv {
+ 	struct io_mapping	*bf_mapping;
+ 	int			reserved_mtts;
+ 	u8 virt2phys_pkey[MLX4_MFUNC_MAX][MLX4_MAX_PORTS][MLX4_MAX_PORT_PKEYS];
++	__be64			slave_node_guids[MLX4_MFUNC_MAX];
+ 
+ };
+ 
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index c853ef5..21b769d 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -838,5 +838,7 @@ int mlx4_gen_port_state_change_eqe(struct mlx4_dev *dev, int slave, u8 port, u8
+ enum slave_port_state mlx4_get_slave_port_state(struct mlx4_dev *dev, int slave, u8 port);
+ int set_and_calc_slave_port_state(struct mlx4_dev *dev, int slave, u8 port, int event, enum slave_port_gen_event *gen_event);
+ 
++void mlx4_put_slave_node_guid(struct mlx4_dev *dev, int slave, __be64 guid);
++__be64 mlx4_get_slave_node_guid(struct mlx4_dev *dev, int slave);
+ 
+ #endif /* MLX4_DEVICE_H */
 -- 
 1.7.1
 
