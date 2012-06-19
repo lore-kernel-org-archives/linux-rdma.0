@@ -1,77 +1,76 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rsockets and other performance
-Date: Mon, 18 Jun 2012 11:53:16 -0600
-Message-ID: <20120618175316.GD591@obsidianresearch.com>
-References: <4FDA0233.6090409@linux.vnet.ibm.com>
- <20120614172245.GC6552@obsidianresearch.com>
- <alpine.LRH.2.00.1206142336220.13728@oc4747053027.ibm.com>
- <20120615171919.GA17224@obsidianresearch.com>
- <alpine.LRH.2.00.1206172330220.13728@oc4747053027.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH for-next V1 01/29] net/mlx4_core: Pass an invalid PCI id number to VFs
+Date: Tue, 19 Jun 2012 11:21:33 +0300
+Message-ID: <1340094121-14858-2-git-send-email-jackm@dev.mellanox.co.il>
+References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.00.1206172330220.13728-Nzfcc2Us4m+Xfo/+vza+31aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vivek Kashyap <kashyapv-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 17, 2012 at 11:37:33PM -0700, Vivek Kashyap wrote:
+Currently, VFs have 0 in their dev->caps.function field.
+This is a valid pci id (usually of the PF).
 
-> >On Thu, Jun 14, 2012 at 11:48:09PM -0700, Vivek Kashyap wrote:
+Pass an invalid pci id to the VF via QUERY_FW, to make sure that
+if the value gets accessed in the VF driver, it will not be valid.
 
-> >We don't want to fake that we are doing csum, we want to forward the
-> >csum offload data to the other side, which might discard it or might
-> >use it to forward the packet out another interface. This is not hard,
-> >just fiddly work.
-> 
-> We certainly need to ensure that the routed packet is not left without a
-> checksum. One either does not enable 'checksum less link' on
-> routers, or else the router must be able to take care of it when it
-> forwards the packet.
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/fw.c |   10 +++++++---
+ include/linux/mlx4/device.h             |    2 ++
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-The latter is vastly preferred.
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index 8320f2a..7c579cf 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -889,11 +889,12 @@ int mlx4_QUERY_FW(struct mlx4_dev *dev)
+ 		((fw_ver & 0xffff0000ull) >> 16) |
+ 		((fw_ver & 0x0000ffffull) << 16);
+ 
++	MLX4_GET(lg, outbox, QUERY_FW_PPF_ID);
++	dev->caps.function = lg;
++
+ 	if (mlx4_is_slave(dev))
+ 		goto out;
+ 
+-	MLX4_GET(lg, outbox, QUERY_FW_PPF_ID);
+-	dev->caps.function = lg;
+ 
+ 	MLX4_GET(cmd_if_rev, outbox, QUERY_FW_CMD_IF_REV_OFFSET);
+ 	if (cmd_if_rev < MLX4_COMMAND_INTERFACE_MIN_REV ||
+@@ -974,9 +975,12 @@ int mlx4_QUERY_FW_wrapper(struct mlx4_dev *dev, int slave,
+ 	if (err)
+ 		return err;
+ 
+-	/* for slaves, zero out everything except FW version */
++	/* for slaves, set pci PPF ID to invalid and zero out everything
++	 * else except FW version */
+ 	outbuf[0] = outbuf[1] = 0;
+ 	memset(&outbuf[8], 0, QUERY_FW_OUT_SIZE - 8);
++	outbuf[QUERY_FW_PPF_ID] = MLX4_INVALID_SLAVE_ID;
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 6a8f002..8eadf0f 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -534,6 +534,8 @@ struct mlx4_init_port_param {
+ 		if (((dev)->caps.port_mask[port] == MLX4_PORT_TYPE_IB) || \
+ 			((dev)->caps.flags & MLX4_DEV_CAP_FLAG_IBOE))
+ 
++#define MLX4_INVALID_SLAVE_ID	0xFF
++
+ static inline int mlx4_is_master(struct mlx4_dev *dev)
+ {
+ 	return dev->flags & MLX4_FLAG_MASTER;
+-- 
+1.7.1
 
-> By 'csum offload data' do you mean something akin to csum_start/csum_offset?
-> How would one transmit this information when using IPoIB-CM across from the
-> sending host to the router? If we can do that it will certainly be useful.
-
-That plus a ip_summed needed flag seems to match what virtio_net is
-doing. Review virtio_net.c:receive_buf and xmit_skb to see how it
-handles the packet.
-
-Also, I am just reminded, there has been some interest in also
-forwarding GSO through the CM connection. This would speed things up
-as well and avoid the need for the wonky 64k MTU. 
-
-ie rework the CM mode to follow more closely how virtio-net works.
-
-Like virtio_net you'd have to prefix a small header, or if you are
-lucky, maybe encoding things in the 32 bits of immediate data.
-
-> Otherwise what I was proposing was that a router is either
-> configured to not accept checksum less configuration on IPoIb-CM, or
-
-This sort of solution is something I'd like to avoid, it is not
-necessary to make something so fragile.
-
-> This addition is really done in the ipoib-cm driver to insulate from the
-> rest of the stack. The 'faking' of checksum offload is only to the local
-> IP stack so that it does not do the calculation but leaves it to the
-> IPoIB-CM driver. That is what we essentially do with virtio or hardware
-> offload mechanisms.
-
-I mean 'faking' in the sense you tell the stack you will compute the
-checksum, throw away the information needed to do that calculation,
-and the send a packet on the wire that can never be check-summed
-properly.
-
-I don't see the point of keeping things contained to the CM part of
-the ipoib driver, if the ipoib packet handling needs to be changed then
-change it..
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
