@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V1 23/29] IB/mlx4: Propagate pkey and guid change port management events to slaves
-Date: Tue, 19 Jun 2012 11:21:55 +0300
-Message-ID: <1340094121-14858-24-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V1 25/29] net/mlx4_core: Adjustments to SET_PORT for SRIOV-IB
+Date: Tue, 19 Jun 2012 11:21:57 +0300
+Message-ID: <1340094121-14858-26-git-send-email-jackm@dev.mellanox.co.il>
 References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,313 +10,52 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-pkey change and guid change events are not of interest to all slaves,
-but only to those slaves which "see" the table slots whose contents
-have change.
-
-For example, if the guid at port 1, index 5 has changed in the
-PPF, we wish to propagate the gid-change event only to the function
-which has that guid index mapped to its port/guid table (in this case
-it is slave #5). Other functions should not get the event,
-since the event does not affect them.
-
-Similarly with pkeys -- pkey change events are forwarded
-only to slaves which have that pkey index mapped to their
-virtual pkey table.
+1. Slave may not set the IS_SM capability for the port.
+2. No DEV_MGR in multifunc mode.
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c        |  162 +++++++++++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx4/fw.c |    6 +
- 2 files changed, 161 insertions(+), 7 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/port.c |   10 ++++++++++
+ include/linux/mlx4/device.h               |    5 +++++
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 1d618af..16c6d55 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -54,6 +54,15 @@ enum {
- #define MLX4_TUN_IS_RECV(a)  (((a) >>  MLX4_TUN_SEND_WRID_SHIFT) & 0x1)
- #define MLX4_TUN_WRID_QPN(a) (((a) >> MLX4_TUN_QPN_SHIFT) & 0x3)
- 
-+ /* Port mgmt change event handling */
-+
-+#define GET_BLK_PTR_FROM_EQE(eqe) be32_to_cpu(eqe->event.port_mgmt_change.params.tbl_change_info.block_ptr)
-+#define GET_MASK_FROM_EQE(eqe) be32_to_cpu(eqe->event.port_mgmt_change.params.tbl_change_info.tbl_entries_mask)
-+#define NUM_IDX_IN_PKEY_TBL_BLK 32
-+#define GUID_TBL_ENTRY_SIZE 8	   /* size in bytes */
-+#define GUID_TBL_BLK_NUM_ENTRIES 8
-+#define GUID_TBL_BLK_SIZE (GUID_TBL_ENTRY_SIZE * GUID_TBL_BLK_NUM_ENTRIES)
-+
- struct mlx4_mad_rcv_buf {
- 	struct ib_grh grh;
- 	u8 payload[256];
-@@ -76,6 +85,9 @@ struct mlx4_rcv_tunnel_mad {
- } __packed;
- 
- static void handle_client_rereg_event(struct mlx4_ib_dev *dev, u8 port_num);
-+static void handle_lid_change_event(struct mlx4_ib_dev *dev, u8 port_num);
-+static void __propagate_pkey_ev(struct mlx4_ib_dev *dev, int port_num,
-+				int block, u32 change_bitmap);
- 
- __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx)
- {
-@@ -220,8 +232,7 @@ static void smp_snoop(struct ib_device *ibdev, u8 port_num, struct ib_mad *mad,
- 				handle_client_rereg_event(dev, port_num);
- 
- 			if (prev_lid != lid)
--				mlx4_ib_dispatch_event(dev, port_num,
--						       IB_EVENT_LID_CHANGE);
-+				handle_lid_change_event(dev, port_num);
- 			break;
- 
- 		case IB_SMP_ATTR_PKEY_TABLE:
-@@ -231,6 +242,9 @@ static void smp_snoop(struct ib_device *ibdev, u8 port_num, struct ib_mad *mad,
- 				break;
- 			}
- 
-+			/* at this point, we are running in the master.
-+			 * Slaves do not receive SMPs.
-+			 */
- 			bn  = be32_to_cpu(((struct ib_smp *)mad)->attr_mod) & 0xFFFF;
- 			base = (__be16 *) &(((struct ib_smp *)mad)->data[0]);
- 			pkey_change_bitmap = 0;
-@@ -248,10 +262,13 @@ static void smp_snoop(struct ib_device *ibdev, u8 port_num, struct ib_mad *mad,
- 				 "block=0x%x, change_bitmap=0x%x\n",
- 				 port_num, bn, pkey_change_bitmap);
- 
--			if (pkey_change_bitmap)
-+			if (pkey_change_bitmap) {
- 				mlx4_ib_dispatch_event(dev, port_num,
- 						       IB_EVENT_PKEY_CHANGE);
--
-+				if (!dev->sriov.is_going_down)
-+					__propagate_pkey_ev(dev, port_num, bn,
-+							    pkey_change_bitmap);
-+			}
- 			break;
- 
- 		case IB_SMP_ATTR_GUID_INFO:
-@@ -259,12 +276,56 @@ static void smp_snoop(struct ib_device *ibdev, u8 port_num, struct ib_mad *mad,
- 			if (!mlx4_is_master(dev->dev))
- 				mlx4_ib_dispatch_event(dev, port_num,
- 						       IB_EVENT_GID_CHANGE);
-+			/*if master, notify relevant slaves*/
-+			if (mlx4_is_master(dev->dev) &&
-+			    !dev->sriov.is_going_down) {
-+				bn = be32_to_cpu(((struct ib_smp *)mad)->attr_mod);
-+				mlx4_ib_update_cache_on_guid_change(dev, bn, port_num,
-+								    (u8 *)(&((struct ib_smp *)mad)->data));
-+				mlx4_ib_notify_slaves_on_guid_change(dev, bn, port_num,
-+								     (u8 *)(&((struct ib_smp *)mad)->data));
-+			}
- 			break;
-+
- 		default:
- 			break;
- 		}
- }
- 
-+static void __propagate_pkey_ev(struct mlx4_ib_dev *dev, int port_num,
-+				int block, u32 change_bitmap)
-+{
-+	int i, ix, slave, err;
-+	int have_event = 0;
-+
-+	for (slave = 0; slave < dev->dev->caps.sqp_demux; slave++) {
-+		if (slave == mlx4_master_func_num(dev->dev))
-+			continue;
-+		if (!mlx4_is_slave_active(dev->dev, slave))
-+			continue;
-+
-+		have_event = 0;
-+		for (i = 0; i < 32; i++) {
-+			if (!(change_bitmap & (1 << i)))
-+				continue;
-+			for (ix = 0;
-+			     ix < dev->dev->caps.pkey_table_len[port_num]; ix++) {
-+				if (dev->pkeys.virt2phys_pkey[slave][port_num - 1]
-+				    [ix] == i + 32 * block) {
-+					err = mlx4_gen_pkey_eqe(dev->dev, slave, port_num);
-+					pr_debug("propagate_pkey_ev: slave %d,"
-+						 " port %d, ix %d (%d)\n",
-+						 slave, port_num, ix, err);
-+					have_event = 1;
-+					break;
-+				}
-+			}
-+			if (have_event)
-+				break;
-+		}
-+	}
-+}
-+
- static void node_desc_override(struct ib_device *dev,
- 			       struct ib_mad *mad)
- {
-@@ -786,18 +847,90 @@ void mlx4_ib_mad_cleanup(struct mlx4_ib_dev *dev)
+diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+index 90dc475..4194859 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/port.c
++++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+@@ -683,6 +683,16 @@ static int mlx4_common_set_port(struct mlx4_dev *dev, int slave, u32 in_mod,
+ 		new_cap_mask = ((__be32 *) inbox->buf)[1];
  	}
- }
  
-+static void handle_lid_change_event(struct mlx4_ib_dev *dev, u8 port_num)
-+{
-+	mlx4_ib_dispatch_event(dev, port_num, IB_EVENT_LID_CHANGE);
++	/* slave may not set the IS_SM capability for the port */
++	if (slave != mlx4_master_func_num(dev) &&
++	    (be32_to_cpu(new_cap_mask) & MLX4_PORT_CAP_IS_SM))
++		return -EINVAL;
 +
-+	if (mlx4_is_master(dev->dev) && !dev->sriov.is_going_down)
-+		mlx4_gen_slaves_port_mgt_ev(dev->dev, port_num,
-+					    MLX4_EQ_PORT_INFO_LID_CHANGE_MASK);
-+}
++	/* NO DEV_MGR in multifunc mode */
++	if (mlx4_is_mfunc(dev) &&
++	    (be32_to_cpu(new_cap_mask) & MLX4_PORT_CAP_DEV_MGMT_SUP))
++		return -EINVAL;
 +
- static void handle_client_rereg_event(struct mlx4_ib_dev *dev, u8 port_num)
- {
- 	/* re-configure the alias-guid and mcg's */
- 	if (mlx4_is_master(dev->dev)) {
- 		mlx4_ib_invalidate_all_guid_record(dev, port_num);
+ 	agg_cap_mask = 0;
+ 	slave_cap_mask =
+ 		priv->mfunc.master.slave_state[slave].ib_cap_mask[port];
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 05846a3..0db9946 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -53,6 +53,11 @@ enum {
+ };
  
--		if (!dev->sriov.is_going_down)
-+		if (!dev->sriov.is_going_down) {
- 			mlx4_ib_mcg_port_cleanup(&dev->sriov.demux[port_num - 1], 0);
-+			mlx4_gen_slaves_port_mgt_ev(dev->dev, port_num,
-+						    MLX4_EQ_PORT_INFO_CLIENT_REREG_MASK);
-+		}
- 	}
- 	mlx4_ib_dispatch_event(dev, port_num, IB_EVENT_CLIENT_REREGISTER);
- }
- 
-+static void propagate_pkey_ev(struct mlx4_ib_dev *dev, int port_num,
-+			      struct mlx4_eqe *eqe)
-+{
-+	__propagate_pkey_ev(dev, port_num, GET_BLK_PTR_FROM_EQE(eqe),
-+			    GET_MASK_FROM_EQE(eqe));
-+}
+ enum {
++	MLX4_PORT_CAP_IS_SM	= 1 << 1,
++	MLX4_PORT_CAP_DEV_MGMT_SUP = 1 << 19,
++};
 +
-+static void handle_slaves_guid_change(struct mlx4_ib_dev *dev, u8 port_num,
-+				      u32 guid_tbl_blk_num, u32 change_bitmap)
-+{
-+	struct ib_smp *in_mad  = NULL;
-+	struct ib_smp *out_mad  = NULL;
-+	u16 i;
-+
-+	if (!mlx4_is_mfunc(dev->dev) || !mlx4_is_master(dev->dev))
-+		return;
-+
-+	in_mad  = kmalloc(sizeof *in_mad, GFP_KERNEL);
-+	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-+	if (!in_mad || !out_mad) {
-+		mlx4_ib_warn(&dev->ib_dev, "failed to allocate memory for guid info mads\n");
-+		goto out;
-+	}
-+
-+	guid_tbl_blk_num  *= 4;
-+
-+	for (i = 0; i < 4; i++) {
-+		if (change_bitmap && (!((change_bitmap >> (8 * i)) & 0xff)))
-+			continue;
-+		memset(in_mad, 0, sizeof *in_mad);
-+		memset(out_mad, 0, sizeof *out_mad);
-+
-+		in_mad->base_version  = 1;
-+		in_mad->mgmt_class    = IB_MGMT_CLASS_SUBN_LID_ROUTED;
-+		in_mad->class_version = 1;
-+		in_mad->method        = IB_MGMT_METHOD_GET;
-+		in_mad->attr_id       = IB_SMP_ATTR_GUID_INFO;
-+		in_mad->attr_mod      = cpu_to_be32(guid_tbl_blk_num + i);
-+
-+		if (mlx4_MAD_IFC(dev,
-+				 MLX4_MAD_IFC_IGNORE_KEYS | MLX4_MAD_IFC_NET_VIEW,
-+				 port_num, NULL, NULL, in_mad, out_mad)) {
-+			mlx4_ib_warn(&dev->ib_dev, "Failed in get GUID INFO MAD_IFC\n");
-+			goto out;
-+		}
-+
-+		mlx4_ib_update_cache_on_guid_change(dev, guid_tbl_blk_num + i,
-+						    port_num,
-+						    (u8 *)(&((struct ib_smp *)out_mad)->data));
-+		mlx4_ib_notify_slaves_on_guid_change(dev, guid_tbl_blk_num + i,
-+						     port_num,
-+						     (u8 *)(&((struct ib_smp *)out_mad)->data));
-+	}
-+
-+out:
-+	kfree(in_mad);
-+	kfree(out_mad);
-+	return;
-+}
-+
- void handle_port_mgmt_change_event(struct work_struct *work)
- {
- 	struct ib_event_work *ew = container_of(work, struct ib_event_work, work);
-@@ -805,6 +938,8 @@ void handle_port_mgmt_change_event(struct work_struct *work)
- 	struct mlx4_eqe *eqe = &(ew->ib_eqe);
- 	u8 port = eqe->event.port_mgmt_change.port;
- 	u32 changed_attr;
-+	u32 tbl_block;
-+	u32 change_bitmap;
- 
- 	switch (eqe->subtype) {
- 	case MLX4_DEV_PMC_SUBTYPE_PORT_INFO:
-@@ -820,11 +955,16 @@ void handle_port_mgmt_change_event(struct work_struct *work)
- 
- 		/* Check if it is a lid change event */
- 		if (changed_attr & MLX4_EQ_PORT_INFO_LID_CHANGE_MASK)
--			mlx4_ib_dispatch_event(dev, port, IB_EVENT_LID_CHANGE);
-+			handle_lid_change_event(dev, port);
- 
- 		/* Generate GUID changed event */
--		if (changed_attr & MLX4_EQ_PORT_INFO_GID_PFX_CHANGE_MASK)
-+		if (changed_attr & MLX4_EQ_PORT_INFO_GID_PFX_CHANGE_MASK) {
- 			mlx4_ib_dispatch_event(dev, port, IB_EVENT_GID_CHANGE);
-+			/*if master, notify all slaves*/
-+			if (mlx4_is_master(dev->dev))
-+				mlx4_gen_slaves_port_mgt_ev(dev->dev, port,
-+							    MLX4_EQ_PORT_INFO_GID_PFX_CHANGE_MASK);
-+		}
- 
- 		if (changed_attr & MLX4_EQ_PORT_INFO_CLIENT_REREG_MASK)
- 			handle_client_rereg_event(dev, port);
-@@ -832,11 +972,19 @@ void handle_port_mgmt_change_event(struct work_struct *work)
- 
- 	case MLX4_DEV_PMC_SUBTYPE_PKEY_TABLE:
- 		mlx4_ib_dispatch_event(dev, port, IB_EVENT_PKEY_CHANGE);
-+		if (mlx4_is_master(dev->dev) && !dev->sriov.is_going_down)
-+			propagate_pkey_ev(dev, port, eqe);
- 		break;
- 	case MLX4_DEV_PMC_SUBTYPE_GUID_INFO:
- 		/* paravirtualized master's guid is guid 0 -- does not change */
- 		if (!mlx4_is_master(dev->dev))
- 			mlx4_ib_dispatch_event(dev, port, IB_EVENT_GID_CHANGE);
-+		/*if master, notify relevant slaves*/
-+		else if (!dev->sriov.is_going_down) {
-+			tbl_block = GET_BLK_PTR_FROM_EQE(eqe);
-+			change_bitmap = GET_MASK_FROM_EQE(eqe);
-+			handle_slaves_guid_change(dev, port, tbl_block, change_bitmap);
-+		}
- 		break;
- 	default:
- 		pr_warn("Unsupported subtype 0x%x for "
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index 74ba0b8..5d19750 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -728,6 +728,7 @@ int mlx4_QUERY_DEV_CAP_wrapper(struct mlx4_dev *dev, int slave,
- 			       struct mlx4_cmd_mailbox *outbox,
- 			       struct mlx4_cmd_info *cmd)
- {
-+	u64	flags;
- 	int	err = 0;
- 	u8	field;
- 
-@@ -736,6 +737,11 @@ int mlx4_QUERY_DEV_CAP_wrapper(struct mlx4_dev *dev, int slave,
- 	if (err)
- 		return err;
- 
-+	/* add port mng change event capability unconditionally to slaves */
-+	MLX4_GET(flags, outbox->buf, QUERY_DEV_CAP_EXT_FLAGS_OFFSET);
-+	flags |= MLX4_DEV_CAP_FLAG_PORT_MNG_CHG_EV;
-+	MLX4_PUT(outbox->buf, flags, QUERY_DEV_CAP_EXT_FLAGS_OFFSET);
-+
- 	/* For guests, report Blueflame disabled */
- 	MLX4_GET(field, outbox->buf, QUERY_DEV_CAP_BF_OFFSET);
- 	field &= 0x7f;
++enum {
+ 	MLX4_MAX_PORTS		= 2,
+ 	MLX4_MAX_PORT_PKEYS	= 128
+ };
 -- 
 1.7.1
 
