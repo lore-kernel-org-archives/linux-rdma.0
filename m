@@ -1,236 +1,69 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V1 06/29] IB/sa: Add GuidInfoRecord query support.
-Date: Tue, 19 Jun 2012 11:21:38 +0300
-Message-ID: <1340094121-14858-7-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V1 09/29] net/mlx4_core: For SRIOV, initialize ib port-capabilities for all slaves
+Date: Tue, 19 Jun 2012 11:21:41 +0300
+Message-ID: <1340094121-14858-10-git-send-email-jackm@dev.mellanox.co.il>
 References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Under SRIOV-IB, each slave has its own separate copy of the port-capabilities
+flags.  Thus, for example, the master can run a subnet manager
+(which causes the IS_SM bit to be set in the master's port capabilities)
+without affecting the port capabilities seen by the slaves
+(i.e., the IS_SM bit will be seen as cleared in the slaves).
 
-This query is needed for SRIOV alias GUID support.
-The query is implemented per the IB Spec definition
-in section 15.2.5.18 (GuidInfoRecord).
+Also added static inline mlx4_master_func_num() to enhance
+readability of the code.
 
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/sa_query.c |  133 ++++++++++++++++++++++++++++++++++++
- include/rdma/ib_sa.h               |   33 +++++++++
- 2 files changed, 166 insertions(+), 0 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/main.c |   11 +++++++++++
+ include/linux/mlx4/device.h               |    5 +++++
+ 2 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index d7ea4b2..b1639ee 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -94,6 +94,12 @@ struct ib_sa_path_query {
- 	struct ib_sa_query sa_query;
- };
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index ee6f4fe..00953f4 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -1477,6 +1477,17 @@ static int mlx4_setup_hca(struct mlx4_dev *dev)
+ 					  "with caps = 0\n", port, err);
+ 			dev->caps.ib_port_def_cap[port] = ib_port_default_caps;
  
-+struct ib_sa_guidinfo_query {
-+	void (*callback)(int, struct ib_sa_guidinfo_rec *, void *);
-+	void *context;
-+	struct ib_sa_query sa_query;
-+};
++			/* initialize per-slave default ib port capabilities */
++			if (mlx4_is_master(dev)) {
++				int i;
++				for (i = 0; i < dev->num_slaves; i++) {
++					if (i == mlx4_master_func_num(dev))
++						continue;
++					priv->mfunc.master.slave_state[i].ib_cap_mask[port] =
++							ib_port_default_caps;
++				}
++			}
 +
- struct ib_sa_mcmember_query {
- 	void (*callback)(int, struct ib_sa_mcmember_rec *, void *);
- 	void *context;
-@@ -347,6 +353,34 @@ static const struct ib_field service_rec_table[] = {
- 	  .size_bits    = 2*64 },
- };
+ 			if (mlx4_is_mfunc(dev))
+ 				dev->caps.port_ib_mtu[port] = IB_MTU_2048;
+ 			else
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 560b220..7fbdc89 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -633,6 +633,11 @@ struct mlx4_init_port_param {
  
-+#define GUIDINFO_REC_FIELD(field) \
-+	.struct_offset_bytes = offsetof(struct ib_sa_guidinfo_rec, field),	\
-+	.struct_size_bytes   = sizeof((struct ib_sa_guidinfo_rec *) 0)->field,	\
-+	.field_name          = "sa_guidinfo_rec:" #field
+ void handle_port_mgmt_change_event(struct work_struct *work);
+ 
++static inline int mlx4_master_func_num(struct mlx4_dev *dev)
++{
++	return dev->caps.function;
++}
 +
-+static const struct ib_field guidinfo_rec_table[] = {
-+	{ GUIDINFO_REC_FIELD(lid),
-+	  .offset_words = 0,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 16 },
-+	{ GUIDINFO_REC_FIELD(block_num),
-+	  .offset_words = 0,
-+	  .offset_bits  = 16,
-+	  .size_bits    = 8 },
-+	{ GUIDINFO_REC_FIELD(res1),
-+	  .offset_words = 0,
-+	  .offset_bits  = 24,
-+	  .size_bits    = 8 },
-+	{ GUIDINFO_REC_FIELD(res2),
-+	  .offset_words = 1,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+	{ GUIDINFO_REC_FIELD(guid_info_list),
-+	  .offset_words = 2,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 512 },
-+};
-+
- static void free_sm_ah(struct kref *kref)
+ static inline int mlx4_is_master(struct mlx4_dev *dev)
  {
- 	struct ib_sa_sm_ah *sm_ah = container_of(kref, struct ib_sa_sm_ah, ref);
-@@ -945,6 +979,105 @@ err1:
- 	return ret;
- }
- 
-+/* Support GuidInfoRecord */
-+static void ib_sa_guidinfo_rec_callback(struct ib_sa_query *sa_query,
-+					int status,
-+					struct ib_sa_mad *mad)
-+{
-+	struct ib_sa_guidinfo_query *query =
-+		container_of(sa_query, struct ib_sa_guidinfo_query, sa_query);
-+
-+	if (mad) {
-+		struct ib_sa_guidinfo_rec rec;
-+
-+		ib_unpack(guidinfo_rec_table, ARRAY_SIZE(guidinfo_rec_table),
-+			  mad->data, &rec);
-+		query->callback(status, &rec, query->context);
-+	} else
-+		query->callback(status, NULL, query->context);
-+}
-+
-+static void ib_sa_guidinfo_rec_release(struct ib_sa_query *sa_query)
-+{
-+	kfree(container_of(sa_query, struct ib_sa_guidinfo_query, sa_query));
-+}
-+
-+int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
-+			      struct ib_device *device, u8 port_num,
-+			      struct ib_sa_guidinfo_rec *rec,
-+			      ib_sa_comp_mask comp_mask, u8 method,
-+			      int timeout_ms, gfp_t gfp_mask,
-+			      void (*callback)(int status,
-+					       struct ib_sa_guidinfo_rec *resp,
-+					       void *context),
-+			      void *context,
-+			      struct ib_sa_query **sa_query)
-+{
-+	struct ib_sa_guidinfo_query *query;
-+	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
-+	struct ib_sa_port *port;
-+	struct ib_mad_agent *agent;
-+	struct ib_sa_mad *mad;
-+	int ret;
-+
-+	if (!sa_dev)
-+		return -ENODEV;
-+
-+	if (method != IB_MGMT_METHOD_GET &&
-+	    method != IB_MGMT_METHOD_SET &&
-+	    method != IB_SA_METHOD_DELETE) {
-+		return -EINVAL;
-+	}
-+
-+	port  = &sa_dev->port[port_num - sa_dev->start_port];
-+	agent = port->agent;
-+
-+	query = kmalloc(sizeof *query, gfp_mask);
-+	if (!query)
-+		return -ENOMEM;
-+
-+	query->sa_query.port = port;
-+	ret = alloc_mad(&query->sa_query, gfp_mask);
-+	if (ret)
-+		goto err1;
-+
-+	ib_sa_client_get(client);
-+	query->sa_query.client = client;
-+	query->callback        = callback;
-+	query->context         = context;
-+
-+	mad = query->sa_query.mad_buf->mad;
-+	init_mad(mad, agent);
-+
-+	query->sa_query.callback = callback ? ib_sa_guidinfo_rec_callback : NULL;
-+	query->sa_query.release  = ib_sa_guidinfo_rec_release;
-+
-+	mad->mad_hdr.method	 = method;
-+	mad->mad_hdr.attr_id	 = cpu_to_be16(IB_SA_ATTR_GUID_INFO_REC);
-+	mad->sa_hdr.comp_mask	 = comp_mask;
-+
-+	ib_pack(guidinfo_rec_table, ARRAY_SIZE(guidinfo_rec_table), rec,
-+		mad->data);
-+
-+	*sa_query = &query->sa_query;
-+
-+	ret = send_mad(&query->sa_query, timeout_ms, gfp_mask);
-+	if (ret < 0)
-+		goto err2;
-+
-+	return ret;
-+
-+err2:
-+	*sa_query = NULL;
-+	ib_sa_client_put(query->sa_query.client);
-+	free_mad(&query->sa_query);
-+
-+err1:
-+	kfree(query);
-+	return ret;
-+}
-+EXPORT_SYMBOL(ib_sa_guid_info_rec_query);
-+
- static void send_handler(struct ib_mad_agent *agent,
- 			 struct ib_mad_send_wc *mad_send_wc)
- {
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index d44a563..8275e53 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -251,6 +251,28 @@ struct ib_sa_service_rec {
- 	u64		data64[2];
- };
- 
-+#define IB_SA_GUIDINFO_REC_LID		IB_SA_COMP_MASK(0)
-+#define IB_SA_GUIDINFO_REC_BLOCK_NUM	IB_SA_COMP_MASK(1)
-+#define IB_SA_GUIDINFO_REC_RES1		IB_SA_COMP_MASK(2)
-+#define IB_SA_GUIDINFO_REC_RES2		IB_SA_COMP_MASK(3)
-+#define IB_SA_GUIDINFO_REC_GID0		IB_SA_COMP_MASK(4)
-+#define IB_SA_GUIDINFO_REC_GID1		IB_SA_COMP_MASK(5)
-+#define IB_SA_GUIDINFO_REC_GID2		IB_SA_COMP_MASK(6)
-+#define IB_SA_GUIDINFO_REC_GID3		IB_SA_COMP_MASK(7)
-+#define IB_SA_GUIDINFO_REC_GID4		IB_SA_COMP_MASK(8)
-+#define IB_SA_GUIDINFO_REC_GID5		IB_SA_COMP_MASK(9)
-+#define IB_SA_GUIDINFO_REC_GID6		IB_SA_COMP_MASK(10)
-+#define IB_SA_GUIDINFO_REC_GID7		IB_SA_COMP_MASK(11)
-+
-+struct ib_sa_guidinfo_rec {
-+	__be16	lid;
-+	u8	block_num;
-+	/* reserved */
-+	u8	res1;
-+	__be32	res2;
-+	u8	guid_info_list[64];
-+};
-+
- struct ib_sa_client {
- 	atomic_t users;
- 	struct completion comp;
-@@ -385,4 +407,15 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
-  */
- void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec);
- 
-+/* Support GuidInfoRecord */
-+int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
-+			      struct ib_device *device, u8 port_num,
-+			      struct ib_sa_guidinfo_rec *rec,
-+			      ib_sa_comp_mask comp_mask, u8 method,
-+			      int timeout_ms, gfp_t gfp_mask,
-+			      void (*callback)(int status,
-+					       struct ib_sa_guidinfo_rec *resp,
-+					       void *context),
-+			      void *context,
-+			      struct ib_sa_query **sa_query);
- #endif /* IB_SA_H */
+ 	return dev->flags & MLX4_FLAG_MASTER;
 -- 
 1.7.1
 
