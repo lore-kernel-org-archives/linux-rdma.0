@@ -1,266 +1,240 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V1 00/29] Add SRIOV support for IB interfaces
-Date: Tue, 19 Jun 2012 11:21:32 +0300
-Message-ID: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH for-next V1 06/29] IB/sa: Add GuidInfoRecord query support.
+Date: Tue, 19 Jun 2012 11:21:38 +0300
+Message-ID: <1340094121-14858-7-git-send-email-jackm@dev.mellanox.co.il>
+References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set adds SRIOV support for IB interfaces.
+From: Erez Shitrit <erezsh-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
-Patches 1-13 are "precondition" patches.
-Patches 14-29 actually implement the feature.
+This query is needed for SRIOV alias GUID support.
+The query is implemented per the IB Spec definition
+in section 15.2.5.18 (GuidInfoRecord).
 
-This patch set introduces Infiniband SRIOV support for ConnectX2 and Co=
-nnectX3
-devices.  Each function presents itself as an independent vHCA (virtual=
- HCA) to
-the host while a single HCA is observable by the network, which is unaw=
-are of
-the vHCAs.  No changes are required by the IB subsystem, ULPs, and apps=
- to
-support SRIOV, and vHCAs are interoperable with any existing (non-virtu=
-alized)
-IB deployments.
-=20
-We term this model for SRIOV implementation the shared-port model.
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/sa_query.c |  133 ++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_sa.h               |   33 +++++++++
+ 2 files changed, 166 insertions(+), 0 deletions(-)
 
-Sharing the same physical port(s) among multiple vHCAs is achieved as f=
-ollows:
-=20
-1. Each vHCA port presents its own virtual GID table.
-=20
-Currently, the virtual GID table comprises a single entry (at index 0) =
-that
-maps to a unique index in the physical GID table.  The vHCA of the PF m=
-aps to
-physical GID index 0. To obtain GIDs for other vHCAs, alias GUIDs are r=
-equested
-from the SM.  These are GUIDs which the SM places, per port, in the por=
-t's guid
-table after the 0'th slot (which is read-only and determined by the FW)=
-=2E
-The host admin can assign GIDs to vHCAs using a sysfs interface (see be=
-low).
-=20
-2. Each vHCA port presents its own virtual PKey table.
-=20
-The virtual PKey table is a mapping of selected indexes of the physical=
- pkey table.
-The host admin can control which pkey indexes are mapped to which virtu=
-al indexes
-using a sysfs interface (see below). Note that the physical PKey table =
-may contain
-both full and partial memberships of the same PKey to allow different m=
-embership
-types in different virtual tables.
-=20
-3. Each vHCA port has its own virtual port state.
-=20
-A vHCA port is up if the following conditions apply:
-- The physical port is up
-- The virtual GID table contains the GIDs requested by the host admin
-- The SM has acknowledged the requested GIDs since the last time that
-  the physical port came up
-=20
-4. Other port attributes are shared, e.g., GID prefix, LID,  SM LID, LM=
-C mask.
-=20
-5. Special QPs are para-virtualized.
-=20
-vHCAs are not given direct access to QP0/1. Rather, these QPs are opera=
-ted by a
-special context hosted by the PF, which mediates access to/from vHCAs.
-This is done by opening a =E2=80=9Ctunnel=E2=80=9D per vHCA port per QP=
-0/1. A tunnel comprises
-a pair of UD QPs:  a =E2=80=9CTunnel QP=E2=80=9D in the PF-context and =
-a =E2=80=9CProxy QP=E2=80=9D in the vHCA.
-All vHCA MAD traffic must pass through the corresponding tunnel.
-vHCA QPs cannot be assigned to VL15 and are denied of the well-known QK=
-ey.=20
-=20
-QP0 access is restricted to the PF vHCA. VF vHCAs also have (virtual) Q=
-P0=E2=80=99s,
-but they never receive any SMPs and all SMPs sent are discarded.
-QP1 traffic is allowed for all vHCAs, but special care is required to b=
-ridge
-the gap between the host and network views.
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index d7ea4b2..b1639ee 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -94,6 +94,12 @@ struct ib_sa_path_query {
+ 	struct ib_sa_query sa_query;
+ };
+ 
++struct ib_sa_guidinfo_query {
++	void (*callback)(int, struct ib_sa_guidinfo_rec *, void *);
++	void *context;
++	struct ib_sa_query sa_query;
++};
++
+ struct ib_sa_mcmember_query {
+ 	void (*callback)(int, struct ib_sa_mcmember_rec *, void *);
+ 	void *context;
+@@ -347,6 +353,34 @@ static const struct ib_field service_rec_table[] = {
+ 	  .size_bits    = 2*64 },
+ };
+ 
++#define GUIDINFO_REC_FIELD(field) \
++	.struct_offset_bytes = offsetof(struct ib_sa_guidinfo_rec, field),	\
++	.struct_size_bytes   = sizeof((struct ib_sa_guidinfo_rec *) 0)->field,	\
++	.field_name          = "sa_guidinfo_rec:" #field
++
++static const struct ib_field guidinfo_rec_table[] = {
++	{ GUIDINFO_REC_FIELD(lid),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ GUIDINFO_REC_FIELD(block_num),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 8 },
++	{ GUIDINFO_REC_FIELD(res1),
++	  .offset_words = 0,
++	  .offset_bits  = 24,
++	  .size_bits    = 8 },
++	{ GUIDINFO_REC_FIELD(res2),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ GUIDINFO_REC_FIELD(guid_info_list),
++	  .offset_words = 2,
++	  .offset_bits  = 0,
++	  .size_bits    = 512 },
++};
++
+ static void free_sm_ah(struct kref *kref)
+ {
+ 	struct ib_sa_sm_ah *sm_ah = container_of(kref, struct ib_sa_sm_ah, ref);
+@@ -945,6 +979,105 @@ err1:
+ 	return ret;
+ }
+ 
++/* Support GuidInfoRecord */
++static void ib_sa_guidinfo_rec_callback(struct ib_sa_query *sa_query,
++					int status,
++					struct ib_sa_mad *mad)
++{
++	struct ib_sa_guidinfo_query *query =
++		container_of(sa_query, struct ib_sa_guidinfo_query, sa_query);
++
++	if (mad) {
++		struct ib_sa_guidinfo_rec rec;
++
++		ib_unpack(guidinfo_rec_table, ARRAY_SIZE(guidinfo_rec_table),
++			  mad->data, &rec);
++		query->callback(status, &rec, query->context);
++	} else
++		query->callback(status, NULL, query->context);
++}
++
++static void ib_sa_guidinfo_rec_release(struct ib_sa_query *sa_query)
++{
++	kfree(container_of(sa_query, struct ib_sa_guidinfo_query, sa_query));
++}
++
++int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
++			      struct ib_device *device, u8 port_num,
++			      struct ib_sa_guidinfo_rec *rec,
++			      ib_sa_comp_mask comp_mask, u8 method,
++			      int timeout_ms, gfp_t gfp_mask,
++			      void (*callback)(int status,
++					       struct ib_sa_guidinfo_rec *resp,
++					       void *context),
++			      void *context,
++			      struct ib_sa_query **sa_query)
++{
++	struct ib_sa_guidinfo_query *query;
++	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
++	struct ib_sa_port *port;
++	struct ib_mad_agent *agent;
++	struct ib_sa_mad *mad;
++	int ret;
++
++	if (!sa_dev)
++		return -ENODEV;
++
++	if (method != IB_MGMT_METHOD_GET &&
++	    method != IB_MGMT_METHOD_SET &&
++	    method != IB_SA_METHOD_DELETE) {
++		return -EINVAL;
++	}
++
++	port  = &sa_dev->port[port_num - sa_dev->start_port];
++	agent = port->agent;
++
++	query = kmalloc(sizeof *query, gfp_mask);
++	if (!query)
++		return -ENOMEM;
++
++	query->sa_query.port = port;
++	ret = alloc_mad(&query->sa_query, gfp_mask);
++	if (ret)
++		goto err1;
++
++	ib_sa_client_get(client);
++	query->sa_query.client = client;
++	query->callback        = callback;
++	query->context         = context;
++
++	mad = query->sa_query.mad_buf->mad;
++	init_mad(mad, agent);
++
++	query->sa_query.callback = callback ? ib_sa_guidinfo_rec_callback : NULL;
++	query->sa_query.release  = ib_sa_guidinfo_rec_release;
++
++	mad->mad_hdr.method	 = method;
++	mad->mad_hdr.attr_id	 = cpu_to_be16(IB_SA_ATTR_GUID_INFO_REC);
++	mad->sa_hdr.comp_mask	 = comp_mask;
++
++	ib_pack(guidinfo_rec_table, ARRAY_SIZE(guidinfo_rec_table), rec,
++		mad->data);
++
++	*sa_query = &query->sa_query;
++
++	ret = send_mad(&query->sa_query, timeout_ms, gfp_mask);
++	if (ret < 0)
++		goto err2;
++
++	return ret;
++
++err2:
++	*sa_query = NULL;
++	ib_sa_client_put(query->sa_query.client);
++	free_mad(&query->sa_query);
++
++err1:
++	kfree(query);
++	return ret;
++}
++EXPORT_SYMBOL(ib_sa_guid_info_rec_query);
++
+ static void send_handler(struct ib_mad_agent *agent,
+ 			 struct ib_mad_send_wc *mad_send_wc)
+ {
+diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
+index d44a563..8275e53 100644
+--- a/include/rdma/ib_sa.h
++++ b/include/rdma/ib_sa.h
+@@ -251,6 +251,28 @@ struct ib_sa_service_rec {
+ 	u64		data64[2];
+ };
+ 
++#define IB_SA_GUIDINFO_REC_LID		IB_SA_COMP_MASK(0)
++#define IB_SA_GUIDINFO_REC_BLOCK_NUM	IB_SA_COMP_MASK(1)
++#define IB_SA_GUIDINFO_REC_RES1		IB_SA_COMP_MASK(2)
++#define IB_SA_GUIDINFO_REC_RES2		IB_SA_COMP_MASK(3)
++#define IB_SA_GUIDINFO_REC_GID0		IB_SA_COMP_MASK(4)
++#define IB_SA_GUIDINFO_REC_GID1		IB_SA_COMP_MASK(5)
++#define IB_SA_GUIDINFO_REC_GID2		IB_SA_COMP_MASK(6)
++#define IB_SA_GUIDINFO_REC_GID3		IB_SA_COMP_MASK(7)
++#define IB_SA_GUIDINFO_REC_GID4		IB_SA_COMP_MASK(8)
++#define IB_SA_GUIDINFO_REC_GID5		IB_SA_COMP_MASK(9)
++#define IB_SA_GUIDINFO_REC_GID6		IB_SA_COMP_MASK(10)
++#define IB_SA_GUIDINFO_REC_GID7		IB_SA_COMP_MASK(11)
++
++struct ib_sa_guidinfo_rec {
++	__be16	lid;
++	u8	block_num;
++	/* reserved */
++	u8	res1;
++	__be32	res2;
++	u8	guid_info_list[64];
++};
++
+ struct ib_sa_client {
+ 	atomic_t users;
+ 	struct completion comp;
+@@ -385,4 +407,15 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+  */
+ void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec);
+ 
++/* Support GuidInfoRecord */
++int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
++			      struct ib_device *device, u8 port_num,
++			      struct ib_sa_guidinfo_rec *rec,
++			      ib_sa_comp_mask comp_mask, u8 method,
++			      int timeout_ms, gfp_t gfp_mask,
++			      void (*callback)(int status,
++					       struct ib_sa_guidinfo_rec *resp,
++					       void *context),
++			      void *context,
++			      struct ib_sa_query **sa_query);
+ #endif /* IB_SA_H */
+-- 
+1.7.1
 
-Specifically:
-- Transaction IDs are mapped to guarantee uniqueness among vHCAs
-- CM para-virtualization
-  o   Incoming requests are steered to the correct vHCA according to th=
-e embedded GID
-  o   Local communication IDs are mapped to ensure uniqueness among vHC=
-As
-- Multicast para-virtualization
-  o   The PF context aggregates membership state from all vHCAs
-  o   The SA is contacted only when the aggregate membership changes
-  o   If the aggregate does not change, the PF context will provide the
-       requesting vHCA with the proper response
-=20
-Incoming MADs are steered according to:
-- the DGID If a GRH is present
-- the mapped transaction ID for response MADs
-- the embedded GID in CM requests
-- the remote communication ID in other CM messages
-
-To allow the host admin to control the virtual GID and PKey tables of v=
-HCAs,
-a new sysfs =E2=80=98iov=E2=80=99 sub-tree has been added under the PF =
-infiniband device.
-Details on this mechanism can be found in the change log of:
-   IB/mlx4: Add iov directory in sysfs under the ib device
-
-Some Limitations
-----------------
-1. FMRs are not currently supported on slaves. This will be corrected i=
-n a
-   future submission.
-2. RoCE is not currently supported on slaves. This will be corrected in=
- a
-   future submission.
-3. Due to a (correct) change in kernel IRQ management in kernel 3.5-rc1=
- (see
-   commit 1c6c69525b40), the KVM module no longer succeeds in passing i=
-nterrupts
-   through to guests.  (see the discussion thread beginning at
-   https://lkml.org/lkml/2012/6/1/261).  Until this KVM issue is fixed,=
- anyone
-   wishing to use SRIOV-IB (or SRIOV-Ethernet) with ConnectX2 or Connec=
-tX3
-   devices on guest O/Ses should revert commit 1c6c69525b40
-   (as a TEMPORARY workaround) in order to enable the guests to operate=
- the mlx4 driver.
-
-   VFs may still be bound to the host (via setting the "probe_vf" mlx4_=
-core
-   module parameter to a non-zero value in a conf file under /etc/modpr=
-obe.d)=20
-   without reverting the commit mentioned above.
-
-
-Changes for V1
---------------
-
-1. librdmacm now supports multiple VF/PF on the same host (patch 29).
-2. Several patches cleaned up (these were indicated in the V0 changelog=
-s).
-   Major cleanups in patch 22 and patch 24.
-3. Eliminated code duplication in Port Management Change event code (pa=
-tch 8).
-4. Now use pr_debug, instead of mlx4_ib_debug, and there is no module p=
-arameter
-   (Roland's recommendation).
-5. mlx4_master_func_num() to get the master's "slave_id", to make code =
-more readable.
-6. Fixed illegal use of port num field for a force-loopback bit in ib_a=
-h structure
-   (V0 patch 2 -- eliminated). The force-loopback bit is now set for Tu=
-nnel QPs in=20
-   mlx4_ib_post send (patch 17).
-7. New patch 2 (not related to 6 above) to reserve bits in enum ib_qp_c=
-reate_flags.
-8. V0 patch 26 is now rolled into V1 patch 22. This allowed us to elimi=
-nate function
-   mlx4_ib_indexed_gid from patch 22 (replaced by using __mlx4_ib_query=
-_gid() from V0 patch 26).
-
-
-Amir Vadai (1):
-  IB/mlx4: Add CM paravirtualization
-
-Erez Shitrit (1):
-  IB/sa: Add GuidInfoRecord query support.
-
-Jack Morgenstein (26):
-  net/mlx4_core: Pass an invalid PCI id number to VFs
-  IB/core: Reserve bits in enum ib_qp_create_flags for low-level driver
-    use
-  IB/mlx4: Add debug printouts
-  IB/core: change pkey table lookups to support full and partial
-    membership for the same pkey
-  IB/core: Add ib_find_exact_cached_pkey() to search for 16-bit pkey
-    match
-  IB/core: move macros from cm_msgs.h to ib_cm.h
-  {NET,IB}/mlx4: Use port management change event instead of smp_snoop
-  net/mlx4_core: For SRIOV, initialize ib port-capabilities for all
-    slaves
-  net/mlx4_core: Implement mechanism for reserved qkeys
-  net/mlx4_core: Allow guests to support IB ports
-  {NET,IB}/mlx4_core: place phys gid and pkey tbl sizes in
-    mlx4_phys_caps struct and paravirtualize them
-  IB/mlx4: SRIOV IB context objects and proxy/tunnel sqp support
-  net/mlx4_core: Add proxy and tunnel QPs to the reserved QP area
-  IB/mlx4: Initialize SRIOV IB support for slaves in master context
-  {NET,IB}/mlx4: Implement QP paravirtualization and maintain
-    phys_pkey_cache for smp_snoop
-  IB/mlx4: SRIOV multiplex and demultiplex MADs
-  {NET,IB}/mlx4: MAD_IFC paravirtualization
-  net/mlx4_core: Add IB port-state machine, and port mgmt event
-    propagation infrastructure
-  {NET,IB}/mlx4: Add alias_guid mechanism
-  IB/mlx4: Propagate pkey and guid change port management events to
-    slaves
-  IB/mlx4: Add iov directory in sysfs under the ib device
-  net/mlx4_core: Adjustments to SET_PORT for SRIOV-IB
-  net/mlx4_core: INIT/CLOSE port logic for IB ports in SRIOV mode
-  IB/mlx4: Miscellaneous adjustments to SRIOV IB support
-  {NET,IB}/mlx4: Activate SRIOV mode for IB
-  {NET,IB}/mlx4: Paravirtualize Node Guids for slaves.
-
-Oren Duer (1):
-  IB/mlx4: Added Multicast Groups (MCG) para-virtualization for SRIOV
-
- drivers/infiniband/core/cache.c                    |   42 +-
- drivers/infiniband/core/cm_msgs.h                  |   12 -
- drivers/infiniband/core/device.c                   |   17 +-
- drivers/infiniband/core/sa_query.c                 |  133 ++
- drivers/infiniband/hw/mlx4/Makefile                |    2 +-
- drivers/infiniband/hw/mlx4/alias_GUID.c            |  688 ++++++++
- drivers/infiniband/hw/mlx4/cm.c                    |  437 +++++
- drivers/infiniband/hw/mlx4/cq.c                    |   31 +-
- drivers/infiniband/hw/mlx4/mad.c                   | 1684 ++++++++++++=
-+++++++-
- drivers/infiniband/hw/mlx4/main.c                  |  285 +++-
- drivers/infiniband/hw/mlx4/mcg.c                   | 1254 ++++++++++++=
-+++
- drivers/infiniband/hw/mlx4/mlx4_ib.h               |  360 +++++-
- drivers/infiniband/hw/mlx4/qp.c                    |  651 +++++++-
- drivers/infiniband/hw/mlx4/sysfs.c                 |  794 +++++++++
- drivers/net/ethernet/mellanox/mlx4/cmd.c           |  190 +++-
- drivers/net/ethernet/mellanox/mlx4/en_main.c       |    5 +-
- drivers/net/ethernet/mellanox/mlx4/eq.c            |  259 +++-
- drivers/net/ethernet/mellanox/mlx4/fw.c            |  227 +++-
- drivers/net/ethernet/mellanox/mlx4/fw.h            |    3 +
- drivers/net/ethernet/mellanox/mlx4/intf.c          |    5 +-
- drivers/net/ethernet/mellanox/mlx4/main.c          |  124 ++-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h          |  116 +-
- drivers/net/ethernet/mellanox/mlx4/port.c          |   21 +-
- drivers/net/ethernet/mellanox/mlx4/qp.c            |   67 +-
- .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  220 +++-
- include/linux/mlx4/device.h                        |  179 ++-
- include/linux/mlx4/driver.h                        |    5 +-
- include/linux/mlx4/qp.h                            |    3 +-
- include/rdma/ib_cache.h                            |   16 +
- include/rdma/ib_cm.h                               |   12 +
- include/rdma/ib_sa.h                               |   33 +
- include/rdma/ib_verbs.h                            |    3 +
- 32 files changed, 7520 insertions(+), 358 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx4/alias_GUID.c
- create mode 100644 drivers/infiniband/hw/mlx4/cm.c
- create mode 100644 drivers/infiniband/hw/mlx4/mcg.c
- create mode 100644 drivers/infiniband/hw/mlx4/sysfs.c
-
-Cc: dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
