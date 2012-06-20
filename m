@@ -1,118 +1,74 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V1 04/29] IB/core: change pkey table lookups to support full and partial membership for the same pkey
-Date: Tue, 19 Jun 2012 11:21:36 +0300
-Message-ID: <1340094121-14858-5-git-send-email-jackm@dev.mellanox.co.il>
-References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: RDMA_CM_EVENT_REJECTED and ressources release
+Date: Wed, 20 Jun 2012 16:19:55 +0200
+Message-ID: <1340201995.2468.24.camel@test.quest-ce.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340094121-14858-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Enhance the cached and non-cached pkey table lookups to enable limited and full
-members of the same pkey to co-exist in the pkey table.
+Hi,
 
-This is necessary for SRIOV to allow for a scheme where some guests would have the full
-membership pkey in their virtual pkey table, where other guests on the same hypervisor
-would have the limited one. In that sense, its an extension of the IBTA model for
-non virtualized nodes.
+I'm trying to make my InfiniBand verbs/RDMA application more reliable
+regarding RDMA CM error events.
 
-To accomplish this, we need both the limited and full membership pkeys to be present
-in the master's (hypervisor physical port) pkey table.
+In particular, I'm trying to handle verbs ressources release.
 
-The algorithm for supporting pkey tables which contain both the limited and the full
-membership versions of the same pkey works as follows:
+Here's a scenarii from the client point of view:
 
-When scanning the pkey table for a 15 bit pkey:
+rdma_resolve_addr()
+    => event RDMA_CM_EVENT_ADDR_RESOLVED
+rdma_resolv_route()
+    => event RDMA_CM_EVENT_ROUTE_RESOLVED
+ibv_reg_mr()
+ibv_create_cq()
+rdma_create_qp()
+rdma_connect()
+    => event RDMA_CM_EVENT_REJECTED !
 
-A. If there is a full member version of that pkey anywhere
-    in the table, return its index (even if a limited-member
-    version of the pkey exists earlier in the table).
+In the handler of RDMA_CM_EVENT_REJECTED, I could handle this in two
+different ways:
 
-B. If the full member version is not in the table,
-    but the limited-member version is in the table,
-    return the index of the limited pkey.
+- call rdma_disconnect(): even if the connection is not established, 
+  rdma_disconnect() can be called.
 
-Signed-off-by: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cache.c  |   14 +++++++++++---
- drivers/infiniband/core/device.c |   17 +++++++++++++----
- 2 files changed, 24 insertions(+), 7 deletions(-)
+  In this case, all receive WR posted came back in error.
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 9353992..0f2f2b7 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -167,6 +167,7 @@ int ib_find_cached_pkey(struct ib_device *device,
- 	unsigned long flags;
- 	int i;
- 	int ret = -ENOENT;
-+	int partial_ix = -1;
- 
- 	if (port_num < start_port(device) || port_num > end_port(device))
- 		return -EINVAL;
-@@ -179,10 +180,17 @@ int ib_find_cached_pkey(struct ib_device *device,
- 
- 	for (i = 0; i < cache->table_len; ++i)
- 		if ((cache->table[i] & 0x7fff) == (pkey & 0x7fff)) {
--			*index = i;
--			ret = 0;
--			break;
-+			if (cache->table[i] & 0x8000) {
-+				*index = i;
-+				ret = 0;
-+				break;
-+			} else
-+				partial_ix = i;
- 		}
-+	if (ret && partial_ix >= 0) {
-+		*index = partial_ix;
-+		ret = 0;
-+	}
- 
- 	read_unlock_irqrestore(&device->cache.lock, flags);
- 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index e711de4..a645c68 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -707,18 +707,27 @@ int ib_find_pkey(struct ib_device *device,
- {
- 	int ret, i;
- 	u16 tmp_pkey;
-+	int partial_ix = -1;
- 
- 	for (i = 0; i < device->pkey_tbl_len[port_num - start_port(device)]; ++i) {
- 		ret = ib_query_pkey(device, port_num, i, &tmp_pkey);
- 		if (ret)
- 			return ret;
--
- 		if ((pkey & 0x7fff) == (tmp_pkey & 0x7fff)) {
--			*index = i;
--			return 0;
-+			/* if there is full-member pkey take it.*/
-+			if (tmp_pkey & 0x8000) {
-+				*index = i;
-+				return 0;
-+			}
-+			if (partial_ix < 0)
-+				partial_ix = i;
- 		}
- 	}
--
-+	/*no full-member, if exists take the limited*/
-+	if (partial_ix >= 0) {
-+		*index = partial_ix;
-+		return 0;
-+	}
- 	return -ENOENT;
- }
- EXPORT_SYMBOL(ib_find_pkey);
+  But there's no event RDMA_CM_EVENT_TIMEWAIT_EXIT to handle
+  where the program could call rdma_destroy_qp(), ibv_destroy_cq(), 
+  ibv_dereg_mr(), and rdma_destroy_id().
+
+  Note there's no event RDMA_CM_EVENT_DISCONNECTED either (indeed).
+
+- call rdma_destroy_qp(), ibv_destroy_cq(), ibv_dereg_mr(), and 
+  rdma_destroy_id(). 
+  
+  Before calling ibv_destroy_cq(), the program call ibv_poll_cq() to 
+  flush the CQ (but the function return -2 when called on the CQ used 
+  to hold receive WC, but without problem on the one used to hold send 
+  WC)
+
+  The completion channel which was registered against the CQ is 
+  notified of an event. ibv_get_cq_event() will return a pointer 
+  to the destroyed CQ and ibv_poll_cq() return 0 (no WC).
+  (and currently my code is calling ibv_ack_cq_events() then 
+   ibv_req_notify_cq() on the CQ returned by ibv_get_cq_event).
+
+
+Neither solution seems really suitable to me.
+
+Do you have any tip/hint to handle this situation.
+
+Regards.
+
 -- 
-1.7.1
+Yann Droneaud
+OPTEYA
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
