@@ -1,85 +1,35 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: RDMA_CM_EVENT_REJECTED and ressources release
-Date: Thu, 21 Jun 2012 08:11:47 +0200
-Message-ID: <1340259107.2288.7.camel@dworkin.quest-ce.net>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RDMA_CM_EVENT_REJECTED and ressources release
+Date: Thu, 21 Jun 2012 16:04:23 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A3EA93@ORSMSX101.amr.corp.intel.com>
 References: <1340201995.2468.24.camel@test.quest-ce.net>
-	 <CAFRond5aFKD1orfM=3wdDkkHq47b8BkY2RiidMLJDTy014gdLQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAFRond5aFKD1orfM=3wdDkkHq47b8BkY2RiidMLJDTy014gdLQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1340201995.2468.24.camel-sQn2kEGNn0pFevvuwOF9vF6hYfS7NtTn@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Veerendra Allada <allada.v-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le mercredi 20 juin 2012 =C3=A0 21:27 -0400, Veerendra Allada a =C3=A9c=
-rit :
-> Is it possible to delay the memory registrations (ibv_reg_mr) and  th=
-e
-> ibv_post_recv()'s until the connection is established ? Based on what
-> i understood, i am suggesting the following sequence of calls on
-> Client and Server. See if it helps.
->=20
-> Client
-> rdma_create_event_channel()
-> rdma_create_id()
-> rdma_resolve_addr()
-> ibv_alloc_pd()
-> ibv_create_comp_channel()
-> ibv_create_cq()
-> rdma_create_qp()
-> rdma_resolve_route()
-> rdma_connect()
->=20
-> If the connection is not successful, call the corresponding destroy
-> calls in the the reverse order.
-> If the connection is successful, register memory and post the receive
-> calls.
->=20
-> Server
-> rdma_create_event_channel()
-> rdma_create_id()
-> rdma_bind_addr()
-> rdma_listen()
->=20
-> Up on a new incoming connection request, do the following sequence.
->=20
-> ibv_alloc_pd()
-> ibv_create_comp_channel()
-> ibv_create_cq()
-> rdma_create_qp()
-> rdma_accept()
->=20
-> After the connection is successful, register memory and then post
-> receive requests.
-> At this point you should be able to post ibv_post_send requests and
-> poll your completion queue's, etc.
->=20
-
-Thanks for your answer, but it's not applicable on my case:
-
-I have to post receive works before doing rdma_accept()/rdma_connect()
-so that both side are ready to receive messages sent by other peer.
-
-Not doing so will lead to races, RNR errors will be triggered on the
-sending side if it's faster than the receiving side.
-
-If the protocol implemented above the RDMA connection is
-request/response based and initiated by the client, the client could
-follow your proposed scheme, but on the server side, it will have to
-post receive works before calling rdma_accept().
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+PiAtIGNhbGwgcmRtYV9kaXNjb25uZWN0KCk6IGV2ZW4gaWYgdGhlIGNvbm5lY3Rpb24gaXMgbm90
+IGVzdGFibGlzaGVkLA0KPiAgIHJkbWFfZGlzY29ubmVjdCgpIGNhbiBiZSBjYWxsZWQuDQo+IA0K
+PiAgIEluIHRoaXMgY2FzZSwgYWxsIHJlY2VpdmUgV1IgcG9zdGVkIGNhbWUgYmFjayBpbiBlcnJv
+ci4NCg0KT24gcHJvY2Vzc2luZyBhIHJlamVjdCBldmVudCwgdGhlIGxpYnJkbWFjbSBzaG91bGQg
+dHJhbnNpdGlvbiB0aGUgUVAgaW50byB0aGUgZXJyb3Igc3RhdGUuICBUaGF0IHNob3VsZCBmbHVz
+aCBhbGwgcG9zdGVkIHdvcmsgcmVxdWVzdHMuICBBdCB0aGF0IHBvaW50LCB5b3Ugc2hvdWxkIG9u
+bHkgbmVlZCB0byBwdWxsIG9mZiB0aGUgZmFpbGVkIFdScyBmcm9tIHRoZSBDUSwgdGhlbiBkZXN0
+cm95IGV2ZXJ5dGhpbmcuDQoNCj4gLSBjYWxsIHJkbWFfZGVzdHJveV9xcCgpLCBpYnZfZGVzdHJv
+eV9jcSgpLCBpYnZfZGVyZWdfbXIoKSwgYW5kDQo+ICAgcmRtYV9kZXN0cm95X2lkKCkuDQo+IA0K
+PiAgIEJlZm9yZSBjYWxsaW5nIGlidl9kZXN0cm95X2NxKCksIHRoZSBwcm9ncmFtIGNhbGwgaWJ2
+X3BvbGxfY3EoKSB0bw0KPiAgIGZsdXNoIHRoZSBDUSAoYnV0IHRoZSBmdW5jdGlvbiByZXR1cm4g
+LTIgd2hlbiBjYWxsZWQgb24gdGhlIENRIHVzZWQNCj4gICB0byBob2xkIHJlY2VpdmUgV0MsIGJ1
+dCB3aXRob3V0IHByb2JsZW0gb24gdGhlIG9uZSB1c2VkIHRvIGhvbGQgc2VuZA0KPiAgIFdDKQ0K
+DQpJIGhhdmUgbm8gaWRlYSB3aGF0IHRoZSAtMiByZXR1cm4gY29kZSBpcyBpbmRpY2F0aW5nIG9y
+IHdoeSBpdCBvY2N1cnMuICBCdXQgdHJ5IHBvbGxpbmcgdGhlIENRIGJlZm9yZSBhdHRlbXB0aW5n
+IHRvIGRlc3Ryb3kgdGhlIFFQLg0KDQotIFNlYW4NCg==
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
