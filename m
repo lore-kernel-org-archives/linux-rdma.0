@@ -1,92 +1,78 @@
-From: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: FW: [PATCH] RDS: correct ib api use with sg_dma_address/sg_dma_len
-Date: Fri, 22 Jun 2012 14:35:25 -0500
-Message-ID: <4FE4C8FD.2050700@oracle.com>
-References: <20120419161517.713.76674.stgit@kop-dev-sles11-04.qlogic.org> <32E1700B9017364D9B60AED9960492BC0D457CBA@FMSMSX108.amr.corp.intel.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: FW: [PATCH] RDS: correct ib api use with
+ sg_dma_address/sg_dma_len
+Date: Fri, 22 Jun 2012 19:46:49 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC0D457D35@FMSMSX108.amr.corp.intel.com>
+References: <20120419161517.713.76674.stgit@kop-dev-sles11-04.qlogic.org>
+ <32E1700B9017364D9B60AED9960492BC0D457CBA@FMSMSX108.amr.corp.intel.com>
+ <4FE4C8FD.2050700@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC0D457CBA-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4FE4C8FD.2050700-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mascarenhas, Edward" <edward.mascarenhas-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mascarenhas, Edward" <edward.mascarenhas-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/22/2012 1:24 PM, Marciniszyn, Mike wrote:
-> I haven=E2=80=99t seen this patch get upstream.
->
-> Is there something I should do to help?
->
-> Mike
->
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner@vger.=
-kernel.org] On Behalf Of Mike Marciniszyn
-> Sent: Thursday, April 19, 2012 12:15 PM
-> To: venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-> Subject: [PATCH] RDS: correct ib api use with sg_dma_address/sg_dma_l=
-en
->
-> From: Mike Marciniszyn<mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
->
-> 0b088e00 ("RDS: Use page_remainder_alloc() for recv bufs") added uses=
- of sg_dma_len() and sg_dma_address().
->
-> IB ulps should use ib_sg_dma_len() and ib_sg_dma_address respectively=
- since some HCAs overload ib_sg_dma* operations.
->
-> Signed-off-by: Mike Marciniszyn<mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-> ---
->   net/rds/ib_recv.c |    9 ++++++---
->   1 files changed, 6 insertions(+), 3 deletions(-)
->
-> diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c index 8d19491..cd4=
-4ed3 100644
-> --- a/net/rds/ib_recv.c
-> +++ b/net/rds/ib_recv.c
-> @@ -339,8 +339,8 @@ static int rds_ib_recv_refill_one(struct rds_conn=
-ection *conn,
->   	sge->length =3D sizeof(struct rds_header);
->
->   	sge =3D&recv->r_sge[1];
-> -	sge->addr =3D sg_dma_address(&recv->r_frag->f_sg);
-> -	sge->length =3D sg_dma_len(&recv->r_frag->f_sg);
-> +	sge->addr =3D ib_sg_dma_address(ic->i_cm_id->device,&recv->r_frag->=
-f_sg);
-> +	sge->length =3D ib_sg_dma_len(ic->i_cm_id->device,&recv->r_frag->f_=
-sg);
->
->   	ret =3D 0;
->   out:
-> @@ -381,7 +381,10 @@ void rds_ib_recv_refill(struct rds_connection *c=
-onn, int prefill)
->   		ret =3D ib_post_recv(ic->i_cm_id->qp,&recv->r_wr,&failed_wr);
->   		rdsdebug("recv %p ibinc %p page %p addr %lu ret %d\n", recv,
->   			 recv->r_ibinc, sg_page(&recv->r_frag->f_sg),
-> -			 (long) sg_dma_address(&recv->r_frag->f_sg), ret);
-> +			 (long) ib_sg_dma_address(
-> +				ic->i_cm_id->device,
-> +				&recv->r_frag->f_sg),
-> +			ret);
->   		if (ret) {
->   			rds_ib_conn_error(conn, "recv post on "
->   			       "%pI4 returned %d, disconnecting and "
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo i=
-nfo at  http://vger.kernel.org/majordomo-info.html
->
->
-I had Acked it according to my April 19th email. ;-)
-
-Venkat
+V2hhdCBpcyB0aGUgcHJvY2VzcyBmb3IgZ2V0dGluZyBwYXRjaGVzIGludG8gUkRTLg0KDQpUaGUg
+b3JpZ2luYWwgbWVzc2FnZXMgYW5kIGFjaydzIGFyZSBzaG93biBpbiBodHRwOi8vb3NzLm9yYWNs
+ZS5jb20vcGlwZXJtYWlsL3Jkcy1kZXZlbC8yMDEyLUFwcmlsL3RocmVhZC5odG1sLg0KDQpJIGNh
+biByZXBvc3QgdGhlIHBhdGNoZXMgaWYgbmVjZXNzYXJ5Lg0KDQpNaWtlIA0KDQo+IC0tLS0tT3Jp
+Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFZlbmthdCBWZW5rYXRzdWJyYSBbbWFpbHRvOnZl
+bmthdC54LnZlbmthdHN1YnJhQG9yYWNsZS5jb21dDQo+IFNlbnQ6IEZyaWRheSwgSnVuZSAyMiwg
+MjAxMiAzOjM1IFBNDQo+IFRvOiBNYXJjaW5pc3p5biwgTWlrZQ0KPiBDYzogbGludXgtcmRtYUB2
+Z2VyLmtlcm5lbC5vcmc7IE1hc2NhcmVuaGFzLCBFZHdhcmQNCj4gU3ViamVjdDogUmU6IEZXOiBb
+UEFUQ0hdIFJEUzogY29ycmVjdCBpYiBhcGkgdXNlIHdpdGgNCj4gc2dfZG1hX2FkZHJlc3Mvc2df
+ZG1hX2xlbg0KPiANCj4gT24gNi8yMi8yMDEyIDE6MjQgUE0sIE1hcmNpbmlzenluLCBNaWtlIHdy
+b3RlOg0KPiA+IEkgaGF2ZW7igJl0IHNlZW4gdGhpcyBwYXRjaCBnZXQgdXBzdHJlYW0uDQo+ID4N
+Cj4gPiBJcyB0aGVyZSBzb21ldGhpbmcgSSBzaG91bGQgZG8gdG8gaGVscD8NCj4gPg0KPiA+IE1p
+a2UNCj4gPg0KPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTogbGludXgt
+cmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2
+Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBNaWtlIE1hcmNpbmlzenluDQo+ID4gU2VudDog
+VGh1cnNkYXksIEFwcmlsIDE5LCAyMDEyIDEyOjE1IFBNDQo+ID4gVG86IHZlbmthdC54LnZlbmth
+dHN1YnJhQG9yYWNsZS5jb20NCj4gPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IHJk
+cy1kZXZlbEBvc3Mub3JhY2xlLmNvbQ0KPiA+IFN1YmplY3Q6IFtQQVRDSF0gUkRTOiBjb3JyZWN0
+IGliIGFwaSB1c2Ugd2l0aCBzZ19kbWFfYWRkcmVzcy9zZ19kbWFfbGVuDQo+ID4NCj4gPiBGcm9t
+OiBNaWtlIE1hcmNpbmlzenluPG1pa2UubWFyY2luaXN6eW5AcWxvZ2ljLmNvbT4NCj4gPg0KPiA+
+IDBiMDg4ZTAwICgiUkRTOiBVc2UgcGFnZV9yZW1haW5kZXJfYWxsb2MoKSBmb3IgcmVjdiBidWZz
+IikgYWRkZWQgdXNlcyBvZg0KPiBzZ19kbWFfbGVuKCkgYW5kIHNnX2RtYV9hZGRyZXNzKCkuDQo+
+ID4NCj4gPiBJQiB1bHBzIHNob3VsZCB1c2UgaWJfc2dfZG1hX2xlbigpIGFuZCBpYl9zZ19kbWFf
+YWRkcmVzcyByZXNwZWN0aXZlbHkNCj4gc2luY2Ugc29tZSBIQ0FzIG92ZXJsb2FkIGliX3NnX2Rt
+YSogb3BlcmF0aW9ucy4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IE1pa2UgTWFyY2luaXN6eW48
+bWlrZS5tYXJjaW5pc3p5bkBxbG9naWMuY29tPg0KPiA+IC0tLQ0KPiA+ICAgbmV0L3Jkcy9pYl9y
+ZWN2LmMgfCAgICA5ICsrKysrKy0tLQ0KPiA+ICAgMSBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlv
+bnMoKyksIDMgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvbmV0L3Jkcy9pYl9y
+ZWN2LmMgYi9uZXQvcmRzL2liX3JlY3YuYyBpbmRleCA4ZDE5NDkxLi5jZDQ0ZWQzDQo+IDEwMDY0
+NA0KPiA+IC0tLSBhL25ldC9yZHMvaWJfcmVjdi5jDQo+ID4gKysrIGIvbmV0L3Jkcy9pYl9yZWN2
+LmMNCj4gPiBAQCAtMzM5LDggKzMzOSw4IEBAIHN0YXRpYyBpbnQgcmRzX2liX3JlY3ZfcmVmaWxs
+X29uZShzdHJ1Y3QNCj4gcmRzX2Nvbm5lY3Rpb24gKmNvbm4sDQo+ID4gICAJc2dlLT5sZW5ndGgg
+PSBzaXplb2Yoc3RydWN0IHJkc19oZWFkZXIpOw0KPiA+DQo+ID4gICAJc2dlID0mcmVjdi0+cl9z
+Z2VbMV07DQo+ID4gLQlzZ2UtPmFkZHIgPSBzZ19kbWFfYWRkcmVzcygmcmVjdi0+cl9mcmFnLT5m
+X3NnKTsNCj4gPiAtCXNnZS0+bGVuZ3RoID0gc2dfZG1hX2xlbigmcmVjdi0+cl9mcmFnLT5mX3Nn
+KTsNCj4gPiArCXNnZS0+YWRkciA9IGliX3NnX2RtYV9hZGRyZXNzKGljLT5pX2NtX2lkLT5kZXZp
+Y2UsJnJlY3YtPnJfZnJhZy0NCj4gPmZfc2cpOw0KPiA+ICsJc2dlLT5sZW5ndGggPSBpYl9zZ19k
+bWFfbGVuKGljLT5pX2NtX2lkLT5kZXZpY2UsJnJlY3YtPnJfZnJhZy0NCj4gPmZfc2cpOw0KPiA+
+DQo+ID4gICAJcmV0ID0gMDsNCj4gPiAgIG91dDoNCj4gPiBAQCAtMzgxLDcgKzM4MSwxMCBAQCB2
+b2lkIHJkc19pYl9yZWN2X3JlZmlsbChzdHJ1Y3QgcmRzX2Nvbm5lY3Rpb24NCj4gKmNvbm4sIGlu
+dCBwcmVmaWxsKQ0KPiA+ICAgCQlyZXQgPSBpYl9wb3N0X3JlY3YoaWMtPmlfY21faWQtPnFwLCZy
+ZWN2LT5yX3dyLCZmYWlsZWRfd3IpOw0KPiA+ICAgCQlyZHNkZWJ1ZygicmVjdiAlcCBpYmluYyAl
+cCBwYWdlICVwIGFkZHIgJWx1IHJldCAlZFxuIiwNCj4gcmVjdiwNCj4gPiAgIAkJCSByZWN2LT5y
+X2liaW5jLCBzZ19wYWdlKCZyZWN2LT5yX2ZyYWctPmZfc2cpLA0KPiA+IC0JCQkgKGxvbmcpIHNn
+X2RtYV9hZGRyZXNzKCZyZWN2LT5yX2ZyYWctPmZfc2cpLCByZXQpOw0KPiA+ICsJCQkgKGxvbmcp
+IGliX3NnX2RtYV9hZGRyZXNzKA0KPiA+ICsJCQkJaWMtPmlfY21faWQtPmRldmljZSwNCj4gPiAr
+CQkJCSZyZWN2LT5yX2ZyYWctPmZfc2cpLA0KPiA+ICsJCQlyZXQpOw0KPiA+ICAgCQlpZiAocmV0
+KSB7DQo+ID4gICAJCQlyZHNfaWJfY29ubl9lcnJvcihjb25uLCAicmVjdiBwb3N0IG9uICINCj4g
+PiAgIAkJCSAgICAgICAiJXBJNCByZXR1cm5lZCAlZCwgZGlzY29ubmVjdGluZyBhbmQgIg0KPiA+
+DQo+ID4NCj4gPiAtLQ0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
+ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbiB0aGUNCj4gYm9keSBvZiBhIG1lc3Nh
+Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0DQo+
+IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KPiA+DQo+ID4NCj4g
+SSBoYWQgQWNrZWQgaXQgYWNjb3JkaW5nIHRvIG15IEFwcmlsIDE5dGggZW1haWwuIDstKQ0KPiAN
+Cj4gVmVua2F0DQo=
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
