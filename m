@@ -1,58 +1,88 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: FW: [PATCH] RDS: correct ib api use with sg_dma_address/sg_dma_len
-Date: Fri, 22 Jun 2012 18:24:23 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0D457CBA@FMSMSX108.amr.corp.intel.com>
-References: <20120419161517.713.76674.stgit@kop-dev-sles11-04.qlogic.org>
+From: Chet Murthy <chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org>
+Subject: Re: OFED 1.5.4.1 on Ubuntu 10.04 with Mellanox cards?
+Date: Fri, 22 Jun 2012 12:02:46 -0700
+Message-ID: <5754967.2RWSFZticM@twitter>
+References: <1565389.HptLAFPzES@twitter> <4FE4304E.3090002@profitbricks.com>
+Reply-To: Chet Murthy <chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120419161517.713.76674.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4FE4304E.3090002-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mascarenhas, Edward" <edward.mascarenhas-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SSBoYXZlbuKAmXQgc2VlbiB0aGlzIHBhdGNoIGdldCB1cHN0cmVhbS4NCg0KSXMgdGhlcmUgc29t
-ZXRoaW5nIEkgc2hvdWxkIGRvIHRvIGhlbHA/DQoNCk1pa2UNCg0KLS0tLS1PcmlnaW5hbCBNZXNz
-YWdlLS0tLS0NCkZyb206IGxpbnV4LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86
-bGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBNaWtlIE1hcmNp
-bmlzenluDQpTZW50OiBUaHVyc2RheSwgQXByaWwgMTksIDIwMTIgMTI6MTUgUE0NClRvOiB2ZW5r
-YXQueC52ZW5rYXRzdWJyYUBvcmFjbGUuY29tDQpDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5v
-cmc7IHJkcy1kZXZlbEBvc3Mub3JhY2xlLmNvbQ0KU3ViamVjdDogW1BBVENIXSBSRFM6IGNvcnJl
-Y3QgaWIgYXBpIHVzZSB3aXRoIHNnX2RtYV9hZGRyZXNzL3NnX2RtYV9sZW4NCg0KRnJvbTogTWlr
-ZSBNYXJjaW5pc3p5biA8bWlrZS5tYXJjaW5pc3p5bkBxbG9naWMuY29tPg0KDQowYjA4OGUwMCAo
-IlJEUzogVXNlIHBhZ2VfcmVtYWluZGVyX2FsbG9jKCkgZm9yIHJlY3YgYnVmcyIpIGFkZGVkIHVz
-ZXMgb2Ygc2dfZG1hX2xlbigpIGFuZCBzZ19kbWFfYWRkcmVzcygpLg0KDQpJQiB1bHBzIHNob3Vs
-ZCB1c2UgaWJfc2dfZG1hX2xlbigpIGFuZCBpYl9zZ19kbWFfYWRkcmVzcyByZXNwZWN0aXZlbHkg
-c2luY2Ugc29tZSBIQ0FzIG92ZXJsb2FkIGliX3NnX2RtYSogb3BlcmF0aW9ucy4NCg0KU2lnbmVk
-LW9mZi1ieTogTWlrZSBNYXJjaW5pc3p5biA8bWlrZS5tYXJjaW5pc3p5bkBxbG9naWMuY29tPg0K
-LS0tDQogbmV0L3Jkcy9pYl9yZWN2LmMgfCAgICA5ICsrKysrKy0tLQ0KIDEgZmlsZXMgY2hhbmdl
-ZCwgNiBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvbmV0L3Jk
-cy9pYl9yZWN2LmMgYi9uZXQvcmRzL2liX3JlY3YuYyBpbmRleCA4ZDE5NDkxLi5jZDQ0ZWQzIDEw
-MDY0NA0KLS0tIGEvbmV0L3Jkcy9pYl9yZWN2LmMNCisrKyBiL25ldC9yZHMvaWJfcmVjdi5jDQpA
-QCAtMzM5LDggKzMzOSw4IEBAIHN0YXRpYyBpbnQgcmRzX2liX3JlY3ZfcmVmaWxsX29uZShzdHJ1
-Y3QgcmRzX2Nvbm5lY3Rpb24gKmNvbm4sDQogCXNnZS0+bGVuZ3RoID0gc2l6ZW9mKHN0cnVjdCBy
-ZHNfaGVhZGVyKTsNCiANCiAJc2dlID0gJnJlY3YtPnJfc2dlWzFdOw0KLQlzZ2UtPmFkZHIgPSBz
-Z19kbWFfYWRkcmVzcygmcmVjdi0+cl9mcmFnLT5mX3NnKTsNCi0Jc2dlLT5sZW5ndGggPSBzZ19k
-bWFfbGVuKCZyZWN2LT5yX2ZyYWctPmZfc2cpOw0KKwlzZ2UtPmFkZHIgPSBpYl9zZ19kbWFfYWRk
-cmVzcyhpYy0+aV9jbV9pZC0+ZGV2aWNlLCAmcmVjdi0+cl9mcmFnLT5mX3NnKTsNCisJc2dlLT5s
-ZW5ndGggPSBpYl9zZ19kbWFfbGVuKGljLT5pX2NtX2lkLT5kZXZpY2UsICZyZWN2LT5yX2ZyYWct
-PmZfc2cpOw0KIA0KIAlyZXQgPSAwOw0KIG91dDoNCkBAIC0zODEsNyArMzgxLDEwIEBAIHZvaWQg
-cmRzX2liX3JlY3ZfcmVmaWxsKHN0cnVjdCByZHNfY29ubmVjdGlvbiAqY29ubiwgaW50IHByZWZp
-bGwpDQogCQlyZXQgPSBpYl9wb3N0X3JlY3YoaWMtPmlfY21faWQtPnFwLCAmcmVjdi0+cl93ciwg
-JmZhaWxlZF93cik7DQogCQlyZHNkZWJ1ZygicmVjdiAlcCBpYmluYyAlcCBwYWdlICVwIGFkZHIg
-JWx1IHJldCAlZFxuIiwgcmVjdiwNCiAJCQkgcmVjdi0+cl9pYmluYywgc2dfcGFnZSgmcmVjdi0+
-cl9mcmFnLT5mX3NnKSwNCi0JCQkgKGxvbmcpIHNnX2RtYV9hZGRyZXNzKCZyZWN2LT5yX2ZyYWct
-PmZfc2cpLCByZXQpOw0KKwkJCSAobG9uZykgaWJfc2dfZG1hX2FkZHJlc3MoDQorCQkJCWljLT5p
-X2NtX2lkLT5kZXZpY2UsDQorCQkJCSZyZWN2LT5yX2ZyYWctPmZfc2cpLA0KKwkJCXJldCk7DQog
-CQlpZiAocmV0KSB7DQogCQkJcmRzX2liX2Nvbm5fZXJyb3IoY29ubiwgInJlY3YgcG9zdCBvbiAi
-DQogCQkJICAgICAgICIlcEk0IHJldHVybmVkICVkLCBkaXNjb25uZWN0aW5nIGFuZCAiDQoNCg0K
-LS0NClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNj
-cmliZSBsaW51eC1yZG1hIiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZn
-ZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwu
-b3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg0KDQo=
+
+Sebastian,
+
+Thank you for taking the time to explain these things!  It's a little
+confusing ....
+
+> Here a simple list of matching code:
+> OFED-1.5.4  ---> kernel 3.2.x
+> OFED-1.5.4.1 ---> kernel 3.3.x
+
+(1) Is there a more-exhaustive list of the right kernel to use with
+each OFED release?  I was going by the OFED docs (e.g. release notes),
+which seemed to indicate that for 1.5.4.1, the "right" range of
+kernels was (kernel.org: 2.6.30 - 3.1), and specific kernel versions
+for various distros.
+
+(2) I'm pretty familiar with adminstering Debian systems and building
+debian packages, hacking their insides, alienizing, hacking that
+process, etc.
+
+(I -think- ;-) The only real question for me is, which versions, with
+which patches, of the various bits, will work together with this RoCEE
+card.
+
+(3) I'm -not at all- familiar with the workflow/process that Debian
+Developers use.  For instance, I don't really understand what you men
+below:
+
+> But you'll have to ensure that the kernel code matches the OFED user
+> space. The kernel stuff included in OFED doesn't support latest kernels
+> and is based on an older code base (e.g. OFED 1.5.4 kernel stuff is
+> based on 2.6.30).
+
+Do you mean that the kernel-ib RPM in 1.5.4 is the code form the
+2.6.30 kernel?  But then the list below doesn't seem to make sense.
+
+> Here a simple list of matching code:
+> OFED-1.5.4  ---> kernel 3.2.x
+> OFED-1.5.4.1 ---> kernel 3.3.x
+
+(4) I think what you're saying here
+
+> the trick is to check out the latest pkg-ofed source from debian SVN
+> (svn://svn.debian.org/svn/pkg-ofed/) and to update the upstream source
+> by merging the stuff by extracting the source RPMs or even better by
+> importing the source directly from the git repos of the OFED user space.
+> In the "debian" directory there are some patches e.g. which change some
+> stuff in shell scripts for the dash. These need to be adopted.
+
+is:
+
+  (a) check out the stuff from svn.debian.org
+
+  (b) pull source from the OFED repos user-space
+
+  (c) -copy- that (latest) OFED source into the tree I checked-out
+  from debian
+
+  (d) make sure that the patches in the debian directories apply
+  properly to the various shellscripts
+
+  (e) build debian packages per usual
+
+And per your instructions above, I believe you're saying I should be
+using a 3.3.x kernel?
+
+Thanks,
+--chet--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
