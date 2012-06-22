@@ -1,34 +1,85 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RDMA_CM_EVENT_REJECTED and ressources release
-Date: Thu, 21 Jun 2012 16:04:23 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A3EA93@ORSMSX101.amr.corp.intel.com>
-References: <1340201995.2468.24.camel@test.quest-ce.net>
+From: Chet Murthy <chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org>
+Subject: OFED 1.5.4.1 on Ubuntu 10.04 with Mellanox cards?
+Date: Thu, 21 Jun 2012 17:46:12 -0700
+Message-ID: <1565389.HptLAFPzES@twitter>
+Reply-To: chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340201995.2468.24.camel-sQn2kEGNn0pFevvuwOF9vF6hYfS7NtTn@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtIGNhbGwgcmRtYV9kaXNjb25uZWN0KCk6IGV2ZW4gaWYgdGhlIGNvbm5lY3Rpb24gaXMgbm90
-IGVzdGFibGlzaGVkLA0KPiAgIHJkbWFfZGlzY29ubmVjdCgpIGNhbiBiZSBjYWxsZWQuDQo+IA0K
-PiAgIEluIHRoaXMgY2FzZSwgYWxsIHJlY2VpdmUgV1IgcG9zdGVkIGNhbWUgYmFjayBpbiBlcnJv
-ci4NCg0KT24gcHJvY2Vzc2luZyBhIHJlamVjdCBldmVudCwgdGhlIGxpYnJkbWFjbSBzaG91bGQg
-dHJhbnNpdGlvbiB0aGUgUVAgaW50byB0aGUgZXJyb3Igc3RhdGUuICBUaGF0IHNob3VsZCBmbHVz
-aCBhbGwgcG9zdGVkIHdvcmsgcmVxdWVzdHMuICBBdCB0aGF0IHBvaW50LCB5b3Ugc2hvdWxkIG9u
-bHkgbmVlZCB0byBwdWxsIG9mZiB0aGUgZmFpbGVkIFdScyBmcm9tIHRoZSBDUSwgdGhlbiBkZXN0
-cm95IGV2ZXJ5dGhpbmcuDQoNCj4gLSBjYWxsIHJkbWFfZGVzdHJveV9xcCgpLCBpYnZfZGVzdHJv
-eV9jcSgpLCBpYnZfZGVyZWdfbXIoKSwgYW5kDQo+ICAgcmRtYV9kZXN0cm95X2lkKCkuDQo+IA0K
-PiAgIEJlZm9yZSBjYWxsaW5nIGlidl9kZXN0cm95X2NxKCksIHRoZSBwcm9ncmFtIGNhbGwgaWJ2
-X3BvbGxfY3EoKSB0bw0KPiAgIGZsdXNoIHRoZSBDUSAoYnV0IHRoZSBmdW5jdGlvbiByZXR1cm4g
-LTIgd2hlbiBjYWxsZWQgb24gdGhlIENRIHVzZWQNCj4gICB0byBob2xkIHJlY2VpdmUgV0MsIGJ1
-dCB3aXRob3V0IHByb2JsZW0gb24gdGhlIG9uZSB1c2VkIHRvIGhvbGQgc2VuZA0KPiAgIFdDKQ0K
-DQpJIGhhdmUgbm8gaWRlYSB3aGF0IHRoZSAtMiByZXR1cm4gY29kZSBpcyBpbmRpY2F0aW5nIG9y
-IHdoeSBpdCBvY2N1cnMuICBCdXQgdHJ5IHBvbGxpbmcgdGhlIENRIGJlZm9yZSBhdHRlbXB0aW5n
-IHRvIGRlc3Ryb3kgdGhlIFFQLg0KDQotIFNlYW4NCg==
+
+Hi,
+
+A long while ago, I got OFED 1.5.2 working on Ubuntu 10.04 (Lucid) on
+Opterons with Mellanox DDR cards.  It was a little messy, getting the
+RPMs compiled, but it was pretty straightforward.  Basically, I (a)
+built a kernel with neither infiniband nor mellanox ethernet drivers,
+and (b) ran the OFED install.pl with some minor modifications to
+convert the RPMs into DEBs as they were built.  And everything worked,
+smooth as a whistle.
+
+Today, I tried to do the same thing with OFED 1.5.4.1, and while the
+process of -building- was straightforward, once I get done, the card's
+state is all zeroes:
+
+chet@memstore3:~$ sudo ibstatus
+Infiniband device 'mlx4_0' port 1 status:
+        default gid:     0000:0000:0000:0000:0000:0000:0000:0000
+        base lid:        0x0
+        sm lid:          0x0
+        state:           1: DOWN
+        phys state:      3: Disabled
+        rate:            2.5 Gb/sec (1X)
+        link_layer:      Ethernet
+
+Infiniband device 'mlx4_0' port 2 status:
+        default gid:     0000:0000:0000:0000:0000:0000:0000:0000
+        base lid:        0x0
+        sm lid:          0x0
+        state:           1: DOWN
+        phys state:      3: Disabled
+        rate:            2.5 Gb/sec (1X)
+        link_layer:      Ethernet
+
+The card's a modern ConnectX
+
+1f:00.0 Ethernet controller: Mellanox Technologies MT26448 [ConnectX EN 
+10GigE, PCIe 2.0 5GT/s] (rev b0)
+
+and on identical RedHat machines, the card's status is quite
+different:
+
+
+[root@memstore4 chet]# ibstatus
+Infiniband device 'mlx4_0' port 1 status:
+        default gid:     fe80:0000:0000:0000:0202:c9ff:fe4b:5890
+        base lid:        0x0
+        sm lid:          0x0
+        state:           1: DOWN
+        phys state:      3: Disabled
+        rate:            10 Gb/sec (1X QDR)
+        link_layer:      Ethernet
+
+Infiniband device 'mlx4_0' port 2 status:
+        default gid:     fe80:0000:0000:0000:0202:c9ff:fe4b:5891
+        base lid:        0x0
+        sm lid:          0x0
+        state:           4: ACTIVE
+        phys state:      5: LinkUp
+        rate:            10 Gb/sec (1X QDR)
+        link_layer:      Ethernet
+
+I'm not even sure how to go about debugging this.  Has anybody gotten
+OFED to work on Ubuntu with such modern cards?
+
+Thanks,
+--chet--
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
