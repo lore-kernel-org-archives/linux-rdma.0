@@ -1,89 +1,92 @@
-From: Chet Murthy <chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org>
-Subject: Re: OFED 1.5.4.1 on Ubuntu 10.04 with Mellanox cards?
-Date: Fri, 22 Jun 2012 12:02:46 -0700
-Message-ID: <5754967.2RWSFZticM@twitter>
-References: <1565389.HptLAFPzES@twitter> <4FE4304E.3090002@profitbricks.com>
-Reply-To: Chet Murthy <chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org>
+From: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: FW: [PATCH] RDS: correct ib api use with sg_dma_address/sg_dma_len
+Date: Fri, 22 Jun 2012 14:35:25 -0500
+Message-ID: <4FE4C8FD.2050700@oracle.com>
+References: <20120419161517.713.76674.stgit@kop-dev-sles11-04.qlogic.org> <32E1700B9017364D9B60AED9960492BC0D457CBA@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FE4304E.3090002-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC0D457CBA-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mascarenhas, Edward" <edward.mascarenhas-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 6/22/2012 1:24 PM, Marciniszyn, Mike wrote:
+> I haven=E2=80=99t seen this patch get upstream.
+>
+> Is there something I should do to help?
+>
+> Mike
+>
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner@vger.=
+kernel.org] On Behalf Of Mike Marciniszyn
+> Sent: Thursday, April 19, 2012 12:15 PM
+> To: venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+> Subject: [PATCH] RDS: correct ib api use with sg_dma_address/sg_dma_l=
+en
+>
+> From: Mike Marciniszyn<mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+>
+> 0b088e00 ("RDS: Use page_remainder_alloc() for recv bufs") added uses=
+ of sg_dma_len() and sg_dma_address().
+>
+> IB ulps should use ib_sg_dma_len() and ib_sg_dma_address respectively=
+ since some HCAs overload ib_sg_dma* operations.
+>
+> Signed-off-by: Mike Marciniszyn<mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+> ---
+>   net/rds/ib_recv.c |    9 ++++++---
+>   1 files changed, 6 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c index 8d19491..cd4=
+4ed3 100644
+> --- a/net/rds/ib_recv.c
+> +++ b/net/rds/ib_recv.c
+> @@ -339,8 +339,8 @@ static int rds_ib_recv_refill_one(struct rds_conn=
+ection *conn,
+>   	sge->length =3D sizeof(struct rds_header);
+>
+>   	sge =3D&recv->r_sge[1];
+> -	sge->addr =3D sg_dma_address(&recv->r_frag->f_sg);
+> -	sge->length =3D sg_dma_len(&recv->r_frag->f_sg);
+> +	sge->addr =3D ib_sg_dma_address(ic->i_cm_id->device,&recv->r_frag->=
+f_sg);
+> +	sge->length =3D ib_sg_dma_len(ic->i_cm_id->device,&recv->r_frag->f_=
+sg);
+>
+>   	ret =3D 0;
+>   out:
+> @@ -381,7 +381,10 @@ void rds_ib_recv_refill(struct rds_connection *c=
+onn, int prefill)
+>   		ret =3D ib_post_recv(ic->i_cm_id->qp,&recv->r_wr,&failed_wr);
+>   		rdsdebug("recv %p ibinc %p page %p addr %lu ret %d\n", recv,
+>   			 recv->r_ibinc, sg_page(&recv->r_frag->f_sg),
+> -			 (long) sg_dma_address(&recv->r_frag->f_sg), ret);
+> +			 (long) ib_sg_dma_address(
+> +				ic->i_cm_id->device,
+> +				&recv->r_frag->f_sg),
+> +			ret);
+>   		if (ret) {
+>   			rds_ib_conn_error(conn, "recv post on "
+>   			       "%pI4 returned %d, disconnecting and "
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo i=
+nfo at  http://vger.kernel.org/majordomo-info.html
+>
+>
+I had Acked it according to my April 19th email. ;-)
 
-Sebastian,
-
-Thank you for taking the time to explain these things!  It's a little
-confusing ....
-
-> Here a simple list of matching code:
-> OFED-1.5.4  ---> kernel 3.2.x
-> OFED-1.5.4.1 ---> kernel 3.3.x
-
-(1) Is there a more-exhaustive list of the right kernel to use with
-each OFED release?  I was going by the OFED docs (e.g. release notes),
-which seemed to indicate that for 1.5.4.1, the "right" range of
-kernels was (kernel.org: 2.6.30 - 3.1), and specific kernel versions
-for various distros.
-
-(2) I'm pretty familiar with adminstering Debian systems and building
-debian packages, hacking their insides, alienizing, hacking that
-process, etc.
-
-(I -think- ;-) The only real question for me is, which versions, with
-which patches, of the various bits, will work together with this RoCEE
-card.
-
-(3) I'm -not at all- familiar with the workflow/process that Debian
-Developers use.  For instance, I don't really understand what you men
-below:
-
-> But you'll have to ensure that the kernel code matches the OFED user
-> space. The kernel stuff included in OFED doesn't support latest kernels
-> and is based on an older code base (e.g. OFED 1.5.4 kernel stuff is
-> based on 2.6.30).
-
-Do you mean that the kernel-ib RPM in 1.5.4 is the code form the
-2.6.30 kernel?  But then the list below doesn't seem to make sense.
-
-> Here a simple list of matching code:
-> OFED-1.5.4  ---> kernel 3.2.x
-> OFED-1.5.4.1 ---> kernel 3.3.x
-
-(4) I think what you're saying here
-
-> the trick is to check out the latest pkg-ofed source from debian SVN
-> (svn://svn.debian.org/svn/pkg-ofed/) and to update the upstream source
-> by merging the stuff by extracting the source RPMs or even better by
-> importing the source directly from the git repos of the OFED user space.
-> In the "debian" directory there are some patches e.g. which change some
-> stuff in shell scripts for the dash. These need to be adopted.
-
-is:
-
-  (a) check out the stuff from svn.debian.org
-
-  (b) pull source from the OFED repos user-space
-
-  (c) -copy- that (latest) OFED source into the tree I checked-out
-  from debian
-
-  (d) make sure that the patches in the debian directories apply
-  properly to the various shellscripts
-
-  (e) build debian packages per usual
-
-And per your instructions above, I believe you're saying I should be
-using a 3.3.x kernel?
-
-Thanks,
---chet--
-
+Venkat
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
