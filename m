@@ -1,77 +1,50 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: FW: [PATCH] RDS: correct ib api use with
- sg_dma_address/sg_dma_len
-Date: Fri, 22 Jun 2012 19:46:49 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0D457D35@FMSMSX108.amr.corp.intel.com>
-References: <20120419161517.713.76674.stgit@kop-dev-sles11-04.qlogic.org>
- <32E1700B9017364D9B60AED9960492BC0D457CBA@FMSMSX108.amr.corp.intel.com>
- <4FE4C8FD.2050700@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Sun, 24 Jun 2012 05:09:13 -0700
+Message-ID: <1340539753-19165-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FE4C8FD.2050700-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mascarenhas, Edward" <edward.mascarenhas-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-V2hhdCBpcyB0aGUgcHJvY2VzcyBmb3IgZ2V0dGluZyBwYXRjaGVzIGludG8gUkRTLg0KDQpUaGUg
-b3JpZ2luYWwgbWVzc2FnZXMgYW5kIGFjaydzIGFyZSBzaG93biBpbiBodHRwOi8vb3NzLm9yYWNs
-ZS5jb20vcGlwZXJtYWlsL3Jkcy1kZXZlbC8yMDEyLUFwcmlsL3RocmVhZC5odG1sLg0KDQpJIGNh
-biByZXBvc3QgdGhlIHBhdGNoZXMgaWYgbmVjZXNzYXJ5Lg0KDQpNaWtlIA0KDQo+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFZlbmthdCBWZW5rYXRzdWJyYSBbbWFpbHRvOnZl
-bmthdC54LnZlbmthdHN1YnJhQG9yYWNsZS5jb21dDQo+IFNlbnQ6IEZyaWRheSwgSnVuZSAyMiwg
-MjAxMiAzOjM1IFBNDQo+IFRvOiBNYXJjaW5pc3p5biwgTWlrZQ0KPiBDYzogbGludXgtcmRtYUB2
-Z2VyLmtlcm5lbC5vcmc7IE1hc2NhcmVuaGFzLCBFZHdhcmQNCj4gU3ViamVjdDogUmU6IEZXOiBb
-UEFUQ0hdIFJEUzogY29ycmVjdCBpYiBhcGkgdXNlIHdpdGgNCj4gc2dfZG1hX2FkZHJlc3Mvc2df
-ZG1hX2xlbg0KPiANCj4gT24gNi8yMi8yMDEyIDE6MjQgUE0sIE1hcmNpbmlzenluLCBNaWtlIHdy
-b3RlOg0KPiA+IEkgaGF2ZW7igJl0IHNlZW4gdGhpcyBwYXRjaCBnZXQgdXBzdHJlYW0uDQo+ID4N
-Cj4gPiBJcyB0aGVyZSBzb21ldGhpbmcgSSBzaG91bGQgZG8gdG8gaGVscD8NCj4gPg0KPiA+IE1p
-a2UNCj4gPg0KPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTogbGludXgt
-cmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2
-Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBNaWtlIE1hcmNpbmlzenluDQo+ID4gU2VudDog
-VGh1cnNkYXksIEFwcmlsIDE5LCAyMDEyIDEyOjE1IFBNDQo+ID4gVG86IHZlbmthdC54LnZlbmth
-dHN1YnJhQG9yYWNsZS5jb20NCj4gPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IHJk
-cy1kZXZlbEBvc3Mub3JhY2xlLmNvbQ0KPiA+IFN1YmplY3Q6IFtQQVRDSF0gUkRTOiBjb3JyZWN0
-IGliIGFwaSB1c2Ugd2l0aCBzZ19kbWFfYWRkcmVzcy9zZ19kbWFfbGVuDQo+ID4NCj4gPiBGcm9t
-OiBNaWtlIE1hcmNpbmlzenluPG1pa2UubWFyY2luaXN6eW5AcWxvZ2ljLmNvbT4NCj4gPg0KPiA+
-IDBiMDg4ZTAwICgiUkRTOiBVc2UgcGFnZV9yZW1haW5kZXJfYWxsb2MoKSBmb3IgcmVjdiBidWZz
-IikgYWRkZWQgdXNlcyBvZg0KPiBzZ19kbWFfbGVuKCkgYW5kIHNnX2RtYV9hZGRyZXNzKCkuDQo+
-ID4NCj4gPiBJQiB1bHBzIHNob3VsZCB1c2UgaWJfc2dfZG1hX2xlbigpIGFuZCBpYl9zZ19kbWFf
-YWRkcmVzcyByZXNwZWN0aXZlbHkNCj4gc2luY2Ugc29tZSBIQ0FzIG92ZXJsb2FkIGliX3NnX2Rt
-YSogb3BlcmF0aW9ucy4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IE1pa2UgTWFyY2luaXN6eW48
-bWlrZS5tYXJjaW5pc3p5bkBxbG9naWMuY29tPg0KPiA+IC0tLQ0KPiA+ICAgbmV0L3Jkcy9pYl9y
-ZWN2LmMgfCAgICA5ICsrKysrKy0tLQ0KPiA+ICAgMSBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlv
-bnMoKyksIDMgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvbmV0L3Jkcy9pYl9y
-ZWN2LmMgYi9uZXQvcmRzL2liX3JlY3YuYyBpbmRleCA4ZDE5NDkxLi5jZDQ0ZWQzDQo+IDEwMDY0
-NA0KPiA+IC0tLSBhL25ldC9yZHMvaWJfcmVjdi5jDQo+ID4gKysrIGIvbmV0L3Jkcy9pYl9yZWN2
-LmMNCj4gPiBAQCAtMzM5LDggKzMzOSw4IEBAIHN0YXRpYyBpbnQgcmRzX2liX3JlY3ZfcmVmaWxs
-X29uZShzdHJ1Y3QNCj4gcmRzX2Nvbm5lY3Rpb24gKmNvbm4sDQo+ID4gICAJc2dlLT5sZW5ndGgg
-PSBzaXplb2Yoc3RydWN0IHJkc19oZWFkZXIpOw0KPiA+DQo+ID4gICAJc2dlID0mcmVjdi0+cl9z
-Z2VbMV07DQo+ID4gLQlzZ2UtPmFkZHIgPSBzZ19kbWFfYWRkcmVzcygmcmVjdi0+cl9mcmFnLT5m
-X3NnKTsNCj4gPiAtCXNnZS0+bGVuZ3RoID0gc2dfZG1hX2xlbigmcmVjdi0+cl9mcmFnLT5mX3Nn
-KTsNCj4gPiArCXNnZS0+YWRkciA9IGliX3NnX2RtYV9hZGRyZXNzKGljLT5pX2NtX2lkLT5kZXZp
-Y2UsJnJlY3YtPnJfZnJhZy0NCj4gPmZfc2cpOw0KPiA+ICsJc2dlLT5sZW5ndGggPSBpYl9zZ19k
-bWFfbGVuKGljLT5pX2NtX2lkLT5kZXZpY2UsJnJlY3YtPnJfZnJhZy0NCj4gPmZfc2cpOw0KPiA+
-DQo+ID4gICAJcmV0ID0gMDsNCj4gPiAgIG91dDoNCj4gPiBAQCAtMzgxLDcgKzM4MSwxMCBAQCB2
-b2lkIHJkc19pYl9yZWN2X3JlZmlsbChzdHJ1Y3QgcmRzX2Nvbm5lY3Rpb24NCj4gKmNvbm4sIGlu
-dCBwcmVmaWxsKQ0KPiA+ICAgCQlyZXQgPSBpYl9wb3N0X3JlY3YoaWMtPmlfY21faWQtPnFwLCZy
-ZWN2LT5yX3dyLCZmYWlsZWRfd3IpOw0KPiA+ICAgCQlyZHNkZWJ1ZygicmVjdiAlcCBpYmluYyAl
-cCBwYWdlICVwIGFkZHIgJWx1IHJldCAlZFxuIiwNCj4gcmVjdiwNCj4gPiAgIAkJCSByZWN2LT5y
-X2liaW5jLCBzZ19wYWdlKCZyZWN2LT5yX2ZyYWctPmZfc2cpLA0KPiA+IC0JCQkgKGxvbmcpIHNn
-X2RtYV9hZGRyZXNzKCZyZWN2LT5yX2ZyYWctPmZfc2cpLCByZXQpOw0KPiA+ICsJCQkgKGxvbmcp
-IGliX3NnX2RtYV9hZGRyZXNzKA0KPiA+ICsJCQkJaWMtPmlfY21faWQtPmRldmljZSwNCj4gPiAr
-CQkJCSZyZWN2LT5yX2ZyYWctPmZfc2cpLA0KPiA+ICsJCQlyZXQpOw0KPiA+ICAgCQlpZiAocmV0
-KSB7DQo+ID4gICAJCQlyZHNfaWJfY29ubl9lcnJvcihjb25uLCAicmVjdiBwb3N0IG9uICINCj4g
-PiAgIAkJCSAgICAgICAiJXBJNCByZXR1cm5lZCAlZCwgZGlzY29ubmVjdGluZyBhbmQgIg0KPiA+
-DQo+ID4NCj4gPiAtLQ0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
-ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbiB0aGUNCj4gYm9keSBvZiBhIG1lc3Nh
-Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0DQo+
-IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0KPiA+DQo+ID4NCj4g
-SSBoYWQgQWNrZWQgaXQgYWNjb3JkaW5nIHRvIG15IEFwcmlsIDE5dGggZW1haWwuIDstKQ0KPiAN
-Cj4gVmVua2F0DQo=
+Hi Linus,
+
+Please pull from
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-fixes
+
+----------------------------------------------------------------
+
+InfiniBand/RDMA fixes for 3.5-rc:
+ - Fixes to new ocrdma driver
+ - Typo in test in CMA
+
+----------------------------------------------------------------
+Dan Carpenter (1):
+      RDMA/ocrdma: Fix off by one in ocrdma_query_gid()
+
+Mahesh Vardhamanaiah (2):
+      RDMA/ocrdma: Correct reported max queue sizes
+      RDMA/ocrdma: Correct queue SGE calculation
+
+Parav Pandit (2):
+      RDMA/ocrdma: Fixed GID table for vlan and events
+      RDMA/ocrdma: Fixed RQ error CQE polling
+
+Roland Dreier (1):
+      Merge branches 'cma' and 'ocrdma' into for-linus
+
+Sean Hefty (1):
+      RDMA/cma: QP type check on received REQs should be AND not OR
+
+ drivers/infiniband/core/cma.c               |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |    1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   18 ++++----
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   63 +++++++++++++++------------
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |    5 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   12 ++---
+ 6 files changed, 55 insertions(+), 46 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
