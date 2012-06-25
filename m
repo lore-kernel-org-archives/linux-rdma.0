@@ -1,137 +1,69 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: OFED 1.5.4.1 on Ubuntu 10.04 with Mellanox cards?
-Date: Mon, 25 Jun 2012 11:35:36 +0200
-Message-ID: <4FE830E8.5040808@profitbricks.com>
-References: <1565389.HptLAFPzES@twitter> <4FE4304E.3090002@profitbricks.com> <5754967.2RWSFZticM@twitter>
+From: Tziporet Koren <tziporet@mellanox.com>
+Subject: RE: [GIT PULL] please pull infiniband.git
+Date: Mon, 25 Jun 2012 14:11:25 +0000
+Message-ID: <CD250C48050CFB4D95E78C95F2FDDD6E869F46C8@MTLDAG02.mtl.com>
+References: <1340539753-19165-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5754967.2RWSFZticM@twitter>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chet Murthy <chet-aZOuKsOsJu3MbYB6QlFGEg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1340539753-19165-1-git-send-email-roland@kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Chet,
+Hi Roland
 
-On 22/06/12 21:02, Chet Murthy wrote:
-> 
-> Sebastian,
-> 
-> Thank you for taking the time to explain these things!  It's a little
-> confusing ....
-> 
->> Here a simple list of matching code:
->> OFED-1.5.4  ---> kernel 3.2.x
->> OFED-1.5.4.1 ---> kernel 3.3.x
-> 
-> (1) Is there a more-exhaustive list of the right kernel to use with
-> each OFED release?  I was going by the OFED docs (e.g. release notes),
-> which seemed to indicate that for 1.5.4.1, the "right" range of
-> kernels was (kernel.org: 2.6.30 - 3.1), and specific kernel versions
-> for various distros.
+Can you updated us on status of review of our mlx4 SRIOV IB submission?
 
-Unfortunately, there is no more-exhaustive list for matching the kernel
-code with the OFED user space. It's a matter of comparing dates - kernel
-release and OFED release.
-O.K., here is how they put the OFA kernel code into OFED:
-- kernel developers develop for the latest kernel release cycle (here 3.3)
-- OFED packagers use an older kernel as basis (2.6.30) and forward port
-the OFA kernel stuff to the current kernel release (here 3.3) by patches
-for kernels (2.6.30..3.1) - this leaves space for failures (e.g. that
-they don't port the open-iscsi kernel code correctly)
-- this is why they say that they don't support the mainline kernels
-completely
+Thanks
+Tziporet
 
-We at ProfitBricks need latest kernels anyway. This is why we match it
-from upstream (OFA kernel stuff from kernel.org). And we don't have to
-build the OFA kernel modules from out-of-tree which simplifies our
-kernel build chain. We have OFED-1.5.4 with OFA kernel code from kernel
-3.2 at the moment.
+-----Original Message-----
+From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Roland Dreier
+Sent: Sunday, June 24, 2012 5:11 AM
+To: Linus Torvalds
+Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
+Subject: [GIT PULL] please pull infiniband.git
 
-But there is also a new OFED release approach:
-Perhaps you've seen the OFED-3.2 already?! This is the OFED especially
-for kernel 3.2. This makes it easier to match OFED user space and kernel
-code. Here they just backport the OFA kernel stuff e.g. from 3.4 to 3.2.
-Looks promising, but I have no experience with that, yet.
+Hi Linus,
 
-> (2) I'm pretty familiar with adminstering Debian systems and building
-> debian packages, hacking their insides, alienizing, hacking that
-> process, etc.
-> 
-> (I -think- ;-) The only real question for me is, which versions, with
-> which patches, of the various bits, will work together with this RoCEE
-> card.
+Please pull from
 
-Your issue can be something with the shell scripts, kernel code to user
-space matching or plain that you don't have the opensm running. Without
-a running instance of a subnet manager your card will get no LID
-assigned, no partition key, etc. IPoIB, MPI, iSER, SRP, etc. won't work.
-Check with "ibdiagnet -r" if your master subnet manager is running. IB
-is self-managed by the subnet manager. Make sure that your opensm
-configuration is correct.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-fixes
 
-We have big deployments and don't want to have "rpm" installed on Debian
-systems. This is why we've taken OFED-1.5.2 stuff from debian
-experimental from "pkg-ofed". We've converted the SVN stuff into git
-repos for OFED, imported the OFED-1.5.4 upstream code and adopted the
-modifications by Debian (e.g. shell code changes). Now, we can build
-OFED with "git-buildpackage" and upload the deb packages to our debian
-repository.
+----------------------------------------------------------------
 
-> (3) I'm -not at all- familiar with the workflow/process that Debian
-> Developers use.  For instance, I don't really understand what you men
-> below:
-> 
->> But you'll have to ensure that the kernel code matches the OFED user
->> space. The kernel stuff included in OFED doesn't support latest kernels
->> and is based on an older code base (e.g. OFED 1.5.4 kernel stuff is
->> based on 2.6.30).
-> 
-> Do you mean that the kernel-ib RPM in 1.5.4 is the code form the
-> 2.6.30 kernel?  But then the list below doesn't seem to make sense.
-> 
->> Here a simple list of matching code:
->> OFED-1.5.4  ---> kernel 3.2.x
->> OFED-1.5.4.1 ---> kernel 3.3.x
+InfiniBand/RDMA fixes for 3.5-rc:
+ - Fixes to new ocrdma driver
+ - Typo in test in CMA
 
-I've explained this above.
+----------------------------------------------------------------
+Dan Carpenter (1):
+      RDMA/ocrdma: Fix off by one in ocrdma_query_gid()
 
-> (4) I think what you're saying here
-> 
->> the trick is to check out the latest pkg-ofed source from debian SVN
->> (svn://svn.debian.org/svn/pkg-ofed/) and to update the upstream source
->> by merging the stuff by extracting the source RPMs or even better by
->> importing the source directly from the git repos of the OFED user space.
->> In the "debian" directory there are some patches e.g. which change some
->> stuff in shell scripts for the dash. These need to be adopted.
-> 
-> is:
-> 
->   (a) check out the stuff from svn.debian.org
-> 
->   (b) pull source from the OFED repos user-space
-> 
->   (c) -copy- that (latest) OFED source into the tree I checked-out
->   from debian
-> 
->   (d) make sure that the patches in the debian directories apply
->   properly to the various shellscripts
-> 
->   (e) build debian packages per usual
-> 
-> And per your instructions above, I believe you're saying I should be
-> using a 3.3.x kernel?
+Mahesh Vardhamanaiah (2):
+      RDMA/ocrdma: Correct reported max queue sizes
+      RDMA/ocrdma: Correct queue SGE calculation
 
-Yes, this is exactly what I would suggest to you if you want to have a
-really working solution without "rpm". You should at least have a look
-at this or try it to see if this fixes your issues and if this gives you
-advantages.
+Parav Pandit (2):
+      RDMA/ocrdma: Fixed GID table for vlan and events
+      RDMA/ocrdma: Fixed RQ error CQE polling
 
-Cheers,
-Sebastian
+Roland Dreier (1):
+      Merge branches 'cma' and 'ocrdma' into for-linus
+
+Sean Hefty (1):
+      RDMA/cma: QP type check on received REQs should be AND not OR
+
+ drivers/infiniband/core/cma.c               |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |    1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   18 ++++----
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |   63 +++++++++++++++------------
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h   |    5 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   12 ++---
+ 6 files changed, 55 insertions(+), 46 deletions(-)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo@vger.kernel.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
