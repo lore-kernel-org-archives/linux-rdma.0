@@ -1,7 +1,7 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 8/8] opensm: Ensure sweep interval/mkey lease are sensibly set
-Date: Mon, 25 Jun 2012 17:55:04 -0700
-Message-ID: <1340672104-18039-8-git-send-email-foraker1@llnl.gov>
+Subject: [PATCH 7/8] opensm: Check for valid mkey protection level in config file
+Date: Mon, 25 Jun 2012 17:55:03 -0700
+Message-ID: <1340672104-18039-7-git-send-email-foraker1@llnl.gov>
 References: <1340672058.5218.97.camel@auk75.llnl.gov>
  <1340672104-18039-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,46 +11,30 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexne-VPRAkNaXOzVWk0Hti
 Cc: weiny2-i2BcT+NCU+M@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If mkeys are protected, sweep should always be enabled and
-set to an interval < the lease timeout, to ensure a missed trap
-doesn't lead to mkey exposure.
 
 Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 ---
- opensm/osm_subnet.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ opensm/osm_subnet.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index ddee955..3f336d8 100644
+index bb69a66..ddee955 100644
 --- a/opensm/osm_subnet.c
 +++ b/opensm/osm_subnet.c
-@@ -1502,6 +1502,26 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- 			   "instead\n", p_opts->m_key_protect_bits, 2);
- 		p_opts->m_key_protect_bits = 2;
+@@ -1496,6 +1496,13 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
  	}
-+	if (p_opts->m_key_protect_bits && p_opts->m_key_lease_period) {
-+		if (!p_opts->sweep_interval) {
-+			log_report(" Sweep disabled with protected mkey "
-+				   "leases in effect; re-enabling sweeping "
-+				   "with interval %u\n",
-+				   cl_ntoh16(p_opts->m_key_lease_period) - 1);
-+			p_opts->sweep_interval =
-+				cl_ntoh16(p_opts->m_key_lease_period) - 1;
-+		}
-+		if (p_opts->sweep_interval >=
-+			cl_ntoh16(p_opts->m_key_lease_period)) {
-+			log_report(" Sweep interval %u >= mkey lease period "
-+				   "%u. Setting lease period to %u\n",
-+				   p_opts->sweep_interval,
-+				   cl_ntoh16(p_opts->m_key_lease_period),
-+				   p_opts->sweep_interval + 1);
-+			p_opts->m_key_lease_period =
-+				cl_hton16(p_opts->sweep_interval + 1);
-+		}
-+	}
+ #endif
  
++	if (p_opts->m_key_protect_bits > 3) {
++		log_report(" Invalid Cached Option Value:"
++		           "m_key_protection_level = %u Setting to %u "
++			   "instead\n", p_opts->m_key_protect_bits, 2);
++		p_opts->m_key_protect_bits = 2;
++	}
++
  	if (p_opts->root_guid_file != NULL) {
  		FILE *root_file = fopen(p_opts->root_guid_file, "r");
+ 		if (!root_file) {
 -- 
 1.7.9.2
 
