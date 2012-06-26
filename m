@@ -1,7 +1,7 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 4/8] Add support for setting mkey protection levels
-Date: Mon, 25 Jun 2012 17:55:00 -0700
-Message-ID: <1340672104-18039-4-git-send-email-foraker1@llnl.gov>
+Subject: [PATCH 3/8] Add locking where necessary around osm_req_*
+Date: Mon, 25 Jun 2012 17:54:59 -0700
+Message-ID: <1340672104-18039-3-git-send-email-foraker1@llnl.gov>
 References: <1340672058.5218.97.camel@auk75.llnl.gov>
  <1340672104-18039-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,129 +11,150 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexne-VPRAkNaXOzVWk0Hti
 Cc: weiny2-i2BcT+NCU+M@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The M_Key Protection Level for the subnet may now be set
-in the config file by specifying a numeric value for
-m_key_protection_level (defaults to 0).
+Grabs plock for reading in the places where one did not
+already exist when osm_req_get/osm_req_set are called.
 
 Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 ---
- include/opensm/osm_subnet.h |    1 +
- opensm/osm_lid_mgr.c        |   21 +++++++++++----------
- opensm/osm_link_mgr.c       |    2 +-
- opensm/osm_subnet.c         |    5 +++++
- 4 files changed, 18 insertions(+), 11 deletions(-)
+ opensm/osm_perfmgr.c      |    6 ++++++
+ opensm/osm_sm_state_mgr.c |    2 ++
+ opensm/osm_state_mgr.c    |    8 ++++++++
+ opensm/osm_trap_rcv.c     |    6 +++++-
+ 4 files changed, 21 insertions(+), 1 deletion(-)
 
-diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
-index f8a1f3f..8e96314 100644
---- a/include/opensm/osm_subnet.h
-+++ b/include/opensm/osm_subnet.h
-@@ -161,6 +161,7 @@ typedef struct osm_subn_opt {
- 	ib_net64_t sa_key;
- 	ib_net64_t subnet_prefix;
- 	ib_net16_t m_key_lease_period;
-+        uint8_t m_key_protect_bits;
- 	uint32_t sweep_interval;
- 	uint32_t max_wire_smps;
- 	uint32_t max_wire_smps2;
-diff --git a/opensm/osm_lid_mgr.c b/opensm/osm_lid_mgr.c
-index b169f6b..dc32c66 100644
---- a/opensm/osm_lid_mgr.c
-+++ b/opensm/osm_lid_mgr.c
-@@ -887,6 +887,11 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
- 		   sizeof(p_pi->m_key_lease_period)))
- 		send_set = TRUE;
+diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
+index 41ef08b..1b4b4cf 100644
+--- a/opensm/osm_perfmgr.c
++++ b/opensm/osm_perfmgr.c
+@@ -620,8 +620,10 @@ static int sweep_hop_1(osm_sm_t * sm)
+ 		path_array[1] = port_num;
  
-+	p_pi->mkey_lmc = 0;
-+	ib_port_info_set_mpb(p_pi, p_mgr->p_subn->opt.m_key_protect_bits);
-+	if (ib_port_info_get_mpb(p_pi) != ib_port_info_get_mpb(p_old_pi))
-+		send_set = TRUE; 
-+
- 	/*
- 	   we want to set the timeout for both the switch port 0
- 	   and the CA ports
-@@ -908,12 +913,10 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
- 			   sizeof(p_pi->link_width_enabled)))
- 			send_set = TRUE;
+ 		osm_dr_path_init(&hop_1_path, h_bind, 1, path_array);
++		CL_PLOCK_ACQUIRE(sm->p_lock);
+ 		status = osm_req_get(sm, &hop_1_path, IB_MAD_ATTR_NODE_INFO, 0,
+ 				     CL_DISP_MSGID_NONE, &context);
++		CL_PLOCK_RELEASE(sm->p_lock);
  
--		/* M_KeyProtectBits are currently always zero */
--		p_pi->mkey_lmc = p_mgr->p_subn->opt.lmc;
-+		/* p_pi->mkey_lmc is initialized earlier */
-+		ib_port_info_set_lmc(p_pi, p_mgr->p_subn->opt.lmc);
- 		if (ib_port_info_get_lmc(p_pi) !=
--		    ib_port_info_get_lmc(p_old_pi) ||
--		    ib_port_info_get_mpb(p_pi) !=
--		    ib_port_info_get_mpb(p_old_pi))
-+		    ib_port_info_get_lmc(p_old_pi))
- 			send_set = TRUE;
+ 		if (status != IB_SUCCESS)
+ 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 4C82: "
+@@ -652,9 +654,11 @@ static int sweep_hop_1(osm_sm_t * sm)
+ 			path_array[1] = port_num;
  
- 		/* calc new op_vls and mtu */
-@@ -994,12 +997,10 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 			osm_dr_path_init(&hop_1_path, h_bind, 1, path_array);
++			CL_PLOCK_ACQUIRE(sm->p_lock);
+ 			status = osm_req_get(sm, &hop_1_path,
+ 					     IB_MAD_ATTR_NODE_INFO, 0,
+ 					     CL_DISP_MSGID_NONE, &context);
++			CL_PLOCK_RELEASE(sm->p_lock);
  
- 		/* Determine if enhanced switch port 0 and if so set LMC */
- 		if (osm_switch_sp0_is_lmc_capable(p_node->sw, p_mgr->p_subn)) {
--			/* M_KeyProtectBits are currently always zero */
--			p_pi->mkey_lmc = p_mgr->p_subn->opt.lmc;
-+			/* p_pi->mkey_lmc is initialized earlier */
-+                        ib_port_info_set_lmc(p_pi, p_mgr->p_subn->opt.lmc);
- 			if (ib_port_info_get_lmc(p_pi) !=
--			    ib_port_info_get_lmc(p_old_pi) ||
--			    ib_port_info_get_mpb(p_pi) !=
--			    ib_port_info_get_mpb(p_old_pi))
-+			    ib_port_info_get_lmc(p_old_pi))
- 				send_set = TRUE;
- 		}
+ 			if (status != IB_SUCCESS)
+ 				OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 4C84: "
+@@ -714,8 +718,10 @@ static int sweep_hop_0(osm_sm_t * sm)
  	}
-diff --git a/opensm/osm_link_mgr.c b/opensm/osm_link_mgr.c
-index 98eceaf..02fde95 100644
---- a/opensm/osm_link_mgr.c
-+++ b/opensm/osm_link_mgr.c
-@@ -238,8 +238,8 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
- 				   sizeof(p_pi->m_key_lease_period)))
- 				send_set = TRUE;
  
--			/* M_KeyProtectBits are currently always zero */
- 			p_pi->mkey_lmc = 0;
-+			ib_port_info_set_mpb(p_pi, sm->p_subn->opt.m_key_protect_bits);
- 			if (esp0 == FALSE || sm->p_subn->opt.lmc_esp0)
- 				ib_port_info_set_lmc(p_pi, sm->p_subn->opt.lmc);
- 			if (ib_port_info_get_lmc(p_old_pi) !=
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index 200287a..4f5272f 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -300,6 +300,7 @@ static const opt_rec_t opt_tbl[] = {
- 	{ "sa_key", OPT_OFFSET(sa_key), opts_parse_net64, NULL, 1 },
- 	{ "subnet_prefix", OPT_OFFSET(subnet_prefix), opts_parse_net64, NULL, 1 },
- 	{ "m_key_lease_period", OPT_OFFSET(m_key_lease_period), opts_parse_net16, NULL, 1 },
-+        { "m_key_protection_level", OPT_OFFSET(m_key_protect_bits), opts_parse_uint8, NULL, 1 },
- 	{ "sweep_interval", OPT_OFFSET(sweep_interval), opts_parse_uint32, NULL, 1 },
- 	{ "max_wire_smps", OPT_OFFSET(max_wire_smps), opts_parse_uint32, NULL, 1 },
- 	{ "max_wire_smps2", OPT_OFFSET(max_wire_smps2), opts_parse_uint32, NULL, 1 },
-@@ -894,6 +895,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
- 	p_opt->sa_key = OSM_DEFAULT_SA_KEY;
- 	p_opt->subnet_prefix = IB_DEFAULT_SUBNET_PREFIX;
- 	p_opt->m_key_lease_period = 0;
-+        p_opt->m_key_protect_bits = 0;
- 	p_opt->sweep_interval = OSM_DEFAULT_SWEEP_INTERVAL_SECS;
- 	p_opt->max_wire_smps = OSM_DEFAULT_SMP_MAX_ON_WIRE;
- 	p_opt->max_wire_smps2 = p_opt->max_wire_smps;
-@@ -1558,6 +1560,8 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
- 		"m_key 0x%016" PRIx64 "\n\n"
- 		"# The lease period used for the M_Key on this subnet in [sec]\n"
- 		"m_key_lease_period %u\n\n"
-+                "# The protection level used for the M_Key on this subnet\n"
-+                "m_key_protection_level %u\n\n"
- 		"# SM_Key value of the SM used for SM authentication\n"
- 		"sm_key 0x%016" PRIx64 "\n\n"
- 		"# SM_Key value to qualify rcv SA queries as 'trusted'\n"
-@@ -1639,6 +1643,7 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
- 		cl_ntoh64(p_opts->guid),
- 		cl_ntoh64(p_opts->m_key),
- 		cl_ntoh16(p_opts->m_key_lease_period),
-+                p_opts->m_key_protect_bits,
- 		cl_ntoh64(p_opts->sm_key),
- 		cl_ntoh64(p_opts->sa_key),
- 		cl_ntoh64(p_opts->subnet_prefix),
+ 	osm_dr_path_init(&dr_path, h_bind, 0, path_array);
++	CL_PLOCK_ACQUIRE(sm->p_lock);
+ 	status = osm_req_get(sm, &dr_path, IB_MAD_ATTR_NODE_INFO, 0,
+ 			     CL_DISP_MSGID_NONE, NULL);
++	CL_PLOCK_RELEASE(sm->p_lock);
+ 
+ 	if (status != IB_SUCCESS)
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
+index ac895fa..602a393 100644
+--- a/opensm/osm_sm_state_mgr.c
++++ b/opensm/osm_sm_state_mgr.c
+@@ -107,9 +107,11 @@ static void sm_state_mgr_send_master_sm_info_req(osm_sm_t * sm)
+ 	context.smi_context.port_guid = p_port->guid;
+ 	context.smi_context.set_method = FALSE;
+ 
++	CL_PLOCK_ACQUIRE(sm->p_lock);
+ 	status = osm_req_get(sm, osm_physp_get_dr_path_ptr(p_port->p_physp),
+ 			     IB_MAD_ATTR_SM_INFO, 0, CL_DISP_MSGID_NONE,
+ 			     &context);
++	CL_PLOCK_RELEASE(sm->p_lock);
+ 
+ 	if (status != IB_SUCCESS)
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3204: "
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 39fb15a..4d5da46 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -237,8 +237,10 @@ static ib_api_status_t state_mgr_sweep_hop_0(IN osm_sm_t * sm)
+ 		CL_PLOCK_RELEASE(sm->p_lock);
+ 
+ 		osm_dr_path_init(&dr_path, h_bind, 0, path_array);
++		CL_PLOCK_ACQUIRE(sm->p_lock);
+ 		status = osm_req_get(sm, &dr_path, IB_MAD_ATTR_NODE_INFO, 0,
+ 				     CL_DISP_MSGID_NONE, NULL);
++		CL_PLOCK_RELEASE(sm->p_lock);
+ 		if (status != IB_SUCCESS)
+ 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3305: "
+ 				"Request for NodeInfo failed (%s)\n",
+@@ -442,8 +444,10 @@ static ib_api_status_t state_mgr_sweep_hop_1(IN osm_sm_t * sm)
+ 		path_array[1] = port_num;
+ 
+ 		osm_dr_path_init(&hop_1_path, h_bind, 1, path_array);
++		CL_PLOCK_ACQUIRE(sm->p_lock);
+ 		status = osm_req_get(sm, &hop_1_path, IB_MAD_ATTR_NODE_INFO, 0,
+ 				     CL_DISP_MSGID_NONE, &context);
++		CL_PLOCK_RELEASE(sm->p_lock);
+ 		if (status != IB_SUCCESS)
+ 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3311: "
+ 				"Request for NodeInfo failed (%s)\n",
+@@ -472,10 +476,12 @@ static ib_api_status_t state_mgr_sweep_hop_1(IN osm_sm_t * sm)
+ 				path_array[1] = port_num;
+ 				osm_dr_path_init(&hop_1_path, h_bind, 1,
+ 						 path_array);
++				CL_PLOCK_ACQUIRE(sm->p_lock);
+ 				status = osm_req_get(sm, &hop_1_path,
+ 						     IB_MAD_ATTR_NODE_INFO, 0,
+ 						     CL_DISP_MSGID_NONE,
+ 						     &context);
++				CL_PLOCK_RELEASE(sm->p_lock);
+ 				if (status != IB_SUCCESS)
+ 					OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+ 						"ERR 3312: "
+@@ -822,10 +828,12 @@ static void state_mgr_send_handover(IN osm_sm_t * sm, IN osm_remote_sm_t * p_sm)
+ 		p_smi->sm_key = 0;
+ 	}
+ 
++	CL_PLOCK_ACQUIRE(sm->p_lock);
+ 	status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p_port->p_physp),
+ 			     payload, sizeof(payload), IB_MAD_ATTR_SM_INFO,
+ 			     IB_SMINFO_ATTR_MOD_HANDOVER, CL_DISP_MSGID_NONE,
+ 			     &context);
++	CL_PLOCK_RELEASE(sm->p_lock);
+ 
+ 	if (status != IB_SUCCESS)
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3317: "
+diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
+index 2aaaba4..5419c09 100644
+--- a/opensm/osm_trap_rcv.c
++++ b/opensm/osm_trap_rcv.c
+@@ -211,6 +211,7 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
+ 	uint8_t payload[IB_SMP_DATA_SIZE];
+ 	osm_madw_context_t context;
+ 	ib_port_info_t *pi = (ib_port_info_t *)payload;
++	ib_api_status_t status;
+ 
+ 	/* select the nearest port to master opensm */
+ 	if (p->p_remote_physp &&
+@@ -233,10 +234,13 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
+ 	context.pi_context.light_sweep = FALSE;
+ 	context.pi_context.active_transition = FALSE;
+ 
+-	return osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
++	CL_PLOCK_ACQUIRE(sm->p_lock);
++	status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
+ 			   payload, sizeof(payload), IB_MAD_ATTR_PORT_INFO,
+ 			   cl_hton32(osm_physp_get_port_num(p)),
+ 			   CL_DISP_MSGID_NONE, &context);
++	CL_PLOCK_RELEASE(sm->p_lock);
++	return status;
+ }
+ 
+ static void log_trap_info(osm_log_t *p_log, ib_mad_notice_attr_t *p_ntci,
 -- 
 1.7.9.2
 
