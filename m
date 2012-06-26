@@ -1,47 +1,58 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] ibsim/sim_cmd.c: Allow error command on attributes for switch
- port 0
-Date: Mon, 25 Jun 2012 10:26:24 -0400
-Message-ID: <4FE87510.8070003@dev.mellanox.co.il>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH 0/8] opensm: Improved mkey support
+Date: Mon, 25 Jun 2012 17:54:18 -0700
+Message-ID: <1340672058.5218.97.camel@auk75.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+     I'm about to post a set of patches intended to improve mkey support
+in OpenSM.  These patches have been fairly rigorously tested on a small
+fabric, and I believe are sufficiently stable for inclusion.  The
+primary intent here is threefold:
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/ibsim/sim_cmd.c b/ibsim/sim_cmd.c
-index 6d3a893..81e9bfa 100644
---- a/ibsim/sim_cmd.c
-+++ b/ibsim/sim_cmd.c
-@@ -288,7 +288,7 @@ static int do_seterror(FILE * f, char *line)
- 	char *s = line;
- 	char *nodeid = 0, name[NAMELEN], *sp, *orig = 0;
- 	int portnum = -1;	// def - all ports
--	int numports, set = 0, rate = 0;
-+	int startport, numports, set = 0, rate = 0;
- 	uint16_t attr = 0;
- 
- 	if (strsep(&s, "\""))
-@@ -309,8 +309,12 @@ static int do_seterror(FILE * f, char *line)
- 	}
- 
- 	if (sp) {
-+		if (node->type == SWITCH_NODE)
-+			startport = 0;
-+		else
-+			startport = 1;
- 		portnum = strtoul(sp, 0, 0);
--		if (portnum < 1 || portnum > node->numports) {
-+		if (portnum < startport || portnum > node->numports) {
- 			fprintf(f, "# bad port number %d at nodeid \"%s\"\n",
- 				portnum, nodeid);
- 			return -1;
+1) Fix a multitude of edge case issues with the existing
+single-mkey-per-subnet support in OpenSM.  For instance, the current
+implementation provides no way to change an established non-zero mkey
+without rebooting or manually re-keying each CA on the entire subnet.
+
+2) Enable mkey protection across the fabric.  This involves not only
+setting a non-zero protection level, but also providing the SM with a
+sufficient information cache to initialize the subnet on restart without
+having to wait for mkey lease timeouts (provided one is set).
+
+3) Provide a basis on which to build multiple-mkey systems for OpenSM
+(be they per-host, KDF, or random) in the future.
+
+     The patches add two new cache files: a port guid-to-mkey cache, and
+a neighboring link (port guid to port guid) cache.
+     The guid2mkey cache is used to provide a hint at the initial mkey
+for a CA during initialization.  It is a hint only; the SM is capable of
+dealing with cases where the guid2mkey cache is incorrect, although it
+may require waiting for (potentially multiple) mkey lease timeouts at
+non-zero mkey protection levels.  The guid2mkey cache is presented first
+in the patch set, as it ends up ameliorating several corner cases in a
+cleaner way than attacking them directly did.
+     The neighbors cache file provides an initial hint to the SM of what
+port guid we may expect at the opposite end of a link that is being
+initialized.  This is necessary at mkey protection level 2, where we
+cannot do the SubnGet necessary to determine the port guid to use in
+looking up an mkey hint.
+     The changes to the osm_req functions to support mkeys in patch 2
+now require plock to be held when called.  This was generally already
+the case, but there were a few spots where it was not.  In most of these
+cases, the plock is still not technically necessary, as they occur
+during hops 0/1 when DR path traversal is trivial.  I wrapped all of
+these occurrences in locks in a separate patch (#3), in order to make
+the changes more obvious and invite comment.
+
+     Jim
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
