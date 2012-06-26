@@ -1,7 +1,7 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 3/8] Add locking where necessary around osm_req_*
-Date: Mon, 25 Jun 2012 17:54:59 -0700
-Message-ID: <1340672104-18039-3-git-send-email-foraker1@llnl.gov>
+Subject: [PATCH 5/8] opensm: Signal subnet init errors on SubnGet timeouts
+Date: Mon, 25 Jun 2012 17:55:01 -0700
+Message-ID: <1340672104-18039-5-git-send-email-foraker1@llnl.gov>
 References: <1340672058.5218.97.camel@auk75.llnl.gov>
  <1340672104-18039-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,150 +11,34 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexne-VPRAkNaXOzVWk0Hti
 Cc: weiny2-i2BcT+NCU+M@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Grabs plock for reading in the places where one did not
-already exist when osm_req_get/osm_req_set are called.
+A subnet should not be listed as cleanly initialized if CAs
+fail to respond to SubnGet requests.
 
 Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 ---
- opensm/osm_perfmgr.c      |    6 ++++++
- opensm/osm_sm_state_mgr.c |    2 ++
- opensm/osm_state_mgr.c    |    8 ++++++++
- opensm/osm_trap_rcv.c     |    6 +++++-
- 4 files changed, 21 insertions(+), 1 deletion(-)
+ opensm/osm_sm_mad_ctrl.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 41ef08b..1b4b4cf 100644
---- a/opensm/osm_perfmgr.c
-+++ b/opensm/osm_perfmgr.c
-@@ -620,8 +620,10 @@ static int sweep_hop_1(osm_sm_t * sm)
- 		path_array[1] = port_num;
- 
- 		osm_dr_path_init(&hop_1_path, h_bind, 1, path_array);
-+		CL_PLOCK_ACQUIRE(sm->p_lock);
- 		status = osm_req_get(sm, &hop_1_path, IB_MAD_ATTR_NODE_INFO, 0,
- 				     CL_DISP_MSGID_NONE, &context);
-+		CL_PLOCK_RELEASE(sm->p_lock);
- 
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 4C82: "
-@@ -652,9 +654,11 @@ static int sweep_hop_1(osm_sm_t * sm)
- 			path_array[1] = port_num;
- 
- 			osm_dr_path_init(&hop_1_path, h_bind, 1, path_array);
-+			CL_PLOCK_ACQUIRE(sm->p_lock);
- 			status = osm_req_get(sm, &hop_1_path,
- 					     IB_MAD_ATTR_NODE_INFO, 0,
- 					     CL_DISP_MSGID_NONE, &context);
-+			CL_PLOCK_RELEASE(sm->p_lock);
- 
- 			if (status != IB_SUCCESS)
- 				OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 4C84: "
-@@ -714,8 +718,10 @@ static int sweep_hop_0(osm_sm_t * sm)
+diff --git a/opensm/osm_sm_mad_ctrl.c b/opensm/osm_sm_mad_ctrl.c
+index f0bcff2..464b6b0 100644
+--- a/opensm/osm_sm_mad_ctrl.c
++++ b/opensm/osm_sm_mad_ctrl.c
+@@ -741,6 +741,15 @@ static void sm_mad_ctrl_send_err_cb(IN void *context, IN osm_madw_t * p_madw)
+ 			cl_ntoh16(p_smp->attr_id),
+ 			ib_get_sm_attr_str(p_smp->attr_id));
+ 		p_ctrl->p_subn->subnet_initialization_error = TRUE;
++	} else if (p_madw->status == IB_TIMEOUT &&
++		   p_smp->method == IB_MAD_METHOD_GET) {
++		/* Timeouts on SubnGet may be an indication of an mkey
++	 	   error at protection levels 2/3 */
++		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3120 "
++			"Timeout while getting attribute 0x%X (%s)\n",
++			cl_ntoh16(p_smp->attr_id),
++			ib_get_sm_attr_str(p_smp->attr_id));
++		p_ctrl->p_subn->subnet_initialization_error = TRUE;
  	}
  
- 	osm_dr_path_init(&dr_path, h_bind, 0, path_array);
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
- 	status = osm_req_get(sm, &dr_path, IB_MAD_ATTR_NODE_INFO, 0,
- 			     CL_DISP_MSGID_NONE, NULL);
-+	CL_PLOCK_RELEASE(sm->p_lock);
- 
- 	if (status != IB_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
-diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
-index ac895fa..602a393 100644
---- a/opensm/osm_sm_state_mgr.c
-+++ b/opensm/osm_sm_state_mgr.c
-@@ -107,9 +107,11 @@ static void sm_state_mgr_send_master_sm_info_req(osm_sm_t * sm)
- 	context.smi_context.port_guid = p_port->guid;
- 	context.smi_context.set_method = FALSE;
- 
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
- 	status = osm_req_get(sm, osm_physp_get_dr_path_ptr(p_port->p_physp),
- 			     IB_MAD_ATTR_SM_INFO, 0, CL_DISP_MSGID_NONE,
- 			     &context);
-+	CL_PLOCK_RELEASE(sm->p_lock);
- 
- 	if (status != IB_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3204: "
-diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
-index 39fb15a..4d5da46 100644
---- a/opensm/osm_state_mgr.c
-+++ b/opensm/osm_state_mgr.c
-@@ -237,8 +237,10 @@ static ib_api_status_t state_mgr_sweep_hop_0(IN osm_sm_t * sm)
- 		CL_PLOCK_RELEASE(sm->p_lock);
- 
- 		osm_dr_path_init(&dr_path, h_bind, 0, path_array);
-+		CL_PLOCK_ACQUIRE(sm->p_lock);
- 		status = osm_req_get(sm, &dr_path, IB_MAD_ATTR_NODE_INFO, 0,
- 				     CL_DISP_MSGID_NONE, NULL);
-+		CL_PLOCK_RELEASE(sm->p_lock);
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3305: "
- 				"Request for NodeInfo failed (%s)\n",
-@@ -442,8 +444,10 @@ static ib_api_status_t state_mgr_sweep_hop_1(IN osm_sm_t * sm)
- 		path_array[1] = port_num;
- 
- 		osm_dr_path_init(&hop_1_path, h_bind, 1, path_array);
-+		CL_PLOCK_ACQUIRE(sm->p_lock);
- 		status = osm_req_get(sm, &hop_1_path, IB_MAD_ATTR_NODE_INFO, 0,
- 				     CL_DISP_MSGID_NONE, &context);
-+		CL_PLOCK_RELEASE(sm->p_lock);
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3311: "
- 				"Request for NodeInfo failed (%s)\n",
-@@ -472,10 +476,12 @@ static ib_api_status_t state_mgr_sweep_hop_1(IN osm_sm_t * sm)
- 				path_array[1] = port_num;
- 				osm_dr_path_init(&hop_1_path, h_bind, 1,
- 						 path_array);
-+				CL_PLOCK_ACQUIRE(sm->p_lock);
- 				status = osm_req_get(sm, &hop_1_path,
- 						     IB_MAD_ATTR_NODE_INFO, 0,
- 						     CL_DISP_MSGID_NONE,
- 						     &context);
-+				CL_PLOCK_RELEASE(sm->p_lock);
- 				if (status != IB_SUCCESS)
- 					OSM_LOG(sm->p_log, OSM_LOG_ERROR,
- 						"ERR 3312: "
-@@ -822,10 +828,12 @@ static void state_mgr_send_handover(IN osm_sm_t * sm, IN osm_remote_sm_t * p_sm)
- 		p_smi->sm_key = 0;
- 	}
- 
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
- 	status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p_port->p_physp),
- 			     payload, sizeof(payload), IB_MAD_ATTR_SM_INFO,
- 			     IB_SMINFO_ATTR_MOD_HANDOVER, CL_DISP_MSGID_NONE,
- 			     &context);
-+	CL_PLOCK_RELEASE(sm->p_lock);
- 
- 	if (status != IB_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3317: "
-diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
-index 2aaaba4..5419c09 100644
---- a/opensm/osm_trap_rcv.c
-+++ b/opensm/osm_trap_rcv.c
-@@ -211,6 +211,7 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
- 	uint8_t payload[IB_SMP_DATA_SIZE];
- 	osm_madw_context_t context;
- 	ib_port_info_t *pi = (ib_port_info_t *)payload;
-+	ib_api_status_t status;
- 
- 	/* select the nearest port to master opensm */
- 	if (p->p_remote_physp &&
-@@ -233,10 +234,13 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
- 	context.pi_context.light_sweep = FALSE;
- 	context.pi_context.active_transition = FALSE;
- 
--	return osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
-+	status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
- 			   payload, sizeof(payload), IB_MAD_ATTR_PORT_INFO,
- 			   cl_hton32(osm_physp_get_port_num(p)),
- 			   CL_DISP_MSGID_NONE, &context);
-+	CL_PLOCK_RELEASE(sm->p_lock);
-+	return status;
- }
- 
- static void log_trap_info(osm_log_t *p_log, ib_mad_notice_attr_t *p_ntci,
+ 	osm_dump_dr_smp(p_ctrl->p_log, p_smp, OSM_LOG_VERBOSE);
 -- 
 1.7.9.2
 
