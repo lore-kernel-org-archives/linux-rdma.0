@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/3] IB/qib: Avoid returning EBUSY from MR deregister
-Date: Wed, 27 Jun 2012 18:33:12 -0400
-Message-ID: <20120627223312.12508.56810.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 3/3] IB/qib: RCU locking for MR validation
+Date: Wed, 27 Jun 2012 18:33:19 -0400
+Message-ID: <20120627223319.12508.88664.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20120627223257.12508.1491.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,1040 +13,314 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A timing issue can occur where qib_mr_dereg can
-return -EBUSY if the MR use count has is not zero.
+Profiling indicates that MR validation locking is expensive.  The
+MR table is largely read-only and is a suitable candidate for RCU
+locking.
 
-This can occur if the MR is de-registered while RDMA
-read response packets are being progressed from the
-SDMA ring.  The suspicion is that the peer sent an RDMA
-read request, which has already been copied across to the
-peer.  The peer sees the completion of his request and
-then communicates to the responder that the MR is not
-needed any longer.  The responder tries to de-register the
-MR, catching some responses remaining in the SDMA ring holding
-the MR use count.
+The patch uses RCU locking during validation to eliminate one
+lock/unlock during that validation.
 
-The code now uses a get/put paradigm to track MR use
-counts and coordinates with the MR de-registration
-process using a completion when the count has reached
-zero.  A timeout on the delay is in place to catch
-other EBUSY issues.
-
-The reference count protocol is as follows:
-- The return to the user counts as 1
-- A reference from the lk_table or the qib_ibdev counts as 1.
-- Transient I/O operations increase/decrease as necessary
-
-A lot of code duplication has been folded into the
-new routines init_qib_mregion() and deinit_qib_mregion().
-Additionally, explicit initialization of fields to zero is now
-handled by kzalloc().
-
-Also, duplicated code 'while.*num_sge' that decrements reference counts
-have been consolidated in qib_put_ss().
-
-Reviewed-by: Ramkrishna Vepa <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Heinz <michael.william.heinz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_keys.c  |   84 +++++++----
- drivers/infiniband/hw/qib/qib_mr.c    |  242 ++++++++++++++++++---------------
- drivers/infiniband/hw/qib/qib_qp.c    |   21 +--
- drivers/infiniband/hw/qib/qib_rc.c    |   24 +--
- drivers/infiniband/hw/qib/qib_ruc.c   |   14 +-
- drivers/infiniband/hw/qib/qib_uc.c    |   33 +----
- drivers/infiniband/hw/qib/qib_ud.c    |   12 --
- drivers/infiniband/hw/qib/qib_verbs.c |   10 +
- drivers/infiniband/hw/qib/qib_verbs.h |   28 ++++
- 9 files changed, 244 insertions(+), 224 deletions(-)
+ drivers/infiniband/hw/qib/qib_keys.c  |   98 +++++++++++++++++----------------
+ drivers/infiniband/hw/qib/qib_mr.c    |    7 ++
+ drivers/infiniband/hw/qib/qib_verbs.c |    4 +
+ drivers/infiniband/hw/qib/qib_verbs.h |    7 ++
+ 4 files changed, 66 insertions(+), 50 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index 8fd19a4..8b5ee3a 100644
+index 8b5ee3a..970165b 100644
 --- a/drivers/infiniband/hw/qib/qib_keys.c
 +++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -35,21 +35,40 @@
- 
- /**
-  * qib_alloc_lkey - allocate an lkey
-- * @rkt: lkey table in which to allocate the lkey
-  * @mr: memory region that this lkey protects
-+ * @dma_region: 0->normal key, 1->restricted DMA key
-+ *
-+ * Returns 0 if successful, otherwise returns -errno.
-+ *
-+ * Increments mr reference count and sets published
-+ * as required.
-+ *
-+ * Sets the lkey field mr for non-dma regions.
+@@ -40,8 +40,7 @@
   *
-- * Returns 1 if successful, otherwise returns 0.
-  */
+  * Returns 0 if successful, otherwise returns -errno.
+  *
+- * Increments mr reference count and sets published
+- * as required.
++ * Increments mr reference count as required.
+  *
+  * Sets the lkey field mr for non-dma regions.
+  *
+@@ -60,10 +59,12 @@ int qib_alloc_lkey(struct qib_mregion *mr, int dma_region)
  
--int qib_alloc_lkey(struct qib_lkey_table *rkt, struct qib_mregion *mr)
-+int qib_alloc_lkey(struct qib_mregion *mr, int dma_region)
- {
- 	unsigned long flags;
- 	u32 r;
- 	u32 n;
--	int ret;
-+	int ret = 0;
-+	struct qib_ibdev *dev = to_idev(mr->pd->device);
-+	struct qib_lkey_table *rkt = &dev->lk_table;
- 
- 	spin_lock_irqsave(&rkt->lock, flags);
- 
-+	/* special case for dma_mr lkey == 0 */
-+	if (dma_region) {
-+		/* should the dma_mr be relative to the pd? */
-+		if (!dev->dma_mr) {
-+			qib_get_mr(mr);
-+			dev->dma_mr = mr;
-+			mr->lkey_published = 1;
-+		}
-+		goto success;
-+	}
+ 	/* special case for dma_mr lkey == 0 */
+ 	if (dma_region) {
+-		/* should the dma_mr be relative to the pd? */
+-		if (!dev->dma_mr) {
++		struct qib_mregion *tmr;
 +
- 	/* Find the next available LKEY */
- 	r = rkt->next;
- 	n = r;
-@@ -57,11 +76,8 @@ int qib_alloc_lkey(struct qib_lkey_table *rkt, struct qib_mregion *mr)
- 		if (rkt->table[r] == NULL)
- 			break;
- 		r = (r + 1) & (rkt->max - 1);
--		if (r == n) {
--			spin_unlock_irqrestore(&rkt->lock, flags);
--			ret = 0;
-+		if (r == n)
- 			goto bail;
--		}
- 	}
- 	rkt->next = (r + 1) & (rkt->max - 1);
- 	/*
-@@ -76,46 +92,50 @@ int qib_alloc_lkey(struct qib_lkey_table *rkt, struct qib_mregion *mr)
- 		mr->lkey |= 1 << 8;
++		tmr = rcu_dereference(dev->dma_mr);
++		if (!tmr) {
+ 			qib_get_mr(mr);
+-			dev->dma_mr = mr;
++			rcu_assign_pointer(dev->dma_mr, mr);
+ 			mr->lkey_published = 1;
+ 		}
+ 		goto success;
+@@ -93,7 +94,7 @@ int qib_alloc_lkey(struct qib_mregion *mr, int dma_region)
  		rkt->gen++;
  	}
-+	qib_get_mr(mr);
- 	rkt->table[r] = mr;
-+	mr->lkey_published = 1;
-+success:
+ 	qib_get_mr(mr);
+-	rkt->table[r] = mr;
++	rcu_assign_pointer(rkt->table[r], mr);
+ 	mr->lkey_published = 1;
+ success:
  	spin_unlock_irqrestore(&rkt->lock, flags);
+@@ -120,33 +121,30 @@ void qib_free_lkey(struct qib_mregion *mr)
+ 	spin_lock_irqsave(&rkt->lock, flags);
+ 	if (!mr->lkey_published)
+ 		goto out;
+-	mr->lkey_published = 0;
 -
--	ret = 1;
 -
--bail:
-+out:
- 	return ret;
-+bail:
-+	spin_unlock_irqrestore(&rkt->lock, flags);
-+	ret = -ENOMEM;
-+	goto out;
- }
- 
- /**
-  * qib_free_lkey - free an lkey
-- * @rkt: table from which to free the lkey
-- * @lkey: lkey id to free
-+ * @mr: mr to free from tables
-  */
--int qib_free_lkey(struct qib_ibdev *dev, struct qib_mregion *mr)
-+void qib_free_lkey(struct qib_mregion *mr)
- {
- 	unsigned long flags;
- 	u32 lkey = mr->lkey;
- 	u32 r;
--	int ret;
-+	struct qib_ibdev *dev = to_idev(mr->pd->device);
-+	struct qib_lkey_table *rkt = &dev->lk_table;
-+
-+	spin_lock_irqsave(&rkt->lock, flags);
-+	if (!mr->lkey_published)
-+		goto out;
-+	mr->lkey_published = 0;
-+
- 
- 	spin_lock_irqsave(&dev->lk_table.lock, flags);
- 	if (lkey == 0) {
- 		if (dev->dma_mr && dev->dma_mr == mr) {
--			ret = atomic_read(&dev->dma_mr->refcount);
--			if (!ret)
--				dev->dma_mr = NULL;
--		} else
--			ret = 0;
-+			qib_put_mr(dev->dma_mr);
-+			dev->dma_mr = NULL;
-+		}
- 	} else {
+-	spin_lock_irqsave(&dev->lk_table.lock, flags);
+-	if (lkey == 0) {
+-		if (dev->dma_mr && dev->dma_mr == mr) {
+-			qib_put_mr(dev->dma_mr);
+-			dev->dma_mr = NULL;
+-		}
+-	} else {
++	if (lkey == 0)
++		rcu_assign_pointer(dev->dma_mr, NULL);
++	else {
  		r = lkey >> (32 - ib_qib_lkey_table_size);
--		ret = atomic_read(&dev->lk_table.table[r]->refcount);
--		if (!ret)
--			dev->lk_table.table[r] = NULL;
-+		qib_put_mr(dev->dma_mr);
-+		rkt->table[r] = NULL;
+-		qib_put_mr(dev->dma_mr);
+-		rkt->table[r] = NULL;
++		rcu_assign_pointer(rkt->table[r], NULL);
  	}
-+out:
- 	spin_unlock_irqrestore(&dev->lk_table.lock, flags);
--
--	if (ret)
--		ret = -EBUSY;
--	return ret;
++	qib_put_mr(mr);
++	mr->lkey_published = 0;
+ out:
+-	spin_unlock_irqrestore(&dev->lk_table.lock, flags);
++	spin_unlock_irqrestore(&rkt->lock, flags);
  }
  
  /**
-@@ -150,7 +170,7 @@ int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
- 			goto bail;
- 		if (!dev->dma_mr)
- 			goto bail;
--		atomic_inc(&dev->dma_mr->refcount);
-+		qib_get_mr(dev->dma_mr);
- 		spin_unlock_irqrestore(&rkt->lock, flags);
+  * qib_lkey_ok - check IB SGE for validity and initialize
+  * @rkt: table containing lkey to check SGE against
++ * @pd: protection domain
+  * @isge: outgoing internal SGE
+  * @sge: SGE to check
+  * @acc: access flags
+  *
+  * Return 1 if valid and successful, otherwise returns 0.
+  *
++ * increments the reference count upon success
++ *
+  * Check the IB SGE for validity and initialize our internal version
+  * of it.
+  */
+@@ -156,24 +154,25 @@ int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
+ 	struct qib_mregion *mr;
+ 	unsigned n, m;
+ 	size_t off;
+-	unsigned long flags;
  
- 		isge->mr = dev->dma_mr;
-@@ -171,7 +191,7 @@ int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
- 		     off + sge->length > mr->length ||
- 		     (mr->access_flags & acc) != acc))
+ 	/*
+ 	 * We use LKEY == zero for kernel virtual addresses
+ 	 * (see qib_get_dma_mr and qib_dma.c).
+ 	 */
+-	spin_lock_irqsave(&rkt->lock, flags);
++	rcu_read_lock();
+ 	if (sge->lkey == 0) {
+ 		struct qib_ibdev *dev = to_idev(pd->ibpd.device);
+ 
+ 		if (pd->user)
+ 			goto bail;
+-		if (!dev->dma_mr)
++		mr = rcu_dereference(dev->dma_mr);
++		if (!mr)
++			goto bail;
++		if (unlikely(!atomic_inc_not_zero(&mr->refcount)))
+ 			goto bail;
+-		qib_get_mr(dev->dma_mr);
+-		spin_unlock_irqrestore(&rkt->lock, flags);
++		rcu_read_unlock();
+ 
+-		isge->mr = dev->dma_mr;
++		isge->mr = mr;
+ 		isge->vaddr = (void *) sge->addr;
+ 		isge->length = sge->length;
+ 		isge->sge_length = sge->length;
+@@ -181,18 +180,18 @@ int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
+ 		isge->n = 0;
+ 		goto ok;
+ 	}
+-	mr = rkt->table[(sge->lkey >> (32 - ib_qib_lkey_table_size))];
+-	if (unlikely(mr == NULL || mr->lkey != sge->lkey ||
+-		     mr->pd != &pd->ibpd))
++	mr = rcu_dereference(
++		rkt->table[(sge->lkey >> (32 - ib_qib_lkey_table_size))]);
++	if (unlikely(!mr || mr->lkey != sge->lkey || mr->pd != &pd->ibpd))
  		goto bail;
--	atomic_inc(&mr->refcount);
-+	qib_get_mr(mr);
- 	spin_unlock_irqrestore(&rkt->lock, flags);
+ 
+ 	off = sge->addr - mr->user_base;
+-	if (unlikely(sge->addr < mr->user_base ||
+-		     off + sge->length > mr->length ||
+-		     (mr->access_flags & acc) != acc))
++	if (unlikely(sge->addr < mr->iova || off + sge->length > mr->length ||
++		     (mr->access_flags & acc) == 0))
+ 		goto bail;
+-	qib_get_mr(mr);
+-	spin_unlock_irqrestore(&rkt->lock, flags);
++	if (unlikely(!atomic_inc_not_zero(&mr->refcount)))
++		goto bail;
++	rcu_read_unlock();
  
  	off += mr->offset;
-@@ -245,7 +265,7 @@ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
- 			goto bail;
- 		if (!dev->dma_mr)
- 			goto bail;
--		atomic_inc(&dev->dma_mr->refcount);
-+		qib_get_mr(dev->dma_mr);
- 		spin_unlock_irqrestore(&rkt->lock, flags);
+ 	if (mr->page_shift) {
+@@ -228,20 +227,22 @@ int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
+ ok:
+ 	return 1;
+ bail:
+-	spin_unlock_irqrestore(&rkt->lock, flags);
++	rcu_read_unlock();
+ 	return 0;
+ }
  
- 		sge->mr = dev->dma_mr;
-@@ -265,7 +285,7 @@ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
+ /**
+  * qib_rkey_ok - check the IB virtual address, length, and RKEY
+- * @dev: infiniband device
+- * @ss: SGE state
++ * @qp: qp for validation
++ * @sge: SGE state
+  * @len: length of data
+  * @vaddr: virtual address to place data
+  * @rkey: rkey to check
+  * @acc: access flags
+  *
+  * Return 1 if successful, otherwise 0.
++ *
++ * increments the reference count upon success
+  */
+ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
+ 		u32 len, u64 vaddr, u32 rkey, int acc)
+@@ -250,25 +251,26 @@ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
+ 	struct qib_mregion *mr;
+ 	unsigned n, m;
+ 	size_t off;
+-	unsigned long flags;
+ 
+ 	/*
+ 	 * We use RKEY == zero for kernel virtual addresses
+ 	 * (see qib_get_dma_mr and qib_dma.c).
+ 	 */
+-	spin_lock_irqsave(&rkt->lock, flags);
++	rcu_read_lock();
+ 	if (rkey == 0) {
+ 		struct qib_pd *pd = to_ipd(qp->ibqp.pd);
+ 		struct qib_ibdev *dev = to_idev(pd->ibpd.device);
+ 
+ 		if (pd->user)
+ 			goto bail;
+-		if (!dev->dma_mr)
++		mr = rcu_dereference(dev->dma_mr);
++		if (!mr)
+ 			goto bail;
+-		qib_get_mr(dev->dma_mr);
+-		spin_unlock_irqrestore(&rkt->lock, flags);
++		if (unlikely(!atomic_inc_not_zero(&mr->refcount)))
++			goto bail;
++		rcu_read_unlock();
+ 
+-		sge->mr = dev->dma_mr;
++		sge->mr = mr;
+ 		sge->vaddr = (void *) vaddr;
+ 		sge->length = len;
+ 		sge->sge_length = len;
+@@ -277,16 +279,18 @@ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
+ 		goto ok;
+ 	}
+ 
+-	mr = rkt->table[(rkey >> (32 - ib_qib_lkey_table_size))];
+-	if (unlikely(mr == NULL || mr->lkey != rkey || qp->ibqp.pd != mr->pd))
++	mr = rcu_dereference(
++		rkt->table[(rkey >> (32 - ib_qib_lkey_table_size))]);
++	if (unlikely(!mr || mr->lkey != rkey || qp->ibqp.pd != mr->pd))
+ 		goto bail;
+ 
+ 	off = vaddr - mr->iova;
  	if (unlikely(vaddr < mr->iova || off + len > mr->length ||
  		     (mr->access_flags & acc) == 0))
  		goto bail;
--	atomic_inc(&mr->refcount);
-+	qib_get_mr(mr);
- 	spin_unlock_irqrestore(&rkt->lock, flags);
+-	qib_get_mr(mr);
+-	spin_unlock_irqrestore(&rkt->lock, flags);
++	if (unlikely(!atomic_inc_not_zero(&mr->refcount)))
++		goto bail;
++	rcu_read_unlock();
  
  	off += mr->offset;
+ 	if (mr->page_shift) {
+@@ -322,7 +326,7 @@ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
+ ok:
+ 	return 1;
+ bail:
+-	spin_unlock_irqrestore(&rkt->lock, flags);
++	rcu_read_unlock();
+ 	return 0;
+ }
+ 
 diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 08944e2..6a2028a 100644
+index 6a2028a..e6687de 100644
 --- a/drivers/infiniband/hw/qib/qib_mr.c
 +++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -47,6 +47,43 @@ static inline struct qib_fmr *to_ifmr(struct ib_fmr *ibfmr)
- 	return container_of(ibfmr, struct qib_fmr, ibfmr);
+@@ -527,3 +527,10 @@ int qib_dealloc_fmr(struct ib_fmr *ibfmr)
+ out:
+ 	return ret;
  }
- 
-+static int init_qib_mregion(struct qib_mregion *mr, struct ib_pd *pd,
-+	int count)
++
++void mr_rcu_callback(struct rcu_head *list)
 +{
-+	int m, i = 0;
-+	int rval = 0;
++	struct qib_mregion *mr = container_of(list, struct qib_mregion, list);
 +
-+	m = (count + QIB_SEGSZ - 1) / QIB_SEGSZ;
-+	for (; i < m; i++) {
-+		mr->map[i] = kzalloc(sizeof *mr->map[0], GFP_KERNEL);
-+		if (!mr->map[i])
-+			goto bail;
-+	}
-+	mr->mapsz = m;
-+	init_completion(&mr->comp);
-+	/* count returning the ptr to user */
-+	atomic_set(&mr->refcount, 1);
-+	mr->pd = pd;
-+	mr->max_segs = count;
-+out:
-+	return rval;
-+bail:
-+	while (i)
-+		kfree(mr->map[--i]);
-+	rval = -ENOMEM;
-+	goto out;
++	complete(&mr->comp);
 +}
-+
-+static void deinit_qib_mregion(struct qib_mregion *mr)
-+{
-+	int i = mr->mapsz;
-+
-+	mr->mapsz = 0;
-+	while (i)
-+		kfree(mr->map[--i]);
-+}
-+
-+
- /**
-  * qib_get_dma_mr - get a DMA memory region
-  * @pd: protection domain for this memory region
-@@ -58,10 +95,9 @@ static inline struct qib_fmr *to_ifmr(struct ib_fmr *ibfmr)
-  */
- struct ib_mr *qib_get_dma_mr(struct ib_pd *pd, int acc)
- {
--	struct qib_ibdev *dev = to_idev(pd->device);
--	struct qib_mr *mr;
-+	struct qib_mr *mr = NULL;
- 	struct ib_mr *ret;
--	unsigned long flags;
-+	int rval;
- 
- 	if (to_ipd(pd)->user) {
- 		ret = ERR_PTR(-EPERM);
-@@ -74,61 +110,64 @@ struct ib_mr *qib_get_dma_mr(struct ib_pd *pd, int acc)
- 		goto bail;
- 	}
- 
--	mr->mr.access_flags = acc;
--	atomic_set(&mr->mr.refcount, 0);
-+	rval = init_qib_mregion(&mr->mr, pd, 0);
-+	if (rval) {
-+		ret = ERR_PTR(rval);
-+		goto bail;
-+	}
- 
--	spin_lock_irqsave(&dev->lk_table.lock, flags);
--	if (!dev->dma_mr)
--		dev->dma_mr = &mr->mr;
--	spin_unlock_irqrestore(&dev->lk_table.lock, flags);
- 
-+	rval = qib_alloc_lkey(&mr->mr, 1);
-+	if (rval) {
-+		ret = ERR_PTR(rval);
-+		goto bail_mregion;
-+	}
-+
-+	mr->mr.access_flags = acc;
- 	ret = &mr->ibmr;
-+done:
-+	return ret;
- 
-+bail_mregion:
-+	deinit_qib_mregion(&mr->mr);
- bail:
--	return ret;
-+	kfree(mr);
-+	goto done;
- }
- 
--static struct qib_mr *alloc_mr(int count, struct qib_lkey_table *lk_table)
-+static struct qib_mr *alloc_mr(int count, struct ib_pd *pd)
- {
- 	struct qib_mr *mr;
--	int m, i = 0;
-+	int rval = -ENOMEM;
-+	int m;
- 
- 	/* Allocate struct plus pointers to first level page tables. */
- 	m = (count + QIB_SEGSZ - 1) / QIB_SEGSZ;
--	mr = kmalloc(sizeof *mr + m * sizeof mr->mr.map[0], GFP_KERNEL);
-+	mr = kzalloc(sizeof *mr + m * sizeof mr->mr.map[0], GFP_KERNEL);
- 	if (!mr)
--		goto done;
--
--	/* Allocate first level page tables. */
--	for (; i < m; i++) {
--		mr->mr.map[i] = kmalloc(sizeof *mr->mr.map[0], GFP_KERNEL);
--		if (!mr->mr.map[i])
--			goto bail;
--	}
--	mr->mr.mapsz = m;
--	mr->mr.page_shift = 0;
--	mr->mr.max_segs = count;
-+		goto bail;
- 
-+	rval = init_qib_mregion(&mr->mr, pd, count);
-+	if (rval)
-+		goto bail;
- 	/*
- 	 * ib_reg_phys_mr() will initialize mr->ibmr except for
- 	 * lkey and rkey.
- 	 */
--	if (!qib_alloc_lkey(lk_table, &mr->mr))
--		goto bail;
-+	rval = qib_alloc_lkey(&mr->mr, 0);
-+	if (rval)
-+		goto bail_mregion;
- 	mr->ibmr.lkey = mr->mr.lkey;
- 	mr->ibmr.rkey = mr->mr.lkey;
-+done:
-+	return mr;
- 
--	atomic_set(&mr->mr.refcount, 0);
--	goto done;
--
-+bail_mregion:
-+	deinit_qib_mregion(&mr->mr);
- bail:
--	while (i)
--		kfree(mr->mr.map[--i]);
- 	kfree(mr);
--	mr = NULL;
--
--done:
--	return mr;
-+	mr = ERR_PTR(rval);
-+	goto done;
- }
- 
- /**
-@@ -148,19 +187,15 @@ struct ib_mr *qib_reg_phys_mr(struct ib_pd *pd,
- 	int n, m, i;
- 	struct ib_mr *ret;
- 
--	mr = alloc_mr(num_phys_buf, &to_idev(pd->device)->lk_table);
--	if (mr == NULL) {
--		ret = ERR_PTR(-ENOMEM);
-+	mr = alloc_mr(num_phys_buf, pd);
-+	if (IS_ERR(mr)) {
-+		ret = (struct ib_mr *)mr;
- 		goto bail;
- 	}
- 
--	mr->mr.pd = pd;
- 	mr->mr.user_base = *iova_start;
- 	mr->mr.iova = *iova_start;
--	mr->mr.length = 0;
--	mr->mr.offset = 0;
- 	mr->mr.access_flags = acc;
--	mr->umem = NULL;
- 
- 	m = 0;
- 	n = 0;
-@@ -186,7 +221,6 @@ bail:
-  * @pd: protection domain for this memory region
-  * @start: starting userspace address
-  * @length: length of region to register
-- * @virt_addr: virtual address to use (from HCA's point of view)
-  * @mr_access_flags: access flags for this memory region
-  * @udata: unused by the QLogic_IB driver
-  *
-@@ -216,14 +250,13 @@ struct ib_mr *qib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	list_for_each_entry(chunk, &umem->chunk_list, list)
- 		n += chunk->nents;
- 
--	mr = alloc_mr(n, &to_idev(pd->device)->lk_table);
--	if (!mr) {
--		ret = ERR_PTR(-ENOMEM);
-+	mr = alloc_mr(n, pd);
-+	if (IS_ERR(mr)) {
-+		ret = (struct ib_mr *)mr;
- 		ib_umem_release(umem);
- 		goto bail;
- 	}
- 
--	mr->mr.pd = pd;
- 	mr->mr.user_base = start;
- 	mr->mr.iova = virt_addr;
- 	mr->mr.length = length;
-@@ -271,21 +304,25 @@ bail:
- int qib_dereg_mr(struct ib_mr *ibmr)
- {
- 	struct qib_mr *mr = to_imr(ibmr);
--	struct qib_ibdev *dev = to_idev(ibmr->device);
--	int ret;
--	int i;
--
--	ret = qib_free_lkey(dev, &mr->mr);
--	if (ret)
--		return ret;
--
--	i = mr->mr.mapsz;
--	while (i)
--		kfree(mr->mr.map[--i]);
-+	int ret = 0;
-+	unsigned long timeout;
-+
-+	qib_free_lkey(&mr->mr);
-+
-+	qib_put_mr(&mr->mr); /* will set completion if last */
-+	timeout = wait_for_completion_timeout(&mr->mr.comp,
-+		5 * HZ);
-+	if (!timeout) {
-+		qib_get_mr(&mr->mr);
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+	deinit_qib_mregion(&mr->mr);
- 	if (mr->umem)
- 		ib_umem_release(mr->umem);
- 	kfree(mr);
--	return 0;
-+out:
-+	return ret;
- }
- 
- /*
-@@ -298,17 +335,9 @@ struct ib_mr *qib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
- {
- 	struct qib_mr *mr;
- 
--	mr = alloc_mr(max_page_list_len, &to_idev(pd->device)->lk_table);
--	if (mr == NULL)
--		return ERR_PTR(-ENOMEM);
--
--	mr->mr.pd = pd;
--	mr->mr.user_base = 0;
--	mr->mr.iova = 0;
--	mr->mr.length = 0;
--	mr->mr.offset = 0;
--	mr->mr.access_flags = 0;
--	mr->umem = NULL;
-+	mr = alloc_mr(max_page_list_len, pd);
-+	if (IS_ERR(mr))
-+		return (struct ib_mr *)mr;
- 
- 	return &mr->ibmr;
- }
-@@ -322,11 +351,11 @@ qib_alloc_fast_reg_page_list(struct ib_device *ibdev, int page_list_len)
- 	if (size > PAGE_SIZE)
- 		return ERR_PTR(-EINVAL);
- 
--	pl = kmalloc(sizeof *pl, GFP_KERNEL);
-+	pl = kzalloc(sizeof *pl, GFP_KERNEL);
- 	if (!pl)
- 		return ERR_PTR(-ENOMEM);
- 
--	pl->page_list = kmalloc(size, GFP_KERNEL);
-+	pl->page_list = kzalloc(size, GFP_KERNEL);
- 	if (!pl->page_list)
- 		goto err_free;
- 
-@@ -355,57 +384,47 @@ struct ib_fmr *qib_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
- 			     struct ib_fmr_attr *fmr_attr)
- {
- 	struct qib_fmr *fmr;
--	int m, i = 0;
-+	int m;
- 	struct ib_fmr *ret;
-+	int rval = -ENOMEM;
- 
- 	/* Allocate struct plus pointers to first level page tables. */
- 	m = (fmr_attr->max_pages + QIB_SEGSZ - 1) / QIB_SEGSZ;
--	fmr = kmalloc(sizeof *fmr + m * sizeof fmr->mr.map[0], GFP_KERNEL);
-+	fmr = kzalloc(sizeof *fmr + m * sizeof fmr->mr.map[0], GFP_KERNEL);
- 	if (!fmr)
- 		goto bail;
- 
--	/* Allocate first level page tables. */
--	for (; i < m; i++) {
--		fmr->mr.map[i] = kmalloc(sizeof *fmr->mr.map[0],
--					 GFP_KERNEL);
--		if (!fmr->mr.map[i])
--			goto bail;
--	}
--	fmr->mr.mapsz = m;
-+	rval = init_qib_mregion(&fmr->mr, pd, fmr_attr->max_pages);
-+	if (rval)
-+		goto bail;
- 
- 	/*
- 	 * ib_alloc_fmr() will initialize fmr->ibfmr except for lkey &
- 	 * rkey.
- 	 */
--	if (!qib_alloc_lkey(&to_idev(pd->device)->lk_table, &fmr->mr))
--		goto bail;
-+	rval = qib_alloc_lkey(&fmr->mr, 0);
-+	if (rval)
-+		goto bail_mregion;
- 	fmr->ibfmr.rkey = fmr->mr.lkey;
- 	fmr->ibfmr.lkey = fmr->mr.lkey;
- 	/*
- 	 * Resources are allocated but no valid mapping (RKEY can't be
- 	 * used).
- 	 */
--	fmr->mr.pd = pd;
--	fmr->mr.user_base = 0;
--	fmr->mr.iova = 0;
--	fmr->mr.length = 0;
--	fmr->mr.offset = 0;
- 	fmr->mr.access_flags = mr_access_flags;
- 	fmr->mr.max_segs = fmr_attr->max_pages;
- 	fmr->mr.page_shift = fmr_attr->page_shift;
- 
--	atomic_set(&fmr->mr.refcount, 0);
- 	ret = &fmr->ibfmr;
--	goto done;
-+done:
-+	return ret;
- 
-+bail_mregion:
-+	deinit_qib_mregion(&fmr->mr);
- bail:
--	while (i)
--		kfree(fmr->mr.map[--i]);
- 	kfree(fmr);
--	ret = ERR_PTR(-ENOMEM);
--
--done:
--	return ret;
-+	ret = ERR_PTR(rval);
-+	goto done;
- }
- 
- /**
-@@ -428,7 +447,8 @@ int qib_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
- 	u32 ps;
- 	int ret;
- 
--	if (atomic_read(&fmr->mr.refcount))
-+	i = atomic_read(&fmr->mr.refcount);
-+	if (i > 2)
- 		return -EBUSY;
- 
- 	if (list_len > fmr->mr.max_segs) {
-@@ -490,16 +510,20 @@ int qib_unmap_fmr(struct list_head *fmr_list)
- int qib_dealloc_fmr(struct ib_fmr *ibfmr)
- {
- 	struct qib_fmr *fmr = to_ifmr(ibfmr);
--	int ret;
--	int i;
--
--	ret = qib_free_lkey(to_idev(ibfmr->device), &fmr->mr);
--	if (ret)
--		return ret;
--
--	i = fmr->mr.mapsz;
--	while (i)
--		kfree(fmr->mr.map[--i]);
-+	int ret = 0;
-+	unsigned long timeout;
-+
-+	qib_free_lkey(&fmr->mr);
-+	qib_put_mr(&fmr->mr); /* will set completion if last */
-+	timeout = wait_for_completion_timeout(&fmr->mr.comp,
-+		5 * HZ);
-+	if (!timeout) {
-+		qib_get_mr(&fmr->mr);
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+	deinit_qib_mregion(&fmr->mr);
- 	kfree(fmr);
--	return 0;
-+out:
-+	return ret;
- }
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 1ce56b5..693041b 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -406,18 +406,9 @@ static void clear_mr_refs(struct qib_qp *qp, int clr_sends)
- 	unsigned n;
- 
- 	if (test_and_clear_bit(QIB_R_REWIND_SGE, &qp->r_aflags))
--		while (qp->s_rdma_read_sge.num_sge) {
--			atomic_dec(&qp->s_rdma_read_sge.sge.mr->refcount);
--			if (--qp->s_rdma_read_sge.num_sge)
--				qp->s_rdma_read_sge.sge =
--					*qp->s_rdma_read_sge.sg_list++;
--		}
-+		qib_put_ss(&qp->s_rdma_read_sge);
- 
--	while (qp->r_sge.num_sge) {
--		atomic_dec(&qp->r_sge.sge.mr->refcount);
--		if (--qp->r_sge.num_sge)
--			qp->r_sge.sge = *qp->r_sge.sg_list++;
--	}
-+	qib_put_ss(&qp->r_sge);
- 
- 	if (clr_sends) {
- 		while (qp->s_last != qp->s_head) {
-@@ -427,7 +418,7 @@ static void clear_mr_refs(struct qib_qp *qp, int clr_sends)
- 			for (i = 0; i < wqe->wr.num_sge; i++) {
- 				struct qib_sge *sge = &wqe->sg_list[i];
- 
--				atomic_dec(&sge->mr->refcount);
-+				qib_put_mr(sge->mr);
- 			}
- 			if (qp->ibqp.qp_type == IB_QPT_UD ||
- 			    qp->ibqp.qp_type == IB_QPT_SMI ||
-@@ -437,7 +428,7 @@ static void clear_mr_refs(struct qib_qp *qp, int clr_sends)
- 				qp->s_last = 0;
- 		}
- 		if (qp->s_rdma_mr) {
--			atomic_dec(&qp->s_rdma_mr->refcount);
-+			qib_put_mr(qp->s_rdma_mr);
- 			qp->s_rdma_mr = NULL;
- 		}
- 	}
-@@ -450,7 +441,7 @@ static void clear_mr_refs(struct qib_qp *qp, int clr_sends)
- 
- 		if (e->opcode == IB_OPCODE_RC_RDMA_READ_REQUEST &&
- 		    e->rdma_sge.mr) {
--			atomic_dec(&e->rdma_sge.mr->refcount);
-+			qib_put_mr(e->rdma_sge.mr);
- 			e->rdma_sge.mr = NULL;
- 		}
- 	}
-@@ -495,7 +486,7 @@ int qib_error_qp(struct qib_qp *qp, enum ib_wc_status err)
- 	if (!(qp->s_flags & QIB_S_BUSY)) {
- 		qp->s_hdrwords = 0;
- 		if (qp->s_rdma_mr) {
--			atomic_dec(&qp->s_rdma_mr->refcount);
-+			qib_put_mr(qp->s_rdma_mr);
- 			qp->s_rdma_mr = NULL;
- 		}
- 		if (qp->s_tx) {
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index b641416..3ab3413 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -95,7 +95,7 @@ static int qib_make_rc_ack(struct qib_ibdev *dev, struct qib_qp *qp,
- 	case OP(RDMA_READ_RESPONSE_ONLY):
- 		e = &qp->s_ack_queue[qp->s_tail_ack_queue];
- 		if (e->rdma_sge.mr) {
--			atomic_dec(&e->rdma_sge.mr->refcount);
-+			qib_put_mr(e->rdma_sge.mr);
- 			e->rdma_sge.mr = NULL;
- 		}
- 		/* FALLTHROUGH */
-@@ -133,7 +133,7 @@ static int qib_make_rc_ack(struct qib_ibdev *dev, struct qib_qp *qp,
- 			/* Copy SGE state in case we need to resend */
- 			qp->s_rdma_mr = e->rdma_sge.mr;
- 			if (qp->s_rdma_mr)
--				atomic_inc(&qp->s_rdma_mr->refcount);
-+				qib_get_mr(qp->s_rdma_mr);
- 			qp->s_ack_rdma_sge.sge = e->rdma_sge;
- 			qp->s_ack_rdma_sge.num_sge = 1;
- 			qp->s_cur_sge = &qp->s_ack_rdma_sge;
-@@ -172,7 +172,7 @@ static int qib_make_rc_ack(struct qib_ibdev *dev, struct qib_qp *qp,
- 		qp->s_cur_sge = &qp->s_ack_rdma_sge;
- 		qp->s_rdma_mr = qp->s_ack_rdma_sge.sge.mr;
- 		if (qp->s_rdma_mr)
--			atomic_inc(&qp->s_rdma_mr->refcount);
-+			qib_get_mr(qp->s_rdma_mr);
- 		len = qp->s_ack_rdma_sge.sge.sge_length;
- 		if (len > pmtu)
- 			len = pmtu;
-@@ -1012,7 +1012,7 @@ void qib_rc_send_complete(struct qib_qp *qp, struct qib_ib_header *hdr)
- 		for (i = 0; i < wqe->wr.num_sge; i++) {
- 			struct qib_sge *sge = &wqe->sg_list[i];
- 
--			atomic_dec(&sge->mr->refcount);
-+			qib_put_mr(sge->mr);
- 		}
- 		/* Post a send completion queue entry if requested. */
- 		if (!(qp->s_flags & QIB_S_SIGNAL_REQ_WR) ||
-@@ -1068,7 +1068,7 @@ static struct qib_swqe *do_rc_completion(struct qib_qp *qp,
- 		for (i = 0; i < wqe->wr.num_sge; i++) {
- 			struct qib_sge *sge = &wqe->sg_list[i];
- 
--			atomic_dec(&sge->mr->refcount);
-+			qib_put_mr(sge->mr);
- 		}
- 		/* Post a send completion queue entry if requested. */
- 		if (!(qp->s_flags & QIB_S_SIGNAL_REQ_WR) ||
-@@ -1730,7 +1730,7 @@ static int qib_rc_rcv_error(struct qib_other_headers *ohdr,
- 		if (unlikely(offset + len != e->rdma_sge.sge_length))
- 			goto unlock_done;
- 		if (e->rdma_sge.mr) {
--			atomic_dec(&e->rdma_sge.mr->refcount);
-+			qib_put_mr(e->rdma_sge.mr);
- 			e->rdma_sge.mr = NULL;
- 		}
- 		if (len != 0) {
-@@ -2024,11 +2024,7 @@ send_last:
- 		if (unlikely(wc.byte_len > qp->r_len))
- 			goto nack_inv;
- 		qib_copy_sge(&qp->r_sge, data, tlen, 1);
--		while (qp->r_sge.num_sge) {
--			atomic_dec(&qp->r_sge.sge.mr->refcount);
--			if (--qp->r_sge.num_sge)
--				qp->r_sge.sge = *qp->r_sge.sg_list++;
--		}
-+		qib_put_ss(&qp->r_sge);
- 		qp->r_msn++;
- 		if (!test_and_clear_bit(QIB_R_WRID_VALID, &qp->r_aflags))
- 			break;
-@@ -2116,7 +2112,7 @@ send_last:
- 		}
- 		e = &qp->s_ack_queue[qp->r_head_ack_queue];
- 		if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr) {
--			atomic_dec(&e->rdma_sge.mr->refcount);
-+			qib_put_mr(e->rdma_sge.mr);
- 			e->rdma_sge.mr = NULL;
- 		}
- 		reth = &ohdr->u.rc.reth;
-@@ -2188,7 +2184,7 @@ send_last:
- 		}
- 		e = &qp->s_ack_queue[qp->r_head_ack_queue];
- 		if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr) {
--			atomic_dec(&e->rdma_sge.mr->refcount);
-+			qib_put_mr(e->rdma_sge.mr);
- 			e->rdma_sge.mr = NULL;
- 		}
- 		ateth = &ohdr->u.atomic_eth;
-@@ -2210,7 +2206,7 @@ send_last:
- 			(u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
- 				      be64_to_cpu(ateth->compare_data),
- 				      sdata);
--		atomic_dec(&qp->r_sge.sge.mr->refcount);
-+		qib_put_mr(qp->r_sge.sge.mr);
- 		qp->r_sge.num_sge = 0;
- 		e->opcode = opcode;
- 		e->sent = 0;
-diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
-index c0ee7e0..357b6cf 100644
---- a/drivers/infiniband/hw/qib/qib_ruc.c
-+++ b/drivers/infiniband/hw/qib/qib_ruc.c
-@@ -110,7 +110,7 @@ bad_lkey:
- 	while (j) {
- 		struct qib_sge *sge = --j ? &ss->sg_list[j - 1] : &ss->sge;
- 
--		atomic_dec(&sge->mr->refcount);
-+		qib_put_mr(sge->mr);
- 	}
- 	ss->num_sge = 0;
- 	memset(&wc, 0, sizeof(wc));
-@@ -501,7 +501,7 @@ again:
- 			(u64) atomic64_add_return(sdata, maddr) - sdata :
- 			(u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
- 				      sdata, wqe->wr.wr.atomic.swap);
--		atomic_dec(&qp->r_sge.sge.mr->refcount);
-+		qib_put_mr(qp->r_sge.sge.mr);
- 		qp->r_sge.num_sge = 0;
- 		goto send_comp;
- 
-@@ -525,7 +525,7 @@ again:
- 		sge->sge_length -= len;
- 		if (sge->sge_length == 0) {
- 			if (!release)
--				atomic_dec(&sge->mr->refcount);
-+				qib_put_mr(sge->mr);
- 			if (--sqp->s_sge.num_sge)
- 				*sge = *sqp->s_sge.sg_list++;
- 		} else if (sge->length == 0 && sge->mr->lkey) {
-@@ -542,11 +542,7 @@ again:
- 		sqp->s_len -= len;
- 	}
- 	if (release)
--		while (qp->r_sge.num_sge) {
--			atomic_dec(&qp->r_sge.sge.mr->refcount);
--			if (--qp->r_sge.num_sge)
--				qp->r_sge.sge = *qp->r_sge.sg_list++;
--		}
-+		qib_put_ss(&qp->r_sge);
- 
- 	if (!test_and_clear_bit(QIB_R_WRID_VALID, &qp->r_aflags))
- 		goto send_comp;
-@@ -782,7 +778,7 @@ void qib_send_complete(struct qib_qp *qp, struct qib_swqe *wqe,
- 	for (i = 0; i < wqe->wr.num_sge; i++) {
- 		struct qib_sge *sge = &wqe->sg_list[i];
- 
--		atomic_dec(&sge->mr->refcount);
-+		qib_put_mr(sge->mr);
- 	}
- 	if (qp->ibqp.qp_type == IB_QPT_UD ||
- 	    qp->ibqp.qp_type == IB_QPT_SMI ||
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
-index 70b4cb7..aa3a803 100644
---- a/drivers/infiniband/hw/qib/qib_uc.c
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -281,11 +281,7 @@ inv:
- 			set_bit(QIB_R_REWIND_SGE, &qp->r_aflags);
- 			qp->r_sge.num_sge = 0;
- 		} else
--			while (qp->r_sge.num_sge) {
--				atomic_dec(&qp->r_sge.sge.mr->refcount);
--				if (--qp->r_sge.num_sge)
--					qp->r_sge.sge = *qp->r_sge.sg_list++;
--			}
-+			qib_put_ss(&qp->r_sge);
- 		qp->r_state = OP(SEND_LAST);
- 		switch (opcode) {
- 		case OP(SEND_FIRST):
-@@ -404,12 +400,7 @@ send_last:
- 			goto rewind;
- 		wc.opcode = IB_WC_RECV;
- 		qib_copy_sge(&qp->r_sge, data, tlen, 0);
--		while (qp->s_rdma_read_sge.num_sge) {
--			atomic_dec(&qp->s_rdma_read_sge.sge.mr->refcount);
--			if (--qp->s_rdma_read_sge.num_sge)
--				qp->s_rdma_read_sge.sge =
--					*qp->s_rdma_read_sge.sg_list++;
--		}
-+		qib_put_ss(&qp->s_rdma_read_sge);
- last_imm:
- 		wc.wr_id = qp->r_wr_id;
- 		wc.status = IB_WC_SUCCESS;
-@@ -493,13 +484,7 @@ rdma_last_imm:
- 		if (unlikely(tlen + qp->r_rcv_len != qp->r_len))
- 			goto drop;
- 		if (test_and_clear_bit(QIB_R_REWIND_SGE, &qp->r_aflags))
--			while (qp->s_rdma_read_sge.num_sge) {
--				atomic_dec(&qp->s_rdma_read_sge.sge.mr->
--					   refcount);
--				if (--qp->s_rdma_read_sge.num_sge)
--					qp->s_rdma_read_sge.sge =
--						*qp->s_rdma_read_sge.sg_list++;
--			}
-+			qib_put_ss(&qp->s_rdma_read_sge);
- 		else {
- 			ret = qib_get_rwqe(qp, 1);
- 			if (ret < 0)
-@@ -510,11 +495,7 @@ rdma_last_imm:
- 		wc.byte_len = qp->r_len;
- 		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
- 		qib_copy_sge(&qp->r_sge, data, tlen, 1);
--		while (qp->r_sge.num_sge) {
--			atomic_dec(&qp->r_sge.sge.mr->refcount);
--			if (--qp->r_sge.num_sge)
--				qp->r_sge.sge = *qp->r_sge.sg_list++;
--		}
-+		qib_put_ss(&qp->r_sge);
- 		goto last_imm;
- 
- 	case OP(RDMA_WRITE_LAST):
-@@ -530,11 +511,7 @@ rdma_last:
- 		if (unlikely(tlen + qp->r_rcv_len != qp->r_len))
- 			goto drop;
- 		qib_copy_sge(&qp->r_sge, data, tlen, 1);
--		while (qp->r_sge.num_sge) {
--			atomic_dec(&qp->r_sge.sge.mr->refcount);
--			if (--qp->r_sge.num_sge)
--				qp->r_sge.sge = *qp->r_sge.sg_list++;
--		}
-+		qib_put_ss(&qp->r_sge);
- 		break;
- 
- 	default:
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index a468bf2..d6c7fe7 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -194,11 +194,7 @@ static void qib_ud_loopback(struct qib_qp *sqp, struct qib_swqe *swqe)
- 		}
- 		length -= len;
- 	}
--	while (qp->r_sge.num_sge) {
--		atomic_dec(&qp->r_sge.sge.mr->refcount);
--		if (--qp->r_sge.num_sge)
--			qp->r_sge.sge = *qp->r_sge.sg_list++;
--	}
-+	qib_put_ss(&qp->r_sge);
- 	if (!test_and_clear_bit(QIB_R_WRID_VALID, &qp->r_aflags))
- 		goto bail_unlock;
- 	wc.wr_id = qp->r_wr_id;
-@@ -556,11 +552,7 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
- 	} else
- 		qib_skip_sge(&qp->r_sge, sizeof(struct ib_grh), 1);
- 	qib_copy_sge(&qp->r_sge, data, wc.byte_len - sizeof(struct ib_grh), 1);
--	while (qp->r_sge.num_sge) {
--		atomic_dec(&qp->r_sge.sge.mr->refcount);
--		if (--qp->r_sge.num_sge)
--			qp->r_sge.sge = *qp->r_sge.sg_list++;
--	}
-+	qib_put_ss(&qp->r_sge);
- 	if (!test_and_clear_bit(QIB_R_WRID_VALID, &qp->r_aflags))
- 		return;
- 	wc.wr_id = qp->r_wr_id;
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 7b6c3bf..76d7ce8 100644
+index 76d7ce8..59cdea3 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.c
 +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -183,7 +183,7 @@ void qib_copy_sge(struct qib_sge_state *ss, void *data, u32 length, int release)
- 		sge->sge_length -= len;
- 		if (sge->sge_length == 0) {
- 			if (release)
--				atomic_dec(&sge->mr->refcount);
-+				qib_put_mr(sge->mr);
- 			if (--ss->num_sge)
- 				*sge = *ss->sg_list++;
- 		} else if (sge->length == 0 && sge->mr->lkey) {
-@@ -224,7 +224,7 @@ void qib_skip_sge(struct qib_sge_state *ss, u32 length, int release)
- 		sge->sge_length -= len;
- 		if (sge->sge_length == 0) {
- 			if (release)
--				atomic_dec(&sge->mr->refcount);
-+				qib_put_mr(sge->mr);
- 			if (--ss->num_sge)
- 				*sge = *ss->sg_list++;
- 		} else if (sge->length == 0 && sge->mr->lkey) {
-@@ -435,7 +435,7 @@ bail_inval_free:
- 	while (j) {
- 		struct qib_sge *sge = &wqe->sg_list[--j];
- 
--		atomic_dec(&sge->mr->refcount);
-+		qib_put_mr(sge->mr);
+@@ -2066,7 +2066,9 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 		ret = -ENOMEM;
+ 		goto err_lk;
  	}
- bail_inval:
- 	ret = -EINVAL;
-@@ -978,7 +978,7 @@ void qib_put_txreq(struct qib_verbs_txreq *tx)
- 	if (atomic_dec_and_test(&qp->refcount))
- 		wake_up(&qp->wait);
- 	if (tx->mr) {
--		atomic_dec(&tx->mr->refcount);
-+		qib_put_mr(tx->mr);
- 		tx->mr = NULL;
- 	}
- 	if (tx->txreq.flags & QIB_SDMA_TXREQ_F_FREEBUF) {
-@@ -1336,7 +1336,7 @@ done:
- 	}
- 	qib_sendbuf_done(dd, pbufn);
- 	if (qp->s_rdma_mr) {
--		atomic_dec(&qp->s_rdma_mr->refcount);
-+		qib_put_mr(qp->s_rdma_mr);
- 		qp->s_rdma_mr = NULL;
- 	}
- 	if (qp->s_wqe) {
+-	memset(dev->lk_table.table, 0, lk_tab_size);
++	RCU_INIT_POINTER(dev->dma_mr, NULL);
++	for (i = 0; i < dev->lk_table.max; i++)
++		RCU_INIT_POINTER(dev->lk_table.table[i], NULL);
+ 	INIT_LIST_HEAD(&dev->pending_mmaps);
+ 	spin_lock_init(&dev->pending_lock);
+ 	dev->mmap_offset = PAGE_SIZE;
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 4876060..4a2277b 100644
+index 4a2277b..85751fd 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.h
 +++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -41,6 +41,7 @@
- #include <linux/interrupt.h>
- #include <linux/kref.h>
- #include <linux/workqueue.h>
-+#include <linux/completion.h>
- #include <rdma/ib_pack.h>
- #include <rdma/ib_user_verbs.h>
- 
-@@ -302,6 +303,8 @@ struct qib_mregion {
+@@ -303,8 +303,9 @@ struct qib_mregion {
  	u32 max_segs;           /* number of qib_segs in all the arrays */
  	u32 mapsz;              /* size of the map array */
  	u8  page_shift;         /* 0 - non unform/non powerof2 sizes */
-+	u8  lkey_published;	/* in global table */
-+	struct completion comp; /* complete when refcount goes to zero */
+-	u8  lkey_published;	/* in global table */
++	u8  lkey_published;     /* in global table */
+ 	struct completion comp; /* complete when refcount goes to zero */
++	struct rcu_head list;
  	atomic_t refcount;
  	struct qib_segarray *map[0];    /* the segments */
  };
-@@ -944,9 +947,9 @@ int qib_post_ud_send(struct qib_qp *qp, struct ib_send_wr *wr);
- void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
- 		int has_grh, void *data, u32 tlen, struct qib_qp *qp);
+@@ -1022,10 +1023,12 @@ static inline void qib_get_mr(struct qib_mregion *mr)
+ 	atomic_inc(&mr->refcount);
+ }
  
--int qib_alloc_lkey(struct qib_lkey_table *rkt, struct qib_mregion *mr);
-+int qib_alloc_lkey(struct qib_mregion *mr, int dma_region);
- 
--int qib_free_lkey(struct qib_ibdev *dev, struct qib_mregion *mr);
-+void qib_free_lkey(struct qib_mregion *mr);
- 
- int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
- 		struct qib_sge *isge, struct ib_sge *sge, int acc);
-@@ -1014,6 +1017,27 @@ int qib_unmap_fmr(struct list_head *fmr_list);
- 
- int qib_dealloc_fmr(struct ib_fmr *ibfmr);
- 
-+static inline void qib_get_mr(struct qib_mregion *mr)
-+{
-+	atomic_inc(&mr->refcount);
-+}
++void mr_rcu_callback(struct rcu_head *list);
 +
-+static inline void qib_put_mr(struct qib_mregion *mr)
-+{
-+	if (unlikely(atomic_dec_and_test(&mr->refcount)))
-+		complete(&mr->comp);
-+}
-+
-+static inline void qib_put_ss(struct qib_sge_state *ss)
-+{
-+	while (ss->num_sge) {
-+		qib_put_mr(ss->sge.mr);
-+		if (--ss->num_sge)
-+			ss->sge = *ss->sg_list++;
-+	}
-+}
-+
-+
- void qib_release_mmap_info(struct kref *ref);
+ static inline void qib_put_mr(struct qib_mregion *mr)
+ {
+ 	if (unlikely(atomic_dec_and_test(&mr->refcount)))
+-		complete(&mr->comp);
++		call_rcu(&mr->list, mr_rcu_callback);
+ }
  
- struct qib_mmap_info *qib_create_mmap_info(struct qib_ibdev *dev, u32 size,
+ static inline void qib_put_ss(struct qib_sge_state *ss)
 
 
 --
