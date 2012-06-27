@@ -1,42 +1,44 @@
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 7/8] opensm: Check for valid mkey protection level in config file
-Date: Mon, 25 Jun 2012 17:55:03 -0700
-Message-ID: <1340672104-18039-7-git-send-email-foraker1@llnl.gov>
-References: <1340672058.5218.97.camel@auk75.llnl.gov>
- <1340672104-18039-1-git-send-email-foraker1@llnl.gov>
+From: borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: Server Rental Promotion
+Date: Thu, 28 Jun 2012 04:18:16 +0800 (HKT)
+Message-ID: <D2qAr5PgCE5__33060.4426017546$1340828409$gmane$org@kimo.com>
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340672104-18039-1-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: weiny2-i2BcT+NCU+M@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Dear All,
 
-Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
----
- opensm/osm_subnet.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
 
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index bb69a66..ddee955 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -1496,6 +1496,13 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- 	}
- #endif
+Dell=3F PowerEdge=3F EnterpriseRack Mount Server
+-Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
+-8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
+-500GB, 3.5", 6Gbps SAS x 2
+-Raid 1 Mirroring Protection
+
+Every Dedicated Server Hosting Solution Also Includes: 
  
-+	if (p_opts->m_key_protect_bits > 3) {
-+		log_report(" Invalid Cached Option Value:"
-+		           "m_key_protection_level = %u Setting to %u "
-+			   "instead\n", p_opts->m_key_protect_bits, 2);
-+		p_opts->m_key_protect_bits = 2;
-+	}
-+
- 	if (p_opts->root_guid_file != NULL) {
- 		FILE *root_file = fopen(p_opts->root_guid_file, "r");
- 		if (!root_file) {
--- 
-1.7.9.2
+Software Specification 
+- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
+- Full root-level access 
+- Data Center Facilities 
+- Shared Local & International Bandwidth 
+- 2 IP Addresses Allocation 
+- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
+- FM200=A1=A7based fire suppression system 
+- 24x7 CRAC Air Conditioning and Humidity Control 
+- 24x7 Security Control 
+- 24x7 Remote Hand Service 
+
+Pls send us email for further information.Thanks,
+
+Boris 
+boris-JYBpPTDdvJEqwVFMiTZqHAJRMbxpjHr1@public.gmane.org
+
+If you do not wish to further receive this event message, email "borislamsv2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" to unsubscribe this message or remove your email from the list.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
