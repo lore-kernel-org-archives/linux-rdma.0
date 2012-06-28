@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/2] opensm: Skip TID 0 on 32 bit wraparound for SM, SA, and
- PerfMgt queries
-Date: Thu, 28 Jun 2012 13:11:21 -0400
-Message-ID: <4FEC9039.8020506@dev.mellanox.co.il>
+Subject: [PATCH] opensm/osm_vendor_ibumad: Add management class into match
+ criteria
+Date: Thu, 28 Jun 2012 13:11:30 -0400
+Message-ID: <4FEC9042.5010304@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -16,93 +16,157 @@ List-Id: linux-rdma@vger.kernel.org
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_inform.c  |    9 +++++++--
- opensm/osm_perfmgr.c |    7 ++++++-
- opensm/osm_req.c     |   10 ++++++++++
- 3 files changed, 23 insertions(+), 3 deletions(-)
+ include/vendor/osm_vendor_ibumad.h |    1 +
+ libvendor/osm_vendor_ibumad.c      |   43 +++++++++++++++++++++++------------
+ 2 files changed, 29 insertions(+), 15 deletions(-)
 
-diff --git a/opensm/osm_inform.c b/opensm/osm_inform.c
-index 6a2cb7e..77115d5 100644
---- a/opensm/osm_inform.c
-+++ b/opensm/osm_inform.c
-@@ -295,6 +295,7 @@ static ib_api_status_t send_report(IN osm_infr_t * p_infr_rec,	/* the informinfo
- 	static atomic32_t trap_fwd_trans_id = 0x02DAB000;
- 	ib_api_status_t status = IB_SUCCESS;
- 	osm_log_t *p_log = p_infr_rec->sa->p_log;
-+	ib_net64_t tid;
+diff --git a/include/vendor/osm_vendor_ibumad.h b/include/vendor/osm_vendor_ibumad.h
+index 0a25583..c33a187 100644
+--- a/include/vendor/osm_vendor_ibumad.h
++++ b/include/vendor/osm_vendor_ibumad.h
+@@ -140,6 +140,7 @@ typedef struct _umad_match {
+ 	ib_net64_t tid;
+ 	void *v;
+ 	uint32_t version;
++	uint8_t mgmt_class;
+ } umad_match_t;
  
- 	OSM_LOG_ENTER(p_log);
+ #define DEFAULT_OSM_UMAD_MAX_PENDING	1000
+diff --git a/libvendor/osm_vendor_ibumad.c b/libvendor/osm_vendor_ibumad.c
+index bb40e8b..bd9803f 100644
+--- a/libvendor/osm_vendor_ibumad.c
++++ b/libvendor/osm_vendor_ibumad.c
+@@ -155,7 +155,8 @@ Exit:
+ 	OSM_LOG_EXIT(p_vend->p_log);
+ }
  
-@@ -321,10 +322,14 @@ static ib_api_status_t send_report(IN osm_infr_t * p_infr_rec,	/* the informinfo
- 	p_report_madw->resp_expected = TRUE;
+-static osm_madw_t *get_madw(osm_vendor_t * p_vend, ib_net64_t * tid)
++static osm_madw_t *get_madw(osm_vendor_t * p_vend, ib_net64_t * tid,
++			    uint8_t mgmt_class)
+ {
+ 	umad_match_t *m, *e;
+ 	ib_net64_t mtid = (*tid & CL_HTON64(0x00000000ffffffffULL));
+@@ -165,13 +166,14 @@ static osm_madw_t *get_madw(osm_vendor_t * p_vend, ib_net64_t * tid)
+ 	 * Since mtid == 0 is the empty key, we should not
+ 	 * waste time looking for it
+ 	 */
+-	if (mtid == 0)
++	if (mtid == 0 || mgmt_class == 0)
+ 		return 0;
  
- 	/* advance trap trans id (cant simply ++ on some systems inside ntoh) */
-+	tid = cl_hton64((uint64_t) cl_atomic_inc(&trap_fwd_trans_id) &
-+						 (uint64_t) (0xFFFFFFFF));
-+	if (trap_fwd_trans_id == 0)
-+		tid = cl_hton64((uint64_t) cl_atomic_inc(&trap_fwd_trans_id) &
-+							 (uint64_t) (0xFFFFFFFF));
- 	p_mad = osm_madw_get_mad_ptr(p_report_madw);
- 	ib_mad_init_new(p_mad, IB_MCLASS_SUBN_ADM, 2, IB_MAD_METHOD_REPORT,
--			cl_hton64((uint64_t) cl_atomic_inc(&trap_fwd_trans_id)),
--			IB_MAD_ATTR_NOTICE, 0);
-+			tid, IB_MAD_ATTR_NOTICE, 0);
+ 	pthread_mutex_lock(&p_vend->match_tbl_mutex);
+ 	for (m = p_vend->mtbl.tbl, e = m + p_vend->mtbl.max; m < e; m++) {
+-		if (m->tid == mtid) {
++		if (m->tid == mtid && m->mgmt_class == mgmt_class) {
+ 			m->tid = 0;
++			m->mgmt_class = 0;
+ 			*tid = mtid;
+ 			res = m->v;
+ 			pthread_mutex_unlock(&p_vend->match_tbl_mutex);
+@@ -184,18 +186,21 @@ static osm_madw_t *get_madw(osm_vendor_t * p_vend, ib_net64_t * tid)
+ }
  
- 	p_sa_mad = osm_madw_get_sa_mad_ptr(p_report_madw);
+ static void
+-put_madw(osm_vendor_t * p_vend, osm_madw_t * p_madw, ib_net64_t tid)
++put_madw(osm_vendor_t * p_vend, osm_madw_t * p_madw, ib_net64_t tid,
++	 uint8_t mgmt_class)
+ {
+ 	umad_match_t *m, *e, *old_lru, *lru = 0;
+ 	osm_madw_t *p_req_madw;
+ 	osm_umad_bind_info_t *p_bind;
+ 	ib_net64_t old_tid;
+ 	uint32_t oldest = ~0;
++	uint8_t old_mgmt_class;
  
-diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 41ef08b..1b46679 100644
---- a/opensm/osm_perfmgr.c
-+++ b/opensm/osm_perfmgr.c
-@@ -380,7 +380,12 @@ static ib_api_status_t perfmgr_send_pc_mad(osm_perfmgr_t * perfmgr,
- 	pm_mad->header.status = 0;
- 	pm_mad->header.class_spec = 0;
- 	pm_mad->header.trans_id =
--	    cl_hton64((uint64_t) cl_atomic_inc(&perfmgr->trans_id));
-+	    cl_hton64((uint64_t) cl_atomic_inc(&perfmgr->trans_id) &
-+					       (uint64_t) (0xFFFFFFFF));
-+	if (perfmgr->trans_id == 0)
-+		pm_mad->header.trans_id =
-+		    cl_hton64((uint64_t) cl_atomic_inc(&perfmgr->trans_id) &
-+						       (uint64_t) (0xFFFFFFFF));
- 	pm_mad->header.attr_id = IB_MAD_ATTR_PORT_CNTRS;
- 	pm_mad->header.resv = 0;
- 	pm_mad->header.attr_mod = 0;
-diff --git a/opensm/osm_req.c b/opensm/osm_req.c
-index ee2a64e..c0d36e4 100644
---- a/opensm/osm_req.c
-+++ b/opensm/osm_req.c
-@@ -93,6 +93,9 @@ ib_api_status_t osm_req_get(IN osm_sm_t * sm, IN const osm_dr_path_t * p_path,
+ 	pthread_mutex_lock(&p_vend->match_tbl_mutex);
+ 	for (m = p_vend->mtbl.tbl, e = m + p_vend->mtbl.max; m < e; m++) {
+-		if (m->tid == 0) {
++		if (m->tid == 0 && m->mgmt_class == 0) {
+ 			m->tid = tid;
++			m->mgmt_class = mgmt_class;
+ 			m->v = p_madw;
+ 			m->version =
+ 			    cl_atomic_inc((atomic32_t *) & p_vend->mtbl.
+@@ -211,6 +216,7 @@ put_madw(osm_vendor_t * p_vend, osm_madw_t * p_madw, ib_net64_t tid)
  
- 	tid = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id) &
- 						 (uint64_t)(0xFFFFFFFF));
-+	if (tid == 0)
-+		tid = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id) &
-+							 (uint64_t)(0xFFFFFFFF));
+ 	old_lru = lru;
+ 	old_tid = lru->tid;
++	old_mgmt_class = lru->mgmt_class;
+ 	p_req_madw = old_lru->v;
+ 	p_bind = p_req_madw->h_bind;
+ 	p_req_madw->status = IB_CANCELED;
+@@ -219,13 +225,15 @@ put_madw(osm_vendor_t * p_vend, osm_madw_t * p_madw, ib_net64_t tid)
+ 	(*p_bind->send_err_callback) (p_bind->client_context, p_req_madw);
+ 	pthread_mutex_unlock(&p_vend->cb_mutex);
+ 	lru->tid = tid;
++	lru->mgmt_class = mgmt_class;
+ 	lru->v = p_madw;
+ 	lru->version =
+ 	    cl_atomic_inc((atomic32_t *) & p_vend->mtbl.last_version);
+ 	pthread_mutex_unlock(&p_vend->match_tbl_mutex);
+ 	OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5402: "
+-		"evicting entry %p (tid was 0x%" PRIx64 ")\n", old_lru,
+-		cl_ntoh64(old_tid));
++		"evicting entry %p (tid was 0x%" PRIx64
++		" mgmt class 0x%x)\n", old_lru,
++		cl_ntoh64(old_tid), old_mgmt_class);
+ }
  
- 	OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
- 		"Getting %s (0x%X), modifier 0x%X, TID 0x%" PRIx64 "\n",
-@@ -164,6 +167,9 @@ ib_api_status_t osm_req_set(IN osm_sm_t * sm, IN const osm_dr_path_t * p_path,
+ static void
+@@ -354,12 +362,14 @@ static void *umad_receiver(void *p_ptr)
  
- 	tid = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id) &
- 						 (uint64_t)(0xFFFFFFFF));
-+	if (tid == 0)
-+		tid = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id) &
-+							 (uint64_t)(0xFFFFFFFF));
+ 		/* if status != 0 then we are handling recv timeout on send */
+ 		if (umad_status(p_madw->vend_wrap.umad)) {
+-			if (!(p_req_madw = get_madw(p_vend, &mad->trans_id))) {
++			if (!(p_req_madw = get_madw(p_vend, &mad->trans_id,
++						    mad->mgmt_class))) {
+ 				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
+ 					"ERR 5412: "
+ 					"Failed to obtain request madw for timed out MAD"
+-					" (method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
+-					mad->method, cl_ntoh16(mad->attr_id),
++					" (class=0x%X method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
++					mad->mgmt_class, mad->method,
++					cl_ntoh16(mad->attr_id),
+ 					cl_ntoh64(mad->trans_id));
+ 			} else {
+ 				p_req_madw->status = IB_TIMEOUT;
+@@ -380,11 +390,13 @@ static void *umad_receiver(void *p_ptr)
  
- 	OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
- 		"Setting %s (0x%X), modifier 0x%X, TID 0x%" PRIx64 "\n",
-@@ -252,6 +258,10 @@ int osm_send_trap144(osm_sm_t * sm, ib_net16_t local)
- 	smp->method = IB_MAD_METHOD_TRAP;
- 	smp->trans_id = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id) &
- 							   (uint64_t)(0xFFFFFFFF));
-+	if (smp->trans_id == 0)
-+		smp->trans_id = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id) &
-+								   (uint64_t)(0xFFFFFFFF));
-+
- 	smp->attr_id = IB_MAD_ATTR_NOTICE;
+ 		p_req_madw = 0;
+ 		if (ib_mad_is_response(mad) &&
+-		    !(p_req_madw = get_madw(p_vend, &mad->trans_id))) {
++		    !(p_req_madw = get_madw(p_vend, &mad->trans_id,
++					    mad->mgmt_class))) {
+ 			OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5413: "
+ 				"Failed to obtain request madw for received MAD"
+-				"(method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
+-				mad->method, cl_ntoh16((mad)->attr_id),
++				"(class=0x%X method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
++				mad->mgmt_class, mad->method,
++				cl_ntoh16((mad)->attr_id),
+ 				cl_ntoh64(mad->trans_id));
+ 			osm_mad_pool_put(p_bind->p_mad_pool, p_madw);
+ 			continue;
+@@ -1064,7 +1076,7 @@ osm_vendor_send(IN osm_bind_handle_t h_bind,
  
- 	ntc = (ib_mad_notice_attr_t *) smp->data;
+ Resp:
+ 	if (resp_expected)
+-		put_madw(p_vend, p_madw, p_mad->trans_id);
++		put_madw(p_vend, p_madw, p_mad->trans_id, p_mad->mgmt_class);
+ 
+ #ifdef VENDOR_RMPP_SUPPORT
+ 	sent_mad_size = p_madw->mad_size;
+@@ -1081,7 +1093,8 @@ Resp:
+ 			"Send p_madw = %p of size %d TID 0x%" PRIx64 " failed %d (%m)\n",
+ 			p_madw, sent_mad_size, tid, ret);
+ 		if (resp_expected) {
+-			get_madw(p_vend, &p_mad->trans_id);	/* remove from aging table */
++			get_madw(p_vend, &p_mad->trans_id,
++				 p_mad->mgmt_class);	/* remove from aging table */
+ 			p_madw->status = IB_ERROR;
+ 			pthread_mutex_lock(&p_vend->cb_mutex);
+ 			(*p_bind->send_err_callback) (p_bind->client_context, p_madw);	/* cb frees madw */
 -- 
 1.7.8.2
 
