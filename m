@@ -1,79 +1,42 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv3 1/3] opensm: Add per module logging support
-Date: Mon, 2 Jul 2012 14:54:23 +0300
-Message-ID: <20120702115423.GA9633@calypso>
-References: <4FD0DED6.6020801@dev.mellanox.co.il>
+Subject: Re: [PATCHv3 3/3] opensm: Add enum for FILE_ID for per module logging
+Date: Mon, 2 Jul 2012 14:54:55 +0300
+Message-ID: <20120702115455.GB9633@calypso>
+References: <4FCFF739.9010006@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4FD0DED6.6020801-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4FCFF739.9010006-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 13:03 Thu 07 Jun     , Hal Rosenstock wrote:
-> Add _v2 APIs for osm_log, osm_log_is_active, and osm_log_msg_box
-> Also, add these to libopensm.map
+On 20:35 Wed 06 Jun     , Hal Rosenstock wrote:
+> From e1230ff977e5a3412a83e11d26c4fb2c0765ce31 Mon Sep 17 00:00:00 2001
+> From: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Thu, 7 Jun 2012 03:19:15 +0300
+> Subject: [PATCHv3 3/3] opensm: Add enum for FILE_ID for per module logging
 > 
-> All of above pass additional parameter to identify module.
-> Each module defines a unique FILE_ID from 0-255.
-> FILE_ID must match index in osm_subnet.c:module_name_str
-> table.
+> An osm_file_ids_enum was added to new osm_file_ids_enum.h
+> and a FILE_ID const definition to each source file.
 > 
-> Modify OSM_LOG macros to use version 2 log APIs when FILE_ID
-> is defined. Modify OpenSM client code to use version 2 log
-> APIs when used log functions and not macros.
-> 
-> Added options to enable/disable per module logging and
-> it's configuration file
-> 
-> Config file format
-> Set of lines with module name and logging level as follows:
-> <module name><separator><logging level>
-> where:
-> module name is file name including .c
-> separator is either = , space, or tab
-> logging level is the same levels as used in the coarse/overall logging
-> as follows:
-> 
->  BIT    LOG LEVEL ENABLED
->  ----   -----------------
->  0x01 - ERROR (error messages)
->  0x02 - INFO (basic messages, low volume)
->  0x04 - VERBOSE (interesting stuff, moderate volume)
->  0x08 - DEBUG (diagnostic, high volume)
->  0x10 - FUNCS (function entry/exit, very high volume)
->  0x20 - FRAMES (dumps all SMP and GMP frames)
->  0x40 - ROUTING (dump FDB routing information)
->  0x80 - SYS (syslog at LOG_INFO level in addition to OpenSM logging)
-> 
-> Add parsing of the configuration file into table of log levels
-> indexed by FILE_ID
-> 
-> Added osm_get_log_per_module routine to obtain the configured info
-> for a supplied module name. This is a new library function.
-> 
+> Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
 > Changes since v2:
-> Fixed find_module_name bug/typo
-> Found and fixed by Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Put osm_file_ids_enum into own header file rather than
+> osm_sm.h
 > 
 > Changes since v1:
-> Modify OSM_LOG macros to use version 2 log APIs when FILE_ID defined
-> Eliminate magic numbers around per module logging table
-> Based on comments from Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+> opensm/osm_log.c: Use file_id rather than FILE_ID in
+> osm_log_is_active_v2 call in osm_log_msg_box_v2 function
 > ---
-> As this patch still is too large for email, please find this @
-> https://www.openfabrics.org/~halr/0001-opensm-Add-per-module-logging-support.patch
-> 
-> --
 
-Applied. Thanks.
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
