@@ -1,58 +1,68 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_node_info_rec.c: Also handle non compliant SMA
- in ni_rcv_process_existing
-Date: Mon, 02 Jul 2012 08:54:36 -0400
-Message-ID: <4FF19A0C.9010201@dev.mellanox.co.il>
+From: Hiroyuki Sato <hiroysato-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [Q] How to tranfer a file which is over 2GB(2^31) size in RDMA network?
+Date: Mon, 2 Jul 2012 22:49:33 +0900
+Message-ID: <CA+Tq-Rpk-Q74k2z=ToCK+eeDKuF_84fU2t0LwMBM==QG4P8XgA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Dear developers.
 
-in case of NodeInfo.LocalPortNum > NodeInfo.NumPorts
+I'm writing simple file transfer program.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_node_info_rcv.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+I would like to know about the following.
+Q: How to tranfer a file which is over 2GB(2^31) size  in RDMA network?
 
-diff --git a/opensm/osm_node_info_rcv.c b/opensm/osm_node_info_rcv.c
-index 9375e36..12e7693 100644
---- a/opensm/osm_node_info_rcv.c
-+++ b/opensm/osm_node_info_rcv.c
-@@ -782,6 +782,17 @@ static void ni_rcv_process_existing(IN osm_sm_t * sm, IN osm_node_t * p_node,
- 		cl_ntoh64(p_ni->node_guid),
- 		cl_ntoh64(p_smp->trans_id), p_node->discovery_count);
- 
-+	if (port_num > p_ni->num_ports) {
-+		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0D0C: "
-+			"Existing %s node GUID 0x%" PRIx64 "is non-compliant "
-+			"and is being ignored since the "
-+			"local port num %u > num ports %u\n",
-+			ib_get_node_type_str(p_ni->node_type),
-+			cl_ntoh64(p_ni->node_guid), port_num,
-+			p_ni->num_ports);
-+		goto Exit;
-+	}
-+
- 	/*
- 	   If we haven't already encountered this existing node
- 	   on this particular sweep, then process further.
-@@ -807,6 +818,7 @@ static void ni_rcv_process_existing(IN osm_sm_t * sm, IN osm_node_t * p_node,
- 
- 	ni_rcv_set_links(sm, p_node, port_num, p_ni_context);
- 
-+Exit:
- 	OSM_LOG_EXIT(sm->p_log);
- }
- 
+Please imagine to transfer whole DVD(4.7GB) file via RDMA networok.
+
+The maximum message size of RC is 2^31.
+so I can't transfer it with one RDMA message.
+
+Maybe It must split multiple parts.
+When I sent first part with the following sequence,
+how to transfer second part?
+
+Do I have to call qp ibv_destroy_qp and recreate new qp?
+Or can I reuse current qp?
+
+I'm looking for similar example but I can't find it.
+Any information is welcome.
+
+Thank you for your advice.
+
+Sincerely
+
+--
+Hiroyuki Sato.
+
+
+File transfer sequence (1st part)
+
+  ibv_open_device
+  ibv_alloc_pd
+  ibv_reg_mr
+  ibv_create_cq
+  ibv_create_qp
+  ibv_modify_qp(RESET->INIT)
+  ibv_post_recv
+  exchange lid, sid,qpn
+  ibv_connect
+  ibv_modify_qp(INIT->RTR)
+  ibv_modify_qp(RTR->RTS)
+  ibv_post_send
+  ...
+
+
+
+Environment
+ OS Scientific Linux 6.2
+ OFED: 1.5.4.1
+
 -- 
-1.7.8.2
-
+Hiroyuki Sato
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
