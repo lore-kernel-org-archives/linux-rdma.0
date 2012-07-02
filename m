@@ -1,14 +1,13 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] opensm/osm_vendor_ibumad.c: Make binding log
- message clearer
-Date: Mon, 2 Jul 2012 14:56:00 +0300
-Message-ID: <20120702115600.GD9633@calypso>
-References: <4FDB0F22.4060401@dev.mellanox.co.il>
+Subject: Re: [PATCH][TRIVIAL] opensm/osm_port.h: Fix commentary typo
+Date: Mon, 2 Jul 2012 14:56:21 +0300
+Message-ID: <20120702115621.GE9633@calypso>
+References: <4FDB0F28.20404@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4FDB0F22.4060401-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4FDB0F28.20404-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
