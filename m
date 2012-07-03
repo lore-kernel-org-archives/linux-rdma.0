@@ -1,37 +1,62 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: Linux DMA address
-Date: Tue, 3 Jul 2012 07:34:41 -0700
-Message-ID: <CAL1RGDXJSVrAsdYaajQT0sQq8RKwQf88Vofs3cZ0c+T7mucqcw@mail.gmail.com>
-References: <OF0BBAC7B2.370E3DEF-ONC1257A2F.003DED12-C1257A2F.00407B62@de.ibm.com>
- <4FF1A7F0.10208@mellanox.com> <OF2C9BED9D.50BF4649-ONC1257A30.004A568D-C1257A30.004ADEF1@de.ibm.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH V2] libibumad: update umad_recv man page.
+Date: Tue, 3 Jul 2012 09:55:22 -0700
+Message-ID: <20120703095522.1e89cd25.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <OF2C9BED9D.50BF4649-ONC1257A30.004A568D-C1257A30.004ADEF1-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Klaus Wacker <Klaus.Wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 3, 2012 at 6:37 AM, Klaus Wacker <Klaus.Wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org> wrote:
-> 1.) Is it possible/allowed to call ib_dma_map_single() on Linux, same
-> buffer address, size and dma_data direction, for two different ib devices?
 
-Yes, this should be no problem.
+Document the umad_recv length parameter better.
 
-> 2.) If this is possible, will the returned dma_addresses be the same? Any
-> dependencies on the adapter model?
+Changes since V1:
+	add comments from Hal
 
-There is no guarantee about what the addresses will be.  For example
-if the adapters are behind IOMMUs (eg Intel VT-d) then it is quite likely
-the dma addresses will be different for each ib device.
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ man/umad_recv.3 |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletions(-)
 
-As Or has said, ib_dma_xxx functions are pretty thin wrappers around
-the normal dma api -- they're just there to handle ib devices like qib/ipath
-that emulate dma in software.  So if you understand the dma api then
-the same answer should apply to the ib_dma_ functions.
+diff --git a/man/umad_recv.3 b/man/umad_recv.3
+index e1b2985..310d3d2 100644
+--- a/man/umad_recv.3
++++ b/man/umad_recv.3
+@@ -27,10 +27,26 @@ A negative
+ makes the function block until a packet is received. A
+ .I timeout_ms\fR
+ parameter of zero indicates a non blocking read.
++
++.B Note
++.I length
++is a pointer to the length of the
++.B data
++portion of the umad buffer.  This means that
++.I umad
++should point to a buffer at least umad_size() +
++.I *length
++bytes long.
++
++.B Note also
++that
++.I *length\fR
++must be >= 256 bytes.
++
+ .SH "RETURN VALUE"
+ .B umad_recv()
+ returns non negative receiving agentid on success, and a negative value on error as follows:
+- -EINVAL      invalid port handle or agentid
++ -EINVAL      invalid port handle or agentid or *length is less than the minimum
+  -EIO         receive operation failed
+  -EWOULDBLOCK non blocking read can't be fulfilled
+ .SH "SEE ALSO"
+-- 
+1.7.1
 
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
