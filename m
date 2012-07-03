@@ -1,7 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 08/10] opensm/console: add abreviations for perfmgr commands
-Date: Tue, 3 Jul 2012 16:53:52 -0700
-Message-ID: <20120703165352.40a34471.weiny2@llnl.gov>
+Subject: [PATCH 09/10] opensm/console: Add human readable output for perfmgr
+ data counters
+Date: Tue, 3 Jul 2012 16:54:00 -0700
+Message-ID: <20120703165400.8fc331e9.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -13,70 +14,130 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
-Add:
-   "pm" for "perfmgr"
-   "pc" for "print_counters"
-
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- opensm/osm_console.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
+ opensm/osm_perfmgr_db.c |   93 ++++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 76 insertions(+), 17 deletions(-)
 
-diff --git a/opensm/osm_console.c b/opensm/osm_console.c
-index af32b51..cd41286 100644
---- a/opensm/osm_console.c
-+++ b/opensm/osm_console.c
-@@ -239,7 +239,10 @@ static void help_update_desc(FILE *out, int detail)
- static void help_perfmgr(FILE * out, int detail)
- {
- 	fprintf(out,
--		"perfmgr [enable|disable|clear_counters|dump_counters|print_counters|dump_redir|clear_redir|set_rm_nodes|clear_rm_nodes|clear_inactive|sweep_time[seconds]]\n");
-+		"perfmgr(pm) [enable|disable\n"
-+		"             |clear_counters|dump_counters|print_counters(pc)\n"
-+		"             |set_rm_nodes|clear_rm_nodes|clear_inactive\n"
-+		"             |dump_redir|clear_redir|sweep_time[seconds]]\n");
- 	if (detail) {
- 		fprintf(out,
- 			"perfmgr -- print the performance manager state\n");
-@@ -262,6 +265,8 @@ static void help_perfmgr(FILE * out, int detail)
- 		fprintf(out,
- 			"   [pe [<nodename|nodeguid>]] -- same as print_errors\n");
- 		fprintf(out,
-+			"   [pc [<nodename|nodeguid>]] -- same as print_counters\n");
-+		fprintf(out,
- 			"   [dump_redir [<nodename|nodeguid>]] -- dump the redirection table\n");
- 		fprintf(out,
- 			"   [clear_redir [<nodename|nodeguid>]] -- clear the redirection table\n");
-@@ -272,6 +277,11 @@ static void help_perfmgr(FILE * out, int detail)
- 			"   [clear_inactive] -- Delete inactive nodes from the DB\n");
+diff --git a/opensm/osm_perfmgr_db.c b/opensm/osm_perfmgr_db.c
+index 6f9c1ab..ea6fe19 100644
+--- a/opensm/osm_perfmgr_db.c
++++ b/opensm/osm_perfmgr_db.c
+@@ -699,6 +699,55 @@ static void dump_node_mr(db_node_t * node, FILE * fp)
  	}
  }
-+static void help_pm(FILE *out, int detail)
-+{
-+	if (detail)
-+		help_perfmgr(out, detail);
-+}
- #endif				/* ENABLE_OSM_PERF_MGR */
  
- /* more help routines go here */
-@@ -1472,7 +1482,8 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- 		} else if (strcmp(p_cmd, "clear_inactive") == 0) {
- 			unsigned cnt = osm_perfmgr_delete_inactive(&p_osm->perfmgr);
- 			fprintf(out, "Removed %u nodes from Database\n", cnt);
--		} else if (strcmp(p_cmd, "print_counters") == 0) {
-+		} else if (strcmp(p_cmd, "print_counters") == 0 ||
-+			   strcmp(p_cmd, "pc") == 0) {
- 			char *port = NULL;
- 			p_cmd = name_token(p_last);
- 			if (p_cmd) {
-@@ -1670,6 +1681,7 @@ static const struct command console_cmds[] = {
- 	{"version", &help_version, &version_parse},
- #ifdef ENABLE_OSM_PERF_MGR
- 	{"perfmgr", &help_perfmgr, &perfmgr_parse},
-+	{"pm", &help_pm, &perfmgr_parse},
- #endif				/* ENABLE_OSM_PERF_MGR */
- 	{"dump_portguid", &help_dump_portguid, &dump_portguid_parse},
- 	{NULL, NULL, NULL}	/* end of array */
++static void dump_hr_dc(FILE *fp, uint64_t val64, int data)
++{
++	char *unit = "";
++	uint64_t tmp = val64;
++	float val = 0.0;
++	int ui = 0;
++	int div = 1;
++
++	tmp /= 1024;
++	while (tmp) {
++		ui++;
++		tmp /= 1024;
++		div *= 1024;
++	}
++
++	val = (float)(val64);
++	if (data) {
++		val *= 4;
++		if (val/div > 1024) {
++			ui++;
++			div *= 1024;
++		}
++	}
++	val /= div;
++
++	switch (ui) {
++		case 1:
++			unit = "K";
++			break;
++		case 2:
++			unit = "M";
++			break;
++		case 3:
++			unit = "G";
++			break;
++		case 4:
++			unit = "T";
++			break;
++		case 5:
++			unit = "P";
++			break;
++		case 6:
++			unit = "E";
++			break;
++	}
++
++	fprintf(fp, " (%5.3f%s%s)\n", val, unit, data ? "B" : "");
++}
++
+ /**********************************************************************
+  * Output a human readable output of the port counters
+  **********************************************************************/
+@@ -738,15 +787,7 @@ static void dump_node_hr(db_node_t * node, FILE * fp, char *port)
+ 			"     rcv_constraint_err   : %" PRIu64 "\n"
+ 			"     link_integrity_err   : %" PRIu64 "\n"
+ 			"     buf_overrun_err      : %" PRIu64 "\n"
+-			"     vl15_dropped         : %" PRIu64 "\n"
+-			"     xmit_data            : %" PRIu64 "\n"
+-			"     rcv_data             : %" PRIu64 "\n"
+-			"     xmit_pkts            : %" PRIu64 "\n"
+-			"     rcv_pkts             : %" PRIu64 "\n"
+-			"     unicast_xmit_pkts    : %" PRIu64 "\n"
+-			"     unicast_rcv_pkts     : %" PRIu64 "\n"
+-			"     multicast_xmit_pkts  : %" PRIu64 "\n"
+-			"     multicast_rcv_pkts   : %" PRIu64 "\n",
++			"     vl15_dropped         : %" PRIu64 "\n",
+ 			node->node_name,
+ 			node->node_guid,
+ 			node->active ? "TRUE":"FALSE",
+@@ -763,15 +804,33 @@ static void dump_node_hr(db_node_t * node, FILE * fp, char *port)
+ 			node->ports[i].err_total.rcv_constraint_err,
+ 			node->ports[i].err_total.link_integrity,
+ 			node->ports[i].err_total.buffer_overrun,
+-			node->ports[i].err_total.vl15_dropped,
+-			node->ports[i].dc_total.xmit_data,
+-			node->ports[i].dc_total.rcv_data,
+-			node->ports[i].dc_total.xmit_pkts,
+-			node->ports[i].dc_total.rcv_pkts,
+-			node->ports[i].dc_total.unicast_xmit_pkts,
+-			node->ports[i].dc_total.unicast_rcv_pkts,
+-			node->ports[i].dc_total.multicast_xmit_pkts,
++			node->ports[i].err_total.vl15_dropped);
++
++		fprintf(fp, "     xmit_data            : %" PRIu64,
++			node->ports[i].dc_total.xmit_data);
++		dump_hr_dc(fp, node->ports[i].dc_total.xmit_data, 1);
++		fprintf(fp, "     rcv_data             : %" PRIu64,
++			node->ports[i].dc_total.rcv_data);
++		dump_hr_dc(fp, node->ports[i].dc_total.rcv_data, 1);
++		fprintf(fp, "     xmit_pkts            : %" PRIu64,
++			node->ports[i].dc_total.xmit_pkts);
++		dump_hr_dc(fp, node->ports[i].dc_total.xmit_pkts, 0);
++		fprintf(fp, "     rcv_pkts             : %" PRIu64,
++			node->ports[i].dc_total.rcv_pkts);
++		dump_hr_dc(fp, node->ports[i].dc_total.rcv_pkts, 0);
++		fprintf(fp, "     unicast_xmit_pkts    : %" PRIu64,
++			node->ports[i].dc_total.unicast_xmit_pkts);
++		dump_hr_dc(fp, node->ports[i].dc_total.unicast_xmit_pkts, 0);
++		fprintf(fp, "     unicast_rcv_pkts     : %" PRIu64,
++			node->ports[i].dc_total.unicast_rcv_pkts);
++		dump_hr_dc(fp, node->ports[i].dc_total.unicast_rcv_pkts, 0);
++		fprintf(fp, "     multicast_xmit_pkts  : %" PRIu64,
++			node->ports[i].dc_total.multicast_xmit_pkts);
++		dump_hr_dc(fp, node->ports[i].dc_total.multicast_xmit_pkts, 0);
++		fprintf(fp, "     multicast_rcv_pkts   : %" PRIu64,
+ 			node->ports[i].dc_total.multicast_rcv_pkts);
++		dump_hr_dc(fp, node->ports[i].dc_total.multicast_rcv_pkts, 0);
++
+ 	}
+ }
+ 
 -- 
 1.7.1
 
