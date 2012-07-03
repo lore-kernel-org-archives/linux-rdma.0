@@ -1,99 +1,135 @@
-From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [Q] How to tranfer a file which is over 2GB(2^31) size in RDMA
- network?
-Date: Tue, 3 Jul 2012 08:13:11 +0000
-Message-ID: <5D6C0ABE6A236946864C45679362BBE20ACA83E1@CMEXMB1.ad.emulex.com>
-References: <CA+Tq-Rpk-Q74k2z=ToCK+eeDKuF_84fU2t0LwMBM==QG4P8XgA@mail.gmail.com>
+From: Klaus Wacker <Klaus.Wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Linux DMA address
+Date: Tue, 3 Jul 2012 15:37:41 +0200
+Message-ID: <OF2C9BED9D.50BF4649-ONC1257A30.004A568D-C1257A30.004ADEF1@de.ibm.com>
+References: <OF0BBAC7B2.370E3DEF-ONC1257A2F.003DED12-C1257A2F.00407B62@de.ibm.com> <4FF1A7F0.10208@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+Tq-Rpk-Q74k2z=ToCK+eeDKuF_84fU2t0LwMBM==QG4P8XgA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4FF1A7F0.10208-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hiroysato-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
+thanks for your quick answer.
+Let me stress this once again...
+1.) Is it possible/allowed to call ib_dma_map_single() on Linux, same
+buffer address, size and dma_data direction, for two different ib devic=
+es?
+=46or the data transmission we will have controls in place that not bot=
+h
+devices write at the same time into that buffer.
+2.) If this is possible, will the returned dma_addresses be the same? A=
+ny
+dependencies on the adapter model?
+
+Any thoughts on this? Thanks.
+Kind regards
+Klaus Wacker
+IBM Systems &Technology Group, Systems Software Development
+SW Linux on System z Dev & Service
+Phone:  +49-7031-16-3779   IBM Deutschland  E-Mail:  kdwacker-tA70FqPdS9Zhl2p70BpVqQ@public.gmane.org=
+m
+Schoenaicher Str. 220   71032 Boeblingen   Germany
+IBM Deutschland Research & Development GmbH / Vorsitzende des
+Aufsichtsrats: Martina Koederitz
+Gesch=E4ftsf=FChrung: Dirk Wittkopp
+Sitz der Gesellschaft: B=F6blingen / Registergericht: Amtsgericht Stutt=
+gart,
+HRB 243294
 
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hiroyuki Sato
-> Sent: Monday, July 02, 2012 7:20 PM
-> To: linux-rdma
-> Subject: [Q] How to tranfer a file which is over 2GB(2^31) size in RDMA
-> network?
-> 
-> Dear developers.
-> 
-> I'm writing simple file transfer program.
-> 
-> I would like to know about the following.
-> Q: How to tranfer a file which is over 2GB(2^31) size  in RDMA network?
-> 
-> Please imagine to transfer whole DVD(4.7GB) file via RDMA networok.
-> 
-> The maximum message size of RC is 2^31.
-> so I can't transfer it with one RDMA message.
-> 
-> Maybe It must split multiple parts.
-> When I sent first part with the following sequence, how to transfer second
-> part?
-> 
-> Do I have to call qp ibv_destroy_qp and recreate new qp?
-> Or can I reuse current qp?
-> 
-You can use the same QP to send multiple messages of same or different size.
-Receive side needs to have sufficient memory to receive 2GB of data, which you should have posted using post_recv().
-Since you are going to divide a file/consumer application data to multiple RDMA messages, make sure sender and receiver agrees to a message size of interest.
-This is the simplest way to do via RDMA_SEND and RECV buffers.
+|------------>
+| From:      |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>                                  =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+|------------>
+| To:        |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |Klaus Wacker/Germany/IBM@IBMDE,                                     =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+|------------>
+| Cc:        |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>                                        =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+|------------>
+| Date:      |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |02/07/2012 15:54                                                    =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+|------------>
+| Subject:   |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |Re: Linux DMA address                                               =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
 
-You can further do it via sharing the stag before invoking post_send/recv and use RDMA Write or READ operations and don't need to synchronize the message size.
-Sender can send/split data into one or more WRITE messages followed by ending it with write_immidiate or send_immidiate to notify the peer of file transfer done.
-
-In a third way, you can void writing the application and use SDP protocol to send your file via FTP/SFTP, in which FTP server and client application sockets use the SDP sockets instead of TCP sockets.
 
 
-> I'm looking for similar example but I can't find it.
-> Any information is welcome.
-> 
-> Thank you for your advice.
-> 
-> Sincerely
-> 
-> --
-> Hiroyuki Sato.
-> 
-> 
-> File transfer sequence (1st part)
-> 
->   ibv_open_device
->   ibv_alloc_pd
->   ibv_reg_mr
->   ibv_create_cq
->   ibv_create_qp
->   ibv_modify_qp(RESET->INIT)
->   ibv_post_recv
->   exchange lid, sid,qpn
->   ibv_connect
->   ibv_modify_qp(INIT->RTR)
->   ibv_modify_qp(RTR->RTS)
->   ibv_post_send
->   ...
-> 
-> 
-> 
-> Environment
->  OS Scientific Linux 6.2
->  OFED: 1.5.4.1
-> 
-> --
-> Hiroyuki Sato
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+
+
+On 7/2/2012 2:44 PM, Klaus Wacker wrote:
+> [...] So whats the nature of the returned DMA address of
+ib_dma_map_single and can we
+> assume that it is the same value on different devices on one system?
+
+Currently, over all IB drivers/devices except for ipath and qib,
+ib_dma_map_single is just plain dma_map_single, so your questions
+relates directly to the Linux DMA mapping API (and BTW - the answer is
+YES, in the general case you must use a DMA address you were provided
+when calling dma_map_single with device being X only for transactions
+carried over X). For those devices that hack ib_dma_map_single, it migh=
+t
+be possible to use address provided from device X over device Y, but
+this is a hack, and I would strongly recommend not to have it in you co=
+de.
+
+Or.
+
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
