@@ -1,8 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 07/10] opensm/console; add port option to perfmgr
- print_counters
-Date: Tue, 3 Jul 2012 16:53:43 -0700
-Message-ID: <20120703165343.b7769b8f.weiny2@llnl.gov>
+Subject: [PATCH 08/10] opensm/console: add abreviations for perfmgr commands
+Date: Tue, 3 Jul 2012 16:53:52 -0700
+Message-ID: <20120703165352.40a34471.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -14,199 +13,70 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
+Add:
+   "pm" for "perfmgr"
+   "pc" for "print_counters"
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- include/opensm/osm_perfmgr.h    |    3 ++-
- include/opensm/osm_perfmgr_db.h |    6 ++++--
- opensm/osm_console.c            |   20 +++++++++++++++++---
- opensm/osm_perfmgr.c            |    7 ++++---
- opensm/osm_perfmgr_db.c         |   33 +++++++++++++++++++++++----------
- 5 files changed, 50 insertions(+), 19 deletions(-)
+ opensm/osm_console.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/include/opensm/osm_perfmgr.h b/include/opensm/osm_perfmgr.h
-index d9a3102..68cf7f3 100644
---- a/include/opensm/osm_perfmgr.h
-+++ b/include/opensm/osm_perfmgr.h
-@@ -245,7 +245,8 @@ inline static unsigned osm_perfmgr_delete_inactive(osm_perfmgr_t * pm)
- void osm_perfmgr_clear_counters(osm_perfmgr_t * p_perfmgr);
- void osm_perfmgr_dump_counters(osm_perfmgr_t * p_perfmgr,
- 			       perfmgr_db_dump_t dump_type);
--void osm_perfmgr_print_counters(osm_perfmgr_t *pm, char *nodename, FILE *fp);
-+void osm_perfmgr_print_counters(osm_perfmgr_t *pm, char *nodename, FILE *fp,
-+				char *port);
- 
- ib_api_status_t osm_perfmgr_bind(osm_perfmgr_t * p_perfmgr,
- 				 ib_net64_t port_guid);
-diff --git a/include/opensm/osm_perfmgr_db.h b/include/opensm/osm_perfmgr_db.h
-index d1e9049..d6c8feb 100644
---- a/include/opensm/osm_perfmgr_db.h
-+++ b/include/opensm/osm_perfmgr_db.h
-@@ -191,8 +191,10 @@ void perfmgr_db_clear_counters(perfmgr_db_t * db);
- perfmgr_db_err_t perfmgr_db_dump(perfmgr_db_t * db, char *file,
- 				 perfmgr_db_dump_t dump_type);
- void perfmgr_db_print_all(perfmgr_db_t * db, FILE *fp);
--void perfmgr_db_print_by_name(perfmgr_db_t * db, char *nodename, FILE *fp);
--void perfmgr_db_print_by_guid(perfmgr_db_t * db, uint64_t guid, FILE *fp);
-+void perfmgr_db_print_by_name(perfmgr_db_t * db, char *nodename, FILE *fp,
-+			      char *port);
-+void perfmgr_db_print_by_guid(perfmgr_db_t * db, uint64_t guid, FILE *fp,
-+			      char *port);
- 
- /** =========================================================================
-  * helper functions to fill in the various db objects from wire objects
 diff --git a/opensm/osm_console.c b/opensm/osm_console.c
-index 8e09b69..af32b51 100644
+index af32b51..cd41286 100644
 --- a/opensm/osm_console.c
 +++ b/opensm/osm_console.c
-@@ -252,8 +252,15 @@ static void help_perfmgr(FILE * out, int detail)
+@@ -239,7 +239,10 @@ static void help_update_desc(FILE *out, int detail)
+ static void help_perfmgr(FILE * out, int detail)
+ {
+ 	fprintf(out,
+-		"perfmgr [enable|disable|clear_counters|dump_counters|print_counters|dump_redir|clear_redir|set_rm_nodes|clear_rm_nodes|clear_inactive|sweep_time[seconds]]\n");
++		"perfmgr(pm) [enable|disable\n"
++		"             |clear_counters|dump_counters|print_counters(pc)\n"
++		"             |set_rm_nodes|clear_rm_nodes|clear_inactive\n"
++		"             |dump_redir|clear_redir|sweep_time[seconds]]\n");
+ 	if (detail) {
  		fprintf(out,
- 			"   [dump_counters [mach]] -- dump the counters (optionally in [mach]ine readable format)\n");
+ 			"perfmgr -- print the performance manager state\n");
+@@ -262,6 +265,8 @@ static void help_perfmgr(FILE * out, int detail)
  		fprintf(out,
--			"   [print_counters [<nodename|nodeguid>]] -- print the internal counters\n"
--			"                                             Optionaly limit output by name or guid\n");
-+			"   [print_counters [<nodename|nodeguid>][:<port>]] -- print the internal counters\n"
-+			"                                                      Optionaly limit output by name, guid, or port\n");
-+		fprintf(out,
-+			"   [pc [<nodename|nodeguid>][:<port>]] -- same as print_counters\n");
-+		fprintf(out,
-+			"   [print_errors [<nodename|nodeguid>]] -- print only ports with errors\n"
-+			"                                           Optionaly limit output by name or guid\n");
-+		fprintf(out,
-+			"   [pe [<nodename|nodeguid>]] -- same as print_errors\n");
+ 			"   [pe [<nodename|nodeguid>]] -- same as print_errors\n");
  		fprintf(out,
++			"   [pc [<nodename|nodeguid>]] -- same as print_counters\n");
++		fprintf(out,
  			"   [dump_redir [<nodename|nodeguid>]] -- dump the redirection table\n");
  		fprintf(out,
-@@ -1468,8 +1475,15 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- 		} else if (strcmp(p_cmd, "print_counters") == 0) {
+ 			"   [clear_redir [<nodename|nodeguid>]] -- clear the redirection table\n");
+@@ -272,6 +277,11 @@ static void help_perfmgr(FILE * out, int detail)
+ 			"   [clear_inactive] -- Delete inactive nodes from the DB\n");
+ 	}
+ }
++static void help_pm(FILE *out, int detail)
++{
++	if (detail)
++		help_perfmgr(out, detail);
++}
+ #endif				/* ENABLE_OSM_PERF_MGR */
+ 
+ /* more help routines go here */
+@@ -1472,7 +1482,8 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+ 		} else if (strcmp(p_cmd, "clear_inactive") == 0) {
+ 			unsigned cnt = osm_perfmgr_delete_inactive(&p_osm->perfmgr);
+ 			fprintf(out, "Removed %u nodes from Database\n", cnt);
+-		} else if (strcmp(p_cmd, "print_counters") == 0) {
++		} else if (strcmp(p_cmd, "print_counters") == 0 ||
++			   strcmp(p_cmd, "pc") == 0) {
  			char *port = NULL;
  			p_cmd = name_token(p_last);
-+			if (p_cmd) {
-+				port = strchr(p_cmd, ':');
-+				if (port) {
-+					*port = '\0';
-+					port++;
-+				}
-+			}
- 			osm_perfmgr_print_counters(&p_osm->perfmgr, p_cmd,
--						   out);
-+						   out, port);
- 		} else if (strcmp(p_cmd, "dump_redir") == 0) {
- 			p_cmd = name_token(p_last);
- 			dump_redir(p_osm, p_cmd, out);
-diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 28dd996..53952d3 100644
---- a/opensm/osm_perfmgr.c
-+++ b/opensm/osm_perfmgr.c
-@@ -1430,15 +1430,16 @@ void osm_perfmgr_dump_counters(osm_perfmgr_t * pm, perfmgr_db_dump_t dump_type)
- /*******************************************************************
-  * Print the DB information to the fp specified
-  *******************************************************************/
--void osm_perfmgr_print_counters(osm_perfmgr_t * pm, char *nodename, FILE * fp)
-+void osm_perfmgr_print_counters(osm_perfmgr_t * pm, char *nodename, FILE * fp,
-+				char *port)
- {
- 	if (nodename) {
- 		char *end = NULL;
- 		uint64_t guid = strtoull(nodename, &end, 0);
- 		if (nodename + strlen(nodename) != end)
--			perfmgr_db_print_by_name(pm->db, nodename, fp);
-+			perfmgr_db_print_by_name(pm->db, nodename, fp, port);
- 		else
--			perfmgr_db_print_by_guid(pm->db, guid, fp);
-+			perfmgr_db_print_by_guid(pm->db, guid, fp, port);
- 	} else
- 		perfmgr_db_print_all(pm->db, fp);
- }
-diff --git a/opensm/osm_perfmgr_db.c b/opensm/osm_perfmgr_db.c
-index 6c8ef9a..6f9c1ab 100644
---- a/opensm/osm_perfmgr_db.c
-+++ b/opensm/osm_perfmgr_db.c
-@@ -702,12 +702,23 @@ static void dump_node_mr(db_node_t * node, FILE * fp)
- /**********************************************************************
-  * Output a human readable output of the port counters
-  **********************************************************************/
--static void dump_node_hr(db_node_t * node, FILE * fp)
--{
--	int i = 0;
--
-+static void dump_node_hr(db_node_t * node, FILE * fp, char *port)
-+{
-+	int i = (node->esp0) ? 0 : 1;
-+	int num_ports = node->num_ports;
-+
-+	if (port) {
-+		char *end = NULL;
-+		int p = strtoul(port, &end, 0);
-+		if (port + strlen(port) == end && p >= i && p < num_ports) {
-+			i = p;
-+			num_ports = p+1;
-+		} else {
-+			fprintf(fp, "Warning: \"%s\" is not a valid port\n", port);
-+		}
-+	}
- 	fprintf(fp, "\n");
--	for (i = (node->esp0) ? 0 : 1; i < node->num_ports; i++) {
-+	for (/* set above */; i < num_ports; i++) {
- 		char *since = ctime(&node->ports[i].last_reset);
- 
- 		if (!node->ports[i].valid)
-@@ -782,7 +793,7 @@ static void db_dump(cl_map_item_t * const p_map_item, void *context)
- 		break;
- 	case PERFMGR_EVENT_DB_DUMP_HR:
- 	default:
--		dump_node_hr(node, fp);
-+		dump_node_hr(node, fp, NULL);
- 		break;
- 	}
- }
-@@ -800,7 +811,7 @@ perfmgr_db_print_all(perfmgr_db_t * db, FILE *fp)
- 	item = cl_qmap_head(&db->pc_data);
- 	while (item != cl_qmap_end(&db->pc_data)) {
- 		node = (db_node_t *)item;
--		dump_node_hr(node, fp);
-+		dump_node_hr(node, fp, NULL);
- 		item = cl_qmap_next(item);
- 	}
- 	cl_plock_release(&db->lock);
-@@ -810,7 +821,8 @@ perfmgr_db_print_all(perfmgr_db_t * db, FILE *fp)
-  * print node data to fp
-  **********************************************************************/
- void
--perfmgr_db_print_by_name(perfmgr_db_t * db, char *nodename, FILE *fp)
-+perfmgr_db_print_by_name(perfmgr_db_t * db, char *nodename, FILE *fp,
-+			 char *port)
- {
- 	cl_map_item_t *item;
- 	db_node_t *node;
-@@ -822,7 +834,7 @@ perfmgr_db_print_by_name(perfmgr_db_t * db, char *nodename, FILE *fp)
- 	while (item != cl_qmap_end(&db->pc_data)) {
- 		node = (db_node_t *)item;
- 		if (strcmp(node->node_name, nodename) == 0) {
--			dump_node_hr(node, fp);
-+			dump_node_hr(node, fp, port);
- 			goto done;
- 		}
- 		item = cl_qmap_next(item);
-@@ -837,7 +849,8 @@ done:
-  * print node data to fp
-  **********************************************************************/
- void
--perfmgr_db_print_by_guid(perfmgr_db_t * db, uint64_t nodeguid, FILE *fp)
-+perfmgr_db_print_by_guid(perfmgr_db_t * db, uint64_t nodeguid, FILE *fp,
-+			 char *port)
- {
- 	cl_map_item_t *node;
- 
-@@ -845,7 +858,7 @@ perfmgr_db_print_by_guid(perfmgr_db_t * db, uint64_t nodeguid, FILE *fp)
- 
- 	node = cl_qmap_get(&db->pc_data, nodeguid);
- 	if (node != cl_qmap_end(&db->pc_data))
--		dump_node_hr((db_node_t *)node, fp);
-+		dump_node_hr((db_node_t *)node, fp, port);
- 	else
- 		fprintf(fp, "Node 0x%" PRIx64 " not found...\n", nodeguid);
- 
+ 			if (p_cmd) {
+@@ -1670,6 +1681,7 @@ static const struct command console_cmds[] = {
+ 	{"version", &help_version, &version_parse},
+ #ifdef ENABLE_OSM_PERF_MGR
+ 	{"perfmgr", &help_perfmgr, &perfmgr_parse},
++	{"pm", &help_pm, &perfmgr_parse},
+ #endif				/* ENABLE_OSM_PERF_MGR */
+ 	{"dump_portguid", &help_dump_portguid, &dump_portguid_parse},
+ 	{NULL, NULL, NULL}	/* end of array */
 -- 
 1.7.1
 
