@@ -1,7 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 04/10] opensm: perfmgr delete "inactive" nodes from the DB
-Date: Tue, 3 Jul 2012 16:53:12 -0700
-Message-ID: <20120703165312.4096026b.weiny2@llnl.gov>
+Subject: [PATCH 05/10] opensm: perfmgr mark inactive nodes in perfmgr db
+Date: Tue, 3 Jul 2012 16:53:22 -0700
+Message-ID: <20120703165322.0fb22b1c.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -13,216 +13,249 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
-When a node drops from the fabric the default behavior was to leave the node
-data in the PerfMgr DB.  Add the option (with default set to TRUE) to delete
-these "inactive" or missing nodes from the DB.
+When "missing" nodes are not removed by default mark them as inactive.  In
+addition, add a console option to remove them.
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- include/opensm/osm_perfmgr.h    |   11 +++++++++++
- include/opensm/osm_perfmgr_db.h |    1 +
- include/opensm/osm_subnet.h     |    1 +
- opensm/osm_console.c            |   22 ++++++++++++++++------
- opensm/osm_perfmgr.c            |    4 ++++
- opensm/osm_perfmgr_db.c         |   13 +++++++++++++
- opensm/osm_subnet.c             |    9 +++++++--
- 7 files changed, 53 insertions(+), 8 deletions(-)
+ include/opensm/osm_perfmgr.h    |    7 ++++
+ include/opensm/osm_perfmgr_db.h |    5 +++
+ opensm/osm_console.c            |    8 ++++-
+ opensm/osm_perfmgr.c            |    4 ++
+ opensm/osm_perfmgr_db.c         |   69 ++++++++++++++++++++++++++++++++++++--
+ 5 files changed, 88 insertions(+), 5 deletions(-)
 
 diff --git a/include/opensm/osm_perfmgr.h b/include/opensm/osm_perfmgr.h
-index 0e9f66f..be6f978 100644
+index be6f978..d9a3102 100644
 --- a/include/opensm/osm_perfmgr.h
 +++ b/include/opensm/osm_perfmgr.h
-@@ -143,6 +143,7 @@ typedef struct osm_perfmgr {
- 	monitored_node_t *remove_list;
- 	ib_net64_t port_guid;
- 	int16_t local_port;
-+	int rm_nodes;
- } osm_perfmgr_t;
- /*
- * FIELDS
-@@ -180,6 +181,16 @@ inline static osm_perfmgr_state_t osm_perfmgr_get_state(osm_perfmgr_t * perfmgr)
- 	return perfmgr->state;
+@@ -235,6 +235,13 @@ inline static uint16_t osm_perfmgr_get_sweep_time_s(osm_perfmgr_t * p_perfmgr)
+ 	return p_perfmgr->sweep_time_s;
  }
  
-+inline static void osm_perfmgr_set_rm_nodes(osm_perfmgr_t *perfmgr,
-+					    int rm_nodes)
++inline static unsigned osm_perfmgr_delete_inactive(osm_perfmgr_t * pm)
 +{
-+	perfmgr->rm_nodes = rm_nodes;
-+}
-+inline static int osm_perfmgr_get_rm_nodes(osm_perfmgr_t *perfmgr)
-+{
-+	return perfmgr->rm_nodes;
++	unsigned rc;
++	perfmgr_db_delete_inactive(pm->db, &rc);
++	return (rc);
 +}
 +
- inline static const char *osm_perfmgr_get_state_str(osm_perfmgr_t * p_perfmgr)
- {
- 	switch (p_perfmgr->state) {
+ void osm_perfmgr_clear_counters(osm_perfmgr_t * p_perfmgr);
+ void osm_perfmgr_dump_counters(osm_perfmgr_t * p_perfmgr,
+ 			       perfmgr_db_dump_t dump_type);
 diff --git a/include/opensm/osm_perfmgr_db.h b/include/opensm/osm_perfmgr_db.h
-index 4c7996d..8231a12 100644
+index 8231a12..6cfb1aa 100644
 --- a/include/opensm/osm_perfmgr_db.h
 +++ b/include/opensm/osm_perfmgr_db.h
-@@ -160,6 +160,7 @@ void perfmgr_db_destroy(perfmgr_db_t * db);
- perfmgr_db_err_t perfmgr_db_create_entry(perfmgr_db_t * db, uint64_t guid,
+@@ -136,6 +136,7 @@ typedef struct db_port {
+ typedef struct db_node {
+ 	cl_map_item_t map_item;	/* must be first */
+ 	uint64_t node_guid;
++	boolean_t active;       /* activly being monitored */
+ 	boolean_t esp0;
+ 	db_port_t *ports;
+ 	uint8_t num_ports;
+@@ -161,6 +162,7 @@ perfmgr_db_err_t perfmgr_db_create_entry(perfmgr_db_t * db, uint64_t guid,
  					 boolean_t esp0, uint8_t num_ports,
  					 char *node_name);
-+perfmgr_db_err_t perfmgr_db_delete_entry(perfmgr_db_t * db, uint64_t guid);
+ perfmgr_db_err_t perfmgr_db_delete_entry(perfmgr_db_t * db, uint64_t guid);
++perfmgr_db_err_t perfmgr_db_delete_inactive(perfmgr_db_t * db, unsigned *cnt);
  
  perfmgr_db_err_t perfmgr_db_add_err_reading(perfmgr_db_t * db, uint64_t guid,
  					    uint8_t port,
-diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
-index abd2158..37314cc 100644
---- a/include/opensm/osm_subnet.h
-+++ b/include/opensm/osm_subnet.h
-@@ -253,6 +253,7 @@ typedef struct osm_subn_opt {
- 	uint32_t perfmgr_max_outstanding_queries;
- 	boolean_t perfmgr_ignore_cas;
- 	char *event_db_dump_file;
-+	int perfmgr_rm_nodes;
- #endif				/* ENABLE_OSM_PERF_MGR */
- 	char *event_plugin_name;
- 	char *event_plugin_options;
+@@ -182,6 +184,9 @@ perfmgr_db_err_t perfmgr_db_get_prev_dc(perfmgr_db_t * db, uint64_t guid,
+ perfmgr_db_err_t perfmgr_db_clear_prev_dc(perfmgr_db_t * db, uint64_t guid,
+ 					  uint8_t port);
+ 
++perfmgr_db_err_t perfmgr_db_mark_active(perfmgr_db_t *db, uint64_t guid,
++					boolean_t active);
++
+ void perfmgr_db_clear_counters(perfmgr_db_t * db);
+ perfmgr_db_err_t perfmgr_db_dump(perfmgr_db_t * db, char *file,
+ 				 perfmgr_db_dump_t dump_type);
 diff --git a/opensm/osm_console.c b/opensm/osm_console.c
-index 5b602d1..e68be25 100644
+index e68be25..79a40d1 100644
 --- a/opensm/osm_console.c
 +++ b/opensm/osm_console.c
 @@ -239,7 +239,7 @@ static void help_update_desc(FILE *out, int detail)
  static void help_perfmgr(FILE * out, int detail)
  {
  	fprintf(out,
--		"perfmgr [enable|disable|clear_counters|dump_counters|print_counters|dump_redir|clear_redir|sweep_time[seconds]]\n");
-+		"perfmgr [enable|disable|clear_counters|dump_counters|print_counters|dump_redir|clear_redir|set_rm_nodes|clear_rm_nodes|sweep_time[seconds]]\n");
+-		"perfmgr [enable|disable|clear_counters|dump_counters|print_counters|dump_redir|clear_redir|set_rm_nodes|clear_rm_nodes|sweep_time[seconds]]\n");
++		"perfmgr [enable|disable|clear_counters|dump_counters|print_counters|dump_redir|clear_redir|set_rm_nodes|clear_rm_nodes|clear_inactive|sweep_time[seconds]]\n");
  	if (detail) {
  		fprintf(out,
  			"perfmgr -- print the performance manager state\n");
-@@ -257,6 +257,9 @@ static void help_perfmgr(FILE * out, int detail)
- 			"   [dump_redir [<nodename|nodeguid>]] -- dump the redirection table\n");
+@@ -260,6 +260,8 @@ static void help_perfmgr(FILE * out, int detail)
  		fprintf(out,
- 			"   [clear_redir [<nodename|nodeguid>]] -- clear the redirection table\n");
+ 			"   [[set|clear]_rm_nodes] -- enable/disable the removal of \"inactive\" nodes from the DB\n"
+ 			"                             Inactive nodes are those which no longer appear on the fabric\n");
 +		fprintf(out,
-+			"   [[set|clear]_rm_nodes] -- enable/disable the removal of \"inactive\" nodes from the DB\n"
-+			"                             Inactive nodes are those which no longer appear on the fabric\n");
++			"   [clear_inactive] -- Delete inactive nodes from the DB\n");
  	}
  }
  #endif				/* ENABLE_OSM_PERF_MGR */
-@@ -1443,6 +1446,10 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- 					      PERFMGR_STATE_DISABLE);
- 		} else if (strcmp(p_cmd, "clear_counters") == 0) {
- 			osm_perfmgr_clear_counters(&p_osm->perfmgr);
-+		} else if (strcmp(p_cmd, "set_rm_nodes") == 0) {
-+			osm_perfmgr_set_rm_nodes(&p_osm->perfmgr, 1);
-+		} else if (strcmp(p_cmd, "clear_rm_nodes") == 0) {
-+			osm_perfmgr_set_rm_nodes(&p_osm->perfmgr, 0);
- 		} else if (strcmp(p_cmd, "dump_counters") == 0) {
- 			p_cmd = next_token(p_last);
- 			if (p_cmd && (strcmp(p_cmd, "mach") == 0)) {
-@@ -1491,15 +1498,18 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- 		}
- 	} else {
- 		fprintf(out, "Performance Manager status:\n"
--			"state                   : %s\n"
--			"sweep state             : %s\n"
--			"sweep time              : %us\n"
--			"outstanding queries/max : %d/%u\n",
-+			"state                        : %s\n"
-+			"sweep state                  : %s\n"
-+			"sweep time                   : %us\n"
-+			"outstanding queries/max      : %d/%u\n"
-+			"remove missing nodes from DB : %s\n",
- 			osm_perfmgr_get_state_str(&p_osm->perfmgr),
- 			osm_perfmgr_get_sweep_state_str(&p_osm->perfmgr),
- 			osm_perfmgr_get_sweep_time_s(&p_osm->perfmgr),
- 			p_osm->perfmgr.outstanding_queries,
--			p_osm->perfmgr.max_outstanding_queries);
-+			p_osm->perfmgr.max_outstanding_queries,
-+			osm_perfmgr_get_rm_nodes(&p_osm->perfmgr)
-+						 ? "TRUE" : "FALSE");
- 	}
- }
- #endif				/* ENABLE_OSM_PERF_MGR */
+@@ -1459,7 +1461,11 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+ 				osm_perfmgr_dump_counters(&p_osm->perfmgr,
+ 							  PERFMGR_EVENT_DB_DUMP_HR);
+ 			}
++		} else if (strcmp(p_cmd, "clear_inactive") == 0) {
++			unsigned cnt = osm_perfmgr_delete_inactive(&p_osm->perfmgr);
++			fprintf(out, "Removed %u nodes from Database\n", cnt);
+ 		} else if (strcmp(p_cmd, "print_counters") == 0) {
++			char *port = NULL;
+ 			p_cmd = name_token(p_last);
+ 			if (p_cmd) {
+ 				osm_perfmgr_print_counters(&p_osm->perfmgr,
 diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index e213b3a..bec2381 100644
+index bec2381..4a0386a 100644
 --- a/opensm/osm_perfmgr.c
 +++ b/opensm/osm_perfmgr.c
-@@ -146,6 +146,9 @@ static void remove_marked_nodes(osm_perfmgr_t * pm)
- 		cl_qmap_remove_item(&pm->monitored_map,
- 				    (cl_map_item_t *) (pm->remove_list));
+@@ -148,6 +148,8 @@ static void remove_marked_nodes(osm_perfmgr_t * pm)
  
-+		if (pm->rm_nodes)
-+			perfmgr_db_delete_entry(pm->db, pm->remove_list->guid);
-+
+ 		if (pm->rm_nodes)
+ 			perfmgr_db_delete_entry(pm->db, pm->remove_list->guid);
++		else
++			perfmgr_db_mark_active(pm->db, pm->remove_list->guid, FALSE);
+ 
  		if (pm->remove_list->name)
  			free(pm->remove_list->name);
- 		free(pm->remove_list);
-@@ -1381,6 +1384,7 @@ ib_api_status_t osm_perfmgr_init(osm_perfmgr_t * pm, osm_opensm_t * osm,
- 	if (pm->state == PERFMGR_STATE_ENABLED)
- 		cl_timer_start(&pm->sweep_timer, pm->sweep_time_s * 1000);
+@@ -524,6 +526,8 @@ static void perfmgr_query_counters(cl_map_item_t * p_map_item, void *context)
+ 		goto Exit;
+ 	}
  
-+	pm->rm_nodes = p_opt->perfmgr_rm_nodes;
- 	status = IB_SUCCESS;
- Exit:
- 	OSM_LOG_EXIT(pm->log);
++	perfmgr_db_mark_active(pm->db, node_guid, TRUE);
++
+ 	/* issue the query for each port */
+ 	for (port = mon_node->esp0 ? 0 : 1; port < num_ports; port++) {
+ 		ib_net16_t lid;
 diff --git a/opensm/osm_perfmgr_db.c b/opensm/osm_perfmgr_db.c
-index 98bf59c..b04be27 100644
+index b04be27..44994f1 100644
 --- a/opensm/osm_perfmgr_db.c
 +++ b/opensm/osm_perfmgr_db.c
-@@ -194,6 +194,19 @@ Exit:
+@@ -105,6 +105,7 @@ static inline perfmgr_db_err_t bad_node_port(db_node_t * node, uint8_t port)
+ 		return PERFMGR_EVENT_DB_GUIDNOTFOUND;
+ 	if (port >= node->num_ports || (!node->esp0 && port == 0))
+ 		return PERFMGR_EVENT_DB_PORTNOTFOUND;
++
+ 	return PERFMGR_EVENT_DB_SUCCESS;
+ }
+ 
+@@ -139,6 +140,7 @@ static db_node_t *malloc_node(uint64_t guid, boolean_t esp0,
+ 		rc->ports[i].valid = FALSE;
+ 	}
+ 	snprintf(rc->node_name, sizeof(rc->node_name), "%s", name);
++	rc->active = FALSE;
+ 
  	return rc;
+ 
+@@ -207,6 +209,62 @@ perfmgr_db_delete_entry(perfmgr_db_t * db, uint64_t guid)
+ 	return(PERFMGR_EVENT_DB_SUCCESS);
  }
  
 +perfmgr_db_err_t
-+perfmgr_db_delete_entry(perfmgr_db_t * db, uint64_t guid)
++perfmgr_db_delete_inactive(perfmgr_db_t * db, unsigned *cnt)
 +{
-+	cl_map_item_t * rc = cl_qmap_remove(&db->pc_data, guid);
++	perfmgr_db_err_t rc = PERFMGR_EVENT_DB_SUCCESS;
++	int i = 0;
++	int num = 0;
++	uint64_t * guid_list;
++	cl_map_item_t * p_map_item = cl_qmap_head(&db->pc_data);
 +
-+	if (rc == cl_qmap_end(&db->pc_data))
-+		return(PERFMGR_EVENT_DB_GUIDNOTFOUND);
++	if (p_map_item == cl_qmap_end(&db->pc_data)) {
++		rc = PERFMGR_EVENT_DB_SUCCESS;
++		goto Done;
++	}
 +
-+	db_node_t *pc_node = (db_node_t *)rc;
-+	free_node(pc_node);
-+	return(PERFMGR_EVENT_DB_SUCCESS);
++	while (p_map_item != cl_qmap_end(&db->pc_data)) {
++		db_node_t *n = (db_node_t *)p_map_item;
++		if (n->active == FALSE) {
++			guid_list = realloc(guid_list,
++					sizeof(*guid_list) * (num+1));
++			if (!guid_list) {
++				num = 0;
++				rc = PERFMGR_EVENT_DB_NOMEM;
++				goto Done;
++			}
++			guid_list[num] = n->node_guid;
++			num++;
++		}
++		p_map_item = cl_qmap_next(p_map_item);
++	}
++
++	for (i = 0 ; i < num; i++)
++		perfmgr_db_delete_entry(db, guid_list[i]);
++
++	free(guid_list);
++
++Done:
++	if (cnt)
++		*cnt = num;
++
++	return(rc);
 +}
++
++perfmgr_db_err_t
++perfmgr_db_mark_active(perfmgr_db_t *db, uint64_t guid, boolean_t active)
++{
++	db_node_t *node = NULL;
++
++	cl_plock_excl_acquire(&db->lock);
++	node = get(db, guid);
++	if (node)
++		node->active = active;
++	cl_plock_release(&db->lock);
++	return (PERFMGR_EVENT_DB_SUCCESS);
++}
++
 +
  /**********************************************************************
   * Dump a reading vs the previous reading to stdout
   **********************************************************************/
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index 662e591..06efa9c 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -493,6 +493,7 @@ static const opt_rec_t opt_tbl[] = {
- 	{ "perfmgr_max_outstanding_queries", OPT_OFFSET(perfmgr_max_outstanding_queries), opts_parse_uint32, NULL, 0 },
- 	{ "perfmgr_ignore_cas", OPT_OFFSET(perfmgr_ignore_cas), opts_parse_boolean, NULL, 0 },
- 	{ "event_db_dump_file", OPT_OFFSET(event_db_dump_file), opts_parse_charp, NULL, 0 },
-+	{ "perfmgr_rm_nodes", OPT_OFFSET(perfmgr_rm_nodes), opts_parse_boolean, NULL, 0 },
- #endif				/* ENABLE_OSM_PERF_MGR */
- 	{ "event_plugin_name", OPT_OFFSET(event_plugin_name), opts_parse_charp, NULL, 0 },
- 	{ "event_plugin_options", OPT_OFFSET(event_plugin_options), opts_parse_charp, NULL, 0 },
-@@ -985,6 +986,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
- 	    OSM_PERFMGR_DEFAULT_MAX_OUTSTANDING_QUERIES;
- 	p_opt->perfmgr_ignore_cas = FALSE;
- 	p_opt->event_db_dump_file = NULL; /* use default */
-+	p_opt->perfmgr_rm_nodes = TRUE;
- #endif				/* ENABLE_OSM_PERF_MGR */
+@@ -575,7 +633,7 @@ static void dump_node_mr(db_node_t * node, FILE * fp)
+ {
+ 	int i = 0;
  
- 	p_opt->event_plugin_name = NULL;
-@@ -2009,12 +2011,15 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
- 		"perfmgr_sweep_time_s %u\n\n"
- 		"# Max outstanding queries\n"
- 		"perfmgr_max_outstanding_queries %u\n"
--		"perfmgr_ignore_cas %s\n\n",
-+		"perfmgr_ignore_cas %s\n\n"
-+		"# Remove missing nodes from DB\n"
-+		"perfmgr_rm_nodes %s\n",
- 		p_opts->perfmgr ? "TRUE" : "FALSE",
- 		p_opts->perfmgr_redir ? "TRUE" : "FALSE",
- 		p_opts->perfmgr_sweep_time_s,
- 		p_opts->perfmgr_max_outstanding_queries,
--		p_opts->perfmgr_ignore_cas ? "TRUE" : "FALSE");
-+		p_opts->perfmgr_ignore_cas ? "TRUE" : "FALSE",
-+		p_opts->perfmgr_rm_nodes ? "TRUE" : "FALSE");
+-	fprintf(fp, "\nName\tGUID\tPort\tLast Reset\t"
++	fprintf(fp, "\nName\tGUID\tActive\tPort\tLast Reset\t"
+ 		"%s\t%s\t"
+ 		"%s\t%s\t%s\t%s\t%s\t%s\t%s\t"
+ 		"%s\t%s\t%s\t%s\t%s\t%s\t%s\t"
+@@ -609,13 +667,15 @@ static void dump_node_mr(db_node_t * node, FILE * fp)
+ 		since[strlen(since) - 1] = '\0';	/* remove \n */
  
- 	fprintf(out,
- 		"#\n# Event DB Options\n#\n"
+ 		fprintf(fp,
+-			"%s\t0x%" PRIx64 "\t%d\t%s\t%" PRIu64 "\t%" PRIu64 "\t"
++			"%s\t0x%" PRIx64 "\t%s\t%d\t%s\t%" PRIu64 "\t%" PRIu64 "\t"
+ 			"%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t"
+ 			"%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t" "%" PRIu64
+ 			"\t%" PRIu64 "\t%" PRIu64 "\t" "%" PRIu64 "\t%" PRIu64
+ 			"\t%" PRIu64 "\t%" PRIu64 "\t" "%" PRIu64 "\t%" PRIu64
+ 			"\t%" PRIu64 "\t%" PRIu64 "\n", node->node_name,
+-			node->node_guid, i, since,
++			node->node_guid,
++			node->active ? "TRUE" : "FALSE",
++			i, since,
+ 			node->ports[i].err_total.symbol_err_cnt,
+ 			node->ports[i].err_total.link_err_recover,
+ 			node->ports[i].err_total.link_downed,
+@@ -655,7 +715,7 @@ static void dump_node_hr(db_node_t * node, FILE * fp)
+ 
+ 		since[strlen(since) - 1] = '\0';	/* remove \n */
+ 
+-		fprintf(fp, "\"%s\" 0x%" PRIx64 " port %d (Since %s)\n"
++		fprintf(fp, "\"%s\" 0x%" PRIx64 " active %s port %d (Since %s)\n"
+ 			"     symbol_err_cnt       : %" PRIu64 "\n"
+ 			"     link_err_recover     : %" PRIu64 "\n"
+ 			"     link_downed          : %" PRIu64 "\n"
+@@ -678,6 +738,7 @@ static void dump_node_hr(db_node_t * node, FILE * fp)
+ 			"     multicast_rcv_pkts   : %" PRIu64 "\n",
+ 			node->node_name,
+ 			node->node_guid,
++			node->active ? "TRUE":"FALSE",
+ 			i,
+ 			since,
+ 			node->ports[i].err_total.symbol_err_cnt,
 -- 
 1.7.1
 
