@@ -1,36 +1,40 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 7/7] scm: increase ACK timeout to 20 for a default value to
- match other providers.
-Date: Thu, 5 Jul 2012 16:38:44 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F9481A9814@ORSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] ibnetdiscover: fix not showing FDR10 speeds
+Date: Thu, 05 Jul 2012 12:42:53 -0400
+Message-ID: <4FF5C40D.7020209@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-U2lnbmVkLW9mZi1ieTogQXJsaW4gRGF2aXMgPGFybGluLnIuZGF2aXNAaW50ZWwuY29tPg0KLS0t
-DQogZGFwbC9vcGVuaWJfc2NtL2RhcGxfaWJfdXRpbC5oIHwgICAgNCArKy0tDQogMSBmaWxlcyBj
-aGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9k
-YXBsL29wZW5pYl9zY20vZGFwbF9pYl91dGlsLmggYi9kYXBsL29wZW5pYl9zY20vZGFwbF9pYl91
-dGlsLmgNCmluZGV4IDBkN2Y5ZjMuLjIwNTBjMmMgMTAwNjQ0DQotLS0gYS9kYXBsL29wZW5pYl9z
-Y20vZGFwbF9pYl91dGlsLmgNCisrKyBiL2RhcGwvb3BlbmliX3NjbS9kYXBsX2liX3V0aWwuaA0K
-QEAgLTYwLDggKzYwLDggQEAgdHlwZWRlZiBkcF9pYl9jbV9oYW5kbGVfdAlpYl9jbV9zcnZjX2hh
-bmRsZV90Ow0KICNkZWZpbmUJSU5MSU5FX1NFTkRfREVGQVVMVAkyMDANCiANCiAvKiBSQyB0aW1l
-ciAtIHJldHJ5IGNvdW50IGRlZmF1bHRzICovDQotI2RlZmluZSBTQ01fQUNLX1RJTUVSIDE2IC8q
-IDUgYml0cywgNC4wOTZ1cyoyXmFja190aW1lci4gMTY9PSAyNjhtcyAqLw0KLSNkZWZpbmUgU0NN
-X0FDS19SRVRSWSA3ICAvKiAzIGJpdHMsIDcgKiAyNjhtcyA9IDEuOCBzZWNvbmRzICovDQorI2Rl
-ZmluZSBTQ01fQUNLX1RJTUVSCTIwIC8qIDUgYml0cywgNC4wOTZ1cyoyXmFja190aW1lci4gMTY9
-PSAyNjhtcywgMjA9PTQuMnMgKi8NCisjZGVmaW5lIFNDTV9BQ0tfUkVUUlkJNyAgLyogMyBiaXRz
-LCA3ICogNC4yICA9PSAzMCBzZWNvbmRzICovDQogI2RlZmluZSBTQ01fUk5SX1RJTUVSIDEyIC8q
-IDUgYml0cywgMTIgPS42NG1zLCAyOCA9MTYzbXMsIDMxID00OTFtcyAqLw0KICNkZWZpbmUgU0NN
-X1JOUl9SRVRSWSA3ICAvKiAzIGJpdHMsIDcgPT0gaW5maW5pdGUgKi8NCiAjZGVmaW5lIFNDTV9D
-Ul9SRVRSWSAgNSAgLyogcmV0cmllcyBmb3IgYnVzeSBzZXJ2ZXIsIGNvbm5lY3QgcmVmdXNlZCAq
-Lw0KLS0gDQoxLjcuMw0KDQoNCg0K
+Fix: ibnetdiscover shows FDR10 speeds as QDR due to bug in setting
+default parameters.
+
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/ibnetdiscover.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/src/ibnetdiscover.c b/src/ibnetdiscover.c
+index fe785b3..7e35449 100644
+--- a/src/ibnetdiscover.c
++++ b/src/ibnetdiscover.c
+@@ -1108,6 +1108,8 @@ int main(int argc, char **argv)
+ 	if (ibd_timeout)
+ 		config.timeout_ms = ibd_timeout;
+ 
++	config.flags = ibd_ibnetdisc_flags;
++
+ 	if (argc && !(f = fopen(argv[0], "w")))
+ 		IBERROR("can't open file %s for writing", argv[0]);
+ 
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
