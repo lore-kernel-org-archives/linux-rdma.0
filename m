@@ -1,33 +1,47 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] ibnetdiscover: fix not showing FDR10 speeds
-Date: Thu, 05 Jul 2012 15:01:54 -0400
-Message-ID: <4FF5E4A2.4020506@dev.mellanox.co.il>
-References: <4FF5C40D.7020209@dev.mellanox.co.il> <CAJZOPZJBFkyemvnK12-NxF7L+MkWnop79=6NZk=NonmztRKHNA@mail.gmail.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] dapl-2.0.36
+Date: Thu, 5 Jul 2012 19:20:46 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F9481A98F6@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJBFkyemvnK12-NxF7L+MkWnop79=6NZk=NonmztRKHNA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/5/2012 2:40 PM, Or Gerlitz wrote:
->> ibnetdiscover shows FDR10 speeds as QDR due to bug in setting
->> default parameters
-> 
-> How old is this bug?
+New uDAPL release (2.0.36) available at http://www.openfabrics.org/downloads/dapl
 
-Since commit d8648e9d603e469d0fbd90d18b4c99e725d05812 which provided
-option to disable FDR10 MADs (in case of kernel issue which was
-subsequently fixed).
+Vlad, please pull v2.0 into OFED 3.x and remove the v1.2 compat-dapl package for OFED 3.x, it is no longer supported going forward.
 
--- Hal
+Thanks, Arlin
+--------------
 
-> 
-> Or.
-> 
+Latest Packages (see ChangeLog for recent changes):
+
+	md5sum: 8313a302685089502b44934183199dd5 dapl-2.0.36.tar.gz 
+
+For support, including development, install RPM packages as follow: 
+
+dapl-2.0.36-1 
+dapl-utils-2.0.36-1 
+dapl-devel-2.0.36-1 
+dapl-debuginfo-2.0.36-1 
+
+Summary of changes: 
+
+ Release 2.0.36 fixes (OFED 3.x): 
+
+ scm: increase ACK timeout to 20 for a default value to match other pr 
+ common: allow qp modify in init state 
+ common: check for valid states during ep posting 
+ dat.conf: keep list of providers in order for backward compatibility 
+ ucm: record and silently drop a duplicate reject CM message 
+ windows: new version of getlocalipaddr not portable 
+ dapltest: DFLT_QLEN is defined in multiple tests 
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
