@@ -1,116 +1,91 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibnetdiscover: fix no port 0 info
- segmentation fault
-Date: Tue, 3 Jul 2012 17:44:16 -0700
-Message-ID: <20120703174416.ae3d461d.weiny2@llnl.gov>
-References: <4FEC90A3.8000008@dev.mellanox.co.il>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2/7] windows: new version of getlocalipaddr not portable
+Date: Thu, 5 Jul 2012 16:38:09 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F9481A87D3@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FEC90A3.8000008-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 28 Jun 2012 13:13:07 -0400
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-
-> 
-> Fix ibnetdiscover egmentation fault when it reaches a switch
-> that does not respond to a PortInfo Get for port 0.
-> 
-> Note:
-> When ibnetdiscover can't read the port capabilites field from switch port 0,
-> '???' is printed for link speed and width.
-> 
-> Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-
-Thanks applied,
-Ira
-
-> ---
-> diff --git a/src/ibnetdiscover.c b/src/ibnetdiscover.c
-> index d27b784..aeadc25 100644
-> --- a/src/ibnetdiscover.c
-> +++ b/src/ibnetdiscover.c
-> @@ -378,13 +378,20 @@ void out_switch_port(ibnd_port_t * port, int group, char *out_prefix)
->  				       port->remoteport->node->nodedesc);
->  
->  	ext_port_str = out_ext_port(port->remoteport, group);
-> -	cap_mask = mad_get_field(port->node->ports[0]->info, 0,
-> -				 IB_PORT_CAPMASK_F);
-> -	if (cap_mask & CL_NTOH32(IB_PORT_CAP_HAS_EXT_SPEEDS))
-> -		espeed = mad_get_field(port->info, 0,
-> -				       IB_PORT_LINK_SPEED_EXT_ACTIVE_F);
-> -	else
-> +
-> +	if (!port->node->ports[0]) {
-> +		cap_mask = 0;
-> +		ispeed = 0;
->  		espeed = 0;
-> +	} else {
-> +		cap_mask = mad_get_field(port->node->ports[0]->info, 0,
-> +					 IB_PORT_CAPMASK_F);
-> +		if (cap_mask & CL_NTOH32(IB_PORT_CAP_HAS_EXT_SPEEDS))
-> +			espeed = mad_get_field(port->info, 0,
-> +					       IB_PORT_LINK_SPEED_EXT_ACTIVE_F);
-> +		else
-> +			espeed = 0;
-> +	}
->  	fprintf(f, "\t%s[%d]%s",
->  		node_name(port->remoteport->node), port->remoteport->portnum,
->  		ext_port_str ? ext_port_str : "");
-> @@ -679,23 +686,31 @@ void dump_ports_report(ibnd_node_t * node, void *user_data)
->  	for (p = node->numports, port = node->ports[p]; p > 0;
->  	     port = node->ports[--p]) {
->  		uint32_t iwidth, ispeed, fdr10, espeed, cap_mask;
-> -		uint8_t *info;
-> +		uint8_t *info = NULL;
->  		if (port == NULL)
->  			continue;
->  		iwidth =
->  		    mad_get_field(port->info, 0, IB_PORT_LINK_WIDTH_ACTIVE_F);
->  		ispeed =
->  		    mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F);
-> -		if (port->node->type == IB_NODE_SWITCH)
-> -			info = (uint8_t *)&port->node->ports[0]->info;
-> +		if (port->node->type == IB_NODE_SWITCH) {
-> +			if (port->node->ports[0])
-> +				info = (uint8_t *)&port->node->ports[0]->info;
-> +		}
->  		else
->  			info = (uint8_t *)&port->info;
-> -		cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
-> -		if (cap_mask & CL_NTOH32(IB_PORT_CAP_HAS_EXT_SPEEDS))
-> -			espeed = mad_get_field(port->info, 0,
-> -					       IB_PORT_LINK_SPEED_EXT_ACTIVE_F);
-> -		else
-> +		if (info) {
-> +			cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
-> +			if (cap_mask & CL_NTOH32(IB_PORT_CAP_HAS_EXT_SPEEDS))
-> +				espeed = mad_get_field(port->info, 0,
-> +						       IB_PORT_LINK_SPEED_EXT_ACTIVE_F);
-> +			else
-> +				espeed = 0;
-> +		} else {
-> +			ispeed = 0;
-> +			iwidth = 0;
->  			espeed = 0;
-> +		}
->  		fdr10 = mad_get_field(port->ext_info, 0,
->  				      IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F);
->  		nodename = remap_node_name(node_name_map,
-
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+cmV2ZXJ0IHRvIHRoZSBvcmlnaW5hbCBnZXRhZGRyaW5mbyBtZXRob2QgZm9yIHdpbmRvd3MNCg0K
+U2lnbmVkLW9mZi1ieTogQXJsaW4gRGF2aXMgPGFybGluLnIuZGF2aXNAaW50ZWwuY29tPg0KLS0t
+DQogZGFwbC9vcGVuaWJfY29tbW9uL3V0aWwuYyB8ICAxNDQgKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrLS0tLS0tLS0tLS0tDQogMSBmaWxlcyBjaGFuZ2VkLCAxMDUgaW5zZXJ0aW9u
+cygrKSwgMzkgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9kYXBsL29wZW5pYl9jb21tb24v
+dXRpbC5jIGIvZGFwbC9vcGVuaWJfY29tbW9uL3V0aWwuYw0KaW5kZXggMDZhNmYzZC4uMzM2Mjli
+OCAxMDA2NDQNCi0tLSBhL2RhcGwvb3BlbmliX2NvbW1vbi91dGlsLmMNCisrKyBiL2RhcGwvb3Bl
+bmliX2NvbW1vbi91dGlsLmMNCkBAIC03NSw2ICs3NSw2OSBAQCByZWxlYXNlOg0KIAlyZXR1cm4g
+aHI7DQogfQ0KIA0KK0RBVF9SRVRVUk4gZ2V0bG9jYWxpcGFkZHIoY2hhciAqYWRkciwgaW50IGFk
+ZHJfbGVuKQ0KK3sNCisJc3RydWN0IHNvY2thZGRyX2luICpzaW47DQorCXN0cnVjdCBhZGRyaW5m
+byAqcmVzLCBoaW50LCAqYWk7DQorCWludCByZXQ7DQorCWNoYXIgaG9zdG5hbWVbMjU2XTsNCisJ
+Y2hhciAqbmV0ZGV2ID0gZ2V0ZW52KCJEQVBMX1NDTV9ORVRERVYiKTsNCisNCityZXRyeToNCisJ
+LyogdXNlIHByb3ZpZGVkIG5ldGRldiBpbnN0ZWFkIG9mIGRlZmF1bHQgaG9zdG5hbWUgKi8NCisJ
+aWYgKG5ldGRldiAhPSBOVUxMKSB7DQorCQlyZXQgPSBnZXRpcGFkZHJfbmV0ZGV2KG5ldGRldiwg
+YWRkciwgYWRkcl9sZW4pOw0KKwkJaWYgKHJldCkgew0KKwkJCWRhcGxfbG9nKERBUExfREJHX1RZ
+UEVfRVJSLA0KKwkJCQkgIiBnZXRsb2NhbGlwYWRkcjogTkVUREVWID0gJXMiDQorCQkJCSAiIGJ1
+dCBub3QgY29uZmlndXJlZCBvbiBzeXN0ZW0/IEVSUiA9ICVzXG4iLA0KKwkJCQkgbmV0ZGV2LCBz
+dHJlcnJvcihyZXQpKTsNCisJCQlyZXR1cm4gZGFwbF9jb252ZXJ0X2Vycm5vKHJldCwgImdldGxv
+Y2FsaXBhZGRyIik7DQorCQl9IGVsc2UNCisJCQlyZXR1cm4gREFUX1NVQ0NFU1M7DQorCX0NCisN
+CisJaWYgKGFkZHJfbGVuIDwgc2l6ZW9mKCpzaW4pKSB7DQorCQlyZXR1cm4gREFUX0lOVEVSTkFM
+X0VSUk9SOw0KKwl9DQorDQorCXJldCA9IGdldGhvc3RuYW1lKGhvc3RuYW1lLCAyNTYpOw0KKwlp
+ZiAocmV0KQ0KKwkJcmV0dXJuIGRhcGxfY29udmVydF9lcnJubyhyZXQsICJnZXRob3N0bmFtZSIp
+Ow0KKw0KKwltZW1zZXQoJmhpbnQsIDAsIHNpemVvZiBoaW50KTsNCisJaGludC5haV9mbGFncyA9
+IEFJX1BBU1NJVkU7DQorCWhpbnQuYWlfZmFtaWx5ID0gQUZfSU5FVDsNCisJaGludC5haV9zb2Nr
+dHlwZSA9IFNPQ0tfU1RSRUFNOw0KKwloaW50LmFpX3Byb3RvY29sID0gSVBQUk9UT19UQ1A7DQor
+DQorCXJldCA9IGdldGFkZHJpbmZvKGhvc3RuYW1lLCBOVUxMLCAmaGludCwgJnJlcyk7DQorCWlm
+IChyZXQpIHsNCisJCWRhcGxfbG9nKERBUExfREJHX1RZUEVfRVJSLA0KKwkJCSAiIGdldGFkZHJp
+bmZvIEVSUjogJWQgJXNcbiIsIHJldCwgZ2FpX3N0cmVycm9yKHJldCkpOw0KKwkJcmV0dXJuIERB
+VF9JTlZBTElEX0FERFJFU1M7DQorCX0NCisNCisJcmV0ID0gREFUX0lOVkFMSURfQUREUkVTUzsN
+CisJZm9yIChhaSA9IHJlczsgYWk7IGFpID0gYWktPmFpX25leHQpIHsNCisJCXNpbiA9IChzdHJ1
+Y3Qgc29ja2FkZHJfaW4gKilhaS0+YWlfYWRkcjsNCisJCWlmICgqKCh1aW50MzJfdCAqKSAmIHNp
+bi0+c2luX2FkZHIpICE9IGh0b25sKDB4N2YwMDAwMDEpKSB7DQorCQkJKigoc3RydWN0IHNvY2th
+ZGRyX2luICopYWRkcikgPSAqc2luOw0KKwkJCXJldCA9IERBVF9TVUNDRVNTOw0KKwkJCWJyZWFr
+Ow0KKwkJfQ0KKwl9DQorDQorCWZyZWVhZGRyaW5mbyhyZXMpOw0KKw0KKwkvKiBvbmx5IGxvb3Bi
+YWNrIGZvdW5kLCByZXRyeSBuZXRkZXYgZXRoMCAqLw0KKwlpZiAocmV0ID09IERBVF9JTlZBTElE
+X0FERFJFU1MpIHsNCisJCW5ldGRldiA9ICJldGgwIjsNCisJCWdvdG8gcmV0cnk7DQorCX0NCisN
+CisJcmV0dXJuIHJldDsNCit9DQogI2Vsc2UJCQkJLy8gX1dJTjY0IHx8IFdJTjMyDQogDQogLyog
+R2V0IElQIGFkZHJlc3MgdXNpbmcgbmV0d29yayBkZXZpY2UgbmFtZSAqLw0KQEAgLTExNCw0MyAr
+MTc3LDYgQEAgaW50IGdldGlwYWRkcl9uZXRkZXYoY2hhciAqbmFtZSwgY2hhciAqYWRkciwgaW50
+IGFkZHJfbGVuKQ0KIAljbG9zZShza2ZkKTsNCiAJcmV0dXJuIHJldDsNCiB9DQotI2VuZGlmDQot
+DQotZW51bSBpYnZfbXR1IGRhcGxfaWJfbXR1KGludCBtdHUpDQotew0KLQlzd2l0Y2ggKG10dSkg
+ew0KLQljYXNlIDI1NjoNCi0JCXJldHVybiBJQlZfTVRVXzI1NjsNCi0JY2FzZSA1MTI6DQotCQly
+ZXR1cm4gSUJWX01UVV81MTI7DQotCWNhc2UgMTAyNDoNCi0JCXJldHVybiBJQlZfTVRVXzEwMjQ7
+DQotCWNhc2UgMjA0ODoNCi0JCXJldHVybiBJQlZfTVRVXzIwNDg7DQotCWNhc2UgNDA5NjoNCi0J
+CXJldHVybiBJQlZfTVRVXzQwOTY7DQotCWRlZmF1bHQ6DQotCQlyZXR1cm4gSUJWX01UVV8xMDI0
+Ow0KLQl9DQotfQ0KLQ0KLWNoYXIgKmRhcGxfaWJfbXR1X3N0cihlbnVtIGlidl9tdHUgbXR1KQ0K
+LXsNCi0Jc3dpdGNoIChtdHUpIHsNCi0JY2FzZSBJQlZfTVRVXzI1NjoNCi0JCXJldHVybiAiMjU2
+IjsNCi0JY2FzZSBJQlZfTVRVXzUxMjoNCi0JCXJldHVybiAiNTEyIjsNCi0JY2FzZSBJQlZfTVRV
+XzEwMjQ6DQotCQlyZXR1cm4gIjEwMjQiOw0KLQljYXNlIElCVl9NVFVfMjA0ODoNCi0JCXJldHVy
+biAiMjA0OCI7DQotCWNhc2UgSUJWX01UVV80MDk2Og0KLQkJcmV0dXJuICI0MDk2IjsNCi0JZGVm
+YXVsdDoNCi0JCXJldHVybiAiMTAyNCI7DQotCX0NCi19DQogDQogREFUX1JFVFVSTiBnZXRsb2Nh
+bGlwYWRkcihjaGFyICphZGRyLCBpbnQgYWRkcl9sZW4pDQogew0KQEAgLTE2MywxMyArMTg5LDEz
+IEBAIERBVF9SRVRVUk4gZ2V0bG9jYWxpcGFkZHIoY2hhciAqYWRkciwgaW50IGFkZHJfbGVuKQ0K
+IAkvKiB1c2UgcHJvdmlkZWQgbmV0ZGV2IGluc3RlYWQgb2YgZGVmYXVsdCBob3N0bmFtZSAqLw0K
+IAlpZiAobmV0ZGV2ICE9IE5VTEwpIHsNCiAJCXJldCA9IGdldGlwYWRkcl9uZXRkZXYobmV0ZGV2
+LCBhZGRyLCBhZGRyX2xlbik7DQotCQlpZiAocmV0KSB7CQkJDQorCQlpZiAocmV0KSB7DQogCQkJ
+ZGFwbF9sb2coREFQTF9EQkdfVFlQRV9FUlIsDQogCQkJCSAiIGdldGxvY2FsaXBhZGRyOiBORVRE
+RVYgPSAlcyINCiAJCQkJICIgYnV0IG5vdCBjb25maWd1cmVkIG9uIHN5c3RlbT8gRVJSID0gJXNc
+biIsDQogCQkJCSBuZXRkZXYsIHN0cmVycm9yKHJldCkpOw0KIAkJCXJldHVybiBkYXBsX2NvbnZl
+cnRfZXJybm8ocmV0LCAiZ2V0bG9jYWxpcGFkZHIiKTsNCi0JCX0gZWxzZSANCisJCX0gZWxzZQ0K
+IAkJCXJldHVybiBEQVRfU1VDQ0VTUzsNCiAJfQ0KIA0KQEAgLTE5Nyw2ICsyMjMsNDYgQEAgYmFp
+bDoNCiAJcmV0dXJuIGRhcGxfY29udmVydF9lcnJubyhyZXQsICJnZXRsb2NhbGlwYWRkciIpOw0K
+IH0NCiANCisjZW5kaWYNCisNCitlbnVtIGlidl9tdHUgZGFwbF9pYl9tdHUoaW50IG10dSkNCit7
+DQorCXN3aXRjaCAobXR1KSB7DQorCWNhc2UgMjU2Og0KKwkJcmV0dXJuIElCVl9NVFVfMjU2Ow0K
+KwljYXNlIDUxMjoNCisJCXJldHVybiBJQlZfTVRVXzUxMjsNCisJY2FzZSAxMDI0Og0KKwkJcmV0
+dXJuIElCVl9NVFVfMTAyNDsNCisJY2FzZSAyMDQ4Og0KKwkJcmV0dXJuIElCVl9NVFVfMjA0ODsN
+CisJY2FzZSA0MDk2Og0KKwkJcmV0dXJuIElCVl9NVFVfNDA5NjsNCisJZGVmYXVsdDoNCisJCXJl
+dHVybiBJQlZfTVRVXzEwMjQ7DQorCX0NCit9DQorDQorY2hhciAqZGFwbF9pYl9tdHVfc3RyKGVu
+dW0gaWJ2X210dSBtdHUpDQorew0KKwlzd2l0Y2ggKG10dSkgew0KKwljYXNlIElCVl9NVFVfMjU2
+Og0KKwkJcmV0dXJuICIyNTYiOw0KKwljYXNlIElCVl9NVFVfNTEyOg0KKwkJcmV0dXJuICI1MTIi
+Ow0KKwljYXNlIElCVl9NVFVfMTAyNDoNCisJCXJldHVybiAiMTAyNCI7DQorCWNhc2UgSUJWX01U
+VV8yMDQ4Og0KKwkJcmV0dXJuICIyMDQ4IjsNCisJY2FzZSBJQlZfTVRVXzQwOTY6DQorCQlyZXR1
+cm4gIjQwOTYiOw0KKwlkZWZhdWx0Og0KKwkJcmV0dXJuICIxMDI0IjsNCisJfQ0KK30NCisNCisN
+CisNCiAvKg0KICAqIGRhcGxzX2liX3F1ZXJ5X2hjYQ0KICAqDQotLSANCjEuNy4zDQoNCg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
