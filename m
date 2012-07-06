@@ -1,60 +1,38 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: build failure after merge of the infiniband tree
-Date: Fri, 6 Jul 2012 12:35:55 +1000
-Message-ID: <20120706123555.949d8efb4de5c4df18fb1ec0@canb.auug.org.au>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V1 25/29] net/mlx4_core: Adjustments to SET_PORT
+ for SRIOV-IB
+Date: Fri, 6 Jul 2012 05:43:59 +0300
+Message-ID: <CAJZOPZKhV=rcGF0duJLkGFBhD3_tG-JgW+hkVH51KX6uokVEiA@mail.gmail.com>
+References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
+	<1340094121-14858-26-git-send-email-jackm@dev.mellanox.co.il>
+	<CAL1RGDW093B0p1caO2CHKQiAGtxLGR97h1tFd7W4QY8_31MfTg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Fri__6_Jul_2012_12_35_55_+1000_CO4._s2p=E/sOMIf"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDW093B0p1caO2CHKQiAGtxLGR97h1tFd7W4QY8_31MfTg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Fri__6_Jul_2012_12_35_55_+1000_CO4._s2p=E/sOMIf
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, Jul 6, 2012 at 3:09 AM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Tue, Jun 19, 2012 at 1:21 AM, Jack Morgenstein
+> <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-Hi all,
+>> 1. Slave may not set the IS_SM capability for the port.
 
-After merging the infiniband tree, today's linux-next build (powerpc
-ppc64_defconfig) failed like this:
+> So I can't run a SM in a guest?
 
-drivers/infiniband/core/cma.c: In function 'rdma_bind_addr':
-drivers/infiniband/core/cma.c:2411:30: error: 'struct net' has no member na=
-med 'ipv6'
+nope, guests are untrusted and we don't let them send nor recv SMPs
 
-Caused by commit e7925058b0ed ("RDMA/cma: Bind to a specific address
-family"). CONFIG_IPV6 is not enabled for this build.
+>> 2. No DEV_MGR in multifunc mode.
 
-I have used the version of the infiniband tree from next-20120705 for
-today.
+> I can't run an SRP target in a guest?
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+nope
 
---Signature=_Fri__6_Jul_2012_12_35_55_+1000_CO4._s2p=E/sOMIf
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJP9k8LAAoJEECxmPOUX5FEGvsP/3cYLhdGMBiN+aGnUZNvbEjW
-qaV25Uf61x631HlCXP0uhFvPFta8q7h6LH++kSSgPeEzMUOUymXfxtZtWGFg+C+z
-SXmuXcdiWb+ax7lE402RZ8lOxba61n356OYfNyHuSK6uc5vdlng0D/0L9oNudpPy
-8CL226BBWgY/qrEfesEdIxyI9mpywZPSJHw9FGlqP87YWLEBb+5fHLRT6RZTgG6A
-ImuDzuMxHE98no3ACUQ2A1VIpKMtIjVALi3YT9Pciskc5TDx++BXQ0k+nTRWtr5S
-bn39sheyLp5AqX5+m7kKxMFjws3E3F+46Q72vDHU+GjuBHp7sZ2DAToaX7r/2+zd
-JodfrZ3zSjvZERKYDfXcCO4l8LmaJDr4qSkQ54vkD+KTdl+Pk/DMi/LwcNi6G8YY
-0W4oyrFoUrO7cB2F7N7tpZJvVt87W977Lk6Jb9bOh5AapE2xbxFKy5pvHyGe4c9j
-25CNhjgpuymtw/iEt071jsb/7eJkDUJmobvm5QnvaK4+Qm6d+LBxUx+gjCahSKJs
-yQk0hr8fRhrPXXeUMP0ynna9uDSweflwHBtSLXS/7xDqd/66GYm8A9AjGyFBZNYX
-hDs3Z/KsesKB/Cj7YBJrDZXSpya3Rb//on5VZGlixO2BpceiEQzXoCu3PqVJ56Yg
-RrbWVxVhcsX74+4fQGnN
-=6tCn
------END PGP SIGNATURE-----
-
---Signature=_Fri__6_Jul_2012_12_35_55_+1000_CO4._s2p=E/sOMIf--
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
