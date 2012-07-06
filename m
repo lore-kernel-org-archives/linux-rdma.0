@@ -1,32 +1,27 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next V1 10/29] net/mlx4_core: Implement mechanism for
- reserved qkeys
-Date: Thu, 5 Jul 2012 16:26:43 -0700
-Message-ID: <CAL1RGDVXTWs6Xi2JQ=7-RiZUePfc6SoUsCHHdbS9XLUQyim6UA@mail.gmail.com>
-References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il> <1340094121-14858-11-git-send-email-jackm@dev.mellanox.co.il>
+Subject: Re: [PATCH for-next V1 25/29] net/mlx4_core: Adjustments to SET_PORT
+ for SRIOV-IB
+Date: Thu, 5 Jul 2012 17:09:26 -0700
+Message-ID: <CAL1RGDW093B0p1caO2CHKQiAGtxLGR97h1tFd7W4QY8_31MfTg@mail.gmail.com>
+References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il> <1340094121-14858-26-git-send-email-jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340094121-14858-11-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1340094121-14858-26-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On Tue, Jun 19, 2012 at 1:21 AM, Jack Morgenstein
 <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> For security reasons (i.e., to prevent guests from sending MADs to tunnel QPs
-> belonging to other guests), each proxy-tunnel qp pair is assigned a unique,
-> reserved, qkey.  These qkeys are available only for proxy and tunnel qp's --
-> if the guest tries to use these qkeys with other qp's, it will fail.
+> 1. Slave may not set the IS_SM capability for the port.
 
-How does a guest OS know which Q_Key it's allowed to use?  I understand
-you stick the reserved Q_Keys in the privileged Q_Key area (MSB set) so
-it's not an issue for applications but I don't understand how you can avoid
-breaking unlucky guest OSes.
+So I can't run a SM in a guest?
 
-Part of my problem is I don't see anywhere that
-MLX4_RESERVED_QKEY_MASK is actually used in this patch...
+> 2. No DEV_MGR in multifunc mode.
+
+I can't run an SRP target in a guest?
 
  - R.
 --
