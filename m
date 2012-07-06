@@ -1,41 +1,23 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next V1 25/29] net/mlx4_core: Adjustments to SET_PORT
- for SRIOV-IB
-Date: Thu, 5 Jul 2012 20:09:50 -0700
-Message-ID: <CAL1RGDUg+fhPDHBfXywaW2AaPfarM3vcx-UV0648hLSmT9s1Fw@mail.gmail.com>
-References: <1340094121-14858-1-git-send-email-jackm@dev.mellanox.co.il>
- <1340094121-14858-26-git-send-email-jackm@dev.mellanox.co.il>
- <CAL1RGDW093B0p1caO2CHKQiAGtxLGR97h1tFd7W4QY8_31MfTg@mail.gmail.com> <CAJZOPZKhV=rcGF0duJLkGFBhD3_tG-JgW+hkVH51KX6uokVEiA@mail.gmail.com>
+Subject: Re: linux-next: build failure after merge of the infiniband tree
+Date: Thu, 5 Jul 2012 20:58:38 -0700
+Message-ID: <CAL1RGDW+3Q86QUp-aaWajT8nLK_7hQuCbxeE4q9He=aGdAMX6Q@mail.gmail.com>
+References: <20120706123555.949d8efb4de5c4df18fb1ec0@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZKhV=rcGF0duJLkGFBhD3_tG-JgW+hkVH51KX6uokVEiA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20120706123555.949d8efb4de5c4df18fb1ec0-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 5, 2012 at 7:43 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
->> So I can't run a SM in a guest?
->
-> nope, guests are untrusted and we don't let them send nor recv SMPs
->
->>> 2. No DEV_MGR in multifunc mode.
->
->> I can't run an SRP target in a guest?
->
-> nope
+On Thu, Jul 5, 2012 at 7:35 PM, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org> wrote:
+> drivers/infiniband/core/cma.c: In function 'rdma_bind_addr':
+> drivers/infiniband/core/cma.c:2411:30: error: 'struct net' has no member named 'ipv6'
 
-Seems like an unfortunate set of limitations, especially if I want a
-completely virtualized environment.  In my case I might want to
-test the same OS image that I deploy on physical HW inside a VM,
-and both running an SM and having a storage target seem like
-things I would want to do.
-
-Is it planned to fix this with more complete paravirtualization?
-
- - R.
+Thanks, fixed with a "#if IS_ENABLED(CONFIG_IPV6)" around the code
+that touches ipv6... Sean, let me know if more is required.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
