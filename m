@@ -1,65 +1,73 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: fix sparse RCU warnings in qib_keys.c
-Date: Fri, 6 Jul 2012 14:29:45 -0400
-Message-ID: <20120706182944.20779.28432.stgit@kop-dev-sles11-04.qlogic.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V2] libibumad: update umad_recv man page.
+Date: Fri, 06 Jul 2012 14:34:24 -0400
+Message-ID: <4FF72FB0.6020202@dev.mellanox.co.il>
+References: <20120703095522.1e89cd25.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120703095522.1e89cd25.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit e12deda1 ("IB/qib: RCU locking for MR validation") introduced
-new sparse warnings in qib_keys.c.
+On 7/3/2012 12:55 PM, Ira Weiny wrote:
+> 
+> Document the umad_recv length parameter better.
+> 
+> Changes since V1:
+> 	add comments from Hal
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> ---
+>  man/umad_recv.3 |   18 +++++++++++++++++-
+>  1 files changed, 17 insertions(+), 1 deletions(-)
+> 
+> diff --git a/man/umad_recv.3 b/man/umad_recv.3
+> index e1b2985..310d3d2 100644
+> --- a/man/umad_recv.3
+> +++ b/man/umad_recv.3
+> @@ -27,10 +27,26 @@ A negative
+>  makes the function block until a packet is received. A
+>  .I timeout_ms\fR
+>  parameter of zero indicates a non blocking read.
+> +
+> +.B Note
+> +.I length
+> +is a pointer to the length of the
+> +.B data
+> +portion of the umad buffer.  This means that
+> +.I umad
+> +should point to a buffer at least umad_size() +
+> +.I *length
+> +bytes long.
+> +
+> +.B Note also
+> +that
+> +.I *length\fR
+> +must be >= 256 bytes.
 
-This patch resolved those issues.
+This seems somewhat redundant to me as just above it says "should point
+to a bugger that's at least umad_size() + *length bytes long.
 
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_keys.c  |    4 +++-
- drivers/infiniband/hw/qib/qib_verbs.h |    4 ++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+Also, if this remains, should "must be" be "should be" ?
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index 970165b..e9486c7 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -349,7 +349,9 @@ int qib_fast_reg_mr(struct qib_qp *qp, struct ib_send_wr *wr)
- 	if (pd->user || rkey == 0)
- 		goto bail;
- 
--	mr = rkt->table[(rkey >> (32 - ib_qib_lkey_table_size))];
-+	mr = rcu_dereference_protected(
-+		rkt->table[(rkey >> (32 - ib_qib_lkey_table_size))],
-+		lockdep_is_held(&rkt->lock));
- 	if (unlikely(mr == NULL || qp->ibqp.pd != mr->pd))
- 		goto bail;
- 
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index cffeabb..319368e 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -650,7 +650,7 @@ struct qib_lkey_table {
- 	u32 next;               /* next unused index (speeds search) */
- 	u32 gen;                /* generation count */
- 	u32 max;                /* size of the table */
--	struct qib_mregion **table;
-+	struct qib_mregion __rcu **table;
- };
- 
- struct qib_opcode_stats {
-@@ -733,7 +733,7 @@ struct qib_ibdev {
- 	struct list_head pending_mmaps;
- 	spinlock_t mmap_offset_lock; /* protect mmap_offset */
- 	u32 mmap_offset;
--	struct qib_mregion *dma_mr;
-+	struct qib_mregion __rcu *dma_mr;
- 
- 	/* QP numbers are shared by all IB ports */
- 	struct qib_qpn_table qpn_table;
+> +
+>  .SH "RETURN VALUE"
+>  .B umad_recv()
+>  returns non negative receiving agentid on success, and a negative value on error as follows:
+> - -EINVAL      invalid port handle or agentid
+> + -EINVAL      invalid port handle or agentid or *length is less than the minimum
 
+Rather than just minimum, minimum support length might be clearer.
+
+-- Hal
+
+>   -EIO         receive operation failed
+>   -EWOULDBLOCK non blocking read can't be fulfilled
+>  .SH "SEE ALSO"
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
