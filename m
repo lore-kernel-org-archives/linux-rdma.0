@@ -1,63 +1,39 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH V3] libibumad: update umad_recv man page.
-Date: Sat, 7 Jul 2012 14:42:25 -0700
-Message-ID: <20120707144225.675ef25eca4b65abd2617f32@llnl.gov>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] RDMA/ocrdma: Fix assignment of max_srq_sge in device query
+Date: Sat,  7 Jul 2012 15:16:03 -0700
+Message-ID: <1341699363-16643-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mahesh Vardhamanaiah <mahesh.vardhamanaiah-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-Document the umad_recv length parameter better.
+We want to set attr->max_srq_sge to dev->attr.max_srq_sge, not to itself.
 
-Changes since V1:
-	add comments from Hal
-Changes since V2:
-	Change "should" to "must"
+This was detected by Coverity (CID 709210).
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- man/umad_recv.3 |   18 +++++++++++++++++-
- 1 files changed, 17 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/man/umad_recv.3 b/man/umad_recv.3
-index e1b2985..e4d52fd 100644
---- a/man/umad_recv.3
-+++ b/man/umad_recv.3
-@@ -27,10 +27,26 @@ A negative
- makes the function block until a packet is received. A
- .I timeout_ms\fR
- parameter of zero indicates a non blocking read.
-+
-+.B Note
-+.I length
-+is a pointer to the length of the
-+.B data
-+portion of the umad buffer.  This means that
-+.I umad
-+must point to a buffer at least umad_size() +
-+.I *length
-+bytes long.
-+
-+.B Note also
-+that
-+.I *length\fR
-+must be >= 256 bytes.
-+
- .SH "RETURN VALUE"
- .B umad_recv()
- returns non negative receiving agentid on success, and a negative value on error as follows:
-- -EINVAL      invalid port handle or agentid
-+ -EINVAL      invalid port handle or agentid or *length is less than the minimum supported
-  -EIO         receive operation failed
-  -EWOULDBLOCK non blocking read can't be fulfilled
- .SH "SEE ALSO"
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 2e2e7ae..b2f9784 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -97,7 +97,7 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr)
+ 	    min(dev->attr.max_ord_per_qp, dev->attr.max_ird_per_qp);
+ 	attr->max_qp_init_rd_atom = dev->attr.max_ord_per_qp;
+ 	attr->max_srq = (dev->attr.max_qp - 1);
+-	attr->max_srq_sge = attr->max_srq_sge;
++	attr->max_srq_sge = dev->attr.max_srq_sge;
+ 	attr->max_srq_wr = dev->attr.max_rqe;
+ 	attr->local_ca_ack_delay = dev->attr.local_ca_ack_delay;
+ 	attr->max_fast_reg_page_list_len = 0;
 -- 
-1.7.1
+1.7.10.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
