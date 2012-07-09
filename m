@@ -1,52 +1,70 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2] infiniband-diags: Support MLNX ExtendedPortInfo for ConnectIB
- device
-Date: Sun, 08 Jul 2012 13:49:37 -0400
-Message-ID: <4FF9C831.8010506@dev.mellanox.co.il>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the infiniband tree with Linus' tree
+Date: Mon, 9 Jul 2012 12:04:38 +1000
+Message-ID: <20120709120438.e23688b14cab6f48fe551006@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Mon__9_Jul_2012_12_04_38_+1000_XuOJnrmeD7WIW.7q"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Parav Pandit <parav.pandit@emulex.com>
 List-Id: linux-rdma@vger.kernel.org
 
+--Signature=_Mon__9_Jul_2012_12_04_38_+1000_XuOJnrmeD7WIW.7q
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Change since v1:
-Added similar change to libibnetdisc
-Pointed out by Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi all,
 
-diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index a0cbe3e..3a7dd8f 100644
---- a/libibnetdisc/src/ibnetdisc.c
-+++ b/libibnetdisc/src/ibnetdisc.c
-@@ -205,7 +205,7 @@ static int
-is_mlnx_ext_port_info_supported(ibnd_port_t * port)
+Today's linux-next merge of the infiniband tree got a conflict in
+drivers/infiniband/hw/ocrdma/ocrdma_main.c between commit 6ab6827ee999
+("RDMA/ocrdma: Fixed GID table for vlan and events") from Linus' tree and
+commit 898648347205 ("IB: Use IS_ENABLED(CONFIG_IPV6)") from the
+infiniband tree.
 
- 	if (devid == 0xc738)
- 		return 1;
--	if (devid >= 0x1003 && devid <= 0x1010)
-+	if (devid >= 0x1003 && devid <= 0x1011)
- 		return 1;
- 	return 0;
- }
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index 78882a2..ebe8797 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -501,7 +501,7 @@ int is_mlnx_ext_port_info_supported(uint32_t devid)
- 	if (ibd_ibnetdisc_flags & IBND_CONFIG_MLX_EPI) {
- 		if (devid == 0xc738)
- 			return 1;
--		if (devid >= 0x1003 && devid <= 0x1010)
-+		if (devid >= 0x1003 && devid <= 0x1011)
- 			return 1;
- 	}
- 	return 0;
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I fixed it up (see below) and can carry the fix as necessary.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --cc drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index b050e62,93c9462..0000000
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@@ -202,8 -197,7 +202,7 @@@ static int ocrdma_build_sgid_tbl(struc
+  	return 0;
+  }
+ =20
+- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE) || \
+- defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
+ -#if IS_ENABLED(CONFIG_IPV6)
+++#if IS_ENABLED(CONFIG_IPV6) || IS_ENABLED(CONFIG_VLAN_8021Q)
+ =20
+  static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+  				  unsigned long event, void *ptr)
+
+--Signature=_Mon__9_Jul_2012_12_04_38_+1000_XuOJnrmeD7WIW.7q
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJP+jw2AAoJEECxmPOUX5FEFwQP/joHV9PJrp/I1gKMRdW1f33J
+perBuirhRXH0agKQ94e75Ze6vIMRTEZY/CJqqVSou4IJvzJKHPRXdQ6jIZ75wmD6
+6jrM7VSqsanHdH1JxL+ODIntJKGtRKY3zQkk5ccr3nJ2K1xW51dR4ZXLUeHnIfqt
+XDM3tKaXT2MZAqwsYy5opfmqnuZCEZ04SSg+GzUclMhNjQ6tzrovuuFjvH6jubkN
+Lrqjia1Nh+ecekyC3vGrJf78nBVxKvyxXHTqKcww7P03LWGDZ67iEAHeE5sRfe1U
+fm1VnIZRnvUAugZHMwJaZxW+kDK+jN6qw6lSHMQ8RJlw+k402Zvz3N4JOK9CoN0h
+huDRP5C/DZPN3isxi7fBzS9UTHQzEMaZIChpZ6DE3PmBwAni+pV4EPCmjNQ7VcN7
+f4D7PpslVBYgLO4wWQ2aAhw1ucWeZDcFijV+Xugl5sBCKqL/B1NoRA/uM+jNscac
+cR3OJFAF1qgFPE6U2i5qRFrlN2X4c0gz8n/P1htIjM5ZmO7G+eDl+BshxCyANPiz
+SiWF5584vFl9ltV2HJsdZ09CaVpKGYHPhWSw5cFRipSkmM3vW2X9mkDTw6L4SluC
+UlY+zp+C29xLeyKJiMpfP0jD2+xmAJMWyvDe1+GVxw82q+33M3gjPbPBpzcq2PsY
+FKOzaXE/Sdwl28YWFcOw
+=xPkZ
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__9_Jul_2012_12_04_38_+1000_XuOJnrmeD7WIW.7q--
