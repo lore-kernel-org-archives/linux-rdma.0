@@ -1,7 +1,8 @@
 From: Daniel Klein <danielk-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv1] opensm/osmtest: fix osmtest ignores timeout parameter
-Date: Tue, 10 Jul 2012 17:23:35 +0300
-Message-ID: <4FFC3AE7.8040006@dev.mellanox.co.il>
+Subject: Subject: [PATCHv2] infiniband-diags/vendstat: updated devices supporting
+ extended fw info
+Date: Tue, 10 Jul 2012 18:24:33 +0300
+Message-ID: <4FFC4931.5080508@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
@@ -10,29 +11,62 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fix: osmtest ignores timeout parameter, and binds with default value
+Changed devices ID to an array of device ID ranges.
 
-v1 changes:
-updating only timeout field of bind_info
+Version 2:
+Added range for ConnectX devices: 0x1003 - 0x1011
 
 Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libvendor/osm_vendor_ibumad_sa.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ src/vendstat.c |   21 +++++++++++++++++----
+ 1 files changed, 17 insertions(+), 4 deletions(-)
 
-diff --git a/libvendor/osm_vendor_ibumad_sa.c b/libvendor/osm_vendor_ibumad_sa.c
-index 1470624..1d482c0 100644
---- a/libvendor/osm_vendor_ibumad_sa.c
-+++ b/libvendor/osm_vendor_ibumad_sa.c
-@@ -240,7 +240,7 @@ osmv_bind_sa(IN osm_vendor_t * const p_vend,
- 	bind_info.is_report_processor = FALSE;
- 	bind_info.send_q_size = OSM_SM_DEFAULT_QP1_RCV_SIZE;
- 	bind_info.recv_q_size = OSM_SM_DEFAULT_QP1_SEND_SIZE;
--	bind_info.timeout = OSM_DEFAULT_TRANS_TIMEOUT_MILLISEC;
-+	bind_info.timeout = p_vend->timeout;
- 	bind_info.retries = OSM_DEFAULT_RETRY_COUNT;
+diff --git a/src/vendstat.c b/src/vendstat.c
+index 413d202..6183a67 100644
+--- a/src/vendstat.c
++++ b/src/vendstat.c
+@@ -58,8 +58,6 @@
+ /* Config space addresses */
+ #define IB_MLX_IS3_PORT_XMIT_WAIT	0x10013C
  
- 	/* allocate the new sa bind info */
+-#define IS4_DEV_ID 0x01b3
+-#define SX_DEV_ID 0x0245
+ 
+ struct ibmad_port *srcport;
+ 
+@@ -143,6 +141,22 @@ typedef struct {
+ 	is4_group_select_t group_selects[COUNTER_GROUPS_NUM];
+ } is4_config_counter_groups_t;
+ 
++static uint16_t ext_fw_info_device[][2] = {
++	{0x0245, 0x0245},
++	{0xc738, 0xc738},
++	{0x01b3, 0x01b3},
++	{0x1003, 0x1011},
++	{0x0000, 0x0000}};
++
++static int is_ext_fw_info_supported(uint16_t device_id) {
++	int i;
++	for (i = 0; ext_fw_info_device[i][0]; i++)
++		if (ext_fw_info_device[i][0] <= device_id &&
++		    device_id <= ext_fw_info_device[i][1])
++			return 1;
++	return 0;
++}
++
+ static int do_vendor(ib_portid_t *portid, struct ibmad_port *srcport,
+ 		     uint8_t class, uint8_t method, uint16_t attr_id,
+ 		     uint32_t attr_mod, void *data)
+@@ -398,8 +412,7 @@ int main(int argc, char **argv)
+ 		      IB_MLX_IS3_GENERAL_INFO, 0, gi_is3))
+ 		IBERROR("generalinfo query");
+ 
+-	if (IS4_DEV_ID == ntohs(gi_is3->hw_info.device_id) ||
+-	    SX_DEV_ID == ntohs(gi_is3->hw_info.device_id)) {
++	if (is_ext_fw_info_supported(ntohs(gi_is3->hw_info.device_id))) {
+ 		gi_is4 = (is4_general_info_t *) &buf;
+ 		fw_ver_major = ntohl(gi_is4->ext_fw_info.ext_major);
+ 		fw_ver_minor = ntohl(gi_is4->ext_fw_info.ext_minor);
 -- 
 1.7.1
 --
