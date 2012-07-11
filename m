@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RESEND for-next 5/6] IB/cm: Destroy idr as part of the module init error flow
-Date: Wed, 11 Jul 2012 18:39:31 +0300
-Message-ID: <1342021172-20372-6-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH RESEND for-next 3/6] IB/mlx4: Fill the masked_atomic_cap attribute in query device
+Date: Wed, 11 Jul 2012 18:39:29 +0300
+Message-ID: <1342021172-20372-4-git-send-email-ogerlitz@mellanox.com>
 References: <1342021172-20372-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1342021172-20372-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,54 +12,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Clean the idr as part of the error flow since it is a resource too.
+When the user queries for device capabilities, fill the masked_atomic_cap
+attrbiute according to the support level of atomic capabilities instead of
+hard coded value.
 
 Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index c889aae..d67999f 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3848,24 +3848,28 @@ static int __init ib_cm_init(void)
- 	INIT_LIST_HEAD(&cm.timewait_list);
- 
- 	ret = class_register(&cm_class);
--	if (ret)
--		return -ENOMEM;
-+	if (ret) {
-+		ret = -ENOMEM;
-+		goto error1;
-+	}
- 
- 	cm.wq = create_workqueue("ib_cm");
- 	if (!cm.wq) {
- 		ret = -ENOMEM;
--		goto error1;
-+		goto error2;
- 	}
- 
- 	ret = ib_register_client(&cm_client);
- 	if (ret)
--		goto error2;
-+		goto error3;
- 
- 	return 0;
--error2:
-+error3:
- 	destroy_workqueue(cm.wq);
--error1:
-+error2:
- 	class_unregister(&cm_class);
-+error1:
-+	idr_destroy(&cm.local_id_table);
- 	return ret;
- }
- 
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 4f230c2..5f50d4f 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -157,7 +157,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 	props->local_ca_ack_delay  = dev->dev->caps.local_ca_ack_delay;
+ 	props->atomic_cap	   = dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_ATOMIC ?
+ 		IB_ATOMIC_HCA : IB_ATOMIC_NONE;
+-	props->masked_atomic_cap   = IB_ATOMIC_HCA;
++	props->masked_atomic_cap   = props->atomic_cap;
+ 	props->max_pkeys	   = dev->dev->caps.pkey_table_len[1];
+ 	props->max_mcast_grp	   = dev->dev->caps.num_mgms + dev->dev->caps.num_amgms;
+ 	props->max_mcast_qp_attach = dev->dev->caps.num_qp_per_mgm;
 -- 
 1.7.1
 
