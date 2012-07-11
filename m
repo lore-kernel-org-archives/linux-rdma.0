@@ -1,38 +1,68 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RESEND for-next 0/6] batch of fixes for 3.6
-Date: Wed, 11 Jul 2012 18:39:26 +0300
-Message-ID: <1342021172-20372-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH RESEND for-next 5/6] IB/cm: Destroy idr as part of the module init error flow
+Date: Wed, 11 Jul 2012 18:39:31 +0300
+Message-ID: <1342021172-20372-6-git-send-email-ogerlitz@mellanox.com>
+References: <1342021172-20372-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342021172-20372-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland, 
+From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Here's a batch of small fixes from Dotan for 3.6
+Clean the idr as part of the error flow since it is a resource too.
 
-Please ignore the prev posting, it had wrong sign-off address for me.
+Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/cm.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
-Or.
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index c889aae..d67999f 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -3848,24 +3848,28 @@ static int __init ib_cm_init(void)
+ 	INIT_LIST_HEAD(&cm.timewait_list);
+ 
+ 	ret = class_register(&cm_class);
+-	if (ret)
+-		return -ENOMEM;
++	if (ret) {
++		ret = -ENOMEM;
++		goto error1;
++	}
+ 
+ 	cm.wq = create_workqueue("ib_cm");
+ 	if (!cm.wq) {
+ 		ret = -ENOMEM;
+-		goto error1;
++		goto error2;
+ 	}
+ 
+ 	ret = ib_register_client(&cm_client);
+ 	if (ret)
+-		goto error2;
++		goto error3;
+ 
+ 	return 0;
+-error2:
++error3:
+ 	destroy_workqueue(cm.wq);
+-error1:
++error2:
+ 	class_unregister(&cm_class);
++error1:
++	idr_destroy(&cm.local_id_table);
+ 	return ret;
+ }
+ 
+-- 
+1.7.1
 
-Dotan Barak (6):
-  IB/mthca: Events received for non-existent QPs should generate a warning
-  IB/mthca: Fill in the attribute sq_sig_type value in query QP
-  IB/mlx4: Fill the masked_atomic_cap attribute in query device
-  net/mlx4_core: Remove double function declarations
-  IB/cm: Destroy idr as part of the module init error flow
-  net/mlx4_core: Free ICM table in case of error
-
- drivers/infiniband/core/cm.c             |   16 ++++++++++------
- drivers/infiniband/hw/mlx4/main.c        |    2 +-
- drivers/infiniband/hw/mthca/mthca_qp.c   |    4 +++-
- drivers/net/ethernet/mellanox/mlx4/icm.c |    2 ++
- drivers/net/ethernet/mellanox/mlx4/icm.h |    6 ------
- 5 files changed, 16 insertions(+), 14 deletions(-)
-
-
-Cc: dotanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
