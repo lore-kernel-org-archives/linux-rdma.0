@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RESEND for-next 4/6] net/mlx4_core: Remove double function declarations
-Date: Wed, 11 Jul 2012 18:39:30 +0300
-Message-ID: <1342021172-20372-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH RESEND for-next 1/6] IB/mthca: Events received for non-existent QPs should generate a warning
+Date: Wed, 11 Jul 2012 18:39:27 +0300
+Message-ID: <1342021172-20372-2-git-send-email-ogerlitz@mellanox.com>
 References: <1342021172-20372-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1342021172-20372-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,32 +12,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Spotted four duplicate declarations in icm.h, remove them.
+Events received for non-existent QPs should generate a warning along
+with the event type which was received.
 
 Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/icm.h |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_qp.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.h b/drivers/net/ethernet/mellanox/mlx4/icm.h
-index b10c07a..19e4efc 100644
---- a/drivers/net/ethernet/mellanox/mlx4/icm.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/icm.h
-@@ -81,13 +81,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
- 			u64 virt, int obj_size,	int nobj, int reserved,
- 			int use_lowmem, int use_coherent);
- void mlx4_cleanup_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table);
--int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, int obj);
--void mlx4_table_put(struct mlx4_dev *dev, struct mlx4_icm_table *table, int obj);
- void *mlx4_table_find(struct mlx4_icm_table *table, int obj, dma_addr_t *dma_handle);
--int mlx4_table_get_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
--			 int start, int end);
--void mlx4_table_put_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
--			  int start, int end);
+diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
+index 9601049..7569435 100644
+--- a/drivers/infiniband/hw/mthca/mthca_qp.c
++++ b/drivers/infiniband/hw/mthca/mthca_qp.c
+@@ -247,7 +247,8 @@ void mthca_qp_event(struct mthca_dev *dev, u32 qpn,
+ 	spin_unlock(&dev->qp_table.lock);
  
- static inline void mlx4_icm_first(struct mlx4_icm *icm,
- 				  struct mlx4_icm_iter *iter)
+ 	if (!qp) {
+-		mthca_warn(dev, "Async event for bogus QP %08x\n", qpn);
++		mthca_warn(dev, "Async event %d for bogus QP %08x\n",
++			  (int) event_type, qpn);
+ 		return;
+ 	}
+ 
 -- 
 1.7.1
 
