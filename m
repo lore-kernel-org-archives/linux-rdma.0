@@ -1,69 +1,90 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 1/2] scsi: use kernel's '%pM' format option to print MAC
-Date: Thu, 12 Jul 2012 10:51:29 +0300
-Message-ID: <1342079490-20191-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: linux-scsi@vger.kernel.org, linux-driver@qlogic.com, iscsi-driver@qlogic.com
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, linux-rdma@vger.kernel.org
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags: Fix RPM build error
+Date: Thu, 12 Jul 2012 06:19:13 -0400
+Message-ID: <4FFEA4A1.7020801@dev.mellanox.co.il>
+References: <4FFD8858.3030205@dev.mellanox.co.il> <20120711100211.8101143ea8473ba81a80654c@llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120711100211.8101143ea8473ba81a80654c-i2BcT+NCU+M@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Tom Tucker <tom@opengridcomputing.com>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: linux-rdma@vger.kernel.org
----
- drivers/scsi/fnic/vnic_dev.c  |   10 ++--------
- drivers/scsi/qla4xxx/ql4_nx.c |    8 ++------
- 2 files changed, 4 insertions(+), 14 deletions(-)
+On 7/11/2012 1:02 PM, Ira Weiny wrote:
+> On Wed, 11 Jul 2012 10:06:16 -0400
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> 
+>>
+>> RPM build errors:
+>> Installed (but unpackaged) file(s) found:
+>> /etc/infiniband-diags
+>>
+>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>> diff --git a/Makefile.am b/Makefile.am
+>> index 33b5f90..2265110 100644
+>> --- a/Makefile.am
+>> +++ b/Makefile.am
+>> @@ -147,5 +147,5 @@ install-data-hook:
+>>  		$(top_srcdir)/config/install-sh -m 755 -d $(DESTDIR)/$(sysconfdir)/infiniband-diags; \
+>>  	fi
+>>  	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/scripts/IBswcountlimits.pm $(DESTDIR)/$(PERL_INSTALLDIR)/IBswcountlimits.pm
+>> -	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags
+>> -	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags
+>> +	$(top_srcdir)/config/install-sh -c -m 444 $(top_srcdir)/etc/error_thresholds $(DESTDIR)/$(sysconfdir)/infiniband-diags/error_thresholds
+>> +	$(top_srcdir)/config/install-sh -c -m 400 $(top_srcdir)/etc/ibdiag.conf $(DESTDIR)/$(sysconfdir)/infiniband-diags/ibdiag.conf
+> 
+> What platform is this on?  
 
-diff --git a/drivers/scsi/fnic/vnic_dev.c b/drivers/scsi/fnic/vnic_dev.c
-index b576be7..0cb8ad0 100644
---- a/drivers/scsi/fnic/vnic_dev.c
-+++ b/drivers/scsi/fnic/vnic_dev.c
-@@ -499,10 +499,7 @@ void vnic_dev_add_addr(struct vnic_dev *vdev, u8 *addr)
- 
- 	err = vnic_dev_cmd(vdev, CMD_ADDR_ADD, &a0, &a1, wait);
- 	if (err)
--		printk(KERN_ERR
--			"Can't add addr [%02x:%02x:%02x:%02x:%02x:%02x], %d\n",
--			addr[0], addr[1], addr[2], addr[3], addr[4], addr[5],
--			err);
-+		printk(KERN_ERR "Can't add addr [%pM], %d\n", addr, err);
- }
- 
- void vnic_dev_del_addr(struct vnic_dev *vdev, u8 *addr)
-@@ -517,10 +514,7 @@ void vnic_dev_del_addr(struct vnic_dev *vdev, u8 *addr)
- 
- 	err = vnic_dev_cmd(vdev, CMD_ADDR_DEL, &a0, &a1, wait);
- 	if (err)
--		printk(KERN_ERR
--			"Can't del addr [%02x:%02x:%02x:%02x:%02x:%02x], %d\n",
--			addr[0], addr[1], addr[2], addr[3], addr[4], addr[5],
--			err);
-+		printk(KERN_ERR "Can't del addr [%pM], %d\n", addr, err);
- }
- 
- int vnic_dev_notify_set(struct vnic_dev *vdev, u16 intr)
-diff --git a/drivers/scsi/qla4xxx/ql4_nx.c b/drivers/scsi/qla4xxx/ql4_nx.c
-index 228b670..c163767 100644
---- a/drivers/scsi/qla4xxx/ql4_nx.c
-+++ b/drivers/scsi/qla4xxx/ql4_nx.c
-@@ -2964,12 +2964,8 @@ int qla4_8xxx_get_sys_info(struct scsi_qla_host *ha)
- 	ha->phy_port_num = sys_info->port_num;
- 	ha->iscsi_pci_func_cnt = sys_info->iscsi_pci_func_cnt;
- 
--	DEBUG2(printk("scsi%ld: %s: "
--	    "mac %02x:%02x:%02x:%02x:%02x:%02x "
--	    "serial %s\n", ha->host_no, __func__,
--	    ha->my_mac[0], ha->my_mac[1], ha->my_mac[2],
--	    ha->my_mac[3], ha->my_mac[4], ha->my_mac[5],
--	    ha->serial_number));
-+	DEBUG2(printk("scsi%ld: %s: mac %pM serial %s\n", ha->host_no, __func__,
-+		ha->my_mac, ha->serial_number));
- 
- 	status = QLA_SUCCESS;
- 
--- 
-1.7.10.4
+The platform is ESXi 4.1.0
 
+> I think it is fine to be more specific but this has worked for me on Fedora and RHEL.
+
+/etc/infiniband-diags ended up being the actual ibdiag.conf file (rather
+than having /etc/infiniband-diags/ibdiag.conf) so I thought the same
+thing would occur with error_thresholds.
+
+> 09:55:55 > rpm -qpil /home/weiny2/rpmbuild/RPMS/x86_64/infiniband-diags-1.6.0-unknown.ch5.x86_64.rpm | grep error_thres
+> /etc/infiniband-diags/error_thresholds
+> 
+> 09:56:00 > rpm -qpil /home/weiny2/rpmbuild/RPMS/x86_64/infiniband-diags-1.6.0-unknown.ch5.x86_64.rpm | grep ibdiag
+> /etc/infiniband-diags/ibdiag.conf
+> 
+> 
+>> diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
+>> index d3fcd13..86db3fd 100644
+>> --- a/infiniband-diags.spec.in
+>> +++ b/infiniband-diags.spec.in
+>> @@ -158,6 +158,7 @@ rm -rf $RPM_BUILD_ROOT
+>>  %{_mandir}/man8/infiniband-diags.8.gz
+>>  %{_libdir}/*.a
+>>  %{_libdir}/*.so*
+>> +%{_sysconfdir}/*
+>>  %{_mandir}/man3/*
+>>  %{_includedir}/infiniband/*.h
+>>  %define _perldir %(perl -e 'use Config; $T=$Config{installvendorlib}; print $T;')
+> 
+> The Master branch already includes %{_sysconfdir}/*
+> 
+> %define _perldir %(perl -e 'use Config; $T=$Config{installvendorlib}; print $T;')
+> %{_perldir}/*
+> %{_sysconfdir}/*          <<==============  Does this not work???
+
+Missed that.
+
+-- Hal
+
+> %doc README COPYING ChangeLog
+> 
+> 
+> Ira
+> 
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
