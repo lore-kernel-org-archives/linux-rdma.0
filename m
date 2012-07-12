@@ -1,41 +1,35 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][TRIVIAL] infiniband-diags/vendstat.c: Commentary change
-Date: Thu, 12 Jul 2012 06:35:13 -0400
-Message-ID: <4FFEA861.2060500@dev.mellanox.co.il>
+From: Hadar Hen Zion <hadarh@mellanox.com>
+Subject: Re: linux-next: manual merge of the net-next tree with the infiniband
+ tree
+Date: Thu, 12 Jul 2012 15:57:50 +0300
+Message-ID: <4FFEC9CE.3000306@mellanox.com>
+References: <20120712121307.a482863a98848e3813690ef2@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20120712121307.a482863a98848e3813690ef2@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Hadar Hen Zion <hadarh@mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 7/12/2012 5:13 AM, Stephen Rothwell wrote:
+> Hi all,
+>
+> Today's linux-next merge of the net-next tree got a conflict in
+> include/linux/mlx4/device.h between commit 396f2feb05d7 ("mlx4_core:
+> Implement mechanism for reserved Q_Keys") from the infiniband tree and
+> commit 0ff1fb654bec ("{NET, IB}/mlx4: Add device managed flow steering
+> firmware API") from the net-next tree.
+>
+> Just context changes.  I fixed it up (see below) and can carry the fix
+> as necessary.
+>
 
-Add device names to go along with device IDs
+Thanks Stephen.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/src/vendstat.c b/src/vendstat.c
-index 1c493fa..8535792 100644
---- a/src/vendstat.c
-+++ b/src/vendstat.c
-@@ -142,10 +142,10 @@ typedef struct {
- } is4_config_counter_groups_t;
- 
- static uint16_t ext_fw_info_device[][2] = {
--	{0x0245, 0x0245},
--	{0xc738, 0xc738},
--	{0x01b3, 0x01b3},
--	{0x1003, 0x1011},
-+	{0x0245, 0x0245},	/* Switch-X */
-+	{0xc738, 0xc738},	/* Switch-X */
-+	{0x01b3, 0x01b3},	/* IS-4 */
-+	{0x1003, 0x1011},	/* Connect-X */
- 	{0x0000, 0x0000}};
- 
- static int is_ext_fw_info_supported(uint16_t device_id) {
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please add:
+Acked-by: Hadar Hen Zion <hadarh@mellanox.co.il>
+
+Hadar
