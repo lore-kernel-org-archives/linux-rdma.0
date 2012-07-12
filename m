@@ -1,107 +1,92 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] librdmacm/rsocket: Build librspreload library as part of
- build
-Date: Wed, 11 Jul 2012 22:12:41 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A58252@ORSMSX102.amr.corp.intel.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the net-next tree with the infiniband
+ tree
+Date: Thu, 12 Jul 2012 12:09:50 +1000
+Message-ID: <20120712120950.223be053857381046b7d5db6@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Thu__12_Jul_2012_12_09_50_+1000_pdnzaz+9F0Ba7ZsB"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, Hadar Hen Zion <hadarh@mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Build the rsocket preload library as part of the build.  To reduce the
-risk of the preload library intercepting calls without the user's
-knowledge, the preload library is installed into {_libdir}/rsocket.
-    
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+--Signature=_Thu__12_Jul_2012_12_09_50_+1000_pdnzaz+9F0Ba7ZsB
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Makefile.am b/Makefile.am
-index 51b2f89..b271b45 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,11 +1,14 @@
- INCLUDES = -I$(srcdir)/include
- 
-+rslibdir = $(libdir)/rsocket
- lib_LTLIBRARIES = src/librdmacm.la
-+rslib_LTLIBRARIES = src/librspreload.la
- 
- ACLOCAL_AMFLAGS = -I config
- AM_CFLAGS = -g -Wall -D_GNU_SOURCE -DSYSCONFDIR=\"$(sysconfdir)\" -DRDMADIR=\"@rdmadir@\"
- 
- src_librdmacm_la_CFLAGS = $(AM_CFLAGS)
-+src_librspreload_la_CFLAGS = $(AM_CFLAGS)
- 
- if HAVE_LD_VERSION_SCRIPT
-     librdmacm_version_script = -Wl,--version-script=$(srcdir)/src/librdmacm.map
-@@ -19,6 +22,10 @@ src_librdmacm_la_LDFLAGS = -version-info 1 -export-dynamic \
- 			   $(librdmacm_version_script)
- src_librdmacm_la_DEPENDENCIES =  $(srcdir)/src/librdmacm.map
- 
-+src_librspreload_la_SOURCES = src/preload.c src/indexer.c
-+src_librspreload_la_LDFLAGS = -version-info 1 -export-dynamic
-+src_librspreload_la_LIBADD = $(top_builddir)/src/librdmacm.la
-+
- bin_PROGRAMS = examples/ucmatose examples/rping examples/udaddy examples/mckey \
- 	       examples/rdma_client examples/rdma_server examples/rdma_xclient \
- 	       examples/rdma_xserver examples/rstream examples/rcopy
-diff --git a/librdmacm.spec.in b/librdmacm.spec.in
-index 7248137..4652bbc 100644
---- a/librdmacm.spec.in
-+++ b/librdmacm.spec.in
-@@ -44,6 +44,7 @@ rm -rf $RPM_BUILD_ROOT
- %makeinstall
- # remove unpackaged files from the buildroot
- rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
-+rm -f $RPM_BUILD_ROOT%{_libdir}/rsocket/*.la
- 
- %clean
- rm -rf $RPM_BUILD_ROOT
-@@ -53,13 +54,16 @@ rm -rf $RPM_BUILD_ROOT
- 
- %files
- %defattr(-,root,root,-)
--%{_libdir}/librdmacm*.so.*
-+%{_libdir}/lib*.so.*
-+%{_libdir}/rsocket/lib*.so.*
- %doc AUTHORS COPYING README
- 
- %files devel
- %defattr(-,root,root)
--%{_libdir}/lib*.so
-+%{_libdir}/librdmacm*.so
-+%{_libdir}/rsocket/librspreload*.so
- %{_libdir}/*.a
-+%{_libdir}/rsocket/*.a
- %{_includedir}/*
- %{_mandir}/man3/*
- %{_mandir}/man7/*
-diff --git a/src/preload.c b/src/preload.c
-index d21389f..8758d5c 100644
---- a/src/preload.c
-+++ b/src/preload.c
-@@ -31,14 +31,6 @@
-  *
-  */
- 
--/*
-- * Build:
-- * gcc -lrdmacm -Wall -shared -fPIC -o preload.so -D_GNU_SOURCE preload.c indexer.c
-- *
-- * Use:
-- * LD_PRELOAD=preload.so binary --plus_args
-- */
--
- #if HAVE_CONFIG_H
- #  include <config.h>
- #endif /* HAVE_CONFIG_H */
+Hi all,
 
+Today's linux-next merge of the net-next tree got a conflict in
+drivers/net/ethernet/mellanox/mlx4/main.c between commit 6634961c14d3
+("mlx4: Put physical GID and P_Key table sizes in mlx4_phys_caps struct
+and paravirtualize them") from the infiniband tree and commit
+0ff1fb654bec ("{NET, IB}/mlx4: Add device managed flow steering firmware
+API") from the net-next tree.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Just context changes (I think).  I have fixed it up (see below) and can
+carry the fix as necessary.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --cc drivers/net/ethernet/mellanox/mlx4/main.c
+index 5df3ac4,4264516..0000000
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@@ -1232,10 -1231,26 +1258,29 @@@ static int mlx4_init_hca(struct mlx4_de
+  			goto err_stop_fw;
+  		}
+ =20
+ +		if (mlx4_is_master(dev))
+ +			mlx4_parav_master_pf_caps(dev);
+ +
++ 		priv->fs_hash_mode =3D MLX4_FS_L2_HASH;
++=20
++ 		switch (priv->fs_hash_mode) {
++ 		case MLX4_FS_L2_HASH:
++ 			init_hca.fs_hash_enable_bits =3D 0;
++ 			break;
++=20
++ 		case MLX4_FS_L2_L3_L4_HASH:
++ 			/* Enable flow steering with
++ 			 * udp unicast and tcp unicast
++ 			 */
++ 			init_hca.fs_hash_enable_bits =3D
++ 				MLX4_FS_UDP_UC_EN | MLX4_FS_TCP_UC_EN;
++ 			break;
++ 		}
++=20
+  		profile =3D default_profile;
++ 		if (dev->caps.steering_mode =3D=3D
++ 		    MLX4_STEERING_MODE_DEVICE_MANAGED)
++ 			profile.num_mcg =3D MLX4_FS_NUM_MCG;
+ =20
+  		icm_size =3D mlx4_make_profile(dev, &profile, &dev_cap,
+  					     &init_hca);
+
+--Signature=_Thu__12_Jul_2012_12_09_50_+1000_pdnzaz+9F0Ba7ZsB
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJP/jHuAAoJEECxmPOUX5FEZQ8P+gLLWSj9a99XcmAur2V9iA/J
+0e45RhoEug5TZvnW6DFfCAIxQQ2vcUgQttPzjwx6gXEId/E1LM92Uc42sLjYgfqf
+m6kCM6HModyOxihQ46hlaW2w2s4eI26fCSA8vivf3YEtJJ/bQodVYgOoAAc4uKA1
+yNSET1INTkpSU2qfhxNKrtz1gz3bWyy2xs3vgn6I6tGAnijn1cAGVuEJVl0DAr58
+OxF9tor/Mct30fFaLaQ+u6YSzq3/4nRuWxQyijAChrEIM4+oeuH3iDOxhQIZCf/m
+sYOy+SGE+/hnkMXcKWObhngiZdfyqauKYeN+iMy/2NirvZQu7FcC5cTz7Y5pDUd1
+bJDfMtM3ozesBak+1sbGfGPPdinPNhgRa5js1BNx57OdjoU9LhTx460GhcnjL7Q7
+0AhltNCVGSU2O+Fikq7hvQF0eMS7fLTOsJiQbKeRoA0F4sHO5PKQgUsxIXaPW5Cy
+Uo7JoscmwWHf9eKnxhVzXJAI+dBIv60IC/cxBo1aslv0BCrdDXnFGCHNsUYK/v8y
+SPs+NxcXl16WwOtI6YZFzTdT3tE9l62PgDxbR8L6z4d8ldat2fG4sVPraUmx4aTR
+hnZalOcI/bOWCkKheSBHCisFFGopI3Ne7jSjLkehsnrdCpFS9ZVni04CGKwixoeM
+vubOGMBXhZ8NXBTVbXWB
+=1ReT
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__12_Jul_2012_12_09_50_+1000_pdnzaz+9F0Ba7ZsB--
