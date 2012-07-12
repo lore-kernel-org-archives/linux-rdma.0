@@ -1,36 +1,38 @@
-From: Hadar Hen Zion <hadarh@mellanox.com>
-Subject: Re: linux-next: manual merge of the net-next tree with the infiniband
- tree
-Date: Thu, 12 Jul 2012 15:59:11 +0300
-Message-ID: <4FFECA1F.2020005@mellanox.com>
-References: <20120712120950.223be053857381046b7d5db6@canb.auug.org.au>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: break linkage to neighbouring system
+Date: Thu, 12 Jul 2012 16:52:48 +0300
+Message-ID: <4FFED6B0.5040006@mellanox.com>
+References: <1341914495-32730-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120712120950.223be053857381046b7d5db6@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, Hadar Hen Zion <hadarh@mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1341914495-32730-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/12/2012 5:09 AM, Stephen Rothwell wrote:
-> Hi all,
+On 7/10/2012 1:01 PM, Or Gerlitz wrote:
+> [...] This patch aims to solve the race conditions found in the IPoIB driver.
 >
-> Today's linux-next merge of the net-next tree got a conflict in
-> drivers/net/ethernet/mellanox/mlx4/main.c between commit 6634961c14d3
-> ("mlx4: Put physical GID and P_Key table sizes in mlx4_phys_caps struct
-> and paravirtualize them") from the infiniband tree and commit
-> 0ff1fb654bec ("{NET, IB}/mlx4: Add device managed flow steering firmware
-> API") from the net-next tree.
+> The patch breaks the connection between the core networking neighbour structure
+> and the ipoib_neigh structure. Except for avoiding the race, it allows to in
+> under a setup where SKBs carrying IP packets that don't have any associated
+> neighbour are transmitted through IPoIB.
 >
-> Just context changes (I think).  I have fixed it up (see below) and can
-> carry the fix as necessary.
->
+> We add an ipoib_neigh hash table with 1024 buckets. The hash table key is the destination
+> hardware address. Thus the ipoib_neigh is fetched from the hash table and not
+> dereferenced from the stashed location at the neighbour structure. The hash table uses
+> both RCU and reference count mechanisms to guarantee that no ipoib_neigh instance is
+> ever deleted while in use. [...]
 
-Thanks Stephen.
+Hi Roland, Dave,
 
-Please add:
-Acked-by: Hadar Hen Zion <hadarh@mellanox.co.il>
+Any comments on this patch?
 
-Hadar
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
