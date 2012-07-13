@@ -1,57 +1,28 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] infiniband-diags/vendstat.c: Commentary change
-Date: Thu, 12 Jul 2012 16:58:55 -0700
-Message-ID: <20120712165855.38b5aca3ad9a210890bdb05c@llnl.gov>
-References: <4FFEA861.2060500@dev.mellanox.co.il>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: break linkage to neighbouring system
+Date: Thu, 12 Jul 2012 17:58:25 -0700 (PDT)
+Message-ID: <20120712.175825.1973614213454644336.davem@davemloft.net>
+References: <1341914495-32730-1-git-send-email-ogerlitz@mellanox.com>
+	<32E1700B9017364D9B60AED9960492BC0D47265A@FMSMSX108.amr.corp.intel.com>
+	<36F7E4A28C18BE4DB7C86058E7B607241DC0E3A6@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FFEA861.2060500-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <36F7E4A28C18BE4DB7C86058E7B607241DC0E3A6-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 12 Jul 2012 06:35:13 -0400
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Thu, 12 Jul 2012 20:13:28 +0000
 
-> 
-> Add device names to go along with device IDs
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> The RCU and reference count protect the individual entries in the hash.
+> The R/W lock protects the hash table itself. e.g. deleting the hash table itself, or in the future re-sizing it.
 
-Thanks applied,
-Ira
-
-> ---
-> diff --git a/src/vendstat.c b/src/vendstat.c
-> index 1c493fa..8535792 100644
-> --- a/src/vendstat.c
-> +++ b/src/vendstat.c
-> @@ -142,10 +142,10 @@ typedef struct {
->  } is4_config_counter_groups_t;
->  
->  static uint16_t ext_fw_info_device[][2] = {
-> -	{0x0245, 0x0245},
-> -	{0xc738, 0xc738},
-> -	{0x01b3, 0x01b3},
-> -	{0x1003, 0x1011},
-> +	{0x0245, 0x0245},	/* Switch-X */
-> +	{0xc738, 0xc738},	/* Switch-X */
-> +	{0x01b3, 0x01b3},	/* IS-4 */
-> +	{0x1003, 0x1011},	/* Connect-X */
->  	{0x0000, 0x0000}};
->  
->  static int is_ext_fw_info_supported(uint16_t device_id) {
-
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+You don't need a R/W lock for that, we have RCU hash tables that get resized
+dynamically and the lookup still only needs pure RCU protection.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
