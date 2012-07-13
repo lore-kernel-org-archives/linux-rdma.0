@@ -1,28 +1,75 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: break linkage to neighbouring system
-Date: Thu, 12 Jul 2012 17:58:25 -0700 (PDT)
-Message-ID: <20120712.175825.1973614213454644336.davem@davemloft.net>
-References: <1341914495-32730-1-git-send-email-ogerlitz@mellanox.com>
-	<32E1700B9017364D9B60AED9960492BC0D47265A@FMSMSX108.amr.corp.intel.com>
-	<36F7E4A28C18BE4DB7C86058E7B607241DC0E3A6@MTLDAG01.mtl.com>
+From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
+Subject: [Bug 44631] New: Missing NULL check of the return value of get_skb()
+ in function send_flowc()
+Date: Fri, 13 Jul 2012 02:16:03 +0000 (UTC)
+Message-ID: <bug-44631-11804@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <36F7E4A28C18BE4DB7C86058E7B607241DC0E3A6-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Thu, 12 Jul 2012 20:13:28 +0000
+https://bugzilla.kernel.org/show_bug.cgi?id=44631
 
-> The RCU and reference count protect the individual entries in the hash.
-> The R/W lock protects the hash table itself. e.g. deleting the hash table itself, or in the future re-sizing it.
+           Summary: Missing NULL check of the return value of get_skb() in
+                    function send_flowc()
+           Product: Drivers
+           Version: 2.5
+    Kernel Version: 2.6.39
+          Platform: All
+        OS/Version: Linux
+              Tree: Mainline
+            Status: NEW
+          Severity: normal
+          Priority: P1
+         Component: Infiniband/RDMA
+        AssignedTo: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+        ReportedBy: rucsoftsec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+        Regression: No
 
-You don't need a R/W lock for that, we have RCU hash tables that get resized
-dynamically and the lookup still only needs pure RCU protection.
+
+Function get_skb() may return a NULL pointer, and its return value shall be
+checked before used. But in function send_flowc() after get_skb() is called(at
+drivers/infiniband/hw/cxgb4/cm.c:362), the return value is immediately used as
+a parameter of __skb_put() without NULL check. Besides, there is no check
+before the parameter is dereferenced in the callee function __skb_put(). So an
+invalid memory access may be triggered.
+The related code snippets in send_flowc() are as following.
+send_flowc() @@drivers/infiniband/hw/cxgb4/cm.c:362
+ 362        skb = get_skb(skb, flowclen, GFP_KERNEL);
+ 363        flowc = (struct fw_flowc_wr *)__skb_put(skb, flowclen);
+
+And the implementation of get_skb() are as following.
+get_skb() drivers/infiniband/hw/cxgb4/cm.c:301
+ 301static struct sk_buff *get_skb(struct sk_buff *skb, int len, gfp_t gfp)
+ 302{
+ 303        if (skb && !skb_is_nonlinear(skb) && !skb_cloned(skb)) {
+ 304                skb_trim(skb, 0);
+ 305                skb_get(skb);
+ 306                skb_reset_transport_header(skb);
+ 307        } else {
+ 308                skb = alloc_skb(len, gfp);
+ 309        }
+ 310        return skb;
+ 311}
+
+Following is a call instance of snd_flowc.
+act_establish @@drivers/infiniband/hw/cxgb4/cm.c:695
+ 695        /* start MPA negotiation */
+ 696        send_flowc(ep, NULL);
+
+So from the source code we can see that potential NULL dereference fault exists
+when path act_establish()->send_flowc()->get_skb()->alloc_skb() is executed.
+
+Thank you
+
+RUC_Soft_Sec
+
+-- 
+Configure bugmail: https://bugzilla.kernel.org/userprefs.cgi?tab=email
+------- You are receiving this mail because: -------
+You are watching the assignee of the bug.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
