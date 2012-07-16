@@ -1,35 +1,28 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Rebasing your for-next branch to 3.5-rc7
-Date: Mon, 16 Jul 2012 15:31:37 +0300
-Message-ID: <201207161531.37600.jackm@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rsockets and standard socket based TCP benchmarks
+Date: Mon, 16 Jul 2012 15:07:59 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A62217@ORSMSX101.amr.corp.intel.com>
+References: <4FBD6981.2070502@us.ibm.com>
+ <1828884A29C6694DAF28B7E6B8A8237346A23C38@ORSMSX101.amr.corp.intel.com>
+ <alpine.LRH.2.00.1206081745150.3988@oc4747053027.ibm.com>
+ <1828884A29C6694DAF28B7E6B8A8237346A2FA25@ORSMSX101.amr.corp.intel.com>
+ <alpine.LRH.2.00.1207131640350.3944@oc4747053027.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.00.1207131640350.3944-Nzfcc2Us4m+Xfo/+vza+31aTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vivek Kashyap <kashyapv-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pradeeps-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org" <pradeeps-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Roland,
+> Have you had a chance to look more into the above for fork() support?
 
-I am back from vacation.  Hopefully, you are progressing with your review of
-the huge patch set I submitted -- please let me know if there is anything
-I can do to help.
+Actually, I just started working on it last Friday.  I'll post a patch once I have at least something working.
 
-I noticed that the KVM group submitted a fix for the SRIOV IRQ guest problem
-(Point #3 of the "Some Limitations" section of the patch set cover letter):
-
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=a76beb14123a69ca080f5a5425e28b786d62318d
-
-This fix is incorporated in 3.5-rc7.  If you rebase, we can get rid of the workaround.
-
-Thanks!
-
--Jack
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
