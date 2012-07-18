@@ -1,140 +1,49 @@
-From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm: improve search common pkeys.
-Date: Wed, 18 Jul 2012 17:07:59 +0300
-Message-ID: <1342620479-14923-1-git-send-email-danielk@mellanox.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: rdma_connect() "timeout"
+Date: Wed, 18 Jul 2012 17:12:52 +0200
+Message-ID: <1342624372.19395.35.camel@test.quest-ce.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-improving runtim of search comon pkeys code to o(n).
+Hi,
 
-Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_pkey.c |   94 +++++++++++++++++++++++++++++++++++++++--------------
- 1 files changed, 69 insertions(+), 25 deletions(-)
+Is there a way to setup the timeout in rdma_connect() ?
 
-diff --git a/opensm/osm_pkey.c b/opensm/osm_pkey.c
-index 69657dc..ef5c033 100644
---- a/opensm/osm_pkey.c
-+++ b/opensm/osm_pkey.c
-@@ -374,9 +374,6 @@ ib_net16_t osm_physp_find_common_pkey(IN const osm_physp_t * p_physp1,
- 	pkey_tbl1 = osm_physp_get_pkey_tbl(p_physp1);
- 	pkey_tbl2 = osm_physp_get_pkey_tbl(p_physp2);
- 
--	if (allow_both_pkeys)
--		goto SearchByKeys;
--
- 	map_iter1 = cl_map_head(&pkey_tbl1->keys);
- 	map_iter2 = cl_map_head(&pkey_tbl2->keys);
- 
-@@ -401,34 +398,81 @@ ib_net16_t osm_physp_find_common_pkey(IN const osm_physp_t * p_physp1,
- 			map_iter1 = cl_map_next(map_iter1);
- 	}
- 
--	return 0;
-+	if (!allow_both_pkeys)
-+		return 0;
- 
--SearchByKeys:
-+	/*
-+	   When using allow_both_pkeys, the keys in pkey tables are the
-+	   pkey value including membership bit.
-+	   Therefore, in order to complete the search, we also need to
-+	   compare port\s 1 full pkeys with port 2 limited pkeys, and
-+	   port 2 full pkeys with port 1 full pkeys.
-+	*/
- 
--	/* Select to iterate over the table with the least elements */
--	if (cl_map_count(&pkey_tbl1->keys) < cl_map_count(&pkey_tbl2->keys)) {
--		map_iter = cl_map_head(&pkey_tbl1->keys);
--		map_end = cl_map_end(&pkey_tbl1->keys);
--		pkey_tbl = pkey_tbl2;
--	} else {
--		map_iter = cl_map_head(&pkey_tbl2->keys);
--		map_end = cl_map_end(&pkey_tbl2->keys);
--		pkey_tbl =  pkey_tbl1;
--	}
-+	map_iter1 = cl_map_head(&pkey_tbl1->keys);
-+	map_iter2 = cl_map_head(&pkey_tbl2->keys);
- 
--	while (map_iter != map_end) {
--		pkey1 = (ib_net16_t *) cl_map_obj(map_iter);
--		key = cl_map_key(map_iter);
-+	/* comparing pkey_tbl1 full with pkey_tbl2 limited */
-+	while ((map_iter1 != cl_map_end(&pkey_tbl1->keys)) &&
-+	       (map_iter2 != cl_map_end(&pkey_tbl2->keys))) {
-+		pkey1 = (ib_net16_t *) cl_map_obj(map_iter1);
-+		pkey2 = (ib_net16_t *) cl_map_obj(map_iter2);
- 
--		pkey2 = cl_map_get(&pkey_tbl->keys, key | IB_PKEY_TYPE_MASK);
--		if (!pkey2)
--			pkey2 = cl_map_get(&pkey_tbl->keys,
--					key & ~IB_PKEY_TYPE_MASK);
-+		if (!ib_pkey_is_full_member(*pkey1)) {
-+			map_iter1 = cl_map_next(map_iter1);
-+			continue;
-+		}
-+		if (ib_pkey_is_full_member(*pkey2)) {
-+			map_iter2 = cl_map_next(map_iter2);
-+			continue;
-+		}
-+
-+		if (match_pkey(pkey1, pkey2))
-+			return *pkey1;
-+
-+		/* advance the lower value if they are not equal */
-+		pkey1_base = cl_map_key(map_iter1);
-+		pkey2_base = cl_map_key(map_iter2);
-+		if (pkey2_base == pkey1_base) {
-+			map_iter1 = cl_map_next(map_iter1);
-+			map_iter2 = cl_map_next(map_iter2);
-+		} else if (pkey2_base < pkey1_base)
-+			map_iter2 = cl_map_next(map_iter2);
-+		else
-+			map_iter1 = cl_map_next(map_iter1);
-+	}
- 
--		if (pkey2 && match_pkey(pkey1, pkey2))
--			return (pkey_tbl == pkey_tbl2 ? *pkey1 : *pkey2);
-+	map_iter1 = cl_map_head(&pkey_tbl1->keys);
-+	map_iter2 = cl_map_head(&pkey_tbl2->keys);
- 
--		map_iter = cl_map_next(map_iter);
-+	/* comparing pkey_tbl1 limited with pkey_tbl2 full */
-+	while ((map_iter1 != cl_map_end(&pkey_tbl1->keys)) &&
-+	       (map_iter2 != cl_map_end(&pkey_tbl2->keys))) {
-+		pkey1 = (ib_net16_t *) cl_map_obj(map_iter1);
-+		pkey2 = (ib_net16_t *) cl_map_obj(map_iter2);
-+
-+		if (ib_pkey_is_full_member(*pkey1)) {
-+			map_iter1 = cl_map_next(map_iter1);
-+			continue;
-+		}
-+		if (!ib_pkey_is_full_member(*pkey2)) {
-+			map_iter2 = cl_map_next(map_iter2);
-+			continue;
-+		}
-+
-+		if (match_pkey(pkey1, pkey2))
-+			return *pkey1;
-+
-+		/* advance the lower value if they are not equal */
-+		pkey1_base = cl_map_key(map_iter1);
-+		pkey2_base = cl_map_key(map_iter2);
-+		if (pkey2_base == pkey1_base) {
-+			map_iter1 = cl_map_next(map_iter1);
-+			map_iter2 = cl_map_next(map_iter2);
-+		} else if (pkey2_base < pkey1_base)
-+			map_iter2 = cl_map_next(map_iter2);
-+		else
-+			map_iter1 = cl_map_next(map_iter1);
- 	}
- 
- 	return 0;
+I'm testing something not really useful: to trigger connection error,
+I'm asking to connect to the network address or the broadcast address,
+for example 10.0.0.0/8 or 10.255.255.255/8.
+
+I'm creating an RDMA_CM identifier for the RDMA_PS_TCP port space.
+
+rdma_resolve_addr() is OK, I'm getting RDMA_CM_EVENT_ADDR_RESOLVED
+event.
+rdma_resolve_route() is OK, I'm getting RDMA_CM_EVENT_ROUTE_RESOLVED
+event.
+rdma_connect() is OK ... but I'm getting RDMA_CM_EVENT_UNREACHABLE event
+about 98 seconds after calling rdma_connect().
+
+And 98 seconds is a bit longer than I expected.
+
+Is there a way to change the CM parameters ? e.g. "Service Timeout" to
+wait for moving from "REP wait" state to "Timeout" state, and the number
+of send "REQ" retries (From 12.9.5 "Communication Establishement and
+Release - Active") ?
+
+Is struct rdma_conn_param.retry_count the number of "REQ" retries ?
+According to the manpage, it seems it doesn't apply to CM.
+
+Regards.
+
 -- 
-1.7.1
+Yann Droneaud
+OPTEYA
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
