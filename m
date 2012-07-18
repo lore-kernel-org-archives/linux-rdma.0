@@ -1,50 +1,34 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: rdma_connect() "timeout"
-Date: Wed, 18 Jul 2012 17:12:52 +0200
-Message-ID: <1342624372.19395.35.camel@test.quest-ce.net>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rdma_connect() "timeout"
+Date: Wed, 18 Jul 2012 15:49:49 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6A5AA@ORSMSX101.amr.corp.intel.com>
+References: <1342624372.19395.35.camel@test.quest-ce.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342624372.19395.35.camel-sQn2kEGNn0pFevvuwOF9vF6hYfS7NtTn@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-
-Is there a way to setup the timeout in rdma_connect() ?
-
-I'm testing something not really useful: to trigger connection error,
-I'm asking to connect to the network address or the broadcast address,
-for example 10.0.0.0/8 or 10.255.255.255/8.
-
-I'm creating an RDMA_CM identifier for the RDMA_PS_TCP port space.
-
-rdma_resolve_addr() is OK, I'm getting RDMA_CM_EVENT_ADDR_RESOLVED
-event.
-rdma_resolve_route() is OK, I'm getting RDMA_CM_EVENT_ROUTE_RESOLVED
-event.
-rdma_connect() is OK ... but I'm getting RDMA_CM_EVENT_UNREACHABLE event
-about 98 seconds after calling rdma_connect().
-
-And 98 seconds is a bit longer than I expected.
-
-Is there a way to change the CM parameters ? e.g. "Service Timeout" to
-wait for moving from "REP wait" state to "Timeout" state, and the number
-of send "REQ" retries (From 12.9.5 "Communication Establishement and
-Release - Active") ?
-
-Is struct rdma_conn_param.retry_count the number of "REQ" retries ?
-According to the manpage, it seems it doesn't apply to CM.
-
-Regards.
-
--- 
-Yann Droneaud
-OPTEYA
-
-
+PiBJcyB0aGVyZSBhIHdheSB0byBzZXR1cCB0aGUgdGltZW91dCBpbiByZG1hX2Nvbm5lY3QoKSA/
+DQoNCkZvciBJQiwgdGhlIHRpbWVvdXQgaXMgYmFzZWQgb24gdGhlIHBhY2tldCBsaWZldGltZSBp
+biB0aGUgcGF0aCByZWNvcmQgcmV0dXJuZWQgYnkgdGhlIFNBLiAgVGhlIHJkbWFfY20gd2lsbCBy
+ZXRyeSBhIENNIFJFUSB0aGUgbWF4aW11bSBudW1iZXIgb2YgdGltZXMgKDE1KS4NCiANCj4gSXMg
+dGhlcmUgYSB3YXkgdG8gY2hhbmdlIHRoZSBDTSBwYXJhbWV0ZXJzID8gZS5nLiAiU2VydmljZSBU
+aW1lb3V0IiB0bw0KPiB3YWl0IGZvciBtb3ZpbmcgZnJvbSAiUkVQIHdhaXQiIHN0YXRlIHRvICJU
+aW1lb3V0IiBzdGF0ZSwgYW5kIHRoZSBudW1iZXINCj4gb2Ygc2VuZCAiUkVRIiByZXRyaWVzIChG
+cm9tIDEyLjkuNSAiQ29tbXVuaWNhdGlvbiBFc3RhYmxpc2hlbWVudCBhbmQNCj4gUmVsZWFzZSAt
+IEFjdGl2ZSIpID8NCg0KVGhlcmUgaXMgbm8gZGlyZWN0IHdheSB0byBjaGFuZ2UgdGhlIHRpbWVv
+dXQgcGFyYW1ldGVyLiAgWW91IHdvdWxkIG5lZWQgdG8gYWRqdXN0IHRoZSBzdWJuZXQgdGltZW91
+dCB2YWx1ZXMgYXQgdGhlIFNBLg0KIA0KPiBJcyBzdHJ1Y3QgcmRtYV9jb25uX3BhcmFtLnJldHJ5
+X2NvdW50IHRoZSBudW1iZXIgb2YgIlJFUSIgcmV0cmllcyA/DQo+IEFjY29yZGluZyB0byB0aGUg
+bWFucGFnZSwgaXQgc2VlbXMgaXQgZG9lc24ndCBhcHBseSB0byBDTS4NCg0KVGhlIHJldHJ5X2Nv
+dW50IGFwcGxpZXMgdG8gdGhlIFFQIGFuZCBpcyBub3QgYXNzb2NpYXRlZCB3aXRoIHRoZSBDTSB0
+aW1lb3V0LiAgSS5lLiBpdCBtYXBzIHRvIFJFUTpyZXRyeV9jb3VudCwgdmVyc3VzIFJFUTptYXhf
+Y21fcmV0cmllcy4NCg0KLSBTZWFuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
