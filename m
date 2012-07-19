@@ -1,49 +1,38 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net/for-next V1 1/1] IB/ipoib: break linkage to
- neighbouring system
-Date: Thu, 19 Jul 2012 10:08:50 -0700 (PDT)
-Message-ID: <20120719.100850.1932622478297549573.davem@davemloft.net>
-References: <50082183.5000402@mellanox.com>
-	<alpine.DEB.2.00.1207191023130.29808@router.home>
-	<500833D9.8000001@mellanox.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Betty Dall <betty.dall-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] [Trivial] qib: fix an incorrect message
+Date: Thu, 19 Jul 2012 13:34:19 -0600
+Message-ID: <1342726459-2199-1-git-send-email-betty.dall@hp.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <500833D9.8000001-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Betty Dall <betty.dall-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Thu, 19 Jul 2012 19:20:41 +0300
+There is a cut and paste typo in the function qib_pci_slot_reset() where
+it prints that the "link_reset" function is called rather than the
+"slot_reset" function. This makes the message misleading.
 
-> On 7/19/2012 6:24 PM, Christoph Lameter wrote:
->> On Thu, 19 Jul 2012, Shlomo Pongartz wrote:
->>
->>> The garbage collection and stale times follow the default ipv4/6
->>> neigh.default.gc_yyy
->>> sysctl values, for example
->>>
->>> net.ipv4.neigh.default.gc_interval = 30
->>> net.ipv4.neigh.default.gc_stale_time = 60
->>>
->>> If given access to these values from IPoIB, we will be happy
->>> to integrate them into that logic
->>
->> It looks like the values are hardcoded right now.
-> 
-> Two points here,
-> 
-> 1s, they are indeed hard-coded since there's no define/enum
-> that holds their default values (or maybe we should add one now?), see
-> this code snippest from net/ipv4/arp.c
+Signed-off-by: Betty Dall <betty.dall-VXdhtT5mjnY@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_pcie.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-These numbers come from the IPV6 Neighbour Discovery RFCs.  IPV4
-replicates the Neighbour Unreachability Detection schemes of IPV6 in
-pretty much it's entirety, and therefore takes on the same timeout et
-al. parameters.
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index 790646e..4f9d918 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -725,7 +725,7 @@ qib_pci_mmio_enabled(struct pci_dev *pdev)
+ static pci_ers_result_t
+ qib_pci_slot_reset(struct pci_dev *pdev)
+ {
+-	qib_devinfo(pdev, "QIB link_reset function called, ignored\n");
++	qib_devinfo(pdev, "QIB slot_reset function called, ignored\n");
+ 	return PCI_ERS_RESULT_CAN_RECOVER;
+ }
+ 
+-- 
+1.7.7
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
