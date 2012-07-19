@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/5] IB/qib: Convert krvqs module parameter to per-port
-Date: Thu, 19 Jul 2012 09:04:18 -0400
-Message-ID: <20120719130418.4706.84425.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 2/5] IB/qib: Added congestion control agent implementation
+Date: Thu, 19 Jul 2012 09:04:04 -0400
+Message-ID: <20120719130403.4706.24376.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20120719130356.4706.63775.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,256 +13,1001 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Added a congestion control agent in the driver that handles
+gets and sets from the congestion control manager in the
+fabric for the Performance Scale Messagin (PSM) library.
 
-Convert the krcvqs module paratemter from a per-unit
-parameter to a per-port one. This allows the user to
-specify kernel receive contexts allocation on each
-individual port.
-
-Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib.h         |    2 +
- drivers/infiniband/hw/qib/qib_iba6120.c |    2 +
- drivers/infiniband/hw/qib/qib_iba7220.c |    2 +
- drivers/infiniband/hw/qib/qib_iba7322.c |   58 +++++++++++++++++--------------
- drivers/infiniband/hw/qib/qib_init.c    |   20 +++++++++--
- drivers/infiniband/hw/qib/qib_qp.c      |    6 ++-
- 6 files changed, 56 insertions(+), 34 deletions(-)
+ drivers/infiniband/hw/qib/qib.h       |   35 ++++
+ drivers/infiniband/hw/qib/qib_init.c  |   96 ++++++++++
+ drivers/infiniband/hw/qib/qib_mad.c   |  315 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/qib/qib_mad.h   |  198 +++++++++++++++++++++
+ drivers/infiniband/hw/qib/qib_sysfs.c |  158 ++++++++++++++++-
+ 5 files changed, 790 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index f4feb71..070e83c 100644
+index cbe5771..6e19ec8 100644
 --- a/drivers/infiniband/hw/qib/qib.h
 +++ b/drivers/infiniband/hw/qib/qib.h
-@@ -622,6 +622,7 @@ struct qib_pportdata {
- 	u8 link_speed_active;
- 	u8 vls_supported;
- 	u8 vls_operational;
-+	u8 n_krcv_queues;
- 	/* Rx Polarity inversion (compensate for ~tx on partner) */
- 	u8 rx_pol_inv;
+@@ -519,6 +519,7 @@ struct qib_pportdata {
+ 	struct qib_devdata *dd;
+ 	struct qib_chippport_specific *cpspec; /* chip-specific per-port */
+ 	struct kobject pport_kobj;
++	struct kobject pport_cc_kobj;
+ 	struct kobject sl2vl_kobj;
+ 	struct kobject diagc_kobj;
  
-@@ -1036,7 +1037,6 @@ struct qib_devdata {
- 	u8 num_pports;
- 	/* Lowest context number which can be used by user processes */
- 	u8 first_user_ctxt;
--	u8 n_krcv_queues;
- 	u8 qpn_mask;
- 	u8 skip_kctxt_mask;
- 
-diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
-index 8af5bd3..a2ba6d6 100644
---- a/drivers/infiniband/hw/qib/qib_iba6120.c
-+++ b/drivers/infiniband/hw/qib/qib_iba6120.c
-@@ -2071,7 +2071,7 @@ static void qib_6120_config_ctxts(struct qib_devdata *dd)
- 		dd->qpn_mask = dd->first_user_ctxt <= 2 ? 2 : 6;
- 	} else
- 		dd->first_user_ctxt = dd->num_pports;
--	dd->n_krcv_queues = dd->first_user_ctxt;
-+	dd->pport[0].n_krcv_queues = dd->first_user_ctxt;
- }
- 
- static void qib_update_6120_usrhead(struct qib_ctxtdata *rcd, u64 hd,
-diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
-index f809281..eef047f 100644
---- a/drivers/infiniband/hw/qib/qib_iba7220.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -2305,7 +2305,7 @@ static void qib_7220_config_ctxts(struct qib_devdata *dd)
- 			dd->first_user_ctxt = nchipctxts;
- 	} else
- 		dd->first_user_ctxt = dd->num_pports;
--	dd->n_krcv_queues = dd->first_user_ctxt;
-+	dd->pport[0].n_krcv_queues = dd->first_user_ctxt;
- 
- 	if (!cfgctxts) {
- 		int nctxts = dd->first_user_ctxt + num_online_cpus();
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index e04e0b6..7a7b337 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -3174,7 +3174,8 @@ try_intx:
- 			snprintf(dd->cspec->msix_entries[msixnum].name,
- 				sizeof(dd->cspec->msix_entries[msixnum].name)
- 				 - 1,
--				QIB_DRV_NAME "%d (kctx)", dd->unit);
-+				 QIB_DRV_NAME "%d:%d (kctx)", dd->unit,
-+				 ((struct qib_ctxtdata *)arg)->ppd->port);
- 		}
- 		ret = request_irq(
- 			dd->cspec->msix_entries[msixnum].msix.vector,
-@@ -3593,21 +3594,27 @@ qib_7322_get_msgheader(struct qib_devdata *dd, __le32 *rhf_addr)
- static void qib_7322_config_ctxts(struct qib_devdata *dd)
- {
- 	unsigned long flags;
--	u32 nchipctxts;
-+	u32 nchipctxts, nkrcvqs;
- 	u32 cfgctxts = QIB_MODPARAM_GET(cfgctxts, dd->unit, 0);
--	u32 nkrcvqs = QIB_MODPARAM_GET(krcvqs, dd->unit, 0);
-+	u8 pidx;
- 
- 	nchipctxts = qib_read_kreg32(dd, kr_contextcnt);
- 	dd->cspec->numctxts = nchipctxts;
--	if (nkrcvqs > 1 && dd->num_pports) {
--		dd->first_user_ctxt = NUM_IB_PORTS +
--			(nkrcvqs - 1) * dd->num_pports;
--		if (dd->first_user_ctxt > nchipctxts)
--			dd->first_user_ctxt = nchipctxts;
--		dd->n_krcv_queues = dd->first_user_ctxt / dd->num_pports;
--	} else {
--		dd->first_user_ctxt = NUM_IB_PORTS;
--		dd->n_krcv_queues = 1;
-+	dd->first_user_ctxt = NUM_IB_PORTS;
+@@ -638,6 +639,39 @@ struct qib_pportdata {
+ 	struct timer_list led_override_timer;
+ 	struct xmit_wait cong_stats;
+ 	struct timer_list symerr_clear_timer;
 +
-+	for (pidx = 0; pidx < dd->num_pports; pidx++) {
-+		nkrcvqs = QIB_MODPARAM_GET(krcvqs, dd->unit, pidx+1);
-+		if (nkrcvqs > 1) {
-+			if (nkrcvqs - 1 > nchipctxts - dd->first_user_ctxt)
-+				dd->pport[pidx].n_krcv_queues =
-+					(nchipctxts - dd->first_user_ctxt) + 1;
-+			else
-+				dd->pport[pidx].n_krcv_queues = nkrcvqs;
-+			dd->first_user_ctxt +=
-+				dd->pport[pidx].n_krcv_queues - 1;
-+		} else
-+			/* Account for the HW ctxt */
-+			dd->pport[pidx].n_krcv_queues = 1;
- 	}
++	/* Synchronize access between driver writes and sysfs reads */
++	spinlock_t cc_shadow_lock
++		____cacheline_aligned_in_smp;
++
++	/* Shadow copy of the congestion control table */
++	struct cc_table_shadow *ccti_entries_shadow;
++
++	/* Shadow copy of the congestion control entries */
++	struct ib_cc_congestion_setting_attr_shadow *congestion_entries_shadow;
++
++	/* List of congestion control table entries */
++	struct ib_cc_table_entry_shadow *ccti_entries;
++
++	/* 16 congestion entries with each entry corresponding to a SL */
++	struct ib_cc_congestion_entry_shadow *congestion_entries;
++
++	/* Total number of congestion control table entries */
++	u16 total_cct_entry;
++
++	/* Bit map identifying service level */
++	u16 cc_sl_control_map;
++
++	/* maximum congestion control table index */
++	u16 ccti_limit;
++
++	/* CA's max number of 64 entry units in the congestion control table */
++	u8 cc_max_table_entries;
++
++	/* Maximum number of congestion control entries that the agent expects
++	 * the manager to send.
++	 */
++	u8 cc_supported_table_entries;
+ };
  
- 	if (!cfgctxts) {
-@@ -5995,11 +6002,11 @@ static void write_7322_initregs(struct qib_devdata *dd)
- 	qib_write_kreg(dd, KREG_IDX(RcvQPMulticastContext_1), 1);
+ /* Observers. Not to be taken lightly, possibly not to ship. */
+@@ -1078,6 +1112,7 @@ extern u32 qib_cpulist_count;
+ extern unsigned long *qib_cpulist;
  
- 	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
--		unsigned n, regno;
-+		unsigned i, n, regno, ctxts[18];
- 		unsigned long flags;
- 
--		if (dd->n_krcv_queues < 2 ||
--			!dd->pport[pidx].link_speed_supported)
-+		if (dd->pport[pidx].n_krcv_queues == 1 ||
-+		    !dd->pport[pidx].link_speed_supported)
- 			continue;
- 
- 		ppd = &dd->pport[pidx];
-@@ -6012,19 +6019,18 @@ static void write_7322_initregs(struct qib_devdata *dd)
- 		/* Initialize QP to context mapping */
- 		regno = krp_rcvqpmaptable;
- 		val = 0;
--		if (dd->num_pports > 1)
--			n = dd->first_user_ctxt / dd->num_pports;
--		else
--			n = dd->first_user_ctxt - 1;
-+		for (i = 0, n = 0; n < dd->first_user_ctxt; n++) {
-+			if (dd->skip_kctxt_mask & (1 << n))
-+				continue;
-+			if (dd->rcd[n]->ppd->port == pidx+1)
-+				ctxts[i++] = n;
-+			if (i == ppd->n_krcv_queues)
-+				break;
-+		}
- 		for (i = 0; i < 32; ) {
- 			unsigned ctxt;
- 
--			if (dd->num_pports > 1)
--				ctxt = (i % n) * dd->num_pports + pidx;
--			else if (i % n)
--				ctxt = (i % n) + 1;
--			else
--				ctxt = ppd->hw_pidx;
-+			ctxt = ctxts[i % ppd->n_krcv_queues];
- 			val |= ctxt << (5 * (i % 6));
- 			i++;
- 			if (i % 6 == 0) {
-@@ -6348,8 +6354,8 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
- 		goto bail; /* no error, so can still figure out why err */
- 	}
- 
--	write_7322_initregs(dd);
- 	ret = qib_create_ctxts(dd);
-+	write_7322_initregs(dd);
- 	init_7322_cntrnames(dd);
- 
- 	updthresh = 8U; /* update threshold */
+ extern unsigned qib_wc_pat;
++extern unsigned qib_cc_table_size;
+ int qib_init(struct qib_devdata *, int);
+ int init_chip_wc_pat(struct qib_devdata *dd, u32);
+ int qib_enable_wc(struct qib_devdata *dd);
 diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index ea569a7..a560555 100644
+index 306e65e..24ad901 100644
 --- a/drivers/infiniband/hw/qib/qib_init.c
 +++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -114,7 +114,8 @@ void qib_set_ctxtcnt(struct qib_devdata *dd)
-  */
- int qib_create_ctxts(struct qib_devdata *dd)
+@@ -41,6 +41,7 @@
+ 
+ #include "qib.h"
+ #include "qib_common.h"
++#include "qib_mad.h"
+ 
+ /*
+  * min buffers we want to have per context, after driver
+@@ -71,6 +72,9 @@ unsigned qib_n_krcv_queues;
+ module_param_named(krcvqs, qib_n_krcv_queues, uint, S_IRUGO);
+ MODULE_PARM_DESC(krcvqs, "number of kernel receive queues per IB port");
+ 
++unsigned qib_cc_table_size;
++module_param_named(cc_table_size, qib_cc_table_size, uint, S_IRUGO);
++MODULE_PARM_DESC(cc_table_size, "Congestion control table entries 0 (CCA disabled - default), min = 128, max = 1984");
+ /*
+  * qib_wc_pat parameter:
+  *      0 is WC via MTRR
+@@ -199,6 +203,7 @@ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt)
+ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+ 			u8 hw_pidx, u8 port)
  {
--	unsigned i;
-+	unsigned i, c, p;
-+	unsigned port;
++	int size;
+ 	ppd->dd = dd;
+ 	ppd->hw_pidx = hw_pidx;
+ 	ppd->port = port; /* IB port number, not index */
+@@ -212,6 +217,81 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+ 	ppd->symerr_clear_timer.data = (unsigned long)ppd;
+ 
+ 	ppd->qib_wq = NULL;
++
++	spin_lock_init(&ppd->cc_shadow_lock);
++
++	if (qib_cc_table_size < IB_CCT_MIN_ENTRIES)
++		goto bail;
++
++	ppd->cc_supported_table_entries = min(max_t(int, qib_cc_table_size,
++		IB_CCT_MIN_ENTRIES), IB_CCT_ENTRIES*IB_CC_TABLE_CAP_DEFAULT);
++
++	ppd->cc_max_table_entries =
++		ppd->cc_supported_table_entries/IB_CCT_ENTRIES;
++
++	size = IB_CC_TABLE_CAP_DEFAULT * sizeof(struct ib_cc_table_entry)
++		* IB_CCT_ENTRIES;
++	ppd->ccti_entries = kzalloc(size, GFP_KERNEL);
++	if (!ppd->ccti_entries) {
++		qib_dev_err(dd,
++		  "failed to allocate congestion control table for port %d!\n",
++		  port);
++		goto bail;
++	}
++
++	size = IB_CC_CCS_ENTRIES * sizeof(struct ib_cc_congestion_entry);
++	ppd->congestion_entries = kzalloc(size, GFP_KERNEL);
++	if (!ppd->congestion_entries) {
++		qib_dev_err(dd,
++		 "failed to allocate congestion setting list for port %d!\n",
++		 port);
++		goto bail_1;
++	}
++
++	size = sizeof(struct cc_table_shadow);
++	ppd->ccti_entries_shadow = kzalloc(size, GFP_KERNEL);
++	if (!ppd->ccti_entries_shadow) {
++		qib_dev_err(dd,
++		 "failed to allocate shadow ccti list for port %d!\n",
++		 port);
++		goto bail_2;
++	}
++
++	size = sizeof(struct ib_cc_congestion_setting_attr);
++	ppd->congestion_entries_shadow = kzalloc(size, GFP_KERNEL);
++	if (!ppd->congestion_entries_shadow) {
++		qib_dev_err(dd,
++		 "failed to allocate shadow congestion setting list for port %d!\n",
++		 port);
++		goto bail_3;
++	}
++
++	return;
++
++bail_3:
++	kfree(ppd->ccti_entries_shadow);
++	ppd->ccti_entries_shadow = NULL;
++bail_2:
++	kfree(ppd->congestion_entries);
++	ppd->congestion_entries = NULL;
++bail_1:
++	kfree(ppd->ccti_entries);
++	ppd->ccti_entries = NULL;
++bail:
++	/* User is intentionally disabling the congestion control agent */
++	if (!qib_cc_table_size)
++		return;
++
++	if (qib_cc_table_size < IB_CCT_MIN_ENTRIES) {
++		qib_cc_table_size = 0;
++		qib_dev_err(dd,
++		 "Congestion Control table size %d less than minimum %d for port %d\n",
++		 qib_cc_table_size, IB_CCT_MIN_ENTRIES, port);
++	}
++
++	qib_dev_err(dd, "Congestion Control Agent disabled for port %d\n",
++		port);
++	return;
+ }
+ 
+ static int init_pioavailregs(struct qib_devdata *dd)
+@@ -1164,10 +1244,24 @@ static void cleanup_device_data(struct qib_devdata *dd)
+ 	unsigned long flags;
+ 
+ 	/* users can't do anything more with chip */
+-	for (pidx = 0; pidx < dd->num_pports; ++pidx)
++	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
+ 		if (dd->pport[pidx].statusp)
+ 			*dd->pport[pidx].statusp &= ~QIB_STATUS_CHIP_PRESENT;
+ 
++		spin_lock(&dd->pport[pidx].cc_shadow_lock);
++
++		kfree(dd->pport[pidx].congestion_entries);
++		dd->pport[pidx].congestion_entries = NULL;
++		kfree(dd->pport[pidx].ccti_entries);
++		dd->pport[pidx].ccti_entries = NULL;
++		kfree(dd->pport[pidx].ccti_entries_shadow);
++		dd->pport[pidx].ccti_entries_shadow = NULL;
++		kfree(dd->pport[pidx].congestion_entries_shadow);
++		dd->pport[pidx].congestion_entries_shadow = NULL;
++
++		spin_unlock(&dd->pport[pidx].cc_shadow_lock);
++	}
++
+ 	if (!qib_wc_pat)
+ 		qib_disable_wc(dd);
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 6e20b58..19f1e6c 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -49,6 +49,18 @@ static int reply(struct ib_smp *smp)
+ 	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
+ }
+ 
++static int reply_failure(struct ib_smp *smp)
++{
++	/*
++	 * The verbs framework will handle the directed/LID route
++	 * packet changes.
++	 */
++	smp->method = IB_MGMT_METHOD_GET_RESP;
++	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
++		smp->status |= IB_SMP_DIRECTION;
++	return IB_MAD_RESULT_FAILURE | IB_MAD_RESULT_REPLY;
++}
++
+ static void qib_send_trap(struct qib_ibport *ibp, void *data, unsigned len)
+ {
+ 	struct ib_mad_send_buf *send_buf;
+@@ -2047,6 +2059,298 @@ bail:
+ 	return ret;
+ }
+ 
++static int cc_get_classportinfo(struct ib_cc_mad *ccp,
++				struct ib_device *ibdev)
++{
++	struct ib_cc_classportinfo_attr *p =
++		(struct ib_cc_classportinfo_attr *)ccp->mgmt_data;
++
++	memset(ccp->mgmt_data, 0, sizeof(ccp->mgmt_data));
++
++	p->base_version = 1;
++	p->class_version = 1;
++	p->cap_mask = 0;
++
++	/*
++	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
++	 */
++	p->resp_time_value = 18;
++
++	return reply((struct ib_smp *) ccp);
++}
++
++static int cc_get_congestion_info(struct ib_cc_mad *ccp,
++				struct ib_device *ibdev, u8 port)
++{
++	struct ib_cc_info_attr *p =
++		(struct ib_cc_info_attr *)ccp->mgmt_data;
++	struct qib_ibport *ibp = to_iport(ibdev, port);
++	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
++
++	memset(ccp->mgmt_data, 0, sizeof(ccp->mgmt_data));
++
++	p->congestion_info = 0;
++	p->control_table_cap = ppd->cc_max_table_entries;
++
++	return reply((struct ib_smp *) ccp);
++}
++
++static int cc_get_congestion_setting(struct ib_cc_mad *ccp,
++				struct ib_device *ibdev, u8 port)
++{
++	int i;
++	struct ib_cc_congestion_setting_attr *p =
++		(struct ib_cc_congestion_setting_attr *)ccp->mgmt_data;
++	struct qib_ibport *ibp = to_iport(ibdev, port);
++	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
++	struct ib_cc_congestion_entry_shadow *entries;
++
++	memset(ccp->mgmt_data, 0, sizeof(ccp->mgmt_data));
++
++	spin_lock(&ppd->cc_shadow_lock);
++
++	entries = ppd->congestion_entries_shadow->entries;
++	p->port_control = cpu_to_be16(
++		ppd->congestion_entries_shadow->port_control);
++	p->control_map = cpu_to_be16(
++		ppd->congestion_entries_shadow->control_map);
++	for (i = 0; i < IB_CC_CCS_ENTRIES; i++) {
++		p->entries[i].ccti_increase = entries[i].ccti_increase;
++		p->entries[i].ccti_timer = cpu_to_be16(entries[i].ccti_timer);
++		p->entries[i].trigger_threshold = entries[i].trigger_threshold;
++		p->entries[i].ccti_min = entries[i].ccti_min;
++	}
++
++	spin_unlock(&ppd->cc_shadow_lock);
++
++	return reply((struct ib_smp *) ccp);
++}
++
++static int cc_get_congestion_control_table(struct ib_cc_mad *ccp,
++				struct ib_device *ibdev, u8 port)
++{
++	struct ib_cc_table_attr *p =
++		(struct ib_cc_table_attr *)ccp->mgmt_data;
++	struct qib_ibport *ibp = to_iport(ibdev, port);
++	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
++	u32 cct_block_index = be32_to_cpu(ccp->attr_mod);
++	u32 max_cct_block;
++	u32 cct_entry;
++	struct ib_cc_table_entry_shadow *entries;
++	int i;
++
++	/* Is the table index more than what is supported? */
++	if (cct_block_index > IB_CC_TABLE_CAP_DEFAULT - 1)
++		goto bail;
++
++	memset(ccp->mgmt_data, 0, sizeof(ccp->mgmt_data));
++
++	spin_lock(&ppd->cc_shadow_lock);
++
++	max_cct_block =
++		(ppd->ccti_entries_shadow->ccti_last_entry + 1)/IB_CCT_ENTRIES;
++	max_cct_block = max_cct_block ? max_cct_block - 1 : 0;
++
++	if (cct_block_index > max_cct_block) {
++		spin_unlock(&ppd->cc_shadow_lock);
++		goto bail;
++	}
++
++	ccp->attr_mod = cpu_to_be32(cct_block_index);
++
++	cct_entry = IB_CCT_ENTRIES * (cct_block_index + 1);
++
++	cct_entry--;
++
++	p->ccti_limit = cpu_to_be16(cct_entry);
++
++	entries = &ppd->ccti_entries_shadow->
++			entries[IB_CCT_ENTRIES * cct_block_index];
++	cct_entry %= IB_CCT_ENTRIES;
++
++	for (i = 0; i <= cct_entry; i++)
++		p->ccti_entries[i].entry = cpu_to_be16(entries[i].entry);
++
++	spin_unlock(&ppd->cc_shadow_lock);
++
++	return reply((struct ib_smp *) ccp);
++
++bail:
++	return reply_failure((struct ib_smp *) ccp);
++}
++
++static int cc_set_congestion_setting(struct ib_cc_mad *ccp,
++				struct ib_device *ibdev, u8 port)
++{
++	struct ib_cc_congestion_setting_attr *p =
++		(struct ib_cc_congestion_setting_attr *)ccp->mgmt_data;
++	struct qib_ibport *ibp = to_iport(ibdev, port);
++	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
++	int i;
++
++	ppd->cc_sl_control_map = be16_to_cpu(p->control_map);
++
++	for (i = 0; i < IB_CC_CCS_ENTRIES; i++) {
++		ppd->congestion_entries[i].ccti_increase =
++			p->entries[i].ccti_increase;
++
++		ppd->congestion_entries[i].ccti_timer =
++			be16_to_cpu(p->entries[i].ccti_timer);
++
++		ppd->congestion_entries[i].trigger_threshold =
++			p->entries[i].trigger_threshold;
++
++		ppd->congestion_entries[i].ccti_min =
++			p->entries[i].ccti_min;
++	}
++
++	return reply((struct ib_smp *) ccp);
++}
++
++static int cc_set_congestion_control_table(struct ib_cc_mad *ccp,
++				struct ib_device *ibdev, u8 port)
++{
++	struct ib_cc_table_attr *p =
++		(struct ib_cc_table_attr *)ccp->mgmt_data;
++	struct qib_ibport *ibp = to_iport(ibdev, port);
++	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
++	u32 cct_block_index = be32_to_cpu(ccp->attr_mod);
++	u32 cct_entry;
++	struct ib_cc_table_entry_shadow *entries;
++	int i;
++
++	/* Is the table index more than what is supported? */
++	if (cct_block_index > IB_CC_TABLE_CAP_DEFAULT - 1)
++		goto bail;
++
++	/* If this packet is the first in the sequence then
++	 * zero the total table entry count.
++	 */
++	if (be16_to_cpu(p->ccti_limit) < IB_CCT_ENTRIES)
++		ppd->total_cct_entry = 0;
++
++	cct_entry = (be16_to_cpu(p->ccti_limit))%IB_CCT_ENTRIES;
++
++	/* ccti_limit is 0 to 63 */
++	ppd->total_cct_entry += (cct_entry + 1);
++
++	if (ppd->total_cct_entry > ppd->cc_supported_table_entries)
++		goto bail;
++
++	ppd->ccti_limit = be16_to_cpu(p->ccti_limit);
++
++	entries = ppd->ccti_entries + (IB_CCT_ENTRIES * cct_block_index);
++
++	for (i = 0; i <= cct_entry; i++)
++		entries[i].entry = be16_to_cpu(p->ccti_entries[i].entry);
++
++	spin_lock(&ppd->cc_shadow_lock);
++
++	ppd->ccti_entries_shadow->ccti_last_entry = ppd->total_cct_entry - 1;
++	memcpy(ppd->ccti_entries_shadow->entries, ppd->ccti_entries,
++		(ppd->total_cct_entry * sizeof(struct ib_cc_table_entry)));
++
++	ppd->congestion_entries_shadow->port_control = IB_CC_CCS_PC_SL_BASED;
++	ppd->congestion_entries_shadow->control_map = ppd->cc_sl_control_map;
++	memcpy(ppd->congestion_entries_shadow->entries, ppd->congestion_entries,
++		IB_CC_CCS_ENTRIES * sizeof(struct ib_cc_congestion_entry));
++
++	spin_unlock(&ppd->cc_shadow_lock);
++
++	return reply((struct ib_smp *) ccp);
++
++bail:
++	return reply_failure((struct ib_smp *) ccp);
++}
++
++static int check_cc_key(struct qib_ibport *ibp,
++			struct ib_cc_mad *ccp, int mad_flags)
++{
++	return 0;
++}
++
++static int process_cc(struct ib_device *ibdev, int mad_flags,
++			u8 port, struct ib_mad *in_mad,
++			struct ib_mad *out_mad)
++{
++	struct ib_cc_mad *ccp = (struct ib_cc_mad *)out_mad;
++	struct qib_ibport *ibp = to_iport(ibdev, port);
++	int ret;
++
++	*out_mad = *in_mad;
++
++	if (ccp->class_version != 2) {
++		ccp->status |= IB_SMP_UNSUP_VERSION;
++		ret = reply((struct ib_smp *)ccp);
++		goto bail;
++	}
++
++	ret = check_cc_key(ibp, ccp, mad_flags);
++	if (ret)
++		goto bail;
++
++	switch (ccp->method) {
++	case IB_MGMT_METHOD_GET:
++		switch (ccp->attr_id) {
++		case IB_CC_ATTR_CLASSPORTINFO:
++			ret = cc_get_classportinfo(ccp, ibdev);
++			goto bail;
++
++		case IB_CC_ATTR_CONGESTION_INFO:
++			ret = cc_get_congestion_info(ccp, ibdev, port);
++			goto bail;
++
++		case IB_CC_ATTR_CA_CONGESTION_SETTING:
++			ret = cc_get_congestion_setting(ccp, ibdev, port);
++			goto bail;
++
++		case IB_CC_ATTR_CONGESTION_CONTROL_TABLE:
++			ret = cc_get_congestion_control_table(ccp, ibdev, port);
++			goto bail;
++
++			/* FALLTHROUGH */
++		default:
++			ccp->status |= IB_SMP_UNSUP_METH_ATTR;
++			ret = reply((struct ib_smp *) ccp);
++			goto bail;
++		}
++
++	case IB_MGMT_METHOD_SET:
++		switch (ccp->attr_id) {
++		case IB_CC_ATTR_CA_CONGESTION_SETTING:
++			ret = cc_set_congestion_setting(ccp, ibdev, port);
++			goto bail;
++
++		case IB_CC_ATTR_CONGESTION_CONTROL_TABLE:
++			ret = cc_set_congestion_control_table(ccp, ibdev, port);
++			goto bail;
++
++			/* FALLTHROUGH */
++		default:
++			ccp->status |= IB_SMP_UNSUP_METH_ATTR;
++			ret = reply((struct ib_smp *) ccp);
++			goto bail;
++		}
++
++	case IB_MGMT_METHOD_GET_RESP:
++		/*
++		 * The ib_mad module will call us to process responses
++		 * before checking for other consumers.
++		 * Just tell the caller to process it normally.
++		 */
++		ret = IB_MAD_RESULT_SUCCESS;
++		goto bail;
++
++	case IB_MGMT_METHOD_TRAP:
++	default:
++		ccp->status |= IB_SMP_UNSUP_METHOD;
++		ret = reply((struct ib_smp *) ccp);
++	}
++
++bail:
++	return ret;
++}
++
+ /**
+  * qib_process_mad - process an incoming MAD packet
+  * @ibdev: the infiniband device this packet came in on
+@@ -2071,6 +2375,8 @@ int qib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
+ 		    struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
  	int ret;
++	struct qib_ibport *ibp = to_iport(ibdev, port);
++	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
  
- 	/*
-@@ -129,15 +130,28 @@ int qib_create_ctxts(struct qib_devdata *dd)
- 		goto done;
- 	}
- 
-+	c = dd->num_pports ? min(
-+		(unsigned)dd->pport[0].n_krcv_queues,
-+		(dd->num_pports > 1 ?
-+		 (unsigned)dd->pport[1].n_krcv_queues : (unsigned)-1))
-+		: 0;
-+	p = dd->num_pports > 1 ?
-+		(dd->pport[0].n_krcv_queues > dd->pport[1].n_krcv_queues ?
-+		 0 : 1) : 0;
-+
- 	/* create (one or more) kctxt */
--	for (i = 0; i < dd->first_user_ctxt; ++i) {
-+	for (port = 0, i = 0; i < dd->first_user_ctxt; ++i) {
- 		struct qib_pportdata *ppd;
- 		struct qib_ctxtdata *rcd;
- 
- 		if (dd->skip_kctxt_mask & (1 << i))
- 			continue;
- 
--		ppd = dd->pport + (i % dd->num_pports);
-+		if (i < (c * dd->num_pports))
-+			ppd = dd->pport + (i % dd->num_pports);
-+		else
-+			ppd = dd->pport + p;
-+
- 		rcd = qib_create_ctxtdata(ppd, i);
- 		if (!rcd) {
- 			qib_dev_err(dd, "Unable to allocate ctxtdata"
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 4850d03..500c8fe 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -121,6 +121,7 @@ static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
- 		     enum ib_qp_type type, u8 port)
- {
- 	u32 i, offset, max_scan, qpn;
-+	unsigned krcvqs;
- 	struct qpn_map *map;
- 	u32 ret;
- 
-@@ -138,10 +139,11 @@ static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
+ 	switch (in_mad->mad_hdr.mgmt_class) {
+ 	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
+@@ -2082,6 +2388,15 @@ int qib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
+ 		ret = process_perf(ibdev, port, in_mad, out_mad);
  		goto bail;
- 	}
  
-+	krcvqs = dd->pport[port-1].n_krcv_queues;
- 	qpn = qpt->last + 2;
- 	if (qpn >= QPN_MAX)
- 		qpn = 2;
--	if (qpt->mask && ((qpn & qpt->mask) >> 1) >= dd->n_krcv_queues)
-+	if (qpt->mask && ((qpn & qpt->mask) >> 1) >= krcvqs)
- 		qpn = (qpn | qpt->mask) + 2;
- 	offset = qpn & BITS_PER_PAGE_MASK;
- 	map = &qpt->map[qpn / BITS_PER_PAGE];
-@@ -159,7 +161,7 @@ static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
- 				goto bail;
- 			}
- 			offset = find_next_offset(qpt, map, offset,
--				dd->n_krcv_queues);
-+				krcvqs);
- 			qpn = mk_qpn(qpt, map, offset);
- 			/*
- 			 * This test differs from alloc_pidmap().
++	case IB_MGMT_CLASS_CONG_MGMT:
++		if (!ppd->congestion_entries_shadow ||
++			 !qib_cc_table_size) {
++			ret = IB_MAD_RESULT_SUCCESS;
++			goto bail;
++		}
++		ret = process_cc(ibdev, mad_flags, port, in_mad, out_mad);
++		goto bail;
++
+ 	default:
+ 		ret = IB_MAD_RESULT_SUCCESS;
+ 	}
+diff --git a/drivers/infiniband/hw/qib/qib_mad.h b/drivers/infiniband/hw/qib/qib_mad.h
+index ecc416c..57bd3fa 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.h
++++ b/drivers/infiniband/hw/qib/qib_mad.h
+@@ -1,6 +1,6 @@
+ /*
+- * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
+- * All rights reserved.
++ * Copyright (c) 2012 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -31,6 +31,8 @@
+  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  * SOFTWARE.
+  */
++#ifndef _QIB_MAD_H
++#define _QIB_MAD_H
+ 
+ #include <rdma/ib_pma.h>
+ 
+@@ -223,6 +225,198 @@ struct ib_pma_portcounters_cong {
+ #define IB_PMA_SEL_CONG_ROUTING                 0x08
+ 
+ /*
++ * Congestion control class attributes
++ */
++#define IB_CC_ATTR_CLASSPORTINFO			cpu_to_be16(0x0001)
++#define IB_CC_ATTR_NOTICE				cpu_to_be16(0x0002)
++#define IB_CC_ATTR_CONGESTION_INFO			cpu_to_be16(0x0011)
++#define IB_CC_ATTR_CONGESTION_KEY_INFO			cpu_to_be16(0x0012)
++#define IB_CC_ATTR_CONGESTION_LOG			cpu_to_be16(0x0013)
++#define IB_CC_ATTR_SWITCH_CONGESTION_SETTING		cpu_to_be16(0x0014)
++#define IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING	cpu_to_be16(0x0015)
++#define IB_CC_ATTR_CA_CONGESTION_SETTING		cpu_to_be16(0x0016)
++#define IB_CC_ATTR_CONGESTION_CONTROL_TABLE		cpu_to_be16(0x0017)
++#define IB_CC_ATTR_TIME_STAMP				cpu_to_be16(0x0018)
++
++/* generalizations for threshold values */
++#define IB_CC_THRESHOLD_NONE 0x0
++#define IB_CC_THRESHOLD_MIN  0x1
++#define IB_CC_THRESHOLD_MAX  0xf
++
++/* CCA MAD header constants */
++#define IB_CC_MAD_LOGDATA_LEN 32
++#define IB_CC_MAD_MGMTDATA_LEN 192
++
++struct ib_cc_mad {
++	u8	base_version;
++	u8	mgmt_class;
++	u8	class_version;
++	u8	method;
++	__be16	status;
++	__be16	class_specific;
++	__be64	tid;
++	__be16	attr_id;
++	__be16	resv;
++	__be32	attr_mod;
++	__be64 cckey;
++
++	/* For CongestionLog attribute only */
++	u8 log_data[IB_CC_MAD_LOGDATA_LEN];
++
++	u8 mgmt_data[IB_CC_MAD_MGMTDATA_LEN];
++} __packed;
++
++/*
++ * Congestion Control class portinfo capability mask bits
++ */
++#define IB_CC_CPI_CM_TRAP_GEN		cpu_to_be16(1 << 0)
++#define IB_CC_CPI_CM_GET_SET_NOTICE	cpu_to_be16(1 << 1)
++#define IB_CC_CPI_CM_CAP2		cpu_to_be16(1 << 2)
++#define IB_CC_CPI_CM_ENHANCEDPORT0_CC	cpu_to_be16(1 << 8)
++
++struct ib_cc_classportinfo_attr {
++	u8 base_version;
++	u8 class_version;
++	__be16 cap_mask;
++	u8 reserved[3];
++	u8 resp_time_value;     /* only lower 5 bits */
++	union ib_gid redirect_gid;
++	__be32 redirect_tc_sl_fl;       /* 8, 4, 20 bits respectively */
++	__be16 redirect_lid;
++	__be16 redirect_pkey;
++	__be32 redirect_qp;     /* only lower 24 bits */
++	__be32 redirect_qkey;
++	union ib_gid trap_gid;
++	__be32 trap_tc_sl_fl;   /* 8, 4, 20 bits respectively */
++	__be16 trap_lid;
++	__be16 trap_pkey;
++	__be32 trap_hl_qp;      /* 8, 24 bits respectively */
++	__be32 trap_qkey;
++} __packed;
++
++/* Congestion control traps */
++#define IB_CC_TRAP_KEY_VIOLATION 0x0000
++
++struct ib_cc_trap_key_violation_attr {
++	__be16 source_lid;
++	u8 method;
++	u8 reserved1;
++	__be16 attrib_id;
++	__be32 attrib_mod;
++	__be32 qp;
++	__be64 cckey;
++	u8 sgid[16];
++	u8 padding[24];
++} __packed;
++
++/* Congestion info flags */
++#define IB_CC_CI_FLAGS_CREDIT_STARVATION 0x1
++#define IB_CC_TABLE_CAP_DEFAULT 31
++
++struct ib_cc_info_attr {
++	__be16 congestion_info;
++	u8  control_table_cap; /* Multiple of 64 entry unit CCTs */
++} __packed;
++
++struct ib_cc_key_info_attr {
++	__be64 cckey;
++	u8  protect;
++	__be16 lease_period;
++	__be16 violations;
++} __packed;
++
++#define IB_CC_CL_CA_LOGEVENTS_LEN 208
++
++struct ib_cc_log_attr {
++	u8 log_type;
++	u8 congestion_flags;
++	__be16 threshold_event_counter;
++	__be16 threshold_congestion_event_map;
++	__be16 current_time_stamp;
++	u8 log_events[IB_CC_CL_CA_LOGEVENTS_LEN];
++} __packed;
++
++#define IB_CC_CLEC_SERVICETYPE_RC 0x0
++#define IB_CC_CLEC_SERVICETYPE_UC 0x1
++#define IB_CC_CLEC_SERVICETYPE_RD 0x2
++#define IB_CC_CLEC_SERVICETYPE_UD 0x3
++
++struct ib_cc_log_event {
++	u8 local_qp_cn_entry;
++	u8 remote_qp_number_cn_entry[3];
++	u8  sl_cn_entry:4;
++	u8  service_type_cn_entry:4;
++	__be32 remote_lid_cn_entry;
++	__be32 timestamp_cn_entry;
++} __packed;
++
++/* Sixteen congestion entries */
++#define IB_CC_CCS_ENTRIES 16
++
++/* Port control flags */
++#define IB_CC_CCS_PC_SL_BASED 0x01
++
++struct ib_cc_congestion_entry {
++	u8 ccti_increase;
++	__be16 ccti_timer;
++	u8 trigger_threshold;
++	u8 ccti_min; /* min CCTI for cc table */
++} __packed;
++
++struct ib_cc_congestion_entry_shadow {
++	u8 ccti_increase;
++	u16 ccti_timer;
++	u8 trigger_threshold;
++	u8 ccti_min; /* min CCTI for cc table */
++} __packed;
++
++struct ib_cc_congestion_setting_attr {
++	__be16 port_control;
++	__be16 control_map;
++	struct ib_cc_congestion_entry entries[IB_CC_CCS_ENTRIES];
++} __packed;
++
++struct ib_cc_congestion_setting_attr_shadow {
++	u16 port_control;
++	u16 control_map;
++	struct ib_cc_congestion_entry_shadow entries[IB_CC_CCS_ENTRIES];
++} __packed;
++
++#define IB_CC_TABLE_ENTRY_INCREASE_DEFAULT 1
++#define IB_CC_TABLE_ENTRY_TIMER_DEFAULT 1
++
++/* 64 Congestion Control table entries in a single MAD */
++#define IB_CCT_ENTRIES 64
++#define IB_CCT_MIN_ENTRIES (IB_CCT_ENTRIES * 2)
++
++struct ib_cc_table_entry {
++	__be16 entry; /* shift:2, multiplier:14 */
++};
++
++struct ib_cc_table_entry_shadow {
++	u16 entry; /* shift:2, multiplier:14 */
++};
++
++struct ib_cc_table_attr {
++	__be16 ccti_limit; /* max CCTI for cc table */
++	struct ib_cc_table_entry ccti_entries[IB_CCT_ENTRIES];
++} __packed;
++
++struct ib_cc_table_attr_shadow {
++	u16 ccti_limit; /* max CCTI for cc table */
++	struct ib_cc_table_entry_shadow ccti_entries[IB_CCT_ENTRIES];
++} __packed;
++
++#define CC_TABLE_SHADOW_MAX \
++	(IB_CC_TABLE_CAP_DEFAULT * IB_CCT_ENTRIES)
++
++struct cc_table_shadow {
++	u16 ccti_last_entry;
++	struct ib_cc_table_entry_shadow entries[CC_TABLE_SHADOW_MAX];
++} __packed;
++
++#endif				/* _QIB_MAD_H */
++/*
+  * The PortSamplesControl.CounterMasks field is an array of 3 bit fields
+  * which specify the N'th counter's capabilities. See ch. 16.1.3.2.
+  * We support 5 counters which only count the mandatory quantities.
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+index dd9cd49..ae78305 100644
+--- a/drivers/infiniband/hw/qib/qib_sysfs.c
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -1,5 +1,6 @@
+ /*
+- * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2012 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -33,6 +34,7 @@
+ #include <linux/ctype.h>
+ 
+ #include "qib.h"
++#include "qib_mad.h"
+ 
+ /**
+  * qib_parse_ushort - parse an unsigned short value in an arbitrary base
+@@ -231,6 +233,98 @@ static struct attribute *port_default_attributes[] = {
+ 	NULL
+ };
+ 
++/*
++ * Start of per-port congestion control structures and support code
++ */
++
++/*
++ * Congestion control table size followed by table entries
++ */
++static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
++		struct bin_attribute *bin_attr,
++		char *buf, loff_t pos, size_t count)
++{
++	int ret;
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, pport_cc_kobj);
++
++	if (!qib_cc_table_size || !ppd->ccti_entries_shadow)
++		return -EINVAL;
++
++	ret = ppd->total_cct_entry * sizeof(struct ib_cc_table_entry_shadow)
++		 + sizeof(__be16);
++
++	if (pos > ret)
++		return -EINVAL;
++
++	if (count > ret - pos)
++		count = ret - pos;
++
++	if (!count)
++		return count;
++
++	spin_lock(&ppd->cc_shadow_lock);
++	memcpy(buf, ppd->ccti_entries_shadow, count);
++	spin_unlock(&ppd->cc_shadow_lock);
++
++	return count;
++}
++
++static void qib_port_release(struct kobject *kobj)
++{
++	/* nothing to do since memory is freed by qib_free_devdata() */
++}
++
++static struct kobj_type qib_port_cc_ktype = {
++	.release = qib_port_release,
++};
++
++static struct bin_attribute cc_table_bin_attr = {
++	.attr = {.name = "cc_table_bin", .mode = 0444},
++	.read = read_cc_table_bin,
++	.size = PAGE_SIZE,
++};
++
++/*
++ * Congestion settings: port control, control map and an array of 16
++ * entries for the congestion entries - increase, timer, event log
++ * trigger threshold and the minimum injection rate delay.
++ */
++static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
++		struct bin_attribute *bin_attr,
++		char *buf, loff_t pos, size_t count)
++{
++	int ret;
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, pport_cc_kobj);
++
++	if (!qib_cc_table_size || !ppd->congestion_entries_shadow)
++		return -EINVAL;
++
++	ret = sizeof(struct ib_cc_congestion_setting_attr_shadow);
++
++	if (pos > ret)
++		return -EINVAL;
++	if (count > ret - pos)
++		count = ret - pos;
++
++	if (!count)
++		return count;
++
++	spin_lock(&ppd->cc_shadow_lock);
++	memcpy(buf, ppd->congestion_entries_shadow, count);
++	spin_unlock(&ppd->cc_shadow_lock);
++
++	return count;
++}
++
++static struct bin_attribute cc_setting_bin_attr = {
++	.attr = {.name = "cc_settings_bin", .mode = 0444},
++	.read = read_cc_setting_bin,
++	.size = PAGE_SIZE,
++};
++
++
+ static ssize_t qib_portattr_show(struct kobject *kobj,
+ 	struct attribute *attr, char *buf)
+ {
+@@ -253,10 +347,6 @@ static ssize_t qib_portattr_store(struct kobject *kobj,
+ 	return pattr->store(ppd, buf, len);
+ }
+ 
+-static void qib_port_release(struct kobject *kobj)
+-{
+-	/* nothing to do since memory is freed by qib_free_devdata() */
+-}
+ 
+ static const struct sysfs_ops qib_port_ops = {
+ 	.show = qib_portattr_show,
+@@ -670,7 +760,7 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+ 	if (ret) {
+ 		qib_dev_err(dd, "Skipping sl2vl sysfs info, "
+ 			    "(err %d) port %u\n", ret, port_num);
+-		goto bail_sl;
++		goto bail_link;
+ 	}
+ 	kobject_uevent(&ppd->sl2vl_kobj, KOBJ_ADD);
+ 
+@@ -679,15 +769,57 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+ 	if (ret) {
+ 		qib_dev_err(dd, "Skipping diag_counters sysfs info, "
+ 			    "(err %d) port %u\n", ret, port_num);
+-		goto bail_diagc;
++		goto bail_sl;
+ 	}
+ 	kobject_uevent(&ppd->diagc_kobj, KOBJ_ADD);
+ 
++	if (!qib_cc_table_size || !ppd->congestion_entries_shadow)
++		return 0;
++
++	ret = kobject_init_and_add(&ppd->pport_cc_kobj, &qib_port_cc_ktype,
++				kobj, "CCMgtA");
++	if (ret) {
++		qib_dev_err(dd,
++		 "Skipping Congestion Control sysfs info, (err %d) port %u\n",
++		 ret, port_num);
++		goto bail_diagc;
++	}
++
++	kobject_uevent(&ppd->pport_cc_kobj, KOBJ_ADD);
++
++	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
++				&cc_setting_bin_attr);
++	if (ret) {
++		qib_dev_err(dd,
++		 "Skipping Congestion Control setting sysfs info, (err %d) port %u\n",
++		 ret, port_num);
++		goto bail_cc;
++	}
++
++	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
++				&cc_table_bin_attr);
++	if (ret) {
++		qib_dev_err(dd,
++		 "Skipping Congestion Control table sysfs info, (err %d) port %u\n",
++		 ret, port_num);
++		goto bail_cc_entry_bin;
++	}
++
++	qib_devinfo(dd->pcidev,
++		"IB%u: Congestion Control Agent enabled for port %d\n",
++		dd->unit, port_num);
++
+ 	return 0;
+ 
++bail_cc_entry_bin:
++	sysfs_remove_bin_file(&ppd->pport_cc_kobj, &cc_setting_bin_attr);
++bail_cc:
++	kobject_put(&ppd->pport_cc_kobj);
+ bail_diagc:
+-	kobject_put(&ppd->sl2vl_kobj);
++	kobject_put(&ppd->diagc_kobj);
+ bail_sl:
++	kobject_put(&ppd->sl2vl_kobj);
++bail_link:
+ 	kobject_put(&ppd->pport_kobj);
+ bail:
+ 	return ret;
+@@ -720,7 +852,15 @@ void qib_verbs_unregister_sysfs(struct qib_devdata *dd)
+ 
+ 	for (i = 0; i < dd->num_pports; i++) {
+ 		ppd = &dd->pport[i];
+-		kobject_put(&ppd->pport_kobj);
++		if (qib_cc_table_size &&
++			ppd->congestion_entries_shadow) {
++			sysfs_remove_bin_file(&ppd->pport_cc_kobj,
++				&cc_setting_bin_attr);
++			sysfs_remove_bin_file(&ppd->pport_cc_kobj,
++				&cc_table_bin_attr);
++			kobject_put(&ppd->pport_cc_kobj);
++		}
+ 		kobject_put(&ppd->sl2vl_kobj);
++		kobject_put(&ppd->pport_kobj);
+ 	}
+ }
 
 
 --
