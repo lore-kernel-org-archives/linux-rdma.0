@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/5] IB/qib: Added congestion control agent implementation
-Date: Thu, 19 Jul 2012 09:04:04 -0400
-Message-ID: <20120719130403.4706.24376.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 5/5] IB/qib: checkpatch fixes
+Date: Thu, 19 Jul 2012 09:04:25 -0400
+Message-ID: <20120719130425.4706.30373.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20120719130356.4706.63775.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,1001 +13,1948 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Added a congestion control agent in the driver that handles
-gets and sets from the congestion control manager in the
-fabric for the Performance Scale Messagin (PSM) library.
+Elminate some simple_strto* usage.
 
+The checkpatch also noted pr_ conversations, which have been
+done as recommended.   The pr_fmt() define is used to shorten
+line length.
+
+Other multi-line string warnings are also elmininated.
+
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib.h       |   35 ++++
- drivers/infiniband/hw/qib/qib_init.c  |   96 ++++++++++
- drivers/infiniband/hw/qib/qib_mad.c   |  315 +++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_mad.h   |  198 +++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_sysfs.c |  158 ++++++++++++++++-
- 5 files changed, 790 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/qib/qib_diag.c      |   13 ++-
+ drivers/infiniband/hw/qib/qib_driver.c    |   15 ++-
+ drivers/infiniband/hw/qib/qib_eeprom.c    |   41 +++++---
+ drivers/infiniband/hw/qib/qib_file_ops.c  |   63 ++++++------
+ drivers/infiniband/hw/qib/qib_fs.c        |   21 ++--
+ drivers/infiniband/hw/qib/qib_iba6120.c   |   91 ++++++++++--------
+ drivers/infiniband/hw/qib/qib_iba7220.c   |   92 ++++++++++--------
+ drivers/infiniband/hw/qib/qib_iba7322.c   |  148 +++++++++++++++--------------
+ drivers/infiniband/hw/qib/qib_init.c      |  100 ++++++++++----------
+ drivers/infiniband/hw/qib/qib_intr.c      |    8 +-
+ drivers/infiniband/hw/qib/qib_pcie.c      |   23 +++--
+ drivers/infiniband/hw/qib/qib_sd7220.c    |   41 ++++----
+ drivers/infiniband/hw/qib/qib_sdma.c      |   11 +-
+ drivers/infiniband/hw/qib/qib_sysfs.c     |   88 ++++++-----------
+ drivers/infiniband/hw/qib/qib_twsi.c      |    8 +-
+ drivers/infiniband/hw/qib/qib_wc_x86_64.c |   14 +--
+ 16 files changed, 395 insertions(+), 382 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index cbe5771..6e19ec8 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -519,6 +519,7 @@ struct qib_pportdata {
- 	struct qib_devdata *dd;
- 	struct qib_chippport_specific *cpspec; /* chip-specific per-port */
- 	struct kobject pport_kobj;
-+	struct kobject pport_cc_kobj;
- 	struct kobject sl2vl_kobj;
- 	struct kobject diagc_kobj;
- 
-@@ -638,6 +639,39 @@ struct qib_pportdata {
- 	struct timer_list led_override_timer;
- 	struct xmit_wait cong_stats;
- 	struct timer_list symerr_clear_timer;
-+
-+	/* Synchronize access between driver writes and sysfs reads */
-+	spinlock_t cc_shadow_lock
-+		____cacheline_aligned_in_smp;
-+
-+	/* Shadow copy of the congestion control table */
-+	struct cc_table_shadow *ccti_entries_shadow;
-+
-+	/* Shadow copy of the congestion control entries */
-+	struct ib_cc_congestion_setting_attr_shadow *congestion_entries_shadow;
-+
-+	/* List of congestion control table entries */
-+	struct ib_cc_table_entry_shadow *ccti_entries;
-+
-+	/* 16 congestion entries with each entry corresponding to a SL */
-+	struct ib_cc_congestion_entry_shadow *congestion_entries;
-+
-+	/* Total number of congestion control table entries */
-+	u16 total_cct_entry;
-+
-+	/* Bit map identifying service level */
-+	u16 cc_sl_control_map;
-+
-+	/* maximum congestion control table index */
-+	u16 ccti_limit;
-+
-+	/* CA's max number of 64 entry units in the congestion control table */
-+	u8 cc_max_table_entries;
-+
-+	/* Maximum number of congestion control entries that the agent expects
-+	 * the manager to send.
-+	 */
-+	u8 cc_supported_table_entries;
- };
- 
- /* Observers. Not to be taken lightly, possibly not to ship. */
-@@ -1078,6 +1112,7 @@ extern u32 qib_cpulist_count;
- extern unsigned long *qib_cpulist;
- 
- extern unsigned qib_wc_pat;
-+extern unsigned qib_cc_table_size;
- int qib_init(struct qib_devdata *, int);
- int init_chip_wc_pat(struct qib_devdata *dd, u32);
- int qib_enable_wc(struct qib_devdata *dd);
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 306e65e..24ad901 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -41,6 +41,7 @@
- 
+diff --git a/drivers/infiniband/hw/qib/qib_diag.c b/drivers/infiniband/hw/qib/qib_diag.c
+index 9892456..1686fd4 100644
+--- a/drivers/infiniband/hw/qib/qib_diag.c
++++ b/drivers/infiniband/hw/qib/qib_diag.c
+@@ -1,6 +1,6 @@
+ /*
+- * Copyright (c) 2010 QLogic Corporation. All rights reserved.
+- * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2012 Intel Corporation. All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -53,6 +53,9 @@
  #include "qib.h"
  #include "qib_common.h"
-+#include "qib_mad.h"
  
++#undef pr_fmt
++#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
++
  /*
-  * min buffers we want to have per context, after driver
-@@ -71,6 +72,9 @@ unsigned qib_n_krcv_queues;
- module_param_named(krcvqs, qib_n_krcv_queues, uint, S_IRUGO);
- MODULE_PARM_DESC(krcvqs, "number of kernel receive queues per IB port");
- 
-+unsigned qib_cc_table_size;
-+module_param_named(cc_table_size, qib_cc_table_size, uint, S_IRUGO);
-+MODULE_PARM_DESC(cc_table_size, "Congestion control table entries 0 (CCA disabled - default), min = 128, max = 1984");
- /*
-  * qib_wc_pat parameter:
-  *      0 is WC via MTRR
-@@ -199,6 +203,7 @@ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt)
- void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
- 			u8 hw_pidx, u8 port)
- {
-+	int size;
- 	ppd->dd = dd;
- 	ppd->hw_pidx = hw_pidx;
- 	ppd->port = port; /* IB port number, not index */
-@@ -212,6 +217,81 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
- 	ppd->symerr_clear_timer.data = (unsigned long)ppd;
- 
- 	ppd->qib_wq = NULL;
-+
-+	spin_lock_init(&ppd->cc_shadow_lock);
-+
-+	if (qib_cc_table_size < IB_CCT_MIN_ENTRIES)
-+		goto bail;
-+
-+	ppd->cc_supported_table_entries = min(max_t(int, qib_cc_table_size,
-+		IB_CCT_MIN_ENTRIES), IB_CCT_ENTRIES*IB_CC_TABLE_CAP_DEFAULT);
-+
-+	ppd->cc_max_table_entries =
-+		ppd->cc_supported_table_entries/IB_CCT_ENTRIES;
-+
-+	size = IB_CC_TABLE_CAP_DEFAULT * sizeof(struct ib_cc_table_entry)
-+		* IB_CCT_ENTRIES;
-+	ppd->ccti_entries = kzalloc(size, GFP_KERNEL);
-+	if (!ppd->ccti_entries) {
-+		qib_dev_err(dd,
-+		  "failed to allocate congestion control table for port %d!\n",
-+		  port);
-+		goto bail;
-+	}
-+
-+	size = IB_CC_CCS_ENTRIES * sizeof(struct ib_cc_congestion_entry);
-+	ppd->congestion_entries = kzalloc(size, GFP_KERNEL);
-+	if (!ppd->congestion_entries) {
-+		qib_dev_err(dd,
-+		 "failed to allocate congestion setting list for port %d!\n",
-+		 port);
-+		goto bail_1;
-+	}
-+
-+	size = sizeof(struct cc_table_shadow);
-+	ppd->ccti_entries_shadow = kzalloc(size, GFP_KERNEL);
-+	if (!ppd->ccti_entries_shadow) {
-+		qib_dev_err(dd,
-+		 "failed to allocate shadow ccti list for port %d!\n",
-+		 port);
-+		goto bail_2;
-+	}
-+
-+	size = sizeof(struct ib_cc_congestion_setting_attr);
-+	ppd->congestion_entries_shadow = kzalloc(size, GFP_KERNEL);
-+	if (!ppd->congestion_entries_shadow) {
-+		qib_dev_err(dd,
-+		 "failed to allocate shadow congestion setting list for port %d!\n",
-+		 port);
-+		goto bail_3;
-+	}
-+
-+	return;
-+
-+bail_3:
-+	kfree(ppd->ccti_entries_shadow);
-+	ppd->ccti_entries_shadow = NULL;
-+bail_2:
-+	kfree(ppd->congestion_entries);
-+	ppd->congestion_entries = NULL;
-+bail_1:
-+	kfree(ppd->ccti_entries);
-+	ppd->ccti_entries = NULL;
-+bail:
-+	/* User is intentionally disabling the congestion control agent */
-+	if (!qib_cc_table_size)
-+		return;
-+
-+	if (qib_cc_table_size < IB_CCT_MIN_ENTRIES) {
-+		qib_cc_table_size = 0;
-+		qib_dev_err(dd,
-+		 "Congestion Control table size %d less than minimum %d for port %d\n",
-+		 qib_cc_table_size, IB_CCT_MIN_ENTRIES, port);
-+	}
-+
-+	qib_dev_err(dd, "Congestion Control Agent disabled for port %d\n",
-+		port);
-+	return;
- }
- 
- static int init_pioavailregs(struct qib_devdata *dd)
-@@ -1164,10 +1244,24 @@ static void cleanup_device_data(struct qib_devdata *dd)
- 	unsigned long flags;
- 
- 	/* users can't do anything more with chip */
--	for (pidx = 0; pidx < dd->num_pports; ++pidx)
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
- 		if (dd->pport[pidx].statusp)
- 			*dd->pport[pidx].statusp &= ~QIB_STATUS_CHIP_PRESENT;
- 
-+		spin_lock(&dd->pport[pidx].cc_shadow_lock);
-+
-+		kfree(dd->pport[pidx].congestion_entries);
-+		dd->pport[pidx].congestion_entries = NULL;
-+		kfree(dd->pport[pidx].ccti_entries);
-+		dd->pport[pidx].ccti_entries = NULL;
-+		kfree(dd->pport[pidx].ccti_entries_shadow);
-+		dd->pport[pidx].ccti_entries_shadow = NULL;
-+		kfree(dd->pport[pidx].congestion_entries_shadow);
-+		dd->pport[pidx].congestion_entries_shadow = NULL;
-+
-+		spin_unlock(&dd->pport[pidx].cc_shadow_lock);
-+	}
-+
- 	if (!qib_wc_pat)
- 		qib_disable_wc(dd);
- 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index 6e20b58..19f1e6c 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -49,6 +49,18 @@ static int reply(struct ib_smp *smp)
- 	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
- }
- 
-+static int reply_failure(struct ib_smp *smp)
-+{
-+	/*
-+	 * The verbs framework will handle the directed/LID route
-+	 * packet changes.
-+	 */
-+	smp->method = IB_MGMT_METHOD_GET_RESP;
-+	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
-+		smp->status |= IB_SMP_DIRECTION;
-+	return IB_MAD_RESULT_FAILURE | IB_MAD_RESULT_REPLY;
-+}
-+
- static void qib_send_trap(struct qib_ibport *ibp, void *data, unsigned len)
- {
- 	struct ib_mad_send_buf *send_buf;
-@@ -2047,6 +2059,298 @@ bail:
- 	return ret;
- }
- 
-+static int cc_get_classportinfo(struct ib_cc_mad *ccp,
-+				struct ib_device *ibdev)
-+{
-+	struct ib_cc_classportinfo_attr *p =
-+		(struct ib_cc_classportinfo_attr *)ccp->mgmt_data;
-+
-+	memset(ccp->mgmt_data, 0, sizeof(ccp->mgmt_data));
-+
-+	p->base_version = 1;
-+	p->class_version = 1;
-+	p->cap_mask = 0;
-+
-+	/*
-+	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
-+	 */
-+	p->resp_time_value = 18;
-+
-+	return reply((struct ib_smp *) ccp);
-+}
-+
-+static int cc_get_congestion_info(struct ib_cc_mad *ccp,
-+				struct ib_device *ibdev, u8 port)
-+{
-+	struct ib_cc_info_attr *p =
-+		(struct ib_cc_info_attr *)ccp->mgmt_data;
-+	struct qib_ibport *ibp = to_iport(ibdev, port);
-+	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
-+
-+	memset(ccp->mgmt_data, 0, sizeof(ccp->mgmt_data));
-+
-+	p->congestion_info = 0;
-+	p->control_table_cap = ppd->cc_max_table_entries;
-+
-+	return reply((struct ib_smp *) ccp);
-+}
-+
-+static int cc_get_congestion_setting(struct ib_cc_mad *ccp,
-+				struct ib_device *ibdev, u8 port)
-+{
-+	int i;
-+	struct ib_cc_congestion_setting_attr *p =
-+		(struct ib_cc_congestion_setting_attr *)ccp->mgmt_data;
-+	struct qib_ibport *ibp = to_iport(ibdev, port);
-+	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
-+	struct ib_cc_congestion_entry_shadow *entries;
-+
-+	memset(ccp->mgmt_data, 0, sizeof(ccp->mgmt_data));
-+
-+	spin_lock(&ppd->cc_shadow_lock);
-+
-+	entries = ppd->congestion_entries_shadow->entries;
-+	p->port_control = cpu_to_be16(
-+		ppd->congestion_entries_shadow->port_control);
-+	p->control_map = cpu_to_be16(
-+		ppd->congestion_entries_shadow->control_map);
-+	for (i = 0; i < IB_CC_CCS_ENTRIES; i++) {
-+		p->entries[i].ccti_increase = entries[i].ccti_increase;
-+		p->entries[i].ccti_timer = cpu_to_be16(entries[i].ccti_timer);
-+		p->entries[i].trigger_threshold = entries[i].trigger_threshold;
-+		p->entries[i].ccti_min = entries[i].ccti_min;
-+	}
-+
-+	spin_unlock(&ppd->cc_shadow_lock);
-+
-+	return reply((struct ib_smp *) ccp);
-+}
-+
-+static int cc_get_congestion_control_table(struct ib_cc_mad *ccp,
-+				struct ib_device *ibdev, u8 port)
-+{
-+	struct ib_cc_table_attr *p =
-+		(struct ib_cc_table_attr *)ccp->mgmt_data;
-+	struct qib_ibport *ibp = to_iport(ibdev, port);
-+	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
-+	u32 cct_block_index = be32_to_cpu(ccp->attr_mod);
-+	u32 max_cct_block;
-+	u32 cct_entry;
-+	struct ib_cc_table_entry_shadow *entries;
-+	int i;
-+
-+	/* Is the table index more than what is supported? */
-+	if (cct_block_index > IB_CC_TABLE_CAP_DEFAULT - 1)
-+		goto bail;
-+
-+	memset(ccp->mgmt_data, 0, sizeof(ccp->mgmt_data));
-+
-+	spin_lock(&ppd->cc_shadow_lock);
-+
-+	max_cct_block =
-+		(ppd->ccti_entries_shadow->ccti_last_entry + 1)/IB_CCT_ENTRIES;
-+	max_cct_block = max_cct_block ? max_cct_block - 1 : 0;
-+
-+	if (cct_block_index > max_cct_block) {
-+		spin_unlock(&ppd->cc_shadow_lock);
-+		goto bail;
-+	}
-+
-+	ccp->attr_mod = cpu_to_be32(cct_block_index);
-+
-+	cct_entry = IB_CCT_ENTRIES * (cct_block_index + 1);
-+
-+	cct_entry--;
-+
-+	p->ccti_limit = cpu_to_be16(cct_entry);
-+
-+	entries = &ppd->ccti_entries_shadow->
-+			entries[IB_CCT_ENTRIES * cct_block_index];
-+	cct_entry %= IB_CCT_ENTRIES;
-+
-+	for (i = 0; i <= cct_entry; i++)
-+		p->ccti_entries[i].entry = cpu_to_be16(entries[i].entry);
-+
-+	spin_unlock(&ppd->cc_shadow_lock);
-+
-+	return reply((struct ib_smp *) ccp);
-+
-+bail:
-+	return reply_failure((struct ib_smp *) ccp);
-+}
-+
-+static int cc_set_congestion_setting(struct ib_cc_mad *ccp,
-+				struct ib_device *ibdev, u8 port)
-+{
-+	struct ib_cc_congestion_setting_attr *p =
-+		(struct ib_cc_congestion_setting_attr *)ccp->mgmt_data;
-+	struct qib_ibport *ibp = to_iport(ibdev, port);
-+	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
-+	int i;
-+
-+	ppd->cc_sl_control_map = be16_to_cpu(p->control_map);
-+
-+	for (i = 0; i < IB_CC_CCS_ENTRIES; i++) {
-+		ppd->congestion_entries[i].ccti_increase =
-+			p->entries[i].ccti_increase;
-+
-+		ppd->congestion_entries[i].ccti_timer =
-+			be16_to_cpu(p->entries[i].ccti_timer);
-+
-+		ppd->congestion_entries[i].trigger_threshold =
-+			p->entries[i].trigger_threshold;
-+
-+		ppd->congestion_entries[i].ccti_min =
-+			p->entries[i].ccti_min;
-+	}
-+
-+	return reply((struct ib_smp *) ccp);
-+}
-+
-+static int cc_set_congestion_control_table(struct ib_cc_mad *ccp,
-+				struct ib_device *ibdev, u8 port)
-+{
-+	struct ib_cc_table_attr *p =
-+		(struct ib_cc_table_attr *)ccp->mgmt_data;
-+	struct qib_ibport *ibp = to_iport(ibdev, port);
-+	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
-+	u32 cct_block_index = be32_to_cpu(ccp->attr_mod);
-+	u32 cct_entry;
-+	struct ib_cc_table_entry_shadow *entries;
-+	int i;
-+
-+	/* Is the table index more than what is supported? */
-+	if (cct_block_index > IB_CC_TABLE_CAP_DEFAULT - 1)
-+		goto bail;
-+
-+	/* If this packet is the first in the sequence then
-+	 * zero the total table entry count.
-+	 */
-+	if (be16_to_cpu(p->ccti_limit) < IB_CCT_ENTRIES)
-+		ppd->total_cct_entry = 0;
-+
-+	cct_entry = (be16_to_cpu(p->ccti_limit))%IB_CCT_ENTRIES;
-+
-+	/* ccti_limit is 0 to 63 */
-+	ppd->total_cct_entry += (cct_entry + 1);
-+
-+	if (ppd->total_cct_entry > ppd->cc_supported_table_entries)
-+		goto bail;
-+
-+	ppd->ccti_limit = be16_to_cpu(p->ccti_limit);
-+
-+	entries = ppd->ccti_entries + (IB_CCT_ENTRIES * cct_block_index);
-+
-+	for (i = 0; i <= cct_entry; i++)
-+		entries[i].entry = be16_to_cpu(p->ccti_entries[i].entry);
-+
-+	spin_lock(&ppd->cc_shadow_lock);
-+
-+	ppd->ccti_entries_shadow->ccti_last_entry = ppd->total_cct_entry - 1;
-+	memcpy(ppd->ccti_entries_shadow->entries, ppd->ccti_entries,
-+		(ppd->total_cct_entry * sizeof(struct ib_cc_table_entry)));
-+
-+	ppd->congestion_entries_shadow->port_control = IB_CC_CCS_PC_SL_BASED;
-+	ppd->congestion_entries_shadow->control_map = ppd->cc_sl_control_map;
-+	memcpy(ppd->congestion_entries_shadow->entries, ppd->congestion_entries,
-+		IB_CC_CCS_ENTRIES * sizeof(struct ib_cc_congestion_entry));
-+
-+	spin_unlock(&ppd->cc_shadow_lock);
-+
-+	return reply((struct ib_smp *) ccp);
-+
-+bail:
-+	return reply_failure((struct ib_smp *) ccp);
-+}
-+
-+static int check_cc_key(struct qib_ibport *ibp,
-+			struct ib_cc_mad *ccp, int mad_flags)
-+{
-+	return 0;
-+}
-+
-+static int process_cc(struct ib_device *ibdev, int mad_flags,
-+			u8 port, struct ib_mad *in_mad,
-+			struct ib_mad *out_mad)
-+{
-+	struct ib_cc_mad *ccp = (struct ib_cc_mad *)out_mad;
-+	struct qib_ibport *ibp = to_iport(ibdev, port);
-+	int ret;
-+
-+	*out_mad = *in_mad;
-+
-+	if (ccp->class_version != 2) {
-+		ccp->status |= IB_SMP_UNSUP_VERSION;
-+		ret = reply((struct ib_smp *)ccp);
-+		goto bail;
-+	}
-+
-+	ret = check_cc_key(ibp, ccp, mad_flags);
-+	if (ret)
-+		goto bail;
-+
-+	switch (ccp->method) {
-+	case IB_MGMT_METHOD_GET:
-+		switch (ccp->attr_id) {
-+		case IB_CC_ATTR_CLASSPORTINFO:
-+			ret = cc_get_classportinfo(ccp, ibdev);
-+			goto bail;
-+
-+		case IB_CC_ATTR_CONGESTION_INFO:
-+			ret = cc_get_congestion_info(ccp, ibdev, port);
-+			goto bail;
-+
-+		case IB_CC_ATTR_CA_CONGESTION_SETTING:
-+			ret = cc_get_congestion_setting(ccp, ibdev, port);
-+			goto bail;
-+
-+		case IB_CC_ATTR_CONGESTION_CONTROL_TABLE:
-+			ret = cc_get_congestion_control_table(ccp, ibdev, port);
-+			goto bail;
-+
-+			/* FALLTHROUGH */
-+		default:
-+			ccp->status |= IB_SMP_UNSUP_METH_ATTR;
-+			ret = reply((struct ib_smp *) ccp);
-+			goto bail;
-+		}
-+
-+	case IB_MGMT_METHOD_SET:
-+		switch (ccp->attr_id) {
-+		case IB_CC_ATTR_CA_CONGESTION_SETTING:
-+			ret = cc_set_congestion_setting(ccp, ibdev, port);
-+			goto bail;
-+
-+		case IB_CC_ATTR_CONGESTION_CONTROL_TABLE:
-+			ret = cc_set_congestion_control_table(ccp, ibdev, port);
-+			goto bail;
-+
-+			/* FALLTHROUGH */
-+		default:
-+			ccp->status |= IB_SMP_UNSUP_METH_ATTR;
-+			ret = reply((struct ib_smp *) ccp);
-+			goto bail;
-+		}
-+
-+	case IB_MGMT_METHOD_GET_RESP:
-+		/*
-+		 * The ib_mad module will call us to process responses
-+		 * before checking for other consumers.
-+		 * Just tell the caller to process it normally.
-+		 */
-+		ret = IB_MAD_RESULT_SUCCESS;
-+		goto bail;
-+
-+	case IB_MGMT_METHOD_TRAP:
-+	default:
-+		ccp->status |= IB_SMP_UNSUP_METHOD;
-+		ret = reply((struct ib_smp *) ccp);
-+	}
-+
-+bail:
-+	return ret;
-+}
-+
- /**
-  * qib_process_mad - process an incoming MAD packet
-  * @ibdev: the infiniband device this packet came in on
-@@ -2071,6 +2375,8 @@ int qib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
- 		    struct ib_mad *in_mad, struct ib_mad *out_mad)
- {
- 	int ret;
-+	struct qib_ibport *ibp = to_iport(ibdev, port);
-+	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
- 
- 	switch (in_mad->mad_hdr.mgmt_class) {
- 	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
-@@ -2082,6 +2388,15 @@ int qib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
- 		ret = process_perf(ibdev, port, in_mad, out_mad);
- 		goto bail;
- 
-+	case IB_MGMT_CLASS_CONG_MGMT:
-+		if (!ppd->congestion_entries_shadow ||
-+			 !qib_cc_table_size) {
-+			ret = IB_MAD_RESULT_SUCCESS;
-+			goto bail;
-+		}
-+		ret = process_cc(ibdev, mad_flags, port, in_mad, out_mad);
-+		goto bail;
-+
- 	default:
- 		ret = IB_MAD_RESULT_SUCCESS;
+  * Each client that opens the diag device must read then write
+  * offset 0, to prevent lossage from random cat or od. diag_state
+@@ -598,8 +601,8 @@ static ssize_t qib_diagpkt_write(struct file *fp,
  	}
-diff --git a/drivers/infiniband/hw/qib/qib_mad.h b/drivers/infiniband/hw/qib/qib_mad.h
-index ecc416c..57bd3fa 100644
---- a/drivers/infiniband/hw/qib/qib_mad.h
-+++ b/drivers/infiniband/hw/qib/qib_mad.h
+ 	tmpbuf = vmalloc(plen);
+ 	if (!tmpbuf) {
+-		qib_devinfo(dd->pcidev, "Unable to allocate tmp buffer, "
+-			 "failing\n");
++		qib_devinfo(dd->pcidev,
++			"Unable to allocate tmp buffer, failing\n");
+ 		ret = -ENOMEM;
+ 		goto bail;
+ 	}
+@@ -693,7 +696,7 @@ int qib_register_observer(struct qib_devdata *dd,
+ 	ret = -ENOMEM;
+ 	olp = vmalloc(sizeof *olp);
+ 	if (!olp) {
+-		printk(KERN_ERR QIB_DRV_NAME ": vmalloc for observer failed\n");
++		pr_err("vmalloc for observer failed\n");
+ 		goto bail;
+ 	}
+ 	if (olp) {
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index 1c0dfe6..0d1c11b 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -951,8 +951,9 @@ int qib_reset_device(int unit)
+ 	qib_devinfo(dd->pcidev, "Reset on unit %u requested\n", unit);
+ 
+ 	if (!dd->kregbase || !(dd->flags & QIB_PRESENT)) {
+-		qib_devinfo(dd->pcidev, "Invalid unit number %u or "
+-			    "not initialized or not present\n", unit);
++		qib_devinfo(dd->pcidev,
++			"Invalid unit number %u or not initialized or not present\n",
++			unit);
+ 		ret = -ENXIO;
+ 		goto bail;
+ 	}
+@@ -989,11 +990,13 @@ int qib_reset_device(int unit)
+ 	else
+ 		ret = -EAGAIN;
+ 	if (ret)
+-		qib_dev_err(dd, "Reinitialize unit %u after "
+-			    "reset failed with %d\n", unit, ret);
++		qib_dev_err(dd,
++			"Reinitialize unit %u after reset failed with %d\n",
++			unit, ret);
+ 	else
+-		qib_devinfo(dd->pcidev, "Reinitialized unit %u after "
+-			    "resetting\n", unit);
++		qib_devinfo(dd->pcidev,
++			"Reinitialized unit %u after resetting\n",
++			unit);
+ 
+ bail:
+ 	return ret;
+diff --git a/drivers/infiniband/hw/qib/qib_eeprom.c b/drivers/infiniband/hw/qib/qib_eeprom.c
+index 92d9cfe..4d5d71a 100644
+--- a/drivers/infiniband/hw/qib/qib_eeprom.c
++++ b/drivers/infiniband/hw/qib/qib_eeprom.c
+@@ -1,5 +1,6 @@
+ /*
+- * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2012 Intel Corporation. All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -160,10 +161,9 @@ void qib_get_eeprom_info(struct qib_devdata *dd)
+ 		if (oguid > bguid[7]) {
+ 			if (bguid[6] == 0xff) {
+ 				if (bguid[5] == 0xff) {
+-					qib_dev_err(dd, "Can't set %s GUID"
+-						    " from base, wraps to"
+-						    " OUI!\n",
+-						    qib_get_unit_name(t));
++					qib_dev_err(dd,
++						"Can't set %s GUID from base, wraps to OUI!\n",
++						qib_get_unit_name(t));
+ 					dd->base_guid = 0;
+ 					goto bail;
+ 				}
+@@ -182,8 +182,9 @@ void qib_get_eeprom_info(struct qib_devdata *dd)
+ 	len = sizeof(struct qib_flash);
+ 	buf = vmalloc(len);
+ 	if (!buf) {
+-		qib_dev_err(dd, "Couldn't allocate memory to read %u "
+-			    "bytes from eeprom for GUID\n", len);
++		qib_dev_err(dd,
++			"Couldn't allocate memory to read %u bytes from eeprom for GUID\n",
++			len);
+ 		goto bail;
+ 	}
+ 
+@@ -201,23 +202,25 @@ void qib_get_eeprom_info(struct qib_devdata *dd)
+ 
+ 	csum = flash_csum(ifp, 0);
+ 	if (csum != ifp->if_csum) {
+-		qib_devinfo(dd->pcidev, "Bad I2C flash checksum: "
+-			 "0x%x, not 0x%x\n", csum, ifp->if_csum);
++		qib_devinfo(dd->pcidev,
++			"Bad I2C flash checksum: 0x%x, not 0x%x\n",
++			csum, ifp->if_csum);
+ 		goto done;
+ 	}
+ 	if (*(__be64 *) ifp->if_guid == cpu_to_be64(0) ||
+ 	    *(__be64 *) ifp->if_guid == ~cpu_to_be64(0)) {
+-		qib_dev_err(dd, "Invalid GUID %llx from flash; ignoring\n",
+-			    *(unsigned long long *) ifp->if_guid);
++		qib_dev_err(dd,
++			"Invalid GUID %llx from flash; ignoring\n",
++			*(unsigned long long *) ifp->if_guid);
+ 		/* don't allow GUID if all 0 or all 1's */
+ 		goto done;
+ 	}
+ 
+ 	/* complain, but allow it */
+ 	if (*(u64 *) ifp->if_guid == 0x100007511000000ULL)
+-		qib_devinfo(dd->pcidev, "Warning, GUID %llx is "
+-			 "default, probably not correct!\n",
+-			 *(unsigned long long *) ifp->if_guid);
++		qib_devinfo(dd->pcidev,
++			"Warning, GUID %llx is default, probably not correct!\n",
++			*(unsigned long long *) ifp->if_guid);
+ 
+ 	bguid = ifp->if_guid;
+ 	if (!bguid[0] && !bguid[1] && !bguid[2]) {
+@@ -260,8 +263,9 @@ void qib_get_eeprom_info(struct qib_devdata *dd)
+ 		memcpy(dd->serial, ifp->if_serial,
+ 		       sizeof ifp->if_serial);
+ 	if (!strstr(ifp->if_comment, "Tested successfully"))
+-		qib_dev_err(dd, "Board SN %s did not pass functional "
+-			    "test: %s\n", dd->serial, ifp->if_comment);
++		qib_dev_err(dd,
++			"Board SN %s did not pass functional test: %s\n",
++			dd->serial, ifp->if_comment);
+ 
+ 	memcpy(&dd->eep_st_errs, &ifp->if_errcntp, QIB_EEP_LOG_CNT);
+ 	/*
+@@ -323,8 +327,9 @@ int qib_update_eeprom_log(struct qib_devdata *dd)
+ 	buf = vmalloc(len);
+ 	ret = 1;
+ 	if (!buf) {
+-		qib_dev_err(dd, "Couldn't allocate memory to read %u "
+-			    "bytes from eeprom for logging\n", len);
++		qib_dev_err(dd,
++			"Couldn't allocate memory to read %u bytes from eeprom for logging\n",
++			len);
+ 		goto bail;
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index a740324..faa44cb 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
 @@ -1,6 +1,6 @@
  /*
 - * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
 - * All rights reserved.
-+ * Copyright (c) 2012 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2012 Intel Corporation. All rights reserved.
 + * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
-  * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
   *
   * This software is available to you under a choice of one of two
-@@ -31,6 +31,8 @@
-  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  * SOFTWARE.
-  */
-+#ifndef _QIB_MAD_H
-+#define _QIB_MAD_H
+@@ -49,6 +49,9 @@
+ #include "qib_common.h"
+ #include "qib_user_sdma.h"
  
- #include <rdma/ib_pma.h>
++#undef pr_fmt
++#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
++
+ static int qib_open(struct inode *, struct file *);
+ static int qib_close(struct inode *, struct file *);
+ static ssize_t qib_write(struct file *, const char __user *, size_t, loff_t *);
+@@ -315,8 +318,9 @@ static int qib_tid_update(struct qib_ctxtdata *rcd, struct file *fp,
+ 	}
+ 	if (cnt > tidcnt) {
+ 		/* make sure it all fits in tid_pg_list */
+-		qib_devinfo(dd->pcidev, "Process tried to allocate %u "
+-			 "TIDs, only trying max (%u)\n", cnt, tidcnt);
++		qib_devinfo(dd->pcidev,
++			"Process tried to allocate %u TIDs, only trying max (%u)\n",
++			cnt, tidcnt);
+ 		cnt = tidcnt;
+ 	}
+ 	pagep = (struct page **) rcd->tid_pg_list;
+@@ -750,9 +754,9 @@ static int qib_mmap_mem(struct vm_area_struct *vma, struct qib_ctxtdata *rcd,
+ 	ret = remap_pfn_range(vma, vma->vm_start, pfn,
+ 			      len, vma->vm_page_prot);
+ 	if (ret)
+-		qib_devinfo(dd->pcidev, "%s ctxt%u mmap of %lx, %x "
+-			 "bytes failed: %d\n", what, rcd->ctxt,
+-			 pfn, len, ret);
++		qib_devinfo(dd->pcidev,
++			"%s ctxt%u mmap of %lx, %x bytes failed: %d\n",
++			what, rcd->ctxt, pfn, len, ret);
+ bail:
+ 	return ret;
+ }
+@@ -771,8 +775,9 @@ static int mmap_ureg(struct vm_area_struct *vma, struct qib_devdata *dd,
+ 	 */
+ 	sz = dd->flags & QIB_HAS_HDRSUPP ? 2 * PAGE_SIZE : PAGE_SIZE;
+ 	if ((vma->vm_end - vma->vm_start) > sz) {
+-		qib_devinfo(dd->pcidev, "FAIL mmap userreg: reqlen "
+-			 "%lx > PAGE\n", vma->vm_end - vma->vm_start);
++		qib_devinfo(dd->pcidev,
++			"FAIL mmap userreg: reqlen %lx > PAGE\n",
++			vma->vm_end - vma->vm_start);
+ 		ret = -EFAULT;
+ 	} else {
+ 		phys = dd->physaddr + ureg;
+@@ -802,8 +807,8 @@ static int mmap_piobufs(struct vm_area_struct *vma,
+ 	 * for it.
+ 	 */
+ 	if ((vma->vm_end - vma->vm_start) > (piocnt * dd->palign)) {
+-		qib_devinfo(dd->pcidev, "FAIL mmap piobufs: "
+-			 "reqlen %lx > PAGE\n",
++		qib_devinfo(dd->pcidev,
++			"FAIL mmap piobufs: reqlen %lx > PAGE\n",
+ 			 vma->vm_end - vma->vm_start);
+ 		ret = -EINVAL;
+ 		goto bail;
+@@ -847,8 +852,8 @@ static int mmap_rcvegrbufs(struct vm_area_struct *vma,
+ 	size = rcd->rcvegrbuf_size;
+ 	total_size = rcd->rcvegrbuf_chunks * size;
+ 	if ((vma->vm_end - vma->vm_start) > total_size) {
+-		qib_devinfo(dd->pcidev, "FAIL on egr bufs: "
+-			 "reqlen %lx > actual %lx\n",
++		qib_devinfo(dd->pcidev,
++			"FAIL on egr bufs: reqlen %lx > actual %lx\n",
+ 			 vma->vm_end - vma->vm_start,
+ 			 (unsigned long) total_size);
+ 		ret = -EINVAL;
+@@ -856,8 +861,9 @@ static int mmap_rcvegrbufs(struct vm_area_struct *vma,
+ 	}
  
-@@ -223,6 +225,198 @@ struct ib_pma_portcounters_cong {
- #define IB_PMA_SEL_CONG_ROUTING                 0x08
+ 	if (vma->vm_flags & VM_WRITE) {
+-		qib_devinfo(dd->pcidev, "Can't map eager buffers as "
+-			 "writable (flags=%lx)\n", vma->vm_flags);
++		qib_devinfo(dd->pcidev,
++			"Can't map eager buffers as writable (flags=%lx)\n",
++			vma->vm_flags);
+ 		ret = -EPERM;
+ 		goto bail;
+ 	}
+@@ -1270,8 +1276,8 @@ static int setup_ctxt(struct qib_pportdata *ppd, int ctxt,
+ 			       GFP_KERNEL);
  
- /*
-+ * Congestion control class attributes
-+ */
-+#define IB_CC_ATTR_CLASSPORTINFO			cpu_to_be16(0x0001)
-+#define IB_CC_ATTR_NOTICE				cpu_to_be16(0x0002)
-+#define IB_CC_ATTR_CONGESTION_INFO			cpu_to_be16(0x0011)
-+#define IB_CC_ATTR_CONGESTION_KEY_INFO			cpu_to_be16(0x0012)
-+#define IB_CC_ATTR_CONGESTION_LOG			cpu_to_be16(0x0013)
-+#define IB_CC_ATTR_SWITCH_CONGESTION_SETTING		cpu_to_be16(0x0014)
-+#define IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING	cpu_to_be16(0x0015)
-+#define IB_CC_ATTR_CA_CONGESTION_SETTING		cpu_to_be16(0x0016)
-+#define IB_CC_ATTR_CONGESTION_CONTROL_TABLE		cpu_to_be16(0x0017)
-+#define IB_CC_ATTR_TIME_STAMP				cpu_to_be16(0x0018)
-+
-+/* generalizations for threshold values */
-+#define IB_CC_THRESHOLD_NONE 0x0
-+#define IB_CC_THRESHOLD_MIN  0x1
-+#define IB_CC_THRESHOLD_MAX  0xf
-+
-+/* CCA MAD header constants */
-+#define IB_CC_MAD_LOGDATA_LEN 32
-+#define IB_CC_MAD_MGMTDATA_LEN 192
-+
-+struct ib_cc_mad {
-+	u8	base_version;
-+	u8	mgmt_class;
-+	u8	class_version;
-+	u8	method;
-+	__be16	status;
-+	__be16	class_specific;
-+	__be64	tid;
-+	__be16	attr_id;
-+	__be16	resv;
-+	__be32	attr_mod;
-+	__be64 cckey;
-+
-+	/* For CongestionLog attribute only */
-+	u8 log_data[IB_CC_MAD_LOGDATA_LEN];
-+
-+	u8 mgmt_data[IB_CC_MAD_MGMTDATA_LEN];
-+} __packed;
-+
-+/*
-+ * Congestion Control class portinfo capability mask bits
-+ */
-+#define IB_CC_CPI_CM_TRAP_GEN		cpu_to_be16(1 << 0)
-+#define IB_CC_CPI_CM_GET_SET_NOTICE	cpu_to_be16(1 << 1)
-+#define IB_CC_CPI_CM_CAP2		cpu_to_be16(1 << 2)
-+#define IB_CC_CPI_CM_ENHANCEDPORT0_CC	cpu_to_be16(1 << 8)
-+
-+struct ib_cc_classportinfo_attr {
-+	u8 base_version;
-+	u8 class_version;
-+	__be16 cap_mask;
-+	u8 reserved[3];
-+	u8 resp_time_value;     /* only lower 5 bits */
-+	union ib_gid redirect_gid;
-+	__be32 redirect_tc_sl_fl;       /* 8, 4, 20 bits respectively */
-+	__be16 redirect_lid;
-+	__be16 redirect_pkey;
-+	__be32 redirect_qp;     /* only lower 24 bits */
-+	__be32 redirect_qkey;
-+	union ib_gid trap_gid;
-+	__be32 trap_tc_sl_fl;   /* 8, 4, 20 bits respectively */
-+	__be16 trap_lid;
-+	__be16 trap_pkey;
-+	__be32 trap_hl_qp;      /* 8, 24 bits respectively */
-+	__be32 trap_qkey;
-+} __packed;
-+
-+/* Congestion control traps */
-+#define IB_CC_TRAP_KEY_VIOLATION 0x0000
-+
-+struct ib_cc_trap_key_violation_attr {
-+	__be16 source_lid;
-+	u8 method;
-+	u8 reserved1;
-+	__be16 attrib_id;
-+	__be32 attrib_mod;
-+	__be32 qp;
-+	__be64 cckey;
-+	u8 sgid[16];
-+	u8 padding[24];
-+} __packed;
-+
-+/* Congestion info flags */
-+#define IB_CC_CI_FLAGS_CREDIT_STARVATION 0x1
-+#define IB_CC_TABLE_CAP_DEFAULT 31
-+
-+struct ib_cc_info_attr {
-+	__be16 congestion_info;
-+	u8  control_table_cap; /* Multiple of 64 entry unit CCTs */
-+} __packed;
-+
-+struct ib_cc_key_info_attr {
-+	__be64 cckey;
-+	u8  protect;
-+	__be16 lease_period;
-+	__be16 violations;
-+} __packed;
-+
-+#define IB_CC_CL_CA_LOGEVENTS_LEN 208
-+
-+struct ib_cc_log_attr {
-+	u8 log_type;
-+	u8 congestion_flags;
-+	__be16 threshold_event_counter;
-+	__be16 threshold_congestion_event_map;
-+	__be16 current_time_stamp;
-+	u8 log_events[IB_CC_CL_CA_LOGEVENTS_LEN];
-+} __packed;
-+
-+#define IB_CC_CLEC_SERVICETYPE_RC 0x0
-+#define IB_CC_CLEC_SERVICETYPE_UC 0x1
-+#define IB_CC_CLEC_SERVICETYPE_RD 0x2
-+#define IB_CC_CLEC_SERVICETYPE_UD 0x3
-+
-+struct ib_cc_log_event {
-+	u8 local_qp_cn_entry;
-+	u8 remote_qp_number_cn_entry[3];
-+	u8  sl_cn_entry:4;
-+	u8  service_type_cn_entry:4;
-+	__be32 remote_lid_cn_entry;
-+	__be32 timestamp_cn_entry;
-+} __packed;
-+
-+/* Sixteen congestion entries */
-+#define IB_CC_CCS_ENTRIES 16
-+
-+/* Port control flags */
-+#define IB_CC_CCS_PC_SL_BASED 0x01
-+
-+struct ib_cc_congestion_entry {
-+	u8 ccti_increase;
-+	__be16 ccti_timer;
-+	u8 trigger_threshold;
-+	u8 ccti_min; /* min CCTI for cc table */
-+} __packed;
-+
-+struct ib_cc_congestion_entry_shadow {
-+	u8 ccti_increase;
-+	u16 ccti_timer;
-+	u8 trigger_threshold;
-+	u8 ccti_min; /* min CCTI for cc table */
-+} __packed;
-+
-+struct ib_cc_congestion_setting_attr {
-+	__be16 port_control;
-+	__be16 control_map;
-+	struct ib_cc_congestion_entry entries[IB_CC_CCS_ENTRIES];
-+} __packed;
-+
-+struct ib_cc_congestion_setting_attr_shadow {
-+	u16 port_control;
-+	u16 control_map;
-+	struct ib_cc_congestion_entry_shadow entries[IB_CC_CCS_ENTRIES];
-+} __packed;
-+
-+#define IB_CC_TABLE_ENTRY_INCREASE_DEFAULT 1
-+#define IB_CC_TABLE_ENTRY_TIMER_DEFAULT 1
-+
-+/* 64 Congestion Control table entries in a single MAD */
-+#define IB_CCT_ENTRIES 64
-+#define IB_CCT_MIN_ENTRIES (IB_CCT_ENTRIES * 2)
-+
-+struct ib_cc_table_entry {
-+	__be16 entry; /* shift:2, multiplier:14 */
-+};
-+
-+struct ib_cc_table_entry_shadow {
-+	u16 entry; /* shift:2, multiplier:14 */
-+};
-+
-+struct ib_cc_table_attr {
-+	__be16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry ccti_entries[IB_CCT_ENTRIES];
-+} __packed;
-+
-+struct ib_cc_table_attr_shadow {
-+	u16 ccti_limit; /* max CCTI for cc table */
-+	struct ib_cc_table_entry_shadow ccti_entries[IB_CCT_ENTRIES];
-+} __packed;
-+
-+#define CC_TABLE_SHADOW_MAX \
-+	(IB_CC_TABLE_CAP_DEFAULT * IB_CCT_ENTRIES)
-+
-+struct cc_table_shadow {
-+	u16 ccti_last_entry;
-+	struct ib_cc_table_entry_shadow entries[CC_TABLE_SHADOW_MAX];
-+} __packed;
-+
-+#endif				/* _QIB_MAD_H */
-+/*
-  * The PortSamplesControl.CounterMasks field is an array of 3 bit fields
-  * which specify the N'th counter's capabilities. See ch. 16.1.3.2.
-  * We support 5 counters which only count the mandatory quantities.
-diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
-index dd9cd49..ae78305 100644
---- a/drivers/infiniband/hw/qib/qib_sysfs.c
-+++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+ 	if (!rcd || !ptmp) {
+-		qib_dev_err(dd, "Unable to allocate ctxtdata "
+-			    "memory, failing open\n");
++		qib_dev_err(dd,
++			"Unable to allocate ctxtdata memory, failing open\n");
+ 		ret = -ENOMEM;
+ 		goto bailerr;
+ 	}
+@@ -1560,10 +1566,10 @@ done_chk_sdma:
+ 		} else if (weight == 1 &&
+ 			test_bit(cpumask_first(tsk_cpus_allowed(current)),
+ 				 qib_cpulist))
+-			qib_devinfo(dd->pcidev, "%s PID %u affinity "
+-				    "set to cpu %d; already allocated\n",
+-				    current->comm, current->pid,
+-				    cpumask_first(tsk_cpus_allowed(current)));
++			qib_devinfo(dd->pcidev,
++				"%s PID %u affinity set to cpu %d; already allocated\n",
++				current->comm, current->pid,
++				cpumask_first(tsk_cpus_allowed(current)));
+ 	}
+ 
+ 	mutex_unlock(&qib_mutex);
+@@ -2185,8 +2191,7 @@ int qib_cdev_init(int minor, const char *name,
+ 
+ 	cdev = cdev_alloc();
+ 	if (!cdev) {
+-		printk(KERN_ERR QIB_DRV_NAME
+-		       ": Could not allocate cdev for minor %d, %s\n",
++		pr_err("Could not allocate cdev for minor %d, %s\n",
+ 		       minor, name);
+ 		ret = -ENOMEM;
+ 		goto done;
+@@ -2198,8 +2203,7 @@ int qib_cdev_init(int minor, const char *name,
+ 
+ 	ret = cdev_add(cdev, dev, 1);
+ 	if (ret < 0) {
+-		printk(KERN_ERR QIB_DRV_NAME
+-		       ": Could not add cdev for minor %d, %s (err %d)\n",
++		pr_err("Could not add cdev for minor %d, %s (err %d)\n",
+ 		       minor, name, -ret);
+ 		goto err_cdev;
+ 	}
+@@ -2209,8 +2213,7 @@ int qib_cdev_init(int minor, const char *name,
+ 		goto done;
+ 	ret = PTR_ERR(device);
+ 	device = NULL;
+-	printk(KERN_ERR QIB_DRV_NAME ": Could not create "
+-	       "device for minor %d, %s (err %d)\n",
++	pr_err("Could not create device for minor %d, %s (err %d)\n",
+ 	       minor, name, -ret);
+ err_cdev:
+ 	cdev_del(cdev);
+@@ -2245,16 +2248,14 @@ int __init qib_dev_init(void)
+ 
+ 	ret = alloc_chrdev_region(&qib_dev, 0, QIB_NMINORS, QIB_DRV_NAME);
+ 	if (ret < 0) {
+-		printk(KERN_ERR QIB_DRV_NAME ": Could not allocate "
+-		       "chrdev region (err %d)\n", -ret);
++		pr_err("Could not allocate chrdev region (err %d)\n", -ret);
+ 		goto done;
+ 	}
+ 
+ 	qib_class = class_create(THIS_MODULE, "ipath");
+ 	if (IS_ERR(qib_class)) {
+ 		ret = PTR_ERR(qib_class);
+-		printk(KERN_ERR QIB_DRV_NAME ": Could not create "
+-		       "device class (err %d)\n", -ret);
++		pr_err("Could not create device class (err %d)\n", -ret);
+ 		unregister_chrdev_region(qib_dev, QIB_NMINORS);
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw/qib/qib_fs.c
+index 05e0f17..cff8a6c 100644
+--- a/drivers/infiniband/hw/qib/qib_fs.c
++++ b/drivers/infiniband/hw/qib/qib_fs.c
 @@ -1,5 +1,6 @@
  /*
 - * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2012 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2012 Intel Corporation. All rights reserved.
 + * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
   * Copyright (c) 2006 PathScale, Inc. All rights reserved.
   *
   * This software is available to you under a choice of one of two
-@@ -33,6 +34,7 @@
- #include <linux/ctype.h>
- 
- #include "qib.h"
-+#include "qib_mad.h"
- 
- /**
-  * qib_parse_ushort - parse an unsigned short value in an arbitrary base
-@@ -231,6 +233,98 @@ static struct attribute *port_default_attributes[] = {
- 	NULL
- };
- 
-+/*
-+ * Start of per-port congestion control structures and support code
-+ */
-+
-+/*
-+ * Congestion control table size followed by table entries
-+ */
-+static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
-+		struct bin_attribute *bin_attr,
-+		char *buf, loff_t pos, size_t count)
-+{
-+	int ret;
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, pport_cc_kobj);
-+
-+	if (!qib_cc_table_size || !ppd->ccti_entries_shadow)
-+		return -EINVAL;
-+
-+	ret = ppd->total_cct_entry * sizeof(struct ib_cc_table_entry_shadow)
-+		 + sizeof(__be16);
-+
-+	if (pos > ret)
-+		return -EINVAL;
-+
-+	if (count > ret - pos)
-+		count = ret - pos;
-+
-+	if (!count)
-+		return count;
-+
-+	spin_lock(&ppd->cc_shadow_lock);
-+	memcpy(buf, ppd->ccti_entries_shadow, count);
-+	spin_unlock(&ppd->cc_shadow_lock);
-+
-+	return count;
-+}
-+
-+static void qib_port_release(struct kobject *kobj)
-+{
-+	/* nothing to do since memory is freed by qib_free_devdata() */
-+}
-+
-+static struct kobj_type qib_port_cc_ktype = {
-+	.release = qib_port_release,
-+};
-+
-+static struct bin_attribute cc_table_bin_attr = {
-+	.attr = {.name = "cc_table_bin", .mode = 0444},
-+	.read = read_cc_table_bin,
-+	.size = PAGE_SIZE,
-+};
-+
-+/*
-+ * Congestion settings: port control, control map and an array of 16
-+ * entries for the congestion entries - increase, timer, event log
-+ * trigger threshold and the minimum injection rate delay.
-+ */
-+static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
-+		struct bin_attribute *bin_attr,
-+		char *buf, loff_t pos, size_t count)
-+{
-+	int ret;
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, pport_cc_kobj);
-+
-+	if (!qib_cc_table_size || !ppd->congestion_entries_shadow)
-+		return -EINVAL;
-+
-+	ret = sizeof(struct ib_cc_congestion_setting_attr_shadow);
-+
-+	if (pos > ret)
-+		return -EINVAL;
-+	if (count > ret - pos)
-+		count = ret - pos;
-+
-+	if (!count)
-+		return count;
-+
-+	spin_lock(&ppd->cc_shadow_lock);
-+	memcpy(buf, ppd->congestion_entries_shadow, count);
-+	spin_unlock(&ppd->cc_shadow_lock);
-+
-+	return count;
-+}
-+
-+static struct bin_attribute cc_setting_bin_attr = {
-+	.attr = {.name = "cc_settings_bin", .mode = 0444},
-+	.read = read_cc_setting_bin,
-+	.size = PAGE_SIZE,
-+};
-+
-+
- static ssize_t qib_portattr_show(struct kobject *kobj,
- 	struct attribute *attr, char *buf)
- {
-@@ -253,10 +347,6 @@ static ssize_t qib_portattr_store(struct kobject *kobj,
- 	return pattr->store(ppd, buf, len);
- }
- 
--static void qib_port_release(struct kobject *kobj)
--{
--	/* nothing to do since memory is freed by qib_free_devdata() */
--}
- 
- static const struct sysfs_ops qib_port_ops = {
- 	.show = qib_portattr_show,
-@@ -670,7 +760,7 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+@@ -382,7 +383,7 @@ static int add_cntr_files(struct super_block *sb, struct qib_devdata *dd)
+ 	ret = create_file(unit, S_IFDIR|S_IRUGO|S_IXUGO, sb->s_root, &dir,
+ 			  &simple_dir_operations, dd);
  	if (ret) {
- 		qib_dev_err(dd, "Skipping sl2vl sysfs info, "
- 			    "(err %d) port %u\n", ret, port_num);
--		goto bail_sl;
-+		goto bail_link;
+-		printk(KERN_ERR "create_file(%s) failed: %d\n", unit, ret);
++		pr_err("create_file(%s) failed: %d\n", unit, ret);
+ 		goto bail;
  	}
- 	kobject_uevent(&ppd->sl2vl_kobj, KOBJ_ADD);
  
-@@ -679,15 +769,57 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+@@ -390,21 +391,21 @@ static int add_cntr_files(struct super_block *sb, struct qib_devdata *dd)
+ 	ret = create_file("counters", S_IFREG|S_IRUGO, dir, &tmp,
+ 			  &cntr_ops[0], dd);
  	if (ret) {
- 		qib_dev_err(dd, "Skipping diag_counters sysfs info, "
- 			    "(err %d) port %u\n", ret, port_num);
--		goto bail_diagc;
-+		goto bail_sl;
+-		printk(KERN_ERR "create_file(%s/counters) failed: %d\n",
++		pr_err("create_file(%s/counters) failed: %d\n",
+ 		       unit, ret);
+ 		goto bail;
  	}
- 	kobject_uevent(&ppd->diagc_kobj, KOBJ_ADD);
- 
-+	if (!qib_cc_table_size || !ppd->congestion_entries_shadow)
-+		return 0;
-+
-+	ret = kobject_init_and_add(&ppd->pport_cc_kobj, &qib_port_cc_ktype,
-+				kobj, "CCMgtA");
-+	if (ret) {
-+		qib_dev_err(dd,
-+		 "Skipping Congestion Control sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_diagc;
-+	}
-+
-+	kobject_uevent(&ppd->pport_cc_kobj, KOBJ_ADD);
-+
-+	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
-+				&cc_setting_bin_attr);
-+	if (ret) {
-+		qib_dev_err(dd,
-+		 "Skipping Congestion Control setting sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_cc;
-+	}
-+
-+	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
-+				&cc_table_bin_attr);
-+	if (ret) {
-+		qib_dev_err(dd,
-+		 "Skipping Congestion Control table sysfs info, (err %d) port %u\n",
-+		 ret, port_num);
-+		goto bail_cc_entry_bin;
-+	}
-+
-+	qib_devinfo(dd->pcidev,
-+		"IB%u: Congestion Control Agent enabled for port %d\n",
-+		dd->unit, port_num);
-+
- 	return 0;
- 
-+bail_cc_entry_bin:
-+	sysfs_remove_bin_file(&ppd->pport_cc_kobj, &cc_setting_bin_attr);
-+bail_cc:
-+	kobject_put(&ppd->pport_cc_kobj);
- bail_diagc:
--	kobject_put(&ppd->sl2vl_kobj);
-+	kobject_put(&ppd->diagc_kobj);
- bail_sl:
-+	kobject_put(&ppd->sl2vl_kobj);
-+bail_link:
- 	kobject_put(&ppd->pport_kobj);
+ 	ret = create_file("counter_names", S_IFREG|S_IRUGO, dir, &tmp,
+ 			  &cntr_ops[1], dd);
+ 	if (ret) {
+-		printk(KERN_ERR "create_file(%s/counter_names) failed: %d\n",
++		pr_err("create_file(%s/counter_names) failed: %d\n",
+ 		       unit, ret);
+ 		goto bail;
+ 	}
+ 	ret = create_file("portcounter_names", S_IFREG|S_IRUGO, dir, &tmp,
+ 			  &portcntr_ops[0], dd);
+ 	if (ret) {
+-		printk(KERN_ERR "create_file(%s/%s) failed: %d\n",
++		pr_err("create_file(%s/%s) failed: %d\n",
+ 		       unit, "portcounter_names", ret);
+ 		goto bail;
+ 	}
+@@ -416,7 +417,7 @@ static int add_cntr_files(struct super_block *sb, struct qib_devdata *dd)
+ 		ret = create_file(fname, S_IFREG|S_IRUGO, dir, &tmp,
+ 				  &portcntr_ops[i], dd);
+ 		if (ret) {
+-			printk(KERN_ERR "create_file(%s/%s) failed: %d\n",
++			pr_err("create_file(%s/%s) failed: %d\n",
+ 				unit, fname, ret);
+ 			goto bail;
+ 		}
+@@ -426,7 +427,7 @@ static int add_cntr_files(struct super_block *sb, struct qib_devdata *dd)
+ 		ret = create_file(fname, S_IFREG|S_IRUGO, dir, &tmp,
+ 				  &qsfp_ops[i - 1], dd);
+ 		if (ret) {
+-			printk(KERN_ERR "create_file(%s/%s) failed: %d\n",
++			pr_err("create_file(%s/%s) failed: %d\n",
+ 				unit, fname, ret);
+ 			goto bail;
+ 		}
+@@ -435,7 +436,7 @@ static int add_cntr_files(struct super_block *sb, struct qib_devdata *dd)
+ 	ret = create_file("flash", S_IFREG|S_IWUSR|S_IRUGO, dir, &tmp,
+ 			  &flash_ops, dd);
+ 	if (ret)
+-		printk(KERN_ERR "create_file(%s/flash) failed: %d\n",
++		pr_err("create_file(%s/flash) failed: %d\n",
+ 			unit, ret);
  bail:
  	return ret;
-@@ -720,7 +852,15 @@ void qib_verbs_unregister_sysfs(struct qib_devdata *dd)
+@@ -486,7 +487,7 @@ static int remove_device_files(struct super_block *sb,
  
- 	for (i = 0; i < dd->num_pports; i++) {
- 		ppd = &dd->pport[i];
--		kobject_put(&ppd->pport_kobj);
-+		if (qib_cc_table_size &&
-+			ppd->congestion_entries_shadow) {
-+			sysfs_remove_bin_file(&ppd->pport_cc_kobj,
-+				&cc_setting_bin_attr);
-+			sysfs_remove_bin_file(&ppd->pport_cc_kobj,
-+				&cc_table_bin_attr);
-+			kobject_put(&ppd->pport_cc_kobj);
-+		}
- 		kobject_put(&ppd->sl2vl_kobj);
-+		kobject_put(&ppd->pport_kobj);
+ 	if (IS_ERR(dir)) {
+ 		ret = PTR_ERR(dir);
+-		printk(KERN_ERR "Lookup of %s failed\n", unit);
++		pr_err("Lookup of %s failed\n", unit);
+ 		goto bail;
+ 	}
+ 
+@@ -532,7 +533,7 @@ static int qibfs_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	ret = simple_fill_super(sb, QIBFS_MAGIC, files);
+ 	if (ret) {
+-		printk(KERN_ERR "simple_fill_super failed: %d\n", ret);
++		pr_err("simple_fill_super failed: %d\n", ret);
+ 		goto bail;
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
+index a2ba6d6..0769d48 100644
+--- a/drivers/infiniband/hw/qib/qib_iba6120.c
++++ b/drivers/infiniband/hw/qib/qib_iba6120.c
+@@ -753,8 +753,8 @@ static void qib_handle_6120_hwerrors(struct qib_devdata *dd, char *msg,
+ 	if (!hwerrs)
+ 		return;
+ 	if (hwerrs == ~0ULL) {
+-		qib_dev_err(dd, "Read of hardware error status failed "
+-			    "(all bits set); ignoring\n");
++		qib_dev_err(dd,
++			"Read of hardware error status failed (all bits set); ignoring\n");
+ 		return;
+ 	}
+ 	qib_stats.sps_hwerrs++;
+@@ -779,13 +779,14 @@ static void qib_handle_6120_hwerrors(struct qib_devdata *dd, char *msg,
+ 	 * or it's occurred within the last 5 seconds.
+ 	 */
+ 	if (hwerrs & ~(TXE_PIO_PARITY | RXEMEMPARITYERR_EAGERTID))
+-		qib_devinfo(dd->pcidev, "Hardware error: hwerr=0x%llx "
+-			 "(cleared)\n", (unsigned long long) hwerrs);
++		qib_devinfo(dd->pcidev,
++			"Hardware error: hwerr=0x%llx (cleared)\n",
++			(unsigned long long) hwerrs);
+ 
+ 	if (hwerrs & ~IB_HWE_BITSEXTANT)
+-		qib_dev_err(dd, "hwerror interrupt with unknown errors "
+-			    "%llx set\n", (unsigned long long)
+-			    (hwerrs & ~IB_HWE_BITSEXTANT));
++		qib_dev_err(dd,
++			"hwerror interrupt with unknown errors %llx set\n",
++			(unsigned long long)(hwerrs & ~IB_HWE_BITSEXTANT));
+ 
+ 	ctrl = qib_read_kreg32(dd, kr_control);
+ 	if ((ctrl & QLOGIC_IB_C_FREEZEMODE) && !dd->diag_client) {
+@@ -815,8 +816,9 @@ static void qib_handle_6120_hwerrors(struct qib_devdata *dd, char *msg,
+ 
+ 	if (hwerrs & HWE_MASK(PowerOnBISTFailed)) {
+ 		isfatal = 1;
+-		strlcat(msg, "[Memory BIST test failed, InfiniPath hardware"
+-			" unusable]", msgl);
++		strlcat(msg,
++			"[Memory BIST test failed, InfiniPath hardware unusable]",
++			msgl);
+ 		/* ignore from now on, so disable until driver reloaded */
+ 		dd->cspec->hwerrmask &= ~HWE_MASK(PowerOnBISTFailed);
+ 		qib_write_kreg(dd, kr_hwerrmask, dd->cspec->hwerrmask);
+@@ -868,8 +870,9 @@ static void qib_handle_6120_hwerrors(struct qib_devdata *dd, char *msg,
+ 		*msg = 0; /* recovered from all of them */
+ 
+ 	if (isfatal && !dd->diag_client) {
+-		qib_dev_err(dd, "Fatal Hardware Error, no longer"
+-			    " usable, SN %.16s\n", dd->serial);
++		qib_dev_err(dd,
++			"Fatal Hardware Error, no longer usable, SN %.16s\n",
++			dd->serial);
+ 		/*
+ 		 * for /sys status file and user programs to print; if no
+ 		 * trailing brace is copied, we'll know it was truncated.
+@@ -1017,9 +1020,9 @@ static void handle_6120_errors(struct qib_devdata *dd, u64 errs)
+ 				qib_inc_eeprom_err(dd, log_idx, 1);
+ 
+ 	if (errs & ~IB_E_BITSEXTANT)
+-		qib_dev_err(dd, "error interrupt with unknown errors "
+-			    "%llx set\n",
+-			    (unsigned long long) (errs & ~IB_E_BITSEXTANT));
++		qib_dev_err(dd,
++			"error interrupt with unknown errors %llx set\n",
++			(unsigned long long) (errs & ~IB_E_BITSEXTANT));
+ 
+ 	if (errs & E_SUM_ERRS) {
+ 		qib_disarm_6120_senderrbufs(ppd);
+@@ -1089,8 +1092,8 @@ static void handle_6120_errors(struct qib_devdata *dd, u64 errs)
+ 	}
+ 
+ 	if (errs & ERR_MASK(ResetNegated)) {
+-		qib_dev_err(dd, "Got reset, requires re-init "
+-			      "(unload and reload driver)\n");
++		qib_dev_err(dd,
++			"Got reset, requires re-init (unload and reload driver)\n");
+ 		dd->flags &= ~QIB_INITTED;  /* needs re-init */
+ 		/* mark as having had error */
+ 		*dd->devstatusp |= QIB_STATUS_HWERROR;
+@@ -1541,8 +1544,9 @@ static noinline void unlikely_6120_intr(struct qib_devdata *dd, u64 istat)
+ 		qib_stats.sps_errints++;
+ 		estat = qib_read_kreg64(dd, kr_errstatus);
+ 		if (!estat)
+-			qib_devinfo(dd->pcidev, "error interrupt (%Lx), "
+-				 "but no error bits set!\n", istat);
++			qib_devinfo(dd->pcidev,
++				"error interrupt (%Lx), but no error bits set!\n",
++				istat);
+ 		handle_6120_errors(dd, estat);
+ 	}
+ 
+@@ -1715,16 +1719,16 @@ static void qib_setup_6120_interrupt(struct qib_devdata *dd)
+ 	}
+ 
+ 	if (!dd->cspec->irq)
+-		qib_dev_err(dd, "irq is 0, BIOS error?  Interrupts won't "
+-			    "work\n");
++		qib_dev_err(dd,
++			"irq is 0, BIOS error?  Interrupts won't work\n");
+ 	else {
+ 		int ret;
+ 		ret = request_irq(dd->cspec->irq, qib_6120intr, 0,
+ 				  QIB_DRV_NAME, dd);
+ 		if (ret)
+-			qib_dev_err(dd, "Couldn't setup interrupt "
+-				    "(irq=%d): %d\n", dd->cspec->irq,
+-				    ret);
++			qib_dev_err(dd,
++				"Couldn't setup interrupt (irq=%d): %d\n",
++				dd->cspec->irq, ret);
  	}
  }
+ 
+@@ -1759,8 +1763,9 @@ static void pe_boardname(struct qib_devdata *dd)
+ 		snprintf(dd->boardname, namelen, "%s", n);
+ 
+ 	if (dd->majrev != 4 || !dd->minrev || dd->minrev > 2)
+-		qib_dev_err(dd, "Unsupported InfiniPath hardware revision "
+-			    "%u.%u!\n", dd->majrev, dd->minrev);
++		qib_dev_err(dd,
++			"Unsupported InfiniPath hardware revision %u.%u!\n",
++			dd->majrev, dd->minrev);
+ 
+ 	snprintf(dd->boardversion, sizeof(dd->boardversion),
+ 		 "ChipABI %u.%u, %s, InfiniPath%u %u.%u, SW Compat %u\n",
+@@ -1833,8 +1838,8 @@ static int qib_6120_setup_reset(struct qib_devdata *dd)
+ bail:
+ 	if (ret) {
+ 		if (qib_pcie_params(dd, dd->lbus_width, NULL, NULL))
+-			qib_dev_err(dd, "Reset failed to setup PCIe or "
+-				    "interrupts; continuing anyway\n");
++			qib_dev_err(dd,
++				"Reset failed to setup PCIe or interrupts; continuing anyway\n");
+ 		/* clear the reset error, init error/hwerror mask */
+ 		qib_6120_init_hwerrors(dd);
+ 		/* for Rev2 error interrupts; nop for rev 1 */
+@@ -1876,8 +1881,9 @@ static void qib_6120_put_tid(struct qib_devdata *dd, u64 __iomem *tidptr,
+ 		}
+ 		pa >>= 11;
+ 		if (pa & ~QLOGIC_IB_RT_ADDR_MASK) {
+-			qib_dev_err(dd, "Physical page address 0x%lx "
+-				    "larger than supported\n", pa);
++			qib_dev_err(dd,
++				"Physical page address 0x%lx larger than supported\n",
++				pa);
+ 			return;
+ 		}
+ 
+@@ -1941,8 +1947,9 @@ static void qib_6120_put_tid_2(struct qib_devdata *dd, u64 __iomem *tidptr,
+ 		}
+ 		pa >>= 11;
+ 		if (pa & ~QLOGIC_IB_RT_ADDR_MASK) {
+-			qib_dev_err(dd, "Physical page address 0x%lx "
+-				    "larger than supported\n", pa);
++			qib_dev_err(dd,
++				"Physical page address 0x%lx larger than supported\n",
++				pa);
+ 			return;
+ 		}
+ 
+@@ -2929,8 +2936,9 @@ static int qib_6120_set_loopback(struct qib_pportdata *ppd, const char *what)
+ 			 ppd->dd->unit, ppd->port);
+ 	} else if (!strncmp(what, "off", 3)) {
+ 		ppd->dd->cspec->ibcctrl &= ~SYM_MASK(IBCCtrl, Loopback);
+-		qib_devinfo(ppd->dd->pcidev, "Disabling IB%u:%u IBC loopback "
+-			    "(normal)\n", ppd->dd->unit, ppd->port);
++		qib_devinfo(ppd->dd->pcidev,
++			"Disabling IB%u:%u IBC loopback (normal)\n",
++			ppd->dd->unit, ppd->port);
+ 	} else
+ 		ret = -EINVAL;
+ 	if (!ret) {
+@@ -3187,11 +3195,10 @@ static int qib_late_6120_initreg(struct qib_devdata *dd)
+ 	qib_write_kreg(dd, kr_sendpioavailaddr, dd->pioavailregs_phys);
+ 	val = qib_read_kreg64(dd, kr_sendpioavailaddr);
+ 	if (val != dd->pioavailregs_phys) {
+-		qib_dev_err(dd, "Catastrophic software error, "
+-			    "SendPIOAvailAddr written as %lx, "
+-			    "read back as %llx\n",
+-			    (unsigned long) dd->pioavailregs_phys,
+-			    (unsigned long long) val);
++		qib_dev_err(dd,
++			"Catastrophic software error, SendPIOAvailAddr written as %lx, read back as %llx\n",
++			(unsigned long) dd->pioavailregs_phys,
++			(unsigned long long) val);
+ 		ret = -EINVAL;
+ 	}
+ 	return ret;
+@@ -3219,8 +3226,8 @@ static int init_6120_variables(struct qib_devdata *dd)
+ 	dd->revision = readq(&dd->kregbase[kr_revision]);
+ 
+ 	if ((dd->revision & 0xffffffffU) == 0xffffffffU) {
+-		qib_dev_err(dd, "Revision register read failure, "
+-			    "giving up initialization\n");
++		qib_dev_err(dd,
++			"Revision register read failure, giving up initialization\n");
+ 		ret = -ENODEV;
+ 		goto bail;
+ 	}
+@@ -3551,8 +3558,8 @@ struct qib_devdata *qib_init_iba6120_funcs(struct pci_dev *pdev,
+ 		goto bail;
+ 
+ 	if (qib_pcie_params(dd, 8, NULL, NULL))
+-		qib_dev_err(dd, "Failed to setup PCIe or interrupts; "
+-			    "continuing anyway\n");
++		qib_dev_err(dd,
++			"Failed to setup PCIe or interrupts; continuing anyway\n");
+ 	dd->cspec->irq = pdev->irq; /* save IRQ */
+ 
+ 	/* clear diagctrl register, in case diags were running and crashed */
+diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
+index eef047f..164f012 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7220.c
++++ b/drivers/infiniband/hw/qib/qib_iba7220.c
+@@ -1111,9 +1111,9 @@ static void handle_7220_errors(struct qib_devdata *dd, u64 errs)
+ 		sdma_7220_errors(ppd, errs);
+ 
+ 	if (errs & ~IB_E_BITSEXTANT)
+-		qib_dev_err(dd, "error interrupt with unknown errors "
+-			    "%llx set\n", (unsigned long long)
+-			    (errs & ~IB_E_BITSEXTANT));
++		qib_dev_err(dd,
++			"error interrupt with unknown errors %llx set\n",
++			(unsigned long long) (errs & ~IB_E_BITSEXTANT));
+ 
+ 	if (errs & E_SUM_ERRS) {
+ 		qib_disarm_7220_senderrbufs(ppd);
+@@ -1192,8 +1192,8 @@ static void handle_7220_errors(struct qib_devdata *dd, u64 errs)
+ 	}
+ 
+ 	if (errs & ERR_MASK(ResetNegated)) {
+-		qib_dev_err(dd, "Got reset, requires re-init "
+-			    "(unload and reload driver)\n");
++		qib_dev_err(dd,
++			"Got reset, requires re-init (unload and reload driver)\n");
+ 		dd->flags &= ~QIB_INITTED;  /* needs re-init */
+ 		/* mark as having had error */
+ 		*dd->devstatusp |= QIB_STATUS_HWERROR;
+@@ -1305,8 +1305,8 @@ static void qib_7220_handle_hwerrors(struct qib_devdata *dd, char *msg,
+ 	if (!hwerrs)
+ 		goto bail;
+ 	if (hwerrs == ~0ULL) {
+-		qib_dev_err(dd, "Read of hardware error status failed "
+-			    "(all bits set); ignoring\n");
++		qib_dev_err(dd,
++			"Read of hardware error status failed (all bits set); ignoring\n");
+ 		goto bail;
+ 	}
+ 	qib_stats.sps_hwerrs++;
+@@ -1329,13 +1329,14 @@ static void qib_7220_handle_hwerrors(struct qib_devdata *dd, char *msg,
+ 			qib_inc_eeprom_err(dd, log_idx, 1);
+ 	if (hwerrs & ~(TXEMEMPARITYERR_PIOBUF | TXEMEMPARITYERR_PIOPBC |
+ 		       RXE_PARITY))
+-		qib_devinfo(dd->pcidev, "Hardware error: hwerr=0x%llx "
+-			 "(cleared)\n", (unsigned long long) hwerrs);
++		qib_devinfo(dd->pcidev,
++			"Hardware error: hwerr=0x%llx (cleared)\n",
++			(unsigned long long) hwerrs);
+ 
+ 	if (hwerrs & ~IB_HWE_BITSEXTANT)
+-		qib_dev_err(dd, "hwerror interrupt with unknown errors "
+-			    "%llx set\n", (unsigned long long)
+-			    (hwerrs & ~IB_HWE_BITSEXTANT));
++		qib_dev_err(dd,
++			"hwerror interrupt with unknown errors %llx set\n",
++			(unsigned long long) (hwerrs & ~IB_HWE_BITSEXTANT));
+ 
+ 	if (hwerrs & QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR)
+ 		qib_sd7220_clr_ibpar(dd);
+@@ -1362,8 +1363,9 @@ static void qib_7220_handle_hwerrors(struct qib_devdata *dd, char *msg,
+ 
+ 	if (hwerrs & HWE_MASK(PowerOnBISTFailed)) {
+ 		isfatal = 1;
+-		strlcat(msg, "[Memory BIST test failed, "
+-			"InfiniPath hardware unusable]", msgl);
++		strlcat(msg,
++			"[Memory BIST test failed, InfiniPath hardware unusable]",
++			msgl);
+ 		/* ignore from now on, so disable until driver reloaded */
+ 		dd->cspec->hwerrmask &= ~HWE_MASK(PowerOnBISTFailed);
+ 		qib_write_kreg(dd, kr_hwerrmask, dd->cspec->hwerrmask);
+@@ -1409,8 +1411,9 @@ static void qib_7220_handle_hwerrors(struct qib_devdata *dd, char *msg,
+ 	qib_dev_err(dd, "%s hardware error\n", msg);
+ 
+ 	if (isfatal && !dd->diag_client) {
+-		qib_dev_err(dd, "Fatal Hardware Error, no longer"
+-			    " usable, SN %.16s\n", dd->serial);
++		qib_dev_err(dd,
++			"Fatal Hardware Error, no longer usable, SN %.16s\n",
++			dd->serial);
+ 		/*
+ 		 * For /sys status file and user programs to print; if no
+ 		 * trailing brace is copied, we'll know it was truncated.
+@@ -1918,8 +1921,9 @@ static noinline void unlikely_7220_intr(struct qib_devdata *dd, u64 istat)
+ 		qib_stats.sps_errints++;
+ 		estat = qib_read_kreg64(dd, kr_errstatus);
+ 		if (!estat)
+-			qib_devinfo(dd->pcidev, "error interrupt (%Lx), "
+-				 "but no error bits set!\n", istat);
++			qib_devinfo(dd->pcidev,
++				"error interrupt (%Lx), but no error bits set!\n",
++				istat);
+ 		else
+ 			handle_7220_errors(dd, estat);
+ 	}
+@@ -2023,17 +2027,18 @@ bail:
+ static void qib_setup_7220_interrupt(struct qib_devdata *dd)
+ {
+ 	if (!dd->cspec->irq)
+-		qib_dev_err(dd, "irq is 0, BIOS error?  Interrupts won't "
+-			    "work\n");
++		qib_dev_err(dd,
++			"irq is 0, BIOS error?  Interrupts won't work\n");
+ 	else {
+ 		int ret = request_irq(dd->cspec->irq, qib_7220intr,
+ 			dd->msi_lo ? 0 : IRQF_SHARED,
+ 			QIB_DRV_NAME, dd);
+ 
+ 		if (ret)
+-			qib_dev_err(dd, "Couldn't setup %s interrupt "
+-				    "(irq=%d): %d\n", dd->msi_lo ?
+-				    "MSI" : "INTx", dd->cspec->irq, ret);
++			qib_dev_err(dd,
++				"Couldn't setup %s interrupt (irq=%d): %d\n",
++				dd->msi_lo ?  "MSI" : "INTx",
++				dd->cspec->irq, ret);
+ 	}
+ }
+ 
+@@ -2072,9 +2077,9 @@ static void qib_7220_boardname(struct qib_devdata *dd)
+ 		snprintf(dd->boardname, namelen, "%s", n);
+ 
+ 	if (dd->majrev != 5 || !dd->minrev || dd->minrev > 2)
+-		qib_dev_err(dd, "Unsupported InfiniPath hardware "
+-			    "revision %u.%u!\n",
+-			    dd->majrev, dd->minrev);
++		qib_dev_err(dd,
++			"Unsupported InfiniPath hardware revision %u.%u!\n",
++			dd->majrev, dd->minrev);
+ 
+ 	snprintf(dd->boardversion, sizeof(dd->boardversion),
+ 		 "ChipABI %u.%u, %s, InfiniPath%u %u.%u, SW Compat %u\n",
+@@ -2146,8 +2151,8 @@ static int qib_setup_7220_reset(struct qib_devdata *dd)
+ bail:
+ 	if (ret) {
+ 		if (qib_pcie_params(dd, dd->lbus_width, NULL, NULL))
+-			qib_dev_err(dd, "Reset failed to setup PCIe or "
+-				    "interrupts; continuing anyway\n");
++			qib_dev_err(dd,
++				"Reset failed to setup PCIe or interrupts; continuing anyway\n");
+ 
+ 		/* hold IBC in reset, no sends, etc till later */
+ 		qib_write_kreg(dd, kr_control, 0ULL);
+@@ -2187,8 +2192,9 @@ static void qib_7220_put_tid(struct qib_devdata *dd, u64 __iomem *tidptr,
+ 			return;
+ 		}
+ 		if (chippa >= (1UL << IBA7220_TID_SZ_SHIFT)) {
+-			qib_dev_err(dd, "Physical page address 0x%lx "
+-				"larger than supported\n", pa);
++			qib_dev_err(dd,
++				"Physical page address 0x%lx larger than supported\n",
++				pa);
+ 			return;
+ 		}
+ 
+@@ -2708,8 +2714,9 @@ static int qib_7220_set_loopback(struct qib_pportdata *ppd, const char *what)
+ 		ppd->cpspec->ibcctrl &= ~SYM_MASK(IBCCtrl, Loopback);
+ 		/* enable heart beat again */
+ 		val = IBA7220_IBC_HRTBT_MASK << IBA7220_IBC_HRTBT_SHIFT;
+-		qib_devinfo(ppd->dd->pcidev, "Disabling IB%u:%u IBC loopback "
+-			    "(normal)\n", ppd->dd->unit, ppd->port);
++		qib_devinfo(ppd->dd->pcidev,
++			"Disabling IB%u:%u IBC loopback (normal)\n",
++			ppd->dd->unit, ppd->port);
+ 	} else
+ 		ret = -EINVAL;
+ 	if (!ret) {
+@@ -3309,8 +3316,8 @@ static int qib_7220_intr_fallback(struct qib_devdata *dd)
+ 	if (!dd->msi_lo)
+ 		return 0;
+ 
+-	qib_devinfo(dd->pcidev, "MSI interrupt not detected,"
+-		 " trying INTx interrupts\n");
++	qib_devinfo(dd->pcidev,
++		"MSI interrupt not detected, trying INTx interrupts\n");
+ 	qib_7220_free_irq(dd);
+ 	qib_enable_intx(dd->pcidev);
+ 	/*
+@@ -3982,11 +3989,10 @@ static int qib_late_7220_initreg(struct qib_devdata *dd)
+ 	qib_write_kreg(dd, kr_sendpioavailaddr, dd->pioavailregs_phys);
+ 	val = qib_read_kreg64(dd, kr_sendpioavailaddr);
+ 	if (val != dd->pioavailregs_phys) {
+-		qib_dev_err(dd, "Catastrophic software error, "
+-			    "SendPIOAvailAddr written as %lx, "
+-			    "read back as %llx\n",
+-			    (unsigned long) dd->pioavailregs_phys,
+-			    (unsigned long long) val);
++		qib_dev_err(dd,
++			"Catastrophic software error, SendPIOAvailAddr written as %lx, read back as %llx\n",
++			(unsigned long) dd->pioavailregs_phys,
++			(unsigned long long) val);
+ 		ret = -EINVAL;
+ 	}
+ 	qib_register_observer(dd, &sendctrl_observer);
+@@ -4016,8 +4022,8 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
+ 	dd->revision = readq(&dd->kregbase[kr_revision]);
+ 
+ 	if ((dd->revision & 0xffffffffU) == 0xffffffffU) {
+-		qib_dev_err(dd, "Revision register read failure, "
+-			    "giving up initialization\n");
++		qib_dev_err(dd,
++			"Revision register read failure, giving up initialization\n");
+ 		ret = -ENODEV;
+ 		goto bail;
+ 	}
+@@ -4613,8 +4619,8 @@ struct qib_devdata *qib_init_iba7220_funcs(struct pci_dev *pdev,
+ 		break;
+ 	}
+ 	if (qib_pcie_params(dd, minwidth, NULL, NULL))
+-		qib_dev_err(dd, "Failed to setup PCIe or interrupts; "
+-			    "continuing anyway\n");
++		qib_dev_err(dd,
++			"Failed to setup PCIe or interrupts; continuing anyway\n");
+ 
+ 	/* save IRQ for possible later use */
+ 	dd->cspec->irq = pdev->irq;
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index 7a7b337..5439ef8 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -52,6 +52,9 @@
+ #include "qib_mad.h"
+ #include "qib_verbs.h"
+ 
++#undef pr_fmt
++#define pr_fmt(fmt) QIB_DRV_NAME " " fmt
++
+ static void qib_setup_7322_setextled(struct qib_pportdata *, u32);
+ static void qib_7322_handle_hwerrors(struct qib_devdata *, char *, size_t);
+ static void sendctrl_7322_mod(struct qib_pportdata *ppd, u32 op);
+@@ -1575,8 +1578,8 @@ static noinline void handle_7322_errors(struct qib_devdata *dd)
+ 	qib_stats.sps_errints++;
+ 	errs = qib_read_kreg64(dd, kr_errstatus);
+ 	if (!errs) {
+-		qib_devinfo(dd->pcidev, "device error interrupt, "
+-			 "but no error bits set!\n");
++		qib_devinfo(dd->pcidev,
++			"device error interrupt, but no error bits set!\n");
+ 		goto done;
+ 	}
+ 
+@@ -1622,8 +1625,8 @@ static noinline void handle_7322_errors(struct qib_devdata *dd)
+ 	if (errs & QIB_E_RESET) {
+ 		int pidx;
+ 
+-		qib_dev_err(dd, "Got reset, requires re-init "
+-			    "(unload and reload driver)\n");
++		qib_dev_err(dd,
++			"Got reset, requires re-init (unload and reload driver)\n");
+ 		dd->flags &= ~QIB_INITTED;  /* needs re-init */
+ 		/* mark as having had error */
+ 		*dd->devstatusp |= QIB_STATUS_HWERROR;
+@@ -1760,9 +1763,9 @@ static void handle_serdes_issues(struct qib_pportdata *ppd, u64 ibcst)
+ 					    ppd->dd->cspec->r1 ?
+ 					    QDR_STATIC_ADAPT_DOWN_R1 :
+ 					    QDR_STATIC_ADAPT_DOWN);
+-			printk(KERN_INFO QIB_DRV_NAME
+-				" IB%u:%u re-enabled QDR adaptation "
+-				"ibclt %x\n", ppd->dd->unit, ppd->port, ibclt);
++			pr_info(
++				"IB%u:%u re-enabled QDR adaptation ibclt %x\n",
++				ppd->dd->unit, ppd->port, ibclt);
+ 		}
+ 	}
+ }
+@@ -1804,9 +1807,9 @@ static noinline void handle_7322_p_errors(struct qib_pportdata *ppd)
+ 		if (!*msg)
+ 			snprintf(msg, sizeof ppd->cpspec->epmsgbuf,
+ 				 "no others");
+-		qib_dev_porterr(dd, ppd->port, "error interrupt with unknown"
+-				" errors 0x%016Lx set (and %s)\n",
+-				(errs & ~QIB_E_P_BITSEXTANT), msg);
++		qib_dev_porterr(dd, ppd->port,
++			"error interrupt with unknown errors 0x%016Lx set (and %s)\n",
++			(errs & ~QIB_E_P_BITSEXTANT), msg);
+ 		*msg = '\0';
+ 	}
+ 
+@@ -2024,8 +2027,8 @@ static void qib_7322_handle_hwerrors(struct qib_devdata *dd, char *msg,
+ 	if (!hwerrs)
+ 		goto bail;
+ 	if (hwerrs == ~0ULL) {
+-		qib_dev_err(dd, "Read of hardware error status failed "
+-			    "(all bits set); ignoring\n");
++		qib_dev_err(dd,
++			"Read of hardware error status failed (all bits set); ignoring\n");
+ 		goto bail;
+ 	}
+ 	qib_stats.sps_hwerrs++;
+@@ -2039,8 +2042,9 @@ static void qib_7322_handle_hwerrors(struct qib_devdata *dd, char *msg,
+ 	/* no EEPROM logging, yet */
+ 
+ 	if (hwerrs)
+-		qib_devinfo(dd->pcidev, "Hardware error: hwerr=0x%llx "
+-			    "(cleared)\n", (unsigned long long) hwerrs);
++		qib_devinfo(dd->pcidev,
++			"Hardware error: hwerr=0x%llx (cleared)\n",
++			(unsigned long long) hwerrs);
+ 
+ 	ctrl = qib_read_kreg32(dd, kr_control);
+ 	if ((ctrl & SYM_MASK(Control, FreezeMode)) && !dd->diag_client) {
+@@ -2064,8 +2068,9 @@ static void qib_7322_handle_hwerrors(struct qib_devdata *dd, char *msg,
+ 
+ 	if (hwerrs & HWE_MASK(PowerOnBISTFailed)) {
+ 		isfatal = 1;
+-		strlcpy(msg, "[Memory BIST test failed, "
+-			"InfiniPath hardware unusable]", msgl);
++		strlcpy(msg,
++			"[Memory BIST test failed, InfiniPath hardware unusable]",
++			msgl);
+ 		/* ignore from now on, so disable until driver reloaded */
+ 		dd->cspec->hwerrmask &= ~HWE_MASK(PowerOnBISTFailed);
+ 		qib_write_kreg(dd, kr_hwerrmask, dd->cspec->hwerrmask);
+@@ -2078,8 +2083,9 @@ static void qib_7322_handle_hwerrors(struct qib_devdata *dd, char *msg,
+ 	qib_dev_err(dd, "%s hardware error\n", msg);
+ 
+ 	if (isfatal && !dd->diag_client) {
+-		qib_dev_err(dd, "Fatal Hardware Error, no longer"
+-			    " usable, SN %.16s\n", dd->serial);
++		qib_dev_err(dd,
++			"Fatal Hardware Error, no longer usable, SN %.16s\n",
++			dd->serial);
+ 		/*
+ 		 * for /sys status file and user programs to print; if no
+ 		 * trailing brace is copied, we'll know it was truncated.
+@@ -2667,8 +2673,9 @@ static noinline void unknown_7322_ibits(struct qib_devdata *dd, u64 istat)
+ 	char msg[128];
+ 
+ 	kills = istat & ~QIB_I_BITSEXTANT;
+-	qib_dev_err(dd, "Clearing reserved interrupt(s) 0x%016llx:"
+-		    " %s\n", (unsigned long long) kills, msg);
++	qib_dev_err(dd,
++		"Clearing reserved interrupt(s) 0x%016llx: %s\n",
++		(unsigned long long) kills, msg);
+ 	qib_write_kreg(dd, kr_intmask, (dd->cspec->int_enable_mask & ~kills));
+ }
+ 
+@@ -3101,16 +3108,16 @@ static void qib_setup_7322_interrupt(struct qib_devdata *dd, int clearpend)
+ 		/* Try to get INTx interrupt */
+ try_intx:
+ 		if (!dd->pcidev->irq) {
+-			qib_dev_err(dd, "irq is 0, BIOS error?  "
+-				    "Interrupts won't work\n");
++			qib_dev_err(dd,
++				"irq is 0, BIOS error?  Interrupts won't work\n");
+ 			goto bail;
+ 		}
+ 		ret = request_irq(dd->pcidev->irq, qib_7322intr,
+ 				  IRQF_SHARED, QIB_DRV_NAME, dd);
+ 		if (ret) {
+-			qib_dev_err(dd, "Couldn't setup INTx "
+-				    "interrupt (irq=%d): %d\n",
+-				    dd->pcidev->irq, ret);
++			qib_dev_err(dd,
++				"Couldn't setup INTx interrupt (irq=%d): %d\n",
++				dd->pcidev->irq, ret);
+ 			goto bail;
+ 		}
+ 		dd->cspec->irq = dd->pcidev->irq;
+@@ -3186,8 +3193,9 @@ try_intx:
+ 			 * Shouldn't happen since the enable said we could
+ 			 * have as many as we are trying to setup here.
+ 			 */
+-			qib_dev_err(dd, "Couldn't setup MSIx "
+-				"interrupt (vec=%d, irq=%d): %d\n", msixnum,
++			qib_dev_err(dd,
++				"Couldn't setup MSIx interrupt (vec=%d, irq=%d): %d\n",
++				msixnum,
+ 				dd->cspec->msix_entries[msixnum].msix.vector,
+ 				ret);
+ 			qib_7322_nomsix(dd);
+@@ -3307,8 +3315,9 @@ static unsigned qib_7322_boardname(struct qib_devdata *dd)
+ 
+ 	if (QIB_MODPARAM_GET(singleport, dd->unit, 0) &&
+ 	    (features >> PORT_SPD_CAP_SHIFT) & PORT_SPD_CAP) {
+-		qib_devinfo(dd->pcidev, "IB%u: Forced to single port mode"
+-			    " by module parameter\n", dd->unit);
++		qib_devinfo(dd->pcidev,
++			"IB%u: Forced to single port mode by module parameter\n",
++			dd->unit);
+ 		features &= PORT_SPD_CAP;
+ 	}
+ 
+@@ -3402,8 +3411,8 @@ static int qib_do_7322_reset(struct qib_devdata *dd)
+ 		if (val == dd->revision)
+ 			break;
+ 		if (i == 5) {
+-			qib_dev_err(dd, "Failed to initialize after reset, "
+-				    "unusable\n");
++			qib_dev_err(dd,
++				"Failed to initialize after reset, unusable\n");
+ 			ret = 0;
+ 			goto  bail;
+ 		}
+@@ -3434,8 +3443,8 @@ static int qib_do_7322_reset(struct qib_devdata *dd)
+ 	if (qib_pcie_params(dd, dd->lbus_width,
+ 			    &dd->cspec->num_msix_entries,
+ 			    dd->cspec->msix_entries))
+-		qib_dev_err(dd, "Reset failed to setup PCIe or interrupts; "
+-				"continuing anyway\n");
++		qib_dev_err(dd,
++			"Reset failed to setup PCIe or interrupts; continuing anyway\n");
+ 
+ 	qib_setup_7322_interrupt(dd, 1);
+ 
+@@ -3476,8 +3485,9 @@ static void qib_7322_put_tid(struct qib_devdata *dd, u64 __iomem *tidptr,
+ 			return;
+ 		}
+ 		if (chippa >= (1UL << IBA7322_TID_SZ_SHIFT)) {
+-			qib_dev_err(dd, "Physical page address 0x%lx "
+-				"larger than supported\n", pa);
++			qib_dev_err(dd,
++				"Physical page address 0x%lx larger than supported\n",
++				pa);
+ 			return;
+ 		}
+ 
+@@ -4039,8 +4049,9 @@ static int qib_7322_set_loopback(struct qib_pportdata *ppd, const char *what)
+ 							Loopback);
+ 		/* enable heart beat again */
+ 		val = IBA7322_IBC_HRTBT_RMASK << IBA7322_IBC_HRTBT_LSB;
+-		qib_devinfo(ppd->dd->pcidev, "Disabling IB%u:%u IBC loopback "
+-			    "(normal)\n", ppd->dd->unit, ppd->port);
++		qib_devinfo(ppd->dd->pcidev,
++			"Disabling IB%u:%u IBC loopback (normal)\n",
++			ppd->dd->unit, ppd->port);
+ 	} else
+ 		ret = -EINVAL;
+ 	if (!ret) {
+@@ -4724,8 +4735,8 @@ static void init_7322_cntrnames(struct qib_devdata *dd)
+ 		dd->pport[i].cpspec->portcntrs = kmalloc(dd->cspec->nportcntrs
+ 			* sizeof(u64), GFP_KERNEL);
+ 		if (!dd->pport[i].cpspec->portcntrs)
+-			qib_dev_err(dd, "Failed allocation for"
+-				    " portcounters\n");
++			qib_dev_err(dd,
++				"Failed allocation for portcounters\n");
+ 	}
+ }
+ 
+@@ -4875,8 +4886,8 @@ static int qib_7322_intr_fallback(struct qib_devdata *dd)
+ 	if (!dd->cspec->num_msix_entries)
+ 		return 0; /* already using INTx */
+ 
+-	qib_devinfo(dd->pcidev, "MSIx interrupt not detected,"
+-		 " trying INTx interrupts\n");
++	qib_devinfo(dd->pcidev,
++		"MSIx interrupt not detected, trying INTx interrupts\n");
+ 	qib_7322_nomsix(dd);
+ 	qib_enable_intx(dd->pcidev);
+ 	qib_setup_7322_interrupt(dd, 0);
+@@ -5848,22 +5859,21 @@ static int setup_txselect(const char *str, struct kernel_param *kp)
+ {
+ 	struct qib_devdata *dd;
+ 	unsigned long val;
+-	char *n;
++	int ret;
++
+ 	if (strlen(str) >= MAX_ATTEN_LEN) {
+-		printk(KERN_INFO QIB_DRV_NAME " txselect_values string "
+-		       "too long\n");
++		pr_info("txselect_values string too long\n");
+ 		return -ENOSPC;
+ 	}
+-	val = simple_strtoul(str, &n, 0);
+-	if (n == str || val >= (TXDDS_TABLE_SZ + TXDDS_EXTRA_SZ +
++	ret = kstrtoul(str, 0, &val);
++	if (ret || val >= (TXDDS_TABLE_SZ + TXDDS_EXTRA_SZ +
+ 				TXDDS_MFG_SZ)) {
+-		printk(KERN_INFO QIB_DRV_NAME
+-		       "txselect_values must start with a number < %d\n",
++		pr_info("txselect_values must start with a number < %d\n",
+ 			TXDDS_TABLE_SZ + TXDDS_EXTRA_SZ + TXDDS_MFG_SZ);
+-		return -EINVAL;
++		return ret ? ret : -EINVAL;
+ 	}
+-	strcpy(txselect_list, str);
+ 
++	strcpy(txselect_list, str);
+ 	list_for_each_entry(dd, &qib_dev_list, list)
+ 		if (dd->deviceid == PCI_DEVICE_ID_QLOGIC_IB_7322)
+ 			set_no_qsfp_atten(dd, 1);
+@@ -5886,11 +5896,10 @@ static int qib_late_7322_initreg(struct qib_devdata *dd)
+ 	qib_write_kreg(dd, kr_sendpioavailaddr, dd->pioavailregs_phys);
+ 	val = qib_read_kreg64(dd, kr_sendpioavailaddr);
+ 	if (val != dd->pioavailregs_phys) {
+-		qib_dev_err(dd, "Catastrophic software error, "
+-			    "SendPIOAvailAddr written as %lx, "
+-			    "read back as %llx\n",
+-			    (unsigned long) dd->pioavailregs_phys,
+-			    (unsigned long long) val);
++		qib_dev_err(dd,
++			"Catastrophic software error, SendPIOAvailAddr written as %lx, read back as %llx\n",
++			(unsigned long) dd->pioavailregs_phys,
++			(unsigned long long) val);
+ 		ret = -EINVAL;
+ 	}
+ 
+@@ -6101,8 +6110,8 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
+ 	dd->revision = readq(&dd->kregbase[kr_revision]);
+ 
+ 	if ((dd->revision & 0xffffffffU) == 0xffffffffU) {
+-		qib_dev_err(dd, "Revision register read failure, "
+-			    "giving up initialization\n");
++		qib_dev_err(dd,
++			"Revision register read failure, giving up initialization\n");
+ 		ret = -ENODEV;
+ 		goto bail;
+ 	}
+@@ -6267,9 +6276,9 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
+ 		 */
+ 		if (!(dd->flags & QIB_HAS_QSFP)) {
+ 			if (!IS_QMH(dd) && !IS_QME(dd))
+-				qib_devinfo(dd->pcidev, "IB%u:%u: "
+-					    "Unknown mezzanine card type\n",
+-					    dd->unit, ppd->port);
++				qib_devinfo(dd->pcidev,
++					"IB%u:%u: Unknown mezzanine card type\n",
++					dd->unit, ppd->port);
+ 			cp->h1_val = IS_QMH(dd) ? H1_FORCE_QMH : H1_FORCE_QME;
+ 			/*
+ 			 * Choose center value as default tx serdes setting
+@@ -6924,8 +6933,8 @@ struct qib_devdata *qib_init_iba7322_funcs(struct pci_dev *pdev,
+ 		dd->cspec->msix_entries[i].msix.entry = i;
+ 
+ 	if (qib_pcie_params(dd, 8, &tabsize, dd->cspec->msix_entries))
+-		qib_dev_err(dd, "Failed to setup PCIe or interrupts; "
+-			    "continuing anyway\n");
++		qib_dev_err(dd,
++			"Failed to setup PCIe or interrupts; continuing anyway\n");
+ 	/* may be less than we wanted, if not enough available */
+ 	dd->cspec->num_msix_entries = tabsize;
+ 
+@@ -7278,8 +7287,7 @@ static void find_best_ent(struct qib_pportdata *ppd,
+ 		   ppd->cpspec->no_eep < (TXDDS_TABLE_SZ + TXDDS_EXTRA_SZ +
+ 					  TXDDS_MFG_SZ)) {
+ 		idx = ppd->cpspec->no_eep - (TXDDS_TABLE_SZ + TXDDS_EXTRA_SZ);
+-		printk(KERN_INFO QIB_DRV_NAME
+-			" IB%u:%u use idx %u into txdds_mfg\n",
++		pr_info("IB%u:%u use idx %u into txdds_mfg\n",
+ 			ppd->dd->unit, ppd->port, idx);
+ 		*sdr_dds = &txdds_extra_mfg[idx];
+ 		*ddr_dds = &txdds_extra_mfg[idx];
+@@ -7434,11 +7442,11 @@ static void serdes_7322_los_enable(struct qib_pportdata *ppd, int enable)
+ 	u8 state = SYM_FIELD(data, IBSerdesCtrl_0, RXLOSEN);
+ 
+ 	if (enable && !state) {
+-		printk(KERN_INFO QIB_DRV_NAME " IB%u:%u Turning LOS on\n",
++		pr_info("IB%u:%u Turning LOS on\n",
+ 			ppd->dd->unit, ppd->port);
+ 		data |= SYM_MASK(IBSerdesCtrl_0, RXLOSEN);
+ 	} else if (!enable && state) {
+-		printk(KERN_INFO QIB_DRV_NAME " IB%u:%u Turning LOS off\n",
++		pr_info("IB%u:%u Turning LOS off\n",
+ 			ppd->dd->unit, ppd->port);
+ 		data &= ~SYM_MASK(IBSerdesCtrl_0, RXLOSEN);
+ 	}
+@@ -7674,8 +7682,7 @@ static int serdes_7322_init_new(struct qib_pportdata *ppd)
+ 		}
+ 	}
+ 	if (chan_done) {
+-		printk(KERN_INFO QIB_DRV_NAME
+-			 " Serdes %d calibration not done after .5 sec: 0x%x\n",
++		pr_info("Serdes %d calibration not done after .5 sec: 0x%x\n",
+ 			 IBSD(ppd->hw_pidx), chan_done);
+ 	} else {
+ 		for (chan = 0; chan < SERDES_CHANS; ++chan) {
+@@ -7683,9 +7690,8 @@ static int serdes_7322_init_new(struct qib_pportdata *ppd)
+ 					    (chan + (chan >> 1)),
+ 					    25, 0, 0);
+ 			if ((~rxcaldone & (u32)BMASK(10, 10)) == 0)
+-				printk(KERN_INFO QIB_DRV_NAME
+-					 " Serdes %d chan %d calibration "
+-					 "failed\n", IBSD(ppd->hw_pidx), chan);
++				pr_info("Serdes %d chan %d calibration failed\n",
++					IBSD(ppd->hw_pidx), chan);
+ 		}
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index a560555..aa36bb4 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -38,11 +38,15 @@
+ #include <linux/delay.h>
+ #include <linux/idr.h>
+ #include <linux/module.h>
++#include <linux/printk.h>
+ 
+ #include "qib.h"
+ #include "qib_common.h"
+ #include "qib_mad.h"
+ 
++#undef pr_fmt
++#define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
++
+ /*
+  * min buffers we want to have per context, after driver
+  */
+@@ -124,8 +128,8 @@ int qib_create_ctxts(struct qib_devdata *dd)
+ 	 */
+ 	dd->rcd = kzalloc(sizeof(*dd->rcd) * dd->ctxtcnt, GFP_KERNEL);
+ 	if (!dd->rcd) {
+-		qib_dev_err(dd, "Unable to allocate ctxtdata array, "
+-			    "failing\n");
++		qib_dev_err(dd,
++			"Unable to allocate ctxtdata array, failing\n");
+ 		ret = -ENOMEM;
+ 		goto done;
+ 	}
+@@ -154,8 +158,8 @@ int qib_create_ctxts(struct qib_devdata *dd)
+ 
+ 		rcd = qib_create_ctxtdata(ppd, i);
+ 		if (!rcd) {
+-			qib_dev_err(dd, "Unable to allocate ctxtdata"
+-				    " for Kernel ctxt, failing\n");
++			qib_dev_err(dd,
++				"Unable to allocate ctxtdata for Kernel ctxt, failing\n");
+ 			ret = -ENOMEM;
+ 			goto done;
+ 		}
+@@ -316,8 +320,8 @@ static int init_pioavailregs(struct qib_devdata *dd)
+ 		&dd->pcidev->dev, PAGE_SIZE, &dd->pioavailregs_phys,
+ 		GFP_KERNEL);
+ 	if (!dd->pioavailregs_dma) {
+-		qib_dev_err(dd, "failed to allocate PIOavail reg area "
+-			    "in memory\n");
++		qib_dev_err(dd,
++			"failed to allocate PIOavail reg area in memory\n");
+ 		ret = -ENOMEM;
+ 		goto done;
+ 	}
+@@ -372,15 +376,15 @@ static void init_shadow_tids(struct qib_devdata *dd)
+ 
+ 	pages = vzalloc(dd->cfgctxts * dd->rcvtidcnt * sizeof(struct page *));
+ 	if (!pages) {
+-		qib_dev_err(dd, "failed to allocate shadow page * "
+-			    "array, no expected sends!\n");
++		qib_dev_err(dd,
++			"failed to allocate shadow page * array, no expected sends!\n");
+ 		goto bail;
+ 	}
+ 
+ 	addrs = vzalloc(dd->cfgctxts * dd->rcvtidcnt * sizeof(dma_addr_t));
+ 	if (!addrs) {
+-		qib_dev_err(dd, "failed to allocate shadow dma handle "
+-			    "array, no expected sends!\n");
++		qib_dev_err(dd,
++			"failed to allocate shadow dma handle array, no expected sends!\n");
+ 		goto bail_free;
+ 	}
+ 
+@@ -404,13 +408,13 @@ static int loadtime_init(struct qib_devdata *dd)
+ 
+ 	if (((dd->revision >> QLOGIC_IB_R_SOFTWARE_SHIFT) &
+ 	     QLOGIC_IB_R_SOFTWARE_MASK) != QIB_CHIP_SWVERSION) {
+-		qib_dev_err(dd, "Driver only handles version %d, "
+-			    "chip swversion is %d (%llx), failng\n",
+-			    QIB_CHIP_SWVERSION,
+-			    (int)(dd->revision >>
++		qib_dev_err(dd,
++			"Driver only handles version %d, chip swversion is %d (%llx), failng\n",
++			QIB_CHIP_SWVERSION,
++			(int)(dd->revision >>
+ 				QLOGIC_IB_R_SOFTWARE_SHIFT) &
+-			    QLOGIC_IB_R_SOFTWARE_MASK,
+-			    (unsigned long long) dd->revision);
++				QLOGIC_IB_R_SOFTWARE_MASK,
++			(unsigned long long) dd->revision);
+ 		ret = -ENOSYS;
+ 		goto done;
+ 	}
+@@ -514,8 +518,8 @@ static void verify_interrupt(unsigned long opaque)
+ 	 */
+ 	if (dd->int_counter == 0) {
+ 		if (!dd->f_intr_fallback(dd))
+-			dev_err(&dd->pcidev->dev, "No interrupts detected, "
+-				"not usable.\n");
++			dev_err(&dd->pcidev->dev,
++				"No interrupts detected, not usable.\n");
+ 		else /* re-arm the timer to see if fallback works */
+ 			mod_timer(&dd->intrchk_timer, jiffies + HZ/2);
+ 	}
+@@ -600,9 +604,8 @@ static int qib_create_workqueues(struct qib_devdata *dd)
+ 	}
+ 	return 0;
+ wq_error:
+-	pr_err(
+-	 QIB_DRV_NAME ": create_singlethread_workqueue failed for port %d\n",
+-	 pidx + 1);
++	pr_err("create_singlethread_workqueue failed for port %d\n",
++		pidx + 1);
+ 	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
+ 		ppd = dd->pport + pidx;
+ 		if (ppd->qib_wq) {
+@@ -678,8 +681,8 @@ int qib_init(struct qib_devdata *dd, int reinit)
+ 		if (!lastfail)
+ 			lastfail = qib_setup_eagerbufs(rcd);
+ 		if (lastfail) {
+-			qib_dev_err(dd, "failed to allocate kernel ctxt's "
+-				    "rcvhdrq and/or egr bufs\n");
++			qib_dev_err(dd,
++				"failed to allocate kernel ctxt's rcvhdrq and/or egr bufs\n");
+ 			continue;
+ 		}
+ 	}
+@@ -691,9 +694,8 @@ int qib_init(struct qib_devdata *dd, int reinit)
+ 		ppd = dd->pport + pidx;
+ 		mtu = ib_mtu_enum_to_int(
+ 			QIB_MODPARAM_GET(ibmtu, dd->unit, ppd->port));
+-		if (mtu == -1) {
++		if (mtu == -1)
+ 			mtu = QIB_DEFAULT_MTU;
+-		}
+ 		/* set max we can ever have for this driver load */
+ 		ppd->init_ibmaxlen = min(mtu > 2048 ?
+ 					 dd->piosize4k : dd->piosize2k,
+@@ -1029,8 +1031,7 @@ static void qib_verify_pioperf(struct qib_devdata *dd)
+ 	/* 1 GiB/sec, slightly over IB SDR line rate */
+ 	if (lcnt < (emsecs * 1024U))
+ 		qib_dev_err(dd,
+-			    "Performance problem: bandwidth to PIO buffers is "
+-			    "only %u MiB/sec\n",
++			    "Performance problem: bandwidth to PIO buffers is only %u MiB/sec\n",
+ 			    lcnt / (u32) emsecs);
+ 
+ 	preempt_enable();
+@@ -1103,8 +1104,8 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ 		if (qib_cpulist)
+ 			qib_cpulist_count = count;
+ 		else
+-			qib_early_err(&pdev->dev, "Could not alloc cpulist "
+-				      "info, cpu affinity might be wrong\n");
++			qib_early_err(&pdev->dev,
++				"Could not alloc cpulist info, cpu affinity might be wrong\n");
+ 	}
+ 
+ bail:
+@@ -1193,21 +1194,20 @@ static int __init qlogic_ib_init(void)
+ 	 */
+ 	idr_init(&qib_unit_table);
+ 	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
+-		printk(KERN_ERR QIB_DRV_NAME ": idr_pre_get() failed\n");
++		pr_err("idr_pre_get() failed\n");
+ 		ret = -ENOMEM;
+ 		goto bail_cq_wq;
+ 	}
+ 
+ 	ret = pci_register_driver(&qib_driver);
+ 	if (ret < 0) {
+-		printk(KERN_ERR QIB_DRV_NAME
+-		       ": Unable to register driver: error %d\n", -ret);
++		pr_err("Unable to register driver: error %d\n", -ret);
+ 		goto bail_unit;
+ 	}
+ 
+ 	/* not fatal if it doesn't work */
+ 	if (qib_init_qibfs())
+-		printk(KERN_ERR QIB_DRV_NAME ": Unable to register ipathfs\n");
++		pr_err("Unable to register ipathfs\n");
+ 	goto bail; /* all OK */
+ 
+ bail_unit:
+@@ -1231,9 +1231,9 @@ static void __exit qlogic_ib_cleanup(void)
+ 
+ 	ret = qib_exit_qibfs();
+ 	if (ret)
+-		printk(KERN_ERR QIB_DRV_NAME ": "
+-			"Unable to cleanup counter filesystem: "
+-			"error %d\n", -ret);
++		pr_err(
++			"Unable to cleanup counter filesystem: error %d\n",
++			-ret);
+ 
+ 	pci_unregister_driver(&qib_driver);
+ 
+@@ -1374,9 +1374,9 @@ static int __devinit qib_init_one(struct pci_dev *pdev,
+ #ifdef CONFIG_PCI_MSI
+ 		dd = qib_init_iba6120_funcs(pdev, ent);
+ #else
+-		qib_early_err(&pdev->dev, "QLogic PCIE device 0x%x cannot "
+-		      "work if CONFIG_PCI_MSI is not enabled\n",
+-		      ent->device);
++		qib_early_err(&pdev->dev,
++			"QLogic PCIE device 0x%x cannot work if CONFIG_PCI_MSI is not enabled\n",
++			ent->device);
+ 		dd = ERR_PTR(-ENODEV);
+ #endif
+ 		break;
+@@ -1390,8 +1390,9 @@ static int __devinit qib_init_one(struct pci_dev *pdev,
+ 		break;
+ 
+ 	default:
+-		qib_early_err(&pdev->dev, "Failing on unknown QLogic "
+-			      "deviceid 0x%x\n", ent->device);
++		qib_early_err(&pdev->dev,
++			"Failing on unknown QLogic deviceid 0x%x\n",
++			ent->device);
+ 		ret = -ENODEV;
+ 	}
+ 
+@@ -1448,9 +1449,9 @@ static int __devinit qib_init_one(struct pci_dev *pdev,
+ 	if (!qib_wc_pat) {
+ 		ret = qib_enable_wc(dd);
+ 		if (ret) {
+-			qib_dev_err(dd, "Write combining not enabled "
+-				    "(err %d): performance may be poor\n",
+-				    -ret);
++			qib_dev_err(dd,
++				"Write combining not enabled (err %d): performance may be poor\n",
++				-ret);
+ 			ret = 0;
+ 		}
+ 	}
+@@ -1516,9 +1517,9 @@ int qib_create_rcvhdrq(struct qib_devdata *dd, struct qib_ctxtdata *rcd)
+ 			gfp_flags | __GFP_COMP);
+ 
+ 		if (!rcd->rcvhdrq) {
+-			qib_dev_err(dd, "attempt to allocate %d bytes "
+-				    "for ctxt %u rcvhdrq failed\n",
+-				    amt, rcd->ctxt);
++			qib_dev_err(dd,
++				"attempt to allocate %d bytes for ctxt %u rcvhdrq failed\n",
++				amt, rcd->ctxt);
+ 			goto bail;
+ 		}
+ 
+@@ -1547,8 +1548,9 @@ int qib_create_rcvhdrq(struct qib_devdata *dd, struct qib_ctxtdata *rcd)
+ 	return 0;
+ 
+ bail_free:
+-	qib_dev_err(dd, "attempt to allocate 1 page for ctxt %u "
+-		    "rcvhdrqtailaddr failed\n", rcd->ctxt);
++	qib_dev_err(dd,
++		"attempt to allocate 1 page for ctxt %u rcvhdrqtailaddr failed\n",
++		rcd->ctxt);
+ 	vfree(rcd->user_event_mask);
+ 	rcd->user_event_mask = NULL;
+ bail_free_hdrq:
+diff --git a/drivers/infiniband/hw/qib/qib_intr.c b/drivers/infiniband/hw/qib/qib_intr.c
+index 6ae57d2..f4918f2 100644
+--- a/drivers/infiniband/hw/qib/qib_intr.c
++++ b/drivers/infiniband/hw/qib/qib_intr.c
+@@ -224,15 +224,15 @@ void qib_bad_intrstatus(struct qib_devdata *dd)
+ 	 * We print the message and disable interrupts, in hope of
+ 	 * having a better chance of debugging the problem.
+ 	 */
+-	qib_dev_err(dd, "Read of chip interrupt status failed"
+-		    " disabling interrupts\n");
++	qib_dev_err(dd,
++		"Read of chip interrupt status failed disabling interrupts\n");
+ 	if (allbits++) {
+ 		/* disable interrupt delivery, something is very wrong */
+ 		if (allbits == 2)
+ 			dd->f_set_intr_state(dd, 0);
+ 		if (allbits == 3) {
+-			qib_dev_err(dd, "2nd bad interrupt status, "
+-				    "unregistering interrupts\n");
++			qib_dev_err(dd,
++				"2nd bad interrupt status, unregistering interrupts\n");
+ 			dd->flags |= QIB_BADINTR;
+ 			dd->flags &= ~QIB_INITTED;
+ 			dd->f_free_irq(dd);
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index 27fc3e8..52dc417 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -225,8 +225,9 @@ static void qib_msix_setup(struct qib_devdata *dd, int pos, u32 *msixcnt,
+ 	}
+ do_intx:
+ 	if (ret) {
+-		qib_dev_err(dd, "pci_enable_msix %d vectors failed: %d, "
+-			    "falling back to INTx\n", tabsize, ret);
++		qib_dev_err(dd,
++			"pci_enable_msix %d vectors failed: %d, falling back to INTx\n",
++			tabsize, ret);
+ 		tabsize = 0;
+ 	}
+ 	for (i = 0; i < tabsize; i++)
+@@ -252,8 +253,9 @@ static int qib_msi_setup(struct qib_devdata *dd, int pos)
+ 
+ 	ret = pci_enable_msi(pdev);
+ 	if (ret)
+-		qib_dev_err(dd, "pci_enable_msi failed: %d, "
+-			    "interrupts may not work\n", ret);
++		qib_dev_err(dd,
++			"pci_enable_msi failed: %d, interrupts may not work\n",
++			ret);
+ 	/* continue even if it fails, we may still be OK... */
+ 
+ 	pci_read_config_dword(pdev, pos + PCI_MSI_ADDRESS_LO,
+@@ -359,8 +361,8 @@ int qib_reinit_intr(struct qib_devdata *dd)
+ 
+ 	pos = pci_find_capability(dd->pcidev, PCI_CAP_ID_MSI);
+ 	if (!pos) {
+-		qib_dev_err(dd, "Can't find MSI capability, "
+-			    "can't restore MSI settings\n");
++		qib_dev_err(dd,
++			"Can't find MSI capability, can't restore MSI settings\n");
+ 		ret = 0;
+ 		/* nothing special for MSIx, just MSI */
+ 		goto bail;
+@@ -472,8 +474,8 @@ void qib_pcie_reenable(struct qib_devdata *dd, u16 cmd, u8 iline, u8 cline)
+ 	pci_write_config_byte(dd->pcidev, PCI_CACHE_LINE_SIZE, cline);
+ 	r = pci_enable_device(dd->pcidev);
+ 	if (r)
+-		qib_dev_err(dd, "pci_enable_device failed after "
+-			    "reset: %d\n", r);
++		qib_dev_err(dd,
++			"pci_enable_device failed after reset: %d\n", r);
+ }
+ 
+ /* code to adjust PCIe capabilities. */
+@@ -717,8 +719,9 @@ qib_pci_mmio_enabled(struct pci_dev *pdev)
+ 		if (words == ~0ULL)
+ 			ret = PCI_ERS_RESULT_NEED_RESET;
+ 	}
+-	qib_devinfo(pdev, "QIB mmio_enabled function called, "
+-		 "read wordscntr %Lx, returning %d\n", words, ret);
++	qib_devinfo(pdev,
++		"QIB mmio_enabled function called, read wordscntr %Lx, returning %d\n",
++		words, ret);
+ 	return  ret;
+ }
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_sd7220.c b/drivers/infiniband/hw/qib/qib_sd7220.c
+index ac065dd..a322d51 100644
+--- a/drivers/infiniband/hw/qib/qib_sd7220.c
++++ b/drivers/infiniband/hw/qib/qib_sd7220.c
+@@ -1,6 +1,6 @@
+ /*
+- * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
+- * All rights reserved.
++ * Copyright (c) 2012 Intel Corporation. All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -342,15 +342,17 @@ static void qib_sd_trimdone_monitor(struct qib_devdata *dd,
+ 		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
+ 			IB_CTRL2(chn), 0, 0);
+ 		if (ret < 0)
+-			qib_dev_err(dd, "Failed checking TRIMDONE, chn %d"
+-				    " (%s)\n", chn, where);
++			qib_dev_err(dd,
++				"Failed checking TRIMDONE, chn %d (%s)\n",
++				chn, where);
+ 
+ 		if (!(ret & 0x10)) {
+ 			int probe;
+ 
+ 			baduns |= (1 << chn);
+-			qib_dev_err(dd, "TRIMDONE cleared on chn %d (%02X)."
+-				" (%s)\n", chn, ret, where);
++			qib_dev_err(dd,
++				"TRIMDONE cleared on chn %d (%02X). (%s)\n",
++				chn, ret, where);
+ 			probe = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
+ 				IB_PGUDP(0), 0, 0);
+ 			qib_dev_err(dd, "probe is %d (%02X)\n",
+@@ -375,8 +377,8 @@ static void qib_sd_trimdone_monitor(struct qib_devdata *dd,
+ 			ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
+ 				IB_CTRL2(chn), 0x10, 0x10);
+ 			if (ret < 0)
+-				qib_dev_err(dd, "Failed re-setting "
+-					"TRIMDONE, chn %d (%s)\n",
++				qib_dev_err(dd,
++					"Failed re-setting TRIMDONE, chn %d (%s)\n",
+ 					chn, where);
+ 		}
+ 	}
+@@ -1144,10 +1146,10 @@ static int ibsd_mod_allchnls(struct qib_devdata *dd, int loc, int val,
+ 			if (ret < 0) {
+ 				int sloc = loc >> EPB_ADDR_SHF;
+ 
+-				qib_dev_err(dd, "pre-read failed: elt %d,"
+-					    " addr 0x%X, chnl %d\n",
+-					    (sloc & 0xF),
+-					    (sloc >> 9) & 0x3f, chnl);
++				qib_dev_err(dd,
++					"pre-read failed: elt %d, addr 0x%X, chnl %d\n",
++					(sloc & 0xF),
++					(sloc >> 9) & 0x3f, chnl);
+ 				return ret;
+ 			}
+ 			val = (ret & ~mask) | (val & mask);
+@@ -1157,9 +1159,9 @@ static int ibsd_mod_allchnls(struct qib_devdata *dd, int loc, int val,
+ 		if (ret < 0) {
+ 			int sloc = loc >> EPB_ADDR_SHF;
+ 
+-			qib_dev_err(dd, "Global WR failed: elt %d,"
+-				    " addr 0x%X, val %02X\n",
+-				    (sloc & 0xF), (sloc >> 9) & 0x3f, val);
++			qib_dev_err(dd,
++				"Global WR failed: elt %d, addr 0x%X, val %02X\n",
++				(sloc & 0xF), (sloc >> 9) & 0x3f, val);
+ 		}
+ 		return ret;
+ 	}
+@@ -1173,11 +1175,10 @@ static int ibsd_mod_allchnls(struct qib_devdata *dd, int loc, int val,
+ 		if (ret < 0) {
+ 			int sloc = loc >> EPB_ADDR_SHF;
+ 
+-			qib_dev_err(dd, "Write failed: elt %d,"
+-				    " addr 0x%X, chnl %d, val 0x%02X,"
+-				    " mask 0x%02X\n",
+-				    (sloc & 0xF), (sloc >> 9) & 0x3f, chnl,
+-				    val & 0xFF, mask & 0xFF);
++			qib_dev_err(dd,
++				"Write failed: elt %d, addr 0x%X, chnl %d, val 0x%02X, mask 0x%02X\n",
++				(sloc & 0xF), (sloc >> 9) & 0x3f, chnl,
++				val & 0xFF, mask & 0xFF);
+ 			break;
+ 		}
+ 	}
+diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
+index 12a9604..3fc5144 100644
+--- a/drivers/infiniband/hw/qib/qib_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_sdma.c
+@@ -1,5 +1,6 @@
+ /*
+- * Copyright (c) 2007, 2008, 2009, 2010 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2012 Intel Corporation. All rights reserved.
++ * Copyright (c) 2007 - 2012 QLogic Corporation. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -276,8 +277,8 @@ static int alloc_sdma(struct qib_pportdata *ppd)
+ 		GFP_KERNEL);
+ 
+ 	if (!ppd->sdma_descq) {
+-		qib_dev_err(ppd->dd, "failed to allocate SendDMA descriptor "
+-			    "FIFO memory\n");
++		qib_dev_err(ppd->dd,
++			"failed to allocate SendDMA descriptor FIFO memory\n");
+ 		goto bail;
+ 	}
+ 
+@@ -285,8 +286,8 @@ static int alloc_sdma(struct qib_pportdata *ppd)
+ 	ppd->sdma_head_dma = dma_alloc_coherent(&ppd->dd->pcidev->dev,
+ 		PAGE_SIZE, &ppd->sdma_head_phys, GFP_KERNEL);
+ 	if (!ppd->sdma_head_dma) {
+-		qib_dev_err(ppd->dd, "failed to allocate SendDMA "
+-			    "head memory\n");
++		qib_dev_err(ppd->dd,
++			"failed to allocate SendDMA head memory\n");
+ 		goto cleanup_descq;
+ 	}
+ 	ppd->sdma_head_dma[0] = 0;
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+index ae78305..034cc82 100644
+--- a/drivers/infiniband/hw/qib/qib_sysfs.c
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -36,41 +36,6 @@
+ #include "qib.h"
+ #include "qib_mad.h"
+ 
+-/**
+- * qib_parse_ushort - parse an unsigned short value in an arbitrary base
+- * @str: the string containing the number
+- * @valp: where to put the result
+- *
+- * Returns the number of bytes consumed, or negative value on error.
+- */
+-static int qib_parse_ushort(const char *str, unsigned short *valp)
+-{
+-	unsigned long val;
+-	char *end;
+-	int ret;
+-
+-	if (!isdigit(str[0])) {
+-		ret = -EINVAL;
+-		goto bail;
+-	}
+-
+-	val = simple_strtoul(str, &end, 0);
+-
+-	if (val > 0xffff) {
+-		ret = -EINVAL;
+-		goto bail;
+-	}
+-
+-	*valp = val;
+-
+-	ret = end + 1 - str;
+-	if (ret == 0)
+-		ret = -EINVAL;
+-
+-bail:
+-	return ret;
+-}
+-
+ /* start of per-port functions */
+ /*
+  * Get/Set heartbeat enable. OR of 1=enabled, 2=auto
+@@ -92,7 +57,11 @@ static ssize_t store_hrtbt_enb(struct qib_pportdata *ppd, const char *buf,
+ 	int ret;
+ 	u16 val;
+ 
+-	ret = qib_parse_ushort(buf, &val);
++	ret = kstrtou16(buf, 0, &val);
++	if (ret) {
++		qib_dev_err(dd, "attempt to set invalid Heartbeat enable\n");
++		return ret;
++	}
+ 
+ 	/*
+ 	 * Set the "intentional" heartbeat enable per either of
+@@ -101,10 +70,7 @@ static ssize_t store_hrtbt_enb(struct qib_pportdata *ppd, const char *buf,
+ 	 * because entering loopback mode overrides it and automatically
+ 	 * disables heartbeat.
+ 	 */
+-	if (ret >= 0)
+-		ret = dd->f_set_ib_cfg(ppd, QIB_IB_CFG_HRTBT, val);
+-	if (ret < 0)
+-		qib_dev_err(dd, "attempt to set invalid Heartbeat enable\n");
++	ret = dd->f_set_ib_cfg(ppd, QIB_IB_CFG_HRTBT, val);
+ 	return ret < 0 ? ret : count;
+ }
+ 
+@@ -128,12 +94,14 @@ static ssize_t store_led_override(struct qib_pportdata *ppd, const char *buf,
+ 	int ret;
+ 	u16 val;
+ 
+-	ret = qib_parse_ushort(buf, &val);
+-	if (ret > 0)
+-		qib_set_led_override(ppd, val);
+-	else
++	ret = kstrtou16(buf, 0, &val);
++	if (ret) {
+ 		qib_dev_err(dd, "attempt to set invalid LED override\n");
+-	return ret < 0 ? ret : count;
++		return ret;
++	}
++
++	qib_set_led_override(ppd, val);
++	return count;
+ }
+ 
+ static ssize_t show_status(struct qib_pportdata *ppd, char *buf)
+@@ -501,12 +469,12 @@ static ssize_t diagc_attr_store(struct kobject *kobj, struct attribute *attr,
+ 	struct qib_pportdata *ppd =
+ 		container_of(kobj, struct qib_pportdata, diagc_kobj);
+ 	struct qib_ibport *qibp = &ppd->ibport_data;
+-	char *endp;
+-	long val = simple_strtol(buf, &endp, 0);
+-
+-	if (val < 0 || endp == buf)
+-		return -EINVAL;
++	u32 val;
++	int ret;
+ 
++	ret = kstrtou32(buf, 0, &val);
++	if (ret)
++		return ret;
+ 	*(u32 *)((char *) qibp + dattr->counter) = val;
+ 	return size;
+ }
+@@ -739,8 +707,9 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+ 	int ret;
+ 
+ 	if (!port_num || port_num > dd->num_pports) {
+-		qib_dev_err(dd, "Skipping infiniband class with "
+-			    "invalid port %u\n", port_num);
++		qib_dev_err(dd,
++			"Skipping infiniband class with invalid port %u\n",
++			port_num);
+ 		ret = -ENODEV;
+ 		goto bail;
+ 	}
+@@ -749,8 +718,9 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+ 	ret = kobject_init_and_add(&ppd->pport_kobj, &qib_port_ktype, kobj,
+ 				   "linkcontrol");
+ 	if (ret) {
+-		qib_dev_err(dd, "Skipping linkcontrol sysfs info, "
+-			    "(err %d) port %u\n", ret, port_num);
++		qib_dev_err(dd,
++			"Skipping linkcontrol sysfs info, (err %d) port %u\n",
++			ret, port_num);
+ 		goto bail;
+ 	}
+ 	kobject_uevent(&ppd->pport_kobj, KOBJ_ADD);
+@@ -758,8 +728,9 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+ 	ret = kobject_init_and_add(&ppd->sl2vl_kobj, &qib_sl2vl_ktype, kobj,
+ 				   "sl2vl");
+ 	if (ret) {
+-		qib_dev_err(dd, "Skipping sl2vl sysfs info, "
+-			    "(err %d) port %u\n", ret, port_num);
++		qib_dev_err(dd,
++			"Skipping sl2vl sysfs info, (err %d) port %u\n",
++			ret, port_num);
+ 		goto bail_link;
+ 	}
+ 	kobject_uevent(&ppd->sl2vl_kobj, KOBJ_ADD);
+@@ -767,8 +738,9 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+ 	ret = kobject_init_and_add(&ppd->diagc_kobj, &qib_diagc_ktype, kobj,
+ 				   "diag_counters");
+ 	if (ret) {
+-		qib_dev_err(dd, "Skipping diag_counters sysfs info, "
+-			    "(err %d) port %u\n", ret, port_num);
++		qib_dev_err(dd,
++			"Skipping diag_counters sysfs info, (err %d) port %u\n",
++			ret, port_num);
+ 		goto bail_sl;
+ 	}
+ 	kobject_uevent(&ppd->diagc_kobj, KOBJ_ADD);
+diff --git a/drivers/infiniband/hw/qib/qib_twsi.c b/drivers/infiniband/hw/qib/qib_twsi.c
+index ddde72e..647f7be 100644
+--- a/drivers/infiniband/hw/qib/qib_twsi.c
++++ b/drivers/infiniband/hw/qib/qib_twsi.c
+@@ -1,5 +1,6 @@
+ /*
+- * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2012 Intel Corporation. All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -449,8 +450,9 @@ int qib_twsi_blk_wr(struct qib_devdata *dd, int dev, int addr,
+ 				goto failed_write;
+ 			ret = qib_twsi_wr(dd, addr, 0);
+ 			if (ret) {
+-				qib_dev_err(dd, "Failed to write interface"
+-					    " write addr %02X\n", addr);
++				qib_dev_err(dd,
++					"Failed to write interface write addr %02X\n",
++					addr);
+ 				goto failed_write;
+ 			}
+ 		}
+diff --git a/drivers/infiniband/hw/qib/qib_wc_x86_64.c b/drivers/infiniband/hw/qib/qib_wc_x86_64.c
+index 561b8bc..1d7281c 100644
+--- a/drivers/infiniband/hw/qib/qib_wc_x86_64.c
++++ b/drivers/infiniband/hw/qib/qib_wc_x86_64.c
+@@ -1,5 +1,6 @@
+ /*
+- * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2012 Intel Corporation. All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -102,10 +103,10 @@ int qib_enable_wc(struct qib_devdata *dd)
+ 		u64 atmp;
+ 		atmp = pioaddr & ~(piolen - 1);
+ 		if (atmp < addr || (atmp + piolen) > (addr + len)) {
+-			qib_dev_err(dd, "No way to align address/size "
+-				    "(%llx/%llx), no WC mtrr\n",
+-				    (unsigned long long) atmp,
+-				    (unsigned long long) piolen << 1);
++			qib_dev_err(dd,
++				"No way to align address/size (%llx/%llx), no WC mtrr\n",
++				(unsigned long long) atmp,
++				(unsigned long long) piolen << 1);
+ 			ret = -ENODEV;
+ 		} else {
+ 			pioaddr = atmp;
+@@ -120,8 +121,7 @@ int qib_enable_wc(struct qib_devdata *dd)
+ 		if (cookie < 0) {
+ 			{
+ 				qib_devinfo(dd->pcidev,
+-					 "mtrr_add()  WC for PIO bufs "
+-					 "failed (%d)\n",
++					 "mtrr_add()  WC for PIO bufs failed (%d)\n",
+ 					 cookie);
+ 				ret = -EINVAL;
+ 			}
 
 
 --
