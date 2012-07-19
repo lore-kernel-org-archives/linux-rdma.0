@@ -1,18 +1,18 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] [Trivial] qib: fix an incorrect message
-Date: Thu, 19 Jul 2012 11:24:19 -0700
-Message-ID: <CAL1RGDUK4x9wOa3W6Y1-qri3YB2FO5yuTuFkYDCNTUcRRFdaRA@mail.gmail.com>
-References: <1342726459-2199-1-git-send-email-betty.dall@hp.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH 5/5] IB/qib: checkpatch fixes
+Date: Thu, 19 Jul 2012 11:24:40 -0700
+Message-ID: <CAL1RGDWFM6qZoKs2ByAowZpuWHiPOZqis6nsAJSOR+uwsamB0w@mail.gmail.com>
+References: <20120719130356.4706.63775.stgit@kop-dev-sles11-04.qlogic.org> <20120719130425.4706.30373.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342726459-2199-1-git-send-email-betty.dall-VXdhtT5mjnY@public.gmane.org>
+In-Reply-To: <20120719130425.4706.30373.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Betty Dall <betty.dall-VXdhtT5mjnY@public.gmane.org>
-Cc: trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied.
+thanks, applied 1, 2, & 5.  see my comments about #3
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
