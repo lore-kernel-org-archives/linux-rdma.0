@@ -1,50 +1,33 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH net/for-next V1 0/1] IB/ipoib: break linkage to neighbouring system
-Date: Thu, 19 Jul 2012 16:18:57 +0300
-Message-ID: <1342703938-29904-1-git-send-email-ogerlitz@mellanox.com>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH net/for-next V1 1/1] IB/ipoib: break linkage to neighbouring
+ system
+Date: Thu, 19 Jul 2012 09:42:36 -0500 (CDT)
+Message-ID: <alpine.DEB.2.00.1207190938190.28115@router.home>
+References: <1342703938-29904-1-git-send-email-ogerlitz@mellanox.com> <1342703938-29904-2-git-send-email-ogerlitz@mellanox.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342703938-29904-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-changes from V0:
+On Thu, 19 Jul 2012, Or Gerlitz wrote:
 
-- following feedback from Mike and Dave, changed the ipoib_neigh hash table 
-  to allow for lock-free read side, the model follows the RCU based implementation 
-  in net/core/neighbour.c
+> Aged ipoib_neigh instances are deleted by a garbage collection task that runs every
+> 30 seconds and deletes every ipoib_neigh instance that was idle for at least 60
+> seconds. The deletion is safe since the ipoib_neigh instances are protected
+> using RCU and reference count mechanisms.
 
-- since RCU hash table uses unidirectional collision list, now ipoib_neigh_free 
-  needs to do a linked search in order to find the deleted neighbour predecessor 
-  in order to link it to the neighbour successor.
+Could we have the idle time configurable please? For many use cases we
+want a much longer retention of the neighbors (actually we typically use 4
+hrs).
 
-- different implementation of hash lookup in ipoib_neigh_get (read-side) 
-  vs ipoib_neigh_alloc and ipoib_neigh_free (write-side)
+Also wish we would not run useless code every 30 seconds (create noise
+events especially if its per cpu). Could we only run those events as
+necessary and group the expiration of neighbors to reduce the events?
 
-- path_free and ipoib_mcast_free now make use of the ipoib_del_neighs_by_gid helper 
-  function in order to delete neighbours related to that path or mcast. This new helper 
-  scans the hash table and deletes neighbours with the given GID. It had to be done 
-  this way of as  of the unidrectional nature of the linking which by itself 
-  arises from the lock free requirement made here...
-
-- a completion mechanism was added to prevent freeing the IPoIB netdevice priv 
-  data structure before the RCU based code freed all the neighbours.
-
-Again, the patch was made over net-next as of few IPoIB changes that 
-took place there and the parallel submission of the eIPoIB driver. 
-
-Or.
-
-Shlomo Pongratz (1):
-  IB/ipoib: break linkage to neighbouring system
-
- drivers/infiniband/ulp/ipoib/ipoib.h           |   59 ++-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c        |   16 +-
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |  638 +++++++++++++++++------
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   57 +--
- 4 files changed, 535 insertions(+), 235 deletions(-)
-
-Cc: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
