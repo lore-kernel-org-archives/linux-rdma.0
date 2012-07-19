@@ -1,38 +1,262 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma_connect() "timeout"
-Date: Wed, 18 Jul 2012 17:30:54 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6A5FE@ORSMSX101.amr.corp.intel.com>
-References: <1342624372.19395.35.camel@test.quest-ce.net>
-	 <1828884A29C6694DAF28B7E6B8A8237346A6A5AA@ORSMSX101.amr.corp.intel.com>
- <1342631766.19395.48.camel@test.quest-ce.net>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/5] IB/qib: Reduce sdma_lock contention
+Date: Thu, 19 Jul 2012 09:03:56 -0400
+Message-ID: <20120719130356.4706.63775.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342631766.19395.48.camel-sQn2kEGNn0pFevvuwOF9vF6hYfS7NtTn@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBBY2NvcmRpbmcgdG8gdGhlIE9wZW5TTSBkZWZhdWx0IGNvbmZpZ3VyYXRpb24gKC91c3Ivc2Jp
-bi9vcGVuc20NCj4gLS1jcmVhdGUtY29uZmlnIDxjb25maWc+KSA6DQo+IA0KPiAgICMgVGhlIHN1
-Ym5ldF90aW1lb3V0IGNvZGUgdGhhdCB3aWxsIGJlIHNldCBmb3IgYWxsIHRoZSBwb3J0cw0KPiAg
-ICMgVGhlIGFjdHVhbCB0aW1lb3V0IGlzIDQuMDk2dXNlYyAqIDJePHN1Ym5ldF90aW1lb3V0Pg0K
-PiAgIHN1Ym5ldF90aW1lb3V0IDE4DQo+IA0KPiAgICMgVGhlIGNvZGUgb2YgbWF4aW1hbCB0aW1l
-IGEgcGFja2V0IGNhbiBsaXZlIGluIGEgc3dpdGNoDQo+ICAgIyBUaGUgYWN0dWFsIHRpbWUgaXMg
-NC4wOTZ1c2VjICogMl48cGFja2V0X2xpZmVfdGltZT4NCj4gICAjIFRoZSB2YWx1ZSAweDE0IGRp
-c2FibGVzIHRoaXMgbWVjaGFuaXNtDQo+ICAgcGFja2V0X2xpZmVfdGltZSAweDEyDQo+IA0KPiBE
-ZXNwaXRlIHRoZSBub3RhdGlvbiwgdGhleSBhcmUgdGhlIHNhbWUgdmFsdWVzLg0KPiANCj4gSXQg
-Z2l2ZXMgbWU6DQo+IA0KPiAgNC4wOTYgKiAxMF4tNiAqIDJeMTggPSAxLjA3NCBzDQo+IA0KPiAg
-MTUgKiBzdWJuZXQgdGltZW91dCAvIHBhY2tldCBsaWZlIHRpbWUgPSAxNi4xMDYgcyAuLi4NCj4g
-DQo+IFRoaXMgaXMgYSBsb3QgbGVzcyB0aGFuIDk4IHMuDQo+IA0KPiBXaGVyZSBkb2VzIGNvbWUg
-dGhlIGRpZmZlcmVuY2UgPw0KDQpUaGUgSUIgQ00gY2FsY3VsYXRlcyB0aGUgdGltZW91dCBhczoN
-Cg0KcGFja2V0IGxpZmV0aW1lICogMiArIHJlbW90ZSBjbSByZXNwb25zZSB0aW1lb3V0DQoNClRo
-ZSByZG1hX2NtIGhhcyBhIGhhcmQgY29kZWQgdmFsdWUgb2YgMjAgZm9yIHRoZSByZW1vdGUgY20g
-cmVzcG9uc2UgdGltZW91dCwgd2hpY2ggZW5kcyB1cCBhY2NvdW50aW5nIGZvciB0aGUgbWFqb3Jp
-dHkgb2YgdGhlIHRpbWUuLi4gOi8NCg==
+Profiling has shown that sdma_lock is proving a bottleneck for
+performance. The situations include:
+- RDMA reads when krcvqs > 1
+- post sends from multiple threads
+
+For RDMA read the current global qib_wq mechanism runs on all CPUs
+and contends for the sdma_lock when multiple RMDA read requests are
+fielded on differenct CPUs. For post sends, the direct call to
+qib_do_send() from multiple threads causes the contention.
+
+Since the sdma mechanism is per port, this fix converts the existing
+workqueue to a per port single thread workqueue to reduce the lock
+contention in the RDMA read case, and for any other case where the QP
+is scheduled via the workqueue mechanism from more than 1 CPU.
+
+For the post send case, This patch modifies the post send code to
+test for a non empty sdma engine.   If the sdma is not idle the
+(now single thread) workqueue will be used to trigger the send engine
+instead of the direct call to qib_do_send().
+
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib.h       |   10 +++++-
+ drivers/infiniband/hw/qib/qib_init.c  |   51 ++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/qib/qib_verbs.c |   30 +++++++++++++++++--
+ drivers/infiniband/hw/qib/qib_verbs.h |    7 +----
+ 4 files changed, 86 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 7e62f41..cbe5771 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -1,8 +1,8 @@
+ #ifndef _QIB_KERNEL_H
+ #define _QIB_KERNEL_H
+ /*
+- * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
+- * All rights reserved.
++ * Copyright (c) 2012 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -544,6 +544,7 @@ struct qib_pportdata {
+ 
+ 	/* read mostly */
+ 	struct qib_sdma_desc *sdma_descq;
++	struct workqueue_struct *qib_wq;
+ 	struct qib_sdma_state sdma_state;
+ 	dma_addr_t       sdma_descq_phys;
+ 	volatile __le64 *sdma_head_dma; /* DMA'ed by chip */
+@@ -1267,6 +1268,11 @@ int qib_sdma_verbs_send(struct qib_pportdata *, struct qib_sge_state *,
+ /* ppd->sdma_lock should be locked before calling this. */
+ int qib_sdma_make_progress(struct qib_pportdata *dd);
+ 
++static inline int qib_sdma_empty(const struct qib_pportdata *ppd)
++{
++	return ppd->sdma_descq_added == ppd->sdma_descq_removed;
++}
++
+ /* must be called under qib_sdma_lock */
+ static inline u16 qib_sdma_descq_freecnt(const struct qib_pportdata *ppd)
+ {
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index dc14e10..306e65e 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -1,6 +1,6 @@
+ /*
+- * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
+- * All rights reserved.
++ * Copyright (c) 2012 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -210,6 +210,8 @@ void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+ 	init_timer(&ppd->symerr_clear_timer);
+ 	ppd->symerr_clear_timer.function = qib_clear_symerror_on_linkup;
+ 	ppd->symerr_clear_timer.data = (unsigned long)ppd;
++
++	ppd->qib_wq = NULL;
+ }
+ 
+ static int init_pioavailregs(struct qib_devdata *dd)
+@@ -483,6 +485,42 @@ static void init_piobuf_state(struct qib_devdata *dd)
+ }
+ 
+ /**
++ * qib_create_workqueues - create per port workqueues
++ * @dd: the qlogic_ib device
++ */
++static int qib_create_workqueues(struct qib_devdata *dd)
++{
++	int pidx;
++	struct qib_pportdata *ppd;
++
++	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
++		ppd = dd->pport + pidx;
++		if (!ppd->qib_wq) {
++			char wq_name[8]; /* 3 + 2 + 1 + 1 + 1 */
++			snprintf(wq_name, sizeof(wq_name), "qib%d_%d",
++				dd->unit, pidx);
++			ppd->qib_wq =
++				create_singlethread_workqueue(wq_name);
++			if (!ppd->qib_wq)
++				goto wq_error;
++		}
++	}
++	return 0;
++wq_error:
++	pr_err(
++	 QIB_DRV_NAME ": create_singlethread_workqueue failed for port %d\n",
++	 pidx + 1);
++	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
++		ppd = dd->pport + pidx;
++		if (ppd->qib_wq) {
++			destroy_workqueue(ppd->qib_wq);
++			ppd->qib_wq = NULL;
++		}
++	}
++	return -ENOMEM;
++}
++
++/**
+  * qib_init - do the actual initialization sequence on the chip
+  * @dd: the qlogic_ib device
+  * @reinit: reinitializing, so don't allocate new memory
+@@ -764,6 +802,11 @@ static void qib_shutdown_device(struct qib_devdata *dd)
+ 		 * We can't count on interrupts since we are stopping.
+ 		 */
+ 		dd->f_quiet_serdes(ppd);
++
++		if (ppd->qib_wq) {
++			destroy_workqueue(ppd->qib_wq);
++			ppd->qib_wq = NULL;
++		}
+ 	}
+ 
+ 	qib_update_eeprom_log(dd);
+@@ -1249,6 +1292,10 @@ static int __devinit qib_init_one(struct pci_dev *pdev,
+ 	if (ret)
+ 		goto bail; /* error already printed */
+ 
++	ret = qib_create_workqueues(dd);
++	if (ret)
++		goto bail;
++
+ 	/* do the generic initialization */
+ 	initfail = qib_init(dd, 0);
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 03ace06..56b4265 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -333,7 +333,8 @@ static void qib_copy_from_sge(void *data, struct qib_sge_state *ss, u32 length)
+  * @qp: the QP to post on
+  * @wr: the work request to send
+  */
+-static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr)
++static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
++	int *scheduled)
+ {
+ 	struct qib_swqe *wqe;
+ 	u32 next;
+@@ -440,6 +441,12 @@ bail_inval_free:
+ bail_inval:
+ 	ret = -EINVAL;
+ bail:
++	if (!ret && !wr->next &&
++	 !qib_sdma_empty(
++	   dd_from_ibdev(qp->ibqp.device)->pport + qp->port_num - 1)) {
++		qib_schedule_send(qp);
++		*scheduled = 1;
++	}
+ 	spin_unlock_irqrestore(&qp->s_lock, flags);
+ 	return ret;
+ }
+@@ -457,9 +464,10 @@ static int qib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ {
+ 	struct qib_qp *qp = to_iqp(ibqp);
+ 	int err = 0;
++	int scheduled = 0;
+ 
+ 	for (; wr; wr = wr->next) {
+-		err = qib_post_one_send(qp, wr);
++		err = qib_post_one_send(qp, wr, &scheduled);
+ 		if (err) {
+ 			*bad_wr = wr;
+ 			goto bail;
+@@ -467,7 +475,8 @@ static int qib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 	}
+ 
+ 	/* Try to do the send work in the caller's context. */
+-	qib_do_send(&qp->s_work);
++	if (!scheduled)
++		qib_do_send(&qp->s_work);
+ 
+ bail:
+ 	return err;
+@@ -2308,3 +2317,18 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
+ 		   get_order(lk_tab_size));
+ 	kfree(dev->qp_table);
+ }
++
++/*
++ * This must be called with s_lock held.
++ */
++void qib_schedule_send(struct qib_qp *qp)
++{
++	if (qib_send_ok(qp)) {
++		struct qib_ibport *ibp =
++			to_iport(qp->ibqp.device, qp->port_num);
++		struct qib_pportdata *ppd = ppd_from_ibp(ibp);
++
++		queue_work(ppd->qib_wq, &qp->s_work);
++	}
++}
++
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index 61fad05..aff8b2c 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -727,6 +727,7 @@ struct qib_ibport {
+ 	struct qib_opcode_stats opstats[128];
+ };
+ 
++
+ struct qib_ibdev {
+ 	struct ib_device ibdev;
+ 	struct list_head pending_mmaps;
+@@ -836,11 +837,7 @@ extern struct workqueue_struct *qib_cq_wq;
+ /*
+  * This must be called with s_lock held.
+  */
+-static inline void qib_schedule_send(struct qib_qp *qp)
+-{
+-	if (qib_send_ok(qp))
+-		queue_work(ib_wq, &qp->s_work);
+-}
++void qib_schedule_send(struct qib_qp *qp);
+ 
+ static inline int qib_pkey_ok(u16 pkey1, u16 pkey2)
+ {
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
