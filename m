@@ -2,15 +2,15 @@ From: =?utf-8?B?5pyJ5pWI5p6c5YaN5LuY5qy+?= <admin@znz888.com>
 Subject: =?utf-8?B?MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOe+pOWPkei9r+S7tg==?=
 	=?utf-8?B?77yMQjJC6K+i55uY5Lmw5a6244CBdGhvbWFzbmV0IOmHhw==?=
 	=?utf-8?B?6LSt5ZWGLOa1t+WFs+aVsOaNrizlsZXkvJrkubDlrrYg5LuFMzAw5YWDIQ==?=
-Date: Thu, 19 Jul 2012 13:12:53 +0000 (UTC)
-Message-ID: <20200719201716242707__47522.1030800187$1342703574$gmane$org@znz888.com>
+Date: Thu, 19 Jul 2012 13:12:56 +0000 (UTC)
+Message-ID: <20200719201716242707__7647.95303480259$1342703576$gmane$org@znz888.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
 Date: Sun, 19 Jul 2020 20:17:07 +0800
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-security-module-owner@vger.kernel.org
 To: linusliu90@gmail.com, lucas.marin@urv.cat, linux-list@ssc.com, linux-mm-bugs-archive@nl.linux.org, linux-omap@vger.kernel.org, linux-rdma@vger.kernel.org, linux-security-module@vger.kernel.org, lucas@iuseelite.com, linuxusers@socallinux.org, lucas@turkertravel.com, linvia@hotmail.com
 List-Id: linux-rdma@vger.kernel.org
 
