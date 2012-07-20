@@ -1,28 +1,41 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: mlx4_ib_create_qp failed - OOM with call trace
-Date: Fri, 20 Jul 2012 02:03:11 -0700
-Message-ID: <CAG4TOxPihchsdXqAGqAYYnBFm58RpKPJaNTYrErwqNetT21MxQ@mail.gmail.com>
-References: <5006BF13.50405@profitbricks.com> <CAL1RGDX6+NZ_ZJ+TLOMBaVdyM0wd6BjCEHwwAYCVODY4Cfkm4Q@mail.gmail.com>
- <50090D1C.6040500@profitbricks.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: IB/qib: Add congestion control agent implementation
+Date: Fri, 20 Jul 2012 14:05:28 +0300
+Message-ID: <20120720110528.GA31382@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50090D1C.6040500-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 20, 2012 at 12:47 AM, Sebastian Riemer
-<sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> wrote:
-> This is at least something we can implement and test for us as we only
-> have modern server systems.
+Hello Mike Marciniszyn,
 
-Definitely, just replacing the kmallocs with vmallocs for those wrid arrays
-and replacing the corresponding kfree with vfree should cure this issue
-for you.  Only 32-bit systems care about vmalloc address space.
+The patch 36a8f01cd24b: "IB/qib: Add congestion control agent
+implementation" from Jul 19, 2012, leads to the following warning:
+drivers/infiniband/hw/qib/qib_init.c:230 qib_init_pportdata()
+	 warn: value 1984 can't fit into 255 'ppd->cc_supported_table_entries'
 
- - R.
+drivers/infiniband/hw/qib/qib_init.c
+   227          if (qib_cc_table_size < IB_CCT_MIN_ENTRIES)
+   228                  goto bail;
+   229  
+   230          ppd->cc_supported_table_entries = min(max_t(int, qib_cc_table_size,
+   231                  IB_CCT_MIN_ENTRIES), IB_CCT_ENTRIES*IB_CC_TABLE_CAP_DEFAULT);
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+						64 * 31 = 1984
+->cc_supported_table_entries is a u8 so 1984 gets truncated.
+
+   232  
+   233          ppd->cc_max_table_entries =
+   234                  ppd->cc_supported_table_entries/IB_CCT_ENTRIES;
+   235  
+
+regards,
+dan carpenter
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
