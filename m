@@ -1,49 +1,28 @@
-From: Or Gerlitz <or.gerlitz@gmail.com>
-Subject: Re: [PATCH net/for-next V1 1/1] IB/ipoib: break linkage to
- neighbouring system
-Date: Fri, 20 Jul 2012 18:49:16 +0300
-Message-ID: <CAJZOPZ+kRcBjJgB_HaMqeuB5E-SLSqskgoaLZ_hvVx4KffHgpA@mail.gmail.com>
-References: <1342703938-29904-1-git-send-email-ogerlitz@mellanox.com>
-	<1342703938-29904-2-git-send-email-ogerlitz@mellanox.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/5] IB/qib: Add support for per-device/per-port parameters
+Date: Fri, 20 Jul 2012 18:59:48 +0300
+Message-ID: <CAJZOPZ+uK3c69ThX-Apwdj9cR2=XwNO4e7CVbmXYT4PuSPVKPA@mail.gmail.com>
+References: <20120719130356.4706.63775.stgit@kop-dev-sles11-04.qlogic.org>
+	<20120719130411.4706.88736.stgit@kop-dev-sles11-04.qlogic.org>
+	<CAL1RGDVb964pLxx=gvuvP5SWcXT2+g2pPssH6YRSq0LFhup7yA@mail.gmail.com>
+	<CAJZOPZJaNiKqKWpT=Jj2fXKf-X+6wLXrqXGCc+d0oH8ZQsNsZA@mail.gmail.com>
+	<32E1700B9017364D9B60AED9960492BC0D47D8D1@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1342703938-29904-2-git-send-email-ogerlitz@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: roland@kernel.org, davem@davemloft.net
-Cc: linux-rdma@vger.kernel.org, erezsh@mellanox.com, Shlomo Pongratz <shlomop@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, netdev@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC0D47D8D1-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 19, 2012 at 4:18 PM, Or Gerlitz <ogerlitz@mellanox.com> wrote:
-> From: Shlomo Pongratz <shlomop@mellanox.com>
->
-> Dave Miller <davem@davemloft.net> provided a detailed description of why the
-> way IPoIB is using neighbours for its own ipoib_neigh struct is buggy:
-[...]
+On Fri, Jul 20, 2012 at 2:40 PM, Marciniszyn, Mike <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-> This patch aims to solve the race conditions found in the IPoIB driver.
->
-> The patch breaks the connection between the core networking neighbour structure
-> and the ipoib_neigh structure. Except for avoiding the race, it allows to in
-> under a setup where SKBs carrying IP packets that don't have any associated
-> neighbour are transmitted through IPoIB.
->
-> We add an ipoib_neigh hash table with 1024 buckets. The hash table key is the destin
-> hardware address. Thus the ipoib_neigh is fetched from the hash table and not
-> dereferenced from the stashed location at the neighbour structure. The hash table uses
-> both RCU and reference count mechanisms to guarantee that no ipoib_neigh instance is
-> ever deleted while in use.
->
-> Fetching the ipoib_neigh structure instance from the hash also makes the special
-> code in ipoib_start_xmit that handles remote and local bonding failover redundant.
->
-> Aged ipoib_neigh instances are deleted by a garbage collection task that runs every
-> 30 seconds and deletes every ipoib_neigh instance that was idle for at least 60
-> seconds. The deletion is safe since the ipoib_neigh instances are protected
-> using RCU and reference count mechanisms.
+> If you could give me some code to look at?
 
-Hi Dave, Roland, Eric
-
-So how does this look? in the right direction? anything that need to be fixed?
-
-Or.
+include/rdma/rdma_netlink.h
+drivers/infiniband/core/netlink.c
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
