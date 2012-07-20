@@ -1,48 +1,49 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 3/5] IB/qib: Add support for per-device/per-port
- parameters
-Date: Fri, 20 Jul 2012 11:40:06 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0D47D8D1@FMSMSX108.amr.corp.intel.com>
-References: <20120719130356.4706.63775.stgit@kop-dev-sles11-04.qlogic.org>
-	<20120719130411.4706.88736.stgit@kop-dev-sles11-04.qlogic.org>
-	<CAL1RGDVb964pLxx=gvuvP5SWcXT2+g2pPssH6YRSq0LFhup7yA@mail.gmail.com>
- <CAJZOPZJaNiKqKWpT=Jj2fXKf-X+6wLXrqXGCc+d0oH8ZQsNsZA@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz@gmail.com>
+Subject: Re: [PATCH net/for-next V1 1/1] IB/ipoib: break linkage to
+ neighbouring system
+Date: Fri, 20 Jul 2012 18:49:16 +0300
+Message-ID: <CAJZOPZ+kRcBjJgB_HaMqeuB5E-SLSqskgoaLZ_hvVx4KffHgpA@mail.gmail.com>
+References: <1342703938-29904-1-git-send-email-ogerlitz@mellanox.com>
+	<1342703938-29904-2-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJaNiKqKWpT=Jj2fXKf-X+6wLXrqXGCc+d0oH8ZQsNsZA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1342703938-29904-2-git-send-email-ogerlitz@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: roland@kernel.org, davem@davemloft.net
+Cc: linux-rdma@vger.kernel.org, erezsh@mellanox.com, Shlomo Pongratz <shlomop@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-If you could give me some code to look at?
+On Thu, Jul 19, 2012 at 4:18 PM, Or Gerlitz <ogerlitz@mellanox.com> wrote:
+> From: Shlomo Pongratz <shlomop@mellanox.com>
+>
+> Dave Miller <davem@davemloft.net> provided a detailed description of why the
+> way IPoIB is using neighbours for its own ipoib_neigh struct is buggy:
+[...]
 
-The issue is many of the parameters need to be known at module load time since fundamental data structures need to be allocated to initialized the card.
+> This patch aims to solve the race conditions found in the IPoIB driver.
+>
+> The patch breaks the connection between the core networking neighbour structure
+> and the ipoib_neigh structure. Except for avoiding the race, it allows to in
+> under a setup where SKBs carrying IP packets that don't have any associated
+> neighbour are transmitted through IPoIB.
+>
+> We add an ipoib_neigh hash table with 1024 buckets. The hash table key is the destin
+> hardware address. Thus the ipoib_neigh is fetched from the hash table and not
+> dereferenced from the stashed location at the neighbour structure. The hash table uses
+> both RCU and reference count mechanisms to guarantee that no ipoib_neigh instance is
+> ever deleted while in use.
+>
+> Fetching the ipoib_neigh structure instance from the hash also makes the special
+> code in ipoib_start_xmit that handles remote and local bonding failover redundant.
+>
+> Aged ipoib_neigh instances are deleted by a garbage collection task that runs every
+> 30 seconds and deletes every ipoib_neigh instance that was idle for at least 60
+> seconds. The deletion is safe since the ipoib_neigh instances are protected
+> using RCU and reference count mechanisms.
 
-Mike
+Hi Dave, Roland, Eric
 
-> -----Original Message-----
-> From: Or Gerlitz [mailto:or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: Thursday, July 19, 2012 4:29 PM
-> To: Roland Dreier
-> Cc: Marciniszyn, Mike; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH 3/5] IB/qib: Add support for per-device/per-port
-> parameters
-> 
-> On Thu, Jul 19, 2012 at 9:26 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> wrote:
-> 
-> > I think this is pushing the module parameter facility way past the
-> > breaking point of usability.  We really need to come up with a better
-> > way to get complex structured config info like this into the drive
-> 
-> IB's netlink infrastructure?
-> 
-> Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So how does this look? in the right direction? anything that need to be fixed?
+
+Or.
