@@ -1,47 +1,29 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Status of ECMP patch
-Date: Fri, 20 Jul 2012 13:50:19 -0400
-Message-ID: <50099A5B.7020208@dev.mellanox.co.il>
-References: <6A4B9687-301F-492A-88E8-5AC5CBDA784E@lanl.gov> <16FC53E6-F78C-4193-B6A3-D194FA1EFF32@lanl.gov>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: fork support, was RE: rsockets and standard socket based TCP
+ benchmarks
+Date: Fri, 20 Jul 2012 17:51:22 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6BC37@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <16FC53E6-F78C-4193-B6A3-D194FA1EFF32-YOWKrPYUwWM@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Susan Coulter <markus-YOWKrPYUwWM@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vivek Kashyap <kashyapv-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pradeeps-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org" <pradeeps-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Susan,
+> > Have you had a chance to look more into the above for fork() support?
 
-On 7/20/2012 1:30 PM, Susan Coulter wrote:
-> Question:
-> About 2 years ago I reported at the OFA Developers Workshop that the ecmp routing within MinHop does not equally distribute routes among the multiple paths.  That is, if 4 different ports at one hop all result in an equal number of hops thru the rest of the fabric, the routes are not distributed equally among those 4 ports/paths.
-> 
-> I was told there were 2 different approaches to solve this and patches had been discussed/submitted and the community was deciding on a path forward.
-> 
-> Does anyone know the status of this?
+Well, the good news is that fork support is possible under some limitations.  I have a modified version of librspreload that hooks fork and transitions the last accepted connection from a normal socket to an rsocket.  (This was just an easy test to see what problems would pop up.)  I added a fork option to rstream to test, and it does work.  (And there was much rejoicing.)
 
-The two approaches are:
-1. Scatter ports (from Jared Carr)
-2. Port shifting (from Al Chu)
+There are some issues.  One is that if any IB resources are allocated before fork is called, there doesn't seem to be any way for the child process to remove them without affecting the parent process.  I had to change how the librdmacm allocated and freed protection domains to work around this, which worked for rstream, but may not work for all apps.  What's needed is a way for a child process to close IB resources that it won't use (in order to free up memory), but doesn't result in destroying the kernel resources.  I believe such a feature may also help applications that want to use checkpoint/restart.
 
-and both have been upstream since April 2011.
+Another issue is handling errors and falling back to the normal socket when the rsocket connection attempt fails.  Fork ends up needing to exchange messages on the normal socket for synchronization purposes, which changes the user's protocol.  But I think we can come up with a way to support fallback under most circumstances.
 
--- Hal
+The bad news is that what I have was too limited to work with the next app that I tested (netperf)...  Changes needed to handle it appear possible, just more involved.  (And there was much gnashing of teeth.)
 
-> My apologies if the data is out there somewhere and I simply cannot find it.
-> 
-> Thanx in advance.
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
