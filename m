@@ -1,39 +1,30 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: uverbs message alignment
-Date: Sat, 21 Jul 2012 05:15:26 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6BE19@ORSMSX101.amr.corp.intel.com>
-References: <5009D0AF.1090409@opengridcomputing.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH net/for-next V1 1/1] IB/ipoib: break linkage to neighbouring
+ system
+Date: Sun, 22 Jul 2012 08:29:34 +0300
+Message-ID: <500B8FBE.4030600@mellanox.com>
+References: <50082183.5000402@mellanox.com> <alpine.DEB.2.00.1207191023130.29808@router.home> <500833D9.8000001@mellanox.com> <20120719.100850.1932622478297549573.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5009D0AF.1090409-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20120719.100850.1932622478297549573.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
+Cc: shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> struct c4iw_create_raw_qp_req {
->          struct ibv_create_qp ibv_req;
->          __u32 port;
->          __u32 vlan_pri;
->          __u32 nfids;
-> };
+On 7/19/2012 8:08 PM, David Miller wrote:
+> These numbers come from the IPV6 Neighbour Discovery RFCs.  IPV4 replicates the Neighbour Unreachability Detection schemes of IPV6 in pretty much it's entirety, and therefore takes on the same timeout et al. parameters.
 
-struct ibv_create_qp contains a u64, which will force the size of the structure to 64-bit.  You should to add an additional 32-bits of padding.
+OK, got it. At this point, I guess we should enhance the patch to use 
+the values plugged into the IPv4 arp table at the time IPoIB is loaded, 
+with arp_tbl being exported its easy to achieve. This would allow users 
+to use non-default values by the ipoib neigh handling logic. In a later 
+step, we need to see if/how to allow ipoib to use the already existing 
+sysctl entries, makes sense?
 
-> struct ibv_create_qp {
->          __u32 command;
->          __u16 in_words;
->          __u16 out_words;
->          __u64 response;
->          __u64 user_handle;
-
-these last two fields force the alignment
-
-- Sean
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
