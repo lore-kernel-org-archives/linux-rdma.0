@@ -1,54 +1,29 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: uverbs message alignment
-Date: Mon, 23 Jul 2012 12:30:27 -0600
-Message-ID: <20120723183027.GA26358@obsidianresearch.com>
-References: <5009D0AF.1090409@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A8237346A6BE19@ORSMSX101.amr.corp.intel.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH net/for-next V1 1/1] IB/ipoib: break linkage to
+ neighbouring system
+Date: Mon, 23 Jul 2012 21:37:56 +0300
+Message-ID: <CAJZOPZLLCYAD0vrCC1OSp8iYkGMf_xLUTFXn46s59jTJNCnWog@mail.gmail.com>
+References: <1342703938-29904-1-git-send-email-ogerlitz@mellanox.com>
+	<1342703938-29904-2-git-send-email-ogerlitz@mellanox.com>
+	<CAJZOPZ+kRcBjJgB_HaMqeuB5E-SLSqskgoaLZ_hvVx4KffHgpA@mail.gmail.com>
+	<500D82AD.2040508@mellanox.com>
+	<1343063863.2626.11028.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A6BE19-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1343063863.2626.11028.camel@edumazet-glaptop>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jul 21, 2012 at 05:15:26AM +0000, Hefty, Sean wrote:
-> > struct c4iw_create_raw_qp_req {
-> >          struct ibv_create_qp ibv_req;
-> >          __u32 port;
-> >          __u32 vlan_pri;
-> >          __u32 nfids;
-> > };
-> 
-> struct ibv_create_qp contains a u64, which will force the size of
-> the structure to 64-bit.  You should to add an additional 32-bits of
-> padding.
+On Mon, Jul 23, 2012 at 8:17 PM, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Specifically, the padding Sean is talking about is here:
+> I have no idea of what you are talking about, I have not the patch or a
+> copy of it ;)
 
-struct c4iw_create_raw_qp_req {
-        struct ibv_create_qp ibv_req;
-        __u32 port;
-        __u32 vlan_pri;
-        __u32 nfids;
-        __u32 _rsvd0;  // <<<---- pad
-};
-
-And similarly in your driver's header. Things are setup so that
-device_data does not have to be a multple of 8 bytes long, but it is
-guarenteed to be 8 byte aligned.
-
-However as long as you include ibv_req in your struct you have to be a
-multiple of 8 bytes long so, you may want to construct your
-driver_data the same way that userspace does. Remove the ibv_req from
-the struct and cast from driver_data. This avoids this sort of
-problem completely.
-
-Also, always ensure structs you are passing between kernel and user
-space have no implicit padding at all.
-
-Jason
+http://marc.info/?t=134271491300002&r=1&w=2
+http://marc.info/?t=134271491300005&r=1&w=2
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
