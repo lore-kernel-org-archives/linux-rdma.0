@@ -1,78 +1,132 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/8] opensm: Improved mkey support
-Date: Mon, 23 Jul 2012 18:59:07 +0300
-Message-ID: <20120723155907.GC2064@calypso>
-References: <1340672058.5218.97.camel@auk75.llnl.gov>
- <1341361508.5218.148.camel@auk75.llnl.gov>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Mon, 23 Jul 2012 09:17:08 -0700
+Message-ID: <1343060228-19414-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1341361508.5218.148.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jim,
+Hi Linus,
 
-Can you please add short description of the improved M_Key mechanism into the
-man page?
+Please pull from
 
-On 17:25 Tue 03 Jul     , Jim Foraker wrote:
->      I'm sending new versions of patches 1 and 3 to the list, which
-> correct merge/build issues introduced by other recently accepted
-> patches.  They will be marked as "V1.1".
-> 
->      Jim
-> 
-> On Mon, 2012-06-25 at 17:54 -0700, Jim Foraker wrote:
-> > I'm about to post a set of patches intended to improve mkey support
-> > in OpenSM.  These patches have been fairly rigorously tested on a small
-> > fabric, and I believe are sufficiently stable for inclusion.  The
-> > primary intent here is threefold:
-> > 
-> > 1) Fix a multitude of edge case issues with the existing
-> > single-mkey-per-subnet support in OpenSM.  For instance, the current
-> > implementation provides no way to change an established non-zero mkey
-> > without rebooting or manually re-keying each CA on the entire subnet.
-> > 
-> > 2) Enable mkey protection across the fabric.  This involves not only
-> > setting a non-zero protection level, but also providing the SM with a
-> > sufficient information cache to initialize the subnet on restart without
-> > having to wait for mkey lease timeouts (provided one is set).
-> > 
-> > 3) Provide a basis on which to build multiple-mkey systems for OpenSM
-> > (be they per-host, KDF, or random) in the future.
-> > 
-> >      The patches add two new cache files: a port guid-to-mkey cache, and
-> > a neighboring link (port guid to port guid) cache.
-> >      The guid2mkey cache is used to provide a hint at the initial mkey
-> > for a CA during initialization.  It is a hint only; the SM is capable of
-> > dealing with cases where the guid2mkey cache is incorrect, although it
-> > may require waiting for (potentially multiple) mkey lease timeouts at
-> > non-zero mkey protection levels.  The guid2mkey cache is presented first
-> > in the patch set, as it ends up ameliorating several corner cases in a
-> > cleaner way than attacking them directly did.
-> >      The neighbors cache file provides an initial hint to the SM of what
-> > port guid we may expect at the opposite end of a link that is being
-> > initialized.  This is necessary at mkey protection level 2, where we
-> > cannot do the SubnGet necessary to determine the port guid to use in
-> > looking up an mkey hint.
-> >      The changes to the osm_req functions to support mkeys in patch 2
-> > now require plock to be held when called.  This was generally already
-> > the case, but there were a few spots where it was not.  In most of these
-> > cases, the plock is still not technically necessary, as they occur
-> > during hops 0/1 when DR path traversal is trivial.  I wrapped all of
-> > these occurrences in locks in a separate patch (#3), in order to make
-> > the changes more obvious and invite comment.
-> > 
-> >      Jim
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-3.6
+
+----------------------------------------------------------------
+
+InfiniBand/RDMA changes for the 3.6 merge window:
+ - Updates to the qib low-level driver
+ - First chunk of changes for SR-IOV support for mlx4 IB
+ - RDMA CM support for IPv6-only binding
+ - Other misc cleanups and fixes
+
+----------------------------------------------------------------
+Betty Dall (1):
+      IB/qib: Fix an incorrect log message
+
+Dotan Barak (6):
+      IB/mthca: Warning about event for non-existent QPs should show event type
+      IB/mthca: Fill in sq_sig_type in query QP
+      IB/mlx4: Fill the masked_atomic_cap attribute in query device
+      mlx4_core: Remove double function declarations
+      IB/cm: Destroy idr as part of the module init error flow
+      net/mlx4_core: Free ICM table in case of error
+
+Erez Shitrit (1):
+      IB/sa: Add GuidInfoRecord query support
+
+Jack Morgenstein (8):
+      mlx4_core: Pass an invalid PCI id number to VFs
+      IB/mlx4: Add debug prints
+      IB/core: Move CM_xxx_ATTR_ID macros from cm_msgs.h to ib_cm.h
+      mlx4: Use port management change event instead of smp_snoop
+      net/mlx4_core: Initialize IB port capabilities for all slaves
+      mlx4_core: Implement mechanism for reserved Q_Keys
+      mlx4_core: Allow guests to have IB ports
+      mlx4: Put physical GID and P_Key table sizes in mlx4_phys_caps struct and paravirtualize them
+
+Mike Marciniszyn (8):
+      IB/qib: Fix UC MR refs for immediate operations
+      IB/qib: Avoid returning EBUSY from MR deregister
+      IB/qib: RCU locking for MR validation
+      IB/qib: Fix sparse RCU warnings in qib_keys.c
+      IB/qib: Fix QP RCU sparse warnings
+      IB/qib: Reduce sdma_lock contention
+      IB/qib: Add congestion control agent implementation
+      IB/qib: checkpatch fixes
+
+Roland Dreier (4):
+      RDMA/ocrdma: Fix assignment of max_srq_sge in device query
+      RDMA/cxgb4: Fix endianness of addition to mpa->private_data_size
+      IB: Use IS_ENABLED(CONFIG_IPV6)
+      Merge branches 'cma', 'cxgb4', 'misc', 'mlx4-sriov', 'mlx-cleanups', 'ocrdma' and 'qib' into for-linus
+
+Sean Hefty (3):
+      RDMA/cma: Bind to a specific address family
+      RDMA/cma: Listen on specific address family
+      RDMA/cma: Allow user to restrict listens to bound address family
+
+ drivers/infiniband/core/addr.c               |    4 +-
+ drivers/infiniband/core/cm.c                 |   16 +-
+ drivers/infiniband/core/cm_msgs.h            |   12 -
+ drivers/infiniband/core/cma.c                |   77 ++++--
+ drivers/infiniband/core/sa_query.c           |  133 +++++++++++
+ drivers/infiniband/core/ucma.c               |    7 +
+ drivers/infiniband/hw/cxgb4/cm.c             |   12 +-
+ drivers/infiniband/hw/mlx4/mad.c             |  141 ++++++++---
+ drivers/infiniband/hw/mlx4/main.c            |   33 ++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |   19 ++
+ drivers/infiniband/hw/mlx4/qp.c              |   27 ++-
+ drivers/infiniband/hw/mthca/mthca_qp.c       |    4 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c   |    7 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    2 +-
+ drivers/infiniband/hw/qib/qib.h              |   45 +++-
+ drivers/infiniband/hw/qib/qib_diag.c         |   13 +-
+ drivers/infiniband/hw/qib/qib_driver.c       |   15 +-
+ drivers/infiniband/hw/qib/qib_eeprom.c       |   41 ++--
+ drivers/infiniband/hw/qib/qib_file_ops.c     |   63 ++---
+ drivers/infiniband/hw/qib/qib_fs.c           |   21 +-
+ drivers/infiniband/hw/qib/qib_iba6120.c      |   91 +++----
+ drivers/infiniband/hw/qib/qib_iba7220.c      |   92 ++++----
+ drivers/infiniband/hw/qib/qib_iba7322.c      |  160 +++++++------
+ drivers/infiniband/hw/qib/qib_init.c         |  238 +++++++++++++++----
+ drivers/infiniband/hw/qib/qib_intr.c         |    8 +-
+ drivers/infiniband/hw/qib/qib_keys.c         |  152 +++++++-----
+ drivers/infiniband/hw/qib/qib_mad.c          |  327 +++++++++++++++++++++++++-
+ drivers/infiniband/hw/qib/qib_mad.h          |  198 +++++++++++++++-
+ drivers/infiniband/hw/qib/qib_mr.c           |  247 ++++++++++---------
+ drivers/infiniband/hw/qib/qib_pcie.c         |   25 +-
+ drivers/infiniband/hw/qib/qib_qp.c           |   56 +++--
+ drivers/infiniband/hw/qib/qib_rc.c           |   24 +-
+ drivers/infiniband/hw/qib/qib_ruc.c          |   14 +-
+ drivers/infiniband/hw/qib/qib_sd7220.c       |   41 ++--
+ drivers/infiniband/hw/qib/qib_sdma.c         |   11 +-
+ drivers/infiniband/hw/qib/qib_sysfs.c        |  246 +++++++++++++------
+ drivers/infiniband/hw/qib/qib_twsi.c         |    8 +-
+ drivers/infiniband/hw/qib/qib_uc.c           |   31 +--
+ drivers/infiniband/hw/qib/qib_ud.c           |   12 +-
+ drivers/infiniband/hw/qib/qib_verbs.c        |   66 +++++-
+ drivers/infiniband/hw/qib/qib_verbs.h        |   56 +++--
+ drivers/infiniband/hw/qib/qib_wc_x86_64.c    |   14 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c      |    2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_main.c |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/eq.c      |   22 +-
+ drivers/net/ethernet/mellanox/mlx4/fw.c      |  132 ++++++++---
+ drivers/net/ethernet/mellanox/mlx4/icm.c     |    2 +
+ drivers/net/ethernet/mellanox/mlx4/icm.h     |    6 -
+ drivers/net/ethernet/mellanox/mlx4/intf.c    |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/main.c    |   86 +++++--
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h    |   67 +-----
+ drivers/net/ethernet/mellanox/mlx4/port.c    |   11 +-
+ include/linux/mlx4/device.h                  |  119 +++++++++-
+ include/linux/mlx4/driver.h                  |    3 +-
+ include/rdma/ib_cm.h                         |   12 +
+ include/rdma/ib_sa.h                         |   33 +++
+ include/rdma/rdma_cm.h                       |   10 +
+ include/rdma/rdma_user_cm.h                  |    1 +
+ 58 files changed, 2414 insertions(+), 911 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
