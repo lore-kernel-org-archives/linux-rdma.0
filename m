@@ -1,59 +1,41 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: correct smatch issue in qib_init.c
-Date: Mon, 23 Jul 2012 12:38:15 -0400
-Message-ID: <20120723163815.17679.83323.stgit@kop-dev-sles11-04.qlogic.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/5] IB/qib: Added congestion control agent implementation
+Date: Mon, 23 Jul 2012 19:50:03 +0300
+Message-ID: <500D80BB.4090303@mellanox.com>
+References: <20120719130356.4706.63775.stgit@kop-dev-sles11-04.qlogic.org> <20120719130403.4706.24376.stgit@kop-dev-sles11-04.qlogic.org> <500B9320.7080803@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <500B9320.7080803-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: "Vepa, Ramkrishna" <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 36a8f01c ("IB/qib: Add congestion control agent implementation")
-introduced an smatch warning.
+On 22/07/2012 08:44, Or Gerlitz wrote:
+> On 7/19/2012 4:04 PM, Mike Marciniszyn wrote:
+>> Added a congestion control agent in the driver that handles
+>> gets and sets from the congestion control manager in the
+>> fabric for the Performance Scale Messagin (PSM) library.
+>
+> Hi Mike,
+>
+> Nice doing.
+>
+> Can you elaborate a little on the role/usage of the sysfs entries this 
+> patch adds? I wasn't sure to follow, basically, I thought IBTA CCA 
+> defined thing such that one can set/get anything CC related  through 
+> MADs, isn't that?
 
-This patch corrects the issue.
-
-Additionally, Ram Vepa should have been credited as the author for
-36a8f01c.
-
-Reviewed-by: Ramkrishna Vepa <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib.h |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 6e19ec8..7b1b866 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -656,6 +656,11 @@ struct qib_pportdata {
- 	/* 16 congestion entries with each entry corresponding to a SL */
- 	struct ib_cc_congestion_entry_shadow *congestion_entries;
- 
-+	/* Maximum number of congestion control entries that the agent expects
-+	 * the manager to send.
-+	 */
-+	u16 cc_supported_table_entries;
-+
- 	/* Total number of congestion control table entries */
- 	u16 total_cct_entry;
- 
-@@ -667,11 +672,6 @@ struct qib_pportdata {
- 
- 	/* CA's max number of 64 entry units in the congestion control table */
- 	u8 cc_max_table_entries;
--
--	/* Maximum number of congestion control entries that the agent expects
--	 * the manager to send.
--	 */
--	u8 cc_supported_table_entries;
- };
- 
- /* Observers. Not to be taken lightly, possibly not to ship. */
-
+resending to Ram which is the author of the patch.
+>
+> Also, it seems that lots (if not most or all) the CC MADs related 
+> code  is general and can (should) easily be moved to be under the IB 
+> core headers and sources, agree? We can do that as little cleanup 
+> later, after the bigger picture is realized here.
+>
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
