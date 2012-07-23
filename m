@@ -1,33 +1,55 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH net/for-next V1 1/1] IB/ipoib: break linkage to
- neighbouring system
-Date: Mon, 23 Jul 2012 19:17:43 +0200
-Message-ID: <1343063863.2626.11028.camel@edumazet-glaptop>
-References: <1342703938-29904-1-git-send-email-ogerlitz@mellanox.com>
-	 <1342703938-29904-2-git-send-email-ogerlitz@mellanox.com>
-	 <CAJZOPZ+kRcBjJgB_HaMqeuB5E-SLSqskgoaLZ_hvVx4KffHgpA@mail.gmail.com>
-	 <500D82AD.2040508@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: uverbs message alignment
+Date: Mon, 23 Jul 2012 12:30:27 -0600
+Message-ID: <20120723183027.GA26358@obsidianresearch.com>
+References: <5009D0AF.1090409@opengridcomputing.com>
+ <1828884A29C6694DAF28B7E6B8A8237346A6BE19@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <500D82AD.2040508@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: roland@kernel.org, davem@davemloft.net, Christoph Lameter <cl@linux.com>, linux-rdma@vger.kernel.org, erezsh@mellanox.com, Shlomo Pongratz <shlomop@mellanox.com>, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A6BE19-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2012-07-23 at 19:58 +0300, Or Gerlitz wrote:
-
-> Sorry for the possible spam, but resending (last time forgot to put Eric 
-> on the "to" list so he might missed it, also added Christoph) - this is 
-> a fix for very long time bug in IPoIB and we do want it to be reviewed 
-> && and hopefully accepted, or if needed get feedback and fix/change.
+On Sat, Jul 21, 2012 at 05:15:26AM +0000, Hefty, Sean wrote:
+> > struct c4iw_create_raw_qp_req {
+> >          struct ibv_create_qp ibv_req;
+> >          __u32 port;
+> >          __u32 vlan_pri;
+> >          __u32 nfids;
+> > };
 > 
-> So, any further feedback? there was one feedback on V0, not to use read 
-> lock for RCU protected
-> hash table lookup, and it was addressed in V1.
-> 
+> struct ibv_create_qp contains a u64, which will force the size of
+> the structure to 64-bit.  You should to add an additional 32-bits of
+> padding.
 
-I have no idea of what you are talking about, I have not the patch or a
-copy of it ;)
+Specifically, the padding Sean is talking about is here:
+
+struct c4iw_create_raw_qp_req {
+        struct ibv_create_qp ibv_req;
+        __u32 port;
+        __u32 vlan_pri;
+        __u32 nfids;
+        __u32 _rsvd0;  // <<<---- pad
+};
+
+And similarly in your driver's header. Things are setup so that
+device_data does not have to be a multple of 8 bytes long, but it is
+guarenteed to be 8 byte aligned.
+
+However as long as you include ibv_req in your struct you have to be a
+multiple of 8 bytes long so, you may want to construct your
+driver_data the same way that userspace does. Remove the ibv_req from
+the struct and cast from driver_data. This avoids this sort of
+problem completely.
+
+Also, always ensure structs you are passing between kernel and user
+space have no implicit padding at all.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
