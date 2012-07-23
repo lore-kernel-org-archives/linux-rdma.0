@@ -1,42 +1,62 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/5] IB/qib: Added congestion control agent implementation
-Date: Mon, 23 Jul 2012 19:50:03 +0300
-Message-ID: <500D80BB.4090303@mellanox.com>
-References: <20120719130356.4706.63775.stgit@kop-dev-sles11-04.qlogic.org> <20120719130403.4706.24376.stgit@kop-dev-sles11-04.qlogic.org> <500B9320.7080803@mellanox.com>
+Subject: Re: [PATCH net/for-next V1 1/1] IB/ipoib: break linkage to neighbouring
+ system
+Date: Mon, 23 Jul 2012 19:58:21 +0300
+Message-ID: <500D82AD.2040508@mellanox.com>
+References: <1342703938-29904-1-git-send-email-ogerlitz@mellanox.com> <1342703938-29904-2-git-send-email-ogerlitz@mellanox.com> <CAJZOPZ+kRcBjJgB_HaMqeuB5E-SLSqskgoaLZ_hvVx4KffHgpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <500B9320.7080803-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAJZOPZ+kRcBjJgB_HaMqeuB5E-SLSqskgoaLZ_hvVx4KffHgpA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vepa, Ramkrishna" <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 22/07/2012 08:44, Or Gerlitz wrote:
-> On 7/19/2012 4:04 PM, Mike Marciniszyn wrote:
->> Added a congestion control agent in the driver that handles
->> gets and sets from the congestion control manager in the
->> fabric for the Performance Scale Messagin (PSM) library.
+On 20/07/2012 18:49, Or Gerlitz wrote:
+> On Thu, Jul 19, 2012 at 4:18 PM, Or Gerlitz<ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>  wrote:
+>> From: Shlomo Pongratz<shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> Dave Miller<davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>  provided a detailed description of why the
+>> way IPoIB is using neighbours for its own ipoib_neigh struct is buggy:
+> [...]
 >
-> Hi Mike,
+>> This patch aims to solve the race conditions found in the IPoIB driver.
+>>
+>> The patch breaks the connection between the core networking neighbour structure
+>> and the ipoib_neigh structure. Except for avoiding the race, it allows to in
+>> under a setup where SKBs carrying IP packets that don't have any associated
+>> neighbour are transmitted through IPoIB.
+>>
+>> We add an ipoib_neigh hash table with 1024 buckets. The hash table key is the destin
+>> hardware address. Thus the ipoib_neigh is fetched from the hash table and not
+>> dereferenced from the stashed location at the neighbour structure. The hash table uses
+>> both RCU and reference count mechanisms to guarantee that no ipoib_neigh instance is
+>> ever deleted while in use.
+>>
+>> Fetching the ipoib_neigh structure instance from the hash also makes the special
+>> code in ipoib_start_xmit that handles remote and local bonding failover redundant.
+>>
+>> Aged ipoib_neigh instances are deleted by a garbage collection task that runs every
+>> 30 seconds and deletes every ipoib_neigh instance that was idle for at least 60
+>> seconds. The deletion is safe since the ipoib_neigh instances are protected
+>> using RCU and reference count mechanisms.
 >
-> Nice doing.
+> Hi Dave, Roland, Eric
 >
-> Can you elaborate a little on the role/usage of the sysfs entries this 
-> patch adds? I wasn't sure to follow, basically, I thought IBTA CCA 
-> defined thing such that one can set/get anything CC related  through 
-> MADs, isn't that?
+> So how does this look? in the right direction? anything that need to be fixed?
 
-resending to Ram which is the author of the patch.
->
-> Also, it seems that lots (if not most or all) the CC MADs related 
-> code  is general and can (should) easily be moved to be under the IB 
-> core headers and sources, agree? We can do that as little cleanup 
-> later, after the bigger picture is realized here.
->
->
+Sorry for the possible spam, but resending (last time forgot to put Eric 
+on the "to" list so he might missed it, also added Christoph) - this is 
+a fix for very long time bug in IPoIB and we do want it to be reviewed 
+&& and hopefully accepted, or if needed get feedback and fix/change.
 
+So, any further feedback? there was one feedback on V0, not to use read 
+lock for RCU protected
+hash table lookup, and it was addressed in V1.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
