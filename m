@@ -1,71 +1,81 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 5/8] opensm: Signal subnet init errors on SubnGet
-	timeouts
-Date: Mon, 23 Jul 2012 15:19:49 -0700
-Message-ID: <1343081989.29792.12.camel@auk75.llnl.gov>
+Subject: Re: [PATCH 0/8] opensm: Improved mkey support
+Date: Mon, 23 Jul 2012 15:28:02 -0700
+Message-ID: <1343082482.29792.18.camel@auk75.llnl.gov>
 References: <1340672058.5218.97.camel@auk75.llnl.gov>
-	 <1340672104-18039-1-git-send-email-foraker1@llnl.gov>
-	 <1340672104-18039-5-git-send-email-foraker1@llnl.gov>
-	 <20120723154357.GA2064@calypso>
+	 <1341361508.5218.148.camel@auk75.llnl.gov>  <20120723155907.GC2064@calypso>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120723154357.GA2064@calypso>
+In-Reply-To: <20120723155907.GC2064@calypso>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Mon, 2012-07-23 at 08:43 -0700, Alex Netes wrote:
+On Mon, 2012-07-23 at 08:59 -0700, Alex Netes wrote:
 > Hi Jim,
 > 
-> On 17:55 Mon 25 Jun     , Jim Foraker wrote:
-> > A subnet should not be listed as cleanly initialized if CAs
-> > fail to respond to SubnGet requests.
-> > 
-> > Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-> > ---
-> >  opensm/osm_sm_mad_ctrl.c |    9 +++++++++
-> >  1 file changed, 9 insertions(+)
-> > 
-> > diff --git a/opensm/osm_sm_mad_ctrl.c b/opensm/osm_sm_mad_ctrl.c
-> > index f0bcff2..464b6b0 100644
-> > --- a/opensm/osm_sm_mad_ctrl.c
-> > +++ b/opensm/osm_sm_mad_ctrl.c
-> > @@ -741,6 +741,15 @@ static void sm_mad_ctrl_send_err_cb(IN void *context, IN osm_madw_t * p_madw)
-> >  			cl_ntoh16(p_smp->attr_id),
-> >  			ib_get_sm_attr_str(p_smp->attr_id));
-> >  		p_ctrl->p_subn->subnet_initialization_error = TRUE;
-> > +	} else if (p_madw->status == IB_TIMEOUT &&
-> > +		   p_smp->method == IB_MAD_METHOD_GET) {
-> 
-> It's pretty common to see timeouts in fabrics without m_key support (e.g.
-> switch reboots) and it's not desirable to start another heavy sweep because
-> of that. So I guess it would be better if we could initiate heavy sweep only
-> when m_key is set and protection level is 2 or 3.
-     This was done primarily to ensure that "SUBNET UP" doesn't get
-displayed/logged while there are unconfigured HCAs due to misset mkeys.
-I'm reasonably sure (I will re-test to verify) that future light sweeps
-will catch HCAs whos mkeys timeout, presuming the timeout is set.  So we
-could also just log the error and not worry about setting
-subnet_initialization_error.
+> Can you please add short description of the improved M_Key mechanism into the
+> man page?
+     Sure.  I don't see anything about mkeys in the page now, so I'll
+write up a section for them.
+     v2, BTW, will also fix some whitespace errors that I noticed
+creeped into the first set.
 
      Jim
 
-> > +		/* Timeouts on SubnGet may be an indication of an mkey
-> > +	 	   error at protection levels 2/3 */
-> > +		OSM_LOG(p_ctrl->p_log, OSM_LOG_ERROR, "ERR 3120 "
-> > +			"Timeout while getting attribute 0x%X (%s)\n",
-> > +			cl_ntoh16(p_smp->attr_id),
-> > +			ib_get_sm_attr_str(p_smp->attr_id));
-> > +		p_ctrl->p_subn->subnet_initialization_error = TRUE;
-> >  	}
-> >  
-> >  	osm_dump_dr_smp(p_ctrl->p_log, p_smp, OSM_LOG_VERBOSE);
-> > -- 
-> > 1.7.9.2
+> On 17:25 Tue 03 Jul     , Jim Foraker wrote:
+> >      I'm sending new versions of patches 1 and 3 to the list, which
+> > correct merge/build issues introduced by other recently accepted
+> > patches.  They will be marked as "V1.1".
+> > 
+> >      Jim
+> > 
+> > On Mon, 2012-06-25 at 17:54 -0700, Jim Foraker wrote:
+> > > I'm about to post a set of patches intended to improve mkey support
+> > > in OpenSM.  These patches have been fairly rigorously tested on a small
+> > > fabric, and I believe are sufficiently stable for inclusion.  The
+> > > primary intent here is threefold:
+> > > 
+> > > 1) Fix a multitude of edge case issues with the existing
+> > > single-mkey-per-subnet support in OpenSM.  For instance, the current
+> > > implementation provides no way to change an established non-zero mkey
+> > > without rebooting or manually re-keying each CA on the entire subnet.
+> > > 
+> > > 2) Enable mkey protection across the fabric.  This involves not only
+> > > setting a non-zero protection level, but also providing the SM with a
+> > > sufficient information cache to initialize the subnet on restart without
+> > > having to wait for mkey lease timeouts (provided one is set).
+> > > 
+> > > 3) Provide a basis on which to build multiple-mkey systems for OpenSM
+> > > (be they per-host, KDF, or random) in the future.
+> > > 
+> > >      The patches add two new cache files: a port guid-to-mkey cache, and
+> > > a neighboring link (port guid to port guid) cache.
+> > >      The guid2mkey cache is used to provide a hint at the initial mkey
+> > > for a CA during initialization.  It is a hint only; the SM is capable of
+> > > dealing with cases where the guid2mkey cache is incorrect, although it
+> > > may require waiting for (potentially multiple) mkey lease timeouts at
+> > > non-zero mkey protection levels.  The guid2mkey cache is presented first
+> > > in the patch set, as it ends up ameliorating several corner cases in a
+> > > cleaner way than attacking them directly did.
+> > >      The neighbors cache file provides an initial hint to the SM of what
+> > > port guid we may expect at the opposite end of a link that is being
+> > > initialized.  This is necessary at mkey protection level 2, where we
+> > > cannot do the SubnGet necessary to determine the port guid to use in
+> > > looking up an mkey hint.
+> > >      The changes to the osm_req functions to support mkeys in patch 2
+> > > now require plock to be held when called.  This was generally already
+> > > the case, but there were a few spots where it was not.  In most of these
+> > > cases, the plock is still not technically necessary, as they occur
+> > > during hops 0/1 when DR path traversal is trivial.  I wrapped all of
+> > > these occurrences in locks in a separate patch (#3), in order to make
+> > > the changes more obvious and invite comment.
+> > > 
+> > >      Jim
 > > 
 > > --
 > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
