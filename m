@@ -1,102 +1,41 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: Fix command line parsing bug in
-	ibccconfig, ibccquery, saquery, and smpquery.
-Date: Mon, 23 Jul 2012 16:45:33 -0700
-Message-ID: <1343087133.18615.160.camel@auk59.llnl.gov>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH RESEND net/for-next V1 1/1] IB/ipoib: break linkage to
+ neighbouring system
+Date: Mon, 23 Jul 2012 18:34:34 -0700 (PDT)
+Message-ID: <20120723.183434.1181274244746651450.davem@davemloft.net>
+References: <1342714502-11301-1-git-send-email-ogerlitz@mellanox.com>
+	<1342714502-11301-2-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342714502-11301-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ensure user's inputted operation directly matches an operation name or
-operation alias.  Do not base it on the length of the input, which can
-lead to conflicts with operation selection.
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Thu, 19 Jul 2012 19:15:02 +0300
 
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- src/ibccconfig.c |    5 ++---
- src/ibccquery.c  |    5 ++---
- src/saquery.c    |    5 ++---
- src/smpquery.c   |    5 ++---
- 4 files changed, 8 insertions(+), 12 deletions(-)
+> -static void neigh_add_path(struct sk_buff *skb, struct neighbour *n, struct net_device *dev)
+> +static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
+> +				struct net_device *dev)
 
-diff --git a/src/ibccconfig.c b/src/ibccconfig.c
-index c81b7fa..a2572d0 100644
---- a/src/ibccconfig.c
-+++ b/src/ibccconfig.c
-@@ -561,10 +561,9 @@ static char *congestion_control_table(ib_portid_t * dest, char **argv, int argc)
- static op_fn_t *match_op(char *name)
- {
- 	const match_rec_t *r;
--	unsigned len = strlen(name);
- 	for (r = match_tbl; r->name; r++)
--		if (!strncasecmp(r->name, name, len) ||
--		    (r->alias && !strncasecmp(r->alias, name, len)))
-+		if (!strcasecmp(r->name, name) ||
-+		    (r->alias && !strcasecmp(r->alias, name)))
- 			return r->fn;
- 	return NULL;
- }
-diff --git a/src/ibccquery.c b/src/ibccquery.c
-index cf8b35a..5f9cf33 100644
---- a/src/ibccquery.c
-+++ b/src/ibccquery.c
-@@ -347,10 +347,9 @@ static char *timestamp_dump(ib_portid_t * dest, char **argv, int argc)
- static op_fn_t *match_op(char *name)
- {
- 	const match_rec_t *r;
--	unsigned len = strlen(name);
- 	for (r = match_tbl; r->name; r++)
--		if (!strncasecmp(r->name, name, len) ||
--		    (r->alias && !strncasecmp(r->alias, name, len)))
-+		if (!strcasecmp(r->name, name) ||
-+		    (r->alias && !strcasecmp(r->alias, name)))
- 			return r->fn;
- 	return NULL;
- }
-diff --git a/src/saquery.c b/src/saquery.c
-index e5fdb25..7c5f2cf 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -1327,11 +1327,10 @@ static const struct query_cmd query_cmds[] = {
- static const struct query_cmd *find_query(const char *name)
- {
- 	const struct query_cmd *q;
--	unsigned len = strlen(name);
- 
- 	for (q = query_cmds; q->name; q++)
--		if (!strncasecmp(name, q->name, len) ||
--		    (q->alias && !strncasecmp(name, q->alias, len)))
-+		if (!strcasecmp(name, q->name) ||
-+		    (q->alias && !strcasecmp(name, q->alias)))
- 			return q;
- 
- 	return NULL;
-diff --git a/src/smpquery.c b/src/smpquery.c
-index cecfa68..6468f23 100644
---- a/src/smpquery.c
-+++ b/src/smpquery.c
-@@ -401,10 +401,9 @@ static char *guid_info(ib_portid_t * dest, char **argv, int argc)
- static op_fn_t *match_op(char *name)
- {
- 	const match_rec_t *r;
--	unsigned len = strlen(name);
- 	for (r = match_tbl; r->name; r++)
--		if (!strncasecmp(r->name, name, len) ||
--		    (r->alias && !strncasecmp(r->alias, name, len)))
-+		if (!strcasecmp(r->name, name) ||
-+		    (r->alias && !strcasecmp(r->alias, name)))
- 			return r->fn;
- 	return NULL;
- }
--- 
-1.7.1
+Please line up "struct net_device *dev" with the first column after the
+openning parenthesis on the first line.
 
+> +	return jhash(daddr+12, 8, 0xFFFFFF & *(u32 *) daddr) & htbl->mask;
 
+It would be tons faster to go:
 
+	u32 *daddr_32 = (u32 *) daddr;
+
+	hv = jhash_3words(daddr_32[3], daddr_32[4], 0xFFFFFF & daddr_32[0], 0);
+	hv &= htbl->mask;
+
+Plain jhash() has loops and various conditions that are entirely
+unnecessary when you know how much you are hashing ahead of time.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
