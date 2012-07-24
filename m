@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/5] librdmacm/rstream: Add option to test fork support
+Subject: [PATCH 3/5] librspreload: Support server apps that call fork()
 Date: Tue, 24 Jul 2012 22:34:49 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6D397@ORSMSX101.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6D391@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,141 +11,353 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If the user specifies '-T f', rstream will process
-connections in a child process.  The server continues
-to run until all child processes have completed their
-tests.
+Provide limited support for applications that call fork().  To
+handle fork(), we establish connections using normal sockets.
+The socket is later converted to an rsocket when the user
+makes the first call to a data transfer function (e.g. send,
+recv, read, write, etc.).
 
-Fork support requires use of the librspreload library.
+Fork support is indicated by setting the environment variable
+RDMAV_FORK_SAFE = 1.  When set, the preload library will delay
+converting to an rsocket until the user attempts to send or receive
+data on the socket.  To convert from a normal socket to an
+rsocket, the preload library must inject a message on the
+normal socket to synchronize between the client and server.  As
+a result, if the rsocket connection fails, the ability to
+silently fallback to the normal socket may be compromised.  Fork
+support is disabled by default.
+
+The current implementation works for simple test apps under
+ideal conditions.  Although it supports nonblocking sockets, it
+uses blocking rsockets when migrating connections.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- examples/rstream.c |   36 ++++++++++++++++++++++++++++++------
- man/rstream.1      |    2 ++
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ src/preload.c |  183 ++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 166 insertions(+), 17 deletions(-)
 
-diff --git a/examples/rstream.c b/examples/rstream.c
-index 48e2771..befb7c6 100644
---- a/examples/rstream.c
-+++ b/examples/rstream.c
-@@ -36,6 +36,7 @@
- #include <sys/types.h>
- #include <sys/socket.h>
- #include <sys/time.h>
-+#include <sys/wait.h>
- #include <netdb.h>
- #include <fcntl.h>
- #include <unistd.h>
-@@ -84,6 +85,8 @@ static int verify;
- static int flags = MSG_DONTWAIT;
- static int poll_timeout = 0;
- static int custom;
-+static int use_fork;
-+static pid_t fork_pid;
- static enum rs_optimization optimization;
- static int size_option;
- static int iterations = 1;
-@@ -463,7 +466,10 @@ static int server_connect(void)
- 		perror("raccept");
- 	}
+diff --git a/src/preload.c b/src/preload.c
+index d2058e2..e88c958 100644
+--- a/src/preload.c
++++ b/src/preload.c
+@@ -46,6 +46,8 @@
+ #include <string.h>
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
++#include <unistd.h>
++#include <semaphore.h>
  
--	set_options(rs);
-+	if (use_fork)
-+		fork_pid = fork();
-+	if (!fork_pid)
-+		set_options(rs);
- 	return ret;
+ #include <rdma/rdma_cma.h>
+ #include <rdma/rdma_verbs.h>
+@@ -92,10 +94,12 @@ static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+ static int sq_size;
+ static int rq_size;
+ static int sq_inline;
++static int fork_support;
+ 
+ enum fd_type {
+ 	fd_normal,
+-	fd_rsocket
++	fd_rsocket,
++	fd_fork
+ };
+ 
+ struct fd_info {
+@@ -207,6 +211,10 @@ void getenv_options(void)
+ 	var = getenv("RS_INLINE");
+ 	if (var)
+ 		sq_inline = atoi(var);
++
++	var = getenv("RDMAV_FORK_SAFE");
++	if (var)
++		fork_support = atoi(var);
  }
  
-@@ -546,20 +552,26 @@ static int run(void)
- 		if (ret)
- 			goto free;
+ static void init_preload(void)
+@@ -378,8 +386,16 @@ int socket(int domain, int type, int protocol)
+ 	ret = rsocket(domain, type, protocol);
+ 	recursive = 0;
+ 	if (ret >= 0) {
+-		fd_store(index, ret, fd_rsocket);
+-		set_rsocket_options(ret);
++		if (fork_support) {
++			rclose(ret);
++			ret = real.socket(domain, type, protocol);
++			if (ret < 0)
++				return ret;
++			fd_store(index, ret, fd_fork);
++		} else {
++			fd_store(index, ret, fd_rsocket);
++			set_rsocket_options(ret);
++		}
+ 		return index;
+ 	}
+ 	fd_close(index, &ret);
+@@ -418,31 +434,161 @@ int listen(int socket, int backlog)
+ int accept(int socket, struct sockaddr *addr, socklen_t *addrlen)
+ {
+ 	int fd, index, ret;
++	enum fd_type type;
  
--		for (i = 0; i < TEST_CNT; i++) {
-+		for (i = 0; i < TEST_CNT && !fork_pid; i++) {
- 			if (test_size[i].option > size_option)
- 				continue;
- 			init_latency_test(test_size[i].size);
- 			run_test();
+-	if (fd_get(socket, &fd) == fd_rsocket) {
++	type = fd_get(socket, &fd);
++	if (type == fd_rsocket || type == fd_fork) {
+ 		index = fd_open();
+ 		if (index < 0)
+ 			return index;
+ 
+-		ret = raccept(fd, addr, addrlen);
++		ret = (type == fd_rsocket) ? raccept(fd, addr, addrlen) :
++					     real.accept(fd, addr, addrlen);
+ 		if (ret < 0) {
+ 			fd_close(index, &fd);
+ 			return ret;
  		}
--		rs_shutdown(rs, SHUT_RDWR);
-+		if (fork_pid)
-+			wait(NULL);
-+		else
-+			rs_shutdown(rs, SHUT_RDWR);
- 		rs_close(rs);
  
-+		if (!dst_addr && use_fork && !fork_pid)
-+			goto free;
+-		fd_store(index, ret, fd_rsocket);
++		fd_store(index, ret, type);
+ 		return index;
+ 	} else {
+ 		return real.accept(fd, addr, addrlen);
+ 	}
+ }
+ 
++/*
++ * We can't fork RDMA connections and pass them from the parent to the child
++ * process.  Instead, we need to establish the RDMA connection after calling
++ * fork.  To do this, we delay establishing the RDMA connection until we try
++ * to send/receive on the server side.  On the client side, we don't expect
++ * to fork, so we switch from a TCP connection to an rsocket when connecting.
++ */
++static int fork_active(int socket, const struct sockaddr *addr, socklen_t addrlen)
++{
++	int fd, ret;
++	uint32_t msg;
++	long flags;
 +
- 		optimization = opt_bandwidth;
- 		ret = dst_addr ? client_connect() : server_connect();
- 		if (ret)
- 			goto free;
--		for (i = 0; i < TEST_CNT; i++) {
-+		for (i = 0; i < TEST_CNT && !fork_pid; i++) {
- 			if (test_size[i].option > size_option)
- 				continue;
- 			init_bandwidth_test(test_size[i].size);
-@@ -570,10 +582,14 @@ static int run(void)
- 		if (ret)
- 			goto free;
++	fd = fd_getd(socket);
++	flags = real.fcntl(fd, F_GETFL);
++	real.fcntl(fd, F_SETFL, 0);
++	ret = real.connect(fd, addr, addrlen);
++	if (ret)
++		return ret;
++
++	ret = real.recv(fd, &msg, sizeof msg, MSG_PEEK);
++	if ((ret != sizeof msg) || msg) {
++		fd_store(socket, fd, fd_normal);
++		return 0;
++	}
++
++	real.fcntl(fd, F_SETFL, flags);
++	ret = transpose_socket(socket, fd_rsocket);
++	if (ret < 0)
++		return ret;
++
++	real.close(fd);
++	return rconnect(ret, addr, addrlen);
++}
++
++static void fork_passive(int socket)
++{
++	struct sockaddr_in6 sin6;
++	sem_t *sem;
++	int lfd, sfd, dfd, ret, param;
++	socklen_t len;
++	uint32_t msg;
++
++	fd_get(socket, &sfd);
++
++	len = sizeof sin6;
++	ret = real.getsockname(sfd, (struct sockaddr *) &sin6, &len);
++	if (ret)
++		goto out;
++	sin6.sin6_flowinfo = sin6.sin6_scope_id = 0;
++	memset(&sin6.sin6_addr, 0, sizeof sin6.sin6_addr);
++
++	sem = sem_open("/rsocket_fork", O_CREAT | O_RDWR,
++		       S_IRWXU | S_IRWXG, 1);
++	if (sem == SEM_FAILED) {
++		ret = -1;
++		goto out;
++	}
++
++	lfd = rsocket(sin6.sin6_family, SOCK_STREAM, 0);
++	if (lfd < 0) {
++		ret  = lfd;
++		goto sclose;
++	}
++
++	param = 1;
++	rsetsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &param, sizeof param);
++
++	sem_wait(sem);
++	ret = rbind(lfd, (struct sockaddr *) &sin6, sizeof sin6);
++	if (ret)
++		goto lclose;
++
++	ret = rlisten(lfd, 1);
++	if (ret)
++		goto lclose;
++
++	msg = 0;
++	len = real.write(sfd, &msg, sizeof msg);
++	if (len != sizeof msg)
++		goto lclose;
++
++	dfd = raccept(lfd, NULL, NULL);
++	if (dfd < 0) {
++		ret  = dfd;
++		goto lclose;
++	}
++
++	param = 1;
++	rsetsockopt(dfd, IPPROTO_TCP, TCP_NODELAY, &param, sizeof param);
++	set_rsocket_options(dfd);
++
++	copysockopts(dfd, sfd, &rs, &real);
++	real.shutdown(sfd, SHUT_RDWR);
++	real.close(sfd);
++	fd_store(socket, dfd, fd_rsocket);
++
++lclose:
++	rclose(lfd);
++	sem_post(sem);
++sclose:
++	sem_close(sem);
++out:
++	if (ret)
++		fd_store(socket, sfd, fd_normal);
++}
++
++static inline enum fd_type fd_fork_get(int index, int *fd)
++{
++	struct fd_info *fdi;
++
++	fdi = idm_lookup(&idm, index);
++	if (fdi) {
++		if (fdi->type == fd_fork)
++			fork_passive(index);
++		*fd = fdi->fd;
++		return fdi->type;
++
++	} else {
++		*fd = index;
++		return fd_normal;
++	}
++}
++
+ int connect(int socket, const struct sockaddr *addr, socklen_t addrlen)
+ {
+ 	struct sockaddr_in *sin;
+ 	int fd, ret;
  
--		ret = run_test();
-+		if (!fork_pid)
-+			ret = run_test();
+-	if (fd_get(socket, &fd) == fd_rsocket) {
++	switch (fd_get(socket, &fd)) {
++	case fd_fork:
++		return fork_active(socket, addr, addrlen);
++	case fd_rsocket:
+ 		sin = (struct sockaddr_in *) addr;
+ 		if (ntohs(sin->sin_port) > 1024) {
+ 			ret = rconnect(fd, addr, addrlen);
+@@ -456,6 +602,9 @@ int connect(int socket, const struct sockaddr *addr, socklen_t addrlen)
+ 
+ 		rclose(fd);
+ 		fd = ret;
++		break;
++	default:
++		break;
  	}
  
--	rs_shutdown(rs, SHUT_RDWR);
-+	if (fork_pid)
-+		wait(NULL);
-+	else
-+		rs_shutdown(rs, SHUT_RDWR);
- 	rs_close(rs);
- free:
- 	free(buf);
-@@ -593,6 +609,10 @@ static int set_test_opt(char *optarg)
- 		case 'b':
- 			flags &= ~MSG_DONTWAIT;
- 			break;
-+		case 'f':
-+			use_fork = 1;
-+			use_rs = 0;
-+			break;
- 		case 'n':
- 			flags |= MSG_DONTWAIT;
- 			break;
-@@ -613,6 +633,9 @@ static int set_test_opt(char *optarg)
- 			flags |= MSG_DONTWAIT;
- 		} else if (!strncasecmp("verify", optarg, 6)) {
- 			verify = 1;
-+		} else if (!strncasecmp("fork", optarg, 4)) {
-+			use_fork = 1;
-+			use_rs = 0;
- 		} else {
- 			return -1;
- 		}
-@@ -671,6 +694,7 @@ int main(int argc, char **argv)
- 			printf("\t    s|sockets - use standard tcp/ip sockets\n");
- 			printf("\t    a|async - asynchronous operation (use poll)\n");
- 			printf("\t    b|blocking - use blocking calls\n");
-+			printf("\t    f|fork - fork server processing\n");
- 			printf("\t    n|nonblocking - use nonblocking calls\n");
- 			printf("\t    v|verify - verify data\n");
- 			exit(1);
-diff --git a/man/rstream.1 b/man/rstream.1
-index ea87b95..29aa66b 100644
---- a/man/rstream.1
-+++ b/man/rstream.1
-@@ -48,6 +48,8 @@ a | async - uses asynchronous operation (e.g. select / poll)
- .P
- b | blocking - uses blocking calls
- .P
-+f | fork - fork server processing (forces -T s option)
-+.P
- n | nonblocking - uses non-blocking calls
- .P
- v | verify - verifies data transfers
+ 	return real.connect(fd, addr, addrlen);
+@@ -464,7 +613,7 @@ int connect(int socket, const struct sockaddr *addr, socklen_t addrlen)
+ ssize_t recv(int socket, void *buf, size_t len, int flags)
+ {
+ 	int fd;
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rrecv(fd, buf, len, flags) : real.recv(fd, buf, len, flags);
+ }
+ 
+@@ -472,7 +621,7 @@ ssize_t recvfrom(int socket, void *buf, size_t len, int flags,
+ 		 struct sockaddr *src_addr, socklen_t *addrlen)
+ {
+ 	int fd;
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rrecvfrom(fd, buf, len, flags, src_addr, addrlen) :
+ 		real.recvfrom(fd, buf, len, flags, src_addr, addrlen);
+ }
+@@ -480,7 +629,7 @@ ssize_t recvfrom(int socket, void *buf, size_t len, int flags,
+ ssize_t recvmsg(int socket, struct msghdr *msg, int flags)
+ {
+ 	int fd;
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rrecvmsg(fd, msg, flags) : real.recvmsg(fd, msg, flags);
+ }
+ 
+@@ -488,7 +637,7 @@ ssize_t read(int socket, void *buf, size_t count)
+ {
+ 	int fd;
+ 	init_preload();
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rread(fd, buf, count) : real.read(fd, buf, count);
+ }
+ 
+@@ -496,14 +645,14 @@ ssize_t readv(int socket, const struct iovec *iov, int iovcnt)
+ {
+ 	int fd;
+ 	init_preload();
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rreadv(fd, iov, iovcnt) : real.readv(fd, iov, iovcnt);
+ }
+ 
+ ssize_t send(int socket, const void *buf, size_t len, int flags)
+ {
+ 	int fd;
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rsend(fd, buf, len, flags) : real.send(fd, buf, len, flags);
+ }
+ 
+@@ -511,7 +660,7 @@ ssize_t sendto(int socket, const void *buf, size_t len, int flags,
+ 		const struct sockaddr *dest_addr, socklen_t addrlen)
+ {
+ 	int fd;
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rsendto(fd, buf, len, flags, dest_addr, addrlen) :
+ 		real.sendto(fd, buf, len, flags, dest_addr, addrlen);
+ }
+@@ -519,7 +668,7 @@ ssize_t sendto(int socket, const void *buf, size_t len, int flags,
+ ssize_t sendmsg(int socket, const struct msghdr *msg, int flags)
+ {
+ 	int fd;
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rsendmsg(fd, msg, flags) : real.sendmsg(fd, msg, flags);
+ }
+ 
+@@ -527,7 +676,7 @@ ssize_t write(int socket, const void *buf, size_t count)
+ {
+ 	int fd;
+ 	init_preload();
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rwrite(fd, buf, count) : real.write(fd, buf, count);
+ }
+ 
+@@ -535,7 +684,7 @@ ssize_t writev(int socket, const struct iovec *iov, int iovcnt)
+ {
+ 	int fd;
+ 	init_preload();
+-	return (fd_get(socket, &fd) == fd_rsocket) ?
++	return (fd_fork_get(socket, &fd) == fd_rsocket) ?
+ 		rwritev(fd, iov, iovcnt) : real.writev(fd, iov, iovcnt);
+ }
+ 
 
 
 --
