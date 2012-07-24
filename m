@@ -1,41 +1,55 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: Fwd: circular lockdep problem
-Date: Tue, 24 Jul 2012 14:44:25 -0500
-Message-ID: <500EFB19.2090809@opengridcomputing.com>
-References: <500ECFCD.1040403@opengridcomputing.com> <CAL1RGDUaUN-X2Ju=SdHf-b8Kjh5K+wZ36aMQNZkn5xsG8yLrUQ@mail.gmail.com> <CAL1RGDV9gGYuX6WBcjWeWUAeFo3A-jZsAX86XPwbf8cttDO4Tg@mail.gmail.com>
+From: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
+Subject: Re: Kernel panic under 3.2.14 Xen dom0 and SCST trunk
+Date: Wed, 25 Jul 2012 05:50:52 +1000
+Message-ID: <CAOzFzEiiiEsUqLjRM-TFsVZhQyvQi=abX0ufS6obvuZxtWgB-Q@mail.gmail.com>
+References: <CAOzFzEjjbofQZyubdpH10WKeoE3-grMVdEOqJhJtbRtMdgCr=Q@mail.gmail.com>
+	<500EE108.2090605@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDV9gGYuX6WBcjWeWUAeFo3A-jZsAX86XPwbf8cttDO4Tg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <500EE108.2090605-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/24/2012 12:06 PM, Roland Dreier wrote:
-> [resending because I forgot to reply-all]
+On 25 July 2012 03:53, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> On 07/24/12 15:16, Joseph Glanville wrote:
+>> I have been seeing this KP occur about every 3 days on our staging cluster.
+>> I am not exactly sure what the root cause would be.. I assume this
+>> would be a bug in SCST.
+>> The kernel is a 3.2.14 with Ubuntu patch series applied and Bart's SRP
+>> HA patches.
 >
-> On Tue, Jul 24, 2012 at 9:39 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->> Can anyone help me understand how I can resolve this? Its saying there is
->> some circular dependency problem with the cxgb4 uld_mutex, the networking
->> rtnl_mutex, and ib_core's device_mutex. I can't decipher the stuff below
->> though. It only seems to happen when there is a cxgb4 and ipoib device
->> present.
-> Do you have a real IB HCA installed too?
-
-Yes.
-
-> I suspect this is a lockdep false positive where it is mixing together
-> lock ordering from the IB - IPoIB adapter and the cxgb4 netdev,
-> and seeing a deadlock that can't really happen.
+> It would help if you could tell us a bit more about your setup. It looks
+> like SCST is running in dom0, and an IB workload in domU ? If so, which
+> workload was running in domU ?
 >
-> I'll take a look, although I don't have a cxgb4 device so I can't test
-> directly.  Would you be able to test a patch if I come up with one?
+> Bart.
 
-Sure!
+Hi Bart,
 
-Steve.
+There is no IB workload in the domU's.
+In this particular case there are 2 dom0s connected together both
+acting as SRP targets and initators.
+Their are sometimes vms running on these dom0s but they aren't
+currently in production so they aren't doing very much at the moment.
+
+The workload is typically one of adding and removing luns to
+ini_groups, rescan the host to ensure they are removed cleanly etc.
+As far as I can tell this would have to manifest as a race condition
+as it can go for about 2 or so weeks without occuring.
+Also worth noting is that I have a similar setup running on 2.6.32
+with no issues also a pvops dom0 using SCST and ib_srp.
+
+Could it be your patch series introduced the bug? Those are the only
+patches we have in our tree that effect SRP.
+
+Joseph.
+
+-- 
+CTO | Orion Virtualisation Solutions | www.orionvm.com.au
+Phone: 1300 56 99 52 | Mobile: 0428 754 846
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
