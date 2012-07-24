@@ -1,32 +1,54 @@
-From: "roboth roli company" <info-aUwUL9P02UTQT0dZR+AlfA@public.gmane.org>
-Subject: (unknown)
-Date: Tue, 24 Jul 2012 14:46:28 +0300 (EEST)
-Message-ID: <44996.41.203.64.133.1343130388.squirrel__17949.4534772404$1343149239$gmane$org@webmail.bm.com.ua>
-Reply-To: robothrollilimited-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Subject: 
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Or Gerlitz <ogerlitz@mellanox.com>
+Subject: [PATCH net/for-next V2 0/1] change IPoIB neighbour handling
+Date: Tue, 24 Jul 2012 20:05:21 +0300
+Message-ID: <1343149522-7661-1-git-send-email-ogerlitz@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, roland@kernel.org
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, eric.dumazet@gmail.com, cl@linux.com, Or Gerlitz <ogerlitz@mellanox.com>, Shlomo Pongratz <shlomop@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+changes from V1:
+  
+- applied feeback from Dave on hash usage and identation
 
- i am robothroli, Purchase manager from roli Merchant Ltd. We are
-Import/export Company based in taiwan. We are interested in purchasing
-your product and I would like to make an inquiry. Please inform me on:
+- applied feedback from Christoph, use values fom the exported arp_tbl
+  for the hash table size and the frequency of garbage collection
 
-Sample availability and price
-Minimum order quantity
-FOB Prices
+changes from V0:
 
-Sincerely
-Purchase Manager
-robothroli
+- following feedback from Mike and Dave, changed the ipoib_neigh hash table 
+  to allow for lock-free read side, the model follows the RCU based implementation 
+  in net/core/neighbour.c
 
+- since RCU hash table uses unidirectional collision list, now ipoib_neigh_free 
+  needs to do a linked search in order to find the deleted neighbour predecessor 
+  in order to link it to the neighbour successor.
 
+- different implementation of hash lookup in ipoib_neigh_get (read-side) 
+  vs ipoib_neigh_alloc and ipoib_neigh_free (write-side)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- path_free and ipoib_mcast_free now make use of the ipoib_del_neighs_by_gid helper 
+  function in order to delete neighbours related to that path or mcast. This new helper 
+  scans the hash table and deletes neighbours with the given GID. It had to be done 
+  this way of as  of the unidrectional nature of the linking which by itself 
+  arises from the lock free requirement made here...
+
+- a completion mechanism was added to prevent freeing the IPoIB netdevice priv 
+  data structure before the RCU based code freed all the neighbours.
+
+Again, the patch was made over net-next as of few IPoIB changes that 
+took place there and the parallel submission of the eIPoIB driver. 
+
+Or.
+
+Cc: Shlomo Pongratz <shlomop@mellanox.com>
+
+Shlomo Pongratz (1):
+  IB/ipoib: break linkage to neighbouring system
+
+ drivers/infiniband/ulp/ipoib/ipoib.h           |   54 ++-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c        |   16 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |  641 +++++++++++++++++------
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   57 +--
+ 4 files changed, 533 insertions(+), 235 deletions(-)
