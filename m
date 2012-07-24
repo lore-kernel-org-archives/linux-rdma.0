@@ -1,162 +1,142 @@
-From: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
-Subject: Re: Kernel panic under 3.2.14 Xen dom0 and SCST trunk
-Date: Wed, 25 Jul 2012 01:43:50 +1000
-Message-ID: <CAOzFzEjDHpTROUcKg9cOZkNSX1LnShSombgt26+VOptVdy5i-Q@mail.gmail.com>
-References: <CAOzFzEjjbofQZyubdpH10WKeoE3-grMVdEOqJhJtbRtMdgCr=Q@mail.gmail.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: circular lockdep problem
+Date: Tue, 24 Jul 2012 11:39:41 -0500
+Message-ID: <500ECFCD.1040403@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOzFzEjjbofQZyubdpH10WKeoE3-grMVdEOqJhJtbRtMdgCr=Q@mail.gmail.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 25 July 2012 01:16, Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org> wrote:
-> Hi guys,
->
-> I have been seeing this KP occur about every 3 days on our staging cluster.
-> I am not exactly sure what the root cause would be.. I assume this
-> would be a bug in SCST.
-> The kernel is a 3.2.14 with Ubuntu patch series applied and Bart's SRP
-> HA patches.
->
-> The SRP connection settings are actually default at this stage we are
-> only using the added ability to delete srp connections without unload.
->
-> [35404.804901] IP: [<          (null)>]           (null)
-> [35404.804981] PGD 2ab2b067 PUD 75f5b067 PMD 0
-> [35404.805064] Oops: 0010 [#1] SMP
-> [35404.805140] CPU 0
-> [35404.805149] Modules linked in: tun xen_netback xen_blkback
-> dm_round_robin ib_srpt(O) scst_vdisk(O) scst(O) bonding dm_multipath
-> flashcache(O) raid0 raid1 md_mod
-> [35404.805463]
-> [35404.805528] Pid: 4585, comm: srpt_mlx4_0-2 Tainted: G           O
-> 3.2.14+ #2 Dell                   PowerEdge C2100       /0P19C9
-> [35404.805690] RIP: e030:[<0000000000000000>]  [<          (null)>]
->        (null)
-> [35404.805832] RSP: e02b:ffff8800bf42ace0  EFLAGS: 00010046
-> [35404.805910] RAX: ffff88001ac800c0 RBX: ffff88001ac0c4d0 RCX: ffff88001ac0d600
-> [35404.805994] RDX: ffff88001ac0dc30 RSI: ffff88001ac800c0 RDI: ffff88001654e900
-> [35404.806078] RBP: ffff8800bf42adb8 R08: ffff88001654e900 R09: ffff88001ac0d608
-> [35404.806162] R10: 0000000000000001 R11: ffff88001ac0d5f8 R12: ffff88009c443940
-> [35404.806263] R13: ffff88001b1a2000 R14: 00000000000004c8 R15: ffff88001ac0c4d0
-> [35404.806350] FS:  00007f2701406700(0000) GS:ffff8800bf427000(0000)
-> knlGS:0000000000000000
-> [35404.806492] CS:  e033 DS: 0000 ES: 0000 CR0: 000000008005003b
-> [35404.806571] CR2: 0000000000000000 CR3: 00000000830e0000 CR4: 0000000000002660
-> [35404.806655] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [35404.806740] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> [35404.806825] Process srpt_mlx4_0-2 (pid: 4585, threadinfo
-> ffff8800b50f4000, task ffff880017faeea0)
-> [35404.806969] Stack:
-> [35404.807034]  ffffffff8150285e 0000000000000000 ffff88001ac0c998
-> ffff880000000001
-> [35404.807183]  ffff88001ac0d608 ffff88001654e900 ffff88001ac0e3f0
-> ffff88001ac0e3b8
-> [35404.807332]  ffff88001ac0c528 ffff880068a11600 ffff88001ac0c4e0
-> ffff88001ac0c4f0
-> [35404.807480] Call Trace:
-> [35404.807548]  <IRQ>
-> [35404.807637]  [<ffffffff8150285e>] ? srp_recv_completion+0x44e/0x650
-> [35404.807722]  [<ffffffff81009f52>] ? check_events+0x12/0x20
-> [35404.807803]  [<ffffffff814ea3c2>] mlx4_ib_cq_comp+0x12/0x20
-> [35404.807883]  [<ffffffff81433beb>] mlx4_cq_completion+0x3b/0x80
-> [35404.807964]  [<ffffffff81434aa4>] mlx4_eq_int+0x224/0x290
-> [35404.808043]  [<ffffffff81434b81>] mlx4_interrupt+0x51/0x80
-> [35404.808125]  [<ffffffff810b72bd>] handle_irq_event_percpu+0x5d/0x210
-> [35404.808208]  [<ffffffff810b74bc>] handle_irq_event+0x4c/0x80
-> [35404.808289]  [<ffffffff810ba233>] handle_fasteoi_irq+0x83/0x140
-> [35404.808371]  [<ffffffff8130f756>] __xen_evtchn_do_upcall+0x1a6/0x260
-> [35404.808455]  [<ffffffff813114fa>] xen_evtchn_do_upcall+0x2a/0x40
-> [35404.808538]  [<ffffffff816846fe>] xen_do_hypervisor_callback+0x1e/0x30
-> [35404.808620]  <EOI>
-> [35404.808691]  [<ffffffffa006b0e7>] ?
-> scst_register_virtual_device+0x5d7/0x750 [scst]
-> [35404.808833]  [<ffffffffa007a473>] ? scst_cmd_init_done+0xb3/0x5a0 [scst]
-> [35404.808917]  [<ffffffffa00f0bed>] ? 0xffffffffa00f0bec
-> [35404.809006]  [<ffffffffa0072a47>] ? scst_rx_cmd+0xe7/0xce0 [scst]
-> [35404.809088]  [<ffffffffa00f2872>] ? 0xffffffffa00f2871
-> [35404.809166]  [<ffffffffa00f08e3>] ? 0xffffffffa00f08e2
-> [35404.809245]  [<ffffffffa00f797f>] ? 0xffffffffa00f797e
-> [35404.810244]  [<ffffffffa00f081f>] ? 0xffffffffa00f081e
-> [35404.810323]  [<ffffffffa00f7af0>] ? 0xffffffffa00f7aef
-> [35404.810417]  [<ffffffffa00f873f>] ? 0xffffffffa00f873e
-> [35404.810495]  [<ffffffffa00f87a0>] ? 0xffffffffa00f879f
-> [35404.810573]  [<ffffffffa00f8880>] ? 0xffffffffa00f887f
-> [35404.810655]  [<ffffffff8167a8d9>] ? _raw_spin_unlock_irqrestore+0x19/0x20
-> [35404.810739]  [<ffffffffa00f87a0>] ? 0xffffffffa00f879f
-> [35404.810818]  [<ffffffff81077246>] ? kthread+0x96/0xa0
-> [35404.810896]  [<ffffffff816845b4>] ? kernel_thread_helper+0x4/0x10
-> [35404.810979]  [<ffffffff81682673>] ? int_ret_from_sys_call+0x7/0x1b
-> [35404.811061]  [<ffffffff8167ab7c>] ? retint_restore_args+0x5/0x6
-> [35404.811142]  [<ffffffff816845b0>] ? gs_change+0x13/0x13
-> [35404.811219] Code:  Bad RIP value.
-> [35404.811297] RIP  [<          (null)>]           (null)
-> [35404.811377]  RSP <ffff8800bf42ace0>
-> [35404.811447] CR2: 0000000000000000
-> [35404.811739] ---[ end trace a002a9122b31526a ]---
-> [35404.811841] Kernel panic - not syncing: Fatal exception in interrupt
-> [35404.811950] Pid: 4585, comm: srpt_mlx4_0-2 Tainted: G      D    O 3.2.14+ #2
-> [35404.812061] Call Trace:
-> [35404.812155]  <IRQ>  [<ffffffff81677b48>] panic+0x8c/0x19d
-> [35404.812296]  [<ffffffff81009f52>] ? check_events+0x12/0x20
-> [35404.812402]  [<ffffffff8167b7fa>] oops_end+0xea/0xf0
-> [35404.812510]  [<ffffffff8103b5f2>] no_context+0xf2/0x270
-> [35404.812616]  [<ffffffff8103b895>] __bad_area_nosemaphore+0x125/0x210
-> [35404.812726]  [<ffffffff8103b98e>] bad_area_nosemaphore+0xe/0x10
-> [35404.812835]  [<ffffffff8167e135>] do_page_fault+0x335/0x4d0
-> [35404.812942]  [<ffffffff8100984d>] ? xen_force_evtchn_callback+0xd/0x10
-> [35404.813052]  [<ffffffff81009f52>] ? check_events+0x12/0x20
-> [35404.813174]  [<ffffffff8167adf5>] page_fault+0x25/0x30
-> [35404.813280]  [<ffffffff8150285e>] ? srp_recv_completion+0x44e/0x650
-> [35404.813390]  [<ffffffff81009f52>] ? check_events+0x12/0x20
-> [35404.813496]  [<ffffffff814ea3c2>] mlx4_ib_cq_comp+0x12/0x20
-> [35404.813603]  [<ffffffff81433beb>] mlx4_cq_completion+0x3b/0x80
-> [35404.813711]  [<ffffffff81434aa4>] mlx4_eq_int+0x224/0x290
-> [35404.813817]  [<ffffffff81434b81>] mlx4_interrupt+0x51/0x80
-> [35404.813924]  [<ffffffff810b72bd>] handle_irq_event_percpu+0x5d/0x210
-> [35404.814034]  [<ffffffff810b74bc>] handle_irq_event+0x4c/0x80
-> [35404.814141]  [<ffffffff810ba233>] handle_fasteoi_irq+0x83/0x140
-> [35404.814250]  [<ffffffff8130f756>] __xen_evtchn_do_upcall+0x1a6/0x260
-> [35404.814360]  [<ffffffff813114fa>] xen_evtchn_do_upcall+0x2a/0x40
-> [35404.814469]  [<ffffffff816846fe>] xen_do_hypervisor_callback+0x1e/0x30
-> [35404.814600]  <EOI>  [<ffffffffa006b0e7>] ?
-> scst_register_virtual_device+0x5d7/0x750 [scst]
-> [35404.814806]  [<ffffffffa007a473>] ? scst_cmd_init_done+0xb3/0x5a0 [scst]
-> [35404.814916]  [<ffffffffa00f0bed>] ? 0xffffffffa00f0bec
-> [35404.815022]  [<ffffffffa0072a47>] ? scst_rx_cmd+0xe7/0xce0 [scst]
-> [35404.815131]  [<ffffffffa00f2872>] ? 0xffffffffa00f2871
-> [35404.815236]  [<ffffffffa00f08e3>] ? 0xffffffffa00f08e2
-> [35404.815341]  [<ffffffffa00f797f>] ? 0xffffffffa00f797e
-> [35404.815447]  [<ffffffffa00f081f>] ? 0xffffffffa00f081e
-> [35404.815551]  [<ffffffffa00f7af0>] ? 0xffffffffa00f7aef
-> [35404.815656]  [<ffffffffa00f873f>] ? 0xffffffffa00f873e
-> [35404.815761]  [<ffffffffa00f87a0>] ? 0xffffffffa00f879f
-> [35404.815869]  [<ffffffffa00f8880>] ? 0xffffffffa00f887f
-> [35404.815985]  [<ffffffff8167a8d9>] ? _raw_spin_unlock_irqrestore+0x19/0x20
-> [35404.816096]  [<ffffffffa00f87a0>] ? 0xffffffffa00f879f
-> [35404.816201]  [<ffffffff81077246>] ? kthread+0x96/0xa0
-> [35404.816306]  [<ffffffff816845b4>] ? kernel_thread_helper+0x4/0x10
-> [35404.816414]  [<ffffffff81682673>] ? int_ret_from_sys_call+0x7/0x1b
-> [35404.816523]  [<ffffffff8167ab7c>] ? retint_restore_args+0x5/0x6
-> [35404.816631]  [<ffffffff816845b0>] ? gs_change+0x13/0x13
->
-> Joseph.
->
-> --
-> CTO | Orion Virtualisation Solutions | www.orionvm.com.au
-> Phone: 1300 56 99 52 | Mobile: 0428 754 846
+Can anyone help me understand how I can resolve this? Its saying there 
+is some circular dependency problem with the cxgb4 uld_mutex, the 
+networking rtnl_mutex, and ib_core's device_mutex. I can't decipher the 
+stuff below though. It only seems to happen when there is a cxgb4 and 
+ipoib device present.
 
-Sorry I missed the first line. :(
+[ 3234.542038] ======================================================
+[ 3234.542066] [ INFO: possible circular locking dependency detected ] [
+3234.542095] 3.4.0+ #133 Not tainted [ 3234.542111]
+-------------------------------------------------------
+[ 3234.542139] modprobe/2291 is trying to acquire lock:
+[ 3234.542162]  (device_mutex){+.+.+.}, at: [<ffffffffa009ec82>]
+ib_register_device+0x42/0x4f0 [ib_core] [ 3234.542221] [ 3234.542222] but task
+is already holding lock:
+[ 3234.542249]  (uld_mutex){+.+.+.}, at: [<ffffffffa0050e4e>]
+cxgb4_register_uld+0x3e/0xe0 [cxgb4] [ 3234.542305] [ 3234.542305] which lock
+already depends on the new lock.
+[ 3234.542306]
+[ 3234.542342]
+[ 3234.542343] the existing dependency chain (in reverse order) is:
+[ 3234.542376]
+[ 3234.542377] -> #2 (uld_mutex){+.+.+.}:
+[ 3234.542413]        [<ffffffff810b4061>] lock_acquire+0xb1/0x1a0
+[ 3234.542446]        [<ffffffff81630e7d>] __mutex_lock_common+0x5d/0x430
+[ 3234.542480]        [<ffffffff81631385>] mutex_lock_nested+0x45/0x50
+[ 3234.542510]        [<ffffffffa004f11a>] notify_ulds+0x2a/0x70 [cxgb4]
+[ 3234.542543]        [<ffffffffa005220e>] cxgb_up+0x5ae/0xae0 [cxgb4]
+[ 3234.542576]        [<ffffffffa005293b>] cxgb_open+0x2b/0x80 [cxgb4]
+[ 3234.542608]        [<ffffffff814fe4e7>] __dev_open+0xb7/0x100
+[ 3234.542639]        [<ffffffff814fcea1>] __dev_change_flags+0xa1/0x180
+[ 3234.542669]        [<ffffffff814fe3e8>] dev_change_flags+0x28/0x70
+[ 3234.542699]        [<ffffffff81512252>] do_setlink+0x1c2/0x9f0
+[ 3234.542729]        [<ffffffff81514558>] rtnl_newlink+0x3d8/0x600
+[ 3234.542758]        [<ffffffff81511e67>] rtnetlink_rcv_msg+0x2d7/0x340
+[ 3234.542789]        [<ffffffff8152e289>] netlink_rcv_skb+0xa9/0xd0
+[ 3234.542820]        [<ffffffff81511b75>] rtnetlink_rcv+0x25/0x40
+[ 3234.542849]        [<ffffffff8152dfa9>] netlink_unicast+0x1a9/0x1f0
+[ 3234.542879]        [<ffffffff8152ed4c>] netlink_sendmsg+0x20c/0x310
+[ 3234.542909]        [<ffffffff814e7368>] sock_sendmsg+0xf8/0x130
+[ 3234.542939]        [<ffffffff814e8c6a>] __sys_sendmsg+0x41a/0x440
+[ 3234.542968]        [<ffffffff814e8e99>] sys_sendmsg+0x49/0x80
+[ 3234.542996]        [<ffffffff8163d7a9>] system_call_fastpath+0x16/0x1b
+[ 3234.543029]
+[ 3234.543029] -> #1 (rtnl_mutex){+.+.+.}:
+[ 3234.543066]        [<ffffffff810b4061>] lock_acquire+0xb1/0x1a0
+[ 3234.543094]        [<ffffffff81630e7d>] __mutex_lock_common+0x5d/0x430
+[ 3234.543125]        [<ffffffff81631385>] mutex_lock_nested+0x45/0x50
+[ 3234.543155]        [<ffffffff81511b47>] rtnl_lock+0x17/0x20
+[ 3234.543183]        [<ffffffff814ff396>] register_netdev+0x16/0x30
+[ 3234.543212]        [<ffffffffa01c00cb>] ipoib_add_one+0x2fb/0x460 [ib_ipoib]
+[ 3234.544075]        [<ffffffffa009eaa5>] ib_register_client+0x95/0xc0
+[ib_core]
+[ 3234.544942]        [<ffffffffa00450f3>] stp_proto_register+0x33/0xc0 [stp]
+[ 3234.545810]        [<ffffffff81002042>] do_one_initcall+0x42/0x180
+[ 3234.546685]        [<ffffffff810c2c20>] sys_init_module+0x90/0x1f0
+[ 3234.547562]        [<ffffffff8163d7a9>] system_call_fastpath+0x16/0x1b
+[ 3234.548435]
+[ 3234.548435] -> #0 (device_mutex){+.+.+.}:
+[ 3234.550141]        [<ffffffff810b3b7c>] __lock_acquire+0x12cc/0x1700
+[ 3234.551004]        [<ffffffff810b4061>] lock_acquire+0xb1/0x1a0
+[ 3234.551848]        [<ffffffff81630e7d>] __mutex_lock_common+0x5d/0x430
+[ 3234.552680]        [<ffffffff81631385>] mutex_lock_nested+0x45/0x50
+[ 3234.553508]        [<ffffffffa009ec82>] ib_register_device+0x42/0x4f0
+[ib_core]
+[ 3234.554332]        [<ffffffffa016fe5d>] c4iw_register_device+0x36d/0x410
+[iw_cxgb4]
+[ 3234.555152]        [<ffffffffa0168ad4>] c4iw_uld_state_change+0x2f4/0x890
+[iw_cxgb4]
+[ 3234.555965]        [<ffffffffa0050d8a>] uld_attach+0x15a/0x1e0 [cxgb4]
+[ 3234.556770]        [<ffffffffa0050ed2>] cxgb4_register_uld+0xc2/0xe0 [cxgb4]
+[ 3234.557590]        [<ffffffffa01b3048>] c4iw_init_module+0x48/0x4e
+[iw_cxgb4]
+[ 3234.558399]        [<ffffffff81002042>] do_one_initcall+0x42/0x180
+[ 3234.559198]        [<ffffffff810c2c20>] sys_init_module+0x90/0x1f0
+[ 3234.560008]        [<ffffffff8163d7a9>] system_call_fastpath+0x16/0x1b
+[ 3234.560813]
+[ 3234.560813] other info that might help us debug this:
+[ 3234.560814]
+[ 3234.563195] Chain exists of:
+[ 3234.563196]   device_mutex --> rtnl_mutex --> uld_mutex
+[ 3234.564034]
+[ 3234.565637]  Possible unsafe locking scenario:
+[ 3234.565638]
+[ 3234.567278]        CPU0                    CPU1
+[ 3234.568099]        ----                    ----
+[ 3234.568916]   lock(uld_mutex);
+[ 3234.569734]                                lock(rtnl_mutex);
+[ 3234.570562]                                lock(uld_mutex);
+[ 3234.571381]   lock(device_mutex);
+[ 3234.572190]
+[ 3234.572190]  *** DEADLOCK ***
+[ 3234.572191]
+[ 3234.574562] 1 lock held by modprobe/2291:
+[ 3234.575360]  #0:  (uld_mutex){+.+.+.}, at: [<ffffffffa0050e4e>]
+cxgb4_register_uld+0x3e/0xe0 [cxgb4] [ 3234.576210] [ 3234.576211] stack
+backtrace:
+[ 3234.577846] Pid: 2291, comm: modprobe Not tainted 3.4.0+ #133 [ 3234.578677]
+Call Trace:
+[ 3234.579507]  [<ffffffff810b0d02>] print_circular_bug+0x212/0x2f0 [
+3234.580356]  [<ffffffff810b3b7c>] __lock_acquire+0x12cc/0x1700 [ 3234.581206]
+[<ffffffff8101e343>] ? native_sched_clock+0x13/0x80 [ 3234.582058]
+[<ffffffff810b4061>] lock_acquire+0xb1/0x1a0 [ 3234.582910]
+[<ffffffffa009ec82>] ? ib_register_device+0x42/0x4f0 [ib_core] [ 3234.583763]
+[<ffffffff810b2c28>] ? __lock_acquire+0x378/0x1700 [ 3234.584619]
+[<ffffffff81630e7d>] __mutex_lock_common+0x5d/0x430 [ 3234.585474]
+[<ffffffffa009ec82>] ? ib_register_device+0x42/0x4f0 [ib_core] [ 3234.586324]
+[<ffffffff8101e343>] ? native_sched_clock+0x13/0x80 [ 3234.587179]
+[<ffffffff8101d8c9>] ? sched_clock+0x9/0x10 [ 3234.588031]
+[<ffffffffa009ec82>] ? ib_register_device+0x42/0x4f0 [ib_core] [ 3234.588895]
+[<ffffffff81631385>] mutex_lock_nested+0x45/0x50 [ 3234.589753]
+[<ffffffffa009ec82>] ib_register_device+0x42/0x4f0 [ib_core] [ 3234.590618]
+[<ffffffff81128a29>] ? __probe_kernel_read+0x49/0x80 [ 3234.591485]
+[<ffffffff81174e03>] ? kmem_cache_alloc_trace+0x113/0x1f0
+[ 3234.592361]  [<ffffffffa016fdcb>] ? c4iw_register_device+0x2db/0x410
+[iw_cxgb4] [ 3234.593242]  [<ffffffffa016fe5d>]
+c4iw_register_device+0x36d/0x410 [iw_cxgb4] [ 3234.594122]
+[<ffffffffa0168ad4>] c4iw_uld_state_change+0x2f4/0x890 [iw_cxgb4] [
+3234.595003]  [<ffffffff81634970>] ? _raw_spin_unlock_irqrestore+0x40/0x80
+[ 3234.595880]  [<ffffffff810b25bd>] ? trace_hardirqs_on+0xd/0x10 [
+3234.596755]  [<ffffffffa0050d8a>] uld_attach+0x15a/0x1e0 [cxgb4] [
+3234.597634]  [<ffffffffa01b3000>] ? 0xffffffffa01b2fff [ 3234.598504]
+[<ffffffffa0050ed2>] cxgb4_register_uld+0xc2/0xe0 [cxgb4] [ 3234.599368]
+[<ffffffffa01b3048>] c4iw_init_module+0x48/0x4e [iw_cxgb4] [ 3234.600234]
+[<ffffffff81002042>] do_one_initcall+0x42/0x180 [ 3234.601104]
+[<ffffffff810c2c20>] sys_init_module+0x90/0x1f0 [ 3234.601970]
+[<ffffffff8163d7a9>] system_call_fastpath+0x16/0x1b
 
-[35404.804723] BUG: unable to handle kernel NULL pointer dereference
-at           (null)
-
--- 
-CTO | Orion Virtualisation Solutions | www.orionvm.com.au
-Phone: 1300 56 99 52 | Mobile: 0428 754 846
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
