@@ -1,54 +1,36 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: [PATCH net/for-next V2 0/1] change IPoIB neighbour handling
-Date: Tue, 24 Jul 2012 20:05:21 +0300
-Message-ID: <1343149522-7661-1-git-send-email-ogerlitz@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net, roland@kernel.org
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, eric.dumazet@gmail.com, cl@linux.com, Or Gerlitz <ogerlitz@mellanox.com>, Shlomo Pongratz <shlomop@mellanox.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Fwd: circular lockdep problem
+Date: Tue, 24 Jul 2012 10:06:07 -0700
+Message-ID: <CAL1RGDV9gGYuX6WBcjWeWUAeFo3A-jZsAX86XPwbf8cttDO4Tg@mail.gmail.com>
+References: <500ECFCD.1040403@opengridcomputing.com> <CAL1RGDUaUN-X2Ju=SdHf-b8Kjh5K+wZ36aMQNZkn5xsG8yLrUQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDUaUN-X2Ju=SdHf-b8Kjh5K+wZ36aMQNZkn5xsG8yLrUQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-changes from V1:
-  
-- applied feeback from Dave on hash usage and identation
+[resending because I forgot to reply-all]
 
-- applied feedback from Christoph, use values fom the exported arp_tbl
-  for the hash table size and the frequency of garbage collection
+On Tue, Jul 24, 2012 at 9:39 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> Can anyone help me understand how I can resolve this? Its saying there is
+> some circular dependency problem with the cxgb4 uld_mutex, the networking
+> rtnl_mutex, and ib_core's device_mutex. I can't decipher the stuff below
+> though. It only seems to happen when there is a cxgb4 and ipoib device
+> present.
 
-changes from V0:
+Do you have a real IB HCA installed too?
 
-- following feedback from Mike and Dave, changed the ipoib_neigh hash table 
-  to allow for lock-free read side, the model follows the RCU based implementation 
-  in net/core/neighbour.c
+I suspect this is a lockdep false positive where it is mixing together
+lock ordering from the IB - IPoIB adapter and the cxgb4 netdev,
+and seeing a deadlock that can't really happen.
 
-- since RCU hash table uses unidirectional collision list, now ipoib_neigh_free 
-  needs to do a linked search in order to find the deleted neighbour predecessor 
-  in order to link it to the neighbour successor.
+I'll take a look, although I don't have a cxgb4 device so I can't test
+directly.  Would you be able to test a patch if I come up with one?
 
-- different implementation of hash lookup in ipoib_neigh_get (read-side) 
-  vs ipoib_neigh_alloc and ipoib_neigh_free (write-side)
-
-- path_free and ipoib_mcast_free now make use of the ipoib_del_neighs_by_gid helper 
-  function in order to delete neighbours related to that path or mcast. This new helper 
-  scans the hash table and deletes neighbours with the given GID. It had to be done 
-  this way of as  of the unidrectional nature of the linking which by itself 
-  arises from the lock free requirement made here...
-
-- a completion mechanism was added to prevent freeing the IPoIB netdevice priv 
-  data structure before the RCU based code freed all the neighbours.
-
-Again, the patch was made over net-next as of few IPoIB changes that 
-took place there and the parallel submission of the eIPoIB driver. 
-
-Or.
-
-Cc: Shlomo Pongratz <shlomop@mellanox.com>
-
-Shlomo Pongratz (1):
-  IB/ipoib: break linkage to neighbouring system
-
- drivers/infiniband/ulp/ipoib/ipoib.h           |   54 ++-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c        |   16 +-
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |  641 +++++++++++++++++------
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   57 +--
- 4 files changed, 533 insertions(+), 235 deletions(-)
+ - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
