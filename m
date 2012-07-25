@@ -1,92 +1,31 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv3] opensm/osm_sa_informinfo.c: Add trusted support for InformInfo/InformInfoRecord
-Date: Wed, 25 Jul 2012 06:40:06 -0400
-Message-ID: <500FCD06.9090602@dev.mellanox.co.il>
-References: <4FC635A6.5070804@dev.mellanox.co.il>
+Subject: [PATCH][TRIVIAL] opensm/osm_trap_rcv.c: Remove vestigial comment
+Date: Wed, 25 Jul 2012 06:40:14 -0400
+Message-ID: <500FCD0E.5020608@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FC635A6.5070804-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-per C15-0.2-1.16
-
-Compile tested only
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal#@mellanox.com>
 ---
-Changes since v2:
-Removed error number change (now in separate patch)
-Change since v1:
-Rebased against latest upstream master
-
-diff --git a/opensm/osm_sa_informinfo.c b/opensm/osm_sa_informinfo.c
-index e3f6ffa..772a293 100644
---- a/opensm/osm_sa_informinfo.c
-+++ b/opensm/osm_sa_informinfo.c
-@@ -74,6 +74,7 @@ typedef struct osm_iir_search_ctxt {
- 	ib_net16_t subscriber_enum;
- 	osm_sa_t *sa;
- 	osm_physp_t *p_req_physp;
-+	ib_net64_t sm_key;
- } osm_iir_search_ctxt_t;
+diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
+index e90ad5e..b457712 100644
+--- a/opensm/osm_trap_rcv.c
++++ b/opensm/osm_trap_rcv.c
+@@ -553,7 +553,6 @@ check_sweep:
+ 		goto Exit;
  
- /**********************************************************************
-@@ -291,6 +292,16 @@ static void sa_inform_info_rec_by_comp_mask(IN osm_sa_t * sa,
- 
- 	memcpy(&p_rec_item->rec, &p_infr->inform_record,
- 	       sizeof(ib_inform_info_record_t));
-+
-+	/*
-+	 * Per C15-0.2-1.16, InformInfoRecords shall always be
-+	 * provided with the QPN set to 0, except for the case
-+	 * of a trusted request, in which case the actual
-+	 * subscriber QPN shall be returned.
-+	 */
-+	if (p_ctxt->sm_key == 0)
-+		ib_inform_info_set_qpn(&p_rec_item->rec.inform_info, 0);
-+
- 	cl_qlist_insert_tail(p_ctxt->p_list, &p_rec_item->list_item);
- 
- Exit:
-@@ -349,6 +360,7 @@ static void infr_rcv_process_get_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
- 	context.subscriber_enum = p_rcvd_rec->subscriber_enum;
- 	context.sa = sa;
- 	context.p_req_physp = p_req_physp;
-+	context.sm_key = p_rcvd_mad->sm_key;
- 
- 	OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
- 		"Query Subscriber GID:%s(%02X) Enum:0x%X(%02X)\n",
-@@ -448,6 +460,24 @@ static void infr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
- 	}
- 
- 	/*
-+	 * Per C15-0.2-1.16, SubnAdmSet(InformInfo) subscriptions for
-+	 * SM security traps shall be provided only if they come from a
-+	 * trusted source.
-+	 */
-+	if ((p_sa_mad->sm_key == 0) && p_recvd_inform_info->is_generic &&
-+	    ((cl_ntoh16(p_recvd_inform_info->g_or_v.generic.trap_num) >= 256) &&
-+	     (cl_ntoh16(p_recvd_inform_info->g_or_v.generic.trap_num) <= 259))) {
-+		cl_plock_release(sa->p_lock);
-+
-+		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 430B "
-+			"Request for security trap from non-trusted requester: "
-+			"Given SM_Key:0x%016" PRIx64 "\n",
-+			cl_ntoh64(p_sa_mad->sm_key));
-+		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
-+		goto Exit;
-+	}
-+
-+	/*
- 	 * MODIFICATIONS DONE ON INCOMING REQUEST:
- 	 *
- 	 * QPN:
+ check_report:
+-	/* Add a call to osm_report_notice */
+ 	/* We are going to report the notice - so need to fix the IssuerGID
+ 	   accordingly. See IBA 1.2 p.739 or IBA 1.1 p.653 for details. */
+ 	if (is_gsi) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
