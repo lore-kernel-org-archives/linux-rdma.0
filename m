@@ -1,29 +1,35 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_node_info_rcv.c: In
- ni_rcv_process_existing_ca_or_router, handle error
-Date: Wed, 25 Jul 2012 10:56:39 +0300
-Message-ID: <20120725075639.GH5690@calypso>
-References: <4FFEF9EA.4060006@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH][TRIVIAL] opensm/osm_sa_mad_ctrl.c: Eliminate commented out
+ code line
+Date: Wed, 25 Jul 2012 06:37:33 -0400
+Message-ID: <500FCC6D.60206@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4FFEF9EA.4060006-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hal,
 
-On 12:23 Thu 12 Jul     , Hal Rosenstock wrote:
-> 
-> Add handling for case where osm_node_get_physp_ptr returns NULL pointer
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
+which would never be used in SA flow
 
-Applied, thanks.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_sa_mad_ctrl.c b/opensm/osm_sa_mad_ctrl.c
+index 43d1e83..2bdee22 100644
+--- a/opensm/osm_sa_mad_ctrl.c
++++ b/opensm/osm_sa_mad_ctrl.c
+@@ -423,8 +423,6 @@ static void sa_mad_ctrl_send_err_callback(IN void *context,
+ 	   Retire the original request MAD.
+ 	 */
+ 
+-	/*  sm_mad_ctrl_update_wire_stats( p_ctrl ); */
+-
+ 	if (osm_madw_get_err_msg(p_madw) != CL_DISP_MSGID_NONE) {
+ 		OSM_LOG_V2(p_ctrl->p_log, OSM_LOG_DEBUG,
+ 			   "Posting Dispatcher message %s\n",
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
