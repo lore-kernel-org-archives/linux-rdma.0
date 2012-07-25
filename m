@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 1/2] opensm/ib_types.h: Add CapabilityMask2 to notice for
- trap 144
-Date: Wed, 25 Jul 2012 06:40:53 -0400
-Message-ID: <500FCD35.3000900@dev.mellanox.co.il>
+Subject: [PATCH 2/2] opensm/osm_helper.c: Add CapabilityMask2 to notice dump
+ for trap 144
+Date: Wed, 25 Jul 2012 06:40:59 -0400
+Message-ID: <500FCD3B.7000705@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -17,18 +17,29 @@ Per MgtWG RefID #4855
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/include/iba/ib_types.h b/include/iba/ib_types.h
-index d28de17..7b4d1ee 100644
---- a/include/iba/ib_types.h
-+++ b/include/iba/ib_types.h
-@@ -7656,6 +7656,7 @@ typedef struct _ib_mad_notice_attr	// Total Size calc  Accumulated
- 			uint8_t    local_changes;   // 7b reserved 1b local changes
- 			ib_net32_t new_cap_mask;    // new capability mask
- 			ib_net16_t change_flgs;     // 10b reserved 6b change flags
-+			ib_net16_t cap_mask2;
- 		} PACK_SUFFIX ntc_144;
- 		struct _ntc_145 {
- 			ib_net16_t pad1;
+diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
+index 47d4ddb..afee3e1 100644
+--- a/opensm/osm_helper.c
++++ b/opensm/osm_helper.c
+@@ -2399,13 +2399,16 @@ static void osm_dump_notice_to_buf_generic(IN const ib_mad_notice_attr_t * p_ntc
+ 				"\t\t\t\tlid......................%u\n"
+ 				"\t\t\t\tlocal_changes............%u\n"
+ 				"\t\t\t\tnew_cap_mask.............0x%08x\n"
+-				"\t\t\t\tchange_flags.............0x%x\n",
++				"\t\t\t\tchange_flags.............0x%x\n"
++				"\t\t\t\tcap_mask2................0x%x\n",
+ 				cl_ntoh16(p_ntci->data_details.ntc_144.lid),
+ 				p_ntci->data_details.ntc_144.local_changes,
+ 				cl_ntoh32(p_ntci->data_details.ntc_144.
+ 					  new_cap_mask),
+ 				cl_ntoh16(p_ntci->data_details.ntc_144.
+-					  change_flgs));
++					  change_flgs),
++				cl_ntoh16(p_ntci->data_details.ntc_144.
++					  cap_mask2));
+ 			break;
+ 		case 145:
+ 			sprintf(buff,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
