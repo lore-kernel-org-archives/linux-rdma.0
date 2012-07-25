@@ -1,43 +1,92 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][TRIVIAL] opensm/osm_sa_inform_info.c: Fix some error log
- messages
-Date: Wed, 25 Jul 2012 06:39:56 -0400
-Message-ID: <500FCCFC.9050700@dev.mellanox.co.il>
+Subject: [PATCHv3] opensm/osm_sa_informinfo.c: Add trusted support for InformInfo/InformInfoRecord
+Date: Wed, 25 Jul 2012 06:40:06 -0400
+Message-ID: <500FCD06.9090602@dev.mellanox.co.il>
+References: <4FC635A6.5070804@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FC635A6.5070804-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Make error numbers unique and make log message format consistent for error messages
+
+per C15-0.2-1.16
+
+Compile tested only
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
+Changes since v2:
+Removed error number change (now in separate patch)
+Change since v1:
+Rebased against latest upstream master
+
 diff --git a/opensm/osm_sa_informinfo.c b/opensm/osm_sa_informinfo.c
-index ce37372..939adfb 100644
+index e3f6ffa..772a293 100644
 --- a/opensm/osm_sa_informinfo.c
 +++ b/opensm/osm_sa_informinfo.c
-@@ -428,7 +428,7 @@ static void infr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
- 	if (res != IB_SUCCESS) {
- 		cl_plock_release(sa->p_lock);
+@@ -74,6 +74,7 @@ typedef struct osm_iir_search_ctxt {
+ 	ib_net16_t subscriber_enum;
+ 	osm_sa_t *sa;
+ 	osm_physp_t *p_req_physp;
++	ib_net64_t sm_key;
+ } osm_iir_search_ctxt_t;
  
--		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4308 "
-+		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4308: "
- 			"Subscribe Request from unknown LID: %u\n",
- 			cl_ntoh16(p_madw->mad_addr.dest_lid));
- 		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
-@@ -442,7 +442,7 @@ static void infr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
- 	if (p_recvd_inform_info->subscribe > 1) {
- 		cl_plock_release(sa->p_lock);
+ /**********************************************************************
+@@ -291,6 +292,16 @@ static void sa_inform_info_rec_by_comp_mask(IN osm_sa_t * sa,
  
--		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4308 "
-+		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 430A: "
- 			"Invalid subscribe: %d\n",
- 			p_recvd_inform_info->subscribe);
- 		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
+ 	memcpy(&p_rec_item->rec, &p_infr->inform_record,
+ 	       sizeof(ib_inform_info_record_t));
++
++	/*
++	 * Per C15-0.2-1.16, InformInfoRecords shall always be
++	 * provided with the QPN set to 0, except for the case
++	 * of a trusted request, in which case the actual
++	 * subscriber QPN shall be returned.
++	 */
++	if (p_ctxt->sm_key == 0)
++		ib_inform_info_set_qpn(&p_rec_item->rec.inform_info, 0);
++
+ 	cl_qlist_insert_tail(p_ctxt->p_list, &p_rec_item->list_item);
+ 
+ Exit:
+@@ -349,6 +360,7 @@ static void infr_rcv_process_get_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
+ 	context.subscriber_enum = p_rcvd_rec->subscriber_enum;
+ 	context.sa = sa;
+ 	context.p_req_physp = p_req_physp;
++	context.sm_key = p_rcvd_mad->sm_key;
+ 
+ 	OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
+ 		"Query Subscriber GID:%s(%02X) Enum:0x%X(%02X)\n",
+@@ -448,6 +460,24 @@ static void infr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
+ 	}
+ 
+ 	/*
++	 * Per C15-0.2-1.16, SubnAdmSet(InformInfo) subscriptions for
++	 * SM security traps shall be provided only if they come from a
++	 * trusted source.
++	 */
++	if ((p_sa_mad->sm_key == 0) && p_recvd_inform_info->is_generic &&
++	    ((cl_ntoh16(p_recvd_inform_info->g_or_v.generic.trap_num) >= 256) &&
++	     (cl_ntoh16(p_recvd_inform_info->g_or_v.generic.trap_num) <= 259))) {
++		cl_plock_release(sa->p_lock);
++
++		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 430B "
++			"Request for security trap from non-trusted requester: "
++			"Given SM_Key:0x%016" PRIx64 "\n",
++			cl_ntoh64(p_sa_mad->sm_key));
++		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
++		goto Exit;
++	}
++
++	/*
+ 	 * MODIFICATIONS DONE ON INCOMING REQUEST:
+ 	 *
+ 	 * QPN:
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
