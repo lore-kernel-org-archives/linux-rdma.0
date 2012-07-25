@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][TRIVIAL] opensm/osm_sa_path_record.c: Add missing end-of-line
- in the log message
-Date: Wed, 25 Jul 2012 06:40:33 -0400
-Message-ID: <500FCD21.9020807@dev.mellanox.co.il>
+Subject: [PATCH][TRIVIAL] opensm/osm_madw.h: Fix a couple of cut 'n paste
+ commentary errors
+Date: Wed, 25 Jul 2012 06:40:46 -0400
+Message-ID: <500FCD2E.5020503@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,21 +13,24 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
-index 70e7b61..d37d35c 100644
---- a/opensm/osm_sa_path_record.c
-+++ b/opensm/osm_sa_path_record.c
-@@ -306,7 +306,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
- 			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F05: "
- 				"Can't find remote phys port of %s (GUID: "
- 				"0x%016"PRIx64") port %d "
--				"while routing to LID %u",
-+				"while routing to LID %u\n",
- 				p_node->print_desc,
- 				cl_ntoh64(osm_node_get_node_guid(p_node)),
- 				tmp_pnum,
+diff --git a/include/opensm/osm_madw.h b/include/opensm/osm_madw.h
+index 8f53d54..195f468 100644
+--- a/include/opensm/osm_madw.h
++++ b/include/opensm/osm_madw.h
+@@ -988,9 +988,9 @@ static inline osm_vend_wrap_t *osm_madw_get_vend_ptr(IN const osm_madw_t *
+ * SEE ALSO
+ *********/
+ 
+-/****f* OpenSM: MAD Wrapper/osm_madw_get_vend_ptr
++/****f* OpenSM: MAD Wrapper/osm_madw_get_bind_handle
+ * NAME
+-*	osm_madw_get_vend_ptr
++*	osm_madw_get_bind_handle
+ *
+ * DESCRIPTION
+ *	Returns the bind handle associated with this MAD.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
