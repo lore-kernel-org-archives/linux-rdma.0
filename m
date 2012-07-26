@@ -1,111 +1,206 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 04/10] opensm: perfmgr delete "inactive" nodes from the
- DB
-Date: Wed, 25 Jul 2012 09:19:45 -0700
-Message-ID: <20120725091945.46bc418839be9a8e2b93c3e5@llnl.gov>
-References: <20120703165312.4096026b.weiny2@llnl.gov>
-	<20120725125758.GI5690@calypso>
+Subject: Work completion error: "transport retry counter exceeded"
+Date: Wed, 25 Jul 2012 19:07:19 -0700
+Message-ID: <20120725190719.475605dc169353b775cd3463@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120725125758.GI5690@calypso>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 25 Jul 2012 15:57:58 +0300
-Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+I am at a loss.  I am hacking some RDMA code to do an RDMA write from a server
+to a client.
 
-> Hi Ira,
-> 
-> On 16:53 Tue 03 Jul     , Ira Weiny wrote:
-> > 
-> > 
-> > When a node drops from the fabric the default behavior was to leave the node
-> > data in the PerfMgr DB.  Add the option (with default set to TRUE) to delete
-> > these "inactive" or missing nodes from the DB.
-> > 
-> > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> > ---
+I have it working perfectly on a small 2 node test system.  When I move the
+code to another system I am getting a "transport retry counter exceeded"
+error.  I just can't figure out why an RDMA Write is timing out like this.
 
-[snip]
+What ibv_qp_init_attr's in ibv_create_qp or ibv_qp_attr's in ibv_modify_qp might I
+have to change to account for different hardware?
 
-> > +}
-> > +
-> >  /**********************************************************************
-> >   * Dump a reading vs the previous reading to stdout
-> >   **********************************************************************/
-> > diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-> > index 662e591..06efa9c 100644
-> > --- a/opensm/osm_subnet.c
-> > +++ b/opensm/osm_subnet.c
-> > @@ -493,6 +493,7 @@ static const opt_rec_t opt_tbl[] = {
-> >  	{ "perfmgr_max_outstanding_queries", OPT_OFFSET(perfmgr_max_outstanding_queries), opts_parse_uint32, NULL, 0 },
-> >  	{ "perfmgr_ignore_cas", OPT_OFFSET(perfmgr_ignore_cas), opts_parse_boolean, NULL, 0 },
-> >  	{ "event_db_dump_file", OPT_OFFSET(event_db_dump_file), opts_parse_charp, NULL, 0 },
-> > +	{ "perfmgr_rm_nodes", OPT_OFFSET(perfmgr_rm_nodes), opts_parse_boolean, NULL, 0 },
-> 
-> I guess that this option can be enabled to be changed on the fly, as it might
-> be changed also via the console.
+NOTE: On both of these tests I am trying to xfer data from 2 nodes on the same
+switch.  The hardware is different and the payload in small (<512 bytes).
 
-yes.
+Here is my init code on the server side:
 
-> 
-> >  #endif				/* ENABLE_OSM_PERF_MGR */
-> >  	{ "event_plugin_name", OPT_OFFSET(event_plugin_name), opts_parse_charp, NULL, 0 },
-> >  	{ "event_plugin_options", OPT_OFFSET(event_plugin_options), opts_parse_charp, NULL, 0 },
-> > @@ -985,6 +986,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
-> >  	    OSM_PERFMGR_DEFAULT_MAX_OUTSTANDING_QUERIES;
-> >  	p_opt->perfmgr_ignore_cas = FALSE;
-> >  	p_opt->event_db_dump_file = NULL; /* use default */
-> > +	p_opt->perfmgr_rm_nodes = TRUE;
-> 
-> Here you change the default behavior. Any thoughts what is the added value to
-> leave disconnected nodes in the DB?
+rdma_create_qp...
 
-Originally I was thinking that leaving nodes in the DB would reduce the load
-on the perfmgr when nodes disappears/reappears for "normal" reasons.  For
-example a full reboot of all compute nodes.
+	struct ibv_qp *qp;
 
-As we start to finally ramp up to use this I don't think the load is that
-great and we are having issues with hardware replacements leaving nodes in the
-DB and causing user confusion (for example they have 2 nodes of the same name
-being reported).  So for users I think the default is better set at TRUE.
+	struct ibv_qp_init_attr attr = {
+		.send_cq = p_sa->rdma_ctx.cq,
+		.recv_cq = p_sa->rdma_ctx.cq,
+		.cap     = {
+			.max_send_wr  = 10,
+			.max_recv_wr  = 500,
+			.max_send_sge = 1,
+			.max_recv_sge = 1
+		},
+		.qp_type = IBV_QPT_RC
+	};
+	
+	qp = ibv_create_qp(p_sa->rdma_ctx.pd, &attr);
+	if (!qp) {
+		return (IB_INSUFFICIENT_RESOURCES);
+	}
 
+	{
+		struct ibv_qp_attr attr = {
+			.qp_state        = IBV_QPS_INIT,
+			.pkey_index      = 0,
+			.port_num        = rdma_ctx.device_port,
+			.qp_access_flags = IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_LOCAL_WRITE
+		};
+
+		if (ibv_modify_qp(qp, &attr,
+				  IBV_QP_STATE              |
+				  IBV_QP_PKEY_INDEX         |
+				  IBV_QP_PORT               |
+				  IBV_QP_ACCESS_FLAGS)) {
+			goto DestroyQP;
+		}
+	}
+...
+
+rdma_modify_qp...
+
+	/* transition it to RTR/RTS with eth_info and path record */
+	struct ibv_qp_attr attr = {
+		.qp_state		= IBV_QPS_RTR,
+		.path_mtu		= path->mtu,
+		.dest_qp_num		= eth_info->qpn,
+		.rq_psn			= 1,
+		.max_dest_rd_atomic	= 1,
+		.min_rnr_timer		= 12,
+		.ah_attr		= {
+			.is_global	= 0,
+			.dlid		= path->dlid,
+			.sl		= path->sl,
+			.src_path_bits	= 0,
+			.port_num	= rdma_ctx.device_port
+		}
+	};
+
+	if (ibv_modify_qp(qp, &attr,
+			  IBV_QP_STATE              |
+			  IBV_QP_PATH_MTU           |
+			  IBV_QP_DEST_QPN           |
+			  IBV_QP_RQ_PSN             |
+			  IBV_QP_MAX_DEST_RD_ATOMIC |
+			  IBV_QP_MIN_RNR_TIMER      |
+			  IBV_QP_AV)) {
+		return 1;
+	}
+
+	attr.qp_state	    = IBV_QPS_RTS;
+	attr.timeout	    = 14;
+	attr.retry_cnt	    = 7;
+	attr.rnr_retry	    = 7;
+	attr.sq_psn	    = 1;
+	attr.max_rd_atomic  = 1;
+	if (ibv_modify_qp(qp, &attr,
+			  IBV_QP_STATE              |
+			  IBV_QP_TIMEOUT            |
+			  IBV_QP_RETRY_CNT          |
+			  IBV_QP_RNR_RETRY          |
+			  IBV_QP_SQ_PSN             |
+			  IBV_QP_MAX_QP_RD_ATOMIC)) {
+		return 1;
+	}
+...
+
+
+Here is the code on the client:
+
+rdma_create_qp...
+
+	struct ibv_qp_init_attr attr = {
+		.send_cq = rdma_ctx.cq,
+		.recv_cq = rdma_ctx.cq,
+		.cap     = {
+			.max_send_wr  = 10,
+			.max_recv_wr  = 10,
+			.max_send_sge = 1,
+			.max_recv_sge = 1
+		},
+		.qp_type = IBV_QPT_RC
+	};
+	
+	qp = ibv_create_qp(rdma_ctx.pd, &attr);
+	if (!qp) {
+		return (-ENOMEM);
+	}
+
+	{
+		struct ibv_qp_attr attr = {
+			.qp_state        = IBV_QPS_INIT,
+			.pkey_index      = 0,
+			.port_num	 = rdma_ctx.device_port,
+			.qp_access_flags = IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_LOCAL_WRITE
+		};
+
+		if (ibv_modify_qp(qp, &attr,
+				  IBV_QP_STATE              |
+				  IBV_QP_PKEY_INDEX         |
+				  IBV_QP_PORT               |
+				  IBV_QP_ACCESS_FLAGS)) {
+			return (-ENOMEM);
+		}
+	}
+
+...
+
+rdma_connect_qp...
+
+	struct ibv_qp_attr attr = {
+		.qp_state		= IBV_QPS_RTR,
+		.path_mtu		= conn->path.mtu,
+		.dest_qp_num		= conn->rqpn,
+		.rq_psn			= 1,
+		.max_dest_rd_atomic	= 1,
+		.min_rnr_timer		= 12,
+		.ah_attr		= {
+			.is_global	= 0,
+			.dlid		= conn->path.dlid,
+			.sl		= conn->path.sl,
+			.src_path_bits	= 0,
+			.port_num	= rdma_ctx.device_port
+		}
+	};
+
+	if (ibv_modify_qp(conn->qp, &attr,
+			  IBV_QP_STATE              |
+			  IBV_QP_PATH_MTU           |
+			  IBV_QP_DEST_QPN           |
+			  IBV_QP_RQ_PSN             |
+			  IBV_QP_MAX_DEST_RD_ATOMIC |
+			  IBV_QP_MIN_RNR_TIMER      |
+			  IBV_QP_AV)) {
+		return 1;
+	}
+
+	attr.qp_state	     = IBV_QPS_RTS;
+	attr.timeout	     = 14;
+	attr.retry_cnt	     = 7;
+	attr.rnr_retry	     = 7;
+	attr.sq_psn	     = 1;
+	attr.max_rd_atomic   = 1;
+	if (ibv_modify_qp(conn->qp, &attr,
+			  IBV_QP_STATE              |
+			  IBV_QP_TIMEOUT            |
+			  IBV_QP_RETRY_CNT          |
+			  IBV_QP_RNR_RETRY          |
+			  IBV_QP_SQ_PSN             |
+			  IBV_QP_MAX_QP_RD_ATOMIC)) {
+		return 1;
+	}
+...
+
+
+Thanks,
 Ira
-
-> 
-> >  #endif				/* ENABLE_OSM_PERF_MGR */
-> >  
-> >  	p_opt->event_plugin_name = NULL;
-> > @@ -2009,12 +2011,15 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
-> >  		"perfmgr_sweep_time_s %u\n\n"
-> >  		"# Max outstanding queries\n"
-> >  		"perfmgr_max_outstanding_queries %u\n"
-> > -		"perfmgr_ignore_cas %s\n\n",
-> > +		"perfmgr_ignore_cas %s\n\n"
-> > +		"# Remove missing nodes from DB\n"
-> > +		"perfmgr_rm_nodes %s\n",
-> >  		p_opts->perfmgr ? "TRUE" : "FALSE",
-> >  		p_opts->perfmgr_redir ? "TRUE" : "FALSE",
-> >  		p_opts->perfmgr_sweep_time_s,
-> >  		p_opts->perfmgr_max_outstanding_queries,
-> > -		p_opts->perfmgr_ignore_cas ? "TRUE" : "FALSE");
-> > +		p_opts->perfmgr_ignore_cas ? "TRUE" : "FALSE",
-> > +		p_opts->perfmgr_rm_nodes ? "TRUE" : "FALSE");
-> >  
-> >  	fprintf(out,
-> >  		"#\n# Event DB Options\n#\n"
-> > -- 
-> > 1.7.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
 
 -- 
 Ira Weiny
