@@ -1,60 +1,37 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] opensm: include release in osm_version.h
-Date: Thu, 26 Jul 2012 18:07:11 -0700
-Message-ID: <20120726180711.6a560a19be9f17192b5c6591@llnl.gov>
-References: <20120726174251.fe779972e664028e01b9fa8b@llnl.gov>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: Work completion error: "transport retry counter exceeded"
+Date: Fri, 27 Jul 2012 10:08:05 -0700
+Message-ID: <CAL1RGDUM4b0DMFdA5b_sv1-nz5bU2WEd+YW=txHxHs-JkHRaKQ@mail.gmail.com>
+References: <20120725190719.475605dc169353b775cd3463@llnl.gov>
+ <CAL1RGDWmpHy43b5TarBWpUk1RXOEdNitXWE4+xRCspgfpwUisQ@mail.gmail.com>
+ <CALfB72Ad4+R48Nc-kawsrk1JQo964OkJ6DE46mcR5b9pS2_hEA@mail.gmail.com>
+ <CAL1RGDVwy56YL7OLxVuvap5WZRzzZsosQmKBkhWZB73uy3ysDg@mail.gmail.com> <00e901cd6c17$f56161e0$e02425a0$@com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120726174251.fe779972e664028e01b9fa8b-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <00e901cd6c17$f56161e0$e02425a0$@com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Cc: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Jul 27, 2012 at 9:50 AM, Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
+> Note that both an "RNR-NAK retry count exceeded" and a "timeout" error are
+> reported in the same way, as a locally detected error.
 
-Disregard this for now...  I see there is more crazyness with OpenSM's gen_ver.sh script...
+Not quite right.  There are two different work completion statuses:
 
-:-(
+        IBV_WC_RETRY_EXC_ERR
+        IBV_WC_RNR_RETRY_EXC_ERR
 
-Ira
+which libibverbs will format as
 
-On Thu, 26 Jul 2012 17:42:51 -0700
-Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+        "transport retry counter exceeded"
+        "RNR retry counter exceeded"
 
-> 
-> This ensures plugin compatibility.
-> 
-> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> ---
->  include/opensm/osm_version.h.in |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/include/opensm/osm_version.h.in b/include/opensm/osm_version.h.in
-> index d783245..7a29b77 100644
-> --- a/include/opensm/osm_version.h.in
-> +++ b/include/opensm/osm_version.h.in
-> @@ -45,7 +45,7 @@
->  *
->  * SYNOPSIS
->  */
-> -#define OSM_VERSION "OpenSM @VERSION@"
-> +#define OSM_VERSION "OpenSM @VERSION@-@RELEASE@"
->  /********/
->  
->  #endif				/* _OSM_VERSION_H_ */
-> -- 
-> 1.7.1
-> 
+so it is pretty easy to tell the difference between the two errors.
 
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
