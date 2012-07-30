@@ -1,14 +1,14 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] opensm/osm_sa_mad_ctrl.c: Eliminate commented
- out code line
-Date: Mon, 30 Jul 2012 10:03:28 +0300
-Message-ID: <20120730070328.GA2590@calypso>
-References: <500FCC6D.60206@dev.mellanox.co.il>
+Subject: Re: [PATCH] opensm/osm_trap_rcv.c: Add better logging for traps 257
+ and 258
+Date: Mon, 30 Jul 2012 10:03:51 +0300
+Message-ID: <20120730070351.GB2590@calypso>
+References: <500FCCE8.6020703@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <500FCC6D.60206-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <500FCCE8.6020703-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -16,14 +16,14 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 06:37 Wed 25 Jul     , Hal Rosenstock wrote:
+On 06:39 Wed 25 Jul     , Hal Rosenstock wrote:
 > 
-> which would never be used in SA flow
+> More logging for Bad P_Key (trap 257) and Bad Q_Key (trap 258)
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
 
-Applied, thanks.
+Applied, thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
