@@ -1,101 +1,66 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/3] librdmacm/rsockets: Use wr_id to determine completion
- type
-Date: Mon, 30 Jul 2012 18:33:39 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6E64E@ORSMSX101.amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [ANNOUNCE] infiniband-diags 1.6.1 release
+Date: Mon, 30 Jul 2012 13:35:24 -0700
+Message-ID: <20120730133524.a811473c0245dafa1614de2b@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If a work request has completed in error, the completion type
-field is undefined.  Use the wr_id to determine if the failed
-completion was a send or receive.
+There is a new release of infiniband-diags.
 
-This fixes an issue where MPI can hang during finalize.  With
-both sides of a connection shutting down simultaneously, one
-side may complete quicker and delete its QP before the other
-side receives an acknowledgement to their disconnect message.
-Eventually, the disconnect message will time out, but because
-the completion type field is undefined, it may be processed
-as a failed receive, rather than a failed send.  The end
-result is that the second side hangs waiting for the send to
-complete.
+The tarball is available at:
+http://downloads.openfabrics.org/management/infiniband-diags-1.6.1.tar.gz
 
-This problem showed up more easily after commit
-2e5b0fc95964f74ea59dd725e849027faa0cd526, but existed beforehand.
+d250e63f849b017f7149046c003cc8f6  infiniband-diags-1.6.1.tar.gz
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- src/rsocket.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+Dependencies:
 
-diff --git a/src/rsocket.c b/src/rsocket.c
-index ed125b3..1e391b3 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -132,6 +132,8 @@ union rs_wr_id {
- 	};
- };
- 
-+#define RS_RECV_WR_ID (~((uint64_t) 0))
-+
- /*
-  * rsocket states are ordered as passive, connecting, connected, disconnected.
-  */
-@@ -418,6 +420,19 @@ err1:
- 	return -1;
- }
- 
-+static inline int
-+rs_post_recv(struct rsocket *rs)
-+{
-+	struct ibv_recv_wr wr, *bad;
-+
-+	wr.wr_id = RS_RECV_WR_ID;
-+	wr.next = NULL;
-+	wr.sg_list = NULL;
-+	wr.num_sge = 0;
-+
-+	return rdma_seterrno(ibv_post_recv(rs->cm_id->qp, &wr, &bad));
-+}
-+
- static int rs_create_ep(struct rsocket *rs)
- {
- 	struct ibv_qp_init_attr qp_attr;
-@@ -449,7 +464,7 @@ static int rs_create_ep(struct rsocket *rs)
- 		return ret;
- 
- 	for (i = 0; i < rs->rq_size; i++) {
--		ret = rdma_post_recvv(rs->cm_id, NULL, NULL, 0);
-+		ret = rs_post_recv(rs);
- 		if (ret)
- 			return ret;
- 	}
-@@ -881,7 +896,7 @@ static int rs_poll_cq(struct rsocket *rs)
- 	int ret, rcnt = 0;
- 
- 	while ((ret = ibv_poll_cq(rs->cm_id->recv_cq, 1, &wc)) > 0) {
--		if (wc.opcode == IBV_WC_RECV_RDMA_WITH_IMM) {
-+		if (wc.wr_id == RS_RECV_WR_ID) {
- 			if (wc.status != IBV_WC_SUCCESS)
- 				continue;
- 			rcnt++;
-@@ -923,7 +938,7 @@ static int rs_poll_cq(struct rsocket *rs)
- 
- 	if (rs->state & rs_connected) {
- 		while (!ret && rcnt--)
--			ret = rdma_post_recvv(rs->cm_id, NULL, NULL, 0);
-+			ret = rs_post_recv(rs);
- 
- 		if (ret) {
- 			rs->state = rs_error;
+        1) libibmad >= 1.3.9
+        2) libibumad >= 1.3.7
+        3) opensm-libs >= 3.3.10
+        4) ib_umad kernel module
 
 
+Release notes v1.6.0 => 1.6.1
+
+   1) bug fixes and code clean up
+
+
+16:32:07 > git log --pretty=short 1.6.0..HEAD | git shortlog
+Albert Chu (1):
+      infiniband-diags: Fix command line parsing bug in ibccconfig, ibccquery, saquery, and smpquery.
+
+Daniel Klein (1):
+      Subject: [PATCHv2] infiniband-diags/vendstat: updated devices supporting extended fw info
+
+Hal Rosenstock (10):
+      infiniband-diags/ibnetdiscover: fix no port 0 info segmentation fault
+      ibnetdiscover: fix not showing FDR10 speeds
+      ibnetdiscover: fix not showing FDR10 speeds
+      mcm_rereg_test.c: Fix a couple of output messages
+      ibnetdiscover: fix not showing FDR10 speeds
+      mcm_rereg_test.c: Fix a couple of output messages
+      iblinkinfo: fix no port 0 info segmentation fault
+      infiniband-diags: Support MLNX ExtendedPortInfo for ConnectIB device
+      infiniband-diags/perfquery.c: Fix compile warning
+      infiniband-diags/vendstat.c: Commentary change
+
+Ira Weiny (4):
+      infiniband-diags: saquery avoid a potential seg fault in libibmad
+      infiniband-diags: update README and configure.in for 1.6.1 release
+
+
+
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
