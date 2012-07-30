@@ -1,14 +1,13 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] opensm/osm_inform.c: Make log message format
- consistent for error messages
-Date: Mon, 30 Jul 2012 10:04:10 +0300
-Message-ID: <20120730070410.GC2590@calypso>
-References: <500FCCF2.4060008@dev.mellanox.co.il>
+Subject: Re: [PATCH][TRIVIAL] opensm/osm_trap_rcv.c: Remove vestigial comment
+Date: Mon, 30 Jul 2012 10:04:49 +0300
+Message-ID: <20120730070449.GE2590@calypso>
+References: <500FCD0E.5020608@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <500FCCF2.4060008-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <500FCD0E.5020608-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -16,9 +15,9 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 06:39 Wed 25 Jul     , Hal Rosenstock wrote:
+On 06:40 Wed 25 Jul     , Hal Rosenstock wrote:
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal#@mellanox.com>
 > ---
 
 Applied, thanks.
