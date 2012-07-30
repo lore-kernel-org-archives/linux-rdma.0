@@ -1,14 +1,14 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] opensm/osm_helper.c: Add CapabilityMask2 to notice
- dump for trap 144
-Date: Mon, 30 Jul 2012 10:06:34 +0300
-Message-ID: <20120730070634.GI2590@calypso>
-References: <500FCD3B.7000705@dev.mellanox.co.il>
+Subject: Re: [PATCH][TRIVIAL] opensm/cl_atomic_osd.h: Cosmetic formatting
+ change
+Date: Mon, 30 Jul 2012 10:07:31 +0300
+Message-ID: <20120730070731.GJ2590@calypso>
+References: <50151DE6.2010304@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <500FCD3B.7000705-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <50151DE6.2010304-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -16,9 +16,7 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 06:40 Wed 25 Jul     , Hal Rosenstock wrote:
-> 
-> Per MgtWG RefID #4855
+On 07:26 Sun 29 Jul     , Hal Rosenstock wrote:
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
