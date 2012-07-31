@@ -1,64 +1,30 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] zero-copy extensions for rsockets
-Date: Tue, 31 Jul 2012 18:18:40 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6E8D5@ORSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC] zero-copy extensions for rsockets
+Date: Tue, 31 Jul 2012 12:32:43 -0600
+Message-ID: <20120731183243.GA4755@obsidianresearch.com>
+References: <1828884A29C6694DAF28B7E6B8A8237346A6E8D5@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A6E8D5-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Christoph Lameter (christoph-zt5rKe7wo/JBDgjK7y7TUQ@public.gmane.org)" <christoph-zt5rKe7wo/JBDgjK7y7TUQ@public.gmane.org>, "Greg KH (gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org)" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Christoph Lameter (christoph-zt5rKe7wo/JBDgjK7y7TUQ@public.gmane.org)" <christoph-zt5rKe7wo/JBDgjK7y7TUQ@public.gmane.org>, "Greg KH (gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org)" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Before implementing this, I'm looking for feedback.  The following proposal defines user-space APIs to support zero-copy.  The intent is that the use of these extensions is fully compatible with existing calls, allowing applications to make selective use of them.  Although I'm specifically looking at these calls for rsockets, I tried to make these generic enough that they could apply to a wider variety of technologies.
+On Tue, Jul 31, 2012 at 06:18:40PM +0000, Hefty, Sean wrote:
+> Before implementing this, I'm looking for feedback.  The following
+> proposal defines user-space APIs to support zero-copy.  The intent
+> is that the use of these extensions is fully compatible with
+> existing calls, allowing applications to make selective use of them.
+> Although I'm specifically looking at these calls for rsockets, I
+> tried to make these generic enough that they could apply to a wider
+> variety of technologies.
 
-- Sean
+This looks very similar to the libaio interface..
 
---
-
-/* Define option/flag to indicate asynchronous operation */
-#define O_ASYNC ...	/* fcntl option */
-#define MSG_ASYNC ...	/* send/recv flag */
-
-/*
- * ioq - fd used to report asynchronous completions.
- * sockets/fd's report asynchronous events through an associated ioq
- * ioq is usable with standard calls - fcntl, select, poll, read, etc.
- */
-int ioq_create(int flags);
-int ioq_add(int ioq, int fd, int flags);
-int ioq_del(int ioq, int fd);
-
-/* Reading from an ioq returns this structure */
-struct ioq_event {
-	int fd;
-	int operation;	/* IOREAD, IOWRITE, etc. */
-	int result;		/* e.g. bytes transferred */
-	int errno;
-	void *ptr;		/* context, e.g. address */
-};
-
-/* Register memory for zero-copy. */
-off_t iomap(int fd, void *addr, size_t len, int prot, int flags, off_t offset);
-int iounmap(int fd, off_t offset, size_t len);
-
-/*
- * Zero-copy read and write calls.
- * If fd is nonblocking, then the operation must as asynchronous.
- */
-size_t get(int fd, void *buf, size_t count, off_t offset, int flags);
-size_t put(int fd, const void *buf, size_t count, off_t offset, int flags);
-
-/* Technology specific operation */
-int submit(int fd,
-           int operation,	/* IOREAD, IOWRITE, vendor defined, etc. */
-           void *context,
-           void *request,	/* request structures varies by operation */
-           size_t len,		/* size of request structure */
-           int flags);
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
