@@ -1,29 +1,50 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] zero-copy extensions for rsockets
-Date: Tue, 31 Jul 2012 20:33:49 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A6E926@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A6E8D5@ORSMSX101.amr.corp.intel.com>
- <20120731183243.GA4755@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Tue, 31 Jul 2012 13:56:45 -0700
+Message-ID: <1343768205-13825-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120731183243.GA4755-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Christoph Lameter (christoph-zt5rKe7wo/JBDgjK7y7TUQ@public.gmane.org)" <christoph-zt5rKe7wo/JBDgjK7y7TUQ@public.gmane.org>, "Greg KH (gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org)" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> This looks very similar to the libaio interface..
+Hi Linus,
 
-I did look at aio.  It may be possible to use aio context in place of ioq, and I'm open to that.  I was actually modeling ioq more after epoll than aio.  It just seemed simpler to treat an ioq as a standard fd.
- 
-For the get/put calls, there's no requirement to use asynchronous or nonblocking I/O.  When asynchronous operations are used, restricting each socket to a single, persistent ioq thingy simplifies the implementation by making the mapping between an ioq and HW CQs easier to manage.
+Please pull from
 
-My concern is that supporting a more flexible API, like aoi, would effectively result in losing some desirable feature handling completions, such as kernel bypass or reducing interrupts.  With aio, I'm unsure about the impact of supporting callback notifications and the selection of each aio context on a per request basis.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
 
-- Sean
+----------------------------------------------------------------
+
+Final RDMA changes for the 3.6 merge window:
+ - Fix IPoIB to stop using unsafe linkage between networking neighbour
+   layer and private path database.
+ - Small fixes for bugs found by Fengguang Wu's automated builds.
+
+----------------------------------------------------------------
+Fengguang Wu (1):
+      RDMA/cma: Use PTR_RET rather than if (IS_ERR(...)) + PTR_ERR
+
+Mike Marciniszyn (1):
+      IB/qib: Fix size of cc_supported_table_entries
+
+Roland Dreier (3):
+      RDMA/ocrdma: Fix check of GSI CQs
+      RDMA/ucma: Convert open-coded equivalent to memdup_user()
+      Merge branches 'cma', 'ipoib', 'ocrdma' and 'qib' into for-next
+
+Shlomo Pongratz (1):
+      IPoIB: Use a private hash table for path lookup in xmit path
+
+ drivers/infiniband/core/cma.c                  |    5 +-
+ drivers/infiniband/core/ucma.c                 |   19 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |    4 +-
+ drivers/infiniband/hw/qib/qib.h                |   10 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h           |   56 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c        |   16 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |  646 ++++++++++++++++++------
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   57 +--
+ 8 files changed, 555 insertions(+), 258 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
