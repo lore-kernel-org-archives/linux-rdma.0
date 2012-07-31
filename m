@@ -1,51 +1,89 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm: Add per module logging FILE_ID define to
- osm_congestion_control.c
-Date: Tue, 31 Jul 2012 11:24:51 +0300
-Message-ID: <20120731082451.GB2077@calypso>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH][MINOR] opensm: Support (null) being specified for per_module_logging_file
+ option
+Date: Tue, 31 Jul 2012 05:13:37 -0400
+Message-ID: <5017A1C1.4000203@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/opensm/osm_file_ids.h   | 1 +
- opensm/osm_congestion_control.c | 3 ++-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+Note that this patch follows previous patch to "Remove unused per_module_logging option"
 
-diff --git a/include/opensm/osm_file_ids.h b/include/opensm/osm_file_ids.h
-index 713a0f9..7c45082 100644
---- a/include/opensm/osm_file_ids.h
-+++ b/include/opensm/osm_file_ids.h
-@@ -149,6 +149,7 @@ typedef enum _osm_file_ids_enum {
- 	OSM_FILE_VL_ARB_RCV_C,
- 	OSM_FILE_ST_C,
- 	OSM_FILE_UCAST_DFSSSP_C,
-+	OSM_FILE_CONGESTION_CONTROL_C,
- } osm_file_ids_enum;
- /***********/
+diff --git a/opensm/osm_console.c b/opensm/osm_console.c
+index 0c58a25..b0f7f48 100644
+--- a/opensm/osm_console.c
++++ b/opensm/osm_console.c
+@@ -341,22 +341,24 @@ static void permodlog_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+ 	FILE *fp;
+ 	char buf[1024];
  
-diff --git a/opensm/osm_congestion_control.c b/opensm/osm_congestion_control.c
-index 640f3fa..0aa72fd 100644
---- a/opensm/osm_congestion_control.c
-+++ b/opensm/osm_congestion_control.c
-@@ -47,7 +47,8 @@
+-	fp = fopen(p_osm->subn.opt.per_module_logging_file, "r");
+-	if (!fp) {
+-		if (errno == ENOENT)
++	if (p_osm->subn.opt.per_module_logging_file != NULL) {
++		fp = fopen(p_osm->subn.opt.per_module_logging_file, "r");
++		if (!fp) {
++			if (errno == ENOENT)
++				return;
++			fprintf(out, "fopen(%s) failed: %s\n",
++				p_osm->subn.opt.per_module_logging_file,
++				strerror(errno));
+ 			return;
+-		fprintf(out, "fopen(%s) failed: %s\n",
+-			p_osm->subn.opt.per_module_logging_file,
+-			strerror(errno));
+-		return;
+-	}
++		}
  
- #include <stdlib.h>
- #include <string.h>
--
-+#include <opensm/osm_file_ids.h>
-+#define FILE_ID OSM_FILE_CONGESTION_CONTROL_C
- #include <iba/ib_types.h>
- #include <complib/cl_debug.h>
- #include <opensm/osm_subnet.h>
--- 
-1.7.11.2
-
+-	fprintf(out, "Per module logging file: %s\n",
+-		p_osm->subn.opt.per_module_logging_file);
+-	while (fgets(buf, sizeof buf, fp) != NULL)
+-		fprintf(out, "%s", buf);
+-	fclose(fp);
+-	fprintf(out, "\n");
++		fprintf(out, "Per module logging file: %s\n",
++			p_osm->subn.opt.per_module_logging_file);
++		while (fgets(buf, sizeof buf, fp) != NULL)
++			fprintf(out, "%s", buf);
++		fclose(fp);
++		fprintf(out, "\n");
++	}
+ }
+ 
+ static void priority_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 3e4e55f..4c69a6f 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -1522,6 +1522,9 @@ static ib_api_status_t parse_per_mod_logging_file(IN osm_subn_t * p_subn)
+ 
+ 	osm_reset_log_per_module(log);
+ 
++	if (p_subn->opt.per_module_logging_file == NULL)
++		return IB_SUCCESS;
++
+ 	fp = fopen(p_subn->opt.per_module_logging_file, "r");
+ 	if (!fp) {
+ 		if (errno == ENOENT)
+@@ -2406,7 +2409,8 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		p_opts->log_file,
+ 		p_opts->log_max_size,
+ 		p_opts->accum_log_file ? "TRUE" : "FALSE",
+-		p_opts->per_module_logging_file,
++		p_opts->per_module_logging_file ?
++			p_opts->per_module_logging_file : null_str,
+ 		p_opts->dump_files_dir,
+ 		p_opts->enable_quirks ? "TRUE" : "FALSE",
+ 		p_opts->no_clients_rereg ? "TRUE" : "FALSE",
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
