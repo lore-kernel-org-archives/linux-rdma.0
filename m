@@ -1,75 +1,186 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 0/8] opensm: Improved mkey support
-Date: Wed, 01 Aug 2012 07:48:57 -0700
-Message-ID: <1343832537.26423.8.camel@auk75.llnl.gov>
-References: <1340672058.5218.97.camel@auk75.llnl.gov>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 2/9 v2] opensm: Allow recovery of subnets with misset mkeys
+Date: Wed,  1 Aug 2012 07:52:28 -0700
+Message-ID: <1343832755-26753-2-git-send-email-foraker1@llnl.gov>
+References: <1343832537.26423.8.camel@auk75.llnl.gov>
+ <1343832755-26753-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340672058.5218.97.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <1343832755-26753-1-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: weiny2-i2BcT+NCU+M@public.gmane.org, alexne-LTKPlh9/A5tDPfheJLI6IQ@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-v2 is about to be posted.  It is now a 9-patch set.  Changes from v1:
+Allow the initialization of endpoints that already have an mkey
+configured that is different than that listed in the configuration
+file.
 
-. Subnet initialization behavior changed to log errors on SubnGet
-timeouts, but not flag the init as failed, so that we don't heavy sweep
-more than necessary
-. sldd.sh modified to sync multiple files, and neighbors/guid2mkey
-caches added to its default list
-. Rebased against current HEAD
-. Several whitespace/code format/git log cleanup fixes
+Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+---
+ opensm/osm_req.c |  101 +++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 93 insertions(+), 8 deletions(-)
 
-     There will be a man page patch coming shortly, but I want to get
-these out the door for review now.
-
-     Jim
-
-On Mon, 2012-06-25 at 17:54 -0700, Jim Foraker wrote:
-> I'm about to post a set of patches intended to improve mkey support
-> in OpenSM.  These patches have been fairly rigorously tested on a small
-> fabric, and I believe are sufficiently stable for inclusion.  The
-> primary intent here is threefold:
-> 
-> 1) Fix a multitude of edge case issues with the existing
-> single-mkey-per-subnet support in OpenSM.  For instance, the current
-> implementation provides no way to change an established non-zero mkey
-> without rebooting or manually re-keying each CA on the entire subnet.
-> 
-> 2) Enable mkey protection across the fabric.  This involves not only
-> setting a non-zero protection level, but also providing the SM with a
-> sufficient information cache to initialize the subnet on restart without
-> having to wait for mkey lease timeouts (provided one is set).
-> 
-> 3) Provide a basis on which to build multiple-mkey systems for OpenSM
-> (be they per-host, KDF, or random) in the future.
-> 
->      The patches add two new cache files: a port guid-to-mkey cache, and
-> a neighboring link (port guid to port guid) cache.
->      The guid2mkey cache is used to provide a hint at the initial mkey
-> for a CA during initialization.  It is a hint only; the SM is capable of
-> dealing with cases where the guid2mkey cache is incorrect, although it
-> may require waiting for (potentially multiple) mkey lease timeouts at
-> non-zero mkey protection levels.  The guid2mkey cache is presented first
-> in the patch set, as it ends up ameliorating several corner cases in a
-> cleaner way than attacking them directly did.
->      The neighbors cache file provides an initial hint to the SM of what
-> port guid we may expect at the opposite end of a link that is being
-> initialized.  This is necessary at mkey protection level 2, where we
-> cannot do the SubnGet necessary to determine the port guid to use in
-> looking up an mkey hint.
->      The changes to the osm_req functions to support mkeys in patch 2
-> now require plock to be held when called.  This was generally already
-> the case, but there were a few spots where it was not.  In most of these
-> cases, the plock is still not technically necessary, as they occur
-> during hops 0/1 when DR path traversal is trivial.  I wrapped all of
-> these occurrences in locks in a separate patch (#3), in order to make
-> the changes more obvious and invite comment.
-> 
->      Jim
+diff --git a/opensm/osm_req.c b/opensm/osm_req.c
+index 51220f3..d397b14 100644
+--- a/opensm/osm_req.c
++++ b/opensm/osm_req.c
+@@ -61,7 +61,86 @@
+ #include <opensm/osm_db_pack.h>
+ 
+ /**********************************************************************
+-  The plock MAY or MAY NOT be held before calling this function.
++  The plock must be held before calling this function.
++**********************************************************************/
++static ib_net64_t req_determine_mkey(IN osm_sm_t * sm,
++				     IN const osm_dr_path_t * p_path)
++{
++	osm_node_t *p_node;
++	osm_port_t *p_sm_port;
++	osm_physp_t *p_physp;
++	ib_net64_t dest_port_guid, m_key;
++	uint8_t hop;
++
++	OSM_LOG_ENTER(sm->p_log);
++
++	p_physp = NULL;
++
++	p_sm_port = osm_get_port_by_guid(sm->p_subn, sm->p_subn->sm_port_guid);
++
++	/* hop_count == 0: destination port guid is SM */
++	if (p_path->hop_count == 0) {
++		if (p_sm_port != NULL)
++			dest_port_guid = sm->p_subn->sm_port_guid;
++		else
++			dest_port_guid = sm->p_subn->opt.guid;
++		goto Remote_Guid;
++	}
++
++	if (p_sm_port)
++		p_physp = p_sm_port->p_physp;
++
++	/* hop_count == 1: outgoing physp is SM physp */
++	for (hop = 2; p_physp && hop <= p_path->hop_count; hop++) {
++		p_physp = p_physp->p_remote_physp;
++		if (!p_physp)
++			break;
++		p_node = p_physp->p_node;
++		p_physp = osm_node_get_physp_ptr(p_node, p_path->path[hop]);
++	}
++
++	/* At this point, p_physp points at the outgoing physp on the
++	   last hop, or NULL if we don't know it.
++	*/
++	if (!p_physp) {
++		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
++			"req_determine_mkey: ERR 1107: "
++			"Outgoing physp is null on non-hop_0!\n");
++		dest_port_guid = 0;
++		goto Remote_Guid;
++	}
++
++	if (p_physp->p_remote_physp) {
++		dest_port_guid = p_physp->p_remote_physp->port_guid;
++		goto Remote_Guid;
++	}
++
++Remote_Guid:
++	if (dest_port_guid) {
++		if (!osm_db_guid2mkey_get(sm->p_subn->p_g2m,
++					  cl_ntoh64(dest_port_guid), &m_key)) {
++			m_key = cl_hton64(m_key);
++			OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
++				"Found mkey for guid 0x%"
++				PRIx64 "\n", cl_ntoh64(dest_port_guid));
++		} else {
++			OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
++				"Target port mkey unknown, using default\n");
++			m_key = sm->p_subn->opt.m_key;
++		}
++	} else {
++		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
++			"Target port guid unknown, using default\n");
++		m_key = sm->p_subn->opt.m_key;
++	}
++
++	OSM_LOG_EXIT(sm->p_log);
++
++	return m_key;
++}
++
++/**********************************************************************
++  The plock must be held before calling this function.
+ **********************************************************************/
+ ib_api_status_t osm_req_get(IN osm_sm_t * sm, IN const osm_dr_path_t * p_path,
+ 			    IN ib_net16_t attr_id, IN ib_net32_t attr_mod,
+@@ -71,6 +150,7 @@ ib_api_status_t osm_req_get(IN osm_sm_t * sm, IN const osm_dr_path_t * p_path,
+ 	osm_madw_t *p_madw;
+ 	ib_api_status_t status = IB_SUCCESS;
+ 	ib_net64_t tid;
++	ib_net64_t m_key;
+ 
+ 	CL_ASSERT(sm);
+ 
+@@ -95,15 +175,17 @@ ib_api_status_t osm_req_get(IN osm_sm_t * sm, IN const osm_dr_path_t * p_path,
+ 	}
+ 
+ 	tid = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id));
++	m_key = req_determine_mkey(sm, p_path);
+ 
+ 	OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
+-		"Getting %s (0x%X), modifier 0x%X, TID 0x%" PRIx64 "\n",
++		"Getting %s (0x%X), modifier 0x%X, TID 0x%" PRIx64
++		", MKey 0x%016" PRIx64 "\n",
+ 		ib_get_sm_attr_str(attr_id), cl_ntoh16(attr_id),
+-		cl_ntoh32(attr_mod), cl_ntoh64(tid));
++		cl_ntoh32(attr_mod), cl_ntoh64(tid), cl_ntoh64(m_key));
+ 
+ 	ib_smp_init_new(osm_madw_get_smp_ptr(p_madw), IB_MAD_METHOD_GET,
+ 			tid, attr_id, attr_mod, p_path->hop_count,
+-			sm->p_subn->opt.m_key, p_path->path,
++			m_key, p_path->path,
+ 			IB_LID_PERMISSIVE, IB_LID_PERMISSIVE);
+ 
+ 	p_madw->mad_addr.dest_lid = IB_LID_PERMISSIVE;
+@@ -128,7 +210,7 @@ Exit:
+ }
+ 
+ /**********************************************************************
+-  The plock MAY or MAY NOT be held before calling this function.
++  The plock must be held before calling this function.
+ **********************************************************************/
+ ib_api_status_t osm_req_set(IN osm_sm_t * sm, IN const osm_dr_path_t * p_path,
+ 			    IN const uint8_t * p_payload,
+@@ -140,6 +222,7 @@ ib_api_status_t osm_req_set(IN osm_sm_t * sm, IN const osm_dr_path_t * p_path,
+ 	osm_madw_t *p_madw;
+ 	ib_api_status_t status = IB_SUCCESS;
+ 	ib_net64_t tid;
++	ib_net64_t m_key;
+ 
+ 	CL_ASSERT(sm);
+ 
+@@ -165,15 +248,17 @@ ib_api_status_t osm_req_set(IN osm_sm_t * sm, IN const osm_dr_path_t * p_path,
+ 	}
+ 
+ 	tid = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id));
++	m_key = req_determine_mkey(sm, p_path);
+ 
+ 	OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
+-		"Setting %s (0x%X), modifier 0x%X, TID 0x%" PRIx64 "\n",
++		"Setting %s (0x%X), modifier 0x%X, TID 0x%" PRIx64
++		", MKey 0x%016" PRIx64 "\n",
+ 		ib_get_sm_attr_str(attr_id), cl_ntoh16(attr_id),
+-		cl_ntoh32(attr_mod), cl_ntoh64(tid));
++		cl_ntoh32(attr_mod), cl_ntoh64(tid), cl_ntoh64(m_key));
+ 
+ 	ib_smp_init_new(osm_madw_get_smp_ptr(p_madw), IB_MAD_METHOD_SET,
+ 			tid, attr_id, attr_mod, p_path->hop_count,
+-			sm->p_subn->opt.m_key, p_path->path,
++			m_key, p_path->path,
+ 			IB_LID_PERMISSIVE, IB_LID_PERMISSIVE);
+ 
+ 	p_madw->mad_addr.dest_lid = IB_LID_PERMISSIVE;
+-- 
+1.7.9.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
