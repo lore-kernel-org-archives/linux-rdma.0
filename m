@@ -1,30 +1,39 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sa_path_record.c: Restore osm_get_path_params
- functionality
-Date: Wed, 1 Aug 2012 23:18:10 +0300
-Message-ID: <20120801201810.GH1661@calypso>
-References: <50167157.9080301@dev.mellanox.co.il>
+Subject: Re: [PATCH 0/8] opensm: Improved mkey support
+Date: Wed, 1 Aug 2012 23:19:20 +0300
+Message-ID: <20120801201920.GI1661@calypso>
+References: <1340672058.5218.97.camel@auk75.llnl.gov>
+ <1343832537.26423.8.camel@auk75.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <50167157.9080301-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1343832537.26423.8.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hal,
+hi Jim
 
-On 07:34 Mon 30 Jul     , Hal Rosenstock wrote:
+On 07:48 Wed 01 Aug     , Jim Foraker wrote:
+> v2 is about to be posted.  It is now a 9-patch set.  Changes from v1:
 > 
-> based on alias GUID support which caused change to internal
-> pr_rcv_get_path_parms API
+> . Subnet initialization behavior changed to log errors on SubnGet
+> timeouts, but not flag the init as failed, so that we don't heavy sweep
+> more than necessary
+> . sldd.sh modified to sync multiple files, and neighbors/guid2mkey
+> caches added to its default list
+> . Rebased against current HEAD
+> . Several whitespace/code format/git log cleanup fixes
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
+>      There will be a man page patch coming shortly, but I want to get
+> these out the door for review now.
+> 
+>      Jim
+> 
 
-applied, thanks.
+Applied the series, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
