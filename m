@@ -1,249 +1,717 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 9/9 v2] opensm/scripts/sldd.sh: Update to support guid2mkey/neighbors
-Date: Wed,  1 Aug 2012 07:52:35 -0700
-Message-ID: <1343832755-26753-9-git-send-email-foraker1@llnl.gov>
+Subject: [PATCH 1/9 v2] opensm: Add guid2mkey cache file support
+Date: Wed,  1 Aug 2012 07:52:27 -0700
+Message-ID: <1343832755-26753-1-git-send-email-foraker1@llnl.gov>
 References: <1343832537.26423.8.camel@auk75.llnl.gov>
- <1343832755-26753-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1343832755-26753-1-git-send-email-foraker1-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <1343832537.26423.8.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: weiny2-i2BcT+NCU+M@public.gmane.org, alexne-LTKPlh9/A5tDPfheJLI6IQ@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Essentially a straightforward parameterization of all of the
-functions, with a for loop wrapped around the main body, so
-that the script can support sync'ing multiple files.
-
-This allows us to add the new guid2mkey and neighbors cache
-files to the default file list.
-
-Semantics for the CACHE_FILE environment parameter have changed
-slightly; instead of specifying a path to the guid2lid file,
-it specifies a colon-separated list of paths to be synchronized,
-which replaces the default list in its entirety.
+Adds support for a guid2mkey file, and uses the database
+to select which mkey to use in outgoing SMPs.
 
 Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 ---
- scripts/sldd.sh.in |  143 ++++++++++++++++++++++++++++------------------------
- 1 file changed, 78 insertions(+), 65 deletions(-)
+ include/opensm/osm_db.h      |    7 +-
+ include/opensm/osm_db_pack.h |  144 ++++++++++++++++++++++++++++++++++++++++++
+ include/opensm/osm_port.h    |   23 ++-----
+ include/opensm/osm_subnet.h  |    2 +
+ opensm/osm_db_files.c        |    1 +
+ opensm/osm_db_pack.c         |   73 +++++++++++++++++++++
+ opensm/osm_lid_mgr.c         |   12 +++-
+ opensm/osm_link_mgr.c        |   14 +++-
+ opensm/osm_opensm.c          |   10 +--
+ opensm/osm_port.c            |   32 ++++++++++
+ opensm/osm_port_info_rcv.c   |    6 +-
+ opensm/osm_req.c             |    1 +
+ opensm/osm_state_mgr.c       |    4 ++
+ opensm/osm_subnet.c          |   77 ++++++++++++++++++++++
+ 14 files changed, 377 insertions(+), 29 deletions(-)
 
-diff --git a/scripts/sldd.sh.in b/scripts/sldd.sh.in
-index f7635fe..9b0e282 100755
---- a/scripts/sldd.sh.in
-+++ b/scripts/sldd.sh.in
-@@ -49,9 +49,9 @@ fi
+diff --git a/include/opensm/osm_db.h b/include/opensm/osm_db.h
+index 7077347..d05bfa0 100644
+--- a/include/opensm/osm_db.h
++++ b/include/opensm/osm_db.h
+@@ -43,7 +43,8 @@
  
- SLDD_DEBUG=${SLDD_DEBUG:-0}
- 
--CACHE_FILE=${CACHE_FILE:-/var/cache/opensm/guid2lid}
--CACHE_DIR=$(dirname ${CACHE_FILE})
--tmp_cache=${CACHE_FILE}.tmp
-+CACHE_FILE=${CACHE_FILE:-/var/cache/opensm/guid2lid:/var/cache/opensm/guid2mkey:/var/cache/opensm/neighbors}
-+declare -a arr_CACHE_FILES
-+arr_CACHE_FILES=(`echo $CACHE_FILE| sed 's/:/\n/g' | sort | uniq`)
- 
- PING='ping -w 1 -c 1'
- 
-@@ -104,8 +104,8 @@ is_local()
- 
- update_remote_cache()
- {
--	/bin/rm -f ${CACHE_FILE}.upd
--	/bin/cp -a ${CACHE_FILE} ${CACHE_FILE}.upd
-+	/bin/rm -f "$1.upd"
-+	/bin/cp -a "$1" "$1.upd"
- 
- 	[ $SLDD_DEBUG -eq 1 ] &&
- 	echo "Updating remote cache file"
-@@ -118,17 +118,18 @@ update_remote_cache()
- 		fi
- 
- 		if is_alive $host; then
--			stat=$($RSH $host "/bin/mkdir -p ${CACHE_DIR} > /dev/null 2>&1; /bin/rm -f ${CACHE_FILE}.${local_host} > /dev/null 2>&1; echo \$?" | tr -d '[:space:]')
-+			cache_dir=$(dirname "$1")
-+			stat=$($RSH $host "/bin/mkdir -p ${cache_dir} > /dev/null 2>&1; /bin/rm -f "$1.${local_host}" > /dev/null 2>&1; echo \$?" | tr -d '[:space:]')
- 			if [ "X${stat}" == "X0" ]; then
- 				[ $SLDD_DEBUG -eq 1 ] &&
- 				echo "Updating $host"
--				logger -i "SLDD: updating $host with ${CACHE_FILE}"
--				$RCP ${CACHE_FILE}.upd ${host}:${CACHE_FILE}.${local_host}
--				/bin/cp ${CACHE_FILE}.upd ${CACHE_FILE}.${host}
-+				logger -i "SLDD: updating $host with $1"
-+				$RCP "$1.upd" "${host}:$1.${local_host}"
-+				/bin/cp "$1.upd" "$1.${host}"
- 			else
- 				[ $SLDD_DEBUG -eq 1 ] &&
- 				echo "$RSH to $host failed."
--				logger -i "SLDD: Failed to update $host with ${CACHE_FILE}. $RSH without password should be enabled"
-+				logger -i "SLDD: Failed to update $host with $1. $RSH without password should be enabled"
- 				exit 5
- 			fi
- 		else
-@@ -142,21 +143,21 @@ update_remote_cache()
- get_latest_remote_cache()
- {
- 	# Find most updated remote cache file (the suffix should be like ip address: *.*.*.*)
--	echo -n "$(/bin/ls -1t ${CACHE_FILE}.*.* 2> /dev/null | head -1)"
-+	echo -n "$(/bin/ls -1t $1.*.* 2> /dev/null | head -1)"
- }
- 
- get_largest_remote_cache()
- {
- 	# Find largest (size) remote cache file (the suffix should be like ip address: *.*.*.*)
--	echo -n "$(/bin/ls -1S ${CACHE_FILE}.*.* 2> /dev/null | head -1)"
-+	echo -n "$(/bin/ls -1S $1.*.* 2> /dev/null | head -1)"
- }
- 
- swap_cache_files()
- {
--	/bin/rm -f ${CACHE_FILE}.old
--	/bin/mv ${CACHE_FILE} ${CACHE_FILE}.old
--	/bin/cp ${largest_remote_cache} ${CACHE_FILE}
--	touch ${CACHE_FILE}.tmp
-+	/bin/rm -f "$1.old"
-+	/bin/mv "$1" "$1.old"
-+	/bin/cp "$2" "$1"
-+	touch "$1.tmp"
- }
- 
- # Find local host in the osm hosts list
-@@ -170,74 +171,86 @@ done
- 
- # Get cache file info
- declare -i new_size=0
--declare -i last_size=0
-+declare -ai arr_last_size
-+for i in  ${!arr_CACHE_FILES[@]}
-+do
-+	arr_last_size[$i]=0
-+done
- declare -i largest_remote_cache_size=0
- 
--if [ -e ${CACHE_FILE} ]; then
--	last_size=$(du -b ${CACHE_FILE} | awk '{print$1}' | tr -d '[:space:]')
--else
--	touch ${CACHE_FILE} ${CACHE_FILE}.tmp
--fi
-+for i in ${!arr_CACHE_FILES[@]}
-+do
-+	cache_file=${arr_CACHE_FILES[$i]}
-+	if [ -e ${cache_file} ]; then
-+		arr_last_size[$i]=$(du -b ${cache_file} | awk '{print$1}' | tr -d '[:space:]')
-+	else
-+		touch ${cache_file} ${cache_file}.tmp
-+	fi
- 
--# if [ ${last_size} -gt 0 ]; then
--# 	# First time update
--# 	update_remote_cache
--# fi
-+#	if [ ${arr_last_size[$i]} -gt 0 ]; then
-+#		# First time update
-+#		update_remote_cache ${cache_file}
-+#	fi
-+done
- 
- while true
- do
--	if [ -s "${CACHE_FILE}" ]; then
--		new_size=$(du -b ${CACHE_FILE} | awk '{print$1}' | tr -d '[:space:]')
--		# Check if local cache file grew from its last version or the time stamp changed
--		if [ ${new_size} -gt ${last_size} ]
--		   [ "$(/bin/ls -1t ${CACHE_FILE} ${CACHE_FILE}.tmp 2> /dev/null | head -1)"  != "${CACHE_FILE}.tmp" ]; then
--			largest_remote_cache=$(get_largest_remote_cache)
-+	for i in ${!arr_CACHE_FILES[@]}
-+	do
-+		cache_file=${arr_CACHE_FILES[$i]}
-+		if [ -s "${cache_file}" ]; then
-+			new_size=$(du -b ${cache_file} | awk '{print$1}' | tr -d '[:space:]')
-+			# Check if local cache file grew from its last version or the time stamp changed
-+			if [ ${new_size} -gt ${arr_last_size[$i]} ]
-+			   [ "$(/bin/ls -1t ${cache_file} ${cache_file}.tmp 2> /dev/null | head -1)"  != "${cache_file}.tmp" ]; then
-+				largest_remote_cache=$(get_largest_remote_cache ${cache_file})
-+				if [[ -n "${largest_remote_cache}" && -s "${largest_remote_cache}" ]]; then
-+					largest_remote_cache_size=$(du -b ${largest_remote_cache} 2> /dev/null | awk '{print$1}' | tr -d '[:space:]')
-+				else
-+					largest_remote_cache_size=0
-+				fi
+ #include <complib/cl_list.h>
+ #include <complib/cl_spinlock.h>
+-#include <opensm/osm_log.h>
 +
-+				# Check if local cache file larger than remote chache file
-+				if [ ${new_size} -gt ${largest_remote_cache_size} ]; then
-+					[ $SLDD_DEBUG -eq 1 ] &&
-+					echo "Local cache file larger then remote. Update remote cache files"
-+					arr_last_size[$i]=${new_size}
-+					update_remote_cache ${cache_file}
-+					continue
-+				fi
-+			fi
++struct osm_log;
+ 
+ #ifdef __cplusplus
+ #  define BEGIN_C_DECLS extern "C" {
+@@ -118,7 +119,7 @@ typedef struct osm_db_domain {
+ */
+ typedef struct osm_db {
+ 	void *p_db_imp;
+-	osm_log_t *p_log;
++	struct osm_log *p_log;
+ 	cl_list_t domains;
+ } osm_db_t;
+ /*
+@@ -185,7 +186,7 @@ void osm_db_destroy(IN osm_db_t * p_db);
+ *
+ * SYNOPSIS
+ */
+-int osm_db_init(IN osm_db_t * p_db, IN osm_log_t * p_log);
++int osm_db_init(IN osm_db_t * p_db, IN struct osm_log * p_log);
+ /*
+ * PARAMETERS
+ *
+diff --git a/include/opensm/osm_db_pack.h b/include/opensm/osm_db_pack.h
+index 3d24926..af43ba1 100644
+--- a/include/opensm/osm_db_pack.h
++++ b/include/opensm/osm_db_pack.h
+@@ -235,5 +235,149 @@ int osm_db_guid2lid_delete(IN osm_db_domain_t * p_g2l, IN uint64_t guid);
+ * osm_db_guid2lid_get, osm_db_guid2lid_set
+ *********/
+ 
++/****f* OpenSM: DB-Pack/osm_db_guid2mkey_init
++* NAME
++*	osm_db_guid2mkey_init
++*
++* DESCRIPTION
++*	Initialize a domain for the guid2mkey table
++*
++* SYNOPSIS
++*/
++static inline osm_db_domain_t *osm_db_guid2mkey_init(IN osm_db_t * p_db)
++{
++	return osm_db_domain_init(p_db, "guid2mkey");
++}
 +
-+			largest_remote_cache=$(get_largest_remote_cache ${cache_file})
- 			if [[ -n "${largest_remote_cache}" && -s "${largest_remote_cache}" ]]; then
- 				largest_remote_cache_size=$(du -b ${largest_remote_cache} 2> /dev/null | awk '{print$1}' | tr -d '[:space:]')
- 			else
- 				largest_remote_cache_size=0
- 			fi
++/*
++* PARAMETERS
++*	p_db
++*		[in] Pointer to the database object to construct
++*
++* RETURN VALUES
++*	The pointer to the new allocated domain object or NULL.
++*
++* NOTE: DB domains are destroyed by the osm_db_destroy
++*
++* SEE ALSO
++*	Database, osm_db_init, osm_db_destroy
++*********/
++
++/****f* OpenSM: DB-Pack/osm_db_guid2mkey_guids
++* NAME
++*	osm_db_guid2mkey_guids
++*
++* DESCRIPTION
++*	Provides back a list of guid elements.
++*
++* SYNOPSIS
++*/
++int osm_db_guid2mkey_guids(IN osm_db_domain_t * p_g2m,
++			  OUT cl_qlist_t * p_guid_list);
++/*
++* PARAMETERS
++*	p_g2l
++*		[in] Pointer to the guid2mkey domain
++*
++*  p_guid_list
++*     [out] A quick list of guid elements of type osm_db_guid_elem_t
++*
++* RETURN VALUES
++*	0 if successful
++*
++* NOTE: the output qlist should be initialized and each item freed
++*       by the caller, then destroyed.
++*
++* SEE ALSO
++* osm_db_guid2mkey_init, osm_db_guid2mkey_guids, osm_db_guid2mkey_get
++* osm_db_guid2mkey_set, osm_db_guid2mkey_delete
++*********/
++
++/****f* OpenSM: DB-Pack/osm_db_guid2mkey_get
++* NAME
++*	osm_db_guid2mkey_get
++*
++* DESCRIPTION
++*	Get the mkey for the given guid.
++*
++* SYNOPSIS
++*/
++int osm_db_guid2mkey_get(IN osm_db_domain_t * p_g2m, IN uint64_t guid,
++			 OUT uint64_t * p_mkey);
++/*
++* PARAMETERS
++*	p_g2m
++*		[in] Pointer to the guid2mkey domain
++*
++*  guid
++*     [in] The guid to look for
++*
++*  p_mkey
++*     [out] Pointer to the resulting mkey in host order.
++*
++* RETURN VALUES
++*	0 if successful. The lid will be set to 0 if not found.
++*
++* SEE ALSO
++* osm_db_guid2mkey_init, osm_db_guid2mkey_guids
++* osm_db_guid2mkey_set, osm_db_guid2mkey_delete
++*********/
++
++/****f* OpenSM: DB-Pack/osm_db_guid2mkey_set
++* NAME
++*	osm_db_guid2mkey_set
++*
++* DESCRIPTION
++*	Set the mkey for the given guid.
++*
++* SYNOPSIS
++*/
++int osm_db_guid2mkey_set(IN osm_db_domain_t * p_g2m, IN uint64_t guid,
++			 IN uint64_t mkey);
++/*
++* PARAMETERS
++*	p_g2m
++*		[in] Pointer to the guid2mkey domain
++*
++*  guid
++*     [in] The guid to look for
++*
++*  mkey
++*     [in] The mkey value to set, in host order
++*
++* RETURN VALUES
++*	0 if successful
++*
++* SEE ALSO
++* osm_db_guid2mkey_init, osm_db_guid2mkey_guids
++* osm_db_guid2mkey_get, osm_db_guid2mkey_delete
++*********/
++
++/****f* OpenSM: DB-Pack/osm_db_guid2mkey_delete
++* NAME
++*	osm_db_guid2mkey_delete
++*
++* DESCRIPTION
++*	Delete the entry by the given guid
++*
++* SYNOPSIS
++*/
++int osm_db_guid2mkey_delete(IN osm_db_domain_t * p_g2m, IN uint64_t guid);
++/*
++* PARAMETERS
++*	p_g2m
++*		[in] Pointer to the guid2mkey domain
++*
++*  guid
++*     [in] The guid to look for
++*
++* RETURN VALUES
++*	0 if successful otherwise 1
++*
++* SEE ALSO
++* osm_db_guid2mkey_init, osm_db_guid2mkey_guids
++* osm_db_guid2mkey_get, osm_db_guid2mkey_set
++*********/
++
+ END_C_DECLS
+ #endif				/* _OSM_DB_PACK_H_ */
+diff --git a/include/opensm/osm_port.h b/include/opensm/osm_port.h
+index e06483a..5fc186c 100644
+--- a/include/opensm/osm_port.h
++++ b/include/opensm/osm_port.h
+@@ -66,6 +66,7 @@ BEGIN_C_DECLS
+ struct osm_port;
+ struct osm_node;
+ struct osm_mgrp;
++struct osm_sm;
  
--			# Check if local cache file larger than remote chache file
--			if [ ${new_size} -gt ${largest_remote_cache_size} ]; then
-+			# Update local cache file from remote
-+			if [ ${largest_remote_cache_size} -gt ${new_size} ]; then
- 				[ $SLDD_DEBUG -eq 1 ] &&
--				echo "Local cache file larger then remote. Update remote cache files"
--				last_size=${new_size}
--				update_remote_cache
--				continue
-+				echo "Local cache file shorter then remote. Use ${largest_remote_cache}"
-+				logger -i "SLDD: updating local cache file with ${largest_remote_cache}"
-+				swap_cache_files ${cache_file} ${largest_remote_cache}
-+				arr_last_size[$i]=${largest_remote_cache_size}
- 			fi
--		fi
- 
--		largest_remote_cache=$(get_largest_remote_cache)
--		if [[ -n "${largest_remote_cache}" && -s "${largest_remote_cache}" ]]; then
--			largest_remote_cache_size=$(du -b ${largest_remote_cache} 2> /dev/null | awk '{print$1}' | tr -d '[:space:]')
--		else
--			largest_remote_cache_size=0
--		fi
+ /****h* OpenSM/Physical Port
+ * NAME
+@@ -449,22 +450,9 @@ static inline void osm_physp_set_health(IN osm_physp_t * p_physp,
+ *
+ * SYNOPSIS
+ */
+-static inline void osm_physp_set_port_info(IN osm_physp_t * p_physp,
+-					   IN const ib_port_info_t * p_pi)
+-{
+-	CL_ASSERT(p_pi);
+-	CL_ASSERT(osm_physp_is_valid(p_physp));
 -
--		# Update local cache file from remote
--		if [ ${largest_remote_cache_size} -gt ${new_size} ]; then
-+		else # The local cache file is empty
- 			[ $SLDD_DEBUG -eq 1 ] &&
--			echo "Local cache file shorter then remote. Use ${largest_remote_cache}"
--			logger -i "SLDD: updating local cache file with ${largest_remote_cache}"
--			swap_cache_files
--			last_size=${largest_remote_cache_size}
--		fi
-+			echo "${cache_file} is empty"
+-	if (ib_port_info_get_port_state(p_pi) == IB_LINK_DOWN) {
+-		/* If PortState is down, only copy PortState */
+-		/* and PortPhysicalState per C14-24-2.1 */
+-		ib_port_info_set_port_state(&p_physp->port_info, IB_LINK_DOWN);
+-		ib_port_info_set_port_phys_state
+-		    (ib_port_info_get_port_phys_state(p_pi),
+-		     &p_physp->port_info);
+-	} else
+-		p_physp->port_info = *p_pi;
+-}
++void osm_physp_set_port_info(IN osm_physp_t * p_physp,
++					   IN const ib_port_info_t * p_pi,
++					   IN const struct osm_sm * p_sm);
  
--	else # The local cache file is empty
--		[ $SLDD_DEBUG -eq 1 ] &&
--		echo "${CACHE_FILE} is empty"
-+			largest_remote_cache=$(get_largest_remote_cache ${cache_file})
-+			if [[ -n "${largest_remote_cache}" && -s "${largest_remote_cache}" ]]; then
-+				# Copy it to the current cache
-+				[ $SLDD_DEBUG -eq 1 ] &&
-+				echo "Local cache file is empty. Use ${largest_remote_cache}"
-+				logger -i "SLDD: updating local cache file with ${largest_remote_cache}"
-+				swap_cache_files ${cache_file} ${largest_remote_cache}
-+			fi
+ /*
+ * PARAMETERS
+@@ -474,6 +462,9 @@ static inline void osm_physp_set_port_info(IN osm_physp_t * p_physp,
+ *	p_pi
+ *		[in] Pointer to the IBA defined PortInfo at this port number.
+ *
++*	p_sm
++*		[in] Pointer to an osm_sm_t object.
++*
+ * RETURN VALUES
+ *	This function does not return a value.
+ *
+diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
+index 724497d..0061f3a 100644
+--- a/include/opensm/osm_subnet.h
++++ b/include/opensm/osm_subnet.h
+@@ -54,6 +54,7 @@
+ #include <complib/cl_list.h>
+ #include <opensm/osm_base.h>
+ #include <opensm/osm_prefix_route.h>
++#include <opensm/osm_db.h>
+ #include <stdio.h>
  
--		largest_remote_cache=$(get_largest_remote_cache)
--		if [[ -n "${largest_remote_cache}" && -s "${largest_remote_cache}" ]]; then
--			# Copy it to the current cache
--			[ $SLDD_DEBUG -eq 1 ] &&
--			echo "Local cache file is empty. Use ${largest_remote_cache}"
--			logger -i "SLDD: updating local cache file with ${largest_remote_cache}"
--			swap_cache_files
- 		fi
+ #ifdef __cplusplus
+@@ -756,6 +757,7 @@ typedef struct osm_subn {
+ 	boolean_t sweeping_enabled;
+ 	unsigned need_update;
+ 	cl_fmap_t mgrp_mgid_tbl;
++	osm_db_domain_t *p_g2m;
+ 	void *mboxes[IB_LID_MCAST_END_HO - IB_LID_MCAST_START_HO + 1];
+ } osm_subn_t;
+ /*
+diff --git a/opensm/osm_db_files.c b/opensm/osm_db_files.c
+index 7ab6b56..9f338f3 100644
+--- a/opensm/osm_db_files.c
++++ b/opensm/osm_db_files.c
+@@ -50,6 +50,7 @@
+ #define FILE_ID OSM_FILE_DB_FILES_C
+ #include <opensm/st.h>
+ #include <opensm/osm_db.h>
++#include <opensm/osm_log.h>
+ 
+ /****d* Database/OSM_DB_MAX_LINE_LEN
+  * NAME
+diff --git a/opensm/osm_db_pack.c b/opensm/osm_db_pack.c
+index c1ec4ab..57c3a66 100644
+--- a/opensm/osm_db_pack.c
++++ b/opensm/osm_db_pack.c
+@@ -85,6 +85,17 @@ static inline int unpack_lids(IN char *p_lid_str, OUT uint16_t * p_min_lid,
+ 	return 0;
+ }
+ 
++static inline void pack_mkey(uint64_t mkey, char *p_mkey_str)
++{
++	sprintf(p_mkey_str, "0x%016" PRIx64, mkey);
++}
++
++static inline uint64_t unpack_mkey(char *p_mkey_str)
++{
++	return strtoull(p_mkey_str, NULL, 0);
++}
++
++
+ int osm_db_guid2lid_guids(IN osm_db_domain_t * p_g2l,
+ 			  OUT cl_qlist_t * p_guid_list)
+ {
+@@ -151,3 +162,65 @@ int osm_db_guid2lid_delete(IN osm_db_domain_t * p_g2l, IN uint64_t guid)
+ 	pack_guid(guid, guid_str);
+ 	return osm_db_delete(p_g2l, guid_str);
+ }
++
++int osm_db_guid2mkey_guids(IN osm_db_domain_t * p_g2m,
++			   OUT cl_qlist_t * p_guid_list)
++{
++	char *p_key;
++	cl_list_t keys;
++	osm_db_guid_elem_t *p_guid_elem;
++
++	cl_list_construct(&keys);
++	cl_list_init(&keys, 10);
++
++	if (osm_db_keys(p_g2m, &keys))
++		return 1;
++
++	while ((p_key = cl_list_remove_head(&keys)) != NULL) {
++		p_guid_elem =
++		    (osm_db_guid_elem_t *) malloc(sizeof(osm_db_guid_elem_t));
++		CL_ASSERT(p_guid_elem != NULL);
++
++		p_guid_elem->guid = unpack_guid(p_key);
++		cl_qlist_insert_head(p_guid_list, &p_guid_elem->item);
++	}
++
++	cl_list_destroy(&keys);
++	return 0;
++}
++
++int osm_db_guid2mkey_get(IN osm_db_domain_t * p_g2m, IN uint64_t guid,
++			 OUT uint64_t * p_mkey)
++{
++	char guid_str[20];
++	char *p_mkey_str;
++
++	pack_guid(guid, guid_str);
++	p_mkey_str = osm_db_lookup(p_g2m, guid_str);
++	if (!p_mkey_str)
++		return 1;
++
++	if (p_mkey)
++		*p_mkey = unpack_mkey(p_mkey_str);
++
++	return 0;
++}
++
++int osm_db_guid2mkey_set(IN osm_db_domain_t * p_g2m, IN uint64_t guid,
++			 IN uint64_t mkey)
++{
++	char guid_str[20];
++	char mkey_str[20];
++
++	pack_guid(guid, guid_str);
++	pack_mkey(mkey, mkey_str);
++
++	return osm_db_update(p_g2m, guid_str, mkey_str);
++}
++
++int osm_db_guid2mkey_delete(IN osm_db_domain_t * p_g2m, IN uint64_t guid)
++{
++	char guid_str[20];
++	pack_guid(guid, guid_str);
++	return osm_db_delete(p_g2m, guid_str);
++}
+diff --git a/opensm/osm_lid_mgr.c b/opensm/osm_lid_mgr.c
+index cb7ff0b..7799ee3 100644
+--- a/opensm/osm_lid_mgr.c
++++ b/opensm/osm_lid_mgr.c
+@@ -800,6 +800,7 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 	uint8_t op_vls;
+ 	uint8_t port_num;
+ 	boolean_t send_set = FALSE;
++	boolean_t update_mkey = FALSE;
+ 	int ret = 0;
+ 
+ 	OSM_LOG_ENTER(p_mgr->p_log);
+@@ -862,8 +863,10 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 		send_set = TRUE;
+ 
+ 	p_pi->m_key = p_mgr->p_subn->opt.m_key;
+-	if (memcmp(&p_pi->m_key, &p_old_pi->m_key, sizeof(p_pi->m_key)))
++	if (memcmp(&p_pi->m_key, &p_old_pi->m_key, sizeof(p_pi->m_key))) {
++		update_mkey = TRUE;
+ 		send_set = TRUE;
++	}
+ 
+ 	p_pi->subnet_prefix = p_mgr->p_subn->opt.subnet_prefix;
+ 	if (memcmp(&p_pi->subnet_prefix, &p_old_pi->subnet_prefix,
+@@ -1053,6 +1056,13 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 			     CL_DISP_MSGID_NONE, &context);
+ 	if (status != IB_SUCCESS)
+ 		ret = -1;
++	/* If we sent a new mkey above, update our guid2mkey map
++	   now, on the assumption that the SubnSet succeeds
++	*/
++	if (update_mkey)
++		osm_db_guid2mkey_set(p_mgr->p_subn->p_g2m,
++				     cl_ntoh64(p_physp->port_guid),
++				     cl_ntoh64(p_pi->m_key));
+ 
+ Exit:
+ 	OSM_LOG_EXIT(p_mgr->p_log);
+diff --git a/opensm/osm_link_mgr.c b/opensm/osm_link_mgr.c
+index 8301643..b700977 100644
+--- a/opensm/osm_link_mgr.c
++++ b/opensm/osm_link_mgr.c
+@@ -56,6 +56,7 @@
+ #include <opensm/osm_helper.h>
+ #include <opensm/osm_msgdef.h>
+ #include <opensm/osm_opensm.h>
++#include <opensm/osm_db_pack.h>
+ 
+ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm, IN osm_physp_t * p_physp)
+ {
+@@ -104,6 +105,7 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 	int qdr_change = 0, fdr10_change = 0;
+ 	int ret = 0;
+ 	ib_net32_t attr_mod, cap_mask;
++	boolean_t update_mkey = FALSE;
+ 
+ 	OSM_LOG_ENTER(sm->p_log);
+ 
+@@ -194,8 +196,10 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 		    port_num == 0) {
+ 			p_pi->m_key = sm->p_subn->opt.m_key;
+ 			if (memcmp(&p_pi->m_key, &p_old_pi->m_key,
+-				   sizeof(p_pi->m_key)))
++				   sizeof(p_pi->m_key))) {
++				update_mkey = TRUE;
+ 				send_set = TRUE;
++			}
+ 
+ 			p_pi->subnet_prefix = sm->p_subn->opt.subnet_prefix;
+ 			if (memcmp(&p_pi->subnet_prefix,
+@@ -466,6 +470,14 @@ Send:
+ 	if (status)
+ 		ret = -1;
+ 
++	/* If we sent a new mkey above, update our guid2mkey map
++	   now, on the assumption that the SubnSet succeeds
++	 */
++	if (update_mkey)
++		osm_db_guid2mkey_set(sm->p_subn->p_g2m,
++				     cl_ntoh64(p_physp->port_guid),
++				     cl_ntoh64(p_pi->m_key));
++
+ 	if (send_set2) {
+ 		status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p_physp),
+ 				     payload2, sizeof(payload2),
+diff --git a/opensm/osm_opensm.c b/opensm/osm_opensm.c
+index d648c6c..0909a36 100644
+--- a/opensm/osm_opensm.c
++++ b/opensm/osm_opensm.c
+@@ -416,6 +416,11 @@ ib_api_status_t osm_opensm_init(IN osm_opensm_t * p_osm,
+ 	if (status != IB_SUCCESS)
+ 		goto Exit;
+ 
++	/* the DB is in use by subn so init before */
++	status = osm_db_init(&p_osm->db, &p_osm->log);
++	if (status != IB_SUCCESS)
++		goto Exit;
++
+ 	status = osm_subn_init(&p_osm->subn, p_osm, p_opt);
+ 	if (status != IB_SUCCESS)
+ 		goto Exit;
+@@ -438,11 +443,6 @@ ib_api_status_t osm_opensm_init(IN osm_opensm_t * p_osm,
+ 	if (status != IB_SUCCESS)
+ 		goto Exit;
+ 
+-	/* the DB is in use by the SM and SA so init before */
+-	status = osm_db_init(&p_osm->db, &p_osm->log);
+-	if (status != IB_SUCCESS)
+-		goto Exit;
 -
--	fi
-+	done
+ 	status = osm_sm_init(&p_osm->sm, &p_osm->subn, &p_osm->db,
+ 			     p_osm->p_vendor, &p_osm->mad_pool, &p_osm->vl15,
+ 			     &p_osm->log, &p_osm->stats, &p_osm->disp,
+diff --git a/opensm/osm_port.c b/opensm/osm_port.c
+index 88b9fd8..6e73e66 100644
+--- a/opensm/osm_port.c
++++ b/opensm/osm_port.c
+@@ -54,6 +54,8 @@
+ #include <opensm/osm_node.h>
+ #include <opensm/osm_madw.h>
+ #include <opensm/osm_switch.h>
++#include <opensm/osm_db_pack.h>
++#include <opensm/osm_sm.h>
  
- 	[ $SLDD_DEBUG -eq 1 ] &&
- 	echo "Sleeping ${RESCAN_TIME} seconds."
+ void osm_physp_construct(IN osm_physp_t * p_physp)
+ {
+@@ -659,3 +661,33 @@ void osm_alias_guid_delete(IN OUT osm_alias_guid_t ** pp_alias_guid)
+ 	free(*pp_alias_guid);
+ 	*pp_alias_guid = NULL;
+ }
++
++void osm_physp_set_port_info(IN osm_physp_t * p_physp,
++					   IN const ib_port_info_t * p_pi,
++					   IN const struct osm_sm * p_sm)
++{
++	CL_ASSERT(p_pi);
++	CL_ASSERT(osm_physp_is_valid(p_physp));
++
++	if (ib_port_info_get_port_state(p_pi) == IB_LINK_DOWN) {
++		/* If PortState is down, only copy PortState */
++		/* and PortPhysicalState per C14-24-2.1 */
++		ib_port_info_set_port_state(&p_physp->port_info, IB_LINK_DOWN);
++		ib_port_info_set_port_phys_state
++		    (ib_port_info_get_port_phys_state(p_pi),
++		     &p_physp->port_info);
++	} else {
++		p_physp->port_info = *p_pi;
++
++		/* The MKey in p_pi can only be considered valid if it's
++		 * for a HCA/router or switch port 0, and it's either
++		 * non-zero or the MKeyProtect bits are also zero.
++		 */
++		if ((osm_node_get_type(p_physp->p_node) !=
++		     IB_NODE_TYPE_SWITCH || p_physp->port_num == 0) &&
++		    (p_pi->m_key != 0 || ib_port_info_get_mpb(p_pi) == 0))
++			osm_db_guid2mkey_set(p_sm->p_subn->p_g2m,
++					     cl_ntoh64(p_physp->port_guid),
++					     cl_ntoh64(p_pi->m_key));
++	}
++}
+diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
+index ab7418b..00cbfc7 100644
+--- a/opensm/osm_port_info_rcv.c
++++ b/opensm/osm_port_info_rcv.c
+@@ -312,7 +312,7 @@ static void pi_rcv_process_switch_port(IN osm_sm_t * sm, IN osm_node_t * p_node,
+ 	/*
+ 	   Update the PortInfo attribute.
+ 	 */
+-	osm_physp_set_port_info(p_physp, p_pi);
++	osm_physp_set_port_info(p_physp, p_pi, sm);
+ 
+ 	if (port_num == 0) {
+ 		/* Determine if base switch port 0 */
+@@ -337,7 +337,7 @@ static void pi_rcv_process_ca_or_router_port(IN osm_sm_t * sm,
+ 
+ 	pi_rcv_check_and_fix_lid(sm->p_log, p_pi, p_physp);
+ 
+-	osm_physp_set_port_info(p_physp, p_pi);
++	osm_physp_set_port_info(p_physp, p_pi, sm);
+ 
+ 	pi_rcv_process_endport(sm, p_physp, p_pi);
+ 
+@@ -475,7 +475,7 @@ static void pi_rcv_process_set(IN osm_sm_t * sm, IN osm_node_t * p_node,
+ 		cl_ntoh64(osm_node_get_node_guid(p_node)),
+ 		cl_ntoh64(p_smp->trans_id));
+ 
+-	osm_physp_set_port_info(p_physp, p_pi);
++	osm_physp_set_port_info(p_physp, p_pi, sm);
+ 
+ 	OSM_LOG_EXIT(sm->p_log);
+ }
+diff --git a/opensm/osm_req.c b/opensm/osm_req.c
+index 2532f9c..51220f3 100644
+--- a/opensm/osm_req.c
++++ b/opensm/osm_req.c
+@@ -58,6 +58,7 @@
+ #include <opensm/osm_vl15intf.h>
+ #include <opensm/osm_msgdef.h>
+ #include <opensm/osm_opensm.h>
++#include <opensm/osm_db_pack.h>
+ 
+ /**********************************************************************
+   The plock MAY or MAY NOT be held before calling this function.
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 4d762a3..d9563ee 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -67,6 +67,7 @@
+ #include <opensm/osm_inform.h>
+ #include <opensm/osm_opensm.h>
+ #include <opensm/osm_congestion_control.h>
++#include <opensm/osm_db.h>
+ 
+ extern void osm_drop_mgr_process(IN osm_sm_t * sm);
+ extern int osm_qos_setup(IN osm_opensm_t * p_osm);
+@@ -1453,6 +1454,9 @@ repeat_discovery:
+ 	if (sm->p_subn->force_heavy_sweep
+ 	    || sm->p_subn->subnet_initialization_error)
+ 		osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
++
++	/* Write a new copy of our persistent guid2mkey database */
++	osm_db_store(sm->p_subn->p_g2m);
+ }
+ 
+ static void do_process_mgrp_queue(osm_sm_t * sm)
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 2358140..3e461f5 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -76,6 +76,8 @@
+ #include <opensm/osm_event_plugin.h>
+ #include <opensm/osm_qos_policy.h>
+ #include <opensm/osm_service.h>
++#include <opensm/osm_db.h>
++#include <opensm/osm_db_pack.h>
+ 
+ static const char null_str[] = "(null)";
+ 
+@@ -844,6 +846,52 @@ static int compar_mgids(const void *m1, const void *m2)
+ 	return memcmp(m1, m2, sizeof(ib_gid_t));
+ }
+ 
++static void subn_validate_g2m(osm_subn_t *p_subn)
++{
++	cl_qlist_t guids;
++	osm_db_guid_elem_t *p_item;
++	uint64_t mkey;
++	boolean_t valid_entry;
++
++	OSM_LOG_ENTER(&(p_subn->p_osm->log));
++	cl_qlist_init(&guids);
++
++	if (osm_db_guid2mkey_guids(p_subn->p_g2m, &guids)) {
++		OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR, "ERR 7506: "
++			"could not get mkey guid list\n");
++		goto Exit;
++	}
++
++	while ((p_item = (osm_db_guid_elem_t *) cl_qlist_remove_head(&guids))
++	       != (osm_db_guid_elem_t *) cl_qlist_end(&guids)) {
++		valid_entry = TRUE;
++
++		if (p_item->guid == 0) {
++			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++				"ERR 7507: found invalid zero guid");
++			valid_entry = FALSE;
++		} else if (osm_db_guid2mkey_get(p_subn->p_g2m, p_item->guid,
++						&mkey)) {
++			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++				"ERR 7508: could not get mkey for guid:0x%016"
++				PRIx64 "\n", p_item->guid);
++			valid_entry = FALSE;
++		}
++
++		if (valid_entry == FALSE) {
++			if (osm_db_guid2mkey_delete(p_subn->p_g2m,
++						    p_item->guid))
++				OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++					"ERR 7509: failed to delete entry for "
++					"guid:0x%016" PRIx64 "\n",
++					p_item->guid);
++		}
++	}
++
++Exit:
++	OSM_LOG_EXIT(&(p_subn->p_osm->log));
++}
++
+ void osm_subn_construct(IN osm_subn_t * p_subn)
+ {
+ 	memset(p_subn, 0, sizeof(*p_subn));
+@@ -1052,6 +1100,35 @@ ib_api_status_t osm_subn_init(IN osm_subn_t * p_subn, IN osm_opensm_t * p_osm,
+ 	p_subn->sweeping_enabled = TRUE;
+ 	p_subn->last_sm_port_state = 1;
+ 
++	/* Initialize the guid2mkey database */
++	p_subn->p_g2m = osm_db_domain_init(&(p_osm->db), "guid2mkey");
++	if (!p_subn->p_g2m) {
++		OSM_LOG(&(p_osm->log), OSM_LOG_ERROR, "ERR 7510: "
++			"Error initializing Guid-to-MKey persistent database\n");
++		return IB_ERROR;
++	}
++
++	if (osm_db_restore(p_subn->p_g2m)) {
++#ifndef __WIN__
++		/*
++		 * When Windows is BSODing, it might corrupt files that
++		 * were previously opened for writing, even if the files
++		 * are closed, so we might see corrupted guid2mkey file.
++		 */
++		if (p_subn->opt.exit_on_fatal) {
++			osm_log(&(p_osm->log), OSM_LOG_SYS,
++				"FATAL: Error restoring Guid-to-Mkey "
++				"persistent database\n");
++			return IB_ERROR;
++		} else
++#endif
++			OSM_LOG(&(p_osm->log), OSM_LOG_ERROR,
++				"ERR 7511: Error restoring Guid-to-Mkey "
++				"persistent database\n");
++	}
++
++	subn_validate_g2m(p_subn);
++
+ 	return IB_SUCCESS;
+ }
+ 
 -- 
 1.7.9.2
 
