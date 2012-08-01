@@ -1,36 +1,76 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/2] opensm/osm_sa_class_port_info.c: Indicate support for
- PortInfo CapMask2 matching in SA ClassPortInfo:CapabilityMask2
-Date: Wed, 01 Aug 2012 09:58:04 -0400
-Message-ID: <501935EC.5090108@dev.mellanox.co.il>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH 0/8] opensm: Improved mkey support
+Date: Wed, 01 Aug 2012 07:48:57 -0700
+Message-ID: <1343832537.26423.8.camel@auk75.llnl.gov>
+References: <1340672058.5218.97.camel@auk75.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340672058.5218.97.camel-mxTxeWJot8FliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+v2 is about to be posted.  It is now a 9-patch set.  Changes from v1:
 
-Per MgtWG RefID #4858
+. Subnet initialization behavior changed to log errors on SubnGet
+timeouts, but not flag the init as failed, so that we don't heavy sweep
+more than necessary
+. sldd.sh modified to sync multiple files, and neighbors/guid2mkey
+caches added to its default list
+. Rebased against current HEAD
+. Several whitespace/code format/git log cleanup fixes
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/opensm/osm_sa_class_port_info.c b/opensm/osm_sa_class_port_info.c
-index 8027ebc..31271b3 100644
---- a/opensm/osm_sa_class_port_info.c
-+++ b/opensm/osm_sa_class_port_info.c
-@@ -161,7 +161,8 @@ static void cpi_rcv_respond(IN osm_sa_t * sa, IN const osm_madw_t * p_madw)
- #endif
- 	cap_mask2 = OSM_CAP2_IS_FULL_PORTINFO_REC_SUPPORTED |
- 		    OSM_CAP2_IS_EXTENDED_SPEEDS_SUPPORTED |
--		    OSM_CAP2_IS_ALIAS_GUIDS_SUPPORTED;
-+		    OSM_CAP2_IS_ALIAS_GUIDS_SUPPORTED |
-+		    OSM_CAP2_IS_PORT_INFO_CAPMASK2_MATCH_SUPPORTED;
- 	if (sa->p_subn->opt.use_mfttop)
- 		cap_mask2 |= OSM_CAP2_IS_MCAST_TOP_SUPPORTED;
- 	if (sa->p_subn->opt.qos)
+     There will be a man page patch coming shortly, but I want to get
+these out the door for review now.
+
+     Jim
+
+On Mon, 2012-06-25 at 17:54 -0700, Jim Foraker wrote:
+> I'm about to post a set of patches intended to improve mkey support
+> in OpenSM.  These patches have been fairly rigorously tested on a small
+> fabric, and I believe are sufficiently stable for inclusion.  The
+> primary intent here is threefold:
+> 
+> 1) Fix a multitude of edge case issues with the existing
+> single-mkey-per-subnet support in OpenSM.  For instance, the current
+> implementation provides no way to change an established non-zero mkey
+> without rebooting or manually re-keying each CA on the entire subnet.
+> 
+> 2) Enable mkey protection across the fabric.  This involves not only
+> setting a non-zero protection level, but also providing the SM with a
+> sufficient information cache to initialize the subnet on restart without
+> having to wait for mkey lease timeouts (provided one is set).
+> 
+> 3) Provide a basis on which to build multiple-mkey systems for OpenSM
+> (be they per-host, KDF, or random) in the future.
+> 
+>      The patches add two new cache files: a port guid-to-mkey cache, and
+> a neighboring link (port guid to port guid) cache.
+>      The guid2mkey cache is used to provide a hint at the initial mkey
+> for a CA during initialization.  It is a hint only; the SM is capable of
+> dealing with cases where the guid2mkey cache is incorrect, although it
+> may require waiting for (potentially multiple) mkey lease timeouts at
+> non-zero mkey protection levels.  The guid2mkey cache is presented first
+> in the patch set, as it ends up ameliorating several corner cases in a
+> cleaner way than attacking them directly did.
+>      The neighbors cache file provides an initial hint to the SM of what
+> port guid we may expect at the opposite end of a link that is being
+> initialized.  This is necessary at mkey protection level 2, where we
+> cannot do the SubnGet necessary to determine the port guid to use in
+> looking up an mkey hint.
+>      The changes to the osm_req functions to support mkeys in patch 2
+> now require plock to be held when called.  This was generally already
+> the case, but there were a few spots where it was not.  In most of these
+> cases, the plock is still not technically necessary, as they occur
+> during hops 0/1 when DR path traversal is trivial.  I wrapped all of
+> these occurrences in locks in a separate patch (#3), in order to make
+> the changes more obvious and invite comment.
+> 
+>      Jim
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
