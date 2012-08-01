@@ -1,7 +1,7 @@
 From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 3/9 v2] opensm: Add locking where necessary around osm_req_*
-Date: Wed,  1 Aug 2012 07:52:29 -0700
-Message-ID: <1343832755-26753-3-git-send-email-foraker1@llnl.gov>
+Subject: [PATCH 6/9 v2] opensm: Add neighboring link cache file
+Date: Wed,  1 Aug 2012 07:52:32 -0700
+Message-ID: <1343832755-26753-6-git-send-email-foraker1@llnl.gov>
 References: <1343832537.26423.8.camel@auk75.llnl.gov>
  <1343832755-26753-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,150 +11,544 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: weiny2-i2BcT+NCU+M@public.gmane.org, alexne-LTKPlh9/A5tDPfheJLI6IQ@public.gmane.org, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Grabs plock for reading in the places where one did not
-already exist when osm_req_get/osm_req_set are called.
+At high mkey protection levels (ie, 2), an initializing OpenSM
+may run into a chicken-and-egg problem, where it needs the guid
+of a previously-configured HCA in order to determine what mkey to
+use when requesting its guid in the NodeInfo SMP.  By cacheing
+the guids/port numbers at either end of each link between restarts,
+this problem is avoided.
 
 Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 ---
- opensm/osm_perfmgr.c      |    6 ++++++
- opensm/osm_sm_state_mgr.c |    2 ++
- opensm/osm_state_mgr.c    |    8 ++++++++
- opensm/osm_trap_rcv.c     |    6 +++++-
- 4 files changed, 21 insertions(+), 1 deletion(-)
+ include/opensm/osm_db_pack.h |  185 ++++++++++++++++++++++++++++++++++++++++++
+ include/opensm/osm_subnet.h  |    1 +
+ opensm/osm_db_pack.c         |  103 +++++++++++++++++++++++
+ opensm/osm_node_info_rcv.c   |   17 +++-
+ opensm/osm_req.c             |    9 ++
+ opensm/osm_state_mgr.c       |    1 +
+ opensm/osm_subnet.c          |  103 +++++++++++++++++++++++
+ 7 files changed, 418 insertions(+), 1 deletion(-)
 
-diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 9083ea9..3b36ef6 100644
---- a/opensm/osm_perfmgr.c
-+++ b/opensm/osm_perfmgr.c
-@@ -622,8 +622,10 @@ static int sweep_hop_1(osm_sm_t * sm)
- 		path_array[1] = port_num;
+diff --git a/include/opensm/osm_db_pack.h b/include/opensm/osm_db_pack.h
+index af43ba1..f2d7af2 100644
+--- a/include/opensm/osm_db_pack.h
++++ b/include/opensm/osm_db_pack.h
+@@ -379,5 +379,190 @@ int osm_db_guid2mkey_delete(IN osm_db_domain_t * p_g2m, IN uint64_t guid);
+ * osm_db_guid2mkey_get, osm_db_guid2mkey_set
+ *********/
  
- 		osm_dr_path_init(&hop_1_path, 1, path_array);
-+		CL_PLOCK_ACQUIRE(sm->p_lock);
- 		status = osm_req_get(sm, &hop_1_path, IB_MAD_ATTR_NODE_INFO, 0,
- 				     CL_DISP_MSGID_NONE, &context);
-+		CL_PLOCK_RELEASE(sm->p_lock);
- 
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 4C82: "
-@@ -654,9 +656,11 @@ static int sweep_hop_1(osm_sm_t * sm)
- 			path_array[1] = port_num;
- 
- 			osm_dr_path_init(&hop_1_path, 1, path_array);
-+			CL_PLOCK_ACQUIRE(sm->p_lock);
- 			status = osm_req_get(sm, &hop_1_path,
- 					     IB_MAD_ATTR_NODE_INFO, 0,
- 					     CL_DISP_MSGID_NONE, &context);
-+			CL_PLOCK_RELEASE(sm->p_lock);
- 
- 			if (status != IB_SUCCESS)
- 				OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 4C84: "
-@@ -716,8 +720,10 @@ static int sweep_hop_0(osm_sm_t * sm)
- 	}
- 
- 	osm_dr_path_init(&dr_path, 0, path_array);
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
- 	status = osm_req_get(sm, &dr_path, IB_MAD_ATTR_NODE_INFO, 0,
- 			     CL_DISP_MSGID_NONE, NULL);
-+	CL_PLOCK_RELEASE(sm->p_lock);
- 
- 	if (status != IB_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
-diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
-index e826f1f..061a0f2 100644
---- a/opensm/osm_sm_state_mgr.c
-+++ b/opensm/osm_sm_state_mgr.c
-@@ -109,9 +109,11 @@ static void sm_state_mgr_send_master_sm_info_req(osm_sm_t * sm)
- 	context.smi_context.port_guid = p_port->guid;
- 	context.smi_context.set_method = FALSE;
- 
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
- 	status = osm_req_get(sm, osm_physp_get_dr_path_ptr(p_port->p_physp),
- 			     IB_MAD_ATTR_SM_INFO, 0, CL_DISP_MSGID_NONE,
- 			     &context);
-+	CL_PLOCK_RELEASE(sm->p_lock);
- 
- 	if (status != IB_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3204: "
-diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
-index d9563ee..63f7347 100644
---- a/opensm/osm_state_mgr.c
-+++ b/opensm/osm_state_mgr.c
-@@ -240,8 +240,10 @@ static ib_api_status_t state_mgr_sweep_hop_0(IN osm_sm_t * sm)
- 		CL_PLOCK_RELEASE(sm->p_lock);
- 
- 		osm_dr_path_init(&dr_path, 0, path_array);
-+		CL_PLOCK_ACQUIRE(sm->p_lock);
- 		status = osm_req_get(sm, &dr_path, IB_MAD_ATTR_NODE_INFO, 0,
- 				     CL_DISP_MSGID_NONE, NULL);
-+		CL_PLOCK_RELEASE(sm->p_lock);
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3305: "
- 				"Request for NodeInfo failed (%s)\n",
-@@ -433,8 +435,10 @@ static ib_api_status_t state_mgr_sweep_hop_1(IN osm_sm_t * sm)
- 		path_array[1] = port_num;
- 
- 		osm_dr_path_init(&hop_1_path, 1, path_array);
-+		CL_PLOCK_ACQUIRE(sm->p_lock);
- 		status = osm_req_get(sm, &hop_1_path, IB_MAD_ATTR_NODE_INFO, 0,
- 				     CL_DISP_MSGID_NONE, &context);
-+		CL_PLOCK_RELEASE(sm->p_lock);
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3311: "
- 				"Request for NodeInfo failed (%s)\n",
-@@ -462,10 +466,12 @@ static ib_api_status_t state_mgr_sweep_hop_1(IN osm_sm_t * sm)
- 
- 				path_array[1] = port_num;
- 				osm_dr_path_init(&hop_1_path, 1, path_array);
-+				CL_PLOCK_ACQUIRE(sm->p_lock);
- 				status = osm_req_get(sm, &hop_1_path,
- 						     IB_MAD_ATTR_NODE_INFO, 0,
- 						     CL_DISP_MSGID_NONE,
- 						     &context);
-+				CL_PLOCK_RELEASE(sm->p_lock);
- 				if (status != IB_SUCCESS)
- 					OSM_LOG(sm->p_log, OSM_LOG_ERROR,
- 						"ERR 3312: "
-@@ -812,10 +818,12 @@ static void state_mgr_send_handover(IN osm_sm_t * sm, IN osm_remote_sm_t * p_sm)
- 		p_smi->sm_key = 0;
- 	}
- 
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
- 	status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p_port->p_physp),
- 			     payload, sizeof(payload), IB_MAD_ATTR_SM_INFO,
- 			     IB_SMINFO_ATTR_MOD_HANDOVER, CL_DISP_MSGID_NONE,
- 			     &context);
-+	CL_PLOCK_RELEASE(sm->p_lock);
- 
- 	if (status != IB_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3317: "
-diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
-index 89caa39..4a59cfe 100644
---- a/opensm/osm_trap_rcv.c
-+++ b/opensm/osm_trap_rcv.c
-@@ -213,6 +213,7 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
- 	uint8_t payload[IB_SMP_DATA_SIZE];
- 	osm_madw_context_t context;
- 	ib_port_info_t *pi = (ib_port_info_t *)payload;
-+	ib_api_status_t status;
- 
- 	/* select the nearest port to master opensm */
- 	if (p->p_remote_physp &&
-@@ -235,10 +236,13 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
- 	context.pi_context.light_sweep = FALSE;
- 	context.pi_context.active_transition = FALSE;
- 
--	return osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
-+	status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
- 			   payload, sizeof(payload), IB_MAD_ATTR_PORT_INFO,
- 			   cl_hton32(osm_physp_get_port_num(p)),
- 			   CL_DISP_MSGID_NONE, &context);
-+	CL_PLOCK_RELEASE(sm->p_lock);
-+	return status;
++/****f* OpenSM: DB-Pack/osm_db_neighbor_init
++* NAME
++*	osm_db_neighbor_init
++*
++* DESCRIPTION
++*	Initialize a domain for the neighbors table
++*
++* SYNOPSIS
++*/
++static inline osm_db_domain_t *osm_db_neighbor_init(IN osm_db_t * p_db)
++{
++	return osm_db_domain_init(p_db, "neighbors");
++}
++
++/*
++* PARAMETERS
++*	p_db
++*		[in] Pointer to the database object to construct
++*
++* RETURN VALUES
++*	The pointer to the new allocated domain object or NULL.
++*
++* NOTE: DB domains are destroyed by the osm_db_destroy
++*
++* SEE ALSO
++*	Database, osm_db_init, osm_db_destroy
++*********/
++
++/****f* OpenSM: DB-Pack/osm_db_neighbor_elem
++* NAME
++*	osm_db_neighbor_elem
++*
++* DESCRIPTION
++*	Initialize a domain for the neighbor table
++*
++* SYNOPSIS
++*/
++typedef struct osm_db_neighbor_elem {
++	cl_list_item_t item;
++	uint64_t guid;
++	uint8_t portnum;
++} osm_db_neighbor_elem_t;
++/*
++* FIELDS
++*	item
++*		required for list manipulations
++*
++*  guid
++*  portnum
++*
++************/
++
++/****f* OpenSM: DB-Pack/osm_db_neighbor_guids
++* NAME
++*	osm_db_neighbor_guids
++*
++* DESCRIPTION
++*	Provides back a list of neighbor elements.
++*
++* SYNOPSIS
++*/
++int osm_db_neighbor_guids(IN osm_db_domain_t * p_neighbor,
++			  OUT cl_qlist_t * p_guid_list);
++/*
++* PARAMETERS
++*	p_neighbor
++*		[in] Pointer to the neighbor domain
++*
++*  p_guid_list
++*     [out] A quick list of neighbor elements of type osm_db_neighbor_elem_t
++*
++* RETURN VALUES
++*	0 if successful
++*
++* NOTE: the output qlist should be initialized and each item freed
++*       by the caller, then destroyed.
++*
++* SEE ALSO
++* osm_db_neighbor_init, osm_db_neighbor_guids, osm_db_neighbor_get
++* osm_db_neighbor_set, osm_db_neighbor_delete
++*********/
++
++/****f* OpenSM: DB-Pack/osm_db_neighbor_get
++* NAME
++*	osm_db_neighbor_get
++*
++* DESCRIPTION
++*	Get a neighbor's guid by given guid/port.
++*
++* SYNOPSIS
++*/
++int osm_db_neighbor_get(IN osm_db_domain_t * p_neighbor, IN uint64_t guid1,
++			IN uint8_t port1, OUT uint64_t * p_guid2,
++			OUT uint8_t * p_port2);
++/*
++* PARAMETERS
++*	p_neighbor
++*		[in] Pointer to the neighbor domain
++*
++*  guid1
++*     [in] The guid to look for
++*
++*  port1
++*     [in] The port to look for
++*
++*  p_guid2
++*     [out] Pointer to the resulting guid of the neighboring port.
++*
++*  p_port2
++*     [out] Pointer to the resulting port of the neighboring port.
++*
++* RETURN VALUES
++*	0 if successful. The lid will be set to 0 if not found.
++*
++* SEE ALSO
++* osm_db_neighbor_init, osm_db_neighbor_guids
++* osm_db_neighbor_set, osm_db_neighbor_delete
++*********/
++
++/****f* OpenSM: DB-Pack/osm_db_neighbor_set
++* NAME
++*	osm_db_neighbor_set
++*
++* DESCRIPTION
++*	Set up a relationship between two ports
++*
++* SYNOPSIS
++*/
++int osm_db_neighbor_set(IN osm_db_domain_t * p_neighbor, IN uint64_t guid1,
++			IN uint8_t port1, IN uint64_t guid2, IN uint8_t port2);
++/*
++* PARAMETERS
++*	p_neighbor
++*		[in] Pointer to the neighbor domain
++*
++*  guid1
++*     [in] The first guid in the relationship
++*
++*  port1
++*     [in] The first port in the relationship
++*
++*  guid2
++*     [in] The second guid in the relationship
++*
++*  port2
++*     [in] The second port in the relationship
++*
++* RETURN VALUES
++*	0 if successful
++*
++* SEE ALSO
++* osm_db_neighbor_init, osm_db_neighbor_guids
++* osm_db_neighbor_get, osm_db_neighbor_delete
++*********/
++
++/****f* OpenSM: DB-Pack/osm_db_neighbor_delete
++* NAME
++*	osm_db_neighbor_delete
++*
++* DESCRIPTION
++*	Delete the relationship between two ports
++*
++* SYNOPSIS
++*/
++int osm_db_neighbor_delete(IN osm_db_domain_t * p_neighbor,
++			   IN uint64_t guid, IN uint8_t port);
++/*
++* PARAMETERS
++*	p_neighbor
++*		[in] Pointer to the neighbor domain
++*
++*  guid
++*     [in] The guid to look for
++*
++*  port
++*     [in] The port to look for
++*
++* RETURN VALUES
++*	0 if successful otherwise 1
++*
++* SEE ALSO
++* osm_db_neighbor_init, osm_db_neighbor_guids
++* osm_db_neighbor_get, osm_db_neighbor_set
++*********/
++
+ END_C_DECLS
+ #endif				/* _OSM_DB_PACK_H_ */
+diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
+index ee97f14..f0d24cb 100644
+--- a/include/opensm/osm_subnet.h
++++ b/include/opensm/osm_subnet.h
+@@ -759,6 +759,7 @@ typedef struct osm_subn {
+ 	unsigned need_update;
+ 	cl_fmap_t mgrp_mgid_tbl;
+ 	osm_db_domain_t *p_g2m;
++	osm_db_domain_t *p_neighbor;
+ 	void *mboxes[IB_LID_MCAST_END_HO - IB_LID_MCAST_START_HO + 1];
+ } osm_subn_t;
+ /*
+diff --git a/opensm/osm_db_pack.c b/opensm/osm_db_pack.c
+index 57c3a66..ea00c31 100644
+--- a/opensm/osm_db_pack.c
++++ b/opensm/osm_db_pack.c
+@@ -95,6 +95,37 @@ static inline uint64_t unpack_mkey(char *p_mkey_str)
+ 	return strtoull(p_mkey_str, NULL, 0);
  }
  
- static void log_trap_info(osm_log_t *p_log, ib_mad_notice_attr_t *p_ntci,
++static inline void pack_neighbor(uint64_t guid, uint8_t portnum, char *p_str)
++{
++	sprintf(p_str, "0x%016" PRIx64 ":%u", guid, portnum);
++}
++
++static inline int unpack_neighbor(char *p_str, uint64_t *guid,
++				  uint8_t *portnum)
++{
++	char tmp_str[24];
++	char *p_num, *p_next;
++	unsigned long tmp_port;
++
++	strncpy(tmp_str, p_str, 23);
++	tmp_str[23] = '\0';
++	p_num = strtok_r(tmp_str, ":", &p_next);
++	if (!p_num)
++		return 1;
++	if (guid)
++		*guid = strtoull(p_num, NULL, 0);
++
++	p_num = strtok_r(NULL, ":", &p_next);
++	if (!p_num)
++		return 1;
++	if (portnum) {
++		tmp_port = strtoul(p_num, NULL, 0);
++		CL_ASSERT(tmp_port < 0x100);
++		*portnum = (uint8_t) tmp_port;
++	}
++
++	return 0;
++}
+ 
+ int osm_db_guid2lid_guids(IN osm_db_domain_t * p_g2l,
+ 			  OUT cl_qlist_t * p_guid_list)
+@@ -224,3 +255,75 @@ int osm_db_guid2mkey_delete(IN osm_db_domain_t * p_g2m, IN uint64_t guid)
+ 	pack_guid(guid, guid_str);
+ 	return osm_db_delete(p_g2m, guid_str);
+ }
++
++int osm_db_neighbor_guids(IN osm_db_domain_t * p_neighbor,
++			  OUT cl_qlist_t * p_neighbor_list)
++{
++	char *p_key;
++	cl_list_t keys;
++	osm_db_neighbor_elem_t *p_neighbor_elem;
++
++	cl_list_construct(&keys);
++	cl_list_init(&keys, 10);
++
++	if (osm_db_keys(p_neighbor, &keys))
++		return 1;
++
++	while ((p_key = cl_list_remove_head(&keys)) != NULL) {
++		p_neighbor_elem =
++		    (osm_db_neighbor_elem_t *) malloc(sizeof(osm_db_neighbor_elem_t));
++		CL_ASSERT(p_neighbor_elem != NULL);
++
++		unpack_neighbor(p_key, &p_neighbor_elem->guid,
++				&p_neighbor_elem->portnum);
++		cl_qlist_insert_head(p_neighbor_list, &p_neighbor_elem->item);
++	}
++
++	cl_list_destroy(&keys);
++	return 0;
++}
++
++int osm_db_neighbor_get(IN osm_db_domain_t * p_neighbor, IN uint64_t guid1,
++			IN uint8_t portnum1, OUT uint64_t * p_guid2,
++			OUT uint8_t * p_portnum2)
++{
++	char neighbor_str[24];
++	char *p_other_str;
++	uint64_t temp_guid;
++	uint8_t temp_portnum;
++
++	pack_neighbor(guid1, portnum1, neighbor_str);
++	p_other_str = osm_db_lookup(p_neighbor, neighbor_str);
++	if (!p_other_str)
++		return 1;
++	if (unpack_neighbor(p_other_str, &temp_guid, &temp_portnum))
++		return 1;
++
++	if (p_guid2)
++		*p_guid2 = temp_guid;
++	if (p_portnum2)
++		*p_portnum2 = temp_portnum;
++
++	return 0;
++}
++
++int osm_db_neighbor_set(IN osm_db_domain_t * p_neighbor, IN uint64_t guid1,
++			IN uint8_t portnum1, IN uint64_t guid2,
++			IN uint8_t portnum2)
++{
++	char n1_str[24], n2_str[24];
++
++	pack_neighbor(guid1, portnum1, n1_str);
++	pack_neighbor(guid2, portnum2, n2_str);
++
++	return osm_db_update(p_neighbor, n1_str, n2_str);
++}
++
++int osm_db_neighbor_delete(IN osm_db_domain_t * p_neighbor, IN uint64_t guid,
++			   IN uint8_t portnum)
++{
++	char n_str[24];
++
++	pack_neighbor(guid, portnum, n_str);
++	return osm_db_delete(p_neighbor, n_str);
++}
+diff --git a/opensm/osm_node_info_rcv.c b/opensm/osm_node_info_rcv.c
+index c35aea4..25546d9 100644
+--- a/opensm/osm_node_info_rcv.c
++++ b/opensm/osm_node_info_rcv.c
+@@ -63,6 +63,7 @@
+ #include <opensm/osm_msgdef.h>
+ #include <opensm/osm_opensm.h>
+ #include <opensm/osm_ucast_mgr.h>
++#include <opensm/osm_db_pack.h>
+ 
+ static void report_duplicated_guid(IN osm_sm_t * sm, osm_physp_t * p_physp,
+ 				   osm_node_t * p_neighbor_node,
+@@ -134,7 +135,7 @@ static void ni_rcv_set_links(IN osm_sm_t * sm, osm_node_t * p_node,
+ 			     const osm_ni_context_t * p_ni_context)
+ {
+ 	osm_node_t *p_neighbor_node;
+-	osm_physp_t *p_physp;
++	osm_physp_t *p_physp, *p_remote_physp;
+ 
+ 	OSM_LOG_ENTER(sm->p_log);
+ 
+@@ -245,6 +246,20 @@ static void ni_rcv_set_links(IN osm_sm_t * sm, osm_node_t * p_node,
+ 	osm_node_link(p_node, port_num, p_neighbor_node,
+ 		      p_ni_context->port_num);
+ 
++	p_physp = osm_node_get_physp_ptr(p_node, port_num);
++	p_remote_physp = osm_node_get_physp_ptr(p_neighbor_node,
++						p_ni_context->port_num);
++	osm_db_neighbor_set(sm->p_subn->p_neighbor,
++			    cl_ntoh64(osm_physp_get_port_guid(p_physp)),
++			    port_num,
++			    cl_ntoh64(osm_physp_get_port_guid(p_remote_physp)),
++			    p_ni_context->port_num);
++	osm_db_neighbor_set(sm->p_subn->p_neighbor,
++			    cl_ntoh64(osm_physp_get_port_guid(p_remote_physp)),
++			    p_ni_context->port_num,
++			    cl_ntoh64(osm_physp_get_port_guid(p_physp)),
++			    port_num);
++
+ _exit:
+ 	OSM_LOG_EXIT(sm->p_log);
+ }
+diff --git a/opensm/osm_req.c b/opensm/osm_req.c
+index d397b14..5f46cd3 100644
+--- a/opensm/osm_req.c
++++ b/opensm/osm_req.c
+@@ -115,6 +115,15 @@ static ib_net64_t req_determine_mkey(IN osm_sm_t * sm,
+ 		goto Remote_Guid;
+ 	}
+ 
++	OSM_LOG(sm->p_log, OSM_LOG_DEBUG, "Target port guid unknown, "
++		"using persistent DB\n");
++	if (!osm_db_neighbor_get(sm->p_subn->p_neighbor,
++				 cl_ntoh64(p_physp->port_guid),
++				 p_physp->port_num,
++				 &dest_port_guid, NULL)) {
++		dest_port_guid = cl_hton64(dest_port_guid);
++	}
++
+ Remote_Guid:
+ 	if (dest_port_guid) {
+ 		if (!osm_db_guid2mkey_get(sm->p_subn->p_g2m,
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 63f7347..175741f 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -1465,6 +1465,7 @@ repeat_discovery:
+ 
+ 	/* Write a new copy of our persistent guid2mkey database */
+ 	osm_db_store(sm->p_subn->p_g2m);
++	osm_db_store(sm->p_subn->p_neighbor);
+ }
+ 
+ static void do_process_mgrp_queue(osm_sm_t * sm)
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index a4c5150..3e923f2 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -893,6 +893,80 @@ Exit:
+ 	OSM_LOG_EXIT(&(p_subn->p_osm->log));
+ }
+ 
++static void subn_validate_neighbor(osm_subn_t *p_subn)
++{
++	cl_qlist_t entries;
++	osm_db_neighbor_elem_t *p_item;
++	boolean_t valid_entry;
++	uint64_t guid;
++	uint8_t port;
++
++	OSM_LOG_ENTER(&(p_subn->p_osm->log));
++	cl_qlist_init(&entries);
++
++	if (osm_db_neighbor_guids(p_subn->p_neighbor, &entries)) {
++		OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR, "ERR 7512: "
++			"could not get neighbor entry list\n");
++		goto Exit;
++	}
++
++	while ((p_item =
++		(osm_db_neighbor_elem_t *) cl_qlist_remove_head(&entries))
++	       != (osm_db_neighbor_elem_t *) cl_qlist_end(&entries)) {
++		valid_entry = TRUE;
++
++		OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_DEBUG,
++			"Validating neighbor for 0x%016" PRIx64 ", port %d\n",
++			p_item->guid, p_item->portnum);
++		if (p_item->guid == 0) {
++			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++				"ERR 7513: found invalid zero guid\n");
++			valid_entry = FALSE;
++		} else if (p_item->portnum == 0) {
++			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++				"ERR 7514: found invalid zero port\n");
++			valid_entry = FALSE;
++		} else if (osm_db_neighbor_get(p_subn->p_neighbor,
++					       p_item->guid, p_item->portnum,
++					       &guid, &port)) {
++			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++				"ERR 7515: could not find neighbor for "
++				"guid: 0x%016" PRIx64 "\n", p_item->guid);
++			valid_entry = FALSE;
++		} else if (guid == 0) {
++			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++				"ERR 7516: found invalid neighbor "
++				"zero guid");
++			valid_entry = FALSE;
++		} else if (port == 0) {
++			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++				"ERR 7517: found invalid neighbor "
++				"zero port\n");
++			valid_entry = FALSE;
++		} else if (osm_db_neighbor_get(p_subn->p_neighbor,
++					       guid, port, &guid, &port) ||
++			guid != p_item->guid || port != p_item->portnum) {
++			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++				"ERR 7518: neighbor does not point "
++				"back at us\n");
++			valid_entry = FALSE;
++		}
++
++		if (valid_entry == FALSE) {
++			if (osm_db_neighbor_delete(p_subn->p_neighbor,
++						   p_item->guid,
++						   p_item->portnum))
++				OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
++					"ERR 7519: failed to delete entry for "
++					"guid:0x%016" PRIx64 " port:%u\n",
++					p_item->guid, p_item->portnum);
++		}
++	}
++
++Exit:
++	OSM_LOG_EXIT(&(p_subn->p_osm->log));
++}
++
+ void osm_subn_construct(IN osm_subn_t * p_subn)
+ {
+ 	memset(p_subn, 0, sizeof(*p_subn));
+@@ -1130,6 +1204,35 @@ ib_api_status_t osm_subn_init(IN osm_subn_t * p_subn, IN osm_opensm_t * p_osm,
+ 
+ 	subn_validate_g2m(p_subn);
+ 
++	/* Initialize the neighbor database */
++	p_subn->p_neighbor = osm_db_domain_init(&(p_osm->db), "neighbors");
++	if (!p_subn->p_neighbor) {
++		OSM_LOG(&(p_osm->log), OSM_LOG_ERROR, "ERR 7520: Error "
++			"initializing neighbor link persistent database\n");
++		return IB_ERROR;
++	}
++
++	if (osm_db_restore(p_subn->p_neighbor)) {
++#ifndef __WIN__
++		/*
++		 * When Windows is BSODing, it might corrupt files that
++		 * were previously opened for writing, even if the files
++		 * are closed, so we might see corrupted neighbors file.
++		 */
++		if (p_subn->opt.exit_on_fatal) {
++			osm_log(&(p_osm->log), OSM_LOG_SYS,
++				"FATAL: Error restoring neighbor link "
++				"persistent database\n");
++			return IB_ERROR;
++		} else
++#endif
++			OSM_LOG(&(p_osm->log), OSM_LOG_ERROR,
++				"ERR 7521: Error restoring neighbor link "
++				"persistent database\n");
++	}
++
++	subn_validate_neighbor(p_subn);
++
+ 	return IB_SUCCESS;
+ }
+ 
 -- 
 1.7.9.2
 
