@@ -1,26 +1,35 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: FDR HCA only doing QDR?
-Date: Thu, 2 Aug 2012 02:42:26 -0700
-Message-ID: <CAL1RGDWe_utjyW-MHomdp-e8WTL2BNe2d0dgCsLS_6Gak23Efw@mail.gmail.com>
+Date: Thu, 2 Aug 2012 13:19:55 +0300
+Message-ID: <20120802101955.GD3374@calypso>
 References: <CALfB72AFcWfrvRHfh0fRu_0iLt0wdapgwPef6RFe3KockzxeEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <CALfB72AFcWfrvRHfh0fRu_0iLt0wdapgwPef6RFe3KockzxeEA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 2, 2012 at 1:18 AM, Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->                         active_speed:           10.0 Gbps (8)
+Hi Albert,
 
-You actually seem to be getting FDR-10 (raw speed undecoded of 8
-instead of QDR==4).
+On 10:18 Thu 02 Aug     , Albert Strasheim wrote:
+> Hello all
+> 
+> I have a single machine setup with a dual port Mellanox FDR controller
+> with a cable marked "FDR" connected between the two ports.
+> 
+> OpenSM is running on the machine to make the ports active.
+> 
+> However, as far as I can read the ibv_devinfo output, it seems to
+> report that I'm only getting QDR speeds.
+> 
 
-There may be some software/firmware issue but I would double check
-that your physical layer is clean -- it may just be that the card is
-legitimately deciding it can't do full FDR on the link you have.
+You can double check the speeds by running smpquery PortInfo/MlnxExtPortInfo
+
+-- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
