@@ -1,35 +1,29 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: FDR HCA only doing QDR?
-Date: Thu, 2 Aug 2012 13:19:55 +0300
-Message-ID: <20120802101955.GD3374@calypso>
-References: <CALfB72AFcWfrvRHfh0fRu_0iLt0wdapgwPef6RFe3KockzxeEA@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: Kernel panic under 3.2.14 Xen dom0 and SCST trunk
+Date: Thu, 02 Aug 2012 11:04:16 +0000
+Message-ID: <501A5EB0.4060904@acm.org>
+References: <CAOzFzEjjbofQZyubdpH10WKeoE3-grMVdEOqJhJtbRtMdgCr=Q@mail.gmail.com> <CAOzFzEjDHpTROUcKg9cOZkNSX1LnShSombgt26+VOptVdy5i-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CALfB72AFcWfrvRHfh0fRu_0iLt0wdapgwPef6RFe3KockzxeEA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAOzFzEjDHpTROUcKg9cOZkNSX1LnShSombgt26+VOptVdy5i-Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Albert,
+On 07/24/12 15:43, Joseph Glanville wrote:
+> [35404.804723] BUG: unable to handle kernel NULL pointer dereference at (null)
 
-On 10:18 Thu 02 Aug     , Albert Strasheim wrote:
-> Hello all
-> 
-> I have a single machine setup with a dual port Mellanox FDR controller
-> with a cable marked "FDR" connected between the two ports.
-> 
-> OpenSM is running on the machine to make the ports active.
-> 
-> However, as far as I can read the ibv_devinfo output, it seems to
-> report that I'm only getting QDR speeds.
-> 
+I've been able to reproduce this ib_srp crash. Apparently if an SRP
+response is received after srp_reset_host() has been invoked
+srp_process_rsp() tries to call scmnd->scsi_done(scmnd) with scsi_done
+== NULL, hence the kernel oops. A candidate fix is available in this
+(rebased) tree: http://github.com/bvanassche/linux/tree/srp-ha.
 
-You can double check the speeds by running smpquery PortInfo/MlnxExtPortInfo
+Bart.
 
--- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
