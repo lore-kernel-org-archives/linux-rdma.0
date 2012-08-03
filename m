@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V2 20/22] {NET,IB}/mlx4: Paravirtualize Node Guids for slaves
-Date: Fri,  3 Aug 2012 11:40:56 +0300
-Message-ID: <1343983258-6268-21-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V2 18/22] IB/mlx4: Miscellaneous adjustments to SRIOV IB support
+Date: Fri,  3 Aug 2012 11:40:54 +0300
+Message-ID: <1343983258-6268-19-git-send-email-jackm@dev.mellanox.co.il>
 References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1343983258-6268-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,156 +10,187 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is necessary in order to support > 1 VF/PF in a VM for software that
-uses the node guid as a discriminator, such as librdmacm.
+1. allow only master to change node description
+2. prevent ah leakage in send mads
+3. take device part number from PCI structure, so that
+   guests see the VF part number (and not the PF part number)
+4. place the device revision ID into caps structure at startup
+5. SET_PORT in update_gids_task needs to go through wrapper on master.
+6. in mlx4_ib_event, PORT_MGMT_EVENT needs be handled in a work queue
+   on the master, since it propagates events to slaves using GEN_EQE
+7. Do not support FMR on slaves.
+8. Add spinlock to slave_event(), since it is called both in interrupt
+   context and in process context (due to 6 above, and also if smp_snoop
+   is used).
+   This fix was found and implemented by Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c          |   14 ++++++++++++++
- drivers/infiniband/hw/mlx4/mlx4_ib.h      |    3 +++
- drivers/net/ethernet/mellanox/mlx4/cmd.c  |   11 +++++++++++
- drivers/net/ethernet/mellanox/mlx4/main.c |   22 ++++++++++++++++++++++
+ drivers/infiniband/hw/mlx4/mad.c          |    6 +++++-
+ drivers/infiniband/hw/mlx4/main.c         |   26 ++++++++++++++++++--------
+ drivers/net/ethernet/mellanox/mlx4/cmd.c  |    1 +
+ drivers/net/ethernet/mellanox/mlx4/eq.c   |    8 ++++++--
  drivers/net/ethernet/mellanox/mlx4/mlx4.h |    1 +
- include/linux/mlx4/device.h               |    2 ++
- 6 files changed, 53 insertions(+), 0 deletions(-)
+ 5 files changed, 31 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index cee7bf6..f7b9a41 100644
+index ec64077..cee7bf6 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -35,6 +35,7 @@
- #include <rdma/ib_sa.h>
- #include <rdma/ib_cache.h>
- 
-+#include <linux/random.h>
- #include <linux/mlx4/cmd.h>
- #include <linux/gfp.h>
- #include <rdma/ib_pma.h>
-@@ -89,6 +90,12 @@ static void handle_lid_change_event(struct mlx4_ib_dev *dev, u8 port_num);
- static void __propagate_pkey_ev(struct mlx4_ib_dev *dev, int port_num,
- 				int block, u32 change_bitmap);
- 
-+__be64 mlx4_ib_gen_node_guid(void)
-+{
-+#define NODE_GUID_HI	((u64) (((u64)IB_OPENIB_OUI) << 40))
-+	return (cpu_to_be64( NODE_GUID_HI | random32()));
-+}
-+
- __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx)
- {
- 	return cpu_to_be64(atomic_inc_return(&ctx->tid)) |
-@@ -1958,6 +1965,13 @@ int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
- 		return 0;
+@@ -705,7 +705,9 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 	if (!out_mad->mad_hdr.status) {
+ 		if (!(to_mdev(ibdev)->dev->caps.flags & MLX4_DEV_CAP_FLAG_PORT_MNG_CHG_EV))
+ 			smp_snoop(ibdev, port_num, in_mad, prev_lid);
+-		node_desc_override(ibdev, out_mad);
++		/* slaves get node desc from FW */
++		if (!mlx4_is_slave(to_mdev(ibdev)->dev))
++			node_desc_override(ibdev, out_mad);
  	}
  
-+	for (i = 0; i < dev->dev->caps.sqp_demux; i++) {
-+		if (i == mlx4_master_func_num(dev->dev))
-+			mlx4_put_slave_node_guid(dev->dev, i, dev->ib_dev.node_guid);
-+		else
-+			mlx4_put_slave_node_guid(dev->dev, i, mlx4_ib_gen_node_guid());
+ 	/* set return bit in status of directed route responses */
+@@ -788,6 +790,8 @@ int mlx4_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ static void send_handler(struct ib_mad_agent *agent,
+ 			 struct ib_mad_send_wc *mad_send_wc)
+ {
++	if (mad_send_wc->send_buf->context[0])
++		ib_destroy_ah(mad_send_wc->send_buf->context[0]);
+ 	ib_free_send_mad(mad_send_wc->send_buf);
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 778fdb8..1166379 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -138,7 +138,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 
+ 	props->vendor_id	   = be32_to_cpup((__be32 *) (out_mad->data + 36)) &
+ 		0xffffff;
+-	props->vendor_part_id	   = be16_to_cpup((__be16 *) (out_mad->data + 30));
++	props->vendor_part_id	   = dev->dev->pdev->device;
+ 	props->hw_ver		   = be32_to_cpup((__be32 *) (out_mad->data + 32));
+ 	memcpy(&props->sys_image_guid, out_mad->data +	4, 8);
+ 
+@@ -477,6 +477,9 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
+ 	if (!(mask & IB_DEVICE_MODIFY_NODE_DESC))
+ 		return 0;
+ 
++	if (mlx4_is_slave(to_mdev(ibdev)->dev))
++		return -EOPNOTSUPP;
++
+ 	spin_lock_irqsave(&to_mdev(ibdev)->sm_lock, flags);
+ 	memcpy(ibdev->node_desc, props->node_desc, 64);
+ 	spin_unlock_irqrestore(&to_mdev(ibdev)->sm_lock, flags);
+@@ -492,7 +495,7 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
+ 	memset(mailbox->buf, 0, 256);
+ 	memcpy(mailbox->buf, props->node_desc, 64);
+ 	mlx4_cmd(to_mdev(ibdev)->dev, mailbox->dma, 1, 0,
+-		 MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A, MLX4_CMD_WRAPPED);
++		 MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
+ 
+ 	mlx4_free_cmd_mailbox(to_mdev(ibdev)->dev, mailbox);
+ 
+@@ -920,6 +923,7 @@ static int init_node_data(struct mlx4_ib_dev *dev)
+ 	if (err)
+ 		goto out;
+ 
++	dev->dev->rev_id = be32_to_cpup((__be32 *) (out_mad->data + 32));
+ 	memcpy(&dev->ib_dev.node_guid, out_mad->data + 12, 8);
+ 
+ out:
+@@ -1008,7 +1012,7 @@ static void update_gids_task(struct work_struct *work)
+ 
+ 	err = mlx4_cmd(dev, mailbox->dma, MLX4_SET_PORT_GID_TABLE << 8 | gw->port,
+ 		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
+-		       MLX4_CMD_NATIVE);
++		       MLX4_CMD_WRAPPED);
+ 	if (err)
+ 		pr_warn("set port command failed\n");
+ 	else {
+@@ -1399,10 +1403,12 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
+ 	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
+ 
+-	ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
+-	ibdev->ib_dev.map_phys_fmr	= mlx4_ib_map_phys_fmr;
+-	ibdev->ib_dev.unmap_fmr		= mlx4_ib_unmap_fmr;
+-	ibdev->ib_dev.dealloc_fmr	= mlx4_ib_fmr_dealloc;
++	if (!mlx4_is_slave(ibdev->dev)) {
++		ibdev->ib_dev.alloc_fmr		= mlx4_ib_fmr_alloc;
++		ibdev->ib_dev.map_phys_fmr	= mlx4_ib_map_phys_fmr;
++		ibdev->ib_dev.unmap_fmr		= mlx4_ib_unmap_fmr;
++		ibdev->ib_dev.dealloc_fmr	= mlx4_ib_fmr_dealloc;
 +	}
-+
- 	err = mlx4_ib_init_alias_guid_service(dev);
- 	if (err) {
- 		mlx4_ib_warn(&dev->ib_dev, "Failed init alias guid process.\n");
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index e57a220..e04cbc9 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -723,4 +723,7 @@ int mlx4_ib_device_register_sysfs(struct mlx4_ib_dev *device) ;
  
- void mlx4_ib_device_unregister_sysfs(struct mlx4_ib_dev *device);
+ 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC) {
+ 		ibdev->ib_dev.alloc_xrcd = mlx4_ib_alloc_xrcd;
+@@ -1614,7 +1620,11 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 		INIT_WORK(&ew->work, handle_port_mgmt_change_event);
+ 		memcpy(&ew->ib_eqe, eqe, sizeof *eqe);
+ 		ew->ib_dev = ibdev;
+-		handle_port_mgmt_change_event(&ew->work);
++		/* need to queue only for port owner, which uses GEN_EQE */
++		if (mlx4_is_master(dev))
++			queue_work(wq, &ew->work);
++		else
++			handle_port_mgmt_change_event(&ew->work);
+ 		return;
  
-+__be64 mlx4_ib_gen_node_guid(void);
-+
-+
- #endif /* MLX4_IB_H */
+ 	case MLX4_DEV_EVENT_SLAVE_INIT:
 diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-index 9717002..33df1db 100644
+index c13e988..9717002 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-@@ -651,6 +651,7 @@ static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
- 	struct ib_smp *outsmp = outbox->buf;
- 	__be16 *outtab = (__be16 *)(outsmp->data);
- 	__be32 slave_cap_mask;
-+	__be64 slave_node_guid;
- 	port = vhcr->in_modifier;
- 
- 	if (smp->base_version == 1 &&
-@@ -710,6 +711,16 @@ static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
- 				}
- 				return err;
- 			}
-+			if (smp->attr_id == IB_SMP_ATTR_NODE_INFO) {
-+				err = mlx4_cmd_box(dev, inbox->dma, outbox->dma,
-+					     vhcr->in_modifier, vhcr->op_modifier,
-+					     vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
-+				if (!err) {
-+					slave_node_guid =  mlx4_get_slave_node_guid(dev, slave);
-+					memcpy(outsmp->data + 12, &slave_node_guid, 8);
-+				}
-+				return err;
-+			}
- 		}
- 	}
- 	if (slave != mlx4_master_func_num(dev) &&
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index cd82607..d5e4238 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -438,6 +438,28 @@ void mlx4_sync_pkey_table(struct mlx4_dev *dev, int slave, int port, int i, int
- }
- EXPORT_SYMBOL(mlx4_sync_pkey_table);
- 
-+void mlx4_put_slave_node_guid(struct mlx4_dev *dev, int slave, __be64 guid)
-+{
-+	struct mlx4_priv *priv = container_of(dev, struct mlx4_priv, dev);
-+
-+	if (!mlx4_is_master(dev))
-+		return;
-+
-+	priv->slave_node_guids[slave] = guid;
-+}
-+EXPORT_SYMBOL(mlx4_put_slave_node_guid);
-+
-+__be64 mlx4_get_slave_node_guid(struct mlx4_dev *dev, int slave)
-+{
-+	struct mlx4_priv *priv = container_of(dev, struct mlx4_priv, dev);
-+
-+	if (!mlx4_is_master(dev))
-+		return 0;
-+
-+	return priv->slave_node_guids[slave];
-+}
-+EXPORT_SYMBOL(mlx4_get_slave_node_guid);
-+
- int mlx4_is_slave_active(struct mlx4_dev *dev, int slave)
+@@ -1712,6 +1712,7 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
+ 		INIT_WORK(&priv->mfunc.master.slave_flr_event_work,
+ 			  mlx4_master_handle_slave_flr);
+ 		spin_lock_init(&priv->mfunc.master.slave_state_lock);
++		spin_lock_init(&priv->mfunc.master.slave_eq.event_lock);
+ 		priv->mfunc.master.comm_wq =
+ 			create_singlethread_workqueue("mlx4_comm");
+ 		if (!priv->mfunc.master.comm_wq)
+diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
+index c425826..51c7649 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
+@@ -164,13 +164,16 @@ static void slave_event(struct mlx4_dev *dev, u8 slave, struct mlx4_eqe *eqe)
  {
  	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	struct mlx4_slave_event_eq *slave_eq = &priv->mfunc.master.slave_eq;
+-	struct mlx4_eqe *s_eqe =
+-		&slave_eq->event_eqe[slave_eq->prod & (SLAVE_EVENT_EQ_SIZE - 1)];
++	struct mlx4_eqe *s_eqe;
++	unsigned long flags;
+ 
++	spin_lock_irqsave(&slave_eq->event_lock, flags);
++	s_eqe = &slave_eq->event_eqe[slave_eq->prod & (SLAVE_EVENT_EQ_SIZE - 1)];
+ 	if ((!!(s_eqe->owner & 0x80)) ^
+ 	    (!!(slave_eq->prod & SLAVE_EVENT_EQ_SIZE))) {
+ 		mlx4_warn(dev, "Master failed to generate an EQE for slave: %d. "
+ 			  "No free EQE on slave events queue\n", slave);
++		spin_unlock_irqrestore(&slave_eq->event_lock, flags);
+ 		return;
+ 	}
+ 
+@@ -183,6 +186,7 @@ static void slave_event(struct mlx4_dev *dev, u8 slave, struct mlx4_eqe *eqe)
+ 
+ 	queue_work(priv->mfunc.master.comm_wq,
+ 		   &priv->mfunc.master.slave_event_work);
++	spin_unlock_irqrestore(&slave_eq->event_lock, flags);
+ }
+ 
+ static void mlx4_slave_event(struct mlx4_dev *dev, int slave,
 diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index 5c30488..d2ccec6 100644
+index 91e5ead..5c30488 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
 +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -734,6 +734,7 @@ struct mlx4_priv {
- 	int			reserved_mtts;
- 	int			fs_hash_mode;
- 	u8 virt2phys_pkey[MLX4_MFUNC_MAX][MLX4_MAX_PORTS][MLX4_MAX_PORT_PKEYS];
-+	__be64			slave_node_guids[MLX4_MFUNC_MAX];
- 
+@@ -473,6 +473,7 @@ struct mlx4_slave_event_eq {
+ 	u32 eqn;
+ 	u32 cons;
+ 	u32 prod;
++	spinlock_t event_lock;
+ 	struct mlx4_eqe event_eqe[SLAVE_EVENT_EQ_SIZE];
  };
  
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index f8c9316..a8cb149 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -968,5 +968,7 @@ int mlx4_gen_port_state_change_eqe(struct mlx4_dev *dev, int slave, u8 port, u8
- enum slave_port_state mlx4_get_slave_port_state(struct mlx4_dev *dev, int slave, u8 port);
- int set_and_calc_slave_port_state(struct mlx4_dev *dev, int slave, u8 port, int event, enum slave_port_gen_event *gen_event);
- 
-+void mlx4_put_slave_node_guid(struct mlx4_dev *dev, int slave, __be64 guid);
-+__be64 mlx4_get_slave_node_guid(struct mlx4_dev *dev, int slave);
- 
- #endif /* MLX4_DEVICE_H */
 -- 
 1.7.1
 
