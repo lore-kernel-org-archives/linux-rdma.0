@@ -1,84 +1,44 @@
-From: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
-Subject: Re: Kernel panic under 3.2.14 Xen dom0 and SCST trunk
-Date: Fri, 3 Aug 2012 08:51:59 +1000
-Message-ID: <CAOzFzEhN=1c68JM=tM5YbLyexORoq6yMBeJ4UTB+qUzYybm2wg@mail.gmail.com>
-References: <CAOzFzEjjbofQZyubdpH10WKeoE3-grMVdEOqJhJtbRtMdgCr=Q@mail.gmail.com>
-	<CAOzFzEjDHpTROUcKg9cOZkNSX1LnShSombgt26+VOptVdy5i-Q@mail.gmail.com>
-	<501A5EB0.4060904@acm.org>
-	<1343938328.25205.17.camel@frustration.ornl.gov>
+From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/ucma.c: Fix for ucma context uid=0, causing iWarp RDMA
+ applications to fail in connection establishment
+Date: Thu, 2 Aug 2012 19:12:26 -0500
+Message-ID: <20120803001226.GA8060@TENIKOLO-MOBL>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1343938328.25205.17.camel-zHLflQxYYDO4Hhoo1DtQwJ9G+ZOsUmrO@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3 August 2012 06:12, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
-> On Thu, 2012-08-02 at 11:04 +0000, Bart Van Assche wrote:
->> On 07/24/12 15:43, Joseph Glanville wrote:
->> > [35404.804723] BUG: unable to handle kernel NULL pointer dereference at (null)
->>
->> I've been able to reproduce this ib_srp crash. Apparently if an SRP
->> response is received after srp_reset_host() has been invoked
->> srp_process_rsp() tries to call scmnd->scsi_done(scmnd) with scsi_done
->> == NULL, hence the kernel oops. A candidate fix is available in this
->> (rebased) tree: http://github.com/bvanassche/linux/tree/srp-ha.
->
-> Hmm, I stopped looking at the thread when I noted the same points Roland
-> did -- it looked like it was in the target rather than the initiator,
-> and that ib_srp wasn't loaded (though it could have been built-in).
->
-> I think I'm good with your fix, given a few minor changes:
->       * rebase it to mainline (I tried it quickly, got conflicts that
->         should be simple to resolve)
->       * s/srp_remove_req/srp_claim_req/ as it doesn't remove the
->         request. This isn't an issue you introduced; it should probably
->         have been renamed some time ago.
->       * in srp_remove_req(), the test for (scmnd && req->scmnd == scmnd)
->         should probably be marked likely()
->       * Similarly, the !scmnd test in srp_process_rsp() should be
->         unlikely()
->       * The reclamation of credits should be moved to srp_free_req(),
->         since we could see the case where a credit is available without
->         a corresponding request structure.
->       * Get rid of the BUG_ON in srp_process_rsp(); in the past, I would
->         have probably added it myself, but Andrew Morton called me on
->         one I had tried to add, and he was right -- it doesn't add
->         anything.
->       * I wonder if srp_free_req() is the right name, but I think I'm
->         deep in bike-shedding territory here.
->
-> It'd be nice if we could avoid taking the lock twice in quick succession
-> during normal operations, but that's something for later.
->
-> We should get this into 3.6, and send it to stable as well. I can make
-> the changes if you'd like, just let me know.
->
-> Thanks,
->
-> --
-> Dave Dillow
-> National Center for Computational Science
-> Oak Ridge National Laboratory
-> (865) 241-6602 office
->
->
+Fix for ucma context uid=0, causing iWarp RDMA applications to fail in connection establishment.
 
-Hi Bart/David.
+If the context uid is not set before calling rdma_accept(), the RDMA_CM_EVENT_ESTABLISHED event generated asynchronously by successfull rdma_accept ends up with zero ucma context uid, resulting in segfault at librdmacm.so 
 
-I have had this deployed for a few hours now and haven't been able to
-trigger the crash again.
-Disconnecting targets works correctly as does removing luns.
+Signed-off-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/ucma.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Thanks. :)
-
-Joseph.
-
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 8002ae6..6cc40de 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -803,9 +803,8 @@ static ssize_t ucma_accept(struct ucma_file *file, const char __user *inbuf,
+ 	if (cmd.conn_param.valid) {
+ 		ucma_copy_conn_param(&conn_param, &cmd.conn_param);
+ 		mutex_lock(&file->mut);
++		ctx->uid = cmd.uid;
+ 		ret = rdma_accept(ctx->cm_id, &conn_param);
+-		if (!ret)
+-			ctx->uid = cmd.uid;
+ 		mutex_unlock(&file->mut);
+ 	} else
+ 		ret = rdma_accept(ctx->cm_id, NULL);
 -- 
-CTO | Orion Virtualisation Solutions | www.orionvm.com.au
-Phone: 1300 56 99 52 | Mobile: 0428 754 846
+1.7.4.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
