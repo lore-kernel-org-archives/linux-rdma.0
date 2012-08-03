@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V2 06/22] IB/mlx4: Initialize SRIOV IB support for slaves in master context
-Date: Fri,  3 Aug 2012 11:40:42 +0300
-Message-ID: <1343983258-6268-7-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V2 13/22] {NET,IB}/mlx4: Add alias_guid mechanism
+Date: Fri,  3 Aug 2012 11:40:49 +0300
+Message-ID: <1343983258-6268-14-git-send-email-jackm@dev.mellanox.co.il>
 References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1343983258-6268-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,1015 +10,1026 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allocate sriov paravirtualization resources and mad demuxing contexts
-on the master.
+For IB ports, we paravirtualize the GUID at index 0 on slaves.
+The GUID at index 0 seen by a slave is the actual GUID occupying
+the GUID table at the slave-id index.
 
-This has two parts.  The first part is to initialize the structures
-to contain the contexts.  This is done at master startup time
-(mlx4_ib_init_sriov).
+The driver, by default, request at startup time that subnet manager
+populate its entire guid table with GUIDs. These guids are then
+mapped (paravirtualized) to the slaves, and appear for each slave
+as its GUID at index 0.
 
-The second part is to actually create the tunneling resources required
-on the master to support a slave.  This is performed the master detects
-that a slave has started up (MLX4_DEV_EVENT_SLAVE_INIT event generated
-when a slave initializes its comm channel).
+Until each slave has such a guid, its port status is DOWN.
 
-For the master, there is no such startup event, so it creates its own
-tunneling resources when it starts up.  In addition, the master also
-creates the real special QPs. (The ib_core layer on the master causes
-creation of proxy special qp's, since the master is also
-paravirtualized at the ib_core layer).
+The guid table is cached to support SQP paravirtualization, and event
+propagation to slaves on guid change (we test to see if the guid really
+changed before propagating an event to the slave).
+
+To support this caching, added capability to __mlx4_ib_query_gid()
+to obtain the network view (i.e., physical view) gid at index X,
+not just the host (paravirtualized) view.
+
+Based on a patch from Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c         |  684 ++++++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx4/main.c        |   80 ++++-
- drivers/infiniband/hw/mlx4/mlx4_ib.h     |   34 ++
- drivers/net/ethernet/mellanox/mlx4/cmd.c |    3 +
- include/linux/mlx4/device.h              |    3 +-
- include/linux/mlx4/driver.h              |    2 +
- 6 files changed, 798 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx4/Makefile      |    2 +-
+ drivers/infiniband/hw/mlx4/alias_GUID.c  |  688 ++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx4/mad.c         |   19 +-
+ drivers/infiniband/hw/mlx4/main.c        |   37 ++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h     |   74 ++++
+ drivers/net/ethernet/mellanox/mlx4/cmd.c |    6 +-
+ 6 files changed, 816 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mlx4/alias_GUID.c
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index c27141f..d955cc4 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -44,6 +44,35 @@ enum {
- 	MLX4_IB_VENDOR_CLASS2 = 0xa
- };
+diff --git a/drivers/infiniband/hw/mlx4/Makefile b/drivers/infiniband/hw/mlx4/Makefile
+index bf0aa90..31d4c8a 100644
+--- a/drivers/infiniband/hw/mlx4/Makefile
++++ b/drivers/infiniband/hw/mlx4/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_MLX4_INFINIBAND)	+= mlx4_ib.o
  
-+#define MLX4_TUN_SEND_WRID_SHIFT 34
-+#define MLX4_TUN_QPN_SHIFT 32
-+#define MLX4_TUN_WRID_RECV (((u64) 1) << MLX4_TUN_SEND_WRID_SHIFT)
-+#define MLX4_TUN_SET_WRID_QPN(a) (((u64) ((a) & 0x3)) << MLX4_TUN_QPN_SHIFT)
-+
-+#define MLX4_TUN_IS_RECV(a)  (((a) >>  MLX4_TUN_SEND_WRID_SHIFT) & 0x1)
-+#define MLX4_TUN_WRID_QPN(a) (((a) >> MLX4_TUN_QPN_SHIFT) & 0x3)
-+
-+struct mlx4_mad_rcv_buf {
-+	struct ib_grh grh;
-+	u8 payload[256];
-+} __packed;
-+
-+struct mlx4_mad_snd_buf {
-+	u8 payload[256];
-+} __packed;
-+
-+struct mlx4_tunnel_mad {
-+	struct ib_grh grh;
-+	struct mlx4_ib_tunnel_header hdr;
-+	struct ib_mad mad;
-+} __packed;
-+
-+struct mlx4_rcv_tunnel_mad {
-+	struct mlx4_rcv_tunnel_hdr hdr;
-+	struct ib_grh grh;
-+	struct ib_mad mad;
-+} __packed;
-+
- int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
- 		 int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
- 		 void *in_mad, void *response_mad)
-@@ -512,3 +541,658 @@ void mlx4_ib_dispatch_event(struct mlx4_ib_dev *dev, u8 port_num,
- 
- 	ib_dispatch_event(&event);
- }
-+
-+static void mlx4_ib_tunnel_comp_handler(struct ib_cq *cq, void *arg)
-+{
-+	unsigned long flags;
-+	struct mlx4_ib_demux_pv_ctx *ctx = cq->cq_context;
-+	struct mlx4_ib_dev *dev = to_mdev(ctx->ib_dev);
-+	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
-+	if (!dev->sriov.is_going_down && ctx->state == DEMUX_PV_STATE_ACTIVE)
-+		queue_work(ctx->wq, &ctx->work);
-+	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
-+}
-+
-+static int mlx4_ib_post_pv_qp_buf(struct mlx4_ib_demux_pv_ctx *ctx,
-+				  struct mlx4_ib_demux_pv_qp *tun_qp,
-+				  int index)
-+{
-+	struct ib_sge sg_list;
-+	struct ib_recv_wr recv_wr, *bad_recv_wr;
-+	int size;
-+
-+	size = (tun_qp->qp->qp_type == IB_QPT_UD) ?
-+		sizeof(struct mlx4_tunnel_mad) : sizeof(struct mlx4_mad_rcv_buf);
-+
-+	sg_list.addr = tun_qp->ring[index].map;
-+	sg_list.length = size;
-+	sg_list.lkey = ctx->mr->lkey;
-+
-+	recv_wr.next = NULL;
-+	recv_wr.sg_list = &sg_list;
-+	recv_wr.num_sge = 1;
-+	recv_wr.wr_id = (u64) index | MLX4_TUN_WRID_RECV |
-+		MLX4_TUN_SET_WRID_QPN(tun_qp->proxy_qpt);
-+	ib_dma_sync_single_for_device(ctx->ib_dev, tun_qp->ring[index].map,
-+				      size, DMA_FROM_DEVICE);
-+	return ib_post_recv(tun_qp->qp, &recv_wr, &bad_recv_wr);
-+}
-+
-+static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
-+				 enum ib_qp_type qp_type, int is_tun)
-+{
-+	int i;
-+	struct mlx4_ib_demux_pv_qp *tun_qp;
-+	int rx_buf_size, tx_buf_size;
-+
-+	if (qp_type > IB_QPT_GSI)
-+		return -EINVAL;
-+
-+	tun_qp = &ctx->qp[qp_type];
-+
-+	tun_qp->ring = kzalloc(sizeof(struct mlx4_ib_buf) * MLX4_NUM_TUNNEL_BUFS,
-+			       GFP_KERNEL);
-+	if (!tun_qp->ring)
-+		return -ENOMEM;
-+
-+	tun_qp->tx_ring = kzalloc(sizeof(struct mlx4_ib_tun_tx_buf) *
-+				  MLX4_NUM_TUNNEL_BUFS,
-+				  GFP_KERNEL);
-+	if (!tun_qp->tx_ring) {
-+		kfree(tun_qp->ring);
-+		tun_qp->ring = NULL;
-+		return -ENOMEM;
-+	}
-+
-+	if (is_tun) {
-+		rx_buf_size = sizeof(struct mlx4_tunnel_mad);
-+		tx_buf_size = sizeof(struct mlx4_rcv_tunnel_mad);
-+	} else {
-+		rx_buf_size = sizeof(struct mlx4_mad_rcv_buf);
-+		tx_buf_size = sizeof(struct mlx4_mad_snd_buf);
-+	}
-+
-+	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
-+		tun_qp->ring[i].addr = kmalloc(rx_buf_size, GFP_KERNEL);
-+		if (!tun_qp->ring[i].addr)
-+			goto err;
-+		tun_qp->ring[i].map = ib_dma_map_single(ctx->ib_dev,
-+							tun_qp->ring[i].addr,
-+							rx_buf_size,
-+							DMA_FROM_DEVICE);
-+	}
-+
-+	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
-+		tun_qp->tx_ring[i].buf.addr =
-+			kmalloc(tx_buf_size, GFP_KERNEL);
-+		if (!tun_qp->tx_ring[i].buf.addr)
-+			goto tx_err;
-+		tun_qp->tx_ring[i].buf.map =
-+			ib_dma_map_single(ctx->ib_dev,
-+					  tun_qp->tx_ring[i].buf.addr,
-+					  tx_buf_size,
-+					  DMA_TO_DEVICE);
-+		tun_qp->tx_ring[i].ah = NULL;
-+	}
-+	spin_lock_init(&tun_qp->tx_lock);
-+	tun_qp->tx_ix_head = 0;
-+	tun_qp->tx_ix_tail = 0;
-+	tun_qp->proxy_qpt = qp_type;
-+
-+	return 0;
-+
-+tx_err:
-+	while (i > 0) {
-+		--i;
-+		ib_dma_unmap_single(ctx->ib_dev, tun_qp->tx_ring[i].buf.map,
-+				    tx_buf_size, DMA_TO_DEVICE);
-+		kfree(tun_qp->tx_ring[i].buf.addr);
-+	}
-+	kfree(tun_qp->tx_ring);
-+	tun_qp->tx_ring = NULL;
-+	i = MLX4_NUM_TUNNEL_BUFS;
-+err:
-+	while (i > 0) {
-+		--i;
-+		ib_dma_unmap_single(ctx->ib_dev, tun_qp->ring[i].map,
-+				    rx_buf_size, DMA_FROM_DEVICE);
-+		kfree(tun_qp->ring[i].addr);
-+	}
-+	kfree(tun_qp->ring);
-+	tun_qp->ring = NULL;
-+	return -ENOMEM;
-+}
-+
-+static void mlx4_ib_free_pv_qp_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
-+				     enum ib_qp_type qp_type, int is_tun)
-+{
-+	int i;
-+	struct mlx4_ib_demux_pv_qp *tun_qp;
-+	int rx_buf_size, tx_buf_size;
-+
-+	if (qp_type > IB_QPT_GSI)
-+		return;
-+
-+	tun_qp = &ctx->qp[qp_type];
-+	if (is_tun) {
-+		rx_buf_size = sizeof(struct mlx4_tunnel_mad);
-+		tx_buf_size = sizeof(struct mlx4_rcv_tunnel_mad);
-+	} else {
-+		rx_buf_size = sizeof(struct mlx4_mad_rcv_buf);
-+		tx_buf_size = sizeof(struct mlx4_mad_snd_buf);
-+	}
-+
-+
-+	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
-+		ib_dma_unmap_single(ctx->ib_dev, tun_qp->ring[i].map,
-+				    rx_buf_size, DMA_FROM_DEVICE);
-+		kfree(tun_qp->ring[i].addr);
-+	}
-+
-+	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
-+		ib_dma_unmap_single(ctx->ib_dev, tun_qp->tx_ring[i].buf.map,
-+				    tx_buf_size, DMA_TO_DEVICE);
-+		kfree(tun_qp->tx_ring[i].buf.addr);
-+		if (tun_qp->tx_ring[i].ah)
-+			ib_destroy_ah(tun_qp->tx_ring[i].ah);
-+	}
-+	kfree(tun_qp->tx_ring);
-+	kfree(tun_qp->ring);
-+}
-+
-+static void mlx4_ib_tunnel_comp_worker(struct work_struct *work)
-+{
-+	/* dummy until next patch in series */
-+}
-+
-+static void pv_qp_event_handler(struct ib_event *event, void *qp_context)
-+{
-+	struct mlx4_ib_demux_pv_ctx *sqp = qp_context;
-+
-+	/* It's worse than that! He's dead, Jim! */
-+	pr_err("Fatal error (%d) on a MAD QP on port %d\n",
-+	       event->event, sqp->port);
-+}
-+
-+static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
-+			    enum ib_qp_type qp_type, int create_tun)
-+{
-+	int i, ret;
-+	struct mlx4_ib_demux_pv_qp *tun_qp;
-+	struct mlx4_ib_qp_tunnel_init_attr qp_init_attr;
-+	struct ib_qp_attr attr;
-+	int qp_attr_mask_INIT;
-+
-+	if (qp_type > IB_QPT_GSI)
-+		return -EINVAL;
-+
-+	tun_qp = &ctx->qp[qp_type];
-+
-+	memset(&qp_init_attr, 0, sizeof qp_init_attr);
-+	qp_init_attr.init_attr.send_cq = ctx->cq;
-+	qp_init_attr.init_attr.recv_cq = ctx->cq;
-+	qp_init_attr.init_attr.sq_sig_type = IB_SIGNAL_ALL_WR;
-+	qp_init_attr.init_attr.cap.max_send_wr = MLX4_NUM_TUNNEL_BUFS;
-+	qp_init_attr.init_attr.cap.max_recv_wr = MLX4_NUM_TUNNEL_BUFS;
-+	qp_init_attr.init_attr.cap.max_send_sge = 1;
-+	qp_init_attr.init_attr.cap.max_recv_sge = 1;
-+	if (create_tun) {
-+		qp_init_attr.init_attr.qp_type = IB_QPT_UD;
-+		qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_TUNNEL_QP;
-+		qp_init_attr.port = ctx->port;
-+		qp_init_attr.slave = ctx->slave;
-+		qp_init_attr.proxy_qp_type = qp_type;
-+		qp_attr_mask_INIT = IB_QP_STATE | IB_QP_PKEY_INDEX |
-+			   IB_QP_QKEY | IB_QP_PORT;
-+	} else {
-+		qp_init_attr.init_attr.qp_type = qp_type;
-+		qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
-+		qp_attr_mask_INIT = IB_QP_STATE | IB_QP_PKEY_INDEX | IB_QP_QKEY;
-+	}
-+	qp_init_attr.init_attr.port_num = ctx->port;
-+	qp_init_attr.init_attr.qp_context = ctx;
-+	qp_init_attr.init_attr.event_handler = pv_qp_event_handler;
-+	tun_qp->qp = ib_create_qp(ctx->pd, &qp_init_attr.init_attr);
-+	if (IS_ERR(tun_qp->qp)) {
-+		ret = PTR_ERR(tun_qp->qp);
-+		tun_qp->qp = NULL;
-+		pr_err("Couldn't create %s QP (%d)\n",
-+		       create_tun ? "tunnel" : "special", ret);
-+		return ret;
-+	}
-+
-+	memset(&attr, 0, sizeof attr);
-+	attr.qp_state = IB_QPS_INIT;
-+	attr.pkey_index =
-+		to_mdev(ctx->ib_dev)->pkeys.virt2phys_pkey[ctx->slave][ctx->port - 1][0];
-+	attr.qkey = IB_QP1_QKEY;
-+	attr.port_num = ctx->port;
-+	ret = ib_modify_qp(tun_qp->qp, &attr, qp_attr_mask_INIT);
-+	if (ret) {
-+		pr_err("Couldn't change %s qp state to INIT (%d)\n",
-+		       create_tun ? "tunnel" : "special", ret);
-+		goto err_qp;
-+	}
-+	attr.qp_state = IB_QPS_RTR;
-+	ret = ib_modify_qp(tun_qp->qp, &attr, IB_QP_STATE);
-+	if (ret) {
-+		pr_err("Couldn't change %s qp state to RTR (%d)\n",
-+		       create_tun ? "tunnel" : "special", ret);
-+		goto err_qp;
-+	}
-+	attr.qp_state = IB_QPS_RTS;
-+	attr.sq_psn = 0;
-+	ret = ib_modify_qp(tun_qp->qp, &attr, IB_QP_STATE | IB_QP_SQ_PSN);
-+	if (ret) {
-+		pr_err("Couldn't change %s qp state to RTS (%d)\n",
-+		       create_tun ? "tunnel" : "special", ret);
-+		goto err_qp;
-+	}
-+
-+	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
-+		ret = mlx4_ib_post_pv_qp_buf(ctx, tun_qp, i);
-+		if (ret) {
-+			pr_err(" mlx4_ib_post_pv_buf error"
-+			       " (err = %d, i = %d)\n", ret, i);
-+			goto err_qp;
-+		}
-+	}
-+	return 0;
-+
-+err_qp:
-+	ib_destroy_qp(tun_qp->qp);
-+	tun_qp->qp = NULL;
-+	return ret;
-+}
+-mlx4_ib-y :=	ah.o cq.o doorbell.o mad.o main.o mr.o qp.o srq.o mcg.o cm.o
++mlx4_ib-y :=	ah.o cq.o doorbell.o mad.o main.o mr.o qp.o srq.o mcg.o cm.o alias_GUID.o
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+new file mode 100644
+index 0000000..9db1581
+--- /dev/null
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -0,0 +1,688 @@
++/*
++ * Copyright (c) 2012 Mellanox Technologies. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++ /***********************************************************/
++/*This file support the handling of the Alias GUID feature. */
++/***********************************************************/
++#include <rdma/ib_mad.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_cache.h>
++#include <rdma/ib_sa.h>
++#include <rdma/ib_pack.h>
++#include <linux/mlx4/cmd.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/errno.h>
++#include <rdma/ib_user_verbs.h>
++#include <linux/delay.h>
++#include "mlx4_ib.h"
 +
 +/*
-+ * IB MAD completion callback for real SQPs
-+ */
-+static void mlx4_ib_sqp_comp_worker(struct work_struct *work)
-+{
-+	/* dummy until next patch in series */
-+}
++The driver keeps the current state of all guids, as they are in the HW.
++Whenever we receive an smp mad GUIDInfo record, the data will be cached.
++*/
 +
-+static int alloc_pv_object(struct mlx4_ib_dev *dev, int slave, int port,
-+			       struct mlx4_ib_demux_pv_ctx **ret_ctx)
-+{
-+	struct mlx4_ib_demux_pv_ctx *ctx;
++struct mlx4_alias_guid_work_context {
++	u8 port;
++	struct mlx4_ib_dev     *dev ;
++	struct ib_sa_query     *sa_query;
++	struct completion	done;
++	int			query_id;
++	struct list_head	list;
++	int			block_num;
++};
 +
-+	*ret_ctx = NULL;
-+	ctx = kzalloc(sizeof(struct mlx4_ib_demux_pv_ctx), GFP_KERNEL);
-+	if (!ctx) {
-+		pr_err("failed allocating pv resource context "
-+		       "for port %d, slave %d\n", port, slave);
-+		return -ENOMEM;
-+	}
-+
-+	ctx->ib_dev = &dev->ib_dev;
-+	ctx->port = port;
-+	ctx->slave = slave;
-+	*ret_ctx = ctx;
-+	return 0;
-+}
-+
-+static void free_pv_object(struct mlx4_ib_dev *dev, int slave, int port)
-+{
-+	if (dev->sriov.demux[port - 1].tun[slave]) {
-+		kfree(dev->sriov.demux[port - 1].tun[slave]);
-+		dev->sriov.demux[port - 1].tun[slave] = NULL;
-+	}
-+}
-+
-+static int create_pv_resources(struct ib_device *ibdev, int slave, int port,
-+			       int create_tun, struct mlx4_ib_demux_pv_ctx *ctx)
-+{
-+	int ret, cq_size;
-+
-+	ctx->state = DEMUX_PV_STATE_STARTING;
-+	/* have QP0 only on port owner, and only if link layer is IB */
-+	if (ctx->slave == mlx4_master_func_num(to_mdev(ctx->ib_dev)->dev) &&
-+	    rdma_port_get_link_layer(ibdev, ctx->port) == IB_LINK_LAYER_INFINIBAND)
-+		ctx->has_smi = 1;
-+
-+	if (ctx->has_smi) {
-+		ret = mlx4_ib_alloc_pv_bufs(ctx, IB_QPT_SMI, create_tun);
-+		if (ret) {
-+			pr_err("Failed allocating qp0 tunnel bufs (%d)\n", ret);
-+			goto err_out;
-+		}
-+	}
-+
-+	ret = mlx4_ib_alloc_pv_bufs(ctx, IB_QPT_GSI, create_tun);
-+	if (ret) {
-+		pr_err("Failed allocating qp1 tunnel bufs (%d)\n", ret);
-+		goto err_out_qp0;
-+	}
-+
-+	cq_size = 2 * MLX4_NUM_TUNNEL_BUFS;
-+	if (ctx->has_smi)
-+		cq_size *= 2;
-+
-+	ctx->cq = ib_create_cq(ctx->ib_dev, mlx4_ib_tunnel_comp_handler,
-+			       NULL, ctx, cq_size, 0);
-+	if (IS_ERR(ctx->cq)) {
-+		ret = PTR_ERR(ctx->cq);
-+		pr_err("Couldn't create tunnel CQ (%d)\n", ret);
-+		goto err_buf;
-+	}
-+
-+	ctx->pd = ib_alloc_pd(ctx->ib_dev);
-+	if (IS_ERR(ctx->pd)) {
-+		ret = PTR_ERR(ctx->pd);
-+		pr_err("Couldn't create tunnel PD (%d)\n", ret);
-+		goto err_cq;
-+	}
-+
-+	ctx->mr = ib_get_dma_mr(ctx->pd, IB_ACCESS_LOCAL_WRITE);
-+	if (IS_ERR(ctx->mr)) {
-+		ret = PTR_ERR(ctx->mr);
-+		pr_err("Couldn't get tunnel DMA MR (%d)\n", ret);
-+		goto err_pd;
-+	}
-+
-+	if (ctx->has_smi) {
-+		ret = create_pv_sqp(ctx, IB_QPT_SMI, create_tun);
-+		if (ret) {
-+			pr_err("Couldn't create %s QP0 (%d)\n",
-+			       create_tun ? "tunnel for" : "",  ret);
-+			goto err_mr;
-+		}
-+	}
-+
-+	ret = create_pv_sqp(ctx, IB_QPT_GSI, create_tun);
-+	if (ret) {
-+		pr_err("Couldn't create %s QP1 (%d)\n",
-+		       create_tun ? "tunnel for" : "",  ret);
-+		goto err_qp0;
-+	}
-+
-+	if (create_tun)
-+		INIT_WORK(&ctx->work, mlx4_ib_tunnel_comp_worker);
-+	else
-+		INIT_WORK(&ctx->work, mlx4_ib_sqp_comp_worker);
-+
-+	ctx->wq = to_mdev(ibdev)->sriov.demux[port - 1].wq;
-+
-+	ret = ib_req_notify_cq(ctx->cq, IB_CQ_NEXT_COMP);
-+	if (ret) {
-+		pr_err("Couldn't arm tunnel cq (%d)\n", ret);
-+		goto err_wq;
-+	}
-+	ctx->state = DEMUX_PV_STATE_ACTIVE;
-+	return 0;
-+
-+err_wq:
-+	ctx->wq = NULL;
-+	ib_destroy_qp(ctx->qp[1].qp);
-+	ctx->qp[1].qp = NULL;
++struct mlx4_next_alias_guid_work {
++	u8 port;
++	u8 block_num;
++	struct mlx4_sriov_alias_guid_info_rec_det rec_det;
++};
 +
 +
-+err_qp0:
-+	if (ctx->has_smi)
-+		ib_destroy_qp(ctx->qp[0].qp);
-+	ctx->qp[0].qp = NULL;
-+
-+err_mr:
-+	ib_dereg_mr(ctx->mr);
-+	ctx->mr = NULL;
-+
-+err_pd:
-+	ib_dealloc_pd(ctx->pd);
-+	ctx->pd = NULL;
-+
-+err_cq:
-+	ib_destroy_cq(ctx->cq);
-+	ctx->cq = NULL;
-+
-+err_buf:
-+	mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_GSI, create_tun);
-+
-+err_out_qp0:
-+	if (ctx->has_smi)
-+		mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_SMI, create_tun);
-+err_out:
-+	ctx->state = DEMUX_PV_STATE_DOWN;
-+	return ret;
-+}
-+
-+static void destroy_pv_resources(struct mlx4_ib_dev *dev, int slave, int port,
-+				 struct mlx4_ib_demux_pv_ctx *ctx, int flush)
-+{
-+	if (!ctx)
-+		return;
-+	if (ctx->state > DEMUX_PV_STATE_DOWN) {
-+		ctx->state = DEMUX_PV_STATE_DOWNING;
-+		if (flush)
-+			flush_workqueue(ctx->wq);
-+		if (ctx->has_smi) {
-+			ib_destroy_qp(ctx->qp[0].qp);
-+			ctx->qp[0].qp = NULL;
-+			mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_SMI, 1);
-+		}
-+		ib_destroy_qp(ctx->qp[1].qp);
-+		ctx->qp[1].qp = NULL;
-+		mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_GSI, 1);
-+		ib_dereg_mr(ctx->mr);
-+		ctx->mr = NULL;
-+		ib_dealloc_pd(ctx->pd);
-+		ctx->pd = NULL;
-+		ib_destroy_cq(ctx->cq);
-+		ctx->cq = NULL;
-+		ctx->state = DEMUX_PV_STATE_DOWN;
-+	}
-+}
-+
-+static int mlx4_ib_tunnels_update(struct mlx4_ib_dev *dev, int slave,
-+				  int port, int do_init)
-+{
-+	int ret = 0;
-+
-+	if (!do_init) {
-+		/* for master, destroy real sqp resources */
-+		if (slave == mlx4_master_func_num(dev->dev))
-+			destroy_pv_resources(dev, slave, port,
-+					     dev->sriov.sqps[port - 1], 1);
-+		/* destroy the tunnel qp resources */
-+		destroy_pv_resources(dev, slave, port,
-+				     dev->sriov.demux[port - 1].tun[slave], 1);
-+		return 0;
-+	}
-+
-+	/* create the tunnel qp resources */
-+	ret = create_pv_resources(&dev->ib_dev, slave, port, 1,
-+				  dev->sriov.demux[port - 1].tun[slave]);
-+
-+	/* for master, create the real sqp resources */
-+	if (!ret && slave == mlx4_master_func_num(dev->dev))
-+		ret = create_pv_resources(&dev->ib_dev, slave, port, 0,
-+					  dev->sriov.sqps[port - 1]);
-+	return ret;
-+}
-+
-+void mlx4_ib_tunnels_update_work(struct work_struct *work)
-+{
-+	struct mlx4_ib_demux_work *dmxw;
-+
-+	dmxw = container_of(work, struct mlx4_ib_demux_work, work);
-+	mlx4_ib_tunnels_update(dmxw->dev, dmxw->slave, (int) dmxw->port,
-+			       dmxw->do_init);
-+	kfree(dmxw);
-+	return;
-+}
-+
-+static int mlx4_ib_alloc_demux_ctx(struct mlx4_ib_dev *dev,
-+				       struct mlx4_ib_demux_ctx *ctx,
-+				       int port)
-+{
-+	char name[12];
-+	int ret = 0;
-+	int i;
-+
-+	ctx->tun = kzalloc(dev->dev->caps.sqp_demux *
-+			   sizeof(struct mlx4_ib_demux_pv_ctx *), GFP_KERNEL);
-+	if (!ctx->tun)
-+		return -ENOMEM;
-+
-+	ctx->dev = dev;
-+	ctx->port = port;
-+	ctx->ib_dev = &dev->ib_dev;
-+
-+	for (i = 0; i < dev->dev->caps.sqp_demux; i++) {
-+		ret = alloc_pv_object(dev, i, port, &ctx->tun[i]);
-+		if (ret) {
-+			ret = -ENOMEM;
-+			goto err_wq;
-+		}
-+	}
-+
-+	snprintf(name, sizeof name, "mlx4_ibt%d", port);
-+	ctx->wq = create_singlethread_workqueue(name);
-+	if (!ctx->wq) {
-+		pr_err("Failed to create tunnelling WQ for port %d\n", port);
-+		ret = -ENOMEM;
-+		goto err_wq;
-+	}
-+
-+	snprintf(name, sizeof name, "mlx4_ibud%d", port);
-+	ctx->ud_wq = create_singlethread_workqueue(name);
-+	if (!ctx->ud_wq) {
-+		pr_err("Failed to create up/down WQ for port %d\n", port);
-+		ret = -ENOMEM;
-+		goto err_udwq;
-+	}
-+
-+	return 0;
-+
-+err_udwq:
-+	destroy_workqueue(ctx->wq);
-+	ctx->wq = NULL;
-+
-+err_wq:
-+	for (i = 0; i < dev->dev->caps.sqp_demux; i++)
-+		free_pv_object(dev, i, port);
-+	kfree(ctx->tun);
-+	ctx->tun = NULL;
-+	return ret;
-+}
-+
-+static void mlx4_ib_free_sqp_ctx(struct mlx4_ib_demux_pv_ctx *sqp_ctx)
-+{
-+	if (sqp_ctx->state > DEMUX_PV_STATE_DOWN) {
-+		sqp_ctx->state = DEMUX_PV_STATE_DOWNING;
-+		flush_workqueue(sqp_ctx->wq);
-+		if (sqp_ctx->has_smi) {
-+			ib_destroy_qp(sqp_ctx->qp[0].qp);
-+			sqp_ctx->qp[0].qp = NULL;
-+			mlx4_ib_free_pv_qp_bufs(sqp_ctx, IB_QPT_SMI, 0);
-+		}
-+		ib_destroy_qp(sqp_ctx->qp[1].qp);
-+		sqp_ctx->qp[1].qp = NULL;
-+		mlx4_ib_free_pv_qp_bufs(sqp_ctx, IB_QPT_GSI, 0);
-+		ib_dereg_mr(sqp_ctx->mr);
-+		sqp_ctx->mr = NULL;
-+		ib_dealloc_pd(sqp_ctx->pd);
-+		sqp_ctx->pd = NULL;
-+		ib_destroy_cq(sqp_ctx->cq);
-+		sqp_ctx->cq = NULL;
-+		sqp_ctx->state = DEMUX_PV_STATE_DOWN;
-+	}
-+}
-+
-+static void mlx4_ib_free_demux_ctx(struct mlx4_ib_demux_ctx *ctx)
++void mlx4_ib_update_cache_on_guid_change(struct mlx4_ib_dev *dev, int block_num,
++					 u8 port_num, u8 *p_data)
 +{
 +	int i;
-+	if (ctx) {
-+		struct mlx4_ib_dev *dev = to_mdev(ctx->ib_dev);
-+		for (i = 0; i < dev->dev->caps.sqp_demux; i++) {
-+			if (!ctx->tun[i])
-+				continue;
-+			if (ctx->tun[i]->state > DEMUX_PV_STATE_DOWN)
-+				ctx->tun[i]->state = DEMUX_PV_STATE_DOWNING;
-+		}
-+		flush_workqueue(ctx->wq);
-+		for (i = 0; i < dev->dev->caps.sqp_demux; i++) {
-+			destroy_pv_resources(dev, i, ctx->port, ctx->tun[i], 0);
-+			free_pv_object(dev, i, ctx->port);
-+		}
-+		kfree(ctx->tun);
-+		destroy_workqueue(ctx->ud_wq);
-+		destroy_workqueue(ctx->wq);
-+	}
-+}
-+
-+static void mlx4_ib_master_tunnels(struct mlx4_ib_dev *dev, int do_init)
-+{
-+	int i;
++	u64 guid_indexes;
++	int slave_id;
++	int port_index = port_num - 1;
 +
 +	if (!mlx4_is_master(dev->dev))
 +		return;
-+	/* initialize or tear down tunnel QPs for the master */
-+	for (i = 0; i < dev->dev->caps.num_ports; i++)
-+		mlx4_ib_tunnels_update(dev, mlx4_master_func_num(dev->dev), i + 1, do_init);
-+	return;
++
++	guid_indexes = be64_to_cpu((__force __be64) dev->sriov.alias_guid.
++				   ports_guid[port_num - 1].
++				   all_rec_per_port[block_num].guid_indexes);
++	pr_debug("port: %d, guid_indexes: 0x%llx\n", port_num, guid_indexes);
++
++	for (i = 0; i < NUM_ALIAS_GUID_IN_REC; i++) {
++		/* The location of the specific index starts from bit number 4
++		 * until bit num 11 */
++		if (test_bit(i + 4, (unsigned long *)&guid_indexes)) {
++			slave_id = (block_num * NUM_ALIAS_GUID_IN_REC) + i ;
++			if (slave_id >= dev->dev->num_slaves) {
++				pr_debug("The last slave: %d\n", slave_id);
++				return;
++			}
++
++			/* cache the guid: */
++			memcpy(&dev->sriov.demux[port_index].guid_cache[slave_id],
++			       &p_data[i * GUID_REC_SIZE],
++			       GUID_REC_SIZE);
++		} else
++			pr_debug("Guid number: %d in block: %d"
++				 " was not updated\n", i, block_num);
++	}
 +}
 +
-+int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
++static __be64 get_cached_alias_guid(struct mlx4_ib_dev *dev, int port, int index)
 +{
-+	int i = 0;
-+	int err;
-+
-+	if (!mlx4_is_mfunc(dev->dev))
-+		return 0;
-+
-+	dev->sriov.is_going_down = 0;
-+	spin_lock_init(&dev->sriov.going_down_lock);
-+
-+	mlx4_ib_warn(&dev->ib_dev, "multi-function enabled\n");
-+
-+	if (mlx4_is_slave(dev->dev)) {
-+		mlx4_ib_warn(&dev->ib_dev, "operating in qp1 tunnel mode\n");
-+		return 0;
++	if (index >= NUM_ALIAS_GUID_PER_PORT) {
++		pr_err("%s: ERROR: asked for index:%d\n", __func__, index);
++		return  (__force __be64) ((u64) 0xFFFFFFFFFFFFFFFFUL);
 +	}
-+
-+	mlx4_ib_warn(&dev->ib_dev, "initializing demux service for %d qp1 clients\n",
-+		     dev->dev->caps.sqp_demux);
-+	for (i = 0; i < dev->num_ports; i++) {
-+		err = alloc_pv_object(dev, mlx4_master_func_num(dev->dev), i + 1,
-+				      &dev->sriov.sqps[i]);
-+		if (err)
-+			goto demux_err;
-+		err = mlx4_ib_alloc_demux_ctx(dev, &dev->sriov.demux[i], i + 1);
-+		if (err)
-+			goto demux_err;
-+	}
-+	mlx4_ib_master_tunnels(dev, 1);
-+	return 0;
-+
-+demux_err:
-+	while (i > 0) {
-+		free_pv_object(dev, mlx4_master_func_num(dev->dev), i + 1);
-+		mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
-+		--i;
-+	}
-+
-+	return err;
++	return *(__be64 *)&dev->sriov.demux[port - 1].guid_cache[index];
 +}
 +
-+void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev)
++
++static ib_sa_comp_mask get_aguid_comp_mask_from_ix(int index)
++{
++	return IB_SA_COMP_MASK(4 + index);
++}
++
++/*
++ * Whenever new GUID is set/unset (guid table change) create event and
++ * notify the relevant slave (master also should be notified).
++ * If the GUID value is not as we have in the cache the slave will not be
++ * updated; in this case it waits for the smp_snoop or the port management
++ * event to call the function and to update the slave.
++ * block_number - the index of the block (16 blocks available)
++ * port_number - 1 or 2
++ */
++void mlx4_ib_notify_slaves_on_guid_change(struct mlx4_ib_dev *dev,
++					  int block_num, u8 port_num,
++					  u8 *p_data)
 +{
 +	int i;
-+	unsigned long flags;
++	u64 guid_indexes;
++	int slave_id;
++	enum slave_port_state new_state;
++	enum slave_port_state prev_state;
++	__be64 tmp_cur_ag, form_cache_ag;
++	enum slave_port_gen_event gen_event;
 +
-+	if (!mlx4_is_mfunc(dev->dev))
++	if (!mlx4_is_master(dev->dev))
 +		return;
 +
-+	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
-+	dev->sriov.is_going_down = 1;
-+	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
-+	if (mlx4_is_master(dev->dev))
-+		for (i = 0; i < dev->num_ports; i++) {
-+			flush_workqueue(dev->sriov.demux[i].ud_wq);
-+			mlx4_ib_free_sqp_ctx(dev->sriov.sqps[i]);
-+			kfree(dev->sriov.sqps[i]);
-+			dev->sriov.sqps[i] = NULL;
-+			mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
++	guid_indexes = be64_to_cpu((__force __be64) dev->sriov.alias_guid.
++				   ports_guid[port_num - 1].
++				   all_rec_per_port[block_num].guid_indexes);
++	pr_debug("port: %d, guid_indexes: 0x%llx\n", port_num, guid_indexes);
++
++	/*calculate the slaves and notify them*/
++	for (i = 0; i < NUM_ALIAS_GUID_IN_REC; i++) {
++		/* the location of the specific index runs from bits 4..11 */
++		if (!(test_bit(i + 4, (unsigned long *)&guid_indexes)))
++			continue;
++
++		slave_id = (block_num * NUM_ALIAS_GUID_IN_REC) + i ;
++		if (slave_id >= dev->dev->num_slaves)
++			return;
++		tmp_cur_ag = *(__be64 *)&p_data[i * GUID_REC_SIZE];
++		form_cache_ag = get_cached_alias_guid(dev, port_num,
++					(NUM_ALIAS_GUID_IN_REC * block_num) + i);
++		/*
++		 * Check if guid is not the same as in the cache,
++		 * If it is different, wait for the snoop_smp or the port mgmt
++		 * change event to update the slave on its port state change
++		 */
++		if (tmp_cur_ag != form_cache_ag)
++			continue;
++		mlx4_gen_guid_change_eqe(dev->dev, slave_id, port_num);
++
++		/*2 cases: Valid GUID, and Invalid Guid*/
++
++		if (tmp_cur_ag != MLX4_NOT_SET_GUID) { /*valid GUID*/
++			prev_state = mlx4_get_slave_port_state(dev->dev, slave_id, port_num);
++			new_state = set_and_calc_slave_port_state(dev->dev, slave_id, port_num,
++								  MLX4_PORT_STATE_IB_PORT_STATE_EVENT_GID_VALID,
++								  &gen_event);
++			pr_debug("slave: %d, port: %d prev_port_state: %d,"
++				 " new_port_state: %d, gen_event: %d\n",
++				 slave_id, port_num, prev_state, new_state, gen_event);
++			if (gen_event == SLAVE_PORT_GEN_EVENT_UP) {
++				pr_debug("sending PORT_UP event to slave: %d, port: %d\n",
++					 slave_id, port_num);
++				mlx4_gen_port_state_change_eqe(dev->dev, slave_id,
++							       port_num, MLX4_PORT_CHANGE_SUBTYPE_ACTIVE);
++			}
++		} else { /* request to invalidate GUID */
++			set_and_calc_slave_port_state(dev->dev, slave_id, port_num,
++						      MLX4_PORT_STATE_IB_EVENT_GID_INVALID,
++						      &gen_event);
++			pr_debug("sending PORT DOWN event to slave: %d, port: %d\n",
++				 slave_id, port_num);
++			mlx4_gen_port_state_change_eqe(dev->dev, slave_id, port_num,
++						       MLX4_PORT_CHANGE_SUBTYPE_DOWN);
 +		}
++	}
 +}
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index fe2088c..075561f 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1356,11 +1356,14 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	if (mlx4_ib_mad_init(ibdev))
- 		goto err_reg;
- 
-+	if (mlx4_ib_init_sriov(ibdev))
-+		goto err_mad;
 +
- 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE && !iboe->nb.notifier_call) {
- 		iboe->nb.notifier_call = mlx4_ib_netdev_event;
- 		err = register_netdevice_notifier(&iboe->nb);
- 		if (err)
--			goto err_reg;
-+			goto err_sriov;
- 	}
- 
- 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
-@@ -1378,6 +1381,12 @@ err_notif:
- 		pr_warn("failure unregistering notifier\n");
- 	flush_workqueue(wq);
- 
-+err_sriov:
-+	mlx4_ib_close_sriov(ibdev);
-+
-+err_mad:
-+	mlx4_ib_mad_cleanup(ibdev);
-+
- err_reg:
- 	ib_unregister_device(&ibdev->ib_dev);
- 
-@@ -1406,6 +1415,7 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
- 	struct mlx4_ib_dev *ibdev = ibdev_ptr;
- 	int p;
- 
-+	mlx4_ib_close_sriov(ibdev);
- 	mlx4_ib_mad_cleanup(ibdev);
- 	ib_unregister_device(&ibdev->ib_dev);
- 	if (ibdev->iboe.nb.notifier_call) {
-@@ -1427,6 +1437,51 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
- 	ib_dealloc_device(&ibdev->ib_dev);
- }
- 
-+static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
++static void aliasguid_query_handler(int status,
++				    struct ib_sa_guidinfo_rec *guid_rec,
++				    void *context)
 +{
-+	struct mlx4_ib_demux_work **dm = NULL;
-+	struct mlx4_dev *dev = ibdev->dev;
++	struct mlx4_ib_dev *dev;
++	struct mlx4_alias_guid_work_context *cb_ctx = context;
++	u8 port_index ;
 +	int i;
-+	unsigned long flags;
++	struct mlx4_sriov_alias_guid_info_rec_det *rec;
++	unsigned long flags, flags1;
 +
-+	if (!mlx4_is_master(dev))
++	if (!context)
 +		return;
 +
-+	dm = kzalloc(sizeof(*dm) * dev->caps.num_ports, GFP_ATOMIC);
-+	if (!dm) {
-+		pr_err("failed to allocate memory for tunneling qp update\n");
++	dev = cb_ctx->dev;
++	port_index = cb_ctx->port - 1;
++	rec = &dev->sriov.alias_guid.ports_guid[port_index].
++		all_rec_per_port[cb_ctx->block_num];
++
++	if (status) {
++		rec->status = MLX4_GUID_INFO_STATUS_IDLE;
++		pr_debug("(port: %d) failed: status = %d\n",
++			 cb_ctx->port, status);
 +		goto out;
 +	}
 +
-+	for (i = 0; i < dev->caps.num_ports; i++) {
-+		dm[i] = kmalloc(sizeof(struct mlx4_ib_demux_work), GFP_ATOMIC);
-+		if (!dm[i]) {
-+			pr_err("failed to allocate memory for tunneling qp update work struct\n");
-+			for (i = 0; i < dev->caps.num_ports; i++) {
-+				if (dm[i])
-+					kfree(dm[i]);
++	if (guid_rec->block_num != cb_ctx->block_num) {
++		pr_err("block num mismatch: %d != %d\n",
++		       cb_ctx->block_num, guid_rec->block_num);
++		goto out;
++	}
++
++	pr_debug("lid/port: %d/%d, block_num: %d\n",
++		 be16_to_cpu(guid_rec->lid), cb_ctx->port,
++		 guid_rec->block_num);
++
++	rec = &dev->sriov.alias_guid.ports_guid[port_index].
++		all_rec_per_port[guid_rec->block_num];
++
++	rec->status = MLX4_GUID_INFO_STATUS_SET;
++	rec->method = MLX4_GUID_INFO_RECORD_SET;
++
++	for (i = 0 ; i < NUM_ALIAS_GUID_IN_REC; i++) {
++		__be64 tmp_cur_ag;
++		tmp_cur_ag = *(__be64 *)&guid_rec->guid_info_list[i * GUID_REC_SIZE];
++		/* check if the SM didn't assign one of the records.
++		 * if it didn't, if it was not sysadmin request:
++		 * ask the SM to give a new GUID, (instead of the driver request).
++		 */
++		if (tmp_cur_ag == MLX4_NOT_SET_GUID) {
++			mlx4_ib_warn(&dev->ib_dev, "%s:Record num %d in "
++				     "block_num: %d was declined by SM, "
++				     "ownership by %d (0 = driver, 1=sysAdmin,"
++				     " 2=None)\n", __func__, i,
++				     guid_rec->block_num, rec->ownership);
++			if (rec->ownership == MLX4_GUID_DRIVER_ASSIGN) {
++				/* if it is driver assign, asks for new GUID from SM*/
++				*(__be64 *)&rec->all_recs[i * GUID_REC_SIZE] =
++					MLX4_NOT_SET_GUID;
++
++				/* Mark the record as not assigned, and let it
++				 * be sent again in the next work sched.*/
++				rec->status = MLX4_GUID_INFO_STATUS_IDLE;
++				rec->guid_indexes |= get_aguid_comp_mask_from_ix(i);
 +			}
++		} else {
++		       /* properly assigned record. */
++		       /* We save the GUID we just got from the SM in the
++			* admin_guid in order to be persistent, and in the
++			* request from the sm the process will ask for the same GUID */
++			if (rec->ownership == MLX4_GUID_SYSADMIN_ASSIGN &&
++			    tmp_cur_ag != *(__be64 *)&rec->all_recs[i * GUID_REC_SIZE]) {
++				/* the sysadmin assignment failed.*/
++				mlx4_ib_warn(&dev->ib_dev, "%s: Failed to set"
++					     " admin guid after SysAdmin "
++					     "configuration. "
++					     "Record num %d in block_num:%d "
++					     "was declined by SM, "
++					     "new val(0x%llx) was kept\n",
++					      __func__, i,
++					     guid_rec->block_num,
++					     be64_to_cpu(*(__be64 *) &
++							 rec->all_recs[i * GUID_REC_SIZE]));
++			} else {
++				memcpy(&rec->all_recs[i * GUID_REC_SIZE],
++				       &guid_rec->guid_info_list[i * GUID_REC_SIZE],
++				       GUID_REC_SIZE);
++			}
++		}
++	}
++	/*
++	The func is call here to close the cases when the
++	sm doesn't send smp, so in the sa response the driver
++	notifies the slave.
++	*/
++	mlx4_ib_notify_slaves_on_guid_change(dev, guid_rec->block_num,
++					     cb_ctx->port,
++					     guid_rec->guid_info_list);
++out:
++	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
++	spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	if (!dev->sriov.is_going_down)
++		queue_delayed_work(dev->sriov.alias_guid.ports_guid[port_index].wq,
++				   &dev->sriov.alias_guid.ports_guid[port_index].
++				   alias_guid_work, 0);
++	if (cb_ctx->sa_query) {
++		list_del(&cb_ctx->list);
++		kfree(cb_ctx);
++	} else
++		complete(&cb_ctx->done);
++	spin_unlock_irqrestore(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
++}
++
++static void invalidate_guid_record(struct mlx4_ib_dev *dev, u8 port, int index)
++{
++	int i;
++	u64 cur_admin_val;
++	ib_sa_comp_mask comp_mask = 0;
++
++	dev->sriov.alias_guid.ports_guid[port - 1].all_rec_per_port[index].status
++		= MLX4_GUID_INFO_STATUS_IDLE;
++	dev->sriov.alias_guid.ports_guid[port - 1].all_rec_per_port[index].method
++		= MLX4_GUID_INFO_RECORD_SET;
++
++	/* calculate the comp_mask for that record.*/
++	for (i = 0; i < NUM_ALIAS_GUID_IN_REC; i++) {
++		cur_admin_val =
++			*(u64 *)&dev->sriov.alias_guid.ports_guid[port - 1].
++			all_rec_per_port[index].all_recs[GUID_REC_SIZE * i];
++		/*
++		check the admin value: if it's for delete (~00LL) or
++		it is the first guid of the first record (hw guid) or
++		the records is not in ownership of the sysadmin and the sm doesn't
++		need to assign GUIDs, then don't put it up for assignment.
++		*/
++		if (MLX4_GUID_FOR_DELETE_VAL == cur_admin_val ||
++		    (!index && !i) ||
++		    MLX4_GUID_NONE_ASSIGN == dev->sriov.alias_guid.
++		    ports_guid[port - 1].all_rec_per_port[index].ownership)
++			continue;
++		comp_mask |= get_aguid_comp_mask_from_ix(i);
++	}
++	dev->sriov.alias_guid.ports_guid[port - 1].
++		all_rec_per_port[index].guid_indexes = comp_mask;
++}
++
++static int set_guid_rec(struct ib_device *ibdev,
++			u8 port, int index,
++			struct mlx4_sriov_alias_guid_info_rec_det *rec_det)
++{
++	int err;
++	struct mlx4_ib_dev *dev = to_mdev(ibdev);
++	struct ib_sa_guidinfo_rec guid_info_rec;
++	ib_sa_comp_mask comp_mask;
++	struct ib_port_attr attr;
++	struct mlx4_alias_guid_work_context *callback_context;
++	unsigned long resched_delay, flags, flags1;
++	struct list_head *head =
++		&dev->sriov.alias_guid.ports_guid[port - 1].cb_list;
++
++	err = __mlx4_ib_query_port(ibdev, port, &attr, 1);
++	if (err) {
++		pr_debug("mlx4_ib_query_port failed (err: %d), port: %d\n",
++			 err, port);
++		return err;
++	}
++	/*check the port was configured by the sm, otherwise no need to send */
++	if (attr.state != IB_PORT_ACTIVE) {
++		pr_debug("port %d not active...rescheduling\n", port);
++		resched_delay = 5 * HZ;
++		err = -EAGAIN;
++		goto new_schedule;
++	}
++
++	callback_context = kmalloc(sizeof *callback_context, GFP_KERNEL);
++	if (!callback_context) {
++		err = -ENOMEM;
++		resched_delay = HZ * 5;
++		goto new_schedule;
++	}
++	callback_context->port = port;
++	callback_context->dev = dev;
++	callback_context->block_num = index;
++
++	memset(&guid_info_rec, 0, sizeof(struct ib_sa_guidinfo_rec));
++
++	guid_info_rec.lid = cpu_to_be16(attr.lid);
++	guid_info_rec.block_num = index;
++
++	memcpy(guid_info_rec.guid_info_list, rec_det->all_recs,
++	       GUID_REC_SIZE * NUM_ALIAS_GUID_IN_REC);
++	comp_mask = IB_SA_GUIDINFO_REC_LID | IB_SA_GUIDINFO_REC_BLOCK_NUM |
++		rec_det->guid_indexes;
++
++	init_completion(&callback_context->done);
++	spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	list_add_tail(&callback_context->list, head);
++	spin_unlock_irqrestore(&dev->sriov.alias_guid.ag_work_lock, flags1);
++
++	callback_context->query_id =
++		ib_sa_guid_info_rec_query(dev->sriov.alias_guid.sa_client,
++					  ibdev, port, &guid_info_rec,
++					  comp_mask, rec_det->method, 1000,
++					  GFP_KERNEL, aliasguid_query_handler,
++					  callback_context,
++					  &callback_context->sa_query);
++	if (callback_context->query_id < 0) {
++		pr_debug("ib_sa_guid_info_rec_query failed, query_id: "
++			 "%d. will reschedule to the next 1 sec.\n",
++			 callback_context->query_id);
++		spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
++		list_del(&callback_context->list);
++		kfree(callback_context);
++		spin_unlock_irqrestore(&dev->sriov.alias_guid.ag_work_lock, flags1);
++		resched_delay = 1 * HZ;
++		err = -EAGAIN;
++		goto new_schedule;
++	}
++	err = 0;
++	goto out;
++
++new_schedule:
++	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
++	spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	invalidate_guid_record(dev, port, index);
++	if (!dev->sriov.is_going_down) {
++		queue_delayed_work(dev->sriov.alias_guid.ports_guid[port - 1].wq,
++				   &dev->sriov.alias_guid.ports_guid[port - 1].alias_guid_work,
++				   resched_delay);
++	}
++	spin_unlock_irqrestore(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
++
++out:
++	return err;
++}
++
++void mlx4_ib_invalidate_all_guid_record(struct mlx4_ib_dev *dev, int port)
++{
++	int i;
++	unsigned long flags, flags1;
++
++	pr_debug("port %d\n", port);
++
++	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
++	spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	for (i = 0; i < NUM_ALIAS_GUID_REC_IN_PORT; i++)
++		invalidate_guid_record(dev, port, i);
++
++	if (mlx4_is_master(dev->dev) && !dev->sriov.is_going_down) {
++		/*
++		make sure no work waits in the queue, if the work is already
++		queued(not on the timer) the cancel will fail. That is not a problem
++		because we just want the work started.
++		*/
++		__cancel_delayed_work(&dev->sriov.alias_guid.
++				      ports_guid[port - 1].alias_guid_work);
++		queue_delayed_work(dev->sriov.alias_guid.ports_guid[port - 1].wq,
++				   &dev->sriov.alias_guid.ports_guid[port - 1].alias_guid_work,
++				   0);
++	}
++	spin_unlock_irqrestore(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
++}
++
++/* The function returns the next record that was
++ * not configured (or failed to be configured) */
++static int get_next_record_to_update(struct mlx4_ib_dev *dev, u8 port,
++				     struct mlx4_next_alias_guid_work *rec)
++{
++	int j;
++	unsigned long flags;
++
++	for (j = 0; j < NUM_ALIAS_GUID_REC_IN_PORT; j++) {
++		spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags);
++		if (dev->sriov.alias_guid.ports_guid[port].all_rec_per_port[j].status ==
++		    MLX4_GUID_INFO_STATUS_IDLE) {
++			memcpy(&rec->rec_det,
++			       &dev->sriov.alias_guid.ports_guid[port].all_rec_per_port[j],
++			       sizeof(struct mlx4_sriov_alias_guid_info_rec_det));
++			rec->port = port;
++			rec->block_num = j;
++			dev->sriov.alias_guid.ports_guid[port].all_rec_per_port[j].status =
++				MLX4_GUID_INFO_STATUS_PENDING;
++			spin_unlock_irqrestore(&dev->sriov.alias_guid.ag_work_lock, flags);
++			return 0;
++		}
++		spin_unlock_irqrestore(&dev->sriov.alias_guid.ag_work_lock, flags);
++	}
++	return -ENOENT;
++}
++
++static void set_administratively_guid_record(struct mlx4_ib_dev *dev, int port,
++					     int rec_index,
++					     struct mlx4_sriov_alias_guid_info_rec_det *rec_det)
++{
++	dev->sriov.alias_guid.ports_guid[port].all_rec_per_port[rec_index].guid_indexes =
++		rec_det->guid_indexes;
++	memcpy(dev->sriov.alias_guid.ports_guid[port].all_rec_per_port[rec_index].all_recs,
++	       rec_det->all_recs, NUM_ALIAS_GUID_IN_REC * GUID_REC_SIZE);
++	dev->sriov.alias_guid.ports_guid[port].all_rec_per_port[rec_index].status =
++		rec_det->status;
++}
++
++static void set_all_slaves_guids(struct mlx4_ib_dev *dev, int port)
++{
++	int j;
++	struct mlx4_sriov_alias_guid_info_rec_det rec_det ;
++
++	for (j = 0 ; j < NUM_ALIAS_GUID_REC_IN_PORT ; j++) {
++		memset(rec_det.all_recs, 0, NUM_ALIAS_GUID_IN_REC * GUID_REC_SIZE);
++		rec_det.guid_indexes = (!j ? 0 : IB_SA_GUIDINFO_REC_GID0) |
++			IB_SA_GUIDINFO_REC_GID1 | IB_SA_GUIDINFO_REC_GID2 |
++			IB_SA_GUIDINFO_REC_GID3 | IB_SA_GUIDINFO_REC_GID4 |
++			IB_SA_GUIDINFO_REC_GID5 | IB_SA_GUIDINFO_REC_GID6 |
++			IB_SA_GUIDINFO_REC_GID7;
++		rec_det.status = MLX4_GUID_INFO_STATUS_IDLE;
++		set_administratively_guid_record(dev, port, j, &rec_det);
++	}
++}
++
++static void alias_guid_work(struct work_struct *work)
++{
++	struct delayed_work *delay = to_delayed_work(work);
++	int ret = 0;
++	struct mlx4_next_alias_guid_work *rec;
++	struct mlx4_sriov_alias_guid_port_rec_det *sriov_alias_port =
++		container_of(delay, struct mlx4_sriov_alias_guid_port_rec_det,
++			     alias_guid_work);
++	struct mlx4_sriov_alias_guid *sriov_alias_guid = sriov_alias_port->parent;
++	struct mlx4_ib_sriov *ib_sriov = container_of(sriov_alias_guid,
++						struct mlx4_ib_sriov,
++						alias_guid);
++	struct mlx4_ib_dev *dev = container_of(ib_sriov, struct mlx4_ib_dev, sriov);
++
++	rec = kzalloc(sizeof *rec, GFP_KERNEL);
++	if (!rec) {
++		pr_err("alias_guid_work: No Memory\n");
++		return;
++	}
++
++	pr_debug("starting [port: %d]...\n", sriov_alias_port->port + 1);
++	ret = get_next_record_to_update(dev, sriov_alias_port->port, rec);
++	if (ret) {
++		pr_debug("No more records to update.\n");
++		goto out;
++	}
++
++	set_guid_rec(&dev->ib_dev, rec->port + 1, rec->block_num,
++		     &rec->rec_det);
++
++out:
++	kfree(rec);
++}
++
++
++void mlx4_ib_init_alias_guid_work(struct mlx4_ib_dev *dev, int port)
++{
++	unsigned long flags, flags1;
++
++	if (!mlx4_is_master(dev->dev))
++		return;
++	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
++	spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	if (!dev->sriov.is_going_down) {
++		queue_delayed_work(dev->sriov.alias_guid.ports_guid[port].wq,
++			   &dev->sriov.alias_guid.ports_guid[port].alias_guid_work, 0);
++	}
++	spin_unlock_irqrestore(&dev->sriov.alias_guid.ag_work_lock, flags1);
++	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
++}
++
++void mlx4_ib_destroy_alias_guid_service(struct mlx4_ib_dev *dev)
++{
++	int i;
++	struct mlx4_ib_sriov *sriov = &dev->sriov;
++	struct mlx4_alias_guid_work_context *cb_ctx;
++	struct mlx4_sriov_alias_guid_port_rec_det *det;
++	struct ib_sa_query *sa_query;
++	unsigned long flags;
++
++	for (i = 0 ; i < dev->num_ports; i++) {
++		cancel_delayed_work(&dev->sriov.alias_guid.ports_guid[i].alias_guid_work);
++		det = &sriov->alias_guid.ports_guid[i];
++		spin_lock_irqsave(&sriov->alias_guid.ag_work_lock, flags);
++		while (!list_empty(&det->cb_list)) {
++			cb_ctx = list_entry(det->cb_list.next,
++					    struct mlx4_alias_guid_work_context,
++					    list);
++			sa_query = cb_ctx->sa_query;
++			cb_ctx->sa_query = NULL;
++			list_del(&cb_ctx->list);
++			spin_unlock_irqrestore(&sriov->alias_guid.ag_work_lock, flags);
++			ib_sa_cancel_query(cb_ctx->query_id, sa_query);
++			wait_for_completion(&cb_ctx->done);
++			kfree(cb_ctx);
++			spin_lock_irqsave(&sriov->alias_guid.ag_work_lock, flags);
++		}
++		spin_unlock_irqrestore(&sriov->alias_guid.ag_work_lock, flags);
++	}
++	for (i = 0 ; i < dev->num_ports; i++) {
++		flush_workqueue(dev->sriov.alias_guid.ports_guid[i].wq);
++		destroy_workqueue(dev->sriov.alias_guid.ports_guid[i].wq);
++	}
++	ib_sa_unregister_client(dev->sriov.alias_guid.sa_client);
++	kfree(dev->sriov.alias_guid.sa_client);
++}
++
++int mlx4_ib_init_alias_guid_service(struct mlx4_ib_dev *dev)
++{
++	char alias_wq_name[15];
++	int ret = 0;
++	int i, j, k;
++	union ib_gid gid;
++
++	if (!mlx4_is_master(dev->dev))
++		return 0;
++	dev->sriov.alias_guid.sa_client =
++		kzalloc(sizeof *dev->sriov.alias_guid.sa_client, GFP_KERNEL);
++	if (!dev->sriov.alias_guid.sa_client)
++		return -ENOMEM;
++
++	ib_sa_register_client(dev->sriov.alias_guid.sa_client);
++
++	spin_lock_init(&dev->sriov.alias_guid.ag_work_lock);
++
++	for (i = 1; i <= dev->num_ports; ++i) {
++		if (dev->ib_dev.query_gid(&dev->ib_dev , i, 0, &gid)) {
++			ret = -EFAULT;
++			goto err_unregister;
++		}
++	}
++
++	for (i = 0 ; i < dev->num_ports; i++) {
++		memset(&dev->sriov.alias_guid.ports_guid[i], 0,
++		       sizeof(struct mlx4_sriov_alias_guid_port_rec_det));
++		/*Check if the SM doesn't need to assign the GUIDs*/
++		for (j = 0; j < NUM_ALIAS_GUID_REC_IN_PORT; j++) {
++			if (mlx4_ib_sm_guid_assign) {
++				dev->sriov.alias_guid.ports_guid[i].
++					all_rec_per_port[j].
++					ownership = MLX4_GUID_DRIVER_ASSIGN;
++				continue;
++			}
++			dev->sriov.alias_guid.ports_guid[i].all_rec_per_port[j].
++					ownership = MLX4_GUID_NONE_ASSIGN;
++			/*mark each val as it was deleted,
++			  till the sysAdmin will give it valid val*/
++			for (k = 0; k < NUM_ALIAS_GUID_IN_REC; k++) {
++				*(__be64 *)&dev->sriov.alias_guid.ports_guid[i].
++					all_rec_per_port[j].all_recs[GUID_REC_SIZE * k] =
++						cpu_to_be64(MLX4_GUID_FOR_DELETE_VAL);
++			}
++		}
++		INIT_LIST_HEAD(&dev->sriov.alias_guid.ports_guid[i].cb_list);
++		/*prepare the records, set them to be allocated by sm*/
++		for (j = 0 ; j < NUM_ALIAS_GUID_REC_IN_PORT; j++)
++			invalidate_guid_record(dev, i + 1, j);
++
++		dev->sriov.alias_guid.ports_guid[i].parent = &dev->sriov.alias_guid;
++		dev->sriov.alias_guid.ports_guid[i].port  = i;
++		if (mlx4_ib_sm_guid_assign)
++			set_all_slaves_guids(dev, i);
++
++		snprintf(alias_wq_name, sizeof alias_wq_name, "alias_guid%d", i);
++		dev->sriov.alias_guid.ports_guid[i].wq =
++			create_singlethread_workqueue(alias_wq_name);
++		if (!dev->sriov.alias_guid.ports_guid[i].wq) {
++			ret = -ENOMEM;
++			goto err_thread;
++		}
++		INIT_DELAYED_WORK(&dev->sriov.alias_guid.ports_guid[i].alias_guid_work,
++			  alias_guid_work);
++	}
++	return 0;
++
++err_thread:
++	for (--i; i >= 0; i--) {
++		destroy_workqueue(dev->sriov.alias_guid.ports_guid[i].wq);
++		dev->sriov.alias_guid.ports_guid[i].wq = NULL;
++	}
++
++err_unregister:
++	ib_sa_unregister_client(dev->sriov.alias_guid.sa_client);
++	kfree(dev->sriov.alias_guid.sa_client);
++	dev->sriov.alias_guid.sa_client = NULL;
++	pr_err("init_alias_guid_service: Failed. (ret:%d)\n", ret);
++	return ret;
++}
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index ef40254..0db3e9c 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -787,8 +787,10 @@ void mlx4_ib_mad_cleanup(struct mlx4_ib_dev *dev)
+ 
+ static void handle_client_rereg_event(struct mlx4_ib_dev *dev, u8 port_num)
+ {
+-	/* re-configure the mcg's */
++	/* re-configure the alias-guid and mcg's */
+ 	if (mlx4_is_master(dev->dev)) {
++		mlx4_ib_invalidate_all_guid_record(dev, port_num);
++
+ 		if (!dev->sriov.is_going_down)
+ 			mlx4_ib_mcg_port_cleanup(&dev->sriov.demux[port_num - 1], 0);
+ 	}
+@@ -1804,9 +1806,20 @@ int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
+ 		return 0;
+ 	}
+ 
++	err = mlx4_ib_init_alias_guid_service(dev);
++	if (err) {
++		mlx4_ib_warn(&dev->ib_dev, "Failed init alias guid process.\n");
++		goto paravirt_err;
++	}
++
+ 	mlx4_ib_warn(&dev->ib_dev, "initializing demux service for %d qp1 clients\n",
+ 		     dev->dev->caps.sqp_demux);
+ 	for (i = 0; i < dev->num_ports; i++) {
++		union ib_gid gid;
++		err = __mlx4_ib_query_gid(&dev->ib_dev, i + 1, 0, &gid, 1);
++		if (err)
++			goto demux_err;
++		dev->sriov.demux[i].guid_cache[0] = gid.global.interface_id;
+ 		err = alloc_pv_object(dev, mlx4_master_func_num(dev->dev), i + 1,
+ 				      &dev->sriov.sqps[i]);
+ 		if (err)
+@@ -1824,6 +1837,9 @@ demux_err:
+ 		mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
+ 		--i;
+ 	}
++	mlx4_ib_destroy_alias_guid_service(dev);
++
++paravirt_err:
+ 	mlx4_ib_cm_paravirt_clean(dev, -1);
+ 
+ 	return err;
+@@ -1850,5 +1866,6 @@ void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev)
+ 		}
+ 
+ 		mlx4_ib_cm_paravirt_clean(dev, -1);
++		mlx4_ib_destroy_alias_guid_service(dev);
+ 	}
+ }
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index fce64ec..778fdb8 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -59,6 +59,10 @@ MODULE_DESCRIPTION("Mellanox ConnectX HCA InfiniBand driver");
+ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_VERSION(DRV_VERSION);
+ 
++int mlx4_ib_sm_guid_assign = 1;
++module_param_named(sm_guid_assign, mlx4_ib_sm_guid_assign, int, 0444);
++MODULE_PARM_DESC(sm_guid_assign, "Enable SM alias_GUID assignment if sm_guid_assign > 0 (Default: 1)");
++
+ static const char mlx4_ib_version[] =
+ 	DRV_NAME ": Mellanox ConnectX InfiniBand driver v"
+ 	DRV_VERSION " (" DRV_RELDATE ")\n";
+@@ -349,12 +353,15 @@ static int mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
+ 	return __mlx4_ib_query_port(ibdev, port, props, 0);
+ }
+ 
+-static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+-			       union ib_gid *gid)
++int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
++			union ib_gid *gid, int netw_view)
+ {
+ 	struct ib_smp *in_mad  = NULL;
+ 	struct ib_smp *out_mad = NULL;
+ 	int err = -ENOMEM;
++	struct mlx4_ib_dev *dev = to_mdev(ibdev);
++	int clear = 0;
++	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 
+ 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+ 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
+@@ -365,18 +372,29 @@ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	in_mad->attr_id  = IB_SMP_ATTR_PORT_INFO;
+ 	in_mad->attr_mod = cpu_to_be32(port);
+ 
+-	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS, port,
+-			   NULL, NULL, in_mad, out_mad);
++	if (mlx4_is_mfunc(dev->dev) && netw_view)
++		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
++
++	err = mlx4_MAD_IFC(dev, mad_ifc_flags, port, NULL, NULL, in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+ 
+ 	memcpy(gid->raw, out_mad->data + 8, 8);
+ 
++	if (mlx4_is_mfunc(dev->dev) && !netw_view) {
++		if (index) {
++			/* For any index > 0, return the null guid */
++			err = 0;
++			clear = 1;
 +			goto out;
 +		}
 +	}
-+	/* initialize or tear down tunnel QPs for the slave */
-+	for (i = 0; i < dev->caps.num_ports; i++) {
-+		INIT_WORK(&dm[i]->work, mlx4_ib_tunnels_update_work);
-+		dm[i]->port = i + 1;
-+		dm[i]->slave = slave;
-+		dm[i]->do_init = do_init;
-+		dm[i]->dev = ibdev;
-+		spin_lock_irqsave(&ibdev->sriov.going_down_lock, flags);
-+		if (!ibdev->sriov.is_going_down)
-+			queue_work(ibdev->sriov.demux[i].ud_wq, &dm[i]->work);
-+		spin_unlock_irqrestore(&ibdev->sriov.going_down_lock, flags);
-+	}
-+out:
-+	if (dm)
-+		kfree(dm);
-+	return;
-+}
 +
- static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
- 			  enum mlx4_dev_event event, unsigned long param)
+ 	init_query_mad(in_mad);
+ 	in_mad->attr_id  = IB_SMP_ATTR_GUID_INFO;
+ 	in_mad->attr_mod = cpu_to_be32(index / 8);
+ 
+-	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS, port,
++	err = mlx4_MAD_IFC(dev, mad_ifc_flags, port,
+ 			   NULL, NULL, in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+@@ -384,6 +402,8 @@ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	memcpy(gid->raw + 8, out_mad->data + (index % 8) * 8, 8);
+ 
+ out:
++	if (clear)
++		memset(gid->raw + 8, 0, 8);
+ 	kfree(in_mad);
+ 	kfree(out_mad);
+ 	return err;
+@@ -403,7 +423,7 @@ static int mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 			     union ib_gid *gid)
  {
-@@ -1434,22 +1489,23 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
- 	struct mlx4_ib_dev *ibdev = to_mdev((struct ib_device *) ibdev_ptr);
- 	struct mlx4_eqe *eqe = NULL;
- 	struct ib_event_work *ew;
--	int port = 0;
-+	int p = 0;
- 
- 	if (event == MLX4_DEV_EVENT_PORT_MGMT_CHANGE)
- 		eqe = (struct mlx4_eqe *)param;
+ 	if (rdma_port_get_link_layer(ibdev, port) == IB_LINK_LAYER_INFINIBAND)
+-		return __mlx4_ib_query_gid(ibdev, port, index, gid);
++		return __mlx4_ib_query_gid(ibdev, port, index, gid, 0);
  	else
--		port = (u8)param;
--
--	if (port > ibdev->num_ports)
--		return;
-+		p = (int) param;
- 
- 	switch (event) {
+ 		return iboe_query_gid(ibdev, port, index, gid);
+ }
+@@ -1565,6 +1585,11 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
  	case MLX4_DEV_EVENT_PORT_UP:
-+		if (p > ibdev->num_ports)
-+			return;
+ 		if (p > ibdev->num_ports)
+ 			return;
++		if (mlx4_is_master(dev) &&
++		    rdma_port_get_link_layer(&ibdev->ib_dev, p) ==
++			IB_LINK_LAYER_INFINIBAND) {
++			mlx4_ib_invalidate_all_guid_record(ibdev, p);
++		}
  		ibev.event = IB_EVENT_PORT_ACTIVE;
  		break;
  
- 	case MLX4_DEV_EVENT_PORT_DOWN:
-+		if (p > ibdev->num_ports)
-+			return;
- 		ibev.event = IB_EVENT_PORT_ERR;
- 		break;
- 
-@@ -1471,12 +1527,22 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
- 		handle_port_mgmt_change_event(&ew->work);
- 		return;
- 
-+	case MLX4_DEV_EVENT_SLAVE_INIT:
-+		/* here, p is the slave id */
-+		do_slave_init(ibdev, p, 1);
-+		return;
-+
-+	case MLX4_DEV_EVENT_SLAVE_SHUTDOWN:
-+		/* here, p is the slave id */
-+		do_slave_init(ibdev, p, 0);
-+		return;
-+
- 	default:
- 		return;
- 	}
- 
- 	ibev.device	      = ibdev_ptr;
--	ibev.element.port_num = port;
-+	ibev.element.port_num = (u8) p;
- 
- 	ib_dispatch_event(&ibev);
- }
 diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 1248d57..137941d 100644
+index 7476e24..f3f75f8 100644
 --- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
 +++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -176,6 +176,10 @@ enum mlx4_ib_qp_type {
- 	MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI | MLX4_IB_QPT_TUN_SMI_OWNER | \
- 	MLX4_IB_QPT_TUN_SMI | MLX4_IB_QPT_TUN_GSI)
+@@ -42,6 +42,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_mad.h>
++#include <rdma/ib_sa.h>
  
-+enum {
-+	MLX4_NUM_TUNNEL_BUFS		= 256,
-+};
+ #include <linux/mlx4/device.h>
+ #include <linux/mlx4/doorbell.h>
+@@ -64,6 +65,9 @@ enum {
+ #define MLX4_IB_SQ_HEADROOM(shift)	((MLX4_IB_MAX_HEADROOM >> (shift)) + 1)
+ #define MLX4_IB_SQ_MAX_SPARE		(MLX4_IB_SQ_HEADROOM(MLX4_IB_SQ_MIN_WQE_SHIFT))
+ 
++/*module param to indicate if SM assigns the alias_GUID*/
++extern int mlx4_ib_sm_guid_assign;
 +
- struct mlx4_ib_tunnel_header {
- 	struct mlx4_av av;
- 	__be32 remote_qpn;
-@@ -263,6 +267,15 @@ struct mlx4_ib_ah {
+ struct mlx4_ib_ucontext {
+ 	struct ib_ucontext	ibucontext;
+ 	struct mlx4_uar		uar;
+@@ -277,6 +281,57 @@ struct mlx4_ib_ah {
  	union mlx4_ext_av       av;
  };
  
-+struct mlx4_ib_demux_work {
-+	struct work_struct	work;
-+	struct mlx4_ib_dev     *dev;
-+	int			slave;
-+	int			do_init;
-+	u8			port;
++/****************************************/
++/* alias guid support */
++/****************************************/
++#define NUM_PORT_ALIAS_GUID		2
++#define NUM_ALIAS_GUID_IN_REC		8
++#define NUM_ALIAS_GUID_REC_IN_PORT	16
++#define GUID_REC_SIZE			8
++#define NUM_ALIAS_GUID_PER_PORT		128
++#define MLX4_NOT_SET_GUID		(0x00LL)
++#define MLX4_GUID_FOR_DELETE_VAL	(~(0x00LL))
 +
++enum mlx4_guid_alias_rec_status {
++	MLX4_GUID_INFO_STATUS_IDLE,
++	MLX4_GUID_INFO_STATUS_SET,
++	MLX4_GUID_INFO_STATUS_PENDING,
 +};
 +
- struct mlx4_ib_tun_tx_buf {
- 	struct mlx4_ib_buf buf;
- 	struct ib_ah *ah;
-@@ -278,9 +291,17 @@ struct mlx4_ib_demux_pv_qp {
- 	unsigned tx_ix_tail;
- };
- 
-+enum mlx4_ib_demux_pv_state {
-+	DEMUX_PV_STATE_DOWN,
-+	DEMUX_PV_STATE_STARTING,
-+	DEMUX_PV_STATE_ACTIVE,
-+	DEMUX_PV_STATE_DOWNING,
++enum mlx4_guid_alias_rec_ownership {
++	MLX4_GUID_DRIVER_ASSIGN,
++	MLX4_GUID_SYSADMIN_ASSIGN,
++	MLX4_GUID_NONE_ASSIGN, /*init state of each record*/
 +};
 +
- struct mlx4_ib_demux_pv_ctx {
- 	int port;
- 	int slave;
-+	enum mlx4_ib_demux_pv_state state;
- 	int has_smi;
- 	struct ib_device *ib_dev;
- 	struct ib_cq *cq;
-@@ -319,6 +340,13 @@ struct mlx4_ib_iboe {
- 	union ib_gid		gid_table[MLX4_MAX_PORTS][128];
- };
- 
-+struct pkey_mgt {
-+	u8			virt2phys_pkey[MLX4_MFUNC_MAX][MLX4_MAX_PORTS][MLX4_MAX_PORT_PKEYS];
-+	u16			phys_pkey_cache[MLX4_MAX_PORTS][MLX4_MAX_PORT_PKEYS];
-+	struct list_head	pkey_port_list[MLX4_MFUNC_MAX];
-+	struct kobject	       *device_parent[MLX4_MFUNC_MAX];
++enum mlx4_guid_alias_rec_method {
++	MLX4_GUID_INFO_RECORD_SET	= IB_MGMT_METHOD_SET,
++	MLX4_GUID_INFO_RECORD_DELETE	= IB_SA_METHOD_DELETE,
 +};
 +
- struct mlx4_ib_dev {
- 	struct ib_device	ib_dev;
- 	struct mlx4_dev	       *dev;
-@@ -340,6 +368,7 @@ struct mlx4_ib_dev {
- 	int			counters[MLX4_MAX_PORTS];
- 	int		       *eq_table;
- 	int			eq_added;
-+	struct pkey_mgt		pkeys;
- };
- 
- struct ib_event_work {
-@@ -424,6 +453,9 @@ static inline struct mlx4_ib_ah *to_mah(struct ib_ah *ibah)
- 	return container_of(ibah, struct mlx4_ib_ah, ibah);
- }
- 
-+int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev);
-+void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev);
++struct mlx4_sriov_alias_guid_info_rec_det {
++	u8 all_recs[GUID_REC_SIZE * NUM_ALIAS_GUID_IN_REC];
++	ib_sa_comp_mask guid_indexes; /*indicates what from the 8 records are valid*/
++	enum mlx4_guid_alias_rec_status status; /*indicates the administraively status of the record.*/
++	u8 method; /*set or delete*/
++	enum mlx4_guid_alias_rec_ownership ownership; /*indicates who assign that alias_guid record*/
++};
 +
- int mlx4_ib_db_map_user(struct mlx4_ib_ucontext *context, unsigned long virt,
- 			struct mlx4_db *db);
- void mlx4_ib_db_unmap_user(struct mlx4_ib_ucontext *context, struct mlx4_db *db);
-@@ -515,4 +547,6 @@ int mlx4_ib_add_mc(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
- void mlx4_ib_dispatch_event(struct mlx4_ib_dev *dev, u8 port_num,
- 			    enum ib_event_type type);
++struct mlx4_sriov_alias_guid_port_rec_det {
++	struct mlx4_sriov_alias_guid_info_rec_det all_rec_per_port[NUM_ALIAS_GUID_REC_IN_PORT];
++	struct workqueue_struct *wq;
++	struct delayed_work alias_guid_work;
++	u8 port;
++	struct mlx4_sriov_alias_guid *parent;
++	struct list_head cb_list;
++};
++
++struct mlx4_sriov_alias_guid {
++	struct mlx4_sriov_alias_guid_port_rec_det ports_guid[MLX4_MAX_PORTS];
++	spinlock_t ag_work_lock;
++	struct ib_sa_client *sa_client;
++};
++
+ struct mlx4_ib_demux_work {
+ 	struct work_struct	work;
+ 	struct mlx4_ib_dev     *dev;
+@@ -349,6 +404,8 @@ struct mlx4_ib_sriov {
+ 	spinlock_t going_down_lock;
+ 	int is_going_down;
  
-+void mlx4_ib_tunnels_update_work(struct work_struct *work);
++	struct mlx4_sriov_alias_guid alias_guid;
++
+ 	/* CM paravirtualization fields */
+ 	struct list_head cm_list;
+ 	spinlock_t id_map_lock;
+@@ -555,6 +612,9 @@ int __mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
+ int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+ 			 u16 *pkey, int netw_view);
+ 
++int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
++			union ib_gid *gid, int netw_view);
++
+ int mlx4_ib_resolve_grh(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah_attr,
+ 			u8 *mac, int *is_mcast, u8 port);
+ 
+@@ -606,4 +666,18 @@ int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id
+ void mlx4_ib_cm_paravirt_init(struct mlx4_ib_dev *dev);
+ void mlx4_ib_cm_paravirt_clean(struct mlx4_ib_dev *dev, int slave_id);
+ 
++/* alias guid support */
++void mlx4_ib_init_alias_guid_work(struct mlx4_ib_dev *dev, int port);
++int mlx4_ib_init_alias_guid_service(struct mlx4_ib_dev *dev);
++void mlx4_ib_destroy_alias_guid_service(struct mlx4_ib_dev *dev);
++void mlx4_ib_invalidate_all_guid_record(struct mlx4_ib_dev *dev, int port);
++
++void mlx4_ib_notify_slaves_on_guid_change(struct mlx4_ib_dev *dev,
++					  int block_num,
++					  u8 port_num, u8 *p_data);
++
++void mlx4_ib_update_cache_on_guid_change(struct mlx4_ib_dev *dev,
++					 int block_num, u8 port_num,
++					 u8 *p_data);
 +
  #endif /* MLX4_IB_H */
 diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-index 7e94987..1c2fc72 100644
+index 28fca65..c13e988 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-@@ -1295,6 +1295,8 @@ static void mlx4_master_do_cmd(struct mlx4_dev *dev, int slave, u8 cmd,
- 		if (MLX4_COMM_CMD_FLR == slave_state[slave].last_cmd)
- 			goto inform_slave_state;
+@@ -629,8 +629,10 @@ static int get_full_pkey_table(struct mlx4_dev *dev, u8 port, u16 *table,
  
-+		mlx4_dispatch_event(dev, MLX4_DEV_EVENT_SLAVE_SHUTDOWN, slave);
-+
- 		/* write the version in the event field */
- 		reply |= mlx4_comm_get_version();
+ static enum ib_port_state vf_port_state(struct mlx4_dev *dev, int port, int vf)
+ {
+-	/* will be modified when add alias_guid feature */
+-	return IB_PORT_DOWN;
++	if (mlx4_get_slave_port_state(dev, vf, port) == SLAVE_PORT_UP)
++		return IB_PORT_ACTIVE;
++	else
++		return IB_PORT_DOWN;
+ }
  
-@@ -1331,6 +1333,7 @@ static void mlx4_master_do_cmd(struct mlx4_dev *dev, int slave, u8 cmd,
- 			goto reset_slave;
- 		slave_state[slave].vhcr_dma |= param;
- 		slave_state[slave].active = true;
-+		mlx4_dispatch_event(dev, MLX4_DEV_EVENT_SLAVE_INIT, slave);
- 		break;
- 	case MLX4_COMM_CMD_VHCR_POST:
- 		if ((slave_state[slave].last_cmd != MLX4_COMM_CMD_VHCR_EN) &&
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 457503b..d8004f2 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -54,7 +54,8 @@ enum {
- };
- 
- enum {
--	MLX4_MAX_PORTS		= 2
-+	MLX4_MAX_PORTS		= 2,
-+	MLX4_MAX_PORT_PKEYS	= 128
- };
- 
- /* base qkey for use in sriov tunnel-qp/proxy-qp communication.
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index d813704..c257e1b 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -45,6 +45,8 @@ enum mlx4_dev_event {
- 	MLX4_DEV_EVENT_PORT_DOWN,
- 	MLX4_DEV_EVENT_PORT_REINIT,
- 	MLX4_DEV_EVENT_PORT_MGMT_CHANGE,
-+	MLX4_DEV_EVENT_SLAVE_INIT,
-+	MLX4_DEV_EVENT_SLAVE_SHUTDOWN,
- };
- 
- struct mlx4_interface {
+ static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
 -- 
 1.7.1
 
