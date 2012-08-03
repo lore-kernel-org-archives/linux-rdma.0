@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V2 04/22] IB/mlx4: SRIOV IB context objects and proxy/tunnel sqp support
-Date: Fri,  3 Aug 2012 11:40:40 +0300
-Message-ID: <1343983258-6268-5-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V2 09/22] {NET,IB}/mlx4: MAD_IFC paravirtualization
+Date: Fri,  3 Aug 2012 11:40:45 +0300
+Message-ID: <1343983258-6268-10-git-send-email-jackm@dev.mellanox.co.il>
 References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1343983258-6268-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,1268 +10,512 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-1. Introduce the basic sriov parvirtualization context objects
-   for multiplexing and demultiplexing MADs.
-2. Introduce support for the new proxy and tunnel QP types.
+The MAD_IFC firmware command fulfills two functions.
 
-This patch introduces the objects required by the master
-for managing QP paravirtualization for guests.
+In the first case, it is used in the QP0/QP1 MAD-handling flow to
+obtain information from the FW (for answering queries), and for
+setting variables in the HCA (MAD SET packets).
 
-struct mlx4_ib_sriov{} is created by the master only.
-It is a container for the following:
-1. All the info required by the PPF to multiplex and de-multiplex MADs
-   (including those from the PF). (struct mlx4_ib_demux_ctx demux)
-2. All the info required to manage alias GUIDs (i.e., the GUID at
-   index 0 that each guest perceives.  In fact, this is not the
-   GUID which is actually at index 0, but is, in fact, the GUID
-   which is at index[<VF number>] in the physical table.
+In this function, MAD_IFC should provide the FW (physical) view
+of the data.  This is the view that OpenSM needs for its functioning.
+We call this the "network view".
 
-3. structures which are used to manage CM paravirtualization
-4. structures for managing the real special QPs when running in
-   sriov mode.
-   The real SQPs are controlled by the PPF in this case.  All SQPs
-   created and controlled by the ib core layer are proxy sqps
+In the second case, MAD_IFC is used by various verbs to obtain data
+regarding the local HCA (e.g., ib_query_device() ).
+We call this the "host view".
 
-struct mlx4_ib_demux_ctx{} contains the information per port needed
-to manage paravirtualization.
-This includes:
-1. All multicast paravirt info
-2. All tunnel-qp paravirt info for the port.
-3. GUID-table and GUID-prefix for the port
-4. work queues.
+This data needs to be paravirtualized.
 
-struct mlx4_ib_demux_pv_ctx{} contains all the info for managing
-the paravirtualized QPs for one slave/port.
+MAD_IFC thus needs a wrapper function, and also needs another flag
+indicating whether it should provide the network view (when it is
+called by ib_process_mad in special-qp packet handling), or the
+host view (when it is called while implementing a verb).
 
-struct mlx4_ib_demux_pv_qp{} contains the info need to run an
-individual QP (either tunnel qp or real SQP).
-
-Note:  We made use of the 2 most-significant bits in enum
-mlx4_ib_qp_flags (based upon enum ib_qp_create_flags (ib_verbs.h))
-
-We need these bits in the low-level driver for internal purposes.
+There are currently 2 flag parameters in mlx4_MAD_IFC already:
+ignore_bkey and ignore_mkey.  These two parameters are replaced
+by a single "mad_ifc_flags" parameter, with different bits set
+for each flag.  A third flag is added: "network-view/host-view".
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/cq.c      |   31 ++-
- drivers/infiniband/hw/mlx4/mlx4_ib.h |  128 +++++++-
- drivers/infiniband/hw/mlx4/qp.c      |  616 ++++++++++++++++++++++++++++++----
- include/linux/mlx4/device.h          |    1 +
- include/linux/mlx4/qp.h              |    3 +-
- 5 files changed, 702 insertions(+), 77 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c         |   20 ++--
+ drivers/infiniband/hw/mlx4/main.c        |   64 +++++++++---
+ drivers/infiniband/hw/mlx4/mlx4_ib.h     |   14 +++-
+ drivers/net/ethernet/mellanox/mlx4/cmd.c |  162 ++++++++++++++++++++++++++++++
+ 4 files changed, 234 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 6d4ef71..342fabd 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -547,6 +547,26 @@ static int mlx4_ib_ipoib_csum_ok(__be16 status, __be16 checksum)
- 		checksum == cpu_to_be16(0xffff);
- }
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index a392a5c..4c8650f 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -75,7 +75,7 @@ struct mlx4_rcv_tunnel_mad {
+ 	struct ib_mad mad;
+ } __packed;
  
-+static int use_tunnel_data(struct mlx4_ib_qp *qp, struct mlx4_ib_cq *cq, struct ib_wc *wc,
-+			   unsigned tail, struct mlx4_cqe *cqe)
-+{
-+	struct mlx4_ib_proxy_sqp_hdr *hdr;
-+
-+	ib_dma_sync_single_for_cpu(qp->ibqp.device,
-+				   qp->sqp_proxy_rcv[tail].map,
-+				   sizeof(struct mlx4_ib_proxy_sqp_hdr),
-+				   DMA_FROM_DEVICE);
-+	hdr = (struct mlx4_ib_proxy_sqp_hdr *) (qp->sqp_proxy_rcv[tail].addr);
-+	wc->pkey_index	= be16_to_cpu(hdr->tun.pkey_index);
-+	wc->slid	= be16_to_cpu(hdr->tun.slid_mac_47_32);
-+	wc->sl		= (u8) (be16_to_cpu(hdr->tun.sl_vid) >> 12);
-+	wc->src_qp	= be32_to_cpu(hdr->tun.flags_src_qp) & 0xFFFFFF;
-+	wc->wc_flags   |= (hdr->tun.g_ml_path & 0x80) ? (IB_WC_GRH) : 0;
-+	wc->dlid_path_bits = 0;
-+
-+	return 0;
-+}
-+
- static int mlx4_ib_poll_one(struct mlx4_ib_cq *cq,
- 			    struct mlx4_ib_qp **cur_qp,
- 			    struct ib_wc *wc)
-@@ -559,6 +579,7 @@ static int mlx4_ib_poll_one(struct mlx4_ib_cq *cq,
- 	int is_error;
- 	u32 g_mlpath_rqpn;
- 	u16 wqe_ctr;
-+	unsigned tail = 0;
+-int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
++int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
+ 		 int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+ 		 void *in_mad, void *response_mad)
+ {
+@@ -102,10 +102,13 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+ 	 * Key check traps can't be generated unless we have in_wc to
+ 	 * tell us where to send the trap.
+ 	 */
+-	if (ignore_mkey || !in_wc)
++	if ((mad_ifc_flags & MLX4_MAD_IFC_IGNORE_MKEY) || !in_wc)
+ 		op_modifier |= 0x1;
+-	if (ignore_bkey || !in_wc)
++	if ((mad_ifc_flags & MLX4_MAD_IFC_IGNORE_BKEY) || !in_wc)
+ 		op_modifier |= 0x2;
++	if (mlx4_is_mfunc(dev->dev) &&
++	    (mad_ifc_flags & MLX4_MAD_IFC_NET_VIEW || in_wc))
++		op_modifier |= 0x8;
  
- repoll:
- 	cqe = next_cqe_sw(cq);
-@@ -634,7 +655,8 @@ repoll:
- 		mlx4_ib_free_srq_wqe(srq, wqe_ctr);
- 	} else {
- 		wq	  = &(*cur_qp)->rq;
--		wc->wr_id = wq->wrid[wq->tail & (wq->wqe_cnt - 1)];
-+		tail	  = wq->tail & (wq->wqe_cnt - 1);
-+		wc->wr_id = wq->wrid[tail];
- 		++wq->tail;
+ 	if (in_wc) {
+ 		struct {
+@@ -138,10 +141,10 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+ 		in_modifier |= in_wc->slid << 16;
  	}
  
-@@ -717,6 +739,13 @@ repoll:
- 			break;
- 		}
+-	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma,
+-			   in_modifier, op_modifier,
++	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma, in_modifier,
++			   mlx4_is_master(dev->dev) ? (op_modifier & ~0x8) : op_modifier,
+ 			   MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C,
+-			   MLX4_CMD_NATIVE);
++			   (op_modifier & 0x8) ? MLX4_CMD_NATIVE : MLX4_CMD_WRAPPED);
  
-+		if (mlx4_is_mfunc(to_mdev(cq->ibcq.device)->dev)) {
-+			if ((*cur_qp)->mlx4_ib_qp_type &
-+			    (MLX4_IB_QPT_PROXY_SMI_OWNER |
-+			     MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI))
-+				return use_tunnel_data(*cur_qp, cq, wc, tail, cqe);
-+		}
+ 	if (!err)
+ 		memcpy(response_mad, outmailbox->buf, 256);
+@@ -610,8 +613,9 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 		prev_lid = pattr.lid;
+ 
+ 	err = mlx4_MAD_IFC(to_mdev(ibdev),
+-			   mad_flags & IB_MAD_IGNORE_MKEY,
+-			   mad_flags & IB_MAD_IGNORE_BKEY,
++			   (mad_flags & IB_MAD_IGNORE_MKEY ? MLX4_MAD_IFC_IGNORE_MKEY : 0) |
++			   (mad_flags & IB_MAD_IGNORE_BKEY ? MLX4_MAD_IFC_IGNORE_BKEY : 0) |
++			   MLX4_MAD_IFC_NET_VIEW,
+ 			   port_num, in_wc, in_grh, in_mad, out_mad);
+ 	if (err)
+ 		return IB_MAD_RESULT_FAILURE;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index bdfd3ae..48cda35 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -98,7 +98,8 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 	init_query_mad(in_mad);
+ 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
+ 
+-	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, 1, NULL, NULL, in_mad, out_mad);
++	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS,
++			   1, NULL, NULL, in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+ 
+@@ -182,11 +183,12 @@ mlx4_ib_port_link_layer(struct ib_device *device, u8 port_num)
+ }
+ 
+ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
+-			      struct ib_port_attr *props)
++			      struct ib_port_attr *props, int netw_view)
+ {
+ 	struct ib_smp *in_mad  = NULL;
+ 	struct ib_smp *out_mad = NULL;
+ 	int ext_active_speed;
++	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 	int err = -ENOMEM;
+ 
+ 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+@@ -198,7 +200,10 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
+ 	in_mad->attr_id  = IB_SMP_ATTR_PORT_INFO;
+ 	in_mad->attr_mod = cpu_to_be32(port);
+ 
+-	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port, NULL, NULL,
++	if (mlx4_is_mfunc(to_mdev(ibdev)->dev) && netw_view)
++		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
 +
- 		wc->slid	   = be16_to_cpu(cqe->rlid);
- 		g_mlpath_rqpn	   = be32_to_cpu(cqe->g_mlpath_rqpn);
- 		wc->src_qp	   = g_mlpath_rqpn & 0xffffff;
++	err = mlx4_MAD_IFC(to_mdev(ibdev), mad_ifc_flags, port, NULL, NULL,
+ 				in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+@@ -211,7 +216,10 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
+ 	props->state		= out_mad->data[32] & 0xf;
+ 	props->phys_state	= out_mad->data[33] >> 4;
+ 	props->port_cap_flags	= be32_to_cpup((__be32 *) (out_mad->data + 20));
+-	props->gid_tbl_len	= to_mdev(ibdev)->dev->caps.gid_table_len[port];
++	if (netw_view)
++		props->gid_tbl_len = out_mad->data[50];
++	else
++		props->gid_tbl_len = to_mdev(ibdev)->dev->caps.gid_table_len[port];
+ 	props->max_msg_sz	= to_mdev(ibdev)->dev->caps.max_msg_sz;
+ 	props->pkey_tbl_len	= to_mdev(ibdev)->dev->caps.pkey_table_len[port];
+ 	props->bad_pkey_cntr	= be16_to_cpup((__be16 *) (out_mad->data + 46));
+@@ -244,7 +252,7 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
+ 		in_mad->attr_id = MLX4_ATTR_EXTENDED_PORT_INFO;
+ 		in_mad->attr_mod = cpu_to_be32(port);
+ 
+-		err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port,
++		err = mlx4_MAD_IFC(to_mdev(ibdev), mad_ifc_flags, port,
+ 				   NULL, NULL, in_mad, out_mad);
+ 		if (err)
+ 			goto out;
+@@ -270,7 +278,7 @@ static u8 state_to_phys_state(enum ib_port_state state)
+ }
+ 
+ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+-			       struct ib_port_attr *props)
++			       struct ib_port_attr *props, int netw_view)
+ {
+ 
+ 	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
+@@ -320,20 +328,27 @@ out:
+ 	return err;
+ }
+ 
+-static int mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
+-			      struct ib_port_attr *props)
++int __mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
++			 struct ib_port_attr *props, int netw_view)
+ {
+ 	int err;
+ 
+ 	memset(props, 0, sizeof *props);
+ 
+ 	err = mlx4_ib_port_link_layer(ibdev, port) == IB_LINK_LAYER_INFINIBAND ?
+-		ib_link_query_port(ibdev, port, props) :
+-				eth_link_query_port(ibdev, port, props);
++		ib_link_query_port(ibdev, port, props, netw_view) :
++				eth_link_query_port(ibdev, port, props, netw_view);
+ 
+ 	return err;
+ }
+ 
++static int mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
++			      struct ib_port_attr *props)
++{
++	/* returns host view */
++	return __mlx4_ib_query_port(ibdev, port, props, 0);
++}
++
+ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 			       union ib_gid *gid)
+ {
+@@ -350,7 +365,8 @@ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	in_mad->attr_id  = IB_SMP_ATTR_PORT_INFO;
+ 	in_mad->attr_mod = cpu_to_be32(port);
+ 
+-	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port, NULL, NULL, in_mad, out_mad);
++	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS, port,
++			   NULL, NULL, in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+ 
+@@ -360,7 +376,8 @@ static int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 	in_mad->attr_id  = IB_SMP_ATTR_GUID_INFO;
+ 	in_mad->attr_mod = cpu_to_be32(index / 8);
+ 
+-	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port, NULL, NULL, in_mad, out_mad);
++	err = mlx4_MAD_IFC(to_mdev(ibdev), MLX4_MAD_IFC_IGNORE_KEYS, port,
++			   NULL, NULL, in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+ 
+@@ -391,11 +408,12 @@ static int mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 		return iboe_query_gid(ibdev, port, index, gid);
+ }
+ 
+-static int mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+-			      u16 *pkey)
++int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
++			 u16 *pkey, int netw_view)
+ {
+ 	struct ib_smp *in_mad  = NULL;
+ 	struct ib_smp *out_mad = NULL;
++	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 	int err = -ENOMEM;
+ 
+ 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+@@ -407,7 +425,11 @@ static int mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+ 	in_mad->attr_id  = IB_SMP_ATTR_PKEY_TABLE;
+ 	in_mad->attr_mod = cpu_to_be32(index / 32);
+ 
+-	err = mlx4_MAD_IFC(to_mdev(ibdev), 1, 1, port, NULL, NULL, in_mad, out_mad);
++	if (mlx4_is_mfunc(to_mdev(ibdev)->dev) && netw_view)
++		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
++
++	err = mlx4_MAD_IFC(to_mdev(ibdev), mad_ifc_flags, port, NULL, NULL,
++			   in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+ 
+@@ -419,6 +441,11 @@ out:
+ 	return err;
+ }
+ 
++static int mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index, u16 *pkey)
++{
++	return __mlx4_ib_query_pkey(ibdev, port, index, pkey, 0);
++}
++
+ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
+ 				 struct ib_device_modify *props)
+ {
+@@ -848,6 +875,7 @@ static int init_node_data(struct mlx4_ib_dev *dev)
+ {
+ 	struct ib_smp *in_mad  = NULL;
+ 	struct ib_smp *out_mad = NULL;
++	int mad_ifc_flags = MLX4_MAD_IFC_IGNORE_KEYS;
+ 	int err = -ENOMEM;
+ 
+ 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
+@@ -857,8 +885,10 @@ static int init_node_data(struct mlx4_ib_dev *dev)
+ 
+ 	init_query_mad(in_mad);
+ 	in_mad->attr_id = IB_SMP_ATTR_NODE_DESC;
++	if (mlx4_is_master(dev->dev))
++		mad_ifc_flags |= MLX4_MAD_IFC_NET_VIEW;
+ 
+-	err = mlx4_MAD_IFC(dev, 1, 1, 1, NULL, NULL, in_mad, out_mad);
++	err = mlx4_MAD_IFC(dev, mad_ifc_flags, 1, NULL, NULL, in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+ 
+@@ -866,7 +896,7 @@ static int init_node_data(struct mlx4_ib_dev *dev)
+ 
+ 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
+ 
+-	err = mlx4_MAD_IFC(dev, 1, 1, 1, NULL, NULL, in_mad, out_mad);
++	err = mlx4_MAD_IFC(dev, mad_ifc_flags, 1, NULL, NULL, in_mad, out_mad);
+ 	if (err)
+ 		goto out;
+ 
 diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index c136bb6..1248d57 100644
+index 137941d..ac71d56 100644
 --- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
 +++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -133,8 +133,10 @@ struct mlx4_ib_wq {
+@@ -176,6 +176,14 @@ enum mlx4_ib_qp_type {
+ 	MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI | MLX4_IB_QPT_TUN_SMI_OWNER | \
+ 	MLX4_IB_QPT_TUN_SMI | MLX4_IB_QPT_TUN_GSI)
+ 
++enum mlx4_ib_mad_ifc_flags {
++	MLX4_MAD_IFC_IGNORE_MKEY	= 1,
++	MLX4_MAD_IFC_IGNORE_BKEY	= 2,
++	MLX4_MAD_IFC_IGNORE_KEYS	= (MLX4_MAD_IFC_IGNORE_MKEY |
++					   MLX4_MAD_IFC_IGNORE_BKEY),
++	MLX4_MAD_IFC_NET_VIEW		= 4,
++};
++
+ enum {
+ 	MLX4_NUM_TUNNEL_BUFS		= 256,
  };
+@@ -512,7 +520,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ int mlx4_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		      struct ib_recv_wr **bad_wr);
  
- enum mlx4_ib_qp_flags {
--	MLX4_IB_QP_LSO				= 1 << 0,
--	MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK	= 1 << 1,
-+	MLX4_IB_QP_LSO = IB_QP_CREATE_IPOIB_UD_LSO,
-+	MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK = IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK,
-+	MLX4_IB_SRIOV_TUNNEL_QP = 1 << 30,
-+	MLX4_IB_SRIOV_SQP = 1 << 31,
- };
+-int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
++int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
+ 		 int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+ 		 void *in_mad, void *response_mad);
+ int mlx4_ib_process_mad(struct ib_device *ibdev, int mad_flags,	u8 port_num,
+@@ -527,6 +535,10 @@ int mlx4_ib_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list, int npages,
+ 			 u64 iova);
+ int mlx4_ib_unmap_fmr(struct list_head *fmr_list);
+ int mlx4_ib_fmr_dealloc(struct ib_fmr *fmr);
++int __mlx4_ib_query_port(struct ib_device *ibdev, u8 port,
++			 struct ib_port_attr *props, int netw_view);
++int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
++			 u16 *pkey, int netw_view);
  
- struct mlx4_ib_gid_entry {
-@@ -144,6 +146,68 @@ struct mlx4_ib_gid_entry {
- 	u8			port;
- };
+ int mlx4_ib_resolve_grh(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah_attr,
+ 			u8 *mac, int *is_mcast, u8 port);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+index 89feaed..28fca65 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+@@ -40,6 +40,7 @@
  
-+enum mlx4_ib_qp_type {
-+	/*
-+	 * IB_QPT_SMI and IB_QPT_GSI have to be the first two entries
-+	 * here (and in that order) since the MAD layer uses them as
-+	 * indices into a 2-entry table.
-+	 */
-+	MLX4_IB_QPT_SMI = IB_QPT_SMI,
-+	MLX4_IB_QPT_GSI = IB_QPT_GSI,
-+
-+	MLX4_IB_QPT_RC = IB_QPT_RC,
-+	MLX4_IB_QPT_UC = IB_QPT_UC,
-+	MLX4_IB_QPT_UD = IB_QPT_UD,
-+	MLX4_IB_QPT_RAW_IPV6 = IB_QPT_RAW_IPV6,
-+	MLX4_IB_QPT_RAW_ETHERTYPE = IB_QPT_RAW_ETHERTYPE,
-+	MLX4_IB_QPT_RAW_PACKET = IB_QPT_RAW_PACKET,
-+	MLX4_IB_QPT_XRC_INI = IB_QPT_XRC_INI,
-+	MLX4_IB_QPT_XRC_TGT = IB_QPT_XRC_TGT,
-+
-+	MLX4_IB_QPT_PROXY_SMI_OWNER	= 1 << 16,
-+	MLX4_IB_QPT_PROXY_SMI		= 1 << 17,
-+	MLX4_IB_QPT_PROXY_GSI		= 1 << 18,
-+	MLX4_IB_QPT_TUN_SMI_OWNER	= 1 << 19,
-+	MLX4_IB_QPT_TUN_SMI		= 1 << 20,
-+	MLX4_IB_QPT_TUN_GSI		= 1 << 21,
-+};
-+
-+#define MLX4_IB_QPT_ANY_SRIOV	(MLX4_IB_QPT_PROXY_SMI_OWNER | \
-+	MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI | MLX4_IB_QPT_TUN_SMI_OWNER | \
-+	MLX4_IB_QPT_TUN_SMI | MLX4_IB_QPT_TUN_GSI)
-+
-+struct mlx4_ib_tunnel_header {
-+	struct mlx4_av av;
-+	__be32 remote_qpn;
-+	__be32 qkey;
-+	__be16 vlan;
-+	u8 mac[6];
-+	__be16 pkey_index;
-+	u8 reserved[6];
-+};
-+
-+struct mlx4_ib_buf {
-+	void *addr;
-+	dma_addr_t map;
-+};
-+
-+struct mlx4_rcv_tunnel_hdr {
-+	__be32 flags_src_qp; /* flags[6:5] is defined for VLANs:
-+			      * 0x0 - no vlan was in the packet
-+			      * 0x01 - C-VLAN was in the packet */
-+	u8 g_ml_path; /* gid bit stands for ipv6/4 header in RoCE */
-+	u8 reserved;
-+	__be16 pkey_index;
-+	__be16 sl_vid;
-+	__be16 slid_mac_47_32;
-+	__be32 mac_31_0;
-+};
-+
-+struct mlx4_ib_proxy_sqp_hdr {
-+	struct ib_grh grh;
-+	struct mlx4_rcv_tunnel_hdr tun;
-+}  __packed;
-+
- struct mlx4_ib_qp {
- 	struct ib_qp		ibqp;
- 	struct mlx4_qp		mqp;
-@@ -159,6 +223,7 @@ struct mlx4_ib_qp {
- 	int			sq_spare_wqes;
- 	struct mlx4_ib_wq	sq;
+ #include <linux/mlx4/cmd.h>
+ #include <linux/semaphore.h>
++#include <rdma/ib_smi.h>
  
-+	enum mlx4_ib_qp_type	mlx4_ib_qp_type;
- 	struct ib_umem	       *umem;
- 	struct mlx4_mtt		mtt;
- 	int			buf_size;
-@@ -174,6 +239,8 @@ struct mlx4_ib_qp {
- 	int			mlx_type;
- 	struct list_head	gid_list;
- 	struct list_head	steering_rules;
-+	struct mlx4_ib_buf	*sqp_proxy_rcv;
-+
- };
+ #include <asm/io.h>
  
- struct mlx4_ib_srq {
-@@ -196,6 +263,55 @@ struct mlx4_ib_ah {
- 	union mlx4_ext_av       av;
- };
+@@ -582,6 +583,149 @@ static int mlx4_ACCESS_MEM(struct mlx4_dev *dev, u64 master_addr,
+ 			    MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
+ }
  
-+struct mlx4_ib_tun_tx_buf {
-+	struct mlx4_ib_buf buf;
-+	struct ib_ah *ah;
-+};
++static int query_pkey_block(struct mlx4_dev *dev, u8 port, u16 index, u16 *pkey,
++			       struct mlx4_cmd_mailbox *inbox,
++			       struct mlx4_cmd_mailbox *outbox)
++{
++	struct ib_smp *in_mad = (struct ib_smp *)(inbox->buf);
++	struct ib_smp *out_mad = (struct ib_smp *)(outbox->buf);
++	int err;
++	int i;
 +
-+struct mlx4_ib_demux_pv_qp {
-+	struct ib_qp *qp;
-+	enum ib_qp_type proxy_qpt;
-+	struct mlx4_ib_buf *ring;
-+	struct mlx4_ib_tun_tx_buf *tx_ring;
-+	spinlock_t tx_lock;
-+	unsigned tx_ix_head;
-+	unsigned tx_ix_tail;
-+};
++	if (index & 0x1f)
++		return -EINVAL;
 +
-+struct mlx4_ib_demux_pv_ctx {
-+	int port;
-+	int slave;
-+	int has_smi;
-+	struct ib_device *ib_dev;
-+	struct ib_cq *cq;
-+	struct ib_pd *pd;
-+	struct ib_mr *mr;
-+	struct work_struct work;
-+	struct workqueue_struct *wq;
-+	struct mlx4_ib_demux_pv_qp qp[2];
-+};
++	in_mad->attr_mod = cpu_to_be32(index / 32);
 +
-+struct mlx4_ib_demux_ctx {
-+	struct ib_device *ib_dev;
-+	int port;
-+	struct workqueue_struct *wq;
-+	struct workqueue_struct *ud_wq;
-+	spinlock_t ud_lock;
-+	__be64 subnet_prefix;
-+	__be64 guid_cache[128];
-+	struct mlx4_ib_dev *dev;
-+	struct mlx4_ib_demux_pv_ctx **tun;
-+};
++	err = mlx4_cmd_box(dev, inbox->dma, outbox->dma, port, 3,
++			   MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C,
++			   MLX4_CMD_NATIVE);
++	if (err)
++		return err;
 +
-+struct mlx4_ib_sriov {
-+	struct mlx4_ib_demux_ctx demux[MLX4_MAX_PORTS];
-+	struct mlx4_ib_demux_pv_ctx *sqps[MLX4_MAX_PORTS];
-+	/* when using this spinlock you should use "irq" because
-+	 * it may be called from interrupt context.*/
-+	spinlock_t going_down_lock;
-+	int is_going_down;
-+};
++	for (i = 0; i < 32; ++i)
++		pkey[i] = be16_to_cpu(((__be16 *) out_mad->data)[i]);
 +
- struct mlx4_ib_iboe {
- 	spinlock_t		lock;
- 	struct net_device      *netdevs[MLX4_MAX_PORTS];
-@@ -216,6 +332,7 @@ struct mlx4_ib_dev {
- 	struct ib_mad_agent    *send_agent[MLX4_MAX_PORTS][2];
- 	struct ib_ah	       *sm_ah[MLX4_MAX_PORTS];
- 	spinlock_t		sm_lock;
-+	struct mlx4_ib_sriov	sriov;
- 
- 	struct mutex		cap_mask_mutex;
- 	bool			ib_active;
-@@ -231,6 +348,13 @@ struct ib_event_work {
- 	struct mlx4_eqe		ib_eqe;
- };
- 
-+struct mlx4_ib_qp_tunnel_init_attr {
-+	struct ib_qp_init_attr init_attr;
-+	int slave;
-+	enum ib_qp_type proxy_qp_type;
++	return err;
++}
++
++static int get_full_pkey_table(struct mlx4_dev *dev, u8 port, u16 *table,
++			       struct mlx4_cmd_mailbox *inbox,
++			       struct mlx4_cmd_mailbox *outbox)
++{
++	int i;
++	int err;
++
++	for (i = 0; i < dev->caps.pkey_table_len[port]; i += 32) {
++		err = query_pkey_block(dev, port, i, table + i, inbox, outbox);
++		if (err)
++			return err;
++	}
++
++	return 0;
++}
++#define PORT_CAPABILITY_LOCATION_IN_SMP 20
++#define PORT_STATE_OFFSET 32
++
++static enum ib_port_state vf_port_state(struct mlx4_dev *dev, int port, int vf)
++{
++	/* will be modified when add alias_guid feature */
++	return IB_PORT_DOWN;
++}
++
++static int mlx4_MAD_IFC_wrapper(struct mlx4_dev *dev, int slave,
++				struct mlx4_vhcr *vhcr,
++				struct mlx4_cmd_mailbox *inbox,
++				struct mlx4_cmd_mailbox *outbox,
++				struct mlx4_cmd_info *cmd)
++{
++	struct ib_smp *smp = inbox->buf;
++	u32 index;
 +	u8 port;
-+};
++	u16 *table;
++	int err;
++	int vidx, pidx;
++	struct mlx4_priv *priv = mlx4_priv(dev);
++	struct ib_smp *outsmp = outbox->buf;
++	__be16 *outtab = (__be16 *)(outsmp->data);
++	__be32 slave_cap_mask;
++	port = vhcr->in_modifier;
 +
- static inline struct mlx4_ib_dev *to_mdev(struct ib_device *ibdev)
- {
- 	return container_of(ibdev, struct mlx4_ib_dev, ib_dev);
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index a6d8ea0..3a3a690 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -38,6 +38,7 @@
- #include <rdma/ib_cache.h>
- #include <rdma/ib_pack.h>
- #include <rdma/ib_addr.h>
-+#include <rdma/ib_mad.h>
- 
- #include <linux/mlx4/qp.h>
- 
-@@ -110,16 +111,38 @@ static struct mlx4_ib_sqp *to_msqp(struct mlx4_ib_qp *mqp)
- 	return container_of(mqp, struct mlx4_ib_sqp, qp);
- }
- 
-+static int is_tunnel_qp(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
-+{
-+	if (!mlx4_is_master(dev->dev))
-+		return 0;
-+
-+	return qp->mqp.qpn >= dev->dev->caps.base_sqpn &&
-+	       qp->mqp.qpn < dev->dev->caps.base_sqpn +
-+	       8 + 16 * MLX4_MFUNC_MAX;
-+}
-+
- static int is_sqp(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
- {
--	return qp->mqp.qpn >= dev->dev->caps.sqp_start &&
--		qp->mqp.qpn <= dev->dev->caps.sqp_start + 3;
-+	return ((mlx4_is_master(dev->dev) &&
-+		 qp->mqp.qpn >= dev->dev->caps.base_sqpn &&
-+		 qp->mqp.qpn <= dev->dev->caps.base_sqpn + 3) ||
-+		(qp->mqp.qpn >= dev->dev->caps.sqp_start &&
-+		 qp->mqp.qpn <= dev->dev->caps.sqp_start + 3));
- }
- 
-+/* used for INIT/CLOSE port logic */
- static int is_qp0(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
- {
--	return qp->mqp.qpn >= dev->dev->caps.sqp_start &&
--		qp->mqp.qpn <= dev->dev->caps.sqp_start + 1;
-+	int qp0;
-+
-+	/* qp0 is either the proxy qp0, or the real qp0 */
-+	qp0 = (qp->mqp.qpn >= dev->dev->caps.sqp_start &&
-+		qp->mqp.qpn <= dev->dev->caps.sqp_start + 1) ||
-+		(mlx4_is_master(dev->dev) &&
-+		 qp->mqp.qpn >= dev->dev->caps.base_sqpn &&
-+		 qp->mqp.qpn <= dev->dev->caps.base_sqpn + 1);
-+
-+	return qp0;
- }
- 
- static void *get_wqe(struct mlx4_ib_qp *qp, int offset)
-@@ -270,7 +293,7 @@ static void mlx4_ib_qp_event(struct mlx4_qp *qp, enum mlx4_event type)
- 	}
- }
- 
--static int send_wqe_overhead(enum ib_qp_type type, u32 flags)
-+static int send_wqe_overhead(enum mlx4_ib_qp_type type, u32 flags)
- {
- 	/*
- 	 * UD WQEs must have a datagram segment.
-@@ -279,19 +302,29 @@ static int send_wqe_overhead(enum ib_qp_type type, u32 flags)
- 	 * header and space for the ICRC).
- 	 */
- 	switch (type) {
--	case IB_QPT_UD:
-+	case MLX4_IB_QPT_UD:
- 		return sizeof (struct mlx4_wqe_ctrl_seg) +
- 			sizeof (struct mlx4_wqe_datagram_seg) +
- 			((flags & MLX4_IB_QP_LSO) ? MLX4_IB_LSO_HEADER_SPARE : 0);
--	case IB_QPT_UC:
-+	case MLX4_IB_QPT_PROXY_SMI_OWNER:
-+	case MLX4_IB_QPT_PROXY_SMI:
-+	case MLX4_IB_QPT_PROXY_GSI:
-+		return sizeof(struct mlx4_wqe_ctrl_seg) +
-+			sizeof(struct mlx4_wqe_datagram_seg) + 64;
-+	case MLX4_IB_QPT_TUN_SMI_OWNER:
-+	case MLX4_IB_QPT_TUN_GSI:
-+		return sizeof(struct mlx4_wqe_ctrl_seg) +
-+			sizeof(struct mlx4_wqe_datagram_seg);
-+
-+	case MLX4_IB_QPT_UC:
- 		return sizeof (struct mlx4_wqe_ctrl_seg) +
- 			sizeof (struct mlx4_wqe_raddr_seg);
--	case IB_QPT_RC:
-+	case MLX4_IB_QPT_RC:
- 		return sizeof (struct mlx4_wqe_ctrl_seg) +
- 			sizeof (struct mlx4_wqe_atomic_seg) +
- 			sizeof (struct mlx4_wqe_raddr_seg);
--	case IB_QPT_SMI:
--	case IB_QPT_GSI:
-+	case MLX4_IB_QPT_SMI:
-+	case MLX4_IB_QPT_GSI:
- 		return sizeof (struct mlx4_wqe_ctrl_seg) +
- 			ALIGN(MLX4_IB_UD_HEADER_SIZE +
- 			      DIV_ROUND_UP(MLX4_IB_UD_HEADER_SIZE,
-@@ -345,7 +378,7 @@ static int set_rq_size(struct mlx4_ib_dev *dev, struct ib_qp_cap *cap,
- }
- 
- static int set_kernel_sq_size(struct mlx4_ib_dev *dev, struct ib_qp_cap *cap,
--			      enum ib_qp_type type, struct mlx4_ib_qp *qp)
-+			      enum mlx4_ib_qp_type type, struct mlx4_ib_qp *qp)
- {
- 	int s;
- 
-@@ -360,7 +393,8 @@ static int set_kernel_sq_size(struct mlx4_ib_dev *dev, struct ib_qp_cap *cap,
- 	 * For MLX transport we need 2 extra S/G entries:
- 	 * one for the header and one for the checksum at the end
- 	 */
--	if ((type == IB_QPT_SMI || type == IB_QPT_GSI) &&
-+	if ((type == MLX4_IB_QPT_SMI || type == MLX4_IB_QPT_GSI ||
-+	     type & (MLX4_IB_QPT_PROXY_SMI_OWNER | MLX4_IB_QPT_TUN_SMI_OWNER)) &&
- 	    cap->max_send_sge + 2 > dev->dev->caps.max_sq_sg)
- 		return -EINVAL;
- 
-@@ -404,7 +438,9 @@ static int set_kernel_sq_size(struct mlx4_ib_dev *dev, struct ib_qp_cap *cap,
- 	 */
- 	if (dev->dev->caps.fw_ver >= MLX4_FW_VER_WQE_CTRL_NEC &&
- 	    qp->sq_signal_bits && BITS_PER_LONG == 64 &&
--	    type != IB_QPT_SMI && type != IB_QPT_GSI)
-+	    type != MLX4_IB_QPT_SMI && type != MLX4_IB_QPT_GSI &&
-+	    !(type & (MLX4_IB_QPT_PROXY_SMI_OWNER | MLX4_IB_QPT_PROXY_SMI |
-+		      MLX4_IB_QPT_PROXY_GSI | MLX4_IB_QPT_TUN_SMI_OWNER)))
- 		qp->sq.wqe_shift = ilog2(64);
- 	else
- 		qp->sq.wqe_shift = ilog2(roundup_pow_of_two(s));
-@@ -476,6 +512,54 @@ static int set_user_sq_size(struct mlx4_ib_dev *dev,
- 	return 0;
- }
- 
-+static int alloc_proxy_bufs(struct ib_device *dev, struct mlx4_ib_qp *qp)
-+{
-+	int i;
-+
-+	qp->sqp_proxy_rcv =
-+		kmalloc(sizeof(struct mlx4_ib_buf) * qp->rq.wqe_cnt,
-+			GFP_KERNEL);
-+	if (!qp->sqp_proxy_rcv)
-+		return -ENOMEM;
-+	for (i = 0; i < qp->rq.wqe_cnt; i++) {
-+		qp->sqp_proxy_rcv[i].addr =
-+			kmalloc(sizeof(struct mlx4_ib_proxy_sqp_hdr),
-+				GFP_KERNEL);
-+		if (!qp->sqp_proxy_rcv[i].addr)
-+			goto err;
-+		qp->sqp_proxy_rcv[i].map =
-+			ib_dma_map_single(dev, qp->sqp_proxy_rcv[i].addr,
-+					  sizeof(struct mlx4_ib_proxy_sqp_hdr),
-+					  DMA_FROM_DEVICE);
-+	}
-+	return 0;
-+
-+err:
-+	while (i > 0) {
-+		--i;
-+		ib_dma_unmap_single(dev, qp->sqp_proxy_rcv[i].map,
-+				    sizeof(struct mlx4_ib_proxy_sqp_hdr),
-+				    DMA_FROM_DEVICE);
-+		kfree(qp->sqp_proxy_rcv[i].addr);
-+	}
-+	kfree(qp->sqp_proxy_rcv);
-+	qp->sqp_proxy_rcv = NULL;
-+	return -ENOMEM;
-+}
-+
-+static void free_proxy_bufs(struct ib_device *dev, struct mlx4_ib_qp *qp)
-+{
-+	int i;
-+
-+	for (i = 0; i < qp->rq.wqe_cnt; i++) {
-+		ib_dma_unmap_single(dev, qp->sqp_proxy_rcv[i].map,
-+				    sizeof(struct mlx4_ib_proxy_sqp_hdr),
-+				    DMA_FROM_DEVICE);
-+		kfree(qp->sqp_proxy_rcv[i].addr);
-+	}
-+	kfree(qp->sqp_proxy_rcv);
-+}
-+
- static int qp_has_rq(struct ib_qp_init_attr *attr)
- {
- 	if (attr->qp_type == IB_QPT_XRC_INI || attr->qp_type == IB_QPT_XRC_TGT)
-@@ -486,10 +570,71 @@ static int qp_has_rq(struct ib_qp_init_attr *attr)
- 
- static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 			    struct ib_qp_init_attr *init_attr,
--			    struct ib_udata *udata, int sqpn, struct mlx4_ib_qp *qp)
-+			    struct ib_udata *udata, int sqpn, struct mlx4_ib_qp **caller_qp)
- {
- 	int qpn;
- 	int err;
-+	struct mlx4_ib_sqp *sqp;
-+	struct mlx4_ib_qp *qp;
-+	enum mlx4_ib_qp_type qp_type = (enum mlx4_ib_qp_type) init_attr->qp_type;
-+
-+	/* When tunneling special qps, we use a plain UD qp */
-+	if (sqpn) {
-+		if (mlx4_is_mfunc(dev->dev) &&
-+		    (!mlx4_is_master(dev->dev) ||
-+		     !(init_attr->create_flags & MLX4_IB_SRIOV_SQP))) {
-+			if (init_attr->qp_type == IB_QPT_GSI)
-+				qp_type = MLX4_IB_QPT_PROXY_GSI;
-+			else if (mlx4_is_master(dev->dev))
-+				qp_type = MLX4_IB_QPT_PROXY_SMI_OWNER;
-+			else
-+				qp_type = MLX4_IB_QPT_PROXY_SMI;
-+		}
-+		qpn = sqpn;
-+		/* add extra sg entry for tunneling */
-+		init_attr->cap.max_recv_sge++;
-+	} else if (init_attr->create_flags & MLX4_IB_SRIOV_TUNNEL_QP) {
-+		struct mlx4_ib_qp_tunnel_init_attr *tnl_init =
-+			container_of(init_attr,
-+				     struct mlx4_ib_qp_tunnel_init_attr, init_attr);
-+		if ((tnl_init->proxy_qp_type != IB_QPT_SMI &&
-+		     tnl_init->proxy_qp_type != IB_QPT_GSI)   ||
-+		    !mlx4_is_master(dev->dev))
-+			return -EINVAL;
-+		if (tnl_init->proxy_qp_type == IB_QPT_GSI)
-+			qp_type = MLX4_IB_QPT_TUN_GSI;
-+		else if (tnl_init->slave == mlx4_master_func_num(dev->dev))
-+			qp_type = MLX4_IB_QPT_TUN_SMI_OWNER;
-+		else
-+			qp_type = MLX4_IB_QPT_TUN_SMI;
-+		qpn = dev->dev->caps.base_tunnel_sqpn + 8 * tnl_init->slave +
-+		      tnl_init->proxy_qp_type * 2 + tnl_init->port - 1;
-+		sqpn = qpn;
-+	}
-+
-+	if (!*caller_qp) {
-+		if (qp_type == MLX4_IB_QPT_SMI || qp_type == MLX4_IB_QPT_GSI ||
-+		    (qp_type & (MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_SMI_OWNER |
-+				MLX4_IB_QPT_PROXY_GSI | MLX4_IB_QPT_TUN_SMI_OWNER))) {
-+			sqp = kzalloc(sizeof(struct mlx4_ib_sqp), GFP_KERNEL);
-+			if (!sqp)
-+				return -ENOMEM;
-+			qp = &sqp->qp;
-+		} else {
-+			qp = kzalloc(sizeof(struct mlx4_ib_qp), GFP_KERNEL);
-+			if (!qp)
-+				return -ENOMEM;
-+		}
-+	} else
-+		qp = *caller_qp;
-+
-+	qp->mlx4_ib_qp_type = qp_type;
-+
-+	if (mlx4_is_mfunc(dev->dev) &&
-+	    (qp_type == MLX4_IB_QPT_SMI || qp_type == MLX4_IB_QPT_GSI)) {
-+		qpn -= 8;
-+		sqpn -= 8;
-+	}
- 
- 	mutex_init(&qp->mutex);
- 	spin_lock_init(&qp->sq.lock);
-@@ -550,7 +695,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 		if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO)
- 			qp->flags |= MLX4_IB_QP_LSO;
- 
--		err = set_kernel_sq_size(dev, &init_attr->cap, init_attr->qp_type, qp);
-+		err = set_kernel_sq_size(dev, &init_attr->cap, qp_type, qp);
- 		if (err)
- 			goto err;
- 
-@@ -586,7 +731,13 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 	}
- 
- 	if (sqpn) {
--		qpn = sqpn;
-+		if (qp->mlx4_ib_qp_type & (MLX4_IB_QPT_PROXY_SMI_OWNER |
-+		    MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI)) {
-+			if (alloc_proxy_bufs(pd->device, qp)) {
-+				err = -ENOMEM;
-+				goto err_wrid;
-+			}
-+		}
- 	} else {
- 		/* Raw packet QPNs must be aligned to 8 bits. If not, the WQE
- 		 * BlueFlame setup flow wrongly causes VLAN insertion. */
-@@ -595,7 +746,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 		else
- 			err = mlx4_qp_reserve_range(dev->dev, 1, 1, &qpn);
- 		if (err)
--			goto err_wrid;
-+			goto err_proxy;
- 	}
- 
- 	err = mlx4_qp_alloc(dev->dev, qpn, &qp->mqp);
-@@ -613,13 +764,16 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 	qp->doorbell_qpn = swab32(qp->mqp.qpn << 8);
- 
- 	qp->mqp.event = mlx4_ib_qp_event;
--
-+	if (!*caller_qp)
-+		*caller_qp = qp;
- 	return 0;
- 
- err_qpn:
- 	if (!sqpn)
- 		mlx4_qp_release_range(dev->dev, qpn, 1);
--
-+err_proxy:
-+	if (qp->mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_GSI)
-+		free_proxy_bufs(pd->device, qp);
- err_wrid:
- 	if (pd->uobject) {
- 		if (qp_has_rq(init_attr))
-@@ -643,6 +797,8 @@ err_db:
- 		mlx4_db_free(dev->dev, &qp->db);
- 
- err:
-+	if (!*caller_qp)
-+		kfree(qp);
- 	return err;
- }
- 
-@@ -755,7 +911,7 @@ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
- 
- 	mlx4_qp_free(dev->dev, &qp->mqp);
- 
--	if (!is_sqp(dev, qp))
-+	if (!is_sqp(dev, qp) && !is_tunnel_qp(dev, qp))
- 		mlx4_qp_release_range(dev->dev, qp->mqp.qpn, 1);
- 
- 	mlx4_mtt_cleanup(dev->dev, &qp->mtt);
-@@ -768,6 +924,9 @@ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
- 	} else {
- 		kfree(qp->sq.wrid);
- 		kfree(qp->rq.wrid);
-+		if (qp->mlx4_ib_qp_type & (MLX4_IB_QPT_PROXY_SMI_OWNER |
-+		    MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI))
-+			free_proxy_bufs(&dev->ib_dev, qp);
- 		mlx4_buf_free(dev->dev, qp->buf_size, &qp->buf);
- 		if (qp->rq.wqe_cnt)
- 			mlx4_db_free(dev->dev, &qp->db);
-@@ -780,21 +939,25 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
- 				struct ib_qp_init_attr *init_attr,
- 				struct ib_udata *udata)
- {
--	struct mlx4_ib_sqp *sqp;
--	struct mlx4_ib_qp *qp;
-+	struct mlx4_ib_qp *qp = NULL;
- 	int err;
- 	u16 xrcdn = 0;
- 
- 	/*
--	 * We only support LSO and multicast loopback blocking, and
--	 * only for kernel UD QPs.
-+	 * We only support LSO, vendor flag1, and multicast loopback blocking,
-+	 * and only for kernel UD QPs.
- 	 */
--	if (init_attr->create_flags & ~(IB_QP_CREATE_IPOIB_UD_LSO |
--					IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK))
-+	if (init_attr->create_flags & ~(MLX4_IB_QP_LSO |
-+					MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK |
-+					MLX4_IB_SRIOV_TUNNEL_QP | MLX4_IB_SRIOV_SQP))
- 		return ERR_PTR(-EINVAL);
- 
- 	if (init_attr->create_flags &&
--	    (udata || init_attr->qp_type != IB_QPT_UD))
-+	    (udata ||
-+	     ((init_attr->create_flags & ~MLX4_IB_SRIOV_SQP) &&
-+	      init_attr->qp_type != IB_QPT_UD) ||
-+	     ((init_attr->create_flags & MLX4_IB_SRIOV_SQP) &&
-+	      init_attr->qp_type > IB_QPT_GSI)))
- 		return ERR_PTR(-EINVAL);
- 
- 	switch (init_attr->qp_type) {
-@@ -810,18 +973,17 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
- 		/* fall through */
- 	case IB_QPT_RC:
- 	case IB_QPT_UC:
--	case IB_QPT_UD:
- 	case IB_QPT_RAW_PACKET:
--	{
- 		qp = kzalloc(sizeof *qp, GFP_KERNEL);
- 		if (!qp)
- 			return ERR_PTR(-ENOMEM);
--
--		err = create_qp_common(to_mdev(pd->device), pd, init_attr, udata, 0, qp);
--		if (err) {
--			kfree(qp);
-+		/* fall through */
-+	case IB_QPT_UD:
-+	{
-+		err = create_qp_common(to_mdev(pd->device), pd, init_attr,
-+				       udata, 0, &qp);
-+		if (err)
- 			return ERR_PTR(err);
--		}
- 
- 		qp->ibqp.qp_num = qp->mqp.qpn;
- 		qp->xrcdn = xrcdn;
-@@ -835,21 +997,13 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
- 		if (udata)
- 			return ERR_PTR(-EINVAL);
- 
--		sqp = kzalloc(sizeof *sqp, GFP_KERNEL);
--		if (!sqp)
--			return ERR_PTR(-ENOMEM);
--
--		qp = &sqp->qp;
--
- 		err = create_qp_common(to_mdev(pd->device), pd, init_attr, udata,
- 				       to_mdev(pd->device)->dev->caps.sqp_start +
- 				       (init_attr->qp_type == IB_QPT_SMI ? 0 : 2) +
- 				       init_attr->port_num - 1,
--				       qp);
--		if (err) {
--			kfree(sqp);
-+				       &qp);
-+		if (err)
- 			return ERR_PTR(err);
--		}
- 
- 		qp->port	= init_attr->port_num;
- 		qp->ibqp.qp_num = init_attr->qp_type == IB_QPT_SMI ? 0 : 1;
-@@ -884,18 +1038,27 @@ int mlx4_ib_destroy_qp(struct ib_qp *qp)
- 	return 0;
- }
- 
--static int to_mlx4_st(enum ib_qp_type type)
-+static int to_mlx4_st(struct mlx4_ib_dev *dev, enum mlx4_ib_qp_type type)
- {
- 	switch (type) {
--	case IB_QPT_RC:		return MLX4_QP_ST_RC;
--	case IB_QPT_UC:		return MLX4_QP_ST_UC;
--	case IB_QPT_UD:		return MLX4_QP_ST_UD;
--	case IB_QPT_XRC_INI:
--	case IB_QPT_XRC_TGT:	return MLX4_QP_ST_XRC;
--	case IB_QPT_SMI:
--	case IB_QPT_GSI:
--	case IB_QPT_RAW_PACKET:	return MLX4_QP_ST_MLX;
--	default:		return -1;
-+	case MLX4_IB_QPT_RC:		return MLX4_QP_ST_RC;
-+	case MLX4_IB_QPT_UC:		return MLX4_QP_ST_UC;
-+	case MLX4_IB_QPT_UD:		return MLX4_QP_ST_UD;
-+	case MLX4_IB_QPT_XRC_INI:
-+	case MLX4_IB_QPT_XRC_TGT:	return MLX4_QP_ST_XRC;
-+	case MLX4_IB_QPT_SMI:
-+	case MLX4_IB_QPT_GSI:
-+	case MLX4_IB_QPT_RAW_PACKET:	return MLX4_QP_ST_MLX;
-+
-+	case MLX4_IB_QPT_PROXY_SMI_OWNER:
-+	case MLX4_IB_QPT_TUN_SMI_OWNER:	return (mlx4_is_mfunc(dev->dev) ?
-+						MLX4_QP_ST_MLX : -1);
-+	case MLX4_IB_QPT_PROXY_SMI:
-+	case MLX4_IB_QPT_TUN_SMI:
-+	case MLX4_IB_QPT_PROXY_GSI:
-+	case MLX4_IB_QPT_TUN_GSI:	return (mlx4_is_mfunc(dev->dev) ?
-+						MLX4_QP_ST_UD : -1);
-+	default:			return -1;
- 	}
- }
- 
-@@ -1043,7 +1206,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 		return -ENOMEM;
- 
- 	context->flags = cpu_to_be32((to_mlx4_state(new_state) << 28) |
--				     (to_mlx4_st(ibqp->qp_type) << 16));
-+				     (to_mlx4_st(dev, qp->mlx4_ib_qp_type) << 16));
- 
- 	if (!(attr_mask & IB_QP_PATH_MIG_STATE))
- 		context->flags |= cpu_to_be32(MLX4_QP_PM_MIGRATED << 11);
-@@ -1121,13 +1284,16 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	}
- 
- 	if (attr_mask & IB_QP_PKEY_INDEX) {
-+		if (qp->mlx4_ib_qp_type & MLX4_IB_QPT_ANY_SRIOV)
-+			context->pri_path.disable_pkey_check = 0x40;
- 		context->pri_path.pkey_index = attr->pkey_index;
- 		optpar |= MLX4_QP_OPTPAR_PKEY_INDEX;
- 	}
- 
- 	if (attr_mask & IB_QP_AV) {
- 		if (mlx4_set_path(dev, &attr->ah_attr, &context->pri_path,
--				  attr_mask & IB_QP_PORT ? attr->port_num : qp->port))
-+				  attr_mask & IB_QP_PORT ?
-+				  attr->port_num : qp->port))
- 			goto out;
- 
- 		optpar |= (MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH |
-@@ -1210,8 +1376,24 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	if (attr_mask & IB_QP_RQ_PSN)
- 		context->rnr_nextrecvpsn |= cpu_to_be32(attr->rq_psn);
- 
-+	/* proxy and tunnel qp qkeys will be changed in modify-qp wrappers */
- 	if (attr_mask & IB_QP_QKEY) {
--		context->qkey = cpu_to_be32(attr->qkey);
-+		if (qp->mlx4_ib_qp_type &
-+		    (MLX4_IB_QPT_PROXY_SMI_OWNER | MLX4_IB_QPT_TUN_SMI_OWNER))
-+			context->qkey = cpu_to_be32(IB_QP_SET_QKEY);
-+		else {
-+			if (mlx4_is_mfunc(dev->dev) &&
-+			    !(qp->mlx4_ib_qp_type & MLX4_IB_QPT_ANY_SRIOV) &&
-+			    (attr->qkey & MLX4_RESERVED_QKEY_MASK) ==
-+			    MLX4_RESERVED_QKEY_BASE) {
-+				pr_err("Cannot use reserved QKEY"
-+				       " 0x%x (range 0xffff0000..0xffffffff"
-+				       " is reserved)\n", attr->qkey);
-+				err = -EINVAL;
-+				goto out;
-+			}
-+			context->qkey = cpu_to_be32(attr->qkey);
-+		}
- 		optpar |= MLX4_QP_OPTPAR_Q_KEY;
- 	}
- 
-@@ -1227,10 +1409,17 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	     ibqp->qp_type == IB_QPT_UD ||
- 	     ibqp->qp_type == IB_QPT_RAW_PACKET)) {
- 		context->pri_path.sched_queue = (qp->port - 1) << 6;
--		if (is_qp0(dev, qp))
-+		if (qp->mlx4_ib_qp_type == MLX4_IB_QPT_SMI ||
-+		    qp->mlx4_ib_qp_type &
-+		    (MLX4_IB_QPT_PROXY_SMI_OWNER | MLX4_IB_QPT_TUN_SMI_OWNER)) {
- 			context->pri_path.sched_queue |= MLX4_IB_DEFAULT_QP0_SCHED_QUEUE;
--		else
-+			if (qp->mlx4_ib_qp_type != MLX4_IB_QPT_SMI)
-+				context->pri_path.fl = 0x80;
-+		} else {
-+			if (qp->mlx4_ib_qp_type & MLX4_IB_QPT_ANY_SRIOV)
-+				context->pri_path.fl = 0x80;
- 			context->pri_path.sched_queue |= MLX4_IB_DEFAULT_SCHED_QUEUE;
-+		}
- 	}
- 
- 	if (cur_state == IB_QPS_RTS && new_state == IB_QPS_SQD	&&
-@@ -1346,7 +1535,7 @@ int mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	}
- 
- 	if ((attr_mask & IB_QP_PORT) &&
--	    (attr->port_num == 0 || attr->port_num > dev->dev->caps.num_ports)) {
-+	    (attr->port_num == 0 || attr->port_num > dev->num_ports)) {
- 		pr_debug("qpn 0x%x: invalid port number (%d) specified "
- 			 "for transition %d to %d. qp_type %d\n",
- 			 ibqp->qp_num, attr->port_num, cur_state,
-@@ -1400,6 +1589,115 @@ out:
- 	return err;
- }
- 
-+static int build_sriov_qp0_header(struct mlx4_ib_sqp *sqp,
-+				  struct ib_send_wr *wr,
-+				  void *wqe, unsigned *mlx_seg_len)
-+{
-+	struct mlx4_ib_dev *mdev = to_mdev(sqp->qp.ibqp.device);
-+	struct ib_device *ib_dev = &mdev->ib_dev;
-+	struct mlx4_wqe_mlx_seg *mlx = wqe;
-+	struct mlx4_wqe_inline_seg *inl = wqe + sizeof *mlx;
-+	struct mlx4_ib_ah *ah = to_mah(wr->wr.ud.ah);
-+	u16 pkey;
-+	u32 qkey;
-+	int send_size;
-+	int header_size;
-+	int spc;
-+	int i;
-+
-+	if (wr->opcode != IB_WR_SEND)
-+		return -EINVAL;
-+
-+	send_size = 0;
-+
-+	for (i = 0; i < wr->num_sge; ++i)
-+		send_size += wr->sg_list[i].length;
-+
-+	/* for proxy-qp0 sends, need to add in size of tunnel header */
-+	/* for tunnel-qp0 sends, tunnel header is already in s/g list */
-+	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER)
-+		send_size += sizeof(struct mlx4_ib_tunnel_header);
-+
-+	ib_ud_header_init(send_size, 1, 0, 0, 0, 0, &sqp->ud_header);
-+
-+	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_SMI_OWNER) {
-+		sqp->ud_header.lrh.service_level =
-+			be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 28;
-+		sqp->ud_header.lrh.destination_lid =
-+			cpu_to_be16(ah->av.ib.g_slid & 0x7f);
-+		sqp->ud_header.lrh.source_lid =
-+			cpu_to_be16(ah->av.ib.g_slid & 0x7f);
-+	}
-+
-+	mlx->flags &= cpu_to_be32(MLX4_WQE_CTRL_CQ_UPDATE);
-+
-+	/* force loopback */
-+	mlx->flags |= cpu_to_be32(MLX4_WQE_MLX_VL15 | 0x1 | MLX4_WQE_MLX_SLR);
-+	mlx->rlid = sqp->ud_header.lrh.destination_lid;
-+
-+	sqp->ud_header.lrh.virtual_lane    = 0;
-+	sqp->ud_header.bth.solicited_event = !!(wr->send_flags & IB_SEND_SOLICITED);
-+	ib_get_cached_pkey(ib_dev, sqp->qp.port, 0, &pkey);
-+	sqp->ud_header.bth.pkey = cpu_to_be16(pkey);
-+	if (sqp->qp.mlx4_ib_qp_type == MLX4_IB_QPT_TUN_SMI_OWNER)
-+		sqp->ud_header.bth.destination_qpn = cpu_to_be32(wr->wr.ud.remote_qpn);
-+	else
-+		sqp->ud_header.bth.destination_qpn =
-+			cpu_to_be32(mdev->dev->caps.base_tunnel_sqpn +
-+				    sqp->qp.port - 1);
-+
-+	sqp->ud_header.bth.psn = cpu_to_be32((sqp->send_psn++) & ((1 << 24) - 1));
-+	if (mlx4_get_parav_qkey(mdev->dev, sqp->qp.mqp.qpn, &qkey))
-+		return -EINVAL;
-+	sqp->ud_header.deth.qkey = cpu_to_be32(qkey);
-+	sqp->ud_header.deth.source_qpn = cpu_to_be32(sqp->qp.mqp.qpn);
-+
-+	sqp->ud_header.bth.opcode        = IB_OPCODE_UD_SEND_ONLY;
-+	sqp->ud_header.immediate_present = 0;
-+
-+	header_size = ib_ud_header_pack(&sqp->ud_header, sqp->header_buf);
-+
-+	/*
-+	 * Inline data segments may not cross a 64 byte boundary.  If
-+	 * our UD header is bigger than the space available up to the
-+	 * next 64 byte boundary in the WQE, use two inline data
-+	 * segments to hold the UD header.
-+	 */
-+	spc = MLX4_INLINE_ALIGN -
-+	      ((unsigned long) (inl + 1) & (MLX4_INLINE_ALIGN - 1));
-+	if (header_size <= spc) {
-+		inl->byte_count = cpu_to_be32(1 << 31 | header_size);
-+		memcpy(inl + 1, sqp->header_buf, header_size);
-+		i = 1;
-+	} else {
-+		inl->byte_count = cpu_to_be32(1 << 31 | spc);
-+		memcpy(inl + 1, sqp->header_buf, spc);
-+
-+		inl = (void *) (inl + 1) + spc;
-+		memcpy(inl + 1, sqp->header_buf + spc, header_size - spc);
-+		/*
-+		 * Need a barrier here to make sure all the data is
-+		 * visible before the byte_count field is set.
-+		 * Otherwise the HCA prefetcher could grab the 64-byte
-+		 * chunk with this inline segment and get a valid (!=
-+		 * 0xffffffff) byte count but stale data, and end up
-+		 * generating a packet with bad headers.
-+		 *
-+		 * The first inline segment's byte_count field doesn't
-+		 * need a barrier, because it comes after a
-+		 * control/MLX segment and therefore is at an offset
-+		 * of 16 mod 64.
-+		 */
-+		wmb();
-+		inl->byte_count = cpu_to_be32(1 << 31 | (header_size - spc));
-+		i = 2;
-+	}
-+
-+	*mlx_seg_len =
-+	ALIGN(i * sizeof(struct mlx4_wqe_inline_seg) + header_size, 16);
-+	return 0;
-+}
-+
- static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 			    void *wqe, unsigned *mlx_seg_len)
- {
-@@ -1417,6 +1715,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 	int is_vlan = 0;
- 	int is_grh;
- 	u16 vlan;
-+	int err = 0;
- 
- 	send_size = 0;
- 	for (i = 0; i < wr->num_sge; ++i)
-@@ -1425,8 +1724,24 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 	is_eth = rdma_port_get_link_layer(sqp->qp.ibqp.device, sqp->qp.port) == IB_LINK_LAYER_ETHERNET;
- 	is_grh = mlx4_ib_ah_grh_present(ah);
- 	if (is_eth) {
--		ib_get_cached_gid(ib_dev, be32_to_cpu(ah->av.ib.port_pd) >> 24,
--				  ah->av.ib.gid_index, &sgid);
-+		if (mlx4_is_mfunc(to_mdev(ib_dev)->dev)) {
-+			/* When multi-function is enabled, the ib_core gid
-+			 * indexes don't necessarily match the hw ones, so
-+			 * we must use our own cache */
-+			sgid.global.subnet_prefix =
-+				to_mdev(ib_dev)->sriov.demux[sqp->qp.port - 1].
-+				subnet_prefix;
-+			sgid.global.interface_id =
-+				to_mdev(ib_dev)->sriov.demux[sqp->qp.port - 1].
-+				guid_cache[ah->av.ib.gid_index];
-+		} else  {
-+			err = ib_get_cached_gid(ib_dev,
-+						be32_to_cpu(ah->av.ib.port_pd) >> 24,
-+						ah->av.ib.gid_index, &sgid);
-+			if (err)
++	if (smp->base_version == 1 &&
++	    smp->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED &&
++	    smp->class_version == 1) {
++		if (smp->method	== IB_MGMT_METHOD_GET) {
++			if (smp->attr_id == IB_SMP_ATTR_PKEY_TABLE) {
++				index = be32_to_cpu(smp->attr_mod);
++				if (port < 1 || port > dev->caps.num_ports)
++					return -EINVAL;
++				table = kzalloc(dev->caps.pkey_table_len[port] * sizeof *table, GFP_KERNEL);
++				if (!table)
++					return -ENOMEM;
++				/* need to get the full pkey table because the paravirtualized
++				 * pkeys may be scattered among several pkey blocks.
++				 */
++				err = get_full_pkey_table(dev, port, table, inbox, outbox);
++				if (!err) {
++					for (vidx = index * 32; vidx < (index + 1) * 32; ++vidx) {
++						pidx = priv->virt2phys_pkey[slave][port - 1][vidx];
++						outtab[vidx % 32] = cpu_to_be16(table[pidx]);
++					}
++				}
++				kfree(table);
 +				return err;
++			}
++			if (smp->attr_id == IB_SMP_ATTR_PORT_INFO) {
++				/*get the slave specific caps:*/
++				/*do the command */
++				err = mlx4_cmd_box(dev, inbox->dma, outbox->dma,
++					    vhcr->in_modifier, vhcr->op_modifier,
++					    vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
++				/* modify the response for slaves */
++				if (!err && slave != mlx4_master_func_num(dev)) {
++					u8 *state = outsmp->data + PORT_STATE_OFFSET;
++
++					*state = (*state & 0xf0) | vf_port_state(dev, port, slave);
++					slave_cap_mask = priv->mfunc.master.slave_state[slave].ib_cap_mask[port];
++					memcpy(outsmp->data + PORT_CAPABILITY_LOCATION_IN_SMP, &slave_cap_mask, 4);
++				}
++				return err;
++			}
++			if (smp->attr_id == IB_SMP_ATTR_GUID_INFO) {
++				/* compute slave's gid block */
++				smp->attr_mod = cpu_to_be32(slave / 8);
++				/* execute cmd */
++				err = mlx4_cmd_box(dev, inbox->dma, outbox->dma,
++					     vhcr->in_modifier, vhcr->op_modifier,
++					     vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
++				if (!err) {
++					/* if needed, move slave gid to index 0 */
++					if (slave % 8)
++						memcpy(outsmp->data,
++						       outsmp->data + (slave % 8) * 8, 8);
++					/* delete all other gids */
++					memset(outsmp->data + 8, 0, 56);
++				}
++				return err;
++			}
 +		}
-+
- 		vlan = rdma_get_vlan_id(&sgid);
- 		is_vlan = vlan < 0x1000;
- 	}
-@@ -1445,8 +1760,21 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 		sqp->ud_header.grh.flow_label    =
- 			ah->av.ib.sl_tclass_flowlabel & cpu_to_be32(0xfffff);
- 		sqp->ud_header.grh.hop_limit     = ah->av.ib.hop_limit;
--		ib_get_cached_gid(ib_dev, be32_to_cpu(ah->av.ib.port_pd) >> 24,
--				  ah->av.ib.gid_index, &sqp->ud_header.grh.source_gid);
-+		if (mlx4_is_mfunc(to_mdev(ib_dev)->dev)) {
-+			/* When multi-function is enabled, the ib_core gid
-+			 * indexes don't necessarily match the hw ones, so
-+			 * we must use our own cache */
-+			sqp->ud_header.grh.source_gid.global.subnet_prefix =
-+				to_mdev(ib_dev)->sriov.demux[sqp->qp.port - 1].
-+						       subnet_prefix;
-+			sqp->ud_header.grh.source_gid.global.interface_id =
-+				to_mdev(ib_dev)->sriov.demux[sqp->qp.port - 1].
-+					       guid_cache[ah->av.ib.gid_index];
-+		} else
-+			ib_get_cached_gid(ib_dev,
-+					  be32_to_cpu(ah->av.ib.port_pd) >> 24,
-+					  ah->av.ib.gid_index,
-+					  &sqp->ud_header.grh.source_gid);
- 		memcpy(sqp->ud_header.grh.destination_gid.raw,
- 		       ah->av.ib.dgid, 16);
- 	}
-@@ -1458,6 +1786,8 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 					  (sqp->ud_header.lrh.destination_lid ==
- 					   IB_LID_PERMISSIVE ? MLX4_WQE_MLX_SLR : 0) |
- 					  (sqp->ud_header.lrh.service_level << 8));
-+		if (ah->av.ib.port_pd & cpu_to_be32(0x80000000))
-+			mlx->flags |= cpu_to_be32(0x1); /* force loopback */
- 		mlx->rlid = sqp->ud_header.lrh.destination_lid;
- 	}
- 
-@@ -1663,6 +1993,63 @@ static void set_datagram_seg(struct mlx4_wqe_datagram_seg *dseg,
- 	memcpy(dseg->mac, to_mah(wr->wr.ud.ah)->av.eth.mac, 6);
- }
- 
-+static void set_tunnel_datagram_seg(struct mlx4_ib_dev *dev,
-+				    struct mlx4_wqe_datagram_seg *dseg,
-+				    struct ib_send_wr *wr, enum ib_qp_type qpt)
-+{
-+	union mlx4_ext_av *av = &to_mah(wr->wr.ud.ah)->av;
-+	struct mlx4_av sqp_av = {0};
-+	int port = *((u8 *) &av->ib.port_pd) & 0x3;
-+
-+	/* force loopback */
-+	sqp_av.port_pd = av->ib.port_pd | cpu_to_be32(0x80000000);
-+	sqp_av.g_slid = av->ib.g_slid & 0x7f; /* no GRH */
-+	sqp_av.sl_tclass_flowlabel = av->ib.sl_tclass_flowlabel &
-+			cpu_to_be32(0xf0000000);
-+
-+	memcpy(dseg->av, &sqp_av, sizeof(struct mlx4_av));
-+	dseg->dqpn = cpu_to_be32(dev->dev->caps.base_tunnel_sqpn +
-+				 qpt * 2 + port - 1);
-+	/* use well-known qkey from the QPC */
-+	dseg->qkey = cpu_to_be32(0x80000000);
-+}
-+
-+static void build_tunnel_header(struct ib_send_wr *wr, void *wqe, unsigned *mlx_seg_len)
-+{
-+	struct mlx4_wqe_inline_seg *inl = wqe;
-+	struct mlx4_ib_tunnel_header hdr;
-+	struct mlx4_ib_ah *ah = to_mah(wr->wr.ud.ah);
-+	int spc;
-+	int i;
-+
-+	memcpy(&hdr.av, &ah->av, sizeof hdr.av);
-+	hdr.remote_qpn = cpu_to_be32(wr->wr.ud.remote_qpn);
-+	hdr.pkey_index = cpu_to_be16(wr->wr.ud.pkey_index);
-+	hdr.qkey = cpu_to_be32(wr->wr.ud.remote_qkey);
-+
-+	spc = MLX4_INLINE_ALIGN -
-+		((unsigned long) (inl + 1) & (MLX4_INLINE_ALIGN - 1));
-+	if (sizeof(hdr) <= spc) {
-+		memcpy(inl + 1, &hdr, sizeof(hdr));
-+		wmb();
-+		inl->byte_count = cpu_to_be32(1 << 31 | sizeof(hdr));
-+		i = 1;
-+	} else {
-+		memcpy(inl + 1, &hdr, spc);
-+		wmb();
-+		inl->byte_count = cpu_to_be32(1 << 31 | spc);
-+
-+		inl = (void *) (inl + 1) + spc;
-+		memcpy(inl + 1, (void *) &hdr + spc, sizeof(hdr) - spc);
-+		wmb();
-+		inl->byte_count = cpu_to_be32(1 << 31 | (sizeof(hdr) - spc));
-+		i = 2;
 +	}
-+
-+	*mlx_seg_len =
-+		ALIGN(i * sizeof(struct mlx4_wqe_inline_seg) + sizeof(hdr), 16);
++	if (slave != mlx4_master_func_num(dev) &&
++	    ((smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE) ||
++	     (smp->mgmt_class == IB_MGMT_CLASS_SUBN_LID_ROUTED &&
++	      smp->method == IB_MGMT_METHOD_SET))) {
++		mlx4_err(dev, "slave %d is trying to execute a Subnet MGMT MAD, "
++			 "class 0x%x, method 0x%x for attr 0x%x. Rejecting\n",
++			 slave, smp->method, smp->mgmt_class,
++			 be16_to_cpu(smp->attr_id));
++		return -EPERM;
++	}
++	/*default:*/
++	return mlx4_cmd_box(dev, inbox->dma, outbox->dma,
++				    vhcr->in_modifier, vhcr->op_modifier,
++				    vhcr->op, MLX4_CMD_TIME_CLASS_C, MLX4_CMD_NATIVE);
 +}
 +
- static void set_mlx_icrc_seg(void *dseg)
- {
- 	u32 *t = dseg;
-@@ -1744,6 +2131,13 @@ static __be32 send_ieth(struct ib_send_wr *wr)
- 	}
- }
- 
-+static void add_zero_len_inline(void *wqe)
-+{
-+	struct mlx4_wqe_inline_seg *inl = wqe;
-+	memset(wqe, 0, 16);
-+	inl->byte_count = cpu_to_be32(1 << 31);
-+}
-+
- int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		      struct ib_send_wr **bad_wr)
- {
-@@ -1802,9 +2196,9 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		wqe += sizeof *ctrl;
- 		size = sizeof *ctrl / 16;
- 
--		switch (ibqp->qp_type) {
--		case IB_QPT_RC:
--		case IB_QPT_UC:
-+		switch (qp->mlx4_ib_qp_type) {
-+		case MLX4_IB_QPT_RC:
-+		case MLX4_IB_QPT_UC:
- 			switch (wr->opcode) {
- 			case IB_WR_ATOMIC_CMP_AND_SWP:
- 			case IB_WR_ATOMIC_FETCH_AND_ADD:
-@@ -1865,7 +2259,25 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			}
- 			break;
- 
--		case IB_QPT_UD:
-+		case MLX4_IB_QPT_TUN_SMI_OWNER:
-+			err =  build_sriov_qp0_header(to_msqp(qp), wr, ctrl, &seglen);
-+			if (unlikely(err)) {
-+				*bad_wr = wr;
-+				goto out;
-+			}
-+			wqe  += seglen;
-+			size += seglen / 16;
-+			break;
-+		case MLX4_IB_QPT_TUN_SMI:
-+		case MLX4_IB_QPT_TUN_GSI:
-+			/* this is a UD qp used in MAD responses to slaves. */
-+			set_datagram_seg(wqe, wr);
-+			/* set the forced-loopback bit in the data seg av */
-+			*(__be32 *) wqe |= cpu_to_be32(0x80000000);
-+			wqe  += sizeof(struct mlx4_wqe_datagram_seg);
-+			size += sizeof(struct mlx4_wqe_datagram_seg) / 16;
-+			break;
-+		case MLX4_IB_QPT_UD:
- 			set_datagram_seg(wqe, wr);
- 			wqe  += sizeof (struct mlx4_wqe_datagram_seg);
- 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
-@@ -1882,8 +2294,47 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			}
- 			break;
- 
--		case IB_QPT_SMI:
--		case IB_QPT_GSI:
-+		case MLX4_IB_QPT_PROXY_SMI_OWNER:
-+			if (unlikely(!mlx4_is_master(to_mdev(ibqp->device)->dev))) {
-+				err = -ENOSYS;
-+				*bad_wr = wr;
-+				goto out;
-+			}
-+			err = build_sriov_qp0_header(to_msqp(qp), wr, ctrl, &seglen);
-+			if (unlikely(err)) {
-+				*bad_wr = wr;
-+				goto out;
-+			}
-+			wqe  += seglen;
-+			size += seglen / 16;
-+			/* to start tunnel header on a cache-line boundary */
-+			add_zero_len_inline(wqe);
-+			wqe += 16;
-+			size++;
-+			build_tunnel_header(wr, wqe, &seglen);
-+			wqe  += seglen;
-+			size += seglen / 16;
-+			break;
-+		case MLX4_IB_QPT_PROXY_SMI:
-+			/* don't allow QP0 sends on guests */
-+			err = -ENOSYS;
-+			*bad_wr = wr;
-+			goto out;
-+		case MLX4_IB_QPT_PROXY_GSI:
-+			/* If we are tunneling special qps, this is a UD qp.
-+			 * In this case we first add a UD segment targeting
-+			 * the tunnel qp, and then add a header with address
-+			 * information */
-+			set_tunnel_datagram_seg(to_mdev(ibqp->device), wqe, wr, ibqp->qp_type);
-+			wqe  += sizeof(struct mlx4_wqe_datagram_seg);
-+			size += sizeof(struct mlx4_wqe_datagram_seg) / 16;
-+			build_tunnel_header(wr, wqe, &seglen);
-+			wqe  += seglen;
-+			size += seglen / 16;
-+			break;
-+
-+		case MLX4_IB_QPT_SMI:
-+		case MLX4_IB_QPT_GSI:
- 			err = build_mlx_header(to_msqp(qp), wr, ctrl, &seglen);
- 			if (unlikely(err)) {
- 				*bad_wr = wr;
-@@ -1909,8 +2360,10 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		size += wr->num_sge * (sizeof (struct mlx4_wqe_data_seg) / 16);
- 
- 		/* Add one more inline data segment for ICRC for MLX sends */
--		if (unlikely(qp->ibqp.qp_type == IB_QPT_SMI ||
--			     qp->ibqp.qp_type == IB_QPT_GSI)) {
-+		if (unlikely(qp->mlx4_ib_qp_type == MLX4_IB_QPT_SMI ||
-+			     qp->mlx4_ib_qp_type == MLX4_IB_QPT_GSI ||
-+			     qp->mlx4_ib_qp_type &
-+			     (MLX4_IB_QPT_PROXY_SMI_OWNER | MLX4_IB_QPT_TUN_SMI_OWNER))) {
- 			set_mlx_icrc_seg(dseg + 1);
- 			size += sizeof (struct mlx4_wqe_data_seg) / 16;
- 		}
-@@ -2002,8 +2455,10 @@ int mlx4_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 	int err = 0;
- 	int nreq;
- 	int ind;
-+	int max_gs;
- 	int i;
- 
-+	max_gs = qp->rq.max_gs;
- 	spin_lock_irqsave(&qp->rq.lock, flags);
- 
- 	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
-@@ -2023,10 +2478,25 @@ int mlx4_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 
- 		scat = get_recv_wqe(qp, ind);
- 
-+		if (qp->mlx4_ib_qp_type & (MLX4_IB_QPT_PROXY_SMI_OWNER |
-+		    MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI)) {
-+			ib_dma_sync_single_for_device(ibqp->device,
-+						      qp->sqp_proxy_rcv[ind].map,
-+						      sizeof(struct mlx4_ib_proxy_sqp_hdr),
-+						      DMA_FROM_DEVICE);
-+			scat->byte_count =
-+				cpu_to_be32(sizeof(struct mlx4_ib_proxy_sqp_hdr));
-+			/* use dma lkey from upper layer entry */
-+			scat->lkey = cpu_to_be32(wr->sg_list->lkey);
-+			scat->addr = cpu_to_be64(qp->sqp_proxy_rcv[ind].map);
-+			scat++;
-+			max_gs--;
-+		}
-+
- 		for (i = 0; i < wr->num_sge; ++i)
- 			__set_data_seg(scat + i, wr->sg_list + i);
- 
--		if (i < qp->rq.max_gs) {
-+		if (i < max_gs) {
- 			scat[i].byte_count = 0;
- 			scat[i].lkey       = cpu_to_be32(MLX4_INVALID_LKEY);
- 			scat[i].addr       = 0;
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index bd6c9fc..6faab99 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -389,6 +389,7 @@ struct mlx4_caps {
- 	enum mlx4_port_type	possible_type[MLX4_MAX_PORTS + 1];
- 	u32			max_counters;
- 	u8			port_ib_mtu[MLX4_MAX_PORTS + 1];
-+	u16			sqp_demux;
- };
- 
- struct mlx4_buf_list {
-diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
-index 338388b..4b4ad6f 100644
---- a/include/linux/mlx4/qp.h
-+++ b/include/linux/mlx4/qp.h
-@@ -126,7 +126,8 @@ struct mlx4_rss_context {
- 
- struct mlx4_qp_path {
- 	u8			fl;
--	u8			reserved1[2];
-+	u8			reserved1[1];
-+	u8			disable_pkey_check;
- 	u8			pkey_index;
- 	u8			counter_index;
- 	u8			grh_mylmc;
+ int mlx4_DMA_wrapper(struct mlx4_dev *dev, int slave,
+ 		     struct mlx4_vhcr *vhcr,
+ 		     struct mlx4_cmd_mailbox *inbox,
+@@ -1016,6 +1160,24 @@ static struct mlx4_cmd_info cmd_info[] = {
+ 		.wrapper = mlx4_GEN_QP_wrapper
+ 	},
+ 	{
++		.opcode = MLX4_CMD_CONF_SPECIAL_QP,
++		.has_inbox = false,
++		.has_outbox = false,
++		.out_is_imm = false,
++		.encode_slave_id = false,
++		.verify = NULL, /* XXX verify: only demux can do this */
++		.wrapper = NULL
++	},
++	{
++		.opcode = MLX4_CMD_MAD_IFC,
++		.has_inbox = true,
++		.has_outbox = true,
++		.out_is_imm = false,
++		.encode_slave_id = false,
++		.verify = NULL,
++		.wrapper = mlx4_MAD_IFC_wrapper
++	},
++	{
+ 		.opcode = MLX4_CMD_QUERY_IF_STAT,
+ 		.has_inbox = false,
+ 		.has_outbox = true,
 -- 
 1.7.1
 
