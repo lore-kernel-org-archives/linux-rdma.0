@@ -1,7 +1,7 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next V2 12/22] net/mlx4_core: Add IB port-state machine, and port mgmt event propagation infrastructure
-Date: Fri,  3 Aug 2012 11:40:48 +0300
-Message-ID: <1343983258-6268-13-git-send-email-jackm@dev.mellanox.co.il>
+Subject: [PATCH for-next V2 06/22] IB/mlx4: Initialize SRIOV IB support for slaves in master context
+Date: Fri,  3 Aug 2012 11:40:42 +0300
+Message-ID: <1343983258-6268-7-git-send-email-jackm@dev.mellanox.co.il>
 References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1343983258-6268-1-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -10,352 +10,1015 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For an IB port, a slave should not show port active until that
-slave has a valid alias-guid (provided by the subnet manager).
-Therefore the port-up event should be passed to a slave only after
-both the port is up, and the slave's alias-guid has been set.
+Allocate sriov paravirtualization resources and mad demuxing contexts
+on the master.
 
-Also, provide the infrastructure for propagating port-management
-events (client-reregister, etc) to slaves.
+This has two parts.  The first part is to initialize the structures
+to contain the contexts.  This is done at master startup time
+(mlx4_ib_init_sriov).
+
+The second part is to actually create the tunneling resources required
+on the master to support a slave.  This is performed the master detects
+that a slave has started up (MLX4_DEV_EVENT_SLAVE_INIT event generated
+when a slave initializes its comm channel).
+
+For the master, there is no such startup event, so it creates its own
+tunneling resources when it starts up.  In addition, the master also
+creates the real special QPs. (The ib_core layer on the master causes
+creation of proxy special qp's, since the master is also
+paravirtualized at the ib_core layer).
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/eq.c   |  237 +++++++++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx4/mlx4.h |    1 +
- include/linux/mlx4/device.h               |   28 ++++
- 3 files changed, 250 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c         |  684 ++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx4/main.c        |   80 ++++-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h     |   34 ++
+ drivers/net/ethernet/mellanox/mlx4/cmd.c |    3 +
+ include/linux/mlx4/device.h              |    3 +-
+ include/linux/mlx4/driver.h              |    2 +
+ 6 files changed, 798 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
-index 99a0464..c425826 100644
---- a/drivers/net/ethernet/mellanox/mlx4/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
-@@ -200,6 +200,196 @@ static void mlx4_slave_event(struct mlx4_dev *dev, int slave,
- 	slave_event(dev, slave, eqe);
- }
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index c27141f..d955cc4 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -44,6 +44,35 @@ enum {
+ 	MLX4_IB_VENDOR_CLASS2 = 0xa
+ };
  
-+int mlx4_gen_pkey_eqe(struct mlx4_dev *dev, int slave, u8 port)
++#define MLX4_TUN_SEND_WRID_SHIFT 34
++#define MLX4_TUN_QPN_SHIFT 32
++#define MLX4_TUN_WRID_RECV (((u64) 1) << MLX4_TUN_SEND_WRID_SHIFT)
++#define MLX4_TUN_SET_WRID_QPN(a) (((u64) ((a) & 0x3)) << MLX4_TUN_QPN_SHIFT)
++
++#define MLX4_TUN_IS_RECV(a)  (((a) >>  MLX4_TUN_SEND_WRID_SHIFT) & 0x1)
++#define MLX4_TUN_WRID_QPN(a) (((a) >> MLX4_TUN_QPN_SHIFT) & 0x3)
++
++struct mlx4_mad_rcv_buf {
++	struct ib_grh grh;
++	u8 payload[256];
++} __packed;
++
++struct mlx4_mad_snd_buf {
++	u8 payload[256];
++} __packed;
++
++struct mlx4_tunnel_mad {
++	struct ib_grh grh;
++	struct mlx4_ib_tunnel_header hdr;
++	struct ib_mad mad;
++} __packed;
++
++struct mlx4_rcv_tunnel_mad {
++	struct mlx4_rcv_tunnel_hdr hdr;
++	struct ib_grh grh;
++	struct ib_mad mad;
++} __packed;
++
+ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+ 		 int port, struct ib_wc *in_wc, struct ib_grh *in_grh,
+ 		 void *in_mad, void *response_mad)
+@@ -512,3 +541,658 @@ void mlx4_ib_dispatch_event(struct mlx4_ib_dev *dev, u8 port_num,
+ 
+ 	ib_dispatch_event(&event);
+ }
++
++static void mlx4_ib_tunnel_comp_handler(struct ib_cq *cq, void *arg)
 +{
-+	struct mlx4_eqe eqe;
-+
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	struct mlx4_slave_state *s_slave = &priv->mfunc.master.slave_state[slave];
-+
-+	if (!s_slave->active)
-+		return 0;
-+
-+	memset(&eqe, 0, sizeof eqe);
-+
-+	eqe.type = MLX4_EVENT_TYPE_PORT_MNG_CHG_EVENT;
-+	eqe.subtype = MLX4_DEV_PMC_SUBTYPE_PKEY_TABLE;
-+	eqe.event.port_mgmt_change.port = port;
-+
-+	return mlx4_GEN_EQE(dev, slave, &eqe);
-+}
-+EXPORT_SYMBOL(mlx4_gen_pkey_eqe);
-+
-+int mlx4_gen_guid_change_eqe(struct mlx4_dev *dev, int slave, u8 port)
-+{
-+	struct mlx4_eqe eqe;
-+
-+	/*don't send if we don't have the that slave */
-+	if (dev->num_vfs < slave)
-+		return 0;
-+	memset(&eqe, 0, sizeof eqe);
-+
-+	eqe.type = MLX4_EVENT_TYPE_PORT_MNG_CHG_EVENT;
-+	eqe.subtype = MLX4_DEV_PMC_SUBTYPE_GUID_INFO;
-+	eqe.event.port_mgmt_change.port = port;
-+
-+	return mlx4_GEN_EQE(dev, slave, &eqe);
-+}
-+EXPORT_SYMBOL(mlx4_gen_guid_change_eqe);
-+
-+int mlx4_gen_port_state_change_eqe(struct mlx4_dev *dev, int slave, u8 port,
-+				   u8 port_subtype_change)
-+{
-+	struct mlx4_eqe eqe;
-+
-+	/*don't send if we don't have the that slave */
-+	if (dev->num_vfs < slave)
-+		return 0;
-+	memset(&eqe, 0, sizeof eqe);
-+
-+	eqe.type = MLX4_EVENT_TYPE_PORT_CHANGE;
-+	eqe.subtype = port_subtype_change;
-+	eqe.event.port_change.port = cpu_to_be32(port << 28);
-+
-+	mlx4_dbg(dev, "%s: sending: %d to slave: %d on port: %d\n", __func__,
-+		 port_subtype_change, slave, port);
-+	return mlx4_GEN_EQE(dev, slave, &eqe);
-+}
-+EXPORT_SYMBOL(mlx4_gen_port_state_change_eqe);
-+
-+enum slave_port_state mlx4_get_slave_port_state(struct mlx4_dev *dev, int slave, u8 port)
-+{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	struct mlx4_slave_state *s_state = priv->mfunc.master.slave_state;
-+	if (slave >= dev->num_slaves || port > MLX4_MAX_PORTS) {
-+		pr_err("%s: Error: asking for slave:%d, port:%d\n",
-+		       __func__, slave, port);
-+		return SLAVE_PORT_DOWN;
-+	}
-+	return s_state[slave].port_state[port];
-+}
-+EXPORT_SYMBOL(mlx4_get_slave_port_state);
-+
-+static int mlx4_set_slave_port_state(struct mlx4_dev *dev, int slave, u8 port,
-+				     enum slave_port_state state)
-+{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	struct mlx4_slave_state *s_state = priv->mfunc.master.slave_state;
-+
-+	if (slave >= dev->num_slaves || port > MLX4_MAX_PORTS || port == 0) {
-+		pr_err("%s: Error: asking for slave:%d, port:%d\n",
-+		       __func__, slave, port);
-+		return -1;
-+	}
-+	s_state[slave].port_state[port] = state;
-+
-+	return 0;
++	unsigned long flags;
++	struct mlx4_ib_demux_pv_ctx *ctx = cq->cq_context;
++	struct mlx4_ib_dev *dev = to_mdev(ctx->ib_dev);
++	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
++	if (!dev->sriov.is_going_down && ctx->state == DEMUX_PV_STATE_ACTIVE)
++		queue_work(ctx->wq, &ctx->work);
++	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
 +}
 +
-+static void set_all_slave_state(struct mlx4_dev *dev, u8 port, int event)
++static int mlx4_ib_post_pv_qp_buf(struct mlx4_ib_demux_pv_ctx *ctx,
++				  struct mlx4_ib_demux_pv_qp *tun_qp,
++				  int index)
++{
++	struct ib_sge sg_list;
++	struct ib_recv_wr recv_wr, *bad_recv_wr;
++	int size;
++
++	size = (tun_qp->qp->qp_type == IB_QPT_UD) ?
++		sizeof(struct mlx4_tunnel_mad) : sizeof(struct mlx4_mad_rcv_buf);
++
++	sg_list.addr = tun_qp->ring[index].map;
++	sg_list.length = size;
++	sg_list.lkey = ctx->mr->lkey;
++
++	recv_wr.next = NULL;
++	recv_wr.sg_list = &sg_list;
++	recv_wr.num_sge = 1;
++	recv_wr.wr_id = (u64) index | MLX4_TUN_WRID_RECV |
++		MLX4_TUN_SET_WRID_QPN(tun_qp->proxy_qpt);
++	ib_dma_sync_single_for_device(ctx->ib_dev, tun_qp->ring[index].map,
++				      size, DMA_FROM_DEVICE);
++	return ib_post_recv(tun_qp->qp, &recv_wr, &bad_recv_wr);
++}
++
++static int mlx4_ib_alloc_pv_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
++				 enum ib_qp_type qp_type, int is_tun)
 +{
 +	int i;
-+	enum slave_port_gen_event gen_event;
++	struct mlx4_ib_demux_pv_qp *tun_qp;
++	int rx_buf_size, tx_buf_size;
 +
-+	for (i = 0; i < dev->num_slaves; i++)
-+		set_and_calc_slave_port_state(dev, i, port, event, &gen_event);
++	if (qp_type > IB_QPT_GSI)
++		return -EINVAL;
++
++	tun_qp = &ctx->qp[qp_type];
++
++	tun_qp->ring = kzalloc(sizeof(struct mlx4_ib_buf) * MLX4_NUM_TUNNEL_BUFS,
++			       GFP_KERNEL);
++	if (!tun_qp->ring)
++		return -ENOMEM;
++
++	tun_qp->tx_ring = kzalloc(sizeof(struct mlx4_ib_tun_tx_buf) *
++				  MLX4_NUM_TUNNEL_BUFS,
++				  GFP_KERNEL);
++	if (!tun_qp->tx_ring) {
++		kfree(tun_qp->ring);
++		tun_qp->ring = NULL;
++		return -ENOMEM;
++	}
++
++	if (is_tun) {
++		rx_buf_size = sizeof(struct mlx4_tunnel_mad);
++		tx_buf_size = sizeof(struct mlx4_rcv_tunnel_mad);
++	} else {
++		rx_buf_size = sizeof(struct mlx4_mad_rcv_buf);
++		tx_buf_size = sizeof(struct mlx4_mad_snd_buf);
++	}
++
++	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
++		tun_qp->ring[i].addr = kmalloc(rx_buf_size, GFP_KERNEL);
++		if (!tun_qp->ring[i].addr)
++			goto err;
++		tun_qp->ring[i].map = ib_dma_map_single(ctx->ib_dev,
++							tun_qp->ring[i].addr,
++							rx_buf_size,
++							DMA_FROM_DEVICE);
++	}
++
++	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
++		tun_qp->tx_ring[i].buf.addr =
++			kmalloc(tx_buf_size, GFP_KERNEL);
++		if (!tun_qp->tx_ring[i].buf.addr)
++			goto tx_err;
++		tun_qp->tx_ring[i].buf.map =
++			ib_dma_map_single(ctx->ib_dev,
++					  tun_qp->tx_ring[i].buf.addr,
++					  tx_buf_size,
++					  DMA_TO_DEVICE);
++		tun_qp->tx_ring[i].ah = NULL;
++	}
++	spin_lock_init(&tun_qp->tx_lock);
++	tun_qp->tx_ix_head = 0;
++	tun_qp->tx_ix_tail = 0;
++	tun_qp->proxy_qpt = qp_type;
++
++	return 0;
++
++tx_err:
++	while (i > 0) {
++		--i;
++		ib_dma_unmap_single(ctx->ib_dev, tun_qp->tx_ring[i].buf.map,
++				    tx_buf_size, DMA_TO_DEVICE);
++		kfree(tun_qp->tx_ring[i].buf.addr);
++	}
++	kfree(tun_qp->tx_ring);
++	tun_qp->tx_ring = NULL;
++	i = MLX4_NUM_TUNNEL_BUFS;
++err:
++	while (i > 0) {
++		--i;
++		ib_dma_unmap_single(ctx->ib_dev, tun_qp->ring[i].map,
++				    rx_buf_size, DMA_FROM_DEVICE);
++		kfree(tun_qp->ring[i].addr);
++	}
++	kfree(tun_qp->ring);
++	tun_qp->ring = NULL;
++	return -ENOMEM;
 +}
-+/**************************************************************************
-+	The function get as input the new event to that port,
-+	and according to the prev state change the slave's port state.
-+	The events are:
-+		MLX4_PORT_STATE_DEV_EVENT_PORT_DOWN,
-+		MLX4_PORT_STATE_DEV_EVENT_PORT_UP
-+		MLX4_PORT_STATE_IB_EVENT_GID_VALID
-+		MLX4_PORT_STATE_IB_EVENT_GID_INVALID
-+***************************************************************************/
-+int set_and_calc_slave_port_state(struct mlx4_dev *dev, int slave,
-+				  u8 port, int event,
-+				  enum slave_port_gen_event *gen_event)
++
++static void mlx4_ib_free_pv_qp_bufs(struct mlx4_ib_demux_pv_ctx *ctx,
++				     enum ib_qp_type qp_type, int is_tun)
 +{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	struct mlx4_slave_state *ctx = NULL;
-+	unsigned long flags;
-+	int ret = -1;
-+	enum slave_port_state cur_state =
-+		mlx4_get_slave_port_state(dev, slave, port);
++	int i;
++	struct mlx4_ib_demux_pv_qp *tun_qp;
++	int rx_buf_size, tx_buf_size;
 +
-+	*gen_event = SLAVE_PORT_GEN_EVENT_NONE;
++	if (qp_type > IB_QPT_GSI)
++		return;
 +
-+	if (slave >= dev->num_slaves || port > MLX4_MAX_PORTS || port == 0) {
-+		pr_err("%s: Error: asking for slave:%d, port:%d\n",
-+		       __func__, slave, port);
++	tun_qp = &ctx->qp[qp_type];
++	if (is_tun) {
++		rx_buf_size = sizeof(struct mlx4_tunnel_mad);
++		tx_buf_size = sizeof(struct mlx4_rcv_tunnel_mad);
++	} else {
++		rx_buf_size = sizeof(struct mlx4_mad_rcv_buf);
++		tx_buf_size = sizeof(struct mlx4_mad_snd_buf);
++	}
++
++
++	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
++		ib_dma_unmap_single(ctx->ib_dev, tun_qp->ring[i].map,
++				    rx_buf_size, DMA_FROM_DEVICE);
++		kfree(tun_qp->ring[i].addr);
++	}
++
++	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
++		ib_dma_unmap_single(ctx->ib_dev, tun_qp->tx_ring[i].buf.map,
++				    tx_buf_size, DMA_TO_DEVICE);
++		kfree(tun_qp->tx_ring[i].buf.addr);
++		if (tun_qp->tx_ring[i].ah)
++			ib_destroy_ah(tun_qp->tx_ring[i].ah);
++	}
++	kfree(tun_qp->tx_ring);
++	kfree(tun_qp->ring);
++}
++
++static void mlx4_ib_tunnel_comp_worker(struct work_struct *work)
++{
++	/* dummy until next patch in series */
++}
++
++static void pv_qp_event_handler(struct ib_event *event, void *qp_context)
++{
++	struct mlx4_ib_demux_pv_ctx *sqp = qp_context;
++
++	/* It's worse than that! He's dead, Jim! */
++	pr_err("Fatal error (%d) on a MAD QP on port %d\n",
++	       event->event, sqp->port);
++}
++
++static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
++			    enum ib_qp_type qp_type, int create_tun)
++{
++	int i, ret;
++	struct mlx4_ib_demux_pv_qp *tun_qp;
++	struct mlx4_ib_qp_tunnel_init_attr qp_init_attr;
++	struct ib_qp_attr attr;
++	int qp_attr_mask_INIT;
++
++	if (qp_type > IB_QPT_GSI)
++		return -EINVAL;
++
++	tun_qp = &ctx->qp[qp_type];
++
++	memset(&qp_init_attr, 0, sizeof qp_init_attr);
++	qp_init_attr.init_attr.send_cq = ctx->cq;
++	qp_init_attr.init_attr.recv_cq = ctx->cq;
++	qp_init_attr.init_attr.sq_sig_type = IB_SIGNAL_ALL_WR;
++	qp_init_attr.init_attr.cap.max_send_wr = MLX4_NUM_TUNNEL_BUFS;
++	qp_init_attr.init_attr.cap.max_recv_wr = MLX4_NUM_TUNNEL_BUFS;
++	qp_init_attr.init_attr.cap.max_send_sge = 1;
++	qp_init_attr.init_attr.cap.max_recv_sge = 1;
++	if (create_tun) {
++		qp_init_attr.init_attr.qp_type = IB_QPT_UD;
++		qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_TUNNEL_QP;
++		qp_init_attr.port = ctx->port;
++		qp_init_attr.slave = ctx->slave;
++		qp_init_attr.proxy_qp_type = qp_type;
++		qp_attr_mask_INIT = IB_QP_STATE | IB_QP_PKEY_INDEX |
++			   IB_QP_QKEY | IB_QP_PORT;
++	} else {
++		qp_init_attr.init_attr.qp_type = qp_type;
++		qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
++		qp_attr_mask_INIT = IB_QP_STATE | IB_QP_PKEY_INDEX | IB_QP_QKEY;
++	}
++	qp_init_attr.init_attr.port_num = ctx->port;
++	qp_init_attr.init_attr.qp_context = ctx;
++	qp_init_attr.init_attr.event_handler = pv_qp_event_handler;
++	tun_qp->qp = ib_create_qp(ctx->pd, &qp_init_attr.init_attr);
++	if (IS_ERR(tun_qp->qp)) {
++		ret = PTR_ERR(tun_qp->qp);
++		tun_qp->qp = NULL;
++		pr_err("Couldn't create %s QP (%d)\n",
++		       create_tun ? "tunnel" : "special", ret);
 +		return ret;
 +	}
 +
-+	ctx = &priv->mfunc.master.slave_state[slave];
-+	spin_lock_irqsave(&ctx->lock, flags);
-+
-+	mlx4_dbg(dev, "%s: slave: %d, current state: %d new event :%d\n",
-+		 __func__, slave, cur_state, event);
-+
-+	switch (cur_state) {
-+	case SLAVE_PORT_DOWN:
-+		if (MLX4_PORT_STATE_DEV_EVENT_PORT_UP == event)
-+			mlx4_set_slave_port_state(dev, slave, port,
-+						  SLAVE_PENDING_UP);
-+		break;
-+	case SLAVE_PENDING_UP:
-+		if (MLX4_PORT_STATE_DEV_EVENT_PORT_DOWN == event)
-+			mlx4_set_slave_port_state(dev, slave, port,
-+						  SLAVE_PORT_DOWN);
-+		else if (MLX4_PORT_STATE_IB_PORT_STATE_EVENT_GID_VALID == event) {
-+			mlx4_set_slave_port_state(dev, slave, port,
-+						  SLAVE_PORT_UP);
-+			*gen_event = SLAVE_PORT_GEN_EVENT_UP;
-+		}
-+		break;
-+	case SLAVE_PORT_UP:
-+		if (MLX4_PORT_STATE_DEV_EVENT_PORT_DOWN == event) {
-+			mlx4_set_slave_port_state(dev, slave, port,
-+						  SLAVE_PORT_DOWN);
-+			*gen_event = SLAVE_PORT_GEN_EVENT_DOWN;
-+		} else if (MLX4_PORT_STATE_IB_EVENT_GID_INVALID ==
-+				event) {
-+			mlx4_set_slave_port_state(dev, slave, port,
-+						  SLAVE_PENDING_UP);
-+			*gen_event = SLAVE_PORT_GEN_EVENT_DOWN;
-+		}
-+		break;
-+	default:
-+		pr_err("%s: BUG!!! UNKNOWN state: "
-+		       "slave:%d, port:%d\n", __func__, slave, port);
-+			goto out;
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state = IB_QPS_INIT;
++	attr.pkey_index =
++		to_mdev(ctx->ib_dev)->pkeys.virt2phys_pkey[ctx->slave][ctx->port - 1][0];
++	attr.qkey = IB_QP1_QKEY;
++	attr.port_num = ctx->port;
++	ret = ib_modify_qp(tun_qp->qp, &attr, qp_attr_mask_INIT);
++	if (ret) {
++		pr_err("Couldn't change %s qp state to INIT (%d)\n",
++		       create_tun ? "tunnel" : "special", ret);
++		goto err_qp;
 +	}
-+	ret = mlx4_get_slave_port_state(dev, slave, port);
-+	mlx4_dbg(dev, "%s: slave: %d, current state: %d new event"
-+		 " :%d gen_event: %d\n",
-+		 __func__, slave, cur_state, event, *gen_event);
++	attr.qp_state = IB_QPS_RTR;
++	ret = ib_modify_qp(tun_qp->qp, &attr, IB_QP_STATE);
++	if (ret) {
++		pr_err("Couldn't change %s qp state to RTR (%d)\n",
++		       create_tun ? "tunnel" : "special", ret);
++		goto err_qp;
++	}
++	attr.qp_state = IB_QPS_RTS;
++	attr.sq_psn = 0;
++	ret = ib_modify_qp(tun_qp->qp, &attr, IB_QP_STATE | IB_QP_SQ_PSN);
++	if (ret) {
++		pr_err("Couldn't change %s qp state to RTS (%d)\n",
++		       create_tun ? "tunnel" : "special", ret);
++		goto err_qp;
++	}
 +
-+out:
-+	spin_unlock_irqrestore(&ctx->lock, flags);
++	for (i = 0; i < MLX4_NUM_TUNNEL_BUFS; i++) {
++		ret = mlx4_ib_post_pv_qp_buf(ctx, tun_qp, i);
++		if (ret) {
++			pr_err(" mlx4_ib_post_pv_buf error"
++			       " (err = %d, i = %d)\n", ret, i);
++			goto err_qp;
++		}
++	}
++	return 0;
++
++err_qp:
++	ib_destroy_qp(tun_qp->qp);
++	tun_qp->qp = NULL;
 +	return ret;
 +}
 +
-+EXPORT_SYMBOL(set_and_calc_slave_port_state);
-+
-+int mlx4_gen_slaves_port_mgt_ev(struct mlx4_dev *dev, u8 port, int attr)
++/*
++ * IB MAD completion callback for real SQPs
++ */
++static void mlx4_ib_sqp_comp_worker(struct work_struct *work)
 +{
-+	struct mlx4_eqe eqe;
++	/* dummy until next patch in series */
++}
 +
-+	memset(&eqe, 0, sizeof eqe);
++static int alloc_pv_object(struct mlx4_ib_dev *dev, int slave, int port,
++			       struct mlx4_ib_demux_pv_ctx **ret_ctx)
++{
++	struct mlx4_ib_demux_pv_ctx *ctx;
 +
-+	eqe.type = MLX4_EVENT_TYPE_PORT_MNG_CHG_EVENT;
-+	eqe.subtype = MLX4_DEV_PMC_SUBTYPE_PORT_INFO;
-+	eqe.event.port_mgmt_change.port = port;
-+	eqe.event.port_mgmt_change.params.port_info.changed_attr =
-+		cpu_to_be32((u32) attr);
++	*ret_ctx = NULL;
++	ctx = kzalloc(sizeof(struct mlx4_ib_demux_pv_ctx), GFP_KERNEL);
++	if (!ctx) {
++		pr_err("failed allocating pv resource context "
++		       "for port %d, slave %d\n", port, slave);
++		return -ENOMEM;
++	}
 +
-+	slave_event(dev, ALL_SLAVES, &eqe);
++	ctx->ib_dev = &dev->ib_dev;
++	ctx->port = port;
++	ctx->slave = slave;
++	*ret_ctx = ctx;
 +	return 0;
 +}
-+EXPORT_SYMBOL(mlx4_gen_slaves_port_mgt_ev);
 +
- void mlx4_master_handle_slave_flr(struct work_struct *work)
++static void free_pv_object(struct mlx4_ib_dev *dev, int slave, int port)
++{
++	if (dev->sriov.demux[port - 1].tun[slave]) {
++		kfree(dev->sriov.demux[port - 1].tun[slave]);
++		dev->sriov.demux[port - 1].tun[slave] = NULL;
++	}
++}
++
++static int create_pv_resources(struct ib_device *ibdev, int slave, int port,
++			       int create_tun, struct mlx4_ib_demux_pv_ctx *ctx)
++{
++	int ret, cq_size;
++
++	ctx->state = DEMUX_PV_STATE_STARTING;
++	/* have QP0 only on port owner, and only if link layer is IB */
++	if (ctx->slave == mlx4_master_func_num(to_mdev(ctx->ib_dev)->dev) &&
++	    rdma_port_get_link_layer(ibdev, ctx->port) == IB_LINK_LAYER_INFINIBAND)
++		ctx->has_smi = 1;
++
++	if (ctx->has_smi) {
++		ret = mlx4_ib_alloc_pv_bufs(ctx, IB_QPT_SMI, create_tun);
++		if (ret) {
++			pr_err("Failed allocating qp0 tunnel bufs (%d)\n", ret);
++			goto err_out;
++		}
++	}
++
++	ret = mlx4_ib_alloc_pv_bufs(ctx, IB_QPT_GSI, create_tun);
++	if (ret) {
++		pr_err("Failed allocating qp1 tunnel bufs (%d)\n", ret);
++		goto err_out_qp0;
++	}
++
++	cq_size = 2 * MLX4_NUM_TUNNEL_BUFS;
++	if (ctx->has_smi)
++		cq_size *= 2;
++
++	ctx->cq = ib_create_cq(ctx->ib_dev, mlx4_ib_tunnel_comp_handler,
++			       NULL, ctx, cq_size, 0);
++	if (IS_ERR(ctx->cq)) {
++		ret = PTR_ERR(ctx->cq);
++		pr_err("Couldn't create tunnel CQ (%d)\n", ret);
++		goto err_buf;
++	}
++
++	ctx->pd = ib_alloc_pd(ctx->ib_dev);
++	if (IS_ERR(ctx->pd)) {
++		ret = PTR_ERR(ctx->pd);
++		pr_err("Couldn't create tunnel PD (%d)\n", ret);
++		goto err_cq;
++	}
++
++	ctx->mr = ib_get_dma_mr(ctx->pd, IB_ACCESS_LOCAL_WRITE);
++	if (IS_ERR(ctx->mr)) {
++		ret = PTR_ERR(ctx->mr);
++		pr_err("Couldn't get tunnel DMA MR (%d)\n", ret);
++		goto err_pd;
++	}
++
++	if (ctx->has_smi) {
++		ret = create_pv_sqp(ctx, IB_QPT_SMI, create_tun);
++		if (ret) {
++			pr_err("Couldn't create %s QP0 (%d)\n",
++			       create_tun ? "tunnel for" : "",  ret);
++			goto err_mr;
++		}
++	}
++
++	ret = create_pv_sqp(ctx, IB_QPT_GSI, create_tun);
++	if (ret) {
++		pr_err("Couldn't create %s QP1 (%d)\n",
++		       create_tun ? "tunnel for" : "",  ret);
++		goto err_qp0;
++	}
++
++	if (create_tun)
++		INIT_WORK(&ctx->work, mlx4_ib_tunnel_comp_worker);
++	else
++		INIT_WORK(&ctx->work, mlx4_ib_sqp_comp_worker);
++
++	ctx->wq = to_mdev(ibdev)->sriov.demux[port - 1].wq;
++
++	ret = ib_req_notify_cq(ctx->cq, IB_CQ_NEXT_COMP);
++	if (ret) {
++		pr_err("Couldn't arm tunnel cq (%d)\n", ret);
++		goto err_wq;
++	}
++	ctx->state = DEMUX_PV_STATE_ACTIVE;
++	return 0;
++
++err_wq:
++	ctx->wq = NULL;
++	ib_destroy_qp(ctx->qp[1].qp);
++	ctx->qp[1].qp = NULL;
++
++
++err_qp0:
++	if (ctx->has_smi)
++		ib_destroy_qp(ctx->qp[0].qp);
++	ctx->qp[0].qp = NULL;
++
++err_mr:
++	ib_dereg_mr(ctx->mr);
++	ctx->mr = NULL;
++
++err_pd:
++	ib_dealloc_pd(ctx->pd);
++	ctx->pd = NULL;
++
++err_cq:
++	ib_destroy_cq(ctx->cq);
++	ctx->cq = NULL;
++
++err_buf:
++	mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_GSI, create_tun);
++
++err_out_qp0:
++	if (ctx->has_smi)
++		mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_SMI, create_tun);
++err_out:
++	ctx->state = DEMUX_PV_STATE_DOWN;
++	return ret;
++}
++
++static void destroy_pv_resources(struct mlx4_ib_dev *dev, int slave, int port,
++				 struct mlx4_ib_demux_pv_ctx *ctx, int flush)
++{
++	if (!ctx)
++		return;
++	if (ctx->state > DEMUX_PV_STATE_DOWN) {
++		ctx->state = DEMUX_PV_STATE_DOWNING;
++		if (flush)
++			flush_workqueue(ctx->wq);
++		if (ctx->has_smi) {
++			ib_destroy_qp(ctx->qp[0].qp);
++			ctx->qp[0].qp = NULL;
++			mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_SMI, 1);
++		}
++		ib_destroy_qp(ctx->qp[1].qp);
++		ctx->qp[1].qp = NULL;
++		mlx4_ib_free_pv_qp_bufs(ctx, IB_QPT_GSI, 1);
++		ib_dereg_mr(ctx->mr);
++		ctx->mr = NULL;
++		ib_dealloc_pd(ctx->pd);
++		ctx->pd = NULL;
++		ib_destroy_cq(ctx->cq);
++		ctx->cq = NULL;
++		ctx->state = DEMUX_PV_STATE_DOWN;
++	}
++}
++
++static int mlx4_ib_tunnels_update(struct mlx4_ib_dev *dev, int slave,
++				  int port, int do_init)
++{
++	int ret = 0;
++
++	if (!do_init) {
++		/* for master, destroy real sqp resources */
++		if (slave == mlx4_master_func_num(dev->dev))
++			destroy_pv_resources(dev, slave, port,
++					     dev->sriov.sqps[port - 1], 1);
++		/* destroy the tunnel qp resources */
++		destroy_pv_resources(dev, slave, port,
++				     dev->sriov.demux[port - 1].tun[slave], 1);
++		return 0;
++	}
++
++	/* create the tunnel qp resources */
++	ret = create_pv_resources(&dev->ib_dev, slave, port, 1,
++				  dev->sriov.demux[port - 1].tun[slave]);
++
++	/* for master, create the real sqp resources */
++	if (!ret && slave == mlx4_master_func_num(dev->dev))
++		ret = create_pv_resources(&dev->ib_dev, slave, port, 0,
++					  dev->sriov.sqps[port - 1]);
++	return ret;
++}
++
++void mlx4_ib_tunnels_update_work(struct work_struct *work)
++{
++	struct mlx4_ib_demux_work *dmxw;
++
++	dmxw = container_of(work, struct mlx4_ib_demux_work, work);
++	mlx4_ib_tunnels_update(dmxw->dev, dmxw->slave, (int) dmxw->port,
++			       dmxw->do_init);
++	kfree(dmxw);
++	return;
++}
++
++static int mlx4_ib_alloc_demux_ctx(struct mlx4_ib_dev *dev,
++				       struct mlx4_ib_demux_ctx *ctx,
++				       int port)
++{
++	char name[12];
++	int ret = 0;
++	int i;
++
++	ctx->tun = kzalloc(dev->dev->caps.sqp_demux *
++			   sizeof(struct mlx4_ib_demux_pv_ctx *), GFP_KERNEL);
++	if (!ctx->tun)
++		return -ENOMEM;
++
++	ctx->dev = dev;
++	ctx->port = port;
++	ctx->ib_dev = &dev->ib_dev;
++
++	for (i = 0; i < dev->dev->caps.sqp_demux; i++) {
++		ret = alloc_pv_object(dev, i, port, &ctx->tun[i]);
++		if (ret) {
++			ret = -ENOMEM;
++			goto err_wq;
++		}
++	}
++
++	snprintf(name, sizeof name, "mlx4_ibt%d", port);
++	ctx->wq = create_singlethread_workqueue(name);
++	if (!ctx->wq) {
++		pr_err("Failed to create tunnelling WQ for port %d\n", port);
++		ret = -ENOMEM;
++		goto err_wq;
++	}
++
++	snprintf(name, sizeof name, "mlx4_ibud%d", port);
++	ctx->ud_wq = create_singlethread_workqueue(name);
++	if (!ctx->ud_wq) {
++		pr_err("Failed to create up/down WQ for port %d\n", port);
++		ret = -ENOMEM;
++		goto err_udwq;
++	}
++
++	return 0;
++
++err_udwq:
++	destroy_workqueue(ctx->wq);
++	ctx->wq = NULL;
++
++err_wq:
++	for (i = 0; i < dev->dev->caps.sqp_demux; i++)
++		free_pv_object(dev, i, port);
++	kfree(ctx->tun);
++	ctx->tun = NULL;
++	return ret;
++}
++
++static void mlx4_ib_free_sqp_ctx(struct mlx4_ib_demux_pv_ctx *sqp_ctx)
++{
++	if (sqp_ctx->state > DEMUX_PV_STATE_DOWN) {
++		sqp_ctx->state = DEMUX_PV_STATE_DOWNING;
++		flush_workqueue(sqp_ctx->wq);
++		if (sqp_ctx->has_smi) {
++			ib_destroy_qp(sqp_ctx->qp[0].qp);
++			sqp_ctx->qp[0].qp = NULL;
++			mlx4_ib_free_pv_qp_bufs(sqp_ctx, IB_QPT_SMI, 0);
++		}
++		ib_destroy_qp(sqp_ctx->qp[1].qp);
++		sqp_ctx->qp[1].qp = NULL;
++		mlx4_ib_free_pv_qp_bufs(sqp_ctx, IB_QPT_GSI, 0);
++		ib_dereg_mr(sqp_ctx->mr);
++		sqp_ctx->mr = NULL;
++		ib_dealloc_pd(sqp_ctx->pd);
++		sqp_ctx->pd = NULL;
++		ib_destroy_cq(sqp_ctx->cq);
++		sqp_ctx->cq = NULL;
++		sqp_ctx->state = DEMUX_PV_STATE_DOWN;
++	}
++}
++
++static void mlx4_ib_free_demux_ctx(struct mlx4_ib_demux_ctx *ctx)
++{
++	int i;
++	if (ctx) {
++		struct mlx4_ib_dev *dev = to_mdev(ctx->ib_dev);
++		for (i = 0; i < dev->dev->caps.sqp_demux; i++) {
++			if (!ctx->tun[i])
++				continue;
++			if (ctx->tun[i]->state > DEMUX_PV_STATE_DOWN)
++				ctx->tun[i]->state = DEMUX_PV_STATE_DOWNING;
++		}
++		flush_workqueue(ctx->wq);
++		for (i = 0; i < dev->dev->caps.sqp_demux; i++) {
++			destroy_pv_resources(dev, i, ctx->port, ctx->tun[i], 0);
++			free_pv_object(dev, i, ctx->port);
++		}
++		kfree(ctx->tun);
++		destroy_workqueue(ctx->ud_wq);
++		destroy_workqueue(ctx->wq);
++	}
++}
++
++static void mlx4_ib_master_tunnels(struct mlx4_ib_dev *dev, int do_init)
++{
++	int i;
++
++	if (!mlx4_is_master(dev->dev))
++		return;
++	/* initialize or tear down tunnel QPs for the master */
++	for (i = 0; i < dev->dev->caps.num_ports; i++)
++		mlx4_ib_tunnels_update(dev, mlx4_master_func_num(dev->dev), i + 1, do_init);
++	return;
++}
++
++int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
++{
++	int i = 0;
++	int err;
++
++	if (!mlx4_is_mfunc(dev->dev))
++		return 0;
++
++	dev->sriov.is_going_down = 0;
++	spin_lock_init(&dev->sriov.going_down_lock);
++
++	mlx4_ib_warn(&dev->ib_dev, "multi-function enabled\n");
++
++	if (mlx4_is_slave(dev->dev)) {
++		mlx4_ib_warn(&dev->ib_dev, "operating in qp1 tunnel mode\n");
++		return 0;
++	}
++
++	mlx4_ib_warn(&dev->ib_dev, "initializing demux service for %d qp1 clients\n",
++		     dev->dev->caps.sqp_demux);
++	for (i = 0; i < dev->num_ports; i++) {
++		err = alloc_pv_object(dev, mlx4_master_func_num(dev->dev), i + 1,
++				      &dev->sriov.sqps[i]);
++		if (err)
++			goto demux_err;
++		err = mlx4_ib_alloc_demux_ctx(dev, &dev->sriov.demux[i], i + 1);
++		if (err)
++			goto demux_err;
++	}
++	mlx4_ib_master_tunnels(dev, 1);
++	return 0;
++
++demux_err:
++	while (i > 0) {
++		free_pv_object(dev, mlx4_master_func_num(dev->dev), i + 1);
++		mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
++		--i;
++	}
++
++	return err;
++}
++
++void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev)
++{
++	int i;
++	unsigned long flags;
++
++	if (!mlx4_is_mfunc(dev->dev))
++		return;
++
++	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
++	dev->sriov.is_going_down = 1;
++	spin_unlock_irqrestore(&dev->sriov.going_down_lock, flags);
++	if (mlx4_is_master(dev->dev))
++		for (i = 0; i < dev->num_ports; i++) {
++			flush_workqueue(dev->sriov.demux[i].ud_wq);
++			mlx4_ib_free_sqp_ctx(dev->sriov.sqps[i]);
++			kfree(dev->sriov.sqps[i]);
++			dev->sriov.sqps[i] = NULL;
++			mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
++		}
++}
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index fe2088c..075561f 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1356,11 +1356,14 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (mlx4_ib_mad_init(ibdev))
+ 		goto err_reg;
+ 
++	if (mlx4_ib_init_sriov(ibdev))
++		goto err_mad;
++
+ 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE && !iboe->nb.notifier_call) {
+ 		iboe->nb.notifier_call = mlx4_ib_netdev_event;
+ 		err = register_netdevice_notifier(&iboe->nb);
+ 		if (err)
+-			goto err_reg;
++			goto err_sriov;
+ 	}
+ 
+ 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
+@@ -1378,6 +1381,12 @@ err_notif:
+ 		pr_warn("failure unregistering notifier\n");
+ 	flush_workqueue(wq);
+ 
++err_sriov:
++	mlx4_ib_close_sriov(ibdev);
++
++err_mad:
++	mlx4_ib_mad_cleanup(ibdev);
++
+ err_reg:
+ 	ib_unregister_device(&ibdev->ib_dev);
+ 
+@@ -1406,6 +1415,7 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+ 	struct mlx4_ib_dev *ibdev = ibdev_ptr;
+ 	int p;
+ 
++	mlx4_ib_close_sriov(ibdev);
+ 	mlx4_ib_mad_cleanup(ibdev);
+ 	ib_unregister_device(&ibdev->ib_dev);
+ 	if (ibdev->iboe.nb.notifier_call) {
+@@ -1427,6 +1437,51 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+ 	ib_dealloc_device(&ibdev->ib_dev);
+ }
+ 
++static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init)
++{
++	struct mlx4_ib_demux_work **dm = NULL;
++	struct mlx4_dev *dev = ibdev->dev;
++	int i;
++	unsigned long flags;
++
++	if (!mlx4_is_master(dev))
++		return;
++
++	dm = kzalloc(sizeof(*dm) * dev->caps.num_ports, GFP_ATOMIC);
++	if (!dm) {
++		pr_err("failed to allocate memory for tunneling qp update\n");
++		goto out;
++	}
++
++	for (i = 0; i < dev->caps.num_ports; i++) {
++		dm[i] = kmalloc(sizeof(struct mlx4_ib_demux_work), GFP_ATOMIC);
++		if (!dm[i]) {
++			pr_err("failed to allocate memory for tunneling qp update work struct\n");
++			for (i = 0; i < dev->caps.num_ports; i++) {
++				if (dm[i])
++					kfree(dm[i]);
++			}
++			goto out;
++		}
++	}
++	/* initialize or tear down tunnel QPs for the slave */
++	for (i = 0; i < dev->caps.num_ports; i++) {
++		INIT_WORK(&dm[i]->work, mlx4_ib_tunnels_update_work);
++		dm[i]->port = i + 1;
++		dm[i]->slave = slave;
++		dm[i]->do_init = do_init;
++		dm[i]->dev = ibdev;
++		spin_lock_irqsave(&ibdev->sriov.going_down_lock, flags);
++		if (!ibdev->sriov.is_going_down)
++			queue_work(ibdev->sriov.demux[i].ud_wq, &dm[i]->work);
++		spin_unlock_irqrestore(&ibdev->sriov.going_down_lock, flags);
++	}
++out:
++	if (dm)
++		kfree(dm);
++	return;
++}
++
+ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 			  enum mlx4_dev_event event, unsigned long param)
  {
- 	struct mlx4_mfunc_master_ctx *master =
-@@ -251,6 +441,7 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
- 	u32 flr_slave;
- 	u8 update_slave_state;
- 	int i;
-+	enum slave_port_gen_event gen_event;
+@@ -1434,22 +1489,23 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 	struct mlx4_ib_dev *ibdev = to_mdev((struct ib_device *) ibdev_ptr);
+ 	struct mlx4_eqe *eqe = NULL;
+ 	struct ib_event_work *ew;
+-	int port = 0;
++	int p = 0;
  
- 	while ((eqe = next_eqe_sw(eq))) {
- 		/*
-@@ -347,35 +538,49 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
- 		case MLX4_EVENT_TYPE_PORT_CHANGE:
- 			port = be32_to_cpu(eqe->event.port_change.port) >> 28;
- 			if (eqe->subtype == MLX4_PORT_CHANGE_SUBTYPE_DOWN) {
--				mlx4_dispatch_event(dev,
--						    MLX4_DEV_EVENT_PORT_DOWN,
-+				mlx4_dispatch_event(dev, MLX4_DEV_EVENT_PORT_DOWN,
- 						    port);
- 				mlx4_priv(dev)->sense.do_sense_port[port] = 1;
--				if (mlx4_is_master(dev))
--					/*change the state of all slave's port
--					* to down:*/
--					for (i = 0; i < dev->num_slaves; i++) {
--						mlx4_dbg(dev, "%s: Sending "
--							 "MLX4_PORT_CHANGE_SUBTYPE_DOWN"
-+				if (!mlx4_is_master(dev))
-+					break;
-+				for (i = 0; i < dev->num_slaves; i++) {
-+					if (dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH) {
-+						if (i == mlx4_master_func_num(dev))
-+							continue;
-+						mlx4_dbg(dev, "%s: Sending MLX4_PORT_CHANGE_SUBTYPE_DOWN"
- 							 " to slave: %d, port:%d\n",
- 							 __func__, i, port);
--						if (i == dev->caps.function)
--							continue;
- 						mlx4_slave_event(dev, i, eqe);
-+					} else {  /* IB port */
-+						set_and_calc_slave_port_state(dev, i, port,
-+									      MLX4_PORT_STATE_DEV_EVENT_PORT_DOWN,
-+									      &gen_event);
-+						/*we can be in pending state, then do not send port_down event*/
-+						if (SLAVE_PORT_GEN_EVENT_DOWN ==  gen_event) {
-+							if (i == mlx4_master_func_num(dev))
-+								continue;
-+							mlx4_slave_event(dev, i, eqe);
-+						}
- 					}
-+				}
- 			} else {
--				mlx4_dispatch_event(dev,
--						    MLX4_DEV_EVENT_PORT_UP,
--						    port);
-+				mlx4_dispatch_event(dev, MLX4_DEV_EVENT_PORT_UP, port);
+ 	if (event == MLX4_DEV_EVENT_PORT_MGMT_CHANGE)
+ 		eqe = (struct mlx4_eqe *)param;
+ 	else
+-		port = (u8)param;
+-
+-	if (port > ibdev->num_ports)
+-		return;
++		p = (int) param;
+ 
+ 	switch (event) {
+ 	case MLX4_DEV_EVENT_PORT_UP:
++		if (p > ibdev->num_ports)
++			return;
+ 		ibev.event = IB_EVENT_PORT_ACTIVE;
+ 		break;
+ 
+ 	case MLX4_DEV_EVENT_PORT_DOWN:
++		if (p > ibdev->num_ports)
++			return;
+ 		ibev.event = IB_EVENT_PORT_ERR;
+ 		break;
+ 
+@@ -1471,12 +1527,22 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 		handle_port_mgmt_change_event(&ew->work);
+ 		return;
+ 
++	case MLX4_DEV_EVENT_SLAVE_INIT:
++		/* here, p is the slave id */
++		do_slave_init(ibdev, p, 1);
++		return;
 +
- 				mlx4_priv(dev)->sense.do_sense_port[port] = 0;
++	case MLX4_DEV_EVENT_SLAVE_SHUTDOWN:
++		/* here, p is the slave id */
++		do_slave_init(ibdev, p, 0);
++		return;
++
+ 	default:
+ 		return;
+ 	}
  
--				if (mlx4_is_master(dev)) {
-+				if (!mlx4_is_master(dev))
-+					break;
-+				if (dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH)
- 					for (i = 0; i < dev->num_slaves; i++) {
--						if (i == dev->caps.function)
-+						if (i == mlx4_master_func_num(dev))
- 							continue;
- 						mlx4_slave_event(dev, i, eqe);
- 					}
--				}
-+				else /* IB port */
-+					/* port-up event will be sent to a slave when the
-+					 * slave's alias-guid is set. This is done in alias_GUID.c
-+					 */
-+					set_all_slave_state(dev, port, MLX4_DEV_EVENT_PORT_UP);
- 			}
- 			break;
+ 	ibev.device	      = ibdev_ptr;
+-	ibev.element.port_num = port;
++	ibev.element.port_num = (u8) p;
  
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index cd77a74..91e5ead 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -452,6 +452,7 @@ struct mlx4_slave_state {
- 	/*initialized via the kzalloc*/
- 	u8 is_slave_going_down;
- 	u32 cookie;
-+	enum slave_port_state port_state[MLX4_MAX_PORTS + 1];
+ 	ib_dispatch_event(&ibev);
+ }
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 1248d57..137941d 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -176,6 +176,10 @@ enum mlx4_ib_qp_type {
+ 	MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI | MLX4_IB_QPT_TUN_SMI_OWNER | \
+ 	MLX4_IB_QPT_TUN_SMI | MLX4_IB_QPT_TUN_GSI)
+ 
++enum {
++	MLX4_NUM_TUNNEL_BUFS		= 256,
++};
++
+ struct mlx4_ib_tunnel_header {
+ 	struct mlx4_av av;
+ 	__be32 remote_qpn;
+@@ -263,6 +267,15 @@ struct mlx4_ib_ah {
+ 	union mlx4_ext_av       av;
  };
  
- struct slave_list {
++struct mlx4_ib_demux_work {
++	struct work_struct	work;
++	struct mlx4_ib_dev     *dev;
++	int			slave;
++	int			do_init;
++	u8			port;
++
++};
++
+ struct mlx4_ib_tun_tx_buf {
+ 	struct mlx4_ib_buf buf;
+ 	struct ib_ah *ah;
+@@ -278,9 +291,17 @@ struct mlx4_ib_demux_pv_qp {
+ 	unsigned tx_ix_tail;
+ };
+ 
++enum mlx4_ib_demux_pv_state {
++	DEMUX_PV_STATE_DOWN,
++	DEMUX_PV_STATE_STARTING,
++	DEMUX_PV_STATE_ACTIVE,
++	DEMUX_PV_STATE_DOWNING,
++};
++
+ struct mlx4_ib_demux_pv_ctx {
+ 	int port;
+ 	int slave;
++	enum mlx4_ib_demux_pv_state state;
+ 	int has_smi;
+ 	struct ib_device *ib_dev;
+ 	struct ib_cq *cq;
+@@ -319,6 +340,13 @@ struct mlx4_ib_iboe {
+ 	union ib_gid		gid_table[MLX4_MAX_PORTS][128];
+ };
+ 
++struct pkey_mgt {
++	u8			virt2phys_pkey[MLX4_MFUNC_MAX][MLX4_MAX_PORTS][MLX4_MAX_PORT_PKEYS];
++	u16			phys_pkey_cache[MLX4_MAX_PORTS][MLX4_MAX_PORT_PKEYS];
++	struct list_head	pkey_port_list[MLX4_MFUNC_MAX];
++	struct kobject	       *device_parent[MLX4_MFUNC_MAX];
++};
++
+ struct mlx4_ib_dev {
+ 	struct ib_device	ib_dev;
+ 	struct mlx4_dev	       *dev;
+@@ -340,6 +368,7 @@ struct mlx4_ib_dev {
+ 	int			counters[MLX4_MAX_PORTS];
+ 	int		       *eq_table;
+ 	int			eq_added;
++	struct pkey_mgt		pkeys;
+ };
+ 
+ struct ib_event_work {
+@@ -424,6 +453,9 @@ static inline struct mlx4_ib_ah *to_mah(struct ib_ah *ibah)
+ 	return container_of(ibah, struct mlx4_ib_ah, ibah);
+ }
+ 
++int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev);
++void mlx4_ib_close_sriov(struct mlx4_ib_dev *dev);
++
+ int mlx4_ib_db_map_user(struct mlx4_ib_ucontext *context, unsigned long virt,
+ 			struct mlx4_db *db);
+ void mlx4_ib_db_unmap_user(struct mlx4_ib_ucontext *context, struct mlx4_db *db);
+@@ -515,4 +547,6 @@ int mlx4_ib_add_mc(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
+ void mlx4_ib_dispatch_event(struct mlx4_ib_dev *dev, u8 port_num,
+ 			    enum ib_event_type type);
+ 
++void mlx4_ib_tunnels_update_work(struct work_struct *work);
++
+ #endif /* MLX4_IB_H */
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+index 7e94987..1c2fc72 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+@@ -1295,6 +1295,8 @@ static void mlx4_master_do_cmd(struct mlx4_dev *dev, int slave, u8 cmd,
+ 		if (MLX4_COMM_CMD_FLR == slave_state[slave].last_cmd)
+ 			goto inform_slave_state;
+ 
++		mlx4_dispatch_event(dev, MLX4_DEV_EVENT_SLAVE_SHUTDOWN, slave);
++
+ 		/* write the version in the event field */
+ 		reply |= mlx4_comm_get_version();
+ 
+@@ -1331,6 +1333,7 @@ static void mlx4_master_do_cmd(struct mlx4_dev *dev, int slave, u8 cmd,
+ 			goto reset_slave;
+ 		slave_state[slave].vhcr_dma |= param;
+ 		slave_state[slave].active = true;
++		mlx4_dispatch_event(dev, MLX4_DEV_EVENT_SLAVE_INIT, slave);
+ 		break;
+ 	case MLX4_COMM_CMD_VHCR_POST:
+ 		if ((slave_state[slave].last_cmd != MLX4_COMM_CMD_VHCR_EN) &&
 diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 8e2f03f..8fed1fc 100644
+index 457503b..d8004f2 100644
 --- a/include/linux/mlx4/device.h
 +++ b/include/linux/mlx4/device.h
-@@ -192,6 +192,25 @@ enum {
- 	MLX4_FATAL_WARNING_SUBTYPE_WARMING = 0,
+@@ -54,7 +54,8 @@ enum {
  };
  
-+enum slave_port_state {
-+	SLAVE_PORT_DOWN = 0,
-+	SLAVE_PENDING_UP,
-+	SLAVE_PORT_UP,
-+};
-+
-+enum slave_port_gen_event {
-+	SLAVE_PORT_GEN_EVENT_DOWN = 0,
-+	SLAVE_PORT_GEN_EVENT_UP,
-+	SLAVE_PORT_GEN_EVENT_NONE,
-+};
-+
-+enum slave_port_state_event {
-+	MLX4_PORT_STATE_DEV_EVENT_PORT_DOWN,
-+	MLX4_PORT_STATE_DEV_EVENT_PORT_UP,
-+	MLX4_PORT_STATE_IB_PORT_STATE_EVENT_GID_VALID,
-+	MLX4_PORT_STATE_IB_EVENT_GID_INVALID,
-+};
-+
  enum {
- 	MLX4_PERM_LOCAL_READ	= 1 << 10,
- 	MLX4_PERM_LOCAL_WRITE	= 1 << 11,
-@@ -932,4 +951,13 @@ void mlx4_sync_pkey_table(struct mlx4_dev *dev, int slave, int port,
+-	MLX4_MAX_PORTS		= 2
++	MLX4_MAX_PORTS		= 2,
++	MLX4_MAX_PORT_PKEYS	= 128
+ };
  
- int mlx4_get_parav_qkey(struct mlx4_dev *dev, u32 qpn, u32 *qkey);
+ /* base qkey for use in sriov tunnel-qp/proxy-qp communication.
+diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
+index d813704..c257e1b 100644
+--- a/include/linux/mlx4/driver.h
++++ b/include/linux/mlx4/driver.h
+@@ -45,6 +45,8 @@ enum mlx4_dev_event {
+ 	MLX4_DEV_EVENT_PORT_DOWN,
+ 	MLX4_DEV_EVENT_PORT_REINIT,
+ 	MLX4_DEV_EVENT_PORT_MGMT_CHANGE,
++	MLX4_DEV_EVENT_SLAVE_INIT,
++	MLX4_DEV_EVENT_SLAVE_SHUTDOWN,
+ };
  
-+int mlx4_is_slave_active(struct mlx4_dev *dev, int slave);
-+int mlx4_gen_pkey_eqe(struct mlx4_dev *dev, int slave, u8 port);
-+int mlx4_gen_guid_change_eqe(struct mlx4_dev *dev, int slave, u8 port);
-+int mlx4_gen_slaves_port_mgt_ev(struct mlx4_dev *dev, u8 port, int attr);
-+int mlx4_gen_port_state_change_eqe(struct mlx4_dev *dev, int slave, u8 port, u8 port_subtype_change);
-+enum slave_port_state mlx4_get_slave_port_state(struct mlx4_dev *dev, int slave, u8 port);
-+int set_and_calc_slave_port_state(struct mlx4_dev *dev, int slave, u8 port, int event, enum slave_port_gen_event *gen_event);
-+
-+
- #endif /* MLX4_DEVICE_H */
+ struct mlx4_interface {
 -- 
 1.7.1
 
