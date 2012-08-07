@@ -1,170 +1,89 @@
-From: yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Subject: [PATCH V2] net/mlx4_core: enable 8TB of memory registration
-Date: Tue,  7 Aug 2012 15:34:38 +0300
-Message-ID: <1344342878-32650-1-git-send-email-yishaih@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: 3.6-rc1 IB complaint
+Date: Tue, 07 Aug 2012 16:48:01 +0000
+Message-ID: <502146C1.80405@acm.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hello,
 
-This patch solves below issue:
-Fix the mlx4 core limitation of log num mtt higher than 28.
-- There were some int overflows which were fixed to enable using 31.
+Has anyone else already seen the ugly kernel message below ? This
+message is generated during boot and prevents my IB HCA to come up
+properly with 3.6-rc1. This did not happen with kernel 3.5.
 
-- When we auto scaling number of MTTs with the size of the system memory
-  we can map 8TB instead of 1TB.
+=================================
+[ INFO: inconsistent lock state ]
+3.6.0-rc1-debug+ #1 Not tainted
+---------------------------------
+inconsistent {HARDIRQ-ON-W} -> {IN-HARDIRQ-W} usage.
+swapper/1/0 [HC1[1]:SC0[0]:HE0:SE1] takes:
+ (&(&ibdev->sm_lock)->rlock){?.+...}, at: [<ffffffffa0328df4>] update_sm_ah+0x94/0xd0 [mlx4_ib]
+{HARDIRQ-ON-W} state was registered at:
+  [<ffffffff81095e8a>] __lock_acquire+0x66a/0x1ca0
+  [<ffffffff81097ac5>] lock_acquire+0x95/0x130
+  [<ffffffff8140e815>] _raw_spin_lock+0x45/0x80
+  [<ffffffffa0329b6b>] mlx4_ib_process_mad+0x58b/0x7a0 [mlx4_ib]
+  [<ffffffffa03178be>] ib_post_send_mad+0x34e/0x6d0 [ib_mad]
+  [<ffffffffa033afc5>] ib_umad_write+0x515/0x630 [ib_umad]
+  [<ffffffff8114e41e>] vfs_write+0xce/0x170
+  [<ffffffff8114e724>] sys_write+0x54/0xa0
+  [<ffffffff81417692>] system_call_fastpath+0x16/0x1b
+irq event stamp: 306104
+hardirqs last  enabled at (306101): [<ffffffff8100ae75>] mwait_idle+0x95/0x180
+hardirqs last disabled at (306102): [<ffffffff8140f5e7>] common_interrupt+0x67/0x6c
+softirqs last  enabled at (306104): [<ffffffff81045793>] _local_bh_enable+0x13/0x20
+softirqs last disabled at (306103): [<ffffffff81046045>] irq_enter+0x75/0x90
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sigend-off-by: Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+other info that might help us debug this:
+ Possible unsafe locking scenario:
 
-changes from V1:
-mlx4_init_icm_table - use casting in left side to prevent int overflow.
+       CPU0
+       ----
+  lock(&(&ibdev->sm_lock)->rlock);
+  <Interrupt>
+    lock(&(&ibdev->sm_lock)->rlock);
 
+ *** DEADLOCK ***
 
+1 lock held by swapper/1/0:
+ #0:  (&(&priv->ctx_lock)->rlock){-.....}, at: [<ffffffffa02472c9>] mlx4_dispatch_event+0x39/0x90 [mlx4_core]
 
- drivers/net/ethernet/mellanox/mlx4/icm.c     |    9 ++++++---
- drivers/net/ethernet/mellanox/mlx4/icm.h     |    2 +-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h    |   10 +++-------
- drivers/net/ethernet/mellanox/mlx4/mr.c      |    4 ++--
- drivers/net/ethernet/mellanox/mlx4/profile.c |    6 +++---
- 5 files changed, 15 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c b/drivers/net/ethernet/mellanox/mlx4/icm.c
-index 88b7b3e..d56784d 100644
---- a/drivers/net/ethernet/mellanox/mlx4/icm.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
-@@ -358,13 +358,14 @@ void mlx4_table_put_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
- }
- 
- int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
--			u64 virt, int obj_size,	int nobj, int reserved,
-+			u64 virt, int obj_size,	u32 nobj, int reserved,
- 			int use_lowmem, int use_coherent)
- {
- 	int obj_per_chunk;
- 	int num_icm;
- 	unsigned chunk_size;
- 	int i;
-+	u64 size;
- 
- 	obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
- 	num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
-@@ -380,10 +381,12 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
- 	table->coherent = use_coherent;
- 	mutex_init(&table->mutex);
- 
-+	size = (u64)nobj * (u64)obj_size;
- 	for (i = 0; i * MLX4_TABLE_CHUNK_SIZE < reserved * obj_size; ++i) {
- 		chunk_size = MLX4_TABLE_CHUNK_SIZE;
--		if ((i + 1) * MLX4_TABLE_CHUNK_SIZE > nobj * obj_size)
--			chunk_size = PAGE_ALIGN(nobj * obj_size - i * MLX4_TABLE_CHUNK_SIZE);
-+		if ((i + 1) * MLX4_TABLE_CHUNK_SIZE > size)
-+			chunk_size = PAGE_ALIGN(size -
-+					i * MLX4_TABLE_CHUNK_SIZE);
- 
- 		table->icm[i] = mlx4_alloc_icm(dev, chunk_size >> PAGE_SHIFT,
- 					       (use_lowmem ? GFP_KERNEL : GFP_HIGHUSER) |
-diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.h b/drivers/net/ethernet/mellanox/mlx4/icm.h
-index 19e4efc..a67744f 100644
---- a/drivers/net/ethernet/mellanox/mlx4/icm.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/icm.h
-@@ -78,7 +78,7 @@ int mlx4_table_get_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
- void mlx4_table_put_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
- 			  int start, int end);
- int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
--			u64 virt, int obj_size,	int nobj, int reserved,
-+			u64 virt, int obj_size,	u32 nobj, int reserved,
- 			int use_lowmem, int use_coherent);
- void mlx4_cleanup_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table);
- void *mlx4_table_find(struct mlx4_icm_table *table, int obj, dma_addr_t *dma_handle);
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index 964e33c..b67b9c4 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -59,11 +59,7 @@
- #define MLX4_FS_NUM_OF_L2_ADDR		8
- #define MLX4_FS_MGM_LOG_ENTRY_SIZE	7
- #define MLX4_FS_NUM_MCG			(1 << 17)
--
--/* When a higher value than 28 is used we get a failure via initializing
--     the event queue table as of trying to allocate more than 2GB in ICM.
--*/
--#define MLX4_MAX_LOG_NUM_MTT 28
-+#define MLX4_MAX_LOG_NUM_MTT 31
- 
- enum {
- 	MLX4_FS_L2_HASH = 0,
-@@ -254,7 +250,7 @@ struct mlx4_bitmap {
- struct mlx4_buddy {
- 	unsigned long	      **bits;
- 	unsigned int	       *num_free;
--	int			max_order;
-+	u32			max_order;
- 	spinlock_t		lock;
- };
- 
-@@ -263,7 +259,7 @@ struct mlx4_icm;
- struct mlx4_icm_table {
- 	u64			virt;
- 	int			num_icm;
--	int			num_obj;
-+	u32			num_obj;
- 	int			obj_size;
- 	int			lowmem;
- 	int			coherent;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
-index 31f672a..42f6cb6 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
-@@ -677,7 +677,7 @@ int mlx4_init_mr_table(struct mlx4_dev *dev)
- 		return err;
- 
- 	err = mlx4_buddy_init(&mr_table->mtt_buddy,
--			      ilog2(dev->caps.num_mtts /
-+			      ilog2((u32)dev->caps.num_mtts /
- 			      (1 << log_mtts_per_seg)));
- 	if (err)
- 		goto err_buddy;
-@@ -687,7 +687,7 @@ int mlx4_init_mr_table(struct mlx4_dev *dev)
- 			mlx4_alloc_mtt_range(dev,
- 					     fls(dev->caps.reserved_mtts - 1));
- 		if (priv->reserved_mtts < 0) {
--			mlx4_warn(dev, "MTT table of order %d is too small.\n",
-+			mlx4_warn(dev, "MTT table of order %u is too small.\n",
- 				  mr_table->mtt_buddy.max_order);
- 			err = -ENOMEM;
- 			goto err_reserve_mtts;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/profile.c b/drivers/net/ethernet/mellanox/mlx4/profile.c
-index e3af4f3..0dfb1cc 100644
---- a/drivers/net/ethernet/mellanox/mlx4/profile.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/profile.c
-@@ -76,7 +76,7 @@ u64 mlx4_make_profile(struct mlx4_dev *dev,
- 		u64 size;
- 		u64 start;
- 		int type;
--		int num;
-+		u32 num;
- 		int log_num;
- 	};
- 
-@@ -98,8 +98,8 @@ u64 mlx4_make_profile(struct mlx4_dev *dev,
- 	 * memory (with PAGE_SIZE entries).
- 	 *
- 	 * This number has to be a power of two and fit into 32 bits
--	 * due to device limitations, so cap this at 2^28 as well.
--	 * That limits us to 1TB of memory registration per HCA with
-+	 * due to device limitations, so cap this at 2^31 as well.
-+	 * That limits us to 8TB of memory registration per HCA with
- 	 * 4KB pages, which is probably OK for the next few months.
- 	 */
- 	si_meminfo(&si);
--- 
-1.7.1
-
+stack backtrace:
+Pid: 0, comm: swapper/1 Not tainted 3.6.0-rc1-debug+ #1
+Call Trace:
+ <IRQ>  [<ffffffff81095429>] print_usage_bug+0x219/0x220
+ [<ffffffff8109579f>] mark_lock+0x36f/0x3f0
+ [<ffffffff8109602a>] __lock_acquire+0x80a/0x1ca0
+ [<ffffffff81097ac5>] lock_acquire+0x95/0x130
+ [<ffffffffa0328df4>] ? update_sm_ah+0x94/0xd0 [mlx4_ib]
+ [<ffffffffa02f492b>] ? rdma_port_get_link_layer+0x1b/0x40 [ib_core]
+ [<ffffffff8140e815>] _raw_spin_lock+0x45/0x80
+ [<ffffffffa0328df4>] ? update_sm_ah+0x94/0xd0 [mlx4_ib]
+ [<ffffffffa02f42aa>] ? ib_create_ah+0x1a/0x40 [ib_core]
+ [<ffffffffa0328df4>] update_sm_ah+0x94/0xd0 [mlx4_ib]
+ [<ffffffffa032957b>] handle_port_mgmt_change_event+0xeb/0x150 [mlx4_ib]
+ [<ffffffffa0329ed0>] mlx4_ib_event+0x120/0x170 [mlx4_ib]
+ [<ffffffff8140e9f3>] ? _raw_spin_lock_irqsave+0x83/0xa0
+ [<ffffffffa02472c9>] ? mlx4_dispatch_event+0x39/0x90 [mlx4_core]
+ [<ffffffffa02472fc>] mlx4_dispatch_event+0x6c/0x90 [mlx4_core]
+ [<ffffffffa0241a80>] mlx4_eq_int+0x4d0/0x920 [mlx4_core]
+ [<ffffffff8107673f>] ? local_clock+0x4f/0x60
+ [<ffffffffa0241ee4>] mlx4_msi_x_interrupt+0x14/0x20 [mlx4_core]
+ [<ffffffff810bd215>] handle_irq_event_percpu+0x75/0x230
+ [<ffffffff810bd41e>] handle_irq_event+0x4e/0x80
+ [<ffffffff810bfd55>] handle_edge_irq+0x85/0x130
+ [<ffffffff81004375>] handle_irq+0x25/0x40
+ [<ffffffff81418ddd>] do_IRQ+0x5d/0xe0
+ [<ffffffff8140f5ec>] common_interrupt+0x6c/0x6c
+ <EOI>  [<ffffffff8100ae7e>] ? mwait_idle+0x9e/0x180
+ [<ffffffff8100ae75>] ? mwait_idle+0x95/0x180
+ [<ffffffff8100b7a6>] cpu_idle+0xa6/0xe0
+ [<ffffffff8140777d>] start_secondary+0x204/0x206
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
