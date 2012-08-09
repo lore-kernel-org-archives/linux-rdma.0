@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 02/20] ib_srp: Enlarge block layer timeout
-Date: Thu, 09 Aug 2012 15:44:32 +0000
-Message-ID: <5023DAE0.4090100@acm.org>
+Subject: [PATCH 03/20] ib_srp: Move QP state check into srp_send_tsk_mgmt()
+Date: Thu, 09 Aug 2012 15:45:43 +0000
+Message-ID: <5023DB27.7060307@acm.org>
 References: <5023DA39.7020000@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -9,114 +9,54 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <5023DA39.7020000-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Enlarge the block layer timeout for disks such that it is above
-the InfiniBand transport layer timeout.
+Test the QP state inside srp_send_tsk_mgmt() instead of letting each
+caller perform that test.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   45 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/ulp/srp/ib_srp.h |    2 +
- 2 files changed, 47 insertions(+), 0 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 9a61be2..8444d36 100644
+index 8444d36..f333705 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1413,6 +1413,33 @@ err:
- 	return -ENOMEM;
- }
+@@ -1660,7 +1660,8 @@ static int srp_send_tsk_mgmt(struct srp_target_port *target,
+ 	struct srp_tsk_mgmt *tsk_mgmt;
  
-+static uint32_t srp_compute_rq_tmo(struct ib_qp_attr *qp_attr, int attr_mask)
-+{
-+	uint64_t T_tr_ns, max_compl_time_ms;
-+	uint32_t rq_tmo_jiffies;
-+
-+	/*
-+	 * According to section 11.2.4.2 in the IBTA spec (Modify Queue Pair,
-+	 * table 91), both the QP timeout and the retry count have to be set
-+	 * for RC QP's during the RTR to RTS transition.
-+	 */
-+	WARN_ON((attr_mask & (IB_QP_TIMEOUT | IB_QP_RETRY_CNT)) !=
-+		(IB_QP_TIMEOUT | IB_QP_RETRY_CNT));
-+
-+	/*
-+	 * Set target->rq_tmo_jiffies to one second more than the largest time
-+	 * it can take before an error completion is generated. See also
-+	 * C9-140..142 in the IBTA spec for more information about how to
-+	 * convert the QP Local ACK Timeout value to nanoseconds.
-+	 */
-+	T_tr_ns = 4096 * (1ULL << qp_attr->timeout);
-+	max_compl_time_ms = qp_attr->retry_cnt * 4 * T_tr_ns;
-+	do_div(max_compl_time_ms, NSEC_PER_MSEC);
-+	rq_tmo_jiffies = msecs_to_jiffies(max_compl_time_ms + 1000);
-+
-+	return rq_tmo_jiffies;
-+}
-+
- static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 			       struct srp_login_rsp *lrsp,
- 			       struct srp_target_port *target)
-@@ -1472,6 +1499,8 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 	if (ret)
- 		goto error_free;
+ 	if (target->state == SRP_TARGET_DEAD ||
+-	    target->state == SRP_TARGET_REMOVED)
++	    target->state == SRP_TARGET_REMOVED ||
++	    target->qp_in_error)
+ 		return -1;
  
-+	target->rq_tmo_jiffies = srp_compute_rq_tmo(qp_attr, attr_mask);
-+
- 	ret = ib_modify_qp(target->qp, qp_attr, attr_mask);
- 	if (ret)
- 		goto error_free;
-@@ -1723,6 +1752,21 @@ static int srp_reset_host(struct scsi_cmnd *scmnd)
- 	return ret;
- }
+ 	init_completion(&target->tsk_mgmt_done);
+@@ -1704,8 +1705,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
  
-+static int srp_slave_configure(struct scsi_device *sdev)
-+{
-+	struct Scsi_Host *shost = sdev->host;
-+	struct srp_target_port *target = host_to_target(shost);
-+	struct request_queue *q = sdev->request_queue;
-+	unsigned long timeout;
-+
-+	if (sdev->type == TYPE_DISK) {
-+		timeout = max_t(unsigned, 30 * HZ, target->rq_tmo_jiffies);
-+		blk_queue_rq_timeout(q, timeout);
-+	}
-+
-+	return 0;
-+}
-+
- static ssize_t show_id_ext(struct device *dev, struct device_attribute *attr,
- 			   char *buf)
- {
-@@ -1855,6 +1899,7 @@ static struct scsi_host_template srp_template = {
- 	.module				= THIS_MODULE,
- 	.name				= "InfiniBand SRP initiator",
- 	.proc_name			= DRV_NAME,
-+	.slave_configure		= srp_slave_configure,
- 	.info				= srp_target_info,
- 	.queuecommand			= srp_queuecommand,
- 	.eh_abort_handler		= srp_abort,
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 020caf0..e3a6304 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -163,6 +163,8 @@ struct srp_target_port {
- 	struct ib_sa_query     *path_query;
- 	int			path_query_id;
+ 	shost_printk(KERN_ERR, target->scsi_host, "SRP abort called\n");
  
-+	u32			rq_tmo_jiffies;
-+
- 	struct ib_cm_id	       *cm_id;
+-	if (!req || target->qp_in_error ||
+-	    !srp_claim_req(target, req, scmnd, 0))
++	if (!req || !srp_claim_req(target, req, scmnd, 0))
+ 		return FAILED;
+ 	srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
+ 			  SRP_TSK_ABORT_TASK);
+@@ -1722,8 +1722,6 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
  
- 	int			max_ti_iu_len;
+ 	shost_printk(KERN_ERR, target->scsi_host, "SRP reset_device called\n");
+ 
+-	if (target->qp_in_error)
+-		return FAILED;
+ 	if (srp_send_tsk_mgmt(target, SRP_TAG_NO_REQ, scmnd->device->lun,
+ 			      SRP_TSK_LUN_RESET))
+ 		return FAILED;
 -- 
 1.7.7
-
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
