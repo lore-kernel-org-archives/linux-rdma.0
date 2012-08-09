@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 12/20] ib_srp: Document sysfs attributes
-Date: Thu, 09 Aug 2012 15:54:46 +0000
-Message-ID: <5023DD46.60204@acm.org>
+Subject: [PATCH 13/20] srp_transport: Fix atttribute registration
+Date: Thu, 09 Aug 2012 15:56:02 +0000
+Message-ID: <5023DD92.3080407@acm.org>
 References: <5023DA39.7020000@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -9,185 +9,50 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <5023DA39.7020000-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Robert Jennings <rcj-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Document the sysfs attributes of the SRP initiator (ib_srp) according
-to the rules specified in Documentation/ABI/README.
+Register transport attributes after the attribute array has been
+set up instead of before. The current code can trigger a race
+condition because the code reading the attribute array can run
+on another thread than the code that initialized that array.
+Make sure that any code reading the attribute array will see all
+values written into that array.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+Cc: Robert Jennings <rcj-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: <stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- Documentation/ABI/stable/sysfs-driver-ib_srp |  156 ++++++++++++++++++++++++++
- 1 files changed, 156 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/ABI/stable/sysfs-driver-ib_srp
+ drivers/scsi/scsi_transport_srp.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/ABI/stable/sysfs-driver-ib_srp b/Documentation/ABI/stable/sysfs-driver-ib_srp
-new file mode 100644
-index 0000000..481aae9
---- /dev/null
-+++ b/Documentation/ABI/stable/sysfs-driver-ib_srp
-@@ -0,0 +1,156 @@
-+What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/add_target
-+Date:		January 2, 2006
-+KernelVersion:	2.6.15
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Interface for making ib_srp connect to a new target.
-+		One can request ib_srp to connect to a new target by writing
-+		a comma-separated list of login parameters to this sysfs
-+		attribute. The supported parameters are:
-+		* id_ext, a 16-digit hexadecimal number specifying the eight
-+		  byte identifier extension in the 16-byte SRP target port
-+		  identifier. The target port identifier is sent by ib_srp
-+		  to the target in the SRP_LOGIN_REQ request.
-+		* ioc_guid, a 16-digit hexadecimal number specifying the eight
-+		  byte I/O controller GUID portion of the 16-byte target port
-+		  identifier.
-+		* dgid, a 32-digit hexadecimal number specifying the
-+		  destination GID.
-+		* pkey, a four-digit hexadecimal number specifying the
-+		  InfiniBand partition key.
-+		* service_id, a 16-digit hexadecimal number specifying the
-+		  InfiniBand service ID used to establish communication with
-+		  the SRP target. How to find out the value of the service ID
-+		  is specified in the documentation of the SRP target.
-+		* max_sect, a decimal number specifying the maximum number of
-+		  512-byte sectors to be transferred via a single SCSI command.
-+		* max_cmd_per_lun, a decimal number specifying the maximum
-+		  number of outstanding commands for a single LUN.
-+		* io_class, a hexadecimal number specifying the SRP I/O class.
-+		  Must be either 0xff00 (rev 10) or 0x0100 (rev 16a). The I/O
-+		  class defines the format of the SRP initiator and target
-+		  port identifiers.
-+		* initiator_ext, a 16-digit hexadecimal number specifying the
-+		  identifier extension portion of the SRP initiator port
-+		  identifier. This data is sent by the initiator to the target
-+		  in the SRP_LOGIN_REQ request.
-+		* cmd_sg_entries, a number in the range 1..255 that specifies
-+		  the maximum number of data buffer descriptors stored in the
-+		  SRP_CMD information unit itself. With allow_ext_sg=0 the
-+		  parameter cmd_sg_entries defines the maximum S/G list length
-+		  for a single SRP_CMD, and commands whose S/G list length
-+		  exceeds this limit after S/G list collapsing will fail.
-+		* allow_ext_sg, whether ib_srp is allowed to include a partial
-+		  memory descriptor list in an SRP_CMD instead of the entire
-+		  list. If a partial memory descriptor list has been included
-+		  in an SRP_CMD the remaining memory descriptors are
-+		  communicated from initiator to target via an additional RDMA
-+		  transfer. Setting allow_ext_sg to 1 increases the maximum
-+		  amount of data that can be transferred between initiator and
-+		  target via a single SCSI command. Since not all SRP target
-+		  implementations support partial memory descriptor lists the
-+		  default value for this option is 0.
-+		* sg_tablesize, a number in the range 1..2048 specifying the
-+		  maximum S/G list length the SCSI layer is allowed to pass to
-+		  ib_srp. Specifying a value that exceeds cmd_sg_entries is
-+		  only safe with partial memory descriptor list support enabled
-+		  (allow_ext_sg=1).
+diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
+index 21a045e..07c4394 100644
+--- a/drivers/scsi/scsi_transport_srp.c
++++ b/drivers/scsi/scsi_transport_srp.c
+@@ -324,13 +324,14 @@ srp_attach_transport(struct srp_function_template *ft)
+ 	i->rport_attr_cont.ac.attrs = &i->rport_attrs[0];
+ 	i->rport_attr_cont.ac.class = &srp_rport_class.class;
+ 	i->rport_attr_cont.ac.match = srp_rport_match;
+-	transport_container_register(&i->rport_attr_cont);
+ 
+ 	count = 0;
+ 	SETUP_RPORT_ATTRIBUTE_RD(port_id);
+ 	SETUP_RPORT_ATTRIBUTE_RD(roles);
+ 	i->rport_attrs[count] = NULL;
+ 
++	transport_container_register(&i->rport_attr_cont);
 +
-+What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/ibdev
-+Date:		January 2, 2006
-+KernelVersion:	2.6.15
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	HCA name (<hca>).
-+
-+What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/port
-+Date:		January 2, 2006
-+KernelVersion:	2.6.15
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	HCA port number (<port_number>).
-+
-+What:		/sys/class/scsi_host/host<n>/allow_ext_sg
-+Date:		May 19, 2011
-+KernelVersion:	2.6.39
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Whether ib_srp is allowed to include a partial memory
-+		descriptor list in an SRP_CMD when communicating with an SRP
-+		target.
-+
-+What:		/sys/class/scsi_host/host<n>/cmd_sg_entries
-+Date:		May 19, 2011
-+KernelVersion:	2.6.39
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Maximum number of data buffer descriptors that may be sent to
-+		the target in a single SRP_CMD request.
-+
-+What:		/sys/class/scsi_host/host<n>/dgid
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	InfiniBand destination GID used for communication with the SRP
-+		target. Differs from orig_dgid if port redirection has happened.
-+
-+What:		/sys/class/scsi_host/host<n>/id_ext
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Eight-byte identifier extension portion of the 16-byte target
-+		port identifier.
-+
-+What:		/sys/class/scsi_host/host<n>/ioc_guid
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Eight-byte I/O controller GUID portion of the 16-byte target
-+		port identifier.
-+
-+What:		/sys/class/scsi_host/host<n>/local_ib_device
-+Date:		November 29, 2006
-+KernelVersion:	2.6.19
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Name of the InfiniBand HCA used for communicating with the
-+		SRP target.
-+
-+What:		/sys/class/scsi_host/host<n>/local_ib_port
-+Date:		November 29, 2006
-+KernelVersion:	2.6.19
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Number of the HCA port used for communicating with the
-+		SRP target.
-+
-+What:		/sys/class/scsi_host/host<n>/orig_dgid
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	InfiniBand destination GID specified in the parameters
-+		written to the add_target sysfs attribute.
-+
-+What:		/sys/class/scsi_host/host<n>/pkey
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	A 16-bit number representing the InfiniBand partition key used
-+		for communication with the SRP target.
-+
-+What:		/sys/class/scsi_host/host<n>/req_lim
-+Date:		October 20, 2010
-+KernelVersion:	2.6.36
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Number of requests ib_srp can send to the target before it has
-+		to wait for more credits. For more information see also the
-+		SRP credit algorithm in the SRP specification.
-+
-+What:		/sys/class/scsi_host/host<n>/service_id
-+Date:		June 17, 2006
-+KernelVersion:	2.6.17
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	InfiniBand service ID used for establishing communication with
-+		the SRP	target.
-+
-+What:		/sys/class/scsi_host/host<n>/zero_req_lim
-+Date:		September 20, 2006
-+KernelVersion:	2.6.18
-+Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Number of times the initiator had to wait before sending a
-+		request to the target because it ran out of credits. For more
-+		information see also the SRP credit algorithm in the SRP
-+		specification.
+ 	i->f = ft;
+ 
+ 	return &i->t;
 -- 
 1.7.7
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
