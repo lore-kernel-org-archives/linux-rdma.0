@@ -1,83 +1,143 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: IB softirq race
-Date: Fri, 10 Aug 2012 15:03:52 +0200
-Message-ID: <502506B8.7080203@profitbricks.com>
+From: "Huang, Perry" <huang32-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH 1/2] ibsim/sim.h: Add support for optional performance
+ attributes.
+Date: Fri, 10 Aug 2012 11:22:28 -0700
+Message-ID: <0F3DDD57-C1A9-4304-A20F-7027BF8F590B@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ri-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <ri-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>, "Foraker, Jim" <foraker1-i2BcT+NCU+M@public.gmane.org>, "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>, "alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+Add support for optional performance counters detailed in IB Arch Release 1.2.1 16.1.4.[1-8]. Does not include congestion attributes.
 
-we've got a gateway machine which is connected to the internet via
-ethernet and is connected with our KVM VMs-providing cloud
-infrastructure via IB.
-There must have been a race with softirqs. We've got a custom kernel
-module ("xt_ETHOIP6_gw") which handles the Ethernet<>IB.
+Signed-off-by: Perry Huang <huang32-i2BcT+NCU+M@public.gmane.org>
+---
+ ibsim/sim.h |   89 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 89 insertions(+), 0 deletions(-)
 
-The trace looks like that it caused the kernel trace together with the
-tun driver. What does the "(O)" mean?
-
-Should we look at our kernel module for better locking? What are the
-common data structures with which races can occur? Something with the
-connection manager?
-
-Cheers,
-Sebastian
-
-
-WARNING: at net/sched/sch_generic.c:255 dev_watchdog+0x22c/0x240()
-Hardware name: H8DGU
-NETDEV WATCHDOG: ib0 (mlx4_core): transmit queue 0 timed out
-Modules linked in: ipt_LOG xt_ETHOIP6_gw(O) ip6table_mangle
-iptable_mangle ip6table_filter ip6_tables tun(O) bridge stp llc rdma_uc=
-m
-rdma_cm iw_cm ib_addr ib_ipoib ib_cm ib_sa ib_uverbs ib_umad ib_qib
-mlx4_ib xt_multiport iptable_filter ip_tables x_tables ib_mthca ib_mad
-ib_core kvm_amd kvm psmouse tpm_tis tpm tpm_bios amd64_edac_mod
-i2c_piix4 edac_core serio_raw evdev edac_mce_amd button processor
-thermal_sys mlx4_en sg usb_storage mlx4_core ixgbe dca mdio [last
-unloaded: scsi_wait_scan]
-Pid: 3, comm: ksoftirqd/0 Tainted: G O 3.2.8-gw #1
-Call Trace:
-[<ffffffff81047dbb>] ? warn_slowpath_common+0x7b/0xc0
-[<ffffffff81047eb5>] ? warn_slowpath_fmt+0x45/0x50
-[<ffffffff81058333>] ? mod_timer+0x153/0x2a0
-[<ffffffff81584bec>] ? dev_watchdog+0x22c/0x240
-[<ffffffff810572a8>] ? run_timer_softirq+0x158/0x360
-[<ffffffff815849c0>] ? __netdev_watchdog_up+0x70/0x70
-[<ffffffff8168dc8a>] ? __schedule+0x2ea/0x7e0
-[<ffffffff8104e481>] ? __do_softirq+0xb1/0x1e0
-[<ffffffff8104e661>] ? run_ksoftirqd+0xb1/0x160
-[<ffffffff8104e5b0>] ? __do_softirq+0x1e0/0x1e0
-[<ffffffff8104e5b0>] ? __do_softirq+0x1e0/0x1e0
-[<ffffffff81069176>] ? kthread+0x96/0xa0
-[<ffffffff816997b4>] ? kernel_thread_helper+0x4/0x10
-[<ffffffff810690e0>] ? kthread_worker_fn+0x180/0x180
-[<ffffffff816997b0>] ? gs_change+0x13/0x13
----[ end trace a4ac921bb1a9d647 ]---
-ib0: transmit timeout: latency 1770 msecs
-ib0: queue stopped 1, tx_head 39614, tx_tail 39614
-
-
---=20
-Sebastian Riemer
-Linux Kernel Developer
-
-ProfitBricks GmbH =95 Greifswalder Str. 207 =95 10405 Berlin, Germany
-www.profitbricks.com =95 sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Tel.: +49 - 30 - 60 98 56 991 - 915
-
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Gesch=E4ftsf=FChrer: Andreas Gauger, Achim Weiss
+diff --git a/ibsim/sim.h b/ibsim/sim.h
+index 5a8a92f..a28e8b0 100644
+--- a/ibsim/sim.h
++++ b/ibsim/sim.h
+@@ -125,6 +125,35 @@ enum GS_PC_EXT_SELECT_MASK {
+ 	GS_PC_EXT_MCAST_RECV = 1 << 7,
+ };
+ 
++enum RCV_ERROR_DETAILS_COUNTER_SELECT_MASK {
++	GS_PERF_LOCAL_PHYSICAL_ERRORS_MASK = (1UL << 0), // PortLocalPhysicalErrors
++	GS_PERF_MALFORMED_PACKET_ERRORS_MASK = (1UL << 1), // PortMalformedPacketErrors
++	GS_PERF_BUFFER_OVERRUN_ERRORS_MASK = (1UL << 2), // PortBufferOverrunErrors
++	GS_PERF_DLID_MAPPING_ERRORS_MASK = (1UL << 3), // PortDLIDMappingErrors
++	GS_PERF_VL_MAPPING_ERRORS_MASK = (1UL << 4), // PortVLMappingErrors
++	GS_PERF_LOOPING_ERRORS_MASK = (1UL << 5), // PortLoopingErrors
++};
++
++enum XMIT_DISCARD_DETAILS_SELECT_MASK {
++	GS_PERF_INACTIVE_DISCARDS_MASK = (1UL << 0), // PortInactiveDiscards
++	GS_PERF_NEIGHBOR_MTU_DISCARDS_MASK = (1UL << 1), // PortNeighborMTUDiscards
++	GS_PERF_SW_LIFETIME_LIMIT_DISCARDS_MASK = (1UL << 2), // PortSwLifetimeLimitDiscards
++	GS_PERF_SW_HOQ_LIFETIME_LIMIT_DISCARDS_MASK = (1UL << 3), // PortSwHOQLifetimeLimitDiscards
++};
++
++enum OP_RCV_COUNTERS_SELECT_MASK {
++	GS_PERF_OP_RCV_PKTS_MASK = (1UL << 0), // PortOpRcvPkts
++	GS_PERF_OP_RCV_DATA_MASK = (1UL << 1), // PortOpRcvData
++};
++
++enum FLOW_CTL_COUNTERS_SELECT_MASK {
++	GS_PERF_XMIT_FLOW_PKTS_MASK = (1UL << 0), // PortXmitFlowPkts
++	GS_PERF_RCV_FLOW_PKTS_MASK = (1UL << 1), // PortRcvFlowPkts
++};
++
++/* Counter select bit masks for PortVLOpPackets[0-15], PortVLOpData[0-15], 
++and PortVLXmitWaitCounters[0-15] are ommitted due to redundency. */
++
+ enum GS_PERF_COUNTER_SELECT_LIMIT {
+ 	GS_PERF_ERR_SYM_LIMIT = 0xffff,
+ 	GS_PERF_LINK_RECOVERS_LIMIT = 0xff,
+@@ -143,6 +172,24 @@ enum GS_PERF_COUNTER_SELECT_LIMIT {
+ 	GS_PERF_XMT_PKTS_LIMIT = 0xffffffff,
+ 	GS_PERF_RCV_PKTS_LIMIT = 0xffffffff,
+ 	GS_PERF_XMT_WAIT_LIMIT = 0xffffffff,
++	GS_PERF_LOCAL_PHYSICAL_ERRORS_LIMIT = 0xffff,  // PortLocalPhysicalErrors
++	GS_PERF_MALFORMED_PACKET_ERRORS_LIMIT = 0xffff, // PortMalformedPacketErrors
++	GS_PERF_BUFFER_OVERRUN_ERRORS_LIMIT = 0xffff, // PortBufferOverrunErrors
++	GS_PERF_DLID_MAPPING_ERRORS_LIMIT = 0xffff, // PortDLIDMappingErrors
++	GS_PERF_VL_MAPPING_ERRORS_LIMIT = 0xffff, // PortVLMappingErrors
++	GS_PERF_LOOPING_ERRORS_LIMIT = 0xffff, // PortLoopingErrors
++	GS_PERF_INACTIVE_DISCARDS_LIMIT = 0xffff, // PortInactiveDiscards
++	GS_PERF_NEIGHBOR_MTU_DISCARDS_LIMIT = 0xffff, // PortNeighborMTUDiscards
++	GS_PERF_SW_LIFETIME_LIMIT_DISCARDS_LIMIT = 0xffff, // PortSwLifetimeLimitDiscards
++	GS_PERF_SW_HOQ_LIFETIME_LIMIT_DISCARDS_LIMIT = 0xffff, // PortSwHOQLifetimeLimitDiscards
++	GS_PERF_OP_RCV_PKTS_LIMIT = 0xffffffff, // PortOpRcvPkts
++	GS_PERF_OP_RCV_DATA_LIMIT = 0xffffffff, // PortOpRcvData
++ 	GS_PERF_XMIT_FLOW_PKTS_LIMIT = 0xffffffff, // PortXmitFlowPkts
++	GS_PERF_RCV_FLOW_PKTS_LIMIT = 0xffffffff, // PortRcvFlowPkts
++	GS_PERF_VL_OP_PACKETS_LIMIT = 0xffff, // PortVLOpPackets[0-15]
++	GS_PERF_VL_OP_DATA_LIMIT = 0xffffffff, // PortVLOpData[0-15]
++	GS_PERF_VL_XMIT_FLOW_CTL_UPDATE_ERRORS = 0x3, // PortVLXmitFlowCtlUpdateErrors[0-15] 
++	GS_PERF_VL_XMIT_WAIT_COUNTERS_LIMIT = 0xffff, // PortVLXmitWaitCounters[0-15]
+ };
+ 
+ typedef struct Port Port;
+@@ -185,6 +232,48 @@ struct Portcounters {
+ 	uint16_t errs_rcvswitchrelay;
+ 	uint8_t errs_excessbufovrrun;
+ 	uint32_t xmt_wait;
++
++	struct PortRcvErrorDetails {
++		uint16_t PortLocalPhysicalErrors;
++		uint16_t PortMalformedPacketErrors;
++		uint16_t PortBufferOverrunErrors;
++		uint16_t PortDLIDMappingErrors;
++		uint16_t PortVLMappingErrors;
++		uint16_t PortLoopingErrors;
++	} rcv_error_details;
++
++	struct PortXmitDiscardDetails {
++		uint16_t PortInactiveDiscards;
++		uint16_t PortNeighborMTUDiscards;
++		uint16_t PortSwLifetimeLimitDiscards;
++		uint16_t PortSwHOQLifetimeLimitDiscards;
++	} xmit_discard_details;
++
++	struct PortOpRcvCounters {
++		uint32_t PortOpRcvPkts;
++		uint32_t PortOpRcvData;
++	} op_rcv_counters;
++
++	struct PortFlowCtlCounters {
++		uint32_t PortXmitFlowPkts;
++		uint32_t PortRcvFlowPkts;
++	} flow_ctl_counters;
++
++	struct PortVLOpPackets {
++		uint16_t PortVLOpPackets[16];
++	} vl_op_packets;
++
++	struct PortVLOpData {
++		uint32_t PortVLOpData[16];
++	} vl_op_data;
++
++	struct PortVLXmitFlowCtlUpdateErrors {
++		uint8_t PortVLXmitFlowCtlUpdateErrors[16];
++	} vl_xmit_flow_ctl_update_errors;
++
++	struct PortVLXmitWaitCounters {
++		uint16_t PortVLXmitWait[16];
++	} vl_xmit_wait_counters;
+ };
+ 
+ struct Port {
+-- 
+1.7.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
