@@ -1,53 +1,26 @@
-From: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH] IB/mlx4: check iboe netdev pointer before dereferencing it
-Date: Fri, 10 Aug 2012 15:25:34 -0300
-Message-ID: <1344623134-22600-1-git-send-email-klebers@linux.vnet.ibm.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] RDMA/ucma.c: Different fix for ucma context uid=0,
+ causing iWarp RDMA applications to fail in connection establishment
+Date: Fri, 10 Aug 2012 13:04:16 -0700
+Message-ID: <CAL1RGDWwxLEaUfPbop+vyXEJukDWRSAaJwLra4Z7V769ijOKyQ@mail.gmail.com>
+References: <20120803235940.GA4912@TENIKOLO-MOBL> <1828884A29C6694DAF28B7E6B8A8237346A7CA42@ORSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A7CA42-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Unlike other parts of the mlx4_ib code, the function build_mlx_header()
-doesn't check if the iboe netdev of the given port is valid before
-derefering it, which can cause a crash if the ethernet interface has
-already been taken down.
+On Sat, Aug 4, 2012 at 11:48 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> Roland, there's a race here where ucma_set_event_context() copies ctx->uid to the event structure outside of the mutex.  Once the mutex is acquired, ctx->uid is checked.  However, the uid could have changed between saving it off to the event and checking it.
 
-This patch fixes the problem by checking for a valid netdev pointer
-before using it to get the port MAC address.
+OK.  So then this patch, which moves the mutex acquire up to cover
+ucma_set_event_context() seems like a sensible fix?
 
-Signed-off-by: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/qp.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index a6d8ea0..f585edd 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1407,6 +1407,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 	struct mlx4_wqe_mlx_seg *mlx = wqe;
- 	struct mlx4_wqe_inline_seg *inl = wqe + sizeof *mlx;
- 	struct mlx4_ib_ah *ah = to_mah(wr->wr.ud.ah);
-+	struct net_device *ndev;
- 	union ib_gid sgid;
- 	u16 pkey;
- 	int send_size;
-@@ -1483,7 +1484,10 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
- 
- 		memcpy(sqp->ud_header.eth.dmac_h, ah->av.eth.mac, 6);
- 		/* FIXME: cache smac value? */
--		smac = to_mdev(sqp->qp.ibqp.device)->iboe.netdevs[sqp->qp.port - 1]->dev_addr;
-+		ndev = to_mdev(sqp->qp.ibqp.device)->iboe.netdevs[sqp->qp.port - 1];
-+		if (!ndev)
-+			return -ENODEV;
-+		smac = ndev->dev_addr;
- 		memcpy(sqp->ud_header.eth.smac_h, smac, 6);
- 		if (!memcmp(sqp->ud_header.eth.smac_h, sqp->ud_header.eth.dmac_h, 6))
- 			mlx->flags |= cpu_to_be32(MLX4_WQE_CTRL_FORCE_LOOPBACK);
--- 
-1.7.1
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
