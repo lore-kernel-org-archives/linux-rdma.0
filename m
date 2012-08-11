@@ -1,44 +1,76 @@
-From: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
-Subject: Re: [PATCH 00/20, v4] Make ib_srp better suited for H.A. purposes
-Date: Sat, 11 Aug 2012 18:29:57 +1000
-Message-ID: <CAOzFzEggPXW23PMyCSoyT=vxAknioqTU=uxEDm_i0GDCbX28ag@mail.gmail.com>
-References: <5023DA39.7020000@acm.org>
-	<5023E2E3.4030602@acm.org>
+From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCHv1] RDMA/ocrdma: Fixed CONFIG_VLAN_8021Q.
+Date: Sat, 11 Aug 2012 18:58:10 +0530
+Message-ID: <79b2796a-f2a1-4ca4-8f19-17729e18af48@exht1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5023E2E3.4030602-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
+Fixed avoiding checking real vlan dev in scenario
+when VLAN is disabled and ipv6 is enabled.
 
-I have tested this series, all issues relating to hard removing
-targets are resolved.
-Thanks!
+Reported-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
 
-Joseph.
-
-On 10 August 2012 02:18, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
-> On 08/09/12 15:41, Bart Van Assche wrote:
->> [ ... ]
->
-> The patch series is also available on top of 3.6-rc1 here:
-> http://github.com/bvanassche/linux/tree/srp-ha
->
-> Bart.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 5a04452..f4e3696 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -161,7 +161,7 @@ static void ocrdma_add_default_sgid(struct ocrdma_dev *dev)
+ 	ocrdma_get_guid(dev, &sgid->raw[8]);
+ }
+ 
+-#if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
++#if IS_ENABLED(CONFIG_VLAN_8021Q)
+ static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
+ {
+ 	struct net_device *netdev, *tmp;
+@@ -202,8 +202,16 @@ static int ocrdma_build_sgid_tbl(struct ocrdma_dev *dev)
+ 	return 0;
+ }
+ 
+-#if IS_ENABLED(CONFIG_IPV6) || IS_ENABLED(CONFIG_VLAN_8021Q)
++static struct net_device *ocrdma_get_real_netdev(struct net_device *netdev)
++{
++#if IS_ENABLED(CONFIG_VLAN_8021Q)
++	return vlan_dev_real_dev(netdev);
++#else
++	return netdev;
++#endif
++}
+ 
++#if IS_ENABLED(CONFIG_IPV6)
+ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+ 				  unsigned long event, void *ptr)
+ {
+@@ -217,7 +225,7 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+ 	bool is_vlan = false;
+ 	u16 vid = 0;
+ 
+-	netdev = vlan_dev_real_dev(event_netdev);
++	netdev = ocrdma_get_real_netdev(event_netdev);
+ 	if (netdev != event_netdev) {
+ 		is_vlan = true;
+ 		vid = vlan_dev_vlan_id(event_netdev);
+@@ -262,7 +270,7 @@ static struct notifier_block ocrdma_inet6addr_notifier = {
+ 	.notifier_call = ocrdma_inet6addr_event
+ };
+ 
+-#endif /* IPV6 and VLAN */
++#endif /* IPV6 */
+ 
+ static enum rdma_link_layer ocrdma_link_layer(struct ib_device *device,
+ 					      u8 port_num)
 -- 
-CTO | Orion Virtualisation Solutions | www.orionvm.com.au
-Phone: 1300 56 99 52 | Mobile: 0428 754 846
+1.6.0.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
