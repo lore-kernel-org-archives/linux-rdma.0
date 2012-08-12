@@ -1,40 +1,40 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V2] net/mlx4_core: enable 8TB of memory registration
-Date: Sun, 12 Aug 2012 13:42:11 +0300
-Message-ID: <50278883.5000306@mellanox.com>
-References: <1344342878-32650-1-git-send-email-yishaih@dev.mellanox.co.il>
+From: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
+Subject: Re: [ANNOUNCE] librdmacm-1.0.16
+Date: Mon, 13 Aug 2012 06:29:03 +1000
+Message-ID: <CAOzFzEgkqKYcP99sGC+SP-pgS2abt1wA9dtJ7x9O99kzO31xtw@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237346A61E63@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1344342878-32650-1-git-send-email-yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A61E63-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/08/2012 15:34, yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org wrote:
-> From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Sean,
+
+On 14 July 2012 03:57, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> librdmacm release 1.0.16 is now available from
 >
-> This patch solves below issue:
-> Fix the mlx4 core limitation of log num mtt higher than 28.
-> - There were some int overflows which were fixed to enable using 31.
+> www.openfabrics.org/downloads/rdmacm
 >
-> - When we auto scaling number of MTTs with the size of the system memory
->    we can map 8TB instead of 1TB.
+> This release contains several bug fixes from 1.0.15, plus introduces the rsocket API and protocol.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Yishai,
+Are there any plans to include SOCK_DGRAM support?
 
-I see that the relation to the ICM size limit was wrong assertion, and 
-anyway, lets fix the submission
-such that this patch comes **before** the other patch you sent, so it 
-fixes the sign/int etc issues, and later the other patch adds the 
-vmalloc thing.
+I could see that being potentionally interesting along with mapping
+broadcast/multicast to IB physical layer multicast.
 
-Or.
+Joseph.
 
-Also checkpatch spotted here some tiny issue to be fixed.
-
+-- 
+CTO | Orion Virtualisation Solutions | www.orionvm.com.au
+Phone: 1300 56 99 52 | Mobile: 0428 754 846
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
