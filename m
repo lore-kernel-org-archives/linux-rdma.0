@@ -1,27 +1,55 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: check iboe netdev pointer before dereferencing
- it
-Date: Sun, 12 Aug 2012 08:49:02 +0300
-Message-ID: <502743CE.2070502@mellanox.com>
-References: <1344623134-22600-1-git-send-email-klebers@linux.vnet.ibm.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm: fix crash in DFSSSP routing engine on reroute
+Date: Sun, 12 Aug 2012 09:44:33 +0300
+Message-ID: <20120812064433.GA14539@calypso>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1344623134-22600-1-git-send-email-klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jens Domke <jens.domke-PZVgAJowwIsUtdQbppsyvg@public.gmane.org>
+Cc: Torsten Hoefler <htor-nzINlOoChub2fBVCVOL8/A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/08/2012 21:25, Kleber Sacilotto de Souza wrote:
-> This patch fixes the problem by checking for a valid netdev pointer
-> before using it to get the port MAC address.
+Routing engine should delete the context only when calling delete
+function.
 
-just curious, how did you actually stepped on this, code inspection or 
-any actual race?
+Found-and-fixed-by: Jens Domke <jens.domke-PZVgAJowwIsUtdQbppsyvg@public.gmane.org>
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_ucast_dfsssp.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Or.
+diff --git a/opensm/osm_ucast_dfsssp.c b/opensm/osm_ucast_dfsssp.c
+index d6d65b1..ffc317f 100644
+--- a/opensm/osm_ucast_dfsssp.c
++++ b/opensm/osm_ucast_dfsssp.c
+@@ -2135,12 +2135,11 @@ static void dfsssp_context_destroy(void *context)
+ 	}
+ 	free(adj_list);
+ 	dfsssp_ctx->adj_list = NULL;
++	dfsssp_ctx->adj_list_size = 0;
+ 
+ 	/* free srcdest2vl table (can be done because, dfsssp_context_destroy is called after osm_get_dfsssp_sl) */
+ 	vltable_dealloc(&(dfsssp_ctx->srcdest2vl_table));
+ 	dfsssp_ctx->srcdest2vl_table = NULL;
+-
+-	free(context);
+ }
+ 
+ static void delete(void *context)
+@@ -2148,6 +2147,8 @@ static void delete(void *context)
+ 	if (!context)
+ 		return;
+ 	dfsssp_context_destroy(context);
++
++	free(context);
+ }
+ 
+ int osm_ucast_dfsssp_setup(struct osm_routing_engine *r, osm_opensm_t * p_osm)
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
