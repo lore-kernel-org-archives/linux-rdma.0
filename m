@@ -1,76 +1,27 @@
-From: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv1] RDMA/ocrdma: Fixed CONFIG_VLAN_8021Q.
-Date: Sat, 11 Aug 2012 18:58:10 +0530
-Message-ID: <79b2796a-f2a1-4ca4-8f19-17729e18af48@exht1.ad.emulex.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: check iboe netdev pointer before dereferencing
+ it
+Date: Sun, 12 Aug 2012 08:49:02 +0300
+Message-ID: <502743CE.2070502@mellanox.com>
+References: <1344623134-22600-1-git-send-email-klebers@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1344623134-22600-1-git-send-email-klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fixed avoiding checking real vlan dev in scenario
-when VLAN is disabled and ipv6 is enabled.
+On 10/08/2012 21:25, Kleber Sacilotto de Souza wrote:
+> This patch fixes the problem by checking for a valid netdev pointer
+> before using it to get the port MAC address.
 
-Reported-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+just curious, how did you actually stepped on this, code inspection or 
+any actual race?
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 5a04452..f4e3696 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -161,7 +161,7 @@ static void ocrdma_add_default_sgid(struct ocrdma_dev *dev)
- 	ocrdma_get_guid(dev, &sgid->raw[8]);
- }
- 
--#if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
-+#if IS_ENABLED(CONFIG_VLAN_8021Q)
- static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
- {
- 	struct net_device *netdev, *tmp;
-@@ -202,8 +202,16 @@ static int ocrdma_build_sgid_tbl(struct ocrdma_dev *dev)
- 	return 0;
- }
- 
--#if IS_ENABLED(CONFIG_IPV6) || IS_ENABLED(CONFIG_VLAN_8021Q)
-+static struct net_device *ocrdma_get_real_netdev(struct net_device *netdev)
-+{
-+#if IS_ENABLED(CONFIG_VLAN_8021Q)
-+	return vlan_dev_real_dev(netdev);
-+#else
-+	return netdev;
-+#endif
-+}
- 
-+#if IS_ENABLED(CONFIG_IPV6)
- static int ocrdma_inet6addr_event(struct notifier_block *notifier,
- 				  unsigned long event, void *ptr)
- {
-@@ -217,7 +225,7 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
- 	bool is_vlan = false;
- 	u16 vid = 0;
- 
--	netdev = vlan_dev_real_dev(event_netdev);
-+	netdev = ocrdma_get_real_netdev(event_netdev);
- 	if (netdev != event_netdev) {
- 		is_vlan = true;
- 		vid = vlan_dev_vlan_id(event_netdev);
-@@ -262,7 +270,7 @@ static struct notifier_block ocrdma_inet6addr_notifier = {
- 	.notifier_call = ocrdma_inet6addr_event
- };
- 
--#endif /* IPV6 and VLAN */
-+#endif /* IPV6 */
- 
- static enum rdma_link_layer ocrdma_link_layer(struct ib_device *device,
- 					      u8 port_num)
--- 
-1.6.0.2
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
