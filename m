@@ -1,81 +1,56 @@
-From: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V1 0/4] IB/IPoIB TSS and RSS support for datagram mode
-Date: Mon, 13 Aug 2012 17:27:51 +0300
-Message-ID: <CACZyyF8o1ift2-rkV6yL7EM_iys2kWHJ=ZHNe2xMihu4jSW5+g@mail.gmail.com>
-References: <1338810598-9488-1-git-send-email-ogerlitz@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A25BFF@ORSMSX101.amr.corp.intel.com>
-	<CAJZOPZ+WX6gXAXESWge4ZsQVBun+bhWoui+f5DeKkqB3uEB2Hg@mail.gmail.com>
-	<CAJZOPZJL+qhk4CcUpmXffrTsS85fMJtxvuQePzpjN902Eg5h5g@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A30177@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH fixes 1/2] IB/ipoib: Add missing locking when CM object is deleted
+Date: Mon, 13 Aug 2012 17:39:49 +0300
+Message-ID: <1344868790-21146-2-git-send-email-ogerlitz@mellanox.com>
+References: <1344868790-21146-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A30177-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1344868790-21146-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean =96 thanks for the feedback.
-Reg the XRC semantics and object model:
-- XRC domain object allows many to many mappings where multiple XRC
-TGT QPs and multiple XRC SRQs can be mapped to each other, thus a
-notion of domain needs to be creates to define such group. With
-RSS/TSS we only have many to one mapping where child QPs are mapped
-directly to single parent. The RSS indirection table defines which
-child QP will receive the ingress, there=92s no remote mapping control
-like in the XRC case where the initiator defines the destination
-receive queue.
-- The XRC protection domain attribute was established to allow
-verification of a match between the destined XRC TGT QP and the
-targeted XRC SRQ, with RSS/TSS we don=92t enforce such a match.
-=46rom the above reason=92s we didn=92t find justification for creating=
- yet
-another new object =96 RSS/TSS domain.
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Reg ib_qp_init_attr and ib_qp_type, since RSS/TSS child/parent
-attributes can be defined for multiple QP types (today IB_QPT_UD and
-IB_QPT_RAW_PACKET), we believe it is cleaner to have another attribute
-of ib_qpg_type.
+Commit b63b70d8 "IPoIB: Use a private hash table for path lookup
+in xmit path" introduced a bug where in ipoib_cm_destroy_tx a CM object
+is moved between lists without any supported locking, which results
+in list poison error (under stress test) which eventually leads to
+crash. Previouslly when this routine was called, ancestors functions
+were taking the device priv lock. Currently this function is called from
+the RCU callback associated with neighbour deletion. Fix that by
+taking that very same lock we used to before.
 
-Reg ib_open_qp() and sharing the parent QP across multiple process,
-currently we don=92t support it, user mode API will provide RSS/TSS
-parent QP creation and children in user space in the same process.
-Having said that, we may add such support in future and current scheme
-allows such future expansion where RSS/TSS parent QP may be defined as
-shared, where in such case it will be allocated in kernel using the
-open_qp semantics and may use shared protection domain to do so.
+Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Tzahi
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 95ecf4e..24683fd 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -1271,12 +1271,15 @@ struct ipoib_cm_tx *ipoib_cm_create_tx(struct net_device *dev, struct ipoib_path
+ void ipoib_cm_destroy_tx(struct ipoib_cm_tx *tx)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(tx->dev);
++	unsigned long flags;
+ 	if (test_and_clear_bit(IPOIB_FLAG_INITIALIZED, &tx->flags)) {
++		spin_lock_irqsave(&priv->lock, flags);
+ 		list_move(&tx->list, &priv->cm.reap_list);
+ 		queue_work(ipoib_workqueue, &priv->cm.reap_task);
+ 		ipoib_dbg(priv, "Reap connection for gid %pI6\n",
+ 			  tx->neigh->daddr + 4);
+ 		tx->neigh = NULL;
++		spin_unlock_irqrestore(&priv->lock, flags);
+ 	}
+ }
+ 
+-- 
+1.7.1
 
-
-On Tue, Jun 12, 2012 at 11:44 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
-ote:
->> Do you have something more specific re how to actually align (say) t=
-he
->> RSS QP group into the framework used by XRC?
->
-> Not really.  That was more of a conceptual statement regarding the de=
-sign.  The operation, particularly on the receive side, just seems simi=
-lar.
->
-> I don't think we should force a fit if it doesn't, but what's missing=
- from the XRC framework to support RSS?
->
-> I guess more specifically, if I look at the changes to ib_verbs.h, ca=
-n we avoid the changes to ib_qp_init_attr and ib_qp?  I.e. why can't th=
-e qp_type indicate the type of group, or why couldn't ib_open_qp() be u=
-sed?  Should the associated QPs share some sort of common protection do=
-main, like an XRCD, to provide some security on sharing the underlying =
-QP across processes?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
