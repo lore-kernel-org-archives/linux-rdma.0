@@ -1,45 +1,40 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH fix V2 0/2] mlx4_core: Fix scaling issues related to memory registration
-Date: Mon, 13 Aug 2012 11:15:05 +0300
-Message-ID: <1344845707-23157-1-git-send-email-ogerlitz@mellanox.com>
+From: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: check iboe netdev pointer before dereferencing
+ it
+Date: Mon, 13 Aug 2012 10:17:26 -0300
+Message-ID: <5028FE66.10705@linux.vnet.ibm.com>
+References: <1344623134-22600-1-git-send-email-klebers@linux.vnet.ibm.com> <502743CE.2070502@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <502743CE.2070502-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+On 08/12/2012 02:49 AM, Or Gerlitz wrote:
 
-Here are Yishai's fixes which added few issues that come into play
-for systems with large RAM, with these fixes, your commit db5a7a65
-"mlx4_core: Scale size of MTT table with system RAM" can really play, 
-where without them, things don't work.
+> On 10/08/2012 21:25, Kleber Sacilotto de Souza wrote:
+>> This patch fixes the problem by checking for a valid netdev pointer
+>> before using it to get the port MAC address.
+> 
+> just curious, how did you actually stepped on this, code inspection or
+> any actual race?
+> 
+> Or.
+> 
 
-These are fixes, should be ok to 3.6 and to -stable anyway.
 
-changes from previous postings -- (I signed this post as V2, the
-prev ones where seperate and didn't use consistent numbering
-that starts at zero...) -- here're pointers to the posts:
+I hit the problem during error recovery after injecting an EEH error on
+a distro kernel based on linux 3.0. I was not able to reproduce the
+problem on the mainline kernel, but it seems to be just a matter of
+having the right timing.
 
-http://marc.info/?l=linux-rdma&m=134434316831352&w=2
-http://marc.info/?l=linux-rdma&m=134432700325849&w=2
-
-- enhanced the change-logs
-- changed the order of patches such that the 2nd adds on the 1st, 
-  and there's no code added in the 1st and remove in the 2nd...
-
-Or.
-
-Yishai Hadas (2):
-  net/mlx4_core: Allow large mlx4_buddy objects
-  net/mlx4_core: Fix scaling issues related to memory registration
-
- drivers/net/ethernet/mellanox/mlx4/icm.c     |    9 ++++++---
- drivers/net/ethernet/mellanox/mlx4/icm.h     |    2 +-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h    |    4 ++--
- drivers/net/ethernet/mellanox/mlx4/mr.c      |   25 +++++++++++++++++--------
- drivers/net/ethernet/mellanox/mlx4/profile.c |    4 ++--
- 5 files changed, 28 insertions(+), 16 deletions(-)
+-- 
+Kleber Sacilotto de Souza
+IBM Linux Technology Center
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
