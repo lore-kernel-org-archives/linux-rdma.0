@@ -1,37 +1,39 @@
-From: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: rsockets and fork
-Date: Mon, 13 Aug 2012 16:12:37 -0700
-Message-ID: <1344899557.2101.29.camel@oc1677441337.ibm.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rsockets and fork
+Date: Mon, 13 Aug 2012 23:39:53 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A7DB36@ORSMSX101.amr.corp.intel.com>
+References: <1344899557.2101.29.camel@oc1677441337.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1344899557.2101.29.camel-5vSEHtyIv2TJ4MwkZ4db91aTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean,
-
-I could not get fork enabled netperf to work with rsockets in the latest
-librdmacm git repository.
-After some debugging, i found that the child netserver process is blocked at 
-sem_wait() call in fork_passive().
-It is not clear to me how this call is supposed to unblock as sem_post()
-is done later in the same function.
-
-If i comment out sem_wait() and sem_post() in this routine, i got a single
-instance of netperf working with a forked netserver.
-
-However, if i start another netperf instance while the other session is
-still going on, it seems to hang and return with a very low throughput.
-It looks as if the first session is starving all the other sessions.
-The right behavior would be to have the available bw split across the 
-parallel instances.
-
-Thanks
-Sridhar
-
-
+PiBJIGNvdWxkIG5vdCBnZXQgZm9yayBlbmFibGVkIG5ldHBlcmYgdG8gd29yayB3aXRoIHJzb2Nr
+ZXRzIGluIHRoZSBsYXRlc3QNCj4gbGlicmRtYWNtIGdpdCByZXBvc2l0b3J5Lg0KPiBBZnRlciBz
+b21lIGRlYnVnZ2luZywgaSBmb3VuZCB0aGF0IHRoZSBjaGlsZCBuZXRzZXJ2ZXIgcHJvY2VzcyBp
+cyBibG9ja2VkIGF0DQo+IHNlbV93YWl0KCkgY2FsbCBpbiBmb3JrX3Bhc3NpdmUoKS4NCj4gSXQg
+aXMgbm90IGNsZWFyIHRvIG1lIGhvdyB0aGlzIGNhbGwgaXMgc3VwcG9zZWQgdG8gdW5ibG9jayBh
+cyBzZW1fcG9zdCgpDQo+IGlzIGRvbmUgbGF0ZXIgaW4gdGhlIHNhbWUgZnVuY3Rpb24uDQoNCnNl
+bV9vcGVuKCkgc2hvdWxkIGNyZWF0ZSB0aGUgc2VtYXBob3JlIHdpdGggYW4gaW5pdGlhbCB2YWx1
+ZSBvZiAxLiAgVGhlIHNlbV93YWl0L3NlbV9wb3N0IGNhbGxzIHNlcmlhbGl6ZSBsaXN0ZW5pbmcg
+b24gdGhlIGNvcnJlc3BvbmRpbmcgcnNvY2tldC4gIFRoZSBuYW1lIHNlbWFwaG9yZSBzaG91bGQg
+cmVtYWluIHVudGlsIHRoZSBzeXN0ZW0gaXMgcmVib290ZWQuDQogDQo+IEhvd2V2ZXIsIGlmIGkg
+c3RhcnQgYW5vdGhlciBuZXRwZXJmIGluc3RhbmNlIHdoaWxlIHRoZSBvdGhlciBzZXNzaW9uIGlz
+DQo+IHN0aWxsIGdvaW5nIG9uLCBpdCBzZWVtcyB0byBoYW5nIGFuZCByZXR1cm4gd2l0aCBhIHZl
+cnkgbG93IHRocm91Z2hwdXQuDQo+IEl0IGxvb2tzIGFzIGlmIHRoZSBmaXJzdCBzZXNzaW9uIGlz
+IHN0YXJ2aW5nIGFsbCB0aGUgb3RoZXIgc2Vzc2lvbnMuDQo+IFRoZSByaWdodCBiZWhhdmlvciB3
+b3VsZCBiZSB0byBoYXZlIHRoZSBhdmFpbGFibGUgYncgc3BsaXQgYWNyb3NzIHRoZQ0KPiBwYXJh
+bGxlbCBpbnN0YW5jZXMuDQoNCkNhbiB5b3UgdmVyaWZ5IHRoYXQgdGhlIHNlY29uZCBzZXNzaW9u
+IGlzIHVzaW5nIHJzb2NrZXRzIGFuZCBub3QgZmFsbGluZyBiYWNrIHRvIGEgc29ja2V0IGNvbm5l
+Y3Rpb24/DQoNCllvdSBjYW4gdHJ5IGFkanVzdGluZyB0aGUgcG9sbGluZyB0aW1lLiAgVGhpcyBj
+YW4gdXN1YWxseSBiZSBkb25lIGJ5IHdyaXRpbmcgYSB2YWx1ZSAodGltZSBpbiBtaWNyb3NlY29u
+ZHMpIHRvIHRoZSBmb2xsb3dpbmcgZmlsZToNCg0KL2V0Yy9yZG1hL3Jzb2NrZXQvcG9sbGluZ190
+aW1lDQoNCkJ5IGRlZmF1bHQsIHRoZSB2YWx1ZSBpcyAxMC4NCg0KLSBTZWFuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
