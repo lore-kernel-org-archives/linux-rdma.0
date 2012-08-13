@@ -1,7 +1,7 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: [patch net-next 11/16] vlan: remove usage of dev->master in __vlan_find_dev_deep()
-Date: Mon, 13 Aug 2012 17:27:10 +0200
-Message-ID: <1344871635-1052-12-git-send-email-jiri@resnulli.us>
+Subject: [patch net-next 07/16] netpoll: remove usage of dev->master
+Date: Mon, 13 Aug 2012 17:27:06 +0200
+Message-ID: <1344871635-1052-8-git-send-email-jiri@resnulli.us>
 References: <1344871635-1052-1-git-send-email-jiri@resnulli.us>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1344871635-1052-1-git-send-email-jiri@resnulli.us>
@@ -10,50 +10,41 @@ To: netdev@vger.kernel.org
 Cc: davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org, fbl@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-Also, since all users call __vlan_find_dev_deep() with rcu_read_lock,
-make no possibility to call this with rtnl mutex held only.
-
 Signed-off-by: Jiri Pirko <jiri@resnulli.us>
 ---
- net/8021q/vlan_core.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ net/core/netpoll.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/net/8021q/vlan_core.c b/net/8021q/vlan_core.c
-index 8ca533c..f9518ad 100644
---- a/net/8021q/vlan_core.c
-+++ b/net/8021q/vlan_core.c
-@@ -66,21 +66,25 @@ bool vlan_do_receive(struct sk_buff **skbp, bool last_handler)
- 	return true;
- }
+diff --git a/net/core/netpoll.c b/net/core/netpoll.c
+index b4c90e4..5c8e560 100644
+--- a/net/core/netpoll.c
++++ b/net/core/netpoll.c
+@@ -207,12 +207,16 @@ static void netpoll_poll_dev(struct net_device *dev)
  
--/* Must be invoked with rcu_read_lock or with RTNL. */
--struct net_device *__vlan_find_dev_deep(struct net_device *real_dev,
-+/* Must be invoked with rcu_read_lock. */
-+struct net_device *__vlan_find_dev_deep(struct net_device *dev,
- 					u16 vlan_id)
- {
--	struct vlan_info *vlan_info = rcu_dereference_rtnl(real_dev->vlan_info);
-+	struct vlan_info *vlan_info = rcu_dereference(dev->vlan_info);
- 
- 	if (vlan_info) {
- 		return vlan_group_get_device(&vlan_info->grp, vlan_id);
- 	} else {
- 		/*
--		 * Bonding slaves do not have grp assigned to themselves.
--		 * Grp is assigned to bonding master instead.
-+		 * Lower devices of unique uppers (bonding, team) do not have
-+		 * grp assigned to themselves. Grp is assigned to upper device
-+		 * instead.
- 		 */
--		if (netif_is_bond_slave(real_dev))
--			return __vlan_find_dev_deep(real_dev->master, vlan_id);
-+		struct net_device *upper_dev;
+ 	if (dev->flags & IFF_SLAVE) {
+ 		if (dev->npinfo) {
+-			struct net_device *bond_dev = dev->master;
++			struct net_device *bond_dev;
+ 			struct sk_buff *skb;
 +
-+		upper_dev = netdev_unique_upper_dev_get_rcu(dev);
-+		if (upper_dev)
-+			return __vlan_find_dev_deep(upper_dev, vlan_id);
++			rcu_read_lock();
++			bond_dev = netdev_unique_upper_dev_get_rcu(dev);
+ 			while ((skb = skb_dequeue(&dev->npinfo->arp_tx))) {
+ 				skb->dev = bond_dev;
+ 				skb_queue_tail(&bond_dev->npinfo->arp_tx, skb);
+ 			}
++			rcu_read_unlock();
+ 		}
  	}
  
- 	return NULL;
+@@ -795,7 +799,7 @@ int netpoll_setup(struct netpoll *np)
+ 		return -ENODEV;
+ 	}
+ 
+-	if (ndev->master) {
++	if (netdev_unique_upper_dev_get(ndev)) {
+ 		np_err(np, "%s is a slave device, aborting\n", np->dev_name);
+ 		err = -EBUSY;
+ 		goto put;
 -- 
 1.7.10.4
