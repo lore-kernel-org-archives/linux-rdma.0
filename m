@@ -1,69 +1,38 @@
-From: Flavio Leitner <fbl@redhat.com>
-Subject: Re: [patch net-next 03/16] vlan: add link to upper device
-Date: Mon, 13 Aug 2012 16:04:21 -0300
-Message-ID: <20120813160421.77a74e4e@obelix.rh>
-References: <1344871635-1052-1-git-send-email-jiri@resnulli.us>
-	<1344871635-1052-4-git-send-email-jiri@resnulli.us>
+From: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: rsockets and fork
+Date: Mon, 13 Aug 2012 16:12:37 -0700
+Message-ID: <1344899557.2101.29.camel@oc1677441337.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344871635-1052-4-git-send-email-jiri@resnulli.us>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Pirko <jiri@resnulli.us>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 13 Aug 2012 17:27:02 +0200
-Jiri Pirko <jiri@resnulli.us> wrote:
+Sean,
 
-> Signed-off-by: Jiri Pirko <jiri@resnulli.us>
-> ---
->  net/8021q/vlan.c |   10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/8021q/vlan.c b/net/8021q/vlan.c
-> index 9096bcb..739665e 100644
-> --- a/net/8021q/vlan.c
-> +++ b/net/8021q/vlan.c
-> @@ -105,6 +105,8 @@ void unregister_vlan_dev(struct net_device *dev, struct list_head *head)
->  	 */
->  	unregister_netdevice_queue(dev, head);
->  
-> +	netdev_upper_dev_unlink(real_dev, dev);
-> +
->  	if (grp->nr_vlan_devs == 0)
->  		vlan_gvrp_uninit_applicant(real_dev);
->  
-> @@ -162,9 +164,13 @@ int register_vlan_dev(struct net_device *dev)
->  	if (err < 0)
->  		goto out_uninit_applicant;
->  
-> +	err = netdev_upper_dev_link(real_dev, dev);
-> +	if (err)
-> +		goto out_uninit_applicant;
-> +
->  	err = register_netdevice(dev);
->  	if (err < 0)
-> -		goto out_uninit_applicant;
-> +		goto out_upper_dev_unlink;
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-see below:
+I could not get fork enabled netperf to work with rsockets in the latest
+librdmacm git repository.
+After some debugging, i found that the child netserver process is blocked at 
+sem_wait() call in fork_passive().
+It is not clear to me how this call is supposed to unblock as sem_post()
+is done later in the same function.
 
->  
->  	/* Account for reference in struct vlan_dev_priv */
->  	dev_hold(real_dev);
-> @@ -180,6 +186,8 @@ int register_vlan_dev(struct net_device *dev)
->  
->  	return 0;
->  
-> +upper_dev_unlink:
-^^^^^^^^^^^^^^^^^^^
-should be out_upper_dev_unlink:
+If i comment out sem_wait() and sem_post() in this routine, i got a single
+instance of netperf working with a forked netserver.
 
-fbl
+However, if i start another netperf instance while the other session is
+still going on, it seems to hang and return with a very low throughput.
+It looks as if the first session is starving all the other sessions.
+The right behavior would be to have the available bw split across the 
+parallel instances.
 
-> +	netdev_upper_dev_unlink(real_dev, dev);
->  out_uninit_applicant:
->  	if (grp->nr_vlan_devs == 0)
->  		vlan_gvrp_uninit_applicant(real_dev);
+Thanks
+Sridhar
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
