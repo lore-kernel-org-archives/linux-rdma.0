@@ -1,43 +1,69 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ANNOUNCE] librdmacm-1.0.16
-Date: Mon, 13 Aug 2012 18:19:38 +0000
-Message-ID: <0000013921366b36-04885b8b-c34b-4c9c-99ab-f2719d29b40d-000000@email.amazonses.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A61E63@ORSMSX101.amr.corp.intel.com> <CAOzFzEgkqKYcP99sGC+SP-pgS2abt1wA9dtJ7x9O99kzO31xtw@mail.gmail.com>
+From: Flavio Leitner <fbl@redhat.com>
+Subject: Re: [patch net-next 03/16] vlan: add link to upper device
+Date: Mon, 13 Aug 2012 16:04:21 -0300
+Message-ID: <20120813160421.77a74e4e@obelix.rh>
+References: <1344871635-1052-1-git-send-email-jiri@resnulli.us>
+	<1344871635-1052-4-git-send-email-jiri@resnulli.us>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOzFzEgkqKYcP99sGC+SP-pgS2abt1wA9dtJ7x9O99kzO31xtw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1344871635-1052-4-git-send-email-jiri@resnulli.us>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Pirko <jiri@resnulli.us>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 13 Aug 2012, Joseph Glanville wrote:
+On Mon, 13 Aug 2012 17:27:02 +0200
+Jiri Pirko <jiri@resnulli.us> wrote:
 
-> Hi Sean,
->
-> On 14 July 2012 03:57, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > librdmacm release 1.0.16 is now available from
-> >
-> > www.openfabrics.org/downloads/rdmacm
-> >
-> > This release contains several bug fixes from 1.0.15, plus introduces the rsocket API and protocol.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> Are there any plans to include SOCK_DGRAM support?
+> Signed-off-by: Jiri Pirko <jiri@resnulli.us>
+> ---
+>  net/8021q/vlan.c |   10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/8021q/vlan.c b/net/8021q/vlan.c
+> index 9096bcb..739665e 100644
+> --- a/net/8021q/vlan.c
+> +++ b/net/8021q/vlan.c
+> @@ -105,6 +105,8 @@ void unregister_vlan_dev(struct net_device *dev, struct list_head *head)
+>  	 */
+>  	unregister_netdevice_queue(dev, head);
+>  
+> +	netdev_upper_dev_unlink(real_dev, dev);
+> +
+>  	if (grp->nr_vlan_devs == 0)
+>  		vlan_gvrp_uninit_applicant(real_dev);
+>  
+> @@ -162,9 +164,13 @@ int register_vlan_dev(struct net_device *dev)
+>  	if (err < 0)
+>  		goto out_uninit_applicant;
+>  
+> +	err = netdev_upper_dev_link(real_dev, dev);
+> +	if (err)
+> +		goto out_uninit_applicant;
+> +
+>  	err = register_netdevice(dev);
+>  	if (err < 0)
+> -		goto out_uninit_applicant;
+> +		goto out_upper_dev_unlink;
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+see below:
 
-I am a bit confused here. Is this the librdmacm the RDMA connection
-manager? If so then it already supports datagrams and multicast.
+>  
+>  	/* Account for reference in struct vlan_dev_priv */
+>  	dev_hold(real_dev);
+> @@ -180,6 +186,8 @@ int register_vlan_dev(struct net_device *dev)
+>  
+>  	return 0;
+>  
+> +upper_dev_unlink:
+^^^^^^^^^^^^^^^^^^^
+should be out_upper_dev_unlink:
 
-> I could see that being potentionally interesting along with mapping
-> broadcast/multicast to IB physical layer multicast.
+fbl
 
-Such as implemented in IPoIB? Any ideas that would be better than that?
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	netdev_upper_dev_unlink(real_dev, dev);
+>  out_uninit_applicant:
+>  	if (grp->nr_vlan_devs == 0)
+>  		vlan_gvrp_uninit_applicant(real_dev);
