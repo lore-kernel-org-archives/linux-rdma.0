@@ -1,45 +1,68 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH fixes 2/2] IB/ipoib: Fix RCU pointer dereference to wrong object
-Date: Mon, 13 Aug 2012 17:39:50 +0300
-Message-ID: <1344868790-21146-3-git-send-email-ogerlitz@mellanox.com>
-References: <1344868790-21146-1-git-send-email-ogerlitz@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1344868790-21146-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: [patch net-next 00/16] net: introduce upper device lists and remove dev->master
+Date: Mon, 13 Aug 2012 17:26:59 +0200
+Message-ID: <1344871635-1052-1-git-send-email-jiri@resnulli.us>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org, fbl@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi all.
 
-Commit 63b70d8 "IPoIB: Use a private hash table for path lookup
-in xmit path" introduced a bug where in ipoib_neigh_free (which
-is called from few errors flows in the driver) rcu_dereference is
-invoked with the wrong pointer object, which results in a crash.
+Recent discussion around
+"[net-next] bonding: don't allow the master to become its slave"
+forced me to think about upper<->lower device connections.
 
-Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This patchset adds a possibility to record upper device linkage.
+All upper<->lower devices are converted to use this mechanism right after.
+That leads to dev->master removal because this info becomes redundant since
+"unique links" have the same value.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 97920b7..3e2085a 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1052,7 +1052,7 @@ void ipoib_neigh_free(struct ipoib_neigh *neigh)
- 	for (n = rcu_dereference_protected(*np,
- 					    lockdep_is_held(&ntbl->rwlock));
- 	     n != NULL;
--	     n = rcu_dereference_protected(neigh->hnext,
-+	     n = rcu_dereference_protected(*np,
- 					lockdep_is_held(&ntbl->rwlock))) {
- 		if (n == neigh) {
- 			/* found */
+After all changes, there is no longer possible to do:
+"bond->someotherdevice->samebond"
+
+Also I think that drivers like cxgb3, qlcnic, qeth would benefit by this
+in future by being able to get more appropriate info about l3 addresses.
+
+Jiri Pirko (16):
+  net: introduce upper device lists
+  macvlan: add link to upper device
+  vlan: add link to upper device
+  rtnetlink: remove usage of dev->master
+  team: remove usage of netdev_set_master()
+  bridge: remove usage of netdev_set_master()
+  netpoll: remove usage of dev->master
+  cxgb3: remove usage of dev->master
+  qlcnic: guard __vlan_find_dev_deep() by rcu_read_lock
+  qeth: ensure that __vlan_find_dev_deep() is called with rcu_read_lock
+  vlan: remove usage of dev->master in __vlan_find_dev_deep()
+  nes: remove usage of dev->master
+  bonding: remove usage of dev->master
+  net: remove no longer used netdev_set_bond_master() and
+    netdev_set_master()
+  net: remove usage of dev->master
+  net: kill dev->master
+
+ drivers/infiniband/hw/nes/nes.c                    |    8 +-
+ drivers/infiniband/hw/nes/nes_cm.c                 |    2 +-
+ drivers/net/bonding/bond_3ad.c                     |   30 +--
+ drivers/net/bonding/bond_alb.c                     |    6 +-
+ drivers/net/bonding/bond_main.c                    |   94 ++++----
+ drivers/net/bonding/bonding.h                      |   14 +-
+ drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c |   11 +-
+ drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c   |    2 +
+ drivers/net/macvlan.c                              |    9 +-
+ drivers/net/team/team.c                            |   13 +-
+ drivers/s390/net/qeth_l3_main.c                    |   21 +-
+ include/linux/netdevice.h                          |   22 +-
+ net/8021q/vlan.c                                   |   10 +-
+ net/8021q/vlan_core.c                              |   18 +-
+ net/bridge/br_if.c                                 |    6 +-
+ net/core/dev.c                                     |  241 +++++++++++++++++---
+ net/core/netpoll.c                                 |    8 +-
+ net/core/rtnetlink.c                               |   45 ++--
+ 18 files changed, 392 insertions(+), 168 deletions(-)
+
 -- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.10.4
