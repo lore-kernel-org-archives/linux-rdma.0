@@ -1,39 +1,52 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rsockets and fork
-Date: Mon, 13 Aug 2012 23:39:53 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A7DB36@ORSMSX101.amr.corp.intel.com>
-References: <1344899557.2101.29.camel@oc1677441337.ibm.com>
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [PATCH 01/20] ib_srp: Fix a race condition
+Date: Mon, 13 Aug 2012 23:19:46 -0400
+Message-ID: <1344914386.31833.45.camel@obelisk.thedillows.org>
+References: <5023DA39.7020000@acm.org> <5023DAA1.1040507@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1344899557.2101.29.camel-5vSEHtyIv2TJ4MwkZ4db91aTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <5023DAA1.1040507-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJIGNvdWxkIG5vdCBnZXQgZm9yayBlbmFibGVkIG5ldHBlcmYgdG8gd29yayB3aXRoIHJzb2Nr
-ZXRzIGluIHRoZSBsYXRlc3QNCj4gbGlicmRtYWNtIGdpdCByZXBvc2l0b3J5Lg0KPiBBZnRlciBz
-b21lIGRlYnVnZ2luZywgaSBmb3VuZCB0aGF0IHRoZSBjaGlsZCBuZXRzZXJ2ZXIgcHJvY2VzcyBp
-cyBibG9ja2VkIGF0DQo+IHNlbV93YWl0KCkgY2FsbCBpbiBmb3JrX3Bhc3NpdmUoKS4NCj4gSXQg
-aXMgbm90IGNsZWFyIHRvIG1lIGhvdyB0aGlzIGNhbGwgaXMgc3VwcG9zZWQgdG8gdW5ibG9jayBh
-cyBzZW1fcG9zdCgpDQo+IGlzIGRvbmUgbGF0ZXIgaW4gdGhlIHNhbWUgZnVuY3Rpb24uDQoNCnNl
-bV9vcGVuKCkgc2hvdWxkIGNyZWF0ZSB0aGUgc2VtYXBob3JlIHdpdGggYW4gaW5pdGlhbCB2YWx1
-ZSBvZiAxLiAgVGhlIHNlbV93YWl0L3NlbV9wb3N0IGNhbGxzIHNlcmlhbGl6ZSBsaXN0ZW5pbmcg
-b24gdGhlIGNvcnJlc3BvbmRpbmcgcnNvY2tldC4gIFRoZSBuYW1lIHNlbWFwaG9yZSBzaG91bGQg
-cmVtYWluIHVudGlsIHRoZSBzeXN0ZW0gaXMgcmVib290ZWQuDQogDQo+IEhvd2V2ZXIsIGlmIGkg
-c3RhcnQgYW5vdGhlciBuZXRwZXJmIGluc3RhbmNlIHdoaWxlIHRoZSBvdGhlciBzZXNzaW9uIGlz
-DQo+IHN0aWxsIGdvaW5nIG9uLCBpdCBzZWVtcyB0byBoYW5nIGFuZCByZXR1cm4gd2l0aCBhIHZl
-cnkgbG93IHRocm91Z2hwdXQuDQo+IEl0IGxvb2tzIGFzIGlmIHRoZSBmaXJzdCBzZXNzaW9uIGlz
-IHN0YXJ2aW5nIGFsbCB0aGUgb3RoZXIgc2Vzc2lvbnMuDQo+IFRoZSByaWdodCBiZWhhdmlvciB3
-b3VsZCBiZSB0byBoYXZlIHRoZSBhdmFpbGFibGUgYncgc3BsaXQgYWNyb3NzIHRoZQ0KPiBwYXJh
-bGxlbCBpbnN0YW5jZXMuDQoNCkNhbiB5b3UgdmVyaWZ5IHRoYXQgdGhlIHNlY29uZCBzZXNzaW9u
-IGlzIHVzaW5nIHJzb2NrZXRzIGFuZCBub3QgZmFsbGluZyBiYWNrIHRvIGEgc29ja2V0IGNvbm5l
-Y3Rpb24/DQoNCllvdSBjYW4gdHJ5IGFkanVzdGluZyB0aGUgcG9sbGluZyB0aW1lLiAgVGhpcyBj
-YW4gdXN1YWxseSBiZSBkb25lIGJ5IHdyaXRpbmcgYSB2YWx1ZSAodGltZSBpbiBtaWNyb3NlY29u
-ZHMpIHRvIHRoZSBmb2xsb3dpbmcgZmlsZToNCg0KL2V0Yy9yZG1hL3Jzb2NrZXQvcG9sbGluZ190
-aW1lDQoNCkJ5IGRlZmF1bHQsIHRoZSB2YWx1ZSBpcyAxMC4NCg0KLSBTZWFuDQo=
+On Thu, 2012-08-09 at 15:43 +0000, Bart Van Assche wrote:
+> Avoid that the scmnd->scsi_done(scmnd) call in srp_process_rsp()
+> can trigger a crash by being invoked with scsi_done == NULL. That
+> could happen if a reply is received during or after a command abort.
+
+Please leave the call trace out of the commit message; it adds nothing.
+
+> +static struct scsi_cmnd *srp_claim_req(struct srp_target_port *target,
+> +				       struct srp_request *req,
+> +				       struct scsi_cmnd *scmnd,
+> +				       s32 req_lim_delta)
+>  {
+>  	unsigned long flags;
+>  
+> -	srp_unmap_data(req->scmnd, target, req);
+>  	spin_lock_irqsave(&target->lock, flags);
+>  	target->req_lim += req_lim_delta;
+
+I still think that adding credits back before putting the request on the
+free list is a crash waiting to happen. We don't check to see if the
+free request list is empty in srp_queuecommand(), so this creates a new
+race window where we get a response that gives us credits back, but we
+don't have a free request to back them.
+
+Arguably, we need to check for that anyway to protect against buggy
+targets giving us back more credits than we have used...
+
+Or am I missing something obvious?
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
