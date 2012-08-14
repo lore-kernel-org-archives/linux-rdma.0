@@ -1,68 +1,56 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: [patch net-next v2 12/15] nes: remove usage of dev->master
-Date: Tue, 14 Aug 2012 17:05:45 +0200
-Message-ID: <1344956748-2099-13-git-send-email-jiri@resnulli.us>
+Subject: [patch net-next v2 03/15] vlan: add link to upper device
+Date: Tue, 14 Aug 2012 17:05:36 +0200
+Message-ID: <1344956748-2099-4-git-send-email-jiri@resnulli.us>
 References: <1344956748-2099-1-git-send-email-jiri@resnulli.us>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1344956748-2099-1-git-send-email-jiri@resnulli.us>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org
 Cc: davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org, fbl@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Jiri Pirko <jiri@resnulli.us>
 ---
- drivers/infiniband/hw/nes/nes.c    |    8 +++++---
- drivers/infiniband/hw/nes/nes_cm.c |    2 +-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ net/8021q/vlan.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
-index 7140199..6686251 100644
---- a/drivers/infiniband/hw/nes/nes.c
-+++ b/drivers/infiniband/hw/nes/nes.c
-@@ -140,6 +140,7 @@ static int nes_inetaddr_event(struct notifier_block *notifier,
- 	struct net_device *event_netdev = ifa->ifa_dev->dev;
- 	struct nes_device *nesdev;
- 	struct net_device *netdev;
-+	struct net_device *upper_dev;
- 	struct nes_vnic *nesvnic;
- 	unsigned int is_bonded;
+diff --git a/net/8021q/vlan.c b/net/8021q/vlan.c
+index 9096bcb..2dca0fa 100644
+--- a/net/8021q/vlan.c
++++ b/net/8021q/vlan.c
+@@ -105,6 +105,8 @@ void unregister_vlan_dev(struct net_device *dev, struct list_head *head)
+ 	 */
+ 	unregister_netdevice_queue(dev, head);
  
-@@ -150,8 +151,9 @@ static int nes_inetaddr_event(struct notifier_block *notifier,
- 				nesdev, nesdev->netdev[0]->name);
- 		netdev = nesdev->netdev[0];
- 		nesvnic = netdev_priv(netdev);
-+		upper_dev = netdev_master_upper_dev_get(netdev);
- 		is_bonded = netif_is_bond_slave(netdev) &&
--			    (netdev->master == event_netdev);
-+			    (upper_dev == event_netdev);
- 		if ((netdev == event_netdev) || is_bonded) {
- 			if (nesvnic->rdma_enabled == 0) {
- 				nes_debug(NES_DBG_NETDEV, "Returning without processing event for %s since"
-@@ -184,9 +186,9 @@ static int nes_inetaddr_event(struct notifier_block *notifier,
- 					/* fall through */
- 				case NETDEV_CHANGEADDR:
- 					/* Add the address to the IP table */
--					if (netdev->master)
-+					if (upper_dev)
- 						nesvnic->local_ipaddr =
--							((struct in_device *)netdev->master->ip_ptr)->ifa_list->ifa_address;
-+							((struct in_device *)upper_dev->ip_ptr)->ifa_list->ifa_address;
- 					else
- 						nesvnic->local_ipaddr = ifa->ifa_address;
++	netdev_upper_dev_unlink(real_dev, dev);
++
+ 	if (grp->nr_vlan_devs == 0)
+ 		vlan_gvrp_uninit_applicant(real_dev);
  
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 020e95c..15e6340 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -1352,7 +1352,7 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
- 	}
+@@ -162,9 +164,13 @@ int register_vlan_dev(struct net_device *dev)
+ 	if (err < 0)
+ 		goto out_uninit_applicant;
  
- 	if (netif_is_bond_slave(nesvnic->netdev))
--		netdev = nesvnic->netdev->master;
-+		netdev = netdev_unique_upper_dev_get(nesvnic->netdev);
- 	else
- 		netdev = nesvnic->netdev;
++	err = netdev_upper_dev_link(real_dev, dev);
++	if (err)
++		goto out_uninit_applicant;
++
+ 	err = register_netdevice(dev);
+ 	if (err < 0)
+-		goto out_uninit_applicant;
++		goto out_upper_dev_unlink;
  
+ 	/* Account for reference in struct vlan_dev_priv */
+ 	dev_hold(real_dev);
+@@ -180,6 +186,8 @@ int register_vlan_dev(struct net_device *dev)
+ 
+ 	return 0;
+ 
++out_upper_dev_unlink:
++	netdev_upper_dev_unlink(real_dev, dev);
+ out_uninit_applicant:
+ 	if (grp->nr_vlan_devs == 0)
+ 		vlan_gvrp_uninit_applicant(real_dev);
 -- 
 1.7.10.4
