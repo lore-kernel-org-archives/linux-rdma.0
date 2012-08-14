@@ -1,8 +1,7 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 5/8] opensm/libvendor/osm_vendor_ibumad.c: rename "mad" to
- "p_mad" to indicate pointer
-Date: Wed, 15 Aug 2012 00:38:52 +0300
-Message-ID: <502AC56C.3060906@mellanox.co.il>
+Subject: [PATCH 7/8] opensm/osm_port_info_rcv.c: check received local_port_num
+Date: Wed, 15 Aug 2012 00:41:26 +0300
+Message-ID: <502AC606.4020004@mellanox.co.il>
 Reply-To: <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -15,102 +14,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- libvendor/osm_vendor_ibumad.c | 44 +++++++++++++++++++++----------------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ opensm/osm_port_info_rcv.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/libvendor/osm_vendor_ibumad.c b/libvendor/osm_vendor_ibumad.c
-index d9ed13a..4d33758 100644
---- a/libvendor/osm_vendor_ibumad.c
-+++ b/libvendor/osm_vendor_ibumad.c
-@@ -285,7 +285,7 @@ static void *umad_receiver(void *p_ptr)
- 	osm_umad_bind_info_t *p_bind;
- 	osm_mad_addr_t osm_addr;
- 	osm_madw_t *p_madw, *p_req_madw;
--	ib_mad_t *mad;
-+	ib_mad_t *p_mad;
- 	void *umad = 0;
- 	int mad_agent, length;
+diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
+index c3bc66c..442bc3f 100644
+--- a/opensm/osm_port_info_rcv.c
++++ b/opensm/osm_port_info_rcv.c
+@@ -505,6 +505,11 @@ void osm_pi_rcv_process(IN void *context, IN void *data)
 
-@@ -337,11 +337,11 @@ static void *umad_receiver(void *p_ptr)
- 			continue;
- 		}
+ 	CL_ASSERT(p_smp->attr_id == IB_MAD_ATTR_PORT_INFO);
 
--		mad = (ib_mad_t *) umad_get_mad(umad);
-+		p_mad = (ib_mad_t *) umad_get_mad(umad);
++	/*
++	 * Attribute modifier has already been validated upon MAD receive,
++	 * which means that port_num has to be valid - it originated from
++	 * the request attribute modifier.
++	 */
+ 	port_num = (uint8_t) cl_ntoh32(p_smp->attr_mod);
 
- 		ib_mad_addr_conv(umad, &osm_addr,
--				 mad->mgmt_class == IB_MCLASS_SUBN_LID ||
--				 mad->mgmt_class == IB_MCLASS_SUBN_DIR);
-+				 p_mad->mgmt_class == IB_MCLASS_SUBN_LID ||
-+				 p_mad->mgmt_class == IB_MCLASS_SUBN_DIR);
+ 	port_guid = p_context->port_guid;
+@@ -554,6 +559,17 @@ void osm_pi_rcv_process(IN void *context, IN void *data)
+ 	p_node = p_port->p_node;
+ 	CL_ASSERT(p_node);
 
- 		if (!(p_madw = osm_mad_pool_get(p_bind->p_mad_pool,
- 						(osm_bind_handle_t) p_bind,
-@@ -364,15 +364,15 @@ static void *umad_receiver(void *p_ptr)
-
- 		/* if status != 0 then we are handling recv timeout on send */
- 		if (umad_status(p_madw->vend_wrap.umad)) {
--			if (!(p_req_madw = get_madw(p_vend, &mad->trans_id,
--						    mad->mgmt_class))) {
-+			if (!(p_req_madw = get_madw(p_vend, &p_mad->trans_id,
-+						    p_mad->mgmt_class))) {
- 				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
- 					"ERR 5412: "
- 					"Failed to obtain request madw for timed out MAD"
- 					" (class=0x%X method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
--					mad->mgmt_class, mad->method,
--					cl_ntoh16(mad->attr_id),
--					cl_ntoh64(mad->trans_id));
-+					p_mad->mgmt_class, p_mad->method,
-+					cl_ntoh16(p_mad->attr_id),
-+					cl_ntoh64(p_mad->trans_id));
- 			} else {
- 				p_req_madw->status = IB_TIMEOUT;
- 				log_send_error(p_vend, p_req_madw);
-@@ -391,30 +391,30 @@ static void *umad_receiver(void *p_ptr)
- 		}
-
- 		p_req_madw = 0;
--		if (ib_mad_is_response(mad) &&
--		    !(p_req_madw = get_madw(p_vend, &mad->trans_id,
--					    mad->mgmt_class))) {
-+		if (ib_mad_is_response(p_mad) &&
-+		    !(p_req_madw = get_madw(p_vend, &p_mad->trans_id,
-+					    p_mad->mgmt_class))) {
- 			OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5413: "
- 				"Failed to obtain request madw for received MAD"
- 				" (class=0x%X method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
--				mad->mgmt_class, mad->method,
--				cl_ntoh16((mad)->attr_id),
--				cl_ntoh64(mad->trans_id));
-+				p_mad->mgmt_class, p_mad->method,
-+				cl_ntoh16(p_mad->attr_id),
-+				cl_ntoh64(p_mad->trans_id));
- 			osm_mad_pool_put(p_bind->p_mad_pool, p_madw);
- 			continue;
- 		}
- #ifndef VENDOR_RMPP_SUPPORT
--		if ((mad->mgmt_class != IB_MCLASS_SUBN_DIR) &&
--		    (mad->mgmt_class != IB_MCLASS_SUBN_LID) &&
--		    (ib_rmpp_is_flag_set((ib_rmpp_mad_t *) mad,
-+		if ((p_mad->mgmt_class != IB_MCLASS_SUBN_DIR) &&
-+		    (p_mad->mgmt_class != IB_MCLASS_SUBN_LID) &&
-+		    (ib_rmpp_is_flag_set((ib_rmpp_mad_t *) p_mad,
- 					 IB_RMPP_FLAG_ACTIVE))) {
- 			OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5414: "
- 				"class 0x%x method 0x%x RMPP version %d type "
- 				"%d flags 0x%x received -- dropping\n",
--				mad->mgmt_class, mad->method,
--				((ib_rmpp_mad_t *) mad)->rmpp_version,
--				((ib_rmpp_mad_t *) mad)->rmpp_type,
--				((ib_rmpp_mad_t *) mad)->rmpp_flags);
-+				p_mad->mgmt_class, p_mad->method,
-+				((ib_rmpp_mad_t *) p_mad)->rmpp_version,
-+				((ib_rmpp_mad_t *) p_mad)->rmpp_type,
-+				((ib_rmpp_mad_t *) p_mad)->rmpp_flags);
- 			osm_mad_pool_put(p_bind->p_mad_pool, p_madw);
- 			continue;
- 		}
++	if (p_pi->local_port_num > p_node->node_info.num_ports) {
++		CL_PLOCK_RELEASE(sm->p_lock);
++		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0F15: "
++			"Received PortInfo for port GUID 0x%" PRIx64 " is "
++			"non-compliant and is being ignored since the "
++			"local port num %u > num ports %u\n",
++			cl_ntoh64(port_guid), p_pi->local_port_num,
++			p_node->node_info.num_ports);
++		goto Exit;
++	}
++
+ 	/*
+ 	   If we were setting the PortInfo, then receiving
+ 	   this attribute was not part of sweeping the subnet.
 -- 
 1.7.11.1
 
