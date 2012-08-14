@@ -1,64 +1,28 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 5/5] drivers/infiniband/hw/qib/qib_iba7322.c: fix error return code
-Date: Tue, 14 Aug 2012 14:58:35 +0200
-Message-ID: <1344949115-13266-6-git-send-email-Julia.Lawall@lip6.fr>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 5/5] drivers/infiniband/hw/qib/qib_iba7322.c: fix error
+ return code
+Date: Tue, 14 Aug 2012 13:14:30 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC0D4F1553@FMSMSX108.amr.corp.intel.com>
 References: <1344949115-13266-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344949115-13266-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Marciniszyn <infinipath@intel.com>
-Cc: kernel-janitors@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+ <1344949115-13266-6-git-send-email-Julia.Lawall@lip6.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1344949115-13266-6-git-send-email-Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+> Subject: [PATCH 5/5] drivers/infiniband/hw/qib/qib_iba7322.c: fix error
+> return code
+> 
+> From: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
 
-Convert a 0 error return code to a negative one, as returned elsewhere in the
-function.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-identifier ret;
-expression e,e1,e2,e3,e4,x;
-@@
-
-(
-if (\(ret != 0\|ret < 0\) || ...) { ... return ...; }
-|
-ret = 0
-)
-... when != ret = e1
-*x = \(kmalloc\|kzalloc\|kcalloc\|devm_kzalloc\|ioremap\|ioremap_nocache\|devm_ioremap\|devm_ioremap_nocache\)(...);
-... when != x = e2
-    when != ret = e3
-*if (x == NULL || ...)
-{
-  ... when != ret = e4
-*  return ret;
-}
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/infiniband/hw/qib/qib_iba7322.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 0d7280a..3f6b21e 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -6346,8 +6346,10 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
- 			dd->piobcnt4k * dd->align4k;
- 		dd->piovl15base	= ioremap_nocache(vl15off,
- 						  NUM_VL15_BUFS * dd->align4k);
--		if (!dd->piovl15base)
-+		if (!dd->piovl15base) {
-+			ret = -ENOMEM;
- 			goto bail;
-+		}
- 	}
- 	qib_7322_set_baseaddrs(dd); /* set chip access pointers now */
- 
+Acked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
