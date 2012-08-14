@@ -1,50 +1,76 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Patchwork back online
-Date: Tue, 14 Aug 2012 17:56:36 +0300
-Message-ID: <201208141756.36914.jackm@dev.mellanox.co.il>
-References: <CAL1RGDUFuqn_CiRszWaSQ7znKaaYGPLt1xNa97DRGzuMG12JwQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+Subject: [patch net-next v2 00/15] net: introduce upper device lists and remove dev->master
+Date: Tue, 14 Aug 2012 17:05:33 +0200
+Message-ID: <1344956748-2099-1-git-send-email-jiri@resnulli.us>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUFuqn_CiRszWaSQ7znKaaYGPLt1xNa97DRGzuMG12JwQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, fubar-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, jitendra.kalsaria-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, sony.chacko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-driver-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, ursula.braun-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org, bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org, therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, gregory.v.rose-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.r.fastabend-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bridge-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, fbl-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday 10 July 2012 20:08, Roland Dreier wrote:
-> Not sure if everyone saw this, but thanks to the kernel.org crew,
-> https://patchwork.kernel.org/project/linux-rdma/list/ is back online.
-> 
-> I've been delegating opensm patches to Alex Netes and diags
-> patches to Ira Weiny.  Can someone refresh my memory about
-> who looks after libibumad?  Is that Alex too?
-> 
-> Anyway, Alex and Ira, if you guys update patchwork when you
-> apply or reject a patch, that would be great ... I'll try to avoid
-> letting a big backlog of patches accumulate there too :)
-> 
-> Thanks,
->   Roland
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-Hi Roland,
+Hi all.
 
-I just checked patchwork, and do not see the bug-fix patch I submitted on Aug 3:
-    [PATCH] IB/mlx4: fix possible deadlock with sm_lock spinlock
+Recent discussion around
+"[net-next] bonding: don't allow the master to become its slave"
+forced me to think about upper<->lower device connections.
 
-http://marc.info/?l=linux-rdma&m=134398272328023&w=2
+This patchset adds a possibility to record upper device linkage.
+All upper<->lower devices are converted to use this mechanism right after.
+That leads to dev->master removal because this info becomes redundant since
+"unique links" have the same value.
 
-Please don't let this fall by the wayside -- it is independent of the SRIOV-IB patch set.
+After all changes, there is no longer possible to do:
+"bond->someotherdevice->samebond"
 
-Thanks!
--Jack
+Also I think that drivers like cxgb3, qlcnic, qeth would benefit by this
+in future by being able to get more appropriate info about l3 addresses.
+
+v1->v2:
+- s/unique/master/ better naming + stays closer to the history
+- fixed vlan err goto
+- original patch 15 (WARN_ON change) is squashed into the first patch
+- fixed netdev_unique_upper_dev_get_rcu() case of upper==NULL
+
+Jiri Pirko (15):
+  net: introduce upper device lists
+  macvlan: add link to upper device
+  vlan: add link to upper device
+  rtnetlink: remove usage of dev->master
+  team: remove usage of netdev_set_master()
+  bridge: remove usage of netdev_set_master()
+  netpoll: remove usage of dev->master
+  cxgb3: remove usage of dev->master
+  qlcnic: guard __vlan_find_dev_deep() by rcu_read_lock
+  qeth: ensure that __vlan_find_dev_deep() is called with rcu_read_lock
+  vlan: remove usage of dev->master in __vlan_find_dev_deep()
+  nes: remove usage of dev->master
+  bonding: remove usage of dev->master
+  net: remove no longer used netdev_set_bond_master() and
+    netdev_set_master()
+  net: kill dev->master
+
+ drivers/infiniband/hw/nes/nes.c                    |    8 +-
+ drivers/infiniband/hw/nes/nes_cm.c                 |    2 +-
+ drivers/net/bonding/bond_3ad.c                     |   30 +--
+ drivers/net/bonding/bond_alb.c                     |    6 +-
+ drivers/net/bonding/bond_main.c                    |   94 ++++----
+ drivers/net/bonding/bonding.h                      |   14 +-
+ drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c |   11 +-
+ drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c   |    2 +
+ drivers/net/macvlan.c                              |    9 +-
+ drivers/net/team/team.c                            |   13 +-
+ drivers/s390/net/qeth_l3_main.c                    |   21 +-
+ include/linux/netdevice.h                          |   22 +-
+ net/8021q/vlan.c                                   |   10 +-
+ net/8021q/vlan_core.c                              |   18 +-
+ net/bridge/br_if.c                                 |    6 +-
+ net/core/dev.c                                     |  239 +++++++++++++++++---
+ net/core/netpoll.c                                 |    8 +-
+ net/core/rtnetlink.c                               |   45 ++--
+ 18 files changed, 391 insertions(+), 167 deletions(-)
+
+-- 
+1.7.10.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
