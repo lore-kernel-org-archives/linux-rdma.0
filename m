@@ -1,81 +1,48 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Subject: Re: [patch net-next v2 00/15] net: introduce upper device
- lists and remove dev->master
-Date: Tue, 14 Aug 2012 21:32:53 +0100
-Message-ID: <1344976373.2690.41.camel@bwh-desktop.uk.solarflarecom.com>
-References: <1344956748-2099-1-git-send-email-jiri@resnulli.us>
-	<20120814201950.GA17781@quad.redhat.com>
+From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH 1/8] opensm/configure.in: check that compiler supports __builtin_expect()
+Date: Wed, 15 Aug 2012 00:30:22 +0300
+Message-ID: <502AC36E.3040601@mellanox.co.il>
+Reply-To: <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <20120814201950.GA17781@quad.redhat.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-To: Andy Gospodarek <gospo@redhat.com>
-Cc: bridge@lists.linux-foundation.org, ursula.braun@de.ibm.com, john.r.fastabend@intel.com, edumazet@google.com, shemminger@vyatta.com, sean.hefty@intel.com, therbert@google.com, roland@kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, fubar@us.ibm.com, fbl@redhat.com, hal.rosenstock@gmail.com, Jiri Pirko <jiri@resnulli.us>, faisal.latif@intel.com, blaschka@linux.vnet.ibm.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, xiyou.wangcong@gmail.com, jitendra.kalsaria@qlogic.com, divy@chelsio.com, gregory.v.rose@intel.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, kaber@trash.net, joe@perches.com, linux390@de.ibm.com, davem@davemloft.net
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2012-08-14 at 16:19 -0400, Andy Gospodarek wrote:
-> On Tue, Aug 14, 2012 at 05:05:33PM +0200, Jiri Pirko wrote:
-> > Hi all.
-> > 
-> > Recent discussion around
-> > "[net-next] bonding: don't allow the master to become its slave"
-> > forced me to think about upper<->lower device connections.
-> > 
-> > This patchset adds a possibility to record upper device linkage.
-> > All upper<->lower devices are converted to use this mechanism right after.
-> > That leads to dev->master removal because this info becomes redundant since
-> > "unique links" have the same value.
-> > 
-> > After all changes, there is no longer possible to do:
-> > "bond->someotherdevice->samebond"
-> > 
-> > Also I think that drivers like cxgb3, qlcnic, qeth would benefit by this
-> > in future by being able to get more appropriate info about l3 addresses.
-> > 
-> > v1->v2:
-> > - s/unique/master/ better naming + stays closer to the history
-> > - fixed vlan err goto
-> > - original patch 15 (WARN_ON change) is squashed into the first patch
-> > - fixed netdev_unique_upper_dev_get_rcu() case of upper==NULL
-> I just started to review v1 when v2 came out, but luckily the changes
-> were not too significant that I need to start all over.
-> 
-> The first note is that I didn't like the use of the term 'upper' -- it
-> seems like 'stacked' might be a better alternative as these are stacked
-> devices.
 
-When linking any two devices in a stack, one will be upper and the other
-lower.  The lower device might itself be stacked on top of a further
-device, so 'stacked' is not a useful distinguishing adjective in
-variable names.  It might be a useful term in the commit messages and
-kernel-doc, though.
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ configure.in | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-> One thing to note is that I don't see any clear changelog that states
-> the current goals for this.  You have stated in several places that it
-> will no longer be possible to create bonds of bonds, but there are
-> probably a few more things it might be wise to intentionally outlaw.
->
-> What about teams of teams?  Or teams of bonds?  Or bonds of teams?
-> Bonds of vlans?
-[...]
+diff --git a/configure.in b/configure.in
+index e48c066..eb252ff 100644
+--- a/configure.in
++++ b/configure.in
+@@ -56,6 +56,17 @@ AC_HEADER_TIME
+ AC_STRUCT_TM
+ AC_C_VOLATILE
 
-It doesn't disallow bonds of bonds (unless I'm missing something).  It
-disallows loops that involve any or all of those types of stacked
-devices.
-
-Ben.
-
++dnl See if we have __builtin_expect
++AC_MSG_CHECKING([if the compiler supports __builtin_expect])
++AC_TRY_COMPILE(, [ return __builtin_expect(1, 1) ? 1 : 0],
++		 [ have_builtin_expect=yes
++		   AC_MSG_RESULT([yes]) ],
++		 [ have_builtin_expect=no
++		   AC_MSG_RESULT([no])  ])
++if test "x_$have_builtin_expect" = "x_yes" ; then
++	AC_DEFINE([HAVE_BUILTIN_EXPECT], [1], [Define to 1 if the compiler supports __builtin_expect.])
++fi
++
+ dnl We use --version-script with ld if possible
+ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+ if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
 -- 
-Ben Hutchings, Staff Engineer, Solarflare
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
+1.7.11.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
