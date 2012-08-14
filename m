@@ -1,8 +1,8 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 2/8] opensm/complib: define "if" statements with branch prediction
- hints
-Date: Wed, 15 Aug 2012 00:32:12 +0300
-Message-ID: <502AC3DC.9090102@mellanox.co.il>
+Subject: [PATCH 4/8] opensm/libvendor/osm_vendor_ibumad_sa.c: use wrapper
+ function instead of direct access
+Date: Wed, 15 Aug 2012 00:36:52 +0300
+Message-ID: <502AC4F4.7090309@mellanox.co.il>
 Reply-To: <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -12,48 +12,50 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Defined "if_PT" and "if_PF" for "predict true"
-and "predict false" respectively.
+Use existing wrapper function to get to context instead of direct access.
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- include/complib/cl_types_osd.h | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ libvendor/osm_vendor_ibumad_sa.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/include/complib/cl_types_osd.h b/include/complib/cl_types_osd.h
-index ce1a452..f9abb28 100644
---- a/include/complib/cl_types_osd.h
-+++ b/include/complib/cl_types_osd.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-- * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-+ * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-@@ -64,6 +64,21 @@ BEGIN_C_DECLS
- #include <inttypes.h>
- #include <assert.h>
- #include <string.h>
-+
-+/*
-+ * Branch prediction hints
-+ */
-+#if defined(HAVE_BUILTIN_EXPECT)
-+#define CL_PREDICT_TRUE(exp)	__builtin_expect( ((uintptr_t)(exp)), 1 )
-+#define CL_PREDICT_FALSE(exp)	__builtin_expect( ((uintptr_t)(exp)), 0 )
-+#else
-+#define CL_PREDICT_TRUE(exp)	(exp)
-+#define CL_PREDICT_FALSE(exp)	(exp)
-+#endif
-+
-+#define if_PF(cond)		if(CL_PREDICT_FALSE(cond))
-+#define if_PT(cond)		if(CL_PREDICT_TRUE(cond))
-+
- #if defined (_DEBUG_)
- #define CL_ASSERT	assert
- #else				/* _DEBUG_ */
+diff --git a/libvendor/osm_vendor_ibumad_sa.c b/libvendor/osm_vendor_ibumad_sa.c
+index 1d482c0..f715cf6 100644
+--- a/libvendor/osm_vendor_ibumad_sa.c
++++ b/libvendor/osm_vendor_ibumad_sa.c
+@@ -84,9 +84,8 @@ __osmv_sa_mad_rcv_cb(IN osm_madw_t * p_madw,
+ 	}
+
+ 	/* obtain the sent context since we store it during send in the ni_ctx */
+-	p_query_req_copy =
+-	    (osmv_query_req_t *) (uintptr_t)(p_req_madw->context.ni_context.
+-						node_guid);
++	p_query_req_copy = (osmv_query_req_t *)
++            (uintptr_t)(osm_madw_get_ni_context_ptr(p_req_madw)->node_guid);
+
+ 	/* provide the context of the original request in the result */
+ 	query_res.query_context = p_query_req_copy->query_context;
+@@ -180,9 +179,8 @@ static void __osmv_sa_mad_err_cb(IN void *bind_context, IN osm_madw_t * p_madw)
+ 	OSM_LOG_ENTER(p_bind->p_log);
+
+ 	/* Obtain the sent context etc */
+-	p_query_req_copy =
+-	    (osmv_query_req_t *) (uintptr_t)(p_madw->context.ni_context.
+-						node_guid);
++	p_query_req_copy = (osmv_query_req_t *)
++            (uintptr_t)(osm_madw_get_ni_context_ptr(p_madw)->node_guid);
+
+ 	/* provide the context of the original request in the result */
+ 	query_res.query_context = p_query_req_copy->query_context;
+@@ -433,7 +431,7 @@ __osmv_send_sa_req(IN osmv_sa_bind_info_t * p_bind,
+ 		goto Exit;
+ 	}
+ 	*p_query_req_copy = *p_query_req;
+-	p_madw->context.ni_context.node_guid =
++	osm_madw_get_ni_context_ptr(p_madw)->node_guid =
+ 	    (ib_net64_t) (uintptr_t)p_query_req_copy;
+
+ 	/* we can support async as well as sync calls */
 -- 
 1.7.11.1
 
