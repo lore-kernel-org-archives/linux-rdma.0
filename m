@@ -1,33 +1,73 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 2/8] opensm/complib: define "if" statements with branch
- prediction hints
-Date: Tue, 14 Aug 2012 15:54:13 -0600
-Message-ID: <20120814215413.GA29245@obsidianresearch.com>
-References: <502AC3DC.9090102@mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A8237346A892A4@ORSMSX101.amr.corp.intel.com>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [patch net-next v2 01/15] net: introduce upper device
+	lists
+Date: Tue, 14 Aug 2012 23:33:44 +0100
+Message-ID: <1344983624.2690.77.camel@bwh-desktop.uk.solarflarecom.com>
+References: <1344956748-2099-1-git-send-email-jiri@resnulli.us>
+	<1344956748-2099-2-git-send-email-jiri@resnulli.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A892A4-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <1344956748-2099-2-git-send-email-jiri@resnulli.us>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+To: Jiri Pirko <jiri@resnulli.us>
+Cc: bridge@lists.linux-foundation.org, ursula.braun@de.ibm.com, john.r.fastabend@intel.com, edumazet@google.com, shemminger@vyatta.com, sean.hefty@intel.com, therbert@google.com, roland@kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, fubar@us.ibm.com, fbl@redhat.com, hal.rosenstock@gmail.com, faisal.latif@intel.com, linux-driver@qlogic.com, blaschka@linux.vnet.ibm.com, sony.chacko@qlogic.com, gregory.v.rose@intel.com, xiyou.wangcong@gmail.com, jitendra.kalsaria@qlogic.com, divy@chelsio.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, kaber@trash.net, joe@perches.com, linux390@de.ibm.com, davem@davemloft.net
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 14, 2012 at 09:39:23PM +0000, Hefty, Sean wrote:
-> > +#define if_PF(cond)		if(CL_PREDICT_FALSE(cond))
-> > +#define if_PT(cond)		if(CL_PREDICT_TRUE(cond))
-> 
-> If CL_PREDICT_TRUE/FALSE are too long, why not just shorten those,
-> rather than abstract if statements behind a macro?
+On Tue, 2012-08-14 at 17:05 +0200, Jiri Pirko wrote:
+> This lists are supposed to serve for storing pointers to all upper devices.
+> Eventually it will replace dev->master pointer which is used for
+> bonding, bridge, team but it cannot be used for vlan, macvlan where
+> there might be multiple upper present. In case the upper link is
+> replacement for dev->master, it is marked with "master" flag.
 
-If you are typing these so often (ie more than in some datastructure
-kernels) that the length is a problem then you really should be using
-profile guided optimization instead...
+Something I found interesting is that the dev->master pointer and now
+netdev_master_upper_dev_get{,_rcu}() are hardly used by the stackled
+drivers that set the master.  They also have to set an rx_handler on the
+lower device (which is itself mutually exclusive) which gets its own
+context pointer (rx_handler_data).
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Instead, the master pointer is mostly used by device drivers to find out
+about a bridge or bonding device above *their* devices.  And that seems
+to work only for those specific device drivers, not e.g. openvswitch or
+team.  I wonder if we could find a better way to encapsulate the things
+they want do do, in a later step (not holding up this change!).
+
+[...]
+> +static int __netdev_upper_dev_link(struct net_device *dev,
+> +                                  struct net_device *upper_dev, bool master)
+> +{
+> +       struct netdev_upper *upper;
+> +
+> +       ASSERT_RTNL();
+> +
+> +       if (dev == upper_dev)
+> +               return -EBUSY;
+> +       /*
+> +        * To prevent loops, check if dev is not upper device to upper_dev.
+> +        */
+> +       if (__netdev_has_upper_dev(upper_dev, dev, true))
+> +               return -EBUSY;
+[...]
+
+I think we will also need to limit the depth of the device stack so we
+don't run out of stack space here.  __netif_receive() implements a kind
+of tail recursion whenever a packet is passed up, but
+__netdev_has_upper_dev() can't avoid doing real recursion (without the
+addition of a flag to net_device so it can mark its progress).
+
+Ben.
+
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
