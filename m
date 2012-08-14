@@ -1,36 +1,30 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Setting service level for a QP with ibv_modify_qp and RDMA_CM
-Date: Tue, 14 Aug 2012 16:16:37 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A89097@ORSMSX101.amr.corp.intel.com>
-References: <502A19D5.70007@itwm.fraunhofer.de>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: Patchwork back online
+Date: Tue, 14 Aug 2012 09:20:52 -0700
+Message-ID: <CAL1RGDUwjjL2Cdigmd9etXV9XkoF7N-GHc5vQKKXGzEjG6P_QQ@mail.gmail.com>
+References: <CAL1RGDUFuqn_CiRszWaSQ7znKaaYGPLt1xNa97DRGzuMG12JwQ@mail.gmail.com>
+ <201208141756.36914.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <502A19D5.70007-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <201208141756.36914.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christian Mohrbacher <christian.mohrbacher-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> we are trying to set the service level for a QP with ibv_modify_qp, but
-> ibv_modify_qp() returns an error (errno = EINVAL).
-> 
-> We are using RDMA CM and use rdma_create_qp() to allocate the queue
-> pair. After some searching in the net we found posts, which indicate
-> that ibv_modify_qp() cannot be used to set the service level, if you are
-> using RDMA CM. Can anybody confirm or negate this assumption and are
-> there alternatives?
+On Tue, Aug 14, 2012 at 7:56 AM, Jack Morgenstein
+<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> I just checked patchwork, and do not see the bug-fix patch I submitted on Aug 3:
+>     [PATCH] IB/mlx4: fix possible deadlock with sm_lock spinlock
+>
+> http://marc.info/?l=linux-rdma&m=134398272328023&w=2
+>
+> Please don't let this fall by the wayside -- it is independent of the SRIOV-IB patch set.
 
-If you're using the rdmacm, you should avoid calling ibv_modify_qp directly.  The library will call it on your behalf.  The service level will be set automatically when the required path record is obtained.  You have a couple of options for controlling this.
+It's not in patchwork because I already applied it.
 
-An IP address is mapped to an IB GID and PKey.  You can assign different service levels based on different PKeys.
-
-Quality/type of service can also be set by calling rdma_set_option, using RDMA_OPTION_ID_TOS.  This value ends up being used in a path record query to the SA.
-
-In both cases, the SA must be configured with the QoS values.
-
-- Sean
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
