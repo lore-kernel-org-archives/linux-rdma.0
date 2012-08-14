@@ -1,67 +1,52 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [patch net-next 01/16] net: introduce upper device lists
-Date: Tue, 14 Aug 2012 15:35:35 +0200
-Message-ID: <20120814133535.GC1661@minipsycho.brq.redhat.com>
-References: <1344871635-1052-1-git-send-email-jiri@resnulli.us>
- <1344871635-1052-2-git-send-email-jiri@resnulli.us>
- <20120813145217.38748c4f@obelix.rh>
- <20120814122433.GB1661@minipsycho.brq.redhat.com>
- <20120814101400.0ef7aaa9@obelix.rh>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Patchwork back online
+Date: Tue, 14 Aug 2012 17:56:36 +0300
+Message-ID: <201208141756.36914.jackm@dev.mellanox.co.il>
+References: <CAL1RGDUFuqn_CiRszWaSQ7znKaaYGPLt1xNa97DRGzuMG12JwQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDUFuqn_CiRszWaSQ7znKaaYGPLt1xNa97DRGzuMG12JwQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20120814101400.0ef7aaa9@obelix.rh>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Flavio Leitner <fbl@redhat.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Tue, Aug 14, 2012 at 03:14:00PM CEST, fbl@redhat.com wrote:
->On Tue, 14 Aug 2012 14:24:33 +0200
->Jiri Pirko <jiri@resnulli.us> wrote:
->
->> Mon, Aug 13, 2012 at 07:52:17PM CEST, fbl@redhat.com wrote:
->> >On Mon, 13 Aug 2012 17:27:00 +0200
->> >Jiri Pirko <jiri@resnulli.us> wrote:
->> >> +	/*
->> >> +	 * To prevent loops, check if dev is not upper device to upper_dev.
->> >> +	 */
->> >> +	if (__netdev_has_upper_dev(upper_dev, dev, true))
->> >> +		return -EBUSY;
->> >> +
->> >> +	if (__netdev_find_upper(dev, upper_dev))
->> >> +		return -EEXIST;
->> >
->> >__netdev_has_upper_dev() can go all the way up finding the device and
->> >the __netdev_find_upper() just check the first level.
->> 
->> 
->> I do not think this ordering is somewhat inportant.
->
->it's not the order, see below:
->
->> >I think it would be better to use:
->> >__netdev_find_upper_dev(,,deep=true/false)
->> >__netdev_has_upper(,)
->
->It's their names.  Currently, the function ..._find_... look at
->one level only, while the function ..._has_... does one or more
->levels.  I think it's better to swap 'has' and 'find' in their names:
->
->__netdev_find_upper_dev(,,deep=true/false) <-- find in all levels
->__netdev_has_upper(,)  <-- check only the one level.
+On Tuesday 10 July 2012 20:08, Roland Dreier wrote:
+> Not sure if everyone saw this, but thanks to the kernel.org crew,
+> https://patchwork.kernel.org/project/linux-rdma/list/ is back online.
+> 
+> I've been delegating opensm patches to Alex Netes and diags
+> patches to Ira Weiny.  Can someone refresh my memory about
+> who looks after libibumad?  Is that Alex too?
+> 
+> Anyway, Alex and Ira, if you guys update patchwork when you
+> apply or reject a patch, that would be great ... I'll try to avoid
+> letting a big backlog of patches accumulate there too :)
+> 
+> Thanks,
+>   Roland
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+Hi Roland,
 
-Oh, now I think I see your point. But realise this:
+I just checked patchwork, and do not see the bug-fix patch I submitted on Aug 3:
+    [PATCH] IB/mlx4: fix possible deadlock with sm_lock spinlock
 
-The main reason for __netdev_find_upper() is to find "struct upper" for
-netdev_upper_dev_unlink(). Therefore the name is not
-"__netdev_find_upper_dev" and there's no need to go deep here.
+http://marc.info/?l=linux-rdma&m=134398272328023&w=2
 
-On the orher hand, __netdev_has_upper_dev() only says whether device is lower
-to specified upper device. In this case I think the name is quite
-convenient as well.
+Please don't let this fall by the wayside -- it is independent of the SRIOV-IB patch set.
 
+Thanks!
+-Jack
 
->
->fbl
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
