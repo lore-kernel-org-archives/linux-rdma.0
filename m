@@ -1,37 +1,36 @@
-From: Nokia Promotion <info-gtAXAuM4EHE@public.gmane.org>
-Subject: Claim requirements
-Date: Thu, 16 Aug 2012 00:49:13 +0300
-Message-ID: <20120816004913.zkjipnfixws48cc8__12021.3880822577$1345067753$gmane$org@webmail.welho.com>
-Reply-To: nokiap-dbdLmdGazhY@public.gmane.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [patch net-next v2 01/15] net: introduce upper device
+	lists
+Date: Wed, 15 Aug 2012 15:12:23 -0700 (PDT)
+Message-ID: <20120815.151223.1108632083114612511.davem@davemloft.net>
+References: <1344956748-2099-1-git-send-email-jiri@resnulli.us>
+	<1344956748-2099-2-git-send-email-jiri@resnulli.us>
+	<1344983624.2690.77.camel@bwh-desktop.uk.solarflarecom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <1344983624.2690.77.camel@bwh-desktop.uk.solarflarecom.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+To: bhutchings@solarflare.com
+Cc: bridge@lists.linux-foundation.org, ursula.braun@de.ibm.com, john.r.fastabend@intel.com, edumazet@google.com, shemminger@vyatta.com, sean.hefty@intel.com, therbert@google.com, roland@kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, fubar@us.ibm.com, fbl@redhat.com, hal.rosenstock@gmail.com, jiri@resnulli.us, faisal.latif@intel.com, linux-driver@qlogic.com, blaschka@linux.vnet.ibm.com, sony.chacko@qlogic.com, gregory.v.rose@intel.com, xiyou.wangcong@gmail.com, jitendra.kalsaria@qlogic.com, divy@chelsio.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, linux390@de.ibm.com, kaber@trash.net
 List-Id: linux-rdma@vger.kernel.org
 
-You are receiving this message because you are a Winner of 300,000 Poun=
-ds from
-Nokia Online Lottery game 2012.
+From: Ben Hutchings <bhutchings@solarflare.com>
+Date: Tue, 14 Aug 2012 23:33:44 +0100
 
-Claim requirements are as follows:
-(1) Your full names
-(2) Contact Address
-(3) Age
-(4) Occupation
-(5) Telephone
-(6) Sex
-(7) Nationality
+> I think we will also need to limit the depth of the device stack so we
+> don't run out of stack space here.  __netif_receive() implements a kind
+> of tail recursion whenever a packet is passed up, but
+> __netdev_has_upper_dev() can't avoid doing real recursion (without the
+> addition of a flag to net_device so it can mark its progress).
 
-Contact Mr. Thomas Hillary on (nokiap-dbdLmdGazhY@public.gmane.org) Tel: +447024081232
-
-Copyright =A92012 Nokia. All rights reserved.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Agreed, we need some kind of limit here.
