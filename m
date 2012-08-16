@@ -1,34 +1,48 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: rdma_connect() timeout question
-Date: Thu, 16 Aug 2012 14:57:18 -0500
-Message-ID: <502D509E.6000403@opengridcomputing.com>
-References: <502D43A4.1090708@oracle.com> <1828884A29C6694DAF28B7E6B8A8237346A899E6@ORSMSX101.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] librdmacm/rsockets: Support MSG_WAITALL with rsockets
+ recv()
+Date: Thu, 16 Aug 2012 21:07:57 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A89A16@ORSMSX101.amr.corp.intel.com>
+References: <1345074916.640.19.camel@oc1677441337.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A899E6-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1345074916.640.19.camel-5vSEHtyIv2TJ4MwkZ4db91aTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Nowak <michael.nowak-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Sharp, Robert O" <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/16/2012 2:40 PM, Hefty, Sean wrote:
->> Is there a way to tune rdma_connect() timeout to a lower value ?
-> I don't believe so.
->
-> You could abort the connection by destroying the id after a specified amount of time had expired.
->
->> Can cma_response_timeout and CMA_MAX_CM_RETRIES be made tunables ?
->> Even better would have been if the caller (RDS in this case) could have
->> passed them as connection setup parameters. ;-)
->> That way we don't have to disturb the setting for non-RDS traffic.
-> A per rdma_cm_id option for this makes sense to me.
->
-> iWarp developers, would timeout/retry values be usable for iwarp?
-I think this would be useful for the iwarp side too.  Not sure yet 
-exactly how it would apply for cxgb3/4 though...
-
+PiBTdXBwb3J0IE1TR19XQUlUQUxMIGZsYWcgd2l0aCByZWN2KCkgd2hlbiB1c2luZyByc29ja2V0
+cy4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFNyaWRoYXIgU2FtdWRyYWxhIDxzcmlAdXMuaWJtLmNv
+bT4NCg0KVGhlIE1TR19QRUVLIGRlc2NyaXB0aW9uIHRoYXQgeW91IHBvaW50ZWQgbWUgdG8gd2Fz
+bid0IGluIHRoZSBtYW4gcGFnZSBkb2N1bWVudGF0aW9uIHRoYXQgSSB3YXMgbG9va2luZyBhdC4g
+IFRoYXQgc2ltcGxpZmllcyB0aGluZ3MuDQoNCkkgb3JpZ2luYWxseSBleHBlY3RlZCBhZGRpbmcg
+TVNHX1dBSVRBTEwgc3VwcG9ydCB0byBiZSBhcyB0cml2aWFsIGFzIHlvdXIgcGF0Y2gsIGFuZCBp
+dCBkaWRuJ3QgZW5kIHVwIHF1aXRlIGFzIHNpbXBsZSBhcyBJIGV4cGVjdGVkLiAgSXQgd2FzIG1v
+c3RseSBiZWNhdXNlIEkgdHJpZWQgdG8gaGFuZGxlIE1TR19QRUVLIGRpZmZlcmVudGx5LCBidXQg
+SSBhbHNvIGhhdmUgYSBub3RlIGluIG15IHZlcnNpb24uICBQbGVhc2Ugc2VlIGJlbG93Lg0KDQo+
+IGRpZmYgLS1naXQgYS9zcmMvcnNvY2tldC5jIGIvc3JjL3Jzb2NrZXQuYw0KPiBpbmRleCBiOTEw
+NWExLi44MWYyNjU0IDEwMDY0NA0KPiAtLS0gYS9zcmMvcnNvY2tldC5jDQo+ICsrKyBiL3NyYy9y
+c29ja2V0LmMNCj4gQEAgLTExMzEsNiArMTEzMSw3IEBAIHNzaXplX3QgcnJlY3YoaW50IHNvY2tl
+dCwgdm9pZCAqYnVmLCBzaXplX3QgbGVuLCBpbnQNCj4gZmxhZ3MpDQo+ICAJCX0NCj4gIAl9DQo+
+ICAJZmFzdGxvY2tfYWNxdWlyZSgmcnMtPnJsb2NrKTsNCj4gK3dhaXRhbGw6DQo+ICAJaWYgKCFy
+c19oYXZlX3JkYXRhKHJzKSkgew0KPiAgCQlyZXQgPSByc19nZXRfY29tcChycywgcnNfbm9uYmxv
+Y2tpbmcocnMsIGZsYWdzKSwNCj4gcnNfY29ubl9oYXZlX3JkYXRhKTsNCj4gIAkJaWYgKHJldCkN
+Cj4gQEAgLTExNjcsNiArMTE2OCwxMCBAQCBzc2l6ZV90IHJyZWN2KGludCBzb2NrZXQsIHZvaWQg
+KmJ1Ziwgc2l6ZV90IGxlbiwgaW50DQo+IGZsYWdzKQ0KPiAgCQlidWYgKz0gcnNpemU7DQo+ICAJ
+fQ0KPiAgCXJzLT5yYnVmX2J5dGVzX2F2YWlsICs9IGxlbiAtIGxlZnQ7DQoNClRoZSBhYm92ZSBs
+aW5lIGRvZXNuJ3Qgd29yayBhcyB3cml0dGVuIGlmIHBsYWNlZCBpbnNpZGUgYSBsb29wLiAgQW5k
+IHdlIGNhbid0IG1vdmUgaXQgb3V0c2lkZSBvZiB0aGUgbG9vcCwgb3Igd2UgbWF5IG5vdCBnaXZl
+IGNyZWRpdHMgdG8gdGhlIHJlbW90ZSBzaWRlLg0KDQo+ICsNCj4gKwlpZiAoKGZsYWdzICYgTVNH
+X1dBSVRBTEwpICYmIGxlZnQpDQo+ICsJCWdvdG8gd2FpdGFsbDsNCg0KT25lIG1pbm9yIGRpZmZl
+cmVuY2UgaXMgdGhhdCBJIHVzZWQgYSBkbyAtIHdoaWxlKCkgbG9vcCBpbiBwbGFjZSBvZiBpZiAt
+IGdvdG8sIGJ1dCBJIGFsc28gYWRkZWQgYSBzdGF0ZSBjaGVjayBvZiAocnMtPnN0YXRlICYgcnNf
+Y29ubmVjdF9yZCkuDQoNClNpbmNlIHdlIGRvbid0IGhhdmUgdG8gZGVhbCB3aXRoIE1TR19QRUVL
+LCBJJ2xsIGZpeC11cCBob3cgcmJ1Zl9ieXRlc19hdmFpbCBpcyB1cGRhdGVkIGFuZCBzZW5kIG91
+dCBhbiB1cGRhdGVkIHBhdGNoIGZvciByZXZpZXcuDQoNCi0gU2Vhbg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
