@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/7] librdmacm/rsockets: Support SO_OOBINLINE
+Subject: [PATCH 2/7] librdmacm/rspreload: Support dup2 calls
 Date: Thu, 16 Aug 2012 19:24:22 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A89968@ORSMSX101.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A89962@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,36 +11,189 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We don't support urgent data, so just return success.
+vsftpd requires dup2() support.  To handle dup2, we need to add
+reference count tracking to the preload fd's.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/rsocket.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ src/cma.h     |   32 +++++++++++++++++++++++
+ src/preload.c |   79 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 109 insertions(+), 2 deletions(-)
 
-diff --git a/src/rsocket.c b/src/rsocket.c
-index b9105a1..996cb2f 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -1820,6 +1820,10 @@ int rsetsockopt(int socket, int level, int optname,
- 			opt_on = *(int *) optval;
- 			ret = 0;
- 			break;
-+		case SO_OOBINLINE:
-+			opt_on = *(int *) optval;
-+			ret = 0;
-+			break;
- 		default:
- 			break;
- 		}
-@@ -1898,6 +1902,7 @@ int rgetsockopt(int socket, int level, int optname,
- 		switch (optname) {
- 		case SO_REUSEADDR:
- 		case SO_KEEPALIVE:
-+		case SO_OOBINLINE:
- 			*((int *) optval) = !!(rs->so_opts & (1 << optname));
- 			*optlen = sizeof(int);
- 			break;
+diff --git a/src/cma.h b/src/cma.h
+index cedc0c3..6c3df27 100644
+--- a/src/cma.h
++++ b/src/cma.h
+@@ -79,6 +79,31 @@ static inline uint64_t ntohll(uint64_t x) { return x; }
+ #define fastlock_destroy(lock) pthread_mutex_destroy(lock)
+ #define fastlock_acquire(lock) pthread_mutex_lock(lock)
+ #define fastlock_release(lock) pthread_mutex_unlock(lock)
++
++typedef struct { pthread_mutex_t mut; int val; } atomic_t;
++static inline int atomic_inc(atomic_t *atomic)
++{
++	int v;
++
++	pthread_mutex_lock(&atomic->mut);
++	v = ++(atomic->val);
++	pthread_mutex_unlock(&atomic->mut);
++	return v;
++}
++static inline int atomic_dec(atomic_t *atomic)
++{
++	int v;
++
++	pthread_mutex_lock(&atomic->mut);
++	v = --(atomic->val);
++	pthread_mutex_unlock(&atomic->mut);
++	return v;
++}
++static inline void atomic_init(atomic_t *atomic)
++{
++	pthread_mutex_init(&atomic->mut, NULL);
++	atomic->val = 0;
++}
+ #else
+ typedef struct {
+ 	sem_t sem;
+@@ -103,7 +128,14 @@ static inline void fastlock_release(fastlock_t *lock)
+ 	if (__sync_sub_and_fetch(&lock->cnt, 1) > 0)
+ 		sem_post(&lock->sem);
+ }
++
++typedef struct { volatile int val; } atomic_t;
++#define atomic_inc(v) (__sync_add_and_fetch(&(v)->val, 1))
++#define atomic_dec(v) (__sync_sub_and_fetch(&(v)->val, 1))
++#define atomic_init(v) ((v)->val = 0)
+ #endif /* DEFINE_ATOMICS */
++#define atomic_get(v) ((v)->val)
++#define atomic_set(v, s) ((v)->val = s)
+ 
+ int ucma_max_qpsize(struct rdma_cm_id *id);
+ int ucma_complete(struct rdma_cm_id *id);
+diff --git a/src/preload.c b/src/preload.c
+index a680143..b18d310 100644
+--- a/src/preload.c
++++ b/src/preload.c
+@@ -83,6 +83,7 @@ struct socket_calls {
+ 	int (*getsockopt)(int socket, int level, int optname,
+ 			  void *optval, socklen_t *optlen);
+ 	int (*fcntl)(int socket, int cmd, ... /* arg */);
++	int (*dup2)(int oldfd, int newfd);
+ };
+ 
+ static struct socket_calls real;
+@@ -105,6 +106,8 @@ enum fd_type {
+ struct fd_info {
+ 	enum fd_type type;
+ 	int fd;
++	int dupfd;
++	atomic_t refcnt;
+ };
+ 
+ static int fd_open(void)
+@@ -122,6 +125,9 @@ static int fd_open(void)
+ 		goto err1;
+ 	}
+ 
++	fdi->dupfd = -1;
++	atomic_init(&fdi->refcnt);
++	atomic_set(&fdi->refcnt, 1);
+ 	pthread_mutex_lock(&mut);
+ 	ret = idm_set(&idm, index, fdi);
+ 	pthread_mutex_unlock(&mut);
+@@ -252,6 +258,7 @@ static void init_preload(void)
+ 	real.setsockopt = dlsym(RTLD_NEXT, "setsockopt");
+ 	real.getsockopt = dlsym(RTLD_NEXT, "getsockopt");
+ 	real.fcntl = dlsym(RTLD_NEXT, "fcntl");
++	real.dup2 = dlsym(RTLD_NEXT, "dup2");
+ 
+ 	rs.socket = dlsym(RTLD_DEFAULT, "rsocket");
+ 	rs.bind = dlsym(RTLD_DEFAULT, "rbind");
+@@ -807,9 +814,28 @@ int shutdown(int socket, int how)
+ 
+ int close(int socket)
+ {
+-	int fd;
++	struct fd_info *fdi;
++	int ret;
++
+ 	init_preload();
+-	return (fd_close(socket, &fd) == fd_rsocket) ? rclose(fd) : real.close(fd);
++	fdi = idm_lookup(&idm, socket);
++	if (!fdi)
++		return real.close(socket);
++
++	if (fdi->dupfd != -1) {
++		ret = close(fdi->dupfd);
++		if (ret)
++			return ret;
++	}
++
++	if (atomic_dec(&fdi->refcnt))
++		return 0;
++
++	idm_clear(&idm, socket);
++	real.close(socket);
++	ret = (fdi->type == fd_rsocket) ? rclose(fdi->fd) : real.close(fdi->fd);
++	free(fdi);
++	return ret;
+ }
+ 
+ int getpeername(int socket, struct sockaddr *addr, socklen_t *addrlen)
+@@ -886,3 +912,52 @@ int fcntl(int socket, int cmd, ... /* arg */)
+ 	va_end(args);
+ 	return ret;
+ }
++
++/*
++ * dup2 is not thread safe
++ */
++int dup2(int oldfd, int newfd)
++{
++	struct fd_info *oldfdi, *newfdi;
++	int ret;
++
++	init_preload();
++	oldfdi = idm_lookup(&idm, oldfd);
++	if (oldfdi && oldfdi->type == fd_fork)
++		fork_passive(oldfd);
++
++	newfdi = idm_lookup(&idm, newfd);
++	if (newfdi) {
++		 /* newfd cannot have been dup'ed directly */
++		if (atomic_get(&newfdi->refcnt) > 1)
++			return ERR(EBUSY);
++		close(newfd);
++	}
++
++	ret = real.dup2(oldfd, newfd);
++	if (!oldfdi || ret != newfd)
++		return ret;
++
++	newfdi = calloc(1, sizeof *newfdi);
++	if (!newfdi) {
++		close(newfd);
++		return ERR(ENOMEM);
++	}
++
++	pthread_mutex_lock(&mut);
++	idm_set(&idm, newfd, newfdi);
++	pthread_mutex_unlock(&mut);
++
++	newfdi->fd = oldfdi->fd;
++	newfdi->type = oldfdi->type;
++	if (oldfdi->dupfd != -1) {
++		newfdi->dupfd = oldfdi->dupfd;
++		oldfdi = idm_lookup(&idm, oldfdi->dupfd);
++	} else {
++		newfdi->dupfd = oldfd;
++	}
++	atomic_init(&newfdi->refcnt);
++	atomic_set(&newfdi->refcnt, 1);
++	atomic_inc(&oldfdi->refcnt);
++	return newfd;
++}
 
 
 --
