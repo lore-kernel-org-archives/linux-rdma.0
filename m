@@ -1,29 +1,37 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [infiniband:for-next 9/19] drivers/net/ethernet/mellanox/mlx4/mr.c:134:4:
- error: implicit declaration of function 'vmalloc'
-Date: Thu, 16 Aug 2012 09:05:56 -0700
-Message-ID: <CAL1RGDW0w3oi+HuENWBqzAXMvLpHji_Z+B4qO9XNvvDsKEnrEA@mail.gmail.com>
-References: <20120816003552.GA3532@localhost>
+From: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] librdmacm/rsockets: Support MSG_WAITALL with rsockets
+ recv()
+Date: Thu, 16 Aug 2012 09:20:23 -0700
+Message-ID: <1345134023.22811.9.camel@oc1677441337.ibm.com>
+References: <1345074916.640.19.camel@oc1677441337.ibm.com>
+	 <1828884A29C6694DAF28B7E6B8A8237346A89654@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120816003552.GA3532@localhost>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A89654-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 15, 2012 at 5:35 PM, Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> drivers/net/ethernet/mellanox/mlx4/mr.c: In function 'mlx4_buddy_init':
-> drivers/net/ethernet/mellanox/mlx4/mr.c:134:4: error: implicit declaration of function 'vmalloc' [-Werror=implicit-function-declaration]
-> drivers/net/ethernet/mellanox/mlx4/mr.c:134:19: warning: assignment makes pointer from integer without a cast [enabled by default]
-> drivers/net/ethernet/mellanox/mlx4/mr.c:149:4: error: implicit declaration of function 'vfree' [-Werror=implicit-function-declaration]
-> cc1: some warnings being treated as errors
+On Thu, 2012-08-16 at 14:59 +0000, Hefty, Sean wrote:
+> > Support MSG_WAITALL flag with recv() when using rsockets.
+> > 
+> > Signed-off-by: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+> 
+> I started working on a patch for MSG_WAITALL a few weeks ago, but set it aside.  The problem I hit into was trying to handle MSG_PEEK at the same time.  This complicated the patch quite a bit.
 
-Stephen caught this in -next testing too, should be fixed today.
+MSG_PEEK is one of the conditions when recv() with MSG_WAITALL can return with
+fewer bytes than requested. So i think we don't need to wait for all the data
+when MSG_PEEK is also set.
+   http://pubs.opengroup.org/onlinepubs/007904975/functions/recv.html
 
-Thanks!
-  Roland
+Thanks
+Sridhar
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
