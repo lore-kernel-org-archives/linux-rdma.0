@@ -1,66 +1,32 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: build failure after merge of the infiniband tree
-Date: Thu, 16 Aug 2012 11:44:43 +1000
-Message-ID: <20120816114443.600553d2fd103a5b2b36e061@canb.auug.org.au>
+From: Roland Dreier <roland@kernel.org>
+Subject: Re: linux-next: build failure after merge of the infiniband tree
+Date: Wed, 15 Aug 2012 21:07:37 -0700
+Message-ID: <CAG4TOxNLenjQxZNb7Rpm2G9RNBN77uWgEgfNXgoj+gLFdObuTg@mail.gmail.com>
+References: <20120816114443.600553d2fd103a5b2b36e061@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Thu__16_Aug_2012_11_44_43_+1000_AAAWVDGtVF/MIRj8"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20120816114443.600553d2fd103a5b2b36e061@canb.auug.org.au>
 Sender: linux-next-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-rdma@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Thu__16_Aug_2012_11_44_43_+1000_AAAWVDGtVF/MIRj8
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Aug 15, 2012 at 6:44 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> After merging the infiniband tree, today's linux-next build (powerpc
+> ppc64_defconfig) failed like this:
+>
+> drivers/net/ethernet/mellanox/mlx4/mr.c: In function 'mlx4_buddy_init':
+> drivers/net/ethernet/mellanox/mlx4/mr.c:134:4: error: implicit declaration of function 'vzalloc' [-Werror=implicit-function-declaration]
+> drivers/net/ethernet/mellanox/mlx4/mr.c:134:19: warning: assignment makes pointer from integer without a cast [enabled by default]
+> drivers/net/ethernet/mellanox/mlx4/mr.c:148:4: error: implicit declaration of function 'vfree' [-Werror=implicit-function-declaration]
+> cc1: some warnings being treated as errors
 
-Hi all,
+Thanks, should be fixed in tomorrow's for-next (added include of
+<linux/vmalloc.h>).
 
-After merging the infiniband tree, today's linux-next build (powerpc
-ppc64_defconfig) failed like this:
+> See Rule 1 in Documentation/SubmitChecklist.
 
-drivers/net/ethernet/mellanox/mlx4/mr.c: In function 'mlx4_buddy_init':
-drivers/net/ethernet/mellanox/mlx4/mr.c:134:4: error: implicit declaration =
-of function 'vzalloc' [-Werror=3Dimplicit-function-declaration]
-drivers/net/ethernet/mellanox/mlx4/mr.c:134:19: warning: assignment makes p=
-ointer from integer without a cast [enabled by default]
-drivers/net/ethernet/mellanox/mlx4/mr.c:148:4: error: implicit declaration =
-of function 'vfree' [-Werror=3Dimplicit-function-declaration]
-cc1: some warnings being treated as errors
+Heh, but it compiles fine on x86!
 
-Caused by commit 2354c0904331 ("mlx4_core: Allow large mlx4_buddy
-bitmaps") which added the vmalloc call (which was changed to vzalloc by
-commit 09e22f30018b ("mlx4_core: Clean up buddy bitmap allocation").  The
-include of vmalloc.h is missing.  See Rule 1 in
-Documentation/SubmitChecklist.
-
-I have used the infiniband tree from next-20120814 for today.
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
---Signature=_Thu__16_Aug_2012_11_44_43_+1000_AAAWVDGtVF/MIRj8
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJQLFCLAAoJEECxmPOUX5FER+0P/ihqHNaSOZ1Ch2/XJAY2/THv
-cJi6hpF1zr48xuKlhUdd4XF8mV+I9blvmsMdnvp8qQR/LEonVvIc3mndYyN2NSyG
-FmKUYFi+06revIXZXcM8nbKqVj5hVo7EtK7PEkG2K7Hx2EcB4NBKcZ/5P0RP5BUS
-O1ziVoGRrCGtwlcqNqhAlLodxggByeRBT0J8V/O7GYqPP5zwsQZ5GYi9jrG5L7EH
-3hjm+pcq8XQi2rbA8yzDzNP43IWEeFjKNwrXSuB7HBEBGHqH2FHm5r4VkY+8KOgP
-rxDLoWNyFJp8iQkyO9uCSrKFv2IdOtey3gRD8O4QlA7VzaLhXms6azhDc+MOw7de
-4rAWd7n5Qa7xXLgxK9dfG/+zHKDKJD2vaaAPrQWEt0fkAwoQXWDaSUKcMtLiSgwt
-WBKJMseU6bZgd0WZvhnXnsuCtRaUztgP6v8vCJfNPdO4Tps41L9jSs3rKwAFohn0
-2XaAK/MPbPsMD6bnC9mnnqVw5GlkvjFJj4/0XesCcWAD4fplVfXF8ozyf1aP8Yhj
-yBDgX/KtVaBYZP4NzufFUCWj3UPj8eG8Yh30U3piNO99N8tsTsVBk3Ak25QRT/qN
-mq0v2+OUdW0GcHHcwsokFDEGekGyJXqZCjWh4aAFmmTNpWavogOikRBSmT/ZapyT
-32S0I570i4nd3hNYDF7S
-=KEnF
------END PGP SIGNATURE-----
-
---Signature=_Thu__16_Aug_2012_11_44_43_+1000_AAAWVDGtVF/MIRj8--
+ - R.
