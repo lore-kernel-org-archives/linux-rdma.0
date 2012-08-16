@@ -1,35 +1,41 @@
-From: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] librdmacm/rsockets: Support MSG_WAITALL with rsockets
- recv()
-Date: Thu, 16 Aug 2012 09:20:23 -0700
-Message-ID: <1345134023.22811.9.camel@oc1677441337.ibm.com>
-References: <1345074916.640.19.camel@oc1677441337.ibm.com>
-	 <1828884A29C6694DAF28B7E6B8A8237346A89654@ORSMSX101.amr.corp.intel.com>
+From: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: rdma_connect() timeout question
+Date: Thu, 16 Aug 2012 14:01:56 -0500
+Message-ID: <502D43A4.1090708@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A89654-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Michael Nowak <michael.nowak-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2012-08-16 at 14:59 +0000, Hefty, Sean wrote:
-> > Support MSG_WAITALL flag with recv() when using rsockets.
-> > 
-> > Signed-off-by: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-> 
-> I started working on a patch for MSG_WAITALL a few weeks ago, but set it aside.  The problem I hit into was trying to handle MSG_PEEK at the same time.  This complicated the patch quite a bit.
+Hello,
 
-MSG_PEEK is one of the conditions when recv() with MSG_WAITALL can return with
-fewer bytes than requested. So i think we don't need to wait for all the data
-when MSG_PEEK is also set.
-   http://pubs.opengroup.org/onlinepubs/007904975/functions/recv.html
+Is there a way to tune rdma_connect() timeout to a lower value ?
+With CMA_CM_RESPONSE_TIMEOUT as 20 and CMA_MAX_CM_RETRIES 15,
+it takes about a minute to timeout. We would like to tune it in our case 
+to a much lower value.
 
-Thanks
-Sridhar
+The scenario is RDS trying to reconnect when a bonding interface 
+notifies us of a link fail over.
+In our setup the gratuitous arp doesn't arrive sometimes to update the 
+arp entry with the new GID.
+The address resolution returns the old GID. Route resolution also 
+happens to return the old path in this failure case.
+(Other times when route solution fails it is not a problem. The 
+reconnect attempts eventually go through in those cases.)
+And the rdma_connect() gets stuck. A timeout in 1 minute and a 
+subsequent retry of address/route-resolution/rdma_connect then succeeds.
+Because by that time the arp entry is updated.
 
+Can cma_response_timeout and CMA_MAX_CM_RETRIES be made tunables ?
+Even better would have been if the caller (RDS in this case) could have 
+passed them as connection setup parameters. ;-)
+That way we don't have to disturb the setting for non-RDS traffic.
+
+Venkat
 
 
 --
