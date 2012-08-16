@@ -1,32 +1,36 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: Re: linux-next: build failure after merge of the infiniband tree
-Date: Wed, 15 Aug 2012 21:07:37 -0700
-Message-ID: <CAG4TOxNLenjQxZNb7Rpm2G9RNBN77uWgEgfNXgoj+gLFdObuTg@mail.gmail.com>
-References: <20120816114443.600553d2fd103a5b2b36e061@canb.auug.org.au>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCHv1] RDMA/ocrdma: Fixed CONFIG_VLAN_8021Q.
+Date: Wed, 15 Aug 2012 21:10:53 -0700
+Message-ID: <CAL1RGDWC1fCb-NCkuS64RWkvN2hrkfoohEYyJSBQrvyp=3kmEQ@mail.gmail.com>
+References: <79b2796a-f2a1-4ca4-8f19-17729e18af48@exht1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20120816114443.600553d2fd103a5b2b36e061@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-rdma@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <79b2796a-f2a1-4ca4-8f19-17729e18af48-nbYkmrCdWxmgMrCBcu8zE0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 15, 2012 at 6:44 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> After merging the infiniband tree, today's linux-next build (powerpc
-> ppc64_defconfig) failed like this:
->
-> drivers/net/ethernet/mellanox/mlx4/mr.c: In function 'mlx4_buddy_init':
-> drivers/net/ethernet/mellanox/mlx4/mr.c:134:4: error: implicit declaration of function 'vzalloc' [-Werror=implicit-function-declaration]
-> drivers/net/ethernet/mellanox/mlx4/mr.c:134:19: warning: assignment makes pointer from integer without a cast [enabled by default]
-> drivers/net/ethernet/mellanox/mlx4/mr.c:148:4: error: implicit declaration of function 'vfree' [-Werror=implicit-function-declaration]
-> cc1: some warnings being treated as errors
+On Sat, Aug 11, 2012 at 6:28 AM, Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> +static struct net_device *ocrdma_get_real_netdev(struct net_device *netdev)
+> +{
+> +#if IS_ENABLED(CONFIG_VLAN_8021Q)
+> +       return vlan_dev_real_dev(netdev);
+> +#else
+> +       return netdev;
+> +#endif
+> +}
 
-Thanks, should be fixed in tomorrow's for-next (added include of
-<linux/vmalloc.h>).
+As I said before, I don't think this wrapper is needed, and even if it were,
+it would be much better to write it without using the preprocessor (as I said,
+you can do "if (IS_ENABLED(...))" in C code now too).
 
-> See Rule 1 in Documentation/SubmitChecklist.
-
-Heh, but it compiles fine on x86!
+I'm going to stick to my simpler version unless there is something wrong
+with it...
 
  - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
