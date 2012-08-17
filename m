@@ -1,112 +1,135 @@
-From: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: rsockets and fork
-Date: Fri, 17 Aug 2012 14:40:25 -0700
-Message-ID: <1345239625.1128.20.camel@oc1677441337.ibm.com>
+Date: Fri, 17 Aug 2012 22:17:49 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A89F70@ORSMSX101.amr.corp.intel.com>
 References: <1344899557.2101.29.camel@oc1677441337.ibm.com>
 	 <1828884A29C6694DAF28B7E6B8A8237346A7DB36@ORSMSX101.amr.corp.intel.com>
 	 <502A9039.4090505@us.ibm.com>
 	 <1828884A29C6694DAF28B7E6B8A8237346A89125@ORSMSX101.amr.corp.intel.com>
 	 <1344968289.2101.36.camel@oc1677441337.ibm.com>
 	 <1828884A29C6694DAF28B7E6B8A8237346A89AEB@ORSMSX101.amr.corp.intel.com>
+ <1345239625.1128.20.camel@oc1677441337.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A89AEB-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1345239625.1128.20.camel-5vSEHtyIv2TJ4MwkZ4db91aTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2012-08-16 at 23:40 +0000, Hefty, Sean wrote:
-
-> I don't have RoCE installed.  With IB, I haven't been able to see this problem after dozens of attempts.  The performance isn't divided equally, but I usually see between 3-10 Gbps out of each connection.  I'm running with some additional patches, but I don't see where those would affect any hang.
-> 
-> During development, I've seen issues where specific transfer patterns just happen to fall on boundary conditions that result in hangs or slowness.  Hopefully that's not the case because those are a pain to identify.
-> 
-> Is this something that you would be able to use a debugger on?  Dumping the contents of the struct rsocket * would be useful in troubleshooting if we're waiting on credits, buffer space, the app, or something else.
-> 
-Here are the dumps of struct rsocket of a hung netperf connection.
-netserver: hang in recv()
-
-(gdb) bt
-#0  0x0000003286ed83f0 in __read_nocancel () from /lib64/libc.so.6
-#1  0x0000003b7220a1c4 in ibv_get_cq_event () from /usr/lib64/libibverbs.so.1
-#2  0x00007fee00642197 in rs_get_cq_event (rs=0x18139c0) at src/rsocket.c:941
-#3  0x00007fee00643567 in rs_process_cq (rs=0x18139c0, nonblock=0, 
-    test=0x7fee006414b0 <rs_conn_have_rdata>) at src/rsocket.c:989
-#4  0x00007fee006438bd in rs_get_comp (rs=0x18139c0, nonblock=<value optimized out>, 
-    test=0x7fee006414b0 <rs_conn_have_rdata>) at src/rsocket.c:1019
-#5  0x00007fee00643b51 in rrecv (socket=<value optimized out>, buf=0x17fdd10, len=87380, 
-    flags=<value optimized out>) at src/rsocket.c:1136
-#6  0x000000000042d6e3 in recv_data ()
-#7  0x0000000000430da9 in recv_omni ()
-#8  0x0000000000403628 in process_requests ()
-#9  0x00000000004037b0 in spawn_child ()
-#10 0x00000000004038f0 in accept_connection ()
-#11 0x0000000000403a46 in accept_connections ()
-#12 0x000000000040407a in main ()
-(gdb) p *(struct rsocket *)0x18139c0
-$1 = {cm_id = 0x1813b80, slock = {sem = {__size = "\000\000\000\000\200", '\000' <repeats 26 times>, 
-      __align = 549755813888}, cnt = 0}, rlock = {sem = {
-      __size = "\000\000\000\000\200", '\000' <repeats 26 times>, __align = 549755813888}, cnt = 1}, 
-  cq_lock = {sem = {__size = "\000\000\000\000\200", '\000' <repeats 26 times>, 
-      __align = 549755813888}, cnt = 0}, cq_wait_lock = {sem = {
-      __size = "\000\000\000\000\200", '\000' <repeats 26 times>, __align = 549755813888}, cnt = 1}, 
-  opts = 0, fd_flags = 2, so_opts = 4, tcp_opts = 2, ipv6_opts = 0, state = 1792, cq_armed = 1, 
-  retries = 0, err = 0, index = 16, ctrl_avail = 3, sqe_avail = 1020, sbuf_bytes_avail = 131072, 
-  sseq_no = 0, sseq_comp = 1024, sq_size = 1024, sq_inline = 64, rq_size = 1024, rseq_no = 3515, 
-  rseq_comp = 4026, rbuf_bytes_avail = 63488, rbuf_free_offset = 65536, rbuf_offset = 129024, 
-  rmsg_head = 440, rmsg_tail = 440, rmsg = 0x1813dd0, remote_sge = 1, remote_sgl = {addr = 6784856, 
-    key = 2550145917, length = 2}, target_mr = 0x1815e60, target_sge = 0, target_sgl = {{
-      addr = 140617248624656, key = 2550146173, length = 65536}, {addr = 140617248690192, 
-      key = 2550146173, length = 65536}}, rbuf_size = 131072, rmr = 0x17dd680, 
-  rbuf = 0x7fee00347010 "netperf", sbuf_size = 131072, smr = 0x17dffd0, ssgl = {{
-      addr = 140660182515728, length = 0, lkey = 3758105205}, {addr = 140660182515728, length = 0, 
-      lkey = 3758105205}}, sbuf = 0x7fee00368010 ""}
-
-netperf: hang in send()
-(gdb) bt
-#0  0x0000003120ad83f0 in __read_nocancel () from /lib64/libc.so.6
-#1  0x0000003da700a1c4 in ibv_get_cq_event () from /usr/lib64/libibverbs.so.1
-#2  0x00007fe40157f197 in rs_get_cq_event (rs=0x678610) at src/rsocket.c:941
-#3  0x00007fe401580567 in rs_process_cq (rs=0x678610, nonblock=0, 
-    test=0x7fe40157e430 <rs_conn_can_send>) at src/rsocket.c:989
-#4  0x00007fe4015808bd in rs_get_comp (rs=0x678610, 
-    nonblock=<value optimized out>, test=0x7fe40157e430 <rs_conn_can_send>)
-    at src/rsocket.c:1019
-#5  0x00007fe401581b92 in rsend (socket=<value optimized out>, 
-    buf=<value optimized out>, len=65536, flags=<value optimized out>)
-    at src/rsocket.c:1244
-#6  0x000000000042ba6d in send_data ()
-#7  0x000000000042d158 in send_omni_inner ()
-#8  0x000000000042fbf1 in send_tcp_stream ()
-#9  0x000000000040239d in main ()
-(gdb) p *(struct rsocket *)0x678610
-$1 = {cm_id = 0x6a2af0, slock = {sem = {
-      __size = "\000\000\000\000\200", '\000' <repeats 26 times>, 
-      __align = 549755813888}, cnt = 1}, rlock = {sem = {
-      __size = "\000\000\000\000\200", '\000' <repeats 26 times>, 
-      __align = 549755813888}, cnt = 0}, cq_lock = {sem = {
-      __size = "\000\000\000\000\200", '\000' <repeats 26 times>, 
-      __align = 549755813888}, cnt = 0}, cq_wait_lock = {sem = {
-      __size = "\000\000\000\000\200", '\000' <repeats 26 times>, 
-      __align = 549755813888}, cnt = 1}, opts = 0, fd_flags = 2, so_opts = 4, 
-  tcp_opts = 0, ipv6_opts = 0, state = 1792, cq_armed = 1, retries = 0, err = 0, 
-  index = 12, ctrl_avail = 4, sqe_avail = 1020, sbuf_bytes_avail = 131072, 
-  sseq_no = 3522, sseq_comp = 4538, sq_size = 1024, sq_inline = 64, 
-  rq_size = 1024, rseq_no = 0, rseq_comp = 512, rbuf_bytes_avail = 0, 
-  rbuf_free_offset = 0, rbuf_offset = 0, rmsg_head = 0, rmsg_tail = 0, 
-  rmsg = 0x6a2d90, remote_sge = 0, remote_sgl = {addr = 25246472, 
-    key = 3758105461, length = 2}, target_mr = 0x6a4e20, target_sge = 1, 
-  target_sgl = {{addr = 140660182446096, key = 3758105717, length = 0}, {
-      addr = 140660182511632, key = 3758105717, length = 0}}, rbuf_size = 131072, 
-  rmr = 0x677c80, rbuf = 0x7fe401275010 "", sbuf_size = 131072, smr = 0x678980, 
-  ssgl = {{addr = 140617248825360, length = 2048, lkey = 2550145661}, {
-      addr = 140617248759824, length = 0, lkey = 2550145661}}, 
-  sbuf = 0x7fe401296010 "netperf"}
-
-
+dGhhbmtzIC0gdGhpcyBoZWxwcyAuLi4gYSBsaXR0bGUNCg0KVGhlIHNlbmRlciBpcyB3YWl0aW5n
+IGZvciB0aGUgcmVjZWl2ZXIgdG8gcHVibGlzaCBhZGRpdGlvbmFsIHJlY2VpdmUgYnVmZmVyIHNw
+YWNlLg0KDQo+IChnZGIpIGJ0DQo+ICMwICAweDAwMDAwMDMyODZlZDgzZjAgaW4gX19yZWFkX25v
+Y2FuY2VsICgpIGZyb20gL2xpYjY0L2xpYmMuc28uNg0KPiAjMSAgMHgwMDAwMDAzYjcyMjBhMWM0
+IGluIGlidl9nZXRfY3FfZXZlbnQgKCkgZnJvbSAvdXNyL2xpYjY0L2xpYmlidmVyYnMuc28uMQ0K
+PiAjMiAgMHgwMDAwN2ZlZTAwNjQyMTk3IGluIHJzX2dldF9jcV9ldmVudCAocnM9MHgxODEzOWMw
+KSBhdCBzcmMvcnNvY2tldC5jOjk0MQ0KPiAjMyAgMHgwMDAwN2ZlZTAwNjQzNTY3IGluIHJzX3By
+b2Nlc3NfY3EgKHJzPTB4MTgxMzljMCwgbm9uYmxvY2s9MCwNCj4gICAgIHRlc3Q9MHg3ZmVlMDA2
+NDE0YjAgPHJzX2Nvbm5faGF2ZV9yZGF0YT4pIGF0IHNyYy9yc29ja2V0LmM6OTg5DQo+ICM0ICAw
+eDAwMDA3ZmVlMDA2NDM4YmQgaW4gcnNfZ2V0X2NvbXAgKHJzPTB4MTgxMzljMCwgbm9uYmxvY2s9
+PHZhbHVlIG9wdGltaXplZA0KPiBvdXQ+LA0KPiAgICAgdGVzdD0weDdmZWUwMDY0MTRiMCA8cnNf
+Y29ubl9oYXZlX3JkYXRhPikgYXQgc3JjL3Jzb2NrZXQuYzoxMDE5DQo+ICM1ICAweDAwMDA3ZmVl
+MDA2NDNiNTEgaW4gcnJlY3YgKHNvY2tldD08dmFsdWUgb3B0aW1pemVkIG91dD4sIGJ1Zj0weDE3
+ZmRkMTAsDQo+IGxlbj04NzM4MCwNCj4gICAgIGZsYWdzPTx2YWx1ZSBvcHRpbWl6ZWQgb3V0Pikg
+YXQgc3JjL3Jzb2NrZXQuYzoxMTM2DQo+ICM2ICAweDAwMDAwMDAwMDA0MmQ2ZTMgaW4gcmVjdl9k
+YXRhICgpDQo+ICM3ICAweDAwMDAwMDAwMDA0MzBkYTkgaW4gcmVjdl9vbW5pICgpDQo+ICM4ICAw
+eDAwMDAwMDAwMDA0MDM2MjggaW4gcHJvY2Vzc19yZXF1ZXN0cyAoKQ0KPiAjOSAgMHgwMDAwMDAw
+MDAwNDAzN2IwIGluIHNwYXduX2NoaWxkICgpDQo+ICMxMCAweDAwMDAwMDAwMDA0MDM4ZjAgaW4g
+YWNjZXB0X2Nvbm5lY3Rpb24gKCkNCj4gIzExIDB4MDAwMDAwMDAwMDQwM2E0NiBpbiBhY2NlcHRf
+Y29ubmVjdGlvbnMgKCkNCj4gIzEyIDB4MDAwMDAwMDAwMDQwNDA3YSBpbiBtYWluICgpDQo+IChn
+ZGIpIHAgKihzdHJ1Y3QgcnNvY2tldCAqKTB4MTgxMzljMA0KPiAkMSA9IHtjbV9pZCA9IDB4MTgx
+M2I4MCwgc2xvY2sgPSB7c2VtID0ge19fc2l6ZSA9ICJcMDAwXDAwMFwwMDBcMDAwXDIwMCIsDQo+
+ICdcMDAwJyA8cmVwZWF0cyAyNiB0aW1lcz4sDQo+ICAgICAgIF9fYWxpZ24gPSA1NDk3NTU4MTM4
+ODh9LCBjbnQgPSAwfSwgcmxvY2sgPSB7c2VtID0gew0KPiAgICAgICBfX3NpemUgPSAiXDAwMFww
+MDBcMDAwXDAwMFwyMDAiLCAnXDAwMCcgPHJlcGVhdHMgMjYgdGltZXM+LCBfX2FsaWduID0NCj4g
+NTQ5NzU1ODEzODg4fSwgY250ID0gMX0sDQo+ICAgY3FfbG9jayA9IHtzZW0gPSB7X19zaXplID0g
+IlwwMDBcMDAwXDAwMFwwMDBcMjAwIiwgJ1wwMDAnIDxyZXBlYXRzIDI2IHRpbWVzPiwNCj4gICAg
+ICAgX19hbGlnbiA9IDU0OTc1NTgxMzg4OH0sIGNudCA9IDB9LCBjcV93YWl0X2xvY2sgPSB7c2Vt
+ID0gew0KPiAgICAgICBfX3NpemUgPSAiXDAwMFwwMDBcMDAwXDAwMFwyMDAiLCAnXDAwMCcgPHJl
+cGVhdHMgMjYgdGltZXM+LCBfX2FsaWduID0NCj4gNTQ5NzU1ODEzODg4fSwgY250ID0gMX0sDQo+
+ICAgb3B0cyA9IDAsIGZkX2ZsYWdzID0gMiwgc29fb3B0cyA9IDQsIHRjcF9vcHRzID0gMiwgaXB2
+Nl9vcHRzID0gMCwgc3RhdGUgPQ0KPiAxNzkyLCBjcV9hcm1lZCA9IDEsDQo+ICAgcmV0cmllcyA9
+IDAsIGVyciA9IDAsIGluZGV4ID0gMTYsIGN0cmxfYXZhaWwgPSAzLCBzcWVfYXZhaWwgPSAxMDIw
+LA0KDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF5eXl5eXl5eXl5eXl5e
+DQpUaGlzIGxvb2tzIGxpa2UgcGFydCBvZiB0aGUgcHJvYmxlbS4gIFRoZXJlIHNob3VsZCBiZSA0
+IGNvbnRyb2wgbWVzc2FnZXMgYXZhaWxhYmxlIGJ5IGRlZmF1bHQuICBUaGUgcmVjZWl2ZXIgaGFz
+IHNlbnQgYSBjb250cm9sIG1lc3NhZ2UgdG8gdGhlIHNlbmRlciwgYnV0IHRoZSBjb250cm9sIG1l
+c3NhZ2UgbmV2ZXIgY29tcGxldGVkIGF0IHRoZSByZWNlaXZlci4gIE15IGd1ZXNzIGlzIHRoYXQg
+dGhlIHNlbmRlciBuZXZlciByZWNlaXZlZCBpdCBlaXRoZXIuICBJdCBtYXkgYmUgdGhlIG1pc3Np
+bmcgYnVmZmVyIHVwZGF0ZSwgd2hpY2ggd291bGQgYmUgYW4gUkRNQSB3cml0ZSBpbnRvIHRoZSBz
+ZW5kZXIncyAndGFyZ2V0X3NnbCcgYXJyYXkuDQoNCkhhdmUgeW91IGV2ZXIgYmVlbiBhYmxlIHRv
+IHJlcHJvZHVjZSB0aGlzIHByb2JsZW0gd2l0aG91dCB1c2luZyBmb3JrKCkgc3VwcG9ydD8NCg0K
+DQo+IHNidWZfYnl0ZXNfYXZhaWwgPSAxMzEwNzIsDQo+ICAgc3NlcV9ubyA9IDAsIHNzZXFfY29t
+cCA9IDEwMjQsIHNxX3NpemUgPSAxMDI0LCBzcV9pbmxpbmUgPSA2NCwgcnFfc2l6ZSA9DQo+IDEw
+MjQsIHJzZXFfbm8gPSAzNTE1LA0KPiAgIHJzZXFfY29tcCA9IDQwMjYsIHJidWZfYnl0ZXNfYXZh
+aWwgPSA2MzQ4OCwgcmJ1Zl9mcmVlX29mZnNldCA9IDY1NTM2LA0KPiByYnVmX29mZnNldCA9IDEy
+OTAyNCwNCj4gICBybXNnX2hlYWQgPSA0NDAsIHJtc2dfdGFpbCA9IDQ0MCwgcm1zZyA9IDB4MTgx
+M2RkMCwgcmVtb3RlX3NnZSA9IDEsDQo+IHJlbW90ZV9zZ2wgPSB7YWRkciA9IDY3ODQ4NTYsDQo+
+ICAgICBrZXkgPSAyNTUwMTQ1OTE3LCBsZW5ndGggPSAyfSwgdGFyZ2V0X21yID0gMHgxODE1ZTYw
+LCB0YXJnZXRfc2dlID0gMCwNCj4gdGFyZ2V0X3NnbCA9IHt7DQo+ICAgICAgIGFkZHIgPSAxNDA2
+MTcyNDg2MjQ2NTYsIGtleSA9IDI1NTAxNDYxNzMsIGxlbmd0aCA9IDY1NTM2fSwge2FkZHIgPQ0K
+PiAxNDA2MTcyNDg2OTAxOTIsDQo+ICAgICAgIGtleSA9IDI1NTAxNDYxNzMsIGxlbmd0aCA9IDY1
+NTM2fX0sIHJidWZfc2l6ZSA9IDEzMTA3Miwgcm1yID0gMHgxN2RkNjgwLA0KPiAgIHJidWYgPSAw
+eDdmZWUwMDM0NzAxMCAibmV0cGVyZiIsIHNidWZfc2l6ZSA9IDEzMTA3Miwgc21yID0gMHgxN2Rm
+ZmQwLCBzc2dsID0NCj4ge3sNCj4gICAgICAgYWRkciA9IDE0MDY2MDE4MjUxNTcyOCwgbGVuZ3Ro
+ID0gMCwgbGtleSA9IDM3NTgxMDUyMDV9LCB7YWRkciA9DQo+IDE0MDY2MDE4MjUxNTcyOCwgbGVu
+Z3RoID0gMCwNCj4gICAgICAgbGtleSA9IDM3NTgxMDUyMDV9fSwgc2J1ZiA9IDB4N2ZlZTAwMzY4
+MDEwICIifQ0KPiANCj4gbmV0cGVyZjogaGFuZyBpbiBzZW5kKCkNCj4gKGdkYikgYnQNCj4gIzAg
+IDB4MDAwMDAwMzEyMGFkODNmMCBpbiBfX3JlYWRfbm9jYW5jZWwgKCkgZnJvbSAvbGliNjQvbGli
+Yy5zby42DQo+ICMxICAweDAwMDAwMDNkYTcwMGExYzQgaW4gaWJ2X2dldF9jcV9ldmVudCAoKSBm
+cm9tIC91c3IvbGliNjQvbGliaWJ2ZXJicy5zby4xDQo+ICMyICAweDAwMDA3ZmU0MDE1N2YxOTcg
+aW4gcnNfZ2V0X2NxX2V2ZW50IChycz0weDY3ODYxMCkgYXQgc3JjL3Jzb2NrZXQuYzo5NDENCj4g
+IzMgIDB4MDAwMDdmZTQwMTU4MDU2NyBpbiByc19wcm9jZXNzX2NxIChycz0weDY3ODYxMCwgbm9u
+YmxvY2s9MCwNCj4gICAgIHRlc3Q9MHg3ZmU0MDE1N2U0MzAgPHJzX2Nvbm5fY2FuX3NlbmQ+KSBh
+dCBzcmMvcnNvY2tldC5jOjk4OQ0KPiAjNCAgMHgwMDAwN2ZlNDAxNTgwOGJkIGluIHJzX2dldF9j
+b21wIChycz0weDY3ODYxMCwNCj4gICAgIG5vbmJsb2NrPTx2YWx1ZSBvcHRpbWl6ZWQgb3V0Piwg
+dGVzdD0weDdmZTQwMTU3ZTQzMCA8cnNfY29ubl9jYW5fc2VuZD4pDQo+ICAgICBhdCBzcmMvcnNv
+Y2tldC5jOjEwMTkNCj4gIzUgIDB4MDAwMDdmZTQwMTU4MWI5MiBpbiByc2VuZCAoc29ja2V0PTx2
+YWx1ZSBvcHRpbWl6ZWQgb3V0PiwNCj4gICAgIGJ1Zj08dmFsdWUgb3B0aW1pemVkIG91dD4sIGxl
+bj02NTUzNiwgZmxhZ3M9PHZhbHVlIG9wdGltaXplZCBvdXQ+KQ0KPiAgICAgYXQgc3JjL3Jzb2Nr
+ZXQuYzoxMjQ0DQo+ICM2ICAweDAwMDAwMDAwMDA0MmJhNmQgaW4gc2VuZF9kYXRhICgpDQo+ICM3
+ICAweDAwMDAwMDAwMDA0MmQxNTggaW4gc2VuZF9vbW5pX2lubmVyICgpDQo+ICM4ICAweDAwMDAw
+MDAwMDA0MmZiZjEgaW4gc2VuZF90Y3Bfc3RyZWFtICgpDQo+ICM5ICAweDAwMDAwMDAwMDA0MDIz
+OWQgaW4gbWFpbiAoKQ0KPiAoZ2RiKSBwICooc3RydWN0IHJzb2NrZXQgKikweDY3ODYxMA0KPiAk
+MSA9IHtjbV9pZCA9IDB4NmEyYWYwLCBzbG9jayA9IHtzZW0gPSB7DQo+ICAgICAgIF9fc2l6ZSA9
+ICJcMDAwXDAwMFwwMDBcMDAwXDIwMCIsICdcMDAwJyA8cmVwZWF0cyAyNiB0aW1lcz4sDQo+ICAg
+ICAgIF9fYWxpZ24gPSA1NDk3NTU4MTM4ODh9LCBjbnQgPSAxfSwgcmxvY2sgPSB7c2VtID0gew0K
+PiAgICAgICBfX3NpemUgPSAiXDAwMFwwMDBcMDAwXDAwMFwyMDAiLCAnXDAwMCcgPHJlcGVhdHMg
+MjYgdGltZXM+LA0KPiAgICAgICBfX2FsaWduID0gNTQ5NzU1ODEzODg4fSwgY250ID0gMH0sIGNx
+X2xvY2sgPSB7c2VtID0gew0KPiAgICAgICBfX3NpemUgPSAiXDAwMFwwMDBcMDAwXDAwMFwyMDAi
+LCAnXDAwMCcgPHJlcGVhdHMgMjYgdGltZXM+LA0KPiAgICAgICBfX2FsaWduID0gNTQ5NzU1ODEz
+ODg4fSwgY250ID0gMH0sIGNxX3dhaXRfbG9jayA9IHtzZW0gPSB7DQo+ICAgICAgIF9fc2l6ZSA9
+ICJcMDAwXDAwMFwwMDBcMDAwXDIwMCIsICdcMDAwJyA8cmVwZWF0cyAyNiB0aW1lcz4sDQo+ICAg
+ICAgIF9fYWxpZ24gPSA1NDk3NTU4MTM4ODh9LCBjbnQgPSAxfSwgb3B0cyA9IDAsIGZkX2ZsYWdz
+ID0gMiwgc29fb3B0cyA9IDQsDQo+ICAgdGNwX29wdHMgPSAwLCBpcHY2X29wdHMgPSAwLCBzdGF0
+ZSA9IDE3OTIsIGNxX2FybWVkID0gMSwgcmV0cmllcyA9IDAsIGVyciA9DQo+IDAsDQo+ICAgaW5k
+ZXggPSAxMiwgY3RybF9hdmFpbCA9IDQsIHNxZV9hdmFpbCA9IDEwMjAsIHNidWZfYnl0ZXNfYXZh
+aWwgPSAxMzEwNzIsDQo+ICAgc3NlcV9ubyA9IDM1MjIsIHNzZXFfY29tcCA9IDQ1MzgsIHNxX3Np
+emUgPSAxMDI0LCBzcV9pbmxpbmUgPSA2NCwNCj4gICBycV9zaXplID0gMTAyNCwgcnNlcV9ubyA9
+IDAsIHJzZXFfY29tcCA9IDUxMiwgcmJ1Zl9ieXRlc19hdmFpbCA9IDAsDQo+ICAgcmJ1Zl9mcmVl
+X29mZnNldCA9IDAsIHJidWZfb2Zmc2V0ID0gMCwgcm1zZ19oZWFkID0gMCwgcm1zZ190YWlsID0g
+MCwNCj4gICBybXNnID0gMHg2YTJkOTAsIHJlbW90ZV9zZ2UgPSAwLCByZW1vdGVfc2dsID0ge2Fk
+ZHIgPSAyNTI0NjQ3MiwNCj4gICAgIGtleSA9IDM3NTgxMDU0NjEsIGxlbmd0aCA9IDJ9LCB0YXJn
+ZXRfbXIgPSAweDZhNGUyMCwgdGFyZ2V0X3NnZSA9IDEsDQo+ICAgdGFyZ2V0X3NnbCA9IHt7YWRk
+ciA9IDE0MDY2MDE4MjQ0NjA5Niwga2V5ID0gMzc1ODEwNTcxNywgbGVuZ3RoID0gMH0sIHsNCj4g
+ICAgICAgYWRkciA9IDE0MDY2MDE4MjUxMTYzMiwga2V5ID0gMzc1ODEwNTcxNywgbGVuZ3RoID0g
+MH19LCByYnVmX3NpemUgPQ0KDQoNClRoZSBzZW5kZXIgaXMgc3R1Y2sgd2FpdGluZyBmb3IgdGhl
+IHRhcmdldF9zZ2wgdG8gYmUgdXBkYXRlZC4gIE9uZSBvZiB0aGUgdGFyZ2V0X3NnbCBlbnRyaWVz
+IG5lZWRzIGEgbGVuZ3RoID4gMC4NCg0KDQo+IDEzMTA3MiwNCj4gICBybXIgPSAweDY3N2M4MCwg
+cmJ1ZiA9IDB4N2ZlNDAxMjc1MDEwICIiLCBzYnVmX3NpemUgPSAxMzEwNzIsIHNtciA9IDB4Njc4
+OTgwLA0KPiAgIHNzZ2wgPSB7e2FkZHIgPSAxNDA2MTcyNDg4MjUzNjAsIGxlbmd0aCA9IDIwNDgs
+IGxrZXkgPSAyNTUwMTQ1NjYxfSwgew0KPiAgICAgICBhZGRyID0gMTQwNjE3MjQ4NzU5ODI0LCBs
+ZW5ndGggPSAwLCBsa2V5ID0gMjU1MDE0NTY2MX19LA0KPiAgIHNidWYgPSAweDdmZTQwMTI5NjAx
+MCAibmV0cGVyZiJ9DQo+IA0KDQpJJ2xsIHNlZSBpZiBJIGNhbiBmaW5kIGFueXRoaW5nIGluIHRo
+ZSBjb2RlIHRoYXQgd291bGQgYWNjb3VudCBmb3IgdGhpcy4gIEkgZG9uJ3QgdW5kZXJzdGFuZCB3
+aHkgd2UncmUgbWlzc2luZyBhIGNvbXBsZXRpb24gb3Igd2hhdCBjYXVzZXMgdGhpcyB0byBvY2N1
+ciBhZnRlciBzZW5kaW5nIGEgc3BlY2lmaWMgbnVtYmVyIG9mIGJ5dGVzICgzODQ2OTYzMikuICBB
+bHRob3VnaCB0aGF0IG51bWJlciBvZiBieXRlcyBpcyBldmVubHkgZGl2aXNpYmxlIGJ5IDY0aywg
+d2hpY2ggaXMgaGFsZiB0aGUgc2l6ZSBvZiB0aGUgc2VuZC9yZWNlaXZlIGJ1ZmZlcnMsIHdoaWNo
+IHB1dHMgdXMgb24gYSBib3VuZGFyeSBjb25kaXRpb24uICA6Lw0KDQotIFNlYW4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
