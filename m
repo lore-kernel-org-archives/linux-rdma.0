@@ -1,55 +1,70 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 46051] New: mthca/mthca_cmd.c:1362: suspicious call to
- MTHCA_PUT
-Date: Fri, 17 Aug 2012 08:47:42 +0000 (UTC)
-Message-ID: <bug-46051-11804@https.bugzilla.kernel.org/>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Two more ib_srp patches
+Date: Fri, 17 Aug 2012 09:50:18 +0000
+Message-ID: <502E13DA.2030603@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=46051
+Hello Dave,
 
-           Summary: mthca/mthca_cmd.c:1362: suspicious call to MTHCA_PUT
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: 3.6-rc2
-          Platform: All
-        OS/Version: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Infiniband/RDMA
-        AssignedTo: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-        ReportedBy: dcb314-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
-        Regression: No
+I think I have found two additional (longstanding) ib_srp issues. Do the
+patches below make sense to you ? If so, do you prefer that I post these
+as individual patches or that I merge these in the patch called "[PATCH
+01/20] ib_srp: Fix a race condition" ?
+
+Thanks,
+
+Bart.
+
+[PATCH 1/2] ib_srp: Fix use-after-free in srp_reset_req()
+
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
+b/drivers/infiniband/ulp/srp/ib_srp.c
+index f5e2180..42b7ef6 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -806,9 +806,9 @@ static void srp_reset_req(struct srp_target_port
+*target, struct srp_request *re
+ 	struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
+
+ 	if (scmnd) {
++		srp_free_req(target, req, scmnd, 0);
+ 		scmnd->result = DID_RESET << 16;
+ 		scmnd->scsi_done(scmnd);
+-		srp_free_req(target, req, scmnd, 0);
+ 	}
+ }
 
 
-I just ran the static analyser cppcheck over the source code of the
-linux kernel version 3.6-rc2.
 
-It said
+[PATCH 2/2] ib_srp: Avoid that aborted requests cause I/O to hang
 
-[linux-3.6-rc2/drivers/infiniband/hw/mthca/mthca_cmd.c:1362]: (warning) Using
-sizeof with a numeric constant as function argument might not be what you
-intended.
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-The source code is
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
+b/drivers/infiniband/ulp/srp/ib_srp.c
+index 42b7ef6..7ae5a00 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1927,6 +1927,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
+ 			  SRP_TSK_ABORT_TASK);
+ 	srp_free_req(target, req, scmnd, 0);
+ 	scmnd->result = DID_ABORT << 16;
++	scmnd->scsi_done(scmnd);
 
-        MTHCA_PUT(inbox, 0x1, INIT_HCA_FLAGS1_OFFSET);
-
-The 2nd parameter to the macro looks suspicious.
-All the other calls to MTHCA_PUT do not have a value.
-
-Suggest code rework.
-
--- 
-Configure bugmail: https://bugzilla.kernel.org/userprefs.cgi?tab=email
-------- You are receiving this mail because: -------
-You are watching the assignee of the bug.
+ 	return SUCCESS;
+ }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
