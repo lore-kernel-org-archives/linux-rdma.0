@@ -1,72 +1,55 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rsockets and fork
-Date: Thu, 16 Aug 2012 23:40:42 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A89AEB@ORSMSX101.amr.corp.intel.com>
-References: <1344899557.2101.29.camel@oc1677441337.ibm.com>
-	 <1828884A29C6694DAF28B7E6B8A8237346A7DB36@ORSMSX101.amr.corp.intel.com>
-	 <502A9039.4090505@us.ibm.com>
-	 <1828884A29C6694DAF28B7E6B8A8237346A89125@ORSMSX101.amr.corp.intel.com>
- <1344968289.2101.36.camel@oc1677441337.ibm.com>
+From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
+Subject: [Bug 46051] New: mthca/mthca_cmd.c:1362: suspicious call to
+ MTHCA_PUT
+Date: Fri, 17 Aug 2012 08:47:42 +0000 (UTC)
+Message-ID: <bug-46051-11804@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1344968289.2101.36.camel-5vSEHtyIv2TJ4MwkZ4db91aTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBUaGlzIHRlc3QgaXMgdXNpbmcgTWVsbGFub3ggMTBHYiBSb0NFRSB3aXRoIE1UVSBzZXQgdG8g
-OTAwMA0KPiANCj4gU2VydmVyIGlzIHN0YXJ0ZWQgdXNpbmcNCj4gICAjIGxkciBuZXRzZXJ2ZXIg
-LUQNCj4gDQo+IDIgY2xpZW50cyBhcmUgc3RhcnRlZCBpbiAyIHdpbmRvd3MgYXMgZm9sbG93cy4N
-Cj4gDQo+ICMgbGRyIG5ldHBlcmYgLXYyIC1jIC1DIC1IIDE5Mi4xNjguMC4yMiAtbDEwDQo+IE1J
-R1JBVEVEIFRDUCBTVFJFQU0gVEVTVCBmcm9tIDAuMC4wLjAgKDAuMC4wLjApIHBvcnQgMCBBRl9J
-TkVUIHRvIDE5Mi4xNjguMC4yMiAoMTkyLjE2OC4wLjIyKSBwb3J0IDANCj4gQUZfSU5FVA0KPiBS
-ZWN2ICAgU2VuZCAgICBTZW5kICAgICAgICAgICAgICAgICAgICAgICAgICBVdGlsaXphdGlvbiAg
-ICAgICBTZXJ2aWNlIERlbWFuZA0KPiBTb2NrZXQgU29ja2V0ICBNZXNzYWdlICBFbGFwc2VkICAg
-ICAgICAgICAgICBTZW5kICAgICBSZWN2ICAgICBTZW5kICAgIFJlY3YNCj4gU2l6ZSAgIFNpemUg
-ICAgU2l6ZSAgICAgVGltZSAgICAgVGhyb3VnaHB1dCAgbG9jYWwgICAgcmVtb3RlICAgbG9jYWwg
-ICByZW1vdGUNCj4gYnl0ZXMgIGJ5dGVzICAgYnl0ZXMgICAgc2Vjcy4gICAgMTBeNmJpdHMvcyAg
-JSBTICAgICAgJSBTICAgICAgdXMvS0IgICB1cy9LQg0KPiANCj4gIDg3MzgwICA2NTUzNiAgNjU1
-MzYgICAgMTAuMDAgICAgICA5Njc5LjgwICAgMi41OCAgICAgMi41OSAgICAgMC4zNDkgICAwLjM1
-MQ0KPiANCj4gQWxpZ25tZW50ICAgICAgT2Zmc2V0ICAgICAgICAgQnl0ZXMgICAgQnl0ZXMgICAg
-ICAgU2VuZHMgICBCeXRlcyAgICBSZWN2cw0KPiBMb2NhbCAgUmVtb3RlICBMb2NhbCAgUmVtb3Rl
-ICBYZmVyZWQgICBQZXIgICAgICAgICAgICAgICAgIFBlcg0KPiBTZW5kICAgUmVjdiAgICBTZW5k
-ICAgUmVjdiAgICAgICAgICAgICBTZW5kIChhdmcpICAgICAgICAgIFJlY3YgKGF2ZykNCj4gICAg
-IDggICAgICAgOCAgICAgIDAgICAgICAgMCAxMjEwMTg3Nzc2MCAgNjU1MzYuMDAgICAgMTg0NjYw
-ICAgMjE5NjcuNTEgNTUwODk5DQo+IA0KPiBNYXhpbXVtDQo+IFNlZ21lbnQNCj4gU2l6ZSAoYnl0
-ZXMpDQo+ICAgNDA5Ng0KPiANCj4gIyBsZHIgbmV0cGVyZiAtdjIgLWMgLUMgLUggMTkyLjE2OC4w
-LjIyIC1sMTANCj4gTUlHUkFURUQgVENQIFNUUkVBTSBURVNUIGZyb20gMC4wLjAuMCAoMC4wLjAu
-MCkgcG9ydCAwIEFGX0lORVQgdG8gMTkyLjE2OC4wLjIyICgxOTIuMTY4LjAuMjIpIHBvcnQgMA0K
-PiBBRl9JTkVUDQo+IFJlY3YgICBTZW5kICAgIFNlbmQgICAgICAgICAgICAgICAgICAgICAgICAg
-IFV0aWxpemF0aW9uICAgICAgIFNlcnZpY2UgRGVtYW5kDQo+IFNvY2tldCBTb2NrZXQgIE1lc3Nh
-Z2UgIEVsYXBzZWQgICAgICAgICAgICAgIFNlbmQgICAgIFJlY3YgICAgIFNlbmQgICAgUmVjdg0K
-PiBTaXplICAgU2l6ZSAgICBTaXplICAgICBUaW1lICAgICBUaHJvdWdocHV0ICBsb2NhbCAgICBy
-ZW1vdGUgICBsb2NhbCAgIHJlbW90ZQ0KPiBieXRlcyAgYnl0ZXMgICBieXRlcyAgICBzZWNzLiAg
-ICAxMF42Yml0cy9zICAlIFMgICAgICAlIFMgICAgICB1cy9LQiAgIHVzL0tCDQo+IA0KPiAgODcz
-ODAgIDY1NTM2ICA2NTUzNiAgICAxMC4wMCAgICAgICAgMzAuNjkgICAyLjI3ICAgICAyLjc4ICAg
-ICA5Ni44OTIgIDExOC42MTYNCj4gDQo+IEFsaWdubWVudCAgICAgIE9mZnNldCAgICAgICAgIEJ5
-dGVzICAgIEJ5dGVzICAgICAgIFNlbmRzICAgQnl0ZXMgICAgUmVjdnMNCj4gTG9jYWwgIFJlbW90
-ZSAgTG9jYWwgIFJlbW90ZSAgWGZlcmVkICAgUGVyICAgICAgICAgICAgICAgICBQZXINCj4gU2Vu
-ZCAgIFJlY3YgICAgU2VuZCAgIFJlY3YgICAgICAgICAgICAgU2VuZCAoYXZnKSAgICAgICAgICBS
-ZWN2IChhdmcpDQo+ICAgICA4ICAgICAgIDggICAgICAwICAgICAgIDAgMzg0Njk2MzIgIDY1NTM2
-LjAwICAgICAgIDU4NyAgIDIxMzYwLjE1ICAgMTgwMQ0KPiANCj4gTWF4aW11bQ0KPiBTZWdtZW50
-DQo+IFNpemUgKGJ5dGVzKQ0KPiAgIDQwOTYNCg0KSSBkb24ndCBoYXZlIFJvQ0UgaW5zdGFsbGVk
-LiAgV2l0aCBJQiwgSSBoYXZlbid0IGJlZW4gYWJsZSB0byBzZWUgdGhpcyBwcm9ibGVtIGFmdGVy
-IGRvemVucyBvZiBhdHRlbXB0cy4gIFRoZSBwZXJmb3JtYW5jZSBpc24ndCBkaXZpZGVkIGVxdWFs
-bHksIGJ1dCBJIHVzdWFsbHkgc2VlIGJldHdlZW4gMy0xMCBHYnBzIG91dCBvZiBlYWNoIGNvbm5l
-Y3Rpb24uICBJJ20gcnVubmluZyB3aXRoIHNvbWUgYWRkaXRpb25hbCBwYXRjaGVzLCBidXQgSSBk
-b24ndCBzZWUgd2hlcmUgdGhvc2Ugd291bGQgYWZmZWN0IGFueSBoYW5nLg0KDQpEdXJpbmcgZGV2
-ZWxvcG1lbnQsIEkndmUgc2VlbiBpc3N1ZXMgd2hlcmUgc3BlY2lmaWMgdHJhbnNmZXIgcGF0dGVy
-bnMganVzdCBoYXBwZW4gdG8gZmFsbCBvbiBib3VuZGFyeSBjb25kaXRpb25zIHRoYXQgcmVzdWx0
-IGluIGhhbmdzIG9yIHNsb3duZXNzLiAgSG9wZWZ1bGx5IHRoYXQncyBub3QgdGhlIGNhc2UgYmVj
-YXVzZSB0aG9zZSBhcmUgYSBwYWluIHRvIGlkZW50aWZ5Lg0KDQpJcyB0aGlzIHNvbWV0aGluZyB0
-aGF0IHlvdSB3b3VsZCBiZSBhYmxlIHRvIHVzZSBhIGRlYnVnZ2VyIG9uPyAgRHVtcGluZyB0aGUg
-Y29udGVudHMgb2YgdGhlIHN0cnVjdCByc29ja2V0ICogd291bGQgYmUgdXNlZnVsIGluIHRyb3Vi
-bGVzaG9vdGluZyBpZiB3ZSdyZSB3YWl0aW5nIG9uIGNyZWRpdHMsIGJ1ZmZlciBzcGFjZSwgdGhl
-IGFwcCwgb3Igc29tZXRoaW5nIGVsc2UuDQoNCi0gU2Vhbg0K
+https://bugzilla.kernel.org/show_bug.cgi?id=46051
+
+           Summary: mthca/mthca_cmd.c:1362: suspicious call to MTHCA_PUT
+           Product: Drivers
+           Version: 2.5
+    Kernel Version: 3.6-rc2
+          Platform: All
+        OS/Version: Linux
+              Tree: Mainline
+            Status: NEW
+          Severity: normal
+          Priority: P1
+         Component: Infiniband/RDMA
+        AssignedTo: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+        ReportedBy: dcb314-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+        Regression: No
+
+
+I just ran the static analyser cppcheck over the source code of the
+linux kernel version 3.6-rc2.
+
+It said
+
+[linux-3.6-rc2/drivers/infiniband/hw/mthca/mthca_cmd.c:1362]: (warning) Using
+sizeof with a numeric constant as function argument might not be what you
+intended.
+
+The source code is
+
+        MTHCA_PUT(inbox, 0x1, INIT_HCA_FLAGS1_OFFSET);
+
+The 2nd parameter to the macro looks suspicious.
+All the other calls to MTHCA_PUT do not have a value.
+
+Suggest code rework.
+
+-- 
+Configure bugmail: https://bugzilla.kernel.org/userprefs.cgi?tab=email
+------- You are receiving this mail because: -------
+You are watching the assignee of the bug.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
