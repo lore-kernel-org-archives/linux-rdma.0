@@ -1,78 +1,70 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] libdmacm/rspreload: Avoid rsocket calls until after fork
-Date: Thu, 23 Aug 2012 18:51:13 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8AB32@ORSMSX101.amr.corp.intel.com>
+Subject: RE: [PATCH for-next 1/4] IB/core: Remove unused variables in
+ ucm/ucma
+Date: Thu, 23 Aug 2012 19:01:24 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8AB46@ORSMSX101.amr.corp.intel.com>
+References: <1345730945-1843-1-git-send-email-ogerlitz@mellanox.com>
+ <1345730945-1843-2-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1345730945-1843-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When an rsocket call is made before an application calls fork(),
-the forked applications can hang.  This can be seen by running
-netserver and two netperf clients simultaneously.  The second
-netperf client will eventually stop performing data transfers.
+> From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> 
+> Remove unused wait objects from ucm/ucma events flow.
+> 
+> Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-LD_PRELOAD=librspreload.so netserver -D
+Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-LD_PRELOAD=librspreload.so netperf -v2 -c -C -H 192.168.0.101 -l30
-LD_PRELOAD=librspreload.so netperf -v2 -c -C -H 192.168.0.101 -l30
+> ---
 
-It's not clear what the specific problem is.  The best guess is
-that libibverbs or the provider library (e.g. libmlx4) perform
-some initialization, such as mmap'ing device memory, which does not
-work when fork is called.
+It looks like these were last used in 2.6.21.
 
-As a work-around, avoid calling rsocket routines until immediately
-before they are needed.  This allows the process to fork before
-the libraries are initialized.
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- src/preload.c |   21 +++++++++++----------
- 1 files changed, 11 insertions(+), 10 deletions(-)
-
-diff --git a/src/preload.c b/src/preload.c
-index 0645f6d..4ba38f5 100644
---- a/src/preload.c
-+++ b/src/preload.c
-@@ -412,20 +412,21 @@ int socket(int domain, int type, int protocol)
- 	if (index < 0)
- 		return index;
- 
-+	if (fork_support && (domain == PF_INET || domain == PF_INET6) &&
-+	    (type == SOCK_STREAM) && (!protocol || protocol == IPPROTO_TCP)) {
-+		ret = real.socket(domain, type, protocol);
-+		if (ret < 0)
-+			return ret;
-+		fd_store(index, ret, fd_normal, fd_fork);
-+		return index;
-+	}
-+
- 	recursive = 1;
- 	ret = rsocket(domain, type, protocol);
- 	recursive = 0;
- 	if (ret >= 0) {
--		if (fork_support) {
--			rclose(ret);
--			ret = real.socket(domain, type, protocol);
--			if (ret < 0)
--				return ret;
--			fd_store(index, ret, fd_normal, fd_fork);
--		} else {
--			fd_store(index, ret, fd_rsocket, fd_ready);
--			set_rsocket_options(ret);
--		}
-+		fd_store(index, ret, fd_rsocket, fd_ready);
-+		set_rsocket_options(ret);
- 		return index;
- 	}
- 	fd_close(index, &ret);
-
-
+>  drivers/infiniband/core/ucm.c  |    1 -
+>  drivers/infiniband/core/ucma.c |    1 -
+>  2 files changed, 0 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+> index 06f0871..49b15ac 100644
+> --- a/drivers/infiniband/core/ucm.c
+> +++ b/drivers/infiniband/core/ucm.c
+> @@ -397,7 +397,6 @@ static ssize_t ib_ucm_event(struct ib_ucm_file *file,
+>  	struct ib_ucm_event_get cmd;
+>  	struct ib_ucm_event *uevent;
+>  	int result = 0;
+> -	DEFINE_WAIT(wait);
+> 
+>  	if (out_len < sizeof(struct ib_ucm_event_resp))
+>  		return -ENOSPC;
+> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+> index 055ed59..7972bae 100644
+> --- a/drivers/infiniband/core/ucma.c
+> +++ b/drivers/infiniband/core/ucma.c
+> @@ -310,7 +310,6 @@ static ssize_t ucma_get_event(struct ucma_file *file, const
+> char __user *inbuf,
+>  	struct rdma_ucm_get_event cmd;
+>  	struct ucma_event *uevent;
+>  	int ret = 0;
+> -	DEFINE_WAIT(wait);
+> 
+>  	if (out_len < sizeof uevent->resp)
+>  		return -ENOSPC;
+> --
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
