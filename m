@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 1/4] IB/core: Remove unused variables in ucm/ucma
-Date: Thu, 23 Aug 2012 17:09:02 +0300
-Message-ID: <1345730945-1843-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 2/4] IB/mlx4: Fill in sq_sig_type in query QP
+Date: Thu, 23 Aug 2012 17:09:03 +0300
+Message-ID: <1345730945-1843-3-git-send-email-ogerlitz@mellanox.com>
 References: <1345730945-1843-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1345730945-1843-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,39 +12,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Remove unused wait objects from ucm/ucma events flow.
+The query QP code was didn't fill that attribute, do that.
 
 Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/ucm.c  |    1 -
- drivers/infiniband/core/ucma.c |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx4/qp.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 06f0871..49b15ac 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -397,7 +397,6 @@ static ssize_t ib_ucm_event(struct ib_ucm_file *file,
- 	struct ib_ucm_event_get cmd;
- 	struct ib_ucm_event *uevent;
- 	int result = 0;
--	DEFINE_WAIT(wait);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index f585edd..56e66a4 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -2225,6 +2225,10 @@ done:
+ 	if (qp->flags & MLX4_IB_QP_LSO)
+ 		qp_init_attr->create_flags |= IB_QP_CREATE_IPOIB_UD_LSO;
  
- 	if (out_len < sizeof(struct ib_ucm_event_resp))
- 		return -ENOSPC;
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 055ed59..7972bae 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -310,7 +310,6 @@ static ssize_t ucma_get_event(struct ucma_file *file, const char __user *inbuf,
- 	struct rdma_ucm_get_event cmd;
- 	struct ucma_event *uevent;
- 	int ret = 0;
--	DEFINE_WAIT(wait);
- 
- 	if (out_len < sizeof uevent->resp)
- 		return -ENOSPC;
++	qp_init_attr->sq_sig_type =
++		qp->sq_signal_bits == cpu_to_be32(MLX4_WQE_CTRL_CQ_UPDATE) ?
++		IB_SIGNAL_ALL_WR : IB_SIGNAL_REQ_WR;
++
+ out:
+ 	mutex_unlock(&qp->mutex);
+ 	return err;
 -- 
 1.7.1
 
