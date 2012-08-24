@@ -1,49 +1,45 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RFC] RDMA/cma: Make IPoIB port space multicast joins
- consistent with IPoIB
-Date: Fri, 24 Aug 2012 11:36:00 +0300
-Message-ID: <CAJZOPZJSjropNSE23XwyiGASV_=_3kR2cAtMq2URLrWya0Oy0A@mail.gmail.com>
-References: <1345732127-7765-1-git-send-email-ogerlitz@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A8AB63@ORSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH] ib_srp: Fix use-after-free in srp_reset_req()
+Date: Fri, 24 Aug 2012 10:27:54 +0000
+Message-ID: <5037572A.4040006@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A8AB63-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 23, 2012 at 10:18 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
->> index 7172559..f7e4cb9 100644
->> --- a/drivers/infiniband/core/cma.c
->> +++ b/drivers/infiniband/core/cma.c
->> @@ -3056,9 +3056,16 @@ static int cma_join_ib_multicast(struct rdma_id_private
->> *id_priv,
->>                   IB_SA_MCMEMBER_REC_FLOW_LABEL |
->>                   IB_SA_MCMEMBER_REC_TRAFFIC_CLASS;
->>
->> -     if (id_priv->id.ps == RDMA_PS_IPOIB)
->> +     if (id_priv->id.ps == RDMA_PS_IPOIB) {
->>               comp_mask |= IB_SA_MCMEMBER_REC_RATE |
->> -                          IB_SA_MCMEMBER_REC_RATE_SELECTOR;
->> +                          IB_SA_MCMEMBER_REC_RATE_SELECTOR |
->> +                          IB_SA_MCMEMBER_REC_MTU_SELECTOR |
->> +                          IB_SA_MCMEMBER_REC_MTU |
->> +                          IB_SA_MCMEMBER_REC_HOP_LIMIT;
->> +
->> +             rec.rate_selector = IB_SA_EQ;
->> +             rec.mtu_selector  = IB_SA_EQ;
->
-> minor - The selector's should be set correctly from the call to
-> ib_sa_get_mcmember_rec.
-> The change itself looks reasonable.
-> Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+srp_free_req() uses the scsi_cmnd structure contents to unmap
+buffers, so we must invoke srp_free_req() before we release
+ownership of that structure.
 
-OK, so I'll check if this isn't the case and resubmit if needed
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Or.
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 1b5b0c7..ac66e6b 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -638,9 +638,9 @@ static void srp_reset_req(struct srp_target_port *target, struct srp_request *re
+ 	struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
+ 
+ 	if (scmnd) {
++		srp_free_req(target, req, scmnd, 0);
+ 		scmnd->result = DID_RESET << 16;
+ 		scmnd->scsi_done(scmnd);
+-		srp_free_req(target, req, scmnd, 0);
+ 	}
+ }
+ 
+-- 
+1.7.7
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
