@@ -1,33 +1,39 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/3] librdmacm: Use common prefix for error messages
-Date: Sun, 26 Aug 2012 12:07:20 +0200
-Message-ID: <1345975640.1656.17.camel@test.quest-ce.net>
-References: <1345899810-1615-1-git-send-email-ydroneaud@opteya.com>
-	 <1345899810-1615-2-git-send-email-ydroneaud@opteya.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH TRIVIAL] opensm: fix default cc_max_outstanding_mads
+ assignment
+Date: Sun, 26 Aug 2012 15:19:10 +0300
+Message-ID: <20120826121910.GA26159@calypso>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1345899810-1615-2-git-send-email-ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Should be: OSM_CC_DEFAULT_MAX_OUTSTANDING_QUERIES instead of
+OSM_PERFMGR_DEFAULT_MAX_OUTSTANDING_QUERIES
 
-Sorry for the scarce description of this patch:
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_subnet.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-libibverb is using a prefix for all messages, and like libibverbs,
-librdmacm has a #define PFX, but did not use it.
-
-This patch use the prefix for all errors messages issued by librdmacm.
-
-Regards.
-
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 195adb8..b9a491b 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -1520,7 +1520,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->exit_on_fatal = TRUE;
+ 	p_opt->congestion_control = FALSE;
+ 	p_opt->cc_key = OSM_DEFAULT_CC_KEY;
+-	p_opt->cc_max_outstanding_mads = OSM_PERFMGR_DEFAULT_MAX_OUTSTANDING_QUERIES;
++	p_opt->cc_max_outstanding_mads = OSM_CC_DEFAULT_MAX_OUTSTANDING_QUERIES;
+ 	p_opt->enable_quirks = FALSE;
+ 	p_opt->no_clients_rereg = FALSE;
+ 	p_opt->prefix_routes_file = strdup(OSM_DEFAULT_PREFIX_ROUTES_FILE);
 -- 
-Yann Droneaud
-OPTEYA
-
+1.7.11.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
