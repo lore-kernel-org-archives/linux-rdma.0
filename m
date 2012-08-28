@@ -1,34 +1,29 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 00/20, v4] Make ib_srp better suited for H.A. purposes
-Date: Tue, 28 Aug 2012 12:58:16 +0000
-Message-ID: <503CC068.9040904@acm.org>
-References: <5023DA39.7020000@acm.org> <20120827183731.GB6094@gmail.com> <503C97AC.9060703@acm.org> <20120828122528.GB28144@gmail.com>
+From: Albert Strasheim <fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: ibv_modify_qp to IBV_QPS_ERR returns EAGAIN
+Date: Tue, 28 Aug 2012 17:01:55 +0200
+Message-ID: <CALfB72A42UaUpxu+s_Cnr2P77CBN2=+bys-vBxF5W94bah5cVA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20120828122528.GB28144@gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Dongsu Park <dongsu.park@profitbricks.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, David Dillow <dillowda@ornl.gov>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/28/12 12:25, Dongsu Park wrote:
-> By the way, as long as I've observed today, the crash occurs only if
-> rport_dev_loss_timedout() is called. It means, without device loss,
-> a simple rport_delete does not make any crash.
-> 
-> Is that probably because arguments to pr_err() are accessing to invalid
-> addresses?
-> 
-> drivers/scsi/scsi_transport_srp.c:275
-> 
->         pr_err("SRP transport: dev_loss_tmo (%ds) expired - removing %s.\n",
->                rport->dev_loss_tmo, dev_name(&rport->dev));
+Hello all
 
-It's not clear to me how that could happen. The dev_loss timer is
-stopped before the rport device is removed. See also the
-srp_stop_rport() call (which stops the dev_loss timer) and
-srp_remove_host() call (which removes the rport) in srp_remove_target().
+I was wondering if anyone could shed some light about what kind
+conditions might cause ibv_modify_qp to IBV_QPS_ERR to return EAGAIN?
 
-Bart.
+The error occurred on a QP that probably already had some work
+completions for requests that failed. I've only seen it happen once in
+about 3 months, so reproducing is quite hard.
+
+Thanks.
+
+Regards
+
+Albert
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
