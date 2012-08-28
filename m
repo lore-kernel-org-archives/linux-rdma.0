@@ -1,33 +1,33 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next V1 0/4] IB/IPoIB TSS and RSS support for
- datagram mode
-Date: Tue, 28 Aug 2012 18:07:03 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8B641@ORSMSX101.amr.corp.intel.com>
-References: <1338810598-9488-1-git-send-email-ogerlitz@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A25BFF@ORSMSX101.amr.corp.intel.com>
-	<CAJZOPZ+WX6gXAXESWge4ZsQVBun+bhWoui+f5DeKkqB3uEB2Hg@mail.gmail.com>
-	<CAJZOPZJL+qhk4CcUpmXffrTsS85fMJtxvuQePzpjN902Eg5h5g@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A30177@ORSMSX101.amr.corp.intel.com>
-	<CACZyyF8o1ift2-rkV6yL7EM_iys2kWHJ=ZHNe2xMihu4jSW5+g@mail.gmail.com>
- <CAJZOPZJWGWO7vXtKhv_UFp8hdtApWsAKCeduksMJti03i1=DEg@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_sw_info_rcv.c: Fixed locking issue on osm_get_node_by_guid
+ error
+Date: Tue, 28 Aug 2012 14:10:18 -0400
+Message-ID: <503D098A.9030503@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJWGWO7vXtKhv_UFp8hdtApWsAKCeduksMJti03i1=DEg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Can you let us know your thoughts here?
 
-I understand the purpose behind TSS/RSS.  I'm not fond of making verbs more complex, but I haven't come up with anything that's really simpler.  Tzahi's response addressed my main concerns.
-
-Is there a compelling reason for ever exposing this feature to user space?
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_sw_info_rcv.c b/opensm/osm_sw_info_rcv.c
+index 84e7fe0..122af89 100644
+--- a/opensm/osm_sw_info_rcv.c
++++ b/opensm/osm_sw_info_rcv.c
+@@ -378,7 +378,7 @@ void osm_si_rcv_process(IN void *context, IN void *data)
+ 		/* we might get back a request for signaling change was detected */
+ 		sm->p_subn->force_heavy_sweep = TRUE;
  
-- Sean
+-	CL_PLOCK_RELEASE(sm->p_lock);
+ Exit:
++	CL_PLOCK_RELEASE(sm->p_lock);
+ 	OSM_LOG_EXIT(sm->p_log);
+ }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
