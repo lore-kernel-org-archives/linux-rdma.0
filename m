@@ -1,49 +1,69 @@
-From: Bart Van Assche <bvanassche@acm.org>
+From: Dongsu Park <dongsu.park@profitbricks.com>
 Subject: Re: [PATCH 00/20, v4] Make ib_srp better suited for H.A. purposes
-Date: Tue, 28 Aug 2012 10:04:28 +0000
-Message-ID: <503C97AC.9060703@acm.org>
-References: <5023DA39.7020000@acm.org> <20120827183731.GB6094@gmail.com>
+Date: Tue, 28 Aug 2012 14:25:28 +0200
+Message-ID: <20120828122528.GB28144@gmail.com>
+References: <5023DA39.7020000@acm.org>
+ <20120827183731.GB6094@gmail.com>
+ <503C97AC.9060703@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20120827183731.GB6094@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <503C97AC.9060703@acm.org>
 Sender: linux-scsi-owner@vger.kernel.org
-To: Dongsu Park <dongsu.park@profitbricks.com>
+To: Bart Van Assche <bvanassche@acm.org>
 Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, David Dillow <dillowda@ornl.gov>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/27/12 18:37, Dongsu Park wrote:
-> while testing ib_srp based on your srp-ha,
-> we sometimes hit kernel crashes with the call trace below.
-> 
-> How to reproduce:
-> 
-> 0. Kernel 3.2.15 with SCST v4193 on the target,
->    Kernel 3.2.8 with ib_srp-ha on the initiator.
-> 1. Configure 500+ vdisks on target, and get initiator connected.
-> 2. Exchange data intensively, which works well.
-> 3. (On initiator) delete SRP remote port occasionally, e.g.
->    # echo "1" > /sys/class/srp_remote_ports/port-6\:1/delete
->    And configure again the SRP target.
-> 4. (On target) disable Infiniband interface, and enable it again.
-> 5. Repeat 3 and 4.
-> 
-> Then the initiator's kernel suddenly crashes. (but not always)
-> 
-> Do you have any idea why?
+Hi Bart,
 
-Hello Dongsu,
+On 28.08.2012 10:04, Bart Van Assche wrote:
+> On 08/27/12 18:37, Dongsu Park wrote:
+> > while testing ib_srp based on your srp-ha,
+> > we sometimes hit kernel crashes with the call trace below.
+> > 
+> > How to reproduce:
+> > 
+> > 0. Kernel 3.2.15 with SCST v4193 on the target,
+> >    Kernel 3.2.8 with ib_srp-ha on the initiator.
+> > 1. Configure 500+ vdisks on target, and get initiator connected.
+> > 2. Exchange data intensively, which works well.
+> > 3. (On initiator) delete SRP remote port occasionally, e.g.
+> >    # echo "1" > /sys/class/srp_remote_ports/port-6\:1/delete
+> >    And configure again the SRP target.
+> > 4. (On target) disable Infiniband interface, and enable it again.
+> > 5. Repeat 3 and 4.
+> > 
+> > Then the initiator's kernel suddenly crashes. (but not always)
+> > 
+> > Do you have any idea why?
+> 
+> Hello Dongsu,
+> 
+> That's unfortunate. I've just finished running the above test 1000 times
+> on my test setup. The test ran perfectly - login succeeded every time,
+> the test finished in the expected time, no kernel crash did occur and no
+> memory was leaked. I've been running my test with kernel 3.6-rc3 instead
+> of kernel 3.2.8 though. Can you repeat your test with kernel 3.6-rc3 on
+> the initiator system instead of kernel 3.2.8 ? The 3.6-rc3 kernel
+> contains multiple patches that improve robustness with regard to SCSI
+> device removal.
 
-That's unfortunate. I've just finished running the above test 1000 times
-on my test setup. The test ran perfectly - login succeeded every time,
-the test finished in the expected time, no kernel crash did occur and no
-memory was leaked. I've been running my test with kernel 3.6-rc3 instead
-of kernel 3.2.8 though. Can you repeat your test with kernel 3.6-rc3 on
-the initiator system instead of kernel 3.2.8 ? The 3.6-rc3 kernel
-contains multiple patches that improve robustness with regard to SCSI
-device removal.
+Ok, when I get a chance to set up a new test system with kernel 3.6-rc3,
+I'll do a new test and let you know.
 
-Thanks,
+By the way, as long as I've observed today, the crash occurs only if
+rport_dev_loss_timedout() is called. It means, without device loss,
+a simple rport_delete does not make any crash.
 
-Bart.
+Is that probably because arguments to pr_err() are accessing to invalid
+addresses?
+
+drivers/scsi/scsi_transport_srp.c:275
+
+        pr_err("SRP transport: dev_loss_tmo (%ds) expired - removing %s.\n",
+               rport->dev_loss_tmo, dev_name(&rport->dev));
+
+Cheers,
+Dongsu
+
