@@ -1,46 +1,145 @@
-From: Gaetano Mendola <mendola-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Writing RDMA applications on Linux
-Date: Wed, 29 Aug 2012 10:27:44 +0200
-Message-ID: <CAJycT5qy8zdPF0f0AjafrH+657-GAPjx8vLvUdNJuPr=KTRsgg@mail.gmail.com>
-References: <CAJycT5rf_SGPh2Gfg9C9aK2wm4uR6ZMsXeh1WD1gWGb-oqgnLg@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A8ACB1@ORSMSX101.amr.corp.intel.com>
-	<CAJycT5rDA0E3q7uobZnQsDUQVpEn__UnuA61KkVrAyPFS+o9fg@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A8B686@ORSMSX101.amr.corp.intel.com>
-	<CAJycT5oNX5x32xnFg3eWqVyJEdFOT0R=psKB7PM+0Y7gZ-f+rg@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A8B861@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH fixes/for-3.6 1/3] IB/ipoib: Fix memory leak in the neigh table deletion flow
+Date: Wed, 29 Aug 2012 18:14:33 +0300
+Message-ID: <1346253275-12347-2-git-send-email-ogerlitz@mellanox.com>
+References: <1346253275-12347-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A8B861-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1346253275-12347-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 29, 2012 at 12:51 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> I'm not sure if I have to say sorry for the noise or not but it seems
->> that the issue was just an NUMA issue!
->
-> that's good news
->
->> May be rsocket has to do a memory affinity on the node with the IB
->> board attached on
->> before to allocate his own memory?
->
-> Do you know what code is necessary for doing this?
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-It's something I have never done before, apart doing a cpu affinity of
-the current process/thread
-to a particular core, it should not be hard to see what numactl does.
-However before doing
-this, that for me has the taste of an hack we should find out why
-ib_write_bw is not affected by
-cpu/memory affinity.
+If the neighbours hash table is empty when unloading the module,
+then ipoib_flush_neighs, the cleanup routine wasn't called, and
+the memory used for the hash table itself leaked.
 
-Gaetano
+To fix this, ipoib_flush_neighs is allways called, and another
+completion object was added to signal when the table is freed.
 
+Once inovked, ipoib_flush_neighs flushes all the neighbours
+(if there are any), calls the the hash table RCU free routine,
+(which now signals completion of the deletion process) and
+waits for the last neighbour to be freed.
+
+Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h      |    3 +++
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |   23 +++++++++++++++++------
+ 2 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index ca43901..36b5940 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -262,7 +262,9 @@ struct ipoib_ethtool_st {
+ 	u16     max_coalesced_frames;
+ };
+ 
++struct ipoib_neigh_table;
+ struct ipoib_neigh_hash {
++	struct ipoib_neigh_table       *ntbl;
+ 	struct ipoib_neigh __rcu      **buckets;
+ 	struct rcu_head			rcu;
+ 	u32				mask;
+@@ -274,6 +276,7 @@ struct ipoib_neigh_table {
+ 	rwlock_t			rwlock;
+ 	atomic_t			entries;
+ 	struct completion		flushed;
++	struct completion		deleted;
+ };
+ 
+ /*
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 3e2085a..72c1fc2 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1095,6 +1095,7 @@ static int ipoib_neigh_hash_init(struct ipoib_dev_priv *priv)
+ 	htbl->mask = (size - 1);
+ 	htbl->buckets = buckets;
+ 	ntbl->htbl = htbl;
++	htbl->ntbl = ntbl;
+ 	atomic_set(&ntbl->entries, 0);
+ 
+ 	/* start garbage collection */
+@@ -1111,9 +1112,11 @@ static void neigh_hash_free_rcu(struct rcu_head *head)
+ 						    struct ipoib_neigh_hash,
+ 						    rcu);
+ 	struct ipoib_neigh __rcu **buckets = htbl->buckets;
++	struct ipoib_neigh_table *ntbl = htbl->ntbl;
+ 
+ 	kfree(buckets);
+ 	kfree(htbl);
++	complete(&ntbl->deleted);
+ }
+ 
+ void ipoib_del_neighs_by_gid(struct net_device *dev, u8 *gid)
+@@ -1164,7 +1167,9 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
+ 	struct ipoib_neigh_table *ntbl = &priv->ntbl;
+ 	struct ipoib_neigh_hash *htbl;
+ 	unsigned long flags;
+-	int i;
++	int i, wait_flushed = 0;
++
++	init_completion(&priv->ntbl.flushed);
+ 
+ 	write_lock_bh(&ntbl->rwlock);
+ 
+@@ -1173,6 +1178,10 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
+ 	if (!htbl)
+ 		goto out_unlock;
+ 
++	wait_flushed = atomic_read(&priv->ntbl.entries);
++	if (!wait_flushed)
++		goto free_htbl;
++
+ 	for (i = 0; i < htbl->size; i++) {
+ 		struct ipoib_neigh *neigh;
+ 		struct ipoib_neigh __rcu **np = &htbl->buckets[i];
+@@ -1190,11 +1199,14 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
+ 		}
+ 	}
+ 
++free_htbl:
+ 	rcu_assign_pointer(ntbl->htbl, NULL);
+ 	call_rcu(&htbl->rcu, neigh_hash_free_rcu);
+ 
+ out_unlock:
+ 	write_unlock_bh(&ntbl->rwlock);
++	if (wait_flushed)
++		wait_for_completion(&priv->ntbl.flushed);
+ }
+ 
+ static void ipoib_neigh_hash_uninit(struct net_device *dev)
+@@ -1203,7 +1215,7 @@ static void ipoib_neigh_hash_uninit(struct net_device *dev)
+ 	int stopped;
+ 
+ 	ipoib_dbg(priv, "ipoib_neigh_hash_uninit\n");
+-	init_completion(&priv->ntbl.flushed);
++	init_completion(&priv->ntbl.deleted);
+ 	set_bit(IPOIB_NEIGH_TBL_FLUSH, &priv->flags);
+ 
+ 	/* Stop GC if called at init fail need to cancel work */
+@@ -1211,10 +1223,9 @@ static void ipoib_neigh_hash_uninit(struct net_device *dev)
+ 	if (!stopped)
+ 		cancel_delayed_work(&priv->neigh_reap_task);
+ 
+-	if (atomic_read(&priv->ntbl.entries)) {
+-		ipoib_flush_neighs(priv);
+-		wait_for_completion(&priv->ntbl.flushed);
+-	}
++	ipoib_flush_neighs(priv);
++
++	wait_for_completion(&priv->ntbl.deleted);
+ }
+ 
+ 
 -- 
-cpp-today.blogspot.com
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
