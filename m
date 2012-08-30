@@ -1,28 +1,41 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: srp_daemon and cable pulling
-Date: Thu, 30 Aug 2012 14:43:01 +0000
-Message-ID: <503F7BF5.4050104@acm.org>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC for-next] net/mlx4_core: Fix racy flow in the driver
+ CQ completion handler
+Date: Fri, 31 Aug 2012 01:17:54 +0300
+Message-ID: <CAJZOPZJOWuoBQx49-O2WLk240GWGRsqfJpCXfhxRV6Cmdw7W0w@mail.gmail.com>
+References: <1346323085-2665-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1346323085-2665-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+Roland Dreier =E2=80=8E<roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>  wrote:
 
-The traditional solution to restore SRP connections in a H.A. setup
-after an SRP logout is to have one srp_daemon process running per HCA
-port on the initiator. However, srp_daemon stops working if it can't
-reach the subnet manager anymore. So it's only useful if a cable between
-target and SM has been pulled but not if a cable between initiator and
-SM has been pulled. Has anyone been looking into this before ?
+> Can you be explicit about the race you're worried about?
 
-Thanks,
+few
 
-Bart.
+1. on the  time CQ A is deleted an interrupt that relates to CQ B
+takes place and a radix
+tree lookup is running while an element is being deleted from the
+tree, looking on the radix tree API, I don't see that this is allowed.
+
+2. while a CQ is being freed an interrupt takes place and the driver
+attempts to run the comp handler which can turn to use after free,
+null pointer deref, etc. This can happen even if the ULP made sure to
+consume all the WCs related to flushed/etc, e.g an "empty"
+interrupt
+
+BTW, your email missed the list somehow
+
+Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
