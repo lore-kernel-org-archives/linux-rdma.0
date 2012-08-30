@@ -1,95 +1,110 @@
-From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Subject: IPoIB performance
-Date: Wed, 29 Aug 2012 15:35:13 -0400
-Message-ID: <FFD82983-4A73-4A52-B6BE-C63DA16A507C@ornl.gov>
+From: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Subject: [PATCH] IB/ipoib: Fix crash resulted as of use after free for
+ multicast object
+Date: Thu, 30 Aug 2012 09:01:30 +0200 (MEST)
+Message-ID: <Pine.GSO.4.63.1208300859100.27363@stinky-local.trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-851401618-1346310090=:27363"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi all,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I am benchmarking a sockets based application and I want a sanity check on IPoIB performance expectations when using connected mode (65520 MTU). I am using the tuning tips in Documentation/infiniband/ipoib.txt. The machines have Mellanox QDR cards (see below for the verbose ibv_devinfo output). I am using a 2.6.36 kernel. The hosts have single socket Intel E5520 (4 core with hyper-threading on) at 2.27 GHz.
+---559023410-851401618-1346310090=:27363
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
-I am using netperf's TCP_STREAM and binding cores. The best I have seen is ~13 Gbps. Is this the best I can expect from these cards?
-
-What should I expect as a max for ipoib with FDR cards?
-
-Thanks,
-
-Scott
+Fix a crash in ipoib_mcast_join_task(). With help from Or Gerlitz.
 
 
+---559023410-851401618-1346310090=:27363
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=0001-IB-ipoib-fix-crash-related-to-the-broadcast-group-ob.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.GSO.4.63.1208300901300.27363-ZwCfkpyJE+ZxMqFJ2HQs78wN0UxFyt4e@public.gmane.org>
+Content-Description: 
+Content-Disposition: attachment; filename=0001-IB-ipoib-fix-crash-related-to-the-broadcast-group-ob.patch
 
-hca_id: mlx4_0
-        transport:                      InfiniBand (0)
-        fw_ver:                         2.7.626
-        node_guid:                      0002:c903:000b:6520
-        sys_image_guid:                 0002:c903:000b:6523
-        vendor_id:                      0x02c9
-        vendor_part_id:                 26428
-        hw_ver:                         0xB0
-        board_id:                       MT_0D90110009
-        phys_port_cnt:                  1
-        max_mr_size:                    0xffffffffffffffff
-        page_size_cap:                  0xfffffe00
-        max_qp:                         65464
-        max_qp_wr:                      16384
-        device_cap_flags:               0x006c9c76
-        max_sge:                        32
-        max_sge_rd:                     0
-        max_cq:                         65408
-        max_cqe:                        4194303
-        max_mr:                         131056
-        max_pd:                         32764
-        max_qp_rd_atom:                 16
-        max_ee_rd_atom:                 0
-        max_res_rd_atom:                1047424
-        max_qp_init_rd_atom:            128
-        max_ee_init_rd_atom:            0
-        atomic_cap:                     ATOMIC_HCA (1)
-        max_ee:                         0
-        max_rdd:                        0
-        max_mw:                         0
-        max_raw_ipv6_qp:                0
-        max_raw_ethy_qp:                0
-        max_mcast_grp:                  8192
-        max_mcast_qp_attach:            56
-        max_total_mcast_qp_attach:      458752
-        max_ah:                         0
-        max_fmr:                        0
-        max_srq:                        65472
-        max_srq_wr:                     16383
-        max_srq_sge:                    31
-        max_pkeys:                      128
-        local_ca_ack_delay:             15
-                port:   1
-                        state:                  PORT_ACTIVE (4)
-                        max_mtu:                2048 (4)
-                        active_mtu:             2048 (4)
-                        sm_lid:                 6
-                        port_lid:               8
-                        port_lmc:               0x00
-                        link_layer:             InfiniBand
-                        max_msg_sz:             0x40000000
-                        port_cap_flags:         0x02510868
-                        max_vl_num:             8 (4)
-                        bad_pkey_cntr:          0x0
-                        qkey_viol_cntr:         0x0
-                        sm_sl:                  0
-                        pkey_tbl_len:           128
-                        gid_tbl_len:            128
-                        subnet_timeout:         18
-                        init_type_reply:        0
-                        active_width:           4X (2)
-                        active_speed:           10.0 Gbps (4)
-                        phys_state:             LINK_UP (5)
-                        GID[  0]:               fe80:0000:0000:0000:0002:c903:000b:6521
+W1BBVENIXSBJQi9pcG9pYjogRml4IGNyYXNoIHJlc3VsdGVkIGFzIG9mIHVz
+ZSBhZnRlciBmcmVlIGZvciBtdWx0aWNhc3Qgb2JqZWN0DQoNCkNvbW1pdCBj
+OGMyYWZlMyAiSVBvSUI6IFVzZSBydG5sIGxvY2svdW5sb2NrIHdoZW4gY2hh
+bmdpbmcgZGV2aWNlIGZsYWdzIiANCmFkZGVkIGEgY2FsbCB0byBydG5sX2xv
+Y2soKSBpbiBpcG9pYl9tY2FzdF9qb2luX3Rhc2soKSwgd2hpY2ggaXMgcnVu
+IGZyb20gDQp0aGUgaXBvaWJfd29ya3F1ZXVlLCBhbmQgaGVuY2UgdGhlIHdv
+cmtxdWV1ZSBjYW4ndCBiZSBmbHVzaGVkIGZyb20gdGhlIA0KY29udGV4dCBv
+ZiBpcG9pYl9zdG9wLiANCg0KSW4gdGhlIGN1cnJlbnQgY29kZSwgaXBvaWJf
+c3RvcCgpIHdoaWNoIGRvZXNuJ3QgZmx1c2ggdGhlIHdvcmtxdWV1ZSwgDQpj
+YWxscyBpcG9pYl9tY2FzdF9kZXZfZmx1c2goKSB3aGljaCBnb2VzIGFuZCBk
+ZWxldGVzIGFsbCB0aGUgbXVsdGljYXN0IA0KZW50cmllcywgYW5kIHRoaXMg
+ZmxvdyBwbGFjZSB3aXRob3V0IGFueSBzeW5jaHJvbml6YXRpb24gd2l0aCBw
+b3NzaWJsZSANCnJ1bm5pbmcgaW5zdGFuY2Ugb2YgaXBvaWJfbWNhc3Rfam9p
+bl90YXNrKCkgd2hpY2ggcmVsYXRlIHRvIHRoZSANCnNhbWUgaXBvaWIgZGV2
+aWNlLCBsZWFkaW5nIHRvIGEgY3Jhc2hlcyB3aXRoIGFzIG9mIGtlcm5lbCAN
+Ck5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBpbiB0aGF0IHRhc2suDQoNClRo
+ZSBmaXggdGFrZXMgdGhlIGFwcHJvYWNoIG9mIG1ha2luZyBzdXJlIHRoZSB0
+aGUgd29ya3F1ZXVlDQppcyBmbHVzaGVkIGJlZm9yZSBpcG9pYl9tY2FzdF9k
+ZXZfZmx1c2goKSBpcyBjYWxsZWQsIHdoZXJlIGZvciB0aGF0IA0KZW5kLCB3
+ZSBtb3ZlIHRoZSBSVE5MIGxvY2sgd3JhcHBlZCBjb2RlIHRvIGlwb2liX21j
+YXN0X2pvaW5fZmluaXNoKCkuDQoNClNpZ25lZC1vZmYtYnk6IFBhdHJpY2sg
+TWNIYXJkeSA8a2FiZXJAdHJhc2gubmV0Pg0KDQotLS0NCiBkcml2ZXJzL2lu
+ZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX21haW4uYyAgICAgIHwgICAgMiAr
+LQ0KIGRyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfbXVsdGlj
+YXN0LmMgfCAgIDE5ICsrKysrKysrKystLS0tLS0tLS0NCiAyIGZpbGVzIGNo
+YW5nZWQsIDExIGluc2VydGlvbnMoKyksIDEwIGRlbGV0aW9ucygtKQ0KDQpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9p
+Yl9tYWluLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2li
+X21haW4uYw0KaW5kZXggYWQ3YTQ1Ni4uYjkxMjlmZSAxMDA2NDQNCi0tLSBh
+L2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfbWFpbi5jDQor
+KysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX21haW4u
+Yw0KQEAgLTE1MCw3ICsxNTAsNyBAQCBzdGF0aWMgaW50IGlwb2liX3N0b3Ao
+c3RydWN0IG5ldF9kZXZpY2UgKmRldikNCiANCiAJbmV0aWZfc3RvcF9xdWV1
+ZShkZXYpOw0KIA0KLQlpcG9pYl9pYl9kZXZfZG93bihkZXYsIDApOw0KKwlp
+cG9pYl9pYl9kZXZfZG93bihkZXYsIDEpOw0KIAlpcG9pYl9pYl9kZXZfc3Rv
+cChkZXYsIDApOw0KIA0KIAlpZiAoIXRlc3RfYml0KElQT0lCX0ZMQUdfU1VC
+SU5URVJGQUNFLCAmcHJpdi0+ZmxhZ3MpKSB7DQpkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9tdWx0aWNhc3QuYyBi
+L2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfbXVsdGljYXN0
+LmMNCmluZGV4IDc1MzY3MjQuLmNlY2I5OGEgMTAwNjQ0DQotLS0gYS9kcml2
+ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX211bHRpY2FzdC5jDQor
+KysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX211bHRp
+Y2FzdC5jDQpAQCAtMTc1LDcgKzE3NSw5IEBAIHN0YXRpYyBpbnQgaXBvaWJf
+bWNhc3Rfam9pbl9maW5pc2goc3RydWN0IGlwb2liX21jYXN0ICptY2FzdCwN
+CiANCiAJbWNhc3QtPm1jbWVtYmVyID0gKm1jbWVtYmVyOw0KIA0KLQkvKiBT
+ZXQgdGhlIGNhY2hlZCBRX0tleSBiZWZvcmUgd2UgYXR0YWNoIGlmIGl0J3Mg
+dGhlIGJyb2FkY2FzdCBncm91cCAqLw0KKwkvKiBTZXQgdGhlIG11bHRpY2Fz
+dCBNVFUgYW5kIGNhY2hlZCBRX0tleSBiZWZvcmUgd2UgYXR0YWNoIGlmIGl0
+J3MNCisJICogdGhlIGJyb2FkY2FzdCBncm91cC4NCisJICovDQogCWlmICgh
+bWVtY21wKG1jYXN0LT5tY21lbWJlci5tZ2lkLnJhdywgcHJpdi0+ZGV2LT5i
+cm9hZGNhc3QgKyA0LA0KIAkJICAgIHNpemVvZiAodW5pb24gaWJfZ2lkKSkp
+IHsNCiAJCXNwaW5fbG9ja19pcnEoJnByaXYtPmxvY2spOw0KQEAgLTE4Mywx
+MCArMTg1LDE3IEBAIHN0YXRpYyBpbnQgaXBvaWJfbWNhc3Rfam9pbl9maW5p
+c2goc3RydWN0IGlwb2liX21jYXN0ICptY2FzdCwNCiAJCQlzcGluX3VubG9j
+a19pcnEoJnByaXYtPmxvY2spOw0KIAkJCXJldHVybiAtRUFHQUlOOw0KIAkJ
+fQ0KKwkJcHJpdi0+bWNhc3RfbXR1ID0gSVBPSUJfVURfTVRVKGliX210dV9l
+bnVtX3RvX2ludChwcml2LT5icm9hZGNhc3QtPm1jbWVtYmVyLm10dSkpOw0K
+IAkJcHJpdi0+cWtleSA9IGJlMzJfdG9fY3B1KHByaXYtPmJyb2FkY2FzdC0+
+bWNtZW1iZXIucWtleSk7DQogCQlzcGluX3VubG9ja19pcnEoJnByaXYtPmxv
+Y2spOw0KIAkJcHJpdi0+dHhfd3Iud3IudWQucmVtb3RlX3FrZXkgPSBwcml2
+LT5xa2V5Ow0KIAkJc2V0X3FrZXkgPSAxOw0KKw0KKwkJaWYgKCFpcG9pYl9j
+bV9hZG1pbl9lbmFibGVkKGRldikpIHsNCisJCQlydG5sX2xvY2soKTsNCisJ
+CQlkZXZfc2V0X210dShkZXYsIG1pbihwcml2LT5tY2FzdF9tdHUsIHByaXYt
+PmFkbWluX210dSkpOw0KKwkJCXJ0bmxfdW5sb2NrKCk7DQorCQl9DQogCX0N
+CiANCiAJaWYgKCF0ZXN0X2JpdChJUE9JQl9NQ0FTVF9GTEFHX1NFTkRPTkxZ
+LCAmbWNhc3QtPmZsYWdzKSkgew0KQEAgLTU3NCwxNCArNTgzLDYgQEAgdm9p
+ZCBpcG9pYl9tY2FzdF9qb2luX3Rhc2soc3RydWN0IHdvcmtfc3RydWN0ICp3
+b3JrKQ0KIAkJcmV0dXJuOw0KIAl9DQogDQotCXByaXYtPm1jYXN0X210dSA9
+IElQT0lCX1VEX01UVShpYl9tdHVfZW51bV90b19pbnQocHJpdi0+YnJvYWRj
+YXN0LT5tY21lbWJlci5tdHUpKTsNCi0NCi0JaWYgKCFpcG9pYl9jbV9hZG1p
+bl9lbmFibGVkKGRldikpIHsNCi0JCXJ0bmxfbG9jaygpOw0KLQkJZGV2X3Nl
+dF9tdHUoZGV2LCBtaW4ocHJpdi0+bWNhc3RfbXR1LCBwcml2LT5hZG1pbl9t
+dHUpKTsNCi0JCXJ0bmxfdW5sb2NrKCk7DQotCX0NCi0NCiAJaXBvaWJfZGJn
+X21jYXN0KHByaXYsICJzdWNjZXNzZnVsbHkgam9pbmVkIGFsbCBtdWx0aWNh
+c3QgZ3JvdXBzXG4iKTsNCiANCiAJY2xlYXJfYml0KElQT0lCX01DQVNUX1JV
+TiwgJnByaXYtPmZsYWdzKTsNCi0tIA0KMS43LjENCg0K
 
+---559023410-851401618-1346310090=:27363--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
