@@ -1,54 +1,71 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1] RDMA/cma: Fix multicast joins of the IPoIB port space to be consistent
-Date: Thu, 30 Aug 2012 12:09:55 +0300
-Message-ID: <1346317795-12622-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH RFC for-next] net/mlx4_core: Fix racy flow in the driver CQ completion handler
+Date: Thu, 30 Aug 2012 13:38:05 +0300
+Message-ID: <1346323085-2665-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-CMA multicast joins done under the ipoib port state must be carried
-out using the same component mask used by ipoib. Otherwise, its possible
-for the CMA to create a group to which a join made by ipoib will fail,
-or vise-versa. So far this wasn't the case, since some of the component
-mask fields set by ipoib weren't set by the CMA, fix that.
+The mlx4 CQ completion handler, mlx4_cq_completion doesn't bother to lock 
+the radix tree which is used to manage the table of CQs, nor to increase
+the reference count of the CQ before invoking the user provided callback.
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This is racy and can cause use after free, null pointer dereference, etc various 
+crashes. Fix that by wrapping the radix tree lookup with taking the table lock, 
+and increase the ref count for the time of the callback.
+
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
 ---
 
-changes from V0:
- - removed setting of the multicast record fields, since they are kept
-   in the ib sa client data base, only deal with the component mask fields.
+Hi Roland,
 
+Doing some code review on the related parts, I didn't see any way
+the handler can be protected for the tree lockup and the user callback
+invokation other then using these methods, e.g as done by the "event"
+callback. Looking on mthca, I see the same behaviour -- mthca_cq_completion
+takes no locks and doesn't increase the refcount while mthca_cq_event does
+go by the book and do what ever needed, anything we miss here? its there
+from day one... 
 
- drivers/infiniband/core/cma.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+Or.
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 7172559..af3565c 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -3056,9 +3056,12 @@ static int cma_join_ib_multicast(struct rdma_id_private *id_priv,
- 		    IB_SA_MCMEMBER_REC_FLOW_LABEL |
- 		    IB_SA_MCMEMBER_REC_TRAFFIC_CLASS;
+ drivers/net/ethernet/mellanox/mlx4/cq.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cq.c b/drivers/net/ethernet/mellanox/mlx4/cq.c
+index 7e64033..05d9529 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cq.c
+@@ -56,9 +56,14 @@
+ void mlx4_cq_completion(struct mlx4_dev *dev, u32 cqn)
+ {
+ 	struct mlx4_cq *cq;
++	struct mlx4_cq_table *cq_table = &mlx4_priv(dev)->cq_table;
  
--	if (id_priv->id.ps == RDMA_PS_IPOIB)
-+	if (id_priv->id.ps == RDMA_PS_IPOIB)
- 		comp_mask |= IB_SA_MCMEMBER_REC_RATE |
--			     IB_SA_MCMEMBER_REC_RATE_SELECTOR;
-+			     IB_SA_MCMEMBER_REC_RATE_SELECTOR |
-+			     IB_SA_MCMEMBER_REC_MTU_SELECTOR |
-+			     IB_SA_MCMEMBER_REC_MTU |
-+			     IB_SA_MCMEMBER_REC_HOP_LIMIT;
++	spin_lock(&cq_table->lock);
+ 	cq = radix_tree_lookup(&mlx4_priv(dev)->cq_table.tree,
+ 			       cqn & (dev->caps.num_cqs - 1));
++	if (cq)
++		atomic_inc(&cq->refcount);
++	spin_unlock(&cq_table->lock);
+ 	if (!cq) {
+ 		mlx4_dbg(dev, "Completion event for bogus CQ %08x\n", cqn);
+ 		return;
+@@ -67,6 +72,8 @@ void mlx4_cq_completion(struct mlx4_dev *dev, u32 cqn)
+ 	++cq->arm_sn;
  
- 	mc->multicast.ib = ib_sa_join_multicast(&sa_client, id_priv->id.device,
- 						id_priv->id.port_num, &rec,
+ 	cq->comp(cq);
++	if (atomic_dec_and_test(&cq->refcount))
++		complete(&cq->free);
+ }
+ 
+ void mlx4_cq_event(struct mlx4_dev *dev, u32 cqn, int event_type)
 -- 
 1.7.1
 
