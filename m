@@ -1,110 +1,95 @@
-From: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
-Subject: [PATCH] IB/ipoib: Fix crash resulted as of use after free for
- multicast object
-Date: Thu, 30 Aug 2012 09:01:30 +0200 (MEST)
-Message-ID: <Pine.GSO.4.63.1208300859100.27363@stinky-local.trash.net>
+From: Gaetano Mendola <mendola-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Writing RDMA applications on Linux
+Date: Thu, 30 Aug 2012 10:59:05 +0200
+Message-ID: <CAJycT5pF_ao6WqcOkRLMMm4d4hE-i8J=AuD1C-fmMHWnYxVCYA@mail.gmail.com>
+References: <CAJycT5rf_SGPh2Gfg9C9aK2wm4uR6ZMsXeh1WD1gWGb-oqgnLg@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237346A8ACB1@ORSMSX101.amr.corp.intel.com>
+	<CAJycT5rDA0E3q7uobZnQsDUQVpEn__UnuA61KkVrAyPFS+o9fg@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237346A8B686@ORSMSX101.amr.corp.intel.com>
+	<CAJycT5oNX5x32xnFg3eWqVyJEdFOT0R=psKB7PM+0Y7gZ-f+rg@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237346A8B861@ORSMSX101.amr.corp.intel.com>
+	<CAJycT5qy8zdPF0f0AjafrH+657-GAPjx8vLvUdNJuPr=KTRsgg@mail.gmail.com>
+	<CAJycT5o1+pEUWy_7PME0xw8Sy-sUABD-vsN-uwkjyJGP+3c-kw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-851401618-1346310090=:27363"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJycT5o1+pEUWy_7PME0xw8Sy-sUABD-vsN-uwkjyJGP+3c-kw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+I did try to modify  rsocket.c/rstream.c in order to pass to
+ib_post_send addresses
+aligned with the page size but I'm not succeeding. Indeed it's not
+enough to memalign
+the buffers allocated to page_size but as far as I understood each
+buffer is sent
+in chunks this means that those chunks have to be (but last) all in
+size multiple
+of page_size as well. I did try increasing RS_OLAP_START_SIZE to
+page_size (4096)
+but somehow in the cycle in rsocket.c in rsend the buffer passed to
+rs_write_data
+become unaligned. I have not much time right now to follow what is going on in
+there but I'm sure that Sean can fix it in a blink of an eye.
 
----559023410-851401618-1346310090=:27363
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Let me know, I would like to adopt rsocket in my application instead of my own
+implementation but until rsocket is not "fixed" I have to stick with
+my implementation.
 
-Fix a crash in ipoib_mcast_join_task(). With help from Or Gerlitz.
+Gaetano
+
+On Wed, Aug 29, 2012 at 6:03 PM, Gaetano Mendola <mendola-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> I was able to make ib_write_bw to suffer of the same NUMA issue,
+> and this is a good news.
+> The buffer allocation is aligned to 4K, basically the memory allocation
+> is done in this way:
+>
+> page_size = sysconf(_SC_PAGESIZE); //this is 4K on my system
+> buf = memalign(page_size, buffer_size);
+>
+> with same modification on my code now it doesn't matter on which
+> NUMA node I do the affinity (mem/cpu) I'm getting around 1400MB/sec
+>
+> Gaetano
+>
+>
+> On Wed, Aug 29, 2012 at 10:27 AM, Gaetano Mendola <mendola-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> On Wed, Aug 29, 2012 at 12:51 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>>>> I'm not sure if I have to say sorry for the noise or not but it seems
+>>>> that the issue was just an NUMA issue!
+>>>
+>>> that's good news
+>>>
+>>>> May be rsocket has to do a memory affinity on the node with the IB
+>>>> board attached on
+>>>> before to allocate his own memory?
+>>>
+>>> Do you know what code is necessary for doing this?
+>>
+>> It's something I have never done before, apart doing a cpu affinity of
+>> the current process/thread
+>> to a particular core, it should not be hard to see what numactl does.
+>> However before doing
+>> this, that for me has the taste of an hack we should find out why
+>> ib_write_bw is not affected by
+>> cpu/memory affinity.
+>>
+>> Gaetano
+>>
+>> --
+>> cpp-today.blogspot.com
+>
+>
+>
+> --
+> cpp-today.blogspot.com
 
 
----559023410-851401618-1346310090=:27363
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=0001-IB-ipoib-fix-crash-related-to-the-broadcast-group-ob.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.GSO.4.63.1208300901300.27363-ZwCfkpyJE+ZxMqFJ2HQs78wN0UxFyt4e@public.gmane.org>
-Content-Description: 
-Content-Disposition: attachment; filename=0001-IB-ipoib-fix-crash-related-to-the-broadcast-group-ob.patch
 
-W1BBVENIXSBJQi9pcG9pYjogRml4IGNyYXNoIHJlc3VsdGVkIGFzIG9mIHVz
-ZSBhZnRlciBmcmVlIGZvciBtdWx0aWNhc3Qgb2JqZWN0DQoNCkNvbW1pdCBj
-OGMyYWZlMyAiSVBvSUI6IFVzZSBydG5sIGxvY2svdW5sb2NrIHdoZW4gY2hh
-bmdpbmcgZGV2aWNlIGZsYWdzIiANCmFkZGVkIGEgY2FsbCB0byBydG5sX2xv
-Y2soKSBpbiBpcG9pYl9tY2FzdF9qb2luX3Rhc2soKSwgd2hpY2ggaXMgcnVu
-IGZyb20gDQp0aGUgaXBvaWJfd29ya3F1ZXVlLCBhbmQgaGVuY2UgdGhlIHdv
-cmtxdWV1ZSBjYW4ndCBiZSBmbHVzaGVkIGZyb20gdGhlIA0KY29udGV4dCBv
-ZiBpcG9pYl9zdG9wLiANCg0KSW4gdGhlIGN1cnJlbnQgY29kZSwgaXBvaWJf
-c3RvcCgpIHdoaWNoIGRvZXNuJ3QgZmx1c2ggdGhlIHdvcmtxdWV1ZSwgDQpj
-YWxscyBpcG9pYl9tY2FzdF9kZXZfZmx1c2goKSB3aGljaCBnb2VzIGFuZCBk
-ZWxldGVzIGFsbCB0aGUgbXVsdGljYXN0IA0KZW50cmllcywgYW5kIHRoaXMg
-ZmxvdyBwbGFjZSB3aXRob3V0IGFueSBzeW5jaHJvbml6YXRpb24gd2l0aCBw
-b3NzaWJsZSANCnJ1bm5pbmcgaW5zdGFuY2Ugb2YgaXBvaWJfbWNhc3Rfam9p
-bl90YXNrKCkgd2hpY2ggcmVsYXRlIHRvIHRoZSANCnNhbWUgaXBvaWIgZGV2
-aWNlLCBsZWFkaW5nIHRvIGEgY3Jhc2hlcyB3aXRoIGFzIG9mIGtlcm5lbCAN
-Ck5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBpbiB0aGF0IHRhc2suDQoNClRo
-ZSBmaXggdGFrZXMgdGhlIGFwcHJvYWNoIG9mIG1ha2luZyBzdXJlIHRoZSB0
-aGUgd29ya3F1ZXVlDQppcyBmbHVzaGVkIGJlZm9yZSBpcG9pYl9tY2FzdF9k
-ZXZfZmx1c2goKSBpcyBjYWxsZWQsIHdoZXJlIGZvciB0aGF0IA0KZW5kLCB3
-ZSBtb3ZlIHRoZSBSVE5MIGxvY2sgd3JhcHBlZCBjb2RlIHRvIGlwb2liX21j
-YXN0X2pvaW5fZmluaXNoKCkuDQoNClNpZ25lZC1vZmYtYnk6IFBhdHJpY2sg
-TWNIYXJkeSA8a2FiZXJAdHJhc2gubmV0Pg0KDQotLS0NCiBkcml2ZXJzL2lu
-ZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX21haW4uYyAgICAgIHwgICAgMiAr
-LQ0KIGRyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfbXVsdGlj
-YXN0LmMgfCAgIDE5ICsrKysrKysrKystLS0tLS0tLS0NCiAyIGZpbGVzIGNo
-YW5nZWQsIDExIGluc2VydGlvbnMoKyksIDEwIGRlbGV0aW9ucygtKQ0KDQpk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9p
-Yl9tYWluLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2li
-X21haW4uYw0KaW5kZXggYWQ3YTQ1Ni4uYjkxMjlmZSAxMDA2NDQNCi0tLSBh
-L2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfbWFpbi5jDQor
-KysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX21haW4u
-Yw0KQEAgLTE1MCw3ICsxNTAsNyBAQCBzdGF0aWMgaW50IGlwb2liX3N0b3Ao
-c3RydWN0IG5ldF9kZXZpY2UgKmRldikNCiANCiAJbmV0aWZfc3RvcF9xdWV1
-ZShkZXYpOw0KIA0KLQlpcG9pYl9pYl9kZXZfZG93bihkZXYsIDApOw0KKwlp
-cG9pYl9pYl9kZXZfZG93bihkZXYsIDEpOw0KIAlpcG9pYl9pYl9kZXZfc3Rv
-cChkZXYsIDApOw0KIA0KIAlpZiAoIXRlc3RfYml0KElQT0lCX0ZMQUdfU1VC
-SU5URVJGQUNFLCAmcHJpdi0+ZmxhZ3MpKSB7DQpkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9pbmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9tdWx0aWNhc3QuYyBi
-L2RyaXZlcnMvaW5maW5pYmFuZC91bHAvaXBvaWIvaXBvaWJfbXVsdGljYXN0
-LmMNCmluZGV4IDc1MzY3MjQuLmNlY2I5OGEgMTAwNjQ0DQotLS0gYS9kcml2
-ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX211bHRpY2FzdC5jDQor
-KysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX211bHRp
-Y2FzdC5jDQpAQCAtMTc1LDcgKzE3NSw5IEBAIHN0YXRpYyBpbnQgaXBvaWJf
-bWNhc3Rfam9pbl9maW5pc2goc3RydWN0IGlwb2liX21jYXN0ICptY2FzdCwN
-CiANCiAJbWNhc3QtPm1jbWVtYmVyID0gKm1jbWVtYmVyOw0KIA0KLQkvKiBT
-ZXQgdGhlIGNhY2hlZCBRX0tleSBiZWZvcmUgd2UgYXR0YWNoIGlmIGl0J3Mg
-dGhlIGJyb2FkY2FzdCBncm91cCAqLw0KKwkvKiBTZXQgdGhlIG11bHRpY2Fz
-dCBNVFUgYW5kIGNhY2hlZCBRX0tleSBiZWZvcmUgd2UgYXR0YWNoIGlmIGl0
-J3MNCisJICogdGhlIGJyb2FkY2FzdCBncm91cC4NCisJICovDQogCWlmICgh
-bWVtY21wKG1jYXN0LT5tY21lbWJlci5tZ2lkLnJhdywgcHJpdi0+ZGV2LT5i
-cm9hZGNhc3QgKyA0LA0KIAkJICAgIHNpemVvZiAodW5pb24gaWJfZ2lkKSkp
-IHsNCiAJCXNwaW5fbG9ja19pcnEoJnByaXYtPmxvY2spOw0KQEAgLTE4Mywx
-MCArMTg1LDE3IEBAIHN0YXRpYyBpbnQgaXBvaWJfbWNhc3Rfam9pbl9maW5p
-c2goc3RydWN0IGlwb2liX21jYXN0ICptY2FzdCwNCiAJCQlzcGluX3VubG9j
-a19pcnEoJnByaXYtPmxvY2spOw0KIAkJCXJldHVybiAtRUFHQUlOOw0KIAkJ
-fQ0KKwkJcHJpdi0+bWNhc3RfbXR1ID0gSVBPSUJfVURfTVRVKGliX210dV9l
-bnVtX3RvX2ludChwcml2LT5icm9hZGNhc3QtPm1jbWVtYmVyLm10dSkpOw0K
-IAkJcHJpdi0+cWtleSA9IGJlMzJfdG9fY3B1KHByaXYtPmJyb2FkY2FzdC0+
-bWNtZW1iZXIucWtleSk7DQogCQlzcGluX3VubG9ja19pcnEoJnByaXYtPmxv
-Y2spOw0KIAkJcHJpdi0+dHhfd3Iud3IudWQucmVtb3RlX3FrZXkgPSBwcml2
-LT5xa2V5Ow0KIAkJc2V0X3FrZXkgPSAxOw0KKw0KKwkJaWYgKCFpcG9pYl9j
-bV9hZG1pbl9lbmFibGVkKGRldikpIHsNCisJCQlydG5sX2xvY2soKTsNCisJ
-CQlkZXZfc2V0X210dShkZXYsIG1pbihwcml2LT5tY2FzdF9tdHUsIHByaXYt
-PmFkbWluX210dSkpOw0KKwkJCXJ0bmxfdW5sb2NrKCk7DQorCQl9DQogCX0N
-CiANCiAJaWYgKCF0ZXN0X2JpdChJUE9JQl9NQ0FTVF9GTEFHX1NFTkRPTkxZ
-LCAmbWNhc3QtPmZsYWdzKSkgew0KQEAgLTU3NCwxNCArNTgzLDYgQEAgdm9p
-ZCBpcG9pYl9tY2FzdF9qb2luX3Rhc2soc3RydWN0IHdvcmtfc3RydWN0ICp3
-b3JrKQ0KIAkJcmV0dXJuOw0KIAl9DQogDQotCXByaXYtPm1jYXN0X210dSA9
-IElQT0lCX1VEX01UVShpYl9tdHVfZW51bV90b19pbnQocHJpdi0+YnJvYWRj
-YXN0LT5tY21lbWJlci5tdHUpKTsNCi0NCi0JaWYgKCFpcG9pYl9jbV9hZG1p
-bl9lbmFibGVkKGRldikpIHsNCi0JCXJ0bmxfbG9jaygpOw0KLQkJZGV2X3Nl
-dF9tdHUoZGV2LCBtaW4ocHJpdi0+bWNhc3RfbXR1LCBwcml2LT5hZG1pbl9t
-dHUpKTsNCi0JCXJ0bmxfdW5sb2NrKCk7DQotCX0NCi0NCiAJaXBvaWJfZGJn
-X21jYXN0KHByaXYsICJzdWNjZXNzZnVsbHkgam9pbmVkIGFsbCBtdWx0aWNh
-c3QgZ3JvdXBzXG4iKTsNCiANCiAJY2xlYXJfYml0KElQT0lCX01DQVNUX1JV
-TiwgJnByaXYtPmZsYWdzKTsNCi0tIA0KMS43LjENCg0K
-
----559023410-851401618-1346310090=:27363--
+-- 
+cpp-today.blogspot.com
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
