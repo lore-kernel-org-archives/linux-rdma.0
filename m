@@ -1,33 +1,37 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RFC for-next] net/mlx4_core: Fix racy flow in the driver
- CQ completion handler
-Date: Fri, 31 Aug 2012 10:12:53 +0300
-Message-ID: <CAJZOPZJcxMU48HCu+S8cEUG3VENEzH9SEtVTFzC0sJqZ=oww1g@mail.gmail.com>
-References: <1346323085-2665-1-git-send-email-ogerlitz@mellanox.com>
-	<CAJZOPZJOWuoBQx49-O2WLk240GWGRsqfJpCXfhxRV6Cmdw7W0w@mail.gmail.com>
-	<CAL1RGDX7kx7aypOqYvvwu8KBjMra2Gqq+4OGLz22k0RVmeZ1eQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/2] Remove duplicate register definitions in Chelsio cxgb4
+Date: Fri, 31 Aug 2012 14:54:30 +0530
+Message-ID: <1346405072-24561-1-git-send-email-vipul@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDX7kx7aypOqYvvwu8KBjMra2Gqq+4OGLz22k0RVmeZ1eQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, sivasu-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 31, 2012 at 1:35 AM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+Hi David Miller/Roland,
 
-> I don't think this is a real problem; the radix tree code is [...]
+This patch series has minor changes in cxgb4 driver. It removes the duplicate
+definitions of the registers in cxgb4 driver. It also has a minor update in
+RDMA/cxgb4 driver due to change in cxgb4 driver.
 
-So maybe this patch wouldn't land in 3.7, we'll see, however, so far
-no other patch sits in the for-next branch of your tree for the next
-window... any plan to start reviewing / picking patches anytime soon?
+This patch series is built against Stephen Rothwell's linux-next tree. We
+request to merge patch series thorough single tree to avoid build failures.
 
-Also, there are three more fixes for 3.6 I sent you earlier this week,
-which need to get in as they address real bugs (deadlock in IPoIB,
-crashes in mlx4 when attempting to register > 512GB, more).
+Thanks,
+Vipul Pandya
 
-Or.
+Vipul Pandya (2):
+  cxgb4: Remove duplicate register definitions
+  RDMA/cxgb4: Update RDMA/cxgb4 due to macro definition removal in
+    cxgb4 driver
+
+ drivers/infiniband/hw/cxgb4/qp.c                |    2 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |   18 ++++----
+ drivers/net/ethernet/chelsio/cxgb4/sge.c        |    4 +-
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      |   12 +++---
+ drivers/net/ethernet/chelsio/cxgb4/t4_regs.h    |   54 +++++-----------------
+ 5 files changed, 31 insertions(+), 59 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
