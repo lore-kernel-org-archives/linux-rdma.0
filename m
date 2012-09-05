@@ -1,27 +1,27 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: improve search common pkeys.
-Date: Wed, 5 Sep 2012 15:52:01 +0300
-Message-ID: <20120905125201.GA2578@calypso>
-References: <1342620479-14923-1-git-send-email-danielk@mellanox.com>
+Subject: Re: [PATCH][MINOR] opensm/osm_vendor_ibumad.c: Add management class
+ to error log message
+Date: Wed, 5 Sep 2012 15:52:58 +0300
+Message-ID: <20120905125258.GB2578@calypso>
+References: <50235867.1080308@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1342620479-14923-1-git-send-email-danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <50235867.1080308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Daniel,
+Hi Hal,
 
-On 17:07 Wed 18 Jul     , Daniel Klein wrote:
-> improving runtim of search comon pkeys code to o(n).
+On 02:27 Thu 09 Aug     , Hal Rosenstock wrote:
 > 
-> Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
 
-Applied after removing unused variables. Thanks.
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
