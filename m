@@ -1,14 +1,14 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH][MINOR] opensm/osm_vendor_ibumad.c: Add management class
- to error log message
-Date: Wed, 5 Sep 2012 15:52:58 +0300
-Message-ID: <20120905125258.GB2578@calypso>
-References: <50235867.1080308@dev.mellanox.co.il>
+Subject: Re: [PATCH] opensm/osm_sw_info_rcv.c: Fixed locking issue on
+ osm_get_node_by_guid error
+Date: Wed, 5 Sep 2012 15:54:25 +0300
+Message-ID: <20120905125425.GC2578@calypso>
+References: <503D098A.9030503@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <50235867.1080308-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <503D098A.9030503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -16,7 +16,7 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 02:27 Thu 09 Aug     , Hal Rosenstock wrote:
+On 14:10 Tue 28 Aug     , Hal Rosenstock wrote:
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
