@@ -1,7 +1,7 @@
 From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: IPoIB performance
-Date: Wed, 5 Sep 2012 19:06:14 +0000
-Message-ID: <0000013997d35848-57319f33-839b-4480-a075-53b36f67bfe2-000000@email.amazonses.com>
+Date: Wed, 5 Sep 2012 19:13:46 +0000
+Message-ID: <0000013997da4014-44dda0e8-01f3-48b8-b0cd-fe41164d590c-000000@email.amazonses.com>
 References: <FFD82983-4A73-4A52-B6BE-C63DA16A507C@ornl.gov> <0000013997217ec3-f6e2593f-2ff8-408d-814e-0345582b31ca-000000@email.amazonses.com> <3F476926-8618-4233-A150-C5D487B55C68@ornl.gov> <0000013997a928ab-36ad5a02-3c82-4daf-8e8a-a86c65e92376-000000@email.amazonses.com>
  <78D8717C-0505-408B-8625-A9124AB33C9E@ornl.gov>
 Mime-Version: 1.0
@@ -15,13 +15,10 @@ List-Id: linux-rdma@vger.kernel.org
 
 On Wed, 5 Sep 2012, Atchley, Scott wrote:
 
-> > AFAICT the network stack is useful up to 1Gbps and
-> > after that more and more band-aid comes into play.
->
-> Hmm, many 10G Ethernet NICs can reach line rate. I have not yet tested any 40G Ethernet NICs, but I hope that they will get close to line rate. If not, what is the point? ;-)
+> These are Mellanox QDR HCAs (board id is MT_0D90110009). The full output of ibv_devinfo is in my original post.
 
-Oh yes they can under restricted circumstances. Large packets, multiple
-cores etc. With the band-aids....
+Hmmm... You are running an old kernel. What version of OFED do you use?
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
