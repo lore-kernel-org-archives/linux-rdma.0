@@ -1,30 +1,32 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH V2 0/2] Remove duplicate register definitions in
- Chelsio cxgb4
-Date: Wed, 05 Sep 2012 17:43:23 -0400 (EDT)
-Message-ID: <20120905.174323.648192110881034657.davem@davemloft.net>
-References: <1346846515-25997-1-git-send-email-vipul@chelsio.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rsocket library and dup2()
+Date: Wed, 5 Sep 2012 23:12:23 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8C503@ORSMSX101.amr.corp.intel.com>
+References: <CAKb08J+ZApm-GXGUu--NZV31PvGK-tRrqPGFU4aMhWC50nmYow@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1346846515-25997-1-git-send-email-vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <CAKb08J+ZApm-GXGUu--NZV31PvGK-tRrqPGFU4aMhWC50nmYow-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, sivasu-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Alex Couvrard <acouvrard2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Date: Wed,  5 Sep 2012 17:31:53 +0530
-
-> This patch series has minor changes in cxgb4 driver. It removes the duplicate
-> definitions of the registers in cxgb4 driver. It also has a minor update in
-> RDMA/cxgb4 driver due to change in cxgb4 driver.
+> I found the following code in dup2():
 > 
-> This patch series is built against Stephen Rothwell's linux-next tree. We
-> request to merge patch series thorough single tree to avoid build failures.
+> 	oldfdi = idm_lookup(&idm, oldfd);
+> 	if (oldfdi && oldfdi->type == fd_fork)
+> 		fork_passive(oldfd);
+> 
+> In that code the file descriptor type ("type") is compared with a fork
+> state enum value ("fd_fork"). Is that on purpose ??
 
-Applied to net-next, thanks.
+On purpose?  I'll have to go with no.
+
+It's a bug resulting from working on different patches at the same time and not updating the dup2 patch to account for the change where I added a state to the fd.  Thanks for catching this.  I'll fix it up later this week or early next week and push out an update.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
