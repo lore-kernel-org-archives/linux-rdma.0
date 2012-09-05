@@ -1,29 +1,27 @@
-From: "DR.NED OKOH" <infomail-Ygx4hZn+vFQ@public.gmane.org>
-Subject: REPLY NEEDED
-Date: Wed, 05 Sep 2012 10:10:31 -0700
-Message-ID: <SERVERm0fwYdka0fIQT00004992__45773.9016427242$1346865993$gmane$org@offline.co.il>
-Reply-To: mail.info187-Ygx4hZn+vFQ@public.gmane.org
+From: Reeted <reeted-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
+Subject: Re: IPoIB performance
+Date: Wed, 05 Sep 2012 19:50:16 +0200
+Message-ID: <504790D8.7010307@shiftmail.org>
+References: <FFD82983-4A73-4A52-B6BE-C63DA16A507C@ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; format=flowed; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <FFD82983-4A73-4A52-B6BE-C63DA16A507C-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Good day my dear,
-I am writing to acknowledged you that this is the second time we are notifying you about your payment worth of US$16.5m USD,with foreign Remittance payment department office which is due to be released into your Account As we begin the first fiscal payment of the year 2012.Please send the information below as needed for your fund release to you OK.
+On 08/29/12 21:35, Atchley, Scott wrote:
+> Hi all,
+>
+> I am benchmarking a sockets based application and I want a sanity check on IPoIB performance expectations when using connected mode (65520 MTU).....
 
-1)Your Full Name__________________________ _____________
-2)Your Address_______________________ ______________________________
-3)Your Age___________________________ _______________________
-4)Your Direct Telephone Number________________________ ________________
-5)Fax Number________________________ _________________
-6)Occupation____________________ __________________________
+I have read that with newer cards the datagram (unconnected) mode is 
+faster at IPoIB than connected mode. Do you want to check?
 
-We sincerely apologies for our late contact with you, We are committed to serve you better OK and you have been advice to get back to me immediately for more details OK.
-
-Yours in service
-Dr.Ned Okoh
+What benchmark program are you using?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
