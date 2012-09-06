@@ -1,32 +1,57 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rsocket library and dup2()
-Date: Wed, 5 Sep 2012 23:12:23 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8C503@ORSMSX101.amr.corp.intel.com>
-References: <CAKb08J+ZApm-GXGUu--NZV31PvGK-tRrqPGFU4aMhWC50nmYow@mail.gmail.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V2 01/22] IB/core: Reserve bits in enum ib_qp_create_flags for low-level driver use
+Date: Thu, 6 Sep 2012 13:06:35 +0300
+Message-ID: <201209061306.35434.jackm@dev.mellanox.co.il>
+References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il> <1343983258-6268-2-git-send-email-jackm@dev.mellanox.co.il> <504767EB.6090004@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAKb08J+ZApm-GXGUu--NZV31PvGK-tRrqPGFU4aMhWC50nmYow-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <504767EB.6090004-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Couvrard <acouvrard2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> I found the following code in dup2():
+Thanks, Doug!
+
+-Jack
+
+On Wednesday 05 September 2012 17:55, Doug Ledford wrote:
+> On 8/3/2012 4:40 AM, Jack Morgenstein wrote:
+> > Reserve bits 26-31 for internal use by low-level drivers. Two
+> > such bits are used in the mlx4 driver SRIOV IB implementation.
+> > 
+> > These enum additions guarantee that the core layer will never use
+> > these bits, so that low level drivers may safely make use of them.
+> > 
+> > Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> > ---
+> >  include/rdma/ib_verbs.h |    3 +++
+> >  1 files changed, 3 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> > index 07996af..46bc045 100644
+> > --- a/include/rdma/ib_verbs.h
+> > +++ b/include/rdma/ib_verbs.h
+> > @@ -614,6 +614,9 @@ enum ib_qp_type {
+> >  enum ib_qp_create_flags {
+> >  	IB_QP_CREATE_IPOIB_UD_LSO		= 1 << 0,
+> >  	IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK	= 1 << 1,
+> > +	/* reserve bits 26-31 for low level drivers' internal use */
+> > +	IB_QP_CREATE_RESERVED_START		= 1 << 26,
+> > +	IB_QP_CREATE_RESERVED_END		= 1 << 31,
+> >  };
+> >  
+> >  struct ib_qp_init_attr {
+> > 
 > 
-> 	oldfdi = idm_lookup(&idm, oldfd);
-> 	if (oldfdi && oldfdi->type == fd_fork)
-> 		fork_passive(oldfd);
+> Reserving 6 bits for driver use out of 32 seems reasonable.
 > 
-> In that code the file descriptor type ("type") is compared with a fork
-> state enum value ("fd_fork"). Is that on purpose ??
-
-On purpose?  I'll have to go with no.
-
-It's a bug resulting from working on different patches at the same time and not updating the dup2 patch to account for the change where I added a state to the fd.  Thanks for catching this.  I'll fix it up later this week or early next week and push out an update.
-
-- Sean
+> Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
