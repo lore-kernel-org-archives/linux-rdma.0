@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 1/6] opensm: Add .gitignore
-Date: Tue, 11 Sep 2012 16:15:53 +0200
-Message-ID: <504F4799.6020500@acm.org>
+Subject: [PATCH 4/6] opensm: osm_pkey: Remove unused variables
+Date: Tue, 11 Sep 2012 16:19:17 +0200
+Message-ID: <504F4865.3040608@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,59 +13,23 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- .gitignore |   43 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 43 insertions(+), 0 deletions(-)
- create mode 100644 .gitignore
+ opensm/osm_pkey.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/.gitignore b/.gitignore
-new file mode 100644
-index 0000000..4dea307
---- /dev/null
-+++ b/.gitignore
-@@ -0,0 +1,43 @@
-+*.la
-+*.lo
-+*.o
-+.deps
-+.libs
-+aclocal.m4
-+autom4te.cache/
-+config.log
-+config.status
-+config/config.guess
-+config/config.sub
-+config/depcomp
-+config/install-sh
-+config/libtool.m4
-+config/ltmain.sh
-+config/ltoptions.m4
-+config/ltsugar.m4
-+config/ltversion.m4
-+config/lt~obsolete.m4
-+config/missing
-+config/ylwrap
-+configure
-+include/config.h
-+include/config.h.in
-+include/opensm/osm_config.h
-+include/opensm/osm_version.h
-+include/opensm/stamp-h2
-+include/stamp-h1
-+libtool
-+Makefile
-+Makefile.in
-+man/opensm.8
-+man/torus-2QoS.8
-+man/torus-2QoS.conf.5
-+opensm.spec
-+opensm/opensm
-+opensm/osm_qos_parser_l.c
-+opensm/osm_qos_parser_y.c
-+opensm/osm_qos_parser_y.h
-+osmtest/osmtest
-+scripts/opensm.init
-+scripts/redhat-opensm.init
-+scripts/sldd.sh
+diff --git a/opensm/osm_pkey.c b/opensm/osm_pkey.c
+index 98e2aee..bb45f57 100644
+--- a/opensm/osm_pkey.c
++++ b/opensm/osm_pkey.c
+@@ -369,9 +369,6 @@ ib_net16_t osm_physp_find_common_pkey(IN const osm_physp_t * p_physp1,
+ 	uint64_t pkey1_base, pkey2_base;
+ 	const osm_pkey_tbl_t *pkey_tbl1, *pkey_tbl2;
+ 	cl_map_iterator_t map_iter1, map_iter2;
+-	ib_net16_t key;
+-	const osm_pkey_tbl_t *pkey_tbl;
+-	cl_map_iterator_t map_iter, map_end;
+ 
+ 	pkey_tbl1 = osm_physp_get_pkey_tbl(p_physp1);
+ 	pkey_tbl2 = osm_physp_get_pkey_tbl(p_physp2);
 -- 
 1.7.7
 
