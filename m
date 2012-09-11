@@ -1,8 +1,8 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 1/8 v2] opensm/configure.in: check that compiler supports
- __builtin_expect()
-Date: Tue, 11 Sep 2012 18:24:30 +0300
-Message-ID: <504F57AE.20208@mellanox.co.il>
+Subject: [PATCH 2/8 v2] opensm/complib: define macros for for "if" statements
+ with branch prediction hints
+Date: Tue, 11 Sep 2012 18:25:49 +0300
+Message-ID: <504F57FD.5090703@mellanox.co.il>
 Reply-To: <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -12,34 +12,45 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Defined "PT" and "PF" for "predict true"
+and "predict false" respectively.
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- configure.in | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/complib/cl_types_osd.h | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/configure.in b/configure.in
-index e48c066..eb252ff 100644
---- a/configure.in
-+++ b/configure.in
-@@ -56,6 +56,17 @@ AC_HEADER_TIME
- AC_STRUCT_TM
- AC_C_VOLATILE
-
-+dnl See if we have __builtin_expect
-+AC_MSG_CHECKING([if the compiler supports __builtin_expect])
-+AC_TRY_COMPILE(, [ return __builtin_expect(1, 1) ? 1 : 0],
-+		 [ have_builtin_expect=yes
-+		   AC_MSG_RESULT([yes]) ],
-+		 [ have_builtin_expect=no
-+		   AC_MSG_RESULT([no])  ])
-+if test "x_$have_builtin_expect" = "x_yes" ; then
-+	AC_DEFINE([HAVE_BUILTIN_EXPECT], [1], [Define to 1 if the compiler supports __builtin_expect.])
-+fi
+diff --git a/include/complib/cl_types_osd.h b/include/complib/cl_types_osd.h
+index ce1a452..2538913 100644
+--- a/include/complib/cl_types_osd.h
++++ b/include/complib/cl_types_osd.h
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
++ * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -64,6 +64,18 @@ BEGIN_C_DECLS
+ #include <inttypes.h>
+ #include <assert.h>
+ #include <string.h>
 +
- dnl We use --version-script with ld if possible
- AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
- if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
++/*
++ * Branch prediction hints
++ */
++#if defined(HAVE_BUILTIN_EXPECT)
++#define PT(exp)    __builtin_expect( ((uintptr_t)(exp)), 1 )
++#define PF(exp)    __builtin_expect( ((uintptr_t)(exp)), 0 )
++#else
++#define PT(exp)    (exp)
++#define PF(exp)    (exp)
++#endif
++
+ #if defined (_DEBUG_)
+ #define CL_ASSERT	assert
+ #else				/* _DEBUG_ */
 -- 
 1.7.11.1
 
