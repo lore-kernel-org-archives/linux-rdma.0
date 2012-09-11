@@ -1,61 +1,75 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB: new module params. cm_response_timeout,
- max_cm_retries
-Date: Tue, 11 Sep 2012 10:07:31 +0200
-Message-ID: <1347350851.1853.25.camel@test.quest-ce.net>
-References: <1346861254-8614-1-git-send-email-dongsu.park@profitbricks.com>
-	 <1828884A29C6694DAF28B7E6B8A8237346A8CC0A@ORSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH 1/6] opensm: Add .gitignore
+Date: Tue, 11 Sep 2012 16:15:53 +0200
+Message-ID: <504F4799.6020500@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A8CC0A-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le lundi 10 septembre 2012 =C3=A0 19:11 +0000, Hefty, Sean a =C3=A9crit=
- :
-> > Create two kernel parameters, in order to make variables configurab=
-le.
-> > i.e. cma_cm_response_timeout for CM response timeout,
-> >      and cma_max_cm_retries for the number of retries.
-> >=20
-> > They can now be configured via command line for the kernel modules.
-> > For example:
-> >     # modprobe ib_srp cma_cm_response_timeout=3D30 cma_max_cm_retri=
-es=3D60
->=20
-> Rather than using a module parameter, I'd rather see this these value=
-s be
-> controlled through /proc/sys/net/rdma_cm, similar to how the rdma_ucm
-> handles max_backlog.
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+---
+ .gitignore |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
+ create mode 100644 .gitignore
 
-Having them is better so that one can try different values without
-unloading the module.
-
-It would also be great to have default parameters to be applied to all
-CM loaded.: eg. rdma_cm / ib_srp default parameters should be made
-available from ib_cm ?
-
-> For the rdma_cm, I also prefer something more generic.
-> CM retries is fine, but exposing wonky IB timeout (4.096 x 2^X us) to=
-=20
-> the user is less than ideal.
-
-Sure, but which kind of approximation the kernel module is going to
-do ?=20
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..4dea307
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,43 @@
++*.la
++*.lo
++*.o
++.deps
++.libs
++aclocal.m4
++autom4te.cache/
++config.log
++config.status
++config/config.guess
++config/config.sub
++config/depcomp
++config/install-sh
++config/libtool.m4
++config/ltmain.sh
++config/ltoptions.m4
++config/ltsugar.m4
++config/ltversion.m4
++config/lt~obsolete.m4
++config/missing
++config/ylwrap
++configure
++include/config.h
++include/config.h.in
++include/opensm/osm_config.h
++include/opensm/osm_version.h
++include/opensm/stamp-h2
++include/stamp-h1
++libtool
++Makefile
++Makefile.in
++man/opensm.8
++man/torus-2QoS.8
++man/torus-2QoS.conf.5
++opensm.spec
++opensm/opensm
++opensm/osm_qos_parser_l.c
++opensm/osm_qos_parser_y.c
++opensm/osm_qos_parser_y.h
++osmtest/osmtest
++scripts/opensm.init
++scripts/redhat-opensm.init
++scripts/sldd.sh
+-- 
+1.7.7
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
