@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 5/6] opensm: Add command-line option --pidfile
-Date: Tue, 11 Sep 2012 16:20:25 +0200
-Message-ID: <504F48A9.3030802@acm.org>
+Subject: [PATCH 6/6] opensm: /etc/init.d/opensmd: Port to Debian
+Date: Tue, 11 Sep 2012 16:21:14 +0200
+Message-ID: <504F48DA.3030400@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,90 +11,47 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This option is necessary to control opensm from an LSB-compliant
-init script.
-
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- opensm/main.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
+ scripts/opensm.init.in |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/opensm/main.c b/opensm/main.c
-index e9a0b4c..1a061a8 100644
---- a/opensm/main.c
-+++ b/opensm/main.c
-@@ -68,6 +68,7 @@ volatile unsigned int osm_exit_flag = 0;
+diff --git a/scripts/opensm.init.in b/scripts/opensm.init.in
+index 01d2bb9..1b9348c 100644
+--- a/scripts/opensm.init.in
++++ b/scripts/opensm.init.in
+@@ -45,14 +45,20 @@ exec_prefix=@exec_prefix@
  
- static volatile unsigned int osm_hup_flag = 0;
- static volatile unsigned int osm_usr1_flag = 0;
-+static char *pidfile;
+ # Source function library.
+ if [[ -s /etc/init.d/functions ]]; then
++    # RHEL / Fedora.
+     . /etc/init.d/functions
+     rc_status() { :; }
+     rc_exit() { exit $RETVAL; }
+-fi
+-if [[ -s /etc/rc.status ]]; then
++elif [[ -s /etc/rc.status ]]; then
+     . /etc/rc.status
+     failure() { rc_status -v; }
+     success() { rc_status -v; }
++elif [[ -s /lib/lsb/init-functions ]]; then
++    # SLES / openSuSE / Debian.
++    . /lib/lsb/init-functions
++    rc_exit() { exit $RETVAL; }
++    failure() { log_failure_msg; }
++    success() { log_success_msg; }
+ fi
  
- #define MAX_LOCAL_IBPORTS 64
- #define INVALID_GUID (0xFFFFFFFFFFFFFFFFULL)
-@@ -498,10 +499,17 @@ static ib_net64_t get_port_guid(IN osm_opensm_t * p_osm, uint64_t port_guid)
- 	return attr_array[choice].port_guid;
- }
+ CONFIG=@sysconfdir@/sysconfig/opensm
+@@ -62,7 +68,7 @@ fi
  
-+static void remove_pidfile(void)
-+{
-+	if (pidfile)
-+		unlink(pidfile);
-+}
-+
- static int daemonize(osm_opensm_t * osm)
- {
- 	pid_t pid;
- 	int fd;
-+	FILE *f;
- 
- 	fd = open("/dev/null", O_WRONLY);
- 	if (fd < 0) {
-@@ -523,6 +531,18 @@ static int daemonize(osm_opensm_t * osm)
- 	} else if (pid > 0)
- 		exit(0);
- 
-+	if (pidfile) {
-+		remove_pidfile();
-+		f = fopen(pidfile, "w");
-+		if (f) {
-+			fprintf(f, "%d\n", getpid());
-+			fclose(f);
-+		} else {
-+			perror("fopen");
-+			exit(1);
-+		}
-+	}
-+
- 	close(0);
- 	close(1);
- 	close(2);
-@@ -649,6 +669,7 @@ int main(int argc, char *argv[])
- 		{"console-port", 1, NULL, 'C'},
- #endif
- 		{"daemon", 0, NULL, 'B'},
-+		{"pidfile", 1, NULL, 'J'},
- 		{"inactive", 0, NULL, 'I'},
- #ifdef ENABLE_OSM_PERF_MGR
- 		{"perfmgr", 0, NULL, 1},
-@@ -887,6 +908,10 @@ int main(int argc, char *argv[])
- 			printf(" Creating new log file\n");
- 			break;
- 
-+		case 'J':
-+			pidfile = optarg;
-+			break;
-+
- 		case 'P':
- 			SET_STR_OPT(opt.partition_config_file, optarg);
- 			break;
-@@ -1212,6 +1237,7 @@ int main(int argc, char *argv[])
- Exit:
- 	osm_opensm_destroy(&osm);
- 	complib_exit();
-+	remove_pidfile();
- 
- 	exit(0);
- }
+ start () {
+     echo -n "Starting opensm: "
+-    @sbindir@/opensm --daemon $OPTIONS > /dev/null
++    @sbindir@/opensm --daemon --pidfile /var/run/opensm.pid $OPTIONS > /dev/null
+     if [[ $RETVAL -eq 0 ]]; then
+         touch /var/lock/subsys/opensm
+         success
 -- 
 1.7.7
 
