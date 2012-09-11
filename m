@@ -1,8 +1,7 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 6/8 v2] opensm/libvendor/osm_vendor_ibumad.c: validate response
- MAD properties
-Date: Tue, 11 Sep 2012 18:29:52 +0300
-Message-ID: <504F58F0.5000009@mellanox.co.il>
+Subject: [PATCH 7/8 v2] opensm/osm_port_info_rcv.c: check received local_port_num
+Date: Tue, 11 Sep 2012 18:32:11 +0300
+Message-ID: <504F597B.1060507@mellanox.co.il>
 Reply-To: <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -12,94 +11,46 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Check that attribute ID, attribute modifier and
-transaction ID are the same in request and response.
-
-Note that just by checking these we cover a very wide
-range of possible bugs in SMAs. Attribute modifier is
-used in PortInfo, LFT, MFT, and others.
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- libvendor/osm_vendor_ibumad.c | 57 ++++++++++++++++++++++++++++++++++---------
- 1 file changed, 45 insertions(+), 12 deletions(-)
+ opensm/osm_port_info_rcv.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/libvendor/osm_vendor_ibumad.c b/libvendor/osm_vendor_ibumad.c
-index e0c9f90..ca320a6 100644
---- a/libvendor/osm_vendor_ibumad.c
-+++ b/libvendor/osm_vendor_ibumad.c
-@@ -288,7 +288,7 @@ static void *umad_receiver(void *p_ptr)
- 	osm_umad_bind_info_t *p_bind;
- 	osm_mad_addr_t osm_addr;
- 	osm_madw_t *p_madw, *p_req_madw;
--	ib_mad_t *p_mad;
-+	ib_mad_t *p_mad, *p_req_mad;
- 	void *umad = 0;
- 	int mad_agent, length;
+diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
+index c3bc66c..442bc3f 100644
+--- a/opensm/osm_port_info_rcv.c
++++ b/opensm/osm_port_info_rcv.c
+@@ -505,6 +505,11 @@ void osm_pi_rcv_process(IN void *context, IN void *data)
 
-@@ -394,18 +394,51 @@ static void *umad_receiver(void *p_ptr)
- 		}
+ 	CL_ASSERT(p_smp->attr_id == IB_MAD_ATTR_PORT_INFO);
 
- 		p_req_madw = 0;
--		if (ib_mad_is_response(p_mad) &&
--		    !(p_req_madw = get_madw(p_vend, &p_mad->trans_id,
--					    p_mad->mgmt_class))) {
--			OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5413: "
--				"Failed to obtain request madw for received MAD"
--				" (class=0x%X method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
--				p_mad->mgmt_class, p_mad->method,
--				cl_ntoh16(p_mad->attr_id),
--				cl_ntoh64(p_mad->trans_id));
--			osm_mad_pool_put(p_bind->p_mad_pool, p_madw);
--			continue;
-+		if (ib_mad_is_response(p_mad)) {
-+			p_req_madw = get_madw(p_vend, &p_mad->trans_id,
-+					      p_mad->mgmt_class);
-+			if (PF(!p_req_madw)) {
-+				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
-+					"ERR 5413: Failed to obtain request "
-+					"madw for received MAD "
-+					"(class=0x%X method=0x%X attr=0x%X "
-+					"tid=0x%"PRIx64") -- dropping\n",
-+					p_mad->mgmt_class, p_mad->method,
-+					cl_ntoh16(p_mad->attr_id),
-+					cl_ntoh64(p_mad->trans_id));
-+				osm_mad_pool_put(p_bind->p_mad_pool, p_madw);
-+				continue;
-+			}
++	/*
++	 * Attribute modifier has already been validated upon MAD receive,
++	 * which means that port_num has to be valid - it originated from
++	 * the request attribute modifier.
++	 */
+ 	port_num = (uint8_t) cl_ntoh32(p_smp->attr_mod);
+
+ 	port_guid = p_context->port_guid;
+@@ -554,6 +559,17 @@ void osm_pi_rcv_process(IN void *context, IN void *data)
+ 	p_node = p_port->p_node;
+ 	CL_ASSERT(p_node);
+
++	if (p_pi->local_port_num > p_node->node_info.num_ports) {
++		CL_PLOCK_RELEASE(sm->p_lock);
++		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0F15: "
++			"Received PortInfo for port GUID 0x%" PRIx64 " is "
++			"non-compliant and is being ignored since the "
++			"local port num %u > num ports %u\n",
++			cl_ntoh64(port_guid), p_pi->local_port_num,
++			p_node->node_info.num_ports);
++		goto Exit;
++	}
 +
-+			/*
-+			 * Check that request MAD was really a request,
-+			 * and make sure that attribute ID, attribute
-+			 * modifier and transaction ID are the same in
-+			 * request and response.
-+			 */
-+			p_req_mad = osm_madw_get_mad_ptr(p_req_madw);
-+			if (PF(ib_mad_is_response(p_req_mad) ||
-+			       p_mad->attr_id != p_req_mad->attr_id ||
-+			       p_mad->attr_mod != p_req_mad->attr_mod ||
-+			       p_mad->trans_id != p_req_mad->trans_id)) {
-+				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
-+					"ERR 541A: "
-+					"Response MAD validation failed "
-+					"(request attr=0x%X modif=0x%X "
-+					"tid=0x%"PRIx64", "
-+					"response attr=0x%X modif=0x%X "
-+					"tid=0x%"PRIx64") -- dropping\n",
-+					cl_ntoh16(p_req_mad->attr_id),
-+					cl_ntoh32(p_req_mad->attr_mod),
-+					cl_ntoh64(p_req_mad->trans_id),
-+					cl_ntoh16(p_mad->attr_id),
-+					cl_ntoh32(p_mad->attr_mod),
-+					cl_ntoh64(p_mad->trans_id));
-+				osm_mad_pool_put(p_bind->p_mad_pool, p_madw);
-+				continue;
-+			}
- 		}
-+
- #ifndef VENDOR_RMPP_SUPPORT
- 		if ((p_mad->mgmt_class != IB_MCLASS_SUBN_DIR) &&
- 		    (p_mad->mgmt_class != IB_MCLASS_SUBN_LID) &&
+ 	/*
+ 	   If we were setting the PortInfo, then receiving
+ 	   this attribute was not part of sweeping the subnet.
 -- 
 1.7.11.1
 
