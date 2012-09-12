@@ -1,45 +1,26 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: fix compliance test failure C14-024#06_LocalPortNum
-Date: Wed, 12 Sep 2012 09:01:29 -0400
-Message-ID: <20120912130129.26588.1125.stgit@phlsvsles11.ph.intel.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH fixes/for-3.6 2/3] IB/ipoib: Fix AB-BA deadlock when
+ deleting neighbours
+Date: Wed, 12 Sep 2012 09:23:29 -0700
+Message-ID: <CAL1RGDUGuEE-5X10j6Y0B8fkSH1a1=NDARFYumwwmSjtE0WsJw@mail.gmail.com>
+References: <1346253275-12347-1-git-send-email-ogerlitz@mellanox.com> <1346253275-12347-3-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1346253275-12347-3-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 3236b2d4 ("IB/qib: MADs with misset M_Keys should return failure")
-introduced a return code assignment that unfortunately introduced
-an unconditional exit for the routine due to the lack of braces.
+thanks, applied this and 1/3
 
-This patch adds the braces to correct the original patch.
+On Wed, Aug 29, 2012 at 8:14 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>                 while ((neigh = rcu_dereference_protected(*np,
+> -                                                         lockdep_is_held(&ntbl->rwlock))) != NULL) {
+> +                                      lockdep_is_held(&priv->lock))) != NULL) {
 
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_mad.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index 19f1e6c..ccb1191 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -471,9 +471,10 @@ static int subn_get_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 		if (port_num != port) {
- 			ibp = to_iport(ibdev, port_num);
- 			ret = check_mkey(ibp, smp, 0);
--			if (ret)
-+			if (ret) {
- 				ret = IB_MAD_RESULT_FAILURE;
- 				goto bail;
-+			}
- 		}
- 	}
- 
-
+please try to avoid messing up indentation when doing fixes like this.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
