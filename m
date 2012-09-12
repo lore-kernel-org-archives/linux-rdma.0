@@ -1,7 +1,7 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+From: Bart Van Assche <bartvanassche.gglplus-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: [PATCH 2/6] opensm: Make it possible to enable opensm with chkconfig
-Date: Wed, 12 Sep 2012 13:54:39 +0200
-Message-ID: <505077FF.6060408@acm.org>
+Date: Wed, 12 Sep 2012 13:49:27 +0200
+Message-ID: <505076C7.7050106@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
