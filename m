@@ -1,41 +1,44 @@
-From: Bart Van Assche <bartvanassche.gglplus-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/6] opensm: Make it possible to enable opensm with chkconfig
-Date: Wed, 12 Sep 2012 13:49:27 +0200
-Message-ID: <505076C7.7050106@acm.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: fix compliance test failure C14-024#06_LocalPortNum
+Date: Wed, 12 Sep 2012 09:01:29 -0400
+Message-ID: <20120912130129.26588.1125.stgit@phlsvsles11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The command "chkconfig $service on" enables a service in the "Default-Start"
-runlevels.
+Commit 3236b2d4 ("IB/qib: MADs with misset M_Keys should return failure")
+introduced a return code assignment that unfortunately introduced
+an unconditional exit for the routine due to the lack of braces.
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+This patch adds the braces to correct the original patch.
+
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- scripts/opensm.init.in |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/qib/qib_mad.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/scripts/opensm.init.in b/scripts/opensm.init.in
-index 0c84bd3..9ec08a2 100644
---- a/scripts/opensm.init.in
-+++ b/scripts/opensm.init.in
-@@ -9,8 +9,8 @@
- # Provides: opensm
- # Required-Start: $syslog
- # Required-Stop:
--# Default-Start: none
--# Default-Stop: 0 1 6
-+# Default-Start: 2 3 5
-+# Default-Stop: 0 1 4 6
- # Description:  Manage OpenSM
- ### END INIT INFO
- #
--- 
-1.7.7
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 19f1e6c..ccb1191 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -471,9 +471,10 @@ static int subn_get_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 		if (port_num != port) {
+ 			ibp = to_iport(ibdev, port_num);
+ 			ret = check_mkey(ibp, smp, 0);
+-			if (ret)
++			if (ret) {
+ 				ret = IB_MAD_RESULT_FAILURE;
+ 				goto bail;
++			}
+ 		}
+ 	}
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
