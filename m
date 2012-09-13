@@ -1,33 +1,91 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V2 02/22] IB/core: change pkey table lookups
- to support full and partial membership for the same pkey
-Date: Thu, 13 Sep 2012 19:00:01 +0300
-Message-ID: <50520301.7040803@mellanox.com>
-References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il> <1343983258-6268-3-git-send-email-jackm@dev.mellanox.co.il> <504F6C4F.6050207@redhat.com> <50520193.2010304@mellanox.com>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: Add a qib driver version
+Date: Thu, 13 Sep 2012 10:19:02 -0700
+Message-ID: <20120913171902.2836.32491.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50520193.2010304-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 13/09/2012 18:53, Or Gerlitz wrote:
-> The physical PKey table can contain both full and partial memberships 
-> of the same Pkey.
-> This is needed to serve 2 VFs that are granted access to the same 
-> PKey, albeit with different membership types. 
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_common.h |   14 +++++++++++++-
+ drivers/infiniband/hw/qib/qib_driver.c |    3 ++-
+ drivers/infiniband/hw/qib/qib_verbs.c  |    2 +-
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
-Example use case -- RDMA or IPoIB network storage (file/block) server 
-running on a VM
-and clients  running on other VMs. Some of the client VMs may be located 
-on the
-same hypervisor node as the server, and we want the clients to use limited
-partition such that they can't talk to each other on the storage partition.
+diff --git a/drivers/infiniband/hw/qib/qib_common.h b/drivers/infiniband/hw/qib/qib_common.h
+index 145da40..d39e018 100644
+--- a/drivers/infiniband/hw/qib/qib_common.h
++++ b/drivers/infiniband/hw/qib/qib_common.h
+@@ -285,7 +285,6 @@ struct qib_base_info {
+ 
+ #ifndef QIB_KERN_TYPE
+ #define QIB_KERN_TYPE 0
+-#define QIB_IDSTR "QLogic kernel.org driver"
+ #endif
+ 
+ /*
+@@ -302,6 +301,19 @@ struct qib_base_info {
+ #define QIB_KERN_SWVERSION ((QIB_KERN_TYPE << 31) | QIB_USER_SWVERSION)
+ 
+ /*
++ * Define the driver version number.  This is something that refers only
++ * to the driver itself, not the software interfaces it supports.
++ */
++#define QIB_DRIVER_VERSION_BASE "1.11"
++
++/* create the final driver version string */
++#ifdef QIB_IDSTR
++#define QIB_DRIVER_VERSION QIB_DRIVER_VERSION_BASE " " QIB_IDSTR
++#else
++#define QIB_DRIVER_VERSION QIB_DRIVER_VERSION_BASE
++#endif
++
++/*
+  * If the unit is specified via open, HCA choice is fixed.  If port is
+  * specified, it's also fixed.  Otherwise we try to spread contexts
+  * across ports and HCAs, using different algorithims.  WITHIN is
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index e41e7f7..5423edc 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -46,7 +46,7 @@
+  * The size has to be longer than this string, so we can append
+  * board/chip information to it in the init code.
+  */
+-const char ib_qib_version[] = QIB_IDSTR "\n";
++const char ib_qib_version[] = QIB_DRIVER_VERSION "\n";
+ 
+ DEFINE_SPINLOCK(qib_devs_lock);
+ LIST_HEAD(qib_dev_list);
+@@ -65,6 +65,7 @@ MODULE_PARM_DESC(compat_ddr_negotiate,
+ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_AUTHOR("QLogic <support-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>");
+ MODULE_DESCRIPTION("QLogic IB driver");
++MODULE_VERSION(QIB_DRIVER_VERSION);
+ 
+ /*
+  * QIB_PIO_MAXIBHDR is the max IB header size allowed for in our
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index fc9b205..ba51a47 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -2224,7 +2224,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	ibdev->dma_ops = &qib_dma_mapping_ops;
+ 
+ 	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
+-		 QIB_IDSTR " %s", init_utsname()->nodename);
++		 "QLogic Infiniband HCA %s", init_utsname()->nodename);
+ 
+ 	ret = ib_register_device(ibdev, qib_create_port_files);
+ 	if (ret)
 
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
