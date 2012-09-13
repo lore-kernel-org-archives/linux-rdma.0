@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH for-next V2 02/22] IB/core: change pkey table lookups
  to support full and partial membership for the same pkey
-Date: Thu, 13 Sep 2012 11:18:38 +0300
-Message-ID: <505196DE.2030304@mellanox.com>
+Date: Thu, 13 Sep 2012 11:20:38 +0300
+Message-ID: <50519756.7040005@mellanox.com>
 References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il> <201209121056.00309.jackm@dev.mellanox.co.il> <5050BCDD.50106@redhat.com> <201209131035.15318.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
@@ -21,12 +21,16 @@ There are some issues in the overall solution, since ARPs sent over the
 broadcast group reach
 also nodes with partial membership their HCA generated pkey violation 
 errors which is a bit annoying,
-the IBTA has been dealing with this for a while, not sure where it stands.
+the IBTA has been dealing with this for a while, not sure where it 
+stands. I'm not aware to other issues.
 
-But, all in all, the approach taken by IPoIB is to always use the full 
-form of a pkey e.g 0x8001
+All in all, the approach taken by IPoIB is to always use the full form 
+of a pkey e.g 0x8001
 and not 0x0001 when dealing with the core helper functions and within 
-ipoib internally.
+ipoib internally and
+externally  -- e.g in the sysfs (and also in the rtnl link ops I'm 
+adding now) interfaces - of add/delete child and
+show the pkey.
 
 Or.
 --
