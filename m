@@ -1,90 +1,210 @@
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: Add a qib driver version
-Date: Thu, 13 Sep 2012 10:19:02 -0700
-Message-ID: <20120913171902.2836.32491.stgit@scvm10.sc.intel.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags: Allow user to specify multiple ports
+Date: Thu, 13 Sep 2012 16:13:05 -0700
+Message-ID: <1347577985.25388.42.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_common.h |   14 +++++++++++++-
- drivers/infiniband/hw/qib/qib_driver.c |    3 ++-
- drivers/infiniband/hw/qib/qib_verbs.c  |    2 +-
- 3 files changed, 16 insertions(+), 3 deletions(-)
+Allow user to select multiple ports via comma or range input.  May
+be particularly useful for gathering aggregate performance counters
+for groups of ports, such as all the uplinks or downlinks from a
+switch.
 
-diff --git a/drivers/infiniband/hw/qib/qib_common.h b/drivers/infiniband/hw/qib/qib_common.h
-index 145da40..d39e018 100644
---- a/drivers/infiniband/hw/qib/qib_common.h
-+++ b/drivers/infiniband/hw/qib/qib_common.h
-@@ -285,7 +285,6 @@ struct qib_base_info {
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ doc/rst/perfquery.8.in.rst |   19 ++++++++++----
+ src/perfquery.c            |   57 +++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 68 insertions(+), 8 deletions(-)
+
+diff --git a/doc/rst/perfquery.8.in.rst b/doc/rst/perfquery.8.in.rst
+index 359c94e..5e3d709 100644
+--- a/doc/rst/perfquery.8.in.rst
++++ b/doc/rst/perfquery.8.in.rst
+@@ -14,7 +14,7 @@ query InfiniBand port counters on a single port
+ SYNOPSIS
+ ========
  
- #ifndef QIB_KERN_TYPE
- #define QIB_KERN_TYPE 0
--#define QIB_IDSTR "QLogic kernel.org driver"
- #endif
+-perfquery [options] [<lid|guid> [[port] [reset_mask]]]
++perfquery [options] [<lid|guid> [[port(s)] [reset_mask]]]
  
- /*
-@@ -302,6 +301,19 @@ struct qib_base_info {
- #define QIB_KERN_SWVERSION ((QIB_KERN_TYPE << 31) | QIB_USER_SWVERSION)
+ DESCRIPTION
+ ===========
+@@ -32,6 +32,9 @@ octets divided by 4 rather than just octets.
  
- /*
-+ * Define the driver version number.  This is something that refers only
-+ * to the driver itself, not the software interfaces it supports.
-+ */
-+#define QIB_DRIVER_VERSION_BASE "1.11"
+ Note: Inputting a port of 255 indicates an operation be performed on all ports.
+ 
++Note: For PortCounters, ExtendedCounters, and resets, multiple ports can be
++specified by either a comma separated list or a port range.  See examples below.
 +
-+/* create the final driver version string */
-+#ifdef QIB_IDSTR
-+#define QIB_DRIVER_VERSION QIB_DRIVER_VERSION_BASE " " QIB_IDSTR
-+#else
-+#define QIB_DRIVER_VERSION QIB_DRIVER_VERSION_BASE
-+#endif
+ 
+ OPTIONS
+ =======
+@@ -98,15 +101,16 @@ OPTIONS
+ 	show port samples control.
+ 
+ **-a, --all_ports**
+-	show aggregated counters for all ports of the destination lid or reset
+-	all counters for all ports.  If the destination lid does not support
++	show aggregated counters for all ports of the destination lid, reset
++	all counters for all ports, or if multiple ports are specified, aggregate
++	the counters of the specified ports.  If the destination lid does not support
+ 	the AllPortSelect flag, all ports will be iterated through to emulate
+ 	AllPortSelect behavior.
+ 
+ **-l, --loop_ports**
+ 	If all ports are selected by the user (either through the **-a** option
+-	or port 255) iterate through each port rather than doing than aggregate
+-	operation.
++	or port 255) or multiple ports are specified iterate through each port rather
++	than doing than aggregate operation.
+ 
+ **-r, --reset_after_read**
+ 	reset counters after read
+@@ -158,6 +162,7 @@ EXAMPLES
+ ========
+ 
+ ::
 +
-+/*
-  * If the unit is specified via open, HCA choice is fixed.  If port is
-  * specified, it's also fixed.  Otherwise we try to spread contexts
-  * across ports and HCAs, using different algorithims.  WITHIN is
-diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
-index e41e7f7..5423edc 100644
---- a/drivers/infiniband/hw/qib/qib_driver.c
-+++ b/drivers/infiniband/hw/qib/qib_driver.c
-@@ -46,7 +46,7 @@
-  * The size has to be longer than this string, so we can append
-  * board/chip information to it in the init code.
-  */
--const char ib_qib_version[] = QIB_IDSTR "\n";
-+const char ib_qib_version[] = QIB_DRIVER_VERSION "\n";
+ 	perfquery                # read local port performance counters
+ 	perfquery 32 1           # read performance counters from lid 32, port 1
+ 	perfquery -x 32 1        # read extended performance counters from lid 32, port 1
+@@ -169,6 +174,10 @@ EXAMPLES
+ 	perfquery -R -a 32       # reset performance counters of all ports
+ 	perfquery -R 32 2 0x0fff # reset only error counters of port 2
+ 	perfquery -R 32 2 0xf000 # reset only non-error counters of port 2
++	perfquery -a 32 1-10     # read performance counters from lid 32, port 1-10, aggregate output
++	perfquery -l 32 1-10     # read performance counters from lid 32, port 1-10, output each port
++	perfquery -a 32 1,4,8    # read performance counters from lid 32, port 1, 4, and 8, aggregate output
++	perfquery -l 32 1,4,8    # read performance counters from lid 32, port 1, 4, and 8, output each port
  
- DEFINE_SPINLOCK(qib_devs_lock);
- LIST_HEAD(qib_dev_list);
-@@ -65,6 +65,7 @@ MODULE_PARM_DESC(compat_ddr_negotiate,
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_AUTHOR("QLogic <support-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>");
- MODULE_DESCRIPTION("QLogic IB driver");
-+MODULE_VERSION(QIB_DRIVER_VERSION);
+ AUTHOR
+ ======
+diff --git a/src/perfquery.c b/src/perfquery.c
+index 32dd98f..27ec4f7 100644
+--- a/src/perfquery.c
++++ b/src/perfquery.c
+@@ -94,6 +94,7 @@ struct perf_count perf_count =
+ struct perf_count_ext perf_count_ext = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
  
- /*
-  * QIB_PIO_MAXIBHDR is the max IB header size allowed for in our
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index fc9b205..ba51a47 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -2224,7 +2224,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->dma_ops = &qib_dma_mapping_ops;
+ #define ALL_PORTS 0xFF
++#define MAX_PORTS 255
  
- 	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
--		 QIB_IDSTR " %s", init_utsname()->nodename);
-+		 "QLogic Infiniband HCA %s", init_utsname()->nodename);
+ /* Notes: IB semantics is to cap counters if count has exceeded limits.
+  * Therefore we must check for overflows and cap the counters if necessary.
+@@ -371,6 +372,8 @@ static int reset, reset_only, all_ports, loop_ports, port, extended, xmt_sl,
+     rcv_sl, xmt_disc, rcv_err, extended_speeds, smpl_ctl, oprcvcounters, flowctlcounters,
+     vloppackets, vlopdata, vlxmitflowctlerrors, vlxmitcounters, swportvlcong,
+     rcvcc, slrcvfecn, slrcvbecn, xmitcc, vlxmittimecc;
++static int ports[MAX_PORTS];
++static int ports_count;
  
- 	ret = ib_register_device(ibdev, qib_create_port_files);
- 	if (ret)
+ static void common_func(ib_portid_t * portid, int port_num, int mask,
+ 			unsigned query, unsigned reset,
+@@ -666,6 +669,7 @@ int main(int argc, char **argv)
+ 	uint8_t data[IB_SMP_DATA_SIZE] = { 0 };
+ 	int start_port = 1;
+ 	int enhancedport0;
++	char *tmpstr;
+ 	int i;
+ 
+ 	const struct ibdiag_opt opts[] = {
+@@ -694,7 +698,7 @@ int main(int argc, char **argv)
+ 		{"Reset_only", 'R', 0, NULL, "only reset counters"},
+ 		{0}
+ 	};
+-	char usage_args[] = " [<lid|guid> [[port] [reset_mask]]]";
++	char usage_args[] = " [<lid|guid> [[port(s)] [reset_mask]]]";
+ 	const char *usage_examples[] = {
+ 		"\t\t# read local port's performance counters",
+ 		"32 1\t\t# read performance counters from lid 32, port 1",
+@@ -707,6 +711,10 @@ int main(int argc, char **argv)
+ 		"-R -a 32\t# reset performance counters of all ports",
+ 		"-R 32 2 0x0fff\t# reset only error counters of port 2",
+ 		"-R 32 2 0xf000\t# reset only non-error counters of port 2",
++		"-a 32 1-10\t# read performance counters from lid 32, port 1-10, aggregate output",
++		"-l 32 1-10\t# read performance counters from lid 32, port 1-10, output each port",
++		"-a 32 1,4,8\t# read performance counters from lid 32, port 1, 4, and 8, aggregate output",
++		"-l 32 1,4,8\t# read performance counters from lid 32, port 1, 4, and 8, output each port",
+ 		NULL,
+ 	};
+ 
+@@ -716,8 +724,35 @@ int main(int argc, char **argv)
+ 	argc -= optind;
+ 	argv += optind;
+ 
+-	if (argc > 1)
+-		port = strtoul(argv[1], 0, 0);
++	if (argc > 1) {
++		if (strchr(argv[1], ',')) {
++			tmpstr = strtok(argv[1], ",");
++			while (tmpstr) {
++				ports[ports_count++] = strtoul(tmpstr, 0, 0);
++				tmpstr = strtok(NULL, ",");
++			}
++			port = ports[0];
++		}
++		else if ((tmpstr = strchr(argv[1], '-'))) {
++			int pmin, pmax;
++
++			*tmpstr = '\0';
++			tmpstr++;
++
++			pmin = strtoul(argv[1], 0, 0);
++			pmax = strtoul(tmpstr, 0, 0);
++
++			if (pmin >= pmax)
++				IBERROR("max port must be greater than min port in range");
++
++			while (pmin <= pmax)
++				ports[ports_count++] = pmin++;
++
++			port = ports[0];
++		}
++		else
++			port = strtoul(argv[1], 0, 0);
++	}
+ 	if (argc > 2) {
+ 		ext_mask = strtoull(argv[2], 0, 0);
+ 		mask = ext_mask;
+@@ -882,6 +917,19 @@ int main(int argc, char **argv)
+ 				output_aggregate_perfcounters_ext(&portid,
+ 								  cap_mask);
+ 		}
++	} else if (ports_count > 1) {
++		for (i = 0; i < ports_count; i++)
++			dump_perfcounters(extended, ibd_timeout, cap_mask,
++					  &portid, ports[i],
++					  (all_ports && !loop_ports));
++		if (all_ports && !loop_ports) {
++			if (extended != 1)
++				output_aggregate_perfcounters(&portid,
++							      cap_mask);
++			else
++				output_aggregate_perfcounters_ext(&portid,
++								  cap_mask);
++		}
+ 	} else
+ 		dump_perfcounters(extended, ibd_timeout, cap_mask, &portid,
+ 				  port, 0);
+@@ -896,6 +944,9 @@ do_reset:
+ 	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
+ 		for (i = start_port; i <= num_ports; i++)
+ 			reset_counters(extended, ibd_timeout, mask, &portid, i);
++	} else if (ports_count > 1) {
++		for (i = 0; i < ports_count; i++)
++			reset_counters(extended, ibd_timeout, mask, &portid, ports[i]);
+ 	} else
+ 		reset_counters(extended, ibd_timeout, mask, &portid, port);
+ 
+-- 
+1.7.1
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
