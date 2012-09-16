@@ -1,30 +1,34 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: Manage ports that do not support congestion
- control
-Date: Sun, 16 Sep 2012 13:11:15 +0300
-Message-ID: <20120916101115.GF8243@calypso>
-References: <1346262032.15926.22.camel@auk59.llnl.gov>
+Subject: Re: [PATCH] osmtest/osmt_multicast.c: Fix 02BF error
+Date: Sun, 16 Sep 2012 13:11:51 +0300
+Message-ID: <20120916101151.GG8243@calypso>
+References: <5047859F.6020402@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1346262032.15926.22.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <5047859F.6020402-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Albert,
+Hi Hal,
 
-On 10:40 Wed 29 Aug     , Albert Chu wrote:
-> Support the ability to run congestion support in an environment
-> where some IB hardware does not support congestion control.
+On 13:02 Wed 05 Sep     , Hal Rosenstock wrote:
 > 
-> In addition, by flagging ports that do not support congestion
-> control, we can reduce the amount of MAD traffic and log messages.
+> when running osmtest -f m -M 2
 > 
-> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> ---
+> Reported-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Sep 04 20:27:28 920578 [D2499700] 0x02 -> osmt_run_mcast_flow: Checking partial JoinState delete request - removing NonMember (o15.0.1.14)...
+> Sep 04 20:27:28 920863 [D2499700] 0x02 -> osmt_run_mcast_flow: Validating Join State removal of Non Member bit (o15.0.1.14)...
+> Sep 04 20:27:28 921510 [D2499700] 0x02 -> osmt_run_mcast_flow: Validating Join State update remove (o15.0.1.14)...
+> Sep 04 20:27:28 921518 [D2499700] 0x01 -> osmt_run_mcast_flow: ERR 02BF: Validating JoinState update failed. Expected 0x25 got: 0x20
+> Sep 04 20:27:28 921527 [D2499700] 0x01 -> osmtest_run: ERR 0152: Multicast Flow failed: (IB_ERROR)
+> OSMTEST: TEST "Multicast" FAIL
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Applied, thanks.
 --
