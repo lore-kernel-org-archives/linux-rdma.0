@@ -1,35 +1,46 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: srp-ha backport
-Date: Sat, 15 Sep 2012 11:23:58 +0200
-Message-ID: <5054492E.1090403@acm.org>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/6] opensm: Make it possible to enable opensm with
+ chkconfig
+Date: Sun, 16 Sep 2012 12:10:08 +0300
+Message-ID: <20120916091008.GA8243@calypso>
+References: <505077FF.6060408@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <505077FF.6060408-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+Hi Bart,
 
-In case anyone would like to start using the srp-ha patch series before
-it gets upstream, a backported version of that patch series is available
-here: http://github.com/bvanassche/ib_srp-backport. The advantages of
-that version of ib_srp over what's upstream are:
-- Better robustness against cable plugging.
-- Allows closing an SRP connection from the initiator side (via the
-  new "delete" attribute in sysfs).
-- Configurable dev_loss_tmo and fast_io_fail_tmo parameters.
-- Builds against any kernel in the range 2.6.32..3.6.
-- Can be used on RHEL 6.x systems.
+On 13:54 Wed 12 Sep     , Bart Van Assche wrote:
+> The command "chkconfig $service on" enables a service in the "Default-Start"
+> runlevels.
+> 
+> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> ---
+>  scripts/opensm.init.in |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/scripts/opensm.init.in b/scripts/opensm.init.in
+> index 0c84bd3..9ec08a2 100644
+> --- a/scripts/opensm.init.in
+> +++ b/scripts/opensm.init.in
+> @@ -9,8 +9,8 @@
+>  # Provides: opensm
+>  # Required-Start: $syslog
+>  # Required-Stop:
+> -# Default-Start: none
+> -# Default-Stop: 0 1 6
+> +# Default-Start: 2 3 5
+> +# Default-Stop: 0 1 4 6
 
-In combination with srp_daemon and multipath-tools this should allow to
-build a reliable H.A. SRP solution.
+Why it's needed also to stop on runlevel 4?
 
-Note: I haven't been able to test that code against every existing
-mainstream or distro kernel. Feedback is welcome though.
-
-Bart.
+-- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
