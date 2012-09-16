@@ -1,101 +1,64 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] /etc/init.d/opensmd: Improve systemd integration
-Date: Sun, 16 Sep 2012 12:31:59 +0300
-Message-ID: <20120916093159.GB8243@calypso>
-References: <50535650.6050306@acm.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 2/6] opensm: Make it possible to enable opensm with chkconfig
+Date: Sun, 16 Sep 2012 11:55:16 +0200
+Message-ID: <5055A204.2030607@acm.org>
+References: <505077FF.6060408@acm.org> <20120916091008.GA8243@calypso>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <50535650.6050306-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <20120916091008.GA8243@calypso>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
+On 09/16/12 11:10, Alex Netes wrote:
+> Hi Bart,
+>
+> On 13:54 Wed 12 Sep     , Bart Van Assche wrote:
+>> The command "chkconfig $service on" enables a service in the "Default-Start"
+>> runlevels.
+>>
+>> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+>> ---
+>>   scripts/opensm.init.in |    4 ++--
+>>   1 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/scripts/opensm.init.in b/scripts/opensm.init.in
+>> index 0c84bd3..9ec08a2 100644
+>> --- a/scripts/opensm.init.in
+>> +++ b/scripts/opensm.init.in
+>> @@ -9,8 +9,8 @@
+>>   # Provides: opensm
+>>   # Required-Start: $syslog
+>>   # Required-Stop:
+>> -# Default-Start: none
+>> -# Default-Stop: 0 1 6
+>> +# Default-Start: 2 3 5
+>> +# Default-Stop: 0 1 4 6
+>
+> Why it's needed also to stop on runlevel 4?
 
-On 18:07 Fri 14 Sep     , Bart Van Assche wrote:
-> On recent SLES and openSUSE systems it is necessary to read the
-> file /lib/lsb/init-functions instead of /etc/rc.status for proper
-> integration with systemd. Also, prevent that the opensm process is
-> started twice and drop /var/lock/subsys/opensm.
+Good question. As far as I know runlevel 4 is not used. I've noticed 
+though that some Linux distributions (RHEL) enable services in runlevel 
+4 that are also enabled in runlevel 3. The LSB isn't very clear about 
+this subject though. A quote from 
+http://refspecs.linux-foundation.org/LSB_3.2.0/LSB-Core-generic/LSB-Core-generic/runlevels.html:
 
-There could be a problem (which also persists in the original script), that in
-theory you can run two OpenSM instances (on different ports) which is not
-being supported by the init script. Any thoughts how this can be addressed?
+0	halt
+1	single user mode
+2	multiuser with no network services exported
+3	normal/full multiuser
+4	reserved for local use, default is normal/full multiuser
+5	multiuser with a display manager or equivalent
+6	reboot
 
-> 
-> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-> ---
->  scripts/opensm.init.in |   21 +++++++++++++++------
->  1 files changed, 15 insertions(+), 6 deletions(-)
-> 
-> diff --git a/scripts/opensm.init.in b/scripts/opensm.init.in
-> index 01d2bb9..7a9f8ec 100644
-> --- a/scripts/opensm.init.in
-> +++ b/scripts/opensm.init.in
-> @@ -45,11 +45,18 @@ exec_prefix=@exec_prefix@
->  
->  # Source function library.
->  if [[ -s /etc/init.d/functions ]]; then
-> +    # RHEL / CentOS / SL / Fedora.
->      . /etc/init.d/functions
->      rc_status() { :; }
->      rc_exit() { exit $RETVAL; }
-> -fi
-> -if [[ -s /etc/rc.status ]]; then
-> +elif [[ -s /lib/lsb/init-functions ]]; then
-> +    # SLES / openSuSE / Debian.
-> +    . /lib/lsb/init-functions
-> +    rc_exit() { exit $RETVAL; }
-> +    success() { log_success_msg; }
-> +    failure() { log_failure_msg; }
-> +elif [[ -s /etc/rc.status ]]; then
-> +    # Older SuSE systems.
->      . /etc/rc.status
->      failure() { rc_status -v; }
->      success() { rc_status -v; }
-> @@ -61,10 +68,13 @@ if [[ -s $CONFIG ]]; then
->  fi
->  
->  start () {
-> +    if [ -e /var/run/opensm.pid ]; then
-> +	echo Already started
-> +	return 1
-> +    fi
->      echo -n "Starting opensm: "
-> -    @sbindir@/opensm --daemon $OPTIONS > /dev/null
-> +    @sbindir@/opensm --daemon --pidfile /var/run/opensm.pid $OPTIONS > /dev/null
->      if [[ $RETVAL -eq 0 ]]; then
-> -        touch /var/lock/subsys/opensm
->          success
->      else
->          failure
-> @@ -76,7 +86,6 @@ stop () {
->      echo -n "Shutting down opensm: "
->      killproc opensm
->      if [[ $RETVAL -eq 0 ]]; then
-> -        rm -f /var/lock/subsys/opensm
->          success
->      else
->          failure
-> @@ -114,7 +123,7 @@ case "$1" in
->  	restart
->  	;;
->      try-restart | condrestart)
-> -	[ -e /var/lock/subsys/opensm ] && restart
-> +	[ -e /var/run/opensm.pid ] && restart
->  	;;
->      resweep)
->  	killall -HUP opensm
-> -- 
-> 1.7.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If I interpret the above correctly, enabling opensm in runlevel 4 should 
+be fine on all Linux distributions ?
+
+Bart.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
