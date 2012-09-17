@@ -1,38 +1,51 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] /etc/init.d/opensmd: Improve systemd integration
-Date: Sun, 16 Sep 2012 14:22:11 +0200
-Message-ID: <5055C473.5050401@acm.org>
-References: <50535650.6050306@acm.org> <20120916093159.GB8243@calypso>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120916093159.GB8243@calypso>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Mon, 17 Sep 2012 08:57:47 -0700
+Message-ID: <1347897467-7323-1-git-send-email-roland@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/16/12 11:31, Alex Netes wrote:
-> Hi Bart,
->
-> On 18:07 Fri 14 Sep     , Bart Van Assche wrote:
->> On recent SLES and openSUSE systems it is necessary to read the
->> file /lib/lsb/init-functions instead of /etc/rc.status for proper
->> integration with systemd. Also, prevent that the opensm process is
->> started twice and drop /var/lock/subsys/opensm.
->
-> There could be a problem (which also persists in the original script), that in
-> theory you can run two OpenSM instances (on different ports) which is not
-> being supported by the init script. Any thoughts how this can be addressed?
+Hi Linus,
 
-How about following the same approach as for srp_daemon: modify 
-/etc/init.d/opensm such that it starts a script that starts the opensm 
-process on all ports on which it should be started ?
+Please pull from
 
-Bart.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------
+
+Last set of InfiniBand/RDMA fixes for 3.6:
+ - Couple more IPoIB fixes for regressions introduced by path database conversion
+ - Minor other fixes to low-level drivers (cxgb4, mlx4, qib, ocrdma)
+
+----------------------------------------------------------------
+Mike Marciniszyn (1):
+      IB/qib: Fix failure of compliance test C14-024#06_LocalPortNum
+
+Parav Pandit (1):
+      RDMA/ocrdma: Fix CQE expansion of unsignaled WQE
+
+Roland Dreier (1):
+      Merge branches 'cxgb4', 'ipoib', 'mlx4', 'ocrdma' and 'qib' into for-next
+
+Shlomo Pongratz (2):
+      IPoIB: Fix memory leak in the neigh table deletion flow
+      IPoIB: Fix AB-BA deadlock when deleting neighbours
+
+Wei Yongjun (1):
+      RDMA/cxgb4: Move dereference below NULL test
+
+Yishai Hadas (1):
+      mlx4_core: Fix integer overflows so 8TBs of memory registration works
+
+ drivers/infiniband/hw/cxgb4/cm.c               |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |    8 +-
+ drivers/infiniband/hw/qib/qib_mad.c            |    3 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h           |    5 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |   93 +++++++++++-------------
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    2 -
+ drivers/net/ethernet/mellanox/mlx4/icm.c       |   30 +++++---
+ drivers/net/ethernet/mellanox/mlx4/icm.h       |   10 +--
+ 8 files changed, 78 insertions(+), 75 deletions(-)
