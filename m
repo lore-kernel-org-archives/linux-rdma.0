@@ -1,51 +1,40 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Mon, 17 Sep 2012 08:57:47 -0700
-Message-ID: <1347897467-7323-1-git-send-email-roland@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [PATCH] ib_srp: Fix use-after-free in srp_reset_req()
+Date: Mon, 17 Sep 2012 15:31:50 -0400
+Message-ID: <1347910310.12412.5.camel@frustration.ornl.gov>
+References: <5037572A.4040006@acm.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5037572A.4040006-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+On Fri, 2012-08-24 at 10:27 +0000, Bart Van Assche wrote:
+> srp_free_req() uses the scsi_cmnd structure contents to unmap
+> buffers, so we must invoke srp_free_req() before we release
+> ownership of that structure.
+> 
+> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-Please pull from
+Roland, are you planning to apply this one and the one Bart has that
+fixes the error handling (srp_aport)? I didn't see them in your pull
+request.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+Thanks,
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 
-----------------------------------------------------------------
 
-Last set of InfiniBand/RDMA fixes for 3.6:
- - Couple more IPoIB fixes for regressions introduced by path database conversion
- - Minor other fixes to low-level drivers (cxgb4, mlx4, qib, ocrdma)
-
-----------------------------------------------------------------
-Mike Marciniszyn (1):
-      IB/qib: Fix failure of compliance test C14-024#06_LocalPortNum
-
-Parav Pandit (1):
-      RDMA/ocrdma: Fix CQE expansion of unsignaled WQE
-
-Roland Dreier (1):
-      Merge branches 'cxgb4', 'ipoib', 'mlx4', 'ocrdma' and 'qib' into for-next
-
-Shlomo Pongratz (2):
-      IPoIB: Fix memory leak in the neigh table deletion flow
-      IPoIB: Fix AB-BA deadlock when deleting neighbours
-
-Wei Yongjun (1):
-      RDMA/cxgb4: Move dereference below NULL test
-
-Yishai Hadas (1):
-      mlx4_core: Fix integer overflows so 8TBs of memory registration works
-
- drivers/infiniband/hw/cxgb4/cm.c               |    2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |    8 +-
- drivers/infiniband/hw/qib/qib_mad.c            |    3 +-
- drivers/infiniband/ulp/ipoib/ipoib.h           |    5 +-
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |   93 +++++++++++-------------
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    2 -
- drivers/net/ethernet/mellanox/mlx4/icm.c       |   30 +++++---
- drivers/net/ethernet/mellanox/mlx4/icm.h       |   10 +--
- 8 files changed, 78 insertions(+), 75 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
