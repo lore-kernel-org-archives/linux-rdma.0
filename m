@@ -1,55 +1,38 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 47671] New: infiniband/hw/nes/nes_verbs.c:3008: possible
- missing break ?
-Date: Tue, 18 Sep 2012 19:59:09 +0000 (UTC)
-Message-ID: <bug-47671-11804@https.bugzilla.kernel.org/>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next V1] RDMA/cma: Fix multicast joins of the IPoIB
+ port space to be consistent
+Date: Tue, 18 Sep 2012 23:16:08 +0300
+Message-ID: <CAJZOPZK+ArsY_iRt0vSSW2of3z=_gFy-o03-TNyT+pLWUrfyEQ@mail.gmail.com>
+References: <1346317795-12622-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1346317795-12622-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=47671
+On Thu, Aug 30, 2012 at 12:09 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> CMA multicast joins done under the ipoib port state must be carried
+> out using the same component mask used by ipoib. Otherwise, its possible
+> for the CMA to create a group to which a join made by ipoib will fail,
+> or vise-versa. So far this wasn't the case, since some of the component
+> mask fields set by ipoib weren't set by the CMA, fix that.
 
-           Summary: infiniband/hw/nes/nes_verbs.c:3008: possible missing
-                    break ?
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: 3.6-rc6
-          Platform: All
-        OS/Version: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Infiniband/RDMA
-        AssignedTo: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-        ReportedBy: dcb314-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
-        Regression: No
+> ---
+>
+> changes from V0:
+>  - removed setting of the multicast record fields, since they are kept
+>    in the ib sa client data base, only deal with the component mask fields.
 
+Hi Roland,
 
-I just ran the static analyser cppcheck over the source code of the
-linux kernel version 3.6-rc6.
+I see now that you've picked the batch of small patches I sent for
+3.7,  so we're starting to merge code, lovely update... just wanted to
+make sure you put this one there too, its simple and acked by Sean.
 
-It said
-
-[linux-3.6-rc6/drivers/infiniband/hw/nes/nes_verbs.c:3008]: (warning) Redundant
-assignment of "next_iwarp_state" in switch
-
-The source code is
-
-                    switch (nesqp->hw_iwarp_state) {
-                        case NES_AEQE_IWARP_STATE_CLOSING:
-                            next_iwarp_state = NES_CQP_QP_IWARP_STATE_CLOSING;
-                        case NES_AEQE_IWARP_STATE_TERMINATE:
-
-That looks like a possible missing break after the first case.
-
--- 
-Configure bugmail: https://bugzilla.kernel.org/userprefs.cgi?tab=email
-------- You are receiving this mail because: -------
-You are watching the assignee of the bug.
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
