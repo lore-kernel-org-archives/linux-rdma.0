@@ -1,28 +1,41 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 5/6] opensm: Add command-line option --pidfile
-Date: Wed, 19 Sep 2012 17:46:14 +0300
-Message-ID: <20120919144614.GA2258@calypso>
-References: <504F48A9.3030802@acm.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: how to preserve QP over HA events for librdmacm applications
+Date: Wed, 19 Sep 2012 18:43:42 +0300
+Message-ID: <5059E82E.9020600@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <504F48A9.3030802-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Alex Rosenbaum <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
+Hi Sean,
 
-On 16:20 Tue 11 Sep     , Bart Van Assche wrote:
-> This option is necessary to control opensm from an LSB-compliant
-> init script.
-> 
+We have a case here where an app which uses librdmacm wants to preserve its
+QP over HA events such IB link down/up, specifically the sequence of 
+operations
+done by the app is the following:
 
-This option should also be added to opensm.conf and documented in the man page.
+1. rdma_create_id using the IPoIB  port space
+2. rdma_bind _addr
+3. rdma_create_qp  using UD QP type.
 
--- Alex
+We are looking for a way to reset this QP such that any pending send 
+buffers will be flushed
+out and then the QP returns to be functional (in RTS state) - eventually 
+with the same QPN.
+
+Using rdma_disconnect indeed moves the QP to the error state and the 
+buffers are flushed,
+however, there's no way to modify the QP state again to RTS, etc via 
+librdmacm.
+
+Can this flushing be somehow done with the current librdmacm/libibverbs APIs
+or we need some enhancement?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
