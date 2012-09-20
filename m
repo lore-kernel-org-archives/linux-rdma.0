@@ -1,44 +1,42 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx4 0/8] add raw packet QP, resource limitations, fixes/cleanups
-Date: Thu, 20 Sep 2012 23:30:59 +0300
-Message-ID: <1348173067-12116-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH libmlx4 5/8] Allow to use the whole BF buffer
+Date: Thu, 20 Sep 2012 23:31:04 +0300
+Message-ID: <1348173067-12116-6-git-send-email-ogerlitz@mellanox.com>
+References: <1348173067-12116-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1348173067-12116-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland,
+From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-This batch of libmlx4 patch contains the patch to support raw
-packet QP, two patches from Sagi that relate to resource 
-limitations, and few simple fixes/cleanups from Dotan.
+Increase the maximum size of messages (from 192 to 208) that will use the blue
+flame buffer.
 
-The first three were submitted pretty long while ago, for this 
-re-submission I made some changes in the change-logs and cleaned
-some checkpatch comments.
+Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/qp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Or.
-
-Dotan Barak (5):
-  Replace sscanf() to strtol()
-  Allow to use the whole BF buffer
-  Use BlueFlame for RDMA_WRITE/WITH_IMM without data
-  Change enumeration names for masked atomic opcodes
-  When calling ibv_modify_qp() return right value
-
-Or Gerlitz (1):
-  Add raw packet QP support
-
-Sagi Grimberg (2):
-  Report correct QP/CQ related resource limits
-  Limit qp resources accepted for ibv_create_qp()
-
- src/mlx4.c  |   17 +++++++++++++++--
- src/mlx4.h  |   21 +++++++++++++++++++--
- src/qp.c    |   14 +++++++++++---
- src/verbs.c |   24 +++++++++++++++++-------
- 4 files changed, 62 insertions(+), 14 deletions(-)
+diff --git a/src/qp.c b/src/qp.c
+index 0dfe3a7..812e6ec 100644
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -398,7 +398,7 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ out:
+ 	ctx = to_mctx(ibqp->context);
+ 
+-	if (nreq == 1 && inl && size > 1 && size < ctx->bf_buf_size / 16) {
++	if (nreq == 1 && inl && size > 1 && size <= ctx->bf_buf_size / 16) {
+ 		ctrl->owner_opcode |= htonl((qp->sq.head & 0xffff) << 8);
+ 		*(uint32_t *) ctrl->reserved |= qp->doorbell_qpn;
+ 		/*
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
