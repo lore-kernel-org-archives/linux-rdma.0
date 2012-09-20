@@ -1,36 +1,43 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: how to preserve QP over HA events for librdmacm applications
-Date: Thu, 20 Sep 2012 20:10:51 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8E77F@ORSMSX101.amr.corp.intel.com>
-References: <5059E82E.9020600@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A8237346A8E418@ORSMSX101.amr.corp.intel.com>
- <5059EA48.1040407@mellanox.com>
- <A4E971F4031F1840BBA6E79B417E62E82CF29C3B@MTRDAG01.mtl.com>
- <46C75A5F-AD9F-45CF-A441-B7D5F60709D8@ornl.gov>
- <1828884A29C6694DAF28B7E6B8A8237346A8E47E@ORSMSX101.amr.corp.intel.com>
- <86756672-ADCC-4EF0-A24C-19C4A0EB8188@ornl.gov>
- <505B5470.9030707@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libibverbs 0/3] add raw packet QP, new helper and examples cleanups
+Date: Thu, 20 Sep 2012 23:30:31 +0300
+Message-ID: <1348173034-11929-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <505B5470.9030707-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Cc: Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> What if you say pre-created a second (fail over) QP for HA purposes all
-> under the covers of a single socket? And both QPs were connected before
-> the failure. Not sure if that would work with the same CM id though. If
-> not, we will need to rdma_connect() the second QP after failure.
+Hi Roland,
 
-CM IDs are not shared across devices, and can't be reused for different QPs until the first connection has been torn down and gone through timewait.  For IB, you probably want path migration capabilities.
+This batch of libibverbs patches include the raw packet QP which
+was submitted long ago, with new change-log, taken from the kernel,
+also a helper verbs from Dotan and Hal related to the new IB link speeds,
+and cleanup patch from Dotan for the examples.
 
-Anything more generic should really be handled by the application.  Migrating a connection between devices also requires using different CQs, PDs, MRs, etc.
+Or.
 
-- Sean
+Dotan Barak (2):
+  Add helpers to deal with new InfiniBand link speeds
+  Fix resource leaks in the pingpong examples present in the failure/error flows.
+
+Or Gerlitz (1):
+  Add raw packet QP type
+
+ Makefile.am                |    6 +++-
+ examples/rc_pingpong.c     |   43 ++++++++++++++++++++++++++++++-------
+ examples/srq_pingpong.c    |   51 ++++++++++++++++++++++++++++++++++++-------
+ examples/uc_pingpong.c     |   43 ++++++++++++++++++++++++++++++-------
+ examples/ud_pingpong.c     |   43 ++++++++++++++++++++++++++++++-------
+ include/infiniband/verbs.h |   26 ++++++++++++++++++++-
+ man/ibv_create_qp.3        |    2 +-
+ man/ibv_modify_qp.3        |   10 ++++++++
+ man/ibv_rate_to_mbps.3     |   45 ++++++++++++++++++++++++++++++++++++++
+ src/libibverbs.map         |    3 ++
+ src/verbs.c                |   48 +++++++++++++++++++++++++++++++++++++++++
+ 11 files changed, 282 insertions(+), 38 deletions(-)
+ create mode 100644 man/ibv_rate_to_mbps.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
