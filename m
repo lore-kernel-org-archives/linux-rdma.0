@@ -1,65 +1,60 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/src/perfquery.c: Fix all_ports corner
- case
-Date: Thu, 20 Sep 2012 17:32:09 -0700
-Message-ID: <20120920173209.94cfe0ca81eb39ef1fee20bd@llnl.gov>
-References: <1347603374.19910.3.camel@crazyclimber.llnl.gov>
+From: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH libmlx4 1/8] Add raw packet QP support
+Date: Fri, 21 Sep 2012 00:51:43 +0000
+Message-ID: <4AF12E8016D2BF46BCDFCE8FAA77A3580315252C@fmsmsx109.amr.corp.intel.com>
+References: <1348173067-12116-1-git-send-email-ogerlitz@mellanox.com>
+ <1348173067-12116-2-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1347603374.19910.3.camel-RLKWKRZIcZkVVsCFsIUZTRy+HRzXvqW9@public.gmane.org>
+In-Reply-To: <1348173067-12116-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 13 Sep 2012 23:16:14 -0700
-Al Chu <chu11-i2BcT+NCU+M@public.gmane.org> wrote:
 
-> if AllPortSelect is not supported and --all_ports is specified, it should
-> only emulate AllPortSelect if no port is specified or the all ports
-> port number (255) is specified.
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
+> Sent: Thursday, September 20, 2012 3:31 PM
+> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz
+> Subject: [PATCH libmlx4 1/8] Add raw packet QP support
 > 
-> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-
-Thanks applied,
-Ira
-
+> Implement raw packet QPs for Ethernet ports.
+> 
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  src/perfquery.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  src/qp.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
 > 
-> diff --git a/src/perfquery.c b/src/perfquery.c
-> index 27ec4f7..605ece9 100644
-> --- a/src/perfquery.c
-> +++ b/src/perfquery.c
-> @@ -783,7 +783,7 @@ int main(int argc, char **argv)
->  	if (!(cap_mask & IB_PM_ALL_PORT_SELECT)) {	/* bit 8 is AllPortSelect */
->  		if (!all_ports && port == ALL_PORTS)
->  			IBERROR("AllPortSelect not supported");
-> -		if (all_ports)
-> +		if (all_ports && port == ALL_PORTS)
->  			all_ports_loop = 1;
->  	}
->  
-> -- 
-> 1.7.1
+> diff --git a/src/qp.c b/src/qp.c
+> index 40a6689..90c4e80 100644
+> --- a/src/qp.c
+> +++ b/src/qp.c
+> @@ -286,6 +286,10 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct
+> ibv_send_wr *wr,
+>  			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
+>  			break;
 > 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +		case IBV_QPT_RAW_PACKET:
+> +			/* For raw eth, the MLX4_WQE_CTRL_SOLICIT flag is
+> used
+> +			 * to indicate that no icrc should be calculated */
+> +			ctrl->srcrb_flags |=
+> htonl(MLX4_WQE_CTRL_SOLICIT);
+>  		default:
+>  			break;
+>  		}
+
+Add a break for the new case?  While the above code works as expected, it is inconsistent from what it was before, and could lead to problems if the default case starts doing something.
 
 
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Dean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
