@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: fix bug with loop ports where SMP queries
- are needed
-Date: Fri, 21 Sep 2012 14:18:46 -0700
-Message-ID: <20120921141846.c8b845600aeddcbf8765dd4d@llnl.gov>
+Subject: [PATCH] infiniband-diags: Fix SA error reporting for common MAD
+ errors
+Date: Fri, 21 Sep 2012 15:02:59 -0700
+Message-ID: <20120921150259.5fb75a794fae33ac60e5f0d9@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -15,31 +15,60 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- src/perfquery.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ src/ibdiag_sa.c |   30 +++++++++++++++++++++++++++---
+ 1 files changed, 27 insertions(+), 3 deletions(-)
 
-diff --git a/src/perfquery.c b/src/perfquery.c
-index 605ece9..df8556b 100644
---- a/src/perfquery.c
-+++ b/src/perfquery.c
-@@ -659,7 +659,7 @@ static int process_opt(void *context, int ch, char *optarg)
+diff --git a/src/ibdiag_sa.c b/src/ibdiag_sa.c
+index 2b84bfa..2a9f008 100644
+--- a/src/ibdiag_sa.c
++++ b/src/ibdiag_sa.c
+@@ -192,19 +192,43 @@ static inline const char *ib_sa_err_str(IN uint8_t status)
+ 	return (ib_sa_error_str[status]);
+ }
  
- int main(int argc, char **argv)
++static const char *ib_mad_inv_field_str[] = {
++	"MAD No invalid fields",
++	"MAD Bad version",
++	"MAD Method specified is not supported",
++	"MAD Method/Attribute combination is not supported",
++	"MAD Reserved",
++	"MAD Reserved",
++	"MAD Reserved",
++	"MAD fields or attribute modifier; invalid value"
++	"MAD UNKNOWN ERROR"
++};
++#define MAD_ERR_UNKNOWN (ARR_SIZE(ib_mad_inv_field_str) - 1)
++
++static inline const char *ib_mad_inv_field_err_str(IN uint8_t f)
++{
++	if (f > MAD_ERR_UNKNOWN)
++		f = MAD_ERR_UNKNOWN;
++	return (ib_mad_inv_field_str[f]);
++}
++
+ void sa_report_err(int status)
  {
--	int mgmt_classes[2] = { IB_SA_CLASS, IB_PERFORMANCE_CLASS };
-+	int mgmt_classes[3] = { IB_SMI_CLASS, IB_SA_CLASS, IB_PERFORMANCE_CLASS };
- 	ib_portid_t portid = { 0 };
- 	int mask = 0xffff;
- 	uint64_t ext_mask = 0xffffffffffffffffULL;
-@@ -758,7 +758,7 @@ int main(int argc, char **argv)
- 		mask = ext_mask;
- 	}
+ 	int st = status & 0xff;
+-	char sm_err_str[64] = { 0 };
++	char mad_err_str[64] = { 0 };
+ 	char sa_err_str[64] = { 0 };
  
--	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 2);
-+	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 3);
- 	if (!srcport)
- 		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+ 	if (st)
+-		sprintf(sm_err_str, " SM(%s)", ib_get_err_str(st));
++		sprintf(mad_err_str, " (%s; %s; %s)",
++			(st & 0x1) ? "BUSY" : "",
++			(st & 0x2) ? "Redirection Required" : "",
++			ib_mad_inv_field_err_str(st>>2));
++
  
+ 	st = status >> 8;
+ 	if (st)
+ 		sprintf(sa_err_str, " SA(%s)", ib_sa_err_str((uint8_t) st));
+ 
+ 	fprintf(stderr, "ERROR: Query result returned 0x%04x, %s%s\n",
+-		status, sm_err_str, sa_err_str);
++		status, mad_err_str, sa_err_str);
+ }
 -- 
 1.7.1
 
