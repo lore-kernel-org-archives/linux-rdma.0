@@ -1,77 +1,35 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: Fix SA error reporting for common MAD
- errors
-Date: Fri, 21 Sep 2012 15:02:59 -0700
-Message-ID: <20120921150259.5fb75a794fae33ac60e5f0d9@llnl.gov>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next V2 21/22] {NET,IB}/mlx4: Modify proxy/tunnel QP
+ mechanism so that guests do no calculations
+Date: Sat, 22 Sep 2012 03:25:47 -0700
+Message-ID: <CAL1RGDXL1avTr-ZUC+aGpq5Z03X9H1scMm1GL3rw91qnhm-Prw@mail.gmail.com>
+References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il> <1343983258-6268-22-git-send-email-jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1343983258-6268-22-git-send-email-jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Aug 3, 2012 at 1:40 AM, Jack Morgenstein
+<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> Previously, the structure of a guest's proxy QPs followed the structure of the PPF
+> special qps (qp0 port 1, qp0 port 2, qp1 port 1, qp1 port 2, ...).
+> The guest then did offset calculations on the sqp_base qp number that the PPF passed
+> to it in QUERY_FUNC_CAP().
+>
+> This is now changed so that the guest does no offset calculations regarding proxy or
+> tunnel QPs to use.  This change frees the PPF from needing to adhere to a specific
+> order in allocating proxy and tunnel QPs.
 
+It seems a little strange that you rewrite code that is only added
+earlier in the same
+patch series.  Is there any reason why we can't just add the right
+code in the first place?
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- src/ibdiag_sa.c |   30 +++++++++++++++++++++++++++---
- 1 files changed, 27 insertions(+), 3 deletions(-)
-
-diff --git a/src/ibdiag_sa.c b/src/ibdiag_sa.c
-index 2b84bfa..2a9f008 100644
---- a/src/ibdiag_sa.c
-+++ b/src/ibdiag_sa.c
-@@ -192,19 +192,43 @@ static inline const char *ib_sa_err_str(IN uint8_t status)
- 	return (ib_sa_error_str[status]);
- }
- 
-+static const char *ib_mad_inv_field_str[] = {
-+	"MAD No invalid fields",
-+	"MAD Bad version",
-+	"MAD Method specified is not supported",
-+	"MAD Method/Attribute combination is not supported",
-+	"MAD Reserved",
-+	"MAD Reserved",
-+	"MAD Reserved",
-+	"MAD fields or attribute modifier; invalid value"
-+	"MAD UNKNOWN ERROR"
-+};
-+#define MAD_ERR_UNKNOWN (ARR_SIZE(ib_mad_inv_field_str) - 1)
-+
-+static inline const char *ib_mad_inv_field_err_str(IN uint8_t f)
-+{
-+	if (f > MAD_ERR_UNKNOWN)
-+		f = MAD_ERR_UNKNOWN;
-+	return (ib_mad_inv_field_str[f]);
-+}
-+
- void sa_report_err(int status)
- {
- 	int st = status & 0xff;
--	char sm_err_str[64] = { 0 };
-+	char mad_err_str[64] = { 0 };
- 	char sa_err_str[64] = { 0 };
- 
- 	if (st)
--		sprintf(sm_err_str, " SM(%s)", ib_get_err_str(st));
-+		sprintf(mad_err_str, " (%s; %s; %s)",
-+			(st & 0x1) ? "BUSY" : "",
-+			(st & 0x2) ? "Redirection Required" : "",
-+			ib_mad_inv_field_err_str(st>>2));
-+
- 
- 	st = status >> 8;
- 	if (st)
- 		sprintf(sa_err_str, " SA(%s)", ib_sa_err_str((uint8_t) st));
- 
- 	fprintf(stderr, "ERROR: Query result returned 0x%04x, %s%s\n",
--		status, sm_err_str, sa_err_str);
-+		status, mad_err_str, sa_err_str);
- }
--- 
-1.7.1
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
