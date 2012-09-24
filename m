@@ -1,318 +1,88 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/iser: add more RX CQs to scale out processing of SCSI responses
-Date: Sun, 23 Sep 2012 17:17:44 +0200
-Message-ID: <1348413464-25792-1-git-send-email-ogerlitz@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: build failure after merge of the akpm tree
+Date: Tue, 25 Sep 2012 00:02:17 +1000
+Message-ID: <20120925000217.947b8cd8dca6979bfedee2ca@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Tue__25_Sep_2012_00_02_17_+1000_VCVFN4dVBEP/WxHy"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>, Amir Vadai <amirv@mellanox.co.il>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Roland Dreier <roland@purestorage.com>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--Signature=_Tue__25_Sep_2012_00_02_17_+1000_VCVFN4dVBEP/WxHy
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-RX/TX CQs will now be selected from a per HCA pool, for the RX flow
-this has the effect of using different interrupt vectors over low level 
-drivers (such as mlx4) who map the "vector" param provided by the ULP on 
-CQ creation to a dedicated IRQ/MSI-X vector. Once this is made, the RX flow 
-processing of IO responses will now be  distributed across multiple CPUs.
+Hi Andrew,
 
-QPs (--> iser sessions) are assigned to CQs in round robin manner
-using the current CQ with minimal number of sessions attached to it.
+After merging the akpm tree, today's linux-next build (powerpc
+ppc64_defconfig) failed like this:
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+drivers/infiniband/hw/mlx4/cm.c: In function 'id_map_alloc':
+drivers/infiniband/hw/mlx4/cm.c:228:36: error: 'MAX_ID_MASK' undeclared (fi=
+rst use in this function)
+
+Caused by commit d7a4e9b679e9 ("IB/mlx4: Add CM paravirtualization") from
+the infiniband tree interacting with commit "idr: rename MAX_LEVEL to
+MAX_IDR_LEVEL" from the akpm tree.
+
+I have added the following merge fix patch for today:
+
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Mon, 24 Sep 2012 23:57:53 +1000
+Subject: [PATCH] IB/mlx4: fix for MAX_ID_MASK to MAX_IDR_MASK name change
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h |   17 +++-
- drivers/infiniband/ulp/iser/iser_verbs.c |  130 ++++++++++++++++++++---------
- 2 files changed, 103 insertions(+), 44 deletions(-)
+ drivers/infiniband/hw/mlx4/cm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 296be43..ef7d3be 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -177,6 +177,7 @@ struct iser_data_buf {
- 
- /* fwd declarations */
- struct iser_device;
-+struct iser_cq_desc;
- struct iscsi_iser_conn;
- struct iscsi_iser_task;
- struct iscsi_endpoint;
-@@ -226,16 +227,21 @@ struct iser_rx_desc {
- 	char		             pad[ISER_RX_PAD_SIZE];
- } __attribute__((packed));
- 
-+#define ISER_MAX_CQ 4
-+
- struct iser_device {
- 	struct ib_device             *ib_device;
- 	struct ib_pd	             *pd;
--	struct ib_cq	             *rx_cq;
--	struct ib_cq	             *tx_cq;
-+	struct ib_cq	             *rx_cq[ISER_MAX_CQ];
-+	struct ib_cq	             *tx_cq[ISER_MAX_CQ];
- 	struct ib_mr	             *mr;
--	struct tasklet_struct	     cq_tasklet;
-+	struct tasklet_struct	     cq_tasklet[ISER_MAX_CQ];
- 	struct ib_event_handler      event_handler;
- 	struct list_head             ig_list; /* entry in ig devices list */
- 	int                          refcount;
-+	int                          cq_active_qps[ISER_MAX_CQ];
-+	int			     cqs_used;
-+	struct iser_cq_desc	     *cq_desc;
- };
- 
- struct iser_conn {
-@@ -287,6 +293,11 @@ struct iser_page_vec {
- 	int data_size;
- };
- 
-+struct iser_cq_desc {
-+	struct iser_device           *device;
-+	int                          cq_index;
-+};
-+
- struct iser_global {
- 	struct mutex      device_list_mutex;/*                   */
- 	struct list_head  device_list;	     /* all iSER devices */
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 2dddabd..a549150 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -70,32 +70,50 @@ static void iser_event_handler(struct ib_event_handler *handler,
-  */
- static int iser_create_device_ib_res(struct iser_device *device)
- {
-+	int i, j;
-+	struct iser_cq_desc *cq_desc;
-+
-+	device->cqs_used = min(ISER_MAX_CQ, device->ib_device->num_comp_vectors);
-+	iser_err("using %d CQs, device %s supports %d vectors\n", device->cqs_used,
-+		 device->ib_device->name, device->ib_device->num_comp_vectors);
-+
-+	device->cq_desc = kmalloc(sizeof(struct iser_cq_desc) * device->cqs_used,
-+				  GFP_KERNEL);
-+	if (device->cq_desc == NULL)
-+		goto cq_desc_err;
-+	cq_desc = device->cq_desc;
-+
- 	device->pd = ib_alloc_pd(device->ib_device);
- 	if (IS_ERR(device->pd))
- 		goto pd_err;
- 
--	device->rx_cq = ib_create_cq(device->ib_device,
--				  iser_cq_callback,
--				  iser_cq_event_callback,
--				  (void *)device,
--				  ISER_MAX_RX_CQ_LEN, 0);
--	if (IS_ERR(device->rx_cq))
--		goto rx_cq_err;
-+	for (i = 0; i < device->cqs_used; i++) {
-+		cq_desc[i].device   = device;
-+		cq_desc[i].cq_index = i;
-+
-+		device->rx_cq[i] = ib_create_cq(device->ib_device,
-+					  iser_cq_callback,
-+					  iser_cq_event_callback,
-+					  (void *)&cq_desc[i],
-+					  ISER_MAX_RX_CQ_LEN, i);
-+		if (IS_ERR(device->rx_cq[i]))
-+			goto cq_err;
- 
--	device->tx_cq = ib_create_cq(device->ib_device,
--				  NULL, iser_cq_event_callback,
--				  (void *)device,
--				  ISER_MAX_TX_CQ_LEN, 0);
-+		device->tx_cq[i] = ib_create_cq(device->ib_device,
-+					  NULL, iser_cq_event_callback,
-+					  (void *)&cq_desc[i],
-+					  ISER_MAX_TX_CQ_LEN, i);
- 
--	if (IS_ERR(device->tx_cq))
--		goto tx_cq_err;
-+		if (IS_ERR(device->tx_cq[i]))
-+			goto cq_err;
- 
--	if (ib_req_notify_cq(device->rx_cq, IB_CQ_NEXT_COMP))
--		goto cq_arm_err;
-+		if (ib_req_notify_cq(device->rx_cq[i], IB_CQ_NEXT_COMP))
-+			goto cq_err;
- 
--	tasklet_init(&device->cq_tasklet,
--		     iser_cq_tasklet_fn,
--		     (unsigned long)device);
-+		tasklet_init(&device->cq_tasklet[i],
-+			     iser_cq_tasklet_fn,
-+			(unsigned long)&cq_desc[i]);
-+	}
- 
- 	device->mr = ib_get_dma_mr(device->pd, IB_ACCESS_LOCAL_WRITE |
- 				   IB_ACCESS_REMOTE_WRITE |
-@@ -113,14 +131,19 @@ static int iser_create_device_ib_res(struct iser_device *device)
- handler_err:
- 	ib_dereg_mr(device->mr);
- dma_mr_err:
--	tasklet_kill(&device->cq_tasklet);
--cq_arm_err:
--	ib_destroy_cq(device->tx_cq);
--tx_cq_err:
--	ib_destroy_cq(device->rx_cq);
--rx_cq_err:
-+	for (j = 0; j < device->cqs_used; j++)
-+		tasklet_kill(&device->cq_tasklet[j]);
-+cq_err:
-+	for (j = 0; j < i; j++) {
-+		if (device->tx_cq[j])
-+			ib_destroy_cq(device->tx_cq[j]);
-+		if (device->rx_cq[j])
-+			ib_destroy_cq(device->rx_cq[j]);
-+	}
- 	ib_dealloc_pd(device->pd);
- pd_err:
-+	kfree(device->cq_desc);
-+cq_desc_err:
- 	iser_err("failed to allocate an IB resource\n");
- 	return -1;
- }
-@@ -131,18 +154,24 @@ pd_err:
-  */
- static void iser_free_device_ib_res(struct iser_device *device)
- {
-+	int i;
- 	BUG_ON(device->mr == NULL);
- 
--	tasklet_kill(&device->cq_tasklet);
-+	for (i = 0; i < device->cqs_used; i++) {
-+		tasklet_kill(&device->cq_tasklet[i]);
-+		(void)ib_destroy_cq(device->tx_cq[i]);
-+		(void)ib_destroy_cq(device->rx_cq[i]);
-+		device->tx_cq[i] = NULL;
-+		device->rx_cq[i] = NULL;
-+	}
-+
- 	(void)ib_unregister_event_handler(&device->event_handler);
- 	(void)ib_dereg_mr(device->mr);
--	(void)ib_destroy_cq(device->tx_cq);
--	(void)ib_destroy_cq(device->rx_cq);
- 	(void)ib_dealloc_pd(device->pd);
- 
-+	kfree(device->cq_desc);
-+
- 	device->mr = NULL;
--	device->tx_cq = NULL;
--	device->rx_cq = NULL;
- 	device->pd = NULL;
- }
- 
-@@ -157,6 +186,7 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
- 	struct ib_qp_init_attr	init_attr;
- 	int			req_err, resp_err, ret = -ENOMEM;
- 	struct ib_fmr_pool_param params;
-+	int index, min_index = 0;
- 
- 	BUG_ON(ib_conn->device == NULL);
- 
-@@ -220,10 +250,20 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
- 
- 	memset(&init_attr, 0, sizeof init_attr);
- 
-+	mutex_lock(&ig.connlist_mutex);
-+	/* select the CQ with the minimal number of usages */
-+	for (index = 0; index < device->cqs_used; index++)
-+		if (device->cq_active_qps[index] <
-+		    device->cq_active_qps[min_index])
-+			min_index = index;
-+	device->cq_active_qps[min_index]++;
-+	mutex_unlock(&ig.connlist_mutex);
-+	iser_err("cq index %d used for ib_conn %p\n", min_index, ib_conn);
-+
- 	init_attr.event_handler = iser_qp_event_callback;
- 	init_attr.qp_context	= (void *)ib_conn;
--	init_attr.send_cq	= device->tx_cq;
--	init_attr.recv_cq	= device->rx_cq;
-+	init_attr.send_cq	= device->tx_cq[min_index];
-+	init_attr.recv_cq	= device->rx_cq[min_index];
- 	init_attr.cap.max_send_wr  = ISER_QP_MAX_REQ_DTOS;
- 	init_attr.cap.max_recv_wr  = ISER_QP_MAX_RECV_DTOS;
- 	init_attr.cap.max_send_sge = 2;
-@@ -252,6 +292,7 @@ out_err:
-  */
- static int iser_free_ib_conn_res(struct iser_conn *ib_conn, int can_destroy_id)
- {
-+	int cq_index;
- 	BUG_ON(ib_conn == NULL);
- 
- 	iser_err("freeing conn %p cma_id %p fmr pool %p qp %p\n",
-@@ -262,9 +303,12 @@ static int iser_free_ib_conn_res(struct iser_conn *ib_conn, int can_destroy_id)
- 	if (ib_conn->fmr_pool != NULL)
- 		ib_destroy_fmr_pool(ib_conn->fmr_pool);
- 
--	if (ib_conn->qp != NULL)
--		rdma_destroy_qp(ib_conn->cma_id);
-+	if (ib_conn->qp != NULL) {
-+		cq_index = ((struct iser_cq_desc *)ib_conn->qp->recv_cq->cq_context)->cq_index;
-+		ib_conn->device->cq_active_qps[cq_index]--;
- 
-+		rdma_destroy_qp(ib_conn->cma_id);
-+	}
- 	/* if cma handler context, the caller acts s.t the cma destroy the id */
- 	if (ib_conn->cma_id != NULL && can_destroy_id)
- 		rdma_destroy_id(ib_conn->cma_id);
-@@ -791,9 +835,9 @@ static void iser_handle_comp_error(struct iser_tx_desc *desc,
- 	}
- }
- 
--static int iser_drain_tx_cq(struct iser_device  *device)
-+static int iser_drain_tx_cq(struct iser_device  *device, int cq_index)
- {
--	struct ib_cq  *cq = device->tx_cq;
-+	struct ib_cq  *cq = device->tx_cq[cq_index];
- 	struct ib_wc  wc;
- 	struct iser_tx_desc *tx_desc;
- 	struct iser_conn *ib_conn;
-@@ -822,8 +866,10 @@ static int iser_drain_tx_cq(struct iser_device  *device)
- 
- static void iser_cq_tasklet_fn(unsigned long data)
- {
--	 struct iser_device  *device = (struct iser_device *)data;
--	 struct ib_cq	     *cq = device->rx_cq;
-+	struct iser_cq_desc *cq_desc = (struct iser_cq_desc *)data;
-+	struct iser_device  *device = cq_desc->device;
-+	int cq_index = cq_desc->cq_index;
-+	 struct ib_cq	     *cq = device->rx_cq[cq_index];
- 	 struct ib_wc	     wc;
- 	 struct iser_rx_desc *desc;
- 	 unsigned long	     xfer_len;
-@@ -851,19 +897,21 @@ static void iser_cq_tasklet_fn(unsigned long data)
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/c=
+m.c
+index e25e4da..80079e5 100644
+--- a/drivers/infiniband/hw/mlx4/cm.c
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -225,7 +225,7 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32=
+ sl_cm_id)
+ 		ret =3D idr_get_new_above(&sriov->pv_id_table, ent,
+ 					next_id, &id);
+ 		if (!ret) {
+-			next_id =3D ((unsigned) id + 1) & MAX_ID_MASK;
++			next_id =3D ((unsigned) id + 1) & MAX_IDR_MASK;
+ 			ent->pv_cm_id =3D (u32)id;
+ 			sl_id_map_add(ibdev, ent);
  		}
- 		completed_rx++;
- 		if (!(completed_rx & 63))
--			completed_tx += iser_drain_tx_cq(device);
-+			completed_tx += iser_drain_tx_cq(device, cq_index);
- 	}
- 	/* #warning "it is assumed here that arming CQ only once its empty" *
- 	 * " would not cause interrupts to be missed"                       */
- 	ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
- 
--	completed_tx += iser_drain_tx_cq(device);
-+	completed_tx += iser_drain_tx_cq(device, cq_index);
- 	iser_dbg("got %d rx %d tx completions\n", completed_rx, completed_tx);
- }
- 
- static void iser_cq_callback(struct ib_cq *cq, void *cq_context)
- {
--	struct iser_device  *device = (struct iser_device *)cq_context;
-+	struct iser_cq_desc *cq_desc = (struct iser_cq_desc *)cq_context;
-+	struct iser_device  *device = cq_desc->device;
-+	int cq_index = cq_desc->cq_index;
- 
--	tasklet_schedule(&device->cq_tasklet);
-+	tasklet_schedule(&device->cq_tasklet[cq_index]);
- }
--- 
-1.7.1
+--=20
+1.7.10.280.gaa39
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Tue__25_Sep_2012_00_02_17_+1000_VCVFN4dVBEP/WxHy
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJQYGfpAAoJEECxmPOUX5FEkooQAIJ+MYKXHy558X4YkgGGgLCl
+EYkurYQGsCR0cwLJ3BC2LbqiCWs9godb6E/tuA6MbgtV8cu4nueNU61OlsCbJlL9
+eG/dMuP30i3FpCIzf7SDwFoPOhtrVddap+yv+9gFBcpp5sGMmSuaWyMLCTgzAfAf
+wrimQ7KsQ+GMhNYLlkXDdLJxmH46aTQsNas/JkrB/vsIXSo5tvo1iNvTOxcB5wp3
+2Nh31imYGwln+mzgTmnBnLirEKXHLGCHV+i/MpWRlafb1Ff2DFViOPuIo0WAQ7Na
+vuRyisBaHXoIqw/A7ufs2smloP+c3uii6w3mV+y43rg6la5vV0PW/1JXwrplNE2t
+YRnKG5+XhXhVLt3V19+a5Z2m40ZnEfvBG2/UFyoCyOh50HKw2Z5dbuy4IQMqbpDa
+Y1RiDFwtV1BBnLWNagRL+Sa6e/OpP3Rapux6Lk/oGz9kQ8C0Q0o17vFTlRQIkCou
+RAX90L5bVRA5at9iAeffZz6YxO2b0RZYkkksdEJpYqDo1PP2nK+EdpPldtx55XfV
+2fZyL8Wyzj/zqwayE0g/UTNxy86U6jSqnvOai7sIh7HbuaNmbuvIPNzZXVGOz2o0
+7l93kmpSzEXVsf+hrA0Pxc+qLRD4pX9Q9FzEG3ZNSBGiw0exAqN5abXSq4LDAzzZ
+yiqiG9eYXlWDAbIPnZPk
+=Puf3
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__25_Sep_2012_00_02_17_+1000_VCVFN4dVBEP/WxHy--
