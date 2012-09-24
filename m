@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 20/26 v3] rdma/ucm: Add ability to query GID addresses
-Date: Mon, 24 Sep 2012 20:05:53 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EEB0@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 22/26 v3] rdma/ucm: Allow user space to bind to AF_IB
+Date: Mon, 24 Sep 2012 20:05:54 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EECE@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,106 +11,90 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Part of address resolution is mapping IP addresses to IB GIDs.
-With the changes to support querying larger addresses and more
-path records, also provide a way to query IB GIDs after
-resolution completes.
+Support user space binding to addresses using AF_IB.  Since
+sockaddr_ib is larger than sockaddr_in6, we need to define
+a larger structure when binding using AF_IB.  This time we
+use sockaddr_storage to cover future cases.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/ucma.c |   50 ++++++++++++++++++++++++++++++++++++++++
- include/rdma/rdma_user_cm.h    |    3 ++
- 2 files changed, 52 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/ucma.c |   27 ++++++++++++++++++++++++++-
+ include/rdma/rdma_user_cm.h    |   10 +++++++++-
+ 2 files changed, 35 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 9b60338..199b076 100644
+index 6fc36ba..d23bc1bf 100644
 --- a/drivers/infiniband/core/ucma.c
 +++ b/drivers/infiniband/core/ucma.c
-@@ -48,6 +48,7 @@
- #include <rdma/rdma_cm.h>
- #include <rdma/rdma_cm_ib.h>
- #include <rdma/ib_addr.h>
-+#include <rdma/ib.h>
- 
- MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("RDMA Userspace Connection Manager Access");
-@@ -799,6 +800,52 @@ static ssize_t ucma_query_path(struct ucma_context *ctx,
+@@ -548,6 +548,30 @@ static ssize_t ucma_bind_ip(struct ucma_file *file, const char __user *inbuf,
  	return ret;
  }
  
-+static ssize_t ucma_query_gid(struct ucma_context *ctx,
-+			      void __user *response, int out_len)
++static ssize_t ucma_bind(struct ucma_file *file, const char __user *inbuf,
++			 int in_len, int out_len)
 +{
-+	struct rdma_ucm_query_addr_resp resp;
-+	struct sockaddr_ib *addr;
-+	int ret = 0;
++	struct rdma_ucm_bind cmd;
++	struct sockaddr *addr;
++	struct ucma_context *ctx;
++	int ret;
 +
-+	if (out_len < sizeof(resp))
-+		return -ENOSPC;
++	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
++		return -EFAULT;
 +
-+	memset(&resp, 0, sizeof resp);
++	addr = (struct sockaddr *) &cmd.addr;
++	if (cmd.reserved || !cmd.addr_size || (cmd.addr_size != rdma_addr_size(addr)))
++		return -EINVAL;
 +
-+	ucma_query_device_addr(ctx->cm_id, &resp);
++	ctx = ucma_get_ctx(file, cmd.id);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
 +
-+	addr = (struct sockaddr_ib *) &resp.src_addr;
-+	resp.src_size = sizeof(*addr);
-+	if (ctx->cm_id->route.addr.src_addr.ss_family == AF_IB) {
-+		memcpy(addr, &ctx->cm_id->route.addr.src_addr, resp.src_size);
-+	} else {
-+		addr->sib_family = AF_IB;
-+		addr->sib_pkey = (__force __be16) resp.pkey;
-+		rdma_addr_get_sgid(&ctx->cm_id->route.addr.dev_addr,
-+				   (union ib_gid *) &addr->sib_addr);
-+		addr->sib_sid = rdma_get_service_id(ctx->cm_id, (struct sockaddr *)
-+						    &ctx->cm_id->route.addr.src_addr);
-+	}
-+
-+	addr = (struct sockaddr_ib *) &resp.dst_addr;
-+	resp.dst_size = sizeof(*addr);
-+	if (ctx->cm_id->route.addr.dst_addr.ss_family == AF_IB) {
-+		memcpy(addr, &ctx->cm_id->route.addr.dst_addr, resp.dst_size);
-+	} else {
-+		addr->sib_family = AF_IB;
-+		addr->sib_pkey = (__force __be16) resp.pkey;
-+		rdma_addr_get_dgid(&ctx->cm_id->route.addr.dev_addr,
-+				   (union ib_gid *) &addr->sib_addr);
-+		addr->sib_sid = rdma_get_service_id(ctx->cm_id, (struct sockaddr *)
-+						    &ctx->cm_id->route.addr.dst_addr);
-+	}
-+
-+	if (copy_to_user(response, &resp, sizeof(resp)))
-+		ret = -EFAULT;
-+
++	ret = rdma_bind_addr(ctx->cm_id, addr);
++	ucma_put_ctx(ctx);
 +	return ret;
 +}
 +
- static ssize_t ucma_query(struct ucma_file *file,
- 			  const char __user *inbuf,
- 			  int in_len, int out_len)
-@@ -823,6 +870,9 @@ static ssize_t ucma_query(struct ucma_file *file,
- 	case RDMA_USER_CM_QUERY_PATH:
- 		ret = ucma_query_path(ctx, response, out_len);
- 		break;
-+	case RDMA_USER_CM_QUERY_GID:
-+		ret = ucma_query_gid(ctx, response, out_len);
-+		break;
- 	default:
- 		ret = -ENOSYS;
- 		break;
-diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
-index effcb75..b0634d4 100644
---- a/include/rdma/rdma_user_cm.h
-+++ b/include/rdma/rdma_user_cm.h
-@@ -116,7 +116,8 @@ struct rdma_ucm_resolve_route {
- 
- enum {
- 	RDMA_USER_CM_QUERY_ADDR,
--	RDMA_USER_CM_QUERY_PATH
-+	RDMA_USER_CM_QUERY_PATH,
-+	RDMA_USER_CM_QUERY_GID
+ static ssize_t ucma_resolve_ip(struct ucma_file *file,
+ 			       const char __user *inbuf,
+ 			       int in_len, int out_len)
+@@ -1413,7 +1437,8 @@ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
+ 	[RDMA_USER_CM_CMD_JOIN_IP_MCAST] = ucma_join_ip_multicast,
+ 	[RDMA_USER_CM_CMD_LEAVE_MCAST]	 = ucma_leave_multicast,
+ 	[RDMA_USER_CM_CMD_MIGRATE_ID]	 = ucma_migrate_id,
+-	[RDMA_USER_CM_CMD_QUERY]	 = ucma_query
++	[RDMA_USER_CM_CMD_QUERY]	 = ucma_query,
++	[RDMA_USER_CM_CMD_BIND]		 = ucma_bind
  };
  
- struct rdma_ucm_query {
+ static ssize_t ucma_write(struct file *filp, const char __user *buf,
+diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
+index bfb2ca7..cae3e27 100644
+--- a/include/rdma/rdma_user_cm.h
++++ b/include/rdma/rdma_user_cm.h
+@@ -62,7 +62,8 @@ enum {
+ 	RDMA_USER_CM_CMD_JOIN_IP_MCAST,
+ 	RDMA_USER_CM_CMD_LEAVE_MCAST,
+ 	RDMA_USER_CM_CMD_MIGRATE_ID,
+-	RDMA_USER_CM_CMD_QUERY
++	RDMA_USER_CM_CMD_QUERY,
++	RDMA_USER_CM_CMD_BIND
+ };
+ 
+ /*
+@@ -102,6 +103,13 @@ struct rdma_ucm_bind_ip {
+ 	__u32 id;
+ };
+ 
++struct rdma_ucm_bind {
++	__u32 id;
++	__u16 addr_size;
++	__u16 reserved;
++	struct sockaddr_storage addr;
++};
++
+ struct rdma_ucm_resolve_ip {
+ 	struct sockaddr_in6 src_addr;
+ 	struct sockaddr_in6 dst_addr;
 
 
 --
