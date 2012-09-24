@@ -1,64 +1,44 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: linux-next: build failure after merge of the akpm tree
-Date: Mon, 24 Sep 2012 12:46:54 -0700
-Message-ID: <20120924124654.5012ca3e.akpm@linux-foundation.org>
-References: <20120925000217.947b8cd8dca6979bfedee2ca@canb.auug.org.au>
-	<CAL1RGDUCThiu+vxy4d5QXvqfDCDUnHOBfZT97XB+Qy_bQrxCRg@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/26 v3] rdma/cm: Add support for native InfiniBand
+ addressing
+Date: Mon, 24 Sep 2012 20:05:43 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EE01@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <CAL1RGDUCThiu+vxy4d5QXvqfDCDUnHOBfZT97XB+Qy_bQrxCRg@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Roland Dreier <roland@purestorage.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>, Amir Vadai <amirv@mellanox.co.il>, Jack Morgenstein <jackm@dev.mellanox.co.il>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 24 Sep 2012 12:36:43 -0700
-Roland Dreier <roland@purestorage.com> wrote:
+I'm Sean Hefty, and I approve this message.
 
-> On Mon, Sep 24, 2012 at 7:02 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> > After merging the akpm tree, today's linux-next build (powerpc
-> > ppc64_defconfig) failed like this:
-> >
-> > drivers/infiniband/hw/mlx4/cm.c: In function 'id_map_alloc':
-> > drivers/infiniband/hw/mlx4/cm.c:228:36: error: 'MAX_ID_MASK' undeclared (first use in this function)
-> >
-> > Caused by commit d7a4e9b679e9 ("IB/mlx4: Add CM paravirtualization") from
-> > the infiniband tree interacting with commit "idr: rename MAX_LEVEL to
-> > MAX_IDR_LEVEL" from the akpm tree.
-> >
-> > I have added the following merge fix patch for today:
-> >
-> > From: Stephen Rothwell <sfr@canb.auug.org.au>
-> > Date: Mon, 24 Sep 2012 23:57:53 +1000
-> > Subject: [PATCH] IB/mlx4: fix for MAX_ID_MASK to MAX_IDR_MASK name change
-> >
-> > Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> > ---
-> >  drivers/infiniband/hw/mlx4/cm.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-> > index e25e4da..80079e5 100644
-> > --- a/drivers/infiniband/hw/mlx4/cm.c
-> > +++ b/drivers/infiniband/hw/mlx4/cm.c
-> > @@ -225,7 +225,7 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
-> >                 ret = idr_get_new_above(&sriov->pv_id_table, ent,
-> >                                         next_id, &id);
-> >                 if (!ret) {
-> > -                       next_id = ((unsigned) id + 1) & MAX_ID_MASK;
-> > +                       next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
-> >                         ent->pv_cm_id = (u32)id;
-> >                         sl_id_map_add(ibdev, ent);
-> >                 }
-> 
-> Andrew, any preference on how to handle this merge?
+This patch series adds the ability to handle native Infiniband addressing
+to the rdma_cm.
 
-I'm fixing up that patch as things change under its feet.  I usually
-merge things like this late in the merge window after everything else
-has landed, to cause minimum breakage/disruption.
+In addition to supporting native addresses, this support allows us to offload
+name and/or address translation services to a user space daemon, providing the
+user greater control over path selection.  The primary motivation is to support 
+large scale fabrics, with address and name services either cached or bypassed 
+completely (information is exchanged out of band by an MPI process manager).
 
-If there was something in linux-next which didn't get into the merge
-window (bad) then I cheerily break it and the tree maintainer fixes
-things up.
+The intended usage model is for applications to call rdma_getaddrinfo.  This 
+call is similar to getaddrinfo, but specific for RDMA devices.  
+rdma_getaddrinfo takes as input a name, IP address, GID, or LID, and returns 
+full connection information.
+
+The patch set introduces af_ib and sockaddr_ib.  The kernel rdma_cm is updated 
+accordingly, mainly to make its handling of addresses more generic.  However, 
+since sockaddr_ib is larger than sockaddr_in6, the rdma_ucm requires changes to 
+its user to kernel interface.  To provide backwards compatibility, the 
+userspace ABI is extended to support the larger address size.
+
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+changes from v2:
+updated to later kernel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
