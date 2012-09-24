@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/26 v3] rdma/cm: Update port reservation to support AF_IB
+Subject: [PATCH 5/26 v3] rdma/cm: Allow user to specify AF_IB when binding
 Date: Mon, 24 Sep 2012 20:05:46 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EE21@ORSMSX101.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EE28@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,184 +11,89 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The AF_IB uses a 64-bit service id (SID), which the
-user can control through the use of a mask.  The rdma_cm
-will assign values to the unmasked portions of the SID
-based on the selected port space and port number.
-
-Because the IB spec divides the SID range into several regions,
-a SID/mask combination may fall into one of the existing
-port space ranges as defined by the RDMA CM IP Annex.  Map
-the AF_IB SID to the correct RDMA port space.
+Modify rdma_bind_addr to allow the user to specify AF_IB when
+binding to a device.  AF_IB indicates that the user is not
+mapping an IP address to the native IB addressing.  (The mapping
+may have already been done, or is not needed.)
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c |  107 +++++++++++++++++++++++++++++++++--------
- include/rdma/rdma_cm.h        |    5 ++
- 2 files changed, 91 insertions(+), 21 deletions(-)
+ drivers/infiniband/core/cma.c |   34 ++++++++++++++++++++++++++++------
+ 1 files changed, 28 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index af21aa4..f569127 100644
+index f569127..f09450e 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -724,12 +724,22 @@ static int cma_addr_cmp(struct sockaddr *src, struct sockaddr *dst)
- 	}
+@@ -353,6 +353,27 @@ static int find_gid_port(struct ib_device *device, union ib_gid *gid, u8 port_nu
+ 	return -EAGAIN;
  }
  
--static inline __be16 cma_port(struct sockaddr *addr)
-+static __be16 cma_port(struct sockaddr *addr)
- {
--	if (addr->sa_family == AF_INET)
-+	struct sockaddr_ib *sib;
-+
-+	switch (addr->sa_family) {
-+	case AF_INET:
- 		return ((struct sockaddr_in *) addr)->sin_port;
--	else
-+	case AF_INET6:
- 		return ((struct sockaddr_in6 *) addr)->sin6_port;
-+	case AF_IB:
-+		sib = (struct sockaddr_ib *) addr;
-+		return htons((u16) (be64_to_cpu(sib->sib_sid) &
-+				    be64_to_cpu(sib->sib_sid_mask)));
-+	default:
-+		return 0;
-+	}
- }
- 
- static inline int cma_any_port(struct sockaddr *addr)
-@@ -2109,10 +2119,29 @@ EXPORT_SYMBOL(rdma_set_reuseaddr);
- static void cma_bind_port(struct rdma_bind_list *bind_list,
- 			  struct rdma_id_private *id_priv)
- {
--	struct sockaddr_in *sin;
-+	struct sockaddr *addr;
-+	struct sockaddr_ib *sib;
-+	u64 sid, mask;
-+	__be16 port;
- 
--	sin = (struct sockaddr_in *) &id_priv->id.route.addr.src_addr;
--	sin->sin_port = htons(bind_list->port);
-+	addr = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
-+	port = htons(bind_list->port);
-+
-+	switch (addr->sa_family) {
-+	case AF_INET:
-+		((struct sockaddr_in *) addr)->sin_port = port;
-+		break;
-+	case AF_INET6:
-+		((struct sockaddr_in6 *) addr)->sin6_port = port;
-+		break;
-+	case AF_IB:
-+		sib = (struct sockaddr_ib *) addr;
-+		sid = be64_to_cpu(sib->sib_sid);
-+		mask = be64_to_cpu(sib->sib_sid_mask);
-+		sib->sib_sid = cpu_to_be64((sid & mask) | (u64) ntohs(port));
-+		sib->sib_sid_mask = cpu_to_be64(~0ULL);
-+		break;
-+	}
- 	id_priv->bind_list = bind_list;
- 	hlist_add_head(&id_priv->node, &bind_list->owners);
- }
-@@ -2248,31 +2277,67 @@ static int cma_bind_listen(struct rdma_id_private *id_priv)
- 	return ret;
- }
- 
--static int cma_get_port(struct rdma_id_private *id_priv)
-+static struct idr *cma_select_inet_ps(struct rdma_id_private *id_priv)
- {
--	struct idr *ps;
--	int ret;
--
- 	switch (id_priv->id.ps) {
- 	case RDMA_PS_SDP:
--		ps = &sdp_ps;
--		break;
-+		return &sdp_ps;
- 	case RDMA_PS_TCP:
--		ps = &tcp_ps;
--		break;
-+		return &tcp_ps;
- 	case RDMA_PS_UDP:
--		ps = &udp_ps;
--		break;
-+		return &udp_ps;
- 	case RDMA_PS_IPOIB:
--		ps = &ipoib_ps;
--		break;
-+		return &ipoib_ps;
- 	case RDMA_PS_IB:
--		ps = &ib_ps;
--		break;
-+		return &ib_ps;
- 	default:
--		return -EPROTONOSUPPORT;
-+		return NULL;
-+	}
++static void cma_translate_ib(struct sockaddr_ib *sib, struct rdma_dev_addr *dev_addr)
++{
++	dev_addr->dev_type = ARPHRD_INFINIBAND;
++	rdma_addr_set_sgid(dev_addr, (union ib_gid *) &sib->sib_addr);
++	ib_addr_set_pkey(dev_addr, ntohs(sib->sib_pkey));
 +}
 +
-+static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
++static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
 +{
-+	struct idr *ps = NULL;
-+	struct sockaddr_ib *sib;
-+	u64 sid_ps, mask, sid;
-+
-+	sib = (struct sockaddr_ib *) &id_priv->id.route.addr.src_addr;
-+	mask = be64_to_cpu(sib->sib_sid_mask) & RDMA_IB_IP_PS_MASK;
-+	sid = be64_to_cpu(sib->sib_sid) & mask;
-+
-+	if ((id_priv->id.ps == RDMA_PS_IB) && (sid == (RDMA_IB_IP_PS_IB & mask))) {
-+		sid_ps = RDMA_IB_IP_PS_IB;
-+		ps = &ib_ps;
-+	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_TCP)) &&
-+		   (sid == (RDMA_IB_IP_PS_TCP & mask))) {
-+		sid_ps = RDMA_IB_IP_PS_TCP;
-+		ps = &tcp_ps;
-+	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_UDP)) &&
-+		   (sid == (RDMA_IB_IP_PS_UDP & mask))) {
-+		sid_ps = RDMA_IB_IP_PS_UDP;
-+		ps = &udp_ps;
- 	}
- 
-+	if (ps) {
-+		sib->sib_sid = cpu_to_be64(sid_ps | ntohs(cma_port((struct sockaddr *) sib)));
-+		sib->sib_sid_mask = cpu_to_be64(RDMA_IB_IP_PS_MASK |
-+						be64_to_cpu(sib->sib_sid_mask));
-+	}
-+	return ps;
-+}
-+
-+static int cma_get_port(struct rdma_id_private *id_priv)
-+{
-+	struct idr *ps;
 +	int ret;
 +
-+	if (id_priv->id.route.addr.src_addr.ss_family != AF_IB)
-+		ps = cma_select_inet_ps(id_priv);
-+	else
-+		ps = cma_select_ib_ps(id_priv);
-+	if (!ps)
-+		return -EPROTONOSUPPORT;
++	if (addr->sa_family != AF_IB) {
++		ret = rdma_translate_ip(addr, dev_addr);
++	} else {
++		cma_translate_ib((struct sockaddr_ib *) addr, dev_addr);
++		ret = 0;
++	}
 +
- 	mutex_lock(&lock);
- 	if (cma_any_port((struct sockaddr *) &id_priv->id.route.addr.src_addr))
- 		ret = cma_alloc_any_port(ps, id_priv);
-diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-index 51988f8..5eb3179 100644
---- a/include/rdma/rdma_cm.h
-+++ b/include/rdma/rdma_cm.h
-@@ -70,6 +70,11 @@ enum rdma_port_space {
- 	RDMA_PS_UDP   = 0x0111,
- };
++	return ret;
++}
++
+ static int cma_acquire_dev(struct rdma_id_private *id_priv)
+ {
+ 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+@@ -1131,8 +1152,8 @@ static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
+ 		rdma_addr_set_sgid(&rt->addr.dev_addr, &rt->path_rec[0].sgid);
+ 		ib_addr_set_pkey(&rt->addr.dev_addr, be16_to_cpu(rt->path_rec[0].pkey));
+ 	} else {
+-		ret = rdma_translate_ip((struct sockaddr *) &rt->addr.src_addr,
+-					&rt->addr.dev_addr);
++		ret = cma_translate_addr((struct sockaddr *) &rt->addr.src_addr,
++					 &rt->addr.dev_addr);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -1171,8 +1192,8 @@ static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
+ 			  ip_ver, port, src, dst);
  
-+#define RDMA_IB_IP_PS_MASK   0xFFFFFFFFFFFF0000ULL
-+#define RDMA_IB_IP_PS_TCP    0x0000000001060000ULL
-+#define RDMA_IB_IP_PS_UDP    0x0000000001110000ULL
-+#define RDMA_IB_IP_PS_IB     0x00000000013F0000ULL
-+
- struct rdma_addr {
- 	struct sockaddr_storage src_addr;
- 	struct sockaddr_storage dst_addr;
+ 	if (!cma_any_addr((struct sockaddr *) &id->route.addr.src_addr)) {
+-		ret = rdma_translate_ip((struct sockaddr *) &id->route.addr.src_addr,
+-					&id->route.addr.dev_addr);
++		ret = cma_translate_addr((struct sockaddr *) &id->route.addr.src_addr,
++					 &id->route.addr.dev_addr);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -2422,7 +2443,8 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 	struct rdma_id_private *id_priv;
+ 	int ret;
+ 
+-	if (addr->sa_family != AF_INET && addr->sa_family != AF_INET6)
++	if (addr->sa_family != AF_INET && addr->sa_family != AF_INET6 &&
++	    addr->sa_family != AF_IB)
+ 		return -EAFNOSUPPORT;
+ 
+ 	id_priv = container_of(id, struct rdma_id_private, id);
+@@ -2434,7 +2456,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 		goto err1;
+ 
+ 	if (!cma_any_addr(addr)) {
+-		ret = rdma_translate_ip(addr, &id->route.addr.dev_addr);
++		ret = cma_translate_addr(addr, &id->route.addr.dev_addr);
+ 		if (ret)
+ 			goto err1;
+ 
 
 
 --
