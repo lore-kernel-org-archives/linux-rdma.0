@@ -1,77 +1,198 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 3/8] libibverbs: Introduce XRC domains
-Date: Mon, 24 Sep 2012 23:00:00 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8F087@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A8E7FB@ORSMSX101.amr.corp.intel.com>
- <20120924203618.GC9472@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237346A8F01C@ORSMSX101.amr.corp.intel.com>
- <20120924211911.GA11120@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237346A8F05F@ORSMSX101.amr.corp.intel.com>
- <20120924220912.GA12418@obsidianresearch.com>
+Subject: [PATCH 4/26 v3] rdma/cm: Update port reservation to support AF_IB
+Date: Mon, 24 Sep 2012 23:55:29 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8F0B1@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120924220912.GA12418-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > Verbs doesn't allocate the structures, so it can't store anything.
-> 
-> Well, that is the point, verbs shouldn't be storing things, any change
-> to the object state must go through the provider.
+The AF_IB uses a 64-bit service id (SID), which the
+user can control through the use of a mask.  The rdma_cm
+will assign values to the unmasked portions of the SID
+based on the selected port space and port number.
 
-Verbs does stuff like this:
+Because the IB spec divides the SID range into several regions,
+a SID/mask combination may fall into one of the existing
+port space ranges as defined by the RDMA CM IP Annex.  Map
+the AF_IB SID to the correct RDMA port space.
 
-        qp = context->ops.create_qp(pd, (struct ibv_qp_init_attr *)
-                                        qp_init_attr_ex);
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+resending with netdev copied
 
-        if (qp) {
-                qp->context          = context;
-                qp->qp_context       = qp_init_attr_ex->qp_context;
-                qp->pd               = pd;
-                qp->send_cq          = qp_init_attr_ex->send_cq;
-                qp->recv_cq          = qp_init_attr_ex->recv_cq;
-                qp->srq              = qp_init_attr_ex->srq;
-                qp->qp_type          = qp_init_attr_ex->qp_type;
-                qp->state            = IBV_QPS_RESET;
-                qp->events_completed = 0;
-                pthread_mutex_init(&qp->mutex, NULL);
-                pthread_cond_init(&qp->cond, NULL);
+ drivers/infiniband/core/cma.c |  107 +++++++++++++++++++++++++++++++++--------
+ include/rdma/rdma_cm.h        |    5 ++
+ 2 files changed, 91 insertions(+), 21 deletions(-)
 
-and this:
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index af21aa4..f569127 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -724,12 +724,22 @@ static int cma_addr_cmp(struct sockaddr *src, struct sockaddr *dst)
+ 	}
+ }
+ 
+-static inline __be16 cma_port(struct sockaddr *addr)
++static __be16 cma_port(struct sockaddr *addr)
+ {
+-	if (addr->sa_family == AF_INET)
++	struct sockaddr_ib *sib;
++
++	switch (addr->sa_family) {
++	case AF_INET:
+ 		return ((struct sockaddr_in *) addr)->sin_port;
+-	else
++	case AF_INET6:
+ 		return ((struct sockaddr_in6 *) addr)->sin6_port;
++	case AF_IB:
++		sib = (struct sockaddr_ib *) addr;
++		return htons((u16) (be64_to_cpu(sib->sib_sid) &
++				    be64_to_cpu(sib->sib_sid_mask)));
++	default:
++		return 0;
++	}
+ }
+ 
+ static inline int cma_any_port(struct sockaddr *addr)
+@@ -2109,10 +2119,29 @@ EXPORT_SYMBOL(rdma_set_reuseaddr);
+ static void cma_bind_port(struct rdma_bind_list *bind_list,
+ 			  struct rdma_id_private *id_priv)
+ {
+-	struct sockaddr_in *sin;
++	struct sockaddr *addr;
++	struct sockaddr_ib *sib;
++	u64 sid, mask;
++	__be16 port;
+ 
+-	sin = (struct sockaddr_in *) &id_priv->id.route.addr.src_addr;
+-	sin->sin_port = htons(bind_list->port);
++	addr = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
++	port = htons(bind_list->port);
++
++	switch (addr->sa_family) {
++	case AF_INET:
++		((struct sockaddr_in *) addr)->sin_port = port;
++		break;
++	case AF_INET6:
++		((struct sockaddr_in6 *) addr)->sin6_port = port;
++		break;
++	case AF_IB:
++		sib = (struct sockaddr_ib *) addr;
++		sid = be64_to_cpu(sib->sib_sid);
++		mask = be64_to_cpu(sib->sib_sid_mask);
++		sib->sib_sid = cpu_to_be64((sid & mask) | (u64) ntohs(port));
++		sib->sib_sid_mask = cpu_to_be64(~0ULL);
++		break;
++	}
+ 	id_priv->bind_list = bind_list;
+ 	hlist_add_head(&id_priv->node, &bind_list->owners);
+ }
+@@ -2248,31 +2277,67 @@ static int cma_bind_listen(struct rdma_id_private *id_priv)
+ 	return ret;
+ }
+ 
+-static int cma_get_port(struct rdma_id_private *id_priv)
++static struct idr *cma_select_inet_ps(struct rdma_id_private *id_priv)
+ {
+-	struct idr *ps;
+-	int ret;
+-
+ 	switch (id_priv->id.ps) {
+ 	case RDMA_PS_SDP:
+-		ps = &sdp_ps;
+-		break;
++		return &sdp_ps;
+ 	case RDMA_PS_TCP:
+-		ps = &tcp_ps;
+-		break;
++		return &tcp_ps;
+ 	case RDMA_PS_UDP:
+-		ps = &udp_ps;
+-		break;
++		return &udp_ps;
+ 	case RDMA_PS_IPOIB:
+-		ps = &ipoib_ps;
+-		break;
++		return &ipoib_ps;
+ 	case RDMA_PS_IB:
+-		ps = &ib_ps;
+-		break;
++		return &ib_ps;
+ 	default:
+-		return -EPROTONOSUPPORT;
++		return NULL;
++	}
++}
++
++static struct idr *cma_select_ib_ps(struct rdma_id_private *id_priv)
++{
++	struct idr *ps = NULL;
++	struct sockaddr_ib *sib;
++	u64 sid_ps, mask, sid;
++
++	sib = (struct sockaddr_ib *) &id_priv->id.route.addr.src_addr;
++	mask = be64_to_cpu(sib->sib_sid_mask) & RDMA_IB_IP_PS_MASK;
++	sid = be64_to_cpu(sib->sib_sid) & mask;
++
++	if ((id_priv->id.ps == RDMA_PS_IB) && (sid == (RDMA_IB_IP_PS_IB & mask))) {
++		sid_ps = RDMA_IB_IP_PS_IB;
++		ps = &ib_ps;
++	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_TCP)) &&
++		   (sid == (RDMA_IB_IP_PS_TCP & mask))) {
++		sid_ps = RDMA_IB_IP_PS_TCP;
++		ps = &tcp_ps;
++	} else if (((id_priv->id.ps == RDMA_PS_IB) || (id_priv->id.ps == RDMA_PS_UDP)) &&
++		   (sid == (RDMA_IB_IP_PS_UDP & mask))) {
++		sid_ps = RDMA_IB_IP_PS_UDP;
++		ps = &udp_ps;
+ 	}
+ 
++	if (ps) {
++		sib->sib_sid = cpu_to_be64(sid_ps | ntohs(cma_port((struct sockaddr *) sib)));
++		sib->sib_sid_mask = cpu_to_be64(RDMA_IB_IP_PS_MASK |
++						be64_to_cpu(sib->sib_sid_mask));
++	}
++	return ps;
++}
++
++static int cma_get_port(struct rdma_id_private *id_priv)
++{
++	struct idr *ps;
++	int ret;
++
++	if (id_priv->id.route.addr.src_addr.ss_family != AF_IB)
++		ps = cma_select_inet_ps(id_priv);
++	else
++		ps = cma_select_ib_ps(id_priv);
++	if (!ps)
++		return -EPROTONOSUPPORT;
++
+ 	mutex_lock(&lock);
+ 	if (cma_any_port((struct sockaddr *) &id_priv->id.route.addr.src_addr))
+ 		ret = cma_alloc_any_port(ps, id_priv);
+diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
+index 51988f8..5eb3179 100644
+--- a/include/rdma/rdma_cm.h
++++ b/include/rdma/rdma_cm.h
+@@ -70,6 +70,11 @@ enum rdma_port_space {
+ 	RDMA_PS_UDP   = 0x0111,
+ };
+ 
++#define RDMA_IB_IP_PS_MASK   0xFFFFFFFFFFFF0000ULL
++#define RDMA_IB_IP_PS_TCP    0x0000000001060000ULL
++#define RDMA_IB_IP_PS_UDP    0x0000000001110000ULL
++#define RDMA_IB_IP_PS_IB     0x00000000013F0000ULL
++
+ struct rdma_addr {
+ 	struct sockaddr_storage src_addr;
+ 	struct sockaddr_storage dst_addr;
 
-        if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
-                return errno;
 
-        (void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
-
-        qp->handle                = resp->qp_handle;
-        qp->qp_num                = resp->qpn;
-        qp->context               = context;
-
-
-> 
-> > Adding a bunch of get/set calls seems worse to me than just placing
-> > the items in a structure.
-> 
-> Really?
-> 
->  if (cq->comp_mask & IBV_CQ_COMP_MASK_SRQ_NUM)
->    srq_num = cq->srq_num
-> 
-> vs
-> 
->  ibv_cq_get_srq_num(cq); // Returns 0 on error
-> 
-> Betcha at least 50% of apps would do the first one wrong....
-
-An app which uses XRC just needs to access srq->srq_num.  No other checks are needed.  If they have an XRC SRQ, the SRQ number must be valid.  The mask seems pointless to me.
-
-If you're suggesting that verbs.h remains untouched (for patch 1 of this series), but that new structures are defined between the verbs and the provider only, that seems reasonable.  It would likely result in a bunch of typecasts everywhere.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
