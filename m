@@ -1,68 +1,77 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/8] libibverbs: Introduce XRC domains
-Date: Mon, 24 Sep 2012 16:09:12 -0600
-Message-ID: <20120924220912.GA12418@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 3/8] libibverbs: Introduce XRC domains
+Date: Mon, 24 Sep 2012 23:00:00 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8F087@ORSMSX101.amr.corp.intel.com>
 References: <1828884A29C6694DAF28B7E6B8A8237346A8E7FB@ORSMSX101.amr.corp.intel.com>
  <20120924203618.GC9472@obsidianresearch.com>
  <1828884A29C6694DAF28B7E6B8A8237346A8F01C@ORSMSX101.amr.corp.intel.com>
  <20120924211911.GA11120@obsidianresearch.com>
  <1828884A29C6694DAF28B7E6B8A8237346A8F05F@ORSMSX101.amr.corp.intel.com>
+ <20120924220912.GA12418@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A8F05F-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20120924220912.GA12418-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 24, 2012 at 09:54:22PM +0000, Hefty, Sean wrote:
+> > Verbs doesn't allocate the structures, so it can't store anything.
+> 
+> Well, that is the point, verbs shouldn't be storing things, any change
+> to the object state must go through the provider.
 
-> The cost should really be minimal and goes away as soon as the
-> provider is updated, which I would expect all of them to be before
-> the next release of verbs or OFED.
+Verbs does stuff like this:
 
-Donno, many don't need to change because they don't support any
-extensions..
- 
-> > Plus I don't see that we should be trying to make extended structures
-> > for many of the things in patch 2 (ibv_qp, ibv_srq, ibv_ah, ibv_mr,
-> > ibv_cq, ibv_pd, ibv_mw). Additional functionality for those objects is
-> > better served through new, optional, function entry points than by
-> > allowing the consumer to muck about directl in those structures. Those
-> > structs, in particular, should have been opaque from day 1, IMHO.
- 
-> There is data sharing that's required between verbs and the provider
-> for verbs to do anything useful.  We need to add an xrcd to the QP
-> and xrcd, cq, and srq_num to the SRQ.  Verbs uses the xrcd's and cq,
-> but the user needs the srq_num.
+        qp = context->ops.create_qp(pd, (struct ibv_qp_init_attr *)
+                                        qp_init_attr_ex);
 
-Internally verbs can learn if the cq is extended via inspecting the
-context structure, so I don't see the verbs<->provider interface as
-the problem here. Exposing this mess to users should be done at little
-as possible..
+        if (qp) {
+                qp->context          = context;
+                qp->qp_context       = qp_init_attr_ex->qp_context;
+                qp->pd               = pd;
+                qp->send_cq          = qp_init_attr_ex->send_cq;
+                qp->recv_cq          = qp_init_attr_ex->recv_cq;
+                qp->srq              = qp_init_attr_ex->srq;
+                qp->qp_type          = qp_init_attr_ex->qp_type;
+                qp->state            = IBV_QPS_RESET;
+                qp->events_completed = 0;
+                pthread_mutex_init(&qp->mutex, NULL);
+                pthread_cond_init(&qp->cond, NULL);
 
-> Verbs doesn't allocate the structures, so it can't store anything.
+and this:
 
-Well, that is the point, verbs shouldn't be storing things, any change
-to the object state must go through the provider.
+        if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
+                return errno;
 
-> Adding a bunch of get/set calls seems worse to me than just placing
-> the items in a structure.
+        (void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
 
-Really?
+        qp->handle                = resp->qp_handle;
+        qp->qp_num                = resp->qpn;
+        qp->context               = context;
 
- if (cq->comp_mask & IBV_CQ_COMP_MASK_SRQ_NUM)
-   srq_num = cq->srq_num
 
-vs
+> 
+> > Adding a bunch of get/set calls seems worse to me than just placing
+> > the items in a structure.
+> 
+> Really?
+> 
+>  if (cq->comp_mask & IBV_CQ_COMP_MASK_SRQ_NUM)
+>    srq_num = cq->srq_num
+> 
+> vs
+> 
+>  ibv_cq_get_srq_num(cq); // Returns 0 on error
+> 
+> Betcha at least 50% of apps would do the first one wrong....
 
- ibv_cq_get_srq_num(cq); // Returns 0 on error
+An app which uses XRC just needs to access srq->srq_num.  No other checks are needed.  If they have an XRC SRQ, the SRQ number must be valid.  The mask seems pointless to me.
 
-Betcha at least 50% of apps would do the first one wrong....
-
-Jason
+If you're suggesting that verbs.h remains untouched (for patch 1 of this series), but that new structures are defined between the verbs and the provider only, that seems reasonable.  It would likely result in a bunch of typecasts everywhere.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
