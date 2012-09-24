@@ -1,26 +1,37 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/26 v3] rdma/cm: define native IB address
-Date: Mon, 24 Sep 2012 20:20:26 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EF9F@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A8EE07@ORSMSX101.amr.corp.intel.com>
- <20120924.161641.1251385747585210916.davem@davemloft.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 4/8] livibverbs: Add support for XRC SRQs
+Date: Mon, 24 Sep 2012 14:34:02 -0600
+Message-ID: <20120924203401.GB9472@obsidianresearch.com>
+References: <1828884A29C6694DAF28B7E6B8A8237346A8E801@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120924.161641.1251385747585210916.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A8E801-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I really hope you're not going to only post this one patch of the
-> series to netdev, and leave netdev out completely for the rest.
+On Thu, Sep 20, 2012 at 09:43:06PM +0000, Hefty, Sean wrote:
 
-I will happily resend the series with netdev copied.  All other changes are limited to the rdma stack.
+> @@ -1052,6 +1084,9 @@ static inline int ibv_req_notify_cq(struct ibv_cq *cq, int solicited_only)
+>  struct ibv_srq *ibv_create_srq(struct ibv_pd *pd,
+>  			       struct ibv_srq_init_attr *srq_init_attr);
+>  
+> +struct ibv_srq *ibv_create_srq_ex(struct ibv_pd *pd,
+> +				  struct ibv_srq_init_attr_ex *srq_init_attr_ex);
+> +
 
-- Sean
+Just to be clear here, the original proposals for this had an inline
+wrapper indirecting through a function pointer here to avoid a
+link-time dependency - is that something people still want?
+
+If we are OK with a link time dependency, then do we need the new
+symbol name or can we just symbol version ibv_create_srq ? (accepting
+there are small problems with that..)
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
