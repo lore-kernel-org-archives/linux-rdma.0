@@ -1,7 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 22/26 v3] rdma/ucm: Allow user space to bind to AF_IB
-Date: Mon, 24 Sep 2012 20:05:54 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EECE@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 18/26 v3] rdma/ucm: Support querying when IB paths are not
+ reversible
+Date: Mon, 24 Sep 2012 20:05:53 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EEA3@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,90 +12,110 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Support user space binding to addresses using AF_IB.  Since
-sockaddr_ib is larger than sockaddr_in6, we need to define
-a larger structure when binding using AF_IB.  This time we
-use sockaddr_storage to cover future cases.
+The current query_route call can return up to two path records.
+The assumption being that one is the primary path, with optional
+support for an alternate path.  In both cases, the paths are
+assumed to be reversible and are used to send CM MADs.
+
+With the ability to manually set IB path data, the rdma cm
+can eventually be capable of using up to 6 paths per
+connection:
+
+	forward primary, reverse primary,
+	forward alternate, reverse alternate,
+	reversible primary path for CM MADs
+	reversible alternate path for CM MADs.
+
+(It is unclear at this time if IB routing will complicate this.)
+In order to handle more flexible routing topologies, add a new
+command to report any number of paths.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/ucma.c |   27 ++++++++++++++++++++++++++-
- include/rdma/rdma_user_cm.h    |   10 +++++++++-
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/ucma.c |   35 +++++++++++++++++++++++++++++++++++
+ include/rdma/rdma_user_cm.h    |    9 ++++++++-
+ 2 files changed, 43 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 6fc36ba..d23bc1bf 100644
+index b9ce266..9b60338 100644
 --- a/drivers/infiniband/core/ucma.c
 +++ b/drivers/infiniband/core/ucma.c
-@@ -548,6 +548,30 @@ static ssize_t ucma_bind_ip(struct ucma_file *file, const char __user *inbuf,
+@@ -767,6 +767,38 @@ static ssize_t ucma_query_addr(struct ucma_context *ctx,
  	return ret;
  }
  
-+static ssize_t ucma_bind(struct ucma_file *file, const char __user *inbuf,
-+			 int in_len, int out_len)
++static ssize_t ucma_query_path(struct ucma_context *ctx,
++			       void __user *response, int out_len)
 +{
-+	struct rdma_ucm_bind cmd;
-+	struct sockaddr *addr;
-+	struct ucma_context *ctx;
-+	int ret;
++	struct rdma_ucm_query_path_resp *resp;
++	int i, ret = 0;
 +
-+	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
-+		return -EFAULT;
++	if (out_len < sizeof(*resp))
++		return -ENOSPC;
 +
-+	addr = (struct sockaddr *) &cmd.addr;
-+	if (cmd.reserved || !cmd.addr_size || (cmd.addr_size != rdma_addr_size(addr)))
-+		return -EINVAL;
++	resp = kzalloc(out_len, GFP_KERNEL);
++	if (!resp)
++		return -ENOMEM;
 +
-+	ctx = ucma_get_ctx(file, cmd.id);
-+	if (IS_ERR(ctx))
-+		return PTR_ERR(ctx);
++	resp->num_paths = ctx->cm_id->route.num_paths;
++	for (i = 0, out_len -= sizeof(*resp);
++	     i < resp->num_paths && out_len > sizeof(struct ib_path_rec_data);
++	     i++, out_len -= sizeof(struct ib_path_rec_data)) {
 +
-+	ret = rdma_bind_addr(ctx->cm_id, addr);
-+	ucma_put_ctx(ctx);
++		resp->path_data[i].flags = IB_PATH_GMP | IB_PATH_PRIMARY |
++					   IB_PATH_BIDIRECTIONAL;
++		ib_sa_pack_path(&ctx->cm_id->route.path_rec[i],
++				&resp->path_data[i].path_rec);
++	}
++
++	if (copy_to_user(response, resp,
++			 sizeof(*resp) + (i * sizeof(struct ib_path_rec_data))))
++		ret = -EFAULT;
++
++	kfree(resp);
 +	return ret;
 +}
 +
- static ssize_t ucma_resolve_ip(struct ucma_file *file,
- 			       const char __user *inbuf,
- 			       int in_len, int out_len)
-@@ -1413,7 +1437,8 @@ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
- 	[RDMA_USER_CM_CMD_JOIN_IP_MCAST] = ucma_join_ip_multicast,
- 	[RDMA_USER_CM_CMD_LEAVE_MCAST]	 = ucma_leave_multicast,
- 	[RDMA_USER_CM_CMD_MIGRATE_ID]	 = ucma_migrate_id,
--	[RDMA_USER_CM_CMD_QUERY]	 = ucma_query
-+	[RDMA_USER_CM_CMD_QUERY]	 = ucma_query,
-+	[RDMA_USER_CM_CMD_BIND]		 = ucma_bind
- };
- 
- static ssize_t ucma_write(struct file *filp, const char __user *buf,
+ static ssize_t ucma_query(struct ucma_file *file,
+ 			  const char __user *inbuf,
+ 			  int in_len, int out_len)
+@@ -788,6 +820,9 @@ static ssize_t ucma_query(struct ucma_file *file,
+ 	case RDMA_USER_CM_QUERY_ADDR:
+ 		ret = ucma_query_addr(ctx, response, out_len);
+ 		break;
++	case RDMA_USER_CM_QUERY_PATH:
++		ret = ucma_query_path(ctx, response, out_len);
++		break;
+ 	default:
+ 		ret = -ENOSYS;
+ 		break;
 diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
-index bfb2ca7..cae3e27 100644
+index 4037c48..effcb75 100644
 --- a/include/rdma/rdma_user_cm.h
 +++ b/include/rdma/rdma_user_cm.h
-@@ -62,7 +62,8 @@ enum {
- 	RDMA_USER_CM_CMD_JOIN_IP_MCAST,
- 	RDMA_USER_CM_CMD_LEAVE_MCAST,
- 	RDMA_USER_CM_CMD_MIGRATE_ID,
--	RDMA_USER_CM_CMD_QUERY
-+	RDMA_USER_CM_CMD_QUERY,
-+	RDMA_USER_CM_CMD_BIND
+@@ -115,7 +115,8 @@ struct rdma_ucm_resolve_route {
  };
  
- /*
-@@ -102,6 +103,13 @@ struct rdma_ucm_bind_ip {
- 	__u32 id;
+ enum {
+-	RDMA_USER_CM_QUERY_ADDR
++	RDMA_USER_CM_QUERY_ADDR,
++	RDMA_USER_CM_QUERY_PATH
  };
  
-+struct rdma_ucm_bind {
-+	__u32 id;
-+	__u16 addr_size;
-+	__u16 reserved;
-+	struct sockaddr_storage addr;
+ struct rdma_ucm_query {
+@@ -145,6 +146,12 @@ struct rdma_ucm_query_addr_resp {
+ 	struct sockaddr_storage dst_addr;
+ };
+ 
++struct rdma_ucm_query_path_resp {
++	__u32 num_paths;
++	__u32 reserved;
++	struct ib_path_rec_data path_data[0];
 +};
 +
- struct rdma_ucm_resolve_ip {
- 	struct sockaddr_in6 src_addr;
- 	struct sockaddr_in6 dst_addr;
+ struct rdma_ucm_conn_param {
+ 	__u32 qp_num;
+ 	__u32 qkey;
 
 
 --
