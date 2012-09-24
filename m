@@ -1,7 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 15/26 v3] rdma/cm: Only listen on IB devices when using AF_IB
-Date: Mon, 24 Sep 2012 20:05:52 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EE89@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 9/26 v3] rdma/cm: Verify that source and dest sa_family are
+ the same
+Date: Mon, 24 Sep 2012 20:05:48 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8EE50@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,29 +12,41 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If an rdma_cm_id is bound to AF_IB, with a wild card address,
-only listen on IB devices.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/cma.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 13423bb..d7bc654 100644
+index b305963..fa4ac4f 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -1671,6 +1671,10 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
- 	struct rdma_cm_id *id;
+@@ -1839,14 +1839,9 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	struct rdma_addr *addr = &route->addr;
+ 	struct cma_work *work;
  	int ret;
+-	struct sockaddr_in *src_addr = (struct sockaddr_in *)&route->addr.src_addr;
+-	struct sockaddr_in *dst_addr = (struct sockaddr_in *)&route->addr.dst_addr;
+ 	struct net_device *ndev = NULL;
+ 	u16 vid;
  
-+	if (cma_family(id_priv) == AF_IB &&
-+	    rdma_node_get_transport(cma_dev->device->node_type) != RDMA_TRANSPORT_IB)
-+		return;
+-	if (src_addr->sin_family != dst_addr->sin_family)
+-		return -EINVAL;
+-
+ 	work = kzalloc(sizeof *work, GFP_KERNEL);
+ 	if (!work)
+ 		return -ENOMEM;
+@@ -2122,6 +2117,9 @@ int rdma_resolve_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
+ 			return ret;
+ 	}
+ 
++	if (cma_family(id_priv) != dst_addr->sa_family)
++		return -EINVAL;
 +
- 	id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
- 			    id_priv->id.qp_type);
- 	if (IS_ERR(id))
+ 	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND, RDMA_CM_ADDR_QUERY))
+ 		return -EINVAL;
+ 
 
 
 --
