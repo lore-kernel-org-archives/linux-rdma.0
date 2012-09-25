@@ -1,51 +1,39 @@
-From: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 4/8] livibverbs: Add support for XRC SRQs
-Date: Tue, 25 Sep 2012 14:35:12 +0200
-Message-ID: <CACZyyF8Hy+S8-mGPxq-4xR3iAOyMQY=igz_hvS27h5drzKJPFg@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A8E801@ORSMSX101.amr.corp.intel.com>
-	<20120924203401.GB9472@obsidianresearch.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A8F034@ORSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 00/20, v4] Make ib_srp better suited for H.A. purposes
+Date: Tue, 25 Sep 2012 17:05:37 +0200
+Message-ID: <5061C841.8070307@acm.org>
+References: <5023DA39.7020000@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A8F034-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <5023DA39.7020000-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I don't care much either way, but I don't see a clear advantage of avoiding the link time dependency.
-We decided that supporting new apps with old library is desirable,
-thus the wrapper+func pointer is required.
+On 08/09/12 17:41, Bart Van Assche wrote:
+> [ ... ]
 
-Tzahi
+Hello Dave,
 
-On Mon, Sep 24, 2012 at 10:49 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
-> > > @@ -1052,6 +1084,9 @@ static inline int ibv_req_notify_cq(struct ibv_cq *cq,
-> > int solicited_only)
-> > >  struct ibv_srq *ibv_create_srq(struct ibv_pd *pd,
-> > >                            struct ibv_srq_init_attr *srq_init_attr);
-> > >
-> > > +struct ibv_srq *ibv_create_srq_ex(struct ibv_pd *pd,
-> > > +                             struct ibv_srq_init_attr_ex *srq_init_attr_ex);
-> > > +
-> >
-> > Just to be clear here, the original proposals for this had an inline
-> > wrapper indirecting through a function pointer here to avoid a
-> > link-time dependency - is that something people still want?
-> >
-> > If we are OK with a link time dependency, then do we need the new
-> > symbol name or can we just symbol version ibv_create_srq ? (accepting
-> > there are small problems with that..)
->
-> I got so completely lost in what was agreed upon and what wasn't.
->
-> I don't care much either way, but I don't see a clear advantage of avoiding the link time dependency.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+More than six weeks have elapsed since I posted version four of this 
+patch series. It would be appreciated if you could tell me when review 
+comments for this patch series will be posted. I'd also like to remind 
+you that some time ago you asked other people to wait with posting more 
+ib_srp patches until this patch series is upstream [1, 2].
+
+Thanks,
+
+Bart.
+
+[1] David Dillow, Re: [PATCH 1/1] ib_srp: Infiniband srp fast failover
+patch, May 29, 2012
+(http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11801.html).
+[2] David Dillow, Re: [PATCH] srp: convert SRP_RQ_SHIFT into a module
+parameter, May 29, 2012
+(http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11802.html).
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
