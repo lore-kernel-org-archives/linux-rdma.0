@@ -1,69 +1,33 @@
-From: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Subject: Re: linux-next: build failure after merge of the akpm tree
-Date: Tue, 25 Sep 2012 10:27:23 +0200
-Message-ID: <201209251027.23840.jackm@dev.mellanox.co.il>
-References: <20120925000217.947b8cd8dca6979bfedee2ca@canb.auug.org.au> <CAL1RGDUCThiu+vxy4d5QXvqfDCDUnHOBfZT97XB+Qy_bQrxCRg@mail.gmail.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next V2 01/22] IB/core: Reserve bits in enum ib_qp_create_flags for low-level driver use
+Date: Tue, 25 Sep 2012 10:28:14 +0200
+Message-ID: <201209251028.14324.jackm@dev.mellanox.co.il>
+References: <1343983258-6268-1-git-send-email-jackm@dev.mellanox.co.il> <1343983258-6268-2-git-send-email-jackm@dev.mellanox.co.il> <CAL1RGDXrJ+c2tgxYsLMZQVz+os7E3FZROMJ9D7oqPiQbdk1g7w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL1RGDUCThiu+vxy4d5QXvqfDCDUnHOBfZT97XB+Qy_bQrxCRg@mail.gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDXrJ+c2tgxYsLMZQVz+os7E3FZROMJ9D7oqPiQbdk1g7w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@purestorage.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>, Amir Vadai <amirv@mellanox.co.il>, linux-rdma@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
-I am on vacation until next Tuesday -- I'll look at this then.
+Thanks, Roland!
 
 -Jack
 
-
-On Monday 24 September 2012 21:36, Roland Dreier wrote:
-> On Mon, Sep 24, 2012 at 7:02 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> > After merging the akpm tree, today's linux-next build (powerpc
-> > ppc64_defconfig) failed like this:
-> >
-> > drivers/infiniband/hw/mlx4/cm.c: In function 'id_map_alloc':
-> > drivers/infiniband/hw/mlx4/cm.c:228:36: error: 'MAX_ID_MASK' undeclared (first use in this function)
-> >
-> > Caused by commit d7a4e9b679e9 ("IB/mlx4: Add CM paravirtualization") from
-> > the infiniband tree interacting with commit "idr: rename MAX_LEVEL to
-> > MAX_IDR_LEVEL" from the akpm tree.
-> >
-> > I have added the following merge fix patch for today:
-> >
-> > From: Stephen Rothwell <sfr@canb.auug.org.au>
-> > Date: Mon, 24 Sep 2012 23:57:53 +1000
-> > Subject: [PATCH] IB/mlx4: fix for MAX_ID_MASK to MAX_IDR_MASK name change
-> >
-> > Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> > ---
-> >  drivers/infiniband/hw/mlx4/cm.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-> > index e25e4da..80079e5 100644
-> > --- a/drivers/infiniband/hw/mlx4/cm.c
-> > +++ b/drivers/infiniband/hw/mlx4/cm.c
-> > @@ -225,7 +225,7 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
-> >                 ret = idr_get_new_above(&sriov->pv_id_table, ent,
-> >                                         next_id, &id);
-> >                 if (!ret) {
-> > -                       next_id = ((unsigned) id + 1) & MAX_ID_MASK;
-> > +                       next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
-> >                         ent->pv_cm_id = (u32)id;
-> >                         sl_id_map_add(ibdev, ent);
-> >                 }
+On Monday 24 September 2012 21:34, Roland Dreier wrote:
+> So I applied this whole series, with the plan to merge this for 3.7.
 > 
-> Andrew, any preference on how to handle this merge?
+> Please send any changes as patches on top of what's already merged.
 > 
-> Jack/Amir, I wonder if there's some way we can avoid this code
-> entirely?  Is an IDR the right structure to use here, or would we
-> be better off with a radix tree maybe (where we can assign our
-> own ID)?
+> Thanks,
+>   Roland
 > 
->  - R.
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
