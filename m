@@ -1,32 +1,37 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC} [PATCH 3/8 v2] libibverbs: Introduce XRC domains
-Date: Wed, 26 Sep 2012 16:57:16 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A9784A@FMSMSX151.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A8F4E3@ORSMSX101.amr.corp.intel.com>
- <20120926165502.GA7005@obsidianresearch.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] mlx4_core: Fix crash on uninitialized priv->cmd.slave_sem
+Date: Wed, 26 Sep 2012 10:01:10 -0700
+Message-ID: <CAL1RGDVTLhSXZQNpcX_HqzqD-Et7G96mXUkWtj4vg0nqz5M14g@mail.gmail.com>
+References: <1348634552-21047-1-git-send-email-roland@kernel.org> <CAL1RGDUm4Zxnoby5O2RkoahbPUtYBL5UPxAFiwDnNNv4pdy7vA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120926165502.GA7005-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAL1RGDUm4Zxnoby5O2RkoahbPUtYBL5UPxAFiwDnNNv4pdy7vA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > + * ibv_open_xrcd - Open an extended connection domain
-> > + */
-> > +static inline struct ibv_xrcd *
-> > +ibv_open_xrcd(struct ibv_context *context, int fd, int oflags)
-> > +{
-> > +	struct verbs_context *vctx = verbs_get_ctx_op(context, open_xrcd);
-> > +	return vctx ? vctx->open_xrcd(context, fd, oflags) : NULL;
-> > +}
-> 
-> errno = ENOSYS on the error path?
+On Tue, Sep 25, 2012 at 9:46 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> By the way, I still get a steady stream of
+>
+> mlx4_core 0000:05:00.0: Unknown command:0x4d accepted from slave:0
+> mlx4_core 0000:05:00.0: Sense command failed for port: 1
+>
+> once I load the driver... it seems SENSE_PORT is a wrapped command
+> but there's no entry in cmd_info[] for it?
 
-verbs is hit and miss on that, but I'll add it
+I guess Jack is on vacation until next week.  Or, anyone else who knows
+anything about this stuff?
+
+In particular I'm planning on including the patch in this thread in my pull
+request with SR-IOV in it -- the patch is the difference between crashing
+on driver load and mostly working on my setup.
+
+But it seems you guys don't use SR-IOV in setups where the driver
+calls SENSE_PORT?  Is something different about my test setup?
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
