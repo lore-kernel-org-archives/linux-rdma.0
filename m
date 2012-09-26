@@ -1,38 +1,273 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 00/20, v4] Make ib_srp better suited for H.A. purposes
-Date: Tue, 25 Sep 2012 17:05:37 +0200
-Message-ID: <5061C841.8070307@acm.org>
-References: <5023DA39.7020000@acm.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RFC} [PATCH 3/8 v2] libibverbs: Introduce XRC domains
+Date: Wed, 26 Sep 2012 00:22:48 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A8F4E3@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5023DA39.7020000-HInyCGIudOg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/09/12 17:41, Bart Van Assche wrote:
-> [ ... ]
+I updated patch 3 based on feedback so far.  This applies directly on top of patch 1 of this series.  Patch 2 is removed.  I will submit a new series once all patches have been updated and re-tested, but wanted feedback on this one before updating the others.
 
-Hello Dave,
+This patch changes ibv_open_xrcd / ibv_close_xrcd to static inline calls, which call directly into the providers.  struct ibv_xrcd is converted into a substructure of struct verbs_xrcd.  ibv_xrcd is exposed through verbs.h, and verbs_xrcd is the extended structure defined in driver.h.  Apps will use ibv_xrcd, while providers use verbs_xrcd.
 
-More than six weeks have elapsed since I posted version four of this 
-patch series. It would be appreciated if you could tell me when review 
-comments for this patch series will be posted. I'd also like to remind 
-you that some time ago you asked other people to wait with posting more 
-ib_srp patches until this patch series is upstream [1, 2].
+- Sean 
 
-Thanks,
 
-Bart.
+XRC introduces several new concepts and structures, one of
+which is the XRC domain.
 
-[1] David Dillow, Re: [PATCH 1/1] ib_srp: Infiniband srp fast failover
-patch, May 29, 2012
-(http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11801.html).
-[2] David Dillow, Re: [PATCH] srp: convert SRP_RQ_SHIFT into a module
-parameter, May 29, 2012
-(http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11802.html).
+XRC domains: xrcd's are a type of protection domain used to
+associate shared receive queues with xrc queue pairs.  Since
+xrcd are meant to be shared among multiple processes, we
+introduce new APIs to open/close xrcd's.
+
+The user to kernel ABI is extended to account for opening/
+closing the xrcd.
+
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ include/infiniband/driver.h   |   16 ++++++++++++++++
+ include/infiniband/kern-abi.h |   27 ++++++++++++++++++++++++++-
+ include/infiniband/verbs.h    |   36 +++++++++++++++++++++++++++++++++---
+ src/cmd.c                     |   34 ++++++++++++++++++++++++++++++++++
+ src/libibverbs.map            |    4 ++++
+ 5 files changed, 113 insertions(+), 4 deletions(-)
+
+diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+index 5af0d7f..9711068 100644
+--- a/include/infiniband/driver.h
++++ b/include/infiniband/driver.h
+@@ -53,6 +53,17 @@
+  */
+ #define IBV_DEVICE_LIBRARY_EXTENSION rdmav2
+ 
++enum verbs_xrcd_mask {
++	IBV_XRCD_HANDLE		= 1 << 0,
++	IBV_XRCD_RESERVED	= 1 << 1
++};
++
++struct verbs_xrcd {
++	struct ibv_xrcd		xrcd;
++	uint64_t		comp_mask;
++	uint32_t		handle;
++};
++
+ typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
+ 						   int abi_version);
+ 
+@@ -76,6 +87,11 @@ int ibv_cmd_alloc_pd(struct ibv_context *context, struct ibv_pd *pd,
+ 		     struct ibv_alloc_pd *cmd, size_t cmd_size,
+ 		     struct ibv_alloc_pd_resp *resp, size_t resp_size);
+ int ibv_cmd_dealloc_pd(struct ibv_pd *pd);
++int ibv_cmd_open_xrcd(struct verbs_context *context, struct verbs_xrcd *xrcd,
++		      int fd, int oflags,
++		      struct ibv_open_xrcd *cmd, size_t cmd_size,
++		      struct ibv_open_xrcd_resp *resp, size_t resp_size);
++int ibv_cmd_close_xrcd(struct verbs_xrcd *xrcd);
+ #define IBV_CMD_REG_MR_HAS_RESP_PARAMS
+ int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 		   uint64_t hca_va, int access,
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index 619ea7e..d7c673f 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -85,7 +85,9 @@ enum {
+ 	IB_USER_VERBS_CMD_MODIFY_SRQ,
+ 	IB_USER_VERBS_CMD_QUERY_SRQ,
+ 	IB_USER_VERBS_CMD_DESTROY_SRQ,
+-	IB_USER_VERBS_CMD_POST_SRQ_RECV
++	IB_USER_VERBS_CMD_POST_SRQ_RECV,
++	IB_USER_VERBS_CMD_OPEN_XRCD,
++	IB_USER_VERBS_CMD_CLOSE_XRCD,
+ };
+ 
+ /*
+@@ -246,6 +248,27 @@ struct ibv_dealloc_pd {
+ 	__u32 pd_handle;
+ };
+ 
++struct ibv_open_xrcd {
++	__u32 command;
++	__u16 in_words;
++	__u16 out_words;
++	__u64 response;
++	__u32 fd;
++	__u32 oflags;
++	__u64 driver_data[0];
++};
++
++struct ibv_open_xrcd_resp {
++	__u32 xrcd_handle;
++};
++
++struct ibv_close_xrcd {
++	__u32 command;
++	__u16 in_words;
++	__u16 out_words;
++	__u32 xrcd_handle;
++};
++
+ struct ibv_reg_mr {
+ 	__u32 command;
+ 	__u16 in_words;
+@@ -804,6 +827,8 @@ enum {
+ 	 * trick opcodes in IBV_INIT_CMD() doesn't break.
+ 	 */
+ 	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
++	IB_USER_VERBS_CMD_OPEN_XRCD_V2 = -1,
++	IB_USER_VERBS_CMD_CLOSE_XRCD_V2 = -1,
+ };
+ 
+ struct ibv_destroy_cq_v1 {
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index a2577d8..ab26f2a 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
+- * Copyright (c) 2004 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004, 2011-2012 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc.  All rights reserved.
+  * Copyright (c) 2005 PathScale, Inc.  All rights reserved.
+  *
+@@ -312,6 +312,10 @@ struct ibv_pd {
+ 	uint32_t		handle;
+ };
+ 
++struct ibv_xrcd {
++	struct ibv_context     *context;
++};
++
+ enum ibv_rereg_mr_flags {
+ 	IBV_REREG_MR_CHANGE_TRANSLATION	= (1 << 0),
+ 	IBV_REREG_MR_CHANGE_PD		= (1 << 1),
+@@ -728,11 +732,13 @@ struct ibv_context {
+ };
+ 
+ struct verbs_context {
+-
+ 	/*  "grows up" - new fields go here
+ 	int (*drv_new_func1) ();	new corresponding provider call of func1
+ 	int (*lib_new_func1) ();	New library call func1
+ 	*/
++	struct ibv_xrcd *	(*open_xrcd)(struct ibv_context *context,
++					     int fd, int oflags);
++	int			(*close_xrcd)(struct ibv_xrcd *xrcd);
+ 	size_t sz;	/* Set by library on struct allocation,must be
+ 			* located right before struct ibv_context
+ 			*/
+@@ -748,6 +754,11 @@ static inline struct verbs_context *verbs_get_ctx(
+ 	return container_of(ctx, struct verbs_context, context);
+ }
+ 
++#define verbs_get_ctx_op(ctx, op) ({ \
++	struct verbs_context *vctx = verbs_get_ctx(ctx); \
++	(!vctx || (vctx->sz < sizeof(*vctx) - offsetof(struct verbs_context, op)) || \
++	 !vctx->op) ? NULL : vctx; })
++
+ static inline struct verbs_device *verbs_get_device(
+ 					const struct ibv_device *dev)
+ {
+@@ -832,7 +843,7 @@ static inline int ___ibv_query_port(struct ibv_context *context,
+ 				    uint8_t port_num,
+ 				    struct ibv_port_attr *port_attr)
+ {
+-	/* For compatability when running with old libibverbs */
++	/* For compatibility when running with old libibverbs */
+ 	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
+ 	port_attr->reserved   = 0;
+ 
+@@ -865,6 +876,25 @@ struct ibv_pd *ibv_alloc_pd(struct ibv_context *context);
+ int ibv_dealloc_pd(struct ibv_pd *pd);
+ 
+ /**
++ * ibv_open_xrcd - Open an extended connection domain
++ */
++static inline struct ibv_xrcd *
++ibv_open_xrcd(struct ibv_context *context, int fd, int oflags)
++{
++	struct verbs_context *vctx = verbs_get_ctx_op(context, open_xrcd);
++	return vctx ? vctx->open_xrcd(context, fd, oflags) : NULL;
++}
++
++/**
++ * ibv_close_xrcd - Close an extended connection domain
++ */
++static inline int ibv_close_xrcd(struct ibv_xrcd *xrcd)
++{
++	struct verbs_context *vctx = verbs_get_ctx(xrcd->context);
++	return vctx->close_xrcd(xrcd);
++}
++
++/**
+  * ibv_reg_mr - Register a memory region
+  */
+ struct ibv_mr *ibv_reg_mr(struct ibv_pd *pd, void *addr,
+diff --git a/src/cmd.c b/src/cmd.c
+index dab8930..14ffbac 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -194,6 +194,40 @@ int ibv_cmd_dealloc_pd(struct ibv_pd *pd)
+ 	return 0;
+ }
+ 
++int ibv_cmd_open_xrcd(struct verbs_context *context, struct verbs_xrcd *xrcd,
++		      int fd, int oflags,
++		      struct ibv_open_xrcd *cmd, size_t cmd_size,
++		      struct ibv_open_xrcd_resp *resp, size_t resp_size)
++{
++	IBV_INIT_CMD_RESP(cmd, cmd_size, OPEN_XRCD, resp, resp_size);
++
++	cmd->fd = fd;
++	cmd->oflags = oflags;
++	if (write(context->context.cmd_fd, cmd, cmd_size) != cmd_size)
++		return errno;
++
++	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
++
++	xrcd->xrcd.context = &context->context;
++	xrcd->comp_mask = IBV_XRCD_HANDLE;
++	xrcd->handle  = resp->xrcd_handle;
++
++	return 0;
++}
++
++int ibv_cmd_close_xrcd(struct verbs_xrcd *xrcd)
++{
++	struct ibv_close_xrcd cmd;
++
++	IBV_INIT_CMD(&cmd, sizeof cmd, CLOSE_XRCD);
++	cmd.xrcd_handle = xrcd->handle;
++
++	if (write(xrcd->xrcd.context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
++		return errno;
++
++	return 0;
++}
++
+ int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 		   uint64_t hca_va, int access,
+ 		   struct ibv_mr *mr, struct ibv_reg_mr *cmd,
+diff --git a/src/libibverbs.map b/src/libibverbs.map
+index ee9adea..9a15f3f 100644
+--- a/src/libibverbs.map
++++ b/src/libibverbs.map
+@@ -97,4 +97,8 @@ IBVERBS_1.1 {
+ 		ibv_port_state_str;
+ 		ibv_event_type_str;
+ 		ibv_wc_status_str;
++		
++		ibv_cmd_open_xrcd;
++		ibv_cmd_close_xrcd;
++		
+ } IBVERBS_1.0;
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
