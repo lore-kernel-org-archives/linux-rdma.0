@@ -1,32 +1,31 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH 02/11] inet_diag: pass inet_diag module to
- netlink_dump_start
-Date: Wed, 26 Sep 2012 09:07:14 -0700
-Message-ID: <20120926090714.618a4b39@nehalam.linuxnetplumber.net>
-References: <1348635140-20225-1-git-send-email-gaofeng@cn.fujitsu.com>
-	<1348635140-20225-2-git-send-email-gaofeng@cn.fujitsu.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC} [PATCH 3/8 v2] libibverbs: Introduce XRC domains
+Date: Wed, 26 Sep 2012 10:55:02 -0600
+Message-ID: <20120926165502.GA7005@obsidianresearch.com>
+References: <1828884A29C6694DAF28B7E6B8A8237346A8F4E3@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1348635140-20225-2-git-send-email-gaofeng@cn.fujitsu.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, eric.dumazet@gmail.com, pablo@netfilter.org, steffen.klassert@secunet.com, linux-crypto@vger.kernel.org, jengelh@inai.de, stephen.hemminger@vyatta.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A8F4E3-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 26 Sep 2012 12:52:11 +0800
-Gao feng <gaofeng@cn.fujitsu.com> wrote:
+> + * ibv_open_xrcd - Open an extended connection domain
+> + */
+> +static inline struct ibv_xrcd *
+> +ibv_open_xrcd(struct ibv_context *context, int fd, int oflags)
+> +{
+> +	struct verbs_context *vctx = verbs_get_ctx_op(context, open_xrcd);
+> +	return vctx ? vctx->open_xrcd(context, fd, oflags) : NULL;
+> +}
 
->  			struct netlink_dump_control c = {
->  				.dump = inet_diag_dump_compat,
-> +				.done = netlink_dump_done,
-> +				.module = THIS_MODULE,
->  			};
+errno = ENOSYS on the error path?
 
-Since these are immutable, why the netlink_dump_control structures
-on the stack (which requires code to generate at runtime), and instead
-make them global
-
-static const struct netlink_dump_control unix_diag_ctrl = {
-...
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
