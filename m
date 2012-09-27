@@ -1,153 +1,42 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 1/3] mlx4_core: Stash PCI ID driver_data in mlx4_priv structure
-Date: Thu, 27 Sep 2012 10:47:15 -0700
-Message-ID: <1348768037-3660-1-git-send-email-roland@kernel.org>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/3] mlx4_core: Disable SENSE_PORT for multifunction devices
+Date: Thu, 27 Sep 2012 22:58:32 +0200
+Message-ID: <CAJZOPZLSBk0GEK-8SCAoXR0qCzpG9_P5nrWcWJ-vhcnKZAKvjg@mail.gmail.com>
+References: <1348768037-3660-1-git-send-email-roland@kernel.org>
+	<1348768037-3660-3-git-send-email-roland@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1348768037-3660-3-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+On Thu, Sep 27, 2012 at 7:47 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>
+> In the current driver, the SENSE_PORT firmware command is issued as a
+> "wrapped" command, but the command handling code doesn't have a
+> wrapper, so it will never do anything other than log an error message.
+> The latest ConnectX-3 2.11.500 firmware reports the SENSE_PORT
+> capability even in multi-function (SR-IOV) mode, so the driver will
+> try to issue the command.
+>
+> At least until the driver has a proper wrapper for SENSE_PORT, make
+> sure we disable the command for multi-function devices.
 
-That way we can check flags later on, when we've finished with the
-pci_device_id structure.  Also convert the "is VF" flag to an enum:
-"Never do in the preprocessor what can be done in C."
+makes sense, nice doing!
 
-Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx4/main.c |   29 ++++++++++++++++-------------
- drivers/net/ethernet/mellanox/mlx4/mlx4.h |    6 ++++++
- 2 files changed, 22 insertions(+), 13 deletions(-)
+Acked-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> for patches 1-3
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 9f06e04..ef1a39d 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -95,8 +95,6 @@ MODULE_PARM_DESC(log_num_mgm_entry_size, "log mgm size, that defines the num"
- 					 " Not in use with device managed"
- 					 " flow steering");
- 
--#define MLX4_VF                                        (1 << 0)
--
- #define HCA_GLOBAL_CAP_MASK            0
- #define PF_CONTEXT_BEHAVIOUR_MASK      0
- 
-@@ -1915,7 +1913,7 @@ static void mlx4_free_ownership(struct mlx4_dev *dev)
- 	iounmap(owner);
- }
- 
--static int __mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
-+static int __mlx4_init_one(struct pci_dev *pdev, int pci_dev_data)
- {
- 	struct mlx4_priv *priv;
- 	struct mlx4_dev *dev;
-@@ -1938,12 +1936,11 @@ static int __mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
- 	/*
- 	 * Check for BARs.
- 	 */
--	if (((id == NULL) || !(id->driver_data & MLX4_VF)) &&
-+	if (!(pci_dev_data & MLX4_PCI_DEV_IS_VF) &&
- 	    !(pci_resource_flags(pdev, 0) & IORESOURCE_MEM)) {
- 		dev_err(&pdev->dev, "Missing DCS, aborting."
--			"(id == 0X%p, id->driver_data: 0x%lx,"
--			" pci_resource_flags(pdev, 0):0x%lx)\n", id,
--			id ? id->driver_data : 0, pci_resource_flags(pdev, 0));
-+			"(driver_data: 0x%x, pci_resource_flags(pdev, 0):0x%lx)\n",
-+			pci_dev_data, pci_resource_flags(pdev, 0));
- 		err = -ENODEV;
- 		goto err_disable_pdev;
- 	}
-@@ -2008,7 +2005,7 @@ static int __mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
- 
- 	dev->rev_id = pdev->revision;
- 	/* Detect if this device is a virtual function */
--	if (id && id->driver_data & MLX4_VF) {
-+	if (pci_dev_data & MLX4_PCI_DEV_IS_VF) {
- 		/* When acting as pf, we normally skip vfs unless explicitly
- 		 * requested to probe them. */
- 		if (num_vfs && extended_func_num(pdev) > probe_vf) {
-@@ -2154,6 +2151,7 @@ slave_start:
- 	mlx4_sense_init(dev);
- 	mlx4_start_sense(dev);
- 
-+	priv->pci_dev_data = pci_dev_data;
- 	pci_set_drvdata(pdev, dev);
- 
- 	return 0;
-@@ -2223,7 +2221,7 @@ static int __devinit mlx4_init_one(struct pci_dev *pdev,
- {
- 	printk_once(KERN_INFO "%s", mlx4_version);
- 
--	return __mlx4_init_one(pdev, id);
-+	return __mlx4_init_one(pdev, id->driver_data);
- }
- 
- static void mlx4_remove_one(struct pci_dev *pdev)
-@@ -2303,8 +2301,13 @@ static void mlx4_remove_one(struct pci_dev *pdev)
- 
- int mlx4_restart_one(struct pci_dev *pdev)
- {
-+	struct mlx4_dev	 *dev  = pci_get_drvdata(pdev);
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	int		  pci_dev_data;
-+
-+	pci_dev_data = priv->pci_dev_data;
- 	mlx4_remove_one(pdev);
--	return __mlx4_init_one(pdev, NULL);
-+	return __mlx4_init_one(pdev, pci_dev_data);
- }
- 
- static DEFINE_PCI_DEVICE_TABLE(mlx4_pci_table) = {
-@@ -2333,11 +2336,11 @@ static DEFINE_PCI_DEVICE_TABLE(mlx4_pci_table) = {
- 	/* MT26478 ConnectX2 40GigE PCIe gen2 */
- 	{ PCI_VDEVICE(MELLANOX, 0x676e), 0 },
- 	/* MT25400 Family [ConnectX-2 Virtual Function] */
--	{ PCI_VDEVICE(MELLANOX, 0x1002), MLX4_VF },
-+	{ PCI_VDEVICE(MELLANOX, 0x1002), MLX4_PCI_DEV_IS_VF },
- 	/* MT27500 Family [ConnectX-3] */
- 	{ PCI_VDEVICE(MELLANOX, 0x1003), 0 },
- 	/* MT27500 Family [ConnectX-3 Virtual Function] */
--	{ PCI_VDEVICE(MELLANOX, 0x1004), MLX4_VF },
-+	{ PCI_VDEVICE(MELLANOX, 0x1004), MLX4_PCI_DEV_IS_VF },
- 	{ PCI_VDEVICE(MELLANOX, 0x1005), 0 }, /* MT27510 Family */
- 	{ PCI_VDEVICE(MELLANOX, 0x1006), 0 }, /* MT27511 Family */
- 	{ PCI_VDEVICE(MELLANOX, 0x1007), 0 }, /* MT27520 Family */
-@@ -2366,7 +2369,7 @@ static pci_ers_result_t mlx4_pci_err_detected(struct pci_dev *pdev,
- 
- static pci_ers_result_t mlx4_pci_slot_reset(struct pci_dev *pdev)
- {
--	int ret = __mlx4_init_one(pdev, NULL);
-+	int ret = __mlx4_init_one(pdev, 0);
- 
- 	return ret ? PCI_ERS_RESULT_DISCONNECT : PCI_ERS_RESULT_RECOVERED;
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index 1bb3e5e..65f73d6 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -692,6 +692,10 @@ struct mlx4_steer {
- 	struct list_head steer_entries[MLX4_NUM_STEERS];
- };
- 
-+enum {
-+	MLX4_PCI_DEV_IS_VF		= 1 << 0,
-+};
-+
- struct mlx4_priv {
- 	struct mlx4_dev		dev;
- 
-@@ -699,6 +703,8 @@ struct mlx4_priv {
- 	struct list_head	ctx_list;
- 	spinlock_t		ctx_lock;
- 
-+	int			pci_dev_data;
-+
- 	struct list_head        pgdir_list;
- 	struct mutex            pgdir_mutex;
- 
--- 
-1.7.10.4
+Roland, I see that these three patches are queued @ your for-next and
+also the initial
+patch which in a way is more lengthy and heavy.  I wonder whether
+wouldn't it be fare to allow for Jack to review it before pushing?
+Jack is back by Tuesday.
 
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
