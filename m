@@ -1,35 +1,80 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: add more RX CQs to scale out processing of SCSI responses
-Date: Fri, 28 Sep 2012 00:08:50 +0200
-Message-ID: <CAJZOPZJ5k+bC1MNJQsPE-r+0B_+TgPO-y-uTxB+PgDgVZThm3g@mail.gmail.com>
-References: <1348413464-25792-1-git-send-email-ogerlitz@mellanox.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 6/7] libibverbs: Add man page for ibv_open_qp
+Date: Fri, 28 Sep 2012 00:01:53 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A97D77@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1348413464-25792-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 23, 2012 at 5:17 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> From: Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> RX/TX CQs will now be selected from a per HCA pool, for the RX flow
-> this has the effect of using different interrupt vectors over low level
-> drivers (such as mlx4) who map the "vector" param provided by the ULP on
-> CQ creation to a dedicated IRQ/MSI-X vector. Once this is made, the RX flow
-> processing of IO responses will now be  distributed across multiple CPUs.
->
-> QPs (--> iser sessions) are assigned to CQs in round robin manner
-> using the current CQ with minimal number of sessions attached to it.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ man/ibv_open_qp.3 |   50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 50 insertions(+), 0 deletions(-)
+ create mode 100644 man/ibv_open_qp.3
+
+diff --git a/man/ibv_open_qp.3 b/man/ibv_open_qp.3
+new file mode 100644
+index 0000000..0bc5647
+--- /dev/null
++++ b/man/ibv_open_qp.3
+@@ -0,0 +1,50 @@
++.\" -*- nroff -*-
++.\"
++.TH IBV_OPEN_QP 3 2011-08-12 libibverbs "Libibverbs Programmer's Manual"
++.SH "NAME"
++ibv_open_qp \- open a shareable queue pair (QP)
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/verbs.h>
++.sp
++.BI "struct ibv_qp *ibv_open_qp(struct ibv_xrcd " "*xrcd" ,
++.BI "                           struct ibv_qp_open_attr " "*qp_open_attr" );
++.fi
++.SH "DESCRIPTION"
++.B ibv_open_qp()
++opens an existing queue pair (QP) associated with the extended protection domain
++.I xrcd\fR.
++The argument
++.I qp_open_attr
++is an ibv_qp_open_attr struct, as defined in <infiniband/verbs.h>.
++.PP
++.nf
++struct ibv_qp_open_attr {
++.in +8
++uint32_t          comp_mask;  /* Identifies valid fields */
++uint32_t          qp_num;     /* QP number */
++void             *qp_context; /* Associated context of the QP */
++enum ibv_qp_type  qp_type;    /* QP transport service type */
++.fi
++.PP
++.B ibv_destroy_qp()
++closes the opened QP and destroys the underlying QP if it has no
++other references.
++.I qp\fR.
++.SH "RETURN VALUE"
++.B ibv_open_qp()
++returns a pointer to the opened QP, or NULL if the request fails.
++Check the QP number (\fBqp_num\fR) in the returned QP.
++.SH "NOTES"
++.B ibv_open_qp()
++will fail if a it is asked to open a QP that does not exist within
++the xrcd with the specified qp_num and qp_type.
++.SH "SEE ALSO"
++.BR ibv_alloc_pd (3),
++.BR ibv_create_qp (3),
++.BR ibv_create_qp_ex (3),
++.BR ibv_modify_qp (3),
++.BR ibv_query_qp (3)
++.SH "AUTHORS"
++.TP
++Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 
-Roland,
-
-Just wondered if you need anything re this one for 3.7?
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
