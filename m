@@ -1,43 +1,45 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 3/7] libibverbs: Add support for XRC SRQs
-Date: Fri, 28 Sep 2012 17:24:20 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A9809D@FMSMSX151.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A97DCA@FMSMSX151.amr.corp.intel.com>
- <20120928004205.GB21759@obsidianresearch.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH V2] IB/qib: fix local access validation for user MRs
+Date: Fri, 28 Sep 2012 13:33:52 -0400
+Message-ID: <20120928173352.7806.14768.stgit@phlsvsles11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120928004205.GB21759-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > +static inline uint32_t ibv_get_srq_num(struct ibv_srq *srq)
-> > +{
-> > +	struct verbs_context *vctx = verbs_get_ctx_op(srq->context, get_srq_num);
-> > +	if (!vctx) {
-> > +		errno = ENOSYS;
-> > +		return 0;
-> > +	}
-> > +	return vctx->get_srq_num(srq);
-> > +}
-> 
-> Do you think the function pointer indirection for ibv_get_srq_num is
-> needed? I had thought something like:
+Commit 8aac4cc3 ("IB/qib: RCU locking for MR validation") introduced
+an error that broke user post sends.  The proper validation of the MR
+was lost in the patch.
 
-Needed?  No - but I was trying to keep the verbs definitions in driver.h away from the user.
+This patch corrects that validation.
+
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_keys.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
+index e9486c7..81c7b73 100644
+--- a/drivers/infiniband/hw/qib/qib_keys.c
++++ b/drivers/infiniband/hw/qib/qib_keys.c
+@@ -186,8 +186,9 @@ int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
+ 		goto bail;
  
-> Where has_comp_mask is a bitmask from the provider with each bit
-> indicating if a provider allocated structure is extended with
-> comp_mask. The driver is required to allocate all structures of that
-> type with a comp_mask if the bit is set.
+ 	off = sge->addr - mr->user_base;
+-	if (unlikely(sge->addr < mr->iova || off + sge->length > mr->length ||
+-		     (mr->access_flags & acc) == 0))
++	if (unlikely(sge->addr < mr->user_base ||
++		     off + sge->length > mr->length ||
++		     (mr->access_flags & acc) != acc))
+ 		goto bail;
+ 	if (unlikely(!atomic_inc_not_zero(&mr->refcount)))
+ 		goto bail;
 
-I like the concept of has_comp_mask.  I'll add that.
-
-- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
