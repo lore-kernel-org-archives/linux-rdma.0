@@ -1,44 +1,31 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: fix local access validation for user MRs
-Date: Fri, 28 Sep 2012 12:17:22 -0400
-Message-ID: <20120928161722.5491.75234.stgit@phlsvsles11.ph.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 2/7] libibverbs: libibverbs: Introduce XRC domains
+Date: Fri, 28 Sep 2012 17:16:10 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A98074@FMSMSX151.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A8237346A97DD6@FMSMSX151.amr.corp.intel.com>
+ <20120928003427.GA21759@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120928003427.GA21759-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 8aac4cc3 ("IB/qib: RCU locking for MR validation") introduced
-an error that broke user post sends.  The proper validation of the MR
-was lost in the patch.
+> > +enum verbs_xrcd_mask {
+> > +	VERBS_XRCD_HANDLE	= 1 << 0,
+> > +	VERBS_XRCD_RESERVED	= 1 << 1
+> > +};
+> 
+> I think it would be a good idea to make both of these constants
+> (1<<0), the '0' serves as an ABI rev, not an individual field. That
+> will give a bit more life to this system, and it makes much more sense
+> to require them be present as a group.
 
-This patch corrects that validation.
-
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_keys.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index e9486c7..ef69534 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -186,8 +186,8 @@ int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
- 		goto bail;
- 
- 	off = sge->addr - mr->user_base;
--	if (unlikely(sge->addr < mr->iova || off + sge->length > mr->length ||
--		     (mr->access_flags & acc) == 0))
-+	if (unlikely(sge->addr < mr->user_base || off + sge->length > mr->length ||
-+		     (mr->access_flags & acc) != acc))
- 		goto bail;
- 	if (unlikely(!atomic_inc_not_zero(&mr->refcount)))
- 		goto bail;
-
+I'd rather not, as it makes checking for a specific field more difficult.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
