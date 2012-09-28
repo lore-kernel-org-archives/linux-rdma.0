@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 2/2] libmlx4: Add support for XRC QPs
-Date: Fri, 28 Sep 2012 22:53:53 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A981DE@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH v3 7/7] libibverbs: Add XRC sample application
+Date: Fri, 28 Sep 2012 22:53:52 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A981CD@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,1012 +11,929 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Jay Sternberg <jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Signed-off-by: Jay Sternberg <jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/buf.c      |    6 +-
- src/cq.c       |   40 +++++++---
- src/mlx4-abi.h |    6 ++
- src/mlx4.c     |   21 +++--
- src/mlx4.h     |   64 +++++++++++++++-
- src/qp.c       |   39 ++++++----
- src/srq.c      |  151 ++++++++++++++++++++++++++++++++++++++
- src/verbs.c    |  220 ++++++++++++++++++++++++++++++++++++++++++--------------
- 8 files changed, 450 insertions(+), 97 deletions(-)
+ Makefile.am              |    4 
+ examples/xsrq_pingpong.c |  885 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 888 insertions(+), 1 deletions(-)
+ create mode 100644 examples/xsrq_pingpong.c
 
-diff --git a/src/buf.c b/src/buf.c
-index a80bcb1..50957bb 100644
---- a/src/buf.c
-+++ b/src/buf.c
-@@ -78,6 +78,8 @@ int mlx4_alloc_buf(struct mlx4_buf *buf, size_t size, int page_size)
+diff --git a/Makefile.am b/Makefile.am
+index cd00a65..4821ec6 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -18,7 +18,7 @@ src_libibverbs_la_DEPENDENCIES = $(srcdir)/src/libibverbs.map
  
- void mlx4_free_buf(struct mlx4_buf *buf)
- {
--	ibv_dofork_range(buf->buf, buf->length);
--	munmap(buf->buf, buf->length);
-+	if (buf->length) {
-+		ibv_dofork_range(buf->buf, buf->length);
-+		munmap(buf->buf, buf->length);
-+	}
- }
-diff --git a/src/cq.c b/src/cq.c
-index 8f7a8cc..20ce1f1 100644
---- a/src/cq.c
-+++ b/src/cq.c
-@@ -220,33 +220,43 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
- 	rmb();
+ bin_PROGRAMS = examples/ibv_devices examples/ibv_devinfo \
+     examples/ibv_asyncwatch examples/ibv_rc_pingpong examples/ibv_uc_pingpong \
+-    examples/ibv_ud_pingpong examples/ibv_srq_pingpong
++    examples/ibv_ud_pingpong examples/ibv_srq_pingpong examples/ibv_xsrq_pingpong
+ examples_ibv_devices_SOURCES = examples/device_list.c
+ examples_ibv_devices_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_devinfo_SOURCES = examples/devinfo.c
+@@ -31,6 +31,8 @@ examples_ibv_ud_pingpong_SOURCES = examples/ud_pingpong.c examples/pingpong.c
+ examples_ibv_ud_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_srq_pingpong_SOURCES = examples/srq_pingpong.c examples/pingpong.c
+ examples_ibv_srq_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
++examples_ibv_xsrq_pingpong_SOURCES = examples/xsrq_pingpong.c examples/pingpong.c
++examples_ibv_xsrq_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_asyncwatch_SOURCES = examples/asyncwatch.c
+ examples_ibv_asyncwatch_LDADD = $(top_builddir)/src/libibverbs.la
  
- 	qpn = ntohl(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK;
-+	wc->qp_num = qpn;
- 
- 	is_send  = cqe->owner_sr_opcode & MLX4_CQE_IS_SEND_MASK;
- 	is_error = (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) ==
- 		MLX4_CQE_OPCODE_ERROR;
- 
--	if (!*cur_qp ||
--	    (qpn != (*cur_qp)->ibv_qp.qp_num)) {
-+	if ((qpn & MLX4_XRC_QPN_BIT) && !is_send) {
- 		/*
--		 * We do not have to take the QP table lock here,
--		 * because CQs will be locked while QPs are removed
-+		 * We do not have to take the XSRQ table lock here,
-+		 * because CQs will be locked while SRQs are removed
- 		 * from the table.
- 		 */
--		*cur_qp = mlx4_find_qp(to_mctx(cq->ibv_cq.context), qpn);
--		if (!*cur_qp)
-+		srq = mlx4_find_xsrq(&to_mctx(cq->ibv_cq.context)->xsrq_table,
-+				     ntohl(cqe->g_mlpath_rqpn) & MLX4_CQE_QPN_MASK);
-+		if (!srq)
- 			return CQ_POLL_ERR;
-+	} else {
-+		if (!*cur_qp || (qpn != (*cur_qp)->verbs_qp.qp.qp_num)) {
-+			/*
-+		 	 * We do not have to take the QP table lock here,
-+			 * because CQs will be locked while QPs are removed
-+		 	 * from the table.
-+			 */
-+			*cur_qp = mlx4_find_qp(to_mctx(cq->ibv_cq.context), qpn);
-+			if (!*cur_qp)
-+				return CQ_POLL_ERR;
-+		}
-+		srq = ((*cur_qp)->verbs_qp.qp.srq) ? to_msrq((*cur_qp)->verbs_qp.qp.srq) : NULL;
- 	}
- 
--	wc->qp_num = (*cur_qp)->ibv_qp.qp_num;
--
- 	if (is_send) {
- 		wq = &(*cur_qp)->sq;
- 		wqe_index = ntohs(cqe->wqe_index);
- 		wq->tail += (uint16_t) (wqe_index - (uint16_t) wq->tail);
- 		wc->wr_id = wq->wrid[wq->tail & (wq->wqe_cnt - 1)];
- 		++wq->tail;
--	} else if ((*cur_qp)->ibv_qp.srq) {
--		srq = to_msrq((*cur_qp)->ibv_qp.srq);
-+	} else if (srq) {
- 		wqe_index = htons(cqe->wqe_index);
- 		wc->wr_id = srq->wrid[wqe_index];
- 		mlx4_free_srq_wqe(srq, wqe_index);
-@@ -322,7 +332,8 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
- 		wc->dlid_path_bits = (g_mlpath_rqpn >> 24) & 0x7f;
- 		wc->wc_flags	  |= g_mlpath_rqpn & 0x80000000 ? IBV_WC_GRH : 0;
- 		wc->pkey_index     = ntohl(cqe->immed_rss_invalid) & 0x7f;
--		if ((*cur_qp)->link_layer == IBV_LINK_LAYER_ETHERNET)
-+		/* HACK */
-+		if ((*cur_qp) && (*cur_qp)->link_layer == IBV_LINK_LAYER_ETHERNET)
- 			wc->sl	   = ntohs(cqe->sl_vid) >> 13;
- 		else
- 			wc->sl	   = ntohs(cqe->sl_vid) >> 12;
-@@ -411,7 +422,12 @@ void __mlx4_cq_clean(struct mlx4_cq *cq, uint32_t qpn, struct mlx4_srq *srq)
- 	 */
- 	while ((int) --prod_index - (int) cq->cons_index >= 0) {
- 		cqe = get_cqe(cq, prod_index & cq->ibv_cq.cqe);
--		if ((ntohl(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK) == qpn) {
-+		if (srq && srq->ext_srq &&
-+		    ntohl(cqe->g_mlpath_rqpn & MLX4_CQE_QPN_MASK) == srq->verbs_srq.srq_num &&
-+		    !(cqe->owner_sr_opcode & MLX4_CQE_IS_SEND_MASK)) {
-+			mlx4_free_srq_wqe(srq, ntohs(cqe->wqe_index));
-+			++nfreed;
-+		} else if ((ntohl(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK) == qpn) {
- 			if (srq && !(cqe->owner_sr_opcode & MLX4_CQE_IS_SEND_MASK))
- 				mlx4_free_srq_wqe(srq, ntohs(cqe->wqe_index));
- 			++nfreed;
-diff --git a/src/mlx4-abi.h b/src/mlx4-abi.h
-index 20a40c9..40d0d9a 100644
---- a/src/mlx4-abi.h
-+++ b/src/mlx4-abi.h
-@@ -74,6 +74,12 @@ struct mlx4_create_srq {
- 	__u64				db_addr;
- };
- 
-+struct mlx4_create_xsrq {
-+	struct ibv_create_xsrq		ibv_cmd;
-+	__u64				buf_addr;
-+	__u64				db_addr;
+diff --git a/examples/xsrq_pingpong.c b/examples/xsrq_pingpong.c
+new file mode 100644
+index 0000000..55b7e6a
+--- /dev/null
++++ b/examples/xsrq_pingpong.c
+@@ -0,0 +1,885 @@
++/*
++ * Copyright (c) 2005 Topspin Communications.  All rights reserved.
++ * Copyright (c) 2011 Intel Corporation, Inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#if HAVE_CONFIG_H
++#  include <config.h>
++#endif /* HAVE_CONFIG_H */
++
++#include <stdio.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <sys/time.h>
++#include <netdb.h>
++#include <malloc.h>
++#include <getopt.h>
++#include <arpa/inet.h>
++#include <time.h>
++
++#include "pingpong.h"
++
++#define MSG_FORMAT "%04x:%06x:%06x:%06x:%04x"
++#define MSG_SIZE   30
++#define MSG_SSCAN  "%x:%x:%x:%x:%x"
++#define ADDR_FORMAT \
++	"%8s: LID %04x, QPN RECV %06x SEND %06x, PSN %06x, SRQN %04x\n"
++static int page_size;
++
++struct pingpong_dest {
++	int lid;
++	int recv_qpn;
++	int send_qpn;
++	int recv_psn;
++	int send_psn;
++	int srqn;
++	int pp_cnt;
 +};
 +
- struct mlx4_create_srq_resp {
- 	struct ibv_create_srq_resp	ibv_resp;
- 	__u32				srqn;
-diff --git a/src/mlx4.c b/src/mlx4.c
-index f6c12f9..5cb5ada 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -127,13 +127,14 @@ static int mlx4_init_context(struct verbs_device *device,
- 	struct ibv_get_context		cmd;
- 	struct mlx4_alloc_ucontext_resp resp;
- 	int				i;
--	/* verbs_context should be used for new verbs
--	  *struct verbs_context *verbs_ctx = verbs_get_ctx(ibv_ctx);
--	 */
-+	struct verbs_context *verbs_ctx = verbs_get_ctx(ibv_ctx);
- 
- 	/* memory footprint of mlx4_context and verbs_context share
- 	  * struct ibv_context.
- 	*/
-+	if (sizeof(*verbs_ctx) > *(((size_t *) ibv_ctx) - 1))
-+		return ENOSYS;
++struct pingpong_context {
++	struct ibv_context	*context;
++	struct ibv_comp_channel *channel;
++	struct ibv_pd		*pd;
++	struct ibv_mr		*mr;
++	struct ibv_cq		*send_cq;
++	struct ibv_cq		*recv_cq;
++	struct ibv_srq		*srq;
++	struct ibv_xrcd		*xrcd;
++	struct ibv_qp		**recv_qp;
++	struct ibv_qp		**send_qp;
++	struct pingpong_dest	*rem_dest;
++	void			*buf;
++	int			 lid;
++	int			 sl;
++	enum ibv_mtu		 mtu;
++	int			 ib_port;
++	int			 fd;
++	int			 size;
++	int			 num_clients;
++	int			 num_tests;
++	int			 use_event;
++};
 +
- 	context = to_mctx(ibv_ctx);
- 	ibv_ctx->cmd_fd = cmd_fd;
- 
-@@ -152,6 +153,7 @@ static int mlx4_init_context(struct verbs_device *device,
- 	for (i = 0; i < MLX4_NUM_DB_TYPE; ++i)
- 		context->db_list[i] = NULL;
- 
-+	mlx4_init_xsrq_table(&context->xsrq_table, resp.qp_tab_size);
- 	pthread_mutex_init(&context->db_list_mutex, NULL);
- 
- 	context->uar = mmap(NULL, to_mdev_ex(device)->page_size, PROT_WRITE,
-@@ -181,11 +183,14 @@ static int mlx4_init_context(struct verbs_device *device,
- 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
- 
- 	ibv_ctx->ops = mlx4_ctx_ops;
--	/* New verbs should be added as below
--	  * verbs_ctx->drv_new_func1 = mlx4_new_func1;
--	  */
--	return 0;
-+	verbs_ctx->close_xrcd = mlx4_close_xrcd;
-+	verbs_ctx->open_xrcd = mlx4_open_xrcd;
-+	verbs_ctx->create_srq_ex = mlx4_create_srq_ex;
-+	verbs_ctx->get_srq_num = verbs_get_srq_num;
-+	verbs_ctx->create_qp_ex = mlx4_create_qp_ex;
-+	verbs_ctx->open_qp = mlx4_open_qp;
- 
++struct pingpong_context ctx;
++
++
++static int open_device(char *ib_devname)
++{
++	struct ibv_device **dev_list;
++	int i = 0;
++
++	dev_list = ibv_get_device_list(NULL);
++	if (!dev_list) {
++		fprintf(stderr, "Failed to get IB devices list");
++		return -1;
++	}
++
++	if (ib_devname) {
++		for (; dev_list[i]; ++i) {
++			if (!strcmp(ibv_get_device_name(dev_list[i]), ib_devname))
++				break;
++		}
++	}
++	if (!dev_list[i]) {
++		fprintf(stderr, "IB device %s not found\n",
++			ib_devname ? ib_devname : "");
++		return -1;
++	}
++
++	ctx.context = ibv_open_device(dev_list[i]);
++	if (!ctx.context) {
++		fprintf(stderr, "Couldn't get context for %s\n",
++			ibv_get_device_name(dev_list[i]));
++		return -1;
++	}
++
++	ibv_free_device_list(dev_list);
 +	return 0;
- }
- 
- static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_fd)
-@@ -212,7 +217,7 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
- }
- 
- static void mlx4_uninit_context(struct verbs_device *device,
--					struct ibv_context *ibv_ctx)
-+				struct ibv_context *ibv_ctx)
- {
- 	struct mlx4_context *context = to_mctx(ibv_ctx);
- 
-diff --git a/src/mlx4.h b/src/mlx4.h
-index c06dbd5..462b9ad 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -38,6 +38,7 @@
- 
- #include <infiniband/driver.h>
- #include <infiniband/arch.h>
-+#include <infiniband/verbs.h>
- 
- #ifdef HAVE_VALGRIND_MEMCHECK_H
- 
-@@ -97,6 +98,37 @@ enum {
- 	MLX4_QP_TABLE_MASK		= MLX4_QP_TABLE_SIZE - 1
- };
- 
-+#define MLX4_REMOTE_SRQN_FLAGS(wr) htonl((wr)->wr.xrc.remote_srqn << 8)
-+#define MLX4_GET_SRQN(srq) (srq)->ibv_srq.srq_num
++}
 +
-+enum {
-+	MLX4_XSRQ_TABLE_BITS = 8,
-+	MLX4_XSRQ_TABLE_SIZE = 1 << MLX4_XSRQ_TABLE_BITS,
-+	MLX4_XSRQ_TABLE_MASK = MLX4_XSRQ_TABLE_SIZE - 1
-+};
++static int create_qps(void)
++{
++	struct ibv_qp_init_attr_ex init;
++	struct ibv_qp_attr mod;
++	int i;
 +
-+struct mlx4_xsrq_table {
-+	struct {
-+		struct mlx4_srq **table;
-+		int		  refcnt;
-+	} xsrq_table[MLX4_XSRQ_TABLE_SIZE];
++	for (i = 0; i < ctx.num_clients; ++i) {
 +
-+	pthread_mutex_t		  mutex;
-+	int			  num_xsrq;
-+	int			  shift;
-+	int			  mask;
-+};
++		memset(&init, 0, sizeof init);
++		init.qp_type = IBV_QPT_XRC_RECV;
++		init.comp_mask = IBV_QP_INIT_ATTR_XRCD;
++		init.xrcd = ctx.xrcd;
 +
-+void mlx4_init_xsrq_table(struct mlx4_xsrq_table *xsrq_table, int size);
-+struct mlx4_srq *mlx4_find_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn);
-+int mlx4_store_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn,
-+		    struct mlx4_srq *srq);
-+void mlx4_clear_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn);
-+
-+enum {
-+	MLX4_XRC_QPN_BIT     = (1 << 23)
-+};
-+
- enum mlx4_db_type {
- 	MLX4_DB_TYPE_CQ,
- 	MLX4_DB_TYPE_RQ,
-@@ -162,6 +194,8 @@ struct mlx4_context {
- 	int				qp_table_shift;
- 	int				qp_table_mask;
- 
-+	struct mlx4_xsrq_table		xsrq_table;
-+
- 	struct mlx4_db_page	       *db_list[MLX4_NUM_DB_TYPE];
- 	pthread_mutex_t			db_list_mutex;
- };
-@@ -189,7 +223,7 @@ struct mlx4_cq {
- };
- 
- struct mlx4_srq {
--	struct ibv_srq			ibv_srq;
-+	struct verbs_srq		verbs_srq;
- 	struct mlx4_buf			buf;
- 	pthread_spinlock_t		lock;
- 	uint64_t		       *wrid;
-@@ -201,6 +235,7 @@ struct mlx4_srq {
- 	int				tail;
- 	uint32_t		       *db;
- 	uint16_t			counter;
-+	uint8_t				ext_srq;
- };
- 
- struct mlx4_wq {
-@@ -216,7 +251,7 @@ struct mlx4_wq {
- };
- 
- struct mlx4_qp {
--	struct ibv_qp			ibv_qp;
-+	struct verbs_qp			verbs_qp;
- 	struct mlx4_buf			buf;
- 	int				max_inline_data;
- 	int				buf_size;
-@@ -256,6 +291,7 @@ static inline unsigned long align(unsigned long val, unsigned long align)
- {
- 	return (val + align - 1) & ~(align - 1);
- }
-+int align_queue_size(int req);
- 
- #define to_mxxx(xxx, type)						\
- 	((struct mlx4_##type *)					\
-@@ -294,12 +330,14 @@ static inline struct mlx4_cq *to_mcq(struct ibv_cq *ibcq)
- 
- static inline struct mlx4_srq *to_msrq(struct ibv_srq *ibsrq)
- {
--	return to_mxxx(srq, srq);
-+	return container_of(container_of(ibsrq, struct verbs_srq, srq),
-+			    struct mlx4_srq, verbs_srq);
- }
- 
- static inline struct mlx4_qp *to_mqp(struct ibv_qp *ibqp)
- {
--	return to_mxxx(qp, qp);
-+	return container_of(container_of(ibqp, struct verbs_qp, qp),
-+			    struct mlx4_qp, verbs_qp);
- }
- 
- static inline struct mlx4_ah *to_mah(struct ibv_ah *ibah)
-@@ -320,6 +358,9 @@ int mlx4_query_port(struct ibv_context *context, uint8_t port,
- 
- struct ibv_pd *mlx4_alloc_pd(struct ibv_context *context);
- int mlx4_free_pd(struct ibv_pd *pd);
-+struct ibv_xrcd *mlx4_open_xrcd(struct ibv_context *context,
-+				struct ibv_xrcd_init_attr *attr);
-+int mlx4_close_xrcd(struct ibv_xrcd *xrcd);
- 
- struct ibv_mr *mlx4_reg_mr(struct ibv_pd *pd, void *addr,
- 			    size_t length, int access);
-@@ -341,20 +382,33 @@ void mlx4_cq_resize_copy_cqes(struct mlx4_cq *cq, void *buf, int new_cqe);
- 
- struct ibv_srq *mlx4_create_srq(struct ibv_pd *pd,
- 				 struct ibv_srq_init_attr *attr);
-+struct ibv_srq *mlx4_create_srq_ex(struct ibv_context *context,
-+				   struct ibv_srq_init_attr_ex *attr_ex);
-+struct ibv_srq *mlx4_create_xrc_srq(struct ibv_context *context,
-+				    struct ibv_srq_init_attr_ex *attr_ex);
- int mlx4_modify_srq(struct ibv_srq *srq,
- 		     struct ibv_srq_attr *attr,
- 		     int mask);
- int mlx4_query_srq(struct ibv_srq *srq,
- 			   struct ibv_srq_attr *attr);
- int mlx4_destroy_srq(struct ibv_srq *srq);
-+int mlx4_destroy_xrc_srq(struct ibv_srq *srq);
- int mlx4_alloc_srq_buf(struct ibv_pd *pd, struct ibv_srq_attr *attr,
- 			struct mlx4_srq *srq);
-+void mlx4_init_xsrq_table(struct mlx4_xsrq_table *xsrq_table, int size);
-+struct mlx4_srq *mlx4_find_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn);
-+int mlx4_store_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn,
-+		    struct mlx4_srq *srq);
-+void mlx4_clear_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn);
- void mlx4_free_srq_wqe(struct mlx4_srq *srq, int ind);
- int mlx4_post_srq_recv(struct ibv_srq *ibsrq,
- 		       struct ibv_recv_wr *wr,
- 		       struct ibv_recv_wr **bad_wr);
- 
- struct ibv_qp *mlx4_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr);
-+struct ibv_qp *mlx4_create_qp_ex(struct ibv_context *context,
-+				 struct ibv_qp_init_attr_ex *attr);
-+struct ibv_qp *mlx4_open_qp(struct ibv_context *context, struct ibv_qp_open_attr *attr);
- int mlx4_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		   int attr_mask,
- 		   struct ibv_qp_init_attr *init_attr);
-@@ -369,7 +423,7 @@ int mlx4_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
- 			  struct ibv_recv_wr **bad_wr);
- void mlx4_calc_sq_wqe_size(struct ibv_qp_cap *cap, enum ibv_qp_type type,
- 			   struct mlx4_qp *qp);
--int mlx4_alloc_qp_buf(struct ibv_pd *pd, struct ibv_qp_cap *cap,
-+int mlx4_alloc_qp_buf(struct ibv_context *context, struct ibv_qp_cap *cap,
- 		       enum ibv_qp_type type, struct mlx4_qp *qp);
- void mlx4_set_sq_sizes(struct mlx4_qp *qp, struct ibv_qp_cap *cap,
- 		       enum ibv_qp_type type);
-diff --git a/src/qp.c b/src/qp.c
-index 40a6689..132660f 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -208,7 +208,7 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 	ind = qp->sq.head;
- 
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
--		if (wq_overflow(&qp->sq, nreq, to_mcq(qp->ibv_qp.send_cq))) {
-+		if (wq_overflow(&qp->sq, nreq, to_mcq(ibqp->send_cq))) {
- 			ret = ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
-@@ -246,6 +246,9 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 		size = sizeof *ctrl / 16;
- 
- 		switch (ibqp->qp_type) {
-+		case IBV_QPT_XRC_SEND:
-+			ctrl->srcrb_flags |= MLX4_REMOTE_SRQN_FLAGS(wr);
-+			/* fall through */
- 		case IBV_QPT_RC:
- 		case IBV_QPT_UC:
- 			switch (wr->opcode) {
-@@ -452,7 +455,7 @@ int mlx4_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
- 	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
- 
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
--		if (wq_overflow(&qp->rq, nreq, to_mcq(qp->ibv_qp.recv_cq))) {
-+		if (wq_overflow(&qp->rq, nreq, to_mcq(ibqp->recv_cq))) {
- 			ret = ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
-@@ -546,6 +549,7 @@ void mlx4_calc_sq_wqe_size(struct ibv_qp_cap *cap, enum ibv_qp_type type,
- 		size += sizeof (struct mlx4_wqe_raddr_seg);
- 		break;
- 
-+	case IBV_QPT_XRC_SEND:
- 	case IBV_QPT_RC:
- 		size += sizeof (struct mlx4_wqe_raddr_seg);
- 		/*
-@@ -575,14 +579,16 @@ void mlx4_calc_sq_wqe_size(struct ibv_qp_cap *cap, enum ibv_qp_type type,
- 		; /* nothing */
- }
- 
--int mlx4_alloc_qp_buf(struct ibv_pd *pd, struct ibv_qp_cap *cap,
-+int mlx4_alloc_qp_buf(struct ibv_context *context, struct ibv_qp_cap *cap,
- 		       enum ibv_qp_type type, struct mlx4_qp *qp)
- {
- 	qp->rq.max_gs	 = cap->max_recv_sge;
- 
--	qp->sq.wrid = malloc(qp->sq.wqe_cnt * sizeof (uint64_t));
--	if (!qp->sq.wrid)
--		return -1;
-+	if (qp->sq.wqe_cnt) {
-+		qp->sq.wrid = malloc(qp->sq.wqe_cnt * sizeof (uint64_t));
-+		if (!qp->sq.wrid)
-+			return -1;
-+	}
- 
- 	if (qp->rq.wqe_cnt) {
- 		qp->rq.wrid = malloc(qp->rq.wqe_cnt * sizeof (uint64_t));
-@@ -607,15 +613,19 @@ int mlx4_alloc_qp_buf(struct ibv_pd *pd, struct ibv_qp_cap *cap,
- 		qp->sq.offset = 0;
- 	}
- 
--	if (mlx4_alloc_buf(&qp->buf,
--			    align(qp->buf_size, to_mdev(pd->context->device)->page_size),
--			    to_mdev(pd->context->device)->page_size)) {
--		free(qp->sq.wrid);
--		free(qp->rq.wrid);
--		return -1;
--	}
-+	if (qp->buf_size) {
-+		if (mlx4_alloc_buf(&qp->buf,
-+				   align(qp->buf_size, to_mdev(context->device)->page_size),
-+				   to_mdev(context->device)->page_size)) {
-+			free(qp->sq.wrid);
-+			free(qp->rq.wrid);
-+			return -1;
++		ctx.recv_qp[i] = ibv_create_qp_ex(ctx.context, &init);
++		if (!ctx.recv_qp[i])  {
++			fprintf(stderr, "Couldn't create recv QP[%d] errno %d\n",
++				i, errno);
++			return 1;
 +		}
- 
--	memset(qp->buf.buf, 0, qp->buf_size);
-+		memset(qp->buf.buf, 0, qp->buf_size);
-+	} else {
-+		qp->buf.buf = NULL;
-+	}
- 
- 	return 0;
- }
-@@ -631,6 +641,7 @@ void mlx4_set_sq_sizes(struct mlx4_qp *qp, struct ibv_qp_cap *cap,
- 		wqe_size -= sizeof (struct mlx4_wqe_datagram_seg);
- 		break;
- 
-+	case IBV_QPT_XRC_SEND:
- 	case IBV_QPT_UC:
- 	case IBV_QPT_RC:
- 		wqe_size -= sizeof (struct mlx4_wqe_raddr_seg);
-diff --git a/src/srq.c b/src/srq.c
-index f1d1240..bc19c51 100644
---- a/src/srq.c
-+++ b/src/srq.c
-@@ -42,6 +42,7 @@
- #include "mlx4.h"
- #include "doorbell.h"
- #include "wqe.h"
-+#include "mlx4-abi.h"
- 
- static void *get_wqe(struct mlx4_srq *srq, int n)
- {
-@@ -173,3 +174,153 @@ int mlx4_alloc_srq_buf(struct ibv_pd *pd, struct ibv_srq_attr *attr,
- 
- 	return 0;
- }
 +
-+void mlx4_init_xsrq_table(struct mlx4_xsrq_table *xsrq_table, int size)
-+{
-+	memset(xsrq_table, 0, sizeof *xsrq_table);
-+	xsrq_table->num_xsrq = size;
-+	xsrq_table->shift = ffs(size) - 1 - MLX4_XSRQ_TABLE_BITS;
-+	xsrq_table->mask = (1 << xsrq_table->shift) - 1;
++		mod.qp_state        = IBV_QPS_INIT;
++		mod.pkey_index      = 0;
++		mod.port_num        = ctx.ib_port;
++		mod.qp_access_flags = IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_READ;
 +
-+	pthread_mutex_init(&xsrq_table->mutex, NULL);
-+}
++		if (ibv_modify_qp(ctx.recv_qp[i], &mod,
++				  IBV_QP_STATE | IBV_QP_PKEY_INDEX |
++				  IBV_QP_PORT | IBV_QP_ACCESS_FLAGS)) {
++			fprintf(stderr, "Failed to modify recv QP[%d] to INIT\n", i);
++			return 1;
++		}
 +
-+struct mlx4_srq *mlx4_find_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn)
-+{
-+	int index;
++		memset(&init, 0, sizeof init);
++		init.qp_type	      = IBV_QPT_XRC_SEND;
++		init.send_cq	      = ctx.send_cq;
++		init.cap.max_send_wr  = ctx.num_clients * ctx.num_tests;
++		init.cap.max_send_sge = 1;
++		init.comp_mask	      = IBV_QP_INIT_ATTR_PD;
++		init.pd		      = ctx.pd;
 +
-+	index = (srqn & (xsrq_table->num_xsrq - 1)) >> xsrq_table->shift;
-+	if (xsrq_table->xsrq_table[index].refcnt)
-+		return xsrq_table->xsrq_table[index].table[srqn & xsrq_table->mask];
++		ctx.send_qp[i] = ibv_create_qp_ex(ctx.context, &init);
++		if (!ctx.send_qp[i])  {
++			fprintf(stderr, "Couldn't create send QP[%d] errno %d\n",
++				i, errno);
++			return 1;
++		}
 +
-+	return NULL;
-+}
++		mod.qp_state        = IBV_QPS_INIT;
++		mod.pkey_index      = 0;
++		mod.port_num        = ctx.ib_port;
++		mod.qp_access_flags = 0;
 +
-+int mlx4_store_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn,
-+		    struct mlx4_srq *srq)
-+{
-+	int index, ret = 0;
-+
-+	index = (srqn & (xsrq_table->num_xsrq - 1)) >> xsrq_table->shift;
-+	pthread_mutex_lock(&xsrq_table->mutex);
-+	if (!xsrq_table->xsrq_table[index].refcnt) {
-+		xsrq_table->xsrq_table[index].table = calloc(xsrq_table->mask + 1,
-+							     sizeof(struct mlx4_srq *));
-+		if (!xsrq_table->xsrq_table[index].table) {
-+			ret = -1;
-+			goto out;
++		if (ibv_modify_qp(ctx.send_qp[i], &mod,
++				  IBV_QP_STATE | IBV_QP_PKEY_INDEX |
++				  IBV_QP_PORT | IBV_QP_ACCESS_FLAGS)) {
++			fprintf(stderr, "Failed to modify send QP[%d] to INIT\n", i);
++			return 1;
 +		}
 +	}
-+
-+	xsrq_table->xsrq_table[index].refcnt++;
-+	xsrq_table->xsrq_table[index].table[srqn & xsrq_table->mask] = srq;
-+
-+out:
-+	pthread_mutex_unlock(&xsrq_table->mutex);
-+	return ret;
-+}
-+
-+void mlx4_clear_xsrq(struct mlx4_xsrq_table *xsrq_table, uint32_t srqn)
-+{
-+	int index;
-+
-+	index = (srqn & (xsrq_table->num_xsrq - 1)) >> xsrq_table->shift;
-+	pthread_mutex_lock(&xsrq_table->mutex);
-+
-+	if (--xsrq_table->xsrq_table[index].refcnt)
-+		xsrq_table->xsrq_table[index].table[srqn & xsrq_table->mask] = NULL;
-+	else
-+		free(xsrq_table->xsrq_table[index].table);
-+
-+	pthread_mutex_unlock(&xsrq_table->mutex);
-+}
-+
-+struct ibv_srq *mlx4_create_xrc_srq(struct ibv_context *context,
-+				    struct ibv_srq_init_attr_ex *attr_ex)
-+{
-+	struct mlx4_create_xsrq cmd;
-+	struct mlx4_create_srq_resp resp;
-+	struct mlx4_srq *srq;
-+	int ret;
-+
-+	/* Sanity check SRQ size before proceeding */
-+	if (attr_ex->attr.max_wr > 1 << 16 || attr_ex->attr.max_sge > 64)
-+		return NULL;
-+
-+	srq = calloc(1, sizeof *srq);
-+	if (!srq)
-+		return NULL;
-+
-+	if (pthread_spin_init(&srq->lock, PTHREAD_PROCESS_PRIVATE))
-+		goto err;
-+
-+	srq->max     = align_queue_size(attr_ex->attr.max_wr + 1);
-+	srq->max_gs  = attr_ex->attr.max_sge;
-+	srq->counter = 0;
-+	srq->ext_srq = 1;
-+
-+	if (mlx4_alloc_srq_buf(attr_ex->pd, &attr_ex->attr, srq))
-+		goto err;
-+
-+	srq->db = mlx4_alloc_db(to_mctx(context), MLX4_DB_TYPE_RQ);
-+	if (!srq->db)
-+		goto err_free;
-+
-+	*srq->db = 0;
-+
-+	cmd.buf_addr = (uintptr_t) srq->buf.buf;
-+	cmd.db_addr  = (uintptr_t) srq->db;
-+
-+	ret = ibv_cmd_create_srq_ex(context, &srq->verbs_srq, attr_ex,
-+				    &cmd.ibv_cmd, sizeof cmd,
-+				    &resp.ibv_resp, sizeof resp);
-+	if (ret)
-+		goto err_db;
-+
-+	ret = mlx4_store_xsrq(&to_mctx(context)->xsrq_table,
-+			      srq->verbs_srq.srq_num, srq);
-+	if (ret)
-+		goto err_destroy;
-+
-+	return &srq->verbs_srq.srq;
-+
-+err_destroy:
-+	ibv_cmd_destroy_srq(&srq->verbs_srq.srq);
-+err_db:
-+	mlx4_free_db(to_mctx(context), MLX4_DB_TYPE_RQ, srq->db);
-+err_free:
-+	free(srq->wrid);
-+	mlx4_free_buf(&srq->buf);
-+err:
-+	free(srq);
-+	return NULL;
-+}
-+
-+int mlx4_destroy_xrc_srq(struct ibv_srq *srq)
-+{
-+	struct mlx4_context *mctx = to_mctx(srq->context);
-+	struct mlx4_srq *msrq = to_msrq(srq);
-+	struct mlx4_cq *mcq;
-+	int ret;
-+
-+	mcq = to_mcq(msrq->verbs_srq.cq);
-+	mlx4_cq_clean(mcq, 0, msrq);
-+	pthread_spin_lock(&mcq->lock);
-+	mlx4_clear_xsrq(&mctx->xsrq_table, msrq->verbs_srq.srq_num);
-+	pthread_spin_unlock(&mcq->lock);
-+
-+	ret = ibv_cmd_destroy_srq(srq);
-+	if (ret) {
-+		pthread_spin_lock(&mcq->lock);
-+		mlx4_store_xsrq(&mctx->xsrq_table, msrq->verbs_srq.srq_num, msrq);
-+		pthread_spin_unlock(&mcq->lock);
-+		return ret;
-+	}
-+
-+	mlx4_free_db(mctx, MLX4_DB_TYPE_RQ, msrq->db);
-+	mlx4_free_buf(&msrq->buf);
-+	free(msrq->wrid);
-+	free(msrq);
 +
 +	return 0;
 +}
-diff --git a/src/verbs.c b/src/verbs.c
-index 408fc6d..1ebf766 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -107,6 +107,42 @@ int mlx4_free_pd(struct ibv_pd *pd)
- 	return 0;
- }
- 
-+struct ibv_xrcd *mlx4_open_xrcd(struct ibv_context *context,
-+				struct ibv_xrcd_init_attr *attr)
++
++static int pp_init_ctx(char *ib_devname)
 +{
-+	struct ibv_open_xrcd cmd;
-+	struct ibv_open_xrcd_resp resp;
-+	struct verbs_xrcd *xrcd;
++	struct ibv_srq_init_attr_ex attr;
++	struct ibv_xrcd_init_attr xrcd_attr;
++
++	ctx.recv_qp = calloc(ctx.num_clients, sizeof *ctx.recv_qp);
++	ctx.send_qp = calloc(ctx.num_clients, sizeof *ctx.send_qp);
++	ctx.rem_dest = calloc(ctx.num_clients, sizeof *ctx.rem_dest);
++	if (!ctx.recv_qp || !ctx.send_qp || !ctx.rem_dest)
++		return 1;
++
++	if (open_device(ib_devname)) {
++		fprintf(stderr, "Failed to open device\n");
++		return 1;
++	}
++
++	ctx.lid = pp_get_local_lid(ctx.context, ctx.ib_port);
++	if (ctx.lid < 0) {
++		fprintf(stderr, "Failed to get SLID\n");
++		return 1;
++	}
++
++	ctx.buf = memalign(page_size, ctx.size);
++	if (!ctx.buf) {
++		fprintf(stderr, "Couldn't allocate work buf.\n");
++		return 1;
++	}
++
++	memset(ctx.buf, 0, ctx.size);
++
++	if (ctx.use_event) {
++		ctx.channel = ibv_create_comp_channel(ctx.context);
++		if (!ctx.channel) {
++			fprintf(stderr, "Couldn't create completion channel\n");
++			return 1;
++		}
++	}
++
++	ctx.pd = ibv_alloc_pd(ctx.context);
++	if (!ctx.pd) {
++		fprintf(stderr, "Couldn't allocate PD\n");
++		return 1;
++	}
++
++	ctx.mr = ibv_reg_mr(ctx.pd, ctx.buf, ctx.size, IBV_ACCESS_LOCAL_WRITE);
++	if (!ctx.mr) {
++		fprintf(stderr, "Couldn't register MR\n");
++		return 1;
++	}
++
++	ctx.fd = open("/tmp/xrc_domain", O_CREAT);
++	if (ctx.fd < 0) {
++		fprintf(stderr,
++			"Couldn't create the file for the XRC Domain "
++			"but not stopping %d\n", errno);
++		ctx.fd = -1;
++	}
++
++	memset(&xrcd_attr, 0, sizeof xrcd_attr);
++	xrcd_attr.comp_mask = IBV_XRCD_INIT_ATTR_FD | IBV_XRCD_INIT_ATTR_OFLAGS;
++	xrcd_attr.fd = ctx.fd;
++	xrcd_attr.oflags = O_CREAT;
++	ctx.xrcd = ibv_open_xrcd(ctx.context, &xrcd_attr);
++	if (!ctx.xrcd) {
++		fprintf(stderr, "Couldn't Open the XRC Domain %d\n", errno);
++		return 1;
++	}
++
++	ctx.recv_cq = ibv_create_cq(ctx.context, ctx.num_clients, &ctx.recv_cq,
++				    ctx.channel, 0);
++	if (!ctx.recv_cq) {
++		fprintf(stderr, "Couldn't create recv CQ\n");
++		return 1;
++	}
++
++	if (ctx.use_event) {
++		if (ibv_req_notify_cq(ctx.recv_cq, 0)) {
++			fprintf(stderr, "Couldn't request CQ notification\n");
++			return 1;
++		}
++	}
++
++	ctx.send_cq = ibv_create_cq(ctx.context, ctx.num_clients, NULL, NULL, 0);
++	if (!ctx.send_cq) {
++		fprintf(stderr, "Couldn't create send CQ\n");
++		return 1;
++	}
++
++	memset(&attr, 0, sizeof attr);
++	attr.attr.max_wr = ctx.num_clients;
++	attr.attr.max_sge = 1;
++	attr.comp_mask = IBV_SRQ_INIT_ATTR_TYPE | IBV_SRQ_INIT_ATTR_XRCD |
++			 IBV_SRQ_INIT_ATTR_CQ | IBV_SRQ_INIT_ATTR_PD;
++	attr.srq_type = IBV_SRQT_XRC;
++	attr.xrcd = ctx.xrcd;
++	attr.cq = ctx.recv_cq;
++	attr.pd = ctx.pd;
++
++	ctx.srq = ibv_create_srq_ex(ctx.context, &attr);
++	if (!ctx.srq)  {
++		fprintf(stderr, "Couldn't create SRQ\n");
++		return 1;
++	}
++
++	if (create_qps())
++		return 1;
++
++	return 0;
++}
++
++static int send_local_dest(int sockfd, int index)
++{
++	char msg[MSG_SIZE];
++
++	ctx.rem_dest[index].recv_psn = lrand48() & 0xffffff;
++
++	printf(ADDR_FORMAT, "local", ctx.lid, ctx.recv_qp[index]->qp_num,
++		ctx.send_qp[index]->qp_num, ctx.rem_dest[index].recv_psn,
++		ibv_get_srq_num(ctx.srq));
++
++	sprintf(msg, MSG_FORMAT, ctx.lid, ctx.recv_qp[index]->qp_num,
++		ctx.send_qp[index]->qp_num, ctx.rem_dest[index].recv_psn,
++		ibv_get_srq_num(ctx.srq));
++
++	if (write(sockfd, msg, MSG_SIZE) != MSG_SIZE) {
++		fprintf(stderr, "Couldn't send local address\n");
++		return -1;
++	}
++
++	return 0;
++}
++
++static int recv_remote_dest(int sockfd, int index)
++{
++	struct pingpong_dest *rem_dest;
++	char msg[MSG_SIZE];
++	int n = 0, r;
++
++	while (n < MSG_SIZE) {
++		r = read(sockfd, msg + n, MSG_SIZE - n);
++		if (r < 0) {
++			perror("client read");
++			fprintf(stderr,
++				"%d/%d: Couldn't read remote address [%d]\n",
++				n, MSG_SIZE, index);
++			return -1;
++		}
++		n += r;
++	}
++
++	rem_dest = &ctx.rem_dest[index];
++	sscanf(msg, MSG_SSCAN, &rem_dest->lid, &rem_dest->recv_qpn,
++	       &rem_dest->send_qpn, &rem_dest->send_psn, &rem_dest->srqn);
++
++	printf(ADDR_FORMAT, "remote", rem_dest->lid, rem_dest->recv_qpn,
++	       rem_dest->send_qpn, rem_dest->send_psn, rem_dest->srqn);
++
++	return 0;
++}
++
++static int connect_qps(int index)
++{
++	struct ibv_qp_attr attr;
++
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state	      = IBV_QPS_RTR;
++	attr.dest_qp_num      = ctx.rem_dest[index].send_qpn;
++	attr.path_mtu	      = ctx.mtu;
++	attr.rq_psn	      = ctx.rem_dest[index].send_psn;
++	attr.min_rnr_timer    = 12;
++	attr.ah_attr.dlid     = ctx.rem_dest[index].lid;
++	attr.ah_attr.sl	      = ctx.sl;
++	attr.ah_attr.port_num = ctx.ib_port;
++
++	if (ibv_modify_qp(ctx.recv_qp[index], &attr,
++			  IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU |
++			  IBV_QP_DEST_QPN | IBV_QP_RQ_PSN |
++			  IBV_QP_MAX_DEST_RD_ATOMIC | IBV_QP_MIN_RNR_TIMER)) {
++		fprintf(stderr, "Failed to modify send QP[%d] to RTR\n", index);
++		return 1;
++	}
++
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state = IBV_QPS_RTS;
++	attr.timeout = 14;
++	attr.sq_psn = ctx.rem_dest[index].recv_psn;
++
++	if (ibv_modify_qp(ctx.recv_qp[index], &attr,
++			  IBV_QP_STATE | IBV_QP_TIMEOUT | IBV_QP_SQ_PSN)) {
++		fprintf(stderr, "Failed to modify recv QP[%d] to RTS\n", index);
++		return 1;
++	}
++
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state	      = IBV_QPS_RTR;
++	attr.dest_qp_num      = ctx.rem_dest[index].recv_qpn;
++	attr.path_mtu	      = ctx.mtu;
++	attr.rq_psn	      = ctx.rem_dest[index].send_psn;
++	attr.ah_attr.dlid     = ctx.rem_dest[index].lid;
++	attr.ah_attr.sl	      = ctx.sl;
++	attr.ah_attr.port_num = ctx.ib_port;
++
++	if (ibv_modify_qp(ctx.send_qp[index], &attr,
++			  IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU |
++			  IBV_QP_DEST_QPN | IBV_QP_RQ_PSN)) {
++		fprintf(stderr, "Failed to modify send QP[%d] to RTR\n", index);
++		return 1;
++	}
++
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state = IBV_QPS_RTS;
++	attr.timeout = 14;
++	attr.retry_cnt = 7;
++	attr.rnr_retry = 7;
++	attr.sq_psn = ctx.rem_dest[index].recv_psn;
++
++	if (ibv_modify_qp(ctx.send_qp[index], &attr,
++			  IBV_QP_STATE | IBV_QP_TIMEOUT | IBV_QP_SQ_PSN |
++			  IBV_QP_RETRY_CNT | IBV_QP_RNR_RETRY | IBV_QP_MAX_QP_RD_ATOMIC)) {
++		fprintf(stderr, "Failed to modify send QP[%d] to RTS\n", index);
++		return 1;
++	}
++
++	return 0;
++}
++
++static int pp_client_connect(const char *servername, int port)
++{
++	struct addrinfo *res, *t;
++	char *service;
 +	int ret;
++	int sockfd = -1;
++	struct addrinfo hints = {
++		.ai_family   = AF_UNSPEC,
++		.ai_socktype = SOCK_STREAM
++	};
 +
-+	xrcd = calloc(1, sizeof *xrcd);
-+	if (!xrcd)
-+		return NULL;
++	if (asprintf(&service, "%d", port) < 0)
++		return 1;
 +
-+	ret = ibv_cmd_open_xrcd(context, xrcd, attr,
-+				&cmd, sizeof cmd, &resp, sizeof resp);
-+	if (ret)
-+		goto err;
++	ret = getaddrinfo(servername, service, &hints, &res);
++	if (ret < 0) {
++		fprintf(stderr, "%s for %s:%d\n", gai_strerror(ret), servername, port);
++		free(service);
++		return 1;
++	}
 +
-+	return &xrcd->xrcd;
++	for (t = res; t; t = t->ai_next) {
++		sockfd = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
++		if (sockfd >= 0) {
++			if (!connect(sockfd, t->ai_addr, t->ai_addrlen))
++				break;
++			close(sockfd);
++			sockfd = -1;
++		}
++	}
 +
-+err:
-+	free(xrcd);
-+	return NULL;
++	freeaddrinfo(res);
++	free(service);
++
++	if (sockfd < 0) {
++		fprintf(stderr, "Couldn't connect to %s:%d\n", servername, port);
++		return 1;
++	}
++
++	if (send_local_dest(sockfd, 0))
++		return 1;
++
++	if (recv_remote_dest(sockfd, 0))
++		return 1;
++
++	if (connect_qps(0))
++		return 1;
++
++	shutdown(sockfd, SHUT_RDWR);
++	close(sockfd);
++	return 0;
 +}
 +
-+int mlx4_close_xrcd(struct ibv_xrcd *ib_xrcd)
++static int pp_server_connect(int port)
 +{
-+	struct verbs_xrcd *xrcd = container_of(ib_xrcd, struct verbs_xrcd, xrcd);
-+	int ret;
++	struct addrinfo *res, *t;
++	char *service;
++	int ret, i, n;
++	int sockfd = -1, connfd;
++	struct addrinfo hints = {
++		.ai_flags    = AI_PASSIVE,
++		.ai_family   = AF_UNSPEC,
++		.ai_socktype = SOCK_STREAM
++	};
 +
-+	ret = ibv_cmd_close_xrcd(xrcd);
-+	if (!ret)
-+		free(xrcd);
++	if (asprintf(&service, "%d", port) < 0)
++		return 1;
 +
-+	return ret;
++	ret = getaddrinfo(NULL, service, &hints, &res);
++	if (ret < 0) {
++		fprintf(stderr, "%s for port %d\n", gai_strerror(ret), port);
++		free(service);
++		return 1;
++	}
++
++	for (t = res; t; t = t->ai_next) {
++		sockfd = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
++		if (sockfd >= 0) {
++			n = 1;
++			setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof n);
++			if (!bind(sockfd, t->ai_addr, t->ai_addrlen))
++				break;
++			close(sockfd);
++			sockfd = -1;
++		}
++	}
++
++	freeaddrinfo(res);
++	free(service);
++
++	if (sockfd < 0) {
++		fprintf(stderr, "Couldn't listen to port %d\n", port);
++		return 1;
++	}
++
++	listen(sockfd, ctx.num_clients);
++
++	for (i = 0; i < ctx.num_clients; i++) {
++		connfd = accept(sockfd, NULL, 0);
++		if (connfd < 0) {
++			fprintf(stderr, "accept() failed for client %d\n", i);
++			return 1;
++		}
++
++		if (recv_remote_dest(connfd, i))
++			return 1;
++
++		if (send_local_dest(connfd, i))
++			return 1;
++
++		if (connect_qps(i))
++			return 1;
++
++		shutdown(connfd, SHUT_RDWR);
++		close(connfd);
++	}
++
++	close(sockfd);
++	return 0;
 +}
 +
- struct ibv_mr *mlx4_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 			   int access)
- {
-@@ -150,7 +186,7 @@ int mlx4_dereg_mr(struct ibv_mr *mr)
- 	return 0;
- }
- 
--static int align_queue_size(int req)
-+int align_queue_size(int req)
- {
- 	int nent;
- 
-@@ -294,7 +330,7 @@ int mlx4_destroy_cq(struct ibv_cq *cq)
- }
- 
- struct ibv_srq *mlx4_create_srq(struct ibv_pd *pd,
--				 struct ibv_srq_init_attr *attr)
-+				struct ibv_srq_init_attr *attr)
- {
- 	struct mlx4_create_srq      cmd;
- 	struct mlx4_create_srq_resp resp;
-@@ -315,6 +351,7 @@ struct ibv_srq *mlx4_create_srq(struct ibv_pd *pd,
- 	srq->max     = align_queue_size(attr->attr.max_wr + 1);
- 	srq->max_gs  = attr->attr.max_sge;
- 	srq->counter = 0;
-+	srq->ext_srq = 0;
- 
- 	if (mlx4_alloc_srq_buf(pd, &attr->attr, srq))
- 		goto err;
-@@ -328,15 +365,13 @@ struct ibv_srq *mlx4_create_srq(struct ibv_pd *pd,
- 	cmd.buf_addr = (uintptr_t) srq->buf.buf;
- 	cmd.db_addr  = (uintptr_t) srq->db;
- 
--	ret = ibv_cmd_create_srq(pd, &srq->ibv_srq, attr,
-+	ret = ibv_cmd_create_srq(pd, &srq->verbs_srq.srq, attr,
- 				 &cmd.ibv_cmd, sizeof cmd,
- 				 &resp.ibv_resp, sizeof resp);
- 	if (ret)
- 		goto err_db;
- 
--	srq->srqn = resp.srqn;
--
--	return &srq->ibv_srq;
-+	return &srq->verbs_srq.srq;
- 
- err_db:
- 	mlx4_free_db(to_mctx(pd->context), MLX4_DB_TYPE_RQ, srq->db);
-@@ -351,6 +386,18 @@ err:
- 	return NULL;
- }
- 
-+struct ibv_srq *mlx4_create_srq_ex(struct ibv_context *context,
-+				   struct ibv_srq_init_attr_ex *attr_ex)
++
++static int pp_close_ctx(void)
 +{
-+	if (!(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ||
-+	    (attr_ex->srq_type == IBV_SRQT_BASIC))
-+		return mlx4_create_srq(attr_ex->pd, (struct ibv_srq_init_attr *) attr_ex);
-+	else if (attr_ex->srq_type == IBV_SRQT_XRC)
-+		return mlx4_create_xrc_srq(context, attr_ex);
++	int i;
 +
-+	return NULL;
-+}
-+
- int mlx4_modify_srq(struct ibv_srq *srq,
- 		     struct ibv_srq_attr *attr,
- 		     int attr_mask)
-@@ -372,6 +419,9 @@ int mlx4_destroy_srq(struct ibv_srq *srq)
- {
- 	int ret;
- 
-+	if (to_msrq(srq)->ext_srq)
-+		return mlx4_destroy_xrc_srq(srq);
-+
- 	ret = ibv_cmd_destroy_srq(srq);
- 	if (ret)
- 		return ret;
-@@ -384,7 +434,8 @@ int mlx4_destroy_srq(struct ibv_srq *srq)
- 	return 0;
- }
- 
--struct ibv_qp *mlx4_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
-+struct ibv_qp *mlx4_create_qp_ex(struct ibv_context *context,
-+				 struct ibv_qp_init_attr_ex *attr)
- {
- 	struct mlx4_create_qp     cmd;
- 	struct ibv_create_qp_resp resp;
-@@ -399,30 +450,34 @@ struct ibv_qp *mlx4_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
- 	    attr->cap.max_inline_data > 1024)
- 		return NULL;
- 
--	qp = malloc(sizeof *qp);
-+	qp = calloc(1, sizeof *qp);
- 	if (!qp)
- 		return NULL;
- 
--	mlx4_calc_sq_wqe_size(&attr->cap, attr->qp_type, qp);
--
--	/*
--	 * We need to leave 2 KB + 1 WQE of headroom in the SQ to
--	 * allow HW to prefetch.
--	 */
--	qp->sq_spare_wqes = (2048 >> qp->sq.wqe_shift) + 1;
--	qp->sq.wqe_cnt = align_queue_size(attr->cap.max_send_wr + qp->sq_spare_wqes);
--	qp->rq.wqe_cnt = align_queue_size(attr->cap.max_recv_wr);
-+	if (attr->qp_type == IBV_QPT_XRC_RECV) {
-+		attr->cap.max_send_wr = qp->sq.wqe_cnt = 0;
-+	} else {
-+		mlx4_calc_sq_wqe_size(&attr->cap, attr->qp_type, qp);
++	for (i = 0; i < ctx.num_clients; ++i) {
 +		/*
-+		 * We need to leave 2 KB + 1 WQE of headroom in the SQ to
-+		 * allow HW to prefetch.
++		 * Receive QPs may be used by other clients.  Leave them, they
++		 * will be cleaned up when the xrcd is destroyed.
 +		 */
-+		qp->sq_spare_wqes = (2048 >> qp->sq.wqe_shift) + 1;
-+		qp->sq.wqe_cnt = align_queue_size(attr->cap.max_send_wr + qp->sq_spare_wqes);
++		if (ibv_destroy_qp(ctx.send_qp[i])) {
++			fprintf(stderr, "Couldn't destroy INI QP[%d]\n", i);
++			return 1;
++		}
 +	}
- 
--	if (attr->srq)
--		attr->cap.max_recv_wr = qp->rq.wqe_cnt = 0;
--	else {
-+	if (attr->srq || attr->qp_type == IBV_QPT_XRC_SEND ||
-+	    attr->qp_type == IBV_QPT_XRC_RECV) {
-+		attr->cap.max_recv_wr = qp->rq.wqe_cnt = attr->cap.max_recv_sge = 0;
-+	} else {
-+		qp->rq.wqe_cnt = align_queue_size(attr->cap.max_recv_wr);
- 		if (attr->cap.max_recv_sge < 1)
- 			attr->cap.max_recv_sge = 1;
- 		if (attr->cap.max_recv_wr < 1)
- 			attr->cap.max_recv_wr = 1;
- 	}
- 
--	if (mlx4_alloc_qp_buf(pd, &attr->cap, attr->qp_type, qp))
-+	if (mlx4_alloc_qp_buf(context, &attr->cap, attr->qp_type, qp))
- 		goto err;
- 
- 	mlx4_init_qp_indices(qp);
-@@ -431,19 +486,18 @@ struct ibv_qp *mlx4_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
- 	    pthread_spin_init(&qp->rq.lock, PTHREAD_PROCESS_PRIVATE))
- 		goto err_free;
- 
--	if (!attr->srq) {
--		qp->db = mlx4_alloc_db(to_mctx(pd->context), MLX4_DB_TYPE_RQ);
-+	if (attr->cap.max_recv_sge) {
-+		qp->db = mlx4_alloc_db(to_mctx(context), MLX4_DB_TYPE_RQ);
- 		if (!qp->db)
- 			goto err_free;
- 
- 		*qp->db = 0;
-+		cmd.db_addr = (uintptr_t) qp->db;
-+	} else {
-+		cmd.db_addr = 0;
- 	}
- 
- 	cmd.buf_addr	    = (uintptr_t) qp->buf.buf;
--	if (attr->srq)
--		cmd.db_addr = 0;
--	else
--		cmd.db_addr = (uintptr_t) qp->db;
- 	cmd.log_sq_stride   = qp->sq.wqe_shift;
- 	for (cmd.log_sq_bb_count = 0;
- 	     qp->sq.wqe_cnt > 1 << cmd.log_sq_bb_count;
-@@ -452,37 +506,39 @@ struct ibv_qp *mlx4_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
- 	cmd.sq_no_prefetch = 0;	/* OK for ABI 2: just a reserved field */
- 	memset(cmd.reserved, 0, sizeof cmd.reserved);
- 
--	pthread_mutex_lock(&to_mctx(pd->context)->qp_table_mutex);
-+	pthread_mutex_lock(&to_mctx(context)->qp_table_mutex);
- 
--	ret = ibv_cmd_create_qp(pd, &qp->ibv_qp, attr, &cmd.ibv_cmd, sizeof cmd,
--				&resp, sizeof resp);
-+	ret = ibv_cmd_create_qp_ex(context, &qp->verbs_qp, attr,
-+				   &cmd.ibv_cmd, sizeof cmd, &resp, sizeof resp);
- 	if (ret)
- 		goto err_rq_db;
- 
--	ret = mlx4_store_qp(to_mctx(pd->context), qp->ibv_qp.qp_num, qp);
--	if (ret)
--		goto err_destroy;
--	pthread_mutex_unlock(&to_mctx(pd->context)->qp_table_mutex);
-+	if (qp->sq.wqe_cnt || qp->rq.wqe_cnt) {
-+		ret = mlx4_store_qp(to_mctx(context), qp->verbs_qp.qp.qp_num, qp);
-+		if (ret)
-+			goto err_destroy;
-+	}
-+	pthread_mutex_unlock(&to_mctx(context)->qp_table_mutex);
- 
- 	qp->rq.wqe_cnt = qp->rq.max_post = attr->cap.max_recv_wr;
- 	qp->rq.max_gs  = attr->cap.max_recv_sge;
- 	mlx4_set_sq_sizes(qp, &attr->cap, attr->qp_type);
- 
--	qp->doorbell_qpn    = htonl(qp->ibv_qp.qp_num << 8);
-+	qp->doorbell_qpn    = htonl(qp->verbs_qp.qp.qp_num << 8);
- 	if (attr->sq_sig_all)
- 		qp->sq_signal_bits = htonl(MLX4_WQE_CTRL_CQ_UPDATE);
- 	else
- 		qp->sq_signal_bits = 0;
- 
--	return &qp->ibv_qp;
-+	return &qp->verbs_qp.qp;
- 
- err_destroy:
--	ibv_cmd_destroy_qp(&qp->ibv_qp);
-+	ibv_cmd_destroy_qp(&qp->verbs_qp.qp);
- 
- err_rq_db:
--	pthread_mutex_unlock(&to_mctx(pd->context)->qp_table_mutex);
--	if (!attr->srq)
--		mlx4_free_db(to_mctx(pd->context), MLX4_DB_TYPE_RQ, qp->db);
-+	pthread_mutex_unlock(&to_mctx(context)->qp_table_mutex);
-+	if (attr->cap.max_recv_sge)
-+		mlx4_free_db(to_mctx(context), MLX4_DB_TYPE_RQ, qp->db);
- 
- err_free:
- 	free(qp->sq.wrid);
-@@ -496,6 +552,43 @@ err:
- 	return NULL;
- }
- 
-+struct ibv_qp *mlx4_create_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
-+{
-+	struct ibv_qp_init_attr_ex attr_ex;
-+	struct ibv_qp *qp;
 +
-+	memcpy(&attr_ex, attr, sizeof *attr);
-+	attr_ex.comp_mask = IBV_QP_INIT_ATTR_PD;
-+	attr_ex.pd = pd;
-+	qp = mlx4_create_qp_ex(pd->context, &attr_ex);
-+	if (qp)
-+		memcpy(attr, &attr_ex, sizeof *attr);
-+	return qp;
++	if (ibv_destroy_srq(ctx.srq)) {
++		fprintf(stderr, "Couldn't destroy SRQ\n");
++		return 1;
++	}
++
++	if (!ctx.xrcd && ibv_close_xrcd(ctx.xrcd)) {
++		fprintf(stderr, "Couldn't close the XRC Domain\n");
++		return 1;
++	}
++	if (ctx.fd >= 0 && close(ctx.fd)) {
++		fprintf(stderr, "Couldn't close the file for the XRC Domain\n");
++		return 1;
++	}
++
++	if (ibv_destroy_cq(ctx.send_cq)) {
++		fprintf(stderr, "Couldn't destroy send CQ\n");
++		return 1;
++	}
++
++	if (ibv_destroy_cq(ctx.recv_cq)) {
++		fprintf(stderr, "Couldn't destroy recv CQ\n");
++		return 1;
++	}
++
++	if (ibv_dereg_mr(ctx.mr)) {
++		fprintf(stderr, "Couldn't deregister MR\n");
++		return 1;
++	}
++
++	if (ibv_dealloc_pd(ctx.pd)) {
++		fprintf(stderr, "Couldn't deallocate PD\n");
++		return 1;
++	}
++
++	if (ctx.channel) {
++		if (ibv_destroy_comp_channel(ctx.channel)) {
++			fprintf(stderr,
++				"Couldn't destroy completion channel\n");
++			return 1;
++		}
++	}
++
++	if (ibv_close_device(ctx.context)) {
++		fprintf(stderr, "Couldn't release context\n");
++		return 1;
++	}
++
++	free(ctx.buf);
++	free(ctx.rem_dest);
++	free(ctx.send_qp);
++	free(ctx.recv_qp);
++	return 0;
 +}
 +
-+struct ibv_qp *mlx4_open_qp(struct ibv_context *context, struct ibv_qp_open_attr *attr)
++static int pp_post_recv(int cnt)
 +{
-+	struct ibv_open_qp cmd;
-+	struct ibv_create_qp_resp resp;
-+	struct mlx4_qp *qp;
-+	int ret;
++	struct ibv_sge sge;
++	struct ibv_recv_wr wr, *bad_wr;
 +
-+	qp = calloc(1, sizeof *qp);
-+	if (!qp)
-+		return NULL;
++	sge.addr = (uintptr_t) ctx.buf;
++	sge.length = ctx.size;
++	sge.lkey = ctx.mr->lkey;
 +
-+	ret = ibv_cmd_open_qp(context, &qp->verbs_qp, attr,
-+			      &cmd, sizeof cmd, &resp, sizeof resp);
-+	if (ret)
-+		goto err;
++	wr.next       = NULL;
++	wr.wr_id      = (uintptr_t) &ctx;
++	wr.sg_list    = &sge;
++	wr.num_sge    = 1;
 +
-+	return &qp->verbs_qp.qp;
-+
-+err:
-+	free(qp);
-+	return NULL;
++	while (cnt--) {
++		if (ibv_post_srq_recv(ctx.srq, &wr, &bad_wr)) {
++			fprintf(stderr, "Failed to post receive to SRQ\n");
++			return 1;
++		}
++	}
++	return 0;
 +}
 +
- int mlx4_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 		   int attr_mask,
- 		   struct ibv_qp_init_attr *init_attr)
-@@ -526,7 +619,7 @@ int mlx4_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 	int ret;
- 
- 	if (attr_mask & IBV_QP_PORT) {
--		if (ibv_query_port(qp->pd->context, attr->port_num, &port_attr))
-+		if (ibv_query_port(qp->context, attr->port_num, &port_attr))
- 			return -1;
- 		mqp->link_layer = port_attr.link_layer;
- 	}
-@@ -542,13 +635,14 @@ int mlx4_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 	if (!ret		       &&
- 	    (attr_mask & IBV_QP_STATE) &&
- 	    attr->qp_state == IBV_QPS_RESET) {
--		mlx4_cq_clean(to_mcq(qp->recv_cq), qp->qp_num,
--			       qp->srq ? to_msrq(qp->srq) : NULL);
--		if (qp->send_cq != qp->recv_cq)
-+		if (qp->recv_cq)
-+			mlx4_cq_clean(to_mcq(qp->recv_cq), qp->qp_num,
-+				      qp->srq ? to_msrq(qp->srq) : NULL);
-+		if (qp->send_cq && qp->send_cq != qp->recv_cq)
- 			mlx4_cq_clean(to_mcq(qp->send_cq), qp->qp_num, NULL);
- 
- 		mlx4_init_qp_indices(to_mqp(qp));
--		if (!qp->srq)
-+		if (to_mqp(qp)->rq.wqe_cnt)
- 			*to_mqp(qp)->db = 0;
- 	}
- 
-@@ -560,9 +654,14 @@ static void mlx4_lock_cqs(struct ibv_qp *qp)
- 	struct mlx4_cq *send_cq = to_mcq(qp->send_cq);
- 	struct mlx4_cq *recv_cq = to_mcq(qp->recv_cq);
- 
--	if (send_cq == recv_cq)
-+	if (!qp->send_cq || !qp->recv_cq) {
-+		if (qp->send_cq)
-+			pthread_spin_lock(&send_cq->lock);
-+		else if (qp->recv_cq)
-+			pthread_spin_lock(&recv_cq->lock);
-+	} else if (send_cq == recv_cq) {
- 		pthread_spin_lock(&send_cq->lock);
--	else if (send_cq->cqn < recv_cq->cqn) {
-+	} else if (send_cq->cqn < recv_cq->cqn) {
- 		pthread_spin_lock(&send_cq->lock);
- 		pthread_spin_lock(&recv_cq->lock);
- 	} else {
-@@ -576,9 +675,15 @@ static void mlx4_unlock_cqs(struct ibv_qp *qp)
- 	struct mlx4_cq *send_cq = to_mcq(qp->send_cq);
- 	struct mlx4_cq *recv_cq = to_mcq(qp->recv_cq);
- 
--	if (send_cq == recv_cq)
++/*
++ * Send to each client round robin on each set of xrc send/recv qp.
++ * Generate a completion on the last send.
++ */
++static int pp_post_send(int index)
++{
++	struct ibv_sge sge;
++	struct ibv_send_wr wr, *bad_wr;
++	int qpi;
 +
-+	if (!qp->send_cq || !qp->recv_cq) {
-+		if (qp->send_cq)
-+			pthread_spin_unlock(&send_cq->lock);
-+		else if (qp->recv_cq)
-+			pthread_spin_unlock(&recv_cq->lock);
-+	} else if (send_cq == recv_cq) {
- 		pthread_spin_unlock(&send_cq->lock);
--	else if (send_cq->cqn < recv_cq->cqn) {
-+	} else if (send_cq->cqn < recv_cq->cqn) {
- 		pthread_spin_unlock(&recv_cq->lock);
- 		pthread_spin_unlock(&send_cq->lock);
- 	} else {
-@@ -601,21 +706,24 @@ int mlx4_destroy_qp(struct ibv_qp *ibqp)
- 
- 	mlx4_lock_cqs(ibqp);
- 
--	__mlx4_cq_clean(to_mcq(ibqp->recv_cq), ibqp->qp_num,
--			ibqp->srq ? to_msrq(ibqp->srq) : NULL);
--	if (ibqp->send_cq != ibqp->recv_cq)
-+	if (ibqp->recv_cq)
-+		__mlx4_cq_clean(to_mcq(ibqp->recv_cq), ibqp->qp_num,
-+				ibqp->srq ? to_msrq(ibqp->srq) : NULL);
-+	if (ibqp->send_cq && ibqp->send_cq != ibqp->recv_cq)
- 		__mlx4_cq_clean(to_mcq(ibqp->send_cq), ibqp->qp_num, NULL);
- 
--	mlx4_clear_qp(to_mctx(ibqp->context), ibqp->qp_num);
-+	if (qp->sq.wqe_cnt || qp->rq.wqe_cnt)
-+		mlx4_clear_qp(to_mctx(ibqp->context), ibqp->qp_num);
- 
- 	mlx4_unlock_cqs(ibqp);
- 	pthread_mutex_unlock(&to_mctx(ibqp->context)->qp_table_mutex);
- 
--	if (!ibqp->srq)
-+	if (qp->rq.wqe_cnt) {
- 		mlx4_free_db(to_mctx(ibqp->context), MLX4_DB_TYPE_RQ, qp->db);
--	free(qp->sq.wrid);
--	if (qp->rq.wqe_cnt)
- 		free(qp->rq.wrid);
++	sge.addr = (uintptr_t) ctx.buf;
++	sge.length = ctx.size;
++	sge.lkey = ctx.mr->lkey;
++
++	wr.wr_id   = (uintptr_t) index;
++	wr.next    = NULL;
++	wr.sg_list = &sge;
++	wr.num_sge = 1;
++	wr.opcode  = IBV_WR_SEND;
++	wr.wr.xrc.remote_srqn = ctx.rem_dest[index].srqn;
++
++	qpi = (index + ctx.rem_dest[index].pp_cnt) % ctx.num_clients;
++	wr.send_flags = (++ctx.rem_dest[index].pp_cnt >= ctx.num_tests) ?
++			IBV_SEND_SIGNALED : 0;
++
++	return ibv_post_send(ctx.send_qp[qpi], &wr, &bad_wr);
++}
++
++static int find_qp(int qpn)
++{
++	int i;
++
++	if (ctx.num_clients == 1)
++		return 0;
++
++	for (i = 0; i < ctx.num_clients; ++i)
++		if (ctx.recv_qp[i]->qp_num == qpn)
++			return i;
++
++	fprintf(stderr, "Unable to find qp %x\n", qpn);
++	return 0;
++}
++
++static int get_cq_event(void)
++{
++	struct ibv_cq *ev_cq;
++	void          *ev_ctx;
++
++	if (ibv_get_cq_event(ctx.channel, &ev_cq, &ev_ctx)) {
++		fprintf(stderr, "Failed to get cq_event\n");
++		return 1;
 +	}
-+	if (qp->sq.wqe_cnt)
-+		free(qp->sq.wrid);
- 	mlx4_free_buf(&qp->buf);
- 	free(qp);
- 
++
++	if (ev_cq != ctx.recv_cq) {
++		fprintf(stderr, "CQ event for unknown CQ %p\n", ev_cq);
++		return 1;
++	}
++
++	if (ibv_req_notify_cq(ctx.recv_cq, 0)) {
++		fprintf(stderr, "Couldn't request CQ notification\n");
++		return 1;
++	}
++
++	return 0;
++}
++
++static void init(void)
++{
++	srand48(getpid() * time(NULL));
++
++	ctx.size = 4096;
++	ctx.ib_port = 1;
++	ctx.num_clients  = 1;
++	ctx.num_tests = 5;
++	ctx.mtu = IBV_MTU_2048;
++	ctx.sl = 0;
++}
++
++static void usage(const char *argv0)
++{
++	printf("Usage:\n");
++	printf("  %s            start a server and wait for connection\n", argv0);
++	printf("  %s <host>     connect to server at <host>\n", argv0);
++	printf("\n");
++	printf("Options:\n");
++	printf("  -p, --port=<port>      listen on/connect to port <port> (default 18515)\n");
++	printf("  -d, --ib-dev=<dev>     use IB device <dev> (default first device found)\n");
++	printf("  -i, --ib-port=<port>   use port <port> of IB device (default 1)\n");
++	printf("  -s, --size=<size>      size of message to exchange (default 4096)\n");
++	printf("  -m, --mtu=<size>       path MTU (default 2048)\n");
++	printf("  -c, --clients=<n>      number of clients (on server only, default 1)\n");
++	printf("  -n, --num_tests=<n>    number of tests per client (default 5)\n");
++	printf("  -l, --sl=<sl>          service level value\n");
++	printf("  -e, --events           sleep on CQ events (default poll)\n");
++}
++
++int main(int argc, char *argv[])
++{
++	char          *ib_devname = NULL;
++	char          *servername = NULL;
++	int           port = 18515;
++	int           i, total, cnt = 0;
++	int           ne, qpi, num_cq_events = 0;
++	struct ibv_wc wc;
++
++	init();
++	while (1) {
++		int c;
++
++		static struct option long_options[] = {
++			{ .name = "port",      .has_arg = 1, .val = 'p' },
++			{ .name = "ib-dev",    .has_arg = 1, .val = 'd' },
++			{ .name = "ib-port",   .has_arg = 1, .val = 'i' },
++			{ .name = "size",      .has_arg = 1, .val = 's' },
++			{ .name = "mtu",       .has_arg = 1, .val = 'm' },
++			{ .name = "clients",   .has_arg = 1, .val = 'c' },
++			{ .name = "num_tests", .has_arg = 1, .val = 'n' },
++			{ .name = "sl",        .has_arg = 1, .val = 'l' },
++			{ .name = "events",    .has_arg = 0, .val = 'e' },
++			{ 0 }
++		};
++
++		c = getopt_long(argc, argv, "p:d:i:s:m:c:n:l:e", long_options,
++				NULL);
++		if (c == -1)
++			break;
++
++		switch (c) {
++		case 'p':
++			port = strtol(optarg, NULL, 0);
++			if (port < 0 || port > 65535) {
++				usage(argv[0]);
++				return 1;
++			}
++			break;
++		case 'd':
++			ib_devname = strdupa(optarg);
++			break;
++		case 'i':
++			ctx.ib_port = strtol(optarg, NULL, 0);
++			if (ctx.ib_port < 0) {
++				usage(argv[0]);
++				return 1;
++			}
++			break;
++		case 's':
++			ctx.size = strtol(optarg, NULL, 0);
++			break;
++		case 'm':
++			ctx.mtu = pp_mtu_to_enum(strtol(optarg, NULL, 0));
++			if (ctx.mtu < 0) {
++				usage(argv[0]);
++				return 1;
++			}
++			break;
++		case 'c':
++			ctx.num_clients = strtol(optarg, NULL, 0);
++			break;
++		case 'n':
++			ctx.num_tests = strtol(optarg, NULL, 0);
++			break;
++		case 'l':
++			ctx.sl = strtol(optarg, NULL, 0);
++			break;
++		case 'e':
++			ctx.use_event = 1;
++			break;
++		default:
++			usage(argv[0]);
++			return 1;
++		}
++	}
++
++	if (optind == argc - 1) {
++		servername = strdupa(argv[optind]);
++		ctx.num_clients = 1;
++	} else if (optind < argc) {
++		usage(argv[0]);
++		return 1;
++	}
++
++	page_size = sysconf(_SC_PAGESIZE);
++
++	if (pp_init_ctx(ib_devname))
++		return 1;
++
++	if (pp_post_recv(ctx.num_clients)) {
++		fprintf(stderr, "Couldn't post receives\n");
++		return 1;
++	}
++
++	if (servername) {
++		if (pp_client_connect(servername, port))
++			return 1;
++	} else {
++		if (pp_server_connect(port))
++			return 1;
++
++		for (i = 0; i < ctx.num_clients; i++)
++			pp_post_send(i);
++	}
++
++	total = ctx.num_clients * ctx.num_tests;
++	while (cnt < total) {
++		if (ctx.use_event) {
++			if (get_cq_event())
++				return 1;
++
++			++num_cq_events;
++		}
++
++		do {
++			ne = ibv_poll_cq(ctx.recv_cq, 1, &wc);
++			if (ne < 0) {
++				fprintf(stderr, "Error polling cq %d\n", ne);
++				return 1;
++			} else if (ne == 0) {
++				break;
++			}
++
++			if (wc.status) {
++				fprintf(stderr, "Work completion error %d\n", wc.status);
++				return 1;
++			}
++
++			pp_post_recv(ne);
++			qpi = find_qp(wc.qp_num);
++			if (ctx.rem_dest[qpi].pp_cnt < ctx.num_tests)
++				pp_post_send(qpi);
++			cnt += ne;
++		} while (ne > 0);
++	}
++
++	for (cnt = 0; cnt < ctx.num_clients; cnt += ne) {
++		ne = ibv_poll_cq(ctx.send_cq, 1, &wc);
++		if (ne < 0) {
++			fprintf(stderr, "Error polling cq %d\n", ne);
++			return 1;
++		}
++	}
++
++	if (ctx.use_event)
++		ibv_ack_cq_events(ctx.recv_cq, num_cq_events);
++
++	if (pp_close_ctx())
++		return 1;
++
++	printf("success\n");
++	return 0;
++}
 
 
 --
