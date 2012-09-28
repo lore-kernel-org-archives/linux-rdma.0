@@ -1,314 +1,56 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 4/7] libibverbs: Add support for XRC QPs
-Date: Fri, 28 Sep 2012 05:05:08 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A97E72@FMSMSX151.amr.corp.intel.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH] IB/lmx4: silence GCC warning
+Date: Fri, 28 Sep 2012 14:48:58 +0200
+Message-ID: <1348836538.3626.21.camel@x61.thuisdomein>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-XRC queue pairs: xrc defines two new types of QPs.  The
-initiator, or send-side, xrc qp behaves similar to a send-
-only RC qp.  xrc send qp's are managed through the existing
-QP functions.  The send_wr structure is extended in a back-
-wards compatible way to support posting sends on a send xrc
-qp, which require specifying the remote xrc srq.
+Building qp.o (part of the "Mellanox ConnectX HCA support" driver)
+triggers this GCC warning:
+    drivers/infiniband/hw/mlx4/qp.c: In function =E2=80=98mlx4_ib_post_=
+send=E2=80=99:
+    drivers/infiniband/hw/mlx4/qp.c:1828:30: warning: =E2=80=98vlan=E2=80=
+=99 may be used uninitialized in this function [-Wmaybe-uninitialized]
+    drivers/infiniband/hw/mlx4/qp.c:1718:6: note: =E2=80=98vlan=E2=80=99=
+ was declared here
 
-The target, or receive-side, xrc qp behaves differently
-than other implemented qp's.  A recv xrc qp can be created,
-modified, and destroyed like other qp's through the existing
-calls.  The qp_init_attr structure is extended for xrc qp's.
+Looking at the code it is clear 'vlan' is only set and used if 'is_eth'
+is non-zero. But there's no harm in initializing 'vlan' to 0 (which
+matches ib_get_cached_gid()'s default return) to silence GCC.
 
-Because xrc recv qp's are bound to an xrcd, rather than a pd,
-it is intended to be used among multiple processes.  Any process
-with access to an xrcd may allocate and connect an xrc recv qp.
-The actual xrc recv qp is allocated and managed by the kernel.
-If the owning process explicit destroys the xrc recv qp, it is
-destroyed.  However, if the xrc recv qp is left open when the
-user process exits or closes its device, then the lifetime of
-the xrc recv qp is bound with the lifetime of the xrcd.
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 ---
-resending 4/7 - updated from v1, but not with Jason's suggestion
-of falling back to normal create_qp call
+0) I noticed this warning while building v3.6-rc7 on current Fedora 17,
+using Fedora's default config.
 
- include/infiniband/driver.h   |   14 ++++++
- include/infiniband/kern-abi.h |    5 ++
- include/infiniband/verbs.h    |   45 +++++++++++++++++++-
- src/cmd.c                     |   94 +++++++++++++++++++++++++++++++++++++++++
- src/libibverbs.map            |    1 
- 5 files changed, 156 insertions(+), 3 deletions(-)
+1) Compile tested only. I tested against v3.6-rc7, with commit
+a41262bb5721f2b708ee8b23f67be2f2e16a2fab ("IB/mlx4: SR-IOV IB context
+objects and proxy/tunnel SQP") from linux-next cherry-picked, to take
+into account a trivial context change in linux-next.
 
-diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index 6ad97ae..6bbb10d 100644
---- a/include/infiniband/driver.h
-+++ b/include/infiniband/driver.h
-@@ -81,6 +81,16 @@ struct verbs_srq {
- 	uint32_t		srq_num;
- };
- 
-+enum verbs_qp_mask {
-+	VERBS_QP_XRCD		= 1 << 0,
-+	VERBS_QP_RESERVED	= 1 << 1
-+};
-+
-+struct verbs_qp {
-+	struct ibv_qp		qp;
-+	uint32_t		comp_mask;
-+	struct verbs_xrcd       *xrcd;
-+};
- typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
- 						   int abi_version);
- typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
-@@ -152,6 +162,10 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
- 		      struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
- 		      struct ibv_create_qp *cmd, size_t cmd_size,
- 		      struct ibv_create_qp_resp *resp, size_t resp_size);
-+int ibv_cmd_create_qp_ex(struct ibv_context *context,
-+			 struct verbs_qp *qp, struct ibv_qp_init_attr_ex *attr_ex,
-+			 struct ibv_create_qp *cmd, size_t cmd_size,
-+			 struct ibv_create_qp_resp *resp, size_t resp_size);
- int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *qp_attr,
- 		     int attr_mask,
- 		     struct ibv_qp_init_attr *qp_init_attr,
-diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index 3d72fa7..b6d5ce9 100644
---- a/include/infiniband/kern-abi.h
-+++ b/include/infiniband/kern-abi.h
-@@ -617,6 +617,11 @@ struct ibv_kern_send_wr {
- 			__u32 remote_qkey;
- 			__u32 reserved;
- 		} ud;
-+		struct {
-+			__u64 reserved[3];
-+			__u32 reserved2;
-+			__u32 remote_srqn;
-+		} xrc;
- 	} wr;
- };
- 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 82e8da9..a8dd0a5 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -107,7 +107,8 @@ enum ibv_device_cap_flags {
- 	IBV_DEVICE_SYS_IMAGE_GUID	= 1 << 11,
- 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
- 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
--	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14
-+	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
-+	IBV_DEVICE_XRC			= 1 << 20
- };
- 
- enum ibv_atomic_cap {
-@@ -442,7 +443,9 @@ struct ibv_srq_init_attr_ex {
- enum ibv_qp_type {
- 	IBV_QPT_RC = 2,
- 	IBV_QPT_UC,
--	IBV_QPT_UD
-+	IBV_QPT_UD,
-+	IBV_QPT_XRC_SEND = 9,
-+	IBV_QPT_XRC_RECV
- };
- 
- struct ibv_qp_cap {
-@@ -463,6 +466,26 @@ struct ibv_qp_init_attr {
- 	int			sq_sig_all;
- };
- 
-+enum ibv_qp_init_attr_mask {
-+	IBV_QP_INIT_ATTR_PD		= 1 << 0,
-+	IBV_QP_INIT_ATTR_XRCD		= 1 << 1,
-+	IBV_QP_INIT_ATTR_RESERVED	= 1 << 2
-+};
-+
-+struct ibv_qp_init_attr_ex {
-+	void		       *qp_context;
-+	struct ibv_cq	       *send_cq;
-+	struct ibv_cq	       *recv_cq;
-+	struct ibv_srq	       *srq;
-+	struct ibv_qp_cap	cap;
-+	enum ibv_qp_type	qp_type;
-+	int			sq_sig_all;
-+
-+	uint64_t		comp_mask;
-+	struct ibv_pd	       *pd;
-+	struct ibv_xrcd	       *xrcd;
-+};
-+
- enum ibv_qp_attr_mask {
- 	IBV_QP_STATE			= 1 << 	0,
- 	IBV_QP_CUR_STATE		= 1 << 	1,
-@@ -578,6 +601,11 @@ struct ibv_send_wr {
- 			uint32_t	remote_qpn;
- 			uint32_t	remote_qkey;
- 		} ud;
-+		struct {
-+			uint64_t	reserved[3];
-+			uint32_t	reserved2;
-+			uint32_t	remote_srqn;
-+		} xrc;
- 	} wr;
- };
- 
-@@ -761,6 +789,8 @@ struct verbs_context {
- 	int (*drv_new_func1) ();	new corresponding provider call of func1
- 	int (*lib_new_func1) ();	New library call func1
- 	*/
-+	struct ibv_qp *		(*create_qp_ex)(struct ibv_context *context,
-+						struct ibv_qp_init_attr_ex *qp_init_attr_ex);
- 	uint32_t		(*get_srq_num)(struct ibv_srq *srq);
- 	struct ibv_srq *	(*create_srq_ex)(struct ibv_context *context,
- 						 struct ibv_srq_init_attr_ex *srq_init_attr_ex);
-@@ -1120,6 +1150,17 @@ static inline int ibv_post_srq_recv(struct ibv_srq *srq,
- struct ibv_qp *ibv_create_qp(struct ibv_pd *pd,
- 			     struct ibv_qp_init_attr *qp_init_attr);
- 
-+static inline struct ibv_qp *
-+ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_init_attr_ex)
-+{
-+	struct verbs_context *vctx = verbs_get_ctx_op(context, create_qp_ex);
-+	if (!vctx) {
-+		errno = ENOSYS;
-+		return NULL;
-+	}
-+	return vctx->create_qp_ex(context, qp_init_attr_ex);
-+}
-+
- /**
-  * ibv_modify_qp - Modify a queue pair.
-  */
-diff --git a/src/cmd.c b/src/cmd.c
-index 462c58e..b8ab132 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -659,6 +659,98 @@ int ibv_cmd_destroy_srq(struct ibv_srq *srq)
- 	return 0;
- }
- 
-+int ibv_cmd_create_qp_ex(struct ibv_context *context,
-+			 struct verbs_qp *qp, struct ibv_qp_init_attr_ex *attr_ex,
-+			 struct ibv_create_qp *cmd, size_t cmd_size,
-+			 struct ibv_create_qp_resp *resp, size_t resp_size)
-+{
-+	struct verbs_xrcd *vxrcd = NULL;
-+
-+	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
-+
-+	if (attr_ex->comp_mask >= IBV_QP_INIT_ATTR_RESERVED)
-+		return ENOSYS;
-+
-+	cmd->user_handle     = (uintptr_t) qp;
-+
-+	if (attr_ex->comp_mask & IBV_QP_INIT_ATTR_XRCD) {
-+		vxrcd = container_of(attr_ex->xrcd, struct verbs_xrcd, xrcd);
-+		cmd->pd_handle	= vxrcd->handle;
-+	} else {
-+		if (!(attr_ex->comp_mask & IBV_QP_INIT_ATTR_PD))
-+			return EINVAL;
-+
-+		cmd->pd_handle	= attr_ex->pd->handle;
-+		cmd->send_cq_handle = attr_ex->send_cq->handle;
-+
-+		if (attr_ex->qp_type != IBV_QPT_XRC_SEND) {
-+			cmd->recv_cq_handle = attr_ex->recv_cq->handle;
-+			cmd->srq_handle = attr_ex->srq ? attr_ex->srq->handle : 0;
-+		}
-+	}
-+
-+	cmd->max_send_wr     = attr_ex->cap.max_send_wr;
-+	cmd->max_recv_wr     = attr_ex->cap.max_recv_wr;
-+	cmd->max_send_sge    = attr_ex->cap.max_send_sge;
-+	cmd->max_recv_sge    = attr_ex->cap.max_recv_sge;
-+	cmd->max_inline_data = attr_ex->cap.max_inline_data;
-+	cmd->sq_sig_all	     = attr_ex->sq_sig_all;
-+	cmd->qp_type 	     = attr_ex->qp_type;
-+	cmd->is_srq 	     = !!attr_ex->srq;
-+	cmd->reserved	     = 0;
-+
-+	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
-+		return errno;
-+
-+	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
-+
-+	if (abi_ver > 3) {
-+		attr_ex->cap.max_recv_sge    = resp->max_recv_sge;
-+		attr_ex->cap.max_send_sge    = resp->max_send_sge;
-+		attr_ex->cap.max_recv_wr     = resp->max_recv_wr;
-+		attr_ex->cap.max_send_wr     = resp->max_send_wr;
-+		attr_ex->cap.max_inline_data = resp->max_inline_data;
-+	}
-+
-+	if (abi_ver == 4) {
-+		struct ibv_create_qp_resp_v4 *resp_v4 =
-+			(struct ibv_create_qp_resp_v4 *) resp;
-+
-+		memmove((void *) resp + sizeof *resp,
-+			(void *) resp_v4 + sizeof *resp_v4,
-+			resp_size - sizeof *resp);
-+	} else if (abi_ver <= 3) {
-+		struct ibv_create_qp_resp_v3 *resp_v3 =
-+			(struct ibv_create_qp_resp_v3 *) resp;
-+
-+		memmove((void *) resp + sizeof *resp,
-+			(void *) resp_v3 + sizeof *resp_v3,
-+			resp_size - sizeof *resp);
-+	}
-+
-+	qp->qp.handle		= resp->qp_handle;
-+	qp->qp.qp_num		= resp->qpn;
-+	qp->qp.context		= context;
-+	qp->qp.qp_context	= attr_ex->qp_context;
-+	qp->qp.pd		= attr_ex->pd;
-+	qp->qp.send_cq		= attr_ex->send_cq;
-+	qp->qp.recv_cq		= attr_ex->recv_cq;
-+	qp->qp.srq		= attr_ex->srq;
-+	qp->qp.qp_type		= attr_ex->qp_type;
-+	qp->qp.state		= IBV_QPS_RESET;
-+	qp->qp.events_completed = 0;
-+	pthread_mutex_init(&qp->qp.mutex, NULL);
-+	pthread_cond_init(&qp->qp.cond, NULL);
-+
-+	qp->comp_mask = 0;
-+	if (attr_ex->comp_mask & IBV_QP_INIT_ATTR_XRCD) {
-+		qp->comp_mask |= VERBS_QP_XRCD;
-+		qp->xrcd = vxrcd;
-+	}
-+
-+	return 0;
-+}
-+
- int ibv_cmd_create_qp(struct ibv_pd *pd,
- 		      struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
- 		      struct ibv_create_qp *cmd, size_t cmd_size,
-@@ -667,7 +759,7 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
- 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
- 
- 	cmd->user_handle     = (uintptr_t) qp;
--	cmd->pd_handle 	     = pd->handle;
-+	cmd->pd_handle       = pd->handle;
- 	cmd->send_cq_handle  = attr->send_cq->handle;
- 	cmd->recv_cq_handle  = attr->recv_cq->handle;
- 	cmd->srq_handle      = attr->srq ? attr->srq->handle : 0;
-diff --git a/src/libibverbs.map b/src/libibverbs.map
-index c8ec645..4249793 100644
---- a/src/libibverbs.map
-+++ b/src/libibverbs.map
-@@ -101,5 +101,6 @@ IBVERBS_1.1 {
- 		ibv_cmd_open_xrcd;
- 		ibv_cmd_close_xrcd;
- 		ibv_cmd_create_srq_ex;
-+		ibv_cmd_create_qp_ex;
- 		
- } IBVERBS_1.0;
+ drivers/infiniband/hw/mlx4/qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/ml=
+x4/qp.c
+index a862251..71fdda6 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1715,7 +1715,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *s=
+qp, struct ib_send_wr *wr,
+ 	int is_eth;
+ 	int is_vlan =3D 0;
+ 	int is_grh;
+-	u16 vlan;
++	u16 vlan =3D 0;
+ 	int err =3D 0;
+=20
+ 	send_size =3D 0;
+--=20
+1.7.11.4
