@@ -1,60 +1,149 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 3/7] libibverbs: Add support for XRC SRQs
-Date: Thu, 27 Sep 2012 18:42:05 -0600
-Message-ID: <20120928004205.GB21759@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A97DCA@FMSMSX151.amr.corp.intel.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the infiniband tree with Linus' tree
+Date: Fri, 28 Sep 2012 11:13:03 +1000
+Message-ID: <20120928111303.2963979b43b08a07138a6b29@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A97DCA-Q3cL8pyY+6ukrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <miked-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Fri__28_Sep_2012_11_13_03_+1000_7+BZhSEYlwZo6MUI"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Hadar Hen Zion <hadarh@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 28, 2012 at 12:02:34AM +0000, Hefty, Sean wrote:
+--Signature=_Fri__28_Sep_2012_11_13_03_+1000_7+BZhSEYlwZo6MUI
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +static inline uint32_t ibv_get_srq_num(struct ibv_srq *srq)
-> +{
-> +	struct verbs_context *vctx = verbs_get_ctx_op(srq->context, get_srq_num);
-> +	if (!vctx) {
-> +		errno = ENOSYS;
-> +		return 0;
-> +	}
-> +	return vctx->get_srq_num(srq);
-> +}
+Hi all,
 
-Do you think the function pointer indirection for ibv_get_srq_num is
-needed? I had thought something like:
+Today's linux-next merge of the infiniband tree got a conflict in
+drivers/net/ethernet/mellanox/mlx4/mlx4.h between commit a8edc3bf05a3
+("net/mlx4_core: Put Firmware flow steering structures in common header
+files") from Linus' tree and commit 6b6f29c687ce ("mlx4_core: Stash PCI
+ID driver_data in mlx4_priv structure") from the infiniband tree.
 
-static inline uint32_t ibv_get_srq_num(struct ibv_srq *srq)
-{
-       /* NOTE: we could assume has_comp_mask always exists and optimize
-          out the macro's test on size. */
-       struct verbs_context *vctx = verbs_get_ctx_op(srq->context, has_comp_mask);
-       if (vctx &&
-           (vctx->has_comp_mask | SRQ_COMP_MASK) &&
-           ((__verbs_srq *)srq->comp_mask & VERBS_SRQ_NUM))
-	      return ((__verbs_srq *)srq)->srq_num;
+I fixed it up (see below) and can carry the fix as necessary (no action
+is required).
 
-       errno = ENOSYS;
-       return 0;
-}
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-Where has_comp_mask is a bitmask from the provider with each bit
-indicating if a provider allocated structure is extended with
-comp_mask. The driver is required to allocate all structures of that
-type with a comp_mask if the bit is set.
+diff --cc drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index dba69d9,f7156b7..0000000
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@@ -690,82 -692,11 +692,87 @@@ struct mlx4_steer=20
+  	struct list_head steer_entries[MLX4_NUM_STEERS];
+  };
+ =20
+ +struct mlx4_net_trans_rule_hw_ctrl {
+ +	__be32 ctrl;
+ +	__be32 vf_vep_port;
+ +	__be32 qpn;
+ +	__be32 reserved;
+ +};
+ +
+ +struct mlx4_net_trans_rule_hw_ib {
+ +	u8 size;
+ +	u8 rsvd1;
+ +	__be16 id;
+ +	u32 rsvd2;
+ +	__be32 qpn;
+ +	__be32 qpn_mask;
+ +	u8 dst_gid[16];
+ +	u8 dst_gid_msk[16];
+ +} __packed;
+ +
+ +struct mlx4_net_trans_rule_hw_eth {
+ +	u8	size;
+ +	u8	rsvd;
+ +	__be16	id;
+ +	u8	rsvd1[6];
+ +	u8	dst_mac[6];
+ +	u16	rsvd2;
+ +	u8	dst_mac_msk[6];
+ +	u16	rsvd3;
+ +	u8	src_mac[6];
+ +	u16	rsvd4;
+ +	u8	src_mac_msk[6];
+ +	u8      rsvd5;
+ +	u8      ether_type_enable;
+ +	__be16  ether_type;
+ +	__be16  vlan_id_msk;
+ +	__be16  vlan_id;
+ +} __packed;
+ +
+ +struct mlx4_net_trans_rule_hw_tcp_udp {
+ +	u8	size;
+ +	u8	rsvd;
+ +	__be16	id;
+ +	__be16	rsvd1[3];
+ +	__be16	dst_port;
+ +	__be16	rsvd2;
+ +	__be16	dst_port_msk;
+ +	__be16	rsvd3;
+ +	__be16	src_port;
+ +	__be16	rsvd4;
+ +	__be16	src_port_msk;
+ +} __packed;
+ +
+ +struct mlx4_net_trans_rule_hw_ipv4 {
+ +	u8	size;
+ +	u8	rsvd;
+ +	__be16	id;
+ +	__be32	rsvd1;
+ +	__be32	dst_ip;
+ +	__be32	dst_ip_msk;
+ +	__be32	src_ip;
+ +	__be32	src_ip_msk;
+ +} __packed;
+ +
+ +struct _rule_hw {
+ +	union {
+ +		struct {
+ +			u8 size;
+ +			u8 rsvd;
+ +			__be16 id;
+ +		};
+ +		struct mlx4_net_trans_rule_hw_eth eth;
+ +		struct mlx4_net_trans_rule_hw_ib ib;
+ +		struct mlx4_net_trans_rule_hw_ipv4 ipv4;
+ +		struct mlx4_net_trans_rule_hw_tcp_udp tcp_udp;
+ +	};
+ +};
+ +
++ enum {
++ 	MLX4_PCI_DEV_IS_VF		=3D 1 << 0,
++ 	MLX4_PCI_DEV_FORCE_SENSE_PORT	=3D 1 << 1,
++ };
++=20
+  struct mlx4_priv {
+  	struct mlx4_dev		dev;
+ =20
 
-This mechanism would be setup in your patch 1 to support all provider
-allocated structures.
+--Signature=_Fri__28_Sep_2012_11_13_03_+1000_7+BZhSEYlwZo6MUI
+Content-Type: application/pgp-signature
 
-__verbs_srq to keep 'verbs_srq' out of the user namespace and
-discourage direct use.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBCAAGBQJQZPmfAAoJEECxmPOUX5FEKOoQAJekwG6EweGvIJe+qU+0EOUc
+yScWS6rWnAml3PIf2rrWsLWV8G0H62sNrOiInrXhucW7QDDgLcbw6Sk1WNyEDo0f
+oAx4+wqSrTWxPpa38CvNedRUfPXaJb74/UinCIBTK6eb9RwBmFfKmUXp0fVVuIPO
+AQuRoJDFMYa3zlztIGI2Y1oIYaSu2sS9v91Q2OHUFxmfRVYDnoLrWf1zzHrvXcwD
+CilVv3D2IP1aD915j9rJQj1peRUlDyL/7LSMxUpKOJPSnx7hfHuIOA+q4uqstVJr
+SLS2d8oPCCHhXw6xQNuqdxKcwLIY+3+XFGzvcWJKziRPXpzXcq3N+LwheSjozW1a
+UXLI2booXq55zMMkWkA1KJlW7ovY8R1g2MCQdez9bRLUgl1C5D4vy53OVyso14Zd
+tPhtW1wJsfC4lP1Cd6zayeJ1HfPHseIe0J+llBRNleBveL80G3j4Mkm8HFZ24xXz
+5fplQTVh8DHrYVlTaVj0YF6Wm/NP4OYqKWk3Hw1m2bWS6G30qM3Ly+H3aDl3yamJ
+MngWcqWmxnup/S9qfzQOvxWeAMSAGuHtLDbV8FQlNnJeAIbqokGCRWUmChwHaGip
+FuY0OqcB704kg6hi6I3aWw7VpgdBNPkFHpgEShognZNrMz7jlP0If//0Jfg9TKvV
+Jl0NJOlwxs+0OUrZKje/
+=ZxUx
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__28_Sep_2012_11_13_03_+1000_7+BZhSEYlwZo6MUI--
