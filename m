@@ -1,37 +1,150 @@
-From: Bang Nguyen <bang.nguyen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: APM support for IPoIB
-Date: Tue, 02 Oct 2012 21:24:03 -0700
-Message-ID: <506BBDE3.3010904@oracle.com>
-References: <506A17EA.8080400@oracle.com> <20121001235303.GH22342@obsidianresearch.com> <506A2F01.8000605@oracle.com> <CAL1RGDWmywbGg0vVb_MqRCHbdgMCZTGN5Y-dX6NkpWRB6P23ug@mail.gmail.com> <CD250C48050CFB4D95E78C95F2FDDD6E87470513@MTLDAG01.mtl.com> <506B8365.9010507@oracle.com> <1828884A29C6694DAF28B7E6B8A8237346A98B11@FMSMSX151.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: linux-next: Tree for Oct 2 (ipoib_netlink.c)
+Date: Tue,  2 Oct 2012 21:33:00 -0700
+Message-ID: <1349238780-27850-1-git-send-email-roland@kernel.org>
+References: <10635.1349221831@neuling.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A98B11-Q3cL8pyY+6ukrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <10635.1349221831-/owAOxkjmzZAfugRpC6u6w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-  Here is the presentation on RDMA-CM APM
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-https://www.openfabrics.org/ofa-documents/presentations/doc_download/516-rdmacm-amp.html
+I'll be sending the following to Linus shortly:
 
-On 10/2/2012 8:03 PM, Hefty, Sean wrote:
->> Just a crazy thought but IPoIB could use RDMA-CM for all of its
->> connection management stuff..this way it can leverage the APM support in
->> RDMA-CM..
->>
->> comments?...
-> ipoib predates the rdma cm, which is why it's written to the ib_cm directly.  Communication setup with the rdma cm follows these 3 steps.
->
-> 1. address resolution - The rdma cm indirectly ends up using ipoib for this.  With ipoib, this step isn't necessary.  I think having AF_IB support would help this by avoiding this step, plus it restricts the rdma cm to using IB devices.
-> 2. route resolution (aka path record query) - Ipoib maintains its own path record cache.  It can set the rdma cm paths manually, or there would need to be some sort of rework.
-> 3. connection setup - formats the ib cm private data and exchanges messages.  The rdma cm would need to know the ipoib private data format.
->
-> Sooo... ipoib wouldn't use address resolution.  It maintains its own path record cache, which is a significant piece of supporting APM.  Ipoib probably doesn't need to maintain its own cache, but there's no decent alternative for kernel clients currently.  And connection setup using the rdma cm is only slightly easier than using the ib cm.  (I have no idea what APM support in the rdma cm looks like.)
->
-> - Sean
+[PATCH] IPoIB: Fix build with CONFIG_INFINIBAND_IPOIB_CM=n
+
+With the new netlink support in commit 862096a8bbf8 ("IB/ipoib: Add more
+rtnl_link_ops callbacks") we need ipoib_set_mode() to be available even
+if connected mode isn't built.  Move the function from ipoib_cm.c to
+ipoib_main.c (and make a few CM-related macros available unconditonally).
+
+This fixes the build error
+
+    drivers/built-in.o: In function 'ipoib_changelink':
+    ipoib_netlink.c:(.text+0x6a5fc9): undefined reference to 'ipoib_set_mode'
+    ipoib_netlink.c:(.text+0x6a5fe3): undefined reference to 'ipoib_set_mode'
+
+when CONFIG_INFINIBAND_IPOIB_CM isn't set.
+
+Reported-by: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Reported-by: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h      |    4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c   |   31 -----------------------------
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |   31 +++++++++++++++++++++++++++++
+ 3 files changed, 33 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 196eb52..07ca6fd 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -535,14 +535,14 @@ void ipoib_drain_cq(struct net_device *dev);
+ void ipoib_set_ethtool_ops(struct net_device *dev);
+ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
+ 
+-#ifdef CONFIG_INFINIBAND_IPOIB_CM
+-
+ #define IPOIB_FLAGS_RC		0x80
+ #define IPOIB_FLAGS_UC		0x40
+ 
+ /* We don't support UC connections at the moment */
+ #define IPOIB_CM_SUPPORTED(ha)   (ha[0] & (IPOIB_FLAGS_RC))
+ 
++#ifdef CONFIG_INFINIBAND_IPOIB_CM
++
+ extern int ipoib_max_conn_qp;
+ 
+ static inline int ipoib_cm_admin_enabled(struct net_device *dev)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 175581c..72ae63f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -1448,37 +1448,6 @@ static ssize_t show_mode(struct device *d, struct device_attribute *attr,
+ 		return sprintf(buf, "datagram\n");
+ }
+ 
+-int ipoib_set_mode(struct net_device *dev, const char *buf)
+-{
+-	struct ipoib_dev_priv *priv = netdev_priv(dev);
+-
+-	/* flush paths if we switch modes so that connections are restarted */
+-	if (IPOIB_CM_SUPPORTED(dev->dev_addr) && !strcmp(buf, "connected\n")) {
+-		set_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
+-		ipoib_warn(priv, "enabling connected mode "
+-			   "will cause multicast packet drops\n");
+-		netdev_update_features(dev);
+-		rtnl_unlock();
+-		priv->tx_wr.send_flags &= ~IB_SEND_IP_CSUM;
+-
+-		ipoib_flush_paths(dev);
+-		rtnl_lock();
+-		return 0;
+-	}
+-
+-	if (!strcmp(buf, "datagram\n")) {
+-		clear_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
+-		netdev_update_features(dev);
+-		dev_set_mtu(dev, min(priv->mcast_mtu, dev->mtu));
+-		rtnl_unlock();
+-		ipoib_flush_paths(dev);
+-		rtnl_lock();
+-		return 0;
+-	}
+-
+-	return -EINVAL;
+-}
+-
+ static ssize_t set_mode(struct device *d, struct device_attribute *attr,
+ 			const char *buf, size_t count)
+ {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index d576c7a..6fdc9e7 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -215,6 +215,37 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
+ 	return 0;
+ }
+ 
++int ipoib_set_mode(struct net_device *dev, const char *buf)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	/* flush paths if we switch modes so that connections are restarted */
++	if (IPOIB_CM_SUPPORTED(dev->dev_addr) && !strcmp(buf, "connected\n")) {
++		set_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
++		ipoib_warn(priv, "enabling connected mode "
++			   "will cause multicast packet drops\n");
++		netdev_update_features(dev);
++		rtnl_unlock();
++		priv->tx_wr.send_flags &= ~IB_SEND_IP_CSUM;
++
++		ipoib_flush_paths(dev);
++		rtnl_lock();
++		return 0;
++	}
++
++	if (!strcmp(buf, "datagram\n")) {
++		clear_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
++		netdev_update_features(dev);
++		dev_set_mtu(dev, min(priv->mcast_mtu, dev->mtu));
++		rtnl_unlock();
++		ipoib_flush_paths(dev);
++		rtnl_lock();
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
+ static struct ipoib_path *__path_find(struct net_device *dev, void *gid)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+-- 
+1.7.10.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
