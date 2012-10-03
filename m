@@ -1,58 +1,101 @@
-From: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: [PATCH -next] infiniband: fix ipoib build error when IPOIB_CM is
- not enabled
-Date: Wed, 03 Oct 2012 14:50:41 -0700
-Message-ID: <506CB331.8000101@xenotime.net>
-References: <20121003173007.c322d79c31676b9494a6bfd5@canb.auug.org.au>
+From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ANNOUNCE] OFED-3.5-rc2 is available
+Date: Wed, 3 Oct 2012 20:30:35 +0000
+Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C28B580D5@ORSMSX108.amr.corp.intel.com>
+References: <506C5FBE.1080004@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121003173007.c322d79c31676b9494a6bfd5-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+In-Reply-To: <506C5FBE.1080004-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+I seem to be getting this compile error on sles 11 sp 2. 
 
-Fix build error when INFINIBAND_IPOIB_CM is not enabled:
+/var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/drivers/infiniband/ulp/srp/ib_srp.c:33:1: warning: "pr_fmt" redefined
+In file included from /var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/include/linux/printk.h:7,
+                 from /usr/src/linux-3.0.13-0.27/include/linux/kernel.h:20,
+                 from /usr/src/linux-3.0.13-0.27/include/linux/skbuff.h:17,
+                 from /usr/src/linux-3.0.13-0.27/include/linux/if_ether.h:127,
+                 from /usr/src/linux-3.0.13-0.27/include/linux/netdevice.h:29,
+                 from /var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/include/linux/compat-2.6.29.h:5,
+                 from /var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/include/linux/compat-2.6.h:48,
+                 from <command-line>:0:
+/usr/src/linux-3.0.13-0.27/include/linux/printk.h:152:1: warning: this is the location of the previous definition
+/var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/drivers/infiniband/ulp/srp/ib_srp.c:70:2: warning: "RHEL_MAJOR" is not defined
+/var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/drivers/infiniband/ulp/srp/ib_srp.c:71: error: redefinition of ?struct srp_cred_req?
+/var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/drivers/infiniband/ulp/srp/ib_srp.c:79: error: redefinition of ?struct srp_cred_rsp?
+/var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/drivers/infiniband/ulp/srp/ib_srp.c:90: error: redefinition of ?struct srp_aer_req?
+/var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/drivers/infiniband/ulp/srp/ib_srp.c:103: error: redefinition of ?struct srp_aer_rsp?
+make[6]: *** [/var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/drivers/infiniband/ulp/srp/ib_srp.o] Error 1
+make[5]: *** [/var/tmp/OFED_topdir/BUILD/compat-rdma-3.5/drivers/infiniband/ulp/srp] Error 2
+@   
 
-ERROR: "ipoib_set_mode" [drivers/infiniband/ulp/ipoib/ib_ipoib.ko] undefined!
 
-Signed-off-by: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Cc:	Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc:	Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc:	Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c |    3 +++
- 1 file changed, 3 insertions(+)
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Vladimir Sokolovsky
+Sent: Wednesday, October 03, 2012 8:55 AM
+To: OpenFabrics EWG
+Cc: linux-rdma
+Subject: [ANNOUNCE] OFED-3.5-rc2 is available
 
---- linux-next-20121003.orig/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-+++ linux-next-20121003/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-@@ -30,6 +30,7 @@
-  * SOFTWARE.
-  */
- 
-+#include <linux/kconfig.h>
- #include <linux/netdevice.h>
- #include <linux/module.h>
- #include <net/rtnetlink.h>
-@@ -71,11 +72,13 @@ static int ipoib_changelink(struct net_d
- 
- 	if (data[IFLA_IPOIB_MODE]) {
- 		mode  = nla_get_u16(data[IFLA_IPOIB_MODE]);
-+#if IS_ENABLED(CONFIG_INFINIBAND_IPOIB_CM)
- 		if (mode == IPOIB_MODE_DATAGRAM)
- 			ret = ipoib_set_mode(dev, "datagram\n");
- 		else if (mode == IPOIB_MODE_CONNECTED)
- 			ret = ipoib_set_mode(dev, "connected\n");
- 		else
-+#endif
- 			ret = -EINVAL;
- 
- 		if (ret < 0)
+Hi,
+OFED 3.5-rc2 is available.
+
+The tarball is available on:
+http://www.openfabrics.org/downloads/OFED/ofed-3.5/OFED-3.5-rc2.tgz
+
+To get BUILD_ID run ofed_info
+
+Please report any issues in bugzilla https://bugs.openfabrics.org/ for OFED 3.5
+
+Regards,
+Vladimir
+
+
+OFED-3.5-rc2 Main Changes from OFED 3.5-rc1
+-------------------------------------------------------------------------------
+compat-rdma: Add SRP backport
+compat-rdma: /etc/init.d/openibd: Fix LSB header
+compat-rdma: IB/qib: linux-3.6 patches backported
+compat-rdma: iw_cxgb4: Fix bug 2369 in OFED bugzilla
+compat-rdma: IB/qib: fix compliance regression in 3.5
+compat-rdma: RDMA/nes: Added linux-next-pending patches
+compat-rdma: RDMA/nes: Updated backports
+compat-rdma: NFSRDMA RHEL6.3 backport
+compat-rdma: NFSRDMA SLES11SP2 backport
+compat-rdma: linux-next-cherry-picks: RDMA/ucma.c: Different fix for ucma context uid=0, causing iWarp RDMA applications to fail in connection establishment
+
+Updated packages:
+     infinipath-psm-3.0.1-115.1015_open
+     perftest-1.4.0-0.80.gd1763bd
+     qperf-0.4.7-0.2.gf3f7001
+
+Supported Platforms and Operating Systems
+---------------------------------------------
+   o   CPU architectures:
+         - x86_64
+         - x86
+         - ppc64
+         - ia64
+
+   o   Linux Operating Systems:
+         - RedHat EL6.2          2.6.32-220.el6
+         - RedHat EL6.3          2.6.32-279.el6
+         - SLES11 SP2            3.0.13-0.27-default
+         - kernel.org            3.5    *
+
+       * Minimal QA for these versions.
+
+
+OFED_release_notes.txt
+
+Note: See the release notes of each component for additional issues.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
