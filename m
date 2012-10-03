@@ -1,122 +1,57 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [patch v3 01/11] netlink: add reference of module in netlink_dump_start
-Date: Thu, 4 Oct 2012 12:41:19 +0800
-Message-ID: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-To: davem@davemloft.net, eric.dumazet@gmail.com, steffen.klassert@secunet.com
-Cc: netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org, pablo@netfilter.org, stephen.hemminger@vyatta.com, jengelh@inai.de, Gao feng <gaofeng@cn.fujitsu.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] rdma/cm: Check that retry count values are in range
+Date: Wed, 3 Oct 2012 23:42:31 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A98EFE@FMSMSX151.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I get a panic when I use ss -a and rmmod inet_diag at the
-same time.
+The retry_count and rnr_retry_count connection parameters
+are both 3-bit values.  Validate that the values are in
+range or reduce accordingly.
 
-it's because netlink_dump use inet_diag_dump witch function
-belongs to module inet_diag.
+This fixes a problem reported by Doug Ledford
+<dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> that resulted in the userspace
+rping test (part of the librdmacm samples) failing to
+run over Intel IB HCAs.
 
-I search the codes and find many modules have the same problem.
-We need add reference of the module witch the cb->dump belongs
-to.
-
-Thanks for all help from Stephen,Jan,Eric,Steffen and Pablo.
-
-Change From v2:
-
-delete netlink_dump_done,and call module_put in netlink_dump
-and netlink_sock_destruct.
-
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/linux/netlink.h  |    5 ++++-
- net/netlink/af_netlink.c |   21 +++++++++++++++++----
- 2 files changed, 21 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/cma.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/netlink.h b/include/linux/netlink.h
-index f80c56a..bf4e501 100644
---- a/include/linux/netlink.h
-+++ b/include/linux/netlink.h
-@@ -245,6 +245,8 @@ struct netlink_callback {
- 					struct netlink_callback *cb);
- 	int			(*done)(struct netlink_callback *cb);
- 	void			*data;
-+	/* the module that dump function belong to */
-+	struct module		*module;
- 	u16			family;
- 	u16			min_dump_alloc;
- 	unsigned int		prev_seq, seq;
-@@ -262,8 +264,9 @@ __nlmsg_put(struct sk_buff *skb, u32 portid, u32 seq, int type, int len, int fla
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 7172559..18271e1 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2648,8 +2648,8 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
+ 	req.responder_resources = conn_param->responder_resources;
+ 	req.initiator_depth = conn_param->initiator_depth;
+ 	req.flow_control = conn_param->flow_control;
+-	req.retry_count = conn_param->retry_count;
+-	req.rnr_retry_count = conn_param->rnr_retry_count;
++	req.retry_count = min(7, conn_param->retry_count);
++	req.rnr_retry_count = min(7, conn_param->rnr_retry_count);
+ 	req.remote_cm_response_timeout = CMA_CM_RESPONSE_TIMEOUT;
+ 	req.local_cm_response_timeout = CMA_CM_RESPONSE_TIMEOUT;
+ 	req.max_cm_retries = CMA_MAX_CM_RETRIES;
+@@ -2770,7 +2770,7 @@ static int cma_accept_ib(struct rdma_id_private *id_priv,
+ 	rep.initiator_depth = conn_param->initiator_depth;
+ 	rep.failover_accepted = 0;
+ 	rep.flow_control = conn_param->flow_control;
+-	rep.rnr_retry_count = conn_param->rnr_retry_count;
++	rep.rnr_retry_count = min(conn_param->rnr_retry_count, 7);
+ 	rep.srq = id_priv->srq ? 1 : 0;
  
- struct netlink_dump_control {
- 	int (*dump)(struct sk_buff *skb, struct netlink_callback *);
--	int (*done)(struct netlink_callback*);
-+	int (*done)(struct netlink_callback *);
- 	void *data;
-+	struct module *module;
- 	u16 min_dump_alloc;
- };
- 
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index 0f2e3ad..0905dfb 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -169,6 +169,7 @@ static void netlink_sock_destruct(struct sock *sk)
- 	if (nlk->cb) {
- 		if (nlk->cb->done)
- 			nlk->cb->done(nlk->cb);
-+		module_put(nlk->cb->module);
- 		netlink_destroy_callback(nlk->cb);
- 	}
- 
-@@ -1755,6 +1756,8 @@ static int netlink_dump(struct sock *sk)
- 
- 	if (cb->done)
- 		cb->done(cb);
-+
-+	module_put(cb->module);
- 	nlk->cb = NULL;
- 	mutex_unlock(nlk->cb_mutex);
- 
-@@ -1784,6 +1787,7 @@ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
- 	cb->done = control->done;
- 	cb->nlh = nlh;
- 	cb->data = control->data;
-+	cb->module = control->module;
- 	cb->min_dump_alloc = control->min_dump_alloc;
- 	atomic_inc(&skb->users);
- 	cb->skb = skb;
-@@ -1794,19 +1798,28 @@ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
- 		return -ECONNREFUSED;
- 	}
- 	nlk = nlk_sk(sk);
--	/* A dump is in progress... */
-+
- 	mutex_lock(nlk->cb_mutex);
-+	/* A dump is in progress... */
- 	if (nlk->cb) {
- 		mutex_unlock(nlk->cb_mutex);
- 		netlink_destroy_callback(cb);
--		sock_put(sk);
--		return -EBUSY;
-+		ret = -EBUSY;
-+		goto out;
- 	}
-+	/* add reference of module witch cb->dump belong to */
-+	if (!try_module_get(cb->module)) {
-+		mutex_unlock(nlk->cb_mutex);
-+		netlink_destroy_callback(cb);
-+		ret = -EPROTONOSUPPORT;
-+		goto out;
-+	}
-+
- 	nlk->cb = cb;
- 	mutex_unlock(nlk->cb_mutex);
- 
- 	ret = netlink_dump(sk);
--
-+out:
- 	sock_put(sk);
- 
- 	if (ret)
--- 
-1.7.7.6
+ 	ret = ib_send_cm_rep(id_priv->cm_id.ib, &rep);
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
