@@ -1,43 +1,41 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][TRIVIAL] opensm/osm_ucast_updn.c: Add error codes to a couple
- of log messages
-Date: Wed, 03 Oct 2012 19:57:46 -0400
-Message-ID: <506CD0FA.2090801@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [patch v3 02/11] inet_diag: pass inet_diag module to netlink_dump_start
+Date: Thu, 4 Oct 2012 12:41:20 +0800
+Message-ID: <1349325689-16104-2-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: davem@davemloft.net, eric.dumazet@gmail.com, steffen.klassert@secunet.com
+Cc: netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org, pablo@netfilter.org, stephen.hemminger@vyatta.com, jengelh@inai.de, Gao feng <gaofeng@cn.fujitsu.com>
 List-Id: linux-rdma@vger.kernel.org
 
+set netlink_dump_control.module to avoid panic.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
-diff --git a/opensm/osm_ucast_updn.c b/opensm/osm_ucast_updn.c
-index d6877fe..f3ca4dc 100644
---- a/opensm/osm_ucast_updn.c
-+++ b/opensm/osm_ucast_updn.c
-@@ -595,7 +595,7 @@ static int updn_lid_matrices(void *ctx)
- 		ret = parse_node_map(p_updn->p_osm->subn.opt.root_guid_file,
- 				     rank_root_node, p_updn);
- 		if (ret)
--			OSM_LOG(&p_updn->p_osm->log, OSM_LOG_ERROR, "ERR : "
-+			OSM_LOG(&p_updn->p_osm->log, OSM_LOG_ERROR, "ERR AA02: "
- 				"cannot parse root guids file \'%s\'\n",
- 				p_updn->p_osm->subn.opt.root_guid_file);
- 		if (p_updn->p_osm->subn.opt.connect_roots &&
-@@ -614,7 +614,7 @@ static int updn_lid_matrices(void *ctx)
- 		ret = parse_node_map(p_updn->p_osm->subn.opt.ids_guid_file,
- 				     update_id, p_updn->p_osm);
- 		if (ret)
--			OSM_LOG(&p_updn->p_osm->log, OSM_LOG_ERROR, "ERR : "
-+			OSM_LOG(&p_updn->p_osm->log, OSM_LOG_ERROR, "ERR AA03: "
- 				"cannot parse node ids file \'%s\'\n",
- 				p_updn->p_osm->subn.opt.ids_guid_file);
- 	}
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ net/ipv4/inet_diag.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/ipv4/inet_diag.c b/net/ipv4/inet_diag.c
+index 535584c..5ffd7bc 100644
+--- a/net/ipv4/inet_diag.c
++++ b/net/ipv4/inet_diag.c
+@@ -981,6 +981,7 @@ static int inet_diag_rcv_msg_compat(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 		{
+ 			struct netlink_dump_control c = {
+ 				.dump = inet_diag_dump_compat,
++				.module = THIS_MODULE,
+ 			};
+ 			return netlink_dump_start(net->diag_nlsk, skb, nlh, &c);
+ 		}
+@@ -1010,6 +1011,7 @@ static int inet_diag_handler_dump(struct sk_buff *skb, struct nlmsghdr *h)
+ 		{
+ 			struct netlink_dump_control c = {
+ 				.dump = inet_diag_dump,
++				.module = THIS_MODULE,
+ 			};
+ 			return netlink_dump_start(net->diag_nlsk, skb, h, &c);
+ 		}
+-- 
+1.7.7.6
