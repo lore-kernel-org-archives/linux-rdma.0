@@ -1,33 +1,62 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Problem running rping over Intel adapters
-Date: Thu, 4 Oct 2012 15:01:13 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346A99126@FMSMSX151.amr.corp.intel.com>
-References: <506CB0E9.90201@redhat.com>
- <1828884A29C6694DAF28B7E6B8A8237346A98E58@FMSMSX151.amr.corp.intel.com>
- <506CB4D8.4010604@redhat.com>
- <1828884A29C6694DAF28B7E6B8A8237346A98E8E@FMSMSX151.amr.corp.intel.com>
- <506CEAC1.9070808@opengridcomputing.com> <506D2174.10601@mellanox.com>
- <506D9CD2.20606@opengridcomputing.com>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [patch v3 01/11] netlink: add reference of module in
+ netlink_dump_start
+Date: Thu, 4 Oct 2012 16:41:42 +0100
+Message-ID: <1349365302.2817.1.camel@bwh-desktop.uk.solarflarecom.com>
+References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <506D9CD2.20606-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+In-Reply-To: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: davem@davemloft.net, eric.dumazet@gmail.com, steffen.klassert@secunet.com, netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org, pablo@netfilter.org, stephen.hemminger@vyatta.com, jengelh@inai.de
 List-Id: linux-rdma@vger.kernel.org
 
-> retry_count, I assume, is for connection establishment?  For the Chelsio
-> devices, this is all up to the TCP stack and thus this counter is not
-> used.  If there is no TCP listener, then the connection establishment
-> will fail immediately.  If the node is not reachable, then normal TCP
-> retransmit rules apply, but once TCP gives up, then the rdma connection
-> establishment will fail.
+On Thu, 2012-10-04 at 12:41 +0800, Gao feng wrote:
+> I get a panic when I use ss -a and rmmod inet_diag at the
+> same time.
+> 
+> it's because netlink_dump use inet_diag_dump witch function
+> belongs to module inet_diag.
+> 
+> I search the codes and find many modules have the same problem.
+> We need add reference of the module witch the cb->dump belongs
+> to.
+> 
+> Thanks for all help from Stephen,Jan,Eric,Steffen and Pablo.
+> 
+> Change From v2:
+> 
+> delete netlink_dump_done,and call module_put in netlink_dump
+> and netlink_sock_destruct.
+[...]
+> @@ -1794,19 +1798,28 @@ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
+>  		return -ECONNREFUSED;
+>  	}
+>  	nlk = nlk_sk(sk);
+> -	/* A dump is in progress... */
+> +
+>  	mutex_lock(nlk->cb_mutex);
+> +	/* A dump is in progress... */
+>  	if (nlk->cb) {
+>  		mutex_unlock(nlk->cb_mutex);
+>  		netlink_destroy_callback(cb);
+> -		sock_put(sk);
+> -		return -EBUSY;
+> +		ret = -EBUSY;
+> +		goto out;
+>  	}
+> +	/* add reference of module witch cb->dump belong to */
+[...]
 
-On IB, this is a transport level retry of a lost request.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+'which' not 'witch' :-)
+
+Ben.
+
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
+
