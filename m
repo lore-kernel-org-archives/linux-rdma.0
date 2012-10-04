@@ -1,67 +1,36 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][MINOR] opensm/osm_helper.c: Add some missing new lines to
- log message output
-Date: Wed, 03 Oct 2012 19:57:54 -0400
-Message-ID: <506CD102.4010403@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Gao feng <gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
+Subject: [patch v3 03/11] unix_diag: pass unix_diag module to netlink_dump_start
+Date: Thu, 4 Oct 2012 12:41:21 +0800
+Message-ID: <1349325689-16104-3-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1349325689-16104-1-git-send-email-gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, stephen.hemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org, jengelh-9+2X+4sQBs8@public.gmane.org, Gao feng <gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+set netlink_dump_control.module to avoid panic.
 
-Accidentally removed when _v2 routines added with _to_buf routines
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Gao feng <gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
 ---
- opensm/osm_helper.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ net/unix/diag.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
-index 6803777..9ddf19d 100644
---- a/opensm/osm_helper.c
-+++ b/opensm/osm_helper.c
-@@ -2814,7 +2814,7 @@ void osm_dump_dr_path(IN osm_log_t * p_log, IN const osm_dr_path_t * p_path,
- 
- 		osm_dump_dr_path_to_buf(p_path, buf);
- 
--		osm_log(p_log, log_level, buf);
-+		osm_log(p_log, log_level, "%s\n", buf);
- 	}
- }
- 
-@@ -2826,7 +2826,7 @@ void osm_dump_dr_path_v2(IN osm_log_t * p_log, IN const osm_dr_path_t * p_path,
- 
- 		osm_dump_dr_path_to_buf(p_path, buf);
- 
--		osm_log_v2(p_log, log_level, file_id, buf);
-+		osm_log_v2(p_log, log_level, file_id, "%s\n", buf);
- 	}
- }
- 
-@@ -2858,7 +2858,7 @@ void osm_dump_smp_dr_path(IN osm_log_t * p_log, IN const ib_smp_t * p_smp,
- 
- 		osm_dump_smp_dr_path_to_buf(p_smp, buf);
- 
--		osm_log(p_log, log_level, buf);
-+		osm_log(p_log, log_level, "%s\n", buf);
- 	}
- }
- 
-@@ -2870,7 +2870,7 @@ void osm_dump_smp_dr_path_v2(IN osm_log_t * p_log, IN const ib_smp_t * p_smp,
- 
- 		osm_dump_smp_dr_path_to_buf(p_smp, buf);
- 
--		osm_log_v2(p_log, log_level, file_id, buf);
-+		osm_log_v2(p_log, log_level, file_id, "%s\n", buf);
- 	}
- }
- 
+diff --git a/net/unix/diag.c b/net/unix/diag.c
+index 06748f1..e1cd31f 100644
+--- a/net/unix/diag.c
++++ b/net/unix/diag.c
+@@ -299,6 +299,7 @@ static int unix_diag_handler_dump(struct sk_buff *skb, struct nlmsghdr *h)
+ 	if (h->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
+ 			.dump = unix_diag_dump,
++			.module = THIS_MODULE,
+ 		};
+ 		return netlink_dump_start(net->diag_nlsk, skb, h, &c);
+ 	} else
 -- 
-1.7.8.2
+1.7.7.6
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
