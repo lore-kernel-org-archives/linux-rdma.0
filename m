@@ -1,60 +1,24 @@
-From: Bang Nguyen <bang.nguyen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: APM support for IPoIB
-Date: Thu, 04 Oct 2012 09:06:46 -0700
-Message-ID: <506DB416.6030304@oracle.com>
-References: <506A17EA.8080400@oracle.com> <20121001235303.GH22342@obsidianresearch.com> <506A2F01.8000605@oracle.com> <CAL1RGDWmywbGg0vVb_MqRCHbdgMCZTGN5Y-dX6NkpWRB6P23ug@mail.gmail.com> <CD250C48050CFB4D95E78C95F2FDDD6E87470513@MTLDAG01.mtl.com> <506B8365.9010507@oracle.com> <1828884A29C6694DAF28B7E6B8A8237346A98B11@FMSMSX151.amr.corp.intel.com> <506BBDE3.3010904@oracle.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2] {NET,IB}/mlx4: 64 byte CQE/EQE support
+Date: Thu, 4 Oct 2012 15:07:43 +0200
+Message-ID: <506D8A1F.4070500@mellanox.com>
+References: <1349355955-12831-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <506BBDE3.3010904-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1349355955-12831-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-  I'm experimenting with trying to model IPoIB-CM APM after RDMA-CM APM, 
-particularly the protocol for loading/re-loading of the alternate path 
-and will see how it goes..
+On 04/10/2012 15:05, Or Gerlitz wrote:
+> I'd like to try and push this for 3.7
 
-Thanks, --Bang.
+Indeed, but this is WIP so please ignore (actually if you have something 
+send comments also now...)
 
-On 10/2/2012 9:24 PM, Bang Nguyen wrote:
->  Here is the presentation on RDMA-CM APM
->
-> https://www.openfabrics.org/ofa-documents/presentations/doc_download/516-rdmacm-amp.html 
->
->
-> On 10/2/2012 8:03 PM, Hefty, Sean wrote:
->>> Just a crazy thought but IPoIB could use RDMA-CM for all of its
->>> connection management stuff..this way it can leverage the APM 
->>> support in
->>> RDMA-CM..
->>>
->>> comments?...
->> ipoib predates the rdma cm, which is why it's written to the ib_cm 
->> directly.  Communication setup with the rdma cm follows these 3 steps.
->>
->> 1. address resolution - The rdma cm indirectly ends up using ipoib 
->> for this.  With ipoib, this step isn't necessary.  I think having 
->> AF_IB support would help this by avoiding this step, plus it 
->> restricts the rdma cm to using IB devices.
->> 2. route resolution (aka path record query) - Ipoib maintains its own 
->> path record cache.  It can set the rdma cm paths manually, or there 
->> would need to be some sort of rework.
->> 3. connection setup - formats the ib cm private data and exchanges 
->> messages.  The rdma cm would need to know the ipoib private data format.
->>
->> Sooo... ipoib wouldn't use address resolution.  It maintains its own 
->> path record cache, which is a significant piece of supporting APM.  
->> Ipoib probably doesn't need to maintain its own cache, but there's no 
->> decent alternative for kernel clients currently.  And connection 
->> setup using the rdma cm is only slightly easier than using the ib 
->> cm.  (I have no idea what APM support in the rdma cm looks like.)
->>
->> - Sean
->
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
