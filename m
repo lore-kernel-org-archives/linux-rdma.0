@@ -1,114 +1,59 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Problem running rping over Intel adapters
-Date: Thu, 4 Oct 2012 13:55:00 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0D50AC71@FMSMSX108.amr.corp.intel.com>
-References: <506CB0E9.90201@redhat.com>
- <1828884A29C6694DAF28B7E6B8A8237346A98ECB@FMSMSX151.amr.corp.intel.com>
+From: Bang Nguyen <bang.nguyen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: APM support for IPoIB
+Date: Thu, 04 Oct 2012 09:06:46 -0700
+Message-ID: <506DB416.6030304@oracle.com>
+References: <506A17EA.8080400@oracle.com> <20121001235303.GH22342@obsidianresearch.com> <506A2F01.8000605@oracle.com> <CAL1RGDWmywbGg0vVb_MqRCHbdgMCZTGN5Y-dX6NkpWRB6P23ug@mail.gmail.com> <CD250C48050CFB4D95E78C95F2FDDD6E87470513@MTLDAG01.mtl.com> <506B8365.9010507@oracle.com> <1828884A29C6694DAF28B7E6B8A8237346A98B11@FMSMSX151.amr.corp.intel.com> <506BBDE3.3010904@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A98ECB-Q3cL8pyY+6ukrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <506BBDE3.3010904-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The IBTA spec clearly binds the IB HCA to a max of 7:
+  I'm experimenting with trying to model IPoIB-CM APM after RDMA-CM APM, 
+particularly the protocol for loading/re-loading of the alternate path 
+and will see how it goes..
 
-C9-142: For an HCA requester using Reliable Connection service, to prevent
-the requester from retrying the request forever, the requester shall
-maintain a 3 bit retry counter which is used to count the number of times
-a particular request packet has been retried and timed out. This counter
-shall be decremented each time the transport timer expires for a given request
-packet. The counter shall be re-loaded whenever a given outstanding
-request is cleared.
+Thanks, --Bang.
 
-The language round modify QP probably validates a test on the Retry count:
-
-C11-9: If any of the QP attributes to be modified are invalid or the requested
-state transition is invalid, none of the QP attributes shall be modified.
-An immediate error shall be returned and the QP state shall remain
-unchanged.
-
-A brief look at Mellanox code indicates that the "invalid" value is trusted and or'ed into the modify mechanism.
-
-Mike
-
-> -----Original Message-----
-> From: Hefty, Sean
-> Sent: Wednesday, October 03, 2012 6:39 PM
-> To: Doug Ledford; Marciniszyn, Mike; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: Problem running rping over Intel adapters
-> 
-> > 1) rping, on the client side, clears the conn_params for the newly to
-> > be attempted connection, then sets:
-> >
-> > 	conn_param.responder_resources = 1;
-> > 	conn_param.initiator_depth = 1;
-> > 	conn_param.retry_count = 10;
-> >
-> > On the accept side, rping clears the conn_params and then sets just
-> > the responder_resources and initiator_depth, without even checking the
-> > incoming requested conn_param values from the incoming cm_id.  So, OK,
-> > you can get away with that since this is a simple test program, but
-> > still not "best programming practices".  However, the important part
-> > here is the retry_count of 10.  That won't work on Intel/QLogic hardware.
-> 
-> I pushed in the following fix to rping.  Thanks
-> 
-> ---
-> 
-> rping: Reduce retry_count to fit in 3-bits
-> 
-> From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> retry_count is a 3 bit value on IB, reduce it from
-> 10 to 7.
-> 
-> A value of 10 prevents rping from working over the Intel IB HCA.  Problem
-> reported by Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> 
-> The retry_count is also not set when calling rdma_accept.
-> Rather than passing different values into rdma_accept than what was specified
-> by the remote side, use the values given in the connection request.
-> 
-> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  examples/rping.c |    9 ++-------
->  1 files changed, 2 insertions(+), 7 deletions(-)
-> 
-> diff --git a/examples/rping.c b/examples/rping.c index 785338e..32bd70a
-> 100644
-> --- a/examples/rping.c
-> +++ b/examples/rping.c
-> @@ -342,16 +342,11 @@ error:
-> 
->  static int rping_accept(struct rping_cb *cb)  {
-> -	struct rdma_conn_param conn_param;
->  	int ret;
-> 
->  	DEBUG_LOG("accepting client connection request\n");
-> 
-> -	memset(&conn_param, 0, sizeof conn_param);
-> -	conn_param.responder_resources = 1;
-> -	conn_param.initiator_depth = 1;
-> -
-> -	ret = rdma_accept(cb->child_cm_id, &conn_param);
-> +	ret = rdma_accept(cb->child_cm_id, NULL);
->  	if (ret) {
->  		perror("rdma_accept");
->  		return ret;
-> @@ -975,7 +970,7 @@ static int rping_connect_client(struct rping_cb *cb)
->  	memset(&conn_param, 0, sizeof conn_param);
->  	conn_param.responder_resources = 1;
->  	conn_param.initiator_depth = 1;
-> -	conn_param.retry_count = 10;
-> +	conn_param.retry_count = 7;
-> 
->  	ret = rdma_connect(cb->cm_id, &conn_param);
->  	if (ret) {
-> 
+On 10/2/2012 9:24 PM, Bang Nguyen wrote:
+>  Here is the presentation on RDMA-CM APM
+>
+> https://www.openfabrics.org/ofa-documents/presentations/doc_download/516-rdmacm-amp.html 
+>
+>
+> On 10/2/2012 8:03 PM, Hefty, Sean wrote:
+>>> Just a crazy thought but IPoIB could use RDMA-CM for all of its
+>>> connection management stuff..this way it can leverage the APM 
+>>> support in
+>>> RDMA-CM..
+>>>
+>>> comments?...
+>> ipoib predates the rdma cm, which is why it's written to the ib_cm 
+>> directly.  Communication setup with the rdma cm follows these 3 steps.
+>>
+>> 1. address resolution - The rdma cm indirectly ends up using ipoib 
+>> for this.  With ipoib, this step isn't necessary.  I think having 
+>> AF_IB support would help this by avoiding this step, plus it 
+>> restricts the rdma cm to using IB devices.
+>> 2. route resolution (aka path record query) - Ipoib maintains its own 
+>> path record cache.  It can set the rdma cm paths manually, or there 
+>> would need to be some sort of rework.
+>> 3. connection setup - formats the ib cm private data and exchanges 
+>> messages.  The rdma cm would need to know the ipoib private data format.
+>>
+>> Sooo... ipoib wouldn't use address resolution.  It maintains its own 
+>> path record cache, which is a significant piece of supporting APM.  
+>> Ipoib probably doesn't need to maintain its own cache, but there's no 
+>> decent alternative for kernel clients currently.  And connection 
+>> setup using the rdma cm is only slightly easier than using the ib 
+>> cm.  (I have no idea what APM support in the rdma cm looks like.)
+>>
+>> - Sean
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
