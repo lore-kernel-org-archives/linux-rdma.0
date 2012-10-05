@@ -1,57 +1,63 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Thu,  4 Oct 2012 19:20:20 -0700
-Message-ID: <1349403620-31433-1-git-send-email-roland@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [patch v4 2/2] infiniband: pass rdma_cm module to netlink_dump_start
+Date: Fri, 5 Oct 2012 14:15:49 +0800
+Message-ID: <1349417749-24869-2-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1349417749-24869-1-git-send-email-gaofeng@cn.fujitsu.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1349417749-24869-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: eric.dumazet@gmail.com, steffen.klassert@secunet.com, pablo@netfilter.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stephen.hemminger@vyatta.com, jengelh@inai.de, Gao feng <gaofeng@cn.fujitsu.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+set netlink_dump_control.module to avoid panic.
 
-Please pull from
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+---
+ drivers/infiniband/core/cma.c     |    3 ++-
+ drivers/infiniband/core/netlink.c |    1 +
+ include/rdma/rdma_netlink.h       |    1 +
+ 3 files changed, 4 insertions(+), 1 deletions(-)
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
-
-----------------------------------------------------------------
-
-Second batch of changes for the 3.7 merge window:
- - Late-breaking fix for IPoIB on mlx4 SR-IOV VFs.
- - Fix for IPoIB build breakage with CONFIG_INFINIBAND_IPOIB_CM=n
-   (new netlink config changes are to blame).
- - Make sure retry count values are in range in RDMA CM.
- - A few nes hardware driver fixes and cleanups.
- - Have iSER initiator use >1 interrupt vectors if available.
-
-----------------------------------------------------------------
-Alex Tabachnik (1):
-      IB/iser: Add more RX CQs to scale out processing of SCSI responses
-
-Jack Morgenstein (1):
-      mlx4_core: Adjust flow steering attach wrapper so that IB works on SR-IOV VFs
-
-Roland Dreier (2):
-      IPoIB: Fix build with CONFIG_INFINIBAND_IPOIB_CM=n
-      Merge branches 'cma', 'ipoib', 'iser', 'mlx4' and 'nes' into for-next
-
-Sean Hefty (1):
-      RDMA/cma: Check that retry count values are in range
-
-Tatyana Nikolova (4):
-      RDMA/nes: Add missing break to switch.
-      RDMA/nes: Remove unnecessary if-else statement
-      RDMA/nes: Remove unused module parameter "send_first"
-      RDMA/nes: Bump the version number of nes driver
-
- drivers/infiniband/core/cma.c                      |    6 +-
- drivers/infiniband/hw/nes/nes.c                    |    5 -
- drivers/infiniband/hw/nes/nes.h                    |    3 +-
- drivers/infiniband/hw/nes/nes_verbs.c              |   16 +--
- drivers/infiniband/ulp/ipoib/ipoib.h               |    4 +-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c            |   31 -----
- drivers/infiniband/ulp/ipoib/ipoib_main.c          |   31 +++++
- drivers/infiniband/ulp/iser/iscsi_iser.h           |   17 ++-
- drivers/infiniband/ulp/iser/iser_verbs.c           |  130 ++++++++++++++------
- .../net/ethernet/mellanox/mlx4/resource_tracker.c  |    2 +
- 10 files changed, 146 insertions(+), 99 deletions(-)
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 26b3760..4fff27a 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -3498,7 +3498,8 @@ out:
+ }
+ 
+ static const struct ibnl_client_cbs cma_cb_table[] = {
+-	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats },
++	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats,
++				       .module = THIS_MODULE },
+ };
+ 
+ static int __init cma_init(void)
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index fe10a94..da06abd 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -154,6 +154,7 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 			{
+ 				struct netlink_dump_control c = {
+ 					.dump = client->cb_table[op].dump,
++					.module = client->cb_table[op].module,
+ 				};
+ 				return netlink_dump_start(nls, skb, nlh, &c);
+ 			}
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 3c5363a..bd3d8b2 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -39,6 +39,7 @@ struct rdma_cm_id_stats {
+ 
+ struct ibnl_client_cbs {
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
++	struct module *module;
+ };
+ 
+ int ibnl_init(void);
+-- 
+1.7.7.6
