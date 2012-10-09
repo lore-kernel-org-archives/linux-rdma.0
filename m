@@ -1,65 +1,23 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [GIT PULL] Disintegrate UAPI for rdma
-Date: Tue, 09 Oct 2012 14:30:40 +0100
-Message-ID: <30746.1349789440@warthog.procyon.org.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dillowda@ornl.gov
-Cc: dhowells@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/5] [librdmacm] librdmacm: batch of fixes
+Date: Tue, 9 Oct 2012 18:29:14 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346AA3D84@ORSMSX101.amr.corp.intel.com>
+References: <1349785672-1921-1-git-send-email-dotanb@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1349785672-1921-1-git-send-email-dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Can you merge the following branch into the rdma tree please.
+thanks!
 
-This is to complete part of the Userspace API (UAPI) disintegration for which
-the preparatory patches were pulled recently.  After these patches, userspace
-headers will be segregated into:
-
-	include/uapi/linux/.../foo.h
-
-for the userspace interface stuff, and:
-
-	include/linux/.../foo.h
-
-for the strictly kernel internal stuff.
-
----
-The following changes since commit 9e2d8656f5e8aa214e66b462680cf86b210b74a8:
-
-  Merge branch 'akpm' (Andrew's patch-bomb) (2012-10-09 16:23:15 +0900)
-
-are available in the git repository at:
-
-
-  git://git.infradead.org/users/dhowells/linux-headers.git tags/disintegrate-rdma-20121009
-
-for you to fetch changes up to e70078e9af5a4012a20448ce0af9b3b0813cc4bb:
-
-  UAPI: (Scripted) Disintegrate include/rdma (2012-10-09 14:14:45 +0100)
-
-----------------------------------------------------------------
-(from the branch description for disintegrate-rdma local branch)
-
-clone of "disintegrate-scsi"
-UAPI Disintegration 2012-10-09
-
-----------------------------------------------------------------
-David Howells (1):
-      UAPI: (Scripted) Disintegrate include/rdma
-
- include/rdma/Kbuild                     |  6 ------
- include/rdma/rdma_netlink.h             | 36 +-------------------------------
- include/uapi/rdma/Kbuild                |  6 ++++++
- include/{ => uapi}/rdma/ib_user_cm.h    |  0
- include/{ => uapi}/rdma/ib_user_mad.h   |  0
- include/{ => uapi}/rdma/ib_user_sa.h    |  0
- include/{ => uapi}/rdma/ib_user_verbs.h |  0
- include/uapi/rdma/rdma_netlink.h        | 37 +++++++++++++++++++++++++++++++++
- include/{ => uapi}/rdma/rdma_user_cm.h  |  0
- 9 files changed, 44 insertions(+), 41 deletions(-)
- rename include/{ => uapi}/rdma/ib_user_cm.h (100%)
- rename include/{ => uapi}/rdma/ib_user_mad.h (100%)
- rename include/{ => uapi}/rdma/ib_user_sa.h (100%)
- rename include/{ => uapi}/rdma/ib_user_verbs.h (100%)
- create mode 100644 include/uapi/rdma/rdma_netlink.h
- rename include/{ => uapi}/rdma/rdma_user_cm.h (100%)
-.
+Applied all, but with a couple of minor adjustments.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
