@@ -1,50 +1,83 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/amso1100: use module_pci_driver to simplify the code
-Date: Wed, 10 Oct 2012 21:10:43 +0800
-Message-ID: <CAPgLHd_3p0HU7NGaEDJ5P3BbUxsA38JitEK_9PCwq=6uj7eFKQ@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags: Fix SA error reporting for common MAD
+ errors
+Date: Wed, 10 Oct 2012 10:28:50 -0400
+Message-ID: <50758622.3030607@dev.mellanox.co.il>
+References: <20120921150259.5fb75a794fae33ac60e5f0d9@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120921150259.5fb75a794fae33ac60e5f0d9-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+On 9/21/2012 6:02 PM, Ira Weiny wrote:
+> 
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> ---
+>  src/ibdiag_sa.c |   30 +++++++++++++++++++++++++++---
+>  1 files changed, 27 insertions(+), 3 deletions(-)
+> 
+> diff --git a/src/ibdiag_sa.c b/src/ibdiag_sa.c
+> index 2b84bfa..2a9f008 100644
+> --- a/src/ibdiag_sa.c
+> +++ b/src/ibdiag_sa.c
+> @@ -192,19 +192,43 @@ static inline const char *ib_sa_err_str(IN uint8_t status)
+>  	return (ib_sa_error_str[status]);
+>  }
+>  
+> +static const char *ib_mad_inv_field_str[] = {
+> +	"MAD No invalid fields",
+> +	"MAD Bad version",
+> +	"MAD Method specified is not supported",
+> +	"MAD Method/Attribute combination is not supported",
+> +	"MAD Reserved",
+> +	"MAD Reserved",
+> +	"MAD Reserved",
+> +	"MAD fields or attribute modifier; invalid value"
 
-Use the module_pci_driver() macro to make the code simpler
-by eliminating module_init and module_exit calls.
+Perhaps "MAD Invalid value in field(s) of Attribute or Attribute Modifier" ?
 
-dpatch engine is used to auto generate this patch.
-(https://github.com/weiyj/dpatch)
+-- Hal
 
-Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
----
- drivers/infiniband/hw/amso1100/c2.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
-
-diff --git a/drivers/infiniband/hw/amso1100/c2.c b/drivers/infiniband/hw/amso1100/c2.c
-index 5ce7b9e..9fedb10 100644
---- a/drivers/infiniband/hw/amso1100/c2.c
-+++ b/drivers/infiniband/hw/amso1100/c2.c
-@@ -1239,15 +1239,4 @@ static struct pci_driver c2_pci_driver = {
- 	.remove = __devexit_p(c2_remove),
- };
- 
--static int __init c2_init_module(void)
--{
--	return pci_register_driver(&c2_pci_driver);
--}
--
--static void __exit c2_exit_module(void)
--{
--	pci_unregister_driver(&c2_pci_driver);
--}
--
--module_init(c2_init_module);
--module_exit(c2_exit_module);
-+module_pci_driver(c2_pci_driver);
-
+> +	"MAD UNKNOWN ERROR"
+> +};
+> +#define MAD_ERR_UNKNOWN (ARR_SIZE(ib_mad_inv_field_str) - 1)
+> +
+> +static inline const char *ib_mad_inv_field_err_str(IN uint8_t f)
+> +{
+> +	if (f > MAD_ERR_UNKNOWN)
+> +		f = MAD_ERR_UNKNOWN;
+> +	return (ib_mad_inv_field_str[f]);
+> +}
+> +
+>  void sa_report_err(int status)
+>  {
+>  	int st = status & 0xff;
+> -	char sm_err_str[64] = { 0 };
+> +	char mad_err_str[64] = { 0 };
+>  	char sa_err_str[64] = { 0 };
+>  
+>  	if (st)
+> -		sprintf(sm_err_str, " SM(%s)", ib_get_err_str(st));
+> +		sprintf(mad_err_str, " (%s; %s; %s)",
+> +			(st & 0x1) ? "BUSY" : "",
+> +			(st & 0x2) ? "Redirection Required" : "",
+> +			ib_mad_inv_field_err_str(st>>2));
+> +
+>  
+>  	st = status >> 8;
+>  	if (st)
+>  		sprintf(sa_err_str, " SA(%s)", ib_sa_err_str((uint8_t) st));
+>  
+>  	fprintf(stderr, "ERROR: Query result returned 0x%04x, %s%s\n",
+> -		status, sm_err_str, sa_err_str);
+> +		status, mad_err_str, sa_err_str);
+>  }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
