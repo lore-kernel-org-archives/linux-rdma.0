@@ -1,138 +1,79 @@
-From: =?UTF-8?Q?Xavier_Gu=C3=A9rin?= <xrguerin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ConnectX-3 VPI ETH issues
-Date: Tue, 9 Oct 2012 15:19:31 -0400
-Message-ID: <CAHBb3is3dJZwWFjDwYUSL_FP=twgs4_LbH+SjXiRRFDLZyTkdA@mail.gmail.com>
-References: <CAHBb3iuhfZxGPX+zKMahLYeRwD9B4038-+8eRWWmRdfO_9MZrQ@mail.gmail.com>
-	<507476DB.6090804@dev.mellanox.co.il>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB/lmx4: silence GCC warning
+Date: Wed, 10 Oct 2012 09:23:43 +0200
+Message-ID: <201210100923.43927.jackm@dev.mellanox.co.il>
+References: <1348836538.3626.21.camel@x61.thuisdomein>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <507476DB.6090804-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1348836538.3626.21.camel-uMdlDhfIn7prKue/0VVhAg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Hal,
+You could use:
 
-Thank you for your answer. It turned out to be an issue with our
-router installation. We now have the port activated and the link set
-up. We still are having issue with the connection itself (wr timeout
-with ibv_rc_pingpong and ARP packet not distributed), but it may be an
-router issue as well.
+   u16 uninitialized_var(vlan);
 
-Xavier
+instead.
 
-On Tue, Oct 9, 2012 at 3:11 PM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>=
- wrote:
-> Hi Xavier,
->
-> On 10/2/2012 8:59 PM, Xavier Gu=C3=A9rin wrote:
->> Hi list,
->>
->> I am afraid I am stuck with a very stupid problem, and I am at my wi=
-t's ends.
->>
->> I am deploying a set a blades loaded with ConnectX-3 VPI adapters. T=
-he
->> blades run under RHEL 6.3 and the connectors are driven using the
->> MLNX_OFED 1.5.3.3 stack.
->
->> When the ports are configured in IB (default), the physical state of
->> the ports is POLLING, which is expected since the adapters are
->> connected with Ethernet wires and switches:
->>
->> $ ibstat
->> CA 'mlx4_0'
->>         CA type: MT4099
->>         Number of ports: 2
->>         Firmware version: 2.10.2322
->>         Hardware version: 0
->>         Node GUID: 0x0002c90300f31160
->>         System image GUID: 0x0002c90300f31163
->>         Port 1:
->>                 State: Down
->>                 Physical state: Polling
->>                 Rate: 40
->>                 Base lid: 0
->>                 LMC: 0
->>                 SM lid: 0
->>                 Capability mask: 0x02514868
->>                 Port GUID: 0x0002c90300f31161
->>                 Link layer: InfiniBand
->>         Port 2:
->>                 State: Down
->>                 Physical state: Polling
->>                 Rate: 40
->>                 Base lid: 0
->>                 LMC: 0
->>                 SM lid: 0
->>                 Capability mask: 0x02514868
->>                 Port GUID: 0x0002c90300f31162
->>                 Link layer: InfiniBand
->>
->> But when I enable the ports as ETH, the physical state shows up as D=
-ISABLED:
->>
->> $ ibstat
->> CA 'mlx4_0'
->>         CA type: MT4099
->>         Number of ports: 2
->>         Firmware version: 2.10.2322
->>         Hardware version: 0
->>         Node GUID: 0x0002c90300f31160
->>         System image GUID: 0x0002c90300f31163
->>         Port 1:
->>                 State: Down
->>                 Physical state: Disabled
->>                 Rate: 40
->>                 Base lid: 0
->>                 LMC: 0
->>                 SM lid: 0
->>                 Capability mask: 0x00010000
->>                 Port GUID: 0x0202c9fffef31160
->>                 Link layer: Ethernet
->>         Port 2:
->>                 State: Down
->>                 Physical state: Disabled
->>                 Rate: 40
->>                 Base lid: 0
->>                 LMC: 0
->>                 SM lid: 0
->>                 Capability mask: 0x00010000
->>                 Port GUID: 0x0202c9fffef31161
->>                 Link layer: Ethernet
->
-> ibstat is showing an RDMA device's IB state and IB physical state. A =
-VPI
-> port shows up as down/disabled when it's in ethernet mode.
->
->> Besides, ibportstate fails opening the port in ETH mode:
->>
->> $ ibportstate -C mlx4_0 -L 0 -P 1 q
->
-> ibportstate will only work with IB ports so it can't open port in
-> ethernet mode.
->
-> -- Hal
->
->> Finally, if that helps, when set in auto mode, the port configuratio=
-n
->> stick with IB.
->>
->> I went through any possible user guide without help. Any clue about
->> what I am doing wrong?
->>
->> Thanks,
->> Xavier
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
+Although this in the special QP data flow, I still prefer to avoid addi=
+ng extra code (even setting
+initial values at procedure entry).  The line above will also do the jo=
+b.  "uninitialized_var"
+is used elsewhere in the driver.  See, for example, mlx4_ib_post_send()=
+ in the same file (qp.c).
+
+-Jack
+
+On Friday 28 September 2012 14:48, Paul Bolle wrote:
+> Building qp.o (part of the "Mellanox ConnectX HCA support" driver)
+> triggers this GCC warning:
+>     drivers/infiniband/hw/mlx4/qp.c: In function =E2=80=98mlx4_ib_pos=
+t_send=E2=80=99:
+>     drivers/infiniband/hw/mlx4/qp.c:1828:30: warning: =E2=80=98vlan=E2=
+=80=99 may be used uninitialized in this function [-Wmaybe-uninitialize=
+d]
+>     drivers/infiniband/hw/mlx4/qp.c:1718:6: note: =E2=80=98vlan=E2=80=
+=99 was declared here
+>=20
+> Looking at the code it is clear 'vlan' is only set and used if 'is_et=
+h'
+> is non-zero. But there's no harm in initializing 'vlan' to 0 (which
+> matches ib_get_cached_gid()'s default return) to silence GCC.
+>=20
+> Signed-off-by: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
+> ---
+> 0) I noticed this warning while building v3.6-rc7 on current Fedora 1=
+7,
+> using Fedora's default config.
+>=20
+> 1) Compile tested only. I tested against v3.6-rc7, with commit
+> a41262bb5721f2b708ee8b23f67be2f2e16a2fab ("IB/mlx4: SR-IOV IB context
+> objects and proxy/tunnel SQP") from linux-next cherry-picked, to take
+> into account a trivial context change in linux-next.
+>=20
+>  drivers/infiniband/hw/mlx4/qp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/=
+mlx4/qp.c
+> index a862251..71fdda6 100644
+> --- a/drivers/infiniband/hw/mlx4/qp.c
+> +++ b/drivers/infiniband/hw/mlx4/qp.c
+> @@ -1715,7 +1715,7 @@ static int build_mlx_header(struct mlx4_ib_sqp =
+*sqp, struct ib_send_wr *wr,
+>  	int is_eth;
+>  	int is_vlan =3D 0;
+>  	int is_grh;
+> -	u16 vlan;
+> +	u16 vlan =3D 0;
+>  	int err =3D 0;
+> =20
+>  	send_size =3D 0;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
