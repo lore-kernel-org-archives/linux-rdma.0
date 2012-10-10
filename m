@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 1/2] opensm: Track minimum value in the fabric for data VLs
- supported on switch external ports
-Date: Wed, 10 Oct 2012 19:40:09 -0400
-Message-ID: <50760759.7080406@dev.mellanox.co.il>
+Subject: [PATCH 2/2] opensm/osm_torus.c: Check fabric minimum data VLs on
+ switch external ports
+Date: Wed, 10 Oct 2012 19:40:13 -0400
+Message-ID: <5076075D.9000509@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,82 +13,81 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
+Also, in sl2vl_entry, use that value when appropriate
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- include/opensm/osm_subnet.h |    1 +
- opensm/osm_port_info_rcv.c  |   13 +++++++++++++
- opensm/osm_state_mgr.c      |    1 +
- opensm/osm_subnet.c         |    1 +
- 4 files changed, 16 insertions(+), 0 deletions(-)
+ opensm/osm_torus.c |   35 ++++++++++++++++++++++-------------
+ 1 files changed, 22 insertions(+), 13 deletions(-)
 
-diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
-index 86aba47..566145b 100644
---- a/include/opensm/osm_subnet.h
-+++ b/include/opensm/osm_subnet.h
-@@ -747,6 +747,7 @@ typedef struct osm_subn {
- 	uint8_t min_ca_mtu;
- 	uint8_t min_ca_rate;
- 	uint8_t min_data_vls;
-+	uint8_t min_sw_data_vls;
- 	boolean_t ignore_existing_lfts;
- 	boolean_t subnet_initialization_error;
- 	boolean_t force_heavy_sweep;
-diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
-index c3bc66c..d5b6aac 100644
---- a/opensm/osm_port_info_rcv.c
-+++ b/opensm/osm_port_info_rcv.c
-@@ -193,6 +193,7 @@ static void pi_rcv_process_switch_port(IN osm_sm_t * sm, IN osm_node_t * p_node,
- 	osm_madw_context_t context;
- 	osm_physp_t *p_remote_physp;
- 	osm_node_t *p_remote_node;
-+	unsigned data_vls;
- 	uint8_t port_num;
- 	uint8_t remote_port_num;
- 	osm_dr_path_t path;
-@@ -321,6 +322,18 @@ static void pi_rcv_process_switch_port(IN osm_sm_t * sm, IN osm_node_t * p_node,
- 			/* PortState is not used on BSP0 but just in case it is DOWN */
- 			p_physp->port_info = *p_pi;
- 		pi_rcv_process_endport(sm, p_physp, p_pi);
-+	} else {
-+		data_vls = 1U << (ib_port_info_get_op_vls(p_pi) - 1);
-+		if (data_vls >= IB_MAX_NUM_VLS)
-+			data_vls = IB_MAX_NUM_VLS - 1;
-+		if ((uint8_t)data_vls < sm->p_subn->min_sw_data_vls) {
-+			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-+				"Setting switch port minimal data VLs to:%u defined by node:0x%"
-+				PRIx64 ", port:%u\n", data_vls,
-+				cl_ntoh64(osm_node_get_node_guid(p_node)),
-+				port_num);
-+			sm->p_subn->min_sw_data_vls = data_vls;
-+		}
+diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
+index ec2c5ef..82c1db1 100644
+--- a/opensm/osm_torus.c
++++ b/opensm/osm_torus.c
+@@ -7027,22 +7027,27 @@ bool verify_setup(struct torus *t, struct fabric *f)
+ 			"ERR 4E20: missing required torus size specification!\n");
+ 		goto out;
  	}
+-	if (t->osm->subn.min_data_vls < 2)
++	if (t->osm->subn.min_data_vls < 2 || t->osm->subn.min_sw_data_vls < 2)
+ 		OSM_LOG(&t->osm->log, OSM_LOG_INFO,
+ 			"Warning: Too few data VLs to support torus routing "
+-			"without credit loops (have %d need 2)\n",
+-			(int)t->osm->subn.min_data_vls);
+-	if (t->osm->subn.min_data_vls < 4)
++			"without credit loops (have endport %d switchport %d "
++			"need 2)\n",
++			(int)t->osm->subn.min_data_vls,
++			(int)t->osm->subn.min_sw_data_vls);
++	if (t->osm->subn.min_data_vls < 4 || t->osm->subn.min_sw_data_vls < 4)
+ 		OSM_LOG(&t->osm->log, OSM_LOG_INFO,
+ 			"Warning: Too few data VLs to support torus routing "
+-			"with a failed switch without credit loops"
+-			"(have %d need 4)\n",
+-			(int)t->osm->subn.min_data_vls);
+-	if (t->osm->subn.min_data_vls < 8)
++			"with a failed switch without credit loops "
++			"(have endport %d switchport %d need 4)\n",
++			(int)t->osm->subn.min_data_vls,
++			(int)t->osm->subn.min_sw_data_vls);
++	if (t->osm->subn.min_data_vls < 8 || t->osm->subn.min_sw_data_vls < 8)
+ 		OSM_LOG(&t->osm->log, OSM_LOG_INFO,
+ 			"Warning: Too few data VLs to support torus routing "
+-			"with two QoS levels (have %d need 8)\n",
+-			(int)t->osm->subn.min_data_vls);
++			"with two QoS levels (have endport %d switchport %d "
++			"need 8)\n",
++			(int)t->osm->subn.min_data_vls,
++			(int)t->osm->subn.min_sw_data_vls);
+ 	/*
+ 	 * Be sure all the switches in the torus support the port
+ 	 * ordering that might have been configured.
+@@ -7982,7 +7987,10 @@ unsigned sl2vl_entry(struct torus *t, struct t_switch *sw,
+ 	else
+ 		od = TORUS_MAX_DIM;
  
- 	OSM_LOG_EXIT(sm->p_log);
-diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
-index bc61136..7abbc91 100644
---- a/opensm/osm_state_mgr.c
-+++ b/opensm/osm_state_mgr.c
-@@ -1209,6 +1209,7 @@ repeat_discovery:
- 	sm->p_subn->min_ca_mtu = IB_MAX_MTU;
- 	sm->p_subn->min_ca_rate = IB_MAX_RATE;
- 	sm->p_subn->min_data_vls = IB_MAX_NUM_VLS - 1;
-+	sm->p_subn->min_sw_data_vls = IB_MAX_NUM_VLS - 1;
+-	data_vls = t->osm->subn.min_data_vls;
++	if (sw)
++		data_vls = t->osm->subn.min_sw_data_vls;
++	else
++		data_vls = t->osm->subn.min_data_vls;
+ 	vl = 0;
  
- 	/* rescan configuration updates */
- 	if (!config_parsed && osm_subn_rescan_conf_files(sm->p_subn) < 0)
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index 9f05e8a..44d5b1a 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -1199,6 +1199,7 @@ ib_api_status_t osm_subn_init(IN osm_subn_t * p_subn, IN osm_opensm_t * p_osm,
- 	p_subn->min_ca_mtu = IB_MAX_MTU;
- 	p_subn->min_ca_rate = IB_MAX_RATE;
- 	p_subn->min_data_vls = IB_MAX_NUM_VLS - 1;
-+	p_subn->min_sw_data_vls = IB_MAX_NUM_VLS - 1;
- 	p_subn->ignore_existing_lfts = TRUE;
+ 	if (data_vls >= 2)
+@@ -9251,9 +9259,10 @@ int torus_build_lfts(void *context)
  
- 	/* we assume master by default - so we only need to set it true if STANDBY */
+ 	OSM_LOG(&torus->osm->log, OSM_LOG_INFO,
+ 		"Found fabric w/ %d links, %d switches, %d CA ports, "
+-		"minimum %d data VLs\n",
++		"minimum data VLs: endport %d, switchport %d\n",
+ 		(int)fabric->link_cnt, (int)fabric->switch_cnt,
+-		(int)fabric->ca_cnt, (int)ctx->osm->subn.min_data_vls);
++		(int)fabric->ca_cnt, (int)ctx->osm->subn.min_data_vls,
++		(int)ctx->osm->subn.min_sw_data_vls);
+ 
+ 	if (!verify_setup(torus, fabric))
+ 		goto out;
 -- 
 1.7.8.2
 
