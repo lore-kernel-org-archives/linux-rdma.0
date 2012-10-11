@@ -1,13 +1,13 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/2] ibsim/ibsim.c: Fixed bug regarding undefined commands
-Date: Thu, 11 Oct 2012 14:45:26 +0200
-Message-ID: <20121011124526.GB6448@calypso>
-References: <25EBDF7A-17DB-41FC-9CC8-7F960B6CA304@llnl.gov>
+Subject: Re: [PATCH 2/2] ibsim/sim_cmd.c: Fixed help output for dump command
+Date: Thu, 11 Oct 2012 14:45:47 +0200
+Message-ID: <20121011124547.GC6448@calypso>
+References: <94B19291-0F4A-4AF1-BF1F-D09815D5660D@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <25EBDF7A-17DB-41FC-9CC8-7F960B6CA304-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <94B19291-0F4A-4AF1-BF1F-D09815D5660D-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Huang, Parry W." <huang32-i2BcT+NCU+M@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -15,8 +15,8 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Parry,
 
-On 15:04 Thu 31 May     , Huang, Parry W. wrote:
-> In sim_cmd_file and sim_run_console, fixed bug regarding a new line being kept at the end of the input when an unknown command is processed from console or from file.
+On 15:05 Thu 31 May     , Huang, Parry W. wrote:
+> In dump_help, fixed help output of the dump command to correspond with the rest of the response.
 > 
 > Signed-off-by: Perry Huang <huang32-i2BcT+NCU+M@public.gmane.org>
 > ---
