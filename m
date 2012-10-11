@@ -1,22 +1,24 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] ibsim: Fix typo in help
-Date: Thu, 11 Oct 2012 14:44:05 +0200
-Message-ID: <20121011124405.GA6448@calypso>
-References: <1329349014.4779.1168.camel@auk59.llnl.gov>
+Subject: Re: [PATCH 1/2] ibsim/ibsim.c: Fixed bug regarding undefined commands
+Date: Thu, 11 Oct 2012 14:45:26 +0200
+Message-ID: <20121011124526.GB6448@calypso>
+References: <25EBDF7A-17DB-41FC-9CC8-7F960B6CA304@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1329349014.4779.1168.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <25EBDF7A-17DB-41FC-9CC8-7F960B6CA304-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Huang, Parry W." <huang32-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Albert,
+Hi Parry,
 
-On 15:36 Wed 15 Feb     , Albert Chu wrote:
-> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+On 15:04 Thu 31 May     , Huang, Parry W. wrote:
+> In sim_cmd_file and sim_run_console, fixed bug regarding a new line being kept at the end of the input when an unknown command is processed from console or from file.
+> 
+> Signed-off-by: Perry Huang <huang32-i2BcT+NCU+M@public.gmane.org>
 > ---
 
 Applied, thanks.
