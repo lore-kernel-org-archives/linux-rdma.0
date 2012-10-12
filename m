@@ -1,70 +1,81 @@
-From: Animesh K Trivedi1 <ZRLATR-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
+From: Yann Droneaud <yann-WYdEh2jsUj5Wj0EZb7rXcA@public.gmane.org>
 Subject: Re: (R)DMA in userspace
-Date: Fri, 12 Oct 2012 10:54:35 +0200
-Message-ID: <OF8F225351.D64DFAF0-ONC1257A95.002D2340-C1257A95.0030F501@ch.ibm.com>
-References: <OF84B00CFA.7F1CDA02-ONC1257A94.00545627-C1257A94.0055881A@ch.ibm.com>	<CAL1RGDUOMz7Qf8bX7hZpJgARGepLQRwY25f6Q1utYBZ0taMs9A@mail.gmail.com> <CAJZOPZJiEj7rMjF1ouukCPAGCXaNBhHoG1-YuDfEikvM-LLrXg@mail.gmail.com>
+Date: Fri, 12 Oct 2012 11:12:43 +0200
+Message-ID: <1350033163.2291.22.camel@test.quest-ce.net>
+References: <OF84B00CFA.7F1CDA02-ONC1257A94.00545627-C1257A94.0055881A@ch.ibm.com>
+	 <CAL1RGDUOMz7Qf8bX7hZpJgARGepLQRwY25f6Q1utYBZ0taMs9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJiEj7rMjF1ouukCPAGCXaNBhHoG1-YuDfEikvM-LLrXg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAL1RGDUOMz7Qf8bX7hZpJgARGepLQRwY25f6Q1utYBZ0taMs9A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Animesh K Trivedi1 <ZRLATR-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On x86 hardware manages the cache coherency. As far as I understood, DMA
-sync
-operations are no-ops on x86. But the confusion arose when I realised that
-there are
-no arch specific userlibs. So essentially as Roland pointed out, on a non
-cache
-coherent architecture userspace applications will break. This will happen
-for IB as
-well.
+Hi,
 
-Can PCIe root complex can read dirty data from CPU caches? I am seeing
-almost
-100% LLC misses (L3 on Nehalem, which are inclusive for L1, and L2) for
-memcpy on
-RDMA buffers after transmission. Depending upon your CPU, LLC miss penalty
-could
-be very high, and shadow performance gains.
+Le jeudi 11 octobre 2012 =C3=A0 13:44 -0700, Roland Dreier a =C3=A9crit=
+ :
+> On Thu, Oct 11, 2012 at 8:34 AM, Animesh K Trivedi1 <ZRLATR-Xeyd2O9EBihhl2p70BpVqQ@public.gmane.org=
+m> wrote:
+> >
+> > During memory memory registration, userspace buffers also go throug=
+h same
+> > API calls (dma_map_sg_attrs(...)).
+> > What I am confused about why no such synchronization primitives are
+> > required in userspace before accessing
+> > an RDMA data buffer just after when an incoming write/recv (DMA on =
+it) is
+> > finished? Who guarantees data
+> > freshness?
+>=20
+> No one has really ever tried to deal with the issue of userspace RDMA=
+ on
+> a cache-incoherent architecture.  Basically if you try the current st=
+ack, the
+> in-kernel users (IPoIB etc) should be OK but libibverbs etc. will be =
+completely
+> broken.
+>=20
 
-Has anyone ever tried using RDMA on non cache-coherent systems? I think,
-cache
-line flushing is not a privileged instruction and can be called without
-going to kernel for
-memory-cache synchronization.
+With the current ARMv7 Cortex-A9 / Cortex-A15 MPCore and the upcoming
+ARM 64 bits architecture eg ARMv8 aka Aarch64, one might want in the
+near future use RDMA (InfiniBand/RoCE) with them to create highly
+parallel system with low-power consumption.=20
 
-Thought?
+But this question and some reading about ARM memory management makes me
+feel pretty unsure of the ability to use RDMA (InfiniBand) on ARM.
 
-Thanks,
+In this article: "ARM, DMA, and memory management"
+http://lwn.net/Articles/440221/"=20
+it is said that a memory page must not be mapped multiple time with
+different caching attributes.
+
+This article take the point of Linaro's developers who want to upload
+texture to the GPU without holding them in caches. This behavior might
+also be applicable to RDMA as well: writing to a memory zone to be
+either local IBV_WR_SEND, local IBV_WR_RDMA_WRITE or remote
+IBV_WR_RDMA_READ, there's probably no need to keep it in cache.
+
+You could also read this other article "CMA [contiguous memory
+allocator] and ARM" http://lwn.net/Articles/450286/
+and "ARM's multiply-mapped memory mess" http://lwn.net/Articles/409689/
+
+After reading this, and not being an ARM expert, I'm asking myself abou=
+t
+a possible RDMA (InfiniBand) support on ARM.
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-Animesh
-
-Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote on 10/11/2012 11:04:02 PM:
->
-> On Thu, Oct 11, 2012 at 10:44 PM, Roland Dreier
-> <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
->
-> > No one has really ever tried to deal with the issue of userspace RDMA
-on
-> > a cache-incoherent architecture.  Basically if you try the
-currentstack, the
-> > in-kernel users (IPoIB etc) should be OK but libibverbs etc. will
-> be completely broken.
->
-> I think the question might refer even to cache-coherent systems, e.g
-> in the kernel IB core and ULPs all buffers are dma mapped to/from the
-> device before/after they are touched by the CPU and vise versa, wheres
-> in user space, after the buffers are registered once, they are
-> repeatedly touched by the CPUs and provided to the HW for DMA, e.g all
-> user space buffers are treated like kernel DMA coherent ones.
->
-> Or.
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
