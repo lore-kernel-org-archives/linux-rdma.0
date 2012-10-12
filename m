@@ -1,38 +1,40 @@
-From: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: do not free chunk that we have failed to allocate
-Date: Fri, 12 Oct 2012 18:10:11 -0300
-Message-ID: <1350076211-24310-1-git-send-email-cascardo@linux.vnet.ibm.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: if/how to dictate IB device name per PCI BDF
+Date: Fri, 12 Oct 2012 16:43:32 -0600
+Message-ID: <20121012224332.GB25541@obsidianresearch.com>
+References: <5076A755.30605@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5076A755.30605-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In the error path of registering memory, in case there is a failure when
-trying to allocate a chunk from the memory pool, it will try to free the
-same chunk, which will BUG.
+On Thu, Oct 11, 2012 at 01:02:45PM +0200, Or Gerlitz wrote:
 
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/mem.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Thinking about this a bit, will it be possible to provide a udev
+> rulethat can dictate to the IB core what name / suffix digit to
+> assign for a device with certain BDF?
 
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index 57e07c6..afd8179 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -468,7 +468,7 @@ struct ib_mr *c4iw_register_phys_mem(struct ib_pd *pd,
- 	ret = alloc_pbl(mhp, npages);
- 	if (ret) {
- 		kfree(page_list);
--		goto err_pbl;
-+		goto err;
- 	}
- 
- 	ret = write_pbl(&mhp->rhp->rdev, page_list, mhp->attr.pbl_addr,
--- 
-1.7.1
+FWIW, I reflected on this once (I belive it was for the netlink
+discussion).. Allowing for a device to be renamed creates a serious
+problem for RDMA since there isn't a stable 'if-index' like way for
+software to refer to it.
 
+The udev rules all rely on a means to rename the device once the
+kernel has created it.
+
+For this reason, all the software I've built uses the port GID to ID
+the resource for bind/etc and strongly discourages use of the RDMA
+device name.
+
+The ipoib devices should already be renamable via udev rules, though
+has anyone checked that udev doesn't have a problem with the long 'MAC'?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
