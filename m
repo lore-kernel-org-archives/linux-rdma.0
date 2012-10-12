@@ -1,108 +1,69 @@
-From: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: opensm not reaching nodes
-Date: Thu, 11 Oct 2012 16:07:27 -0700
-Message-ID: <CA+ZH+jELptjXOeLm=kLOPp+pRo-_ikk+2DoeF6qqNkdysoAO2Q@mail.gmail.com>
-References: <CA+ZH+jH6VQcgFn8xRqwQVbxWQNiv5T0O-SL1w_nuWGyNpOPFxg@mail.gmail.com>
-	<20121011143900.76729da850dc325de3257107@llnl.gov>
+From: Animesh K Trivedi1 <ZRLATR-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
+Subject: Re: (R)DMA in userspace
+Date: Fri, 12 Oct 2012 10:54:35 +0200
+Message-ID: <OF8F225351.D64DFAF0-ONC1257A95.002D2340-C1257A95.0030F501@ch.ibm.com>
+References: <OF84B00CFA.7F1CDA02-ONC1257A94.00545627-C1257A94.0055881A@ch.ibm.com>	<CAL1RGDUOMz7Qf8bX7hZpJgARGepLQRwY25f6Q1utYBZ0taMs9A@mail.gmail.com> <CAJZOPZJiEj7rMjF1ouukCPAGCXaNBhHoG1-YuDfEikvM-LLrXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121011143900.76729da850dc325de3257107-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <CAJZOPZJiEj7rMjF1ouukCPAGCXaNBhHoG1-YuDfEikvM-LLrXg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This may have been a premature post.  Upgrading the HCA firmware to
-2.9.1000 seems to have fixed the problem.
+On x86 hardware manages the cache coherency. As far as I understood, DMA
+sync
+operations are no-ops on x86. But the confusion arose when I realised that
+there are
+no arch specific userlibs. So essentially as Roland pointed out, on a non
+cache
+coherent architecture userspace applications will break. This will happen
+for IB as
+well.
 
--JE
+Can PCIe root complex can read dirty data from CPU caches? I am seeing
+almost
+100% LLC misses (L3 on Nehalem, which are inclusive for L1, and L2) for
+memcpy on
+RDMA buffers after transmission. Depending upon your CPU, LLC miss penalty
+could
+be very high, and shadow performance gains.
 
-On Thu, Oct 11, 2012 at 2:39 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> On Thu, 11 Oct 2012 13:56:46 -0700
-> Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+Has anyone ever tried using RDMA on non cache-coherent systems? I think,
+cache
+line flushing is not a privileged instruction and can be called without
+going to kernel for
+memory-cache synchronization.
+
+Thought?
+
+Thanks,
+--
+Animesh
+
+Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote on 10/11/2012 11:04:02 PM:
 >
->> I'm upgrading a cluster to CentOS-6.2 running an OFED-1.5.4.1 IB
->> stack.  Every time a node tries to join the fabric, opensmd comes back
->> with this:
->>
->> Oct 11 12:09:42 777493 [41F7700] 0x01 -> state_mgr_light_sweep_start:
->> ERR 3315: Unknown remote side for node 0x0008f10500108bfa (Voltaire
->> 4036 # p3r17i1) port 15. Adding to light sweep sampling list
->> Oct 11 12:09:42 777532 [41F7700] 0x01 -> Directed Path Dump of 3 hop
->> path: Path = 0,1,23,5Oct 11 12:09:43 578014 [37F6700] 0x01 ->
->> log_send_error: ERR 5411: DR SMP Send completed with error
->> (IB_TIMEOUT) -- dropping
->>                         Method 0x1, Attr 0x15, TID 0x14a2
->> Oct 11 12:09:43 578050 [37F6700] 0x01 -> Received SMP on a 4 hop path:
->> Initial path = 0,1,23,5,15, Return path  = 0,0,0,0,0
->> Oct 11 12:09:43 578065 [37F6700] 0x01 -> sm_mad_ctrl_send_err_cb: ERR
->> 3113: MAD completed in error (IB_TIMEOUT): SubnGet(PortInfo), attr_mod
->> 0x0, TID 0x14a2
+> On Thu, Oct 11, 2012 at 10:44 PM, Roland Dreier
+> <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
 >
-> First off do the errors continue?  Or does OpenSM pick the nodes up on the next sweep?
+> > No one has really ever tried to deal with the issue of userspace RDMA
+on
+> > a cache-incoherent architecture.  Basically if you try the
+currentstack, the
+> > in-kernel users (IPoIB etc) should be OK but libibverbs etc. will
+> be completely broken.
 >
-> What does iblinkinfo -D 0,1,23,5 return?
+> I think the question might refer even to cache-coherent systems, e.g
+> in the kernel IB core and ULPs all buffers are dma mapped to/from the
+> device before/after they are touched by the CPU and vise versa, wheres
+> in user space, after the buffers are registered once, they are
+> repeatedly touched by the CPUs and provided to the HW for DMA, e.g all
+> user space buffers are treated like kernel DMA coherent ones.
 >
-> Also does smpquery portinfo -D 0,1,23,5,15  1 fail?  (Assuming that HCA is connected on port 1)
+> Or.
 >
-> If so, perhaps try "-t 1000" to the smpquery command to give the node more time to see if it is a timeout issue?
->
-> Ira
->
->>
->> These nodes work just fine on an older stack (CentOS-5.5,
->> OFED-1.5.3.1), and I've been running the same stack that I'm trying to
->> upgrade to (CentOS-6.2, OFED-1.5.4.1 with opensm 3.1.3.14) in
->> production for months on other clusters.  I've tried multiple versions
->> of opensm already (both old and new).  This cluster has slightly
->> different hardware (including the HCAs), but why isn't the SM able to
->> reach these nodes?
->>
->> ibv_devinfo (on the old stack) shows:
->> hca_id:    mlx4_0
->>     transport:            InfiniBand (0)
->>     fw_ver:                2.7.9294
->>     node_guid:            78e7:d103:0021:6984
->>     sys_image_guid:            78e7:d103:0021:6987
->>     vendor_id:            0x02c9
->>     vendor_part_id:            26438
->>     hw_ver:                0xB0
->>     board_id:            HP_0200000003
->>     phys_port_cnt:            2
->>         port:    1
->>             state:            PORT_ACTIVE (4)
->>             max_mtu:        2048 (4)
->>             active_mtu:        2048 (4)
->>             sm_lid:            10
->>             port_lid:        306
->>             port_lmc:        0x00
->>             link_layer:        IB
->>
->>         port:    2
->>             state:            PORT_DOWN (1)
->>             max_mtu:        2048 (4)
->>             active_mtu:        256 (1)
->>             sm_lid:            0
->>             port_lid:        0
->>             port_lmc:        0x00
->>             link_layer:        Ethernet
->>
->> Let me know and I can provide any information necessary to help debug.
->>
->> -JE
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-> --
-> Ira Weiny
-> Member of Technical Staff
-> Lawrence Livermore National Lab
-> 925-423-8008
-> weiny2-i2BcT+NCU+M@public.gmane.org
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
