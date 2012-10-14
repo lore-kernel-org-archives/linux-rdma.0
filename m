@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [Patch libibverbs 1/5] Add an error when the user specifies an invalid port
-Date: Sun, 14 Oct 2012 13:02:59 -0400
-Message-ID: <8f855d0237d6e25a8b161aa083a741dbd1a70c28.1350234101.git.dledford@redhat.com>
+Subject: [Patch libibverbs 3/5] Fix the compatibility wrapper on ppc
+Date: Sun, 14 Oct 2012 13:03:01 -0400
+Message-ID: <b0153c227428b8d779ac3fcabf3d1619ffbfd11b.1350234101.git.dledford@redhat.com>
 References: <cover.1350234101.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1350234101.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,33 +12,74 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The ppc arch packs the work request struct 1.0 in such a way that
+a straight memcpy won't work.  Instead, break the copy out into
+chunks whenever the sizes don't match for given portions of the
+struct.
+
+Found by built in gcc memcpy buffer overflow checks.
+
+Help on the right fix provided by Jakub Jelinek from the gcc
+team inside Red Hat.
+
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- examples/devinfo.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ src/compat-1_0.c |   42 ++++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 40 insertions(+), 2 deletions(-)
 
-diff --git a/examples/devinfo.c b/examples/devinfo.c
-index 7dc0463..b1a3b2e 100644
---- a/examples/devinfo.c
-+++ b/examples/devinfo.c
-@@ -218,10 +218,16 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 		goto cleanup;
- 	}
- 	if (ibv_query_device(ctx, &device_attr)) {
--		fprintf(stderr, "Failed to query device props");
-+		fprintf(stderr, "Failed to query device props\n");
- 		rc = 2;
- 		goto cleanup;
- 	}
-+	if (ib_port && ib_port > device_attr.phys_port_cnt) {
-+		fprintf(stderr, "Invalid port requested for device\n");
-+		/* rc = 3 is taken by failure to clean up */
-+		rc = 4;
-+		goto cleanup;
-+	}
+diff --git a/src/compat-1_0.c b/src/compat-1_0.c
+index fff6412..36884bb 100644
+--- a/src/compat-1_0.c
++++ b/src/compat-1_0.c
+@@ -353,8 +353,46 @@ static int post_send_wrapper_1_0(struct ibv_qp_1_0 *qp, struct ibv_send_wr_1_0 *
+ 		real_wr->wr_id = w->wr_id;
+ 		real_wr->next  = NULL;
  
- 	printf("hca_id:\t%s\n", ibv_get_device_name(ib_dev));
- 	printf("\ttransport:\t\t\t%s (%d)\n",
+-		memcpy(&real_wr->sg_list, &w->sg_list,
+-		       sizeof *w - offsetof(struct ibv_send_wr, sg_list));
++#define TEST_SIZE_2_POINT(f1, f2) \
++((offsetof(struct ibv_send_wr, f1) - offsetof(struct ibv_send_wr, f2)) \
++== offsetof(struct ibv_send_wr_1_0, f1) - offsetof(struct ibv_send_wr_1_0, f2))
++#define TEST_SIZE_TO_END(f1) \
++((sizeof(struct ibv_send_wr) - offsetof(struct ibv_send_wr, f1)) == \
++ (sizeof(struct ibv_send_wr_1_0) - offsetof(struct ibv_send_wr_1_0, f1)))
++
++		if (TEST_SIZE_TO_END (sg_list))
++			memcpy(&real_wr->sg_list, &w->sg_list, sizeof *real_wr
++			       - offsetof(struct ibv_send_wr, sg_list));
++		else if (TEST_SIZE_2_POINT (imm_data, sg_list) &&
++			 TEST_SIZE_TO_END (wr)) {
++			/* we have alignment up to wr, but padding between
++			 * imm_data and wr, and we know wr itself is the
++			 * same size */
++			memcpy(&real_wr->sg_list, &w->sg_list,
++			       offsetof(struct ibv_send_wr, imm_data) -
++			       offsetof(struct ibv_send_wr, sg_list) +
++			       sizeof real_wr->imm_data);
++			memcpy(&real_wr->wr, &w->wr, sizeof real_wr->wr);
++		} else {
++			real_wr->sg_list = w->sg_list;
++			real_wr->num_sge = w->num_sge;
++			real_wr->opcode = w->opcode;
++			real_wr->send_flags = w->send_flags;
++			real_wr->imm_data = w->imm_data;
++			if (TEST_SIZE_TO_END (wr))
++				memcpy(&real_wr->wr, &w->wr,
++				       sizeof real_wr->wr);
++			else {
++				real_wr->wr.atomic.remote_addr = 
++					w->wr.atomic.remote_addr;
++				real_wr->wr.atomic.compare_add = 
++					w->wr.atomic.compare_add;
++				real_wr->wr.atomic.swap = 
++					w->wr.atomic.swap;
++				real_wr->wr.atomic.rkey = 
++					w->wr.atomic.rkey;
++			}
++		}
+ 
+ 		if (is_ud)
+ 			real_wr->wr.ud.ah = w->wr.ud.ah->real_ah;
 -- 
 1.7.7.6
 
