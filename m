@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [Patch libibverbs 4/5] Don't print link phys state on iWARP
-Date: Sun, 14 Oct 2012 13:03:02 -0400
-Message-ID: <48368501962d0c62796e8d526bd5f680abc99049.1350234101.git.dledford@redhat.com>
+Subject: [Patch libibverbs 5/5] Don't try to send UD messages larger than MTU
+Date: Sun, 14 Oct 2012 13:03:03 -0400
+Message-ID: <63dd133c0290d70c664cb3cb55392830ac71a6a7.1350234101.git.dledford@redhat.com>
 References: <cover.1350234101.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1350234101.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,30 +12,41 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The physical link state on iWARP transports has no meaning, so
-don't print it out at all.
+The UD protocol doesn't support message sizes larger than the path
+MTU.  We don't go so far as to check path MTU, but we do check port
+MTU.  This prevents failed runs of the pingpong_ud program with large
+MTUs.
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- examples/devinfo.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ examples/ud_pingpong.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/examples/devinfo.c b/examples/devinfo.c
-index d6e9218..ff078e4 100644
---- a/examples/devinfo.c
-+++ b/examples/devinfo.c
-@@ -327,8 +327,9 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 			       width_str(port_attr.active_width), port_attr.active_width);
- 			printf("\t\t\tactive_speed:\t\t%s (%d)\n",
- 			       speed_str(port_attr.active_speed), port_attr.active_speed);
--			printf("\t\t\tphys_state:\t\t%s (%d)\n",
--			       port_phy_state_str(port_attr.phys_state), port_attr.phys_state);
-+			if (ib_dev->transport_type == IBV_TRANSPORT_IB)
-+				printf("\t\t\tphys_state:\t\t%s (%d)\n",
-+				       port_phy_state_str(port_attr.phys_state), port_attr.phys_state);
+diff --git a/examples/ud_pingpong.c b/examples/ud_pingpong.c
+index 71b152d..9a1ae13 100644
+--- a/examples/ud_pingpong.c
++++ b/examples/ud_pingpong.c
+@@ -323,6 +323,20 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+ 			ibv_get_device_name(ib_dev));
+ 		return NULL;
+ 	}
++	{
++		struct ibv_port_attr port_info = { 0 };
++		int mtu;
++
++		if (ibv_query_port(ctx->context, port, &port_info)) {
++			fprintf(stderr, "Unable to query port info for port %d\n", port);
++			return NULL;
++		}
++		mtu = 1 << (port_info.active_mtu + 7);
++		if (size > mtu) {
++			fprintf(stderr, "Requested size larger than port MTU (%d)\n", mtu);
++			return NULL;
++		}
++	}
  
- 			if (print_all_port_gids(ctx, port, port_attr.gid_tbl_len))
- 				goto cleanup;
+ 	if (use_event) {
+ 		ctx->channel = ibv_create_comp_channel(ctx->context);
 -- 
 1.7.7.6
 
