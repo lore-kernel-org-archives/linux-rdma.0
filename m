@@ -1,40 +1,29 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [Patch libibverbs 2/5] Don't allow port == 0 as an option
-Date: Sun, 14 Oct 2012 13:03:00 -0400
-Message-ID: <c04e55cf1596cd2ac81de4d58b1e8f8b36b52bca.1350234101.git.dledford@redhat.com>
-References: <cover.1350234101.git.dledford@redhat.com>
+Subject: [Patch libibverbs 0/5] Minor updates
+Date: Sun, 14 Oct 2012 13:02:58 -0400
+Message-ID: <cover.1350234101.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1350234101.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.1350234101.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-References: <cover.1350234101.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We special case port == 0 to mean all ports, and it's the default,
-so if a user passes in 0, they likely meant 1 instead.  Throw an
-error because they probably didn't mean to specify the default
-behavior of scan all ports.  Path of least surprise and all that.
+This is a short series of fixes for minor issues.  The most important
+being a memcpy buffer overrun on ppc arch for the compatibility wrapper.
+The rest are usability fixes for the example programs.
 
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- examples/devinfo.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Doug Ledford (5):
+  Add an error when the user specifies an invalid port
+  Don't allow port == 0 as an option
+  Fix the compatibility wrapper on ppc
+  Don't print link phys state on iWARP
+  Don't try to send UD messages larger than MTU
 
-diff --git a/examples/devinfo.c b/examples/devinfo.c
-index b1a3b2e..d6e9218 100644
---- a/examples/devinfo.c
-+++ b/examples/devinfo.c
-@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
- 
- 		case 'i':
- 			ib_port = strtol(optarg, NULL, 0);
--			if (ib_port < 0) {
-+			if (ib_port <= 0) {
- 				usage(argv[0]);
- 				return 1;
- 			}
+ examples/devinfo.c     |   15 +++++++++++----
+ examples/ud_pingpong.c |   14 ++++++++++++++
+ src/compat-1_0.c       |   42 ++++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 65 insertions(+), 6 deletions(-)
+
 -- 
 1.7.7.6
 
