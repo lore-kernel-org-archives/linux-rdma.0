@@ -1,62 +1,107 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: Is there a way to transfer a rdma connection between userspace
- processes?
-Date: Mon, 15 Oct 2012 11:07:22 +0200
-Message-ID: <1350292042.2750.11.camel@dworkin.quest-ce.net>
-References: <507BC8EE.2020908@samba.org>
+From: Klaus Wacker <Klaus.Wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+Subject: Re: RDMA Relaxed Ordering on Linux
+Date: Mon, 15 Oct 2012 12:59:47 +0200
+Message-ID: <OFA1302BD4.32B4974B-ONC1257A98.003C3F2C-C1257A98.003C6ADA@de.ibm.com>
+References: <OF926F7A9B.81FB4B34-ONC1257A91.003EF9D7-C1257A91.00413F9B@de.ibm.com> <CAL1RGDXMicbZcWbpoSJkPnCLX-tN4bfarjeYGxyKHn1JnwXFuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <507BC8EE.2020908-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+In-Reply-To: <CAL1RGDXMicbZcWbpoSJkPnCLX-tN4bfarjeYGxyKHn1JnwXFuQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Stefan (metze) Metzmacher" <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Le lundi 15 octobre 2012 =C3=A0 10:27 +0200, Stefan (metze) Metzmacher =
-a
-=C3=A9crit :
-> Hi,
->=20
-> I'm currently researching how to implement SMBDirect [MS-SMBD]
-> together with the multi channel feature of SMB 3.0 in Samba.
->=20
-> As Samba currently uses one process per tcp connection
-> and maintains a lot of in memory state within the process
-> (e.g. for the SMB_VFS modules) it would require a lot of work
-> to change Samba to coordinate two (or more) processes for one logical
-> multi channel connection.
->=20
-> My current plan tries to pass the socket fd of new connections
-> (which join an existing multi channel session) via fd-passing to
-> the existing process.
->=20
-> Now I'm wondering if this would also be possible with
-> a rdma connection (struct rdma_cm_i ).
->=20
+Hello,
+now we opted for a solution without being dependent on RO altogether.
+Thank you for your help.
 
-RDMA / verbs ressources are tied to a process (especially Memory
-Registration), but it's ending up in the HCA, which is probably unaware
-of processes.
+Kind regards
+Klaus Wacker
+IBM Systems &Technology Group, Systems Software Development
+SW Linux on System z Dev & Service
+Phone:  +49-7031-16-3779   IBM Deutschland  E-Mail:  kdwacker-tA70FqPdS9Zhl2p70BpVqQ@public.gmane.org=
+m
+Schoenaicher Str. 220   71032 Boeblingen   Germany
+IBM Deutschland Research & Development GmbH / Vorsitzende des
+Aufsichtsrats: Martina Koederitz
+Gesch=E4ftsf=FChrung: Dirk Wittkopp
+Sitz der Gesellschaft: B=F6blingen / Registergericht: Amtsgericht Stutt=
+gart,
+HRB 243294
 
-Additionally, an RDMA_CM connection is not identified by a FD, so this
-kind of Unix trick (FD passing through Unix socket: SCM_RIGHTS) is not
-going to work.
 
-=46orking might already be a challenge for a RDMA/verbs application, so=
- I
-don't think that sharing/moving an RDMA_CM connection across different
-processes is supported.
+|------------>
+| From:      |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>                              =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+|------------>
+| To:        |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |Klaus Wacker/Germany/IBM@IBMDE,                                     =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+|------------>
+| Date:      |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |08/10/2012 18:06                                                    =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+|------------>
+| Subject:   |
+|------------>
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
+  |Re: RDMA Relaxed Ordering on Linux                                  =
+                                                                       =
+       |
+  >--------------------------------------------------------------------=
+-----------------------------------------------------------------------=
+-------|
 
-But other people on this list (especially Roland Dreier and Sean Hefty)
-could find a solution.
 
-Regards.
 
---=20
-Yann Droneaud
-OPTEYA
+
+
+On Mon, Oct 8, 2012 at 4:52 AM, Klaus Wacker <Klaus.Wacker-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+wrote:
+> we are doing a Infiniband/RoCE project on Linux/x86_64 based on
+> Mellanox/RoCE cards. Our data exchange is heavily build on RDMA. For =
+some
+> reasons we want to suppress the Relaxed Ordering (RO) of RDMA. This w=
+ould
+> serialize the RDMA requests on the server in the strict order as issu=
+ed
+on
+> the client.
+
+Does your x86 system really enable PCI relaxed ordering in the first pl=
+ace?
+
+ - R.
+
+
 
 
 --
