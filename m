@@ -1,85 +1,113 @@
-From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] infiniband-diags/src/saquery.c: New option to saquery InformInfoRecord (IIR)
-Date: Tue, 16 Oct 2012 11:45:25 +0200
-Message-ID: <1350380725-31221-1-git-send-email-danby@dev.mellanox.co.il>
-References: <danby@dev.mellanox.co.il>
+From: "Stefan (metze) Metzmacher" <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Subject: Re: Is there a way to transfer a rdma connection between userspace
+ processes?
+Date: Tue, 16 Oct 2012 16:25:00 +0200
+Message-ID: <507D6E3C.2050405@samba.org>
+References: <507BC8EE.2020908@samba.org> <1350292042.2750.11.camel@dworkin.quest-ce.net> <507C2C6E.7010507@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig7D1072511A1C14034085597F"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <507C2C6E.7010507-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig7D1072511A1C14034085597F
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Add the option to display the InformInfoRecord by SubscriberGid
+@Yann and Steve: thanks for the feedback!
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/saquery.c |   30 ++++++++++++++++++++++++++----
- 1 files changed, 26 insertions(+), 4 deletions(-)
+>>> I'm currently researching how to implement SMBDirect [MS-SMBD]
+>>> together with the multi channel feature of SMB 3.0 in Samba.
+>>>
+>>> As Samba currently uses one process per tcp connection
+>>> and maintains a lot of in memory state within the process
+>>> (e.g. for the SMB_VFS modules) it would require a lot of work
+>>> to change Samba to coordinate two (or more) processes for one logical=
 
-diff --git a/src/saquery.c b/src/saquery.c
-index 60c78ed..f13def9 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -841,6 +841,16 @@ static uint16_t get_lid(struct sa_handle * h, const char *name)
- 	return rc_lid;
- }
- 
-+static int parse_iir_subscriber_gid(char *str, ib_inform_info_record_t *ir)
-+{
-+       int rc = inet_pton(AF_INET6,str,&(ir->subscriber_gid.raw));
-+       if(rc < 1){
-+          fprintf(stderr, "Failed to find InformInfoRecord SubscriberGID for \"%s\"\n",str);
-+          exit(EINVAL);
-+       }
-+       return rc;
-+}
-+
- static int parse_lid_and_ports(struct sa_handle * h,
- 			       char *str, int *lid, int *port1, int *port2)
- {
-@@ -1140,12 +1150,24 @@ static int query_service_records(const struct query_cmd *q, struct sa_handle * h
- 					dump_service_record);
- }
- 
--static int query_informinfo_records(const struct query_cmd *q,
-+static int query_inform_info_records(const struct query_cmd *q,
- 				    struct sa_handle * h, struct query_params *p,
- 				    int argc, char *argv[])
- {
--	return get_and_dump_all_records(h, IB_SA_ATTR_INFORMINFORECORD,
--					dump_inform_info_record);
-+       int rc = 0;
-+       ib_inform_info_record_t ir;
-+       ib_net64_t comp_mask = 0;
-+       memset(&ir, 0, sizeof(ir));
-+
-+       if (argc > 0) {
-+           comp_mask = IB_IIR_COMPMASK_SUBSCRIBERGID;
-+           if(rc = parse_iir_subscriber_gid(argv[0], &ir) < 1)
-+                 return rc;
-+       }
-+
-+       return get_and_dump_any_records(h, IB_SA_ATTR_INFORMINFORECORD, 0, comp_mask,
-+				       &ir, sizeof(ir), dump_inform_info_record);
-+
- }
- 
- static int query_link_records(const struct query_cmd *q, struct sa_handle * h,
-@@ -1305,7 +1327,7 @@ static const struct query_cmd query_cmds[] = {
- 	{"VLArbitrationTableRecord", "VLAR", IB_SA_ATTR_VLARBTABLERECORD,
- 	 "[[lid]/[port]/[block]]", query_vlarb_records},
- 	{"InformInfoRecord", "IIR", IB_SA_ATTR_INFORMINFORECORD,
--	 NULL, query_informinfo_records},
-+	 "[subscriber_gid]", query_inform_info_records},
- 	{"LinkRecord", "LR", IB_SA_ATTR_LINKRECORD,
- 	 "[[from_lid]/[from_port]] [[to_lid]/[to_port]]", query_link_records},
- 	{"ServiceRecord", "SR", IB_SA_ATTR_SERVICERECORD,
--- 
-1.7.1
+>>> multi channel connection.
+>>>
+>>> My current plan tries to pass the socket fd of new connections
+>>> (which join an existing multi channel session) via fd-passing to
+>>> the existing process.
+>>>
+>>> Now I'm wondering if this would also be possible with
+>>> a rdma connection (struct rdma_cm_i ).
+>>>
+>> RDMA / verbs ressources are tied to a process (especially Memory
+>> Registration), but it's ending up in the HCA, which is probably unawar=
+e
+>> of processes.
+>>
+>> Additionally, an RDMA_CM connection is not identified by a FD, so this=
 
+>> kind of Unix trick (FD passing through Unix socket: SCM_RIGHTS) is not=
+
+>> going to work.
+>>
+>> Forking might already be a challenge for a RDMA/verbs application, so =
+I
+>> don't think that sharing/moving an RDMA_CM connection across different=
+
+>> processes is supported.
+>>
+>> But other people on this list (especially Roland Dreier and Sean Hefty=
+)
+>> could find a solution.
+>>
+>> Regards.
+>>
+>=20
+> fork() support like you need is not there in Linux RDMA verbs. Another
+> alternative is to fork() before you setup the RDMA connection.  IE if a=
+
+> regular TCP socket is first used to negotiate RDMA mode, then maybe you=
+
+> could fork() after negotiation but before setting up the RDMA connectio=
+n
+> and other resources?
+
+For client connections that would work, but it can't work for a server
+that uses fork() after listen().
+
+Would it be possible to extend the librdmacm and libibverbs to:
+- handle fork() after getting RDMA_CM_EVENT_CONNECT_REQUEST
+  which means there have to be some functions to destroy contexts like
+  struct rdma_cm_id, but without affecting the real connection.
+  Similar to close() on an FD that is used shared between two processes.
+- export/import an interprocess token attached to the hierarchy of object=
+s
+  similar to gss_export_sec_context/gss_import_sec_context.
+  Or a function which exports the contexts into a FD (of a pipe),
+  which could also transfer open FDs to the other end.
+  Maybe this could pass the information through a rdma/ibverb event chann=
+el?
+
+Are there any other possible solutions?
+
+metze
+
+
+--------------enig7D1072511A1C14034085597F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iEYEARECAAYFAlB9bkAACgkQm70gjA5TCD/uwQCfaUk8X1KmHPP6srpgp1pIOF4A
+9nUAnRu/5ElbVqSdalDJ8exxauzYEsk/
+=kDFp
+-----END PGP SIGNATURE-----
+
+--------------enig7D1072511A1C14034085597F--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
