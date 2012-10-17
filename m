@@ -1,184 +1,97 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.7 1/3] IB/mlx4: Fix QP1 pkey processing in the Primary Physical Function (PPF)
-Date: Wed, 17 Oct 2012 18:42:58 +0200
-Message-ID: <1350492181-13471-2-git-send-email-ogerlitz@mellanox.com>
-References: <1350492181-13471-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-3.7 0/4] mlx4 SRIOV fixes, 64B CQE/EQE patches re-spin
+Date: Wed, 17 Oct 2012 18:42:57 +0200
+Message-ID: <1350492181-13471-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1350492181-13471-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Hi Roland, everyone
 
-In the MAD paravirtualization code, one of the checks performed when forwarding
-QP1 (GSI) packets from wire to slave was a pkey check: The pkey received in the
-MAD must be present in the guest's paravirtualized pkey table, and at least one
-of the (packet pkey, guest pkey) must be a full-membership pkey.
+This series includes fixes for two bugs in the SRIOV code which were discovered in
+production environment, lets get them upstream too...
 
-However, if both Dom0 and the VFs have only limited membership in the default
-pkey, then packets sent by full-member remote hosts arrive at Dom0, but are not
-passed on to the VFs with the current pkey1 check.
+Also, a respin of the 64B CQE/EQE patches (kernel and user-space), over the V1 posting
+you were asking for max flexibility - e.g expose/force update of guests only if needed
+and similarily for libmlx4, I think I have this now, would love feedback though.
 
-Fix is as follows:
+I tested this with both modified/non-modified mlx4 guest drivers, and with
+both modified/non-modified libmlx4. The only pain point I was hitting, 
+if non modified libmlx4 on systems with CX3 and modified kernel, on
+the V1 discussion Roland -- you made a comment we might need a module param 
+here to provide admins a way to let systems with old libmlx4 to work
+with fresh kernels?!
 
-1. Don't care if pkey received over wire is full or not. If it successfully passed
-   HW checks on the real QP1, then simply pass it to guest regardless of whether
-   the guest has full or limited membership in its pkey table.
+changes from previous versions to the kernel 64B CQE/EQE patch:
 
-2. If the guest (including paravirtualized Dom0) has both full and limited pkey
-   forms in its table, preferentially pass the paravirtualized pkey index of
-   the full pkey form in the tunnel header.
+V0 pointer
+	mlx4 http://marc.info/?l=linux-rdma&m=131805712306677&w=2
+	libmlx4 http://marc.info/?l=linux-rdma&m=131805712306678&w=2
 
-3. In the multicast join flow (mlx4/mcg.c), use the index for the default pkey
-   (wherever it is located) in replies generated from within the mcg module
-   (previously, pkey index 0 was used in all cases).
+V1 pointer 
+	mlx4 http://marc.info/?l=linux-rdma&m=133787002203027&w=2
+	libmlx4 -- didn't have V1
 
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/mad.c |   89 ++++++++++++++++++--------------------
- drivers/infiniband/hw/mlx4/mcg.c |    3 +-
- 2 files changed, 44 insertions(+), 48 deletions(-)
+V1 changes from V0:
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 21a7941..3afb563 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -409,38 +409,45 @@ int mlx4_ib_find_real_gid(struct ib_device *ibdev, u8 port, __be64 guid)
- }
- 
- 
--static int get_pkey_phys_indices(struct mlx4_ib_dev *ibdev, u8 port, u8 ph_pkey_ix,
--				 u8 *full_pk_ix, u8 *partial_pk_ix,
--				 int *is_full_member)
-+static int find_slave_port_pkey_ix(struct mlx4_ib_dev *dev, int slave,
-+				   u8 port, u16 pkey, u16 *ix)
- {
--	u16 search_pkey;
--	int fm;
--	int err = 0;
--	u16 pk;
-+	int i, ret;
-+	u8 unassigned_pkey_ix, pkey_ix, partial_ix = 0xFF;
-+	u16 slot_pkey;
- 
--	err = ib_get_cached_pkey(&ibdev->ib_dev, port, ph_pkey_ix, &search_pkey);
--	if (err)
--		return err;
-+	if (slave == mlx4_master_func_num(dev->dev))
-+		return ib_find_cached_pkey(&dev->ib_dev, port, pkey, ix);
- 
--	fm = (search_pkey & 0x8000) ? 1 : 0;
--	if (fm) {
--		*full_pk_ix = ph_pkey_ix;
--		search_pkey &= 0x7FFF;
--	} else {
--		*partial_pk_ix = ph_pkey_ix;
--		search_pkey |= 0x8000;
--	}
-+	unassigned_pkey_ix = dev->dev->phys_caps.pkey_phys_table_len[port] - 1;
- 
--	if (ib_find_exact_cached_pkey(&ibdev->ib_dev, port, search_pkey, &pk))
--		pk = 0xFFFF;
-+	for (i = 0; i < dev->dev->caps.pkey_table_len[port]; i++) {
-+		if (dev->pkeys.virt2phys_pkey[slave][port - 1][i] == unassigned_pkey_ix)
-+			continue;
- 
--	if (fm)
--		*partial_pk_ix = (pk & 0xFF);
--	else
--		*full_pk_ix = (pk & 0xFF);
-+		pkey_ix = dev->pkeys.virt2phys_pkey[slave][port - 1][i];
- 
--	*is_full_member = fm;
--	return err;
-+		ret = ib_get_cached_pkey(&dev->ib_dev, port, pkey_ix, &slot_pkey);
-+		if (ret)
-+			continue;
-+		if ((slot_pkey & 0x7FFF) == (pkey & 0x7FFF)) {
-+			if (slot_pkey & 0x8000) {
-+				*ix = (u16) pkey_ix;
-+				return 0;
-+			} else {
-+				/* take first partial pkey index found */
-+				if (partial_ix == 0xFF)
-+					partial_ix = pkey_ix;
-+			}
-+		}
-+	}
-+
-+	if (partial_ix < 0xFF) {
-+		*ix = (u16) partial_ix;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
- }
- 
- int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
-@@ -458,10 +465,8 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
- 	unsigned tun_tx_ix = 0;
- 	int dqpn;
- 	int ret = 0;
--	int i;
--	int is_full_member = 0;
- 	u16 tun_pkey_ix;
--	u8 ph_pkey_ix, full_pk_ix = 0, partial_pk_ix = 0;
-+	u16 cached_pkey;
- 
- 	if (dest_qpt > IB_QPT_GSI)
- 		return -EINVAL;
-@@ -481,27 +486,17 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
- 	else
- 		tun_qp = &tun_ctx->qp[1];
- 
--	/* compute pkey index for slave */
--	/* get physical pkey -- virtualized Dom0 pkey to phys*/
-+	/* compute pkey index to put in tunnel header for slave */
- 	if (dest_qpt) {
--		ph_pkey_ix =
--			dev->pkeys.virt2phys_pkey[mlx4_master_func_num(dev->dev)][port - 1][wc->pkey_index];
--
--		/* now, translate this to the slave pkey index */
--		ret = get_pkey_phys_indices(dev, port, ph_pkey_ix, &full_pk_ix,
--					    &partial_pk_ix, &is_full_member);
-+		u16 pkey_ix;
-+		ret = ib_get_cached_pkey(&dev->ib_dev, port, wc->pkey_index, &cached_pkey);
- 		if (ret)
- 			return -EINVAL;
- 
--		for (i = 0; i < dev->dev->caps.pkey_table_len[port]; i++) {
--			if ((dev->pkeys.virt2phys_pkey[slave][port - 1][i] == full_pk_ix) ||
--			    (is_full_member &&
--			     (dev->pkeys.virt2phys_pkey[slave][port - 1][i] == partial_pk_ix)))
--				break;
--		}
--		if (i == dev->dev->caps.pkey_table_len[port])
-+		ret = find_slave_port_pkey_ix(dev, slave, port, cached_pkey, &pkey_ix);
-+		if (ret)
- 			return -EINVAL;
--		tun_pkey_ix = i;
-+		tun_pkey_ix = pkey_ix;
- 	} else
- 		tun_pkey_ix = dev->pkeys.virt2phys_pkey[slave][port - 1][0];
- 
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index 3c3b54c..44ff480 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -233,7 +233,8 @@ static int send_mad_to_slave(int slave, struct mlx4_ib_demux_ctx *ctx,
- 
- 	ib_query_ah(dev->sm_ah[ctx->port - 1], &ah_attr);
- 
--	wc.pkey_index = 0;
-+	if (ib_find_cached_pkey(&dev->ib_dev, ctx->port, IB_DEFAULT_PKEY_FULL, &wc.pkey_index))
-+		return -EINVAL;
- 	wc.sl = 0;
- 	wc.dlid_path_bits = 0;
- 	wc.port_num = ctx->port;
--- 
-1.7.1
+ - unified the 64B CQE and EQE patches to one patch which takes an approach of 
+   apply both or none, under the thinking that 99% FW will support both or none.
+ - bump the ABI version towards user-space/libmlx4 only when needed and not always
+ - added support for SRIOV, using the PF_CONTEXT_BEHAVIOUR_MASK mechanism
+
+V2 changes:  
+ - rebased to kernel 3.6+ (e.g pre 3.7-rc1) that includes the SRIOV/IB patches
+ - revised/fixed the SRIOV flow 
+ - revises/fixed the flow towards user-space
+
+
+Eli Cohen (1):
+  IB/mlx4: Synchronize cleanup of MCGs in mcg paravirtualization
+
+Jack Morgenstein (1):
+  IB/mlx4: Fix QP1 pkey processing in the Primary Physical Function
+    (PPF)
+
+Or Gerlitz (1):
+  {NET,IB}/mlx4: 64 byte CQE/EQE support
+
+ drivers/infiniband/hw/mlx4/cq.c                |   34 +++++++--
+ drivers/infiniband/hw/mlx4/mad.c               |   89 +++++++++++-------------
+ drivers/infiniband/hw/mlx4/main.c              |   27 ++++++--
+ drivers/infiniband/hw/mlx4/mcg.c               |   18 +++--
+ drivers/infiniband/hw/mlx4/mlx4_ib.h           |    1 +
+ drivers/infiniband/hw/mlx4/user.h              |   12 +++-
+ drivers/net/ethernet/mellanox/mlx4/cmd.c       |    2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_cq.c     |    2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c |    1 +
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c     |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c     |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/eq.c        |   26 +++++---
+ drivers/net/ethernet/mellanox/mlx4/fw.c        |   30 ++++++++-
+ drivers/net/ethernet/mellanox/mlx4/fw.h        |    1 +
+ drivers/net/ethernet/mellanox/mlx4/main.c      |   24 ++++++-
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h   |    1 +
+ include/linux/mlx4/device.h                    |   21 ++++++
+ 17 files changed, 213 insertions(+), 86 deletions(-)
+
+changes from the previous version to the libmlx4 patch
+ - added storing per device ABI
+
+ - added handling ABI version 4 and also older ABI versions w.r.t to 
+   struct mlx4_alloc_ucontext_resp_v3
+
+Or Gerlitz (1):
+  Add support for 64B CQE
+
+ src/cq.c       |   39 ++++++++++++++++++---------------------
+ src/mlx4-abi.h |   17 ++++++++++++++++-
+ src/mlx4.c     |   39 +++++++++++++++++++++++++++++----------
+ src/mlx4.h     |   25 ++++++++++++++++++++-----
+ src/verbs.c    |    6 ++++--
+ 5 files changed, 87 insertions(+), 39 deletions(-)
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
