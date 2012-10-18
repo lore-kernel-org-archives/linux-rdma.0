@@ -1,20 +1,43 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-3.7 1/3] IB/mlx4: Fix QP1 pkey processing in the
- Primary Physical Function (PPF)
-Date: Thu, 18 Oct 2012 10:33:53 -0700
-Message-ID: <CAL1RGDX2zaoWXK+Ep2LwesWt1zVap=_KtVkHEOB8j+JwpN-9Mw@mail.gmail.com>
-References: <1350492181-13471-1-git-send-email-ogerlitz@mellanox.com> <1350492181-13471-2-git-send-email-ogerlitz@mellanox.com>
+From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: IBV_WR_SEND_WITH_IMM failure
+Date: Thu, 18 Oct 2012 20:45:46 +0200
+Message-ID: <CAMQe6Ks1o9gAvK5d8X7jF=XOb9ZfstmC8UCPQ6PaRCiEHt-VyA@mail.gmail.com>
+References: <CAHBb3isJ1CKSUSJPqCTckunGyBjWJZO6rxHeHHjK1ZE9rtXL6w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1350492181-13471-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAHBb3isJ1CKSUSJPqCTckunGyBjWJZO6rxHeHHjK1ZE9rtXL6w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: =?ISO-8859-1?Q?Xavier_Gu=E9rin?= <guerinx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied
+Hi Xavier.
+
+On Tue, Oct 16, 2012 at 8:13 PM, Xavier Gu=E9rin <guerinx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wr=
+ote:
+> Hello list,
+>
+> I am having a puzzling error with IBV_WR_SEND_WITH_IMM. Polling fails
+> with IBV_WC_RETRY_EXC_ERR when I use buffer bigger that 1KB.
+> Send/Receive buffers are of a larger size and properly registered.
+This completion status means that the remote QP didn't send any ack/nac=
+k.
+If this is your first message, then this means that the connection was
+established in the wrong way. If this isn't the first message, the
+remote QP stopped being available (QP was destroyed/moved to reset or
+error state or the remote application completely ended).
+
+>
+> Incidentally, it fails when exceeding the MTU size of my device, a
+> Connect-X 3 VPI configured as 10Gb/s RoCE.
+What happens if you configures the QPs MTU to be 1KB in both sides?
+
+
+Dotan
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
