@@ -1,58 +1,30 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Is there a way to transfer a rdma connection between userspace
- processes?
-Date: Wed, 17 Oct 2012 19:01:20 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346AAE755@ORSMSX101.amr.corp.intel.com>
-References: <507BC8EE.2020908@samba.org>
- <1350292042.2750.11.camel@dworkin.quest-ce.net>
- <507C2C6E.7010507@opengridcomputing.com> <507D6E3C.2050405@samba.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [Patch] ib/mlx4: Fix build error on platforms where UL is not 64bit
+Date: Thu, 18 Oct 2012 10:33:41 -0700
+Message-ID: <CAL1RGDVuOK67Ko7zJGbdTDfzjjqOu5L5xy-etxNcvww3izhrbw@mail.gmail.com>
+References: <6517a144c4ab826f66fcde6ac05cfd17d641811c.1350444206.git.dledford@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <507D6E3C.2050405-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <6517a144c4ab826f66fcde6ac05cfd17d641811c.1350444206.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Stefan (metze) Metzmacher" <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGb3IgY2xpZW50IGNvbm5lY3Rpb25zIHRoYXQgd291bGQgd29yaywgYnV0IGl0IGNhbid0IHdv
-cmsgZm9yIGEgc2VydmVyDQo+IHRoYXQgdXNlcyBmb3JrKCkgYWZ0ZXIgbGlzdGVuKCkuDQo+IA0K
-PiBXb3VsZCBpdCBiZSBwb3NzaWJsZSB0byBleHRlbmQgdGhlIGxpYnJkbWFjbSBhbmQgbGliaWJ2
-ZXJicyB0bzoNCj4gLSBoYW5kbGUgZm9yaygpIGFmdGVyIGdldHRpbmcgUkRNQV9DTV9FVkVOVF9D
-T05ORUNUX1JFUVVFU1QNCj4gICB3aGljaCBtZWFucyB0aGVyZSBoYXZlIHRvIGJlIHNvbWUgZnVu
-Y3Rpb25zIHRvIGRlc3Ryb3kgY29udGV4dHMgbGlrZQ0KPiAgIHN0cnVjdCByZG1hX2NtX2lkLCBi
-dXQgd2l0aG91dCBhZmZlY3RpbmcgdGhlIHJlYWwgY29ubmVjdGlvbi4NCj4gICBTaW1pbGFyIHRv
-IGNsb3NlKCkgb24gYW4gRkQgdGhhdCBpcyB1c2VkIHNoYXJlZCBiZXR3ZWVuIHR3byBwcm9jZXNz
-ZXMuDQo+IC0gZXhwb3J0L2ltcG9ydCBhbiBpbnRlcnByb2Nlc3MgdG9rZW4gYXR0YWNoZWQgdG8g
-dGhlIGhpZXJhcmNoeSBvZiBvYmplY3RzDQo+ICAgc2ltaWxhciB0byBnc3NfZXhwb3J0X3NlY19j
-b250ZXh0L2dzc19pbXBvcnRfc2VjX2NvbnRleHQuDQo+ICAgT3IgYSBmdW5jdGlvbiB3aGljaCBl
-eHBvcnRzIHRoZSBjb250ZXh0cyBpbnRvIGEgRkQgKG9mIGEgcGlwZSksDQo+ICAgd2hpY2ggY291
-bGQgYWxzbyB0cmFuc2ZlciBvcGVuIEZEcyB0byB0aGUgb3RoZXIgZW5kLg0KPiAgIE1heWJlIHRo
-aXMgY291bGQgcGFzcyB0aGUgaW5mb3JtYXRpb24gdGhyb3VnaCBhIHJkbWEvaWJ2ZXJiIGV2ZW50
-IGNoYW5uZWw/DQo+IA0KPiBBcmUgdGhlcmUgYW55IG90aGVyIHBvc3NpYmxlIHNvbHV0aW9ucz8N
-Cg0KSXQgd291bGQgYmUgZ3JlYXQgaWYgYW4gZW50aXJlIFJETUEgY29ubmVjdGlvbiBjb3VsZCBi
-ZSByZWZlcnJlZCB0byBieSBhbiBmZC4gIFRvZGF5IHRoYXQncyBub3QgdGhlIGNhc2UuICBEb2lu
-ZyB0aGlzIHJlcXVpcmVzIGFuIGFic3RyYWN0aW9uIGFib3ZlIHZlcmJzLiAgUnNvY2tldHMgcHJv
-dmlkZXMgYSBzaW1pbGFyIGFic3RyYWN0aW9uLCBidXQgaXQgZG9lc24ndCBhY3R1YWxseSByZXR1
-cm4gYW4gZmQuDQoNClJzb2NrZXRzIGRvZXMgc3VwcG9ydCBmb3JrKCkgdG8gc29tZSBkZWdyZWUu
-ICBJdCBkb2VzIHRoaXMgYnkgZXN0YWJsaXNoaW5nIGEgVENQIGNvbm5lY3Rpb24uICBUaGUgUkRN
-QSBjb25uZWN0aW9uIGlzIG5vdCBhY3R1YWxseSBzZXR1cCB1bnRpbCB0aGUgZmlyc3QgZGF0YSB0
-cmFuc2ZlciBvY2N1cnMuICBUaGlzIGhhbmRsZXMgdGhlIGNhc2Ugd2hlcmUgYSBzZXJ2ZXIgY2Fs
-bHMgZm9yaygpIGFmdGVyIGxpc3RlbigpLiAgSXQgd29ya3Mgd2l0aCB0aGUgYXBwcyB0aGF0IEkn
-dmUgdGVzdGVkLCBidXQgc3RpbGwgaW1wb3NlcyBzb21lIHJlc3RyaWN0aW9ucyBvbiBob3cgZm9y
-aygpIGlzIHVzZWQuDQoNCkkgaGl0IGludG8gb3RoZXIgaXNzdWVzIGJlc2lkZXMgZm9yaygpIHRy
-eWluZyB0byBzdXBwb3J0IGV4aXN0aW5nIHNvY2tldCBhcHBsaWNhdGlvbnMuICBXaXRob3V0IGhh
-dmluZyBhbiBmZCwgb3RoZXIgY2FsbHMgcmVxdWlyZSB3b3JraW5nIGFyb3VuZC4gIFRoaXMgaW5j
-bHVkZWQgZHVwMigpLCBzZW5kZmlsZSgpLCBhbmQgZnN0YXQoKSwgYnV0IEknbSBzdXJlIHRoZXJl
-IGFyZSBtYW55IG90aGVycy4NCg0KSXQgd291bGQgYmUgbmljZSBpZiB0aGVyZSB3ZXJlIGEgd2F5
-IHRvIGFzc29jaWF0ZSBhbiBSRE1BIGNvbm5lY3Rpb24gd2l0aCBhbiBmZCBhbmQgdW5kZXIgaWRl
-YWwgY29uZGl0aW9ucyBhbGxvdyBkYXRhIHRyYW5zZmVycyB0byBvY2N1ciB3aXRoaW4gdGhlIHVz
-ZXJzcGFjZSBjb250ZXh0LiAgQnV0IGFsbG93IHRoZSBjb21tdW5pY2F0aW9uIHRvIG1pZ3JhdGUg
-dG8gdGhlIGtlcm5lbCBpZiBjZXJ0YWluIGNhbGxzIGFyZSBpbnZva2VkLiAgVGhpcyB3b3VsZCBw
-cm92aWRlIHZlcnkgZ29vZCBwZXJmb3JtYW5jZSB1bmRlciBtb3N0IGNvbmRpdGlvbnMsIHlldCBz
-dXBwb3J0IGxlZ2FjeSBhcHBzLg0KDQotIFNlYW4NCg==
+> -               return  (__force __be64) ((u64) 0xFFFFFFFFFFFFFFFFUL);
+> +               return  (__force __be64) ((u64) 0xFFFFFFFFFFFFFFFFULL);
+
+Thanks, applied, although I tweaked the expression
+
+    ((u64) 0xFFFFFFFFFFFFFFFFULL)
+
+to be just
+
+    -1
+
+The final "(__force __be64) -1" should be correct and work right on both
+32-bit and 64-bit.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
