@@ -1,51 +1,65 @@
-From: Pavel Roskin <proski-mXXj517/zsQ@public.gmane.org>
-Subject: Re: [ath9k-devel] [PATCH net-next 00/21] treewide: Use
- consistent api style for address testing
-Date: Fri, 19 Oct 2012 11:55:17 -0400
-Message-ID: <20121019115517.7b8514a8@mj>
-References: <cover.1350618006.git.joe@perches.com>
-	<1350630254.2293.183.camel@edumazet-glaptop>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-3.7 0/4] mlx4 SRIOV fixes, 64B CQE/EQE patches re-spin
+Date: Fri, 19 Oct 2012 11:42:07 -0700
+Message-ID: <CAJZOPZKoGTw7jmi6mE6LjidtiX_4hpXrb6Zcn17ZqL17im2ciw@mail.gmail.com>
+References: <1350492181-13471-1-git-send-email-ogerlitz@mellanox.com>
+	<CAL1RGDVxogkdm0BUOE6nrFsJiSOWtqG_BrQ6p8qZddixgwaL+Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <1350630254.2293.183.camel@edumazet-glaptop>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
-	<mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
-	<mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Sender: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, brcm80211-dev-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, users-poMEt7QlJxcwIE2E9O76wjtx2kNaKg5H@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-s9riP+hp16TNLxjTenLetw@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wimax-BPSAo7wm5JOHVYUYWc+uSQ@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bridge-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, lvs-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, cbe-oss-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, user-mode-linux-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.orgl
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDVxogkdm0BUOE6nrFsJiSOWtqG_BrQ6p8qZddixgwaL+Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 19 Oct 2012 09:04:14 +0200
-Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On Thu, Oct 18, 2012 at 4:58 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>
+> On Wed, Oct 17, 2012 at 9:42 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> >
+> > Also, a respin of the 64B CQE/EQE patches (kernel and user-space), over
+> > the V1 posting
+> > you were asking for max flexibility - e.g expose/force update of guests
+> > only if needed
+> > and similarily for libmlx4, I think I have this now, would love feedback
+> > though.
+> >
+> > I tested this with both modified/non-modified mlx4 guest drivers, and
+> > with
+> > both modified/non-modified libmlx4. The only pain point I was hitting,
+> > if non modified libmlx4 on systems with CX3 and modified kernel, on
+> > the V1 discussion Roland -- you made a comment we might need a module
+> > param
+> > here to provide admins a way to let systems with old libmlx4 to work
+> > with fresh kernels?!
+>
+> So I don't think this change (which changes the kernel ABI) is appropriate
+> for 3.7 after the merge window in any case.
+>
+> With that said I think we need a stronger compatibility story even for
+> 3.8.
+> Suppose I'm running a virtualized system with SR-IOV, and I have a stable
+> guest that is working perfectly.  Then I want to update the hypervisor to
+> a newer kernel to get more KVM features or something.
+>
+> If that kernel update enables 64B CQEs, then my guest is now broken.
+> And I don't want to force a guest update just to get a new hypervisor.
+>
+> So I think we need some flag passed to the mlx4_core (that drives the
+> PPF) that lets the user opt into 64B CQEs.  I would suggest that we
+> start with the default value be "disabled" and then flip that after a few
+> kernel versions (and print something in the kernel log when we detect
+> 64B-CQE-capable HW when we're running with 64B CQEs disabled).
+>
+> Unfortunately because the 64B CQE setting is global for the whole
+> adapter (instead of being per-CQ), I don't see any better way to
+> support old userspace/guest kernels.
 
-> Yes they are some names discrepancies, thats a big deal.
-> 
-> And we have alloc_skb() / kfree_skb() / skb_clone() 
-> 
-> Why not skb_alloc() / skb_free() / skb_clone() ?
-> 
-> Some people actually know current code by name of functions, they dont
-> want to change their mind and having to grep include files and git log
-> to learn the new names of an old function, especially when traveling
-> and using a laptop.
 
-I agree.
+OK, let it be, will resubmit with that flag,
 
-Also, it makes sense to introduce a more consistent name for a function
-when it's improved in some way and the callers need to be adjusted or
-re-checked.
-
-That way, the old name can be phased out as the code is made compatible
-with the new function.
-
--- 
-Regards,
-Pavel Roskin
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
