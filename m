@@ -1,67 +1,71 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 2/4 for opensm] Make it possible to enable opensm with
- chkconfig
-Date: Wed, 24 Oct 2012 15:39:35 +0200
-Message-ID: <5087EF97.3090408@acm.org>
-References: <505C7CF7.8010804@acm.org> <20121024131940.GA18591@calypso>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_trap_rcv.c: Eliminate unneeded trap_rcv_process_response
+ routine
+Date: Wed, 24 Oct 2012 09:42:11 -0400
+Message-ID: <5087F033.6060604@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121024131940.GA18591@calypso>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/24/12 15:19, Alex Netes wrote:
-> Hi Bart,
->
-> On 16:43 Fri 21 Sep     , Bart Van Assche wrote:
->> "chkconfig $service on" enables a service in the runlevels mentioned
->> next to "Default-Start" and only in those runlevels.
->>
->> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
->> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> ---
->>   configure.in                  |   10 ++++++++++
->>   scripts/opensm.init.in        |    4 ++--
->>   scripts/redhat-opensm.init.in |    3 +++
->>   3 files changed, 15 insertions(+), 2 deletions(-)
->>
->> diff --git a/configure.in b/configure.in
->> index eb252ff..f660a5b 100644
->> --- a/configure.in
->> +++ b/configure.in
->> @@ -11,6 +11,16 @@ AM_INIT_AUTOMAKE
->>   AC_SUBST(RELEASE, ${RELEASE:-unknown})
->>   AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
->>
->> +if { rpm -q sles-release || rpm -q openSUSE-release; } >/dev/null 2>&1; then
->> +   default_start="2 3 5"
->> +   default_stop="0 1 4 6"
->> +else
->> +   default_start="2 3 4 5"
->> +   default_stop="0 1 6"
->> +fi
->> +AC_SUBST(DEFAULT_START, $default_start)
->> +AC_SUBST(DEFAULT_STOP, $default_stop)
->> +
->
-> Can you please elaborate more why there is a difference with runlevels
-> selection between SUSE and RH?
 
-Most services in SLES and openSUSE, including syslog, are enabled in 
-runlevels 2, 3 and 5 but not in runlevel 4. RHEL systems however follow 
-the LFS and have services like syslog enabled in runlevels 2, 3, 4 and 
-5. One of the patches I posted adds $syslog to the list of services that 
-must be started before opensm is started. If the Default-Start runlevels 
-specified in /etc/init.d/opensm do not match the runlevels in which 
-syslog is started then chkconfig prints a warning when enabling the 
-opensm service. Hence the above code to make the Default-Start runlevels 
-of opensm match the Default-Start runlevels of syslog.
+Trap represses (responses) never get to osm_trap_rcv_process.
+They are handled in osm_sm_mad_ctrl.c:sm_mad_ctrl_rcv_callback
+which invokes sm_mad_ctrl_process_trap_repress.
 
-Bart.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_trap_rcv.c |   24 +++---------------------
+ 1 files changed, 3 insertions(+), 21 deletions(-)
+
+diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
+index c0a287f..6d2a3a6 100644
+--- a/opensm/osm_trap_rcv.c
++++ b/opensm/osm_trap_rcv.c
+@@ -632,18 +632,6 @@ Exit:
+ 	OSM_LOG_EXIT(sm->p_log);
+ }
+ 
+-static void trap_rcv_process_response(IN osm_sm_t * sm,
+-				      IN const osm_madw_t * p_madw)
+-{
+-
+-	OSM_LOG_ENTER(sm->p_log);
+-
+-	OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3808: "
+-		"This function is not supported yet\n");
+-
+-	OSM_LOG_EXIT(sm->p_log);
+-}
+-
+ void osm_trap_rcv_process(IN void *context, IN void *data)
+ {
+ 	osm_sm_t *sm = context;
+@@ -656,15 +644,9 @@ void osm_trap_rcv_process(IN void *context, IN void *data)
+ 
+ 	p_smp = osm_madw_get_smp_ptr(p_madw);
+ 
+-	/*
+-	   Determine if this is a request for our own Trap
+-	   or if this is a response to our request for another
+-	   SM's Trap.
+-	 */
+-	if (ib_smp_is_response(p_smp))
+-		trap_rcv_process_response(sm, p_madw);
+-	else
+-		trap_rcv_process_request(sm, p_madw);
++	/* Only Trap requests get here */
++	CL_ASSERT(!ib_smp_is_response(p_smp));
++	trap_rcv_process_request(sm, p_madw);
+ 
+ 	OSM_LOG_EXIT(sm->p_log);
+ }
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
