@@ -1,14 +1,14 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/4 for opensm] Make it possible to enable opensm with
- chkconfig
-Date: Wed, 24 Oct 2012 15:19:40 +0200
-Message-ID: <20121024131940.GA18591@calypso>
-References: <505C7CF7.8010804@acm.org>
+Subject: Re: [PATCH 3/4 for opensm] /etc/init.d/opensmd: Improve systemd
+ integration
+Date: Wed, 24 Oct 2012 15:27:26 +0200
+Message-ID: <20121024132726.GB18591@calypso>
+References: <505C7D44.9060500@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <505C7CF7.8010804-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <505C7D44.9060500-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -16,39 +16,95 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Bart,
 
-On 16:43 Fri 21 Sep     , Bart Van Assche wrote:
-> "chkconfig $service on" enables a service in the runlevels mentioned
-> next to "Default-Start" and only in those runlevels.
+On 16:44 Fri 21 Sep     , Bart Van Assche wrote:
+> On recent SLES and openSUSE systems it is necessary to read the
+> file /lib/lsb/init-functions instead of /etc/rc.status for proper
+> integration with systemd. Certain implementations of killproc
+> need a pidfile so make sure that one gets created. Also, correct
+> the opensm service dependency list.
 > 
 > Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 > Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 > ---
->  configure.in                  |   10 ++++++++++
->  scripts/opensm.init.in        |    4 ++--
->  scripts/redhat-opensm.init.in |    3 +++
->  3 files changed, 15 insertions(+), 2 deletions(-)
+>  configure.in                  |    6 ++++++
+>  scripts/opensm.init.in        |   26 ++++++++++++++++++--------
+>  scripts/redhat-opensm.init.in |    2 ++
+>  3 files changed, 26 insertions(+), 8 deletions(-)
 > 
 > diff --git a/configure.in b/configure.in
-> index eb252ff..f660a5b 100644
+> index f660a5b..4515ae2 100644
 > --- a/configure.in
 > +++ b/configure.in
-> @@ -11,6 +11,16 @@ AM_INIT_AUTOMAKE
+> @@ -11,6 +11,12 @@ AM_INIT_AUTOMAKE
 >  AC_SUBST(RELEASE, ${RELEASE:-unknown})
 >  AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
 >  
-> +if { rpm -q sles-release || rpm -q openSUSE-release; } >/dev/null 2>&1; then
-> +   default_start="2 3 5"
-> +   default_stop="0 1 4 6"
-> +else
-> +   default_start="2 3 4 5"
-> +   default_stop="0 1 6"
-> +fi
-> +AC_SUBST(DEFAULT_START, $default_start)
-> +AC_SUBST(DEFAULT_STOP, $default_stop)
+> +default_rdma_service=openibd
+> +AC_ARG_WITH([rdma_service],
+> +    AC_HELP_STRING([--with-rdma-service=name],
+> +                   [name of the RDMA service: "rdma" when using /etc/init.d/rdma to start RDMA services; "openibd" when using /etc/init.d/openibd to start RDMA services [default=${default_rdma_service}]]))
+> +AC_SUBST(RDMA_SERVICE, ${with_rdma_service:-${default_rdma_service}})
 > +
 
-Can you please elaborate more why there is a difference with runlevels
-selection between SUSE and RH?
+There is also an option to run opensm with ibsim. In that case neither rdma
+nor openibd should run.
+
+>  if { rpm -q sles-release || rpm -q openSUSE-release; } >/dev/null 2>&1; then
+>     default_start="2 3 5"
+>     default_stop="0 1 4 6"
+> diff --git a/scripts/opensm.init.in b/scripts/opensm.init.in
+> index 007dae4..ddd1d6b 100644
+> --- a/scripts/opensm.init.in
+> +++ b/scripts/opensm.init.in
+> @@ -7,8 +7,8 @@
+>  #
+>  ### BEGIN INIT INFO
+>  # Provides: opensm
+> -# Required-Start: $syslog
+> -# Required-Stop:
+> +# Required-Start: $syslog @RDMA_SERVICE@
+> +# Required-Stop: $syslog @RDMA_SERVICE@
+>  # Default-Start: @DEFAULT_START@
+>  # Default-Stop: @DEFAULT_STOP@
+>  # Description:  Manage OpenSM
+> @@ -42,14 +42,22 @@
+>  
+>  prefix=@prefix@
+>  exec_prefix=@exec_prefix@
+> +pidfile=/var/run/opensm.pid
+>  
+>  # Source function library.
+>  if [[ -s /etc/init.d/functions ]]; then
+> +    # RHEL / CentOS / SL / Fedora.
+>      . /etc/init.d/functions
+>      rc_status() { :; }
+>      rc_exit() { exit $RETVAL; }
+> -fi
+> -if [[ -s /etc/rc.status ]]; then
+> +elif [[ -s /lib/lsb/init-functions ]]; then
+> +    # SLES / openSuSE / Debian.
+> +    . /lib/lsb/init-functions
+> +    rc_exit() { exit $RETVAL; }
+> +    success() { log_success_msg; }
+> +    failure() { log_failure_msg; }
+> +elif [[ -s /etc/rc.status ]]; then
+> +    # Older SuSE systems.
+>      . /etc/rc.status
+>      failure() { rc_status -v; }
+>      success() { rc_status -v; }
+> @@ -61,10 +69,13 @@ if [[ -s $CONFIG ]]; then
+>  fi
+>  
+>  start () {
+> +    if [ -e $pidfile ]; then
+
+On opensm segfault (happens one in a while :), pidfile won't be removed, so
+you won't be able to start the opensm again. I guess that same thing can
+happen on warm reboot.
+
+> +	echo Already started
+> +	return 1
+> +    fi
 
 -- Alex
 --
