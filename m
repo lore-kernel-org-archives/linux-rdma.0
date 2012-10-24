@@ -1,39 +1,56 @@
-From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: IBV_WR_SEND_WITH_IMM failure
-Date: Tue, 23 Oct 2012 21:54:19 +0200
-Message-ID: <CAMQe6KtvvMdkpwALySbwS0dr6bGOhLtuLeV4f-QUNbmZ+afwUw@mail.gmail.com>
-References: <CAHBb3isJ1CKSUSJPqCTckunGyBjWJZO6rxHeHHjK1ZE9rtXL6w@mail.gmail.com>
-	<CAMQe6Ks1o9gAvK5d8X7jF=XOb9ZfstmC8UCPQ6PaRCiEHt-VyA@mail.gmail.com>
-	<CAHBb3isXXT1pnzdHnb+H3B7uSwMfROVCtcCFLtL-msq8o=ewHg@mail.gmail.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/4 for opensm] Make it possible to enable opensm with
+ chkconfig
+Date: Wed, 24 Oct 2012 15:19:40 +0200
+Message-ID: <20121024131940.GA18591@calypso>
+References: <505C7CF7.8010804@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAHBb3isXXT1pnzdHnb+H3B7uSwMfROVCtcCFLtL-msq8o=ewHg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <505C7CF7.8010804-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?ISO-8859-1?Q?Xavier_Gu=E9rin?= <xrguerin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Xavier.
+Hi Bart,
 
-I'm trying to understand exactly what you did...
+On 16:43 Fri 21 Sep     , Bart Van Assche wrote:
+> "chkconfig $service on" enables a service in the runlevels mentioned
+> next to "Default-Start" and only in those runlevels.
+> 
+> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>  configure.in                  |   10 ++++++++++
+>  scripts/opensm.init.in        |    4 ++--
+>  scripts/redhat-opensm.init.in |    3 +++
+>  3 files changed, 15 insertions(+), 2 deletions(-)
+> 
+> diff --git a/configure.in b/configure.in
+> index eb252ff..f660a5b 100644
+> --- a/configure.in
+> +++ b/configure.in
+> @@ -11,6 +11,16 @@ AM_INIT_AUTOMAKE
+>  AC_SUBST(RELEASE, ${RELEASE:-unknown})
+>  AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
+>  
+> +if { rpm -q sles-release || rpm -q openSUSE-release; } >/dev/null 2>&1; then
+> +   default_start="2 3 5"
+> +   default_stop="0 1 4 6"
+> +else
+> +   default_start="2 3 4 5"
+> +   default_stop="0 1 6"
+> +fi
+> +AC_SUBST(DEFAULT_START, $default_start)
+> +AC_SUBST(DEFAULT_STOP, $default_stop)
+> +
 
-I'm guessing here the scenario, please correct me if I'm wrong:
-You've tried to work with RoCE over ConnectX-3 using RC QP.
-You were able to send messages up to 1024 (including this value) and it failed.
+Can you please elaborate more why there is a difference with runlevels
+selection between SUSE and RH?
 
-You've to execute the same test over ConnectX-2 SDR and everything passed.
-
-I suspect that the problem is with the MTU, since in IB the MTU values
-are different than in Ethernet (the "typical" value in IB is 2/4KB and
-in Ethernet it is 1500 bytes).
-
-Can you try to set the path MTU of the QPs (when calling
-ibv_modify_qp) to 1K MTU?
-Maybe this will solve your problem ...
-
-Please keep me posted
-Dotan
+-- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
