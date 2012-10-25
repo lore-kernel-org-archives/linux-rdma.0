@@ -1,217 +1,44 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V5 libmlx4] Infra-structure changes to support verbs extensions
-Date: Wed, 24 Oct 2012 18:34:02 +0200
-Message-ID: <1351096442-19231-1-git-send-email-yishaih@mellanox.com>
+From: =?UTF-8?Q?Xavier_Gu=C3=A9rin?= <xrguerin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: IBV_WR_SEND_WITH_IMM failure
+Date: Wed, 24 Oct 2012 22:19:57 -0400
+Message-ID: <CAHBb3isoS0q9Q2tePOMe4syrtWZqBAhJ5vA_77x72Wm8ahsU-Q@mail.gmail.com>
+References: <CAHBb3isJ1CKSUSJPqCTckunGyBjWJZO6rxHeHHjK1ZE9rtXL6w@mail.gmail.com>
+	<CAMQe6Ks1o9gAvK5d8X7jF=XOb9ZfstmC8UCPQ6PaRCiEHt-VyA@mail.gmail.com>
+	<CAHBb3isXXT1pnzdHnb+H3B7uSwMfROVCtcCFLtL-msq8o=ewHg@mail.gmail.com>
+	<CAMQe6KtvvMdkpwALySbwS0dr6bGOhLtuLeV4f-QUNbmZ+afwUw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMQe6KtvvMdkpwALySbwS0dr6bGOhLtuLeV4f-QUNbmZ+afwUw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hello Dotan,
 
----
-changes from V4:
-increase MLX4_UVERBS_MIN_ABI_VERSION to be 3
-- version 2 is not supported any more.
+> I'm trying to understand exactly what you did...
+>
+> I'm guessing here the scenario, please correct me if I'm wrong:
+> You've tried to work with RoCE over ConnectX-3 using RC QP.
+> You were able to send messages up to 1024 (including this value) and it failed.
+>
+> You've to execute the same test over ConnectX-2 SDR and everything passed.
 
-fix error message as part of mlx4_driver_init
----
- src/mlx4-abi.h |    2 +-
- src/mlx4.c     |   82 ++++++++++++++++++++++++++++++--------------------------
- src/mlx4.h     |    8 ++++-
- 3 files changed, 51 insertions(+), 41 deletions(-)
+You understood correctly.
 
-diff --git a/src/mlx4-abi.h b/src/mlx4-abi.h
-index 20a40c9..7cf68b4 100644
---- a/src/mlx4-abi.h
-+++ b/src/mlx4-abi.h
-@@ -35,7 +35,7 @@
- 
- #include <infiniband/kern-abi.h>
- 
--#define MLX4_UVERBS_MIN_ABI_VERSION	2
-+#define MLX4_UVERBS_MIN_ABI_VERSION	3
- #define MLX4_UVERBS_MAX_ABI_VERSION	3
- 
- struct mlx4_alloc_ucontext_resp {
-diff --git a/src/mlx4.c b/src/mlx4.c
-index 8cf249a..bc09c68 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -120,22 +120,26 @@ static struct ibv_context_ops mlx4_ctx_ops = {
- 	.detach_mcast  = ibv_cmd_detach_mcast
- };
- 
--static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_fd)
-+static int mlx4_init_context(struct verbs_device *v_device,
-+			struct ibv_context *ibv_ctx, int cmd_fd)
- {
--	struct mlx4_context	       *context;
-+	struct mlx4_context		*context;
- 	struct ibv_get_context		cmd;
- 	struct mlx4_alloc_ucontext_resp resp;
- 	int				i;
-+	/* verbs_context should be used for new verbs
-+	  *struct verbs_context *verbs_ctx = verbs_get_ctx(ibv_ctx);
-+	 */
- 
--	context = calloc(1, sizeof *context);
--	if (!context)
--		return NULL;
--
--	context->ibv_ctx.cmd_fd = cmd_fd;
-+	/* memory footprint of mlx4_context and verbs_context share
-+	  * struct ibv_context.
-+	*/
-+	context = to_mctx(ibv_ctx);
-+	ibv_ctx->cmd_fd = cmd_fd;
- 
--	if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof cmd,
-+	if (ibv_cmd_get_context(ibv_ctx, &cmd, sizeof(cmd),
- 				&resp.ibv_resp, sizeof resp))
--		goto err_free;
-+		return errno;
- 
- 	context->num_qps	= resp.qp_tab_size;
- 	context->qp_table_shift = ffs(context->num_qps) - 1 - MLX4_QP_TABLE_BITS;
-@@ -150,15 +154,16 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
- 
- 	pthread_mutex_init(&context->db_list_mutex, NULL);
- 
--	context->uar = mmap(NULL, to_mdev(ibdev)->page_size, PROT_WRITE,
--			    MAP_SHARED, cmd_fd, 0);
-+	context->uar = mmap(NULL, to_mdev(&v_device->device)->page_size,
-+				PROT_WRITE, MAP_SHARED, cmd_fd, 0);
- 	if (context->uar == MAP_FAILED)
--		goto err_free;
-+		return errno;
- 
- 	if (resp.bf_reg_size) {
--		context->bf_page = mmap(NULL, to_mdev(ibdev)->page_size,
-+		context->bf_page = mmap(NULL,
-+					to_mdev(&v_device->device)->page_size,
- 					PROT_WRITE, MAP_SHARED, cmd_fd,
--					to_mdev(ibdev)->page_size);
-+					to_mdev(&v_device->device)->page_size);
- 		if (context->bf_page == MAP_FAILED) {
- 			fprintf(stderr, PFX "Warning: BlueFlame available, "
- 				"but failed to mmap() BlueFlame page.\n");
-@@ -176,35 +181,29 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
- 
- 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
- 
--	context->ibv_ctx.ops = mlx4_ctx_ops;
--
--	return &context->ibv_ctx;
-+	ibv_ctx->ops = mlx4_ctx_ops;
-+	/* New verbs should be added as below
-+	  * verbs_ctx->drv_new_func1 = mlx4_new_func1;
-+	  */
-+	return 0;
- 
--err_free:
--	free(context);
--	return NULL;
- }
- 
--static void mlx4_free_context(struct ibv_context *ibctx)
-+static void mlx4_uninit_context(struct verbs_device *v_device,
-+					struct ibv_context *ibv_ctx)
- {
--	struct mlx4_context *context = to_mctx(ibctx);
-+	struct mlx4_context *context = to_mctx(ibv_ctx);
- 
--	munmap(context->uar, to_mdev(ibctx->device)->page_size);
-+	munmap(context->uar, to_mdev(&v_device->device)->page_size);
- 	if (context->bf_page)
--		munmap(context->bf_page, to_mdev(ibctx->device)->page_size);
--	free(context);
-+		munmap(context->bf_page, to_mdev(&v_device->device)->page_size);
- }
- 
--static struct ibv_device_ops mlx4_dev_ops = {
--	.alloc_context = mlx4_alloc_context,
--	.free_context  = mlx4_free_context
--};
--
--static struct ibv_device *mlx4_driver_init(const char *uverbs_sys_path,
--					    int abi_version)
-+static struct verbs_device *mlx4_driver_init(const char *uverbs_sys_path,
-+					     int abi_version)
- {
- 	char			value[8];
--	struct mlx4_device    *dev;
-+	struct mlx4_device	*dev;
- 	unsigned		vendor, device;
- 	int			i;
- 
-@@ -236,23 +235,30 @@ found:
- 		return NULL;
- 	}
- 
--	dev = malloc(sizeof *dev);
-+	dev = calloc(1, sizeof(*dev));
- 	if (!dev) {
- 		fprintf(stderr, PFX "Fatal: couldn't allocate device for %s\n",
- 			uverbs_sys_path);
- 		return NULL;
- 	}
- 
--	dev->ibv_dev.ops = mlx4_dev_ops;
- 	dev->page_size   = sysconf(_SC_PAGESIZE);
--
--	return &dev->ibv_dev;
-+	dev->verbs_dev.sz = sizeof(*dev);
-+	dev->verbs_dev.size_of_context =
-+		sizeof(struct mlx4_context) - sizeof(struct ibv_context);
-+	 /* mlx4_init_context will initialize provider calls */
-+	dev->verbs_dev.init_context = mlx4_init_context;
-+	dev->verbs_dev.uninit_context = mlx4_uninit_context;
-+
-+	return &dev->verbs_dev;
- }
- 
-+
- #ifdef HAVE_IBV_REGISTER_DRIVER
- static __attribute__((constructor)) void mlx4_register_driver(void)
- {
--	ibv_register_driver("mlx4", mlx4_driver_init);
-+	verbs_register_driver("mlx4", mlx4_driver_init);
-+
- }
- #else
- /*
-diff --git a/src/mlx4.h b/src/mlx4.h
-index 13c13d8..4f6aa73 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -131,7 +131,7 @@ enum {
- };
- 
- struct mlx4_device {
--	struct ibv_device		ibv_dev;
-+	struct verbs_device		verbs_dev;
- 	int				page_size;
- };
- 
-@@ -258,7 +258,11 @@ static inline unsigned long align(unsigned long val, unsigned long align)
- 
- static inline struct mlx4_device *to_mdev(struct ibv_device *ibdev)
- {
--	return to_mxxx(dev, device);
-+	/* ibv_device is first field of verbs_device
-+	  * see try_driver in libibverbs.
-+	*/
-+	return ((struct mlx4_device *)
-+	 ((void *) ibdev - offsetof(struct mlx4_device, verbs_dev)));
- }
- 
- static inline struct mlx4_context *to_mctx(struct ibv_context *ibctx)
--- 
-1.7.1
+> I suspect that the problem is with the MTU, since in IB the MTU values
+> are different than in Ethernet (the "typical" value in IB is 2/4KB and
+> in Ethernet it is 1500 bytes).
+>
+> Can you try to set the path MTU of the QPs (when calling
+> ibv_modify_qp) to 1K MTU?
+> Maybe this will solve your problem ...
 
+I so far used a common/default setting for both IB and ETH mode of 2KB MTU.
+I will try lowering that value for RoCE and keep you updated.
+
+Thanks !
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
