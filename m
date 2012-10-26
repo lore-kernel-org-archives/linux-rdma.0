@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 16/19] srp_transport: Add transport layer error handling
-Date: Fri, 26 Oct 2012 14:56:32 +0200
-Message-ID: <508A8880.4080802@acm.org>
+Subject: [PATCH 17/19] ib_srp: Add dev_loss_tmo support
+Date: Fri, 26 Oct 2012 14:57:20 +0200
+Message-ID: <508A88B0.70104@acm.org>
 References: <508A85BB.1000505@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -9,336 +9,123 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <508A85BB.1000505-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add the necessary functions in the SRP transport module to allow
-an SRP initiator driver to implement transport error handling.
-This includes:
-- Support for implementing fast_io_fail_tmo, the time that should
-  elapse after having detected a transport layer problem and
-  before failing I/O.
-- Support for implementing dev_loss_tmo, the time that should
-  elapse after having detected a transport layer problem and
-  before removing a remote port.
+Remove an SRP host if dev_loss_tmo expired.
 
-Cc: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
-Cc: Robert Jennings <rcj-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- Documentation/ABI/stable/sysfs-transport-srp |   17 +++
- drivers/scsi/scsi_transport_srp.c            |  192 +++++++++++++++++++++++++-
- include/scsi/scsi_transport_srp.h            |   10 +-
- 3 files changed, 216 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   30 +++++++++++++++++++++++++++++-
+ drivers/infiniband/ulp/srp/ib_srp.h |    2 ++
+ 2 files changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ABI/stable/sysfs-transport-srp b/Documentation/ABI/stable/sysfs-transport-srp
-index b36fb0d..2f14a5b 100644
---- a/Documentation/ABI/stable/sysfs-transport-srp
-+++ b/Documentation/ABI/stable/sysfs-transport-srp
-@@ -5,6 +5,23 @@ Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- Description:	Instructs an SRP initiator to disconnect from a target and to
- 		remove all LUNs imported from that target.
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index b3a09e9..7ed0c26 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -617,6 +617,7 @@ static void srp_remove_target(struct srp_target_port *target)
+ 		scsi_remove_host(shost);
+ 	}
+ 	srp_disconnect_target(target);
++	cancel_work_sync(&target->tl_err_work);
+ 	srp_free_target_ib(target);
+ 	srp_free_req_data(target);
+ 	scsi_host_put(shost);
+@@ -834,6 +835,13 @@ static int srp_reconnect_target(struct srp_target_port *target)
+ 	mutex_unlock(&target->mutex);
  
-+What:		/sys/class/srp_remote_ports/port-<h>:<n>/dev_loss_tmo
-+Date:		January 1, 2012
-+KernelVersion:	3.7
-+Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Number of seconds the SCSI layer will wait after a transport
-+		layer error has been observed before removing a target port.
-+		Zero means immediate removal.
+ 	srp_disconnect_target(target);
++	cancel_work_sync(&target->tl_err_work);
 +
-+What:		/sys/class/srp_remote_ports/port-<h>:<n>/fast_io_fail_tmo
-+Date:		January 1, 2012
-+KernelVersion:	3.7
-+Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+Description:	Number of seconds the SCSI layer will wait after a transport
-+		layer error has been observed before failing I/O. Zero means
-+		immediate removal. A negative value will disable this
-+		behavior.
++	mutex_lock(&target->mutex);
++	if (target->scsi_host_added)
++		srp_stop_tl_fail_timers(target->rport);
++	mutex_unlock(&target->mutex);
 +
- What:		/sys/class/srp_remote_ports/port-<h>:<n>/port_id
- Date:		June 27, 2007
- KernelVersion:	2.6.24
-diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
-index f379c7f..8b452c6 100644
---- a/drivers/scsi/scsi_transport_srp.c
-+++ b/drivers/scsi/scsi_transport_srp.c
-@@ -30,6 +30,7 @@
- #include <scsi/scsi_host.h>
- #include <scsi/scsi_transport.h>
- #include <scsi/scsi_transport_srp.h>
-+#include "scsi_priv.h"
- #include "scsi_transport_srp_internal.h"
- 
- struct srp_host_attrs {
-@@ -38,7 +39,7 @@ struct srp_host_attrs {
- #define to_srp_host_attrs(host)	((struct srp_host_attrs *)(host)->shost_data)
- 
- #define SRP_HOST_ATTRS 0
--#define SRP_RPORT_ATTRS 3
-+#define SRP_RPORT_ATTRS 5
- 
- struct srp_internal {
- 	struct scsi_transport_template t;
-@@ -54,6 +55,10 @@ struct srp_internal {
- 
- #define	dev_to_rport(d)	container_of(d, struct srp_rport, dev)
- #define transport_class_to_srp_rport(dev) dev_to_rport((dev)->parent)
-+static inline struct Scsi_Host *rport_to_shost(struct srp_rport *r)
-+{
-+	return dev_to_shost(r->dev.parent);
-+}
- 
- static int srp_host_setup(struct transport_container *tc, struct device *dev,
- 			  struct device *cdev)
-@@ -134,6 +139,175 @@ static ssize_t store_srp_rport_delete(struct device *dev,
- 
- static DEVICE_ATTR(delete, S_IWUSR, NULL, store_srp_rport_delete);
+ 	/*
+ 	 * Now get a new local CM ID so that we avoid confusing the
+ 	 * target in case things are really fouled up.
+@@ -1439,15 +1447,32 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
+ 			     PFX "Recv failed with error code %d\n", res);
+ }
  
 +/**
-+ * srp_tmo_valid() - Check timeout combination validity.
-+ *
-+ * If no fast I/O fail timeout has been configured then the device loss timeout
-+ * must be below SCSI_DEVICE_BLOCK_MAX_TIMEOUT. If a fast I/O fail timeout has
-+ * been configured then it must be below the device loss timeout.
++ * srp_tl_err_work - Start the transport layer failure timers.
 + */
-+static int srp_tmo_valid(int fast_io_fail_tmo, unsigned dev_loss_tmo)
++static void srp_tl_err_work(struct work_struct *work)
 +{
-+	return (fast_io_fail_tmo < 0 &&
-+		dev_loss_tmo <= SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
-+		|| (0 <= fast_io_fail_tmo &&
-+		    fast_io_fail_tmo < dev_loss_tmo &&
-+		    dev_loss_tmo < ULONG_MAX / HZ) ? 0 : -EINVAL;
++	struct srp_target_port *target;
++
++	target = container_of(work, struct srp_target_port, tl_err_work);
++
++	mutex_lock(&target->mutex);
++	if (target->scsi_host_added)
++		srp_start_tl_fail_timers(target->rport, target->rq_tmo_jiffies);
++	mutex_unlock(&target->mutex);
 +}
 +
-+static ssize_t show_srp_rport_fast_io_fail_tmo(struct device *dev,
-+					   struct device_attribute *attr,
-+					   char *buf)
-+{
-+	struct srp_rport *rport = transport_class_to_srp_rport(dev);
-+
-+	if (rport->fast_io_fail_tmo >= 0)
-+		return sprintf(buf, "%d\n", rport->fast_io_fail_tmo);
-+	else
-+		return sprintf(buf, "off\n");
-+}
-+
-+static ssize_t store_srp_rport_fast_io_fail_tmo(struct device *dev,
-+					    struct device_attribute *attr,
-+					    const char *buf, size_t count)
-+{
-+	struct srp_rport *rport = transport_class_to_srp_rport(dev);
-+	char ch[16];
-+	int res;
-+	int fast_io_fail_tmo;
-+
-+	if (count >= 3 && memcmp(buf, "off", 3) == 0) {
-+		fast_io_fail_tmo = -1;
-+	} else {
-+		sprintf(ch, "%.*s", min_t(int, sizeof(ch) - 1, count), buf);
-+		res = kstrtoint(ch, 0, &fast_io_fail_tmo);
-+		if (res)
-+			goto out;
-+	}
-+	res = srp_tmo_valid(fast_io_fail_tmo, rport->dev_loss_tmo);
-+	if (res)
-+		goto out;
-+	rport->fast_io_fail_tmo = fast_io_fail_tmo;
-+	res = count;
-+out:
-+	return res;
-+}
-+
-+static DEVICE_ATTR(fast_io_fail_tmo, S_IRUGO | S_IWUSR,
-+		   show_srp_rport_fast_io_fail_tmo,
-+		   store_srp_rport_fast_io_fail_tmo);
-+
-+static ssize_t show_srp_rport_dev_loss_tmo(struct device *dev,
-+					   struct device_attribute *attr,
-+					   char *buf)
-+{
-+	struct srp_rport *rport = transport_class_to_srp_rport(dev);
-+
-+	return sprintf(buf, "%u\n", rport->dev_loss_tmo);
-+}
-+
-+static ssize_t store_srp_rport_dev_loss_tmo(struct device *dev,
-+					    struct device_attribute *attr,
-+					    const char *buf, size_t count)
-+{
-+	struct srp_rport *rport = transport_class_to_srp_rport(dev);
-+	char ch[16];
-+	int res;
-+	unsigned dev_loss_tmo;
-+
-+	sprintf(ch, "%.*s", min_t(int, sizeof(ch) - 1, count), buf);
-+	res = kstrtouint(ch, 0, &dev_loss_tmo);
-+	if (res)
-+		goto out;
-+	res = srp_tmo_valid(rport->fast_io_fail_tmo, dev_loss_tmo);
-+	if (res)
-+		goto out;
-+	rport->dev_loss_tmo = dev_loss_tmo;
-+	res = count;
-+out:
-+	return res;
-+}
-+
-+static DEVICE_ATTR(dev_loss_tmo, S_IRUGO | S_IWUSR,
-+		   show_srp_rport_dev_loss_tmo,
-+		   store_srp_rport_dev_loss_tmo);
-+
-+/**
-+ * rport_fast_io_fail_timedout() - Fast I/O failure timeout handler.
-+ *
-+ * Unblocks the SCSI host.
-+ */
-+static void rport_fast_io_fail_timedout(struct work_struct *work)
-+{
-+	struct srp_rport *rport =
-+		container_of(to_delayed_work(work), struct srp_rport,
-+			     fast_io_fail_work);
-+	struct Scsi_Host *shost;
-+	struct srp_internal *i;
-+
-+	pr_err("SRP transport: fast_io_fail_tmo (%ds) expired - unblocking %s.\n",
-+	       rport->fast_io_fail_tmo, dev_name(&rport->dev));
-+
-+	shost = rport_to_shost(rport);
-+	i = to_srp_internal(shost->transportt);
-+	/* Involve the LLDD if possible to terminate all io on the rport. */
-+	if (i->f->terminate_rport_io)
-+		i->f->terminate_rport_io(rport);
-+
-+	scsi_target_unblock(rport->dev.parent, SDEV_TRANSPORT_OFFLINE);
-+}
-+
-+/**
-+ * rport_dev_loss_timedout() - Device loss timeout handler.
-+ *
-+ * Note: rport->ft->rport_delete must either unblock the SCSI host or schedule
-+ * SCSI host removal.
-+ */
-+static void rport_dev_loss_timedout(struct work_struct *work)
-+{
-+	struct srp_rport *rport =
-+		container_of(to_delayed_work(work), struct srp_rport,
-+			     dev_loss_work);
-+	struct Scsi_Host *shost;
-+	struct srp_internal *i;
-+
-+	pr_err("SRP transport: dev_loss_tmo (%ds) expired - removing %s.\n",
-+	       rport->dev_loss_tmo, dev_name(&rport->dev));
-+
-+	shost = rport_to_shost(rport);
-+	i = to_srp_internal(shost->transportt);
-+	BUG_ON(!i->f);
-+	BUG_ON(!i->f->rport_delete);
-+
-+	i->f->rport_delete(rport);
-+}
-+
-+/**
-+ * srp_start_tl_fail_timers() - Start the transport layer failure timers.
-+ * @rport: rport on which to start the transport layer failure timers.
-+ * @elapsed: Time in jiffies that has already elapsed since the failure.
-+ *
-+ * Start the transport layer fast I/O failure and device loss timers. Do not
-+ * modify a timer that was already started.
-+ */
-+void srp_start_tl_fail_timers(struct srp_rport *rport, int elapsed)
-+{
-+	if (rport->fast_io_fail_tmo >= 0)
-+		queue_delayed_work(system_long_wq, &rport->fast_io_fail_work,
-+				   max_t(long, 1UL * rport->fast_io_fail_tmo
-+					 * HZ - elapsed, 0));
-+	queue_delayed_work(system_long_wq, &rport->dev_loss_work,
-+		max_t(long, 1UL * rport->dev_loss_tmo * HZ - elapsed, 0));
-+}
-+EXPORT_SYMBOL(srp_start_tl_fail_timers);
-+
-+void srp_stop_tl_fail_timers(struct srp_rport *rport)
-+{
-+	cancel_delayed_work_sync(&rport->fast_io_fail_work);
-+	cancel_delayed_work_sync(&rport->dev_loss_work);
-+}
-+EXPORT_SYMBOL(srp_stop_tl_fail_timers);
-+
- static void srp_rport_release(struct device *dev)
+ static void srp_handle_qp_err(enum ib_wc_status wc_status,
+ 			      enum ib_wc_opcode wc_opcode,
+ 			      struct srp_target_port *target)
  {
- 	struct srp_rport *rport = dev_to_rport(dev);
-@@ -210,6 +384,12 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
- 	memcpy(rport->port_id, ids->port_id, sizeof(rport->port_id));
- 	rport->roles = ids->roles;
- 
-+	rport->fast_io_fail_tmo = -1;
-+	rport->dev_loss_tmo = 60;
-+	INIT_DELAYED_WORK(&rport->fast_io_fail_work,
-+			  rport_fast_io_fail_timedout);
-+	INIT_DELAYED_WORK(&rport->dev_loss_work, rport_dev_loss_timedout);
-+
- 	id = atomic_inc_return(&to_srp_host_attrs(shost)->next_port_id);
- 	dev_set_name(&rport->dev, "port-%d:%d", shost->host_no, id);
- 
-@@ -252,6 +432,11 @@ void srp_rport_del(struct srp_rport *rport)
- 	struct device *dev = &rport->dev;
- 	struct Scsi_Host *shost = dev_to_shost(dev->parent);
- 
-+	device_remove_file(dev, &dev_attr_fast_io_fail_tmo);
-+	device_remove_file(dev, &dev_attr_dev_loss_tmo);
-+	srp_stop_tl_fail_timers(rport);
-+	scsi_target_unblock(rport->dev.parent, SDEV_RUNNING);
-+
- 	if (shost->active_mode & MODE_TARGET &&
- 	    rport->roles == SRP_RPORT_ROLE_INITIATOR)
- 		srp_tgt_it_nexus_destroy(shost, (unsigned long)rport);
-@@ -327,8 +512,11 @@ srp_attach_transport(struct srp_function_template *ft)
- 	count = 0;
- 	i->rport_attrs[count++] = &dev_attr_port_id;
- 	i->rport_attrs[count++] = &dev_attr_roles;
--	if (ft->rport_delete)
-+	if (ft->rport_delete) {
-+		i->rport_attrs[count++] = &dev_attr_dev_loss_tmo;
-+		i->rport_attrs[count++] = &dev_attr_fast_io_fail_tmo;
- 		i->rport_attrs[count++] = &dev_attr_delete;
+-	if (target->connected && !target->qp_in_error)
++	if (target->connected && !target->qp_in_error) {
+ 		shost_printk(KERN_ERR, target->scsi_host,
+ 			     PFX "failed %s status %d\n",
+ 			     wc_opcode & IB_WC_RECV ? "receive" : "send",
+ 			     wc_status);
++		queue_work(system_long_wq, &target->tl_err_work);
 +	}
- 	i->rport_attrs[count++] = NULL;
- 	BUG_ON(count > ARRAY_SIZE(i->rport_attrs));
+ 	target->qp_in_error = true;
+ }
  
-diff --git a/include/scsi/scsi_transport_srp.h b/include/scsi/scsi_transport_srp.h
-index ff0f04a..eb996db 100644
---- a/include/scsi/scsi_transport_srp.h
-+++ b/include/scsi/scsi_transport_srp.h
-@@ -23,11 +23,17 @@ struct srp_rport {
+@@ -1808,6 +1833,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 		if (ib_send_cm_drep(cm_id, NULL, 0))
+ 			shost_printk(KERN_ERR, target->scsi_host,
+ 				     PFX "Sending CM DREP failed\n");
++		queue_work(system_long_wq, &target->tl_err_work);
+ 		break;
  
- 	/* for initiator drivers */
+ 	case IB_CM_TIMEWAIT_EXIT:
+@@ -2119,6 +2145,7 @@ static int srp_add_target(struct srp_host *host, struct srp_target_port *target)
+ 	}
  
--	void *lld_data;	/* LLD private data */
-+	void			*lld_data;	/* LLD private data */
-+
-+	int			fast_io_fail_tmo;
-+	unsigned		dev_loss_tmo;
-+	struct delayed_work	fast_io_fail_work;
-+	struct delayed_work	dev_loss_work;
- };
+ 	rport->lld_data = target;
++	target->rport = rport;
  
- struct srp_function_template {
- 	/* for initiator drivers */
-+	void (*terminate_rport_io)(struct srp_rport *rport);
- 	void (*rport_delete)(struct srp_rport *rport);
- 	/* for target drivers */
- 	int (* tsk_mgmt_response)(struct Scsi_Host *, u64, u64, int);
-@@ -41,6 +47,8 @@ extern void srp_release_transport(struct scsi_transport_template *);
- extern struct srp_rport *srp_rport_add(struct Scsi_Host *,
- 				       struct srp_rport_identifiers *);
- extern void srp_rport_del(struct srp_rport *);
-+extern void srp_start_tl_fail_timers(struct srp_rport *rport, int elapsed);
-+extern void srp_stop_tl_fail_timers(struct srp_rport *rport);
+ 	return 0;
+ }
+@@ -2406,6 +2433,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 			     target->cmd_sg_cnt * sizeof (struct srp_direct_buf);
  
- extern void srp_remove_host(struct Scsi_Host *);
+ 	mutex_init(&target->mutex);
++	INIT_WORK(&target->tl_err_work, srp_tl_err_work);
+ 	INIT_WORK(&target->remove_work, srp_remove_work);
+ 	spin_lock_init(&target->lock);
+ 	INIT_LIST_HEAD(&target->free_tx);
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 4e0b413..99485a3 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -164,6 +164,7 @@ struct srp_target_port {
+ 	u16			io_class;
+ 	struct srp_host	       *srp_host;
+ 	struct Scsi_Host       *scsi_host;
++	struct srp_rport       *rport;
+ 	char			target_name[32];
+ 	unsigned int		scsi_id;
+ 	unsigned int		sg_tablesize;
+@@ -188,6 +189,7 @@ struct srp_target_port {
+ 	struct srp_iu	       *rx_ring[SRP_RQ_SIZE];
+ 	struct srp_request	req_ring[SRP_CMD_SQ_SIZE];
  
++	struct work_struct	tl_err_work;
+ 	struct work_struct	remove_work;
+ 
+ 	struct list_head	list;
 -- 
 1.7.10.4
 
