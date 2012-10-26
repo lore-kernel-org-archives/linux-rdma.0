@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 09/19] ib_srp: Make srp_disconnect_target() wait for IB completions
-Date: Fri, 26 Oct 2012 14:50:53 +0200
-Message-ID: <508A872D.1010600@acm.org>
+Subject: [PATCH 10/19] ib_srp: Document sysfs attributes
+Date: Fri, 26 Oct 2012 14:51:35 +0200
+Message-ID: <508A8757.8040702@acm.org>
 References: <508A85BB.1000505@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,253 +13,179 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Modify srp_disconnect_target() such that it waits until it is
-sure that no new IB completions will be received anymore.
+Document the sysfs attributes of the SRP initiator (ib_srp) according
+to the rules specified in Documentation/ABI/README.
 
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |  104 ++++++++++++++++++++++++++++++-----
- drivers/infiniband/ulp/srp/ib_srp.h |    6 ++
- 2 files changed, 95 insertions(+), 15 deletions(-)
+ Documentation/ABI/stable/sysfs-driver-ib_srp |  156 ++++++++++++++++++++++++++
+ 1 file changed, 156 insertions(+)
+ create mode 100644 Documentation/ABI/stable/sysfs-driver-ib_srp
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 8ae2070..58d19a2 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -40,7 +40,7 @@
- #include <linux/parser.h>
- #include <linux/random.h>
- #include <linux/jiffies.h>
--
-+#include <linux/delay.h>
- #include <linux/atomic.h>
- 
- #include <scsi/scsi.h>
-@@ -229,14 +229,16 @@ static int srp_create_target_ib(struct srp_target_port *target)
- 		return -ENOMEM;
- 
- 	target->recv_cq = ib_create_cq(target->srp_host->srp_dev->dev,
--				       srp_recv_completion, NULL, target, SRP_RQ_SIZE, 0);
-+				       srp_recv_completion, NULL, target,
-+				       SRP_RQ_SIZE + 1, 0);
- 	if (IS_ERR(target->recv_cq)) {
- 		ret = PTR_ERR(target->recv_cq);
- 		goto err;
- 	}
- 
- 	target->send_cq = ib_create_cq(target->srp_host->srp_dev->dev,
--				       srp_send_completion, NULL, target, SRP_SQ_SIZE, 0);
-+				       srp_send_completion, NULL, target,
-+				       SRP_SQ_SIZE + 1, 0);
- 	if (IS_ERR(target->send_cq)) {
- 		ret = PTR_ERR(target->send_cq);
- 		goto err_recv_cq;
-@@ -245,8 +247,8 @@ static int srp_create_target_ib(struct srp_target_port *target)
- 	ib_req_notify_cq(target->recv_cq, IB_CQ_NEXT_COMP);
- 
- 	init_attr->event_handler       = srp_qp_event;
--	init_attr->cap.max_send_wr     = SRP_SQ_SIZE;
--	init_attr->cap.max_recv_wr     = SRP_RQ_SIZE;
-+	init_attr->cap.max_send_wr     = SRP_SQ_SIZE + 1;
-+	init_attr->cap.max_recv_wr     = SRP_RQ_SIZE + 1;
- 	init_attr->cap.max_recv_sge    = 1;
- 	init_attr->cap.max_send_sge    = 1;
- 	init_attr->sq_sig_type         = IB_SIGNAL_ALL_WR;
-@@ -460,11 +462,69 @@ static bool srp_change_conn_state(struct srp_target_port *target,
- 	return changed;
- }
- 
-+static void srp_wait_last_recv_wqe(struct srp_target_port *target)
-+{
-+	static struct ib_recv_wr wr = {
-+		.wr_id = SRP_LAST_RECV,
-+	};
-+	struct ib_recv_wr *bad_wr;
-+	int ret;
+diff --git a/Documentation/ABI/stable/sysfs-driver-ib_srp b/Documentation/ABI/stable/sysfs-driver-ib_srp
+new file mode 100644
+index 0000000..481aae9
+--- /dev/null
++++ b/Documentation/ABI/stable/sysfs-driver-ib_srp
+@@ -0,0 +1,156 @@
++What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/add_target
++Date:		January 2, 2006
++KernelVersion:	2.6.15
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Interface for making ib_srp connect to a new target.
++		One can request ib_srp to connect to a new target by writing
++		a comma-separated list of login parameters to this sysfs
++		attribute. The supported parameters are:
++		* id_ext, a 16-digit hexadecimal number specifying the eight
++		  byte identifier extension in the 16-byte SRP target port
++		  identifier. The target port identifier is sent by ib_srp
++		  to the target in the SRP_LOGIN_REQ request.
++		* ioc_guid, a 16-digit hexadecimal number specifying the eight
++		  byte I/O controller GUID portion of the 16-byte target port
++		  identifier.
++		* dgid, a 32-digit hexadecimal number specifying the
++		  destination GID.
++		* pkey, a four-digit hexadecimal number specifying the
++		  InfiniBand partition key.
++		* service_id, a 16-digit hexadecimal number specifying the
++		  InfiniBand service ID used to establish communication with
++		  the SRP target. How to find out the value of the service ID
++		  is specified in the documentation of the SRP target.
++		* max_sect, a decimal number specifying the maximum number of
++		  512-byte sectors to be transferred via a single SCSI command.
++		* max_cmd_per_lun, a decimal number specifying the maximum
++		  number of outstanding commands for a single LUN.
++		* io_class, a hexadecimal number specifying the SRP I/O class.
++		  Must be either 0xff00 (rev 10) or 0x0100 (rev 16a). The I/O
++		  class defines the format of the SRP initiator and target
++		  port identifiers.
++		* initiator_ext, a 16-digit hexadecimal number specifying the
++		  identifier extension portion of the SRP initiator port
++		  identifier. This data is sent by the initiator to the target
++		  in the SRP_LOGIN_REQ request.
++		* cmd_sg_entries, a number in the range 1..255 that specifies
++		  the maximum number of data buffer descriptors stored in the
++		  SRP_CMD information unit itself. With allow_ext_sg=0 the
++		  parameter cmd_sg_entries defines the maximum S/G list length
++		  for a single SRP_CMD, and commands whose S/G list length
++		  exceeds this limit after S/G list collapsing will fail.
++		* allow_ext_sg, whether ib_srp is allowed to include a partial
++		  memory descriptor list in an SRP_CMD instead of the entire
++		  list. If a partial memory descriptor list has been included
++		  in an SRP_CMD the remaining memory descriptors are
++		  communicated from initiator to target via an additional RDMA
++		  transfer. Setting allow_ext_sg to 1 increases the maximum
++		  amount of data that can be transferred between initiator and
++		  target via a single SCSI command. Since not all SRP target
++		  implementations support partial memory descriptor lists the
++		  default value for this option is 0.
++		* sg_tablesize, a number in the range 1..2048 specifying the
++		  maximum S/G list length the SCSI layer is allowed to pass to
++		  ib_srp. Specifying a value that exceeds cmd_sg_entries is
++		  only safe with partial memory descriptor list support enabled
++		  (allow_ext_sg=1).
 +
-+	if (target->last_recv_wqe)
-+		return;
++What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/ibdev
++Date:		January 2, 2006
++KernelVersion:	2.6.15
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	HCA name (<hca>).
 +
-+	ret = ib_post_recv(target->qp, &wr, &bad_wr);
-+	if (ret < 0) {
-+		shost_printk(KERN_ERR, target->scsi_host,
-+			     "ib_post_recv() failed (%d)\n", ret);
-+		return;
-+	}
++What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/port
++Date:		January 2, 2006
++KernelVersion:	2.6.15
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	HCA port number (<port_number>).
 +
-+	ret = wait_event_timeout(target->qp_wq, target->last_recv_wqe,
-+				 target->rq_tmo_jiffies);
-+	WARN(ret <= 0, "Timeout while waiting for last recv WQE (ret = %d)\n",
-+	     ret);
-+}
++What:		/sys/class/scsi_host/host<n>/allow_ext_sg
++Date:		May 19, 2011
++KernelVersion:	2.6.39
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Whether ib_srp is allowed to include a partial memory
++		descriptor list in an SRP_CMD when communicating with an SRP
++		target.
 +
-+static void srp_wait_last_send_wqe(struct srp_target_port *target)
-+{
-+	static struct ib_send_wr wr = {
-+		.wr_id = SRP_LAST_SEND,
-+	};
-+	struct ib_send_wr *bad_wr;
-+	unsigned long deadline = jiffies + target->rq_tmo_jiffies;
-+	int ret;
++What:		/sys/class/scsi_host/host<n>/cmd_sg_entries
++Date:		May 19, 2011
++KernelVersion:	2.6.39
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Maximum number of data buffer descriptors that may be sent to
++		the target in a single SRP_CMD request.
 +
-+	if (target->last_send_wqe)
-+		return;
++What:		/sys/class/scsi_host/host<n>/dgid
++Date:		June 17, 2006
++KernelVersion:	2.6.17
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	InfiniBand destination GID used for communication with the SRP
++		target. Differs from orig_dgid if port redirection has happened.
 +
-+	ret = ib_post_send(target->qp, &wr, &bad_wr);
-+	if (ret < 0) {
-+		shost_printk(KERN_ERR, target->scsi_host,
-+			     "ib_post_send() failed (%d)\n", ret);
-+		return;
-+	}
++What:		/sys/class/scsi_host/host<n>/id_ext
++Date:		June 17, 2006
++KernelVersion:	2.6.17
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Eight-byte identifier extension portion of the 16-byte target
++		port identifier.
 +
-+	while (!target->last_send_wqe && time_before(jiffies, deadline)) {
-+		srp_send_completion(target->send_cq, target);
-+		msleep(20);
-+	}
++What:		/sys/class/scsi_host/host<n>/ioc_guid
++Date:		June 17, 2006
++KernelVersion:	2.6.17
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Eight-byte I/O controller GUID portion of the 16-byte target
++		port identifier.
 +
-+	WARN_ON(!target->last_send_wqe);
-+}
++What:		/sys/class/scsi_host/host<n>/local_ib_device
++Date:		November 29, 2006
++KernelVersion:	2.6.19
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Name of the InfiniBand HCA used for communicating with the
++		SRP target.
 +
- static void srp_disconnect_target(struct srp_target_port *target)
- {
-+	static struct ib_qp_attr qp_attr = {
-+		.qp_state = IB_QPS_ERR
-+	};
-+	int ret;
++What:		/sys/class/scsi_host/host<n>/local_ib_port
++Date:		November 29, 2006
++KernelVersion:	2.6.19
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Number of the HCA port used for communicating with the
++		SRP target.
 +
- 	if (srp_change_conn_state(target, false)) {
- 		/* XXX should send SRP_I_LOGOUT request */
- 
-+		BUG_ON(!target->cm_id);
++What:		/sys/class/scsi_host/host<n>/orig_dgid
++Date:		June 17, 2006
++KernelVersion:	2.6.17
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	InfiniBand destination GID specified in the parameters
++		written to the add_target sysfs attribute.
 +
- 		init_completion(&target->done);
- 		if (ib_send_cm_dreq(target->cm_id, NULL, 0)) {
- 			shost_printk(KERN_DEBUG, target->scsi_host,
-@@ -473,6 +533,20 @@ static void srp_disconnect_target(struct srp_target_port *target)
- 			wait_for_completion(&target->done);
- 		}
- 	}
++What:		/sys/class/scsi_host/host<n>/pkey
++Date:		June 17, 2006
++KernelVersion:	2.6.17
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	A 16-bit number representing the InfiniBand partition key used
++		for communication with the SRP target.
 +
-+	if (target->cm_id) {
-+		ib_destroy_cm_id(target->cm_id);
-+		target->cm_id = NULL;
-+	}
++What:		/sys/class/scsi_host/host<n>/req_lim
++Date:		October 20, 2010
++KernelVersion:	2.6.36
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Number of requests ib_srp can send to the target before it has
++		to wait for more credits. For more information see also the
++		SRP credit algorithm in the SRP specification.
 +
-+	if (target->qp) {
-+		ret = ib_modify_qp(target->qp, &qp_attr, IB_QP_STATE);
-+		WARN(ret != 0, "ib_modify_qp() failed: %d\n", ret);
++What:		/sys/class/scsi_host/host<n>/service_id
++Date:		June 17, 2006
++KernelVersion:	2.6.17
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	InfiniBand service ID used for establishing communication with
++		the SRP	target.
 +
-+		srp_wait_last_recv_wqe(target);
-+
-+		srp_wait_last_send_wqe(target);
-+	}
- }
- 
- static void srp_free_req_data(struct srp_target_port *target)
-@@ -516,7 +590,6 @@ static void srp_remove_target(struct srp_target_port *target)
- 	srp_remove_host(target->scsi_host);
- 	scsi_remove_host(target->scsi_host);
- 	srp_disconnect_target(target);
--	ib_destroy_cm_id(target->cm_id);
- 	srp_free_target_ib(target);
- 	srp_free_req_data(target);
- 	scsi_host_put(target->scsi_host);
-@@ -544,6 +617,8 @@ static int srp_connect_target(struct srp_target_port *target)
- 	WARN_ON(target->connected);
- 
- 	target->qp_in_error = false;
-+	target->last_recv_wqe = false;
-+	target->last_send_wqe = false;
- 
- 	ret = srp_lookup_path(target);
- 	if (ret)
-@@ -679,7 +754,6 @@ static int srp_reconnect_target(struct srp_target_port *target)
- {
- 	struct Scsi_Host *shost = target->scsi_host;
- 	struct ib_qp_attr qp_attr;
--	struct ib_wc wc;
- 	int i, ret;
- 
- 	if (target->state != SRP_TARGET_LIVE)
-@@ -705,11 +779,6 @@ static int srp_reconnect_target(struct srp_target_port *target)
- 	if (ret)
- 		goto err;
- 
--	while (ib_poll_cq(target->recv_cq, 1, &wc) > 0)
--		; /* nothing */
--	while (ib_poll_cq(target->send_cq, 1, &wc) > 0)
--		; /* nothing */
--
- 	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
- 		if (req->scmnd)
-@@ -1293,7 +1362,7 @@ static void srp_handle_qp_err(enum ib_wc_status wc_status,
- 			      enum ib_wc_opcode wc_opcode,
- 			      struct srp_target_port *target)
- {
--	if (target->connected)
-+	if (target->connected && !target->qp_in_error)
- 		shost_printk(KERN_ERR, target->scsi_host,
- 			     PFX "failed %s status %d\n",
- 			     wc_opcode & IB_WC_RECV ? "receive" : "send",
-@@ -1311,8 +1380,11 @@ static void srp_recv_completion(struct ib_cq *cq, void *target_ptr)
- 		if (likely(wc.status == IB_WC_SUCCESS)) {
- 			srp_handle_recv(target, &wc);
- 		} else {
-+			if (wc.wr_id == SRP_LAST_RECV) {
-+				target->last_recv_wqe = true;
-+				wake_up(&target->qp_wq);
-+			}
- 			srp_handle_qp_err(wc.status, wc.opcode, target);
--			break;
- 		}
- 	}
- }
-@@ -1328,8 +1400,9 @@ static void srp_send_completion(struct ib_cq *cq, void *target_ptr)
- 			iu = (struct srp_iu *) (uintptr_t) wc.wr_id;
- 			list_add(&iu->list, &target->free_tx);
- 		} else {
-+			if (wc.wr_id == SRP_LAST_SEND)
-+				target->last_send_wqe = true;
- 			srp_handle_qp_err(wc.status, wc.opcode, target);
--			break;
- 		}
- 	}
- }
-@@ -2260,6 +2333,7 @@ static ssize_t srp_create_target(struct device *dev,
- 	spin_lock_init(&target->lock);
- 	INIT_LIST_HEAD(&target->free_tx);
- 	INIT_LIST_HEAD(&target->free_reqs);
-+	init_waitqueue_head(&target->qp_wq);
- 	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
- 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index de2d0b3..1b11117 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -76,6 +76,9 @@ enum {
- 
- 	SRP_MAP_ALLOW_FMR	= 0,
- 	SRP_MAP_NO_FMR		= 1,
-+
-+	SRP_LAST_RECV		= 0,
-+	SRP_LAST_SEND		= 0,
- };
- 
- enum srp_target_state {
-@@ -180,6 +183,9 @@ struct srp_target_port {
- 	struct completion	done;
- 	int			status;
- 	bool			qp_in_error;
-+	bool			last_recv_wqe;
-+	bool			last_send_wqe;
-+	wait_queue_head_t	qp_wq;
- 
- 	struct completion	tsk_mgmt_done;
- 	u8			tsk_mgmt_status;
++What:		/sys/class/scsi_host/host<n>/zero_req_lim
++Date:		September 20, 2006
++KernelVersion:	2.6.18
++Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Number of times the initiator had to wait before sending a
++		request to the target because it ran out of credits. For more
++		information see also the SRP credit algorithm in the SRP
++		specification.
 -- 
 1.7.10.4
 
