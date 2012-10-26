@@ -1,76 +1,63 @@
-From: kenneth vitagliano <kenvitagliano-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Questions about IB_WR_RDMA_READ_WITH_INV and IB_WR_SEND_WITH_INV opcodes
-Date: Fri, 26 Oct 2012 13:32:04 +0200
-Message-ID: <CAKgG1fw4NKXWxtMsgC6iHe7FOMs1aBR3ouaWfjFAKmwFOaA-Uw@mail.gmail.com>
-References: <CAKgG1fzodm5qPmokjOG_OTsXOFmU+nd4H1z3Kqq-A-ixpYDO_w@mail.gmail.com>
-	<CAL1RGDUNX+hWScz5FGryp7bSV2-QBFGedAH5QtU3kJ-xJF=MJQ@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH 00/19, v5] Make ib_srp better suited for H.A. purposes
+Date: Fri, 26 Oct 2012 14:44:43 +0200
+Message-ID: <508A85BB.1000505@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUNX+hWScz5FGryp7bSV2-QBFGedAH5QtU3kJ-xJF=MJQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+This patch series makes the ib_srp driver better suited for use in a
+H.A. setup because:
+- multipathd is notified faster about transport layer failures.
+- Transport layer failures reliably result in SCSI host removal.
+- Switchover can be triggered explicitly by deleting an initiator
+   device.
+- Disconnecting from a target without unloading ib_srp is now possible.
 
-Thanks for your answer.
+This patch series is also available here:
+http://github.com/bvanassche/linux/commits/srp-ha
+And a backport of this patch series to kernels 3.6 and before is 
+available here: http://github.com/bvanassche/ib_srp-backport.
 
-I had a first quick look at the IB specs, but there are differences
-between what's in the specs and what I understand or noticed in OFED.
+Changes since v4:
+- Added a patch for removing SCSI devices upon a port down event
 
-Here is an example:
+Changes since v3:
+- Restored the dev_loss_tmo and fast_io_fail_tmo sysfs attributes.
+- Included a patch to fix an ib_srp crash that could be triggered by
+   cable pulling.
 
-10.6.5 INVALIDATION OF MEMORY REGIONS
-According to this chapter, there are 2 ways of invalidating:
-A local post send local invalidate
-A remote send with invalidate.
+Changes since v2:
+- Addressed the v2 review comments.
+- Dropped the patches that have already been merged.
+- Dropped the patches for integration with multipathd.
+- Dropped the micro-optimization of the IB completion handlers.
 
-For the local invalidation, the consumer must provide both lkey and
-rkey, and the MR handle.
-But in OFED, as far as I saw, the IB_WR_LOCAL_INV opcode only comes
-with wr.ex.invalidate_rkey. I looked at krping code as an example.
+The individual patches are:
+0001-ib_srp-Enlarge-block-layer-timeout.patch
+0002-ib_srp-Eliminate-state-SRP_TARGET_CONNECTING.patch
+0003-ib_srp-Introduce-srp_handle_qp_err.patch
+0004-ib_srp-Suppress-superfluous-error-messages.patch
+0005-ib_srp-Avoid-that-SCSI-error-handling-causes-trouble.patch
+0006-ib_srp-Introduce-the-helper-function-srp_remove_targ.patch
+0007-ib_srp-Eliminate-state-SRP_TARGET_DEAD.patch
+0008-ib_srp-Keep-processing-commands-during-host-removal.patch
+0009-ib_srp-Make-srp_disconnect_target-wait-for-IB-comple.patch
+0010-ib_srp-Document-sysfs-attributes.patch
+0011-srp_transport-Fix-atttribute-registration.patch
+0012-srp_transport-Simplify-attribute-initialization-code.patch
+0013-srp_transport-Document-sysfs-attributes.patch
+0014-ib_srp-Allow-SRP-disconnect-through-sysfs.patch
+0015-ib_srp-Maintain-a-single-connection-per-I_T-nexus.patch
+0016-srp_transport-Add-transport-layer-error-handling.patch
+0017-ib_srp-Add-dev_loss_tmo-support.patch
+0018-ib_srp-Remove-SCSI-devices-upon-port-down-event.patch
+0019-scsi_transport_srp-Fail-I-O-faster.patch
 
-For the send with invalidate, it is said the consumer must supply the
-remote rkey to be invalidated, which seems to match what's in OFED.
-
-It is said both the lkey and rkey are paced in the Free State after
-the invalidation.
-But as we just said, in both cases in OFED, only one key is provided.
-
-Which makes it unclear at the standard point of view: how is
-invalidated the remote lkey (by the remote side) when only the rkey is
-received in the send with invalidate operation? And as mentioned
-above, both keys are to be invalidated by the operation.
-And it's unclear at the OFED point of view, as all the information the
-standard mentions are not provided for invalidating locally.
-
-And there is no mention of a read with invalidate operation, which is
-available in OFED. And then again, why there is no write with
-invalidate in OFED?
-
-So that's why I'll continue digging into those specs, but I would
-prefer an OFED-specific explanations on those operations, or OFED
-examples  / use cases.
-
-Thanks,
-
-Kenneth
-
-2012/10/26 Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>:
-> On Thu, Oct 25, 2012 at 2:09 AM, kenneth vitagliano
-> <kenvitagliano-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> If there is any documentation with the answers to the questions below,
->> please link it to me, thanks.
->>
->> Can someone please confirm the usage of the post_send opcodes
->> IB_WR_RDMA_READ_WITH_INV and IB_WR_SEND_WITH_INV:
->
-> The best place to look for an explanation of this is the InfiniBand spec,
-> specifically the base memory management extensions.
->
->  - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
