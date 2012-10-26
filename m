@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 18/19] ib_srp: Remove SCSI devices upon port down event
-Date: Fri, 26 Oct 2012 14:58:00 +0200
-Message-ID: <508A88D8.2050905@acm.org>
+Subject: [PATCH 19/19] scsi_transport_srp: Fail I/O faster
+Date: Fri, 26 Oct 2012 14:58:42 +0200
+Message-ID: <508A8902.4010804@acm.org>
 References: <508A85BB.1000505@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -9,185 +9,202 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <508A85BB.1000505-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Karandeep Chahal <kchahal-LfVdkaOWEx8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is a modified version of a patch from Karandeep Chahal
-that was posted on May 29, 2012 on the linux-rdma mailing list
-(http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg11796.html).
+Start the transport layer failure timer if a SCSI timeout occurs.
 
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Karandeep Chahal <kchahal-LfVdkaOWEx8@public.gmane.org>
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   68 +++++++++++++++++++++++++++--------
- drivers/infiniband/ulp/srp/ib_srp.h |    1 +
- 2 files changed, 55 insertions(+), 14 deletions(-)
+ drivers/scsi/scsi_transport_srp.c |   95 ++++++++++++++++++++++++++-----------
+ include/scsi/scsi_transport_srp.h |    1 -
+ 2 files changed, 68 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 7ed0c26..91f86ea 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -451,13 +451,14 @@ static bool srp_change_state(struct srp_target_port *target,
- static bool srp_queue_remove_work(struct srp_target_port *target)
- {
- 	bool changed = false;
-+	unsigned long flags;
+diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
+index 8b452c6..a96647a 100644
+--- a/drivers/scsi/scsi_transport_srp.c
++++ b/drivers/scsi/scsi_transport_srp.c
+@@ -29,12 +29,15 @@
+ #include <scsi/scsi_device.h>
+ #include <scsi/scsi_host.h>
+ #include <scsi/scsi_transport.h>
++#include <scsi/scsi_cmnd.h>
+ #include <scsi/scsi_transport_srp.h>
+ #include "scsi_priv.h"
+ #include "scsi_transport_srp_internal.h"
  
--	spin_lock_irq(&target->lock);
-+	spin_lock_irqsave(&target->lock, flags);
- 	if (target->state != SRP_TARGET_REMOVED) {
- 		target->state = SRP_TARGET_REMOVED;
- 		changed = true;
- 	}
--	spin_unlock_irq(&target->lock);
-+	spin_unlock_irqrestore(&target->lock, flags);
+ struct srp_host_attrs {
+-	atomic_t next_port_id;
++	atomic_t	 next_port_id;
++	spinlock_t	 lock; /* protects rport */
++	struct srp_rport *rport;
+ };
+ #define to_srp_host_attrs(host)	((struct srp_host_attrs *)(host)->shost_data)
  
- 	if (changed)
- 		queue_work(system_long_wq, &target->remove_work);
-@@ -630,9 +631,9 @@ static void srp_remove_work(struct work_struct *work)
+@@ -67,6 +70,9 @@ static int srp_host_setup(struct transport_container *tc, struct device *dev,
+ 	struct srp_host_attrs *srp_host = to_srp_host_attrs(shost);
  
- 	WARN_ON(target->state != SRP_TARGET_REMOVED);
- 
--	spin_lock(&target->srp_host->target_lock);
-+	spin_lock_irq(&target->srp_host->target_lock);
- 	list_del(&target->list);
--	spin_unlock(&target->srp_host->target_lock);
-+	spin_unlock_irq(&target->srp_host->target_lock);
- 
- 	srp_remove_target(target);
- }
-@@ -653,7 +654,7 @@ static bool srp_conn_unique(struct srp_host *host,
- 	struct srp_target_port *t;
- 	bool ret = true;
- 
--	spin_lock(&host->target_lock);
-+	spin_lock_irq(&host->target_lock);
- 	list_for_each_entry(t, &host->target_list, list) {
- 		if (t != target &&
- 		    target->id_ext == t->id_ext &&
-@@ -663,7 +664,7 @@ static bool srp_conn_unique(struct srp_host *host,
- 			break;
- 		}
- 	}
--	spin_unlock(&host->target_lock);
-+	spin_unlock_irq(&host->target_lock);
- 
- 	return ret;
- }
-@@ -2487,9 +2488,9 @@ static ssize_t srp_create_target(struct device *dev,
- 	target->scsi_host_added = false;
- 
- 	mutex_lock(&target->mutex);
--	spin_lock(&host->target_lock);
-+	spin_lock_irq(&host->target_lock);
- 	list_add_tail(&target->list, &host->target_list);
--	spin_unlock(&host->target_lock);
-+	spin_unlock_irq(&host->target_lock);
- 
- 	if (!srp_change_state(target, SRP_TARGET_CONNECTING, SRP_TARGET_LIVE)) {
- 		ret = -ENOENT;
-@@ -2600,13 +2601,48 @@ free_host:
- 	return NULL;
+ 	atomic_set(&srp_host->next_port_id, 0);
++	spin_lock_init(&srp_host->lock);
++	srp_host->rport = NULL;
++
+ 	return 0;
  }
  
-+static void srp_host_remove_all(struct srp_host *host)
+@@ -308,6 +314,45 @@ void srp_stop_tl_fail_timers(struct srp_rport *rport)
+ }
+ EXPORT_SYMBOL(srp_stop_tl_fail_timers);
+ 
++/**
++ * srp_timed_out - SRP transport intercept of the SCSI timeout EH
++ *
++ * If a timeout occurs while an rport is in the blocked state, ask the SCSI
++ * EH to continue waiting (BLK_EH_RESET_TIMER). Otherwise let the SCSI core
++ * handle the timeout (BLK_EH_NOT_HANDLED). Also, if the rport is still
++ * present, start the SRP transport layer failure timers taking the time that
++ * has already elapsed into account.
++ *
++ * Note: This function is called from soft-IRQ context and with the request
++ * queue lock held.
++ */
++static enum blk_eh_timer_return srp_timed_out(struct scsi_cmnd *scmd)
 +{
-+	struct srp_target_port *target;
++	struct scsi_device *sdev = scmd->device;
++	struct srp_host_attrs *srp_host = to_srp_host_attrs(sdev->host);
++	struct srp_rport *rport;
++	struct request *req = scmd->request;
 +	unsigned long flags;
++	enum blk_eh_timer_return rtn;
 +
-+	spin_lock_irqsave(&host->target_lock, flags);
-+	list_for_each_entry(target, &host->target_list, list)
-+		srp_queue_remove_work(target);
-+	spin_unlock_irqrestore(&host->target_lock, flags);
-+}
-+
-+static void srp_event_handler(struct ib_event_handler *handler,
-+			      struct ib_event *event)
-+{
-+	struct srp_device *srp_dev = container_of(handler, struct srp_device,
-+						  event_handler);
-+	u8 port;
-+	struct srp_host *host;
-+
-+	switch (event->event) {
-+	case IB_EVENT_DEVICE_FATAL:
-+	case IB_EVENT_PORT_ERR:
-+		port = event->element.port_num;
-+		pr_info("an error occurred on port %s-%d\n", srp_dev->dev->name,
-+			port);
-+
-+		list_for_each_entry(host, &srp_dev->dev_list, list)
-+			if (host->port == port)
-+				srp_host_remove_all(host);
-+		break;
-+	default:
-+		break;
++	spin_lock_irqsave(&srp_host->lock, flags);
++	rport = srp_host->rport;
++	pr_err("%s() called for shost %s / rport %s\n", __func__,
++	       dev_name(&sdev->host->shost_gendev),
++	       rport ? dev_name(&rport->dev) : "(deleted)");
++	if (!rport) {
++		rtn = BLK_EH_NOT_HANDLED;
++	} else if (scsi_device_blocked(sdev)) {
++		rtn = BLK_EH_RESET_TIMER;
++	} else {
++		srp_start_tl_fail_timers(rport, req->timeout);
++		rtn = BLK_EH_NOT_HANDLED;
 +	}
++	spin_unlock_irqrestore(&srp_host->lock, flags);
++
++	return rtn;
 +}
 +
- static void srp_add_one(struct ib_device *device)
+ static void srp_rport_release(struct device *dev)
  {
- 	struct srp_device *srp_dev;
- 	struct ib_device_attr *dev_attr;
- 	struct ib_fmr_pool_param fmr_param;
- 	struct srp_host *host;
--	int max_pages_per_fmr, fmr_page_shift, s, e, p;
-+	int max_pages_per_fmr, fmr_page_shift, s, e, p, ret;
- 
- 	dev_attr = kmalloc(sizeof *dev_attr, GFP_KERNEL);
- 	if (!dev_attr)
-@@ -2680,6 +2716,12 @@ static void srp_add_one(struct ib_device *device)
- 			list_add_tail(&host->list, &srp_dev->dev_list);
- 	}
- 
-+	INIT_IB_EVENT_HANDLER(&srp_dev->event_handler, device,
-+			      srp_event_handler);
-+	ret = ib_register_event_handler(&srp_dev->event_handler);
-+	if (ret)
-+		pr_err("ib_register_event_handler() failed: %d", ret);
-+
- 	ib_set_client_data(device, &srp_client, srp_dev);
- 
- 	goto free_attr;
-@@ -2698,10 +2740,11 @@ static void srp_remove_one(struct ib_device *device)
+ 	struct srp_rport *rport = dev_to_rport(dev);
+@@ -370,6 +415,7 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
  {
- 	struct srp_device *srp_dev;
- 	struct srp_host *host, *tmp_host;
--	struct srp_target_port *target;
+ 	struct srp_rport *rport;
+ 	struct device *parent = &shost->shost_gendev;
++	struct srp_host_attrs *srp_host = to_srp_host_attrs(shost);
+ 	int id, ret;
  
- 	srp_dev = ib_get_client_data(device, &srp_client);
+ 	rport = kzalloc(sizeof(*rport), GFP_KERNEL);
+@@ -395,6 +441,10 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
  
-+	ib_unregister_event_handler(&srp_dev->event_handler);
+ 	transport_setup_device(&rport->dev);
+ 
++	spin_lock_irq(&srp_host->lock);
++	srp_host->rport = rport;
++	spin_unlock_irq(&srp_host->lock);
 +
- 	list_for_each_entry_safe(host, tmp_host, &srp_dev->dev_list, list) {
- 		device_unregister(&host->dev);
- 		/*
-@@ -2713,10 +2756,7 @@ static void srp_remove_one(struct ib_device *device)
- 		/*
- 		 * Remove all target ports.
- 		 */
--		spin_lock(&host->target_lock);
--		list_for_each_entry(target, &host->target_list, list)
--			srp_queue_remove_work(target);
--		spin_unlock(&host->target_lock);
-+		srp_host_remove_all(host);
+ 	ret = device_add(&rport->dev);
+ 	if (ret) {
+ 		transport_destroy_device(&rport->dev);
+@@ -422,50 +472,39 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
+ EXPORT_SYMBOL_GPL(srp_rport_add);
  
- 		/*
- 		 * Wait for target port removal tasks.
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 99485a3..f7841c8 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -107,6 +107,7 @@ struct srp_device {
- 	struct ib_pd	       *pd;
- 	struct ib_mr	       *mr;
- 	struct ib_fmr_pool     *fmr_pool;
-+	struct ib_event_handler event_handler;
- 	u64			fmr_page_mask;
- 	int			fmr_page_size;
- 	int			fmr_max_size;
+ /**
+- * srp_rport_del  -  remove a SRP remote port
+- * @rport:	SRP remote port to remove
++ * srp_remove_host  -  tear down a Scsi_Host's SRP data structures
++ * @shost:	Scsi Host that is torn down
+  *
+- * Removes the specified SRP remote port.
++ * Removes all SRP remote ports for a given Scsi_Host.
++ * Must be called just before scsi_remove_host for SRP HBAs.
+  */
+-void srp_rport_del(struct srp_rport *rport)
++void srp_remove_host(struct Scsi_Host *shost)
+ {
++	struct srp_host_attrs *srp_host = to_srp_host_attrs(shost);
++	struct srp_rport *rport = srp_host->rport;
+ 	struct device *dev = &rport->dev;
+-	struct Scsi_Host *shost = dev_to_shost(dev->parent);
++
++	BUG_ON(!rport);
+ 
+ 	device_remove_file(dev, &dev_attr_fast_io_fail_tmo);
+ 	device_remove_file(dev, &dev_attr_dev_loss_tmo);
+-	srp_stop_tl_fail_timers(rport);
+ 	scsi_target_unblock(rport->dev.parent, SDEV_RUNNING);
+ 
+ 	if (shost->active_mode & MODE_TARGET &&
+ 	    rport->roles == SRP_RPORT_ROLE_INITIATOR)
+ 		srp_tgt_it_nexus_destroy(shost, (unsigned long)rport);
+ 
++	spin_lock_irq(&srp_host->lock);
++	srp_host->rport = NULL;
++	spin_unlock_irq(&srp_host->lock);
++
++	srp_stop_tl_fail_timers(rport);
++
+ 	transport_remove_device(dev);
+ 	device_del(dev);
+ 	transport_destroy_device(dev);
+ 	put_device(dev);
+ }
+-EXPORT_SYMBOL_GPL(srp_rport_del);
+-
+-static int do_srp_rport_del(struct device *dev, void *data)
+-{
+-	if (scsi_is_srp_rport(dev))
+-		srp_rport_del(dev_to_rport(dev));
+-	return 0;
+-}
+-
+-/**
+- * srp_remove_host  -  tear down a Scsi_Host's SRP data structures
+- * @shost:	Scsi Host that is torn down
+- *
+- * Removes all SRP remote ports for a given Scsi_Host.
+- * Must be called just before scsi_remove_host for SRP HBAs.
+- */
+-void srp_remove_host(struct Scsi_Host *shost)
+-{
+-	device_for_each_child(&shost->shost_gendev, NULL, do_srp_rport_del);
+-}
+ EXPORT_SYMBOL_GPL(srp_remove_host);
+ 
+ static int srp_tsk_mgmt_response(struct Scsi_Host *shost, u64 nexus, u64 tm_id,
+@@ -495,6 +534,8 @@ srp_attach_transport(struct srp_function_template *ft)
+ 	if (!i)
+ 		return NULL;
+ 
++	i->t.eh_timed_out = srp_timed_out;
++
+ 	i->t.tsk_mgmt_response = srp_tsk_mgmt_response;
+ 	i->t.it_nexus_response = srp_it_nexus_response;
+ 
+diff --git a/include/scsi/scsi_transport_srp.h b/include/scsi/scsi_transport_srp.h
+index eb996db..c019e93 100644
+--- a/include/scsi/scsi_transport_srp.h
++++ b/include/scsi/scsi_transport_srp.h
+@@ -46,7 +46,6 @@ extern void srp_release_transport(struct scsi_transport_template *);
+ 
+ extern struct srp_rport *srp_rport_add(struct Scsi_Host *,
+ 				       struct srp_rport_identifiers *);
+-extern void srp_rport_del(struct srp_rport *);
+ extern void srp_start_tl_fail_timers(struct srp_rport *rport, int elapsed);
+ extern void srp_stop_tl_fail_timers(struct srp_rport *rport);
+ 
 -- 
 1.7.10.4
 
