@@ -1,62 +1,121 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 00/19, v5] Make ib_srp better suited for H.A. purposes
-Date: Fri, 26 Oct 2012 14:44:43 +0200
-Message-ID: <508A85BB.1000505@acm.org>
+Subject: [PATCH 01/19] ib_srp: Enlarge block layer timeout
+Date: Fri, 26 Oct 2012 14:45:45 +0200
+Message-ID: <508A85F9.7090306@acm.org>
+References: <508A85BB.1000505@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <508A85BB.1000505-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series makes the ib_srp driver better suited for use in a
-H.A. setup because:
-- multipathd is notified faster about transport layer failures.
-- Transport layer failures reliably result in SCSI host removal.
-- Switchover can be triggered explicitly by deleting an initiator
-   device.
-- Disconnecting from a target without unloading ib_srp is now possible.
+Enlarge the block layer timeout for disks such that it is above
+the InfiniBand transport layer timeout.
 
-This patch series is also available here:
-http://github.com/bvanassche/linux/commits/srp-ha
-And a backport of this patch series to kernels 3.6 and before is 
-available here: http://github.com/bvanassche/ib_srp-backport.
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |   45 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/ulp/srp/ib_srp.h |    2 ++
+ 2 files changed, 47 insertions(+)
 
-Changes since v4:
-- Added a patch for removing SCSI devices upon a port down event
-
-Changes since v3:
-- Restored the dev_loss_tmo and fast_io_fail_tmo sysfs attributes.
-- Included a patch to fix an ib_srp crash that could be triggered by
-   cable pulling.
-
-Changes since v2:
-- Addressed the v2 review comments.
-- Dropped the patches that have already been merged.
-- Dropped the patches for integration with multipathd.
-- Dropped the micro-optimization of the IB completion handlers.
-
-The individual patches are:
-0001-ib_srp-Enlarge-block-layer-timeout.patch
-0002-ib_srp-Eliminate-state-SRP_TARGET_CONNECTING.patch
-0003-ib_srp-Introduce-srp_handle_qp_err.patch
-0004-ib_srp-Suppress-superfluous-error-messages.patch
-0005-ib_srp-Avoid-that-SCSI-error-handling-causes-trouble.patch
-0006-ib_srp-Introduce-the-helper-function-srp_remove_targ.patch
-0007-ib_srp-Eliminate-state-SRP_TARGET_DEAD.patch
-0008-ib_srp-Keep-processing-commands-during-host-removal.patch
-0009-ib_srp-Make-srp_disconnect_target-wait-for-IB-comple.patch
-0010-ib_srp-Document-sysfs-attributes.patch
-0011-srp_transport-Fix-atttribute-registration.patch
-0012-srp_transport-Simplify-attribute-initialization-code.patch
-0013-srp_transport-Document-sysfs-attributes.patch
-0014-ib_srp-Allow-SRP-disconnect-through-sysfs.patch
-0015-ib_srp-Maintain-a-single-connection-per-I_T-nexus.patch
-0016-srp_transport-Add-transport-layer-error-handling.patch
-0017-ib_srp-Add-dev_loss_tmo-support.patch
-0018-ib_srp-Remove-SCSI-devices-upon-port-down-event.patch
-0019-scsi_transport_srp-Fail-I-O-faster.patch
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 922d845..6c0cd66 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1419,6 +1419,33 @@ err:
+ 	return -ENOMEM;
+ }
+ 
++static uint32_t srp_compute_rq_tmo(struct ib_qp_attr *qp_attr, int attr_mask)
++{
++	uint64_t T_tr_ns, max_compl_time_ms;
++	uint32_t rq_tmo_jiffies;
++
++	/*
++	 * According to section 11.2.4.2 in the IBTA spec (Modify Queue Pair,
++	 * table 91), both the QP timeout and the retry count have to be set
++	 * for RC QP's during the RTR to RTS transition.
++	 */
++	WARN_ON((attr_mask & (IB_QP_TIMEOUT | IB_QP_RETRY_CNT)) !=
++		(IB_QP_TIMEOUT | IB_QP_RETRY_CNT));
++
++	/*
++	 * Set target->rq_tmo_jiffies to one second more than the largest time
++	 * it can take before an error completion is generated. See also
++	 * C9-140..142 in the IBTA spec for more information about how to
++	 * convert the QP Local ACK Timeout value to nanoseconds.
++	 */
++	T_tr_ns = 4096 * (1ULL << qp_attr->timeout);
++	max_compl_time_ms = qp_attr->retry_cnt * 4 * T_tr_ns;
++	do_div(max_compl_time_ms, NSEC_PER_MSEC);
++	rq_tmo_jiffies = msecs_to_jiffies(max_compl_time_ms + 1000);
++
++	return rq_tmo_jiffies;
++}
++
+ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+ 			       struct srp_login_rsp *lrsp,
+ 			       struct srp_target_port *target)
+@@ -1478,6 +1505,8 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+ 	if (ret)
+ 		goto error_free;
+ 
++	target->rq_tmo_jiffies = srp_compute_rq_tmo(qp_attr, attr_mask);
++
+ 	ret = ib_modify_qp(target->qp, qp_attr, attr_mask);
+ 	if (ret)
+ 		goto error_free;
+@@ -1729,6 +1758,21 @@ static int srp_reset_host(struct scsi_cmnd *scmnd)
+ 	return ret;
+ }
+ 
++static int srp_slave_configure(struct scsi_device *sdev)
++{
++	struct Scsi_Host *shost = sdev->host;
++	struct srp_target_port *target = host_to_target(shost);
++	struct request_queue *q = sdev->request_queue;
++	unsigned long timeout;
++
++	if (sdev->type == TYPE_DISK) {
++		timeout = max_t(unsigned, 30 * HZ, target->rq_tmo_jiffies);
++		blk_queue_rq_timeout(q, timeout);
++	}
++
++	return 0;
++}
++
+ static ssize_t show_id_ext(struct device *dev, struct device_attribute *attr,
+ 			   char *buf)
+ {
+@@ -1861,6 +1905,7 @@ static struct scsi_host_template srp_template = {
+ 	.module				= THIS_MODULE,
+ 	.name				= "InfiniBand SRP initiator",
+ 	.proc_name			= DRV_NAME,
++	.slave_configure		= srp_slave_configure,
+ 	.info				= srp_target_info,
+ 	.queuecommand			= srp_queuecommand,
+ 	.eh_abort_handler		= srp_abort,
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 020caf0..e3a6304 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -163,6 +163,8 @@ struct srp_target_port {
+ 	struct ib_sa_query     *path_query;
+ 	int			path_query_id;
+ 
++	u32			rq_tmo_jiffies;
++
+ 	struct ib_cm_id	       *cm_id;
+ 
+ 	int			max_ti_iu_len;
+-- 
+1.7.10.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
