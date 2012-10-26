@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 01/19] ib_srp: Enlarge block layer timeout
-Date: Fri, 26 Oct 2012 14:45:45 +0200
-Message-ID: <508A85F9.7090306@acm.org>
+Subject: [PATCH 02/19] ib_srp: Eliminate state SRP_TARGET_CONNECTING
+Date: Fri, 26 Oct 2012 14:46:22 +0200
+Message-ID: <508A861E.4050303@acm.org>
 References: <508A85BB.1000505@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,107 +13,97 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Enlarge the block layer timeout for disks such that it is above
-the InfiniBand transport layer timeout.
+Block the SCSI host while reconnecting instead of representing
+the reconnection activity as a distinct SRP target state. This
+allows to eliminate the target state SRP_TARGET_CONNECTING.
 
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   45 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/ulp/srp/ib_srp.h |    2 ++
- 2 files changed, 47 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c |   18 ++++++++++--------
+ drivers/infiniband/ulp/srp/ib_srp.h |    1 -
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 922d845..6c0cd66 100644
+index 6c0cd66..ed89370 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1419,6 +1419,33 @@ err:
- 	return -ENOMEM;
- }
+@@ -646,13 +646,16 @@ static void srp_reset_req(struct srp_target_port *target, struct srp_request *re
  
-+static uint32_t srp_compute_rq_tmo(struct ib_qp_attr *qp_attr, int attr_mask)
-+{
-+	uint64_t T_tr_ns, max_compl_time_ms;
-+	uint32_t rq_tmo_jiffies;
-+
-+	/*
-+	 * According to section 11.2.4.2 in the IBTA spec (Modify Queue Pair,
-+	 * table 91), both the QP timeout and the retry count have to be set
-+	 * for RC QP's during the RTR to RTS transition.
-+	 */
-+	WARN_ON((attr_mask & (IB_QP_TIMEOUT | IB_QP_RETRY_CNT)) !=
-+		(IB_QP_TIMEOUT | IB_QP_RETRY_CNT));
-+
-+	/*
-+	 * Set target->rq_tmo_jiffies to one second more than the largest time
-+	 * it can take before an error completion is generated. See also
-+	 * C9-140..142 in the IBTA spec for more information about how to
-+	 * convert the QP Local ACK Timeout value to nanoseconds.
-+	 */
-+	T_tr_ns = 4096 * (1ULL << qp_attr->timeout);
-+	max_compl_time_ms = qp_attr->retry_cnt * 4 * T_tr_ns;
-+	do_div(max_compl_time_ms, NSEC_PER_MSEC);
-+	rq_tmo_jiffies = msecs_to_jiffies(max_compl_time_ms + 1000);
-+
-+	return rq_tmo_jiffies;
-+}
-+
- static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 			       struct srp_login_rsp *lrsp,
- 			       struct srp_target_port *target)
-@@ -1478,6 +1505,8 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 	if (ret)
- 		goto error_free;
- 
-+	target->rq_tmo_jiffies = srp_compute_rq_tmo(qp_attr, attr_mask);
-+
- 	ret = ib_modify_qp(target->qp, qp_attr, attr_mask);
- 	if (ret)
- 		goto error_free;
-@@ -1729,6 +1758,21 @@ static int srp_reset_host(struct scsi_cmnd *scmnd)
- 	return ret;
- }
- 
-+static int srp_slave_configure(struct scsi_device *sdev)
-+{
-+	struct Scsi_Host *shost = sdev->host;
-+	struct srp_target_port *target = host_to_target(shost);
-+	struct request_queue *q = sdev->request_queue;
-+	unsigned long timeout;
-+
-+	if (sdev->type == TYPE_DISK) {
-+		timeout = max_t(unsigned, 30 * HZ, target->rq_tmo_jiffies);
-+		blk_queue_rq_timeout(q, timeout);
-+	}
-+
-+	return 0;
-+}
-+
- static ssize_t show_id_ext(struct device *dev, struct device_attribute *attr,
- 			   char *buf)
+ static int srp_reconnect_target(struct srp_target_port *target)
  {
-@@ -1861,6 +1905,7 @@ static struct scsi_host_template srp_template = {
- 	.module				= THIS_MODULE,
- 	.name				= "InfiniBand SRP initiator",
- 	.proc_name			= DRV_NAME,
-+	.slave_configure		= srp_slave_configure,
- 	.info				= srp_target_info,
- 	.queuecommand			= srp_queuecommand,
- 	.eh_abort_handler		= srp_abort,
++	struct Scsi_Host *shost = target->scsi_host;
+ 	struct ib_qp_attr qp_attr;
+ 	struct ib_wc wc;
+ 	int i, ret;
+ 
+-	if (!srp_change_state(target, SRP_TARGET_LIVE, SRP_TARGET_CONNECTING))
++	if (target->state != SRP_TARGET_LIVE)
+ 		return -EAGAIN;
+ 
++	scsi_target_block(&shost->shost_gendev);
++
+ 	srp_disconnect_target(target);
+ 	/*
+ 	 * Now get a new local CM ID so that we avoid confusing the
+@@ -691,12 +694,15 @@ static int srp_reconnect_target(struct srp_target_port *target)
+ 	if (ret)
+ 		goto err;
+ 
+-	if (!srp_change_state(target, SRP_TARGET_CONNECTING, SRP_TARGET_LIVE))
+-		ret = -EAGAIN;
++	scsi_target_unblock(&shost->shost_gendev, SDEV_RUNNING);
++
++	shost_printk(KERN_INFO, target->scsi_host, PFX "reconnect succeeded\n");
+ 
+ 	return ret;
+ 
+ err:
++	scsi_target_unblock(&shost->shost_gendev, SDEV_TRANSPORT_OFFLINE);
++
+ 	shost_printk(KERN_ERR, target->scsi_host,
+ 		     PFX "reconnect failed (%d), removing target port.\n", ret);
+ 
+@@ -710,7 +716,7 @@ err:
+ 	 * the flush_scheduled_work() in srp_remove_one().
+ 	 */
+ 	spin_lock_irq(&target->lock);
+-	if (target->state == SRP_TARGET_CONNECTING) {
++	if (target->state == SRP_TARGET_LIVE) {
+ 		target->state = SRP_TARGET_DEAD;
+ 		INIT_WORK(&target->work, srp_remove_work);
+ 		queue_work(ib_wq, &target->work);
+@@ -1311,9 +1317,6 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 	unsigned long flags;
+ 	int len;
+ 
+-	if (target->state == SRP_TARGET_CONNECTING)
+-		goto err;
+-
+ 	if (target->state == SRP_TARGET_DEAD ||
+ 	    target->state == SRP_TARGET_REMOVED) {
+ 		scmnd->result = DID_BAD_TARGET << 16;
+@@ -1377,7 +1380,6 @@ err_iu:
+ err_unlock:
+ 	spin_unlock_irqrestore(&target->lock, flags);
+ 
+-err:
+ 	return SCSI_MLQUEUE_HOST_BUSY;
+ }
+ 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 020caf0..e3a6304 100644
+index e3a6304..8b436ce 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.h
 +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -163,6 +163,8 @@ struct srp_target_port {
- 	struct ib_sa_query     *path_query;
- 	int			path_query_id;
+@@ -80,7 +80,6 @@ enum {
  
-+	u32			rq_tmo_jiffies;
-+
- 	struct ib_cm_id	       *cm_id;
- 
- 	int			max_ti_iu_len;
+ enum srp_target_state {
+ 	SRP_TARGET_LIVE,
+-	SRP_TARGET_CONNECTING,
+ 	SRP_TARGET_DEAD,
+ 	SRP_TARGET_REMOVED
+ };
 -- 
 1.7.10.4
 
