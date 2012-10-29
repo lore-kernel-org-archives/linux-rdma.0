@@ -1,72 +1,63 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: some warnings seen while building librdmacm 1.0.16
-Date: Mon, 29 Oct 2012 14:09:24 +0200
-Message-ID: <508E71F4.8080205@mellanox.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH 2/2] opensm: Protect against spurious wakeups when calling
+	cl_event_wait_on
+Date: Mon, 29 Oct 2012 16:45:02 -0700
+Message-ID: <1351554302.25353.21.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sean,
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ opensm/osm_congestion_control.c |    4 ++--
+ opensm/osm_perfmgr.c            |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-FYI -- the below warnings seen while building librdmacm 1.0.16 with gcc 
-4.4.6 through rpmbuild
+diff --git a/opensm/osm_congestion_control.c b/opensm/osm_congestion_control.c
+index b5d9cdb..e103ab1 100644
+--- a/opensm/osm_congestion_control.c
++++ b/opensm/osm_congestion_control.c
+@@ -525,8 +525,8 @@ static void cc_poller_send(osm_congestion_control_t *p_cc,
+ 	status = osm_vendor_send(p_cc->bind_handle, p_madw, TRUE);
+ 	if (status == IB_SUCCESS) {
+ 		cl_atomic_inc(&p_cc->outstanding_mads_on_wire);
+-		if (p_cc->outstanding_mads_on_wire >
+-		    (int32_t)p_opt->cc_max_outstanding_mads)
++		while (p_cc->outstanding_mads_on_wire >
++		       (int32_t)p_opt->cc_max_outstanding_mads)
+ 			cl_event_wait_on(&p_cc->sig_mads_on_wire_continue,
+ 					 EVENT_NO_TIMEOUT,
+ 					 TRUE);
+diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
+index 98b4c07..d8f933e 100644
+--- a/opensm/osm_perfmgr.c
++++ b/opensm/osm_perfmgr.c
+@@ -419,13 +419,13 @@ static ib_api_status_t perfmgr_send_pc_mad(osm_perfmgr_t * perfmgr,
+ 	if (status == IB_SUCCESS) {
+ 		/* pause thread if there are too many outstanding requests */
+ 		cl_atomic_inc(&(perfmgr->outstanding_queries));
+-		if (perfmgr->outstanding_queries >
+-		    (int32_t)perfmgr->max_outstanding_queries) {
++		while (perfmgr->outstanding_queries >
++		       (int32_t)perfmgr->max_outstanding_queries) {
+ 			perfmgr->sweep_state = PERFMGR_SWEEP_SUSPENDED;
+ 			cl_event_wait_on(&perfmgr->sig_query, EVENT_NO_TIMEOUT,
+ 					 TRUE);
+-			perfmgr->sweep_state = PERFMGR_SWEEP_ACTIVE;
+ 		}
++		perfmgr->sweep_state = PERFMGR_SWEEP_ACTIVE;
+ 	}
+ 
+ 	OSM_LOG_EXIT(perfmgr->log);
+-- 
+1.7.1
 
-Or.
 
-> make[1]: Entering directory `/root/rpmbuild/BUILD/librdmacm-1.0.16'
->   CC     src_librdmacm_la-cma.lo
->   CC     src_librdmacm_la-addrinfo.lo
->   CC     src_librdmacm_la-acm.lo
->   CC     src_librdmacm_la-rsocket.lo
->   CC     src_librdmacm_la-indexer.lo
->   CC     src_librspreload_la-preload.lo
->   CC     src_librspreload_la-indexer.lo
->   CC     cmatose.o
->   CC     common.o
->   CC     rping.o
->   CC     udaddy.o
->   CC     mckey.o
->   CC     rdma_client.o
->   CC     rdma_server.o
->   CC     rdma_xclient.o
->   CC     rdma_xserver.o
->   CC     rstream.o
-> src/rsocket.c: In function 'rs_configure':
-> src/rsocket.c:223: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:228: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:236: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:241: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:246: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:254: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> examples/mckey.c: In function 'run':
-> examples/mckey.c:473: warning: dereferencing pointer 'sib' does break 
-> strict-aliasing rules
-> examples/mckey.c:471: note: initialized from here
->   CC     rcopy.o
->   CCLD   src/librdmacm.la
->   CCLD   src/librspreload.la
->   CCLD   examples/ucmatose
->   CCLD   examples/rping
->   CCLD   examples/udaddy
->   CCLD   examples/mckey
->   CCLD   examples/rdma_client
->   CCLD   examples/rdma_server
->   CCLD   examples/rdma_xclient
->   CCLD   examples/rstream
->   CCLD   examples/rdma_xserver
->   CCLD   examples/rcopy
-> make[1]: Leaving directory `/root/rpmbuild/BUILD/librdmacm-1.0.16'
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
