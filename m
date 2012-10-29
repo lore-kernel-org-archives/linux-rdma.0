@@ -1,56 +1,37 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Fri, 26 Oct 2012 12:55:00 -0700
-Message-ID: <1351281300-27825-1-git-send-email-roland@kernel.org>
+From: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
+Subject: Re: [PATCH] IB/lmx4: silence GCC warning
+Date: Mon, 29 Oct 2012 10:50:01 +0100
+Message-ID: <1351504201.1339.4.camel@x61.thuisdomein>
+References: <1348836538.3626.21.camel@x61.thuisdomein>
+	 <201210100923.43927.jackm@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201210100923.43927.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+On Wed, 2012-10-10 at 09:23 +0200, Jack Morgenstein wrote:
+> You could use:
+> 
+>    u16 uninitialized_var(vlan);
+> 
+> instead.
 
-Please pull from
+I guess we'd better just wait and see whether uninitialized_var()
+survives before discussing your suggestion (see the thread starting at
+https://lkml.org/lkml/2012/10/26/508 ).
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+> Although this in the special QP data flow, I still prefer to avoid adding extra code (even setting
+> initial values at procedure entry).  The line above will also do the job.  "uninitialized_var"
+> is used elsewhere in the driver.  See, for example, mlx4_ib_post_send() in the same file (qp.c).
 
-----------------------------------------------------------------
 
-Small batch of fixes for 3.7:
- - Fix crash in error path in cxgb4
- - Fix build error on 32 bits in mlx4
- - Fix SR-IOV bugs in mlx4
+Paul Bolle
 
-----------------------------------------------------------------
-Dotan Barak (1):
-      mlx4_core: Perform correct resource cleanup if mlx4_QUERY_ADAPTER() fails
-
-Doug Ledford (1):
-      IB/mlx4: Fix build error on platforms where UL is not 64 bits
-
-Eli Cohen (1):
-      IB/mlx4: Synchronize cleanup of MCGs in MCG paravirtualization
-
-Jack Morgenstein (1):
-      IB/mlx4: Fix QP1 P_Key processing in the Primary Physical Function (PPF)
-
-Or Gerlitz (1):
-      mlx4_core: Remove annoying debug messages from SR-IOV flow
-
-Roland Dreier (1):
-      Merge branches 'cxgb4' and 'mlx4' into for-next
-
-Thadeu Lima de Souza Cascardo (1):
-      RDMA/cxgb4: Don't free chunk that we have failed to allocate
-
- drivers/infiniband/hw/cxgb4/mem.c                  |    2 +-
- drivers/infiniband/hw/mlx4/alias_GUID.c            |    2 +-
- drivers/infiniband/hw/mlx4/mad.c                   |   85 +++++++++-----------
- drivers/infiniband/hw/mlx4/mcg.c                   |   18 +++--
- drivers/net/ethernet/mellanox/mlx4/eq.c            |    6 --
- drivers/net/ethernet/mellanox/mlx4/main.c          |    5 +-
- .../net/ethernet/mellanox/mlx4/resource_tracker.c  |    6 --
- 7 files changed, 56 insertions(+), 68 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
