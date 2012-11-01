@@ -1,45 +1,49 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH 2/2] opensm: Protect against spurious wakeups when calling cl_event_wait_on
-Date: Thu, 1 Nov 2012 00:59:58 -0700
-Message-ID: <CAL1RGDXg39pKOaUcmsZA_HBdFH0XX313PzONDXgEv9F51JrCRQ@mail.gmail.com>
-References: <1351554302.25353.21.camel@auk59.llnl.gov>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] infiniband-diags/ibsysstat.c: Fix non default OUI operation
+Date: Thu, 01 Nov 2012 08:35:41 -0400
+Message-ID: <50926C9D.3000200@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1351554302.25353.21.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shaked Tzadok <shakedt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 29, 2012 at 4:45 PM, Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org> wrote:
-> @@ -525,8 +525,8 @@ static void cc_poller_send(osm_congestion_control_t *p_cc,
->         status = osm_vendor_send(p_cc->bind_handle, p_madw, TRUE);
->         if (status == IB_SUCCESS) {
->                 cl_atomic_inc(&p_cc->outstanding_mads_on_wire);
-> -               if (p_cc->outstanding_mads_on_wire >
-> -                   (int32_t)p_opt->cc_max_outstanding_mads)
-> +               while (p_cc->outstanding_mads_on_wire >
-> +                      (int32_t)p_opt->cc_max_outstanding_mads)
->                         cl_event_wait_on(&p_cc->sig_mads_on_wire_continue,
->                                          EVENT_NO_TIMEOUT,
->                                          TRUE);
 
-I've never looked at the opensm code -- I'm just guessing based on this patch.
-
-But is this (both original and patched) code susceptible to a missed
-wakeup race?
-
-ie
-
-    if (outstanding_mads > max) // <-- decide to go to sleep here
-
-// other thread signals wakeup, we're not asleep yet
-
-        cl_event_wait_on(...); // <-- we've already missed the wakeup,
-sleep forever.
-
- - R.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/ibsysstat.c b/src/ibsysstat.c
+index d798fe2..eb876d4 100644
+--- a/src/ibsysstat.c
++++ b/src/ibsysstat.c
+@@ -63,6 +63,7 @@ typedef struct cpu_info {
+ 
+ static cpu_info cpus[MAX_CPUS];
+ static int host_ncpu;
++static int server = 0, oui = IB_OPENIB_OUI;
+ 
+ static int server_respond(void *umad, int size)
+ {
+@@ -222,7 +223,7 @@ static char *ibsystat(ib_portid_t * portid, int attr)
+ 	rpc.method = IB_MAD_METHOD_GET;
+ 	rpc.attr.id = attr;
+ 	rpc.attr.mod = 0;
+-	rpc.oui = IB_OPENIB_OUI;
++	rpc.oui = oui;
+ 	rpc.timeout = 0;
+ 	rpc.datasz = IB_VENDOR_RANGE2_DATA_SIZE;
+ 	rpc.dataoffs = IB_VENDOR_RANGE2_DATA_OFFS;
+@@ -293,8 +294,6 @@ int build_cpuinfo(void)
+ 	return ncpu;
+ }
+ 
+-static int server = 0, oui = IB_OPENIB_OUI;
+-
+ static int process_opt(void *context, int ch, char *optarg)
+ {
+ 	switch (ch) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
