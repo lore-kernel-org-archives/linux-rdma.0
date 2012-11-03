@@ -1,117 +1,73 @@
-From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] RDMA/nes: Fix for sending fpdus in order to hardware
-Date: Fri, 2 Nov 2012 18:17:54 -0500
-Message-ID: <20121102231754.GA5780@TENIKOLO-MOBL>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 16/16] drivers/infiniband/hw/nes: use WARN
+Date: Sat,  3 Nov 2012 11:58:37 +0100
+Message-ID: <1351940317-14812-17-git-send-email-Julia.Lawall@lip6.fr>
+References: <1351940317-14812-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1351940317-14812-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faisal Latif <faisal.latif@intel.com>
+Cc: kernel-janitors@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Locking fix to prevent race conditions. Fpdus (per qp) need to be forwarded 
-to hardware in the order of their sequence numbers.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Signed-off-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Donald Wood <Donald.E.Wood-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Use WARN rather than printk followed by WARN_ON(1), for conciseness.
+
+A simplified version of the semantic patch that makes this transformation
+is as follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression list es;
+@@
+
+-printk(
++WARN(1,
+  es);
+-WARN_ON(1);
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/infiniband/hw/nes/nes_mgt.c |   23 ++++++++++-------------
- 1 files changed, 10 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/nes/nes_cm.c  |    6 ++----
+ drivers/infiniband/hw/nes/nes_mgt.c |    6 ++----
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index cfaacaf..8a15a1d 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -629,11 +629,9 @@ static void build_rdma0_msg(struct nes_cm_node *cm_node, struct nes_qp **nesqp_a
+ 
+ 	case SEND_RDMA_READ_ZERO:
+ 	default:
+-		if (cm_node->send_rdma0_op != SEND_RDMA_READ_ZERO) {
+-			printk(KERN_ERR "%s[%u]: Unsupported RDMA0 len operation=%u\n",
++		if (cm_node->send_rdma0_op != SEND_RDMA_READ_ZERO)
++			WARN(1, KERN_ERR "%s[%u]: Unsupported RDMA0 len operation=%u\n",
+ 				 __func__, __LINE__, cm_node->send_rdma0_op);
+-			WARN_ON(1);
+-		}
+ 		nes_debug(NES_DBG_CM, "Sending first rdma operation.\n");
+ 		wqe->wqe_words[NES_IWARP_SQ_WQE_MISC_IDX] =
+ 			cpu_to_le32(NES_IWARP_SQ_OP_RDMAR);
 diff --git a/drivers/infiniband/hw/nes/nes_mgt.c b/drivers/infiniband/hw/nes/nes_mgt.c
-index 2d710e1..07cbf86 100644
+index 3ba7be3..53bb88c 100644
 --- a/drivers/infiniband/hw/nes/nes_mgt.c
 +++ b/drivers/infiniband/hw/nes/nes_mgt.c
-@@ -247,7 +247,6 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
- 	struct nes_rskb_cb *cb;
- 	struct pau_fpdu_info *fpdu_info = NULL;
- 	struct pau_fpdu_frag frags[MAX_FPDU_FRAGS];
--	unsigned long flags;
- 	u32 fpdu_len = 0;
- 	u32 tmp_len;
- 	int frag_cnt = 0;
-@@ -262,12 +261,10 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
+@@ -649,11 +649,9 @@ static void nes_chg_qh_handler(struct nes_device *nesdev, struct nes_cqp_request
+ 	nesqp = qh_chg->nesqp;
  
- 	*pau_fpdu_info = NULL;
- 
--	spin_lock_irqsave(&nesqp->pau_lock, flags);
- 	skb = nes_get_next_skb(nesdev, nesqp, NULL, nesqp->pau_rcv_nxt, &ack, &wnd, &fin_rcvd, &rst_rcvd);
--	if (!skb) {
--		spin_unlock_irqrestore(&nesqp->pau_lock, flags);
-+	if (!skb)
- 		goto out;
+ 	/* Should we handle the bad completion */
+-	if (cqp_request->major_code) {
+-		printk(KERN_ERR PFX "Invalid cqp_request major_code=0x%x\n",
++	if (cqp_request->major_code)
++		WARN(1, KERN_ERR PFX "Invalid cqp_request major_code=0x%x\n",
+ 		       cqp_request->major_code);
+-		WARN_ON(1);
 -	}
-+
- 	cb = (struct nes_rskb_cb *)&skb->cb[0];
- 	if (skb->len) {
- 		fpdu_len = be16_to_cpu(*(__be16 *) skb->data) + MPA_FRAMING;
-@@ -292,10 +289,9 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
  
- 			skb = nes_get_next_skb(nesdev, nesqp, skb,
- 					       nesqp->pau_rcv_nxt + frag_tot, &ack, &wnd, &fin_rcvd, &rst_rcvd);
--			if (!skb) {
--				spin_unlock_irqrestore(&nesqp->pau_lock, flags);
-+			if (!skb)
- 				goto out;
--			} else if (rst_rcvd) {
-+			if (rst_rcvd) {
- 				/* rst received in the middle of fpdu */
- 				for (; i >= 0; i--) {
- 					skb_unlink(frags[i].skb, &nesqp->pau_list);
-@@ -322,8 +318,6 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
- 		frag_cnt = 1;
- 	}
- 
--	spin_unlock_irqrestore(&nesqp->pau_lock, flags);
--
- 	/* Found one */
- 	fpdu_info = kzalloc(sizeof(*fpdu_info), GFP_ATOMIC);
- 	if (fpdu_info == NULL) {
-@@ -385,10 +379,8 @@ static int get_fpdu_info(struct nes_device *nesdev, struct nes_qp *nesqp,
- 
- 		if (frags[i].skb->len == 0) {
- 			/* Pull skb off the list - it will be freed in the callback */
--			spin_lock_irqsave(&nesqp->pau_lock, flags);
- 			if (!skb_queue_empty(&nesqp->pau_list))
- 				skb_unlink(frags[i].skb, &nesqp->pau_list);
--			spin_unlock_irqrestore(&nesqp->pau_lock, flags);
- 		} else {
- 			/* Last skb still has data so update the seq */
- 			iph = (struct iphdr *)(cb->data_start + ETH_HLEN);
-@@ -417,14 +409,18 @@ static int forward_fpdus(struct nes_vnic *nesvnic, struct nes_qp *nesqp)
- 	struct pau_fpdu_info *fpdu_info;
- 	struct nes_hw_cqp_wqe *cqp_wqe;
- 	struct nes_cqp_request *cqp_request;
-+	unsigned long flags;
- 	u64 u64tmp;
- 	u32 u32tmp;
- 	int rc;
- 
- 	while (1) {
-+		spin_lock_irqsave(&nesqp->pau_lock, flags);
- 		rc = get_fpdu_info(nesdev, nesqp, &fpdu_info);
--		if (fpdu_info == NULL)
-+		if (rc || (fpdu_info == NULL)) {
-+			spin_unlock_irqrestore(&nesqp->pau_lock, flags);
- 			return rc;
-+		}
- 
- 		cqp_request = fpdu_info->cqp_request;
- 		cqp_wqe = &cqp_request->cqp_wqe;
-@@ -478,6 +474,7 @@ static int forward_fpdus(struct nes_vnic *nesvnic, struct nes_qp *nesqp)
- 
- 		atomic_set(&cqp_request->refcount, 1);
- 		nes_post_cqp_request(nesdev, cqp_request);
-+		spin_unlock_irqrestore(&nesqp->pau_lock, flags);
- 	}
- 
- 	return 0;
--- 
-1.7.4.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	switch (nesqp->pau_state) {
+ 	case PAU_DEL_QH:
