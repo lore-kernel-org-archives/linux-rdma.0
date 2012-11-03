@@ -1,7 +1,7 @@
 From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 8/16] drivers/infiniband/hw/cxgb3/iwch_cm.c: use WARN
-Date: Sat,  3 Nov 2012 11:58:29 +0100
-Message-ID: <1351940317-14812-9-git-send-email-Julia.Lawall@lip6.fr>
+Subject: [PATCH 6/16] drivers/infiniband/hw/cxgb4/cm.c: use WARN
+Date: Sat,  3 Nov 2012 11:58:27 +0100
+Message-ID: <1351940317-14812-7-git-send-email-Julia.Lawall@lip6.fr>
 References: <1351940317-14812-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1351940317-14812-1-git-send-email-Julia.Lawall@lip6.fr>
@@ -31,32 +31,32 @@ expression list es;
 Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
 ---
- drivers/infiniband/hw/cxgb3/iwch_cm.c |    6 ++----
+ drivers/infiniband/hw/cxgb4/cm.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_cm.c b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-index aaf88ef..8baaf0d 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_cm.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-@@ -128,9 +128,8 @@ static void stop_ep_timer(struct iwch_ep *ep)
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 6cfd4d8..ed048b9 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -151,9 +151,8 @@ static void stop_ep_timer(struct c4iw_ep *ep)
  {
  	PDBG("%s ep %p\n", __func__, ep);
  	if (!timer_pending(&ep->timer)) {
--		printk(KERN_ERR "%s timer stopped when its not running!  ep %p state %u\n",
-+		WARN(1, KERN_ERR "%s timer stopped when its not running!  ep %p state %u\n",
- 			__func__, ep, ep->com.state);
+-		printk(KERN_ERR "%s timer stopped when its not running! "
++		WARN(1, KERN_ERR "%s timer stopped when its not running! "
+ 		       "ep %p state %u\n", __func__, ep, ep->com.state);
 -		WARN_ON(1);
  		return;
  	}
  	del_timer_sync(&ep->timer);
-@@ -1756,9 +1755,8 @@ static void ep_timeout(unsigned long arg)
+@@ -2551,9 +2550,8 @@ static void process_timeout(struct c4iw_ep *ep)
  		__state_set(&ep->com, ABORTING);
  		break;
  	default:
--		printk(KERN_ERR "%s unexpected state ep %p state %u\n",
-+		WARN(1, KERN_ERR "%s unexpected state ep %p state %u\n",
- 			__func__, ep, ep->com.state);
+-		printk(KERN_ERR "%s unexpected state ep %p tid %u state %u\n",
++		WARN(1, KERN_ERR "%s unexpected state ep %p tid %u state %u\n",
+ 			__func__, ep, ep->hwtid, ep->com.state);
 -		WARN_ON(1);
  		abort = 0;
  	}
- 	spin_unlock_irqrestore(&ep->com.lock, flags);
+ 	mutex_unlock(&ep->com.mutex);
