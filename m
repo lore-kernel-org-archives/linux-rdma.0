@@ -1,20 +1,18 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 6/16] drivers/infiniband/hw/cxgb4/cm.c: use WARN
-Date: Sat, 03 Nov 2012 07:40:49 -0500
-Message-ID: <509510D1.10200@opengridcomputing.com>
-References: <1351940317-14812-1-git-send-email-Julia.Lawall@lip6.fr> <1351940317-14812-7-git-send-email-Julia.Lawall@lip6.fr>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: merging printk and WARN
+Date: Sun, 4 Nov 2012 21:25:53 +0100 (CET)
+Message-ID: <alpine.DEB.2.02.1211042120200.1960@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1351940317-14812-7-git-send-email-Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Return-path: <linux-btrfs-owner@vger.kernel.org>
+Sender: linux-btrfs-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, airlied@linux.ie, netdev@vger.kernel.org, arnd@arndb.de, joern@logfs.org, chris.mason@fusionio.com, m@bues.ch, jejb@parisc-linux.org, faisal.latif@intel.com, neilb@suse.de, gregkh@linuxfoundation.org, JBottomley@parallels.com, swise@chelsio.com, achim_leubner@adaptec.comswise@chelsio.com, tytso@mit.edu
+Cc: dri-devel@lists.freedesktop.org, jason.wessel@windriver.com, kgdb-bugreport@lists.sourceforge.net, Prasad Joshi <prasadjoshi.linux@gmail.com>, logfs@logfs.org, linux-btrfs@vger.kernel.org, Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-raid@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-ext4@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It looks like these patches were not a good idea, because in each case the 
+printk provides an error level, and WARN then provides another one.
+
+Sorry for the noise.
+
+julia
