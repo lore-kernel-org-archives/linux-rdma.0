@@ -1,18 +1,24 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: merging printk and WARN
-Date: Sun, 4 Nov 2012 21:25:53 +0100 (CET)
-Message-ID: <alpine.DEB.2.02.1211042120200.1960@localhost6.localdomain6>
+From: Bryce W Baase <BBaase-xTIiAfElhVIFoamAvNoUFIdd74u8MsAO@public.gmane.org>
+Subject: =?iso-8859-1?Q?Hall=E5?=
+Date: Mon, 5 Nov 2012 06:11:22 -0500
+Message-ID: <2817E2B836E6B04A88213E09D82B7AAB0208BA2D0216__40752.403115812$1352113926$gmane$org@oc-mail-srv1.OlivetCollege.edu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, airlied@linux.ie, netdev@vger.kernel.org, arnd@arndb.de, joern@logfs.org, chris.mason@fusionio.com, m@bues.ch, jejb@parisc-linux.org, faisal.latif@intel.com, neilb@suse.de, gregkh@linuxfoundation.org, JBottomley@parallels.com, swise@chelsio.com, achim_leubner@adaptec.comswise@chelsio.com, tytso@mit.edu
-Cc: dri-devel@lists.freedesktop.org, jason.wessel@windriver.com, kgdb-bugreport@lists.sourceforge.net, Prasad Joshi <prasadjoshi.linux@gmail.com>, logfs@logfs.org, linux-btrfs@vger.kernel.org, Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-raid@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, Andreas Dilger <adilger.kernel@dilger.ca>, linux-ext4@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-It looks like these patches were not a good idea, because in each case the 
-printk provides an error level, and WARN then provides another one.
-
-Sorry for the noise.
-
-julia
+Hall=E5
+Jag anv=E4nder detta medium f=F6r att informera er om en =F6msesidig tr=
+ansaktion som inneb=E4r =F6verf=F6ring av $ 21.500.000 i min bank i Kin=
+a, f=F6r att informera dig som mottagare. T Du kan n=E5 mig p=E5 sangcc=
+hin-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org<mailto:sangcchin-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org> f=F6r mer information.
+H=E4lsningar
+Sang Chin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
