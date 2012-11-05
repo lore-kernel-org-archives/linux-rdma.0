@@ -1,32 +1,32 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB: fix task hanging on error recovery
-Date: Mon, 5 Nov 2012 09:51:24 -0800
-Message-ID: <CAL1RGDWQnyHighw4vV67ReapEyTJHr4xuKfdRzqJhJP9d5AQVg@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB: fix task hanging on error recovery
+Date: Mon, 5 Nov 2012 18:21:08 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237346AC5B9F@ORSMSX101.amr.corp.intel.com>
 References: <1350683896-3928-1-git-send-email-klebers@linux.vnet.ibm.com>
+ <50929160.1000109@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1350683896-3928-1-git-send-email-klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <50929160.1000109-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 19, 2012 at 2:58 PM, Kleber Sacilotto de Souza
-<klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org> wrote:
->  void rdma_addr_unregister_client(struct rdma_addr_client *client)
->  {
->         put_client(client);
-> -       wait_for_completion(&client->comp);
-> +       wait_for_completion_timeout(&client->comp, 5*HZ);
->  }
->  EXPORT_SYMBOL(rdma_addr_unregister_client);
+> >   drivers/infiniband/core/ucm.c         |    2 +-
+> >   drivers/infiniband/core/ucma.c        |    2 +-
+> 
+> On these files, as far as I understand this code from quick looking, I'm
+> not sure on what
+> exactly the completion objects protects, Sean?
 
-This type of change looks pretty risky to me.  Aren't we just letting
-things continue with a potential use-after-free hanging around?
+These protect against the caller trying to destroy an object that is in use.  For example, it handles the case where the user calls 'connect' on a given context, then calls 'destroy' on that same context from another thread.
 
-Where does 5 seconds as a timeout come from?  Can we be confident that
-nothing will complete client->comp after 5 seconds?
+We shouldn't need to deal with any timeouts at this level.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
