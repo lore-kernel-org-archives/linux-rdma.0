@@ -1,55 +1,86 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] opensm: Protect against spurious wakeups when
- calling cl_event_wait_on
-Date: Thu, 8 Nov 2012 14:14:43 +0200
-Message-ID: <20121108121443.GA25740@calypso>
-References: <1351554302.25353.21.camel@auk59.llnl.gov>
- <CAL1RGDXg39pKOaUcmsZA_HBdFH0XX313PzONDXgEv9F51JrCRQ@mail.gmail.com>
- <20121101180834.GA20151@obsidianresearch.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] opensm: update performance manager documentation
+Date: Thu, 8 Nov 2012 08:22:37 -0800
+Message-ID: <20121108082237.74d8a7fe8b310be6cbfd68a0@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20121101180834.GA20151-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12:08 Thu 01 Nov     , Jason Gunthorpe wrote:
-> On Thu, Nov 01, 2012 at 12:59:58AM -0700, Roland Dreier wrote:
-> > On Mon, Oct 29, 2012 at 4:45 PM, Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org> wrote:
-> > > @@ -525,8 +525,8 @@ static void cc_poller_send(osm_congestion_control_t *p_cc,
-> > >         status = osm_vendor_send(p_cc->bind_handle, p_madw, TRUE);
-> > >         if (status == IB_SUCCESS) {
-> > >                 cl_atomic_inc(&p_cc->outstanding_mads_on_wire);
-> > > -               if (p_cc->outstanding_mads_on_wire >
-> > > -                   (int32_t)p_opt->cc_max_outstanding_mads)
-> > > +               while (p_cc->outstanding_mads_on_wire >
-> > > +                      (int32_t)p_opt->cc_max_outstanding_mads)
-> > >                         cl_event_wait_on(&p_cc->sig_mads_on_wire_continue,
-> > >                                          EVENT_NO_TIMEOUT,
-> > >                                          TRUE);
-> > 
-> > I've never looked at the opensm code -- I'm just guessing based on this patch.
-> 
-> The event objects have a hidden built in state that ensures a wake up
-> is not lost, so long as only one thread ever calls wait_on. If it is
-> possible two threads could be sleeping on the same event then the
-> system is unfixably-broken-by-design, since on thread will eat the
-> internal event and the other will thus miss it, in a racy way.
-> 
-> I've had to clean this kind of a mess up in other code bases, and now
-> always discourage this kind of interface. Use POSIX condition
-> variables, they have cleaner locking semantics and are easier to audit
-> for correctness.
-> 
 
-Right now only one thread is sleeping on the signal (for both CC and PM), so
-it's safe to apply the patch as is. However improvements in that area are more
-than welcomed.
 
--- Alex
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ doc/performance-manager-HOWTO.txt |   35 ++++++++---------------------------
+ 1 files changed, 8 insertions(+), 27 deletions(-)
+
+diff --git a/doc/performance-manager-HOWTO.txt b/doc/performance-manager-HOWTO.txt
+index 11f4185..7471c6f 100644
+--- a/doc/performance-manager-HOWTO.txt
++++ b/doc/performance-manager-HOWTO.txt
+@@ -45,23 +45,13 @@ Using the Performance Manager consists of 3 steps:
+ Step 1: Compile in support for the Performance Manager
+ ------------------------------------------------------
+ 
+-Because of the performance manager's experimental status, it is not enabled at
+-compile time by default.  (This will hopefully soon change as more people use
+-it and confirm that it does not break things...  ;-)  The configure option is
+-"--enable-perf-mgr".
+-
+ At this time it is really best to enable the console socket option as well.
+-OpenSM can be run in an "interactive" mode.  But with the console socket option
+-turned on one can also make a connection to a running OpenSM.  The console
+-option is "--enable-console-socket".  This option requires the use of
+-tcp_wrappers to ensure security.  Please be aware of your configuration for
+-tcp_wrappers as the commands presented in the console can affect the operation
+-of your subnet.
+-
+-The following configure line includes turning on the performance manager as
+-well as the console:
+-
+-	./configure --enable-perf-mgr --enable-console-socket
++OpenSM can be run in an "interactive" mode.  But with the console socket
++option turned on one can also make a connection to a running OpenSM.  By
++default only "loopback" is enabled with the console with socket being a
++compile time option.  Regardless, please be aware of your network security
++configuration for as the commands presented in the console can affect the
++operation of your subnet.
+ 
+ 
+ Step 2: Enable the perfmgr and console in opensm.conf
+@@ -83,23 +73,14 @@ the opensm.conf config file.  (Default location is
+ Also enable the console socket and configure the port for it to listen to if
+ desired.
+ 
+-	# console [off|local|socket]
++	# console [off|local|loopback]
+ 	console socket
+ 
+ 	# Telnet port for console (default 10000)
+ 	console_port 10000
+ 
+-As noted above you also need to set up tcp_wrappers to prevent unauthorized
+-users from connecting to the console.[*]
+-
+-	[*] As an alternate you can use the loopback mode but I noticed when
+-	writing this (OpenSM v3.1.10; OFED 1.3) that there are some bugs in
+-	specifying the loopback mode in the opensm.conf file.  Look for this to
+-	be fixed in newer versions.
++	"local" is only useful if you run OpenSM in the foreground.
+ 
+-	[**] Also you could use "local" but this is only useful if you run
+-	OpenSM in the foreground of a terminal.  As OpenSM is usually started
+-	as a daemon I left this out as an option.
+ 
+ Step 3: retrieve data which has been collected
+ ----------------------------------------------
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
