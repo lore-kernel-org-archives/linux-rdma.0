@@ -1,39 +1,47 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] opensm/osm_perfmgr_db.c: Fix output error due to possible
-	32bit int overflow
-Date: Thu, 08 Nov 2012 10:32:59 -0800
-Message-ID: <1352399579.25353.106.camel@auk59.llnl.gov>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH][MINOR] Add Per Module Logging support for Congestion Manager
+Date: Fri, 09 Nov 2012 08:36:46 -0500
+Message-ID: <509D06EE.4070507@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_perfmgr_db.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/opensm/osm_perfmgr_db.c b/opensm/osm_perfmgr_db.c
-index 98b587d..6095e1a 100644
---- a/opensm/osm_perfmgr_db.c
-+++ b/opensm/osm_perfmgr_db.c
-@@ -705,7 +705,7 @@ static void dump_hr_dc(FILE *fp, uint64_t val64, int data)
- 	uint64_t tmp = val64;
- 	float val = 0.0;
- 	int ui = 0;
--	int div = 1;
-+	uint64_t div = 1;
+diff --git a/include/opensm/osm_file_ids.h b/include/opensm/osm_file_ids.h
+index 713a0f9..e23710c 100644
+--- a/include/opensm/osm_file_ids.h
++++ b/include/opensm/osm_file_ids.h
+@@ -149,6 +149,7 @@ typedef enum _osm_file_ids_enum {
+ 	OSM_FILE_VL_ARB_RCV_C,
+ 	OSM_FILE_ST_C,
+ 	OSM_FILE_UCAST_DFSSSP_C,
++	OSM_FILE_CONGESTION_CONTROL_C,
+ } osm_file_ids_enum;
+ /***********/
  
- 	tmp /= 1024;
- 	while (tmp) {
--- 
-1.7.1
-
-
-
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index b9a491b..0056049 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -184,9 +184,10 @@ static const char *module_name_str[] = {
+ 	"osm_vl_arb_rcv.c",
+ 	"st.c",
+ 	"osm_ucast_dfsssp.c",
++	"osm_congestion_control.c",
+ 	/* Add new module names here ... */
+ 	/* FILE_ID define in those modules must be identical to index here */
+-	/* last FILE_ID is currently 88 */
++	/* last FILE_ID is currently 89 */
+ };
+ 
+ #define MOD_NAME_STR_UNKNOWN_VAL (ARR_SIZE(module_name_str))
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
