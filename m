@@ -1,47 +1,139 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH][MINOR] Add Per Module Logging support for Congestion Manager
-Date: Fri, 09 Nov 2012 08:36:46 -0500
-Message-ID: <509D06EE.4070507@dev.mellanox.co.il>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] opensm: Add better error output when parsing node name maps
+Date: Fri, 09 Nov 2012 13:55:24 -0800
+Message-ID: <1352498124.25353.139.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Presently, any error in opening a node name map file leads
+to a generic:
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+"WARNING failed to open node name map"
+
+error.  This patch adds better error output when the issue
+is specifically parsing errors in the file.  The user
+will get:
+
+"WARNING failed to parse node name map"
+
+and an output of the line with the particular issue.
+
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
-diff --git a/include/opensm/osm_file_ids.h b/include/opensm/osm_file_ids.h
-index 713a0f9..e23710c 100644
---- a/include/opensm/osm_file_ids.h
-+++ b/include/opensm/osm_file_ids.h
-@@ -149,6 +149,7 @@ typedef enum _osm_file_ids_enum {
- 	OSM_FILE_VL_ARB_RCV_C,
- 	OSM_FILE_ST_C,
- 	OSM_FILE_UCAST_DFSSSP_C,
-+	OSM_FILE_CONGESTION_CONTROL_C,
- } osm_file_ids_enum;
- /***********/
+ complib/cl_nodenamemap.c |   55 ++++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 48 insertions(+), 7 deletions(-)
+
+diff --git a/complib/cl_nodenamemap.c b/complib/cl_nodenamemap.c
+index a99d46d..f47ad40 100644
+--- a/complib/cl_nodenamemap.c
++++ b/complib/cl_nodenamemap.c
+@@ -43,8 +43,18 @@
+ #include <unistd.h>
+ #include <ctype.h>
+ #include <config.h>
++#include <errno.h>
  
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index b9a491b..0056049 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -184,9 +184,10 @@ static const char *module_name_str[] = {
- 	"osm_vl_arb_rcv.c",
- 	"st.c",
- 	"osm_ucast_dfsssp.c",
-+	"osm_congestion_control.c",
- 	/* Add new module names here ... */
- 	/* FILE_ID define in those modules must be identical to index here */
--	/* last FILE_ID is currently 88 */
-+	/* last FILE_ID is currently 89 */
- };
+ #include <complib/cl_nodenamemap.h>
++#include <complib/cl_math.h>
++
++#define PARSE_NODE_MAP_BUFLEN  256
++
++static int parse_node_map_wrap(const char *file_name,
++			       int (*create)(void *, uint64_t, char *),
++			       void *cxt,
++			       char *linebuf,
++			       unsigned int linebuflen);
  
- #define MOD_NAME_STR_UNKNOWN_VAL (ARR_SIZE(module_name_str))
+ static int map_name(void *cxt, uint64_t guid, char *p)
+ {
+@@ -67,6 +77,7 @@ static int map_name(void *cxt, uint64_t guid, char *p)
+ nn_map_t *open_node_name_map(char *node_name_map)
+ {
+ 	nn_map_t *map;
++	char linebuf[PARSE_NODE_MAP_BUFLEN + 1];
+ 
+ 	if (!node_name_map) {
+ #ifdef HAVE_DEFAULT_NODENAME_MAP
+@@ -84,10 +95,23 @@ nn_map_t *open_node_name_map(char *node_name_map)
+ 		return NULL;
+ 	cl_qmap_init(map);
+ 
+-	if (parse_node_map(node_name_map, map_name, map)) {
+-		fprintf(stderr,
+-			"WARNING failed to open node name map \"%s\" (%s)\n",
+-			node_name_map, strerror(errno));
++	memset(linebuf, '\0', PARSE_NODE_MAP_BUFLEN + 1);
++	if (parse_node_map_wrap(node_name_map, map_name, map,
++				linebuf, PARSE_NODE_MAP_BUFLEN)) {
++		if (errno == EIO) {
++			fprintf(stderr,
++				"WARNING failed to parse node name map "
++				"\"%s\"\n",
++				node_name_map);
++			fprintf(stderr,
++				"WARNING failed line: \"%s\"\n",
++				linebuf);
++		}
++		else
++			fprintf(stderr,
++				"WARNING failed to open node name map "
++				"\"%s\" (%s)\n",
++				node_name_map, strerror(errno));
+ 		close_node_name_map(map);
+ 		return NULL;
+ 	}
+@@ -144,10 +168,13 @@ char *clean_nodedesc(char *nodedesc)
+ 	return (nodedesc);
+ }
+ 
+-int parse_node_map(const char *file_name,
+-		   int (*create) (void *, uint64_t, char *), void *cxt)
++static int parse_node_map_wrap(const char *file_name,
++			       int (*create) (void *, uint64_t, char *),
++			       void *cxt,
++			       char *linebuf,
++			       unsigned int linebuflen)
+ {
+-	char line[256];
++	char line[PARSE_NODE_MAP_BUFLEN];
+ 	FILE *f;
+ 
+ 	if (!(f = fopen(file_name, "r")))
+@@ -166,6 +193,14 @@ int parse_node_map(const char *file_name,
+ 		guid = strtoull(p, &e, 0);
+ 		if (e == p || (!isspace(*e) && *e != '#' && *e != '\0')) {
+ 			fclose(f);
++			errno = EIO;
++			if (linebuf) {
++				memcpy(linebuf, line,
++				       MIN(PARSE_NODE_MAP_BUFLEN, linebuflen));
++				e = strpbrk(linebuf, "\n");
++				if (e)
++					*e = '\0';
++			}
+ 			return -1;
+ 		}
+ 
+@@ -186,3 +221,9 @@ int parse_node_map(const char *file_name,
+ 	fclose(f);
+ 	return 0;
+ }
++
++int parse_node_map(const char *file_name,
++		   int (*create) (void *, uint64_t, char *), void *cxt)
++{
++	return parse_node_map_wrap(file_name, create, cxt, NULL, 0);
++}
+-- 
+1.7.1
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
