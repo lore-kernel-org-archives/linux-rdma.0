@@ -1,138 +1,39 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] opensm: Add better error output when parsing node name maps
-Date: Fri, 09 Nov 2012 13:55:24 -0800
-Message-ID: <1352498124.25353.139.camel@auk59.llnl.gov>
+From: David McMillen <mcmillen-WVYJKLFxKCc@public.gmane.org>
+Subject: RDMA in command pipeline
+Date: Sun, 11 Nov 2012 00:35:51 +0000
+Message-ID: <7B15327CDAFA6946913A74B184E11390068C8244@CFWEX01.americas.cray.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Presently, any error in opening a node name map file leads
-to a generic:
 
-"WARNING failed to open node name map"
+I would like to use the speed of RDMA when doing pipelines, especially those over a network that might support RDMA.  For example, right now I'd like to do the following:
 
-error.  This patch adds better error output when the issue
-is specifically parsing errors in the file.  The user
-will get:
+dd if=/dev/sdd bs=1024k | ssh othersystem dd bs=1024k of=/dev/sde
 
-"WARNING failed to parse node name map"
+If those two dd commands could connect standard out and standard in with RDMA over a FDR infiniband, the disks would have to do 6 GB/s to keep up.
 
-and an output of the line with the particular issue.
+I see two problems to overcome:
 
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- complib/cl_nodenamemap.c |   55 ++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 48 insertions(+), 7 deletions(-)
+ 1) The normal pipes in most systems are much slower than RDMA transfers, so just creating a RDMA enabled replacement for ssh in that command does not solve the problem.
 
-diff --git a/complib/cl_nodenamemap.c b/complib/cl_nodenamemap.c
-index a99d46d..f47ad40 100644
---- a/complib/cl_nodenamemap.c
-+++ b/complib/cl_nodenamemap.c
-@@ -43,8 +43,18 @@
- #include <unistd.h>
- #include <ctype.h>
- #include <config.h>
-+#include <errno.h>
- 
- #include <complib/cl_nodenamemap.h>
-+#include <complib/cl_math.h>
-+
-+#define PARSE_NODE_MAP_BUFLEN  256
-+
-+static int parse_node_map_wrap(const char *file_name,
-+			       int (*create)(void *, uint64_t, char *),
-+			       void *cxt,
-+			       char *linebuf,
-+			       unsigned int linebuflen);
- 
- static int map_name(void *cxt, uint64_t guid, char *p)
- {
-@@ -67,6 +77,7 @@ static int map_name(void *cxt, uint64_t guid, char *p)
- nn_map_t *open_node_name_map(char *node_name_map)
- {
- 	nn_map_t *map;
-+	char linebuf[PARSE_NODE_MAP_BUFLEN + 1];
- 
- 	if (!node_name_map) {
- #ifdef HAVE_DEFAULT_NODENAME_MAP
-@@ -84,10 +95,23 @@ nn_map_t *open_node_name_map(char *node_name_map)
- 		return NULL;
- 	cl_qmap_init(map);
- 
--	if (parse_node_map(node_name_map, map_name, map)) {
--		fprintf(stderr,
--			"WARNING failed to open node name map \"%s\" (%s)\n",
--			node_name_map, strerror(errno));
-+	memset(linebuf, '\0', PARSE_NODE_MAP_BUFLEN + 1);
-+	if (parse_node_map_wrap(node_name_map, map_name, map,
-+				linebuf, PARSE_NODE_MAP_BUFLEN)) {
-+		if (errno == EIO) {
-+			fprintf(stderr,
-+				"WARNING failed to parse node name map "
-+				"\"%s\"\n",
-+				node_name_map);
-+			fprintf(stderr,
-+				"WARNING failed line: \"%s\"\n",
-+				linebuf);
-+		}
-+		else
-+			fprintf(stderr,
-+				"WARNING failed to open node name map "
-+				"\"%s\" (%s)\n",
-+				node_name_map, strerror(errno));
- 		close_node_name_map(map);
- 		return NULL;
- 	}
-@@ -144,10 +168,13 @@ char *clean_nodedesc(char *nodedesc)
- 	return (nodedesc);
- }
- 
--int parse_node_map(const char *file_name,
--		   int (*create) (void *, uint64_t, char *), void *cxt)
-+static int parse_node_map_wrap(const char *file_name,
-+			       int (*create) (void *, uint64_t, char *),
-+			       void *cxt,
-+			       char *linebuf,
-+			       unsigned int linebuflen)
- {
--	char line[256];
-+	char line[PARSE_NODE_MAP_BUFLEN];
- 	FILE *f;
- 
- 	if (!(f = fopen(file_name, "r")))
-@@ -166,6 +193,14 @@ int parse_node_map(const char *file_name,
- 		guid = strtoull(p, &e, 0);
- 		if (e == p || (!isspace(*e) && *e != '#' && *e != '\0')) {
- 			fclose(f);
-+			errno = EIO;
-+			if (linebuf) {
-+				memcpy(linebuf, line,
-+				       MIN(PARSE_NODE_MAP_BUFLEN, linebuflen));
-+				e = strpbrk(linebuf, "\n");
-+				if (e)
-+					*e = '\0';
-+			}
- 			return -1;
- 		}
- 
-@@ -186,3 +221,9 @@ int parse_node_map(const char *file_name,
- 	fclose(f);
- 	return 0;
- }
-+
-+int parse_node_map(const char *file_name,
-+		   int (*create) (void *, uint64_t, char *), void *cxt)
-+{
-+	return parse_node_map_wrap(file_name, create, cxt, NULL, 0);
-+}
--- 
-1.7.1
+ 2) Creating a replacement for ssh is a difficult task, and given what I want to do probably compromises ssh too much to be a reasonable option to add.
 
+Maybe I am not being creative enough?
 
+At the moment, I am leaning toward custom versions of programs that could use the speed, like tar and dd.  I would add something that would change their use of standard in and standard out to instead use RDMA functionality.  Any thoughts on how that syntax might be included are appreciated.
+
+I still would like to use ssh as the basic mechanism to reach out to another node and authenticate.  However, it is impossible to see the underlying socket that the two ends of ssh are using, since the commands in the pipeline only see some form of local pipe.  Any bright ideas on how to sort this out?  I haven't even figured out a way to get a list of RDMA enabled endpoints that are on a node, at least in a form suitable for a call to rdma_bind_addr() or some predecessor to rdma_connect() needs.
+
+It seems like this would be a useful capability to have. If there is something out there, please point me to it.  Otherwise, I am going to have to do something on my own.   I'd be willing to make sure it is suitable for general use if I get some comments back about what that would be.
+
+Thanks,
+    Dave McMillen
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
