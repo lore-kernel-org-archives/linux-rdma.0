@@ -1,43 +1,53 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/1] ib_srp: Infiniband srp fast failover patch.
-Date: Tue, 13 Nov 2012 01:10:41 +0200
-Message-ID: <CAJZOPZL0cj6Sb_xs7prV0k8HjWkELD7Y89Bxxp-xXnnGqxvXyg@mail.gmail.com>
-References: <4FC53AAA.3060203@ddn.com>
-	<1338354377.2361.13.camel@obelisk.thedillows.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] Remove bashisms from infiniband-diags
+Date: Mon, 12 Nov 2012 15:22:54 -0800
+Message-ID: <20121112152254.c3d092185861a95aaec570d8@llnl.gov>
+References: <alpine.BSF.2.00.1211111101390.70593@toaster.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1338354377.2361.13.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+In-Reply-To: <alpine.BSF.2.00.1211111101390.70593-Fqwm7F1mg36Nj9Bq2fkWzw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Karandeep Chahal <kchahal-LfVdkaOWEx8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 30, 2012 at 7:06 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
-> On Tue, 2012-05-29 at 17:07 -0400, Karandeep Chahal wrote:
->> Subject: [PATCH] Infiniband srp fast failover patch.
->
-> This conflicts with Bart's patches to improve failover; it will be much
-> better to use his approach to block the target rather than remove it
-> wholesale -- we could have lost connectivity as a transient and may get
-> it back quickly if someone grabbed the wrong cable, etc.
->
-> Also, we should only kill the one target on DREQ, and we already have a
-> pointer to it from the CM context -- no need to search.
->
-> It is a good idea to hook into the event mechanism;
 
-Dave,
+On Sun, 11 Nov 2012 11:05:32 -0800
+Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-I wonder why this hooking is the correct way to go, if the IB link
-went down for very short time, why should we care, what's missing in
-relying on probes done by HA SW such as multipath and RC timeouts?
+> Signed-off-by: Garrett Cooper <gcooper-nKaf5Oxk4VbQT0dZR+AlfA@public.gmane.org>
 
-Or.
+Please note that the following scripts are _deprecated_ and should no longer
+be used.
 
-> this is something I've long wanted to incorporate (as Vu did in OFED). I'm looking at
-> getting Bart's series to a point I can merge it, and I'll pull in your
-> ideas -- with credit -- there.
+ scripts/ibcheckerrors.in    |  6 +++---
+ scripts/ibcheckerrs.in      | 12 ++++++------
+ scripts/ibchecknet.in       |  6 +++---
+ scripts/ibchecknode.in      |  8 ++++----
+ scripts/ibcheckport.in      |  8 ++++----
+ scripts/ibcheckportstate.in |  8 ++++----
+ scripts/ibcheckportwidth.in |  8 ++++----
+ scripts/ibcheckstate.in     |  6 +++---
+ scripts/ibcheckwidth.in     |  6 +++---
+ scripts/ibclearcounters.in  |  6 +++---
+ scripts/ibclearerrors.in    |  6 +++---
+ scripts/ibdatacounters.in   |  6 +++---
+ scripts/ibdatacounts.in     |  8 ++++----
+ scripts/set_nodedesc.sh     |  2 +-
+
+That said, what are you trying to fix here?  Is there a reason bash can't be used on your system?
+
+Thanks,
+Ira
+
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
