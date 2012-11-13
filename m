@@ -1,19 +1,19 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Subject: Re: [PATCH 00/19, v5] Make ib_srp better suited for H.A. purposes
-Date: Tue, 13 Nov 2012 09:34:08 +0100
-Message-ID: <50A20600.9070509@acm.org>
-References: <508A85BB.1000505@acm.org> <CAJZOPZLHg84M3RUV00itGSGUZsigW0yw=TLOe6K63mUXH5v1pQ@mail.gmail.com>
+Date: Tue, 13 Nov 2012 09:41:57 +0100
+Message-ID: <50A207D5.6060207@acm.org>
+References: <508A85BB.1000505@acm.org> <CAJZOPZJPQkJ-kkW3ro9sRJXQJg_Yz_tjoJ1Rwb=XEePO3j_iJw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLHg84M3RUV00itGSGUZsigW0yw=TLOe6K63mUXH5v1pQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJZOPZJPQkJ-kkW3ro9sRJXQJg_Yz_tjoJ1Rwb=XEePO3j_iJw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/12/12 23:51, Or Gerlitz wrote:
+On 11/12/12 23:36, Or Gerlitz wrote:
 > Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
 >> This patch series makes the ib_srp driver better suited for use in a H.A. setup because:
 >> - multipathd is notified faster about transport layer failures.
@@ -21,54 +21,30 @@ On 11/12/12 23:51, Or Gerlitz wrote:
 >> - Switchover can be triggered explicitly by deleting an initiator device.
 >> - Disconnecting from a target without unloading ib_srp is now possible.
 >
-> Hi Bart,
->
-> Few more questions/comments,
->
->> The individual patches are:
->> 0001-ib_srp-Enlarge-block-layer-timeout.patch
->> 0002-ib_srp-Eliminate-state-SRP_TARGET_CONNECTING.patch
->> 0003-ib_srp-Introduce-srp_handle_qp_err.patch
->> 0004-ib_srp-Suppress-superfluous-error-messages.patch
->> 0005-ib_srp-Avoid-that-SCSI-error-handling-causes-trouble.patch
->> 0006-ib_srp-Introduce-the-helper-function-srp_remove_targ.patch
->> 0007-ib_srp-Eliminate-state-SRP_TARGET_DEAD.patch
->> 0008-ib_srp-Keep-processing-commands-during-host-removal.patch
->> 0009-ib_srp-Make-srp_disconnect_target-wait-for-IB-comple.patch
->> 0010-ib_srp-Document-sysfs-attributes.patch
->> 0011-srp_transport-Fix-atttribute-registration.patch
->> 0012-srp_transport-Simplify-attribute-initialization-code.patch
->> 0013-srp_transport-Document-sysfs-attributes.patch
->> 0014-ib_srp-Allow-SRP-disconnect-through-sysfs.patch
->> 0015-ib_srp-Maintain-a-single-connection-per-I_T-nexus.patch
->> 0016-srp_transport-Add-transport-layer-error-handling.patch
->> 0017-ib_srp-Add-dev_loss_tmo-support.patch
->> 0018-ib_srp-Remove-SCSI-devices-upon-port-down-event.patch
->> 0019-scsi_transport_srp-Fail-I-O-faster.patch
->
-> I understand that as a whole, this series makes SRP to function better
-> in HA schemes, however, can you break this list of patches to cleanups,
-> new functionality and actual HA related bug fixes and concrete
-> improvements. Also, if you can spare some high level words on the
-> design directions/decisions taken as the patch series evolved, as this
-> effort in underway for some time now.
+> Can you describe few use cases, HA tests which don't pass w.o these
+> patches and do pass or react better with them?
 
-The goal of this patch series is to reduce path failover time in a 
-multipath setup. I've done my best to indicate in the patch descriptions 
-which patches are cleanup patches and which patches introduce new 
-functionality. Which patches should be considered bug fixes depends on 
-what is considered a bug - is it e.g. considered a bug that it can take 
-more than 60s with the upstream SRP initiator before multipathd switches 
-paths ? Is it considered a bug that the upstream SRP initiator does not 
-remove SCSI hosts that correspond to failed paths ?
+This patch series reduces path failover time significantly. Instead of 
+having to wait until the SCSI error handler has finished recovery, 
+multipathd switches paths as soon as fast_fail_tmo has elapsed. Also, 
+SCSI hosts that correspond to failed paths are removed. With the 
+upstream SRP initiator and when triggering path failover repeatedly 
+after some time hundreds of obsolete SCSI hosts are present.
 
-> Also for V6 -- next-time -- etc, please make sure to have Vn to appear
-> in the [PATCH] brackets, as it critical when folks browse between
-> different versions/postings of your to the same patch set, if you use
-> git format-patch, this is easily achieved with --subject-prefix="PATCH
-> Vn"
+>> Changes since v2:
+> [...]
+>> - Dropped the patches for integration with multipathd.
+> can you explain this please? are  these non SRP patches which we
+> submitted/accepted
+> through another maintainer? can you point on the upstream commits?
 
-Thanks, will do.
+With that comment I was referring to the dev_loss_tmo and 
+fast_io_fail_tmo sysfs variables that had been dropped in v2 of this 
+patch set but that have been reintroduced in v3 of this patch set. If 
+these parameters have been set in /etc/multipath.conf then multipathd 
+passes these on to the block driver (ib_srp in this case), at least the 
+block driver provides the dev_loss_tmo and fast_io_fail_tmo sysfs 
+attributes.
 
 Bart.
 
