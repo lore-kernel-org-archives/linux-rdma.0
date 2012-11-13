@@ -1,56 +1,76 @@
-From: Karandeep Chahal <kchahal-LfVdkaOWEx8@public.gmane.org>
-Subject: Re: [PATCH 1/1] ib_srp: Infiniband srp fast failover patch.
-Date: Mon, 12 Nov 2012 18:46:05 -0500
-Message-ID: <50A18A3D.9070304@ddn.com>
-References: <4FC53AAA.3060203@ddn.com> <1338354377.2361.13.camel@obelisk.thedillows.org> <CAJZOPZL0cj6Sb_xs7prV0k8HjWkELD7Y89Bxxp-xXnnGqxvXyg@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 00/19, v5] Make ib_srp better suited for H.A. purposes
+Date: Tue, 13 Nov 2012 09:34:08 +0100
+Message-ID: <50A20600.9070509@acm.org>
+References: <508A85BB.1000505@acm.org> <CAJZOPZLHg84M3RUV00itGSGUZsigW0yw=TLOe6K63mUXH5v1pQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZL0cj6Sb_xs7prV0k8HjWkELD7Y89Bxxp-xXnnGqxvXyg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJZOPZLHg84M3RUV00itGSGUZsigW0yw=TLOe6K63mUXH5v1pQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In my experience with ib-srp, I am not sure if there is such a thing as 
-link going down for a short time. When the link goes down, no matter how 
-short the duration (< 1s), IO fails over, this failover takes very long 
-time currently. Or, I would like to know if you can get a ib-srp 
-failover time of less than a minute somehow (by tweaking OS or multipath 
-settings). I was unable to get it to work even after a pretty exhaustive 
-attempt.
-
-Dave, on a separate note, with OFED-1.5.4 and RHEL-6x, I have tried 
-setting ib_srp.srp_dev_loss_tmo=5 seconds, it does not seem to help 
-failover time.
-
-Karan
-
-On 11/12/2012 06:10 PM, Or Gerlitz wrote:
-> On Wed, May 30, 2012 at 7:06 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
->> On Tue, 2012-05-29 at 17:07 -0400, Karandeep Chahal wrote:
->>> Subject: [PATCH] Infiniband srp fast failover patch.
->> This conflicts with Bart's patches to improve failover; it will be much
->> better to use his approach to block the target rather than remove it
->> wholesale -- we could have lost connectivity as a transient and may get
->> it back quickly if someone grabbed the wrong cable, etc.
->>
->> Also, we should only kill the one target on DREQ, and we already have a
->> pointer to it from the CM context -- no need to search.
->>
->> It is a good idea to hook into the event mechanism;
-> Dave,
+On 11/12/12 23:51, Or Gerlitz wrote:
+> Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+>> This patch series makes the ib_srp driver better suited for use in a H.A. setup because:
+>> - multipathd is notified faster about transport layer failures.
+>> - Transport layer failures reliably result in SCSI host removal.
+>> - Switchover can be triggered explicitly by deleting an initiator device.
+>> - Disconnecting from a target without unloading ib_srp is now possible.
 >
-> I wonder why this hooking is the correct way to go, if the IB link
-> went down for very short time, why should we care, what's missing in
-> relying on probes done by HA SW such as multipath and RC timeouts?
+> Hi Bart,
 >
-> Or.
+> Few more questions/comments,
 >
->> this is something I've long wanted to incorporate (as Vu did in OFED). I'm looking at
->> getting Bart's series to a point I can merge it, and I'll pull in your
->> ideas -- with credit -- there.
+>> The individual patches are:
+>> 0001-ib_srp-Enlarge-block-layer-timeout.patch
+>> 0002-ib_srp-Eliminate-state-SRP_TARGET_CONNECTING.patch
+>> 0003-ib_srp-Introduce-srp_handle_qp_err.patch
+>> 0004-ib_srp-Suppress-superfluous-error-messages.patch
+>> 0005-ib_srp-Avoid-that-SCSI-error-handling-causes-trouble.patch
+>> 0006-ib_srp-Introduce-the-helper-function-srp_remove_targ.patch
+>> 0007-ib_srp-Eliminate-state-SRP_TARGET_DEAD.patch
+>> 0008-ib_srp-Keep-processing-commands-during-host-removal.patch
+>> 0009-ib_srp-Make-srp_disconnect_target-wait-for-IB-comple.patch
+>> 0010-ib_srp-Document-sysfs-attributes.patch
+>> 0011-srp_transport-Fix-atttribute-registration.patch
+>> 0012-srp_transport-Simplify-attribute-initialization-code.patch
+>> 0013-srp_transport-Document-sysfs-attributes.patch
+>> 0014-ib_srp-Allow-SRP-disconnect-through-sysfs.patch
+>> 0015-ib_srp-Maintain-a-single-connection-per-I_T-nexus.patch
+>> 0016-srp_transport-Add-transport-layer-error-handling.patch
+>> 0017-ib_srp-Add-dev_loss_tmo-support.patch
+>> 0018-ib_srp-Remove-SCSI-devices-upon-port-down-event.patch
+>> 0019-scsi_transport_srp-Fail-I-O-faster.patch
+>
+> I understand that as a whole, this series makes SRP to function better
+> in HA schemes, however, can you break this list of patches to cleanups,
+> new functionality and actual HA related bug fixes and concrete
+> improvements. Also, if you can spare some high level words on the
+> design directions/decisions taken as the patch series evolved, as this
+> effort in underway for some time now.
+
+The goal of this patch series is to reduce path failover time in a 
+multipath setup. I've done my best to indicate in the patch descriptions 
+which patches are cleanup patches and which patches introduce new 
+functionality. Which patches should be considered bug fixes depends on 
+what is considered a bug - is it e.g. considered a bug that it can take 
+more than 60s with the upstream SRP initiator before multipathd switches 
+paths ? Is it considered a bug that the upstream SRP initiator does not 
+remove SCSI hosts that correspond to failed paths ?
+
+> Also for V6 -- next-time -- etc, please make sure to have Vn to appear
+> in the [PATCH] brackets, as it critical when folks browse between
+> different versions/postings of your to the same patch set, if you use
+> git format-patch, this is easily achieved with --subject-prefix="PATCH
+> Vn"
+
+Thanks, will do.
+
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
