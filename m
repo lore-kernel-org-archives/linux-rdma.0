@@ -1,35 +1,30 @@
-From: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: UAPI disintegration for SCSI, FCoE and RDMA
-Date: Fri, 16 Nov 2012 13:23:30 +0000
-Message-ID: <18968.1353072210@warthog.procyon.org.uk>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Updated Debian packages?
+Date: Fri, 16 Nov 2012 17:43:19 +0000
+Message-ID: <0000013b0a51504b-fc3418bd-5aa2-4ce6-8a82-05821859d2a0-000000@email.amazonses.com>
+References: <0000013b05aabcf5-1b33263b-9ccb-46a2-b125-0357cdd5e0c9-000000@email.amazonses.com> <CABweQm+c6fo_VTTNk1NMsJA3fDH0LK95C5qzziabZGZGRrY-Rw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CABweQm+c6fo_VTTNk1NMsJA3fDH0LK95C5qzziabZGZGRrY-Rw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, robert.w.love-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dillowda-1Heg1YXhbW8@public.gmane.org
-Cc: dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-s9riP+hp16TNLxjTenLetw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin.Metz-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, 15 Nov 2012, Narayan Desai wrote:
 
-Hi James, Robert, David,
+> I've packaged up a number of recent versions of libraries for ubuntu in a PPA:
+> https://launchpad.net/~narayan-desai/+archive/infiniband
+>
+> There are both source packages and binaries for ubuntu precise. If
+> there are missing packages that you want, let me know and I'll add
+> them in. Rebuilding these for debian is pretty straightforward from
+> the source packages.
 
-I have patches still outstanding for the UAPI header disintegration of
-linux/scsi/, linux/scsi/fs/ and linux/rdma.  I have updated them from the
-original pull requests and they can be found at tags:
+I know but I wish these packages would be kept up to date. Are you doing
+that now?
 
-	disintegrate-scsi-20121116
-	disintegrate-fc-20121116
-	disintegrate-rdma-20121116
-
-in:
-
-	git://git.infradead.org/users/dhowells/linux-headers.git
-	http://git.infradead.org/users/dhowells/linux-headers.git
-
-Do you accept git pull requests or only patches through the mailing lists?
-Should all three go via the SCSI tree?  Note that the MAINTAINERS' record for
-RDMA points to a defunct git tree.
-
-Thanks,
-David
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
