@@ -1,30 +1,44 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+From: Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: Updated Debian packages?
-Date: Fri, 16 Nov 2012 17:43:19 +0000
-Message-ID: <0000013b0a51504b-fc3418bd-5aa2-4ce6-8a82-05821859d2a0-000000@email.amazonses.com>
-References: <0000013b05aabcf5-1b33263b-9ccb-46a2-b125-0357cdd5e0c9-000000@email.amazonses.com> <CABweQm+c6fo_VTTNk1NMsJA3fDH0LK95C5qzziabZGZGRrY-Rw@mail.gmail.com>
+Date: Fri, 16 Nov 2012 15:13:11 -0600
+Message-ID: <CABweQmLesg5hE4uqEDjgUMc9P8Fwt-yQErga12XtEjttgYnzvg@mail.gmail.com>
+References: <0000013b05aabcf5-1b33263b-9ccb-46a2-b125-0357cdd5e0c9-000000@email.amazonses.com>
+	<CABweQm+c6fo_VTTNk1NMsJA3fDH0LK95C5qzziabZGZGRrY-Rw@mail.gmail.com>
+	<0000013b0a51504b-fc3418bd-5aa2-4ce6-8a82-05821859d2a0-000000@email.amazonses.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABweQm+c6fo_VTTNk1NMsJA3fDH0LK95C5qzziabZGZGRrY-Rw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <0000013b0a51504b-fc3418bd-5aa2-4ce6-8a82-05821859d2a0-000000-p/GC64/jrecnJqMo6gzdpkEOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin.Metz-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Metz <Kevin.Metz-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 15 Nov 2012, Narayan Desai wrote:
+Do you mean updating the PPA or trying to get packages pushed into
+Debian? I'm not really bothering with the latter, but I'm happy to
+build new versions/packages for the PPA if there is something in
+particular you're looking for. I'm only occasionally checking for new
+releases from openfabrics, so I may be a bit behind.
 
-> I've packaged up a number of recent versions of libraries for ubuntu in a PPA:
-> https://launchpad.net/~narayan-desai/+archive/infiniband
+My main goal here is to make running IB on debian-derived systems less
+of a pain. We're running ubuntu here, and the package versions in
+their repos are ancient.
+ -nld
+
+On Fri, Nov 16, 2012 at 11:43 AM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, 15 Nov 2012, Narayan Desai wrote:
 >
-> There are both source packages and binaries for ubuntu precise. If
-> there are missing packages that you want, let me know and I'll add
-> them in. Rebuilding these for debian is pretty straightforward from
-> the source packages.
-
-I know but I wish these packages would be kept up to date. Are you doing
-that now?
-
+>> I've packaged up a number of recent versions of libraries for ubuntu in a PPA:
+>> https://launchpad.net/~narayan-desai/+archive/infiniband
+>>
+>> There are both source packages and binaries for ubuntu precise. If
+>> there are missing packages that you want, let me know and I'll add
+>> them in. Rebuilding these for debian is pretty straightforward from
+>> the source packages.
+>
+> I know but I wish these packages would be kept up to date. Are you doing
+> that now?
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
