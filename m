@@ -1,76 +1,29 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Subject: Re: srp-ha backport
-Date: Tue, 20 Nov 2012 04:04:14 +0000 (UTC)
-Message-ID: <loom.20121120T050107-224@post.gmane.org>
-References: <5054492E.1090403@acm.org>
+Date: Tue, 20 Nov 2012 14:25:21 +0100
+Message-ID: <50AB84C1.5090105@acm.org>
+References: <5054492E.1090403@acm.org> <loom.20121120T050107-224@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <loom.20121120T050107-224-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Bart Van Assche <bvanassche@...> writes:
+On 11/20/12 05:04, Vasiliy Tolstov wrote:
+> Thanks for this backport! I have some problem under sles 11 sp2 (kernel 3.0.42-
+> 0.7-xen) then i shutdown srp target (reboot one sas server) multipath -ll does
+> not respond. If i provide in multipath and srp identical dev_loss_tmo and
+> fast_io_fail_tmo nothing changed. multipath -ll unblocks only then the server
+> goes up.
 
-> 
-> Hello,
-> 
-> In case anyone would like to start using the srp-ha patch series before
-> it gets upstream, a backported version of that patch series is available
-> here: http://github.com/bvanassche/ib_srp-backport. The advantages of
-> that version of ib_srp over what's upstream are:
-> - Better robustness against cable plugging.
-> - Allows closing an SRP connection from the initiator side (via the
->   new "delete" attribute in sysfs).
-> - Configurable dev_loss_tmo and fast_io_fail_tmo parameters.
-> - Builds against any kernel in the range 2.6.32..3.6.
-> - Can be used on RHEL 6.x systems.
-> 
-> In combination with srp_daemon and multipath-tools this should allow to
-> build a reliable H.A. SRP solution.
-> 
-> Note: I haven't been able to test that code against every existing
-> mainstream or distro kernel. Feedback is welcome though.
+That's strange. After the fast_io_fail_tmo timer has fired multipath -ll 
+should unblock independent of the state of the SRP target.
 
-Thanks for this backport! I have some problem under sles 11 sp2 (kernel 3.0.42-
-0.7-xen) then i shutdown srp target (reboot one sas server) multipath -ll does 
-not respond. If i provide in multipath and srp identical dev_loss_tmo and 
-fast_io_fail_tmo nothing changed. multipath -ll unblocks only then the server 
-goes up.
-
-dev_loss_tmo = 15
-fast_io_fail_tmo = 10
-
-multipath.conf
-defaults {
-        getuid_callout       "/bin/cat /sys/block/%n/device/model" 
-        path_grouping_policy failover
-        failback 	     immediate
-        no_path_retry        fail
-        path_checker         tur
-        rr_weight	     uniform
-        rr_min_io            100
-        polling_interval     10
-        checker_timeout      10
-	fast_io_fail_tmo     60
-	dev_loss_tmo         120
-}
-blacklist {
-        devnode cciss
-        devnode fd
-        devnode hd
-        devnode md
-        devnode sr
-        devnode scd
-        devnode st
-        devnode ram
-        devnode raw
-        devnode loop
-}
-
-
-
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
