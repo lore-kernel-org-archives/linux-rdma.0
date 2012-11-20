@@ -1,39 +1,77 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 407/493] infiniband: remove use of __devexit
-Date: Mon, 19 Nov 2012 16:17:24 -0700
-Message-ID: <20121119231724.GA27526@obsidianresearch.com>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
- <1353349642-3677-407-git-send-email-wfp5p@virginia.edu>
- <20121119200921.GD1556@obsidianresearch.com>
- <20121119201938.GA5614@kroah.com>
- <20121119214922.GA5636@obsidianresearch.com>
- <20121119220632.GA1946@kroah.com>
- <20121119224845.GB5636@obsidianresearch.com>
- <20121119230006.GA2523@kroah.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: srp-ha backport
+Date: Tue, 20 Nov 2012 04:04:14 +0000 (UTC)
+Message-ID: <loom.20121120T050107-224@post.gmane.org>
+References: <5054492E.1090403@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20121119230006.GA2523-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 19, 2012 at 03:00:06PM -0800, Greg KH wrote:
+Bart Van Assche <bvanassche@...> writes:
 
-> I could just leave things alone, with CONFIG_HOTPLUG always enabled, but
-> then people will continue to blindly use the __dev* markings, getting it
-> wrong at times, but never realizing that they don't do anything anymore.
+> 
+> Hello,
+> 
+> In case anyone would like to start using the srp-ha patch series before
+> it gets upstream, a backported version of that patch series is available
+> here: http://github.com/bvanassche/ib_srp-backport. The advantages of
+> that version of ib_srp over what's upstream are:
+> - Better robustness against cable plugging.
+> - Allows closing an SRP connection from the initiator side (via the
+>   new "delete" attribute in sysfs).
+> - Configurable dev_loss_tmo and fast_io_fail_tmo parameters.
+> - Builds against any kernel in the range 2.6.32..3.6.
+> - Can be used on RHEL 6.x systems.
+> 
+> In combination with srp_daemon and multipath-tools this should allow to
+> build a reliable H.A. SRP solution.
+> 
+> Note: I haven't been able to test that code against every existing
+> mainstream or distro kernel. Feedback is welcome though.
 
-Well, I was thinking more along the lines of leaving the capability to
-remove the __dev* marked functions from the link, as is today,
-independent of the other stuff CONFIG_HOTPLUG controls. But reviewing
-your comments from the archive makes me think a motivation is misuse
-of the __dev* markings..
+Thanks for this backport! I have some problem under sles 11 sp2 (kernel 3.0.42-
+0.7-xen) then i shutdown srp target (reboot one sas server) multipath -ll does 
+not respond. If i provide in multipath and srp identical dev_loss_tmo and 
+fast_io_fail_tmo nothing changed. multipath -ll unblocks only then the server 
+goes up.
 
-Thanks for the insight,
-Jason
+dev_loss_tmo = 15
+fast_io_fail_tmo = 10
+
+multipath.conf
+defaults {
+        getuid_callout       "/bin/cat /sys/block/%n/device/model" 
+        path_grouping_policy failover
+        failback 	     immediate
+        no_path_retry        fail
+        path_checker         tur
+        rr_weight	     uniform
+        rr_min_io            100
+        polling_interval     10
+        checker_timeout      10
+	fast_io_fail_tmo     60
+	dev_loss_tmo         120
+}
+blacklist {
+        devnode cciss
+        devnode fd
+        devnode hd
+        devnode md
+        devnode sr
+        devnode scd
+        devnode st
+        devnode ram
+        devnode raw
+        devnode loop
+}
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
