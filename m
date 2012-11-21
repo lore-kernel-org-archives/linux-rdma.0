@@ -1,138 +1,66 @@
-From: Bernhard Reutner-Fischer <rep.dot.nop-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ping Re: [PATCH] perftest: Fix typo in informational string
-Date: Tue, 20 Nov 2012 17:47:54 +0100
-Message-ID: <CAC1BbcSAbgnVY9H7YEBJp=CaG8Q_KZjCpxEvmCQu=mfor_WrEg@mail.gmail.com>
-References: <CAC1BbcQg8b11v_sTNhiMgrgEdOrE=9odf93v_5jWDUfb-ihBNQ@mail.gmail.com>
-	<50A9E208.5080303@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: srp-ha backport
+Date: Wed, 21 Nov 2012 15:31:12 +0100
+Message-ID: <50ACE5B0.3060607@acm.org>
+References: <5054492E.1090403@acm.org> <loom.20121120T050107-224@post.gmane.org> <50AB84C1.5090105@acm.org> <CACaajQtEu_z+GEUBuiDz6D1dHYsb-YSFMJfkWeya1FNvfhbQHg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=20cf3071ce80d8ae0404ceeffe34
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50A9E208.5080303-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CACaajQtEu_z+GEUBuiDz6D1dHYsb-YSFMJfkWeya1FNvfhbQHg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---20cf3071ce80d8ae0404ceeffe34
-Content-Type: text/plain; charset=ISO-8859-1
+Hello Vasiliy,
 
-On 19 November 2012 08:38, Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->
-> Hi Bernhard,
->
-> Sorry, I didn't (and still don't) find the original mail in my inbox.
+You should already get reasonable behavior with the default settings of 
+all these timeout parameters. How long had you been waiting for 
+multipath -ll before giving up ?
 
+Bart.
 
-odd.
-I am attaching  the rebased diff against current master (there was one
-file removed in the meantime).
-
-> I'll patch it today and notify you.
-
-
-TIA!
+On 11/21/12 15:26, Vasiliy Tolstov wrote:
+> Hmm. Ok What timeouts i need to set to correct fail devices?
+> For example i have timeout on each sd* device in
+> /sys/block/sd*/device/timeout
+> fast_io_fail_tmo and dev_loss_tmo in multipath and dev_loss_tmo
+> fast_io_fail_tmo in ib_srp...
+> Does timeout on sd* device need to be smaller that srp timeouts and
+> multipath? Does multipaths timeouts must be equal of srp timeouts?
 >
 >
-> Thanks,
-> Ido
+> 2012/11/20 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org <mailto:bvanassche-HInyCGIudOg@public.gmane.org>>
+>
+>     On 11/20/12 05:04, Vasiliy Tolstov wrote:
+>
+>         Thanks for this backport! I have some problem under sles 11 sp2
+>         (kernel 3.0.42-
+>         0.7-xen) then i shutdown srp target (reboot one sas server)
+>         multipath -ll does
+>         not respond. If i provide in multipath and srp identical
+>         dev_loss_tmo and
+>         fast_io_fail_tmo nothing changed. multipath -ll unblocks only
+>         then the server
+>         goes up.
 >
 >
-> On 11/16/2012 12:44 PM, Bernhard Reutner-Fischer wrote:
+>     That's strange. After the fast_io_fail_tmo timer has fired multipath
+>     -ll should unblock independent of the state of the SRP target.
 >
-> ping
+>     Bart.
 >
-> On 12 June 2012 14:03, Bernhard Reutner-Fischer <rep.dot.nop-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>
->> s/deivce/device/g
->>
->> Signed-off-by: Bernhard Reutner-Fischer <rep.dot.nop-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>
+>
+>
+> --
+> Vasiliy Tolstov,
+> Clodo.ru
+> e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org <mailto:v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+> jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org <mailto:vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+>
 
---20cf3071ce80d8ae0404ceeffe34
-Content-Type: application/octet-stream;
-	name="0001-perftest-Fix-typo-in-informational-string.patch"
-Content-Disposition: attachment;
-	filename="0001-perftest-Fix-typo-in-informational-string.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h9r9ay2l0
-
-RnJvbSAzZTBhMjU1NTdlMGI5YmJlOTc2MmRkMTJhNDIwYTI0YzY4MTJmM2YyIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBCZXJuaGFyZCBSZXV0bmVyLUZpc2NoZXIgPHJlcC5kb3Qubm9w
-QGdtYWlsLmNvbT4KRGF0ZTogVHVlLCAxMiBKdW4gMjAxMiAxMzo1Mjo0OSArMDIwMApTdWJqZWN0
-OiBbUEFUQ0hdIHBlcmZ0ZXN0OiBGaXggdHlwbyBpbiBpbmZvcm1hdGlvbmFsIHN0cmluZwpUbzog
-aWRvc0BkZXYubWVsbGFub3guY28uaWwKCnMvZGVpdmNlL2RldmljZS9nCgpTaWduZWQtb2ZmLWJ5
-OiBCZXJuaGFyZCBSZXV0bmVyLUZpc2NoZXIgPHJlcC5kb3Qubm9wQGdtYWlsLmNvbT4KLS0tCiBh
-dG9taWNfbGF0LmMgICAgICAgICAgfCAgICAyICstCiBwZXJmdGVzdF9wYXJhbWV0ZXJzLmggfCAg
-ICAyICstCiBwZXJmdGVzdF9yZXNvdXJjZXMuaCAgfCAgICA0ICsrLS0KIHJlYWRfbGF0LmMgICAg
-ICAgICAgICB8ICAgIDIgKy0KIHNlbmRfYncuYyAgICAgICAgICAgICB8ICAgIDIgKy0KIHNlbmRf
-bGF0LmMgICAgICAgICAgICB8ICAgIDIgKy0KIHdyaXRlX2J3LmMgICAgICAgICAgICB8ICAgIDIg
-Ky0KIHdyaXRlX2xhdC5jICAgICAgICAgICB8ICAgIDIgKy0KIDggZmlsZXMgY2hhbmdlZCwgOSBp
-bnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2F0b21pY19sYXQuYyBi
-L2F0b21pY19sYXQuYwppbmRleCAxZjVmZmUyLi42ODk1ODUxIDEwMDY0NAotLS0gYS9hdG9taWNf
-bGF0LmMKKysrIGIvYXRvbWljX2xhdC5jCkBAIC0yMjcsNyArMjI3LDcgQEAgaW50IF9fY2RlY2wg
-bWFpbihpbnQgYXJnYywgY2hhciAqYXJndltdKSB7CiAJLy8gRmluZGluZyB0aGUgSUIgZGV2aWNl
-IHNlbGVjdGVkIChvciBkZWZhbHV0IGlmIG5vIHNlbGVjdGVkKS4KIAlpYl9kZXYgPSBjdHhfZmlu
-ZF9kZXYodXNlcl9wYXJhbS5pYl9kZXZuYW1lKTsKIAlpZiAoIWliX2RldikgewotCQlmcHJpbnRm
-KHN0ZGVyciwiIFVuYWJsZSB0byBmaW5kIHRoZSBJbmZpbmliYW5kL1JvQ0UgZGVpdmNlXG4iKTsK
-KwkJZnByaW50ZihzdGRlcnIsIiBVbmFibGUgdG8gZmluZCB0aGUgSW5maW5pYmFuZC9Sb0NFIGRl
-dmljZVxuIik7CiAJCXJldHVybiBGQUlMVVJFOwogCX0KIApkaWZmIC0tZ2l0IGEvcGVyZnRlc3Rf
-cGFyYW1ldGVycy5oIGIvcGVyZnRlc3RfcGFyYW1ldGVycy5oCmluZGV4IGNlYWZkYTIuLjE5YTIw
-YzYgMTAwNjQ0Ci0tLSBhL3BlcmZ0ZXN0X3BhcmFtZXRlcnMuaAorKysgYi9wZXJmdGVzdF9wYXJh
-bWV0ZXJzLmgKQEAgLTI4MCw3ICsyODAsNyBAQCBpbnQgcGFyc2VyKHN0cnVjdCBwZXJmdGVzdF9w
-YXJhbWV0ZXJzICp1c2VyX3BhcmFtLGNoYXIgKmFyZ3ZbXSwgaW50IGFyZ2MpOwogICoKICAqIFBh
-cmFtZXRlcnMgOgogICoKLSAqCSBjb250ZXh0ICAgIC0gQ29udGV4dCBvZiB0aGUgZGVpdmNlLgor
-ICoJIGNvbnRleHQgICAgLSBDb250ZXh0IG9mIHRoZSBkZXZpY2UuCiAgKgkgdXNlcl9wYXJhbSAt
-IFBlcmZ0ZXN0IHBhcmFtZXRlcnMuCiAgKgogICogUmV0dXJuIFZhbHVlIDogU1VDQ0VTUywgRkFJ
-TFVSRS4KZGlmZiAtLWdpdCBhL3BlcmZ0ZXN0X3Jlc291cmNlcy5oIGIvcGVyZnRlc3RfcmVzb3Vy
-Y2VzLmgKaW5kZXggYzFjYWU0Zi4uNTAzOTZjMSAxMDA2NDQKLS0tIGEvcGVyZnRlc3RfcmVzb3Vy
-Y2VzLmgKKysrIGIvcGVyZnRlc3RfcmVzb3VyY2VzLmgKQEAgLTIwMCw5ICsyMDAsOSBAQCBpbnQg
-Y2hlY2tfYWRkX3BvcnQoY2hhciAqKnNlcnZpY2UsaW50IHBvcnQsCiAgKgogICogUGFyYW1ldGVy
-cyA6IAogICoJCi0gKglpYl9kZXZuYW1lIC0gVGhlIG5hbWUgb2YgdGhlIGRlaXZjZSByZXF1ZXN0
-ZWQgb3IgTlVMTCBmb3IgdGhlIGZpcnN0IG9uZS4KKyAqCWliX2Rldm5hbWUgLSBUaGUgbmFtZSBv
-ZiB0aGUgZGV2aWNlIHJlcXVlc3RlZCBvciBOVUxMIGZvciB0aGUgZmlyc3Qgb25lLgogICoKLSAq
-IFJldHVybiBWYWx1ZSA6IHRoZSBkZWl2Y2Ugb3IgTlVMTCBpbiBjYXNlIG9mIGZhaWx1cmUuCisg
-KiBSZXR1cm4gVmFsdWUgOiB0aGUgZGV2aWNlIG9yIE5VTEwgaW4gY2FzZSBvZiBmYWlsdXJlLgog
-ICovCiBzdHJ1Y3QgaWJ2X2RldmljZSogY3R4X2ZpbmRfZGV2KGNvbnN0IGNoYXIgKmliX2Rldm5h
-bWUpOwogCmRpZmYgLS1naXQgYS9yZWFkX2xhdC5jIGIvcmVhZF9sYXQuYwppbmRleCBhNTgxMGU0
-Li5lMzc4ODI5IDEwMDY0NAotLS0gYS9yZWFkX2xhdC5jCisrKyBiL3JlYWRfbGF0LmMKQEAgLTIz
-Myw3ICsyMzMsNyBAQCBpbnQgX19jZGVjbCBtYWluKGludCBhcmdjLCBjaGFyICphcmd2W10pIHsK
-IAkvLyBGaW5kaW5nIHRoZSBJQiBkZXZpY2Ugc2VsZWN0ZWQgKG9yIGRlZmFsdXQgaWYgbm8gc2Vs
-ZWN0ZWQpLgogCWliX2RldiA9IGN0eF9maW5kX2Rldih1c2VyX3BhcmFtLmliX2Rldm5hbWUpOwog
-CWlmICghaWJfZGV2KSB7Ci0JCWZwcmludGYoc3RkZXJyLCIgVW5hYmxlIHRvIGZpbmQgdGhlIElu
-ZmluaWJhbmQvUm9DRSBkZWl2Y2VcbiIpOworCQlmcHJpbnRmKHN0ZGVyciwiIFVuYWJsZSB0byBm
-aW5kIHRoZSBJbmZpbmliYW5kL1JvQ0UgZGV2aWNlXG4iKTsKIAkJcmV0dXJuIEZBSUxVUkU7CiAJ
-fQogCmRpZmYgLS1naXQgYS9zZW5kX2J3LmMgYi9zZW5kX2J3LmMKaW5kZXggOTliYjlkNC4uODY4
-YTI5YyAxMDA2NDQKLS0tIGEvc2VuZF9idy5jCisrKyBiL3NlbmRfYncuYwpAQCAtMzE5LDcgKzMx
-OSw3IEBAIGludCBfX2NkZWNsIG1haW4oaW50IGFyZ2MsIGNoYXIgKmFyZ3ZbXSkgewogCS8vIEZp
-bmRpbmcgdGhlIElCIGRldmljZSBzZWxlY3RlZCAob3IgZGVmYWx1dCBpZiBubyBzZWxlY3RlZCku
-DQogCWliX2RldiA9IGN0eF9maW5kX2Rldih1c2VyX3BhcmFtLmliX2Rldm5hbWUpOw0KIAlpZiAo
-IWliX2Rldikgew0KLQkJZnByaW50ZihzdGRlcnIsIiBVbmFibGUgdG8gZmluZCB0aGUgSW5maW5p
-YmFuZC9Sb0NFIGRlaXZjZVxuIik7DQorCQlmcHJpbnRmKHN0ZGVyciwiIFVuYWJsZSB0byBmaW5k
-IHRoZSBJbmZpbmliYW5kL1JvQ0UgZGV2aWNlXG4iKTsNCiAJCXJldHVybiAxOw0KIAl9DQogDQpk
-aWZmIC0tZ2l0IGEvc2VuZF9sYXQuYyBiL3NlbmRfbGF0LmMKaW5kZXggYzgyMmZiMC4uZWRiM2Yy
-MSAxMDA2NDQKLS0tIGEvc2VuZF9sYXQuYworKysgYi9zZW5kX2xhdC5jCkBAIC00OTQsNyArNDk0
-LDcgQEAgaW50IF9fY2RlY2wgbWFpbihpbnQgYXJnYywgY2hhciAqYXJndltdKSB7CiAJLy8gRmlu
-ZGluZyB0aGUgSUIgZGV2aWNlIHNlbGVjdGVkIChvciBkZWZhbHV0IGlmIG5vIHNlbGVjdGVkKS4K
-IAlpYl9kZXYgPSBjdHhfZmluZF9kZXYodXNlcl9wYXJhbS5pYl9kZXZuYW1lKTsKIAlpZiAoIWli
-X2RldikgewotCQlmcHJpbnRmKHN0ZGVyciwiIFVuYWJsZSB0byBmaW5kIHRoZSBJbmZpbmliYW5k
-L1JvQ0UgZGVpdmNlXG4iKTsKKwkJZnByaW50ZihzdGRlcnIsIiBVbmFibGUgdG8gZmluZCB0aGUg
-SW5maW5pYmFuZC9Sb0NFIGRldmljZVxuIik7CiAJCXJldHVybiAxOwogCX0KIApkaWZmIC0tZ2l0
-IGEvd3JpdGVfYncuYyBiL3dyaXRlX2J3LmMKaW5kZXggYzU5MDI3YS4uYmRkMWM4YSAxMDA2NDQK
-LS0tIGEvd3JpdGVfYncuYworKysgYi93cml0ZV9idy5jCkBAIC04Nyw3ICs4Nyw3IEBAIGludCBf
-X2NkZWNsIG1haW4oaW50IGFyZ2MsIGNoYXIgKmFyZ3ZbXSkgewogCS8vIEZpbmRpbmcgdGhlIElC
-IGRldmljZSBzZWxlY3RlZCAob3IgZGVmYXVsdCBpZiBub25lIGlzIHNlbGVjdGVkKS4KIAlpYl9k
-ZXYgPSBjdHhfZmluZF9kZXYodXNlcl9wYXJhbS5pYl9kZXZuYW1lKTsKIAlpZiAoIWliX2Rldikg
-ewotCQlmcHJpbnRmKHN0ZGVyciwiIFVuYWJsZSB0byBmaW5kIHRoZSBJbmZpbmliYW5kL1JvQ0Ug
-ZGVpdmNlXG4iKTsKKwkJZnByaW50ZihzdGRlcnIsIiBVbmFibGUgdG8gZmluZCB0aGUgSW5maW5p
-YmFuZC9Sb0NFIGRldmljZVxuIik7CiAJCXJldHVybiAxOwogCX0KIApkaWZmIC0tZ2l0IGEvd3Jp
-dGVfbGF0LmMgYi93cml0ZV9sYXQuYwppbmRleCAxODY2ZDI0Li43MDA3YWIyIDEwMDY0NAotLS0g
-YS93cml0ZV9sYXQuYworKysgYi93cml0ZV9sYXQuYwpAQCAtMjQ5LDcgKzI0OSw3IEBAIGludCBf
-X2NkZWNsIG1haW4oaW50IGFyZ2MsIGNoYXIgKmFyZ3ZbXSkgewogCS8vIEZpbmRpbmcgdGhlIElC
-IGRldmljZSBzZWxlY3RlZCAob3IgZGVmYWx1dCBpZiBubyBzZWxlY3RlZCkuCiAJaWJfZGV2ID0g
-Y3R4X2ZpbmRfZGV2KHVzZXJfcGFyYW0uaWJfZGV2bmFtZSk7CiAJaWYgKCFpYl9kZXYpIHsKLQkJ
-ZnByaW50ZihzdGRlcnIsIiBVbmFibGUgdG8gZmluZCB0aGUgSW5maW5pYmFuZC9Sb0NFIGRlaXZj
-ZVxuIik7CisJCWZwcmludGYoc3RkZXJyLCIgVW5hYmxlIHRvIGZpbmQgdGhlIEluZmluaWJhbmQv
-Um9DRSBkZXZpY2VcbiIpOwogCQlyZXR1cm4gRkFJTFVSRTsKIAl9CiAKLS0gCjEuNy4xMC40Cgo=
---20cf3071ce80d8ae0404ceeffe34--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
