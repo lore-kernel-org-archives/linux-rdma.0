@@ -1,28 +1,44 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: srp-ha backport
-Date: Fri, 23 Nov 2012 15:20:08 +0100
-Message-ID: <50AF8618.2050300@acm.org>
-References: <5054492E.1090403@acm.org> <loom.20121120T050107-224@post.gmane.org> <50AB84C1.5090105@acm.org> <CACaajQtEu_z+GEUBuiDz6D1dHYsb-YSFMJfkWeya1FNvfhbQHg@mail.gmail.com> <50ACE5B0.3060607@acm.org> <CACaajQsUR92Hg-nx_VQN1eHdnghDtsRv1xZJFaJKT=a4nWWf8Q@mail.gmail.com> <CACaajQswh5foLKTGMhbZnj5JRpFax7nhdHxL7c1wTwbpMe=b8A@mail.gmail.com> <50AD1EE6.6090206@acm.org> <CACaajQva+gtR3+tNaPZSJZ7j7ACOzjNCWAKQeYfT5Gse2Nsx3Q@mail.gmail.com> <50AF2E9C.7050103@acm.org> <CACaajQu5e_S3UF0V7hyMZ+GChyT=MaZb7MtjwKph9q08f1MaHQ@mail.gmail.com>
+Subject: Re: [PATCH 00/20, v4] Make ib_srp better suited for H.A. purposes
+Date: Fri, 23 Nov 2012 16:07:50 +0100
+Message-ID: <50AF9146.5000405@acm.org>
+References: <5023DA39.7020000@acm.org> <5061C841.8070307@acm.org> <1348705896.26028.3.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACaajQu5e_S3UF0V7hyMZ+GChyT=MaZb7MtjwKph9q08f1MaHQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1348705896.26028.3.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/23/12 09:07, Vasiliy Tolstov wrote:
-> Is that possible to determine what patches are needed to backport to fix
-> my problem?
+On 09/27/12 02:31, David Dillow wrote:
+> On Tue, 2012-09-25 at 17:05 +0200, Bart Van Assche wrote:
+>> On 08/09/12 17:41, Bart Van Assche wrote:
+>>> [ ... ]
+>>
+>> Hello Dave,
+>>
+>> More than six weeks have elapsed since I posted version four of this
+>> patch series. It would be appreciated if you could tell me when review
+>> comments for this patch series will be posted. I'd also like to remind
+>> you that some time ago you asked other people to wait with posting more
+>> ib_srp patches until this patch series is upstream [1, 2].
+>
+> Yes, it has taken me far more time than I expected to get to these. I am
+> in the middle of fiscal-year-end thrash, and will attend to the SRP
+> backlog next week.
 
-If you have a look at the output of the command below that will help a lot:
+(replying to an e-mail of one month ago)
 
-git log drivers/scsi/{hosts,scsi,scsi_lib,scsi_sysfs}.c
+Hello Dave,
+
+Will you have time next week to review the srp-ha patch series ?
+
+Thanks,
 
 Bart.
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
