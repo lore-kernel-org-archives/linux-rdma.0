@@ -1,36 +1,28 @@
-From: David Dillow <dillowda@ornl.gov>
-Subject: Re: [PATCH 09/11] srp_transport: Simplify attribute initialization
- code
-Date: Mon, 26 Nov 2012 00:02:22 -0500
-Message-ID: <1353906142.23660.13.camel@obelisk.thedillows.org>
+From: Or Gerlitz <or.gerlitz@gmail.com>
+Subject: Re: [PATCH 00/11] First pass at merging Bart's HA work
+Date: Mon, 26 Nov 2012 09:57:00 +0200
+Message-ID: <CAJZOPZ+9+LFQfK84q_-CU4Ot5aBKUqzbk71WzBxt0aL5dLR_9Q@mail.gmail.com>
 References: <cover.1353903448.git.dillowda@ornl.gov>
-	 <a55a3dbccc3742a817aa0b52e4e1333b7949af01.1353903448.git.dillowda@ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <a55a3dbccc3742a817aa0b52e4e1333b7949af01.1353903448.git.dillowda@ornl.gov>
+In-Reply-To: <cover.1353903448.git.dillowda@ornl.gov>
 Sender: linux-scsi-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org
-Cc: linux-scsi@vger.kernel.org, bvanassche@acm.org
+To: David Dillow <dillowda@ornl.gov>
+Cc: linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, bvanassche@acm.org, roland@purestorage.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2012-11-25 at 23:44 -0500, David Dillow wrote:
-> From: David Dillow <dillowda@ornl.gov
-> 
-> From: Bart Van Assche <bvanassche@acm.org>
-> 
-> Eliminate the private_rport_attrs[] array and the SETUP_*() macros
-> used to set up that array since the information in that array
-> duplicates the information in the static device attributes. Also,
-> verify whether SRP_RPORT_ATTRS is large enough since it is easy
-> to forget to update that macro when adding new attributes.
+On Mon, Nov 26, 2012 at 6:44 AM, David Dillow <dillowda@ornl.gov> wrote:
+> One may also pull this series from github:
+>         git pull git://github.com/dillow/srp-initiator.git ha-merge-v1
 
-Bah, screwed up some edits for the batch email. This one (and Vu's) is
-properly attributed in the repository.
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
+Hi Dave,
 
+The kernel maintainers file specifies the following tree
+git://git.kernel.org/pub/scm/linux/kernel/git/dad/srp-initiator.git
+for you -- I assume you've moved to github during the kernel.org
+sitedown period, could you go back to kernel.org? its nice to have the
+same look and feel e.g through git web for the IB, SRP, Networking,
+SCSI etc trees.
+
+Or.
