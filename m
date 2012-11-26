@@ -1,34 +1,32 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] Remove bashisms from infiniband-diags
-Date: Mon, 26 Nov 2012 10:33:32 -0800
-Message-ID: <20121126103332.4bacafc824728d492c28da7b@llnl.gov>
-References: <alpine.BSF.2.00.1211111101390.70593@toaster.local>
+From: Roland Dreier <roland@purestorage.com>
+Subject: Re: [PATCH 00/11] First pass at merging Bart's HA work
+Date: Mon, 26 Nov 2012 10:50:56 -0800
+Message-ID: <CAL1RGDU+b4GxEoY0TOvkyJjr0yx=5tFNmAVZ27hVjOOx=n=yJg@mail.gmail.com>
+References: <cover.1353903448.git.dillowda@ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.BSF.2.00.1211111101390.70593-Fqwm7F1mg36Nj9Bq2fkWzw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <cover.1353903448.git.dillowda@ornl.gov>
+Sender: linux-scsi-owner@vger.kernel.org
+To: David Dillow <dillowda@ornl.gov>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Bart Van Assche <bvanassche@acm.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 11 Nov 2012 11:05:32 -0800
-Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+ > This series compiles, but is otherwise UNTESTED. I'll be working on that
+ > over the next few days, with an eye on getting as much of Bart's work
+ > into 3.8 as possible.
 
-> Signed-off-by: Garrett Cooper <gcooper-nKaf5Oxk4VbQT0dZR+AlfA@public.gmane.org>
+Hi Dave,
 
-Thanks applied,
-Ira
+Great to have you back.  Certainly I'd like to get this stuff into 3.8 too.
 
+A couple of comments:
+ - I think the srp_transport stuff should go through linux-scsi / James B.
+   instead of my tree, esp. since it's shared with the IBM vscsi stuff (I think)
+ - I see Bart had a few comments about a few of your patches, I'll wait
+   for you guys to hash that out.
 
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Otherwise definitely happy to merge this for 3.8!
+
+Thanks,
+  Roland
