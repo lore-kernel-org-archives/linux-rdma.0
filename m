@@ -1,28 +1,34 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V3 3/3] {NET,IB}/mlx4: 64 byte CQE/EQE support
-Date: Sat, 24 Nov 2012 22:56:17 +0200
-Message-ID: <CAJZOPZ+8YcBF=ap+Pm1im8vdKtgBJsXwZWx0Vt6C1kDFWXvM8A@mail.gmail.com>
-References: <1350831564-25251-1-git-send-email-ogerlitz@mellanox.com>
-	<1350831564-25251-4-git-send-email-ogerlitz@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: "milissa" <korneliamichalakht66-5tc4TXWwyLM@public.gmane.org>
+Subject: hey
+Date: Sun, 25 Nov 2012 19:23:12 -0800
+Message-ID: <50B2701C.6FFDDCAC@smtp.wp.pl>
+Reply-To: milissa53-Y8qEzhMunLxv7/rd9xGGfwC/G2K4zDHf@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1350831564-25251-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: iwearconverse-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+Cc: akosikiko-ur4TIblo6goN+BqQ9rBEUg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 21, 2012 at 4:59 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-[...]
+Howdy ! 
+I viewed your own pics on Facebook. I quite like you a lot.  Now let's communicate !
+I could send you my pics if you want
 
-Hi Roland,
+With all my love...
+celestine
 
-You basically accepted V3 but said its going to be for 3.8, which is
-coming soon, I see that for-next is freshly rebased to 3.7-rc6,
-picking this?
 
-Or.
+
+
+
+
+
+
+
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
