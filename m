@@ -1,39 +1,71 @@
-From: David Dillow <dillowda@ornl.gov>
-Subject: Re: [PATCH 00/11] First pass at merging Bart's HA work
-Date: Mon, 26 Nov 2012 23:53:09 -0500
-Message-ID: <1353991989.28917.27.camel@obelisk.thedillows.org>
-References: <cover.1353903448.git.dillowda@ornl.gov>
-	 <CAJZOPZ+9+LFQfK84q_-CU4Ot5aBKUqzbk71WzBxt0aL5dLR_9Q@mail.gmail.com>
+From: Albert Strasheim <albert.strasheim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: mellanox mlx4_core and SR-IOV
+Date: Tue, 27 Nov 2012 06:54:48 +0200
+Message-ID: <CALfB72AHagg7GF2i2vuBw4_M0QHw-xkbdSXmuJKvynv-ZjLMow@mail.gmail.com>
+References: <AE94C31276ACE14591CDCF7F6B4E699455547DBF@SZXEML540-MBX.china.huawei.com>
+ <CALY6xngZ2PTf6hiPcpQjaJDnGO=L9gMZg_h2d4S6MJx-+quUDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <CAJZOPZ+9+LFQfK84q_-CU4Ot5aBKUqzbk71WzBxt0aL5dLR_9Q@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Or Gerlitz <or.gerlitz@gmail.com>
-Cc: linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, bvanassche@acm.org, roland@purestorage.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CALY6xngZ2PTf6hiPcpQjaJDnGO=L9gMZg_h2d4S6MJx-+quUDQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Zhangxiaofeng <victor.zhangxiaofeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2012-11-26 at 09:57 +0200, Or Gerlitz wrote:
-> On Mon, Nov 26, 2012 at 6:44 AM, David Dillow <dillowda@ornl.gov> wrote:
-> > One may also pull this series from github:
-> >         git pull git://github.com/dillow/srp-initiator.git ha-merge-v1
-> 
-> Hi Dave,
-> 
-> The kernel maintainers file specifies the following tree
-> git://git.kernel.org/pub/scm/linux/kernel/git/dad/srp-initiator.git
-> for you -- I assume you've moved to github during the kernel.org
-> sitedown period, could you go back to kernel.org? its nice to have the
-> same look and feel e.g through git web for the IB, SRP, Networking,
-> SCSI etc trees.
+Hello
 
-I'd love to, but I don't have enough PGP connectivity to the kernel.org
-folks. I've been trying to meet up with other kernel guys during
-conferences, but that's been slow going.
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
+TLDR: get firmware 2.9.1200 and wait for 3.7.
 
+On Tue, Nov 27, 2012 at 4:30 AM, Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Mon, Nov 26, 2012 at 8:05 PM, Zhangxiaofeng
+> <victor.zhangxiaofeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
+>
+>> Hello,
+>> I tried to use SR-IOV virtualization for Mellanox ConnectX2 card with kernel 3.6.7.
+>
+> I'm not 100% sure, but I don't think that the CX2 supports SR-IOV - I
+> think you need the CX3 for that.
+
+It should work soon.
+
+Some bits from Roland:
+
+https://plus.google.com/115480450168703320714/posts/YmTB6sJM9GG
+
+Also watch out for:
+
+https://plus.google.com/115480450168703320714/posts/8AQ4oCA3o6k
+
+Some bits from Mellanox:
+
+"""
+... this is a single function system where you pass the single
+function to a guest VM. Issues related to FLR to a single function are
+fixed in firmware release 2.9.1200.
+
+The latest firmware GA version is 2.9.1000. You can create your own
+intermediate firmware version 2.9.1200. Please, note that the
+intermediate firmware version 2.9.1200 will not be supported.
+"""
+
+If you don't have the 2.9.1200 firmware, you will probably run into
+this issue with function level reset:
+
+http://marc.info/?t=132789095200001&r=1&w=2
+
+2.9.1200 is hiding here:
+
+http://www.mellanox.com/content/pages.php?pg=custom_firmware_table
+
+See also:
+
+http://www.mellanox.com/pdf/firmware/ConnectX2-FW-2_9_1200-release_notes.pdf
+
+Cheers
+
+Albert
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
