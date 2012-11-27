@@ -1,80 +1,82 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: linux-next: manual merge of the net-next tree with the infiniband
- tree
-Date: Tue, 27 Nov 2012 11:47:51 +1100
-Message-ID: <20121127114751.6961da02245ed6851190aca2@canb.auug.org.au>
+From: Zhangxiaofeng <victor.zhangxiaofeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: mellanox mlx4_core and SR-IOV
+Date: Tue, 27 Nov 2012 01:05:57 +0000
+Message-ID: <AE94C31276ACE14591CDCF7F6B4E699455547DBF@SZXEML540-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Tue__27_Nov_2012_11_47_51_+1100_Gy39B++J1yJCVRUm"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: zh-CN
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Tue__27_Nov_2012_11_47_51_+1100_Gy39B++J1yJCVRUm
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello,
+I tried to use SR-IOV virtualization for Mellanox ConnectX2 card with kernel 3.6.7.
+I met some problem as below:
+lspci -v shows:
+04:00.0 InfiniBand: Mellanox Technologies MT26428 [ConnectX VPI PCIe 2.0 5GT/s - IB QDR / 10GigE] (rev b0)
+        Subsystem: Mellanox Technologies Device 0036
+        Flags: bus master, fast devsel, latency 0, IRQ 32
+        Memory at fbd00000 (64-bit, non-prefetchable) [size=1M]
+        Memory at f3800000 (64-bit, prefetchable) [size=8M]
+        Capabilities: [40] Power Management version 3
+        Capabilities: [48] Vital Product Data
+        Capabilities: [9c] MSI-X: Enable+ Count=128 Masked-
+        Capabilities: [60] Express Endpoint, MSI 00
+        Capabilities: [100] Alternative Routing-ID Interpretation (ARI)
+        Capabilities: [148] Device Serial Number 00-02-c9-03-00-4e-4d-2a
+        Capabilities: [108] Single Root I/O Virtualization (SR-IOV)
+        Kernel driver in use: mlx4_core
+        Kernel modules: mlx4_core
+Mlx4_core driver complains as below:
+mlx4_core: Mellanox ConnectX core driver v1.1 (Dec, 2011)
+mlx4_core: Initializing 0000:04:00.0
+mlx4_core 0000:04:00.0: Enabling sriov with:4 vfs
+mlx4_core 0000:04:00.0: not enough MMIO resources for SR-IOV
+mlx4_core 0000:04:00.0: Failed to enable sriov,continuing without sriov enabled
+(err = -12).
+mlx4_core 0000:04:00.0: irq 100 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 101 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 102 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 103 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 104 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 105 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 106 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 107 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 108 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 109 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 110 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 111 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 112 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 113 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 114 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 115 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 116 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 117 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 118 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 119 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 120 for MSI/MSI-X
+mlx4_core 0000:04:00.0: irq 121 for MSI/MSI-X
+mlx4_core 0000:04:00.0: command 0xc failed: fw status = 0x40
+mlx4_core 0000:04:00.0: command 0xc failed: fw status = 0x40
+mlx4_en: Mellanox ConnectX HCA Ethernet driver v2.0 (Dec 2011)
+<mlx4_ib> mlx4_ib_add: mlx4_ib: Mellanox ConnectX InfiniBand driver v1.0 (April
+4, 2008)
+NET: Registered protocol family 10
+IPv6: ADDRCONF(NETDEV_UP): ib0: link is not ready
+ib0: multicast join failed for ff12:401b:ffff:0000:0000:0000:ffff:ffff, status -
+22
+ib0: multicast join failed for ff12:401b:ffff:0000:0000:0000:ffff:ffff, status -
+22
+ib0: multicast join failed for ff12:401b:ffff:0000:0000:0000:ffff:ffff, status -
+22
+ib0: enabling connected mode will cause multicast packet drops
+ib0: mtu > 4092 will cause multicast packet drops.
+ib1: enabling connected mode will cause multicast packet drops
+ib1: mtu > 4092 will cause multicast packet drops.
 
-Hi all,
-
-Today's linux-next merge of the net-next tree got a conflict in
-drivers/net/ethernet/mellanox/mlx4/en_rx.c between commit 08ff32352d6f
-("mlx4: 64-byte CQE/EQE support") from the infiniband tree and commit
-f1d29a3fa68b ("mlx4_en: Remove remnants of LRO support") from the
-net-next tree.
-
-I fixed it up (see below) and can carry the fix as necessary (no action
-is required).
-
---=20
-Cheers,
-Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
-
-diff --cc drivers/net/ethernet/mellanox/mlx4/en_rx.c
-index 6fa106f,f76c967..0000000
---- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-@@@ -710,12 -709,9 +710,9 @@@ next
- =20
-  		++cq->mcq.cons_index;
-  		index =3D (cq->mcq.cons_index) & ring->size_mask;
- -		cqe =3D &cq->buf[index];
- +		cqe =3D &cq->buf[(index << factor) + factor];
-- 		if (++polled =3D=3D budget) {
-- 			/* We are here because we reached the NAPI budget -
-- 			 * flush only pending LRO sessions */
-+ 		if (++polled =3D=3D budget)
-  			goto out;
-- 		}
-  	}
- =20
-  out:
-
---Signature=_Tue__27_Nov_2012_11_47_51_+1100_Gy39B++J1yJCVRUm
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJQtA23AAoJEECxmPOUX5FEJcMP/2uAYVgOIr10CkQFnoiWvveh
-cExGTI7BMFm3VfzrZsXPH2vAGTzZoRwVyBnhQzobRHcjTplJkthAnNDq1xb7eDxt
-4EMF+6wcnqlnKmG27osfE5Fnh4/mFXZdDxhgbyHuzc9aa1nXhVD1n/jW/tyLBgsn
-OSQcTVAEkDVvAN6WohATaeyEQ+HkwWLYWdBtmMrPDdnjeH2GA3NgEuD904lJT2IU
-Z93w73/ITIj+8f7MtpxeTGH1SDx8XtrUYk5sQ5vaADSIdcVCGeDj/AZrsg8ezk//
-/I9AeqAHQUHY/Pu5MTO6aLPqFY7TkExjk89Fbm4fXuptA9u1Jp1a1DVXxrqnghjG
-UEpX1+8yqTwZSJT6QbwgVddseBN9mdDrjE9SOLHR9VeEa92oTiWQA2Uaaw5DDres
-dfTjozkpHL6BpOGmwx9fdmzGvZLwXfkwdvncyxUtouMft7gnNkFu61o5Y6AgXBSw
-a0N8IXqIcX2sNtJ35mqVVb0K34MrjV/8EfN9V1D32KWdqUWkBi4iHEySvc49FWdy
-XsQygg6VUIIqYIDuV0kLUXwc651wCbVF1GtjvDgAcWuKgjWZdcMFxLuv3co+kx+Y
-7HTSbgKM82zeI2Cw0WRgnhuepKbPVN/MWfM2ujuwFf+el5P0PAUdARqKcvAbe/rC
-wgzW2pkCenm+Ltk+H3D/
-=E4sO
------END PGP SIGNATURE-----
-
---Signature=_Tue__27_Nov_2012_11_47_51_+1100_Gy39B++J1yJCVRUm--
+Victor
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
