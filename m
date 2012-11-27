@@ -1,73 +1,27 @@
-From: Joseph Glanville <joseph.glanville-2MxvZkOi9dvvnOemgxGiVw@public.gmane.org>
-Subject: Re: [PATCH 00/11] First pass at merging Bart's HA work
-Date: Wed, 28 Nov 2012 05:10:32 +1100
-Message-ID: <CAOzFzEg7ytycGcLqN4rOyLBUMC_spw+qaHxfHRzNCn4eOH8cUA@mail.gmail.com>
-References: <cover.1353903448.git.dillowda@ornl.gov>
-	<50B4EBA3.7070400@acm.org>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Updated Debian packages?
+Date: Tue, 27 Nov 2012 20:35:35 +0000
+Message-ID: <0000013b4394f98f-eee4de84-fc21-4432-a5ae-73c4c912e803-000000@email.amazonses.com>
+References: <0000013b05aabcf5-1b33263b-9ccb-46a2-b125-0357cdd5e0c9-000000@email.amazonses.com> <CABweQm+c6fo_VTTNk1NMsJA3fDH0LK95C5qzziabZGZGRrY-Rw@mail.gmail.com> <0000013b0a51504b-fc3418bd-5aa2-4ce6-8a82-05821859d2a0-000000@email.amazonses.com>
+ <CABweQmLesg5hE4uqEDjgUMc9P8Fwt-yQErga12XtEjttgYnzvg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50B4EBA3.7070400-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <CABweQmLesg5hE4uqEDjgUMc9P8Fwt-yQErga12XtEjttgYnzvg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Metz <Kevin.Metz-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 28 November 2012 03:34, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
-> On 11/26/12 05:44, David Dillow wrote:
->>
->> Here is a first, UNTESTED, pass at preparing a merge of Bart's SRP HA
->> work to upstream. It is not complete, as I have not yet added the
->> transport layer error handling and related patches. It is also currently
->> missing the patch to maintain a single connection for an I_T nexus.
->>
->> I swapped Ishai's code to recreate QP/CQs for each connection, as that
->> adds recovery from fatal hardware errors, and reduces the code needed to
->> avoid stale completions. Similarly, Vu's patch slightly reduces reconnect
->> times.
->>
->> Target blocking/unblocking hasn't been added from Bart's patch that
->> removes the SRP_TARGET_CONNECTING state; I think it is probably the right
->> thing to do, but want to think it over a bit more.
->>
->> Similarly, I'm looking for a clean way to start the reconnection effort
->> as soon as we get an error through the CQ -- we know that any pending
->> commands are lost to us at that point, so we should be able to kick them
->> back upstream quickly. This should allow multipath to reissue them on one
->> of the remaining good paths.
->>
->> This series compiles, but is otherwise UNTESTED. I'll be working on that
->> over the next few days, with an eye on getting as much of Bart's work
->> into 3.8 as possible.
->
->
-> Thanks Dave for doing all this work. A reworked and retested patch series
-> that should address all comments that have been posted so far can be found
-> here: http://github.com/bvanassche/linux/srp-ha. I can repost the entire
-> patch series if you want. The changes compared to the previous time this
-> patch series was posted are:
-> * Integrated Ishai's and Vu's patches for recreating the QP and the CQs.
-> * Took advantage of SCSI core changes that make scsi_remove_host() wait
->   until device removal and error handling finished (will post these
->   shortly).
->
-> Bart.
+Roland, we need the raw eth qp patches in the git trees for the libraries.
 
-This is grreat news, would be really good to see this merged for 3.8
+Could you please bring the trees up to date so that the userspace raw eth
+support is in sync with the kernel?
 
-Bart - I will test the new srp-ha branch in our environment.
+I guess other will build .debs out of this?
 
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Do you plan to update the .deb packages at some point?
 
-Joseph.
-
--- 
-CTO | Orion Virtualisation Solutions | www.orionvm.com.au
-Phone: 1300 56 99 52 | Mobile: 0428 754 846
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
