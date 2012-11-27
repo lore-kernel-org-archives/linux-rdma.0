@@ -1,26 +1,48 @@
-From: Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: mellanox mlx4_core and SR-IOV
-Date: Mon, 26 Nov 2012 21:30:59 -0500
-Message-ID: <CALY6xngZ2PTf6hiPcpQjaJDnGO=L9gMZg_h2d4S6MJx-+quUDQ@mail.gmail.com>
-References: <AE94C31276ACE14591CDCF7F6B4E699455547DBF@SZXEML540-MBX.china.huawei.com>
+From: David Dillow <dillowda@ornl.gov>
+Subject: Re: [PATCH 04/11] IB/srp: keep processing commands during host
+ removal
+Date: Mon, 26 Nov 2012 22:16:16 -0500
+Message-ID: <1353986176.28917.3.camel@obelisk.thedillows.org>
+References: <cover.1353903448.git.dillowda@ornl.gov>
+	 <8715294a23dded5879b3a327c470d9b6a39ddbc4.1353903448.git.dillowda@ornl.gov>
+	 <50B339C8.2000104@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AE94C31276ACE14591CDCF7F6B4E699455547DBF-HvUXlCZMZtTDofk7SaG+FwK1hpo4iccwjNknBlVQO8k@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhangxiaofeng <victor.zhangxiaofeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <50B339C8.2000104@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 26, 2012 at 8:05 PM, Zhangxiaofeng
-<victor.zhangxiaofeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
+On Mon, 2012-11-26 at 10:43 +0100, Bart Van Assche wrote:
+> On 11/26/12 05:44, David Dillow wrote:
+> > From: Bart Van Assche <bvanassche@acm.org>
+> > 
+> > Some SCSI upper layer drivers, e.g. sd, issue SCSI commands from
+> > inside scsi_remove_host() (see also the sd_shutdown() call in
+> > sd_remove()). Make sure that these commands have a chance to reach
+> > the SCSI device.
 
-> Hello,
-> I tried to use SR-IOV virtualization for Mellanox ConnectX2 card with kernel 3.6.7.
+> Hi Dave,
+> 
+> After I posted the patch on which the above patch has been based I
+> realized that it can be simplified. Since the patch called "Eliminate
+> state SRP_TARGET_CONNECTING" blocks the SCSI host as long as the RDMA
+> RC connection is being reconnected srp_queuecommand() won't be invoked
+> during the "disconnected" or "error" state. How about adding the patch
+> below just after the patch that eliminates the state
+> SRP_TARGET_CONNECTING ?
 
-I'm not 100% sure, but I don't think that the CX2 supports SR-IOV - I
-think you need the CX3 for that.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Right, I left off out the part of that patch that blocks the target as I
+wanted to think about its implications a bit more. I think it is
+probably the right thing to do, and will likely add that functionality
+back.
+
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
+
