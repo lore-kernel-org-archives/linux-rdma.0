@@ -1,34 +1,44 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Updated Debian packages?
-Date: Wed, 28 Nov 2012 11:59:52 +0200
-Message-ID: <50B5E098.7010407@mellanox.com>
-References: <0000013b05aabcf5-1b33263b-9ccb-46a2-b125-0357cdd5e0c9-000000@email.amazonses.com> <CABweQm+c6fo_VTTNk1NMsJA3fDH0LK95C5qzziabZGZGRrY-Rw@mail.gmail.com> <0000013b0a51504b-fc3418bd-5aa2-4ce6-8a82-05821859d2a0-000000@email.amazonses.com> <CABweQmLesg5hE4uqEDjgUMc9P8Fwt-yQErga12XtEjttgYnzvg@mail.gmail.com> <0000013b4394f98f-eee4de84-fc21-4432-a5ae-73c4c912e803-000000@email.amazonses.com> <CAL1RGDVcuONOLFYvrLg-j=rhm2PcZmyhB5nPE1wtQRYaC8kmKQ@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 00/11] First pass at merging Bart's HA work
+Date: Wed, 28 Nov 2012 14:33:44 +0100
+Message-ID: <50B612B8.8040803@acm.org>
+References: <cover.1353903448.git.dillowda@ornl.gov> <50B4EBA3.7070400@acm.org> <CAJZOPZJ6tNimvQGKa6E0ttowM8WWxCMR7s9BMWebVOEYtQ+TCQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDVcuONOLFYvrLg-j=rhm2PcZmyhB5nPE1wtQRYaC8kmKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJZOPZJ6tNimvQGKa6E0ttowM8WWxCMR7s9BMWebVOEYtQ+TCQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kevin Metz <Kevin.Metz-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 28/11/2012 11:46, Roland Dreier wrote:
-> On Tue, Nov 27, 2012 at 12:35 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
->> Roland, we need the raw eth qp patches in the git trees for the libraries.
->>
->> Could you please bring the trees up to date so that the userspace raw eth
->> support is in sync with the kernel?
-> Do you have branches I could pull from?
+On 11/27/12 23:13, Or Gerlitz wrote:
+> On Tue, Nov 27, 2012 at 6:34 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+>> Thanks Dave for doing all this work. A reworked and retested patch series
+>> that should address all comments that have been posted so far can be found
+>> here: http://github.com/bvanassche/linux/srp-ha. I can repost the entire
+>> patch series if you want. The changes compared to the previous time this
+>> patch series was posted are:
+>> * Integrated Ishai's and Vu's patches for recreating the QP and the CQs.
+>> * Took advantage of SCSI core changes that make scsi_remove_host() wait
+>>    until device removal and error handling finished (will post these shortly).
+>
+> Bart, do you mean that the series @ your tree is a superset of the
+> series posted by Dave? that is you took his eleven patches and added
+> more? if this is the case, why can't we have Dave's series
+> (fixed/changed wherever needed) and your series on top of?
 
-Its in your patchwork...  here are the posts
+Hello Or,
 
-libmlx4
-http://marc.info/?l=linux-rdma&m=134817307614014&w=2
-http://marc.info/?l=linux-rdma&m=134838353315573&w=2
+My interpretation of Dave's replies on my comments on his patch series 
+is that some rework and retesting would be necessary anyway. The reason 
+I made the above tree available was in the hope that it would make it 
+easier for Dave to prepare a new tree. Which tree is eventually chosen 
+doesn't really matter for me. The fact that I made a new tree available 
+was just my way to address Dave's comments on my patches.
 
-libibverbs
-http://marc.info/?l=linux-rdma&m=134817304514001&w=2
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
