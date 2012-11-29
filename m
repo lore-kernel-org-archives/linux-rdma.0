@@ -1,79 +1,62 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_torus.c: Improve some misconfiguration error messages
-Date: Thu, 29 Nov 2012 14:11:42 -0500
-Message-ID: <50B7B36E.1030400@dev.mellanox.co.il>
+From: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
+Subject: Re: [PATCH 1/5] cxgb4: Add T4 filter support
+Date: Thu, 29 Nov 2012 19:51:46 +0000
+Message-ID: <1354218706.2586.36.camel@bwh-desktop.uk.solarflarecom.com>
+References: <1354200745-23598-1-git-send-email-vipul@chelsio.com>
+	 <1354200745-23598-2-git-send-email-vipul@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1354200745-23598-2-git-send-email-vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, 2012-11-29 at 20:22 +0530, Vipul Pandya wrote:
+> The T4 architecture is capable of filtering ingress packets at line rate
+> using the rule in TCAM. If packet hits a rule in the TCAM then it can be either
+> dropped or passed to the receive queues based on a rule settings.
+> 
+> This patch adds framework for managing filters and to use T4's filter
+> capabilities. It constructs a Firmware Filter Work Request which writes the
+> filter at a specified index to get the work done. It hosts shadow copy of
+> ingress filter entry to check field size limitations and save memory in the
+> case where the filter table is large.
+> 
+> Signed-off-by: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |  141 +++++++++++
+>  drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |  309 ++++++++++++++++++++++-
+>  drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h  |    2 +
+>  drivers/net/ethernet/chelsio/cxgb4/l2t.c        |   34 +++
+>  drivers/net/ethernet/chelsio/cxgb4/l2t.h        |    3 +
+>  drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      |   23 ++-
+>  drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |    1 +
+>  drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h   |  279 ++++++++++++++++++++
+>  8 files changed, 787 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h b/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
+> index 378988b..8cfc1ba 100644
+> --- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
+> +++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
+> @@ -545,6 +545,139 @@ struct adapter {
+>  	spinlock_t stats_lock;
+>  };
+>  
+> +/**
+[...]
 
-Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_torus.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+'/**' introduces a kernel-doc comment; please don't use it for any
+comments not in that format.
 
-diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
-index 43343c7..4d1bec7 100644
---- a/opensm/osm_torus.c
-+++ b/opensm/osm_torus.c
-@@ -7025,8 +7025,9 @@ out:
- 	return;
- }
- 
--#define LINK_ERR_STR " direction link required!\n"
--#define SEED_ERR_STR " direction links with different seed switches!\n"
-+#define LINK_ERR_STR " direction link required for topology seed configuration since radix == 4! See torus-2QoS.conf(5).\n"
-+#define LINK_ERR2_STR " direction link required for topology seed configuration! See torus-2QoS.conf(5).\n"
-+#define SEED_ERR_STR " direction links for topology seed do not share a common switch! See torus-2QoS.conf(5).\n"
- 
- static
- bool verify_setup(struct torus *t, struct fabric *f)
-@@ -7154,7 +7155,7 @@ again:
- 		if (o->xp_link.end[0].port >= 0 &&
- 		    o->xm_link.end[0].port >= 0) {
- 			OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
--				"ERR 4E2B: Positive or negative x" LINK_ERR_STR);
-+				"ERR 4E2B: Positive or negative x" LINK_ERR2_STR);
- 			goto out;
- 		}
- 		if (o->xp_link.end[0].port < 0 &&
-@@ -7177,7 +7178,7 @@ again:
- 		if (o->zp_link.end[0].port >= 0 &&
- 		    o->zm_link.end[0].port >= 0) {
- 			OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
--				"ERR 4E2C: Positive or negative z" LINK_ERR_STR);
-+				"ERR 4E2C: Positive or negative z" LINK_ERR2_STR);
- 			goto out;
- 		}
- 		if ((o->xp_link.end[0].port < 0 &&
-@@ -7220,7 +7221,7 @@ again:
- 		if (o->yp_link.end[0].port >= 0 &&
- 		    o->ym_link.end[0].port >= 0) {
- 			OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
--				"ERR 4E2E: Positive or negative y" LINK_ERR_STR);
-+				"ERR 4E2E: Positive or negative y" LINK_ERR2_STR);
- 			goto out;
- 		}
- 		if ((o->xp_link.end[0].port < 0 &&
-@@ -7269,7 +7270,9 @@ again:
- 	if (need_seed)
- 		OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
- 			"ERR 4E30: Every configured torus seed has at "
--			"least one switch missing in fabric!\n");
-+			"least one switch missing in fabric! See "
-+			"torus-2QoS.conf(5) and TORUS TOPOLOGY DISCOVERY "
-+			"in torus-2QoS(8)\n");
- 	else
- 		success = true;
- out:
+Ben.
+
 -- 
-1.7.8.2
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
