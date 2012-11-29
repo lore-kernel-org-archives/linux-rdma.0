@@ -1,46 +1,80 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rsockets and fork
-Date: Thu, 29 Nov 2012 16:27:06 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346ADAC17@ORSMSX101.amr.corp.intel.com>
-References: <1344899557.2101.29.camel@oc1677441337.ibm.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A7DB36@ORSMSX101.amr.corp.intel.com>
-	<502A9039.4090505@us.ibm.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A89125@ORSMSX101.amr.corp.intel.com>
-	<1344968289.2101.36.camel@oc1677441337.ibm.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A89AEB@ORSMSX101.amr.corp.intel.com>
-	<1345239625.1128.20.camel@oc1677441337.ibm.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A89F70@ORSMSX101.amr.corp.intel.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A89F90@ORSMSX101.amr.corp.intel.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A8A7A8@ORSMSX101.amr.corp.intel.com>
-	<CAL1RGDW+QSXnfa5yvEsb7XqXMVbVVU6sz7BEKRPmc0tSYi8m9Q@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237346A8ADD4@ORSMSX101.amr.corp.intel.com>
- <CAJZOPZJWzKZ3fjUsbBVA8-Dv+YTajJBStP2VzBw=VrfXHSi=xw@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_torus.c: Improve some misconfiguration error messages
+Date: Thu, 29 Nov 2012 14:11:42 -0500
+Message-ID: <50B7B36E.1030400@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJWzKZ3fjUsbBVA8-Dv+YTajJBStP2VzBw=VrfXHSi=xw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Was there progress on using rsocket under netperf or fork in general?
 
-Fork support in rsockets is available now, and netperf should work.  It's not generic enough to handle any arbitrary call to fork, but will work if the app does something like this:
+Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_torus.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
 
-listen()
-s = accept()
-fork(s)
+diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
+index 43343c7..4d1bec7 100644
+--- a/opensm/osm_torus.c
++++ b/opensm/osm_torus.c
+@@ -7025,8 +7025,9 @@ out:
+ 	return;
+ }
  
-> Do you think for the netperf and maybe other uses case of fork rsockets can use
-> CM redirect (e.g through the rdma-cm supporting rdma_redirect - within
-> the server to bypass the fork limitation?
+-#define LINK_ERR_STR " direction link required!\n"
+-#define SEED_ERR_STR " direction links with different seed switches!\n"
++#define LINK_ERR_STR " direction link required for topology seed configuration since radix == 4! See torus-2QoS.conf(5).\n"
++#define LINK_ERR2_STR " direction link required for topology seed configuration! See torus-2QoS.conf(5).\n"
++#define SEED_ERR_STR " direction links for topology seed do not share a common switch! See torus-2QoS.conf(5).\n"
+ 
+ static
+ bool verify_setup(struct torus *t, struct fabric *f)
+@@ -7154,7 +7155,7 @@ again:
+ 		if (o->xp_link.end[0].port >= 0 &&
+ 		    o->xm_link.end[0].port >= 0) {
+ 			OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
+-				"ERR 4E2B: Positive or negative x" LINK_ERR_STR);
++				"ERR 4E2B: Positive or negative x" LINK_ERR2_STR);
+ 			goto out;
+ 		}
+ 		if (o->xp_link.end[0].port < 0 &&
+@@ -7177,7 +7178,7 @@ again:
+ 		if (o->zp_link.end[0].port >= 0 &&
+ 		    o->zm_link.end[0].port >= 0) {
+ 			OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
+-				"ERR 4E2C: Positive or negative z" LINK_ERR_STR);
++				"ERR 4E2C: Positive or negative z" LINK_ERR2_STR);
+ 			goto out;
+ 		}
+ 		if ((o->xp_link.end[0].port < 0 &&
+@@ -7220,7 +7221,7 @@ again:
+ 		if (o->yp_link.end[0].port >= 0 &&
+ 		    o->ym_link.end[0].port >= 0) {
+ 			OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
+-				"ERR 4E2E: Positive or negative y" LINK_ERR_STR);
++				"ERR 4E2E: Positive or negative y" LINK_ERR2_STR);
+ 			goto out;
+ 		}
+ 		if ((o->xp_link.end[0].port < 0 &&
+@@ -7269,7 +7270,9 @@ again:
+ 	if (need_seed)
+ 		OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
+ 			"ERR 4E30: Every configured torus seed has at "
+-			"least one switch missing in fabric!\n");
++			"least one switch missing in fabric! See "
++			"torus-2QoS.conf(5) and TORUS TOPOLOGY DISCOVERY "
++			"in torus-2QoS(8)\n");
+ 	else
+ 		success = true;
+ out:
+-- 
+1.7.8.2
 
-The last problem I hit into was trying to support vsftp, which called chroot.  Handling chroot requires kernel changes.  But, between fork, fstat, chroot, dup2, epoll, and other calls, a kernel implementation of rsockets (or something similar) looks more appealing for apps that favor full compatibility over performance.
-
-- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
