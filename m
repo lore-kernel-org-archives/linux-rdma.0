@@ -1,180 +1,62 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Dapltest test error DAT_CONN_QUAL_IN_USE
-Date: Thu, 29 Nov 2012 23:51:17 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F94822E9F8@ORSMSX101.amr.corp.intel.com>
-References: <BE1D1D812551174182F280D7A4AEC90B357C04@nice.asicdesigners.com>
- <54347E5A035A054EAE9D05927FB467F94822CCC0@ORSMSX101.amr.corp.intel.com>
- <50B3C8ED.9080803@opengridcomputing.com> <50B76449.9010000@chelsio.com>
+From: Zhangxiaofeng <victor.zhangxiaofeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: mellanox mlx4_core and SR-IOV
+Date: Fri, 30 Nov 2012 00:41:36 +0000
+Message-ID: <AE94C31276ACE14591CDCF7F6B4E69945554C018@SZXEML540-MBS.china.huawei.com>
+References: <AE94C31276ACE14591CDCF7F6B4E699455547DBF@SZXEML540-MBX.china.huawei.com>
+ <CALY6xngZ2PTf6hiPcpQjaJDnGO=L9gMZg_h2d4S6MJx-+quUDQ@mail.gmail.com>
+ <CALfB72AHagg7GF2i2vuBw4_M0QHw-xkbdSXmuJKvynv-ZjLMow@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50B76449.9010000-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CALfB72AHagg7GF2i2vuBw4_M0QHw-xkbdSXmuJKvynv-ZjLMow-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: zh-CN
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kumar A S <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Abhishek Agrawal <abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Albert Strasheim <albert.strasheim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majun <harry.majun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Vipul,
-
-Can you submit a bug in bugzilla for tracking? I will try to get to this
-next couple of days.
-
--arlin
-
-> -----Original Message-----
-> From: Vipul Pandya [mailto:vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org]
-> Sent: Thursday, November 29, 2012 5:34 AM
-> To: Davis, Arlin R
-> Cc: Steve Wise; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Kumar A S; Abhishek
-> Agrawal; Divy Le Ray
-> Subject: Re: Dapltest test error DAT_CONN_QUAL_IN_USE
-> 
-> Hi Arlin,
-> 
-> This issue is happening because there is a port collision between
-> dapltest server port space and host TCP stack. The port collision
-> happens because rdma_bind_addr is getting called from the two different
-> places with different port arguments from dapltest. rdma_bind_addr is
-> getting called from the following two places:
-> 
-> 1. Once it is getting called from dapls_ib_setup_conn_listener function
-> with starting port as 45278. Based on number of threads and eps, in
-> subsequent call of dapls_ib_setup_conn_listener this port number will
-> keep getting incremented.
-> 
-> 2. 2nd time it is getting called from dapls_ib_qp_alloc function with
-> port number as always 0. Now, when rdma_bind_addr gets called with port
-> number 0 it will allocate any free random port number.
-> 
-> Then when dapls_ib_setup_conn_listener calls the rdma_bind_addr with
-> fix port number which is already allocate via dapls_ib_qp_alloc
-> function rdma_bind_addr will return EADDRINUSE error, which in turn
-> will result in DAT_CONN_QUAL_IN_USE error.
-> 
-> I think solution here would be to call rdma_bind_addr from both the
-> location passing port number from the same port range.
-> 
-> Please let me know your thoughts on this.
-> 
-> Our testing has been blocked because of this issue. We would like to
-> get this fixed. Please let us know if we need to log a bug anywhere for
-> this.
-> 
-> Thanks,
-> Vipul
-> 
-> On 27-11-2012 01:24, Steve Wise wrote:
-> > Perhaps the port is in use by the host TCP stack?
-> >
-> >
-> > On 11/26/2012 1:30 PM, Davis, Arlin R wrote:
-> >> dapltest server will start with port 45278 and increase by client
-> thread count during each new client connection. If you never restart
-> the server it will continue to increase the listen port based on new
-> clients connecting. If you restart dapltest it will restart back at
-> port 45278. I am not familiar with iWarp CM but the error is coming
-> from rdma_bind_addr (EADDRINUSE|EBUSY|EADDRNOTAVAIL). I will have to
-> defer to Steve for this error.
-> >>
-> >> -arlin
-> >>
-> >>
-> >>> -----Original Message-----
-> >>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> >>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Vipul Pandya
-> >>> Sent: Friday, November 23, 2012 5:54 AM
-> >>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>> Cc: Kumar A S; Steve Wise; Abhishek Agrawal; Davis, Arlin R; Divy
-> Le
-> >>> Ray
-> >>> Subject: Dapltest test error DAT_CONN_QUAL_IN_USE
-> >>>
-> >>> Hi All,
-> >>>
-> >>> I was running dapltest between my client and server machines with
-> >>> OFED- 3.5. While running the test it dapltest server throws an
-> error
-> >>> DAT_CONN_QUAL_IN_USE if I increase number of threads and endpoints.
-> >>>
-> >>> Dapltest server:
-> >>> ---------------
-> >>> dapltest -T S -D chelsio1
-> >>>
-> >>> Dapltest client:
-> >>> ---------------
-> >>> dapltest -T T -s 102.1.1.2 -D chelsio1 -R BE -i 1 -t 16 -w 8 server
-> >>> SR
-> >>> 8192 4 client SR 8192 4
-> >>>
-> >>>
-> >>> Once I run the above test i get the following error on server side
-> >>> and client side stalls.
-> >>>
-> >>> $# dapltest -T S -D chelsio1
-> >>> Dapltest: Service Point Ready - chelsio1
-> >>> Test[b13f]: dat_psp_create #6 error: DAT_CONN_QUAL_IN_USE
-> >>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #0 error
-> >>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
-> >>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
-> >>> DAT_INVALID_STATE_EVD_IN_USE
-> >>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #1 error
-> >>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
-> >>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
-> >>> DAT_INVALID_STATE_EVD_IN_USE
-> >>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #2 error
-> >>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
-> >>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
-> >>> DAT_INVALID_STATE_EVD_IN_USE
-> >>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #3 error
-> >>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
-> >>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
-> >>> DAT_INVALID_STATE_EVD_IN_USE
-> >>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #4 error
-> >>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
-> >>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
-> >>> DAT_INVALID_STATE_EVD_IN_USE
-> >>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #5 error
-> >>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
-> >>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
-> >>> DAT_INVALID_STATE_EVD_IN_USE
-> >>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #6 error
-> >>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
-> >>>
-> >>> Following link says DAT_CONN_QUAL_IN_USE error can come if rdma_cm
-> >>> returns an error due to bind failure.
-> >>> http://www.mail-archive.com/linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg01297.html
-> >>>
-> >>> rdma_cm from OFED-3.5 does not provide module parameter
-> >>> 'unify_tcp_port_space'. So, just to narrow down I installed OFED-
-> >>> 1.5.4.1 and ran the same test with unify_tcp_port_space=1. However
-> >>> with that also I was able to reproduced the same issue.
-> >>>
-> >>> Please note that if I decrease the numbers of endpoints to 4 then
-> >>> test works fine. i.e. If I give '-w 4' instead of '-w 8' in command
-> >>> line then test runs fine.
-> >>>
-> >>> I am using dapltest version 2.0.36 which comes from OFED-3.5.
-> >>>
-> >>> Can anyone give any pointers on this?
-> >>>
-> >>>
-> >>> Thanks,
-> >>> Vipul
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-
-> rdma"
-> >>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
-> majordomo
-> >>> info at  http://vger.kernel.org/majordomo-info.html
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-
-> rdma"
-> >> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
-> >> info at  http://vger.kernel.org/majordomo-info.html
-> >
+SnVzdCBmb2xsb3cgdXAgb24gdGhpczoNCg0KRm9yIGRpcmVjdCBwYXRodGhyb3VnaCBtb2RlOg0K
+UHJvYmxlbXMgd2FzIHNvbHZlZCB3aGVuIEkgdXBncmFkZSBmaXJtd2FyZSB3aXRoIDIuOS4xMjAw
+LGp1c3QgYXMgQWxiZXJ0J3Mgc3VnZ2VzdGlvbiBhcyBiZWxvdzoNCg0KaHR0cDovL21hcmMuaW5m
+by8/dD0xMzI3ODkwOTUyMDAwMDEmcj0xJnc9Mg0KDQpGb3IgU1ItSU9WIG1vZGUNCkFzIEkgY291
+bmRuJ3QgZmluZCBhIHNlcnZlciB3aXRoIFNSLUlPViBlbmFibGVkLg0KSSBzb2x2ZWQgdGhlIHBy
+b2JsZW0gd2l0aCBwY2kgcmVzY2FuLCBjb21tYWQgYXMgYmVsb3c6DQoNCmVjaG8gMSA+IC9zeXMv
+ZGV2aWNlcy9wY2kwMDAwXDowMC8wMDAwXDowMFw6MDcuMC9yZW1vdmUNCg0KZWNobyAxID4gL3N5
+cy9idXMvcGNpL3Jlc2Nhbg0KDQotLS0tLdPKvP7Urbz+LS0tLS0NCreivP7IyzogbGludXgtcmRt
+YS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLW93bmVyQHZnZXIua2Vy
+bmVsLm9yZ10gtPqx7SBBbGJlcnQgU3RyYXNoZWltDQq3osvNyrG85DogMjAxMsTqMTHUwjI3yNUg
+MTI6NTUNCsrVvP7IyzogSm9uIFN0YW5sZXkNCrOty806IFpoYW5neGlhb2Zlbmc7IGxpbnV4LXJk
+bWFAdmdlci5rZXJuZWwub3JnDQrW98ziOiBSZTogbWVsbGFub3ggbWx4NF9jb3JlIGFuZCBTUi1J
+T1YNCg0KSGVsbG8NCg0KVExEUjogZ2V0IGZpcm13YXJlIDIuOS4xMjAwIGFuZCB3YWl0IGZvciAz
+LjcuDQoNCk9uIFR1ZSwgTm92IDI3LCAyMDEyIGF0IDQ6MzAgQU0sIEpvbiBTdGFubGV5IDxqb25z
+dGFubGV5QGdtYWlsLmNvbT4gd3JvdGU6DQo+IE9uIE1vbiwgTm92IDI2LCAyMDEyIGF0IDg6MDUg
+UE0sIFpoYW5neGlhb2ZlbmcNCj4gPHZpY3Rvci56aGFuZ3hpYW9mZW5nQGh1YXdlaS5jb20+IHdy
+b3RlOg0KPg0KPj4gSGVsbG8sDQo+PiBJIHRyaWVkIHRvIHVzZSBTUi1JT1YgdmlydHVhbGl6YXRp
+b24gZm9yIE1lbGxhbm94IENvbm5lY3RYMiBjYXJkIHdpdGgga2VybmVsIDMuNi43Lg0KPg0KPiBJ
+J20gbm90IDEwMCUgc3VyZSwgYnV0IEkgZG9uJ3QgdGhpbmsgdGhhdCB0aGUgQ1gyIHN1cHBvcnRz
+IFNSLUlPViAtIEkNCj4gdGhpbmsgeW91IG5lZWQgdGhlIENYMyBmb3IgdGhhdC4NCg0KSXQgc2hv
+dWxkIHdvcmsgc29vbi4NCg0KU29tZSBiaXRzIGZyb20gUm9sYW5kOg0KDQpodHRwczovL3BsdXMu
+Z29vZ2xlLmNvbS8xMTU0ODA0NTAxNjg3MDMzMjA3MTQvcG9zdHMvWW1UQjZzSk05R0cNCg0KQWxz
+byB3YXRjaCBvdXQgZm9yOg0KDQpodHRwczovL3BsdXMuZ29vZ2xlLmNvbS8xMTU0ODA0NTAxNjg3
+MDMzMjA3MTQvcG9zdHMvOEFRNG9DQTNvNmsNCg0KU29tZSBiaXRzIGZyb20gTWVsbGFub3g6DQoN
+CiIiIg0KLi4uIHRoaXMgaXMgYSBzaW5nbGUgZnVuY3Rpb24gc3lzdGVtIHdoZXJlIHlvdSBwYXNz
+IHRoZSBzaW5nbGUNCmZ1bmN0aW9uIHRvIGEgZ3Vlc3QgVk0uIElzc3VlcyByZWxhdGVkIHRvIEZM
+UiB0byBhIHNpbmdsZSBmdW5jdGlvbiBhcmUNCmZpeGVkIGluIGZpcm13YXJlIHJlbGVhc2UgMi45
+LjEyMDAuDQoNClRoZSBsYXRlc3QgZmlybXdhcmUgR0EgdmVyc2lvbiBpcyAyLjkuMTAwMC4gWW91
+IGNhbiBjcmVhdGUgeW91ciBvd24NCmludGVybWVkaWF0ZSBmaXJtd2FyZSB2ZXJzaW9uIDIuOS4x
+MjAwLiBQbGVhc2UsIG5vdGUgdGhhdCB0aGUNCmludGVybWVkaWF0ZSBmaXJtd2FyZSB2ZXJzaW9u
+IDIuOS4xMjAwIHdpbGwgbm90IGJlIHN1cHBvcnRlZC4NCiIiIg0KDQpJZiB5b3UgZG9uJ3QgaGF2
+ZSB0aGUgMi45LjEyMDAgZmlybXdhcmUsIHlvdSB3aWxsIHByb2JhYmx5IHJ1biBpbnRvDQp0aGlz
+IGlzc3VlIHdpdGggZnVuY3Rpb24gbGV2ZWwgcmVzZXQ6DQoNCmh0dHA6Ly9tYXJjLmluZm8vP3Q9
+MTMyNzg5MDk1MjAwMDAxJnI9MSZ3PTINCg0KMi45LjEyMDAgaXMgaGlkaW5nIGhlcmU6DQoNCmh0
+dHA6Ly93d3cubWVsbGFub3guY29tL2NvbnRlbnQvcGFnZXMucGhwP3BnPWN1c3RvbV9maXJtd2Fy
+ZV90YWJsZQ0KDQpTZWUgYWxzbzoNCg0KaHR0cDovL3d3dy5tZWxsYW5veC5jb20vcGRmL2Zpcm13
+YXJlL0Nvbm5lY3RYMi1GVy0yXzlfMTIwMC1yZWxlYXNlX25vdGVzLnBkZg0KDQpDaGVlcnMNCg0K
+QWxiZXJ0DQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
+InVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQp0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFq
+b3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3Zn
+ZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
