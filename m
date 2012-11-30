@@ -1,62 +1,50 @@
-From: Zhangxiaofeng <victor.zhangxiaofeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: mellanox mlx4_core and SR-IOV
-Date: Fri, 30 Nov 2012 00:41:36 +0000
-Message-ID: <AE94C31276ACE14591CDCF7F6B4E69945554C018@SZXEML540-MBS.china.huawei.com>
-References: <AE94C31276ACE14591CDCF7F6B4E699455547DBF@SZXEML540-MBX.china.huawei.com>
- <CALY6xngZ2PTf6hiPcpQjaJDnGO=L9gMZg_h2d4S6MJx-+quUDQ@mail.gmail.com>
- <CALfB72AHagg7GF2i2vuBw4_M0QHw-xkbdSXmuJKvynv-ZjLMow@mail.gmail.com>
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [PATCH 00/11] First pass at merging Bart's HA work
+Date: Thu, 29 Nov 2012 21:21:38 -0500
+Message-ID: <1354242098.3670.3.camel@obelisk.thedillows.org>
+References: <cover.1353903448.git.dillowda@ornl.gov>
+	 <CAL1RGDU+b4GxEoY0TOvkyJjr0yx=5tFNmAVZ27hVjOOx=n=yJg@mail.gmail.com>
+	 <1353957308.2681.5.camel@dabdike>
+	 <1353989041.28917.24.camel@obelisk.thedillows.org>
+	 <CAL1RGDXpdWL_r7sWp=vvvXH4jxFgjDL+XcEGgKo-44=wrOBmtA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALfB72AHagg7GF2i2vuBw4_M0QHw-xkbdSXmuJKvynv-ZjLMow-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: zh-CN
+In-Reply-To: <CAL1RGDXpdWL_r7sWp=vvvXH4jxFgjDL+XcEGgKo-44=wrOBmtA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Strasheim <albert.strasheim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majun <harry.majun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: James Bottomley <James.Bottomley-JuX6DAaQMKPCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org, rcj-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SnVzdCBmb2xsb3cgdXAgb24gdGhpczoNCg0KRm9yIGRpcmVjdCBwYXRodGhyb3VnaCBtb2RlOg0K
-UHJvYmxlbXMgd2FzIHNvbHZlZCB3aGVuIEkgdXBncmFkZSBmaXJtd2FyZSB3aXRoIDIuOS4xMjAw
-LGp1c3QgYXMgQWxiZXJ0J3Mgc3VnZ2VzdGlvbiBhcyBiZWxvdzoNCg0KaHR0cDovL21hcmMuaW5m
-by8/dD0xMzI3ODkwOTUyMDAwMDEmcj0xJnc9Mg0KDQpGb3IgU1ItSU9WIG1vZGUNCkFzIEkgY291
-bmRuJ3QgZmluZCBhIHNlcnZlciB3aXRoIFNSLUlPViBlbmFibGVkLg0KSSBzb2x2ZWQgdGhlIHBy
-b2JsZW0gd2l0aCBwY2kgcmVzY2FuLCBjb21tYWQgYXMgYmVsb3c6DQoNCmVjaG8gMSA+IC9zeXMv
-ZGV2aWNlcy9wY2kwMDAwXDowMC8wMDAwXDowMFw6MDcuMC9yZW1vdmUNCg0KZWNobyAxID4gL3N5
-cy9idXMvcGNpL3Jlc2Nhbg0KDQotLS0tLdPKvP7Urbz+LS0tLS0NCreivP7IyzogbGludXgtcmRt
-YS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLW93bmVyQHZnZXIua2Vy
-bmVsLm9yZ10gtPqx7SBBbGJlcnQgU3RyYXNoZWltDQq3osvNyrG85DogMjAxMsTqMTHUwjI3yNUg
-MTI6NTUNCsrVvP7IyzogSm9uIFN0YW5sZXkNCrOty806IFpoYW5neGlhb2Zlbmc7IGxpbnV4LXJk
-bWFAdmdlci5rZXJuZWwub3JnDQrW98ziOiBSZTogbWVsbGFub3ggbWx4NF9jb3JlIGFuZCBTUi1J
-T1YNCg0KSGVsbG8NCg0KVExEUjogZ2V0IGZpcm13YXJlIDIuOS4xMjAwIGFuZCB3YWl0IGZvciAz
-LjcuDQoNCk9uIFR1ZSwgTm92IDI3LCAyMDEyIGF0IDQ6MzAgQU0sIEpvbiBTdGFubGV5IDxqb25z
-dGFubGV5QGdtYWlsLmNvbT4gd3JvdGU6DQo+IE9uIE1vbiwgTm92IDI2LCAyMDEyIGF0IDg6MDUg
-UE0sIFpoYW5neGlhb2ZlbmcNCj4gPHZpY3Rvci56aGFuZ3hpYW9mZW5nQGh1YXdlaS5jb20+IHdy
-b3RlOg0KPg0KPj4gSGVsbG8sDQo+PiBJIHRyaWVkIHRvIHVzZSBTUi1JT1YgdmlydHVhbGl6YXRp
-b24gZm9yIE1lbGxhbm94IENvbm5lY3RYMiBjYXJkIHdpdGgga2VybmVsIDMuNi43Lg0KPg0KPiBJ
-J20gbm90IDEwMCUgc3VyZSwgYnV0IEkgZG9uJ3QgdGhpbmsgdGhhdCB0aGUgQ1gyIHN1cHBvcnRz
-IFNSLUlPViAtIEkNCj4gdGhpbmsgeW91IG5lZWQgdGhlIENYMyBmb3IgdGhhdC4NCg0KSXQgc2hv
-dWxkIHdvcmsgc29vbi4NCg0KU29tZSBiaXRzIGZyb20gUm9sYW5kOg0KDQpodHRwczovL3BsdXMu
-Z29vZ2xlLmNvbS8xMTU0ODA0NTAxNjg3MDMzMjA3MTQvcG9zdHMvWW1UQjZzSk05R0cNCg0KQWxz
-byB3YXRjaCBvdXQgZm9yOg0KDQpodHRwczovL3BsdXMuZ29vZ2xlLmNvbS8xMTU0ODA0NTAxNjg3
-MDMzMjA3MTQvcG9zdHMvOEFRNG9DQTNvNmsNCg0KU29tZSBiaXRzIGZyb20gTWVsbGFub3g6DQoN
-CiIiIg0KLi4uIHRoaXMgaXMgYSBzaW5nbGUgZnVuY3Rpb24gc3lzdGVtIHdoZXJlIHlvdSBwYXNz
-IHRoZSBzaW5nbGUNCmZ1bmN0aW9uIHRvIGEgZ3Vlc3QgVk0uIElzc3VlcyByZWxhdGVkIHRvIEZM
-UiB0byBhIHNpbmdsZSBmdW5jdGlvbiBhcmUNCmZpeGVkIGluIGZpcm13YXJlIHJlbGVhc2UgMi45
-LjEyMDAuDQoNClRoZSBsYXRlc3QgZmlybXdhcmUgR0EgdmVyc2lvbiBpcyAyLjkuMTAwMC4gWW91
-IGNhbiBjcmVhdGUgeW91ciBvd24NCmludGVybWVkaWF0ZSBmaXJtd2FyZSB2ZXJzaW9uIDIuOS4x
-MjAwLiBQbGVhc2UsIG5vdGUgdGhhdCB0aGUNCmludGVybWVkaWF0ZSBmaXJtd2FyZSB2ZXJzaW9u
-IDIuOS4xMjAwIHdpbGwgbm90IGJlIHN1cHBvcnRlZC4NCiIiIg0KDQpJZiB5b3UgZG9uJ3QgaGF2
-ZSB0aGUgMi45LjEyMDAgZmlybXdhcmUsIHlvdSB3aWxsIHByb2JhYmx5IHJ1biBpbnRvDQp0aGlz
-IGlzc3VlIHdpdGggZnVuY3Rpb24gbGV2ZWwgcmVzZXQ6DQoNCmh0dHA6Ly9tYXJjLmluZm8vP3Q9
-MTMyNzg5MDk1MjAwMDAxJnI9MSZ3PTINCg0KMi45LjEyMDAgaXMgaGlkaW5nIGhlcmU6DQoNCmh0
-dHA6Ly93d3cubWVsbGFub3guY29tL2NvbnRlbnQvcGFnZXMucGhwP3BnPWN1c3RvbV9maXJtd2Fy
-ZV90YWJsZQ0KDQpTZWUgYWxzbzoNCg0KaHR0cDovL3d3dy5tZWxsYW5veC5jb20vcGRmL2Zpcm13
-YXJlL0Nvbm5lY3RYMi1GVy0yXzlfMTIwMC1yZWxlYXNlX25vdGVzLnBkZg0KDQpDaGVlcnMNCg0K
-QWxiZXJ0DQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
-InVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQp0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFq
-b3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3Zn
-ZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+On Thu, 2012-11-29 at 12:21 -0800, Roland Dreier wrote:
+> On Mon, Nov 26, 2012 at 8:04 PM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
+> > We can push it through James's tree if need be, but Bart's code is
+> > pretty self-contained, and going through the SCSI tree will introduce
+> > merge dependencies. It'd be much easier to push it all through the RDMA
+> > tree, especially if we want to get this landed for 3.8.
+> 
+> OK, I guess all the srp_transport stuff looks quite simple and good to
+> me, so I'm OK merging it.
+> 
+> Is there some subset of patches that you and Bart agree are good,
+> which I can pick up now?  I'd love to get at least some of the SRP
+> stuff into 3.8, and that window is opening pretty soon.
+
+Modulo a few style issues (braces around one line if branches, etc.) and
+having three state variables vs one, I can live with everything up to
+aabfa852acd27962 at git://github.com/bvanassche/linux.git#srp-ha. Those
+two are small things that can be fixed later and are not worth holding
+things up any further.
+
+I'll try to spend some time on the final four patches tomorrow
+afternoon.
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
