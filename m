@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: rsockets and fork
-Date: Sun, 2 Dec 2012 14:20:03 +0200
-Message-ID: <50BB4773.303@mellanox.com>
+Date: Sun, 2 Dec 2012 14:20:14 +0200
+Message-ID: <50BB477E.6000907@mellanox.com>
 References: <1344899557.2101.29.camel@oc1677441337.ibm.com> <1828884A29C6694DAF28B7E6B8A8237346A7DB36@ORSMSX101.amr.corp.intel.com> <502A9039.4090505@us.ibm.com> <1828884A29C6694DAF28B7E6B8A8237346A89125@ORSMSX101.amr.corp.intel.com> <1344968289.2101.36.camel@oc1677441337.ibm.com> <1828884A29C6694DAF28B7E6B8A8237346A89AEB@ORSMSX101.amr.corp.intel.com> <1345239625.1128.20.camel@oc1677441337.ibm.com> <1828884A29C6694DAF28B7E6B8A8237346A89F70@ORSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237346A89F90@ORSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237346A8A7A8@ORSMSX101.amr.corp.intel.com> <CAL1RGDW+QSXnfa5yvEsb7XqXMVbVVU6sz7BEKRPmc0tSYi8m9Q@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A8237346A8ADD4@ORSMSX101.amr.corp.intel.com> <CAJZOPZJWzKZ3fjUsbBVA8-Dv+YTajJBStP2VzBw
  =VrfXHSi=xw@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A8237346ADAC17@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
@@ -11,7 +11,7 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346ADAC17-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Eyal Salomon <esalomon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sridhar Samudrala <sri-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On 29/11/2012 18:27, Hefty, Sean wrote:
