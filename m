@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/2] opensm/osm_req.c: In req_determine_mkey, use osm_physp
- APIs
-Date: Mon, 03 Dec 2012 10:25:21 -0500
-Message-ID: <50BCC461.5060604@dev.mellanox.co.il>
+Subject: [PATCH] opensm/osm_subnet.c: Improve error messages in subn_validate_neighbor
+Date: Mon, 03 Dec 2012 10:25:39 -0500
+Message-ID: <50BCC473.3060000@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,30 +12,71 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-rather tha direct accesses to physp struct
-
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_req.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ opensm/osm_subnet.c |   22 ++++++++++++++++------
+ 1 files changed, 16 insertions(+), 6 deletions(-)
 
-diff --git a/opensm/osm_req.c b/opensm/osm_req.c
-index b48be48..caf94fb 100644
---- a/opensm/osm_req.c
-+++ b/opensm/osm_req.c
-@@ -97,10 +97,10 @@ static ib_net64_t req_determine_mkey(IN osm_sm_t * sm,
- 		p_physp = osm_node_get_physp_ptr(p_node, p_path->path[hop]);
- 		if (!p_physp)
- 			break;
--		p_physp = p_physp->p_remote_physp;
-+		p_physp = osm_physp_get_remote(p_physp);
- 		if (!p_physp)
- 			break;
--		p_node = p_physp->p_node;
-+		p_node = osm_physp_get_node_ptr(p_physp);
- 	}
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index a3fc0b5..c716839 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -946,7 +946,8 @@ static void subn_validate_neighbor(osm_subn_t *p_subn)
+ 		valid_entry = TRUE;
  
- 	/* At this point, p_physp points at the outgoing physp on the
+ 		OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_DEBUG,
+-			"Validating neighbor for 0x%016" PRIx64 ", port %d\n",
++			"Validating neighbor for guid:0x%016" PRIx64
++			", port %d\n",
+ 			p_item->guid, p_item->portnum);
+ 		if (p_item->guid == 0) {
+ 			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
+@@ -954,31 +955,40 @@ static void subn_validate_neighbor(osm_subn_t *p_subn)
+ 			valid_entry = FALSE;
+ 		} else if (p_item->portnum == 0) {
+ 			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
+-				"ERR 7514: found invalid zero port\n");
++				"ERR 7514: found invalid zero port for "
++				"guid: 0x%016" PRIx64 "\n",
++				p_item->guid);
+ 			valid_entry = FALSE;
+ 		} else if (osm_db_neighbor_get(p_subn->p_neighbor,
+ 					       p_item->guid, p_item->portnum,
+ 					       &guid, &port)) {
+ 			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
+ 				"ERR 7515: could not find neighbor for "
+-				"guid: 0x%016" PRIx64 "\n", p_item->guid);
++				"guid: 0x%016" PRIx64 ", port %d\n",
++				p_item->guid, p_item->portnum);
+ 			valid_entry = FALSE;
+ 		} else if (guid == 0) {
+ 			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
+ 				"ERR 7516: found invalid neighbor "
+-				"zero guid");
++				"zero guid for guid: 0x%016" PRIx64
++				", port %d\n",
++				p_item->guid, p_item->portnum);
+ 			valid_entry = FALSE;
+ 		} else if (port == 0) {
+ 			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
+ 				"ERR 7517: found invalid neighbor "
+-				"zero port\n");
++				"zero port for guid: 0x%016" PRIx64
++				", port %d\n",
++				p_item->guid, p_item->portnum);
+ 			valid_entry = FALSE;
+ 		} else if (osm_db_neighbor_get(p_subn->p_neighbor,
+ 					       guid, port, &guid, &port) ||
+ 			guid != p_item->guid || port != p_item->portnum) {
+ 			OSM_LOG(&(p_subn->p_osm->log), OSM_LOG_ERROR,
+ 				"ERR 7518: neighbor does not point "
+-				"back at us\n");
++				"back at us (guid: 0x%016" PRIx64
++				", port %d)\n",
++				p_item->guid, p_item->portnum);
+ 			valid_entry = FALSE;
+ 		}
+ 
 -- 
 1.7.8.2
 
