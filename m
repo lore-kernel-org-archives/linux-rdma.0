@@ -1,58 +1,62 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_port_info_rcv.c: Don't modify subnet minimal values
- when PortState DOWN
-Date: Mon, 03 Dec 2012 16:26:08 -0500
-Message-ID: <50BD18F0.4030900@dev.mellanox.co.il>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_torus.c: Fix crash in
+ torus_update_osm_vlarb
+Date: Mon, 3 Dec 2012 14:09:50 -0700
+Message-ID: <50BD151E.40205@sandia.gov>
+References: <50BCC497.2030207@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+ charset=utf-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50BCC497.2030207-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-as they are vendor dependent fields in PortInfo and can't be relied on due to:
+On 12/03/2012 08:26 AM, Hal Rosenstock wrote:
+>
+> Signed-off-by: Alex Netes<alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock<hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>   opensm/osm_torus.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
+> index c06f8d4..075f84a 100644
+> --- a/opensm/osm_torus.c
+> +++ b/opensm/osm_torus.c
+> @@ -8089,7 +8089,7 @@ void torus_update_osm_vlarb(void *context, osm_physp_t *osm_phys_port,
+>   	 * So, leave VL 0 alone, remap VL 4 to VL 1, zero out the rest,
+>   	 * and compress out the zero entries to the end.
+>   	 */
+> -	if (!sw || !port_num ||
+> +	if (!sw || !port_num || sw->port[port_num] ||
+>   	    sw->port[port_num]->pgrp->port_grp != 2 * TORUS_MAX_DIM)
+>   		return;
+>
 
-C14-24.2.1: If PortInfo:Portstate=Down, then
-o a SubnGet(PortInfo) shall produce valid data for PortInfo:PortState
-  and PortInfo:PortPhysicalState; whether any other component has
-  valid data is vendor-dependent.
+With the patch as-is, if torus_update_osm_vlarb() returns early
+for any non-NULL switch port, it will never do any updates.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
-index 6f6922c..859a6be 100644
---- a/opensm/osm_port_info_rcv.c
-+++ b/opensm/osm_port_info_rcv.c
-@@ -94,7 +94,8 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
- 	port_guid = osm_physp_get_port_guid(p_physp);
- 
- 	/* HACK extended port 0 should be handled too! */
--	if (osm_physp_get_port_num(p_physp) != 0) {
-+	if (osm_physp_get_port_num(p_physp) != 0 &&
-+	    ib_port_info_get_port_state(p_pi) != IB_LINK_DOWN) {
- 		/* track the minimal endport MTU, rate, and operational VLs */
- 		mtu = ib_port_info_get_mtu_cap(p_pi);
- 		if (mtu < sm->p_subn->min_ca_mtu) {
-@@ -323,6 +324,9 @@ static void pi_rcv_process_switch_port(IN osm_sm_t * sm, IN osm_node_t * p_node,
- 			p_physp->port_info = *p_pi;
- 		pi_rcv_process_endport(sm, p_physp, p_pi);
- 	} else {
-+		if (ib_port_info_get_port_state(p_pi) == IB_LINK_DOWN)
-+			goto Exit;
-+
- 		/* track the minimal switch ext port MTU, rate, and operational VLs */
- 		mtu = ib_port_info_get_mtu_cap(p_pi);
- 		if (mtu < sm->p_subn->min_sw_mtu) {
-@@ -358,6 +362,7 @@ static void pi_rcv_process_switch_port(IN osm_sm_t * sm, IN osm_node_t * p_node,
- 		}
- 	}
- 
-+Exit:
- 	OSM_LOG_EXIT(sm->p_log);
- }
- 
+If the crash was that sw->port[port_num] was NULL,
+shouldn't the check be !sw->port[port_num] ?
+
+Can you tell me more about the test case that leads to the crash?
+
+Is it that there's a switch with a port that's not connected
+to anything, and torus_update_osm_vlarb() was called for it?
+
+Testing for a non-NULL sw->port[port_num] is definitely the right
+thing to do to handle that case, and I'm sorry I missed it earlier.
+
+If not, then something else is likely broken, and we need to find
+and fix that.
+
+-- Jim
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
