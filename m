@@ -1,37 +1,54 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_req.c: In req_determine_mkey, add more info when
- ERR 1107 occurs
-Date: Mon, 03 Dec 2012 10:25:04 -0500
-Message-ID: <50BCC450.4080506@dev.mellanox.co.il>
+Subject: [PATCH 1/2] opensm/osm_req.c: In req_determine_mkey, fix DR algorithm
+Date: Mon, 03 Dec 2012 10:25:12 -0500
+Message-ID: <50BCC458.1030305@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Also dump DR path of SM class query
+so that it works regardless of SM port type
+Now works on switch port 0 as well as CA and router ports
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_req.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ opensm/osm_req.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/opensm/osm_req.c b/opensm/osm_req.c
-index 1c3c172..1f5db3f 100644
+index 1f5db3f..b48be48 100644
 --- a/opensm/osm_req.c
 +++ b/opensm/osm_req.c
-@@ -106,6 +106,7 @@ static ib_net64_t req_determine_mkey(IN osm_sm_t * sm,
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
- 			"req_determine_mkey: ERR 1107: "
- 			"Outgoing physp is null on non-hop_0!\n");
-+		osm_dump_dr_path_v2(sm->p_log, p_path, FILE_ID, OSM_LOG_ERROR);
- 		dest_port_guid = 0;
+@@ -87,16 +87,20 @@ static ib_net64_t req_determine_mkey(IN osm_sm_t * sm,
  		goto Remote_Guid;
  	}
+ 
+-	if (p_sm_port)
++	if (p_sm_port) {
++		/* get the node for the SM */
++		p_node = p_sm_port->p_node;
+ 		p_physp = p_sm_port->p_physp;
++	}
+ 
+-	/* hop_count == 1: outgoing physp is SM physp */
+-	for (hop = 2; p_physp && hop <= p_path->hop_count; hop++) {
++	for (hop = 1; p_physp && hop <= p_path->hop_count; hop++) {
++		p_physp = osm_node_get_physp_ptr(p_node, p_path->path[hop]);
++		if (!p_physp)
++			break;
+ 		p_physp = p_physp->p_remote_physp;
+ 		if (!p_physp)
+ 			break;
+ 		p_node = p_physp->p_node;
+-		p_physp = osm_node_get_physp_ptr(p_node, p_path->path[hop]);
+ 	}
+ 
+ 	/* At this point, p_physp points at the outgoing physp on the
 -- 
 1.7.8.2
 
