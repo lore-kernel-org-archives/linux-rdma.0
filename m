@@ -1,37 +1,76 @@
-From: Vipul Pandya <vipul@chelsio.com>
-Subject: Re: [PATCH V2 1/5] cxgb4: Add T4 filter support
-Date: Mon, 03 Dec 2012 12:18:31 +0530
-Message-ID: <50BC4B3F.1020705@chelsio.com>
-References: <1354277370-8727-1-git-send-email-vipul@chelsio.com> <20121130.115609.2012589911292286826.davem@davemloft.net> <CAL1RGDWvGFT1i_iwwMbnwtX9tPGfd7FoCaSA_=5HqZmD9rrGjg@mail.gmail.com> <20121130.222441.428094549161714937.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20121130.222441.428094549161714937.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: "roland@purestorage.com" <roland@purestorage.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Divy Le Ray <divy@chelsio.com>, Dimitrios Michailidis <dm@chelsio.com>, Kumar A S <kumaras@chelsio.com>, Steve Wise <swise@opengridcomputing.com>, Abhishek Agrawal <abhishek@chelsio.com>
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH V3 0/5] Add LE hash collision bug fix for active and passive offloaded connections
+Date: Mon,  3 Dec 2012 16:52:56 +0530
+Message-ID: <1354533781-31575-1-git-send-email-vipul@chelsio.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This patch series fixes the LE hash collision issue in cxgb4 and RDMA/cxgb4
+drivers in kernel.org.
 
+If the hash functionality is enabled in T4 then tuple information of active and
+passive offloaded connections are stored in DDR3 memory. LE (Lookup Engine)
+implements the interface to search this tuple entries using hash algorithm. To
+avoid LE hash collision, firmware provides new mechanisms to setup active and
+passive open connections.
 
-On 01-12-2012 08:54, David Miller wrote:
-> From: Roland Dreier <roland@purestorage.com>
-> Date: Fri, 30 Nov 2012 17:43:27 -0800
-> 
->> On Fri, Nov 30, 2012 at 8:56 AM, David Miller <davem@davemloft.net> wrote:
->>> I really don't understand how we're supposed to review your patches
->>> when you only post some parts of the patch series to netdev, and
->>> others not.
->>
->> I think he just didn't repost the patches that were unchanged from the
->> first time around.
-> 
-> Well, he needs to.
-> 
+In case of active open connection, firmware detects LE hash collision situation
+and notifies driver. Driver uses fw_ofld_connection work request to offload
+that connection. Its tuple information will be stored in TCAM memory array. 
 
-I was ignorant about this. Sorry for the inconvenience caused. I will
-resubmit the whole series again.
+In case of passive open connection, server filter region is created in TCAM.
+This region stores the filter which will redirect the incoming SYN packet to
+offload queues. After this driver tries to establish the connection using
+firmware work request.
+
+This patch series also adds framework for managing filters and to use T4's
+filter capabilities.
+
+Following testing has been carried out successfully on this patch series.
+1. 1000 active open connections created and saw that tcam_full counter is
+getting incremented through debugfs file.
+2. Multiple passive open connections were created and ran the same test
+repetatively to verify server filter is getting created and deleted properly.
+
+The patch-series is based on Roland's infiniband tree (for-next branch),
+and involves changes on cxgb4 and RDMA/cxgb4 drivers. Both linux-rdma and netdev
+are included in this post for review.
+
+We have some more bug fixes in RDMA/cxgb4 after this patch series. So, we would
+like to request this series to get mereged through Roland's infiniband for-next
+tree.
+
+V2: Changed commenting style from kernel-doc format('/**') to normal
+V3: Resending the whole patch series again with the missing patches in V2
 
 Thanks,
-Vipul
+Vipul Pandya
+
+Vipul Pandya (5):
+  cxgb4: Add T4 filter support
+  cxgb4: Add LE hash collision bug fix path in LLD driver
+  RDMA/cxgb4: Fix LE hash collision bug for active open connection
+  RDMA/cxgb4: Fix LE hash collision bug for passive open connection
+  RDMA/cxgb4: Fix bug for active and passive LE hash collision path
+
+ drivers/infiniband/hw/cxgb4/cm.c                |  789 +++++++++++++++++++---
+ drivers/infiniband/hw/cxgb4/device.c            |  210 ++++++-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |   33 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |  146 +++++
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |  473 +++++++++++++-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h  |   23 +-
+ drivers/net/ethernet/chelsio/cxgb4/l2t.c        |   34 +
+ drivers/net/ethernet/chelsio/cxgb4/l2t.h        |    3 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      |   23 +-
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |   66 ++
+ drivers/net/ethernet/chelsio/cxgb4/t4_regs.h    |   37 ++
+ drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h   |  388 +++++++++++
+ 12 files changed, 2100 insertions(+), 125 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
