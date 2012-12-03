@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: opensm/osm_torus.c: Fix crash in torus_update_osm_vlarb
-Date: Mon, 03 Dec 2012 16:24:09 -0500
-Message-ID: <50BD1879.2080309@dev.mellanox.co.il>
+Subject: [PATCHv2} opensm/osm_torus.c: Fix crash in torus_update_osm_vlarb
+Date: Mon, 03 Dec 2012 16:25:30 -0500
+Message-ID: <50BD18CA.8040409@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -37,7 +37,6 @@ index c06f8d4..075f84a 100644
   
 -- 
 1.7.8.2
-
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
