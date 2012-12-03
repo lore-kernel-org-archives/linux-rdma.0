@@ -1,17 +1,37 @@
-From: sys.admin-6pEbboJIAvWWtWZxqpM3ag@public.gmane.org
-Subject: Executable File Violation
-Date: Mon, 03 Dec 2012 09:50:33 +0530
-Message-ID: <CC.32.03773.1982CB05@bmtsmg.piaggio.co.in>
+From: Vipul Pandya <vipul@chelsio.com>
+Subject: Re: [PATCH V2 1/5] cxgb4: Add T4 filter support
+Date: Mon, 03 Dec 2012 12:18:31 +0530
+Message-ID: <50BC4B3F.1020705@chelsio.com>
+References: <1354277370-8727-1-git-send-email-vipul@chelsio.com> <20121130.115609.2012589911292286826.davem@davemloft.net> <CAL1RGDWvGFT1i_iwwMbnwtX9tPGfd7FoCaSA_=5HqZmD9rrGjg@mail.gmail.com> <20121130.222441.428094549161714937.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20121130.222441.428094549161714937.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: "roland@purestorage.com" <roland@purestorage.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Divy Le Ray <divy@chelsio.com>, Dimitrios Michailidis <dm@chelsio.com>, Kumar A S <kumaras@chelsio.com>, Steve Wise <swise@opengridcomputing.com>, Abhishek Agrawal <abhishek@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-You attempted to send a message that contained an executable file.  Our company policy prohibits the sending of executable files via email.  The message was not delivered.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+On 01-12-2012 08:54, David Miller wrote:
+> From: Roland Dreier <roland@purestorage.com>
+> Date: Fri, 30 Nov 2012 17:43:27 -0800
+> 
+>> On Fri, Nov 30, 2012 at 8:56 AM, David Miller <davem@davemloft.net> wrote:
+>>> I really don't understand how we're supposed to review your patches
+>>> when you only post some parts of the patch series to netdev, and
+>>> others not.
+>>
+>> I think he just didn't repost the patches that were unchanged from the
+>> first time around.
+> 
+> Well, he needs to.
+> 
+
+I was ignorant about this. Sorry for the inconvenience caused. I will
+resubmit the whole series again.
+
+Thanks,
+Vipul
