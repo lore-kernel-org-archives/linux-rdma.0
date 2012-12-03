@@ -1,40 +1,44 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH librdmacm] Fixed build problem due to missing macro
-Date: Mon, 3 Dec 2012 19:48:40 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237346ADC43A@ORSMSX101.amr.corp.intel.com>
-References: <1354449863-20990-1-git-send-email-ogerlitz@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237346ADC3F3@ORSMSX101.amr.corp.intel.com>
- <CAJZOPZJVgUdmXPd6t6ias27vTrc8LieX4J=YnVQbLTMmo8A3RQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband-diags: Remove Red Hat-ism.
+Date: Mon,  3 Dec 2012 15:28:18 -0500
+Message-ID: <1354566498-8364-1-git-send-email-jonstanley@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJVgUdmXPd6t6ias27vTrc8LieX4J=YnVQbLTMmo8A3RQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "esalomon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <esalomon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > I'm using a locally modified version of verbs, so I don't end up seeing this
-> error.
-> 
-> could this be related to different results while running netperf .w
-> fork in our setup vs. yours?
+Future release of Fedora are going to remove /etc/sysconfig/network
+which we source to get $HOSTNAME. Bash (and sh) set $HOSTNAME in
+the shell by default, so we should be safe to use that here. This
+adds the benefit of working across multiple distributions if that
+is required in the future.
 
-I was referring to the build issue, not the fork problem.
+Related: rhbz881917
 
-According to my notes, I ran netperf with fork support using this:
+Signed-off-by: Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ scripts/set_nodedesc.sh |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-server
-------
-export RDMAV_FORK_SAFE=1
-LD_PRELOAD=/usr/local/lib/rsocket/librspreload.so netserver
+diff --git a/scripts/set_nodedesc.sh b/scripts/set_nodedesc.sh
+index 1e42ac8..3d2e406 100755
+--- a/scripts/set_nodedesc.sh
++++ b/scripts/set_nodedesc.sh
+@@ -1,8 +1,5 @@
+ #!/bin/sh
+ 
+-if [ -f /etc/sysconfig/network ]; then
+-. /etc/sysconfig/network
+-fi
+ 
+ ib_sysfs="/sys/class/infiniband"
+ newname="$HOSTNAME"
+-- 
+1.7.1
 
-client
-------
-export RDMAV_FORK_SAFE=1
-LD_PRELOAD=/usr/local/lib/rsocket/librspreload.so netperf -H <ip-address>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
