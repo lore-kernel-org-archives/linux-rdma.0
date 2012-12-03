@@ -1,43 +1,67 @@
-From: Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] infiniband-diags: Remove Red Hat-ism.
-Date: Mon,  3 Dec 2012 15:28:18 -0500
-Message-ID: <1354566498-8364-1-git-send-email-jonstanley@gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_torus.c: Fix crash in torus_update_osm_vlarb
+Date: Mon, 03 Dec 2012 16:18:56 -0500
+Message-ID: <50BD1740.8010408@dev.mellanox.co.il>
+References: <50BCC497.2030207@dev.mellanox.co.il> <50BD151E.40205@sandia.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50BD151E.40205-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Future release of Fedora are going to remove /etc/sysconfig/network
-which we source to get $HOSTNAME. Bash (and sh) set $HOSTNAME in
-the shell by default, so we should be safe to use that here. This
-adds the benefit of working across multiple distributions if that
-is required in the future.
+On 12/3/2012 4:09 PM, Jim Schutt wrote:
+> On 12/03/2012 08:26 AM, Hal Rosenstock wrote:
+>>
+>> Signed-off-by: Alex Netes<alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Hal Rosenstock<hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>   opensm/osm_torus.c |    2 +-
+>>   1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
+>> index c06f8d4..075f84a 100644
+>> --- a/opensm/osm_torus.c
+>> +++ b/opensm/osm_torus.c
+>> @@ -8089,7 +8089,7 @@ void torus_update_osm_vlarb(void *context,
+>> osm_physp_t *osm_phys_port,
+>>        * So, leave VL 0 alone, remap VL 4 to VL 1, zero out the rest,
+>>        * and compress out the zero entries to the end.
+>>        */
+>> -    if (!sw || !port_num ||
+>> +    if (!sw || !port_num || sw->port[port_num] ||
+>>           sw->port[port_num]->pgrp->port_grp != 2 * TORUS_MAX_DIM)
+>>           return;
+>>
+> 
+> With the patch as-is, if torus_update_osm_vlarb() returns early
+> for any non-NULL switch port, it will never do any updates.
+> 
+> If the crash was that sw->port[port_num] was NULL,
+> shouldn't the check be !sw->port[port_num] ?
+> 
+> Can you tell me more about the test case that leads to the crash?
+> 
+> Is it that there's a switch with a port that's not connected
+> to anything, and torus_update_osm_vlarb() was called for it?
+> 
+> Testing for a non-NULL sw->port[port_num] is definitely the right
+> thing to do to handle that case, and I'm sorry I missed it earlier.
+> 
+> If not, then something else is likely broken, and we need to find
+> and fix that.
 
-Related: rhbz881917
+Yes, it was meant to be NULL pointer check. v2 of patch coming soon.
 
-Signed-off-by: Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- scripts/set_nodedesc.sh |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+-- Hal
 
-diff --git a/scripts/set_nodedesc.sh b/scripts/set_nodedesc.sh
-index 1e42ac8..3d2e406 100755
---- a/scripts/set_nodedesc.sh
-+++ b/scripts/set_nodedesc.sh
-@@ -1,8 +1,5 @@
- #!/bin/sh
- 
--if [ -f /etc/sysconfig/network ]; then
--. /etc/sysconfig/network
--fi
- 
- ib_sysfs="/sys/class/infiniband"
- newname="$HOSTNAME"
--- 
-1.7.1
+> 
+> -- Jim
+> 
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
