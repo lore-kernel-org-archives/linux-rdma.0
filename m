@@ -1,26 +1,33 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_torus.c: Fix crash in
+Subject: Re: [PATCHv2} opensm/osm_torus.c: Fix crash in
  torus_update_osm_vlarb
-Date: Mon, 3 Dec 2012 14:09:50 -0700
-Message-ID: <50BD151E.40205@sandia.gov>
-References: <50BCC497.2030207@dev.mellanox.co.il>
+Date: Mon, 3 Dec 2012 14:28:11 -0700
+Message-ID: <50BD196B.1060901@sandia.gov>
+References: <50BD18CA.8040409@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain;
  charset=utf-8;
  format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50BCC497.2030207-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <50BD18CA.8040409-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/03/2012 08:26 AM, Hal Rosenstock wrote:
+On 12/03/2012 02:25 PM, Hal Rosenstock wrote:
 >
 > Signed-off-by: Alex Netes<alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Hal Rosenstock<hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Acked-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+
 > ---
+> Change since v1:
+> Fixed NULL pointer check on sw->port[port_num]
+> Pointed out by: Jim Schutt<jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+>
 >   opensm/osm_torus.c |    2 +-
 >   1 files changed, 1 insertions(+), 1 deletions(-)
 >
@@ -33,29 +40,11 @@ On 12/03/2012 08:26 AM, Hal Rosenstock wrote:
 >   	 * and compress out the zero entries to the end.
 >   	 */
 > -	if (!sw || !port_num ||
-> +	if (!sw || !port_num || sw->port[port_num] ||
+> +	if (!sw || !port_num || !sw->port[port_num] ||
 >   	    sw->port[port_num]->pgrp->port_grp != 2 * TORUS_MAX_DIM)
 >   		return;
 >
 
-With the patch as-is, if torus_update_osm_vlarb() returns early
-for any non-NULL switch port, it will never do any updates.
-
-If the crash was that sw->port[port_num] was NULL,
-shouldn't the check be !sw->port[port_num] ?
-
-Can you tell me more about the test case that leads to the crash?
-
-Is it that there's a switch with a port that's not connected
-to anything, and torus_update_osm_vlarb() was called for it?
-
-Testing for a non-NULL sw->port[port_num] is definitely the right
-thing to do to handle that case, and I'm sorry I missed it earlier.
-
-If not, then something else is likely broken, and we need to find
-and fix that.
-
--- Jim
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
