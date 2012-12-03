@@ -1,39 +1,52 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_torus.c: Fix crash in torus_update_osm_vlarb
-Date: Mon, 03 Dec 2012 10:26:15 -0500
-Message-ID: <50BCC497.2030207@dev.mellanox.co.il>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH V3 1/5] cxgb4: Add T4 filter support
+Date: Mon, 03 Dec 2012 14:02:07 -0500 (EST)
+Message-ID: <20121203.140207.164096621247746195.davem@davemloft.net>
+References: <1354533781-31575-1-git-send-email-vipul@chelsio.com>
+	<1354533781-31575-2-git-send-email-vipul@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1354533781-31575-2-git-send-email-vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Date: Mon,  3 Dec 2012 16:52:57 +0530
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_torus.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> +	/*
+> +	 * If the new or old filter have loopback rewriteing rules then we'll
+> +	 * need to free any existing Layer Two Table (L2T) entries of the old
+> +	 * filter rule.  The firmware will handle freeing up any Source MAC
+> +	 * Table (SMT) entries used for rewriting Source MAC Addresses in
+> +	 * loopback rules.
+> +	 */
+> +	if (f->l2t)
+> +		cxgb4_l2t_release(f->l2t);
+> +
+> +	/* The zeroing of the filter rule below clears the filter valid,
+> +	 * pending, locked flags, l2t pointer, etc. so it's all we need for
+> +	 * this operation.
+> +	 */
 
-diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
-index c06f8d4..075f84a 100644
---- a/opensm/osm_torus.c
-+++ b/opensm/osm_torus.c
-@@ -8089,7 +8089,7 @@ void torus_update_osm_vlarb(void *context, osm_physp_t *osm_phys_port,
- 	 * So, leave VL 0 alone, remap VL 4 to VL 1, zero out the rest,
- 	 * and compress out the zero entries to the end.
- 	 */
--	if (!sw || !port_num ||
-+	if (!sw || !port_num || sw->port[port_num] ||
- 	    sw->port[port_num]->pgrp->port_grp != 2 * TORUS_MAX_DIM)
- 		return;
-  
--- 
-1.7.8.2
+My greatest amusement is achieved when someone gets a code formatting
+rule both correct and wrong in the same patch, as you have done here.
 
+Format comments in the networking:
+
+	/* Like
+	 * this.
+	 */
+
+	 /*
+	  * Never,
+	  * like this.
+	  */
+
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
