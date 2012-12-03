@@ -1,962 +1,220 @@
-From: Vipul Pandya <vipul@chelsio.com>
-Subject: [PATCH V3 5/5] RDMA/cxgb4: Fix bug for active and passive LE hash collision path
-Date: Mon,  3 Dec 2012 16:53:01 +0530
-Message-ID: <1354533781-31575-6-git-send-email-vipul@chelsio.com>
-References: <1354533781-31575-1-git-send-email-vipul@chelsio.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1354533781-31575-1-git-send-email-vipul@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Cc: roland@purestorage.com, davem@davemloft.net, divy@chelsio.com, dm@chelsio.com, kumaras@chelsio.com, swise@opengridcomputing.com, abhishek@chelsio.com, Vipul Pandya <vipul@chelsio.com>
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Dapltest test error DAT_CONN_QUAL_IN_USE
+Date: Mon, 03 Dec 2012 17:08:40 +0530
+Message-ID: <50BC8F40.5060400@chelsio.com>
+References: <BE1D1D812551174182F280D7A4AEC90B357C04@nice.asicdesigners.com> <54347E5A035A054EAE9D05927FB467F94822CCC0@ORSMSX101.amr.corp.intel.com> <50B3C8ED.9080803@opengridcomputing.com> <50B76449.9010000@chelsio.com> <54347E5A035A054EAE9D05927FB467F94822E9F8@ORSMSX101.amr.corp.intel.com> <50B8CCD0.6030407@chelsio.com> <54347E5A035A054EAE9D05927FB467F94822EE15@ORSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54347E5A035A054EAE9D05927FB467F94822EE15-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kumar A S <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Abhishek Agrawal <abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Retries active opens for INUSE errors.
+Hi Arlin,
 
-Logs any active ofld_connect_wr error replies.
+There was already a bug logged in openfabrics bugzilla regarding this.
+Following is a link for the same.
+http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2400
 
-Sends ofld_connect_wr on same ctrlq. It needs to go  on the same control txq as
-regular CPL active/passive messages.
+I have assigned this bug to your name.
 
-Retries on active open replies with EADDRINUSE.
+Thanks,
+Vipul
 
-Uses active open fw wr only if active filter region is set.
-
-Adds stat for ofld_connect_wr failures.
-
-This patch also adds debugfs file to show endpoints.
-
-Signed-off-by: Vipul Pandya <vipul@chelsio.com>
----
-V2: Changed commenting style from kernel-doc format('/**') to normal
-V3: Resending the whole patch series again with the missing patches in V2
-
- drivers/infiniband/hw/cxgb4/cm.c                |  277 ++++++++++++++++-------
- drivers/infiniband/hw/cxgb4/device.c            |  125 ++++++++++
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |   32 +++
- drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |    1 +
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |   19 ++-
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h  |    8 +-
- drivers/net/ethernet/chelsio/cxgb4/t4_regs.h    |    2 +
- 7 files changed, 376 insertions(+), 88 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 2ac6a2c..b2ea840 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -275,6 +275,7 @@ void _c4iw_free_ep(struct kref *kref)
- 		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, ep->hwtid);
- 		dst_release(ep->dst);
- 		cxgb4_l2t_release(ep->l2t);
-+		remove_handle(ep->com.dev, &ep->com.dev->hwtid_idr, ep->hwtid);
- 	}
- 	kfree(ep);
- }
-@@ -550,6 +551,7 @@ static int send_connect(struct c4iw_ep *ep)
- 	req->opt0 = cpu_to_be64(opt0);
- 	req->params = cpu_to_be32(select_ntuple(ep->com.dev, ep->dst, ep->l2t));
- 	req->opt2 = cpu_to_be32(opt2);
-+	set_bit(ACT_OPEN_REQ, &ep->com.history);
- 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
- }
- 
-@@ -826,6 +828,7 @@ static int act_establish(struct c4iw_dev *dev, struct sk_buff *skb)
- 	/* setup the hwtid for this connection */
- 	ep->hwtid = tid;
- 	cxgb4_insert_tid(t, ep, tid);
-+	insert_handle(dev, &dev->hwtid_idr, ep, ep->hwtid);
- 
- 	ep->snd_seq = be32_to_cpu(req->snd_isn);
- 	ep->rcv_seq = be32_to_cpu(req->rcv_isn);
-@@ -833,7 +836,9 @@ static int act_establish(struct c4iw_dev *dev, struct sk_buff *skb)
- 	set_emss(ep, ntohs(req->tcp_opt));
- 
- 	/* dealloc the atid */
-+	remove_handle(ep->com.dev, &ep->com.dev->atid_idr, atid);
- 	cxgb4_free_atid(t, atid);
-+	set_bit(ACT_ESTAB, &ep->com.history);
- 
- 	/* start MPA negotiation */
- 	send_flowc(ep, NULL);
-@@ -859,6 +864,7 @@ static void close_complete_upcall(struct c4iw_ep *ep)
- 		ep->com.cm_id->rem_ref(ep->com.cm_id);
- 		ep->com.cm_id = NULL;
- 		ep->com.qp = NULL;
-+		set_bit(CLOSE_UPCALL, &ep->com.history);
- 	}
- }
- 
-@@ -867,6 +873,7 @@ static int abort_connection(struct c4iw_ep *ep, struct sk_buff *skb, gfp_t gfp)
- 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
- 	close_complete_upcall(ep);
- 	state_set(&ep->com, ABORTING);
-+	set_bit(ABORT_CONN, &ep->com.history);
- 	return send_abort(ep, skb, gfp);
- }
- 
-@@ -881,6 +888,7 @@ static void peer_close_upcall(struct c4iw_ep *ep)
- 		PDBG("peer close delivered ep %p cm_id %p tid %u\n",
- 		     ep, ep->com.cm_id, ep->hwtid);
- 		ep->com.cm_id->event_handler(ep->com.cm_id, &event);
-+		set_bit(DISCONN_UPCALL, &ep->com.history);
- 	}
- }
- 
-@@ -899,6 +907,7 @@ static void peer_abort_upcall(struct c4iw_ep *ep)
- 		ep->com.cm_id->rem_ref(ep->com.cm_id);
- 		ep->com.cm_id = NULL;
- 		ep->com.qp = NULL;
-+		set_bit(ABORT_UPCALL, &ep->com.history);
- 	}
- }
- 
-@@ -931,6 +940,7 @@ static void connect_reply_upcall(struct c4iw_ep *ep, int status)
- 
- 	PDBG("%s ep %p tid %u status %d\n", __func__, ep,
- 	     ep->hwtid, status);
-+	set_bit(CONN_RPL_UPCALL, &ep->com.history);
- 	ep->com.cm_id->event_handler(ep->com.cm_id, &event);
- 
- 	if (status < 0) {
-@@ -971,6 +981,7 @@ static void connect_request_upcall(struct c4iw_ep *ep)
- 						ep->parent_ep->com.cm_id,
- 						&event);
- 	}
-+	set_bit(CONNREQ_UPCALL, &ep->com.history);
- 	c4iw_put_ep(&ep->parent_ep->com);
- 	ep->parent_ep = NULL;
- }
-@@ -987,6 +998,7 @@ static void established_upcall(struct c4iw_ep *ep)
- 	if (ep->com.cm_id) {
- 		PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
- 		ep->com.cm_id->event_handler(ep->com.cm_id, &event);
-+		set_bit(ESTAB_UPCALL, &ep->com.history);
- 	}
- }
- 
-@@ -1372,6 +1384,7 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 	unsigned int dlen = ntohs(hdr->len);
- 	unsigned int tid = GET_TID(hdr);
- 	struct tid_info *t = dev->rdev.lldi.tids;
-+	__u8 status = hdr->status;
- 
- 	ep = lookup_tid(t, tid);
- 	PDBG("%s ep %p tid %u dlen %u\n", __func__, ep, ep->hwtid, dlen);
-@@ -1394,9 +1407,9 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
- 	case MPA_REP_SENT:
- 		break;
- 	default:
--		printk(KERN_ERR MOD "%s Unexpected streaming data."
--		       " ep %p state %d tid %u\n",
--		       __func__, ep, state_read(&ep->com), ep->hwtid);
-+		pr_err("%s Unexpected streaming data." \
-+		       " ep %p state %d tid %u status %d\n",
-+		       __func__, ep, state_read(&ep->com), ep->hwtid, status);
- 
- 		/*
- 		 * The ep will timeout and inform the ULP of the failure.
-@@ -1463,6 +1476,7 @@ static void send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
- 	req->tcb.cplrxdataack_cplpassacceptrpl =
- 			htons(F_FW_OFLD_CONNECTION_WR_CPLRXDATAACK);
- 	req->tcb.tx_max = jiffies;
-+	req->tcb.rcv_adv = htons(1);
- 	cxgb4_best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx);
- 	wscale = compute_wscale(rcv_win);
- 	req->tcb.opt0 = TCAM_BYPASS(1) |
-@@ -1490,7 +1504,8 @@ static void send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
- 		req->tcb.opt2 |= WND_SCALE_EN(1);
- 	req->tcb.opt0 = cpu_to_be64(req->tcb.opt0);
- 	req->tcb.opt2 = cpu_to_be32(req->tcb.opt2);
--	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
-+	set_wr_txq(skb, CPL_PRIORITY_CONTROL, ep->ctrlq_idx);
-+	set_bit(ACT_OFLD_CONN, &ep->com.history);
- 	c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
- }
- 
-@@ -1503,6 +1518,111 @@ static inline int act_open_has_tid(int status)
- 	       status != CPL_ERR_ARP_MISS;
- }
- 
-+#define ACT_OPEN_RETRY_COUNT 2
-+
-+static int c4iw_reconnect(struct c4iw_ep *ep)
-+{
-+	int err = 0;
-+	struct rtable *rt;
-+	struct port_info *pi;
-+	struct net_device *pdev;
-+	int step;
-+	struct neighbour *neigh;
-+
-+	PDBG("%s qp %p cm_id %p\n", __func__, ep->com.qp, ep->com.cm_id);
-+	init_timer(&ep->timer);
-+
-+	/*
-+	 * Allocate an active TID to initiate a TCP connection.
-+	 */
-+	ep->atid = cxgb4_alloc_atid(ep->com.dev->rdev.lldi.tids, ep);
-+	if (ep->atid == -1) {
-+		pr_err("%s - cannot alloc atid.\n", __func__);
-+		err = -ENOMEM;
-+		goto fail2;
-+	}
-+	insert_handle(ep->com.dev, &ep->com.dev->atid_idr, ep, ep->atid);
-+
-+	/* find a route */
-+	rt = find_route(ep->com.dev,
-+			ep->com.cm_id->local_addr.sin_addr.s_addr,
-+			ep->com.cm_id->remote_addr.sin_addr.s_addr,
-+			ep->com.cm_id->local_addr.sin_port,
-+			ep->com.cm_id->remote_addr.sin_port, 0);
-+	if (!rt) {
-+		pr_err("%s - cannot find route.\n", __func__);
-+		err = -EHOSTUNREACH;
-+		goto fail3;
-+	}
-+	ep->dst = &rt->dst;
-+
-+	neigh = dst_neigh_lookup(ep->dst,
-+			&ep->com.cm_id->remote_addr.sin_addr.s_addr);
-+	/* get a l2t entry */
-+	if (neigh->dev->flags & IFF_LOOPBACK) {
-+		PDBG("%s LOOPBACK\n", __func__);
-+		pdev = ip_dev_find(&init_net,
-+				ep->com.cm_id->remote_addr.sin_addr.s_addr);
-+		ep->l2t = cxgb4_l2t_get(ep->com.dev->rdev.lldi.l2t,
-+				neigh, pdev, 0);
-+		pi = (struct port_info *)netdev_priv(pdev);
-+		ep->mtu = pdev->mtu;
-+		ep->tx_chan = cxgb4_port_chan(pdev);
-+		ep->smac_idx = (cxgb4_port_viid(pdev) & 0x7F) << 1;
-+		dev_put(pdev);
-+	} else {
-+		ep->l2t = cxgb4_l2t_get(ep->com.dev->rdev.lldi.l2t,
-+				neigh, neigh->dev, 0);
-+		pi = (struct port_info *)netdev_priv(neigh->dev);
-+		ep->mtu = dst_mtu(ep->dst);
-+		ep->tx_chan = cxgb4_port_chan(neigh->dev);
-+		ep->smac_idx = (cxgb4_port_viid(neigh->dev) &
-+				0x7F) << 1;
-+	}
-+
-+	step = ep->com.dev->rdev.lldi.ntxq / ep->com.dev->rdev.lldi.nchan;
-+	ep->txq_idx = pi->port_id * step;
-+	ep->ctrlq_idx = pi->port_id;
-+	step = ep->com.dev->rdev.lldi.nrxq / ep->com.dev->rdev.lldi.nchan;
-+	ep->rss_qid = ep->com.dev->rdev.lldi.rxq_ids[pi->port_id * step];
-+
-+	if (!ep->l2t) {
-+		pr_err("%s - cannot alloc l2e.\n", __func__);
-+		err = -ENOMEM;
-+		goto fail4;
-+	}
-+
-+	PDBG("%s txq_idx %u tx_chan %u smac_idx %u rss_qid %u l2t_idx %u\n",
-+	     __func__, ep->txq_idx, ep->tx_chan, ep->smac_idx, ep->rss_qid,
-+	     ep->l2t->idx);
-+
-+	state_set(&ep->com, CONNECTING);
-+	ep->tos = 0;
-+
-+	/* send connect request to rnic */
-+	err = send_connect(ep);
-+	if (!err)
-+		goto out;
-+
-+	cxgb4_l2t_release(ep->l2t);
-+fail4:
-+	dst_release(ep->dst);
-+fail3:
-+	remove_handle(ep->com.dev, &ep->com.dev->atid_idr, ep->atid);
-+	cxgb4_free_atid(ep->com.dev->rdev.lldi.tids, ep->atid);
-+fail2:
-+	/*
-+	 * remember to send notification to upper layer.
-+	 * We are in here so the upper layer is not aware that this is
-+	 * re-connect attempt and so, upper layer is still waiting for
-+	 * response of 1st connect request.
-+	 */
-+	connect_reply_upcall(ep, -ECONNRESET);
-+	c4iw_put_ep(&ep->com);
-+out:
-+	return err;
-+}
-+
- static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- {
- 	struct c4iw_ep *ep;
-@@ -1523,6 +1643,8 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 		return 0;
- 	}
- 
-+	set_bit(ACT_OPEN_RPL, &ep->com.history);
-+
- 	/*
- 	 * Log interesting failures.
- 	 */
-@@ -1531,12 +1653,27 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	case CPL_ERR_CONN_TIMEDOUT:
- 		break;
- 	case CPL_ERR_TCAM_FULL:
--		mutex_lock(&dev->rdev.stats.lock);
--		dev->rdev.stats.tcam_full++;
--		mutex_unlock(&dev->rdev.stats.lock);
--		send_fw_act_open_req(ep,
--			GET_TID_TID(GET_AOPEN_ATID(ntohl(rpl->atid_status))));
--		return 0;
-+		if (dev->rdev.lldi.enable_fw_ofld_conn) {
-+			mutex_lock(&dev->rdev.stats.lock);
-+			dev->rdev.stats.tcam_full++;
-+			mutex_unlock(&dev->rdev.stats.lock);
-+			send_fw_act_open_req(ep,
-+					     GET_TID_TID(GET_AOPEN_ATID(
-+					     ntohl(rpl->atid_status))));
-+			return 0;
-+		}
-+		break;
-+	case CPL_ERR_CONN_EXIST:
-+		if (ep->retry_count++ < ACT_OPEN_RETRY_COUNT) {
-+			set_bit(ACT_RETRY_INUSE, &ep->com.history);
-+			remove_handle(ep->com.dev, &ep->com.dev->atid_idr,
-+					atid);
-+			cxgb4_free_atid(t, atid);
-+			dst_release(ep->dst);
-+			cxgb4_l2t_release(ep->l2t);
-+			c4iw_reconnect(ep);
-+			return 0;
-+		}
- 		break;
- 	default:
- 		printk(KERN_INFO MOD "Active open failure - "
-@@ -1555,6 +1692,7 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	if (status && act_open_has_tid(status))
- 		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, GET_TID(rpl));
- 
-+	remove_handle(ep->com.dev, &ep->com.dev->atid_idr, atid);
- 	cxgb4_free_atid(t, atid);
- 	dst_release(ep->dst);
- 	cxgb4_l2t_release(ep->l2t);
-@@ -1775,7 +1913,7 @@ out:
- 
- static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- {
--	struct c4iw_ep *child_ep, *parent_ep;
-+	struct c4iw_ep *child_ep = NULL, *parent_ep;
- 	struct cpl_pass_accept_req *req = cplhdr(skb);
- 	unsigned int stid = GET_POPEN_TID(ntohl(req->tos_stid));
- 	struct tid_info *t = dev->rdev.lldi.tids;
-@@ -1856,6 +1994,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	init_timer(&child_ep->timer);
- 	cxgb4_insert_tid(t, child_ep, hwtid);
- 	accept_cr(child_ep, peer_ip, skb, req);
-+	set_bit(PASS_ACCEPT_REQ, &child_ep->com.history);
- 	goto out;
- reject:
- 	reject_cr(dev, hwtid, peer_ip, skb);
-@@ -1879,11 +2018,13 @@ static int pass_establish(struct c4iw_dev *dev, struct sk_buff *skb)
- 	     ntohs(req->tcp_opt));
- 
- 	set_emss(ep, ntohs(req->tcp_opt));
-+	insert_handle(dev, &dev->hwtid_idr, ep, ep->hwtid);
- 
- 	dst_confirm(ep->dst);
- 	state_set(&ep->com, MPA_REQ_WAIT);
- 	start_ep_timer(ep);
- 	send_flowc(ep, skb);
-+	set_bit(PASS_ESTAB, &ep->com.history);
- 
- 	return 0;
- }
-@@ -1903,6 +2044,7 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
- 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
- 	dst_confirm(ep->dst);
- 
-+	set_bit(PEER_CLOSE, &ep->com.history);
- 	mutex_lock(&ep->com.mutex);
- 	switch (ep->com.state) {
- 	case MPA_REQ_WAIT:
-@@ -1982,74 +2124,6 @@ static int is_neg_adv_abort(unsigned int status)
- 	       status == CPL_ERR_PERSIST_NEG_ADVICE;
- }
- 
--static int c4iw_reconnect(struct c4iw_ep *ep)
--{
--	struct rtable *rt;
--	int err = 0;
--
--	PDBG("%s qp %p cm_id %p\n", __func__, ep->com.qp, ep->com.cm_id);
--	init_timer(&ep->timer);
--
--	/*
--	 * Allocate an active TID to initiate a TCP connection.
--	 */
--	ep->atid = cxgb4_alloc_atid(ep->com.dev->rdev.lldi.tids, ep);
--	if (ep->atid == -1) {
--		printk(KERN_ERR MOD "%s - cannot alloc atid.\n", __func__);
--		err = -ENOMEM;
--		goto fail2;
--	}
--
--	/* find a route */
--	rt = find_route(ep->com.dev,
--			ep->com.cm_id->local_addr.sin_addr.s_addr,
--			ep->com.cm_id->remote_addr.sin_addr.s_addr,
--			ep->com.cm_id->local_addr.sin_port,
--			ep->com.cm_id->remote_addr.sin_port, 0);
--	if (!rt) {
--		printk(KERN_ERR MOD "%s - cannot find route.\n", __func__);
--		err = -EHOSTUNREACH;
--		goto fail3;
--	}
--	ep->dst = &rt->dst;
--
--	err = import_ep(ep, ep->com.cm_id->remote_addr.sin_addr.s_addr,
--			ep->dst, ep->com.dev, false);
--	if (err) {
--		printk(KERN_ERR MOD "%s - cannot alloc l2e.\n", __func__);
--		goto fail4;
--	}
--
--	PDBG("%s txq_idx %u tx_chan %u smac_idx %u rss_qid %u l2t_idx %u\n",
--	     __func__, ep->txq_idx, ep->tx_chan, ep->smac_idx, ep->rss_qid,
--	     ep->l2t->idx);
--
--	state_set(&ep->com, CONNECTING);
--	ep->tos = 0;
--
--	/* send connect request to rnic */
--	err = send_connect(ep);
--	if (!err)
--		goto out;
--
--	cxgb4_l2t_release(ep->l2t);
--fail4:
--	dst_release(ep->dst);
--fail3:
--	cxgb4_free_atid(ep->com.dev->rdev.lldi.tids, ep->atid);
--fail2:
--	/*
--	 * remember to send notification to upper layer.
--	 * We are in here so the upper layer is not aware that this is
--	 * re-connect attempt and so, upper layer is still waiting for
--	 * response of 1st connect request.
--	 */
--	connect_reply_upcall(ep, -ECONNRESET);
--	c4iw_put_ep(&ep->com);
--out:
--	return err;
--}
--
- static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
- {
- 	struct cpl_abort_req_rss *req = cplhdr(skb);
-@@ -2070,6 +2144,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
- 	}
- 	PDBG("%s ep %p tid %u state %u\n", __func__, ep, ep->hwtid,
- 	     ep->com.state);
-+	set_bit(PEER_ABORT, &ep->com.history);
- 
- 	/*
- 	 * Wake up any threads in rdma_init() or rdma_fini().
-@@ -2284,6 +2359,7 @@ int c4iw_reject_cr(struct iw_cm_id *cm_id, const void *pdata, u8 pdata_len)
- 		c4iw_put_ep(&ep->com);
- 		return -ECONNRESET;
- 	}
-+	set_bit(ULP_REJECT, &ep->com.history);
- 	BUG_ON(state_read(&ep->com) != MPA_REQ_RCVD);
- 	if (mpa_rev == 0)
- 		abort_connection(ep, NULL, GFP_KERNEL);
-@@ -2313,6 +2389,7 @@ int c4iw_accept_cr(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	BUG_ON(state_read(&ep->com) != MPA_REQ_RCVD);
- 	BUG_ON(!qp);
- 
-+	set_bit(ULP_ACCEPT, &ep->com.history);
- 	if ((conn_param->ord > c4iw_max_read_depth) ||
- 	    (conn_param->ird > c4iw_max_read_depth)) {
- 		abort_connection(ep, NULL, GFP_KERNEL);
-@@ -2436,6 +2513,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		err = -ENOMEM;
- 		goto fail2;
- 	}
-+	insert_handle(dev, &dev->atid_idr, ep, ep->atid);
- 
- 	PDBG("%s saddr 0x%x sport 0x%x raddr 0x%x rport 0x%x\n", __func__,
- 	     ntohl(cm_id->local_addr.sin_addr.s_addr),
-@@ -2481,6 +2559,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- fail4:
- 	dst_release(ep->dst);
- fail3:
-+	remove_handle(ep->com.dev, &ep->com.dev->atid_idr, ep->atid);
- 	cxgb4_free_atid(ep->com.dev->rdev.lldi.tids, ep->atid);
- fail2:
- 	cm_id->rem_ref(cm_id);
-@@ -2523,6 +2602,7 @@ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog)
- 		err = -ENOMEM;
- 		goto fail2;
- 	}
-+	insert_handle(dev, &dev->stid_idr, ep, ep->stid);
- 	state_set(&ep->com, LISTEN);
- 	if (dev->rdev.lldi.enable_fw_ofld_conn) {
- 		do {
-@@ -2530,7 +2610,10 @@ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog)
- 				ep->com.dev->rdev.lldi.ports[0], ep->stid,
- 				ep->com.local_addr.sin_addr.s_addr,
- 				ep->com.local_addr.sin_port,
--				ep->com.dev->rdev.lldi.rxq_ids[0]);
-+				0,
-+				ep->com.dev->rdev.lldi.rxq_ids[0],
-+				0,
-+				0);
- 			if (err == -EBUSY) {
- 				set_current_state(TASK_UNINTERRUPTIBLE);
- 				schedule_timeout(usecs_to_jiffies(100));
-@@ -2541,6 +2624,7 @@ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog)
- 		err = cxgb4_create_server(ep->com.dev->rdev.lldi.ports[0],
- 				ep->stid, ep->com.local_addr.sin_addr.s_addr,
- 				ep->com.local_addr.sin_port,
-+				0,
- 				ep->com.dev->rdev.lldi.rxq_ids[0]);
- 		if (!err)
- 			err = c4iw_wait_for_reply(&ep->com.dev->rdev,
-@@ -2586,6 +2670,7 @@ int c4iw_destroy_listen(struct iw_cm_id *cm_id)
- 		err = c4iw_wait_for_reply(&ep->com.dev->rdev, &ep->com.wr_wait,
- 					  0, 0, __func__);
- 	}
-+	remove_handle(ep->com.dev, &ep->com.dev->stid_idr, ep->stid);
- 	cxgb4_free_stid(ep->com.dev->rdev.lldi.tids, ep->stid, PF_INET);
- done:
- 	cm_id->rem_ref(cm_id);
-@@ -2649,10 +2734,13 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
- 
- 	if (close) {
- 		if (abrupt) {
-+			set_bit(EP_DISC_ABORT, &ep->com.history);
- 			close_complete_upcall(ep);
- 			ret = send_abort(ep, NULL, gfp);
--		} else
-+		} else {
-+			set_bit(EP_DISC_CLOSE, &ep->com.history);
- 			ret = send_halfclose(ep, gfp);
-+		}
- 		if (ret)
- 			fatal = 1;
- 	}
-@@ -2666,6 +2754,7 @@ static void active_ofld_conn_reply(struct c4iw_dev *dev, struct sk_buff *skb,
- 			struct cpl_fw6_msg_ofld_connection_wr_rpl *req)
- {
- 	struct c4iw_ep *ep;
-+	int atid = be32_to_cpu(req->tid);
- 
- 	ep = (struct c4iw_ep *)lookup_atid(dev->rdev.lldi.tids, req->tid);
- 	if (!ep)
-@@ -2673,15 +2762,35 @@ static void active_ofld_conn_reply(struct c4iw_dev *dev, struct sk_buff *skb,
- 
- 	switch (req->retval) {
- 	case FW_ENOMEM:
-+		set_bit(ACT_RETRY_NOMEM, &ep->com.history);
-+		if (ep->retry_count++ < ACT_OPEN_RETRY_COUNT) {
-+			send_fw_act_open_req(ep, atid);
-+			return;
-+		}
- 	case FW_EADDRINUSE:
--		PDBG("%s ofld conn wr ret %d\n", __func__, req->retval);
-+		set_bit(ACT_RETRY_INUSE, &ep->com.history);
-+		if (ep->retry_count++ < ACT_OPEN_RETRY_COUNT) {
-+			send_fw_act_open_req(ep, atid);
-+			return;
-+		}
- 		break;
- 	default:
- 		pr_info("%s unexpected ofld conn wr retval %d\n",
- 		       __func__, req->retval);
- 		break;
- 	}
-+	pr_err("active ofld_connect_wr failure %d atid %d\n",
-+	       req->retval, atid);
-+	mutex_lock(&dev->rdev.stats.lock);
-+	dev->rdev.stats.act_ofld_conn_fails++;
-+	mutex_unlock(&dev->rdev.stats.lock);
- 	connect_reply_upcall(ep, status2errno(req->retval));
-+	state_set(&ep->com, DEAD);
-+	remove_handle(dev, &dev->atid_idr, atid);
-+	cxgb4_free_atid(dev->rdev.lldi.tids, atid);
-+	dst_release(ep->dst);
-+	cxgb4_l2t_release(ep->l2t);
-+	c4iw_put_ep(&ep->com);
- }
- 
- static void passive_ofld_conn_reply(struct c4iw_dev *dev, struct sk_buff *skb,
-@@ -2695,6 +2804,9 @@ static void passive_ofld_conn_reply(struct c4iw_dev *dev, struct sk_buff *skb,
- 	BUG_ON(!rpl_skb);
- 	if (req->retval) {
- 		PDBG("%s passive open failure %d\n", __func__, req->retval);
-+		mutex_lock(&dev->rdev.stats.lock);
-+		dev->rdev.stats.pas_ofld_conn_fails++;
-+		mutex_unlock(&dev->rdev.stats.lock);
- 		kfree_skb(rpl_skb);
- 	} else {
- 		cpl = (struct cpl_pass_accept_req *)cplhdr(rpl_skb);
-@@ -2988,6 +3100,7 @@ static void process_timeout(struct c4iw_ep *ep)
- 	mutex_lock(&ep->com.mutex);
- 	PDBG("%s ep %p tid %u state %d\n", __func__, ep, ep->hwtid,
- 	     ep->com.state);
-+	set_bit(TIMEDOUT, &ep->com.history);
- 	switch (ep->com.state) {
- 	case MPA_REQ_SENT:
- 		__state_set(&ep->com, ABORTING);
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 6b5b3d1..ba11c76 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -280,6 +280,10 @@ static int stats_show(struct seq_file *seq, void *v)
- 		   db_state_str[dev->db_state],
- 		   dev->rdev.stats.db_state_transitions);
- 	seq_printf(seq, "TCAM_FULL: %10llu\n", dev->rdev.stats.tcam_full);
-+	seq_printf(seq, "ACT_OFLD_CONN_FAILS: %10llu\n",
-+		   dev->rdev.stats.act_ofld_conn_fails);
-+	seq_printf(seq, "PAS_OFLD_CONN_FAILS: %10llu\n",
-+		   dev->rdev.stats.pas_ofld_conn_fails);
- 	return 0;
- }
- 
-@@ -310,6 +314,9 @@ static ssize_t stats_clear(struct file *file, const char __user *buf,
- 	dev->rdev.stats.db_empty = 0;
- 	dev->rdev.stats.db_drop = 0;
- 	dev->rdev.stats.db_state_transitions = 0;
-+	dev->rdev.stats.tcam_full = 0;
-+	dev->rdev.stats.act_ofld_conn_fails = 0;
-+	dev->rdev.stats.pas_ofld_conn_fails = 0;
- 	mutex_unlock(&dev->rdev.stats.lock);
- 	return count;
- }
-@@ -323,6 +330,113 @@ static const struct file_operations stats_debugfs_fops = {
- 	.write   = stats_clear,
- };
- 
-+static int dump_ep(int id, void *p, void *data)
-+{
-+	struct c4iw_ep *ep = p;
-+	struct c4iw_debugfs_data *epd = data;
-+	int space;
-+	int cc;
-+
-+	space = epd->bufsize - epd->pos - 1;
-+	if (space == 0)
-+		return 1;
-+
-+	cc = snprintf(epd->buf + epd->pos, space,
-+			"ep %p cm_id %p qp %p state %d flags 0x%lx history 0x%lx "
-+			"hwtid %d atid %d %pI4:%d <-> %pI4:%d\n",
-+			ep, ep->com.cm_id, ep->com.qp, (int)ep->com.state,
-+			ep->com.flags, ep->com.history, ep->hwtid, ep->atid,
-+			&ep->com.local_addr.sin_addr.s_addr,
-+			ntohs(ep->com.local_addr.sin_port),
-+			&ep->com.remote_addr.sin_addr.s_addr,
-+			ntohs(ep->com.remote_addr.sin_port));
-+	if (cc < space)
-+		epd->pos += cc;
-+	return 0;
-+}
-+
-+static int dump_listen_ep(int id, void *p, void *data)
-+{
-+	struct c4iw_listen_ep *ep = p;
-+	struct c4iw_debugfs_data *epd = data;
-+	int space;
-+	int cc;
-+
-+	space = epd->bufsize - epd->pos - 1;
-+	if (space == 0)
-+		return 1;
-+
-+	cc = snprintf(epd->buf + epd->pos, space,
-+			"ep %p cm_id %p state %d flags 0x%lx stid %d backlog %d "
-+			"%pI4:%d\n", ep, ep->com.cm_id, (int)ep->com.state,
-+			ep->com.flags, ep->stid, ep->backlog,
-+			&ep->com.local_addr.sin_addr.s_addr,
-+			ntohs(ep->com.local_addr.sin_port));
-+	if (cc < space)
-+		epd->pos += cc;
-+	return 0;
-+}
-+
-+static int ep_release(struct inode *inode, struct file *file)
-+{
-+	struct c4iw_debugfs_data *epd = file->private_data;
-+	if (!epd) {
-+		pr_info("%s null qpd?\n", __func__);
-+		return 0;
-+	}
-+	vfree(epd->buf);
-+	kfree(epd);
-+	return 0;
-+}
-+
-+static int ep_open(struct inode *inode, struct file *file)
-+{
-+	struct c4iw_debugfs_data *epd;
-+	int ret = 0;
-+	int count = 1;
-+
-+	epd = kmalloc(sizeof(*epd), GFP_KERNEL);
-+	if (!epd) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+	epd->devp = inode->i_private;
-+	epd->pos = 0;
-+
-+	spin_lock_irq(&epd->devp->lock);
-+	idr_for_each(&epd->devp->hwtid_idr, count_idrs, &count);
-+	idr_for_each(&epd->devp->atid_idr, count_idrs, &count);
-+	idr_for_each(&epd->devp->stid_idr, count_idrs, &count);
-+	spin_unlock_irq(&epd->devp->lock);
-+
-+	epd->bufsize = count * 160;
-+	epd->buf = vmalloc(epd->bufsize);
-+	if (!epd->buf) {
-+		ret = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	spin_lock_irq(&epd->devp->lock);
-+	idr_for_each(&epd->devp->hwtid_idr, dump_ep, epd);
-+	idr_for_each(&epd->devp->atid_idr, dump_ep, epd);
-+	idr_for_each(&epd->devp->stid_idr, dump_listen_ep, epd);
-+	spin_unlock_irq(&epd->devp->lock);
-+
-+	file->private_data = epd;
-+	goto out;
-+err1:
-+	kfree(epd);
-+out:
-+	return ret;
-+}
-+
-+static const struct file_operations ep_debugfs_fops = {
-+	.owner   = THIS_MODULE,
-+	.open    = ep_open,
-+	.release = ep_release,
-+	.read    = debugfs_read,
-+};
-+
- static int setup_debugfs(struct c4iw_dev *devp)
- {
- 	struct dentry *de;
-@@ -345,6 +459,11 @@ static int setup_debugfs(struct c4iw_dev *devp)
- 	if (de && de->d_inode)
- 		de->d_inode->i_size = 4096;
- 
-+	de = debugfs_create_file("eps", S_IWUSR, devp->debugfs_root,
-+			(void *)devp, &ep_debugfs_fops);
-+	if (de && de->d_inode)
-+		de->d_inode->i_size = 4096;
-+
- 	return 0;
- }
- 
-@@ -476,6 +595,9 @@ static void c4iw_dealloc(struct uld_ctx *ctx)
- 	idr_destroy(&ctx->dev->cqidr);
- 	idr_destroy(&ctx->dev->qpidr);
- 	idr_destroy(&ctx->dev->mmidr);
-+	idr_destroy(&ctx->dev->hwtid_idr);
-+	idr_destroy(&ctx->dev->stid_idr);
-+	idr_destroy(&ctx->dev->atid_idr);
- 	iounmap(ctx->dev->rdev.oc_mw_kva);
- 	ib_dealloc_device(&ctx->dev->ibdev);
- 	ctx->dev = NULL;
-@@ -533,6 +655,9 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
- 	idr_init(&devp->cqidr);
- 	idr_init(&devp->qpidr);
- 	idr_init(&devp->mmidr);
-+	idr_init(&devp->hwtid_idr);
-+	idr_init(&devp->stid_idr);
-+	idr_init(&devp->atid_idr);
- 	spin_lock_init(&devp->lock);
- 	mutex_init(&devp->rdev.stats.lock);
- 	mutex_init(&devp->db_mutex);
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 6a17fde..9c1644f 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -131,6 +131,8 @@ struct c4iw_stats {
- 	u64  db_drop;
- 	u64  db_state_transitions;
- 	u64  tcam_full;
-+	u64  act_ofld_conn_fails;
-+	u64  pas_ofld_conn_fails;
- };
- 
- struct c4iw_rdev {
-@@ -224,6 +226,9 @@ struct c4iw_dev {
- 	struct dentry *debugfs_root;
- 	enum db_state db_state;
- 	int qpcnt;
-+	struct idr hwtid_idr;
-+	struct idr atid_idr;
-+	struct idr stid_idr;
- };
- 
- static inline struct c4iw_dev *to_c4iw_dev(struct ib_device *ibdev)
-@@ -713,6 +718,31 @@ enum c4iw_ep_flags {
- 	CLOSE_SENT		= 3,
- };
- 
-+enum c4iw_ep_history {
-+	ACT_OPEN_REQ            = 0,
-+	ACT_OFLD_CONN           = 1,
-+	ACT_OPEN_RPL            = 2,
-+	ACT_ESTAB               = 3,
-+	PASS_ACCEPT_REQ         = 4,
-+	PASS_ESTAB              = 5,
-+	ABORT_UPCALL            = 6,
-+	ESTAB_UPCALL            = 7,
-+	CLOSE_UPCALL            = 8,
-+	ULP_ACCEPT              = 9,
-+	ULP_REJECT              = 10,
-+	TIMEDOUT                = 11,
-+	PEER_ABORT              = 12,
-+	PEER_CLOSE              = 13,
-+	CONNREQ_UPCALL          = 14,
-+	ABORT_CONN              = 15,
-+	DISCONN_UPCALL          = 16,
-+	EP_DISC_CLOSE           = 17,
-+	EP_DISC_ABORT           = 18,
-+	CONN_RPL_UPCALL         = 19,
-+	ACT_RETRY_NOMEM         = 20,
-+	ACT_RETRY_INUSE         = 21
-+};
-+
- struct c4iw_ep_common {
- 	struct iw_cm_id *cm_id;
- 	struct c4iw_qp *qp;
-@@ -724,6 +754,7 @@ struct c4iw_ep_common {
- 	struct sockaddr_in remote_addr;
- 	struct c4iw_wr_wait wr_wait;
- 	unsigned long flags;
-+	unsigned long history;
- };
- 
- struct c4iw_listen_ep {
-@@ -761,6 +792,7 @@ struct c4iw_ep {
- 	u8 tos;
- 	u8 retry_with_mpa_v1;
- 	u8 tried_with_mpa_v1;
-+	unsigned int retry_count;
- };
- 
- static inline struct c4iw_ep *to_ep(struct iw_cm_id *cm_id)
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h b/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
-index 868acde..d47a076 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
-@@ -530,6 +530,7 @@ struct adapter {
- 	struct net_device *port[MAX_NPORTS];
- 	u8 chan_map[NCHAN];                   /* channel -> port map */
- 
-+	u32 filter_mode;
- 	unsigned int l2t_start;
- 	unsigned int l2t_end;
- 	struct l2t_data *l2t;
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-index 1a26e3f..fe945c7 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-@@ -2678,7 +2678,8 @@ static int tid_init(struct tid_info *t)
-  *	Returns <0 on error and one of the %NET_XMIT_* values on success.
-  */
- int cxgb4_create_server(const struct net_device *dev, unsigned int stid,
--			__be32 sip, __be16 sport, unsigned int queue)
-+			__be32 sip, __be16 sport, __be16 vlan,
-+			unsigned int queue)
- {
- 	unsigned int chan;
- 	struct sk_buff *skb;
-@@ -3051,7 +3052,7 @@ static void uld_attach(struct adapter *adap, unsigned int uld)
- 	lli.ucq_density = 1 << QUEUESPERPAGEPF0_GET(
- 			t4_read_reg(adap, SGE_INGRESS_QUEUES_PER_PAGE_PF) >>
- 			(adap->fn * 4));
--	lli.filt_mode = tp_vlan_pri_map;
-+	lli.filt_mode = adap->filter_mode;
- 	/* MODQ_REQ_MAP sets queues 0-3 to chan 0-3 */
- 	for (i = 0; i < NCHAN; i++)
- 		lli.tx_modq[i] = i;
-@@ -3316,7 +3317,8 @@ static int delete_filter(struct adapter *adapter, unsigned int fidx)
- }
- 
- int cxgb4_create_server_filter(const struct net_device *dev, unsigned int stid,
--		__be32 sip, __be16 sport, unsigned int queue)
-+		__be32 sip, __be16 sport, __be16 vlan,
-+		unsigned int queue, unsigned char port, unsigned char mask)
- {
- 	int ret;
- 	struct filter_entry *f;
-@@ -3348,11 +3350,16 @@ int cxgb4_create_server_filter(const struct net_device *dev, unsigned int stid,
- 	f->fs.val.lport = cpu_to_be16(sport);
- 	f->fs.mask.lport  = ~0;
- 	val = (u8 *)&sip;
--	if ((val[0] | val[1] | val[2] | val[3]) != 0)
-+	if ((val[0] | val[1] | val[2] | val[3]) != 0) {
- 		for (i = 0; i < 4; i++) {
- 			f->fs.val.lip[i] = val[i];
- 			f->fs.mask.lip[i] = ~0;
- 		}
-+		if (adap->filter_mode & F_PORT) {
-+			f->fs.val.iport = port;
-+			f->fs.mask.iport = mask;
-+		}
-+	}
- 
- 	f->fs.dirsteer = 1;
- 	f->fs.iq = queue;
-@@ -4459,6 +4466,10 @@ static int adap_init0(struct adapter *adap)
- 	for (j = 0; j < NCHAN; j++)
- 		adap->params.tp.tx_modq[j] = j;
- 
-+	t4_read_indirect(adap, TP_PIO_ADDR, TP_PIO_DATA,
-+			 &adap->filter_mode, 1,
-+			 TP_VLAN_PRI_MAP);
-+
- 	adap->flags |= FW_OK;
- 	return 0;
- 
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h
-index 065bbd5..e2bbc7f 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h
-@@ -38,6 +38,7 @@
- #include <linux/cache.h>
- #include <linux/spinlock.h>
- #include <linux/skbuff.h>
-+#include <linux/inetdevice.h>
- #include <linux/atomic.h>
- 
- /* CPL message priority levels */
-@@ -151,9 +152,12 @@ void cxgb4_remove_tid(struct tid_info *t, unsigned int qid, unsigned int tid);
- struct in6_addr;
- 
- int cxgb4_create_server(const struct net_device *dev, unsigned int stid,
--			__be32 sip, __be16 sport, unsigned int queue);
-+			__be32 sip, __be16 sport, __be16 vlan,
-+			unsigned int queue);
- int cxgb4_create_server_filter(const struct net_device *dev, unsigned int stid,
--			       __be32 sip, __be16 sport, unsigned int queue);
-+			       __be32 sip, __be16 sport, __be16 vlan,
-+			       unsigned int queue,
-+			       unsigned char port, unsigned char mask);
- int cxgb4_remove_server_filter(const struct net_device *dev, unsigned int stid,
- 			       unsigned int queue, bool ipv6);
- static inline void set_wr_txq(struct sk_buff *skb, int prio, int queue)
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h b/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
-index bdc1bbc..3139221 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
-+++ b/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
-@@ -1066,5 +1066,7 @@
- #define A_TP_TX_SCHED_PCMD 0x25
- 
- #define S_PORT    1
-+#define V_PORT(x) ((x) << S_PORT)
-+#define F_PORT    V_PORT(1U)
- 
- #endif /* __T4_REGS_H */
--- 
-1.7.1
+On 01-12-2012 01:46, Davis, Arlin R wrote:
+> http://openfabrics.org/bugzilla/index.cgi
+> 
+> 
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Vipul Pandya
+>> Sent: Friday, November 30, 2012 7:12 AM
+>> To: Davis, Arlin R
+>> Cc: Steve Wise; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Kumar A S; Abhishek
+>> Agrawal; Divy Le Ray
+>> Subject: Re: Dapltest test error DAT_CONN_QUAL_IN_USE
+>>
+>> Arlin,
+>>
+>> Can you please refer to which bugzilla I should log a bug? Can you
+>> please provide me the url?
+>>
+>> Thanks,
+>> Vipul
+>>
+>> On 30-11-2012 05:21, Davis, Arlin R wrote:
+>>> Vipul,
+>>>
+>>> Can you submit a bug in bugzilla for tracking? I will try to get to
+>>> this next couple of days.
+>>>
+>>> -arlin
+>>>
+>>>> -----Original Message-----
+>>>> From: Vipul Pandya [mailto:vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org]
+>>>> Sent: Thursday, November 29, 2012 5:34 AM
+>>>> To: Davis, Arlin R
+>>>> Cc: Steve Wise; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Kumar A S; Abhishek
+>>>> Agrawal; Divy Le Ray
+>>>> Subject: Re: Dapltest test error DAT_CONN_QUAL_IN_USE
+>>>>
+>>>> Hi Arlin,
+>>>>
+>>>> This issue is happening because there is a port collision between
+>>>> dapltest server port space and host TCP stack. The port collision
+>>>> happens because rdma_bind_addr is getting called from the two
+>>>> different places with different port arguments from dapltest.
+>>>> rdma_bind_addr is getting called from the following two places:
+>>>>
+>>>> 1. Once it is getting called from dapls_ib_setup_conn_listener
+>>>> function with starting port as 45278. Based on number of threads and
+>>>> eps, in subsequent call of dapls_ib_setup_conn_listener this port
+>>>> number will keep getting incremented.
+>>>>
+>>>> 2. 2nd time it is getting called from dapls_ib_qp_alloc function
+>> with
+>>>> port number as always 0. Now, when rdma_bind_addr gets called with
+>>>> port number 0 it will allocate any free random port number.
+>>>>
+>>>> Then when dapls_ib_setup_conn_listener calls the rdma_bind_addr with
+>>>> fix port number which is already allocate via dapls_ib_qp_alloc
+>>>> function rdma_bind_addr will return EADDRINUSE error, which in turn
+>>>> will result in DAT_CONN_QUAL_IN_USE error.
+>>>>
+>>>> I think solution here would be to call rdma_bind_addr from both the
+>>>> location passing port number from the same port range.
+>>>>
+>>>> Please let me know your thoughts on this.
+>>>>
+>>>> Our testing has been blocked because of this issue. We would like to
+>>>> get this fixed. Please let us know if we need to log a bug anywhere
+>>>> for this.
+>>>>
+>>>> Thanks,
+>>>> Vipul
+>>>>
+>>>> On 27-11-2012 01:24, Steve Wise wrote:
+>>>>> Perhaps the port is in use by the host TCP stack?
+>>>>>
+>>>>>
+>>>>> On 11/26/2012 1:30 PM, Davis, Arlin R wrote:
+>>>>>> dapltest server will start with port 45278 and increase by client
+>>>> thread count during each new client connection. If you never restart
+>>>> the server it will continue to increase the listen port based on new
+>>>> clients connecting. If you restart dapltest it will restart back at
+>>>> port 45278. I am not familiar with iWarp CM but the error is coming
+>>>> from rdma_bind_addr (EADDRINUSE|EBUSY|EADDRNOTAVAIL). I will have to
+>>>> defer to Steve for this error.
+>>>>>>
+>>>>>> -arlin
+>>>>>>
+>>>>>>
+>>>>>>> -----Original Message-----
+>>>>>>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>>>>>>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Vipul Pandya
+>>>>>>> Sent: Friday, November 23, 2012 5:54 AM
+>>>>>>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>>>>> Cc: Kumar A S; Steve Wise; Abhishek Agrawal; Davis, Arlin R; Divy
+>>>> Le
+>>>>>>> Ray
+>>>>>>> Subject: Dapltest test error DAT_CONN_QUAL_IN_USE
+>>>>>>>
+>>>>>>> Hi All,
+>>>>>>>
+>>>>>>> I was running dapltest between my client and server machines with
+>>>>>>> OFED- 3.5. While running the test it dapltest server throws an
+>>>> error
+>>>>>>> DAT_CONN_QUAL_IN_USE if I increase number of threads and
+>> endpoints.
+>>>>>>>
+>>>>>>> Dapltest server:
+>>>>>>> ---------------
+>>>>>>> dapltest -T S -D chelsio1
+>>>>>>>
+>>>>>>> Dapltest client:
+>>>>>>> ---------------
+>>>>>>> dapltest -T T -s 102.1.1.2 -D chelsio1 -R BE -i 1 -t 16 -w 8
+>>>>>>> server SR
+>>>>>>> 8192 4 client SR 8192 4
+>>>>>>>
+>>>>>>>
+>>>>>>> Once I run the above test i get the following error on server
+>> side
+>>>>>>> and client side stalls.
+>>>>>>>
+>>>>>>> $# dapltest -T S -D chelsio1
+>>>>>>> Dapltest: Service Point Ready - chelsio1
+>>>>>>> Test[b13f]: dat_psp_create #6 error: DAT_CONN_QUAL_IN_USE
+>>>>>>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #0 error
+>>>>>>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
+>>>>>>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
+>>>>>>> DAT_INVALID_STATE_EVD_IN_USE
+>>>>>>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #1 error
+>>>>>>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
+>>>>>>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
+>>>>>>> DAT_INVALID_STATE_EVD_IN_USE
+>>>>>>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #2 error
+>>>>>>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
+>>>>>>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
+>>>>>>> DAT_INVALID_STATE_EVD_IN_USE
+>>>>>>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #3 error
+>>>>>>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
+>>>>>>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
+>>>>>>> DAT_INVALID_STATE_EVD_IN_USE
+>>>>>>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #4 error
+>>>>>>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
+>>>>>>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
+>>>>>>> DAT_INVALID_STATE_EVD_IN_USE
+>>>>>>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #5 error
+>>>>>>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
+>>>>>>> Test[b13f]: dat_evd_free (creq) error: DAT_INVALID_STATE
+>>>>>>> DAT_INVALID_STATE_EVD_IN_USE
+>>>>>>> Test[b13f]: Warning: dat_ep_disconnect (abrupt) #6 error
+>>>>>>> DAT_INVALID_STATE DAT_INVALID_STATE_EP_UNCONNECTED
+>>>>>>>
+>>>>>>> Following link says DAT_CONN_QUAL_IN_USE error can come if
+>> rdma_cm
+>>>>>>> returns an error due to bind failure.
+>>>>>>> http://www.mail-archive.com/linux-
+>>>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg01297.html
+>>>>>>>
+>>>>>>> rdma_cm from OFED-3.5 does not provide module parameter
+>>>>>>> 'unify_tcp_port_space'. So, just to narrow down I installed OFED-
+>>>>>>> 1.5.4.1 and ran the same test with unify_tcp_port_space=1.
+>> However
+>>>>>>> with that also I was able to reproduced the same issue.
+>>>>>>>
+>>>>>>> Please note that if I decrease the numbers of endpoints to 4 then
+>>>>>>> test works fine. i.e. If I give '-w 4' instead of '-w 8' in
+>>>>>>> command line then test runs fine.
+>>>>>>>
+>>>>>>> I am using dapltest version 2.0.36 which comes from OFED-3.5.
+>>>>>>>
+>>>>>>> Can anyone give any pointers on this?
+>>>>>>>
+>>>>>>>
+>>>>>>> Thanks,
+>>>>>>> Vipul
+>>>>>>> --
+>>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-
+>>>> rdma"
+>>>>>>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+>>>> majordomo
+>>>>>>> info at  http://vger.kernel.org/majordomo-info.html
+>>>>>> --
+>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-
+>>>> rdma"
+>>>>>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
+>>>>>> majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
+>> info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
