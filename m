@@ -1,39 +1,38 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] libibumad: fix umad_register man page
-Date: Mon, 3 Dec 2012 16:05:45 -0800
-Message-ID: <20121203160545.e5f38b03052aca9f8c6040be@llnl.gov>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH librdmacm] Fixed build problem due to missing macro
+Date: Tue, 4 Dec 2012 10:21:32 +0200
+Message-ID: <CAJZOPZL2-vO3muh6FKcKLgGLhom_u044mcC22o_Se165wByeJA@mail.gmail.com>
+References: <1354449863-20990-1-git-send-email-ogerlitz@mellanox.com>
+	<1828884A29C6694DAF28B7E6B8A8237346ADC3F3@ORSMSX101.amr.corp.intel.com>
+	<CAJZOPZJVgUdmXPd6t6ias27vTrc8LieX4J=YnVQbLTMmo8A3RQ@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237346ADC43A@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346ADC43A-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "esalomon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <esalomon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Dec 3, 2012 at 9:48 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>
+> According to my notes, I ran netperf with fork support using this:
 
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- man/umad_register.3 |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+yep, works just fine with this directive - we got 46Gbs, impressive!
 
-diff --git a/man/umad_register.3 b/man/umad_register.3
-index 7f11b51..eb6b986 100644
---- a/man/umad_register.3
-+++ b/man/umad_register.3
-@@ -7,7 +7,7 @@ umad_register \- register the specified management class and version for port
- .nf
- .B #include <infiniband/umad.h>
- .sp
--.BI "int umad_register(int " "portid" ", int " "mgmt_class" ", int " "mgmt_version" " , uint8_t " "rmpp_version" ", uint32_t " "method_mask[4]");
-+.BI "int umad_register(int " "portid" ", int " "mgmt_class" ", int " "mgmt_version" " , uint8_t " "rmpp_version" ", long " "method_mask[16/sizeof(long)]");
- .fi
- .SH "DESCRIPTION"
- .B umad_register()
--- 
-1.7.1
+Or.
 
+> server
+> ------
+> export RDMAV_FORK_SAFE=1
+> LD_PRELOAD=/usr/local/lib/rsocket/librspreload.so netserver
+>
+> client
+> ------
+> export RDMAV_FORK_SAFE=1
+> LD_PRELOAD=/usr/local/lib/rsocket/librspreload.so netperf -H <ip-address>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
