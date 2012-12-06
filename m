@@ -1,39 +1,63 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/11] First pass at merging Bart's HA work
-Date: Wed, 5 Dec 2012 23:32:19 +0200
-Message-ID: <CAJZOPZKPs5Vx5nB3610V+byv9p1KvL7+sRU6G4uMTRQu=4=STw@mail.gmail.com>
-References: <cover.1353903448.git.dillowda@ornl.gov>
-	<CAL1RGDU+b4GxEoY0TOvkyJjr0yx=5tFNmAVZ27hVjOOx=n=yJg@mail.gmail.com>
-	<1353957308.2681.5.camel@dabdike>
-	<1353989041.28917.24.camel@obelisk.thedillows.org>
-	<CAL1RGDXpdWL_r7sWp=vvvXH4jxFgjDL+XcEGgKo-44=wrOBmtA@mail.gmail.com>
-	<1354242098.3670.3.camel@obelisk.thedillows.org>
-	<CAJZOPZJBTRXftrW5NWEEHnf2QWsni0HMTAV_PKSgDtA7GO=wRw@mail.gmail.com>
-	<50BF9760.2080801@acm.org>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: srp-ha backport
+Date: Thu, 6 Dec 2012 13:52:32 +0400
+Message-ID: <CACaajQvVMmA23SCRNZwnRGYuB53gsBOGp26BxXu-J9vvHZ0szg@mail.gmail.com>
+References: <5054492E.1090403@acm.org> <loom.20121120T050107-224@post.gmane.org>
+ <50AB84C1.5090105@acm.org> <CACaajQtEu_z+GEUBuiDz6D1dHYsb-YSFMJfkWeya1FNvfhbQHg@mail.gmail.com>
+ <50ACE5B0.3060607@acm.org> <CACaajQsUR92Hg-nx_VQN1eHdnghDtsRv1xZJFaJKT=a4nWWf8Q@mail.gmail.com>
+ <CACaajQswh5foLKTGMhbZnj5JRpFax7nhdHxL7c1wTwbpMe=b8A@mail.gmail.com>
+ <50AD1EE6.6090206@acm.org> <CACaajQva+gtR3+tNaPZSJZ7j7ACOzjNCWAKQeYfT5Gse2Nsx3Q@mail.gmail.com>
+ <50AF2E9C.7050103@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50BF9760.2080801-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <50AF2E9C.7050103-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, James Bottomley <James.Bottomley-JuX6DAaQMKPCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org, rcj-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Alex Turin <alextu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 5, 2012 at 8:50 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
-[...]
-> The only way to make I/O work reliably if a failure can occur at the
-> transport layer is to use multipathd on top of ib_srp. If a connection fails
-> for some reason, then the SRP SCSI host will be removed after the SCSI error
-> handler has finished with its error recovery strategy. And once the
-> transport layer is operational again and srp_daemon detects that the
-> initiator is no longer logged in srp_daemon will make ib_srp log in again.
-> multipathd will then cause I/O to continue over the new path.
+Hello, again.
+Now i'm switch from sles kernel to 3.6.7
+All works fine , but now you patches from github provide some errors:
 
-Claim basically understood and agreed however, does this also hold
-when the link is back again, that is can't SRP login via this single
-path also when there's no multipath on top?
+/sbin/service openibd restart
+Unloading ib_srp                                   [FAILED]
+Removing 'ib_srp': Device or resource busy
 
-Or.
+xen11:~ # rmmod ib_srp
+ERROR: Removing 'ib_srp': Device or resource busy
+xen11:~ # lsmod | grep srp
+ib_srp                 47710  0 [permanent]
+ib_cm                  46778  2 rdma_cm,ib_srp
+ib_sa                  33627  4 rdma_ucm,rdma_cm,ib_srp,ib_cm
+ib_core                82311  9
+rdma_ucm,rdma_cm,iw_cm,ib_srp,ib_cm,ib_sa,ib_uverbs,ib_umad,ib_mad
+
+How can i solve this?
+
+2012/11/23 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
+> On 11/23/12 07:53, Vasiliy Tolstov wrote:
+>>
+>> Is that possible to backport needed patch to sles11 sp2 (i can't switch
+>> kernel now becouse i'm using xen on initiator node and need recompile
+>> many different packages for new kernel)
+>
+>
+> In every Linux distribution I know the SCSI core is not a kernel module but
+> is built into the kernel itself. For SLES that means that only Novell can
+> backport SCSI core patches to SLES.
+>
+> Bart.
+>
+
+
+
+-- 
+Vasiliy Tolstov,
+Clodo.ru
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
