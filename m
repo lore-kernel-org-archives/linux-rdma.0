@@ -1,48 +1,76 @@
-From: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] Avoid linker error with clang 3.0
-Date: Sun, 9 Dec 2012 22:12:16 -0800
-Message-ID: <CAGH67wQ9ER9JLHR9ZKmzwMaGuV4m_5LdsHbKZvfYw1ekojik2Q@mail.gmail.com>
-References: <alpine.BSF.2.00.1212090306300.64779@toaster.local>
-	<50C490D9.1000301@acm.org>
-	<CAGH67wS1P43ssD+-VFyCupLw3CT8U73wT-aT6N2AS5ddWApAoA@mail.gmail.com>
-	<CAGH67wQt48zEp0KiN44w=wfYZy+FA6oc=ehuAHUL2QBo=A1nhw@mail.gmail.com>
-	<ABB9B291-3AB5-4AE6-8CE2-5FE691E1AE02@gmail.com>
-	<20121210060600.GA30472@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH V4 0/5] Add LE hash collision bug fix for active and passive offloaded connections
+Date: Mon, 10 Dec 2012 15:00:51 +0530
+Message-ID: <1355131856-29142-1-git-send-email-vipul@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121210060600.GA30472-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 9, 2012 at 10:06 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+This patch series fixes the LE hash collision issue in cxgb4 and RDMA/cxgb4
+drivers in kernel.org.
 
-...
+If the hash functionality is enabled in T4 then tuple information of active and
+passive offloaded connections are stored in DDR3 memory. LE (Lookup Engine)
+implements the interface to search this tuple entries using hash algorithm. To
+avoid LE hash collision, firmware provides new mechanisms to setup active and
+passive open connections.
 
-> It is definately a bug in the code, it should be 'static inline' - the
-> reason it doesn't blow up on gcc is most likely because nobody ever
-> compiled it with a low enough optimization level to see it.
->
-> Looks to me like clang is fine, no bug there.
+In case of active open connection, firmware detects LE hash collision situation
+and notifies driver. Driver uses fw_ofld_connection work request to offload
+that connection. Its tuple information will be stored in TCAM memory array. 
 
-I've been corrected by several people both in the FreeBSD and clang
-projects today. The summary is:
-1. What clang's doing is correct via c99. static inline is the most
-correct way to do this while inline'ing the function per-c99 (which I
-didn't understand until today because I was unaware of that point in
-the standard). In particular:
-    i. With -O0 and -O1 it will fail as noted before.
-    ii. With -O2 and higher it will optimize out without error (which
-could account for me not seeing this until I ran the build on Fedora
-17 as I haven't installed a make.conf with non-default CFLAGS and
-didn't call the Makefiles with any optimization settings).
-2. gcc silently optimizes it out. This is a gcc extension to c89 and
-c99 (aka gnu89 and gnu99).
-Thanks!
--Garrett
+In case of passive open connection, server filter region is created in TCAM.
+This region stores the filter which will redirect the incoming SYN packet to
+offload queues. After this driver tries to establish the connection using
+firmware work request.
+
+This patch series also adds framework for managing filters and to use T4's
+filter capabilities.
+
+Following testing has been carried out successfully on this patch series.
+1. 1000 active open connections created and saw that tcam_full counter is
+getting incremented through debugfs file.
+2. Multiple passive open connections were created and ran the same test
+repetatively to verify server filter is getting created and deleted properly.
+
+The patch-series is based on Roland's infiniband tree (for-next branch),
+and involves changes on cxgb4 and RDMA/cxgb4 drivers. Both linux-rdma and netdev
+are included in this post for review.
+
+We have some more bug fixes in RDMA/cxgb4 after this patch series. So, we would
+like to request this series to get mereged through Roland's infiniband for-next
+tree.
+
+V2: Changed commenting style from kernel-doc format('/**') to normal
+V3: Resending the whole patch series again with the missing patches in V2
+V4: Changed comments for networking from '/*' to '/* Comment' format.
+
+Thanks,
+Vipul Pandya
+
+Vipul Pandya (5):
+  cxgb4: Add T4 filter support
+  cxgb4: Add LE hash collision bug fix path in LLD driver
+  RDMA/cxgb4: Fix LE hash collision bug for active open connection
+  RDMA/cxgb4: Fix LE hash collision bug for passive open connection
+  RDMA/cxgb4: Fix bug for active and passive LE hash collision path
+
+ drivers/infiniband/hw/cxgb4/cm.c                |  789 +++++++++++++++++++---
+ drivers/infiniband/hw/cxgb4/device.c            |  210 ++++++-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |   33 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |  146 +++++
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |  473 +++++++++++++-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h  |   23 +-
+ drivers/net/ethernet/chelsio/cxgb4/l2t.c        |   34 +
+ drivers/net/ethernet/chelsio/cxgb4/l2t.h        |    3 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      |   23 +-
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |   66 ++
+ drivers/net/ethernet/chelsio/cxgb4/t4_regs.h    |   37 ++
+ drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h   |  388 +++++++++++
+ 12 files changed, 2100 insertions(+), 125 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
