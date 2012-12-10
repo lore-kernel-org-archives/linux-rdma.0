@@ -1,39 +1,37 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/3] Avoid linker error with clang 3.0
-Date: Sun, 9 Dec 2012 23:06:00 -0700
-Message-ID: <20121210060600.GA30472@obsidianresearch.com>
-References: <alpine.BSF.2.00.1212090306300.64779@toaster.local>
- <50C490D9.1000301@acm.org>
- <CAGH67wS1P43ssD+-VFyCupLw3CT8U73wT-aT6N2AS5ddWApAoA@mail.gmail.com>
- <CAGH67wQt48zEp0KiN44w=wfYZy+FA6oc=ehuAHUL2QBo=A1nhw@mail.gmail.com>
- <ABB9B291-3AB5-4AE6-8CE2-5FE691E1AE02@gmail.com>
+Subject: Re: [PATCH] [RFC] osm_log printing incorrectly assumes that
+ pthread_t is not opaque type
+Date: Sun, 9 Dec 2012 23:10:21 -0700
+Message-ID: <20121210061021.GB30472@obsidianresearch.com>
+References: <alpine.BSF.2.00.1212090125590.64779@toaster.local>
+ <75EE638CB68A864F90627D3D06A189A859350715@MTRDAG01.mtl.com>
+ <CAGH67wQ=-Mn3_HMy7=VOT2am99qbjrXcOpC6+_PCSW6xuyVvRA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <ABB9B291-3AB5-4AE6-8CE2-5FE691E1AE02-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <CAGH67wQ=-Mn3_HMy7=VOT2am99qbjrXcOpC6+_PCSW6xuyVvRA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 09, 2012 at 01:47:03PM -0800, Garrett Cooper wrote:
+On Sun, Dec 09, 2012 at 11:56:55AM -0800, Garrett Cooper wrote:
 
-> 	After talking with some other more knowledgeable people than
-> 	myself, it looks like opensm is depending upon gcc inline
-> 	behavior:
-> 	http://freebsd.1045724.n5.nabble.com/C99-inlines-td4157849.html
-> 	, http://wiki.freebsd.org/PortsAndClang (look for "undefined
-> 	or duplicate symbols while linking"). The previously attached
-> 	patch should be ok for dealing with the linking problem as it
-> 	just changes the scoping. Definitely learned a few things
-> 	today about gcc :).
+> > One reason to use "sort of thread id" would be to determine specific flows,
+> > when looking through the log. Why it's important to use async-safe functions
+> > in that case?
+> 
+> Seems reasonable (and that was my guess, but I wanted to check :)..).
 
-It is definately a bug in the code, it should be 'static inline' - the
-reason it doesn't blow up on gcc is most likely because nobody ever
-compiled it with a low enough optimization level to see it.
+There is no such thing as a 'thread id integer' in posix land. If you
+want to number your threads then you need to use a thread local
+variable to do it. That is probably alot cheaper than calling gettid
+anyhow..
 
-Looks to me like clang is fine, no bug there.
+On Linux there is some value to using tid's for your ids because you
+can strace that tid individually if you want, but I can't think of
+many other uses..
 
 Jason
 --
