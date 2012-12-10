@@ -1,39 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] [RFC] osm_log printing incorrectly assumes that
- pthread_t is not opaque type
-Date: Sun, 9 Dec 2012 23:10:21 -0700
-Message-ID: <20121210061021.GB30472@obsidianresearch.com>
-References: <alpine.BSF.2.00.1212090125590.64779@toaster.local>
- <75EE638CB68A864F90627D3D06A189A859350715@MTRDAG01.mtl.com>
- <CAGH67wQ=-Mn3_HMy7=VOT2am99qbjrXcOpC6+_PCSW6xuyVvRA@mail.gmail.com>
+From: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/3] Avoid linker error with clang 3.0
+Date: Sun, 9 Dec 2012 22:12:16 -0800
+Message-ID: <CAGH67wQ9ER9JLHR9ZKmzwMaGuV4m_5LdsHbKZvfYw1ekojik2Q@mail.gmail.com>
+References: <alpine.BSF.2.00.1212090306300.64779@toaster.local>
+	<50C490D9.1000301@acm.org>
+	<CAGH67wS1P43ssD+-VFyCupLw3CT8U73wT-aT6N2AS5ddWApAoA@mail.gmail.com>
+	<CAGH67wQt48zEp0KiN44w=wfYZy+FA6oc=ehuAHUL2QBo=A1nhw@mail.gmail.com>
+	<ABB9B291-3AB5-4AE6-8CE2-5FE691E1AE02@gmail.com>
+	<20121210060600.GA30472@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAGH67wQ=-Mn3_HMy7=VOT2am99qbjrXcOpC6+_PCSW6xuyVvRA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20121210060600.GA30472-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 09, 2012 at 11:56:55AM -0800, Garrett Cooper wrote:
+On Sun, Dec 9, 2012 at 10:06 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-> > One reason to use "sort of thread id" would be to determine specific flows,
-> > when looking through the log. Why it's important to use async-safe functions
-> > in that case?
-> 
-> Seems reasonable (and that was my guess, but I wanted to check :)..).
+...
 
-There is no such thing as a 'thread id integer' in posix land. If you
-want to number your threads then you need to use a thread local
-variable to do it. That is probably alot cheaper than calling gettid
-anyhow..
+> It is definately a bug in the code, it should be 'static inline' - the
+> reason it doesn't blow up on gcc is most likely because nobody ever
+> compiled it with a low enough optimization level to see it.
+>
+> Looks to me like clang is fine, no bug there.
 
-On Linux there is some value to using tid's for your ids because you
-can strace that tid individually if you want, but I can't think of
-many other uses..
-
-Jason
+I've been corrected by several people both in the FreeBSD and clang
+projects today. The summary is:
+1. What clang's doing is correct via c99. static inline is the most
+correct way to do this while inline'ing the function per-c99 (which I
+didn't understand until today because I was unaware of that point in
+the standard). In particular:
+    i. With -O0 and -O1 it will fail as noted before.
+    ii. With -O2 and higher it will optimize out without error (which
+could account for me not seeing this until I ran the build on Fedora
+17 as I haven't installed a make.conf with non-default CFLAGS and
+didn't call the Makefiles with any optimization settings).
+2. gcc silently optimizes it out. This is a gcc extension to c89 and
+c99 (aka gnu89 and gnu99).
+Thanks!
+-Garrett
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
