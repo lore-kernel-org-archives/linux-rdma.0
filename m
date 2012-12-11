@@ -1,75 +1,45 @@
-From: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] Fixlinker error with clang with -O < 2
-Date: Tue, 11 Dec 2012 02:09:13 -0800 (PST)
-Message-ID: <alpine.BSF.2.00.1212110205390.71586@toaster.local>
+From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Quick mlx4 IB SR-IOV howto?
+Date: Tue, 11 Dec 2012 20:29:13 +0200
+Message-ID: <50C77B79.3010704@gmail.com>
+References: <CAL1RGDU0XPCyS6fVeHHxnhLHpREjqi6kjKFCX8hBwrLuVD2HwA@mail.gmail.com> <loom.20121208T110331-55@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="967339439-590691548-1355220559=:71586"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <loom.20121208T110331-55-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yi-Man Ma <eye548-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Yi-Man.
 
---967339439-590691548-1355220559=:71586
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+>   
+>
+> Hi,
+>
+> You enabled SR-IOV on ConnectX-3 adapter successfully.
+> I also tried to do the same thing, but I failed.
+> What did you do to enable SR-IOV on ConnectX-3 adapter?
+> I tried following steps:
+> 1. Enable Intel VT-d in BIOS and in the kernel.
+In some servers this isn't enough, there is a "virtualization 
+technology" option and you need to enable it too.
+> 2. rmmod mlx4_en
+>     rmmode_mlx4_core
+>     modprobe mlx4_core  sr_iov=1 probe_vf=1
+> But it failed.
+Do you have an SR-IOV capable firmware in your HCA?
 
-The previous function definition was incorrect per c99 and is silently
-ignored with gcc and is optimized away with clang and optimization
-levels < 2.
+> Do I still have other things to do for enabling SR-IOV on ConnectX-3 adapter?
+>
+>
+The output of dmesg or /var/log/messages with the error message can be 
+useful.
 
-Signed-off-by: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-  osmtest/osmtest.c | 3 ++-
-  1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/osmtest/osmtest.c b/osmtest/osmtest.c
-index 68b0e40..717c864 100644
---- a/osmtest/osmtest.c
-+++ b/osmtest/osmtest.c
-@@ -3068,7 +3068,8 @@ Exit:
-  	return (status);
-  }
-
--inline uint32_t osmtest_path_rec_key_get(IN const ib_path_rec_t * const p_rec)
-+static inline uint32_t
-+osmtest_path_rec_key_get(IN const ib_path_rec_t * const p_rec)
-  {
-  	return (p_rec->dlid << 16 | p_rec->slid);
-  }
--- 
-1.8.0
---967339439-590691548-1355220559=:71586
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=0003-Fixlinker-error-with-clang-with-O-2.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <alpine.BSF.2.00.1212110209130.71586-Fqwm7F1mg36Nj9Bq2fkWzw@public.gmane.org>
-Content-Description: 
-Content-Disposition: attachment; filename=0003-Fixlinker-error-with-clang-with-O-2.patch
-
-RnJvbSBhNDYxYjY3ZWU0ZTU5M2FlYmZiOTYyZWRiZmJlMmVkZjYxZWI5ZWMw
-IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQ0KRnJvbTogR2FycmV0dCBDb29w
-ZXIgPHlhbmVnb21pQGdtYWlsLmNvbT4NCkRhdGU6IFN1biwgOSBEZWMgMjAx
-MiAwMjo1Nzo0MyAtMDgwMA0KU3ViamVjdDogW1BBVENIIDMvM10gRml4bGlu
-a2VyIGVycm9yIHdpdGggY2xhbmcgd2l0aCAtTyA8IDINCg0KVGhlIHByZXZp
-b3VzIGZ1bmN0aW9uIGRlZmluaXRpb24gd2FzIGluY29ycmVjdCBwZXIgYzk5
-IGFuZCBpcyBzaWxlbnRseQ0KaWdub3JlZCB3aXRoIGdjYyBhbmQgaXMgb3B0
-aW1pemVkIGF3YXkgd2l0aCBjbGFuZyBhbmQgb3B0aW1pemF0aW9uDQpsZXZl
-bHMgPCAyLg0KDQpTaWduZWQtb2ZmLWJ5OiBHYXJyZXR0IENvb3BlciA8eWFu
-ZWdvbWlAZ21haWwuY29tPg0KLS0tDQogb3NtdGVzdC9vc210ZXN0LmMgfCAz
-ICsrLQ0KIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDEgZGVs
-ZXRpb24oLSkNCg0KZGlmZiAtLWdpdCBhL29zbXRlc3Qvb3NtdGVzdC5jIGIv
-b3NtdGVzdC9vc210ZXN0LmMNCmluZGV4IDY4YjBlNDAuLjcxN2M4NjQgMTAw
-NjQ0DQotLS0gYS9vc210ZXN0L29zbXRlc3QuYw0KKysrIGIvb3NtdGVzdC9v
-c210ZXN0LmMNCkBAIC0zMDY4LDcgKzMwNjgsOCBAQCBFeGl0Og0KIAlyZXR1
-cm4gKHN0YXR1cyk7DQogfQ0KIA0KLWlubGluZSB1aW50MzJfdCBvc210ZXN0
-X3BhdGhfcmVjX2tleV9nZXQoSU4gY29uc3QgaWJfcGF0aF9yZWNfdCAqIGNv
-bnN0IHBfcmVjKQ0KK3N0YXRpYyBpbmxpbmUgdWludDMyX3QNCitvc210ZXN0
-X3BhdGhfcmVjX2tleV9nZXQoSU4gY29uc3QgaWJfcGF0aF9yZWNfdCAqIGNv
-bnN0IHBfcmVjKQ0KIHsNCiAJcmV0dXJuIChwX3JlYy0+ZGxpZCA8PCAxNiB8
-IHBfcmVjLT5zbGlkKTsNCiB9DQotLSANCjEuOC4wDQoNCg==
-
---967339439-590691548-1355220559=:71586--
+Thanks
+Dotan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
