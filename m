@@ -1,48 +1,135 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Updated Debian packages?
-Date: Mon, 10 Dec 2012 21:05:47 +0000
-Message-ID: <0000013b86a34d64-f7717bc7-6911-4525-98ce-537ac044c057-000000@email.amazonses.com>
-References: <0000013b05aabcf5-1b33263b-9ccb-46a2-b125-0357cdd5e0c9-000000@email.amazonses.com> <CABweQm+c6fo_VTTNk1NMsJA3fDH0LK95C5qzziabZGZGRrY-Rw@mail.gmail.com> <0000013b0a51504b-fc3418bd-5aa2-4ce6-8a82-05821859d2a0-000000@email.amazonses.com>
- <CABweQmLesg5hE4uqEDjgUMc9P8Fwt-yQErga12XtEjttgYnzvg@mail.gmail.com> <0000013b4394f98f-eee4de84-fc21-4432-a5ae-73c4c912e803-000000@email.amazonses.com> <CAL1RGDVcuONOLFYvrLg-j=rhm2PcZmyhB5nPE1wtQRYaC8kmKQ@mail.gmail.com> <50B5E098.7010407@mellanox.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50B5E098.7010407-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kevin Metz <Kevin.Metz-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Mon, 10 Dec 2012 21:59:41 -0800
+Message-ID: <1355205581-10573-1-git-send-email-roland@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-So far I do not see that any patches have gone in since March for mlx4 and
-the most recent patches for libibverbs are in 2011.
+Hi Linus,
 
-Could we get the trees updated?
+Please pull from
 
-On Wed, 28 Nov 2012, Or Gerlitz wrote:
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
 
-> On 28/11/2012 11:46, Roland Dreier wrote:
-> > On Tue, Nov 27, 2012 at 12:35 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
-> > > Roland, we need the raw eth qp patches in the git trees for the libraries.
-> > >
-> > > Could you please bring the trees up to date so that the userspace raw eth
-> > > support is in sync with the kernel?
-> > Do you have branches I could pull from?
->
-> Its in your patchwork...  here are the posts
->
-> libmlx4
-> http://marc.info/?l=linux-rdma&m=134817307614014&w=2
-> http://marc.info/?l=linux-rdma&m=134838353315573&w=2
->
-> libibverbs
-> http://marc.info/?l=linux-rdma&m=134817304514001&w=2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------
+
+First batch of InfiniBand/RDMA changes for the 3.8 merge window:
+ - A good chunk of Bart Van Assche's SRP fixes
+ - UAPI disintegration from David Howells
+ - mlx4 support for "64-byte CQE" hardware feature from Or Gerlitz
+ - Other miscellaneous fixes
+
+----------------------------------------------------------------
+Alan Cox (2):
+      IB/ipath: Remove unreachable code
+      RDMA/amsol1100: Fix missing break
+
+Bart Van Assche (14):
+      IB/srp: Increase block layer timeout
+      IB/srp: Eliminate state SRP_TARGET_CONNECTING
+      IB/srp: Keep processing commands during host removal
+      IB/srp: Simplify SCSI error handling
+      IB/srp: Introduce srp_handle_qp_err()
+      IB/srp: Process all error completions
+      IB/srp: Suppress superfluous error messages
+      IB/srp: Introduce the helper function srp_remove_target()
+      IB/srp: Eliminate state SRP_TARGET_DEAD
+      IB/srp: Document sysfs attributes
+      srp_transport: Fix attribute registration
+      srp_transport: Simplify attribute initialization code
+      srp_transport: Document sysfs attributes
+      IB/srp: Allow SRP disconnect through sysfs
+
+David Howells (1):
+      UAPI: (Scripted) Disintegrate include/rdma
+
+Ishai Rabinovitz (1):
+      IB/srp: destroy and recreate QP and CQs when reconnecting
+
+Jack Morgenstein (2):
+      IB/mlx4: Fix spinlock order to avoid lockdep warnings
+      mlx4_core: Fix potential deadlock in mlx4_eq_int()
+
+Julia Lawall (3):
+      RDMA/nes: Use WARN()
+      RDMA/cxgb4: use WARN
+      RDMA/cxgb3: use WARN
+
+Or Gerlitz (1):
+      mlx4: 64-byte CQE/EQE support
+
+Roland Dreier (4):
+      Merge branches 'cxgb4', 'misc', 'mlx4', 'nes' and 'uapi' into for-next
+      Merge branches 'cma' and 'mlx4' into for-next
+      Merge branch 'srp' into for-next
+      Merge branch 'nes' into for-next
+
+Tatyana Nikolova (7):
+      RDMA/nes: Fix incorrect address of IP header
+      RDMA/nes: Fix for unlinking skbs from empty list
+      RDMA/nes: Fix for sending fpdus in order to hardware
+      RDMA/nes: Fix for incorrect multicast address in the perfect filter table
+      RDMA/nes: Fix for BUG_ON due to adding already-pending timer
+      RDMA/nes: Fix for terminate timer crash
+      RDMA/nes: Fix for crash when registering zero length MR for CQ
+
+Vu Pham (1):
+      IB/srp: send disconnect request without waiting for CM timewait exit
+
+shefty (1):
+      RDMA/cm: Change return value from find_gid_port()
+
+ Documentation/ABI/stable/sysfs-driver-ib_srp   |  156 ++++++++++++
+ Documentation/ABI/stable/sysfs-transport-srp   |   19 ++
+ drivers/infiniband/core/cma.c                  |    9 +-
+ drivers/infiniband/hw/amso1100/c2_ae.c         |    1 +
+ drivers/infiniband/hw/cxgb3/iwch_cm.c          |    6 +-
+ drivers/infiniband/hw/cxgb4/cm.c               |    6 +-
+ drivers/infiniband/hw/ipath/ipath_init_chip.c  |   10 -
+ drivers/infiniband/hw/mlx4/cm.c                |    4 +-
+ drivers/infiniband/hw/mlx4/cq.c                |   34 ++-
+ drivers/infiniband/hw/mlx4/main.c              |   27 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h           |    1 +
+ drivers/infiniband/hw/mlx4/user.h              |   12 +-
+ drivers/infiniband/hw/nes/nes.h                |    1 +
+ drivers/infiniband/hw/nes/nes_cm.c             |   32 +--
+ drivers/infiniband/hw/nes/nes_hw.c             |    9 +-
+ drivers/infiniband/hw/nes/nes_mgt.c            |   42 ++--
+ drivers/infiniband/hw/nes/nes_nic.c            |   13 +-
+ drivers/infiniband/hw/nes/nes_verbs.c          |    9 +-
+ drivers/infiniband/ulp/srp/ib_srp.c            |  314 ++++++++++++++----------
+ drivers/infiniband/ulp/srp/ib_srp.h            |   11 +-
+ drivers/net/ethernet/mellanox/mlx4/cmd.c       |   11 +-
+ drivers/net/ethernet/mellanox/mlx4/en_cq.c     |    2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c |    1 +
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c     |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c     |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/eq.c        |   36 ++-
+ drivers/net/ethernet/mellanox/mlx4/fw.c        |   30 ++-
+ drivers/net/ethernet/mellanox/mlx4/fw.h        |    1 +
+ drivers/net/ethernet/mellanox/mlx4/main.c      |   38 ++-
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h   |    1 +
+ drivers/scsi/scsi_transport_srp.c              |   51 ++--
+ include/linux/mlx4/device.h                    |   21 ++
+ include/rdma/Kbuild                            |    6 -
+ include/rdma/rdma_netlink.h                    |   36 +--
+ include/scsi/scsi_transport_srp.h              |    8 +
+ include/uapi/rdma/Kbuild                       |    6 +
+ include/{ => uapi}/rdma/ib_user_cm.h           |    0
+ include/{ => uapi}/rdma/ib_user_mad.h          |    0
+ include/{ => uapi}/rdma/ib_user_sa.h           |    0
+ include/{ => uapi}/rdma/ib_user_verbs.h        |    0
+ include/uapi/rdma/rdma_netlink.h               |   37 +++
+ include/{ => uapi}/rdma/rdma_user_cm.h         |    0
+ 42 files changed, 689 insertions(+), 322 deletions(-)
+ create mode 100644 Documentation/ABI/stable/sysfs-driver-ib_srp
+ create mode 100644 Documentation/ABI/stable/sysfs-transport-srp
+ rename include/{ => uapi}/rdma/ib_user_cm.h (100%)
+ rename include/{ => uapi}/rdma/ib_user_mad.h (100%)
+ rename include/{ => uapi}/rdma/ib_user_sa.h (100%)
+ rename include/{ => uapi}/rdma/ib_user_verbs.h (100%)
+ create mode 100644 include/uapi/rdma/rdma_netlink.h
+ rename include/{ => uapi}/rdma/rdma_user_cm.h (100%)
