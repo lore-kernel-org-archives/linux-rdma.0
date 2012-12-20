@@ -1,38 +1,41 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] IB/SRP patches for kernel 3.8
-Date: Thu, 20 Dec 2012 16:56:03 +0200
-Message-ID: <50D32703.2030602@mellanox.com>
-References: <50D1CD49.5080607@acm.org> <50D306DE.7080505@mellanox.com> <50D3105C.10005@acm.org>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH v3 1/3] IB/srp: Track connection state properly
+Date: Thu, 20 Dec 2012 10:10:41 -0500
+Message-ID: <1356016241.2507.1.camel@obelisk.thedillows.org>
+References: <50D1CD49.5080607@acm.org> <50D1CD7D.6030905@acm.org>
+	 <1355940274.23687.2.camel@frustration.ornl.gov> <50D2C8C4.3030308@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50D3105C.10005-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <50D2C8C4.3030308-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 20/12/2012 15:19, Bart Van Assche wrote:
-> On 12/20/12 13:38, Or Gerlitz wrote:
->> I think few days ago you had a patch on your tree named "Save and
->> restore host_scribble during error handling", is it possible we need
->> this here for happy removal of the scsi host?
->
-> No. Host removal works fine even without that patch. 
+On Thu, 2012-12-20 at 09:13 +0100, Bart Van Assche wrote:
+> On 12/19/12 19:04, David Dillow wrote:
+> > On Wed, 2012-12-19 at 15:21 +0100, Bart Van Assche wrote:
+> >> The connection state must be initialized before srp_connect_target()
+> >> is invoked. Drop the assignment in srp_add_target() since it occurs
+> >> after srp_connect_target() and since scsi_host_alloc()
+> >> zero-initializes the Scsi_Host structure anyway.
+> >
+> > The commit message is still wrong. The issue is that
+> > srp_connect_target() has marked us as active, and this patch removes an
+> > assignment that reverses that.
+> >
+> > This shouldn't go upstream without the fixed commit message.
+> 
+> Hi Dave,
+> 
+> How about replacing the commit message by the following text:
+> 
+> "Remove an assignment that incorrectly overwrites the connection state 
+> update by srp_connect_target()."
 
-not on my setup, how do you suggest to proceed here?
-
-Or.
-
-> That's because srp_abort() has been modified such that it finishes a 
-> request whether or not sending a task management function to the 
-> target succeeded. As you can see in scsi_eh_abort_cmnds() if the 
-> eh_abort_handler callback function returns SUCCESS then 
-> scsi_eh_test_devices() will be passed an empty work_q list. Hence the 
-> SCSI error handler function scsi_eh_prep_cmnd() does not get invoked 
-> and hence does not have a chance of overwriting the host_scribble field.
->
+Works for me, ship it!
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
