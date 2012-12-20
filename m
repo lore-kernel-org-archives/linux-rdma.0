@@ -1,50 +1,144 @@
-From: Vipul Pandya <vipul@chelsio.com>
-Subject: Re: linux-next: build failure after merge of the infiniband tree
-Date: Thu, 20 Dec 2012 15:28:16 +0530
-Message-ID: <50D2E138.7000700@chelsio.com>
-References: <20121220094433.791d70e55ae5e3325a6190fc@canb.auug.org.au> <CAG4TOxPVc0tNeLhi3FF=K_UJpizh2OZgviT5WqqLvZsg-QEoNw@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] IB/SRP patches for kernel 3.8
+Date: Thu, 20 Dec 2012 14:38:54 +0200
+Message-ID: <50D306DE.7080505@mellanox.com>
+References: <50D1CD49.5080607@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAG4TOxPVc0tNeLhi3FF=K_UJpizh2OZgviT5WqqLvZsg-QEoNw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50D1CD49.5080607-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Turin <alextu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 19/12/2012 16:20, Bart Van Assche wrote:
+> This patch series avoids that SCSI error handling triggers an endless 
+> loop and also restores reporting of QP errors in the kernel log.
+>
+> Changes between v3 and v2:
+> - As proposed by Dave, added a patch that prevents sending of a task
+>   management function over a closed connection.
+>
+> Changes between v2 and v1:
+> - Track connection state properly.
+> - Make srp_reset_host() reset requests even if reconnecting fails
+>
+
+Bart,
+
+I tried the patches now, took these three commits from 
+git://github.com/bvanassche/linux.git
+branch 3.8-ib-srp-fixes which I assume are the ones you posted here and 
+applied them on Roland's for-next branch
+
+commit 62862c0f93d47853b8d321fe5dcdd5d789e92d08
+IB/srp: Avoid endless SCSI error handling loop
+
+commit d73006faf751df4fc2fff7514f6fc6a74c41fd35
+IB/srp: Avoid sending a task management function needlessly
+
+commit befde6a2ceca6b894fb183ff96d175d6c380546b
+IB/srp: Track connection state properly
 
 
-On 20-12-2012 05:52, Roland Dreier wrote:
-> On Wed, Dec 19, 2012 at 2:44 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
->> Hi all,
->>
->> After merging the infiniband tree, today's linux-next build (x86_64_
->> allmodconfig) failed like this:
->>
->> In file included from drivers/scsi/csiostor/csio_wr.h:42:0,
->>                  from drivers/scsi/csiostor/csio_scsi.h:49,
->>                  from drivers/scsi/csiostor/csio_init.h:45,
->>                  from drivers/scsi/csiostor/csio_attr.c:45:
->> drivers/scsi/csiostor/t4fw_api_stor.h:43:6: error: nested redefinition of 'enum fw_retval'
->> drivers/scsi/csiostor/t4fw_api_stor.h:43:6: error: redeclaration of 'enum fw_retval'
->> drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h:42:6: note: originally defined here
->> drivers/scsi/csiostor/t4fw_api_stor.h:48:2: error: redeclaration of enumerator 'FW_ENOEXEC'
->> drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h:39:2: note: previous definition of 'FW_ENOEXEC' was here
->> drivers/scsi/csiostor/t4fw_api_stor.h:50:2: error: redeclaration of enumerator 'FW_ENOMEM'
->> drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h:43:2: note: previous definition of 'FW_ENOMEM' was here
->> drivers/scsi/csiostor/t4fw_api_stor.h:58:2: error: redeclaration of enumerator 'FW_EADDRINUSE'
->> drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h:44:2: note: previous definition of 'FW_EADDRINUSE' was here
->>
->> And several others similar.
->>
->> Caused by commit f65b56b15931 ("RDMA/cxgb4: Fix LE hash collision bug for
->> active open connection").
-> 
-> 
-> Vipul, is the right fix to pull the full list of FW return values from
-> t4fw_api_stor.h into t4fw_api.h as part of this patch (f65b56b15931)?
-> 
+Basically, I connected to an SRP target, later took down the initiator 
+IB port, and then attempted to issue some IO over the SRP lun (no 
+multipathing). What happens is that things are seemed to be detected 
+properly, reconnection goes in a loop, but the SCSI host  (host6) isn't 
+deleted, I can't unload the module since there's non-zero ref count. 
+Only when I bring back
+the port, I see
 
-Yes, this is a correct way to fix this issue. I see that this change is
-already done. Thanks for providing the fix.
+scsi host6: ib_srp: reconnect succeeded
+sd 6:0:0:1: [sdc] Synchronizing SCSI cache
+... etc on all the luns of that host
+
+and only then the SCSI host is finally removed, the module ref count 
+goes to zero and I canunload the module. Maybe another patch is needed 
+here? I think few days ago you had a patch on your tree named "Save and 
+restore host_scribble during error handling", is it possible we need 
+this here for happy removal of the scsi host?
+
+Or.
+
+Dec 20 14:06:13 vsa33 kernel: scsi6 : SRP.T10:0002C9030010B014
+Dec 20 14:06:13 vsa33 kernel: scsi 6:0:0:0: Direct-Access     SUN      COMSTAR          1.0  PQ: 0 ANSI: 5
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:0: Attached scsi generic sg1 type 0
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:0: [sdb] 409600 512-byte logical blocks: (209 MB/200 MiB)
+Dec 20 14:06:13 vsa33 kernel: scsi 6:0:0:1: Direct-Access     SUN      COMSTAR          1.0  PQ: 0 ANSI: 5
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:1: Attached scsi generic sg2 type 0
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:1: [sdc] 409600 512-byte logical blocks: (209 MB/200 MiB)
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:1: [sdc] Write Protect is off
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:1: [sdc] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+Dec 20 14:06:13 vsa33 kernel: scsi 6:0:0:2: Direct-Access     SUN      COMSTAR          1.0  PQ: 0 ANSI: 5
+Dec 20 14:06:13 vsa33 kernel: sdc: unknown partition table
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:2: Attached scsi generic sg3 type 0
+Dec 20 14:06:13 vsa33 kernel: scsi 6:0:0:3: Direct-Access     SUN      COMSTAR          1.0  PQ: 0 ANSI: 5
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:3: Attached scsi generic sg4 type 0
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:2: [sdd] 409600 512-byte logical blocks: (209 MB/200 MiB)
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:3: [sde] 104857600 512-byte logical blocks: (53.6 GB/50.0 GiB)
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:0: [sdb] Write Protect is off
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:3: [sde] Write Protect is off
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:3: [sde] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:1: [sdc] Attached SCSI disk
+Dec 20 14:06:13 vsa33 kernel: sdb: unknown partition table
+Dec 20 14:06:13 vsa33 kernel: sde: unknown partition table
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:2: [sdd] Write Protect is off
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:0: [sdb] Attached SCSI disk
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:3: [sde] Attached SCSI disk
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:2: [sdd] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+Dec 20 14:06:13 vsa33 kernel: sdd: unknown partition table
+Dec 20 14:06:13 vsa33 kernel: sd 6:0:0:2: [sdd] Attached SCSI disk
+Dec 20 14:08:02 vsa33 kernel: scsi host6: ib_srp: failed send status 5
+Dec 20 14:08:29 vsa33 kernel: scsi host6: SRP abort called
+Dec 20 14:08:39 vsa33 kernel: scsi host6: SRP abort called
+Dec 20 14:08:39 vsa33 kernel: scsi host6: SRP reset_device called
+Dec 20 14:08:39 vsa33 kernel: scsi host6: ib_srp: SRP reset_host called
+Dec 20 14:08:40 vsa33 kernel: scsi host6: ib_srp: Got failed path rec status -110
+Dec 20 14:08:40 vsa33 kernel: scsi host6: ib_srp: Path record query failed
+Dec 20 14:08:40 vsa33 kernel: scsi host6: ib_srp: reconnect failed (-110), removing target port.
+Dec 20 14:08:40 vsa33 kernel: sd 6:0:0:1: Device offlined - not ready after error recovery
+Dec 20 14:08:40 vsa33 kernel: sd 6:0:0:1: [sdc] Unhandled error code
+Dec 20 14:08:40 vsa33 kernel: sd 6:0:0:1: [sdc]
+Dec 20 14:08:40 vsa33 kernel: sd 6:0:0:1: [sdc] CDB:
+Dec 20 14:08:40 vsa33 kernel: end_request: I/O error, dev sdc, sector 0
+Dec 20 14:08:40 vsa33 kernel: Buffer I/O error on device sdc, logical block 0
+Dec 20 14:08:40 vsa33 kernel: Buffer I/O error on device sdc, logical block 1
+Dec 20 14:08:40 vsa33 kernel: sd 6:0:0:1: rejecting I/O to offline device
+Dec 20 14:08:40 vsa33 kernel: Buffer I/O error on device sdc, logical block 2
+Dec 20 14:08:40 vsa33 kernel: Buffer I/O error on device sdc, logical block 3
+Dec 20 14:08:40 vsa33 kernel: sd 6:0:0:0: [sdb] Synchronizing SCSI cache
+Dec 20 14:09:41 vsa33 kernel: scsi host6: SRP abort called
+Dec 20 14:09:51 vsa33 kernel: scsi host6: SRP abort called
+Dec 20 14:09:51 vsa33 kernel: scsi host6: SRP reset_device called
+Dec 20 14:09:51 vsa33 kernel: scsi host6: ib_srp: SRP reset_host called
+Dec 20 14:09:52 vsa33 kernel: scsi host6: ib_srp: Got failed path rec status -110
+Dec 20 14:09:52 vsa33 kernel: scsi host6: ib_srp: Path record query failed
+Dec 20 14:09:52 vsa33 kernel: scsi host6: ib_srp: reconnect failed (-110), removing target port.
+Dec 20 14:09:52 vsa33 kernel: sd 6:0:0:0: Device offlined - not ready after error recovery
+Dec 20 14:10:53 vsa33 kernel: scsi host6: SRP abort called
+Dec 20 14:11:03 vsa33 kernel: scsi host6: SRP abort called
+Dec 20 14:11:03 vsa33 kernel: scsi host6: SRP reset_device called
+Dec 20 14:11:03 vsa33 kernel: scsi host6: ib_srp: SRP reset_host called
+Dec 20 14:11:04 vsa33 kernel: scsi host6: ib_srp: Got failed path rec status -110
+Dec 20 14:11:04 vsa33 kernel: scsi host6: ib_srp: Path record query failed
+Dec 20 14:11:04 vsa33 kernel: scsi host6: ib_srp: reconnect failed (-110), removing target port.
+Dec 20 14:11:04 vsa33 kernel: sd 6:0:0:0: Device offlined - not ready after error recovery
+Dec 20 14:12:05 vsa33 kernel: scsi host6: SRP abort called
+Dec 20 14:12:15 vsa33 kernel: scsi host6: SRP abort called
+Dec 20 14:12:15 vsa33 kernel: scsi host6: SRP reset_device called
+Dec 20 14:12:15 vsa33 kernel: scsi host6: ib_srp: SRP reset_host called
+Dec 20 14:12:15 vsa33 kernel: scsi host6: ib_srp: reconnect succeeded
+Dec 20 14:12:25 vsa33 kernel: sd 6:0:0:1: [sdc] Synchronizing SCSI cache
+Dec 20 14:12:25 vsa33 kernel: sd 6:0:0:2: [sdd] Synchronizing SCSI cache
+Dec 20 14:12:25 vsa33 kernel: sd 6:0:0:3: [sde] Synchronizing SCSI cache
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
