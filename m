@@ -1,42 +1,50 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v3 1/3] IB/srp: Track connection state properly
-Date: Thu, 20 Dec 2012 09:13:56 +0100
-Message-ID: <50D2C8C4.3030308@acm.org>
-References: <50D1CD49.5080607@acm.org> <50D1CD7D.6030905@acm.org> <1355940274.23687.2.camel@frustration.ornl.gov>
+From: Vipul Pandya <vipul@chelsio.com>
+Subject: Re: linux-next: build failure after merge of the infiniband tree
+Date: Thu, 20 Dec 2012 15:28:16 +0530
+Message-ID: <50D2E138.7000700@chelsio.com>
+References: <20121220094433.791d70e55ae5e3325a6190fc@canb.auug.org.au> <CAG4TOxPVc0tNeLhi3FF=K_UJpizh2OZgviT5WqqLvZsg-QEoNw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1355940274.23687.2.camel-zHLflQxYYDO4Hhoo1DtQwJ9G+ZOsUmrO@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAG4TOxPVc0tNeLhi3FF=K_UJpizh2OZgviT5WqqLvZsg-QEoNw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/19/12 19:04, David Dillow wrote:
-> On Wed, 2012-12-19 at 15:21 +0100, Bart Van Assche wrote:
->> The connection state must be initialized before srp_connect_target()
->> is invoked. Drop the assignment in srp_add_target() since it occurs
->> after srp_connect_target() and since scsi_host_alloc()
->> zero-initializes the Scsi_Host structure anyway.
->
-> The commit message is still wrong. The issue is that
-> srp_connect_target() has marked us as active, and this patch removes an
-> assignment that reverses that.
->
-> This shouldn't go upstream without the fixed commit message.
 
-Hi Dave,
 
-How about replacing the commit message by the following text:
+On 20-12-2012 05:52, Roland Dreier wrote:
+> On Wed, Dec 19, 2012 at 2:44 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+>> Hi all,
+>>
+>> After merging the infiniband tree, today's linux-next build (x86_64_
+>> allmodconfig) failed like this:
+>>
+>> In file included from drivers/scsi/csiostor/csio_wr.h:42:0,
+>>                  from drivers/scsi/csiostor/csio_scsi.h:49,
+>>                  from drivers/scsi/csiostor/csio_init.h:45,
+>>                  from drivers/scsi/csiostor/csio_attr.c:45:
+>> drivers/scsi/csiostor/t4fw_api_stor.h:43:6: error: nested redefinition of 'enum fw_retval'
+>> drivers/scsi/csiostor/t4fw_api_stor.h:43:6: error: redeclaration of 'enum fw_retval'
+>> drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h:42:6: note: originally defined here
+>> drivers/scsi/csiostor/t4fw_api_stor.h:48:2: error: redeclaration of enumerator 'FW_ENOEXEC'
+>> drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h:39:2: note: previous definition of 'FW_ENOEXEC' was here
+>> drivers/scsi/csiostor/t4fw_api_stor.h:50:2: error: redeclaration of enumerator 'FW_ENOMEM'
+>> drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h:43:2: note: previous definition of 'FW_ENOMEM' was here
+>> drivers/scsi/csiostor/t4fw_api_stor.h:58:2: error: redeclaration of enumerator 'FW_EADDRINUSE'
+>> drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h:44:2: note: previous definition of 'FW_EADDRINUSE' was here
+>>
+>> And several others similar.
+>>
+>> Caused by commit f65b56b15931 ("RDMA/cxgb4: Fix LE hash collision bug for
+>> active open connection").
+> 
+> 
+> Vipul, is the right fix to pull the full list of FW return values from
+> t4fw_api_stor.h into t4fw_api.h as part of this patch (f65b56b15931)?
+> 
 
-"Remove an assignment that incorrectly overwrites the connection state 
-update by srp_connect_target()."
-
-Thanks,
-
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, this is a correct way to fix this issue. I see that this change is
+already done. Thanks for providing the fix.
