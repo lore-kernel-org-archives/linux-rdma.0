@@ -1,26 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 2/2] IB/rds: suppress incompatible protocol when
- version is known
-Date: Wed, 26 Dec 2012 15:18:10 -0800 (PST)
-Message-ID: <20121226.151810.1691248733680271193.davem@davemloft.net>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH 1/2] IB/rds: Correct ib_api use with
+ gs_dma_address/sg_dma_len
+Date: Wed, 26 Dec 2012 15:21:44 -0800 (PST)
+Message-ID: <20121226.152144.969735716097168682.davem@davemloft.net>
 References: <20121221175857.23716.46975.stgit@phlsvslse11.ph.intel.com>
-	<20121221180154.23716.44540.stgit@phlsvslse11.ph.intel.com>
+	<20121221180149.23716.54707.stgit@phlsvslse11.ph.intel.com>
+	<50D997D0.2020004@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20121221180154.23716.44540.stgit@phlsvslse11.ph.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: mike.marciniszyn@intel.com
-Cc: venkat.x.venkatsubra@oracle.com, linux-rdma@vger.kernel.org, roland@kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50D997D0.2020004-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bvanassche-HInyCGIudOg@public.gmane.org
+Cc: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Date: Fri, 21 Dec 2012 13:01:54 -0500
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Date: Tue, 25 Dec 2012 13:10:56 +0100
 
-> Add an else to only print the incompatible protocol message
-> when version hasn't been established.
-> 
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> The above patch will slow down RDS for anyone who is not using QLogic
+> HCA's, isn' it ? How about replacing the above patch with the
+> (untested) patch below ?
 
-Applied.
+I agree with your suggestion but do this kind of simplification in
+the next merge window, not now.
+
+That's why I applied Mike's patches as-is.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
