@@ -1,59 +1,122 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: [patch net-next V5 05/15] team: remove usage of netdev_set_master()
-Date: Wed,  2 Jan 2013 13:28:26 +0100
-Message-ID: <1357129716-2450-6-git-send-email-jiri@resnulli.us>
+From: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
+Subject: Re: [patch net-next V5 01/15] net: introduce upper device lists
+Date: Wed, 2 Jan 2013 18:57:26 +0000
+Message-ID: <1357153046.3652.11.camel@bwh-desktop.uk.solarflarecom.com>
 References: <1357129716-2450-1-git-send-email-jiri@resnulli.us>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1357129716-2450-1-git-send-email-jiri@resnulli.us>
-Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org, fbl@redhat.com
+	 <1357129716-2450-2-git-send-email-jiri@resnulli.us>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1357129716-2450-2-git-send-email-jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, fubar-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, jitendra.kalsaria-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, sony.chacko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-driver-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, ursula.braun-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org, therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, gregory.v.rose-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.r.fastabend-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bridge-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, fbl-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Jiri Pirko <jiri@resnulli.us>
----
- drivers/net/team/team.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+On Wed, 2013-01-02 at 13:28 +0100, Jiri Pirko wrote:
+> This lists are supposed to serve for storing pointers to all upper devices.
+> Eventually it will replace dev->master pointer which is used for
+> bonding, bridge, team but it cannot be used for vlan, macvlan where
+> there might be multiple upper present. In case the upper link is
+> replacement for dev->master, it is marked with "master" flag.
+> 
+> New upper device list resolves this limitation. Also, the information
+> stored in lists is used for preventing looping setups like
+> "bond->somethingelse->samebond"
 
-diff --git a/drivers/net/team/team.c b/drivers/net/team/team.c
-index 918a901..3df5cc1 100644
---- a/drivers/net/team/team.c
-+++ b/drivers/net/team/team.c
-@@ -1055,10 +1055,11 @@ static int team_port_add(struct team *team, struct net_device *port_dev)
- 		}
- 	}
- 
--	err = netdev_set_master(port_dev, dev);
-+	err = netdev_master_upper_dev_link(port_dev, dev);
- 	if (err) {
--		netdev_err(dev, "Device %s failed to set master\n", portname);
--		goto err_set_master;
-+		netdev_err(dev, "Device %s failed to set upper link\n",
-+			   portname);
-+		goto err_set_upper_link;
- 	}
- 
- 	err = netdev_rx_handler_register(port_dev, team_handle_frame,
-@@ -1091,9 +1092,9 @@ err_option_port_add:
- 	netdev_rx_handler_unregister(port_dev);
- 
- err_handler_register:
--	netdev_set_master(port_dev, NULL);
-+	netdev_upper_dev_unlink(port_dev, dev);
- 
--err_set_master:
-+err_set_upper_link:
- 	team_port_disable_netpoll(port);
- 
- err_enable_netpoll:
-@@ -1137,7 +1138,7 @@ static int team_port_del(struct team *team, struct net_device *port_dev)
- 	team_port_disable(team, port);
- 	list_del_rcu(&port->list);
- 	netdev_rx_handler_unregister(port_dev);
--	netdev_set_master(port_dev, NULL);
-+	netdev_upper_dev_unlink(port_dev, dev);
- 	team_port_disable_netpoll(port);
- 	vlan_vids_del_by_dev(port_dev, dev);
- 	dev_close(port_dev);
+Thanks for continuing with this, Jiri.  I just see some
+cosmetic/documentation issues:
+
+[...]
+> --- a/net/core/dev.c
+> +++ b/net/core/dev.c
+[...]
+> +static bool __netdev_has_upper_dev(struct net_device *dev,
+> +				   struct net_device *upper_dev)
+> +{
+> +	LIST_HEAD(search_list);
+> +	struct netdev_upper *upper;
+> +	struct netdev_upper *tmp;
+> +	bool ret = false;
+> +
+> +	__append_search_uppers(&search_list, dev);
+> +	list_for_each_entry(upper, &search_list, search_list) {
+> +		if (upper->dev == upper_dev) {
+> +			ret = true;
+> +			break;
+> +		}
+> +		__append_search_uppers(&search_list, upper->dev);
+> +	}
+> +	list_for_each_entry_safe(upper, tmp, &search_list, search_list)
+> +		INIT_LIST_HEAD(&upper->search_list);
+> +	return ret;
+> +}
+> +
+> +static struct netdev_upper *__netdev_find_upper(struct net_device *dev,
+> +						struct net_device *upper_dev)
+> +{
+> +	struct netdev_upper *upper;
+> +
+> +	list_for_each_entry(upper, &dev->upper_dev_list, list) {
+> +		if (upper->dev == upper_dev)
+> +			return upper;
+> +	}
+> +	return NULL;
+> +}
+> +
+> +/**
+> + * netdev_has_upper_dev - Check if device is linked to an upper device
+
+Please clarify that this (and other functions) only checks for an
+immediate upper device and not through a complete stack of devices.
+
+> + * @dev: device
+> + * @upper_dev: upper device to check
+> + *
+> + * Find out if a device is linked to specified upper device and return true
+> + * in case it is. The caller must hold the RTNL semaphore.
+
+It is no longer a semaphore, even if some kernel-doc in this file calls
+it that.  'RTNL lock' would be better as it matches the function naming:
+rtnl_lock() etc.
+
+> + */
+> +bool netdev_has_upper_dev(struct net_device *dev,
+> +			  struct net_device *upper_dev)
+
+The '__' prefix normally implies doing less work than the un-prefixed
+function but __netdev_has_upper_dev() checks all devices stacked above
+dev whereas this only checks a single level.  Therefore I think one or
+both should be renamed.
+
+> +{
+> +	ASSERT_RTNL();
+> +
+> +	return __netdev_find_upper(dev, upper_dev);
+> +}
+> +EXPORT_SYMBOL(netdev_has_upper_dev);
+[...]
+> +static int __netdev_upper_dev_link(struct net_device *dev,
+> +				   struct net_device *upper_dev, bool master)
+> +{
+[...]
+> +}
+> +/**
+> + * netdev_upper_dev_link - Add a link to the upper device
+[...] 
+
+There should be a blank line between the closing brace and the comment
+for the next function.
+
+Ben.
+
 -- 
-1.8.0
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
