@@ -1,120 +1,105 @@
-From: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
-Subject: Re: [patch net-next V5 01/15] net: introduce upper device lists
-Date: Wed, 2 Jan 2013 18:57:26 +0000
-Message-ID: <1357153046.3652.11.camel@bwh-desktop.uk.solarflarecom.com>
-References: <1357129716-2450-1-git-send-email-jiri@resnulli.us>
-	 <1357129716-2450-2-git-send-email-jiri@resnulli.us>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH -v2 09/26] infiniband: rename random32() to prandom_u32()
+Date: Thu,  3 Jan 2013 21:19:05 +0900
+Message-ID: <1357215562-6288-10-git-send-email-akinobu.mita@gmail.com>
+References: <1357215562-6288-1-git-send-email-akinobu.mita@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1357129716-2450-2-git-send-email-jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+In-Reply-To: <1357215562-6288-1-git-send-email-akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, fubar-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, jitendra.kalsaria-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, sony.chacko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-driver-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, ursula.braun-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org, therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, gregory.v.rose-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.r.fastabend-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bridge-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, fbl-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2013-01-02 at 13:28 +0100, Jiri Pirko wrote:
-> This lists are supposed to serve for storing pointers to all upper devices.
-> Eventually it will replace dev->master pointer which is used for
-> bonding, bridge, team but it cannot be used for vlan, macvlan where
-> there might be multiple upper present. In case the upper link is
-> replacement for dev->master, it is marked with "master" flag.
-> 
-> New upper device list resolves this limitation. Also, the information
-> stored in lists is used for preventing looping setups like
-> "bond->somethingelse->samebond"
+Use more preferable function name which implies using a pseudo-random
+number generator.
 
-Thanks for continuing with this, Jiri.  I just see some
-cosmetic/documentation issues:
+Signed-off-by: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
 
-[...]
-> --- a/net/core/dev.c
-> +++ b/net/core/dev.c
-[...]
-> +static bool __netdev_has_upper_dev(struct net_device *dev,
-> +				   struct net_device *upper_dev)
-> +{
-> +	LIST_HEAD(search_list);
-> +	struct netdev_upper *upper;
-> +	struct netdev_upper *tmp;
-> +	bool ret = false;
-> +
-> +	__append_search_uppers(&search_list, dev);
-> +	list_for_each_entry(upper, &search_list, search_list) {
-> +		if (upper->dev == upper_dev) {
-> +			ret = true;
-> +			break;
-> +		}
-> +		__append_search_uppers(&search_list, upper->dev);
-> +	}
-> +	list_for_each_entry_safe(upper, tmp, &search_list, search_list)
-> +		INIT_LIST_HEAD(&upper->search_list);
-> +	return ret;
-> +}
-> +
-> +static struct netdev_upper *__netdev_find_upper(struct net_device *dev,
-> +						struct net_device *upper_dev)
-> +{
-> +	struct netdev_upper *upper;
-> +
-> +	list_for_each_entry(upper, &dev->upper_dev_list, list) {
-> +		if (upper->dev == upper_dev)
-> +			return upper;
-> +	}
-> +	return NULL;
-> +}
-> +
-> +/**
-> + * netdev_has_upper_dev - Check if device is linked to an upper device
+* Change from v1
+- leave net_random() callers as-is because that is a useful indirection
 
-Please clarify that this (and other functions) only checks for an
-immediate upper device and not through a complete stack of devices.
+ drivers/infiniband/hw/cxgb3/cxio_resource.c | 4 ++--
+ drivers/infiniband/hw/cxgb4/id_table.c      | 4 ++--
+ drivers/infiniband/hw/mlx4/mad.c            | 2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c     | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-> + * @dev: device
-> + * @upper_dev: upper device to check
-> + *
-> + * Find out if a device is linked to specified upper device and return true
-> + * in case it is. The caller must hold the RTNL semaphore.
-
-It is no longer a semaphore, even if some kernel-doc in this file calls
-it that.  'RTNL lock' would be better as it matches the function naming:
-rtnl_lock() etc.
-
-> + */
-> +bool netdev_has_upper_dev(struct net_device *dev,
-> +			  struct net_device *upper_dev)
-
-The '__' prefix normally implies doing less work than the un-prefixed
-function but __netdev_has_upper_dev() checks all devices stacked above
-dev whereas this only checks a single level.  Therefore I think one or
-both should be renamed.
-
-> +{
-> +	ASSERT_RTNL();
-> +
-> +	return __netdev_find_upper(dev, upper_dev);
-> +}
-> +EXPORT_SYMBOL(netdev_has_upper_dev);
-[...]
-> +static int __netdev_upper_dev_link(struct net_device *dev,
-> +				   struct net_device *upper_dev, bool master)
-> +{
-[...]
-> +}
-> +/**
-> + * netdev_upper_dev_link - Add a link to the upper device
-[...] 
-
-There should be a blank line between the closing brace and the comment
-for the next function.
-
-Ben.
-
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_resource.c b/drivers/infiniband/hw/cxgb3/cxio_resource.c
+index 31f9201..c40088e 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_resource.c
++++ b/drivers/infiniband/hw/cxgb3/cxio_resource.c
+@@ -62,13 +62,13 @@ static int __cxio_init_resource_fifo(struct kfifo *fifo,
+ 		kfifo_in(fifo, (unsigned char *) &entry, sizeof(u32));
+ 	if (random) {
+ 		j = 0;
+-		random_bytes = random32();
++		random_bytes = prandom_u32();
+ 		for (i = 0; i < RANDOM_SIZE; i++)
+ 			rarray[i] = i + skip_low;
+ 		for (i = skip_low + RANDOM_SIZE; i < nr - skip_high; i++) {
+ 			if (j >= RANDOM_SIZE) {
+ 				j = 0;
+-				random_bytes = random32();
++				random_bytes = prandom_u32();
+ 			}
+ 			idx = (random_bytes >> (j * 2)) & 0xF;
+ 			kfifo_in(fifo,
+diff --git a/drivers/infiniband/hw/cxgb4/id_table.c b/drivers/infiniband/hw/cxgb4/id_table.c
+index f95e5df..0161ae6 100644
+--- a/drivers/infiniband/hw/cxgb4/id_table.c
++++ b/drivers/infiniband/hw/cxgb4/id_table.c
+@@ -54,7 +54,7 @@ u32 c4iw_id_alloc(struct c4iw_id_table *alloc)
+ 
+ 	if (obj < alloc->max) {
+ 		if (alloc->flags & C4IW_ID_TABLE_F_RANDOM)
+-			alloc->last += random32() % RANDOM_SKIP;
++			alloc->last += prandom_u32() % RANDOM_SKIP;
+ 		else
+ 			alloc->last = obj + 1;
+ 		if (alloc->last >= alloc->max)
+@@ -88,7 +88,7 @@ int c4iw_id_table_alloc(struct c4iw_id_table *alloc, u32 start, u32 num,
+ 	alloc->start = start;
+ 	alloc->flags = flags;
+ 	if (flags & C4IW_ID_TABLE_F_RANDOM)
+-		alloc->last = random32() % RANDOM_SKIP;
++		alloc->last = prandom_u32() % RANDOM_SKIP;
+ 	else
+ 		alloc->last = 0;
+ 	alloc->max  = num;
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 0a903c1..b247c5b 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -93,7 +93,7 @@ static void __propagate_pkey_ev(struct mlx4_ib_dev *dev, int port_num,
+ __be64 mlx4_ib_gen_node_guid(void)
+ {
+ #define NODE_GUID_HI	((u64) (((u64)IB_OPENIB_OUI) << 40))
+-	return cpu_to_be64(NODE_GUID_HI | random32());
++	return cpu_to_be64(NODE_GUID_HI | prandom_u32());
+ }
+ 
+ __be64 mlx4_ib_get_new_demux_tid(struct mlx4_ib_demux_ctx *ctx)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 03103d2..0e0016d 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -460,7 +460,7 @@ static int ipoib_cm_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *even
+ 		goto err_qp;
+ 	}
+ 
+-	psn = random32() & 0xffffff;
++	psn = prandom_u32() & 0xffffff;
+ 	ret = ipoib_cm_modify_rx_qp(dev, cm_id, p->qp, psn);
+ 	if (ret)
+ 		goto err_modify;
 -- 
-Ben Hutchings, Staff Engineer, Solarflare
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
+1.7.11.7
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
