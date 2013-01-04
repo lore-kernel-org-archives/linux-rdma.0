@@ -1,28 +1,61 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [patch net-next V6 00/15] net: introduce upper device lists
- and remove dev->master
-Date: Fri, 04 Jan 2013 13:33:31 -0800 (PST)
-Message-ID: <20130104.133331.1729083969241157711.davem@davemloft.net>
-References: <1357289343-817-1-git-send-email-jiri@resnulli.us>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags/ibportstate.c: Fix PortInfo sets with
+ extended speeds
+Date: Fri, 4 Jan 2013 15:38:34 -0800
+Message-ID: <20130104153834.2d89ffbd2083dc86541610fb@llnl.gov>
+References: <50CB3382.6060106@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1357289343-817-1-git-send-email-jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+In-Reply-To: <50CB3382.6060106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, fubar-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, jitendra.kalsaria-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, sony.chacko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-driver-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, ursula.braun-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, blaschka-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org, bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org, therbert-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, gregory.v.rose-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.r.fastabend-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bridge-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, fbl-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
-Date: Fri,  4 Jan 2013 09:48:48 +0100
+On Fri, 14 Dec 2012 09:11:14 -0500
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-> This patchset adds a possibility to record upper device linkage.
-> All upper<->lower devices are converted to use this mechanism right after.
-> That leads to dev->master removal because this info becomes redundant since
-> "master links" have the same value.
+> 
+> Attribute Modifier bit 31 should be on (set to 1) in this case
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Series applied, thanks Jiri.
+Applied, thanks,
+Ira
+
+> ---
+> diff --git a/src/ibportstate.c b/src/ibportstate.c
+> index 1d8dc81..053b0a2 100644
+> --- a/src/ibportstate.c
+> +++ b/src/ibportstate.c
+> @@ -236,7 +236,12 @@ static void show_port_info(ib_portid_t * dest, uint8_t * data, int portnum,
+>  static void set_port_info(ib_portid_t * dest, uint8_t * data, int portnum,
+>  			  int espeed_cap, int is_switch)
+>  {
+> -	if (!smp_set_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
+> +	unsigned mod;
+> +
+> +	mod = portnum;
+> +	if (espeed_cap)
+> +		mod |= 1<<31;
+> +	if (!smp_set_via(data, dest, IB_ATTR_PORT_INFO, mod, 0, srcport))
+>  		IBERROR("smp set portinfo failed");
+>  
+>  	printf("\nAfter PortInfo set:\n");
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
