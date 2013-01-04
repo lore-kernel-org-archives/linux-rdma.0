@@ -1,50 +1,26 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: [patch net-next V6 06/15] bridge: remove usage of netdev_set_master()
-Date: Fri,  4 Jan 2013 09:48:54 +0100
-Message-ID: <1357289343-817-7-git-send-email-jiri@resnulli.us>
-References: <1357289343-817-1-git-send-email-jiri@resnulli.us>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1357289343-817-1-git-send-email-jiri@resnulli.us>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org, fbl@redhat.com
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Re: [PATCH -v2 09/26] infiniband: rename random32() to prandom_u32()
+Date: Fri, 4 Jan 2013 22:45:08 +0900
+Message-ID: <CAC5umygnMMC2sH2c88P_gEWTgwM=CBCUcqBbo+NX=fOZ2rEGxw@mail.gmail.com>
+References: <1357215562-6288-1-git-send-email-akinobu.mita@gmail.com>
+	<1357215562-6288-10-git-send-email-akinobu.mita@gmail.com>
+	<50E5B183.4030706@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50E5B183.4030706@opengridcomputing.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Steve Wise <swise@chelsio.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Jiri Pirko <jiri@resnulli.us>
----
- net/bridge/br_if.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+2013/1/4 Steve Wise <swise@opengridcomputing.com>:
+> Are there other "non pseudo-random" services that warrant this rename?
 
-diff --git a/net/bridge/br_if.c b/net/bridge/br_if.c
-index 1edd71d..2148d47 100644
---- a/net/bridge/br_if.c
-+++ b/net/bridge/br_if.c
-@@ -148,7 +148,7 @@ static void del_nbp(struct net_bridge_port *p)
- 	netdev_rx_handler_unregister(dev);
- 	synchronize_net();
- 
--	netdev_set_master(dev, NULL);
-+	netdev_upper_dev_unlink(dev, br->dev);
- 
- 	br_multicast_del_port(p);
- 
-@@ -364,7 +364,7 @@ int br_add_if(struct net_bridge *br, struct net_device *dev)
- 	if (br_netpoll_info(br) && ((err = br_netpoll_enable(p, GFP_KERNEL))))
- 		goto err3;
- 
--	err = netdev_set_master(dev, br->dev);
-+	err = netdev_master_upper_dev_link(dev, br->dev);
- 	if (err)
- 		goto err4;
- 
-@@ -403,7 +403,7 @@ int br_add_if(struct net_bridge *br, struct net_device *dev)
- 	return 0;
- 
- err5:
--	netdev_set_master(dev, NULL);
-+	netdev_upper_dev_unlink(dev, br->dev);
- err4:
- 	br_netpoll_disable(p);
- err3:
--- 
-1.8.0
+I couldn't understand your question very well.  So I'm not sure this is
+the expected answer:
+I only renamed pseudo-random functions defined in lib/random32.c in the
+commit 496f2f93 ("random32: rename random32 to prandom").
+This patch series aims for finishing the naming transition and removing
+the backword compatibility wrapper macros.  Non pseudo-random functions
+are unrelated to this patch series.
