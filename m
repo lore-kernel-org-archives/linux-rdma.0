@@ -1,57 +1,56 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: [ANNOUNCE] OFED-3.5-rc4 is available
-Date: Thu, 3 Jan 2013 22:53:48 +0300
-Message-ID: <CACaajQv0pKBgFCztZebEfKZ4YiOU52sMQBHc9n3+2LrKgrgyyg@mail.gmail.com>
-References: <50C6F6BC.6090701@dev.mellanox.co.il> <50E5AD97.8030300@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50E5AD97.8030300-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: [patch net-next V6 03/15] vlan: add link to upper device
+Date: Fri,  4 Jan 2013 09:48:51 +0100
+Message-ID: <1357289343-817-4-git-send-email-jiri@resnulli.us>
+References: <1357289343-817-1-git-send-email-jiri@resnulli.us>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1357289343-817-1-git-send-email-jiri@resnulli.us>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, edumazet@google.com, faisal.latif@intel.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, fubar@us.ibm.com, andy@greyhouse.net, divy@chelsio.com, jitendra.kalsaria@qlogic.com, sony.chacko@qlogic.com, linux-driver@qlogic.com, kaber@trash.net, ursula.braun@de.ibm.com, blaschka@linux.vnet.ibm.com, linux390@de.ibm.com, shemminger@vyatta.com, bhutchings@solarflare.com, therbert@google.com, xiyou.wangcong@gmail.com, joe@perches.com, gregory.v.rose@intel.com, john.r.fastabend@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, bridge@lists.linux-foundation.org, fbl@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hello. Does this release production ready for heavy load?
-Or now best to use ofed 1.5.x?
+Signed-off-by: Jiri Pirko <jiri@resnulli.us>
+---
+ net/8021q/vlan.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-2013/1/3 Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
-> Hi,
-> OFED 3.5-rc4 is available.
->
-> The tarball is available on:
-> http://www.openfabrics.org/downloads/OFED/ofed-3.5/OFED-3.5-rc4.tgz
->
-> To get BUILD_ID run ofed_info
->
-> Please report any issues in bugzilla https://bugs.openfabrics.org/ for OFED
-> 3.5
->
-> OFED-3.5-rc4 Main Changes from OFED 3.5-rc3
-> -------------------------------------------------------------------------------
-> RDMA/nes: Fixes for OFED-3.5 RC3
-> RDMA/cxgb4: Keep the maximum number of stag limited to T4_MAX_NUM_STAG
-> Updated packages:
->     infinipath-psm-3.1-364.1140_open
->
->
->
-> Regards,
-> Vladimir
->
->
->
->
->
-
-
-
+diff --git a/net/8021q/vlan.c b/net/8021q/vlan.c
+index a292e80..babfde9 100644
+--- a/net/8021q/vlan.c
++++ b/net/8021q/vlan.c
+@@ -105,6 +105,8 @@ void unregister_vlan_dev(struct net_device *dev, struct list_head *head)
+ 	 */
+ 	unregister_netdevice_queue(dev, head);
+ 
++	netdev_upper_dev_unlink(real_dev, dev);
++
+ 	if (grp->nr_vlan_devs == 0)
+ 		vlan_gvrp_uninit_applicant(real_dev);
+ 
+@@ -162,9 +164,13 @@ int register_vlan_dev(struct net_device *dev)
+ 	if (err < 0)
+ 		goto out_uninit_applicant;
+ 
++	err = netdev_upper_dev_link(real_dev, dev);
++	if (err)
++		goto out_uninit_applicant;
++
+ 	err = register_netdevice(dev);
+ 	if (err < 0)
+-		goto out_uninit_applicant;
++		goto out_upper_dev_unlink;
+ 
+ 	/* Account for reference in struct vlan_dev_priv */
+ 	dev_hold(real_dev);
+@@ -180,6 +186,8 @@ int register_vlan_dev(struct net_device *dev)
+ 
+ 	return 0;
+ 
++out_upper_dev_unlink:
++	netdev_upper_dev_unlink(real_dev, dev);
+ out_uninit_applicant:
+ 	if (grp->nr_vlan_devs == 0)
+ 		vlan_gvrp_uninit_applicant(real_dev);
 -- 
-Vasiliy Tolstov,
-Clodo.ru
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.8.0
