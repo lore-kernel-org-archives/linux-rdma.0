@@ -1,45 +1,40 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: disconnect to SRP target before removing SCSI
- host
-Date: Mon, 07 Jan 2013 13:17:56 -0500
-Message-ID: <1357582676.14098.1.camel@frustration.ornl.gov>
-References: <1357394162-26316-1-git-send-email-dongsu.park@profitbricks.com>
-	 <50EAB2E1.7050702@acm.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: bug in ucma_accept()?
+Date: Mon, 07 Jan 2013 13:13:13 -0600
+Message-ID: <50EB1E49.7020807@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50EAB2E1.7050702-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2013-01-07 at 06:34 -0500, Bart Van Assche wrote:
-> Sorry but this patch looks wrong to me, and that because of the 
-> following reasons:
-> - A root cause analysis is missing. It has been mentioned in the patch
->    description that device_del() did hang but an analysis of why that
->    hang occurred is missing.
-> - An explanation of why the above patch prevents device_del() to hang is
->    missing.
+Hey Sean,
 
-Agreed, this needs more explanation -- at least in the email thread, and
-boiled down in the commit message.
+Is this a bug?  I think it is...
 
-> - Invoking srp_disconnect_target() before scsi_remove_host() is wrong
->    because it prevents the SYNCHRONIZE CACHE command issued by
->    sd_shutdown() to reach the SRP target.
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 2709ff5..fb24f05 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -806,8 +806,13 @@ static ssize_t ucma_accept(struct ucma_file *file, 
+const ch
+                 if (!ret)
+                         ctx->uid = cmd.uid;
+                 mutex_unlock(&file->mut);
+-       } else
++       } else {
++               mutex_lock(&file->mut);
+                 ret = rdma_accept(ctx->cm_id, NULL);
++               if (!ret)
++                       ctx->uid = cmd.uid;
++               mutex_unlock(&file->mut);
++       }
 
-Exactly; we need to understand the hang so that we get a proper
-shutdown.
-
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
-
+         ucma_put_ctx(ctx);
+         return ret;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
