@@ -1,73 +1,49 @@
-From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Subject: Re: [PATCH 5/5] kfifo: log based kfifo API
-Date: Wed, 9 Jan 2013 10:42:26 +0800
-Message-ID: <20130109024226.GD304@yliu-dev.sh.intel.com>
-References: <1357657073-27352-1-git-send-email-yuanhan.liu@linux.intel.com>
- <1357657073-27352-6-git-send-email-yuanhan.liu@linux.intel.com>
- <20130108181645.GA7972@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20130108181645.GA7972@core.coreip.homeip.net>
-Sender: owner-linux-mm@kvack.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Stefani Seibold <stefani@seibold.net>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, platform-driver-x86@vger.kernel.org, linux-input@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org, libertas-dev@lists.infradead.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, linux-pci@vger.kernel.org, open-iscsi@googlegroups.com, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, linux-serial@vger.kernel.org, linux-usb@vger.kernel.org, linux-mm@kvack.org, dccp@vger.kernel.org, linux-sctp@vger.kernel.org
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH FIXES for 3.8] mlx4: Fix advertizement of wrong PF context behaviour
+Date: Thu, 10 Jan 2013 17:18:35 +0200
+Message-ID: <1357831115-10603-1-git-send-email-ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 08, 2013 at 10:16:46AM -0800, Dmitry Torokhov wrote:
-> Hi Yuanhan,
-> 
-> On Tue, Jan 08, 2013 at 10:57:53PM +0800, Yuanhan Liu wrote:
-> > The current kfifo API take the kfifo size as input, while it rounds
-> >  _down_ the size to power of 2 at __kfifo_alloc. This may introduce
-> > potential issue.
-> > 
-> > Take the code at drivers/hid/hid-logitech-dj.c as example:
-> > 
-> > 	if (kfifo_alloc(&djrcv_dev->notif_fifo,
-> >                        DJ_MAX_NUMBER_NOTIFICATIONS * sizeof(struct dj_report),
-> >                        GFP_KERNEL)) {
-> > 
-> > Where, DJ_MAX_NUMBER_NOTIFICATIONS is 8, and sizeo of(struct dj_report)
-> > is 15.
-> > 
-> > Which means it wants to allocate a kfifo buffer which can store 8
-> > dj_report entries at once. The expected kfifo buffer size would be
-> > 8 * 15 = 120 then. While, in the end, __kfifo_alloc will turn the
-> > size to rounddown_power_of_2(120) =  64, and then allocate a buf
-> > with 64 bytes, which I don't think this is the original author want.
-> > 
-> > With the new log API, we can do like following:
-> > 
-> > 	int kfifo_size_order = order_base_2(DJ_MAX_NUMBER_NOTIFICATIONS *
-> > 					    sizeof(struct dj_report));
-> > 
-> > 	if (kfifo_alloc(&djrcv_dev->notif_fifo, kfifo_size_order, GFP_KERNEL)) {
-> > 
-> > This make sure we will allocate enough kfifo buffer for holding
-> > DJ_MAX_NUMBER_NOTIFICATIONS dj_report entries.
-> 
-> Why don't you simply change __kfifo_alloc to round the allocation up
-> instead of down?
+Commit 08ff32352 "mlx4: 64-byte CQE/EQE support" introduced a regression under
+which older guest VF drivers failed to load even when 64-byte EQEs/CQEs are
+disabled, since the PF wrongly advertizes the new context behaviour anyway,
+here's the failure:
 
-Hi Dmitry,
+mlx4_core 0000:00:07.0: Unknown pf context behaviour
+mlx4_core 0000:00:07.0: Failed to obtain slave caps
+mlx4_core: probe of 0000:00:07.0 failed with error -38
 
-Yes, it would be neat and that was my first reaction as well. I then
-sent out a patch, but it was NACKed by Stefani(the original kfifo
-author). Here is the link:
+Fix that by basing this advertizement on dev->caps.flags which is the
+operational capabilities being looked by the QUERY_FUNC_CAP command
+wrapper, while dev_cap->flags holds the firmware capabilities.
 
-    https://lkml.org/lkml/2012/10/26/144
+Reported-by: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Then Stefani proposed to change the API to take log of size as input to
-root fix this kind of issues. And here it is.
-
-Thanks.
-
-	--yliu
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index e1bafff..9a84c75 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -380,7 +380,7 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 		}
+ 	}
+ 
+-	if ((dev_cap->flags &
++	if ((dev->caps.flags &
+ 	    (MLX4_DEV_CAP_FLAG_64B_CQE | MLX4_DEV_CAP_FLAG_64B_EQE)) &&
+ 	    mlx4_is_master(dev))
+ 		dev->caps.function_caps |= MLX4_FUNC_CAP_64B_EQE_CQE;
+-- 
+1.7.1
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
