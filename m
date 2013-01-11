@@ -1,35 +1,73 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH FIXES for 3.8] mlx4: Fix advertizement of wrong PF context
- behaviour
-Date: Thu, 10 Jan 2013 17:25:16 +0200
-Message-ID: <50EEDD5C.4070504@mellanox.com>
-References: <1357831115-10603-1-git-send-email-ogerlitz@mellanox.com>
+From: Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH] IB/srp: disconnect to SRP target before removing SCSI
+ host
+Date: Fri, 11 Jan 2013 15:07:06 +0100
+Message-ID: <20130111140706.GK7859@gmail.com>
+References: <1357394162-26316-1-git-send-email-dongsu.park@profitbricks.com>
+ <50EAB2E1.7050702@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1357831115-10603-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <50EAB2E1.7050702-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/01/2013 17:18, Or Gerlitz wrote:
-> Commit 08ff32352 "mlx4: 64-byte CQE/EQE support" introduced a regression under
-> which older guest VF drivers failed to load even when 64-byte EQEs/CQEs are
-> disabled, since the PF wrongly advertizes the new context behaviour anyway,
+Hi Bart,
 
-Roland, when testing this patch under old/new guest kernels, with a host 
-kernel based on your git tree
-/ for-next branch I noted that the branch is behind 3.8-rc1, e.g I 
-stepped on issue in the tap driver which is  fixed on commit 
-76fe45812a3b134c39170ca32dfd4b7217d33145 "tuntap: reset network header 
-before calling skb_get_rxhash()"
-so you need to update it for enabling testing with it... For my tests I 
-just applied this patch (thanks! Michael)
+On 07.01.2013 12:34, Bart Van Assche wrote:
+> Sorry but this patch looks wrong to me, and that because of the
+> following reasons:
+> - A root cause analysis is missing. It has been mentioned in the patch
+>   description that device_del() did hang but an analysis of why that
+>   hang occurred is missing.
+> - An explanation of why the above patch prevents device_del() to hang is
+>   missing.
+> - Invoking srp_disconnect_target() before scsi_remove_host() is wrong
+>   because it prevents the SYNCHRONIZE CACHE command issued by
+>   sd_shutdown() to reach the SRP target.
 
-Or.
+I'm sorry for confusion. Please ignore my patch.
+I agree with you, that was not the solution.
+Last week there was a confusion in our local test environment.
 
+Let me describe the problem more clearly.
+
+Let's say an SRP target machine crashed accidently without giving back
+any IB events. Immediately after that crash, on the initiator-side,
+the administrator tries to destroy the SRP target or deleting remote
+port, in order to perform any emergency action.
+
+However, that action will hang forever until the target machine comes up
+again. Precisely it's blocked on scsi_execute() directly after sending
+SYNCHRONIZE_CACHE command to the first target of the host. As IB stack
+is not able to give any response, further target remove cannot be done.
+
+After doing git bisect, I found out 1 commit that causes the problem:
+4b2e8ea "IB/srp: Keep processing commands during host removal".
+Reverting this commit, the problem is gone. No blocking any more.
+
+But the symptom seems to differ slightly according to kernel versions.
+With srp-ha v4/v5 on top of kernel 3.4.23, the revert is necessary.
+But on your current tree srp-ha-v3.7 on top of kernel 3.7, the revert
+is not needed any more. It just works without blocking on target remove.
+I'm not sure exactly what has changed between 3.4.23 and 3.7.
+
+Anyway I'm now satisfied with the current revert patch on top of 3.4.23.
+See also my github branches.
+<https://github.com/advance38/linux/tree/srp-ha-v4-3.4.23>
+
+> Note: although I'm not sure which issue exactly you ran into, this
+> patch may help: "[PATCH for-next] IB/srp: Make SCSI error handling
+> finish" (http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg13711.html).
+
+No, that was not the problem I meant.
+The patch didn't bring anything either.
+
+Regards,
+Dongsu
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
