@@ -1,41 +1,60 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [TRIVIAL][PATCH] opensm: clean up error message, function name is
- printed by logging code
-Date: Tue, 15 Jan 2013 17:40:09 -0800
-Message-ID: <20130115174009.8d2dd3a6d00c9ad0307a797a@llnl.gov>
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 00/11] Critical bug fixes for RDMA/cxgb4
+Date: Wed, 16 Jan 2013 12:47:10 +0530
+Message-ID: <50F653F6.3020407@chelsio.com>
+References: <1357564320-15022-1-git-send-email-vipul@chelsio.com> <CAL1RGDWra_K=BKUY04dUdCQwJcCOf+FHYrsQb2jA9+eM2ygqCw@mail.gmail.com> <50EBB91C.2070001@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50EBB91C.2070001-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Abhishek Agrawal <abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- opensm/osm_req.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+On 08-01-2013 11:43, Vipul Pandya wrote:
+> 
+> 
+> On 08-01-2013 06:03, Roland Dreier wrote:
+>> On Mon, Jan 7, 2013 at 5:11 AM, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> wrote:
+>>> This patch series fixes critical bugs for RDMA/cxgb4. It fixes bugs in following
+>>> areas:
+>>> - Aborts connection in error scenarios
+>>> - Logs only critical errors
+>>> - Holds the reference of the QP untill TID is released
+>>> - Avoids race condition in endpoint timeout
+>>> - Fixes reconnect and version mismatch related bugs in MPAv2 related logic
+>>> - Avoids removing hwtid which was not inserted
+>>> - Addresses several sparse warnings
+>>
+>> How can sparse warnings be a critical bug?
+>>
+>> Which of these patches are really needed for 3.8?
+>>
+>>  - R.
+>>
+> 
+> Hi Roland,
+> 
+> We would like first 10 patches to go in 3.8 since they are fixing kernel
+> panics, race condition, warning trace etc. I think sparse warnings patch
+> can be left out.
+> 
+> Should I send the series again with only first 10 patches in it?
+> 
+> Thanks,
+> Vipul
+> 
 
-diff --git a/opensm/osm_req.c b/opensm/osm_req.c
-index 1c3c172..0b48a54 100644
---- a/opensm/osm_req.c
-+++ b/opensm/osm_req.c
-@@ -104,8 +104,7 @@ static ib_net64_t req_determine_mkey(IN osm_sm_t * sm,
- 	*/
- 	if (!p_physp) {
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
--			"req_determine_mkey: ERR 1107: "
--			"Outgoing physp is null on non-hop_0!\n");
-+			"ERR 1107: Outgoing physp is null on non-hop_0!\n");
- 		dest_port_guid = 0;
- 		goto Remote_Guid;
- 	}
--- 
-1.7.1
+Hi Roland,
 
+Any update on this?
+
+Thanks,
+Vipul
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
