@@ -1,14 +1,14 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH][MINOR] Add Per Module Logging support for Congestion
- Manager
-Date: Sun, 20 Jan 2013 12:08:29 +0200
-Message-ID: <20130120100829.GA14190@calypso.mtl.com>
-References: <509D06EE.4070507@dev.mellanox.co.il>
+Subject: Re: [PATCH][TRIVIAL] opensm/include/complib/cl_packon.h: Fix some
+ commentary typos
+Date: Sun, 20 Jan 2013 12:09:11 +0200
+Message-ID: <20130120100911.GB14190@calypso.mtl.com>
+References: <50EB271D.7080407@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <509D06EE.4070507-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <50EB271D.7080407-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -16,7 +16,7 @@ List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 08:36 Fri 09 Nov     , Hal Rosenstock wrote:
+On 14:50 Mon 07 Jan     , Hal Rosenstock wrote:
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
