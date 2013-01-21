@@ -1,123 +1,56 @@
-From: Bharath Ramesh <bramesh-PjAqaU27lzQ@public.gmane.org>
-Subject: Question on mlx4 log_num_mtt and log_mtt_per_seg setting
-Date: Sun, 20 Jan 2013 22:08:55 -0500
-Message-ID: <50FCB147.7090303@vt.edu>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms050108070303020503060305"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 14/15] drivers/infiniband/hw/mlx4/sysfs.c: adjust duplicate test
+Date: Mon, 21 Jan 2013 14:02:58 +0100
+Message-ID: <1358773378-4700-15-git-send-email-Julia.Lawall@lip6.fr>
+References: <1358773378-4700-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1358773378-4700-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: kernel-janitors@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
---------------ms050108070303020503060305
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Delete successive tests to the same location.  The code tested the result
+of a previous allocation, that itself was already tested.  It is changed to
+test the result of the most recent allocation.
 
-I am trying to find the correct setting for log_num_mtt and=20
-log_mtt_per_seg should be for our cluster. Each node has 64G of RAM. We=20
-are having issues when running MPI applications, the error is related to =
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-registering memory. The current setting log_num_mtt=3D24 and=20
-log_mtt_per_seg=3D1. There are lot of conflicting documentations availabl=
-e=20
-with regards how these settings should be changed. I was wondering if=20
-the community could explain how these settings works so that we can come =
+// <smpl>
+@s exists@
+local idexpression y;
+expression x,e;
+@@
 
-up with the correct settings that will work in our environment. This=20
-document [1] specifically says that log_mtt_per_seg should always be 1.=20
-However, OpenMPI mailing list post [2] talks about different value. Any=20
-help on this is appreciated. I am not subscribed to the list so would=20
-really appreciate if I am copied in the replies.
+*if ( \(x == NULL\|IS_ERR(x)\|y != 0\) )
+ { ... when forall
+   return ...; }
+... when != \(y = e\|y += e\|y -= e\|y |= e\|y &= e\|y++\|y--\|&y\)
+    when != \(XT_GETPAGE(...,y)\|WMI_CMD_BUF(...)\)
+*if ( \(x == NULL\|IS_ERR(x)\|y != 0\) )
+ { ... when forall
+   return ...; }
+// </smpl>
 
-[1] http://www.open-mpi.org/faq/?category=3Dopenfabrics#ib-low-reg-mem
-[2] http://www.open-mpi.org/community/lists/users/2011/09/17222.php
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
---=20
-Bharath
+---
+ drivers/infiniband/hw/mlx4/sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-
---------------ms050108070303020503060305
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKQDCC
-BRowggQCoAMCAQICEG0Z6qcZT2ozIuYiMnqqcd4wDQYJKoZIhvcNAQEFBQAwga4xCzAJBgNV
-BAYTAlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoT
-FVRoZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3Qu
-Y29tMTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQg
-RW1haWwwHhcNMTEwNDI4MDAwMDAwWhcNMjAwNTMwMTA0ODM4WjCBkzELMAkGA1UEBhMCR0Ix
-GzAZBgNVBAgTEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEaMBgGA1UE
-ChMRQ09NT0RPIENBIExpbWl0ZWQxOTA3BgNVBAMTMENPTU9ETyBDbGllbnQgQXV0aGVudGlj
-YXRpb24gYW5kIFNlY3VyZSBFbWFpbCBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-ggEBAJKEhFtLV5jUXi+LpOFAyKNTWF9mZfEyTvefMn1V0HhMVbdClOD5J3EHxcZppLkyxPFA
-GpDMJ1Zifxe1cWmu5SAb5MtjXmDKokH2auGj/7jfH0htZUOMKi4rYzh337EXrMLaggLW1DJq
-1GdvIBOPXDX65VSAr9hxCh03CgJQU2yVHakQFLSZlVkSMf8JotJM3FLb3uJAAVtIaN3FSrTg
-7SQfOq9xXwfjrL8UO7AlcWg99A/WF1hGFYE8aIuLgw9teiFX5jSw2zJ+40rhpVJyZCaRTqWS
-D//gsWD9Gm9oUZljjRqLpcxCm5t9ImPTqaD8zp6Q30QZ9FxbNboW86eb/8ECAwEAAaOCAUsw
-ggFHMB8GA1UdIwQYMBaAFImCZ33EnSZwAEu0UEh83j2uBG59MB0GA1UdDgQWBBR6E04AdFvG
-eGNkJ8Ev4qBbvHnFezAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADARBgNV
-HSAECjAIMAYGBFUdIAAwWAYDVR0fBFEwTzBNoEugSYZHaHR0cDovL2NybC51c2VydHJ1c3Qu
-Y29tL1VUTi1VU0VSRmlyc3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwdAYI
-KwYBBQUHAQEEaDBmMD0GCCsGAQUFBzAChjFodHRwOi8vY3J0LnVzZXJ0cnVzdC5jb20vVVRO
-QWRkVHJ1c3RDbGllbnRfQ0EuY3J0MCUGCCsGAQUFBzABhhlodHRwOi8vb2NzcC51c2VydHJ1
-c3QuY29tMA0GCSqGSIb3DQEBBQUAA4IBAQCF1r54V1VtM39EUv5C1QaoAQOAivsNsv1Kv/av
-QUn1G1rF0q0bc24+6SZ85kyYwTAo38v7QjyhJT4KddbQPTmGZtGhm7VNm2+vKGwdr+XqdFqo
-2rHA8XV6L566k3nK/uKRHlZ0sviN0+BDchvtj/1gOSBH+4uvOmVIPJg9pSW/ve9g4EnlFsjr
-P0OD8ODuDcHTzTNfm9C9YGqzO/761Mk6PB/tm/+bSTO+Qik5g+4zaS6CnUVNqGnagBsePdIa
-XXxHmaWbCG0SmYbWXVcHG6cwvktJRLiQfsrReTjrtDP6oDpdJlieYVUYtCHVmdXgQ0BCML7q
-peeU0rD+83X5f27nMIIFHjCCBAagAwIBAgIRAN22Q2v22Zy9hskOYaOi3XkwDQYJKoZIhvcN
-AQEFBQAwgZMxCzAJBgNVBAYTAkdCMRswGQYDVQQIExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAO
-BgNVBAcTB1NhbGZvcmQxGjAYBgNVBAoTEUNPTU9ETyBDQSBMaW1pdGVkMTkwNwYDVQQDEzBD
-T01PRE8gQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBTZWN1cmUgRW1haWwgQ0EwHhcNMTIx
-MTE5MDAwMDAwWhcNMTMxMTE5MjM1OTU5WjAfMR0wGwYJKoZIhvcNAQkBFg5icmFtZXNoQHZ0
-LmVkdTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANh81vYaLvDNeNh1+oJe44bN
-7FPrbo3WJAJpulUEnBH2MvxWP+oyxdFOcWB7msjRrC8ftYaEVl4K9m768rmfWho4iCiyW6uQ
-upTDRLrPrhvyoDIsILfy69ayWA/aUph0NVrwnZy4GsZ4bHSjXfLoh3fN6lJN2+8CxbYDSNar
-xIx2fn124IHtIz4e7euRi6qg+W5lFCoFNWmCuEaKSHKkwHd4I8Sw6R702BOsZ9+bEpybkm/h
-k1JmLg6HJDP1K1eL1jsD2XCBbFBWiRWya1DCyqsvzcqXtgaaU+iGaOJMUHQlE1ogxXgl/X4L
-jCkwq7//WUScJhHv2ZBF1k1694gRbPsCAwEAAaOCAd4wggHaMB8GA1UdIwQYMBaAFHoTTgB0
-W8Z4Y2QnwS/ioFu8ecV7MB0GA1UdDgQWBBQ3y6VnkWY6FF4mjVobS4yBWoM5FzAOBgNVHQ8B
-Af8EBAMCBaAwDAYDVR0TAQH/BAIwADAgBgNVHSUEGTAXBggrBgEFBQcDBAYLKwYBBAGyMQED
-BQIwEQYJYIZIAYb4QgEBBAQDAgUgMEYGA1UdIAQ/MD0wOwYMKwYBBAGyMQECAQEBMCswKQYI
-KwYBBQUHAgEWHWh0dHBzOi8vc2VjdXJlLmNvbW9kby5uZXQvQ1BTMFcGA1UdHwRQME4wTKBK
-oEiGRmh0dHA6Ly9jcmwuY29tb2RvY2EuY29tL0NPTU9ET0NsaWVudEF1dGhlbnRpY2F0aW9u
-YW5kU2VjdXJlRW1haWxDQS5jcmwwgYgGCCsGAQUFBwEBBHwwejBSBggrBgEFBQcwAoZGaHR0
-cDovL2NydC5jb21vZG9jYS5jb20vQ09NT0RPQ2xpZW50QXV0aGVudGljYXRpb25hbmRTZWN1
-cmVFbWFpbENBLmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuY29tb2RvY2EuY29tMBkG
-A1UdEQQSMBCBDmJyYW1lc2hAdnQuZWR1MA0GCSqGSIb3DQEBBQUAA4IBAQBpORr1+kAak071
-YWHyJH8wedMGNycEXjZdKAOKQesWrfn3HivapKvG/uVcDQxzHZOt0rJuukoPnVAQrs4/XJZt
-Lc6B+e0A/Q6l0rYHxli4szpnXPjo0QUJ/DSY+DXQ8O8DnIHfY0dQoXRlncOAmeDz3IqZpWMO
-g6wQWATiFXV/a59tXTvAdEpFFfkCq9K7CHWmQSHhEoN2T4Ww5GS5rUFauUgkAXns//NppUBB
-5uAAswFyXYaqm/LuSbcKpXtfsnZnYqFWFVwmiD5ZANnHVCgdBCpdg5Crw1cKoES+JoyTUDiK
-PeZ/HuzuXe/LVMVnBBeulIaReqFga/lqlNCbL4k7MYIEHDCCBBgCAQEwgakwgZMxCzAJBgNV
-BAYTAkdCMRswGQYDVQQIExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcTB1NhbGZvcmQx
-GjAYBgNVBAoTEUNPTU9ETyBDQSBMaW1pdGVkMTkwNwYDVQQDEzBDT01PRE8gQ2xpZW50IEF1
-dGhlbnRpY2F0aW9uIGFuZCBTZWN1cmUgRW1haWwgQ0ECEQDdtkNr9tmcvYbJDmGjot15MAkG
-BSsOAwIaBQCgggJHMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8X
-DTEzMDEyMTAzMDg1NVowIwYJKoZIhvcNAQkEMRYEFD/iOWZ7Wyr/HwgW2ZUJFETGRTHIMGwG
-CSqGSIb3DQEJDzFfMF0wCwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzAO
-BggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgw
-gboGCSsGAQQBgjcQBDGBrDCBqTCBkzELMAkGA1UEBhMCR0IxGzAZBgNVBAgTEkdyZWF0ZXIg
-TWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEaMBgGA1UEChMRQ09NT0RPIENBIExpbWl0
-ZWQxOTA3BgNVBAMTMENPTU9ETyBDbGllbnQgQXV0aGVudGljYXRpb24gYW5kIFNlY3VyZSBF
-bWFpbCBDQQIRAN22Q2v22Zy9hskOYaOi3XkwgbwGCyqGSIb3DQEJEAILMYGsoIGpMIGTMQsw
-CQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxm
-b3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE5MDcGA1UEAxMwQ09NT0RPIENsaWVu
-dCBBdXRoZW50aWNhdGlvbiBhbmQgU2VjdXJlIEVtYWlsIENBAhEA3bZDa/bZnL2GyQ5ho6Ld
-eTANBgkqhkiG9w0BAQEFAASCAQA0AkZA5G3aS18pXML9JLCQFMHHz7kL3hFlxbdZQ4b1uNTx
-hSzvQCUTTaPlpqzjwzTZXfmZCqdIeC8wSJAzv1t4fWc3d0NlPUn3T1XBeOl6A/FQRKX4gfTR
-Fn8+k2Ymer3un6ZXQ7O8+QtJt0nBoFw9nZfkOpKjhefP2QAjEtoDaQGI369ke/kSRUJfxX3g
-rYpIvJwsQX1VDhWI1rI8f/84x/Y5d81c4BWwSM5jLn6pESWxwhyWk4oyMraRKMG4G93CE9UU
-OBEiz0iHejcxtB7lUVBb6PwKrgYjgWDLSQQ1T/+t+tTn9dUopN74gvE03mypjuZJA0buxWR/
-CNYtCBu7AAAAAAAA
---------------ms050108070303020503060305--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
+index 5b2a01d..97516eb 100644
+--- a/drivers/infiniband/hw/mlx4/sysfs.c
++++ b/drivers/infiniband/hw/mlx4/sysfs.c
+@@ -732,7 +732,7 @@ int mlx4_ib_device_register_sysfs(struct mlx4_ib_dev *dev)
+ 	dev->ports_parent =
+ 		kobject_create_and_add("ports",
+ 				       kobject_get(dev->iov_parent));
+-	if (!dev->iov_parent) {
++	if (!dev->ports_parent) {
+ 		ret = -ENOMEM;
+ 		goto err_ports;
+ 	}
