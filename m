@@ -1,59 +1,30 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: correction for faulty sparse warning correction
-Date: Thu, 24 Jan 2013 13:59:34 -0500
-Message-ID: <20130124185934.19853.61429.stgit@phlsvslse11.ph.intel.com>
+From: "Wood, John" <john.wood-LiOuxkhVxeb+TiMhZ00YYl6hYfS7NtTn@public.gmane.org>
+Subject: =?iso-8859-1?B?oUhvbGE=?=
+Date: Thu, 24 Jan 2013 14:43:17 -0500
+Message-ID: <526F364C0060FD4BA398CDCD75A9BDDB2EAAE0__4377.91236113316$1359061496$gmane$org@bashful.cowetaschools.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 1fb9fed ("IB/qib: Fix QP RCU sparse warning")
-broke qp hash list deletion in qp_remove() badly.
-
-This patch restores the former for loop behavior, while
-still fixing the sparse warnings.
-
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Reviewed-by: Gary Leshner <gary.s.leshner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_qp.c |   11 +++--------
- 1 files changed, 3 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 4850d03..3527509 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -263,20 +263,15 @@ static void remove_qp(struct qib_ibdev *dev, struct qib_qp *qp)
- 		struct qib_qp __rcu **qpp;
- 
- 		qpp = &dev->qp_table[n];
--		q = rcu_dereference_protected(*qpp,
--			lockdep_is_held(&dev->qpt_lock));
--		for (; q; qpp = &q->next) {
-+		for (; (q = rcu_dereference_protected(*qpp,
-+				lockdep_is_held(&dev->qpt_lock))) != NULL;
-+				qpp = &q->next)
- 			if (q == qp) {
- 				atomic_dec(&qp->refcount);
- 				*qpp = qp->next;
- 				rcu_assign_pointer(qp->next, NULL);
--				q = rcu_dereference_protected(*qpp,
--					lockdep_is_held(&dev->qpt_lock));
- 				break;
- 			}
--			q = rcu_dereference_protected(*qpp,
--				lockdep_is_held(&dev->qpt_lock));
--		}
- 	}
- 
- 	spin_unlock_irqrestore(&dev->qpt_lock, flags);
-
+Jag anv=E4nder detta medium f=F6r att informera er om en =F6msesidig tr=
+ansaktion som inbegriper =F6verf=F6ring av $ 21.500.000 i min bank i Ki=
+na, f=F6r att informera dig som mottagare. T Du kan n=E5 mig p=E5 chins=
+ang233-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org f=F6r mer information.
+g=E4ller
+Sang Chin.
+#######################################################################=
+##############
+Scanned by MailMarshal - M86 Security's comprehensive email content sec=
+urity solution.=20
+Download a free evaluation of MailMarshal at www.m86security.com
+#######################################################################=
+##############
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
