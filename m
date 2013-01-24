@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_sa_mcmember_record.c: Only use scope from MC group
- in copy_from_create_mc_rec
-Date: Thu, 24 Jan 2013 09:45:41 -0500
-Message-ID: <51014915.8020807@dev.mellanox.co.il>
+Subject: [PATCH] opensm/osm_dump.c: Remove incorrect assert
+Date: Thu, 24 Jan 2013 09:45:48 -0500
+Message-ID: <5101491C.9060607@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,22 +12,23 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
+In dump_sl2vl_tbl, no need to check remote physp for
+CA and router ports. It's not used in code flow there.
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
-index 96c1139..8099358 100644
---- a/opensm/osm_sa_mcmember_record.c
-+++ b/opensm/osm_sa_mcmember_record.c
-@@ -97,7 +97,8 @@ static void copy_from_create_mc_rec(IN ib_member_rec_t * dest,
- 	dest->tclass = src->tclass;
- 	dest->pkey = src->pkey;
- 	dest->sl_flow_hop = src->sl_flow_hop;
--	dest->scope_state = src->scope_state;
-+	dest->scope_state = ib_member_set_scope_state(src->scope_state >> 4,
-+						      dest->scope_state & 0x0F);
- 	dest->mtu = src->mtu;
- 	dest->rate = src->rate;
- 	dest->pkt_life = src->pkt_life;
+diff --git a/opensm/osm_dump.c b/opensm/osm_dump.c
+index b29d957..69cc360 100644
+--- a/opensm/osm_dump.c
++++ b/opensm/osm_dump.c
+@@ -524,7 +524,6 @@ static void dump_sl2vl_tbl(cl_map_item_t * item, FILE * file, void *cxt)
+ 		}
+ 	} else {
+ 		p_physp = p_port->p_physp;
+-		CL_ASSERT(p_physp->p_remote_physp);
+ 		p_tbl = osm_physp_get_slvl_tbl(p_physp, 0);
+ 		for (i = 0, n = 0; i < 16; i++)
+ 			n += sprintf(buf + n, " %-2d",
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
