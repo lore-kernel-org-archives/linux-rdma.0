@@ -1,36 +1,58 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Error message when trying to use Infiniband virtual functions in
- virtual machine
-Date: Thu, 24 Jan 2013 16:41:17 +0200
-Message-ID: <CAJZOPZJ5mqbAwRx+UCGtNmLkvq_DsHF6y+dGNT9w_XKRKT=9QA@mail.gmail.com>
-References: <CAOoYFkGrsWKGaFcNAQQnkks2Ku6O8xkPk=8BGQfRR74QhRU=VA@mail.gmail.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: correction for faulty sparse warning correction
+Date: Thu, 24 Jan 2013 13:59:34 -0500
+Message-ID: <20130124185934.19853.61429.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOoYFkGrsWKGaFcNAQQnkks2Ku6O8xkPk=8BGQfRR74QhRU=VA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mathis GAVILLON <jbiboche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 23, 2013 at 5:29 PM, Mathis GAVILLON <jbiboche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+Commit 1fb9fed ("IB/qib: Fix QP RCU sparse warning")
+broke qp hash list deletion in qp_remove() badly.
 
-> I'm working on a project in which I try to virtualize Infiniband. I use ConnectX3 Infiniband cards with FW 2.9.1200.
-> I've installed a Fedora 18 OS with 3.8.0rc2 recompiled kernel. I use KVM 1.2 to run virtual machines.
+This patch restores the former for loop behavior, while
+still fixing the sparse warnings.
 
-Your firmware version is a bit old... if you can upgrade to the latest
-GA on the Mellanox site (2.11.0500) would be good,
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Reviewed-by: Gary Leshner <gary.s.leshner-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_qp.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-So what version of  qemu is installed on the distro you use? Are you
-able to work over a ConnectX VF if probed
-to the host? e.g use num_vfs=3 probe_vf=1 and see how the related mlx4
-device (e.g mlx4_1) is functioning.
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 4850d03..3527509 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -263,20 +263,15 @@ static void remove_qp(struct qib_ibdev *dev, struct qib_qp *qp)
+ 		struct qib_qp __rcu **qpp;
+ 
+ 		qpp = &dev->qp_table[n];
+-		q = rcu_dereference_protected(*qpp,
+-			lockdep_is_held(&dev->qpt_lock));
+-		for (; q; qpp = &q->next) {
++		for (; (q = rcu_dereference_protected(*qpp,
++				lockdep_is_held(&dev->qpt_lock))) != NULL;
++				qpp = &q->next)
+ 			if (q == qp) {
+ 				atomic_dec(&qp->refcount);
+ 				*qpp = qp->next;
+ 				rcu_assign_pointer(qp->next, NULL);
+-				q = rcu_dereference_protected(*qpp,
+-					lockdep_is_held(&dev->qpt_lock));
+ 				break;
+ 			}
+-			q = rcu_dereference_protected(*qpp,
+-				lockdep_is_held(&dev->qpt_lock));
+-		}
+ 	}
+ 
+ 	spin_unlock_irqrestore(&dev->qpt_lock, flags);
 
-Also would be of help if you probe mlx4_core on both VM and host with
-debug_level=1
-
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
