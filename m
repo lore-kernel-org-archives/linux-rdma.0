@@ -1,30 +1,40 @@
-From: "Wood, John" <john.wood-LiOuxkhVxeb+TiMhZ00YYl6hYfS7NtTn@public.gmane.org>
-Subject: =?iso-8859-1?B?oUhvbGE=?=
-Date: Thu, 24 Jan 2013 14:43:17 -0500
-Message-ID: <526F364C0060FD4BA398CDCD75A9BDDB2EAAE0__4377.91236113316$1359061496$gmane$org@bashful.cowetaschools.net>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH v2] opensm/osm_sa_mcmember_record.c: Only use scope from MC
+ group in copy_from_create_mc_rec
+Date: Fri, 25 Jan 2013 08:07:34 -0500
+Message-ID: <51028396.6030902@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jag anv=E4nder detta medium f=F6r att informera er om en =F6msesidig tr=
-ansaktion som inbegriper =F6verf=F6ring av $ 21.500.000 i min bank i Ki=
-na, f=F6r att informera dig som mottagare. T Du kan n=E5 mig p=E5 chins=
-ang233-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org f=F6r mer information.
-g=E4ller
-Sang Chin.
-#######################################################################=
-##############
-Scanned by MailMarshal - M86 Security's comprehensive email content sec=
-urity solution.=20
-Download a free evaluation of MailMarshal at www.m86security.com
-#######################################################################=
-##############
+
+Fix osmtest -f m regression introduced by commit 2cf80781aa91da7d119a6486d01a0656980fee8a
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Change since v1:
+Added more description as to motivation for this change
+
+diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
+index 96c1139..8099358 100644
+--- a/opensm/osm_sa_mcmember_record.c
++++ b/opensm/osm_sa_mcmember_record.c
+@@ -97,7 +97,8 @@ static void copy_from_create_mc_rec(IN ib_member_rec_t * dest,
+ 	dest->tclass = src->tclass;
+ 	dest->pkey = src->pkey;
+ 	dest->sl_flow_hop = src->sl_flow_hop;
+-	dest->scope_state = src->scope_state;
++	dest->scope_state = ib_member_set_scope_state(src->scope_state >> 4,
++						      dest->scope_state & 0x0F);
+ 	dest->mtu = src->mtu;
+ 	dest->rate = src->rate;
+ 	dest->pkt_life = src->pkt_life;
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
