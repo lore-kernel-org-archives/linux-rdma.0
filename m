@@ -1,40 +1,45 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v2] opensm/osm_sa_mcmember_record.c: Only use scope from MC
- group in copy_from_create_mc_rec
-Date: Fri, 25 Jan 2013 08:07:34 -0500
-Message-ID: <51028396.6030902@dev.mellanox.co.il>
+From: Stratos Karafotis <stratosk@semaphore.gr>
+Subject: [PATCH] drivers: infiniband: Fix compiler warning
+Date: Fri, 25 Jan 2013 23:52:23 +0200
+Message-ID: <5102FE97.20508@semaphore.gr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+This patch fixes the following compiler warning of uninitialized variab=
+le
 
-Fix osmtest -f m regression introduced by commit 2cf80781aa91da7d119a6486d01a0656980fee8a
+drivers/infiniband/hw/mlx4/qp.c: In function =91mlx4_ib_post_send=92:
+drivers/infiniband/hw/mlx4/qp.c:1862:62: warning: =91vlan=92 may be use=
+d uninitialized
+in this function [-Wmaybe-uninitialized]
+drivers/infiniband/hw/mlx4/qp.c:1752:6: note: =91vlan=92 was declared h=
+ere
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Stratos Karafotis <stratosk@semaphore.gr>
 ---
-Change since v1:
-Added more description as to motivation for this change
+ drivers/infiniband/hw/mlx4/qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
-index 96c1139..8099358 100644
---- a/opensm/osm_sa_mcmember_record.c
-+++ b/opensm/osm_sa_mcmember_record.c
-@@ -97,7 +97,8 @@ static void copy_from_create_mc_rec(IN ib_member_rec_t * dest,
- 	dest->tclass = src->tclass;
- 	dest->pkey = src->pkey;
- 	dest->sl_flow_hop = src->sl_flow_hop;
--	dest->scope_state = src->scope_state;
-+	dest->scope_state = ib_member_set_scope_state(src->scope_state >> 4,
-+						      dest->scope_state & 0x0F);
- 	dest->mtu = src->mtu;
- 	dest->rate = src->rate;
- 	dest->pkt_life = src->pkt_life;
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/ml=
+x4/qp.c
+index 19e0637..37829b6 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1749,7 +1749,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *s=
+qp, struct ib_send_wr *wr,
+        int is_eth;
+        int is_vlan =3D 0;
+        int is_grh;
+-       u16 vlan;
++       u16 vlan =3D 0;
+        int err =3D 0;
+
+        send_size =3D 0;
+--=20
+1.8.1
