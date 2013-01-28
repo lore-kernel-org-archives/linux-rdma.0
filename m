@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 7/7] libibumad: Define data type to indicate values are in big-endian
-Date: Mon, 28 Jan 2013 13:38:55 -0800
-Message-ID: <1359409135-559-7-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 2/7] libibumad: Add SA MAD definitions to umad
+Date: Mon, 28 Jan 2013 13:38:50 -0800
+Message-ID: <1359409135-559-2-git-send-email-sean.hefty@intel.com>
 References: <1359409135-559-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1359409135-559-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,175 +12,126 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The ib management interfaces require that the user specify
-certain values in network-byte order.  To clarify which values
-should be in big endian format, introduce a new data type
-at the libibumad level.
+Add a new header file, umad_sa.h, to libibumad that contains
+basic SA MAD definitions.
+
+Only the SA attributes values, new methods, and base SA MAD
+format are given.  SA attribute structure definitions are
+left for future development.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/infiniband/umad.h       |   17 +++++++++++------
- include/infiniband/umad_sa.h    |   13 ++++++++-----
- include/infiniband/umad_sm.h    |   16 ++++++++--------
- include/infiniband/umad_types.h |   23 ++++++++++++-----------
- 4 files changed, 39 insertions(+), 30 deletions(-)
+ include/infiniband/umad_sa.h |  101 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 101 insertions(+), 0 deletions(-)
+ create mode 100755 include/infiniband/umad_sa.h
 
-diff --git a/include/infiniband/umad.h b/include/infiniband/umad.h
-index 08fff71..b3f00e7 100644
---- a/include/infiniband/umad.h
-+++ b/include/infiniband/umad.h
-@@ -47,21 +47,26 @@
- #endif				/* __cplusplus */
- 
- BEGIN_C_DECLS
-+
-+typedef uint16_t be16_t;
-+typedef uint32_t be32_t;
-+typedef uint64_t be64_t;
-+
- #define UMAD_MAX_DEVICES 32
- #define UMAD_ANY_PORT	0
- typedef struct ib_mad_addr {
--	uint32_t qpn;
--	uint32_t qkey;
--	uint16_t lid;
-+	be32_t qpn;
-+	be32_t qkey;
-+	be16_t lid;
- 	uint8_t sl;
- 	uint8_t path_bits;
- 	uint8_t grh_present;
- 	uint8_t gid_index;
- 	uint8_t hop_limit;
- 	uint8_t traffic_class;
--	uint8_t gid[16];
--	uint32_t flow_label;
--	uint16_t pkey_index;
-+	uint8_t gid[16]; /* network-byte order */
-+	be32_t flow_label;
-+	be16_t pkey_index;
- 	uint8_t reserved[6];
- } ib_mad_addr_t;
- 
 diff --git a/include/infiniband/umad_sa.h b/include/infiniband/umad_sa.h
-index f3e161e..92248de 100755
---- a/include/infiniband/umad_sa.h
+new file mode 100755
+index 0000000..f3e161e
+--- /dev/null
 +++ b/include/infiniband/umad_sa.h
-@@ -87,14 +87,17 @@ enum {
- 	UMAD_LEN_SA_DATA		= 200
- };
- 
+@@ -0,0 +1,101 @@
 +/*
-+ *  sm_key is not aligned on an 8-byte boundary, so is defined as a byte array
++ * Copyright (c) 2004 Topspin Communications.  All rights reserved.
++ * Copyright (c) 2005 Voltaire, Inc.  All rights reserved.
++ * Copyright (c) 2006, 2010 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
 + */
- struct umad_sa_packet {
- 	struct umad_hdr		mad_hdr;
- 	struct umad_rmpp_hdr	rmpp_hdr;
--	uint8_t			sm_key[8];
--	uint16_t		attr_offset;
--	uint16_t		reserved;
--	uint64_t		comp_mask;
--	uint8_t 		data[UMAD_LEN_SA_DATA];
-+	uint8_t			sm_key[8]; /* network-byte order */
-+	be16_t			attr_offset;
-+	be16_t			reserved;
-+	be64_t			comp_mask;
-+	uint8_t 		data[UMAD_LEN_SA_DATA]; /* network-byte order */
- };
- 
- END_C_DECLS
-diff --git a/include/infiniband/umad_sm.h b/include/infiniband/umad_sm.h
-index 62c75da..10348d4 100755
---- a/include/infiniband/umad_sm.h
-+++ b/include/infiniband/umad_sm.h
-@@ -82,16 +82,16 @@ struct umad_smp {
- 	uint8_t	 mgmt_class;
- 	uint8_t	 class_version;
- 	uint8_t	 method;
--	uint16_t status;
-+	be16_t   status;
- 	uint8_t  hop_ptr;
- 	uint8_t  hop_cnt;
--	uint64_t tid;
--	uint16_t attr_id;
--	uint16_t resv;
--	uint32_t attr_mod;
--	uint64_t mkey;
--	uint16_t dr_slid;
--	uint16_t dr_dlid;
-+	be64_t   tid;
-+	be16_t   attr_id;
-+	be16_t   resv;
-+	be32_t   attr_mod;
-+	be64_t   mkey;
-+	be16_t   dr_slid;
-+	be16_t   dr_dlid;
- 	uint8_t  reserved[28];
- 	uint8_t  data[UMAD_LEN_SMP_DATA];
- 	uint8_t  initial_path[UMAD_SMP_MAX_HOPS];
-diff --git a/include/infiniband/umad_types.h b/include/infiniband/umad_types.h
-index 54b7e72..bf93add 100755
---- a/include/infiniband/umad_types.h
-+++ b/include/infiniband/umad_types.h
-@@ -38,6 +38,7 @@
- #define _UMAD_TYPES_H
- 
- #include <stdint.h>
-+#include <infiniband/umad.h>
- 
- #ifdef __cplusplus
- #  define BEGIN_C_DECLS extern "C" {
-@@ -149,11 +150,11 @@ struct umad_hdr {
- 	uint8_t	 class_version;
- 	uint8_t	 method;
- 	uint16_t status;
--	uint16_t class_specific;
--	uint64_t tid;
--	uint16_t attr_id;
--	uint16_t resv;
--	uint32_t attr_mod;
-+	be16_t   class_specific;
-+	be64_t   tid;
-+	be16_t   attr_id;
-+	be16_t   resv;
-+	be32_t   attr_mod;
- };
- 
- struct umad_rmpp_hdr {
-@@ -161,27 +162,27 @@ struct umad_rmpp_hdr {
- 	uint8_t	 rmpp_type;
- 	uint8_t	 rmpp_rtime_flags;
- 	uint8_t	 rmpp_status;
--	uint32_t seg_num;
--	uint32_t paylen_newwin;
-+	be32_t   seg_num;
-+	be32_t   paylen_newwin;
- };
- 
- struct umad_packet {
- 	struct umad_hdr		mad_hdr;
--	uint8_t			data[UMAD_LEN_DATA];
-+	uint8_t			data[UMAD_LEN_DATA]; /* network-byte order */
- };
- 
- struct umad_rmpp_packet {
- 	struct umad_hdr		mad_hdr;
- 	struct umad_rmpp_hdr	rmpp_hdr;
--	uint8_t			data[UMAD_LEN_RMPP_DATA];
-+	uint8_t			data[UMAD_LEN_RMPP_DATA]; /* network-byte order */
- };
- 
- struct umad_vendor_packet {
- 	struct umad_hdr		mad_hdr;
- 	struct umad_rmpp_hdr	rmpp_hdr;
- 	uint8_t			reserved;
--	uint8_t			oui[3];
--	uint8_t			data[UMAD_LEN_VENDOR_DATA];
-+	uint8_t			oui[3];	/* network-byte order */
-+	uint8_t			data[UMAD_LEN_VENDOR_DATA]; /* network-byte order */
- };
- 
- enum {
++#ifndef _UMAD_SA_H
++#define _UMAD_SA_H
++
++#include <infiniband/umad_types.h>
++
++#ifdef __cplusplus
++#  define BEGIN_C_DECLS extern "C" {
++#  define END_C_DECLS   }
++#else				/* !__cplusplus */
++#  define BEGIN_C_DECLS
++#  define END_C_DECLS
++#endif				/* __cplusplus */
++
++BEGIN_C_DECLS
++
++/* SA specific methods */
++enum {
++	UMAD_SA_CLASS_VERSION		= 2,	/* IB spec version 1.1/1.2 */
++
++	UMAD_SA_METHOD_GET_TABLE	= 0x12,
++	UMAD_SA_METHOD_GET_TABLE_RESP	= 0x92,
++	UMAD_SA_METHOD_DELETE		= 0x15,
++	UMAD_SA_METHOD_DELETE_RESP	= 0x95,
++	UMAD_SA_METHOD_GET_MULTI	= 0x14,
++	UMAD_SA_METHOD_GET_MULTI_RESP	= 0x94,
++	UMAD_SA_METHOD_GET_TRACE_TABLE	= 0x13
++};
++
++/* SA attributes */
++enum {
++	UMAD_SA_ATTR_NODE_REC		= 0x0011,
++	UMAD_SA_ATTR_PORT_INFO_REC	= 0x0012,
++	UMAD_SA_ATTR_SLVL_REC		= 0x0013,
++	UMAD_SA_ATTR_SWITCH_INFO_REC	= 0x0014,
++	UMAD_SA_ATTR_LINEAR_FT_REC	= 0x0015,
++	UMAD_SA_ATTR_RANDOM_FT_REC	= 0x0016,
++	UMAD_SA_ATTR_MCAST_FT_REC	= 0x0017,
++	UMAD_SA_ATTR_SM_INFO_REC	= 0x0018,
++	UMAD_SA_ATTR_INFORM_INFO_REC	= 0x00F3,
++	UMAD_SA_ATTR_LINK_REC		= 0x0020,
++	UMAD_SA_ATTR_GUID_INFO_REC	= 0x0030,
++	UMAD_SA_ATTR_SERVICE_REC	= 0x0031,
++	UMAD_SA_ATTR_PKEY_TABLE_REC	= 0x0033,
++	UMAD_SA_ATTR_PATH_REC		= 0x0035,
++	UMAD_SA_ATTR_VL_ARB_REC		= 0x0036,
++	UMAD_SA_ATTR_MCMEMBER_REC	= 0x0038,
++	UMAD_SA_ATTR_TRACE_REC		= 0x0039,
++	UMAD_SA_ATTR_MULTI_PATH_REC	= 0x003A,
++	UMAD_SA_ATTR_SERVICE_ASSOC_REC	= 0x003B
++};
++
++enum {
++	UMAD_LEN_SA_DATA		= 200
++};
++
++struct umad_sa_packet {
++	struct umad_hdr		mad_hdr;
++	struct umad_rmpp_hdr	rmpp_hdr;
++	uint8_t			sm_key[8];
++	uint16_t		attr_offset;
++	uint16_t		reserved;
++	uint64_t		comp_mask;
++	uint8_t 		data[UMAD_LEN_SA_DATA];
++};
++
++END_C_DECLS
++#endif				/* _UMAD_SA_H */
 -- 
 1.7.3
 
