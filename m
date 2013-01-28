@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 2/7] libibumad: Add SA MAD definitions to umad
-Date: Mon, 28 Jan 2013 13:38:50 -0800
-Message-ID: <1359409135-559-2-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 4/7] libibumad: Add CM definitions to umad
+Date: Mon, 28 Jan 2013 13:38:52 -0800
+Message-ID: <1359409135-559-4-git-send-email-sean.hefty@intel.com>
 References: <1359409135-559-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1359409135-559-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,29 +12,24 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add a new header file, umad_sa.h, to libibumad that contains
-basic SA MAD definitions.
-
-Only the SA attributes values, new methods, and base SA MAD
-format are given.  SA attribute structure definitions are
-left for future development.
+To support the madeye diag and ibacm, add CM MAD definitions
+to umad.  Only minimal definitions are added for now.  Additional
+structure definitions will be added later.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/infiniband/umad_sa.h |  101 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 101 insertions(+), 0 deletions(-)
- create mode 100755 include/infiniband/umad_sa.h
+ include/infiniband/umad_cm.h |   64 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 64 insertions(+), 0 deletions(-)
+ create mode 100755 include/infiniband/umad_cm.h
 
-diff --git a/include/infiniband/umad_sa.h b/include/infiniband/umad_sa.h
+diff --git a/include/infiniband/umad_cm.h b/include/infiniband/umad_cm.h
 new file mode 100755
-index 0000000..f3e161e
+index 0000000..d48ecee
 --- /dev/null
-+++ b/include/infiniband/umad_sa.h
-@@ -0,0 +1,101 @@
++++ b/include/infiniband/umad_cm.h
+@@ -0,0 +1,64 @@
 +/*
-+ * Copyright (c) 2004 Topspin Communications.  All rights reserved.
-+ * Copyright (c) 2005 Voltaire, Inc.  All rights reserved.
-+ * Copyright (c) 2006, 2010 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2010 Intel Corporation.  All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -63,10 +58,10 @@ index 0000000..f3e161e
 + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
-+ *
 + */
-+#ifndef _UMAD_SA_H
-+#define _UMAD_SA_H
++
++#ifndef _UMAD_CM_H
++#define _UMAD_CM_H
 +
 +#include <infiniband/umad_types.h>
 +
@@ -80,58 +75,23 @@ index 0000000..f3e161e
 +
 +BEGIN_C_DECLS
 +
-+/* SA specific methods */
++/* Communication management attributes */
 +enum {
-+	UMAD_SA_CLASS_VERSION		= 2,	/* IB spec version 1.1/1.2 */
-+
-+	UMAD_SA_METHOD_GET_TABLE	= 0x12,
-+	UMAD_SA_METHOD_GET_TABLE_RESP	= 0x92,
-+	UMAD_SA_METHOD_DELETE		= 0x15,
-+	UMAD_SA_METHOD_DELETE_RESP	= 0x95,
-+	UMAD_SA_METHOD_GET_MULTI	= 0x14,
-+	UMAD_SA_METHOD_GET_MULTI_RESP	= 0x94,
-+	UMAD_SA_METHOD_GET_TRACE_TABLE	= 0x13
-+};
-+
-+/* SA attributes */
-+enum {
-+	UMAD_SA_ATTR_NODE_REC		= 0x0011,
-+	UMAD_SA_ATTR_PORT_INFO_REC	= 0x0012,
-+	UMAD_SA_ATTR_SLVL_REC		= 0x0013,
-+	UMAD_SA_ATTR_SWITCH_INFO_REC	= 0x0014,
-+	UMAD_SA_ATTR_LINEAR_FT_REC	= 0x0015,
-+	UMAD_SA_ATTR_RANDOM_FT_REC	= 0x0016,
-+	UMAD_SA_ATTR_MCAST_FT_REC	= 0x0017,
-+	UMAD_SA_ATTR_SM_INFO_REC	= 0x0018,
-+	UMAD_SA_ATTR_INFORM_INFO_REC	= 0x00F3,
-+	UMAD_SA_ATTR_LINK_REC		= 0x0020,
-+	UMAD_SA_ATTR_GUID_INFO_REC	= 0x0030,
-+	UMAD_SA_ATTR_SERVICE_REC	= 0x0031,
-+	UMAD_SA_ATTR_PKEY_TABLE_REC	= 0x0033,
-+	UMAD_SA_ATTR_PATH_REC		= 0x0035,
-+	UMAD_SA_ATTR_VL_ARB_REC		= 0x0036,
-+	UMAD_SA_ATTR_MCMEMBER_REC	= 0x0038,
-+	UMAD_SA_ATTR_TRACE_REC		= 0x0039,
-+	UMAD_SA_ATTR_MULTI_PATH_REC	= 0x003A,
-+	UMAD_SA_ATTR_SERVICE_ASSOC_REC	= 0x003B
-+};
-+
-+enum {
-+	UMAD_LEN_SA_DATA		= 200
-+};
-+
-+struct umad_sa_packet {
-+	struct umad_hdr		mad_hdr;
-+	struct umad_rmpp_hdr	rmpp_hdr;
-+	uint8_t			sm_key[8];
-+	uint16_t		attr_offset;
-+	uint16_t		reserved;
-+	uint64_t		comp_mask;
-+	uint8_t 		data[UMAD_LEN_SA_DATA];
++	UMAD_CM_ATTR_REQ		= 0x0010,
++	UMAD_CM_ATTR_MRA		= 0x0011,
++	UMAD_CM_ATTR_REJ		= 0x0012,
++	UMAD_CM_ATTR_REP		= 0x0013,
++	UMAD_CM_ATTR_RTU		= 0x0014,
++	UMAD_CM_ATTR_DREQ		= 0x0015,
++	UMAD_CM_ATTR_DREP		= 0x0016,
++	UMAD_CM_ATTR_SIDR_REQ		= 0x0017,
++	UMAD_CM_ATTR_SIDR_REP		= 0x0018,
++	UMAD_CM_ATTR_LAP		= 0x0019,
++	UMAD_CM_ATTR_APR		= 0x001A,
 +};
 +
 +END_C_DECLS
-+#endif				/* _UMAD_SA_H */
++#endif				/* _UMAD_CM_H */
 -- 
 1.7.3
 
