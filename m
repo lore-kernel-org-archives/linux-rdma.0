@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 6/7] libibumad: Define ntohll/htonll
-Date: Mon, 28 Jan 2013 13:38:54 -0800
-Message-ID: <1359409135-559-6-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 7/7] libibumad: Define data type to indicate values are in big-endian
+Date: Mon, 28 Jan 2013 13:38:55 -0800
+Message-ID: <1359409135-559-7-git-send-email-sean.hefty@intel.com>
 References: <1359409135-559-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1359409135-559-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,53 +12,175 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Users of umad require ntohll/htonll to set/extract data from
-MADs.  Include the definition with umad, not just libibmad.
+The ib management interfaces require that the user specify
+certain values in network-byte order.  To clarify which values
+should be in big endian format, introduce a new data type
+at the libibumad level.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/infiniband/umad.h |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
+ include/infiniband/umad.h       |   17 +++++++++++------
+ include/infiniband/umad_sa.h    |   13 ++++++++-----
+ include/infiniband/umad_sm.h    |   16 ++++++++--------
+ include/infiniband/umad_types.h |   23 ++++++++++++-----------
+ 4 files changed, 39 insertions(+), 30 deletions(-)
 
 diff --git a/include/infiniband/umad.h b/include/infiniband/umad.h
-index 23abf0d..08fff71 100644
+index 08fff71..b3f00e7 100644
 --- a/include/infiniband/umad.h
 +++ b/include/infiniband/umad.h
-@@ -35,6 +35,8 @@
+@@ -47,21 +47,26 @@
+ #endif				/* __cplusplus */
+ 
+ BEGIN_C_DECLS
++
++typedef uint16_t be16_t;
++typedef uint32_t be32_t;
++typedef uint64_t be64_t;
++
+ #define UMAD_MAX_DEVICES 32
+ #define UMAD_ANY_PORT	0
+ typedef struct ib_mad_addr {
+-	uint32_t qpn;
+-	uint32_t qkey;
+-	uint16_t lid;
++	be32_t qpn;
++	be32_t qkey;
++	be16_t lid;
+ 	uint8_t sl;
+ 	uint8_t path_bits;
+ 	uint8_t grh_present;
+ 	uint8_t gid_index;
+ 	uint8_t hop_limit;
+ 	uint8_t traffic_class;
+-	uint8_t gid[16];
+-	uint32_t flow_label;
+-	uint16_t pkey_index;
++	uint8_t gid[16]; /* network-byte order */
++	be32_t flow_label;
++	be16_t pkey_index;
+ 	uint8_t reserved[6];
+ } ib_mad_addr_t;
+ 
+diff --git a/include/infiniband/umad_sa.h b/include/infiniband/umad_sa.h
+index f3e161e..92248de 100755
+--- a/include/infiniband/umad_sa.h
++++ b/include/infiniband/umad_sa.h
+@@ -87,14 +87,17 @@ enum {
+ 	UMAD_LEN_SA_DATA		= 200
+ };
+ 
++/*
++ *  sm_key is not aligned on an 8-byte boundary, so is defined as a byte array
++ */
+ struct umad_sa_packet {
+ 	struct umad_hdr		mad_hdr;
+ 	struct umad_rmpp_hdr	rmpp_hdr;
+-	uint8_t			sm_key[8];
+-	uint16_t		attr_offset;
+-	uint16_t		reserved;
+-	uint64_t		comp_mask;
+-	uint8_t 		data[UMAD_LEN_SA_DATA];
++	uint8_t			sm_key[8]; /* network-byte order */
++	be16_t			attr_offset;
++	be16_t			reserved;
++	be64_t			comp_mask;
++	uint8_t 		data[UMAD_LEN_SA_DATA]; /* network-byte order */
+ };
+ 
+ END_C_DECLS
+diff --git a/include/infiniband/umad_sm.h b/include/infiniband/umad_sm.h
+index 62c75da..10348d4 100755
+--- a/include/infiniband/umad_sm.h
++++ b/include/infiniband/umad_sm.h
+@@ -82,16 +82,16 @@ struct umad_smp {
+ 	uint8_t	 mgmt_class;
+ 	uint8_t	 class_version;
+ 	uint8_t	 method;
+-	uint16_t status;
++	be16_t   status;
+ 	uint8_t  hop_ptr;
+ 	uint8_t  hop_cnt;
+-	uint64_t tid;
+-	uint16_t attr_id;
+-	uint16_t resv;
+-	uint32_t attr_mod;
+-	uint64_t mkey;
+-	uint16_t dr_slid;
+-	uint16_t dr_dlid;
++	be64_t   tid;
++	be16_t   attr_id;
++	be16_t   resv;
++	be32_t   attr_mod;
++	be64_t   mkey;
++	be16_t   dr_slid;
++	be16_t   dr_dlid;
+ 	uint8_t  reserved[28];
+ 	uint8_t  data[UMAD_LEN_SMP_DATA];
+ 	uint8_t  initial_path[UMAD_SMP_MAX_HOPS];
+diff --git a/include/infiniband/umad_types.h b/include/infiniband/umad_types.h
+index 54b7e72..bf93add 100755
+--- a/include/infiniband/umad_types.h
++++ b/include/infiniband/umad_types.h
+@@ -38,6 +38,7 @@
+ #define _UMAD_TYPES_H
  
  #include <stdint.h>
- #include <stdlib.h>
-+#include <byteswap.h>
-+#include <arpa/inet.h>
++#include <infiniband/umad.h>
  
  #ifdef __cplusplus
  #  define BEGIN_C_DECLS extern "C" {
-@@ -193,8 +195,6 @@ int umad_debug(int level);
- void umad_addr_dump(ib_mad_addr_t * addr);
- void umad_dump(void *umad);
+@@ -149,11 +150,11 @@ struct umad_hdr {
+ 	uint8_t	 class_version;
+ 	uint8_t	 method;
+ 	uint16_t status;
+-	uint16_t class_specific;
+-	uint64_t tid;
+-	uint16_t attr_id;
+-	uint16_t resv;
+-	uint32_t attr_mod;
++	be16_t   class_specific;
++	be64_t   tid;
++	be16_t   attr_id;
++	be16_t   resv;
++	be32_t   attr_mod;
+ };
  
--#include <stdlib.h>
--
- static inline void *umad_alloc(int num, size_t size)
- {				/* alloc array of umad buffers */
- 	return calloc(num, size);
-@@ -205,5 +205,16 @@ static inline void umad_free(void *umad)
- 	free(umad);
- }
+ struct umad_rmpp_hdr {
+@@ -161,27 +162,27 @@ struct umad_rmpp_hdr {
+ 	uint8_t	 rmpp_type;
+ 	uint8_t	 rmpp_rtime_flags;
+ 	uint8_t	 rmpp_status;
+-	uint32_t seg_num;
+-	uint32_t paylen_newwin;
++	be32_t   seg_num;
++	be32_t   paylen_newwin;
+ };
  
-+#ifndef ntohll
-+  #if __BYTE_ORDER == __LITTLE_ENDIAN
-+    #define ntohll(x) bswap_64(x)
-+  #elif __BYTE_ORDER == __BIG_ENDIAN
-+    #define ntohll(x) x
-+  #endif
-+#endif
-+#ifndef htonll
-+  #define htonll ntohll
-+#endif
-+
- END_C_DECLS
- #endif				/* _UMAD_H */
+ struct umad_packet {
+ 	struct umad_hdr		mad_hdr;
+-	uint8_t			data[UMAD_LEN_DATA];
++	uint8_t			data[UMAD_LEN_DATA]; /* network-byte order */
+ };
+ 
+ struct umad_rmpp_packet {
+ 	struct umad_hdr		mad_hdr;
+ 	struct umad_rmpp_hdr	rmpp_hdr;
+-	uint8_t			data[UMAD_LEN_RMPP_DATA];
++	uint8_t			data[UMAD_LEN_RMPP_DATA]; /* network-byte order */
+ };
+ 
+ struct umad_vendor_packet {
+ 	struct umad_hdr		mad_hdr;
+ 	struct umad_rmpp_hdr	rmpp_hdr;
+ 	uint8_t			reserved;
+-	uint8_t			oui[3];
+-	uint8_t			data[UMAD_LEN_VENDOR_DATA];
++	uint8_t			oui[3];	/* network-byte order */
++	uint8_t			data[UMAD_LEN_VENDOR_DATA]; /* network-byte order */
+ };
+ 
+ enum {
 -- 
 1.7.3
 
