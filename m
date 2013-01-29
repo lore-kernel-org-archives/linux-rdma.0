@@ -1,360 +1,512 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED-3.5-rc6 is available
-Date: Tue, 29 Jan 2013 19:25:32 +0200
-Message-ID: <5108060C.1000505@dev.mellanox.co.il>
-References: <50F7C532.8050500@dev.mellanox.co.il>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Fwd: Error message when trying to use Infiniband virtual functions in virtual machine
+Date: Tue, 29 Jan 2013 20:36:36 +0200
+Message-ID: <201301292036.36837.jackm@dev.mellanox.co.il>
+References: <CAOoYFkGrsWKGaFcNAQQnkks2Ku6O8xkPk=8BGQfRR74QhRU=VA@mail.gmail.com> <201301291644.35771.jackm@dev.mellanox.co.il> <CAOoYFkErXNxSBrQC_spMwcEiVmOpkzqQwuTQPOwO70bigsgYkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010307090003030705030004"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50F7C532.8050500-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CAOoYFkErXNxSBrQC_spMwcEiVmOpkzqQwuTQPOwO70bigsgYkQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mathis GAVILLON <jbiboche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010307090003030705030004
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On Tuesday 29 January 2013 17:18, Mathis GAVILLON wrote:
+> Support for interrupt remapping should be now available (kernel has
+> been recompiled with but is there any way to check if it's available
+> ?).
+> I tried to do what you say in step 2 (num_vfs=1 and probe_vf=0) but it
+> doesn't change anything. I also tried num_vfs=2 and probe_vf=1 but
+> nothing is better.
+> Nevertheless, a strange information message appear in shell when I
+> boot my guest :
+> 
+>   Message from syslogd@localhost at Jan 29 15:51:49 ...
+>    kernel:Disabling IRQ #16
+>
+Or, Mathis,
 
-Hi,
-OFED 3.5-rc6 is available.
+This now looks like the problem that we had with a qemu change.
 
-The tarball is available on:
-http://www.openfabrics.org/downloads/OFED/ofed-3.5/OFED-3.5-rc6.tgz
+qemu-kvm-0.12.1.2-2.348.el6 (or possibly earlier) was changed from the
+previous qemu version so that the pci header for the
+guest was not updated to indicate MSI_X enabled when the guest called
+pci_enable_msix() -- rather, a "lazy update" policy was introduced which
+did not update the flag in the Hypervisor until the guest called request_irq().
 
-To get BUILD_ID run ofed_info
+This caused problems for some vendor's network sriov drivers, and RH implemented
+instead a hybrid policy, compatible with their previous policy, which did not
+break any sriov drivers.
 
-Please report any issues in bugzilla https://bugs.openfabrics.org/ for OFED 3.5
+The updated qemu module for RH is:
+ qemu-kvm-0.12.1.2-2.349.el6
 
-OFED-3.5-rc6 Main Changes from OFED 3.5-rc5
--------------------------------------------------------------------------------
-IB/rds: correct IB api usage
-perftest-2.0-0.27.g2edd80a
+To see which version of qemu you have installed, just enter the following command:
 
+rpm -qvia | grep qemu
 
-Regards,
-Vladimir
+I found a web site which has the rpm's of interest (for fedora core 18):
+http://rpmfind.net/linux/rpm2html/search.php?query=qemu-kvm
 
+You might try using the following rpm (built Jan 16):
+ftp://rpmfind.net/linux/fedora/linux/updates/18/x86_64/qemu-kvm-1.2.2-2.fc18.x86_64.rpm
+(which probably has the fix)
 
+If that does not work, you might try:
+ftp://rpmfind.net/linux/fedora/linux/development/rawhide/x86_64/os/Packages/q/qemu-kvm-1.3.0-5.fc19.x86_64.rpm
 
-
-
-
-
-
-
-
+-Jack
 
 
---------------010307090003030705030004
-Content-Type: text/plain; charset=UTF-8;
- name="OFED_release_notes.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="OFED_release_notes.txt"
-
-CSAgICBPcGVuIEZhYnJpY3MgRW50ZXJwcmlzZSBEaXN0cmlidXRpb24gKE9GRUQpCgkgICAg
-ICAgICAgICAgICBWZXJzaW9uIDMuNS1yYzYKCSAgICAgICAgICAgICAgIFJlbGVhc2UgTm90
-ZXMKCSAgICAgICAgICAgICAgIEphbnVhcnkgMjAxMwoKCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT0KVGFibGUgb2YgQ29udGVudHMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoxLiBP
-dmVydmlldywgd2hpY2ggaW5jbHVkZXM6CgktIE9GRUQgRGlzdHJpYnV0aW9uIFJldiAzLjUg
-Q29udGVudHMKCS0gU3VwcG9ydGVkIFBsYXRmb3JtcyBhbmQgT3BlcmF0aW5nIFN5c3RlbXMK
-CS0gU3VwcG9ydGVkIEhDQSBhbmQgUk5JQyBBZGFwdGVyIENhcmRzIGFuZCBGaXJtd2FyZSBW
-ZXJzaW9ucwoJLSBUZXN0ZWQgU3dpdGNoIFBsYXRmb3JtcwoJLSBUaGlyZCBwYXJ0eSBUZXN0
-IFBhY2thZ2VzCgktIE9GRUQgc291cmNlcwoyLiBDaGFuZ2UgbG9nCjMuIEtub3duIElzc3Vl
-cwoKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KMS4gT3ZlcnZpZXcKPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PQpUaGVzZSBhcmUgdGhlIHJlbGVhc2Ugbm90ZXMgb2YgT3BlbkZhYnJp
-Y3MgRW50ZXJwcmlzZSBEaXN0cmlidXRpb24gKE9GRUQpCnJlbGVhc2UgMy41LiBUaGUgT0ZF
-RCBzb2Z0d2FyZSBwYWNrYWdlIGlzIGNvbXBvc2VkIG9mIHNldmVyYWwgc29mdHdhcmUgbW9k
-dWxlcywKYW5kIGlzIGludGVuZGVkIGZvciB1c2Ugb24gYSBjb21wdXRlciBjbHVzdGVyIGNv
-bnN0cnVjdGVkIGFzIGFuIEluZmluaUJhbmQKc3VibmV0IG9yIGlXQVJQIG5ldHdvcmsuIAoK
-Tm90ZTogSWYgeW91IHBsYW4gdG8gdXBncmFkZSB0aGUgT0ZFRCBwYWNrYWdlIG9uIHlvdXIg
-Y2x1c3RlciwgcGxlYXNlIHVwZ3JhZGUKYWxsIG9mIGl0cyBub2RlcyB0byB0aGlzIG5ldyB2
-ZXJzaW9uLgoKCjEuMSBPRkVEIDMuNSBDb250ZW50cwotLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQpUaGUgT0ZFRCBwYWNrYWdlIGNvbnRhaW5zIHRoZSBmb2xsb3dpbmcgY29tcG9uZW50czoK
-IC0gT3BlbkZhYnJpY3MgY29yZSBhbmQgVUxQczoKCS0gSUIgSENBIGRyaXZlcnMgKG10aGNh
-LCBtbHg0LCBxaWIsIGVoY2EpCgktIGlXQVJQIFJOSUMgZHJpdmVyIChjeGdiMywgY3hnYjQs
-IG5lcykKCS0gY29yZQoJLSBVcHBlciBMYXllciBQcm90b2NvbHM6IElQb0lCLCBTUlAgSW5p
-dGlhdG9yIGFuZCB0YXJnZXQsIGlTRVIgCgkgIEluaXRpYXRvciBhbmQgdGFyZ2V0LCBSRFMs
-IHVEQVBMLCBxbGdjX3ZuaWMgYW5kIE5GUy1SRE1BKi4KIC0gT3BlbkZhYnJpY3MgdXRpbGl0
-aWVzOgoJLSBPcGVuU00gKE9TTSk6IEluZmluaUJhbmQgU3VibmV0IE1hbmFnZXIKCS0gRGlh
-Z25vc3RpYyB0b29scwoJLSBQZXJmb3JtYW5jZSB0ZXN0cwogLSBFeHRyYSBwYWNrYWdlczoK
-CS0gaW5maW5pcGF0aC1wc206IFBlcmZvcm1hbmNlLVNjYWxlZCBNZXNzYWdpbmcgQVBJLCBh
-biBhY2NlbGVyYXRlZCAKCSAgaW50ZXJmYWNlIHRvIEludGVsKFIpIEhDQXMKIC0gU291cmNl
-cyBvZiBhbGwgc29mdHdhcmUgbW9kdWxlcyAodW5kZXIgY29uZGl0aW9ucyBtZW50aW9uZWQg
-aW4gdGhlIG1vZHVsZXMnCiAgIExJQ0VOU0UgZmlsZXMpCiAtIERvY3VtZW50YXRpb24KCjEu
-MiBTdXBwb3J0ZWQgUGxhdGZvcm1zIGFuZCBPcGVyYXRpbmcgU3lzdGVtcwotLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICBvICAgQ1BVIGFyY2hpdGVj
-dHVyZXM6CgktIHg4Nl82NAoJLSB4ODYKCS0gcHBjNjQKCS0gaWE2NAoJCiAgbyAgIExpbnV4
-IE9wZXJhdGluZyBTeXN0ZW1zOgoJLSBSZWRIYXQgRUw2LjIgCQkyLjYuMzItMjIwLmVsNgoJ
-LSBSZWRIYXQgRUw2LjMgCQkyLjYuMzItMjc5LmVsNgoJLSBTTEVTMTEgU1AyIAkJMy4wLjEz
-LTAuMjctZGVmYXVsdAoJLSBrZXJuZWwub3JnCQkzLjUgICAgKgoKICAgICAgKiBNaW5pbWFs
-IFFBIGZvciB0aGVzZSB2ZXJzaW9ucy4KCQoxLjMgSENBcyBhbmQgUk5JQ3MgU3VwcG9ydGVk
-Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGhpcyByZWxlYXNlIHN1cHBvcnRzIElC
-IEhDQXMgYnkgTWVsbGFub3ggVGVjaG5vbG9naWVzLCBJbnRlbCBhbmQgSUJNIGFzCndlbGwg
-YXMgaVdBUlAgUk5JQ3MgYnkgQ2hlbHNpbyBDb21tdW5pY2F0aW9ucyBhbmQgSW50ZWwuCgog
-IG8gICBNZWxsYW5veCBUZWNobm9sb2dpZXMgSENBcyAoU0RSLCBERFIgYW5kIFFEUiBNb2Rl
-cyBhcmUgU3VwcG9ydGVkKToKCS0gQ29ubmVjdFgoUikgYW5kIENvbm5lY3RYIEVOIChmdy0y
-NTQwOCBSZXYgMi45LjEwMDApCgktIENvbm5lY3RYLTIgKGZ3LUNvbm5lY3RYMiBSZXYgMi45
-LjEwMDApCgktIENvbm5lY3RYLTIgRU4gKGZ3LUNvbm5lY3RYMiBSZXYgMi45LjEyMDApCgkt
-IENvbm5lY3RYLTMgKGZ3LUNvbm5lY3RYMyBSZXYgMi4xMC4wNzAwKSAgKEZEUiBhbmQgRkRS
-MTAgTW9kZXMgYXJlIFN1cHBvcnRlZCkKCS0gQ29ubmVjdFgtMyBFTiAoZnctQ29ubmVjdFgz
-IFJldiAyLjEwLjA4MDApCgoJRm9yIG9mZmljaWFsIGZpcm13YXJlIHZlcnNpb25zIHBsZWFz
-ZSBzZWU6CglodHRwOi8vd3d3Lm1lbGxhbm94LmNvbS9jb250ZW50L3BhZ2VzLnBocD9wZz1m
-aXJtd2FyZV9kb3dubG9hZAoKICBvICAgSW50ZWwgKGZvcm1lcmx5IFFMb2dpYykgSENBczoK
-CS0gSW50ZWwoUikgVHJ1ZSBTY2FsZSBERFIgUENJZSB4OCBhbmQgeDE2IEhDQXMKCS0gSW50
-ZWwoUikgVHJ1ZSBTY2FsZSBRRFIgUENJZSB4OCBHZW4yIEhDQXMKCiAgbyAgIElCTSBIQ0Fz
-OgoJLSBHWCBEdWFsLXBvcnQgU0RSIDR4IElCIEhDQQoJLSBHWCBEdWFsLXBvcnQgU0RSIDEy
-eCBJQiBIQ0EKCS0gR1ggRHVhbC1wb3J0IEREUiA0eCBJQiBIQ0EKCS0gR1ggRHVhbC1wb3J0
-IEREUiAxMnggSUIgSENBCgogIG8gICBDaGVsc2lvIFJOSUNzOgoJLSBTMzEwL1MzMjAgMTBH
-YkUgU3RvcmFnZSBBY2NlbGVyYXRvcnMKCS0gUjMxMC9SMzIwIDEwR2JFIGlXQVJQIEFkYXB0
-ZXJzCgogIG8gICBJbnRlbCBSTklDczoKCS0gTkUwMjAgMTBHYiBpV0FSUCBBZGFwdGVyCgoK
-MS40IFN3aXRjaGVzIFN1cHBvcnRlZAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoaXMgcmVs
-ZWFzZSB3YXMgdGVzdGVkIHdpdGggc3dpdGNoZXMgYW5kIGdhdGV3YXlzIHByb3ZpZGVkIGJ5
-IHRoZSBmb2xsb3dpbmcKY29tcGFuaWVzOgoJLSBJbnRlbCAoZm9ybWVybHkgUUxvZ2ljKQoJ
-LSBGbGV4dHJvbmljcwoJLSBPcmFjbGUgKFN1bikKCS0gTWVsbGFub3gKCjEuNSBUaGlyZCBQ
-YXJ0eSBQYWNrYWdlcwotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGhlIGZvbGxvd2luZyB0
-aGlyZCBwYXJ0eSBwYWNrYWdlcyBoYXZlIGJlZW4gdGVzdGVkIHdpdGggT0ZFRCAzLjU6Ci0g
-TVZBUElDSDIgLSAxLjgKLSBJbnRlbCBNUEkgLSA0LjAuMy80LjEKLSBPcGVuIE1QSSAtIDEu
-Ni8xLjYuMS8xLjYuMwoKMS42IE9GRUQgU291cmNlcwotLS0tLS0tLS0tLS0tLS0tCkFsbCBz
-b3VyY2VzIGFyZSBsb2NhdGVkIHVuZGVyIGdpdDovL2dpdC5vcGVuZmFicmljcy5vcmcvCgpM
-aW51eDoKLS0tLS0tClVSTDogZ2l0Oi8vZ2l0Lm9wZW5mYWJyaWNzLm9yZy9jb21wYXQtcmRt
-YS9saW51eC0zLjUuZ2l0CkJyYW5jaDogZm9yLW9mZWQtMy41CgotIExpbnV4IGtlcm5lbCBz
-dWJ0cmVlIHRoYXQgaW5jbHVkZXMgZmlsZXMgcmVsZXZhbnQgZm9yIHRoZSBPRkVEIHByb2pl
-Y3Qgb25seS4KICBCYXNlZCBvbiB2My41LiBVc2VkIHRvIHNob3J0ZW4gZ2l0IGNsb25lIHRp
-bWUuCiAgTm90ZTogdGhlIHJlZ3VsYXIgTGludXggZ2l0IHRyZWUgY2FuIGJlIHVzZWQgYXMg
-d2VsbC4KCmNvbXBhdDoKLS0tLS0tLQpVUkw6IGdpdDovL2dpdC5vcGVuZmFicmljcy5vcmcv
-Y29tcGF0LXJkbWEvY29tcGF0LmdpdApCcmFuY2g6IG9mZWQKCi0gQmFzZWQgb24gY29tcGF0
-IHByb2plY3QgKGh0dHBzOi8vZ2l0aHViLmNvbS9tY2dyb2YvY29tcGF0KS4gVGhlIGNvbXBh
-dCBtb2R1bGUKICBwcm92aWRlcyBmdW5jdGlvbmFsaXR5IGludHJvZHVjZWQgaW4gbmV3ZXIg
-a2VybmVscyB0byBvbGRlciBrZXJuZWxzIHRocm91Z2ggYQogIHNldCBvZiBoZWFkZXIgZmls
-ZXMgYW5kIGV4cG9ydGVkIHN5bWJvbHMuCiAgU2VlIGh0dHBzOi8vZ2l0aHViLmNvbS9tY2dy
-b2YvY29tcGF0L3dpa2kgZm9yIGRldGFpbHMuCi0gVXNlZCB0byByZXBsYWNlIGtlcm5lbF9h
-ZGRvbnMgaW4gdGhlIHByZXZpb3VzIE9GRUQga2VybmVsIHRyZWUuCgpjb21wYXQtcmRtYToK
-LS0tLS0tLS0tLS0tClVSTDogZ2l0Oi8vZ2l0Lm9wZW5mYWJyaWNzLm9yZy9jb21wYXQtcmRt
-YS9jb21wYXQtcmRtYS5naXQKQnJhbmNoOiBtYXN0ZXIKClVzZXIgbGV2ZWwgU291cmNlcyBh
-cmUgZG93bmxvYWRlZCBmcm9tIGh0dHA6Ly93d3cub3BlbmZhYnJpY3Mub3JnL2Rvd25sb2Fk
-cy8KYXMgd3JpdHRlbiBpbiB0aGUgQlVJTERfSUQKClRoZSBrZXJuZWwgc291cmNlcyBhcmUg
-YmFzZWQgb24gTGludXggMy41IG1haW5saW5lIGtlcm5lbC4gSXRzIHBhdGNoZXMKYXJlIGlu
-Y2x1ZGVkIGluIHRoZSBPRkVEIHNvdXJjZXMgZGlyZWN0b3J5LgpGb3IgZGV0YWlscyBzZWUg
-SE9XVE8uYnVpbGRfb2ZlZC4KClRoZSBsaXN0IG9mIG1haW50YWluZXJzIGlzIGF2YWlsYWJs
-ZSB1bmRlcjoKaHR0cDovL3d3dy5vcGVuZmFicmljcy5vcmcvZG93bmxvYWRzL01BSU5UQUlO
-RVJTCgo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CjIuIENoYW5nZSBsb2cKPT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PQpPRkVELTMuNS1yYzYgTWFpbiBDaGFuZ2VzIGZyb20gT0ZFRCAz
-LjUtcmM1Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KSUIvcmRzOiBjb3JyZWN0IElCIGFw
-aSB1c2FnZQpwZXJmdGVzdC0yLjAtMC4yNy5nMmVkZDgwYQoKT0ZFRC0zLjUtcmM1IE1haW4g
-Q2hhbmdlcyBmcm9tIE9GRUQgMy41LXJjNAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCnBl
-cmZ0ZXN0LTIuMC0wLjI1Lmc5NzEyNTlkCgpPRkVELTMuNS1yYzQgTWFpbiBDaGFuZ2VzIGZy
-b20gT0ZFRCAzLjUtcmMzCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KUkRNQS9uZXM6IEZp
-eGVzIGZvciBPRkVELTMuNSBSQzMKUkRNQS9jeGdiNDogS2VlcCB0aGUgbWF4aW11bSBudW1i
-ZXIgb2Ygc3RhZyBsaW1pdGVkIHRvIFQ0X01BWF9OVU1fU1RBRwpVcGRhdGVkIHBhY2thZ2Vz
-OgogICAgaW5maW5pcGF0aC1wc20tMy4xLTM2NC4xMTQwX29wZW4KCk9GRUQtMy41LXJjMyBN
-YWluIENoYW5nZXMgZnJvbSBPRkVEIDMuNS1yYzIKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQpSRE1BL25lczogRml4IGZvciB0ZXJtaW5hdGUgdGltZXIgY3Jhc2gKUkRNQS9uZXM6IEZp
-eCBmb3IgY3Jhc2ggd2hlbiBhZGRpbmcgdGltZXIgYW5kIHRpbWVyIGlzIHBlbmRpbmcKUkRN
-QS9uZXM6IEZpeCBmb3IgaW5jb3JyZWN0IG11bHRpY2FzdCBhZGRyZXNzClJETUEvbmVzOiBG
-aXggZm9yIGNyYXNoIHdoZW4gYWRkaW5nIHRpbWVyClJETUEvbmVzOiBMb2NraW5nIGZpeCB0
-byBwcmV2ZW50IHJhY2UgY29uZGl0aW9ucwpSRE1BL25lczogQ2hhbmdpbmcgbmVzIGRyaXZl
-ciB2ZXJzaW9uClJETUEvbmVzOiBGaXhlcyBmb3IgUEFVIGhhbmRsaW5nCmN4Z2I0OiBJbml0
-aWFsaXplIGRhdGEgc3RydWN0dXJlcyBiZWZvcmUgdXNpbmcuCmN4Z2I0OiBGaXggaW5pdGlh
-bGl6YXRpb24gb2YgU0dFX0NPTlRST0wgcmVnaXN0ZXIKY3hnYjQ6IEFkZCBlbWJlZGRlZCBm
-aXJtd2FyZSBhbmQgaXRzIGNvbmZpZ3VyYXRpb24gZmlsZSBzdXBwb3J0CmN4Z2I0L2l3X2N4
-Z2I0OiBBZGQgTEUgaGFzaCBjb2xsaXNpb24gYnVnIGZpeCBmb3IgYWN0aXZlIGFuZCBwYXNz
-aXZlIG9mZmxvYWRlZCBjb25uZWN0aW9ucwpjeGdiNDogRml4IHVuYWJsZSB0byBnZXQgVVAg
-ZXZlbnQgZnJvbSB0aGUgTExECmN4Z2I0OiBSZW1vdmUgdW5uZWNlc3NhcnkgI2lmZGVmIGNv
-bmRpdGlvbgpjeGdiNDogRml4IGJ1aWxkIHdhcm5pbmdzIGludHJvZHVjZWQgYWZ0ZXIgVDQg
-Y29uZmlndXJhdGlvbiBmaWxlIHN1cHBvcnQKY3hnYjQ6IEFkZCBzdXBwb3J0IGZvciBUNCBj
-b25maWd1cmF0aW9uIGZpbGUKaXdfY3hnYjQ6IG9ubHkgbG9nIHJ4X2RhdGEgd2FybmluZ3Mg
-aWYgY3BsIHN0YXR1cyBpcyBub24gemVyby4KUkRNQS9jeGdiNDogZml4IG1wYSB2ZXJzaW9u
-IG1pc21hdGNoClJETUEvY3hnYjQ6IGFib3J0IGNvbm5lY3Rpb25zIHRoYXQgcmVjZWl2ZSB1
-bmV4cGVjdGVkIHN0cmVhbWluZyBtb2RlIGRhdGEKUkRNQS9jeGdiNDogSW5zZXJ0IGh3dGlk
-IGluIHBhc3NfYWNjZXB0X3JlcSBpbnN0ZWFkIGluIHBhc3NfZXN0YWJsaXNoClJETUEvY3hn
-YjQ6IFJlbW92ZSB0aGUgbGltaXRhdGlvbiBvbiBtYXhpbXVtIG51bWJlciBvZiBTVEFHcwps
-aW51eC1uZXh0LWNoZXJyeS1waWNrczogRml4IGJ1aWxkIGZhaWx1cmUgZm9yIGtlcm5lbCA8
-IDMuMgpJQi9xaWI6IHJlbW92ZSBFQlVTWSBwYXRjaAppYl9zcnA6IEF2b2lkIHRoYXQgbW9k
-dWxlIHJlbW92YWwgY2FuIHRyaWdnZXIgYSBkZWFkbG9jawppYl9zcnA6IFVuYnJlYWsgYnVp
-bGQgb24gU0xFUyAxMSBTUDIKaWJfc3JwOiBBZGQgcG9zdC0zLjUgdXBzdHJlYW0gcGF0Y2hl
-cwppYl9zcnA6IEF2b2lkIHVzZS1hZnRlci1mcmVlIGR1cmluZyBtb2R1bGUgdW5sb2FkIG9u
-IHByZS0yLjYuMzYga2VybmVscwoKVXBkYXRlZCBwYWNrYWdlczoKICAgIG1zdGZsaW50LTEu
-NC0xLjIzLmc1YzIwMzJhCiAgICBwZXJmdGVzdC0yLjAtMC44LmdhZWI1NjJlCiAgICBxcGVy
-Zi0wLjQuOQoKT0ZFRC0zLjUtcmMyIE1haW4gQ2hhbmdlcyBmcm9tIE9GRUQgMy41LXJjMQot
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCmNvbXBhdC1yZG1hOiBBZGQgU1JQIGJhY2twb3J0
-CmNvbXBhdC1yZG1hOiAvZXRjL2luaXQuZC9vcGVuaWJkOiBGaXggTFNCIGhlYWRlcgpjb21w
-YXQtcmRtYTogSUIvcWliOiBsaW51eC0zLjYgcGF0Y2hlcyBiYWNrcG9ydGVkCmNvbXBhdC1y
-ZG1hOiBpd19jeGdiNDogRml4IGJ1ZyAyMzY5IGluIE9GRUQgYnVnemlsbGEKY29tcGF0LXJk
-bWE6IElCL3FpYjogZml4IGNvbXBsaWFuY2UgcmVncmVzc2lvbiBpbiAzLjUKY29tcGF0LXJk
-bWE6IFJETUEvbmVzOiBBZGQgbGludXgtbmV4dC1wZW5kaW5nIHBhdGNoZXMKY29tcGF0LXJk
-bWE6IFJETUEvbmVzOiBVcGRhdGVkIGJhY2twb3J0cwpjb21wYXQtcmRtYTogTkZTUkRNQSBS
-SEVMNi4zIGJhY2twb3J0CmNvbXBhdC1yZG1hOiBORlNSRE1BIFNMRVMxMVNQMiBiYWNrcG9y
-dApjb21wYXQtcmRtYTogbGludXgtbmV4dC1jaGVycnktcGlja3M6IFJETUEvdWNtYS5jOiBE
-aWZmZXJlbnQgZml4IGZvciB1Y21hIGNvbnRleHQgdWlkPTAsIGNhdXNpbmcgaVdhcnAgUkRN
-QSBhcHBsaWNhdGlvbnMgdG8gZmFpbCBpbiBjb25uZWN0aW9uIGVzdGFibGlzaG1lbnQKClVw
-ZGF0ZWQgcGFja2FnZXM6CiAgICBpbmZpbmlwYXRoLXBzbS0zLjAuMS0xMTUuMTAxNV9vcGVu
-CiAgICBwZXJmdGVzdC0xLjQuMC0wLjgwLmdkMTc2M2JkCiAgICBxcGVyZi0wLjQuNy0wLjIu
-Z2YzZjcwMDEKCk9GRUQtMy41LXJjMSBNYWluIENoYW5nZXMgZnJvbSBPRkVEIDMuMi1yYzEK
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoxLiBCYXNlZCBvbiBsaW51eC0zLjUga2VybmVs
-CjIuIFVwZGF0ZWQgcGFja2FnZXM6CiAgIGliYWNtLTEuMC43CiAgIGxpYnJkbWFjbS0xLjAu
-MTYKICAgZGFwbC0yLjAuMzYKCiAgIE1hbmFnZW1lbnQ6CiAgIGxpYmlidW1hZC0xLjMuOAog
-ICBpbmZpbmliYW5kLWRpYWdzLTEuNi4xCiAgIG9wZW5zbS0zLjMuMTUKCjMuIFJlbW92ZWQg
-bGlic2RwLCBzZHBuZXRzdGF0CgpPRkVELTMuNS1yYzEgTWFpbiBDaGFuZ2VzIGZyb20gT0ZF
-RCAxLjUuNC4xCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KMS4gQmFzZWQgb24gbGludXgt
-My41IGtlcm5lbAoyLiBrZXJuZWwtaWIgUlBNIHJlbmFtZWQgdG8gY29tcGF0LXJkbWEKMy4g
-UmVtb3ZlZCBNUEkgcGFja2FnZXMKNC4gVXBkYXRlZCBwYWNrYWdlczoKICAgbGliaWJ2ZXJi
-cy0xLjEuNgogICBsaWJtbHg0LTEuMC40CiAgIGRhcGwtMi4wLjM1CiAgIGliYWNtLTEuMC42
-CiAgIHBlcmZ0ZXN0LTEuNC4wLTAuNjYuZzkwNzQ2ODcKCiAgIE1hbmFnZW1lbnQ6CiAgIGxp
-YmlibWFkLTEuMy45CiAgIG9wZW5zbS0zLjMuMTQKICAgaW5maW5pYmFuZC1kaWFncy0xLjYu
-MAogICAKCk9GRUQtMS41LjQgTWFpbiBDaGFuZ2VzIGZyb20gT0ZFRCAxLjUuMy4yCi0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0KMS4gQWRkIGtlcm5lbCAzLjAgc3VwcG9ydAoyLiBBZGQg
-UkhFTDYuMiBzdXBwb3J0CjMuIEFkZCBORlNSRE1BIHRvIHRoZSBsaXN0IG9mIHBhY2thZ2Vz
-IHRvIGJlIGluc3RhbGxlZCBieSBkZWZhdWx0IG9uIHN1cHBvcnRlZAogICBwbGF0Zm9ybXMK
-NC4gQWRkIG5ldyBJbmZpbmlCYW5kIGxpbmsgc3BlZWRzOiBFRFIvRkRSL0ZEUjEwCjUuIE9G
-QSBLZXJuZWw6IFNlZSBvZmFfa2VybmVsLmNoYW5nZWxvZy50eHQKCjYuIFVwZGF0ZWQgcGFj
-a2FnZXM6CiAgIGxpYmlidmVyYnMtMS4xLjQtMS4yNC5nYjg5ZDRkNwogICBsaWJtbHg0LTEu
-MC4xLTEuMjAuZzY3NzFkMjIKICAgbGlibmVzLTEuMS4zCiAgIGxpYmN4Z2IzLTEuMy4xCiAg
-IGxpYmN4Z2I0LTEuMi4wCiAgIGRhcGwtMi4wLjM0CiAgIGliYWNtLTEuMC41CiAgIGxpYnJk
-bWFjbS0xLjAuMTUKICAgaW5maW5pcGF0aC1wc20tMi45LTkyNi4xMDA1X29wZW4KICAgaWJ1
-dGlscy0xLjUuNy0wLjEuZzA1YTlkMWEKICAgcGVyZnRlc3QtMS4zLjAtMC41Ni5nZDZmNjA5
-MwogICBtc3RmbGludC0xLjQtMS4xOC5nMWFkY2ZiZgogICAKICAgTWFuYWdlbWVudDoKICAg
-bGliaWJtYWQtMS4zLjgKICAgaW5maW5pYmFuZC1kaWFncy0xLjUuMTIKICAgb3BlbnNtLTMu
-My4xMgogICAKICAgTVBJOgogICBtdmFwaWNoMi0xLjctNS4yMDExc3ZuNTAzMQoKT0ZFRC0x
-LjUuMy4yIE1haW4gQ2hhbmdlcyBmcm9tIE9GRUQgMS41LjMuMQotLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tCjEuIEFkZCBSSEVMNS43IHN1cHBvcnQKMi4gQWRkIFJIRUw2LjEgc3VwcG9y
-dAozLiBBZGQga2VybmVsLm9yZyAyLjYuMzcgLSAyLjYuMzkgc3VwcG9ydAo0LiBpYi1ib25k
-aW5nLTAuOS4wLTQzIChTTEVTMTAgU1A0IHN1cHBvcnQpCgpPRkVELTEuNS4zLjEgTWFpbiBD
-aGFuZ2VzIGZyb20gT0ZFRCAxLjUuMwotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCjEuIEZp
-eCBRSUIgc3VwcG9ydCBvbiBTTEVTMTAgU1AzCgpPRkVELTEuNS4zIE1haW4gQ2hhbmdlcyBm
-cm9tIE9GRUQgMS41LjIKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoxLiBVcGRhdGVkIHBh
-Y2thZ2VzOgogICBkYXBsLTIuMC4zMgogICBsaWJyZG1hY20tMS4wLjE0LjEKICAgaWJhY20t
-MS4wLjQKICAgbGliaWJtYWQtMS4zLjcKICAgbGliaWJ1bWFkLTEuMy43CiAgIGluZmluaWJh
-bmQtZGlhZ3MtMS41LjgKICAgb3BlbnNtLTMuMy45CiAgIGlidXRpbHMtMS41LjcKICAgbGli
-aWJ2ZXJicy0xLjEuNC0xLjIyLmc3MjU3Y2QzLnRhci5negogICBsaWJtbHg0LTEuMC4xLTEu
-MTguZ2I4MTBhMjcudGFyLmd6CiAgIGxpYm5lcy0xLjEuMQogICBpbmZpbmlwYXRoLXBzbS0x
-LjE0CiAgIGxpYnNkcC0xLjEuMTA4LTAuMTUuZ2Q3ZmRiNzIKICAgbXN0ZmxpbnQtMS40LTAu
-OS5nYzY4MzAyMgogICBzZHBuZXRzdGF0LTEuNjAtMC4zLmdiNmU3NDI1CiAgIHBlcmZ0ZXN0
-LTEuMy4wLTAuNDIuZ2YzNTBkM2QKCiAgIC0gTVBJCiAgICAgb3Blbm1waS0xLjQuMy0xCiAg
-ICAgbXZhcGljaDItMS42LTIKCjIuIEFkZGVkIFJIRUw2IHN1cHBvcnQKMy4gQWRkZWQgUkhF
-TDUuNiBzdXBwb3J0CjQuIEltcHJvdmVkIFJBVyBFdGhlcm5ldCBRUCBzdXBwb3J0IChyZXF1
-aXJlcyBDb25uZWN0WC9Db25uZWN0WDIgRlcgPj0gMi44LjA2MDApCjUuIE5GU29SRE1BIHdh
-cyByZW1vdmVkIGZyb20gdGhlIGxpc3Qgb2YgcGFja2FnZXMgaW4gdGhlIGluc3RhbGwgc2Ny
-aXB0IHRvCiAgIHByZXZlbnQgaXRzIGluc3RhbGxhdGlvbiBieSBkZWZhdWx0LgogICBUbyBm
-b3JjZSBORlNvUkRNQSBpbnN0YWxsYXRpb24sIGFkZCB0aGUgZm9sbG93aW5nIGxpbmVzIHRv
-IHRoZSBvZmVkLmNvbmY6CiAgIG5mc3JkbWE9eQogICBybmZzLXV0aWxzPXkKICAgCiAgIFRv
-IGdldCBvZmVkLmNvbmYsIHJ1biAKICAgIyAuL2luc3RhbGwucGwgLXAKICAgCiAgIEFmdGVy
-IGFkZGluZyB0aGUgbGluZXMgYWJvdmUgdG8gb2ZlZC5jb25mLCB0byBpbnN0YWxsIE9GRUQg
-cnVuIAogICAjIC4vaW5zdGFsbC5wbCAtYyBvZmVkLmNvbmYKCk9GRUQtMS41LjIgTWFpbiBD
-aGFuZ2VzIGZyb20gT0ZFRCAxLjUuMQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCjEuIEFk
-ZGVkIFJIRUw1LjUsIFNMRVMxMSBTUDEgYW5kIGtlcm5lbCAyLjYuMzMgc3VwcG9ydAoyLiAv
-ZXRjL21vZHByb2JlLmNvbmYgZGVwcmVjYXRlZAogICBpYl9pcG9pYiB1c2UgL2V0Yy9tb2Rw
-cm9iZS5kL2liX2lwb2liLmNvbmYKICAgaWJfc2RwIHVzZSAvZXRjL21vZHByb2JlLmQvaWJf
-c2RwLmNvbmYKICAgbWx4NF9lbiB1c2UgL2V0Yy9tb2Rwcm9iZS5kL21seDRfZW4uY29uZgoz
-LiBBZGRlZCBSQVcgRXRoZXJuZXQgUVAgc3VwcG9ydCBpbiBsaWJpYnZlcmJzCjQuIEFkZGVk
-IG11bHRpY2FzdCBzdXBwb3J0IGluIHBlcmZ0ZXN0CjUuIEFkZGVkIG5ldyBwYWNrYWdlOiBp
-YmFjbS4gU2VlIGliYWNtX3JlbGVhc2Vfbm90ZXMudHh0CjYuIEFkZGVkIG5ldyBwYWNrYWdl
-IGluZmluaXBhdGgtcHNtLgo3LiBVcGRhdGVkIHBhY2thZ2VzOgogICAgICAgIGxpYmlidmVy
-YnMgdG8gcmV2IDEuMS40LTAuMTQuZ2I2YzEzOGIKICAgICAgICBsaWJlaGNhIHRvIHJldiAx
-LjIuMi0wLjEuZzY5ZTFhODgKICAgICAgICBsaWJtbHg0IHRvIHJldiAxLjAtMC4xMy5nNGU1
-YzQzZgogICAgICAgIGxpYm5lcyB0byByZXYgMS4xLjAKICAgICAgICBsaWJyZG1hY20gdG8g
-cmV2IDEuMC4xMwogICAgICAgIGRhcGwgdG8gcmV2IDIuMC4zMAogICAgICAgIGNvbXBhdC1k
-ZXBsIHRvIHJldiAxLjIuMTkKICAgICAgICBsaWJzZHAgdG8gcmV2IDEuMS4xMDMKICAgICAg
-ICBtc3RmbGludCB0byByZXYgMS40LTAuNi5nNjMxNzlmNAogICAgICAgIHBlcmZ0ZXN0IHRv
-IHJldiAxLjMuMC0wLjI3CiAgICAgICAgcmRzLXRvb2xzIHRvIHJldiAyLjAuNAogICAgICAg
-IE1hbmFnZW1lbnQ6CiAgICAgICAgICAgIG9wZW5zbSB0byByZXYgMy4zLjcKICAgICAgICAg
-ICAgbGliaWJtYWQgdG8gcmV2IDEuMy42CiAgICAgICAgICAgIGxpYmlidW1hZCB0byByZXYg
-MS4zLjYKICAgICAgICAgICAgaW5maW5pYmFuZC1kaWFncyB0byByZXYgMS41LjcKICAgICAg
-ICBNUEk6CiAgICAgICAgICAgIG9wZW5tcGkgdG8gcmV2IDEuNC4yLTEKICAgICAgICAgICAg
-bXZhcGljaDIgdG8gcmV2IDEuNS4xLTIucDEKICAgICAgICAgICAgbXBpdGVzdHMgdG8gcmV2
-IDMuMi05MjMKCk9GRUQtMS41LjEgTWFpbiBDaGFuZ2VzIGZyb20gT0ZFRCAxLjUKLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLQoxLiBBZGRlZCBSb0NFRSBzdXBwb3J0IC0gc2VlIFJvQ0VF
-X1JFQURNRS50eHQKMi4gQWRkZWQgZW5oYW5jZWQgYXRvbWljIG9wZXJhdGlvbnMgdG8gQ29u
-bmVjdFggKGtlcm5lbCBvbmx5KS4KICAgU2VlIG1seDRfcmVsZWFzZV9ub3Rlcy50eHQuCjMu
-IFVwZGF0ZWQgT3BlbiBNUEkgdG8gcmV2IDEuNC4xLTJvZmVkCjQuIFVwZGF0ZWQgTVZBUElD
-SDIgdG8gcmV2IDEuNC4xCjUuIFVwZGF0ZWQgREFQTCB0byByZXYgMi4wLjI3CjYuIFVwZGF0
-ZWQgbGlibmVzIHRvIHJldiAxLjAuMQo3LiBVcGRhdGVkIGxpYnJkbWFjbSB0byByZXYgMS4w
-LjExCjguIFJlbW92ZWQgdHZmbGFzaCBSUE0KOS4gTkZTLVJETUEgaXMgbm90IHN1cHBvcnRl
-ZCBvbiBTTEVTMTAgU1AzCjEwLiBGaXhlZCBJUHY2IHN1cHBvcnQgYW5kIElQdjQgcm91dGlu
-ZyBjb3JuZXIgY2FzZXMgZm9yIFJETUEgQ00KMTEuIEJ1ZyBmaXhlcwoKT0ZFRC0xLjUgTWFp
-biBDaGFuZ2VzIGZyb20gT0ZFRCAxLjQuMgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCk5v
-dGU6IEZvciBkZXRhaWxzIHJlZ2FyZGluZyB0aGUgdmFyaW91cyBjaGFuZ2VzLCAgcGxlYXNl
-IHNlZSB0aGUgcmVsZWFzZSBub3Rlcwpmb3IgZWFjaCBwYWNrYWdlIGluIHRoZSBkb2NzIGRp
-cmVjdG9yeS4KCiAgICAyLjEgR2VuZXJhbCBjaGFuZ2VzCglvIEtlcm5lbCBjb2RlIGJhc2Vk
-IG9uIDIuNi4zMAoJbyBsaWJyYXJpZXMgbG9jYXRpb24gLSBhbGwgdXNlcnNwYWNlIGxpYnJh
-cmllcyBjYW4gYmUgZG93bmxvYWRlZCBmcm9tCgkgIGh0dHA6Ly93d3cub3BlbmZhYnJpY3Mu
-b3JnL2Rvd25sb2Fkcy8KCSAgU2VlIEJVSUxEX0lEIGZvciBleGFjdCBsb2NhdGlvbnMKCW8g
-UWxvZ2ljIG1vdmVkIHRoZSBsb3cgbGV2ZWwgZHJpdmVyIGZyb20gaXBhdGggdG8gcWliLgoK
-ICAgIDIuMiBTRFAKCW8gUGVyZm9ybWFuY2UgaW1wcm92ZW1lbnRzCglvIFplcm8gY29weSBp
-biBiZXRhIGxldmVsCgogICAgMi4zIHVEQVBMCglvIE5ldyBVQ00gcHJvdmlkZXIgKG9mYS12
-Mi1tbHg0XzAtMXUpIHdpdGggSUIgVUQtYmFzZWQgQ00gcGVyIHByb2Nlc3MuCiAgICAgICAg
-ICBJdCBpcyBtb3JlIHNjYWxhYmxlIHRoYW4gcmRtYV9jbSAoY21hKSBvciBzb2NrZXQgY20g
-KHNjbSkuIAoJbyBDb21tb24gY29kZSBiYXNlIHdpdGggV2luT0YgMi4xCglvIEJ1ZyBmaXhl
-cwoKCiAgICAyLjQgcGVyZnRlc3QKCW8gUmVuYW1lZCB0ZXN0czoKCSAgaWJfcmRtYV9idyAg
-LT4gcmRtYV9idwoJICBpYl9yZG1hX2xhdCAtPiByZG1hX2xhdAoKICAgIDIuNSBNYW5hZ2Vt
-ZW50IAoJbyBPcGVuU00KCSAgLSBTdXBwb3J0IGZvciBNZXNoIEFuYWx5c2lzIGZvciBMQVNI
-IHJvdXRpbmcgYWxnb3JpdGhtCiAgICAgICAgICAtIFJlbG9hZGFibGUgT3BlblNNIGNvbmZp
-Z3VyYXRpb24gKHByZWxpbWluYXJ5IGltcGxlbWVudGF0aW9uKQogICAgICAgICAgLSBSb3V0
-aW5nIHBhdGhzIHNvcnRlZCBiYWxhbmNpbmcgKGZvciBVcERvd24gYW5kIE1pbkhvcHMpCiAg
-ICAgICAgICAtIFdlaWdodGVkIExJRCBtYXRyaWNlcyBjYWxjdWxhdGlvbiAoZm9yIFVwRG93
-biwgTWluSG9wIGFuZCBET1IpCiAgICAgICAgICAtIEkvTyBub2RlcyBjb25uZWN0aXZpdHkg
-KGZvciBGYXRUcmVlKQoKICAgIDIuNiBNUEk6CglhLiBPU1UgTVZBUElDSCAxLjIuMAoJYi4g
-T3BlbiBNUEkgMS40CgljLiBPU1UgTVZBUElDSDIgMS40CglkLiBNUEkgdGVzdHMgMy4yCgog
-ICAgMi43IGlTRVI6CglvIEF2YWlsYWJsZSBvbjoKICAgICAgICAgIC0ga2VybmVsLm9yZzog
-Mi42LjMwIGFuZCBoaWdoZXIKICAgICAgICAgIC0gUkhFTDUuNAoKICAgIDIuOCBORlMtUkRN
-QQoJbyBBZGRlZCBzdXBwb3J0IGZvciBSSEVMNS40LCBTTEVTMTAgU1AzLCBrZXJuZWwub3Jn
-IDIuNi4yNSBhbmQgMi42LjMwLgoJICBLZXJuZWxzIDIuNi4yNiBhbmQgMi42LjI3IGFyZSBu
-b3Qgc3VwcG9ydGVkCglvIE5GUy1SRE1BIGlzIGluIEJldGEgbGV2ZWwKCj09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT0KMy4gS25vd24gSXNzdWVzCj09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0KVGhlIGZvbGxvd2luZyBpcyBhIGxpc3Qgb2YgZ2VuZXJhbCBsaW1pdGF0aW9ucyBhbmQg
-a25vd24gaXNzdWVzIG9mIHRoZSB2YXJpb3VzCmNvbXBvbmVudHMgb2YgdGhlIE9GRUQgMy41
-LXJjMiByZWxlYXNlLgoKMS4gV2hlbiB1cGdyYWRpbmcgZnJvbSBhbiBlYXJsaWVyIE9GRUQg
-dmVyc2lvbiwgdGhlIGluc3RhbGxhdGlvbiBzY3JpcHQgZG9lcwogICBub3Qgc3RvcCB0aGUg
-ZWFybGllciBPRkVEIHZlcnNpb24gcHJpb3IgdG8gdW5pbnN0YWxsaW5nIGl0LiAKICAgV29y
-a2Fyb3VuZDogU3RvcCB0aGUgb2xkIE9GRUQgc3RhY2sgKC9ldGMvaW5pdC5kL29wZW5pYmQg
-c3RvcCkgYmVmb3JlIAogICB1cGdyYWRpbmcgdG8gT0ZFRCAzLjUgb3IgcmVib290IHRoZSBz
-ZXJ2ZXIgYWZ0ZXIgT0ZFRCBpbnN0YWxsYXRpb24uCjIuIE1lbW9yeSByZWdpc3RyYXRpb24g
-YnkgdGhlIHVzZXIgaXMgbGltaXRlZCBhY2NvcmRpbmcgdG8gYWRtaW5pc3RyYXRvcgogICBz
-ZXR0aW5nLiBTZWUgIlBpbm5pbmcgKExvY2tpbmcpIFVzZXIgTWVtb3J5IFBhZ2VzIiBpbiBP
-RkVEX3RpcHMudHh0IGZvcgogICBzeXN0ZW0gY29uZmlndXJhdGlvbi4KMy4gRm9yayBzdXBw
-b3J0IGZyb20ga2VybmVsIDIuNi4xMiBhbmQgYWJvdmUgaXMgYXZhaWxhYmxlIHByb3ZpZGVk
-CiAgIHRoYXQgYXBwbGljYXRpb25zIGRvIG5vdCB1c2UgdGhyZWFkcy4gZm9yaygpIGlzIHN1
-cHBvcnRlZCBhcyBsb25nIGFzIHRoZQogICBwYXJlbnQgcHJvY2VzcyBkb2VzIG5vdCBydW4g
-YmVmb3JlIHRoZSBjaGlsZCBleGl0cyBvciBjYWxscyBleGVjKCkuCiAgIFRoZSBmb3JtZXIg
-Y2FuIGJlIGFjaGlldmVkIGJ5IGNhbGxpbmcgd2FpdChjaGlsZHBpZCksIGFuZCB0aGUgbGF0
-dGVyIGNhbiBiZQogICBhY2hpZXZlZCBieSBhcHBsaWNhdGlvbiBzcGVjaWZpYyBtZWFucy4g
-IFRoZSBQb3NpeCBzeXN0ZW0oKSBjYWxsIGlzCiAgIHN1cHBvcnRlZC4KNC4gVGhlIHFpYiBk
-cml2ZXIgaXMgc3VwcG9ydGVkIG9ubHkgb24gNjQtYml0IHBsYXRmb3Jtcy4KNS4gSVBvSUI6
-IGJyY3RsIHV0aWxpdGllcyBkbyBub3Qgd29yayBvbiBJUG9JQiBpbnRlcmZhY2VzLiBUaGUg
-cmVhc29uIGZvciB0aGF0CiAgIGlzIHRoYXQgdGhlc2UgdXRpbGl0aWVzIHN1cHBvcnQgZGV2
-aWNlcyBvZiB0eXBlIEV0aGVybmV0IG9ubHkuCjYuIEluIGNhc2UgdW5pbnN0YWxsIGlzIGZh
-aWxpbmcsIGNoZWNrIHRoZSBlcnJvciBsb2cgYW5kIHJlbW92ZQogICB0aGUgcmVtYWluaW5n
-IFJQTXMgbWFudWFsbHkgdXNpbmcgJ3JwbSAtZSA8cnBtcyBsaXN0PicuCjcuIE9uIFNMRVMx
-MS54LCBzZXQgYWxsb3dfdW5zdXBwb3J0ZWRfbW9kdWxlcyBwYXJhbWV0ZXIgdG8gMSBpbiBm
-aWxlOgogICAgL2V0Yy9tb2Rwcm9iZS5kL3Vuc3VwcG9ydGVkLW1vZHVsZXMuIFdpdGhvdXQg
-dGhpcyB0aGUgbW9kdWxlcyB3aWxsIG5vdAogICAgbG9hZC4KCk5vdGU6IFNlZSB0aGUgcmVs
-ZWFzZSBub3RlcyBvZiBlYWNoIGNvbXBvbmVudCBmb3IgYWRkaXRpb25hbCBpc3N1ZXMuCg==
---------------010307090003030705030004--
+> I put dmesg log from step 2 (host and guest) again :
+> 
+> [ 1419.382452] mlx4_core: Mellanox ConnectX core driver v1.1 (Dec, 2011)
+> [ 1419.382454] mlx4_core: Initializing 0000:05:00.0
+> [ 1419.382653] mlx4_core 0000:05:00.0: Enabling SR-IOV with 1 VFs
+> [ 1419.483687] pci 0000:05:00.1: [15b3:1002] type 00 class 0x0c0600
+> [ 1419.484427] mlx4_core 0000:05:00.0: Running in master mode
+> [ 1420.486608] mlx4_core 0000:05:00.0: FW version 2.9.1200 (cmd intf
+> rev 3), max commands 16
+> [ 1420.486610] mlx4_core 0000:05:00.0: Catastrophic error buffer at
+> 0x1f020, size 0x10, BAR 0
+> [ 1420.486612] mlx4_core 0000:05:00.0: Communication vector bar:2 offset:0x800
+> [ 1420.486613] mlx4_core 0000:05:00.0: FW size 385 KB
+> [ 1420.486615] mlx4_core 0000:05:00.0: Clear int @ f0058, BAR 0
+> [ 1420.488474] mlx4_core 0000:05:00.0: Mapped 26 chunks/6168 KB for FW.
+> [ 1421.155871] mlx4_core 0000:05:00.0: BlueFlame available (reg size
+> 512, regs/page 8)
+> [ 1421.156035] mlx4_core 0000:05:00.0: Base MM extensions: flags
+> 00000cc0, rsvd L_Key 00000500
+> [ 1421.156036] mlx4_core 0000:05:00.0: Max ICM size 4294967296 MB
+> [ 1421.156038] mlx4_core 0000:05:00.0: Max QPs: 16777216, reserved
+> QPs: 64, entry size: 256
+> [ 1421.156040] mlx4_core 0000:05:00.0: Max SRQs: 16777216, reserved
+> SRQs: 64, entry size: 128
+> [ 1421.156041] mlx4_core 0000:05:00.0: Max CQs: 16777216, reserved
+> CQs: 128, entry size: 128
+> [ 1421.156043] mlx4_core 0000:05:00.0: Max EQs: 32, reserved EQs: 28,
+> entry size: 128
+> [ 1421.156045] mlx4_core 0000:05:00.0: reserved MPTs: 16, reserved MTTs: 16
+> [ 1421.156046] mlx4_core 0000:05:00.0: Max PDs: 131072, reserved PDs:
+> 4, reserved UARs: 7
+> [ 1421.156048] mlx4_core 0000:05:00.0: Max QP/MCG: 131072, reserved MGMs: 0
+> [ 1421.156049] mlx4_core 0000:05:00.0: Max CQEs: 4194304, max WQEs:
+> 16384, max SRQ WQEs: 16384
+> [ 1421.156051] mlx4_core 0000:05:00.0: Local CA ACK delay: 15, max
+> MTU: 4096, port width cap: 3
+> [ 1421.156052] mlx4_core 0000:05:00.0: Max SQ desc size: 1008, max SQ S/G: 62
+> [ 1421.156054] mlx4_core 0000:05:00.0: Max RQ desc size: 512, max RQ S/G: 32
+> [ 1421.156055] mlx4_core 0000:05:00.0: Max GSO size: 131072
+> [ 1421.156056] mlx4_core 0000:05:00.0: Max counters: 256
+> [ 1421.156058] mlx4_core 0000:05:00.0: Max RSS Table size: 256
+> [ 1421.156059] mlx4_core 0000:05:00.0: DEV_CAP flags:
+> [ 1421.156060] mlx4_core 0000:05:00.0:     RC transport
+> [ 1421.156062] mlx4_core 0000:05:00.0:     UC transport
+> [ 1421.156063] mlx4_core 0000:05:00.0:     UD transport
+> [ 1421.156064] mlx4_core 0000:05:00.0:     XRC transport
+> [ 1421.156065] mlx4_core 0000:05:00.0:     FCoIB support
+> [ 1421.156066] mlx4_core 0000:05:00.0:     SRQ support
+> [ 1421.156068] mlx4_core 0000:05:00.0:     IPoIB checksum offload
+> [ 1421.156069] mlx4_core 0000:05:00.0:     P_Key violation counter
+> [ 1421.156070] mlx4_core 0000:05:00.0:     Q_Key violation counter
+> [ 1421.156071] mlx4_core 0000:05:00.0:     DPDP
+> [ 1421.156073] mlx4_core 0000:05:00.0:     Big LSO headers
+> [ 1421.156074] mlx4_core 0000:05:00.0:     APM support
+> [ 1421.156075] mlx4_core 0000:05:00.0:     Atomic ops support
+> [ 1421.156077] mlx4_core 0000:05:00.0:     Address vector port checking support
+> [ 1421.156078] mlx4_core 0000:05:00.0:     UD multicast support
+> [ 1421.156079] mlx4_core 0000:05:00.0:     Router support
+> [ 1421.156080] mlx4_core 0000:05:00.0:     IBoE support
+> [ 1421.156082] mlx4_core 0000:05:00.0:     Unicast loopback support
+> [ 1421.156083] mlx4_core 0000:05:00.0:     UDP RSS support
+> [ 1421.156084] mlx4_core 0000:05:00.0:     Unicast VEP steering support
+> [ 1421.156085] mlx4_core 0000:05:00.0:     Multicast VEP steering support
+> [ 1421.156087] mlx4_core 0000:05:00.0:     Counters support
+> [ 1421.156088] mlx4_core 0000:05:00.0:     RSS support
+> [ 1421.156090] mlx4_core 0000:05:00.0:     RSS Toeplitz Hash Function support
+> [ 1421.156091] mlx4_core 0000:05:00.0:     RSS XOR Hash Function support
+> [ 1421.156093] mlx4_core 0000:05:00.0: Steering mode is: B0 steering,
+> oper_log_mgm_entry_size = 10, modparam log_num_mgm_entry_size = 10
+> [ 1421.156099] mlx4_core 0000:05:00.0:   profile[ 0] (  CMPT): 2^26
+> entries @ 0x         0, size 0x 100000000
+> [ 1421.156101] mlx4_core 0000:05:00.0:   profile[ 1] (RDMARC): 2^22
+> entries @ 0x 100000000, size 0x   8000000
+> [ 1421.156103] mlx4_core 0000:05:00.0:   profile[ 2] (   MTT): 2^24
+> entries @ 0x 108000000, size 0x   8000000
+> [ 1421.156105] mlx4_core 0000:05:00.0:   profile[ 3] (    QP): 2^18
+> entries @ 0x 110000000, size 0x   4000000
+> [ 1421.156107] mlx4_core 0000:05:00.0:   profile[ 4] (  DMPT): 2^19
+> entries @ 0x 114000000, size 0x   2000000
+> [ 1421.156109] mlx4_core 0000:05:00.0:   profile[ 5] (  ALTC): 2^18
+> entries @ 0x 116000000, size 0x   1000000
+> [ 1421.156111] mlx4_core 0000:05:00.0:   profile[ 6] (   SRQ): 2^16
+> entries @ 0x 117000000, size 0x    800000
+> [ 1421.156113] mlx4_core 0000:05:00.0:   profile[ 7] (    CQ): 2^16
+> entries @ 0x 117800000, size 0x    800000
+> [ 1421.156115] mlx4_core 0000:05:00.0:   profile[ 8] (   MCG): 2^13
+> entries @ 0x 118000000, size 0x    800000
+> [ 1421.156117] mlx4_core 0000:05:00.0:   profile[ 9] (  AUXC): 2^18
+> entries @ 0x 118800000, size 0x     40000
+> [ 1421.156119] mlx4_core 0000:05:00.0:   profile[10] (    EQ): 2^10
+> entries @ 0x 118840000, size 0x     20000
+> [ 1421.156120] mlx4_core 0000:05:00.0: HCA context memory: reserving 4596096 KB
+> [ 1421.156136] mlx4_core 0000:05:00.0: 4596096 KB of HCA context
+> requires 9068 KB aux memory.
+> [ 1421.185505] mlx4_core 0000:05:00.0: Mapped 39 chunks/9068 KB for ICM aux.
+> [ 1421.186824] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at 0 for ICM.
+> [ 1421.188122] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 40000000 for ICM.
+> [ 1421.189418] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 80000000 for ICM.
+> [ 1421.189754] mlx4_core 0000:05:00.0: Mapped 1 chunks/64 KB at
+> c0000000 for ICM.
+> [ 1421.190400] mlx4_core 0000:05:00.0: Mapped 1 chunks/128 KB at
+> 118840000 for ICM.
+> [ 1421.191677] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 108000000 for ICM.
+> [ 1421.193001] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 114000000 for ICM.
+> [ 1421.194279] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 110000000 for ICM.
+> [ 1421.195563] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118800000 for ICM.
+> [ 1421.196841] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 116000000 for ICM.
+> [ 1421.198127] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 100000000 for ICM.
+> [ 1421.199405] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 117800000 for ICM.
+> [ 1421.200684] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 117000000 for ICM.
+> [ 1421.201964] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118000000 for ICM.
+> [ 1421.203240] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118040000 for ICM.
+> [ 1421.204517] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118080000 for ICM.
+> [ 1421.205802] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 1180c0000 for ICM.
+> [ 1421.207079] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118100000 for ICM.
+> [ 1421.208356] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118140000 for ICM.
+> [ 1421.209633] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118180000 for ICM.
+> [ 1421.210912] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 1181c0000 for ICM.
+> [ 1421.212191] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118200000 for ICM.
+> [ 1421.213465] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118240000 for ICM.
+> [ 1421.214742] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118280000 for ICM.
+> [ 1421.216024] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 1182c0000 for ICM.
+> [ 1421.217303] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118300000 for ICM.
+> [ 1421.218580] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118340000 for ICM.
+> [ 1421.219855] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118380000 for ICM.
+> [ 1421.221132] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 1183c0000 for ICM.
+> [ 1421.222407] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118400000 for ICM.
+> [ 1421.223685] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118440000 for ICM.
+> [ 1421.224963] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118480000 for ICM.
+> [ 1421.226245] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 1184c0000 for ICM.
+> [ 1421.227522] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118500000 for ICM.
+> [ 1421.228801] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118540000 for ICM.
+> [ 1421.230079] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118580000 for ICM.
+> [ 1421.231355] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 1185c0000 for ICM.
+> [ 1421.232633] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118600000 for ICM.
+> [ 1421.233909] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118640000 for ICM.
+> [ 1421.235186] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118680000 for ICM.
+> [ 1421.236470] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 1186c0000 for ICM.
+> [ 1421.237748] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118700000 for ICM.
+> [ 1421.239026] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118740000 for ICM.
+> [ 1421.240303] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 118780000 for ICM.
+> [ 1421.241581] mlx4_core 0000:05:00.0: Mapped 1 chunks/256 KB at
+> 1187c0000 for ICM.
+> [ 1421.744993] mlx4_core 0000:05:00.0: Started init_resource_tracker: 80 slaves
+> [ 1421.745454] mlx4_core 0000:05:00.0: irq 176 for MSI/MSI-X
+> [ 1421.745466] mlx4_core 0000:05:00.0: irq 177 for MSI/MSI-X
+> [ 1421.750286] mlx4_core 0000:05:00.0: NOP command IRQ test passed
+> [ 1421.750911] mlx4_core: Initializing 0000:82:00.0
+> [ 1421.751006] mlx4_core 0000:82:00.0: Enabling SR-IOV with 1 VFs
+> [ 1421.851346] pci 0000:82:00.1: [15b3:1004] type 00 class 0x028000
+> [ 1421.852051] mlx4_core 0000:82:00.0: Running in master mode
+> [ 1422.853834] mlx4_core 0000:82:00.0: FW version 2.11.500 (cmd intf
+> rev 3), max commands 16
+> [ 1422.853837] mlx4_core 0000:82:00.0: Catastrophic error buffer at
+> 0x1f020, size 0x10, BAR 0
+> [ 1422.853839] mlx4_core 0000:82:00.0: Communication vector bar:2 offset:0x800
+> [ 1422.853840] mlx4_core 0000:82:00.0: FW size 385 KB
+> [ 1422.853842] mlx4_core 0000:82:00.0: Clear int @ f0058, BAR 0
+> [ 1422.855140] mlx4_core 0000:82:00.0: Mapped 26 chunks/6168 KB for FW.
+> [ 1425.518005] mlx4_core 0000:82:00.0: BlueFlame available (reg size
+> 512, regs/page 8)
+> [ 1425.518117] mlx4_core 0000:82:00.0: Base MM extensions: flags
+> 00104cc0, rsvd L_Key 00008000
+> [ 1425.518119] mlx4_core 0000:82:00.0: Max ICM size 4294967296 MB
+> [ 1425.518120] mlx4_core 0000:82:00.0: Max QPs: 16777216, reserved
+> QPs: 64, entry size: 256
+> [ 1425.518122] mlx4_core 0000:82:00.0: Max SRQs: 16777216, reserved
+> SRQs: 64, entry size: 128
+> [ 1425.518124] mlx4_core 0000:82:00.0: Max CQs: 16777216, reserved
+> CQs: 128, entry size: 128
+> [ 1425.518125] mlx4_core 0000:82:00.0: Max EQs: 32, reserved EQs: 28,
+> entry size: 128
+> [ 1425.518127] mlx4_core 0000:82:00.0: reserved MPTs: 256, reserved MTTs: 32
+> [ 1425.518128] mlx4_core 0000:82:00.0: Max PDs: 131072, reserved PDs:
+> 4, reserved UARs: 7
+> [ 1425.518130] mlx4_core 0000:82:00.0: Max QP/MCG: 131072, reserved MGMs: 0
+> [ 1425.518131] mlx4_core 0000:82:00.0: Max CQEs: 4194304, max WQEs:
+> 16384, max SRQ WQEs: 16384
+> [ 1425.518133] mlx4_core 0000:82:00.0: Local CA ACK delay: 15, max
+> MTU: 4096, port width cap: 2
+> [ 1425.518134] mlx4_core 0000:82:00.0: Max SQ desc size: 1008, max SQ S/G: 62
+> [ 1425.518136] mlx4_core 0000:82:00.0: Max RQ desc size: 512, max RQ S/G: 32
+> [ 1425.518137] mlx4_core 0000:82:00.0: Max GSO size: 131072
+> [ 1425.518138] mlx4_core 0000:82:00.0: Max counters: 256
+> [ 1425.518140] mlx4_core 0000:82:00.0: Max RSS Table size: 256
+> [ 1425.518141] mlx4_core 0000:82:00.0: DEV_CAP flags:
+> [ 1425.518142] mlx4_core 0000:82:00.0:     RC transport
+> [ 1425.518144] mlx4_core 0000:82:00.0:     UC transport
+> [ 1425.518145] mlx4_core 0000:82:00.0:     UD transport
+> [ 1425.518146] mlx4_core 0000:82:00.0:     XRC transport
+> [ 1425.518147] mlx4_core 0000:82:00.0:     FCoIB support
+> [ 1425.518148] mlx4_core 0000:82:00.0:     SRQ support
+> [ 1425.518150] mlx4_core 0000:82:00.0:     IPoIB checksum offload
+> [ 1425.518151] mlx4_core 0000:82:00.0:     P_Key violation counter
+> [ 1425.518152] mlx4_core 0000:82:00.0:     Q_Key violation counter
+> [ 1425.518154] mlx4_core 0000:82:00.0:     DPDP
+> [ 1425.518155] mlx4_core 0000:82:00.0:     Big LSO headers
+> [ 1425.518156] mlx4_core 0000:82:00.0:     APM support
+> [ 1425.518158] mlx4_core 0000:82:00.0:     Atomic ops support
+> [ 1425.518159] mlx4_core 0000:82:00.0:     Address vector port checking support
+> [ 1425.518160] mlx4_core 0000:82:00.0:     UD multicast support
+> [ 1425.518161] mlx4_core 0000:82:00.0:     Router support
+> [ 1425.518163] mlx4_core 0000:82:00.0:     IBoE support
+> [ 1425.518164] mlx4_core 0000:82:00.0:     Unicast loopback support
+> [ 1425.518165] mlx4_core 0000:82:00.0:     FCS header control
+> [ 1425.518167] mlx4_core 0000:82:00.0:     UDP RSS support
+> [ 1425.518168] mlx4_core 0000:82:00.0:     Unicast VEP steering support
+> [ 1425.518169] mlx4_core 0000:82:00.0:     Multicast VEP steering support
+> [ 1425.518170] mlx4_core 0000:82:00.0:     Counters support
+> [ 1425.518172] mlx4_core 0000:82:00.0:     Port management change event support
+> [ 1425.518173] mlx4_core 0000:82:00.0:     64 byte EQE support
+> [ 1425.518175] mlx4_core 0000:82:00.0:     64 byte CQE support
+> [ 1425.518176] mlx4_core 0000:82:00.0:     RSS support
+> [ 1425.518177] mlx4_core 0000:82:00.0:     RSS Toeplitz Hash Function support
+> [ 1425.518178] mlx4_core 0000:82:00.0:     RSS XOR Hash Function support
+> [ 1425.518180] mlx4_core 0000:82:00.0:     Device manage flow steering support
+> [ 1425.518182] mlx4_core 0000:82:00.0: 64B EQEs/CQEs supported by the
+> device but not enabled
+> [ 1425.518184] mlx4_core 0000:82:00.0: Steering mode is: B0 steering,
+> oper_log_mgm_entry_size = 10, modparam log_num_mgm_entry_size = 10
+> [ 1425.518190] mlx4_core 0000:82:00.0:   profile[ 0] (  CMPT): 2^26
+> entries @ 0x         0, size 0x 100000000
+> [ 1425.518193] mlx4_core 0000:82:00.0:   profile[ 1] (RDMARC): 2^22
+> entries @ 0x 100000000, size 0x   8000000
+> [ 1425.518195] mlx4_core 0000:82:00.0:   profile[ 2] (   MTT): 2^24
+> entries @ 0x 108000000, size 0x   8000000
+> [ 1425.518197] mlx4_core 0000:82:00.0:   profile[ 3] (    QP): 2^18
+> entries @ 0x 110000000, size 0x   4000000
+> [ 1425.518199] mlx4_core 0000:82:00.0:   profile[ 4] (  DMPT): 2^19
+> entries @ 0x 114000000, size 0x   2000000
+> [ 1425.518200] mlx4_core 0000:82:00.0:   profile[ 5] (  ALTC): 2^18
+> entries @ 0x 116000000, size 0x   1000000
+> [ 1425.518202] mlx4_core 0000:82:00.0:   profile[ 6] (   SRQ): 2^16
+> entries @ 0x 117000000, size 0x    800000
+> [ 1425.518204] mlx4_core 0000:82:00.0:   profile[ 7] (    CQ): 2^16
+> entries @ 0x 117800000, size 0x    800000
+> [ 1425.518206] mlx4_core 0000:82:00.0:   profile[ 8] (   MCG): 2^13
+> entries @ 0x 118000000, size 0x    800000
+> [ 1425.518208] mlx4_core 0000:82:00.0:   profile[ 9] (  AUXC): 2^18
+> entries @ 0x 118800000, size 0x     40000
+> [ 1425.518210] mlx4_core 0000:82:00.0:   profile[10] (    EQ): 2^10
+> entries @ 0x 118840000, size 0x     20000
+> [ 1425.518212] mlx4_core 0000:82:00.0: HCA context memory: reserving 4596096 KB
+> [ 1425.518228] mlx4_core 0000:82:00.0: 4596096 KB of HCA context
+> requires 9068 KB aux memory.
+> [ 1425.554670] mlx4_core 0000:82:00.0: Mapped 39 chunks/9068 KB for ICM aux.
+> [ 1425.556059] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at 0 for ICM.
+> [ 1425.557429] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 40000000 for ICM.
+> [ 1425.558795] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 80000000 for ICM.
+> [ 1425.559144] mlx4_core 0000:82:00.0: Mapped 1 chunks/64 KB at
+> c0000000 for ICM.
+> [ 1425.559827] mlx4_core 0000:82:00.0: Mapped 1 chunks/128 KB at
+> 118840000 for ICM.
+> [ 1425.561182] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 108000000 for ICM.
+> [ 1425.562580] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 114000000 for ICM.
+> [ 1425.563932] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 110000000 for ICM.
+> [ 1425.565306] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118800000 for ICM.
+> [ 1425.566666] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 116000000 for ICM.
+> [ 1425.568018] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 100000000 for ICM.
+> [ 1425.569390] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 117800000 for ICM.
+> [ 1425.570754] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 117000000 for ICM.
+> [ 1425.572109] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118000000 for ICM.
+> [ 1425.573454] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118040000 for ICM.
+> [ 1425.574822] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118080000 for ICM.
+> [ 1425.576175] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 1180c0000 for ICM.
+> [ 1425.577533] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118100000 for ICM.
+> [ 1425.578899] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118140000 for ICM.
+> [ 1425.580246] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118180000 for ICM.
+> [ 1425.581593] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 1181c0000 for ICM.
+> [ 1425.582929] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118200000 for ICM.
+> [ 1425.584289] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118240000 for ICM.
+> [ 1425.585645] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118280000 for ICM.
+> [ 1425.587011] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 1182c0000 for ICM.
+> [ 1425.588376] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118300000 for ICM.
+> [ 1425.589740] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118340000 for ICM.
+> [ 1425.591098] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118380000 for ICM.
+> [ 1425.592460] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 1183c0000 for ICM.
+> [ 1425.593820] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118400000 for ICM.
+> [ 1425.595170] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118440000 for ICM.
+> [ 1425.596532] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118480000 for ICM.
+> [ 1425.597912] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 1184c0000 for ICM.
+> [ 1425.599257] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118500000 for ICM.
+> [ 1425.600610] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118540000 for ICM.
+> [ 1425.601967] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118580000 for ICM.
+> [ 1425.603314] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 1185c0000 for ICM.
+> [ 1425.604674] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118600000 for ICM.
+> [ 1425.606018] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118640000 for ICM.
+> [ 1425.607374] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118680000 for ICM.
+> [ 1425.608741] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 1186c0000 for ICM.
+> [ 1425.610095] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118700000 for ICM.
+> [ 1425.611456] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118740000 for ICM.
+> [ 1425.612815] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 118780000 for ICM.
+> [ 1425.614165] mlx4_core 0000:82:00.0: Mapped 1 chunks/256 KB at
+> 1187c0000 for ICM.
+> [ 1426.193222] mlx4_core 0000:82:00.0: Started init_resource_tracker: 80 slaves
+> [ 1426.193692] mlx4_core 0000:82:00.0: irq 178 for MSI/MSI-X
+> [ 1426.193705] mlx4_core 0000:82:00.0: irq 179 for MSI/MSI-X
+> [ 1426.200029] mlx4_core 0000:82:00.0: NOP command IRQ test passed
+> [ 1426.200605] mlx4_core: Initializing 0000:05:00.1
+> [ 1426.200618] mlx4_core 0000:05:00.1: enabling device (0000 -> 0002)
+> [ 1426.200654] mlx4_core 0000:05:00.1: Skipping virtual function:1
+> [ 1426.200674] mlx4_core: Initializing 0000:82:00.1
+> [ 1426.200685] mlx4_core 0000:82:00.1: enabling device (0000 -> 0002)
+> [ 1426.200711] mlx4_core 0000:82:00.1: Skipping virtual function:1
+> [ 1438.961741] pci-stub 0000:82:00.1: claimed by stub
+> [ 1438.967250] pci-stub 0000:82:00.1: enabling device (0000 -> 0002)
+> [ 1438.969739] mlx4_core 0000:82:00.0: FLR event for slave: 1
+> [ 1438.969775] mlx4_core 0000:82:00.0: mlx4_handle_slave_flr
+> [ 1438.969776] mlx4_core 0000:82:00.0: mlx4_handle_slave_flr: clean slave: 1
+> [ 1439.070931] assign device 0:82:0.1
+> [ 1439.073469] mlx4_core 0000:82:00.0: FLR event for slave: 1
+> [ 1439.073526] mlx4_core 0000:82:00.0: mlx4_handle_slave_flr
+> [ 1439.073529] mlx4_core 0000:82:00.0: mlx4_handle_slave_flr: clean slave: 1
+> [ 1439.226723] mlx4_core 0000:82:00.0: Received reset from slave:1
+> [ 1439.239542] pci-stub 0000:82:00.1: irq 180 for MSI/MSI-X
+> [ 1439.272548] pci-stub 0000:82:00.1: irq 180 for MSI/MSI-X
+> [ 1439.272559] pci-stub 0000:82:00.1: irq 181 for MSI/MSI-X
+> [ 1449.381120] mlx4_core 0000:82:00.0: Received reset from slave:1
+> 
+> 
+> mlx4_core: Mellanox ConnectX core driver v1.1 (Dec, 2011)
+> mlx4_core: Initializing 0000:00:0b.0
+> mlx4_core 0000:00:0b.0: enabling device (0000 -> 0002)
+> mlx4_core 0000:00:0b.0: Detected virtual function - running in slave mode
+> mlx4_core 0000:00:0b.0: Sending reset
+> mlx4_core 0000:00:0b.0: Sending vhcr0
+> mlx4_core 0000:00:0b.0: 64B EQEs/CQEs supported by the device but not enabled
+> mlx4_core 0000:00:0b.0: HCA minimum page size:512
+> mlx4_core 0000:00:0b.0: irq 48 for MSI/MSI-X
+> mlx4_core 0000:00:0b.0: irq 49 for MSI/MSI-X
+> mlx4_core 0000:00:0b.0: failed execution of VHCR_POST commandopcode 0x31
+> mlx4_core 0000:00:0b.0: NOP command failed to generate MSI-X interrupt IRQ 49).
+> mlx4_core 0000:00:0b.0: Trying again without MSI-X.
+> mlx4_core: probe of 0000:00:0b.0 failed with error -16
+> 
+> Mathis
+> 
+> 2013/1/29 Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
+> > On Tuesday 29 January 2013 15:15, Mathis GAVILLON wrote:
+> >> In fact, one boxe wasn't check in IOMMU submenu (Support for Interrupt
+> >> Remapping (EXPERIMENTAL)). I've recompiled the kernel of the host and
+> >> guest (is it necessary for this last one ?). But the error message is
+> >> already present. Just below, new dmeg log from host and guest O/S
+> >> (mlx4_core loaded with options num_vfs=1 probe_vf=1 debug_level=1 on
+> >> host and debug_level=1 on guest) :
+> >>
+> > Please do the following:
+> > 1. Check the Support for Interrupt Remapping (EXPERIMENTAL) box and recompile/reinstall.
+> > 2. set probe_vf=0, so that no vfs will run on the Hypervisor.  That way you will
+> >    see if any VF comes up without the "noise" in /var/log/messages in the Hypervisor generated
+> >    by having one of the VFs run on the Hypervisor.
+> >
+> > 3. I noticed that you are enabling only a single VF, and that you are having the
+> >    VF come up first on the Hypervisor, then moving it to run on a guest.
+> >    It is better not to do things that way. Best to have it come up cleanly once on
+> >    the guest. (the FLR event in your log results from this move.  The VF gets reset).
+> >
+> >    If you must have a VF running on the Hypervisor, use "num_vfs=2 probe_vf=1".
+> >    You will then see Devices ...xx.0, ...xx.1 and ...xx.2 in lspci.  The first VF
+> >    (...xx.1) will be initialized on the Hypervisor.  Attach ...xx.2 to the VM.
+> >
+> > -Jack
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
