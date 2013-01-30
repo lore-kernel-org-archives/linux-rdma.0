@@ -1,42 +1,51 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: Re: RDMA/cxgb4: Support on-chip SQs
-Date: Wed, 30 Jan 2013 15:51:24 -0600
-Message-ID: <510995DC.4020602@opengridcomputing.com>
-References: <20130130210006.GA22134@elgon.mountain> <51099270.5070406@opengridcomputing.com> <20130130214425.GA5674@obsidianresearch.com>
+Date: Wed, 30 Jan 2013 15:52:34 -0600
+Message-ID: <51099622.40505@opengridcomputing.com>
+References: <20130130210006.GA22134@elgon.mountain> <51099270.5070406@opengridcomputing.com> <20130130214555.GA4989@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130130214425.GA5674-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130130214555.GA4989@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/30/2013 3:44 PM, Jason Gunthorpe wrote:
+
+On 1/30/2013 3:45 PM, Dan Carpenter wrote:
 > On Wed, Jan 30, 2013 at 03:36:48PM -0600, Steve Wise wrote:
 >> I wonder, then, what the correct service is to get the cpu physical
 >> address from a kernel virtual address returned from
 >> dma_alloc_coherent()?  I think this is correct as-is, since I think
 >> dma_alloc_coherent() falls under the "directly mapped" addresses in
 >> the virt_to_phys() prototype comment.
-> DMA-API.txt says:
+>>
+> Here is another relevant comment I should have included.
 >
->   This routine allocates a region of <size> bytes of consistent memory.
->   It also returns a <dma_handle> which may be cast to an unsigned
->   integer the same width as the bus and used as the physical address
->   base of the region.
+> commit ae6a5d37725853325a2b3460165fbc5613ce2916
+> Author: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+> Date:   Tue Nov 20 12:17:51 2012 +0000
 >
-> So instead of virt_to_phys you should use dma_addr??
+>      ASoC: kirkwood-dma: fix use of virt_to_phys()
+>
+>      This is part of a patch found in Rabeeh Khoury's git tree for the
+>      cubox.
+>
+>      You can not use virt_to_phys() on the address returned from
+>      dma_alloc_coherent(); it may not be part of the kernel direct-mapped
+>      memory.  Fix this to use the DMA address instead.
+>
+>      Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+>      Signed-off-by: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+>
+> I don't know the details though, and I certainly don't know how
+> someone would fix this.  ;)
+>
 
-I don't think so.  The result of virt_to_phys() is used in 
-remap_pfn_range() to map this memory into user space...  The dma_addr is 
-give to HW for DMA operations.
-
-> I think the note about 'directly mapped' refers to things the arch
-> setups during early boot, not dma_alloc stuff.
->
-> Jason
+How do I map the dma address into a physical address suitable for 
+passing to remap_pfn_range()?
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
