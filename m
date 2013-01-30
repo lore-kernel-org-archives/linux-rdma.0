@@ -1,32 +1,33 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/8] opensm: Improve VL use on endport links with
- torus-2QoS routing
-Date: Wed, 30 Jan 2013 19:55:35 +0200
-Message-ID: <20130130175535.GT2961@calypso.mtl.com>
-References: <50B65FD7.3040209@dev.mellanox.co.il>
+Subject: Re: [PATCH] opensm/osm_port_info_rcv.c: Don't modify subnet minimal
+ values when PortState DOWN
+Date: Wed, 30 Jan 2013 19:49:49 +0200
+Message-ID: <20130130174949.GM2961@calypso.mtl.com>
+References: <50BD18F0.4030900@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <50B65FD7.3040209-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <50BD18F0.4030900-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 14:02 Wed 28 Nov     , Hal Rosenstock wrote:
-> Currently, torus-2QoS routing utilizes/requires 8 data VLs on endport
-> links in order to support 2 QoS levels. While the 8 data VLs are a
-> requirement in the subnet core for this, only 2 data VLs are needed on
-> endport links (one for each QoS level). This patch series changes
-> torus-2QoS routing to only require and use 2 data VLs on such endport links.
+On 16:26 Mon 03 Dec     , Hal Rosenstock wrote:
+> as they are vendor dependent fields in PortInfo and can't be relied on due to:
 > 
-> -- Hal
-> --
+> C14-24.2.1: If PortInfo:Portstate=Down, then
+> o a SubnGet(PortInfo) shall produce valid data for PortInfo:PortState
+>   and PortInfo:PortPhysicalState; whether any other component has
+>   valid data is vendor-dependent.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
 
-Applied the series. Thanks.
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
