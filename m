@@ -1,23 +1,23 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: opensm/osm_torus.c: Fix crash in torus_update_osm_vlarb
-Date: Wed, 30 Jan 2013 19:50:33 +0200
-Message-ID: <20130130175033.GN2961@calypso.mtl.com>
-References: <50BD1879.2080309@dev.mellanox.co.il>
+Subject: Re: [PATCH] opensm/osm_ucast_ftree.c: Eliminate unneeded NULL
+ pointer checks prior to calls to free
+Date: Wed, 30 Jan 2013 19:51:01 +0200
+Message-ID: <20130130175101.GO2961@calypso.mtl.com>
+References: <50BCC48F.4070705@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <50BD1879.2080309-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <50BCC48F.4070705-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Hi Hal,
 
-On 16:24 Mon 03 Dec     , Hal Rosenstock wrote:
+On 10:26 Mon 03 Dec     , Hal Rosenstock wrote:
 > 
-> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
 
