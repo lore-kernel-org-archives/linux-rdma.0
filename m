@@ -1,49 +1,105 @@
-From: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] Fix -Wtautological-compare warnings with clang
-Date: Wed, 30 Jan 2013 17:25:36 -0800
-Message-ID: <A16D1DD2-3488-4698-96C4-B5AA0AD5AF0C@gmail.com>
-References: <alpine.BSF.2.00.1212091205060.64779@toaster.local> <20130130174920.GL2961@calypso.mtl.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-	charset=us-ascii
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] libibmad: Add NodeRecord query API
+Date: Thu, 31 Jan 2013 01:43:42 -0500
+Message-ID: <510A129E.4000600@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130130174920.GL2961-iQai9MGU/dze+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jan 30, 2013, at 9:49 AM, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+Add ib_node_query_via routine similar to ib_path_query_via
 
-> Hi Garret,
-> 
-> On 12:14 Sun 09 Dec     , Garrett Cooper wrote:
->> From 1f91aeca2d9fecd1301d6fe2731a79d8640b2072 Mon Sep 17 00:00:00 2001
->> From: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> Date: Sun, 9 Dec 2012 02:44:32 -0800
->> Subject: [PATCH 1/3] Fix -Wtautological-compare warnings with clang
->> 
->> V1:
->> 
->> The noted branch conditions are true or false and hence not
->> tested/executed as designed.
->> 
->> Prune the always true/false conditional checks.
->> 
->> V2:
->> 
->> Fix the conditional check in osm_vendor_new by properly checking for
->> IB_SUCCESS instead of assuming that values < 0 denotes error as this
->> isn't possible given the enum definition.
->> 
->> Signed-off-by: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
-> 
-> Applied the series. Thanks.
-
-Thanks!
--Garrett
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+index 0694dc4..02b2353 100644
+--- a/include/infiniband/mad.h
++++ b/include/infiniband/mad.h
+@@ -65,6 +65,7 @@ BEGIN_C_DECLS
+ #define IB_PC_DATA_SZ		(IB_MAD_SIZE - IB_PC_DATA_OFFS)
+ #define IB_SA_MCM_RECSZ		53
+ #define IB_SA_PR_RECSZ		64
++#define IB_SA_NR_RECSZ		108
+ #define IB_SA_GIR_RECSZ		72
+ #define IB_BM_DATA_OFFS		64
+ #define IB_BM_DATA_SZ		(IB_MAD_SIZE - IB_BM_DATA_OFFS)
+@@ -1519,6 +1542,9 @@ MAD_EXPORT int ib_path_query_via(const struct ibmad_port *srcport,
+ 				 ibmad_gid_t srcgid, ibmad_gid_t destgid,
+ 				 ib_portid_t * sm_id, void *buf);
+ 	/* returns lid */
++MAD_EXPORT int ib_node_query_via(const struct ibmad_port *srcport,
++				 uint64_t guid, ib_portid_t * sm_id,
++				 void *buf);
+ 
+ /* resolve.c */
+ MAD_EXPORT int ib_resolve_smlid(ib_portid_t * sm_id, int timeout) DEPRECATED;
+diff --git a/src/libibmad.map b/src/libibmad.map
+index a4d4418..3f92885 100644
+--- a/src/libibmad.map
++++ b/src/libibmad.map
+@@ -148,5 +148,6 @@ IBMAD_1.3 {
+ 		cc_config_status_via;
+ 		smp_mkey_get;
+ 		smp_mkey_set;
++		ib_node_query_via;
+ 	local: *;
+ };
+diff --git a/src/sa.c b/src/sa.c
+index a9a93cc..352ed9f 100644
+--- a/src/sa.c
++++ b/src/sa.c
+@@ -145,3 +145,47 @@ int ib_path_query(ibmad_gid_t srcgid, ibmad_gid_t destgid, ib_portid_t * sm_id,
+ {
+ 	return ib_path_query_via(ibmp, srcgid, destgid, sm_id, buf);
+ }
++
++/* NodeRecord */
++#define IB_NR_COMPMASK_LID				(1ull<<0)
++#define IB_NR_COMPMASK_RESERVED1			(1ull<<1)
++#define IB_NR_COMPMASK_BASEVERSION			(1ull<<2)
++#define IB_NR_COMPMASK_CLASSVERSION			(1ull<<3)
++#define IB_NR_COMPMASK_NODETYPE				(1ull<<4)
++#define IB_NR_COMPMASK_NUMPORTS				(1ull<<5)
++#define IB_NR_COMPMASK_SYSIMAGEGUID			(1ull<<6)
++#define IB_NR_COMPMASK_NODEGUID				(1ull<<7)
++#define IB_NR_COMPMASK_PORTGUID				(1ull<<8)
++#define IB_NR_COMPMASK_PARTCAP				(1ull<<9)
++#define IB_NR_COMPMASK_DEVID				(1ull<<10)
++#define IB_NR_COMPMASK_REV				(1ull<<11)
++#define IB_NR_COMPMASK_PORTNUM				(1ull<<12)
++#define IB_NR_COMPMASK_VENDID				(1ull<<13)
++#define IB_NR_COMPMASK_NODEDESC				(1ull<<14)
++
++#define IB_NR_DEF_MASK IB_NR_COMPMASK_PORTGUID
++
++int ib_node_query_via(const struct ibmad_port *srcport, uint64_t guid,
++		      ib_portid_t * sm_id, void *buf)
++{
++	ib_sa_call_t sa = { 0 };
++	uint8_t *p;
++
++	memset(&sa, 0, sizeof sa);
++	sa.method = IB_MAD_METHOD_GET;
++	sa.attrid = IB_SA_ATTR_NODERECORD;
++	sa.mask = IB_NR_DEF_MASK;
++	sa.trid = mad_trid();
++
++	memset(buf, 0, IB_SA_NR_RECSZ);
++
++	mad_encode_field(buf, IB_SA_NR_PORT_GUID_F, &guid);
++
++	p = sa_rpc_call(srcport, buf, sm_id, &sa, 0);
++	if (!p) {
++		IBWARN("sa call node_query failed");
++		return -1;
++	}
++
++	return 0;
++}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
