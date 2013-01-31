@@ -1,105 +1,72 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] libibmad: Add NodeRecord query API
-Date: Thu, 31 Jan 2013 01:43:42 -0500
-Message-ID: <510A129E.4000600@dev.mellanox.co.il>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/configure.in: Remove Default-Start from opensmd
+ init script
+Date: Thu, 31 Jan 2013 09:21:00 +0200
+Message-ID: <20130131072100.GU2961@calypso.mtl.com>
+References: <20130129171850.GB2961@calypso.mtl.com>
+ <5108E0F6.3060602@acm.org>
+ <51093F8E.10905@redhat.com>
+ <51094393.1060102@acm.org>
+ <51095CD5.80503@redhat.com>
+ <51097080.9000402@acm.org>
+ <5109737F.70101@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5109737F.70101-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add ib_node_query_via routine similar to ib_path_query_via
+On 14:24 Wed 30 Jan     , Doug Ledford wrote:
+> On 1/30/2013 2:12 PM, Bart Van Assche wrote:
+> > On 01/30/13 18:48, Doug Ledford wrote:
+> >> On 1/30/2013 11:00 AM, Bart Van Assche wrote:
+> >>> Which convention is followed for other packages ? This is what I
+> >>> found in
+> >>> the Fedora 18 iscsi-initiator-utils package
+> >>> (http://be.mirror.eurid.eu/fedora/linux/releases/18/Fedora/source/SRPMS/i/iscsi-initiator-utils-6.2.0.872-19.fc18.src.rpm):
+> >>>
+> >>>
+> >>> * iscsid.init: Default-Start: 3 4 5
+> >>> * iscsi-initiator-utils.spec:
+> >>
+> >> Okay, first off, any package that still uses the SysV initscripts as of
+> >> Fedora 18 is not what I would call a package that is keeping up with the
+> >> Fedora packaging guidelines or Fedora technologies.  As such, I'm not
+> >> really sure you want to use it as an example of a good package.
+> >> However, that being said, you will note in this spec file that the iSCSI
+> >> initiator package does exactly what you removed, or suggested be
+> >> removed, from the opensmd spec file.  It unilaterally adds the
+> >> initscript to the system.  The default start/stop settings are
+> >> different, but the add action is the same.
+> >>
+> >> All initscripts should be added to the system, regardless of their
+> >> default start/stop settings, and the default-start and default-stop
+> >> should be used to control *how* they are added by default, and chkconfig
+> >> --level .* <scriptname> [on|off] should be used to control whether or
+> >> not they are on or off differently than their default settings.
+> > 
+> > Thanks for the detailed reply. Regarding the purpose of the patch at the
+> > start of this thread: do you know whether it is LSB-compliant to use
+> > "Default-Start: null" or should "Default-Start" be left out entirely in
+> > order not to create the start links ? See e.g.
+> > http://refspecs.linuxbase.org/LSB_3.2.0/LSB-Core-generic/LSB-Core-generic/initscrcomconv.html.
+> > 
+> > 
+> > Bart.
+> 
+> I've always used "Default-start:" without any listed levels, but I
+> haven't really tested it either and the spec is not specific about this
+> particular possible configuration.
+> 
+> 
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
-index 0694dc4..02b2353 100644
---- a/include/infiniband/mad.h
-+++ b/include/infiniband/mad.h
-@@ -65,6 +65,7 @@ BEGIN_C_DECLS
- #define IB_PC_DATA_SZ		(IB_MAD_SIZE - IB_PC_DATA_OFFS)
- #define IB_SA_MCM_RECSZ		53
- #define IB_SA_PR_RECSZ		64
-+#define IB_SA_NR_RECSZ		108
- #define IB_SA_GIR_RECSZ		72
- #define IB_BM_DATA_OFFS		64
- #define IB_BM_DATA_SZ		(IB_MAD_SIZE - IB_BM_DATA_OFFS)
-@@ -1519,6 +1542,9 @@ MAD_EXPORT int ib_path_query_via(const struct ibmad_port *srcport,
- 				 ibmad_gid_t srcgid, ibmad_gid_t destgid,
- 				 ib_portid_t * sm_id, void *buf);
- 	/* returns lid */
-+MAD_EXPORT int ib_node_query_via(const struct ibmad_port *srcport,
-+				 uint64_t guid, ib_portid_t * sm_id,
-+				 void *buf);
- 
- /* resolve.c */
- MAD_EXPORT int ib_resolve_smlid(ib_portid_t * sm_id, int timeout) DEPRECATED;
-diff --git a/src/libibmad.map b/src/libibmad.map
-index a4d4418..3f92885 100644
---- a/src/libibmad.map
-+++ b/src/libibmad.map
-@@ -148,5 +148,6 @@ IBMAD_1.3 {
- 		cc_config_status_via;
- 		smp_mkey_get;
- 		smp_mkey_set;
-+		ib_node_query_via;
- 	local: *;
- };
-diff --git a/src/sa.c b/src/sa.c
-index a9a93cc..352ed9f 100644
---- a/src/sa.c
-+++ b/src/sa.c
-@@ -145,3 +145,47 @@ int ib_path_query(ibmad_gid_t srcgid, ibmad_gid_t destgid, ib_portid_t * sm_id,
- {
- 	return ib_path_query_via(ibmp, srcgid, destgid, sm_id, buf);
- }
-+
-+/* NodeRecord */
-+#define IB_NR_COMPMASK_LID				(1ull<<0)
-+#define IB_NR_COMPMASK_RESERVED1			(1ull<<1)
-+#define IB_NR_COMPMASK_BASEVERSION			(1ull<<2)
-+#define IB_NR_COMPMASK_CLASSVERSION			(1ull<<3)
-+#define IB_NR_COMPMASK_NODETYPE				(1ull<<4)
-+#define IB_NR_COMPMASK_NUMPORTS				(1ull<<5)
-+#define IB_NR_COMPMASK_SYSIMAGEGUID			(1ull<<6)
-+#define IB_NR_COMPMASK_NODEGUID				(1ull<<7)
-+#define IB_NR_COMPMASK_PORTGUID				(1ull<<8)
-+#define IB_NR_COMPMASK_PARTCAP				(1ull<<9)
-+#define IB_NR_COMPMASK_DEVID				(1ull<<10)
-+#define IB_NR_COMPMASK_REV				(1ull<<11)
-+#define IB_NR_COMPMASK_PORTNUM				(1ull<<12)
-+#define IB_NR_COMPMASK_VENDID				(1ull<<13)
-+#define IB_NR_COMPMASK_NODEDESC				(1ull<<14)
-+
-+#define IB_NR_DEF_MASK IB_NR_COMPMASK_PORTGUID
-+
-+int ib_node_query_via(const struct ibmad_port *srcport, uint64_t guid,
-+		      ib_portid_t * sm_id, void *buf)
-+{
-+	ib_sa_call_t sa = { 0 };
-+	uint8_t *p;
-+
-+	memset(&sa, 0, sizeof sa);
-+	sa.method = IB_MAD_METHOD_GET;
-+	sa.attrid = IB_SA_ATTR_NODERECORD;
-+	sa.mask = IB_NR_DEF_MASK;
-+	sa.trid = mad_trid();
-+
-+	memset(buf, 0, IB_SA_NR_RECSZ);
-+
-+	mad_encode_field(buf, IB_SA_NR_PORT_GUID_F, &guid);
-+
-+	p = sa_rpc_call(srcport, buf, sm_id, &sa, 0);
-+	if (!p) {
-+		IBWARN("sa call node_query failed");
-+		return -1;
-+	}
-+
-+	return 0;
-+}
+It's how the script was defined before. The behavior on RHEL and SLES is
+different when not specifying "Default-start:". On RHEL, `chkconfig opensmd on`
+adds the service to the default runlevels: 2 3 4 5. While on SLES it doesn't.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
