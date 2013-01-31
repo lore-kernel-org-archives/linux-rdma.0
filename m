@@ -1,80 +1,67 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] opensm/configure.in: Remove Default-Start from opensmd
- init script
-Date: Thu, 31 Jan 2013 09:20:31 -0500
-Message-ID: <510A7DAF.60802@redhat.com>
-References: <20130129171850.GB2961@calypso.mtl.com> <5108E0F6.3060602@acm.org> <51093F8E.10905@redhat.com> <51094393.1060102@acm.org> <51095CD5.80503@redhat.com> <51097080.9000402@acm.org> <5109737F.70101@redhat.com> <20130131072100.GU2961@calypso.mtl.com>
+From: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+Subject: crash in librdmacm
+Date: Thu, 31 Jan 2013 17:01:15 +0100
+Message-ID: <510A954B.9060301@itwm.fraunhofer.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130131072100.GU2961-iQai9MGU/dze+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/31/13 02:21, Alex Netes wrote:
-> On 14:24 Wed 30 Jan     , Doug Ledford wrote:
->> On 1/30/2013 2:12 PM, Bart Van Assche wrote:
->>> On 01/30/13 18:48, Doug Ledford wrote:
->>>> On 1/30/2013 11:00 AM, Bart Van Assche wrote:
->>>>> Which convention is followed for other packages ? This is what I
->>>>> found in
->>>>> the Fedora 18 iscsi-initiator-utils package
->>>>> (http://be.mirror.eurid.eu/fedora/linux/releases/18/Fedora/source/SRPMS/i/iscsi-initiator-utils-6.2.0.872-19.fc18.src.rpm):
->>>>>
->>>>>
->>>>> * iscsid.init: Default-Start: 3 4 5
->>>>> * iscsi-initiator-utils.spec:
->>>>
->>>> Okay, first off, any package that still uses the SysV initscripts as of
->>>> Fedora 18 is not what I would call a package that is keeping up with the
->>>> Fedora packaging guidelines or Fedora technologies.  As such, I'm not
->>>> really sure you want to use it as an example of a good package.
->>>> However, that being said, you will note in this spec file that the iSCSI
->>>> initiator package does exactly what you removed, or suggested be
->>>> removed, from the opensmd spec file.  It unilaterally adds the
->>>> initscript to the system.  The default start/stop settings are
->>>> different, but the add action is the same.
->>>>
->>>> All initscripts should be added to the system, regardless of their
->>>> default start/stop settings, and the default-start and default-stop
->>>> should be used to control *how* they are added by default, and chkconfig
->>>> --level .* <scriptname> [on|off] should be used to control whether or
->>>> not they are on or off differently than their default settings.
->>>
->>> Thanks for the detailed reply. Regarding the purpose of the patch at the
->>> start of this thread: do you know whether it is LSB-compliant to use
->>> "Default-Start: null" or should "Default-Start" be left out entirely in
->>> order not to create the start links ? See e.g.
->>> http://refspecs.linuxbase.org/LSB_3.2.0/LSB-Core-generic/LSB-Core-generic/initscrcomconv.html.
->>>
->>>
->>> Bart.
->>
->> I've always used "Default-start:" without any listed levels, but I
->> haven't really tested it either and the spec is not specific about this
->> particular possible configuration.
->>
->>
-> 
-> It's how the script was defined before. The behavior on RHEL and SLES is
-> different when not specifying "Default-start:". On RHEL, `chkconfig opensmd on`
-> adds the service to the default runlevels: 2 3 4 5. While on SLES it doesn't.
+Hi all,
 
-That sounds like a bug in SLES to be honest.  chkconfig opensmd on
-without --levels should follow the Default-Start: item (just like
-chkconfig add opensmd).
+we got a bug report from a customer that FhGFS server daemons frequently 
+crash. Looking into it, we are almost sure it is related to 
+librdmacm/kernel-ib. So the crash in librdmacm resolves to:
+
+> (gdb) l *(rdma_get_cm_event+0x102)
+> 0x3d6dc04522 is in rdma_get_cm_event (src/cma.c:1975).
+> 1970                    break;
+> 1971            default:
+> 1972                    evt->id_priv = (void *) (uintptr_t) resp.uid;
+> 1973                    evt->event.id = &evt->id_priv->id;
+> 1974                    evt->event.status = resp.status;
+> 1975                    if (ucma_is_ud_qp(evt->id_priv->id.qp_type))
+> 1976                            ucma_copy_ud_event(evt, &resp.param.ud);
+> 1977                    else
+> 1978                            ucma_copy_conn_event(evt, &resp.param.conn);
+> 1979                    break;
 
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-	      http://people.redhat.com/dledford
+Now the complete shows that the issue comes up directly after initiating 
+a connection and we are just querying the file descriptor for events. So 
+from our point of view there is not much we can do about it.
 
-Infiniband specific RPMs available at
-	      http://people.redhat.com/dledford/Infiniband
+Possibly this is already fixed by commit 
+418edaaba96e58112b15c82b4907084e2a9caf42 and this commit is also not yet 
+in the latest RHEL kernel being used on the customer system.
+However, the commit messages states it is for RDMA_CM_EVENT_ESTABLISHED 
+only, while the resolved address above points to another event. Does the 
+commit really on fix this event or would it also fix further events?
+
+While looking where file->mut is being set, I notice that in 
+ucma_create_id() the call of ucma_alloc_ctx() is protected by a mutex, 
+but the mutex is immediately given up after that call. In 
+ucma_alloc_ctx() the ctx is already added to file->ctx_list, but the 
+ctx->uid and ctx->cm_id are then modified outside a mutex in 
+ucma_create_id(). Shouldn't the mutex_unlock() be done after assigning 
+those values?
+
+Looking further, I also notice that 'enum rdma_cm_event_type' does not 
+initialize a single value. AFAIK, according to the C standard at least 
+the first value has to be initialized, otherwise the compiler is free to 
+assign random values. This is certainly fine for in-kernel enums, 
+however, as kernel and user space need to use the same numbers this 
+probably should be improved. Shall I write a patch, assigning the first 
+value to 0 for kernel and lib definitions?
+
+
+Thanks,
+Bernd
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
