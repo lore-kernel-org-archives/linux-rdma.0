@@ -1,37 +1,27 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: [LSF/MM TOPIC] Reducing the SRP initiator failover time
-Date: Fri, 01 Feb 2013 14:43:38 +0100
-Message-ID: <510BC68A.90708@acm.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH for 3.8 v3, resend 0/3] IB/SRP patches for kernel 3.8
+Date: Fri, 01 Feb 2013 16:18:02 +0100
+Message-ID: <510BDCAA.204@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: lsf-pc@lists.linux-foundation.org, linux-scsi <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, David Dillow <dillowda@ornl.gov>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Turin <alextu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It is known that it takes about two to three minutes before the upstream 
-SRP initiator fails over from a failed path to a working path. This is 
-not only considered longer than acceptable but is also longer than other 
-Linux SCSI initiators (e.g. iSCSI and FC). Progress so far with 
-improving the fail-over SRP initiator has been slow. This is because the 
-discussion about candidate patches occurred at two different levels: not 
-only the patches itself were discussed but also the approach that should 
-be followed. That last aspect is easier to discuss in a meeting than 
-over a mailing list. Hence the proposal to discuss SRP initiator 
-failover behavior during the LSF/MM summit. The topics that need further 
-discussion are:
-* If a path fails, remove the entire SCSI host or preserve the SCSI
-   host and only remove the SCSI devices associated with that host ?
-* Which software component should test the state of a path and should
-   reconnect to an SRP target if a path is restored ? Should that be
-   done by the user space process srp_daemon or by the SRP initiator
-   kernel module ?
-* How should the SRP initiator behave after a path failure has been
-   detected ? Should the behavior be similar to the FC initiator with
-   its fast_io_fail_tmo and dev_loss_tmo parameters ?
+This patch series avoids that SCSI error handling triggers an endless 
+loop and also restores reporting of QP errors in the kernel log.
 
-Dave, if this topic gets accepted, I really hope you will be able to 
-attend the LSF/MM summit.
+Changes between v3 and v2:
+- As proposed by Dave, added a patch that prevents sending of a task
+   management function over a closed connection.
 
-Bart.
+Changes between v2 and v1:
+- Track connection state properly.
+- Make srp_reset_host() reset requests even if reconnecting fails
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
