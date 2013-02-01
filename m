@@ -1,65 +1,37 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: crash in librdmacm
-Date: Thu, 31 Jan 2013 20:18:07 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237357D423D5@ORSMSX101.amr.corp.intel.com>
-References: <510A954B.9060301@itwm.fraunhofer.de>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [LSF/MM TOPIC] Reducing the SRP initiator failover time
+Date: Fri, 01 Feb 2013 14:43:38 +0100
+Message-ID: <510BC68A.90708@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <510A954B.9060301-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Cc: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: lsf-pc@lists.linux-foundation.org, linux-scsi <linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, David Dillow <dillowda@ornl.gov>
 List-Id: linux-rdma@vger.kernel.org
 
-PiB3ZSBnb3QgYSBidWcgcmVwb3J0IGZyb20gYSBjdXN0b21lciB0aGF0IEZoR0ZTIHNlcnZlciBk
-YWVtb25zIGZyZXF1ZW50bHkNCj4gY3Jhc2guIExvb2tpbmcgaW50byBpdCwgd2UgYXJlIGFsbW9z
-dCBzdXJlIGl0IGlzIHJlbGF0ZWQgdG8NCj4gbGlicmRtYWNtL2tlcm5lbC1pYi4gU28gdGhlIGNy
-YXNoIGluIGxpYnJkbWFjbSByZXNvbHZlcyB0bzoNCj4gDQo+ID4gKGdkYikgbCAqKHJkbWFfZ2V0
-X2NtX2V2ZW50KzB4MTAyKQ0KPiA+IDB4M2Q2ZGMwNDUyMiBpcyBpbiByZG1hX2dldF9jbV9ldmVu
-dCAoc3JjL2NtYS5jOjE5NzUpLg0KPiA+IDE5NzAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0K
-PiA+IDE5NzEgICAgICAgICAgICBkZWZhdWx0Og0KPiA+IDE5NzIgICAgICAgICAgICAgICAgICAg
-IGV2dC0+aWRfcHJpdiA9ICh2b2lkICopICh1aW50cHRyX3QpIHJlc3AudWlkOw0KPiA+IDE5NzMg
-ICAgICAgICAgICAgICAgICAgIGV2dC0+ZXZlbnQuaWQgPSAmZXZ0LT5pZF9wcml2LT5pZDsNCj4g
-PiAxOTc0ICAgICAgICAgICAgICAgICAgICBldnQtPmV2ZW50LnN0YXR1cyA9IHJlc3Auc3RhdHVz
-Ow0KPiA+IDE5NzUgICAgICAgICAgICAgICAgICAgIGlmICh1Y21hX2lzX3VkX3FwKGV2dC0+aWRf
-cHJpdi0+aWQucXBfdHlwZSkpDQo+ID4gMTk3NiAgICAgICAgICAgICAgICAgICAgICAgICAgICB1
-Y21hX2NvcHlfdWRfZXZlbnQoZXZ0LCAmcmVzcC5wYXJhbS51ZCk7DQo+ID4gMTk3NyAgICAgICAg
-ICAgICAgICAgICAgZWxzZQ0KPiA+IDE5NzggICAgICAgICAgICAgICAgICAgICAgICAgICAgdWNt
-YV9jb3B5X2Nvbm5fZXZlbnQoZXZ0LCAmcmVzcC5wYXJhbS5jb25uKTsNCj4gPiAxOTc5ICAgICAg
-ICAgICAgICAgICAgICBicmVhazsNCj4gDQo+IA0KPiBOb3cgdGhlIGNvbXBsZXRlIHNob3dzIHRo
-YXQgdGhlIGlzc3VlIGNvbWVzIHVwIGRpcmVjdGx5IGFmdGVyIGluaXRpYXRpbmcNCj4gYSBjb25u
-ZWN0aW9uIGFuZCB3ZSBhcmUganVzdCBxdWVyeWluZyB0aGUgZmlsZSBkZXNjcmlwdG9yIGZvciBl
-dmVudHMuIFNvDQo+IGZyb20gb3VyIHBvaW50IG9mIHZpZXcgdGhlcmUgaXMgbm90IG11Y2ggd2Ug
-Y2FuIGRvIGFib3V0IGl0Lg0KPiANCj4gUG9zc2libHkgdGhpcyBpcyBhbHJlYWR5IGZpeGVkIGJ5
-IGNvbW1pdA0KPiA0MThlZGFhYmE5NmU1ODExMmIxNWM4MmI0OTA3MDg0ZTJhOWNhZjQyIGFuZCB0
-aGlzIGNvbW1pdCBpcyBhbHNvIG5vdCB5ZXQNCj4gaW4gdGhlIGxhdGVzdCBSSEVMIGtlcm5lbCBi
-ZWluZyB1c2VkIG9uIHRoZSBjdXN0b21lciBzeXN0ZW0uDQo+IEhvd2V2ZXIsIHRoZSBjb21taXQg
-bWVzc2FnZXMgc3RhdGVzIGl0IGlzIGZvciBSRE1BX0NNX0VWRU5UX0VTVEFCTElTSEVEDQo+IG9u
-bHksIHdoaWxlIHRoZSByZXNvbHZlZCBhZGRyZXNzIGFib3ZlIHBvaW50cyB0byBhbm90aGVyIGV2
-ZW50LiBEb2VzIHRoZQ0KPiBjb21taXQgcmVhbGx5IG9uIGZpeCB0aGlzIGV2ZW50IG9yIHdvdWxk
-IGl0IGFsc28gZml4IGZ1cnRoZXIgZXZlbnRzPw0KDQpUaGUgYWJvdmUgY29tbWl0IGZpeGVzIGFu
-IGlzc3VlIHdoZXJlIHRoZSB1aWQgY2FuIGJlIHJldHVybmVkIDAgZnJvbSB0aGUga2VybmVsLg0K
-DQpBIGNhbGwgdG8gcmVzb2x2ZSBhbiBhZGRyZXNzIHNob3VsZCBub3QgaGF2ZSB0aGlzIGlzc3Vl
-LiAgVGhlIGlzc3VlIGlzIGxpbWl0ZWQgdG8gY29ubmVjdGlvbnMgZm9ybWVkIGZyb20gYSBsaXN0
-ZW4gcmVxdWVzdC4gIFRoZSByZWFzb24gZm9yIHRoaXMgaXMgdGhhdCBwYXNzaXZlIHNpZGUgY29u
-bmVjdGlvbnMgY3JlYXRlIHRoZSBrZXJuZWwgaWQgZmlyc3QsIHdoaWNoIGlzIHRoZW4gbGlua2Vk
-IHVwIHdpdGggdGhlIHVzZXIgc3BhY2UgaWQuICBBY3RpdmUgc2lkZSBwcm9jZXNzaW5nIGNyZWF0
-ZXMgdGhlIHVzZXIgc3BhY2UgaWQsIHRoZW4gdGhlIGtlcm5lbCBpZC4NCg0KPiBXaGlsZSBsb29r
-aW5nIHdoZXJlIGZpbGUtPm11dCBpcyBiZWluZyBzZXQsIEkgbm90aWNlIHRoYXQgaW4NCj4gdWNt
-YV9jcmVhdGVfaWQoKSB0aGUgY2FsbCBvZiB1Y21hX2FsbG9jX2N0eCgpIGlzIHByb3RlY3RlZCBi
-eSBhIG11dGV4LA0KPiBidXQgdGhlIG11dGV4IGlzIGltbWVkaWF0ZWx5IGdpdmVuIHVwIGFmdGVy
-IHRoYXQgY2FsbC4gSW4NCj4gdWNtYV9hbGxvY19jdHgoKSB0aGUgY3R4IGlzIGFscmVhZHkgYWRk
-ZWQgdG8gZmlsZS0+Y3R4X2xpc3QsIGJ1dCB0aGUNCj4gY3R4LT51aWQgYW5kIGN0eC0+Y21faWQg
-YXJlIHRoZW4gbW9kaWZpZWQgb3V0c2lkZSBhIG11dGV4IGluDQo+IHVjbWFfY3JlYXRlX2lkKCku
-IFNob3VsZG4ndCB0aGUgbXV0ZXhfdW5sb2NrKCkgYmUgZG9uZSBhZnRlciBhc3NpZ25pbmcNCj4g
-dGhvc2UgdmFsdWVzPw0KDQpJdCBzaG91bGRuJ3QgbWF0dGVyLCBhcyBsb25nIGFzIHRoZSB1aWQg
-YW5kIGNtX2lkIGFyZSBzZXQgYmVmb3JlIGFueSBldmVudHMgY2FuIGJlIGdlbmVyYXRlZC4gIEV2
-ZW50cyBhcmUgbm90IGdlbmVyYXRlZCBvbiBuZXdseSBjcmVhdGVkIGlkJ3MuDQogDQotIFNlYW4N
-Cg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It is known that it takes about two to three minutes before the upstream 
+SRP initiator fails over from a failed path to a working path. This is 
+not only considered longer than acceptable but is also longer than other 
+Linux SCSI initiators (e.g. iSCSI and FC). Progress so far with 
+improving the fail-over SRP initiator has been slow. This is because the 
+discussion about candidate patches occurred at two different levels: not 
+only the patches itself were discussed but also the approach that should 
+be followed. That last aspect is easier to discuss in a meeting than 
+over a mailing list. Hence the proposal to discuss SRP initiator 
+failover behavior during the LSF/MM summit. The topics that need further 
+discussion are:
+* If a path fails, remove the entire SCSI host or preserve the SCSI
+   host and only remove the SCSI devices associated with that host ?
+* Which software component should test the state of a path and should
+   reconnect to an SRP target if a path is restored ? Should that be
+   done by the user space process srp_daemon or by the SRP initiator
+   kernel module ?
+* How should the SRP initiator behave after a path failure has been
+   detected ? Should the behavior be similar to the FC initiator with
+   its fast_io_fail_tmo and dev_loss_tmo parameters ?
+
+Dave, if this topic gets accepted, I really hope you will be able to 
+attend the LSF/MM summit.
+
+Bart.
