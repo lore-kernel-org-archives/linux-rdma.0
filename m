@@ -1,70 +1,33 @@
-From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] tile: revert pr_info to printk in <asm/io.h>
-Date: Fri, 01 Feb 2013 14:33:58 -0800
-Message-ID: <1359758038.17807.18.camel@joe-AO722>
-References: <201302012043.r11KhFXi024365@farm-0021.internal.tilera.com>
+From: Andy Grover <agrover@redhat.com>
+Subject: SRPT GID format (was Re: Error with /ib_srpt create)
+Date: Fri, 01 Feb 2013 16:18:28 -0800
+Message-ID: <510C5B54.2000506@redhat.com>
+References: <18A7B34BFC9FAE47A0E3D95D075EECE238A0E3EE@exmbx11> <1359754777.6300.109.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201302012043.r11KhFXi024365-7SEFUyftxEZmMm5hXn6q1uQdXUR/7MFngfoxzgwHRXE@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chris Metcalf <cmetcalf-kv+TWInifGbQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1359754777.6300.109.camel@haakon2.linux-iscsi.org>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org
+Cc: "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2013-02-01 at 12:34 -0500, Chris Metcalf wrote:
-> Using pr_info in a header exposes us to potential trouble from
-> subsystems that define pr_fmt.  This change fixes:
+On 02/01/2013 01:39 PM, Nicholas A. Bellinger wrote:
+> I believe this version of rtslib's ib_srpt.spec file is using the
+> pre-mainline '0x0000' prefix instead of '0xfe80' for port GIDs with the
+> target endpoint name in /sys/kernel/config/target/srpt/$WWPN/
 >
->   In file included from include/linux/scatterlist.h:10,
->                    from include/scsi/scsi.h:12,
->                    from drivers/infiniband/ulp/srp/ib_srp.c:46:
->   arch/tile/include/asm/io.h: In function =E2=80=98ioport_map=E2=80=99=
-:
->   arch/tile/include/asm/io.h:296: error: expected =E2=80=98)=E2=80=99=
- before =E2=80=98PFX=E2=80=99
+> This was a change to ib_srpt.spec's wwn_from_files_filter sed usage, for
+> which the upstream patch can be found here:
+>
+> http://www.risingtidesystems.com/git/?p=rtslib.git;a=commitdiff;h=6666d30fb1d90b9195d98c8fe8fcec2708362873
 
-Interesting.
+Hi IB people,
 
-> diff --git a/arch/tile/include/asm/io.h b/arch/tile/include/asm/io.h
-[]
-> @@ -292,7 +292,7 @@ static inline long ioport_panic(void)
-> =20
->  static inline void __iomem *ioport_map(unsigned long port, unsigned =
-int len)
->  {
-> -	pr_info("ioport_map: mapping IO resources is unsupported on tile.\n=
-");
-> +	printk("ioport_map: mapping IO resources is unsupported on tile.\n"=
-);
+Are these gids always going to be fe80+lots of zeros+eui64?
 
-It'd be nicer to add an appropriate KERN_<LEVEL> here.
+If not, what limitations should we use to ensure this value is good, 
+when creating srpt endpoints?
 
-My preference would be to change ib_srp.c (and ib_srpt) like:
----
- drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/u=
-lp/srp/ib_srp.c
-index d5088ce..59bf409 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -30,7 +30,7 @@
-  * SOFTWARE.
-  */
-=20
--#define pr_fmt(fmt) PFX fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-=20
- #include <linux/module.h>
- #include <linux/init.h>
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks -- Regards -- Andy
