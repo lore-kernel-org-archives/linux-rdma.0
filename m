@@ -1,33 +1,150 @@
-From: Andy Grover <agrover@redhat.com>
-Subject: SRPT GID format (was Re: Error with /ib_srpt create)
-Date: Fri, 01 Feb 2013 16:18:28 -0800
-Message-ID: <510C5B54.2000506@redhat.com>
-References: <18A7B34BFC9FAE47A0E3D95D075EECE238A0E3EE@exmbx11> <1359754777.6300.109.camel@haakon2.linux-iscsi.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1359754777.6300.109.camel@haakon2.linux-iscsi.org>
-Sender: target-devel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org
-Cc: "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH] librdmacm: Work-around kernel bug returning uid = 0
+Date: Fri,  1 Feb 2013 23:16:08 -0800
+Message-ID: <1359789368-19641-1-git-send-email-sean.hefty@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/01/2013 01:39 PM, Nicholas A. Bellinger wrote:
-> I believe this version of rtslib's ib_srpt.spec file is using the
-> pre-mainline '0x0000' prefix instead of '0xfe80' for port GIDs with the
-> target endpoint name in /sys/kernel/config/target/srpt/$WWPN/
->
-> This was a change to ib_srpt.spec's wwn_from_files_filter sed usage, for
-> which the upstream patch can be found here:
->
-> http://www.risingtidesystems.com/git/?p=rtslib.git;a=commitdiff;h=6666d30fb1d90b9195d98c8fe8fcec2708362873
+From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Hi IB people,
+Older kernels have a bug where it can report an event with the
+uid set to 0.  The librdmacm crashes when casting the uid to
+an rdma_cm_id and dereferencing the NULL pointer.
 
-Are these gids always going to be fe80+lots of zeros+eui64?
+There are a limited number of events where this can occur and
+in most cases it's safe to simply discard the event.  (This is
+what the kernel does anyway.)  However, it's possible for us
+to process an RDMA_CM_EVENT_ESTABLISHED event with the uid
+set to 0.  (See kernel commit 418edaaba96e58112b15c82b4907084e2a9caf42.)
 
-If not, what limitations should we use to ensure this value is good, 
-when creating srpt endpoints?
+Although it's rare for this to occur, it does in fact happen
+in practice.  To work-around the kernel bug, when the uid of an
+established event is set to 0, we first try to locate the correct
+user space id based on related data before discarding the event.
 
-Thanks -- Regards -- Andy
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/cma.c |   49 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 48 insertions(+), 1 deletions(-)
+
+diff --git a/src/cma.c b/src/cma.c
+index ff9b426..7a9f6dc 100755
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -50,6 +50,7 @@
+ #include <netdb.h>
+ 
+ #include "cma.h"
++#include "indexer.h"
+ #include <infiniband/driver.h>
+ #include <infiniband/marshall.h>
+ #include <rdma/rdma_cma.h>
+@@ -123,6 +124,8 @@ static int cma_dev_cnt;
+ static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+ static int abi_ver = RDMA_USER_CM_MAX_ABI_VERSION;
+ int af_ib_support;
++static struct index_map ucma_idm;
++static fastlock_t idm_lock;
+ 
+ static void ucma_cleanup(void)
+ {
+@@ -214,6 +217,7 @@ int ucma_init(void)
+ 		return 0;
+ 	}
+ 
++	fastlock_init(&idm_lock);
+ 	ret = check_abi_version();
+ 	if (ret)
+ 		goto err1;
+@@ -376,8 +380,27 @@ static void ucma_put_device(struct cma_device *cma_dev)
+ 	pthread_mutex_unlock(&mut);
+ }
+ 
++static void ucma_insert_id(struct cma_id_private *id_priv)
++{
++	fastlock_acquire(&idm_lock);
++	idm_set(&ucma_idm, id_priv->handle, id_priv);
++	fastlock_release(&idm_lock);
++}
++
++static void ucma_remove_id(struct cma_id_private *id_priv)
++{
++	if (id_priv->handle <= IDX_MAX_INDEX)
++		idm_clear(&ucma_idm, id_priv->handle);
++}
++
++static struct cma_id_private *ucma_lookup_id(int handle)
++{
++	return idm_lookup(&ucma_idm, handle);
++}
++
+ static void ucma_free_id(struct cma_id_private *id_priv)
+ {
++	ucma_remove_id(id_priv);
+ 	if (id_priv->cma_dev)
+ 		ucma_put_device(id_priv->cma_dev);
+ 	pthread_cond_destroy(&id_priv->cond);
+@@ -406,6 +429,7 @@ static struct cma_id_private *ucma_alloc_id(struct rdma_event_channel *channel,
+ 	id_priv->id.context = context;
+ 	id_priv->id.ps = ps;
+ 	id_priv->id.qp_type = qp_type;
++	id_priv->handle = 0xFFFFFFFF;
+ 
+ 	if (!channel) {
+ 		id_priv->id.channel = rdma_create_event_channel();
+@@ -455,6 +479,7 @@ static int rdma_create_id2(struct rdma_event_channel *channel,
+ 	VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
+ 
+ 	id_priv->handle = resp.id;
++	ucma_insert_id(id_priv);
+ 	*id = &id_priv->id;
+ 	return 0;
+ 
+@@ -1785,6 +1810,7 @@ static int ucma_process_conn_req(struct cma_event *evt,
+ 	evt->event.listen_id = &evt->id_priv->id;
+ 	evt->event.id = &id_priv->id;
+ 	id_priv->handle = handle;
++	ucma_insert_id(id_priv);
+ 	id_priv->initiator_depth = evt->event.param.conn.initiator_depth;
+ 	id_priv->responder_resources = evt->event.param.conn.responder_resources;
+ 
+@@ -1916,7 +1942,28 @@ retry:
+ 	VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
+ 
+ 	evt->event.event = resp.event;
+-	evt->id_priv = (void *) (uintptr_t) resp.uid;
++	/*
++	 * We should have a non-zero uid, except for connection requests.
++	 * But a bug in older kernels can report a uid 0.  Work-around this
++	 * issue by looking up the cma_id based on the kernel's id when the
++	 * uid is 0 and we're processing a connection established event.
++	 * In all other cases, if the uid is 0, we discard the event, like
++	 * the kernel should have done.
++	 */
++	if (resp.uid) {
++		evt->id_priv = (void *) (uintptr_t) resp.uid;
++	} else {
++		evt->id_priv = ucma_lookup_id(resp.id);
++		if (!evt->id_priv) {
++			fprintf(stderr, PFX "Warning: discarding unmatched "
++				"event - rdma_destroy_id may hang.\n");
++			goto retry;
++		}
++		if (resp.event != RDMA_CM_EVENT_ESTABLISHED) {
++			ucma_complete_event(evt->id_priv);
++			goto retry;
++		}
++	}
+ 	evt->event.id = &evt->id_priv->id;
+ 	evt->event.status = resp.status;
+ 
+-- 
+1.7.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
