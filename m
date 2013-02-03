@@ -1,148 +1,257 @@
-From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] librdmacm: Work-around kernel bug returning uid = 0
-Date: Fri,  1 Feb 2013 23:16:08 -0800
-Message-ID: <1359789368-19641-1-git-send-email-sean.hefty@intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH 1/2] infiniband-diags: libibnetdisc add find node by lid
+Date: Sat, 2 Feb 2013 16:36:28 -0800
+Message-ID: <20130202163628.5f4693217bc8008ccfd18308@llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Older kernels have a bug where it can report an event with the
-uid set to 0.  The librdmacm crashes when casting the uid to
-an rdma_cm_id and dereferencing the NULL pointer.
 
-There are a limited number of events where this can occur and
-in most cases it's safe to simply discard the event.  (This is
-what the kernel does anyway.)  However, it's possible for us
-to process an RDMA_CM_EVENT_ESTABLISHED event with the uid
-set to 0.  (See kernel commit 418edaaba96e58112b15c82b4907084e2a9caf42.)
+NOTE: this change adds a glib requirement to the package.
 
-Although it's rare for this to occur, it does in fact happen
-in practice.  To work-around the kernel bug, when the uid of an
-established event is set to 0, we first try to locate the correct
-user space id based on related data before discarding the event.
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- src/cma.c |   49 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 48 insertions(+), 1 deletions(-)
+ configure.in                                |    7 ++++
+ infiniband-diags.spec.in                    |    4 +-
+ libibnetdisc/Makefile.am                    |    4 +-
+ libibnetdisc/include/infiniband/ibnetdisc.h |    3 ++
+ libibnetdisc/libibnetdisc.ver               |    2 +-
+ libibnetdisc/src/ibnetdisc.c                |   53 ++++++++++++++++++++++++++-
+ libibnetdisc/src/internal.h                 |    7 ++++
+ libibnetdisc/src/libibnetdisc.map           |    1 +
+ 8 files changed, 75 insertions(+), 6 deletions(-)
 
-diff --git a/src/cma.c b/src/cma.c
-index ff9b426..7a9f6dc 100755
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -50,6 +50,7 @@
- #include <netdb.h>
+diff --git a/configure.in b/configure.in
+index 2dc60a0..ca62d5b 100644
+--- a/configure.in
++++ b/configure.in
+@@ -161,6 +161,13 @@ IBSCRIPTPATH_TMP2="`echo $IBSCRIPTPATH_TMP1 | sed 's/^NONE/$ac_default_prefix/'`
+ IBSCRIPTPATH="${with_ibpath_override:-`eval echo $IBSCRIPTPATH_TMP2`}"
+ AC_SUBST(IBSCRIPTPATH)
  
- #include "cma.h"
-+#include "indexer.h"
- #include <infiniband/driver.h>
- #include <infiniband/marshall.h>
- #include <rdma/rdma_cma.h>
-@@ -123,6 +124,8 @@ static int cma_dev_cnt;
- static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
- static int abi_ver = RDMA_USER_CM_MAX_ABI_VERSION;
- int af_ib_support;
-+static struct index_map ucma_idm;
-+static fastlock_t idm_lock;
++dnl check for glib
++PKG_CHECK_MODULES([GLIB], [glib-2.0], ac_glib=yes, ac_glib=no)
++AM_CONDITIONAL([HAVE_GLIB], test "$ac_glib" = "yes")
++if test "$ac_glib" = "yes"; then
++   AC_DEFINE([HAVE_GLIB], 1, [Define to 1 to indicate GLIB support])
++fi
++
+ dnl Begin libibnetdisc stuff
+ ibnetdisc_api_version=`grep LIBVERSION $srcdir/libibnetdisc/libibnetdisc.ver | sed 's/LIBVERSION=//'`
+ if test -z $ibnetdisc_api_version; then
+diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
+index d3fcd13..9cd195b 100644
+--- a/infiniband-diags.spec.in
++++ b/infiniband-diags.spec.in
+@@ -11,8 +11,8 @@ Group: System Environment/Libraries
+ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+ Source: http://www.openfabrics.org/downloads/management/@TARBALL@
+ Url: http://openfabrics.org/
+-BuildRequires: libibmad-devel, opensm-devel, libibumad-devel
+-Requires: libibmad, opensm-libs, libibumad
++BuildRequires: libibmad-devel, opensm-devel, libibumad-devel, glib-devel
++Requires: libibmad, opensm-libs, libibumad, glib
+ Provides: perl(IBswcountlimits)
+ Obsoletes: openib-diags
  
- static void ucma_cleanup(void)
- {
-@@ -214,6 +217,7 @@ int ucma_init(void)
- 		return 0;
+diff --git a/libibnetdisc/Makefile.am b/libibnetdisc/Makefile.am
+index fbf0e60..d05604f 100644
+--- a/libibnetdisc/Makefile.am
++++ b/libibnetdisc/Makefile.am
+@@ -24,10 +24,10 @@ endif
+ 
+ libibnetdisc_la_SOURCES = src/ibnetdisc.c src/ibnetdisc_cache.c src/chassis.c \
+ 			  src/chassis.h src/internal.h src/query_smp.c
+-libibnetdisc_la_CFLAGS = -Wall $(DBGFLAGS)
++libibnetdisc_la_CFLAGS = -Wall $(DBGFLAGS) $(GLIB_CFLAGS)
+ libibnetdisc_la_LDFLAGS = -version-info $(ibnetdisc_api_version) \
+ 	-export-dynamic $(libibnetdisc_version_script) \
+-	-libmad
++	-libmad $(GLIB_LIBS)
+ libibnetdisc_la_DEPENDENCIES = $(srcdir)/src/libibnetdisc.map
+ 
+ libibnetdiscincludedir = $(includedir)/infiniband
+diff --git a/libibnetdisc/include/infiniband/ibnetdisc.h b/libibnetdisc/include/infiniband/ibnetdisc.h
+index 335ad83..1efca3c 100644
+--- a/libibnetdisc/include/infiniband/ibnetdisc.h
++++ b/libibnetdisc/include/infiniband/ibnetdisc.h
+@@ -229,6 +229,9 @@ IBND_EXPORT ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric,
+ 					uint64_t guid);
+ IBND_EXPORT ibnd_port_t *ibnd_find_port_dr(ibnd_fabric_t * fabric,
+ 					char *dr_str);
++IBND_EXPORT ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
++					    uint16_t lid);
++
+ typedef void (*ibnd_iter_port_func_t) (ibnd_port_t * port, void *user_data);
+ IBND_EXPORT void ibnd_iter_ports(ibnd_fabric_t * fabric,
+ 				ibnd_iter_port_func_t func, void *user_data);
+diff --git a/libibnetdisc/libibnetdisc.ver b/libibnetdisc/libibnetdisc.ver
+index c513f2a..59fca19 100644
+--- a/libibnetdisc/libibnetdisc.ver
++++ b/libibnetdisc/libibnetdisc.ver
+@@ -6,4 +6,4 @@
+ # API_REV - advance on any added API
+ # RUNNING_REV - advance any change to the vendor files
+ # AGE - number of backward versions the API still supports
+-LIBVERSION=7:0:2
++LIBVERSION=8:0:3
+diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+index 3a7dd8f..5f15194 100644
+--- a/libibnetdisc/src/ibnetdisc.c
++++ b/libibnetdisc/src/ibnetdisc.c
+@@ -360,6 +360,7 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
  	}
  
-+	fastlock_init(&idm_lock);
- 	ret = check_abi_version();
- 	if (ret)
- 		goto err1;
-@@ -376,8 +380,27 @@ static void ucma_put_device(struct cma_device *cma_dev)
- 	pthread_mutex_unlock(&mut);
+ 	add_to_portguid_hash(port, fabric->portstbl);
++	add_to_portlid_hash(port, ((f_internal_t *)fabric)->lid2guid);
+ 
+ 	if ((scan->cfg->flags & IBND_CONFIG_MLX_EPI)
+ 	    && is_mlnx_ext_port_info_supported(port)) {
+@@ -628,6 +629,36 @@ void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[])
+ 	hash[hash_idx] = port;
  }
  
-+static void ucma_insert_id(struct cma_id_private *id_priv)
++static void create_lid2guid(ibnd_fabric_t *fabric)
 +{
-+	fastlock_acquire(&idm_lock);
-+	idm_set(&ucma_idm, id_priv->handle, id_priv);
-+	fastlock_release(&idm_lock);
++	f_internal_t *f = (f_internal_t *)fabric;
++	f->lid2guid = g_hash_table_new_full(g_int_hash, g_int_equal,
++				NULL, NULL);
 +}
 +
-+static void ucma_remove_id(struct cma_id_private *id_priv)
++static void destroy_lid2guid(ibnd_fabric_t *fabric)
 +{
-+	if (id_priv->handle <= IDX_MAX_INDEX)
-+		idm_clear(&ucma_idm, id_priv->handle);
-+}
-+
-+static struct cma_id_private *ucma_lookup_id(int handle)
-+{
-+	return idm_lookup(&ucma_idm, handle);
-+}
-+
- static void ucma_free_id(struct cma_id_private *id_priv)
- {
-+	ucma_remove_id(id_priv);
- 	if (id_priv->cma_dev)
- 		ucma_put_device(id_priv->cma_dev);
- 	pthread_cond_destroy(&id_priv->cond);
-@@ -406,6 +429,7 @@ static struct cma_id_private *ucma_alloc_id(struct rdma_event_channel *channel,
- 	id_priv->id.context = context;
- 	id_priv->id.ps = ps;
- 	id_priv->id.qp_type = qp_type;
-+	id_priv->handle = 0xFFFFFFFF;
- 
- 	if (!channel) {
- 		id_priv->id.channel = rdma_create_event_channel();
-@@ -455,6 +479,7 @@ static int rdma_create_id2(struct rdma_event_channel *channel,
- 	VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
- 
- 	id_priv->handle = resp.id;
-+	ucma_insert_id(id_priv);
- 	*id = &id_priv->id;
- 	return 0;
- 
-@@ -1785,6 +1810,7 @@ static int ucma_process_conn_req(struct cma_event *evt,
- 	evt->event.listen_id = &evt->id_priv->id;
- 	evt->event.id = &id_priv->id;
- 	id_priv->handle = handle;
-+	ucma_insert_id(id_priv);
- 	id_priv->initiator_depth = evt->event.param.conn.initiator_depth;
- 	id_priv->responder_resources = evt->event.param.conn.responder_resources;
- 
-@@ -1916,7 +1942,28 @@ retry:
- 	VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
- 
- 	evt->event.event = resp.event;
--	evt->id_priv = (void *) (uintptr_t) resp.uid;
-+	/*
-+	 * We should have a non-zero uid, except for connection requests.
-+	 * But a bug in older kernels can report a uid 0.  Work-around this
-+	 * issue by looking up the cma_id based on the kernel's id when the
-+	 * uid is 0 and we're processing a connection established event.
-+	 * In all other cases, if the uid is 0, we discard the event, like
-+	 * the kernel should have done.
-+	 */
-+	if (resp.uid) {
-+		evt->id_priv = (void *) (uintptr_t) resp.uid;
-+	} else {
-+		evt->id_priv = ucma_lookup_id(resp.id);
-+		if (!evt->id_priv) {
-+			fprintf(stderr, PFX "Warning: discarding unmatched "
-+				"event - rdma_destroy_id may hang.\n");
-+			goto retry;
-+		}
-+		if (resp.event != RDMA_CM_EVENT_ESTABLISHED) {
-+			ucma_complete_event(evt->id_priv);
-+			goto retry;
-+		}
++	f_internal_t *f = (f_internal_t *)fabric;
++	if (f->lid2guid) {
++		g_hash_table_destroy((GHashTable *)f->lid2guid);
 +	}
- 	evt->event.id = &evt->id_priv->id;
- 	evt->event.status = resp.status;
++}
++
++void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable)
++{
++	uint16_t base_lid = port->base_lid;
++	uint16_t lid_mask = ((1 << port->lmc) -1);
++	uint16_t lid = 0;
++
++	/* We add the port for all "lmc" lids
++	 * so it is easier to find for any "random" lid specified */
++	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
++		uint16_t *lidp = calloc(1, sizeof(*lidp));
++		*lidp = lid;
++		g_hash_table_insert(htable, lidp, port);
++	}
++}
++
+ void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
+ {
+ 	switch (node->type) {
+@@ -664,6 +695,12 @@ static int set_config(struct ibnd_config *config, struct ibnd_config *cfg)
+ 	return (0);
+ }
  
++static ibnd_fabric_t *allocate_fabric(void)
++{
++	f_internal_t *f = calloc(1, sizeof(*f));
++	return ((ibnd_fabric_t *)f);
++}
++
+ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 				    ib_portid_t * from,
+ 				    struct ibnd_config *cfg)
+@@ -685,7 +722,7 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 		return NULL;
+ 	}
+ 
+-	fabric = calloc(1, sizeof(*fabric));
++	fabric = allocate_fabric();
+ 	if (!fabric) {
+ 		IBND_ERROR("OOM: failed to calloc ibnd_fabric_t\n");
+ 		return NULL;
+@@ -715,6 +752,8 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 
+ 	IBND_DEBUG("from %s\n", portid2str(from));
+ 
++	create_lid2guid(fabric);
++
+ 	if (!query_node_info(&engine, from, NULL))
+ 		if (process_mads(&engine) != 0)
+ 			goto error;
+@@ -768,6 +807,7 @@ void ibnd_destroy_fabric(ibnd_fabric_t * fabric)
+ 		destroy_node(node);
+ 		node = next;
+ 	}
++	destroy_lid2guid(fabric);
+ 	free(fabric);
+ }
+ 
+@@ -825,6 +865,17 @@ void ibnd_iter_nodes_type(ibnd_fabric_t * fabric, ibnd_iter_node_func_t func,
+ 		func(cur, user_data);
+ }
+ 
++ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
++				uint16_t lid)
++{
++	ibnd_port_t *port;
++	f_internal_t *f = (f_internal_t *)fabric;
++
++	port = (ibnd_port_t *)g_hash_table_lookup(f->lid2guid, &lid);
++
++	return port;
++}
++
+ ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric, uint64_t guid)
+ {
+ 	int hash = HASHGUID(guid) % HTSZ;
+diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
+index 80918c4..b7e18e8 100644
+--- a/libibnetdisc/src/internal.h
++++ b/libibnetdisc/src/internal.h
+@@ -40,6 +40,7 @@
+ 
+ #include <infiniband/ibnetdisc.h>
+ #include <complib/cl_qmap.h>
++#include <glib.h>
+ 
+ #define	IBND_DEBUG(fmt, ...) \
+ 	if (ibdebug) { \
+@@ -57,6 +58,11 @@
+ #define DEFAULT_TIMEOUT 1000
+ #define DEFAULT_RETRIES 3
+ 
++typedef struct f_internal {
++	ibnd_fabric_t fabric;
++	GHashTable *lid2guid;
++} f_internal_t;
++
+ typedef struct ibnd_scan {
+ 	ib_portid_t selfportid;
+ 	ibnd_fabric_t *fabric;
+@@ -100,6 +106,7 @@ void smp_engine_destroy(smp_engine_t * engine);
+ void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
+ 
+ void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
++void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
+ 
+ void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric);
+ 
+diff --git a/libibnetdisc/src/libibnetdisc.map b/libibnetdisc/src/libibnetdisc.map
+index 1c42e7b..f1b7229 100644
+--- a/libibnetdisc/src/libibnetdisc.map
++++ b/libibnetdisc/src/libibnetdisc.map
+@@ -16,6 +16,7 @@ IBNETDISC_1.0 {
+ 		ibnd_iter_nodes_type;
+ 		ibnd_find_port_guid;
+ 		ibnd_find_port_dr;
++		ibnd_find_port_lid;
+ 		ibnd_iter_ports;
+ 	local: *;
+ };
 -- 
-1.7.3
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
