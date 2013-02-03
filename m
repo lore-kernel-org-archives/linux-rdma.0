@@ -1,33 +1,36 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Intermitted "Failed to obtain HW semaphore, aborting" error
-Date: Sun, 3 Feb 2013 09:11:23 +0200
-Message-ID: <510E0D9B.9020907@mellanox.com>
-References: <510DF227.30307@vt.edu>
+Subject: Re: [PATCH] librdmacm: Work-around kernel bug returning uid = 0
+Date: Sun, 3 Feb 2013 09:24:11 +0200
+Message-ID: <510E109B.8040602@mellanox.com>
+References: <1359789368-19641-1-git-send-email-sean.hefty@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <510DF227.30307-PjAqaU27lzQ@public.gmane.org>
+In-Reply-To: <1359789368-19641-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bharath Ramesh <bramesh-PjAqaU27lzQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/02/2013 07:14, Bharath Ramesh wrote:
-> Intermittently a couple of nodes in our cluster throw the error 
-> "Failed to obtain HW semaphore, aborting" on boot. When this error 
-> occurs we are unable to use IB on those nodes, unloading and reloading 
-> the module doesnt help. 
+On 02/02/2013 09:16, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> Older kernels have a bug where it can report an event with the
+> uid set to 0.  The librdmacm crashes when casting the uid to
+> an rdma_cm_id and dereferencing the NULL pointer.
+>
+> There are a limited number of events where this can occur and
+> in most cases it's safe to simply discard the event.  (This is
+> what the kernel does anyway.)  However, it's possible for us
+> to process an RDMA_CM_EVENT_ESTABLISHED event with the uid
+> set to 0.  (See kernel commit 418edaaba96e58112b15c82b4907084e2a9caf42.)
 
-load mlx4_core with debug_level=1 and send the resulted dmesg  along 
-with the lspci info of the card ("$ lspci | grep Mellanox")
+Hi Sean,
 
+It would be also worthwhile to nail the fix to the root cause little 
+further, e.g push
+kernel commit 418edaaba96 to -stable
 
-> I was wondering what could be causing this error, google only brings 
-> up the source code and no discussion about this error. We are using 
-> OFED-1.5.4, any help in debugging and resolving this issue is greatly 
-> appreciated.
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
