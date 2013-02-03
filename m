@@ -1,36 +1,85 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] librdmacm: Work-around kernel bug returning uid = 0
-Date: Sun, 3 Feb 2013 09:24:11 +0200
-Message-ID: <510E109B.8040602@mellanox.com>
-References: <1359789368-19641-1-git-send-email-sean.hefty@intel.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 25/62] infiniband/cxgb4: convert to idr_alloc()
+Date: Sun, 03 Feb 2013 08:18:37 -0600
+Message-ID: <510E71BD.1010909@opengridcomputing.com>
+References: <1359854463-2538-1-git-send-email-tj@kernel.org> <1359854463-2538-26-git-send-email-tj@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1359789368-19641-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1359854463-2538-26-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, skinsbursky-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/02/2013 09:16, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> Older kernels have a bug where it can report an event with the
-> uid set to 0.  The librdmacm crashes when casting the uid to
-> an rdma_cm_id and dereferencing the NULL pointer.
+On 2/2/2013 7:20 PM, Tejun Heo wrote:
+> Convert to the much saner new idr interface.
 >
-> There are a limited number of events where this can occur and
-> in most cases it's safe to simply discard the event.  (This is
-> what the kernel does anyway.)  However, it's possible for us
-> to process an RDMA_CM_EVENT_ESTABLISHED event with the uid
-> set to 0.  (See kernel commit 418edaaba96e58112b15c82b4907084e2a9caf42.)
+> Only compile tested.
+>
+> Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> ---
+> This patch depends on an earlier idr changes and I think it would be
+> best to route these together through -mm.  Please holler if there's
+> any objection.  Thanks.
 
-Hi Sean,
+Is there a git tree somewhere that I can use to test these patches out?
 
-It would be also worthwhile to nail the fix to the root cause little 
-further, e.g push
-kernel commit 418edaaba96 to -stable
+>   drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 27 ++++++++++++++-------------
+>   1 file changed, 14 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+> index 9c1644f..7f862da 100644
+> --- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+> +++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+> @@ -260,20 +260,21 @@ static inline int _insert_handle(struct c4iw_dev *rhp, struct idr *idr,
+>   				 void *handle, u32 id, int lock)
+>   {
+>   	int ret;
+> -	int newid;
+>   
+> -	do {
+> -		if (!idr_pre_get(idr, lock ? GFP_KERNEL : GFP_ATOMIC))
+> -			return -ENOMEM;
+> -		if (lock)
+> -			spin_lock_irq(&rhp->lock);
+> -		ret = idr_get_new_above(idr, handle, id, &newid);
+> -		BUG_ON(!ret && newid != id);
+> -		if (lock)
+> -			spin_unlock_irq(&rhp->lock);
+> -	} while (ret == -EAGAIN);
+> -
+> -	return ret;
+> +	if (lock) {
+> +		idr_preload(GFP_KERNEL);
+> +		spin_lock_irq(&rhp->lock);
+> +	}
 
-Or.
+The idr_preload() needs to be above the 'if (lock)', no?
+
+> +
+> +	ret = idr_alloc(idr, handle, id, id + 1, GFP_ATOMIC);
+> +
+> +	if (lock) {
+> +		spin_unlock_irq(&rhp->lock);
+> +		idr_preload_end();
+> +	}
+
+And idr_preload_end() should be after the 'if (lock)' block methinks...
+
+> +
+> +	BUG_ON(ret == -ENOSPC);
+> +	return ret < 0 ? ret : 0;
+
+What would cause ret >  0?
+
+>   }
+>   
+>   static inline int insert_handle(struct c4iw_dev *rhp, struct idr *idr,
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
