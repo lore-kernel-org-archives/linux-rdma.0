@@ -1,39 +1,31 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add better error output when parsing node name
- maps
-Date: Sun, 3 Feb 2013 19:52:34 +0200
-Message-ID: <20130203175234.GF2534@calypso.mtl.com>
-References: <1352498124.25353.139.camel@auk59.llnl.gov>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Intermitted "Failed to obtain HW semaphore, aborting" error
+Date: Sun, 3 Feb 2013 22:27:40 +0200
+Message-ID: <CAJZOPZLXB3-vPrJ34nZhOx3nfBEV2zZ-nm1ovYro3s_bQLskgw@mail.gmail.com>
+References: <510DF227.30307@vt.edu>
+	<510E0D9B.9020907@mellanox.com>
+	<510E7FB6.8050603@vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1352498124.25353.139.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <510E7FB6.8050603-PjAqaU27lzQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bharath Ramesh <bramesh-PjAqaU27lzQ@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Albert,
+On Sun, Feb 3, 2013 at 5:18 PM, Bharath Ramesh <bramesh-PjAqaU27lzQ@public.gmane.org> wrote:
+[...]
+> I am unable to run ibv_devinfo on the bad node, here is an output from a
+> good node
+> $ ibv_devinfo
+> hca_id: mlx4_0
+>         transport:                      InfiniBand (0)
+>         fw_ver:                         2.10.2370
+[...]
 
-On 13:55 Fri 09 Nov     , Albert Chu wrote:
-> Presently, any error in opening a node name map file leads
-> to a generic:
-> 
-> "WARNING failed to open node name map"
-> 
-> error.  This patch adds better error output when the issue
-> is specifically parsing errors in the file.  The user
-> will get:
-> 
-> "WARNING failed to parse node name map"
-> 
-> and an output of the line with the particular issue.
-> 
-> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> ---
-
-Applied, thanks.
+should be step in the right direction if you upgrade your firmware to
+the latest GA, 2.11.0500 avail on the Mellanox site.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
