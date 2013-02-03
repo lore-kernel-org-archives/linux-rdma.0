@@ -1,76 +1,177 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 2/2] infiniband-diags: add dump_fts tool
-Date: Sun, 3 Feb 2013 14:04:08 -0800
-Message-ID: <20130203140408.37cbff5fcb1c1b15b2ca700c@llnl.gov>
-References: <20130202163631.a57e92cf1988aed94a24a5f3@llnl.gov>
-	<510E8661.9070501@dev.mellanox.co.il>
+Subject: Re: [PATCH 1/2] infiniband-diags: libibnetdisc add find node by lid
+Date: Sun, 3 Feb 2013 14:45:11 -0800
+Message-ID: <20130203144511.1545db69c5c2fd33061413f3@llnl.gov>
+References: <20130202163628.5f4693217bc8008ccfd18308@llnl.gov>
+	<510E83F3.80104@dev.mellanox.co.il>
+	<20130203132025.d5f197394ae711d048d28bd5@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <510E8661.9070501-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20130203132025.d5f197394ae711d048d28bd5-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 03 Feb 2013 10:46:41 -0500
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+On Sun, 3 Feb 2013 13:20:25 -0800
+Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
 
-> On 2/2/2013 7:36 PM, Ira Weiny wrote:
-> >>From 2708d0965e03de1f9ae722e38c8b72a808718a0d Mon Sep 17 00:00:00 2001
-> > From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> > Date: Fri, 1 Feb 2013 18:13:59 -0500
-> > Subject: [PATCH 2/2] infiniband-diags: add dump_fts tool
-> > 
-> > dump_fts adds a faster version of the functionality of dump_[l|m]fts.sh.  This
-> > code is based off of the ibroute code and simply uses libibnetdisc to scan the
-> > fabric instead of using ibnetdiscover and letting ibroute requery all that data
-> > over again.  This improves things in 3 ways.
-> > 
-> > 1) performance improves by nearly 2 orders of magnitude.
-> > 2) this version greatly reduces the mads required and thus reduces the
-> >    impact on the fabric.
-> > 3) Everything is queried with DR paths which ensures if the routing tables are
-> >    bad on the cluster the query will still complete and give you the
-> >    information you were looking for.  (To be fair dump_lft.sh has the DR option
-> >    but it is currently buggy.)
+> On Sun, 03 Feb 2013 10:36:19 -0500
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 > 
-> Sweet ;-)
-> 
-> > Example runs on the ~1400 nodes of the Hyperion test cluster show:
-> > 
-> > 13:45:46 > time ./dump_lfts.sh > /dev/null
-> > 
-> > real    4m58.175s
-> > user    0m6.407s
-> > sys     0m17.983s
-> > 
-> > 13:53:12 > time ./dump_fts > /dev/null
-> > dump tables: linear forwarding table get failed
-> 
-> It would be helpful to print node name, guid, and/or LID such failures.
+> > On 2/2/2013 7:36 PM, Ira Weiny wrote:
+> > > 
+> > > 
 
-Good point.
+[snip]
 
+> > > +
+> > > +	/* We add the port for all "lmc" lids
+> > > +	 * so it is easier to find for any "random" lid specified */
+> > > +	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
+> > > +		uint16_t *lidp = calloc(1, sizeof(*lidp));
+> > > +		*lidp = lid;
+> > > +		g_hash_table_insert(htable, lidp, port);
+> > 
+> > calloc error should be handled
 > 
-> Also, in this specific case, any idea why get LFT failed ?
+> Yes and I should have specified "free" in g_hash_table_new_full for the key object.
 
-I'm not really sure at this time.
+There is a better way to do this by storing the lid as the pointer:
+
+http://developer.gnome.org/glib/2.31/glib-Hash-Tables.html#g-direct-equal
 
 Ira
 
 > 
-> -- Hal
+> Thanks,
+> Ira
 > 
 > > 
-> > real    0m8.121s
-> > user    0m3.032s
-> > sys     0m3.342s
+> > -- Hal
 > > 
-> > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> > > +	}
+> > > +}
+> > > +
+> > >  void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
+> > >  {
+> > >  	switch (node->type) {
+> > > @@ -664,6 +695,12 @@ static int set_config(struct ibnd_config *config, struct ibnd_config *cfg)
+> > >  	return (0);
+> > >  }
+> > >  
+> > > +static ibnd_fabric_t *allocate_fabric(void)
+> > > +{
+> > > +	f_internal_t *f = calloc(1, sizeof(*f));
+> > > +	return ((ibnd_fabric_t *)f);
+> > > +}
+> > > +
+> > >  ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+> > >  				    ib_portid_t * from,
+> > >  				    struct ibnd_config *cfg)
+> > > @@ -685,7 +722,7 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+> > >  		return NULL;
+> > >  	}
+> > >  
+> > > -	fabric = calloc(1, sizeof(*fabric));
+> > > +	fabric = allocate_fabric();
+> > >  	if (!fabric) {
+> > >  		IBND_ERROR("OOM: failed to calloc ibnd_fabric_t\n");
+> > >  		return NULL;
+> > > @@ -715,6 +752,8 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+> > >  
+> > >  	IBND_DEBUG("from %s\n", portid2str(from));
+> > >  
+> > > +	create_lid2guid(fabric);
+> > > +
+> > >  	if (!query_node_info(&engine, from, NULL))
+> > >  		if (process_mads(&engine) != 0)
+> > >  			goto error;
+> > > @@ -768,6 +807,7 @@ void ibnd_destroy_fabric(ibnd_fabric_t * fabric)
+> > >  		destroy_node(node);
+> > >  		node = next;
+> > >  	}
+> > > +	destroy_lid2guid(fabric);
+> > >  	free(fabric);
+> > >  }
+> > >  
+> > > @@ -825,6 +865,17 @@ void ibnd_iter_nodes_type(ibnd_fabric_t * fabric, ibnd_iter_node_func_t func,
+> > >  		func(cur, user_data);
+> > >  }
+> > >  
+> > > +ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
+> > > +				uint16_t lid)
+> > > +{
+> > > +	ibnd_port_t *port;
+> > > +	f_internal_t *f = (f_internal_t *)fabric;
+> > > +
+> > > +	port = (ibnd_port_t *)g_hash_table_lookup(f->lid2guid, &lid);
+> > > +
+> > > +	return port;
+> > > +}
+> > > +
+> > >  ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric, uint64_t guid)
+> > >  {
+> > >  	int hash = HASHGUID(guid) % HTSZ;
+> > > diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
+> > > index 80918c4..b7e18e8 100644
+> > > --- a/libibnetdisc/src/internal.h
+> > > +++ b/libibnetdisc/src/internal.h
+> > > @@ -40,6 +40,7 @@
+> > >  
+> > >  #include <infiniband/ibnetdisc.h>
+> > >  #include <complib/cl_qmap.h>
+> > > +#include <glib.h>
+> > >  
+> > >  #define	IBND_DEBUG(fmt, ...) \
+> > >  	if (ibdebug) { \
+> > > @@ -57,6 +58,11 @@
+> > >  #define DEFAULT_TIMEOUT 1000
+> > >  #define DEFAULT_RETRIES 3
+> > >  
+> > > +typedef struct f_internal {
+> > > +	ibnd_fabric_t fabric;
+> > > +	GHashTable *lid2guid;
+> > > +} f_internal_t;
+> > > +
+> > >  typedef struct ibnd_scan {
+> > >  	ib_portid_t selfportid;
+> > >  	ibnd_fabric_t *fabric;
+> > > @@ -100,6 +106,7 @@ void smp_engine_destroy(smp_engine_t * engine);
+> > >  void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
+> > >  
+> > >  void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
+> > > +void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
+> > >  
+> > >  void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric);
+> > >  
+> > > diff --git a/libibnetdisc/src/libibnetdisc.map b/libibnetdisc/src/libibnetdisc.map
+> > > index 1c42e7b..f1b7229 100644
+> > > --- a/libibnetdisc/src/libibnetdisc.map
+> > > +++ b/libibnetdisc/src/libibnetdisc.map
+> > > @@ -16,6 +16,7 @@ IBNETDISC_1.0 {
+> > >  		ibnd_iter_nodes_type;
+> > >  		ibnd_find_port_guid;
+> > >  		ibnd_find_port_dr;
+> > > +		ibnd_find_port_lid;
+> > >  		ibnd_iter_ports;
+> > >  	local: *;
+> > >  };
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> <snip...>
+> 
+> -- 
+> Ira Weiny
+> Member of Technical Staff
+> Lawrence Livermore National Lab
+> 925-423-8008
+> weiny2-i2BcT+NCU+M@public.gmane.org
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
