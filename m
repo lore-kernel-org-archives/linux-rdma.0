@@ -1,165 +1,271 @@
-From: Bharath Ramesh <bramesh-PjAqaU27lzQ@public.gmane.org>
-Subject: Re: Intermitted "Failed to obtain HW semaphore, aborting" error
-Date: Sun, 03 Feb 2013 10:18:14 -0500
-Message-ID: <510E7FB6.8050603@vt.edu>
-References: <510DF227.30307@vt.edu> <510E0D9B.9020907@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/2] infiniband-diags: libibnetdisc add find node by lid
+Date: Sun, 03 Feb 2013 10:36:19 -0500
+Message-ID: <510E83F3.80104@dev.mellanox.co.il>
+References: <20130202163628.5f4693217bc8008ccfd18308@llnl.gov>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms060001010903010604030800"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <510E0D9B.9020907-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20130202163628.5f4693217bc8008ccfd18308-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
+On 2/2/2013 7:36 PM, Ira Weiny wrote:
+> 
+> 
+> NOTE: this change adds a glib requirement to the package.
 
---------------ms060001010903010604030800
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Would you elaborate on the direction here ? Do you intend on removing
+any complib dependencies in libibnetdisc ?
 
-On 2/3/2013 2:11 AM, Or Gerlitz wrote:
-> On 03/02/2013 07:14, Bharath Ramesh wrote:
->> Intermittently a couple of nodes in our cluster throw the error=20
->> "Failed to obtain HW semaphore, aborting" on boot. When this error=20
->> occurs we are unable to use IB on those nodes, unloading and=20
->> reloading the module doesnt help.=20
->
-> load mlx4_core with debug_level=3D1 and send the resulted dmesg along=20
-> with the lspci info of the card ("$ lspci | grep Mellanox")
-The same node will come up fine on some reboots and on others I will get =
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> ---
+>  configure.in                                |    7 ++++
+>  infiniband-diags.spec.in                    |    4 +-
+>  libibnetdisc/Makefile.am                    |    4 +-
+>  libibnetdisc/include/infiniband/ibnetdisc.h |    3 ++
+>  libibnetdisc/libibnetdisc.ver               |    2 +-
+>  libibnetdisc/src/ibnetdisc.c                |   53 ++++++++++++++++++++++++++-
+>  libibnetdisc/src/internal.h                 |    7 ++++
+>  libibnetdisc/src/libibnetdisc.map           |    1 +
+>  8 files changed, 75 insertions(+), 6 deletions(-)
+> 
+> diff --git a/configure.in b/configure.in
+> index 2dc60a0..ca62d5b 100644
+> --- a/configure.in
+> +++ b/configure.in
+> @@ -161,6 +161,13 @@ IBSCRIPTPATH_TMP2="`echo $IBSCRIPTPATH_TMP1 | sed 's/^NONE/$ac_default_prefix/'`
+>  IBSCRIPTPATH="${with_ibpath_override:-`eval echo $IBSCRIPTPATH_TMP2`}"
+>  AC_SUBST(IBSCRIPTPATH)
+>  
+> +dnl check for glib
+> +PKG_CHECK_MODULES([GLIB], [glib-2.0], ac_glib=yes, ac_glib=no)
+> +AM_CONDITIONAL([HAVE_GLIB], test "$ac_glib" = "yes")
+> +if test "$ac_glib" = "yes"; then
+> +   AC_DEFINE([HAVE_GLIB], 1, [Define to 1 to indicate GLIB support])
+> +fi
+> +
+>  dnl Begin libibnetdisc stuff
+>  ibnetdisc_api_version=`grep LIBVERSION $srcdir/libibnetdisc/libibnetdisc.ver | sed 's/LIBVERSION=//'`
+>  if test -z $ibnetdisc_api_version; then
+> diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
+> index d3fcd13..9cd195b 100644
+> --- a/infiniband-diags.spec.in
+> +++ b/infiniband-diags.spec.in
+> @@ -11,8 +11,8 @@ Group: System Environment/Libraries
+>  BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+>  Source: http://www.openfabrics.org/downloads/management/@TARBALL@
+>  Url: http://openfabrics.org/
+> -BuildRequires: libibmad-devel, opensm-devel, libibumad-devel
+> -Requires: libibmad, opensm-libs, libibumad
+> +BuildRequires: libibmad-devel, opensm-devel, libibumad-devel, glib-devel
+> +Requires: libibmad, opensm-libs, libibumad, glib
+>  Provides: perl(IBswcountlimits)
+>  Obsoletes: openib-diags
+>  
+> diff --git a/libibnetdisc/Makefile.am b/libibnetdisc/Makefile.am
+> index fbf0e60..d05604f 100644
+> --- a/libibnetdisc/Makefile.am
+> +++ b/libibnetdisc/Makefile.am
+> @@ -24,10 +24,10 @@ endif
+>  
+>  libibnetdisc_la_SOURCES = src/ibnetdisc.c src/ibnetdisc_cache.c src/chassis.c \
+>  			  src/chassis.h src/internal.h src/query_smp.c
+> -libibnetdisc_la_CFLAGS = -Wall $(DBGFLAGS)
+> +libibnetdisc_la_CFLAGS = -Wall $(DBGFLAGS) $(GLIB_CFLAGS)
+>  libibnetdisc_la_LDFLAGS = -version-info $(ibnetdisc_api_version) \
+>  	-export-dynamic $(libibnetdisc_version_script) \
+> -	-libmad
+> +	-libmad $(GLIB_LIBS)
+>  libibnetdisc_la_DEPENDENCIES = $(srcdir)/src/libibnetdisc.map
+>  
+>  libibnetdiscincludedir = $(includedir)/infiniband
+> diff --git a/libibnetdisc/include/infiniband/ibnetdisc.h b/libibnetdisc/include/infiniband/ibnetdisc.h
+> index 335ad83..1efca3c 100644
+> --- a/libibnetdisc/include/infiniband/ibnetdisc.h
+> +++ b/libibnetdisc/include/infiniband/ibnetdisc.h
+> @@ -229,6 +229,9 @@ IBND_EXPORT ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric,
+>  					uint64_t guid);
+>  IBND_EXPORT ibnd_port_t *ibnd_find_port_dr(ibnd_fabric_t * fabric,
+>  					char *dr_str);
+> +IBND_EXPORT ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
+> +					    uint16_t lid);
+> +
+>  typedef void (*ibnd_iter_port_func_t) (ibnd_port_t * port, void *user_data);
+>  IBND_EXPORT void ibnd_iter_ports(ibnd_fabric_t * fabric,
+>  				ibnd_iter_port_func_t func, void *user_data);
+> diff --git a/libibnetdisc/libibnetdisc.ver b/libibnetdisc/libibnetdisc.ver
+> index c513f2a..59fca19 100644
+> --- a/libibnetdisc/libibnetdisc.ver
+> +++ b/libibnetdisc/libibnetdisc.ver
+> @@ -6,4 +6,4 @@
+>  # API_REV - advance on any added API
+>  # RUNNING_REV - advance any change to the vendor files
+>  # AGE - number of backward versions the API still supports
+> -LIBVERSION=7:0:2
+> +LIBVERSION=8:0:3
+> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+> index 3a7dd8f..5f15194 100644
+> --- a/libibnetdisc/src/ibnetdisc.c
+> +++ b/libibnetdisc/src/ibnetdisc.c
+> @@ -360,6 +360,7 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
+>  	}
+>  
+>  	add_to_portguid_hash(port, fabric->portstbl);
+> +	add_to_portlid_hash(port, ((f_internal_t *)fabric)->lid2guid);
+>  
+>  	if ((scan->cfg->flags & IBND_CONFIG_MLX_EPI)
+>  	    && is_mlnx_ext_port_info_supported(port)) {
+> @@ -628,6 +629,36 @@ void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[])
+>  	hash[hash_idx] = port;
+>  }
+>  
+> +static void create_lid2guid(ibnd_fabric_t *fabric)
+> +{
+> +	f_internal_t *f = (f_internal_t *)fabric;
+> +	f->lid2guid = g_hash_table_new_full(g_int_hash, g_int_equal,
+> +				NULL, NULL);
+> +}
+> +
+> +static void destroy_lid2guid(ibnd_fabric_t *fabric)
+> +{
+> +	f_internal_t *f = (f_internal_t *)fabric;
+> +	if (f->lid2guid) {
+> +		g_hash_table_destroy((GHashTable *)f->lid2guid);
 
-this error. Here is the output from lspci
-$ lspci | grep Mellanox
-01:00.0 Network controller: Mellanox Technologies MT27500 Family=20
-[ConnectX-3]
+Nit: Is the cast needed here ?
 
-dmesg output trying to load mlx4_core with debug_level=3D1
+> +	}
+> +}
+> +
+> +void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable)
+> +{
+> +	uint16_t base_lid = port->base_lid;
+> +	uint16_t lid_mask = ((1 << port->lmc) -1);
+> +	uint16_t lid = 0;
+> +
+> +	/* We add the port for all "lmc" lids
+> +	 * so it is easier to find for any "random" lid specified */
+> +	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
+> +		uint16_t *lidp = calloc(1, sizeof(*lidp));
+> +		*lidp = lid;
+> +		g_hash_table_insert(htable, lidp, port);
 
-mlx4_core: Mellanox ConnectX core driver v1.0-ofed1.5.4 (November 10, 201=
-1)
-mlx4_core: Initializing 0000:01:00.0
-mlx4_core 0000:01:00.0: PCI INT A -> GSI 26 (level, low) -> IRQ 26
-mlx4_core 0000:01:00.0: setting latency timer to 64
-Uhhuh. NMI received for unknown reason 31 on CPU 0.
-Do you have a strange power saving mode enabled?
-Dazed and confused, but trying to continue
-Uhhuh. NMI received for unknown reason 31 on CPU 0.
-Do you have a strange power saving mode enabled?
-Dazed and confused, but trying to continue
-Uhhuh. NMI received for unknown reason 21 on CPU 0.
-Do you have a strange power saving mode enabled?
-Dazed and confused, but trying to continue
-mlx4_core 0000:01:00.0: Failed to obtain HW semaphore, aborting
-mlx4_core 0000:01:00.0: Failed to reset HCA, aborting.
-mlx4_core 0000:01:00.0: PCI INT A disabled
-mlx4_core: probe of 0000:01:00.0 failed with error -11
+calloc error should be handled
 
-I am unable to run ibv_devinfo on the bad node, here is an output from a =
+-- Hal
 
-good node
-$ ibv_devinfo
-hca_id: mlx4_0
-         transport:                      InfiniBand (0)
-         fw_ver:                         2.10.2370
-         node_guid:                      001e:6703:003c:dff4
-         sys_image_guid:                 001e:6703:003c:dff7
-         vendor_id:                      0x02c9
-         vendor_part_id:                 4099
-         hw_ver:                         0x0
-         board_id:                       INCX-3I358C10501
-         phys_port_cnt:                  1
-                 port:   1
-                         state:                  PORT_ACTIVE (4)
-                         max_mtu:                2048 (4)
-                         active_mtu:             2048 (4)
-                         sm_lid:                 358
-                         port_lid:               331
-                         port_lmc:               0x00
-                         link_layer:             IB
-
---=20
-Bharath
-
-
-
---------------ms060001010903010604030800
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKQDCC
-BRowggQCoAMCAQICEG0Z6qcZT2ozIuYiMnqqcd4wDQYJKoZIhvcNAQEFBQAwga4xCzAJBgNV
-BAYTAlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoT
-FVRoZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3Qu
-Y29tMTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQg
-RW1haWwwHhcNMTEwNDI4MDAwMDAwWhcNMjAwNTMwMTA0ODM4WjCBkzELMAkGA1UEBhMCR0Ix
-GzAZBgNVBAgTEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEaMBgGA1UE
-ChMRQ09NT0RPIENBIExpbWl0ZWQxOTA3BgNVBAMTMENPTU9ETyBDbGllbnQgQXV0aGVudGlj
-YXRpb24gYW5kIFNlY3VyZSBFbWFpbCBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-ggEBAJKEhFtLV5jUXi+LpOFAyKNTWF9mZfEyTvefMn1V0HhMVbdClOD5J3EHxcZppLkyxPFA
-GpDMJ1Zifxe1cWmu5SAb5MtjXmDKokH2auGj/7jfH0htZUOMKi4rYzh337EXrMLaggLW1DJq
-1GdvIBOPXDX65VSAr9hxCh03CgJQU2yVHakQFLSZlVkSMf8JotJM3FLb3uJAAVtIaN3FSrTg
-7SQfOq9xXwfjrL8UO7AlcWg99A/WF1hGFYE8aIuLgw9teiFX5jSw2zJ+40rhpVJyZCaRTqWS
-D//gsWD9Gm9oUZljjRqLpcxCm5t9ImPTqaD8zp6Q30QZ9FxbNboW86eb/8ECAwEAAaOCAUsw
-ggFHMB8GA1UdIwQYMBaAFImCZ33EnSZwAEu0UEh83j2uBG59MB0GA1UdDgQWBBR6E04AdFvG
-eGNkJ8Ev4qBbvHnFezAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADARBgNV
-HSAECjAIMAYGBFUdIAAwWAYDVR0fBFEwTzBNoEugSYZHaHR0cDovL2NybC51c2VydHJ1c3Qu
-Y29tL1VUTi1VU0VSRmlyc3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwdAYI
-KwYBBQUHAQEEaDBmMD0GCCsGAQUFBzAChjFodHRwOi8vY3J0LnVzZXJ0cnVzdC5jb20vVVRO
-QWRkVHJ1c3RDbGllbnRfQ0EuY3J0MCUGCCsGAQUFBzABhhlodHRwOi8vb2NzcC51c2VydHJ1
-c3QuY29tMA0GCSqGSIb3DQEBBQUAA4IBAQCF1r54V1VtM39EUv5C1QaoAQOAivsNsv1Kv/av
-QUn1G1rF0q0bc24+6SZ85kyYwTAo38v7QjyhJT4KddbQPTmGZtGhm7VNm2+vKGwdr+XqdFqo
-2rHA8XV6L566k3nK/uKRHlZ0sviN0+BDchvtj/1gOSBH+4uvOmVIPJg9pSW/ve9g4EnlFsjr
-P0OD8ODuDcHTzTNfm9C9YGqzO/761Mk6PB/tm/+bSTO+Qik5g+4zaS6CnUVNqGnagBsePdIa
-XXxHmaWbCG0SmYbWXVcHG6cwvktJRLiQfsrReTjrtDP6oDpdJlieYVUYtCHVmdXgQ0BCML7q
-peeU0rD+83X5f27nMIIFHjCCBAagAwIBAgIRAN22Q2v22Zy9hskOYaOi3XkwDQYJKoZIhvcN
-AQEFBQAwgZMxCzAJBgNVBAYTAkdCMRswGQYDVQQIExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAO
-BgNVBAcTB1NhbGZvcmQxGjAYBgNVBAoTEUNPTU9ETyBDQSBMaW1pdGVkMTkwNwYDVQQDEzBD
-T01PRE8gQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBTZWN1cmUgRW1haWwgQ0EwHhcNMTIx
-MTE5MDAwMDAwWhcNMTMxMTE5MjM1OTU5WjAfMR0wGwYJKoZIhvcNAQkBFg5icmFtZXNoQHZ0
-LmVkdTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANh81vYaLvDNeNh1+oJe44bN
-7FPrbo3WJAJpulUEnBH2MvxWP+oyxdFOcWB7msjRrC8ftYaEVl4K9m768rmfWho4iCiyW6uQ
-upTDRLrPrhvyoDIsILfy69ayWA/aUph0NVrwnZy4GsZ4bHSjXfLoh3fN6lJN2+8CxbYDSNar
-xIx2fn124IHtIz4e7euRi6qg+W5lFCoFNWmCuEaKSHKkwHd4I8Sw6R702BOsZ9+bEpybkm/h
-k1JmLg6HJDP1K1eL1jsD2XCBbFBWiRWya1DCyqsvzcqXtgaaU+iGaOJMUHQlE1ogxXgl/X4L
-jCkwq7//WUScJhHv2ZBF1k1694gRbPsCAwEAAaOCAd4wggHaMB8GA1UdIwQYMBaAFHoTTgB0
-W8Z4Y2QnwS/ioFu8ecV7MB0GA1UdDgQWBBQ3y6VnkWY6FF4mjVobS4yBWoM5FzAOBgNVHQ8B
-Af8EBAMCBaAwDAYDVR0TAQH/BAIwADAgBgNVHSUEGTAXBggrBgEFBQcDBAYLKwYBBAGyMQED
-BQIwEQYJYIZIAYb4QgEBBAQDAgUgMEYGA1UdIAQ/MD0wOwYMKwYBBAGyMQECAQEBMCswKQYI
-KwYBBQUHAgEWHWh0dHBzOi8vc2VjdXJlLmNvbW9kby5uZXQvQ1BTMFcGA1UdHwRQME4wTKBK
-oEiGRmh0dHA6Ly9jcmwuY29tb2RvY2EuY29tL0NPTU9ET0NsaWVudEF1dGhlbnRpY2F0aW9u
-YW5kU2VjdXJlRW1haWxDQS5jcmwwgYgGCCsGAQUFBwEBBHwwejBSBggrBgEFBQcwAoZGaHR0
-cDovL2NydC5jb21vZG9jYS5jb20vQ09NT0RPQ2xpZW50QXV0aGVudGljYXRpb25hbmRTZWN1
-cmVFbWFpbENBLmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuY29tb2RvY2EuY29tMBkG
-A1UdEQQSMBCBDmJyYW1lc2hAdnQuZWR1MA0GCSqGSIb3DQEBBQUAA4IBAQBpORr1+kAak071
-YWHyJH8wedMGNycEXjZdKAOKQesWrfn3HivapKvG/uVcDQxzHZOt0rJuukoPnVAQrs4/XJZt
-Lc6B+e0A/Q6l0rYHxli4szpnXPjo0QUJ/DSY+DXQ8O8DnIHfY0dQoXRlncOAmeDz3IqZpWMO
-g6wQWATiFXV/a59tXTvAdEpFFfkCq9K7CHWmQSHhEoN2T4Ww5GS5rUFauUgkAXns//NppUBB
-5uAAswFyXYaqm/LuSbcKpXtfsnZnYqFWFVwmiD5ZANnHVCgdBCpdg5Crw1cKoES+JoyTUDiK
-PeZ/HuzuXe/LVMVnBBeulIaReqFga/lqlNCbL4k7MYIEHDCCBBgCAQEwgakwgZMxCzAJBgNV
-BAYTAkdCMRswGQYDVQQIExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcTB1NhbGZvcmQx
-GjAYBgNVBAoTEUNPTU9ETyBDQSBMaW1pdGVkMTkwNwYDVQQDEzBDT01PRE8gQ2xpZW50IEF1
-dGhlbnRpY2F0aW9uIGFuZCBTZWN1cmUgRW1haWwgQ0ECEQDdtkNr9tmcvYbJDmGjot15MAkG
-BSsOAwIaBQCgggJHMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8X
-DTEzMDIwMzE1MTgxNFowIwYJKoZIhvcNAQkEMRYEFBqINSRLkIFRCDHHefRGnU78GhwRMGwG
-CSqGSIb3DQEJDzFfMF0wCwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzAO
-BggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgw
-gboGCSsGAQQBgjcQBDGBrDCBqTCBkzELMAkGA1UEBhMCR0IxGzAZBgNVBAgTEkdyZWF0ZXIg
-TWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEaMBgGA1UEChMRQ09NT0RPIENBIExpbWl0
-ZWQxOTA3BgNVBAMTMENPTU9ETyBDbGllbnQgQXV0aGVudGljYXRpb24gYW5kIFNlY3VyZSBF
-bWFpbCBDQQIRAN22Q2v22Zy9hskOYaOi3XkwgbwGCyqGSIb3DQEJEAILMYGsoIGpMIGTMQsw
-CQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxm
-b3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE5MDcGA1UEAxMwQ09NT0RPIENsaWVu
-dCBBdXRoZW50aWNhdGlvbiBhbmQgU2VjdXJlIEVtYWlsIENBAhEA3bZDa/bZnL2GyQ5ho6Ld
-eTANBgkqhkiG9w0BAQEFAASCAQBQWvRebex//Yi8ygS22eb3yKu89uxxnMvmpSriR1Cq+qbq
-bHIG5ZYL743Km2esSzVuKdEgCqsCsodOoaw8ue6sMkgyr/i90CRcBCD1fL6mww4VnQV0BBbE
-7FQGnSKbltlrFAw8pEmjD868P6gXYJYvFPl1fCl9h1aifw5iVPfHalwUCw3nWXjKWTVecTgX
-JC5KpTTMV2cIXrYlwZN2mKji/CqIAveLk6tr+Jj8uurZh7HOjDgAEiyF4RY4IBYHfyCFHdqz
-+wObHZ+X/KnoPAJIFaUXkZLZDHxUHFxlpX87dV/JDhfuQtM50pbP5SCj9GJNWejqpVTCgtBP
-xgRqe6EtAAAAAAAA
---------------ms060001010903010604030800--
+> +	}
+> +}
+> +
+>  void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
+>  {
+>  	switch (node->type) {
+> @@ -664,6 +695,12 @@ static int set_config(struct ibnd_config *config, struct ibnd_config *cfg)
+>  	return (0);
+>  }
+>  
+> +static ibnd_fabric_t *allocate_fabric(void)
+> +{
+> +	f_internal_t *f = calloc(1, sizeof(*f));
+> +	return ((ibnd_fabric_t *)f);
+> +}
+> +
+>  ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+>  				    ib_portid_t * from,
+>  				    struct ibnd_config *cfg)
+> @@ -685,7 +722,7 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+>  		return NULL;
+>  	}
+>  
+> -	fabric = calloc(1, sizeof(*fabric));
+> +	fabric = allocate_fabric();
+>  	if (!fabric) {
+>  		IBND_ERROR("OOM: failed to calloc ibnd_fabric_t\n");
+>  		return NULL;
+> @@ -715,6 +752,8 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+>  
+>  	IBND_DEBUG("from %s\n", portid2str(from));
+>  
+> +	create_lid2guid(fabric);
+> +
+>  	if (!query_node_info(&engine, from, NULL))
+>  		if (process_mads(&engine) != 0)
+>  			goto error;
+> @@ -768,6 +807,7 @@ void ibnd_destroy_fabric(ibnd_fabric_t * fabric)
+>  		destroy_node(node);
+>  		node = next;
+>  	}
+> +	destroy_lid2guid(fabric);
+>  	free(fabric);
+>  }
+>  
+> @@ -825,6 +865,17 @@ void ibnd_iter_nodes_type(ibnd_fabric_t * fabric, ibnd_iter_node_func_t func,
+>  		func(cur, user_data);
+>  }
+>  
+> +ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
+> +				uint16_t lid)
+> +{
+> +	ibnd_port_t *port;
+> +	f_internal_t *f = (f_internal_t *)fabric;
+> +
+> +	port = (ibnd_port_t *)g_hash_table_lookup(f->lid2guid, &lid);
+> +
+> +	return port;
+> +}
+> +
+>  ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric, uint64_t guid)
+>  {
+>  	int hash = HASHGUID(guid) % HTSZ;
+> diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
+> index 80918c4..b7e18e8 100644
+> --- a/libibnetdisc/src/internal.h
+> +++ b/libibnetdisc/src/internal.h
+> @@ -40,6 +40,7 @@
+>  
+>  #include <infiniband/ibnetdisc.h>
+>  #include <complib/cl_qmap.h>
+> +#include <glib.h>
+>  
+>  #define	IBND_DEBUG(fmt, ...) \
+>  	if (ibdebug) { \
+> @@ -57,6 +58,11 @@
+>  #define DEFAULT_TIMEOUT 1000
+>  #define DEFAULT_RETRIES 3
+>  
+> +typedef struct f_internal {
+> +	ibnd_fabric_t fabric;
+> +	GHashTable *lid2guid;
+> +} f_internal_t;
+> +
+>  typedef struct ibnd_scan {
+>  	ib_portid_t selfportid;
+>  	ibnd_fabric_t *fabric;
+> @@ -100,6 +106,7 @@ void smp_engine_destroy(smp_engine_t * engine);
+>  void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
+>  
+>  void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
+> +void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
+>  
+>  void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric);
+>  
+> diff --git a/libibnetdisc/src/libibnetdisc.map b/libibnetdisc/src/libibnetdisc.map
+> index 1c42e7b..f1b7229 100644
+> --- a/libibnetdisc/src/libibnetdisc.map
+> +++ b/libibnetdisc/src/libibnetdisc.map
+> @@ -16,6 +16,7 @@ IBNETDISC_1.0 {
+>  		ibnd_iter_nodes_type;
+>  		ibnd_find_port_guid;
+>  		ibnd_find_port_dr;
+> +		ibnd_find_port_lid;
+>  		ibnd_iter_ports;
+>  	local: *;
+>  };
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
