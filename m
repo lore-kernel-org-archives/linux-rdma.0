@@ -1,27 +1,39 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 01/10] DFSSSP: fix a memory leak in dfsssp_build_graph
-Date: Sun, 3 Feb 2013 19:51:53 +0200
-Message-ID: <20130203175153.GE2534@calypso.mtl.com>
-References: <1358872698-16850-1-git-send-email-domke.j.aa@m.titech.ac.jp>
+Subject: Re: [PATCH] opensm: Add better error output when parsing node name
+ maps
+Date: Sun, 3 Feb 2013 19:52:34 +0200
+Message-ID: <20130203175234.GF2534@calypso.mtl.com>
+References: <1352498124.25353.139.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1358872698-16850-1-git-send-email-domke.j.aa@m.titech.ac.jp>
+In-Reply-To: <1352498124.25353.139.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jens Domke <domke.j.aa@m.titech.ac.jp>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Torsten Hoefler <htor-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org>
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jens,
+Hi Albert,
 
-On 01:38 Wed 23 Jan     , Jens Domke wrote:
-> If the graph could not be build correctly and DFSSSP returns an error, then not all allocated memory was freed.
+On 13:55 Fri 09 Nov     , Albert Chu wrote:
+> Presently, any error in opening a node name map file leads
+> to a generic:
 > 
-> Signed-off-by: Jens Domke <domke.j.aa@m.titech.ac.jp>
+> "WARNING failed to open node name map"
+> 
+> error.  This patch adds better error output when the issue
+> is specifically parsing errors in the file.  The user
+> will get:
+> 
+> "WARNING failed to parse node name map"
+> 
+> and an output of the line with the particular issue.
+> 
+> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 > ---
 
-Applied the series, thanks.
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
