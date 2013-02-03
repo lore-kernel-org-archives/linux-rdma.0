@@ -1,58 +1,20 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 25/62] infiniband/cxgb4: convert to idr_alloc()
-Date: Sun, 3 Feb 2013 06:28:40 -0800
-Message-ID: <CAOS58YOmYPX476gkvJLGtQZEL2RyyGq6XH0ifiuKLvEOgjjhHQ@mail.gmail.com>
-References: <1359854463-2538-1-git-send-email-tj@kernel.org>
-	<1359854463-2538-26-git-send-email-tj@kernel.org>
-	<510E71BD.1010909@opengridcomputing.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 23/62] infiniband/amso1100: convert to idr_alloc()
+Date: Sun, 03 Feb 2013 08:36:33 -0600
+Message-ID: <510E75F1.6060608@opengridcomputing.com>
+References: <1359854463-2538-1-git-send-email-tj@kernel.org> <1359854463-2538-24-git-send-email-tj@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <510E71BD.1010909@opengridcomputing.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, rusty@rustcorp.com.au, bfields@fieldses.org, skinsbursky@parallels.com, ebiederm@xmission.com, jmorris@namei.org, axboe@kernel.dk, Steve Wise <swise@chelsio.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1359854463-2538-24-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, skinsbursky-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
-
-On Sun, Feb 3, 2013 at 6:18 AM, Steve Wise <swise@opengridcomputing.com> wrote:
-> Is there a git tree somewhere that I can use to test these patches out?
-
- git://git.kernel.org/pub/scm/linux/kernel/git/tj/misc.git convert-to-idr_alloc
-
->> -       return ret;
->> +       if (lock) {
->> +               idr_preload(GFP_KERNEL);
->> +               spin_lock_irq(&rhp->lock);
->> +       }
->
-> The idr_preload() needs to be above the 'if (lock)', no?
-
-No reason to preload for ATOMIC allocation.  idr_alloc() can be called
-by itself.
-
->> +
->> +       ret = idr_alloc(idr, handle, id, id + 1, GFP_ATOMIC);
->> +
->> +       if (lock) {
->> +               spin_unlock_irq(&rhp->lock);
->> +               idr_preload_end();
->> +       }
->
-> And idr_preload_end() should be after the 'if (lock)' block methinks...
-
-Ditto.
-
->> +
->> +       BUG_ON(ret == -ENOSPC);
->> +       return ret < 0 ? ret : 0;
->
-> What would cause ret >  0?
-
-It's the allocated id.  In this case, ret would either be @id or -errno.
-
-Thanks.
-
--- 
-tejun
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
