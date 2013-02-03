@@ -1,13 +1,13 @@
 From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 28/62] infiniband/mlx4: convert to idr_alloc()
-Date: Sat,  2 Feb 2013 17:20:29 -0800
-Message-ID: <1359854463-2538-29-git-send-email-tj@kernel.org>
+Subject: [PATCH 23/62] infiniband/amso1100: convert to idr_alloc()
+Date: Sat,  2 Feb 2013 17:20:24 -0800
+Message-ID: <1359854463-2538-24-git-send-email-tj@kernel.org>
 References: <1359854463-2538-1-git-send-email-tj@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1359854463-2538-1-git-send-email-tj@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, rusty@rustcorp.com.au, bfields@fieldses.org, skinsbursky@parallels.com, ebiederm@xmission.com, jmorris@namei.org, axboe@kernel.dk, Tejun Heo <tj@kernel.org>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, rusty@rustcorp.com.au, bfields@fieldses.org, skinsbursky@parallels.com, ebiederm@xmission.com, jmorris@namei.org, axboe@kernel.dk, Tejun Heo <tj@kernel.org>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 Convert to the much saner new idr interface.
@@ -15,70 +15,46 @@ Convert to the much saner new idr interface.
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Roland Dreier <roland@purestorage.com>
+Cc: Tom Tucker <tom@opengridcomputing.com>
+Cc: Steve Wise <swise@opengridcomputing.com>
 Cc: linux-rdma@vger.kernel.org
 ---
 This patch depends on an earlier idr changes and I think it would be
 best to route these together through -mm.  Please holler if there's
 any objection.  Thanks.
 
- drivers/infiniband/hw/mlx4/cm.c | 32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/amso1100/c2_qp.c | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index dbc99d4..80e59ed 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -203,7 +203,7 @@ static void sl_id_map_add(struct ib_device *ibdev, struct id_map_entry *new)
- static struct id_map_entry *
- id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
+diff --git a/drivers/infiniband/hw/amso1100/c2_qp.c b/drivers/infiniband/hw/amso1100/c2_qp.c
+index 28cd5cb..0ab826b 100644
+--- a/drivers/infiniband/hw/amso1100/c2_qp.c
++++ b/drivers/infiniband/hw/amso1100/c2_qp.c
+@@ -382,14 +382,17 @@ static int c2_alloc_qpn(struct c2_dev *c2dev, struct c2_qp *qp)
  {
--	int ret, id;
-+	int ret;
- 	static int next_id;
- 	struct id_map_entry *ent;
- 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
-@@ -220,25 +220,23 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
- 	ent->dev = to_mdev(ibdev);
- 	INIT_DELAYED_WORK(&ent->timeout, id_map_ent_timeout);
+ 	int ret;
  
--	do {
--		spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
--		ret = idr_get_new_above(&sriov->pv_id_table, ent,
--					next_id, &id);
--		if (!ret) {
--			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
--			ent->pv_cm_id = (u32)id;
--			sl_id_map_add(ibdev, ent);
--		}
+-        do {
+-		spin_lock_irq(&c2dev->qp_table.lock);
+-		ret = idr_get_new_above(&c2dev->qp_table.idr, qp,
+-					c2dev->qp_table.last++, &qp->qpn);
+-		spin_unlock_irq(&c2dev->qp_table.lock);
+-        } while ((ret == -EAGAIN) &&
+-	 	 idr_pre_get(&c2dev->qp_table.idr, GFP_KERNEL));
+-	return ret;
 +	idr_preload(GFP_KERNEL);
-+	spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
- 
--		spin_unlock(&sriov->id_map_lock);
--	} while (ret == -EAGAIN && idr_pre_get(&sriov->pv_id_table, GFP_KERNEL));
--	/*the function idr_get_new_above can return -ENOSPC, so don't insert in that case.*/
--	if (!ret) {
--		spin_lock(&sriov->id_map_lock);
-+	ret = idr_alloc(&sriov->pv_id_table, ent, next_id, 0, GFP_NOWAIT);
-+	if (ret >= 0) {
-+		next_id = ((unsigned)ret + 1) & MAX_IDR_MASK;
-+		ent->pv_cm_id = (u32)ret;
-+		sl_id_map_add(ibdev, ent);
- 		list_add_tail(&ent->list, &sriov->cm_list);
--		spin_unlock(&sriov->id_map_lock);
--		return ent;
- 	}
++	spin_lock_irq(&c2dev->qp_table.lock);
 +
-+	spin_unlock(&sriov->id_map_lock);
-+	idr_preload_end();
-+
++	ret = idr_alloc(&c2dev->qp_table.idr, qp, c2dev->qp_table.last++, 0,
++			GFP_NOWAIT);
 +	if (ret >= 0)
-+		return ent;
++		qp->qpn = ret;
 +
- 	/*error flow*/
- 	kfree(ent);
- 	mlx4_ib_warn(ibdev, "No more space in the idr (err:0x%x)\n", ret);
++	spin_unlock_irq(&c2dev->qp_table.lock);
++	idr_preload_end();
++	return ret < 0 ? ret : 0;
+ }
+ 
+ static void c2_free_qpn(struct c2_dev *c2dev, int qpn)
 -- 
 1.8.1
