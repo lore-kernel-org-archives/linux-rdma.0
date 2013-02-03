@@ -1,605 +1,280 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 2/2] infiniband-diags: add dump_fts tool
-Date: Sat, 2 Feb 2013 16:36:31 -0800
-Message-ID: <20130202163631.a57e92cf1988aed94a24a5f3@llnl.gov>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: [PATCH 22/62] infiniband/core: convert to idr_alloc()
+Date: Sat,  2 Feb 2013 17:20:23 -0800
+Message-ID: <1359854463-2538-23-git-send-email-tj@kernel.org>
+References: <1359854463-2538-1-git-send-email-tj@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1359854463-2538-1-git-send-email-tj@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, rusty@rustcorp.com.au, bfields@fieldses.org, skinsbursky@parallels.com, ebiederm@xmission.com, jmorris@namei.org, axboe@kernel.dk, Tejun Heo <tj@kernel.org>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
->From 2708d0965e03de1f9ae722e38c8b72a808718a0d Mon Sep 17 00:00:00 2001
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Fri, 1 Feb 2013 18:13:59 -0500
-Subject: [PATCH 2/2] infiniband-diags: add dump_fts tool
+Convert to the much saner new idr interface.
 
-dump_fts adds a faster version of the functionality of dump_[l|m]fts.sh.  This
-code is based off of the ibroute code and simply uses libibnetdisc to scan the
-fabric instead of using ibnetdiscover and letting ibroute requery all that data
-over again.  This improves things in 3 ways.
+Only compile tested.
 
-1) performance improves by nearly 2 orders of magnitude.
-2) this version greatly reduces the mads required and thus reduces the
-   impact on the fabric.
-3) Everything is queried with DR paths which ensures if the routing tables are
-   bad on the cluster the query will still complete and give you the
-   information you were looking for.  (To be fair dump_lft.sh has the DR option
-   but it is currently buggy.)
-
-Example runs on the ~1400 nodes of the Hyperion test cluster show:
-
-13:45:46 > time ./dump_lfts.sh > /dev/null
-
-real    4m58.175s
-user    0m6.407s
-sys     0m17.983s
-
-13:53:12 > time ./dump_fts > /dev/null
-dump tables: linear forwarding table get failed
-
-real    0m8.121s
-user    0m3.032s
-sys     0m3.342s
-
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org
 ---
- Makefile.am              |    7 +-
- configure.in             |    1 +
- infiniband-diags.spec.in |    2 +
- src/dump_fts.c           |  481 ++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 490 insertions(+), 1 deletions(-)
- create mode 100644 src/dump_fts.c
+This patch depends on an earlier idr changes and I think it would be
+best to route these together through -mm.  Please holler if there's
+any objection.  Thanks.
 
-diff --git a/Makefile.am b/Makefile.am
-index a35a432..42c2c75 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -15,7 +15,8 @@ sbin_PROGRAMS = src/ibaddr src/ibnetdiscover src/ibping src/ibportstate \
- 	        src/perfquery src/sminfo src/smpdump src/smpquery \
- 	        src/saquery src/vendstat src/iblinkinfo \
- 		src/ibqueryerrors src/ibcacheedit src/ibccquery \
--		src/ibccconfig
-+		src/ibccconfig \
-+		src/dump_fts
+ drivers/infiniband/core/cm.c         | 22 +++++++++++-----------
+ drivers/infiniband/core/cma.c        | 24 +++++++-----------------
+ drivers/infiniband/core/sa_query.c   | 15 +++++++--------
+ drivers/infiniband/core/ucm.c        | 16 ++++------------
+ drivers/infiniband/core/ucma.c       | 32 ++++++++------------------------
+ drivers/infiniband/core/uverbs_cmd.c | 17 ++++++++---------
+ 6 files changed, 45 insertions(+), 81 deletions(-)
+
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 394fea2..98281fe 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -382,20 +382,21 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
+ static int cm_alloc_id(struct cm_id_private *cm_id_priv)
+ {
+ 	unsigned long flags;
+-	int ret, id;
++	int id;
+ 	static int next_id;
  
- if ENABLE_TEST_UTILS
- sbin_PROGRAMS += src/ibsendtrap src/mcm_rereg_test
-@@ -45,6 +46,7 @@ man_MANS = doc/man/ibaddr.8 \
- 		doc/man/ibcacheedit.8 \
- 		doc/man/ibccconfig.8 \
- 		doc/man/ibccquery.8 \
-+		doc/man/dump_fts.8 \
- 		doc/man/dump_lfts.8 \
- 		doc/man/dump_mfts.8 \
- 		doc/man/iblinkinfo.8 \
-@@ -118,6 +120,9 @@ src_ibqueryerrors_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
- src_ibcacheedit_SOURCES = src/ibcacheedit.c
- src_ibcacheedit_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
+-	do {
+-		spin_lock_irqsave(&cm.lock, flags);
+-		ret = idr_get_new_above(&cm.local_id_table, cm_id_priv,
+-					next_id, &id);
+-		if (!ret)
+-			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
+-		spin_unlock_irqrestore(&cm.lock, flags);
+-	} while( (ret == -EAGAIN) && idr_pre_get(&cm.local_id_table, GFP_KERNEL) );
++	idr_preload(GFP_KERNEL);
++	spin_lock_irqsave(&cm.lock, flags);
++
++	id = idr_alloc(&cm.local_id_table, cm_id_priv, next_id, 0, GFP_NOWAIT);
++	if (id >= 0)
++		next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
++
++	spin_unlock_irqrestore(&cm.lock, flags);
++	idr_preload_end();
  
-+src_dump_fts_SOURCES = src/dump_fts.c
-+src_dump_fts_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
-+
- BUILT_SOURCES = ibdiag_version
- ibdiag_version:
- 	if [ -x $(top_srcdir)/gen_ver.sh ] ; then \
-diff --git a/configure.in b/configure.in
-index ca62d5b..b54222b 100644
---- a/configure.in
-+++ b/configure.in
-@@ -221,6 +221,7 @@ AC_CONFIG_FILES([\
- 	doc/man/ibcacheedit.8 \
- 	doc/man/ibccconfig.8 \
- 	doc/man/ibccquery.8 \
-+	doc/man/dump_fts.8 \
- 	doc/man/dump_lfts.8 \
- 	doc/man/dump_mfts.8 \
- 	doc/man/ibhosts.8 \
-diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
-index 9cd195b..1e75e4d 100644
---- a/infiniband-diags.spec.in
-+++ b/infiniband-diags.spec.in
-@@ -127,6 +127,8 @@ rm -rf $RPM_BUILD_ROOT
- %{_mandir}/man8/ibccquery.8.gz
- %{_sbindir}/ibccconfig
- %{_mandir}/man8/ibccconfig.8.gz
-+%{_sbindir}/dump_fts
-+%{_mandir}/man8/dump_fts.8.gz
+ 	cm_id_priv->id.local_id = (__force __be32)id ^ cm.random_id_operand;
+-	return ret;
++	return id < 0 ? id : 0;
+ }
  
- # scripts here
- %{_sbindir}/ibhosts
-diff --git a/src/dump_fts.c b/src/dump_fts.c
-new file mode 100644
-index 0000000..dd22685
---- /dev/null
-+++ b/src/dump_fts.c
-@@ -0,0 +1,481 @@
-+/*
-+ * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-+ * Copyright (c) 2009-2011 Mellanox Technologies LTD.  All rights reserved.
-+ * Copyright (c) 2013 Lawrence Livermore National Security.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ *
-+ */
-+
-+#if HAVE_CONFIG_H
-+#  include <config.h>
-+#endif				/* HAVE_CONFIG_H */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <inttypes.h>
-+#include <getopt.h>
-+#include <netinet/in.h>
-+#include <assert.h>
-+
-+#include <infiniband/umad.h>
-+#include <infiniband/mad.h>
-+#include <complib/cl_nodenamemap.h>
-+
-+#include <infiniband/ibnetdisc.h>
-+
-+#include "ibdiag_common.h"
-+
-+struct ibmad_port *srcport;
-+
-+unsigned startlid = 0, endlid = 0;
-+
-+static int brief, dump_all, multicast;
-+
-+static char *node_name_map_file = NULL;
-+static nn_map_t *node_name_map = NULL;
-+
-+
-+#define IB_MLIDS_IN_BLOCK	(IB_SMP_DATA_SIZE/2)
-+
-+int dump_mlid(char *str, int strlen, unsigned mlid, unsigned nports,
-+	      uint16_t mft[16][IB_MLIDS_IN_BLOCK])
-+{
-+	uint16_t mask;
-+	unsigned i, chunk, bit, nonzero = 0;
-+
-+	if (brief) {
-+		int n = 0;
-+		unsigned chunks = ALIGN(nports + 1, 16) / 16;
-+		for (i = 0; i < chunks; i++) {
-+			mask = ntohs(mft[i][mlid % IB_MLIDS_IN_BLOCK]);
-+			if (mask)
-+				nonzero++;
-+			n += snprintf(str + n, strlen - n, "%04hx", mask);
-+			if (n >= strlen) {
-+				n = strlen;
-+				break;
-+			}
-+		}
-+		if (!nonzero && !dump_all) {
-+			str[0] = 0;
-+			return 0;
-+		}
-+		return n;
-+	}
-+	for (i = 0; i <= nports; i++) {
-+		chunk = i / 16;
-+		bit = i % 16;
-+
-+		mask = ntohs(mft[chunk][mlid % IB_MLIDS_IN_BLOCK]);
-+		if (mask)
-+			nonzero++;
-+		str[i * 2] = (mask & (1 << bit)) ? 'x' : ' ';
-+		str[i * 2 + 1] = ' ';
-+	}
-+	if (!nonzero && !dump_all) {
-+		str[0] = 0;
-+		return 0;
-+	}
-+	str[i * 2] = 0;
-+	return i * 2;
-+}
-+
-+uint16_t mft[16][IB_MLIDS_IN_BLOCK] = { { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0}, { 0 }, { 0 } };
-+
-+char * dump_multicast_tables(ibnd_node_t * node, unsigned startlid,
-+			    unsigned endlid, struct ibmad_port * mad_port)
-+{
-+	ib_portid_t *portid = &node->path_portid;
-+	char nd[IB_SMP_DATA_SIZE] = { 0 };
-+	char str[512];
-+	char *s;
-+	uint64_t nodeguid;
-+	uint32_t mod;
-+	unsigned block, i, j, e, nports, cap, chunks, startblock, lastblock,
-+	    top;
-+	char *mapnd = NULL;
-+	int n = 0;
-+
-+	memcpy(nd, node->nodedesc, strlen(node->nodedesc));
-+	nports = node->numports;
-+	nodeguid = node->guid;
-+
-+	mad_decode_field(node->switchinfo, IB_SW_MCAST_FDB_CAP_F, &cap);
-+	mad_decode_field(node->switchinfo, IB_SW_MCAST_FDB_TOP_F, &top);
-+
-+	if (!endlid || endlid > IB_MIN_MCAST_LID + cap - 1)
-+		endlid = IB_MIN_MCAST_LID + cap - 1;
-+	if (!dump_all && top && top < endlid) {
-+		if (top < IB_MIN_MCAST_LID - 1)
-+			IBWARN("illegal top mlid %x", top);
-+		else
-+			endlid = top;
-+	}
-+
-+	if (!startlid)
-+		startlid = IB_MIN_MCAST_LID;
-+	else if (startlid < IB_MIN_MCAST_LID) {
-+		IBWARN("illegal start mlid %x, set to %x", startlid,
-+		       IB_MIN_MCAST_LID);
-+		startlid = IB_MIN_MCAST_LID;
-+	}
-+
-+	if (endlid > IB_MAX_MCAST_LID) {
-+		IBWARN("illegal end mlid %x, truncate to %x", endlid,
-+		       IB_MAX_MCAST_LID);
-+		endlid = IB_MAX_MCAST_LID;
-+	}
-+
-+	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-+
-+	printf("Multicast mlids [0x%x-0x%x] of switch %s guid 0x%016" PRIx64
-+	       " (%s):\n", startlid, endlid, portid2str(portid), nodeguid,
-+	       mapnd);
-+
-+	if (brief)
-+		printf(" MLid       Port Mask\n");
-+	else {
-+		if (nports > 9) {
-+			for (i = 0, s = str; i <= nports; i++) {
-+				*s++ = (i % 10) ? ' ' : '0' + i / 10;
-+				*s++ = ' ';
-+			}
-+			*s = 0;
-+			printf("            %s\n", str);
-+		}
-+		for (i = 0, s = str; i <= nports; i++)
-+			s += sprintf(s, "%d ", i % 10);
-+		printf("     Ports: %s\n", str);
-+		printf(" MLid\n");
-+	}
-+	if (ibverbose)
-+		printf("Switch multicast mlid capability is %d top is 0x%x\n",
-+		       cap, top);
-+
-+	chunks = ALIGN(nports + 1, 16) / 16;
-+
-+	startblock = startlid / IB_MLIDS_IN_BLOCK;
-+	lastblock = endlid / IB_MLIDS_IN_BLOCK;
-+	for (block = startblock; block <= lastblock; block++) {
-+		for (j = 0; j < chunks; j++) {
-+			mod = (block - IB_MIN_MCAST_LID / IB_MLIDS_IN_BLOCK)
-+			    | (j << 28);
-+
-+			DEBUG("reading block %x chunk %d mod %x", block, j,
-+			      mod);
-+			if (!smp_query_via
-+			    (mft + j, portid, IB_ATTR_MULTICASTFORWTBL, mod, 0,
-+			     mad_port))
-+				return "multicast forwarding table get failed";
-+		}
-+
-+		i = block * IB_MLIDS_IN_BLOCK;
-+		e = i + IB_MLIDS_IN_BLOCK;
-+		if (i < startlid)
-+			i = startlid;
-+		if (e > endlid + 1)
-+			e = endlid + 1;
-+
-+		for (; i < e; i++) {
-+			if (dump_mlid(str, sizeof str, i, nports, mft) == 0)
-+				continue;
-+			printf("0x%04x      %s\n", i, str);
-+			n++;
-+		}
-+	}
-+
-+	printf("%d %smlids dumped \n", n, dump_all ? "" : "valid ");
-+
-+	free(mapnd);
-+	return 0;
-+}
-+
-+int dump_lid(char *str, int str_len, int lid, int valid,
-+		ibnd_fabric_t *fabric,
-+		int * last_port_lid, int * base_port_lid,
-+		uint64_t * portguid)
-+{
-+	char nd[IB_SMP_DATA_SIZE] = { 0 };
-+
-+	ibnd_port_t *port = NULL;
-+
-+	char ntype[50], sguid[30];
-+	uint64_t nodeguid;
-+	int baselid, lmc, type;
-+	char *mapnd = NULL;
-+	int rc;
-+
-+	if (brief) {
-+		str[0] = 0;
-+		return 0;
-+	}
-+
-+	if (lid <= *last_port_lid) {
-+		if (!valid)
-+			return snprintf(str, str_len,
-+					": (path #%d - illegal port)",
-+					lid - *base_port_lid);
-+		else if (!*portguid)
-+			return snprintf(str, str_len,
-+					": (path #%d out of %d)",
-+					lid - *base_port_lid + 1,
-+					*last_port_lid - *base_port_lid + 1);
-+		else {
-+			return snprintf(str, str_len,
-+					": (path #%d out of %d: portguid %s)",
-+					lid - *base_port_lid + 1,
-+					*last_port_lid - *base_port_lid + 1,
-+					mad_dump_val(IB_NODE_PORT_GUID_F, sguid,
-+						     sizeof sguid, portguid));
-+		}
-+	}
-+
-+	if (!valid)
-+		return snprintf(str, str_len, ": (illegal port)");
-+
-+	*portguid = 0;
-+
-+	port = ibnd_find_port_lid(fabric, lid);
-+	if (!port) {
-+		return snprintf(str, str_len, ": (node info not available fabric scan)");
-+	}
-+
-+	nodeguid = port->node->guid;
-+	*portguid = port->guid;
-+	type = port->node->type;
-+
-+	baselid = port->base_lid;
-+	lmc = port->lmc;
-+
-+	memcpy(nd, port->node->nodedesc, strlen(port->node->nodedesc));
-+
-+	if (lmc > 0) {
-+		*base_port_lid = baselid;
-+		*last_port_lid = baselid + (1 << lmc) - 1;
-+	}
-+
-+	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-+ 
-+	rc = snprintf(str, str_len, ": (%s portguid %s: '%s')",
-+		      mad_dump_val(IB_NODE_TYPE_F, ntype, sizeof ntype,
-+				   &type), mad_dump_val(IB_NODE_PORT_GUID_F,
-+							sguid, sizeof sguid,
-+							portguid),
-+		      mapnd);
-+
-+	free(mapnd);
-+	return rc;
-+}
-+
-+char *dump_unicast_tables(ibnd_node_t * node, int startlid, int endlid,
-+			struct ibmad_port *mad_port, ibnd_fabric_t *fabric)
-+{
-+	ib_portid_t * portid = &node->path_portid;
-+	char lft[IB_SMP_DATA_SIZE] = { 0 };
-+	char nd[IB_SMP_DATA_SIZE] = { 0 };
-+	char str[200];
-+	uint64_t nodeguid;
-+	int block, i, e, top;
-+	unsigned nports;
-+	int n = 0, startblock, endblock;
-+	char *mapnd = NULL;
-+	int last_port_lid = 0, base_port_lid = 0;
-+	uint64_t portguid = 0;
-+
-+	mad_decode_field(node->switchinfo, IB_SW_LINEAR_FDB_TOP_F, &top);
-+	nodeguid = node->guid;
-+	nports = node->numports;
-+	memcpy(nd, node->nodedesc, strlen(node->nodedesc));
-+
-+	if (!endlid || endlid > top)
-+		endlid = top;
-+
-+	if (endlid > IB_MAX_UCAST_LID) {
-+		IBWARN("illegal lft top %d, truncate to %d", endlid,
-+		       IB_MAX_UCAST_LID);
-+		endlid = IB_MAX_UCAST_LID;
-+	}
-+
-+	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-+
-+	printf("Unicast lids [0x%x-0x%x] of switch %s guid 0x%016" PRIx64
-+	       " (%s):\n", startlid, endlid, portid2str(portid), nodeguid,
-+	       mapnd);
-+
-+	DEBUG("Switch top is 0x%x\n", top);
-+
-+	printf("  Lid  Out   Destination\n");
-+	printf("       Port     Info \n");
-+	startblock = startlid / IB_SMP_DATA_SIZE;
-+	endblock = ALIGN(endlid, IB_SMP_DATA_SIZE) / IB_SMP_DATA_SIZE;
-+	for (block = startblock; block <= endblock; block++) {
-+		DEBUG("reading block %d", block);
-+		if (!smp_query_via(lft, portid, IB_ATTR_LINEARFORWTBL, block,
-+				   0, mad_port))
-+			return "linear forwarding table get failed";
-+		i = block * IB_SMP_DATA_SIZE;
-+		e = i + IB_SMP_DATA_SIZE;
-+		if (i < startlid)
-+			i = startlid;
-+		if (e > endlid + 1)
-+			e = endlid + 1;
-+
-+		for (; i < e; i++) {
-+			unsigned outport = lft[i % IB_SMP_DATA_SIZE];
-+			unsigned valid = (outport <= nports);
-+
-+			if (!valid && !dump_all)
-+				continue;
-+			dump_lid(str, sizeof str, i, valid, fabric,
-+				&last_port_lid, &base_port_lid, &portguid);
-+			printf("0x%04x %03u %s\n", i, outport & 0xff, str);
-+			n++;
-+		}
-+	}
-+
-+	printf("%d %slids dumped \n", n, dump_all ? "" : "valid ");
-+	free(mapnd);
-+	return 0;
-+}
-+
-+void dump_node(ibnd_node_t *node, struct ibmad_port *mad_port,
-+		ibnd_fabric_t *fabric)
-+{
-+	char *err;
-+
-+	if (multicast)
-+		err = dump_multicast_tables(node, startlid, endlid, mad_port);
-+	else
-+		err = dump_unicast_tables(node, startlid, endlid,
-+						mad_port, fabric);
-+
-+	if (err)
-+		fprintf(stderr, "dump tables: %s\n", err);
-+}
-+
-+void process_switch(ibnd_node_t * node, void *fabric)
-+{
-+	dump_node(node, srcport, (ibnd_fabric_t *)fabric);
-+}
-+
-+static int process_opt(void *context, int ch, char *optarg)
-+{
-+	switch (ch) {
-+	case 'a':
-+		dump_all++;
-+		break;
-+	case 'M':
-+		multicast++;
-+		break;
-+	case 'n':
-+		brief++;
-+		break;
-+	case 1:
-+		node_name_map_file = strdup(optarg);
-+		break;
-+	default:
-+		return -1;
-+	}
-+	return 0;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int mgmt_classes[3] =
-+	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
-+
-+	struct ibnd_config config = { 0 };
-+	ibnd_fabric_t *fabric = NULL;
-+
-+	const struct ibdiag_opt opts[] = {
-+		{"all", 'a', 0, NULL, "show all lids, even invalid entries"},
-+		{"no_dests", 'n', 0, NULL,
-+		 "do not try to resolve destinations"},
-+		{"Multicast", 'M', 0, NULL, "show multicast forwarding tables"},
-+		{"node-name-map", 1, 1, "<file>", "node name map file"},
-+		{0}
-+	};
-+	char usage_args[] = "[<dest dr_path|lid|guid> [<startlid> [<endlid>]]]";
-+	const char *usage_examples[] = {
-+		" -- Unicast examples:",
-+		"-a\t# same, but dump all lids, even with invalid out ports",
-+		"-n\t# simple dump format - no destination resolving",
-+		"10\t# dump lids starting from 10",
-+		"0x10 0x20\t# dump lid range",
-+		" -- Multicast examples:",
-+		"-M\t# dump all non empty mlids of switch with lid 4",
-+		"-M 0xc010 0xc020\t# same, but with range",
-+		"-M -n\t# simple dump format",
-+		NULL,
-+	};
-+
-+	ibdiag_process_opts(argc, argv, &config, "KGDLs", opts, process_opt,
-+			    usage_args, usage_examples);
-+
-+	argc -= optind;
-+	argv += optind;
-+
-+	if (argc > 0)
-+		startlid = strtoul(argv[0], 0, 0);
-+	if (argc > 1)
-+		endlid = strtoul(argv[1], 0, 0);
-+
-+	node_name_map = open_node_name_map(node_name_map_file);
-+
-+	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 3);
-+	if (!srcport)
-+		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
-+
-+	smp_mkey_set(srcport, ibd_mkey);
-+
-+	if (ibd_timeout) {
-+		mad_rpc_set_timeout(srcport, ibd_timeout);
-+		config.timeout_ms = ibd_timeout;
-+	}
-+
-+	config.flags = ibd_ibnetdisc_flags;
-+	config.mkey = ibd_mkey;
-+
-+	fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, NULL, &config);
-+
-+	if (!fabric) {
-+		IBERROR("Failed to discover fabric");
-+	}
-+
-+	ibnd_iter_nodes_type(fabric, process_switch, IB_NODE_SWITCH, fabric);
-+
-+	ibnd_destroy_fabric(fabric);
-+
-+	mad_rpc_close_port(srcport);
-+	close_node_name_map(node_name_map);
-+	exit(0);
-+}
+ static void cm_free_id(__be32 local_id)
+@@ -3844,7 +3845,6 @@ static int __init ib_cm_init(void)
+ 	cm.remote_sidr_table = RB_ROOT;
+ 	idr_init(&cm.local_id_table);
+ 	get_random_bytes(&cm.random_id_operand, sizeof cm.random_id_operand);
+-	idr_pre_get(&cm.local_id_table, GFP_KERNEL);
+ 	INIT_LIST_HEAD(&cm.timewait_list);
+ 
+ 	ret = class_register(&cm_class);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index d789eea..c32eeaa 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2143,33 +2143,23 @@ static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
+ 			  unsigned short snum)
+ {
+ 	struct rdma_bind_list *bind_list;
+-	int port, ret;
++	int ret;
+ 
+ 	bind_list = kzalloc(sizeof *bind_list, GFP_KERNEL);
+ 	if (!bind_list)
+ 		return -ENOMEM;
+ 
+-	do {
+-		ret = idr_get_new_above(ps, bind_list, snum, &port);
+-	} while ((ret == -EAGAIN) && idr_pre_get(ps, GFP_KERNEL));
+-
+-	if (ret)
+-		goto err1;
+-
+-	if (port != snum) {
+-		ret = -EADDRNOTAVAIL;
+-		goto err2;
+-	}
++	ret = idr_alloc(ps, bind_list, snum, snum + 1, GFP_KERNEL);
++	if (ret < 0)
++		goto err;
+ 
+ 	bind_list->ps = ps;
+-	bind_list->port = (unsigned short) port;
++	bind_list->port = (unsigned short)ret;
+ 	cma_bind_port(bind_list, id_priv);
+ 	return 0;
+-err2:
+-	idr_remove(ps, port);
+-err1:
++err:
+ 	kfree(bind_list);
+-	return ret;
++	return ret == -ENOSPC ? -EADDRNOTAVAIL : ret;
+ }
+ 
+ static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index a8905ab..dc64bae 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -614,16 +614,15 @@ static int send_mad(struct ib_sa_query *query, int timeout_ms, gfp_t gfp_mask)
+ 	unsigned long flags;
+ 	int ret, id;
+ 
+-retry:
+-	if (!idr_pre_get(&query_idr, gfp_mask))
+-		return -ENOMEM;
++	idr_preload(gfp_mask);
+ 	spin_lock_irqsave(&idr_lock, flags);
+-	ret = idr_get_new(&query_idr, query, &id);
++
++	id = idr_alloc(&query_idr, query, 0, 0, GFP_NOWAIT);
++
+ 	spin_unlock_irqrestore(&idr_lock, flags);
+-	if (ret == -EAGAIN)
+-		goto retry;
+-	if (ret)
+-		return ret;
++	idr_preload_end();
++	if (id < 0)
++		return id;
+ 
+ 	query->mad_buf->timeout_ms  = timeout_ms;
+ 	query->mad_buf->context[0] = query;
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 49b15ac..f2f6393 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -176,7 +176,6 @@ static void ib_ucm_cleanup_events(struct ib_ucm_context *ctx)
+ static struct ib_ucm_context *ib_ucm_ctx_alloc(struct ib_ucm_file *file)
+ {
+ 	struct ib_ucm_context *ctx;
+-	int result;
+ 
+ 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+ 	if (!ctx)
+@@ -187,17 +186,10 @@ static struct ib_ucm_context *ib_ucm_ctx_alloc(struct ib_ucm_file *file)
+ 	ctx->file = file;
+ 	INIT_LIST_HEAD(&ctx->events);
+ 
+-	do {
+-		result = idr_pre_get(&ctx_id_table, GFP_KERNEL);
+-		if (!result)
+-			goto error;
+-
+-		mutex_lock(&ctx_id_mutex);
+-		result = idr_get_new(&ctx_id_table, ctx, &ctx->id);
+-		mutex_unlock(&ctx_id_mutex);
+-	} while (result == -EAGAIN);
+-
+-	if (result)
++	mutex_lock(&ctx_id_mutex);
++	ctx->id = idr_alloc(&ctx_id_table, ctx, 0, 0, GFP_KERNEL);
++	mutex_unlock(&ctx_id_mutex);
++	if (ctx->id < 0)
+ 		goto error;
+ 
+ 	list_add_tail(&ctx->file_list, &file->ctxs);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 2709ff5..5ca44cd 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -145,7 +145,6 @@ static void ucma_put_ctx(struct ucma_context *ctx)
+ static struct ucma_context *ucma_alloc_ctx(struct ucma_file *file)
+ {
+ 	struct ucma_context *ctx;
+-	int ret;
+ 
+ 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+ 	if (!ctx)
+@@ -156,17 +155,10 @@ static struct ucma_context *ucma_alloc_ctx(struct ucma_file *file)
+ 	INIT_LIST_HEAD(&ctx->mc_list);
+ 	ctx->file = file;
+ 
+-	do {
+-		ret = idr_pre_get(&ctx_idr, GFP_KERNEL);
+-		if (!ret)
+-			goto error;
+-
+-		mutex_lock(&mut);
+-		ret = idr_get_new(&ctx_idr, ctx, &ctx->id);
+-		mutex_unlock(&mut);
+-	} while (ret == -EAGAIN);
+-
+-	if (ret)
++	mutex_lock(&mut);
++	ctx->id = idr_alloc(&ctx_idr, ctx, 0, 0, GFP_KERNEL);
++	mutex_unlock(&mut);
++	if (ctx->id < 0)
+ 		goto error;
+ 
+ 	list_add_tail(&ctx->list, &file->ctx_list);
+@@ -180,23 +172,15 @@ error:
+ static struct ucma_multicast* ucma_alloc_multicast(struct ucma_context *ctx)
+ {
+ 	struct ucma_multicast *mc;
+-	int ret;
+ 
+ 	mc = kzalloc(sizeof(*mc), GFP_KERNEL);
+ 	if (!mc)
+ 		return NULL;
+ 
+-	do {
+-		ret = idr_pre_get(&multicast_idr, GFP_KERNEL);
+-		if (!ret)
+-			goto error;
+-
+-		mutex_lock(&mut);
+-		ret = idr_get_new(&multicast_idr, mc, &mc->id);
+-		mutex_unlock(&mut);
+-	} while (ret == -EAGAIN);
+-
+-	if (ret)
++	mutex_lock(&mut);
++	mc->id = idr_alloc(&multicast_idr, mc, 0, 0, GFP_KERNEL);
++	mutex_unlock(&mut);
++	if (mc->id < 0)
+ 		goto error;
+ 
+ 	mc->ctx = ctx;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 0cb0007..83bc309 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -124,18 +124,17 @@ static int idr_add_uobj(struct idr *idr, struct ib_uobject *uobj)
+ {
+ 	int ret;
+ 
+-retry:
+-	if (!idr_pre_get(idr, GFP_KERNEL))
+-		return -ENOMEM;
+-
++	idr_preload(GFP_KERNEL);
+ 	spin_lock(&ib_uverbs_idr_lock);
+-	ret = idr_get_new(idr, uobj, &uobj->id);
+-	spin_unlock(&ib_uverbs_idr_lock);
+ 
+-	if (ret == -EAGAIN)
+-		goto retry;
++	ret = idr_alloc(idr, uobj, 0, 0, GFP_NOWAIT);
++	if (ret >= 0)
++		uobj->id = ret;
+ 
+-	return ret;
++	spin_unlock(&ib_uverbs_idr_lock);
++	idr_preload_end();
++
++	return ret < 0 ? ret : 0;
+ }
+ 
+ void idr_remove_uobj(struct idr *idr, struct ib_uobject *uobj)
 -- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.8.1
