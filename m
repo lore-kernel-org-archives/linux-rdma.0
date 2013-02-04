@@ -1,8 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: ibroute: add MAD status to query failure
- message
-Date: Sun, 3 Feb 2013 21:33:00 -0800
-Message-ID: <20130203213300.a709c5004635e2f821679f64@llnl.gov>
+Subject: [PATCH V2 1/3] infiniband-diags: libibnetdisc add find node by lid
+Date: Sun, 3 Feb 2013 22:19:44 -0800
+Message-ID: <20130203221944.a32fb5f40f41ad924f8a7d94@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -13,58 +12,246 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
+NOTE: this change adds a glib requirement to the package.
+
+Changes since V1:
+	Use GINT_TO_POINTER rather than allocating keys
+
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- src/ibroute.c |   22 ++++++++++++++++------
- 1 files changed, 16 insertions(+), 6 deletions(-)
+ configure.in                                |    7 ++++
+ infiniband-diags.spec.in                    |    4 +-
+ libibnetdisc/Makefile.am                    |    4 +-
+ libibnetdisc/include/infiniband/ibnetdisc.h |    3 ++
+ libibnetdisc/libibnetdisc.ver               |    2 +-
+ libibnetdisc/src/ibnetdisc.c                |   52 ++++++++++++++++++++++++++-
+ libibnetdisc/src/internal.h                 |    7 ++++
+ libibnetdisc/src/libibnetdisc.map           |    1 +
+ 8 files changed, 74 insertions(+), 6 deletions(-)
 
-diff --git a/src/ibroute.c b/src/ibroute.c
-index a0c7de8..df48382 100644
---- a/src/ibroute.c
-+++ b/src/ibroute.c
-@@ -210,15 +210,20 @@ char *dump_multicast_tables(ib_portid_t * portid, unsigned startlid,
- 	lastblock = endlid / IB_MLIDS_IN_BLOCK;
- 	for (block = startblock; block <= lastblock; block++) {
- 		for (j = 0; j < chunks; j++) {
-+			int status;
- 			mod = (block - IB_MIN_MCAST_LID / IB_MLIDS_IN_BLOCK)
- 			    | (j << 28);
+diff --git a/configure.in b/configure.in
+index 2dc60a0..ca62d5b 100644
+--- a/configure.in
++++ b/configure.in
+@@ -161,6 +161,13 @@ IBSCRIPTPATH_TMP2="`echo $IBSCRIPTPATH_TMP1 | sed 's/^NONE/$ac_default_prefix/'`
+ IBSCRIPTPATH="${with_ibpath_override:-`eval echo $IBSCRIPTPATH_TMP2`}"
+ AC_SUBST(IBSCRIPTPATH)
  
- 			DEBUG("reading block %x chunk %d mod %x", block, j,
- 			      mod);
--			if (!smp_query_via
-+			if (!smp_query_status_via
- 			    (mft + j, portid, IB_ATTR_MULTICASTFORWTBL, mod, 0,
--			     srcport))
--				return "multicast forwarding table get failed";
-+			     &status, srcport)) {
-+				fprintf(stderr, "SubnGet() failed"
-+						"; MAD status 0x%x AM 0x%x\n",
-+						status, mod);
-+				return NULL;
-+			}
- 		}
++dnl check for glib
++PKG_CHECK_MODULES([GLIB], [glib-2.0], ac_glib=yes, ac_glib=no)
++AM_CONDITIONAL([HAVE_GLIB], test "$ac_glib" = "yes")
++if test "$ac_glib" = "yes"; then
++   AC_DEFINE([HAVE_GLIB], 1, [Define to 1 to indicate GLIB support])
++fi
++
+ dnl Begin libibnetdisc stuff
+ ibnetdisc_api_version=`grep LIBVERSION $srcdir/libibnetdisc/libibnetdisc.ver | sed 's/LIBVERSION=//'`
+ if test -z $ibnetdisc_api_version; then
+diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
+index d3fcd13..9cd195b 100644
+--- a/infiniband-diags.spec.in
++++ b/infiniband-diags.spec.in
+@@ -11,8 +11,8 @@ Group: System Environment/Libraries
+ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+ Source: http://www.openfabrics.org/downloads/management/@TARBALL@
+ Url: http://openfabrics.org/
+-BuildRequires: libibmad-devel, opensm-devel, libibumad-devel
+-Requires: libibmad, opensm-libs, libibumad
++BuildRequires: libibmad-devel, opensm-devel, libibumad-devel, glib-devel
++Requires: libibmad, opensm-libs, libibumad, glib
+ Provides: perl(IBswcountlimits)
+ Obsoletes: openib-diags
  
- 		i = block * IB_MLIDS_IN_BLOCK;
-@@ -356,10 +361,15 @@ char *dump_unicast_tables(ib_portid_t * portid, int startlid, int endlid)
- 	startblock = startlid / IB_SMP_DATA_SIZE;
- 	endblock = ALIGN(endlid, IB_SMP_DATA_SIZE) / IB_SMP_DATA_SIZE;
- 	for (block = startblock; block <= endblock; block++) {
-+		int status;
- 		DEBUG("reading block %d", block);
--		if (!smp_query_via(lft, portid, IB_ATTR_LINEARFORWTBL, block,
--				   0, srcport))
--			return "linear forwarding table get failed";
-+		if (!smp_query_status_via(lft, portid, IB_ATTR_LINEARFORWTBL, block,
-+				   0, &status, srcport)) {
-+			fprintf(stderr, "SubnGet() failed"
-+					"; MAD status 0x%x AM 0x%x\n",
-+					status, block);
-+			return NULL;
-+		}
- 		i = block * IB_SMP_DATA_SIZE;
- 		e = i + IB_SMP_DATA_SIZE;
- 		if (i < startlid)
+diff --git a/libibnetdisc/Makefile.am b/libibnetdisc/Makefile.am
+index fbf0e60..d05604f 100644
+--- a/libibnetdisc/Makefile.am
++++ b/libibnetdisc/Makefile.am
+@@ -24,10 +24,10 @@ endif
+ 
+ libibnetdisc_la_SOURCES = src/ibnetdisc.c src/ibnetdisc_cache.c src/chassis.c \
+ 			  src/chassis.h src/internal.h src/query_smp.c
+-libibnetdisc_la_CFLAGS = -Wall $(DBGFLAGS)
++libibnetdisc_la_CFLAGS = -Wall $(DBGFLAGS) $(GLIB_CFLAGS)
+ libibnetdisc_la_LDFLAGS = -version-info $(ibnetdisc_api_version) \
+ 	-export-dynamic $(libibnetdisc_version_script) \
+-	-libmad
++	-libmad $(GLIB_LIBS)
+ libibnetdisc_la_DEPENDENCIES = $(srcdir)/src/libibnetdisc.map
+ 
+ libibnetdiscincludedir = $(includedir)/infiniband
+diff --git a/libibnetdisc/include/infiniband/ibnetdisc.h b/libibnetdisc/include/infiniband/ibnetdisc.h
+index 335ad83..1efca3c 100644
+--- a/libibnetdisc/include/infiniband/ibnetdisc.h
++++ b/libibnetdisc/include/infiniband/ibnetdisc.h
+@@ -229,6 +229,9 @@ IBND_EXPORT ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric,
+ 					uint64_t guid);
+ IBND_EXPORT ibnd_port_t *ibnd_find_port_dr(ibnd_fabric_t * fabric,
+ 					char *dr_str);
++IBND_EXPORT ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
++					    uint16_t lid);
++
+ typedef void (*ibnd_iter_port_func_t) (ibnd_port_t * port, void *user_data);
+ IBND_EXPORT void ibnd_iter_ports(ibnd_fabric_t * fabric,
+ 				ibnd_iter_port_func_t func, void *user_data);
+diff --git a/libibnetdisc/libibnetdisc.ver b/libibnetdisc/libibnetdisc.ver
+index c513f2a..59fca19 100644
+--- a/libibnetdisc/libibnetdisc.ver
++++ b/libibnetdisc/libibnetdisc.ver
+@@ -6,4 +6,4 @@
+ # API_REV - advance on any added API
+ # RUNNING_REV - advance any change to the vendor files
+ # AGE - number of backward versions the API still supports
+-LIBVERSION=7:0:2
++LIBVERSION=8:0:3
+diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+index 3a7dd8f..262d16d 100644
+--- a/libibnetdisc/src/ibnetdisc.c
++++ b/libibnetdisc/src/ibnetdisc.c
+@@ -360,6 +360,7 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 	}
+ 
+ 	add_to_portguid_hash(port, fabric->portstbl);
++	add_to_portlid_hash(port, ((f_internal_t *)fabric)->lid2guid);
+ 
+ 	if ((scan->cfg->flags & IBND_CONFIG_MLX_EPI)
+ 	    && is_mlnx_ext_port_info_supported(port)) {
+@@ -628,6 +629,34 @@ void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[])
+ 	hash[hash_idx] = port;
+ }
+ 
++static void create_lid2guid(ibnd_fabric_t *fabric)
++{
++	f_internal_t *f = (f_internal_t *)fabric;
++	f->lid2guid = g_hash_table_new_full(g_direct_hash, g_direct_equal,
++				NULL, NULL);
++}
++
++static void destroy_lid2guid(ibnd_fabric_t *fabric)
++{
++	f_internal_t *f = (f_internal_t *)fabric;
++	if (f->lid2guid) {
++		g_hash_table_destroy(f->lid2guid);
++	}
++}
++
++void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable)
++{
++	uint16_t base_lid = port->base_lid;
++	uint16_t lid_mask = ((1 << port->lmc) -1);
++	uint16_t lid = 0;
++
++	/* We add the port for all lids
++	 * so it is easier to find any "random" lid specified */
++	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
++		g_hash_table_insert(htable, GINT_TO_POINTER(lid), port);
++	}
++}
++
+ void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
+ {
+ 	switch (node->type) {
+@@ -664,6 +693,12 @@ static int set_config(struct ibnd_config *config, struct ibnd_config *cfg)
+ 	return (0);
+ }
+ 
++static ibnd_fabric_t *allocate_fabric(void)
++{
++	f_internal_t *f = calloc(1, sizeof(*f));
++	return ((ibnd_fabric_t *)f);
++}
++
+ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 				    ib_portid_t * from,
+ 				    struct ibnd_config *cfg)
+@@ -685,7 +720,7 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 		return NULL;
+ 	}
+ 
+-	fabric = calloc(1, sizeof(*fabric));
++	fabric = allocate_fabric();
+ 	if (!fabric) {
+ 		IBND_ERROR("OOM: failed to calloc ibnd_fabric_t\n");
+ 		return NULL;
+@@ -715,6 +750,8 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 
+ 	IBND_DEBUG("from %s\n", portid2str(from));
+ 
++	create_lid2guid(fabric);
++
+ 	if (!query_node_info(&engine, from, NULL))
+ 		if (process_mads(&engine) != 0)
+ 			goto error;
+@@ -768,6 +805,7 @@ void ibnd_destroy_fabric(ibnd_fabric_t * fabric)
+ 		destroy_node(node);
+ 		node = next;
+ 	}
++	destroy_lid2guid(fabric);
+ 	free(fabric);
+ }
+ 
+@@ -825,6 +863,18 @@ void ibnd_iter_nodes_type(ibnd_fabric_t * fabric, ibnd_iter_node_func_t func,
+ 		func(cur, user_data);
+ }
+ 
++ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
++				uint16_t lid)
++{
++	ibnd_port_t *port;
++	f_internal_t *f = (f_internal_t *)fabric;
++
++	port = (ibnd_port_t *)g_hash_table_lookup(f->lid2guid,
++					GINT_TO_POINTER(lid));
++
++	return port;
++}
++
+ ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric, uint64_t guid)
+ {
+ 	int hash = HASHGUID(guid) % HTSZ;
+diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
+index 80918c4..b7e18e8 100644
+--- a/libibnetdisc/src/internal.h
++++ b/libibnetdisc/src/internal.h
+@@ -40,6 +40,7 @@
+ 
+ #include <infiniband/ibnetdisc.h>
+ #include <complib/cl_qmap.h>
++#include <glib.h>
+ 
+ #define	IBND_DEBUG(fmt, ...) \
+ 	if (ibdebug) { \
+@@ -57,6 +58,11 @@
+ #define DEFAULT_TIMEOUT 1000
+ #define DEFAULT_RETRIES 3
+ 
++typedef struct f_internal {
++	ibnd_fabric_t fabric;
++	GHashTable *lid2guid;
++} f_internal_t;
++
+ typedef struct ibnd_scan {
+ 	ib_portid_t selfportid;
+ 	ibnd_fabric_t *fabric;
+@@ -100,6 +106,7 @@ void smp_engine_destroy(smp_engine_t * engine);
+ void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
+ 
+ void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
++void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
+ 
+ void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric);
+ 
+diff --git a/libibnetdisc/src/libibnetdisc.map b/libibnetdisc/src/libibnetdisc.map
+index 1c42e7b..f1b7229 100644
+--- a/libibnetdisc/src/libibnetdisc.map
++++ b/libibnetdisc/src/libibnetdisc.map
+@@ -16,6 +16,7 @@ IBNETDISC_1.0 {
+ 		ibnd_iter_nodes_type;
+ 		ibnd_find_port_guid;
+ 		ibnd_find_port_dr;
++		ibnd_find_port_lid;
+ 		ibnd_iter_ports;
+ 	local: *;
+ };
 -- 
 1.7.1
 
