@@ -1,35 +1,20 @@
-From: Cong Ding <dinggnu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] infiniband: hw/cxgb3/iwch_provider.c: fix uninitialized variable issue
-Date: Mon,  4 Feb 2013 23:18:06 +0100
-Message-ID: <1360016286-15343-1-git-send-email-dinggnu@gmail.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH] infiniband: hw/cxgb3/iwch_provider.c: fix uninitialized
+ variable issue
+Date: Mon, 04 Feb 2013 16:44:05 -0600
+Message-ID: <511039B5.9080507@opengridcomputing.com>
+References: <1360016286-15343-1-git-send-email-dinggnu@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1360016286-15343-1-git-send-email-dinggnu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Cong Ding <dinggnu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Cong Ding <dinggnu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The variable npages might be used uninitialized in line 594.
-
-Signed-off-by: Cong Ding <dinggnu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/cxgb3/iwch_provider.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 145d82a..90ce483 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -559,7 +559,7 @@ static int iwch_reregister_phys_mem(struct ib_mr *mr,
- 	__be64 *page_list = NULL;
- 	int shift = 0;
- 	u64 total_size;
--	int npages;
-+	int npages = 0;
- 	int ret;
- 
- 	PDBG("%s ib_mr %p ib_pd %p\n", __func__, mr, pd);
--- 
-1.7.9.5
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
