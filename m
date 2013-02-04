@@ -1,47 +1,60 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_link_mgr.c: Fix sending PortInfo(Set) with AM SMSupportExtendedSpeeds bit set for switch base port 0
-Date: Mon,  4 Feb 2013 15:20:07 +0200
-Message-ID: <1359984011-30753-6-git-send-email-alexne@mellanox.com>
+Subject: [PATCH] opensm: Revert "opensm/osm_ucast_ftree: When roots are not connected, update hop count but not lft"
+Date: Mon,  4 Feb 2013 15:20:08 +0200
+Message-ID: <1359984011-30753-7-git-send-email-alexne@mellanox.com>
 References: <1359984011-30753-1-git-send-email-alexne@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1359984011-30753-1-git-send-email-alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vincent Ficet <jean-vincent.ficet-6ktuUTfB/bM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-link_mgr mistakenly assums that port supports extended speeds when setting
-AM SMSupportExtendedSpeeds.
+This reverts commit 81dade3aeb1d5c80472a4f9fef55e9916bb38d3a.
 
+The patch causes crashes in fat-tree routing and it's replaced by the
+following patch.
+
+Signed-off-by: Vincent Ficet <jean-vincent.ficet-6ktuUTfB/bM@public.gmane.org>
 Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_link_mgr.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ opensm/osm_ucast_ftree.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/opensm/osm_link_mgr.c b/opensm/osm_link_mgr.c
-index 9d73e74..26671bf 100644
---- a/opensm/osm_link_mgr.c
-+++ b/opensm/osm_link_mgr.c
-@@ -102,7 +102,7 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
- 	uint8_t port_num, mtu, op_vls, smsl = OSM_DEFAULT_SL;
- 	boolean_t esp0 = FALSE, send_set = FALSE, send_set2 = FALSE;
- 	osm_physp_t *p_remote_physp, *physp0;
--	int issue_ext = 1, fdr10_change = 0;
-+	int issue_ext = 0, fdr10_change = 0;
- 	int ret = 0;
- 	ib_net32_t attr_mod, cap_mask;
- 	boolean_t update_mkey = FALSE;
-@@ -365,8 +365,8 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
- 			cap_mask = physp0->port_info.capability_mask;
- 		} else
- 			cap_mask = p_pi->capability_mask;
--		if (!(cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS))
--			issue_ext = 0;
-+		if (cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS)
-+			issue_ext = 1;
+diff --git a/opensm/osm_ucast_ftree.c b/opensm/osm_ucast_ftree.c
+index 8363bd2..c81e7a3 100644
+--- a/opensm/osm_ucast_ftree.c
++++ b/opensm/osm_ucast_ftree.c
+@@ -3038,10 +3038,8 @@ static void fabric_route_roots(IN ftree_fabric_t * p_ftree)
+ 				"through port %u\n",
+ 				tuple_to_str(p_sw->tuple), lid, port_num);
  
- 		/* Do peer ports support extended link speeds ? */
- 		if (port_num != 0 && p_remote_physp) {
+-			if (p_ftree->p_osm->subn.opt.connect_roots) {
+-				/* set local lft */
+-				p_sw->p_osm_sw->new_lft[lid] = port_num;
+-			}
++			/* set local lft */
++			p_sw->p_osm_sw->new_lft[lid] = port_num;
+ 
+ 			/*
+ 			 * Set local min hop table.
+@@ -4221,10 +4219,12 @@ static int do_routing(IN void *context)
+ 		"Filling switch forwarding tables for switch-to-switch paths\n");
+ 	fabric_route_to_switches(p_ftree);
+ 
+-	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
+-		"Connecting switches that are unreachable within "
+-		"Up/Down rules\n");
+-	fabric_route_roots(p_ftree);
++	if (p_ftree->p_osm->subn.opt.connect_roots) {
++		OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
++			"Connecting switches that are unreachable within "
++			"Up/Down rules\n");
++		fabric_route_roots(p_ftree);
++	}
+ 
+ 	/* for each switch, set its fwd table */
+ 	cl_qmap_apply_func(&p_ftree->sw_tbl, set_sw_fwd_table, (void *)p_ftree);
 -- 
 1.7.11.7
 
