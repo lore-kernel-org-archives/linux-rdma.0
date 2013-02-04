@@ -1,46 +1,55 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_torus.c: torus routing should fail with VLCap 1
- on switch external ports
-Date: Mon, 4 Feb 2013 11:36:44 +0200
-Message-ID: <20130204093644.GB13151@calypso.mtl.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] IB/mlx4: fix bug unwinding on error in mlx4_ib_init_sriov()
+Date: Mon, 4 Feb 2013 14:22:36 +0300
+Message-ID: <20130204112236.GA8878@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+We have to decrement "i" before calling mlx4_ib_free_demux_ctx() or we
+free something that wasn't allocated.  That's fine for free_pv_object()
+but it would lead to a NULL dereference calling
+mlx4_ib_free_demux_ctx().  The null dereference is because ->tun is NULL
+when we check:
+
+	if (!ctx->tun[i])
+
+Also we didn't free ->sriov.demux[0] so it was a small leak.
+
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- opensm/osm_torus.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+Static checker stuff.  I have not tested this.
 
-diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
-index e63cb40..757a32a 100644
---- a/opensm/osm_torus.c
-+++ b/opensm/osm_torus.c
-@@ -7021,11 +7021,13 @@ bool verify_setup(struct torus *t, struct fabric *f)
- 			"ERR 4E20: missing required torus size specification!\n");
- 		goto out;
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 0a903c1..934792c 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1999,16 +1999,17 @@ int mlx4_ib_init_sriov(struct mlx4_ib_dev *dev)
+ 			goto demux_err;
+ 		err = mlx4_ib_alloc_demux_ctx(dev, &dev->sriov.demux[i], i + 1);
+ 		if (err)
+-			goto demux_err;
++			goto free_pv;
  	}
--	if (t->osm->subn.min_sw_data_vls < 2)
--		OSM_LOG(&t->osm->log, OSM_LOG_INFO,
--			"Warning: Too few data VLs to support torus routing "
-+	if (t->osm->subn.min_sw_data_vls < 2) {
-+		OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
-+			"ERR 4E48: Too few data VLs to support torus routing "
- 			"without credit loops (have switchport %d need 2)\n",
- 			(int)t->osm->subn.min_sw_data_vls);
-+		goto out;
-+	}
- 	if (t->osm->subn.min_sw_data_vls < 4)
- 		OSM_LOG(&t->osm->log, OSM_LOG_INFO,
- 			"Warning: Too few data VLs to support torus routing "
--- 
-1.7.11.7
-
+ 	mlx4_ib_master_tunnels(dev, 1);
+ 	return 0;
+ 
++free_pv:
++	free_pv_object(dev, mlx4_master_func_num(dev->dev), i + 1);
+ demux_err:
+-	while (i > 0) {
++	while (--i >= 0) {
+ 		free_pv_object(dev, mlx4_master_func_num(dev->dev), i + 1);
+ 		mlx4_ib_free_demux_ctx(&dev->sriov.demux[i]);
+-		--i;
+ 	}
+ 	mlx4_ib_device_unregister_sysfs(dev);
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
