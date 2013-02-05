@@ -1,151 +1,339 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 for-next 0/6] IB/IPoIB: Add multi-queue TSS and RSS support
-Date: Tue,  5 Feb 2013 17:48:51 +0200
-Message-ID: <1360079337-8173-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V2 for-next 2/6] IB/core: Add RSS and TSS QP groups
+Date: Tue,  5 Feb 2013 17:48:53 +0200
+Message-ID: <1360079337-8173-3-git-send-email-ogerlitz@mellanox.com>
+References: <1360079337-8173-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1360079337-8173-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Here's V2 of the IPoIB TSS/RSS patch series, basically its very similar to V1, 
-with fixes to for issues we stepped over while testing since the V1 
-submission and an addtional capability to change the number of TX and RX 
-rings at run time via ethtool.
+RSS (Receive Side Scaling) TSS (Transmit Side Scaling, better known as
+MQ/Multi-Queue) are common networking techniques which allow to use
+contemporary NICs that support multiple receive and transmit descriptor
+queues (multi-queue), see also Documentation/networking/scaling.txt
 
-The concept of QP groups for TSS/RSS was introduced in the 2012 OFA conference, 
-you can take a look on the user mode ethernet session slides 10-14, the author 
-didn't use the terms RSS/TSS but that's the intention... see
+This patch introduces the concept of RSS and TSS QP groups which
+allows for implementing them by low level drivers and using it
+by IPoIB and later also by user space ULPs.
 
-https://openfabrics.org/resources/document-downloads/presentations/cat_view/57-ofa-documents/23-presentations/81-openfabrics-international-workshops/104-2012-ofa-international-workshop/107-2012-ofa-intl-workshop-wednesday.html 
+A QP group is a set of QPs consists of a parent QP and two disjoint sets
+of RSS and TSS QPs. The creation of a QP group is a two stage process:
 
-V1 http://marc.info/?l=linux-rdma&m=133881081520248&w=2
-V0 http://marc.info/?l=linux-rdma&m=133649429821312&w=2
+In the the 1st stage, the parent QP is created.
 
-V2 changes:
+In the 2nd stage the children QPs of the parent are created.
 
- - added pre-patch correcting the ipoib_neigh hash function
+Each child QP indicates if its a RSS or TSS QP. Both the TSS
+and RSS sets of QPs should have contiguous QP numbers.
 
- - ported to infiniband tree / for-next branch 
+A few new elements/concepts are introduced to support this:
 
- - following commit b63b70d877 "IPoIB: Use a private hash table for path lookup in xmit path" 
-   from kernel 3.6, the TX select queue logic for UD neighbours was changed to be based on 
-   "full" hashing ala skb_tx_hash that covers L4 too wheres in V1 the queue selection 
-   was in the neighbours level. This means that different sessions (TCP/UDP five-tuples)
-   would map to different TX rings subject to hashing.
+Three new device capabilities that can be set by the low level driver:
 
- - for CM neighbours, the queue selection uses the destination IPoIB HW addr as the base 
-   for hashing. Previously each ipoib_neigh was assigned a running index upon creation
-   and that neighbour was accessed during select queue. Now, we want to issue only 
-   ONE ipoib_neigh lookup in the xmit path and do that in start_xmit.
+- IB_DEVICE_QPG which is set to indicate QP groups are supported.
 
- - added patch #6 to allow for the number of TX and RX rings to be changed at runtime. 
-   By supporting ethtool directives to get/set the number of channels.
-   move code which is common to device cleanup and device reinit from
-   "ipoib_dev_cleanup" to "ipoib_dev_uninit".
-       
- - CM TX completions are spreaded among CQs (for NAPI) using hash of the destination 
-   IPoIB HW address.
+- IB_DEVICE_UD_RSS which is set to indicate that the device supports
+RSS, that is applying hash function on incoming TCP/UDP/IP packets and
+dispatching them to multiple "rings" (child QPs).
 
- - use netif_tx bh locking in ipoib_cm_handle_tx_wc and drain_tx_cq. Also, in 
-   drain_tx_cq revert from subqueue locking to full locking, did it since 
-   __netif_tx_lock doesn't set __QUEUE_STATE_FROZEN_BIT.
+- IB_DEVICE_UD_TSS which is set to indicate that the device supports
+"HW TSS" which means that the HW is capable of over-riding the source
+UD QPN present in sent IB datagram header (DTH) with the parent's QPN.
 
- - handle the rare case were the device CM "state" ipoib_cm_admin_enabled() status 
-   changes between the time select queue was done to when the transmit routine was 
-   called.
+Low level drivers not supporting HW TSS, could still support QP groups, such
+as combination is referred as "SW TSS". Where in this case, the low level drive
+fills in the qpg_tss_mask_sz field of struct ib_qp_cap returned from
+ib_create_qp. Such that this mask can be used to retrieve the parent QPN from
+incoming packets carrying a child QPN (as of the contiguous QP numbers requirement).
 
- - fixed a race in the CM RX drain/reap logic caused by the change to multiple 
-   rings, added detailed comment in ipoib_cm_start_rx_drain to explain the fix.
+- max rss table size device attribute, which is the maximal size of the RSS
+indirection table  supported by the device
 
- - changed the CM code that posts receive buffers (both srq and non-srq
-   flows) to use per ring WR and SGE objects, since now buffer re-fill may happen from different
-   NAPI contexts
+- qp group type attribute for qp creation saying whether this is a parent QP
+or rx/tx (rss/tss) child QP or none of the above for non rss/tss QPs.
 
-V1 changes:
+- per qp group type, another attribute is added, for parent QPs, the number
+of rx/tx child QPs and for child QPs pointer to the parent.
 
- - removed accepted patches, the first three on the V0 series
- - fixed crash in the driver EQ teardown flow - merged by commit 3aac6ff "IB/mlx4: Fix EQ deallocation in legacy mode"
- - removed wrong setting done in the ehca driver in ehca_create_srq
- - fixed user space QP creation to specify QPG_NONE
- - fixed usage of wrong API for netif queues stopping in patch 3/4 (V0 6/7)
- - fixed use-after-free of device attr pointer in patch 4/4 (V0 7/7)
+- IB_QP_GROUP_RSS attribute mask, which should be used when modifying
+the parent QP state from reset to init
 
-* Add support for for RSS and TSS for UD.
-        The number of RSS and TSS queues is a function of the number
-        of cores and HW capability.
+Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c         |    1 +
+ drivers/infiniband/core/verbs.c              |    3 +++
+ drivers/infiniband/hw/amso1100/c2_provider.c |    3 +++
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 ++
+ drivers/infiniband/hw/cxgb4/qp.c             |    3 +++
+ drivers/infiniband/hw/ehca/ehca_qp.c         |    3 +++
+ drivers/infiniband/hw/ipath/ipath_qp.c       |    3 +++
+ drivers/infiniband/hw/mlx4/qp.c              |    3 +++
+ drivers/infiniband/hw/mthca/mthca_provider.c |    3 +++
+ drivers/infiniband/hw/nes/nes_verbs.c        |    3 +++
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    5 +++++
+ drivers/infiniband/hw/qib/qib_qp.c           |    5 +++++
+ include/rdma/ib_verbs.h                      |   26 +++++++++++++++++++++++++-
+ 13 files changed, 62 insertions(+), 1 deletions(-)
 
-* Utilize multi core CPU and NIC's multi queuing in order to increase
-        throughput. It utilize a new "QP Group" concept. A QP group is
-        a set of QP consists of a parent QP and two disjoint subsets of
-        RSS and TSS QP.
-
-* If RSS is supported by HW then the number of RSS queues is highest
-        power of two greater than or equal to the number of cores.
-        Otherwise the number is one.
-
-* If TSS is supported by HW then the number of TSS queues is highest
-        power of two greater than or equal to the number of cores.
-        Otherwise the number is highest power of two greater than or
-                equal to the number of cores plus one.
-
-* Transmission and receiving in CM mode uses a send and receive queue
-        assigned to each CM instance at creation time.
-
-* Advertise that packets sent from set of QPs will be received. That is,
-        A received packets with a source QPN different from the QPN
-        advertised with ARP will be accepted.
-
-* The advertising is done by setting a third bit in the flags part
-        of the link layer address. This is similar to RFC 4755
-        section 3.1 (CM advertisement)
-
-* If TSS is not supported by HW then transmission of multi-cast packets
-        is done using device queue N and thus the parent QP, which is
-                also the advertised QP.
-
-* If TSS is not supported by HW then usage of TSS is enabled if the peer
-        advertised that it will accept TSS packets.
-
-* Drivers can now use a larger portion of the device vectors/IRQ
-
-Shlomo Pongratz (6):
-  IB/ipoib: Fix ipoib_neigh hashing to use the correct daddr octets
-  IB/core: Add RSS and TSS QP groups
-  IB/mlx4: Add support for RSS and TSS QP groups
-  IB/ipoib: Move to multi-queue device
-  IB/ipoib: Add RSS and TSS support for datagram mode
-  IB/ipoib: Support changing the number of RX/TX rings with ethtool
-
- drivers/infiniband/core/uverbs_cmd.c           |    1 +
- drivers/infiniband/core/verbs.c                |    3 +
- drivers/infiniband/hw/amso1100/c2_provider.c   |    3 +
- drivers/infiniband/hw/cxgb3/iwch_provider.c    |    2 +
- drivers/infiniband/hw/cxgb4/qp.c               |    3 +
- drivers/infiniband/hw/ehca/ehca_qp.c           |    3 +
- drivers/infiniband/hw/ipath/ipath_qp.c         |    3 +
- drivers/infiniband/hw/mlx4/main.c              |    5 +
- drivers/infiniband/hw/mlx4/mlx4_ib.h           |   13 +
- drivers/infiniband/hw/mlx4/qp.c                |  344 ++++++++++++-
- drivers/infiniband/hw/mthca/mthca_provider.c   |    3 +
- drivers/infiniband/hw/nes/nes_verbs.c          |    3 +
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |    5 +
- drivers/infiniband/hw/qib/qib_qp.c             |    5 +
- drivers/infiniband/ulp/ipoib/ipoib.h           |  118 ++++-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c        |  206 +++++---
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c   |  160 ++++++-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c        |  550 ++++++++++++++------
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |  493 ++++++++++++++++--
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   35 +-
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c     |  662 +++++++++++++++++++++---
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c      |    2 +-
- include/rdma/ib_verbs.h                        |   26 +-
- 23 files changed, 2227 insertions(+), 421 deletions(-)
-
-
-Cc: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 0cb0007..d31199f 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1461,6 +1461,7 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ 	attr.sq_sig_type   = cmd.sq_sig_all ? IB_SIGNAL_ALL_WR : IB_SIGNAL_REQ_WR;
+ 	attr.qp_type       = cmd.qp_type;
+ 	attr.create_flags  = 0;
++	attr.qpg_type	   = IB_QPG_NONE;
+ 
+ 	attr.cap.max_send_wr     = cmd.max_send_wr;
+ 	attr.cap.max_recv_wr     = cmd.max_recv_wr;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 30f199e..bbe0e5f 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -496,6 +496,9 @@ static const struct {
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_QKEY),
++			},
++			.opt_param = {
++				[IB_QPT_UD]  = IB_QP_GROUP_RSS
+ 			}
+ 		},
+ 	},
+diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
+index 07eb3a8..546760b 100644
+--- a/drivers/infiniband/hw/amso1100/c2_provider.c
++++ b/drivers/infiniband/hw/amso1100/c2_provider.c
+@@ -241,6 +241,9 @@ static struct ib_qp *c2_create_qp(struct ib_pd *pd,
+ 	if (init_attr->create_flags)
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	switch (init_attr->qp_type) {
+ 	case IB_QPT_RC:
+ 		qp = kzalloc(sizeof(*qp), GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index 0bdf09a..49850f6 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -902,6 +902,8 @@ static struct ib_qp *iwch_create_qp(struct ib_pd *pd,
+ 	PDBG("%s ib_pd %p\n", __func__, pd);
+ 	if (attrs->qp_type != IB_QPT_RC)
+ 		return ERR_PTR(-EINVAL);
++	if (attrs->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
+ 	php = to_iwch_pd(pd);
+ 	rhp = php->rhp;
+ 	schp = get_chp(rhp, ((struct iwch_cq *) attrs->send_cq)->cq.cqid);
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 05bfe53..167387c 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -1488,6 +1488,9 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
+ 	if (attrs->qp_type != IB_QPT_RC)
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (attrs->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	php = to_c4iw_pd(pd);
+ 	rhp = php->rhp;
+ 	schp = get_chp(rhp, ((struct c4iw_cq *)attrs->send_cq)->cq.cqid);
+diff --git a/drivers/infiniband/hw/ehca/ehca_qp.c b/drivers/infiniband/hw/ehca/ehca_qp.c
+index 1493939..2df7584 100644
+--- a/drivers/infiniband/hw/ehca/ehca_qp.c
++++ b/drivers/infiniband/hw/ehca/ehca_qp.c
+@@ -464,6 +464,9 @@ static struct ehca_qp *internal_create_qp(
+ 	int is_llqp = 0, has_srq = 0, is_user = 0;
+ 	int qp_type, max_send_sge, max_recv_sge, ret;
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	/* h_call's out parameters */
+ 	struct ehca_alloc_qp_parms parms;
+ 	u32 swqe_size = 0, rwqe_size = 0, ib_qp_num;
+diff --git a/drivers/infiniband/hw/ipath/ipath_qp.c b/drivers/infiniband/hw/ipath/ipath_qp.c
+index 0857a9c..117b775 100644
+--- a/drivers/infiniband/hw/ipath/ipath_qp.c
++++ b/drivers/infiniband/hw/ipath/ipath_qp.c
+@@ -755,6 +755,9 @@ struct ib_qp *ipath_create_qp(struct ib_pd *ibpd,
+ 		goto bail;
+ 	}
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	if (init_attr->cap.max_send_sge > ib_ipath_max_sges ||
+ 	    init_attr->cap.max_send_wr > ib_ipath_max_qp_wrs) {
+ 		ret = ERR_PTR(-EINVAL);
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 19e0637..917b111 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -997,6 +997,9 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+ 	      init_attr->qp_type > IB_QPT_GSI)))
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	switch (init_attr->qp_type) {
+ 	case IB_QPT_XRC_TGT:
+ 		pd = to_mxrcd(init_attr->xrcd)->pd;
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 5b71d43..120aa1e 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -518,6 +518,9 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
+ 	if (init_attr->create_flags)
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	switch (init_attr->qp_type) {
+ 	case IB_QPT_RC:
+ 	case IB_QPT_UC:
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 07e4fba..fe7de14 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -1131,6 +1131,9 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
+ 	if (init_attr->create_flags)
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE)
++		return ERR_PTR(-ENOSYS);
++
+ 	atomic_inc(&qps_created);
+ 	switch (init_attr->qp_type) {
+ 		case IB_QPT_RC:
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index b29a424..7c3e0ce 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -841,6 +841,11 @@ static int ocrdma_check_qp_params(struct ib_pd *ibpd, struct ocrdma_dev *dev,
+ 			   __func__, dev->id, attrs->qp_type);
+ 		return -EINVAL;
+ 	}
++	if (attrs->qpg_type != IB_QPG_NONE) {
++		ocrdma_err("%s(%d) unsupported qpg type=0x%x requested\n",
++			   __func__, dev->id, attrs->qpg_type);
++			   return -ENOSYS;
++	}
+ 	if (attrs->cap.max_send_wr > dev->attr.max_wqe) {
+ 		ocrdma_err("%s(%d) unsupported send_wr=0x%x requested\n",
+ 			   __func__, dev->id, attrs->cap.max_send_wr);
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 3527509..0e6f64d 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -985,6 +985,11 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 		goto bail;
+ 	}
+ 
++	if (init_attr->qpg_type != IB_QPG_NONE) {
++		ret = ERR_PTR(-ENOSYS);
++		goto bail;
++	}
++
+ 	/* Check receive queue parameters if no SRQ is specified. */
+ 	if (!init_attr->srq) {
+ 		if (init_attr->cap.max_recv_sge > ib_qib_max_sges ||
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 46bc045..c4c1dc7 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -115,6 +115,9 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_XRC			= (1<<20),
+ 	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
+ 	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
++	IB_DEVICE_QPG			= (1<<23),
++	IB_DEVICE_UD_RSS		= (1<<24),
++	IB_DEVICE_UD_TSS		= (1<<25)
+ };
+ 
+ enum ib_atomic_cap {
+@@ -162,6 +165,7 @@ struct ib_device_attr {
+ 	int			max_srq_wr;
+ 	int			max_srq_sge;
+ 	unsigned int		max_fast_reg_page_list_len;
++	int			max_rss_tbl_sz;
+ 	u16			max_pkeys;
+ 	u8			local_ca_ack_delay;
+ };
+@@ -584,6 +588,7 @@ struct ib_qp_cap {
+ 	u32	max_send_sge;
+ 	u32	max_recv_sge;
+ 	u32	max_inline_data;
++	u32	qpg_tss_mask_sz;
+ };
+ 
+ enum ib_sig_type {
+@@ -619,6 +624,18 @@ enum ib_qp_create_flags {
+ 	IB_QP_CREATE_RESERVED_END		= 1 << 31,
+ };
+ 
++enum ib_qpg_type {
++	IB_QPG_NONE	= 0,
++	IB_QPG_PARENT	= (1<<0),
++	IB_QPG_CHILD_RX = (1<<1),
++	IB_QPG_CHILD_TX = (1<<2)
++};
++
++struct ib_qpg_init_attrib {
++	u32 tss_child_count;
++	u32 rss_child_count;
++};
++
+ struct ib_qp_init_attr {
+ 	void                  (*event_handler)(struct ib_event *, void *);
+ 	void		       *qp_context;
+@@ -627,9 +644,14 @@ struct ib_qp_init_attr {
+ 	struct ib_srq	       *srq;
+ 	struct ib_xrcd	       *xrcd;     /* XRC TGT QPs only */
+ 	struct ib_qp_cap	cap;
++	union {
++		struct ib_qp *qpg_parent; /* see qpg_type */
++		struct ib_qpg_init_attrib parent_attrib;
++	};
+ 	enum ib_sig_type	sq_sig_type;
+ 	enum ib_qp_type		qp_type;
+ 	enum ib_qp_create_flags	create_flags;
++	enum ib_qpg_type	qpg_type;
+ 	u8			port_num; /* special QP types only */
+ };
+ 
+@@ -696,7 +718,8 @@ enum ib_qp_attr_mask {
+ 	IB_QP_MAX_DEST_RD_ATOMIC	= (1<<17),
+ 	IB_QP_PATH_MIG_STATE		= (1<<18),
+ 	IB_QP_CAP			= (1<<19),
+-	IB_QP_DEST_QPN			= (1<<20)
++	IB_QP_DEST_QPN			= (1<<20),
++	IB_QP_GROUP_RSS			= (1<<21)
+ };
+ 
+ enum ib_qp_state {
+@@ -975,6 +998,7 @@ struct ib_qp {
+ 	void		       *qp_context;
+ 	u32			qp_num;
+ 	enum ib_qp_type		qp_type;
++	enum ib_qpg_type	qpg_type;
+ };
+ 
+ struct ib_mr {
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
