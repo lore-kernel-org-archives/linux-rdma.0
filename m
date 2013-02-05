@@ -1,74 +1,44 @@
-From: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb4: "cookie" can stay in host endianness
-Date: Tue, 05 Feb 2013 21:51:30 +0100
-Message-ID: <1360097490.14826.23.camel@x61.thuisdomein>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for 3.8 v3, resend 0/3] IB/SRP patches for kernel 3.8
+Date: Tue, 5 Feb 2013 22:54:52 +0200
+Message-ID: <CAJZOPZ+-Zg=jnqg4ZmFL5Yo4_2DoWGcgy=3u6g3Rf9y80pXnpg@mail.gmail.com>
+References: <510BDCAA.204@acm.org>
+	<CAJZOPZLKQV0QvrW5sK8hQJf7AZc+1nUzp+5YCkZ3iVU4oTWbLg@mail.gmail.com>
+	<5111327F.6050402@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5111327F.6050402-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Work requests are passed and reflected between the host and the
-firmware with a "cookie". This cookie is swapped to big endianness when
-passed to the firmware and to host endianness on reflection. This
-swapping seems to be implemented incorrectly. Moreover, the byte
-swapping triggers GCC warnings on 32 bit:
-    drivers/infiniband/hw/cxgb4/cm.c: In function =E2=80=98passive_ofld=
-_conn_reply=E2=80=99:
-    drivers/infiniband/hw/cxgb4/cm.c:2803:12: warning: cast to pointer =
-from integer of different size [-Wint-to-pointer-cast]
-    drivers/infiniband/hw/cxgb4/cm.c: In function =E2=80=98send_fw_pass=
-_open_req=E2=80=99:
-    drivers/infiniband/hw/cxgb4/cm.c:2941:16: warning: cast from pointe=
-r to integer of different size [-Wpointer-to-int-cast]
-    [...]
+On Tue, Feb 5, 2013 at 6:25 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> On 02/04/13 22:11, Or Gerlitz wrote:
 
-But byte swapping isn't needed as the firmware doesn't actually touch
-the cookie. Dropping byte swapping makes the warnings go away too.
+>> You wrote "resend" in the subject line, anything new, in these patches
+>> OR in other patches merged through the SCSI tree for 3.8 vs. what you
+>> had posted earlier on Dec 20th, 2012.
 
-Signed-off-by: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
----
-0) Compile tested only (but on 32 and 64 bit little endian).
+> I have just reposted my SCSI device removal patch series. There are
 
-1) Please have a careful look at my commit explanation. It's mostly a
-bit of creative writing based on my understanding of Steve's feedback.=20
+Bart, I'd like to sharpen the point: could you please clarify if the
+series posted to linux-rdma stands for itself in the sense that SRP HA
+scheme X (please state it) now works/better when the patches applied
+on top of the latest 3.8-rc cut? OR for X to do better/work, one needs
+this series AND the one you posted to linux-scsi.
 
- drivers/infiniband/hw/cxgb4/cm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Or.
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/c=
-xgb4/cm.c
-index c13745c..cd072fb 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2800,7 +2800,7 @@ static void passive_ofld_conn_reply(struct c4iw_d=
-ev *dev, struct sk_buff *skb,
- 	struct cpl_pass_accept_req *cpl;
- 	int ret;
-=20
--	rpl_skb =3D (struct sk_buff *)cpu_to_be64(req->cookie);
-+	rpl_skb =3D (struct sk_buff *)(unsigned long)req->cookie;
- 	BUG_ON(!rpl_skb);
- 	if (req->retval) {
- 		PDBG("%s passive open failure %d\n", __func__, req->retval);
-@@ -2938,7 +2938,7 @@ static void send_fw_pass_open_req(struct c4iw_dev=
- *dev, struct sk_buff *skb,
- 	 * TP will ignore any value > 0 for MSS index.
- 	 */
- 	req->tcb.opt0 =3D cpu_to_be64(V_MSS_IDX(0xF));
--	req->cookie =3D cpu_to_be64((u64)skb);
-+	req->cookie =3D (unsigned long)skb;
-=20
- 	set_wr_txq(req_skb, CPL_PRIORITY_CONTROL, port_id);
- 	cxgb4_ofld_send(dev->rdev.lldi.ports[0], req_skb);
---=20
-1.8.1
-
+> several changes in v8 of that patch series compared to v7, including:
+> * Saving and restoring the host scribble field in the SCSI error handler.
+> * A robustness improvement for when the SCSI timeout is below the
+>   maximum LLD response processing time.
+>
+> Version eight of the SCSI device removal patch series can be found here:
+> http://github.com/bvanassche/linux/tree/device-removal-fixes.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
