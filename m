@@ -1,13 +1,13 @@
 From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 44/77] IB/mlx4: convert to idr_alloc()
-Date: Wed,  6 Feb 2013 11:40:16 -0800
-Message-ID: <1360179649-22465-45-git-send-email-tj@kernel.org>
+Subject: [PATCH 43/77] IB/ipath: convert to idr_alloc()
+Date: Wed,  6 Feb 2013 11:40:15 -0800
+Message-ID: <1360179649-22465-44-git-send-email-tj@kernel.org>
 References: <1360179649-22465-1-git-send-email-tj@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1360179649-22465-1-git-send-email-tj@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Mike Marciniszyn <infinipath@intel.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 Convert to the much saner new idr interface.
@@ -15,66 +15,68 @@ Convert to the much saner new idr interface.
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Roland Dreier <roland@purestorage.com>
+Cc: Mike Marciniszyn <infinipath@intel.com>
 Cc: linux-rdma@vger.kernel.org
 ---
- drivers/infiniband/hw/mlx4/cm.c | 32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_driver.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index dbc99d4..80e59ed 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -203,7 +203,7 @@ static void sl_id_map_add(struct ib_device *ibdev, struct id_map_entry *new)
- static struct id_map_entry *
- id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
- {
--	int ret, id;
-+	int ret;
- 	static int next_id;
- 	struct id_map_entry *ent;
- 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
-@@ -220,25 +220,23 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
- 	ent->dev = to_mdev(ibdev);
- 	INIT_DELAYED_WORK(&ent->timeout, id_map_ent_timeout);
+diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
+index 7b371f5..fcdaeea 100644
+--- a/drivers/infiniband/hw/ipath/ipath_driver.c
++++ b/drivers/infiniband/hw/ipath/ipath_driver.c
+@@ -194,11 +194,6 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
+ 	struct ipath_devdata *dd;
+ 	int ret;
  
--	do {
--		spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
--		ret = idr_get_new_above(&sriov->pv_id_table, ent,
--					next_id, &id);
--		if (!ret) {
--			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
--			ent->pv_cm_id = (u32)id;
--			sl_id_map_add(ibdev, ent);
--		}
-+	idr_preload(GFP_KERNEL);
-+	spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
- 
--		spin_unlock(&sriov->id_map_lock);
--	} while (ret == -EAGAIN && idr_pre_get(&sriov->pv_id_table, GFP_KERNEL));
--	/*the function idr_get_new_above can return -ENOSPC, so don't insert in that case.*/
--	if (!ret) {
--		spin_lock(&sriov->id_map_lock);
-+	ret = idr_alloc(&sriov->pv_id_table, ent, next_id, 0, GFP_NOWAIT);
-+	if (ret >= 0) {
-+		next_id = ((unsigned)ret + 1) & MAX_IDR_MASK;
-+		ent->pv_cm_id = (u32)ret;
-+		sl_id_map_add(ibdev, ent);
- 		list_add_tail(&ent->list, &sriov->cm_list);
--		spin_unlock(&sriov->id_map_lock);
--		return ent;
+-	if (!idr_pre_get(&unit_table, GFP_KERNEL)) {
+-		dd = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+ 	dd = vzalloc(sizeof(*dd));
+ 	if (!dd) {
+ 		dd = ERR_PTR(-ENOMEM);
+@@ -206,9 +201,10 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
  	}
-+
-+	spin_unlock(&sriov->id_map_lock);
+ 	dd->ipath_unit = -1;
+ 
++	idr_preload(GFP_KERNEL);
+ 	spin_lock_irqsave(&ipath_devs_lock, flags);
+ 
+-	ret = idr_get_new(&unit_table, dd, &dd->ipath_unit);
++	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_KERNEL);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR IPATH_DRV_NAME
+ 		       ": Could not allocate unit ID: error %d\n", -ret);
+@@ -216,6 +212,7 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
+ 		dd = ERR_PTR(ret);
+ 		goto bail_unlock;
+ 	}
++	dd->ipath_unit = ret;
+ 
+ 	dd->pcidev = pdev;
+ 	pci_set_drvdata(pdev, dd);
+@@ -224,7 +221,7 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
+ 
+ bail_unlock:
+ 	spin_unlock_irqrestore(&ipath_devs_lock, flags);
+-
 +	idr_preload_end();
-+
-+	if (ret >= 0)
-+		return ent;
-+
- 	/*error flow*/
- 	kfree(ent);
- 	mlx4_ib_warn(ibdev, "No more space in the idr (err:0x%x)\n", ret);
+ bail:
+ 	return dd;
+ }
+@@ -2503,11 +2500,6 @@ static int __init infinipath_init(void)
+ 	 * the PCI subsystem.
+ 	 */
+ 	idr_init(&unit_table);
+-	if (!idr_pre_get(&unit_table, GFP_KERNEL)) {
+-		printk(KERN_ERR IPATH_DRV_NAME ": idr_pre_get() failed\n");
+-		ret = -ENOMEM;
+-		goto bail;
+-	}
+ 
+ 	ret = pci_register_driver(&ipath_driver);
+ 	if (ret < 0) {
 -- 
 1.8.1
