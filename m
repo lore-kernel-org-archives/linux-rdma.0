@@ -1,13 +1,13 @@
 From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 45/77] IB/ocrdma: convert to idr_alloc()
-Date: Wed,  6 Feb 2013 11:40:17 -0800
-Message-ID: <1360179649-22465-46-git-send-email-tj@kernel.org>
+Subject: [PATCH 46/77] IB/qib: convert to idr_alloc()
+Date: Wed,  6 Feb 2013 11:40:18 -0800
+Message-ID: <1360179649-22465-47-git-send-email-tj@kernel.org>
 References: <1360179649-22465-1-git-send-email-tj@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1360179649-22465-1-git-send-email-tj@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Mike Marciniszyn <infinipath@intel.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 Convert to the much saner new idr interface.
@@ -15,43 +15,66 @@ Convert to the much saner new idr interface.
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Roland Dreier <roland@purestorage.com>
+Cc: Mike Marciniszyn <infinipath@intel.com>
 Cc: linux-rdma@vger.kernel.org
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_main.c | 14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/infiniband/hw/qib/qib_init.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index c4e0131..48928c8 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -51,18 +51,6 @@ static DEFINE_IDR(ocrdma_dev_id);
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index ddf066d..50e33aa 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -1060,22 +1060,23 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ 	struct qib_devdata *dd;
+ 	int ret;
  
- static union ib_gid ocrdma_zero_sgid;
- 
--static int ocrdma_get_instance(void)
--{
--	int instance = 0;
+-	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
+-		dd = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
 -
--	/* Assign an unused number */
--	if (!idr_pre_get(&ocrdma_dev_id, GFP_KERNEL))
--		return -1;
--	if (idr_get_new(&ocrdma_dev_id, NULL, &instance))
--		return -1;
--	return instance;
--}
--
- void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
- {
- 	u8 mac_addr[6];
-@@ -416,7 +404,7 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
- 		goto idr_err;
+ 	dd = (struct qib_devdata *) ib_alloc_device(sizeof(*dd) + extra);
+ 	if (!dd) {
+ 		dd = ERR_PTR(-ENOMEM);
+ 		goto bail;
+ 	}
  
- 	memcpy(&dev->nic_info, dev_info, sizeof(*dev_info));
--	dev->id = ocrdma_get_instance();
-+	dev->id = idr_alloc(&ocrdma_dev_id, NULL, 0, 0, GFP_KERNEL);
- 	if (dev->id < 0)
- 		goto idr_err;
++	idr_preload(GFP_KERNEL);
+ 	spin_lock_irqsave(&qib_devs_lock, flags);
+-	ret = idr_get_new(&qib_unit_table, dd, &dd->unit);
+-	if (ret >= 0)
++
++	ret = idr_alloc(&qib_unit_table, dd, 0, 0, GFP_NOWAIT);
++	if (ret >= 0) {
++		dd->unit = ret;
+ 		list_add(&dd->list, &qib_dev_list);
++	}
++
+ 	spin_unlock_irqrestore(&qib_devs_lock, flags);
++	idr_preload_end();
  
+ 	if (ret < 0) {
+ 		qib_early_err(&pdev->dev,
+@@ -1180,11 +1181,6 @@ static int __init qlogic_ib_init(void)
+ 	 * the PCI subsystem.
+ 	 */
+ 	idr_init(&qib_unit_table);
+-	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
+-		pr_err("idr_pre_get() failed\n");
+-		ret = -ENOMEM;
+-		goto bail_cq_wq;
+-	}
+ 
+ 	ret = pci_register_driver(&qib_driver);
+ 	if (ret < 0) {
+@@ -1199,7 +1195,6 @@ static int __init qlogic_ib_init(void)
+ 
+ bail_unit:
+ 	idr_destroy(&qib_unit_table);
+-bail_cq_wq:
+ 	destroy_workqueue(qib_cq_wq);
+ bail_dev:
+ 	qib_dev_cleanup();
 -- 
 1.8.1
