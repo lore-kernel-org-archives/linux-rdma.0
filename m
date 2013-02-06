@@ -1,289 +1,318 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 38/77] IB/core: convert to idr_alloc()
-Date: Wed,  6 Feb 2013 11:40:10 -0800
-Message-ID: <1360179649-22465-39-git-send-email-tj@kernel.org>
-References: <1360179649-22465-1-git-send-email-tj@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1360179649-22465-1-git-send-email-tj@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+From: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for 3.8 v3, resend 0/3] IB/SRP patches for kernel 3.8
+Date: Wed, 6 Feb 2013 13:42:56 -0800
+Message-ID: <5112CE60.2030607@mellanox.com>
+References: <510BDCAA.204@acm.org> <CAJZOPZLKQV0QvrW5sK8hQJf7AZc+1nUzp+5YCkZ3iVU4oTWbLg@mail.gmail.com> <5111327F.6050402@acm.org> <CAJZOPZ+-Zg=jnqg4ZmFL5Yo4_2DoWGcgy=3u6g3Rf9y80pXnpg@mail.gmail.com> <5112049B.8030406@acm.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="------------090402060609040600090605"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5112049B.8030406-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Convert to the much saner new idr interface.
+--------------090402060609040600090605
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Only compile tested.
+Bart Van Assche wrote:
+> On 02/05/13 21:54, Or Gerlitz wrote:
+>> On Tue, Feb 5, 2013 at 6:25 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> 
+>> wrote:
+>>> On 02/04/13 22:11, Or Gerlitz wrote:
+>> Bart, I'd like to sharpen the point: could you please clarify if the
+>> series posted to linux-rdma stands for itself in the sense that SRP HA
+>> scheme X (please state it) now works/better when the patches applied
+>> on top of the latest 3.8-rc cut? OR for X to do better/work, one needs
+>> this series AND the one you posted to linux-scsi.
+>
+> Hello Or,
+>
+> A huge number of patches have been taken upstream between 3.8-rc1 and 
+> 3.8-rc6. I have retested these three patches with 3.8-rc6 and would 
+> appreciate if you would also repeat your tests.
+>
+> Thanks,
+>
+> Bart.
+Hello Bart,
 
-v2: Mike triggered WARN_ON() in idr_preload() because send_mad(),
-    which may be used from non-process context, was calling
-    idr_preload() unconditionally.  Preload iff @gfp_mask has
-    __GFP_WAIT.
+I tested your 3.8 v3 patchset. I did the following:
+- clone & checkout Roland's ib tree for-next branch
+- applied Bart's 3.8 v3 patchset
+- applied "save & restore host_scribble during error handling" patch - 
+http://www.mail-archive.com/linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg17809.html
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Sean Hefty <sean.hefty@intel.com>
-Reported-by: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org
----
- drivers/infiniband/core/cm.c         | 22 +++++++++++-----------
- drivers/infiniband/core/cma.c        | 24 +++++++-----------------
- drivers/infiniband/core/sa_query.c   | 18 ++++++++++--------
- drivers/infiniband/core/ucm.c        | 16 ++++------------
- drivers/infiniband/core/ucma.c       | 32 ++++++++------------------------
- drivers/infiniband/core/uverbs_cmd.c | 17 ++++++++---------
- 6 files changed, 48 insertions(+), 81 deletions(-)
+I have two paths to target thru port 1 & 2 (scsi_host host9 & host10)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 394fea2..98281fe 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -382,20 +382,21 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
- static int cm_alloc_id(struct cm_id_private *cm_id_priv)
- {
- 	unsigned long flags;
--	int ret, id;
-+	int id;
- 	static int next_id;
- 
--	do {
--		spin_lock_irqsave(&cm.lock, flags);
--		ret = idr_get_new_above(&cm.local_id_table, cm_id_priv,
--					next_id, &id);
--		if (!ret)
--			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
--		spin_unlock_irqrestore(&cm.lock, flags);
--	} while( (ret == -EAGAIN) && idr_pre_get(&cm.local_id_table, GFP_KERNEL) );
-+	idr_preload(GFP_KERNEL);
-+	spin_lock_irqsave(&cm.lock, flags);
-+
-+	id = idr_alloc(&cm.local_id_table, cm_id_priv, next_id, 0, GFP_NOWAIT);
-+	if (id >= 0)
-+		next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
-+
-+	spin_unlock_irqrestore(&cm.lock, flags);
-+	idr_preload_end();
- 
- 	cm_id_priv->id.local_id = (__force __be32)id ^ cm.random_id_operand;
--	return ret;
-+	return id < 0 ? id : 0;
- }
- 
- static void cm_free_id(__be32 local_id)
-@@ -3844,7 +3845,6 @@ static int __init ib_cm_init(void)
- 	cm.remote_sidr_table = RB_ROOT;
- 	idr_init(&cm.local_id_table);
- 	get_random_bytes(&cm.random_id_operand, sizeof cm.random_id_operand);
--	idr_pre_get(&cm.local_id_table, GFP_KERNEL);
- 	INIT_LIST_HEAD(&cm.timewait_list);
- 
- 	ret = class_register(&cm_class);
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index d789eea..c32eeaa 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -2143,33 +2143,23 @@ static int cma_alloc_port(struct idr *ps, struct rdma_id_private *id_priv,
- 			  unsigned short snum)
- {
- 	struct rdma_bind_list *bind_list;
--	int port, ret;
-+	int ret;
- 
- 	bind_list = kzalloc(sizeof *bind_list, GFP_KERNEL);
- 	if (!bind_list)
- 		return -ENOMEM;
- 
--	do {
--		ret = idr_get_new_above(ps, bind_list, snum, &port);
--	} while ((ret == -EAGAIN) && idr_pre_get(ps, GFP_KERNEL));
--
--	if (ret)
--		goto err1;
--
--	if (port != snum) {
--		ret = -EADDRNOTAVAIL;
--		goto err2;
--	}
-+	ret = idr_alloc(ps, bind_list, snum, snum + 1, GFP_KERNEL);
-+	if (ret < 0)
-+		goto err;
- 
- 	bind_list->ps = ps;
--	bind_list->port = (unsigned short) port;
-+	bind_list->port = (unsigned short)ret;
- 	cma_bind_port(bind_list, id_priv);
- 	return 0;
--err2:
--	idr_remove(ps, port);
--err1:
-+err:
- 	kfree(bind_list);
--	return ret;
-+	return ret == -ENOSPC ? -EADDRNOTAVAIL : ret;
- }
- 
- static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index a8905ab..934f45e 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -611,19 +611,21 @@ static void init_mad(struct ib_sa_mad *mad, struct ib_mad_agent *agent)
- 
- static int send_mad(struct ib_sa_query *query, int timeout_ms, gfp_t gfp_mask)
- {
-+	bool preload = gfp_mask & __GFP_WAIT;
- 	unsigned long flags;
- 	int ret, id;
- 
--retry:
--	if (!idr_pre_get(&query_idr, gfp_mask))
--		return -ENOMEM;
-+	if (preload)
-+		idr_preload(gfp_mask);
- 	spin_lock_irqsave(&idr_lock, flags);
--	ret = idr_get_new(&query_idr, query, &id);
-+
-+	id = idr_alloc(&query_idr, query, 0, 0, GFP_NOWAIT);
-+
- 	spin_unlock_irqrestore(&idr_lock, flags);
--	if (ret == -EAGAIN)
--		goto retry;
--	if (ret)
--		return ret;
-+	if (preload)
-+		idr_preload_end();
-+	if (id < 0)
-+		return id;
- 
- 	query->mad_buf->timeout_ms  = timeout_ms;
- 	query->mad_buf->context[0] = query;
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 49b15ac..f2f6393 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -176,7 +176,6 @@ static void ib_ucm_cleanup_events(struct ib_ucm_context *ctx)
- static struct ib_ucm_context *ib_ucm_ctx_alloc(struct ib_ucm_file *file)
- {
- 	struct ib_ucm_context *ctx;
--	int result;
- 
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
- 	if (!ctx)
-@@ -187,17 +186,10 @@ static struct ib_ucm_context *ib_ucm_ctx_alloc(struct ib_ucm_file *file)
- 	ctx->file = file;
- 	INIT_LIST_HEAD(&ctx->events);
- 
--	do {
--		result = idr_pre_get(&ctx_id_table, GFP_KERNEL);
--		if (!result)
--			goto error;
--
--		mutex_lock(&ctx_id_mutex);
--		result = idr_get_new(&ctx_id_table, ctx, &ctx->id);
--		mutex_unlock(&ctx_id_mutex);
--	} while (result == -EAGAIN);
--
--	if (result)
-+	mutex_lock(&ctx_id_mutex);
-+	ctx->id = idr_alloc(&ctx_id_table, ctx, 0, 0, GFP_KERNEL);
-+	mutex_unlock(&ctx_id_mutex);
-+	if (ctx->id < 0)
- 		goto error;
- 
- 	list_add_tail(&ctx->file_list, &file->ctxs);
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 2709ff5..5ca44cd 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -145,7 +145,6 @@ static void ucma_put_ctx(struct ucma_context *ctx)
- static struct ucma_context *ucma_alloc_ctx(struct ucma_file *file)
- {
- 	struct ucma_context *ctx;
--	int ret;
- 
- 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
-@@ -156,17 +155,10 @@ static struct ucma_context *ucma_alloc_ctx(struct ucma_file *file)
- 	INIT_LIST_HEAD(&ctx->mc_list);
- 	ctx->file = file;
- 
--	do {
--		ret = idr_pre_get(&ctx_idr, GFP_KERNEL);
--		if (!ret)
--			goto error;
--
--		mutex_lock(&mut);
--		ret = idr_get_new(&ctx_idr, ctx, &ctx->id);
--		mutex_unlock(&mut);
--	} while (ret == -EAGAIN);
--
--	if (ret)
-+	mutex_lock(&mut);
-+	ctx->id = idr_alloc(&ctx_idr, ctx, 0, 0, GFP_KERNEL);
-+	mutex_unlock(&mut);
-+	if (ctx->id < 0)
- 		goto error;
- 
- 	list_add_tail(&ctx->list, &file->ctx_list);
-@@ -180,23 +172,15 @@ error:
- static struct ucma_multicast* ucma_alloc_multicast(struct ucma_context *ctx)
- {
- 	struct ucma_multicast *mc;
--	int ret;
- 
- 	mc = kzalloc(sizeof(*mc), GFP_KERNEL);
- 	if (!mc)
- 		return NULL;
- 
--	do {
--		ret = idr_pre_get(&multicast_idr, GFP_KERNEL);
--		if (!ret)
--			goto error;
--
--		mutex_lock(&mut);
--		ret = idr_get_new(&multicast_idr, mc, &mc->id);
--		mutex_unlock(&mut);
--	} while (ret == -EAGAIN);
--
--	if (ret)
-+	mutex_lock(&mut);
-+	mc->id = idr_alloc(&multicast_idr, mc, 0, 0, GFP_KERNEL);
-+	mutex_unlock(&mut);
-+	if (mc->id < 0)
- 		goto error;
- 
- 	mc->ctx = ctx;
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 0cb0007..83bc309 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -124,18 +124,17 @@ static int idr_add_uobj(struct idr *idr, struct ib_uobject *uobj)
- {
- 	int ret;
- 
--retry:
--	if (!idr_pre_get(idr, GFP_KERNEL))
--		return -ENOMEM;
--
-+	idr_preload(GFP_KERNEL);
- 	spin_lock(&ib_uverbs_idr_lock);
--	ret = idr_get_new(idr, uobj, &uobj->id);
--	spin_unlock(&ib_uverbs_idr_lock);
- 
--	if (ret == -EAGAIN)
--		goto retry;
-+	ret = idr_alloc(idr, uobj, 0, 0, GFP_NOWAIT);
-+	if (ret >= 0)
-+		uobj->id = ret;
- 
--	return ret;
-+	spin_unlock(&ib_uverbs_idr_lock);
-+	idr_preload_end();
-+
-+	return ret < 0 ? ret : 0;
- }
- 
- void idr_remove_uobj(struct idr *idr, struct ib_uobject *uobj)
--- 
-1.8.1
+- run I/Os
+- disable port 1 @ 19:11:30
+- error recovery for host9 kick in @ 19:12:04
+- multipath remove the path, I/Os fail-over @ 19:12:51
+- error recovery was still going on with host9 (sysfs entry for host9 
+still intact)
+- enable port 1 @19:15:00
+- host9 reconnect to target thru error recovery, multipathd module 
+re-instate the path in kernel; and then host9 is REMOVED, usermode 
+"multipath -l" did not show re-instate path thru host9
+
+Feb  6 19:15:04 vsa30 kernel: scsi host9: SRP abort called
+Feb  6 19:15:05 vsa30 multipathd: overflow in attribute 
+'/sys/devices/pci0000:00/0000:00:02.0/0000:02:00.0/host9/target9:0:0/9:0:0:2/state'
+Feb  6 19:15:14 vsa30 kernel: scsi host9: SRP abort called
+Feb  6 19:15:14 vsa30 kernel: scsi host9: SRP reset_device called
+Feb  6 19:15:14 vsa30 kernel: scsi host9: ib_srp: SRP reset_host called
+Feb  6 19:15:14 vsa30 kernel: scsi host9: ib_srp: reconnect succeeded
+Feb  6 19:15:26 vsa30 multipathd: 3600144f0665c4400000050a522180003: sdd 
+- tur checker reports path is up
+Feb  6 19:15:26 vsa30 multipathd: 8:48: reinstated
+Feb  6 19:15:26 vsa30 multipathd: 3600144f0665c4400000050a522180003: 
+remaining active paths: 2
+Feb  6 19:15:26 vsa30 multipathd: 3600144f0665c4400000050a522180002: sdc 
+- tur checker reports path is up
+Feb  6 19:15:26 vsa30 multipathd: 8:32: reinstated
+Feb  6 19:15:26 vsa30 multipathd: 3600144f0665c4400000050a522180002: 
+remaining active paths: 2
+Feb  6 19:15:26 vsa30 multipathd: sdc: remove path (uevent)
+Feb  6 19:15:26 vsa30 multipathd: 3600144f0665c4400000050a522180002: 
+load table [0 409600 multipath 0 0 1 1 round-robin 0 1 1 8:80 1]
+Feb  6 19:15:26 vsa30 multipathd: sdc: path removed from map 
+3600144f0665c4400000050a522180002
+Feb  6 19:15:26 vsa30 kernel: sd 9:0:0:1: [sdc] Synchronizing SCSI cache
+Feb  6 19:15:26 vsa30 multipathd: sdd: remove path (uevent)
+Feb  6 19:15:26 vsa30 multipathd: 3600144f0665c4400000050a522180003: 
+load table [0 409600 multipath 0 0 1 1 round-robin 0 1 1 8:96 1]
+Feb  6 19:15:26 vsa30 multipathd: sdd: path removed from map 
+3600144f0665c4400000050a522180003
+Feb  6 19:15:26 vsa30 kernel: sd 9:0:0:2: [sdd] Synchronizing SCSI cache
+
+- disable port 2 @19:22:50
+- error recovery kicked in on host10 @ 19:23:40
+- I/Os failed with NO path to target @ 19:24:27
+- without enabling port 2, error recovery was still going on host10 
+still 19:57:52 and stop.
+- host10 was still in sysfs /sys/class/scsi_host/host10 & taking 
+reference on ib_srp module
+- enable port 2 - nothing happened.
+
+Conclusion:
+1. disable the port/path long enough >35 minutes, we have dangling scsi 
+host.
+2. enable the port within 30 minute, scsi host re-establish connection, 
+path re-instate and then scsi_host was removed (no entry in sysfs)
+
+I attached a log here to show what happened above.
+
+thanks,
+-vu
+
+--------------090402060609040600090605
+Content-Type: application/octet-stream; name="messages.bz2"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="messages.bz2"
+
+QlpoOTFBWSZTWUMNLFcEAzt/hPEQCABA5//wPaP+yv////AAEAAIYGV+H301gAAAAAAAAAAA
+AAAAZsANglbaCk28fXu8AAAAAAAAAAAAAAAEywARxAEkUACAIABpgAQAAAAAAkAAAJ2GgDbA
+C7GgAAAAAAACgAABQADmB4D4KIEEluwHBJPbBBSB9hRgKQUQCEkAgkgCEkAhJChCSAhJeD3w
+NAUAAA+QDJIFGbAEVT3ohv1VVUjQyZNMTRoxMmTCYmmgBoaANJPz1VUhKUeo0AxNAaAANGmg
+AAAlT8ooj1VSR6ATIwAACYIwAAAJU/1Uj1SflUqBpkMgAABoaAAAACapQmgp6EaFP0hNPTJ6
+SBoaNA0bU0YjRoFKSEAgIEnoCg0GjKepgm1MaHqTTJ6n4fj93m11LlwKvR4PyXH1WUqCcHbi
+ZNERKyn2enfz3T4OP9Pf9W222mu/ybcNttt9M+nXPzZ5vq365evrx69PJt110149d99tbXZ1
+451zj06nTFHl5/ForW3+/zeCHFWmJuLht5fZ37eG222u6cend09Pd03FcVHrij34c9ublv6t
+taaYxjGMYxjGEkkmvttr8l9eflZuSSSSSSxjGMYy31l38d9ttafm8t88N698SvE89+3lx7fy
+c/Xv78t/h095V38c9tufty9+s7crjqb9+N9vht57c4nFDjvvvvwqN/f6OvXhv18+nDFcs2y1
+x18nZ3efu+Hy+fr8XjR4xNZrDx48ePHjx48dfDxrTWtNMYxjCSSSSTX4+2vH3PPvZuSSSSSS
+SSSSSa921jPMzckkkkkkkkkkk17trGeZm5JJJJJJJJJJJr3bWM8zNySSSSSSSSSSTXu2sZ5m
+bkkkkkkkkkkkmvdtYzzM3JJJJJJJJJJJNe7axnmZuSSSSSSSSSSSa921jPMzckkkkkkkkkkk
+17trGeZm5JJJJJJJJJJJr3bWM8zNySSSSSSSSSSTXu2sZ5mbkkkkkkkkkkkmvdtYzzM3JJJJ
+JJJJJJJNe7axnmZuSSSSSSSSSSSa921jPMzckkkkkkkkkkk17trGeZm5JJJJJJJJJJJr3bWM
+8zNySSSSSSSSSSTXu2sZ5mbkkkkkkkkkkkmvdtYzPu/cnzPu+X6X5v2vn02AAAX1tr7Pt9vc
+AAAC921jM9wAAAL3bWMz3AAAAvdtYzPcAAAC921jM9wAAAL3bWMz3AAAAvdtYzPcAAAC921j
+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
+77776aTdLN5sBttgLD77776aTWbzYDbbAWH333300m6zebAttA+juLZbViSze1AttA+ji3ra
+sSbagW2gfPehb1t5Y6Xe1AttAcL1tixtqBbaA4Xrbf59L/b6f1NN/lb73ve973u6e9/P5bJb
++/4AAAHvIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAIBAIBAIAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADjWuNazn2qZriUpGXLXUOFVdMJW2JE5b6ItYJf0Sl
+I59dgXRESsVcsSjnlSHHIVm+9s373e73p73vz7X+AltoHzi3ras+e9vtQOttA+ji3ras9897
+fWgdbaB9HFvW13dOvJtqB1toHz3oW9be+0tUDrbQPnvQ22tttrgmzGZSmWVKZizDhvvttxwH
+W2gfPehb1t53d19Pe5NrQOttA+e9C3rbyd3X08m2oHW2gOF6230ib08jagdbaAFlt6JfTyba
+gdbaAFtt7ve96eib08jagdbaAFtsvvd6JvTyNqB1toAW23p3TunSfydH9X8/Pzu6d+p6dPe7
+p78CAQCAQCAQCAQCAQAAAAAD386TpJP+3p3RKxBc5lSswnaiJWIVc8lJ166QMxJHfFSZgjdN
+P69PJ/P61A620CfC22yyJvT21AS20ALbbIm9PbUBbaBJ9ILbbu7SI9PFAW2gBbbpNIj08UBb
+aAFtuk903u96enpEenveWgLbQAtt0mkCgLbQAtt0mkPe94oC20D2973ve9PPG22SaS1sC20D
+0zxpd7ZJpLWwLbQPTPGl3tkm6WtgW2gemeNLvbJNa2BbaB6Z40u9tzlKR6756b3dmAKM00kS
+W+3n5HdVeUALWvtvdaqVGo1pZ9m39agAAFl5ffTzUAAAAA+kFAAAAEAgEAgEAnvT3tJp6Yzn
+DiUpHo6607+LWvGtuWt5Skd8907p3TpP1ZffqT+zu5/P62/sB022wH0feNLvbJNa2A22wPTP
+Gl3tkmtbAbbYHpnjS72zprWwG22B6Z40u9s1rYDbbA9M8aXe2TprWwG22B6Z40u9sk1rYDbb
+A9M8aXe2Sa1sBttgemeNLvbapA2A22wAXe2Sa1sBttgBbavve973ve973p7yQbYDbbAC21L6
+eSBsBttgBbb/mz+T3536k9JPene6d7unuk6d3v1+v1+kAgEAgEAgEAgEA4CAQCAAAAAAAdJ+
+36n56J/Pyb09+5Pz9/jYDbbAQW2pfTyTbUBttgBbal9PJNtQLbQEgttvRN6eSGoFtoAW22Jv
+TyQ1AttAC22xN6edDUC20ALbbE3p4agW2gBbbYm9PONQLbQO4NttYm9PbUBbaBwabbWJvT21
+AW2gcGm21ib09721AW2gcGm21jbUBbaBwabbe/c9P5Hfr9e973ve973Tt+W2W3foAALLaAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD774AAAIBAIBAIAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAfffLLdtuOfc5SlI059uqb9uuaax0u3PMzMzMzPe9Pf1qA9b9QODTbaxNtQHptrg
+ODTbaxNtQHptrgODTbaz9d735Bfz8B6ba4Dg022qbagPTbXAcGm21kibagPTbXAcGm2352np
++QX8/Aem2uA4NNtrE21Aem2uA4NNttogoD021wAbbaz878gv5+A9NtcB+T8/Pz8ttTpp+QUB
+6ba4ALbdJogoD021wAW2/knfz0/0tO/U6Tz93u6d++9O9bb+wgEAgC20EAgEAgEAgAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAgEAgAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAOOOOONtta18lTfZ/k1p2dNtszn5HUNukJwifyfr8/KA9NtcB4LbUmm2APba4ALbf
+yd3T+ySSST/R7unu73d090l7u7v1J+p93d3Tp+v19+wG22A+nTp9w1tvdJ27vSdEiGANtsAF
+tqRIgANtsB9ILbbOkk7knpOnJPSScnp3dPFANtsB9O6cLbb0k5J6TpyT0nTnpJOPgDbbAfTu
+6C2293TknpJOSeknTnFANtsB9JJycW23u7ok9O6ck9J0nbfbAbbYD6TpyFstvSTknp3dEnu7
+pJt9sBttgPp3chbLb3dyT0nck9JO96d3bfbAbbYD6TuQtlt7u5J6d3PSdO2+2A22wH07uQtl
+t6TvhoPWr/Mx+nLre6CSs+WZtauXLrppp9ENQq1lma6aafun0BypWB6iq3JWWStA9mqqnOc1
+oC1NTr9/9X6v5fw8zpzmlp02ORbkbfPw8niVjJWWSszGSs6OONa1rWuSrb5+y7QJHl389ud4
+B2/RjvnfWta1p16dOvpy7VIrnwa2Fo10Fo1hm1JWrW0SBprbp036enX0gSPPPu661ry33331
+rW++oEj8IEh4PAA4cB/CuFLFLFLFLFLFLFLFLFLFLFLH4f0X8j/5Y5nmm7uZmbunuL6UsUsU
+sUsUsUsUsUsUsUsUsd7v4N03d3Td3d3n3379zMzum7uZmbveABw4H4OABw4D6vSlilililil
+ililililililjvd/Bum7u6bu7u8XdN215uZM77ur72d73v0M+ge9zgAAAAAAAAAAAAAAAAe1
+rvTM7y6ZfbXnswAAAAAAAAAAAAAAABnOL4UsUsUsUsUsUsUsUs1Jvc1Jvc1Jvc11TOX6FVVL
+nJ7jrAAAAAccyqquXMmczuYAAAADe97ak3uak3uak3uak2xSxSxSxSxSxSxSx9z5lXu7u1bv
+3z1fClililililililililililj73vuZmeabu5mZu+y+lLFLFLFLFLFLFLFLFLFLFLG2+5mZ
+7pu7mZm774vpSxSxSxSxSxSxSxS2pN7mpN7mpN7muezfKlbpy8v1+9mAAAAAAAAAAAAAAAAO
+OTtL8B73OAAAAAAAAAAAAAAAB3ve96dXdXSlililililililililililufX55mZnm3bvnffu
+AAAAA45lVVcuZM5ncwAAAAG9721Jvc1Jvc1JvcUsUsUsUsUsUsUsUsakRTZUxEGZlVYEzMqi
+yqpgsJGYWZixYLKkgBVTjwXhzhzgcPr82r3d3at3fV0pYpY9ADMXCljOc5zMXClilililili
+lj53zuZmeabu5mZu+y+lLFLFLFLFLFLFLFLFLFLFLG2+5mZ7pu7mZm774uemYuYZi5hmLmGY
+uYZi5hmLmDmLc5w5hmLFLnMHgc4BmLhgZi4fPX6+ZY45fr9fvZgAAAAAAAAAAAAAAADjkkzl
++v1+8wAAAAAAAAAAAAAAABpvfNa5ze+arVVvc1Wt6qtsYJmLGCZixgmYsYJmLGCZixgmYsYZ
+i4YPMxcMzFwzuffm7u7u3d8vWkKqqXOT3HWAAAAA45lVVcuZM5ncwAAAA73twKW6JmLGCZix
+hmLhgmYsYJmLGCZixgmYuGBmLhgZi4YS33rLJb71n77unb979fzbbbbbbbb9P5+fs5znPMAX
+Uz183v3Nbqt7rUm91rVaqt7mpFjDnMxcKWKWKWKWKWKWPOYHuZ7vDh3v3um7u903dzMzd8Of
+HF+lLFLFLFLFLFLFLFLFLFLFLHl58zMz5pu7mZm774vpSxSxSxSxSxSxSxSxSxSxW9zXPZyq
+qnLy/X72YAAAAAAAAAAAAAAAA45JM5fr9fvMAAAAAAAAAAAAAAAAfKre61Jvc1Jtilililil
+ililililtSb3PjJ6tVVVy4jjuYAAAADjmVVVy5kzmdzAAAAO973vwpelLFLFLFLFLFLFLFLF
+LFLFLFznDhwA37tXzu7t5nd+fO/e/fV9KWKWKWKWKWKWKWKWKWKWKWPfO9zMzzTd3MzN32X0
+pYpYpYpYpYpYpYpYpVVV133MzPdN3czM3fPFVVAAAAAAPec98888733l+v3swAAAAAAAAAAA
+AAAABxySZy/X6/eYAAAAAAAAAAAAA73ve973ve973ve9154AAAADdyb3JN7km9yTe7ZPVqqq
+uXEczuYAAAADjmVVVy5kzmdzAAAAAe1VVvck3uak3ufPnzXyTe97WOBzgUsHApYAKWClgpYK
+WClzmfMq9+7u1buh7qwUsFLBSwUtwpaluUtzlLBSwUsFLB7wDPve7u7u83d3TnAO8O9+4aju
+7vdjwvPNzMzzYO4uhSwUsFLBSwUsFLBS3ClqWOFLBS+nAg73u7u7u7u7vN3OHOcwThznHlya
+183re9b3r073POd33ve9wb1sDvLrL9r6IYD6sFLBSwUsFLBSwUsFLBSwUtwpal1998278+Zm
+UX61+9mAAAAAAAAAAAAAAAAOOSTOX6/X7zAAAAAAAAAAAAAAAAHy/mtXckmpJqSakmpIVFRU
+VFRUVFRUVFRUUmpJqSakmpJqS2T1aqqrlxHM7mAAAAA45lVVcuZM5ncwAAAAHtVqqmpJJJN7
+3ua+ak3uaKWClgpYKWClgpYKWCleAXzKvfu7tW7oeasFLBS3ClqWOFLBSwUsFLBSwUsFLu75
+mZm6bu5mZu4HmLBSwUsFLBS3ClqW5S3OUsFLBSwUsHznw5zm/e5mZum7ufd+effe/e97h3q+
+BSwUsFLBSwUsFLBS3ClqWOFLBS+c98tzMzv3fm/N+fPv3vegAAAAAAAAAAAAAABxySZy/X6/
+eYAAAAAAAAAAAAAADve973veaG6sFLBSwUsFLBSwUsFLBSwUtwpal3v2+YZlVy4jmdzAAAAA
+ccyqquXMmczuYAAAAD2q+a1VSUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVfKr37u7Vu6ebFVVKs
+cKWClgpYKWClgpYKWClgpe+eee5mZ5pu7mZm7ge4sFLBS3ClqWOFLBSwUsFLBSwUsFL84c5d
++5mZ3Td3MzN30PPVgpYKWClgpbhS1LcpbnKWClgpYKWD7MXeru7vV3d3Pe9VVRfrX72YAAAA
+AAAAAAAAAAABeXJPXfb7bzAAAAAAAAAAAAAAAAGqrboUsFLBSwUsFLBSwUtwpaljhSwUv1+e
+eabu7pu7u+85w+b5znL1nO9zz3ve973sHOVXve8AAAAA72PeO8usvlZXuvAAd73ve973ve97
+3ve9gpYKWClgpYKWClgpYKWClgpbhS1L997733fnftXe7u1bu8D3aoqKioqKioqKioqKioqK
+ioqKioqKior55557u7u+abu5mZu+GnuxVVSrHClgpYKWClgpYKWClgpYKXL53MzO6bu5mZu+
+h56sFLBS3ClqWOFLBSwUsFLBSwUsFL3zzczM+fN+b8358796AAAAAAAAAAAAAAAC8uSeu+32
+3mAAAAAAAAAAAAAAB3ve973vTQ3VgpYKWClgpbhS1LchOSxEjESMRIxEj937krdVdxHHcwAA
+AAHHMr1uZ0HOVXve8AAAAHe9SJGIkYiRiJGIkYiRiJGIkWKYSOERBEfc+ZV7u7tW7oeGkERB
+EQREERBEQREERBEQRFwiKI++eee7u7vmm7uZmbvhvOc9eC6MsUsUsUsUsUsUsUsUsUsUsZfe
+5mZ3Td3MzN33xX0phLkPCIiIiIiIiIiIiIiIiI0Nyr33fd9t5gAAAAAAAAAAAAAAAF5ck9d9
+vtvMAAAAAAAAAAAAADve973ve973vdNNNIiIiLkRREBEREREREREREREbzv3PmGZlduI46wA
+AAAHHMqqrlzJnM7mAAAAA9qammpqEREREREXIiiLkPCIpYpYpYpe8Ob8ve/NN3d03d3d4HAP
+nfuGZne+eeeVeeefD3xYpYpYpYpYpYpYpWKYSAiIiM+Pe+abu7eru7vV3d3evmvnz5Uys7nW
+/e973u+wNSQd775ufd8Ph4dPCIiIiIiIiIiIiIiIiIi5EUR5835u78979zMzum7uZmbvQPD6
+UsUsUsUsUsUsUsUsUsUsUsbuVe+77vu/PncAAAAAAAAAAAAAAAAvLknrvt9t5gAAAAAAAAAA
+AAAB3ve973ve5iuFMJch4RERERERERERERERERHx97mZnm3bvnfcwAAAAHHMqqrlzJnM7mAA
+AAA9NTTU1NTU1NTU+RFEQERERERERERERERmfMq93d2rd08NIiIiIiIiLkRRFyHhEUsUsUsU
+ve9u5OWZ7pu7n3fvn33v3ve99Xw+erFLFLFLFLFLFLFKxTCQERERl75mZn3Td3MzN308PSIi
+IiIiIiIiIiIiIiIi5EURu5V77vb7bzAAAAAAAAAAAAAAAALy5J677fbeYAAAAAAAAAAAAA73
+ve973ve973ve4BhhSxSxSxSxSxSxSxSxSxSxSx8fe5mZ5cRx3MAAAABxzKqq5cyZzO5gAAAA
+N73tqTe5qSxSxSxSxSxSxSxSxTmlppmaWtPtnpnjPGaU9k/1OV9lBtDy2UHun2l7qDVUXvko
+iwNSyVMmT6Zk7J75+eqn0TLlProHWcSXCbznQNS3L3zSgd0+yaL99vPj/1NJtUq1yCnqV6PG
+D2g8fG3/b/w42Wd3d6d3d7K07u76d3d7a5szjfP6KDY2I4Af6nf+tIpTtKUjmH7i8kqeIbF0
+rYdq/zTRaijEo/qVdfORey/cOxHLCB+wqtiu8FIzOi41AkepjZIUfWqyiUjeBI2g7pFKcVRf
+yAP115l/aVzE00gtlVJXzTdTScQ+dEStVcQ3Iwgf9/ktqqXrkCRi6w4lEjC+U84Ejwq7yiRv
+WlwVWwpfESmKm4yJTMijuLaShpbLIDZZMyq/bVYOjdNE0XwgpHGJEjGSZWiOpziDkspi6lVp
+IufJdVH/IMI/TAkZHEiIyc6DKCK43JRXfOQuzBXVjWFXTZ+98YEjzWLmmLmDuxVojhqKMnTB
+7qvvVcQJG84WdSygtj2BPsSKUyq3lEjBS61W6zS/6eRG/gDWU06aA2ZYYlPGQnOKOi0VW0wj
+SxwujRfDvsuaQGVL2LqwjyXYN6pSPqq8RR+CzKhI9lpxAkdVukB0kqfK3ij3qu3iBI7gfFaX
+27Vwk4BSPMH0sB7kd7iWgP5oowJI29lopX9kpSMG0i2VeFyVZSjVKO0CRvPV9iUc4kDSmZB2
+Wq2VbrOAUjmR8XL4UUo6FVgFI9UlI9wfoohHaIMVMhN95kclFNQJGP0rcB2qEj3I+IIT1vOk
+vk/EudQkfZSjw/hPUddxlV0Hs5KSkfNdKRI+K8n8PRJyV3nR7L3VceRqUSOxQHJal4I35pAZ
+XoGQPsUatVJRRRRRRRRRRRRRRRRRRRRRWYZhmGYZhmGA8iqxRsX0pRpbtjkgNnVNiMQcQJHw
+CUjPodJJ1HD3ZYyxky/Ja/bvVNBKR/xQSO8okdCrJpaWvF7LkX/yY8iwjcquHsDIo90gN1/N
+/93qX/gqsHedVgO7ypR9q4dQ+ij5p4LyaI+hVfR812gm5HI0VdVqcgdJG81qC1D2TlIWUole
+2quUMIpL8A8hFcZXyjmqpK5qo0DnAkeKCRyXs+SPfDqA61T0TIqkYoUjI/ihSVvXhO6mwd6V
+JXKcE2Ng2ksbc5LWHBKkrSg0BWIlgiRlRiyq9eFIuq3aIKP4xMA6VtAkdAUj4QJGl/2X1Vb7
+JAfcX4Heeoqn9K7l9QHMVT0qpdayQkaipz3XrB60Ejli85CR9a094EjpAkbLoPxSKU695Uj7
+QLEYsRkyWVVMCMmFIGTvojascwMW31Ep2W69XyAaD0ilJgnLn84Ej6NQdGVbQJHZt8JDWMxm
+VWiIiIiIiIiIiIiIiIiIiZr8bWta7rWtf77m0OgbEVtbZOCaTcN6FUuVEIyqrFTBMoOoe5ba
+qu0CRqRSO8CR3Se6+EhI8l209Eo5tUVCuuR4dF9QlI5rYcKOWiPECRvISP1F0gSOUhIyDFy+
+1V/CI/OX+6rV+ISkehcx8zpLwopG3n/D+OBI+ZHSPcYtBiUqMBCYDI5JFKaSEjFWvN7RRkUZ
+Vf2Tsu8CS5zmvmT/4u5IpwoSCGGliuA=
+--------------090402060609040600090605--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
