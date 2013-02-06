@@ -1,7 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH V3 1/3] infiniband-diags: libibnetdisc add find node by lid
-Date: Wed, 6 Feb 2013 15:46:17 -0800
-Message-ID: <20130206154617.c52e16f51b92103db1a96006@llnl.gov>
+Subject: [PATCH V3 2/3] infiniband-diags: add dump_fts tool
+Date: Wed, 6 Feb 2013 15:46:19 -0800
+Message-ID: <20130206154619.d16aad80ad4828e9b6067440@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -12,597 +12,941 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
-NOTE: this change adds a glib requirement to the package.
 
-Changes since V1:
-	Use GINT_TO_POINTER rather than allocating keys
+dump_fts adds a faster version of the functionality of dump_[l|m]fts.sh.  This
+code is based off of the ibroute code and simply uses libibnetdisc to scan the
+fabric instead of using ibnetdiscover and letting ibroute requery all that data
+over again.  This improves things in 3 ways.
 
-Changes since V2:
-	Use internal object everywhere rather than just hacked into
-	discover_fabric
-	Generate lid2port hash when reading cached fabrics
+1) performance improves by nearly 2 orders of magnitude.
+2) this version greatly reduces the mads required and thus reduces the
+   impact on the fabric.
+3) Everything is queried with DR paths which ensures if the routing tables are
+   bad on the cluster the query will still complete and give you the
+   information you were looking for.  (To be fair dump_lft.sh has the DR option
+   but it is currently buggy.)
+
+Example runs on the ~1400 nodes of the Hyperion test cluster show:
+
+13:45:46 > time ./dump_lfts.sh > /dev/null
+
+real    4m58.175s
+user    0m6.407s
+sys     0m17.983s
+
+13:53:12 > time ./dump_fts > /dev/null
+dump tables: linear forwarding table get failed
+
+real    0m8.121s
+user    0m3.032s
+sys     0m3.342s
+
+Changes from V1:
+	Add status and query information to error messages.
+	Add man page files which were missed in the first patch
+
+Changes from V2:
+	Additional status and address information on error messages.
+	clean up error handling when fabric scan fails.
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- configure.in                                |    7 ++
- infiniband-diags.spec.in                    |    4 +-
- libibnetdisc/Makefile.am                    |    4 +-
- libibnetdisc/include/infiniband/ibnetdisc.h |    3 +
- libibnetdisc/libibnetdisc.ver               |    2 +-
- libibnetdisc/src/ibnetdisc.c                |  126 ++++++++++++++++++--------
- libibnetdisc/src/ibnetdisc_cache.c          |   32 ++++----
- libibnetdisc/src/internal.h                 |   15 +++-
- libibnetdisc/src/libibnetdisc.map           |    1 +
- 9 files changed, 132 insertions(+), 62 deletions(-)
+ Makefile.am               |    7 +-
+ configure.in              |    1 +
+ doc/man/dump_fts.8.in     |  236 ++++++++++++++++++++++
+ doc/rst/dump_fts.8.in.rst |   85 ++++++++
+ infiniband-diags.spec.in  |    2 +
+ src/dump_fts.c            |  489 +++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 819 insertions(+), 1 deletions(-)
+ create mode 100644 doc/man/dump_fts.8.in
+ create mode 100644 doc/rst/dump_fts.8.in.rst
+ create mode 100644 src/dump_fts.c
 
+diff --git a/Makefile.am b/Makefile.am
+index a35a432..42c2c75 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -15,7 +15,8 @@ sbin_PROGRAMS = src/ibaddr src/ibnetdiscover src/ibping src/ibportstate \
+ 	        src/perfquery src/sminfo src/smpdump src/smpquery \
+ 	        src/saquery src/vendstat src/iblinkinfo \
+ 		src/ibqueryerrors src/ibcacheedit src/ibccquery \
+-		src/ibccconfig
++		src/ibccconfig \
++		src/dump_fts
+ 
+ if ENABLE_TEST_UTILS
+ sbin_PROGRAMS += src/ibsendtrap src/mcm_rereg_test
+@@ -45,6 +46,7 @@ man_MANS = doc/man/ibaddr.8 \
+ 		doc/man/ibcacheedit.8 \
+ 		doc/man/ibccconfig.8 \
+ 		doc/man/ibccquery.8 \
++		doc/man/dump_fts.8 \
+ 		doc/man/dump_lfts.8 \
+ 		doc/man/dump_mfts.8 \
+ 		doc/man/iblinkinfo.8 \
+@@ -118,6 +120,9 @@ src_ibqueryerrors_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
+ src_ibcacheedit_SOURCES = src/ibcacheedit.c
+ src_ibcacheedit_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
+ 
++src_dump_fts_SOURCES = src/dump_fts.c
++src_dump_fts_LDFLAGS = -L$(top_builddir)/libibnetdisc -libnetdisc
++
+ BUILT_SOURCES = ibdiag_version
+ ibdiag_version:
+ 	if [ -x $(top_srcdir)/gen_ver.sh ] ; then \
 diff --git a/configure.in b/configure.in
-index 2dc60a0..ca62d5b 100644
+index ca62d5b..b54222b 100644
 --- a/configure.in
 +++ b/configure.in
-@@ -161,6 +161,13 @@ IBSCRIPTPATH_TMP2="`echo $IBSCRIPTPATH_TMP1 | sed 's/^NONE/$ac_default_prefix/'`
- IBSCRIPTPATH="${with_ibpath_override:-`eval echo $IBSCRIPTPATH_TMP2`}"
- AC_SUBST(IBSCRIPTPATH)
- 
-+dnl check for glib
-+PKG_CHECK_MODULES([GLIB], [glib-2.0], ac_glib=yes, ac_glib=no)
-+AM_CONDITIONAL([HAVE_GLIB], test "$ac_glib" = "yes")
-+if test "$ac_glib" = "yes"; then
-+   AC_DEFINE([HAVE_GLIB], 1, [Define to 1 to indicate GLIB support])
-+fi
+@@ -221,6 +221,7 @@ AC_CONFIG_FILES([\
+ 	doc/man/ibcacheedit.8 \
+ 	doc/man/ibccconfig.8 \
+ 	doc/man/ibccquery.8 \
++	doc/man/dump_fts.8 \
+ 	doc/man/dump_lfts.8 \
+ 	doc/man/dump_mfts.8 \
+ 	doc/man/ibhosts.8 \
+diff --git a/doc/man/dump_fts.8.in b/doc/man/dump_fts.8.in
+new file mode 100644
+index 0000000..a64c6da
+--- /dev/null
++++ b/doc/man/dump_fts.8.in
+@@ -0,0 +1,236 @@
++.\" Man page generated from reStructeredText.
++.
++.TH DUMP_FTS 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
++.SH NAME
++DUMP_FTS \- dump InfiniBand forwarding tables
++.
++.nr rst2man-indent-level 0
++.
++.de1 rstReportMargin
++\\$1 \\n[an-margin]
++level \\n[rst2man-indent-level]
++level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
++-
++\\n[rst2man-indent0]
++\\n[rst2man-indent1]
++\\n[rst2man-indent2]
++..
++.de1 INDENT
++.\" .rstReportMargin pre:
++. RS \\$1
++. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
++. nr rst2man-indent-level +1
++.\" .rstReportMargin post:
++..
++.de UNINDENT
++. RE
++.\" indent \\n[an-margin]
++.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
++.nr rst2man-indent-level -1
++.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
++.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
++..
++.SH SYNOPSIS
++.sp
++dump_fts [options] [<startlid> [<endlid>]]
++.SH DESCRIPTION
++.sp
++dump_fts is similar to ibroute but dumps tables for every switch found in an
++ibnetdiscover scan of the subnet.
++.sp
++The dump file format is compatible with loading into OpenSM using
++the \-R file \-U /path/to/dump\-file syntax.
++.SH OPTIONS
++.INDENT 0.0
++.TP
++.B \fB\-a, \-\-all\fP
++.sp
++show all lids in range, even invalid entries
++.TP
++.B \fB\-n, \-\-no_dests\fP
++.sp
++do not try to resolve destinations
++.TP
++.B \fB\-M, \-\-Multicast\fP
++.sp
++show multicast forwarding tables
++In this case, the range parameters are specifying the mlid range.
++.UNINDENT
++.SS Port Selection flags
++.\" Define the common option -C
++.
++.sp
++\fB\-C, \-\-Ca <ca_name>\fP    use the specified ca_name.
++.\" Define the common option -P
++.
++.sp
++\fB\-P, \-\-Port <ca_port>\fP    use the specified ca_port.
++.\" Explanation of local port selection
++.
++.SS Local port Selection
++.sp
++Multiple port/Multiple CA support: when no IB device or port is specified
++(see the "local umad parameters" below), the libibumad library
++selects the port to use by the following criteria:
++.INDENT 0.0
++.INDENT 3.5
++.INDENT 0.0
++.IP 1. 3
++.
++the first port that is ACTIVE.
++.IP 2. 3
++.
++if not found, the first port that is UP (physical link up).
++.UNINDENT
++.sp
++If a port and/or CA name is specified, the libibumad library attempts
++to fulfill the user request, and will fail if it is not possible.
++.sp
++For example:
++.sp
++.nf
++.ft C
++ibaddr                 # use the first port (criteria #1 above)
++ibaddr \-C mthca1       # pick the best port from "mthca1" only.
++ibaddr \-P 2            # use the second (active/up) port from the first available IB device.
++ibaddr \-C mthca0 \-P 2  # use the specified port only.
++.ft P
++.fi
++.UNINDENT
++.UNINDENT
++.SS Debugging flags
++.\" Define the common option -d
++.
++.INDENT 0.0
++.TP
++.B \-d
++.
++raise the IB debugging level.
++May be used several times (\-ddd or \-d \-d \-d).
++.UNINDENT
++.\" Define the common option -e
++.
++.INDENT 0.0
++.TP
++.B \-e
++.
++show send and receive errors (timeouts and others)
++.UNINDENT
++.\" Define the common option -h
++.
++.sp
++\fB\-h, \-\-help\fP      show the usage message
++.\" Define the common option -v
++.
++.INDENT 0.0
++.TP
++.B \fB\-v, \-\-verbose\fP
++.sp
++increase the application verbosity level.
++May be used several times (\-vv or \-v \-v \-v)
++.UNINDENT
++.\" Define the common option -V
++.
++.sp
++\fB\-V, \-\-version\fP     show the version info.
++.SS Configuration flags
++.\" Define the common option -t
++.
++.sp
++\fB\-t, \-\-timeout <timeout_ms>\fP override the default timeout for the solicited mads.
++.\" Define the common option -y
++.
++.INDENT 0.0
++.TP
++.B \fB\-y, \-\-m_key <key>\fP
++.sp
++use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
++is specified then a value will be prompted for.
++.UNINDENT
++.\" Define the common option --node-name-map
++.
++.sp
++\fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
++.INDENT 0.0
++.INDENT 3.5
++.sp
++This file maps GUIDs to more user friendly names.  See FILES section.
++.UNINDENT
++.UNINDENT
++.\" Define the common option -z
++.
++.sp
++\fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
++.INDENT 0.0
++.INDENT 3.5
++.sp
++Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
++.UNINDENT
++.UNINDENT
++.SH FILES
++.\" Common text for the config file
++.
++.SS CONFIG FILE
++.sp
++@IBDIAG_CONFIG_PATH@/ibdiag.conf
++.sp
++A global config file is provided to set some of the common options for all
++tools.  See supplied config file for details.
++.\" Common text to describe the node name map file.
++.
++.SS NODE NAME MAP FILE FORMAT
++.sp
++The node name map is used to specify user friendly names for nodes in the
++output.  GUIDs are used to perform the lookup.
++.sp
++This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
++for the file location for your installation.
++.sp
++\fBGenerically:\fP
++.sp
++.nf
++.ft C
++# comment
++<guid> "<name>"
++.ft P
++.fi
++.sp
++\fBExample:\fP
++.sp
++.nf
++.ft C
++# IB1
++# Line cards
++0x0008f104003f125c "IB1 (Rack 11 slot 1   ) ISR9288/ISR9096 Voltaire sLB\-24D"
++0x0008f104003f125d "IB1 (Rack 11 slot 1   ) ISR9288/ISR9096 Voltaire sLB\-24D"
++0x0008f104003f10d2 "IB1 (Rack 11 slot 2   ) ISR9288/ISR9096 Voltaire sLB\-24D"
++0x0008f104003f10d3 "IB1 (Rack 11 slot 2   ) ISR9288/ISR9096 Voltaire sLB\-24D"
++0x0008f104003f10bf "IB1 (Rack 11 slot 12  ) ISR9288/ISR9096 Voltaire sLB\-24D"
 +
- dnl Begin libibnetdisc stuff
- ibnetdisc_api_version=`grep LIBVERSION $srcdir/libibnetdisc/libibnetdisc.ver | sed 's/LIBVERSION=//'`
- if test -z $ibnetdisc_api_version; then
++# Spines
++0x0008f10400400e2d "IB1 (Rack 11 spine 1   ) ISR9288 Voltaire sFB\-12D"
++0x0008f10400400e2e "IB1 (Rack 11 spine 1   ) ISR9288 Voltaire sFB\-12D"
++0x0008f10400400e2f "IB1 (Rack 11 spine 1   ) ISR9288 Voltaire sFB\-12D"
++0x0008f10400400e31 "IB1 (Rack 11 spine 2   ) ISR9288 Voltaire sFB\-12D"
++0x0008f10400400e32 "IB1 (Rack 11 spine 2   ) ISR9288 Voltaire sFB\-12D"
++
++# GUID   Node Name
++0x0008f10400411a08 "SW1  (Rack  3) ISR9024 Voltaire 9024D"
++0x0008f10400411a28 "SW2  (Rack  3) ISR9024 Voltaire 9024D"
++0x0008f10400411a34 "SW3  (Rack  3) ISR9024 Voltaire 9024D"
++0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
++.ft P
++.fi
++.SH SEE ALSO
++.sp
++\fBdump_lfts(8), dump_mfts(8), ibroute(8), ibswitches(8), opensm(8)\fP
++.SH AUTHORS
++.INDENT 0.0
++.TP
++.B Ira Weiny
++.
++< \fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP >
++.UNINDENT
++.\" Generated by docutils manpage writer.
++.\" 
++.
+diff --git a/doc/rst/dump_fts.8.in.rst b/doc/rst/dump_fts.8.in.rst
+new file mode 100644
+index 0000000..dc0fe65
+--- /dev/null
++++ b/doc/rst/dump_fts.8.in.rst
+@@ -0,0 +1,85 @@
++========
++DUMP_FTS
++========
++
++---------------------------------
++dump InfiniBand forwarding tables
++---------------------------------
++
++:Date: @BUILD_DATE@
++:Manual section: 8
++:Manual group: OpenIB Diagnostics
++
++
++
++SYNOPSIS
++========
++
++dump_fts [options] [<startlid> [<endlid>]]
++
++
++DESCRIPTION
++===========
++
++dump_fts is similar to ibroute but dumps tables for every switch found in an
++ibnetdiscover scan of the subnet.
++
++The dump file format is compatible with loading into OpenSM using
++the -R file -U /path/to/dump-file syntax.
++
++OPTIONS
++=======
++
++**-a, --all**
++        show all lids in range, even invalid entries
++
++**-n, --no_dests**
++        do not try to resolve destinations
++
++**-M, --Multicast**
++        show multicast forwarding tables
++        In this case, the range parameters are specifying the mlid range.
++
++
++Port Selection flags
++--------------------
++
++.. include:: common/opt_C.rst
++.. include:: common/opt_P.rst
++.. include:: common/sec_portselection.rst
++
++Debugging flags
++---------------
++
++.. include:: common/opt_d.rst
++.. include:: common/opt_e.rst
++.. include:: common/opt_h.rst
++.. include:: common/opt_v.rst
++.. include:: common/opt_V.rst
++
++Configuration flags
++-------------------
++
++.. include:: common/opt_t.rst
++.. include:: common/opt_y.rst
++.. include:: common/opt_node_name_map.rst
++.. include:: common/opt_z-config.rst
++
++FILES
++=====
++
++.. include:: common/sec_config-file.rst
++.. include:: common/sec_node-name-map.rst
++
++
++SEE ALSO
++========
++
++**dump_lfts(8), dump_mfts(8), ibroute(8), ibswitches(8), opensm(8)**
++
++
++AUTHORS
++=======
++
++Ira Weiny
++        < weiny2-i2BcT+NCU+M@public.gmane.org >
 diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
-index d3fcd13..9cd195b 100644
+index 9cd195b..1e75e4d 100644
 --- a/infiniband-diags.spec.in
 +++ b/infiniband-diags.spec.in
-@@ -11,8 +11,8 @@ Group: System Environment/Libraries
- BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
- Source: http://www.openfabrics.org/downloads/management/@TARBALL@
- Url: http://openfabrics.org/
--BuildRequires: libibmad-devel, opensm-devel, libibumad-devel
--Requires: libibmad, opensm-libs, libibumad
-+BuildRequires: libibmad-devel, opensm-devel, libibumad-devel, glib-devel
-+Requires: libibmad, opensm-libs, libibumad, glib
- Provides: perl(IBswcountlimits)
- Obsoletes: openib-diags
+@@ -127,6 +127,8 @@ rm -rf $RPM_BUILD_ROOT
+ %{_mandir}/man8/ibccquery.8.gz
+ %{_sbindir}/ibccconfig
+ %{_mandir}/man8/ibccconfig.8.gz
++%{_sbindir}/dump_fts
++%{_mandir}/man8/dump_fts.8.gz
  
-diff --git a/libibnetdisc/Makefile.am b/libibnetdisc/Makefile.am
-index fbf0e60..d05604f 100644
---- a/libibnetdisc/Makefile.am
-+++ b/libibnetdisc/Makefile.am
-@@ -24,10 +24,10 @@ endif
- 
- libibnetdisc_la_SOURCES = src/ibnetdisc.c src/ibnetdisc_cache.c src/chassis.c \
- 			  src/chassis.h src/internal.h src/query_smp.c
--libibnetdisc_la_CFLAGS = -Wall $(DBGFLAGS)
-+libibnetdisc_la_CFLAGS = -Wall $(DBGFLAGS) $(GLIB_CFLAGS)
- libibnetdisc_la_LDFLAGS = -version-info $(ibnetdisc_api_version) \
- 	-export-dynamic $(libibnetdisc_version_script) \
--	-libmad
-+	-libmad $(GLIB_LIBS)
- libibnetdisc_la_DEPENDENCIES = $(srcdir)/src/libibnetdisc.map
- 
- libibnetdiscincludedir = $(includedir)/infiniband
-diff --git a/libibnetdisc/include/infiniband/ibnetdisc.h b/libibnetdisc/include/infiniband/ibnetdisc.h
-index e41c92c..acde1dc 100644
---- a/libibnetdisc/include/infiniband/ibnetdisc.h
-+++ b/libibnetdisc/include/infiniband/ibnetdisc.h
-@@ -231,6 +231,9 @@ IBND_EXPORT ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric,
- 					uint64_t guid);
- IBND_EXPORT ibnd_port_t *ibnd_find_port_dr(ibnd_fabric_t * fabric,
- 					char *dr_str);
-+IBND_EXPORT ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
-+					    uint16_t lid);
+ # scripts here
+ %{_sbindir}/ibhosts
+diff --git a/src/dump_fts.c b/src/dump_fts.c
+new file mode 100644
+index 0000000..6cf51f1
+--- /dev/null
++++ b/src/dump_fts.c
+@@ -0,0 +1,489 @@
++/*
++ * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
++ * Copyright (c) 2009-2011 Mellanox Technologies LTD.  All rights reserved.
++ * Copyright (c) 2013 Lawrence Livermore National Security.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ */
 +
- typedef void (*ibnd_iter_port_func_t) (ibnd_port_t * port, void *user_data);
- IBND_EXPORT void ibnd_iter_ports(ibnd_fabric_t * fabric,
- 				ibnd_iter_port_func_t func, void *user_data);
-diff --git a/libibnetdisc/libibnetdisc.ver b/libibnetdisc/libibnetdisc.ver
-index c513f2a..59fca19 100644
---- a/libibnetdisc/libibnetdisc.ver
-+++ b/libibnetdisc/libibnetdisc.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=7:0:2
-+LIBVERSION=8:0:3
-diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index 3a7dd8f..9d120dd 100644
---- a/libibnetdisc/src/ibnetdisc.c
-+++ b/libibnetdisc/src/ibnetdisc.c
-@@ -98,10 +98,10 @@ static int add_port_to_dpath(ib_dr_path_t * path, int nextport)
- static int retract_dpath(smp_engine_t * engine, ib_portid_t * portid)
- {
- 	ibnd_scan_t *scan = engine->user_data;
--	ibnd_fabric_t *fabric = scan->fabric;
-+	f_internal_t *f_int = scan->f_int;
- 
- 	if (scan->cfg->max_hops &&
--	    fabric->maxhops_discovered > scan->cfg->max_hops)
-+	    f_int->fabric.maxhops_discovered > scan->cfg->max_hops)
- 		return 0;
- 
- 	/* this may seem wrong but the only time we would retract the path is
-@@ -109,7 +109,7 @@ static int retract_dpath(smp_engine_t * engine, ib_portid_t * portid)
- 	 * from that to find the node it is connected to.  This counts as a
- 	 * positive hop discovered
- 	 */
--	fabric->maxhops_discovered++;
-+	f_int->fabric.maxhops_discovered++;
- 	portid->drpath.p[portid->drpath.cnt] = 0;
- 	portid->drpath.cnt--;
- 	return 1;
-@@ -119,10 +119,10 @@ static int extend_dpath(smp_engine_t * engine, ib_portid_t * portid,
- 			int nextport)
- {
- 	ibnd_scan_t *scan = engine->user_data;
--	ibnd_fabric_t *fabric = scan->fabric;
-+	f_internal_t *f_int = scan->f_int;
- 
- 	if (scan->cfg->max_hops &&
--	    fabric->maxhops_discovered > scan->cfg->max_hops)
-+	    f_int->fabric.maxhops_discovered > scan->cfg->max_hops)
- 		return 0;
- 
- 	if (portid->lid) {
-@@ -144,8 +144,8 @@ static int extend_dpath(smp_engine_t * engine, ib_portid_t * portid,
- 	}
- 
- 	if (((unsigned) portid->drpath.cnt - scan->initial_hops) >
--	    fabric->maxhops_discovered)
--		fabric->maxhops_discovered++;
-+	    f_int->fabric.maxhops_discovered)
-+		f_int->fabric.maxhops_discovered++;
- 
- 	return 1;
- }
-@@ -213,7 +213,7 @@ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
- int mlnx_ext_port_info_err(smp_engine_t * engine, ibnd_smp_t * smp,
- 			   uint8_t * mad, void *cb_data)
- {
--	ibnd_fabric_t *fabric = ((ibnd_scan_t *) engine->user_data)->fabric;
-+	f_internal_t *f_int = ((ibnd_scan_t *) engine->user_data)->f_int;
- 	ibnd_node_t *node = cb_data;
- 	ibnd_port_t *port;
- 	uint8_t port_num, local_port;
-@@ -232,12 +232,12 @@ int mlnx_ext_port_info_err(smp_engine_t * engine, ibnd_smp_t * smp,
- 	if (port_num && mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F)
- 	    == IB_PORT_PHYS_STATE_LINKUP
- 	    && ((node->type == IB_NODE_SWITCH && port_num != local_port) ||
--		(node == fabric->from_node && port_num == fabric->from_portnum))) {
-+		(node == f_int->fabric.from_node && port_num == f_int->fabric.from_portnum))) {
- 		int rc = 0;
- 		ib_portid_t path = smp->path;
- 
- 		if (node->type != IB_NODE_SWITCH &&
--		    node == fabric->from_node &&
-+		    node == f_int->fabric.from_node &&
- 		    path.drpath.cnt > 1)
- 			rc = retract_dpath(engine, &path);
- 		else {
-@@ -260,7 +260,7 @@ int mlnx_ext_port_info_err(smp_engine_t * engine, ibnd_smp_t * smp,
- static int recv_mlnx_ext_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 				   uint8_t * mad, void *cb_data)
- {
--	ibnd_fabric_t *fabric = ((ibnd_scan_t *) engine->user_data)->fabric;
-+	f_internal_t *f_int = ((ibnd_scan_t *) engine->user_data)->f_int;
- 	ibnd_node_t *node = cb_data;
- 	ibnd_port_t *port;
- 	uint8_t *ext_port_info = mad + IB_SMP_DATA_OFFS;
-@@ -281,12 +281,12 @@ static int recv_mlnx_ext_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 	if (port_num && mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F)
- 	    == IB_PORT_PHYS_STATE_LINKUP
- 	    && ((node->type == IB_NODE_SWITCH && port_num != local_port) ||
--		(node == fabric->from_node && port_num == fabric->from_portnum))) {
-+		(node == f_int->fabric.from_node && port_num == f_int->fabric.from_portnum))) {
- 		int rc = 0;
- 		ib_portid_t path = smp->path;
- 
- 		if (node->type != IB_NODE_SWITCH &&
--		    node == fabric->from_node &&
-+		    node == f_int->fabric.from_node &&
- 		    path.drpath.cnt > 1)
- 			rc = retract_dpath(engine, &path);
- 		else {
-@@ -319,7 +319,7 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 			  uint8_t * mad, void *cb_data)
- {
- 	ibnd_scan_t *scan = (ibnd_scan_t *)engine->user_data;
--	ibnd_fabric_t *fabric = scan->fabric;
-+	f_internal_t *f_int = scan->f_int;
- 	ibnd_node_t *node = cb_data;
- 	ibnd_port_t *port;
- 	uint8_t *port_info = mad + IB_SMP_DATA_OFFS;
-@@ -359,7 +359,8 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 		port->lmc = node->smalmc;
- 	}
- 
--	add_to_portguid_hash(port, fabric->portstbl);
-+	add_to_portguid_hash(port, f_int->fabric.portstbl);
-+	add_to_portlid_hash(port, f_int->lid2guid);
- 
- 	if ((scan->cfg->flags & IBND_CONFIG_MLX_EPI)
- 	    && is_mlnx_ext_port_info_supported(port)) {
-@@ -389,13 +390,13 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 	if (port_num && mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F)
- 	    == IB_PORT_PHYS_STATE_LINKUP
- 	    && ((node->type == IB_NODE_SWITCH && port_num != local_port) ||
--		(node == fabric->from_node && port_num == fabric->from_portnum))) {
-+		(node == f_int->fabric.from_node && port_num == f_int->fabric.from_portnum))) {
- 
- 		int rc = 0;
- 		ib_portid_t path = smp->path;
- 
- 		if (node->type != IB_NODE_SWITCH &&
--		    node == fabric->from_node &&
-+		    node == f_int->fabric.from_node &&
- 		    path.drpath.cnt > 1)
- 			rc = retract_dpath(engine, &path);
- 		else {
-@@ -441,7 +442,7 @@ static int query_port_info(smp_engine_t * engine, ib_portid_t * portid,
- static ibnd_node_t *create_node(smp_engine_t * engine, ib_portid_t * path,
- 				uint8_t * node_info)
- {
--	ibnd_fabric_t *fabric = ((ibnd_scan_t *) engine->user_data)->fabric;
-+	f_internal_t *f_int = ((ibnd_scan_t *) engine->user_data)->f_int;
- 	ibnd_node_t *rc = calloc(1, sizeof(*rc));
- 	if (!rc) {
- 		IBND_ERROR("OOM: node creation failed\n");
-@@ -463,13 +464,13 @@ static ibnd_node_t *create_node(smp_engine_t * engine, ib_portid_t * path,
- 	rc->path_portid = *path;
- 	memcpy(rc->info, node_info, sizeof(rc->info));
- 
--	add_to_nodeguid_hash(rc, fabric->nodestbl);
-+	add_to_nodeguid_hash(rc, f_int->fabric.nodestbl);
- 
- 	/* add this to the all nodes list */
--	rc->next = fabric->nodes;
--	fabric->nodes = rc;
-+	rc->next = f_int->fabric.nodes;
-+	f_int->fabric.nodes = rc;
- 
--	add_to_type_list(rc, fabric);
-+	add_to_type_list(rc, f_int);
- 
- 	return rc;
- }
-@@ -505,7 +506,7 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 			  uint8_t * mad, void *cb_data)
- {
- 	ibnd_scan_t *scan = engine->user_data;
--	ibnd_fabric_t *fabric = scan->fabric;
-+	f_internal_t *f_int = scan->f_int;
- 	uint8_t *node_info = mad + IB_SMP_DATA_OFFS;
- 	struct ni_cbdata *ni_cbdata = (struct ni_cbdata *)cb_data;
- 	ibnd_node_t *rem_node = NULL;
-@@ -523,7 +524,7 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 		free(ni_cbdata);
- 	}
- 
--	node = ibnd_find_node_guid(fabric, node_guid);
-+	node = ibnd_find_node_guid(&f_int->fabric, node_guid);
- 	if (!node) {
- 		node = create_node(engine, &smp->path, node_info);
- 		if (!node)
-@@ -550,8 +551,8 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 			     node, port);
- 
- 	if (rem_node == NULL) {	/* this is the start node */
--		fabric->from_node = node;
--		fabric->from_portnum = port_num;
-+		f_int->fabric.from_node = node;
-+		f_int->fabric.from_portnum = port_num;
- 	} else {
- 		/* link ports... */
- 		if (!rem_node->ports[rem_port_num]) {
-@@ -628,8 +629,35 @@ void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[])
- 	hash[hash_idx] = port;
- }
- 
--void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
-+void create_lid2guid(f_internal_t *f_int)
- {
-+	f_int->lid2guid = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-+				NULL, NULL);
-+}
++#if HAVE_CONFIG_H
++#  include <config.h>
++#endif				/* HAVE_CONFIG_H */
 +
-+void destroy_lid2guid(f_internal_t *f_int)
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <inttypes.h>
++#include <getopt.h>
++#include <netinet/in.h>
++#include <assert.h>
++
++#include <infiniband/umad.h>
++#include <infiniband/mad.h>
++#include <complib/cl_nodenamemap.h>
++
++#include <infiniband/ibnetdisc.h>
++
++#include "ibdiag_common.h"
++
++struct ibmad_port *srcport;
++
++unsigned startlid = 0, endlid = 0;
++
++static int brief, dump_all, multicast;
++
++static char *node_name_map_file = NULL;
++static nn_map_t *node_name_map = NULL;
++
++#define IB_MLIDS_IN_BLOCK	(IB_SMP_DATA_SIZE/2)
++
++int dump_mlid(char *str, int strlen, unsigned mlid, unsigned nports,
++	      uint16_t mft[16][IB_MLIDS_IN_BLOCK])
 +{
-+	if (f_int->lid2guid) {
-+		g_hash_table_destroy(f_int->lid2guid);
++	uint16_t mask;
++	unsigned i, chunk, bit, nonzero = 0;
++
++	if (brief) {
++		int n = 0;
++		unsigned chunks = ALIGN(nports + 1, 16) / 16;
++		for (i = 0; i < chunks; i++) {
++			mask = ntohs(mft[i][mlid % IB_MLIDS_IN_BLOCK]);
++			if (mask)
++				nonzero++;
++			n += snprintf(str + n, strlen - n, "%04hx", mask);
++			if (n >= strlen) {
++				n = strlen;
++				break;
++			}
++		}
++		if (!nonzero && !dump_all) {
++			str[0] = 0;
++			return 0;
++		}
++		return n;
 +	}
-+}
++	for (i = 0; i <= nports; i++) {
++		chunk = i / 16;
++		bit = i % 16;
 +
-+void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable)
-+{
-+	uint16_t base_lid = port->base_lid;
-+	uint16_t lid_mask = ((1 << port->lmc) -1);
-+	uint16_t lid = 0;
-+
-+	/* We add the port for all lids
-+	 * so it is easier to find any "random" lid specified */
-+	for (lid = base_lid; lid <= (base_lid + lid_mask); lid++) {
-+		g_hash_table_insert(htable, GINT_TO_POINTER(lid), port);
++		mask = ntohs(mft[chunk][mlid % IB_MLIDS_IN_BLOCK]);
++		if (mask)
++			nonzero++;
++		str[i * 2] = (mask & (1 << bit)) ? 'x' : ' ';
++		str[i * 2 + 1] = ' ';
 +	}
++	if (!nonzero && !dump_all) {
++		str[0] = 0;
++		return 0;
++	}
++	str[i * 2] = 0;
++	return i * 2;
 +}
 +
-+void add_to_type_list(ibnd_node_t * node, f_internal_t * f_int)
-+{
-+	ibnd_fabric_t *fabric = &f_int->fabric;
- 	switch (node->type) {
- 	case IB_NODE_CA:
- 		node->type_next = fabric->ch_adapters;
-@@ -664,12 +692,21 @@ static int set_config(struct ibnd_config *config, struct ibnd_config *cfg)
- 	return (0);
- }
- 
-+f_internal_t *allocate_fabric_internal(void)
-+{
-+	f_internal_t *f = calloc(1, sizeof(*f));
-+	if (f)
-+		create_lid2guid(f);
++uint16_t mft[16][IB_MLIDS_IN_BLOCK] = { { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0}, { 0 }, { 0 } };
 +
-+	return (f);
++void dump_multicast_tables(ibnd_node_t * node, unsigned startlid,
++			    unsigned endlid, struct ibmad_port * mad_port)
++{
++	ib_portid_t *portid = &node->path_portid;
++	char nd[IB_SMP_DATA_SIZE] = { 0 };
++	char str[512];
++	char *s;
++	uint64_t nodeguid;
++	uint32_t mod;
++	unsigned block, i, j, e, nports, cap, chunks, startblock, lastblock,
++	    top;
++	char *mapnd = NULL;
++	int n = 0;
++
++	memcpy(nd, node->nodedesc, strlen(node->nodedesc));
++	nports = node->numports;
++	nodeguid = node->guid;
++
++	mad_decode_field(node->switchinfo, IB_SW_MCAST_FDB_CAP_F, &cap);
++	mad_decode_field(node->switchinfo, IB_SW_MCAST_FDB_TOP_F, &top);
++
++	if (!endlid || endlid > IB_MIN_MCAST_LID + cap - 1)
++		endlid = IB_MIN_MCAST_LID + cap - 1;
++	if (!dump_all && top && top < endlid) {
++		if (top < IB_MIN_MCAST_LID - 1)
++			IBWARN("illegal top mlid %x", top);
++		else
++			endlid = top;
++	}
++
++	if (!startlid)
++		startlid = IB_MIN_MCAST_LID;
++	else if (startlid < IB_MIN_MCAST_LID) {
++		IBWARN("illegal start mlid %x, set to %x", startlid,
++		       IB_MIN_MCAST_LID);
++		startlid = IB_MIN_MCAST_LID;
++	}
++
++	if (endlid > IB_MAX_MCAST_LID) {
++		IBWARN("illegal end mlid %x, truncate to %x", endlid,
++		       IB_MAX_MCAST_LID);
++		endlid = IB_MAX_MCAST_LID;
++	}
++
++	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
++
++	printf("Multicast mlids [0x%x-0x%x] of switch %s guid 0x%016" PRIx64
++	       " (%s):\n", startlid, endlid, portid2str(portid), nodeguid,
++	       mapnd);
++
++	if (brief)
++		printf(" MLid       Port Mask\n");
++	else {
++		if (nports > 9) {
++			for (i = 0, s = str; i <= nports; i++) {
++				*s++ = (i % 10) ? ' ' : '0' + i / 10;
++				*s++ = ' ';
++			}
++			*s = 0;
++			printf("            %s\n", str);
++		}
++		for (i = 0, s = str; i <= nports; i++)
++			s += sprintf(s, "%d ", i % 10);
++		printf("     Ports: %s\n", str);
++		printf(" MLid\n");
++	}
++	if (ibverbose)
++		printf("Switch multicast mlid capability is %d top is 0x%x\n",
++		       cap, top);
++
++	chunks = ALIGN(nports + 1, 16) / 16;
++
++	startblock = startlid / IB_MLIDS_IN_BLOCK;
++	lastblock = endlid / IB_MLIDS_IN_BLOCK;
++	for (block = startblock; block <= lastblock; block++) {
++		for (j = 0; j < chunks; j++) {
++			int status;
++			mod = (block - IB_MIN_MCAST_LID / IB_MLIDS_IN_BLOCK)
++			    | (j << 28);
++
++			DEBUG("reading block %x chunk %d mod %x", block, j,
++			      mod);
++			if (!smp_query_status_via
++			    (mft + j, portid, IB_ATTR_MULTICASTFORWTBL, mod, 0,
++			     &status, mad_port)) {
++				fprintf(stderr, "SubnGet(MFT) failed on switch "
++						"'%s' %s Node GUID 0x%"PRIx64
++						" SMA LID %d; MAD status 0x%x "
++						"AM 0x%x\n",
++						mapnd, portid2str(portid),
++						node->guid, node->smalid,
++						status, mod);
++			}
++		}
++
++		i = block * IB_MLIDS_IN_BLOCK;
++		e = i + IB_MLIDS_IN_BLOCK;
++		if (i < startlid)
++			i = startlid;
++		if (e > endlid + 1)
++			e = endlid + 1;
++
++		for (; i < e; i++) {
++			if (dump_mlid(str, sizeof str, i, nports, mft) == 0)
++				continue;
++			printf("0x%04x      %s\n", i, str);
++			n++;
++		}
++	}
++
++	printf("%d %smlids dumped \n", n, dump_all ? "" : "valid ");
++
++	free(mapnd);
 +}
 +
- ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
- 				    ib_portid_t * from,
- 				    struct ibnd_config *cfg)
- {
- 	struct ibnd_config config = { 0 };
--	ibnd_fabric_t *fabric = NULL;
-+	f_internal_t *f_int = NULL;
- 	ib_portid_t my_portid = { 0 };
- 	smp_engine_t engine;
- 	ibnd_scan_t scan;
-@@ -685,21 +722,19 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
- 		return NULL;
- 	}
- 
--	fabric = calloc(1, sizeof(*fabric));
--	if (!fabric) {
-+	f_int = allocate_fabric_internal();
-+	if (!f_int) {
- 		IBND_ERROR("OOM: failed to calloc ibnd_fabric_t\n");
- 		return NULL;
- 	}
- 
--	memset(fabric, 0, sizeof(*fabric));
--
- 	memset(&scan.selfportid, 0, sizeof(scan.selfportid));
--	scan.fabric = fabric;
-+	scan.f_int = f_int;
- 	scan.cfg = &config;
- 	scan.initial_hops = from->drpath.cnt;
- 
- 	if (smp_engine_init(&engine, ca_name, ca_port, &scan, &config)) {
--		free(fabric);
-+		free(f_int);
- 		return (NULL);
- 	}
- 
-@@ -719,19 +754,19 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
- 		if (process_mads(&engine) != 0)
- 			goto error;
- 
--	fabric->total_mads_used = engine.total_smps;
--	fabric->maxhops_discovered += scan.initial_hops;
-+	f_int->fabric.total_mads_used = engine.total_smps;
-+	f_int->fabric.maxhops_discovered += scan.initial_hops;
- 
--	if (group_nodes(fabric))
-+	if (group_nodes(&f_int->fabric))
- 		goto error;
- 
- 	smp_engine_destroy(&engine);
- 	mad_rpc_close_port(scan.ibmad_port);
--	return fabric;
-+	return (ibnd_fabric_t *)f_int;
- error:
- 	smp_engine_destroy(&engine);
- 	mad_rpc_close_port(scan.ibmad_port);
--	ibnd_destroy_fabric(fabric);
-+	ibnd_destroy_fabric(&f_int->fabric);
- 	return NULL;
- }
- 
-@@ -768,6 +803,7 @@ void ibnd_destroy_fabric(ibnd_fabric_t * fabric)
- 		destroy_node(node);
- 		node = next;
- 	}
-+	destroy_lid2guid((f_internal_t *)fabric);
- 	free(fabric);
- }
- 
-@@ -825,6 +861,18 @@ void ibnd_iter_nodes_type(ibnd_fabric_t * fabric, ibnd_iter_node_func_t func,
- 		func(cur, user_data);
- }
- 
-+ibnd_port_t *ibnd_find_port_lid(ibnd_fabric_t * fabric,
-+				uint16_t lid)
++int dump_lid(char *str, int str_len, int lid, int valid,
++		ibnd_fabric_t *fabric,
++		int * last_port_lid, int * base_port_lid,
++		uint64_t * portguid)
 +{
-+	ibnd_port_t *port;
-+	f_internal_t *f = (f_internal_t *)fabric;
++	char nd[IB_SMP_DATA_SIZE] = { 0 };
 +
-+	port = (ibnd_port_t *)g_hash_table_lookup(f->lid2guid,
-+					GINT_TO_POINTER(lid));
++	ibnd_port_t *port = NULL;
 +
-+	return port;
++	char ntype[50], sguid[30];
++	uint64_t nodeguid;
++	int baselid, lmc, type;
++	char *mapnd = NULL;
++	int rc;
++
++	if (brief) {
++		str[0] = 0;
++		return 0;
++	}
++
++	if (lid <= *last_port_lid) {
++		if (!valid)
++			return snprintf(str, str_len,
++					": (path #%d - illegal port)",
++					lid - *base_port_lid);
++		else if (!*portguid)
++			return snprintf(str, str_len,
++					": (path #%d out of %d)",
++					lid - *base_port_lid + 1,
++					*last_port_lid - *base_port_lid + 1);
++		else {
++			return snprintf(str, str_len,
++					": (path #%d out of %d: portguid %s)",
++					lid - *base_port_lid + 1,
++					*last_port_lid - *base_port_lid + 1,
++					mad_dump_val(IB_NODE_PORT_GUID_F, sguid,
++						     sizeof sguid, portguid));
++		}
++	}
++
++	if (!valid)
++		return snprintf(str, str_len, ": (illegal port)");
++
++	*portguid = 0;
++
++	port = ibnd_find_port_lid(fabric, lid);
++	if (!port) {
++		return snprintf(str, str_len, ": (node info not available fabric scan)");
++	}
++
++	nodeguid = port->node->guid;
++	*portguid = port->guid;
++	type = port->node->type;
++
++	baselid = port->base_lid;
++	lmc = port->lmc;
++
++	memcpy(nd, port->node->nodedesc, strlen(port->node->nodedesc));
++
++	if (lmc > 0) {
++		*base_port_lid = baselid;
++		*last_port_lid = baselid + (1 << lmc) - 1;
++	}
++
++	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
++ 
++	rc = snprintf(str, str_len, ": (%s portguid %s: '%s')",
++		      mad_dump_val(IB_NODE_TYPE_F, ntype, sizeof ntype,
++				   &type), mad_dump_val(IB_NODE_PORT_GUID_F,
++							sguid, sizeof sguid,
++							portguid),
++		      mapnd);
++
++	free(mapnd);
++	return rc;
 +}
 +
- ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric, uint64_t guid)
- {
- 	int hash = HASHGUID(guid) % HTSZ;
-diff --git a/libibnetdisc/src/ibnetdisc_cache.c b/libibnetdisc/src/ibnetdisc_cache.c
-index 2690373..d4663bf 100644
---- a/libibnetdisc/src/ibnetdisc_cache.c
-+++ b/libibnetdisc/src/ibnetdisc_cache.c
-@@ -127,7 +127,7 @@ typedef struct ibnd_port_cache {
- } ibnd_port_cache_t;
- 
- typedef struct ibnd_fabric_cache {
--	ibnd_fabric_t *fabric;
-+	f_internal_t *f_int;
- 	uint64_t from_node_guid;
- 	ibnd_node_cache_t *nodes_cache;
- 	ibnd_port_cache_t *ports_cache;
-@@ -250,7 +250,7 @@ static int _load_header_info(int fd, ibnd_fabric_cache_t * fabric_cache,
- 
- 	offset += _unmarshall64(buf + offset, &fabric_cache->from_node_guid);
- 	offset += _unmarshall32(buf + offset, &tmp32);
--	fabric_cache->fabric->maxhops_discovered = tmp32;
-+	fabric_cache->f_int->fabric.maxhops_discovered = tmp32;
- 
- 	return 0;
- }
-@@ -515,7 +515,7 @@ static int _fill_port(ibnd_fabric_cache_t * fabric_cache, ibnd_node_t * node,
- 	/* achu: needed if user wishes to re-cache a loaded fabric.
- 	 * Otherwise, mostly unnecessary to do this.
- 	 */
--	add_to_portguid_hash(port_cache->port, fabric_cache->fabric->portstbl);
-+	add_to_portguid_hash(port_cache->port, fabric_cache->f_int->fabric.portstbl);
- 	return 0;
- }
- 
-@@ -535,13 +535,13 @@ static int _rebuild_nodes(ibnd_fabric_cache_t * fabric_cache)
- 
- 		/* Insert node into appropriate data structures */
- 
--		node->next = fabric_cache->fabric->nodes;
--		fabric_cache->fabric->nodes = node;
-+		node->next = fabric_cache->f_int->fabric.nodes;
-+		fabric_cache->f_int->fabric.nodes = node;
- 
- 		add_to_nodeguid_hash(node_cache->node,
--				     fabric_cache->fabric->nodestbl);
-+				     fabric_cache->f_int->fabric.nodestbl);
- 
--		add_to_type_list(node_cache->node, fabric_cache->fabric);
-+		add_to_type_list(node_cache->node, fabric_cache->f_int);
- 
- 		node_cache->node_stored_to_fabric++;
- 
-@@ -601,6 +601,7 @@ static int _rebuild_ports(ibnd_fabric_cache_t * fabric_cache)
- 		} else
- 			port->remoteport = NULL;
- 
-+		add_to_portlid_hash(port, fabric_cache->f_int->lid2guid);
- 		port_cache = port_cache_next;
- 	}
- 
-@@ -612,7 +613,7 @@ ibnd_fabric_t *ibnd_load_fabric(const char *file, unsigned int flags)
- 	unsigned int node_count = 0;
- 	unsigned int port_count = 0;
- 	ibnd_fabric_cache_t *fabric_cache = NULL;
--	ibnd_fabric_t *fabric = NULL;
-+	f_internal_t *f_int = NULL;
- 	ibnd_node_cache_t *node_cache = NULL;
- 	int fd = -1;
- 	unsigned int i;
-@@ -635,14 +636,13 @@ ibnd_fabric_t *ibnd_load_fabric(const char *file, unsigned int flags)
- 	}
- 	memset(fabric_cache, '\0', sizeof(ibnd_fabric_cache_t));
- 
--	fabric = (ibnd_fabric_t *) malloc(sizeof(ibnd_fabric_t));
--	if (!fabric) {
-+	f_int = allocate_fabric_internal();
-+	if (!f_int) {
- 		IBND_DEBUG("OOM: fabric\n");
- 		goto cleanup;
- 	}
--	memset(fabric, '\0', sizeof(ibnd_fabric_t));
- 
--	fabric_cache->fabric = fabric;
-+	fabric_cache->f_int = f_int;
- 
- 	if (_load_header_info(fd, fabric_cache, &node_count, &port_count) < 0)
- 		goto cleanup;
-@@ -663,7 +663,7 @@ ibnd_fabric_t *ibnd_load_fabric(const char *file, unsigned int flags)
- 		IBND_DEBUG("Cache invalid: cannot find from node\n");
- 		goto cleanup;
- 	}
--	fabric->from_node = node_cache->node;
-+	f_int->fabric.from_node = node_cache->node;
- 
- 	if (_rebuild_nodes(fabric_cache) < 0)
- 		goto cleanup;
-@@ -671,15 +671,15 @@ ibnd_fabric_t *ibnd_load_fabric(const char *file, unsigned int flags)
- 	if (_rebuild_ports(fabric_cache) < 0)
- 		goto cleanup;
- 
--	if (group_nodes(fabric))
-+	if (group_nodes(&f_int->fabric))
- 		goto cleanup;
- 
- 	_destroy_ibnd_fabric_cache(fabric_cache);
- 	close(fd);
--	return fabric;
-+	return (ibnd_fabric_t *)&f_int->fabric;
- 
- cleanup:
--	ibnd_destroy_fabric(fabric);
-+	ibnd_destroy_fabric((ibnd_fabric_t *)f_int);
- 	_destroy_ibnd_fabric_cache(fabric_cache);
- 	close(fd);
- 	return NULL;
-diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
-index 80918c4..1ccd29c 100644
---- a/libibnetdisc/src/internal.h
-+++ b/libibnetdisc/src/internal.h
-@@ -40,6 +40,7 @@
- 
- #include <infiniband/ibnetdisc.h>
- #include <complib/cl_qmap.h>
-+#include <glib.h>
- 
- #define	IBND_DEBUG(fmt, ...) \
- 	if (ibdebug) { \
-@@ -57,9 +58,18 @@
- #define DEFAULT_TIMEOUT 1000
- #define DEFAULT_RETRIES 3
- 
-+typedef struct f_internal {
-+	ibnd_fabric_t fabric;
-+	GHashTable *lid2guid;
-+} f_internal_t;
-+f_internal_t *allocate_fabric_internal(void);
-+void create_lid2guid(f_internal_t *f_int);
-+void destroy_lid2guid(f_internal_t *f_int);
-+void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
++void dump_unicast_tables(ibnd_node_t * node, int startlid, int endlid,
++			struct ibmad_port *mad_port, ibnd_fabric_t *fabric)
++{
++	ib_portid_t * portid = &node->path_portid;
++	char lft[IB_SMP_DATA_SIZE] = { 0 };
++	char nd[IB_SMP_DATA_SIZE] = { 0 };
++	char str[200];
++	uint64_t nodeguid;
++	int block, i, e, top;
++	unsigned nports;
++	int n = 0, startblock, endblock;
++	char *mapnd = NULL;
++	int last_port_lid = 0, base_port_lid = 0;
++	uint64_t portguid = 0;
 +
- typedef struct ibnd_scan {
- 	ib_portid_t selfportid;
--	ibnd_fabric_t *fabric;
-+	f_internal_t *f_int;
- 	struct ibnd_config *cfg;
- 	struct ibmad_port *ibmad_port;
- 	unsigned initial_hops;
-@@ -100,8 +110,9 @@ void smp_engine_destroy(smp_engine_t * engine);
- void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[]);
- 
- void add_to_portguid_hash(ibnd_port_t * port, ibnd_port_t * hash[]);
-+void add_to_portlid_hash(ibnd_port_t * port, GHashTable *htable);
- 
--void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric);
-+void add_to_type_list(ibnd_node_t * node, f_internal_t * fabric);
- 
- void destroy_node(ibnd_node_t * node);
- 
-diff --git a/libibnetdisc/src/libibnetdisc.map b/libibnetdisc/src/libibnetdisc.map
-index 1c42e7b..f1b7229 100644
---- a/libibnetdisc/src/libibnetdisc.map
-+++ b/libibnetdisc/src/libibnetdisc.map
-@@ -16,6 +16,7 @@ IBNETDISC_1.0 {
- 		ibnd_iter_nodes_type;
- 		ibnd_find_port_guid;
- 		ibnd_find_port_dr;
-+		ibnd_find_port_lid;
- 		ibnd_iter_ports;
- 	local: *;
- };
++	mad_decode_field(node->switchinfo, IB_SW_LINEAR_FDB_TOP_F, &top);
++	nodeguid = node->guid;
++	nports = node->numports;
++	memcpy(nd, node->nodedesc, strlen(node->nodedesc));
++
++	if (!endlid || endlid > top)
++		endlid = top;
++
++	if (endlid > IB_MAX_UCAST_LID) {
++		IBWARN("illegal lft top %d, truncate to %d", endlid,
++		       IB_MAX_UCAST_LID);
++		endlid = IB_MAX_UCAST_LID;
++	}
++
++	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
++
++	printf("Unicast lids [0x%x-0x%x] of switch %s guid 0x%016" PRIx64
++	       " (%s):\n", startlid, endlid, portid2str(portid), nodeguid,
++	       mapnd);
++
++	DEBUG("Switch top is 0x%x\n", top);
++
++	printf("  Lid  Out   Destination\n");
++	printf("       Port     Info \n");
++	startblock = startlid / IB_SMP_DATA_SIZE;
++	endblock = ALIGN(endlid, IB_SMP_DATA_SIZE) / IB_SMP_DATA_SIZE;
++	for (block = startblock; block <= endblock; block++) {
++		int status;
++		DEBUG("reading block %d", block);
++		if (!smp_query_status_via(lft, portid, IB_ATTR_LINEARFORWTBL, block,
++				   0, &status, mad_port)) {
++			fprintf(stderr, "SubnGet(LFT) failed on switch "
++					"'%s' %s Node GUID 0x%"PRIx64
++					" SMA LID %d; MAD status 0x%x AM 0x%x\n",
++					mapnd, portid2str(portid),
++					node->guid, node->smalid,
++					status, block);
++		}
++		i = block * IB_SMP_DATA_SIZE;
++		e = i + IB_SMP_DATA_SIZE;
++		if (i < startlid)
++			i = startlid;
++		if (e > endlid + 1)
++			e = endlid + 1;
++
++		for (; i < e; i++) {
++			unsigned outport = lft[i % IB_SMP_DATA_SIZE];
++			unsigned valid = (outport <= nports);
++
++			if (!valid && !dump_all)
++				continue;
++			dump_lid(str, sizeof str, i, valid, fabric,
++				&last_port_lid, &base_port_lid, &portguid);
++			printf("0x%04x %03u %s\n", i, outport & 0xff, str);
++			n++;
++		}
++	}
++
++	printf("%d %slids dumped \n", n, dump_all ? "" : "valid ");
++	free(mapnd);
++}
++
++void dump_node(ibnd_node_t *node, struct ibmad_port *mad_port,
++		ibnd_fabric_t *fabric)
++{
++	if (multicast)
++		dump_multicast_tables(node, startlid, endlid, mad_port);
++	else
++		dump_unicast_tables(node, startlid, endlid,
++						mad_port, fabric);
++}
++
++void process_switch(ibnd_node_t * node, void *fabric)
++{
++	dump_node(node, srcport, (ibnd_fabric_t *)fabric);
++}
++
++static int process_opt(void *context, int ch, char *optarg)
++{
++	switch (ch) {
++	case 'a':
++		dump_all++;
++		break;
++	case 'M':
++		multicast++;
++		break;
++	case 'n':
++		brief++;
++		break;
++	case 1:
++		node_name_map_file = strdup(optarg);
++		break;
++	default:
++		return -1;
++	}
++	return 0;
++}
++
++int main(int argc, char **argv)
++{
++	int rc = 0;
++	int mgmt_classes[3] =
++	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
++
++	struct ibnd_config config = { 0 };
++	ibnd_fabric_t *fabric = NULL;
++
++	const struct ibdiag_opt opts[] = {
++		{"all", 'a', 0, NULL, "show all lids, even invalid entries"},
++		{"no_dests", 'n', 0, NULL,
++		 "do not try to resolve destinations"},
++		{"Multicast", 'M', 0, NULL, "show multicast forwarding tables"},
++		{"node-name-map", 1, 1, "<file>", "node name map file"},
++		{0}
++	};
++	char usage_args[] = "[<dest dr_path|lid|guid> [<startlid> [<endlid>]]]";
++	const char *usage_examples[] = {
++		" -- Unicast examples:",
++		"-a\t# same, but dump all lids, even with invalid out ports",
++		"-n\t# simple dump format - no destination resolving",
++		"10\t# dump lids starting from 10",
++		"0x10 0x20\t# dump lid range",
++		" -- Multicast examples:",
++		"-M\t# dump all non empty mlids of switch with lid 4",
++		"-M 0xc010 0xc020\t# same, but with range",
++		"-M -n\t# simple dump format",
++		NULL,
++	};
++
++	ibdiag_process_opts(argc, argv, &config, "KGDLs", opts, process_opt,
++			    usage_args, usage_examples);
++
++	argc -= optind;
++	argv += optind;
++
++	if (argc > 0)
++		startlid = strtoul(argv[0], 0, 0);
++	if (argc > 1)
++		endlid = strtoul(argv[1], 0, 0);
++
++	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 3);
++	if (!srcport)
++		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
++
++	node_name_map = open_node_name_map(node_name_map_file);
++
++	smp_mkey_set(srcport, ibd_mkey);
++
++	if (ibd_timeout) {
++		mad_rpc_set_timeout(srcport, ibd_timeout);
++		config.timeout_ms = ibd_timeout;
++	}
++
++	config.flags = ibd_ibnetdisc_flags;
++	config.mkey = ibd_mkey;
++
++	if ((fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, NULL,
++						&config)) != NULL) {
++		ibnd_iter_nodes_type(fabric, process_switch, IB_NODE_SWITCH, fabric);
++	} else {
++		fprintf(stderr, "Failed to discover fabric\n");
++		rc = -1;
++	}
++
++	ibnd_destroy_fabric(fabric);
++
++	mad_rpc_close_port(srcport);
++	close_node_name_map(node_name_map);
++	exit(rc);
++}
 -- 
 1.7.1
 
