@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 07/10] IB/uverbs: Implement memory windows support in uverbs
-Date: Wed,  6 Feb 2013 18:19:13 +0200
-Message-ID: <1360167556-20756-8-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 04/10] net/mlx4_core: Disable memory windows for VFs
+Date: Wed,  6 Feb 2013 18:19:10 +0200
+Message-ID: <1360167556-20756-5-git-send-email-ogerlitz@mellanox.com>
 References: <1360167556-20756-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1360167556-20756-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,237 +12,187 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Shani Michaeli <shanim-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The existing user/kernel uverbs API has IB_USER_VERBS_CMD_ALLOC/DEALLOC_MW,
-implement these calls, along with destroying user memory windows
-during process cleanup.
+Do not enable memory windows allocation for virtual functions.
+
+In addition, add a few safety checks, such as:
+
+* Verifying the PD of a new MPT matches the VF.
+
+* Making sure binding memory window isn't enabled for FMRs, and
+  that new memory windows are not FMR themselves.
 
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shani Michaeli <shanim-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h      |    2 +
- drivers/infiniband/core/uverbs_cmd.c  |  121 +++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c |   13 +++-
- include/uapi/rdma/ib_user_verbs.h     |   16 +++++
- 4 files changed, 150 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/fw.c            |   11 ++++-
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h          |   16 ++++++
+ drivers/net/ethernet/mellanox/mlx4/mr.c            |   14 ------
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  |   49 ++++++++++++++++++++
+ 4 files changed, 75 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 5bcb2af..0fcd7aa 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -188,6 +188,8 @@ IB_UVERBS_DECLARE_CMD(alloc_pd);
- IB_UVERBS_DECLARE_CMD(dealloc_pd);
- IB_UVERBS_DECLARE_CMD(reg_mr);
- IB_UVERBS_DECLARE_CMD(dereg_mr);
-+IB_UVERBS_DECLARE_CMD(alloc_mw);
-+IB_UVERBS_DECLARE_CMD(dealloc_mw);
- IB_UVERBS_DECLARE_CMD(create_comp_channel);
- IB_UVERBS_DECLARE_CMD(create_cq);
- IB_UVERBS_DECLARE_CMD(resize_cq);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 0cb0007..3983a05 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -48,6 +48,7 @@ struct uverbs_lock_class {
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index 8b3d051..a389612 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -757,15 +757,19 @@ int mlx4_QUERY_DEV_CAP_wrapper(struct mlx4_dev *dev, int slave,
+ 	u64	flags;
+ 	int	err = 0;
+ 	u8	field;
++	u32	bmme_flags;
  
- static struct uverbs_lock_class pd_lock_class	= { .name = "PD-uobj" };
- static struct uverbs_lock_class mr_lock_class	= { .name = "MR-uobj" };
-+static struct uverbs_lock_class mw_lock_class	= { .name = "MW-uobj" };
- static struct uverbs_lock_class cq_lock_class	= { .name = "CQ-uobj" };
- static struct uverbs_lock_class qp_lock_class	= { .name = "QP-uobj" };
- static struct uverbs_lock_class ah_lock_class	= { .name = "AH-uobj" };
-@@ -1049,6 +1050,126 @@ ssize_t ib_uverbs_dereg_mr(struct ib_uverbs_file *file,
- 	return in_len;
+ 	err = mlx4_cmd_box(dev, 0, outbox->dma, 0, 0, MLX4_CMD_QUERY_DEV_CAP,
+ 			   MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
+ 	if (err)
+ 		return err;
+ 
+-	/* add port mng change event capability unconditionally to slaves */
++	/* add port mng change event capability and disable mw type 1
++	 * unconditionally to slaves
++	 */
+ 	MLX4_GET(flags, outbox->buf, QUERY_DEV_CAP_EXT_FLAGS_OFFSET);
+ 	flags |= MLX4_DEV_CAP_FLAG_PORT_MNG_CHG_EV;
++	flags &= ~MLX4_DEV_CAP_FLAG_MEM_WINDOW;
+ 	MLX4_PUT(outbox->buf, flags, QUERY_DEV_CAP_EXT_FLAGS_OFFSET);
+ 
+ 	/* For guests, report Blueflame disabled */
+@@ -773,6 +777,11 @@ int mlx4_QUERY_DEV_CAP_wrapper(struct mlx4_dev *dev, int slave,
+ 	field &= 0x7f;
+ 	MLX4_PUT(outbox->buf, field, QUERY_DEV_CAP_BF_OFFSET);
+ 
++	/* For guests, disable mw type 2 */
++	MLX4_GET(bmme_flags, outbox, QUERY_DEV_CAP_BMME_FLAGS_OFFSET);
++	bmme_flags &= ~MLX4_BMME_FLAG_TYPE_2_WIN;
++	MLX4_PUT(outbox->buf, bmme_flags, QUERY_DEV_CAP_BMME_FLAGS_OFFSET);
++
+ 	return 0;
  }
  
-+ssize_t ib_uverbs_alloc_mw(struct ib_uverbs_file *file,
-+			 const char __user *buf, int in_len,
-+			 int out_len)
-+{
-+	struct ib_uverbs_alloc_mw      cmd;
-+	struct ib_uverbs_alloc_mw_resp resp;
-+	struct ib_uobject             *uobj;
-+	struct ib_pd                  *pd;
-+	struct ib_mw                  *mw;
-+	int                            ret;
-+
-+	if (out_len < sizeof(resp))
-+		return -ENOSPC;
-+
-+	if (copy_from_user(&cmd, buf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	uobj = kmalloc(sizeof(*uobj), GFP_KERNEL);
-+	if (!uobj)
-+		return -ENOMEM;
-+
-+	init_uobj(uobj, 0, file->ucontext, &mw_lock_class);
-+	down_write(&uobj->mutex);
-+
-+	pd = idr_read_pd(cmd.pd_handle, file->ucontext);
-+	if (!pd) {
-+		ret = -EINVAL;
-+		goto err_free;
-+	}
-+
-+	mw = pd->device->alloc_mw(pd, cmd.mw_type);
-+	if (IS_ERR(mw)) {
-+		ret = PTR_ERR(mw);
-+		goto err_put;
-+	}
-+
-+	mw->device  = pd->device;
-+	mw->pd      = pd;
-+	mw->uobject = uobj;
-+	atomic_inc(&pd->usecnt);
-+
-+	uobj->object = mw;
-+	ret = idr_add_uobj(&ib_uverbs_mw_idr, uobj);
-+	if (ret)
-+		goto err_unalloc;
-+
-+	memset(&resp, 0, sizeof(resp));
-+	resp.rkey      = mw->rkey;
-+	resp.mw_handle = uobj->id;
-+
-+	if (copy_to_user((void __user *)(unsigned long)cmd.response,
-+			 &resp, sizeof(resp))) {
-+		ret = -EFAULT;
-+		goto err_copy;
-+	}
-+
-+	put_pd_read(pd);
-+
-+	mutex_lock(&file->mutex);
-+	list_add_tail(&uobj->list, &file->ucontext->mw_list);
-+	mutex_unlock(&file->mutex);
-+
-+	uobj->live = 1;
-+
-+	up_write(&uobj->mutex);
-+
-+	return in_len;
-+
-+err_copy:
-+	idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
-+
-+err_unalloc:
-+	ib_dealloc_mw(mw);
-+
-+err_put:
-+	put_pd_read(pd);
-+
-+err_free:
-+	put_uobj_write(uobj);
-+	return ret;
-+}
-+
-+ssize_t ib_uverbs_dealloc_mw(struct ib_uverbs_file *file,
-+			   const char __user *buf, int in_len,
-+			   int out_len)
-+{
-+	struct ib_uverbs_dealloc_mw cmd;
-+	struct ib_mw               *mw;
-+	struct ib_uobject	   *uobj;
-+	int                         ret = -EINVAL;
-+
-+	if (copy_from_user(&cmd, buf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	uobj = idr_write_uobj(&ib_uverbs_mw_idr, cmd.mw_handle, file->ucontext);
-+	if (!uobj)
-+		return -EINVAL;
-+
-+	mw = uobj->object;
-+
-+	ret = ib_dealloc_mw(mw);
-+	if (!ret)
-+		uobj->live = 0;
-+
-+	put_uobj_write(uobj);
-+
-+	if (ret)
-+		return ret;
-+
-+	idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
-+
-+	mutex_lock(&file->mutex);
-+	list_del(&uobj->list);
-+	mutex_unlock(&file->mutex);
-+
-+	put_uobj(uobj);
-+
-+	return in_len;
-+}
-+
- ssize_t ib_uverbs_create_comp_channel(struct ib_uverbs_file *file,
- 				      const char __user *buf, int in_len,
- 				      int out_len)
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 6f2ce6f..2c6f0f2 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -87,6 +87,8 @@ static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_CMD_DEALLOC_PD]		= ib_uverbs_dealloc_pd,
- 	[IB_USER_VERBS_CMD_REG_MR]		= ib_uverbs_reg_mr,
- 	[IB_USER_VERBS_CMD_DEREG_MR]		= ib_uverbs_dereg_mr,
-+	[IB_USER_VERBS_CMD_ALLOC_MW]		= ib_uverbs_alloc_mw,
-+	[IB_USER_VERBS_CMD_DEALLOC_MW]		= ib_uverbs_dealloc_mw,
- 	[IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL] = ib_uverbs_create_comp_channel,
- 	[IB_USER_VERBS_CMD_CREATE_CQ]		= ib_uverbs_create_cq,
- 	[IB_USER_VERBS_CMD_RESIZE_CQ]		= ib_uverbs_resize_cq,
-@@ -201,6 +203,15 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
- 		kfree(uobj);
- 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index 5075236..539212b 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -268,6 +268,22 @@ struct mlx4_icm_table {
+ 	struct mlx4_icm	      **icm;
+ };
  
-+	/* Remove MWs before QPs, in order to support type 2A MWs. */
-+	list_for_each_entry_safe(uobj, tmp, &context->mw_list, list) {
-+		struct ib_mw *mw = uobj->object;
++#define MLX4_MPT_FLAG_SW_OWNS	    (0xfUL << 28)
++#define MLX4_MPT_FLAG_FREE	    (0x3UL << 28)
++#define MLX4_MPT_FLAG_MIO	    (1 << 17)
++#define MLX4_MPT_FLAG_BIND_ENABLE   (1 << 15)
++#define MLX4_MPT_FLAG_PHYSICAL	    (1 <<  9)
++#define MLX4_MPT_FLAG_REGION	    (1 <<  8)
 +
-+		idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
-+		ib_dealloc_mw(mw);
-+		kfree(uobj);
-+	}
++#define MLX4_MPT_PD_FLAG_FAST_REG   (1 << 27)
++#define MLX4_MPT_PD_FLAG_RAE	    (1 << 28)
++#define MLX4_MPT_PD_FLAG_EN_INV	    (3 << 24)
 +
- 	list_for_each_entry_safe(uobj, tmp, &context->qp_list, list) {
- 		struct ib_qp *qp = uobj->object;
- 		struct ib_uqp_object *uqp =
-@@ -240,8 +251,6 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
- 		kfree(uevent);
- 	}
++#define MLX4_MPT_QP_FLAG_BOUND_QP   (1 << 7)
++
++#define MLX4_MPT_STATUS_SW		0xF0
++#define MLX4_MPT_STATUS_HW		0x00
++
+ /*
+  * Must be packed because mtt_seg is 64 bits but only aligned to 32 bits.
+  */
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
+index 06b16e4..5e785bd 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mr.c
++++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
+@@ -44,20 +44,6 @@
+ #include "mlx4.h"
+ #include "icm.h"
  
--	/* XXX Free MWs */
+-#define MLX4_MPT_FLAG_SW_OWNS	    (0xfUL << 28)
+-#define MLX4_MPT_FLAG_FREE	    (0x3UL << 28)
+-#define MLX4_MPT_FLAG_MIO	    (1 << 17)
+-#define MLX4_MPT_FLAG_BIND_ENABLE   (1 << 15)
+-#define MLX4_MPT_FLAG_PHYSICAL	    (1 <<  9)
+-#define MLX4_MPT_FLAG_REGION	    (1 <<  8)
 -
- 	list_for_each_entry_safe(uobj, tmp, &context->mr_list, list) {
- 		struct ib_mr *mr = uobj->object;
+-#define MLX4_MPT_PD_FLAG_FAST_REG   (1 << 27)
+-#define MLX4_MPT_PD_FLAG_RAE	    (1 << 28)
+-#define MLX4_MPT_PD_FLAG_EN_INV	    (3 << 24)
+-
+-#define MLX4_MPT_STATUS_SW		0xF0
+-#define MLX4_MPT_STATUS_HW		0x00
+-
+ static u32 mlx4_buddy_alloc(struct mlx4_buddy *buddy, int order)
+ {
+ 	int o;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+index 2287dfd..9185e2e 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
++++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+@@ -1796,6 +1796,26 @@ static int mr_get_mtt_size(struct mlx4_mpt_entry *mpt)
+ 	return be32_to_cpu(mpt->mtt_sz);
+ }
  
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 81aba3a..805711e 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -261,6 +261,22 @@ struct ib_uverbs_dereg_mr {
- 	__u32 mr_handle;
- };
++static u32 mr_get_pd(struct mlx4_mpt_entry *mpt)
++{
++	return be32_to_cpu(mpt->pd_flags) & 0x00ffffff;
++}
++
++static int mr_is_fmr(struct mlx4_mpt_entry *mpt)
++{
++	return be32_to_cpu(mpt->pd_flags) & MLX4_MPT_PD_FLAG_FAST_REG;
++}
++
++static int mr_is_bind_enabled(struct mlx4_mpt_entry *mpt)
++{
++	return be32_to_cpu(mpt->flags) & MLX4_MPT_FLAG_BIND_ENABLE;
++}
++
++static int mr_is_region(struct mlx4_mpt_entry *mpt)
++{
++	return be32_to_cpu(mpt->flags) & MLX4_MPT_FLAG_REGION;
++}
++
+ static int qp_get_mtt_addr(struct mlx4_qp_context *qpc)
+ {
+ 	return be32_to_cpu(qpc->mtt_base_addr_l) & 0xfffffff8;
+@@ -1856,12 +1876,41 @@ int mlx4_SW2HW_MPT_wrapper(struct mlx4_dev *dev, int slave,
+ 	int mtt_base = mr_get_mtt_addr(inbox->buf) / dev->caps.mtt_entry_sz;
+ 	int phys;
+ 	int id;
++	u32 pd;
++	int pd_slave;
  
-+struct ib_uverbs_alloc_mw {
-+	__u64 response;
-+	__u32 pd_handle;
-+	__u8  mw_type;
-+	__u8  reserved[3];
-+};
+ 	id = index & mpt_mask(dev);
+ 	err = mr_res_start_move_to(dev, slave, id, RES_MPT_HW, &mpt);
+ 	if (err)
+ 		return err;
+ 
++	/* Disable memory windows for VFs. */
++	if (!mr_is_region(inbox->buf)) {
++		err = -EPERM;
++		goto ex_abort;
++	}
 +
-+struct ib_uverbs_alloc_mw_resp {
-+	__u32 mw_handle;
-+	__u32 rkey;
-+};
++	/* Make sure that the PD bits related to the slave id are zeros. */
++	pd = mr_get_pd(inbox->buf);
++	pd_slave = (pd >> 17) & 0x7f;
++	if (pd_slave != 0 && pd_slave != slave) {
++		err = -EPERM;
++		goto ex_abort;
++	}
 +
-+struct ib_uverbs_dealloc_mw {
-+	__u32 mw_handle;
-+};
++	if (mr_is_fmr(inbox->buf)) {
++		/* FMR and Bind Enable are forbidden in slave devices. */
++		if (mr_is_bind_enabled(inbox->buf)) {
++			err = -EPERM;
++			goto ex_abort;
++		}
++		/* FMR and Memory Windows are also forbidden. */
++		if (!mr_is_region(inbox->buf)) {
++			err = -EPERM;
++			goto ex_abort;
++		}
++	}
 +
- struct ib_uverbs_create_comp_channel {
- 	__u64 response;
- };
+ 	phys = mr_phys_mpt(inbox->buf);
+ 	if (!phys) {
+ 		err = get_res(dev, slave, mtt_base, RES_MTT, &mtt);
 -- 
 1.7.1
 
