@@ -1,13 +1,13 @@
 From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 43/77] IB/ipath: convert to idr_alloc()
-Date: Wed,  6 Feb 2013 11:40:15 -0800
-Message-ID: <1360179649-22465-44-git-send-email-tj@kernel.org>
+Subject: [PATCH 39/77] IB/amso1100: convert to idr_alloc()
+Date: Wed,  6 Feb 2013 11:40:11 -0800
+Message-ID: <1360179649-22465-40-git-send-email-tj@kernel.org>
 References: <1360179649-22465-1-git-send-email-tj@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1360179649-22465-1-git-send-email-tj@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Mike Marciniszyn <infinipath@intel.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Tom Tucker <tom@opengridcomputing.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 Convert to the much saner new idr interface.
@@ -15,68 +15,42 @@ Convert to the much saner new idr interface.
 Only compile tested.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Mike Marciniszyn <infinipath@intel.com>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Tucker <tom@opengridcomputing.com>
 Cc: linux-rdma@vger.kernel.org
 ---
- drivers/infiniband/hw/ipath/ipath_driver.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/amso1100/c2_qp.c | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-index 7b371f5..fcdaeea 100644
---- a/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -194,11 +194,6 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
- 	struct ipath_devdata *dd;
+diff --git a/drivers/infiniband/hw/amso1100/c2_qp.c b/drivers/infiniband/hw/amso1100/c2_qp.c
+index 28cd5cb..0ab826b 100644
+--- a/drivers/infiniband/hw/amso1100/c2_qp.c
++++ b/drivers/infiniband/hw/amso1100/c2_qp.c
+@@ -382,14 +382,17 @@ static int c2_alloc_qpn(struct c2_dev *c2dev, struct c2_qp *qp)
+ {
  	int ret;
  
--	if (!idr_pre_get(&unit_table, GFP_KERNEL)) {
--		dd = ERR_PTR(-ENOMEM);
--		goto bail;
--	}
--
- 	dd = vzalloc(sizeof(*dd));
- 	if (!dd) {
- 		dd = ERR_PTR(-ENOMEM);
-@@ -206,9 +201,10 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
- 	}
- 	dd->ipath_unit = -1;
- 
+-        do {
+-		spin_lock_irq(&c2dev->qp_table.lock);
+-		ret = idr_get_new_above(&c2dev->qp_table.idr, qp,
+-					c2dev->qp_table.last++, &qp->qpn);
+-		spin_unlock_irq(&c2dev->qp_table.lock);
+-        } while ((ret == -EAGAIN) &&
+-	 	 idr_pre_get(&c2dev->qp_table.idr, GFP_KERNEL));
+-	return ret;
 +	idr_preload(GFP_KERNEL);
- 	spin_lock_irqsave(&ipath_devs_lock, flags);
- 
--	ret = idr_get_new(&unit_table, dd, &dd->ipath_unit);
-+	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_KERNEL);
- 	if (ret < 0) {
- 		printk(KERN_ERR IPATH_DRV_NAME
- 		       ": Could not allocate unit ID: error %d\n", -ret);
-@@ -216,6 +212,7 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
- 		dd = ERR_PTR(ret);
- 		goto bail_unlock;
- 	}
-+	dd->ipath_unit = ret;
- 
- 	dd->pcidev = pdev;
- 	pci_set_drvdata(pdev, dd);
-@@ -224,7 +221,7 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
- 
- bail_unlock:
- 	spin_unlock_irqrestore(&ipath_devs_lock, flags);
--
++	spin_lock_irq(&c2dev->qp_table.lock);
++
++	ret = idr_alloc(&c2dev->qp_table.idr, qp, c2dev->qp_table.last++, 0,
++			GFP_NOWAIT);
++	if (ret >= 0)
++		qp->qpn = ret;
++
++	spin_unlock_irq(&c2dev->qp_table.lock);
 +	idr_preload_end();
- bail:
- 	return dd;
++	return ret < 0 ? ret : 0;
  }
-@@ -2503,11 +2500,6 @@ static int __init infinipath_init(void)
- 	 * the PCI subsystem.
- 	 */
- 	idr_init(&unit_table);
--	if (!idr_pre_get(&unit_table, GFP_KERNEL)) {
--		printk(KERN_ERR IPATH_DRV_NAME ": idr_pre_get() failed\n");
--		ret = -ENOMEM;
--		goto bail;
--	}
  
- 	ret = pci_register_driver(&ipath_driver);
- 	if (ret < 0) {
+ static void c2_free_qpn(struct c2_dev *c2dev, int qpn)
 -- 
 1.8.1
