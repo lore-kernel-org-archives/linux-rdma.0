@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 04/10] net/mlx4_core: Disable memory windows for VFs
-Date: Wed,  6 Feb 2013 18:19:10 +0200
-Message-ID: <1360167556-20756-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 10/10] IB/mlx4_ib: Advertize MW support
+Date: Wed,  6 Feb 2013 18:19:16 +0200
+Message-ID: <1360167556-20756-11-git-send-email-ogerlitz@mellanox.com>
 References: <1360167556-20756-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1360167556-20756-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,187 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Shani Michaeli <shanim-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Do not enable memory windows allocation for virtual functions.
-
-In addition, add a few safety checks, such as:
-
-* Verifying the PD of a new MPT matches the VF.
-
-* Making sure binding memory window isn't enabled for FMRs, and
-  that new memory windows are not FMR themselves.
+Indicate memory windows support through device capabilities, kernel
+verb entries and the relevant uverbs command mask entries.
 
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Shani Michaeli <shanim-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/fw.c            |   11 ++++-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h          |   16 ++++++
- drivers/net/ethernet/mellanox/mlx4/mr.c            |   14 ------
- .../net/ethernet/mellanox/mlx4/resource_tracker.c  |   49 ++++++++++++++++++++
- 4 files changed, 75 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index 8b3d051..a389612 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -757,15 +757,19 @@ int mlx4_QUERY_DEV_CAP_wrapper(struct mlx4_dev *dev, int slave,
- 	u64	flags;
- 	int	err = 0;
- 	u8	field;
-+	u32	bmme_flags;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index e7d81c0..f77ff4f 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -137,6 +137,14 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
+ 	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC)
+ 		props->device_cap_flags |= IB_DEVICE_XRC;
++	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_MEM_WINDOW)
++		props->device_cap_flags |= IB_DEVICE_MEM_WINDOW;
++	if (dev->dev->caps.bmme_flags & MLX4_BMME_FLAG_TYPE_2_WIN) {
++		if (dev->dev->caps.bmme_flags & MLX4_BMME_FLAG_WIN_TYPE_2B)
++			props->device_cap_flags |= IB_DEVICE_MEM_WINDOW_TYPE_2B;
++		else
++			props->device_cap_flags |= IB_DEVICE_MEM_WINDOW_TYPE_2A;
++	}
  
- 	err = mlx4_cmd_box(dev, 0, outbox->dma, 0, 0, MLX4_CMD_QUERY_DEV_CAP,
- 			   MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
- 	if (err)
- 		return err;
+ 	props->vendor_id	   = be32_to_cpup((__be32 *) (out_mad->data + 36)) &
+ 		0xffffff;
+@@ -1434,6 +1442,17 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 		ibdev->ib_dev.dealloc_fmr	= mlx4_ib_fmr_dealloc;
+ 	}
  
--	/* add port mng change event capability unconditionally to slaves */
-+	/* add port mng change event capability and disable mw type 1
-+	 * unconditionally to slaves
-+	 */
- 	MLX4_GET(flags, outbox->buf, QUERY_DEV_CAP_EXT_FLAGS_OFFSET);
- 	flags |= MLX4_DEV_CAP_FLAG_PORT_MNG_CHG_EV;
-+	flags &= ~MLX4_DEV_CAP_FLAG_MEM_WINDOW;
- 	MLX4_PUT(outbox->buf, flags, QUERY_DEV_CAP_EXT_FLAGS_OFFSET);
- 
- 	/* For guests, report Blueflame disabled */
-@@ -773,6 +777,11 @@ int mlx4_QUERY_DEV_CAP_wrapper(struct mlx4_dev *dev, int slave,
- 	field &= 0x7f;
- 	MLX4_PUT(outbox->buf, field, QUERY_DEV_CAP_BF_OFFSET);
- 
-+	/* For guests, disable mw type 2 */
-+	MLX4_GET(bmme_flags, outbox, QUERY_DEV_CAP_BMME_FLAGS_OFFSET);
-+	bmme_flags &= ~MLX4_BMME_FLAG_TYPE_2_WIN;
-+	MLX4_PUT(outbox->buf, bmme_flags, QUERY_DEV_CAP_BMME_FLAGS_OFFSET);
++	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_MEM_WINDOW ||
++	    dev->caps.bmme_flags & MLX4_BMME_FLAG_TYPE_2_WIN) {
++		ibdev->ib_dev.alloc_mw = mlx4_ib_alloc_mw;
++		ibdev->ib_dev.bind_mw = mlx4_ib_bind_mw;
++		ibdev->ib_dev.dealloc_mw = mlx4_ib_dealloc_mw;
 +
- 	return 0;
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index 5075236..539212b 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -268,6 +268,22 @@ struct mlx4_icm_table {
- 	struct mlx4_icm	      **icm;
- };
- 
-+#define MLX4_MPT_FLAG_SW_OWNS	    (0xfUL << 28)
-+#define MLX4_MPT_FLAG_FREE	    (0x3UL << 28)
-+#define MLX4_MPT_FLAG_MIO	    (1 << 17)
-+#define MLX4_MPT_FLAG_BIND_ENABLE   (1 << 15)
-+#define MLX4_MPT_FLAG_PHYSICAL	    (1 <<  9)
-+#define MLX4_MPT_FLAG_REGION	    (1 <<  8)
-+
-+#define MLX4_MPT_PD_FLAG_FAST_REG   (1 << 27)
-+#define MLX4_MPT_PD_FLAG_RAE	    (1 << 28)
-+#define MLX4_MPT_PD_FLAG_EN_INV	    (3 << 24)
-+
-+#define MLX4_MPT_QP_FLAG_BOUND_QP   (1 << 7)
-+
-+#define MLX4_MPT_STATUS_SW		0xF0
-+#define MLX4_MPT_STATUS_HW		0x00
-+
- /*
-  * Must be packed because mtt_seg is 64 bits but only aligned to 32 bits.
-  */
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
-index 06b16e4..5e785bd 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
-@@ -44,20 +44,6 @@
- #include "mlx4.h"
- #include "icm.h"
- 
--#define MLX4_MPT_FLAG_SW_OWNS	    (0xfUL << 28)
--#define MLX4_MPT_FLAG_FREE	    (0x3UL << 28)
--#define MLX4_MPT_FLAG_MIO	    (1 << 17)
--#define MLX4_MPT_FLAG_BIND_ENABLE   (1 << 15)
--#define MLX4_MPT_FLAG_PHYSICAL	    (1 <<  9)
--#define MLX4_MPT_FLAG_REGION	    (1 <<  8)
--
--#define MLX4_MPT_PD_FLAG_FAST_REG   (1 << 27)
--#define MLX4_MPT_PD_FLAG_RAE	    (1 << 28)
--#define MLX4_MPT_PD_FLAG_EN_INV	    (3 << 24)
--
--#define MLX4_MPT_STATUS_SW		0xF0
--#define MLX4_MPT_STATUS_HW		0x00
--
- static u32 mlx4_buddy_alloc(struct mlx4_buddy *buddy, int order)
- {
- 	int o;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-index 2287dfd..9185e2e 100644
---- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
-@@ -1796,6 +1796,26 @@ static int mr_get_mtt_size(struct mlx4_mpt_entry *mpt)
- 	return be32_to_cpu(mpt->mtt_sz);
- }
- 
-+static u32 mr_get_pd(struct mlx4_mpt_entry *mpt)
-+{
-+	return be32_to_cpu(mpt->pd_flags) & 0x00ffffff;
-+}
-+
-+static int mr_is_fmr(struct mlx4_mpt_entry *mpt)
-+{
-+	return be32_to_cpu(mpt->pd_flags) & MLX4_MPT_PD_FLAG_FAST_REG;
-+}
-+
-+static int mr_is_bind_enabled(struct mlx4_mpt_entry *mpt)
-+{
-+	return be32_to_cpu(mpt->flags) & MLX4_MPT_FLAG_BIND_ENABLE;
-+}
-+
-+static int mr_is_region(struct mlx4_mpt_entry *mpt)
-+{
-+	return be32_to_cpu(mpt->flags) & MLX4_MPT_FLAG_REGION;
-+}
-+
- static int qp_get_mtt_addr(struct mlx4_qp_context *qpc)
- {
- 	return be32_to_cpu(qpc->mtt_base_addr_l) & 0xfffffff8;
-@@ -1856,12 +1876,41 @@ int mlx4_SW2HW_MPT_wrapper(struct mlx4_dev *dev, int slave,
- 	int mtt_base = mr_get_mtt_addr(inbox->buf) / dev->caps.mtt_entry_sz;
- 	int phys;
- 	int id;
-+	u32 pd;
-+	int pd_slave;
- 
- 	id = index & mpt_mask(dev);
- 	err = mr_res_start_move_to(dev, slave, id, RES_MPT_HW, &mpt);
- 	if (err)
- 		return err;
- 
-+	/* Disable memory windows for VFs. */
-+	if (!mr_is_region(inbox->buf)) {
-+		err = -EPERM;
-+		goto ex_abort;
++		ibdev->ib_dev.uverbs_cmd_mask |=
++			(1ull << IB_USER_VERBS_CMD_ALLOC_MW) |
++			(1ull << IB_USER_VERBS_CMD_DEALLOC_MW);
 +	}
 +
-+	/* Make sure that the PD bits related to the slave id are zeros. */
-+	pd = mr_get_pd(inbox->buf);
-+	pd_slave = (pd >> 17) & 0x7f;
-+	if (pd_slave != 0 && pd_slave != slave) {
-+		err = -EPERM;
-+		goto ex_abort;
-+	}
-+
-+	if (mr_is_fmr(inbox->buf)) {
-+		/* FMR and Bind Enable are forbidden in slave devices. */
-+		if (mr_is_bind_enabled(inbox->buf)) {
-+			err = -EPERM;
-+			goto ex_abort;
-+		}
-+		/* FMR and Memory Windows are also forbidden. */
-+		if (!mr_is_region(inbox->buf)) {
-+			err = -EPERM;
-+			goto ex_abort;
-+		}
-+	}
-+
- 	phys = mr_phys_mpt(inbox->buf);
- 	if (!phys) {
- 		err = get_res(dev, slave, mtt_base, RES_MTT, &mtt);
+ 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC) {
+ 		ibdev->ib_dev.alloc_xrcd = mlx4_ib_alloc_xrcd;
+ 		ibdev->ib_dev.dealloc_xrcd = mlx4_ib_dealloc_xrcd;
 -- 
 1.7.1
 
