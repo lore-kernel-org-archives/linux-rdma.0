@@ -1,36 +1,38 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH for 3.8 v3, resend 0/3] IB/SRP patches for kernel 3.8
-Date: Wed, 06 Feb 2013 08:22:03 +0100
-Message-ID: <5112049B.8030406@acm.org>
-References: <510BDCAA.204@acm.org> <CAJZOPZLKQV0QvrW5sK8hQJf7AZc+1nUzp+5YCkZ3iVU4oTWbLg@mail.gmail.com> <5111327F.6050402@acm.org> <CAJZOPZ+-Zg=jnqg4ZmFL5Yo4_2DoWGcgy=3u6g3Rf9y80pXnpg@mail.gmail.com>
+Date: Wed, 6 Feb 2013 09:44:37 +0200
+Message-ID: <511209E5.1010807@mellanox.com>
+References: <510BDCAA.204@acm.org> <CAJZOPZLKQV0QvrW5sK8hQJf7AZc+1nUzp+5YCkZ3iVU4oTWbLg@mail.gmail.com> <5111327F.6050402@acm.org> <CAJZOPZ+-Zg=jnqg4ZmFL5Yo4_2DoWGcgy=3u6g3Rf9y80pXnpg@mail.gmail.com> <5112049B.8030406@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+-Zg=jnqg4ZmFL5Yo4_2DoWGcgy=3u6g3Rf9y80pXnpg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <5112049B.8030406-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/05/13 21:54, Or Gerlitz wrote:
-> On Tue, Feb 5, 2013 at 6:25 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
->> On 02/04/13 22:11, Or Gerlitz wrote:
-> Bart, I'd like to sharpen the point: could you please clarify if the
-> series posted to linux-rdma stands for itself in the sense that SRP HA
-> scheme X (please state it) now works/better when the patches applied
-> on top of the latest 3.8-rc cut? OR for X to do better/work, one needs
-> this series AND the one you posted to linux-scsi.
+On 06/02/2013 09:22, Bart Van Assche wrote:
+>
+> A huge number of patches have been taken upstream between 3.8-rc1 and 
+> 3.8-rc6. I have retested these three patches with 3.8-rc6 and would 
+> appreciate if you would also repeat your tests.
 
-Hello Or,
+not really... this is what I see on Linus tree for the relevant 
+directories, anywhere else I need to look
 
-A huge number of patches have been taken upstream between 3.8-rc1 and 
-3.8-rc6. I have retested these three patches with 3.8-rc6 and would 
-appreciate if you would also repeat your tests.
+linux-2.6]# git log --oneline v3.8-rc1..v3.8-rc6 drivers/scsi/ 
+drivers/block/ block/drivers/infiniband/ulp/srp
+bdb0ae6 Merge branch 'x86-urgent-for-linus' of 
+git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip
+83e6818 efi: Make 'efi_enabled' a function to query EFI facilities
+2263647 Merge tag 'fixes-for-linus' of 
+git://git.kernel.org/pub/scm/linux/kernel/git/rusty/linux
+8d85fce Drivers: block: remove __dev* attributes.
+6f03979 Drivers: scsi: remove __dev* attributes.
+f4953fe virtio-blk: Don't free ida when disk is in use
 
-Thanks,
-
-Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
