@@ -1,41 +1,132 @@
-From: Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>
-Subject: Re: NFS over RDMA crashing
-Date: Wed, 6 Feb 2013 09:06:52 -0800
-Message-ID: <51128DAC.9000206@nasa.gov>
-References: <51127B3F.2090200@mellanox.com> <51127DB1.6070804@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 42/77] IB/ehca: convert to idr_alloc()
+Date: Wed,  6 Feb 2013 11:40:14 -0800
+Message-ID: <1360179649-22465-43-git-send-email-tj@kernel.org>
+References: <1360179649-22465-1-git-send-email-tj@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51127DB1.6070804-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <1360179649-22465-1-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi. In case you're interested, I did the NFS/RDMA backports for OFED. I 
-tested that NFS/RDMA in OFED 3.5 works on kernel 3.5, and also the RHEL 
-6.3 kernel. However, I did not test it with SRIOV. If you test it 
-(OFED-3.5-rc6 was released last week), I'd like to know how it goes. Thanks.
+Convert to the much saner new idr interface.
 
-Jeff Becker
+Only compile tested.
 
-On 02/06/2013 07:58 AM, Steve Wise wrote:
-> On 2/6/2013 9:48 AM, Yan Burman wrote:
->> When I moved to commit 79f77bf9a4e3dd5ead006b8f17e7c4ff07d8374e I was
->> no longer getting the server crashes,
->> so the reset of my tests were done using that point (it is somewhere
->> in the middle of 3.7.0-rc2)
->>
-> +tom tucker
->
-> I'd try going back a few kernels, like to 3.5.x and see if things are
-> more stable.  If you find a point that works, then git bisect might help
-> identify the regression.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+ drivers/infiniband/hw/ehca/ehca_cq.c | 27 +++++++--------------------
+ drivers/infiniband/hw/ehca/ehca_qp.c | 34 +++++++++++++++-------------------
+ 2 files changed, 22 insertions(+), 39 deletions(-)
+
+diff --git a/drivers/infiniband/hw/ehca/ehca_cq.c b/drivers/infiniband/hw/ehca/ehca_cq.c
+index 8f52901..212150c 100644
+--- a/drivers/infiniband/hw/ehca/ehca_cq.c
++++ b/drivers/infiniband/hw/ehca/ehca_cq.c
+@@ -128,7 +128,7 @@ struct ib_cq *ehca_create_cq(struct ib_device *device, int cqe, int comp_vector,
+ 	void *vpage;
+ 	u32 counter;
+ 	u64 rpage, cqx_fec, h_ret;
+-	int ipz_rc, ret, i;
++	int ipz_rc, i;
+ 	unsigned long flags;
+ 
+ 	if (cqe >= 0xFFFFFFFF - 64 - additional_cqe)
+@@ -163,32 +163,19 @@ struct ib_cq *ehca_create_cq(struct ib_device *device, int cqe, int comp_vector,
+ 	adapter_handle = shca->ipz_hca_handle;
+ 	param.eq_handle = shca->eq.ipz_eq_handle;
+ 
+-	do {
+-		if (!idr_pre_get(&ehca_cq_idr, GFP_KERNEL)) {
+-			cq = ERR_PTR(-ENOMEM);
+-			ehca_err(device, "Can't reserve idr nr. device=%p",
+-				 device);
+-			goto create_cq_exit1;
+-		}
+-
+-		write_lock_irqsave(&ehca_cq_idr_lock, flags);
+-		ret = idr_get_new(&ehca_cq_idr, my_cq, &my_cq->token);
+-		write_unlock_irqrestore(&ehca_cq_idr_lock, flags);
+-	} while (ret == -EAGAIN);
++	idr_preload(GFP_KERNEL);
++	write_lock_irqsave(&ehca_cq_idr_lock, flags);
++	my_cq->token = idr_alloc(&ehca_cq_idr, my_cq, 0, 0x2000000, GFP_NOWAIT);
++	write_unlock_irqrestore(&ehca_cq_idr_lock, flags);
++	idr_preload_end();
+ 
+-	if (ret) {
++	if (my_cq->token < 0) {
+ 		cq = ERR_PTR(-ENOMEM);
+ 		ehca_err(device, "Can't allocate new idr entry. device=%p",
+ 			 device);
+ 		goto create_cq_exit1;
+ 	}
+ 
+-	if (my_cq->token > 0x1FFFFFF) {
+-		cq = ERR_PTR(-ENOMEM);
+-		ehca_err(device, "Invalid number of cq. device=%p", device);
+-		goto create_cq_exit2;
+-	}
+-
+ 	/*
+ 	 * CQs maximum depth is 4GB-64, but we need additional 20 as buffer
+ 	 * for receiving errors CQEs.
+diff --git a/drivers/infiniband/hw/ehca/ehca_qp.c b/drivers/infiniband/hw/ehca/ehca_qp.c
+index 1493939..00d6861 100644
+--- a/drivers/infiniband/hw/ehca/ehca_qp.c
++++ b/drivers/infiniband/hw/ehca/ehca_qp.c
+@@ -636,30 +636,26 @@ static struct ehca_qp *internal_create_qp(
+ 		my_qp->send_cq =
+ 			container_of(init_attr->send_cq, struct ehca_cq, ib_cq);
+ 
+-	do {
+-		if (!idr_pre_get(&ehca_qp_idr, GFP_KERNEL)) {
+-			ret = -ENOMEM;
+-			ehca_err(pd->device, "Can't reserve idr resources.");
+-			goto create_qp_exit0;
+-		}
++	idr_preload(GFP_KERNEL);
++	write_lock_irqsave(&ehca_qp_idr_lock, flags);
+ 
+-		write_lock_irqsave(&ehca_qp_idr_lock, flags);
+-		ret = idr_get_new(&ehca_qp_idr, my_qp, &my_qp->token);
+-		write_unlock_irqrestore(&ehca_qp_idr_lock, flags);
+-	} while (ret == -EAGAIN);
++	ret = idr_alloc(&ehca_qp_idr, my_qp, 0, 0x2000000, GFP_NOWAIT);
++	if (ret >= 0)
++		my_qp->token = ret;
+ 
+-	if (ret) {
+-		ret = -ENOMEM;
+-		ehca_err(pd->device, "Can't allocate new idr entry.");
++	write_unlock_irqrestore(&ehca_qp_idr_lock, flags);
++	idr_preload_end();
++	if (ret < 0) {
++		if (ret == -ENOSPC) {
++			ret = -EINVAL;
++			ehca_err(pd->device, "Invalid number of qp");
++		} else {
++			ret = -ENOMEM;
++			ehca_err(pd->device, "Can't allocate new idr entry.");
++		}
+ 		goto create_qp_exit0;
+ 	}
+ 
+-	if (my_qp->token > 0x1FFFFFF) {
+-		ret = -EINVAL;
+-		ehca_err(pd->device, "Invalid number of qp");
+-		goto create_qp_exit1;
+-	}
+-
+ 	if (has_srq)
+ 		parms.srq_token = my_qp->token;
+ 
+-- 
+1.8.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
