@@ -1,33 +1,53 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH for 3.8 v3, resend 0/3] IB/SRP patches for kernel 3.8
-Date: Thu, 07 Feb 2013 11:15:25 +0100
-Message-ID: <51137EBD.5010509@acm.org>
-References: <510BDCAA.204@acm.org> <CAJZOPZLKQV0QvrW5sK8hQJf7AZc+1nUzp+5YCkZ3iVU4oTWbLg@mail.gmail.com> <5111327F.6050402@acm.org> <CAJZOPZ+-Zg=jnqg4ZmFL5Yo4_2DoWGcgy=3u6g3Rf9y80pXnpg@mail.gmail.com> <5112049B.8030406@acm.org> <5112CE60.2030607@mellanox.com> <51136E74.9090209@acm.org> <511376C2.6050100@mellanox.com>
+From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: NFS over RDMA crashing
+Date: Thu, 7 Feb 2013 15:54:13 +0000
+Message-ID: <0EE9A1CDC8D6434DB00095CD7DB873461151874C@MTLDAG01.mtl.com>
+References: <51127B3F.2090200@mellanox.com>
+ <51127DB1.6070804@opengridcomputing.com> <51128DAC.9000206@nasa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <511376C2.6050100-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <51128DAC.9000206-NSQ8wuThN14@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/07/13 10:41, Or Gerlitz wrote:
-> (BTW - if the fourth patch that Vu used "save
-> & restore host_scribble during error handling" is also needed, maybe you
-> add  it to this series, so they are reviewed/accepted together).
+> -----Original Message-----
+> From: Jeff Becker [mailto:jeffrey.c.becker-NSQ8wuThN14@public.gmane.org]
+> Sent: Wednesday, February 06, 2013 19:07
+> To: Steve Wise
+> Cc: Yan Burman; bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz; Tom Tucker
+> Subject: Re: NFS over RDMA crashing
+> 
+> Hi. In case you're interested, I did the NFS/RDMA backports for OFED. I
+> tested that NFS/RDMA in OFED 3.5 works on kernel 3.5, and also the RHEL
+> 6.3 kernel. However, I did not test it with SRIOV. If you test it
+> (OFED-3.5-rc6 was released last week), I'd like to know how it goes. Thanks.
+> 
+> Jeff Becker
+> 
+> On 02/06/2013 07:58 AM, Steve Wise wrote:
+> > On 2/6/2013 9:48 AM, Yan Burman wrote:
+> >> When I moved to commit 79f77bf9a4e3dd5ead006b8f17e7c4ff07d8374e I
+> was
+> >> no longer getting the server crashes, so the reset of my tests were
+> >> done using that point (it is somewhere in the middle of 3.7.0-rc2)
+> >>
+> > +tom tucker
+> >
+> > I'd try going back a few kernels, like to 3.5.x and see if things are
+> > more stable.  If you find a point that works, then git bisect might
+> > help identify the regression.
+> > --
 
-Hello Or,
+Vanilla 3.5.7 seem to work OK out of the box.
+I will try 3.6 next week + performance comparisons.
 
-The three patches I posted guarantee timely host removal even without 
-the host_scribble patch. Even if srp_abort() would not have aborted a 
-request because the host_scribble field had been overwritten, 
-srp_reset_host() will be invoked later on and will finish such a request 
-properly.
-
-Bart.
-
+Yan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
