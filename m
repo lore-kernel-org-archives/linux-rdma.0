@@ -1,7 +1,7 @@
 From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 2/2] ibsim: Output error on bad input to PerformanceSet
-Date: Thu, 07 Feb 2013 16:45:12 -0800
-Message-ID: <1360284312.17736.155.camel@auk59.llnl.gov>
+Subject: [PATCH 1/2] ibsim: Fix PerformanceSet parsing corner case
+Date: Thu, 07 Feb 2013 16:45:01 -0800
+Message-ID: <1360284301.17736.154.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -10,23 +10,36 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Parse of attribute did not properly remove whitespace before it.  So
+
+PerformanceSet "H-0002c90300325280" PortCounters.SymbolErrorCounter=3
+
+would work but
+
+PerformanceSet "H-0002c90300325280"  PortCounters.SymbolErrorCounter=3\
+
+would not.
+
 Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- ibsim/sim_cmd.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ ibsim/sim_cmd.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
 diff --git a/ibsim/sim_cmd.c b/ibsim/sim_cmd.c
-index 83ad52d..4822a0b 100644
+index f44df93..83ad52d 100644
 --- a/ibsim/sim_cmd.c
 +++ b/ibsim/sim_cmd.c
-@@ -1086,6 +1086,7 @@ static int do_perf_counter_set(FILE *f, char *line)
- 		pc->vl_xmit_wait_counters.PortVLXmitWait[vl] =
- 			check_limit(&value, GS_PERF_VL_XMIT_WAIT_COUNTERS_LIMIT);
- 	} else {
-+		fprintf(f, "# attribute %s not found\n", attr);
+@@ -911,7 +911,9 @@ static int do_perf_counter_set(FILE *f, char *line)
  		return -1;
  	}
- 	fprintf(f, "%s.%s has been set to %"PRIu64"\n", attr, field, value);
+ 
+-	strsep(&s, " ");
++	if (s && *s)
++		while (isspace(*s))
++			s++;
+ 	attr = strsep(&s, ".");
+ 	if(s == NULL)
+ 		goto format_error;
 -- 
 1.7.1
 
