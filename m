@@ -1,24 +1,54 @@
-From: "WEBMAIL SUPPORT TEAM LOGIN" <info-7vcu6I2KZOFYGIdF06R9zw@public.gmane.org>
-Subject: Your two incoming mails
-Date: Tue, 12 Feb 2013 18:06:19 +0700
-Message-ID: <19b315efb9ce31dd3bf1d976b04849f3.squirrel@webmail.fumakilla.co.id>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 1/6] IB/ipoib: Fix ipoib_neigh hashing to
+ use the correct daddr octets
+Date: Tue, 12 Feb 2013 16:47:41 +0200
+Message-ID: <511A560D.8020900@mellanox.com>
+References: <1360079337-8173-1-git-send-email-ogerlitz@mellanox.com> <1360079337-8173-2-git-send-email-ogerlitz@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237368B99DDC@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237368B99DDC-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 2/11/2013 9:46 PM, Hefty, Sean wrote:
+>> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>> >+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>> >@@ -844,10 +844,10 @@ static u32 ipoib_addr_hash(struct ipoib_neigh_hash *htbl,
+>> >u8 *daddr)
+>> >  	 * different subnets.
+>> >  	 */
+>> >  	 /* qpn octets[1:4) & port GUID octets[12:20) */
+>> >-	u32 *daddr_32 = (u32 *) daddr;
+>> >+	u32 *d32 = (u32 *)daddr;
+>> >  	u32 hv;
+>> >
+>> >-	hv = jhash_3words(daddr_32[3], daddr_32[4], 0xFFFFFF & daddr_32[0], 0);
+>> >+	hv = jhash_3words(d32[3], d32[4], cpu_to_be32(0xFFFFFF) & d32[0], 0);
+> Should d32 be declared as __be32 *?
+Hi Sean,
+
+The IPoIB destination address is indeed in big endian format and 
+normally the pointer to it should be of type __be32.
+However in this case I just want to feed it into the hash function 
+without the flags part.
+defining d32 as __be32* will make the code a bit ugly as I'll need to 
+cast 3 of "jhash_3words" functions arguments.
+That is,
+
+__be32 *d32;
+....
+
+hv = jhash_3words((__force u32) d32[3], (__force u32) d32[4], (__force 
+u32)(cpu_to_be32(0xFFFFFF) & d32[0]), 0);
 
 
+Best regards,
 
-Your two incoming mails where placed on pending status due to the recent
-upgrade to our database,
-In order to receive the messages Click the below link to login and wait
-for responds.
-
-https://docs.google.com/forms/d/1cwTVh9zPScNpBMAm1GI0AmNnvlm6mu7vJxb2VNeaWaU/viewform
-
+S.P.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
