@@ -1,52 +1,106 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: interest in single core rdma library
-Date: Tue, 12 Feb 2013 15:43:39 -0700
-Message-ID: <20130212224339.GC31555@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A8237368B99DB4@ORSMSX101.amr.corp.intel.com>
- <20130212202953.GH1471@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237368B9A190@ORSMSX101.amr.corp.intel.com>
+From: Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] libibmad: Add  ib_resolve_noderecord_via  API
+Date: Tue, 12 Feb 2013 15:03:46 -0800
+Message-ID: <511ACA52.4060104@oracle.com>
+References: <511AA890.8050106@oracle.com> <511AC06B.3030005@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237368B9A190-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <511AC06B.3030005-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: weiny2-i2BcT+NCU+M@public.gmane.org, HANLIN.QIAN-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, "Jia Shi (E-mail)" <JIA.SHI-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 12, 2013 at 10:30:47PM +0000, Hefty, Sean wrote:
-> > > The intent would be to construct a single library containing the
-> > > core functionality -- data transfers, connection establishment, and
-> > > subnet management -- required by most applications.  It could target
-> > > combining libibverbs, librdmacm, and libibumad APIs.
-> > 
-> > If you are just going to combine all the existing APIs together, then
-> > I'd say no..
-> 
-> Thanks for the input.
-> 
-> I wasn't wanting to change the APIs (or require app changes to be
-> more precise).  Adding or extending APIs is a possibility, but in
-> the short term I'm more interested in reducing maintenance costs,
-> while making things simpler for users.
+Hal,
 
-It might be worthwile to combine *source* repositories, keeping the
-library build products exactly the same, but if you do that I'd pull
-in the provider drivers too.
+Thanks for reviewing it. My answers are in-lined with [SK] prefix.
 
-There is a lot of duplicity in the build systems and what not to
-support what is in many cases one or two .c files.
+Sarat
 
-Especially if you could get people to broadly agree on a bit of a
-'maintainer team' concept for the lot of it?
+On 2/12/2013 2:21 PM, Hal Rosenstock wrote:
+> On 2/12/2013 3:39 PM, Sarat Kakarla wrote:
+>> Add ib_resolve_noderecord_via wrapper similar to ib_resolve_portid_str_via
+>
+> Note that this patch depends on a patch previously submitted on 1/31 but
+> not yet accepted: "libibmad: Add NodeRecord query API" due to it's use
+> of ib_node_query_via below.
+>
+>> Signed-off-by: Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>
+>> --- include/infiniband/mad.h  2009-11-01 16:17:12.000000000 -0800
+>> +++ ../libibmad-1.3.3.wrapper/include/infiniband/mad.h  2013-02-07
+>> 10:32:05.000000000 -0800
+>> @@ -934,6 +934,8 @@
+>>       DEPRECATED;
+>>   MAD_EXPORT int ib_resolve_self(ib_portid_t * portid, int *portnum,
+>>               ibmad_gid_t * gid) DEPRECATED;
+>> +MAD_EXPORT int ib_resolve_noderecord_via(char *addr_str,
+>> +                                         const struct ibmad_port
+>> *srcport);
+>>
+>>   /* resolve.c new interface */
+>>   MAD_EXPORT int ib_resolve_smlid_via(ib_portid_t * sm_id, int timeout,
+>> --- src/libibmad.map  2009-10-29 18:18:01.000000000 -0700
+>> +++ ../libibmad-1.3.3.wrapper/src/libibmad.map  2013-02-11
+>> 10:47:13.000000000 -0800
+>> @@ -105,6 +105,7 @@
+>>      ib_resolve_gid_via;
+>>      ib_resolve_portid_str_via;
+>>      ib_resolve_self_via;
+>> +    ib_resolve_noderecord_via;
+>
+> Formatting looks wrong to me here and other places. Is this using spaces
+> rather than tabs ?
 
-FWIW, it is a huge pain to build enough of the RDMA libraries from
-scratch to get a working system. I have a script for it someplace, and
-it is long.. A single 'git clone' './configure' 'make' to have a
-working core user space would be wonderful.
+[SK] By habit I have used spaces I will replace them with the tabs.
 
-Jason
+>
+>>      mad_field_name;
+>>      bm_call_via;
+>>    local: *;
+>> --- src/resolve.c 2009-11-01 16:17:12.000000000 -0800
+>> +++ ../libibmad-1.3.3.wrapper/src/resolve.c 2013-02-11
+>> 10:46:10.000000000 -0800
+>> @@ -226,3 +226,21 @@
+>>   {
+>>    return ib_resolve_self_via(portid, portnum, gid, ibmp);
+>>   }
+>> +
+>> +int ib_resolve_noderecord_via(char *addr_str, const struct ibmad_port
+>> *srcport)
+>> +{
+>> +   uint64_t    guid;
+>> +   ib_portid_t sm_id;
+>> +   char        buf[IB_SA_DATA_SIZE] = { 0 };
+>> +
+>> +   if (!(guid = strtoull(addr_str, 0, 0)))
+>> +     return -1;
+>> +
+>> +   if (ib_resolve_smlid_via(&sm_id, MAD_DEF_TIMEOUT_MS, srcport) < 0)
+>
+> Should second parameter be timeout rather than MAD_DEF_TIMEOUT_MS ?
+
+[SK] I wanted to make ib_resolve_noderecord_via look like ib_resolve_portid_str_via API which does not take any timeout parameter.
+      I can pass '0' instead of MAD_DEF_TIMEOUT_MS, that's what passed as timeout to ib_resolve_guid_via function from  ib_resolve_portid_str_via function.
+
+>
+> -- Hal
+>
+>> +      return -1;
+>> +
+>> +   return ib_node_query_via(srcport, guid, &sm_id, buf);
+>> +}
+>> +
+>> +
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
