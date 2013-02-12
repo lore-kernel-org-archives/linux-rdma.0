@@ -1,56 +1,29 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V2 for-next 1/6] IB/ipoib: Fix ipoib_neigh hashing to
- use the correct daddr octets
-Date: Tue, 12 Feb 2013 16:33:23 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237368B9A045@ORSMSX101.amr.corp.intel.com>
-References: <1360079337-8173-1-git-send-email-ogerlitz@mellanox.com>
- <1360079337-8173-2-git-send-email-ogerlitz@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A8237368B99DDC@ORSMSX101.amr.corp.intel.com>
- <511A560D.8020900@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 2/6] IB/core: Add RSS and TSS QP groups
+Date: Tue, 12 Feb 2013 18:39:31 +0200
+Message-ID: <511A7043.2030008@mellanox.com>
+References: <1360079337-8173-1-git-send-email-ogerlitz@mellanox.com> <1360079337-8173-3-git-send-email-ogerlitz@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237368B99E0B@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <511A560D.8020900-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237368B99E0B-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On 2/11/2013 9:46 PM, Hefty, Sean wrote:
-> >> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> >> >+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> >> >@@ -844,10 +844,10 @@ static u32 ipoib_addr_hash(struct ipoib_neigh_hash
-> *htbl,
-> >> >u8 *daddr)
-> >> >  	 * different subnets.
-> >> >  	 */
-> >> >  	 /* qpn octets[1:4) & port GUID octets[12:20) */
-> >> >-	u32 *daddr_32 = (u32 *) daddr;
-> >> >+	u32 *d32 = (u32 *)daddr;
-> >> >  	u32 hv;
-> >> >
-> >> >-	hv = jhash_3words(daddr_32[3], daddr_32[4], 0xFFFFFF & daddr_32[0], 0);
-> >> >+	hv = jhash_3words(d32[3], d32[4], cpu_to_be32(0xFFFFFF) & d32[0], 0);
-> > Should d32 be declared as __be32 *?
-> Hi Sean,
-> 
-> The IPoIB destination address is indeed in big endian format and
-> normally the pointer to it should be of type __be32.
-> However in this case I just want to feed it into the hash function
-> without the flags part.
-> defining d32 as __be32* will make the code a bit ugly as I'll need to
-> cast 3 of "jhash_3words" functions arguments.
-> That is,
-> 
-> __be32 *d32;
-> ....
-> 
-> hv = jhash_3words((__force u32) d32[3], (__force u32) d32[4], (__force
-> u32)(cpu_to_be32(0xFFFFFF) & d32[0]), 0);
+On 11/02/2013 22:42, Hefty, Sean wrote:
+> or some QP creation flag, so that every user who wants to create a QP doesn't need to figure out what a QP group is and if their QP needs to be part of one?
+>
+> Then you wouldn't need to define IB_QPG_NONE.
+>   
+another point in favor of using different/dedicated field  for the QPG 
+creation flags, is that unlike the other QP
+creation flags, they aren't subject to logical or but rather an 
+exclusive or, that is a QP can't be both parent and child.
 
-Have you run the V2 patch through sparse?
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
