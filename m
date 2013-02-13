@@ -1,40 +1,47 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH] IB/lmx4: silence GCC warning
-Date: Wed, 13 Feb 2013 14:50:20 +0100
-Message-ID: <511B9A1C.6000402@acm.org>
-References: <1348836538.3626.21.camel@x61.thuisdomein>  <201210100923.43927.jackm@dev.mellanox.co.il> <1351504201.1339.4.camel@x61.thuisdomein>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v4 4/9] rdma/cm: Update port reservation to support AF_IB
+Date: Wed, 13 Feb 2013 17:44:58 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237368B9A40F@ORSMSX101.amr.corp.intel.com>
+References: <1358891797-14625-1-git-send-email-sean.hefty@intel.com>
+ <1358891797-14625-5-git-send-email-sean.hefty@intel.com>
+ <511B7474.3040201@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351504201.1339.4.camel@x61.thuisdomein>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <511B7474.3040201-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/29/12 10:50, Paul Bolle wrote:
-> On Wed, 2012-10-10 at 09:23 +0200, Jack Morgenstein wrote:
->> You could use:
->>
->>     u16 uninitialized_var(vlan);
->>
->> instead.
->
-> I guess we'd better just wait and see whether uninitialized_var()
-> survives before discussing your suggestion (see the thread starting at
-> https://lkml.org/lkml/2012/10/26/508 ).
->
->> Although this in the special QP data flow, I still prefer to avoid adding extra code (even setting
->> initial values at procedure entry).  The line above will also do the job.  "uninitialized_var"
->> is used elsewhere in the driver.  See, for example, mlx4_ib_post_send() in the same file (qp.c).
+> > The AF_IB uses a 64-bit service id (SID), which the
+> > user can control through the use of a mask.  The rdma_cm
+> > will assign values to the unmasked portions of the SID
+> > based on the selected port space and port number.
+> 
+> Something here I am not sure to follow -- if AF_IB consumers are allowed
+> to provide 64-bit SID, how
+> the IB port space is expressed in their SIDs?
 
-(replying to an e-mail of a few months ago)
+The spec, notably the RDMA CM Annex, provides fixed values for the upper 48-bits of the service ID.  Only the lower 16-bits are available to users.  The upper bits end up identifying the various 'port spaces'. 
 
-If there are no further objections I'd like to see this patch to go 
-upstream. It fixes an annoying compiler warning and I don't think that 
-this patch has a negative performance impact.
+(Note that there's no actual association between an IB port space and port spaces in the IP network stack.)
 
-Thanks,
+> Wouldn't it make sense to use a simpler approach that has a dedicated
+> IB_PS in the port space
+> portion of the RDMA-CM IP IBTA annex and let the consumer provide 16
+> bits for their part of the SID?
 
-Bart.
+Ultimately, IB establishes communication using 64-bit service IDs, which is what sockaddr_ib exposes.
+
+The SID mask was proposed by Jason as a way to simplify things.  Conceptually, AF_IB has a single port space range, the 64-bit SID.  The mask helps us break the SID into the various ranges, so we can clearly know which parts of the SID are fixed, and which can be variable.  E.g. when connecting, the entire SID must be provided.  However, when binding we want to support binding to a specific SID or only to a SID range (i.e. port space).
+
+(I'm having trouble finding the original email threads where this was discussed.)
+
+- Sean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
