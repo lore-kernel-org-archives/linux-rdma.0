@@ -1,55 +1,116 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: Remove Red Hat-ism.
-Date: Wed, 13 Feb 2013 14:11:13 -0800
-Message-ID: <20130213141113.e73d309c172c14591b997a13@llnl.gov>
-References: <1354566498-8364-1-git-send-email-jonstanley@gmail.com>
-	<20121203223547.GA3410@obsidianresearch.com>
-	<CALY6xnj_OYpQFiCSC4T3cY3yup6ZXXJR=QDDCaJN96gEyvFP5w@mail.gmail.com>
-	<CAGH67wTvYvvgzYGggab4XDyHtT-3M3KFoojth64kLyJDeCk8=w@mail.gmail.com>
-	<20121204181131.GC21196@obsidianresearch.com>
-	<CAGH67wQrOFpEK4PWK858tuf3yVEzr4D9kWoPuLJCte8wocpAkw@mail.gmail.com>
+Subject: Re: [PATCH] libibmad: Add NodeRecord query API
+Date: Wed, 13 Feb 2013 14:21:47 -0800
+Message-ID: <20130213142147.653df0ca629e3d450f9907a9@llnl.gov>
+References: <510A129E.4000600@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAGH67wQrOFpEK4PWK858tuf3yVEzr4D9kWoPuLJCte8wocpAkw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <510A129E.4000600-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jon Stanley <jonstanley-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 4 Dec 2012 11:48:18 -0800
-Garrett Cooper <yanegomi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+Due to the fact there is no corresponding patch to the diags I assume this is something you want to support other uses of libibmad?
 
-> On Tue, Dec 4, 2012 at 10:11 AM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > On Tue, Dec 04, 2012 at 08:31:19AM -0800, Garrett Cooper wrote:
-> >
-> >> Calling ``newname=$(hostname)`` would be better (assuming that the
-> >> network was setup enough where one could get this information).
-> >
-> > Calling hostname is always preferred to mucking about with files in
-> > /etc/. hostname never requires the network, hostname -f might
-> > sometimes.
-> 
-> Yes, but OSes don't set the hostname until a little later on in the
-> boot process (FreeBSD for instance), depending upon how the system was
-> first booted and the host's network configuration (DHCP*/SLAAC/etc).
-> That's more of what I was driving at when I said "assuming that the
-> network was setup enough where one could get this information".
+As this changes the API could you update libibmad.ver as well.
 
-set_nodedesc.sh was deprecated and moved to a compat build a while ago.
-
-As such I think the best thing to do is use hostname as Jason says and call it good.  I believe that users attempting to set the NodeDescription within boot scripts can do so with the sysfs files.
-
-Jon I would accept a patch if you would like to redo this one but I am going to reject the patch as it stands.
-
-Thanks,
 Ira
 
+On Thu, 31 Jan 2013 01:43:42 -0500
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+
+> Add ib_node_query_via routine similar to ib_path_query_via
 > 
-> Thanks,
-> -Garrett
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+> index 0694dc4..02b2353 100644
+> --- a/include/infiniband/mad.h
+> +++ b/include/infiniband/mad.h
+> @@ -65,6 +65,7 @@ BEGIN_C_DECLS
+>  #define IB_PC_DATA_SZ		(IB_MAD_SIZE - IB_PC_DATA_OFFS)
+>  #define IB_SA_MCM_RECSZ		53
+>  #define IB_SA_PR_RECSZ		64
+> +#define IB_SA_NR_RECSZ		108
+>  #define IB_SA_GIR_RECSZ		72
+>  #define IB_BM_DATA_OFFS		64
+>  #define IB_BM_DATA_SZ		(IB_MAD_SIZE - IB_BM_DATA_OFFS)
+> @@ -1519,6 +1542,9 @@ MAD_EXPORT int ib_path_query_via(const struct ibmad_port *srcport,
+>  				 ibmad_gid_t srcgid, ibmad_gid_t destgid,
+>  				 ib_portid_t * sm_id, void *buf);
+>  	/* returns lid */
+> +MAD_EXPORT int ib_node_query_via(const struct ibmad_port *srcport,
+> +				 uint64_t guid, ib_portid_t * sm_id,
+> +				 void *buf);
+>  
+>  /* resolve.c */
+>  MAD_EXPORT int ib_resolve_smlid(ib_portid_t * sm_id, int timeout) DEPRECATED;
+> diff --git a/src/libibmad.map b/src/libibmad.map
+> index a4d4418..3f92885 100644
+> --- a/src/libibmad.map
+> +++ b/src/libibmad.map
+> @@ -148,5 +148,6 @@ IBMAD_1.3 {
+>  		cc_config_status_via;
+>  		smp_mkey_get;
+>  		smp_mkey_set;
+> +		ib_node_query_via;
+>  	local: *;
+>  };
+> diff --git a/src/sa.c b/src/sa.c
+> index a9a93cc..352ed9f 100644
+> --- a/src/sa.c
+> +++ b/src/sa.c
+> @@ -145,3 +145,47 @@ int ib_path_query(ibmad_gid_t srcgid, ibmad_gid_t destgid, ib_portid_t * sm_id,
+>  {
+>  	return ib_path_query_via(ibmp, srcgid, destgid, sm_id, buf);
+>  }
+> +
+> +/* NodeRecord */
+> +#define IB_NR_COMPMASK_LID				(1ull<<0)
+> +#define IB_NR_COMPMASK_RESERVED1			(1ull<<1)
+> +#define IB_NR_COMPMASK_BASEVERSION			(1ull<<2)
+> +#define IB_NR_COMPMASK_CLASSVERSION			(1ull<<3)
+> +#define IB_NR_COMPMASK_NODETYPE				(1ull<<4)
+> +#define IB_NR_COMPMASK_NUMPORTS				(1ull<<5)
+> +#define IB_NR_COMPMASK_SYSIMAGEGUID			(1ull<<6)
+> +#define IB_NR_COMPMASK_NODEGUID				(1ull<<7)
+> +#define IB_NR_COMPMASK_PORTGUID				(1ull<<8)
+> +#define IB_NR_COMPMASK_PARTCAP				(1ull<<9)
+> +#define IB_NR_COMPMASK_DEVID				(1ull<<10)
+> +#define IB_NR_COMPMASK_REV				(1ull<<11)
+> +#define IB_NR_COMPMASK_PORTNUM				(1ull<<12)
+> +#define IB_NR_COMPMASK_VENDID				(1ull<<13)
+> +#define IB_NR_COMPMASK_NODEDESC				(1ull<<14)
+> +
+> +#define IB_NR_DEF_MASK IB_NR_COMPMASK_PORTGUID
+> +
+> +int ib_node_query_via(const struct ibmad_port *srcport, uint64_t guid,
+> +		      ib_portid_t * sm_id, void *buf)
+> +{
+> +	ib_sa_call_t sa = { 0 };
+> +	uint8_t *p;
+> +
+> +	memset(&sa, 0, sizeof sa);
+> +	sa.method = IB_MAD_METHOD_GET;
+> +	sa.attrid = IB_SA_ATTR_NODERECORD;
+> +	sa.mask = IB_NR_DEF_MASK;
+> +	sa.trid = mad_trid();
+> +
+> +	memset(buf, 0, IB_SA_NR_RECSZ);
+> +
+> +	mad_encode_field(buf, IB_SA_NR_PORT_GUID_F, &guid);
+> +
+> +	p = sa_rpc_call(srcport, buf, sm_id, &sa, 0);
+> +	if (!p) {
+> +		IBWARN("sa call node_query failed");
+> +		return -1;
+> +	}
+> +
+> +	return 0;
+> +}
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
