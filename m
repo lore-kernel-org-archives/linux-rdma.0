@@ -1,47 +1,49 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 4/9] rdma/cm: Update port reservation to support AF_IB
-Date: Wed, 13 Feb 2013 17:44:58 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237368B9A40F@ORSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v4 4/9] rdma/cm: Update port reservation to support AF_IB
+Date: Wed, 13 Feb 2013 11:10:48 -0700
+Message-ID: <20130213181048.GC1601@obsidianresearch.com>
 References: <1358891797-14625-1-git-send-email-sean.hefty@intel.com>
  <1358891797-14625-5-git-send-email-sean.hefty@intel.com>
  <511B7474.3040201@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A8237368B9A40F@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <511B7474.3040201-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237368B9A40F@ORSMSX101.amr.corp.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Hefty, Sean" <sean.hefty@intel.com>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > The AF_IB uses a 64-bit service id (SID), which the
-> > user can control through the use of a mask.  The rdma_cm
-> > will assign values to the unmasked portions of the SID
-> > based on the selected port space and port number.
+On Wed, Feb 13, 2013 at 05:44:58PM +0000, Hefty, Sean wrote:
+
+> Ultimately, IB establishes communication using 64-bit service IDs, which is what sockaddr_ib exposes.
 > 
-> Something here I am not sure to follow -- if AF_IB consumers are allowed
-> to provide 64-bit SID, how
-> the IB port space is expressed in their SIDs?
+> The SID mask was proposed by Jason as a way to simplify things.
+> Conceptually, AF_IB has a single port space range, the 64-bit SID.
+> The mask helps us break the SID into the various ranges, so we can
+> clearly know which parts of the SID are fixed, and which can be
+> variable.  E.g. when connecting, the entire SID must be provided.
+> However, when binding we want to support binding to a specific SID
+> or only to a SID range (i.e. port space).
 
-The spec, notably the RDMA CM Annex, provides fixed values for the upper 48-bits of the service ID.  Only the lower 16-bits are available to users.  The upper bits end up identifying the various 'port spaces'. 
+Right. AF_IB is about exposing the native IB CM, rather than a cooked
+version of it, so allowing user space to control the entire SID is
+desirable.
 
-(Note that there's no actual association between an IB port space and port spaces in the IP network stack.)
+The intent of the masking was to provide a means for the kernel to
+atomically select a process-unique ID (such as the 16 bits the IP
+varient requires) for listening.
 
-> Wouldn't it make sense to use a simpler approach that has a dedicated
-> IB_PS in the port space
-> portion of the RDMA-CM IP IBTA annex and let the consumer provide 16
-> bits for their part of the SID?
+Other uses of IB CM would use a different prefix, but will still
+fundamentally require a machine unique portion.
 
-Ultimately, IB establishes communication using 64-bit service IDs, which is what sockaddr_ib exposes.
+This addresses a fundamental problem in ib_ucm - there is no way for
+multiple processes to co-ordinate on unique SIDs.
 
-The SID mask was proposed by Jason as a way to simplify things.  Conceptually, AF_IB has a single port space range, the 64-bit SID.  The mask helps us break the SID into the various ranges, so we can clearly know which parts of the SID are fixed, and which can be variable.  E.g. when connecting, the entire SID must be provided.  However, when binding we want to support binding to a specific SID or only to a SID range (i.e. port space).
+Sean, I've lost track of all this over time, but just to check in,
+with this new interface, would it be possible to obsolete ib_ucm? That
+seems desirable to me, as it is so flawed..
 
-(I'm having trouble finding the original email threads where this was discussed.)
-
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
