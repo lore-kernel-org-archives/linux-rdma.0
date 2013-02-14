@@ -1,162 +1,86 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] libibmad: Add NodeRecord query API
-Date: Wed, 13 Feb 2013 19:33:33 -0500
-Message-ID: <511C30DD.2090808@dev.mellanox.co.il>
-References: <510A129E.4000600@dev.mellanox.co.il> <20130213142147.653df0ca629e3d450f9907a9@llnl.gov> <511C1EC2.5000608@dev.mellanox.co.il> <20130213152117.a7e9828bcf6069b1604d2f36@llnl.gov>
+Subject: [PATCHv2] infiniband-diags/saquery: Add support for ServiceID in
+ PathRecord querying
+Date: Wed, 13 Feb 2013 19:43:27 -0500
+Message-ID: <511C332F.8020006@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130213152117.a7e9828bcf6069b1604d2f36-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/13/2013 6:21 PM, Ira Weiny wrote:
-> On Wed, 13 Feb 2013 18:16:18 -0500
-> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> 
->> On 2/13/2013 5:21 PM, Ira Weiny wrote:
->>> Due to the fact there is no corresponding patch to the diags I assume this is something you want to support other uses of libibmad?
->>
->> It's in out of tree apps.
->>
->>> As this changes the API could you update libibmad.ver as well.
->>
->> I thought that this is done once right before the new release is cut.
->> Otherwise, there is the possibility of too many version updates.
-> 
-> I would rather do it on the first change then all builds with this lib are versioned correctly.  Also, if you do it just before release you have to review all the patches to see if/how they affect the api.
 
-I'll do this if that's what you want but:
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Change since v1:
+Added change for man page
 
-http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-
-states:
-
-Here are a set of rules to help you update your library version
-information:
-
-Update the version information only immediately before a public release
-of your software. More frequent updates are unnecessary, and only
-guarantee that the current interface number gets larger faster.
-
--- Hal
-
-> Ira
-> 
->>
->> -- Hal
->>
->>> Ira
->>>
->>> On Thu, 31 Jan 2013 01:43:42 -0500
->>> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>>
->>>> Add ib_node_query_via routine similar to ib_path_query_via
->>>>
->>>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>> ---
->>>> diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
->>>> index 0694dc4..02b2353 100644
->>>> --- a/include/infiniband/mad.h
->>>> +++ b/include/infiniband/mad.h
->>>> @@ -65,6 +65,7 @@ BEGIN_C_DECLS
->>>>  #define IB_PC_DATA_SZ		(IB_MAD_SIZE - IB_PC_DATA_OFFS)
->>>>  #define IB_SA_MCM_RECSZ		53
->>>>  #define IB_SA_PR_RECSZ		64
->>>> +#define IB_SA_NR_RECSZ		108
->>>>  #define IB_SA_GIR_RECSZ		72
->>>>  #define IB_BM_DATA_OFFS		64
->>>>  #define IB_BM_DATA_SZ		(IB_MAD_SIZE - IB_BM_DATA_OFFS)
->>>> @@ -1519,6 +1542,9 @@ MAD_EXPORT int ib_path_query_via(const struct ibmad_port *srcport,
->>>>  				 ibmad_gid_t srcgid, ibmad_gid_t destgid,
->>>>  				 ib_portid_t * sm_id, void *buf);
->>>>  	/* returns lid */
->>>> +MAD_EXPORT int ib_node_query_via(const struct ibmad_port *srcport,
->>>> +				 uint64_t guid, ib_portid_t * sm_id,
->>>> +				 void *buf);
->>>>  
->>>>  /* resolve.c */
->>>>  MAD_EXPORT int ib_resolve_smlid(ib_portid_t * sm_id, int timeout) DEPRECATED;
->>>> diff --git a/src/libibmad.map b/src/libibmad.map
->>>> index a4d4418..3f92885 100644
->>>> --- a/src/libibmad.map
->>>> +++ b/src/libibmad.map
->>>> @@ -148,5 +148,6 @@ IBMAD_1.3 {
->>>>  		cc_config_status_via;
->>>>  		smp_mkey_get;
->>>>  		smp_mkey_set;
->>>> +		ib_node_query_via;
->>>>  	local: *;
->>>>  };
->>>> diff --git a/src/sa.c b/src/sa.c
->>>> index a9a93cc..352ed9f 100644
->>>> --- a/src/sa.c
->>>> +++ b/src/sa.c
->>>> @@ -145,3 +145,47 @@ int ib_path_query(ibmad_gid_t srcgid, ibmad_gid_t destgid, ib_portid_t * sm_id,
->>>>  {
->>>>  	return ib_path_query_via(ibmp, srcgid, destgid, sm_id, buf);
->>>>  }
->>>> +
->>>> +/* NodeRecord */
->>>> +#define IB_NR_COMPMASK_LID				(1ull<<0)
->>>> +#define IB_NR_COMPMASK_RESERVED1			(1ull<<1)
->>>> +#define IB_NR_COMPMASK_BASEVERSION			(1ull<<2)
->>>> +#define IB_NR_COMPMASK_CLASSVERSION			(1ull<<3)
->>>> +#define IB_NR_COMPMASK_NODETYPE				(1ull<<4)
->>>> +#define IB_NR_COMPMASK_NUMPORTS				(1ull<<5)
->>>> +#define IB_NR_COMPMASK_SYSIMAGEGUID			(1ull<<6)
->>>> +#define IB_NR_COMPMASK_NODEGUID				(1ull<<7)
->>>> +#define IB_NR_COMPMASK_PORTGUID				(1ull<<8)
->>>> +#define IB_NR_COMPMASK_PARTCAP				(1ull<<9)
->>>> +#define IB_NR_COMPMASK_DEVID				(1ull<<10)
->>>> +#define IB_NR_COMPMASK_REV				(1ull<<11)
->>>> +#define IB_NR_COMPMASK_PORTNUM				(1ull<<12)
->>>> +#define IB_NR_COMPMASK_VENDID				(1ull<<13)
->>>> +#define IB_NR_COMPMASK_NODEDESC				(1ull<<14)
->>>> +
->>>> +#define IB_NR_DEF_MASK IB_NR_COMPMASK_PORTGUID
->>>> +
->>>> +int ib_node_query_via(const struct ibmad_port *srcport, uint64_t guid,
->>>> +		      ib_portid_t * sm_id, void *buf)
->>>> +{
->>>> +	ib_sa_call_t sa = { 0 };
->>>> +	uint8_t *p;
->>>> +
->>>> +	memset(&sa, 0, sizeof sa);
->>>> +	sa.method = IB_MAD_METHOD_GET;
->>>> +	sa.attrid = IB_SA_ATTR_NODERECORD;
->>>> +	sa.mask = IB_NR_DEF_MASK;
->>>> +	sa.trid = mad_trid();
->>>> +
->>>> +	memset(buf, 0, IB_SA_NR_RECSZ);
->>>> +
->>>> +	mad_encode_field(buf, IB_SA_NR_PORT_GUID_F, &guid);
->>>> +
->>>> +	p = sa_rpc_call(srcport, buf, sm_id, &sa, 0);
->>>> +	if (!p) {
->>>> +		IBWARN("sa call node_query failed");
->>>> +		return -1;
->>>> +	}
->>>> +
->>>> +	return 0;
->>>> +}
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
+diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst
+index cf784f0..5034475 100644
+--- a/doc/rst/saquery.8.in.rst
++++ b/doc/rst/saquery.8.in.rst
+@@ -135,6 +135,8 @@ OPTIONS
+ 
+ **--proxy_join** Proxy join (MCMemberRecord)
+ 
++**--service_id** ServiceID (PathRecord)
++
+ Supported query names (and aliases):
+ 
+ ::
+@@ -205,4 +207,4 @@ Ira Weiny
+         < weiny2-i2BcT+NCU+M@public.gmane.org >
+ 
+ Hal Rosenstock
+-        < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
++        < halr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
+diff --git a/src/saquery.c b/src/saquery.c
+index d24694a..72a0fe9 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -60,7 +60,13 @@
+ #include "ibdiag_common.h"
+ #include "ibdiag_sa.h"
+ 
++#ifndef IB_PR_COMPMASK_SERVICEID
++#define IB_PR_COMPMASK_SERVICEID (IB_PR_COMPMASK_SERVICEID_MSB | \
++				  IB_PR_COMPMASK_SERVICEID_LSB)
++#endif
++
+ struct query_params {
++	uint64_t service_id;
+ 	ib_gid_t sgid, dgid, gid, mgid;
+ 	uint16_t slid, dlid, mlid;
+ 	uint32_t flow_label;
+@@ -981,6 +987,7 @@ static int query_path_records(const struct query_cmd *q, struct sa_handle * h,
+ 	uint8_t reversible = 0;
+ 
+ 	memset(&pr, 0, sizeof(pr));
++	CHECK_AND_SET_VAL(p->service_id, 64, 0, pr.service_id, PR, SERVICEID);
+ 	CHECK_AND_SET_GID(p->sgid, pr.sgid, PR, SGID);
+ 	CHECK_AND_SET_GID(p->dgid, pr.dgid, PR, DGID);
+ 	CHECK_AND_SET_VAL(p->slid, 16, 0, pr.slid, PR, SLID);
+@@ -1551,6 +1558,9 @@ static int process_opt(void *context, int ch, char *optarg)
+ 	case 'X':
+ 		p->proxy_join = strtoul(optarg, NULL, 0);
+ 		break;
++	case 22:
++		p->service_id = strtoull(optarg, NULL, 0);
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -1633,6 +1643,7 @@ int main(int argc, char **argv)
+ 		{"scope", 21, 1, NULL, "Scope (MCMemberRecord)"},
+ 		{"join_state", 'J', 1, NULL, "Join state (MCMemberRecord)"},
+ 		{"proxy_join", 'X', 1, NULL, "Proxy join (MCMemberRecord)"},
++		{"service_id", 22, 1, NULL, "ServiceID (PathRecord)"},
+ 		{0}
+ 	};
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
