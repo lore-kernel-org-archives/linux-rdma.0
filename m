@@ -1,236 +1,141 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED-3.5 is available
-Date: Thu, 14 Feb 2013 18:59:39 +0200
-Message-ID: <511D17FB.2060705@dev.mellanox.co.il>
-References: <5108060C.1000505@dev.mellanox.co.il>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCHv2] libibmad: Add NodeRecord query API
+Date: Thu, 14 Feb 2013 18:44:42 -0800
+Message-ID: <20130214184442.955559f1ffc96fd3d2412bc8@llnl.gov>
+References: <511C367D.9020904@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090601090602000906050407"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5108060C.1000505-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <511C367D.9020904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090601090602000906050407
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wed, 13 Feb 2013 19:57:33 -0500
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-Hi,
-OFED 3.5 is available.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The tarball is available on:
-http://www.openfabrics.org/downloads/OFED/ofed-3.5/OFED-3.5.tgz
+Thanks applied,
+Ira
 
-To get BUILD_ID run ofed_info
+> ---
+> Change since v1:
+> Added change to libibmad.ver
+> 
+> diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+> index 0694dc4..18ba6d8 100644
+> --- a/include/infiniband/mad.h
+> +++ b/include/infiniband/mad.h
+> @@ -65,6 +65,7 @@ BEGIN_C_DECLS
+>  #define IB_PC_DATA_SZ		(IB_MAD_SIZE - IB_PC_DATA_OFFS)
+>  #define IB_SA_MCM_RECSZ		53
+>  #define IB_SA_PR_RECSZ		64
+> +#define IB_SA_NR_RECSZ		108
+>  #define IB_SA_GIR_RECSZ		72
+>  #define IB_BM_DATA_OFFS		64
+>  #define IB_BM_DATA_SZ		(IB_MAD_SIZE - IB_BM_DATA_OFFS)
+> @@ -1519,6 +1520,9 @@ MAD_EXPORT int ib_path_query_via(const struct
+> ibmad_port *srcport,
+>  				 ibmad_gid_t srcgid, ibmad_gid_t destgid,
+>  				 ib_portid_t * sm_id, void *buf);
+>  	/* returns lid */
+> +MAD_EXPORT int ib_node_query_via(const struct ibmad_port *srcport,
+> +				 uint64_t guid, ib_portid_t * sm_id,
+> +				 void *buf);
+> 
+>  /* resolve.c */
+>  MAD_EXPORT int ib_resolve_smlid(ib_portid_t * sm_id, int timeout)
+> DEPRECATED;
+> diff --git a/libibmad.ver b/libibmad.ver
+> index 7315f62..11698ff 100644
+> --- a/libibmad.ver
+> +++ b/libibmad.ver
+> @@ -6,4 +6,4 @@
+>  # API_REV - advance on any added API
+>  # RUNNING_REV - advance any change to the vendor files
+>  # AGE - number of backward versions the API still supports
+> -LIBVERSION=8:1:3
+> +LIBVERSION=9:0:4
+> diff --git a/src/libibmad.map b/src/libibmad.map
+> index a4d4418..5ad3dba 100644
+> --- a/src/libibmad.map
+> +++ b/src/libibmad.map
+> @@ -148,5 +148,6 @@ IBMAD_1.3 {
+>  		cc_config_status_via;
+>  		smp_mkey_get;
+>  		smp_mkey_set;
+> +		ib_node_query_via;
+>  	local: *;
+>  };
+> diff --git a/src/sa.c b/src/sa.c
+> index a9a93cc..352ed9f 100644
+> --- a/src/sa.c
+> +++ b/src/sa.c
+> @@ -145,3 +145,47 @@ int ib_path_query(ibmad_gid_t srcgid, ibmad_gid_t
+> destgid, ib_portid_t * sm_id,
+>  {
+>  	return ib_path_query_via(ibmp, srcgid, destgid, sm_id, buf);
+>  }
+> +
+> +/* NodeRecord */
+> +#define IB_NR_COMPMASK_LID				(1ull<<0)
+> +#define IB_NR_COMPMASK_RESERVED1			(1ull<<1)
+> +#define IB_NR_COMPMASK_BASEVERSION			(1ull<<2)
+> +#define IB_NR_COMPMASK_CLASSVERSION			(1ull<<3)
+> +#define IB_NR_COMPMASK_NODETYPE				(1ull<<4)
+> +#define IB_NR_COMPMASK_NUMPORTS				(1ull<<5)
+> +#define IB_NR_COMPMASK_SYSIMAGEGUID			(1ull<<6)
+> +#define IB_NR_COMPMASK_NODEGUID				(1ull<<7)
+> +#define IB_NR_COMPMASK_PORTGUID				(1ull<<8)
+> +#define IB_NR_COMPMASK_PARTCAP				(1ull<<9)
+> +#define IB_NR_COMPMASK_DEVID				(1ull<<10)
+> +#define IB_NR_COMPMASK_REV				(1ull<<11)
+> +#define IB_NR_COMPMASK_PORTNUM				(1ull<<12)
+> +#define IB_NR_COMPMASK_VENDID				(1ull<<13)
+> +#define IB_NR_COMPMASK_NODEDESC				(1ull<<14)
+> +
+> +#define IB_NR_DEF_MASK IB_NR_COMPMASK_PORTGUID
+> +
+> +int ib_node_query_via(const struct ibmad_port *srcport, uint64_t guid,
+> +		      ib_portid_t * sm_id, void *buf)
+> +{
+> +	ib_sa_call_t sa = { 0 };
+> +	uint8_t *p;
+> +
+> +	memset(&sa, 0, sizeof sa);
+> +	sa.method = IB_MAD_METHOD_GET;
+> +	sa.attrid = IB_SA_ATTR_NODERECORD;
+> +	sa.mask = IB_NR_DEF_MASK;
+> +	sa.trid = mad_trid();
+> +
+> +	memset(buf, 0, IB_SA_NR_RECSZ);
+> +
+> +	mad_encode_field(buf, IB_SA_NR_PORT_GUID_F, &guid);
+> +
+> +	p = sa_rpc_call(srcport, buf, sm_id, &sa, 0);
+> +	if (!p) {
+> +		IBWARN("sa call node_query failed");
+> +		return -1;
+> +	}
+> +
+> +	return 0;
+> +}
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Please report any issues in bugzilla https://bugs.openfabrics.org/ for OFED 3.5
 
-OFED-3.5 Main Changes from OFED 1.5.4.1 and 1.5.4
--------------------------------------------------------------------------------
-1. Based on linux-3.5 kernel
-2. kernel-ib RPM renamed to compat-rdma
-3. Removed MPI packages and tests
-4. Removed SDP kernel module and libsdp, sdpnetstat
-5. XRC is supported in kernel only
-
-6. Removed support for the OSes:
-    - RHEL 5.X
-    - SLES 10 SPx
-7. Updated packages:
-    - libibverbs-1.1.6
-    - librdmacm-1.0.16
-    - ibacm-1.0.7
-    - dapl-2.0.36
-    - opensm-3.3.15
-    - infiniband-diags-1.6.1
-    - libibmad-1.3.9
-    - libibumad-1.3.8
-    - infinipath-psm-3.1-364.1140_open
-    - libmlx4-1.0.4
-    - mstflint-1.4-1.23.g5c2032a
-    - perftest-2.0-0.27.g2edd80a
-    - qperf-0.4.9
-
-
-
-Regards,
-Vladimir
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---------------090601090602000906050407
-Content-Type: text/plain; charset=UTF-8;
- name="OFED_release_notes.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="OFED_release_notes.txt"
-
-CSAgICBPcGVuIEZhYnJpY3MgRW50ZXJwcmlzZSBEaXN0cmlidXRpb24gKE9GRUQpCgkgICAg
-ICAgICAgICAgICBWZXJzaW9uIDMuNQoJICAgICAgICAgICAgICAgUmVsZWFzZSBOb3RlcwoJ
-ICAgICAgICAgICAgICAgRmVicnVhcnkgMjAxMwoKCj09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0KVGFibGUgb2YgQ29udGVudHMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoxLiBPdmVy
-dmlldywgd2hpY2ggaW5jbHVkZXM6CgktIE9GRUQgRGlzdHJpYnV0aW9uIFJldiAzLjUgQ29u
-dGVudHMKCS0gU3VwcG9ydGVkIFBsYXRmb3JtcyBhbmQgT3BlcmF0aW5nIFN5c3RlbXMKCS0g
-U3VwcG9ydGVkIEhDQSBhbmQgUk5JQyBBZGFwdGVyIENhcmRzIGFuZCBGaXJtd2FyZSBWZXJz
-aW9ucwoJLSBUZXN0ZWQgU3dpdGNoIFBsYXRmb3JtcwoJLSBUaGlyZCBwYXJ0eSBUZXN0IFBh
-Y2thZ2VzCgktIE9GRUQgc291cmNlcwoyLiBDaGFuZ2UgbG9nCjMuIEtub3duIElzc3VlcwoK
-Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT0KMS4gT3ZlcnZpZXcKPT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PQpUaGVzZSBhcmUgdGhlIHJlbGVhc2Ugbm90ZXMgb2YgT3BlbkZhYnJpY3Mg
-RW50ZXJwcmlzZSBEaXN0cmlidXRpb24gKE9GRUQpCnJlbGVhc2UgMy41LiBUaGUgT0ZFRCBz
-b2Z0d2FyZSBwYWNrYWdlIGlzIGNvbXBvc2VkIG9mIHNldmVyYWwgc29mdHdhcmUgbW9kdWxl
-cywKYW5kIGlzIGludGVuZGVkIGZvciB1c2Ugb24gYSBjb21wdXRlciBjbHVzdGVyIGNvbnN0
-cnVjdGVkIGFzIGFuIEluZmluaUJhbmQKRmFicmljLCBhbiBpV0FSUCBOZXR3b3JrIG9yIGEg
-Um9DRSBGYWJyaWMuCgpOb3RlOiBJZiB5b3UgcGxhbiB0byB1cGdyYWRlIHRoZSBPRkVEIHBh
-Y2thZ2Ugb24geW91ciBjbHVzdGVyLCBwbGVhc2UgdXBncmFkZQphbGwgb2YgaXRzIG5vZGVz
-IHRvIHRoaXMgbmV3IHZlcnNpb24uCgoKMS4xIE9GRUQgMy41IENvbnRlbnRzCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tClRoZSBPRkVEIHBhY2thZ2UgY29udGFpbnMgdGhlIGZvbGxvd2lu
-ZyBjb21wb25lbnRzOgogLSBPcGVuRmFicmljcyBjb3JlIGFuZCBVTFBzOgoJLSBJQiBIQ0Eg
-ZHJpdmVycyAobXRoY2EsIG1seDQsIHFpYiwgZWhjYSkKCS0gaVdBUlAgUk5JQyBkcml2ZXIg
-KGN4Z2IzLCBjeGdiNCwgbmVzKQoJLSBSb0NFIGRyaXZlcnMgKG1seDQpCi0gaWIgY29yZQoJ
-LSBVcHBlciBMYXllciBQcm90b2NvbHM6IElQb0lCLCBTUlAgSW5pdGlhdG9yIGFuZCB0YXJn
-ZXQsIGlTRVIKCSAgSW5pdGlhdG9yIGFuZCB0YXJnZXQsIFJEUywgdURBUEwsIHFsZ2Nfdm5p
-YyBhbmQgTkZTLVJETUEqLgogLSBPcGVuRmFicmljcyB1dGlsaXRpZXM6CgktIE9wZW5TTSAo
-T1NNKTogSW5maW5pQmFuZCBTdWJuZXQgTWFuYWdlcgoJLSBEaWFnbm9zdGljIHRvb2xzCgkt
-IFBlcmZvcm1hbmNlIHRlc3RzCiAtIEV4dHJhIHBhY2thZ2VzOgoJLSBpbmZpbmlwYXRoLXBz
-bTogUGVyZm9ybWFuY2UtU2NhbGVkIE1lc3NhZ2luZyBBUEksIGFuIGFjY2VsZXJhdGVkCgkg
-IGludGVyZmFjZSB0byBJbnRlbChSKSBIQ0FzCiAtIFNvdXJjZXMgb2YgYWxsIHNvZnR3YXJl
-IG1vZHVsZXMgKHVuZGVyIGNvbmRpdGlvbnMgbWVudGlvbmVkIGluIHRoZSBtb2R1bGVzJwog
-ICBMSUNFTlNFIGZpbGVzKQogLSBEb2N1bWVudGF0aW9uCgoKMS4yIFN1cHBvcnRlZCBQbGF0
-Zm9ybXMgYW5kIE9wZXJhdGluZyBTeXN0ZW1zCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLQogIG8gICBDUFUgYXJjaGl0ZWN0dXJlczoKCS0geDg2XzY0
-CgktIHg4NgoJLSBwcGM2NAoKICBvICAgTGludXggT3BlcmF0aW5nIFN5c3RlbXM6CgktIFJl
-ZEhhdCBFTDYuMiAJCTIuNi4zMi0yMjAuZWw2CgktIFJlZEhhdCBFTDYuMyAJCTIuNi4zMi0y
-NzkuZWw2CgktIFNMRVMxMSBTUDIgCQkzLjAuMTMtMC4yNy1kZWZhdWx0CgktIGtlcm5lbC5v
-cmcJCTMuNSAgICAqCgogICAgICAqIE1pbmltYWwgUUEgZm9yIHRoZXNlIHZlcnNpb25zLgoK
-MS4zIEhDQXMgYW5kIFJOSUNzIFN1cHBvcnRlZAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tClRoaXMgcmVsZWFzZSBzdXBwb3J0cyBJQiBIQ0FzIGJ5IElCTSwgSW50ZWwgYW5kIE1l
-bGxhbm94IFRlY2hub2xvZ2llcywgaVdBUlAgUk5JQ3MgYnkgQ2hlbHNpbyBDb21tdW5pY2F0
-aW9ucyBhbmQgSW50ZWwgYW5kIFJvQ0UgYWRhcHRlcnMgYnkgSUJNIGFuZCBNZWxsYW5veC4K
-CkluZmluaUJhbmQgQWRhcHRlcnMKICBvICAgSUJNIEhDQXM6CgktIEdYIER1YWwtcG9ydCBT
-RFIgNHggSUIgSENBCgktIEdYIER1YWwtcG9ydCBTRFIgMTJ4IElCIEhDQQoJLSBHWCBEdWFs
-LXBvcnQgRERSIDR4IElCIEhDQQoJLSBHWCBEdWFsLXBvcnQgRERSIDEyeCBJQiBIQ0EKCiAg
-byAgIEludGVsIChmb3JtZXJseSBRTG9naWMpIEhDQXM6CgktIEludGVsKFIpIFRydWUgU2Nh
-bGUgRERSIFBDSWUgeDggYW5kIHgxNiBIQ0FzCgktIEludGVsKFIpIFRydWUgU2NhbGUgUURS
-IFBDSWUgeDggR2VuMiBIQ0FzCgogIG8gICBNZWxsYW5veCBUZWNobm9sb2dpZXMgSENBcyAo
-U0RSLCBERFIgYW5kIFFEUiBNb2RlcyBhcmUgU3VwcG9ydGVkKToKLSBDb25uZWN0WChSKSBh
-bmQgQ29ubmVjdFggRU4gKGZ3LTI1NDA4IFJldiAyLjkuMTAwMCkKCS0gQ29ubmVjdFgtMiAo
-ZnctQ29ubmVjdFgyIFJldiAyLjkuMTAwMCkKCS0gQ29ubmVjdFgtMyAoZnctQ29ubmVjdFgz
-IFJldiAyLjExLjA1MDApIChGRFIgYW5kIEZEUjEwIE1vZGVzIGFyZSBTdXBwb3J0ZWQpCgoJ
-Rm9yIG9mZmljaWFsIGZpcm13YXJlIHZlcnNpb25zIHBsZWFzZSBzZWU6CglodHRwOi8vd3d3
-Lm1lbGxhbm94LmNvbS9jb250ZW50L3BhZ2VzLnBocD9wZz1maXJtd2FyZV9kb3dubG9hZAoK
-aVdBUlAgQWRhcHRlcnMKICBvICAgQ2hlbHNpbyBSTklDczoKCS0gUzMxMC9TMzIwIDEwR2JF
-IFN0b3JhZ2UgQWNjZWxlcmF0b3JzCgktIFIzMTAvUjMyMCAxMEdiRSBpV0FSUCBBZGFwdGVy
-cwotIFQ0IEJhc2VkIEFkYXB0ZXJzIHdpdGggdGhlIGV4Y2VwdGlvbiBvZiB0aGUgVDQyMC1T
-Ty1DUgoKICBvICAgSW50ZWwgUk5JQ3M6CgktIE5FMDIwIDEwR2IgaVdBUlAgQWRhcHRlcgoK
-ClJvQ0UgQWRhcHRlcnMKIG8gICBJQk0KLSBJQk0gRmxleCBTeXN0ZW0gRU40MTMyIDItcG9y
-dCAxMCBHYkUgUm9DRQotIElCTSBFTDI3IFBDSWUgTFAgMi1Qb3J0IDEwR2JFIFJvQ0UgU0ZQ
-KyBhZGFwdGVyCi0gSUJNIEVDMjggUENJZSAyLVBvcnQgMTBHYkUgUm9DRSBTRlArIGFkYXB0
-ZXIKCiAgbyAgIE1lbGxhbm94Ci0gQ29ubmVjdFgtMiBFTiAoZnctQ29ubmVjdFgyIFJldiAy
-LjkuMTIwMCkKCS0gQ29ubmVjdFgtMyBFTiAoZnctQ29ubmVjdFgzIFJldiAyLjExLjA1MDAp
-CgoxLjQgU3dpdGNoZXMgU3VwcG9ydGVkCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVGhpcyBy
-ZWxlYXNlIHdhcyB0ZXN0ZWQgd2l0aCBzd2l0Y2hlcyBhbmQgZ2F0ZXdheXMgcHJvdmlkZWQg
-YnkgdGhlIGZvbGxvd2luZwpjb21wYW5pZXM6CkluZmluaUJhbmQgU3dpdGNoZXMKICBvICAg
-RmxleHRyb25pY3MKCS0gRi1YNDMwMDQ0CiAgbyAgIEludGVsIChmb3JtZXJseSBRTG9naWMp
-Ci0gMTIyMDAKICBvICAgTWVsbGFub3gKLSBJUy01MDMwCi0gU1g2MDI1Ci0gU1g2MDM2Cgpp
-V0FSUCBTd2l0Y2hlcwogIG8gICBGdWppdGlzdQotIFhHMjAwMEMgMTBHYiBFdGhlcm5ldCBT
-d2l0Y2gKClJvQ0UgU3dpdGNoZXMKICBvICAgQXJpc3RhCiAgbyAgIEJMQURFIE5ldHdvcmsg
-VGVjaG5vbG9naWVzIChCTlQpCiAgbyAgIE1lbGxhbm94Ci0gU1gxMDM2Ci0gU1gxMDI0Ci0g
-U1gxMDE2CgoxLjUgVGhpcmQgUGFydHkgUGFja2FnZXMKLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tClRoZSBmb2xsb3dpbmcgdGhpcmQgcGFydHkgcGFja2FnZXMgaGF2ZSBiZWVuIHRlc3Rl
-ZCB3aXRoIE9GRUQgMy41OgotIE1WQVBJQ0gyIC0gMS44Ci0gSW50ZWwgTVBJIC0gNC4xCi0g
-T3BlbiBNUEkgLSAxLjYvMS42LjEKCjEuNiBPRkVEIFNvdXJjZXMKLS0tLS0tLS0tLS0tLS0t
-LQpBbGwgc291cmNlcyBhcmUgbG9jYXRlZCB1bmRlciBnaXQ6Ly9naXQub3BlbmZhYnJpY3Mu
-b3JnLwoKTGludXg6Ci0tLS0tLQpVUkw6IGdpdDovL2dpdC5vcGVuZmFicmljcy5vcmcvY29t
-cGF0LXJkbWEvbGludXgtMy41LmdpdApCcmFuY2g6IGZvci1vZmVkLTMuNQoKLSBMaW51eCBr
-ZXJuZWwgc3ViLXRyZWUgdGhhdCBpbmNsdWRlcyBmaWxlcyByZWxldmFudCBmb3IgdGhlIE9G
-RUQgcHJvamVjdCBvbmx5LgogIEJhc2VkIG9uIHYzLjUuIFVzZWQgdG8gc2hvcnRlbiBnaXQg
-Y2xvbmUgdGltZS4KICBOb3RlOiB0aGUgcmVndWxhciBMaW51eCBnaXQgdHJlZSBjYW4gYmUg
-dXNlZCBhcyB3ZWxsLgoKY29tcGF0OgotLS0tLS0tClVSTDogZ2l0Oi8vZ2l0Lm9wZW5mYWJy
-aWNzLm9yZy9jb21wYXQtcmRtYS9jb21wYXQuZ2l0CkJyYW5jaDogb2ZlZAoKLSBCYXNlZCBv
-biBjb21wYXQgcHJvamVjdCAoaHR0cHM6Ly9naXRodWIuY29tL21jZ3JvZi9jb21wYXQpLiBU
-aGUgY29tcGF0IG1vZHVsZQogIHByb3ZpZGVzIGZ1bmN0aW9uYWxpdHkgaW50cm9kdWNlZCBp
-biBuZXdlciBrZXJuZWxzIHRvIG9sZGVyIGtlcm5lbHMgdGhyb3VnaCBhCiAgc2V0IG9mIGhl
-YWRlciBmaWxlcyBhbmQgZXhwb3J0ZWQgc3ltYm9scy4KICBTZWUgaHR0cHM6Ly9naXRodWIu
-Y29tL21jZ3JvZi9jb21wYXQvd2lraSBmb3IgZGV0YWlscy4KLSBVc2VkIHRvIHJlcGxhY2Ug
-a2VybmVsX2FkZG9ucyBpbiB0aGUgcHJldmlvdXMgT0ZFRCBrZXJuZWwgdHJlZS4KCmNvbXBh
-dC1yZG1hOgotLS0tLS0tLS0tLS0KVVJMOiBnaXQ6Ly9naXQub3BlbmZhYnJpY3Mub3JnL2Nv
-bXBhdC1yZG1hL2NvbXBhdC1yZG1hLmdpdApCcmFuY2g6IG1hc3RlcgoKVXNlciBsZXZlbCBT
-b3VyY2VzIGFyZSBkb3dubG9hZGVkIGZyb20gaHR0cDovL3d3dy5vcGVuZmFicmljcy5vcmcv
-ZG93bmxvYWRzLwphcyB3cml0dGVuIGluIHRoZSBCVUlMRF9JRAoKVGhlIGtlcm5lbCBzb3Vy
-Y2VzIGFyZSBiYXNlZCBvbiBMaW51eCAzLjUgbWFpbmxpbmUga2VybmVsLiBJdHMgcGF0Y2hl
-cwphcmUgaW5jbHVkZWQgaW4gdGhlIE9GRUQgc291cmNlcyBkaXJlY3RvcnkuCkZvciBkZXRh
-aWxzIHNlZSBIT1dUTy5idWlsZF9vZmVkLgoKVGhlIGxpc3Qgb2YgbWFpbnRhaW5lcnMgaXMg
-YXZhaWxhYmxlIHVuZGVyOgpodHRwOi8vd3d3Lm9wZW5mYWJyaWNzLm9yZy9kb3dubG9hZHMv
-TUFJTlRBSU5FUlMKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KMi4gQ2hhbmdlIGxvZwo9
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09CgpPRkVELTMuNSBNYWluIENoYW5nZXMgZnJvbSBP
-RkVEIDEuNS40LjEgYW5kIDEuNS40Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KMS4gQmFz
-ZWQgb24gbGludXgtMy41IGtlcm5lbAoyLiBrZXJuZWwtaWIgUlBNIHJlbmFtZWQgdG8gY29t
-cGF0LXJkbWEKMy4gUmVtb3ZlZCBNUEkgcGFja2FnZXMgYW5kIHRlc3RzCjQuIFJlbW92ZWQg
-U0RQIGtlcm5lbCBtb2R1bGUgYW5kIGxpYnNkcCwgc2RwbmV0c3RhdAo1LiBYUkMgaXMgc3Vw
-cG9ydGVkIGluIGtlcm5lbCBvbmx5Cgo2LiBSZW1vdmVkIHN1cHBvcnQgZm9yIHRoZSBPU2Vz
-OgogICAtIFJIRUwgNS5YCiAgIC0gU0xFUyAxMCBTUHgKNy4gVXBkYXRlZCBwYWNrYWdlczoK
-ICAgLSBsaWJpYnZlcmJzLTEuMS42CiAgIC0gbGlicmRtYWNtLTEuMC4xNgogICAtIGliYWNt
-LTEuMC43CiAgIC0gZGFwbC0yLjAuMzYKICAgLSBvcGVuc20tMy4zLjE1CiAgIC0gaW5maW5p
-YmFuZC1kaWFncy0xLjYuMQogICAtIGxpYmlibWFkLTEuMy45CiAgIC0gbGliaWJ1bWFkLTEu
-My44CiAgIC0gaW5maW5pcGF0aC1wc20tMy4xLTM2NC4xMTQwX29wZW4KICAgLSBsaWJtbHg0
-LTEuMC40CiAgIC0gbXN0ZmxpbnQtMS40LTEuMjMuZzVjMjAzMmEKICAgLSBwZXJmdGVzdC0y
-LjAtMC4yNy5nMmVkZDgwYQogICAtIHFwZXJmLTAuNC45CgoKPT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PQozLiBLbm93biBJc3N1ZXMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQpUaGUg
-Zm9sbG93aW5nIGlzIGEgbGlzdCBvZiBnZW5lcmFsIGxpbWl0YXRpb25zIGFuZCBrbm93biBp
-c3N1ZXMgb2YgdGhlIHZhcmlvdXMKY29tcG9uZW50cyBvZiB0aGUgT0ZFRCAzLjUtcmMyIHJl
-bGVhc2UuCgoxLiBXaGVuIHVwZ3JhZGluZyBmcm9tIGFuIGVhcmxpZXIgT0ZFRCB2ZXJzaW9u
-LCB0aGUgaW5zdGFsbGF0aW9uIHNjcmlwdCBkb2VzCiAgIG5vdCBzdG9wIHRoZSBlYXJsaWVy
-IE9GRUQgdmVyc2lvbiBwcmlvciB0byB1bmluc3RhbGxpbmcgaXQuCiAgIFdvcmthcm91bmQ6
-IFN0b3AgdGhlIG9sZCBPRkVEIHN0YWNrICgvZXRjL2luaXQuZC9vcGVuaWJkIHN0b3ApIGJl
-Zm9yZQogICB1cGdyYWRpbmcgdG8gT0ZFRCAzLjUgb3IgcmVib290IHRoZSBzZXJ2ZXIgYWZ0
-ZXIgT0ZFRCBpbnN0YWxsYXRpb24uCjIuIE1lbW9yeSByZWdpc3RyYXRpb24gYnkgdGhlIHVz
-ZXIgaXMgbGltaXRlZCBhY2NvcmRpbmcgdG8gYWRtaW5pc3RyYXRvcgogICBzZXR0aW5nLiBT
-ZWUgIlBpbm5pbmcgKExvY2tpbmcpIFVzZXIgTWVtb3J5IFBhZ2VzIiBpbiBPRkVEX3RpcHMu
-dHh0IGZvcgogICBzeXN0ZW0gY29uZmlndXJhdGlvbi4KMy4gRm9yayBzdXBwb3J0IGZyb20g
-a2VybmVsIDIuNi4xMiBhbmQgYWJvdmUgaXMgYXZhaWxhYmxlIHByb3ZpZGVkCiAgIHRoYXQg
-YXBwbGljYXRpb25zIGRvIG5vdCB1c2UgdGhyZWFkcy4gZm9yaygpIGlzIHN1cHBvcnRlZCBh
-cyBsb25nIGFzIHRoZQogICBwYXJlbnQgcHJvY2VzcyBkb2VzIG5vdCBydW4gYmVmb3JlIHRo
-ZSBjaGlsZCBleGl0cyBvciBjYWxscyBleGVjKCkuCiAgIFRoZSBmb3JtZXIgY2FuIGJlIGFj
-aGlldmVkIGJ5IGNhbGxpbmcgd2FpdChjaGlsZHBpZCksIGFuZCB0aGUgbGF0dGVyIGNhbiBi
-ZQogICBhY2hpZXZlZCBieSBhcHBsaWNhdGlvbiBzcGVjaWZpYyBtZWFucy4gIFRoZSBQb3Np
-eCBzeXN0ZW0oKSBjYWxsIGlzCiAgIHN1cHBvcnRlZC4KNC4gVGhlIHFpYiBkcml2ZXIgaXMg
-c3VwcG9ydGVkIG9ubHkgb24gNjQtYml0IHBsYXRmb3Jtcy4KNS4gSVBvSUI6IGJyY3RsIHV0
-aWxpdGllcyBkbyBub3Qgd29yayBvbiBJUG9JQiBpbnRlcmZhY2VzLiBUaGUgcmVhc29uIGZv
-ciB0aGF0CiAgIGlzIHRoYXQgdGhlc2UgdXRpbGl0aWVzIHN1cHBvcnQgZGV2aWNlcyBvZiB0
-eXBlIEV0aGVybmV0IG9ubHkuCjYuIEluIGNhc2UgdW5pbnN0YWxsIGlzIGZhaWxpbmcsIGNo
-ZWNrIHRoZSBlcnJvciBsb2cgYW5kIHJlbW92ZQogICB0aGUgcmVtYWluaW5nIFJQTXMgbWFu
-dWFsbHkgdXNpbmcgJ3JwbSAtZSA8cnBtcyBsaXN0PicuCjcuIE9uIFNMRVMxMS54LCBzZXQg
-YWxsb3dfdW5zdXBwb3J0ZWRfbW9kdWxlcyBwYXJhbWV0ZXIgdG8gMSBpbiBmaWxlOgogICAg
-L2V0Yy9tb2Rwcm9iZS5kL3Vuc3VwcG9ydGVkLW1vZHVsZXMuIFdpdGhvdXQgdGhpcyB0aGUg
-bW9kdWxlcyB3aWxsIG5vdAogICAgbG9hZC4KOC4gUkRTIGlzIHN1cHBvcnRlZCBvbmx5IG9u
-IGtlcm5lbC5vcmcgMy41IGFuZCBub3Qgb24gYW55IGRpc3RybyBPUy4KCk5vdGU6IFNlZSB0
-aGUgcmVsZWFzZSBub3RlcyBvZiBlYWNoIGNvbXBvbmVudCBmb3IgYWRkaXRpb25hbCBpc3N1
-ZXMuCgo=
---------------090601090602000906050407--
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
