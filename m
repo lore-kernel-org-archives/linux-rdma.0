@@ -1,148 +1,143 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: NFS over RDMA crashing
-Date: Fri, 15 Feb 2013 10:27:46 -0500
-Message-ID: <20130215152746.GI8343@fieldses.org>
-References: <51127B3F.2090200@mellanox.com>
- <20130206222435.GL16417@fieldses.org>
- <20130207164134.GK3222@fieldses.org>
- <0EE9A1CDC8D6434DB00095CD7DB8734611518A44@MTLDAG01.mtl.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] libibmad: Add support for PortSamplesResult
+Date: Fri, 15 Feb 2013 14:34:13 -0800
+Message-ID: <20130215143413.26f7e6fd887e924ca2c47141@llnl.gov>
+References: <50F9D531.8010500@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <0EE9A1CDC8D6434DB00095CD7DB8734611518A44-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
+In-Reply-To: <50F9D531.8010500-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2013 at 03:19:42PM +0000, Yan Burman wrote:
-> > -----Original Message-----
-> > From: J. Bruce Fields [mailto:bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org]
-> > Sent: Thursday, February 07, 2013 18:42
-> > To: Yan Burman
-> > Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; linux-
-> > rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz
-> > Subject: Re: NFS over RDMA crashing
-> > 
-> > On Wed, Feb 06, 2013 at 05:24:35PM -0500, J. Bruce Fields wrote:
-> > > On Wed, Feb 06, 2013 at 05:48:15PM +0200, Yan Burman wrote:
-> > > > When killing mount command that got stuck:
-> > > > -------------------------------------------
-> > > >
-> > > > BUG: unable to handle kernel paging request at ffff880324dc7ff8
-> > > > IP: [<ffffffffa05f3dfb>] rdma_read_xdr+0x8bb/0xd40 [svcrdma] PGD
-> > > > 1a0c063 PUD 32f82e063 PMD 32f2fd063 PTE 8000000324dc7161
-> > > > Oops: 0003 [#1] PREEMPT SMP
-> > > > Modules linked in: md5 ib_ipoib xprtrdma svcrdma rdma_cm ib_cm
-> > iw_cm
-> > > > ib_addr nfsd exportfs netconsole ip6table_filter ip6_tables
-> > > > iptable_filter ip_tables ebtable_nat nfsv3 nfs_acl ebtables x_tables
-> > > > nfsv4 auth_rpcgss nfs lockd autofs4 sunrpc target_core_iblock
-> > > > target_core_file target_core_pscsi target_core_mod configfs 8021q
-> > > > bridge stp llc ipv6 dm_mirror dm_region_hash dm_log vhost_net
-> > > > macvtap macvlan tun uinput iTCO_wdt iTCO_vendor_support kvm_intel
-> > > > kvm crc32c_intel microcode pcspkr joydev i2c_i801 lpc_ich mfd_core
-> > > > ehci_pci ehci_hcd sg ioatdma ixgbe mdio mlx4_ib ib_sa ib_mad ib_core
-> > > > mlx4_en mlx4_core igb hwmon dca ptp pps_core button dm_mod ext3
-> > jbd
-> > > > sd_mod ata_piix libata uhci_hcd megaraid_sas scsi_mod CPU 6
-> > > > Pid: 4744, comm: nfsd Not tainted 3.8.0-rc5+ #4 Supermicro
-> > > > X8DTH-i/6/iF/6F/X8DTH
-> > > > RIP: 0010:[<ffffffffa05f3dfb>]  [<ffffffffa05f3dfb>]
-> > > > rdma_read_xdr+0x8bb/0xd40 [svcrdma]
-> > > > RSP: 0018:ffff880324c3dbf8  EFLAGS: 00010297
-> > > > RAX: ffff880324dc8000 RBX: 0000000000000001 RCX: ffff880324dd8428
-> > > > RDX: ffff880324dc7ff8 RSI: ffff880324dd8428 RDI: ffffffff81149618
-> > > > RBP: ffff880324c3dd78 R08: 000060f9c0000860 R09: 0000000000000001
-> > > > R10: ffff880324dd8000 R11: 0000000000000001 R12: ffff8806299dcb10
-> > > > R13: 0000000000000003 R14: 0000000000000001 R15: 0000000000000010
-> > > > FS:  0000000000000000(0000) GS:ffff88063fc00000(0000)
-> > > > knlGS:0000000000000000
-> > > > CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> > > > CR2: ffff880324dc7ff8 CR3: 0000000001a0b000 CR4: 00000000000007e0
-> > > > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> > > > DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> > > > Process nfsd (pid: 4744, threadinfo ffff880324c3c000, task
-> > > > ffff880330550000)
-> > > > Stack:
-> > > >  ffff880324c3dc78 ffff880324c3dcd8 0000000000000282 ffff880631cec000
-> > > >  ffff880324dd8000 ffff88062ed33040 0000000124c3dc48 ffff880324dd8000
-> > > >  ffff88062ed33058 ffff880630ce2b90 ffff8806299e8000 0000000000000003
-> > > > Call Trace:
-> > > >  [<ffffffffa05f466e>] svc_rdma_recvfrom+0x3ee/0xd80 [svcrdma]
-> > > > [<ffffffff81086540>] ? try_to_wake_up+0x2f0/0x2f0
-> > > > [<ffffffffa045963f>] svc_recv+0x3ef/0x4b0 [sunrpc]
-> > > > [<ffffffffa0571db0>] ? nfsd_svc+0x740/0x740 [nfsd]
-> > > > [<ffffffffa0571e5d>] nfsd+0xad/0x130 [nfsd]  [<ffffffffa0571db0>] ?
-> > > > nfsd_svc+0x740/0x740 [nfsd]  [<ffffffff81071df6>] kthread+0xd6/0xe0
-> > > > [<ffffffff81071d20>] ? __init_kthread_worker+0x70/0x70
-> > > > [<ffffffff814b462c>] ret_from_fork+0x7c/0xb0  [<ffffffff81071d20>] ?
-> > > > __init_kthread_worker+0x70/0x70
-> > > > Code: 63 c2 49 8d 8c c2 18 02 00 00 48 39 ce 77 e1 49 8b 82 40 0a 00
-> > > > 00 48 39 c6 0f 84 92 f7 ff ff 90 48 8d 50 f8 49 89 92 40 0a 00 00
-> > > > <48> c7 40 f8 00 00 00 00 49 8b 82 40 0a 00 00 49 3b 82 30 0a 00 RIP
-> > > > [<ffffffffa05f3dfb>] rdma_read_xdr+0x8bb/0xd40 [svcrdma]  RSP
-> > > > <ffff880324c3dbf8>
-> > > > CR2: ffff880324dc7ff8
-> > > > ---[ end trace 06d0384754e9609a ]---
-> > > >
-> > > >
-> > > > It seems that commit afc59400d6c65bad66d4ad0b2daf879cbff8e23e
-> > > > "nfsd4: cleanup: replace rq_resused count by rq_next_page pointer"
-> > > > is responsible for the crash (it seems to be crashing in
-> > > > net/sunrpc/xprtrdma/svc_rdma_recvfrom.c:527)
-> > > > It may be because I have CONFIG_DEBUG_SET_MODULE_RONX and
-> > > > CONFIG_DEBUG_RODATA enabled. I did not try to disable them yet.
-> > > >
-> > > > When I moved to commit 79f77bf9a4e3dd5ead006b8f17e7c4ff07d8374e I
-> > > > was no longer getting the server crashes, so the reset of my tests
-> > > > were done using that point (it is somewhere in the middle of
-> > > > 3.7.0-rc2).
-> > >
-> > > OK, so this part's clearly my fault--I'll work on a patch, but the
-> > > rdma's use of the ->rq_pages array is pretty confusing.
-> > 
-> > Does this help?
-> > 
-> > They must have added this for some reason, but I'm not seeing how it could
-> > have ever done anything....
-> > 
-> > --b.
-> > 
-> > diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> > b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> > index 0ce7552..e8f25ec 100644
-> > --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> > +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-> > @@ -520,13 +520,6 @@ next_sge:
-> >  	for (ch_no = 0; &rqstp->rq_pages[ch_no] < rqstp->rq_respages;
-> > ch_no++)
-> >  		rqstp->rq_pages[ch_no] = NULL;
-> > 
-> > -	/*
-> > -	 * Detach res pages. If svc_release sees any it will attempt to
-> > -	 * put them.
-> > -	 */
-> > -	while (rqstp->rq_next_page != rqstp->rq_respages)
-> > -		*(--rqstp->rq_next_page) = NULL;
-> > -
-> >  	return err;
-> >  }
-> > 
-> 
-> I've been trying to reproduce the problem, but for some reason it does not happen anymore.
-> The crash is not happening even without the patch now, but NFS over RDMA in 3.8.0-rc5 from net-next is not working.
-> When running server and client in VM with SRIOV, it times out when trying to mount and oopses on the client when mount command is interrupted.
-> When running two physical hosts, I get to mount the remote directory, but reading or writing fails with IO error.
-> 
-> I am still doing some checks - I will post my findings when I will have more information.
-> 
+On Fri, 18 Jan 2013 18:05:21 -0500
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-Any luck reproducing the problem or any results running with the above
-patch?
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---b.
+Thanks, applied,
+Ira
+
+> ---
+> diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+> index 0694dc4..e6de2c5 100644
+> --- a/include/infiniband/mad.h
+> +++ b/include/infiniband/mad.h
+> @@ -1230,6 +1230,28 @@ enum MAD_FIELDS {
+>  	IB_SA_NR_NODEDESC_F,
+>  	IB_SA_NR_LAST_F,
+>  
+> +	/*
+> +	 * PortSamplesResult fields
+> +	 */
+> +	IB_PSR_TAG_F,
+> +	IB_PSR_SAMPLE_STATUS_F,
+> +	IB_PSR_COUNTER0_F,
+> +	IB_PSR_COUNTER1_F,
+> +	IB_PSR_COUNTER2_F,
+> +	IB_PSR_COUNTER3_F,
+> +	IB_PSR_COUNTER4_F,
+> +	IB_PSR_COUNTER5_F,
+> +	IB_PSR_COUNTER6_F,
+> +	IB_PSR_COUNTER7_F,
+> +	IB_PSR_COUNTER8_F,
+> +	IB_PSR_COUNTER9_F,
+> +	IB_PSR_COUNTER10_F,
+> +	IB_PSR_COUNTER11_F,
+> +	IB_PSR_COUNTER12_F,
+> +	IB_PSR_COUNTER13_F,
+> +	IB_PSR_COUNTER14_F,
+> +	IB_PSR_LAST_F,
+> +
+>  	IB_FIELD_LAST_		/* must be last */
+>  };
+>  
+> @@ -1589,7 +1611,7 @@ MAD_EXPORT ib_mad_dump_fn
+>      mad_dump_cc_switchportcongestionsettingelement, mad_dump_cc_cacongestionsetting,
+>      mad_dump_cc_cacongestionentry, mad_dump_cc_congestioncontroltable,
+>      mad_dump_cc_congestioncontroltableentry, mad_dump_cc_timestamp,
+> -    mad_dump_classportinfo;
+> +    mad_dump_classportinfo, mad_dump_portsamples_result;
+>  
+>  MAD_EXPORT void mad_dump_fields(char *buf, int bufsz, void *val, int valsz,
+>  				int start, int end);
+> diff --git a/src/dump.c b/src/dump.c
+> index 9cf31da..7f3ef7d 100644
+> --- a/src/dump.c
+> +++ b/src/dump.c
+> @@ -851,6 +851,11 @@ void mad_dump_portsamples_control(char *buf, int bufsz, void *val, int valsz)
+>  	_dump_fields(buf, bufsz, val, IB_PSC_OPCODE_F, IB_PSC_LAST_F);
+>  }
+>  
+> +void mad_dump_portsamples_result(char *buf, int bufsz, void *val, int valsz)
+> +{
+> +	_dump_fields(buf, bufsz, val, IB_PSR_TAG_F, IB_PSR_LAST_F);
+> +}
+> +
+>  void mad_dump_port_ext_speeds_counters(char *buf, int bufsz, void *val, int valsz)
+>  {
+>  	_dump_fields(buf, bufsz, val, IB_PESC_PORT_SELECT_F, IB_PESC_LAST_F);
+> diff --git a/src/fields.c b/src/fields.c
+> index 06bc9f0..d2b6792 100644
+> --- a/src/fields.c
+> +++ b/src/fields.c
+> @@ -927,6 +927,28 @@ static const ib_field_t ib_mad_f[] = {
+>  	{352, 64 * 8, "NodeDesc", mad_dump_string},
+>  	{0, 0}, /* IB_SA_NR_LAST_F */
+>  
+> +	/*
+> +	 * PortSamplesResult fields
+> +	 */
+> +	{BITSOFFS(0, 16), "Tag", mad_dump_hex},
+> +	{BITSOFFS(30, 2), "SampleStatus", mad_dump_hex},
+> +	{32, 32, "Counter0", mad_dump_uint},
+> +	{64, 32, "Counter1", mad_dump_uint},
+> +	{96, 32, "Counter2", mad_dump_uint},
+> +	{128, 32, "Counter3", mad_dump_uint},
+> +	{160, 32, "Counter4", mad_dump_uint},
+> +	{192, 32, "Counter5", mad_dump_uint},
+> +	{224, 32, "Counter6", mad_dump_uint},
+> +	{256, 32, "Counter7", mad_dump_uint},
+> +	{288, 32, "Counter8", mad_dump_uint},
+> +	{320, 32, "Counter9", mad_dump_uint},
+> +	{352, 32, "Counter10", mad_dump_uint},
+> +	{384, 32, "Counter11", mad_dump_uint},
+> +	{416, 32, "Counter12", mad_dump_uint},
+> +	{448, 32, "Counter13", mad_dump_uint},
+> +	{480, 32, "Counter14", mad_dump_uint},
+> +	{0, 0},			/* IB_PSR_LAST_F */
+> +
+>  	{0, 0}			/* IB_FIELD_LAST_ */
+>  
+>  };
+> diff --git a/src/libibmad.map b/src/libibmad.map
+> index a4d4418..a1988be 100644
+> --- a/src/libibmad.map
+> +++ b/src/libibmad.map
+> @@ -35,6 +35,7 @@ IBMAD_1.3 {
+>  		mad_dump_portcapmask;
+>  		mad_dump_portinfo;
+>  		mad_dump_portsamples_control;
+> +		mad_dump_portsamples_result;
+>  		mad_dump_perfcounters_port_op_rcv_counters;
+>  		mad_dump_perfcounters_port_flow_ctl_counters;
+>  		mad_dump_perfcounters_port_vl_op_packet;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
