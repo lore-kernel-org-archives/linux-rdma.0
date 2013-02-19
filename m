@@ -1,39 +1,63 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.9 3/3] IB/ipoib: Don't attempt to release resources on error flow
-Date: Tue, 19 Feb 2013 17:40:24 +0200
-Message-ID: <1361288424-8376-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 for-3.9 1/3] IB/ipoib: Fix ipoib_neigh hashing to use the correct daddr octets
+Date: Tue, 19 Feb 2013 17:40:22 +0200
+Message-ID: <1361288424-8376-2-git-send-email-ogerlitz@mellanox.com>
 References: <1361288424-8376-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1361288424-8376-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Itai Garbi <igarbi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Itai Garbi <igarbi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-If the ipoib client info isn't found on the _remove_one callback, we must
-not attempt to scan the returned null list, found by Coverity.
+The hash function introduced in commit b63b70d877 "IPoIB: Use a private hash
+table for path lookup in xmit path" was designd to use the 3 octets of the
+IPoIB HW address that holds the remote QPN. However, this currently isn't
+the case under little endian machines as the code there uses the flags part
+(octet[0]) and not the last octet of the QPN (octet[3]), fix that.
 
-Signed-off-by: Itai Garbi <igarbi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The fix caused a checkpatch warning on line over 80 characters, to
+solve that changed the name of the temp variable that holds the daddr.
+
+Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h      |    2 ++
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 07ca6fd..a7ac097 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -117,6 +117,8 @@ enum {
+ #define	IPOIB_OP_CM     (0)
+ #endif
+ 
++#define IPOIB_QPN_MASK ((__force u32) cpu_to_be32(0xFFFFFF))
++
+ /* structs */
+ 
+ struct ipoib_header {
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index e9ee07b..2548ef8 100644
+index 6fdc9e7..3c2498f 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1693,6 +1693,8 @@ static void ipoib_remove_one(struct ib_device *device)
- 		return;
+@@ -844,10 +844,10 @@ static u32 ipoib_addr_hash(struct ipoib_neigh_hash *htbl, u8 *daddr)
+ 	 * different subnets.
+ 	 */
+ 	 /* qpn octets[1:4) & port GUID octets[12:20) */
+-	u32 *daddr_32 = (u32 *) daddr;
++	u32 *d32 = (u32 *)daddr;
+ 	u32 hv;
  
- 	dev_list = ib_get_client_data(device, &ipoib_client);
-+	if (!dev_list)
-+		return;
+-	hv = jhash_3words(daddr_32[3], daddr_32[4], 0xFFFFFF & daddr_32[0], 0);
++	hv = jhash_3words(d32[3], d32[4], IPOIB_QPN_MASK & d32[0], 0);
+ 	return hv & htbl->mask;
+ }
  
- 	list_for_each_entry_safe(priv, tmp, dev_list, list) {
- 		ib_unregister_event_handler(&priv->event_handler);
 -- 
 1.7.1
 
