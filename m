@@ -1,51 +1,55 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_qos_policy.c: fix memory leak when parsing policy
- file
-Date: Wed, 20 Feb 2013 14:03:01 -0500
-Message-ID: <51251DE5.2090703@dev.mellanox.co.il>
+Subject: Re: [PATCH 1/7] libibumad: Provide MAD definitions with libibumad
+Date: Wed, 20 Feb 2013 14:12:37 -0500
+Message-ID: <51252025.2030304@dev.mellanox.co.il>
+References: <1359409135-559-1-git-send-email-sean.hefty@intel.com> <5124F212.2060503@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A823736F34E958@ORSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A823736F34E976@ORSMSX101.amr.corp.intel.com> <5124FC59.2070602@dev.mellanox.co.il> <20130220094219.19f80f5c0b65c50a48b29c96@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130220094219.19f80f5c0b65c50a48b29c96-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 2/20/2013 12:42 PM, Ira Weiny wrote:
+> On Wed, 20 Feb 2013 11:39:53 -0500
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> 
+>> On 2/20/2013 11:29 AM, Hefty, Sean wrote:
+>>>> I need to check the kernel code, but I believe that the RMPP header is exposed.
+>>>
+>>> I looked at copy_recv_mad(), and it copies the entire 256-byte MAD to user space, which includes any RMPP header, followed by any additional segmented data.  So most of the RMPP definitions are relevant, the exceptions possibly being UMAD_RMPP_TYPE_[ACK | STOP | ABORT].  IMO - I would keep those for completeness.
+>>
+>> Yes but how much of header is relevant when it's a multipacket RMPP MAD
+>> message ? My concern is that it may be confusing as to validity/use of
+>> certain RMPP fields, etc.
+>>
+> 
+> IMO the confusion can be overcome by documenting that fact that libibumad coalesces the multipacket RMPP response into one buffer returned by umad_recv as well as how it is done.  This is where the confusion lies.
 
-We need to free the pkey_range_arr before parsing the qos file.
+Would you generate a patch that clarifies this issue for both the
+receive and send sides ? Thanks.
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+-- Hal
 
-diff --git a/opensm/osm_qos_policy.c b/opensm/osm_qos_policy.c
-index 1751849..e61392f 100644
---- a/opensm/osm_qos_policy.c
-+++ b/opensm/osm_qos_policy.c
-@@ -283,15 +283,16 @@ void
-osm_qos_policy_qos_level_destroy(osm_qos_level_t * p)
- 	if (!p)
- 		return;
+> If you do accept the RMPP defines I have a subsequent patch for the *_str functions for them.
+> 
+> Ira
+> 
+>> -- Hal
+>>
+>>> - Sean
+>>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
--	if (p->name)
--		free(p->name);
--	if (p->use)
--		free(p->use);
-+	free(p->name);
-+	free(p->use);
-
- 	for (i = 0; i < p->path_bits_range_len; i++)
- 		free(p->path_bits_range_arr[i]);
--	if (p->path_bits_range_arr)
--		free(p->path_bits_range_arr);
-+	free(p->path_bits_range_arr);
-+
-+	for(i = 0; i < p->pkey_range_len; i++)
-+		free((p->pkey_range_arr[i]));
-+	free(p->pkey_range_arr);
-
- 	free(p);
- }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
