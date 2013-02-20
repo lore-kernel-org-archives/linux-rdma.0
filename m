@@ -1,63 +1,27 @@
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCHv2] infiniband-diags/ibqueryerrors.c: changed the behavior
- when guid/DR-path not found
-Date: Wed, 20 Feb 2013 14:36:00 +0200
-Message-ID: <20130220123600.GD20018@r-ufm5-17.lab.mtl.com>
-References: <20130220115210.GB20018@r-ufm5-17.lab.mtl.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH -next] IB/ipath: use GFP_ATOMIC under spin lock
+Date: Wed, 20 Feb 2013 14:42:28 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC0D59FCD6@FMSMSX108.amr.corp.intel.com>
+References: <CAPgLHd-jM-DN1VjvwUh=-s0jLOyqijdn2xHzXhdoxRs0UTGtNg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130220115210.GB20018-Kyg1NGsloJ/nXW+7WiO5SxL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <CAPgLHd-jM-DN1VjvwUh=-s0jLOyqijdn2xHzXhdoxRs0UTGtNg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org" <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If we use G or D options and we can't find the guid (sm is down or the
-guid is wrong), we'll get an error instead of the result for all the
-ports in the fabric.
+> -	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_KERNEL);
+> +	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_ATOMIC);
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v1:
-	Fixed patch description
+GFP_NOWAIT seems to match other use cases introduced by commit cf1f5bb608af6e0d57610c2740a3f69e3568eee3.
 
- src/ibqueryerrors.c |   14 ++++++++------
- 1 files changed, 8 insertions(+), 6 deletions(-)
+Is that what should be used?
 
-diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-index 076327c..6320972 100644
---- a/src/ibqueryerrors.c
-+++ b/src/ibqueryerrors.c
-@@ -935,16 +935,18 @@ int main(int argc, char **argv)
- 	if (dr_path) {
- 		if ((resolved =
- 		     resolve_portid_str(ibd_ca, ibd_ca_port, &portid, dr_path,
--					IB_DEST_DRPATH, NULL, ibmad_port)) < 0)
--			IBWARN("Failed to resolve %s; attempting full scan",
--			       dr_path);
-+					IB_DEST_DRPATH, NULL, ibmad_port)) < 0) {
-+			IBWARN("Failed to resolve %s;",dr_path);
-+			goto close_port;
-+		}
- 	} else if (port_guid_str) {
- 		if ((resolved =
- 		     resolve_portid_str(ibd_ca, ibd_ca_port, &portid,
- 					port_guid_str, IB_DEST_GUID, ibd_sm_id,
--					       ibmad_port)) < 0)
--			IBWARN("Failed to resolve %s; attempting full scan",
--			       port_guid_str);
-+					       ibmad_port)) < 0) {
-+			IBWARN("Failed to resolve %s;",port_guid_str);
-+			goto close_port;
-+		}
- 	}
- 
- 	if (load_cache_file) {
--- 
-1.7.1
-
+Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
