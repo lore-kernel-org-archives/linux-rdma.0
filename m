@@ -1,116 +1,186 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH V2] opensm/perfmgr: update node name when Node Description
- is received from node
-Date: Tue, 19 Feb 2013 15:06:34 -0800
-Message-ID: <20130219150634.1afa3d6c2976cad4b2e28a91@llnl.gov>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH perftest] Support iwarp transports.
+Date: Tue, 19 Feb 2013 22:09:41 -0600
+Message-ID: <20130220040941.31762.66644.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+- add transport type for making transport-specific decisions
+- rdma read sink mrs need REMOTE_WRITE access for iwarp transports
+- set initiator_depth and responder_resources based on device max values
+- add chelsio devices
 
-Changes since V1:
-	Fix use of parens nit from Hal
-
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- include/opensm/osm_perfmgr.h    |    2 ++
- include/opensm/osm_perfmgr_db.h |    3 +++
- opensm/osm_node_desc_rcv.c      |    7 +++++++
- opensm/osm_perfmgr.c            |    6 ++++++
- opensm/osm_perfmgr_db.c         |   13 +++++++++++++
- 5 files changed, 31 insertions(+), 0 deletions(-)
 
-diff --git a/include/opensm/osm_perfmgr.h b/include/opensm/osm_perfmgr.h
-index 97fead1..26b1ae6 100644
---- a/include/opensm/osm_perfmgr.h
-+++ b/include/opensm/osm_perfmgr.h
-@@ -247,6 +247,8 @@ void osm_perfmgr_dump_counters(osm_perfmgr_t * p_perfmgr,
- 			       perfmgr_db_dump_t dump_type);
- void osm_perfmgr_print_counters(osm_perfmgr_t *pm, char *nodename, FILE *fp,
- 				char *port, int err_only);
-+void osm_perfmgr_update_nodename(osm_perfmgr_t *pm, uint64_t node_guid,
-+				char *nodename);
+ src/perftest_communication.c |    8 +++--
+ src/perftest_parameters.c    |   63 ++++++++++++++++++++++++++++++++----------
+ src/perftest_parameters.h    |    4 ++-
+ src/perftest_resources.c     |    2 +
+ 4 files changed, 57 insertions(+), 20 deletions(-)
+
+diff --git a/src/perftest_communication.c b/src/perftest_communication.c
+index 781d796..b88be1d 100644
+--- a/src/perftest_communication.c
++++ b/src/perftest_communication.c
+@@ -745,8 +745,8 @@ int rdma_client_connect(struct pingpong_context *ctx,struct perftest_parameters
  
- ib_api_status_t osm_perfmgr_bind(osm_perfmgr_t * p_perfmgr,
- 				 ib_net64_t port_guid);
-diff --git a/include/opensm/osm_perfmgr_db.h b/include/opensm/osm_perfmgr_db.h
-index 6333692..5491d2f 100644
---- a/include/opensm/osm_perfmgr_db.h
-+++ b/include/opensm/osm_perfmgr_db.h
-@@ -164,6 +164,9 @@ perfmgr_db_err_t perfmgr_db_create_entry(perfmgr_db_t * db, uint64_t guid,
- perfmgr_db_err_t perfmgr_db_delete_entry(perfmgr_db_t * db, uint64_t guid);
- perfmgr_db_err_t perfmgr_db_delete_inactive(perfmgr_db_t * db, unsigned *cnt);
+ 	memset(&conn_param, 0, sizeof conn_param);
+ 	if (user_param->verb == READ) {
+-		conn_param.responder_resources = RDMA_MAX_RESP_RES;
+-		conn_param.initiator_depth = RDMA_MAX_INIT_DEPTH;
++		conn_param.responder_resources = user_param->out_reads;
++		conn_param.initiator_depth = user_param->out_reads;
+ 	}
+ 	user_param->work_rdma_cm = temp;
  
-+perfmgr_db_err_t perfmgr_db_update_name(perfmgr_db_t * db, uint64_t node_guid,
-+					char *name);
+@@ -862,8 +862,8 @@ int rdma_server_connect(struct pingpong_context *ctx,
+ 
+ 	memset(&conn_param, 0, sizeof conn_param);
+ 	if (user_param->verb == READ) {
+-		conn_param.responder_resources = RDMA_MAX_RESP_RES;
+-		conn_param.initiator_depth = RDMA_MAX_INIT_DEPTH;
++		conn_param.responder_resources = user_param->out_reads;
++		conn_param.initiator_depth = user_param->out_reads;
+ 	}
+ 	if (user_param->connection_type == UD)
+ 		conn_param.qp_num = ctx->qp[0]->qp_num;
+diff --git a/src/perftest_parameters.c b/src/perftest_parameters.c
+index e32303a..a6b75d2 100644
+--- a/src/perftest_parameters.c
++++ b/src/perftest_parameters.c
+@@ -564,6 +564,21 @@ static void force_dependecies(struct perftest_parameters *user_param) {
+ /****************************************************************************** 
+  *
+  ******************************************************************************/
++const char *transport_str(enum ibv_transport_type type) {
 +
- perfmgr_db_err_t perfmgr_db_add_err_reading(perfmgr_db_t * db, uint64_t guid,
- 					    uint8_t port,
- 					    perfmgr_db_err_reading_t * reading);
-diff --git a/opensm/osm_node_desc_rcv.c b/opensm/osm_node_desc_rcv.c
-index 741c944..065909b 100644
---- a/opensm/osm_node_desc_rcv.c
-+++ b/opensm/osm_node_desc_rcv.c
-@@ -79,6 +79,13 @@ static void nd_rcv_process_nd(IN osm_sm_t * sm, IN osm_node_t * p_node,
- 		free(p_node->print_desc);
- 	p_node->print_desc = tmp_desc;
- 
-+#ifdef ENABLE_OSM_PERF_MGR
-+	/* update the perfmgr entry if available */
-+	osm_perfmgr_update_nodename(&sm->p_subn->p_osm->perfmgr,
-+				cl_ntoh64(osm_node_get_node_guid(p_node)),
-+				p_node->print_desc);
-+#endif				/* ENABLE_OSM_PERF_MGR */
-+
- 	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
- 		"Node 0x%" PRIx64 "\n\t\t\t\tDescription = %s\n",
- 		cl_ntoh64(osm_node_get_node_guid(p_node)), p_node->print_desc);
-diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 5207245..9bc1154 100644
---- a/opensm/osm_perfmgr.c
-+++ b/opensm/osm_perfmgr.c
-@@ -1459,4 +1459,10 @@ void osm_perfmgr_print_counters(osm_perfmgr_t * pm, char *nodename, FILE * fp,
- 	} else
- 		perfmgr_db_print_all(pm->db, fp, err_only);
- }
-+void osm_perfmgr_update_nodename(osm_perfmgr_t *pm, uint64_t node_guid,
-+				char *nodename)
-+{
-+	if (pm->db)
-+		perfmgr_db_update_name(pm->db, node_guid, nodename);
-+}
- #endif				/* ENABLE_OSM_PERF_MGR */
-diff --git a/opensm/osm_perfmgr_db.c b/opensm/osm_perfmgr_db.c
-index 6095e1a..238081b 100644
---- a/opensm/osm_perfmgr_db.c
-+++ b/opensm/osm_perfmgr_db.c
-@@ -197,6 +197,19 @@ Exit:
- }
- 
- perfmgr_db_err_t
-+perfmgr_db_update_name(perfmgr_db_t * db, uint64_t node_guid, char *name)
-+{
-+	db_node_t *node = NULL;
-+
-+	cl_plock_excl_acquire(&db->lock);
-+	node = get(db, node_guid);
-+	if (node)
-+		snprintf(node->node_name, sizeof(node->node_name), "%s", name);
-+	cl_plock_release(&db->lock);
-+	return (PERFMGR_EVENT_DB_SUCCESS);
++	switch (type) {
++        case IBV_TRANSPORT_IB:	
++		return "IB";
++        case IBV_TRANSPORT_IWARP:
++		return "IW";
++        default:
++		return "Unknown";
++	}
 +}
 +
-+perfmgr_db_err_t
- perfmgr_db_delete_entry(perfmgr_db_t * db, uint64_t guid)
- {
- 	cl_map_item_t * rc = cl_qmap_remove(&db->pc_data, guid);
--- 
-1.7.1
++/****************************************************************************** 
++ *
++ ******************************************************************************/
+ const char *link_layer_str(uint8_t link_layer) {
+ 
+ 	switch (link_layer) {
+@@ -592,21 +607,37 @@ static Device ib_dev_name(struct ibv_context *context) {
+ 
+ 	else { 
+ 
+-		switch (attr.vendor_part_id) { 
+-			case 4113  : dev_fname = CONNECTIB; break;
+-			case 4099  : dev_fname = CONNECTX3; break;
+-			case 26418 : dev_fname = CONNECTX2; break;
+-			case 26428 : dev_fname = CONNECTX2; break;
+-			case 26438 : dev_fname = CONNECTX2; break;
+-			case 26448 : dev_fname = CONNECTX2; break;
+-			case 26458 : dev_fname = CONNECTX2; break;
+-			case 26468 : dev_fname = CONNECTX2; break;
+-			case 26478 : dev_fname = CONNECTX2; break;
+-			case 25408 : dev_fname = CONNECTX;  break;
+-			case 25418 : dev_fname = CONNECTX;  break;
+-			case 25428 : dev_fname = CONNECTX;  break;
+-			case 25448 : dev_fname = CONNECTX;  break;
+-			default	   : dev_fname = UNKNOWN;
++		switch (attr.vendor_id) {
++			case 5555:
++				switch (attr.vendor_part_id) { 
++					case 4113  : dev_fname = CONNECTIB; break;
++					case 4099  : dev_fname = CONNECTX3; break;
++					case 26418 : dev_fname = CONNECTX2; break;
++					case 26428 : dev_fname = CONNECTX2; break;
++					case 26438 : dev_fname = CONNECTX2; break;
++					case 26448 : dev_fname = CONNECTX2; break;
++					case 26458 : dev_fname = CONNECTX2; break;
++					case 26468 : dev_fname = CONNECTX2; break;
++					case 26478 : dev_fname = CONNECTX2; break;
++					case 25408 : dev_fname = CONNECTX;  break;
++					case 25418 : dev_fname = CONNECTX;  break;
++					case 25428 : dev_fname = CONNECTX;  break;
++					case 25448 : dev_fname = CONNECTX;  break;
++					default	   : dev_fname = UNKNOWN;
++				}
++				break;
++			case 5157: {
++				switch (attr.vendor_part_id >> 12) {
++					case 10 :
++					case 4  : dev_fname = CHELSIO_T4; break;
++					case 11 :
++					case 5  : dev_fname = CHELSIO_T5; break;
++					default : dev_fname = UNKNOWN; break;
++				}
++				break;
++			}
++			default:
++				dev_fname = UNKNOWN;
+ 		}
+ 	}
+ 
+@@ -1189,6 +1220,7 @@ int parser(struct perftest_parameters *user_param,char *argv[], int argc) {
+  ******************************************************************************/
+ int check_link_and_mtu(struct ibv_context *context,struct perftest_parameters *user_param) {
+ 
++	user_param->transport_type = context->device->transport_type;
+ 	user_param->link_type = set_link_layer(context,user_param->ib_port);
+ 	if (user_param->link_type == LINK_FAILURE) {
+ 		fprintf(stderr, " Couldn't set the link layer\n");
+@@ -1323,6 +1355,7 @@ void ctx_print_test_info(struct perftest_parameters *user_param) {
+ 	} 
+ 
+ 	printf(" Mtu             : %luB\n",user_param->connection_type == RawEth ? user_param->curr_mtu : MTU_SIZE(user_param->curr_mtu));
++	printf(" Transport type  : %s\n" ,transport_str(user_param->transport_type));
+ 	printf(" Link type       : %s\n" ,link_layer_str(user_param->link_type));
+ 
+ 	if (user_param->gid_index != DEF_GID_INDEX)
+diff --git a/src/perftest_parameters.h b/src/perftest_parameters.h
+index 463630c..09f3e47 100644
+--- a/src/perftest_parameters.h
++++ b/src/perftest_parameters.h
+@@ -180,7 +180,8 @@ typedef enum { LOCAL , REMOTE } PrintDataSide;
+ typedef enum {CMP_AND_SWAP, FETCH_AND_ADD} AtomicType;
+ 
+ // The type of the device (Hermon B0/A0 or no)
+-typedef enum { DEVICE_ERROR = -1 ,UNKNOWN = 0 ,CONNECTX = 1,CONNECTX2 = 2, CONNECTX3 = 3, CONNECTIB = 4, LEGACY = 5} Device;
++typedef enum { DEVICE_ERROR = -1 ,UNKNOWN = 0 ,CONNECTX = 1,CONNECTX2 = 2, CONNECTX3 = 3, CONNECTIB = 4, LEGACY = 5,
++	       CHELSIO_T4 = 6, CHELSIO_T5 = 7} Device;
+ 
+ // Type of test method.
+ typedef enum { ITERATIONS , DURATION } TestMethod;
+@@ -236,6 +237,7 @@ struct perftest_parameters {
+ 	int				margin;
+ 	uint32_t		rem_ud_qpn;
+ 	uint32_t		rem_ud_qkey;
++	enum ibv_transport_type transport_type;
+ 	uint8_t			link_type;
+ 	uint8_t			link_type2;
+ 	MachineType		machine;
+diff --git a/src/perftest_resources.c b/src/perftest_resources.c
+index fd9809f..01726ba 100644
+--- a/src/perftest_resources.c
++++ b/src/perftest_resources.c
+@@ -376,6 +376,8 @@ int ctx_init(struct pingpong_context *ctx,struct perftest_parameters *user_param
+ 		
+ 	} else if (user_param->verb == READ) {
+ 		flags |= IBV_ACCESS_REMOTE_READ;
++		if (user_param->transport_type == IBV_TRANSPORT_IWARP)
++			flags |= IBV_ACCESS_REMOTE_WRITE;
+ 
+ 	} else if (user_param->verb == ATOMIC) {
+ 		flags |= IBV_ACCESS_REMOTE_ATOMIC;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
