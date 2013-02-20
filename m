@@ -1,38 +1,61 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH -next] IB/ipath: use GFP_ATOMIC under spin lock
-Date: Wed, 20 Feb 2013 18:10:34 +0800
-Message-ID: <CAPgLHd-jM-DN1VjvwUh=-s0jLOyqijdn2xHzXhdoxRs0UTGtNg@mail.gmail.com>
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] infiniband-diags/ibqueryerrors.c: changed the behavior when
+ guid/DR-path not found
+Date: Wed, 20 Feb 2013 13:52:10 +0200
+Message-ID: <20130220115210.GB20018@r-ufm5-17.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Wed, 13 Feb 2013 11:05:42 +0200
+Subject: [PATCH] infiniband-diags/ibqueryerrors.c: changed the behavior when guid/DR-path not found
 
-A spin lock is taken here so we should use GFP_ATOMIC.
+If we use G or D options and we can't find the guid (sm is down or the
+guid is wrong), we'll get an error instead of the result for all the
+ports in the fabric.
 
-Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/ipath/ipath_driver.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/ibqueryerrors.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-index fcdaeea..03ed479 100644
---- a/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -204,7 +204,7 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
- 	idr_preload(GFP_KERNEL);
- 	spin_lock_irqsave(&ipath_devs_lock, flags);
+diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
+index 076327c..6320972 100644
+--- a/src/ibqueryerrors.c
++++ b/src/ibqueryerrors.c
+@@ -935,16 +935,18 @@ int main(int argc, char **argv)
+ 	if (dr_path) {
+ 		if ((resolved =
+ 		     resolve_portid_str(ibd_ca, ibd_ca_port, &portid, dr_path,
+-					IB_DEST_DRPATH, NULL, ibmad_port)) < 0)
+-			IBWARN("Failed to resolve %s; attempting full scan",
+-			       dr_path);
++					IB_DEST_DRPATH, NULL, ibmad_port)) < 0) {
++			IBWARN("Failed to resolve %s;",dr_path);
++			goto close_port;
++		}
+ 	} else if (port_guid_str) {
+ 		if ((resolved =
+ 		     resolve_portid_str(ibd_ca, ibd_ca_port, &portid,
+ 					port_guid_str, IB_DEST_GUID, ibd_sm_id,
+-					       ibmad_port)) < 0)
+-			IBWARN("Failed to resolve %s; attempting full scan",
+-			       port_guid_str);
++					       ibmad_port)) < 0) {
++			IBWARN("Failed to resolve %s;",port_guid_str);
++			goto close_port;
++		}
+ 	}
  
--	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_KERNEL);
-+	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_ATOMIC);
- 	if (ret < 0) {
- 		printk(KERN_ERR IPATH_DRV_NAME
- 		       ": Could not allocate unit ID: error %d\n", -ret);
-
+ 	if (load_cache_file) {
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
