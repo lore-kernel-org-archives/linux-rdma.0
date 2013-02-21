@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v4 3/4] IB/srp: Avoid endless SCSI error handling loop
-Date: Thu, 21 Feb 2013 18:19:04 +0100
-Message-ID: <51265708.1020001@acm.org>
+Subject: [PATCH v4 4/4] IB/srp: Fail I/O requests if the transport is offline
+Date: Thu, 21 Feb 2013 18:20:00 +0100
+Message-ID: <51265740.3050402@acm.org>
 References: <51265641.4060609@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -9,100 +9,76 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <51265641.4060609-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If a SCSI command times out it is passed to the SCSI error
-handler. The SCSI error handler will try to abort the commands
-that timed out. If aborting failed a device reset will be
-attempted. If the device reset also fails a host reset will
-be attempted. If the host reset also fails the whole procedure
-will be repeated.
-
-srp_abort() and srp_reset_device() fail for a QP in the error
-state. srp_reset_host() fails after host removal has started.
-Hence if the SCSI error handler gets invoked after host removal
-has started and with the QP in the error state an endless loop
-will be triggered.
-
-Modify the SCSI error handling functions in ib_srp as follows:
-- Abort SCSI commands properly even if the QP is in the error
-  state.
-- Make srp_reset_host() reset SCSI requests even after host
-  removal has already started or if reconnecting fails.
+If an SRP target is no longer reachable and srp_reset_host()
+fails to reconnect then ib_srp will invoke scsi_remove_host().
+That function will invoke __scsi_remove_device() for each LUN.
+And that last function will change the device state from
+SDEV_TRANSPORT_OFFLINE into SDEV_CANCEL. Certain user space
+software, e.g. older versions of multipathd, continue queueing
+I/O to SCSI devices that are in the SDEV_CANCEL state. If these
+I/O requests are submitted as SG_IO that means that the
+REQ_PREEMPT flag will be set and hence that these requests will
+be passed to srp_queuecommand(). These requests will time out.
+If new requests are queued fast enough from user space these
+active requests will prevent __scsi_remove_device() to finish.
+Avoid this by failing I/O requests in the SDEV_CANCEL state if
+the transport is offline. Introduce a new variable to keep
+track of the transport state instead of failing requests if
+(!target->connected || target->qp_in_error) such that the SCSI
+error handler has a chance to retry commands after a transport
+layer failure occurred.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Acked-by: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Alex Turin <alextu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.8
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |    7 +++++++
+ drivers/infiniband/ulp/srp/ib_srp.h |    1 +
+ 2 files changed, 8 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 2633258..8a7eb9f 100644
+index 8a7eb9f..7ccf328 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -700,23 +700,24 @@ static int srp_reconnect_target(struct srp_target_port *target)
- 	struct Scsi_Host *shost = target->scsi_host;
- 	int i, ret;
+@@ -734,6 +734,7 @@ static int srp_reconnect_target(struct srp_target_port *target)
  
--	if (target->state != SRP_TARGET_LIVE)
--		return -EAGAIN;
--
- 	scsi_target_block(&shost->shost_gendev);
- 
- 	srp_disconnect_target(target);
- 	/*
--	 * Now get a new local CM ID so that we avoid confusing the
--	 * target in case things are really fouled up.
-+	 * Now get a new local CM ID so that we avoid confusing the target in
-+	 * case things are really fouled up. Doing so also ensures that all CM
-+	 * callbacks will have finished before a new QP is allocated.
- 	 */
- 	ret = srp_new_cm_id(target);
--	if (ret)
--		goto unblock;
--
--	ret = srp_create_target_ib(target);
--	if (ret)
--		goto unblock;
-+	/*
-+	 * Whether or not creating a new CM ID succeeded, create a new
-+	 * QP. This guarantees that all completion callback function
-+	 * invocations have finished before request resetting starts.
-+	 */
-+	if (ret == 0)
-+		ret = srp_create_target_ib(target);
-+	else
-+		srp_create_target_ib(target);
- 
- 	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
-@@ -728,9 +729,9 @@ static int srp_reconnect_target(struct srp_target_port *target)
- 	for (i = 0; i < SRP_SQ_SIZE; ++i)
- 		list_add(&target->tx_ring[i]->list, &target->free_tx);
- 
--	ret = srp_connect_target(target);
-+	if (ret == 0)
-+		ret = srp_connect_target(target);
- 
--unblock:
  	scsi_target_unblock(&shost->shost_gendev, ret == 0 ? SDEV_RUNNING :
  			    SDEV_TRANSPORT_OFFLINE);
++	target->transport_offline = !!ret;
  
-@@ -1739,7 +1740,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
+ 	if (ret)
+ 		goto err;
+@@ -1353,6 +1354,12 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 	unsigned long flags;
+ 	int len;
  
- 	shost_printk(KERN_ERR, target->scsi_host, "SRP abort called\n");
++	if (unlikely(target->transport_offline)) {
++		scmnd->result = DID_NO_CONNECT << 16;
++		scmnd->scsi_done(scmnd);
++		return 0;
++	}
++
+ 	spin_lock_irqsave(&target->lock, flags);
+ 	iu = __srp_get_tx_iu(target, SRP_IU_CMD);
+ 	if (!iu)
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index de2d0b3..66fbedd 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -140,6 +140,7 @@ struct srp_target_port {
+ 	unsigned int		cmd_sg_cnt;
+ 	unsigned int		indirect_size;
+ 	bool			allow_ext_sg;
++	bool			transport_offline;
  
--	if (!req || target->qp_in_error || !srp_claim_req(target, req, scmnd))
-+	if (!req || !srp_claim_req(target, req, scmnd))
- 		return FAILED;
- 	srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
- 			  SRP_TSK_ABORT_TASK);
+ 	/* Everything above this point is used in the hot path of
+ 	 * command processing. Try to keep them packed into cachelines.
 -- 
 1.7.10.4
 
