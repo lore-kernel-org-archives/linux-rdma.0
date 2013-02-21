@@ -1,8 +1,10 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 1/2] librdmacm/rstream: Reduce default transfer count
-Date: Thu, 21 Feb 2013 06:48:47 -0800
-Message-ID: <1361458128-10134-1-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH 2/2] librdmacm/rsocket: Fix resetting O_NONBLOCK after calling shutdown
+Date: Thu, 21 Feb 2013 06:48:48 -0800
+Message-ID: <1361458128-10134-2-git-send-email-sean.hefty@intel.com>
+References: <1361458128-10134-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1361458128-10134-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,42 +12,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-1 million ping-pong transfers takes over 3 seconds to
-complete, and I'm impatient.  Reduce the default number of
-transfers for small messsages to speed up running
-performance tests, especially when running over slower
-connections, like TCP sockets or over a WAN.
+Shutdown switches an rsocket from nonblocking to blocking to
+ensure that all data has been sent.  After completing all
+transfers, it should switch back to nonblocking; this handles
+partial shutdown situations, where only half the connection
+is shut down.  However, the code uses the value of '1' to
+set the nonblocking flag, rather than O_NONBLOCK.  Fix this.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- examples/common.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
+ src/rsocket.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/examples/common.c b/examples/common.c
-index 939f50c..4eb5bbe 100644
---- a/examples/common.c
-+++ b/examples/common.c
-@@ -117,16 +117,14 @@ void cnt_str(char *str, size_t ssize, long long cnt)
+diff --git a/src/rsocket.c b/src/rsocket.c
+index 9b6c667..03f5dc4 100644
+--- a/src/rsocket.c
++++ b/src/rsocket.c
+@@ -3023,7 +3023,7 @@ int rshutdown(int socket, int how)
+ 		rs_process_cq(rs, 0, rs_conn_all_sends_done);
  
- int size_to_count(int size)
- {
--	if (size >= 1000000)
-+	if (size >= (1 << 20))
- 		return 100;
--	else if (size >= 100000)
-+	else if (size >= (1 << 16))
- 		return 1000;
--	else if (size >= 10000)
-+	else if (size >= (1 << 10))
- 		return 10000;
--	else if (size >= 1000)
--		return 100000;
- 	else
--		return 1000000;
-+		return 100000;
+ 	if ((rs->fd_flags & O_NONBLOCK) && (rs->state & rs_connected))
+-		rs_set_nonblocking(rs, 1);
++		rs_set_nonblocking(rs, rs->fd_flags);
+ 
+ 	return 0;
+ }
+@@ -3040,7 +3040,7 @@ static void ds_shutdown(struct rsocket *rs)
+ 	ds_process_cqs(rs, 0, ds_all_sends_done);
+ 
+ 	if (rs->fd_flags & O_NONBLOCK)
+-		rs_set_nonblocking(rs, 1);
++		rs_set_nonblocking(rs, rs->fd_flags);
  }
  
- void format_buf(void *buf, int size)
+ int rclose(int socket)
 -- 
 1.7.3
 
