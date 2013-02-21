@@ -1,10 +1,10 @@
 From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibmad] Adding support for Debian packaging
-Date: Thu, 21 Feb 2013 11:53:41 +0200
-Message-ID: <1361440421-17621-1-git-send-email-ilyan@mellanox.com>
+Subject: [PATCH opensm] Adding support for Debian packaging
+Date: Thu, 21 Feb 2013 12:07:32 +0200
+Message-ID: <1361441252-18607-1-git-send-email-ilyan@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: weiny2-i2BcT+NCU+M@public.gmane.org
+To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
@@ -18,72 +18,89 @@ The changes that were done:
 
 Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- Makefile.am                    |   10 +-
+ Makefile.am                    |   13 +-
+ debian/README.source           |    1 +
  debian/changelog               |    5 +
  debian/compat                  |    1 +
- debian/control                 |   30 ++++
+ debian/control                 |   47 +++++
  debian/dirs                    |    2 +
- debian/libibmad-devel.dirs     |    2 +
- debian/libibmad-devel.install  |    2 +
- debian/libibmad-static.dirs    |    1 +
- debian/libibmad-static.install |    1 +
- debian/libibmad.copyright      |  376 ++++++++++++++++++++++++++++++++++++++++
- debian/libibmad.dirs           |    1 +
- debian/libibmad.docs           |    3 +
- debian/libibmad.install        |    1 +
- debian/rules                   |   13 ++
+ debian/libopensm-devel.install |    4 +
+ debian/libopensm.install       |    1 +
+ debian/opensm-boot.init        |   84 +++++++++
+ debian/opensm-doc.docs         |    3 +
+ debian/opensm.copyright        |  377 ++++++++++++++++++++++++++++++++++++++++
+ debian/opensm.default          |    9 +
+ debian/opensm.init             |   84 +++++++++
+ debian/opensm.install          |    6 +
+ debian/opensm.logrotate        |    8 +
+ debian/opensm.postinst         |   11 ++
+ debian/opensm.postrm           |   10 ++
+ debian/rules                   |  104 +++++++++++
  debian/source/format           |    1 +
- gen_chlog.sh                   |   27 ++-
- 16 files changed, 469 insertions(+), 7 deletions(-)
+ gen_chlog.sh                   |   51 +++++-
+ 20 files changed, 814 insertions(+), 8 deletions(-)
+ create mode 100644 debian/README.source
  create mode 100644 debian/changelog
  create mode 100644 debian/compat
  create mode 100644 debian/control
  create mode 100644 debian/dirs
- create mode 100644 debian/libibmad-devel.dirs
- create mode 100644 debian/libibmad-devel.install
- create mode 100644 debian/libibmad-static.dirs
- create mode 100644 debian/libibmad-static.install
- create mode 100644 debian/libibmad.copyright
- create mode 100644 debian/libibmad.dirs
- create mode 100644 debian/libibmad.docs
- create mode 100644 debian/libibmad.install
+ create mode 100644 debian/libopensm-devel.install
+ create mode 100644 debian/libopensm.install
+ create mode 100644 debian/opensm-boot.init
+ create mode 100644 debian/opensm-doc.docs
+ create mode 100644 debian/opensm.copyright
+ create mode 100644 debian/opensm.default
+ create mode 100644 debian/opensm.init
+ create mode 100644 debian/opensm.install
+ create mode 100644 debian/opensm.logrotate
+ create mode 100644 debian/opensm.postinst
+ create mode 100644 debian/opensm.postrm
  create mode 100755 debian/rules
  create mode 100644 debian/source/format
 
 diff --git a/Makefile.am b/Makefile.am
-index b96657e..d0b616a 100644
+index e6fd74a..5058153 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -27,9 +27,17 @@ libibmadincludedir = $(includedir)/infiniband
- libibmadinclude_HEADERS = $(srcdir)/include/infiniband/mad.h $(srcdir)/include/infiniband/mad_osd.h
+@@ -19,9 +19,18 @@ docs = doc/performance-manager-HOWTO.txt doc/QoS_management_in_OpenSM.txt \
+ 	doc/partition-config.txt doc/opensm-sriov.txt \
+ 	doc/opensm_release_notes-3.3.txt
  
- EXTRA_DIST = libibmad.spec.in libibmad.spec \
--	$(srcdir)/src/libibmad.map libibmad.ver autogen.sh
-+	$(srcdir)/src/libibmad.map libibmad.ver autogen.sh \
-+	debian/changelog debian/libibmad.copyright \
-+        debian/rules debian/compat \
-+	debian/control debian/dirs \
-+	debian/libibmad.docs debian/source/format \
-+	debian/libibmad.dirs debian/libibmad.install \
-+	debian/libibmad-devel.dirs debian/libibmad-devel.install \
-+	debian/libibmad-static.dirs debian/libibmad-static.install
+-EXTRA_DIST = autogen.sh opensm.spec $(various_scripts) $(man_MANS) $(docs)
++EXTRA_DIST = autogen.sh opensm.spec $(various_scripts) $(man_MANS) $(docs) \
++	     debian/changelog debian/compat debian/control debian/dirs \
++	     debian/opensm-boot.init debian/opensm.copyright \
++	     debian/opensm.default debian/libopensm-devel.install \
++	     debian/opensm-doc.docs debian/opensm.init \
++	     debian/opensm.install debian/libopensm.install \
++	     debian/opensm.logrotate debian/opensm.postinst \
++	     debian/opensm.postrm debian/README.source \
++	     debian/rules debian/source/format
  
- dist-hook:
+ dist-hook: $(EXTRA_DIST)
  	if [ -x $(top_srcdir)/gen_chlog.sh ] ; then \
- 		$(top_srcdir)/gen_chlog.sh > $(distdir)/ChangeLog ; \
-+		$(top_srcdir)/gen_chlog.sh --debian > $(distdir)/debian/changelog ; \
+-		cd $(top_srcdir); ./gen_chlog.sh > $(distdir)/ChangeLog ; cd - ; \
++		cd $(top_srcdir); ./gen_chlog.sh > $(distdir)/ChangeLog ; \
++		./gen_chlog.sh --debian > $(distdir)/debian/changelog ; cd - ; \
  	fi
+diff --git a/debian/README.source b/debian/README.source
+new file mode 100644
+index 0000000..1c919f0
+--- /dev/null
++++ b/debian/README.source
+@@ -0,0 +1 @@
++/usr/share/doc/dpatch/README.source.gz
 diff --git a/debian/changelog b/debian/changelog
 new file mode 100644
-index 0000000..03f2b1b
+index 0000000..1137798
 --- /dev/null
 +++ b/debian/changelog
 @@ -0,0 +1,5 @@
-+libibmad (1.1.0.MLNX20070329.bf5c10c) unstable; urgency=low
++opensm (1.8.0.MLNX20050822.xxxxxxx) unstable; urgency=low
 +
 +  * Initial release.
 +
-+ --  Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>  Thu, 29 Mar 2007 12:31:09 -0500
++ --  Yael Kalka <yael-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>  Mon, 22 Aug 2005 10:37:55 +0200
 diff --git a/debian/compat b/debian/compat
 new file mode 100644
 index 0000000..7f8f011
@@ -93,92 +110,196 @@ index 0000000..7f8f011
 +7
 diff --git a/debian/control b/debian/control
 new file mode 100644
-index 0000000..895dcbd
+index 0000000..aa0bbd6
 --- /dev/null
 +++ b/debian/control
-@@ -0,0 +1,30 @@
-+Source: libibmad
+@@ -0,0 +1,47 @@
++Source: opensm
 +Priority: extra
-+Maintainer: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
++Maintainer: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++Section: net
++Build-Depends: debhelper (>= 8.0.0), autotools-dev, bison, flex, libibumad-devel
++Standards-Version: 3.3.15
++Homepage: http://www.openfabrics.org/downloads/management
++
++
++Package: opensm
++Section: net
++Architecture: i386 ia64 amd64 powerpc
++Depends: ${misc:Depends}, libopensm (= ${binary:Version}), ${shlibs:Depends}
++Description: An Infiniband subnet manager
++ OpenSM provides an implementation of an InfiniBand Subnet Manager and
++ Administration. Such a software entity is required to run for in order
++ to initialize the InfiniBand hardware (at least one per each
++ InfiniBand subnet).
++
++
++Package: opensm-doc
++Section: doc
++Architecture: i386 ia64 amd64 powerpc
++Depends: ${misc:Depends}
++Description: Documentation for opensm
++ Documentation for the opensm Infiniband subnet manager.
++
++
++Package: libopensm
 +Section: libs
-+Build-Depends: debhelper (>= 8.0.0), autotools-dev, libibumad-devel
-+Standards-Version: 1.3.9
-+Homepage: http://www.openfabrics.org/downloads/management/libibmad-1.3.9.tar.gz
-+
-+Package: libibmad-devel
-+Section: libdevel
-+Architecture: any
-+Depends: libibmad (= ${binary:Version})
-+Description: Development files for the libibmad library
-+ Development files for the libibmad library
-+
-+Package: libibmad-static
-+Section: libdevel
-+Architecture: any
-+Depends: libibmad (= ${binary:Version})
-+Description: Static version of the libibmad library
-+ Static version of the libibmad library
-+
-+Package: libibmad
-+Section: libs
-+Architecture: any
++Architecture: i386 ia64 amd64 powerpc
 +Depends: ${shlibs:Depends}, ${misc:Depends}
-+Description: OpenFabrics Alliance InfiniBand MAD library
-+ libibmad provides low layer IB functions for use by the IB diagnostic
-+ and management programs. These include MAD, SA, SMP, and other basic
-+ IB functions.
++Description: Infiniband subnet manager libraries
++ OpenSM provides an implementation of an Infiniband Subnet Manager (SM) and
++ Administrator (SA). One Subnet Manager is required to run on each Infiniband
++ subnet in order to initialize the Infiniband hardware.
++ .
++ This package contains shared libraries that are part of the opensm package
++ but are also used by other applications.
++
++
++Package: libopensm-devel
++Section: libdevel
++Architecture: i386 ia64 amd64 powerpc
++Depends: libopensm  (= ${binary:Version}), ${misc:Depends}
++Description: Developement files for OpenSM
++ Header files for OpenSM
 diff --git a/debian/dirs b/debian/dirs
 new file mode 100644
-index 0000000..ca882bb
+index 0000000..fbcaf20
 --- /dev/null
 +++ b/debian/dirs
 @@ -0,0 +1,2 @@
-+usr/bin
 +usr/sbin
-diff --git a/debian/libibmad-devel.dirs b/debian/libibmad-devel.dirs
++etc/opensm
+diff --git a/debian/libopensm-devel.install b/debian/libopensm-devel.install
 new file mode 100644
-index 0000000..4418816
+index 0000000..013afda
 --- /dev/null
-+++ b/debian/libibmad-devel.dirs
-@@ -0,0 +1,2 @@
-+usr/lib
-+usr/include
-diff --git a/debian/libibmad-devel.install b/debian/libibmad-devel.install
++++ b/debian/libopensm-devel.install
+@@ -0,0 +1,4 @@
++usr/include/*
++usr/lib/lib*.a
++usr/lib/lib*.so
++usr/lib/lib*.la
+diff --git a/debian/libopensm.install b/debian/libopensm.install
 new file mode 100644
-index 0000000..e2995de
+index 0000000..d0dbfd1
 --- /dev/null
-+++ b/debian/libibmad-devel.install
-@@ -0,0 +1,2 @@
-+usr/include/infiniband/*.h
-+usr/lib/libibmad.so
-diff --git a/debian/libibmad-static.dirs b/debian/libibmad-static.dirs
-new file mode 100644
-index 0000000..6845771
---- /dev/null
-+++ b/debian/libibmad-static.dirs
++++ b/debian/libopensm.install
 @@ -0,0 +1 @@
-+usr/lib
-diff --git a/debian/libibmad-static.install b/debian/libibmad-static.install
++usr/lib/lib*.so.*
+diff --git a/debian/opensm-boot.init b/debian/opensm-boot.init
 new file mode 100644
-index 0000000..ee46449
+index 0000000..8b53788
 --- /dev/null
-+++ b/debian/libibmad-static.install
-@@ -0,0 +1 @@
-+usr/lib/libibmad.a
-diff --git a/debian/libibmad.copyright b/debian/libibmad.copyright
++++ b/debian/opensm-boot.init
+@@ -0,0 +1,84 @@
++#!/bin/sh
++### BEGIN INIT INFO
++# Provides:          opensm-boot
++# Required-Start:    $syslog $remote_fs
++# Required-Stop:     $syslog $remote_fs
++# Default-Start:     2 3 4 5
++# Default-Stop:      0 1 6
++# Short-Description: Start opensm subnet manager.
++# Description:       Enable opensm subnet manage.
++### END INIT INFO
++
++PORTS=""
++[ -f /etc/default/opensm ] &&  . /etc/default/opensm
++
++[ -x /usr/sbin/opensm ] || exit 0
++
++if [ ! -f /sys/class/infiniband_mad/abi_version ] ; then
++echo "No infiniband adapters found."
++exit 0
++fi
++
++
++start () {
++
++if [ "$PORTS" = "ALL" ]; then
++PORTS=`/usr/sbin/ibstat -p`
++fi
++
++if [ "$PORTS" = "NONE" ]; then
++echo "opensm disabled."
++exit 0
++fi
++
++for PORT in $PORTS ; do
++    echo -n "Starting opensm on $PORT: "
++    start-stop-daemon --start --quiet --make-pidfile  --pidfile /var/run/opensm-$PORT --background --exec /usr/sbin/opensm -- -g $PORT -f /var/log/opensm.$PORT.log
++    RETVAL=$?
++    echo
++done
++}
++
++stop () {
++
++if [ "$PORTS" = "ALL" ]; then
++PORTS=`/usr/sbin/ibstat -p`
++fi
++
++if [ "$PORTS" = "NONE" ]; then
++    echo "opensm disabled."
++    exit 0
++fi
++for PORT in $PORTS ; do
++    echo -n "Shutting down opensm: "
++    start-stop-daemon --stop --pidfile /var/run/opensm-$PORT
++    RETVAL=$?
++    echo
++done
++}
++
++
++case "$1" in
++    start)
++        start
++        ;;
++    stop)
++        stop
++        ;;
++    restart | force-reload )
++        stop
++	start
++        ;;
++    reload)
++    echo "Reloading opensm configuration..."
++        killall -HUP opensm
++	RETVAL=$?
++	echo "done"
++        ;;
++    *)
++        echo "Usage: $0 {start|stop|restart|reload|force-reload}"
++        RETVAL=1
++        ;;
++esac
++
++exit $RETVAL;
+diff --git a/debian/opensm-doc.docs b/debian/opensm-doc.docs
 new file mode 100644
-index 0000000..4ac0e5b
+index 0000000..0c3d5ef
 --- /dev/null
-+++ b/debian/libibmad.copyright
-@@ -0,0 +1,376 @@
++++ b/debian/opensm-doc.docs
+@@ -0,0 +1,3 @@
++NEWS
++README
++doc/*
+diff --git a/debian/opensm.copyright b/debian/opensm.copyright
+new file mode 100644
+index 0000000..fb99d55
+--- /dev/null
++++ b/debian/opensm.copyright
+@@ -0,0 +1,377 @@
 +Format: http://dep.debian.net/deps/dep5
-+Upstream-Name: libibmad
-+Maintainer: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
++Upstream-Name: opensm
++Maintainer: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 +Source: http://www.openfabrics.org/downloads/management
 +
 +Files: *
-+Copyright: 2011-2013 Mellanox Technologies LTD.
-+	   2004-2011 Voltaire Inc.
++Copyright: 2002-2013 Mellanox Technologies LTD.
++	   2004-2008 Voltaire Inc.
++	   1996-2003 Intel Corporation.
 +License: OpenIB.org-BSD or GPLv2
 +
 +License: OpenIB.org-BSD
@@ -212,7 +333,7 @@ index 0000000..4ac0e5b
 +                        Version 2, June 1991
 + .
 +  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
-+                        59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++		59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 +  Everyone is permitted to copy and distribute verbatim copies
 +  of this license document, but changing it is not allowed.
 + .
@@ -547,35 +668,176 @@ index 0000000..4ac0e5b
 + consider it more useful to permit linking proprietary applications with the
 + library.  If this is what you want to do, use the GNU Library General
 + Public License instead of this License.
-diff --git a/debian/libibmad.dirs b/debian/libibmad.dirs
+diff --git a/debian/opensm.default b/debian/opensm.default
 new file mode 100644
-index 0000000..6845771
+index 0000000..cbc215c
 --- /dev/null
-+++ b/debian/libibmad.dirs
-@@ -0,0 +1 @@
-+usr/lib
-diff --git a/debian/libibmad.docs b/debian/libibmad.docs
++++ b/debian/opensm.default
+@@ -0,0 +1,9 @@
++# Lists gid the ports to start opensm on.
++# ibstat -p will list the gids on the system.
++# You can also specify ALL or NONE
++# ALL: Start opensm on all ports
++# NONE: Do no start opensm
++
++#PORTS="0x0002c9030002fce9 0x0002c9030002fb06"
++
++PORTS=ALL
+diff --git a/debian/opensm.init b/debian/opensm.init
 new file mode 100644
-index 0000000..644b98c
+index 0000000..7e39848
 --- /dev/null
-+++ b/debian/libibmad.docs
-@@ -0,0 +1,3 @@
-+AUTHORS
-+COPYING
-+debian/changelog
-diff --git a/debian/libibmad.install b/debian/libibmad.install
++++ b/debian/opensm.init
+@@ -0,0 +1,84 @@
++#!/bin/sh
++### BEGIN INIT INFO
++# Provides:          opensm
++# Required-Start:    $syslog $remote_fs
++# Required-Stop:     $syslog $remote_fs
++# Default-Start:     2 3 4 5
++# Default-Stop:      0 1 6
++# Short-Description: Start opensm subnet manager.
++# Description:       Enable opensm subnet manage.
++### END INIT INFO
++
++PORTS=""
++[ -f /etc/default/opensm ] &&  . /etc/default/opensm
++
++[ -x /usr/sbin/opensm ] || exit 0
++
++if [ ! -f /sys/class/infiniband_mad/abi_version ] ; then
++echo "No infiniband adapters found."
++exit 0
++fi
++
++
++start () {
++
++if [ "$PORTS" = "ALL" ]; then
++PORTS=`/usr/sbin/ibstat -p`
++fi
++
++if [ "$PORTS" = "NONE" ]; then
++echo "opensm disabled."
++exit 0
++fi
++
++for PORT in $PORTS ; do
++    echo -n "Starting opensm on $PORT: "
++    start-stop-daemon --start --quiet --make-pidfile  --pidfile /var/run/opensm-$PORT --background --exec /usr/sbin/opensm -- -g $PORT -f /var/log/opensm.$PORT.log
++    RETVAL=$?
++    echo
++done
++}
++
++stop () {
++
++if [ "$PORTS" = "ALL" ]; then
++PORTS=`/usr/sbin/ibstat -p`
++fi
++
++if [ "$PORTS" = "NONE" ]; then
++    echo "opensm disabled."
++    exit 0
++fi
++for PORT in $PORTS ; do
++    echo -n "Shutting down opensm on $PORT: "
++    start-stop-daemon --stop --pidfile /var/run/opensm-$PORT
++    RETVAL=$?
++    echo
++done
++}
++
++
++case "$1" in
++    start)
++        start
++        ;;
++    stop)
++        stop
++        ;;
++    restart | force-reload )
++        stop
++	start
++        ;;
++    reload)
++    echo "Reloading opensm configuration..."
++        killall -HUP opensm
++	RETVAL=$?
++	echo "done"
++        ;;
++    *)
++        echo "Usage: $0 {start|stop|restart|reload|force-reload}"
++        RETVAL=1
++        ;;
++esac
++
++exit $RETVAL;
+diff --git a/debian/opensm.install b/debian/opensm.install
 new file mode 100644
-index 0000000..d0dbfd1
+index 0000000..c60ec06
 --- /dev/null
-+++ b/debian/libibmad.install
-@@ -0,0 +1 @@
-+usr/lib/lib*.so.*
++++ b/debian/opensm.install
+@@ -0,0 +1,6 @@
++usr/sbin
++usr/share/man/man8
++usr/share/man/man5
++etc/init.d/opensmd
++etc/init.d/opensm-boot
++usr/sbin/sldd.sh
+diff --git a/debian/opensm.logrotate b/debian/opensm.logrotate
+new file mode 100644
+index 0000000..ae1d088
+--- /dev/null
++++ b/debian/opensm.logrotate
+@@ -0,0 +1,8 @@
++/var/log/opensm*.log {
++rotate 4
++weekly
++compress
++postrotate
++ /usr/bin/killall -SIGUSR1 /usr/sbin/opensm
++endscript
++}
+diff --git a/debian/opensm.postinst b/debian/opensm.postinst
+new file mode 100644
+index 0000000..d67dc0c
+--- /dev/null
++++ b/debian/opensm.postinst
+@@ -0,0 +1,11 @@
++#!/bin/sh
++
++set -e
++
++. /usr/share/debconf/confmodule
++
++#if [ -x "/etc/init.d/opensm-boot" ]; then
++#update-rc.d opensm-boot start 24 none . > /dev/null
++#fi
++
++#DEBHELPER#
+diff --git a/debian/opensm.postrm b/debian/opensm.postrm
+new file mode 100644
+index 0000000..5c61640
+--- /dev/null
++++ b/debian/opensm.postrm
+@@ -0,0 +1,10 @@
++#!/bin/sh
++
++set -e
++
++if [ "$1" = "purge" ] ; then
++	update-rc.d -f opensm-boot remove >/dev/null
++	update-rc.d opensm-boot stop 45 0 1 6 >/dev/null
++fi
++
++#DEBHELPER#
 diff --git a/debian/rules b/debian/rules
 new file mode 100755
-index 0000000..955dd78
+index 0000000..006b9d5
 --- /dev/null
 +++ b/debian/rules
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,104 @@
 +#!/usr/bin/make -f
 +# -*- makefile -*-
 +# Sample debian/rules that uses debhelper.
@@ -587,8 +849,99 @@ index 0000000..955dd78
 +# Uncomment this to turn on verbose mode.
 +#export DH_VERBOSE=1
 +
-+%:
-+	dh $@
++
++# These are used for cross-compiling and for saving the configure script
++# from having to guess our platform (since we know it already)
++DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
++DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
++ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
++CROSS= --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
++else
++CROSS= --build $(DEB_BUILD_GNU_TYPE)
++endif
++
++
++
++config.status: patch configure
++	dh_testdir
++	# Add here commands to configure the package.
++	./configure $(CROSS) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info CFLAGS="$(CFLAGS)" \
++	--sysconfdir=/etc --localstatedir=/var/run
++
++build: build-stamp
++
++build-stamp:  config.status
++	dh_testdir
++
++	# Add here commands to compile the package.
++	$(MAKE)
++	#docbook-to-man debian/opensm.sgml > opensm.1
++
++	touch $@
++
++clean: clean-patched unpatch
++clean-patched:
++	dh_testdir
++	dh_testroot
++	rm -f build-stamp
++
++	# Add here commands to clean up after the build process.
++	[ ! -f Makefile ] || $(MAKE) distclean
++	rm -f config.sub config.guess
++
++	-find $(CURDIR) -type d -name ".svn" -exec rm -rf {} \;
++
++	dh_clean
++
++patch: patch-stamp
++patch-stamp:
++	dpatch apply-all
++	dpatch cat-all >patch-stamp
++
++unpatch:
++	dpatch deapply-all
++	rm -rf patch-stamp debian/patched
++
++install: build
++	dh_testdir
++	dh_testroot
++	dh_prep
++	dh_installdirs
++
++	# Add here commands to install the package into debian/opensm.
++	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
++	cp $(CURDIR)/debian/opensm-boot.init $(CURDIR)/debian/tmp/etc/init.d/opensm-boot
++
++
++# Build architecture-independent files here.
++binary-indep: install
++# We have nothing to do by default.
++
++# Build architecture-dependent files here.
++binary-arch: install
++	dh_testdir
++	dh_testroot
++	dh_installchangelogs ChangeLog
++	dh_installdocs
++	dh_installexamples
++	dh_install --list-missing
++	dh_installdebconf
++	dh_installlogrotate
++	dh_installinit
++	dh_installman
++	dh_link
++	dh_strip
++	dh_compress
++	dh_fixperms
++	dh_makeshlibs
++	dh_installdeb
++	dh_shlibdeps
++	dh_gencontrol
++	dh_md5sums
++	dh_builddeb
++
++binary: binary-indep binary-arch
++.PHONY: build clean binary-indep binary-arch binary install
 diff --git a/debian/source/format b/debian/source/format
 new file mode 100644
 index 0000000..89ae9db
@@ -597,7 +950,7 @@ index 0000000..89ae9db
 @@ -0,0 +1 @@
 +3.0 (native)
 diff --git a/gen_chlog.sh b/gen_chlog.sh
-index 34dfa24..5afa0da 100755
+index ed74ed6..4f6a579 100755
 --- a/gen_chlog.sh
 +++ b/gen_chlog.sh
 @@ -8,6 +8,8 @@ usage()
@@ -609,23 +962,47 @@ index 34dfa24..5afa0da 100755
  fi
  
  GIT_DIR=`git rev-parse --git-dir 2>/dev/null`
-@@ -56,12 +58,25 @@ mkchlog()
+@@ -56,12 +58,49 @@ mkchlog()
  	done
  }
  
 +mkchlog_debian()
 +{
 +	package=`grep AC_INIT configure.in | cut -d"(" -f2 | cut -d"," -f1`
-+	ver_num=`grep AC_INIT configure.in | cut -d"," -f2 | cut -d"," -f1 | sed -e 's/^ //'`
 +
-+	log_format="--pretty=format:${package} ($ver_num.MLNX%ai.%h) unstable; urgency=low%n%n  * %s%n%n --  %an <%ae>  %aD%n"
++	prev_tag=""
 +
-+	git log --no-merges "${log_format}"
-+}
++	for tag in `git tag -l '*' | sort -V` ; do
++		obj=`git cat-file tag $tag | awk '/^object /{print $2}'`
++		base=`git merge-base $obj HEAD`
++		if [ -z "$base" -o "$base" != $obj ] ; then
++			continue
++		fi
++		all_vers="$prev_tag$tag $all_vers"
++		prev_tag=$tag..
++	done
++
++	if [ -z "$prev_tag" ] ; then
++		all_vers=HEAD
++	else
++		all_vers="${prev_tag}HEAD $all_vers"
++	fi
  
 -if [ -z "$spec_format" ] ; then
 -	mkchlog --pretty=format:"%ad %an%n%H%n%n* %s%n" \
 -		| sed -e 's/^\* /\t* /'
++	for ver in $all_vers ; do
++		log_out=`git log $ver -- ./`
++		if [ -z "$log_out" ] ; then
++			continue
++		fi
++		ver_name=`echo $ver | sed -e 's/\.\..*$//'`
++		ver_num=`echo $ver_name | cut -d"-" -f2`
++		log_format="--pretty=format:${package} ($ver_num.MLNX%ai.%h) unstable; urgency=low%n%n  * %s%n%n --  %an <%ae>  %aD%n"
++		git log --no-merges "${log_format}" $ver -- ./
++	done
++}
++
 +if [ -z "$debian_format" ] ; then
 +	if [ -z "$spec_format" ] ; then
 +		mkchlog --pretty=format:"%ad %an%n%H%n%n* %s%n" \
