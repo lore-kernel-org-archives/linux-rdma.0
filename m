@@ -1,10 +1,10 @@
 From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH opensm] Adding support for Debian packaging
-Date: Thu, 21 Feb 2013 12:07:32 +0200
-Message-ID: <1361441252-18607-1-git-send-email-ilyan@mellanox.com>
+Subject: [PATCH infiniband-diags] Adding support for Debian packaging
+Date: Thu, 21 Feb 2013 12:18:17 +0200
+Message-ID: <1361441897-19486-1-git-send-email-ilyan@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: weiny2-i2BcT+NCU+M@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
@@ -18,89 +18,74 @@ The changes that were done:
 
 Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- Makefile.am                    |   13 +-
- debian/README.source           |    1 +
- debian/changelog               |    5 +
- debian/compat                  |    1 +
- debian/control                 |   47 +++++
- debian/dirs                    |    2 +
- debian/libopensm-devel.install |    4 +
- debian/libopensm.install       |    1 +
- debian/opensm-boot.init        |   84 +++++++++
- debian/opensm-doc.docs         |    3 +
- debian/opensm.copyright        |  377 ++++++++++++++++++++++++++++++++++++++++
- debian/opensm.default          |    9 +
- debian/opensm.init             |   84 +++++++++
- debian/opensm.install          |    6 +
- debian/opensm.logrotate        |    8 +
- debian/opensm.postinst         |   11 ++
- debian/opensm.postrm           |   10 ++
- debian/rules                   |  104 +++++++++++
- debian/source/format           |    1 +
- gen_chlog.sh                   |   51 +++++-
- 20 files changed, 814 insertions(+), 8 deletions(-)
- create mode 100644 debian/README.source
+ Makefile.am                             |    9 +-
+ debian/changelog                        |    5 +
+ debian/compat                           |    1 +
+ debian/control                          |   30 +++
+ debian/copyright                        |  376 +++++++++++++++++++++++++++++++
+ debian/docs                             |    3 +
+ debian/infiniband-diags-compat.install  |   19 ++
+ debian/infiniband-diags-compat.manpages |   16 ++
+ debian/infiniband-diags-guest.install   |    2 +
+ debian/infiniband-diags-guest.manpages  |    2 +
+ debian/infiniband-diags.install         |   35 +++
+ debian/infiniband-diags.manpages        |   33 +++
+ debian/rules                            |   32 +++
+ debian/source/format                    |    1 +
+ gen_chlog.sh                            |   65 +++++-
+ 15 files changed, 622 insertions(+), 7 deletions(-)
  create mode 100644 debian/changelog
  create mode 100644 debian/compat
  create mode 100644 debian/control
- create mode 100644 debian/dirs
- create mode 100644 debian/libopensm-devel.install
- create mode 100644 debian/libopensm.install
- create mode 100644 debian/opensm-boot.init
- create mode 100644 debian/opensm-doc.docs
- create mode 100644 debian/opensm.copyright
- create mode 100644 debian/opensm.default
- create mode 100644 debian/opensm.init
- create mode 100644 debian/opensm.install
- create mode 100644 debian/opensm.logrotate
- create mode 100644 debian/opensm.postinst
- create mode 100644 debian/opensm.postrm
+ create mode 100644 debian/copyright
+ create mode 100644 debian/docs
+ create mode 100644 debian/infiniband-diags-compat.install
+ create mode 100644 debian/infiniband-diags-compat.manpages
+ create mode 100644 debian/infiniband-diags-guest.install
+ create mode 100644 debian/infiniband-diags-guest.manpages
+ create mode 100644 debian/infiniband-diags.install
+ create mode 100644 debian/infiniband-diags.manpages
  create mode 100755 debian/rules
  create mode 100644 debian/source/format
 
 diff --git a/Makefile.am b/Makefile.am
-index e6fd74a..5058153 100644
+index f44b4d6..cfe2b30 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -19,9 +19,18 @@ docs = doc/performance-manager-HOWTO.txt doc/QoS_management_in_OpenSM.txt \
- 	doc/partition-config.txt doc/opensm-sriov.txt \
- 	doc/opensm_release_notes-3.3.txt
+@@ -140,7 +140,13 @@ TESTS = tests/check_shells.sh
+ endif
  
--EXTRA_DIST = autogen.sh opensm.spec $(various_scripts) $(man_MANS) $(docs)
-+EXTRA_DIST = autogen.sh opensm.spec $(various_scripts) $(man_MANS) $(docs) \
-+	     debian/changelog debian/compat debian/control debian/dirs \
-+	     debian/opensm-boot.init debian/opensm.copyright \
-+	     debian/opensm.default debian/libopensm-devel.install \
-+	     debian/opensm-doc.docs debian/opensm.init \
-+	     debian/opensm.install debian/libopensm.install \
-+	     debian/opensm.logrotate debian/opensm.postinst \
-+	     debian/opensm.postrm debian/README.source \
-+	     debian/rules debian/source/format
+ EXTRA_DIST = doc scripts include infiniband-diags.spec.in infiniband-diags.spec \
+-	$(man_MANS) $(compat_man_pages) autogen.sh etc/*
++	     debian/changelog debian/compat debian/control debian/copyright \
++	     debian/docs debian/infiniband-diags-compat.install \
++	     debian/infiniband-diags-compat.manpages \
++	     debian/infiniband-diags-guest.install debian/infiniband-diags-guest.manpages \
++	     debian/infiniband-diags.install debian/infiniband-diags.manpages \
++	     debian/rules debian/source/format \
++	     $(man_MANS) $(compat_man_pages) autogen.sh etc/*
  
- dist-hook: $(EXTRA_DIST)
+ distclean-local:
+ 	$(top_srcdir)/doc/generate clean
+@@ -148,6 +154,7 @@ distclean-local:
+ dist-hook:
  	if [ -x $(top_srcdir)/gen_chlog.sh ] ; then \
--		cd $(top_srcdir); ./gen_chlog.sh > $(distdir)/ChangeLog ; cd - ; \
-+		cd $(top_srcdir); ./gen_chlog.sh > $(distdir)/ChangeLog ; \
-+		./gen_chlog.sh --debian > $(distdir)/debian/changelog ; cd - ; \
+ 		$(top_srcdir)/gen_chlog.sh > $(distdir)/ChangeLog ; \
++		$(top_srcdir)/gen_chlog.sh --debian > $(distdir)/debian/changelog ; \
  	fi
-diff --git a/debian/README.source b/debian/README.source
-new file mode 100644
-index 0000000..1c919f0
---- /dev/null
-+++ b/debian/README.source
-@@ -0,0 +1 @@
-+/usr/share/doc/dpatch/README.source.gz
+ 
+ # install this to a default location.
 diff --git a/debian/changelog b/debian/changelog
 new file mode 100644
-index 0000000..1137798
+index 0000000..487920f
 --- /dev/null
 +++ b/debian/changelog
 @@ -0,0 +1,5 @@
-+opensm (1.8.0.MLNX20050822.xxxxxxx) unstable; urgency=low
++infiniband-diags (1.2.4.MLNX20070303.xxxxxxx) unstable; urgency=low
 +
 +  * Initial release.
 +
-+ --  Yael Kalka <yael-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>  Mon, 22 Aug 2005 10:37:55 +0200
++ --  Hal Rosenstock <halr-smomgflXvOZWk0Htik3J/w@public.gmane.org>  Thu, 03 Mar 2007 10:34:46 +0200
 diff --git a/debian/compat b/debian/compat
 new file mode 100644
 index 0000000..7f8f011
@@ -110,203 +95,61 @@ index 0000000..7f8f011
 +7
 diff --git a/debian/control b/debian/control
 new file mode 100644
-index 0000000..aa0bbd6
+index 0000000..bc66838
 --- /dev/null
 +++ b/debian/control
-@@ -0,0 +1,47 @@
-+Source: opensm
-+Priority: extra
-+Maintainer: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-+Section: net
-+Build-Depends: debhelper (>= 8.0.0), autotools-dev, bison, flex, libibumad-devel
-+Standards-Version: 3.3.15
-+Homepage: http://www.openfabrics.org/downloads/management
-+
-+
-+Package: opensm
-+Section: net
-+Architecture: i386 ia64 amd64 powerpc
-+Depends: ${misc:Depends}, libopensm (= ${binary:Version}), ${shlibs:Depends}
-+Description: An Infiniband subnet manager
-+ OpenSM provides an implementation of an InfiniBand Subnet Manager and
-+ Administration. Such a software entity is required to run for in order
-+ to initialize the InfiniBand hardware (at least one per each
-+ InfiniBand subnet).
-+
-+
-+Package: opensm-doc
-+Section: doc
-+Architecture: i386 ia64 amd64 powerpc
-+Depends: ${misc:Depends}
-+Description: Documentation for opensm
-+ Documentation for the opensm Infiniband subnet manager.
-+
-+
-+Package: libopensm
+@@ -0,0 +1,30 @@
++Source: infiniband-diags
++Priority: net
++Maintainer: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
++Build-Depends: debhelper (>= 8.0.0), autotools-dev, libopensm, libopensm-devel, libibumad-devel, libibmad-devel
++Standards-Version: 1.6.1
 +Section: libs
-+Architecture: i386 ia64 amd64 powerpc
++Homepage: http://www.openfabrics.org/downloads/management/
++
++Package: infiniband-diags
++Architecture: any
 +Depends: ${shlibs:Depends}, ${misc:Depends}
-+Description: Infiniband subnet manager libraries
-+ OpenSM provides an implementation of an Infiniband Subnet Manager (SM) and
-+ Administrator (SA). One Subnet Manager is required to run on each Infiniband
-+ subnet in order to initialize the Infiniband hardware.
-+ .
-+ This package contains shared libraries that are part of the opensm package
-+ but are also used by other applications.
++Description: OpenFabrics Alliance InfiniBand Diagnostic Tools
++ This package provides IB diagnostic programs and scripts needed to
++ diagnose an IB subnet.
++
++Package: infiniband-compat
++Architecture:libs
++Depends: ${shlibs:Depends}, ${misc:Depends}, libibmad-devel, opensm-devel, libibumad-devel
++Description: OpenFabrics Alliance InfiniBand Diagnostic Tools
++ Deprecated scripts and utilities which provide duplicated functionality, most
++ often at a reduced performance.  These are maintained for the time being for
++ compatibility reasons.
 +
 +
-+Package: libopensm-devel
-+Section: libdevel
-+Architecture: i386 ia64 amd64 powerpc
-+Depends: libopensm  (= ${binary:Version}), ${misc:Depends}
-+Description: Developement files for OpenSM
-+ Header files for OpenSM
-diff --git a/debian/dirs b/debian/dirs
++Package: infiniband-guest
++Architecture: libs
++Depends: ${shlibs:Depends}, ${misc:Depends}
++Description: OpenFabrics Alliance InfiniBand Diagnostic Tools for Guest OS
++ This package provides IB diagnostic programs and scripts for Virtual Machines,
++ needed to diagnose an IB subnet.
+diff --git a/debian/copyright b/debian/copyright
 new file mode 100644
-index 0000000..fbcaf20
+index 0000000..93c4b42
 --- /dev/null
-+++ b/debian/dirs
-@@ -0,0 +1,2 @@
-+usr/sbin
-+etc/opensm
-diff --git a/debian/libopensm-devel.install b/debian/libopensm-devel.install
-new file mode 100644
-index 0000000..013afda
---- /dev/null
-+++ b/debian/libopensm-devel.install
-@@ -0,0 +1,4 @@
-+usr/include/*
-+usr/lib/lib*.a
-+usr/lib/lib*.so
-+usr/lib/lib*.la
-diff --git a/debian/libopensm.install b/debian/libopensm.install
-new file mode 100644
-index 0000000..d0dbfd1
---- /dev/null
-+++ b/debian/libopensm.install
-@@ -0,0 +1 @@
-+usr/lib/lib*.so.*
-diff --git a/debian/opensm-boot.init b/debian/opensm-boot.init
-new file mode 100644
-index 0000000..8b53788
---- /dev/null
-+++ b/debian/opensm-boot.init
-@@ -0,0 +1,84 @@
-+#!/bin/sh
-+### BEGIN INIT INFO
-+# Provides:          opensm-boot
-+# Required-Start:    $syslog $remote_fs
-+# Required-Stop:     $syslog $remote_fs
-+# Default-Start:     2 3 4 5
-+# Default-Stop:      0 1 6
-+# Short-Description: Start opensm subnet manager.
-+# Description:       Enable opensm subnet manage.
-+### END INIT INFO
-+
-+PORTS=""
-+[ -f /etc/default/opensm ] &&  . /etc/default/opensm
-+
-+[ -x /usr/sbin/opensm ] || exit 0
-+
-+if [ ! -f /sys/class/infiniband_mad/abi_version ] ; then
-+echo "No infiniband adapters found."
-+exit 0
-+fi
-+
-+
-+start () {
-+
-+if [ "$PORTS" = "ALL" ]; then
-+PORTS=`/usr/sbin/ibstat -p`
-+fi
-+
-+if [ "$PORTS" = "NONE" ]; then
-+echo "opensm disabled."
-+exit 0
-+fi
-+
-+for PORT in $PORTS ; do
-+    echo -n "Starting opensm on $PORT: "
-+    start-stop-daemon --start --quiet --make-pidfile  --pidfile /var/run/opensm-$PORT --background --exec /usr/sbin/opensm -- -g $PORT -f /var/log/opensm.$PORT.log
-+    RETVAL=$?
-+    echo
-+done
-+}
-+
-+stop () {
-+
-+if [ "$PORTS" = "ALL" ]; then
-+PORTS=`/usr/sbin/ibstat -p`
-+fi
-+
-+if [ "$PORTS" = "NONE" ]; then
-+    echo "opensm disabled."
-+    exit 0
-+fi
-+for PORT in $PORTS ; do
-+    echo -n "Shutting down opensm: "
-+    start-stop-daemon --stop --pidfile /var/run/opensm-$PORT
-+    RETVAL=$?
-+    echo
-+done
-+}
-+
-+
-+case "$1" in
-+    start)
-+        start
-+        ;;
-+    stop)
-+        stop
-+        ;;
-+    restart | force-reload )
-+        stop
-+	start
-+        ;;
-+    reload)
-+    echo "Reloading opensm configuration..."
-+        killall -HUP opensm
-+	RETVAL=$?
-+	echo "done"
-+        ;;
-+    *)
-+        echo "Usage: $0 {start|stop|restart|reload|force-reload}"
-+        RETVAL=1
-+        ;;
-+esac
-+
-+exit $RETVAL;
-diff --git a/debian/opensm-doc.docs b/debian/opensm-doc.docs
-new file mode 100644
-index 0000000..0c3d5ef
---- /dev/null
-+++ b/debian/opensm-doc.docs
-@@ -0,0 +1,3 @@
-+NEWS
-+README
-+doc/*
-diff --git a/debian/opensm.copyright b/debian/opensm.copyright
-new file mode 100644
-index 0000000..fb99d55
---- /dev/null
-+++ b/debian/opensm.copyright
-@@ -0,0 +1,377 @@
++++ b/debian/copyright
+@@ -0,0 +1,376 @@
 +Format: http://dep.debian.net/deps/dep5
-+Upstream-Name: opensm
-+Maintainer: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++Upstream-Name: libibumad
++Maintainer: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> 
 +Source: http://www.openfabrics.org/downloads/management
 +
 +Files: *
-+Copyright: 2002-2013 Mellanox Technologies LTD.
-+	   2004-2008 Voltaire Inc.
-+	   1996-2003 Intel Corporation.
++Copyright: 2010-2013 Mellanox Technologies LTD.
++	   2004-2009 Voltaire Inc.
 +License: OpenIB.org-BSD or GPLv2
 +
 +License: OpenIB.org-BSD
 + Redistribution and use in source and binary forms, with or without
 + modification, are permitted provided that the following conditions
 + are met:
-+ .
++ . 
 +   * Redistributions of source code must retain the above copyright
 +     notice, this list of conditions and the following disclaimer.
 + .
@@ -331,9 +174,9 @@ index 0000000..fb99d55
 +License: GPLv2
 +                     GNU GENERAL PUBLIC LICENSE
 +                        Version 2, June 1991
-+ .
++ . 
 +  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
-+		59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++  		59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 +  Everyone is permitted to copy and distribute verbatim copies
 +  of this license document, but changing it is not allowed.
 + .
@@ -668,176 +511,164 @@ index 0000000..fb99d55
 + consider it more useful to permit linking proprietary applications with the
 + library.  If this is what you want to do, use the GNU Library General
 + Public License instead of this License.
-diff --git a/debian/opensm.default b/debian/opensm.default
+diff --git a/debian/docs b/debian/docs
 new file mode 100644
-index 0000000..cbc215c
+index 0000000..c4412c8
 --- /dev/null
-+++ b/debian/opensm.default
-@@ -0,0 +1,9 @@
-+# Lists gid the ports to start opensm on.
-+# ibstat -p will list the gids on the system.
-+# You can also specify ALL or NONE
-+# ALL: Start opensm on all ports
-+# NONE: Do no start opensm
-+
-+#PORTS="0x0002c9030002fce9 0x0002c9030002fb06"
-+
-+PORTS=ALL
-diff --git a/debian/opensm.init b/debian/opensm.init
++++ b/debian/docs
+@@ -0,0 +1,3 @@
++README
++debian/copyright
++debian/changelog
+diff --git a/debian/infiniband-diags-compat.install b/debian/infiniband-diags-compat.install
 new file mode 100644
-index 0000000..7e39848
+index 0000000..074db67
 --- /dev/null
-+++ b/debian/opensm.init
-@@ -0,0 +1,84 @@
-+#!/bin/sh
-+### BEGIN INIT INFO
-+# Provides:          opensm
-+# Required-Start:    $syslog $remote_fs
-+# Required-Stop:     $syslog $remote_fs
-+# Default-Start:     2 3 4 5
-+# Default-Stop:      0 1 6
-+# Short-Description: Start opensm subnet manager.
-+# Description:       Enable opensm subnet manage.
-+### END INIT INFO
-+
-+PORTS=""
-+[ -f /etc/default/opensm ] &&  . /etc/default/opensm
-+
-+[ -x /usr/sbin/opensm ] || exit 0
-+
-+if [ ! -f /sys/class/infiniband_mad/abi_version ] ; then
-+echo "No infiniband adapters found."
-+exit 0
-+fi
-+
-+
-+start () {
-+
-+if [ "$PORTS" = "ALL" ]; then
-+PORTS=`/usr/sbin/ibstat -p`
-+fi
-+
-+if [ "$PORTS" = "NONE" ]; then
-+echo "opensm disabled."
-+exit 0
-+fi
-+
-+for PORT in $PORTS ; do
-+    echo -n "Starting opensm on $PORT: "
-+    start-stop-daemon --start --quiet --make-pidfile  --pidfile /var/run/opensm-$PORT --background --exec /usr/sbin/opensm -- -g $PORT -f /var/log/opensm.$PORT.log
-+    RETVAL=$?
-+    echo
-+done
-+}
-+
-+stop () {
-+
-+if [ "$PORTS" = "ALL" ]; then
-+PORTS=`/usr/sbin/ibstat -p`
-+fi
-+
-+if [ "$PORTS" = "NONE" ]; then
-+    echo "opensm disabled."
-+    exit 0
-+fi
-+for PORT in $PORTS ; do
-+    echo -n "Shutting down opensm on $PORT: "
-+    start-stop-daemon --stop --pidfile /var/run/opensm-$PORT
-+    RETVAL=$?
-+    echo
-+done
-+}
-+
-+
-+case "$1" in
-+    start)
-+        start
-+        ;;
-+    stop)
-+        stop
-+        ;;
-+    restart | force-reload )
-+        stop
-+	start
-+        ;;
-+    reload)
-+    echo "Reloading opensm configuration..."
-+        killall -HUP opensm
-+	RETVAL=$?
-+	echo "done"
-+        ;;
-+    *)
-+        echo "Usage: $0 {start|stop|restart|reload|force-reload}"
-+        RETVAL=1
-+        ;;
-+esac
-+
-+exit $RETVAL;
-diff --git a/debian/opensm.install b/debian/opensm.install
++++ b/debian/infiniband-diags-compat.install
+@@ -0,0 +1,19 @@
++usr/sbin/ibcheckerrs
++usr/sbin/ibchecknet
++usr/sbin/ibchecknode
++usr/sbin/ibcheckport
++usr/sbin/ibcheckportwidth
++usr/sbin/ibcheckportstate
++usr/sbin/ibcheckwidth
++usr/sbin/ibcheckstate
++usr/sbin/ibcheckerrors
++usr/sbin/ibdatacounts
++usr/sbin/ibdatacounters
++usr/sbin/ibdiscover.pl
++usr/sbin/ibswportwatch.pl
++usr/sbin/ibqueryerrors.pl
++usr/sbin/iblinkinfo.pl
++usr/sbin/ibprintca.pl
++usr/sbin/ibprintswitch.pl
++usr/sbin/ibprintrt.pl
++usr/sbin/set_nodedesc.sh
+diff --git a/debian/infiniband-diags-compat.manpages b/debian/infiniband-diags-compat.manpages
 new file mode 100644
-index 0000000..c60ec06
+index 0000000..9d756fa
 --- /dev/null
-+++ b/debian/opensm.install
-@@ -0,0 +1,6 @@
-+usr/sbin
-+usr/share/man/man8
-+usr/share/man/man5
-+etc/init.d/opensmd
-+etc/init.d/opensm-boot
-+usr/sbin/sldd.sh
-diff --git a/debian/opensm.logrotate b/debian/opensm.logrotate
++++ b/debian/infiniband-diags-compat.manpages
+@@ -0,0 +1,16 @@
++usr/share/man/man8/ibcheckerrs.*
++usr/share/man/man8/ibchecknet.*
++usr/share/man/man8/ibchecknode.*
++usr/share/man/man8/ibcheckport.*
++usr/share/man/man8/ibcheckportwidth.*
++usr/share/man/man8/ibcheckportstate.*
++usr/share/man/man8/ibcheckwidth.*
++usr/share/man/man8/ibcheckstate.*
++usr/share/man/man8/ibcheckerrors.*
++usr/share/man/man8/ibdatacounts.*
++usr/share/man/man8/ibdatacounters.*
++usr/share/man/man8/ibdiscover.*
++usr/share/man/man8/ibswportwatch.*
++usr/share/man/man8/ibprintca.*
++usr/share/man/man8/ibprintswitch.*
++usr/share/man/man8/ibprintrt.*
+diff --git a/debian/infiniband-diags-guest.install b/debian/infiniband-diags-guest.install
 new file mode 100644
-index 0000000..ae1d088
+index 0000000..046bd3f
 --- /dev/null
-+++ b/debian/opensm.logrotate
-@@ -0,0 +1,8 @@
-+/var/log/opensm*.log {
-+rotate 4
-+weekly
-+compress
-+postrotate
-+ /usr/bin/killall -SIGUSR1 /usr/sbin/opensm
-+endscript
-+}
-diff --git a/debian/opensm.postinst b/debian/opensm.postinst
++++ b/debian/infiniband-diags-guest.install
+@@ -0,0 +1,2 @@
++usr/sbin/ibstat
++usr/sbin/ibstatus
+diff --git a/debian/infiniband-diags-guest.manpages b/debian/infiniband-diags-guest.manpages
 new file mode 100644
-index 0000000..d67dc0c
+index 0000000..b6f5986
 --- /dev/null
-+++ b/debian/opensm.postinst
-@@ -0,0 +1,11 @@
-+#!/bin/sh
-+
-+set -e
-+
-+. /usr/share/debconf/confmodule
-+
-+#if [ -x "/etc/init.d/opensm-boot" ]; then
-+#update-rc.d opensm-boot start 24 none . > /dev/null
-+#fi
-+
-+#DEBHELPER#
-diff --git a/debian/opensm.postrm b/debian/opensm.postrm
++++ b/debian/infiniband-diags-guest.manpages
+@@ -0,0 +1,2 @@
++usr/share/man/man8/ibstat.8*
++usr/share/man/man8/ibstatus.8*
+diff --git a/debian/infiniband-diags.install b/debian/infiniband-diags.install
 new file mode 100644
-index 0000000..5c61640
+index 0000000..ec594d5
 --- /dev/null
-+++ b/debian/opensm.postrm
-@@ -0,0 +1,10 @@
-+#!/bin/sh
-+
-+set -e
-+
-+if [ "$1" = "purge" ] ; then
-+	update-rc.d -f opensm-boot remove >/dev/null
-+	update-rc.d opensm-boot stop 45 0 1 6 >/dev/null
-+fi
-+
-+#DEBHELPER#
++++ b/debian/infiniband-diags.install
+@@ -0,0 +1,35 @@
++usr/sbin/ibaddr
++usr/sbin/ibnetdiscover
++usr/sbin/ibping
++usr/sbin/ibportstate
++usr/sbin/ibroute
++usr/sbin/ibstat
++usr/sbin/ibsysstat
++usr/sbin/ibtracert
++usr/sbin/perfquery
++usr/sbin/sminfo
++usr/sbin/smpdump
++usr/sbin/smpquery
++usr/sbin/saquery
++usr/sbin/vendstat
++usr/sbin/iblinkinfo
++usr/sbin/ibqueryerrors
++usr/sbin/ibcacheedit
++usr/sbin/ibccquery
++usr/sbin/ibccconfig
++usr/sbin/ibmirror
++usr/sbin/ibhosts
++usr/sbin/ibswitches
++usr/sbin/ibnodes
++usr/sbin/ibrouters
++usr/sbin/ibfindnodesusing.pl
++usr/sbin/ibidsverify.pl
++usr/sbin/check_lft_balance.pl
++usr/sbin/dump_lfts.sh
++usr/sbin/dump_mfts.sh
++usr/sbin/ibclearerrors
++usr/sbin/ibclearcounters
++usr/sbin/ibstatus
++usr/lib/*.a
++usr/lib/*.so*
++usr/include/infiniband/*.h
+diff --git a/debian/infiniband-diags.manpages b/debian/infiniband-diags.manpages
+new file mode 100644
+index 0000000..d2d0d31
+--- /dev/null
++++ b/debian/infiniband-diags.manpages
+@@ -0,0 +1,33 @@
++usr/share/man/man8/ibaddr.*
++usr/share/man/man8/ibnetdiscover.*
++usr/share/man/man8/ibping.*
++usr/share/man/man8/ibportstate.*
++usr/share/man/man8/ibroute.*
++usr/share/man/man8/ibstat.*
++usr/share/man/man8/ibsysstat.*
++usr/share/man/man8/ibtracert.*
++usr/share/man/man8/perfquery.*
++usr/share/man/man8/sminfo.*
++usr/share/man/man8/smpdump.*
++usr/share/man/man8/smpquery.*
++usr/share/man/man8/saquery.*
++usr/share/man/man8/vendstat.*
++usr/share/man/man8/iblinkinfo.*
++usr/share/man/man8/ibqueryerrors.*
++usr/share/man/man8/ibcacheedit.*
++usr/share/man/man8/ibccquery.*
++usr/share/man/man8/ibccconfig.*
++usr/share/man/man8/ibhosts.*
++usr/share/man/man8/ibswitches.*
++usr/share/man/man8/ibnodes.*
++usr/share/man/man8/ibrouters.*
++usr/share/man/man8/ibfindnodesusing.*
++usr/share/man/man8/ibidsverify.*
++usr/share/man/man8/check_lft_balance.*
++usr/share/man/man8/dump_lfts.*
++usr/share/man/man8/dump_mfts.*
++usr/share/man/man8/ibclearerrors.*
++usr/share/man/man8/ibclearcounters.*
++usr/share/man/man8/ibstatus.*
++usr/share/man/man8/infiniband-diags.*
++usr/share/man/man3/*
 diff --git a/debian/rules b/debian/rules
 new file mode 100755
-index 0000000..006b9d5
+index 0000000..6b33964
 --- /dev/null
 +++ b/debian/rules
-@@ -0,0 +1,104 @@
+@@ -0,0 +1,32 @@
 +#!/usr/bin/make -f
 +# -*- makefile -*-
 +# Sample debian/rules that uses debhelper.
@@ -849,99 +680,27 @@ index 0000000..006b9d5
 +# Uncomment this to turn on verbose mode.
 +#export DH_VERBOSE=1
 +
-+
-+# These are used for cross-compiling and for saving the configure script
-+# from having to guess our platform (since we know it already)
-+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-+ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
-+CROSS= --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
-+else
-+CROSS= --build $(DEB_BUILD_GNU_TYPE)
-+endif
-+
-+
-+
-+config.status: patch configure
++clean:
 +	dh_testdir
-+	# Add here commands to configure the package.
-+	./configure $(CROSS) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info CFLAGS="$(CFLAGS)" \
-+	--sysconfdir=/etc --localstatedir=/var/run
-+
-+build: build-stamp
-+
-+build-stamp:  config.status
-+	dh_testdir
-+
-+	# Add here commands to compile the package.
-+	$(MAKE)
-+	#docbook-to-man debian/opensm.sgml > opensm.1
-+
-+	touch $@
-+
-+clean: clean-patched unpatch
-+clean-patched:
-+	dh_testdir
-+	dh_testroot
-+	rm -f build-stamp
-+
-+	# Add here commands to clean up after the build process.
-+	[ ! -f Makefile ] || $(MAKE) distclean
-+	rm -f config.sub config.guess
-+
-+	-find $(CURDIR) -type d -name ".svn" -exec rm -rf {} \;
-+
 +	dh_clean
 +
-+patch: patch-stamp
-+patch-stamp:
-+	dpatch apply-all
-+	dpatch cat-all >patch-stamp
-+
-+unpatch:
-+	dpatch deapply-all
-+	rm -rf patch-stamp debian/patched
-+
-+install: build
++build:
 +	dh_testdir
-+	dh_testroot
-+	dh_prep
-+	dh_installdirs
++	./configure --prefix=/usr \
++	--includedir=/usr/include \
++	--mandir=/usr/share/man \
++	--infodir=/usr/share/info \
++	--sysconfdir=/etc \
++	--localstatedir=/var \
++	--libexecdir=/usr/lib/infiniband-diags \
++	--disable-dependecy-tracking \
++	--enable-compat-utils
++	dh_auto_build
++	dh_auto_test
 +
-+	# Add here commands to install the package into debian/opensm.
-+	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
-+	cp $(CURDIR)/debian/opensm-boot.init $(CURDIR)/debian/tmp/etc/init.d/opensm-boot
-+
-+
-+# Build architecture-independent files here.
-+binary-indep: install
-+# We have nothing to do by default.
-+
-+# Build architecture-dependent files here.
-+binary-arch: install
-+	dh_testdir
-+	dh_testroot
-+	dh_installchangelogs ChangeLog
-+	dh_installdocs
-+	dh_installexamples
-+	dh_install --list-missing
-+	dh_installdebconf
-+	dh_installlogrotate
-+	dh_installinit
-+	dh_installman
-+	dh_link
-+	dh_strip
-+	dh_compress
-+	dh_fixperms
-+	dh_makeshlibs
-+	dh_installdeb
-+	dh_shlibdeps
-+	dh_gencontrol
-+	dh_md5sums
-+	dh_builddeb
-+
-+binary: binary-indep binary-arch
-+.PHONY: build clean binary-indep binary-arch binary install
++binary:
++	dh $@
++ 
 diff --git a/debian/source/format b/debian/source/format
 new file mode 100644
 index 0000000..89ae9db
@@ -950,7 +709,7 @@ index 0000000..89ae9db
 @@ -0,0 +1 @@
 +3.0 (native)
 diff --git a/gen_chlog.sh b/gen_chlog.sh
-index ed74ed6..4f6a579 100755
+index 34dfa24..dbd601d 100755
 --- a/gen_chlog.sh
 +++ b/gen_chlog.sh
 @@ -8,6 +8,8 @@ usage()
@@ -962,44 +721,57 @@ index ed74ed6..4f6a579 100755
  fi
  
  GIT_DIR=`git rev-parse --git-dir 2>/dev/null`
-@@ -56,12 +58,49 @@ mkchlog()
- 	done
+@@ -57,11 +59,62 @@ mkchlog()
  }
  
-+mkchlog_debian()
-+{
-+	package=`grep AC_INIT configure.in | cut -d"(" -f2 | cut -d"," -f1`
-+
-+	prev_tag=""
-+
-+	for tag in `git tag -l '*' | sort -V` ; do
-+		obj=`git cat-file tag $tag | awk '/^object /{print $2}'`
-+		base=`git merge-base $obj HEAD`
-+		if [ -z "$base" -o "$base" != $obj ] ; then
-+			continue
-+		fi
-+		all_vers="$prev_tag$tag $all_vers"
-+		prev_tag=$tag..
-+	done
-+
-+	if [ -z "$prev_tag" ] ; then
-+		all_vers=HEAD
-+	else
-+		all_vers="${prev_tag}HEAD $all_vers"
-+	fi
  
 -if [ -z "$spec_format" ] ; then
 -	mkchlog --pretty=format:"%ad %an%n%H%n%n* %s%n" \
 -		| sed -e 's/^\* /\t* /'
++# supports 2 different types of tags: x.x.x && infiniband-diags-x.x.x
++# while the first type is the most recent that is used now
++# and the second type is the previous one used
++mkchlog_debian()
++{
++	package=`grep AC_INIT configure.in | cut -d"(" -f2 | cut -d"," -f1`
++
++	for tag in `git tag -l '*'` ; do
++		pkg_name=`echo $tag | grep infiniband`
++		if [ -z $pkg_name ] ; then
++			continue
++		fi
++		obj=`git show $tag | awk '/^commit /{print $2}'`
++		base=`git merge-base $obj HEAD`
++		if [ -z "$base" -o "$base" != $obj ] ; then
++			continue
++		fi
++		all_vers="$tag $all_vers"
++	done
++
++	for tag in `git tag -l '*'` ; do
++		pkg_name=`echo $tag | grep infiniband`
++		if [ ! -z $pkg_name ] ; then
++			continue
++		fi
++		obj=`git show $tag | awk '/^commit /{print $2}'`
++		base=`git merge-base $obj HEAD`
++		if [ -z "$base" -o "$base" != $obj ] ; then
++			continue
++		fi
++		all_vers="$tag $all_vers"
++	done
++
++	prev_ver="HEAD"
++
 +	for ver in $all_vers ; do
-+		log_out=`git log $ver -- ./`
++		log_out=`git log "$ver..$prev_ver" -- ./`
 +		if [ -z "$log_out" ] ; then
 +			continue
 +		fi
-+		ver_name=`echo $ver | sed -e 's/\.\..*$//'`
-+		ver_num=`echo $ver_name | cut -d"-" -f2`
++		ver_num=`echo $ver | cut -d"-" -f3`
 +		log_format="--pretty=format:${package} ($ver_num.MLNX%ai.%h) unstable; urgency=low%n%n  * %s%n%n --  %an <%ae>  %aD%n"
-+		git log --no-merges "${log_format}" $ver -- ./
++		git log --no-merges "${log_format}" "$ver..$prev_ver" -- ./
++		prev_ver=$ver
 +	done
 +}
 +
