@@ -1,39 +1,26 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.9 1/3] IB/iser: Use proper define for the commands per lun value advertized to SCSI ML
-Date: Thu, 21 Feb 2013 16:50:08 +0200
-Message-ID: <1361458210-856-2-git-send-email-ogerlitz@mellanox.com>
-References: <1361458210-856-1-git-send-email-ogerlitz@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] opensm/perfmgr: mark/report time of last counter update
+Date: Thu, 21 Feb 2013 10:26:59 -0500
+Message-ID: <51263CC3.40407@dev.mellanox.co.il>
+References: <20130213135123.5ab8e737df71f2b465939984@llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1361458210-856-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20130213135123.5ab8e737df71f2b465939984-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ISER_DEF_CMD_PER_LUN was meant to be ISCSI_DEF_XMIT_CMDS_MAX, not plain 128
+On 2/13/2013 4:51 PM, Ira Weiny wrote:
+> 
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 
-Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Thanks. Applied.
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index ef7d3be..5babdb3 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -94,7 +94,7 @@
- 
- 					/* support up to 512KB in one RDMA */
- #define ISCSI_ISER_SG_TABLESIZE         (0x80000 >> SHIFT_4K)
--#define ISER_DEF_CMD_PER_LUN		128
-+#define ISER_DEF_CMD_PER_LUN		ISCSI_DEF_XMIT_CMDS_MAX
- 
- /* QP settings */
- /* Maximal bounds on received asynchronous PDUs */
--- 
-1.7.1
-
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
