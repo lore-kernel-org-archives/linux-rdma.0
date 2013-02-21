@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 04/06] opensm/perfmgr; add support for PortCountersExtended
- NOIETF
-Date: Thu, 21 Feb 2013 13:33:48 -0800
-Message-ID: <20130221133348.8ffddad7f9219b87b409d13b@llnl.gov>
+Subject: [PATCH 05/06] opensm/perfmgr: don't clear data counters in
+ PortCounters when ExtendedPortCounters is supported
+Date: Thu, 21 Feb 2013 13:33:52 -0800
+Message-ID: <20130221133352.c74b33ebbf372984578aed72@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -14,200 +14,204 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
+Some hardware apparently clears the data counters of ExtendedPortCounters when
+the PortCounters data counters are cleared.  (Must be using the same hardware
+registers.)
+
+Therefore, when ExtendedPortCounters is supported on a port; alter the counter
+select of PortCounters to exclude the data counters when clearing.
+
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- include/opensm/osm_perfmgr_db.h |    6 +++-
- opensm/osm_perfmgr.c            |   35 +++++++++++++++++++++-------
- opensm/osm_perfmgr_db.c         |   47 +++++++++++++++++++++++---------------
- 3 files changed, 58 insertions(+), 30 deletions(-)
+ opensm/osm_perfmgr.c |   88 ++++++++++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 74 insertions(+), 14 deletions(-)
 
-diff --git a/include/opensm/osm_perfmgr_db.h b/include/opensm/osm_perfmgr_db.h
-index ada6765..ed14f76 100644
---- a/include/opensm/osm_perfmgr_db.h
-+++ b/include/opensm/osm_perfmgr_db.h
-@@ -179,7 +179,8 @@ perfmgr_db_err_t perfmgr_db_clear_prev_err(perfmgr_db_t * db, uint64_t guid,
- perfmgr_db_err_t perfmgr_db_add_dc_reading(perfmgr_db_t * db, uint64_t guid,
- 					   uint8_t port,
- 					   perfmgr_db_data_cnt_reading_t *
--					   reading);
-+					   reading,
-+					   int ietf_sup);
- perfmgr_db_err_t perfmgr_db_get_prev_dc(perfmgr_db_t * db, uint64_t guid,
- 					uint8_t port,
- 					perfmgr_db_data_cnt_reading_t *
-@@ -208,7 +209,8 @@ void perfmgr_db_fill_err_read(ib_port_counters_t * wire_read,
- void perfmgr_db_fill_data_cnt_read_pc(ib_port_counters_t * wire_read,
- 				      perfmgr_db_data_cnt_reading_t * reading);
- void perfmgr_db_fill_data_cnt_read_pce(ib_port_counters_ext_t * wire_read,
--				       perfmgr_db_data_cnt_reading_t * reading);
-+				       perfmgr_db_data_cnt_reading_t * reading,
-+				       int ietf_sup);
- 
- END_C_DECLS
- 
 diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index d73b2a2..65886f7 100644
+index 65886f7..eb0c4f9 100644
 --- a/opensm/osm_perfmgr.c
 +++ b/opensm/osm_perfmgr.c
-@@ -566,9 +566,20 @@ static ib_api_status_t perfmgr_send_cpi_mad(osm_perfmgr_t * pm,
- }
- 
- /**********************************************************************
-- * return if PortCountersExtended are supported.
-+ * return if some form of PortCountersExtended (PCE || PCE NoIETF) are supported.
-  **********************************************************************/
--static boolean_t pce_supported(monitored_node_t *mon_node, uint8_t port)
-+static inline boolean_t pce_supported(monitored_node_t *mon_node, uint8_t port)
-+{
-+	monitored_port_t *mon_port = &(mon_node->port[port]);
-+	return (mon_port->cpi_valid
-+		&& (mon_port->cap_mask & IB_PM_EXT_WIDTH_SUPPORTED
-+		|| mon_port->cap_mask & IB_PM_EXT_WIDTH_NOIETF_SUP));
-+}
-+
-+/**********************************************************************
-+ * return if "full" PortCountersExtended (IETF) is indicated
-+ **********************************************************************/
-+static inline boolean_t ietf_supported(monitored_node_t *mon_node, uint8_t port)
+@@ -450,6 +450,7 @@ static ib_api_status_t perfmgr_send_pc_mad(osm_perfmgr_t * perfmgr,
+ 					   ib_net16_t dest_lid,
+ 					   ib_net32_t dest_qp, uint16_t pkey_ix,
+ 					   uint8_t port, uint8_t mad_method,
++					   uint16_t counter_select,
+ 					   osm_madw_context_t * p_context,
+ 					   uint8_t sl)
  {
- 	monitored_port_t *mon_port = &(mon_node->port[port]);
- 	return (mon_port->cpi_valid
-@@ -1236,10 +1247,11 @@ static void perfmgr_check_pce_overflow(osm_perfmgr_t * pm,
- 	    counter_overflow_64(pc->rcv_data) ||
- 	    counter_overflow_64(pc->xmit_pkts) ||
- 	    counter_overflow_64(pc->rcv_pkts) ||
--	    counter_overflow_64(pc->unicast_xmit_pkts) ||
-+	    (ietf_supported(mon_node, port) &&
-+	    (counter_overflow_64(pc->unicast_xmit_pkts) ||
- 	    counter_overflow_64(pc->unicast_rcv_pkts) ||
- 	    counter_overflow_64(pc->multicast_xmit_pkts) ||
--	    counter_overflow_64(pc->multicast_rcv_pkts)) {
-+	    counter_overflow_64(pc->multicast_rcv_pkts)))) {
- 		osm_node_t *p_node = NULL;
- 		ib_net16_t lid = 0;
+@@ -469,7 +470,7 @@ static ib_api_status_t perfmgr_send_pc_mad(osm_perfmgr_t * perfmgr,
+ 	port_counter = (ib_port_counters_t *) & pm_mad->data;
+ 	memset(port_counter, 0, sizeof(*port_counter));
+ 	port_counter->port_select = port;
+-	port_counter->counter_select = 0xFFFF;
++	port_counter->counter_select = cl_hton16(counter_select);
  
-@@ -1505,10 +1517,11 @@ static void perfmgr_check_data_cnt_oob_clear(osm_perfmgr_t * pm,
+ 	status = perfmgr_send_mad(perfmgr, p_madw);
+ 
+@@ -613,7 +614,7 @@ static ib_api_status_t perfmgr_send_pce_mad(osm_perfmgr_t * perfmgr,
+ 	port_counter_ext = (ib_port_counters_ext_t *) & pm_mad->data;
+ 	memset(port_counter_ext, 0, sizeof(*port_counter_ext));
+ 	port_counter_ext->port_select = port;
+-	port_counter_ext->counter_select = cl_hton16(0xFF);
++	port_counter_ext->counter_select = cl_hton16(0x00FF);
+ 
+ 	status = perfmgr_send_mad(perfmgr, p_madw);
+ 
+@@ -715,6 +716,7 @@ static void perfmgr_query_counters(cl_map_item_t * p_map_item, void *context)
+ 			status = perfmgr_send_pc_mad(pm, lid, remote_qp,
+ 						     mon_node->port[port].pkey_ix,
+ 						     port, IB_MAD_METHOD_GET,
++						     0xffff,
+ 						     &mad_context,
+ 						     0); /* FIXME SL != 0 */
+ 			if (status != IB_SUCCESS)
+@@ -1098,6 +1100,35 @@ static void perfmgr_check_oob_clear(osm_perfmgr_t * pm,
+ 		return;
+ 	}
+ 
++	OSM_LOG(pm->log, OSM_LOG_DEBUG,
++		"Errors vs previous node %s (0x%" PRIx64 ") port %u\n"
++		"SE:   %"PRIu64" ?< %"PRIu64"\n"
++		"LE:   %"PRIu64" ?< %"PRIu64"\n"
++		"LD:   %"PRIu64" ?< %"PRIu64"\n"
++		"RE:   %"PRIu64" ?< %"PRIu64"\n"
++		"RPE:  %"PRIu64" ?< %"PRIu64"\n"
++		"SRE:  %"PRIu64" ?< %"PRIu64"\n"
++		"XD:   %"PRIu64" ?< %"PRIu64"\n"
++		"XCE:  %"PRIu64" ?< %"PRIu64"\n"
++		"RCE:  %"PRIu64" ?< %"PRIu64"\n"
++		"LI:   %"PRIu64" ?< %"PRIu64"\n"
++		"BO:   %"PRIu64" ?< %"PRIu64"\n"
++		"VL15: %"PRIu64" ?< %"PRIu64"\n"
++		,
++		mon_node->name, mon_node->guid, port,
++		cr->symbol_err_cnt, prev_err.symbol_err_cnt,
++		cr->link_err_recover, prev_err.link_err_recover,
++		cr->link_downed, prev_err.link_downed,
++		cr->rcv_err, prev_err.rcv_err,
++		cr->rcv_rem_phys_err, prev_err.rcv_rem_phys_err,
++		cr->rcv_switch_relay_err, prev_err.rcv_switch_relay_err,
++		cr->xmit_discards, prev_err.xmit_discards,
++		cr->xmit_constraint_err, prev_err.xmit_constraint_err,
++		cr->rcv_constraint_err, prev_err.rcv_constraint_err,
++		cr->link_integrity, prev_err.link_integrity,
++		cr->buffer_overrun, prev_err.buffer_overrun,
++		cr->vl15_dropped, prev_err.vl15_dropped);
++
+ 	if (cr->symbol_err_cnt < prev_err.symbol_err_cnt ||
+ 	    cr->link_err_recover < prev_err.link_err_recover ||
+ 	    cr->link_downed < prev_err.link_downed ||
+@@ -1158,6 +1189,7 @@ static void perfmgr_check_overflow(osm_perfmgr_t * pm,
+ 	osm_madw_context_t mad_context;
+ 	ib_api_status_t status;
+ 	ib_net32_t remote_qp;
++	uint16_t counter_select;
+ 
+ 	OSM_LOG_ENTER(pm->log);
+ 
+@@ -1207,9 +1239,20 @@ static void perfmgr_check_overflow(osm_perfmgr_t * pm,
+ 		mad_context.perfmgr_context.node_guid = mon_node->guid;
+ 		mad_context.perfmgr_context.port = port;
+ 		mad_context.perfmgr_context.mad_method = IB_MAD_METHOD_SET;
+-		/* clear port counters */
++
++		/* apparently some HW uses the same counters for the 32 and 64
++		 * bit versions and a clear of them in the PortCounters
++		 * attribute also clears the ExtendedPortCounters equivalant
++		 * counters
++		 */
++		if (pce_supported(mon_node, port))
++			counter_select = 0x0fff;
++		else
++			counter_select = 0xffff;
++
+ 		status = perfmgr_send_pc_mad(pm, lid, remote_qp, pkey_ix,
+ 					     port, IB_MAD_METHOD_SET,
++					     counter_select,
+ 					     &mad_context,
+ 					     0); /* FIXME SL != 0 */
+ 		if (status != IB_SUCCESS)
+@@ -1513,6 +1556,27 @@ static void perfmgr_check_data_cnt_oob_clear(osm_perfmgr_t * pm,
+ 		return;
+ 	}
+ 
++	OSM_LOG(pm->log, OSM_LOG_DEBUG,
++		"Data vs previous node %s (0x%" PRIx64 ") port %u\n"
++		"TX:    %"PRIu64" ?< %"PRIu64"\n"
++		"RX:    %"PRIu64" ?< %"PRIu64"\n"
++		"TXP:   %"PRIu64" ?< %"PRIu64"\n"
++		"RXP:   %"PRIu64" ?< %"PRIu64"\n"
++		"UTXP:  %"PRIu64" ?< %"PRIu64"\n"
++		"URXP:  %"PRIu64" ?< %"PRIu64"\n"
++		"MTXP:  %"PRIu64" ?< %"PRIu64"\n"
++		"MRXP:  %"PRIu64" ?< %"PRIu64"\n"
++		,
++		mon_node->name, mon_node->guid, port,
++		dc->xmit_data, prev_dc.xmit_data,
++		dc->rcv_data, prev_dc.rcv_data,
++		dc->xmit_pkts, prev_dc.xmit_pkts,
++		dc->rcv_pkts, prev_dc.rcv_pkts,
++		dc->unicast_xmit_pkts, prev_dc.unicast_xmit_pkts,
++		dc->unicast_rcv_pkts, prev_dc.unicast_rcv_pkts,
++		dc->multicast_xmit_pkts, prev_dc.multicast_xmit_pkts,
++		dc->multicast_rcv_pkts, prev_dc.multicast_rcv_pkts);
++
+ 	if (dc->xmit_data < prev_dc.xmit_data ||
  	    dc->rcv_data < prev_dc.rcv_data ||
  	    dc->xmit_pkts < prev_dc.xmit_pkts ||
- 	    dc->rcv_pkts < prev_dc.rcv_pkts ||
--	    dc->unicast_xmit_pkts < prev_dc.unicast_xmit_pkts ||
-+	    (ietf_supported(mon_node, port) &&
-+	    (dc->unicast_xmit_pkts < prev_dc.unicast_xmit_pkts ||
- 	    dc->unicast_rcv_pkts < prev_dc.unicast_rcv_pkts ||
- 	    dc->multicast_xmit_pkts < prev_dc.multicast_xmit_pkts ||
--	    dc->multicast_rcv_pkts < prev_dc.multicast_rcv_pkts) {
-+	    dc->multicast_rcv_pkts < prev_dc.multicast_rcv_pkts))) {
- 		OSM_LOG(pm->log, OSM_LOG_ERROR,
+@@ -1526,6 +1590,7 @@ static void perfmgr_check_data_cnt_oob_clear(osm_perfmgr_t * pm,
  			"PerfMgr: ERR 540B: Detected an out of band data counter "
  			"clear on node %s (0x%" PRIx64 ") port %u\n",
-@@ -1600,7 +1613,9 @@ static void pc_recv_process(void *context, void *data)
- 				&osm_madw_get_perfmgt_mad_ptr(p_madw)->data;
+ 			mon_node->name, mon_node->guid, port);
++
+ 		perfmgr_db_clear_prev_dc(pm->db, mon_node->guid, port);
+ 	}
+ }
+@@ -1617,15 +1682,13 @@ static void pc_recv_process(void *context, void *data)
+ 						  ietf_supported(p_mon_node,
+ 								 port));
  
- 		/* convert wire data to perfmgr data counter reading */
--		perfmgr_db_fill_data_cnt_read_pce(ext_wire_read, &data_reading);
-+		perfmgr_db_fill_data_cnt_read_pce(ext_wire_read, &data_reading,
-+						  ietf_supported(p_mon_node,
-+								 port));
- 
- 		/* detect an out of band clear on the port */
- 		if (mad_context->perfmgr_context.mad_method !=
-@@ -1612,7 +1627,9 @@ static void pc_recv_process(void *context, void *data)
+-		/* detect an out of band clear on the port */
+-		if (mad_context->perfmgr_context.mad_method !=
+-		    IB_MAD_METHOD_SET)
+-			perfmgr_check_data_cnt_oob_clear(pm, p_mon_node, port,
+-						    &data_reading);
+-
+ 		/* add counter */
  		if (mad_context->perfmgr_context.mad_method
  		    == IB_MAD_METHOD_GET) {
++			/* detect an out of band clear on the port */
++			perfmgr_check_data_cnt_oob_clear(pm, p_mon_node, port,
++						    &data_reading);
++
  			perfmgr_db_add_dc_reading(pm->db, node_guid, port,
--						  &data_reading);
-+						  &data_reading,
-+						  ietf_supported(p_mon_node,
-+								 port));
- 		} else {
+ 						  &data_reading,
+ 						  ietf_supported(p_mon_node,
+@@ -1634,7 +1697,6 @@ static void pc_recv_process(void *context, void *data)
  			perfmgr_db_clear_prev_dc(pm->db, node_guid, port);
  		}
-@@ -1648,7 +1665,7 @@ static void pc_recv_process(void *context, void *data)
- 						   &err_reading);
+ 
+-		/* check overflow */
+ 		perfmgr_check_pce_overflow(pm, p_mon_node,
+ 					   p_mon_node->port[port].pkey_ix,
+ 					   port, ext_wire_read);
+@@ -1648,15 +1710,13 @@ static void pc_recv_process(void *context, void *data)
+ 		if (!pce_sup)
+ 			perfmgr_db_fill_data_cnt_read_pc(wire_read, &data_reading);
+ 
+-		/* detect an out of band clear on the port */
+-		if (mad_context->perfmgr_context.mad_method != IB_MAD_METHOD_SET) {
++		if (mad_context->perfmgr_context.mad_method == IB_MAD_METHOD_GET) {
++			/* detect an out of band clear on the port */
+ 			perfmgr_check_oob_clear(pm, p_mon_node, port, &err_reading);
  			if (!pce_sup)
- 				perfmgr_db_add_dc_reading(pm->db, node_guid, port,
--							  &data_reading);
-+							  &data_reading, 0);
- 		} else {
- 			perfmgr_db_clear_prev_err(pm->db, node_guid, port);
- 			if (!pce_sup)
-diff --git a/opensm/osm_perfmgr_db.c b/opensm/osm_perfmgr_db.c
-index f8d0403..d17315f 100644
---- a/opensm/osm_perfmgr_db.c
-+++ b/opensm/osm_perfmgr_db.c
-@@ -495,7 +495,8 @@ debug_dump_dc_reading(perfmgr_db_t * db, uint64_t guid, uint8_t port_num,
-  **********************************************************************/
- perfmgr_db_err_t
- perfmgr_db_add_dc_reading(perfmgr_db_t * db, uint64_t guid, uint8_t port,
--			  perfmgr_db_data_cnt_reading_t * reading)
-+			  perfmgr_db_data_cnt_reading_t * reading,
-+			  int ietf_sup)
- {
- 	db_port_t *p_port = NULL;
- 	db_node_t *node = NULL;
-@@ -528,18 +529,22 @@ perfmgr_db_add_dc_reading(perfmgr_db_t * db, uint64_t guid, uint8_t port,
- 	p_port->dc_total.xmit_pkts += epi_dc_data.xmit_pkts;
- 	epi_dc_data.rcv_pkts = reading->rcv_pkts - previous->rcv_pkts;
- 	p_port->dc_total.rcv_pkts += epi_dc_data.rcv_pkts;
--	epi_dc_data.unicast_xmit_pkts =
--	    reading->unicast_xmit_pkts - previous->unicast_xmit_pkts;
--	p_port->dc_total.unicast_xmit_pkts += epi_dc_data.unicast_xmit_pkts;
--	epi_dc_data.unicast_rcv_pkts =
--	    reading->unicast_rcv_pkts - previous->unicast_rcv_pkts;
--	p_port->dc_total.unicast_rcv_pkts += epi_dc_data.unicast_rcv_pkts;
--	epi_dc_data.multicast_xmit_pkts =
--	    reading->multicast_xmit_pkts - previous->multicast_xmit_pkts;
--	p_port->dc_total.multicast_xmit_pkts += epi_dc_data.multicast_xmit_pkts;
--	epi_dc_data.multicast_rcv_pkts =
--	    reading->multicast_rcv_pkts - previous->multicast_rcv_pkts;
--	p_port->dc_total.multicast_rcv_pkts += epi_dc_data.multicast_rcv_pkts;
-+
-+	if (ietf_sup)
-+	{
-+		epi_dc_data.unicast_xmit_pkts =
-+		    reading->unicast_xmit_pkts - previous->unicast_xmit_pkts;
-+		p_port->dc_total.unicast_xmit_pkts += epi_dc_data.unicast_xmit_pkts;
-+		epi_dc_data.unicast_rcv_pkts =
-+		    reading->unicast_rcv_pkts - previous->unicast_rcv_pkts;
-+		p_port->dc_total.unicast_rcv_pkts += epi_dc_data.unicast_rcv_pkts;
-+		epi_dc_data.multicast_xmit_pkts =
-+		    reading->multicast_xmit_pkts - previous->multicast_xmit_pkts;
-+		p_port->dc_total.multicast_xmit_pkts += epi_dc_data.multicast_xmit_pkts;
-+		epi_dc_data.multicast_rcv_pkts =
-+		    reading->multicast_rcv_pkts - previous->multicast_rcv_pkts;
-+		p_port->dc_total.multicast_rcv_pkts += epi_dc_data.multicast_rcv_pkts;
-+	}
+ 				perfmgr_check_data_cnt_oob_clear(pm, p_mon_node, port,
+ 							    &data_reading);
+-		}
  
- 	p_port->dc_previous = *reading;
- 
-@@ -1054,17 +1059,21 @@ perfmgr_db_fill_data_cnt_read_pc(ib_port_counters_t * wire_read,
- 
- void
- perfmgr_db_fill_data_cnt_read_pce(ib_port_counters_ext_t * wire_read,
--				  perfmgr_db_data_cnt_reading_t * reading)
-+				  perfmgr_db_data_cnt_reading_t * reading,
-+				  int ietf_sup)
- {
- 	reading->xmit_data = cl_ntoh64(wire_read->xmit_data);
- 	reading->rcv_data = cl_ntoh64(wire_read->rcv_data);
- 	reading->xmit_pkts = cl_ntoh64(wire_read->xmit_pkts);
- 	reading->rcv_pkts = cl_ntoh64(wire_read->rcv_pkts);
--	reading->unicast_xmit_pkts = cl_ntoh64(wire_read->unicast_xmit_pkts);
--	reading->unicast_rcv_pkts = cl_ntoh64(wire_read->unicast_rcv_pkts);
--	reading->multicast_xmit_pkts =
--	    cl_ntoh64(wire_read->multicast_xmit_pkts);
--	reading->multicast_rcv_pkts = cl_ntoh64(wire_read->multicast_rcv_pkts);
-+	if (ietf_sup)
-+	{
-+		reading->unicast_xmit_pkts = cl_ntoh64(wire_read->unicast_xmit_pkts);
-+		reading->unicast_rcv_pkts = cl_ntoh64(wire_read->unicast_rcv_pkts);
-+		reading->multicast_xmit_pkts =
-+		    cl_ntoh64(wire_read->multicast_xmit_pkts);
-+		reading->multicast_rcv_pkts = cl_ntoh64(wire_read->multicast_rcv_pkts);
-+	}
- 	reading->time = time(NULL);
- }
- #endif				/* ENABLE_OSM_PERF_MGR */
+-		if (mad_context->perfmgr_context.mad_method == IB_MAD_METHOD_GET) {
+ 			/* log errors from this reading */
+ 			if (pm->subn->opt.perfmgr_log_errors)
+ 				perfmgr_log_errors(pm, p_mon_node, port, &err_reading);
 -- 
 1.7.1
 
