@@ -1,25 +1,45 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: ib_read_lat question
-Date: Thu, 21 Feb 2013 12:34:39 -0600
-Message-ID: <512668BF.4030908@opengridcomputing.com>
-References: <51265E60.1070609@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A823736F35235F@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH] libibumad/sa: Add SA specific status values
+Date: Thu, 21 Feb 2013 10:41:34 -0800
+Message-ID: <1361472094-12503-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736F35235F-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Troy Leedberg <troy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/21/2013 12:27 PM, Hefty, Sean wrote:
->> ib_read_lat displays RTT latency, while the other lat programs display
->> RTT/2.  Is this intended?  Or is read_lat.c/print_report() missing a
->> divide-by-two?
-> The tests should measure how long it takes the data to reach the destination.  For writes/sends, that would be RTT/2.  For reads, the destination is local, so you should want RTT.
+From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Guess that makes sense.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ include/infiniband/umad_sa.h |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/include/infiniband/umad_sa.h b/include/infiniband/umad_sa.h
+index f3e161e..a83b9f9 100644
+--- a/include/infiniband/umad_sa.h
++++ b/include/infiniband/umad_sa.h
+@@ -60,6 +60,17 @@ enum {
+ 	UMAD_SA_METHOD_GET_TRACE_TABLE	= 0x13
+ };
+ 
++enum {
++	UMAD_SA_STATUS_SUCCESS		= 0,
++	UMAD_SA_STATUS_NO_RESOURCES	= 1,
++	UMAD_SA_STATUS_REQ_INVALID	= 2,
++	UMAD_SA_STATUS_NO_RECORDS	= 3,
++	UMAD_SA_STATUS_TOO_MANY_RECORDS	= 4,
++	UMAD_SA_STATUS_INVALID_GID	= 5,
++	UMAD_SA_STATUS_INSUF_COMPS	= 6,
++	UMAD_SA_STATUS_REQ_DENIED	= 7
++};
++
+ /* SA attributes */
+ enum {
+ 	UMAD_SA_ATTR_NODE_REC		= 0x0011,
+-- 
+1.7.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
