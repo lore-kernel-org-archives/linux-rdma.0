@@ -1,10 +1,10 @@
 From: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 libibumad] Adding support for Debian packaging
-Date: Thu, 21 Feb 2013 11:43:55 +0200
-Message-ID: <1361439835-16919-1-git-send-email-ilyan@mellanox.com>
+Subject: [PATCH libibmad] Adding support for Debian packaging
+Date: Thu, 21 Feb 2013 11:53:41 +0200
+Message-ID: <1361440421-17621-1-git-send-email-ilyan@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: weiny2-i2BcT+NCU+M@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
@@ -18,82 +18,72 @@ The changes that were done:
 
 Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-The changes that were done from previous version:
-
- * debian/changelog was shortened to single initial
-   commit message, since the whole change log is
-   automatically generated during the package build
-   process.
-
- Makefile.am                     |   10 +-
- debian/changelog                |    6 +
- debian/compat                   |    1 +
- debian/control                  |   28 +++
- debian/dirs                     |    2 +
- debian/libibumad-devel.dirs     |    2 +
- debian/libibumad-devel.install  |    2 +
- debian/libibumad-static.dirs    |    1 +
- debian/libibumad-static.install |    1 +
- debian/libibumad.copyright      |  376 +++++++++++++++++++++++++++++++++++++++
- debian/libibumad.dirs           |    2 +
- debian/libibumad.docs           |    3 +
- debian/libibumad.install        |    2 +
- debian/rules                    |   13 ++
- debian/source/format            |    1 +
- gen_chlog.sh                    |   52 +++++-
- 16 files changed, 495 insertions(+), 7 deletions(-)
+ Makefile.am                    |   10 +-
+ debian/changelog               |    5 +
+ debian/compat                  |    1 +
+ debian/control                 |   30 ++++
+ debian/dirs                    |    2 +
+ debian/libibmad-devel.dirs     |    2 +
+ debian/libibmad-devel.install  |    2 +
+ debian/libibmad-static.dirs    |    1 +
+ debian/libibmad-static.install |    1 +
+ debian/libibmad.copyright      |  376 ++++++++++++++++++++++++++++++++++++++++
+ debian/libibmad.dirs           |    1 +
+ debian/libibmad.docs           |    3 +
+ debian/libibmad.install        |    1 +
+ debian/rules                   |   13 ++
+ debian/source/format           |    1 +
+ gen_chlog.sh                   |   27 ++-
+ 16 files changed, 469 insertions(+), 7 deletions(-)
  create mode 100644 debian/changelog
  create mode 100644 debian/compat
  create mode 100644 debian/control
  create mode 100644 debian/dirs
- create mode 100644 debian/libibumad-devel.dirs
- create mode 100644 debian/libibumad-devel.install
- create mode 100644 debian/libibumad-static.dirs
- create mode 100644 debian/libibumad-static.install
- create mode 100644 debian/libibumad.copyright
- create mode 100644 debian/libibumad.dirs
- create mode 100644 debian/libibumad.docs
- create mode 100644 debian/libibumad.install
+ create mode 100644 debian/libibmad-devel.dirs
+ create mode 100644 debian/libibmad-devel.install
+ create mode 100644 debian/libibmad-static.dirs
+ create mode 100644 debian/libibmad-static.install
+ create mode 100644 debian/libibmad.copyright
+ create mode 100644 debian/libibmad.dirs
+ create mode 100644 debian/libibmad.docs
+ create mode 100644 debian/libibmad.install
  create mode 100755 debian/rules
  create mode 100644 debian/source/format
 
 diff --git a/Makefile.am b/Makefile.am
-index 604f57a..12c9928 100644
+index b96657e..d0b616a 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -39,11 +39,19 @@ libibumadinclude_HEADERS = $(srcdir)/include/infiniband/umad.h
- EXTRA_DIST = $(srcdir)/include/infiniband/umad.h \
- 	libibumad.spec.in libibumad.spec \
- 	$(srcdir)/src/libibumad.map libibumad.ver \
--	$(man_MANS) autogen.sh
-+	$(man_MANS) autogen.sh \
-+	debian/changelog debian/libibumad.copyright \
+@@ -27,9 +27,17 @@ libibmadincludedir = $(includedir)/infiniband
+ libibmadinclude_HEADERS = $(srcdir)/include/infiniband/mad.h $(srcdir)/include/infiniband/mad_osd.h
+ 
+ EXTRA_DIST = libibmad.spec.in libibmad.spec \
+-	$(srcdir)/src/libibmad.map libibmad.ver autogen.sh
++	$(srcdir)/src/libibmad.map libibmad.ver autogen.sh \
++	debian/changelog debian/libibmad.copyright \
 +        debian/rules debian/compat \
 +	debian/control debian/dirs \
-+	debian/libibumad.docs debian/source/format \
-+	debian/libibumad.dirs debian/libibumad.install \
-+	debian/libibumad-devel.dirs debian/libibumad-devel.install \
-+	debian/libibumad-static.dirs debian/libibumad-static.install
++	debian/libibmad.docs debian/source/format \
++	debian/libibmad.dirs debian/libibmad.install \
++	debian/libibmad-devel.dirs debian/libibmad-devel.install \
++	debian/libibmad-static.dirs debian/libibmad-static.install
  
  dist-hook:
  	if [ -x $(top_srcdir)/gen_chlog.sh ] ; then \
  		$(top_srcdir)/gen_chlog.sh > $(distdir)/ChangeLog ; \
-+		$(top_srcdir)/gen_chlog.sh --debian > $(distdir)/debian/changeLog ; \
++		$(top_srcdir)/gen_chlog.sh --debian > $(distdir)/debian/changelog ; \
  	fi
- 
- install-data-hook:
 diff --git a/debian/changelog b/debian/changelog
 new file mode 100644
-index 0000000..ab75fcc
+index 0000000..03f2b1b
 --- /dev/null
 +++ b/debian/changelog
-@@ -0,0 +1,6 @@
-+libibumad (1.1.0.MLNX20070529.96c1969) unstable; urgency=low
+@@ -0,0 +1,5 @@
++libibmad (1.1.0.MLNX20070329.bf5c10c) unstable; urgency=low
 +
-+  * Initial change log.
++  * Initial release.
 +
-+ --  Hal Rosenstock <halr-smomgflXvOZWk0Htik3J/w@public.gmane.org>  Thu, 29 Mar 2007 09:20:19 -0500
-+
++ --  Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>  Thu, 29 Mar 2007 12:31:09 -0500
 diff --git a/debian/compat b/debian/compat
 new file mode 100644
 index 0000000..7f8f011
@@ -103,38 +93,40 @@ index 0000000..7f8f011
 +7
 diff --git a/debian/control b/debian/control
 new file mode 100644
-index 0000000..b774f87
+index 0000000..895dcbd
 --- /dev/null
 +++ b/debian/control
-@@ -0,0 +1,28 @@
-+Source: libibumad
+@@ -0,0 +1,30 @@
++Source: libibmad
 +Priority: extra
-+Maintainer: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++Maintainer: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 +Section: libs
-+Build-Depends: debhelper (>= 8.0.0), autotools-dev
-+Standards-Version: 1.3.8
-+Homepage: http://www.openfabrics.org/downloads/management/
++Build-Depends: debhelper (>= 8.0.0), autotools-dev, libibumad-devel
++Standards-Version: 1.3.9
++Homepage: http://www.openfabrics.org/downloads/management/libibmad-1.3.9.tar.gz
 +
-+Package: libibumad-devel
++Package: libibmad-devel
 +Section: libdevel
 +Architecture: any
-+Depends: libibumad (= ${binary:Version})
-+Description: Development files for the libibumad library
++Depends: libibmad (= ${binary:Version})
++Description: Development files for the libibmad library
++ Development files for the libibmad library
 +
-+Package: libibumad-static
-+Section: libs
++Package: libibmad-static
++Section: libdevel
 +Architecture: any
-+Depends: libibumad (= ${binary:Version})
-+Description: Static version of the libibumad library
++Depends: libibmad (= ${binary:Version})
++Description: Static version of the libibmad library
++ Static version of the libibmad library
 +
-+Package: libibumad
++Package: libibmad
 +Section: libs
 +Architecture: any
 +Depends: ${shlibs:Depends}, ${misc:Depends}
-+Description: OpenFabrics Alliance InfiniBand umad (user MAD) library
-+ libibumad provides the user MAD library functions which sit on top of
-+ the user MAD modules in the kernel. These are used by the IB diagnostic
-+ and management tools, including OpenSM.
++Description: OpenFabrics Alliance InfiniBand MAD library
++ libibmad provides low layer IB functions for use by the IB diagnostic
++ and management programs. These include MAD, SA, SMP, and other basic
++ IB functions.
 diff --git a/debian/dirs b/debian/dirs
 new file mode 100644
 index 0000000..ca882bb
@@ -143,45 +135,45 @@ index 0000000..ca882bb
 @@ -0,0 +1,2 @@
 +usr/bin
 +usr/sbin
-diff --git a/debian/libibumad-devel.dirs b/debian/libibumad-devel.dirs
+diff --git a/debian/libibmad-devel.dirs b/debian/libibmad-devel.dirs
 new file mode 100644
 index 0000000..4418816
 --- /dev/null
-+++ b/debian/libibumad-devel.dirs
++++ b/debian/libibmad-devel.dirs
 @@ -0,0 +1,2 @@
 +usr/lib
 +usr/include
-diff --git a/debian/libibumad-devel.install b/debian/libibumad-devel.install
+diff --git a/debian/libibmad-devel.install b/debian/libibmad-devel.install
 new file mode 100644
-index 0000000..2a39d35
+index 0000000..e2995de
 --- /dev/null
-+++ b/debian/libibumad-devel.install
++++ b/debian/libibmad-devel.install
 @@ -0,0 +1,2 @@
 +usr/include/infiniband/*.h
-+usr/lib/libibumad.so
-diff --git a/debian/libibumad-static.dirs b/debian/libibumad-static.dirs
++usr/lib/libibmad.so
+diff --git a/debian/libibmad-static.dirs b/debian/libibmad-static.dirs
 new file mode 100644
 index 0000000..6845771
 --- /dev/null
-+++ b/debian/libibumad-static.dirs
++++ b/debian/libibmad-static.dirs
 @@ -0,0 +1 @@
 +usr/lib
-diff --git a/debian/libibumad-static.install b/debian/libibumad-static.install
+diff --git a/debian/libibmad-static.install b/debian/libibmad-static.install
 new file mode 100644
-index 0000000..853cf52
+index 0000000..ee46449
 --- /dev/null
-+++ b/debian/libibumad-static.install
++++ b/debian/libibmad-static.install
 @@ -0,0 +1 @@
-+usr/lib/libibumad.a
-diff --git a/debian/libibumad.copyright b/debian/libibumad.copyright
++usr/lib/libibmad.a
+diff --git a/debian/libibmad.copyright b/debian/libibmad.copyright
 new file mode 100644
-index 0000000..ed511b5
+index 0000000..4ac0e5b
 --- /dev/null
-+++ b/debian/libibumad.copyright
++++ b/debian/libibmad.copyright
 @@ -0,0 +1,376 @@
 +Format: http://dep.debian.net/deps/dep5
-+Upstream-Name: libibumad
-+Maintainer: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++Upstream-Name: libibmad
++Maintainer: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 +Source: http://www.openfabrics.org/downloads/management
 +
 +Files: *
@@ -220,7 +212,7 @@ index 0000000..ed511b5
 +                        Version 2, June 1991
 + .
 +  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
-+		59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++                        59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 +  Everyone is permitted to copy and distribute verbatim copies
 +  of this license document, but changing it is not allowed.
 + .
@@ -555,31 +547,29 @@ index 0000000..ed511b5
 + consider it more useful to permit linking proprietary applications with the
 + library.  If this is what you want to do, use the GNU Library General
 + Public License instead of this License.
-diff --git a/debian/libibumad.dirs b/debian/libibumad.dirs
+diff --git a/debian/libibmad.dirs b/debian/libibmad.dirs
 new file mode 100644
-index 0000000..507e397
+index 0000000..6845771
 --- /dev/null
-+++ b/debian/libibumad.dirs
-@@ -0,0 +1,2 @@
++++ b/debian/libibmad.dirs
+@@ -0,0 +1 @@
 +usr/lib
-+usr/share/man/man3
-diff --git a/debian/libibumad.docs b/debian/libibumad.docs
+diff --git a/debian/libibmad.docs b/debian/libibmad.docs
 new file mode 100644
 index 0000000..644b98c
 --- /dev/null
-+++ b/debian/libibumad.docs
++++ b/debian/libibmad.docs
 @@ -0,0 +1,3 @@
 +AUTHORS
 +COPYING
 +debian/changelog
-diff --git a/debian/libibumad.install b/debian/libibumad.install
+diff --git a/debian/libibmad.install b/debian/libibmad.install
 new file mode 100644
-index 0000000..1ff7a2f
+index 0000000..d0dbfd1
 --- /dev/null
-+++ b/debian/libibumad.install
-@@ -0,0 +1,2 @@
++++ b/debian/libibmad.install
+@@ -0,0 +1 @@
 +usr/lib/lib*.so.*
-+usr/share/man/man3/*
 diff --git a/debian/rules b/debian/rules
 new file mode 100755
 index 0000000..955dd78
@@ -607,7 +597,7 @@ index 0000000..89ae9db
 @@ -0,0 +1 @@
 +3.0 (native)
 diff --git a/gen_chlog.sh b/gen_chlog.sh
-index 34dfa24..2dfdc91 100755
+index 34dfa24..5afa0da 100755
 --- a/gen_chlog.sh
 +++ b/gen_chlog.sh
 @@ -8,6 +8,8 @@ usage()
@@ -619,48 +609,23 @@ index 34dfa24..2dfdc91 100755
  fi
  
  GIT_DIR=`git rev-parse --git-dir 2>/dev/null`
-@@ -56,12 +58,50 @@ mkchlog()
+@@ -56,12 +58,25 @@ mkchlog()
  	done
  }
  
 +mkchlog_debian()
 +{
 +	package=`grep AC_INIT configure.in | cut -d"(" -f2 | cut -d"," -f1`
++	ver_num=`grep AC_INIT configure.in | cut -d"," -f2 | cut -d"," -f1 | sed -e 's/^ //'`
 +
-+	prev_tag=""
++	log_format="--pretty=format:${package} ($ver_num.MLNX%ai.%h) unstable; urgency=low%n%n  * %s%n%n --  %an <%ae>  %aD%n"
 +
-+	for tag in `git tag -l '*'` ; do
-+		obj=`git cat-file tag $tag | awk '/^object /{print $2}'`
-+		base=`git merge-base $obj HEAD`
-+		if [ -z "$base" -o "$base" != $obj ] ; then
-+			continue
-+		fi
-+		all_vers="$prev_tag$tag $all_vers"
-+		prev_tag=$tag..
-+	done
++	git log --no-merges "${log_format}"
++}
  
 -if [ -z "$spec_format" ] ; then
 -	mkchlog --pretty=format:"%ad %an%n%H%n%n* %s%n" \
 -		| sed -e 's/^\* /\t* /'
-+	if [ -z "$prev_tag" ] ; then
-+		all_vers=HEAD
-+	else
-+		all_vers="${prev_tag}HEAD $all_vers"
-+	fi
-+
-+	for ver in $all_vers ; do
-+		log_out=`git log $ver -- ./`
-+		if [ -z "$log_out" ] ; then
-+			continue
-+		fi
-+		ver_name=`echo $ver | sed -e 's/\.\..*$//'`
-+		ver_num=`echo $ver_name | cut -d"-" -f2`
-+		log_format="--pretty=format:${package} ($ver_num.MLNX%ai.%h) unstable; urgency=low%n%n  * %s%n%n --  %an <%ae>  %aD%n"
-+		git log --no-merges "${log_format}" $ver -- ./
-+		prev_t=$tag..
-+	done
-+}
-+
 +if [ -z "$debian_format" ] ; then
 +	if [ -z "$spec_format" ] ; then
 +		mkchlog --pretty=format:"%ad %an%n%H%n%n* %s%n" \
