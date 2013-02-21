@@ -1,45 +1,46 @@
-From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] libibumad/sa: Add SA specific status values
-Date: Thu, 21 Feb 2013 10:41:34 -0800
-Message-ID: <1361472094-12503-1-git-send-email-sean.hefty@intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] libibumad/umad.c: In resolve_ca_port, skip ethernet link
+ layer ports
+Date: Thu, 21 Feb 2013 14:01:51 -0500
+Message-ID: <51266F1F.608@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/umad_sa.h |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/include/infiniband/umad_sa.h b/include/infiniband/umad_sa.h
-index f3e161e..a83b9f9 100644
---- a/include/infiniband/umad_sa.h
-+++ b/include/infiniband/umad_sa.h
-@@ -60,6 +60,17 @@ enum {
- 	UMAD_SA_METHOD_GET_TRACE_TABLE	= 0x13
- };
- 
-+enum {
-+	UMAD_SA_STATUS_SUCCESS		= 0,
-+	UMAD_SA_STATUS_NO_RESOURCES	= 1,
-+	UMAD_SA_STATUS_REQ_INVALID	= 2,
-+	UMAD_SA_STATUS_NO_RECORDS	= 3,
-+	UMAD_SA_STATUS_TOO_MANY_RECORDS	= 4,
-+	UMAD_SA_STATUS_INVALID_GID	= 5,
-+	UMAD_SA_STATUS_INSUF_COMPS	= 6,
-+	UMAD_SA_STATUS_REQ_DENIED	= 7
-+};
-+
- /* SA attributes */
- enum {
- 	UMAD_SA_ATTR_NODE_REC		= 0x0011,
--- 
-1.7.3
-
+diff --git a/src/umad.c b/src/umad.c
+index 8f817d2..8ab5e80 100644
+--- a/src/umad.c
++++ b/src/umad.c
+@@ -256,6 +256,11 @@ static int resolve_ca_port(char *ca_name, int *port)
+ 			ret = -1;
+ 			goto Exit;
+ 		}
++		if (strcmp(ca.ports[*port]->link_layer, "InfiniBand") &&
++		    strcmp(ca.ports[*port]->link_layer, "IB")) {
++			ret = -1;
++			goto Exit;
++		}
+ 		if (ca.ports[*port]->state == 4) {
+ 			ret = 1;
+ 			goto Exit;
+@@ -270,6 +275,9 @@ static int resolve_ca_port(char *ca_name, int *port)
+ 		DEBUG("checking port %d", i);
+ 		if (!ca.ports[i])
+ 			continue;
++		if (strcmp(ca.ports[i]->link_layer, "InfiniBand") &&
++		    strcmp(ca.ports[i]->link_layer, "IB"))
++			continue;
+ 		if (up < 0 && ca.ports[i]->phys_state == 5)
+ 			up = *port = i;
+ 		if (ca.ports[i]->state == 4) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
