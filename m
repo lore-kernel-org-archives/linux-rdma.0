@@ -1,29 +1,40 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 6/7] libibumad: Define ntohll/htonll
-Date: Wed, 20 Feb 2013 17:40:28 -0500
-Message-ID: <512550DC.1030307@dev.mellanox.co.il>
-References: <1359409135-559-1-git-send-email-sean.hefty@intel.com> <1359409135-559-6-git-send-email-sean.hefty@intel.com>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH -next v2] IB/ipath: use GFP_NOWAIT under spin lock
+Date: Thu, 21 Feb 2013 13:45:06 +0800
+Message-ID: <CAPgLHd965-++Kj6HE-wjHqpZjortmmCAvApSSwiXaX6YwWncHQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1359409135-559-6-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/28/2013 4:38 PM, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> Users of umad require ntohll/htonll to set/extract data from
-> MADs.  Include the definition with umad, not just libibmad.
-> 
-> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-Thanks. Applied.
+A spin lock is taken here so we should use GFP_NOWAIT like
+other case.
 
--- Hal
+Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+---
+ drivers/infiniband/hw/ipath/ipath_driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
+index fcdaeea..03ed479 100644
+--- a/drivers/infiniband/hw/ipath/ipath_driver.c
++++ b/drivers/infiniband/hw/ipath/ipath_driver.c
+@@ -204,7 +204,7 @@ static struct ipath_devdata *ipath_alloc_devdata(struct pci_dev *pdev)
+ 	idr_preload(GFP_KERNEL);
+ 	spin_lock_irqsave(&ipath_devs_lock, flags);
+ 
+-	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_KERNEL);
++	ret = idr_alloc(&unit_table, dd, 0, 0, GFP_NOWAIT);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR IPATH_DRV_NAME
+ 		       ": Could not allocate unit ID: error %d\n", -ret);
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
