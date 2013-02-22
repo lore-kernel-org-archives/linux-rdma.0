@@ -1,85 +1,59 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] opensm/osm_console.c: Support portstatus output for
-	incorrect link speeds
-Date: Thu, 21 Feb 2013 15:39:23 -0800
-Message-ID: <1361489963.24405.68.camel@auk59.llnl.gov>
+From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Subject: linux-next: manual merge of the infiniband tree with Linus' tree
+Date: Fri, 22 Feb 2013 11:50:21 +1100
+Message-ID: <20130222115021.d61d6101d1531f8dd4b581de@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Fri__22_Feb_2013_11_50_21_+1100_2Gtkc=8F04L1Z0xu"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Usually coinciding with use of the force_link_speed configuration option,
-some link speeds can be observed to be incorrect.  For example, a link
-may be active at QDR even if SDR & DDR speeds are the only ones enabled.
+--Signature=_Fri__22_Feb_2013_11_50_21_+1100_2Gtkc=8F04L1Z0xu
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Under these scenarios, the portstatus may incorrectly output port status,
-confusing users.
+Hi all,
 
-A new port output status of "incorrect speed" differentiates ports in this
-state from other states, so as to not confuse users.
+Today's linux-next merge of the infiniband tree got a conflict in
+drivers/infiniband/ulp/ipoib/ipoib_ethtool.c between commit 7826d43f2db4
+("ethtool: fix drvinfo strings set in drivers") from the  tree and commit
+4b48680b5572 ("IPoIB: Add version and firmware info to ethtool
+reporting") from the infiniband tree.
 
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- opensm/osm_console.c |   18 ++++++++++++++++--
- 1 files changed, 16 insertions(+), 2 deletions(-)
+I fixed it up (using the latter version as it included the change to use
+strlcpy) and can carry the fix as necessary (no action is required).
 
-diff --git a/opensm/osm_console.c b/opensm/osm_console.c
-index 600007c..06c9360 100644
---- a/opensm/osm_console.c
-+++ b/opensm/osm_console.c
-@@ -712,6 +712,8 @@ typedef struct {
- 	uint64_t ports_fdr;
- 	uint64_t ports_edr;
- 	uint64_t ports_unknown_speed;
-+	uint64_t ports_incorrect_speed;
-+	port_report_t *incorrect_speed_ports;
- 	uint64_t ports_reduced_speed;
- 	port_report_t *reduced_speed_ports;
- } fabric_stats_t;
-@@ -773,7 +775,14 @@ static void __get_stats(cl_map_item_t * const p_map_item, void *context)
- 			fs->ports_reduced_width++;
- 		}
- 
--		if ((enabled_speed ^ active_speed) > active_speed) {
-+		/* incorrect speed usually due to problems with force_link_speed */
-+		if (!(active_speed & enabled_speed)) {
-+			__tag_port_report(&(fs->incorrect_speed_ports),
-+					  cl_ntoh64(node->node_info.node_guid),
-+					  port, node->print_desc);
-+			fs->ports_incorrect_speed++;
-+		}
-+		else if ((enabled_speed ^ active_speed) > active_speed) {
- 			__tag_port_report(&(fs->reduced_speed_ports),
- 					  cl_ntoh64(node->node_info.node_guid),
- 					  port, node->print_desc);
-@@ -933,13 +942,18 @@ static void portstatus_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- 		fprintf(out, "   %" PRIu64 " at 25.78125 Gbps\n", fs.ports_edr);
- 
- 	if (fs.ports_disabled + fs.ports_reduced_speed + fs.ports_reduced_width
--	    > 0) {
-+	    + fs.ports_incorrect_speed > 0) {
- 		fprintf(out, "\nPossible issues:\n");
- 	}
- 	if (fs.ports_disabled) {
- 		fprintf(out, "   %" PRIu64 " disabled\n", fs.ports_disabled);
- 		__print_port_report(out, fs.disabled_ports);
- 	}
-+	if (fs.ports_incorrect_speed) {
-+		fprintf(out, "   %" PRIu64 " with incorrect speed\n",
-+			fs.ports_incorrect_speed);
-+		__print_port_report(out, fs.incorrect_speed_ports);
-+	}
- 	if (fs.ports_reduced_speed) {
- 		fprintf(out, "   %" PRIu64 " with reduced speed\n",
- 			fs.ports_reduced_speed);
--- 
-1.7.1
+--=20
+Cheers,
+Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
 
+--Signature=_Fri__22_Feb_2013_11_50_21_+1100_2Gtkc=8F04L1Z0xu
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
+iQIcBAEBCAAGBQJRJsDNAAoJEECxmPOUX5FEACYP/RRPtGKSumNo17bMH1UnF6Kv
+qs0jvTUjtMSTubS9RgSGg27yDmEAYuCCIz2lVCmVUHr7K5QrNQchs/OeIOK4jjIb
+Svmd7qYVxmeJJNn+8YhZ1WYqDH4pzAoaActMPrKM7YPoTS1POQmbyWwY1+tPkkP5
+LrMe8FHyM+pX3M7cfcd6WuGxKX4LReCjQXNr8t9iajUltdrKv0m+CeMxe5A0m/CJ
+kWjvaGejEPXBUabHrB+rg2VEDmshW6ZAuV8HAKidImGpjNAMpLfnEKZAX7nSU09+
+iaRcSmYTyoihru8GrCxuXGN3EC8R3J5VniDORLqg5fU84wZd0cAjULmlFPO5EOB1
+qK3tMoLfF7/NpngLlbasv9gwtkiGE5c1DB7KK/PWXwwzlKVskfxdCbDzQXBjLQk0
+HZQNXK6XNI0Q+u2D40pqSBc406YuGIMImSONSq4aD7oVDbdQq13CFkWRyLdwuh+P
+hucVIDzi/3sXMCImHXUshVKHVYcSYBoGIvpEbXZq3lb6NV2QJaVSf7nPlQJ+UBnq
+3oPbmjGD7MdAnTZaUC347CKiQZSuboH4dEvuUh1FMUKWMlyVhmyg3vWaMeo/6tUU
+A+EZ7LsZp/vs5arSfskcE7yPd86F5dpbjldVqESjuoXlwsshqyodroV/61p8n+pe
+VMMC2rjISyvrcYGT2mxp
+=zhpp
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__22_Feb_2013_11_50_21_+1100_2Gtkc=8F04L1Z0xu--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
