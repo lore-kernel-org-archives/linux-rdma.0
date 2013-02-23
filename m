@@ -1,26 +1,35 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] libibumad: update umad_[send|recv] man pages to document
- how rmpp is handled
-Date: Sat, 23 Feb 2013 09:15:10 -0500
-Message-ID: <5128CEEE.3020103@dev.mellanox.co.il>
-References: <20130222084819.ce49c620e5b46aa829395241@llnl.gov>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH] libibumad: Define well known QKEY
+Date: Sat, 23 Feb 2013 15:02:20 -0800
+Message-ID: <1361660540-503-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130222084819.ce49c620e5b46aa829395241-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/22/2013 11:48 AM, Ira Weiny wrote:
-> 
-> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Thanks. Applied.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ include/infiniband/umad_types.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
--- Hal
+diff --git a/include/infiniband/umad_types.h b/include/infiniband/umad_types.h
+index 199edd1..113af16 100644
+--- a/include/infiniband/umad_types.h
++++ b/include/infiniband/umad_types.h
+@@ -51,6 +51,7 @@
+ BEGIN_C_DECLS
+ 
+ #define UMAD_BASE_VERSION		1
++#define UMAD_QKEY			0x80010000
+ 
+ /* Management classes */
+ enum {
+-- 
+1.7.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
