@@ -1,64 +1,43 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] libibumad: add string functions for various enums
-Date: Fri, 22 Feb 2013 20:46:50 -0800
-Message-ID: <20130222204650.aad3b1b2c30edfc44f782e72@llnl.gov>
-References: <20130222091333.57b91bbb5957928eeb0e62a7@llnl.gov>
-	<1828884A29C6694DAF28B7E6B8A823736F352A97@ORSMSX101.amr.corp.intel.com>
-	<20130222111908.2f8b1e56a8f67396a91a3893@llnl.gov>
-	<1828884A29C6694DAF28B7E6B8A823736F352B11@ORSMSX101.amr.corp.intel.com>
-	<20130222150713.ca761aa639c497c483d9a938@llnl.gov>
-	<1828884A29C6694DAF28B7E6B8A823736F352C29@ORSMSX101.amr.corp.intel.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: RDMA/amso1100: Add driver for Ammasso 1100 RNIC
+Date: Sat, 23 Feb 2013 08:37:55 +0300
+Message-ID: <20130223053754.GA20085@longonot.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736F352C29-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 23 Feb 2013 00:53:47 +0000
-"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+Hello Tom Tucker,
 
-> > > These return values seem mutually exclusive.  Surely we're not going to see a
-> > MAD with status 'busy - redirection required - bad version - success'?
-> > 
-> > They are mutually exclusive now but because the spec defines separate fields it
-> > might not always be that way.  That is what I meant when I said "status is not
-> > defined to be a strict enum".
-> 
-> Is there some other option here?  The user doesn't know how large this buffer needs to be.
-> 
-> - Per thread internal static variable, so the user doesn't need to allocate the buffer?
-> - Since status is defined as multiple fields, have calls for each field?
+The patch f94b533d091a: "RDMA/amso1100: Add driver for Ammasso 1100 
+RNIC" from Sep 22, 2006, leads to the following warning:
+"drivers/infiniband/hw/amso1100/c2_provider.c:272 c2_create_qp()
+	 error: passing non neg 255 to ERR_PTR"
 
-This is probably the most correct and flexible.  Furthermore, we could define separate calls for the class status as needed.
+drivers/infiniband/hw/amso1100/c2_qp.c
+   496          reply = (struct c2wr_qp_create_rep *) (unsigned long) (vq_req->reply_msg);
+   497          if (!reply) {
+   498                  err = -ENOMEM;
+   499                  goto bail3;
+   500          }
+   501  
+   502          if ((err = c2_wr_get_result(reply)) != 0) {
+                           ^^^^^^^^^^^^^^^^^^^^^^^
 
-> - Two status string calls, one to return enum type values, and the other to deal with fields?
-> 
-> This basically tries to output a single string from multiple fields, which seems confusing.  But I dislike saying "not busy, no redirection required, and no invalid fields" rather than "success", even if it is technically more correct.
-> 
-> Is it acceptable to treat status as an enum, and switch to per thread static variables or multiple calls later if the need ever arises?
-> 
+This returns an unsigned char and not a negative error code.
 
-We could do this with separate calls for class status.
+   503                  goto bail4;
+   504          }
+   505  
+   506          /* Fill in the kernel QP struct */
 
-Ira
+regards,
+dan carpenter
 
-> - Sean
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
