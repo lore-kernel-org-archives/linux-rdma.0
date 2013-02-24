@@ -1,69 +1,42 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Fail I/O requests if the transport is offline
-Date: Sun, 24 Feb 2013 10:59:17 +0200
-Message-ID: <5129D665.3070206@mellanox.com>
-References: <510BDCAA.204@acm.org>  <CAJZOPZLKQV0QvrW5sK8hQJf7AZc+1nUzp+5YCkZ3iVU4oTWbLg@mail.gmail.com>  <5111327F.6050402@acm.org>  <CAJZOPZ+-Zg=jnqg4ZmFL5Yo4_2DoWGcgy=3u6g3Rf9y80pXnpg@mail.gmail.com>  <5112049B.8030406@acm.org> <5112CE60.2030607@mellanox.com>  <51136E74.9090209@acm.org> <5113F056.4020501@mellanox.com>  <511E024E.70002@acm.org> <1361160385.7415.2.camel@obelisk.thedillows.org> <5121E217.3080003@mellanox.com> <5129CAB6.5030506@acm.org>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Subject: Re: [PATCH v2] IB/mlx4: silence GCC warning
+Date: Sun, 24 Feb 2013 14:34:17 +0200
+Message-ID: <201302241434.17586.jackm@dev.mellanox.co.il>
+References: <1348836538.3626.21.camel@x61.thuisdomein> <511B9A1C.6000402@acm.org> <1361437377.1341.33.camel@x61.thuisdomein>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5129CAB6.5030506-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1361437377.1341.33.camel@x61.thuisdomein>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/24/2013 10:09 AM, Bart Van Assche wrote:
-> On 02/18/13 09:11, Sagi Grimberg wrote:
->> On 2/18/2013 6:06 AM, David Dillow wrote:
->>> On Fri, 2013-02-15 at 10:39 +0100, Bart Van Assche wrote:
->>>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
->>>> b/drivers/infiniband/ulp/srp/ib_srp.c
->>>> index 8a7eb9f..b34752d 100644
->>>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
->>>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
->>>> @@ -734,6 +734,7 @@ static int srp_reconnect_target(struct
->>>> srp_target_port *target)
->>>>       scsi_target_unblock(&shost->shost_gendev, ret == 0 ?
->>>> SDEV_RUNNING :
->>>>                   SDEV_TRANSPORT_OFFLINE);
->>>> +    target->transport_offline = ret != 0;
->>> Minor nit, that line is hard to read; I keep thinking it needs parens
->>> around the conditional...
->>>
->>> Perhaps
->>>     target->transport_offline = !!ret;
->>> or
->>>     target->transport_offline = ret;
->>>
->>> gcc should do the right conversion since we're assigning to a bool.
->>>
->>>
->>> Or, Vu, does this solve the issue you've seen? I may have time to test
->>> later this week, but not before.
->>
->> This indeed solve scsi_host removal issues.
->> Vu is on vacation, I'll perform some more failover tests...
->
-> Hello Sagi,
->
-> Since no further feedback was posted on the list I assume that means 
-> that all tests passed ?
->
-> Bart.
->
+On Thursday 21 February 2013 11:02, Paul Bolle wrote:
 
-Hey Bart,
-Sorry for the delay I was just about to reply...
+> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+> index 19e0637..512fde3 100644
+> --- a/drivers/infiniband/hw/mlx4/qp.c
+> +++ b/drivers/infiniband/hw/mlx4/qp.c
+> @@ -1778,8 +1778,8 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
+>  		}
+>  
+>  		vlan = rdma_get_vlan_id(&sgid);
+> -		is_vlan = vlan < 0x1000;
+>  	}
+Nice try!
+However, this approach does add the line below to processing for an IB port (ETH/RoCE port stays same, more or less).
+Processing time is therefore increased (at least on the IB side) relative to just living with the warning.
 
- From my end, the related patchset seems solve the scsi_host removal 
-issue and prevents the SCSI error handling loop.
-Generally our tests passed, I still have some issue with long-term 
-failover test but I'm not sure its SRP (perhaps might origin in IB layer).
-So ack from me...
+Roland?
 
--Sagi
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	is_vlan = vlan < 0x1000;  <=== Code line added to IB-side processing.
+
+>  	ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh, 0, &sqp->ud_header);
+>  
+>  	if (!is_eth) {
+
+-Jack
