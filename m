@@ -1,7 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] libibumad: change UMAD_METHOD_RESP to UMAD_METHOD_RESP_MASK
-Date: Sat, 23 Feb 2013 15:38:26 -0800
-Message-ID: <20130223153826.7b412622c46078588b7db1ad@llnl.gov>
+Subject: [PATCH] opensm/perfmgr: add failed port guid to error message
+Date: Sat, 23 Feb 2013 16:17:41 -0800
+Message-ID: <20130223161741.268622265e0282bf7b0b705a@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -14,22 +14,24 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- include/infiniband/umad_types.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ opensm/osm_perfmgr.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/include/infiniband/umad_types.h b/include/infiniband/umad_types.h
-index 199edd1..48ae284 100644
---- a/include/infiniband/umad_types.h
-+++ b/include/infiniband/umad_types.h
-@@ -82,7 +82,7 @@ enum {
- 	UMAD_METHOD_REPORT		= 0x06,
- 	UMAD_METHOD_REPORT_RESP		= 0x86,
- 	UMAD_METHOD_TRAP_REPRESS	= 0x07,
--	UMAD_METHOD_RESP		= 0x80
-+	UMAD_METHOD_RESP_MASK		= 0x80
- };
+diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
+index 9bc1154..25033bd 100644
+--- a/opensm/osm_perfmgr.c
++++ b/opensm/osm_perfmgr.c
+@@ -831,7 +831,9 @@ void osm_perfmgr_process(osm_perfmgr_t * pm)
+ 			    ib_node_info_get_local_port_num(&p_node->node_info);
+ 		} else
+ 			OSM_LOG(pm->log, OSM_LOG_ERROR,
+-				"ERR 5487: No PerfMgr port object\n");
++				"ERR 5487: No PerfMgr port object for "
++				"port_guid 0x%"PRIx64"\n",
++				cl_ntoh64(pm->port_guid));
+ 		CL_PLOCK_RELEASE(pm->sm->p_lock);
+ 	}
  
- enum {
 -- 
 1.7.1
 
