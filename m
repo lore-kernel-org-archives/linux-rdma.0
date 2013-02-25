@@ -1,26 +1,50 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 0/4] IB/srp fixes
-Date: Mon, 25 Feb 2013 19:41:09 +0200
-Message-ID: <CAJZOPZKTxU5YTYxBbA1bVe76g7Os9d9psVHKHtLjx7tMwnTaQg@mail.gmail.com>
-References: <51265641.4060609@acm.org>
-	<CAL1RGDXJecgywr-xrD8r6kC4mUDECTvbhKgX3QjuC1VWGjz_kQ@mail.gmail.com>
-	<CAJZOPZJR4SSkOEd_zEDnt4bZC-YkNPijZwQ-W=8-dSQuM_4Avw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH/RFC] IPoIB: Free ipoib neigh on path record failure so path rec queries are retried
+Date: Mon, 25 Feb 2013 09:46:49 -0800
+Message-ID: <1361814409-6704-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJR4SSkOEd_zEDnt4bZC-YkNPijZwQ-W=8-dSQuM_4Avw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 25, 2013 at 7:36 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Mon, Feb 25, 2013 at 7:32 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
->> All look good, applied for 3.9, thanks.
-> Roland, could you add a CC to -stable so they can get to 3.8-stable too?
+If IPoIB fails to look up a path record (eg if it tries during an SM
+failover when one SM is dead but the new one hasn't taken over yet), the
+driver ends up with a neighbour structure but no address handle (AH).
+There's no mechanism to recover from this: any further packets sent to
+this destination will be silently dumped in ipoib_start_xmit().
 
-Oh, I see its just there, thanks!
+Fix this by freeing the neighbour structures when a path rec query
+fails, so that the next packet queued to be sent will trigger a new path
+record query.
+
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+We actually hit this while testing SM failover.  Let me know if there
+are any objections to merging this for 3.9.
+
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 66d6da9..8534afd 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -510,6 +510,9 @@ static void path_rec_completion(int status,
+ 
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ 
++	if (IS_ERR_OR_NULL(ah))
++		ipoib_del_neighs_by_gid(dev, path->pathrec.dgid.raw);
++
+ 	if (old_ah)
+ 		ipoib_put_ah(old_ah);
+ 
+-- 
+1.8.1.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
