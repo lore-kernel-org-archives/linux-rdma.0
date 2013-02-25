@@ -1,7 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] opensm: make osm_get_path_params public
-Date: Mon, 25 Feb 2013 08:30:10 -0800
-Message-ID: <20130225083010.b8fb512ac9a7a5289ce016c9@llnl.gov>
+Subject: [PATCH] opensm: make osm_pr_rcv_get_end_points,
+ osm_pr_rcv_process_pair, osm_pr_rcv_process_half public
+Date: Mon, 25 Feb 2013 08:30:54 -0800
+Message-ID: <20130225083054.86f6e85ec37cb21a81b4eb32@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -12,86 +13,148 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+Also change their name to from osm_pr_rcv_* to osm_pr_*
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- include/opensm/osm_sa.h          |   21 +++++++++++++++++++++
- opensm/osm_sa_multipath_record.c |   10 ----------
- opensm/osm_sa_path_record.c      |    9 ---------
- 3 files changed, 21 insertions(+), 19 deletions(-)
+ include/opensm/osm_sa.h     |   25 +++++++++++++++++++++++++
+ opensm/osm_sa_path_record.c |   22 +++++++++++-----------
+ 2 files changed, 36 insertions(+), 11 deletions(-)
 
 diff --git a/include/opensm/osm_sa.h b/include/opensm/osm_sa.h
-index d9016ab..8393412 100644
+index 8393412..f9f334e 100644
 --- a/include/opensm/osm_sa.h
 +++ b/include/opensm/osm_sa.h
-@@ -555,5 +555,26 @@ osm_mgrp_t *osm_mcmr_rcv_find_or_create_new_mgrp(IN osm_sa_t * sa,
- *
- *********/
+@@ -576,5 +576,30 @@ ib_api_status_t osm_get_path_params(IN osm_sa_t * sa,
+ 				    IN const uint16_t dlid_ho,
+ 				    OUT osm_path_parms_t * p_parms);
  
-+/**
-+ * The following expose functionality of osm_sa_path_record.c for internal use
-+ * by sub managers
-+ */
-+typedef struct osm_path_parms {
-+	ib_net16_t pkey;
-+	uint8_t mtu;
-+	uint8_t rate;
-+	uint8_t sl;
-+	uint8_t pkt_life;
-+	boolean_t reversible;
-+	int hops;
-+} osm_path_parms_t;
++ib_net16_t osm_pr_get_end_points(IN osm_sa_t * sa,
++					IN const ib_sa_mad_t *sa_mad,
++					OUT const osm_alias_guid_t ** pp_src_alias_guid,
++					OUT const osm_alias_guid_t ** pp_dest_alias_guid,
++					OUT const osm_port_t ** pp_src_port,
++					OUT const osm_port_t ** pp_dest_port,
++					OUT const ib_gid_t ** pp_sgid,
++					OUT const ib_gid_t ** pp_dgid);
 +
-+ib_api_status_t osm_get_path_params(IN osm_sa_t * sa,
-+				    IN const osm_port_t * p_src_port,
-+				    IN const uint16_t slid_ho,
-+				    IN const osm_port_t * p_dest_port,
-+				    IN const uint16_t dlid_ho,
-+				    OUT osm_path_parms_t * p_parms);
++void osm_pr_process_pair(IN osm_sa_t * sa, IN const ib_sa_mad_t * sa_mad,
++				IN const osm_port_t * requester_port,
++				IN const osm_alias_guid_t * p_src_alias_guid,
++				IN const osm_alias_guid_t * p_dest_alias_guid,
++				IN const ib_gid_t * p_sgid,
++				IN const ib_gid_t * p_dgid,
++				IN cl_qlist_t * p_list);
++
++void osm_pr_process_half(IN osm_sa_t * sa, IN const ib_sa_mad_t * sa_mad,
++				IN const osm_port_t * requester_port,
++				IN const osm_alias_guid_t * p_src_alias_guid,
++				IN const osm_alias_guid_t * p_dest_alias_guid,
++				IN const ib_gid_t * p_sgid,
++				IN const ib_gid_t * p_dgid,
++				IN cl_qlist_t * p_list);
 +
  END_C_DECLS
  #endif				/* _OSM_SA_H_ */
-diff --git a/opensm/osm_sa_multipath_record.c b/opensm/osm_sa_multipath_record.c
-index 8bb23e3..b4fc30f 100644
---- a/opensm/osm_sa_multipath_record.c
-+++ b/opensm/osm_sa_multipath_record.c
-@@ -68,16 +68,6 @@
- 
- #define SA_MPR_RESP_SIZE SA_ITEM_RESP_SIZE(mpr_rec)
- 
--typedef struct osm_path_parms {
--	ib_net16_t pkey;
--	uint8_t mtu;
--	uint8_t rate;
--	uint8_t sl;
--	uint8_t pkt_life;
--	boolean_t reversible;
--	int hops;
--} osm_path_parms_t;
--
- static boolean_t sa_multipath_rec_is_tavor_port(IN const osm_port_t * p_port)
- {
- 	osm_node_t const *p_node;
 diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
-index e6d4e49..c121dba 100644
+index c121dba..1bec16d 100644
 --- a/opensm/osm_sa_path_record.c
 +++ b/opensm/osm_sa_path_record.c
-@@ -77,15 +77,6 @@
+@@ -1251,7 +1251,7 @@ static ib_net64_t find_router(const osm_sa_t *sa, ib_net64_t prefix)
+ 	return osm_port_get_guid(osm_router_get_port_ptr(rtr));
+ }
  
- #define MAX_HOPS 64
+-static ib_net16_t pr_rcv_get_end_points(IN osm_sa_t * sa,
++ib_net16_t osm_pr_get_end_points(IN osm_sa_t * sa,
+ 					IN const ib_sa_mad_t *sa_mad,
+ 					OUT const osm_alias_guid_t ** pp_src_alias_guid,
+ 					OUT const osm_alias_guid_t ** pp_dest_alias_guid,
+@@ -1430,7 +1430,7 @@ Exit:
+ 	OSM_LOG_EXIT(sa->p_log);
+ }
  
--typedef struct osm_path_parms {
--	ib_net16_t pkey;
--	uint8_t mtu;
--	uint8_t rate;
--	uint8_t sl;
--	uint8_t pkt_life;
--	boolean_t reversible;
--} osm_path_parms_t;
--
- static inline boolean_t sa_path_rec_is_tavor_port(IN const osm_port_t * p_port)
- {
- 	osm_node_t const *p_node;
+-static void pr_rcv_process_half(IN osm_sa_t * sa, IN const ib_sa_mad_t * sa_mad,
++void osm_pr_process_half(IN osm_sa_t * sa, IN const ib_sa_mad_t * sa_mad,
+ 				IN const osm_port_t * requester_port,
+ 				IN const osm_alias_guid_t * p_src_alias_guid,
+ 				IN const osm_alias_guid_t * p_dest_alias_guid,
+@@ -1485,7 +1485,7 @@ static void pr_rcv_process_half(IN osm_sa_t * sa, IN const ib_sa_mad_t * sa_mad,
+ 	OSM_LOG_EXIT(sa->p_log);
+ }
+ 
+-static void pr_rcv_process_pair(IN osm_sa_t * sa, IN const ib_sa_mad_t * sa_mad,
++void osm_pr_process_pair(IN osm_sa_t * sa, IN const ib_sa_mad_t * sa_mad,
+ 				IN const osm_port_t * requester_port,
+ 				IN const osm_alias_guid_t * p_src_alias_guid,
+ 				IN const osm_alias_guid_t * p_dest_alias_guid,
+@@ -1771,7 +1771,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 
+ 	OSM_LOG(sa->p_log, OSM_LOG_DEBUG, "Unicast destination requested\n");
+ 
+-	if (pr_rcv_get_end_points(sa, p_sa_mad,
++	if (osm_pr_get_end_points(sa, p_sa_mad,
+ 				  &p_src_alias_guid, &p_dest_alias_guid,
+ 				  &p_src_port, &p_dest_port,
+ 				  &p_sgid, &p_dgid) != IB_SA_MAD_STATUS_SUCCESS)
+@@ -1782,11 +1782,11 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 	 */
+ 	if (p_src_alias_guid) {
+ 		if (p_dest_alias_guid)
+-			pr_rcv_process_pair(sa, p_sa_mad, requester_port,
++			osm_pr_process_pair(sa, p_sa_mad, requester_port,
+ 					    p_src_alias_guid, p_dest_alias_guid,
+ 					    p_sgid, p_dgid, &pr_list);
+ 		else if (!p_dest_port)
+-			pr_rcv_process_half(sa, p_sa_mad, requester_port,
++			osm_pr_process_half(sa, p_sa_mad, requester_port,
+ 					    p_src_alias_guid, NULL, p_sgid,
+ 					    p_dgid, &pr_list);
+ 		else {
+@@ -1796,7 +1796,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 			       (osm_alias_guid_t *) cl_qmap_end(&sa->p_subn->alias_port_guid_tbl)) {
+ 				if (osm_get_port_by_alias_guid(sa->p_subn, p_dest_alias_guid->alias_guid) ==
+ 				    p_dest_port)
+-					pr_rcv_process_pair(sa, p_sa_mad,
++					osm_pr_process_pair(sa, p_sa_mad,
+ 							    requester_port,
+ 							    p_src_alias_guid,
+ 							    p_dest_alias_guid,
+@@ -1811,7 +1811,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 		}
+ 	} else {
+ 		if (p_dest_alias_guid)
+-			pr_rcv_process_half(sa, p_sa_mad, requester_port,
++			osm_pr_process_half(sa, p_sa_mad, requester_port,
+ 					    NULL, p_dest_alias_guid, p_sgid,
+ 					    p_dgid, &pr_list);
+ 		else if (!p_src_port && !p_dest_port)
+@@ -1828,7 +1828,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 				if (osm_get_port_by_alias_guid(sa->p_subn,
+ 							       p_src_alias_guid->alias_guid) ==
+ 				    p_src_port)
+-					pr_rcv_process_half(sa, p_sa_mad,
++					osm_pr_process_half(sa, p_sa_mad,
+ 							    requester_port,
+ 							    p_src_alias_guid,
+ 							    NULL, p_sgid,
+@@ -1843,7 +1843,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 				if (osm_get_port_by_alias_guid(sa->p_subn,
+ 							       p_dest_alias_guid->alias_guid) ==
+ 				    p_dest_port)
+-					pr_rcv_process_half(sa, p_sa_mad,
++					osm_pr_process_half(sa, p_sa_mad,
+ 							    requester_port,
+ 							    NULL,
+ 							    p_dest_alias_guid,
+@@ -1866,7 +1866,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 						if (osm_get_port_by_alias_guid(sa->p_subn,
+ 									       p_dest_alias_guid->alias_guid) ==
+ 						    p_dest_port)
+-						pr_rcv_process_pair(sa,
++						osm_pr_process_pair(sa,
+ 								    p_sa_mad,
+ 								    requester_port,
+ 								    p_src_alias_guid,
 -- 
 1.7.1
 
