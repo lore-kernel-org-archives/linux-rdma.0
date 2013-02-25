@@ -1,28 +1,42 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 00/10] mlx4: Add Memory Windows support
-Date: Mon, 25 Feb 2013 10:06:57 -0800
-Message-ID: <CAL1RGDVcQeTgdRjp2QX-XAX2=EFHXf=Q2yYJ+=u3PYoYviyVrg@mail.gmail.com>
-References: <1360167556-20756-1-git-send-email-ogerlitz@mellanox.com>
- <CAJZOPZJwcLyhc88WCjmnrBRDLo9qp6snSLxQGEZUfYOTyuVMCg@mail.gmail.com> <CAJZOPZLa1Mwjk+zthvogN0rkkrKyvasyEaP1sJR3ihe_vOx-yg@mail.gmail.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] libibumad: add UMAD_SA_STATUS_PRI_SUGGESTED to SA status.
+Date: Mon, 25 Feb 2013 10:08:42 -0800
+Message-ID: <20130225100842.80371605421a69961735f1a0@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLa1Mwjk+zthvogN0rkkrKyvasyEaP1sJR3ihe_vOx-yg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, shanim-xlywION9k29BDgjK7y7TUQ@public.gmane.org
+To: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 22, 2013 at 4:17 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> I see now that you've picked five of the patches from this series into
-> for-next, anything which needs clarification or fixup in the other
-> five patches?
 
-No, I think the patches are probably fine.  I just wanted to get the
-generic/easy-to-merge stuff queued early, and I will look more closely
-at the other patches as I get time.
 
- - R.
+Per: A13.5.2 Subnet Administration Status Values (QoS)
+
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ include/infiniband/umad_sa.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/include/infiniband/umad_sa.h b/include/infiniband/umad_sa.h
+index 5d6efe1..aaf2ac1 100644
+--- a/include/infiniband/umad_sa.h
++++ b/include/infiniband/umad_sa.h
+@@ -68,7 +68,8 @@ enum {
+ 	UMAD_SA_STATUS_TOO_MANY_RECORDS	= 4,
+ 	UMAD_SA_STATUS_INVALID_GID	= 5,
+ 	UMAD_SA_STATUS_INSUF_COMPS	= 6,
+-	UMAD_SA_STATUS_REQ_DENIED	= 7
++	UMAD_SA_STATUS_REQ_DENIED	= 7,
++	UMAD_SA_STATUS_PRI_SUGGESTED	= 8
+ };
+ 
+ /* SA attributes */
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
