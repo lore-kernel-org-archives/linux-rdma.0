@@ -1,31 +1,40 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: linux-next: manual merge of the infiniband tree with Linus' tree
-Date: Tue, 26 Feb 2013 09:27:06 +0200
-Message-ID: <512C63CA.3050004@mellanox.com>
-References: <20130226114508.0f8d1101156f9f4a309579f6@canb.auug.org.au>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v2] IB/mlx4: silence GCC warning
+Date: Tue, 26 Feb 2013 09:57:04 +0200
+Message-ID: <201302260957.04585.jackm@dev.mellanox.co.il>
+References: <1348836538.3626.21.camel@x61.thuisdomein> <CAL1RGDWVAYCTNOOA+s_n5Pu7JgrR-6K+krcbSuARtEhgze_nqw@mail.gmail.com> <CAL1RGDWt2cgcwec-iQ9f8-YvC8fO2AncGBfQ2VUgPi3W49bKxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130226114508.0f8d1101156f9f4a309579f6@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Hadar Hen Zion <hadarh@mellanox.com>, David Miller <davem@davemloft.net>, netdev@vger.kernel.org, Shani Michaeli <shanim@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Amir Vadai <amirv@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDWt2cgcwec-iQ9f8-YvC8fO2AncGBfQ2VUgPi3W49bKxg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 26/02/2013 02:45, Stephen Rothwell wrote:
-> Hi all,
->
-> Today's linux-next merge of the infiniband tree got a conflict in
-> drivers/net/ethernet/mellanox/mlx4/mlx4.h between commit 23537b732f5d
-> ("net/mlx4_core: Use firmware driven flow steering hash mode") from
-> Linus' tree and commit e448834e3545 ("mlx4_core: Enable memory windows in
-> {INIT, QUERY}_HCA") from the infiniband tree.
->
-> I fixed it up (see below) and can carry the fix as necessary (no action
-> is required).
->
+On Monday 25 February 2013 19:23, Roland Dreier wrote:
+> On Mon, Feb 25, 2013 at 8:54 AM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> > I'm finally noticing that this is in the build_mlx_header() function,
+> > which is pretty much a slow path.  Certainly another compare isn't
+> > going to change performance given all the other stuff we do there.
+> >
+> > Let me look at the patches that have gone by and see what the cleanest
+> > way to handle this is.
+> 
+> OK, after playing around a bit, I see that just initializing vlan
+> doesn't really change the generated code (my gcc at least was already
+> if effect setting vlan in the generated assembly code), so I'll just
+> merge that.
+> 
+>  - R.
 
-thanks,
+Thanks!
 
-Acked-by: Or Gerlitz <ogerlitz@mellanox.com>
+-Jack 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
