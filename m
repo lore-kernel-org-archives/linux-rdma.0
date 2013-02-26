@@ -1,264 +1,133 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH V2 02/06] opensm/perfmgr: clean up: break out redirect
- processing from pc_recv_process
-Date: Tue, 26 Feb 2013 13:42:36 -0800
-Message-ID: <20130226134236.7f356f189aa703cac13a0ab8@llnl.gov>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH 1/2] opensm/osm_console.c: Support portstatus output for
+	unenabled width/speed
+Date: Tue, 26 Feb 2013 13:54:40 -0800
+Message-ID: <1361915680.28997.11.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On occasion, it has been observed that active link width and/or speed
+is set at a level not enabled.  For example, a link may be active at
+QDR but SDR & DDR speeds are the only ones enabled.
 
-Changes from V1:
-	Cleaned up processing when CPI redirect is invalid
+Under these scenarios, the portstatus option in the console may
+incorrectly output port status, which can confuse users.
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+A new port output status of "unenabled width" or "unenabled speed" is
+output when this situation is discovered, helping users find problems
+in the fabric.
+
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- opensm/osm_perfmgr.c |  199 ++++++++++++++++++++++++--------------------------
- 1 files changed, 95 insertions(+), 104 deletions(-)
+ opensm/osm_console.c |   41 +++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 37 insertions(+), 4 deletions(-)
 
-diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 8daeb26..a28195f 100644
---- a/opensm/osm_perfmgr.c
-+++ b/opensm/osm_perfmgr.c
-@@ -1265,6 +1265,95 @@ Exit:
- 	return pkey_ix;
- }
+diff --git a/opensm/osm_console.c b/opensm/osm_console.c
+index 600007c..7f9a963 100644
+--- a/opensm/osm_console.c
++++ b/opensm/osm_console.c
+@@ -703,6 +703,8 @@ typedef struct {
+ 	uint64_t ports_8X;
+ 	uint64_t ports_12X;
+ 	uint64_t ports_unknown_width;
++	uint64_t ports_unenabled_width;
++	port_report_t *unenabled_width_ports;
+ 	uint64_t ports_reduced_width;
+ 	port_report_t *reduced_width_ports;
+ 	uint64_t ports_sdr;
+@@ -712,6 +714,8 @@ typedef struct {
+ 	uint64_t ports_fdr;
+ 	uint64_t ports_edr;
+ 	uint64_t ports_unknown_speed;
++	uint64_t ports_unenabled_speed;
++	port_report_t *unenabled_speed_ports;
+ 	uint64_t ports_reduced_speed;
+ 	port_report_t *reduced_speed_ports;
+ } fabric_stats_t;
+@@ -766,14 +770,27 @@ static void __get_stats(cl_map_item_t * const p_map_item, void *context)
+ 		port_state = ib_port_info_get_port_state(pi);
+ 		port_phys_state = ib_port_info_get_port_phys_state(pi);
  
-+static void handle_redirect(osm_perfmgr_t *pm,
-+			    ib_class_port_info_t *cpi,
-+			    monitored_node_t *p_mon_node,
-+			    uint8_t port,
-+			    osm_madw_context_t *mad_context)
-+{
-+	char gid_str[INET6_ADDRSTRLEN];
-+	ib_api_status_t status;
-+	boolean_t valid = TRUE;
-+	int16_t pkey_ix = 0;
-+
-+	OSM_LOG(pm->log, OSM_LOG_VERBOSE,
-+		"Redirection to LID %u GID %s QP 0x%x received\n",
-+		cl_ntoh16(cpi->redir_lid),
-+		inet_ntop(AF_INET6, cpi->redir_gid.raw, gid_str,
-+			  sizeof gid_str), cl_ntoh32(cpi->redir_qp));
-+
-+	if (!pm->subn->opt.perfmgr_redir) {
-+		OSM_LOG(pm->log, OSM_LOG_VERBOSE,
-+			"Redirection requested but disabled\n");
-+		valid = FALSE;
-+	}
-+
-+	/* valid redirection ? */
-+	if (cpi->redir_lid == 0) {
-+		if (!ib_gid_is_notzero(&cpi->redir_gid)) {
-+			OSM_LOG(pm->log, OSM_LOG_VERBOSE,
-+				"Invalid redirection "
-+				"(both redirect LID and GID are zero)\n");
-+			valid = FALSE;
+-		if ((enabled_width ^ active_width) > active_width) {
++		if (!(active_width & enabled_width)) {
++			__tag_port_report(&(fs->unenabled_width_ports),
++					  cl_ntoh64(node->node_info.node_guid),
++					  port, node->print_desc);
++			fs->ports_unenabled_width++;
 +		}
-+	}
-+	if (cpi->redir_qp == 0) {
-+		OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectQP\n");
-+		valid = FALSE;
-+	}
-+	if (cpi->redir_pkey == 0) {
-+		OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectP_Key\n");
-+		valid = FALSE;
-+	}
-+	if (cpi->redir_qkey != IB_QP1_WELL_KNOWN_Q_KEY) {
-+		OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectQ_Key\n");
-+		valid = FALSE;
-+	}
-+
-+	pkey_ix = validate_redir_pkey(pm, cpi->redir_pkey);
-+	if (pkey_ix == -1) {
-+		OSM_LOG(pm->log, OSM_LOG_VERBOSE,
-+			"Index for Pkey 0x%x not found\n",
-+			cl_ntoh16(cpi->redir_pkey));
-+		valid = FALSE;
-+	}
-+
-+	if (cpi->redir_lid == 0) {
-+		/* GID redirection: get PathRecord information */
-+		OSM_LOG(pm->log, OSM_LOG_VERBOSE,
-+			"GID redirection not currently supported\n");
-+		return;
-+	}
-+
-+	if (!valid)
-+		return;
-+
-+	/* LID redirection support (easier than GID redirection) */
-+	cl_plock_acquire(&pm->osm->lock);
-+	p_mon_node->port[port].redirection = TRUE;
-+	p_mon_node->port[port].valid = valid;
-+	memcpy(&p_mon_node->port[port].gid, &cpi->redir_gid,
-+	       sizeof(ib_gid_t));
-+	p_mon_node->port[port].lid = cpi->redir_lid;
-+	p_mon_node->port[port].qp = cpi->redir_qp;
-+	p_mon_node->port[port].pkey = cpi->redir_pkey;
-+	p_mon_node->port[port].cpi_valid = FALSE;
-+	if (pkey_ix != -1)
-+		p_mon_node->port[port].pkey_ix = pkey_ix;
-+	cl_plock_release(&pm->osm->lock);
-+
-+	/* Finally, issue a CPI query to the redirected location */
-+	status = perfmgr_send_cpi_mad(pm, cpi->redir_lid,
-+				      cpi->redir_qp, pkey_ix,
-+				      port, mad_context,
-+				      0); /* FIXME SL != 0 */
-+	if (status != IB_SUCCESS)
-+		OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR 5414: "
-+			"Failed to send redirected CPI MAD "
-+			"for node %s (0x%" PRIx64 ") port %d\n",
-+			p_mon_node->name, p_mon_node->guid, port);
-+}
-+
- /**********************************************************************
-  * The dispatcher uses a thread pool which will call this function when
-  * there is a thread available to process the mad received on the wire.
-@@ -1283,8 +1372,6 @@ static void pc_recv_process(void *context, void *data)
- 	perfmgr_db_data_cnt_reading_t data_reading;
- 	cl_map_item_t *p_node;
- 	monitored_node_t *p_mon_node;
--	int16_t pkey_ix = 0;
--	boolean_t valid = TRUE;
- 	ib_class_port_info_t *cpi = NULL;
- 
- 	OSM_LOG_ENTER(pm->log);
-@@ -1336,112 +1423,15 @@ static void pc_recv_process(void *context, void *data)
- 			p_mon_node->port[port].cpi_valid = TRUE;
++		else if ((enabled_width ^ active_width) > active_width) {
+ 			__tag_port_report(&(fs->reduced_width_ports),
+ 					  cl_ntoh64(node->node_info.node_guid),
+ 					  port, node->print_desc);
+ 			fs->ports_reduced_width++;
  		}
- 		cl_plock_release(&pm->osm->lock);
--	}
--
--	/* Response could also be redirection (IBM eHCA PMA does this) */
--	if (p_mad->status & IB_MAD_STATUS_REDIRECT) {
--		char gid_str[INET6_ADDRSTRLEN];
--		ib_api_status_t status;
--
--		CL_ASSERT(cpi); /* Redirect should have returned CPI
--					(processed in previous block) */
--
--		OSM_LOG(pm->log, OSM_LOG_VERBOSE,
--			"Redirection to LID %u GID %s QP 0x%x received\n",
--			cl_ntoh16(cpi->redir_lid),
--			inet_ntop(AF_INET6, cpi->redir_gid.raw, gid_str,
--				  sizeof gid_str), cl_ntoh32(cpi->redir_qp));
--
--		if (!pm->subn->opt.perfmgr_redir) {
--			OSM_LOG(pm->log, OSM_LOG_VERBOSE,
--				"Redirection requested but disabled\n");
--			valid = FALSE;
--		}
--
--		/* valid redirection ? */
--		if (cpi->redir_lid == 0) {
--			if (!ib_gid_is_notzero(&cpi->redir_gid)) {
--				OSM_LOG(pm->log, OSM_LOG_VERBOSE,
--					"Invalid redirection "
--					"(both redirect LID and GID are zero)\n");
--				valid = FALSE;
--			}
--		}
--		if (cpi->redir_qp == 0) {
--			OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectQP\n");
--			valid = FALSE;
--		}
--		if (cpi->redir_pkey == 0) {
--			OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectP_Key\n");
--			valid = FALSE;
--		}
--		if (cpi->redir_qkey != IB_QP1_WELL_KNOWN_Q_KEY) {
--			OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectQ_Key\n");
--			valid = FALSE;
--		}
--
--		pkey_ix = validate_redir_pkey(pm, cpi->redir_pkey);
--		if (pkey_ix == -1) {
--			OSM_LOG(pm->log, OSM_LOG_VERBOSE,
--				"Index for Pkey 0x%x not found\n",
--				cl_ntoh16(cpi->redir_pkey));
--			valid = FALSE;
--		}
--
--		if (cpi->redir_lid == 0) {
--			/* GID redirection: get PathRecord information */
--			OSM_LOG(pm->log, OSM_LOG_VERBOSE,
--				"GID redirection not currently supported\n");
--			goto Exit;
--		}
--
--		/* LID redirection support (easier than GID redirection) */
--		cl_plock_acquire(&pm->osm->lock);
--		/* Now, validate port number */
--		if (port >= p_mon_node->num_ports) {
--			cl_plock_release(&pm->osm->lock);
--			OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR 5413: "
--				"Invalid port num %d for GUID 0x%016"
--				PRIx64 " num ports %d\n", port, node_guid,
--				p_mon_node->num_ports);
--			goto Exit;
--		}
--		p_mon_node->port[port].redirection = TRUE;
--		p_mon_node->port[port].valid = valid;
--		memcpy(&p_mon_node->port[port].gid, &cpi->redir_gid,
--		       sizeof(ib_gid_t));
--		p_mon_node->port[port].lid = cpi->redir_lid;
--		p_mon_node->port[port].qp = cpi->redir_qp;
--		p_mon_node->port[port].pkey = cpi->redir_pkey;
--		if (pkey_ix != -1)
--			p_mon_node->port[port].pkey_ix = pkey_ix;
--		cl_plock_release(&pm->osm->lock);
  
--		if (!valid)
--			goto Exit;
-+		/* Response could also be redirection (IBM eHCA PMA does this) */
-+		if (p_mad->status & IB_MAD_STATUS_REDIRECT)
-+			handle_redirect(pm, cpi, p_mon_node, port,
-+					mad_context);
+-		if ((enabled_speed ^ active_speed) > active_speed) {
++		/* unenabled speed usually due to problems with force_link_speed */
++		if (!(active_speed & enabled_speed)) {
++			__tag_port_report(&(fs->unenabled_speed_ports),
++					  cl_ntoh64(node->node_info.node_guid),
++					  port, node->print_desc);
++			fs->ports_unenabled_speed++;
++		}
++		else if ((enabled_speed ^ active_speed) > active_speed) {
+ 			__tag_port_report(&(fs->reduced_speed_ports),
+ 					  cl_ntoh64(node->node_info.node_guid),
+ 					  port, node->print_desc);
+@@ -814,7 +831,13 @@ static void __get_stats(cl_map_item_t * const p_map_item, void *context)
+ 		    (enabled_speed = pi->link_speed_ext_enabled) != IB_LINK_SPEED_EXT_DISABLE &&
+ 		    active_speed == IB_LINK_SPEED_ACTIVE_10) {
+ 			active_speed = ib_port_info_get_link_speed_ext_active(pi);
+-			if ((enabled_speed ^ active_speed) > active_speed) {
++			if (!(active_speed & enabled_speed)) {
++				__tag_port_report(&(fs->unenabled_speed_ports),
++						  cl_ntoh64(node->node_info.node_guid),
++						  port, node->print_desc);
++				fs->ports_unenabled_speed++;
++			}
++			else if ((enabled_speed ^ active_speed) > active_speed) {
+ 				__tag_port_report(&(fs->reduced_speed_ports),
+ 						  cl_ntoh64(node->node_info.node_guid),
+ 						  port, node->print_desc);
+@@ -933,18 +956,28 @@ static void portstatus_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+ 		fprintf(out, "   %" PRIu64 " at 25.78125 Gbps\n", fs.ports_edr);
  
--		/* Finally, issue a CPI query to the redirected location */
--		p_mon_node->port[port].cpi_valid = FALSE;
--		status = perfmgr_send_cpi_mad(pm, cpi->redir_lid,
--					      cpi->redir_qp, pkey_ix,
--					      port, mad_context,
--					      0); /* FIXME SL != 0 */
--		if (status != IB_SUCCESS)
--			OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR 5414: "
--				"Failed to send redirected MAD "
--				"with method 0x%x for node %s "
--				"(NodeGuid 0x%" PRIx64 ") port %d\n",
--				mad_context->perfmgr_context.mad_method,
--				p_mon_node->name, node_guid, port);
- 		goto Exit;
+ 	if (fs.ports_disabled + fs.ports_reduced_speed + fs.ports_reduced_width
+-	    > 0) {
++	    + fs.ports_unenabled_width + fs.ports_unenabled_speed > 0) {
+ 		fprintf(out, "\nPossible issues:\n");
  	}
- 
--	/* ClassPortInfo needed to process optional Redirection
--	 * now exit normally
--	 */
--	if (p_mad->attr_id == IB_MAD_ATTR_CLASS_PORT_INFO)
--		goto Exit;
--
- 	perfmgr_db_fill_err_read(wire_read, &err_reading);
- 	/* FIXME separate query for extended counters if they are supported
- 	 * on the port.
-@@ -1467,7 +1457,8 @@ static void pc_recv_process(void *context, void *data)
- 		perfmgr_db_clear_prev_dc(pm->db, node_guid, port);
+ 	if (fs.ports_disabled) {
+ 		fprintf(out, "   %" PRIu64 " disabled\n", fs.ports_disabled);
+ 		__print_port_report(out, fs.disabled_ports);
  	}
- 
--	perfmgr_check_overflow(pm, p_mon_node, pkey_ix, port, wire_read);
-+	perfmgr_check_overflow(pm, p_mon_node, p_mon_node->port[port].pkey_ix,
-+			       port, wire_read);
- 
- #ifdef ENABLE_OSM_PERF_MGR_PROFILE
- 	do {
++	if (fs.ports_unenabled_speed) {
++		fprintf(out, "   %" PRIu64 " with unenabled speed\n",
++			fs.ports_unenabled_speed);
++		__print_port_report(out, fs.unenabled_speed_ports);
++	}
+ 	if (fs.ports_reduced_speed) {
+ 		fprintf(out, "   %" PRIu64 " with reduced speed\n",
+ 			fs.ports_reduced_speed);
+ 		__print_port_report(out, fs.reduced_speed_ports);
+ 	}
++	if (fs.ports_unenabled_width) {
++		fprintf(out, "   %" PRIu64 " with unenabled width\n",
++			fs.ports_unenabled_width);
++		__print_port_report(out, fs.unenabled_width_ports);
++	}
+ 	if (fs.ports_reduced_width) {
+ 		fprintf(out, "   %" PRIu64 " with reduced width\n",
+ 			fs.ports_reduced_width);
 -- 
 1.7.1
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
