@@ -1,39 +1,53 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2] IB/mlx4: silence GCC warning
-Date: Tue, 26 Feb 2013 09:57:04 +0200
-Message-ID: <201302260957.04585.jackm@dev.mellanox.co.il>
-References: <1348836538.3626.21.camel@x61.thuisdomein> <CAL1RGDWVAYCTNOOA+s_n5Pu7JgrR-6K+krcbSuARtEhgze_nqw@mail.gmail.com> <CAL1RGDWt2cgcwec-iQ9f8-YvC8fO2AncGBfQ2VUgPi3W49bKxg@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH/RFC] IPoIB: Free ipoib neigh on path record failure so
+ path rec queries are retried
+Date: Tue, 26 Feb 2013 12:32:47 +0200
+Message-ID: <512C8F4F.9000606@mellanox.com>
+References: <1361814409-6704-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWt2cgcwec-iQ9f8-YvC8fO2AncGBfQ2VUgPi3W49bKxg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1361814409-6704-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Monday 25 February 2013 19:23, Roland Dreier wrote:
-> On Mon, Feb 25, 2013 at 8:54 AM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > I'm finally noticing that this is in the build_mlx_header() function,
-> > which is pretty much a slow path.  Certainly another compare isn't
-> > going to change performance given all the other stuff we do there.
-> >
-> > Let me look at the patches that have gone by and see what the cleanest
-> > way to handle this is.
-> 
-> OK, after playing around a bit, I see that just initializing vlan
-> doesn't really change the generated code (my gcc at least was already
-> if effect setting vlan in the generated assembly code), so I'll just
-> merge that.
-> 
->  - R.
+On 25/02/2013 19:46, Roland Dreier wrote:
+> If IPoIB fails to look up a path record (eg if it tries during an SM
+> failover when one SM is dead but the new one hasn't taken over yet), the
+> driver ends up with a neighbour structure but no address handle (AH).
+> There's no mechanism to recover from this: any further packets sent to
+> this destination will be silently dumped in ipoib_start_xmit().
 
-Thanks!
+Looking on the flow of sending ARP probes, I see that in 
+unicast_arp_send, if there's no AH for the path, a path query is initiated,
 
--Jack 
+   if (path->ah) {
+                 ipoib_dbg(priv, "Send unicast ARP to %04x\n",
+be16_to_cpu(path->pathrec.dlid));
+
+                 spin_unlock_irqrestore(&priv->lock, flags);
+                 ipoib_send(dev, skb, path->ah, IPOIB_QPN(cb->hwaddr));
+                 return;
+         } else if ((path->query || !path_rec_start(dev, path)) &&
+                    skb_queue_len(&path->queue) < 
+IPOIB_MAX_PATH_REC_QUEUE) {
+                 __skb_queue_tail(&path->queue, skb);
+         } else {
+                 ++dev->stats.tx_dropped;
+                 dev_kfree_skb_any(skb);
+         }
+
+
+so eventually the traffic should resume once the ND state machine sends 
+a probe, agree? did you only wanted to make that faster?
+
+Or.
+
+> Fix this by freeing the neighbour structures when a path rec query fails, so that the next packet queued to be sent will trigger a new path record query.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
