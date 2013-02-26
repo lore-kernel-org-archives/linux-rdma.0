@@ -1,60 +1,69 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/ipoib: correct tx lockup patch
-Date: Tue, 26 Feb 2013 10:46:27 -0500
-Message-ID: <20130226154627.3775.35111.stgit@phlsvslse11.ph.intel.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH/RFC] IPoIB: Free ipoib neigh on path record failure so
+ path rec queries are retried
+Date: Tue, 26 Feb 2013 08:55:47 -0800
+Message-ID: <CAG4TOxMyTEMKLUF1+YLej7Txj4P5MLZ49cVqAhQP4CW8qi0AUA@mail.gmail.com>
+References: <1361814409-6704-1-git-send-email-roland@kernel.org> <512C8F4F.9000606@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <512C8F4F.9000606-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit f0dc117 ("IPoIB: Fix TX queue lockup with mixed UD/CM traffic")
-attempts to solve an issue were unprocessed UD send cq completions
-can deadlock the netdev.
+On Tue, Feb 26, 2013 at 2:32 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Looking on the flow of sending ARP probes, I see that in unicast_arp_send,
+> if there's no AH for the path, a path query is initiated,
+>
+>   if (path->ah) {
+>                 ipoib_dbg(priv, "Send unicast ARP to %04x\n",
+> be16_to_cpu(path->pathrec.dlid));
+>
+>                 spin_unlock_irqrestore(&priv->lock, flags);
+>                 ipoib_send(dev, skb, path->ah, IPOIB_QPN(cb->hwaddr));
+>                 return;
+>         } else if ((path->query || !path_rec_start(dev, path)) &&
+>                    skb_queue_len(&path->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
+>                 __skb_queue_tail(&path->queue, skb);
+>         } else {
+>                 ++dev->stats.tx_dropped;
+>                 dev_kfree_skb_any(skb);
+>         }
+>
+>
+> so eventually the traffic should resume once the ND state machine sends a
+> probe, agree? did you only wanted to make that faster?
 
-The patch doesn't fully resolve the issue because if more than
-half the tx_outstanding's were UD and all of the destinations
-are RC reachable, arming the CQ doesn't solve the issue.
+Well, look at ipoib_start_xmit():
 
-This patch uses the IB_CQ_REPORT_MISSED_EVENTS on the
-ib_req_notify_cq().   If the rc is above 0, the UD send cq
-completion callback is called directly to re-arm the send
-completion timer.
+    /* unicast, arrange "switch" according to probability */
+    switch (header->proto) {
+    case htons(ETH_P_IP):
+    case htons(ETH_P_IPV6):
+        neigh = ipoib_neigh_get(dev, cb->hwaddr);
+        if (unlikely(!neigh)) {
+            neigh_add_path(skb, cb->hwaddr, dev);
+            return NETDEV_TX_OK;
+        }
+        break;
+    case htons(ETH_P_ARP):
+    case htons(ETH_P_RARP):
+        /* for unicast ARP and RARP should always perform path find */
+        unicast_arp_send(skb, dev, cb);
+        return NETDEV_TX_OK;
 
-This issue is seen in very large parallel filesystem deployments
-and has been show to correct the issue.
+etc.  So although you mention ND, we only call unicast_arp_send() for
+IPv4 ARP.  And in our case we were actually using IPv6, which follows
+the main flow with neighbours even for neighbour discovery packets.
+So there's no way to ever recover from having the failed path record.
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_cm.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+In fact I bet this is why the bug has been there as long as it has
+been: almost no one is using IPv6 on IPoIB seriously, and IPv4 should
+work OK as you point out.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 67b0c1d..1ef880d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -758,9 +758,13 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
- 		if (++priv->tx_outstanding == ipoib_sendq_size) {
- 			ipoib_dbg(priv, "TX ring 0x%x full, stopping kernel net queue\n",
- 				  tx->qp->qp_num);
--			if (ib_req_notify_cq(priv->send_cq, IB_CQ_NEXT_COMP))
--				ipoib_warn(priv, "request notify on send CQ failed\n");
- 			netif_stop_queue(dev);
-+			rc = ib_req_notify_cq(priv->send_cq,
-+				IB_CQ_NEXT_COMP | IB_CQ_REPORT_MISSED_EVENTS);
-+			if (rc < 0)
-+				ipoib_warn(priv, "request notify on send CQ failed\n");
-+			else if (rc)
-+				ipoib_send_comp_handler(priv->send_cq, dev);
- 		}
- 	}
- }
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
