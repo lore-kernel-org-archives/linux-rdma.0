@@ -1,60 +1,57 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] Add fix to  _do_madrpc to set the errno after
- umad_recv.
-Date: Tue, 26 Feb 2013 14:29:30 -0800
-Message-ID: <20130226142930.10c27daedb24b768fb979fe9@llnl.gov>
-References: <5122A6D5.10400@oracle.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 01/06] opensm/perfmgr: issue ClassPortInfo as first query
+ to each port.
+Date: Tue, 26 Feb 2013 17:43:22 -0500
+Message-ID: <512D3A8A.9020207@dev.mellanox.co.il>
+References: <20130221133331.593f30977427848f4373b57a@llnl.gov> <512CCEC7.70304@dev.mellanox.co.il> <20130226105803.c3bae4bdd1d2af03bce373db@llnl.gov> <512D118A.5010503@dev.mellanox.co.il> <20130226130711.8d96c1834b47c55e2abef24e@llnl.gov> <512D25CC.3010109@dev.mellanox.co.il> <20130226132400.4ec40c660efd0c1eb0b6f69c@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5122A6D5.10400-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20130226132400.4ec40c660efd0c1eb0b6f69c-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Jia Shi (E-mail)" <JIA.SHI-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-First, it is not documented that this function will set any errno value.
-
-umad_status is only documented to return ETIMEDOUT which will be returned in the p_error parameter (ib_rpc_t -> rstatus) value when an error occurs.  Is this not sufficient for your needs?
-
-Secondly, this patch does not apply cleanly.  Please create patches against the current master at:
-
-git://git.openfabrics.org/~iraweiny/libibmad.git
-
-Thirdly, the patch below will set errno on each retry case.  I don't think this is necessary.
-
-Thanks,
-Ira
-
-On Mon, 18 Feb 2013 14:10:29 -0800
-Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-
->   _do_madrpc() (in libibmad-1.3.3/src/rpc.c) sends the mad request through umad_send() and waits for a response from umad_recv() with the timeout passed  by caller. Linux error 
-> number sent by peer in 'status' is not copied over to the process/thread local 'errno'.
+On 2/26/2013 4:24 PM, Ira Weiny wrote:
+> On Tue, 26 Feb 2013 16:14:52 -0500
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 > 
-> Signed-off-by: Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> On 2/26/2013 4:07 PM, Ira Weiny wrote:
+>>> Right, BSP0 doesn't have PM counters.  So why did you ask if I had tried this with base SP0?
+>>
+>> I thought I answered that in the previous response:
+>> "The reason I asked here is that the ClassPortInfo is being requested on
+>> port 1 not 0 for BSP0."
 > 
-> $diff -Naru rpc.c rpc_fix.c
-> --- rpc.c       2013-02-07 10:28:06.000000000 -0800
-> +++ rpc_fix.c   2013-02-18 13:57:15.000000000 -0800
-> @@ -175,6 +175,7 @@
->                                           IB_MAD_TRID_F) != trid);
+> But that is the correct thing to do, right?
+
+I think that's legal per:
+
+C13-29: The ClassPortInfo attribute shall be implemented for every GS
+class agent supported by a node; it shall be implemented on every port
+through which the GS class agent may be accessed.
+
+-- Hal
+
 > 
->                  status = umad_status(rcvbuf);
-> +               errno = status;
->                  if (!status)
->                          return length;  /* done */
->                  if (status == ENOMEM)
+> Ira
+> 
+>>
+>> -- Hal
+>>
+>>> To be clear I have tried this with both Enhanced SP0 and Base SP0 and it seems to work correctly.
+>>>
+>>> Ira
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-
-
--- 
-Ira Weiny
-Member of Technical Staff
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
