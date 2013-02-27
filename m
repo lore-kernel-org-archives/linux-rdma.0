@@ -1,35 +1,31 @@
-From: Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Adding support for Debian packaging
-Date: Wed, 27 Feb 2013 09:34:27 +0200
-Message-ID: <512DB703.3060009@dev.mellanox.co.il>
-References: <1361441897-19486-1-git-send-email-ilyan@mellanox.com> <CABweQmK6zBZSeeLShS8MpcFu6oHVvNw6CF_3sWbqe1dGM-BeUg@mail.gmail.com> <CAL1RGDVaiOp84E3SfF6nUkNvjrAeUE=32EdmWusmWZSZqRJ_Qw@mail.gmail.com> <512DB43C.5060801@dev.mellanox.co.il> <CAL1RGDU3pHNNk_jtVWpW6OPyD1BjOxb8NFYcU=ojWxOGXkusug@mail.gmail.com>
+From: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: ib_read_lat question
+Date: Wed, 27 Feb 2013 10:46:35 +0200
+Message-ID: <512DC7EB.1060309@dev.mellanox.co.il>
+References: <51265E60.1070609@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A823736F35235F@ORSMSX101.amr.corp.intel.com> <512668BF.4030908@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDU3pHNNk_jtVWpW6OPyD1BjOxb8NFYcU=ojWxOGXkusug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <512668BF.4030908-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Troy Leedberg <troy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/27/2013 9:27 AM, Roland Dreier wrote:
-> On Tue, Feb 26, 2013 at 11:22 PM, Ilya Nelkenbaum
-> <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> Does the libibumad that is installed in Debian synchronized with the upstream version?
-> 
-> I'm not sure what you're asking.  At appropriate times, new upstream
-> versions of software are added to various releases of the Debian
-> distribution, but this is a (semi-) manual process.
-> 
->   - R.
-> 
-
-That was exactly what I am asking.
-So I guess it really won't help.
-
-Regards,
-Ilya Nelkenbaum
+On 2/21/2013 8:34 PM, Steve Wise wrote:
+> On 2/21/2013 12:27 PM, Hefty, Sean wrote:
+>>> ib_read_lat displays RTT latency, while the other lat programs display
+>>> RTT/2.  Is this intended?  Or is read_lat.c/print_report() missing a
+>>> divide-by-two?
+>> The tests should measure how long it takes the data to reach the 
+>> destination.  For writes/sends, that would be RTT/2.  For reads, the 
+>> destination is local, so you should want RTT.
+>
+> Guess that makes sense.
+>
+Yes, to me too.
+Thanks Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
