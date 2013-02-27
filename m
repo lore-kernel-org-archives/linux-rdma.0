@@ -1,164 +1,57 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH V2] perftest: Support iwarp transports.
-Date: Wed, 27 Feb 2013 09:43:59 -0600
-Message-ID: <20130227154359.16379.78801.stgit@build.ogc.int>
+From: Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] Adding support for Debian packaging
+Date: Wed, 27 Feb 2013 09:47:59 -0600
+Message-ID: <CABweQmKPpRvKZE8JoO_rX3OrUN+nB=u1DOUAJfuwXNP_+54neg@mail.gmail.com>
+References: <1361441897-19486-1-git-send-email-ilyan@mellanox.com>
+	<CABweQmK6zBZSeeLShS8MpcFu6oHVvNw6CF_3sWbqe1dGM-BeUg@mail.gmail.com>
+	<CAL1RGDVaiOp84E3SfF6nUkNvjrAeUE=32EdmWusmWZSZqRJ_Qw@mail.gmail.com>
+	<512DB43C.5060801@dev.mellanox.co.il>
+	<CAL1RGDU3pHNNk_jtVWpW6OPyD1BjOxb8NFYcU=ojWxOGXkusug@mail.gmail.com>
+	<512E14E7.9020808@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <512E14E7.9020808-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-- add transport type for making transport-specific decisions
-- rdma read sink mrs need REMOTE_WRITE access for iwarp transports
-- add chelsio devices
+Hi Ilya. The easiest way to see packaging for a library (from an
+upstream apt source) is to run
+# This downloads the original source, debian specific patches, and a
+package description file
+$ apt-get source <pkgname>
+# this unpacks all of the files
+$ dpkg-source -x <pkgname>*.dsc
 
-Changes since V1:
+This produces a source directory with all of the packaging patches
+applied. There may be additional patches carried by the package in the
+debian directory with other packaging stuff.
+ -nld
 
-Restored the use of RDMA_MAX_RESP_RES/RDMA_MAX_INIT_DEPTH for rdmacm
-connection setup.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
-
- src/perftest_parameters.c |   63 ++++++++++++++++++++++++++++++++++-----------
- src/perftest_parameters.h |    4 ++-
- src/perftest_resources.c  |    2 +
- 3 files changed, 53 insertions(+), 16 deletions(-)
-
-diff --git a/src/perftest_parameters.c b/src/perftest_parameters.c
-index e32303a..a6b75d2 100644
---- a/src/perftest_parameters.c
-+++ b/src/perftest_parameters.c
-@@ -564,6 +564,21 @@ static void force_dependecies(struct perftest_parameters *user_param) {
- /****************************************************************************** 
-  *
-  ******************************************************************************/
-+const char *transport_str(enum ibv_transport_type type) {
-+
-+	switch (type) {
-+        case IBV_TRANSPORT_IB:	
-+		return "IB";
-+        case IBV_TRANSPORT_IWARP:
-+		return "IW";
-+        default:
-+		return "Unknown";
-+	}
-+}
-+
-+/****************************************************************************** 
-+ *
-+ ******************************************************************************/
- const char *link_layer_str(uint8_t link_layer) {
- 
- 	switch (link_layer) {
-@@ -592,21 +607,37 @@ static Device ib_dev_name(struct ibv_context *context) {
- 
- 	else { 
- 
--		switch (attr.vendor_part_id) { 
--			case 4113  : dev_fname = CONNECTIB; break;
--			case 4099  : dev_fname = CONNECTX3; break;
--			case 26418 : dev_fname = CONNECTX2; break;
--			case 26428 : dev_fname = CONNECTX2; break;
--			case 26438 : dev_fname = CONNECTX2; break;
--			case 26448 : dev_fname = CONNECTX2; break;
--			case 26458 : dev_fname = CONNECTX2; break;
--			case 26468 : dev_fname = CONNECTX2; break;
--			case 26478 : dev_fname = CONNECTX2; break;
--			case 25408 : dev_fname = CONNECTX;  break;
--			case 25418 : dev_fname = CONNECTX;  break;
--			case 25428 : dev_fname = CONNECTX;  break;
--			case 25448 : dev_fname = CONNECTX;  break;
--			default	   : dev_fname = UNKNOWN;
-+		switch (attr.vendor_id) {
-+			case 5555:
-+				switch (attr.vendor_part_id) { 
-+					case 4113  : dev_fname = CONNECTIB; break;
-+					case 4099  : dev_fname = CONNECTX3; break;
-+					case 26418 : dev_fname = CONNECTX2; break;
-+					case 26428 : dev_fname = CONNECTX2; break;
-+					case 26438 : dev_fname = CONNECTX2; break;
-+					case 26448 : dev_fname = CONNECTX2; break;
-+					case 26458 : dev_fname = CONNECTX2; break;
-+					case 26468 : dev_fname = CONNECTX2; break;
-+					case 26478 : dev_fname = CONNECTX2; break;
-+					case 25408 : dev_fname = CONNECTX;  break;
-+					case 25418 : dev_fname = CONNECTX;  break;
-+					case 25428 : dev_fname = CONNECTX;  break;
-+					case 25448 : dev_fname = CONNECTX;  break;
-+					default	   : dev_fname = UNKNOWN;
-+				}
-+				break;
-+			case 5157: {
-+				switch (attr.vendor_part_id >> 12) {
-+					case 10 :
-+					case 4  : dev_fname = CHELSIO_T4; break;
-+					case 11 :
-+					case 5  : dev_fname = CHELSIO_T5; break;
-+					default : dev_fname = UNKNOWN; break;
-+				}
-+				break;
-+			}
-+			default:
-+				dev_fname = UNKNOWN;
- 		}
- 	}
- 
-@@ -1189,6 +1220,7 @@ int parser(struct perftest_parameters *user_param,char *argv[], int argc) {
-  ******************************************************************************/
- int check_link_and_mtu(struct ibv_context *context,struct perftest_parameters *user_param) {
- 
-+	user_param->transport_type = context->device->transport_type;
- 	user_param->link_type = set_link_layer(context,user_param->ib_port);
- 	if (user_param->link_type == LINK_FAILURE) {
- 		fprintf(stderr, " Couldn't set the link layer\n");
-@@ -1323,6 +1355,7 @@ void ctx_print_test_info(struct perftest_parameters *user_param) {
- 	} 
- 
- 	printf(" Mtu             : %luB\n",user_param->connection_type == RawEth ? user_param->curr_mtu : MTU_SIZE(user_param->curr_mtu));
-+	printf(" Transport type  : %s\n" ,transport_str(user_param->transport_type));
- 	printf(" Link type       : %s\n" ,link_layer_str(user_param->link_type));
- 
- 	if (user_param->gid_index != DEF_GID_INDEX)
-diff --git a/src/perftest_parameters.h b/src/perftest_parameters.h
-index 463630c..09f3e47 100644
---- a/src/perftest_parameters.h
-+++ b/src/perftest_parameters.h
-@@ -180,7 +180,8 @@ typedef enum { LOCAL , REMOTE } PrintDataSide;
- typedef enum {CMP_AND_SWAP, FETCH_AND_ADD} AtomicType;
- 
- // The type of the device (Hermon B0/A0 or no)
--typedef enum { DEVICE_ERROR = -1 ,UNKNOWN = 0 ,CONNECTX = 1,CONNECTX2 = 2, CONNECTX3 = 3, CONNECTIB = 4, LEGACY = 5} Device;
-+typedef enum { DEVICE_ERROR = -1 ,UNKNOWN = 0 ,CONNECTX = 1,CONNECTX2 = 2, CONNECTX3 = 3, CONNECTIB = 4, LEGACY = 5,
-+	       CHELSIO_T4 = 6, CHELSIO_T5 = 7} Device;
- 
- // Type of test method.
- typedef enum { ITERATIONS , DURATION } TestMethod;
-@@ -236,6 +237,7 @@ struct perftest_parameters {
- 	int				margin;
- 	uint32_t		rem_ud_qpn;
- 	uint32_t		rem_ud_qkey;
-+	enum ibv_transport_type transport_type;
- 	uint8_t			link_type;
- 	uint8_t			link_type2;
- 	MachineType		machine;
-diff --git a/src/perftest_resources.c b/src/perftest_resources.c
-index fd9809f..01726ba 100644
---- a/src/perftest_resources.c
-+++ b/src/perftest_resources.c
-@@ -376,6 +376,8 @@ int ctx_init(struct pingpong_context *ctx,struct perftest_parameters *user_param
- 		
- 	} else if (user_param->verb == READ) {
- 		flags |= IBV_ACCESS_REMOTE_READ;
-+		if (user_param->transport_type == IBV_TRANSPORT_IWARP)
-+			flags |= IBV_ACCESS_REMOTE_WRITE;
- 
- 	} else if (user_param->verb == ATOMIC) {
- 		flags |= IBV_ACCESS_REMOTE_ATOMIC;
-
+On Wed, Feb 27, 2013 at 8:15 AM, Ilya Nelkenbaum
+<ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On 2/27/2013 9:27 AM, Roland Dreier wrote:
+>> On Tue, Feb 26, 2013 at 11:22 PM, Ilya Nelkenbaum
+>> <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>>> Does the libibumad that is installed in Debian synchronized with the upstream version?
+>>
+>> I'm not sure what you're asking.  At appropriate times, new upstream
+>> versions of software are added to various releases of the Debian
+>> distribution, but this is a (semi-) manual process.
+>>
+>>   - R.
+>>
+> Hi Roland,
+> One more question:
+>
+> In order to support debian a "debian" directory has to be present in a package dir
+> How it happens? and where I can see an example
+>
+> Thanks,
+> Ilya
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
