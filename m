@@ -1,438 +1,297 @@
-From: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: libibmad : submitting six patches on behalf of Oracle IB development
-Date: Wed, 27 Feb 2013 13:23:02 -0800
-Message-ID: <512E7936.2080409@oracle.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH V3 02/06] opensm/perfmgr: clean up: break out redirect
+ processing from pc_recv_process
+Date: Wed, 27 Feb 2013 22:03:22 -0800
+Message-ID: <20130227220322.5df72cc2dce5454f16fb28b0@llnl.gov>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080207060805090907080404"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080207060805090907080404
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi Ira,
+Subject: [PATCH 02/13] opensm/perfmgr: clean up: break out redirect processing from pc_recv_process
 
-We (Oracle IB development) are submitting six patches against
+Changes from V1:
+	Cleaned up processing when CPI redirect is invalid
 
-libibmad-1.3.9 (as attached).
+Changes from V2:
+	If CPI is a redirection only set cpi_valid if the redirection was valid
+		(Also set cpi_valid on all ports for a switch)
 
-Please review our submission of changes.
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ opensm/osm_perfmgr.c |  210 ++++++++++++++++++++++++--------------------------
+ 1 files changed, 102 insertions(+), 108 deletions(-)
 
-Many thanks,
-Boris
-
---------------080207060805090907080404
-Content-Type: text/x-patch;
- name="rdma_fix_TID_SRIOV.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="rdma_fix_TID_SRIOV.patch"
-
-libibmad: To reserve upper 8 bits of tid used by solaris SRIOV driver
-Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-diff -uprN ./SOURCES/libibmad-1.3.9/src/mad.c ./SOURCES/libibmad-1.3.9.fix_TID_SRIOV/src/mad.c
---- ./SOURCES/libibmad-1.3.9/src/mad.c	2012-04-30 13:42:44.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_TID_SRIOV/src/mad.c	2013-02-25 10:08:46.395048119 -0800
-@@ -62,6 +62,9 @@ uint64_t mad_trid(void)
- 		trid = random();
- 	}
- 	next = ++trid | (base << 32);
-+#if defined(__SVR4) && defined(__sun)
-+	next &= 0x00ffffffffffffff;
-+#endif
- 	return next;
+diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
+index 79e5fce..d8a7c9e 100644
+--- a/opensm/osm_perfmgr.c
++++ b/opensm/osm_perfmgr.c
+@@ -1265,6 +1265,96 @@ Exit:
+ 	return pkey_ix;
  }
  
-
-
---------------080207060805090907080404
-Content-Type: text/x-patch;
- name="rdma_fix_big_endian.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="rdma_fix_big_endian.patch"
-
-libibmad: To fix big endian problem for both 32-bit & 64-bit SPARC
-Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-diff -uprN ./SOURCES/libibmad-1.3.9/src/dump.c ./SOURCES/libibmad-1.3.9.fix_big_endian/src/dump.c
---- ./SOURCES/libibmad-1.3.9/src/dump.c	2012-05-31 15:12:30.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_big_endian/src/dump.c	2013-02-13 15:19:59.000000000 -0800
-@@ -46,12 +46,24 @@
- 
- void mad_dump_int(char *buf, int bufsz, void *val, int valsz)
- {
-+	/*
-+	 * the val pointer passed to the dump routines are always 32 bit
-+	 * integers for valsz <= 4 and 64 bit integer for the rest. It is never
-+	 * uint8_t or uint16_t. This is because mad_decode_field always returns
-+	 * the values as 32 bit integer even if they are 8 bit or 16 bit fields.
-+	 */
- 	switch (valsz) {
- 	case 1:
--		snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xff);
-+#if defined(_BIG_ENDIAN)
-+		val = ((uint8_t *)val) + 3;
-+#endif /* _BIG_ENDIAN */
-+		snprintf(buf, bufsz, "%d", *(uint8_t *) val & 0xff);
- 		break;
- 	case 2:
--		snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xffff);
-+#if defined(_BIG_ENDIAN)
-+		val = ((uint16_t *)val) + 1;
-+#endif /* _BIG_ENDIAN */
-+		snprintf(buf, bufsz, "%d", *(uint16_t *) val & 0xffff);
- 		break;
- 	case 3:
- 	case 4:
-@@ -71,12 +83,24 @@ void mad_dump_int(char *buf, int bufsz, 
- 
- void mad_dump_uint(char *buf, int bufsz, void *val, int valsz)
- {
-+	/*
-+	 * the val pointer passed to the dump routines are always 32 bit
-+	 * integers for valsz <= 4 and 64 bit integer for the rest. It is never
-+	 * uint8_t or uint16_t. This is because mad_decode_field always returns
-+	 * the values as 32 bit integer even if they are 8 bit or 16 bit fields.
-+	 */
- 	switch (valsz) {
- 	case 1:
--		snprintf(buf, bufsz, "%u", *(uint32_t *) val & 0xff);
-+#if defined(_BIG_ENDIAN)
-+		val = ((uint8_t *)val) + 3;
-+#endif /* _BIG_ENDIAN */
-+		snprintf(buf, bufsz, "%u", *(uint8_t *) val & 0xff);
- 		break;
- 	case 2:
--		snprintf(buf, bufsz, "%u", *(uint32_t *) val & 0xffff);
-+#if defined(_BIG_ENDIAN)
-+		val = ((uint16_t *)val) + 1;
-+#endif /* _BIG_ENDIAN */
-+		snprintf(buf, bufsz, "%u", *(uint16_t *) val & 0xffff);
- 		break;
- 	case 3:
- 	case 4:
-@@ -96,15 +120,27 @@ void mad_dump_uint(char *buf, int bufsz,
- 
- void mad_dump_hex(char *buf, int bufsz, void *val, int valsz)
- {
-+	/*
-+	 * the val pointer passed to the dump routines are always 32 bit
-+	 * integers for valsz <= 4 and 64 bit integer for the rest. It is never
-+	 * uint8_t or uint16_t. This is because mad_decode_field always returns
-+	 * the values as 32 bit integer even if they are 8 bit or 16 bit fields.
-+	 */
- 	switch (valsz) {
- 	case 1:
--		snprintf(buf, bufsz, "0x%02x", *(uint32_t *) val & 0xff);
-+#if defined(_BIG_ENDIAN)
-+		val = ((uint8_t *)val) + 3;
-+#endif /* _BIG_ENDIAN */
-+		snprintf(buf, bufsz, "0x%02x", *(uint8_t *) val & 0xff);
- 		break;
- 	case 2:
--		snprintf(buf, bufsz, "0x%04x", *(uint32_t *) val & 0xffff);
-+#if defined(_BIG_ENDIAN)
-+		val = ((uint16_t *)val) + 1;
-+#endif /* _BIG_ENDIAN */
-+		snprintf(buf, bufsz, "0x%04x", *(uint16_t *) val & 0xffff);
- 		break;
- 	case 3:
--		snprintf(buf, bufsz, "0x%06x", *(uint32_t *) val & 0xffffff);
-+		snprintf(buf, bufsz, "0x%x", *(uint32_t *) val & 0xffffff);
- 		break;
- 	case 4:
- 		snprintf(buf, bufsz, "0x%08x", *(uint32_t *) val);
-@@ -132,12 +168,24 @@ void mad_dump_hex(char *buf, int bufsz, 
- 
- void mad_dump_rhex(char *buf, int bufsz, void *val, int valsz)
- {
-+	/*
-+	 * the val pointer passed to the dump routines are always 32 bit
-+	 * integers for valsz <= 4 and 64 bit integer for the rest. It is never
-+	 * uint8_t or uint16_t. This is because mad_decode_field always returns
-+	 * the values as 32 bit integer even if they are 8 bit or 16 bit fields.
-+	 */
- 	switch (valsz) {
- 	case 1:
--		snprintf(buf, bufsz, "%02x", *(uint32_t *) val & 0xff);
-+#if defined(_BIG_ENDIAN)
-+		val = ((uint8_t *)val) + 3;
-+#endif /* _BIG_ENDIAN */
-+		snprintf(buf, bufsz, "%02x", *(uint8_t *) val & 0xff);
- 		break;
- 	case 2:
--		snprintf(buf, bufsz, "%04x", *(uint32_t *) val & 0xffff);
-+#if defined(_BIG_ENDIAN)
-+		val = ((uint16_t *)val) + 1;
-+#endif /* _BIG_ENDIAN */
-+		snprintf(buf, bufsz, "%04x", *(uint16_t *) val & 0xffff);
- 		break;
- 	case 3:
- 		snprintf(buf, bufsz, "%06x", *(uint32_t *) val & 0xffffff);
-
-
---------------080207060805090907080404
-Content-Type: text/x-patch;
- name="rdma_fix_failure_on_HCA_connection.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="rdma_fix_failure_on_HCA_connection.patch"
-
-libibmad: Fixes for failures when not all ports of HCA are connected
-Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-diff -uprN ./SOURCES/libibmad-1.3.9/src/sa.c ./SOURCES/libibmad-1.3.9.fix_failure_on_HCA_connection/src/sa.c
---- ./SOURCES/libibmad-1.3.9/src/sa.c	2011-08-31 16:51:36.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_failure_on_HCA_connection/src/sa.c	2013-02-12 13:06:00.000000000 -0800
-@@ -38,6 +38,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include <errno.h>
- 
- #include <infiniband/mad.h>
- #include "mad_internal.h"
-@@ -56,6 +57,7 @@ uint8_t *sa_rpc_call(const struct ibmad_
- 
- 	if (portid->lid <= 0) {
- 		IBWARN("only lid routes are supported");
-+		errno = EIO;
- 		return NULL;
- 	}
- 
-diff -uprN ./SOURCES/libibmad-1.3.9/src/resolve.c ./SOURCES/libibmad-1.3.9.fix_failure_on_HCA_connection/src/resolve.c
---- ./SOURCES/libibmad-1.3.9/src/resolve.c	2011-08-31 16:51:37.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_failure_on_HCA_connection/src/resolve.c	2013-02-26 09:21:27.650047922 -0800
-@@ -40,6 +40,7 @@
- #include <stdlib.h>
- #include <string.h>
- #include <arpa/inet.h>
-+#include <errno.h>
- 
- #include <infiniband/umad.h>
- #include <infiniband/mad.h>
-@@ -57,10 +58,18 @@ int ib_resolve_smlid_via(ib_portid_t * s
- 
- 	memset(sm_id, 0, sizeof(*sm_id));
- 
--	if (!smp_query_via(portinfo, &self, IB_ATTR_PORT_INFO, 0, 0, srcport))
-+	if (!smp_query_via(portinfo, &self, IB_ATTR_PORT_INFO, 0, 0, srcport)) {
-+		if (!errno)
-+			errno = EIO;
- 		return -1;
-+	}
- 
- 	mad_decode_field(portinfo, IB_PORT_SMLID_F, &lid);
-+	if (lid == 0) {
-+		if (!errno)
-+			errno = EIO;
-+		return -1;
-+	}
- 	mad_decode_field(portinfo, IB_PORT_SMSL_F, &sm_id->sl);
- 
- 	return ib_portid_set(sm_id, lid, 0, 0);
-@@ -95,21 +104,26 @@ int ib_resolve_guid_via(ib_portid_t * po
- 			ib_portid_t * sm_id, int timeout,
- 			const struct ibmad_port *srcport)
- {
--	ib_portid_t sm_portid;
-+	ib_portid_t sm_portid = { 0 };
- 	uint8_t buf[IB_SA_DATA_SIZE] = { 0 };
- 	ib_portid_t self = { 0 };
- 	uint64_t selfguid, prefix;
- 	ibmad_gid_t selfgid;
- 	uint8_t nodeinfo[64];
- 
--	if (!sm_id) {
-+	if (!sm_id)
- 		sm_id = &sm_portid;
++static boolean_t handle_redirect(osm_perfmgr_t *pm,
++			    ib_class_port_info_t *cpi,
++			    monitored_node_t *p_mon_node,
++			    uint8_t port,
++			    osm_madw_context_t *mad_context)
++{
++	char gid_str[INET6_ADDRSTRLEN];
++	ib_api_status_t status;
++	boolean_t valid = TRUE;
++	int16_t pkey_ix = 0;
 +
-+	if (!sm_id->lid) {
- 		if (ib_resolve_smlid_via(sm_id, timeout, srcport) < 0)
- 			return -1;
- 	}
- 
--	if (!smp_query_via(nodeinfo, &self, IB_ATTR_NODE_INFO, 0, 0, srcport))
-+	if (!smp_query_via(nodeinfo, &self, IB_ATTR_NODE_INFO, 0, 0, srcport)) {
-+		if (!errno)
-+			errno = EIO;
- 		return -1;
++	OSM_LOG(pm->log, OSM_LOG_VERBOSE,
++		"Redirection to LID %u GID %s QP 0x%x received\n",
++		cl_ntoh16(cpi->redir_lid),
++		inet_ntop(AF_INET6, cpi->redir_gid.raw, gid_str,
++			  sizeof gid_str), cl_ntoh32(cpi->redir_qp));
++
++	if (!pm->subn->opt.perfmgr_redir) {
++		OSM_LOG(pm->log, OSM_LOG_VERBOSE,
++			"Redirection requested but disabled\n");
++		valid = FALSE;
 +	}
- 	mad_decode_field(nodeinfo, IB_NODE_PORT_GUID_F, &selfguid);
- 	mad_set_field64(selfgid, 0, IB_GID_PREFIX_F, IB_DEFAULT_SUBN_PREFIX);
- 	mad_set_field64(selfgid, 0, IB_GID_GUID_F, selfguid);
-diff -uprN ./SOURCES/libibmad-1.3.9/src/rpc.c ./SOURCES/libibmad-1.3.9.fix_failure_on_HCA_connection/src/rpc.c
---- ./SOURCES/libibmad-1.3.9/src/rpc.c	2012-04-30 13:42:44.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_failure_on_HCA_connection/src/rpc.c	2013-02-15 09:00:17.802048686 -0800
-@@ -178,6 +178,7 @@ _do_madrpc(int port_id, void *sndbuf, vo
- 					 IB_MAD_TRID_F) != trid);
++
++	/* valid redirection ? */
++	if (cpi->redir_lid == 0) {
++		if (!ib_gid_is_notzero(&cpi->redir_gid)) {
++			OSM_LOG(pm->log, OSM_LOG_VERBOSE,
++				"Invalid redirection "
++				"(both redirect LID and GID are zero)\n");
++			valid = FALSE;
++		}
++	}
++	if (cpi->redir_qp == 0) {
++		OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectQP\n");
++		valid = FALSE;
++	}
++	if (cpi->redir_pkey == 0) {
++		OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectP_Key\n");
++		valid = FALSE;
++	}
++	if (cpi->redir_qkey != IB_QP1_WELL_KNOWN_Q_KEY) {
++		OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectQ_Key\n");
++		valid = FALSE;
++	}
++
++	pkey_ix = validate_redir_pkey(pm, cpi->redir_pkey);
++	if (pkey_ix == -1) {
++		OSM_LOG(pm->log, OSM_LOG_VERBOSE,
++			"Index for Pkey 0x%x not found\n",
++			cl_ntoh16(cpi->redir_pkey));
++		valid = FALSE;
++	}
++
++	if (cpi->redir_lid == 0) {
++		/* GID redirection: get PathRecord information */
++		OSM_LOG(pm->log, OSM_LOG_VERBOSE,
++			"GID redirection not currently supported\n");
++		goto Exit;
++	}
++
++	if (!valid)
++		goto Exit;
++
++	/* LID redirection support (easier than GID redirection) */
++	cl_plock_acquire(&pm->osm->lock);
++	p_mon_node->port[port].redirection = TRUE;
++	p_mon_node->port[port].valid = valid;
++	memcpy(&p_mon_node->port[port].gid, &cpi->redir_gid,
++	       sizeof(ib_gid_t));
++	p_mon_node->port[port].lid = cpi->redir_lid;
++	p_mon_node->port[port].qp = cpi->redir_qp;
++	p_mon_node->port[port].pkey = cpi->redir_pkey;
++	if (pkey_ix != -1)
++		p_mon_node->port[port].pkey_ix = pkey_ix;
++	cl_plock_release(&pm->osm->lock);
++
++	/* Finally, issue a CPI query to the redirected location */
++	status = perfmgr_send_cpi_mad(pm, cpi->redir_lid,
++				      cpi->redir_qp, pkey_ix,
++				      port, mad_context,
++				      0); /* FIXME SL != 0 */
++	if (status != IB_SUCCESS)
++		OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR 5414: "
++			"Failed to send redirected CPI MAD "
++			"for node %s (0x%" PRIx64 ") port %d\n",
++			p_mon_node->name, p_mon_node->guid, port);
++Exit:
++	return (valid);
++}
++
+ /**********************************************************************
+  * The dispatcher uses a thread pool which will call this function when
+  * there is a thread available to process the mad received on the wire.
+@@ -1283,8 +1373,6 @@ static void pc_recv_process(void *context, void *data)
+ 	perfmgr_db_data_cnt_reading_t data_reading;
+ 	cl_map_item_t *p_node;
+ 	monitored_node_t *p_mon_node;
+-	int16_t pkey_ix = 0;
+-	boolean_t valid = TRUE;
+ 	ib_class_port_info_t *cpi = NULL;
  
- 		status = umad_status(rcvbuf);
-+		errno = status;
- 		if (!status)
- 			return length;	/* done */
- 		if (status == ENOMEM)
-
-
---------------080207060805090907080404
-Content-Type: text/x-patch;
- name="rdma_fix_m_unsupported_on_solaris.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="rdma_fix_m_unsupported_on_solaris.patch"
-
-libibmad: Conversion specifier; %m is not supported on Solaris
-Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-diff -uprN ./SOURCES/libibmad-1.3.9/src/rpc.c ./SOURCES/libibmad-1.3.9.fix_m_unsupported_on_solaris/src/rpc.c
---- ./SOURCES/libibmad-1.3.9/src/rpc.c	2012-04-30 13:42:44.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_m_unsupported_on_solaris/src/rpc.c	2013-02-15 08:57:12.302048541 -0800
-@@ -153,7 +153,7 @@ _do_madrpc(int port_id, void *sndbuf, vo
+ 	OSM_LOG_ENTER(pm->log);
+@@ -1322,10 +1410,17 @@ static void pc_recv_process(void *context, void *data)
  
- 		length = len;
- 		if (umad_send(port_id, agentid, sndbuf, length, timeout, 0) < 0) {
--			IBWARN("send failed; %m");
-+			IBWARN("send failed; %s", strerror(errno));
- 			return -1;
- 		}
+ 	/* capture CLASS_PORT_INFO data */
+ 	if (p_mad->attr_id == IB_MAD_ATTR_CLASS_PORT_INFO) {
++		boolean_t cpi_valid = TRUE;
++
+ 		cpi = (ib_class_port_info_t *) &
+ 		    (osm_madw_get_perfmgt_mad_ptr(p_madw)->data);
  
-@@ -162,7 +162,7 @@ _do_madrpc(int port_id, void *sndbuf, vo
- 		do {
- 			length = len;
- 			if (umad_recv(port_id, rcvbuf, &length, timeout) < 0) {
--				IBWARN("recv failed: %m");
-+				IBWARN("recv failed: %s", strerror(errno));
- 				return -1;
+-		if (pm->query_cpi) {
++		/* Response could be redirection (IBM eHCA PMA does this) */
++		if (p_mad->status & IB_MAD_STATUS_REDIRECT)
++			cpi_valid = handle_redirect(pm, cpi, p_mon_node, port,
++							mad_context);
++
++		if (pm->query_cpi && cpi_valid) {
+ 			cl_plock_acquire(&pm->osm->lock);
+ 			if (p_mon_node->node_type == IB_NODE_TYPE_SWITCH) {
+ 				int i = 0;
+@@ -1333,120 +1428,18 @@ static void pc_recv_process(void *context, void *data)
+ 				     i < p_mon_node->num_ports;
+ 				     i++) {
+ 					p_mon_node->port[i].cap_mask = cpi->cap_mask;
+-					p_mon_node->port[i].cpi_valid = TRUE;
++					p_mon_node->port[i].cpi_valid = cpi_valid;
+ 				}
+ 			} else {
+ 				p_mon_node->port[port].cap_mask = cpi->cap_mask;
+-				p_mon_node->port[port].cpi_valid = TRUE;
++				p_mon_node->port[port].cpi_valid = cpi_valid;
  			}
+ 			cl_plock_release(&pm->osm->lock);
+ 		}
+-	}
+-
+-	/* Response could also be redirection (IBM eHCA PMA does this) */
+-	if (p_mad->status & IB_MAD_STATUS_REDIRECT) {
+-		char gid_str[INET6_ADDRSTRLEN];
+-		ib_api_status_t status;
  
-diff -uprN ./SOURCES/libibmad-1.3.9/src/serv.c ./SOURCES/libibmad-1.3.9.fix_m_unsupported_on_solaris/src/serv.c
---- ./SOURCES/libibmad-1.3.9/src/serv.c	2011-08-31 16:51:36.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_m_unsupported_on_solaris/src/serv.c	2013-02-12 13:30:10.000000000 -0800
-@@ -38,6 +38,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include <errno.h>
- 
- #include <infiniband/umad.h>
- #include <infiniband/mad.h>
-@@ -75,7 +76,7 @@ int mad_send_via(ib_rpc_t * rpc, ib_port
- 	if (umad_send(srcport->port_id, srcport->class_agents[rpc->mgtclass & 0xff],
- 		      umad, IB_MAD_SIZE, mad_get_timeout(srcport, rpc->timeout),
- 		      0) < 0) {
--		IBWARN("send failed; %m");
-+		IBWARN("send failed; %s", strerror(errno));
- 		return -1;
+-		CL_ASSERT(cpi); /* Redirect should have returned CPI
+-					(processed in previous block) */
+-
+-		OSM_LOG(pm->log, OSM_LOG_VERBOSE,
+-			"Redirection to LID %u GID %s QP 0x%x received\n",
+-			cl_ntoh16(cpi->redir_lid),
+-			inet_ntop(AF_INET6, cpi->redir_gid.raw, gid_str,
+-				  sizeof gid_str), cl_ntoh32(cpi->redir_qp));
+-
+-		if (!pm->subn->opt.perfmgr_redir) {
+-			OSM_LOG(pm->log, OSM_LOG_VERBOSE,
+-				"Redirection requested but disabled\n");
+-			valid = FALSE;
+-		}
+-
+-		/* valid redirection ? */
+-		if (cpi->redir_lid == 0) {
+-			if (!ib_gid_is_notzero(&cpi->redir_gid)) {
+-				OSM_LOG(pm->log, OSM_LOG_VERBOSE,
+-					"Invalid redirection "
+-					"(both redirect LID and GID are zero)\n");
+-				valid = FALSE;
+-			}
+-		}
+-		if (cpi->redir_qp == 0) {
+-			OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectQP\n");
+-			valid = FALSE;
+-		}
+-		if (cpi->redir_pkey == 0) {
+-			OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectP_Key\n");
+-			valid = FALSE;
+-		}
+-		if (cpi->redir_qkey != IB_QP1_WELL_KNOWN_Q_KEY) {
+-			OSM_LOG(pm->log, OSM_LOG_VERBOSE, "Invalid RedirectQ_Key\n");
+-			valid = FALSE;
+-		}
+-
+-		pkey_ix = validate_redir_pkey(pm, cpi->redir_pkey);
+-		if (pkey_ix == -1) {
+-			OSM_LOG(pm->log, OSM_LOG_VERBOSE,
+-				"Index for Pkey 0x%x not found\n",
+-				cl_ntoh16(cpi->redir_pkey));
+-			valid = FALSE;
+-		}
+-
+-		if (cpi->redir_lid == 0) {
+-			/* GID redirection: get PathRecord information */
+-			OSM_LOG(pm->log, OSM_LOG_VERBOSE,
+-				"GID redirection not currently supported\n");
+-			goto Exit;
+-		}
+-
+-		/* LID redirection support (easier than GID redirection) */
+-		cl_plock_acquire(&pm->osm->lock);
+-		/* Now, validate port number */
+-		if (port >= p_mon_node->num_ports) {
+-			cl_plock_release(&pm->osm->lock);
+-			OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR 5413: "
+-				"Invalid port num %d for GUID 0x%016"
+-				PRIx64 " num ports %d\n", port, node_guid,
+-				p_mon_node->num_ports);
+-			goto Exit;
+-		}
+-		p_mon_node->port[port].redirection = TRUE;
+-		p_mon_node->port[port].valid = valid;
+-		memcpy(&p_mon_node->port[port].gid, &cpi->redir_gid,
+-		       sizeof(ib_gid_t));
+-		p_mon_node->port[port].lid = cpi->redir_lid;
+-		p_mon_node->port[port].qp = cpi->redir_qp;
+-		p_mon_node->port[port].pkey = cpi->redir_pkey;
+-		if (pkey_ix != -1)
+-			p_mon_node->port[port].pkey_ix = pkey_ix;
+-		cl_plock_release(&pm->osm->lock);
+-
+-		if (!valid)
+-			goto Exit;
+-
+-		/* Finally, issue a CPI query to the redirected location */
+-		p_mon_node->port[port].cpi_valid = FALSE;
+-		status = perfmgr_send_cpi_mad(pm, cpi->redir_lid,
+-					      cpi->redir_qp, pkey_ix,
+-					      port, mad_context,
+-					      0); /* FIXME SL != 0 */
+-		if (status != IB_SUCCESS)
+-			OSM_LOG(pm->log, OSM_LOG_ERROR, "ERR 5414: "
+-				"Failed to send redirected MAD "
+-				"with method 0x%x for node %s "
+-				"(NodeGuid 0x%" PRIx64 ") port %d\n",
+-				mad_context->perfmgr_context.mad_method,
+-				p_mon_node->name, node_guid, port);
+ 		goto Exit;
  	}
  
-@@ -157,7 +158,7 @@ int mad_respond_via(void *umad, ib_porti
- 	if (umad_send
- 	    (srcport->port_id, srcport->class_agents[rpc.mgtclass], umad,
- 	     IB_MAD_SIZE, mad_get_timeout(srcport, rpc.timeout), 0) < 0) {
--		DEBUG("send failed; %m");
-+		DEBUG("send failed; %s", strerror(errno));
- 		return -1;
+-	/* ClassPortInfo needed to process optional Redirection
+-	 * now exit normally
+-	 */
+-	if (p_mad->attr_id == IB_MAD_ATTR_CLASS_PORT_INFO)
+-		goto Exit;
+-
+ 	perfmgr_db_fill_err_read(wire_read, &err_reading);
+ 	/* FIXME separate query for extended counters if they are supported
+ 	 * on the port.
+@@ -1472,7 +1465,8 @@ static void pc_recv_process(void *context, void *data)
+ 		perfmgr_db_clear_prev_dc(pm->db, node_guid, port);
  	}
  
-@@ -179,7 +180,7 @@ void *mad_receive_via(void *umad, int ti
- 			       mad_get_timeout(srcport, timeout))) < 0) {
- 		if (!umad)
- 			umad_free(mad);
--		DEBUG("recv failed: %m");
-+		DEBUG("recv failed: %s", strerror(errno));
- 		return 0;
- 	}
+-	perfmgr_check_overflow(pm, p_mon_node, pkey_ix, port, wire_read);
++	perfmgr_check_overflow(pm, p_mon_node, p_mon_node->port[port].pkey_ix,
++			       port, wire_read);
  
+ #ifdef ENABLE_OSM_PERF_MGR_PROFILE
+ 	do {
+-- 
+1.7.1
 
-
---------------080207060805090907080404
-Content-Type: text/x-patch;
- name="rdma_fix_null_dev_name_madrpc_init.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="rdma_fix_null_dev_name_madrpc_init.patch"
-
-libibmad: To handle null dev_name in madrpc_init
-Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-diff -uprN ./SOURCES/libibmad-1.3.9/src/rpc.c ./SOURCES/libibmad-1.3.9.fix_null_dev_name_madrpc_init/src/rpc.c
---- ./SOURCES/libibmad-1.3.9/src/rpc.c	2012-04-30 13:42:44.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_null_dev_name_madrpc_init/src/rpc.c	2013-02-22 14:54:14.654048137 -0800
-@@ -360,7 +360,8 @@ madrpc_init(char *dev_name, int dev_port
- 		IBPANIC("can't init UMAD library");
- 
- 	if ((fd = umad_open_port(dev_name, dev_port)) < 0)
--		IBPANIC("can't open UMAD port (%s:%d)", dev_name, dev_port);
-+		IBPANIC("can't open UMAD port (%s:%d)",
-+		dev_name ? dev_name : "(nil)", dev_port);
- 
- 	if (num_classes >= MAX_CLASS)
- 		IBPANIC("too many classes %d requested", num_classes);
-
-
---------------080207060805090907080404
-Content-Type: text/x-patch;
- name="rdma_fix_typecasts.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="rdma_fix_typecasts.patch"
-
-libibmad: To fix compilation warning: need typecasts
-Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-diff -uprN ./SOURCES/libibmad-1.3.9/src/fields.c ./SOURCES/libibmad-1.3.9.fix_typecasts/src/fields.c
---- ./SOURCES/libibmad-1.3.9/src/fields.c	2012-04-30 13:42:47.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_typecasts/src/fields.c	2013-02-13 15:32:03.000000000 -0800
-@@ -937,15 +937,15 @@ static void _set_field64(void *buf, int 
- 	uint64_t nval;
- 
- 	nval = htonll(val);
--	memcpy((char *)buf + base_offs + f->bitoffs / 8, &nval,
--	       sizeof(uint64_t));
-+	memcpy(((void *)(char *)buf + base_offs + f->bitoffs / 8),
-+		(void *)&nval, sizeof(uint64_t));
- }
- 
- static uint64_t _get_field64(void *buf, int base_offs, const ib_field_t * f)
- {
- 	uint64_t val;
--	memcpy(&val, ((char *)buf + base_offs + f->bitoffs / 8),
--	       sizeof(uint64_t));
-+	memcpy((void *)&val, (void *)((char *)buf + base_offs + f->bitoffs / 8),
-+		sizeof(uint64_t));
- 	return ntohll(val);
- }
- 
-diff -uprN ./SOURCES/libibmad-1.3.9/include/infiniband/mad.h ./SOURCES/libibmad-1.3.9.fix_typecasts/include/infiniband/mad.h
---- ./SOURCES/libibmad-1.3.9/include/infiniband/mad.h	2012-04-30 13:42:43.000000000 -0700
-+++ ./SOURCES/libibmad-1.3.9.fix_typecasts/include/infiniband/mad.h	2013-02-13 15:43:52.000000000 -0800
-@@ -1627,14 +1627,18 @@ static inline uint64_t htonll(uint64_t x
- #define ALIGN(l, size) (((l) + ((size) - 1)) / (size) * (size))
- 
- /** printf style warning MACRO, includes name of function and pid */
--#define IBWARN(fmt, ...) fprintf(stderr, "ibwarn: [%d] %s: " fmt "\n", getpid(), __func__, ## __VA_ARGS__)
-+#define IBWARN(fmt, ...) fprintf(stderr, "ibwarn: [%d] %s: " fmt "\n", \
-+(int)getpid(), __func__, ## __VA_ARGS__)
- 
--#define IBDEBUG(fmt, ...) fprintf(stdout, "ibdebug: [%d] %s: " fmt "\n", getpid(), __func__, ## __VA_ARGS__)
-+#define IBDEBUG(fmt, ...) fprintf(stdout, "ibdebug: [%d] %s: " fmt "\n", \
-+(int)getpid(), __func__, ## __VA_ARGS__)
- 
--#define IBVERBOSE(fmt, ...) fprintf(stdout, "[%d] %s: " fmt "\n", getpid(), __func__, ## __VA_ARGS__)
-+#define IBVERBOSE(fmt, ...) fprintf(stdout, "[%d] %s: " fmt "\n", \
-+(int)getpid(), __func__, ## __VA_ARGS__)
- 
- #define IBPANIC(fmt, ...) do { \
--	fprintf(stderr, "ibpanic: [%d] %s: " fmt ": %m\n", getpid(), __func__, ## __VA_ARGS__); \
-+	fprintf(stderr, "ibpanic: [%d] %s: " fmt ": %m\n", \
-+	(int)getpid(), __func__, ## __VA_ARGS__); \
- 	exit(-1); \
- } while(0)
- 
-
-
---------------080207060805090907080404--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
