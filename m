@@ -1,277 +1,123 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCHv3] infiniband-diags/ibqueryerrors.c: obtain destination
- sl before perf query
-Date: Thu, 28 Feb 2013 17:33:36 -0800
-Message-ID: <20130228173336.18bc61527d20d160c9f39818@llnl.gov>
-References: <20130220115807.GC20018@r-ufm5-17.lab.mtl.com>
-	<20130224082140.GA11648@r-ufm5-17.lab.mtl.com>
-	<20130226170744.53adb74b6af9a54d9481dd4c@llnl.gov>
-	<20130227141032.GA9919@r-ufm5-17.mtr.labs.mlnx>
-	<512F81A3.6000100@dev.mellanox.co.il>
+From: Ira Weiny <weiny2@llnl.gov>
+Subject: Re: [PATCH]  infiniband-diags/saquery.c: switchinfo support added
+Date: Thu, 28 Feb 2013 17:37:22 -0800
+Message-ID: <20130228173722.81b9d161a894b8324d5c5775@llnl.gov>
+References: <WC20130228061138.140078@asaltech.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <512F81A3.6000100-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <WC20130228061138.140078@asaltech.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Husam Kahalah <HKahalah@asaltech.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 28 Feb 2013 11:11:15 -0500
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+Your mailer line wrapped the patch.  Could you resend.
 
-> On 2/27/2013 9:10 AM, Dan Ben Yosef wrote:
-> > 1) if use -G or -D option : we obtain sl before doing perf query.
-> > 2) if no destination is given : we obtain sl for every pair source-destination.
-> > 3) if no destination is given and use --skip-sl option : we don't obtain
-> > sl to all nodes in the fabric,in this case sl=0 for all node pairs.
-> 
-> It might be noted that this is not recommended in the case of QoS aware
-> routing engines as this can cause credit deadlock.
+Also, could you add this to doc/rst/saquery.8.in.rst
 
-Yes, but the tool has been broken for so long I think documenting that in the rst file would be sufficient.
-
-> 
-> > 
-> > Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> > Changes since v2:
-> > 	1.Skip-sl option will apply to 1 and 2.
-> > 	2.Update documentation doc/rst/ibqueryerrors.8.in.rst
-> > 	3.Pop the resolve_self call to be before the check for dr_path. 
-> > 	4.Add new variable self_portid for the usage of resolve_self only.
-> > 	5.Change "goto close_port" into "goto destroy_fabric" if fabric object
-> > 	  is created.
-> > 
-> >  doc/rst/ibqueryerrors.8.in.rst |    2 +
-> >  src/ibqueryerrors.c            |   81 +++++++++++++++++++++++++++++++++++++++-
-> >  2 files changed, 81 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/doc/rst/ibqueryerrors.8.in.rst b/doc/rst/ibqueryerrors.8.in.rst
-> > index 9a05e7b..b910368 100644
-> > --- a/doc/rst/ibqueryerrors.8.in.rst
-> > +++ b/doc/rst/ibqueryerrors.8.in.rst
-> > @@ -52,6 +52,8 @@ Specify an alternate threshold file.  The default is @IBDIAG_CONFIG_PATH@/error_
-> >  
-> >  **--ca**  print data for CA's only
-> >  
-> > +**--skip-sl**  Use the default sl for queries
-> > +
-> >  **--router**  print data for routers only
-> >  
-> >  **--clear-errors -k** Clear error counters after read.
-> > diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-> > index 6320972..6d17497 100644
-> > --- a/src/ibqueryerrors.c
-> > +++ b/src/ibqueryerrors.c
-> > @@ -55,11 +55,14 @@
-> >  #include <infiniband/mad.h>
-> >  
-> >  #include "ibdiag_common.h"
-> > +#include "ibdiag_sa.h"
-> >  
-> >  struct ibmad_port *ibmad_port;
-> >  static char *node_name_map_file = NULL;
-> >  static nn_map_t *node_name_map = NULL;
-> >  static char *load_cache_file = NULL;
-> > +static uint16_t lid2sl_table[sizeof(uint8_t) * 1024 * 48] = { 0 };
-> > +static int obtain_sl = 1;
-> >  
-> >  int data_counters = 0;
-> >  int data_counters_only = 0;
-> > @@ -78,6 +81,8 @@ unsigned clear_errors = 0, clear_counts = 0, details = 0;
-> >  #define PRINT_ROUTER 0x4
-> >  #define PRINT_ALL 0xFF		/* all nodes default flag */
-> >  
-> > +#define DEFAULT_HALF_WORLD_PR_TIMEOUT (3000)
-> > +
-> >  struct {
-> >  	int nodes_checked;
-> >  	int bad_nodes;
-> > @@ -298,6 +303,51 @@ static int print_summary(void)
-> >  	return (summary.bad_ports);
-> >  }
-> >  
-> > +static void insert_lid2sl_table(struct sa_query_result *r)
-> > +{
-> > +	unsigned int i;
-> > +	for (i = 0; i < r->result_cnt; i++) {
-> > +		ib_path_rec_t *p_pr = (ib_path_rec_t *)sa_get_query_rec(r->p_result_madw, i);
-> > +		lid2sl_table[cl_ntoh16(p_pr->dlid)] = ib_path_rec_sl(p_pr);
-> > +	}
-> > +}
-> > +
-> > +static int path_record_query(int src_lid,int dest_lid)
-> > +{
-> > +	ib_path_rec_t pr;
-> > +	ib_net64_t comp_mask = 0;
-> > +	uint8_t reversible = 0;
-> > +	struct sa_handle * h;
-> > +
-> > +	h = sa_get_handle();
-> > +	ibd_timeout = DEFAULT_HALF_WORLD_PR_TIMEOUT;
-> > +	memset(&pr, 0, sizeof(pr));
-> > +
-> > +	CHECK_AND_SET_VAL(src_lid, 16, 0, pr.slid, PR, SLID);
-> 
-> Doesn't SGID rather than SLID need to be specified to be compliant
-> GetTable query ?
-
-Yep, looks like it.
-
-> 
-> > +	CHECK_AND_SET_VAL(dest_lid, 16, 0, pr.dlid, PR, DLID);/*if dlid is 0 then we do half world query*/
-> 
-> I think this should be:
-> 	if (dest_lid)
-> 		CHECK_AND_SET_VAL(dest_lid, 16, 0, pr.dlid, PR, DLID);
-> so that comp mask bit is not set for DLID so that it's wildcarded.
-> 
-
-Agreed.
-
-> > +	CHECK_AND_SET_VAL(1, 8, -1, pr.num_path, PR, NUMBPATH);/*to get only one PathRecord for each source and destination pair*/
-> > +	CHECK_AND_SET_VAL(1, 8, -1, reversible, PR, REVERSIBLE);/*for a reversible path*/
-> > +	pr.num_path |= reversible << 7;
-> > +	struct sa_query_result result;
-> > +	int ret = sa_query(h, IB_MAD_METHOD_GET_TABLE,
-> > +			   (uint16_t)IB_SA_ATTR_PATHRECORD,0,cl_ntoh64(comp_mask),ibd_sakey,
-> > +			   &pr, sizeof(pr), &result);
-> > +	if (ret) {
-> > +		fprintf(stderr, "Query SA failed: %s; sa call path_query failed\n", strerror(ret));
-> > +		return ret;
-> > +	}
-> > +	if (result.status != IB_SA_MAD_STATUS_SUCCESS) {
-> > +		sa_report_err(result.status);
-> > +		ret = EIO;
-> > +		goto Exit;
-> > +	}
-> > +
-> > +	insert_lid2sl_table(&result);
-> > +Exit:
-> > +	sa_free_result_mad(&result);
-> > +	return ret;
-> > +}
-> > +
-> >  static int query_and_dump(char *buf, size_t size, ib_portid_t * portid,
-> >  			  ibnd_node_t * node, char *node_name, int portnum,
-> >  			  const char *attr_name, uint16_t attr_id,
-> > @@ -447,6 +497,8 @@ static int query_cap_mask(ib_portid_t * portid, char *node_name, int portnum,
-> >  	uint8_t pc[1024] = { 0 };
-> >  	uint16_t rc_cap_mask;
-> >  
-> > +	portid->sl = lid2sl_table[portid->lid];
-> > +
-> >  	/* PerfMgt ClassPortInfo is a required attribute */
-> >  	if (!pma_query_via(pc, portid, portnum, ibd_timeout, CLASS_PORT_INFO,
-> >  			   ibmad_port)) {
-> > @@ -474,6 +526,8 @@ static int print_data_cnts(ib_portid_t * portid, uint16_t cap_mask,
-> >  
-> >  	memset(pc, 0, 1024);
-> >  
-> > +	portid->sl = lid2sl_table[portid->lid];
-> > +
-> >  	if (cap_mask & (IB_PM_EXT_WIDTH_SUPPORTED | IB_PM_EXT_WIDTH_NOIETF_SUP)) {
-> >  		if (!pma_query_via(pc, portid, portnum, ibd_timeout,
-> >  				   IB_GSI_PORT_COUNTERS_EXT, ibmad_port)) {
-> > @@ -543,6 +597,8 @@ static int print_errors(ib_portid_t * portid, uint16_t cap_mask,
-> >  	memset(pc, 0, 1024);
-> >  	memset(pce, 0, 1024);
-> >  
-> > +	portid->sl = lid2sl_table[portid->lid];
-> > +
-> >  	if (!pma_query_via(pc, portid, portnum, ibd_timeout,
-> >  			   IB_GSI_PORT_COUNTERS, ibmad_port)) {
-> >  		IBWARN("IB_GSI_PORT_COUNTERS query failed on %s, %s port %d",
-> > @@ -822,6 +878,9 @@ static int process_opt(void *context, int ch, char *optarg)
-> >  	case 9:
-> >  		data_counters_only = 1;
-> >  		break;
-> > +	case 10:
-> > +		obtain_sl = 0;
-> > +		break;
-> >  	case 'G':
-> >  	case 'S':
-> >  		port_guid_str = optarg;
-> > @@ -856,8 +915,11 @@ int main(int argc, char **argv)
-> >  	struct ibnd_config config = { 0 };
-> >  	int resolved = -1;
-> >  	ib_portid_t portid = { 0 };
-> > +	ib_portid_t self_portid = { 0 };
-> >  	int rc = 0;
-> >  	ibnd_fabric_t *fabric = NULL;
-> > +	int self_lid = 0;
-> > +	int port = 0;
-> >  
-> >  	int mgmt_classes[4] = { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS,
-> >  		IB_PERFORMANCE_CLASS
-> > @@ -875,6 +937,7 @@ int main(int argc, char **argv)
-> >  		 "Same as \"-G\" for backward compatibility"},
-> >  		{"Direct", 'D', 1, "<dr_path>",
-> >  		 "report the node containing the port specified by <dr_path>"},
-> > +		{"skip-sl", 10, 0, NULL,"don't obtain SL to all destinations"},
-> >  		{"report-port", 'r', 0, NULL,
-> >  		 "report port link information"},
-> >  		{"threshold-file", 8, 1, NULL,
-> > @@ -931,6 +994,12 @@ int main(int argc, char **argv)
-> >  		exit(-1);
-> >  	}
-> >  
-> > +	if (resolve_self(ibd_ca, ibd_ca_port, &self_portid, &port, 0) < 0) {
-> 
-> resolve_self is deprecated; should use resolve_self_via
-
-Actually this is probably a bad thing but the diags have their own internal resolve_self in ibdiag_common now.  This uses umad rather than and SMP PortInfo query to obtain the local port information.
-
+Thanks,
 Ira
 
+On Thu, 28 Feb 2013 08:11:38 +0200
+"Husam Kahalah" <HKahalah@asaltech.com> wrote:
+
+> From d61f2580b829fa2fc56aea15bd98ef3a607d9aba Mon Sep 17 00:00:00 2001
 > 
-> -- Hal
+> From: Husam kahalah <hkahalah@asaltech.com>
+> Date: Mon, 25 Feb 2013 10:53:25 +0200
+> Subject: [PATCH]  infiniband-diags/saquery.c: switchinfo support added
 > 
-> > +		IBERROR("can't resolve self port %s", argv[0]);
-> > +		goto close_port;
-> > +	}
-> > +	self_lid = self_portid.lid;
-> > +
-> >  	/* limit the scan the fabric around the target */
-> >  	if (dr_path) {
-> >  		if ((resolved =
-> > @@ -947,6 +1016,8 @@ int main(int argc, char **argv)
-> >  			IBWARN("Failed to resolve %s;",port_guid_str);
-> >  			goto close_port;
-> >  		}
-> > +		if(obtain_sl)
-> > +			lid2sl_table[portid.lid] = portid.sl;
-> >  	}
-> >  
-> >  	if (load_cache_file) {
-> > @@ -996,12 +1067,18 @@ int main(int argc, char **argv)
-> >  
-> >  		port = ibnd_find_port_guid(fabric, port_guid);
-> >  		if (port) {
-> > +			if(obtain_sl)
-> > +				if(path_record_query(self_lid,port->base_lid))
-> > +					goto destroy_fabric;
-> >  			print_node(port->node, NULL);
-> >  		} else
-> >  			fprintf(stderr, "Failed to find node: %s\n", dr_path);
-> > -	} else
-> > +	} else {
-> > +		if(obtain_sl)
-> > +			if(path_record_query(self_lid,0))
-> > +				goto destroy_fabric;
-> >  		ibnd_iter_nodes(fabric, print_node, NULL);
-> > -
-> > +	}
-> >  	rc = print_summary();
-> >  	if (rc)
-> >  		rc = 1;
+> ---
+>  src/saquery.c |   55 
+> +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 55 insertions(+), 0 deletions(-)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/src/saquery.c b/src/saquery.c
+> index d31d77d..6390bcd 100644
+> --- a/src/saquery.c
+> +++ b/src/saquery.c
+> @@ -481,6 +481,41 @@ static void dump_service_record(void *data)
+>          cl_ntoh64(p_sr->service_data64[1]));
+>  }
+> 
+> +static void dump_switch_info_record(void *data)
+> +{
+> +  ib_switch_info_record_t *p_sir = data;
+> +
+> +  printf("SwitchInfoRecord dump:\n"
+> +        "\t\tRID\n"
+> +        "\t\tlid.....................%u\n"
+> +        "\t\tSwitchInfo dump:\n"
+> +        "\t\tlin_cap.................0x%X\n"
+> +        "\t\trand_cap................0x%X\n"
+> +        "\t\tmcast_cap...............0x%X\n"
+> +        "\t\tlin_top.................0x%X\n"
+> +        "\t\tdef_port................%u\n"
+> +        "\t\tdef_mcast_pri_port......%u\n"
+> +        "\t\tdef_mcast_not_port......%u\n"
+> +        "\t\tlife_state..............%u\n"
+> +        "\t\tlids_per_port...........0x%X\n"
+> +        "\t\tenforce_cap.............0x%X\n"
+> +        "\t\tflags...................%u\n"
+> +        "\t\tmcast_top...............0x%X\n",
+> +        cl_ntoh16(p_sir->lid),
+> +        cl_ntoh16(p_sir->switch_info.lin_cap),
+> +        cl_ntoh16(p_sir->switch_info.rand_cap),
+> +        cl_ntoh16(p_sir->switch_info.mcast_cap),
+> +        cl_ntoh16(p_sir->switch_info.lin_top),
+> +        p_sir->switch_info.def_port,
+> +        p_sir->switch_info.def_mcast_pri_port,
+> +        p_sir->switch_info.def_mcast_not_port,
+> +        p_sir->switch_info.life_state,
+> +        cl_ntoh16(p_sir->switch_info.lids_per_port),
+> +        cl_ntoh16(p_sir->switch_info.enforce_cap),
+> +        p_sir->switch_info.flags,
+> +        cl_ntoh16(p_sir->switch_info.mcast_top));
+> +}
+> +
+>  static void dump_inform_info_record(void *data)
+>  {
+>   char gid_str[INET6_ADDRSTRLEN];
+> @@ -1150,6 +1185,24 @@ static int query_service_records(const struct 
+> query_cmd *q, struct sa_handle * h
+>    dump_service_record);
+>  }
+> 
+> +static int query_switchinfo_records(const struct query_cmd *q,
+> + struct sa_handle * h, struct query_params *p,
+> + int argc, char *argv[])
+> +{
+> +  ib_switch_info_record_t swir;
+> + ib_net64_t comp_mask = 0;
+> + int lid = 0;
+> +
+> + if (argc > 0)
+> +  parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
+> +
+> +  memset(&swir, 0, sizeof(swir));
+> +  CHECK_AND_SET_VAL(lid, 16, 0, swir.lid, SWIR, LID);
+> +
+> + return get_and_dump_any_records(h, IB_SA_ATTR_SWITCHINFORECORD, 0, 
+> comp_mask,
+> + &swir, sizeof(swir), dump_switch_info_record);
+> +}
+> +
+>  static int query_inform_info_records(const struct query_cmd *q,
+>       struct sa_handle * h, struct query_params *p,
+>       int argc, char *argv[])
+> @@ -1342,6 +1395,8 @@ static const struct query_cmd query_cmds[] = {
+>    "[[mlid]/[position]/[block]]", query_mft_records},
+>    {"GUIDInfoRecord", "GIR", IB_SA_ATTR_GUIDINFORECORD,
+>    "[[lid]/[block]]", query_guidinfo_records},
+> +  {"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
+> +  "[lid]", query_switchinfo_records},
+>    {0}
+>  };
+> 
+> -- 
+> 1.7.1
 
 
 -- 
@@ -279,8 +125,4 @@ Ira Weiny
 Member of Technical Staff
 Lawrence Livermore National Lab
 925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+weiny2@llnl.gov
