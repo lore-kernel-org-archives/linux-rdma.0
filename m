@@ -1,675 +1,339 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] libibumad: add string functions for various enums
-Date: Fri, 1 Mar 2013 11:40:34 -0800
-Message-ID: <20130301114034.85fdbe136d503d803cb167ae@llnl.gov>
+From: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: libibmad : submitting six patches on behalf of Oracle IB development
+Date: Fri, 01 Mar 2013 12:34:48 -0800
+Message-ID: <513110E8.909@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------040609040709020005060902"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brendan Doyle -Oracle Ireland <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Pramod Gunjikar <Pramod.Gunjikar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Ted H. Kim" <ted.h.kim-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Brean <david.brean-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Eric Schlesinger <Eric.Schlesinger-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Lii Chen <lii.chen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-NOTE: One remaining question is:
+This is a multi-part message in MIME format.
+--------------040609040709020005060902
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Should umad_common_mad_status_str return "Success" if reserved bits 5-7 are not 0?
+Hi Ira,
 
-Some of this code was originally proposed by Sean in 2010 as part of user space
-madeye: http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg06185.html
+We (Oracle IB development) are submitting six patches against
 
-Changes from V1:
-	Move functions into library calls
-	remove funky marco obfuscation
-	remove public access to umad_[sm|sa|cm]_attr_str functions
-Changes from V2:
-	fix build
-	Added mgmt_class to umad_method_str call
-	remove "inline" from man page
-	change return values to const char *
-	remove UMAD_METHOD_RESP from umad_class_str
-	Use UMAD_STATUS_x values in umad_mad_status_str decode.
-	change umad_mad_status_str to 2 functions with const char * type
-		umad_common_mad_status_str
-		umad_sa_mad_status_str
-	update man page
-	rebase to master branch
+libibmad
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- Makefile.am                     |   16 ++-
- include/infiniband/umad_sm.h    |   31 ++--
- include/infiniband/umad_str.h   |   57 +++++++
- include/infiniband/umad_types.h |    7 +-
- man/umad_attribute_str.3        |    3 +
- man/umad_class_str.3            |   45 ++++++
- man/umad_mad_status_str.3       |    3 +
- man/umad_method_str.3           |    3 +
- src/libibumad.map               |    4 +
- src/umad_str.c                  |  333 +++++++++++++++++++++++++++++++++++++++
- 10 files changed, 481 insertions(+), 21 deletions(-)
- create mode 100644 include/infiniband/umad_str.h
- create mode 100644 man/umad_attribute_str.3
- create mode 100644 man/umad_class_str.3
- create mode 100644 man/umad_mad_status_str.3
- create mode 100644 man/umad_method_str.3
- create mode 100644 src/umad_str.c
+Please review our submission of changes.
 
-diff --git a/Makefile.am b/Makefile.am
-index 14e2389..2868c8d 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,7 +1,9 @@
- ACLOCAL_AMFLAGS = -I config
- SUBDIRS = .
- 
--INCLUDES = -I$(srcdir)/include/infiniband -I$(includedir)
-+INCLUDES = -I$(srcdir)/include/infiniband \
-+	   -I$(srcdir)/include \
-+	   -I$(includedir)
- 
- man_MANS = man/umad_debug.3 man/umad_get_ca.3 \
- 	   man/umad_get_ca_portguids.3 man/umad_get_cas_names.3 \
-@@ -15,7 +17,12 @@ man_MANS = man/umad_debug.3 man/umad_get_ca.3 \
- 	   man/umad_get_pkey.3 \
- 	   man/umad_register.3 man/umad_register_oui.3 man/umad_unregister.3 \
- 	   man/umad_send.3 man/umad_recv.3 man/umad_poll.3 \
--	   man/umad_get_issm_path.3
-+	   man/umad_get_issm_path.3 \
-+	   man/umad_attribute_str.3 \
-+	   man/umad_class_str.3 \
-+	   man/umad_mad_status_str.3 \
-+	   man/umad_method_str.3
-+
- 
- lib_LTLIBRARIES = libibumad.la
- 
-@@ -27,7 +34,7 @@ else
- libibumad_version_script =
- endif
- 
--libibumad_la_SOURCES = src/umad.c src/sysfs.c
-+libibumad_la_SOURCES = src/umad.c src/sysfs.c src/umad_str.c
- libibumad_la_LDFLAGS = -version-info $(ibumad_api_version) \
-     -export-dynamic $(libibumad_version_script)
- libibumad_la_DEPENDENCIES = $(srcdir)/src/libibumad.map
-@@ -38,7 +45,8 @@ libibumadinclude_HEADERS = $(srcdir)/include/infiniband/umad.h \
- 	$(srcdir)/include/infiniband/umad_types.h \
- 	$(srcdir)/include/infiniband/umad_sa.h \
- 	$(srcdir)/include/infiniband/umad_sm.h \
--	$(srcdir)/include/infiniband/umad_cm.h
-+	$(srcdir)/include/infiniband/umad_cm.h \
-+	$(srcdir)/include/infiniband/umad_str.h
- 
- EXTRA_DIST = $(srcdir)/include/infiniband/umad.h \
- 	libibumad.spec.in libibumad.spec \
-diff --git a/include/infiniband/umad_sm.h b/include/infiniband/umad_sm.h
-index 10348d4..f6ee171 100644
---- a/include/infiniband/umad_sm.h
-+++ b/include/infiniband/umad_sm.h
-@@ -55,21 +55,22 @@ enum {
- 
- /* Subnet management attributes */
- enum {
--	UMAD_SMP_ATTR_NODE_DESC		= 0x0010,
--	UMAD_SMP_ATTR_NODE_INFO		= 0x0011,
--	UMAD_SMP_ATTR_SWITCH_INFO	= 0x0012,
--	UMAD_SMP_ATTR_GUID_INFO		= 0x0014,
--	UMAD_SMP_ATTR_PORT_INFO		= 0x0015,
--	UMAD_SMP_ATTR_PKEY_TABLE	= 0x0016,
--	UMAD_SMP_ATTR_SLVL_TABLE	= 0x0017,
--	UMAD_SMP_ATTR_VL_ARB_TABLE	= 0x0018,
--	UMAD_SMP_ATTR_LINEAR_FT		= 0x0019,
--	UMAD_SMP_ATTR_RANDOM_FT		= 0x001A,
--	UMAD_SMP_ATTR_MCAST_FT		= 0x001B,
--	UMAD_SMP_ATTR_SM_INFO		= 0x0020,
--	UMAD_SMP_ATTR_VENDOR_DIAG	= 0x0030,
--	UMAD_SMP_ATTR_LED_INFO		= 0x0031,
--	UMAD_SMP_ATTR_VENDOR_MASK	= 0xFF00
-+	UMAD_SMP_ATTR_NODE_DESC			= 0x0010,
-+	UMAD_SMP_ATTR_NODE_INFO			= 0x0011,
-+	UMAD_SMP_ATTR_SWITCH_INFO		= 0x0012,
-+	UMAD_SMP_ATTR_GUID_INFO			= 0x0014,
-+	UMAD_SMP_ATTR_PORT_INFO			= 0x0015,
-+	UMAD_SMP_ATTR_PKEY_TABLE		= 0x0016,
-+	UMAD_SMP_ATTR_SLVL_TABLE		= 0x0017,
-+	UMAD_SMP_ATTR_VL_ARB_TABLE		= 0x0018,
-+	UMAD_SMP_ATTR_LINEAR_FT			= 0x0019,
-+	UMAD_SMP_ATTR_RANDOM_FT			= 0x001A,
-+	UMAD_SMP_ATTR_MCAST_FT			= 0x001B,
-+	UMAD_SMP_ATTR_LINK_SPD_WIDTH_TABLE	= 0x001C,
-+	UMAD_SMP_ATTR_SM_INFO			= 0x0020,
-+	UMAD_SMP_ATTR_VENDOR_DIAG		= 0x0030,
-+	UMAD_SMP_ATTR_LED_INFO			= 0x0031,
-+	UMAD_SMP_ATTR_VENDOR_MASK		= 0xFF00
- };
- 
- enum {
-diff --git a/include/infiniband/umad_str.h b/include/infiniband/umad_str.h
-new file mode 100644
-index 0000000..941fa33
---- /dev/null
-+++ b/include/infiniband/umad_str.h
-@@ -0,0 +1,57 @@
-+/*
-+ * Copyright (c) 2004, 2005, 2010 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2013 Lawrence Livermore National Security. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ *
-+ */
-+#ifndef _UMAD_STR_H
-+#define _UMAD_STR_H
-+
-+#include <infiniband/umad.h>
-+
-+#ifdef __cplusplus
-+#  define BEGIN_C_DECLS extern "C" {
-+#  define END_C_DECLS   }
-+#else				/* !__cplusplus */
-+#  define BEGIN_C_DECLS
-+#  define END_C_DECLS
-+#endif				/* __cplusplus */
-+
-+BEGIN_C_DECLS
-+
-+const char * umad_class_str(uint8_t mgmt_class);
-+const char * umad_method_str(uint8_t mgmt_class, uint8_t method);
-+const char * umad_attribute_str(uint8_t mgmt_class, be16_t attr_id);
-+
-+const char * umad_common_mad_status_str(be16_t status);
-+const char * umad_sa_mad_status_str(be16_t status);
-+
-+END_C_DECLS
-+#endif /* _UMAD_STR_H */
-diff --git a/include/infiniband/umad_types.h b/include/infiniband/umad_types.h
-index b548a3b..32c747a 100644
---- a/include/infiniband/umad_types.h
-+++ b/include/infiniband/umad_types.h
-@@ -65,10 +65,12 @@ enum {
- 	UMAD_CLASS_SNMP			= 0x08,
- 	UMAD_CLASS_VENDOR_RANGE1_START	= 0x09,
- 	UMAD_CLASS_VENDOR_RANGE1_END	= 0x0F,
--	UMAD_CLASS_DEVICE_ADM		= 0x10,
-+	UMAD_CLASS_APPLICATION_START	= 0x10,
-+	UMAD_CLASS_DEVICE_ADM		= UMAD_CLASS_APPLICATION_START,
- 	UMAD_CLASS_BOOT_MGMT		= 0x11,
- 	UMAD_CLASS_BIS			= 0x12,
- 	UMAD_CLASS_CONG_MGMT		= 0x21,
-+	UMAD_CLASS_APPLICATION_END	= 0x2F,
- 	UMAD_CLASS_VENDOR_RANGE2_START	= 0x30,
- 	UMAD_CLASS_VENDOR_RANGE2_END	= 0x4F
- };
-@@ -97,7 +99,8 @@ enum {
- 	UMAD_STATUS_ATTR_NOT_SUPPORTED   = (3 << 2),
- 	UMAD_STATUS_INVALID_ATTR_VALUE   = (7 << 2),
- 
--	UMAD_STATUS_CLASS_MASK = 0xFF00
-+	UMAD_STATUS_INVALID_FIELD_MASK = 0x001C,
-+	UMAD_STATUS_CLASS_MASK         = 0xFF00
- };
- 
- /* Attributes common to multiple classes */
-diff --git a/man/umad_attribute_str.3 b/man/umad_attribute_str.3
-new file mode 100644
-index 0000000..f5e6b02
---- /dev/null
-+++ b/man/umad_attribute_str.3
-@@ -0,0 +1,3 @@
-+.\" -*- nroff -*-
-+.\"
-+.so man3/umad_class_str.3
-diff --git a/man/umad_class_str.3 b/man/umad_class_str.3
-new file mode 100644
-index 0000000..5bc813b
---- /dev/null
-+++ b/man/umad_class_str.3
-@@ -0,0 +1,45 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH UMAD_CLASS_STR 3  "Feb 15, 2013" "OpenIB" "OpenIB Programmer\'s Manual"
-+.SH "NAME"
-+umad_*_str \- class of functions to return string representations of enums
-+
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/umad_str.h>
-+.sp
-+.BI "const char * umad_class_str(uint8_t mgmt_class)"
-+.BI "const char * umad_method_str(uint8_t mgmt_class, uint8_t method)"
-+.BI "const char * umad_attribute_str(uint8_t mgmt_class, be16_t attr_id)"
-+
-+.BI "const char * umad_common_mad_status_str(be16_t status)"
-+.BI "const char * umad_sa_mad_status_str(be16_t status)"
-+
-+.SH "DESCRIPTION"
-+
-+.B "const char * umad_class_str(uint8_t mgmt_class)"
-+Return string value of management class enum
-+
-+.B "const char * umad_method_str(uint8_t mgmt_class, uint8_t method)"
-+Return string value of the method for the mgmt_class specified
-+
-+.B "const char * umad_attribute_str(uint8_t mgmt_class, be16_t attr_id)"
-+Return string value of attribute specified in attr_id based on mgmt_class specified.
-+
-+.B "const char * umad_common_mad_status_str(be16_t status)"
-+Return string value for common MAD status values
-+
-+.B "const char * umad_sa_mad_status_str(be16_t status)"
-+Return string value for SA MAD status values
-+
-+
-+.B NOTE:
-+Not all classes are supported.
-+
-+.SH "RETURN VALUE"
-+
-+Returns a string representations of the fields specified.
-+
-+.SH "AUTHOR"
-+.TP
-+Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-diff --git a/man/umad_mad_status_str.3 b/man/umad_mad_status_str.3
-new file mode 100644
-index 0000000..f5e6b02
---- /dev/null
-+++ b/man/umad_mad_status_str.3
-@@ -0,0 +1,3 @@
-+.\" -*- nroff -*-
-+.\"
-+.so man3/umad_class_str.3
-diff --git a/man/umad_method_str.3 b/man/umad_method_str.3
-new file mode 100644
-index 0000000..f5e6b02
---- /dev/null
-+++ b/man/umad_method_str.3
-@@ -0,0 +1,3 @@
-+.\" -*- nroff -*-
-+.\"
-+.so man3/umad_class_str.3
-diff --git a/src/libibumad.map b/src/libibumad.map
-index 0154b7f..af68d11 100644
---- a/src/libibumad.map
-+++ b/src/libibumad.map
-@@ -30,5 +30,9 @@ IBUMAD_1.0 {
- 		umad_debug;
- 		umad_addr_dump;
- 		umad_dump;
-+		umad_class_str;
-+		umad_method_str;
-+		umad_mad_status_str;
-+		umad_attribute_str;
- 	local: *;
- };
-diff --git a/src/umad_str.c b/src/umad_str.c
-new file mode 100644
-index 0000000..6dca087
---- /dev/null
-+++ b/src/umad_str.c
-@@ -0,0 +1,333 @@
-+/*
-+ * Copyright (c) 2004, 2005, 2010 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2013 Lawrence Livermore National Security. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ *
-+ */
-+
-+#include <stdio.h>
-+#include <arpa/inet.h>
-+#include <infiniband/umad.h>
-+#include <infiniband/umad_types.h>
-+#include <infiniband/umad_sm.h>
-+#include <infiniband/umad_sa.h>
-+#include <infiniband/umad_cm.h>
-+
-+const char * umad_class_str(uint8_t mgmt_class)
-+{
-+	switch (mgmt_class) {
-+		case UMAD_CLASS_SUBN_LID_ROUTED:
-+		case UMAD_CLASS_SUBN_DIRECTED_ROUTE:
-+			return("Subn");
-+		case UMAD_CLASS_SUBN_ADM:
-+			return("SubnAdm");
-+		case UMAD_CLASS_PERF_MGMT:
-+			return("Perf");
-+		case UMAD_CLASS_BM:
-+			return("BM");
-+		case UMAD_CLASS_DEVICE_MGMT:
-+			return("DevMgt");
-+		case UMAD_CLASS_CM:
-+			return("ComMgt");
-+		case UMAD_CLASS_SNMP:
-+			return("SNMP");
-+		case UMAD_CLASS_DEVICE_ADM:
-+			return("DevAdm");
-+		case UMAD_CLASS_BOOT_MGMT:
-+			return("BootMgt");
-+		case UMAD_CLASS_BIS:
-+			return("BIS");
-+		case UMAD_CLASS_CONG_MGMT:
-+			return("CongestionManagment");
-+		default:
-+			break;
-+	}
-+
-+	if ((UMAD_CLASS_VENDOR_RANGE1_START <= mgmt_class
-+		&& mgmt_class <= UMAD_CLASS_VENDOR_RANGE1_END)
-+	    || (UMAD_CLASS_VENDOR_RANGE2_START <= mgmt_class
-+		&& mgmt_class <= UMAD_CLASS_VENDOR_RANGE2_END))
-+		return("Vendor");
-+
-+	if (UMAD_CLASS_APPLICATION_START <= mgmt_class
-+	    && mgmt_class <= UMAD_CLASS_APPLICATION_END) {
-+		return("Application");
-+	}
-+	return ("<unknown>");
-+}
-+
-+static char * umad_common_method_str(uint8_t method)
-+{
-+	switch(method) {
-+		case UMAD_METHOD_GET:
-+			return ("Get");
-+		case UMAD_METHOD_SET:
-+			return ("Set");
-+		case UMAD_METHOD_GET_RESP:
-+			return ("GetResp");
-+		case UMAD_METHOD_SEND:
-+			return ("Send");
-+		case UMAD_METHOD_TRAP:
-+			return ("Trap");
-+		case UMAD_METHOD_REPORT:
-+			return ("Report");
-+		case UMAD_METHOD_REPORT_RESP:
-+			return ("ReportResp");
-+		case UMAD_METHOD_TRAP_REPRESS:
-+			return ("TrapRepress");
-+		default:
-+			return ("<unknown");
-+	}
-+}
-+
-+static char * umad_sa_method_str(uint8_t method)
-+{
-+	switch(method) {
-+		case UMAD_SA_METHOD_GET_TABLE:
-+			return ("GetTable");
-+		case UMAD_SA_METHOD_GET_TABLE_RESP:
-+			return ("GetTableResp");
-+		case UMAD_SA_METHOD_DELETE:
-+			return ("Delete");
-+		case UMAD_SA_METHOD_DELETE_RESP:
-+			return ("DeleteResp");
-+		case UMAD_SA_METHOD_GET_MULTI:
-+			return ("GetMulti");
-+		case UMAD_SA_METHOD_GET_MULTI_RESP:
-+			return ("GetMultiResp");
-+		case UMAD_SA_METHOD_GET_TRACE_TABLE:
-+			return ("GetTraceTable");
-+		default:
-+			return (umad_common_method_str(method));
-+	}
-+}
-+
-+const char * umad_method_str(uint8_t mgmt_class, uint8_t method)
-+{
-+	if (mgmt_class == UMAD_CLASS_SUBN_ADM)
-+		return(umad_sa_method_str(method));
-+
-+	return (umad_common_method_str(method));
-+}
-+
-+const char * umad_common_mad_status_str(be16_t status)
-+{
-+	status = ntohs(status);
-+
-+	if (status & UMAD_STATUS_BUSY)
-+		return ("Busy");
-+
-+	if (status & UMAD_STATUS_REDIRECT)
-+		return ("Redirection required");
-+
-+	switch(status & UMAD_STATUS_INVALID_FIELD_MASK) {
-+		case UMAD_STATUS_BAD_VERSION:
-+			return ("Bad Version");
-+		case UMAD_STATUS_METHOD_NOT_SUPPORTED:
-+			return ("Method not supported");
-+		case UMAD_STATUS_ATTR_NOT_SUPPORTED:
-+			return ("Method/Attribute combo not supported");
-+		case UMAD_STATUS_INVALID_ATTR_VALUE:
-+			return ("Invalid attribute/modifier field");
-+	}
-+	return ("Success");
-+}
-+
-+const char * umad_sa_mad_status_str(be16_t status)
-+{
-+	status = ntohs(status);
-+	switch((status & UMAD_STATUS_CLASS_MASK) >> 8) {
-+		case UMAD_SA_STATUS_SUCCESS:
-+			return ("Success");
-+		case UMAD_SA_STATUS_NO_RESOURCES:
-+			return ("No Resources");
-+		case UMAD_SA_STATUS_REQ_INVALID:
-+			return ("Request Invalid");
-+		case UMAD_SA_STATUS_NO_RECORDS:
-+			return ("No Records");
-+		case UMAD_SA_STATUS_TOO_MANY_RECORDS:
-+			return ("Too Many Records");
-+		case UMAD_SA_STATUS_INVALID_GID:
-+			return ("Invalid GID");
-+		case UMAD_SA_STATUS_INSUF_COMPS:
-+			return ("Insufficient Components");
-+		case UMAD_SA_STATUS_REQ_DENIED:
-+			return ("Request Denied");
-+		case UMAD_SA_STATUS_PRI_SUGGESTED:
-+			return ("Priority Suggested");
-+	}
-+	return ("Undefined Error");
-+}
-+
-+static char *umad_common_attr_str(be16_t attr_id)
-+{
-+	switch(ntohs(attr_id)) {
-+		case UMAD_ATTR_CLASS_PORT_INFO:
-+			return "Class Port Info";
-+		case UMAD_ATTR_NOTICE:
-+			return "Notice";
-+		case UMAD_ATTR_INFORM_INFO:
-+			return "Inform Info";
-+		default:
-+			return "<unknown>";
-+	}
-+}
-+
-+static char * umad_sm_attr_str(be16_t attr_id)
-+{
-+	switch(ntohs(attr_id)) {
-+		case UMAD_SMP_ATTR_NODE_DESC:
-+			return ("NodeDescription");
-+		case UMAD_SMP_ATTR_NODE_INFO:
-+			return ("NodeInfo");
-+		case UMAD_SMP_ATTR_SWITCH_INFO:
-+			return ("SwitchInfo");
-+		case UMAD_SMP_ATTR_GUID_INFO:
-+			return ("GUIDInfo");
-+		case UMAD_SMP_ATTR_PORT_INFO:
-+			return ("PortInfo");
-+		case UMAD_SMP_ATTR_PKEY_TABLE:
-+			return ("P_KeyTable");
-+		case UMAD_SMP_ATTR_SLVL_TABLE:
-+			return ("SLtoVLMappingTable");
-+		case UMAD_SMP_ATTR_VL_ARB_TABLE:
-+			return ("VLArbitrationTable");
-+		case UMAD_SMP_ATTR_LINEAR_FT:
-+			return ("LinearForwardingTable");
-+		case UMAD_SMP_ATTR_RANDOM_FT:
-+			return ("RandomForwardingTable");
-+		case UMAD_SMP_ATTR_MCAST_FT:
-+			return ("MulticastForwardingTable");
-+		case UMAD_SMP_ATTR_SM_INFO:
-+			return ("SMInfo");
-+		case UMAD_SMP_ATTR_VENDOR_DIAG:
-+			return ("VendorDiag");
-+		case UMAD_SMP_ATTR_LED_INFO:
-+			return ("LedInfo");
-+		case UMAD_SMP_ATTR_LINK_SPD_WIDTH_TABLE:
-+			return ("LinkSpeedWidthPairsTable");
-+		default:
-+			return (umad_common_attr_str(attr_id));
-+	}
-+	return ("<unknown>");
-+}
-+
-+static char * umad_sa_attr_str(be16_t attr_id)
-+{
-+	switch(ntohs(attr_id)) {
-+		case UMAD_SA_ATTR_NODE_REC:
-+			return ("NodeRecord");
-+		case UMAD_SA_ATTR_PORT_INFO_REC:
-+			return ("PortInfoRecord");
-+		case UMAD_SA_ATTR_SLVL_REC:
-+			return ("SLtoVLMappingTableRecord");
-+		case UMAD_SA_ATTR_SWITCH_INFO_REC:
-+			return ("SwitchInfoRecord");
-+		case UMAD_SA_ATTR_LINEAR_FT_REC:
-+			return ("LinearForwardingTableRecord");
-+		case UMAD_SA_ATTR_RANDOM_FT_REC:
-+			return ("RandomForwardingTableRecord");
-+		case UMAD_SA_ATTR_MCAST_FT_REC:
-+			return ("MulticastForwardingTableRecord");
-+		case UMAD_SA_ATTR_SM_INFO_REC:
-+			return ("SMInfoRecord");
-+		case UMAD_SA_ATTR_INFORM_INFO_REC:
-+			return ("InformInfoRecord");
-+		case UMAD_SA_ATTR_LINK_REC:
-+			return ("LinkRecord");
-+		case UMAD_SA_ATTR_GUID_INFO_REC:
-+			return ("GuidInfoRecord");
-+		case UMAD_SA_ATTR_SERVICE_REC:
-+			return ("ServiceRecord");
-+		case UMAD_SA_ATTR_PKEY_TABLE_REC:
-+			return ("P_KeyTableRecord");
-+		case UMAD_SA_ATTR_PATH_REC:
-+			return ("PathRecord");
-+		case UMAD_SA_ATTR_VL_ARB_REC:
-+			return ("VLArbitrationTableRecord");
-+		case UMAD_SA_ATTR_MCMEMBER_REC:
-+			return ("MCMemberRecord");
-+		case UMAD_SA_ATTR_TRACE_REC:
-+			return ("TraceRecord");
-+		case UMAD_SA_ATTR_MULTI_PATH_REC:
-+			return ("MultiPathRecord");
-+		case UMAD_SA_ATTR_SERVICE_ASSOC_REC:
-+			return ("ServiceAssociationRecord");
-+		default:
-+			return (umad_common_attr_str(attr_id));
-+	}
-+	return ("<unknown>");
-+}
-+
-+static char * umad_cm_attr_str(be16_t attr_id)
-+{
-+	switch(ntohs(attr_id)) {
-+		case UMAD_CM_ATTR_REQ:
-+			return "ConnectRequest";
-+		case UMAD_CM_ATTR_MRA:
-+			return "MsgRcptAck";
-+		case UMAD_CM_ATTR_REJ:
-+			return "ConnectReject";
-+		case UMAD_CM_ATTR_REP:
-+			return "ConnectReply";
-+		case UMAD_CM_ATTR_RTU:
-+			return "ReadyToUse";
-+		case UMAD_CM_ATTR_DREQ:
-+			return "DisconnectRequest";
-+		case UMAD_CM_ATTR_DREP:
-+			return "DisconnectReply";
-+		case UMAD_CM_ATTR_SIDR_REQ:
-+			return "ServiceIDResReq";
-+		case UMAD_CM_ATTR_SIDR_REP:
-+			return "ServiceIDResReqResp";
-+		case UMAD_CM_ATTR_LAP:
-+			return "LoadAlternatePath";
-+		case UMAD_CM_ATTR_APR:
-+			return "AlternatePathResponse";
-+		default:
-+			return (umad_common_attr_str(attr_id));
-+	}
-+	return ("<unknown>");
-+}
-+
-+const char * umad_attribute_str(uint8_t mgmt_class, be16_t attr_id)
-+{
-+	switch (mgmt_class) {
-+		case UMAD_CLASS_SUBN_LID_ROUTED:
-+		case UMAD_CLASS_SUBN_DIRECTED_ROUTE:
-+			return(umad_sm_attr_str(attr_id));
-+		case UMAD_CLASS_SUBN_ADM:
-+			return(umad_sa_attr_str(attr_id));
-+		case UMAD_CLASS_CM:
-+			return(umad_cm_attr_str(attr_id));
-+	}
-+
-+	return (umad_common_attr_str(attr_id));
-+}
--- 
-1.7.1
+Many thanks,
+Boris
 
+
+--------------040609040709020005060902
+Content-Type: text/plain; charset=windows-1252;
+ name="0001-libibmad-Conversion-specifier-m-is-not-supported-on-.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename*0="0001-libibmad-Conversion-specifier-m-is-not-supported-on-.pa";
+ filename*1="tch"
+
+RnJvbSAwMmZjNTVjNzU2ODE5Y2VlOGJkY2ZlNmMxOTI3ODBiY2JkYmJmZTVkIE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBCcmVuZGFuIERveWxlIDxicmVuZGFuLmRveWxlQG9y
+YWNsZS5jb20+CkRhdGU6IEZyaSwgMSBNYXIgMjAxMyAxMjowODozMyAtMDgwMApTdWJqZWN0
+OiBbUEFUQ0hdIGxpYmlibWFkOiBDb252ZXJzaW9uIHNwZWNpZmllcjsgJW0gaXMgbm90IHN1
+cHBvcnRlZCBvbiBTb2xhcmlzCgpTaWduZWQtb2ZmLWJ5OiBCcmVuZGFuIERveWxlIDxicmVu
+ZGFuLmRveWxlQG9yYWNsZS5jb20+Ci0tLQogc3JjL3JwYy5jICB8ICAgIDQgKystLQogc3Jj
+L3NlcnYuYyB8ICAgIDcgKysrKy0tLQogMiBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMo
+KyksIDUgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvc3JjL3JwYy5jIGIvc3JjL3JwYy5j
+CmluZGV4IDYzMTJkNDIuLjRmYjVhMjEgMTAwNjQ0Ci0tLSBhL3NyYy9ycGMuYworKysgYi9z
+cmMvcnBjLmMKQEAgLTE1Myw3ICsxNTMsNyBAQCBfZG9fbWFkcnBjKGludCBwb3J0X2lkLCB2
+b2lkICpzbmRidWYsIHZvaWQgKnJjdmJ1ZiwgaW50IGFnZW50aWQsIGludCBsZW4sCiAKIAkJ
+bGVuZ3RoID0gbGVuOwogCQlpZiAodW1hZF9zZW5kKHBvcnRfaWQsIGFnZW50aWQsIHNuZGJ1
+ZiwgbGVuZ3RoLCB0aW1lb3V0LCAwKSA8IDApIHsKLQkJCUlCV0FSTigic2VuZCBmYWlsZWQ7
+ICVtIik7CisJCQlJQldBUk4oInNlbmQgZmFpbGVkOyAlcyIsIHN0cmVycm9yKGVycm5vKSk7
+CiAJCQlyZXR1cm4gLTE7CiAJCX0KIApAQCAtMTYyLDcgKzE2Miw3IEBAIF9kb19tYWRycGMo
+aW50IHBvcnRfaWQsIHZvaWQgKnNuZGJ1Ziwgdm9pZCAqcmN2YnVmLCBpbnQgYWdlbnRpZCwg
+aW50IGxlbiwKIAkJZG8gewogCQkJbGVuZ3RoID0gbGVuOwogCQkJaWYgKHVtYWRfcmVjdihw
+b3J0X2lkLCByY3ZidWYsICZsZW5ndGgsIHRpbWVvdXQpIDwgMCkgewotCQkJCUlCV0FSTigi
+cmVjdiBmYWlsZWQ6ICVtIik7CisJCQkJSUJXQVJOKCJyZWN2IGZhaWxlZDogJXMiLCBzdHJl
+cnJvcihlcnJubykpOwogCQkJCXJldHVybiAtMTsKIAkJCX0KIApkaWZmIC0tZ2l0IGEvc3Jj
+L3NlcnYuYyBiL3NyYy9zZXJ2LmMKaW5kZXggMmUzYjdlZi4uYWU1ZmQ2YyAxMDA2NDQKLS0t
+IGEvc3JjL3NlcnYuYworKysgYi9zcmMvc2Vydi5jCkBAIC0zOCw2ICszOCw3IEBACiAjaW5j
+bHVkZSA8c3RkaW8uaD4KICNpbmNsdWRlIDxzdGRsaWIuaD4KICNpbmNsdWRlIDxzdHJpbmcu
+aD4KKyNpbmNsdWRlIDxlcnJuby5oPgogCiAjaW5jbHVkZSA8aW5maW5pYmFuZC91bWFkLmg+
+CiAjaW5jbHVkZSA8aW5maW5pYmFuZC9tYWQuaD4KQEAgLTc1LDcgKzc2LDcgQEAgaW50IG1h
+ZF9zZW5kX3ZpYShpYl9ycGNfdCAqIHJwYywgaWJfcG9ydGlkX3QgKiBkcG9ydCwgaWJfcm1w
+cF9oZHJfdCAqIHJtcHAsCiAJaWYgKHVtYWRfc2VuZChzcmNwb3J0LT5wb3J0X2lkLCBzcmNw
+b3J0LT5jbGFzc19hZ2VudHNbcnBjLT5tZ3RjbGFzcyAmIDB4ZmZdLAogCQkgICAgICB1bWFk
+LCBJQl9NQURfU0laRSwgbWFkX2dldF90aW1lb3V0KHNyY3BvcnQsIHJwYy0+dGltZW91dCks
+CiAJCSAgICAgIDApIDwgMCkgewotCQlJQldBUk4oInNlbmQgZmFpbGVkOyAlbSIpOworCQlJ
+QldBUk4oInNlbmQgZmFpbGVkOyAlcyIsIHN0cmVycm9yKGVycm5vKSk7CiAJCXJldHVybiAt
+MTsKIAl9CiAKQEAgLTE1Nyw3ICsxNTgsNyBAQCBpbnQgbWFkX3Jlc3BvbmRfdmlhKHZvaWQg
+KnVtYWQsIGliX3BvcnRpZF90ICogcG9ydGlkLCB1aW50MzJfdCByc3RhdHVzLAogCWlmICh1
+bWFkX3NlbmQKIAkgICAgKHNyY3BvcnQtPnBvcnRfaWQsIHNyY3BvcnQtPmNsYXNzX2FnZW50
+c1tycGMubWd0Y2xhc3NdLCB1bWFkLAogCSAgICAgSUJfTUFEX1NJWkUsIG1hZF9nZXRfdGlt
+ZW91dChzcmNwb3J0LCBycGMudGltZW91dCksIDApIDwgMCkgewotCQlERUJVRygic2VuZCBm
+YWlsZWQ7ICVtIik7CisJCURFQlVHKCJzZW5kIGZhaWxlZDsgJXMiLCBzdHJlcnJvcihlcnJu
+bykpOwogCQlyZXR1cm4gLTE7CiAJfQogCkBAIC0xNzksNyArMTgwLDcgQEAgdm9pZCAqbWFk
+X3JlY2VpdmVfdmlhKHZvaWQgKnVtYWQsIGludCB0aW1lb3V0LCBzdHJ1Y3QgaWJtYWRfcG9y
+dCAqc3JjcG9ydCkKIAkJCSAgICAgICBtYWRfZ2V0X3RpbWVvdXQoc3JjcG9ydCwgdGltZW91
+dCkpKSA8IDApIHsKIAkJaWYgKCF1bWFkKQogCQkJdW1hZF9mcmVlKG1hZCk7Ci0JCURFQlVH
+KCJyZWN2IGZhaWxlZDogJW0iKTsKKwkJREVCVUcoInJlY3YgZmFpbGVkOiAlcyIsIHN0cmVy
+cm9yKGVycm5vKSk7CiAJCXJldHVybiAwOwogCX0KIAotLSAKMS43LjEKCg==
+--------------040609040709020005060902
+Content-Type: text/plain; charset=windows-1252;
+ name="0001-libibmad-Fixes-for-failures-when-not-all-ports-of-HC.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename*0="0001-libibmad-Fixes-for-failures-when-not-all-ports-of-HC.pa";
+ filename*1="tch"
+
+RnJvbSBhMDQ5MzgwNjc4NTY1MjEyZmZhNjUxOWU4MGMxODc4MjBjYjBkYjA4IE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBCcmVuZGFuIERveWxlIDxicmVuZGFuLmRveWxlQG9y
+YWNsZS5jb20+CkRhdGU6IEZyaSwgMSBNYXIgMjAxMyAxMTo1NjozOCAtMDgwMApTdWJqZWN0
+OiBbUEFUQ0hdIGxpYmlibWFkOiBGaXhlcyBmb3IgZmFpbHVyZXMgd2hlbiBub3QgYWxsIHBv
+cnRzIG9mIEhDQSBhcmUgY29ubmVjdGVkCgpTaWduZWQtb2ZmLWJ5OiBCcmVuZGFuIERveWxl
+IDxicmVuZGFuLmRveWxlQG9yYWNsZS5jb20+Ci0tLQogc3JjL3Jlc29sdmUuYyB8ICAgMjIg
+KysrKysrKysrKysrKysrKysrLS0tLQogc3JjL3JwYy5jICAgICB8ICAgIDEgKwogc3JjL3Nh
+LmMgICAgICB8ICAgIDIgKysKIDMgZmlsZXMgY2hhbmdlZCwgMjEgaW5zZXJ0aW9ucygrKSwg
+NCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9zcmMvcmVzb2x2ZS5jIGIvc3JjL3Jlc29s
+dmUuYwppbmRleCBmODY2YmY0Li5hYjI0Yzc5IDEwMDY0NAotLS0gYS9zcmMvcmVzb2x2ZS5j
+CisrKyBiL3NyYy9yZXNvbHZlLmMKQEAgLTQwLDYgKzQwLDcgQEAKICNpbmNsdWRlIDxzdGRs
+aWIuaD4KICNpbmNsdWRlIDxzdHJpbmcuaD4KICNpbmNsdWRlIDxhcnBhL2luZXQuaD4KKyNp
+bmNsdWRlIDxlcnJuby5oPgogCiAjaW5jbHVkZSA8aW5maW5pYmFuZC91bWFkLmg+CiAjaW5j
+bHVkZSA8aW5maW5pYmFuZC9tYWQuaD4KQEAgLTU3LDEwICs1OCwxOCBAQCBpbnQgaWJfcmVz
+b2x2ZV9zbWxpZF92aWEoaWJfcG9ydGlkX3QgKiBzbV9pZCwgaW50IHRpbWVvdXQsCiAKIAlt
+ZW1zZXQoc21faWQsIDAsIHNpemVvZigqc21faWQpKTsKIAotCWlmICghc21wX3F1ZXJ5X3Zp
+YShwb3J0aW5mbywgJnNlbGYsIElCX0FUVFJfUE9SVF9JTkZPLCAwLCAwLCBzcmNwb3J0KSkK
+KwlpZiAoIXNtcF9xdWVyeV92aWEocG9ydGluZm8sICZzZWxmLCBJQl9BVFRSX1BPUlRfSU5G
+TywgMCwgMCwgc3JjcG9ydCkpIHsKKwkJaWYgKCFlcnJubykKKwkJCWVycm5vID0gRUlPOwog
+CQlyZXR1cm4gLTE7CisJfQogCiAJbWFkX2RlY29kZV9maWVsZChwb3J0aW5mbywgSUJfUE9S
+VF9TTUxJRF9GLCAmbGlkKTsKKwlpZiAobGlkID09IDApIHsKKwkJaWYgKCFlcnJubykKKwkJ
+CWVycm5vID0gRUlPOworCQlyZXR1cm4gLTE7CisJfQogCW1hZF9kZWNvZGVfZmllbGQocG9y
+dGluZm8sIElCX1BPUlRfU01TTF9GLCAmc21faWQtPnNsKTsKIAogCXJldHVybiBpYl9wb3J0
+aWRfc2V0KHNtX2lkLCBsaWQsIDAsIDApOwpAQCAtOTUsMjEgKzEwNCwyNiBAQCBpbnQgaWJf
+cmVzb2x2ZV9ndWlkX3ZpYShpYl9wb3J0aWRfdCAqIHBvcnRpZCwgdWludDY0X3QgKiBndWlk
+LAogCQkJaWJfcG9ydGlkX3QgKiBzbV9pZCwgaW50IHRpbWVvdXQsCiAJCQljb25zdCBzdHJ1
+Y3QgaWJtYWRfcG9ydCAqc3JjcG9ydCkKIHsKLQlpYl9wb3J0aWRfdCBzbV9wb3J0aWQ7CisJ
+aWJfcG9ydGlkX3Qgc21fcG9ydGlkID0geyAwIH07CiAJdWludDhfdCBidWZbSUJfU0FfREFU
+QV9TSVpFXSA9IHsgMCB9OwogCWliX3BvcnRpZF90IHNlbGYgPSB7IDAgfTsKIAl1aW50NjRf
+dCBzZWxmZ3VpZCwgcHJlZml4OwogCWlibWFkX2dpZF90IHNlbGZnaWQ7CiAJdWludDhfdCBu
+b2RlaW5mb1s2NF07CiAKLQlpZiAoIXNtX2lkKSB7CisJaWYgKCFzbV9pZCkKIAkJc21faWQg
+PSAmc21fcG9ydGlkOworCisJaWYgKCFzbV9pZC0+bGlkKSB7CiAJCWlmIChpYl9yZXNvbHZl
+X3NtbGlkX3ZpYShzbV9pZCwgdGltZW91dCwgc3JjcG9ydCkgPCAwKQogCQkJcmV0dXJuIC0x
+OwogCX0KIAotCWlmICghc21wX3F1ZXJ5X3ZpYShub2RlaW5mbywgJnNlbGYsIElCX0FUVFJf
+Tk9ERV9JTkZPLCAwLCAwLCBzcmNwb3J0KSkKKwlpZiAoIXNtcF9xdWVyeV92aWEobm9kZWlu
+Zm8sICZzZWxmLCBJQl9BVFRSX05PREVfSU5GTywgMCwgMCwgc3JjcG9ydCkpIHsKKwkJaWYg
+KCFlcnJubykKKwkJCWVycm5vID0gRUlPOwogCQlyZXR1cm4gLTE7CisJfQogCW1hZF9kZWNv
+ZGVfZmllbGQobm9kZWluZm8sIElCX05PREVfUE9SVF9HVUlEX0YsICZzZWxmZ3VpZCk7CiAJ
+bWFkX3NldF9maWVsZDY0KHNlbGZnaWQsIDAsIElCX0dJRF9QUkVGSVhfRiwgSUJfREVGQVVM
+VF9TVUJOX1BSRUZJWCk7CiAJbWFkX3NldF9maWVsZDY0KHNlbGZnaWQsIDAsIElCX0dJRF9H
+VUlEX0YsIHNlbGZndWlkKTsKZGlmZiAtLWdpdCBhL3NyYy9ycGMuYyBiL3NyYy9ycGMuYwpp
+bmRleCA2MzEyZDQyLi5jZjJiNjBkIDEwMDY0NAotLS0gYS9zcmMvcnBjLmMKKysrIGIvc3Jj
+L3JwYy5jCkBAIC0xNzgsNiArMTc4LDcgQEAgX2RvX21hZHJwYyhpbnQgcG9ydF9pZCwgdm9p
+ZCAqc25kYnVmLCB2b2lkICpyY3ZidWYsIGludCBhZ2VudGlkLCBpbnQgbGVuLAogCQkJCQkg
+SUJfTUFEX1RSSURfRikgIT0gdHJpZCk7CiAKIAkJc3RhdHVzID0gdW1hZF9zdGF0dXMocmN2
+YnVmKTsKKwkJZXJybm8gPSBzdGF0dXM7CiAJCWlmICghc3RhdHVzKQogCQkJcmV0dXJuIGxl
+bmd0aDsJLyogZG9uZSAqLwogCQlpZiAoc3RhdHVzID09IEVOT01FTSkKZGlmZiAtLWdpdCBh
+L3NyYy9zYS5jIGIvc3JjL3NhLmMKaW5kZXggMzUyZWQ5Zi4uMzY3ZGEyYSAxMDA2NDQKLS0t
+IGEvc3JjL3NhLmMKKysrIGIvc3JjL3NhLmMKQEAgLTM4LDYgKzM4LDcgQEAKICNpbmNsdWRl
+IDxzdGRpby5oPgogI2luY2x1ZGUgPHN0ZGxpYi5oPgogI2luY2x1ZGUgPHN0cmluZy5oPgor
+I2luY2x1ZGUgPGVycm5vLmg+CiAKICNpbmNsdWRlIDxpbmZpbmliYW5kL21hZC5oPgogI2lu
+Y2x1ZGUgIm1hZF9pbnRlcm5hbC5oIgpAQCAtNTYsNiArNTcsNyBAQCB1aW50OF90ICpzYV9y
+cGNfY2FsbChjb25zdCBzdHJ1Y3QgaWJtYWRfcG9ydCAqaWJtYWRfcG9ydCwgdm9pZCAqcmN2
+YnVmLAogCiAJaWYgKHBvcnRpZC0+bGlkIDw9IDApIHsKIAkJSUJXQVJOKCJvbmx5IGxpZCBy
+b3V0ZXMgYXJlIHN1cHBvcnRlZCIpOworCQllcnJubyA9IEVJTzsKIAkJcmV0dXJuIE5VTEw7
+CiAJfQogCi0tIAoxLjcuMQoK
+--------------040609040709020005060902
+Content-Type: text/plain; charset=windows-1252;
+ name="0001-libibmad-To-fix-big-endian-problem-for-both-32-bit-6.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename*0="0001-libibmad-To-fix-big-endian-problem-for-both-32-bit-6.pa";
+ filename*1="tch"
+
+RnJvbSAxMDc3N2U3NWZmOWYwMWY3MGVkMjUzNzY2N2E0Nzk3YzNiMzBjYzFkIE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBCcmVuZGFuIERveWxlIDxicmVuZGFuLmRveWxlQG9y
+YWNsZS5jb20+CkRhdGU6IEZyaSwgMSBNYXIgMjAxMyAxMTozMjo0NSAtMDgwMApTdWJqZWN0
+OiBbUEFUQ0hdIGxpYmlibWFkOiBUbyBmaXggYmlnIGVuZGlhbiBwcm9ibGVtIGZvciBib3Ro
+IDMyLWJpdCAmIDY0LWJpdCBTUEFSQwoKU2lnbmVkLW9mZi1ieTogQnJlbmRhbiBEb3lsZSA8
+YnJlbmRhbi5kb3lsZUBvcmFjbGUuY29tPgotLS0KIHNyYy9kdW1wLmMgfCAgIDY2ICsrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0t
+CiAxIGZpbGVzIGNoYW5nZWQsIDU3IGluc2VydGlvbnMoKyksIDkgZGVsZXRpb25zKC0pCgpk
+aWZmIC0tZ2l0IGEvc3JjL2R1bXAuYyBiL3NyYy9kdW1wLmMKaW5kZXggN2YzZWY3ZC4uZTgz
+YzM2MyAxMDA2NDQKLS0tIGEvc3JjL2R1bXAuYworKysgYi9zcmMvZHVtcC5jCkBAIC00Niwx
+MiArNDYsMjQgQEAKIAogdm9pZCBtYWRfZHVtcF9pbnQoY2hhciAqYnVmLCBpbnQgYnVmc3os
+IHZvaWQgKnZhbCwgaW50IHZhbHN6KQogeworCS8qCisJICogdGhlIHZhbCBwb2ludGVyIHBh
+c3NlZCB0byB0aGUgZHVtcCByb3V0aW5lcyBhcmUgYWx3YXlzIDMyIGJpdAorCSAqIGludGVn
+ZXJzIGZvciB2YWxzeiA8PSA0IGFuZCA2NCBiaXQgaW50ZWdlciBmb3IgdGhlIHJlc3QuIEl0
+IGlzIG5ldmVyCisJICogdWludDhfdCBvciB1aW50MTZfdC4gVGhpcyBpcyBiZWNhdXNlIG1h
+ZF9kZWNvZGVfZmllbGQgYWx3YXlzIHJldHVybnMKKwkgKiB0aGUgdmFsdWVzIGFzIDMyIGJp
+dCBpbnRlZ2VyIGV2ZW4gaWYgdGhleSBhcmUgOCBiaXQgb3IgMTYgYml0IGZpZWxkcy4KKwkg
+Ki8KIAlzd2l0Y2ggKHZhbHN6KSB7CiAJY2FzZSAxOgotCQlzbnByaW50ZihidWYsIGJ1ZnN6
+LCAiJWQiLCAqKHVpbnQzMl90ICopIHZhbCAmIDB4ZmYpOworI2lmIGRlZmluZWQoX0JJR19F
+TkRJQU4pCisJCXZhbCA9ICgodWludDhfdCAqKXZhbCkgKyAzOworI2VuZGlmIC8qIF9CSUdf
+RU5ESUFOICovCisJCXNucHJpbnRmKGJ1ZiwgYnVmc3osICIlZCIsICoodWludDhfdCAqKSB2
+YWwgJiAweGZmKTsKIAkJYnJlYWs7CiAJY2FzZSAyOgotCQlzbnByaW50ZihidWYsIGJ1ZnN6
+LCAiJWQiLCAqKHVpbnQzMl90ICopIHZhbCAmIDB4ZmZmZik7CisjaWYgZGVmaW5lZChfQklH
+X0VORElBTikKKwkJdmFsID0gKCh1aW50MTZfdCAqKXZhbCkgKyAxOworI2VuZGlmIC8qIF9C
+SUdfRU5ESUFOICovCisJCXNucHJpbnRmKGJ1ZiwgYnVmc3osICIlZCIsICoodWludDE2X3Qg
+KikgdmFsICYgMHhmZmZmKTsKIAkJYnJlYWs7CiAJY2FzZSAzOgogCWNhc2UgNDoKQEAgLTcx
+LDEyICs4MywyNCBAQCB2b2lkIG1hZF9kdW1wX2ludChjaGFyICpidWYsIGludCBidWZzeiwg
+dm9pZCAqdmFsLCBpbnQgdmFsc3opCiAKIHZvaWQgbWFkX2R1bXBfdWludChjaGFyICpidWYs
+IGludCBidWZzeiwgdm9pZCAqdmFsLCBpbnQgdmFsc3opCiB7CisJLyoKKwkgKiB0aGUgdmFs
+IHBvaW50ZXIgcGFzc2VkIHRvIHRoZSBkdW1wIHJvdXRpbmVzIGFyZSBhbHdheXMgMzIgYml0
+CisJICogaW50ZWdlcnMgZm9yIHZhbHN6IDw9IDQgYW5kIDY0IGJpdCBpbnRlZ2VyIGZvciB0
+aGUgcmVzdC4gSXQgaXMgbmV2ZXIKKwkgKiB1aW50OF90IG9yIHVpbnQxNl90LiBUaGlzIGlz
+IGJlY2F1c2UgbWFkX2RlY29kZV9maWVsZCBhbHdheXMgcmV0dXJucworCSAqIHRoZSB2YWx1
+ZXMgYXMgMzIgYml0IGludGVnZXIgZXZlbiBpZiB0aGV5IGFyZSA4IGJpdCBvciAxNiBiaXQg
+ZmllbGRzLgorCSAqLwogCXN3aXRjaCAodmFsc3opIHsKIAljYXNlIDE6Ci0JCXNucHJpbnRm
+KGJ1ZiwgYnVmc3osICIldSIsICoodWludDMyX3QgKikgdmFsICYgMHhmZik7CisjaWYgZGVm
+aW5lZChfQklHX0VORElBTikKKwkJdmFsID0gKCh1aW50OF90ICopdmFsKSArIDM7CisjZW5k
+aWYgLyogX0JJR19FTkRJQU4gKi8KKwkJc25wcmludGYoYnVmLCBidWZzeiwgIiV1IiwgKih1
+aW50OF90ICopIHZhbCAmIDB4ZmYpOwogCQlicmVhazsKIAljYXNlIDI6Ci0JCXNucHJpbnRm
+KGJ1ZiwgYnVmc3osICIldSIsICoodWludDMyX3QgKikgdmFsICYgMHhmZmZmKTsKKyNpZiBk
+ZWZpbmVkKF9CSUdfRU5ESUFOKQorCQl2YWwgPSAoKHVpbnQxNl90ICopdmFsKSArIDE7Cisj
+ZW5kaWYgLyogX0JJR19FTkRJQU4gKi8KKwkJc25wcmludGYoYnVmLCBidWZzeiwgIiV1Iiwg
+Kih1aW50MTZfdCAqKSB2YWwgJiAweGZmZmYpOwogCQlicmVhazsKIAljYXNlIDM6CiAJY2Fz
+ZSA0OgpAQCAtOTYsMTUgKzEyMCwyNyBAQCB2b2lkIG1hZF9kdW1wX3VpbnQoY2hhciAqYnVm
+LCBpbnQgYnVmc3osIHZvaWQgKnZhbCwgaW50IHZhbHN6KQogCiB2b2lkIG1hZF9kdW1wX2hl
+eChjaGFyICpidWYsIGludCBidWZzeiwgdm9pZCAqdmFsLCBpbnQgdmFsc3opCiB7CisJLyoK
+KwkgKiB0aGUgdmFsIHBvaW50ZXIgcGFzc2VkIHRvIHRoZSBkdW1wIHJvdXRpbmVzIGFyZSBh
+bHdheXMgMzIgYml0CisJICogaW50ZWdlcnMgZm9yIHZhbHN6IDw9IDQgYW5kIDY0IGJpdCBp
+bnRlZ2VyIGZvciB0aGUgcmVzdC4gSXQgaXMgbmV2ZXIKKwkgKiB1aW50OF90IG9yIHVpbnQx
+Nl90LiBUaGlzIGlzIGJlY2F1c2UgbWFkX2RlY29kZV9maWVsZCBhbHdheXMgcmV0dXJucwor
+CSAqIHRoZSB2YWx1ZXMgYXMgMzIgYml0IGludGVnZXIgZXZlbiBpZiB0aGV5IGFyZSA4IGJp
+dCBvciAxNiBiaXQgZmllbGRzLgorCSAqLwogCXN3aXRjaCAodmFsc3opIHsKIAljYXNlIDE6
+Ci0JCXNucHJpbnRmKGJ1ZiwgYnVmc3osICIweCUwMngiLCAqKHVpbnQzMl90ICopIHZhbCAm
+IDB4ZmYpOworI2lmIGRlZmluZWQoX0JJR19FTkRJQU4pCisJCXZhbCA9ICgodWludDhfdCAq
+KXZhbCkgKyAzOworI2VuZGlmIC8qIF9CSUdfRU5ESUFOICovCisJCXNucHJpbnRmKGJ1Ziwg
+YnVmc3osICIweCUwMngiLCAqKHVpbnQ4X3QgKikgdmFsICYgMHhmZik7CiAJCWJyZWFrOwog
+CWNhc2UgMjoKLQkJc25wcmludGYoYnVmLCBidWZzeiwgIjB4JTA0eCIsICoodWludDMyX3Qg
+KikgdmFsICYgMHhmZmZmKTsKKyNpZiBkZWZpbmVkKF9CSUdfRU5ESUFOKQorCQl2YWwgPSAo
+KHVpbnQxNl90ICopdmFsKSArIDE7CisjZW5kaWYgLyogX0JJR19FTkRJQU4gKi8KKwkJc25w
+cmludGYoYnVmLCBidWZzeiwgIjB4JTA0eCIsICoodWludDE2X3QgKikgdmFsICYgMHhmZmZm
+KTsKIAkJYnJlYWs7CiAJY2FzZSAzOgotCQlzbnByaW50ZihidWYsIGJ1ZnN6LCAiMHglMDZ4
+IiwgKih1aW50MzJfdCAqKSB2YWwgJiAweGZmZmZmZik7CisJCXNucHJpbnRmKGJ1ZiwgYnVm
+c3osICIweCV4IiwgKih1aW50MzJfdCAqKSB2YWwgJiAweGZmZmZmZik7CiAJCWJyZWFrOwog
+CWNhc2UgNDoKIAkJc25wcmludGYoYnVmLCBidWZzeiwgIjB4JTA4eCIsICoodWludDMyX3Qg
+KikgdmFsKTsKQEAgLTEzMiwxMiArMTY4LDI0IEBAIHZvaWQgbWFkX2R1bXBfaGV4KGNoYXIg
+KmJ1ZiwgaW50IGJ1ZnN6LCB2b2lkICp2YWwsIGludCB2YWxzeikKIAogdm9pZCBtYWRfZHVt
+cF9yaGV4KGNoYXIgKmJ1ZiwgaW50IGJ1ZnN6LCB2b2lkICp2YWwsIGludCB2YWxzeikKIHsK
+KwkvKgorCSAqIHRoZSB2YWwgcG9pbnRlciBwYXNzZWQgdG8gdGhlIGR1bXAgcm91dGluZXMg
+YXJlIGFsd2F5cyAzMiBiaXQKKwkgKiBpbnRlZ2VycyBmb3IgdmFsc3ogPD0gNCBhbmQgNjQg
+Yml0IGludGVnZXIgZm9yIHRoZSByZXN0LiBJdCBpcyBuZXZlcgorCSAqIHVpbnQ4X3Qgb3Ig
+dWludDE2X3QuIFRoaXMgaXMgYmVjYXVzZSBtYWRfZGVjb2RlX2ZpZWxkIGFsd2F5cyByZXR1
+cm5zCisJICogdGhlIHZhbHVlcyBhcyAzMiBiaXQgaW50ZWdlciBldmVuIGlmIHRoZXkgYXJl
+IDggYml0IG9yIDE2IGJpdCBmaWVsZHMuCisJICovCiAJc3dpdGNoICh2YWxzeikgewogCWNh
+c2UgMToKLQkJc25wcmludGYoYnVmLCBidWZzeiwgIiUwMngiLCAqKHVpbnQzMl90ICopIHZh
+bCAmIDB4ZmYpOworI2lmIGRlZmluZWQoX0JJR19FTkRJQU4pCisJCXZhbCA9ICgodWludDhf
+dCAqKXZhbCkgKyAzOworI2VuZGlmIC8qIF9CSUdfRU5ESUFOICovCisJCXNucHJpbnRmKGJ1
+ZiwgYnVmc3osICIlMDJ4IiwgKih1aW50OF90ICopIHZhbCAmIDB4ZmYpOwogCQlicmVhazsK
+IAljYXNlIDI6Ci0JCXNucHJpbnRmKGJ1ZiwgYnVmc3osICIlMDR4IiwgKih1aW50MzJfdCAq
+KSB2YWwgJiAweGZmZmYpOworI2lmIGRlZmluZWQoX0JJR19FTkRJQU4pCisJCXZhbCA9ICgo
+dWludDE2X3QgKil2YWwpICsgMTsKKyNlbmRpZiAvKiBfQklHX0VORElBTiAqLworCQlzbnBy
+aW50ZihidWYsIGJ1ZnN6LCAiJTA0eCIsICoodWludDE2X3QgKikgdmFsICYgMHhmZmZmKTsK
+IAkJYnJlYWs7CiAJY2FzZSAzOgogCQlzbnByaW50ZihidWYsIGJ1ZnN6LCAiJTA2eCIsICoo
+dWludDMyX3QgKikgdmFsICYgMHhmZmZmZmYpOwotLSAKMS43LjEKCg==
+--------------040609040709020005060902
+Content-Type: text/plain; charset=windows-1252;
+ name="0001-libibmad-To-fix-compilation-warning-need-typecasts.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename*0="0001-libibmad-To-fix-compilation-warning-need-typecasts.patc";
+ filename*1="h"
+
+RnJvbSA3NTI1MzRhYWI1MTM4MGQ3MmQ3N2JjYWI2ZjM4NjczYWIwMWRkYTIwIE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBCcmVuZGFuIERveWxlIDxicmVuZGFuLmRveWxlQG9y
+YWNsZS5jb20+CkRhdGU6IEZyaSwgMSBNYXIgMjAxMyAxMjoxODo0NSAtMDgwMApTdWJqZWN0
+OiBbUEFUQ0hdIGxpYmlibWFkOiBUbyBmaXggY29tcGlsYXRpb24gd2FybmluZzogbmVlZCB0
+eXBlY2FzdHMKClNpZ25lZC1vZmYtYnk6IEJyZW5kYW4gRG95bGUgPGJyZW5kYW4uZG95bGVA
+b3JhY2xlLmNvbT4KLS0tCiBpbmNsdWRlL2luZmluaWJhbmQvbWFkLmggfCAgIDEyICsrKysr
+KysrLS0tLQogc3JjL2ZpZWxkcy5jICAgICAgICAgICAgIHwgICAgOCArKysrLS0tLQogMiBm
+aWxlcyBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQoKZGlmZiAt
+LWdpdCBhL2luY2x1ZGUvaW5maW5pYmFuZC9tYWQuaCBiL2luY2x1ZGUvaW5maW5pYmFuZC9t
+YWQuaAppbmRleCAwMmIyMzUzLi5jZWZjYzU0IDEwMDY0NAotLS0gYS9pbmNsdWRlL2luZmlu
+aWJhbmQvbWFkLmgKKysrIGIvaW5jbHVkZS9pbmZpbmliYW5kL21hZC5oCkBAIC0xNjU1LDE0
+ICsxNjU1LDE4IEBAIHN0YXRpYyBpbmxpbmUgdWludDY0X3QgaHRvbmxsKHVpbnQ2NF90IHgp
+CiAjZGVmaW5lIEFMSUdOKGwsIHNpemUpICgoKGwpICsgKChzaXplKSAtIDEpKSAvIChzaXpl
+KSAqIChzaXplKSkKIAogLyoqIHByaW50ZiBzdHlsZSB3YXJuaW5nIE1BQ1JPLCBpbmNsdWRl
+cyBuYW1lIG9mIGZ1bmN0aW9uIGFuZCBwaWQgKi8KLSNkZWZpbmUgSUJXQVJOKGZtdCwgLi4u
+KSBmcHJpbnRmKHN0ZGVyciwgImlid2FybjogWyVkXSAlczogIiBmbXQgIlxuIiwgZ2V0cGlk
+KCksIF9fZnVuY19fLCAjIyBfX1ZBX0FSR1NfXykKKyNkZWZpbmUgSUJXQVJOKGZtdCwgLi4u
+KSBmcHJpbnRmKHN0ZGVyciwgImlid2FybjogWyVkXSAlczogIiBmbXQgIlxuIiwgXAorKGlu
+dClnZXRwaWQoKSwgX19mdW5jX18sICMjIF9fVkFfQVJHU19fKQogCi0jZGVmaW5lIElCREVC
+VUcoZm10LCAuLi4pIGZwcmludGYoc3Rkb3V0LCAiaWJkZWJ1ZzogWyVkXSAlczogIiBmbXQg
+IlxuIiwgZ2V0cGlkKCksIF9fZnVuY19fLCAjIyBfX1ZBX0FSR1NfXykKKyNkZWZpbmUgSUJE
+RUJVRyhmbXQsIC4uLikgZnByaW50ZihzdGRvdXQsICJpYmRlYnVnOiBbJWRdICVzOiAiIGZt
+dCAiXG4iLCBcCisoaW50KWdldHBpZCgpLCBfX2Z1bmNfXywgIyMgX19WQV9BUkdTX18pCiAK
+LSNkZWZpbmUgSUJWRVJCT1NFKGZtdCwgLi4uKSBmcHJpbnRmKHN0ZG91dCwgIlslZF0gJXM6
+ICIgZm10ICJcbiIsIGdldHBpZCgpLCBfX2Z1bmNfXywgIyMgX19WQV9BUkdTX18pCisjZGVm
+aW5lIElCVkVSQk9TRShmbXQsIC4uLikgZnByaW50ZihzdGRvdXQsICJbJWRdICVzOiAiIGZt
+dCAiXG4iLCBcCisoaW50KWdldHBpZCgpLCBfX2Z1bmNfXywgIyMgX19WQV9BUkdTX18pCiAK
+ICNkZWZpbmUgSUJQQU5JQyhmbXQsIC4uLikgZG8geyBcCi0JZnByaW50ZihzdGRlcnIsICJp
+YnBhbmljOiBbJWRdICVzOiAiIGZtdCAiOiAlbVxuIiwgZ2V0cGlkKCksIF9fZnVuY19fLCAj
+IyBfX1ZBX0FSR1NfXyk7IFwKKwlmcHJpbnRmKHN0ZGVyciwgImlicGFuaWM6IFslZF0gJXM6
+ICIgZm10ICI6ICVtXG4iLCBcCisJKGludClnZXRwaWQoKSwgX19mdW5jX18sICMjIF9fVkFf
+QVJHU19fKTsgXAogCWV4aXQoLTEpOyBcCiB9IHdoaWxlKDApCiAKZGlmZiAtLWdpdCBhL3Ny
+Yy9maWVsZHMuYyBiL3NyYy9maWVsZHMuYwppbmRleCBkMmI2NzkyLi4zM2E2MzY0IDEwMDY0
+NAotLS0gYS9zcmMvZmllbGRzLmMKKysrIGIvc3JjL2ZpZWxkcy5jCkBAIC05NTksMTUgKzk1
+OSwxNSBAQCBzdGF0aWMgdm9pZCBfc2V0X2ZpZWxkNjQodm9pZCAqYnVmLCBpbnQgYmFzZV9v
+ZmZzLCBjb25zdCBpYl9maWVsZF90ICogZiwKIAl1aW50NjRfdCBudmFsOwogCiAJbnZhbCA9
+IGh0b25sbCh2YWwpOwotCW1lbWNweSgoY2hhciAqKWJ1ZiArIGJhc2Vfb2ZmcyArIGYtPmJp
+dG9mZnMgLyA4LCAmbnZhbCwKLQkgICAgICAgc2l6ZW9mKHVpbnQ2NF90KSk7CisJbWVtY3B5
+KCgodm9pZCAqKShjaGFyICopYnVmICsgYmFzZV9vZmZzICsgZi0+Yml0b2ZmcyAvIDgpLAor
+CQkodm9pZCAqKSZudmFsLCBzaXplb2YodWludDY0X3QpKTsKIH0KIAogc3RhdGljIHVpbnQ2
+NF90IF9nZXRfZmllbGQ2NCh2b2lkICpidWYsIGludCBiYXNlX29mZnMsIGNvbnN0IGliX2Zp
+ZWxkX3QgKiBmKQogewogCXVpbnQ2NF90IHZhbDsKLQltZW1jcHkoJnZhbCwgKChjaGFyICop
+YnVmICsgYmFzZV9vZmZzICsgZi0+Yml0b2ZmcyAvIDgpLAotCSAgICAgICBzaXplb2YodWlu
+dDY0X3QpKTsKKwltZW1jcHkoKHZvaWQgKikmdmFsLCAodm9pZCAqKSgoY2hhciAqKWJ1ZiAr
+IGJhc2Vfb2ZmcyArIGYtPmJpdG9mZnMgLyA4KSwKKwkJc2l6ZW9mKHVpbnQ2NF90KSk7CiAJ
+cmV0dXJuIG50b2hsbCh2YWwpOwogfQogCi0tIAoxLjcuMQoK
+--------------040609040709020005060902
+Content-Type: text/plain; charset=windows-1252;
+ name="0001-libibmad-To-handle-null-dev_name-in-madrpc_init.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename*0="0001-libibmad-To-handle-null-dev_name-in-madrpc_init.patch"
+
+RnJvbSA2ZDg0ZjQyZTA4NjViY2E2NDYwNjBkMjNiYTBmM2M3MDI5NWQyYTdlIE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBCcmVuZGFuIERveWxlIDxicmVuZGFuLmRveWxlQG9y
+YWNsZS5jb20+CkRhdGU6IEZyaSwgMSBNYXIgMjAxMyAxMjoxMjo0MyAtMDgwMApTdWJqZWN0
+OiBbUEFUQ0hdIGxpYmlibWFkOiBUbyBoYW5kbGUgbnVsbCBkZXZfbmFtZSBpbiBtYWRycGNf
+aW5pdAoKU2lnbmVkLW9mZi1ieTogQnJlbmRhbiBEb3lsZSA8YnJlbmRhbi5kb3lsZUBvcmFj
+bGUuY29tPgotLS0KIHNyYy9ycGMuYyB8ICAgIDMgKystCiAxIGZpbGVzIGNoYW5nZWQsIDIg
+aW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9zcmMvcnBjLmMg
+Yi9zcmMvcnBjLmMKaW5kZXggNjMxMmQ0Mi4uY2IyMjRmZCAxMDA2NDQKLS0tIGEvc3JjL3Jw
+Yy5jCisrKyBiL3NyYy9ycGMuYwpAQCAtMzYwLDcgKzM2MCw4IEBAIG1hZHJwY19pbml0KGNo
+YXIgKmRldl9uYW1lLCBpbnQgZGV2X3BvcnQsIGludCAqbWdtdF9jbGFzc2VzLCBpbnQgbnVt
+X2NsYXNzZXMpCiAJCUlCUEFOSUMoImNhbid0IGluaXQgVU1BRCBsaWJyYXJ5Iik7CiAKIAlp
+ZiAoKGZkID0gdW1hZF9vcGVuX3BvcnQoZGV2X25hbWUsIGRldl9wb3J0KSkgPCAwKQotCQlJ
+QlBBTklDKCJjYW4ndCBvcGVuIFVNQUQgcG9ydCAoJXM6JWQpIiwgZGV2X25hbWUsIGRldl9w
+b3J0KTsKKwkJSUJQQU5JQygiY2FuJ3Qgb3BlbiBVTUFEIHBvcnQgKCVzOiVkKSIsCisJCWRl
+dl9uYW1lID8gZGV2X25hbWUgOiAiKG5pbCkiLCBkZXZfcG9ydCk7CiAKIAlpZiAobnVtX2Ns
+YXNzZXMgPj0gTUFYX0NMQVNTKQogCQlJQlBBTklDKCJ0b28gbWFueSBjbGFzc2VzICVkIHJl
+cXVlc3RlZCIsIG51bV9jbGFzc2VzKTsKLS0gCjEuNy4xCgo=
+--------------040609040709020005060902
+Content-Type: text/plain; charset=windows-1252;
+ name="0001-libibmad-To-reserve-upper-8-bits-of-tid-used-by-sola.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename*0="0001-libibmad-To-reserve-upper-8-bits-of-tid-used-by-sola.pa";
+ filename*1="tch"
+
+RnJvbSA0MmIxOGM2YzMzZTc3NGIzOTk3NTM1MDRhNDQ3YjAwMjJmMDMxNWRmIE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBCcmVuZGFuIERveWxlIDxicmVuZGFuLmRveWxlQG9y
+YWNsZS5jb20+CkRhdGU6IEZyaSwgMSBNYXIgMjAxMyAxMjoxNjowOSAtMDgwMApTdWJqZWN0
+OiBbUEFUQ0hdIGxpYmlibWFkOiBUbyByZXNlcnZlIHVwcGVyIDggYml0cyBvZiB0aWQgdXNl
+ZCBieSBzb2xhcmlzIFNSSU9WIGRyaXZlcgoKU2lnbmVkLW9mZi1ieTogQnJlbmRhbiBEb3ls
+ZSA8YnJlbmRhbi5kb3lsZUBvcmFjbGUuY29tPgotLS0KIHNyYy9tYWQuYyB8ICAgIDMgKysr
+CiAxIGZpbGVzIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRp
+ZmYgLS1naXQgYS9zcmMvbWFkLmMgYi9zcmMvbWFkLmMKaW5kZXggNzBhNjlkZC4uZmI1ZjVl
+YiAxMDA2NDQKLS0tIGEvc3JjL21hZC5jCisrKyBiL3NyYy9tYWQuYwpAQCAtNjIsNiArNjIs
+OSBAQCB1aW50NjRfdCBtYWRfdHJpZCh2b2lkKQogCQl0cmlkID0gcmFuZG9tKCk7CiAJfQog
+CW5leHQgPSArK3RyaWQgfCAoYmFzZSA8PCAzMik7CisjaWYgZGVmaW5lZChfX1NWUjQpICYm
+IGRlZmluZWQoX19zdW4pCisJbmV4dCAmPSAweDAwZmZmZmZmZmZmZmZmZmY7CisjZW5kaWYK
+IAlyZXR1cm4gbmV4dDsKIH0KIAotLSAKMS43LjEKCg==
+--------------040609040709020005060902--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
