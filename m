@@ -1,50 +1,86 @@
-From: Jonathan Perkins <perkinjo-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
-Subject: ibv_open_xrc_domain error
-Date: Wed, 6 Mar 2013 14:29:50 -0500
-Message-ID: <20130306192950.GA12863@cse.ohio-state.edu>
+From: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Qperf and APM
+Date: Wed, 6 Mar 2013 20:56:43 +0000
+Message-ID: <4AF12E8016D2BF46BCDFCE8FAA77A3580394D4FB@fmsmsx109.amr.corp.intel.com>
+References: <1358891797-14625-1-git-send-email-sean.hefty@intel.com>
+ <1358891797-14625-2-git-send-email-sean.hefty@intel.com>
+ <1828884A29C6694DAF28B7E6B8A8237368B99D59@ORSMSX101.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A823736F35600F@ORSMSX101.amr.corp.intel.com>
+ <82EBBE0B04D4427381C29144BE078F2B@md.baymicrosystems.com>
+ <4AF12E8016D2BF46BCDFCE8FAA77A3580394D479@fmsmsx109.amr.corp.intel.com>
+ <58D79FF01489431AB6D87CD4977F2E45@md.baymicrosystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <58D79FF01489431AB6D87CD4977F2E45-+IkoAhRkys/CbFgIbBqbbjGjJy/sRE9J@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suresh Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dear list:
-Recently we have experienced failures using the ibv_open_xrc_domain
-which gives an invalid parameter error code.  This failure started to
-appear randomly after upgrading the kernel to 2.6.32-279.19.1.el6.x86_64
-and seems to require us to reboot the node.  Whenever this happens we
-notice that /var/log messages contain many of the following messages...
+Have you tried ignoring the warning and checking of the alternate port works?  The qperf code looks to be using the alternate port, but incorrectly fails to mark the argument as used.
 
-Feb 26 20:56:07 magny4 kernel: mlx4_core 0000:02:00.0: mlx4_eq_int:
-MLX4_EVENT_TYPE_SRQ_LIMIT
+Dean
 
-Does anyone have any idea of what may be going wrong or how to debug
-this issue?
-
-Also, we've noticed that there is no user-space XRC support in OFED-3.5.
-Will this support be added back in a future release?
-
-Below is some information about our setup.
-
-OFED-1.5.4.1
-RHEL6 (2.6.32-279.19.1.el6.x86_64)
-
-We're using many different platforms but here are two of them which show
-the error.
-
-Platform A:
-CPU: AMD Magny Cour
-HCA: Mellanox ConnectX VPI MT26428
-
-Platform B:
-CPU: Intel Kentsfield
-HCA: Mellanox ConnectX VPI MT25418
-
--- 
-Jonathan Perkins
-http://www.cse.ohio-state.edu/~perkinjo
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Suresh Shelvapille
+> Sent: Wednesday, March 06, 2013 1:00 PM
+> To: Luick, Dean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: RE: Qperf and APM
+> 
+> This is the error I see on the client(the same warning is seen with -lap and -
+> rap options):
+> 
+> ------------------------------
+> qperf <server-ip-addr> -ap 2 rc_bw
+> rc_bw:
+> warning: -ap set but not used in test rc_bw
+>     bw  =  3.39 GB/sec
+> 
+> > -----Original Message-----
+> > From: Luick, Dean [mailto:dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+> > Sent: Wednesday, March 06, 2013 1:52 PM
+> > To: Suresh Shelvapille; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Cc: Hefty, Sean
+> > Subject: RE: Qperf and APM
+> >
+> > Hi,
+> >
+> > Can you be more specific?  What are you running and how is it failing?
+> >
+> > Thanks,
+> > Dean
+> >
+> > > -----Original Message-----
+> > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Suresh Shelvapille
+> > > Sent: Wednesday, March 06, 2013 9:40 AM
+> > > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > Cc: Hefty, Sean
+> > > Subject: Qperf and APM
+> > >
+> > > Folks:
+> > > The qperf utility has -ap, -lap, -rap options in support of APM.
+> Unfortunately
+> > > they don't seem to work. Is there a way
+> > > to make this work, or if you have any other ideas on testing failover using
+> > > rdma please let me know. I have successfully
+> > > used tcp_bw tests for this purpose already.
+> > >
+> > > Thanks,
+> > > Suri
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
