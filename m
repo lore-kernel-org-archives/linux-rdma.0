@@ -1,39 +1,26 @@
-From: Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Adding support for Debian packaging
-Date: Tue, 05 Mar 2013 13:24:05 +0200
-Message-ID: <5135D5D5.2080401@dev.mellanox.co.il>
-References: <1361441897-19486-1-git-send-email-ilyan@mellanox.com> <CABweQmK6zBZSeeLShS8MpcFu6oHVvNw6CF_3sWbqe1dGM-BeUg@mail.gmail.com> <CAL1RGDVaiOp84E3SfF6nUkNvjrAeUE=32EdmWusmWZSZqRJ_Qw@mail.gmail.com> <512DB43C.5060801@dev.mellanox.co.il> <CAL1RGDU3pHNNk_jtVWpW6OPyD1BjOxb8NFYcU=ojWxOGXkusug@mail.gmail.com>
+From: "Suresh Shelvapille" <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: Qperf and APM
+Date: Wed, 6 Mar 2013 10:40:19 -0500
+Message-ID: <82EBBE0B04D4427381C29144BE078F2B@md.baymicrosystems.com>
+References: <1358891797-14625-1-git-send-email-sean.hefty@intel.com> <1358891797-14625-2-git-send-email-sean.hefty@intel.com> <1828884A29C6694DAF28B7E6B8A8237368B99D59@ORSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A823736F35600F@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDU3pHNNk_jtVWpW6OPyD1BjOxb8NFYcU=ojWxOGXkusug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736F35600F-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/27/2013 9:27 AM, Roland Dreier wrote:
-> On Tue, Feb 26, 2013 at 11:22 PM, Ilya Nelkenbaum
-> <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> Does the libibumad that is installed in Debian synchronized with the upstream version?
-> 
-> I'm not sure what you're asking.  At appropriate times, new upstream
-> versions of software are added to various releases of the Debian
-> distribution, but this is a (semi-) manual process.
-> 
->   - R.
-> 
+Folks:
+The qperf utility has -ap, -lap, -rap options in support of APM. Unfortunately they don't seem to work. Is there a way
+to make this work, or if you have any other ideas on testing failover using rdma please let me know. I have successfully
+used tcp_bw tests for this purpose already.
 
-Hi Roland,
-
-I understood that there is requirement for the upstream to support
-Debian since the upstream is updated much more frequently than
-the Debian releases.
-
-So I guess that don't leave much choice
-
-Ilya
+Thanks,
+Suri
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
