@@ -1,109 +1,99 @@
-From: "Suresh Shelvapille" <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: RE: Qperf and APM
-Date: Wed, 6 Mar 2013 17:24:28 -0500
-Message-ID: <8AF67C8E913E4EE49D65CABA83E3DEBF@md.baymicrosystems.com>
-References: <1358891797-14625-1-git-send-email-sean.hefty@intel.com> <1358891797-14625-2-git-send-email-sean.hefty@intel.com> <1828884A29C6694DAF28B7E6B8A8237368B99D59@ORSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A823736F35600F@ORSMSX101.amr.corp.intel.com> <82EBBE0B04D4427381C29144BE078F2B@md.baymicrosystems.com> <4AF12E8016D2BF46BCDFCE8FAA77A3580394D479@fmsmsx109.amr.corp.intel.com> <58D79FF01489431AB6D87CD4977F2E45@md.baymicrosystems.com> <4AF12E8016D2BF46BCDFCE8FAA77A3580394D4FB@fmsmsx109.amr.corp.intel.com>
+From: "Hudzia, Benoit" <benoit.hudzia-y6kNeMnOB+c@public.gmane.org>
+Subject: mlx4 module loading fail
+Date: Thu, 7 Mar 2013 11:18:19 +0000
+Message-ID: <96353B6F8A3DAE4BBC51047BD0E6BAC20913A5@DEWDFEMB17A.global.corp.sap>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AF12E8016D2BF46BCDFCE8FAA77A3580394D4FB-96pTJSsuoYQd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Luick, Dean'" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I can see the packets going on the alternate path when the first link fails, but at the end of the test, the result is a
-failure, so I am not sure!
-I tried this with both '-ap' and "-lap -rap" options. I am assuming they are equivalent.
+Hi,
 
-------------------------------
-[root]# qperf <server-ipaddr> -ap 2 -t 30 rc_bw
-rc_bw:
-warning: -ap set but not used in test rc_bw
-failed to receive results: timed out
+I am currently experiencing some trouble with my connectx2 cards. 
+
+I  have been doing test with smallish server without any problem and this week I upgraded to a more beefier option. However I fail to be able setup the IB card with our current kernel .
 
 
+The servers spec are as follow: 
+	* 4x 10 core Intel(R) Xeon(R) CPU E7- 4870  @ 2.40GHz stepping 02
+	* 1TB of RAM 
+	* 1 connectx2 IB 
 
--------------------------
-[root]# qperf <server-ipaddr> -lap 2 -rap 2 -t 30 rc_bw
-rc_bw:
-warning: -lap set but not used in test rc_bw
-warning: -rap set but not used in test rc_bw
-failed to receive results: timed out
+Kernel Version : 3.5.0 
 
-thanks,
-Suri
+Note if I downgrade to a 3.2 kernel I do not experience this issue. However I am forced to work with a 3.5 or higher. Can somebody help me with that? 
+Thanks 
+Benoit
 
-> -----Original Message-----
-> From: Luick, Dean [mailto:dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Wednesday, March 06, 2013 3:57 PM
-> To: Suresh Shelvapille; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: Qperf and APM
-> 
-> Have you tried ignoring the warning and checking of the alternate port works?  The qperf code looks
-> to be using the alternate port, but incorrectly fails to mark the argument as used.
-> 
-> Dean
-> 
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Suresh Shelvapille
-> > Sent: Wednesday, March 06, 2013 1:00 PM
-> > To: Luick, Dean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: RE: Qperf and APM
-> >
-> > This is the error I see on the client(the same warning is seen with -lap and -
-> > rap options):
-> >
-> > ------------------------------
-> > qperf <server-ip-addr> -ap 2 rc_bw
-> > rc_bw:
-> > warning: -ap set but not used in test rc_bw
-> >     bw  =  3.39 GB/sec
-> >
-> > > -----Original Message-----
-> > > From: Luick, Dean [mailto:dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> > > Sent: Wednesday, March 06, 2013 1:52 PM
-> > > To: Suresh Shelvapille; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > Cc: Hefty, Sean
-> > > Subject: RE: Qperf and APM
-> > >
-> > > Hi,
-> > >
-> > > Can you be more specific?  What are you running and how is it failing?
-> > >
-> > > Thanks,
-> > > Dean
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Suresh Shelvapille
-> > > > Sent: Wednesday, March 06, 2013 9:40 AM
-> > > > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > Cc: Hefty, Sean
-> > > > Subject: Qperf and APM
-> > > >
-> > > > Folks:
-> > > > The qperf utility has -ap, -lap, -rap options in support of APM.
-> > Unfortunately
-> > > > they don't seem to work. Is there a way
-> > > > to make this work, or if you have any other ideas on testing failover using
-> > > > rdma please let me know. I have successfully
-> > > > used tcp_bw tests for this purpose already.
-> > > >
-> > > > Thanks,
-> > > > Suri
-> > > >
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kernel log trace: 
+
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423038] ------------[ cut here ]------------
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423049] WARNING: at mm/page_alloc.c:2298 __alloc_pages_nodemask+0x2b9/0x810()
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423050] Hardware name: QSSC-S4R
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423051] Modules linked in: joydev coretemp kvm_intel kvm microcode pcspkr ixgbe mlx4_core(+) igb mdio ioatdma i2c_i801 hid_generic lpc_ich i2c_core mfd_core dca tpm_tis tpm tpm_bios acpi_memhotpl
+ug evbug crc32c_intel megaraid_sas usbhid hid
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423078] Pid: 949, comm: modprobe Not tainted 3.5.0-heca-dev-34dd48a+ #29
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423079] Call Trace:
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423088]  [<ffffffff8104baef>] warn_slowpath_common+0x7f/0xc0
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423091]  [<ffffffff8104bb4a>] warn_slowpath_null+0x1a/0x20
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423093]  [<ffffffff811028b9>] __alloc_pages_nodemask+0x2b9/0x810
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423096]  [<ffffffff81102785>] ? __alloc_pages_nodemask+0x185/0x810
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423101]  [<ffffffff81137086>] alloc_pages_current+0xb6/0x120
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423105]  [<ffffffff810fe02e>] __get_free_pages+0xe/0x40
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423108]  [<ffffffff8113fcff>] kmalloc_order_trace+0x3f/0xd0
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423110]  [<ffffffff810fe02e>] ? __get_free_pages+0xe/0x40
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423113]  [<ffffffff811405e0>] __kmalloc+0x100/0x160
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423131]  [<ffffffffa01ba35d>] mlx4_buddy_init+0xed/0x1a0 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423140]  [<ffffffffa01bb8aa>] mlx4_init_mr_table+0xca/0x150 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423148]  [<ffffffffa01b6fa7>] mlx4_setup_hca.part.12+0xf7/0x4e0 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423156]  [<ffffffffa01aaeef>] ? mlx4_bitmap_init+0x8f/0xb0 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423164]  [<ffffffffa01b73bb>] mlx4_setup_hca+0x2b/0x70 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423172]  [<ffffffffa01b7ba4>] __mlx4_init_one+0x744/0x960 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423179]  [<ffffffffa01c55b6>] mlx4_init_one+0x3d/0x42 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423186]  [<ffffffff812e6e56>] pci_call_probe+0x96/0xb0
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423189]  [<ffffffff812e8019>] pci_device_probe+0x79/0xa0
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423194]  [<ffffffff813894fa>] ? driver_sysfs_add+0x7a/0xb0
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423196]  [<ffffffff813896b8>] really_probe+0x68/0x200
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423198]  [<ffffffff81389982>] driver_probe_device+0x22/0x30
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423200]  [<ffffffff81389a3b>] __driver_attach+0xab/0xb0
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423202]  [<ffffffff81389990>] ? driver_probe_device+0x30/0x30
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423205]  [<ffffffff81387c46>] bus_for_each_dev+0x56/0x90
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423207]  [<ffffffff813892fe>] driver_attach+0x1e/0x20
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423210]  [<ffffffff81388ed0>] bus_add_driver+0x1a0/0x270
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423216]  [<ffffffffa01d2031>] ? mlx4_catas_init+0x31/0x31 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423218]  [<ffffffff81389f86>] driver_register+0x76/0x130
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423223]  [<ffffffff8157aa9d>] ? notifier_call_chain+0x4d/0x70
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423227]  [<ffffffff8109f0b0>] ? add_kallsyms+0x1e0/0x1e0
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423233]  [<ffffffffa01d2031>] ? mlx4_catas_init+0x31/0x31 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423235]  [<ffffffff812e7d85>] __pci_register_driver+0x55/0xd0
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423241]  [<ffffffffa01d2031>] ? mlx4_catas_init+0x31/0x31 [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423246]  [<ffffffffa01d20dd>] mlx4_init+0xac/0xec [mlx4_core]
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423250]  [<ffffffff8100203f>] do_one_initcall+0x3f/0x170
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423253]  [<ffffffff810a18bf>] sys_init_module+0x8f/0x200
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423257]  [<ffffffff8157f0a9>] system_call_fastpath+0x16/0x1b
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423259] ---[ end trace 8886e8f0c535939d ]---
+Mar  7 03:12:27 bi-heca-02 kernel: [    7.423263] mlx4_core 0000:86:00.0: Failed to initialize memory region table, aborting.
+Mar  7 03:12:27 bi-heca-02 kernel: [    8.431444] mlx4_core: probe of 0000:86:00.0 failed with error -12
+
+
+
+Dr. Benoit Hudzia
+Senior Researcher
+
+SAP Next Business and Technology 
+SAP (UK) Limited
+The Concourse Building 
+Queen's Road , Queen's Island, Titanic Quarter
+BT3 9TD Belfast
+T +44 (0)28 9078 5742
+F +44 (0)28 9078  5777
+M +44 (0)79 834 46729
+mailto:benoit.hudzia-y6kNeMnOB+c@public.gmane.org
+www.sap.com/research
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
