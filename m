@@ -1,204 +1,142 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 1/3] opensm/osmtest.c: half_world_query when creating, inventory
- file
-Date: Thu, 07 Mar 2013 07:47:55 -0500
-Message-ID: <51388C7B.6090007@dev.mellanox.co.il>
+From: "Hudzia, Benoit" <benoit.hudzia-y6kNeMnOB+c@public.gmane.org>
+Subject: RE: mlx4 module loading fail
+Date: Thu, 7 Mar 2013 12:56:18 +0000
+Message-ID: <96353B6F8A3DAE4BBC51047BD0E6BAC2091414@DEWDFEMB17A.global.corp.sap>
+References: <96353B6F8A3DAE4BBC51047BD0E6BAC20913A5@DEWDFEMB17A.global.corp.sap>
+ <20130307123854.GB15491@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130307123854.GB15491-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-When osmtest needs to create path records for inventory file, it will
-do n half-world queries (instead of full world query) where n is
-the number of end ports which was previously determined.
-
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- osmtest/osmtest.c |  130 ++++++++++++++++++++++++++++++++++++++++++-----------
- 1 files changed, 104 insertions(+), 26 deletions(-)
-
-diff --git a/osmtest/osmtest.c b/osmtest/osmtest.c
-index 36b9dc8..5dbf0db 100644
---- a/osmtest/osmtest.c
-+++ b/osmtest/osmtest.c
-@@ -832,6 +832,69 @@ Exit:
- }
- 
- static ib_api_status_t
-+osmtest_get_path_rec_by_half_world_query(IN osmtest_t * const p_osmt,
-+				  IN ib_net64_t sguid,
-+				  IN osmtest_req_context_t * p_context)
-+{
-+	cl_status_t status = IB_SUCCESS;
-+	osmv_query_req_t req;
-+	osmv_user_query_t user;
-+	ib_path_rec_t record;
-+
-+	OSM_LOG_ENTER(&p_osmt->log);
-+
-+	memset(&req, 0, sizeof(req));
-+	memset(p_context, 0, sizeof(*p_context));
-+	memset(&record, 0, sizeof(record));
-+	memset(&user, 0, sizeof(user));
-+
-+        ib_gid_set_default(&(record.sgid), sguid);
-+	record.num_path = 0x01;
-+
-+	p_context->p_osmt = p_osmt;
-+	user.comp_mask = (IB_PR_COMPMASK_SGID | IB_PR_COMPMASK_NUMBPATH);
-+	user.attr_id = IB_MAD_ATTR_PATH_RECORD;
-+	user.p_attr = &record;
-+
-+	req.query_type = OSMV_QUERY_USER_DEFINED;
-+	req.timeout_ms = p_osmt->opt.transaction_timeout;
-+	req.retry_cnt = p_osmt->opt.retry_count;
-+	req.flags = OSM_SA_FLAGS_SYNC;
-+	req.query_context = p_context;
-+	req.pfn_query_cb = osmtest_query_res_cb;
-+	req.p_query_input = &user;
-+	req.sm_key = 0;
-+
-+	status = osmv_query_sa(p_osmt->h_bind, &req);
-+	if (status != IB_SUCCESS) {
-+		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 0063: "
-+			"ib_query failed (%s)\n", ib_get_err_str(status));
-+		goto Exit;
-+	}
-+
-+	status = (*p_context).result.status;
-+
-+	if (status != IB_SUCCESS) {
-+		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 0066: "
-+			"ib_query failed (%s)\n", ib_get_err_str(status));
-+
-+		if (status == IB_REMOTE_ERROR) {
-+			OSM_LOG(&p_osmt->log, OSM_LOG_ERROR,
-+				"Remote error = %s\n",
-+				ib_get_mad_status_str(osm_madw_get_mad_ptr
-+						      ((*p_context).result.
-+						       p_result_madw)));
-+		}
-+		goto Exit;
-+	}
-+
-+Exit:
-+
-+	OSM_LOG_EXIT(&p_osmt->log);
-+	return (status);
-+}
-+
-+static ib_api_status_t
- osmtest_get_path_rec_by_guid_pair(IN osmtest_t * const p_osmt,
- 				  IN ib_net64_t sguid,
- 				  IN ib_net64_t dguid,
-@@ -2028,6 +2091,7 @@ osmtest_write_all_node_recs(IN osmtest_t * const p_osmt, IN FILE * fh)
- 	cl_status_t status;
- 	size_t num_recs;
- 	int result;
-+	node_t *p_guid_node;
- 
- 	OSM_LOG_ENTER(&p_osmt->log);
- 
-@@ -2065,6 +2129,16 @@ osmtest_write_all_node_recs(IN osmtest_t * const p_osmt, IN FILE * fh)
- 		p_rec =
- 		    osmv_get_query_node_rec(context.result.p_result_madw, i);
- 		osmtest_write_node_info(p_osmt, fh, p_rec);
-+
-+		/* create a subnet object */
-+		p_guid_node = node_new();
-+		CL_ASSERT(p_node != NULL);
-+
-+		/* copy the info to the subnet node object */
-+		p_guid_node->rec = *p_rec;
-+		cl_qmap_insert(&p_osmt->exp_subn.node_guid_tbl,
-+				p_guid_node->rec.node_info.port_guid,
-+				&p_guid_node->map_item);
- 	}
- 
- Exit:
-@@ -2156,33 +2230,16 @@ osmtest_write_all_path_recs(IN osmtest_t * const p_osmt, IN FILE * fh)
- 	osmtest_req_context_t context;
- 	const ib_path_rec_t *p_rec;
- 	uint32_t i;
--	cl_status_t status;
-+	cl_status_t status = CL_SUCCESS;
- 	size_t num_recs;
- 	int result;
-+	node_t *p_dst_node;
-+	cl_qmap_t *p_tbl;
- 
- 	OSM_LOG_ENTER(&p_osmt->log);
- 
--	memset(&context, 0, sizeof(context));
--
--	/*
--	 * Do a blocking query for all PathRecords in the subnet.
--	 */
--	status = osmtest_get_all_recs(p_osmt, IB_MAD_ATTR_PATH_RECORD,
--				      sizeof(*p_rec), &context);
--
--	if (status != IB_SUCCESS) {
--		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 0025: "
--			"osmtest_get_all_recs failed (%s)\n",
--			ib_get_err_str(status));
--		goto Exit;
--	}
--
--	/*
--	 * Write the received records out to the file.
--	 */
--	num_recs = context.result.result_cnt;
--
--	OSM_LOG(&p_osmt->log, OSM_LOG_VERBOSE, "Received %zu records\n", num_recs);
-+	p_tbl = &p_osmt->exp_subn.node_guid_tbl;
-+	p_dst_node = (node_t *) cl_qmap_head(p_tbl);
- 
- 	result = fprintf(fh, "#\n" "# Path Records\n" "#\n");
- 	if (result < 0) {
-@@ -2192,10 +2249,31 @@ osmtest_write_all_path_recs(IN osmtest_t * const p_osmt, IN FILE * fh)
- 		goto Exit;
- 	}
- 
--	for (i = 0; i < num_recs; i++) {
--		p_rec =
--		    osmv_get_query_path_rec(context.result.p_result_madw, i);
--		osmtest_write_path_info(p_osmt, fh, p_rec);
-+	while (p_dst_node != (node_t *) cl_qmap_end(p_tbl)) {
-+
-+		OSM_LOG(&p_osmt->log, OSM_LOG_DEBUG,"Source : lid = 0x%d type = %d\n",
-+				cl_ntoh16(p_dst_node->rec.lid),
-+				p_dst_node->rec.node_info.node_type);
-+
-+		status = osmtest_get_path_rec_by_half_world_query(p_osmt, p_dst_node->rec.node_info.port_guid, &context);
-+		if (status != IB_SUCCESS) {
-+			OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 0025: "
-+					"osmtest_get_all_path_recs failed (%s)\n",
-+					ib_get_err_str(status));
-+			goto Exit;
-+		}
-+		/*
-+		 * Write the received records out to the file.
-+		 */
-+		num_recs = context.result.result_cnt;
-+		OSM_LOG(&p_osmt->log, OSM_LOG_VERBOSE, "Received %zu records\n", num_recs);
-+
-+		for (i = 0; i < num_recs; i++) {
-+			p_rec =
-+				osmv_get_query_path_rec(context.result.p_result_madw, i);
-+			osmtest_write_path_info(p_osmt, fh, p_rec);
-+		}
-+		p_dst_node = (node_t *) cl_qmap_next(&p_dst_node->map_item);
- 	}
- 
- Exit:
--- 
-1.7.8.2
-
+SSB0aGluayBJIHRyaWVkICB3aXRoIHRoZSAzLjggc3RhYmxlIGJ1dCBJIHdpbGwgY2hlY2sgYWdh
+aW4gdG8gbWFrZSBzdXJlLiANCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZy
+b206IERvbmdzdSBQYXJrIFttYWlsdG86ZG9uZ3N1LnBhcmtAcHJvZml0YnJpY2tzLmNvbV0NCj4g
+U2VudDogMDcgTWFyY2ggMjAxMyAxMjozOQ0KPiBUbzogSHVkemlhLCBCZW5vaXQNCj4gQ2M6IGxp
+bnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBtbHg0IG1vZHVsZSBsb2Fk
+aW5nIGZhaWwNCj4gDQo+IEhpLA0KPiANCj4gT24gMDcuMDMuMjAxMyAxMToxOCwgSHVkemlhLCBC
+ZW5vaXQgd3JvdGU6DQo+ID4gVGhlIHNlcnZlcnMgc3BlYyBhcmUgYXMgZm9sbG93Og0KPiA+IAkq
+IDR4IDEwIGNvcmUgSW50ZWwoUikgWGVvbihSKSBDUFUgRTctIDQ4NzAgIEAgMi40MEdIeiBzdGVw
+cGluZyAwMg0KPiA+IAkqIDFUQiBvZiBSQU0NCj4gPiAJKiAxIGNvbm5lY3R4MiBJQg0KPiA+DQo+
+ID4gS2VybmVsIFZlcnNpb24gOiAzLjUuMA0KPiA+DQo+ID4gTm90ZSBpZiBJIGRvd25ncmFkZSB0
+byBhIDMuMiBrZXJuZWwgSSBkbyBub3QgZXhwZXJpZW5jZSB0aGlzIGlzc3VlLiBIb3dldmVyDQo+
+IEkgYW0gZm9yY2VkIHRvIHdvcmsgd2l0aCBhIDMuNSBvciBoaWdoZXIuIENhbiBzb21lYm9keSBo
+ZWxwIG1lIHdpdGggdGhhdD8NCj4gDQo+IFByb2JhYmx5IHRoZSBjb21taXQgODlkZDg2ZGIgKG1s
+eDRfY29yZTogQWxsb3cgbGFyZ2UgbWx4NF9idWRkeQ0KPiBiaXRtYXBzKSwNCj4gd2hpY2ggaXMg
+YWxyZWFkeSBpbmNsdWRlZCBpbiAzLjYgb3IgaGlnaGVyLCBoYXMgYWxyZWFkeSBmaXhlZCB0aGUg
+cHJvYmxlbS4NCj4gDQo+IGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJuZWwv
+Z2l0L3N0YWJsZS9saW51eC0NCj4gc3RhYmxlLmdpdC9jb21taXQ/aD1saW51eC0zLjYueSZpZD04
+OWRkODZkYg0KPiANCj4gUmVnYXJkcywNCj4gRG9uZ3N1DQo+IA0KPiA+IFRoYW5rcw0KPiA+IEJl
+bm9pdA0KPiA+DQo+ID4gS2VybmVsIGxvZyB0cmFjZToNCj4gPg0KPiA+IE1hciAgNyAwMzoxMjoy
+NyBiaS1oZWNhLTAyIGtlcm5lbDogWyAgICA3LjQyMzAzOF0gLS0tLS0tLS0tLS0tWyBjdXQgaGVy
+ZSBdLS0tLS0tLS0tDQo+IC0tLQ0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5l
+bDogWyAgICA3LjQyMzA0OV0gV0FSTklORzogYXQNCj4gbW0vcGFnZV9hbGxvYy5jOjIyOTggX19h
+bGxvY19wYWdlc19ub2RlbWFzaysweDJiOS8weDgxMCgpDQo+ID4gTWFyICA3IDAzOjEyOjI3IGJp
+LWhlY2EtMDIga2VybmVsOiBbICAgIDcuNDIzMDUwXSBIYXJkd2FyZSBuYW1lOiBRU1NDLVM0Ug0K
+PiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDogWyAgICA3LjQyMzA1MV0gTW9k
+dWxlcyBsaW5rZWQgaW46IGpveWRldg0KPiBjb3JldGVtcCBrdm1faW50ZWwga3ZtIG1pY3JvY29k
+ZSBwY3Nwa3IgaXhnYmUgbWx4NF9jb3JlKCspIGlnYiBtZGlvDQo+IGlvYXRkbWEgaTJjX2k4MDEg
+aGlkX2dlbmVyaWMgbHBjX2ljaCBpMmNfY29yZSBtZmRfY29yZSBkY2EgdHBtX3RpcyB0cG0NCj4g
+dHBtX2Jpb3MgYWNwaV9tZW1ob3RwbA0KPiA+IHVnIGV2YnVnIGNyYzMyY19pbnRlbCBtZWdhcmFp
+ZF9zYXMgdXNiaGlkIGhpZA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDog
+WyAgICA3LjQyMzA3OF0gUGlkOiA5NDksIGNvbW06IG1vZHByb2JlDQo+IE5vdCB0YWludGVkIDMu
+NS4wLWhlY2EtZGV2LTM0ZGQ0OGErICMyOQ0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAy
+IGtlcm5lbDogWyAgICA3LjQyMzA3OV0gQ2FsbCBUcmFjZToNCj4gPiBNYXIgIDcgMDM6MTI6Mjcg
+YmktaGVjYS0wMiBrZXJuZWw6IFsgICAgNy40MjMwODhdICBbPGZmZmZmZmZmODEwNGJhZWY+XQ0K
+PiB3YXJuX3Nsb3dwYXRoX2NvbW1vbisweDdmLzB4YzANCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmkt
+aGVjYS0wMiBrZXJuZWw6IFsgICAgNy40MjMwOTFdICBbPGZmZmZmZmZmODEwNGJiNGE+XQ0KPiB3
+YXJuX3Nsb3dwYXRoX251bGwrMHgxYS8weDIwDQo+ID4gTWFyICA3IDAzOjEyOjI3IGJpLWhlY2Et
+MDIga2VybmVsOiBbICAgIDcuNDIzMDkzXSAgWzxmZmZmZmZmZjgxMTAyOGI5Pl0NCj4gX19hbGxv
+Y19wYWdlc19ub2RlbWFzaysweDJiOS8weDgxMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNh
+LTAyIGtlcm5lbDogWyAgICA3LjQyMzA5Nl0gIFs8ZmZmZmZmZmY4MTEwMjc4NT5dID8NCj4gX19h
+bGxvY19wYWdlc19ub2RlbWFzaysweDE4NS8weDgxMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1o
+ZWNhLTAyIGtlcm5lbDogWyAgICA3LjQyMzEwMV0gIFs8ZmZmZmZmZmY4MTEzNzA4Nj5dDQo+IGFs
+bG9jX3BhZ2VzX2N1cnJlbnQrMHhiNi8weDEyMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNh
+LTAyIGtlcm5lbDogWyAgICA3LjQyMzEwNV0gIFs8ZmZmZmZmZmY4MTBmZTAyZT5dDQo+IF9fZ2V0
+X2ZyZWVfcGFnZXMrMHhlLzB4NDANCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0wMiBrZXJu
+ZWw6IFsgICAgNy40MjMxMDhdICBbPGZmZmZmZmZmODExM2ZjZmY+XQ0KPiBrbWFsbG9jX29yZGVy
+X3RyYWNlKzB4M2YvMHhkMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDog
+WyAgICA3LjQyMzExMF0gIFs8ZmZmZmZmZmY4MTBmZTAyZT5dID8NCj4gX19nZXRfZnJlZV9wYWdl
+cysweGUvMHg0MA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDogWyAgICA3
+LjQyMzExM10gIFs8ZmZmZmZmZmY4MTE0MDVlMD5dDQo+IF9fa21hbGxvYysweDEwMC8weDE2MA0K
+PiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDogWyAgICA3LjQyMzEzMV0gIFs8
+ZmZmZmZmZmZhMDFiYTM1ZD5dDQo+IG1seDRfYnVkZHlfaW5pdCsweGVkLzB4MWEwIFttbHg0X2Nv
+cmVdDQo+ID4gTWFyICA3IDAzOjEyOjI3IGJpLWhlY2EtMDIga2VybmVsOiBbICAgIDcuNDIzMTQw
+XSAgWzxmZmZmZmZmZmEwMWJiOGFhPl0NCj4gbWx4NF9pbml0X21yX3RhYmxlKzB4Y2EvMHgxNTAg
+W21seDRfY29yZV0NCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0wMiBrZXJuZWw6IFsgICAg
+Ny40MjMxNDhdICBbPGZmZmZmZmZmYTAxYjZmYTc+XQ0KPiBtbHg0X3NldHVwX2hjYS5wYXJ0LjEy
+KzB4ZjcvMHg0ZTAgW21seDRfY29yZV0NCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0wMiBr
+ZXJuZWw6IFsgICAgNy40MjMxNTZdICBbPGZmZmZmZmZmYTAxYWFlZWY+XSA/DQo+IG1seDRfYml0
+bWFwX2luaXQrMHg4Zi8weGIwIFttbHg0X2NvcmVdDQo+ID4gTWFyICA3IDAzOjEyOjI3IGJpLWhl
+Y2EtMDIga2VybmVsOiBbICAgIDcuNDIzMTY0XSAgWzxmZmZmZmZmZmEwMWI3M2JiPl0NCj4gbWx4
+NF9zZXR1cF9oY2ErMHgyYi8weDcwIFttbHg0X2NvcmVdDQo+ID4gTWFyICA3IDAzOjEyOjI3IGJp
+LWhlY2EtMDIga2VybmVsOiBbICAgIDcuNDIzMTcyXSAgWzxmZmZmZmZmZmEwMWI3YmE0Pl0NCj4g
+X19tbHg0X2luaXRfb25lKzB4NzQ0LzB4OTYwIFttbHg0X2NvcmVdDQo+ID4gTWFyICA3IDAzOjEy
+OjI3IGJpLWhlY2EtMDIga2VybmVsOiBbICAgIDcuNDIzMTc5XSAgWzxmZmZmZmZmZmEwMWM1NWI2
+Pl0NCj4gbWx4NF9pbml0X29uZSsweDNkLzB4NDIgW21seDRfY29yZV0NCj4gPiBNYXIgIDcgMDM6
+MTI6MjcgYmktaGVjYS0wMiBrZXJuZWw6IFsgICAgNy40MjMxODZdICBbPGZmZmZmZmZmODEyZTZl
+NTY+XQ0KPiBwY2lfY2FsbF9wcm9iZSsweDk2LzB4YjANCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmkt
+aGVjYS0wMiBrZXJuZWw6IFsgICAgNy40MjMxODldICBbPGZmZmZmZmZmODEyZTgwMTk+XQ0KPiBw
+Y2lfZGV2aWNlX3Byb2JlKzB4NzkvMHhhMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAy
+IGtlcm5lbDogWyAgICA3LjQyMzE5NF0gIFs8ZmZmZmZmZmY4MTM4OTRmYT5dID8NCj4gZHJpdmVy
+X3N5c2ZzX2FkZCsweDdhLzB4YjANCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0wMiBrZXJu
+ZWw6IFsgICAgNy40MjMxOTZdICBbPGZmZmZmZmZmODEzODk2Yjg+XQ0KPiByZWFsbHlfcHJvYmUr
+MHg2OC8weDIwMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDogWyAgICA3
+LjQyMzE5OF0gIFs8ZmZmZmZmZmY4MTM4OTk4Mj5dDQo+IGRyaXZlcl9wcm9iZV9kZXZpY2UrMHgy
+Mi8weDMwDQo+ID4gTWFyICA3IDAzOjEyOjI3IGJpLWhlY2EtMDIga2VybmVsOiBbICAgIDcuNDIz
+MjAwXSAgWzxmZmZmZmZmZjgxMzg5YTNiPl0NCj4gX19kcml2ZXJfYXR0YWNoKzB4YWIvMHhiMA0K
+PiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDogWyAgICA3LjQyMzIwMl0gIFs8
+ZmZmZmZmZmY4MTM4OTk5MD5dID8NCj4gZHJpdmVyX3Byb2JlX2RldmljZSsweDMwLzB4MzANCj4g
+PiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0wMiBrZXJuZWw6IFsgICAgNy40MjMyMDVdICBbPGZm
+ZmZmZmZmODEzODdjNDY+XQ0KPiBidXNfZm9yX2VhY2hfZGV2KzB4NTYvMHg5MA0KPiA+IE1hciAg
+NyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDogWyAgICA3LjQyMzIwN10gIFs8ZmZmZmZmZmY4
+MTM4OTJmZT5dDQo+IGRyaXZlcl9hdHRhY2grMHgxZS8weDIwDQo+ID4gTWFyICA3IDAzOjEyOjI3
+IGJpLWhlY2EtMDIga2VybmVsOiBbICAgIDcuNDIzMjEwXSAgWzxmZmZmZmZmZjgxMzg4ZWQwPl0N
+Cj4gYnVzX2FkZF9kcml2ZXIrMHgxYTAvMHgyNzANCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVj
+YS0wMiBrZXJuZWw6IFsgICAgNy40MjMyMTZdICBbPGZmZmZmZmZmYTAxZDIwMzE+XSA/DQo+IG1s
+eDRfY2F0YXNfaW5pdCsweDMxLzB4MzEgW21seDRfY29yZV0NCj4gPiBNYXIgIDcgMDM6MTI6Mjcg
+YmktaGVjYS0wMiBrZXJuZWw6IFsgICAgNy40MjMyMThdICBbPGZmZmZmZmZmODEzODlmODY+XQ0K
+PiBkcml2ZXJfcmVnaXN0ZXIrMHg3Ni8weDEzMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNh
+LTAyIGtlcm5lbDogWyAgICA3LjQyMzIyM10gIFs8ZmZmZmZmZmY4MTU3YWE5ZD5dID8NCj4gbm90
+aWZpZXJfY2FsbF9jaGFpbisweDRkLzB4NzANCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0w
+MiBrZXJuZWw6IFsgICAgNy40MjMyMjddICBbPGZmZmZmZmZmODEwOWYwYjA+XSA/DQo+IGFkZF9r
+YWxsc3ltcysweDFlMC8weDFlMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5l
+bDogWyAgICA3LjQyMzIzM10gIFs8ZmZmZmZmZmZhMDFkMjAzMT5dID8NCj4gbWx4NF9jYXRhc19p
+bml0KzB4MzEvMHgzMSBbbWx4NF9jb3JlXQ0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAy
+IGtlcm5lbDogWyAgICA3LjQyMzIzNV0gIFs8ZmZmZmZmZmY4MTJlN2Q4NT5dDQo+IF9fcGNpX3Jl
+Z2lzdGVyX2RyaXZlcisweDU1LzB4ZDANCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0wMiBr
+ZXJuZWw6IFsgICAgNy40MjMyNDFdICBbPGZmZmZmZmZmYTAxZDIwMzE+XSA/DQo+IG1seDRfY2F0
+YXNfaW5pdCsweDMxLzB4MzEgW21seDRfY29yZV0NCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVj
+YS0wMiBrZXJuZWw6IFsgICAgNy40MjMyNDZdICBbPGZmZmZmZmZmYTAxZDIwZGQ+XQ0KPiBtbHg0
+X2luaXQrMHhhYy8weGVjIFttbHg0X2NvcmVdDQo+ID4gTWFyICA3IDAzOjEyOjI3IGJpLWhlY2Et
+MDIga2VybmVsOiBbICAgIDcuNDIzMjUwXSAgWzxmZmZmZmZmZjgxMDAyMDNmPl0NCj4gZG9fb25l
+X2luaXRjYWxsKzB4M2YvMHgxNzANCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0wMiBrZXJu
+ZWw6IFsgICAgNy40MjMyNTNdICBbPGZmZmZmZmZmODEwYTE4YmY+XQ0KPiBzeXNfaW5pdF9tb2R1
+bGUrMHg4Zi8weDIwMA0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDogWyAg
+ICA3LjQyMzI1N10gIFs8ZmZmZmZmZmY4MTU3ZjBhOT5dDQo+IHN5c3RlbV9jYWxsX2Zhc3RwYXRo
+KzB4MTYvMHgxYg0KPiA+IE1hciAgNyAwMzoxMjoyNyBiaS1oZWNhLTAyIGtlcm5lbDogWyAgICA3
+LjQyMzI1OV0gLS0tWyBlbmQgdHJhY2UNCj4gODg4NmU4ZjBjNTM1OTM5ZCBdLS0tDQo+ID4gTWFy
+ICA3IDAzOjEyOjI3IGJpLWhlY2EtMDIga2VybmVsOiBbICAgIDcuNDIzMjYzXSBtbHg0X2NvcmUg
+MDAwMDo4NjowMC4wOg0KPiBGYWlsZWQgdG8gaW5pdGlhbGl6ZSBtZW1vcnkgcmVnaW9uIHRhYmxl
+LCBhYm9ydGluZy4NCj4gPiBNYXIgIDcgMDM6MTI6MjcgYmktaGVjYS0wMiBrZXJuZWw6IFsgICAg
+OC40MzE0NDRdIG1seDRfY29yZTogcHJvYmUgb2YNCj4gMDAwMDo4NjowMC4wIGZhaWxlZCB3aXRo
+IGVycm9yIC0xMg0KPiA+DQo+ID4NCj4gPg0KPiA+IERyLiBCZW5vaXQgSHVkemlhDQo+ID4gU2Vu
+aW9yIFJlc2VhcmNoZXINCj4gPg0KPiA+IFNBUCBOZXh0IEJ1c2luZXNzIGFuZCBUZWNobm9sb2d5
+DQo+ID4gU0FQIChVSykgTGltaXRlZA0KPiA+IFRoZSBDb25jb3Vyc2UgQnVpbGRpbmcNCj4gPiBR
+dWVlbidzIFJvYWQgLCBRdWVlbidzIElzbGFuZCwgVGl0YW5pYyBRdWFydGVyDQo+ID4gQlQzIDlU
+RCBCZWxmYXN0DQo+ID4gVCArNDQgKDApMjggOTA3OCA1NzQyDQo+ID4gRiArNDQgKDApMjggOTA3
+OCAgNTc3Nw0KPiA+IE0gKzQ0ICgwKTc5IDgzNCA0NjcyOQ0KPiA+IG1haWx0bzpiZW5vaXQuaHVk
+emlhQHNhcC5jb20NCj4gPiB3d3cuc2FwLmNvbS9yZXNlYXJjaA0KPiA+DQo+ID4gLS0NCj4gPiBU
+byB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUg
+bGludXgtcmRtYSIgaW4NCj4gPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZn
+ZXIua2VybmVsLm9yZw0KPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtl
+cm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
