@@ -1,73 +1,69 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [RFC 01/11] iscsi-target: Add iscsit_transport API template
-Date: Fri, 08 Mar 2013 13:26:16 -0800
-Message-ID: <1362777976.7905.326.camel@haakon2.linux-iscsi.org>
-References: <1362707116-31406-1-git-send-email-nab@linux-iscsi.org>
-	 <1362707116-31406-2-git-send-email-nab@linux-iscsi.org>
-	 <CAG4TOxM=PDYXCAMNdRx629aAP+XF7oZmykg0k4b+a688PzzayA@mail.gmail.com>
-	 <CAJZOPZLnVLXqcvmjhxuhDghkuAHdf5RmxNSM2gy8LqgCqvh8HQ@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 1/2] opensm/osm_torus.c: avoid the possibility of following
+ stale ->priv pointers
+Date: Sat, 09 Mar 2013 08:26:54 -0500
+Message-ID: <513B389E.30506@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <CAJZOPZLnVLXqcvmjhxuhDghkuAHdf5RmxNSM2gy8LqgCqvh8HQ@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Or Gerlitz <or.gerlitz@gmail.com>
-Cc: Roland Dreier <roland@kernel.org>, target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Alexander Nezhinsky <alexandern@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2013-03-08 at 14:36 +0200, Or Gerlitz wrote:
-> On Fri, Mar 8, 2013 at 6:14 AM, Roland Dreier <roland@kernel.org> wrote:
-> > Nicholas A. Bellinger <nab@linux-iscsi.org> wrote:
-> > > +EXPORT_SYMBOL(iscsit_get_transport);
-> 
-> > It's not clear to me why this needs to be exported.  Who would use it
-> > outside the core iscsi target module?
-> 
-> Yep, as Nic noted, we're adding here an iscsi transport concept e.g in
-> the same manner Mike did libiscsi back in 2005/6 when the iser
-> initiator was pushed. This allows for multiple iscsi flavours to use a
-> common code  for common functionality. In the initiator area initially
-> there were iscsi tcp and iser, later few iscsi HW offloads were merged
-> too. Same story here. I think that the point is whether or not these
-> APIs are needed, since once we agree on that, we need an header file
-> and exporting of functions. As libiscsi.h resided under include/ it
-> makes sense to me for this include to be located there too.
+>From 557b01eb8857a197a973af76d1322f76d25495ed Mon Sep 17 00:00:00 2001
+From: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Date: Fri, 8 Mar 2013 08:59:01 -0700
+Subject: [PATCH 1/2] opensm/osm_torus.c: avoid the possibility of following stale ->priv pointers
 
-So my main concern with putting iscsit_transport definitions into
-include/target/iscsi/ is the number of dependencies required from
-iscsi_target_core.h.
+Torus-2QoS makes persistent use of osm_switch_t:priv and osm_port_t:priv
+to speed its routing calculations.
 
-Currently with iscsi_cmd embedded into isert_cmd, this will require most
-existing iscsi_target_core.h definitions to be pushed out into
-include/target/iscsi/.  This also includes some namespace conflicts
-between libiscsi.h and iscsi_target_core.h, but those can be solved
-easily enough.
+In some situations t2q is unable to determine the location in the torus
+topology of a discovered switch.  An example of this occurs when all the
+inter-switch links but one connected to a switch have failed.
 
-I'm still leaning towards just keeping iscsi_transport.h definitions
-local to drivers/target/iscsi, if there is really not going to be other
-drivers aside from ib_isert that end up using it.  If there was interest
-in traditional iscsi-target HW offloads using this interface then the
-story would be different, but every HW offload that I've seen thus far
-using LIO is based on out-of-tree NIC code to start.
+When this happens, at the end of a full sweep opensm will attempt to
+program the VLArb tables for that switch.  Torus_update_osm_vlarb()
+will follow a stale osm_switch_t:priv pointer, left over from the
+previous routing cycle when switch was discovered in the torus,
+ultimately resulting in a segmentation fault.
 
---nab
+Prevent this by clearing stale values of osm_switch_t:priv as part of
+the first step in torus topology discovery.  Do the same thing for
+osm_port_t:priv, even though it has not yet been implicated in this
+sort of issue yet.
 
+Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+---
+ opensm/osm_torus.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-
-
-
-
-
+diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
+index 757a32a..bc3c0b8 100644
+--- a/opensm/osm_torus.c
++++ b/opensm/osm_torus.c
+@@ -1173,6 +1173,7 @@ bool capture_fabric(struct fabric *fabric)
  
+ 		osm_sw = (osm_switch_t *)item;
+ 		item = cl_qmap_next(item);
++		osm_sw->priv = NULL;  /* avoid stale pointer dereferencing */
+ 		osm_node = osm_sw->p_node;
+ 
+ 		if (osm_node_get_type(osm_node) != IB_NODE_TYPE_SWITCH)
+@@ -1193,6 +1194,7 @@ bool capture_fabric(struct fabric *fabric)
+ 
+ 		lport = (osm_port_t *)item;
+ 		item = cl_qmap_next(item);
++		lport->priv = NULL;  /* avoid stale pointer dereferencing */
+ 
+ 		lphysp = lport->p_physp;
+ 		if (!(lphysp && osm_physp_is_valid(lphysp)))
+-- 
+1.7.1
 
-> 
-> Or.
-> 
-> Or.
-> --
-> To unsubscribe from this list: send the line "unsubscribe target-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
