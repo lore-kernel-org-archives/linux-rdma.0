@@ -1,30 +1,51 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V3 for-next 3/5] IB/ipoib: Move to multi-queue device
-Date: Sat, 9 Mar 2013 14:04:05 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0D5C7875@FMSMSX108.amr.corp.intel.com>
-References: <1362676288-19906-1-git-send-email-ogerlitz@mellanox.com>
- <1362676288-19906-4-git-send-email-ogerlitz@mellanox.com>
+From: Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags] Adding support for Debian packaging
+Date: Sun, 10 Mar 2013 11:57:09 +0200
+Message-ID: <513C58F5.8000803@dev.mellanox.co.il>
+References: <1361441897-19486-1-git-send-email-ilyan@mellanox.com> <CABweQmK6zBZSeeLShS8MpcFu6oHVvNw6CF_3sWbqe1dGM-BeUg@mail.gmail.com> <CAL1RGDVaiOp84E3SfF6nUkNvjrAeUE=32EdmWusmWZSZqRJ_Qw@mail.gmail.com> <512DB43C.5060801@dev.mellanox.co.il> <CAL1RGDU3pHNNk_jtVWpW6OPyD1BjOxb8NFYcU=ojWxOGXkusug@mail.gmail.com> <512E14E7.9020808@dev.mellanox.co.il> <CABweQmKPpRvKZE8JoO_rX3OrUN+nB=u1DOUAJfuwXNP_+54neg@mail.gmail.com> <CAJZOPZKOpjrzW4+Gyotxhyx+uKhUHDEU6VeM8PbK-GQFN4z3iA@mail.gmail.com> <CAL1RGDXoajY0=W7iJUE4m8a5tgDVbmVihV-gGNVho4Y5cT06gQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1362676288-19906-4-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAL1RGDXoajY0=W7iJUE4m8a5tgDVbmVihV-gGNVho4Y5cT06gQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Narayan Desai <narayan.desai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch will conflict with http://marc.info/?l=linux-rdma&m=136190765729001&w=2.
+On 2/27/2013 11:21 PM, Roland Dreier wrote:
+> On Wed, Feb 27, 2013 at 11:11 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> You can also take a look on the upstream trees for libibverbs and
+>> libmlx4 maintained by Roland which have a debian dir, which you
+>> probably can re-use for the managment libraries and opensm, here are
+>> the gitweb pointers,
+>>
+>> http://git.kernel.org/?p=libs/infiniband/libibverbs.git;a=summary
+>> http://git.kernel.org/?p=libs/infiniband/libmlx4.git;a=summary
+> 
+> I happen to maintain the Debian packaging for libibverbs and libmlx4
+> in the same source tree as the upstream source.  However it's actually
+> easier in the case where the Debian packaging maintainer and the
+> upstream maintainer are different just to leave debian/ directory out
+> of the upstream source.  If you're not really that familiar with
+> Debian packaging and Debian policy, it's probably best just to leave
+> the packaging to the Debian project.
+> 
+>  - R.
+> 
 
-Mike
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
-> Sent: Thursday, March 07, 2013 12:11 PM
-> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Shlomo Pongratz
-> Subject: [PATCH V3 for-next 3/5] IB/ipoib: Move to multi-queue device
+Hi Roland,
+
+As I understand Debian releases happen less often that the updates and bug fixes in management packages,
+and in case of critical bug fix or some important new feature, client that uses
+a specific package and needs the Debian support cannot just use the latest upstream version
+but will have to wait for the Debian release.
+
+So I guess in such cases it might help and it will also leave less work for the Debian maintainer
+
+What do you think?
+
+Ilya
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
