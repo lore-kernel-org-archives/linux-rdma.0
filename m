@@ -1,37 +1,28 @@
-From: Vipul Pandya <vipul@chelsio.com>
-Subject: [PATCH net-next 09/22] cxgb4: Update driver version and description
-Date: Tue, 12 Mar 2013 17:16:21 +0530
-Message-ID: <1363088794-31453-10-git-send-email-vipul@chelsio.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 05/22] cxgb4: Add T5 write combining support
+Date: Tue, 12 Mar 2013 08:19:27 -0400 (EDT)
+Message-ID: <20130312.081927.1036246728528667686.davem@davemloft.net>
 References: <1363088794-31453-1-git-send-email-vipul@chelsio.com>
+	<1363088794-31453-6-git-send-email-vipul@chelsio.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1363088794-31453-1-git-send-email-vipul@chelsio.com>
+In-Reply-To: <1363088794-31453-6-git-send-email-vipul@chelsio.com>
 Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org
-Cc: davem@davemloft.net, roland@purestorage.com, JBottomley@parallels.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, naresh@chelsio.com, divy@chelsio.com, santosh@chelsio.com, arvindb@chelsio.com, abhishek@chelsio.com, Vipul Pandya <vipul@chelsio.com>
+To: vipul@chelsio.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com, JBottomley@parallels.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, naresh@chelsio.com, divy@chelsio.com, santosh@chelsio.com, arvindb@chelsio.com, abhishek@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Santosh Rastapur <santosh@chelsio.com>
+From: Vipul Pandya <vipul@chelsio.com>
+Date: Tue, 12 Mar 2013 17:16:17 +0530
 
-Signed-off-by: Santosh Rastapur <santosh@chelsio.com>
-Signed-off-by: Vipul Pandya <vipul@chelsio.com>
----
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> +				writel(n,  adap->bar2 + q->udb + 8);
+> +#if defined(CONFIG_X86_32) || defined(CONFIG_X86_64)
+> +			asm volatile("sfence" : : : "memory");
+> +#endif
 
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-index eceee44..c502e36 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-@@ -68,8 +68,8 @@
- #include "t4fw_api.h"
- #include "l2t.h"
- 
--#define DRV_VERSION "1.3.0-ko"
--#define DRV_DESC "Chelsio T4 Network Driver"
-+#define DRV_VERSION "2.0.0-ko"
-+#define DRV_DESC "Chelsio T4/T5 Network Driver"
- 
- /*
-  * Max interrupt hold-off timer value in us.  Queues fall back to this value
--- 
-1.7.1
+There is absolutely no way I'm letting anyone put crap like this
+into a driver.
+
+Use a portable inteface, and if one does not exist create one.
