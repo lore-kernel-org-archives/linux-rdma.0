@@ -1,35 +1,60 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH net-next 05/22] cxgb4: Add T5 write combining support
-Date: Tue, 12 Mar 2013 09:42:05 -0500
-Message-ID: <513F3EBD.5020504@opengridcomputing.com>
-References: <1363088794-31453-1-git-send-email-vipul@chelsio.com> <1363088794-31453-6-git-send-email-vipul@chelsio.com> <20130312.081927.1036246728528667686.davem@davemloft.net>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] opensm: Fix issues causing const warnings for strings
+Date: Tue, 12 Mar 2013 10:49:15 -0400
+Message-ID: <513F406B.9040903@dev.mellanox.co.il>
+References: <513F3173.4080908@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510EBB2D9E@CRSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130312.081927.1036246728528667686.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510EBB2D9E-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, naresh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, arvindb-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/12/2013 7:19 AM, David Miller wrote:
-> From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> Date: Tue, 12 Mar 2013 17:16:17 +0530
->
->> +				writel(n,  adap->bar2 + q->udb + 8);
->> +#if defined(CONFIG_X86_32) || defined(CONFIG_X86_64)
->> +			asm volatile("sfence" : : : "memory");
->> +#endif
-> There is absolutely no way I'm letting anyone put crap like this
-> into a driver.
->
-> Use a portable inteface, and if one does not exist create one.
+On 3/12/2013 10:12 AM, Weiny, Ira wrote:
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hal Rosenstock
+>> Sent: Tuesday, March 12, 2013 9:45 AM
+>> To: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+>> Subject: [PATCH] opensm: Fix issues causing const warnings for strings
+>>
+>>
+>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+> 
+> [snip]
+> 
+>>
+>> diff --git a/opensm/main.c b/opensm/main.c index 1a061a8..db5429a 100644
+>> --- a/opensm/main.c
+>> +++ b/opensm/main.c
+>> @@ -718,7 +718,7 @@ int main(int argc, char *argv[])
+>>  	optind = 0;		/* reset command line */
+>>
+>>  	if (!config_file)
+>> -		config_file = OSM_DEFAULT_CONFIG_FILE;
+>> +		config_file = strdup(OSM_DEFAULT_CONFIG_FILE);
+>>
+> 
+> Why is the strdup here but not on the optarg above?
+> 
+> Also, is this free'ed anywhere?  Can the config file change at run time?  I don't think it can but perhaps you are moving that direction?
+> 
+> Also, perhaps the strdup should be within osm_subn_parse_conf_file?  
 
-I guess you'll have to add a wc_wmb() function for all the hw platforms 
-supported by the kernel.  I see libibverbs defines this for the user 
-side in include/infiniband/arch.h, and that could be used as the meat of 
-the hw platform-specific implementations.
+Version 2 patch to follow shortly.
+
+-- Hal
+
+> 
+> Ira
+> 
+> [snip]
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
