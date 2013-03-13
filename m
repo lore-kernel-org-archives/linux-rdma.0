@@ -1,56 +1,49 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] libibmad: To fix big endian problem for both 32-bit &
- 64-bit SPARC
-Date: Wed, 13 Mar 2013 14:58:03 +0200
-Message-ID: <514077DB.9000703@mellanox.com>
-References: <513F83BD.3050302@oracle.com> <5140759D.1030500@dev.mellanox.co.il>
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH net-next 05/22] cxgb4: Add T5 write combining support
+Date: Wed, 13 Mar 2013 20:06:04 +0530
+Message-ID: <51408ED4.40400@chelsio.com>
+References: <1363088794-31453-1-git-send-email-vipul@chelsio.com> <1363088794-31453-6-git-send-email-vipul@chelsio.com> <20130312.081927.1036246728528667686.davem@davemloft.net> <513F3EBD.5020504@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5140759D.1030500-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <513F3EBD.5020504-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org" <JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Dimitrios Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Casey Leedom <leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Naresh Kumar Inna <naresh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Santosh Rastapur <santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Arvind Bhushan <arvindb-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Abhishek Agrawal <abhishek-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 13/03/2013 14:48, Hal Rosenstock wrote:
-> On 3/12/2013 3:36 PM, Boris Chiu wrote:
->> >--- a/src/dump.c
->> >+++ b/src/dump.c
->> >@@ -46,12 +46,24 @@
->> >
->> >void mad_dump_int(char *buf, int bufsz, void *val, int valsz)
->> >{
->> >+    /*
->> >+     * the val pointer passed to the dump routines are always 32 bit
->> >+     * integers for valsz <= 4 and 64 bit integer for the rest. It is
->> >never
->> >+     * uint8_t or uint16_t. This is because mad_decode_field always
->> >returns
->> >+     * the values as 32 bit integer even if they are 8 bit or 16 bit
->> >fields.
->> >+     */
->> >     switch (valsz) {
->> >     case 1:
->> >-        snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xff);
->> >+#if defined(_BIG_ENDIAN)
->> >+        val = ((uint8_t *)val) + 3;
->> >+#endif /* _BIG_ENDIAN */
-> I don't understand what's different about SPARC and PPC in terms of
-> this. These routines all work without this on PPC64 and PPC32.
-
-Yep, agree, assuming the code works on other BE archs, we 1st and most 
-need to understand the problem before going to solutions.
-
-Or.
 
 
+On 12-03-2013 20:12, Steve Wise wrote:
+> On 3/12/2013 7:19 AM, David Miller wrote:
+>> From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+>> Date: Tue, 12 Mar 2013 17:16:17 +0530
+>>
+>>> +				writel(n,  adap->bar2 + q->udb + 8);
+>>> +#if defined(CONFIG_X86_32) || defined(CONFIG_X86_64)
+>>> +			asm volatile("sfence" : : : "memory");
+>>> +#endif
+>> There is absolutely no way I'm letting anyone put crap like this
+>> into a driver.
+>>
+>> Use a portable inteface, and if one does not exist create one.
+> 
+> I guess you'll have to add a wc_wmb() function for all the hw platforms 
+> supported by the kernel.  I see libibverbs defines this for the user 
+> side in include/infiniband/arch.h, and that could be used as the meat of 
+> the hw platform-specific implementations.
+> 
+I see that normal wmb() code for x86_64 architecture is same as what
+above #ifdef condition is doing. To be more clear I looked at the
+assembly code for wmb and find that it is converted into 'sfence'
+instruction. So, I think above code should be replaced with wmb call
+which will also take care of portability on different architecture. I
+will submit the series again soon.
 
->
-> At a minimum, should this be ifdef'd on something like both __sun and
-> __SVR4 rather than _BIG_ENDIAN ?
-
+I would like to request RDMA/cxgb4 and csiostor driver maintainer to
+review the series if it has not been done already. It would be great If
+I can include review comments from them in my next version of series.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
