@@ -1,141 +1,169 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm: Add support for LFT changed event
-Date: Wed, 13 Mar 2013 08:43:14 -0400
-Message-ID: <51407462.8060900@dev.mellanox.co.il>
+Subject: Re: [PATCH] libibmad: To fix big endian problem for both 32-bit &
+ 64-bit SPARC
+Date: Wed, 13 Mar 2013 08:48:29 -0400
+Message-ID: <5140759D.1030500@dev.mellanox.co.il>
+References: <513F83BD.3050302@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <513F83BD.3050302-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 3/12/2013 3:36 PM, Boris Chiu wrote:
+> From: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> src/dump.c |   66
+> +++++++++++++++++++++++++++++++++++++++++++++++++++--------
+> 1 files changed, 57 insertions(+), 9 deletions(-)
+> 
+> diff --git a/src/dump.c b/src/dump.c
+> index 7f3ef7d..e83c363 100644
+> --- a/src/dump.c
+> +++ b/src/dump.c
+> @@ -46,12 +46,24 @@
+> 
+> void mad_dump_int(char *buf, int bufsz, void *val, int valsz)
+> {
+> +    /*
+> +     * the val pointer passed to the dump routines are always 32 bit
+> +     * integers for valsz <= 4 and 64 bit integer for the rest. It is
+> never
+> +     * uint8_t or uint16_t. This is because mad_decode_field always
+> returns
+> +     * the values as 32 bit integer even if they are 8 bit or 16 bit
+> fields.
+> +     */
+>     switch (valsz) {
+>     case 1:
+> -        snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xff);
+> +#if defined(_BIG_ENDIAN)
+> +        val = ((uint8_t *)val) + 3;
+> +#endif /* _BIG_ENDIAN */
 
-Determine LFT changes based on tracking epoch whenever LFT block
-or LFTTop changes.
+I don't understand what's different about SPARC and PPC in terms of
+this. These routines all work without this on PPC64 and PPC32.
 
-Don't issue event on first time master sweep as use SUBNET UP event there.
+At a minimum, should this be ifdef'd on something like both __sun and
+__SVR4 rather than _BIG_ENDIAN ?
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/include/opensm/osm_event_plugin.h b/include/opensm/osm_event_plugin.h
-index 6a99ed9..c9a904b 100644
---- a/include/opensm/osm_event_plugin.h
-+++ b/include/opensm/osm_event_plugin.h
-@@ -77,6 +77,7 @@ typedef enum {
- 	OSM_EVENT_ID_UCAST_ROUTING_DONE,
- 	OSM_EVENT_ID_STATE_CHANGE,
- 	OSM_EVENT_ID_SA_DB_DUMPED,
-+	OSM_EVENT_ID_LFT_CHANGE,
- 	OSM_EVENT_ID_MAX
- } osm_epi_event_id_t;
- 
-diff --git a/include/opensm/osm_switch.h b/include/opensm/osm_switch.h
-index 41ac959..1123f45 100644
---- a/include/opensm/osm_switch.h
-+++ b/include/opensm/osm_switch.h
-@@ -104,6 +104,8 @@ typedef struct osm_switch {
- 	uint8_t *lft;
- 	uint8_t *new_lft;
- 	uint16_t lft_size;
-+	uint32_t lft_epoch_prev;
-+	uint32_t lft_epoch;
- 	osm_mcast_tbl_t mcast_tbl;
- 	int32_t mft_block_num;
- 	uint32_t mft_position;
-diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
-index b4cf0f2..745cf9b 100644
---- a/opensm/osm_ucast_mgr.c
-+++ b/opensm/osm_ucast_mgr.c
-@@ -918,6 +918,8 @@ static void ucast_mgr_set_fwd_top(IN cl_map_item_t * p_map_item,
- 
- 	p_path = osm_physp_get_dr_path_ptr(osm_node_get_physp_ptr(p_node, 0));
- 
-+	p_sw->lft_epoch_prev = p_sw->lft_epoch;
-+
- 	/*
- 	   Set the top of the unicast forwarding table.
- 	 */
-@@ -926,6 +928,7 @@ static void ucast_mgr_set_fwd_top(IN cl_map_item_t * p_map_item,
- 	if (lin_top != si.lin_top) {
- 		set_swinfo_require = TRUE;
- 		si.lin_top = lin_top;
-+		p_sw->lft_epoch++;
- 	}
- 
- 	/* check to see if the change state bit is on. If it is - then we
-@@ -963,7 +966,7 @@ static void ucast_mgr_set_fwd_top(IN cl_map_item_t * p_map_item,
- }
- 
- static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
--			 IN uint16_t block_id_ho)
-+			 IN uint16_t block_id_ho, IN unsigned last_block)
- {
- 	uint8_t block[IB_SMP_DATA_SIZE];
- 	osm_madw_context_t context;
-@@ -993,6 +996,8 @@ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
- 		     IB_SMP_DATA_SIZE)))
- 		return 0;
- 
-+	p_sw->lft_epoch++;
-+
- 	OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
- 		"Writing FT block %u to switch 0x%" PRIx64 "\n", block_id_ho,
- 		cl_ntoh64(context.lft_context.node_guid));
-@@ -1002,6 +1007,13 @@ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
- 			     IB_SMP_DATA_SIZE, IB_MAD_ATTR_LIN_FWD_TBL,
- 			     cl_hton32(block_id_ho),
- 			     CL_DISP_MSGID_NONE, &context);
-+
-+	if (!p_mgr->p_subn->first_time_master_sweep &&
-+	    block_id_ho == last_block &&
-+	    p_sw->lft_epoch != p_sw->lft_epoch_prev)
-+		osm_opensm_report_event(p_mgr->p_subn->p_osm,
-+					OSM_EVENT_ID_LFT_CHANGE, p_sw);
-+
- 	if (status != IB_SUCCESS) {
- 		OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR, "ERR 3A05: "
- 			"Sending linear fwd. tbl. block failed (%s)\n",
-@@ -1022,7 +1034,8 @@ static void ucast_mgr_pipeline_fwd_tbl(osm_ucast_mgr_t * p_mgr)
- 	for (i = 0; i < max_block; i++)
- 		for (item = cl_qmap_head(tbl); item != cl_qmap_end(tbl);
- 		     item = cl_qmap_next(item))
--			set_lft_block((osm_switch_t *)item, p_mgr, i);
-+			set_lft_block((osm_switch_t *)item, p_mgr,
-+				      i, max_block - 1);
- }
- 
- void osm_ucast_mgr_set_fwd_tables(osm_ucast_mgr_t * p_mgr)
-diff --git a/osmeventplugin/src/osmeventplugin.c b/osmeventplugin/src/osmeventplugin.c
-index aaf7e80..fed2bac 100644
---- a/osmeventplugin/src/osmeventplugin.c
-+++ b/osmeventplugin/src/osmeventplugin.c
-@@ -156,6 +156,15 @@ static void handle_trap_event(_log_events_t *log, ib_mad_notice_attr_t *p_ntc)
- 
- /** =========================================================================
-  */
-+static void handle_lft_change_event(_log_events_t *log, osm_switch_t *p_sw)
-+{
-+	fprintf(log->log_file,
-+		"LFT changed for switch 0x%" PRIx64 "\n",
-+		cl_ntoh64(osm_node_get_node_guid(p_sw->p_node)));
-+}
-+
-+/** =========================================================================
-+ */
- static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
- {
- 	_log_events_t *log = (_log_events_t *) _log;
-@@ -191,6 +200,9 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
- 	case OSM_EVENT_ID_SA_DB_DUMPED:
- 		fprintf(log->log_file, "SA DB dump file updated\n");
- 		break;
-+	case OSM_EVENT_ID_LFT_CHANGE:
-+		handle_lft_change_event(log, (osm_switch_t *) event_data);
-+		break;
- 	case OSM_EVENT_ID_MAX:
- 	default:
- 		osm_log(log->osmlog, OSM_LOG_ERROR,
+-- Hal
+
+> +        snprintf(buf, bufsz, "%d", *(uint8_t *) val & 0xff);
+>         break;
+>     case 2:
+> -        snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xffff);
+> +#if defined(_BIG_ENDIAN)
+> +        val = ((uint16_t *)val) + 1;
+> +#endif /* _BIG_ENDIAN */
+> +        snprintf(buf, bufsz, "%d", *(uint16_t *) val & 0xffff);
+>         break;
+>     case 3:
+>     case 4:
+> @@ -71,12 +83,24 @@ void mad_dump_int(char *buf, int bufsz, void *val,
+> int valsz)
+> 
+> void mad_dump_uint(char *buf, int bufsz, void *val, int valsz)
+> {
+> +    /*
+> +     * the val pointer passed to the dump routines are always 32 bit
+> +     * integers for valsz <= 4 and 64 bit integer for the rest. It is
+> never
+> +     * uint8_t or uint16_t. This is because mad_decode_field always
+> returns
+> +     * the values as 32 bit integer even if they are 8 bit or 16 bit
+> fields.
+> +     */
+>     switch (valsz) {
+>     case 1:
+> -        snprintf(buf, bufsz, "%u", *(uint32_t *) val & 0xff);
+> +#if defined(_BIG_ENDIAN)
+> +        val = ((uint8_t *)val) + 3;
+> +#endif /* _BIG_ENDIAN */
+> +        snprintf(buf, bufsz, "%u", *(uint8_t *) val & 0xff);
+>         break;
+>     case 2:
+> -        snprintf(buf, bufsz, "%u", *(uint32_t *) val & 0xffff);
+> +#if defined(_BIG_ENDIAN)
+> +        val = ((uint16_t *)val) + 1;
+> +#endif /* _BIG_ENDIAN */
+> +        snprintf(buf, bufsz, "%u", *(uint16_t *) val & 0xffff);
+>         break;
+>     case 3:
+>     case 4:
+> @@ -96,15 +120,27 @@ void mad_dump_uint(char *buf, int bufsz, void *val,
+> int valsz)
+> 
+> void mad_dump_hex(char *buf, int bufsz, void *val, int valsz)
+> {
+> +    /*
+> +     * the val pointer passed to the dump routines are always 32 bit
+> +     * integers for valsz <= 4 and 64 bit integer for the rest. It is
+> never
+> +     * uint8_t or uint16_t. This is because mad_decode_field always
+> returns
+> +     * the values as 32 bit integer even if they are 8 bit or 16 bit
+> fields.
+> +     */
+>     switch (valsz) {
+>     case 1:
+> -        snprintf(buf, bufsz, "0x%02x", *(uint32_t *) val & 0xff);
+> +#if defined(_BIG_ENDIAN)
+> +        val = ((uint8_t *)val) + 3;
+> +#endif /* _BIG_ENDIAN */
+> +        snprintf(buf, bufsz, "0x%02x", *(uint8_t *) val & 0xff);
+>         break;
+>     case 2:
+> -        snprintf(buf, bufsz, "0x%04x", *(uint32_t *) val & 0xffff);
+> +#if defined(_BIG_ENDIAN)
+> +        val = ((uint16_t *)val) + 1;
+> +#endif /* _BIG_ENDIAN */
+> +        snprintf(buf, bufsz, "0x%04x", *(uint16_t *) val & 0xffff);
+>         break;
+>     case 3:
+> -        snprintf(buf, bufsz, "0x%06x", *(uint32_t *) val & 0xffffff);
+> +        snprintf(buf, bufsz, "0x%x", *(uint32_t *) val & 0xffffff);
+>         break;
+>     case 4:
+>         snprintf(buf, bufsz, "0x%08x", *(uint32_t *) val);
+> @@ -132,12 +168,24 @@ void mad_dump_hex(char *buf, int bufsz, void *val,
+> int valsz)
+> 
+> void mad_dump_rhex(char *buf, int bufsz, void *val, int valsz)
+> {
+> +    /*
+> +     * the val pointer passed to the dump routines are always 32 bit
+> +     * integers for valsz <= 4 and 64 bit integer for the rest. It is
+> never
+> +     * uint8_t or uint16_t. This is because mad_decode_field always
+> returns
+> +     * the values as 32 bit integer even if they are 8 bit or 16 bit
+> fields.
+> +     */
+>     switch (valsz) {
+>     case 1:
+> -        snprintf(buf, bufsz, "%02x", *(uint32_t *) val & 0xff);
+> +#if defined(_BIG_ENDIAN)
+> +        val = ((uint8_t *)val) + 3;
+> +#endif /* _BIG_ENDIAN */
+> +        snprintf(buf, bufsz, "%02x", *(uint8_t *) val & 0xff);
+>         break;
+>     case 2:
+> -        snprintf(buf, bufsz, "%04x", *(uint32_t *) val & 0xffff);
+> +#if defined(_BIG_ENDIAN)
+> +        val = ((uint16_t *)val) + 1;
+> +#endif /* _BIG_ENDIAN */
+> +        snprintf(buf, bufsz, "%04x", *(uint16_t *) val & 0xffff);
+>         break;
+>     case 3:
+>         snprintf(buf, bufsz, "%06x", *(uint32_t *) val & 0xffffff);
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
