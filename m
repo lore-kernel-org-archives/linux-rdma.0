@@ -1,186 +1,160 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] libibmad: To fix big endian problem for both 32-bit &
- 64-bit SPARC
-Date: Wed, 13 Mar 2013 16:28:28 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510EBB3193@CRSMSX102.amr.corp.intel.com>
-References: <513F83BD.3050302@oracle.com>
- <5140759D.1030500@dev.mellanox.co.il>
+From: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibmad: Fixes for failures when not all ports of HCA
+ are connected
+Date: Wed, 13 Mar 2013 12:36:05 -0700
+Message-ID: <CAMLCd9+a5=dnXPHJHYuoODho0aLRp8Vb35sMk0GvRxBgqvx0xQ@mail.gmail.com>
+References: <513F83FD.1090106@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5140759D.1030500-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <513F83FD.1090106-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hal Rosenstock
-> Sent: Wednesday, March 13, 2013 8:48 AM
-> To: Boris Chiu
-> Cc: Ira Weiny; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH] libibmad: To fix big endian problem for both 32-bit & 64-
-> bit SPARC
-> 
-> On 3/12/2013 3:36 PM, Boris Chiu wrote:
-> > From: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >
-> > Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> > src/dump.c |   66
-> > +++++++++++++++++++++++++++++++++++++++++++++++++++--------
-> > 1 files changed, 57 insertions(+), 9 deletions(-)
-> >
-> > diff --git a/src/dump.c b/src/dump.c
-> > index 7f3ef7d..e83c363 100644
-> > --- a/src/dump.c
-> > +++ b/src/dump.c
-> > @@ -46,12 +46,24 @@
-> >
-> > void mad_dump_int(char *buf, int bufsz, void *val, int valsz) {
-> > +    /*
-> > +     * the val pointer passed to the dump routines are always 32 bit
-> > +     * integers for valsz <= 4 and 64 bit integer for the rest. It is
-> > never
-> > +     * uint8_t or uint16_t. This is because mad_decode_field always
-> > returns
-> > +     * the values as 32 bit integer even if they are 8 bit or 16 bit
-> > fields.
-> > +     */
-> >     switch (valsz) {
-> >     case 1:
-> > -        snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xff);
-> > +#if defined(_BIG_ENDIAN)
-> > +        val = ((uint8_t *)val) + 3;
-> > +#endif /* _BIG_ENDIAN */
-> 
-> I don't understand what's different about SPARC and PPC in terms of this.
-> These routines all work without this on PPC64 and PPC32.
-> 
-> At a minimum, should this be ifdef'd on something like both __sun and
-> __SVR4 rather than _BIG_ENDIAN ?
+Your commit message does not seem to have anything to do with the
+patch.  Could you explain how returning errno from these functions
+"Fixes for failures when not all ports of HCA are connected"?
 
-Are you perhaps calling these with Network Byte order values?  While not documented they are designed to take values in host byte order which as Hal states should work on all big and little endian architectures.
+Furthermore, I'm reluctant to modify errno in this library.  It is not
+documented and in general is poor form.  I realize that the interface
+does not currently allow for an alternative.  :-(
+
+More comments below.
+
+On Tue, Mar 12, 2013 at 12:37 PM, Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> From: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>
+> Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> src/resolve.c |   22 ++++++++++++++++++----
+> src/rpc.c     |    1 +
+> src/sa.c      |    2 ++
+> 3 files changed, 21 insertions(+), 4 deletions(-)
+>
+> diff --git a/src/resolve.c b/src/resolve.c
+> index f866bf4..ab24c79 100644
+> --- a/src/resolve.c
+> +++ b/src/resolve.c
+> @@ -40,6 +40,7 @@
+> #include <stdlib.h>
+> #include <string.h>
+> #include <arpa/inet.h>
+> +#include <errno.h>
+>
+> #include <infiniband/umad.h>
+> #include <infiniband/mad.h>
+> @@ -57,10 +58,18 @@ int ib_resolve_smlid_via(ib_portid_t * sm_id, int
+> timeout,
+>
+>         memset(sm_id, 0, sizeof(*sm_id));
+>
+> -       if (!smp_query_via(portinfo, &self, IB_ATTR_PORT_INFO, 0, 0,
+> srcport))
+> +       if (!smp_query_via(portinfo, &self, IB_ATTR_PORT_INFO, 0, 0,
+> srcport)) {
+> +               if (!errno)
+> +                       errno = EIO;
+>                 return -1;
+> +       }
+>
+>         mad_decode_field(portinfo, IB_PORT_SMLID_F, &lid);
+> +       if (lid == 0) {
+> +               if (!errno)
+> +                       errno = EIO;
+> +               return -1;
+> +       }
+
+This may not be an error.  A port which is down only requires
+PortState and PortPhyState to be valid.
+
+>         mad_decode_field(portinfo, IB_PORT_SMSL_F, &sm_id->sl);
+>
+>         return ib_portid_set(sm_id, lid, 0, 0);
+> @@ -95,21 +104,26 @@ int ib_resolve_guid_via(ib_portid_t * portid, uint64_t
+> * guid,
+>                         ib_portid_t * sm_id, int timeout,
+>                         const struct ibmad_port *srcport)
+> {
+> -       ib_portid_t sm_portid;
+> +       ib_portid_t sm_portid = { 0 };
+>         uint8_t buf[IB_SA_DATA_SIZE] = { 0 };
+>         ib_portid_t self = { 0 };
+>         uint64_t selfguid, prefix;
+>         ibmad_gid_t selfgid;
+>         uint8_t nodeinfo[64];
+>
+> -       if (!sm_id) {
+> +       if (!sm_id)
+>                 sm_id = &sm_portid;
+> +
+> +       if (!sm_id->lid) {
+>                 if (ib_resolve_smlid_via(sm_id, timeout, srcport) < 0)
+>                         return -1;
+>         }
+
+If you want ib_resolve_guid_via to resolve the SM for you, sm_id
+should be set to NULL.  I don't see a reason to support an "invalid"
+sm_id port id.
+
+Another note is that I have converted the diags to use internal
+functions which used umad* and SA queries to resolve GUID's.  This is
+more appropriate in the long term.
 
 Ira
 
-
-> 
-> -- Hal
-> 
-> > +        snprintf(buf, bufsz, "%d", *(uint8_t *) val & 0xff);
-> >         break;
-> >     case 2:
-> > -        snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xffff);
-> > +#if defined(_BIG_ENDIAN)
-> > +        val = ((uint16_t *)val) + 1;
-> > +#endif /* _BIG_ENDIAN */
-> > +        snprintf(buf, bufsz, "%d", *(uint16_t *) val & 0xffff);
-> >         break;
-> >     case 3:
-> >     case 4:
-> > @@ -71,12 +83,24 @@ void mad_dump_int(char *buf, int bufsz, void *val,
-> > int valsz)
-> >
-> > void mad_dump_uint(char *buf, int bufsz, void *val, int valsz) {
-> > +    /*
-> > +     * the val pointer passed to the dump routines are always 32 bit
-> > +     * integers for valsz <= 4 and 64 bit integer for the rest. It is
-> > never
-> > +     * uint8_t or uint16_t. This is because mad_decode_field always
-> > returns
-> > +     * the values as 32 bit integer even if they are 8 bit or 16 bit
-> > fields.
-> > +     */
-> >     switch (valsz) {
-> >     case 1:
-> > -        snprintf(buf, bufsz, "%u", *(uint32_t *) val & 0xff);
-> > +#if defined(_BIG_ENDIAN)
-> > +        val = ((uint8_t *)val) + 3;
-> > +#endif /* _BIG_ENDIAN */
-> > +        snprintf(buf, bufsz, "%u", *(uint8_t *) val & 0xff);
-> >         break;
-> >     case 2:
-> > -        snprintf(buf, bufsz, "%u", *(uint32_t *) val & 0xffff);
-> > +#if defined(_BIG_ENDIAN)
-> > +        val = ((uint16_t *)val) + 1;
-> > +#endif /* _BIG_ENDIAN */
-> > +        snprintf(buf, bufsz, "%u", *(uint16_t *) val & 0xffff);
-> >         break;
-> >     case 3:
-> >     case 4:
-> > @@ -96,15 +120,27 @@ void mad_dump_uint(char *buf, int bufsz, void
-> > *val, int valsz)
-> >
-> > void mad_dump_hex(char *buf, int bufsz, void *val, int valsz) {
-> > +    /*
-> > +     * the val pointer passed to the dump routines are always 32 bit
-> > +     * integers for valsz <= 4 and 64 bit integer for the rest. It is
-> > never
-> > +     * uint8_t or uint16_t. This is because mad_decode_field always
-> > returns
-> > +     * the values as 32 bit integer even if they are 8 bit or 16 bit
-> > fields.
-> > +     */
-> >     switch (valsz) {
-> >     case 1:
-> > -        snprintf(buf, bufsz, "0x%02x", *(uint32_t *) val & 0xff);
-> > +#if defined(_BIG_ENDIAN)
-> > +        val = ((uint8_t *)val) + 3;
-> > +#endif /* _BIG_ENDIAN */
-> > +        snprintf(buf, bufsz, "0x%02x", *(uint8_t *) val & 0xff);
-> >         break;
-> >     case 2:
-> > -        snprintf(buf, bufsz, "0x%04x", *(uint32_t *) val & 0xffff);
-> > +#if defined(_BIG_ENDIAN)
-> > +        val = ((uint16_t *)val) + 1;
-> > +#endif /* _BIG_ENDIAN */
-> > +        snprintf(buf, bufsz, "0x%04x", *(uint16_t *) val & 0xffff);
-> >         break;
-> >     case 3:
-> > -        snprintf(buf, bufsz, "0x%06x", *(uint32_t *) val & 0xffffff);
-> > +        snprintf(buf, bufsz, "0x%x", *(uint32_t *) val & 0xffffff);
-> >         break;
-> >     case 4:
-> >         snprintf(buf, bufsz, "0x%08x", *(uint32_t *) val); @@ -132,12
-> > +168,24 @@ void mad_dump_hex(char *buf, int bufsz, void *val, int
-> > valsz)
-> >
-> > void mad_dump_rhex(char *buf, int bufsz, void *val, int valsz) {
-> > +    /*
-> > +     * the val pointer passed to the dump routines are always 32 bit
-> > +     * integers for valsz <= 4 and 64 bit integer for the rest. It is
-> > never
-> > +     * uint8_t or uint16_t. This is because mad_decode_field always
-> > returns
-> > +     * the values as 32 bit integer even if they are 8 bit or 16 bit
-> > fields.
-> > +     */
-> >     switch (valsz) {
-> >     case 1:
-> > -        snprintf(buf, bufsz, "%02x", *(uint32_t *) val & 0xff);
-> > +#if defined(_BIG_ENDIAN)
-> > +        val = ((uint8_t *)val) + 3;
-> > +#endif /* _BIG_ENDIAN */
-> > +        snprintf(buf, bufsz, "%02x", *(uint8_t *) val & 0xff);
-> >         break;
-> >     case 2:
-> > -        snprintf(buf, bufsz, "%04x", *(uint32_t *) val & 0xffff);
-> > +#if defined(_BIG_ENDIAN)
-> > +        val = ((uint16_t *)val) + 1;
-> > +#endif /* _BIG_ENDIAN */
-> > +        snprintf(buf, bufsz, "%04x", *(uint16_t *) val & 0xffff);
-> >         break;
-> >     case 3:
-> >         snprintf(buf, bufsz, "%06x", *(uint32_t *) val & 0xffffff);
-> 
+>
+> -       if (!smp_query_via(nodeinfo, &self, IB_ATTR_NODE_INFO, 0, 0,
+> srcport))
+> +       if (!smp_query_via(nodeinfo, &self, IB_ATTR_NODE_INFO, 0, 0,
+> srcport)) {
+> +               if (!errno)
+> +                       errno = EIO;
+>                 return -1;
+> +       }
+>         mad_decode_field(nodeinfo, IB_NODE_PORT_GUID_F, &selfguid);
+>         mad_set_field64(selfgid, 0, IB_GID_PREFIX_F,
+> IB_DEFAULT_SUBN_PREFIX);
+>         mad_set_field64(selfgid, 0, IB_GID_GUID_F, selfguid);
+> diff --git a/src/rpc.c b/src/rpc.c
+> index 6312d42..cf2b60d 100644
+> --- a/src/rpc.c
+> +++ b/src/rpc.c
+> @@ -178,6 +178,7 @@ _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int
+> agentid, int len,
+>                                          IB_MAD_TRID_F) != trid);
+>
+>                 status = umad_status(rcvbuf);
+> +               errno = status;
+>                 if (!status)
+>                         return length;  /* done */
+>                 if (status == ENOMEM)
+> diff --git a/src/sa.c b/src/sa.c
+> index 352ed9f..367da2a 100644
+> --- a/src/sa.c
+> +++ b/src/sa.c
+> @@ -38,6 +38,7 @@
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <string.h>
+> +#include <errno.h>
+>
+> #include <infiniband/mad.h>
+> #include "mad_internal.h"
+> @@ -56,6 +57,7 @@ uint8_t *sa_rpc_call(const struct ibmad_port *ibmad_port,
+> void *rcvbuf,
+>
+>         if (portid->lid <= 0) {
+>                 IBWARN("only lid routes are supported");
+> +               errno = EIO;
+>                 return NULL;
+>         }
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+> 1.7.1
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
