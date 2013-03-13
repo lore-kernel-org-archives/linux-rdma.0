@@ -1,48 +1,54 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: v3.7: Unloading ib_ipoib triggers circular locking dependency
- complaint
-Date: Wed, 13 Mar 2013 17:43:09 +0200
-Message-ID: <51409E8D.7030304@mellanox.com>
-References: <50AF67C5.7090200@acm.org> <CAJZOPZJ55dqpOsnP-jbgXRrLZpyRzD2v8pg7pAAWMtWWr-m1FA@mail.gmail.com> <513F3455.3030309@acm.org>
+From: "David Laight" <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH net-next 05/22] cxgb4: Add T5 write combining support
+Date: Wed, 13 Mar 2013 15:43:13 -0000
+Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6026B718B@saturn3.aculab.com>
+References: <1363088794-31453-1-git-send-email-vipul@chelsio.com> <1363088794-31453-6-git-send-email-vipul@chelsio.com> <20130312.081927.1036246728528667686.davem@davemloft.net> <513F3EBD.5020504@opengridcomputing.com> <51408ED4.40400@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <513F3455.3030309-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <51408ED4.40400@chelsio.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Vipul Pandya <vipul@chelsio.com>, Steve Wise <swise@opengridcomputing.com>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com, JBottomley@parallels.com, Dimitrios Michailidis <dm@chelsio.com>, Casey Leedom <leedom@chelsio.com>, Naresh Kumar Inna <naresh@chelsio.com>, Divy Le Ray <divy@chelsio.com>, Santosh Rastapur <santosh@chelsio.com>, Arvind Bhushan <arvindb@chelsio.com>, Abhishek Agrawal <abhishek@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/03/2013 15:57, Bart Van Assche wrote:
-> On 11/26/12 09:00, Or Gerlitz wrote:
->> On Fri, Nov 23, 2012 at 2:10 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> 
->> wrote:
->>> Apparently unloading the ib_ipoib kernel module triggers a circular 
->>> locking
->>> dependency complaint. Has anyone already been looking into this ?
->>
->> Yes, I see that this happens here e.g when doing hot-unplug to the
->> underlying HW driver, seems related to the ipoib rtnl ops patches I
->> pushed to 3.7 -- will look into this, thanks for bringing this up.
->> Does anyone has an idea where the "s_active" lock is defined and what
->> is its role?
->
-> (replying to an e-mail from a few months ago) I still see this with 
-> kernel 3.8.0. This warning probably means that sysfs_remove_dir() is 
-> invoked with the rtnl lock held. If so I think that this can trigger a 
-> deadlock during module removal.
+> >>> +				writel(n,  adap->bar2 + q->udb + 8);
+> >>> +#if defined(CONFIG_X86_32) || defined(CONFIG_X86_64)
+> >>> +			asm volatile("sfence" : : : "memory");
+> >>> +#endif
+> >> There is absolutely no way I'm letting anyone put crap like this
+> >> into a driver.
+> >>
+> >> Use a portable inteface, and if one does not exist create one.
+> >
+> > I guess you'll have to add a wc_wmb() function for all the hw platforms
+> > supported by the kernel.  I see libibverbs defines this for the user
+> > side in include/infiniband/arch.h, and that could be used as the meat of
+> > the hw platform-specific implementations.
+> >
+> I see that normal wmb() code for x86_64 architecture is same as what
+> above #ifdef condition is doing. To be more clear I looked at the
+> assembly code for wmb and find that it is converted into 'sfence'
+> instruction. So, I think above code should be replaced with wmb call
+> which will also take care of portability on different architecture. I
+> will submit the series again soon.
 
-Yep, something goes wrong w.r.t to the interaction with sysfs and rtnl, 
-at some point very similar lockdep traces were sent to netdev from other 
-drivers and a generic solution was suggested, but I am not sure where 
-this has landed, see
+>From my recollection of the x86 architecture, the memory barriers
+are hardly ever needed, certainly not in the places where, for example
+a ppc needs them. I'd actually suspect that the normal wmb() for
+x86 should be a nop.
 
-http://marc.info/?l=linux-kernel&m=135293378513907&w=2
-http://marc.info/?l=linux-netdev&m=135438302622434&w=2
+About the only place where any on the fence instructions are needed
+are in relation to write combining accesses.
+In particular I don't believe they are ever needed to synchronise
+uncached accesses with each other, or with cached accesses (which
+are snooped).
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	David
+
+
+
+
