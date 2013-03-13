@@ -1,157 +1,38 @@
-From: "Suresh Shelvapille" <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: RE: Qperf and APM
-Date: Wed, 13 Mar 2013 18:43:53 -0400
-Message-ID: <74591EB782934BB7AF174B177BA3BE35@md.baymicrosystems.com>
-References: <1358891797-14625-1-git-send-email-sean.hefty@intel.com> <1358891797-14625-2-git-send-email-sean.hefty@intel.com> <1828884A29C6694DAF28B7E6B8A8237368B99D59@ORSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A823736F35600F@ORSMSX101.amr.corp.intel.com> <82EBBE0B04D4427381C29144BE078F2B@md.baymicrosystems.com> <4AF12E8016D2BF46BCDFCE8FAA77A3580394D479@fmsmsx109.amr.corp.intel.com> <58D79FF01489431AB6D87CD4977F2E45@md.baymicrosystems.com> <4AF12E8016D2BF46BCDFCE8FAA77A3580394D4FB@fmsmsx109.amr.corp.intel.com> <8AF67C8E913E4EE49D65CABA83E3DEBF@md.baymicrosystems.com> <4AF12E8016D2BF46BCDFCE8FAA77A3580394F46B@fmsmsx109.amr.corp.intel.com>
+From: Casey Leedom <leedom@chelsio.com>
+Subject: Re: [PATCH net-next 05/22] cxgb4: Add T5 write combining support
+Date: Wed, 13 Mar 2013 15:54:45 -0700
+Message-ID: <514103B5.7040002@chelsio.com>
+References: <1363088794-31453-1-git-send-email-vipul@chelsio.com> <1363088794-31453-6-git-send-email-vipul@chelsio.com> <20130312.081927.1036246728528667686.davem@davemloft.net> <513F3EBD.5020504@opengridcomputing.com> <51408ED4.40400@chelsio.com> <AE90C24D6B3A694183C094C60CF0A2F6026B718B@saturn3.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AF12E8016D2BF46BCDFCE8FAA77A3580394F46B-96pTJSsuoYQd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Luick, Dean'" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <AE90C24D6B3A694183C094C60CF0A2F6026B718B@saturn3.aculab.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>
+Cc: Vipul Pandya <vipul@chelsio.com>, Steve Wise <swise@opengridcomputing.com>, David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com, JBottomley@parallels.com, Dimitrios Michailidis <dm@chelsio.com>, Naresh Kumar Inna <naresh@chelsio.com>, Divy Le Ray <divy@chelsio.com>, Santosh Rastapur <santosh@chelsio.com>, Arvind Bhushan <arvindb@chelsio.com>, Abhishek Agrawal <abhishek@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Dean:
 
-The difference is, you got a BW number where as I don't! So, I don't know whether the test was successful or not. Do you
-have a Mellanox dual port card?
+On 03/13/13 08:43, David Laight wrote:
+> From my recollection of the x86 architecture, the memory barriers are 
+> hardly ever needed, certainly not in the places where, for example a 
+> ppc needs them. I'd actually suspect that the normal wmb() for x86 
+> should be a nop. About the only place where any on the fence 
+> instructions are needed are in relation to write combining accesses. 
+> In particular I don't believe they are ever needed to synchronise 
+> uncached accesses with each other, or with cached accesses (which are 
+> snooped). David 
 
-Mellanox folks: have you guys tried this on your dual port cards?
+   The question at hand is how should we indicate that we're finished 
+with a Write Combined set of stores in an architecturally neutral 
+manner?  Is wmb() a good approach?  Vipul has noted that the iWarp code 
+uses a new "wc_wmb()" for this purpose which seems to be the same 
+_currently_ as wmb() for all current platforms.  I presume that the 
+iWarp folks pick a new name to offer themselves some cover in the future.
 
-Thanks,
-Suri
+   And yes, the code sequence that was accidentally included in Vipul's 
+previous patches should never have been submitted for inclusion in 
+kernel.org.  It got missed in our internal reviews and I apologize for that.
 
-> -----Original Message-----
-> From: Luick, Dean [mailto:dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Wednesday, March 13, 2013 6:25 PM
-> To: Suresh Shelvapille; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: Qperf and APM
-> 
-> Using QLogic dual port HCAs, this works for me when I disable port 1 on the client, server, or both
-> while the test is running:
-> 
-> # qperf <server ipaddr> -ap 2 -t 30 rc_bw
-> rc_bw:
-> warning: -ap set but not used in test rc_bw
->     bw  =  272 MB/sec
-> 
-> The warning can be ignored.  Using -ap is equivalent to using -rap and -lap with the same port.
-> 
-> The "failed to receive results" is qperf saying that once the test finished, the server did not
-> contact the client.
-> 
-> 
-> Dean
-> 
-> > -----Original Message-----
-> > From: Suresh Shelvapille [mailto:suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org]
-> > Sent: Wednesday, March 06, 2013 4:24 PM
-> > To: Luick, Dean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: RE: Qperf and APM
-> >
-> > I can see the packets going on the alternate path when the first link fails, but
-> > at the end of the test, the result is a
-> > failure, so I am not sure!
-> > I tried this with both '-ap' and "-lap -rap" options. I am assuming they are
-> > equivalent.
-> >
-> > ------------------------------
-> > [root]# qperf <server-ipaddr> -ap 2 -t 30 rc_bw
-> > rc_bw:
-> > warning: -ap set but not used in test rc_bw
-> > failed to receive results: timed out
-> >
-> >
-> >
-> > -------------------------
-> > [root]# qperf <server-ipaddr> -lap 2 -rap 2 -t 30 rc_bw
-> > rc_bw:
-> > warning: -lap set but not used in test rc_bw
-> > warning: -rap set but not used in test rc_bw
-> > failed to receive results: timed out
-> >
-> > thanks,
-> > Suri
-> >
-> > > -----Original Message-----
-> > > From: Luick, Dean [mailto:dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> > > Sent: Wednesday, March 06, 2013 3:57 PM
-> > > To: Suresh Shelvapille; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > Subject: RE: Qperf and APM
-> > >
-> > > Have you tried ignoring the warning and checking of the alternate port
-> > works?  The qperf code looks
-> > > to be using the alternate port, but incorrectly fails to mark the argument as
-> > used.
-> > >
-> > > Dean
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Suresh Shelvapille
-> > > > Sent: Wednesday, March 06, 2013 1:00 PM
-> > > > To: Luick, Dean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > Subject: RE: Qperf and APM
-> > > >
-> > > > This is the error I see on the client(the same warning is seen with -lap and
-> > -
-> > > > rap options):
-> > > >
-> > > > ------------------------------
-> > > > qperf <server-ip-addr> -ap 2 rc_bw
-> > > > rc_bw:
-> > > > warning: -ap set but not used in test rc_bw
-> > > >     bw  =  3.39 GB/sec
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: Luick, Dean [mailto:dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> > > > > Sent: Wednesday, March 06, 2013 1:52 PM
-> > > > > To: Suresh Shelvapille; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > > Cc: Hefty, Sean
-> > > > > Subject: RE: Qperf and APM
-> > > > >
-> > > > > Hi,
-> > > > >
-> > > > > Can you be more specific?  What are you running and how is it failing?
-> > > > >
-> > > > > Thanks,
-> > > > > Dean
-> > > > >
-> > > > > > -----Original Message-----
-> > > > > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > > > > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Suresh Shelvapille
-> > > > > > Sent: Wednesday, March 06, 2013 9:40 AM
-> > > > > > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > > > Cc: Hefty, Sean
-> > > > > > Subject: Qperf and APM
-> > > > > >
-> > > > > > Folks:
-> > > > > > The qperf utility has -ap, -lap, -rap options in support of APM.
-> > > > Unfortunately
-> > > > > > they don't seem to work. Is there a way
-> > > > > > to make this work, or if you have any other ideas on testing failover
-> > using
-> > > > > > rdma please let me know. I have successfully
-> > > > > > used tcp_bw tests for this purpose already.
-> > > > > >
-> > > > > > Thanks,
-> > > > > > Suri
-> > > > > >
-> > > > > > --
-> > > > > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> > in
-> > > > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > > > More majordomo info at  http://vger.kernel.org/majordomo-
-> > info.html
-> > > >
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Casey
