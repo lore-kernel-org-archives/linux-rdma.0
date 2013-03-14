@@ -1,77 +1,25 @@
-From: "David Laight" <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH v2 net-next 05/22] cxgb4: Add T5 write combining support
-Date: Thu, 14 Mar 2013 16:30:16 -0000
-Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6026B718E@saturn3.aculab.com>
-References: <1363273748-25330-1-git-send-email-vipul@chelsio.com> <1363273748-25330-6-git-send-email-vipul@chelsio.com>
+From: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/qib: change QLogic to Intel
+Date: Thu, 14 Mar 2013 17:59:59 +0000
+Message-ID: <4AF12E8016D2BF46BCDFCE8FAA77A358039506F5@fmsmsx109.amr.corp.intel.com>
+References: <20130314154515.6054.72005.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <1363273748-25330-6-git-send-email-vipul@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: Vipul Pandya <vipul@chelsio.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org
-Cc: davem@davemloft.net, roland@purestorage.com, JBottomley@parallels.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, naresh@chelsio.com, divy@chelsio.com, santosh@chelsio.com, arvindb@chelsio.com, abhishek@chelsio.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130314154515.6054.72005.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> This patch implements a low latency Write Combining (aka Write Coalescing) work
-> request path. PCIE maps User Space Doorbell BAR2 region writes to the new
-> interface to SGE. SGE pulls a new message from PCIE new interface and if its a
-> coalesced write work request then pushes it for processing. This patch copies
-> coalesced work request to memory mapped BAR2 space.
-...
-> +	} else {
-> +		memset(data, 0, 2 * sizeof(u64));
-> +		*data += 2;
-> +	}
-
-Using memset is overkill (or rather a big overhead if it isn't
-detected by the compiler). Nothing wrong with:
-		(*data)[0] = 0;
-		(*data)[1] = 0;
-		*data += 2;
-Actually, typing that, I realise that you should probably have
-read *data into a local variable, and then updated it when finished.
-Otherwise some of the accesses might be ones which force the
-compiler to reload the value.
-		
->  static inline void ring_tx_db(struct adapter *adap, struct sge_txq *q, int n)
->  {
-> +	unsigned int *wr, index;
-> +
->  	wmb();            /* write descriptors before telling HW */
->  	spin_lock(&q->db_lock);
->  	if (!q->db_disabled) {
-> -		t4_write_reg(adap, MYPF_REG(SGE_PF_KDOORBELL),
-> -			     QID(q->cntxt_id) | PIDX(n));
-> +		if (is_t4(adap->chip)) {
-> +			t4_write_reg(adap, MYPF_REG(SGE_PF_KDOORBELL),
-> +				     QID(q->cntxt_id) | PIDX(n));
-> +		} else {
-> +			if (n == 1) {
-> +				index = q->pidx ? (q->pidx - 1) : (q->size - 1);
-> +				wr = (unsigned int *)&q->desc[index];
-> +				cxgb_pio_copy((u64 __iomem *)
-> +					      (adap->bar2 + q->udb + 64),
-> +					      (u64 *)wr);
-
-Why all the casts on 'wr' ?
-
-> +			} else
-> +				writel(n,  adap->bar2 + q->udb + 8);
-> +			wmb();
-
-Since you actually need memory barriers here on x86 you definitely
-need a comment saying so, and it would (IMHO) better to use a
-different define in the source (even if it is currently converted
-to wmb() in a local header file).
-
-Thinking further, for portability you might want to find some way
-of abstracting the multi-word writes somehow.
-For example, some of the ppc have a dma engine associated with the
-PCIe master interface that can be used to generate large TLP.
-The code would still want to spin waiting for the dma to complete
-(since the transfer would be far faster than any interrupt path).
-
-	David
+DQo+IC0jZGVmaW5lIERSSVZFUl9MT0FEX01TRyAiUUxvZ2ljICIgUUlCX0RSVl9OQU1FICIgbG9h
+ZGVkOiAiDQo+ICsjZGVmaW5lIERSSVZFUl9MT0FEX01TRyAiUWliICIgUUlCX0RSVl9OQU1FICIg
+bG9hZGVkOiAiDQoNCkRSSVZFUl9MT0FEX01TRyBlbmRzIHVwIGJlaW5nICJRaWIgaWJfcWliIGxv
+YWRlZDogIi4gIFdvdWxkbid0ICJJbnRlbCBpYl9xaWIgbG9hZGVkOiAiIGJlIGJldHRlcj8NCg0K
+DQpEZWFuDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
