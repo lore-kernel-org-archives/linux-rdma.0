@@ -1,23 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 net-next 00/22] Add support for Chelsio T5 adapter
-Date: Thu, 14 Mar 2013 11:45:33 -0400 (EDT)
-Message-ID: <20130314.114533.485492257267245931.davem@davemloft.net>
-References: <1363273748-25330-1-git-send-email-vipul@chelsio.com>
+From: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] libibmad: To fix big endian problem for both 32-bit &
+ 64-bit SPARC
+Date: Thu, 14 Mar 2013 09:29:49 -0700
+Message-ID: <5141FAFD.5070109@oracle.com>
+References: <513F83BD.3050302@oracle.com> <5140759D.1030500@dev.mellanox.co.il> <514077DB.9000703@mellanox.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1363273748-25330-1-git-send-email-vipul@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: vipul@chelsio.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, roland@purestorage.com, JBottomley@parallels.com, dm@chelsio.com, swise@opengridcomputing.com, leedom@chelsio.com, naresh@chelsio.com, divy@chelsio.com, santosh@chelsio.com, arvindb@chelsio.com, abhishek@chelsio.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <514077DB.9000703-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vipul Pandya <vipul@chelsio.com>
-Date: Thu, 14 Mar 2013 20:38:46 +0530
+Hi Hal and Or,
 
-> We request to merge this patch series via David Miller's net-next tree. We are
-> copying respective maintainers of all the drivers for reviewing the changes.
-> Kindly let us know in case of any review comments.
+We are checking on this and will get back.
 
-All applied to net-next, thanks.
+Thanks,
+Boris
+
+On 03/13/13 05:58, Or Gerlitz wrote:
+> On 13/03/2013 14:48, Hal Rosenstock wrote:
+>> On 3/12/2013 3:36 PM, Boris Chiu wrote:
+>>> >--- a/src/dump.c
+>>> >+++ b/src/dump.c
+>>> >@@ -46,12 +46,24 @@
+>>> >
+>>> >void mad_dump_int(char *buf, int bufsz, void *val, int valsz)
+>>> >{
+>>> >+    /*
+>>> >+     * the val pointer passed to the dump routines are always 32 bit
+>>> >+     * integers for valsz <= 4 and 64 bit integer for the rest. It is
+>>> >never
+>>> >+     * uint8_t or uint16_t. This is because mad_decode_field always
+>>> >returns
+>>> >+     * the values as 32 bit integer even if they are 8 bit or 16 bit
+>>> >fields.
+>>> >+     */
+>>> >     switch (valsz) {
+>>> >     case 1:
+>>> >-        snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xff);
+>>> >+#if defined(_BIG_ENDIAN)
+>>> >+        val = ((uint8_t *)val) + 3;
+>>> >+#endif /* _BIG_ENDIAN */
+>> I don't understand what's different about SPARC and PPC in terms of
+>> this. These routines all work without this on PPC64 and PPC32.
+>
+> Yep, agree, assuming the code works on other BE archs, we 1st and most 
+> need to understand the problem before going to solutions.
+>
+> Or.
+>
+>
+>
+>>
+>> At a minimum, should this be ifdef'd on something like both __sun and
+>> __SVR4 rather than _BIG_ENDIAN ?
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
