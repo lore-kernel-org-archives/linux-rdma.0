@@ -1,44 +1,44 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V3 for-next 3/5] IB/ipoib: Move to multi-queue device
-Date: Thu, 14 Mar 2013 20:53:48 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0D5C8F95@FMSMSX108.amr.corp.intel.com>
-References: <1362676288-19906-1-git-send-email-ogerlitz@mellanox.com>
-	<1362676288-19906-4-git-send-email-ogerlitz@mellanox.com>
-	<32E1700B9017364D9B60AED9960492BC0D5C7875@FMSMSX108.amr.corp.intel.com>
- <CAJZOPZ+xHqWT6vrbpYoakM_h=BBYsxq-CaXSNSHchvQ1wu66kQ@mail.gmail.com>
+From: "Hudzia, Benoit" <benoit.hudzia-y6kNeMnOB+c@public.gmane.org>
+Subject: RE: mlx4 module loading fail
+Date: Thu, 14 Mar 2013 22:53:59 +0000
+Message-ID: <96353B6F8A3DAE4BBC51047BD0E6BAC2094AD2@DEWDFEMB17A.global.corp.sap>
+References: <96353B6F8A3DAE4BBC51047BD0E6BAC20913A5@DEWDFEMB17A.global.corp.sap>
+	<5138B372.4020201@mellanox.com>
+	<96353B6F8A3DAE4BBC51047BD0E6BAC20914D9@DEWDFEMB17A.global.corp.sap>
+ <CAJZOPZKyZgpf3dqfif3c6WHWhriWic06xsWCkdo2TCars3Aehw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+xHqWT6vrbpYoakM_h=BBYsxq-CaXSNSHchvQ1wu66kQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAJZOPZKyZgpf3dqfif3c6WHWhriWic06xsWCkdo2TCars3Aehw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The cm side ib_req_notify_cq() is altered in my patch.
+Hi upgrading to 3.9 rc2 fix the issue.
 
-The same behavior is need to be adopted.
-
-Mike
+Also  3.2 kernel and under  doesn't cause any error 
 
 > -----Original Message-----
 > From: Or Gerlitz [mailto:or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: Thursday, March 14, 2013 4:52 PM
-> To: Marciniszyn, Mike
-> Cc: Or Gerlitz; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Shlomo
-> Pongratz
-> Subject: Re: [PATCH V3 for-next 3/5] IB/ipoib: Move to multi-queue device
+> Sent: 08 March 2013 13:33
+> To: Hudzia, Benoit
+> Cc: Or Gerlitz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Jack Morgenstein
+> Subject: Re: mlx4 module loading fail
 > 
-> Marciniszyn, Mike <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Mar 7, 2013 at 6:06 PM, Hudzia, Benoit <benoit.hudzia-y6kNeMnOB+c@public.gmane.org>
+> wrote:
+> >
+> > However I did a quick test and by removing physically HALF the ram of the
+> server ( basically moving from 1TB to 512GB) everything works fine..
 > 
-> > This patch will conflict with
-> > http://marc.info/?l=linux-rdma&m=136190765729001&w=2
 > 
 > 
-> What sort of conflict? is that on lines that are moving, or something deeper in
-> the proposed design?
+> Yep, you probably hit the problem fixed by commit "mlx4_core: Allow
+> large mlx4_buddy bitmaps" 89dd86db78e08b51bab29e168fd41b2fd943e6b6,
+> updating your kernel should get that from your way.
 > 
 > Or.
 --
