@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v4 3/7] livibverbs: Add support for XRC SRQs
-Date: Fri, 15 Mar 2013 17:38:42 -0700
-Message-ID: <1363394326-908-3-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH v4 5/7] libibverbs: Add ibv_open_qp
+Date: Fri, 15 Mar 2013 17:38:44 -0700
+Message-ID: <1363394326-908-5-git-send-email-sean.hefty@intel.com>
 References: <1828884A29C6694DAF28B7E6B8A8237346A981A0@FMSMSX151.amr.corp.intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237346A981A0-Q3cL8pyY+6ukrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
@@ -12,313 +12,212 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-XRC support requires the use of a new type of SRQ.
-
-XRC shared receive queues: xrc srq's are similar to normal
-srq's, except that they are bound to an xrcd, rather
-than to a protection domain.  Based on the current spec
-and implementation, they are only usable with xrc qps.  To
-support xrc srq's, we define a new srq_init_attr structure
-to include an srq type and other needed information.
-
-The kernel ABI is also updated to allow creating extended
-SRQs.
+XRC receive QPs are shareable across multiple processes.  Allow
+any process with access to the xrc domain to open an existing
+QP.  After opening the QP, the process will receive events
+related to the QP and be able to modify the QP.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/infiniband/driver.h   |   27 ++++++++++++++++
- include/infiniband/kern-abi.h |   21 ++++++++++++-
- include/infiniband/verbs.h    |   61 +++++++++++++++++++++++++++++++++++-
- src/cmd.c                     |   69 +++++++++++++++++++++++++++++++++++++++++
+ include/infiniband/driver.h   |    4 +++
+ include/infiniband/kern-abi.h |   20 ++++++++++++++++-
+ include/infiniband/verbs.h    |   35 +++++++++++++++++++++++++++++++-
+ src/cmd.c                     |   45 +++++++++++++++++++++++++++++++++++++++++
  src/libibverbs.map            |    1 +
- 5 files changed, 177 insertions(+), 2 deletions(-)
+ 5 files changed, 102 insertions(+), 3 deletions(-)
 
 diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index ce88442..05ff730 100644
+index d43ae07..a63d1e9 100644
 --- a/include/infiniband/driver.h
 +++ b/include/infiniband/driver.h
-@@ -64,6 +64,23 @@ struct verbs_xrcd {
- 	uint32_t		handle;
- };
- 
-+enum verbs_srq_mask {
-+	VERBS_SRQ_TYPE		= 1 << 0,
-+	VERBS_SRQ_XRCD		= 1 << 1,
-+	VERBS_SRQ_CQ		= 1 << 2,
-+	VERBS_SRQ_NUM		= 1 << 3,
-+	VERBS_SRQ_RESERVED	= 1 << 4
-+};
-+
-+struct verbs_srq {
-+	struct ibv_srq		srq;
-+	uint32_t		comp_mask;
-+	enum ibv_srq_type	srq_type;
-+	struct verbs_xrcd      *xrcd;
-+	struct ibv_cq	       *cq;
-+	uint32_t		srq_num;
-+};
-+
- typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
- 						   int abi_version);
- typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
-@@ -118,6 +135,10 @@ int ibv_cmd_create_srq(struct ibv_pd *pd,
- 		       struct ibv_srq *srq, struct ibv_srq_init_attr *attr,
- 		       struct ibv_create_srq *cmd, size_t cmd_size,
- 		       struct ibv_create_srq_resp *resp, size_t resp_size);
-+int ibv_cmd_create_srq_ex(struct ibv_context *context,
-+			  struct verbs_srq *srq, struct ibv_srq_init_attr_ex *attr_ex,
-+			  struct ibv_create_xsrq *cmd, size_t cmd_size,
-+			  struct ibv_create_srq_resp *resp, size_t resp_size);
- int ibv_cmd_modify_srq(struct ibv_srq *srq,
- 		       struct ibv_srq_attr *srq_attr,
- 		       int srq_attr_mask,
-@@ -162,4 +183,10 @@ const char *ibv_get_sysfs_path(void);
- int ibv_read_sysfs_file(const char *dir, const char *file,
- 			char *buf, size_t size);
- 
-+static inline uint32_t verbs_get_srq_num(struct ibv_srq *srq)
-+{
-+	struct verbs_srq *vsrq = container_of(srq, struct verbs_srq, srq);
-+	return (vsrq->comp_mask & VERBS_SRQ_NUM) ? vsrq->srq_num : 0;
-+}
-+
- #endif /* INFINIBAND_DRIVER_H */
+@@ -166,6 +166,10 @@ int ibv_cmd_create_qp_ex(struct ibv_context *context,
+ 			 struct verbs_qp *qp, struct ibv_qp_init_attr_ex *attr_ex,
+ 			 struct ibv_create_qp *cmd, size_t cmd_size,
+ 			 struct ibv_create_qp_resp *resp, size_t resp_size);
++int ibv_cmd_open_qp(struct ibv_context *context,
++		    struct verbs_qp *qp, struct ibv_qp_open_attr *attr,
++		    struct ibv_open_qp *cmd, size_t cmd_size,
++		    struct ibv_create_qp_resp *resp, size_t resp_size);
+ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *qp_attr,
+ 		     int attr_mask,
+ 		     struct ibv_qp_init_attr *qp_init_attr,
 diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index d7c673f..3d72fa7 100644
+index b6d5ce9..e24fa4f 100644
 --- a/include/infiniband/kern-abi.h
 +++ b/include/infiniband/kern-abi.h
-@@ -88,6 +88,7 @@ enum {
+@@ -88,7 +88,8 @@ enum {
  	IB_USER_VERBS_CMD_POST_SRQ_RECV,
  	IB_USER_VERBS_CMD_OPEN_XRCD,
  	IB_USER_VERBS_CMD_CLOSE_XRCD,
-+	IB_USER_VERBS_CMD_CREATE_XSRQ
+-	IB_USER_VERBS_CMD_CREATE_XSRQ
++	IB_USER_VERBS_CMD_CREATE_XSRQ,
++	IB_USER_VERBS_CMD_OPEN_QP
  };
  
  /*
-@@ -730,11 +731,28 @@ struct ibv_create_srq {
+@@ -476,6 +477,20 @@ struct ibv_create_qp {
  	__u64 driver_data[0];
  };
  
-+struct ibv_create_xsrq {
++struct ibv_open_qp {
 +	__u32 command;
 +	__u16 in_words;
 +	__u16 out_words;
 +	__u64 response;
 +	__u64 user_handle;
-+	__u32 srq_type;
 +	__u32 pd_handle;
-+	__u32 max_wr;
-+	__u32 max_sge;
-+	__u32 srq_limit;
-+	__u32 reserved;
-+	__u32 xrcd_handle;
-+	__u32 cq_handle;
++	__u32 qpn;
++	__u8  qp_type;
++	__u8  reserved[7];
 +	__u64 driver_data[0];
 +};
 +
- struct ibv_create_srq_resp {
- 	__u32 srq_handle;
- 	__u32 max_wr;
- 	__u32 max_sge;
--	__u32 reserved;
-+	__u32 srqn;
- };
- 
- struct ibv_modify_srq {
-@@ -829,6 +847,7 @@ enum {
++/* also used for open response */
+ struct ibv_create_qp_resp {
+ 	__u32 qp_handle;
+ 	__u32 qpn;
+@@ -852,7 +867,8 @@ enum {
  	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
  	IB_USER_VERBS_CMD_OPEN_XRCD_V2 = -1,
  	IB_USER_VERBS_CMD_CLOSE_XRCD_V2 = -1,
-+	IB_USER_VERBS_CMD_CREATE_XSRQ_V2 = -1
+-	IB_USER_VERBS_CMD_CREATE_XSRQ_V2 = -1
++	IB_USER_VERBS_CMD_CREATE_XSRQ_V2 = -1,
++	IB_USER_VERBS_CMD_OPEN_QP_V2 = -1
  };
  
  struct ibv_destroy_cq_v1 {
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index cf8299a..d7dfcd3 100644
+index f321866..a662ab4 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -427,6 +427,30 @@ struct ibv_srq_init_attr {
- 	struct ibv_srq_attr	attr;
+@@ -498,6 +498,22 @@ struct ibv_qp_init_attr_ex {
+ 	struct ibv_xrcd	       *xrcd;
  };
  
-+enum ibv_srq_type {
-+	IBV_SRQT_BASIC,
-+	IBV_SRQT_XRC
-+};
++enum ibv_qp_open_attr_mask {
++	IBV_QP_OPEN_ATTR_NUM		= 1 << 0,
++	IBV_QP_OPEN_ATTR_CONTEXT	= 1 << 1,
++	IBV_QP_OPEN_ATTR_XRCD		= 1 << 2,
++	IBV_QP_OPEN_ATTR_TYPE		= 1 << 3,
++	IBV_QP_OPEN_ATTR_RESERVED	= 1 << 4
++ };
 +
-+enum ibv_srq_init_attr_mask {
-+	IBV_SRQ_INIT_ATTR_TYPE		= 1 << 0,
-+	IBV_SRQ_INIT_ATTR_PD		= 1 << 1,
-+	IBV_SRQ_INIT_ATTR_XRCD		= 1 << 2,
-+	IBV_SRQ_INIT_ATTR_CQ		= 1 << 3,
-+	IBV_SRQ_INIT_ATTR_RESERVED	= 1 << 4
-+};
-+
-+struct ibv_srq_init_attr_ex {
-+	void		       *srq_context;
-+	struct ibv_srq_attr	attr;
-+
++struct ibv_qp_open_attr {
 +	uint32_t		comp_mask;
-+	enum ibv_srq_type	srq_type;
-+	struct ibv_pd	       *pd;
-+	struct ibv_xrcd	       *xrcd;
-+	struct ibv_cq	       *cq;
++	uint32_t		qp_num;
++	struct ibv_xrcd        *xrcd;
++	void		       *qp_context;
++	enum ibv_qp_type	qp_type;
 +};
 +
- enum ibv_qp_type {
- 	IBV_QPT_RC = 2,
- 	IBV_QPT_UC,
-@@ -746,11 +770,15 @@ struct ibv_context {
- 
- enum verbs_context_mask {
- 	VERBS_CONTEXT_XRCD	= 1 << 0,
--	VERBS_CONTEXT_RESERVED	= 1 << 1
-+	VERBS_CONTEXT_SRQ	= 1 << 1,
-+	VERBS_CONTEXT_RESERVED	= 1 << 2
+ enum ibv_qp_attr_mask {
+ 	IBV_QP_STATE			= 1 << 	0,
+ 	IBV_QP_CUR_STATE		= 1 << 	1,
+@@ -529,7 +545,8 @@ enum ibv_qp_state {
+ 	IBV_QPS_RTS,
+ 	IBV_QPS_SQD,
+ 	IBV_QPS_SQE,
+-	IBV_QPS_ERR
++	IBV_QPS_ERR,
++	IBV_QPS_UNKNOWN
  };
+ 
+ enum ibv_mig_state {
+@@ -805,6 +822,8 @@ enum verbs_context_mask {
  
  struct verbs_context {
  	/*  "grows up" - new fields go here */
-+	uint32_t		(*get_srq_num)(struct ibv_srq *srq);
-+	struct ibv_srq *	(*create_srq_ex)(struct ibv_context *context,
-+						 struct ibv_srq_init_attr_ex *srq_init_attr_ex);
- 	struct ibv_xrcd *	(*open_xrcd)(struct ibv_context *context,
- 					     struct ibv_xrcd_init_attr *xrcd_init_attr);
- 	int			(*close_xrcd)(struct ibv_xrcd *xrcd);
-@@ -1034,6 +1062,27 @@ static inline int ibv_req_notify_cq(struct ibv_cq *cq, int solicited_only)
- struct ibv_srq *ibv_create_srq(struct ibv_pd *pd,
- 			       struct ibv_srq_init_attr *srq_init_attr);
++	struct ibv_qp *		(*open_qp)(struct ibv_context *context,
++					   struct ibv_qp_open_attr *attr);
+ 	struct ibv_qp *		(*create_qp_ex)(struct ibv_context *context,
+ 						struct ibv_qp_init_attr_ex *qp_init_attr_ex);
+ 	uint32_t		(*get_srq_num)(struct ibv_srq *srq);
+@@ -1192,6 +1211,20 @@ ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_ini
+ }
  
-+static inline struct ibv_srq *
-+ibv_create_srq_ex(struct ibv_context *context,
-+		  struct ibv_srq_init_attr_ex *srq_init_attr_ex)
+ /**
++ * ibv_open_qp - Open a shareable queue pair.
++ */
++static inline struct ibv_qp *
++ibv_open_qp(struct ibv_context *context, struct ibv_qp_open_attr *qp_open_attr)
 +{
-+	struct verbs_context *vctx;
-+	uint32_t mask = srq_init_attr_ex->comp_mask;
-+
-+	if (!(mask & ~(IBV_SRQ_INIT_ATTR_PD | IBV_SRQ_INIT_ATTR_TYPE)) &&
-+	    (mask & IBV_SRQ_INIT_ATTR_PD) &&
-+	    (!(mask & IBV_SRQ_INIT_ATTR_TYPE) ||
-+	     (srq_init_attr_ex->srq_type == IBV_SRQT_BASIC)))
-+		return ibv_create_srq(srq_init_attr_ex->pd,
-+				      (struct ibv_srq_init_attr *) srq_init_attr_ex);
-+
-+	if (!(vctx = verbs_get_ctx_op(context, create_srq_ex))) {
++	struct verbs_context *vctx = verbs_get_ctx_op(context, open_qp);
++	if (!vctx) {
 +		errno = ENOSYS;
 +		return NULL;
 +	}
-+	return vctx->create_srq_ex(context, srq_init_attr_ex);
++	return vctx->open_qp(context, qp_open_attr);
 +}
 +
- /**
-  * ibv_modify_srq - Modifies the attributes for the specified SRQ.
-  * @srq: The SRQ to modify.
-@@ -1058,6 +1107,16 @@ int ibv_modify_srq(struct ibv_srq *srq,
++/**
+  * ibv_modify_qp - Modify a queue pair.
   */
- int ibv_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr);
- 
-+static inline uint32_t ibv_get_srq_num(struct ibv_srq *srq)
-+{
-+	struct verbs_context *vctx = verbs_get_ctx_op(srq->context, get_srq_num);
-+	if (!vctx) {
-+		errno = ENOSYS;
-+		return 0;
-+	}
-+	return vctx->get_srq_num(srq);
-+}
-+
- /**
-  * ibv_destroy_srq - Destroys the specified SRQ.
-  * @srq: The SRQ to destroy.
+ int ibv_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
 diff --git a/src/cmd.c b/src/cmd.c
-index f0fb1dc..641ab28 100644
+index 87ac062..da0d733 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -488,6 +488,75 @@ int ibv_cmd_create_srq(struct ibv_pd *pd,
+@@ -816,6 +816,51 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
  	return 0;
  }
  
-+int ibv_cmd_create_srq_ex(struct ibv_context *context,
-+			  struct verbs_srq *srq, struct ibv_srq_init_attr_ex *attr_ex,
-+			  struct ibv_create_xsrq *cmd, size_t cmd_size,
-+			  struct ibv_create_srq_resp *resp, size_t resp_size)
++int ibv_cmd_open_qp(struct ibv_context *context, struct verbs_qp *qp,
++		    struct ibv_qp_open_attr *attr,
++		    struct ibv_open_qp *cmd, size_t cmd_size,
++		    struct ibv_create_qp_resp *resp, size_t resp_size)
 +{
-+	struct verbs_xrcd *vxrcd = NULL;
++	struct verbs_xrcd *xrcd;
++	IBV_INIT_CMD_RESP(cmd, cmd_size, OPEN_QP, resp, resp_size);
 +
-+	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_XSRQ, resp, resp_size);
-+
-+	if (attr_ex->comp_mask >= IBV_SRQ_INIT_ATTR_RESERVED)
++	if (attr->comp_mask >= IBV_QP_OPEN_ATTR_RESERVED)
 +		return ENOSYS;
 +
-+	if (!(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_PD))
++	if (!(attr->comp_mask & IBV_QP_OPEN_ATTR_XRCD) ||
++	    !(attr->comp_mask & IBV_QP_OPEN_ATTR_NUM) ||
++	    !(attr->comp_mask & IBV_QP_OPEN_ATTR_TYPE))
 +		return EINVAL;
 +
-+	cmd->user_handle = (uintptr_t) srq;
-+	cmd->pd_handle   = attr_ex->pd->handle;
-+	cmd->max_wr      = attr_ex->attr.max_wr;
-+	cmd->max_sge     = attr_ex->attr.max_sge;
-+	cmd->srq_limit   = attr_ex->attr.srq_limit;
-+
-+	cmd->srq_type = (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ?
-+			attr_ex->srq_type : IBV_SRQT_BASIC;
-+	if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) {
-+		if (!(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) ||
-+		    !(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ))
-+			return EINVAL;
-+
-+		vxrcd = container_of(attr_ex->xrcd, struct verbs_xrcd, xrcd);
-+		cmd->xrcd_handle = vxrcd->handle;
-+		cmd->cq_handle   = attr_ex->cq->handle;
-+	}
++	xrcd = container_of(attr->xrcd, struct verbs_xrcd, xrcd);
++	cmd->user_handle = (uintptr_t) qp;
++	cmd->pd_handle   = xrcd->handle;
++	cmd->qpn         = attr->qp_num;
++	cmd->qp_type     = attr->qp_type;
 +
 +	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
 +		return errno;
 +
 +	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
 +
-+	srq->srq.handle 	  = resp->srq_handle;
-+	srq->srq.context          = context;
-+	srq->srq.srq_context      = attr_ex->srq_context;
-+	srq->srq.pd               = attr_ex->pd;
-+	srq->srq.events_completed = 0;
-+	pthread_mutex_init(&srq->srq.mutex, NULL);
-+	pthread_cond_init(&srq->srq.cond, NULL);
-+
-+	srq->comp_mask = IBV_SRQ_INIT_ATTR_TYPE;
-+	srq->srq_type = (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ?
-+			attr_ex->srq_type : IBV_SRQT_BASIC;
-+	if (srq->srq_type == IBV_SRQT_XRC) {
-+		srq->comp_mask |= VERBS_SRQ_NUM;
-+		srq->srq_num = resp->srqn;
-+	}
-+	if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) {
-+		srq->comp_mask |= VERBS_SRQ_XRCD;
-+		srq->xrcd = vxrcd;
-+	}
-+	if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ) {
-+		srq->comp_mask |= VERBS_SRQ_CQ;
-+		srq->cq = attr_ex->cq;
-+	}
-+
-+	attr_ex->attr.max_wr = resp->max_wr;
-+	attr_ex->attr.max_sge = resp->max_sge;
++	qp->qp.handle     = resp->qp_handle;
++	qp->qp.context    = context;
++	qp->qp.qp_context = attr->qp_context;
++	qp->qp.pd	  = NULL;
++	qp->qp.send_cq	  = qp->qp.recv_cq = NULL;
++	qp->qp.srq	  = NULL;
++	qp->qp.qp_num	  = attr->qp_num;
++	qp->qp.qp_type	  = attr->qp_type;
++	qp->qp.state	  = IBV_QPS_UNKNOWN;
++	qp->qp.events_completed = 0;
++	pthread_mutex_init(&qp->qp.mutex, NULL);
++	pthread_cond_init(&qp->qp.cond, NULL);
++	qp->comp_mask	  = VERBS_QP_XRCD;
++	qp->xrcd	  = xrcd;
 +
 +	return 0;
 +}
 +
-+
- static int ibv_cmd_modify_srq_v3(struct ibv_srq *srq,
- 				 struct ibv_srq_attr *srq_attr,
- 				 int srq_attr_mask,
+ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		     int attr_mask,
+ 		     struct ibv_qp_init_attr *init_attr,
 diff --git a/src/libibverbs.map b/src/libibverbs.map
-index 9a15f3f..c8ec645 100644
+index 4249793..5ad8312 100644
 --- a/src/libibverbs.map
 +++ b/src/libibverbs.map
-@@ -100,5 +100,6 @@ IBVERBS_1.1 {
- 		
- 		ibv_cmd_open_xrcd;
+@@ -102,5 +102,6 @@ IBVERBS_1.1 {
  		ibv_cmd_close_xrcd;
-+		ibv_cmd_create_srq_ex;
+ 		ibv_cmd_create_srq_ex;
+ 		ibv_cmd_create_qp_ex;
++		ibv_cmd_open_qp;
  		
  } IBVERBS_1.0;
 -- 
