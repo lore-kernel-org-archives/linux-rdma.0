@@ -1,82 +1,222 @@
-From: Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] Add fix to  _do_madrpc to set the errno after umad_recv.
-Date: Mon, 18 Mar 2013 12:03:55 -0700
-Message-ID: <5147651B.5030309@oracle.com>
-References: <5122A6D5.10400@oracle.com> <20130226142930.10c27daedb24b768fb979fe9@llnl.gov>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH libmlx4 v5 1/2] Infra-structure changes to support verbs extensions
+Date: Mon, 18 Mar 2013 12:10:26 -0700
+Message-ID: <1363633827-27885-1-git-send-email-sean.hefty@intel.com>
+References: <1363394396-951-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130226142930.10c27daedb24b768fb979fe9-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <1363394396-951-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Jia Shi (E-mail)" <JIA.SHI-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ira,
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks for the review.
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+I used an older version (v4) of the patch series.  This is the latest
+version that Yishai had provided.
 
-Sorry for the late reply. My answers are in-lined.
+changes from v4:
+increase MLX4_UVERBS_MIN_ABI_VERSION to be 3
+- version 2 is no longer supported
+fix when error message in mlx4_driver_init is displayed
 
-Sarat
+ src/mlx4-abi.h |    2 +-
+ src/mlx4.c     |   82 ++++++++++++++++++++++++++++++--------------------------
+ src/mlx4.h     |    8 ++++-
+ 3 files changed, 51 insertions(+), 41 deletions(-)
 
-On 2/26/2013 2:29 PM, Ira Weiny wrote:
-> First, it is not documented that this function will set any errno value.
->
-> umad_status is only documented to return ETIMEDOUT which will be returned in the p_error parameter (ib_rpc_t -> rstatus) value when an error occurs.  Is this not sufficient for your needs?
+diff --git a/src/mlx4-abi.h b/src/mlx4-abi.h
+index 20a40c9..7cf68b4 100644
+--- a/src/mlx4-abi.h
++++ b/src/mlx4-abi.h
+@@ -35,7 +35,7 @@
+ 
+ #include <infiniband/kern-abi.h>
+ 
+-#define MLX4_UVERBS_MIN_ABI_VERSION	2
++#define MLX4_UVERBS_MIN_ABI_VERSION	3
+ #define MLX4_UVERBS_MAX_ABI_VERSION	3
+ 
+ struct mlx4_alloc_ucontext_resp {
+diff --git a/src/mlx4.c b/src/mlx4.c
+index 8cf249a..dcea026 100644
+--- a/src/mlx4.c
++++ b/src/mlx4.c
+@@ -120,22 +120,26 @@ static struct ibv_context_ops mlx4_ctx_ops = {
+ 	.detach_mcast  = ibv_cmd_detach_mcast
+ };
+ 
+-static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_fd)
++static int mlx4_init_context(struct verbs_device *v_device,
++			struct ibv_context *ibv_ctx, int cmd_fd)
+ {
+-	struct mlx4_context	       *context;
++	struct mlx4_context		*context;
+ 	struct ibv_get_context		cmd;
+ 	struct mlx4_alloc_ucontext_resp resp;
+ 	int				i;
++	/* verbs_context should be used for new verbs
++	  *struct verbs_context *verbs_ctx = verbs_get_ctx(ibv_ctx);
++	 */
+ 
+-	context = calloc(1, sizeof *context);
+-	if (!context)
+-		return NULL;
+-
+-	context->ibv_ctx.cmd_fd = cmd_fd;
++	/* memory footprint of mlx4_context and verbs_context share
++	  * struct ibv_context.
++	*/
++	context = to_mctx(ibv_ctx);
++	ibv_ctx->cmd_fd = cmd_fd;
+ 
+-	if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof cmd,
++	if (ibv_cmd_get_context(ibv_ctx, &cmd, sizeof(cmd),
+ 				&resp.ibv_resp, sizeof resp))
+-		goto err_free;
++		return errno;
+ 
+ 	context->num_qps	= resp.qp_tab_size;
+ 	context->qp_table_shift = ffs(context->num_qps) - 1 - MLX4_QP_TABLE_BITS;
+@@ -150,15 +154,16 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
+ 
+ 	pthread_mutex_init(&context->db_list_mutex, NULL);
+ 
+-	context->uar = mmap(NULL, to_mdev(ibdev)->page_size, PROT_WRITE,
+-			    MAP_SHARED, cmd_fd, 0);
++	context->uar = mmap(NULL, to_mdev(&v_device->device)->page_size,
++			    PROT_WRITE, MAP_SHARED, cmd_fd, 0);
+ 	if (context->uar == MAP_FAILED)
+-		goto err_free;
++		return errno;
+ 
+ 	if (resp.bf_reg_size) {
+-		context->bf_page = mmap(NULL, to_mdev(ibdev)->page_size,
++		context->bf_page = mmap(NULL,
++					to_mdev(&v_device->device)->page_size,
+ 					PROT_WRITE, MAP_SHARED, cmd_fd,
+-					to_mdev(ibdev)->page_size);
++					to_mdev(&v_device->device)->page_size);
+ 		if (context->bf_page == MAP_FAILED) {
+ 			fprintf(stderr, PFX "Warning: BlueFlame available, "
+ 				"but failed to mmap() BlueFlame page.\n");
+@@ -176,35 +181,29 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
+ 
+ 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
+ 
+-	context->ibv_ctx.ops = mlx4_ctx_ops;
+-
+-	return &context->ibv_ctx;
++	ibv_ctx->ops = mlx4_ctx_ops;
++	/* New verbs should be added as below
++	  * verbs_ctx->drv_new_func1 = mlx4_new_func1;
++	  */
++	return 0;
+ 
+-err_free:
+-	free(context);
+-	return NULL;
+ }
+ 
+-static void mlx4_free_context(struct ibv_context *ibctx)
++static void mlx4_uninit_context(struct verbs_device *v_device,
++					struct ibv_context *ibv_ctx)
+ {
+-	struct mlx4_context *context = to_mctx(ibctx);
++	struct mlx4_context *context = to_mctx(ibv_ctx);
+ 
+-	munmap(context->uar, to_mdev(ibctx->device)->page_size);
++	munmap(context->uar, to_mdev(&v_device->device)->page_size);
+ 	if (context->bf_page)
+-		munmap(context->bf_page, to_mdev(ibctx->device)->page_size);
+-	free(context);
++		munmap(context->bf_page, to_mdev(&v_device->device)->page_size);
+ }
+ 
+-static struct ibv_device_ops mlx4_dev_ops = {
+-	.alloc_context = mlx4_alloc_context,
+-	.free_context  = mlx4_free_context
+-};
+-
+-static struct ibv_device *mlx4_driver_init(const char *uverbs_sys_path,
+-					    int abi_version)
++static struct verbs_device *mlx4_driver_init(const char *uverbs_sys_path,
++					     int abi_version)
+ {
+ 	char			value[8];
+-	struct mlx4_device    *dev;
++	struct mlx4_device	*dev;
+ 	unsigned		vendor, device;
+ 	int			i;
+ 
+@@ -236,23 +235,30 @@ found:
+ 		return NULL;
+ 	}
+ 
+-	dev = malloc(sizeof *dev);
++	dev = calloc(1, sizeof(*dev));
+ 	if (!dev) {
+ 		fprintf(stderr, PFX "Fatal: couldn't allocate device for %s\n",
+ 			uverbs_sys_path);
+ 		return NULL;
+ 	}
+ 
+-	dev->ibv_dev.ops = mlx4_dev_ops;
+ 	dev->page_size   = sysconf(_SC_PAGESIZE);
+-
+-	return &dev->ibv_dev;
++	dev->verbs_dev.sz = sizeof(*dev);
++	dev->verbs_dev.size_of_context =
++		sizeof(struct mlx4_context) - sizeof(struct ibv_context);
++	 /* mlx4_init_context will initialize provider calls */
++	dev->verbs_dev.init_context = mlx4_init_context;
++	dev->verbs_dev.uninit_context = mlx4_uninit_context;
++
++	return &dev->verbs_dev;
+ }
+ 
++
+ #ifdef HAVE_IBV_REGISTER_DRIVER
+ static __attribute__((constructor)) void mlx4_register_driver(void)
+ {
+-	ibv_register_driver("mlx4", mlx4_driver_init);
++	verbs_register_driver("mlx4", mlx4_driver_init);
++
+ }
+ #else
+ /*
+diff --git a/src/mlx4.h b/src/mlx4.h
+index 13c13d8..5028fea 100644
+--- a/src/mlx4.h
++++ b/src/mlx4.h
+@@ -131,7 +131,7 @@ enum {
+ };
+ 
+ struct mlx4_device {
+-	struct ibv_device		ibv_dev;
++	struct verbs_device		verbs_dev;
+ 	int				page_size;
+ };
+ 
+@@ -258,7 +258,11 @@ static inline unsigned long align(unsigned long val, unsigned long align)
+ 
+ static inline struct mlx4_device *to_mdev(struct ibv_device *ibdev)
+ {
+-	return to_mxxx(dev, device);
++	/* ibv_device is first field of verbs_device
++	 * see try_driver in libibverbs
++	 */
++	return ((struct mlx4_device *)
++		((void *) ibdev - offsetof(struct mlx4_device, verbs_dev)));
+ }
+ 
+ static inline struct mlx4_context *to_mctx(struct ibv_context *ibctx)
+-- 
+1.7.3
 
-We are not invoking the _do_mad_rpc directly, we are invoking ib_resolve_portid_str_via that does not pass-back any of the ib_rpc_t contents, so we just depend on the return code 
-and errno to determine whether a path can be resolved or not.
->
-> Secondly, this patch does not apply cleanly.  Please create patches against the current master at:
->
-> git://git.openfabrics.org/~iraweiny/libibmad.git
-
-We are working on setting up the the GIT ..
-
->
-> Thirdly, the patch below will set errno on each retry case.  I don't think this is necessary.
-
-Ok I will change the code to return immediately after hitting the E_TIMEDOUT error.
-
- >>                 status = umad_status(rcvbuf);
- >> +               errno = status;
- >>
- >>                   if (!status)
- >>                      return length;  /* done */
- >>                   if (errno == E_TIMEDOUT)
- >>		        return length;
- >>                   if (status == ENOMEM)
-			
-
-
->
-> Thanks,
-> Ira
->
-> On Mon, 18 Feb 2013 14:10:29 -0800
-> Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->
->>    _do_madrpc() (in libibmad-1.3.3/src/rpc.c) sends the mad request through umad_send() and waits for a response from umad_recv() with the timeout passed  by caller. Linux error
->> number sent by peer in 'status' is not copied over to the process/thread local 'errno'.
->>
->> Signed-off-by: Sarat Kakarla <sarat.kakarla-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>
->> $diff -Naru rpc.c rpc_fix.c
->> --- rpc.c       2013-02-07 10:28:06.000000000 -0800
->> +++ rpc_fix.c   2013-02-18 13:57:15.000000000 -0800
->> @@ -175,6 +175,7 @@
->>                                            IB_MAD_TRID_F) != trid);
->>
->>                   status = umad_status(rcvbuf);
->> +               errno = status;
->>                   if (!status)
->>                           return length;  /* done */
->>                   if (status == ENOMEM)
->
->
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
