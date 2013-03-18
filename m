@@ -1,29 +1,57 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v4 2/7] libibverbs: Introduce XRC domains
-Date: Mon, 18 Mar 2013 15:05:01 +0000
-Message-ID: <0000013d7e083a90-ddabf4e3-7eb8-4368-9139-0b9c37abd5a3-000000@email.amazonses.com>
-References: <1828884A29C6694DAF28B7E6B8A8237346A981A0@FMSMSX151.amr.corp.intel.com> <1363394326-908-2-git-send-email-sean.hefty@intel.com> <5145C966.2010801@mellanox.com> <1828884A29C6694DAF28B7E6B8A823736F365D5B@ORSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_port_info_rcv.c: Fix min_sw_data_vls calculation
+Date: Mon, 18 Mar 2013 11:40:18 -0400
+Message-ID: <51473562.8060805@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736F365D5B-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 18 Mar 2013, Hefty, Sean wrote:
 
-> > I don't see cover-letter for V4 of libibverbs and V3 of libmlx4 patches
-> > you posted over the weekend, would be nice if you
-> > can reply to one of your posting per series and send quick listing of
-> > the changes (if any) from previous versions.
->
-> There are no changes from v3.
+Only update min_sw_data_vls when peer port is another switch port
 
-Well the cover should still be included to give someone just reviewing the
-patchset v4 the chance to understand what is going on.
-
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
+index 84f9fb1..2ea35b8 100644
+--- a/opensm/osm_port_info_rcv.c
++++ b/opensm/osm_port_info_rcv.c
+@@ -327,16 +327,22 @@ static void pi_rcv_process_switch_port(IN osm_sm_t * sm, IN osm_node_t * p_node,
+ 		if (ib_port_info_get_port_state(p_pi) == IB_LINK_DOWN)
+ 			goto Exit;
+ 
+-		data_vls = 1U << (ib_port_info_get_op_vls(p_pi) - 1);
+-		if (data_vls >= IB_MAX_NUM_VLS)
+-			data_vls = IB_MAX_NUM_VLS - 1;
+-		if ((uint8_t)data_vls < sm->p_subn->min_sw_data_vls) {
+-			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+-				"Setting switch port minimal data VLs to:%u defined by node:0x%"
+-				PRIx64 ", port:%u\n", data_vls,
+-				cl_ntoh64(osm_node_get_node_guid(p_node)),
+-				port_num);
+-			sm->p_subn->min_sw_data_vls = data_vls;
++		p_remote_physp = osm_physp_get_remote(p_physp);
++		if (p_remote_physp) {
++			p_remote_node = osm_physp_get_node_ptr(p_remote_physp);
++			if (p_remote_node->sw) {
++				data_vls = 1U << (ib_port_info_get_op_vls(p_pi) - 1);
++				if (data_vls >= IB_MAX_NUM_VLS)
++					data_vls = IB_MAX_NUM_VLS - 1;
++				if ((uint8_t)data_vls < sm->p_subn->min_sw_data_vls) {
++					OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
++						"Setting switch port minimal data VLs to:%u defined by node:0x%"
++						PRIx64 ", port:%u\n", data_vls,
++						cl_ntoh64(osm_node_get_node_guid(p_node)),
++						port_num);
++					sm->p_subn->min_sw_data_vls = data_vls;
++				}
++			}
+ 		}
+ 	}
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
