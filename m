@@ -1,30 +1,44 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V3 for-next 0/5] IB/IPoIB: Add multi-queue TSS and RSS support
-Date: Mon, 18 Mar 2013 21:14:05 +0200
-Message-ID: <CAJZOPZJ_runtaQnj+3n03FniBR83AeRD+Lh_2tn_1XZ0F2wKYg@mail.gmail.com>
-References: <1362676288-19906-1-git-send-email-ogerlitz@mellanox.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch v2] IB/ipath: silence a static checker warning
+Date: Mon, 18 Mar 2013 23:25:26 +0300
+Message-ID: <20130318202526.GA11268@longonot.mountain>
+References: <32E1700B9017364D9B60AED9960492BC0D5C9939@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1362676288-19906-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC0D5C9939-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 7, 2013 at 7:11 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+I have a static checker which complains that 0x255 is too high for
+the "dev->opstats[opcode]" array.  It turns out that the hardware
+has already validated the opcode at this point so it can't actually
+overflow.
 
-> Here's V3 of the IPoIB TSS/RSS patch series, basically its very similar to V2,
-> with fix to for one issue we stepped over while testing V2 and addressing of
-> feedback provided by Sean on the QP groups concept.
+However, silencing the warning is good and this matches how the
+opcode is treated in qib_ib_rcv() as well.
 
-Hi Sean,
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+v2: new changelog.  Just mask the value instead of adding an if
+statement.
 
-Re your feedback on V2, do you feel the concept has been flushed out
-deep enough now?
-
-
-Or.
+diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
+index 439c35d..ea93870 100644
+--- a/drivers/infiniband/hw/ipath/ipath_verbs.c
++++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
+@@ -620,7 +620,7 @@ void ipath_ib_rcv(struct ipath_ibdev *dev, void *rhdr, void *data,
+ 		goto bail;
+ 	}
+ 
+-	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
++	opcode = (be32_to_cpu(ohdr->bth[0]) >> 24) & 0x7f;
+ 	dev->opstats[opcode].n_bytes += tlen;
+ 	dev->opstats[opcode].n_packets++;
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
