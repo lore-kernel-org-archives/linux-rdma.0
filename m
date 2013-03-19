@@ -1,3727 +1,439 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] infiniband-diags: update emails in default pages
-Date: Mon, 18 Mar 2013 17:43:35 -0400
-Message-ID: <51478a87.+17cJpiiwn8XbNBG%ira.weiny@intel.com>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [RFC ib_srp-backport] ib_srp: bind fast IO failing to QP timeout
+Date: Tue, 19 Mar 2013 11:16:57 +0100
+Message-ID: <51483B19.1070201@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------080100060507040804070101"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------080100060507040804070101
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi Bart,
+
+now I've got my priority on SRP again.
+
+I've also noticed that your ib_srp-backport doesn't fail the IO fast
+enough. The fast_io_fail_tmo only comes into play after the QP is
+already in timeout and the "terminate_rport_io" function is missing.
+
+My idea is to use the QP retry count directly for fast IO failing. It is
+at 7 by default and the QP timeout is at approx. 2s. The overall QP
+timeout is at approx. 35s already (1+7 tries * 2s * 2, I guess). Using
+only 3 retries I'm at approx 18s.
+
+My patches introduce that parameter as module parameter as it is quite
+difficult to set the QP from RTS to RTR again. Only there the QP timeout
+parameters can be set.
+
+My patch series isn't complete yet as paths aren't reconnected - they
+are only failed fast bound to the overall QP timeout. But it should give
+you an idea what I'm trying to do here.
+
+What are your thought regarding this?
+
+Attached patches:
+ib_srp: register srp_fail_rport_io as terminate_rport_io
+ib_srp: be quiet when failing SCSI commands
+scsi_transport_srp: disable the fast_io_fail_tmo parameter
+ib_srp: show the QP timeout and retry count in srp_host sysfs files
+ib_srp: introduce qp_retry_cnt module parameter
+
+Cheers,
+Sebastian
+
+
+Btw.: Before, I've hacked MD RAID-1 for high-performance replication as
+DRBD is crap for our purposes. But that's worthless without a reliably
+working transport.
+
+--------------080100060507040804070101
+Content-Type: text/plain; charset=UTF-8;
+ name="0001-ib_srp-register-srp_fail_rport_io-as-terminate_rport_i.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-ib_srp-register-srp_fail_rport_io-as-terminate_rport_i.";
+ filename*1="txt"
+
+>From c101d00fe529d845192dd6d5930a1b9c16c99b81 Mon Sep 17 00:00:00 2001
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date: Wed, 13 Mar 2013 16:16:28 +0100
+Subject: [PATCH 1/5] ib_srp: register srp_fail_rport_io as terminate_rport_io
+
+We need to fail the IO fast in the selected time. So register the
+missing terminate_rport_io function.
+
+Signed-off-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- doc/man/check_lft_balance.8.in |    9 +-----
- doc/man/dump_fts.8.in          |   29 ++++++++++-----------
- doc/man/ibaddr.8.in            |   23 +++++++++-------
- doc/man/ibcacheedit.8.in       |   10 +------
- doc/man/ibccconfig.8.in        |   20 ++++++--------
- doc/man/ibccquery.8.in         |   20 ++++++--------
- doc/man/ibfindnodesusing.8.in  |   18 ++++++++-----
- doc/man/ibhosts.8.in           |   19 +++++++++----
- doc/man/ibidsverify.8.in       |    6 +---
- doc/man/iblinkinfo.8.in        |   30 +++++++++++++---------
- doc/man/ibnetdiscover.8.in     |   33 +++++++++++++-----------
- doc/man/ibnodes.8.in           |   19 +++++++++----
- doc/man/ibping.8.in            |   14 +++------
- doc/man/ibportstate.8.in       |   22 ++++++---------
- doc/man/ibqueryerrors.8.in     |   35 ++++++++++++++++---------
- doc/man/ibroute.8.in           |   35 +++++++++++++------------
- doc/man/ibrouters.8.in         |   19 +++++++++----
- doc/man/ibstat.8.in            |   15 +---------
- doc/man/ibstatus.8.in          |    9 +-----
- doc/man/ibswitches.8.in        |   19 +++++++++----
- doc/man/ibsysstat.8.in         |   22 +++++++---------
- doc/man/ibtracert.8.in         |   33 +++++++++++-------------
- doc/man/infiniband-diags.8.in  |   49 ++++++++++++++++++++----------------
- doc/man/perfquery.8.in         |   45 +++++++--------------------------
- doc/man/saquery.8.in           |   54 ++++++++++++++--------------------------
- doc/man/sminfo.8.in            |   23 +++++++---------
- doc/man/smpdump.8.in           |   26 +++++++------------
- doc/man/smpquery.8.in          |   37 ++++++++++++++-------------
- doc/man/vendstat.8.in          |   25 ++++--------------
- 29 files changed, 334 insertions(+), 384 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/doc/man/check_lft_balance.8.in b/doc/man/check_lft_balance.8.in
-index 5bf8ff8..3e84b13 100644
---- a/doc/man/check_lft_balance.8.in
-+++ b/doc/man/check_lft_balance.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH CHECK_LFT_BALANCE 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH check InfiniBand unicast forwarding tables balance
-+.SH CHECK INFINIBAND UNICAST FORWARDING TABLES BALANCE
- .SS SYNOPSIS
- .sp
- check_lft_balance.sh [\-hRv]
-@@ -43,18 +43,15 @@ unicast forwarding tables.  It analyzes the output of
- .INDENT 0.0
- .TP
- .B \fB\-h\fP
--.sp
- show help
- .TP
- .B \fB\-R\fP
--.sp
- Recalculate dump_lfts information, ie do not use the cached
- information.  This option is slower but should be used if the diag
- tools have not been used for some time or if there are other reasons to
- believe that the fabric has changed.
- .TP
- .B \fB\-v\fP
--.sp
- verbose output
- .UNINDENT
- .SS SEE ALSO
-@@ -65,9 +62,7 @@ verbose output
- .INDENT 0.0
- .TP
- .B Albert Chu
--.
- < \fI\%chu11-i2BcT+NCU+M@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/dump_fts.8.in b/doc/man/dump_fts.8.in
-index a64c6da..3a0db75 100644
---- a/doc/man/dump_fts.8.in
-+++ b/doc/man/dump_fts.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH DUMP_FTS 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -44,15 +44,12 @@ the \-R file \-U /path/to/dump\-file syntax.
- .INDENT 0.0
- .TP
- .B \fB\-a, \-\-all\fP
--.sp
- show all lids in range, even invalid entries
- .TP
- .B \fB\-n, \-\-no_dests\fP
--.sp
- do not try to resolve destinations
- .TP
- .B \fB\-M, \-\-Multicast\fP
--.sp
- show multicast forwarding tables
- In this case, the range parameters are specifying the mlid range.
- .UNINDENT
-@@ -76,10 +73,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -87,6 +82,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -98,13 +95,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -113,7 +111,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -125,7 +122,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -143,7 +139,6 @@ May be used several times (\-vv or \-v \-v \-v)
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -153,7 +148,6 @@ is specified then a value will be prompted for.
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -163,7 +157,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -187,6 +180,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -194,8 +189,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -221,6 +220,8 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH SEE ALSO
- .sp
- \fBdump_lfts(8), dump_mfts(8), ibroute(8), ibswitches(8), opensm(8)\fP
-@@ -228,9 +229,7 @@ for the file location for your installation.
- .INDENT 0.0
- .TP
- .B Ira Weiny
--.
--< \fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP >
-+< \fI\%ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibaddr.8.in b/doc/man/ibaddr.8.in
-index efbd438..8a804d7 100644
---- a/doc/man/ibaddr.8.in
-+++ b/doc/man/ibaddr.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBADDR 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -54,6 +54,8 @@ show lid range (in decimal) only
- .
- .sp
- \fB\-D, \-\-Direct\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -66,6 +68,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Define the common option -G
- .
- .sp
-@@ -80,7 +84,6 @@ Examples:
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -89,7 +92,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -101,7 +103,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -129,10 +130,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -140,6 +139,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -151,13 +152,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Configuration flags
- .\" Define the common option -y
- .
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -167,7 +169,6 @@ is specified then a value will be prompted for.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -181,6 +182,8 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- A global config file is provided to set some of the common options for all
- tools.  See supplied config file for details.
- .SH EXAMPLES
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -192,6 +195,8 @@ ibaddr \-L 32            # show decimal lid range only
- ibaddr \-g 32            # show gid address only
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH SEE ALSO
- .sp
- \fBibroute (8), ibtracert (8)\fP
-@@ -199,9 +204,7 @@ ibaddr \-g 32            # show gid address only
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibcacheedit.8.in b/doc/man/ibcacheedit.8.in
-index 9b8cb42..73bff51 100644
---- a/doc/man/ibcacheedit.8.in
-+++ b/doc/man/ibcacheedit.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBCACHEEDIT 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH edit an ibnetdiscover cache
-+.SH EDIT AN IBNETDISCOVER CACHE
- .SS SYNOPSIS
- .sp
- ibcacheedit [options] <orig.cache> <new.cache>
-@@ -42,23 +42,19 @@ ibcacheedit allows users to edit an ibnetdiscover cache created through the
- .INDENT 0.0
- .TP
- .B \fB\-\-switchguid BEFOREGUID:AFTERGUID\fP
--.sp
- Specify a switchguid that should be changed.  The before and after guid
- should be separated by a colon.  On switches, port guids are identical
- to the switch guid, so port guids will be adjusted as well on switches.
- .TP
- .B \fB\-\-caguid BEFOREGUID:AFTERGUID\fP
--.sp
- Specify a caguid that should be changed.  The before and after guid
- should be separated by a colon.
- .TP
- .B \fB\-\-sysimgguid BEFOREGUID:AFTERGUID\fP
--.sp
- Specify a sysimgguid that should be changed.  The before and after guid
- should be spearated by a colon.
- .TP
- .B \fB\-\-portguid NODEGUID:BEFOREGUID:AFTERGUID\fP
--.sp
- Specify a portguid that should be changed.  The nodeguid of the port
- (e.g. switchguid or caguid) should be specified first, followed by a
- colon, the before port guid, another colon, then the after port guid.
-@@ -78,9 +74,7 @@ guid will be adjusted as well on switches.
- .INDENT 0.0
- .TP
- .B Albert Chu
--.
- < \fI\%chu11-i2BcT+NCU+M@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibccconfig.8.in b/doc/man/ibccconfig.8.in
-index 0df5fbf..51106a5 100644
---- a/doc/man/ibccconfig.8.in
-+++ b/doc/man/ibccconfig.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBCCCONFIG 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -45,7 +45,6 @@ Misuse of this tool could result in a broken fabric.\fP
- .INDENT 0.0
- .TP
- .B Current supported operations and their parameters:
--.
- CongestionKeyInfo (CK) <lid|guid> <cckey> <cckeyprotectbit> <cckeyleaseperiod> <cckeyviolations>
- SwitchCongestionSetting (SS) <lid|guid> <controlmap> <victimmask> <creditmask> <threshold> <packetsize> <csthreshold> <csreturndelay> <markingrate>
- SwitchPortCongestionSetting (SP) <lid|guid> <portnum> <valid> <control_type> <threshold> <packet_size> <cong_parm_marking_rate>
-@@ -61,7 +60,6 @@ Specify a congestion control (CC) key.  If none is specified, a key of 0 is used
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -70,7 +68,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -82,7 +79,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -123,10 +119,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -134,6 +128,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -145,13 +141,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Configuration flags
- .\" Define the common option -y
- .
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -161,11 +158,12 @@ is specified then a value will be prompted for.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
- .SH EXAMPLES
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -176,6 +174,8 @@ ibccconfig CongestionControlTable 1 63 0 0:0 0:1 ...                      # Conf
- ibccconfig CongestionControlTable 1 127 0 0:64 0:65 ...                   # Configure second block of Congestion Control Table
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH FILES
- .\" Common text for the config file
- .
-@@ -189,9 +189,7 @@ tools.  See supplied config file for details.
- .INDENT 0.0
- .TP
- .B Albert Chu
--.
- < \fI\%chu11-i2BcT+NCU+M@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibccquery.8.in b/doc/man/ibccquery.8.in
-index a282c99..752c676 100644
---- a/doc/man/ibccquery.8.in
-+++ b/doc/man/ibccquery.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBCCQUERY 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -41,7 +41,6 @@ to congestion control.
- .INDENT 0.0
- .TP
- .B Current supported operations and their parameters:
--.
- CongestionInfo (CI) <addr>
- CongestionKeyInfo (CK) <addr>
- CongestionLog (CL) <addr>
-@@ -60,7 +59,6 @@ Specify a congestion control (CC) key.  If none is specified, a key of 0 is used
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -69,7 +67,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -81,7 +78,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -122,10 +118,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -133,6 +127,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -144,13 +140,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Configuration flags
- .\" Define the common option -y
- .
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -160,7 +157,6 @@ is specified then a value will be prompted for.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -174,6 +170,8 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- A global config file is provided to set some of the common options for all
- tools.  See supplied config file for details.
- .SH EXAMPLES
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -182,13 +180,13 @@ ibccquery SwitchPortCongestionSetting 3 # Query all Switch Port Congestion Setti
- ibccquery SwitchPortCongestionSetting 3 1 # Query Switch Port Congestion Setting for port 1
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH AUTHOR
- .INDENT 0.0
- .TP
- .B Albert Chu
--.
- < \fI\%chu11-i2BcT+NCU+M@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibfindnodesusing.8.in b/doc/man/ibfindnodesusing.8.in
-index 23a3a5c..3e9a403 100644
---- a/doc/man/ibfindnodesusing.8.in
-+++ b/doc/man/ibfindnodesusing.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBFINDNODESUSING 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH find a list of end nodes which are routed through the specified switch and port
-+.SH FIND A LIST OF END NODES WHICH ARE ROUTED THROUGH THE SPECIFIED SWITCH AND PORT
- .SS SYNOPSIS
- .sp
- ibfindnodesusing.pl [options] <switch_guid|switch_name> <port>
-@@ -43,11 +43,9 @@ switch port end; the script finds the remote end automatically.
- .INDENT 0.0
- .TP
- .B \fB\-h\fP
--.sp
- show help
- .TP
- .B \fB\-R\fP
--.sp
- Recalculate the ibnetdiscover information, ie do not use the cached
- information.  This option is slower but should be used if the diag
- tools have not been used for some time or if there are other reasons to
-@@ -77,6 +75,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -84,8 +84,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -111,13 +115,13 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SS AUTHOR
- .INDENT 0.0
- .TP
- .B Ira Weiny
--.
--< \fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP >
-+< \fI\%ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibhosts.8.in b/doc/man/ibhosts.8.in
-index ceadee3..40a46ac 100644
---- a/doc/man/ibhosts.8.in
-+++ b/doc/man/ibhosts.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBHOSTS 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -60,7 +60,6 @@ already saved topology file and extracts the CA nodes.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -75,10 +74,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -86,6 +83,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -97,6 +96,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SH FILES
- .\" Common text for the config file
- .
-@@ -117,6 +118,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -124,8 +127,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -151,6 +158,8 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH SEE ALSO
- .sp
- ibnetdiscover(8)
-@@ -161,9 +170,7 @@ ibnetdiscover, ibnetdiscover format
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibidsverify.8.in b/doc/man/ibidsverify.8.in
-index 3933e67..882bac7 100644
---- a/doc/man/ibidsverify.8.in
-+++ b/doc/man/ibidsverify.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBIDSVERIFY 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH validate IB identifiers in subnet and report errors
-+.SH VALIDATE IB IDENTIFIERS IN SUBNET AND REPORT ERRORS
- .SS SYNOPSIS
- .sp
- ibidsverify.pl [\-h] [\-R]
-@@ -74,9 +74,7 @@ tools.  See supplied config file for details.
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/iblinkinfo.8.in b/doc/man/iblinkinfo.8.in
-index d5fd476..cf7aad7 100644
---- a/doc/man/iblinkinfo.8.in
-+++ b/doc/man/iblinkinfo.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBLINKINFO 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -67,6 +67,8 @@ The node to start a partial scan can be specified with the following addresses.
- .
- .sp
- \fB\-D, \-\-Direct <dr_path>\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -79,6 +81,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBNote:\fP For switches results are printed for all ports not just switch port 0.
- .sp
-@@ -151,10 +155,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -162,6 +164,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -173,6 +177,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Configuration flags
- .\" Define the common option -z
- .
-@@ -180,7 +186,6 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -189,7 +194,6 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .INDENT 0.0
- .TP
- .B \fB\-\-outstanding_smps, \-o <val>\fP
--.sp
- Specify the number of outstanding SMP\(aqs which should be issued during the scan
- .sp
- Default: 2
-@@ -200,7 +204,6 @@ Default: 2
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -213,7 +216,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -223,7 +225,6 @@ is specified then a value will be prompted for.
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -235,7 +236,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -269,6 +269,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -276,8 +278,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -303,13 +309,13 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH AUTHOR
- .INDENT 0.0
- .TP
- .B Ira Weiny
--.
--< \fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP >
-+< \fI\%ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibnetdiscover.8.in b/doc/man/ibnetdiscover.8.in
-index dbb7851..18c353d 100644
---- a/doc/man/ibnetdiscover.8.in
-+++ b/doc/man/ibnetdiscover.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBNETDISCOVER 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -74,7 +74,6 @@ Report max hops discovered.
- .INDENT 0.0
- .TP
- .B \fB\-\-outstanding_smps, \-o <val>\fP
--.sp
- Specify the number of outstanding SMP\(aqs which should be issued during the scan
- .sp
- Default: 2
-@@ -134,10 +133,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -145,6 +142,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -156,6 +155,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Configuration flags
- .\" Define the common option -z
- .
-@@ -163,7 +164,6 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -172,7 +172,6 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .INDENT 0.0
- .TP
- .B \fB\-\-outstanding_smps, \-o <val>\fP
--.sp
- Specify the number of outstanding SMP\(aqs which should be issued during the scan
- .sp
- Default: 2
-@@ -183,7 +182,6 @@ Default: 2
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -196,7 +194,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -206,7 +203,6 @@ is specified then a value will be prompted for.
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -215,7 +211,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -227,7 +222,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -255,6 +249,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -262,8 +258,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -289,6 +289,8 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Common text to describe the Topology file.
- .
- .SS TOPOLOGY FILE FORMAT
-@@ -315,6 +317,8 @@ The active link width and speed are then appended to the end of this
- output line.
- .sp
- An example of this is:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -372,6 +376,8 @@ Ca      2 "H\-0008f10403960558"          # "MT23108 InfiniHost Mellanox Technolo
- [1](8f10403960559)     "S\-005442ba00003080"[12]                # lid 10 lmc 1 "ISR9024 Voltaire" lid 6 1xSDR
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- When grouping is used, IB nodes are organized into chassis which are
- numbered. Nodes which cannot be determined to be in a chassis are
-@@ -381,13 +387,10 @@ connectivity lines.
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .TP
- .B Ira Weiny
--.
--< \fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP >
-+< \fI\%ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibnodes.8.in b/doc/man/ibnodes.8.in
-index 6f5521f..f19c990 100644
---- a/doc/man/ibnodes.8.in
-+++ b/doc/man/ibnodes.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBNODES 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -60,7 +60,6 @@ already saved topology file and extracts the IB nodes (CAs and switches).
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -75,10 +74,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -86,6 +83,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -97,6 +96,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SH FILES
- .\" Common text for the config file
- .
-@@ -117,6 +118,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -124,8 +127,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -151,6 +158,8 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH SEE ALSO
- .sp
- ibnetdiscover(8)
-@@ -161,9 +170,7 @@ ibnetdiscover, ibnetdiscover format
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibping.8.in b/doc/man/ibping.8.in
-index ecb6176..a4aa95c 100644
---- a/doc/man/ibping.8.in
-+++ b/doc/man/ibping.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBPING 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -85,10 +85,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -96,6 +94,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -107,6 +107,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Configuration flags
- .\" Define the common option -z
- .
-@@ -114,7 +116,6 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -132,7 +133,6 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -141,7 +141,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -v
-@@ -149,7 +148,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -170,9 +168,7 @@ tools.  See supplied config file for details.
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibportstate.8.in b/doc/man/ibportstate.8.in
-index e45c37a..2d9ccb2 100644
---- a/doc/man/ibportstate.8.in
-+++ b/doc/man/ibportstate.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBPORTSTATE 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -47,7 +47,6 @@ also allows the link speed/width enabled on any IB port to be adjusted.
- .INDENT 7.0
- .TP
- .B Supported ops: enable, disable, reset, speed, espeed, fdr10, width, query,
--.
- down, arm, active, vls, mtu, lid, smlid, lmc,
- mkey, mkeylease, mkeyprot
- (Default is query)
-@@ -100,6 +99,8 @@ is specified for the mkey, then ibportstate will prompt for a value.
- .
- .sp
- \fB\-D, \-\-Direct\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -112,6 +113,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Define the common option -s
- .
- .sp
-@@ -136,10 +139,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -147,6 +148,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -158,6 +161,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Configuration flags
- .\" Define the common option -z
- .
-@@ -165,7 +170,6 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -178,7 +182,6 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -192,7 +195,6 @@ is specified then a value will be prompted for.
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -201,7 +203,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -K
-@@ -209,7 +210,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-K, \-\-show_keys\fP
--.sp
- show security keys (mkey, smkey, etc.) associated with the request.
- .UNINDENT
- .\" Define the common option -v
-@@ -217,7 +217,6 @@ show security keys (mkey, smkey, etc.) associated with the request.
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -238,7 +237,6 @@ tools.  See supplied config file for details.
- .INDENT 0.0
- .TP
- .B ::
--.
- ibportstate 3 1 disable                  # by lid
- ibportstate \-G 0x2C9000100D051 1 enable  # by guid
- ibportstate \-D 0 1                       # (query) by direct route
-@@ -251,9 +249,7 @@ ibportstate \-D 0 1 lid 0x1234 arm        # by direct route
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibqueryerrors.8.in b/doc/man/ibqueryerrors.8.in
-index 39cdafe..9a81ce0 100644
---- a/doc/man/ibqueryerrors.8.in
-+++ b/doc/man/ibqueryerrors.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBQUERYERRORS 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -93,6 +93,8 @@ The node to start a partial scan can be specified with the following addresses.
- .
- .sp
- \fB\-D, \-\-Direct <dr_path>\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -105,6 +107,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBNote:\fP For switches results are printed for all ports not just switch port 0.
- .sp
-@@ -137,10 +141,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -148,6 +150,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -159,6 +163,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Configuration flags
- .\" Define the common option -z
- .
-@@ -166,7 +172,6 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -175,7 +180,6 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .INDENT 0.0
- .TP
- .B \fB\-\-outstanding_smps, \-o <val>\fP
--.sp
- Specify the number of outstanding SMP\(aqs which should be issued during the scan
- .sp
- Default: 2
-@@ -186,7 +190,6 @@ Default: 2
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -199,7 +202,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -209,7 +211,6 @@ is specified then a value will be prompted for.
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -218,7 +219,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -230,7 +230,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -256,6 +255,8 @@ Define threshold values for errors.  File format is simple "name=val".
- Comments begin with \(aq#\(aq
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -265,6 +266,8 @@ LinkErrorRecoveryCounter=10
- VL15Dropped=100
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Common text for the config file
- .
- .SS CONFIG FILE
-@@ -284,6 +287,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -291,8 +296,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -318,13 +327,13 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH AUTHOR
- .INDENT 0.0
- .TP
- .B Ira Weiny
--.
--< \fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP >
-+< \fI\%ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibroute.8.in b/doc/man/ibroute.8.in
-index 5e31499..aa988ce 100644
---- a/doc/man/ibroute.8.in
-+++ b/doc/man/ibroute.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBROUTE 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH query InfiniBand switch forwarding tables
-+.SH QUERY INFINIBAND SWITCH FORWARDING TABLES
- .SS SYNOPSIS
- .sp
- ibroute [options] [<dest dr_path|lid|guid> [<startlid> [<endlid>]]]
-@@ -44,15 +44,12 @@ The default range is all valid entries in the range 1...FDBTop.
- .INDENT 0.0
- .TP
- .B \fB\-a, \-\-all\fP
--.sp
- show all lids in range, even invalid entries
- .TP
- .B \fB\-n, \-\-no_dests\fP
--.sp
- do not try to resolve destinations
- .TP
- .B \fB\-M, \-\-Multicast\fP
--.sp
- show multicast forwarding tables
- In this case, the range parameters are specifying the mlid range.
- .UNINDENT
-@@ -61,6 +58,8 @@ In this case, the range parameters are specifying the mlid range.
- .
- .sp
- \fB\-D, \-\-Direct\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -73,6 +72,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Define the common option -G
- .
- .sp
-@@ -105,10 +106,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -116,6 +115,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -127,13 +128,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -142,7 +144,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -154,7 +155,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -172,7 +172,6 @@ May be used several times (\-vv or \-v \-v \-v)
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -182,7 +181,6 @@ is specified then a value will be prompted for.
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -192,7 +190,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -216,6 +213,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -223,8 +222,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -250,13 +253,14 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SS EXAMPLES
- .sp
- Unicast examples
- .INDENT 0.0
- .TP
- .B ::
--.
- ibroute 4               # dump all lids with valid out ports of switch with lid 4
- ibroute \-a 4            # same, but dump all lids, even with invalid out ports
- ibroute \-n 4            # simple dump format \- no destination resolution
-@@ -270,7 +274,6 @@ Multicast examples
- .INDENT 0.0
- .TP
- .B ::
--.
- ibroute \-M 4                # dump all non empty mlids of switch with lid 4
- ibroute \-M 4 0xc010 0xc020  # same, but with range
- ibroute \-M \-n 4             # simple dump format
-@@ -282,9 +285,7 @@ ibtracert (8)
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibrouters.8.in b/doc/man/ibrouters.8.in
-index 3419cc4..f1b8d6e 100644
---- a/doc/man/ibrouters.8.in
-+++ b/doc/man/ibrouters.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBROUTERS 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -60,7 +60,6 @@ already saved topology file and extracts the router nodes.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -75,10 +74,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -86,6 +83,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -97,6 +96,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SH FILES
- .\" Common text for the config file
- .
-@@ -117,6 +118,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -124,8 +127,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -151,6 +158,8 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH SEE ALSO
- .sp
- ibnetdiscover(8)
-@@ -161,9 +170,7 @@ ibnetdiscover, ibnetdiscover format
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibstat.8.in b/doc/man/ibstat.8.in
-index c53173a..6fc7fb7 100644
---- a/doc/man/ibstat.8.in
-+++ b/doc/man/ibstat.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBSTAT 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH query basic status of InfiniBand device(s)
-+.SH QUERY BASIC STATUS OF INFINIBAND DEVICE(S)
- .SS SYNOPSIS
- .sp
- ibstat [options] <ca_name> [portnum]
-@@ -47,23 +47,18 @@ information than ibstatus.
- .INDENT 0.0
- .TP
- .B \fB\-l, \-\-list_of_cas\fP
--.sp
- list all IB devices
- .TP
- .B \fB\-s, \-\-short\fP
--.sp
- short output
- .TP
- .B \fB\-p, \-\-port_list\fP
--.sp
- show port list
- .TP
- .B \fBca_name\fP
--.sp
- InfiniBand device name
- .TP
- .B \fBportnum\fP
--.sp
- port number of InfiniBand device
- .UNINDENT
- .SS Debugging flags
-@@ -72,7 +67,6 @@ port number of InfiniBand device
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -85,7 +79,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -100,7 +93,6 @@ May be used several times (\-vv or \-v \-v \-v)
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -108,7 +100,6 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .INDENT 0.0
- .TP
- .B ::
--.
- ibstat            # display status of all ports on all IB devices
- ibstat \-l         # list all IB devices
- ibstat \-p         # show port guids
-@@ -121,9 +112,7 @@ ibstatus (8)
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibstatus.8.in b/doc/man/ibstatus.8.in
-index 704f5dc..56f3937 100644
---- a/doc/man/ibstatus.8.in
-+++ b/doc/man/ibstatus.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBSTATUS 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH query basic status of InfiniBand device(s)
-+.SH QUERY BASIC STATUS OF INFINIBAND DEVICE(S)
- .SS SYNOPSIS
- .sp
- ibstatus [\-h] [devname[:port]]...
-@@ -47,18 +47,15 @@ physical state.
- .INDENT 0.0
- .TP
- .B \fBdevname\fP
--.sp
- InfiniBand device name
- .TP
- .B \fBportnum\fP
--.sp
- port number of InfiniBand device
- .UNINDENT
- .SS EXAMPLES
- .INDENT 0.0
- .TP
- .B ::
--.
- ibstatus                    # display status of all IB ports
- ibstatus mthca1             # status of mthca1 ports
- ibstatus mthca1:1 mthca0:2  # show status of specified ports
-@@ -70,9 +67,7 @@ ibstatus mthca1:1 mthca0:2  # show status of specified ports
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibswitches.8.in b/doc/man/ibswitches.8.in
-index 3f6c7e5..58ce047 100644
---- a/doc/man/ibswitches.8.in
-+++ b/doc/man/ibswitches.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBSWITCHES 8 "@BUILD_DATE@" "" "OpenIB Diagnostics"
- .SH NAME
-@@ -60,7 +60,6 @@ already saved topology file and extracts the switch nodes.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -75,10 +74,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -86,6 +83,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -97,6 +96,8 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SH FILES
- .\" Common text for the config file
- .
-@@ -117,6 +118,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -124,8 +127,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -151,6 +158,8 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SH SEE ALSO
- .sp
- ibnetdiscover(8)
-@@ -161,9 +170,7 @@ ibnetdiscover, ibnetdiscover format
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibsysstat.8.in b/doc/man/ibsysstat.8.in
-index 1c8121e..63dd8ce 100644
---- a/doc/man/ibsysstat.8.in
-+++ b/doc/man/ibsysstat.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBSYSSTAT 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH system status on an InfiniBand address
-+.SH SYSTEM STATUS ON AN INFINIBAND ADDRESS
- .SS SYNOPSIS
- .sp
- ibsysstat [options] <dest lid | guid> [<op>]
-@@ -42,6 +42,8 @@ client/server. Default is to run as client.
- .SS OPTIONS
- .sp
- Current supported operations:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -50,14 +52,14 @@ host \e\- obtain host information from server
- cpu  \e\- obtain cpu information from server
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .INDENT 0.0
- .TP
- .B \fB\-o, \-\-oui\fP
--.sp
- use specified OUI number to multiplex vendor mads
- .TP
- .B \fB\-S, \-\-Server\fP
--.sp
- start in server mode (do not return)
- .UNINDENT
- .SS Addressing Flags
-@@ -93,10 +95,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -104,6 +104,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -115,13 +117,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -130,7 +133,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -142,7 +144,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -161,7 +162,6 @@ May be used several times (\-vv or \-v \-v \-v)
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -178,9 +178,7 @@ tools.  See supplied config file for details.
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/ibtracert.8.in b/doc/man/ibtracert.8.in
-index 0b0ae59..9bc0317 100644
---- a/doc/man/ibtracert.8.in
-+++ b/doc/man/ibtracert.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH IBTRACERT 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH trace InfiniBand path
-+.SH TRACE INFINIBAND PATH
- .SS SYNOPSIS
- .sp
- ibtracert [options] [<lid|guid> [<startlid> [<endlid>]]]
-@@ -45,11 +45,9 @@ and destination nodes.
- .INDENT 0.0
- .TP
- .B \fB\-n, \-\-no_info\fP
--.sp
- simple format; don\(aqt show additional information
- .TP
- .B \fB\-m\fP
--.sp
- show the multicast trace of the specified mlid
- .UNINDENT
- .SS Addressing Flags
-@@ -85,10 +83,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -96,6 +92,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -107,13 +105,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -122,7 +121,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -134,7 +132,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -153,7 +150,6 @@ May be used several times (\-vv or \-v \-v \-v)
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -162,7 +158,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -172,7 +167,6 @@ is specified then a value will be prompted for.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -196,6 +190,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -203,8 +199,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -230,13 +230,14 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SS EXAMPLES
- .sp
- Unicast examples
- .INDENT 0.0
- .TP
- .B ::
--.
- ibtracert 4 16                                  # show path between lids 4 and 16
- ibtracert \-n 4 16                               # same, but using simple output format
- ibtracert \-G 0x8f1040396522d 0x002c9000100d051  # use guid addresses
-@@ -246,7 +247,6 @@ Multicast example
- .INDENT 0.0
- .TP
- .B ::
--.
- ibtracert \-m 0xc000 4 16    # show multicast path of mlid 0xc000 between lids 4 and 16
- .UNINDENT
- .SS SEE ALSO
-@@ -256,13 +256,10 @@ ibroute (8)
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- <\fI\%hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org\fP>
- .TP
- .B Ira Weiny
--.
--<\fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP >
-+< \fI\%ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/infiniband-diags.8.in b/doc/man/infiniband-diags.8.in
-index 80702ed..da5a775 100644
---- a/doc/man/infiniband-diags.8.in
-+++ b/doc/man/infiniband-diags.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH INFINIBAND-DIAGS 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH Diagnostics for InfiniBand Fabrics
-+.SH DIAGNOSTICS FOR INFINIBAND FABRICS
- .SS DESCRIPTION
- .sp
- infiniband\-diags is a set of utilities designed to help configure, debug, and
-@@ -61,6 +61,8 @@ The \-D and \-G option have two forms:
- .
- .sp
- \fB\-D, \-\-Direct\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -73,10 +75,14 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Define the common option -D for Directed routes
- .
- .sp
- \fB\-D, \-\-Direct <dr_path>\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -89,6 +95,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Define the common option -G
- .
- .sp
-@@ -125,10 +133,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -136,6 +142,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -147,13 +155,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -162,7 +171,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -174,7 +182,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -192,7 +199,6 @@ May be used several times (\-vv or \-v \-v \-v)
- .INDENT 0.0
- .TP
- .B \fB\-\-outstanding_smps, \-o <val>\fP
--.sp
- Specify the number of outstanding SMP\(aqs which should be issued during the scan
- .sp
- Default: 2
-@@ -203,7 +209,6 @@ Default: 2
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -213,7 +218,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -239,6 +243,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -246,8 +252,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -273,6 +283,8 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Common text to describe the Topology file.
- .
- .SS TOPOLOGY FILE FORMAT
-@@ -299,6 +311,8 @@ The active link width and speed are then appended to the end of this
- output line.
- .sp
- An example of this is:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -356,6 +370,8 @@ Ca      2 "H\-0008f10403960558"          # "MT23108 InfiniHost Mellanox Technolo
- [1](8f10403960559)     "S\-005442ba00003080"[12]                # lid 10 lmc 1 "ISR9024 Voltaire" lid 6 1xSDR
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- When grouping is used, IB nodes are organized into chassis which are
- numbered. Nodes which cannot be determined to be in a chassis are
-@@ -365,63 +381,54 @@ connectivity lines.
- .SS Basic fabric conectivity
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: ibnetdiscover, iblinkinfo
- .UNINDENT
- .UNINDENT
- .SS Node information
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: ibnodes, ibswitches, ibhosts, ibrouters
- .UNINDENT
- .UNINDENT
- .SS Port information
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: ibportstate, ibaddr
- .UNINDENT
- .UNINDENT
- .SS Switch Forwarding Table info
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: ibtracert, ibroute, dump_lfts, dump_mfts, check_lft_balance, ibfindnodesusing
- .UNINDENT
- .UNINDENT
- .SS Peformance counters
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: ibqueryerrors, perfquery
- .UNINDENT
- .UNINDENT
- .SS Local HCA info
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: ibstat, ibstatus
- .UNINDENT
- .UNINDENT
- .SS Connectivity check
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: ibping, ibsysstat
- .UNINDENT
- .UNINDENT
- .SS Low level query tools
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: smpquery, smpdump, saquery, sminfo
- .UNINDENT
- .UNINDENT
- .SS Fabric verification tools
- .INDENT 0.0
- .INDENT 3.5
--.sp
- See: ibidsverify
- .UNINDENT
- .UNINDENT
-@@ -439,9 +446,7 @@ ibprintca, ibprintrt, ibprintswitch, set_nodedesc.sh
- .INDENT 0.0
- .TP
- .B Ira Weiny
--.
--<\fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP>
-+< \fI\%ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/perfquery.8.in b/doc/man/perfquery.8.in
-index 8c4a62a..d939902 100644
---- a/doc/man/perfquery.8.in
-+++ b/doc/man/perfquery.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH PERFQUERY 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH query InfiniBand port counters on a single port
-+.SH QUERY INFINIBAND PORT COUNTERS ON A SINGLE PORT
- .SS SYNOPSIS
- .sp
- perfquery [options] [<lid|guid> [[port(s)] [reset_mask]]]
-@@ -55,88 +55,67 @@ specified by either a comma separated list or a port range.  See examples below.
- .INDENT 0.0
- .TP
- .B \fB\-x, \-\-extended\fP
--.sp
- show extended port counters rather than (basic) port counters.
- Note that extended port counters attribute is optional.
- .TP
- .B \fB\-X, \-\-xmtsl\fP
--.sp
- show transmit data SL counter. This is an optional counter for QoS.
- .TP
- .B \fB\-S, \-\-rcvsl\fP
--.sp
- show receive data SL counter. This is an optional counter for QoS.
- .TP
- .B \fB\-D, \-\-xmtdisc\fP
--.sp
- show transmit discard details. This is an optional counter.
- .TP
- .B \fB\-E, \-\-rcverr\fP
--.sp
- show receive error details. This is an optional counter.
- .TP
- .B \fB\-D, \-\-xmtdisc\fP
--.sp
- show transmit discard details. This is an optional counter.
- .TP
- .B \fB\-T, \-\-extended_speeds\fP
--.sp
- show extended speeds port counters. This is an optional counter.
- .TP
- .B \fB\-\-oprcvcounters\fP
--.sp
- show Rcv Counters per Op code. This is an optional counter.
- .TP
- .B \fB\-\-flowctlcounters\fP
--.sp
- show flow control counters. This is an optional counter.
- .TP
- .B \fB\-\-vloppackets\fP
--.sp
- show packets received per Op code per VL. This is an optional counter.
- .TP
- .B \fB\-\-vlopdata\fP
--.sp
- show data received per Op code per VL. This is an optional counter.
- .TP
- .B \fB\-\-vlxmitflowctlerrors\fP
--.sp
- show flow control update errors per VL. This is an optional counter.
- .TP
- .B \fB\-\-vlxmitcounters\fP
--.sp
- show ticks waiting to transmit counters per VL. This is an optional counter.
- .TP
- .B \fB\-\-swportvlcong\fP
--.sp
- show sw port VL congestion. This is an optional counter.
- .TP
- .B \fB\-\-rcvcc\fP
--.sp
- show Rcv congestion control counters. This is an optional counter.
- .TP
- .B \fB\-\-slrcvfecn\fP
--.sp
- show SL Rcv FECN counters. This is an optional counter.
- .TP
- .B \fB\-\-slrcvbecn\fP
--.sp
- show SL Rcv BECN counters. This is an optional counter.
- .TP
- .B \fB\-\-xmitcc\fP
--.sp
- show Xmit congestion control counters. This is an optional counter.
- .TP
- .B \fB\-\-vlxmittimecc\fP
--.sp
- show VL Xmit Time congestion control counters. This is an optional counter.
- .TP
- .B \fB\-c, \-\-smplctl\fP
--.sp
- show port samples control.
- .TP
- .B \fB\-a, \-\-all_ports\fP
--.sp
- show aggregated counters for all ports of the destination lid, reset
- all counters for all ports, or if multiple ports are specified, aggregate
- the counters of the specified ports.  If the destination lid does not support
-@@ -144,17 +123,14 @@ the AllPortSelect flag, all ports will be iterated through to emulate
- AllPortSelect behavior.
- .TP
- .B \fB\-l, \-\-loop_ports\fP
--.sp
- If all ports are selected by the user (either through the \fB\-a\fP option
- or port 255) or multiple ports are specified iterate through each port rather
- than doing than aggregate operation.
- .TP
- .B \fB\-r, \-\-reset_after_read\fP
--.sp
- reset counters after read
- .TP
- .B \fB\-R, \-\-Reset_only\fP
--.sp
- only reset counters
- .UNINDENT
- .SS Addressing Flags
-@@ -190,10 +166,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -201,6 +175,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -212,13 +188,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -227,7 +204,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -239,7 +215,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -257,7 +232,6 @@ May be used several times (\-vv or \-v \-v \-v)
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -267,7 +241,6 @@ is specified then a value will be prompted for.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -281,6 +254,8 @@ Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- A global config file is provided to set some of the common options for all
- tools.  See supplied config file for details.
- .SS EXAMPLES
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -301,13 +276,13 @@ perfquery \-a 32 1,4,8    # read performance counters from lid 32, port 1, 4, an
- perfquery \-l 32 1,4,8    # read performance counters from lid 32, port 1, 4, and 8, output each port
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SS AUTHOR
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/saquery.8.in b/doc/man/saquery.8.in
-index d7155c4..e9a05cd 100644
---- a/doc/man/saquery.8.in
-+++ b/doc/man/saquery.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH SAQUERY 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH query InfiniBand subnet administration attributes
-+.SH QUERY INFINIBAND SUBNET ADMINISTRATION ATTRIBUTES
- .SS SYNOPSIS
- .sp
- saquery [options] [<name> | <lid> | <guid>]
-@@ -41,79 +41,61 @@ saquery issues the selected SA query. Node records are queried by default.
- .INDENT 0.0
- .TP
- .B \fB\-p\fP
--.sp
- get PathRecord info
- .TP
- .B \fB\-N\fP
--.sp
- get NodeRecord info
- .TP
- .B \fB\-D, \-\-list\fP
--.sp
- get NodeDescriptions of CAs only
- .TP
- .B \fB\-S\fP
--.sp
- get ServiceRecord info
- .TP
- .B \fB\-I\fP
--.sp
- get InformInfoRecord (subscription) info
- .TP
- .B \fB\-L\fP
--.sp
- return the Lids of the name specified
- .TP
- .B \fB\-l\fP
--.sp
- return the unique Lid of the name specified
- .TP
- .B \fB\-G\fP
--.sp
- return the Guids of the name specified
- .TP
- .B \fB\-O\fP
--.sp
- return the name for the Lid specified
- .TP
- .B \fB\-U\fP
--.sp
- return the name for the Guid specified
- .TP
- .B \fB\-c\fP
--.sp
- get the SA\(aqs class port info
- .TP
- .B \fB\-s\fP
--.sp
- return the PortInfoRecords with isSM or isSMdisabled capability mask bit on
- .TP
- .B \fB\-g\fP
--.sp
- get multicast group info
- .TP
- .B \fB\-m\fP
--.sp
- get multicast member info.  If a group is specified, limit the output
- to the group specified and print one line containing only the GUID and
- node description for each entry. Example: saquery \-m 0xc000
- .TP
- .B \fB\-x\fP
--.sp
- get LinkRecord info
- .TP
- .B \fB\-\-src\-to\-dst <src:dst>\fP
--.sp
- get a PathRecord for <src:dst>
- where src and dst are either node names or LIDs
- .TP
- .B \fB\-\-sgid\-to\-dgid <sgid:dgid>\fP
--.sp
- get a PathRecord for \fBsgid\fP to \fBdgid\fP
- where both GIDs are in an IPv6 format acceptable to \fBinet_pton (3)\fP
- .TP
- .B \fB\-\-smkey <val>\fP
--.sp
- use SM_Key value for the query. Will be used only with "trusted"
- queries.  If non\-numeric value (like \(aqx\(aq) is specified then saquery
- will prompt for a value.
-@@ -126,7 +108,6 @@ Default (when not specified here or in
- .INDENT 0.0
- .TP
- .B \fB\-K, \-\-show_keys\fP
--.sp
- show security keys (mkey, smkey, etc.) associated with the request.
- .UNINDENT
- .sp
-@@ -150,7 +131,6 @@ show security keys (mkey, smkey, etc.) associated with the request.
- .INDENT 0.0
- .TP
- .B \fB\-\-pkey\fP P_Key (PathRecord, MCMemberRecord). If non\-numeric value (like \(aqx\(aq)
--.sp
- is specified then saquery will prompt for a value
- .UNINDENT
- .sp
-@@ -166,7 +146,6 @@ is specified then saquery will prompt for a value
- .INDENT 0.0
- .TP
- .B \fB\-\-qkey\fP Q_Key (MCMemberRecord). If non\-numeric value (like \(aqx\(aq) is specified
--.sp
- then saquery will prompt for a value
- .UNINDENT
- .sp
-@@ -185,6 +164,8 @@ then saquery will prompt for a value
- \fB\-\-service_id\fP ServiceID (PathRecord)
- .sp
- Supported query names (and aliases):
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -204,6 +185,8 @@ MFTRecord (MFTR) [[mlid]/[position]/[block]]
- GUIDInfoRecord (GIR) [[lid]/[block]]
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SS Port Selection flags
- .\" Define the common option -C
- .
-@@ -224,10 +207,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -235,6 +216,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -246,13 +229,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -261,7 +245,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -273,7 +256,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -291,7 +273,6 @@ May be used several times (\-vv or \-v \-v \-v)
- .INDENT 0.0
- .TP
- .B \fB\-\-outstanding_smps, \-o <val>\fP
--.sp
- Specify the number of outstanding SMP\(aqs which should be issued during the scan
- .sp
- Default: 2
-@@ -302,7 +283,6 @@ Default: 2
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -312,7 +292,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -336,6 +315,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -343,8 +324,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -370,6 +355,8 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SS DEPENDENCIES
- .sp
- OpenSM (or other running SM/SA), libosmcomp, libibumad, libibmad
-@@ -377,13 +364,10 @@ OpenSM (or other running SM/SA), libosmcomp, libibumad, libibmad
- .INDENT 0.0
- .TP
- .B Ira Weiny
--.
--< \fI\%weiny2-i2BcT+NCU+M@public.gmane.org\fP >
-+< \fI\%ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org\fP >
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/sminfo.8.in b/doc/man/sminfo.8.in
-index 8bc9f48..8b33d27 100644
---- a/doc/man/sminfo.8.in
-+++ b/doc/man/sminfo.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH SMINFO 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH query InfiniBand SMInfo attribute
-+.SH QUERY INFINIBAND SMINFO ATTRIBUTE
- .SS SYNOPSIS
- .sp
- sminfo [options] sm_lid | sm_dr_path [modifier]
-@@ -46,7 +46,6 @@ dangerous, and may result in a malfunction of the target SM.
- .INDENT 0.0
- .TP
- .B \fB\-s, \-\-state <state>\fP set SM state
--.sp
- 0 not active
- .sp
- 1 discovering
-@@ -64,6 +63,8 @@ dangerous, and may result in a malfunction of the target SM.
- .
- .sp
- \fB\-D, \-\-Direct\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -76,6 +77,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Define the common option -G
- .
- .sp
-@@ -104,10 +107,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -115,6 +116,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -126,13 +129,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -141,7 +145,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -153,7 +156,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -171,7 +173,6 @@ May be used several times (\-vv or \-v \-v \-v)
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -181,7 +182,6 @@ is specified then a value will be prompted for.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -198,7 +198,6 @@ tools.  See supplied config file for details.
- .INDENT 0.0
- .TP
- .B ::
--.
- sminfo                  # local port\(aqs sminfo
- sminfo 32               # show sminfo of lid 32
- sminfo  \-G 0x8f1040023  # same but using guid address
-@@ -210,9 +209,7 @@ smpdump (8)
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/smpdump.8.in b/doc/man/smpdump.8.in
-index cebf273..269402b 100644
---- a/doc/man/smpdump.8.in
-+++ b/doc/man/smpdump.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH SMPDUMP 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH dump InfiniBand subnet management attributes
-+.SH DUMP INFINIBAND SUBNET MANAGEMENT ATTRIBUTES
- .SS SYNOPSIS
- .sp
- smpdump [options] <dlid|dr_path> <attribute> [attribute_modifier]
-@@ -42,19 +42,15 @@ specified SMA. The result is dumped in hex by default.
- .INDENT 0.0
- .TP
- .B \fBdlid|drpath\fP
--.sp
- LID or DR path to SMA
- .TP
- .B \fBattribute\fP
--.sp
- IBA attribute ID for SM attribute
- .TP
- .B \fBattribute_modifier\fP
--.sp
- IBA modifier for SM attribute
- .TP
- .B \fB\-s, \-\-string\fP
--.sp
- Print strings in packet if possible
- .UNINDENT
- .SS Addressing Flags
-@@ -62,6 +58,8 @@ Print strings in packet if possible
- .
- .sp
- \fB\-D, \-\-Direct\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -74,6 +72,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Define the common option -L
- .
- .sp
-@@ -98,10 +98,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -109,6 +107,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -120,13 +120,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -135,7 +136,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -147,7 +147,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -166,7 +165,6 @@ May be used several times (\-vv or \-v \-v \-v)
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -185,7 +183,6 @@ Direct Routed Examples
- .INDENT 0.0
- .TP
- .B ::
--.
- smpdump \-D 0,1,2,3,5 16 # NODE DESC
- smpdump \-D 0,1,2 0x15 2 # PORT INFO, port 2
- .UNINDENT
-@@ -194,7 +191,6 @@ LID Routed Examples
- .INDENT 0.0
- .TP
- .B ::
--.
- smpdump 3 0x15 2        # PORT INFO, lid 3 port 2
- smpdump 0xa0 0x11       # NODE INFO, lid 0xa0
- .UNINDENT
-@@ -205,9 +201,7 @@ smpquery (8)
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/smpquery.8.in b/doc/man/smpquery.8.in
-index 53d1713..9015b83 100644
---- a/doc/man/smpquery.8.in
-+++ b/doc/man/smpquery.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH SMPQUERY 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH query InfiniBand subnet management attributes
-+.SH QUERY INFINIBAND SUBNET MANAGEMENT ATTRIBUTES
- .SS SYNOPSIS
- .sp
- smpquery [options] <op> <dest dr_path|lid|guid> [op params]
-@@ -45,7 +45,6 @@ Current supported operations and their parameters:
- .INDENT 0.0
- .TP
- .B ::
--.
- nodeinfo <addr>
- nodedesc <addr>
- portinfo <addr> [<portnum>]     # default port is zero
-@@ -57,11 +56,9 @@ guids <addr>
- mlnxextportinfo <addr> [<portnum>]  # default port is zero
- .TP
- .B \fB\-c, \-\-combined\fP
--.sp
--Use Combined route address argument \fC<lid> <DR_Path>\fP
-+Use Combined route address argument \fB<lid> <DR_Path>\fP
- .TP
- .B \fB\-x, \-\-extended\fP
--.sp
- Set SMSupportsExtendedSpeeds bit 31 in AttributeModifier
- (only impacts PortInfo queries).
- .UNINDENT
-@@ -70,7 +67,6 @@ Set SMSupportsExtendedSpeeds bit 31 in AttributeModifier
- .INDENT 0.0
- .TP
- .B \fB\-K, \-\-show_keys\fP
--.sp
- show security keys (mkey, smkey, etc.) associated with the request.
- .UNINDENT
- .SS Addressing Flags
-@@ -78,6 +74,8 @@ show security keys (mkey, smkey, etc.) associated with the request.
- .
- .sp
- \fB\-D, \-\-Direct\fP     The address specified is a directed route
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -90,6 +88,8 @@ Examples:
-    port found through the automatic selection process.)
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .\" Define the common option -G
- .
- .sp
-@@ -122,10 +122,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -133,6 +131,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -144,13 +144,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -159,7 +160,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -171,7 +171,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -190,7 +189,6 @@ May be used several times (\-vv or \-v \-v \-v)
- \fB\-\-node\-name\-map <node\-name\-map>\fP Specify a node name map.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- This file maps GUIDs to more user friendly names.  See FILES section.
- .UNINDENT
- .UNINDENT
-@@ -199,7 +197,6 @@ This file maps GUIDs to more user friendly names.  See FILES section.
- .INDENT 0.0
- .TP
- .B \fB\-y, \-\-m_key <key>\fP
--.sp
- use the specified M_key for requests. If non\-numeric value (like \(aqx\(aq)
- is specified then a value will be prompted for.
- .UNINDENT
-@@ -209,7 +206,6 @@ is specified then a value will be prompted for.
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -233,6 +229,8 @@ This functionality is provided by the opensm\-libs package.  See \fBopensm(8)\fP
- for the file location for your installation.
- .sp
- \fBGenerically:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -240,8 +238,12 @@ for the file location for your installation.
- <guid> "<name>"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .sp
- \fBExample:\fP
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -267,11 +269,12 @@ for the file location for your installation.
- 0x0008f104004119d0 "SW4  (Rack  3) ISR9024 Voltaire 9024D"
- .ft P
- .fi
-+.UNINDENT
-+.UNINDENT
- .SS EXAMPLES
- .INDENT 0.0
- .TP
- .B ::
--.
- smpquery portinfo 3 1                     # portinfo by lid, with port modifier
- smpquery \-G switchinfo 0x2C9000100D051 1  # switchinfo by guid
- smpquery \-D nodeinfo 0                    # nodeinfo by direct route
-@@ -284,9 +287,7 @@ smpdump (8)
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
-diff --git a/doc/man/vendstat.8.in b/doc/man/vendstat.8.in
-index ef5ed73..ebec171 100644
---- a/doc/man/vendstat.8.in
-+++ b/doc/man/vendstat.8.in
-@@ -1,4 +1,4 @@
--.\" Man page generated from reStructeredText.
-+.\" Man page generated from reStructuredText.
- .
- .TH VENDSTAT 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
- .SH NAME
-@@ -30,7 +30,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
- .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
- ..
--.SH query InfiniBand vendor specific functions
-+.SH QUERY INFINIBAND VENDOR SPECIFIC FUNCTIONS
- .SS SYNOPSIS
- .sp
- vendstat [options] <lid|guid>
-@@ -43,19 +43,15 @@ Mellanox InfiniSwitch\-III (IS3) and InfiniSwitch\-IV (IS4).
- .INDENT 0.0
- .TP
- .B \fB\-N\fP
--.sp
- show IS3 or IS4 general information.
- .TP
- .B \fB\-w\fP
--.sp
- show IS3 port xmit wait counters.
- .TP
- .B \fB\-i\fP
--.sp
- show IS4 counter group info.
- .TP
- .B \fB\-c <num,num>\fP
--.sp
- configure IS4 counter groups.
- .sp
- Configure IS4 counter groups 0 and 1. Such configuration is not
-@@ -69,7 +65,6 @@ Group 0 counter config values:
- .B ::
- .INDENT 7.0
- .INDENT 3.5
--.sp
- 0 \- PortXmitDataSL0\-7
- 1 \- PortXmitDataSL8\-15
- 2 \- PortRcvDataSL0\-7
-@@ -81,17 +76,14 @@ Group 1 counter config values:
- .INDENT 0.0
- .TP
- .B ::
--.
- 1 \- PortXmitDataSL8\-15
- 2 \- PortRcvDataSL0\-7
- 8 \- PortRcvDataSL8\-15
- .TP
- .B \fB\-R, \-\-Read <addr,mask>\fP
--.sp
- Read configuration space record at addr
- .TP
- .B \fB\-W, \-\-Write <addr,val,mask>\fP
--.sp
- Write configuration space record at addr
- .UNINDENT
- .SS Addressing Flags
-@@ -127,10 +119,8 @@ selects the port to use by the following criteria:
- .INDENT 3.5
- .INDENT 0.0
- .IP 1. 3
--.
- the first port that is ACTIVE.
- .IP 2. 3
--.
- if not found, the first port that is UP (physical link up).
- .UNINDENT
- .sp
-@@ -138,6 +128,8 @@ If a port and/or CA name is specified, the libibumad library attempts
- to fulfill the user request, and will fail if it is not possible.
- .sp
- For example:
-+.INDENT 0.0
-+.INDENT 3.5
- .sp
- .nf
- .ft C
-@@ -149,13 +141,14 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
- .fi
- .UNINDENT
- .UNINDENT
-+.UNINDENT
-+.UNINDENT
- .SS Debugging flags
- .\" Define the common option -d
- .
- .INDENT 0.0
- .TP
- .B \-d
--.
- raise the IB debugging level.
- May be used several times (\-ddd or \-d \-d \-d).
- .UNINDENT
-@@ -164,7 +157,6 @@ May be used several times (\-ddd or \-d \-d \-d).
- .INDENT 0.0
- .TP
- .B \-e
--.
- show send and receive errors (timeouts and others)
- .UNINDENT
- .\" Define the common option -h
-@@ -176,7 +168,6 @@ show send and receive errors (timeouts and others)
- .INDENT 0.0
- .TP
- .B \fB\-v, \-\-verbose\fP
--.sp
- increase the application verbosity level.
- May be used several times (\-vv or \-v \-v \-v)
- .UNINDENT
-@@ -195,7 +186,6 @@ May be used several times (\-vv or \-v \-v \-v)
- \fB\-\-config, \-z  <config_file>\fP Specify alternate config file.
- .INDENT 0.0
- .INDENT 3.5
--.sp
- Default: @IBDIAG_CONFIG_PATH@/ibdiag.conf
- .UNINDENT
- .UNINDENT
-@@ -212,7 +202,6 @@ tools.  See supplied config file for details.
- .INDENT 0.0
- .TP
- .B ::
--.
- vendstat \-N 6           # read IS3 or IS4 general information
- vendstat \-w 6           # read IS3 port xmit wait counters
- vendstat \-i 6 12        # read IS4 port 12 counter group info
-@@ -223,9 +212,7 @@ vendstat \-c 2,8 6 12    # configure IS4 port 12 counter groups for PortRcvDataS
- .INDENT 0.0
- .TP
- .B Hal Rosenstock
--.
- < \fI\%hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org\fP >
- .UNINDENT
- .\" Generated by docutils manpage writer.
--.\" 
- .
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index dc49dc8..64644c5 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -756,6 +756,29 @@ static void srp_reset_req(struct srp_target_port *target, struct srp_request *re
+ 	}
+ }
+ 
++static void srp_fail_req(struct srp_target_port *target, struct srp_request *req)
++{
++	struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
++
++	if (scmnd) {
++		srp_free_req(target, req, scmnd, 0);
++		scmnd->result = DID_TRANSPORT_FAILFAST << 16;
++		scmnd->scsi_done(scmnd);
++	}
++}
++
++static void srp_fail_rport_io(struct srp_rport *rport)
++{
++	struct srp_target_port *target = rport->lld_data;
++	int i;
++
++	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
++		struct srp_request *req = &target->req_ring[i];
++		if (req->scmnd)
++			srp_fail_req(target, req);
++	}
++}
++
+ static int srp_reconnect_target(struct srp_target_port *target)
+ {
+ 	struct Scsi_Host *shost = target->scsi_host;
+@@ -2700,6 +2723,7 @@ static void srp_remove_one(struct ib_device *device)
+ 
+ static struct srp_function_template ib_srp_transport_functions = {
+ 	.rport_delete		 = srp_rport_delete,
++	.terminate_rport_io	 = srp_fail_rport_io,
+ };
+ 
+ static int __init srp_init_module(void)
 -- 
-1.7.1
+1.7.9.5
 
+
+--------------080100060507040804070101
+Content-Type: text/plain; charset=UTF-8;
+ name="0002-ib_srp-be-quiet-when-failing-SCSI-commands.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0002-ib_srp-be-quiet-when-failing-SCSI-commands.txt"
+
+>From 06c3cc832a672856c416fee72705ea0448f23855 Mon Sep 17 00:00:00 2001
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date: Wed, 13 Mar 2013 16:46:44 +0100
+Subject: [PATCH 2/5] ib_srp: be quiet when failing SCSI commands
+
+Signed-off-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 64644c5..0607e5a 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -750,6 +750,7 @@ static void srp_reset_req(struct srp_target_port *target, struct srp_request *re
+ 	struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
+ 
+ 	if (scmnd) {
++		scmnd->request->cmd_flags |= REQ_QUIET;
+ 		srp_free_req(target, req, scmnd, 0);
+ 		scmnd->result = DID_RESET << 16;
+ 		scmnd->scsi_done(scmnd);
+@@ -761,6 +762,7 @@ static void srp_fail_req(struct srp_target_port *target, struct srp_request *req
+ 	struct scsi_cmnd *scmnd = srp_claim_req(target, req, NULL);
+ 
+ 	if (scmnd) {
++		scmnd->request->cmd_flags |= REQ_QUIET;
+ 		srp_free_req(target, req, scmnd, 0);
+ 		scmnd->result = DID_TRANSPORT_FAILFAST << 16;
+ 		scmnd->scsi_done(scmnd);
+@@ -1526,6 +1528,7 @@ static int SRP_QUEUECOMMAND(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 	int len;
+ 
+ 	if (unlikely(target->transport_offline)) {
++		scmnd->request->cmd_flags |= REQ_QUIET;
+ 		scmnd->result = DID_NO_CONNECT << 16;
+ 		scmnd->scsi_done(scmnd);
+ 		return 0;
+@@ -1934,6 +1937,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
+ 	else
+ 		ret = FAILED;
+ 
++	scmnd->request->cmd_flags |= REQ_QUIET;
+ 	srp_free_req(target, req, scmnd, 0);
+ 	scmnd->result = DID_ABORT << 16;
+ 	scmnd->scsi_done(scmnd);
+-- 
+1.7.9.5
+
+
+--------------080100060507040804070101
+Content-Type: text/plain; charset=UTF-8;
+ name="0003-scsi_transport_srp-disable-the-fast_io_fail_tmo-parame.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0003-scsi_transport_srp-disable-the-fast_io_fail_tmo-parame.";
+ filename*1="txt"
+
+>From 2664578741f76f42a471736ffa990bb4f19c8d99 Mon Sep 17 00:00:00 2001
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date: Mon, 18 Mar 2013 17:34:29 +0100
+Subject: [PATCH 3/5] scsi_transport_srp: disable the fast_io_fail_tmo
+ parameter
+
+The fast_io_fail_tmo parameter only introduces further latency
+after the QP is in timeout. The QP timeout is already at
+2 s * (1 try + 7 retries) * 2. This is approx. 35 ms (found by
+measurement on mlx4).
+
+The overall QP timeout should adjustable instead (e.g. by exporting
+the QP retry_cnt).
+
+Signed-off-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ drivers/scsi/scsi_transport_srp.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
+index 239bb7a..be51bad 100644
+--- a/drivers/scsi/scsi_transport_srp.c
++++ b/drivers/scsi/scsi_transport_srp.c
+@@ -312,10 +312,7 @@ static void rport_dev_loss_timedout(struct work_struct *work)
+  */
+ void srp_start_tl_fail_timers(struct srp_rport *rport, int elapsed_jiffies)
+ {
+-	if (rport->fast_io_fail_tmo >= 0)
+-		queue_delayed_work(system_long_wq, &rport->fast_io_fail_work,
+-				      max_t(long, 1UL * rport->fast_io_fail_tmo
+-					    * HZ - elapsed_jiffies, 0));
++	queue_delayed_work(system_long_wq, &rport->fast_io_fail_work, 0);
+ 	queue_delayed_work(system_long_wq, &rport->dev_loss_work,
+ 		   max_t(long, 1UL * rport->dev_loss_tmo * HZ - elapsed_jiffies,
+ 			 0));
+-- 
+1.7.9.5
+
+
+--------------080100060507040804070101
+Content-Type: text/plain; charset=UTF-8;
+ name="0004-ib_srp-show-the-QP-timeout-and-retry-count-in-srp_host.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0004-ib_srp-show-the-QP-timeout-and-retry-count-in-srp_host.";
+ filename*1="txt"
+
+>From a0ff15e4e334a4d9e1539cbe3e8125d72287731f Mon Sep 17 00:00:00 2001
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date: Mon, 18 Mar 2013 18:08:29 +0100
+Subject: [PATCH 4/5] ib_srp: show the QP timeout and retry count in srp_host
+ sysfs files
+
+>From that we can calculate the overall QP timeout. The QP timeout
+is at approx 2s by default and the retry count is at 7.
+Now calculate 2s * (1+7) tries * 2, then you are at approx. 35s.
+
+Signed-off-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 0607e5a..095c568 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -2079,6 +2079,35 @@ static ssize_t show_allow_ext_sg(struct device *dev,
+ 	return sprintf(buf, "%s\n", target->allow_ext_sg ? "true" : "false");
+ }
+ 
++static ssize_t show_qp_timeout_ms(struct device *dev,
++				  struct device_attribute *attr, char *buf)
++{
++	struct srp_target_port *target = host_to_target(class_to_shost(dev));
++	struct ib_qp *qp = target->qp;
++	struct ib_qp_attr qp_attr;
++	struct ib_qp_init_attr qpi_attr;  /* useless, but required */
++	uint64_t T_tr_ms;
++
++	if (!qp || ib_query_qp(qp, &qp_attr, IB_QP_TIMEOUT, &qpi_attr) != 0)
++		return -EINVAL;
++	T_tr_ms = 4096 * (1ULL << qp_attr.timeout);
++	do_div(T_tr_ms, NSEC_PER_MSEC);
++	return sprintf(buf, "%llu\n", T_tr_ms);
++}
++
++static ssize_t show_qp_retries(struct device *dev,
++			       struct device_attribute *attr, char *buf)
++{
++	struct srp_target_port *target = host_to_target(class_to_shost(dev));
++	struct ib_qp *qp = target->qp;
++	struct ib_qp_attr qp_attr;
++	struct ib_qp_init_attr qpi_attr;  /* useless, but required */
++
++	if (!qp || ib_query_qp(qp, &qp_attr, IB_QP_RETRY_CNT, &qpi_attr) != 0)
++		return -EINVAL;
++	return sprintf(buf, "%u\n", qp_attr.retry_cnt);
++}
++
+ static DEVICE_ATTR(id_ext,	    S_IRUGO, show_id_ext,	   NULL);
+ static DEVICE_ATTR(ioc_guid,	    S_IRUGO, show_ioc_guid,	   NULL);
+ static DEVICE_ATTR(service_id,	    S_IRUGO, show_service_id,	   NULL);
+@@ -2091,6 +2120,8 @@ static DEVICE_ATTR(local_ib_port,   S_IRUGO, show_local_ib_port,   NULL);
+ static DEVICE_ATTR(local_ib_device, S_IRUGO, show_local_ib_device, NULL);
+ static DEVICE_ATTR(cmd_sg_entries,  S_IRUGO, show_cmd_sg_entries,  NULL);
+ static DEVICE_ATTR(allow_ext_sg,    S_IRUGO, show_allow_ext_sg,    NULL);
++static DEVICE_ATTR(qp_timeout_ms,   S_IRUGO, show_qp_timeout_ms,   NULL);
++static DEVICE_ATTR(qp_retries,      S_IRUGO, show_qp_retries,      NULL);
+ 
+ static struct device_attribute *srp_host_attrs[] = {
+ 	&dev_attr_id_ext,
+@@ -2105,6 +2136,8 @@ static struct device_attribute *srp_host_attrs[] = {
+ 	&dev_attr_local_ib_device,
+ 	&dev_attr_cmd_sg_entries,
+ 	&dev_attr_allow_ext_sg,
++	&dev_attr_qp_timeout_ms,
++	&dev_attr_qp_retries,
+ 	NULL
+ };
+ 
+-- 
+1.7.9.5
+
+
+--------------080100060507040804070101
+Content-Type: text/plain; charset=UTF-8;
+ name="0005-ib_srp-introduce-qp_retry_cnt-module-parameter.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0005-ib_srp-introduce-qp_retry_cnt-module-parameter.txt"
+
+>From 9988a55a2ea7357bef32b26c05566d51e49c8c2b Mon Sep 17 00:00:00 2001
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date: Tue, 19 Mar 2013 09:41:09 +0100
+Subject: [PATCH 5/5] ib_srp: introduce qp_retry_cnt module parameter
+
+With that it is possible to reduce the overall QP timeout. If it is
+set, then we can fail IO faster. This replaces the fast_io_fail_tmo
+functionality as we can get much lower and calculateable timeouts.
+
+Signed-off-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |   16 ++++++++++++++++
+ drivers/infiniband/ulp/srp/ib_srp.h |    3 +++
+ drivers/scsi/scsi_transport_srp.c   |    3 ++-
+ include/scsi/scsi_transport_srp.h   |    1 +
+ 4 files changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 095c568..c240fa7 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -75,6 +75,8 @@ static unsigned int cmd_sg_entries;
+ static unsigned int indirect_sg_entries;
+ static bool allow_ext_sg;
+ static int topspin_workarounds = 1;
++static unsigned int qp_retry_cnt;
++static bool qp_retry_set = false;
+ 
+ module_param(srp_sg_tablesize, uint, 0444);
+ MODULE_PARM_DESC(srp_sg_tablesize, "Deprecated name for cmd_sg_entries");
+@@ -95,6 +97,10 @@ module_param(topspin_workarounds, int, 0444);
+ MODULE_PARM_DESC(topspin_workarounds,
+ 		 "Enable workarounds for Topspin/Cisco SRP target bugs if != 0");
+ 
++module_param(qp_retry_cnt, uint, 0444);
++MODULE_PARM_DESC(qp_retry_cnt,
++		 "Number of qp retries, set this for fast IO failing (default is 7, max is 19)");
++
+ static void srp_add_one(struct ib_device *device);
+ static void srp_remove_one(struct ib_device *device);
+ static void srp_recv_completion(struct ib_cq *cq, void *target_ptr);
+@@ -1718,6 +1724,7 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+ 		goto error_free;
+ 
+ 	target->rq_tmo_jiffies = srp_compute_rq_tmo(qp_attr, attr_mask);
++	qp_attr->retry_cnt = qp_retry_cnt;
+ 
+ 	ret = ib_modify_qp(target->qp, qp_attr, attr_mask);
+ 	if (ret)
+@@ -2183,6 +2190,7 @@ static int srp_add_target(struct srp_host *host, struct srp_target_port *target)
+ 	}
+ 
+ 	rport->lld_data = target;
++	rport->qp_retry_set = qp_retry_set;
+ 	target->rport = rport;
+ 
+ 	return 0;
+@@ -2791,6 +2799,14 @@ static int __init srp_init_module(void)
+ 		indirect_sg_entries = cmd_sg_entries;
+ 	}
+ 
++	if (!qp_retry_cnt)
++		qp_retry_cnt = SRP_DEF_QP_RETRIES;
++	else
++		qp_retry_set = true;
++
++	if (qp_retry_cnt > SRP_MAX_QP_RETRIES)
++		qp_retry_cnt = SRP_MAX_QP_RETRIES;
++
+ 	ret = srp_transport_init();
+ 	if (ret) {
+ 		pr_err("SRP transport initialization failed\n");
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 1e8d538..ad43615 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -57,6 +57,9 @@ enum {
+ 	SRP_MAX_LUN		= 512,
+ 	SRP_DEF_SG_TABLESIZE	= 12,
+ 
++	SRP_DEF_QP_RETRIES      = 7,
++	SRP_MAX_QP_RETRIES      = 19,
++
+ 	SRP_RQ_SHIFT    	= 6,
+ 	SRP_RQ_SIZE		= 1 << SRP_RQ_SHIFT,
+ 
+diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
+index be51bad..347d231 100644
+--- a/drivers/scsi/scsi_transport_srp.c
++++ b/drivers/scsi/scsi_transport_srp.c
+@@ -312,7 +312,8 @@ static void rport_dev_loss_timedout(struct work_struct *work)
+  */
+ void srp_start_tl_fail_timers(struct srp_rport *rport, int elapsed_jiffies)
+ {
+-	queue_delayed_work(system_long_wq, &rport->fast_io_fail_work, 0);
++	if (rport->qp_retry_set)
++		queue_delayed_work(system_long_wq, &rport->fast_io_fail_work, 0);
+ 	queue_delayed_work(system_long_wq, &rport->dev_loss_work,
+ 		   max_t(long, 1UL * rport->dev_loss_tmo * HZ - elapsed_jiffies,
+ 			 0));
+diff --git a/include/scsi/scsi_transport_srp.h b/include/scsi/scsi_transport_srp.h
+index f74b715..aa9931e 100644
+--- a/include/scsi/scsi_transport_srp.h
++++ b/include/scsi/scsi_transport_srp.h
+@@ -25,6 +25,7 @@ struct srp_rport {
+ 
+ 	void			*lld_data;	/* LLD private data */
+ 
++	bool			qp_retry_set;
+ 	int			fast_io_fail_tmo;
+ 	unsigned		dev_loss_tmo;
+ 	struct delayed_work	fast_io_fail_work;
+-- 
+1.7.9.5
+
+
+--------------080100060507040804070101--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
