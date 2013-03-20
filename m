@@ -1,64 +1,33 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [Fwd: Re: [PATCH] libibmad: Fixes for failures when not all
- ports of HCA are connected]
-Date: Wed, 20 Mar 2013 16:24:22 -0600
-Message-ID: <20130320222422.GA30100@obsidianresearch.com>
-References: <5140E1A3.9070706@oracle.com>
- <51427819.7000505@oracle.com>
- <514278CA.8010809@oracle.com>
- <2807E5FD2F6FDA4886F6618EAC48510EBB3F62@CRSMSX102.amr.corp.intel.com>
- <514A0156.2070009@oracle.com>
- <20130320190208.GA23478@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510EBB4214@CRSMSX102.amr.corp.intel.com>
- <514A3169.7000501@oracle.com>
+Subject: Re: [PATCH] libibmad: To reserve upper 8 bits of tid used by solaris
+ SRIOV driver
+Date: Wed, 20 Mar 2013 16:33:22 -0600
+Message-ID: <20130320223322.GB30100@obsidianresearch.com>
+References: <513F8386.5070208@oracle.com>
+ <CAMLCd9LOuajya0_s4NhuUD4hUtHnc_NLi8sELnsEprash6t5Eg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <514A3169.7000501-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAMLCd9LOuajya0_s4NhuUD4hUtHnc_NLi8sELnsEprash6t5Eg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: brendan doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pramod Gunjikar <pramod.gunjikar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 20, 2013 at 10:00:09PM +0000, brendan doyle wrote:
+On Wed, Mar 20, 2013 at 03:11:51PM -0700, Ira Weiny wrote:
+> Why does this need to be done in user space?  This seems like
+> something which should be done in the kernel for all Transaction ID's
+> which might be sent to the umad layer.
 
-> >>>As far as I can see the library is not documented at all, I can't find
-> >>>any man pages. So setting errno is not breaking the interface, and I
-> >>>would argue that if it adds value, which it does in this case, then
-> >>>what is the objection. Additionally I think if the approach is that
-> >>>errno is not set unless documented in a man page, then we should have
-> >>>some consistency, a quick grep of errno in libibmad reveals that errno
-> >>>is being set in other parts of the library, in libibumad too, we see
-> >>>errno set, but again it is not documented in the umad man pages.
-> >>Ideally we would have consistency amongst the IB libraries - try hard to
-> >>return -ERRNO like verbs, and only use errno for cases where an int return is
-> >>not possible.
+Agreed, if Solaris is going to emulate the Linux umad dev FD it should
+be done properly. The kernel overrides some bits and returns the TRID
+it actually put on the wire after the MAD is sent.
 
-> >Since these calls return int I thought about this.  But I am
-> >worried about breaking users who may be explicitly checking for -1.
-> >OTOH nothing is documented.
- 
-> Well there are man pages for umad and verbs and though some verbs
-> man pages say errno is set for failure, they don't indicate what it
-> is set to, and umad man pages say nothing of errno. In any case the
-> proposed changes don't change the return value, and so won't break
-> existing users, again I can only see goodness being added, and fail
-> to see any negative implications?
+Linux is already doing this to add per-process uniqueness, per-guest
+SRIOV uniqueness should use the same mechanism.
 
-Patches adding inconsistency are not 'goodness'.
-
-People have to use this stuff and try to write correct
-applications. Playing wack a mole on 'how does this call return
-errors' is a special kind of nightmare.
-
-.. and look, I already got it wrong in my memory, verbs consistently
-uses the POSIX +ERRNO convention, not the kernel's -ERRNO convention.
-
-Ira, do you know any place that would break if +ERRNO is returned, or
-is this just a hypothetical? Even so, I'm not sure I have much
-sympathy for people checking against -1... that is only appropriate
-for FDs.
+Thus, this masking is either redundant, or hiding a kernel bug..
 
 Jason
 --
