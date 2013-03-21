@@ -1,136 +1,101 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Fwd: Re: [PATCH] libibmad: To reserve upper 8 bits of tid used
- by solaris SRIOV driver
-Date: Thu, 21 Mar 2013 00:51:00 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510EBB428F@CRSMSX102.amr.corp.intel.com>
-References: <20130320223322.GB30100@obsidianresearch.com>
- <514A3996.601@oracle.com> <514A525F.7030706@oracle.com>
+From: brendan doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Fwd: Re: [PATCH] libibmad: Fixes for failures when not all ports
+ of HCA are connected]
+Date: Thu, 21 Mar 2013 01:01:59 +0000
+Message-ID: <514A5C07.3080308@oracle.com>
+References: <5140E1A3.9070706@oracle.com> <51427819.7000505@oracle.com> <514278CA.8010809@oracle.com> <2807E5FD2F6FDA4886F6618EAC48510EBB3F62@CRSMSX102.amr.corp.intel.com> <514A0156.2070009@oracle.com> <20130320190208.GA23478@obsidianresearch.com> <2807E5FD2F6FDA4886F6618EAC48510EBB4214@CRSMSX102.amr.corp.intel.com> <514A3169.7000501@oracle.com> <20130320222422.GA30100@obsidianresearch.com> <514A3BDF.2090105@oracle.com> <20130320231923.GA32300@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <514A525F.7030706-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20130320231923.GA32300-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: brendan doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Pramod Gunjikar <Pramod.Gunjikar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pramod Gunjikar <pramod.gunjikar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: brendan doyle [mailto:brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
-> 
-> 
-> On 20/03/2013 22:35, Boris Chiu wrote:
-> > fyi,
-> >
-> > Boris
-> >
-> >
-> > -------- Original Message --------
-> > Subject: 	Re: [PATCH] libibmad: To reserve upper 8 bits of tid used by
-> > solaris SRIOV driver
-> >
-> >
-> >
-> > On Wed, Mar 20, 2013 at 03:11:51PM -0700, Ira Weiny wrote:
-> > > Why does this need to be done in user space?  This seems like
-> > > something which should be done in the kernel for all Transaction
-> > > ID's which might be sent to the umad layer.
-> 
-> So the reason we "reserved" not set the upper two bytes of TID
 
-You mean 1 byte?
+On 20/03/2013 23:19, Jason Gunthorpe wrote:
+> On Wed, Mar 20, 2013 at 10:44:47PM +0000, brendan doyle wrote:
+>
+>> Where is the inconsistency?
+> There is no other case in other IB libraries or libibmad itself where
+> errno is expected to be set by an int returning function. int
+> returning functions should return +ERRNO.
 
->  in the user
-> space is so that libs and/or applications that rely on TID matching won't break.
-> If we changed the TID in the kernel then the response TID returned to the
-> lib/application would not match the request TID.
+And that is what this patch does, currently we have:
 
-While this makes sense I can't believe that libibmad is the only place which TID's get generated.  Do you also do this in OpenSM?
+# grep errno *
+register.c:#include <errno.h>
+rpc.c:#include <errno.h>
+rpc.c:          errno = EINVAL;
+rpc.c:          errno = ENODEV;
+rpc.c:          errno = ENOMEM;
+rpc.c:          if (!errno)
+rpc.c:                  errno = EIO;
+rpc.c:                  if (!errno)
+rpc.c:                          errno = EINVAL;
 
-> 
-> Currently the only place I see TID check is in libibmad's _do_madrpc(), and
-> here it effectively does something similar where it truncates the TID to
-> 32bits.  We send a MAD with a full 64 bit TID, record the lower 32 bits of the
-> TID, on on receipt of the response check that the lower 32 bits of TID are the
-> same, the upper 32 could be completely different.
-> 
+The patch adds:
 
-Right, it ignores the upper 32bits because it knows the umad layer reserves the upper 32bits.  So for libibmad your patch does not fix anything unless you are doing some 64bit compare of TID's above the libibmad layer?
+resolve.c:              if (!errno)
+resolve.c:                      errno = EIO;
+resolve.c:              if (!errno)
+resolve.c:                      errno = EIO;
+resolve.c:              if (!errno)
+resolve.c:                      errno = EIO;
+
+So where is the inconsistency? what is resolve.c doing that is different 
+to what
+rpc.c is doing?
+
+>
+>> errno is still undefined, it is set in some parts of libibmad and
+>> not others, so nothing has changed from a consumer perspective?
+> Consistency would be returning +ERRNO from int functions and properly
+> propogating return codes from lower layers:
+>
+>         if (smp_query_via(portinfo, &self, IB_ATTR_PORT_INFO, 0, 0,
+>               srcport))
+>              return errno;
+>
+> Would be a better modification.
+The patch only sets errno, if it is not set, so if lower layers set it then
+it is propagated up.
 
 
-> >
-> > Agreed, if Solaris is going to emulate the Linux umad dev FD it should
-> > be done properly. The kernel overrides some bits and returns the TRID
-> > it actually put on the wire after the MAD is sent.
-> 
-> I don't see where the TID sent is returned to the caller of umad_send(), I see
-> that we pass down a MAD over the fd to the kernel that has a full 64bit TID
-> and then I see that the kernel over writes the upper 32 bits, but I don't see
-> how that is communicated back to the sender of the MAD, so if the sender
-> were doing
-> 64 bit TID matching it would not find its MAD, the upper 32bits it set are lost.
+>
+>> +               if (!errno)
+>> +                       errno = EIO;
+> This is funny, it is not portable to expect that errno will ever be !=
+> 0.
 
-I believe you are correct.  It is just up to the user of umad to "know" that the upper 32bits are not valid.  While unfortunate, this can only really be fixed through a major change in the umad ABI and/or documentation of that library.
+Well we have several examples of this exact code segment already in 
+libibmad, and
+I hazard to say elsewhere in the OFED pkgs. Why is it not portable to 
+expect that
+errno, *may* not be set on a failure?
 
-> 
-> Note in what we propose, in the userland we just reserve the upper byte, it
-> is the kernel that then uses/sets and unsets this upper byte to include a VF id
-> so MADs send on a VF device can get tunneled to the PF and received on a
-> PF can be directed to the correct VF, the upper byte is cleared before
-> handing back to the userland so that it can do 64 bit TID matching and the TID
-> it specified in the request MAD is the same as the one it gets in the response
-> MAD.
 
-This makes sense but I worry about users who do not use libibmad.  Frankly, I think people should be moving away from using libibmad.  It is very complicated and undocumented.  Putting transaction ID processing like this should probably be in libibumad since it reserves and uses bits from the TID.
+>> @@ -178,6 +178,7 @@ int _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int
+>>                  status = umad_status(rcvbuf);
+>> +               errno = status;
+> _do_madrpc already returns int, so this is not great either.
 
-> 
-> >
-> > Linux is already doing this to add per-process uniqueness, per-guest
-> > SRIOV uniqueness should use the same mechanism.
-> 
-> The way it is done in Linux effectively makes the TID a 32bit entity from the
-> userland perspective.
-> 
+OK I could concede on this, the Solaris kernel uses ib_user_mad_hdr.status
+to return an errno to indicate the nature of failure, where as linux does
+not.
 
-Yep, and I wish it was better documented and/or done a different way.
-
-> 
-> >
-> > Thus, this masking is either redundant, or hiding a kernel bug..
-> 
-> I might say it is the other way around. In Linux from the userland the TID you
-> get in a response MAD is not the same as the one you specified in the
-> request MAD.
-
-And this is yet another unfortunate "gotcha" of the libibumad interface.
-
-> 
-> I'm not debating that the kernel should use upper bits of the TID to demux
-> per process, per guest, that is what we do in Solaris, what I'm saying is that
-> those bits used by the kernel should be "reserved"  in userland so that the
-> TID of its request and response are the same across all 64 bits.
-
-So in Solaris do you combine the reservation of umad and this SRIOV like this:
-
-0xXX YYYYYY ZZZZZZZZ
-
-Where XX is the VF mask YYYYYY is the agent mask and ZZZZZZZZ is the "actual" TID?
-
-It seems like we should standardize on some format and then put this functionality into libibumad where all software can consistently use it.
-
-Or leave things the way they are and define the TID to be 32bits in userspace and leave the rest up to the kernel.  In that respect libibmad probably should not be generating 64bit TID's.
-
-I think I would rather see a patch which generates a 32bit TID from mad_trid.  Would you be happy with that?
-
-Ira
-
-> 
-> Brendan
-> 
-> > Jason
-> >
-> >
+>> @@ -56,6 +57,7 @@ uint8_t *sa_rpc_call(const struct ibmad_port *ibmad_port,
+>> void *rcvbuf,
+>>
+>>          if (portid->lid <= 0) {
+>>                  IBWARN("only lid routes are supported");
+>> +               errno = EIO;
+>>                  return NULL;
+> This one is OK.
+>
+> Jason
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
