@@ -1,75 +1,145 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] rdma: don't make pages writeable if not requiested
-Date: Thu, 21 Mar 2013 14:09:22 -0600
-Message-ID: <20130321200922.GA8109@obsidianresearch.com>
-References: <CAL1RGDUcMj9QVsuQgK+ozw64L6-cGehL7YBUJ1_ckni6TD=Kcg@mail.gmail.com>
- <20130321070357.GD28328@redhat.com>
- <CAG4TOxPkhOhGmzeA1K4a0Zw8HxS-QkOr-PCx7mJgA+KkuH3ZiQ@mail.gmail.com>
- <20130321085107.GE28328@redhat.com>
- <CAL1RGDVnkLZU2Vge4o3BwDxnAfGv7TQRMqE6ha3MUt39CVp5NQ@mail.gmail.com>
- <20130321093946.GG28328@redhat.com>
- <20130321171115.GA653@obsidianresearch.com>
- <20130321181633.GC4366@redhat.com>
- <20130321184135.GA8044@obsidianresearch.com>
- <20130321191541.GB5272@redhat.com>
+From: brendan doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Fwd: Re: [PATCH] libibmad: Fixes for failures when not all ports
+ of HCA are connected]
+Date: Thu, 21 Mar 2013 20:37:08 +0000
+Message-ID: <514B6F74.9020707@oracle.com>
+References: <514278CA.8010809@oracle.com> <2807E5FD2F6FDA4886F6618EAC48510EBB3F62@CRSMSX102.amr.corp.intel.com> <514A0156.2070009@oracle.com> <20130320190208.GA23478@obsidianresearch.com> <2807E5FD2F6FDA4886F6618EAC48510EBB4214@CRSMSX102.amr.corp.intel.com> <514A3169.7000501@oracle.com> <20130320222422.GA30100@obsidianresearch.com> <514A3BDF.2090105@oracle.com> <20130320231923.GA32300@obsidianresearch.com> <514A5C07.3080308@oracle.com> <20130321052122.GB20882@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130321191541.GB5272-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20130321052122.GB20882-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Michael R. Hines" <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pramod Gunjikar <pramod.gunjikar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 21, 2013 at 09:15:41PM +0200, Michael S. Tsirkin wrote:
-> On Thu, Mar 21, 2013 at 12:41:35PM -0600, Jason Gunthorpe wrote:
-> > On Thu, Mar 21, 2013 at 08:16:33PM +0200, Michael S. Tsirkin wrote:
-> > 
-> > > This is the one I find redundant. Since the write will be done by
-> > > the adaptor under direct control by the application, why does it
-> > > make sense to declare this beforehand?  If you don't want to allow
-> > > local write access to memory, just do not post any receive WRs with
-> > > this address.  If you posted and regret it, reset the QP to cancel.
-> > 
-> > This is to support your COW scenario - the app declares before hand to
-> > the kernel that it will write to the memory and the kernel ensures
-> > pages are dedicated to the app at registration time. Or the app says
-> > it will only read and the kernel could leave them shared.
-> 
-> Someone here is confused. LOCAL_WRITE/absence of it does not address
-> COW, it breaks COW anyway.  Are you now saying we should change rdma so
-> without LOCAL_WRITE it will not break COW?
 
-I am talking about 'from a spec' perspective - not what Linux does
-today. The absence of LOCAL_WRITE is part of the specification to
-support shared pages.
+On 21/03/2013 05:21, Jason Gunthorpe wrote:
+> On Thu, Mar 21, 2013 at 01:01:59AM +0000, brendan doyle wrote:
+>> On 20/03/2013 23:19, Jason Gunthorpe wrote:
+>>> On Wed, Mar 20, 2013 at 10:44:47PM +0000, brendan doyle wrote:
+>>>
+>>>> Where is the inconsistency?
+>>> There is no other case in other IB libraries or libibmad itself where
+>>> errno is expected to be set by an int returning function. int
+>>> returning functions should return +ERRNO.
+>> And that is what this patch does, currently we have:
+>>
+>> # grep errno *
+>> register.c:#include <errno.h>
+>> rpc.c:#include <errno.h>
+>> rpc.c:          errno = EINVAL;
+>> rpc.c:          errno = ENODEV;
+>> rpc.c:          errno = ENOMEM;
+>> rpc.c:          if (!errno)
+>> rpc.c:                  errno = EIO;
+>> rpc.c:                  if (!errno)
+>> rpc.c:                          errno = EINVAL;
+> I looked at all of these, they are OK because the functions do not
+> return int, they are returning pointers.
+>
+> The 'new' POSIX convention is:
+>   - int function returns are 0 on success, -1 on 'not-an-errno' and
+>     +ERRNO to indicate error.
+>   - 'fd in an int' function returns are -1 on failure with errno set,
+>     everything else is a valid fd. (Code that checks for fd's < 0 is
+>     pedantically wrong)
+>   - pointer function returns are NULL on failure with errno set.
+>   - void returns can never fail
+>
+> The 'old' POSIX convention had int functions return 0 on success and
+> set errno. Some function will restrict error returns to -1, others
+> leave it open.
+OK so then the inconsistency is further down the stack..
 
-Pages can only be kept shared if all the ACCESS WRITE bits are clear -
-today Linux always breaks the COW, but if you patch in the ability to
-keep things shared then it must only happen when *all* the ACCESS
-WRITE bits are clear.
+int ib_resolve_smlid_via()
+        -> uint8_t *smp_query_via()
+            -> void *mad_rpc()
+                -> int mad_build_pkt()
+                  -> void *mad_encode() <- return NULL on fail but does 
+not set errno
+             -> static int _do_madrpc()
+                -> umad_send()
+                -> umad_recv)
 
-> > The adaptor enforces the access control to prevent a naughty app from
-> > writing to shared memory - think about mmap'ing libc.so and then using
-> > RDMA to write to the shared pages. It is necessary to ensure that is
-> > impossible.
+So if ib_resolve_smlid_via() is to conform to POSIX
 
-> That's why it's redundant: we can't trust an application to tell us
-> 'this page is writeable', we must get this info from kernel.  And so
-> there's apparently no need for application to tell adaptor about
-> LOCAL_WRITE.
+This:
 
-The API design gives user space maximum flexibility, if it wants to
-create an enforced no-write MR in otherwise writable pages by skipping
-LOCAL_WRITE then it can do so.
+   if (!smp_query_via(portinfo, &self, IB_ATTR_PORT_INFO, 0, 0, srcport))
+           return -1;
 
-The kernel's role in this should be to deny ibv_reg_mr with WRITE bits
-set if the pages are not writable by the app - I don't know if it does
-this today, it isn't critically important as long as the pages are
-unshared.
+Should be:
 
-Jason
+  if (!smp_query_via(portinfo, &self, IB_ATTR_PORT_INFO, 0, 0, srcport)) {
+          return (errno);
+  }
+
+But mad_encode() does not set errno, and also retuning +errno instead of 
+-1 would
+break the existing API usage.
+
+It seems to me that there are many places in libibmad and libibumad that 
+are not
+poisx compliant, and the libs could do with an overhaul in this regard, 
+however
+that would likely break many of the library consumers. So from a 
+pragmatic stand
+point the proposal was to not break the easting API and cause consumers
+to fail, but also to add the ability to distinguish between types of 
+failures for a specific
+failure mode. And this was just one aspect of the patch the other was to 
+harden the
+library.
+
+
+>>>> +               if (!errno)
+>>>> +                       errno = EIO;
+>>> This is funny, it is not portable to expect that errno will ever be !=
+>>> 0.
+>> Well we have several examples of this exact code segment already in
+>> libibmad, and I hazard to say elsewhere in the OFED pkgs. Why is it
+>> not portable to expect that errno, *may* not be set on a failure?
+> Copying broken code from elsewhere doesn't make it any more right..
+
+Absolutely agree, and was not suggesting that, but was merely saying 
+that we
+should have consistency.
+
+> The specs say functions set errno on error return. They say nothing
+> about clearing it on success return. Assuming errno is ever 0 is
+> absolutely not portable, and IIRC, doesn't work on Linux anyhow.
+
+Humm, again, take a look at umad, it sets errno to 0 before calling the
+write() system call. If we are to enforce strict posix lets do it 
+everywhere,
+but that then would likely break many consumers of the libs.
+
+> To be more specific, if a function doesn't explicitly set errno, then
+> the value is simply whatever was left in errno before, ie the errno
+> from the last failed system call. The only time it will be 0 is
+> immediately after program start, assuming no failed system calls were
+> made by the runtime. The first failed system call will set it to a
+> value and it will never be 0'd by anything after that.
+
+See above.
+
+>
+>>>> @@ -178,6 +178,7 @@ int _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int
+>>>>                  status = umad_status(rcvbuf);
+>>>> +               errno = status;
+>>> _do_madrpc already returns int, so this is not great either.
+>> OK I could concede on this, the Solaris kernel uses ib_user_mad_hdr.status
+>> to return an errno to indicate the nature of failure, where as linux does
+>> not.
+> Hrm? Linux will return at least ETIMEDOUT in the .status field.
+
+Well Linux is not my bag, but I couldn't see where in the code this was 
+the case.
+
+> Jason
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
