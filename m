@@ -1,42 +1,133 @@
-From: "WERNER ERICH ZELLER" <e639-aFiDPoud36g@public.gmane.org>
-Subject: ACHTUNG FRIEND!
-Date: Fri, 22 Mar 2013 00:57:10 +0100 (CET)
-Message-ID: <55112.82.128.17.98.1363910230.squirrel__40952.0596186214$1363975574$gmane$org@correo.humv.es>
-Reply-To: wernererichzeller-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [RFC 01/11] iscsi-target: Add iscsit_transport API template
+Date: Fri, 22 Mar 2013 15:29:59 -0700
+Message-ID: <1363991399.30339.22.camel@haakon2.linux-iscsi.org>
+References: <1362707116-31406-1-git-send-email-nab@linux-iscsi.org>
+	 <1362707116-31406-2-git-send-email-nab@linux-iscsi.org>
+	 <514C9386.4080606@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <514C9386.4080606@redhat.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Andy Grover <agrover@redhat.com>
+Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Alexander Nezhinsky <alexandern@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, 2013-03-22 at 10:23 -0700, Andy Grover wrote:
+> On 03/07/2013 05:45 PM, Nicholas A. Bellinger wrote:
+> > From: Nicholas Bellinger <nab@linux-iscsi.org>
+> >
+> > Add basic struct iscsit_transport API template to allow iscsi-target for
+> > running with external transport modules using existing iscsi_target_core.h
+> > code.
+> >
+> > For all external modules, this calls try_module_get() and module_put()
+> > to obtain + release an external iscsit_transport module reference count.
+> >
+> > Also include the iscsi-target symbols necessary in iscsi_transport.h to
+> > allow external transport modules to function.
+> >
+> > Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+> > ---
+> >   drivers/target/iscsi/Makefile                 |    3 +-
+> >   drivers/target/iscsi/iscsi_target_transport.c |   57 ++++++++++++++++++
+> >   include/target/iscsi/iscsi_transport.h        |   77 +++++++++++++++++++++++++
+> >   3 files changed, 136 insertions(+), 1 deletions(-)
+> >   create mode 100644 drivers/target/iscsi/iscsi_target_transport.c
+> >   create mode 100644 include/target/iscsi/iscsi_transport.h
+> >
+> > diff --git a/drivers/target/iscsi/Makefile b/drivers/target/iscsi/Makefile
+> > index 5b9a2cf..13a9240 100644
+> > --- a/drivers/target/iscsi/Makefile
+> > +++ b/drivers/target/iscsi/Makefile
+> > @@ -15,6 +15,7 @@ iscsi_target_mod-y +=		iscsi_target_parameters.o \
+> >   				iscsi_target_util.o \
+> >   				iscsi_target.o \
+> >   				iscsi_target_configfs.o \
+> > -				iscsi_target_stat.o
+> > +				iscsi_target_stat.o \
+> > +				iscsi_target_transport.o
+> >
+> >   obj-$(CONFIG_ISCSI_TARGET)	+= iscsi_target_mod.o
+> > diff --git a/drivers/target/iscsi/iscsi_target_transport.c b/drivers/target/iscsi/iscsi_target_transport.c
+> > new file mode 100644
+> > index 0000000..4ffd965
+> > --- /dev/null
+> > +++ b/drivers/target/iscsi/iscsi_target_transport.c
+> > @@ -0,0 +1,57 @@
+> > +#include <linux/spinlock.h>
+> > +#include <linux/list.h>
+> > +#include <target/iscsi/iscsi_transport.h>
+> > +
+> > +static LIST_HEAD(g_transport_list);
+> > +static DEFINE_MUTEX(transport_mutex);
+> > +
+> > +struct iscsit_transport *iscsit_get_transport(int type)
+> > +{
+> > +	struct iscsit_transport *t;
+> > +
+> > +	mutex_lock(&transport_mutex);
+> > +	list_for_each_entry(t, &g_transport_list, t_node) {
+> > +		if (t->transport_type == type) {
+> > +			if (t->owner && !try_module_get(t->owner)) {
+> > +				t = NULL;
+> > +			}
+> > +			mutex_unlock(&transport_mutex);
+> > +			return t;
+> > +		}
+> > +	}
+> > +	mutex_unlock(&transport_mutex);
+> > +
+> > +	return NULL;
+> > +}
+> > +EXPORT_SYMBOL(iscsit_get_transport);
+> > +
+> > +void iscsit_put_transport(struct iscsit_transport *t)
+> > +{
+> > +	if (t->owner)
+> > +		module_put(t->owner);
+> > +}
+> > +EXPORT_SYMBOL(iscsit_put_transport);
+> > +
+> > +int iscsit_create_transport(struct iscsit_transport *t)
+> > +{
+> > +	INIT_LIST_HEAD(&t->t_node);
+> > +
+> > +	mutex_lock(&transport_mutex);
+> > +	list_add_tail(&t->t_node, &g_transport_list);
+> > +	mutex_unlock(&transport_mutex);
+> > +
+> > +	printk("Created iSCSI transport: %s\n", t->name);
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL(iscsit_create_transport);
+> > +
+> > +void iscsit_destroy_transport(struct iscsit_transport *t)
+> > +{
+> > +	mutex_lock(&transport_mutex);
+> > +	list_del(&t->t_node);
+> > +	mutex_unlock(&transport_mutex);
+> > +
+> > +	printk("Destroyed iSCSI transport: %s\n", t->name);
+> > +}
+> 
+> I don't think create/destroy are the right names to use here - I suggest 
+> register/unregister or something like that?
+> 
+
+Fair enough.  Renamed to register/unregister in the forth-coming RFC-v2
+
+> Please also make sure to turn those printks in to pr_something() for the 
+> final version.
+> 
+
+Done.
+
+Thanks,
+
+--nab
 
 
-
---=20
-Eure Eminenz, das ist das dritte Mal, dass ich schreibe Ihnen bin, ich
-bete nur du es dieses Mal! Ich bin Barrister Werner Erich Zeller des
-Vereinigten K=F6nigreichs und ich schreibe auf Ihre 100% aufrichtiges
-Interesse und Partnerschaft bei der Wiederherstellung der H=F6he von =80=
- 15
-Mio. (EURO) Privatbank, die fr=FCher zu einem sp=E4ten Kunde von mir, d=
-ie,
-ohne einem bestimmten Nest weitergegeben geh=F6rten zu suchen Angeh=F6r=
-igen
-und Empf=E4nger. Wie f=FCr die Rechtm=E4=DFigkeit und Echtheit, lassen =
-Sie das zu
-mir, ich werde es als Rechtsanwalt rechtlich 100% Griff! Wir stehen bei=
-de
-zu 50% des =80 15 Mio. (EURO) jeweils als Partner profitieren. Schicken=
- Sie
-mir eine private E-Mail f=FCr die Details: wernererichzeller-/E1597aS9LQAvxtiuMwx3w@public.gmane.org =
-und
-Telefon: +447024090820
-
-Bitte zur=FCck zu mir sofort!
-Werner Erich Zeller (Attorney)
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
