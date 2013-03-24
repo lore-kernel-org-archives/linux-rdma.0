@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 4/5] IB/ipoib: Add RSS and TSS support for datagram mode
-Date: Sun, 24 Mar 2013 14:43:31 +0200
-Message-ID: <1364129012-12198-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V4 for-next 2/5] IB/mlx4: Add support for RSS and TSS QP groups
+Date: Sun, 24 Mar 2013 14:43:29 +0200
+Message-ID: <1364129012-12198-3-git-send-email-ogerlitz@mellanox.com>
 References: <1364129012-12198-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1364129012-12198-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,1176 +12,477 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch add RSS (Receive Side Scaling) and TSS (multi-queue transmit)
-support for IPoIB. The RSS and TSS implementation utilizes the new QP
-groups concept.
-
-The number of RSS and TSS rings is a function of the number of cores,
-and the low level driver capability to support QP groups and RSS.
-
-If the low level driver doesn't support QP groups, then only one RX
-and one TX rings are created and only one QP, such both rings use it.
-
-If the HW supports RSS then additional receive QP are created, and each
-is assigned to a separate receive ring. The number of additional receive
-rings is equal to the number of CPU cores rounded to the next power of two.
-
-If the HW doesn't support RSS then only one receive ring is created
-and the parent QP is assigned as its QP.
-
-When TSS is used, additional send QPs are created, and each is assigned to
-a separate send ring. The number of additional send rings is equal to the
-number of CPU cores rounded to the next power of two.
-
-It turns out that there are IPoIB drivers used by some operating-systems
-and/or Hypervisors in a para-virtualization (PV) scheme which extract the
-source QPN from the CQ WC associated with an incoming packets in order to
-generate the source MAC address in the emulated MAC header they build.
-
-With TSS, different packets targeted for the same entity (e.g VM using
-PV IPoIB instance) could be potentially sent through different TX rings
-which map to different UD QPs, each with its own QPN. This may break some
-assumptions made the receiving entity (e.g rules related to security,
-monitoring, etc).
-
-If the HW supports TSS, it is capable of over-riding the source UD QPN
-present in the IB datagram header (DTH) of sent packets with the parent's
-QPN which is part of the device HW address as advertized to the Linux network
-stack and hence carried in ARP requests/responses. Thus the above mentioned
-problem doesn't exist.
-
-When HW doesn't support TSS, but QP groups are supported which mean the
-low level driver can create set of QPs with contiguous QP numbers, TSS
-can still be used, this is called "SW TSS".
-
-In this case, the low level drive provides IPoIB with a mask when the
-parent QP is created. This mask is later written into the reserved field
-of the IPoIB header so receivers of SW TSS packets can mask the QPN of
-a received packet and discover the parent QPN.
-
-In order not to possibly breaks inter-operability with the PV IPoIB drivers
-which were not yet enhanced to apply this masking from incoming packets,
-SW TSS will only be used if the peer advertised its willingness to accept
-SW TSS frames, otherwise the parent QP will be used.
-
-The advertisement to accept TSS frames is done using a dedicated bit in
-the reserved byte of the IPoIB HW address (e.g similar to CM).
+Depending on the mlx4 device capabilities, support the RSS IB device
+capability, using Topelitz or XOR hash functions according to what
+available with the HW. Support creating QP groups where all RX and TX
+QPs have contiguous QP numbers.
 
 Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h       |   15 +-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c    |   10 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c  |  169 +++++++-
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c |  621 ++++++++++++++++++++++++----
- 4 files changed, 721 insertions(+), 94 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c    |    5 +
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |   13 ++
+ drivers/infiniband/hw/mlx4/qp.c      |  345 ++++++++++++++++++++++++++++++++-
+ 3 files changed, 352 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 9bf96db..1b214f1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -123,7 +123,7 @@ enum {
- 
- struct ipoib_header {
- 	__be16	proto;
--	u16	reserved;
-+	__be16	tss_qpn_mask_sz;
- };
- 
- struct ipoib_cb {
-@@ -383,9 +383,7 @@ struct ipoib_dev_priv {
- 	u16		  pkey_index;
- 	struct ib_pd	 *pd;
- 	struct ib_mr	 *mr;
--	struct ib_cq	 *recv_cq;
--	struct ib_cq	 *send_cq;
--	struct ib_qp	 *qp;
-+	struct ib_qp	 *qp; /* also parent QP for TSS & RSS */
- 	u32		  qkey;
- 
- 	union ib_gid local_gid;
-@@ -418,8 +416,11 @@ struct ipoib_dev_priv {
- 	struct timer_list poll_timer;
- 	struct ipoib_recv_ring *recv_ring;
- 	struct ipoib_send_ring *send_ring;
--	unsigned int num_rx_queues;
--	unsigned int num_tx_queues;
-+	unsigned int rss_qp_num; /* No RSS HW support 0 */
-+	unsigned int tss_qp_num; /* No TSS (HW or SW) used 0 */
-+	unsigned int num_rx_queues; /* No RSS HW support 1 */
-+	unsigned int num_tx_queues; /* No TSS HW support tss_qp_num + 1 */
-+	__be16 tss_qpn_mask_sz; /* Put in ipoib header reserved */
- };
- 
- struct ipoib_ah {
-@@ -587,9 +588,11 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
- 
- #define IPOIB_FLAGS_RC		0x80
- #define IPOIB_FLAGS_UC		0x40
-+#define IPOIB_FLAGS_TSS		0x20
- 
- /* We don't support UC connections at the moment */
- #define IPOIB_CM_SUPPORTED(ha)   (ha[0] & (IPOIB_FLAGS_RC))
-+#define IPOIB_TSS_SUPPORTED(ha)   (ha[0] & (IPOIB_FLAGS_TSS))
- 
- #ifdef CONFIG_INFINIBAND_IPOIB_CM
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 4871dc9..01ce5e9 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -286,6 +286,7 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev,
- 	/*
- 	 * Drop packets that this interface sent, ie multicast packets
- 	 * that the HCA has replicated.
-+	 * Note with SW TSS MC were sent using priv->qp so no need to mask
- 	 */
- 	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num)
- 		goto repost;
-@@ -1058,6 +1059,15 @@ static void set_rx_rings_qp_state(struct ipoib_dev_priv *priv,
- static void set_rings_qp_state(struct ipoib_dev_priv *priv,
- 				enum ib_qp_state new_state)
- {
-+	if (priv->hca_caps & IB_DEVICE_UD_TSS) {
-+		/* TSS HW is supported, parent QP has no ring (send_ring) */
-+		struct ib_qp_attr qp_attr;
-+		qp_attr.qp_state = new_state;
-+		if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
-+			ipoib_warn(priv, "Failed to modify QP to state(%d)\n",
-+				   new_state);
-+	}
-+
- 	set_tx_rings_qp_state(priv, new_state);
- 
- 	if (priv->num_rx_queues > 1)
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 51bebca..8089137 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -747,7 +747,9 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 	struct ipoib_cb *cb = (struct ipoib_cb *) skb->cb;
- 	struct ipoib_header *header;
- 	unsigned long flags;
-+	struct ipoib_send_ring *send_ring;
- 
-+	send_ring = priv->send_ring + skb_get_queue_mapping(skb);
- 	header = (struct ipoib_header *) skb->data;
- 
- 	if (unlikely(cb->hwaddr[4] == 0xff)) {
-@@ -757,7 +759,7 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 		    (header->proto != htons(ETH_P_ARP)) &&
- 		    (header->proto != htons(ETH_P_RARP))) {
- 			/* ethertype not supported by IPoIB */
--			++dev->stats.tx_dropped;
-+			++send_ring->stats.tx_dropped;
- 			dev_kfree_skb_any(skb);
- 			return NETDEV_TX_OK;
- 		}
-@@ -795,7 +797,7 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 		return NETDEV_TX_OK;
- 	default:
- 		/* ethertype not supported by IPoIB */
--		++dev->stats.tx_dropped;
-+		++send_ring->stats.tx_dropped;
- 		dev_kfree_skb_any(skb);
- 		return NETDEV_TX_OK;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 23d7343..b29a4b6 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -145,6 +145,11 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+ 		else
+ 			props->device_cap_flags |= IB_DEVICE_MEM_WINDOW_TYPE_2A;
  	}
-@@ -803,11 +805,19 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- send_using_neigh:
- 	/* note we now hold a ref to neigh */
- 	if (ipoib_cm_get(neigh)) {
-+		/* in select queue cm wasn't enabled ring is likely wrong */
-+		if (!IPOIB_CM_SUPPORTED(cb->hwaddr))
-+			goto drop;
-+
- 		if (ipoib_cm_up(neigh)) {
- 			ipoib_cm_send(dev, skb, ipoib_cm_get(neigh));
- 			goto unref;
- 		}
- 	} else if (neigh->ah) {
-+		/* in select queue cm was enabled ring is likely wrong */
-+		if (IPOIB_CM_SUPPORTED(cb->hwaddr) && priv->num_tx_queues > 1)
-+			goto drop;
-+
- 		ipoib_send(dev, skb, neigh->ah, IPOIB_QPN(cb->hwaddr));
- 		goto unref;
- 	}
-@@ -816,20 +826,78 @@ send_using_neigh:
- 		spin_lock_irqsave(&priv->lock, flags);
- 		__skb_queue_tail(&neigh->queue, skb);
- 		spin_unlock_irqrestore(&priv->lock, flags);
--	} else {
--		++dev->stats.tx_dropped;
--		dev_kfree_skb_any(skb);
-+		goto unref;
- 	}
- 
-+drop:
-+	++send_ring->stats.tx_dropped;
-+	dev_kfree_skb_any(skb);
-+
- unref:
- 	ipoib_neigh_put(neigh);
- 
- 	return NETDEV_TX_OK;
- }
- 
--static u16 ipoib_select_queue_null(struct net_device *dev, struct sk_buff *skb)
-+static u16 ipoib_select_queue_hw(struct net_device *dev, struct sk_buff *skb)
- {
--	return 0;
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_cb *cb = (struct ipoib_cb *)skb->cb;
-+
-+	/* (BC/MC), stay on this core */
-+	if (unlikely(cb->hwaddr[4] == 0xff))
-+		return smp_processor_id() % priv->tss_qp_num;
-+
-+	/* is CM in use */
-+	if (IPOIB_CM_SUPPORTED(cb->hwaddr)) {
-+		if (ipoib_cm_admin_enabled(dev)) {
-+			/* use remote QP for hash, so we use the same ring */
-+			u32 *d32 = (u32 *)cb->hwaddr;
-+			u32 hv = jhash_1word(*d32 & IPOIB_QPN_MASK, 0);
-+			return hv % priv->tss_qp_num;
-+		} else
-+			/* the ADMIN CM might be up until transmit, and
-+			 * we might transmit on CM QP not from it's
-+			 * designated ring */
-+			cb->hwaddr[0] &= ~IPOIB_FLAGS_RC;
++	props->device_cap_flags |= IB_DEVICE_QPG;
++	if (dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS) {
++		props->device_cap_flags |= IB_DEVICE_UD_RSS;
++		props->max_rss_tbl_sz = dev->dev->caps.max_rss_tbl_sz;
 +	}
-+	return skb_tx_hash(dev, skb);
-+}
-+
-+static u16 ipoib_select_queue_sw(struct net_device *dev, struct sk_buff *skb)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_cb *cb = (struct ipoib_cb *)skb->cb;
-+	struct ipoib_header *header;
-+
-+	/* (BC/MC) use designated QDISC -> parent QP */
-+	if (unlikely(cb->hwaddr[4] == 0xff))
-+		return priv->tss_qp_num;
-+
-+	/* is CM in use */
-+	if (IPOIB_CM_SUPPORTED(cb->hwaddr)) {
-+		if (ipoib_cm_admin_enabled(dev)) {
-+			/* use remote QP for hash, so we use the same ring */
-+			u32 *d32 = (u32 *)cb->hwaddr;
-+			u32 hv = jhash_1word(*d32 & IPOIB_QPN_MASK, 0);
-+			return hv % priv->tss_qp_num;
-+		} else
-+			/* the ADMIN CM might be up until transmit, and
-+			 * we might transmit on CM QP not from it's
-+			 * designated ring */
-+			cb->hwaddr[0] &= ~IPOIB_FLAGS_RC;
-+	}
-+
-+	/* Did neighbour advertise TSS support */
-+	if (unlikely(!IPOIB_TSS_SUPPORTED(cb->hwaddr)))
-+		return priv->tss_qp_num;
-+
-+	/* We are after ipoib_hard_header so skb->data is O.K. */
-+	header = (struct ipoib_header *)skb->data;
-+	header->tss_qpn_mask_sz |= priv->tss_qpn_mask_sz;
-+
-+	/* don't use special ring in TX */
-+	return __skb_tx_hash(dev, skb, priv->tss_qp_num);
- }
  
- static void ipoib_timeout(struct net_device *dev)
-@@ -902,7 +970,7 @@ static int ipoib_hard_header(struct sk_buff *skb,
- 	header = (struct ipoib_header *) skb_push(skb, sizeof *header);
+ 	props->vendor_id	   = be32_to_cpup((__be32 *) (out_mad->data + 36)) &
+ 		0xffffff;
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index f61ec26..48aeaab 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -232,6 +232,17 @@ struct mlx4_ib_proxy_sqp_hdr {
+ 	struct mlx4_rcv_tunnel_hdr tun;
+ }  __packed;
  
- 	header->proto = htons(type);
--	header->reserved = 0;
-+	header->tss_qpn_mask_sz = 0;
- 
- 	/*
- 	 * we don't rely on dst_entry structure,  always stuff the
-@@ -961,7 +1029,8 @@ struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr)
- 	for (neigh = rcu_dereference_bh(htbl->buckets[hash_val]);
- 	     neigh != NULL;
- 	     neigh = rcu_dereference_bh(neigh->hnext)) {
--		if (memcmp(daddr, neigh->daddr, INFINIBAND_ALEN) == 0) {
-+		/* don't use flags for the comapre */
-+		if (memcmp(daddr+1, neigh->daddr+1, INFINIBAND_ALEN-1) == 0) {
- 			/* found, take one ref on behalf of the caller */
- 			if (!atomic_inc_not_zero(&neigh->refcnt)) {
- 				/* deleted */
-@@ -1088,7 +1157,8 @@ struct ipoib_neigh *ipoib_neigh_alloc(u8 *daddr,
- 	     neigh != NULL;
- 	     neigh = rcu_dereference_protected(neigh->hnext,
- 					       lockdep_is_held(&priv->lock))) {
--		if (memcmp(daddr, neigh->daddr, INFINIBAND_ALEN) == 0) {
-+		/* don't use flags for the comapre */
-+		if (memcmp(daddr+1, neigh->daddr+1, INFINIBAND_ALEN-1) == 0) {
- 			/* found, take one ref on behalf of the caller */
- 			if (!atomic_inc_not_zero(&neigh->refcnt)) {
- 				/* deleted */
-@@ -1466,25 +1536,52 @@ static const struct header_ops ipoib_header_ops = {
- 	.create	= ipoib_hard_header,
- };
- 
--static const struct net_device_ops ipoib_netdev_ops = {
-+static const struct net_device_ops ipoib_netdev_ops_no_tss = {
- 	.ndo_uninit		 = ipoib_uninit,
- 	.ndo_open		 = ipoib_open,
- 	.ndo_stop		 = ipoib_stop,
- 	.ndo_change_mtu		 = ipoib_change_mtu,
- 	.ndo_fix_features	 = ipoib_fix_features,
--	.ndo_start_xmit	 	 = ipoib_start_xmit,
--	.ndo_select_queue	 = ipoib_select_queue_null,
-+	.ndo_start_xmit		 = ipoib_start_xmit,
- 	.ndo_tx_timeout		 = ipoib_timeout,
- 	.ndo_get_stats		 = ipoib_get_stats,
- 	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
- };
- 
-+static const struct net_device_ops ipoib_netdev_ops_hw_tss = {
-+	.ndo_uninit		 = ipoib_uninit,
-+	.ndo_open		 = ipoib_open,
-+	.ndo_stop		 = ipoib_stop,
-+	.ndo_change_mtu		 = ipoib_change_mtu,
-+	.ndo_fix_features	 = ipoib_fix_features,
-+	.ndo_start_xmit		 = ipoib_start_xmit,
-+	.ndo_select_queue	 = ipoib_select_queue_hw,
-+	.ndo_tx_timeout		 = ipoib_timeout,
-+	.ndo_get_stats		 = ipoib_get_stats,
-+	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
++struct mlx4_ib_qpg_data {
++	unsigned long *tss_bitmap;
++	unsigned long *rss_bitmap;
++	struct mlx4_ib_qp *qpg_parent;
++	int tss_qpn_base;
++	int rss_qpn_base;
++	u32 tss_child_count;
++	u32 rss_child_count;
++	u32 qpg_tss_mask_sz;
 +};
 +
-+static const struct net_device_ops ipoib_netdev_ops_sw_tss = {
-+	.ndo_uninit		 = ipoib_uninit,
-+	.ndo_open		 = ipoib_open,
-+	.ndo_stop		 = ipoib_stop,
-+	.ndo_change_mtu		 = ipoib_change_mtu,
-+	.ndo_fix_features	 = ipoib_fix_features,
-+	.ndo_start_xmit		 = ipoib_start_xmit,
-+	.ndo_select_queue	 = ipoib_select_queue_sw,
-+	.ndo_tx_timeout		 = ipoib_timeout,
-+	.ndo_get_stats		 = ipoib_get_stats,
-+	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
-+};
-+
-+static const struct net_device_ops *ipoib_netdev_ops;
-+
- void ipoib_setup(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ struct mlx4_ib_qp {
+ 	struct ib_qp		ibqp;
+ 	struct mlx4_qp		mqp;
+@@ -261,6 +272,8 @@ struct mlx4_ib_qp {
+ 	u8			sq_no_prefetch;
+ 	u8			state;
+ 	int			mlx_type;
++	enum ib_qpg_type	qpg_type;
++	struct mlx4_ib_qpg_data *qpg_data;
+ 	struct list_head	gid_list;
+ 	struct list_head	steering_rules;
+ 	struct mlx4_ib_buf	*sqp_proxy_rcv;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index c58dbdc..e504e5f 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -34,6 +34,8 @@
+ #include <linux/log2.h>
+ #include <linux/slab.h>
+ #include <linux/netdevice.h>
++#include <linux/bitmap.h>
++#include <linux/bitops.h>
  
- 	/* Use correct ops (ndo_select_queue) */
--	dev->netdev_ops		 = &ipoib_netdev_ops;
-+	dev->netdev_ops		 = ipoib_netdev_ops;
- 	dev->header_ops		 = &ipoib_header_ops;
- 
- 	ipoib_set_ethtool_ops(dev);
-@@ -1532,6 +1629,16 @@ struct ipoib_dev_priv *ipoib_intf_alloc(const char *name,
- {
- 	struct net_device *dev;
- 
-+	/* Use correct ops (ndo_select_queue) pass to ipoib_setup */
-+	if (template_priv->num_tx_queues > 1) {
-+		if (template_priv->hca_caps & IB_DEVICE_UD_TSS)
-+			ipoib_netdev_ops = &ipoib_netdev_ops_hw_tss;
-+		else
-+			ipoib_netdev_ops = &ipoib_netdev_ops_sw_tss;
-+	} else
-+		ipoib_netdev_ops = &ipoib_netdev_ops_no_tss;
-+
-+
- 	dev = alloc_netdev_mqs((int) sizeof(struct ipoib_dev_priv), name,
- 			   ipoib_setup,
- 			   template_priv->num_tx_queues,
-@@ -1645,6 +1752,7 @@ static int ipoib_get_hca_features(struct ipoib_dev_priv *priv,
- 				  struct ib_device *hca)
- {
- 	struct ib_device_attr *device_attr;
-+	int num_cores;
- 	int result = -ENOMEM;
- 
- 	device_attr = kmalloc(sizeof *device_attr, GFP_KERNEL);
-@@ -1663,10 +1771,39 @@ static int ipoib_get_hca_features(struct ipoib_dev_priv *priv,
- 	}
- 	priv->hca_caps = device_attr->device_cap_flags;
- 
-+	num_cores = num_online_cpus();
-+	if (num_cores == 1 || !(priv->hca_caps & IB_DEVICE_QPG)) {
-+		/* No additional QP, only one QP for RX & TX */
-+		priv->rss_qp_num = 0;
-+		priv->tss_qp_num = 0;
-+		priv->num_rx_queues = 1;
-+		priv->num_tx_queues = 1;
-+		kfree(device_attr);
-+		return 0;
-+	}
-+	num_cores = roundup_pow_of_two(num_cores);
-+	if (priv->hca_caps & IB_DEVICE_UD_RSS) {
-+		int max_rss_tbl_sz;
-+		max_rss_tbl_sz = device_attr->max_rss_tbl_sz;
-+		max_rss_tbl_sz = min(num_cores, max_rss_tbl_sz);
-+		max_rss_tbl_sz = rounddown_pow_of_two(max_rss_tbl_sz);
-+		priv->rss_qp_num    = max_rss_tbl_sz;
-+		priv->num_rx_queues = max_rss_tbl_sz;
-+	} else {
-+		/* No additional QP, only the parent QP for RX */
-+		priv->rss_qp_num = 0;
-+		priv->num_rx_queues = 1;
-+	}
-+
- 	kfree(device_attr);
- 
--	priv->num_rx_queues = 1;
--	priv->num_tx_queues = 1;
-+	priv->tss_qp_num = num_cores;
-+	if (priv->hca_caps & IB_DEVICE_UD_TSS)
-+		/* TSS is supported by HW */
-+		priv->num_tx_queues = priv->tss_qp_num;
-+	else
-+		/* If TSS is not support by HW use the parent QP for ARP */
-+		priv->num_tx_queues = priv->tss_qp_num + 1;
- 
- 	return 0;
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_pack.h>
+@@ -593,6 +595,241 @@ static int qp_has_rq(struct ib_qp_init_attr *attr)
+ 	return !attr->srq;
  }
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-index 4be626f..3917d3c 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-@@ -35,6 +35,31 @@
  
- #include "ipoib.h"
- 
-+static int set_qps_qkey(struct ipoib_dev_priv *priv)
++static int init_qpg_parent(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *pqp,
++			   struct ib_qp_init_attr *attr, int *qpn)
 +{
-+	struct ib_qp_attr *qp_attr;
-+	struct ipoib_recv_ring *recv_ring;
-+	int ret = -ENOMEM;
-+	int i;
++	struct mlx4_ib_qpg_data *qpg_data;
++	int tss_num, rss_num;
++	int tss_align_num, rss_align_num;
++	int tss_base, rss_base;
++	int err;
 +
-+	qp_attr = kmalloc(sizeof(*qp_attr), GFP_KERNEL);
-+	if (!qp_attr)
++	/* Parent is part of the TSS range (in SW TSS ARP is sent via parent) */
++	tss_num = 1 + attr->parent_attrib.tss_child_count;
++	tss_align_num = roundup_pow_of_two(tss_num);
++	rss_num = attr->parent_attrib.rss_child_count;
++	rss_align_num = roundup_pow_of_two(rss_num);
++
++	if (rss_num > 1) {
++		/* RSS is requested */
++		if (!(dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS))
++			return -ENOSYS;
++		if (rss_align_num > dev->dev->caps.max_rss_tbl_sz)
++			return -EINVAL;
++		/* We must work with power of two */
++		attr->parent_attrib.rss_child_count = rss_align_num;
++	}
++
++	qpg_data = kzalloc(sizeof(*qpg_data), GFP_KERNEL);
++	if (!qpg_data)
 +		return -ENOMEM;
 +
-+	qp_attr->qkey = priv->qkey;
-+	recv_ring = priv->recv_ring;
-+	for (i = 0; i < priv->num_rx_queues; ++i) {
-+		ret = ib_modify_qp(recv_ring->recv_qp, qp_attr, IB_QP_QKEY);
-+		if (ret)
-+			break;
-+		recv_ring++;
++	err = mlx4_qp_reserve_range(dev->dev, tss_align_num,
++				    tss_align_num, &tss_base);
++	if (err)
++		goto err1;
++
++	if (tss_num > 1) {
++		u32 alloc = BITS_TO_LONGS(tss_align_num)  * sizeof(long);
++		qpg_data->tss_bitmap = kzalloc(alloc, GFP_KERNEL);
++		if (qpg_data->tss_bitmap == NULL) {
++			err = -ENOMEM;
++			goto err2;
++		}
++		bitmap_fill(qpg_data->tss_bitmap, tss_num);
++		/* Note parent takes first index */
++		clear_bit(0, qpg_data->tss_bitmap);
 +	}
 +
-+	kfree(qp_attr);
++	if (rss_num > 1) {
++		u32 alloc = BITS_TO_LONGS(rss_align_num) * sizeof(long);
++		err = mlx4_qp_reserve_range(dev->dev, rss_align_num,
++					    rss_align_num, &rss_base);
++		if (err)
++			goto err3;
++		qpg_data->rss_bitmap = kzalloc(alloc, GFP_KERNEL);
++		if (qpg_data->rss_bitmap == NULL) {
++			err = -ENOMEM;
++			goto err4;
++		}
++		bitmap_fill(qpg_data->rss_bitmap, rss_align_num);
++	}
 +
-+	return ret;
++	qpg_data->tss_child_count = attr->parent_attrib.tss_child_count;
++	qpg_data->rss_child_count = attr->parent_attrib.rss_child_count;
++	qpg_data->qpg_parent = pqp;
++	qpg_data->qpg_tss_mask_sz = ilog2(tss_align_num);
++	qpg_data->tss_qpn_base = tss_base;
++	qpg_data->rss_qpn_base = rss_base;
++
++	pqp->qpg_data = qpg_data;
++	*qpn = tss_base;
++
++	return 0;
++
++err4:
++	mlx4_qp_release_range(dev->dev, rss_base, rss_align_num);
++
++err3:
++	if (tss_num > 1)
++		kfree(qpg_data->tss_bitmap);
++
++err2:
++	mlx4_qp_release_range(dev->dev, tss_base, tss_align_num);
++
++err1:
++	kfree(qpg_data);
++	return err;
 +}
 +
- int ipoib_mcast_attach(struct net_device *dev, u16 mlid, union ib_gid *mgid, int set_qkey)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-@@ -50,18 +75,9 @@ int ipoib_mcast_attach(struct net_device *dev, u16 mlid, union ib_gid *mgid, int
- 	set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 
- 	if (set_qkey) {
--		ret = -ENOMEM;
--		qp_attr = kmalloc(sizeof *qp_attr, GFP_KERNEL);
--		if (!qp_attr)
--			goto out;
--
--		/* set correct QKey for QP */
--		qp_attr->qkey = priv->qkey;
--		ret = ib_modify_qp(priv->qp, qp_attr, IB_QP_QKEY);
--		if (ret) {
--			ipoib_warn(priv, "failed to modify QP, ret = %d\n", ret);
-+		ret = set_qps_qkey(priv);
-+		if (ret)
- 			goto out;
--		}
- 	}
- 
- 	/* attach QP to multicast group */
-@@ -74,16 +90,13 @@ out:
- 	return ret;
- }
- 
--int ipoib_init_qp(struct net_device *dev)
-+static int ipoib_init_one_qp(struct ipoib_dev_priv *priv, struct ib_qp *qp,
-+				int init_attr)
- {
--	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret;
- 	struct ib_qp_attr qp_attr;
- 	int attr_mask;
- 
--	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
--		return -1;
--
- 	qp_attr.qp_state = IB_QPS_INIT;
- 	qp_attr.qkey = 0;
- 	qp_attr.port_num = priv->port;
-@@ -92,17 +105,18 @@ int ipoib_init_qp(struct net_device *dev)
- 	    IB_QP_QKEY |
- 	    IB_QP_PORT |
- 	    IB_QP_PKEY_INDEX |
--	    IB_QP_STATE;
--	ret = ib_modify_qp(priv->qp, &qp_attr, attr_mask);
-+	    IB_QP_STATE | init_attr;
++static void free_qpg_parent(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *pqp)
++{
++	struct mlx4_ib_qpg_data *qpg_data = pqp->qpg_data;
++	int align_num;
 +
-+	ret = ib_modify_qp(qp, &qp_attr, attr_mask);
- 	if (ret) {
--		ipoib_warn(priv, "failed to modify QP to init, ret = %d\n", ret);
-+		ipoib_warn(priv, "failed to modify QP to INT, ret = %d\n", ret);
- 		goto out_fail;
++	if (qpg_data->tss_child_count > 1)
++		kfree(qpg_data->tss_bitmap);
++
++	align_num = roundup_pow_of_two(1 + qpg_data->tss_child_count);
++	mlx4_qp_release_range(dev->dev, qpg_data->tss_qpn_base, align_num);
++
++	if (qpg_data->rss_child_count > 1) {
++		kfree(qpg_data->rss_bitmap);
++		align_num = roundup_pow_of_two(qpg_data->rss_child_count);
++		mlx4_qp_release_range(dev->dev, qpg_data->rss_qpn_base,
++				      align_num);
++	}
++
++	kfree(qpg_data);
++}
++
++static int alloc_qpg_qpn(struct ib_qp_init_attr *init_attr,
++			 struct mlx4_ib_qp *pqp, int *qpn)
++{
++	struct mlx4_ib_qp *mqp = to_mqp(init_attr->qpg_parent);
++	struct mlx4_ib_qpg_data *qpg_data = mqp->qpg_data;
++	u32 idx, old;
++
++	switch (init_attr->qpg_type) {
++	case IB_QPG_CHILD_TX:
++		if (qpg_data->tss_child_count == 0)
++			return -EINVAL;
++		do {
++			/* Parent took index 0 */
++			idx = find_first_bit(qpg_data->tss_bitmap,
++					     qpg_data->tss_child_count + 1);
++			if (idx >= qpg_data->tss_child_count + 1)
++				return -ENOMEM;
++			old = test_and_clear_bit(idx, qpg_data->tss_bitmap);
++		} while (old == 0);
++		idx += qpg_data->tss_qpn_base;
++		break;
++	case IB_QPG_CHILD_RX:
++		if (qpg_data->rss_child_count == 0)
++			return -EINVAL;
++		do {
++			idx = find_first_bit(qpg_data->rss_bitmap,
++					     qpg_data->rss_child_count);
++			if (idx >= qpg_data->rss_child_count)
++				return -ENOMEM;
++			old = test_and_clear_bit(idx, qpg_data->rss_bitmap);
++		} while (old == 0);
++		idx += qpg_data->rss_qpn_base;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	pqp->qpg_data = qpg_data;
++	*qpn = idx;
++
++	return 0;
++}
++
++static void free_qpg_qpn(struct mlx4_ib_qp *mqp, int qpn)
++{
++	struct mlx4_ib_qpg_data *qpg_data = mqp->qpg_data;
++
++	switch (mqp->qpg_type) {
++	case IB_QPG_CHILD_TX:
++		/* Do range check */
++		qpn -= qpg_data->tss_qpn_base;
++		set_bit(qpn, qpg_data->tss_bitmap);
++		break;
++	case IB_QPG_CHILD_RX:
++		qpn -= qpg_data->rss_qpn_base;
++		set_bit(qpn, qpg_data->rss_bitmap);
++		break;
++	default:
++		/* error */
++		pr_warn("wrong qpg type (%d)\n", mqp->qpg_type);
++		break;
++	}
++}
++
++static int alloc_qpn_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
++			    struct ib_qp_init_attr *attr, int *qpn)
++{
++	int err = 0;
++
++	switch (attr->qpg_type) {
++	case IB_QPG_NONE:
++		/* Raw packet QPNs must be aligned to 8 bits. If not, the WQE
++		 * BlueFlame setup flow wrongly causes VLAN insertion. */
++		if (attr->qp_type == IB_QPT_RAW_PACKET)
++			err = mlx4_qp_reserve_range(dev->dev, 1, 1 << 8, qpn);
++		else
++			err = mlx4_qp_reserve_range(dev->dev, 1, 1, qpn);
++		break;
++	case IB_QPG_PARENT:
++		err = init_qpg_parent(dev, qp, attr, qpn);
++		break;
++	case IB_QPG_CHILD_TX:
++	case IB_QPG_CHILD_RX:
++		err = alloc_qpg_qpn(attr, qp, qpn);
++		break;
++	default:
++		qp->qpg_type = IB_QPG_NONE;
++		err = -EINVAL;
++		break;
++	}
++	if (err)
++		return err;
++	qp->qpg_type = attr->qpg_type;
++	return 0;
++}
++
++static void free_qpn_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
++			enum ib_qpg_type qpg_type, int qpn)
++{
++	switch (qpg_type) {
++	case IB_QPG_NONE:
++		mlx4_qp_release_range(dev->dev, qpn, 1);
++		break;
++	case IB_QPG_PARENT:
++		free_qpg_parent(dev, qp);
++		break;
++	case IB_QPG_CHILD_TX:
++	case IB_QPG_CHILD_RX:
++		free_qpg_qpn(qp, qpn);
++		break;
++	default:
++		break;
++	}
++}
++
++/* Revert allocation on create_qp_common */
++static void unalloc_qpn_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
++			       struct ib_qp_init_attr *attr, int qpn)
++{
++	free_qpn_common(dev, qp, attr->qpg_type, qpn);
++}
++
++static void release_qpn_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
++{
++	free_qpn_common(dev, qp, qp->qpg_type, qp->mqp.qpn);
++}
++
+ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 			    struct ib_qp_init_attr *init_attr,
+ 			    struct ib_udata *udata, int sqpn, struct mlx4_ib_qp **caller_qp)
+@@ -760,12 +997,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 			}
+ 		}
+ 	} else {
+-		/* Raw packet QPNs must be aligned to 8 bits. If not, the WQE
+-		 * BlueFlame setup flow wrongly causes VLAN insertion. */
+-		if (init_attr->qp_type == IB_QPT_RAW_PACKET)
+-			err = mlx4_qp_reserve_range(dev->dev, 1, 1 << 8, &qpn);
+-		else
+-			err = mlx4_qp_reserve_range(dev->dev, 1, 1, &qpn);
++		err = alloc_qpn_common(dev, qp, init_attr, &qpn);
+ 		if (err)
+ 			goto err_proxy;
  	}
- 
- 	qp_attr.qp_state = IB_QPS_RTR;
- 	/* Can't set this in a INIT->RTR transition */
--	attr_mask &= ~IB_QP_PORT;
--	ret = ib_modify_qp(priv->qp, &qp_attr, attr_mask);
-+	attr_mask &= ~(IB_QP_PORT | init_attr);
-+	ret = ib_modify_qp(qp, &qp_attr, attr_mask);
- 	if (ret) {
- 		ipoib_warn(priv, "failed to modify QP to RTR, ret = %d\n", ret);
- 		goto out_fail;
-@@ -112,40 +126,417 @@ int ipoib_init_qp(struct net_device *dev)
- 	qp_attr.sq_psn = 0;
- 	attr_mask |= IB_QP_SQ_PSN;
- 	attr_mask &= ~IB_QP_PKEY_INDEX;
--	ret = ib_modify_qp(priv->qp, &qp_attr, attr_mask);
-+	ret = ib_modify_qp(qp, &qp_attr, attr_mask);
- 	if (ret) {
- 		ipoib_warn(priv, "failed to modify QP to RTS, ret = %d\n", ret);
- 		goto out_fail;
- 	}
- 
--	/* Only one ring currently */
--	priv->recv_ring[0].recv_qp = priv->qp;
--	priv->send_ring[0].send_qp = priv->qp;
--
+@@ -790,8 +1022,8 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
  	return 0;
  
- out_fail:
- 	qp_attr.qp_state = IB_QPS_RESET;
--	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
-+	if (ib_modify_qp(qp, &qp_attr, IB_QP_STATE))
- 		ipoib_warn(priv, "Failed to modify QP to RESET state\n");
+ err_qpn:
+-	if (!sqpn)
+-		mlx4_qp_release_range(dev->dev, qpn, 1);
++	unalloc_qpn_common(dev, qp, init_attr, qpn);
++
+ err_proxy:
+ 	if (qp->mlx4_ib_qp_type == MLX4_IB_QPT_PROXY_GSI)
+ 		free_proxy_bufs(pd->device, qp);
+@@ -933,7 +1165,7 @@ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
+ 	mlx4_qp_free(dev->dev, &qp->mqp);
  
- 	return ret;
+ 	if (!is_sqp(dev, qp) && !is_tunnel_qp(dev, qp))
+-		mlx4_qp_release_range(dev->dev, qp->mqp.qpn, 1);
++		release_qpn_common(dev, qp);
+ 
+ 	mlx4_mtt_cleanup(dev->dev, &qp->mtt);
+ 
+@@ -973,6 +1205,52 @@ static u32 get_sqp_num(struct mlx4_ib_dev *dev, struct ib_qp_init_attr *attr)
+ 		return dev->dev->caps.qp1_proxy[attr->port_num - 1];
  }
  
--int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
-+static int ipoib_init_rss_qps(struct net_device *dev)
++static int check_qpg_attr(struct mlx4_ib_dev *dev,
++			  struct ib_qp_init_attr *attr)
 +{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_recv_ring *recv_ring;
-+	struct ib_qp_attr qp_attr;
-+	int i;
-+	int ret;
++	if (attr->qpg_type == IB_QPG_NONE)
++		return 0;
 +
-+	recv_ring = priv->recv_ring;
-+	for (i = 0; i < priv->rss_qp_num; i++) {
-+		ret = ipoib_init_one_qp(priv, recv_ring->recv_qp, 0);
-+		if (ret) {
-+			ipoib_warn(priv,
-+				   "failed to init rss qp, ind = %d, ret=%d\n",
-+				   i, ret);
-+			goto out_free_reset_qp;
++	if (attr->qp_type != IB_QPT_UD)
++		return -EINVAL;
++
++	if (attr->qpg_type == IB_QPG_PARENT) {
++		if (attr->parent_attrib.tss_child_count == 1)
++			return -EINVAL; /* Doesn't make sense */
++		if (attr->parent_attrib.rss_child_count == 1)
++			return -EINVAL; /* Doesn't make sense */
++		if ((attr->parent_attrib.tss_child_count == 0) &&
++		    (attr->parent_attrib.rss_child_count == 0))
++			/* Should be called with IP_QPG_NONE */
++			return -EINVAL;
++		if (attr->parent_attrib.rss_child_count > 1) {
++			int rss_align_num;
++			if (!(dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS))
++				return -ENOSYS;
++			rss_align_num = roundup_pow_of_two(
++					attr->parent_attrib.rss_child_count);
++			if (rss_align_num > dev->dev->caps.max_rss_tbl_sz)
++				return -EINVAL;
 +		}
-+		recv_ring++;
-+	}
-+
-+	return 0;
-+
-+out_free_reset_qp:
-+	for (--i; i >= 0; --i) {
-+		qp_attr.qp_state = IB_QPS_RESET;
-+		if (ib_modify_qp(priv->recv_ring[i].recv_qp,
-+				 &qp_attr, IB_QP_STATE))
-+			ipoib_warn(priv,
-+				   "Failed to modify QP to RESET state\n");
-+	}
-+
-+	return ret;
-+}
-+
-+static int ipoib_init_tss_qps(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_send_ring *send_ring;
-+	struct ib_qp_attr qp_attr;
-+	int i;
-+	int ret;
-+
-+	send_ring = priv->send_ring;
-+	/*
-+	 * Note if priv->tss_qdisc_num > priv->tss_qp_num then since
-+	 * the last QP is the parent QP and it will be initialize later
-+	 */
-+	for (i = 0; i < priv->tss_qp_num; i++) {
-+		ret = ipoib_init_one_qp(priv, send_ring->send_qp, 0);
-+		if (ret) {
-+			ipoib_warn(priv,
-+				   "failed to init tss qp, ind = %d, ret=%d\n",
-+				   i, ret);
-+			goto out_free_reset_qp;
-+		}
-+		send_ring++;
-+	}
-+
-+	return 0;
-+
-+out_free_reset_qp:
-+	for (--i; i >= 0; --i) {
-+		qp_attr.qp_state = IB_QPS_RESET;
-+		if (ib_modify_qp(priv->send_ring[i].send_qp,
-+				 &qp_attr, IB_QP_STATE))
-+			ipoib_warn(priv,
-+				   "Failed to modify QP to RESET state\n");
-+	}
-+
-+	return ret;
-+}
-+
-+int ipoib_init_qp(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ib_qp_attr qp_attr;
-+	int ret, i, attr;
-+
-+	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
-+		ipoib_warn(priv, "PKEY not assigned\n");
-+		return -1;
-+	}
-+
-+	/* Init parent QP */
-+	/* If rss_qp_num = 0 then the parent QP is the RX QP */
-+	ret = ipoib_init_rss_qps(dev);
-+	if (ret)
-+		return ret;
-+
-+	ret = ipoib_init_tss_qps(dev);
-+	if (ret)
-+		goto out_reset_tss_qp;
-+
-+	/* Init the parent QP which can be the only QP */
-+	attr = priv->rss_qp_num > 0 ? IB_QP_GROUP_RSS : 0;
-+	ret = ipoib_init_one_qp(priv, priv->qp, attr);
-+	if (ret) {
-+		ipoib_warn(priv, "failed to init parent qp, ret=%d\n", ret);
-+		goto out_reset_rss_qp;
-+	}
-+
-+	return 0;
-+
-+out_reset_rss_qp:
-+	for (i = 0; i < priv->rss_qp_num; i++) {
-+		qp_attr.qp_state = IB_QPS_RESET;
-+		if (ib_modify_qp(priv->recv_ring[i].recv_qp,
-+				 &qp_attr, IB_QP_STATE))
-+			ipoib_warn(priv,
-+				   "Failed to modify QP to RESET state\n");
-+	}
-+
-+out_reset_tss_qp:
-+	for (i = 0; i < priv->tss_qp_num; i++) {
-+		qp_attr.qp_state = IB_QPS_RESET;
-+		if (ib_modify_qp(priv->send_ring[i].send_qp,
-+				 &qp_attr, IB_QP_STATE))
-+			ipoib_warn(priv,
-+				   "Failed to modify QP to RESET state\n");
-+	}
-+
-+	return ret;
-+}
-+
-+static int ipoib_transport_cq_init(struct net_device *dev,
-+							int size)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_recv_ring *recv_ring;
-+	struct ipoib_send_ring *send_ring;
-+	struct ib_cq *cq;
-+	int i, allocated_rx, allocated_tx, req_vec;
-+
-+	allocated_rx = 0;
-+	allocated_tx = 0;
-+
-+	/* We over subscribed the CPUS, ports start from 1 */
-+	req_vec = (priv->port - 1) * roundup_pow_of_two(num_online_cpus());
-+	recv_ring = priv->recv_ring;
-+	for (i = 0; i < priv->num_rx_queues; i++) {
-+		/* Try to spread vectors based on port and ring numbers */
-+		cq = ib_create_cq(priv->ca, ipoib_ib_completion, NULL,
-+				  recv_ring, size,
-+				  req_vec % priv->ca->num_comp_vectors);
-+		if (IS_ERR(cq)) {
-+			pr_warn("%s: failed to create recv CQ\n",
-+				priv->ca->name);
-+			goto out_free_recv_cqs;
-+		}
-+		recv_ring->recv_cq = cq;
-+		allocated_rx++;
-+		req_vec++;
-+		if (ib_req_notify_cq(recv_ring->recv_cq, IB_CQ_NEXT_COMP)) {
-+			pr_warn("%s: req notify recv CQ\n",
-+				priv->ca->name);
-+			goto out_free_recv_cqs;
-+		}
-+		recv_ring++;
-+	}
-+
-+	/* We over subscribed the CPUS, ports start from 1 */
-+	req_vec = (priv->port - 1) * roundup_pow_of_two(num_online_cpus());
-+	send_ring = priv->send_ring;
-+	for (i = 0; i < priv->num_tx_queues; i++) {
-+		cq = ib_create_cq(priv->ca,
-+				  ipoib_send_comp_handler, NULL,
-+				  send_ring, ipoib_sendq_size,
-+				  req_vec % priv->ca->num_comp_vectors);
-+		if (IS_ERR(cq)) {
-+			pr_warn("%s: failed to create send CQ\n",
-+				priv->ca->name);
-+			goto out_free_send_cqs;
-+		}
-+		send_ring->send_cq = cq;
-+		allocated_tx++;
-+		req_vec++;
-+		send_ring++;
-+	}
-+
-+	return 0;
-+
-+out_free_send_cqs:
-+	for (i = 0; i < allocated_tx; i++) {
-+		ib_destroy_cq(priv->send_ring[i].send_cq);
-+		priv->send_ring[i].send_cq = NULL;
-+	}
-+
-+out_free_recv_cqs:
-+	for (i = 0; i < allocated_rx; i++) {
-+		ib_destroy_cq(priv->recv_ring[i].recv_cq);
-+		priv->recv_ring[i].recv_cq = NULL;
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+static int ipoib_create_parent_qp(struct net_device *dev,
-+				  struct ib_device *ca)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ib_qp_init_attr init_attr = {
-+		.sq_sig_type = IB_SIGNAL_ALL_WR,
-+		.qp_type     = IB_QPT_UD
-+	};
-+	struct ib_qp *qp;
-+
-+	if (priv->hca_caps & IB_DEVICE_UD_TSO)
-+		init_attr.create_flags |= IB_QP_CREATE_IPOIB_UD_LSO;
-+
-+	if (priv->hca_caps & IB_DEVICE_BLOCK_MULTICAST_LOOPBACK)
-+		init_attr.create_flags |= IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK;
-+
-+	if (dev->features & NETIF_F_SG)
-+		init_attr.cap.max_send_sge = MAX_SKB_FRAGS + 1;
-+
-+	if (priv->tss_qp_num == 0 && priv->rss_qp_num == 0)
-+		/* Legacy mode */
-+		init_attr.qpg_type = IB_QPG_NONE;
-+	else {
-+		init_attr.qpg_type = IB_QPG_PARENT;
-+		init_attr.parent_attrib.tss_child_count = priv->tss_qp_num;
-+		init_attr.parent_attrib.rss_child_count = priv->rss_qp_num;
-+	}
-+
-+	/*
-+	 * NO TSS (tss_qp_num = 0 priv->num_tx_queues  == 1)
-+	 * OR TSS is not supported in HW in this case
-+	 * parent QP is used for ARR and friend transmission
-+	 */
-+	if (priv->num_tx_queues > priv->tss_qp_num) {
-+		init_attr.cap.max_send_wr  = ipoib_sendq_size;
-+		init_attr.cap.max_send_sge = 1;
-+	}
-+
-+	/* No RSS parent QP will be used for RX */
-+	if (priv->rss_qp_num == 0) {
-+		init_attr.cap.max_recv_wr  = ipoib_recvq_size;
-+		init_attr.cap.max_recv_sge = IPOIB_UD_RX_SG;
-+	}
-+
-+	/* Note that if parent QP is not used for RX/TX then this is harmless */
-+	init_attr.recv_cq = priv->recv_ring[0].recv_cq;
-+	init_attr.send_cq = priv->send_ring[priv->tss_qp_num].send_cq;
-+
-+	qp = ib_create_qp(priv->pd, &init_attr);
-+	if (IS_ERR(qp)) {
-+		pr_warn("%s: failed to create parent QP\n", ca->name);
-+		return -ENODEV; /* qp is an error value and will be checked */
-+	}
-+
-+	priv->qp = qp;
-+
-+	/* TSS is not supported in HW or NO TSS (tss_qp_num = 0) */
-+	if (priv->num_tx_queues > priv->tss_qp_num)
-+		priv->send_ring[priv->tss_qp_num].send_qp = qp;
-+
-+	/* No RSS parent QP will be used for RX */
-+	if (priv->rss_qp_num == 0)
-+		priv->recv_ring[0].recv_qp = qp;
-+
-+	/* only with SW TSS there is a need for a mask */
-+	if ((priv->hca_caps & IB_DEVICE_UD_TSS) || (priv->tss_qp_num == 0))
-+		/* TSS is supported by HW or no TSS at all */
-+		priv->tss_qpn_mask_sz = 0;
-+	else {
-+		/* SW TSS, get mask back from HW, put in the upper nibble */
-+		u16 tmp = (u16)init_attr.cap.qpg_tss_mask_sz;
-+		priv->tss_qpn_mask_sz = cpu_to_be16((tmp << 12));
++	} else {
++		struct mlx4_ib_qpg_data *qpg_data;
++		if (attr->qpg_parent == NULL)
++			return -EINVAL;
++		if (IS_ERR(attr->qpg_parent))
++			return -EINVAL;
++		qpg_data = to_mqp(attr->qpg_parent)->qpg_data;
++		if (qpg_data == NULL)
++			return -EINVAL;
++		if (attr->qpg_type == IB_QPG_CHILD_TX &&
++		    !qpg_data->tss_child_count)
++			return -EINVAL;
++		if (attr->qpg_type == IB_QPG_CHILD_RX &&
++		    !qpg_data->rss_child_count)
++			return -EINVAL;
 +	}
 +	return 0;
 +}
 +
-+static struct ib_qp *ipoib_create_tss_qp(struct net_device *dev,
-+					 struct ib_device *ca,
-+					 int ind)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct ib_qp_init_attr init_attr = {
- 		.cap = {
- 			.max_send_wr  = ipoib_sendq_size,
--			.max_recv_wr  = ipoib_recvq_size,
- 			.max_send_sge = 1,
-+		},
-+		.sq_sig_type = IB_SIGNAL_ALL_WR,
-+		.qp_type     = IB_QPT_UD
-+	};
-+	struct ib_qp *qp;
-+
-+	if (priv->hca_caps & IB_DEVICE_UD_TSO)
-+		init_attr.create_flags |= IB_QP_CREATE_IPOIB_UD_LSO;
-+
-+	if (dev->features & NETIF_F_SG)
-+		init_attr.cap.max_send_sge = MAX_SKB_FRAGS + 1;
-+
-+	init_attr.qpg_type = IB_QPG_CHILD_TX;
-+	init_attr.qpg_parent = priv->qp;
-+
-+	init_attr.recv_cq = priv->send_ring[ind].send_cq;
-+	init_attr.send_cq = init_attr.recv_cq;
-+
-+	qp = ib_create_qp(priv->pd, &init_attr);
-+	if (IS_ERR(qp)) {
-+		pr_warn("%s: failed to create TSS QP(%d)\n", ca->name, ind);
-+		return qp; /* qp is an error value and will be checked */
-+	}
-+
-+	return qp;
-+}
-+
-+static struct ib_qp *ipoib_create_rss_qp(struct net_device *dev,
-+					 struct ib_device *ca,
-+					 int ind)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ib_qp_init_attr init_attr = {
-+		.cap = {
-+			.max_recv_wr  = ipoib_recvq_size,
- 			.max_recv_sge = IPOIB_UD_RX_SG
- 		},
- 		.sq_sig_type = IB_SIGNAL_ALL_WR,
- 		.qp_type     = IB_QPT_UD
- 	};
-+	struct ib_qp *qp;
-+
-+	init_attr.qpg_type = IB_QPG_CHILD_RX;
-+	init_attr.qpg_parent = priv->qp;
-+
-+	init_attr.recv_cq = priv->recv_ring[ind].recv_cq;
-+	init_attr.send_cq = init_attr.recv_cq;
-+
-+	qp = ib_create_qp(priv->pd, &init_attr);
-+	if (IS_ERR(qp)) {
-+		pr_warn("%s: failed to create RSS QP(%d)\n", ca->name, ind);
-+		return qp; /* qp is an error value and will be checked */
-+	}
+ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+ 				struct ib_qp_init_attr *init_attr,
+ 				struct ib_udata *udata)
+@@ -998,8 +1276,9 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
+ 	      init_attr->qp_type > IB_QPT_GSI)))
+ 		return ERR_PTR(-EINVAL);
  
-+	return qp;
-+}
+-	if (init_attr->qpg_type != IB_QPG_NONE)
+-		return ERR_PTR(-ENOSYS);
++	err = check_qpg_attr(to_mdev(pd->device), init_attr);
++	if (err)
++		return ERR_PTR(err);
+ 
+ 	switch (init_attr->qp_type) {
+ 	case IB_QPT_XRC_TGT:
+@@ -1470,6 +1749,43 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
+ 		context->rlkey |= (1 << 4);
+ 
++	if ((attr_mask & IB_QP_GROUP_RSS) &&
++	    (qp->qpg_data->rss_child_count > 1)) {
++		struct mlx4_ib_qpg_data *qpg_data = qp->qpg_data;
++		void *rss_context_base = &context->pri_path;
++		struct mlx4_rss_context *rss_context =
++			(struct mlx4_rss_context *)(rss_context_base
++					+ MLX4_RSS_OFFSET_IN_QPC_PRI_PATH);
 +
-+static int ipoib_create_other_qps(struct net_device *dev,
-+				  struct ib_device *ca)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_send_ring *send_ring;
-+	struct ipoib_recv_ring *recv_ring;
-+	int i, rss_created, tss_created;
-+	struct ib_qp *qp;
++		context->flags |= cpu_to_be32(1 << MLX4_RSS_QPC_FLAG_OFFSET);
 +
-+	tss_created = 0;
-+	send_ring = priv->send_ring;
-+	for (i = 0; i < priv->tss_qp_num; i++) {
-+		qp = ipoib_create_tss_qp(dev, ca, i);
-+		if (IS_ERR(qp)) {
-+			pr_warn("%s: failed to create QP\n",
-+				ca->name);
-+			goto out_free_send_qp;
++		/* This should be tbl_sz_base_qpn */
++		rss_context->base_qpn = cpu_to_be32(qpg_data->rss_qpn_base |
++				(ilog2(qpg_data->rss_child_count) << 24));
++		rss_context->default_qpn = cpu_to_be32(qpg_data->rss_qpn_base);
++		/* This should be flags_hash_fn */
++		rss_context->flags = MLX4_RSS_TCP_IPV6 |
++				     MLX4_RSS_TCP_IPV4;
++		if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_UDP_RSS) {
++			rss_context->base_qpn_udp = rss_context->default_qpn;
++			rss_context->flags |= MLX4_RSS_IPV6 |
++					MLX4_RSS_IPV4     |
++					MLX4_RSS_UDP_IPV6 |
++					MLX4_RSS_UDP_IPV4;
 +		}
-+		send_ring->send_qp = qp;
-+		send_ring++;
-+		tss_created++;
-+	}
-+
-+	rss_created = 0;
-+	recv_ring = priv->recv_ring;
-+	for (i = 0; i < priv->rss_qp_num; i++) {
-+		qp = ipoib_create_rss_qp(dev, ca, i);
-+		if (IS_ERR(qp)) {
-+			pr_warn("%s: failed to create QP\n",
-+				ca->name);
-+			goto out_free_recv_qp;
++		if (dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS_TOP) {
++			static const u32 rsskey[10] = { 0xD181C62C, 0xF7F4DB5B,
++				0x1983A2FC, 0x943E1ADB, 0xD9389E6B, 0xD1039C2C,
++				0xA74499AD, 0x593D56D9, 0xF3253C06, 0x2ADC1FFC};
++			rss_context->hash_fn = MLX4_RSS_HASH_TOP;
++			memcpy(rss_context->rss_key, rsskey,
++			       sizeof(rss_context->rss_key));
++		} else {
++			rss_context->hash_fn = MLX4_RSS_HASH_XOR;
++			memset(rss_context->rss_key, 0,
++			       sizeof(rss_context->rss_key));
 +		}
-+		recv_ring->recv_qp = qp;
-+		recv_ring++;
-+		rss_created++;
 +	}
-+
-+	return 0;
-+
-+out_free_recv_qp:
-+	for (i = 0; i < rss_created; i++) {
-+		ib_destroy_qp(priv->recv_ring[i].recv_qp);
-+		priv->recv_ring[i].recv_qp = NULL;
-+	}
-+
-+out_free_send_qp:
-+	for (i = 0; i < tss_created; i++) {
-+		ib_destroy_qp(priv->send_ring[i].send_qp);
-+		priv->send_ring[i].send_qp = NULL;
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct ipoib_send_ring *send_ring;
- 	struct ipoib_recv_ring *recv_ring, *first_recv_ring;
- 	int ret, size;
-@@ -173,49 +564,38 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 			size += ipoib_recvq_size * ipoib_max_conn_qp;
- 	}
+ 	/*
+ 	 * Before passing a kernel QP to the HW, make sure that the
+ 	 * ownership bits of the send queue are set and the SQ
+@@ -2763,6 +3079,13 @@ done:
+ 		qp->sq_signal_bits == cpu_to_be32(MLX4_WQE_CTRL_CQ_UPDATE) ?
+ 		IB_SIGNAL_ALL_WR : IB_SIGNAL_REQ_WR;
  
--	priv->recv_cq = ib_create_cq(priv->ca, ipoib_ib_completion, NULL,
--				     priv->recv_ring, size, 0);
--	if (IS_ERR(priv->recv_cq)) {
--		printk(KERN_WARNING "%s: failed to create receive CQ\n", ca->name);
-+	/* Create CQ(s) */
-+	ret = ipoib_transport_cq_init(dev, size);
-+	if (ret) {
-+		pr_warn("%s: ipoib_transport_cq_init failed\n", ca->name);
- 		goto out_free_mr;
- 	}
- 
--	priv->send_cq = ib_create_cq(priv->ca, ipoib_send_comp_handler, NULL,
--				     priv->send_ring, ipoib_sendq_size, 0);
--	if (IS_ERR(priv->send_cq)) {
--		printk(KERN_WARNING "%s: failed to create send CQ\n", ca->name);
--		goto out_free_recv_cq;
--	}
--
--	/* Only one ring */
--	priv->recv_ring[0].recv_cq = priv->recv_cq;
--	priv->send_ring[0].send_cq = priv->send_cq;
--
--	if (ib_req_notify_cq(priv->recv_cq, IB_CQ_NEXT_COMP))
--		goto out_free_send_cq;
--
--	init_attr.send_cq = priv->send_cq;
--	init_attr.recv_cq = priv->recv_cq;
--
--	if (priv->hca_caps & IB_DEVICE_UD_TSO)
--		init_attr.create_flags |= IB_QP_CREATE_IPOIB_UD_LSO;
--
--	if (priv->hca_caps & IB_DEVICE_BLOCK_MULTICAST_LOOPBACK)
--		init_attr.create_flags |= IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK;
--
--	if (dev->features & NETIF_F_SG)
--		init_attr.cap.max_send_sge = MAX_SKB_FRAGS + 1;
--
--	priv->qp = ib_create_qp(priv->pd, &init_attr);
--	if (IS_ERR(priv->qp)) {
--		printk(KERN_WARNING "%s: failed to create QP\n", ca->name);
--		goto out_free_send_cq;
-+	/* Init the parent QP */
-+	ret = ipoib_create_parent_qp(dev, ca);
-+	if (ret) {
-+		pr_warn("%s: failed to create parent QP\n", ca->name);
-+		goto out_free_cqs;
- 	}
- 
-+	/*
-+	* advetize that we are willing to accept from TSS sender
-+	* note that this only indicates that this side is willing to accept
-+	* TSS frames, it doesn't implies that it will use TSS since for
-+	* transmission the peer should advertize TSS as well
-+	*/
-+	priv->dev->dev_addr[0] |= IPOIB_FLAGS_TSS;
- 	priv->dev->dev_addr[1] = (priv->qp->qp_num >> 16) & 0xff;
- 	priv->dev->dev_addr[2] = (priv->qp->qp_num >>  8) & 0xff;
- 	priv->dev->dev_addr[3] = (priv->qp->qp_num      ) & 0xff;
- 
-+	/* create TSS & RSS QPs */
-+	ret = ipoib_create_other_qps(dev, ca);
-+	if (ret) {
-+		pr_warn("%s: failed to create QP(s)\n", ca->name);
-+		goto out_free_parent_qp;
-+	}
++	qp_init_attr->qpg_type = qp->qpg_type;
++	if (qp->qpg_type == IB_QPG_PARENT)
++		qp_init_attr->cap.qpg_tss_mask_sz =
++			qp->qpg_data->qpg_tss_mask_sz;
++	else
++		qp_init_attr->cap.qpg_tss_mask_sz = 0;
 +
- 	send_ring = priv->send_ring;
- 	for (j = 0; j < priv->num_tx_queues; j++) {
- 		for (i = 0; i < MAX_SKB_FRAGS + 1; ++i)
-@@ -256,11 +636,20 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 
- 	return 0;
- 
--out_free_send_cq:
--	ib_destroy_cq(priv->send_cq);
-+out_free_parent_qp:
-+	ib_destroy_qp(priv->qp);
-+	priv->qp = NULL;
-+
-+out_free_cqs:
-+	for (i = 0; i < priv->num_rx_queues; i++) {
-+		ib_destroy_cq(priv->recv_ring[i].recv_cq);
-+		priv->recv_ring[i].recv_cq = NULL;
-+	}
- 
--out_free_recv_cq:
--	ib_destroy_cq(priv->recv_cq);
-+	for (i = 0; i < priv->num_tx_queues; i++) {
-+		ib_destroy_cq(priv->send_ring[i].send_cq);
-+		priv->send_ring[i].send_cq = NULL;
-+	}
- 
- out_free_mr:
- 	ib_dereg_mr(priv->mr);
-@@ -271,10 +660,101 @@ out_free_pd:
- 	return -ENODEV;
- }
- 
-+static void ipoib_destroy_tx_qps(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_send_ring *send_ring;
-+	int i;
-+
-+	if (NULL == priv->send_ring)
-+		return;
-+
-+	send_ring = priv->send_ring;
-+	for (i = 0; i < priv->tss_qp_num; i++) {
-+		if (send_ring->send_qp) {
-+			if (ib_destroy_qp(send_ring->send_qp))
-+				ipoib_warn(priv, "ib_destroy_qp (send) failed\n");
-+			send_ring->send_qp = NULL;
-+		}
-+		send_ring++;
-+	}
-+
-+	/*
-+	 * No support of TSS in HW
-+	 * so there is an extra QP but it is freed later
-+	 */
-+	if (priv->num_tx_queues > priv->tss_qp_num)
-+		send_ring->send_qp = NULL;
-+}
-+
-+static void ipoib_destroy_rx_qps(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_recv_ring *recv_ring;
-+	int i;
-+
-+	if (NULL == priv->recv_ring)
-+		return;
-+
-+	recv_ring = priv->recv_ring;
-+	for (i = 0; i < priv->rss_qp_num; i++) {
-+		if (recv_ring->recv_qp) {
-+			if (ib_destroy_qp(recv_ring->recv_qp))
-+				ipoib_warn(priv, "ib_destroy_qp (recv) failed\n");
-+			recv_ring->recv_qp = NULL;
-+		}
-+		recv_ring++;
-+	}
-+}
-+
-+static void ipoib_destroy_tx_cqs(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_send_ring *send_ring;
-+	int i;
-+
-+	if (NULL == priv->send_ring)
-+		return;
-+
-+	send_ring = priv->send_ring;
-+	for (i = 0; i < priv->num_tx_queues; i++) {
-+		if (send_ring->send_cq) {
-+			if (ib_destroy_cq(send_ring->send_cq))
-+				ipoib_warn(priv, "ib_destroy_cq (send) failed\n");
-+			send_ring->send_cq = NULL;
-+		}
-+		send_ring++;
-+	}
-+}
-+
-+static void ipoib_destroy_rx_cqs(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct ipoib_recv_ring *recv_ring;
-+	int i;
-+
-+	if (NULL == priv->recv_ring)
-+		return;
-+
-+	recv_ring = priv->recv_ring;
-+	for (i = 0; i < priv->num_rx_queues; i++) {
-+		if (recv_ring->recv_cq) {
-+			if (ib_destroy_cq(recv_ring->recv_cq))
-+				ipoib_warn(priv, "ib_destroy_cq (recv) failed\n");
-+			recv_ring->recv_cq = NULL;
-+		}
-+		recv_ring++;
-+	}
-+}
-+
- void ipoib_transport_dev_cleanup(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 
-+	ipoib_destroy_rx_qps(dev);
-+	ipoib_destroy_tx_qps(dev);
-+
-+	/* Destroy parent or only QP */
- 	if (priv->qp) {
- 		if (ib_destroy_qp(priv->qp))
- 			ipoib_warn(priv, "ib_qp_destroy failed\n");
-@@ -283,11 +763,8 @@ void ipoib_transport_dev_cleanup(struct net_device *dev)
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 	}
- 
--	if (ib_destroy_cq(priv->send_cq))
--		ipoib_warn(priv, "ib_cq_destroy (send) failed\n");
--
--	if (ib_destroy_cq(priv->recv_cq))
--		ipoib_warn(priv, "ib_cq_destroy (recv) failed\n");
-+	ipoib_destroy_rx_cqs(dev);
-+	ipoib_destroy_tx_cqs(dev);
- 
- 	ipoib_cm_dev_cleanup(dev);
- 
+ out:
+ 	mutex_unlock(&qp->mutex);
+ 	return err;
 -- 
 1.7.1
 
