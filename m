@@ -1,43 +1,43 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: RDMA/cxgb4: Support on-chip SQs
-Date: Sat, 23 Mar 2013 17:54:35 -0500
-Message-ID: <514E32AB.3060309@opengridcomputing.com>
-References: <20130130210006.GA22134@elgon.mountain> <51099270.5070406@opengridcomputing.com> <20130323213038.GA14080@mwanda>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V3 for-next 3/5] IB/ipoib: Move to multi-queue device
+Date: Sun, 24 Mar 2013 13:12:25 +0200
+Message-ID: <514EDF99.7000305@mellanox.com>
+References: <1362676288-19906-1-git-send-email-ogerlitz@mellanox.com> <1362676288-19906-4-git-send-email-ogerlitz@mellanox.com> <32E1700B9017364D9B60AED9960492BC0D5C7875@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130323213038.GA14080@mwanda>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC0D5C7875-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/23/2013 4:30 PM, Dan Carpenter wrote:
-> On Wed, Jan 30, 2013 at 03:36:48PM -0600, Steve Wise wrote:
->> I wonder, then, what the correct service is to get the cpu physical
->> address from a kernel virtual address returned from
->> dma_alloc_coherent()?  I think this is correct as-is, since I think
->> dma_alloc_coherent() falls under the "directly mapped" addresses in
->> the virt_to_phys() prototype comment.
->>
->> What do you think Roland?
-> In the end, we decided this was correct as-is?
-
-I think the code is correct as-is.
-
-> I'm about to complain to the caif network people about the
-> dma_alloc_coherent() -> virt_to_phys() thing, but the truth is I
-> don't understand this stuff very well and I'm not sure when it's ok
-> or not.
+On 3/9/2013 4:04 PM, Marciniszyn, Mike wrote:
+> This patch will conflict with http://marc.info/?l=linux-rdma&m=136190765729001&w=2.
 >
-> regards,
-> dan carpenter
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Mike
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
+>> Sent: Thursday, March 07, 2013 12:11 PM
+>> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Shlomo Pongratz
+>> Subject: [PATCH V3 for-next 3/5] IB/ipoib: Move to multi-queue device
+Hi Mike,
+
+You didn't mentioned but you have changed the order of the call to 
+"netif_stop_queue" and the call to "ib_req_notify_cq", by placing the 
+"netif_stop_queue" before the call to "ib_req_notify_cq".
+
+IMO you've solved a theoretical bug in which the the handler might be 
+called and finish before the call to the call to "netif_stop_queue", 
+which would result in a stopped queue.
+I guess the same reordering should be done in "ipoib_ib.c::ipoib_send".
+
+Thanks.
+
+S.P.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
