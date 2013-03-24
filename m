@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups
-Date: Sun, 24 Mar 2013 14:43:28 +0200
-Message-ID: <1364129012-12198-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V4 for-next 5/5] IB/ipoib: Support changing the number of RX/TX rings with ethtool
+Date: Sun, 24 Mar 2013 14:43:32 +0200
+Message-ID: <1364129012-12198-6-git-send-email-ogerlitz@mellanox.com>
 References: <1364129012-12198-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1364129012-12198-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,506 +12,387 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-RSS (Receive Side Scaling) TSS (Transmit Side Scaling, better known as
-MQ/Multi-Queue) are common networking techniques which allow to use
-contemporary NICs that support multiple receive and transmit descriptor
-queues (multi-queue), see also Documentation/networking/scaling.txt
+The number of RX/TX rings can now be get or changed using the ethtool
+directives to get/set the number of channels of ETHTOOL_{G/S}CHANNELS.
 
-This patch introduces the concept of RSS and TSS QP groups which
-allows for implementing them by low level drivers and using it
-by IPoIB and later also by user space ULPs.
+Added ipoib_reinit() which releases all the rings and their associated
+resources, and immediatly following that allocates them again according
+to the new number of rings. For that end, moved code which is common to
+device cleanup and device reinit from the device cleanup flow to a routine
+which is called on both cases.
 
-A QP group is a set of QPs consists of a parent QP and two disjoint sets
-of RSS and TSS QPs. The creation of a QP group is a two stage process:
-
-In the the 1st stage, the parent QP is created.
-
-In the 2nd stage the children QPs of the parent are created.
-
-Each child QP indicates if its a RSS or TSS QP. Both the TSS
-and RSS sets of QPs should have contiguous QP numbers.
-
-It is forbidden to modify parent QP state before all RSS/TSS children
-were created. In the same manner it is disallowed to destroy the parent
-QP unless all RSS/TSS children were destroyed.
-
-A few new elements/concepts are introduced to support this:
-
-Three new device capabilities that can be set by the low level driver:
-
-- IB_DEVICE_QPG which is set to indicate QP groups are supported.
-
-- IB_DEVICE_UD_RSS which is set to indicate that the device supports
-RSS, that is applying hash function on incoming TCP/UDP/IP packets and
-dispatching them to multiple "rings" (child QPs).
-
-- IB_DEVICE_UD_TSS which is set to indicate that the device supports
-"HW TSS" which means that the HW is capable of over-riding the source
-UD QPN present in sent IB datagram header (DTH) with the parent's QPN.
-
-Low level drivers not supporting HW TSS, could still support QP groups, such
-as combination is referred as "SW TSS". Where in this case, the low level drive
-fills in the qpg_tss_mask_sz field of struct ib_qp_cap returned from
-ib_create_qp. Such that this mask can be used to retrieve the parent QPN from
-incoming packets carrying a child QPN (as of the contiguous QP numbers requirement).
-
-- max rss table size device attribute, which is the maximal size of the RSS
-indirection table  supported by the device
-
-- qp group type attribute for qp creation saying whether this is a parent QP
-or rx/tx (rss/tss) child QP or none of the above for non rss/tss QPs.
-
-- per qp group type, another attribute is added, for parent QPs, the number
-of rx/tx child QPs and for child QPs pointer to the parent.
-
-- IB_QP_GROUP_RSS attribute mask, which should be used when modifying
-the parent QP state from reset to init
+On some flows, the ndo_get_stats entry (which now reads the per ring
+statistics for an ipoib netdevice), is called by the core networking
+code without rtnl locking. To protect against such a call being made
+in parallel with an ethtool call to change the number of rings --
+added rwlock on the rings.
 
 Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c         |    1 +
- drivers/infiniband/core/verbs.c              |  118 ++++++++++++++++++++++++++
- drivers/infiniband/hw/amso1100/c2_provider.c |    3 +
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 +
- drivers/infiniband/hw/cxgb4/qp.c             |    3 +
- drivers/infiniband/hw/ehca/ehca_qp.c         |    3 +
- drivers/infiniband/hw/ipath/ipath_qp.c       |    3 +
- drivers/infiniband/hw/mlx4/qp.c              |    3 +
- drivers/infiniband/hw/mthca/mthca_provider.c |    3 +
- drivers/infiniband/hw/nes/nes_verbs.c        |    3 +
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |    5 +
- drivers/infiniband/hw/qib/qib_qp.c           |    5 +
- include/rdma/ib_verbs.h                      |   40 ++++++++-
- 13 files changed, 190 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h         |    9 ++-
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c |   68 +++++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c      |    4 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c    |  133 ++++++++++++++++++++++----
+ 4 files changed, 192 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index a7d00f6..b8f2dff 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1581,6 +1581,7 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 	attr.sq_sig_type   = cmd.sq_sig_all ? IB_SIGNAL_ALL_WR : IB_SIGNAL_REQ_WR;
- 	attr.qp_type       = cmd.qp_type;
- 	attr.create_flags  = 0;
-+	attr.qpg_type	   = IB_QPG_NONE;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 1b214f1..cf6ab56 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -418,8 +418,11 @@ struct ipoib_dev_priv {
+ 	struct ipoib_send_ring *send_ring;
+ 	unsigned int rss_qp_num; /* No RSS HW support 0 */
+ 	unsigned int tss_qp_num; /* No TSS (HW or SW) used 0 */
+-	unsigned int num_rx_queues; /* No RSS HW support 1 */
+-	unsigned int num_tx_queues; /* No TSS HW support tss_qp_num + 1 */
++	unsigned int max_rx_queues; /* No RSS HW support 1 */
++	unsigned int max_tx_queues; /* No TSS HW support tss_qp_num + 1 */
++	unsigned int num_rx_queues; /* Actual */
++	unsigned int num_tx_queues; /* Actual */
++	struct rw_semaphore rings_rwsem;
+ 	__be16 tss_qpn_mask_sz; /* Put in ipoib header reserved */
+ };
  
- 	attr.cap.max_send_wr     = cmd.max_send_wr;
- 	attr.cap.max_recv_wr     = cmd.max_recv_wr;
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index a8fdd33..f40f194 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -406,12 +406,98 @@ struct ib_qp *ib_open_qp(struct ib_xrcd *xrcd,
- }
- EXPORT_SYMBOL(ib_open_qp);
+@@ -528,6 +531,8 @@ int ipoib_ib_dev_stop(struct net_device *dev, int flush);
+ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
+ void ipoib_dev_cleanup(struct net_device *dev);
  
-+static int ib_qpg_verify(struct ib_qp_init_attr *qp_init_attr)
-+{
-+	/* RSS/TSS QP group basic validation */
-+	struct ib_qp *parent;
-+	struct ib_qpg_init_attrib *attr;
-+	struct ib_qpg_attr *pattr;
++int ipoib_reinit(struct net_device *dev, int num_rx, int num_tx);
 +
-+	switch (qp_init_attr->qpg_type) {
-+	case IB_QPG_PARENT:
-+		attr = &qp_init_attr->parent_attrib;
-+		if (attr->tss_child_count == 1)
-+			return -EINVAL; /* doesn't make sense */
-+		if (attr->rss_child_count == 1)
-+			return -EINVAL; /* doesn't make sense */
-+		if ((attr->tss_child_count == 0) &&
-+		    (attr->rss_child_count == 0))
-+			/* should be called with IP_QPG_NONE */
-+			return -EINVAL;
-+		break;
-+	case IB_QPG_CHILD_RX:
-+		parent = qp_init_attr->qpg_parent;
-+		if (!parent || parent->qpg_type != IB_QPG_PARENT)
-+			return -EINVAL;
-+		pattr = &parent->qpg_attr.parent_attr;
-+		if (!pattr->rss_child_count)
-+			return -EINVAL;
-+		if (atomic_read(&pattr->rsscnt) >= pattr->rss_child_count)
-+			return -EINVAL;
-+		break;
-+	case IB_QPG_CHILD_TX:
-+		parent = qp_init_attr->qpg_parent;
-+		if (!parent || parent->qpg_type != IB_QPG_PARENT)
-+			return -EINVAL;
-+		pattr = &parent->qpg_attr.parent_attr;
-+		if (!pattr->tss_child_count)
-+			return -EINVAL;
-+		if (atomic_read(&pattr->tsscnt) >= pattr->tss_child_count)
-+			return -EINVAL;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static void ib_init_qpg(struct ib_qp_init_attr *qp_init_attr, struct ib_qp *qp)
-+{
-+	struct ib_qp *parent;
-+	struct ib_qpg_init_attrib *attr;
-+	struct ib_qpg_attr *pattr;
-+
-+	qp->qpg_type = qp_init_attr->qpg_type;
-+
-+	/* qp was created without an error parmaters are O.K. */
-+	switch (qp_init_attr->qpg_type) {
-+	case IB_QPG_PARENT:
-+		attr = &qp_init_attr->parent_attrib;
-+		pattr = &qp->qpg_attr.parent_attr;
-+		pattr->rss_child_count = attr->rss_child_count;
-+		pattr->tss_child_count = attr->tss_child_count;
-+		atomic_set(&pattr->rsscnt, 0);
-+		atomic_set(&pattr->tsscnt, 0);
-+		break;
-+	case IB_QPG_CHILD_RX:
-+		parent = qp_init_attr->qpg_parent;
-+		qp->qpg_attr.parent = parent;
-+		/* update parent's counter */
-+		pattr = &parent->qpg_attr.parent_attr;
-+		atomic_inc(&pattr->rsscnt);
-+		break;
-+	case IB_QPG_CHILD_TX:
-+		parent = qp_init_attr->qpg_parent;
-+		qp->qpg_attr.parent = parent;
-+		/* update parent's counter */
-+		pattr = &parent->qpg_attr.parent_attr;
-+		atomic_inc(&pattr->tsscnt);
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
- struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 			   struct ib_qp_init_attr *qp_init_attr)
- {
- 	struct ib_qp *qp, *real_qp;
- 	struct ib_device *device;
- 
-+	if (ib_qpg_verify(qp_init_attr))
-+		return ERR_PTR(-EINVAL);
-+
- 	device = pd ? pd->device : qp_init_attr->xrcd->device;
- 	qp = device->create_qp(pd, qp_init_attr, NULL);
- 
-@@ -460,6 +546,8 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 			atomic_inc(&pd->usecnt);
- 			atomic_inc(&qp_init_attr->send_cq->usecnt);
- 		}
-+
-+		ib_init_qpg(qp_init_attr, qp);
+ void ipoib_mcast_join_task(struct work_struct *work);
+ void ipoib_mcast_carrier_on_task(struct work_struct *work);
+ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+index 7c56341..f79a8a4 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+@@ -172,6 +172,72 @@ static void ipoib_get_ethtool_stats(struct net_device *dev,
  	}
- 
- 	return qp;
-@@ -496,6 +584,9 @@ static const struct {
- 						IB_QP_QKEY),
- 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
- 						IB_QP_QKEY),
-+			},
-+			.opt_param = {
-+				[IB_QPT_UD]  = IB_QP_GROUP_RSS
- 			}
- 		},
- 	},
-@@ -805,6 +896,13 @@ int ib_modify_qp(struct ib_qp *qp,
- 		 struct ib_qp_attr *qp_attr,
- 		 int qp_attr_mask)
- {
-+	if (qp->qpg_type == IB_QPG_PARENT) {
-+		struct ib_qpg_attr *pattr = &qp->qpg_attr.parent_attr;
-+		if (atomic_read(&pattr->rsscnt) < pattr->rss_child_count)
-+			return -EINVAL;
-+		if (atomic_read(&pattr->tsscnt) < pattr->tss_child_count)
-+			return -EINVAL;
-+	}
- 	return qp->device->modify_qp(qp->real_qp, qp_attr, qp_attr_mask, NULL);
  }
- EXPORT_SYMBOL(ib_modify_qp);
-@@ -878,6 +976,15 @@ int ib_destroy_qp(struct ib_qp *qp)
- 	if (atomic_read(&qp->usecnt))
- 		return -EBUSY;
  
-+	if (qp->qpg_type == IB_QPG_PARENT) {
-+		/* All childeren should have been deleted by now */
-+		struct ib_qpg_attr *pattr = &qp->qpg_attr.parent_attr;
-+		if (atomic_read(&pattr->rsscnt))
-+			return -EINVAL;
-+		if (atomic_read(&pattr->tsscnt))
-+			return -EINVAL;
-+	}
++static void ipoib_get_channels(struct net_device *dev,
++			struct ethtool_channels *channel)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
 +
- 	if (qp->real_qp != qp)
- 		return __ib_destroy_shared_qp(qp);
- 
-@@ -896,6 +1003,17 @@ int ib_destroy_qp(struct ib_qp *qp)
- 			atomic_dec(&rcq->usecnt);
- 		if (srq)
- 			atomic_dec(&srq->usecnt);
++	channel->max_rx = priv->max_rx_queues;
++	channel->max_tx = priv->max_tx_queues;
++	channel->max_other = 0;
++	channel->max_combined = priv->max_rx_queues +
++				priv->max_tx_queues;
++	channel->rx_count = priv->num_rx_queues;
++	channel->tx_count = priv->num_tx_queues;
++	channel->other_count = 0;
++	channel->combined_count = priv->num_rx_queues +
++				priv->num_tx_queues;
++}
 +
-+		if (qp->qpg_type == IB_QPG_CHILD_RX ||
-+		    qp->qpg_type == IB_QPG_CHILD_TX) {
-+			/* decrement parent's counters */
-+			struct ib_qp *pqp = qp->qpg_attr.parent;
-+			struct ib_qpg_attr *pattr = &pqp->qpg_attr.parent_attr;
-+			if (qp->qpg_type == IB_QPG_CHILD_RX)
-+				atomic_dec(&pattr->rsscnt);
-+			else
-+				atomic_dec(&pattr->tsscnt);
++static int ipoib_set_channels(struct net_device *dev,
++			struct ethtool_channels *channel)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	if (channel->other_count)
++		return -EINVAL;
++
++	if (channel->combined_count !=
++		priv->num_rx_queues + priv->num_tx_queues)
++		return -EINVAL;
++
++	if (channel->rx_count == 0 ||
++	    channel->rx_count > priv->max_rx_queues)
++		return -EINVAL;
++
++	if (!is_power_of_2(channel->rx_count))
++		return -EINVAL;
++
++	if (channel->tx_count  == 0 ||
++	    channel->tx_count > priv->max_tx_queues)
++		return -EINVAL;
++
++	/* Nothing to do ? */
++	if (channel->rx_count == priv->num_rx_queues &&
++	    channel->tx_count == priv->num_tx_queues)
++		return 0;
++
++	/* 1 is always O.K. */
++	if (channel->tx_count > 1) {
++		if (priv->hca_caps & IB_DEVICE_UD_TSS) {
++			/* with HW TSS tx_count is 2^N */
++			if (!is_power_of_2(channel->tx_count))
++				return -EINVAL;
++		} else {
++			/*
++			* with SW TSS tx_count = 1 + 2 ^ N,
++			* 2 is not allowed, make no sense.
++			* if want to disable TSS use 1.
++			*/
++			if (!is_power_of_2(channel->tx_count - 1) ||
++			    channel->tx_count == 2)
++				return -EINVAL;
 +		}
- 	}
- 
- 	return ret;
-diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
-index 07eb3a8..546760b 100644
---- a/drivers/infiniband/hw/amso1100/c2_provider.c
-+++ b/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -241,6 +241,9 @@ static struct ib_qp *c2_create_qp(struct ib_pd *pd,
- 	if (init_attr->create_flags)
- 		return ERR_PTR(-EINVAL);
- 
-+	if (init_attr->qpg_type != IB_QPG_NONE)
-+		return ERR_PTR(-ENOSYS);
-+
- 	switch (init_attr->qp_type) {
- 	case IB_QPT_RC:
- 		qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 9c12da0..f3d9e0c 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -905,6 +905,8 @@ static struct ib_qp *iwch_create_qp(struct ib_pd *pd,
- 	PDBG("%s ib_pd %p\n", __func__, pd);
- 	if (attrs->qp_type != IB_QPT_RC)
- 		return ERR_PTR(-EINVAL);
-+	if (attrs->qpg_type != IB_QPG_NONE)
-+		return ERR_PTR(-ENOSYS);
- 	php = to_iwch_pd(pd);
- 	rhp = php->rhp;
- 	schp = get_chp(rhp, ((struct iwch_cq *) attrs->send_cq)->cq.cqid);
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 70b1808..e21b89b 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1491,6 +1491,9 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 	if (attrs->qp_type != IB_QPT_RC)
- 		return ERR_PTR(-EINVAL);
- 
-+	if (attrs->qpg_type != IB_QPG_NONE)
-+		return ERR_PTR(-ENOSYS);
-+
- 	php = to_c4iw_pd(pd);
- 	rhp = php->rhp;
- 	schp = get_chp(rhp, ((struct c4iw_cq *)attrs->send_cq)->cq.cqid);
-diff --git a/drivers/infiniband/hw/ehca/ehca_qp.c b/drivers/infiniband/hw/ehca/ehca_qp.c
-index 00d6861..627c32c 100644
---- a/drivers/infiniband/hw/ehca/ehca_qp.c
-+++ b/drivers/infiniband/hw/ehca/ehca_qp.c
-@@ -464,6 +464,9 @@ static struct ehca_qp *internal_create_qp(
- 	int is_llqp = 0, has_srq = 0, is_user = 0;
- 	int qp_type, max_send_sge, max_recv_sge, ret;
- 
-+	if (init_attr->qpg_type != IB_QPG_NONE)
-+		return ERR_PTR(-ENOSYS);
-+
- 	/* h_call's out parameters */
- 	struct ehca_alloc_qp_parms parms;
- 	u32 swqe_size = 0, rwqe_size = 0, ib_qp_num;
-diff --git a/drivers/infiniband/hw/ipath/ipath_qp.c b/drivers/infiniband/hw/ipath/ipath_qp.c
-index 0857a9c..117b775 100644
---- a/drivers/infiniband/hw/ipath/ipath_qp.c
-+++ b/drivers/infiniband/hw/ipath/ipath_qp.c
-@@ -755,6 +755,9 @@ struct ib_qp *ipath_create_qp(struct ib_pd *ibpd,
- 		goto bail;
- 	}
- 
-+	if (init_attr->qpg_type != IB_QPG_NONE)
-+		return ERR_PTR(-ENOSYS);
-+
- 	if (init_attr->cap.max_send_sge > ib_ipath_max_sges ||
- 	    init_attr->cap.max_send_wr > ib_ipath_max_qp_wrs) {
- 		ret = ERR_PTR(-EINVAL);
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 35cced2..c58dbdc 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -998,6 +998,9 @@ struct ib_qp *mlx4_ib_create_qp(struct ib_pd *pd,
- 	      init_attr->qp_type > IB_QPT_GSI)))
- 		return ERR_PTR(-EINVAL);
- 
-+	if (init_attr->qpg_type != IB_QPG_NONE)
-+		return ERR_PTR(-ENOSYS);
-+
- 	switch (init_attr->qp_type) {
- 	case IB_QPT_XRC_TGT:
- 		pd = to_mxrcd(init_attr->xrcd)->pd;
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 5b71d43..120aa1e 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -518,6 +518,9 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
- 	if (init_attr->create_flags)
- 		return ERR_PTR(-EINVAL);
- 
-+	if (init_attr->qpg_type != IB_QPG_NONE)
-+		return ERR_PTR(-ENOSYS);
-+
- 	switch (init_attr->qp_type) {
- 	case IB_QPT_RC:
- 	case IB_QPT_UC:
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 8f67fe2..dfae39a 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -1134,6 +1134,9 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
- 	if (init_attr->create_flags)
- 		return ERR_PTR(-EINVAL);
- 
-+	if (init_attr->qpg_type != IB_QPG_NONE)
-+		return ERR_PTR(-ENOSYS);
-+
- 	atomic_inc(&qps_created);
- 	switch (init_attr->qp_type) {
- 		case IB_QPT_RC:
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index b29a424..7c3e0ce 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -841,6 +841,11 @@ static int ocrdma_check_qp_params(struct ib_pd *ibpd, struct ocrdma_dev *dev,
- 			   __func__, dev->id, attrs->qp_type);
- 		return -EINVAL;
- 	}
-+	if (attrs->qpg_type != IB_QPG_NONE) {
-+		ocrdma_err("%s(%d) unsupported qpg type=0x%x requested\n",
-+			   __func__, dev->id, attrs->qpg_type);
-+			   return -ENOSYS;
-+	}
- 	if (attrs->cap.max_send_wr > dev->attr.max_wqe) {
- 		ocrdma_err("%s(%d) unsupported send_wr=0x%x requested\n",
- 			   __func__, dev->id, attrs->cap.max_send_wr);
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index a6a2cc2..eda3f93 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -986,6 +986,11 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 		goto bail;
- 	}
- 
-+	if (init_attr->qpg_type != IB_QPG_NONE) {
-+		ret = ERR_PTR(-ENOSYS);
-+		goto bail;
 +	}
 +
- 	/* Check receive queue parameters if no SRQ is specified. */
- 	if (!init_attr->srq) {
- 		if (init_attr->cap.max_recv_sge > ib_qib_max_sges ||
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 98cc4b2..9317e76 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -116,7 +116,10 @@ enum ib_device_cap_flags {
- 	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
- 	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
- 	IB_DEVICE_MEM_WINDOW_TYPE_2A	= (1<<23),
--	IB_DEVICE_MEM_WINDOW_TYPE_2B	= (1<<24)
-+	IB_DEVICE_MEM_WINDOW_TYPE_2B	= (1<<24),
-+	IB_DEVICE_QPG			= (1<<25),
-+	IB_DEVICE_UD_RSS		= (1<<26),
-+	IB_DEVICE_UD_TSS		= (1<<27)
- };
- 
- enum ib_atomic_cap {
-@@ -164,6 +167,7 @@ struct ib_device_attr {
- 	int			max_srq_wr;
- 	int			max_srq_sge;
- 	unsigned int		max_fast_reg_page_list_len;
-+	int			max_rss_tbl_sz;
- 	u16			max_pkeys;
- 	u8			local_ca_ack_delay;
- };
-@@ -586,6 +590,7 @@ struct ib_qp_cap {
- 	u32	max_send_sge;
- 	u32	max_recv_sge;
- 	u32	max_inline_data;
-+	u32	qpg_tss_mask_sz;
- };
- 
- enum ib_sig_type {
-@@ -621,6 +626,18 @@ enum ib_qp_create_flags {
- 	IB_QP_CREATE_RESERVED_END		= 1 << 31,
- };
- 
-+enum ib_qpg_type {
-+	IB_QPG_NONE	= 0,
-+	IB_QPG_PARENT	= (1<<0),
-+	IB_QPG_CHILD_RX = (1<<1),
-+	IB_QPG_CHILD_TX = (1<<2)
-+};
++	return ipoib_reinit(dev, channel->rx_count, channel->tx_count);
++}
 +
-+struct ib_qpg_init_attrib {
-+	u32 tss_child_count;
-+	u32 rss_child_count;
-+};
+ static const struct ethtool_ops ipoib_ethtool_ops = {
+ 	.get_drvinfo		= ipoib_get_drvinfo,
+ 	.get_coalesce		= ipoib_get_coalesce,
+@@ -179,6 +245,8 @@ static const struct ethtool_ops ipoib_ethtool_ops = {
+ 	.get_strings		= ipoib_get_strings,
+ 	.get_sset_count		= ipoib_get_sset_count,
+ 	.get_ethtool_stats	= ipoib_get_ethtool_stats,
++	.get_channels		= ipoib_get_channels,
++	.set_channels		= ipoib_set_channels,
+ };
+ 
+ void ipoib_set_ethtool_ops(struct net_device *dev)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 01ce5e9..fa4958c 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -736,8 +736,10 @@ static void ipoib_napi_disable(struct net_device *dev)
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	int i;
+ 
+-	for (i = 0; i < priv->num_rx_queues; i++)
++	for (i = 0; i < priv->num_rx_queues; i++) {
+ 		napi_disable(&priv->recv_ring[i].napi);
++		netif_napi_del(&priv->recv_ring[i].napi);
++	}
+ }
+ 
+ int ipoib_ib_dev_open(struct net_device *dev)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 8089137..a1f10b3 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -928,6 +928,10 @@ static struct net_device_stats *ipoib_get_stats(struct net_device *dev)
+ 	struct net_device_stats local_stats;
+ 	int i;
+ 
++	/* if rings are not ready yet return last values */
++	if (!down_read_trylock(&priv->rings_rwsem))
++		return stats;
 +
- struct ib_qp_init_attr {
- 	void                  (*event_handler)(struct ib_event *, void *);
- 	void		       *qp_context;
-@@ -629,9 +646,14 @@ struct ib_qp_init_attr {
- 	struct ib_srq	       *srq;
- 	struct ib_xrcd	       *xrcd;     /* XRC TGT QPs only */
- 	struct ib_qp_cap	cap;
-+	union {
-+		struct ib_qp *qpg_parent; /* see qpg_type */
-+		struct ib_qpg_init_attrib parent_attrib;
-+	};
- 	enum ib_sig_type	sq_sig_type;
- 	enum ib_qp_type		qp_type;
- 	enum ib_qp_create_flags	create_flags;
-+	enum ib_qpg_type	qpg_type;
- 	u8			port_num; /* special QP types only */
- };
+ 	memset(&local_stats, 0, sizeof(struct net_device_stats));
  
-@@ -698,7 +720,8 @@ enum ib_qp_attr_mask {
- 	IB_QP_MAX_DEST_RD_ATOMIC	= (1<<17),
- 	IB_QP_PATH_MIG_STATE		= (1<<18),
- 	IB_QP_CAP			= (1<<19),
--	IB_QP_DEST_QPN			= (1<<20)
-+	IB_QP_DEST_QPN			= (1<<20),
-+	IB_QP_GROUP_RSS			= (1<<21)
- };
+ 	for (i = 0; i < priv->num_rx_queues; i++) {
+@@ -946,6 +950,8 @@ static struct net_device_stats *ipoib_get_stats(struct net_device *dev)
+ 		local_stats.tx_dropped += tstats->tx_dropped;
+ 	}
  
- enum ib_qp_state {
-@@ -994,6 +1017,14 @@ struct ib_srq {
- 	} ext;
- };
- 
-+struct ib_qpg_attr {
-+	atomic_t rsscnt; /* count open rss children */
-+	atomic_t tsscnt; /* count open rss children */
-+	u32	 rss_child_count;
-+	u32	 tss_child_count;
-+};
++	up_read(&priv->rings_rwsem);
 +
-+
- struct ib_qp {
- 	struct ib_device       *device;
- 	struct ib_pd	       *pd;
-@@ -1010,6 +1041,11 @@ struct ib_qp {
- 	void		       *qp_context;
- 	u32			qp_num;
- 	enum ib_qp_type		qp_type;
-+	enum ib_qpg_type	qpg_type;
-+	union {
-+		struct ib_qp   *parent; /* rss/tss parent */
-+		struct ib_qpg_attr parent_attr;
-+	} qpg_attr;
- };
+ 	stats->rx_packets = local_stats.rx_packets;
+ 	stats->rx_bytes   = local_stats.rx_bytes;
+ 	stats->rx_errors  = local_stats.rx_errors;
+@@ -1476,6 +1482,8 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ 	if (ipoib_ib_dev_init(dev, ca, port))
+ 		goto out_send_ring_cleanup;
  
- struct ib_mr {
++	/* access to rings allowed */
++	up_write(&priv->rings_rwsem);
+ 
+ 	return 0;
+ 
+@@ -1496,10 +1504,36 @@ out:
+ 	return -ENOMEM;
+ }
+ 
++static void ipoib_dev_uninit(struct net_device *dev)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	int i;
++
++	ASSERT_RTNL();
++
++	ipoib_ib_dev_cleanup(dev);
++
++	/* no more access to rings */
++	down_write(&priv->rings_rwsem);
++
++	for (i = 0; i < priv->num_tx_queues; i++)
++		vfree(priv->send_ring[i].tx_ring);
++	kfree(priv->send_ring);
++
++	for (i = 0; i < priv->num_rx_queues; i++)
++		kfree(priv->recv_ring[i].rx_ring);
++	kfree(priv->recv_ring);
++
++	priv->recv_ring = NULL;
++	priv->send_ring = NULL;
++
++	ipoib_neigh_hash_uninit(dev);
++}
++
+ void ipoib_dev_cleanup(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev), *cpriv, *tcpriv;
+-	int i;
++
+ 	LIST_HEAD(head);
+ 
+ 	ASSERT_RTNL();
+@@ -1513,23 +1547,71 @@ void ipoib_dev_cleanup(struct net_device *dev)
+ 		cancel_delayed_work(&cpriv->neigh_reap_task);
+ 		unregister_netdevice_queue(cpriv->dev, &head);
+ 	}
++
+ 	unregister_netdevice_many(&head);
+ 
+-	ipoib_ib_dev_cleanup(dev);
++	ipoib_dev_uninit(dev);
+ 
++	/* ipoib_dev_uninit took rings lock but can't release it when called by
++	 * ipoib_reinit, for the cleanup flow, release it here
++	 */
++	up_write(&priv->rings_rwsem);
++}
+ 
+-	for (i = 0; i < priv->num_tx_queues; i++)
+-		vfree(priv->send_ring[i].tx_ring);
+-	kfree(priv->send_ring);
++int ipoib_reinit(struct net_device *dev, int num_rx, int num_tx)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	int flags;
++	int ret;
+ 
+-	for (i = 0; i < priv->num_rx_queues; i++)
+-		kfree(priv->recv_ring[i].rx_ring);
+-	kfree(priv->recv_ring);
++	flags = dev->flags;
++	dev_close(dev);
+ 
+-	priv->recv_ring = NULL;
+-	priv->send_ring = NULL;
++	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
++		ib_unregister_event_handler(&priv->event_handler);
+ 
+-	ipoib_neigh_hash_uninit(dev);
++	ipoib_dev_uninit(dev);
++
++	priv->num_rx_queues = num_rx;
++	priv->num_tx_queues = num_tx;
++	if (num_rx == 1)
++		priv->rss_qp_num = 0;
++	else
++		priv->rss_qp_num = num_rx;
++	if (num_tx == 1 || !(priv->hca_caps & IB_DEVICE_UD_TSS))
++		priv->tss_qp_num = num_tx - 1;
++	else
++		priv->tss_qp_num = num_tx;
++
++	netif_set_real_num_tx_queues(dev, num_tx);
++	netif_set_real_num_rx_queues(dev, num_rx);
++
++	/* prevent ipoib_ib_dev_init from calling ipoib_ib_dev_open,
++	 * let ipoib_open do it
++	 */
++	dev->flags &= ~IFF_UP;
++	ret = ipoib_dev_init(dev, priv->ca, priv->port);
++	if (ret) {
++		pr_warn("%s: failed to reinitialize port %d (ret = %d)\n",
++			priv->ca->name, priv->port, ret);
++		return ret;
++	}
++
++	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
++		ret = ib_register_event_handler(&priv->event_handler);
++		if (ret)
++			pr_warn("%s: failed to rereg port %d (ret = %d)\n",
++				priv->ca->name, priv->port, ret);
++	}
++
++	/* if the device was up bring it up again */
++	if (flags & IFF_UP) {
++		ret = dev_open(dev);
++		if (ret)
++			pr_warn("%s: failed to reopen port %d (ret = %d)\n",
++				priv->ca->name, priv->port, ret);
++	}
++	return ret;
+ }
+ 
+ static const struct header_ops ipoib_header_ops = {
+@@ -1608,6 +1690,10 @@ void ipoib_setup(struct net_device *dev)
+ 
+ 	mutex_init(&priv->vlan_mutex);
+ 
++	init_rwsem(&priv->rings_rwsem);
++	/* read access to rings is disabled */
++	down_write(&priv->rings_rwsem);
++
+ 	INIT_LIST_HEAD(&priv->path_list);
+ 	INIT_LIST_HEAD(&priv->child_intfs);
+ 	INIT_LIST_HEAD(&priv->dead_ahs);
+@@ -1629,8 +1715,12 @@ struct ipoib_dev_priv *ipoib_intf_alloc(const char *name,
+ {
+ 	struct net_device *dev;
+ 
+-	/* Use correct ops (ndo_select_queue) pass to ipoib_setup */
+-	if (template_priv->num_tx_queues > 1) {
++	/* Use correct ops (ndo_select_queue) pass to ipoib_setup
++	 * A child interface starts with the same number of queues as the
++	 * parent. Even if the parent currently has only one ring, the MQ
++	 * potential must be reserved.
++	 */
++	if (template_priv->max_tx_queues > 1) {
+ 		if (template_priv->hca_caps & IB_DEVICE_UD_TSS)
+ 			ipoib_netdev_ops = &ipoib_netdev_ops_hw_tss;
+ 		else
+@@ -1641,8 +1731,8 @@ struct ipoib_dev_priv *ipoib_intf_alloc(const char *name,
+ 
+ 	dev = alloc_netdev_mqs((int) sizeof(struct ipoib_dev_priv), name,
+ 			   ipoib_setup,
+-			   template_priv->num_tx_queues,
+-			   template_priv->num_rx_queues);
++			   template_priv->max_tx_queues,
++			   template_priv->max_rx_queues);
+ 	if (!dev)
+ 		return NULL;
+ 
+@@ -1776,6 +1866,8 @@ static int ipoib_get_hca_features(struct ipoib_dev_priv *priv,
+ 		/* No additional QP, only one QP for RX & TX */
+ 		priv->rss_qp_num = 0;
+ 		priv->tss_qp_num = 0;
++		priv->max_rx_queues = 1;
++		priv->max_tx_queues = 1;
+ 		priv->num_rx_queues = 1;
+ 		priv->num_tx_queues = 1;
+ 		kfree(device_attr);
+@@ -1788,22 +1880,25 @@ static int ipoib_get_hca_features(struct ipoib_dev_priv *priv,
+ 		max_rss_tbl_sz = min(num_cores, max_rss_tbl_sz);
+ 		max_rss_tbl_sz = rounddown_pow_of_two(max_rss_tbl_sz);
+ 		priv->rss_qp_num    = max_rss_tbl_sz;
+-		priv->num_rx_queues = max_rss_tbl_sz;
++		priv->max_rx_queues = max_rss_tbl_sz;
+ 	} else {
+ 		/* No additional QP, only the parent QP for RX */
+ 		priv->rss_qp_num = 0;
+-		priv->num_rx_queues = 1;
++		priv->max_rx_queues = 1;
+ 	}
++	priv->num_rx_queues = priv->max_rx_queues;
+ 
+ 	kfree(device_attr);
+ 
+ 	priv->tss_qp_num = num_cores;
+ 	if (priv->hca_caps & IB_DEVICE_UD_TSS)
+ 		/* TSS is supported by HW */
+-		priv->num_tx_queues = priv->tss_qp_num;
++		priv->max_tx_queues = priv->tss_qp_num;
+ 	else
+ 		/* If TSS is not support by HW use the parent QP for ARP */
+-		priv->num_tx_queues = priv->tss_qp_num + 1;
++		priv->max_tx_queues = priv->tss_qp_num + 1;
++
++	priv->num_tx_queues = priv->max_tx_queues;
+ 
+ 	return 0;
+ }
 -- 
 1.7.1
 
