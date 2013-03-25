@@ -1,51 +1,33 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Notes on XRC
-Date: Mon, 25 Mar 2013 16:27:15 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736F367A8A@ORSMSX101.amr.corp.intel.com>
-References: <51501991.5020105@mellanox.com>
+Subject: RE: Different signatures to ibv_open_xrcd - branch issue?
+Date: Mon, 25 Mar 2013 16:35:29 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736F367AB8@ORSMSX101.amr.corp.intel.com>
+References: <51502C30.2000806@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51501991.5020105-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <51502C30.2000806-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> A natural way to pass the SRQ's QPN is to use the "private_data" of the
-> "rdma_conn_param", however this area is limited to 56 octets and since
-> each QPN occupies 3 octets that leaves us with 18 SRQ. I suggest to
-> increase the size of the private data, or to find a more convenient way
-> to pass the SRQ's QPM, one that doesn't use extra ports or out-of-band
-> communication (socket).
+> In libibverbs/include/infiniband/verbs.h the API "ibv_open_xrcd" is
+> defined with the following signature;
+> static inline struct ibv_xrcd *
+> ibv_open_xrcd(struct ibv_context *context, struct ibv_xrcd_init_attr
+> *xrcd_init_attr)
+> And libibverbs/examples/xsrq_pingpong.c the call is O.K. however in
+> librdmacm/examples/rdma_xserver.c I see a different call sequence i.e.
+> "attr.ext.xrc.xrcd = ibv_open_xrcd(srq_id->verbs, -1, 0);"
+> My git branch for libivvers is based on origin/xrc2 and for librdmacm is
+> based on origin/xrc.
+> 
+> Is any of my branches wrong?
 
-This is an issue for the IBTA to deal with and requires increasing the size of a MAD.
- 
-> Another issue is of backwards compatibility of applications.  Assume an
-> application uses a well known port, and want to allow both new XRC
-> enabled clients and old RC clients. It seems that this is possible using
-> the "rdma_create_ep" API with appropriate "rdma_addrinfo" one that
-> "rdma_getaddrinfo" resolved with QP type "IBV_QPT_XRC_RECV" and one with
-> "IBV_QPT_RC" one the same port (I hope this is allowed). A client on the
-> other side will first try to connect to the XRC and if it fails will
-> fall-back to RC.
-
-The intent behind rdma_getaddrinfo is to allow multiple QP types to be returned based on user input.
- 
-> However, a server usually uses "rdma_create_id" to associate an event
-> handler with an id and then bind the id to an address, and accept
-> connection requests asynchronously, but with these API, AFAIK there is
-> no way to pass the required hints.
-
-Correct - the older rdma cm APIs are not as flexible.  That's why new APIs ended up being added.
- 
-> I assume I can use the "private_data" of the "rdma_conn_param" to
-> distinguish between XRC enabled clients and servers and old ones, but it
-> doesn't seems clean, as it is implicit and not explicit.
-
-I don't think I'm fully following your private data idea.
+The librdmacm changes are against an older version of the changes.  The libibverbs has the correct API, which incorporates the extension mechanism that's been discussed.  Once libibverbs has been accepted, the librdmacm can be updated.  (The librdmacm code is surrounded by a #define, which disables it from the build.)
 
 - Sean
 --
