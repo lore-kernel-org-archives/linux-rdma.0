@@ -1,78 +1,49 @@
-From: Alice Ferrazzi <alice.ferrazzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] Infiniband: core: change <asm/uaccess.h> to <linux/uaccess.h>
-Date: Mon, 25 Mar 2013 04:24:44 +0900
-Message-ID: <1364153084-8911-1-git-send-email-alice.ferrazzi@gmail.com>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Notes on XRC
+Date: Mon, 25 Mar 2013 11:32:01 +0200
+Message-ID: <51501991.5020105@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alice Ferrazzi <alice.ferrazzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch replaces <asm/uaccess.h> with <linux/uaccess.h>
-to comply with the checkpatch.pl hint.
+Hi Sean,
 
-Signed-off-by: Alice Ferrazzi <alice.ferrazzi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/ucm.c         |    2 +-
- drivers/infiniband/core/user_mad.c    |    2 +-
- drivers/infiniband/core/uverbs_cmd.c  |    2 +-
- drivers/infiniband/core/uverbs_main.c |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+I'm experimenting XRC with a real application and I want to share my 
+thoughts.
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index f2f6393..224a7c9 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -46,7 +46,7 @@
- #include <linux/mutex.h>
- #include <linux/slab.h>
- 
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #include <rdma/ib_cm.h>
- #include <rdma/ib_user_cm.h>
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index f0d588f..ad414f1 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -48,7 +48,7 @@
- #include <linux/semaphore.h>
- #include <linux/slab.h>
- 
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #include <rdma/ib_mad.h>
- #include <rdma/ib_user_mad.h>
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index a7d00f6..62ff7f3 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -37,7 +37,7 @@
- #include <linux/fs.h>
- #include <linux/slab.h>
- 
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #include "uverbs.h"
- 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 2c6f0f2..dfee66f 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -46,7 +46,7 @@
- #include <linux/anon_inodes.h>
- #include <linux/slab.h>
- 
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #include "uverbs.h"
- 
--- 
-1.7.10.4
+A natural way to pass the SRQ's QPN is to use the "private_data" of the 
+"rdma_conn_param", however this area is limited to 56 octets and since 
+each QPN occupies 3 octets that leaves us with 18 SRQ. I suggest to 
+increase the size of the private data, or to find a more convenient way 
+to pass the SRQ's QPM, one that doesn't use extra ports or out-of-band 
+communication (socket).
+
+Another issue is of backwards compatibility of applications.  Assume an 
+application uses a well known port, and want to allow both new XRC 
+enabled clients and old RC clients. It seems that this is possible using 
+the "rdma_create_ep" API with appropriate "rdma_addrinfo" one that 
+"rdma_getaddrinfo" resolved with QP type "IBV_QPT_XRC_RECV" and one with 
+"IBV_QPT_RC" one the same port (I hope this is allowed). A client on the 
+other side will first try to connect to the XRC and if it fails will 
+fall-back to RC.
+
+However, a server usually uses "rdma_create_id" to associate an event 
+handler with an id and then bind the id to an address, and accept 
+connection requests asynchronously, but with these API, AFAIK there is 
+no way to pass the required hints.
+
+I assume I can use the "private_data" of the "rdma_conn_param" to 
+distinguish between XRC enabled clients and servers and old ones, but it 
+doesn't seems clean, as it is implicit and not explicit.
+
+Best regards,
+
+S.P.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
