@@ -1,37 +1,43 @@
-From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Different signatures to ibv_open_xrcd - branch issue?
-Date: Mon, 25 Mar 2013 12:51:28 +0200
-Message-ID: <51502C30.2000806@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm: fix dfsssp uninitialized value
+Date: Mon, 25 Mar 2013 08:08:05 -0400
+Message-ID: <51503E25.4000608@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Jens Domke <domke.j.aa@m.titech.ac.jp>, Ammar Haj Hamad <AHamad-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sean,
+>From 032d4100467cb1b3e1ed5dc81911aaa704f709dc Mon Sep 17 00:00:00 2001
+From: Ammar Haj Hamad <AHamad-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+Date: Mon, 25 Mar 2013 12:41:35 +0200
+Subject: [PATCH] opensm: fix dfsssp uninitialized value
 
-In libibverbs/include/infiniband/verbs.h the API "ibv_open_xrcd" is 
-defined with the following signature;
-static inline struct ibv_xrcd *
-ibv_open_xrcd(struct ibv_context *context, struct ibv_xrcd_init_attr 
-*xrcd_init_attr)
-And libibverbs/examples/xsrq_pingpong.c the call is O.K. however in 
-librdmacm/examples/rdma_xserver.c I see a different call sequence i.e. 
-"attr.ext.xrc.xrcd = ibv_open_xrcd(srq_id->verbs, -1, 0);"
-My git branch for libivvers is based on origin/xrc2 and for librdmacm is 
-based on origin/xrc.
+in dfsssp_context_create dfsssp_ctx->adj_list_size is not initialized.
+and might cause segmentation fault when destroying the routing engine.
 
-Is any of my branches wrong?
+Signed-off-by: Ammar Haj Hamad <AHamad-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_ucast_dfsssp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-best regards,
-
-S.P.
-
-
-
+diff --git a/opensm/osm_ucast_dfsssp.c b/opensm/osm_ucast_dfsssp.c
+index 803d0e1..01ad03b 100644
+--- a/opensm/osm_ucast_dfsssp.c
++++ b/opensm/osm_ucast_dfsssp.c
+@@ -2240,6 +2240,7 @@ static dfsssp_context_t *dfsssp_context_create(osm_opensm_t * p_osm,
+ 		dfsssp_ctx->routing_type = routing_type;
+ 		dfsssp_ctx->p_mgr = (osm_ucast_mgr_t *) & (p_osm->sm.ucast_mgr);
+ 		dfsssp_ctx->adj_list = NULL;
++		dfsssp_ctx->adj_list_size = 0;
+ 		dfsssp_ctx->srcdest2vl_table = NULL;
+ 	} else {
+ 		OSM_LOG(p_osm->sm.ucast_mgr.p_log, OSM_LOG_ERROR,
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
