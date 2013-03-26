@@ -1,322 +1,938 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH libibverbs v5 4/7] libibverbs: Add support for XRC QPs
-Date: Tue, 26 Mar 2013 14:14:23 -0700
-Message-ID: <1364332466-22786-5-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH libibverbs v5 7/7] libibverbs: Add XRC sample application
+Date: Tue, 26 Mar 2013 14:14:26 -0700
+Message-ID: <1364332466-22786-8-git-send-email-sean.hefty@intel.com>
 References: <1364332466-22786-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1364332466-22786-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jay Sternberg <jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jay Sternberg <jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-XRC queue pairs: xrc defines two new types of QPs.  The
-initiator, or send-side, xrc qp behaves similar to a send-
-only RC qp.  xrc send qp's are managed through the existing
-QP functions.  The send_wr structure is extended in a back-
-wards compatible way to support posting sends on a send xrc
-qp, which require specifying the remote xrc srq.
-
-The target, or receive-side, xrc qp behaves differently
-than other implemented qp's.  A recv xrc qp can be created,
-modified, and destroyed like other qp's through the existing
-calls.  The qp_init_attr structure is extended for xrc qp's.
-
-Because xrc recv qp's are bound to an xrcd, rather than a pd,
-it is intended to be used among multiple processes.  Any process
-with access to an xrcd may allocate and connect an xrc recv qp.
-The actual xrc recv qp is allocated and managed by the kernel.
-If the owning process explicit destroys the xrc recv qp, it is
-destroyed.  However, if the xrc recv qp is left open when the
-user process exits or closes its device, then the lifetime of
-the xrc recv qp is bound with the lifetime of the xrcd.
-
+Signed-off-by: Jay Sternberg <jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/infiniband/driver.h   |   14 ++++++
- include/infiniband/kern-abi.h |    5 ++
- include/infiniband/verbs.h    |   54 ++++++++++++++++++++++-
- src/cmd.c                     |   94 ++++++++++++++++++++++++++++++++++++++++-
- src/libibverbs.map            |    1 +
- 5 files changed, 164 insertions(+), 4 deletions(-)
+ Makefile.am              |    4 +-
+ examples/xsrq_pingpong.c |  885 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 888 insertions(+), 1 deletions(-)
+ create mode 100644 examples/xsrq_pingpong.c
 
-diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index 05ff730..d43ae07 100644
---- a/include/infiniband/driver.h
-+++ b/include/infiniband/driver.h
-@@ -81,6 +81,16 @@ struct verbs_srq {
- 	uint32_t		srq_num;
- };
+diff --git a/Makefile.am b/Makefile.am
+index cd00a65..4821ec6 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -18,7 +18,7 @@ src_libibverbs_la_DEPENDENCIES = $(srcdir)/src/libibverbs.map
  
-+enum verbs_qp_mask {
-+	VERBS_QP_XRCD		= 1 << 0,
-+	VERBS_QP_RESERVED	= 1 << 1
+ bin_PROGRAMS = examples/ibv_devices examples/ibv_devinfo \
+     examples/ibv_asyncwatch examples/ibv_rc_pingpong examples/ibv_uc_pingpong \
+-    examples/ibv_ud_pingpong examples/ibv_srq_pingpong
++    examples/ibv_ud_pingpong examples/ibv_srq_pingpong examples/ibv_xsrq_pingpong
+ examples_ibv_devices_SOURCES = examples/device_list.c
+ examples_ibv_devices_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_devinfo_SOURCES = examples/devinfo.c
+@@ -31,6 +31,8 @@ examples_ibv_ud_pingpong_SOURCES = examples/ud_pingpong.c examples/pingpong.c
+ examples_ibv_ud_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_srq_pingpong_SOURCES = examples/srq_pingpong.c examples/pingpong.c
+ examples_ibv_srq_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
++examples_ibv_xsrq_pingpong_SOURCES = examples/xsrq_pingpong.c examples/pingpong.c
++examples_ibv_xsrq_pingpong_LDADD = $(top_builddir)/src/libibverbs.la
+ examples_ibv_asyncwatch_SOURCES = examples/asyncwatch.c
+ examples_ibv_asyncwatch_LDADD = $(top_builddir)/src/libibverbs.la
+ 
+diff --git a/examples/xsrq_pingpong.c b/examples/xsrq_pingpong.c
+new file mode 100644
+index 0000000..55b7e6a
+--- /dev/null
++++ b/examples/xsrq_pingpong.c
+@@ -0,0 +1,885 @@
++/*
++ * Copyright (c) 2005 Topspin Communications.  All rights reserved.
++ * Copyright (c) 2011 Intel Corporation, Inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#if HAVE_CONFIG_H
++#  include <config.h>
++#endif /* HAVE_CONFIG_H */
++
++#include <stdio.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <sys/time.h>
++#include <netdb.h>
++#include <malloc.h>
++#include <getopt.h>
++#include <arpa/inet.h>
++#include <time.h>
++
++#include "pingpong.h"
++
++#define MSG_FORMAT "%04x:%06x:%06x:%06x:%04x"
++#define MSG_SIZE   30
++#define MSG_SSCAN  "%x:%x:%x:%x:%x"
++#define ADDR_FORMAT \
++	"%8s: LID %04x, QPN RECV %06x SEND %06x, PSN %06x, SRQN %04x\n"
++static int page_size;
++
++struct pingpong_dest {
++	int lid;
++	int recv_qpn;
++	int send_qpn;
++	int recv_psn;
++	int send_psn;
++	int srqn;
++	int pp_cnt;
 +};
 +
-+struct verbs_qp {
-+	struct ibv_qp		qp;
-+	uint32_t		comp_mask;
-+	struct verbs_xrcd       *xrcd;
-+};
- typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
- 						   int abi_version);
- typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
-@@ -152,6 +162,10 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
- 		      struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
- 		      struct ibv_create_qp *cmd, size_t cmd_size,
- 		      struct ibv_create_qp_resp *resp, size_t resp_size);
-+int ibv_cmd_create_qp_ex(struct ibv_context *context,
-+			 struct verbs_qp *qp, struct ibv_qp_init_attr_ex *attr_ex,
-+			 struct ibv_create_qp *cmd, size_t cmd_size,
-+			 struct ibv_create_qp_resp *resp, size_t resp_size);
- int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *qp_attr,
- 		     int attr_mask,
- 		     struct ibv_qp_init_attr *qp_init_attr,
-diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index ef93cc3..bad0289 100644
---- a/include/infiniband/kern-abi.h
-+++ b/include/infiniband/kern-abi.h
-@@ -617,6 +617,11 @@ struct ibv_kern_send_wr {
- 			__u32 remote_qkey;
- 			__u32 reserved;
- 		} ud;
-+		struct {
-+			__u64 reserved[3];
-+			__u32 reserved2;
-+			__u32 remote_srqn;
-+		} xrc;
- 	} wr;
- };
- 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index d7dfcd3..f321866 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -107,7 +107,8 @@ enum ibv_device_cap_flags {
- 	IBV_DEVICE_SYS_IMAGE_GUID	= 1 << 11,
- 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
- 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
--	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14
-+	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
-+	IBV_DEVICE_XRC			= 1 << 20
- };
- 
- enum ibv_atomic_cap {
-@@ -454,7 +455,9 @@ struct ibv_srq_init_attr_ex {
- enum ibv_qp_type {
- 	IBV_QPT_RC = 2,
- 	IBV_QPT_UC,
--	IBV_QPT_UD
-+	IBV_QPT_UD,
-+	IBV_QPT_XRC_SEND = 9,
-+	IBV_QPT_XRC_RECV
- };
- 
- struct ibv_qp_cap {
-@@ -475,6 +478,26 @@ struct ibv_qp_init_attr {
- 	int			sq_sig_all;
- };
- 
-+enum ibv_qp_init_attr_mask {
-+	IBV_QP_INIT_ATTR_PD		= 1 << 0,
-+	IBV_QP_INIT_ATTR_XRCD		= 1 << 1,
-+	IBV_QP_INIT_ATTR_RESERVED	= 1 << 2
++struct pingpong_context {
++	struct ibv_context	*context;
++	struct ibv_comp_channel *channel;
++	struct ibv_pd		*pd;
++	struct ibv_mr		*mr;
++	struct ibv_cq		*send_cq;
++	struct ibv_cq		*recv_cq;
++	struct ibv_srq		*srq;
++	struct ibv_xrcd		*xrcd;
++	struct ibv_qp		**recv_qp;
++	struct ibv_qp		**send_qp;
++	struct pingpong_dest	*rem_dest;
++	void			*buf;
++	int			 lid;
++	int			 sl;
++	enum ibv_mtu		 mtu;
++	int			 ib_port;
++	int			 fd;
++	int			 size;
++	int			 num_clients;
++	int			 num_tests;
++	int			 use_event;
 +};
 +
-+struct ibv_qp_init_attr_ex {
-+	void		       *qp_context;
-+	struct ibv_cq	       *send_cq;
-+	struct ibv_cq	       *recv_cq;
-+	struct ibv_srq	       *srq;
-+	struct ibv_qp_cap	cap;
-+	enum ibv_qp_type	qp_type;
-+	int			sq_sig_all;
++struct pingpong_context ctx;
 +
-+	uint32_t		comp_mask;
-+	struct ibv_pd	       *pd;
-+	struct ibv_xrcd	       *xrcd;
-+};
 +
- enum ibv_qp_attr_mask {
- 	IBV_QP_STATE			= 1 << 	0,
- 	IBV_QP_CUR_STATE		= 1 << 	1,
-@@ -590,6 +613,11 @@ struct ibv_send_wr {
- 			uint32_t	remote_qpn;
- 			uint32_t	remote_qkey;
- 		} ud;
-+		struct {
-+			uint64_t	reserved[3];
-+			uint32_t	reserved2;
-+			uint32_t	remote_srqn;
-+		} xrc;
- 	} wr;
- };
- 
-@@ -771,11 +799,14 @@ struct ibv_context {
- enum verbs_context_mask {
- 	VERBS_CONTEXT_XRCD	= 1 << 0,
- 	VERBS_CONTEXT_SRQ	= 1 << 1,
--	VERBS_CONTEXT_RESERVED	= 1 << 2
-+	VERBS_CONTEXT_QP	= 1 << 2,
-+	VERBS_CONTEXT_RESERVED	= 1 << 3
- };
- 
- struct verbs_context {
- 	/*  "grows up" - new fields go here */
-+	struct ibv_qp *		(*create_qp_ex)(struct ibv_context *context,
-+						struct ibv_qp_init_attr_ex *qp_init_attr_ex);
- 	uint32_t		(*get_srq_num)(struct ibv_srq *srq);
- 	struct ibv_srq *	(*create_srq_ex)(struct ibv_context *context,
- 						 struct ibv_srq_init_attr_ex *srq_init_attr_ex);
-@@ -1143,6 +1174,23 @@ static inline int ibv_post_srq_recv(struct ibv_srq *srq,
- struct ibv_qp *ibv_create_qp(struct ibv_pd *pd,
- 			     struct ibv_qp_init_attr *qp_init_attr);
- 
-+static inline struct ibv_qp *
-+ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_init_attr_ex)
++static int open_device(char *ib_devname)
 +{
-+	struct verbs_context *vctx;
-+	uint32_t mask = qp_init_attr_ex->comp_mask;
++	struct ibv_device **dev_list;
++	int i = 0;
 +
-+	if (mask == IBV_QP_INIT_ATTR_PD)
-+		return ibv_create_qp(qp_init_attr_ex->pd,
-+				     (struct ibv_qp_init_attr *) qp_init_attr_ex);
-+
-+	if (!(vctx = verbs_get_ctx_op(context, create_qp_ex))) {
-+		errno = ENOSYS;
-+		return NULL;
++	dev_list = ibv_get_device_list(NULL);
++	if (!dev_list) {
++		fprintf(stderr, "Failed to get IB devices list");
++		return -1;
 +	}
-+	return vctx->create_qp_ex(context, qp_init_attr_ex);
-+}
 +
- /**
-  * ibv_modify_qp - Modify a queue pair.
-  */
-diff --git a/src/cmd.c b/src/cmd.c
-index e687a3d..2786bed 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -600,6 +600,98 @@ int ibv_cmd_destroy_srq(struct ibv_srq *srq)
- 	return 0;
- }
- 
-+int ibv_cmd_create_qp_ex(struct ibv_context *context,
-+			 struct verbs_qp *qp, struct ibv_qp_init_attr_ex *attr_ex,
-+			 struct ibv_create_qp *cmd, size_t cmd_size,
-+			 struct ibv_create_qp_resp *resp, size_t resp_size)
-+{
-+	struct verbs_xrcd *vxrcd = NULL;
-+
-+	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
-+
-+	if (attr_ex->comp_mask >= IBV_QP_INIT_ATTR_RESERVED)
-+		return ENOSYS;
-+
-+	cmd->user_handle     = (uintptr_t) qp;
-+
-+	if (attr_ex->comp_mask & IBV_QP_INIT_ATTR_XRCD) {
-+		vxrcd = container_of(attr_ex->xrcd, struct verbs_xrcd, xrcd);
-+		cmd->pd_handle	= vxrcd->handle;
-+	} else {
-+		if (!(attr_ex->comp_mask & IBV_QP_INIT_ATTR_PD))
-+			return EINVAL;
-+
-+		cmd->pd_handle	= attr_ex->pd->handle;
-+		cmd->send_cq_handle = attr_ex->send_cq->handle;
-+
-+		if (attr_ex->qp_type != IBV_QPT_XRC_SEND) {
-+			cmd->recv_cq_handle = attr_ex->recv_cq->handle;
-+			cmd->srq_handle = attr_ex->srq ? attr_ex->srq->handle : 0;
++	if (ib_devname) {
++		for (; dev_list[i]; ++i) {
++			if (!strcmp(ibv_get_device_name(dev_list[i]), ib_devname))
++				break;
 +		}
 +	}
-+
-+	cmd->max_send_wr     = attr_ex->cap.max_send_wr;
-+	cmd->max_recv_wr     = attr_ex->cap.max_recv_wr;
-+	cmd->max_send_sge    = attr_ex->cap.max_send_sge;
-+	cmd->max_recv_sge    = attr_ex->cap.max_recv_sge;
-+	cmd->max_inline_data = attr_ex->cap.max_inline_data;
-+	cmd->sq_sig_all	     = attr_ex->sq_sig_all;
-+	cmd->qp_type 	     = attr_ex->qp_type;
-+	cmd->is_srq 	     = !!attr_ex->srq;
-+	cmd->reserved	     = 0;
-+
-+	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
-+		return errno;
-+
-+	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
-+
-+	if (abi_ver > 3) {
-+		attr_ex->cap.max_recv_sge    = resp->max_recv_sge;
-+		attr_ex->cap.max_send_sge    = resp->max_send_sge;
-+		attr_ex->cap.max_recv_wr     = resp->max_recv_wr;
-+		attr_ex->cap.max_send_wr     = resp->max_send_wr;
-+		attr_ex->cap.max_inline_data = resp->max_inline_data;
++	if (!dev_list[i]) {
++		fprintf(stderr, "IB device %s not found\n",
++			ib_devname ? ib_devname : "");
++		return -1;
 +	}
 +
-+	if (abi_ver == 4) {
-+		struct ibv_create_qp_resp_v4 *resp_v4 =
-+			(struct ibv_create_qp_resp_v4 *) resp;
-+
-+		memmove((void *) resp + sizeof *resp,
-+			(void *) resp_v4 + sizeof *resp_v4,
-+			resp_size - sizeof *resp);
-+	} else if (abi_ver <= 3) {
-+		struct ibv_create_qp_resp_v3 *resp_v3 =
-+			(struct ibv_create_qp_resp_v3 *) resp;
-+
-+		memmove((void *) resp + sizeof *resp,
-+			(void *) resp_v3 + sizeof *resp_v3,
-+			resp_size - sizeof *resp);
++	ctx.context = ibv_open_device(dev_list[i]);
++	if (!ctx.context) {
++		fprintf(stderr, "Couldn't get context for %s\n",
++			ibv_get_device_name(dev_list[i]));
++		return -1;
 +	}
 +
-+	qp->qp.handle		= resp->qp_handle;
-+	qp->qp.qp_num		= resp->qpn;
-+	qp->qp.context		= context;
-+	qp->qp.qp_context	= attr_ex->qp_context;
-+	qp->qp.pd		= attr_ex->pd;
-+	qp->qp.send_cq		= attr_ex->send_cq;
-+	qp->qp.recv_cq		= attr_ex->recv_cq;
-+	qp->qp.srq		= attr_ex->srq;
-+	qp->qp.qp_type		= attr_ex->qp_type;
-+	qp->qp.state		= IBV_QPS_RESET;
-+	qp->qp.events_completed = 0;
-+	pthread_mutex_init(&qp->qp.mutex, NULL);
-+	pthread_cond_init(&qp->qp.cond, NULL);
++	ibv_free_device_list(dev_list);
++	return 0;
++}
 +
-+	qp->comp_mask = 0;
-+	if (attr_ex->comp_mask & IBV_QP_INIT_ATTR_XRCD) {
-+		qp->comp_mask |= VERBS_QP_XRCD;
-+		qp->xrcd = vxrcd;
++static int create_qps(void)
++{
++	struct ibv_qp_init_attr_ex init;
++	struct ibv_qp_attr mod;
++	int i;
++
++	for (i = 0; i < ctx.num_clients; ++i) {
++
++		memset(&init, 0, sizeof init);
++		init.qp_type = IBV_QPT_XRC_RECV;
++		init.comp_mask = IBV_QP_INIT_ATTR_XRCD;
++		init.xrcd = ctx.xrcd;
++
++		ctx.recv_qp[i] = ibv_create_qp_ex(ctx.context, &init);
++		if (!ctx.recv_qp[i])  {
++			fprintf(stderr, "Couldn't create recv QP[%d] errno %d\n",
++				i, errno);
++			return 1;
++		}
++
++		mod.qp_state        = IBV_QPS_INIT;
++		mod.pkey_index      = 0;
++		mod.port_num        = ctx.ib_port;
++		mod.qp_access_flags = IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_READ;
++
++		if (ibv_modify_qp(ctx.recv_qp[i], &mod,
++				  IBV_QP_STATE | IBV_QP_PKEY_INDEX |
++				  IBV_QP_PORT | IBV_QP_ACCESS_FLAGS)) {
++			fprintf(stderr, "Failed to modify recv QP[%d] to INIT\n", i);
++			return 1;
++		}
++
++		memset(&init, 0, sizeof init);
++		init.qp_type	      = IBV_QPT_XRC_SEND;
++		init.send_cq	      = ctx.send_cq;
++		init.cap.max_send_wr  = ctx.num_clients * ctx.num_tests;
++		init.cap.max_send_sge = 1;
++		init.comp_mask	      = IBV_QP_INIT_ATTR_PD;
++		init.pd		      = ctx.pd;
++
++		ctx.send_qp[i] = ibv_create_qp_ex(ctx.context, &init);
++		if (!ctx.send_qp[i])  {
++			fprintf(stderr, "Couldn't create send QP[%d] errno %d\n",
++				i, errno);
++			return 1;
++		}
++
++		mod.qp_state        = IBV_QPS_INIT;
++		mod.pkey_index      = 0;
++		mod.port_num        = ctx.ib_port;
++		mod.qp_access_flags = 0;
++
++		if (ibv_modify_qp(ctx.send_qp[i], &mod,
++				  IBV_QP_STATE | IBV_QP_PKEY_INDEX |
++				  IBV_QP_PORT | IBV_QP_ACCESS_FLAGS)) {
++			fprintf(stderr, "Failed to modify send QP[%d] to INIT\n", i);
++			return 1;
++		}
 +	}
 +
 +	return 0;
 +}
 +
- int ibv_cmd_create_qp(struct ibv_pd *pd,
- 		      struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
- 		      struct ibv_create_qp *cmd, size_t cmd_size,
-@@ -608,7 +700,7 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
- 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
- 
- 	cmd->user_handle     = (uintptr_t) qp;
--	cmd->pd_handle 	     = pd->handle;
-+	cmd->pd_handle       = pd->handle;
- 	cmd->send_cq_handle  = attr->send_cq->handle;
- 	cmd->recv_cq_handle  = attr->recv_cq->handle;
- 	cmd->srq_handle      = attr->srq ? attr->srq->handle : 0;
-diff --git a/src/libibverbs.map b/src/libibverbs.map
-index c8ec645..4249793 100644
---- a/src/libibverbs.map
-+++ b/src/libibverbs.map
-@@ -101,5 +101,6 @@ IBVERBS_1.1 {
- 		ibv_cmd_open_xrcd;
- 		ibv_cmd_close_xrcd;
- 		ibv_cmd_create_srq_ex;
-+		ibv_cmd_create_qp_ex;
- 		
- } IBVERBS_1.0;
++static int pp_init_ctx(char *ib_devname)
++{
++	struct ibv_srq_init_attr_ex attr;
++	struct ibv_xrcd_init_attr xrcd_attr;
++
++	ctx.recv_qp = calloc(ctx.num_clients, sizeof *ctx.recv_qp);
++	ctx.send_qp = calloc(ctx.num_clients, sizeof *ctx.send_qp);
++	ctx.rem_dest = calloc(ctx.num_clients, sizeof *ctx.rem_dest);
++	if (!ctx.recv_qp || !ctx.send_qp || !ctx.rem_dest)
++		return 1;
++
++	if (open_device(ib_devname)) {
++		fprintf(stderr, "Failed to open device\n");
++		return 1;
++	}
++
++	ctx.lid = pp_get_local_lid(ctx.context, ctx.ib_port);
++	if (ctx.lid < 0) {
++		fprintf(stderr, "Failed to get SLID\n");
++		return 1;
++	}
++
++	ctx.buf = memalign(page_size, ctx.size);
++	if (!ctx.buf) {
++		fprintf(stderr, "Couldn't allocate work buf.\n");
++		return 1;
++	}
++
++	memset(ctx.buf, 0, ctx.size);
++
++	if (ctx.use_event) {
++		ctx.channel = ibv_create_comp_channel(ctx.context);
++		if (!ctx.channel) {
++			fprintf(stderr, "Couldn't create completion channel\n");
++			return 1;
++		}
++	}
++
++	ctx.pd = ibv_alloc_pd(ctx.context);
++	if (!ctx.pd) {
++		fprintf(stderr, "Couldn't allocate PD\n");
++		return 1;
++	}
++
++	ctx.mr = ibv_reg_mr(ctx.pd, ctx.buf, ctx.size, IBV_ACCESS_LOCAL_WRITE);
++	if (!ctx.mr) {
++		fprintf(stderr, "Couldn't register MR\n");
++		return 1;
++	}
++
++	ctx.fd = open("/tmp/xrc_domain", O_CREAT);
++	if (ctx.fd < 0) {
++		fprintf(stderr,
++			"Couldn't create the file for the XRC Domain "
++			"but not stopping %d\n", errno);
++		ctx.fd = -1;
++	}
++
++	memset(&xrcd_attr, 0, sizeof xrcd_attr);
++	xrcd_attr.comp_mask = IBV_XRCD_INIT_ATTR_FD | IBV_XRCD_INIT_ATTR_OFLAGS;
++	xrcd_attr.fd = ctx.fd;
++	xrcd_attr.oflags = O_CREAT;
++	ctx.xrcd = ibv_open_xrcd(ctx.context, &xrcd_attr);
++	if (!ctx.xrcd) {
++		fprintf(stderr, "Couldn't Open the XRC Domain %d\n", errno);
++		return 1;
++	}
++
++	ctx.recv_cq = ibv_create_cq(ctx.context, ctx.num_clients, &ctx.recv_cq,
++				    ctx.channel, 0);
++	if (!ctx.recv_cq) {
++		fprintf(stderr, "Couldn't create recv CQ\n");
++		return 1;
++	}
++
++	if (ctx.use_event) {
++		if (ibv_req_notify_cq(ctx.recv_cq, 0)) {
++			fprintf(stderr, "Couldn't request CQ notification\n");
++			return 1;
++		}
++	}
++
++	ctx.send_cq = ibv_create_cq(ctx.context, ctx.num_clients, NULL, NULL, 0);
++	if (!ctx.send_cq) {
++		fprintf(stderr, "Couldn't create send CQ\n");
++		return 1;
++	}
++
++	memset(&attr, 0, sizeof attr);
++	attr.attr.max_wr = ctx.num_clients;
++	attr.attr.max_sge = 1;
++	attr.comp_mask = IBV_SRQ_INIT_ATTR_TYPE | IBV_SRQ_INIT_ATTR_XRCD |
++			 IBV_SRQ_INIT_ATTR_CQ | IBV_SRQ_INIT_ATTR_PD;
++	attr.srq_type = IBV_SRQT_XRC;
++	attr.xrcd = ctx.xrcd;
++	attr.cq = ctx.recv_cq;
++	attr.pd = ctx.pd;
++
++	ctx.srq = ibv_create_srq_ex(ctx.context, &attr);
++	if (!ctx.srq)  {
++		fprintf(stderr, "Couldn't create SRQ\n");
++		return 1;
++	}
++
++	if (create_qps())
++		return 1;
++
++	return 0;
++}
++
++static int send_local_dest(int sockfd, int index)
++{
++	char msg[MSG_SIZE];
++
++	ctx.rem_dest[index].recv_psn = lrand48() & 0xffffff;
++
++	printf(ADDR_FORMAT, "local", ctx.lid, ctx.recv_qp[index]->qp_num,
++		ctx.send_qp[index]->qp_num, ctx.rem_dest[index].recv_psn,
++		ibv_get_srq_num(ctx.srq));
++
++	sprintf(msg, MSG_FORMAT, ctx.lid, ctx.recv_qp[index]->qp_num,
++		ctx.send_qp[index]->qp_num, ctx.rem_dest[index].recv_psn,
++		ibv_get_srq_num(ctx.srq));
++
++	if (write(sockfd, msg, MSG_SIZE) != MSG_SIZE) {
++		fprintf(stderr, "Couldn't send local address\n");
++		return -1;
++	}
++
++	return 0;
++}
++
++static int recv_remote_dest(int sockfd, int index)
++{
++	struct pingpong_dest *rem_dest;
++	char msg[MSG_SIZE];
++	int n = 0, r;
++
++	while (n < MSG_SIZE) {
++		r = read(sockfd, msg + n, MSG_SIZE - n);
++		if (r < 0) {
++			perror("client read");
++			fprintf(stderr,
++				"%d/%d: Couldn't read remote address [%d]\n",
++				n, MSG_SIZE, index);
++			return -1;
++		}
++		n += r;
++	}
++
++	rem_dest = &ctx.rem_dest[index];
++	sscanf(msg, MSG_SSCAN, &rem_dest->lid, &rem_dest->recv_qpn,
++	       &rem_dest->send_qpn, &rem_dest->send_psn, &rem_dest->srqn);
++
++	printf(ADDR_FORMAT, "remote", rem_dest->lid, rem_dest->recv_qpn,
++	       rem_dest->send_qpn, rem_dest->send_psn, rem_dest->srqn);
++
++	return 0;
++}
++
++static int connect_qps(int index)
++{
++	struct ibv_qp_attr attr;
++
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state	      = IBV_QPS_RTR;
++	attr.dest_qp_num      = ctx.rem_dest[index].send_qpn;
++	attr.path_mtu	      = ctx.mtu;
++	attr.rq_psn	      = ctx.rem_dest[index].send_psn;
++	attr.min_rnr_timer    = 12;
++	attr.ah_attr.dlid     = ctx.rem_dest[index].lid;
++	attr.ah_attr.sl	      = ctx.sl;
++	attr.ah_attr.port_num = ctx.ib_port;
++
++	if (ibv_modify_qp(ctx.recv_qp[index], &attr,
++			  IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU |
++			  IBV_QP_DEST_QPN | IBV_QP_RQ_PSN |
++			  IBV_QP_MAX_DEST_RD_ATOMIC | IBV_QP_MIN_RNR_TIMER)) {
++		fprintf(stderr, "Failed to modify send QP[%d] to RTR\n", index);
++		return 1;
++	}
++
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state = IBV_QPS_RTS;
++	attr.timeout = 14;
++	attr.sq_psn = ctx.rem_dest[index].recv_psn;
++
++	if (ibv_modify_qp(ctx.recv_qp[index], &attr,
++			  IBV_QP_STATE | IBV_QP_TIMEOUT | IBV_QP_SQ_PSN)) {
++		fprintf(stderr, "Failed to modify recv QP[%d] to RTS\n", index);
++		return 1;
++	}
++
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state	      = IBV_QPS_RTR;
++	attr.dest_qp_num      = ctx.rem_dest[index].recv_qpn;
++	attr.path_mtu	      = ctx.mtu;
++	attr.rq_psn	      = ctx.rem_dest[index].send_psn;
++	attr.ah_attr.dlid     = ctx.rem_dest[index].lid;
++	attr.ah_attr.sl	      = ctx.sl;
++	attr.ah_attr.port_num = ctx.ib_port;
++
++	if (ibv_modify_qp(ctx.send_qp[index], &attr,
++			  IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU |
++			  IBV_QP_DEST_QPN | IBV_QP_RQ_PSN)) {
++		fprintf(stderr, "Failed to modify send QP[%d] to RTR\n", index);
++		return 1;
++	}
++
++	memset(&attr, 0, sizeof attr);
++	attr.qp_state = IBV_QPS_RTS;
++	attr.timeout = 14;
++	attr.retry_cnt = 7;
++	attr.rnr_retry = 7;
++	attr.sq_psn = ctx.rem_dest[index].recv_psn;
++
++	if (ibv_modify_qp(ctx.send_qp[index], &attr,
++			  IBV_QP_STATE | IBV_QP_TIMEOUT | IBV_QP_SQ_PSN |
++			  IBV_QP_RETRY_CNT | IBV_QP_RNR_RETRY | IBV_QP_MAX_QP_RD_ATOMIC)) {
++		fprintf(stderr, "Failed to modify send QP[%d] to RTS\n", index);
++		return 1;
++	}
++
++	return 0;
++}
++
++static int pp_client_connect(const char *servername, int port)
++{
++	struct addrinfo *res, *t;
++	char *service;
++	int ret;
++	int sockfd = -1;
++	struct addrinfo hints = {
++		.ai_family   = AF_UNSPEC,
++		.ai_socktype = SOCK_STREAM
++	};
++
++	if (asprintf(&service, "%d", port) < 0)
++		return 1;
++
++	ret = getaddrinfo(servername, service, &hints, &res);
++	if (ret < 0) {
++		fprintf(stderr, "%s for %s:%d\n", gai_strerror(ret), servername, port);
++		free(service);
++		return 1;
++	}
++
++	for (t = res; t; t = t->ai_next) {
++		sockfd = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
++		if (sockfd >= 0) {
++			if (!connect(sockfd, t->ai_addr, t->ai_addrlen))
++				break;
++			close(sockfd);
++			sockfd = -1;
++		}
++	}
++
++	freeaddrinfo(res);
++	free(service);
++
++	if (sockfd < 0) {
++		fprintf(stderr, "Couldn't connect to %s:%d\n", servername, port);
++		return 1;
++	}
++
++	if (send_local_dest(sockfd, 0))
++		return 1;
++
++	if (recv_remote_dest(sockfd, 0))
++		return 1;
++
++	if (connect_qps(0))
++		return 1;
++
++	shutdown(sockfd, SHUT_RDWR);
++	close(sockfd);
++	return 0;
++}
++
++static int pp_server_connect(int port)
++{
++	struct addrinfo *res, *t;
++	char *service;
++	int ret, i, n;
++	int sockfd = -1, connfd;
++	struct addrinfo hints = {
++		.ai_flags    = AI_PASSIVE,
++		.ai_family   = AF_UNSPEC,
++		.ai_socktype = SOCK_STREAM
++	};
++
++	if (asprintf(&service, "%d", port) < 0)
++		return 1;
++
++	ret = getaddrinfo(NULL, service, &hints, &res);
++	if (ret < 0) {
++		fprintf(stderr, "%s for port %d\n", gai_strerror(ret), port);
++		free(service);
++		return 1;
++	}
++
++	for (t = res; t; t = t->ai_next) {
++		sockfd = socket(t->ai_family, t->ai_socktype, t->ai_protocol);
++		if (sockfd >= 0) {
++			n = 1;
++			setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof n);
++			if (!bind(sockfd, t->ai_addr, t->ai_addrlen))
++				break;
++			close(sockfd);
++			sockfd = -1;
++		}
++	}
++
++	freeaddrinfo(res);
++	free(service);
++
++	if (sockfd < 0) {
++		fprintf(stderr, "Couldn't listen to port %d\n", port);
++		return 1;
++	}
++
++	listen(sockfd, ctx.num_clients);
++
++	for (i = 0; i < ctx.num_clients; i++) {
++		connfd = accept(sockfd, NULL, 0);
++		if (connfd < 0) {
++			fprintf(stderr, "accept() failed for client %d\n", i);
++			return 1;
++		}
++
++		if (recv_remote_dest(connfd, i))
++			return 1;
++
++		if (send_local_dest(connfd, i))
++			return 1;
++
++		if (connect_qps(i))
++			return 1;
++
++		shutdown(connfd, SHUT_RDWR);
++		close(connfd);
++	}
++
++	close(sockfd);
++	return 0;
++}
++
++
++static int pp_close_ctx(void)
++{
++	int i;
++
++	for (i = 0; i < ctx.num_clients; ++i) {
++		/*
++		 * Receive QPs may be used by other clients.  Leave them, they
++		 * will be cleaned up when the xrcd is destroyed.
++		 */
++		if (ibv_destroy_qp(ctx.send_qp[i])) {
++			fprintf(stderr, "Couldn't destroy INI QP[%d]\n", i);
++			return 1;
++		}
++	}
++
++	if (ibv_destroy_srq(ctx.srq)) {
++		fprintf(stderr, "Couldn't destroy SRQ\n");
++		return 1;
++	}
++
++	if (!ctx.xrcd && ibv_close_xrcd(ctx.xrcd)) {
++		fprintf(stderr, "Couldn't close the XRC Domain\n");
++		return 1;
++	}
++	if (ctx.fd >= 0 && close(ctx.fd)) {
++		fprintf(stderr, "Couldn't close the file for the XRC Domain\n");
++		return 1;
++	}
++
++	if (ibv_destroy_cq(ctx.send_cq)) {
++		fprintf(stderr, "Couldn't destroy send CQ\n");
++		return 1;
++	}
++
++	if (ibv_destroy_cq(ctx.recv_cq)) {
++		fprintf(stderr, "Couldn't destroy recv CQ\n");
++		return 1;
++	}
++
++	if (ibv_dereg_mr(ctx.mr)) {
++		fprintf(stderr, "Couldn't deregister MR\n");
++		return 1;
++	}
++
++	if (ibv_dealloc_pd(ctx.pd)) {
++		fprintf(stderr, "Couldn't deallocate PD\n");
++		return 1;
++	}
++
++	if (ctx.channel) {
++		if (ibv_destroy_comp_channel(ctx.channel)) {
++			fprintf(stderr,
++				"Couldn't destroy completion channel\n");
++			return 1;
++		}
++	}
++
++	if (ibv_close_device(ctx.context)) {
++		fprintf(stderr, "Couldn't release context\n");
++		return 1;
++	}
++
++	free(ctx.buf);
++	free(ctx.rem_dest);
++	free(ctx.send_qp);
++	free(ctx.recv_qp);
++	return 0;
++}
++
++static int pp_post_recv(int cnt)
++{
++	struct ibv_sge sge;
++	struct ibv_recv_wr wr, *bad_wr;
++
++	sge.addr = (uintptr_t) ctx.buf;
++	sge.length = ctx.size;
++	sge.lkey = ctx.mr->lkey;
++
++	wr.next       = NULL;
++	wr.wr_id      = (uintptr_t) &ctx;
++	wr.sg_list    = &sge;
++	wr.num_sge    = 1;
++
++	while (cnt--) {
++		if (ibv_post_srq_recv(ctx.srq, &wr, &bad_wr)) {
++			fprintf(stderr, "Failed to post receive to SRQ\n");
++			return 1;
++		}
++	}
++	return 0;
++}
++
++/*
++ * Send to each client round robin on each set of xrc send/recv qp.
++ * Generate a completion on the last send.
++ */
++static int pp_post_send(int index)
++{
++	struct ibv_sge sge;
++	struct ibv_send_wr wr, *bad_wr;
++	int qpi;
++
++	sge.addr = (uintptr_t) ctx.buf;
++	sge.length = ctx.size;
++	sge.lkey = ctx.mr->lkey;
++
++	wr.wr_id   = (uintptr_t) index;
++	wr.next    = NULL;
++	wr.sg_list = &sge;
++	wr.num_sge = 1;
++	wr.opcode  = IBV_WR_SEND;
++	wr.wr.xrc.remote_srqn = ctx.rem_dest[index].srqn;
++
++	qpi = (index + ctx.rem_dest[index].pp_cnt) % ctx.num_clients;
++	wr.send_flags = (++ctx.rem_dest[index].pp_cnt >= ctx.num_tests) ?
++			IBV_SEND_SIGNALED : 0;
++
++	return ibv_post_send(ctx.send_qp[qpi], &wr, &bad_wr);
++}
++
++static int find_qp(int qpn)
++{
++	int i;
++
++	if (ctx.num_clients == 1)
++		return 0;
++
++	for (i = 0; i < ctx.num_clients; ++i)
++		if (ctx.recv_qp[i]->qp_num == qpn)
++			return i;
++
++	fprintf(stderr, "Unable to find qp %x\n", qpn);
++	return 0;
++}
++
++static int get_cq_event(void)
++{
++	struct ibv_cq *ev_cq;
++	void          *ev_ctx;
++
++	if (ibv_get_cq_event(ctx.channel, &ev_cq, &ev_ctx)) {
++		fprintf(stderr, "Failed to get cq_event\n");
++		return 1;
++	}
++
++	if (ev_cq != ctx.recv_cq) {
++		fprintf(stderr, "CQ event for unknown CQ %p\n", ev_cq);
++		return 1;
++	}
++
++	if (ibv_req_notify_cq(ctx.recv_cq, 0)) {
++		fprintf(stderr, "Couldn't request CQ notification\n");
++		return 1;
++	}
++
++	return 0;
++}
++
++static void init(void)
++{
++	srand48(getpid() * time(NULL));
++
++	ctx.size = 4096;
++	ctx.ib_port = 1;
++	ctx.num_clients  = 1;
++	ctx.num_tests = 5;
++	ctx.mtu = IBV_MTU_2048;
++	ctx.sl = 0;
++}
++
++static void usage(const char *argv0)
++{
++	printf("Usage:\n");
++	printf("  %s            start a server and wait for connection\n", argv0);
++	printf("  %s <host>     connect to server at <host>\n", argv0);
++	printf("\n");
++	printf("Options:\n");
++	printf("  -p, --port=<port>      listen on/connect to port <port> (default 18515)\n");
++	printf("  -d, --ib-dev=<dev>     use IB device <dev> (default first device found)\n");
++	printf("  -i, --ib-port=<port>   use port <port> of IB device (default 1)\n");
++	printf("  -s, --size=<size>      size of message to exchange (default 4096)\n");
++	printf("  -m, --mtu=<size>       path MTU (default 2048)\n");
++	printf("  -c, --clients=<n>      number of clients (on server only, default 1)\n");
++	printf("  -n, --num_tests=<n>    number of tests per client (default 5)\n");
++	printf("  -l, --sl=<sl>          service level value\n");
++	printf("  -e, --events           sleep on CQ events (default poll)\n");
++}
++
++int main(int argc, char *argv[])
++{
++	char          *ib_devname = NULL;
++	char          *servername = NULL;
++	int           port = 18515;
++	int           i, total, cnt = 0;
++	int           ne, qpi, num_cq_events = 0;
++	struct ibv_wc wc;
++
++	init();
++	while (1) {
++		int c;
++
++		static struct option long_options[] = {
++			{ .name = "port",      .has_arg = 1, .val = 'p' },
++			{ .name = "ib-dev",    .has_arg = 1, .val = 'd' },
++			{ .name = "ib-port",   .has_arg = 1, .val = 'i' },
++			{ .name = "size",      .has_arg = 1, .val = 's' },
++			{ .name = "mtu",       .has_arg = 1, .val = 'm' },
++			{ .name = "clients",   .has_arg = 1, .val = 'c' },
++			{ .name = "num_tests", .has_arg = 1, .val = 'n' },
++			{ .name = "sl",        .has_arg = 1, .val = 'l' },
++			{ .name = "events",    .has_arg = 0, .val = 'e' },
++			{ 0 }
++		};
++
++		c = getopt_long(argc, argv, "p:d:i:s:m:c:n:l:e", long_options,
++				NULL);
++		if (c == -1)
++			break;
++
++		switch (c) {
++		case 'p':
++			port = strtol(optarg, NULL, 0);
++			if (port < 0 || port > 65535) {
++				usage(argv[0]);
++				return 1;
++			}
++			break;
++		case 'd':
++			ib_devname = strdupa(optarg);
++			break;
++		case 'i':
++			ctx.ib_port = strtol(optarg, NULL, 0);
++			if (ctx.ib_port < 0) {
++				usage(argv[0]);
++				return 1;
++			}
++			break;
++		case 's':
++			ctx.size = strtol(optarg, NULL, 0);
++			break;
++		case 'm':
++			ctx.mtu = pp_mtu_to_enum(strtol(optarg, NULL, 0));
++			if (ctx.mtu < 0) {
++				usage(argv[0]);
++				return 1;
++			}
++			break;
++		case 'c':
++			ctx.num_clients = strtol(optarg, NULL, 0);
++			break;
++		case 'n':
++			ctx.num_tests = strtol(optarg, NULL, 0);
++			break;
++		case 'l':
++			ctx.sl = strtol(optarg, NULL, 0);
++			break;
++		case 'e':
++			ctx.use_event = 1;
++			break;
++		default:
++			usage(argv[0]);
++			return 1;
++		}
++	}
++
++	if (optind == argc - 1) {
++		servername = strdupa(argv[optind]);
++		ctx.num_clients = 1;
++	} else if (optind < argc) {
++		usage(argv[0]);
++		return 1;
++	}
++
++	page_size = sysconf(_SC_PAGESIZE);
++
++	if (pp_init_ctx(ib_devname))
++		return 1;
++
++	if (pp_post_recv(ctx.num_clients)) {
++		fprintf(stderr, "Couldn't post receives\n");
++		return 1;
++	}
++
++	if (servername) {
++		if (pp_client_connect(servername, port))
++			return 1;
++	} else {
++		if (pp_server_connect(port))
++			return 1;
++
++		for (i = 0; i < ctx.num_clients; i++)
++			pp_post_send(i);
++	}
++
++	total = ctx.num_clients * ctx.num_tests;
++	while (cnt < total) {
++		if (ctx.use_event) {
++			if (get_cq_event())
++				return 1;
++
++			++num_cq_events;
++		}
++
++		do {
++			ne = ibv_poll_cq(ctx.recv_cq, 1, &wc);
++			if (ne < 0) {
++				fprintf(stderr, "Error polling cq %d\n", ne);
++				return 1;
++			} else if (ne == 0) {
++				break;
++			}
++
++			if (wc.status) {
++				fprintf(stderr, "Work completion error %d\n", wc.status);
++				return 1;
++			}
++
++			pp_post_recv(ne);
++			qpi = find_qp(wc.qp_num);
++			if (ctx.rem_dest[qpi].pp_cnt < ctx.num_tests)
++				pp_post_send(qpi);
++			cnt += ne;
++		} while (ne > 0);
++	}
++
++	for (cnt = 0; cnt < ctx.num_clients; cnt += ne) {
++		ne = ibv_poll_cq(ctx.send_cq, 1, &wc);
++		if (ne < 0) {
++			fprintf(stderr, "Error polling cq %d\n", ne);
++			return 1;
++		}
++	}
++
++	if (ctx.use_event)
++		ibv_ack_cq_events(ctx.recv_cq, num_cq_events);
++
++	if (pp_close_ctx())
++		return 1;
++
++	printf("success\n");
++	return 0;
++}
 -- 
 1.7.3
 
