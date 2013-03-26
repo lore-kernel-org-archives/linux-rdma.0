@@ -1,36 +1,52 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Different signatures to ibv_open_xrcd - branch issue?
-Date: Tue, 26 Mar 2013 21:09:53 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736F368566@ORSMSX101.amr.corp.intel.com>
-References: <51502C30.2000806@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A823736F367AB8@ORSMSX101.amr.corp.intel.com>
- <515173F2.4030506@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A823736F36825D@ORSMSX101.amr.corp.intel.com>
- <51520D43.2060006@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH libibverbs v5 0/7] Provide verbs extension mechanism and add XRC support
+Date: Tue, 26 Mar 2013 14:14:19 -0700
+Message-ID: <1364332466-22786-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51520D43.2060006-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I think I missed something here, can I use your branch xrc2 of
-> libibverbs for testing purpose, or there are still things to merge there?
+From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The xrc2 branch is usable.  I'm about 10-15 minutes away from posting v5 of those patches.
+Extend XRC support to user space through libibverbs.  Because XRC requires
+new verbs and extensions to existing verbs, we first introduce a generic
+mechanism for extending verbs in a backward compatible manner.  XRC support
+is built on top of that infrastructure.
 
-> And for librdmacm, I'm looking forward to try it with a real application
-> the moment you'll have a branch witch is compatible with libibverbs.
+Jay Sternberg (1):
+  libibverbs: Add XRC sample application
 
-The librdmacm needs to be updated to match the latest libibverbs.  If the libibverbs changes are ever merged upstream, I'll update the librdmacm at that point.
+Sean Hefty (5):
+  libibverbs: Introduce XRC domains
+  livibverbs: Add support for XRC SRQs
+  libibverbs: Add support for XRC QPs
+  libibverbs: Add ibv_open_qp
+  libibverbs: Add man page for ibv_open_qp
 
-Until then, the only sample app for XRC is ibv_xsrq_pingpong.
+Yishai Hadas (1):
+  Infrastructure to support verbs extensions
 
-- Sean
+ Makefile.am                   |    4 +-
+ examples/xsrq_pingpong.c      |  885 +++++++++++++++++++++++++++++++++++++++++
+ include/infiniband/driver.h   |   64 +++
+ include/infiniband/kern-abi.h |  112 ++++--
+ include/infiniband/verbs.h    |  249 +++++++++++-
+ man/ibv_open_qp.3             |   50 +++
+ src/cmd.c                     |  374 ++++++++++++------
+ src/device.c                  |   54 ++-
+ src/init.c                    |   41 ++-
+ src/kern_abi.h                |  101 -----
+ src/libibverbs.map            |    8 +
+ 11 files changed, 1647 insertions(+), 295 deletions(-)
+ create mode 100644 examples/xsrq_pingpong.c
+ create mode 100644 man/ibv_open_qp.3
+ delete mode 100644 src/kern_abi.h
+
+-- 
+1.7.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
