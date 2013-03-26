@@ -1,39 +1,30 @@
-From: Grant Grundler <grundler-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Subject: [PATCH] rdma: fix odd use of WARN_ON() in ib_srpt.c
-Date: Tue, 26 Mar 2013 14:48:28 -0700
-Message-ID: <1364334508-7397-1-git-send-email-grundler@chromium.org>
+From: Grant Grundler <grundler-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: odd use of WARN_ON() in ib_srpt.c
+Date: Tue, 26 Mar 2013 14:54:50 -0700
+Message-ID: <CANEJEGss9WBy3WDWmNUjjJr5kOagSmC5QdPkb6xc6Uo1Xg=ahQ@mail.gmail.com>
+References: <CANEJEGvArsbMitJENhFQ4HPCfmAC=PGz4_J2d9JmJVQS4eKiUg@mail.gmail.com>
+	<CAL1RGDXzyFA-gAVMVeOgFM_n8puskMiN7o_ObQ=Qr9vPdCSGTA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDXzyFA-gAVMVeOgFM_n8puskMiN7o_ObQ=Qr9vPdCSGTA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Grundler <grundler-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-While WARN_ON("const string") will work, it's intent is not obvious.
-The warning is more useful by showing the "state" value.
+On Tue, Mar 26, 2013 at 1:34 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+...
+>> This "works" but intent is more obvious with something like:
+>>     WARN(1, "Unexpected command state (%d)", state);
+>
+> Agree, that would be nicer for debugging if this ever triggers.
 
-Signed-off-by: Grant Grundler <grundler-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
----
-UNTESTED.
+Thanks. I just tried to send as a properly formatted patch. Prod me if
+I messed that up.
 
- drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index c09d41b..b08ca7a 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1374,7 +1374,7 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 		target_put_sess_cmd(ioctx->ch->sess, &ioctx->cmd);
- 		break;
- 	default:
--		WARN_ON("ERROR: unexpected command state");
-+		WARN(1, "Unexpected command state (%d)", state);
- 		break;
- 	}
- 
--- 
-1.8.1.3
-
+cheers,
+grant
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
