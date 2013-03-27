@@ -1,47 +1,88 @@
-From: Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 2/6] amso1100: convert to using idr_alloc_cyclic
-Date: Wed, 27 Mar 2013 12:50:23 -0400
-Message-ID: <20130327125023.159e2309@tlielax.poochiereds.net>
-References: <1364390288-30968-1-git-send-email-jlayton@redhat.com>
-	<1364390288-30968-3-git-send-email-jlayton@redhat.com>
-	<20130327162755.GC7395@htj.dyndns.org>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RESUBMIT: [PATCH] libibmad: To reserve upper 8 bits of tid used
+ by solaris SRIOV driver
+Date: Wed, 27 Mar 2013 10:13:15 -0700
+Message-ID: <20130327101315.58eace03f17e4870fd92f944@intel.com>
+References: <5151E973.80901@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130327162755.GC7395-Gd/HAXX7CRxy/B6EtB590w@public.gmane.org>
+In-Reply-To: <5151E973.80901-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 27 Mar 2013 09:27:55 -0700
-Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+As I said before this is really what we should do so thanks, however, see below.
 
-> On Wed, Mar 27, 2013 at 09:18:04AM -0400, Jeff Layton wrote:
-> >  void c2_init_qp_table(struct c2_dev *c2dev)
-> >  {
-> >  	spin_lock_init(&c2dev->qp_table.lock);
-> > -	idr_init(&c2dev->qp_table.idr);
-> > +	idr_init_cyclic(&c2dev->qp_table.idr, 0);
-> >  }
+On Tue, 26 Mar 2013 11:31:15 -0700
+Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+
+> From 493e8ed95e32f9c3e337f758a979120392c9e412 Mon Sep 17 00:00:00 2001
+> From: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Date: Tue, 12 Mar 2013 19:38:52 +0000
+> Subject: [PATCH] libibmad: To reserve upper 8 bits of tid used by solaris
+>  SRIOV driver
 > 
-> Why is this necessary?  In general, why is idr_init_cyclic()
-> necessary?
+> Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  src/mad.c |    8 ++++++++
+>  src/rpc.c |    2 +-
+>  2 files changed, 9 insertions(+), 1 deletion(-)
 > 
-> Thanks.
+> diff --git a/src/mad.c b/src/mad.c
+> index 70a69dd..fe1305d 100644
+> --- a/src/mad.c
+> +++ b/src/mad.c
+> @@ -50,6 +50,13 @@
+>  #undef DEBUG
+>  #define DEBUG	if (ibdebug)	IBWARN
+>  
+> +#define GET_IB_USERLAND_TID(tid)	(tid & 0x00000000ffffffff)
+> +/*
+> + * Generate the 64 bit MAD transaction ID. The upper 32 bits are reserved for
+> + * use by the kernel. We clear the upper 32 bits here, but MADs received from
+> + * the kernel may contain kernel specific data in these bits, consequently
+> + * userland TID matching should only be done on the lower 32 bits.
+> + */
+>  uint64_t mad_trid(void)
+>  {
+>  	static uint64_t base;
+> @@ -62,6 +69,7 @@ uint64_t mad_trid(void)
+>  		trid = random();
+>  	}
+>  	next = ++trid | (base << 32);
+> +	next = GET_IB_USERLAND_TID(next);
+
+Sorry, I guess I should have specified that we don't need "base" any longer.  I am going to combine the removal of base with your patch and accept this.
+
+Thanks,
+Ira
+
+>  	return next;
+>  }
+>  
+> diff --git a/src/rpc.c b/src/rpc.c
+> index 5cb13f1..7d93180 100644
+> --- a/src/rpc.c
+> +++ b/src/rpc.c
+> @@ -129,7 +129,7 @@ static int
+>  _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int agentid, int len,
+>  	   int timeout, int max_retries, int *p_error)
+>  {
+> -	uint32_t trid;		/* only low 32 bits */
+> +	uint32_t trid;		/* only low 32 bits - see mad_trid() */
+>  	int retries;
+>  	int length, status;
+>  
+> -- 
+> 1.7.9.2
 > 
 
-My thinking was that you might want to initialize the "cur" value to an
-arbitrary value. All the current users though initialize it to the same
-as the "start" value passed into idr_alloc_cyclic. Starting with it at
-0 should be fine in all of the existing users.
 
-I'll remove that in v2...
-
-Thanks!
 -- 
-Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
