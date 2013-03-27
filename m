@@ -1,61 +1,58 @@
 From: Jeff Layton <jlayton@redhat.com>
-Subject: [PATCH v1 2/6] amso1100: convert to using idr_alloc_cyclic
-Date: Wed, 27 Mar 2013 09:18:04 -0400
-Message-ID: <1364390288-30968-3-git-send-email-jlayton@redhat.com>
+Subject: [PATCH v1 3/6] mlx4: convert to using idr_alloc_cyclic
+Date: Wed, 27 Mar 2013 09:18:05 -0400
+Message-ID: <1364390288-30968-4-git-send-email-jlayton@redhat.com>
 References: <1364390288-30968-1-git-send-email-jlayton@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1364390288-30968-1-git-send-email-jlayton@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, tj@kernel.org, Steve Wise <swise@opengridcomputing.com>, Tom Tucker <tom@opengridcomputing.com>, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, tj@kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-(Note: compile-tested only)
+(Note: compile tested only)
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: Tom Tucker <tom@opengridcomputing.com>
+Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Roland Dreier <roland@purestorage.com>
 Cc: linux-rdma@vger.kernel.org
 ---
- drivers/infiniband/hw/amso1100/c2.h    | 1 -
- drivers/infiniband/hw/amso1100/c2_qp.c | 5 ++---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx4/cm.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/amso1100/c2.h b/drivers/infiniband/hw/amso1100/c2.h
-index ba7a1208..d619d73 100644
---- a/drivers/infiniband/hw/amso1100/c2.h
-+++ b/drivers/infiniband/hw/amso1100/c2.h
-@@ -265,7 +265,6 @@ struct c2_pd_table {
- struct c2_qp_table {
- 	struct idr idr;
- 	spinlock_t lock;
--	int last;
- };
- 
- struct c2_element {
-diff --git a/drivers/infiniband/hw/amso1100/c2_qp.c b/drivers/infiniband/hw/amso1100/c2_qp.c
-index 0ab826b..703b33f 100644
---- a/drivers/infiniband/hw/amso1100/c2_qp.c
-+++ b/drivers/infiniband/hw/amso1100/c2_qp.c
-@@ -385,8 +385,7 @@ static int c2_alloc_qpn(struct c2_dev *c2dev, struct c2_qp *qp)
- 	idr_preload(GFP_KERNEL);
- 	spin_lock_irq(&c2dev->qp_table.lock);
- 
--	ret = idr_alloc(&c2dev->qp_table.idr, qp, c2dev->qp_table.last++, 0,
--			GFP_NOWAIT);
-+	ret = idr_alloc_cyclic(&c2dev->qp_table.idr, qp, 0, 0, GFP_NOWAIT);
- 	if (ret >= 0)
- 		qp->qpn = ret;
- 
-@@ -1016,7 +1015,7 @@ out:
- void c2_init_qp_table(struct c2_dev *c2dev)
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+index add98d0..524e168 100644
+--- a/drivers/infiniband/hw/mlx4/cm.c
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -204,7 +204,6 @@ static struct id_map_entry *
+ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
  {
- 	spin_lock_init(&c2dev->qp_table.lock);
--	idr_init(&c2dev->qp_table.idr);
-+	idr_init_cyclic(&c2dev->qp_table.idr, 0);
+ 	int ret;
+-	static int next_id;
+ 	struct id_map_entry *ent;
+ 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
+ 
+@@ -223,9 +222,8 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
+ 	idr_preload(GFP_KERNEL);
+ 	spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
+ 
+-	ret = idr_alloc(&sriov->pv_id_table, ent, next_id, 0, GFP_NOWAIT);
++	ret = idr_alloc_cyclic(&sriov->pv_id_table, ent, 0, 0, GFP_NOWAIT);
+ 	if (ret >= 0) {
+-		next_id = max(ret + 1, 0);
+ 		ent->pv_cm_id = (u32)ret;
+ 		sl_id_map_add(ibdev, ent);
+ 		list_add_tail(&ent->list, &sriov->cm_list);
+@@ -361,7 +359,7 @@ void mlx4_ib_cm_paravirt_init(struct mlx4_ib_dev *dev)
+ 	spin_lock_init(&dev->sriov.id_map_lock);
+ 	INIT_LIST_HEAD(&dev->sriov.cm_list);
+ 	dev->sriov.sl_id_map = RB_ROOT;
+-	idr_init(&dev->sriov.pv_id_table);
++	idr_init_cyclic(&dev->sriov.pv_id_table, 0);
  }
  
- void c2_cleanup_qp_table(struct c2_dev *c2dev)
+ /* slave = -1 ==> all slaves */
 -- 
 1.7.11.7
