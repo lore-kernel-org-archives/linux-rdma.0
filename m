@@ -1,59 +1,47 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add missing newline to end of log message
-Date: Wed, 27 Mar 2013 09:49:07 -0700
-Message-ID: <1364402947.878.56.camel@auk59.llnl.gov>
-References: <1364321798.878.19.camel@auk59.llnl.gov>
-	 <5152E96C.6090002@dev.mellanox.co.il>
+From: Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 2/6] amso1100: convert to using idr_alloc_cyclic
+Date: Wed, 27 Mar 2013 12:50:23 -0400
+Message-ID: <20130327125023.159e2309@tlielax.poochiereds.net>
+References: <1364390288-30968-1-git-send-email-jlayton@redhat.com>
+	<1364390288-30968-3-git-send-email-jlayton@redhat.com>
+	<20130327162755.GC7395@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5152E96C.6090002-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20130327162755.GC7395-Gd/HAXX7CRxy/B6EtB590w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2013-03-27 at 08:43 -0400, Hal Rosenstock wrote:
-> On 3/26/2013 2:16 PM, Albert Chu wrote:
-> > Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> > ---
-> >  opensm/osm_helper.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
-> > index 219554a..95462a7 100644
-> > --- a/opensm/osm_helper.c
-> > +++ b/opensm/osm_helper.c
-> > @@ -2848,6 +2848,7 @@ static void osm_dump_smp_dr_path_to_buf(IN const ib_smp_t * p_smp,
-> >  		n += snprintf(buf + n, buf_size - n, ", Return path  = ");
-> >  		n += sprint_uint8_arr(buf + n, buf_size - n,
-> >  				      p_smp->return_path, p_smp->hop_count + 1);
-> > +		n += sprintf(buf + n, "\n");
-> 
-> I'm missing why that's needed. Isn't it currently taken care of by the
-> callers to this routine ?
+On Wed, 27 Mar 2013 09:27:55 -0700
+Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 
-Sorry, I missed that this had been fixed upstream via your commit on
-10-03-2012 (dba3f9289d4277f67474e75cfe5979a6cc74487c).   Our local tree
-is just out of date.
-
-Al
-
-> -- Hal
-> 
-> >  	}
+> On Wed, Mar 27, 2013 at 09:18:04AM -0400, Jeff Layton wrote:
+> >  void c2_init_qp_table(struct c2_dev *c2dev)
+> >  {
+> >  	spin_lock_init(&c2dev->qp_table.lock);
+> > -	idr_init(&c2dev->qp_table.idr);
+> > +	idr_init_cyclic(&c2dev->qp_table.idr, 0);
 > >  }
-> >  
 > 
+> Why is this necessary?  In general, why is idr_init_cyclic()
+> necessary?
+> 
+> Thanks.
+> 
+
+My thinking was that you might want to initialize the "cur" value to an
+arbitrary value. All the current users though initialize it to the same
+as the "start" value passed into idr_alloc_cyclic. Starting with it at
+0 should be fine in all of the existing users.
+
+I'll remove that in v2...
+
+Thanks!
 -- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
-
-
+Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
