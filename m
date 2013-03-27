@@ -1,41 +1,61 @@
-From: Husam Kahalah <husamkahalah-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: [PATCH] switchinfo support added manual
-Date: Wed, 27 Mar 2013 15:11:14 +0200
-Message-ID: <5152EFF2.4080309@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Jeff Layton <jlayton@redhat.com>
+Subject: [PATCH v1 2/6] amso1100: convert to using idr_alloc_cyclic
+Date: Wed, 27 Mar 2013 09:18:04 -0400
+Message-ID: <1364390288-30968-3-git-send-email-jlayton@redhat.com>
+References: <1364390288-30968-1-git-send-email-jlayton@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1364390288-30968-1-git-send-email-jlayton@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, tj@kernel.org, Steve Wise <swise@opengridcomputing.com>, Tom Tucker <tom@opengridcomputing.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
- From 5c21f13092977fb45180e54a9eefcb081afa1684 Mon Sep 17 00:00:00 2001
-From: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
-Date: Sun, 3 Mar 2013 09:40:42 +0200
-Subject: [PATCH] switchinfo support added manual
+(Note: compile-tested only)
 
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: Tom Tucker <tom@opengridcomputing.com>
+Cc: linux-rdma@vger.kernel.org
 ---
-  doc/rst/saquery.8.in.rst |    2 +-
-  1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/amso1100/c2.h    | 1 -
+ drivers/infiniband/hw/amso1100/c2_qp.c | 5 ++---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst
-index 1a11965..2c71adf 100644
---- a/doc/rst/saquery.8.in.rst
-+++ b/doc/rst/saquery.8.in.rst
-@@ -152,7 +152,7 @@ Supported query names (and aliases):
-          LFTRecord (LFTR) [[lid]/[block]]
-          MFTRecord (MFTR) [[mlid]/[position]/[block]]
-          GUIDInfoRecord (GIR) [[lid]/[block]]
--
-+    SwitchInfoRecord (SWIR) [lid]
-
-
-  Port Selection flags
+diff --git a/drivers/infiniband/hw/amso1100/c2.h b/drivers/infiniband/hw/amso1100/c2.h
+index ba7a1208..d619d73 100644
+--- a/drivers/infiniband/hw/amso1100/c2.h
++++ b/drivers/infiniband/hw/amso1100/c2.h
+@@ -265,7 +265,6 @@ struct c2_pd_table {
+ struct c2_qp_table {
+ 	struct idr idr;
+ 	spinlock_t lock;
+-	int last;
+ };
+ 
+ struct c2_element {
+diff --git a/drivers/infiniband/hw/amso1100/c2_qp.c b/drivers/infiniband/hw/amso1100/c2_qp.c
+index 0ab826b..703b33f 100644
+--- a/drivers/infiniband/hw/amso1100/c2_qp.c
++++ b/drivers/infiniband/hw/amso1100/c2_qp.c
+@@ -385,8 +385,7 @@ static int c2_alloc_qpn(struct c2_dev *c2dev, struct c2_qp *qp)
+ 	idr_preload(GFP_KERNEL);
+ 	spin_lock_irq(&c2dev->qp_table.lock);
+ 
+-	ret = idr_alloc(&c2dev->qp_table.idr, qp, c2dev->qp_table.last++, 0,
+-			GFP_NOWAIT);
++	ret = idr_alloc_cyclic(&c2dev->qp_table.idr, qp, 0, 0, GFP_NOWAIT);
+ 	if (ret >= 0)
+ 		qp->qpn = ret;
+ 
+@@ -1016,7 +1015,7 @@ out:
+ void c2_init_qp_table(struct c2_dev *c2dev)
+ {
+ 	spin_lock_init(&c2dev->qp_table.lock);
+-	idr_init(&c2dev->qp_table.idr);
++	idr_init_cyclic(&c2dev->qp_table.idr, 0);
+ }
+ 
+ void c2_cleanup_qp_table(struct c2_dev *c2dev)
 -- 
-1.7.9.6
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.11.7
