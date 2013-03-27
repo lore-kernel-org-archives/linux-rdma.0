@@ -1,49 +1,41 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ipoib: fix hard_header return value
-Date: Wed, 27 Mar 2013 10:04:50 -0400
-Message-ID: <5152FC82.6000106@redhat.com>
-References: <3fde29b99442969e59a7a9cf4f63a26858f00a0a.1364315061.git.dledford@redhat.com> <5151CF60.3010100@acm.org> <CAG4TOxPa+B1=N8DUPf4E1AT-a__Yx=3d83d1xA6H5pPW=9TabA@mail.gmail.com> <20130326181634.GB22775@obsidianresearch.com>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/ipath: fix error return code in ipath_register_ib_device()
+Date: Wed, 27 Mar 2013 22:25:32 +0800
+Message-ID: <CAPgLHd-ZH-DTBKHBfppYX409qLddst46dXkZ_dn5c2i_A+YCQQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130326181634.GB22775-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/26/2013 02:16 PM, Jason Gunthorpe wrote:
-> On Tue, Mar 26, 2013 at 09:46:28AM -0700, Roland Dreier wrote:
->>> Checkpatch recommends since some time to use sizeof(e) instead of sizeof e,
->>> isn't it ?
->>
->> I actually prefer "sizeof e" since sizeof is an operator, not a
->> function.  "sizeof(e)" looks just as silly as "return(e)" to me.
-> 
-> Sizeof is used as an expression, return is not.
-> 
-> They have different precedence rules:
->  return e + 1; // == return (e + 1)
-> vs
->  sizeof e + 1;  // == sizeof(e) + 1
-> 
-> Or weirder:
->  return (void *)x; // OK
-> vs
->  sizeof (void *)x; // <-- compile error
-> 
-> Coding sizeof as a function call frees the reader from having to
-> check/know the obscure precedence rules for sizeof.
+From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-Personally, I couldn't care less.  But about 5 lines outside of the
-context of this patch in the same function is another use of that same
-expression.  The real reason I used the form I did was to match the
-style of that other instance.  I prepared a separate patch to convert
-both of them to the checkpatch preferred style until I saw Roland say he
-didn't want it.  But what I wouldn't have done is submitted a patch that
-caused a single function to have two different styles within 8 lines of
-each other just because some nanny state nag script tells me too.
+Fix to return a negative error code from the error handling
+case instead of 0, as returned elsewhere in this function.
+
+Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+---
+ drivers/infiniband/hw/ipath/ipath_verbs.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
+index ea93870..041763a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_verbs.c
++++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
+@@ -2187,8 +2187,10 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
+ 	if (ret)
+ 		goto err_reg;
+ 
+-	if (ipath_verbs_register_sysfs(dev))
++	if (ipath_verbs_register_sysfs(dev)) {
++		ret = -ENOMEM;
+ 		goto err_class;
++	}
+ 
+ 	enable_timer(dd);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
