@@ -1,89 +1,49 @@
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: RESUBMIT: [PATCH] libibmad: To reserve upper 8 bits of tid used
- by solaris SRIOV driver
-Date: Wed, 27 Mar 2013 10:13:15 -0700
-Message-ID: <20130327101315.58eace03f17e4870fd92f944@intel.com>
-References: <5151E973.80901@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5151E973.80901-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Jeff Layton <jlayton@redhat.com>
+Subject: [PATCH v2 3/6] mlx4: convert to using idr_alloc_cyclic
+Date: Wed, 27 Mar 2013 15:29:35 -0400
+Message-ID: <1364412578-7462-4-git-send-email-jlayton@redhat.com>
+References: <1364412578-7462-1-git-send-email-jlayton@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1364412578-7462-1-git-send-email-jlayton@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, tj@kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>, Or Gerlitz <ogerlitz@mellanox.com>, Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-As I said before this is really what we should do so thanks, however, see below.
+(Note: compile tested only)
 
-On Tue, 26 Mar 2013 11:31:15 -0700
-Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Roland Dreier <roland@purestorage.com>
+Cc: linux-rdma@vger.kernel.org
+---
+ drivers/infiniband/hw/mlx4/cm.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-> From 493e8ed95e32f9c3e337f758a979120392c9e412 Mon Sep 17 00:00:00 2001
-> From: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Date: Tue, 12 Mar 2013 19:38:52 +0000
-> Subject: [PATCH] libibmad: To reserve upper 8 bits of tid used by solaris
->  SRIOV driver
-> 
-> Signed-off-by: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  src/mad.c |    8 ++++++++
->  src/rpc.c |    2 +-
->  2 files changed, 9 insertions(+), 1 deletion(-)
-> 
-> diff --git a/src/mad.c b/src/mad.c
-> index 70a69dd..fe1305d 100644
-> --- a/src/mad.c
-> +++ b/src/mad.c
-> @@ -50,6 +50,13 @@
->  #undef DEBUG
->  #define DEBUG	if (ibdebug)	IBWARN
->  
-> +#define GET_IB_USERLAND_TID(tid)	(tid & 0x00000000ffffffff)
-> +/*
-> + * Generate the 64 bit MAD transaction ID. The upper 32 bits are reserved for
-> + * use by the kernel. We clear the upper 32 bits here, but MADs received from
-> + * the kernel may contain kernel specific data in these bits, consequently
-> + * userland TID matching should only be done on the lower 32 bits.
-> + */
->  uint64_t mad_trid(void)
->  {
->  	static uint64_t base;
-> @@ -62,6 +69,7 @@ uint64_t mad_trid(void)
->  		trid = random();
->  	}
->  	next = ++trid | (base << 32);
-> +	next = GET_IB_USERLAND_TID(next);
-
-Sorry, I guess I should have specified that we don't need "base" any longer.  I am going to combine the removal of base with your patch and accept this.
-
-Thanks,
-Ira
-
->  	return next;
->  }
->  
-> diff --git a/src/rpc.c b/src/rpc.c
-> index 5cb13f1..7d93180 100644
-> --- a/src/rpc.c
-> +++ b/src/rpc.c
-> @@ -129,7 +129,7 @@ static int
->  _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int agentid, int len,
->  	   int timeout, int max_retries, int *p_error)
->  {
-> -	uint32_t trid;		/* only low 32 bits */
-> +	uint32_t trid;		/* only low 32 bits - see mad_trid() */
->  	int retries;
->  	int length, status;
->  
-> -- 
-> 1.7.9.2
-> 
-
-
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+index add98d0..d1f5f1d 100644
+--- a/drivers/infiniband/hw/mlx4/cm.c
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -204,7 +204,6 @@ static struct id_map_entry *
+ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
+ {
+ 	int ret;
+-	static int next_id;
+ 	struct id_map_entry *ent;
+ 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
+ 
+@@ -223,9 +222,8 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
+ 	idr_preload(GFP_KERNEL);
+ 	spin_lock(&to_mdev(ibdev)->sriov.id_map_lock);
+ 
+-	ret = idr_alloc(&sriov->pv_id_table, ent, next_id, 0, GFP_NOWAIT);
++	ret = idr_alloc_cyclic(&sriov->pv_id_table, ent, 0, 0, GFP_NOWAIT);
+ 	if (ret >= 0) {
+-		next_id = max(ret + 1, 0);
+ 		ent->pv_cm_id = (u32)ret;
+ 		sl_id_map_add(ibdev, ent);
+ 		list_add_tail(&ent->list, &sriov->cm_list);
 -- 
-Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.11.7
