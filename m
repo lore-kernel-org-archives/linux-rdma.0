@@ -1,67 +1,31 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/ipath: fix error return code in
- ipath_register_ib_device()
-Date: Wed, 27 Mar 2013 14:41:59 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0DF6AB22@FMSMSX108.amr.corp.intel.com>
-References: <CAPgLHd-ZH-DTBKHBfppYX409qLddst46dXkZ_dn5c2i_A+YCQQ@mail.gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v1 2/6] amso1100: convert to using idr_alloc_cyclic
+Date: Wed, 27 Mar 2013 09:27:55 -0700
+Message-ID: <20130327162755.GC7395@htj.dyndns.org>
+References: <1364390288-30968-1-git-send-email-jlayton@redhat.com>
+ <1364390288-30968-3-git-send-email-jlayton@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPgLHd-ZH-DTBKHBfppYX409qLddst46dXkZ_dn5c2i_A+YCQQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org" <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1364390288-30968-3-git-send-email-jlayton@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeff Layton <jlayton@redhat.com>
+Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, Steve Wise <swise@opengridcomputing.com>, Tom Tucker <tom@opengridcomputing.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -	if (ipath_verbs_register_sysfs(dev))
+On Wed, Mar 27, 2013 at 09:18:04AM -0400, Jeff Layton wrote:
+>  void c2_init_qp_table(struct c2_dev *c2dev)
+>  {
+>  	spin_lock_init(&c2dev->qp_table.lock);
+> -	idr_init(&c2dev->qp_table.idr);
+> +	idr_init_cyclic(&c2dev->qp_table.idr, 0);
+>  }
 
-I would suggest modifying ipath_verbs_register_sysfs() to correctly return the failure from device_create_file() in ret out of ipath_verbs.c:
+Why is this necessary?  In general, why is idr_init_cyclic()
+necessary?
 
-static int ipath_verbs_register_sysfs(struct ib_device *dev)
-{
-        int i;
-        int ret;
+Thanks.
 
-        for (i = 0; i < ARRAY_SIZE(ipath_class_attributes); ++i)
-                if (device_create_file(&dev->dev, <------------------------------
-                                       ipath_class_attributes[i])) {
-                        ret = 1;
-                        goto bail;
-                }
-
-        ret = 0;
-
-bail:
-        return ret;
-}
-
-With that fixed the caller should assign and return ret.
-
-The qib_verbs_register_sysfs() is fixed:
-
-/*
- * Register and create our files in /sys/class/infiniband.
- */
-int qib_verbs_register_sysfs(struct qib_devdata *dd)
-{
-        struct ib_device *dev = &dd->verbs_dev.ibdev;
-        int i, ret;
-
-        for (i = 0; i < ARRAY_SIZE(qib_attributes); ++i) {
-                ret = device_create_file(&dev->dev, qib_attributes[i]);
-                if (ret)
-                        return ret;
-        }
-
-        return 0;
-}
-
-I will post a patch shortly for qib, which has the same ret flaw in the caller to qib_verbs_register_sysfs().    If you want me to hit both, I can.
-
-Mike
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+tejun
