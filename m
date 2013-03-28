@@ -1,53 +1,72 @@
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibroute.c: fix pull extra block for
- LFT
-Date: Thu, 28 Mar 2013 08:50:13 -0700
-Message-ID: <20130328085013.187818256f763f4e7c5eb084@intel.com>
-References: <20130328075540.GA11235@r-ufm5-17.mtr.labs.mlnx>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2/2] IB/ipath: Correct ipath_verbs_register_sysfs() error
+	handling
+Date: Thu, 28 Mar 2013 14:12:28 -0400
+Message-ID: <20130328181228.22713.34224.stgit@phlsvslse11.ph.intel.com>
+References: <20130328181220.22713.60413.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130328075540.GA11235-Kyg1NGsloJ8bMuq+TCmafCexzy7lsfyC@public.gmane.org>
+In-Reply-To: <20130328181220.22713.60413.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 28 Mar 2013 09:55:40 +0200
-Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+ipath_verbs_register_sysfs() never returned the correct error
+code from device_create_file and never cleanup up from a failure.
+Additionally, the caller of ipath_verbs_register_sysfs() doesn't
+return the correct "ret" value.
 
-> when we pull LFT we pull extra block, this may cause to failure.
-> 
-> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch resolves all of these issues.
 
-Thanks, applied,
-Ira
+Reported-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/ipath/ipath_verbs.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
-> ---
->  src/ibroute.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/src/ibroute.c b/src/ibroute.c
-> index df48382..d4827c9 100644
-> --- a/src/ibroute.c
-> +++ b/src/ibroute.c
-> @@ -360,7 +360,7 @@ char *dump_unicast_tables(ib_portid_t * portid, int startlid, int endlid)
->  	printf("       Port     Info \n");
->  	startblock = startlid / IB_SMP_DATA_SIZE;
->  	endblock = ALIGN(endlid, IB_SMP_DATA_SIZE) / IB_SMP_DATA_SIZE;
-> -	for (block = startblock; block <= endblock; block++) {
-> +	for (block = startblock; block < endblock; block++) {
->  		int status;
->  		DEBUG("reading block %d", block);
->  		if (!smp_query_status_via(lft, portid, IB_ATTR_LINEARFORWTBL, block,
-> -- 
-> 1.7.1
-> 
+diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
+index ea93870..44ea939 100644
+--- a/drivers/infiniband/hw/ipath/ipath_verbs.c
++++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
+@@ -2187,7 +2187,8 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
+ 	if (ret)
+ 		goto err_reg;
+ 
+-	if (ipath_verbs_register_sysfs(dev))
++	ret = ipath_verbs_register_sysfs(dev);
++	if (ret)
+ 		goto err_class;
+ 
+ 	enable_timer(dd);
+@@ -2327,15 +2328,15 @@ static int ipath_verbs_register_sysfs(struct ib_device *dev)
+ 	int i;
+ 	int ret;
+ 
+-	for (i = 0; i < ARRAY_SIZE(ipath_class_attributes); ++i)
+-		if (device_create_file(&dev->dev,
+-				       ipath_class_attributes[i])) {
+-			ret = 1;
++	for (i = 0; i < ARRAY_SIZE(ipath_class_attributes); ++i) {
++		ret = device_create_file(&dev->dev,
++				       ipath_class_attributes[i]);
++		if (ret)
+ 			goto bail;
+-		}
+-
+-	ret = 0;
+-
++	}
++	return 0;
+ bail:
++	for (i = 0; i < ARRAY_SIZE(ipath_class_attributes); ++i)
++		device_remove_file(&dev->dev, ipath_class_attributes[i]);
+ 	return ret;
+ }
 
-
--- 
-Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
