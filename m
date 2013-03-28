@@ -1,8 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] IB/qib: Correct ipath_verbs_register_sysfs() error
-	handling
-Date: Thu, 28 Mar 2013 14:12:21 -0400
-Message-ID: <20130328181220.22713.60413.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH v2] IB/qib: Correct qib_verbs_register_sysfs() error handling
+Date: Thu, 28 Mar 2013 14:17:20 -0400
+Message-ID: <20130328181720.22889.87887.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -12,7 +11,7 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-qib_verbs_register_sysfs() never cleanup up from a failure.
+qib_verbs_register_sysfs() never cleans up from a failure.
 Additionally, the caller of qib_verbs_register_sysfs() doesn't
 return the correct "ret" value.
 
