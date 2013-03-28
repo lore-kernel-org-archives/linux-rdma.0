@@ -1,28 +1,29 @@
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] infiniband-diags/ibroute.c: fix pull extra block for LFT
-Date: Thu, 28 Mar 2013 09:55:40 +0200
-Message-ID: <20130328075540.GA11235@r-ufm5-17.mtr.labs.mlnx>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband-diags/dump_fts: fix block calculation for LFT's
+Date: Thu, 28 Mar 2013 08:48:38 -0700
+Message-ID: <20130328084838.a898ff3b7d90b8cdd23c4c44@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-when we pull LFT we pull extra block, this may cause to failure.
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This fix was found by Dan Ben Yosef in ibroute.  ibroute and dump_fts should
+share this code but for now fix the bug in dump_fts.
+
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/ibroute.c |    2 +-
+ src/dump_fts.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/src/ibroute.c b/src/ibroute.c
-index df48382..d4827c9 100644
---- a/src/ibroute.c
-+++ b/src/ibroute.c
-@@ -360,7 +360,7 @@ char *dump_unicast_tables(ib_portid_t * portid, int startlid, int endlid)
+diff --git a/src/dump_fts.c b/src/dump_fts.c
+index 6cf51f1..89f0dce 100644
+--- a/src/dump_fts.c
++++ b/src/dump_fts.c
+@@ -343,7 +343,7 @@ void dump_unicast_tables(ibnd_node_t * node, int startlid, int endlid,
  	printf("       Port     Info \n");
  	startblock = startlid / IB_SMP_DATA_SIZE;
  	endblock = ALIGN(endlid, IB_SMP_DATA_SIZE) / IB_SMP_DATA_SIZE;
