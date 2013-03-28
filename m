@@ -1,28 +1,41 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/ipath: fix error return code in
- ipath_register_ib_device()
-Date: Thu, 28 Mar 2013 18:24:43 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC0DF6B7B1@FMSMSX108.amr.corp.intel.com>
-References: <CAPgLHd-ZH-DTBKHBfppYX409qLddst46dXkZ_dn5c2i_A+YCQQ@mail.gmail.com>
-	<32E1700B9017364D9B60AED9960492BC0DF6AB22@FMSMSX108.amr.corp.intel.com>
- <CAPgLHd_wmyj=kLLfikrWxngnVKOp9iW1K9KU_bvix4UuFAfdvQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH] IB/mlx4: Fail post send command on error recovery
+Date: Thu, 28 Mar 2013 15:45:15 -0300
+Message-ID: <1364496315-7588-1-git-send-email-klebers@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPgLHd_wmyj=kLLfikrWxngnVKOp9iW1K9KU_bvix4UuFAfdvQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org" <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Since your will change qib_verbs_register_sysfs() as the same, you can change
-> both of them.
+When the PCI adapter is going through error recovery, a call to
+mlx4_ib_post_send() will return success without the command actually
+arriving to the hardware. Adding a call to pci_channel_offline() to
+check the state of the PCI slot and returning an error will allow the
+upper layers to be aware that the command didn't succeed.
 
-http://marc.info/?l=linux-rdma&m=136449464411193&w=2 and http://marc.info/?l=linux-rdma&m=136449435211122&w=2 are the proposed patches.
+Signed-off-by: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/qp.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Mike
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 35cced2..0fa4f72 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -2216,6 +2216,9 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 	__be32 blh;
+ 	int i;
+ 
++	if (pci_channel_offline(to_mdev(ibqp->device)->dev->pdev))
++		return -EIO;
++
+ 	spin_lock_irqsave(&qp->sq.lock, flags);
+ 
+ 	ind = qp->sq_next_wqe;
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
