@@ -1,34 +1,38 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/ipath: fix error return code in ipath_register_ib_device()
-Date: Thu, 28 Mar 2013 12:18:19 +0800
-Message-ID: <CAPgLHd_wmyj=kLLfikrWxngnVKOp9iW1K9KU_bvix4UuFAfdvQ@mail.gmail.com>
-References: <CAPgLHd-ZH-DTBKHBfppYX409qLddst46dXkZ_dn5c2i_A+YCQQ@mail.gmail.com>
-	<32E1700B9017364D9B60AED9960492BC0DF6AB22@FMSMSX108.amr.corp.intel.com>
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] infiniband-diags/ibroute.c: fix pull extra block for LFT
+Date: Thu, 28 Mar 2013 09:55:40 +0200
+Message-ID: <20130328075540.GA11235@r-ufm5-17.mtr.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC0DF6AB22-AtyAts71sc88Ug9VwtkbtrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Mike,
+when we pull LFT we pull extra block, this may cause to failure.
 
-On 03/27/2013 10:41 PM, Marciniszyn, Mike wrote:
->> -	if (ipath_verbs_register_sysfs(dev))
-> I would suggest modifying ipath_verbs_register_sysfs() to correctly return the failure from device_create_file() in ret out of ipath_verbs.c:
->
-> ...
->
-> I will post a patch shortly for qib, which has the same ret flaw in the caller to qib_verbs_register_sysfs().    If you want me to hit both, I can.
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/ibroute.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Since your will change qib_verbs_register_sysfs() as the same, you can
-change both of them.
-
-Thanks,
-Yongjun Wei
-
+diff --git a/src/ibroute.c b/src/ibroute.c
+index df48382..d4827c9 100644
+--- a/src/ibroute.c
++++ b/src/ibroute.c
+@@ -360,7 +360,7 @@ char *dump_unicast_tables(ib_portid_t * portid, int startlid, int endlid)
+ 	printf("       Port     Info \n");
+ 	startblock = startlid / IB_SMP_DATA_SIZE;
+ 	endblock = ALIGN(endlid, IB_SMP_DATA_SIZE) / IB_SMP_DATA_SIZE;
+-	for (block = startblock; block <= endblock; block++) {
++	for (block = startblock; block < endblock; block++) {
+ 		int status;
+ 		DEBUG("reading block %d", block);
+ 		if (!smp_query_status_via(lft, portid, IB_ATTR_LINEARFORWTBL, block,
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
