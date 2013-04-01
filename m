@@ -1,119 +1,75 @@
-From: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH] cxgb4: fix SQ allocation when On-Chip SQ is disabled
-Date: Mon,  1 Apr 2013 17:13:39 -0300
-Message-ID: <1364847219-26078-1-git-send-email-cascardo@linux.vnet.ibm.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ipoib: fix hard_header return value
+Date: Tue, 2 Apr 2013 00:25:30 +0300
+Message-ID: <CAJZOPZKFT6QT_=bfzp0BN42hxgd4A-t0s7d_TBxD=u=Bgcuvgw@mail.gmail.com>
+References: <3fde29b99442969e59a7a9cf4f63a26858f00a0a.1364315061.git.dledford@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3fde29b99442969e59a7a9cf4f63a26858f00a0a.1364315061.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Emil Goode <emilgoode-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-"RDMA/cxgb4: Fix error handling in create_qp()"
-(c079c28714e4d1a0b7cad120f84217e0fcde09a6) broke SQ allocation. Instead
-of fallbacking to host allocation when On-Chip allocation fails, it
-tries to allocate both. And when it does, and we try to free the address
-from the genpool using the host address, we hit a BUG and the system
-crashes as below.
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> If you have a patched up dhcp server (and dhclient),
 
-We create a new function that has the previous behavior and properly
-propagate the error, as intended.
+Could you be more specific, I assume you refer to the ISC dhcp bits,
+which version and which patches? AFAIK they don't give you access to
+their source repo but rather only to drops plus possibly patches which
+is a bit more tedious to follow, oh wel...
 
-kernel BUG at /usr/src/packages/BUILD/kernel-ppc64-3.0.68/linux-3.0/lib/genalloc.c:340!
-Oops: Exception in kernel mode, sig: 5 [#1]
-SMP NR_CPUS=1024 NUMA pSeries
-Modules linked in: rdma_ucm rdma_cm ib_addr ib_cm iw_cm ib_sa ib_mad ib_uverbs iw_cxgb4 ib_core ip6t_LOG xt_tcpudp xt_pkttype ipt_LOG xt_limit ip6t_REJECT nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_raw xt_NOTRACK ipt_REJECT xt_state iptable_raw iptable_filter ip6table_mangle nf_conntrack_netbios_ns nf_conntrack_broadcast nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 ip_tables ip6table_filter ip6_tables x_tables fuse loop dm_mod ipv6 ipv6_lib sr_mod cdrom ibmveth(X) cxgb4 sg ext3 jbd mbcache sd_mod crc_t10dif scsi_dh_emc scsi_dh_hp_sw scsi_dh_alua scsi_dh_rdac scsi_dh ibmvscsic(X) scsi_transport_srp scsi_tgt scsi_mod
-Supported: Yes
-NIP: c00000000037d41c LR: d000000003913824 CTR: c00000000037d3b0
-REGS: c0000001f350ae50 TRAP: 0700   Tainted: G            X  (3.0.68-0.9-ppc64)
-MSR: 8000000000029032 <EE,ME,CE,IR,DR>  CR: 24042482  XER: 00000001
-TASK = c0000001f6f2a840[3616] 'rping' THREAD: c0000001f3508000 CPU: 0
-GPR00: c0000001f6e875c8 c0000001f350b0d0 c000000000fc9690 c0000001f6e875c0
-GPR04: 00000000000c0000 0000000000010000 0000000000000000 c0000000009d482a
-GPR08: 000000006a170000 0000000000100000 c0000001f350b140 c0000001f6e875c8
-GPR12: d000000003915dd0 c000000003f40000 000000003e3ecfa8 c0000001f350bea0
-GPR16: c0000001f350bcd0 00000000003c0000 0000000000040100 c0000001f6e74a80
-GPR20: d00000000399a898 c0000001f6e74ac8 c0000001fad91600 c0000001f6e74ab0
-GPR24: c0000001f7d23f80 0000000000000000 0000000000000002 000000006a170000
-GPR28: 000000000000000c c0000001f584c8d0 d000000003925180 c0000001f6e875c8
-NIP [c00000000037d41c] .gen_pool_free+0x6c/0xf8
-LR [d000000003913824] .c4iw_ocqp_pool_free+0x8c/0xd8 [iw_cxgb4]
-Call Trace:
-[c0000001f350b0d0] [c0000001f350b180] 0xc0000001f350b180 (unreliable)
-[c0000001f350b170] [d000000003913824] .c4iw_ocqp_pool_free+0x8c/0xd8 [iw_cxgb4]
-[c0000001f350b210] [d00000000390fd70] .dealloc_sq+0x90/0xb0 [iw_cxgb4]
-[c0000001f350b280] [d00000000390fe08] .destroy_qp+0x78/0xf8 [iw_cxgb4]
-[c0000001f350b310] [d000000003912738] .c4iw_destroy_qp+0x208/0x2d0 [iw_cxgb4]
-[c0000001f350b460] [d000000003861874] .ib_destroy_qp+0x5c/0x130 [ib_core]
-[c0000001f350b510] [d0000000039911bc] .ib_uverbs_cleanup_ucontext+0x174/0x4f8 [ib_uverbs]
-[c0000001f350b5f0] [d000000003991568] .ib_uverbs_close+0x28/0x70 [ib_uverbs]
-[c0000001f350b670] [c0000000001e7b2c] .__fput+0xdc/0x278
-[c0000001f350b720] [c0000000001a9590] .remove_vma+0x68/0xd8
-[c0000001f350b7b0] [c0000000001a9720] .exit_mmap+0x120/0x160
-[c0000001f350b8d0] [c0000000000af330] .mmput+0x80/0x160
-[c0000001f350b960] [c0000000000b5d0c] .exit_mm+0x1ac/0x1e8
-[c0000001f350ba10] [c0000000000b8154] .do_exit+0x1b4/0x4b8
-[c0000001f350bad0] [c0000000000b84b0] .do_group_exit+0x58/0xf8
-[c0000001f350bb60] [c0000000000ce9f4] .get_signal_to_deliver+0x2f4/0x5d0
-[c0000001f350bc60] [c000000000017ee4] .do_signal_pending+0x6c/0x3e0
-[c0000001f350bdb0] [c0000000000182cc] .do_signal+0x74/0x78
-[c0000001f350be30] [c000000000009e74] do_work+0x24/0x28
+> they will use AF_PACKET/SOCK_DGRAM pair to send dhcp packets over IPoIB.
 
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: Emil Goode <emilgoode-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+> This has worked since forever if you use OFED kernels or one of the distribution
+> kernels.  However, when testing an upstream kernel, it has been broken
+> for a very long time (I tested 2.6.34, 2.6.38, 3.0, 3.1, 3.8, HEAD).
+
+IMO doesn't seem relevant to the upstream commit message
+
+> It turns out that the hard_header routine in ipoib is not following
+> the API and is returning 0 even when it pushed data onto the skb.  This
+> then causes af_packet.c to overwrite the header just pushed with data
+> from user space.  This header is immediately referenced in the
+> ipoib_start_xmit routine
+
+cool, I assume we want this fix to go for -stable after spending some
+time upstream, e.g probably by the time 3.9 is released and some more
+testing is done on the patch (I'll advocate for that @ MLNX, copied
+some folks now) get that to -stable too.
+
+Erez, in the code we use internally which is based on upstream 3.7 do
+we have DHCP/IPoIB working without this patch?
+
+> so I'm wondering how this ever worked in
+> distro/ofed kernels that also have this bug, but fixing the bug here
+> makes things work in upstream kernels.
+
+same for the last three lines
+
+
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/qp.c |   25 +++++++++++++------------
- 1 files changed, 13 insertions(+), 12 deletions(-)
+ drivers/infiniband/ulp/ipoib/
+ipoib_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 70b1808..ed49ab3 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -100,6 +100,16 @@ static int alloc_host_sq(struct c4iw_rdev *rdev, struct t4_sq *sq)
- 	return 0;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 8534afd..31dd2a7 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -828,7 +828,7 @@ static int ipoib_hard_header(struct sk_buff *skb,
+         */
+        memcpy(cb->hwaddr, daddr, INFINIBAND_ALEN);
+
+-       return 0;
++       return sizeof *header;
  }
- 
-+static int alloc_sq(struct c4iw_rdev *rdev, struct t4_sq *sq, int user)
-+{
-+	int ret = -ENOSYS;
-+	if (user)
-+		ret = alloc_oc_sq(rdev, sq);
-+	if (ret)
-+		ret = alloc_host_sq(rdev, sq);
-+	return ret;
-+}
-+
- static int destroy_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
- 		      struct c4iw_dev_ucontext *uctx)
- {
-@@ -168,18 +178,9 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
- 		goto free_sw_rq;
- 	}
- 
--	if (user) {
--		ret = alloc_oc_sq(rdev, &wq->sq);
--		if (ret)
--			goto free_hwaddr;
--
--		ret = alloc_host_sq(rdev, &wq->sq);
--		if (ret)
--			goto free_sq;
--	} else
--		ret = alloc_host_sq(rdev, &wq->sq);
--		if (ret)
--			goto free_hwaddr;
-+	ret = alloc_sq(rdev, &wq->sq, user);
-+	if (ret)
-+		goto free_hwaddr;
- 	memset(wq->sq.queue, 0, wq->sq.memsize);
- 	dma_unmap_addr_set(&wq->sq, mapping, wq->sq.dma_addr);
- 
--- 
-1.7.1
 
+ static void ipoib_set_mcast_list(struct net_device *dev)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
