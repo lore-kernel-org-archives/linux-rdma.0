@@ -1,45 +1,56 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Fail post send command on error recovery
-Date: Tue, 2 Apr 2013 10:00:40 -0700
-Message-ID: <CAL1RGDW7wMVmyFhCv-Ei8Mbca-Y9yv+nygzfREU2_TozNSZ60A@mail.gmail.com>
-References: <1364496315-7588-1-git-send-email-klebers@linux.vnet.ibm.com>
+From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv2] rdma: add a new IB_ACCESS_GIFT flag
+Date: Tue, 2 Apr 2013 20:05:22 +0300
+Message-ID: <20130402170521.GA30295@redhat.com>
+References: <20130324155153.GA8597@redhat.com>
+ <20130402155104.GA27382@redhat.com>
+ <CAL1RGDUe1=Xd1mpNajiLY08fJ+gBKAMDGeX3SVkS+egOQyiCxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1364496315-7588-1-git-send-email-klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAL1RGDUe1=Xd1mpNajiLY08fJ+gBKAMDGeX3SVkS+egOQyiCxQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Michael R. Hines" <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-> index 35cced2..0fa4f72 100644
-> --- a/drivers/infiniband/hw/mlx4/qp.c
-> +++ b/drivers/infiniband/hw/mlx4/qp.c
-> @@ -2216,6 +2216,9 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
->         __be32 blh;
->         int i;
->
-> +       if (pci_channel_offline(to_mdev(ibqp->device)->dev->pdev))
-> +               return -EIO;
-> +
->         spin_lock_irqsave(&qp->sq.lock, flags);
->
->         ind = qp->sq_next_wqe;
+On Tue, Apr 02, 2013 at 09:57:38AM -0700, Roland Dreier wrote:
+> On Tue, Apr 2, 2013 at 8:51 AM, Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> >> At the moment registering an MR breaks COW.  This breaks memory
+> >> overcommit for users such as KVM: we have a lot of COW pages, e.g.
+> >> instances of the zero page or pages shared using KSM.
+> >>
+> >> If the application does not care that adapter sees stale data (for
+> >> example, it tracks writes reregisters and resends), it can use a new
+> >> IBV_ACCESS_GIFT flag to prevent registration from breaking COW.
+> >>
+> >> The semantics are similar to that of SPLICE_F_GIFT thus the name.
+> >>
+> >> Signed-off-by: Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >
+> > Roland, Michael is yet to test this but could you please
+> > confirm whether this looks acceptable to you?
+> 
+> The patch itself is reasonable I guess, given the needs of this particular app.
+> 
+> I'm not particularly happy with the name of the flag.  The analogy
+> with SPLICE_F_GIFT doesn't seem particularly strong and I'm not
+> convinced even the splice flag name is very understandable.  But in
+> the RDMA case there's not really any sense in which we're "gifting"
+> memory to the adapter -- we're just telling the library "please don't
+> trigger copy-on-write" and it doesn't seem particularly easy for users
+> to understand that from the flag name.
+> 
+>  - R.
 
-To pile on to what Or and Jack asked, why here?  Why not in post_recv?
- Why not in mlx4_en?  What about userspace consumers?  What if the
-error condition triggers just after the pci_channel_offline() check?
-What if a command is queued but a PCI error occurs before the
-completion can be returned?
+The point really is that any writes by application
+won't be seen until re-registration, right?
+OK, what's a better name?  IBV_ACCESS_NON_COHERENT?
+Please tell me what is preferable and we'll go ahead with it.
 
-Is there some practical scenario where this change makes a difference?
-
-I would assume that in case of a PCI error, the driver would notice a
-catastrophic error and send that asynchronous event to consumers, who
-would know that commands might have been lost.
-
- - R.
+-- 
+MST
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
