@@ -1,34 +1,102 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH 0/3] Least attached vector support
-Date: Tue, 2 Apr 2013 10:07:16 -0700
-Message-ID: <CAL1RGDXJNkMViMfbnbGHGxWfUUWQBs8sCFZq3sTt_ugbYUuunw@mail.gmail.com>
-References: <4BEBC56C.3090605@mellanox.co.il> <loom.20130402T161828-251@post.gmane.org>
+From: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
+Subject: IPoIB - GRO forces memcpy inside __pskb_pull_tail
+Date: Tue, 02 Apr 2013 20:48:50 +0200
+Message-ID: <CD80F4B1.565F%markus.stockhausen@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <loom.20130402T161828-251-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 2, 2013 at 7:20 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
-> Can anyone tell me what happened with this patch series ? To me this looks like
-> a useful patch series to make the mlx4_en driver faster. However, I haven't seen
-> anyone posting any review comments to this series and apparently this
-> functionality isn't upstream either.
+Hello,
+ 
+today I did some IPoIB profiling on one of our infiniband servers.
+Environment on server side is
 
-It was never clear to me that "number of CQs attached" is a
-particularly good way to choose an interrupt vector.  It would seem to
-me that we would want something that takes into account CPU affinity,
-possibly NUMA effects, etc.  Also I don't think there were any
-performance numbers posted for these changes, were there?
+- Kernel:  3.5.0-26-generic #42~precise1-Ubuntu
+- Mellanox Technologies MT26418 (LnkSta: Speed 2.5GT/s, Width x8)
+- Infiniband MTU 2044 (cannot increase to 4K because of old switch)
+- one 4 core Intel(R) Xeon(R) CPU L5420 @ 2.50GHz
+ 
+With different client machines I executed a netperf load test.
+ 
+- server side: netserver -p 12345
+- client side: netperf -H <server_ip> -p 12345 -l 120
+ 
+MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to ...
+Recv   Send    Send
+Socket Socket  Message  Elapsed
+Size   Size    Size     Time     Throughput
+bytes  bytes   bytes    secs.    10^6bits/sec
+ 
+87380  16384  16384    120.00   5078.92
+ 
+Analysis was performed on the server side with
+ 
+- perf record -a -g sleep 10
+- perf report
+ 
+The result starts with:
+ 
+# Overhead                                         Symbol
+# ........  .............................................
+#
+    19.67%  [k] copy_user_generic_string
+            |
+            |--99.74%-- skb_copy_datagram_iovec
+            |          tcp_recvmsg
+            |          inet_recvmsg
+            |          sock_recvmsg
+            |          sys_recvfrom
+            |          system_call_fastpath
+            |          recv
+            |          |
+            |          |--50.17%-- 0x7074656e00667265
+            |          |
+            |           --49.83%-- 0x6672657074656e
+             --0.26%-- [...]
+     7.38%  [k] memcpy
+            |
+            |--84.56%-- __pskb_pull_tail
+            |          |
+            |          |--81.88%-- pskb_may_pull.part.6
+            |          |          skb_gro_header_slow
+            |          |          inet_gro_receive
+            |          |          dev_gro_receive
+            |          |          napi_gro_receive
+            |          |          ipoib_ib_handle_rx_wc
+            |          |          ipoib_poll
+            |          |          net_rx_action
+            |          |          __do_softirq
+ 
+If I get it right round about 6% (7.38% * 84.56%) of the time the machine
+does a 
+memcpy inside __pskb_pull_tail. The comments on this function reads "...
+it expands 
+header moving its tail forward and copying necessary data from fragmented
+part. ... 
+It is pretty complicated. Luckily, it is called only in exceptional cases
+...". 
+That does not sound good at all. I repeated the test on a normal Intel
+gigabit 
+network without jumbo frames and __pskb_pull_tail was not in the top
+consumer list.
+ 
+Does anyone have an idea if this is normal GRO behaviour for IPOIB. At the
+moment 
+I have a full test environment and could implement and verify some kernel
+corrections if someone could give a helpful hint.
+ 
+Thanks in advance.
+ 
+Markus
+ 
 
-(BTW It would be interesting to know how much improvement one could
-get on modern 2/4 socket systems by allocating EQ, CQ, QP, etc. memory
-on the "right" NUMA node -- where I don't know if "right" means on the
-node closest to the adapter or the node where the CPU will access the
-queue)
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
