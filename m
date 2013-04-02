@@ -1,25 +1,27 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: XRC and ib_poll_cq
-Date: Tue, 2 Apr 2013 19:16:42 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736F369FCB@ORSMSX101.amr.corp.intel.com>
-References: <515B0B35.3090401@mellanox.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibumad: document the setting of errno for umad_send
+ and umad_recv
+Date: Tue, 2 Apr 2013 22:17:34 +0300
+Message-ID: <CAJZOPZJ2V6XVcAvUNVaC458MmTh6VVwreJiprF7sb2ozvKA5oA@mail.gmail.com>
+References: <20130329112119.1bb9ee1f7e687fc40c7a841d@intel.com>
+	<515AA29B.6000800@mellanox.com>
+	<1828884A29C6694DAF28B7E6B8A823736F369EC5@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <515B0B35.3090401-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736F369EC5-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->  From the XRC annex I understand that WQE is obtained by polling the CQ
-> attached to the XRC SRQ.
-> Now in "struct ib_wc" we have a pointer of type "struct ib_qp *", should
-> the pointer be cast to "struct ib_srq *"?
-> In short how do one gets the qp_context/srq_context?
+On Tue, Apr 2, 2013 at 5:41 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> Just wondered why are you setting errno in the mad libraries? so far we
+>> managed to avoid doing so in libibverbs, librdmacm, libmlx4 ones.
+>
+> The librdmacm does set errno
 
-qp_context is accessible directly from struct ib_qp.  srq_context is available from struct ib_srq, the latter of which is also in struct ib_qp.
+except for one place, libibverbs doesn't
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
