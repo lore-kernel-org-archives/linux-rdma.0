@@ -1,56 +1,34 @@
-From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCHv2] rdma: add a new IB_ACCESS_GIFT flag
-Date: Tue, 2 Apr 2013 20:05:22 +0300
-Message-ID: <20130402170521.GA30295@redhat.com>
-References: <20130324155153.GA8597@redhat.com>
- <20130402155104.GA27382@redhat.com>
- <CAL1RGDUe1=Xd1mpNajiLY08fJ+gBKAMDGeX3SVkS+egOQyiCxQ@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH 0/3] Least attached vector support
+Date: Tue, 2 Apr 2013 10:07:16 -0700
+Message-ID: <CAL1RGDXJNkMViMfbnbGHGxWfUUWQBs8sCFZq3sTt_ugbYUuunw@mail.gmail.com>
+References: <4BEBC56C.3090605@mellanox.co.il> <loom.20130402T161828-251@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL1RGDUe1=Xd1mpNajiLY08fJ+gBKAMDGeX3SVkS+egOQyiCxQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <loom.20130402T161828-251-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Michael R. Hines" <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 02, 2013 at 09:57:38AM -0700, Roland Dreier wrote:
-> On Tue, Apr 2, 2013 at 8:51 AM, Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> >> At the moment registering an MR breaks COW.  This breaks memory
-> >> overcommit for users such as KVM: we have a lot of COW pages, e.g.
-> >> instances of the zero page or pages shared using KSM.
-> >>
-> >> If the application does not care that adapter sees stale data (for
-> >> example, it tracks writes reregisters and resends), it can use a new
-> >> IBV_ACCESS_GIFT flag to prevent registration from breaking COW.
-> >>
-> >> The semantics are similar to that of SPLICE_F_GIFT thus the name.
-> >>
-> >> Signed-off-by: Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >
-> > Roland, Michael is yet to test this but could you please
-> > confirm whether this looks acceptable to you?
-> 
-> The patch itself is reasonable I guess, given the needs of this particular app.
-> 
-> I'm not particularly happy with the name of the flag.  The analogy
-> with SPLICE_F_GIFT doesn't seem particularly strong and I'm not
-> convinced even the splice flag name is very understandable.  But in
-> the RDMA case there's not really any sense in which we're "gifting"
-> memory to the adapter -- we're just telling the library "please don't
-> trigger copy-on-write" and it doesn't seem particularly easy for users
-> to understand that from the flag name.
-> 
->  - R.
+On Tue, Apr 2, 2013 at 7:20 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> Can anyone tell me what happened with this patch series ? To me this looks like
+> a useful patch series to make the mlx4_en driver faster. However, I haven't seen
+> anyone posting any review comments to this series and apparently this
+> functionality isn't upstream either.
 
-The point really is that any writes by application
-won't be seen until re-registration, right?
-OK, what's a better name?  IBV_ACCESS_NON_COHERENT?
-Please tell me what is preferable and we'll go ahead with it.
+It was never clear to me that "number of CQs attached" is a
+particularly good way to choose an interrupt vector.  It would seem to
+me that we would want something that takes into account CPU affinity,
+possibly NUMA effects, etc.  Also I don't think there were any
+performance numbers posted for these changes, were there?
 
--- 
-MST
+(BTW It would be interesting to know how much improvement one could
+get on modern 2/4 socket systems by allocating EQ, CQ, QP, etc. memory
+on the "right" NUMA node -- where I don't know if "right" means on the
+node closest to the adapter or the node where the CPU will access the
+queue)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
