@@ -1,71 +1,58 @@
-From: "Michael R. Hines" <mrhines@linux.vnet.ibm.com>
-Subject: Re: [PATCHv2] rdma: add a new IB_ACCESS_GIFT flag
-Date: Tue, 02 Apr 2013 18:17:09 -0400
-Message-ID: <515B58E5.9070808@linux.vnet.ibm.com>
-References: <20130324155153.GA8597@redhat.com>
-	<20130402155104.GA27382@redhat.com>
-	<CAL1RGDUe1=Xd1mpNajiLY08fJ+gBKAMDGeX3SVkS+egOQyiCxQ@mail.gmail.com>
-	<20130402170521.GA30295@redhat.com>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [RFC-v2 11/12] iser-target: Add logic for core
+Date: Tue, 02 Apr 2013 15:23:35 -0700
+Message-ID: <1364941415.3898.190.camel@haakon2.linux-iscsi.org>
+References: <1363996536-30644-1-git-send-email-nab@linux-iscsi.org>
+	 <1363996536-30644-12-git-send-email-nab@linux-iscsi.org>
+	 <515A97DD.40507@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <qemu-devel-bounces+gceq-qemu-devel=gmane.org@nongnu.org>
-In-Reply-To: <20130402170521.GA30295@redhat.com>
-List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
-List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel>
-List-Post: <mailto:qemu-devel@nongnu.org>
-List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
-List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
-Errors-To: qemu-devel-bounces+gceq-qemu-devel=gmane.org@nongnu.org
-Sender: qemu-devel-bounces+gceq-qemu-devel=gmane.org@nongnu.org
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Roland Dreier <roland@kernel.org>, qemu-devel@nongnu.org, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, LKML <linux-kernel@vger.kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Sean Hefty <sean.hefty@intel.com>, Christoph Lameter <cl@linux.com>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <515A97DD.40507@mellanox.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Alexander Nezhinsky <alexandern@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-I'm getting around to it, Michael, I promise =).
+On Tue, 2013-04-02 at 11:33 +0300, Or Gerlitz wrote:
+> On 23/03/2013 01:55, Nicholas A. Bellinger wrote:
+> > +++ b/drivers/infiniband/ulp/isert/isert_core.h
+> > @@ -0,0 +1,11 @@
+> > +#include <linux/socket.h>
+> > +#include <linux/in.h>
+> > +#include <linux/in6.h>
+> > +#include <rdma/ib_verbs.h>
+> > +#include <rdma/rdma_cm.h>
+> > +
+> > +extern void iser_cq_tx_tasklet(unsigned long);
+> > +extern void isert_cq_tx_callback(struct ib_cq *, void *);
+> > +extern void iser_cq_rx_tasklet(unsigned long);
+> > +extern void isert_cq_rx_callback(struct ib_cq *, void *);
+> > +extern void isert_free_rx_descriptors(struct isert_conn *);
+> 
+> no need for externs here too, agree? also, any reason for these two 
+> header files not
+> to be merged into one or into one of the other header files?
+> 
 
-Just came back from vacation.
+<nod>, merging into a single source/include for RFC-v3 code.
 
-I have to re-build the ib_ucm kernel module from the original SUSE 
-kernel that I'm using along before I can test it......
+> > diff --git a/drivers/infiniband/ulp/isert/isert_verbs.h b/drivers/infiniband/ulp/isert/isert_verbs.h
+> > new file mode 100644
+> > index 0000000..da7924d
+> > --- /dev/null
+> > +++ b/drivers/infiniband/ulp/isert/isert_verbs.h
+> > @@ -0,0 +1,5 @@
+> > +extern void isert_connect_release(struct isert_conn *);
+> > +extern void isert_put_conn(struct isert_conn *);
+> > +extern int isert_cma_handler(struct rdma_cm_id *, struct rdma_cm_event *);
+> > +extern int isert_post_recv(struct isert_conn *, u32);
+> > +extern int isert_post_send(struct isert_conn *, struct iser_tx_desc *);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe target-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The machines I'm using are slightly tied up with other things, so its 
-taking me a little time to prepare to apply the patch and test the new 
-kernel module...
 
-- Michael
-
-On 04/02/2013 01:05 PM, Michael S. Tsirkin wrote:
-> On Tue, Apr 02, 2013 at 09:57:38AM -0700, Roland Dreier wrote:
->> On Tue, Apr 2, 2013 at 8:51 AM, Michael S. Tsirkin <mst@redhat.com> wrote:
->>>> At the moment registering an MR breaks COW.  This breaks memory
->>>> overcommit for users such as KVM: we have a lot of COW pages, e.g.
->>>> instances of the zero page or pages shared using KSM.
->>>>
->>>> If the application does not care that adapter sees stale data (for
->>>> example, it tracks writes reregisters and resends), it can use a new
->>>> IBV_ACCESS_GIFT flag to prevent registration from breaking COW.
->>>>
->>>> The semantics are similar to that of SPLICE_F_GIFT thus the name.
->>>>
->>>> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
->>> Roland, Michael is yet to test this but could you please
->>> confirm whether this looks acceptable to you?
->> The patch itself is reasonable I guess, given the needs of this particular app.
->>
->> I'm not particularly happy with the name of the flag.  The analogy
->> with SPLICE_F_GIFT doesn't seem particularly strong and I'm not
->> convinced even the splice flag name is very understandable.  But in
->> the RDMA case there's not really any sense in which we're "gifting"
->> memory to the adapter -- we're just telling the library "please don't
->> trigger copy-on-write" and it doesn't seem particularly easy for users
->> to understand that from the flag name.
->>
->>   - R.
-> The point really is that any writes by application
-> won't be seen until re-registration, right?
-> OK, what's a better name?  IBV_ACCESS_NON_COHERENT?
-> Please tell me what is preferable and we'll go ahead with it.
->
