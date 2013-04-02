@@ -1,38 +1,25 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 0/3] Least attached vector support
-Date: Tue, 2 Apr 2013 14:20:35 +0000 (UTC)
-Message-ID: <loom.20130402T161828-251@post.gmane.org>
-References: <4BEBC56C.3090605@mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] libibumad: document the setting of errno for umad_send
+ and umad_recv
+Date: Tue, 2 Apr 2013 14:41:18 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736F369EC5@ORSMSX101.amr.corp.intel.com>
+References: <20130329112119.1bb9ee1f7e687fc40c7a841d@intel.com>
+ <515AA29B.6000800@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <515AA29B.6000800-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Yevgeny Petrilin <yevgenyp@...> writes:
+> Just wondered why are you setting errno in the mad libraries? so far we
+> managed to avoid doing so in libibverbs, librdmacm, libmlx4 ones.
 
-> Hello Roland,
-> 
-> Those patches where submitted a while ago, I cleaned them up a little and
-generated against your latest git.
-> They allow to hw driver to choose to which EQ a CQ would be attached,
-considering the load on its eqs.
-
-(replying to an e-mail from three years ago)
-
-Hello,
-
-Can anyone tell me what happened with this patch series ? To me this looks like
-a useful patch series to make the mlx4_en driver faster. However, I haven't seen
-anyone posting any review comments to this series and apparently this
-functionality isn't upstream either.
-
-Thanks,
-
-Bart.
-
+The librdmacm does set errno
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
