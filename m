@@ -1,27 +1,40 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: New patches
-Date: Wed, 3 Apr 2013 13:06:15 +0000
-Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC43FDFCCE@xmb-rcd-x01.cisco.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 3/4] Use autoreconf in autogen.sh
+Date: Wed,  3 Apr 2013 06:06:54 -0700
+Message-ID: <1364994415-8330-3-git-send-email-jsquyres@cisco.com>
+References: <1364994415-8330-1-git-send-email-jsquyres@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <3C6177FAA01AB6458CB8008C600B3EC8-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <1364994415-8330-1-git-send-email-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I'm about to send some patches for libibverbs and Roland's infiniband kernel git tree.  The patches fit into two general categories:
+The old sequence of Autotools commands listed in autogen.sh is no
+longer correct.  Instead, just use the single "autoreconf" command,
+which will invoke all the Right Autotools commands in the correct
+order.
 
-1. Add enums for Cisco's Ethernet Virtual NIC (it's not an RNIC and therefore doesn't fit the RNIC/IWARP enums).  Also add enums for 1500 and 9000 MTUs.
+---
+ autogen.sh | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-2. Minor modernization of the GNU Autotools usage in libibverbs.
-
+diff --git a/autogen.sh b/autogen.sh
+index fd47839..6c9233e 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,8 +1,4 @@
+ #! /bin/sh
+ 
+ set -x
+-aclocal -I config
+-libtoolize --force --copy
+-autoheader
+-automake --foreign --add-missing --copy
+-autoconf
++autoreconf -ifv -I config
 -- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+1.8.1.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
