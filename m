@@ -1,30 +1,45 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 5/5] IPoIB: add support for TIPC protocol
-Date: Wed, 3 Apr 2013 18:31:49 +0300
-Message-ID: <515C4B65.4040600@mellanox.com>
-References: <1364993010-15515-1-git-send-email-kaber@trash.net> <1364993010-15515-6-git-send-email-kaber@trash.net>
+Date: Wed, 3 Apr 2013 17:44:55 +0200
+Message-ID: <20130403154455.GM21481@macbook.localnet>
+References: <1364993010-15515-1-git-send-email-kaber@trash.net>
+ <1364993010-15515-6-git-send-email-kaber@trash.net>
+ <515C4B65.4040600@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1364993010-15515-6-git-send-email-kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
-Cc: jon.maloy-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, allan.stephens-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <515C4B65.4040600@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: jon.maloy@ericsson.com, allan.stephens@windriver.com, netdev@vger.kernel.org, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/04/2013 15:43, Patrick McHardy wrote:
-> [...] all TIPC needs to know about is ARP and RARP since
-> it wants to always perform "path find", even if a path is already known. [...]
+On Wed, Apr 03, 2013 at 06:31:49PM +0300, Or Gerlitz wrote:
+> On 03/04/2013 15:43, Patrick McHardy wrote:
+> >[...] all TIPC needs to know about is ARP and RARP since
+> >it wants to always perform "path find", even if a path is already known. [...]
+> 
+> Not sure to follow this part... did you mean "all IPoIB  needs to
+> know about is ARP or RARP", this makes
+> sense indeed, since for arp/rarp we want to call unicast_arp_send
+> which does path_find and looks
+> also for the case the path isn't valid
 
-Not sure to follow this part... did you mean "all IPoIB  needs to know 
-about is ARP or RARP", this makes
-sense indeed, since for arp/rarp we want to call unicast_arp_send which 
-does path_find and looks
-also for the case the path isn't valid
+What I meant is that it doesn't require any knowledge about IPv4/IPv6 or
+other higher layer protocols anymore. At least almost none.
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We have protocol knowledge in ipoib_start_xmit(). For broadcast packets,
+it drops unknown protocols. For unicast packets, it handles ARP/RARP
+seperately because of the path find differences, IP/IPv6 are sent
+using the neigh, all others are dropped.
+
+ipoib_cm also has knowledge about IPv4/IPv6 in order to send ICMP errors.
+
+What we could do instead of adding TIPC to the broadcast-don't-drop list
+and to the send-using-neigh list in ipoib_start_xmit() is to only treat
+ARP/RARP special and send every other protocol using the neigh or
+ipoib_mcast_send().
+
+Right now the supported protocols are artificially limited without a
+technical reason.
