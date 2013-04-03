@@ -1,70 +1,48 @@
-From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] Add RDMA_*_USNIC enums for the Cisco Ethernet Virtual NIC.
-Date: Wed,  3 Apr 2013 06:13:15 -0700
-Message-ID: <1364994796-10642-1-git-send-email-jsquyres@cisco.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+From: Erik Hugne <erik.hugne@ericsson.com>
+Subject: Re: [PATCH 4/5] tipc: add InfiniBand media type
+Date: Wed, 3 Apr 2013 16:41:40 +0200
+Message-ID: <20130403144140.GA19219@eerihug-hybrid.ki.sw.ericsson.se>
+References: <1364993010-15515-1-git-send-email-kaber@trash.net>
+ <1364993010-15515-5-git-send-email-kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1364993010-15515-5-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Cc: jon.maloy@ericsson.com, allan.stephens@windriver.com, netdev@vger.kernel.org, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Per off-list conversation with Roland, add some new enums for the
-Cisco Ethernet Virtual NIC (it's not an RNIC/iWARP device, so it
-doesn't fit in the same category as RDMA_NODE_RNIC / RDMA_TRANSPORT_IWARP).
+On Wed, Apr 03, 2013 at 02:43:29PM +0200, Patrick McHardy wrote:
+> diff --git a/net/tipc/Kconfig b/net/tipc/Kconfig
+> index 4f99600..900ee66 100644
+> --- a/net/tipc/Kconfig
+> +++ b/net/tipc/Kconfig
+> @@ -31,3 +31,10 @@ config TIPC_PORTS
+>  
+>  	  Setting this to a smaller value saves some memory,
+>  	  setting it to higher allows for more ports.
+> +
+> +config TIPC_MEDIA_IB
+> +	bool "InfiniBand media type support"
+> +	depends on INFINIBAND_IPOIB
+> +	help
+> +	  Saying Y here will enable support for running TIPC on
+> +	  IP-over-InfiniBand devices.
+> diff --git a/net/tipc/Makefile b/net/tipc/Makefile
+> index 6cd55d6..4df8e02 100644
+> --- a/net/tipc/Makefile
+> +++ b/net/tipc/Makefile
+> @@ -9,3 +9,5 @@ tipc-y	+= addr.o bcast.o bearer.o config.o \
+>  	   name_distr.o  subscr.o name_table.o net.o  \
+>  	   netlink.o node.o node_subscr.o port.o ref.o  \
+>  	   socket.o log.o eth_media.o
+> +
+> +tipc-$(CONFIG_TIPC_MEDIA_IB)	+= ib_media.o
 
-"USNIC" = "Userspace NIC".
+The TIPC_MEDIA_IB option shows up directly under networking options,
+instead of under "TIPC". I think "depends on TIPC" is missing?
 
----
- drivers/infiniband/core/verbs.c | 3 +++
- include/rdma/ib_verbs.h         | 6 ++++--
- 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index a8fdd33..2a35518 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -114,6 +114,8 @@ rdma_node_get_transport(enum rdma_node_type node_type)
- 		return RDMA_TRANSPORT_IB;
- 	case RDMA_NODE_RNIC:
- 		return RDMA_TRANSPORT_IWARP;
-+	case RDMA_NODE_USNIC:
-+		return RDMA_TRANSPORT_USNIC;
- 	default:
- 		BUG();
- 		return 0;
-@@ -130,6 +132,7 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
- 	case RDMA_TRANSPORT_IB:
- 		return IB_LINK_LAYER_INFINIBAND;
- 	case RDMA_TRANSPORT_IWARP:
-+	case RDMA_TRANSPORT_USNIC:
- 		return IB_LINK_LAYER_ETHERNET;
- 	default:
- 		return IB_LINK_LAYER_UNSPECIFIED;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 98cc4b2..8a66758 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -67,12 +67,14 @@ enum rdma_node_type {
- 	RDMA_NODE_IB_CA 	= 1,
- 	RDMA_NODE_IB_SWITCH,
- 	RDMA_NODE_IB_ROUTER,
--	RDMA_NODE_RNIC
-+	RDMA_NODE_RNIC,
-+	RDMA_NODE_USNIC
- };
- 
- enum rdma_transport_type {
- 	RDMA_TRANSPORT_IB,
--	RDMA_TRANSPORT_IWARP
-+	RDMA_TRANSPORT_IWARP,
-+	RDMA_TRANSPORT_USNIC
- };
- 
- enum rdma_transport_type
--- 
-1.8.1.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+//E
