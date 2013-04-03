@@ -1,39 +1,61 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V3 for-next 0/5] IB/IPoIB: Add multi-queue TSS and RSS support
-Date: Wed, 3 Apr 2013 22:45:04 +0300
-Message-ID: <CAJZOPZJ3G3weqAmaTytVAgQTvfiSOjgnZ_ROk4osRv8fxuRWwA@mail.gmail.com>
-References: <1362676288-19906-1-git-send-email-ogerlitz@mellanox.com>
-	<CAJZOPZJ_runtaQnj+3n03FniBR83AeRD+Lh_2tn_1XZ0F2wKYg@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A823736F366357@ORSMSX101.amr.corp.intel.com>
-	<514EF53F.3000200@mellanox.com>
-	<CAJZOPZLbj+YxbELMRh9TioWptHG88Qz2VfzGTsreB+PFTdkNPA@mail.gmail.com>
+From: Jon Maloy <jon.maloy-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RFC 0/5] tipc: add support for TIPC over InfiniBand
+Date: Wed, 3 Apr 2013 15:44:44 -0400
+Message-ID: <515C86AC.1080808@ericsson.com>
+References: <1364993010-15515-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLbj+YxbELMRh9TioWptHG88Qz2VfzGTsreB+PFTdkNPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1364993010-15515-1-git-send-email-kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Cc: allan.stephens-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Paul.Gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org" <Paul.Gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 2, 2013 at 12:50 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Sun, Mar 24, 2013 at 2:44 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> On 19/03/2013 20:57, Hefty, Sean wrote:
->>> I have not had a chance to look at v3 yet.
+On 04/03/2013 08:43 AM, Patrick McHardy wrote:
+> The following patchset adds support for running TIPC over InfiniBand.
+> The patchset consists of three parts (+ a minor fix for the ethernet media
+> type):
+> 
+> - Preparation: removal of an the unused str2addr callback and move of the
+>   bcast_addr from struct tipc_media to struct tipc_bearer. This is necessary
+>   because InfiniBand doesn't have a fixed broadcast address like ethernet,
+>   so it needs to be initialized with the device's broadcast address when
+>   the bearer is enabled
+> 
+> - Introduction of a TIPC InfiniBand media type. A new media type is needed
+>   to deal with the different address sizes
+> 
+> - Support for ETH_P_TIPC in IPoIB
+> 
+> The last patch is something I'd like to discuss, I realize that this diverges
+> from the IPoIB specification, however the alternative would be to implement
+> something which would be pretty much identical to IPoIB with the only
+> difference of handling a different ethertype in the xmit function.
+> 
+> In fact I'd like to propose to remove all higher layer protocol knowledge
+> from IPoIB except for ARP and RARP, which need special treatment. With the
+> recent patch to manage neighbour entries in IPoIB itself, no further knowledge
+> of higher layer protocols is required.
+> 
+> The patchset is based on net-next.
+> 
+> Comments welcome.
+> 
 
->> will love it if you do so... we've just posted V4 which is respin of V3 over
->> an ipoib change
+Happy to see this initiative being taken.
+It seems to me that you have grasped our intentions for 
+how to add a new bearer, so I really don't have much comments,
+except the one already made by Erik.
 
-> Hi Sean, we have posted the TSS/RSS V0 patches on May 2012 and so far
-> attempted to address all the feedback / questions you provided/had.
-> Could you comment how you see things w.r.t to these patches?
-> specifically the QP groups concept on which you had raised some
-> concerns which we believe were addressed with V3.
+To me it looks good.
 
-Hi Sean, Ping. You had concerns on the suggested concept, we want to
-know if we addressed them, can you comment?
+Regards
+///jon
 
-Or.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
