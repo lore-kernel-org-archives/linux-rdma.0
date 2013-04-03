@@ -1,45 +1,62 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/5] IPoIB: add support for TIPC protocol
-Date: Wed, 3 Apr 2013 17:44:55 +0200
-Message-ID: <20130403154455.GM21481@macbook.localnet>
-References: <1364993010-15515-1-git-send-email-kaber@trash.net>
- <1364993010-15515-6-git-send-email-kaber@trash.net>
- <515C4B65.4040600@mellanox.com>
+From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv2] rdma: add a new IB_ACCESS_GIFT flag
+Date: Wed, 3 Apr 2013 19:07:48 +0300
+Message-ID: <20130403160748.GA24874@redhat.com>
+References: <20130324155153.GA8597@redhat.com>
+ <20130402155104.GA27382@redhat.com>
+ <CAL1RGDUe1=Xd1mpNajiLY08fJ+gBKAMDGeX3SVkS+egOQyiCxQ@mail.gmail.com>
+ <20130402170521.GA30295@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <515C4B65.4040600@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: jon.maloy@ericsson.com, allan.stephens@windriver.com, netdev@vger.kernel.org, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org
+In-Reply-To: <20130402170521.GA30295-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Michael R. Hines" <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 03, 2013 at 06:31:49PM +0300, Or Gerlitz wrote:
-> On 03/04/2013 15:43, Patrick McHardy wrote:
-> >[...] all TIPC needs to know about is ARP and RARP since
-> >it wants to always perform "path find", even if a path is already known. [...]
+On Tue, Apr 02, 2013 at 08:05:21PM +0300, Michael S. Tsirkin wrote:
+> On Tue, Apr 02, 2013 at 09:57:38AM -0700, Roland Dreier wrote:
+> > On Tue, Apr 2, 2013 at 8:51 AM, Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> > >> At the moment registering an MR breaks COW.  This breaks memory
+> > >> overcommit for users such as KVM: we have a lot of COW pages, e.g.
+> > >> instances of the zero page or pages shared using KSM.
+> > >>
+> > >> If the application does not care that adapter sees stale data (for
+> > >> example, it tracks writes reregisters and resends), it can use a new
+> > >> IBV_ACCESS_GIFT flag to prevent registration from breaking COW.
+> > >>
+> > >> The semantics are similar to that of SPLICE_F_GIFT thus the name.
+> > >>
+> > >> Signed-off-by: Michael S. Tsirkin <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > >
+> > > Roland, Michael is yet to test this but could you please
+> > > confirm whether this looks acceptable to you?
+> > 
+> > The patch itself is reasonable I guess, given the needs of this particular app.
+> > 
+> > I'm not particularly happy with the name of the flag.  The analogy
+> > with SPLICE_F_GIFT doesn't seem particularly strong and I'm not
+> > convinced even the splice flag name is very understandable.  But in
+> > the RDMA case there's not really any sense in which we're "gifting"
+> > memory to the adapter -- we're just telling the library "please don't
+> > trigger copy-on-write" and it doesn't seem particularly easy for users
+> > to understand that from the flag name.
+> > 
+> >  - R.
 > 
-> Not sure to follow this part... did you mean "all IPoIB  needs to
-> know about is ARP or RARP", this makes
-> sense indeed, since for arp/rarp we want to call unicast_arp_send
-> which does path_find and looks
-> also for the case the path isn't valid
+> The point really is that any writes by application
+> won't be seen until re-registration, right?
+> OK, what's a better name?  IBV_ACCESS_NON_COHERENT?
+> Please tell me what is preferable and we'll go ahead with it.
 
-What I meant is that it doesn't require any knowledge about IPv4/IPv6 or
-other higher layer protocols anymore. At least almost none.
+Um. ping? We are at -rc5 and things need to fall into place
+if we are to have it in 3.10 ...
 
-We have protocol knowledge in ipoib_start_xmit(). For broadcast packets,
-it drops unknown protocols. For unicast packets, it handles ARP/RARP
-seperately because of the path find differences, IP/IPv6 are sent
-using the neigh, all others are dropped.
-
-ipoib_cm also has knowledge about IPv4/IPv6 in order to send ICMP errors.
-
-What we could do instead of adding TIPC to the broadcast-don't-drop list
-and to the send-using-neigh list in ipoib_start_xmit() is to only treat
-ARP/RARP special and send every other protocol using the neigh or
-ipoib_mcast_send().
-
-Right now the supported protocols are artificially limited without a
-technical reason.
+> -- 
+> MST
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
