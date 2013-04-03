@@ -1,10 +1,10 @@
 From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] Ad IB_MTU_1500|9000 enums.
-Date: Wed,  3 Apr 2013 06:13:16 -0700
-Message-ID: <1364994796-10642-2-git-send-email-jsquyres@cisco.com>
-References: <1364994796-10642-1-git-send-email-jsquyres@cisco.com>
+Subject: [PATCH 2/4] Add IBV_MTU_1500|9000 enums.
+Date: Wed,  3 Apr 2013 06:06:53 -0700
+Message-ID: <1364994415-8330-2-git-send-email-jsquyres@cisco.com>
+References: <1364994415-8330-1-git-send-email-jsquyres@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1364994796-10642-1-git-send-email-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1364994415-8330-1-git-send-email-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -13,58 +13,58 @@ List-Id: linux-rdma@vger.kernel.org
 Allow specification of common Ethernet MTUs.
 
 ---
- include/rdma/ib_addr.h  | 6 +++++-
- include/rdma/ib_verbs.h | 8 ++++++--
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ examples/devinfo.c         | 2 ++
+ examples/pingpong.c        | 2 ++
+ include/infiniband/verbs.h | 6 ++++--
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index 9996539..1f6fbbc 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -200,10 +200,14 @@ static inline enum ib_mtu iboe_get_mtu(int mtu)
- 	 */
- 	mtu = mtu - IB_GRH_BYTES - IB_BTH_BYTES - 28;
- 
--	if (mtu >= ib_mtu_enum_to_int(IB_MTU_4096))
-+	if (mtu >= ib_mtu_enum_to_int(IB_MTU_9000))
-+		return IB_MTU_9000;
-+	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_4096))
- 		return IB_MTU_4096;
- 	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_2048))
- 		return IB_MTU_2048;
-+	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_1500))
-+		return IB_MTU_1500;
- 	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_1024))
- 		return IB_MTU_1024;
- 	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_512))
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 8a66758..4670f6f 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -174,8 +174,10 @@ enum ib_mtu {
- 	IB_MTU_256  = 1,
- 	IB_MTU_512  = 2,
- 	IB_MTU_1024 = 3,
--	IB_MTU_2048 = 4,
--	IB_MTU_4096 = 5
-+	IB_MTU_1500 = 4,
-+	IB_MTU_2048 = 5,
-+	IB_MTU_4096 = 6,
-+	IB_MTU_9000 = 7
- };
- 
- static inline int ib_mtu_enum_to_int(enum ib_mtu mtu)
-@@ -184,8 +186,10 @@ static inline int ib_mtu_enum_to_int(enum ib_mtu mtu)
- 	case IB_MTU_256:  return  256;
- 	case IB_MTU_512:  return  512;
- 	case IB_MTU_1024: return 1024;
-+	case IB_MTU_1500: return 1500;
- 	case IB_MTU_2048: return 2048;
- 	case IB_MTU_4096: return 4096;
-+	case IB_MTU_9000: return 9000;
- 	default: 	  return -1;
+diff --git a/examples/devinfo.c b/examples/devinfo.c
+index 98a6b4b..6700882 100644
+--- a/examples/devinfo.c
++++ b/examples/devinfo.c
+@@ -118,8 +118,10 @@ static const char *mtu_str(enum ibv_mtu max_mtu)
+ 	case IBV_MTU_256:  return "256";
+ 	case IBV_MTU_512:  return "512";
+ 	case IBV_MTU_1024: return "1024";
++	case IBV_MTU_1500: return "1500";
+ 	case IBV_MTU_2048: return "2048";
+ 	case IBV_MTU_4096: return "4096";
++	case IBV_MTU_9000: return "9000";
+ 	default:           return "invalid MTU";
  	}
  }
+diff --git a/examples/pingpong.c b/examples/pingpong.c
+index 90732ef..d7443a8 100644
+--- a/examples/pingpong.c
++++ b/examples/pingpong.c
+@@ -42,8 +42,10 @@ enum ibv_mtu pp_mtu_to_enum(int mtu)
+ 	case 256:  return IBV_MTU_256;
+ 	case 512:  return IBV_MTU_512;
+ 	case 1024: return IBV_MTU_1024;
++	case 1500: return IBV_MTU_1500;
+ 	case 2048: return IBV_MTU_2048;
+ 	case 4096: return IBV_MTU_4096;
++	case 9000: return IBV_MTU_9000;
+ 	default:   return -1;
+ 	}
+ }
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 6a6944c..1583c34 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -150,8 +150,10 @@ enum ibv_mtu {
+ 	IBV_MTU_256  = 1,
+ 	IBV_MTU_512  = 2,
+ 	IBV_MTU_1024 = 3,
+-	IBV_MTU_2048 = 4,
+-	IBV_MTU_4096 = 5
++	IBV_MTU_1500 = 4,
++	IBV_MTU_2048 = 5,
++	IBV_MTU_4096 = 6,
++	IBV_MTU_9000 = 7
+ };
+ 
+ enum ibv_port_state {
 -- 
 1.8.1.1
 
