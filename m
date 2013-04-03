@@ -1,89 +1,38 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [RFC-v2 11/12] iser-target: Add logic for core
-Date: Tue, 02 Apr 2013 15:36:25 -0700
-Message-ID: <1364942185.3898.200.camel@haakon2.linux-iscsi.org>
-References: <1363996536-30644-1-git-send-email-nab@linux-iscsi.org>
-	 <1363996536-30644-12-git-send-email-nab@linux-iscsi.org>
-	 <CAJZOPZK888O4Hjjhf9=BMbdM8kM7sF56uFYPPaM1LV1gn5DJ=w@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: XRC and ib_poll_cq
+Date: Wed, 3 Apr 2013 00:35:28 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736F36A119@ORSMSX101.amr.corp.intel.com>
+References: 1828884A29C6694DAF28B7E6B8A823736F369FCB () ORSMSX101 ! amr !
+ corp ! intel ! com <515B393F.2080405@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAJZOPZK888O4Hjjhf9=BMbdM8kM7sF56uFYPPaM1LV1gn5DJ=w@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <or.gerlitz@gmail.com>
-Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Alexander Nezhinsky <alexandern@mellanox.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <515B393F.2080405-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2013-04-03 at 00:24 +0300, Or Gerlitz wrote:
-> On Sat, Mar 23, 2013 at 1:55 AM, Nicholas A. Bellinger
-> <nab@linux-iscsi.org> wrote:
-> > +static int
-> > +isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
-> > +{
-> > +       struct isert_cmd *isert_cmd = container_of(cmd,
-> > +                                       struct isert_cmd, iscsi_cmd);
-> > +       struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-> > +       struct ib_send_wr *send_wr = &isert_cmd->tx_desc.send_wr, *wr_failed;
-> > +       struct iscsi_scsi_rsp *hdr = (struct iscsi_scsi_rsp *)
-> > +                               &isert_cmd->tx_desc.iscsi_header;
-> > +       int ret;
-> > +
-> > +       isert_create_send_desc(isert_conn, isert_cmd, &isert_cmd->tx_desc);
-> > +       iscsit_build_rsp_pdu(cmd, conn, true, hdr);
-> > +       isert_init_tx_hdrs(isert_conn, &isert_cmd->tx_desc);
-> > +       /*
-> > +        * Attach SENSE DATA payload to iSCSI Response PDU
-> > +        */
-> > +       if (cmd->se_cmd.sense_buffer &&
-> > +           ((cmd->se_cmd.se_cmd_flags & SCF_TRANSPORT_TASK_SENSE) ||
-> > +           (cmd->se_cmd.se_cmd_flags & SCF_EMULATED_TASK_SENSE))) {
-> > +               struct ib_device *ib_dev = isert_conn->conn_cm_id->device;
-> > +               struct ib_sge *tx_dsg = &isert_cmd->tx_desc.tx_sg[1];
-> > +               u32 padding, sense_len;
-> > +
-> > +               put_unaligned_be16(cmd->se_cmd.scsi_sense_length,
-> > +                                  cmd->sense_buffer);
-> > +               cmd->se_cmd.scsi_sense_length += sizeof(__be16);
-> > +
-> > +               padding = -(cmd->se_cmd.scsi_sense_length) & 3;
-> > +               hton24(hdr->dlength, (u32)cmd->se_cmd.scsi_sense_length);
-> > +               sense_len = cmd->se_cmd.scsi_sense_length + padding;
-> > +
-> > +               isert_cmd->sense_buf_dma = ib_dma_map_single(ib_dev,
-> > +                               (void *)cmd->sense_buffer, sense_len,
-> > +                               DMA_TO_DEVICE);
-> > +
-> > +               isert_cmd->sense_buf_len = sense_len;
-> > +               ib_dma_sync_single_for_cpu(ib_dev, isert_cmd->sense_buf_dma,
-> > +                                          sense_len, DMA_TO_DEVICE);
-> > +               ib_dma_sync_single_for_device(ib_dev, isert_cmd->sense_buf_dma,
-> > +                                             sense_len, DMA_TO_DEVICE);
-> > +
-> > +               tx_dsg->addr    = isert_cmd->sense_buf_dma;
-> > +               tx_dsg->length  = sense_len;
-> > +               tx_dsg->lkey    = isert_conn->conn_mr->lkey;
-> > +               isert_cmd->tx_desc.num_sge = 2;
-> > +       }
-> > +
-> > +       isert_cmd->rdma_wr.iser_ib_op = ISER_IB_SEND;
-> 
-> [...]
-> > +       send_wr->wr_id = (unsigned long)&isert_cmd->tx_desc;
-> > +       send_wr->opcode = IB_WR_SEND;
-> > +       send_wr->send_flags = IB_SEND_SIGNALED;
-> > +       send_wr->sg_list = &isert_cmd->tx_desc.tx_sg[0];
-> > +       send_wr->num_sge = isert_cmd->tx_desc.num_sge;
-> > +       send_wr->next = NULL;
-> [...]
-> 
-> These seven lines are repeated 3-5 times below, a quick question and suggestion:
-> 
-> 1. can't we do it beforehand?
-> 2. we can move to helper function and call it when needed.
-> 
-> 
+> Thanks, it seems that I asked the question in a wrong way.
+> The context is what I need eventually but in order to find it I first
+> need to recover the QP or the XRC SRQ.
+> Per core there may be several QP and SRQ using the same CQ.
+> When doing ib_poll_cq on the CQ the WQE in hand has only an ib_qp pointer.
 
-<nod>, adding common isert_init_send_wr() caller now.
+Correct - dereference the qp pointer to get the context, srq, and srq_context.
 
---nab
+struct ib_wc wc;
+
+ib_poll_cq(...&wc)
+my_qp = wc.qp;
+my_qp_context = wc.qp->qp_context;
+my_srq = wc.qp->srq;
+my_srq_context = wc.qp->srq->srq_context;
+
+this tells you what QP/SRQ the completion is related to.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
