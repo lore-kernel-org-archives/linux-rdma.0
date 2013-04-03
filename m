@@ -1,81 +1,27 @@
-From: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
-Subject: [PATCH 1/5] tipc: remove unused str2addr media callback
-Date: Wed,  3 Apr 2013 14:43:26 +0200
-Message-ID: <1364993010-15515-2-git-send-email-kaber@trash.net>
-References: <1364993010-15515-1-git-send-email-kaber@trash.net>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: New patches
+Date: Wed, 3 Apr 2013 13:06:15 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC43FDFCCE@xmb-rcd-x01.cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1364993010-15515-1-git-send-email-kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <3C6177FAA01AB6458CB8008C600B3EC8-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jon.maloy-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org
-Cc: allan.stephens-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
----
- net/tipc/bearer.h    |  2 --
- net/tipc/eth_media.c | 20 --------------------
- 2 files changed, 22 deletions(-)
+I'm about to send some patches for libibverbs and Roland's infiniband kernel git tree.  The patches fit into two general categories:
 
-diff --git a/net/tipc/bearer.h b/net/tipc/bearer.h
-index 39f1192..cc2d74e 100644
---- a/net/tipc/bearer.h
-+++ b/net/tipc/bearer.h
-@@ -77,7 +77,6 @@ struct tipc_bearer;
-  * @enable_bearer: routine which enables a bearer
-  * @disable_bearer: routine which disables a bearer
-  * @addr2str: routine which converts media address to string
-- * @str2addr: routine which converts media address from string
-  * @addr2msg: routine which converts media address to protocol message area
-  * @msg2addr: routine which converts media address from protocol message area
-  * @bcast_addr: media address used in broadcasting
-@@ -94,7 +93,6 @@ struct tipc_media {
- 	int (*enable_bearer)(struct tipc_bearer *b_ptr);
- 	void (*disable_bearer)(struct tipc_bearer *b_ptr);
- 	int (*addr2str)(struct tipc_media_addr *a, char *str_buf, int str_size);
--	int (*str2addr)(struct tipc_media_addr *a, char *str_buf);
- 	int (*addr2msg)(struct tipc_media_addr *a, char *msg_area);
- 	int (*msg2addr)(struct tipc_media_addr *a, char *msg_area);
- 	struct tipc_media_addr bcast_addr;
-diff --git a/net/tipc/eth_media.c b/net/tipc/eth_media.c
-index 2132c1e..1bdc6df 100644
---- a/net/tipc/eth_media.c
-+++ b/net/tipc/eth_media.c
-@@ -302,25 +302,6 @@ static int eth_addr2str(struct tipc_media_addr *a, char *str_buf, int str_size)
- }
- 
- /**
-- * eth_str2addr - convert string to Ethernet address
-- */
--static int eth_str2addr(struct tipc_media_addr *a, char *str_buf)
--{
--	char mac[ETH_ALEN];
--	int r;
--
--	r = sscanf(str_buf, "%02x:%02x:%02x:%02x:%02x:%02x",
--		       (u32 *)&mac[0], (u32 *)&mac[1], (u32 *)&mac[2],
--		       (u32 *)&mac[3], (u32 *)&mac[4], (u32 *)&mac[5]);
--
--	if (r != ETH_ALEN)
--		return 1;
--
--	eth_media_addr_set(a, mac);
--	return 0;
--}
--
--/**
-  * eth_str2addr - convert Ethernet address format to message header format
-  */
- static int eth_addr2msg(struct tipc_media_addr *a, char *msg_area)
-@@ -351,7 +332,6 @@ static struct tipc_media eth_media_info = {
- 	.enable_bearer	= enable_bearer,
- 	.disable_bearer	= disable_bearer,
- 	.addr2str	= eth_addr2str,
--	.str2addr	= eth_str2addr,
- 	.addr2msg	= eth_addr2msg,
- 	.msg2addr	= eth_msg2addr,
- 	.bcast_addr	= { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
+1. Add enums for Cisco's Ethernet Virtual NIC (it's not an RNIC and therefore doesn't fit the RNIC/IWARP enums).  Also add enums for 1500 and 9000 MTUs.
+
+2. Minor modernization of the GNU Autotools usage in libibverbs.
+
 -- 
-1.8.1.4
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
