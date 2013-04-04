@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] Setup SM port GUID in subnet object as soon as it
- is known
-Date: Thu, 04 Apr 2013 07:10:23 -0400
-Message-ID: <515D5F9F.5080301@dev.mellanox.co.il>
+Subject: [PATCH opensm] Change LFT event to be per block/per switch rather
+ than just per switch
+Date: Thu, 04 Apr 2013 07:10:29 -0400
+Message-ID: <515D5FA5.1000809@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,249 +12,266 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-rather than wait for local NodeInfo response
-This allows plugin to know SM port GUID at construct() time
+Eliminates expensive LFT comparison to determine changed blocks
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/include/opensm/osm_opensm.h b/include/opensm/osm_opensm.h
-index 3c8bc59..4750505 100644
---- a/include/opensm/osm_opensm.h
-+++ b/include/opensm/osm_opensm.h
-@@ -219,8 +219,10 @@ typedef struct osm_opensm {
- 	osm_congestion_control_t cc;
- 	cl_qlist_t plugin_list;
- 	osm_db_t db;
-+	boolean_t mad_pool_constructed;
- 	osm_mad_pool_t mad_pool;
- 	osm_vendor_t *p_vendor;
-+	boolean_t vl15_constructed;
- 	osm_vl15_t vl15;
- 	osm_log_t log;
- 	cl_dispatcher_t disp;
-@@ -313,6 +315,34 @@ void osm_opensm_construct(IN osm_opensm_t * p_osm);
- *	SM object, osm_opensm_init, osm_opensm_destroy
- *********/
+diff --git a/include/opensm/osm_event_plugin.h b/include/opensm/osm_event_plugin.h
+index c9a904b..3ece2f0 100644
+--- a/include/opensm/osm_event_plugin.h
++++ b/include/opensm/osm_event_plugin.h
+@@ -39,6 +39,7 @@
+ #include <iba/ib_types.h>
+ #include <complib/cl_qlist.h>
+ #include <opensm/osm_config.h>
++#include <opensm/osm_switch.h>
  
-+/****f* OpenSM: OpenSM/osm_opensm_construct_finish
-+* NAME
-+*	osm_opensm_construct_finish
-+*
-+* DESCRIPTION
-+*	The osm_opensm_construct_finish function completes
-+*	the second phase of constucting an OpenSM object.
-+*
-+* SYNOPSIS
-+*/
-+void osm_opensm_construct_finish(IN osm_opensm_t * p_osm);
-+/*
-+* PARAMETERS
-+*	p_osm
-+*		[in] Pointer to a OpenSM object to construct.
-+*
-+* RETURN VALUE
-+*	This function does not return a value.
-+*
-+* NOTES
-+*	Calling osm_opensm_construct/osm_construct_finish is a prerequisite
-+*	to calling any other method except osm_opensm_init/osm_opensm_init_finish.
-+*
-+* SEE ALSO
-+*	SM object, osm_opensm_init, osm_opensm_construct_finish,
-+*	osm_opensm_destroy, osm_opensm_destroy_finish
-+*********/
-+
- /****f* OpenSM: OpenSM/osm_opensm_destroy
- * NAME
- *	osm_opensm_destroy
-@@ -342,6 +372,36 @@ void osm_opensm_destroy(IN osm_opensm_t * p_osm);
- *	SM object, osm_opensm_construct, osm_opensm_init
- *********/
+ #ifdef __cplusplus
+ #  define BEGIN_C_DECLS extern "C" {
+@@ -87,6 +88,18 @@ typedef struct osm_epi_port_id {
+ 	char node_name[OSM_EPI_NODE_NAME_LEN];
+ } osm_epi_port_id_t;
  
-+/****f* OpenSM: OpenSM/osm_opensm_destroy_finish
-+* NAME
-+*	osm_opensm_destroy_finish
-+*
-+* DESCRIPTION
-+*	The osm_opensm_destroy_finish function handles the second phase
-+*	of destroying an SM, releasing all resources.
-+*
-+* SYNOPSIS
-+*/
-+void osm_opensm_destroy_finish(IN osm_opensm_t * p_osm);
-+/*
-+* PARAMETERS
-+*	p_osm
-+*		[in] Pointer to a OpenSM object to destroy.
-+*
-+* RETURN VALUE
-+*	This function does not return a value.
-+*
-+* NOTES
-+*	Performs second phase of any necessary cleanup of the specified OpenSM object.
-+*	Further operations should not be attempted on the destroyed object.
-+*	This function should only be called after a call to
-+*	osm_opensm_construct_finish or osm_opensm_init_finish.
-+*
-+* SEE ALSO
-+*	SM object, osm_opensm_construct, osm_opensm_construct_finish,
-+*	osm_opensm_init, osm_opensm_init_finish
-+*********/
++typedef enum {
++	LFT_CHANGED_LFT_TOP = (1 << 0),
++	LFT_CHANGED_BLOCK = (1 << 1)
++} osm_epi_lft_change_flags_t;
 +
- /****f* OpenSM: OpenSM/osm_opensm_init
- * NAME
- *	osm_opensm_init
-@@ -371,6 +431,37 @@ ib_api_status_t osm_opensm_init(IN osm_opensm_t * p_osm,
- *	SM object, osm_opensm_construct, osm_opensm_destroy
- *********/
++typedef struct osm_epi_lft_change_event {
++	osm_switch_t *p_sw;
++	osm_epi_lft_change_flags_t flags;
++	uint16_t lft_top;
++	uint32_t block_num;
++} osm_epi_lft_change_event_t;
++
+ /** =========================================================================
+  * Port error event
+  * OSM_EVENT_ID_PORT_COUNTER
+diff --git a/include/opensm/osm_madw.h b/include/opensm/osm_madw.h
+index 5d78eaa..fd6ba7f 100644
+--- a/include/opensm/osm_madw.h
++++ b/include/opensm/osm_madw.h
+@@ -229,6 +229,7 @@ typedef struct osm_si_context {
+ 	ib_net64_t node_guid;
+ 	boolean_t set_method;
+ 	boolean_t light_sweep;
++	boolean_t lft_top_change;
+ } osm_si_context_t;
+ /*********/
  
-+/****f* OpenSM: OpenSM/osm_opensm_init_finish
-+* NAME
-+*	osm_opensm_init_finish
-+*
-+* DESCRIPTION
-+*	The osm_opensm_init_finish function performs the second phase
-+*	of initialization of an OpenSM object.
-+*
-+* SYNOPSIS
-+*/
-+ib_api_status_t osm_opensm_init_finish(IN osm_opensm_t * p_osm,
-+				       IN const osm_subn_opt_t * p_opt);
-+/*
-+* PARAMETERS
-+*	p_osm
-+*		[in] Pointer to an osm_opensm_t object to initialize.
-+*
-+*	p_opt
-+*		[in] Pointer to the subnet options structure.
-+*
-+* RETURN VALUES
-+*	IB_SUCCESS if the OpenSM object was initialized successfully.
-+*
-+* NOTES
-+*	Allows calling other OpenSM methods.
-+*
-+* SEE ALSO
-+*	SM object, osm_opensm_construct, osm_opensm_construct_finish,
-+*	osm_opensm_destroy, osm_opensm_destroy_finish
-+*********/
-+
- /****f* OpenSM: OpenSM/osm_opensm_sweep
- * NAME
- *	osm_opensm_sweep
-diff --git a/opensm/main.c b/opensm/main.c
-index 92b1c03..9349d79 100644
---- a/opensm/main.c
-+++ b/opensm/main.c
-@@ -1193,7 +1193,16 @@ int main(int argc, char *argv[])
- 		opt.guid = get_port_guid(&osm, opt.guid);
+diff --git a/include/opensm/osm_switch.h b/include/opensm/osm_switch.h
+index 6e8a87e..41ac959 100644
+--- a/include/opensm/osm_switch.h
++++ b/include/opensm/osm_switch.h
+@@ -104,7 +104,6 @@ typedef struct osm_switch {
+ 	uint8_t *lft;
+ 	uint8_t *new_lft;
+ 	uint16_t lft_size;
+-	unsigned lft_change;
+ 	osm_mcast_tbl_t mcast_tbl;
+ 	int32_t mft_block_num;
+ 	uint32_t mft_position;
+diff --git a/opensm/osm_lin_fwd_rcv.c b/opensm/osm_lin_fwd_rcv.c
+index f13b9a8..dd18c09 100644
+--- a/opensm/osm_lin_fwd_rcv.c
++++ b/opensm/osm_lin_fwd_rcv.c
+@@ -51,6 +51,8 @@
+ #define FILE_ID OSM_FILE_LIN_FWD_RCV_C
+ #include <opensm/osm_switch.h>
+ #include <opensm/osm_sm.h>
++#include <opensm/osm_event_plugin.h>
++#include <opensm/osm_opensm.h>
  
- 	if (opt.guid == 0)
--		goto Exit;
-+		goto Exit2;
-+
-+	status = osm_opensm_init_finish(&osm, &opt);
-+	if (status != IB_SUCCESS) {
-+		const char *err_str = ib_get_err_str(status);
-+		if (err_str == NULL)
-+			err_str = "Unknown Error Type";
-+		printf("\nError from osm_opensm_init_finish: %s.\n", err_str);
-+		goto Exit2;
+ void osm_lft_rcv_process(IN void *context, IN void *data)
+ {
+@@ -62,6 +64,7 @@ void osm_lft_rcv_process(IN void *context, IN void *data)
+ 	osm_lft_context_t *p_lft_context;
+ 	uint8_t *p_block;
+ 	ib_net64_t node_guid;
++	osm_epi_lft_change_event_t lft_change;
+ 	ib_api_status_t status;
+ 
+ 	CL_ASSERT(sm);
+@@ -89,7 +92,17 @@ void osm_lft_rcv_process(IN void *context, IN void *data)
+ 			"0x%" PRIx64 "\n", cl_ntoh64(node_guid));
+ 	} else {
+ 		status = osm_switch_set_lft_block(p_sw, p_block, block_num);
+-		if (status != IB_SUCCESS) {
++		if (status == IB_SUCCESS) {
++			if (sm->p_subn->first_time_master_sweep == FALSE) {
++				lft_change.p_sw = p_sw;
++				lft_change.flags = LFT_CHANGED_BLOCK;
++				lft_change.lft_top = 0;
++				lft_change.block_num = block_num;
++				osm_opensm_report_event(sm->p_subn->p_osm,
++							OSM_EVENT_ID_LFT_CHANGE,
++							&lft_change);
++			}
++		} else {
+ 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0402: "
+ 				"Setting forwarding table block failed (%s)"
+ 				", Switch 0x%" PRIx64 " %s\n",
+diff --git a/opensm/osm_mcast_mgr.c b/opensm/osm_mcast_mgr.c
+index fea0a69..135b174 100644
+--- a/opensm/osm_mcast_mgr.c
++++ b/opensm/osm_mcast_mgr.c
+@@ -1070,6 +1070,7 @@ static void mcast_mgr_set_mfttop(IN osm_sm_t * sm, IN osm_switch_t * p_sw)
+ 		context.si_context.light_sweep = FALSE;
+ 		context.si_context.node_guid = osm_node_get_node_guid(p_node);
+ 		context.si_context.set_method = TRUE;
++		context.si_context.lft_top_change = FALSE;
+ 
+ 		status = osm_req_set(sm, p_path, (uint8_t *) & si,
+ 				     sizeof(si), IB_MAD_ATTR_SWITCH_INFO,
+diff --git a/opensm/osm_node_info_rcv.c b/opensm/osm_node_info_rcv.c
+index cb96f29..592f2de 100644
+--- a/opensm/osm_node_info_rcv.c
++++ b/opensm/osm_node_info_rcv.c
+@@ -552,6 +552,7 @@ static void ni_rcv_process_switch(IN osm_sm_t * sm, IN osm_node_t * p_node,
+ 	context.si_context.node_guid = osm_node_get_node_guid(p_node);
+ 	context.si_context.set_method = FALSE;
+ 	context.si_context.light_sweep = FALSE;
++	context.si_context.lft_top_change = FALSE;
+ 
+ 	/* Request a SwitchInfo attribute */
+ 	status = osm_req_get(sm, path, IB_MAD_ATTR_SWITCH_INFO,
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 8229b06..1b73834 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -138,6 +138,7 @@ static void state_mgr_get_sw_info(IN cl_map_item_t * p_object, IN void *context)
+ 	mad_context.si_context.node_guid = osm_node_get_node_guid(p_node);
+ 	mad_context.si_context.set_method = FALSE;
+ 	mad_context.si_context.light_sweep = TRUE;
++	mad_context.si_context.lft_top_change = FALSE;
+ 
+ 	status = osm_req_get(sm, p_dr_path, IB_MAD_ATTR_SWITCH_INFO, 0,
+ 			     OSM_MSG_LIGHT_SWEEP_FAIL, &mad_context);
+diff --git a/opensm/osm_sw_info_rcv.c b/opensm/osm_sw_info_rcv.c
+index 84e7fe0..4381cbe 100644
+--- a/opensm/osm_sw_info_rcv.c
++++ b/opensm/osm_sw_info_rcv.c
+@@ -288,6 +288,7 @@ static boolean_t si_rcv_process_existing(IN osm_sm_t * sm,
+ 	ib_switch_info_t *p_si;
+ 	osm_si_context_t *p_si_context;
+ 	ib_smp_t *p_smp;
++	osm_epi_lft_change_event_t lft_change;
+ 	boolean_t is_change_detected = FALSE;
+ 
+ 	OSM_LOG_ENTER(sm->p_log);
+@@ -317,6 +318,17 @@ static boolean_t si_rcv_process_existing(IN osm_sm_t * sm,
+ 		}
+ 	}
+ 
++	if (sm->p_subn->first_time_master_sweep == FALSE &&
++	    p_si_context->set_method && p_si_context->lft_top_change) {
++		lft_change.p_sw = p_sw;
++		lft_change.flags = LFT_CHANGED_LFT_TOP;
++		lft_change.lft_top = cl_ntoh16(p_si->lin_top);
++		lft_change.block_num = 0;
++		osm_opensm_report_event(sm->p_subn->p_osm,
++					OSM_EVENT_ID_LFT_CHANGE,
++					&lft_change);
 +	}
- 
- 	status = osm_opensm_bind(&osm, opt.guid);
- 	if (status != IB_SUCCESS) {
-@@ -1237,6 +1246,8 @@ int main(int argc, char *argv[])
- 
- Exit:
- 	osm_opensm_destroy(&osm);
-+Exit2:
-+	osm_opensm_destroy_finish(&osm);
- 	complib_exit();
- 	remove_pidfile();
- 
-diff --git a/opensm/osm_opensm.c b/opensm/osm_opensm.c
-index 0909a36..06a5af2 100644
---- a/opensm/osm_opensm.c
-+++ b/opensm/osm_opensm.c
-@@ -243,12 +243,18 @@ void osm_opensm_construct(IN osm_opensm_t * p_osm)
- 	memset(p_osm, 0, sizeof(*p_osm));
- 	p_osm->osm_version = OSM_VERSION;
- 	osm_subn_construct(&p_osm->subn);
-+	osm_db_construct(&p_osm->db);
-+	osm_log_construct(&p_osm->log);
-+}
 +
-+void osm_opensm_construct_finish(IN osm_opensm_t * p_osm)
-+{
- 	osm_sm_construct(&p_osm->sm);
- 	osm_sa_construct(&p_osm->sa);
--	osm_db_construct(&p_osm->db);
- 	osm_mad_pool_construct(&p_osm->mad_pool);
-+	p_osm->mad_pool_constructed = TRUE;
- 	osm_vl15_construct(&p_osm->vl15);
--	osm_log_construct(&p_osm->log);
-+	p_osm->vl15_constructed = TRUE;
+ 	OSM_LOG_EXIT(sm->p_log);
+ 	return is_change_detected;
+ }
+diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
+index 7130ccf..12db434 100644
+--- a/opensm/osm_ucast_mgr.c
++++ b/opensm/osm_ucast_mgr.c
+@@ -918,8 +918,6 @@ static void ucast_mgr_set_fwd_top(IN cl_map_item_t * p_map_item,
+ 
+ 	p_path = osm_physp_get_dr_path_ptr(osm_node_get_physp_ptr(p_node, 0));
+ 
+-	p_sw->lft_change = 0;
+-
+ 	/*
+ 	   Set the top of the unicast forwarding table.
+ 	 */
+@@ -928,8 +926,9 @@ static void ucast_mgr_set_fwd_top(IN cl_map_item_t * p_map_item,
+ 	if (lin_top != si.lin_top) {
+ 		set_swinfo_require = TRUE;
+ 		si.lin_top = lin_top;
+-		p_sw->lft_change = 1;
+-	}
++		context.si_context.lft_top_change = TRUE;
++	} else
++		context.si_context.lft_top_change = FALSE;
+ 
+ 	/* check to see if the change state bit is on. If it is - then we
+ 	   need to clear it. */
+@@ -966,7 +965,7 @@ static void ucast_mgr_set_fwd_top(IN cl_map_item_t * p_map_item,
  }
  
- static void destroy_routing_engines(osm_opensm_t *osm)
-@@ -324,9 +330,17 @@ void osm_opensm_destroy(IN osm_opensm_t * p_osm)
- 	osm_perfmgr_destroy(&p_osm->perfmgr);
- #endif				/* ENABLE_OSM_PERF_MGR */
- 	osm_congestion_control_destroy(&p_osm->cc);
-+}
-+
-+void osm_opensm_destroy_finish(IN osm_opensm_t * p_osm)
-+{
- 	osm_db_destroy(&p_osm->db);
--	osm_vl15_destroy(&p_osm->vl15, &p_osm->mad_pool);
--	osm_mad_pool_destroy(&p_osm->mad_pool);
-+	if (p_osm->vl15_constructed && p_osm->mad_pool_constructed)
-+		osm_vl15_destroy(&p_osm->vl15, &p_osm->mad_pool);
-+	if (p_osm->mad_pool_constructed)
-+		osm_mad_pool_destroy(&p_osm->mad_pool);
-+	p_osm->vl15_constructed = FALSE;
-+	p_osm->mad_pool_constructed = FALSE;
- 	osm_vendor_delete(&p_osm->p_vendor);
- 	osm_subn_destroy(&p_osm->subn);
- 	cl_disp_destroy(&p_osm->disp);
-@@ -336,8 +350,8 @@ void osm_opensm_destroy(IN osm_opensm_t * p_osm)
- #else
- 	cl_event_destroy(&p_osm->stats.event);
- #endif
--	close_node_name_map(p_osm->node_name_map);
+ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
+-			 IN uint16_t block_id_ho, IN unsigned last_block)
++			 IN uint16_t block_id_ho)
+ {
+ 	uint8_t block[IB_SMP_DATA_SIZE];
+ 	osm_madw_context_t context;
+@@ -996,8 +995,6 @@ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
+ 		     IB_SMP_DATA_SIZE)))
+ 		return 0;
+ 
+-	p_sw->lft_change = 1;
 -
-+	if (p_osm->node_name_map)
-+		close_node_name_map(p_osm->node_name_map);
- 	cl_plock_destroy(&p_osm->lock);
+ 	OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
+ 		"Writing FT block %u to switch 0x%" PRIx64 "\n", block_id_ho,
+ 		cl_ntoh64(context.lft_context.node_guid));
+@@ -1008,11 +1005,6 @@ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
+ 			     cl_hton32(block_id_ho),
+ 			     CL_DISP_MSGID_NONE, &context);
  
- 	osm_log_destroy(&p_osm->log);
-@@ -427,10 +441,22 @@ ib_api_status_t osm_opensm_init(IN osm_opensm_t * p_osm,
+-	if (!p_mgr->p_subn->first_time_master_sweep &&
+-	    block_id_ho == last_block && p_sw->lft_change)
+-		osm_opensm_report_event(p_mgr->p_subn->p_osm,
+-					OSM_EVENT_ID_LFT_CHANGE, p_sw);
+-
+ 	if (status != IB_SUCCESS) {
+ 		OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR, "ERR 3A05: "
+ 			"Sending linear fwd. tbl. block failed (%s)\n",
+@@ -1033,8 +1025,7 @@ static void ucast_mgr_pipeline_fwd_tbl(osm_ucast_mgr_t * p_mgr)
+ 	for (i = 0; i < max_block; i++)
+ 		for (item = cl_qmap_head(tbl); item != cl_qmap_end(tbl);
+ 		     item = cl_qmap_next(item))
+-			set_lft_block((osm_switch_t *)item, p_mgr,
+-				      i, max_block - 1);
++			set_lft_block((osm_switch_t *)item, p_mgr, i);
+ }
  
- 	p_osm->p_vendor =
- 	    osm_vendor_new(&p_osm->log, p_opt->transaction_timeout);
--	if (p_osm->p_vendor == NULL) {
-+	if (p_osm->p_vendor == NULL)
- 		status = IB_INSUFFICIENT_RESOURCES;
--		goto Exit;
--	}
-+
-+Exit:
-+	OSM_LOG(&p_osm->log, OSM_LOG_FUNCS, "]\n");	/* Format Waived */
-+	return status;
-+}
-+
-+ib_api_status_t osm_opensm_init_finish(IN osm_opensm_t * p_osm,
-+				       IN const osm_subn_opt_t * p_opt)
-+{
-+	ib_api_status_t status;
-+
-+	osm_opensm_construct_finish(p_osm);
-+
-+	p_osm->subn.sm_port_guid = p_opt->guid;
+ void osm_ucast_mgr_set_fwd_tables(osm_ucast_mgr_t * p_mgr)
+diff --git a/osmeventplugin/src/osmeventplugin.c b/osmeventplugin/src/osmeventplugin.c
+index fed2bac..fc27c5a 100644
+--- a/osmeventplugin/src/osmeventplugin.c
++++ b/osmeventplugin/src/osmeventplugin.c
+@@ -156,11 +156,13 @@ static void handle_trap_event(_log_events_t *log, ib_mad_notice_attr_t *p_ntc)
  
- 	status = osm_mad_pool_init(&p_osm->mad_pool);
- 	if (status != IB_SUCCESS)
+ /** =========================================================================
+  */
+-static void handle_lft_change_event(_log_events_t *log, osm_switch_t *p_sw)
++static void handle_lft_change_event(_log_events_t *log,
++				    osm_epi_lft_change_event_t *lft_change)
+ {
+ 	fprintf(log->log_file,
+-		"LFT changed for switch 0x%" PRIx64 "\n",
+-		cl_ntoh64(osm_node_get_node_guid(p_sw->p_node)));
++		"LFT changed for switch 0x%" PRIx64 " flags 0x%x LFTTop %u block %d\n",
++		cl_ntoh64(osm_node_get_node_guid(lft_change->p_sw->p_node)),
++		lft_change->flags, lft_change->lft_top, lft_change->block_num);
+ }
+ 
+ /** =========================================================================
+@@ -201,7 +203,7 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
+ 		fprintf(log->log_file, "SA DB dump file updated\n");
+ 		break;
+ 	case OSM_EVENT_ID_LFT_CHANGE:
+-		handle_lft_change_event(log, (osm_switch_t *) event_data);
++		handle_lft_change_event(log, (osm_epi_lft_change_event_t *) event_data);
+ 		break;
+ 	case OSM_EVENT_ID_MAX:
+ 	default:
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
