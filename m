@@ -1,40 +1,36 @@
 From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4] Add IBV_*_USNIC enums for the Cisco Ethernet Virtual NIC.
-Date: Fri, 5 Apr 2013 00:27:39 +0300
-Message-ID: <CAJZOPZKQ_QFdTj-uYOBuBXcipxO1Drj7v4_U_euYzOe1Y6648Q@mail.gmail.com>
-References: <1364994415-8330-1-git-send-email-jsquyres@cisco.com>
-	<1828884A29C6694DAF28B7E6B8A823736F36A3A6@ORSMSX101.amr.corp.intel.com>
-	<EF66BBEB19BADC41AC8CCF5F684F07FC43FE14D8@xmb-rcd-x01.cisco.com>
+Subject: Re: [PATCH] IB/mlx4: Fail post send command on error recovery
+Date: Fri, 5 Apr 2013 00:45:01 +0300
+Message-ID: <CAJZOPZ+dgtQRX_sfcDc=aSOW553Twi0oqNjREeminQ2tnZeEmQ@mail.gmail.com>
+References: <1364496315-7588-1-git-send-email-klebers@linux.vnet.ibm.com>
+	<CAL1RGDW7wMVmyFhCv-Ei8Mbca-Y9yv+nygzfREU2_TozNSZ60A@mail.gmail.com>
+	<515D79B3.4090808@linux.vnet.ibm.com>
+	<201304041700.40349.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC43FE14D8-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
+In-Reply-To: <201304041700.40349.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jeff Squyres (jsquyres) <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
+On Thu, Apr 4, 2013 at 5:00 PM, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-> Sure.  For a little background, the 2nd-generation Cisco VIC has been available
-> since last year (IIRC): http://www.cisco.com/en/US/products/ps10277
-> /prod_module_series_home.html.  It's a converged 10G Ethernet adapter available > in a variety of form factors (e.g., 2x10G on PCIe and Mezz).
+> This won't really help unless ALL userspace apps respond by calling
+> ibv_close_device. You can check this by running ibv_asyncwatch  (in
+> libibverbs/examples). Until ibv_asyncwatch
+> is exited the low-level device restart won't work.
 
-> After some off-list discussion with Roland, we chose to create new IBV_*_USNIC
-> enums because none of the current enums were accurate for our device.  It's an
-> Ethernet NIC, but it's not an RNIC.  It's an Ethernet-based transport, but it's not
-> iWARP.
+Jack, so we have two different problems here, the kernel ULPs trying
+to reap completions from their CQs which will never happen, and what
+you pointed on under which currently the device will not be destroyed.
+I think its OK to handle them one @ a time...
 
->
-> The reason we're asking for these IBV_*_USNIC enums now -- before we've submitted the driver -- is because we're targeting getting our driver included in RHEL 6.5.  There's a bit of a chicken-and-egg issue here: they'll accept our patches for a new hardware driver while that driver is being worked upstream.  But they (rightfully) won't accept patches to IB core and libibverbs until they've been vetted by the community.  Hence, even though our driver is slowly working its way through QA and not available yet, we wanted to submit these new enums upstream for community approval so that they can be included in RHEL 6.5.
-
-> Does that help?
-
-yes it does, but I still think we need to see the driver code in order
-to conduct proper /better review and maybe even accept the proposed
-changes to the IB core. You can submit it as RFC which means "you can
-look on it, and give me comments, but don't pick it up yet"
+Kleber , as for the 1st problem, which kernel consumers are hanging
+for ever on their CQs? IPoIB is giving up after sometime e.g see in
+ipoib_ib.c "assume the HW is wedged and just free up all our pending
+work requests"
 
 Or.
 --
