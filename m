@@ -1,94 +1,158 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH libibverbs 1/3] Add raw packet QP type
-Date: Thu, 4 Apr 2013 08:58:23 +0300
-Message-ID: <515D167F.9070701@mellanox.com>
-References: <1348173034-11929-1-git-send-email-ogerlitz@mellanox.com> <1348173034-11929-2-git-send-email-ogerlitz@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1348173034-11929-2-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: [RFC-v3 5/9] iscsi-target: Add per transport iscsi_cmd alloc/free
+Date: Thu,  4 Apr 2013 07:24:12 +0000
+Message-ID: <1365060256-21506-6-git-send-email-nab@linux-iscsi.org>
+References: <1365060256-21506-1-git-send-email-nab@linux-iscsi.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1365060256-21506-1-git-send-email-nab@linux-iscsi.org>
+Sender: target-devel-owner@vger.kernel.org
+To: target-devel <target-devel@vger.kernel.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Alexander Nezhinsky <alexandern@mellanox.com>, Nicholas Bellinger <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 20/09/2012 22:30, Or Gerlitz wrote:
-> IB_QPT_RAW_PACKET allows applications to build a complete packet,
-> including L2 headers, when sending; on the receive side, the HW will
-> not strip any headers.
+From: Nicholas Bellinger <nab@linux-iscsi.org>
 
-Hi Roland,
+This patch converts struct iscsi_cmd memory allocation + free to use
+->iscsit_alloc_cmd() iscsit_transport API caller, and export
+iscsit_allocate_cmd() symbols
 
-I happily saw that you've finally picked the libmlx4 patches to support 
-RAW QP, so we're making progress... any reason not to pick this series?
+Also add iscsi_cmd->release_cmd() to be used seperately from
+iscsit_transport for connection/session shutdown.
 
-Or.
+v2 changes:
 
->
-> This QP type is designed for userspace direct access to Ethernet; for
-> example by applications that do TCP/IP themselves.  Only processes
-> with the NET_RAW capability are allowed to create raw packet QPs (the
-> name "raw packet QP" is supposed to suggest an analogy to AF_PACKET /
-> SOL_RAW sockets).
->
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   include/infiniband/verbs.h |    3 ++-
->   man/ibv_create_qp.3        |    2 +-
->   man/ibv_modify_qp.3        |   10 ++++++++++
->   3 files changed, 13 insertions(+), 2 deletions(-)
->
-> diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-> index 6acfc81..8ed8a66 100644
-> --- a/include/infiniband/verbs.h
-> +++ b/include/infiniband/verbs.h
-> @@ -399,7 +399,8 @@ struct ibv_srq_init_attr {
->   enum ibv_qp_type {
->   	IBV_QPT_RC = 2,
->   	IBV_QPT_UC,
-> -	IBV_QPT_UD
-> +	IBV_QPT_UD,
-> +	IBV_QPT_RAW_PACKET = 8
->   };
->   
->   struct ibv_qp_cap {
-> diff --git a/man/ibv_create_qp.3 b/man/ibv_create_qp.3
-> index 5301ad8..7feeab2 100644
-> --- a/man/ibv_create_qp.3
-> +++ b/man/ibv_create_qp.3
-> @@ -28,7 +28,7 @@ struct ibv_cq          *send_cq;        /* CQ to be associated with the Send Que
->   struct ibv_cq          *recv_cq;        /* CQ to be associated with the Receive Queue (RQ) */
->   struct ibv_srq         *srq;            /* SRQ handle if QP is to be associated with an SRQ, otherwise NULL */
->   struct ibv_qp_cap       cap;            /* QP capabilities */
-> -enum ibv_qp_type        qp_type;        /* QP Transport Service Type: IBV_QPT_RC, IBV_QPT_UC, or IBV_QPT_UD */
-> +enum ibv_qp_type        qp_type;        /* QP Transport Service Type: IBV_QPT_RC, IBV_QPT_UC, IBV_QPT_UD or IBV_QPT_RAW_PACKET */
->   int                     sq_sig_all;     /* If set, each Work Request (WR) submitted to the SQ generates a completion entry */
->   .in -8
->   };
-> diff --git a/man/ibv_modify_qp.3 b/man/ibv_modify_qp.3
-> index 9eabcdf..cb3faaa 100644
-> --- a/man/ibv_modify_qp.3
-> +++ b/man/ibv_modify_qp.3
-> @@ -159,6 +159,16 @@ RTR  \fB          IBV_QP_STATE, IBV_QP_AV, IBV_QP_PATH_MTU, \fR
->   RTS  \fB          IBV_QP_STATE, IBV_QP_SQ_PSN, IBV_QP_MAX_QP_RD_ATOMIC, \fR
->        \fB          IBV_QP_RETRY_CNT, IBV_QP_RNR_RETRY, IBV_QP_TIMEOUT \fR
->   .fi
-> +.PP
-> +.nf
-> +For QP Transport Service Type \fB IBV_QPT_RAW_PACKET\fR:
-> +.sp
-> +Next state     Required attributes
-> +\-\-\-\-\-\-\-\-\-\-     \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-> +Init \fB          IBV_QP_STATE, IBV_QP_PORT\fR
-> +RTR  \fB          IBV_QP_STATE\fR
-> +RTS  \fB          IBV_QP_STATE\fR
-> +.fi
->   .SH "SEE ALSO"
->   .BR ibv_create_qp (3),
->   .BR ibv_destroy_qp (3),
+- Remove unnecessary checks in iscsit_alloc_cmd (asias)
+- Drop iscsit_transport->iscsit_free_cmd() usage
+- Drop iscsit_transport->iscsit_unmap_cmd() usage
+- Add iscsi_cmd->release_cmd()
+- Convert lio_release_cmd() to use iscsi_cmd->release_cmd()
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+---
+ drivers/target/iscsi/iscsi_target.c          |    1 +
+ drivers/target/iscsi/iscsi_target_configfs.c |    3 ++-
+ drivers/target/iscsi/iscsi_target_core.h     |    1 +
+ drivers/target/iscsi/iscsi_target_util.c     |   25 +++++++++++++++++++++----
+ drivers/target/iscsi/iscsi_target_util.h     |    1 +
+ 5 files changed, 26 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
+index 8203bf3..b01a10e 100644
+--- a/drivers/target/iscsi/iscsi_target.c
++++ b/drivers/target/iscsi/iscsi_target.c
+@@ -489,6 +489,7 @@ static struct iscsit_transport iscsi_target_transport = {
+ 	.iscsit_setup_np	= iscsit_setup_np,
+ 	.iscsit_accept_np	= iscsit_accept_np,
+ 	.iscsit_free_np		= iscsit_free_np,
++	.iscsit_alloc_cmd	= iscsit_alloc_cmd,
+ 	.iscsit_get_login_rx	= iscsit_get_login_rx,
+ 	.iscsit_put_login_tx	= iscsit_put_login_tx,
+ };
+diff --git a/drivers/target/iscsi/iscsi_target_configfs.c b/drivers/target/iscsi/iscsi_target_configfs.c
+index 78d75c8..c78b824 100644
+--- a/drivers/target/iscsi/iscsi_target_configfs.c
++++ b/drivers/target/iscsi/iscsi_target_configfs.c
+@@ -1700,7 +1700,8 @@ static void lio_release_cmd(struct se_cmd *se_cmd)
+ {
+ 	struct iscsi_cmd *cmd = container_of(se_cmd, struct iscsi_cmd, se_cmd);
+ 
+-	iscsit_release_cmd(cmd);
++	pr_debug("Entering lio_release_cmd for se_cmd: %p\n", se_cmd);
++	cmd->release_cmd(cmd);
+ }
+ 
+ /* End functions for target_core_fabric_ops */
+diff --git a/drivers/target/iscsi/iscsi_target_core.h b/drivers/target/iscsi/iscsi_target_core.h
+index 53400b0..60ec4b9 100644
+--- a/drivers/target/iscsi/iscsi_target_core.h
++++ b/drivers/target/iscsi/iscsi_target_core.h
+@@ -485,6 +485,7 @@ struct iscsi_cmd {
+ 	u32			first_data_sg_off;
+ 	u32			kmapped_nents;
+ 	sense_reason_t		sense_reason;
++	void (*release_cmd)(struct iscsi_cmd *);
+ }  ____cacheline_aligned;
+ 
+ struct iscsi_tmr_req {
+diff --git a/drivers/target/iscsi/iscsi_target_util.c b/drivers/target/iscsi/iscsi_target_util.c
+index 4cf1e7f..0b73f90 100644
+--- a/drivers/target/iscsi/iscsi_target_util.c
++++ b/drivers/target/iscsi/iscsi_target_util.c
+@@ -149,6 +149,18 @@ void iscsit_free_r2ts_from_list(struct iscsi_cmd *cmd)
+ 	spin_unlock_bh(&cmd->r2t_lock);
+ }
+ 
++struct iscsi_cmd *iscsit_alloc_cmd(struct iscsi_conn *conn, gfp_t gfp_mask)
++{
++	struct iscsi_cmd *cmd;
++
++	cmd = kmem_cache_zalloc(lio_cmd_cache, gfp_mask);
++	if (!cmd)
++		return NULL;
++
++	cmd->release_cmd = &iscsit_release_cmd;
++	return cmd;
++}
++
+ /*
+  * May be called from software interrupt (timer) context for allocating
+  * iSCSI NopINs.
+@@ -157,13 +169,12 @@ struct iscsi_cmd *iscsit_allocate_cmd(struct iscsi_conn *conn, gfp_t gfp_mask)
+ {
+ 	struct iscsi_cmd *cmd;
+ 
+-	cmd = kmem_cache_zalloc(lio_cmd_cache, gfp_mask);
++	cmd = conn->conn_transport->iscsit_alloc_cmd(conn, gfp_mask);
+ 	if (!cmd) {
+ 		pr_err("Unable to allocate memory for struct iscsi_cmd.\n");
+ 		return NULL;
+ 	}
+-
+-	cmd->conn	= conn;
++	cmd->conn = conn;
+ 	INIT_LIST_HEAD(&cmd->i_conn_node);
+ 	INIT_LIST_HEAD(&cmd->datain_list);
+ 	INIT_LIST_HEAD(&cmd->cmd_r2t_list);
+@@ -176,6 +187,7 @@ struct iscsi_cmd *iscsit_allocate_cmd(struct iscsi_conn *conn, gfp_t gfp_mask)
+ 
+ 	return cmd;
+ }
++EXPORT_SYMBOL(iscsit_allocate_cmd);
+ 
+ struct iscsi_seq *iscsit_get_seq_holder_for_datain(
+ 	struct iscsi_cmd *cmd,
+@@ -690,6 +702,11 @@ void iscsit_free_cmd(struct iscsi_cmd *cmd)
+ 	 */
+ 	switch (cmd->iscsi_opcode) {
+ 	case ISCSI_OP_SCSI_CMD:
++		if (cmd->data_direction == DMA_TO_DEVICE)
++			iscsit_stop_dataout_timer(cmd);
++		/*
++		 * Fallthrough
++		 */
+ 	case ISCSI_OP_SCSI_TMFUNC:
+ 		transport_generic_free_cmd(&cmd->se_cmd, 1);
+ 		break;
+@@ -705,7 +722,7 @@ void iscsit_free_cmd(struct iscsi_cmd *cmd)
+ 		}
+ 		/* Fall-through */
+ 	default:
+-		iscsit_release_cmd(cmd);
++		cmd->release_cmd(cmd);
+ 		break;
+ 	}
+ }
+diff --git a/drivers/target/iscsi/iscsi_target_util.h b/drivers/target/iscsi/iscsi_target_util.h
+index 894d0f8..4f8e01a 100644
+--- a/drivers/target/iscsi/iscsi_target_util.h
++++ b/drivers/target/iscsi/iscsi_target_util.h
+@@ -8,6 +8,7 @@ extern struct iscsi_r2t *iscsit_get_r2t_for_eos(struct iscsi_cmd *, u32, u32);
+ extern struct iscsi_r2t *iscsit_get_r2t_from_list(struct iscsi_cmd *);
+ extern void iscsit_free_r2t(struct iscsi_r2t *, struct iscsi_cmd *);
+ extern void iscsit_free_r2ts_from_list(struct iscsi_cmd *);
++extern struct iscsi_cmd *iscsit_alloc_cmd(struct iscsi_conn *, gfp_t);
+ extern struct iscsi_cmd *iscsit_allocate_cmd(struct iscsi_conn *, gfp_t);
+ extern struct iscsi_seq *iscsit_get_seq_holder_for_datain(struct iscsi_cmd *, u32);
+ extern struct iscsi_seq *iscsit_get_seq_holder_for_r2t(struct iscsi_cmd *);
+-- 
+1.7.2.5
