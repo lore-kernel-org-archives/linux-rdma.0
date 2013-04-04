@@ -1,67 +1,55 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: [RFC-v3 1/9] target: Add export of target_get_sess_cmd symbol
-Date: Thu,  4 Apr 2013 07:24:08 +0000
-Message-ID: <1365060256-21506-2-git-send-email-nab@linux-iscsi.org>
-References: <1365060256-21506-1-git-send-email-nab@linux-iscsi.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1365060256-21506-1-git-send-email-nab@linux-iscsi.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: target-devel <target-devel@vger.kernel.org>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Alexander Nezhinsky <alexandern@mellanox.com>, Nicholas Bellinger <nab@linux-iscsi.org>
+From: Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>
+Subject: Re: Different signatures to ibv_open_xrcd - branch issue?
+Date: Thu, 4 Apr 2013 10:22:40 +0200
+Message-ID: <20130404082240.GB2565@nautica>
+References: <51502C30.2000806@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A823736F367AB8@ORSMSX101.amr.corp.intel.com>
+ <515173F2.4030506@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A823736F36825D@ORSMSX101.amr.corp.intel.com>
+ <51520D43.2060006@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A823736F368566@ORSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736F368566-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Nicholas Bellinger <nab@linux-iscsi.org>
+Hi,
 
-Export target_get_sess_cmd() symbol so that it can be used by
-iscsi-target.
+Hefty, Sean wrote on Tue, Mar 26, 2013 :
+> > I think I missed something here, can I use your branch xrc2 of
+> > libibverbs for testing purpose, or there are still things to merge there?
+> 
+> The xrc2 branch is usable.  I'm about 10-15 minutes away from posting v5 of those patches.
 
-Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
----
- drivers/target/target_core_transport.c |    4 ++--
- include/target/target_core_fabric.h    |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+Sorry for hijacking this thread, but I was actually running into some
+troubles with libibverbs-1.1.4 and a recent kernel, using
+ibv_open_xrc_domain... Which is basically failing with an invalid
+argument when writing to the uverb0 char device. 
 
-diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
-index 493e9e5..f8388b4 100644
---- a/drivers/target/target_core_transport.c
-+++ b/drivers/target/target_core_transport.c
-@@ -65,7 +65,6 @@ static void transport_complete_task_attr(struct se_cmd *cmd);
- static void transport_handle_queue_full(struct se_cmd *cmd,
- 		struct se_device *dev);
- static int transport_generic_get_mem(struct se_cmd *cmd);
--static int target_get_sess_cmd(struct se_session *, struct se_cmd *, bool);
- static void transport_put_cmd(struct se_cmd *cmd);
- static void target_complete_ok_work(struct work_struct *work);
- 
-@@ -2179,7 +2178,7 @@ EXPORT_SYMBOL(transport_generic_free_cmd);
-  * @se_cmd:	command descriptor to add
-  * @ack_kref:	Signal that fabric will perform an ack target_put_sess_cmd()
-  */
--static int target_get_sess_cmd(struct se_session *se_sess, struct se_cmd *se_cmd,
-+int target_get_sess_cmd(struct se_session *se_sess, struct se_cmd *se_cmd,
- 			       bool ack_kref)
- {
- 	unsigned long flags;
-@@ -2208,6 +2207,7 @@ out:
- 	spin_unlock_irqrestore(&se_sess->sess_cmd_lock, flags);
- 	return ret;
- }
-+EXPORT_SYMBOL(target_get_sess_cmd);
- 
- static void target_release_cmd_kref(struct kref *kref)
- {
-diff --git a/include/target/target_core_fabric.h b/include/target/target_core_fabric.h
-index aaa1ee6..ba3471b 100644
---- a/include/target/target_core_fabric.h
-+++ b/include/target/target_core_fabric.h
-@@ -120,7 +120,7 @@ bool	transport_wait_for_tasks(struct se_cmd *);
- int	transport_check_aborted_status(struct se_cmd *, int);
- int	transport_send_check_condition_and_sense(struct se_cmd *,
- 		sense_reason_t, int);
--
-+int	target_get_sess_cmd(struct se_session *, struct se_cmd *, bool);
- int	target_put_sess_cmd(struct se_session *, struct se_cmd *);
- void	target_sess_cmd_list_set_waiting(struct se_session *);
- void	target_wait_for_sess_cmds(struct se_session *, int);
+So I guess the "commands" (IB_USER_VERBS_CMD_OPEN_XRCD vs
+IB_USER_VERBS_CMD_OPEN_XRC_DOMAIN) changed since 2.6.32 and I would need
+to use this libibverbs branch for now? (doesn't look like there is any
+xrcd at all in 1.1.6 anyway)
+What I don't get is that the abi_version did not change at all, if the
+commands changed, shouldn't the kernel abi version be updated as well?
+(None of the four abi_version I could find (ib_verbs, ib_mad, rdma_cm,
+uverbs0 in the device) changed at all)
+
+This looks like it's impossible to get the same library to fully work
+for multiple kernel versions, while all the other basic features do work
+quite well independantly.
+
+
+
+Regards,
 -- 
-1.7.2.5
+Dominique Martinet
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
