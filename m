@@ -1,54 +1,110 @@
-From: Dominique Martinet <dominique.martinet-KCE40YydGKI@public.gmane.org>
-Subject: Re: Different signatures to ibv_open_xrcd - branch issue?
-Date: Thu, 4 Apr 2013 10:22:40 +0200
-Message-ID: <20130404082240.GB2565@nautica>
-References: <51502C30.2000806@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A823736F367AB8@ORSMSX101.amr.corp.intel.com>
- <515173F2.4030506@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A823736F36825D@ORSMSX101.amr.corp.intel.com>
- <51520D43.2060006@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A823736F368566@ORSMSX101.amr.corp.intel.com>
+From: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v2]  infiniband-diags/saquery.c: switchinfo support added
+Date: Thu, 04 Apr 2013 12:06:22 +0300
+Message-ID: <515D428E.4010704@asaltech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736F368566-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Added support to filter switchInfoRecords by switch LID
 
-Hefty, Sean wrote on Tue, Mar 26, 2013 :
-> > I think I missed something here, can I use your branch xrc2 of
-> > libibverbs for testing purpose, or there are still things to merge there?
-> 
-> The xrc2 branch is usable.  I'm about 10-15 minutes away from posting v5 of those patches.
+Signed-off-by: Husam kahalah < hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
 
-Sorry for hijacking this thread, but I was actually running into some
-troubles with libibverbs-1.1.4 and a recent kernel, using
-ibv_open_xrc_domain... Which is basically failing with an invalid
-argument when writing to the uverb0 char device. 
+---
+  src/saquery.c |   55 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  1 file changed, 55 insertions(+)
 
-So I guess the "commands" (IB_USER_VERBS_CMD_OPEN_XRCD vs
-IB_USER_VERBS_CMD_OPEN_XRC_DOMAIN) changed since 2.6.32 and I would need
-to use this libibverbs branch for now? (doesn't look like there is any
-xrcd at all in 1.1.6 anyway)
-What I don't get is that the abi_version did not change at all, if the
-commands changed, shouldn't the kernel abi version be updated as well?
-(None of the four abi_version I could find (ib_verbs, ib_mad, rdma_cm,
-uverbs0 in the device) changed at all)
+diff --git a/src/saquery.c b/src/saquery.c
+index 72a0fe9..832bec6 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -487,6 +487,41 @@ static void dump_service_record(void *data)
+             cl_ntoh64(p_sr->service_data64[1]));
+  }
 
-This looks like it's impossible to get the same library to fully work
-for multiple kernel versions, while all the other basic features do work
-quite well independantly.
++static void dump_switch_info_record(void *data)
++{
++    ib_switch_info_record_t *p_sir = data;
++
++    printf("SwitchInfoRecord dump:\n"
++           "\t\tRID\n"
++           "\t\tlid.....................%u\n"
++           "\t\tSwitchInfo dump:\n"
++           "\t\tlin_cap.................0x%X\n"
++           "\t\trand_cap................0x%X\n"
++           "\t\tmcast_cap...............0x%X\n"
++           "\t\tlin_top.................0x%X\n"
++           "\t\tdef_port................%u\n"
++           "\t\tdef_mcast_pri_port......%u\n"
++           "\t\tdef_mcast_not_port......%u\n"
++           "\t\tlife_state..............%u\n"
++           "\t\tlids_per_port...........0x%X\n"
++           "\t\tenforce_cap.............0x%X\n"
++           "\t\tflags...................%u\n"
++           "\t\tmcast_top...............0x%X\n",
++           cl_ntoh16(p_sir->lid),
++           cl_ntoh16(p_sir->switch_info.lin_cap),
++           cl_ntoh16(p_sir->switch_info.rand_cap),
++           cl_ntoh16(p_sir->switch_info.mcast_cap),
++           cl_ntoh16(p_sir->switch_info.lin_top),
++           p_sir->switch_info.def_port,
++           p_sir->switch_info.def_mcast_pri_port,
++           p_sir->switch_info.def_mcast_not_port,
++           p_sir->switch_info.life_state,
++           cl_ntoh16(p_sir->switch_info.lids_per_port),
++           cl_ntoh16(p_sir->switch_info.enforce_cap),
++           p_sir->switch_info.flags,
++           cl_ntoh16(p_sir->switch_info.mcast_top));
++}
++
+  static void dump_inform_info_record(void *data)
+  {
+      char gid_str[INET6_ADDRSTRLEN];
+@@ -1157,6 +1192,24 @@ static int query_service_records(const struct 
+query_cmd *q, struct sa_handle * h
+                      dump_service_record);
+  }
 
++static int query_switchinfo_records(const struct query_cmd *q,
++                 struct sa_handle * h, struct query_params *p,
++                 int argc, char *argv[])
++{
++    ib_switch_info_record_t swir;
++    ib_net64_t comp_mask = 0;
++    int lid = 0;
++
++    if (argc > 0)
++        parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
++
++    memset(&swir, 0, sizeof(swir));
++    CHECK_AND_SET_VAL(lid, 16, 0, swir.lid, SWIR, LID);
++
++    return get_and_dump_any_records(h, IB_SA_ATTR_SWITCHINFORECORD, 0, 
+comp_mask,
++                  &swir, sizeof(swir), dump_switch_info_record);
++}
++
+  static int query_inform_info_records(const struct query_cmd *q,
+                      struct sa_handle * h, struct query_params *p,
+                      int argc, char *argv[])
+@@ -1349,6 +1402,8 @@ static const struct query_cmd query_cmds[] = {
+       "[[mlid]/[position]/[block]]", query_mft_records},
+      {"GUIDInfoRecord", "GIR", IB_SA_ATTR_GUIDINFORECORD,
+       "[[lid]/[block]]", query_guidinfo_records},
++    {"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
++     "[lid]", query_switchinfo_records},
+      {0}
+  };
 
-
-Regards,
 -- 
-Dominique Martinet
+1.7.9.6
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
