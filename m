@@ -1,36 +1,30 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Fail post send command on error recovery
-Date: Thu, 4 Apr 2013 14:49:51 -0700
-Message-ID: <CAL1RGDU=hn7hMy0ECQ7AOQqmuB8R6+BT6JUudNS_6rPBKr2UtQ@mail.gmail.com>
-References: <1364496315-7588-1-git-send-email-klebers@linux.vnet.ibm.com>
- <CAL1RGDW7wMVmyFhCv-Ei8Mbca-Y9yv+nygzfREU2_TozNSZ60A@mail.gmail.com>
- <515D79B3.4090808@linux.vnet.ibm.com> <CAJZOPZLgCMDmTO-qqZXm9Y9xv+xCh5bezz3A_nBn6BEtB-G+0A@mail.gmail.com>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [RFC-v3 9/9] iser-target: Add iSCSI Extensions for RDMA (iSER)
+ target driver
+Date: Thu, 04 Apr 2013 14:59:44 -0700
+Message-ID: <1365112784.11833.60.camel@haakon2.linux-iscsi.org>
+References: <1365060256-21506-1-git-send-email-nab@linux-iscsi.org>
+	 <1365060256-21506-10-git-send-email-nab@linux-iscsi.org>
+	 <515D45F6.9040903@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLgCMDmTO-qqZXm9Y9xv+xCh5bezz3A_nBn6BEtB-G+0A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <515D45F6.9040903@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Alexander Nezhinsky <alexandern@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 4, 2013 at 2:45 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> The problem that I'm trying to solve is that some IB core modules are
->> hanging waiting on completion queues on their remove path during error recovery.
+On Thu, 2013-04-04 at 12:20 +0300, Or Gerlitz wrote:
+> On 04/04/2013 10:24, Nicholas A. Bellinger wrote:
+> > +
+> > +void isert_cq_tx_callback(struct ib_cq *, void *);
+> > +void isert_cq_rx_callback(struct ib_cq *, void *);
+> > +void isert_free_rx_descriptors(struct isert_conn *);
+> any reason not to have these as static functions (same for isert_cq_rx_work)
 
-> So maybe patch them to give up after some time?
+Nope.  Looking at re-orig now to avoid the use of function prototypes
+here, and marking everything as static..
 
-I don't know so much about this PCI error recovery stuff but it does
-seem sensible to trigger a catastrophic error async event when it
-happens (I'm assuming the recovery mechanism resets the adapter).
-
-Then we should fix at least kernel ULPs behave appropriately when they
-get such an async event.  And similarly if someone wants to harden
-some subset of userspace apps to handle PCI error recovery too, that
-would be another step forward.
-
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--nab
