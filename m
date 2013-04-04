@@ -1,93 +1,42 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [RFC/PATCH v2] IPoIB: Leave space in skb linear buffer for IP headers
-Date: Thu,  4 Apr 2013 14:12:20 -0700
-Message-ID: <1365109940-22916-1-git-send-email-roland@kernel.org>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/4] Add IBV_*_USNIC enums for the Cisco Ethernet Virtual NIC.
+Date: Fri, 5 Apr 2013 00:27:39 +0300
+Message-ID: <CAJZOPZKQ_QFdTj-uYOBuBXcipxO1Drj7v4_U_euYzOe1Y6648Q@mail.gmail.com>
+References: <1364994415-8330-1-git-send-email-jsquyres@cisco.com>
+	<1828884A29C6694DAF28B7E6B8A823736F36A3A6@ORSMSX101.amr.corp.intel.com>
+	<EF66BBEB19BADC41AC8CCF5F684F07FC43FE14D8@xmb-rcd-x01.cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC43FE14D8-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
-Cc: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Jeff Squyres (jsquyres) <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
 
-Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org> noticed that IPoIB was
-spending significant time doing memcpy() in __pskb_pull_tail().  He
-found that this is because his adapter reports a maximum MTU of 4K,
-which causes IPoIB datagram mode to receive all the actual data in a
-separate page in the fragment list.
+> Sure.  For a little background, the 2nd-generation Cisco VIC has been available
+> since last year (IIRC): http://www.cisco.com/en/US/products/ps10277
+> /prod_module_series_home.html.  It's a converged 10G Ethernet adapter available > in a variety of form factors (e.g., 2x10G on PCIe and Mezz).
 
-We're already allocating extra tailroom for the skb linear part, so we
-might as well use it.
+> After some off-list discussion with Roland, we chose to create new IBV_*_USNIC
+> enums because none of the current enums were accurate for our device.  It's an
+> Ethernet NIC, but it's not an RNIC.  It's an Ethernet-based transport, but it's not
+> iWARP.
 
-Cc: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Reported-by: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
-Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
----
-v2: Try to handle the case where we get all the data in the linear part
-of the skb and don't need the frag part at all.
+>
+> The reason we're asking for these IBV_*_USNIC enums now -- before we've submitted the driver -- is because we're targeting getting our driver included in RHEL 6.5.  There's a bit of a chicken-and-egg issue here: they'll accept our patches for a new hardware driver while that driver is being worked upstream.  But they (rightfully) won't accept patches to IB core and libibverbs until they've been vetted by the community.  Hence, even though our driver is slowly working its way through QA and not available yet, we wanted to submit these new enums upstream for community approval so that they can be included in RHEL 6.5.
 
- drivers/infiniband/ulp/ipoib/ipoib.h    |  3 ++-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 17 ++++++-----------
- 2 files changed, 8 insertions(+), 12 deletions(-)
+> Does that help?
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index eb71aaa..ab2cc4c 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -64,7 +64,8 @@ enum ipoib_flush_level {
- enum {
- 	IPOIB_ENCAP_LEN		  = 4,
- 
--	IPOIB_UD_HEAD_SIZE	  = IB_GRH_BYTES + IPOIB_ENCAP_LEN,
-+	/* add 128 bytes of tailroom for IP/TCP headers */
-+	IPOIB_UD_HEAD_SIZE	  = IB_GRH_BYTES + IPOIB_ENCAP_LEN + 128,
- 	IPOIB_UD_RX_SG		  = 2, /* max buffer needed for 4K mtu */
- 
- 	IPOIB_CM_MTU		  = 0x10000 - 0x10, /* padding to align header to 16 */
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 2cfa76f..ecf4faf 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -109,11 +109,12 @@ static void ipoib_ud_skb_put_frags(struct ipoib_dev_priv *priv,
- 				   struct sk_buff *skb,
- 				   unsigned int length)
- {
--	if (ipoib_ud_need_sg(priv->max_ib_mtu)) {
-+	if (ipoib_ud_need_sg(priv->max_ib_mtu) &&
-+	    length > IPOIB_UD_HEAD_SIZE) {
- 		skb_frag_t *frag = &skb_shinfo(skb)->frags[0];
- 		unsigned int size;
- 		/*
--		 * There is only two buffers needed for max_payload = 4K,
-+		 * There are only two buffers needed for max_payload = 4K,
- 		 * first buf size is IPOIB_UD_HEAD_SIZE
- 		 */
- 		skb->tail += IPOIB_UD_HEAD_SIZE;
-@@ -156,18 +157,12 @@ static struct sk_buff *ipoib_alloc_rx_skb(struct net_device *dev, int id)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct sk_buff *skb;
- 	int buf_size;
--	int tailroom;
- 	u64 *mapping;
- 
--	if (ipoib_ud_need_sg(priv->max_ib_mtu)) {
--		buf_size = IPOIB_UD_HEAD_SIZE;
--		tailroom = 128; /* reserve some tailroom for IP/TCP headers */
--	} else {
--		buf_size = IPOIB_UD_BUF_SIZE(priv->max_ib_mtu);
--		tailroom = 0;
--	}
-+	buf_size = ipoib_ud_need_sg(priv->max_ib_mtu) ?
-+		IPOIB_UD_HEAD_SIZE : IPOIB_UD_BUF_SIZE(priv->max_ib_mtu);
- 
--	skb = dev_alloc_skb(buf_size + tailroom + 4);
-+	skb = dev_alloc_skb(buf_size + 4);
- 	if (unlikely(!skb))
- 		return NULL;
- 
--- 
-1.8.1.2
+yes it does, but I still think we need to see the driver code in order
+to conduct proper /better review and maybe even accept the proposed
+changes to the IB core. You can submit it as RFC which means "you can
+look on it, and give me comments, but don't pick it up yet"
 
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
