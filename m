@@ -1,33 +1,35 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/2] Ad IB_MTU_1500|9000 enums.
-Date: Thu, 4 Apr 2013 17:43:20 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736F36B9EA@ORSMSX101.amr.corp.intel.com>
-References: <1364994796-10642-1-git-send-email-jsquyres@cisco.com>
- <1364994796-10642-2-git-send-email-jsquyres@cisco.com>
- <CAL1RGDUefwamQ2Gsm9QKC5+jxskxqE5orwNnbS_t060a+YXZDw@mail.gmail.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC43FE1631@xmb-rcd-x01.cisco.com>
- <515D728B.5010202@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A823736F36B8B5@ORSMSX101.amr.corp.intel.com>
- <2807E5FD2F6FDA4886F6618EAC48510E0156FC7B@CRSMSX102.amr.corp.intel.com>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Using XRC between kernel and user space.
+Date: Thu, 4 Apr 2013 20:44:48 +0300
+Message-ID: <515DBC10.1080009@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0156FC7B-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Even with a map I think having IB_MTU_1500 will cause some confusion as this is
-> not an "IB" MTU.  It seems an alternate enum name like RDMA_MTU_1500 is better.
+Hi,
 
-Couldn't these be usable MTU's for RoCE?
+I wonder how a kernel "program" and a user space one can communicate 
+using XRC.
+A example for such an application is iSER kernel initiator connected to 
+tgtd target that runs in user space.
+The XRC domain in the kernel is created with "struct ib_xrcd 
+*ib_alloc_xrcd(struct ib_device *device)" while in the user space it is 
+created with "static inline struct ibv_xrcd * ibv_open_xrcd(struct 
+ibv_context *context, struct ibv_xrcd_init_attr *xrcd_init_attr)".
+When looking in "xrc_pingpong.c" example we can see that the attribute 
+has some file descriptor of some file ("/tmp/xrc_domain").
+So how a kernel "program" on one machine can communicate with a user 
+space program on another one?
+The XRC annex (page 9) sates that all QP should belong to the same XRC 
+domain.
 
-In hindsight, the user space API never should have exposed the mtu as an enum...
+S.P.
 
-Since an enum is an int, and we're never going to have anything with an mtu <= 5 bytes, couldn't we just store all new mtu values directly as their byte value?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
