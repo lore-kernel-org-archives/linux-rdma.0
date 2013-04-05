@@ -1,72 +1,46 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [RFC-v3 9/9] iser-target: Add iSCSI Extensions for RDMA (iSER)
- target driver
-Date: Thu, 04 Apr 2013 15:23:42 -0700
-Message-ID: <1365114222.11833.81.camel@haakon2.linux-iscsi.org>
-References: <1365060256-21506-1-git-send-email-nab@linux-iscsi.org>
-	 <1365060256-21506-10-git-send-email-nab@linux-iscsi.org>
-	 <515D4D0E.40005@mellanox.com>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Using XRC between kernel and user space.
+Date: Fri, 5 Apr 2013 08:45:48 +0300
+Message-ID: <515E650C.60004@mellanox.com>
+References: <515DBC10.1080009@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <515D4D0E.40005@mellanox.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Alexander Nezhinsky <alexandern@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <515DBC10.1080009-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2013-04-04 at 12:51 +0300, Or Gerlitz wrote:
-> On 04/04/2013 10:24, Nicholas A. Bellinger wrote:
-> > +static int
-> > +isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
-> > +{
-> > +	struct isert_cmd *isert_cmd = container_of(cmd,
-> > +					struct isert_cmd, iscsi_cmd);
-> > +	struct isert_conn *isert_conn = (struct isert_conn *)conn->context;
-> > +	struct ib_send_wr *send_wr = &isert_cmd->tx_desc.send_wr;
-> > +	struct iscsi_scsi_rsp *hdr = (struct iscsi_scsi_rsp *)
-> > +				&isert_cmd->tx_desc.iscsi_header;
-> > +
-> > +	isert_create_send_desc(isert_conn, isert_cmd, &isert_cmd->tx_desc);
-> > +	iscsit_build_rsp_pdu(cmd, conn, true, hdr);
-> > +	isert_init_tx_hdrs(isert_conn, &isert_cmd->tx_desc);
-> > +	/*
-> > +	 * Attach SENSE DATA payload to iSCSI Response PDU
-> > +	 */
-> > +	if (cmd->se_cmd.sense_buffer &&
-> > +	    ((cmd->se_cmd.se_cmd_flags & SCF_TRANSPORT_TASK_SENSE) ||
-> > +	    (cmd->se_cmd.se_cmd_flags & SCF_EMULATED_TASK_SENSE))) {
-> > +		struct ib_device *ib_dev = isert_conn->conn_cm_id->device;
-> > +		struct ib_sge *tx_dsg = &isert_cmd->tx_desc.tx_sg[1];
-> > +		u32 padding, sense_len;
-> > +
-> > +		put_unaligned_be16(cmd->se_cmd.scsi_sense_length,
-> > +				   cmd->sense_buffer);
-> > +		cmd->se_cmd.scsi_sense_length += sizeof(__be16);
-> > +
-> > +		padding = -(cmd->se_cmd.scsi_sense_length) & 3;
-> > +		hton24(hdr->dlength, (u32)cmd->se_cmd.scsi_sense_length);
-> > +		sense_len = cmd->se_cmd.scsi_sense_length + padding;
-> > +
-> > +		isert_cmd->sense_buf_dma = ib_dma_map_single(ib_dev,
-> > +				(void *)cmd->sense_buffer, sense_len,
-> > +				DMA_TO_DEVICE);
-> > +
-> > +		isert_cmd->sense_buf_len = sense_len;
-> > +		ib_dma_sync_single_for_cpu(ib_dev, isert_cmd->sense_buf_dma,
-> > +					   sense_len, DMA_TO_DEVICE);
-> > +		ib_dma_sync_single_for_device(ib_dev, isert_cmd->sense_buf_dma,
-> > +					      sense_len, DMA_TO_DEVICE);
-> > +
-> 
-> you just called dma_map_single, and not going to touch the buffer before 
-> posting it to the wire,
-> there's no point to sync it for the cpu and for the device, remove these 
-> calls.
-> 
+On 4/4/2013 8:44 PM, Shlomo Pongratz wrote:
+> Hi,
+>
+> I wonder how a kernel "program" and a user space one can communicate 
+> using XRC.
+> A example for such an application is iSER kernel initiator connected 
+> to tgtd target that runs in user space.
+> The XRC domain in the kernel is created with "struct ib_xrcd 
+> *ib_alloc_xrcd(struct ib_device *device)" while in the user space it 
+> is created with "static inline struct ibv_xrcd * ibv_open_xrcd(struct 
+> ibv_context *context, struct ibv_xrcd_init_attr *xrcd_init_attr)".
+> When looking in "xrc_pingpong.c" example we can see that the attribute 
+> has some file descriptor of some file ("/tmp/xrc_domain").
+> So how a kernel "program" on one machine can communicate with a user 
+> space program on another one?
+> The XRC annex (page 9) sates that all QP should belong to the same XRC 
+> domain.
+>
+> S.P.
+>
 
-Dropped.
+Sorry, I misinterpreted the annex.
+I thank Roland for clarifying this to me.
 
-Thanks Or!
+S.P.
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
