@@ -1,140 +1,56 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add configure output messages for several
-	configure options
-Date: Fri, 05 Apr 2013 14:23:17 -0700
-Message-ID: <1365196997.5901.69.camel@auk59.llnl.gov>
-References: <1365097110.5901.36.camel@auk59.llnl.gov>
-	 <515F3470.5090702@dev.mellanox.co.il>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/4] Add IBV_*_USNIC enums for the Cisco Ethernet
+ Virtual NIC.
+Date: Fri, 5 Apr 2013 18:19:59 +0000
+Message-ID: <02A33CE5-6894-4F88-8493-2ACD9FF81B5E@cisco.com>
+References: <1364994415-8330-1-git-send-email-jsquyres@cisco.com>
+	<1828884A29C6694DAF28B7E6B8A823736F36A3A6@ORSMSX101.amr.corp.intel.com>
+	<EF66BBEB19BADC41AC8CCF5F684F07FC43FE14D8@xmb-rcd-x01.cisco.com>,<CAJZOPZKQ_QFdTj-uYOBuBXcipxO1Drj7v4_U_euYzOe1Y6648Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <515F3470.5090702-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CAJZOPZKQ_QFdTj-uYOBuBXcipxO1Drj7v4_U_euYzOe1Y6648Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2013-04-05 at 16:30 -0400, Hal Rosenstock wrote:
-> On 4/4/2013 1:38 PM, Albert Chu wrote:
-> > The --enable-console-loopback, --enable-console-socket, --enable-perf-mgr,
-> > --enable-perf-mgr-profile, and --enable-default-event-plugin did not
-> > have a checking message or notice message indicating if they were
-> > enabled/disabled when running configure.
-> > 
-> > This made things difficult when perusing old build logs to determine
-> > if things were enabled/disabled.
-> > 
-> > Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> > ---
-> >  config/osmvsel.m4 |   14 ++++++++++++++
-> >  1 files changed, 14 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/config/osmvsel.m4 b/config/osmvsel.m4
-> > index 6c98c07..f249b1c 100644
-> > --- a/config/osmvsel.m4
-> > +++ b/config/osmvsel.m4
-> > @@ -183,6 +183,7 @@ AC_DEFUN([OPENIB_OSM_CONSOLE_SOCKET_SEL], [
-> >  # --- BEGIN OPENIB_OSM_CONSOLE_SOCKET_SEL ---
-> >  
-> >  dnl Console over a loopback socket is default if libwrap is available
-> > +AC_MSG_CHECKING([to enable console loopback])
-> >  AC_ARG_ENABLE(console-loopback,
-> >  [  --enable-console-loopback Enable a console socket on the loopback interface, requires tcp_wrappers (default yes)],
-> >  [case $enableval in
-> > @@ -190,6 +191,7 @@ AC_ARG_ENABLE(console-loopback,
-> >       no)  console_loopback=no ;;
-> >     esac],
-> >     console_loopback=yes)
-> > +AC_MSG_RESULT([yes])
-> 
-> Should this be AC_MSG_RESULT[$console_loopback] ?
+Forgive the top reply; I'm actually on vacation this week and currently only have email access on my phone...
 
-Argh!  I could have swore I had this working correctly.  I'll fix this
-up and repost.
+I'm not sure what you're asking me to do. Are you asking us to submit our known-buggy-and-not-yet-complete driver just to get two enums approved?
 
-Al
+Sent from my phone. No type good. 
 
-> >  if test $console_loopback = yes; then
-> >  AC_CHECK_LIB(wrap, request_init, [], [console_loopback=no
-> > @@ -202,6 +204,7 @@ if test $console_loopback = yes; then
-> >  fi
-> >  
-> >  dnl Console over a socket connection
-> > +AC_MSG_CHECKING([to enable console socket])
-> >  AC_ARG_ENABLE(console-socket,
-> >  [  --enable-console-socket Enable a console socket, requires --enable-console-loopback (default no)],
-> >  [case $enableval in
-> > @@ -209,6 +212,8 @@ AC_ARG_ENABLE(console-socket,
-> >       no)  console_socket=no ;;
-> >     esac],
-> >     console_socket=no)
-> > +AC_MSG_RESULT([no])
-> 
-> Similar to console_loopback question.
-> 
-> > +
-> >  if test $console_socket = yes; then
-> >    if test $console_loopback = no; then
-> >      AC_MSG_ERROR([--enable-console-socket requires --enable-console-loopback])
-> > @@ -228,6 +233,7 @@ AC_DEFUN([OPENIB_OSM_PERF_MGR_SEL], [
-> >  # --- BEGIN OPENIB_OSM_PERF_MGR_SEL ---
-> >  
-> >  dnl enable the perf-mgr
-> > +AC_MSG_CHECKING([to enable perf mgr])
-> >  AC_ARG_ENABLE(perf-mgr,
-> >  [  --enable-perf-mgr Enable the performance manager (default yes)],
-> >     [case $enableval in
-> > @@ -235,6 +241,9 @@ AC_ARG_ENABLE(perf-mgr,
-> >       no)  perf_mgr=no ;;
-> >     esac],
-> >     perf_mgr=yes)
-> > +AC_MSG_RESULT([yes])
-> 
-> Ditto, etc.
-> 
-> -- Hal
-> 
-> > +
-> > +AC_MSG_CHECKING([to enable perf mgr profiling])
-> >  AC_ARG_ENABLE(perf-mgr-profile,
-> >  [  --enable-perf-mgr-profile Enable the performance manager profiling (default no)],
-> >  	[case $enableval in
-> > @@ -242,6 +251,8 @@ AC_ARG_ENABLE(perf-mgr-profile,
-> >  	no)  perf_mgr_profile=no ;;
-> >  	esac],
-> >  	perf_mgr_profile=no)
-> > +AC_MSG_RESULT([no])
-> > +
-> >  if test $perf_mgr = yes; then
-> >    AC_DEFINE(ENABLE_OSM_PERF_MGR,
-> >  	1,
-> > @@ -261,6 +272,7 @@ AC_DEFUN([OPENIB_OSM_DEFAULT_EVENT_PLUGIN_SEL], [
-> >  # --- BEGIN OPENIB_OSM_DEFAULT_EVENT_PLUGIN_SEL ---
-> >  
-> >  dnl enable the default-event-plugin
-> > +AC_MSG_CHECKING([to enable default event plugin])
-> >  AC_ARG_ENABLE(default-event-plugin,
-> >  [  --enable-default-event-plugin  Enable a default event plugin "osmeventplugin" (default no)],
-> >     [case $enableval in
-> > @@ -268,6 +280,8 @@ AC_ARG_ENABLE(default-event-plugin,
-> >       no)  default_event_plugin=no ;;
-> >     esac],
-> >     default_event_plugin=no)
-> > +AC_MSG_RESULT([no])
-> > +
-> >  if test $default_event_plugin = yes; then
-> >    AC_DEFINE(ENABLE_OSM_DEFAULT_EVENT_PLUGIN,
-> >  	    1,
-> 
--- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
+On Apr 4, 2013, at 5:27 PM, "Or Gerlitz" <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-
+> Jeff Squyres (jsquyres) <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
+> 
+>> Sure.  For a little background, the 2nd-generation Cisco VIC has been available
+>> since last year (IIRC): http://www.cisco.com/en/US/products/ps10277
+>> /prod_module_series_home.html.  It's a converged 10G Ethernet adapter available > in a variety of form factors (e.g., 2x10G on PCIe and Mezz).
+> 
+>> After some off-list discussion with Roland, we chose to create new IBV_*_USNIC
+>> enums because none of the current enums were accurate for our device.  It's an
+>> Ethernet NIC, but it's not an RNIC.  It's an Ethernet-based transport, but it's not
+>> iWARP.
+> 
+>> 
+>> The reason we're asking for these IBV_*_USNIC enums now -- before we've submitted the driver -- is because we're targeting getting our driver included in RHEL 6.5.  There's a bit of a chicken-and-egg issue here: they'll accept our patches for a new hardware driver while that driver is being worked upstream.  But they (rightfully) won't accept patches to IB core and libibverbs until they've been vetted by the community.  Hence, even though our driver is slowly working its way through QA and not available yet, we wanted to submit these new enums upstream for community approval so that they can be included in RHEL 6.5.
+> 
+>> Does that help?
+> 
+> yes it does, but I still think we need to see the driver code in order
+> to conduct proper /better review and maybe even accept the proposed
+> changes to the IB core. You can submit it as RFC which means "you can
+> look on it, and give me comments, but don't pick it up yet"
+> 
+> Or.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
