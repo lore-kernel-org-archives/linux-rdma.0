@@ -1,43 +1,119 @@
-From: "Michael R. Hines" <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCHv2] rdma: add a new IB_ACCESS_GIFT flag
-Date: Fri, 05 Apr 2013 17:32:30 -0400
-Message-ID: <515F42EE.8060203@linux.vnet.ibm.com>
-References: <20130324155153.GA8597@redhat.com> <515F3160.4020007@linux.vnet.ibm.com> <CAL1RGDU2jtrRrxi6srsH_ADiYGvJbCpCT3UvoLGTX3cvQ=s0kQ@mail.gmail.com> <515F3948.40205@linux.vnet.ibm.com> <CAG4TOxPNHZadLjq6-HuOExf1XXLO6AYyvRQ1L09i6qVeA5dbLQ@mail.gmail.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] opensm: Add configure output messages for several
+	configure options
+Date: Fri, 05 Apr 2013 15:32:35 -0700
+Message-ID: <1365201155.5901.73.camel@auk59.llnl.gov>
+References: <1365097110.5901.36.camel@auk59.llnl.gov>
+	 <515F3470.5090702@dev.mellanox.co.il>
+	 <1365196997.5901.69.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxPNHZadLjq6-HuOExf1XXLO6AYyvRQ1L09i6qVeA5dbLQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1365196997.5901.69.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Well, I have the "is_dup_page()" commented out.......when RDMA is 
-activated.....
+The --enable-console-loopback, --enable-console-socket, --enable-perf-mgr,
+--enable-perf-mgr-profile, and --enable-default-event-plugin did not
+have a checking message or notice message indicating if they were
+enabled/disabled when running configure.
 
-Is there something else in QEMU that could be touching the page that I 
-don't know about?
+This made things difficult when perusing old build logs to determine
+if things were properly enabled/disabled.
 
-- Michael
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ config/osmvsel.m4 |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/config/osmvsel.m4 b/config/osmvsel.m4
+index 6c98c07..87e1d74 100644
+--- a/config/osmvsel.m4
++++ b/config/osmvsel.m4
+@@ -183,6 +183,7 @@ AC_DEFUN([OPENIB_OSM_CONSOLE_SOCKET_SEL], [
+ # --- BEGIN OPENIB_OSM_CONSOLE_SOCKET_SEL ---
+ 
+ dnl Console over a loopback socket is default if libwrap is available
++AC_MSG_CHECKING([to enable console loopback])
+ AC_ARG_ENABLE(console-loopback,
+ [  --enable-console-loopback Enable a console socket on the loopback interface, requires tcp_wrappers (default yes)],
+ [case $enableval in
+@@ -190,6 +191,7 @@ AC_ARG_ENABLE(console-loopback,
+      no)  console_loopback=no ;;
+    esac],
+    console_loopback=yes)
++AC_MSG_RESULT([$console_loopback])
+ 
+ if test $console_loopback = yes; then
+ AC_CHECK_LIB(wrap, request_init, [], [console_loopback=no
+@@ -202,6 +204,7 @@ if test $console_loopback = yes; then
+ fi
+ 
+ dnl Console over a socket connection
++AC_MSG_CHECKING([to enable console socket])
+ AC_ARG_ENABLE(console-socket,
+ [  --enable-console-socket Enable a console socket, requires --enable-console-loopback (default no)],
+ [case $enableval in
+@@ -209,6 +212,8 @@ AC_ARG_ENABLE(console-socket,
+      no)  console_socket=no ;;
+    esac],
+    console_socket=no)
++AC_MSG_RESULT([$console_socket])
++
+ if test $console_socket = yes; then
+   if test $console_loopback = no; then
+     AC_MSG_ERROR([--enable-console-socket requires --enable-console-loopback])
+@@ -228,6 +233,7 @@ AC_DEFUN([OPENIB_OSM_PERF_MGR_SEL], [
+ # --- BEGIN OPENIB_OSM_PERF_MGR_SEL ---
+ 
+ dnl enable the perf-mgr
++AC_MSG_CHECKING([to enable perf mgr])
+ AC_ARG_ENABLE(perf-mgr,
+ [  --enable-perf-mgr Enable the performance manager (default yes)],
+    [case $enableval in
+@@ -235,6 +241,9 @@ AC_ARG_ENABLE(perf-mgr,
+      no)  perf_mgr=no ;;
+    esac],
+    perf_mgr=yes)
++AC_MSG_RESULT([$perf_mgr])
++
++AC_MSG_CHECKING([to enable perf mgr profiling])
+ AC_ARG_ENABLE(perf-mgr-profile,
+ [  --enable-perf-mgr-profile Enable the performance manager profiling (default no)],
+ 	[case $enableval in
+@@ -242,6 +251,8 @@ AC_ARG_ENABLE(perf-mgr-profile,
+ 	no)  perf_mgr_profile=no ;;
+ 	esac],
+ 	perf_mgr_profile=no)
++AC_MSG_RESULT([$perf_mgr_profile])
++
+ if test $perf_mgr = yes; then
+   AC_DEFINE(ENABLE_OSM_PERF_MGR,
+ 	1,
+@@ -261,6 +272,7 @@ AC_DEFUN([OPENIB_OSM_DEFAULT_EVENT_PLUGIN_SEL], [
+ # --- BEGIN OPENIB_OSM_DEFAULT_EVENT_PLUGIN_SEL ---
+ 
+ dnl enable the default-event-plugin
++AC_MSG_CHECKING([to enable default event plugin])
+ AC_ARG_ENABLE(default-event-plugin,
+ [  --enable-default-event-plugin  Enable a default event plugin "osmeventplugin" (default no)],
+    [case $enableval in
+@@ -268,6 +280,8 @@ AC_ARG_ENABLE(default-event-plugin,
+      no)  default_event_plugin=no ;;
+    esac],
+    default_event_plugin=no)
++AC_MSG_RESULT([$default_event_plugin])
++
+ if test $default_event_plugin = yes; then
+   AC_DEFINE(ENABLE_OSM_DEFAULT_EVENT_PLUGIN,
+ 	    1,
+-- 
+1.7.1
 
 
-On 04/05/2013 05:03 PM, Roland Dreier wrote:
-> On Fri, Apr 5, 2013 at 1:51 PM, Michael R. Hines
-> <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org> wrote:
->> Sorry, I was wrong. ignore the comments about cgroups. That's still broken.
->> (i.e. trying to register RDMA memory while using a cgroup swap limit cause
->> the process get killed).
->>
->> But the GIFT flag patch works (my understanding is that GIFT flag allows the
->> adapter to transmit stale memory information, it does not have anything to
->> do with cgroups specifically).
-> The point of the GIFT patch is to avoid triggering copy-on-write so
-> that memory doesn't blow up during migration.  If that doesn't work
-> then there's no point to the patch.
->
->   - R.
->
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
