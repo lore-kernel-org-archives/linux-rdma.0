@@ -1,35 +1,40 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Fail post send command on error recovery
-Date: Mon, 8 Apr 2013 18:47:15 +0300
-Message-ID: <CAJZOPZKUHB5h=0JE+YnUDxcQ7oog1WcupVJbfEZO0ug7L2Fq5Q@mail.gmail.com>
-References: <1364496315-7588-1-git-send-email-klebers@linux.vnet.ibm.com>
-	<CAL1RGDW7wMVmyFhCv-Ei8Mbca-Y9yv+nygzfREU2_TozNSZ60A@mail.gmail.com>
-	<515D79B3.4090808@linux.vnet.ibm.com>
-	<201304041700.40349.jackm@dev.mellanox.co.il>
-	<CAJZOPZ+dgtQRX_sfcDc=aSOW553Twi0oqNjREeminQ2tnZeEmQ@mail.gmail.com>
-	<5162CB51.3080600@linux.vnet.ibm.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC/PATCH v2] IPoIB: Leave space in skb linear buffer for IP headers
+Date: Mon, 8 Apr 2013 09:50:46 -0700
+Message-ID: <CAG4TOxMTDM9h8GWoSVj0EB=BLz41muYrGWgfEC0Aps3oCG98pg@mail.gmail.com>
+References: <1365109940-22916-1-git-send-email-roland@kernel.org>
+ <CD84E1B9.5721%markus.stockhausen@gmx.de> <CAL1RGDWrNpExCzMSORfF74pp4EN_gi==O9nEspU-gwx_z6dNCg@mail.gmail.com>
+ <CAL1RGDX=8pcBm-jsAbObW3kHPvaA4S4XydMOSmFahc9zu6tuFg@mail.gmail.com> <CANn89iL358oFA8iGbYZLA30us-4BmvZauRr+_OnJJ2FxqpGF7Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5162CB51.3080600-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <CANn89iL358oFA8iGbYZLA30us-4BmvZauRr+_OnJJ2FxqpGF7Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 8, 2013 at 4:51 PM, Kleber Sacilotto de Souza
-<klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org> wrote:
+On Mon, Apr 8, 2013 at 9:44 AM, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wrote:
+> Am empty page in the frag list ? You mean a frag with a zero length ?
 
-> Or, I don't have a very comprehensive testcase to stress most part of
-> the IB stack during error recovery, but during my tests the kernel
-> consumer that are still hanging is the ib_sa module, mcast_remove_one()
-> is waiting for the port completion queue:
+Yep... the code would do
 
-best if you can send the whole relevant picture, e.g use the sysrq "t"
-dump when things are hanged and send the stack trace of all (or all
-involved) kernel-threads/processes
+    skb_fill_page_desc(skb, 0, page, 0, PAGE_SIZE);
 
-Or.
+but then later on it did the equivalent of
+
+    skb_frag_size_set(frag, 0);
+    skb->truesize += PAGE_SIZE;
+
+and somehow when data is flowing both directions with small packets,
+that would lead the RX-side handling to return corrupt data to
+userspace.
+
+Not sure if it's worth figuring this out entirely ... the more
+efficient way for ipoib to do things is to reuse that page for next
+time, not pass it up the stack unused.
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
