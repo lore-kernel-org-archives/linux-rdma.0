@@ -1,34 +1,33 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC/PATCH v2] IPoIB: Leave space in skb linear buffer for IP headers
-Date: Mon, 8 Apr 2013 15:04:38 -0700
-Message-ID: <CAG4TOxO8bT7LjeeXiRN=9cYUZsCvmg2wfMtnvnUA_VJB41HzNw@mail.gmail.com>
-References: <CAG4TOxMTDM9h8GWoSVj0EB=BLz41muYrGWgfEC0Aps3oCG98pg@mail.gmail.com>
- <CD88DFB5.577C%markus.stockhausen@gmx.de>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/2] Ad IB_MTU_1500|9000 enums.
+Date: Mon, 8 Apr 2013 22:16:41 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736F36CCCA@ORSMSX101.amr.corp.intel.com>
+References: <1364994796-10642-1-git-send-email-jsquyres@cisco.com>
+ <1364994796-10642-2-git-send-email-jsquyres@cisco.com>
+ <CAL1RGDUefwamQ2Gsm9QKC5+jxskxqE5orwNnbS_t060a+YXZDw@mail.gmail.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC43FE1631@xmb-rcd-x01.cisco.com>
+ <515D728B.5010202@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A823736F36B8B5@ORSMSX101.amr.corp.intel.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E0156FC7B@CRSMSX102.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A823736F36B9EA@ORSMSX101.amr.corp.intel.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E0156FCB1@CRSMSX102.amr.corp.intel.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC43FFA8E0@xmb-rcd-x01.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CD88DFB5.577C%markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
+In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC43FFA8E0-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
-Cc: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 8, 2013 at 12:03 PM, Markus Stockhausen
-<markus.stockhausen-Mmb7MZpHnFY@public.gmane.org> wrote:
-> First I thought perfect memory allocation inside ipoib_alloc_rx_skb()
-> could be realized by passing the received packet size from function
-> ipoib_ib_handle_rx_wc(). But I'm unable to estimate the requirements
-> of the similar call inside ipoib_ib_post_receives().
+> Agreed, but changing to an int would seem to have some fairly serious backwards
+> compatibility issues.
 
-The problem is that we have to allocate the receive buffer before we
-know how big the packet we're going to receive is.
+Why can't IB_MTU_1500 = 1500?
 
-Anyway, see my latest patch.  I'm pretty sure it should work -- and I
-hope the performance is reasonable.  Your approach of hacking the max
-mtu avoids the fragmented skb completely, whereas I'm just making sure
-the TCP/IP headers are in the linear part.
-
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
