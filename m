@@ -1,63 +1,45 @@
 From: Kleber Sacilotto de Souza <klebers-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Subject: Re: [PATCH] IB/mlx4: Fail post send command on error recovery
-Date: Mon, 08 Apr 2013 10:51:13 -0300
-Message-ID: <5162CB51.3080600@linux.vnet.ibm.com>
-References: <1364496315-7588-1-git-send-email-klebers@linux.vnet.ibm.com> <CAL1RGDW7wMVmyFhCv-Ei8Mbca-Y9yv+nygzfREU2_TozNSZ60A@mail.gmail.com> <515D79B3.4090808@linux.vnet.ibm.com> <201304041700.40349.jackm@dev.mellanox.co.il> <CAJZOPZ+dgtQRX_sfcDc=aSOW553Twi0oqNjREeminQ2tnZeEmQ@mail.gmail.com>
+Date: Mon, 08 Apr 2013 11:07:05 -0300
+Message-ID: <5162CF09.1010509@linux.vnet.ibm.com>
+References: <1364496315-7588-1-git-send-email-klebers@linux.vnet.ibm.com> <CAL1RGDW7wMVmyFhCv-Ei8Mbca-Y9yv+nygzfREU2_TozNSZ60A@mail.gmail.com> <515D79B3.4090808@linux.vnet.ibm.com> <CAJZOPZLgCMDmTO-qqZXm9Y9xv+xCh5bezz3A_nBn6BEtB-G+0A@mail.gmail.com> <CAL1RGDU=hn7hMy0ECQ7AOQqmuB8R6+BT6JUudNS_6rPBKr2UtQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+dgtQRX_sfcDc=aSOW553Twi0oqNjREeminQ2tnZeEmQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAL1RGDU=hn7hMy0ECQ7AOQqmuB8R6+BT6JUudNS_6rPBKr2UtQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/04/2013 06:45 PM, Or Gerlitz wrote:
+On 04/04/2013 06:49 PM, Roland Dreier wrote:
 > 
-> Kleber , as for the 1st problem, which kernel consumers are hanging
-> for ever on their CQs? IPoIB is giving up after sometime e.g see in
-> ipoib_ib.c "assume the HW is wedged and just free up all our pending
-> work requests"
+> I don't know so much about this PCI error recovery stuff but it does
+> seem sensible to trigger a catastrophic error async event when it
+> happens (I'm assuming the recovery mechanism resets the adapter).
+
+The PCI error recovery in the powerpc architecture, which is where I'm
+focusing, works by identifying a misbehaving adapter and freezing its
+slot, so that all MMIO writes to that device will be ignored and reads
+will return all 1's. When that happens the Linux implementation will
+invoke some callbacks on the driver (in this case mlx4_core) to recover
+from the error, and reset the slot. The most common procedure is the
+driver to remove the adapter and add it back, which is what the mlx4_ib
+is trying to do.
+
+> 
+> Then we should fix at least kernel ULPs behave appropriately when they
+> get such an async event.  And similarly if someone wants to harden
+> some subset of userspace apps to handle PCI error recovery too, that
+> would be another step forward.
 > 
 
-Or, I don't have a very comprehensive testcase to stress most part of
-the IB stack during error recovery, but during my tests the kernel
-consumer that are still hanging is the ib_sa module, mcast_remove_one()
-is waiting for the port completion queue:
-
-INFO: task eehd:4689 blocked for more than 30 seconds.
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-eehd            D 0000000000000000     0  4689      2 0x00010000
-Call Trace:
-[c0000000fba83190] [0000000000000001] 0x1 (unreliable)
-[c0000000fba83360] [c000000000016188] .__switch_to+0x140/0x268
-[c0000000fba83410] [c000000000674f28] .__schedule+0x570/0x8f0
-[c0000000fba836b0] [c000000000675bc4] .schedule_timeout+0x334/0x3c8
-[c0000000fba837c0] [c000000000674738] .wait_for_common+0x1c0/0x238
-[c0000000fba838a0] [d000000002ca230c] .mcast_remove_one+0xfc/0x168 [ib_sa]
-[c0000000fba83940] [d000000002bc4f60] .ib_unregister_device+0x78/0x170
-[ib_core]
-...
-
-Or rdma_cm waiting for the cma_dev completion:
-
-Call Trace:
-[c0000000f8fc70f0] [0000000000000001] 0x1 (unreliable)
-[c0000000f8fc72c0] [c000000000016188] .__switch_to+0x140/0x268
-[c0000000f8fc7370] [c000000000674f28] .__schedule+0x570/0x8f0
-[c0000000f8fc7610] [c000000000675bc4] .schedule_timeout+0x334/0x3c8
-[c0000000f8fc7720] [c000000000674738] .wait_for_common+0x1c0/0x238
-[c0000000f8fc7800] [d000000002f835b0] .cma_process_remove+0x170/0x1a8
-[rdma_cm]
-[c0000000f8fc78b0] [d000000002f8366c] .cma_remove_one+0x84/0xb0 [rdma_cm]
-[c0000000f8fc7940] [d000000002c34f60] .ib_unregister_device+0x78/0x170
-[ib_core]
-...
+I agree, this seems to be what is missing to have the error recovery
+fully functional.
 
 
 Thanks,
-kleber
 
 -- 
 Kleber Sacilotto de Souza
