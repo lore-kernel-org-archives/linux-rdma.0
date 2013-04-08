@@ -1,34 +1,45 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: linux 3.8.6 and srp backports
-Date: Mon, 8 Apr 2013 14:18:29 +0400
-Message-ID: <CACaajQvFgAHL6bzk-Umt8HkhDyzO-jO8aV-hL5+j2=sTEWMoUw@mail.gmail.com>
-References: <CACaajQu0OHOz0Ok-SkxHWPpTBEfRjNFGrPF8z5HX0bdq+sgXeQ@mail.gmail.com>
- <51627E94.9010104@acm.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_congestion_control.c: Simplify some code
+Date: Mon, 08 Apr 2013 07:37:00 -0400
+Message-ID: <5162ABDC.2080808@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51627E94.9010104-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>, Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2013/4/8 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
-> Unfortunately not all patches present in the ib_srp-backport project are
-> already upstream. If you want to avoid that in a multipath setup sooner or
-> later failover or failback fails with a SCSI device in the offline state you
-> will still need the ib_srp-backport project. I'm currently working on
-> converting that project into a new patch series intended for inclusion in
-> the mainline kernel.
 
-Thanks. I'm already check and approve that i need you github branch
-=). Thanks for great work!
+No need for p_osm->sm.p_subn->p_osm; just p_osm is sufficient
 
+Found-by: Shlomi Nimrodi <shlomin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_congestion_control.c b/opensm/osm_congestion_control.c
+index 17af407..e27ba20 100644
+--- a/opensm/osm_congestion_control.c
++++ b/opensm/osm_congestion_control.c
+@@ -362,7 +362,7 @@ int osm_congestion_control_setup(struct osm_opensm *p_osm)
+ 	/*
+ 	 * Do nothing unless the most recent routing attempt was successful.
+ 	 */
+-	if (!p_osm->sm.p_subn->p_osm->routing_engine_used)
++	if (!p_osm->routing_engine_used)
+ 		return 0;
+ 
+ 	cc_setup_mad_data(&p_osm->sm);
+@@ -409,7 +409,7 @@ int osm_congestion_control_setup(struct osm_opensm *p_osm)
+ 
+ int osm_congestion_control_wait_pending_transactions(struct osm_opensm *p_osm)
+ {
+-	osm_congestion_control_t *cc = &p_osm->sm.p_subn->p_osm->cc;
++	osm_congestion_control_t *cc = &p_osm->cc;
+ 
+ 	if (!p_osm->subn.opt.congestion_control)
+ 		return 0;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
