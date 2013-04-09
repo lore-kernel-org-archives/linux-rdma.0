@@ -1,33 +1,50 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V3 for-next 0/5] IB/IPoIB: Add multi-queue TSS and RSS
- support
-Date: Tue, 9 Apr 2013 17:06:28 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736F36D0E1@ORSMSX101.amr.corp.intel.com>
-References: <1362676288-19906-1-git-send-email-ogerlitz@mellanox.com>
- <CAJZOPZJ_runtaQnj+3n03FniBR83AeRD+Lh_2tn_1XZ0F2wKYg@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A823736F366357@ORSMSX101.amr.corp.intel.com>
- <514EF53F.3000200@mellanox.com>
- <CAJZOPZLbj+YxbELMRh9TioWptHG88Qz2VfzGTsreB+PFTdkNPA@mail.gmail.com>
- <CAJZOPZJ3G3weqAmaTytVAgQTvfiSOjgnZ_ROk4osRv8fxuRWwA@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A823736F36B547@ORSMSX101.amr.corp.intel.com>
- <5164209D.1060101@mellanox.com>
+From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv2] rdma: add a new IB_ACCESS_GIFT flag
+Date: Tue, 9 Apr 2013 19:39:30 +0300
+Message-ID: <20130409163929.GA7661@redhat.com>
+References: <20130324155153.GA8597@redhat.com>
+ <515F3160.4020007@linux.vnet.ibm.com>
+ <CAL1RGDU2jtrRrxi6srsH_ADiYGvJbCpCT3UvoLGTX3cvQ=s0kQ@mail.gmail.com>
+ <515F3A0F.5030507@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5164209D.1060101-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <515F3A0F.5030507-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Michael R. Hines" <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> any feedback?
+On Fri, Apr 05, 2013 at 04:54:39PM -0400, Michael R. Hines wrote:
+> To be more specific, here's what I did:
+> 
+> 1. apply kernel module patch - re-insert module
+> 1. QEMU does: ibv_reg_mr(........IBV_ACCESS_GIFT | IBV_ACCESS_REMOTE_READ)
+> 2. Start the RDMA migration
+> 3. Migration completes without any errors
+> 
+> This test does *not* work with a cgroup swap limit, however. The
+> process gets killed. (Both with and without GIFT)
+> 
+> - Michael
 
-I have no issue with RSS/TSS.  But the 'qp group' interface to using this seems kludgy.
+Try to attach a debugger and see where it is when it gets killed?
 
-On a node, this is multiple send/receive queues grouped together to form a larger construct.  On the wire, this is a single QP - maybe?  I'm still not clear on that.  From what's written, all the send queues appear as a single QPN.  The receive queues appear as different QPNs.
-
+> On 04/05/2013 04:43 PM, Roland Dreier wrote:
+> >On Fri, Apr 5, 2013 at 1:17 PM, Michael R. Hines
+> ><mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org> wrote:
+> >>I also removed the IBV_*_WRITE flags on the sender-side and activated
+> >>cgroups with the "memory.memsw.limit_in_bytes" activated and the migration
+> >>with RDMA also succeeded without any problems (both with *and* without GIFT
+> >>also worked).
+> >Not sure I'm interpreting this correctly.  Are you saying that things
+> >worked without actually setting the GIFT flag?   In which case why are
+> >we adding this flag?
+> >
+> >  - R.
+> >
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
