@@ -1,43 +1,60 @@
-From: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC/PATCH v3] IPoIB: Leave space in skb linear buffer for IP
- headers
-Date: Tue, 9 Apr 2013 13:13:16 +0000
-Message-ID: <4AF12E8016D2BF46BCDFCE8FAA77A358042F382C@FMSMSX103.amr.corp.intel.com>
-References: <1365457381-10184-1-git-send-email-roland@kernel.org>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: tune ib stack
+Date: Tue, 09 Apr 2013 15:16:45 +0200
+Message-ID: <516414BD.4020407@profitbricks.com>
+References: <CACaajQs7RHR9Uz_M46o+1zui8x=HneQFW-09V_XQbo8OQV3eoQ@mail.gmail.com> <51640E72.3010202@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1365457381-10184-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <51640E72.3010202-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
-Cc: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> +	if (wc->byte_len > IPOIB_UD_HEAD_SIZE) {
-> +		page = priv->rx_ring[wr_id].page;
-> +		priv->rx_ring[wr_id].page = NULL;
-> +	} else {
-> +		page = NULL;
-> +	}
-> +
->  	/*
->  	 * If we can't allocate a new RX buffer, dump
->  	 * this packet and reuse the old buffer.
->  	 */
->  	if (unlikely(!ipoib_alloc_rx_skb(dev, wr_id))) {
->  		++dev->stats.rx_dropped;
-> +		priv->rx_ring[wr_id].page = page;
->  		goto repost;
->  	}
+On 09.04.2013 14:49, Hal Rosenstock wrote:
+> On 4/9/2013 7:12 AM, Vasiliy Tolstov wrote:
+>> Hello. I have some servers, with mellanox ConnectX-3 and have some questions:
+>> Why max_mtu differs with active_mtu? 
+> 
+> What does peer port say for max MTU ?
+> 
+>> How can i set active mtu?
+> 
+> SM sets active MTU to min of peer ports max MTUs.
 
+So with "peer port max MTU" do you mean this file?:
 
-Can you go through the "else" of the first if (page is NULL), then enter the second if? If so, isn't the page lost?
+/sys/class/infiniband/mlx4_0/device/mlx4_port1_mtu
 
+I've seen that it can be set as well. I've got two ConnectX-2 machines
+connected back2back. In general these have 4K max and active.
 
-Dean
+So let's try something:
+
+Host1:
+$ echo 2048 > /sys/class/infiniband/mlx4_0/device/mlx4_port1_mtu
+# Port is not active, let's reactivate it.
+$ echo 1 > /sys/class/infiniband/mlx4_0/device/enable
+
+ibv_devinfo Host1:
+max_mtu:	2048 (4)
+active_mtu:	2048 (4)
+
+Host2:
+max_mtu:	4096 (5)
+active_mtu:	2048 (4)
+
+Both had "4096 (5)" before everywhere.
+So that's the recommended way to reduce the MTU?
+
+I've heard that reducing the MTU in a fabric can help fighting
+congestion issues. As congestion control doesn't work yet, could this
+help against congestion?
+
+Cheers,
+Sebastian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
