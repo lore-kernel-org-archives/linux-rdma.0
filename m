@@ -1,43 +1,43 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: tune ib stack
-Date: Tue, 09 Apr 2013 09:00:29 -0400
-Message-ID: <516410ED.7050705@dev.mellanox.co.il>
-References: <CACaajQs7RHR9Uz_M46o+1zui8x=HneQFW-09V_XQbo8OQV3eoQ@mail.gmail.com> <5163FEF4.1000507@profitbricks.com> <CACaajQva3nUe+u3YpHoE4wgiR6-mDoQtnOhR4Cpeu4iwPK0HUQ@mail.gmail.com> <51640654.1000009@profitbricks.com>
+From: "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC/PATCH v3] IPoIB: Leave space in skb linear buffer for IP
+ headers
+Date: Tue, 9 Apr 2013 13:13:16 +0000
+Message-ID: <4AF12E8016D2BF46BCDFCE8FAA77A358042F382C@FMSMSX103.amr.corp.intel.com>
+References: <1365457381-10184-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51640654.1000009-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <1365457381-10184-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
+Cc: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/9/2013 8:15 AM, Sebastian Riemer wrote:
-> On 09.04.2013 13:51, Vasiliy Tolstov wrote:
->>> Something like this:
->>> echo 4096 > /sys/class/infiniband/mlx4_0/device/mlx4_port1_mtu
->>
->> After doing this all srp connections down and port is down. I need to
->> restart openibd
-> 
-> Sorry for that! It's much easier to set the IP MTU. Managed switches
-> support setting the RDMA MTU. So it could be possible that it is a
-> setting in the SM config. But I'm not sure.
+> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> +	if (wc->byte_len > IPOIB_UD_HEAD_SIZE) {
+> +		page = priv->rx_ring[wr_id].page;
+> +		priv->rx_ring[wr_id].page = NULL;
+> +	} else {
+> +		page = NULL;
+> +	}
+> +
+>  	/*
+>  	 * If we can't allocate a new RX buffer, dump
+>  	 * this packet and reuse the old buffer.
+>  	 */
+>  	if (unlikely(!ipoib_alloc_rx_skb(dev, wr_id))) {
+>  		++dev->stats.rx_dropped;
+> +		priv->rx_ring[wr_id].page = page;
+>  		goto repost;
+>  	}
 
-IP MTU is different than link MTU. For UD mode, it's link MTU - 4. For
-RC (connected) mode, this can be a much larger number than the link MTU
-as the HCA does the segmentation/reassembly down to the path MTU.
 
-> $ man opensm
-> says that it can be set in the partitions.conf
+Can you go through the "else" of the first if (page is NULL), then enter the second if? If so, isn't the page lost?
 
-Yes, MTU for the IPoIB interface is set in the partition file. This
-would need configuring for the larger (4K) MTU assuming all ports
-support the 4K MTU. If not, some ports won't be able to join the IPoIB
-broadcast (or other) IB multicast groups and IPoIB won't work.
 
--- Hal
+Dean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
