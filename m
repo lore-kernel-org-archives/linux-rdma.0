@@ -1,26 +1,60 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 3/4] Use autoreconf in autogen.sh
-Date: Tue, 9 Apr 2013 08:47:29 +0300
-Message-ID: <5163AB71.2080307@mellanox.com>
-References: <1364994415-8330-1-git-send-email-jsquyres@cisco.com> <1364994415-8330-3-git-send-email-jsquyres@cisco.com> <EF66BBEB19BADC41AC8CCF5F684F07FC43FFA956@xmb-rcd-x01.cisco.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: tune ib stack
+Date: Tue, 9 Apr 2013 15:12:07 +0400
+Message-ID: <CACaajQs7RHR9Uz_M46o+1zui8x=HneQFW-09V_XQbo8OQV3eoQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC43FFA956-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09/04/2013 00:59, Jeff Squyres (jsquyres) wrote:
-> Roland -- If there are no objections, can this patch (and patch 4 of this set: https://patchwork.kernel.org/patch/2387321/) be committed?  Neither should not have any real impact other than the modernization of the libibverbs build system.
+Hello. I have some servers, with mellanox ConnectX-3 and have some questions:
+Why max_mtu differs with active_mtu? How can i set active mtu?
+Why ibstatus says that i have only 10 Gb/s ?
 
-Jeff, the patches don't carry signed-of-by signature line... I would 
-suggest you resubmit patches 3 and 4 with a signature
+All cables support 40 Gb/s.
 
-Or.
+Thanks for any help.
 
+Linux xen28 3.8.6-1-xen #1 SMP Fri Apr 5 18:48:02 UTC 2013 (713918b)
+x86_64 x86_64 x86_64 GNU/Linux
+
+Infiniband device 'mlx4_0' port 1 status:
+        default gid:     fe80:0000:0000:0000:0025:90ff:ff17:9b25
+        base lid:        0x34
+        sm lid:          0x4
+        state:           4: ACTIVE
+        phys state:      5: LinkUp
+        rate:            10 Gb/sec (4X)
+        link_layer:      InfiniBand
+
+
+06:00.0 Network controller: Mellanox Technologies MT27500 Family [ConnectX-3]
+hca_id: mlx4_0
+        transport:                      InfiniBand (0)
+        fw_ver:                         2.10.700
+        node_guid:                      0025:90ff:ff17:9b24
+        sys_image_guid:                 0025:90ff:ff17:9b27
+        vendor_id:                      0x02c9
+        vendor_part_id:                 4099
+        hw_ver:                         0x0
+        board_id:                       SM_2181000001000
+        phys_port_cnt:                  1
+                port:   1
+                        state:                  PORT_ACTIVE (4)
+                        max_mtu:                4096 (5)
+                        active_mtu:             2048 (4)
+                        sm_lid:                 4
+                        port_lid:               52
+                        port_lmc:               0x00
+                        link_layer:             IB
+
+
+--
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
