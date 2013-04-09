@@ -1,84 +1,60 @@
-From: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: [RFC/PATCH v3] IPoIB: Leave space in skb linear buffer for IP
- headers
-Date: Tue, 09 Apr 2013 21:52:07 +0200
-Message-ID: <CD8A3957.57AC%markus.stockhausen@gmx.de>
-References: <1365457381-10184-1-git-send-email-roland@kernel.org>
+From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv2] rdma: add a new IB_ACCESS_GIFT flag
+Date: Tue, 9 Apr 2013 22:00:11 +0300
+Message-ID: <20130409190011.GA8212@redhat.com>
+References: <20130324155153.GA8597@redhat.com>
+ <515F3160.4020007@linux.vnet.ibm.com>
+ <CAL1RGDU2jtrRrxi6srsH_ADiYGvJbCpCT3UvoLGTX3cvQ=s0kQ@mail.gmail.com>
+ <515F3A0F.5030507@linux.vnet.ibm.com>
+ <20130409163929.GA7661@redhat.com>
+ <51645630.3030608@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1365457381-10184-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <51645630.3030608-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+To: "Michael R. Hines" <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
+On Tue, Apr 09, 2013 at 01:56:00PM -0400, Michael R. Hines wrote:
+> On 04/09/2013 12:39 PM, Michael S. Tsirkin wrote:
+> >On Fri, Apr 05, 2013 at 04:54:39PM -0400, Michael R. Hines wrote:
+> >>To be more specific, here's what I did:
+> >>
+> >>1. apply kernel module patch - re-insert module
+> >>1. QEMU does: ibv_reg_mr(........IBV_ACCESS_GIFT | IBV_ACCESS_REMOTE_READ)
+> >>2. Start the RDMA migration
+> >>3. Migration completes without any errors
+> >>
+> >>This test does *not* work with a cgroup swap limit, however. The
+> >>process gets killed. (Both with and without GIFT)
+> >>
+> >>- Michael
+> >Try to attach a debugger and see where it is when it gets killed?
+> >
 > 
->-    IPOIB_UD_HEAD_SIZE      = IB_GRH_BYTES + IPOIB_ENCAP_LEN,
->+    /* add 128 bytes of tailroom for IP/TCP headers */
->+    IPOIB_UD_HEAD_SIZE      = IB_GRH_BYTES + IPOIB_ENCAP_LEN + 128,
+> It's killed by cgroups - not a CPU exception.
+> 
+> The same test works fine using TCP migration with cgroups -
+> everything is fine there.
+> 
+> The memory that RDMA attempted to register hits some kind of cgroups policy
+> which results in a kernel message saying that the cgroup swap limit was hit
+> and then it goes ahead and kills the process altogether.
+> 
+> It's not a QEMU problem - it seems to be a kernel bug.
 
-Hello,
-
-the version 3 of the patch finally works. I can see the performance
-gains but I cannot feel them (in real life). Here are the results
-of my testbed:
-
-Test 1:
-netperf/netserver message size 16K
-
-kernel 3.5 default     :  5.1 GBit/s
-kernel 3.5 + patch v3  :  7.7 GBit/s
-kernel 3.5 + max MTU 3K: 10.8 GBit/s
-
-Test 2:
-Disk write performance
-VM with disk mounted on IB async NFS server
-
-block size  | default  | patch v3 | max MTU 3K
-------------+----------+----------+----------
-       1 KB |  10 MB/s |  10 MB/s |  10 MB/s
-       2 KB |  20 MB/s |  21 MB/s |  20 MB/s
-       4 KB |  40 MB/s |  40 MB/s |  43 MB/s
-       8 KB |  68 MB/s |  70 MB/s |  78 MB/s
-      16 KB | 105 MB/s | 105 MB/s | 120 MB/s
-      32 KB | 150 MB/s | 150 MB/s | 170 MB/s
-      64 KB | 200 MB/s | 210 MB/s | 260 MB/s
-     128 KB | 270 MB/s | 290 MB/s | 400 MB/s
-     256 KB | 300 MB/s | 310 MB/s | 430 MB/s
-     512 KB | 305 MB/s | 320 MB/s | 470 MB/s
-    1024 KB | 310 MB/s | 325 MB/s | 500 MB/s
-    2048 KB | 310 MB/s | 325 MB/s | 510 MB/s
-    4096 KB | 370 MB/s | 325 MB/s | 510 MB/s
-    8192 KB | 400 MB/s | 325 MB/s | 520 MB/s
+Maybe cgroup swap limit really is buggy. That's interesting, but not
+really related to this patch.  What's interesting is whether we save
+lots memory by using this patch.
+Couldn't you dump the pagemap for the qemu process and calculate real
+memory usage before and after applying the patch?
 
 
-As you can see netperf throughput increases while NFS does not
-even care about the optimizations. Maybe it does not work well
-with fragmented SKBs. The MAX MTU 3K values once again are
-forced through a hack inside ipoib_main.c.
-
-For curiosity I changed the block splitting in your v3 patch
-from small head with large fragment to large head with small
-fragment in this line.
-
-IPOIB_UD_HEAD_SIZE      = IB_GRH_BYTES + IPOIB_ENCAP_LEN + 3072
-
-In my 2044 MTU case this brings the netperf & NFS throughput to
-the same levels as the dirty hack. Of course this no longer
-reflects a head but equals more or less to something like a
-new constant IPOIB_UD_FIXED_SKB_SIZE.
-
-I guess 4K MTU will not see any further gains but avoiding the
-skb_pull calls should improve speed as well. Maybe a final
-adaption could put the cherry on the cake.
-
-Markus
-
-
+-- 
+MST
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
