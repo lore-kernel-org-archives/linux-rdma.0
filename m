@@ -1,68 +1,64 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/2] Ad IB_MTU_1500|9000 enums.
-Date: Tue, 9 Apr 2013 23:59:13 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E01575317@CRSMSX102.amr.corp.intel.com>
-References: <1364994796-10642-1-git-send-email-jsquyres@cisco.com>
- <1364994796-10642-2-git-send-email-jsquyres@cisco.com>
- <CAL1RGDUefwamQ2Gsm9QKC5+jxskxqE5orwNnbS_t060a+YXZDw@mail.gmail.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC43FE1631@xmb-rcd-x01.cisco.com>
- <515D728B.5010202@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A823736F36B8B5@ORSMSX101.amr.corp.intel.com>
- <2807E5FD2F6FDA4886F6618EAC48510E0156FC7B@CRSMSX102.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A823736F36B9EA@ORSMSX101.amr.corp.intel.com>
- <2807E5FD2F6FDA4886F6618EAC48510E0156FCB1@CRSMSX102.amr.corp.intel.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC43FFA8E0@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A823736F36CCCA@ORSMSX101.amr.corp.intel.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC43FFDBA8@xmb-rcd-x01.cisco.com>
+From: "Michael R. Hines" <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCHv2] rdma: add a new IB_ACCESS_GIFT flag
+Date: Tue, 09 Apr 2013 21:26:59 -0400
+Message-ID: <5164BFE3.4040204@linux.vnet.ibm.com>
+References: <20130324155153.GA8597@redhat.com> <515F3160.4020007@linux.vnet.ibm.com> <CAL1RGDU2jtrRrxi6srsH_ADiYGvJbCpCT3UvoLGTX3cvQ=s0kQ@mail.gmail.com> <515F3948.40205@linux.vnet.ibm.com> <CAG4TOxPNHZadLjq6-HuOExf1XXLO6AYyvRQ1L09i6qVeA5dbLQ@mail.gmail.com> <515F42EE.8060203@linux.vnet.ibm.com> <20130409190350.GB8212@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC43FFDBA8-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20130409190350.GB8212-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Jeff Squyres (jsquyres) [mailto:jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org]
-> Subject: Re: [PATCH 2/2] Ad IB_MTU_1500|9000 enums.
-> 
-> On Apr 8, 2013, at 6:16 PM, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> 
-> > Why can't IB_MTU_1500 = 1500?
-> 
+With respect, I'm going to offload testing this patch back to the author =)
+because I'm trying to address all of Paolo's other minor issues
+with the RDMA patch before we can merge.
 
-Sean,
+Since dynamic page registration (as you requested) is now fully
+implemented, this patch is less urgent since we now have a
+mechanism in place to avoid page pinning on both sides of the migration.
 
-If the IBTA were to release new MTU enumerations which values would you recommend then?
+- Michael
 
-Ira
-
-> 
-> It certainly could.  Additionally, since Roland was a little concerned about the
-> "IB" prefix (since 1500 and 9000 are not IBTA-sanctioned MTUs), they could
-> have a different prefix -- perhaps RDMA_MTU_1500.
-> 
-> Although I admit that it would be weird to have an enum that contains values
-> with different prefixes:
-> 
-> enum ib_mtu {
->         IB_MTU_256  = 1,
->         IB_MTU_512  = 2,
->         IB_MTU_1024 = 3,
->         IB_MTU_2048 = 4,
->         IB_MTU_4096 = 5,
->         RDMA_MTU_1500 = 1500,
->         RDMA_MTU_9000 =	9000
-> };
-> 
-> --
-> Jeff Squyres
-> jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-> For corporate legal information go to:
-> http://www.cisco.com/web/about/doing_business/legal/cri/
+On 04/09/2013 03:03 PM, Michael S. Tsirkin wrote:
+> presumably is_dup_page reads the page, so should not break COW ...
+>
+> I'm not sure about the cgroups swap limit - you might have
+> too many non COW pages so attempting to fault them all in
+> makes you exceed the limit. You really should look at
+> what is going on in the pagemap, to see if there's
+> measureable gain from the patch.
+>
+>
+> On Fri, Apr 05, 2013 at 05:32:30PM -0400, Michael R. Hines wrote:
+>> Well, I have the "is_dup_page()" commented out.......when RDMA is
+>> activated.....
+>>
+>> Is there something else in QEMU that could be touching the page that
+>> I don't know about?
+>>
+>> - Michael
+>>
+>>
+>> On 04/05/2013 05:03 PM, Roland Dreier wrote:
+>>> On Fri, Apr 5, 2013 at 1:51 PM, Michael R. Hines
+>>> <mrhines-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org> wrote:
+>>>> Sorry, I was wrong. ignore the comments about cgroups. That's still broken.
+>>>> (i.e. trying to register RDMA memory while using a cgroup swap limit cause
+>>>> the process get killed).
+>>>>
+>>>> But the GIFT flag patch works (my understanding is that GIFT flag allows the
+>>>> adapter to transmit stale memory information, it does not have anything to
+>>>> do with cgroups specifically).
+>>> The point of the GIFT patch is to avoid triggering copy-on-write so
+>>> that memory doesn't blow up during migration.  If that doesn't work
+>>> then there's no point to the patch.
+>>>
+>>>   - R.
+>>>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
