@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/3] net/mlx4_core: Implement srq object lookup from srqn
-Date: Wed, 10 Apr 2013 17:26:47 +0300
-Message-ID: <1365604008-22455-3-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 1/3] IB/core: Verify that QP handler is valid before dispatching events
+Date: Wed, 10 Apr 2013 17:26:46 +0300
+Message-ID: <1365604008-22455-2-git-send-email-ogerlitz@mellanox.com>
 References: <1365604008-22455-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1365604008-22455-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,54 +12,32 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Expose a new API mlx4_srq_lookup to retrive a SRQ based on its number.
-This API is needed in the mlx4_ib driver CQ polling logic, when a
-work completion is associated with a XRC TGT QP. Since a target QP
-may redirect to more than one XRC SRQ, the srq field in the QP has
-no usage and the real XRC SRQ need to be retrived using the information
-from the XRCETH IB header which is placed in the HW CQE.
+For QPs of type IB_QPT_XRC_TGT the IB core assigns a common event handler
+__ib_shared_qp_event_handler, and the optionally supplied event handler
+is stored. When the common handler is called it iterates on all opened
+QPs and calles the original handlers without checking if they are
+NULL, fix that.
 
 Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/srq.c |   15 +++++++++++++++
- include/linux/mlx4/srq.h                 |    2 ++
- 2 files changed, 17 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/verbs.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/srq.c b/drivers/net/ethernet/mellanox/mlx4/srq.c
-index e329fe1..79fd269 100644
---- a/drivers/net/ethernet/mellanox/mlx4/srq.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/srq.c
-@@ -298,3 +298,18 @@ void mlx4_cleanup_srq_table(struct mlx4_dev *dev)
- 		return;
- 	mlx4_bitmap_cleanup(&mlx4_priv(dev)->srq_table.bitmap);
- }
-+
-+struct mlx4_srq *mlx4_srq_lookup(struct mlx4_dev *dev, u32 srqn)
-+{
-+	struct mlx4_srq_table *srq_table = &mlx4_priv(dev)->srq_table;
-+	struct mlx4_srq *srq;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&srq_table->lock, flags);
-+	srq = radix_tree_lookup(&srq_table->tree,
-+				srqn & (dev->caps.num_srqs - 1));
-+	spin_unlock_irqrestore(&srq_table->lock, flags);
-+
-+	return srq;
-+}
-+EXPORT_SYMBOL_GPL(mlx4_srq_lookup);
-diff --git a/include/linux/mlx4/srq.h b/include/linux/mlx4/srq.h
-index 799a069..192e0f7 100644
---- a/include/linux/mlx4/srq.h
-+++ b/include/linux/mlx4/srq.h
-@@ -39,4 +39,6 @@ struct mlx4_wqe_srq_next_seg {
- 	u32			reserved2[3];
- };
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index a8fdd33..22192de 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -348,7 +348,8 @@ static void __ib_shared_qp_event_handler(struct ib_event *event, void *context)
+ 	struct ib_qp *qp = context;
  
-+struct mlx4_srq *mlx4_srq_lookup(struct mlx4_dev *dev, u32 srqn);
-+
- #endif /* MLX4_SRQ_H */
+ 	list_for_each_entry(event->element.qp, &qp->open_list, open_list)
+-		event->element.qp->event_handler(event, event->element.qp->qp_context);
++		if (event->element.qp->event_handler)
++			event->element.qp->event_handler(event, event->element.qp->qp_context);
+ }
+ 
+ static void __ib_insert_xrcd_qp(struct ib_xrcd *xrcd, struct ib_qp *qp)
 -- 
 1.7.1
 
