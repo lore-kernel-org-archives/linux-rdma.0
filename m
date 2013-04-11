@@ -1,46 +1,61 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_console_io.c: Handle another write-strings issue
-Date: Thu, 11 Apr 2013 10:19:27 -0400
-Message-ID: <5166C66F.6040508@dev.mellanox.co.il>
+Subject: [PATCH opensm] osm_lid_mgr.c: fix duplicate LID assignment after
+ SM port down
+Date: Thu, 11 Apr 2013 10:19:35 -0400
+Message-ID: <5166C677.8080900@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-hosts_ctl declaration is:
-int hosts_ctl(daemon, client_name, client_addr, client_user);
-char *daemon;
-char *client_name;
-char *client_addr;
-char *client_user;
+We must discard previous guid2lid db if this is the first master sweep and
+reassign_lids option is TRUE.
+If we came out of standby and honor_guid2lid_file option is TRUE, we must
+restore guid2lid db. Otherwise if honor_guid2lid_file option is FALSE we must
+discard previous guid2lid db.
 
-This should have been part of previous commit 664494a8157684f2f277fb457556a7c27feae0af 
-"Fix issues causing const warnings for strings"
-
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/opensm/osm_console_io.c b/opensm/osm_console_io.c
-index 167562c..18bd5ef 100644
---- a/opensm/osm_console_io.c
-+++ b/opensm/osm_console_io.c
-@@ -164,8 +164,8 @@ int is_authorized(osm_console_t * p_oct)
- {
- 	/* allowed to use the console? */
- 	p_oct->authorized = !is_remote(p_oct->client_type) ||
--	    hosts_ctl(OSM_DAEMON_NAME, p_oct->client_hn, p_oct->client_ip,
--		      "STRING_UNKNOWN");
-+	    hosts_ctl((char *)OSM_DAEMON_NAME, p_oct->client_hn, p_oct->client_ip,
-+		      (char *)"STRING_UNKNOWN");
- 	return p_oct->authorized;
- }
- #endif
+ opensm/osm_lid_mgr.c |   16 +++++++++++-----
+ 1 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/opensm/osm_lid_mgr.c b/opensm/osm_lid_mgr.c
+index f92084a..4289424 100644
+--- a/opensm/osm_lid_mgr.c
++++ b/opensm/osm_lid_mgr.c
+@@ -302,11 +302,17 @@ static int lid_mgr_init_sweep(IN osm_lid_mgr_t * p_mgr)
+ 
+ 	lmc_mask = ~((1 << p_mgr->p_subn->opt.lmc) - 1);
+ 
+-	/* if we came out of standby we need to discard any previous guid2lid
+-	   info we might have.
+-	   Do this only if the honor_guid2lid_file option is FALSE. If not, then
+-	   need to honor this file. */
+-	if (p_mgr->p_subn->coming_out_of_standby == TRUE) {
++	/* We must discard previous guid2lid db if this is the first master
++	 * sweep and reassign_lids option is TRUE.
++	 * If we came out of standby and honor_guid2lid_file option is TRUE, we
++	 * must restore guid2lid db. Otherwise if honor_guid2lid_file option is
++	 * FALSE we must discard previous guid2lid db.
++	 */
++	if (p_mgr->p_subn->first_time_master_sweep == TRUE &&
++	    p_mgr->p_subn->opt.reassign_lids == TRUE) {
++		osm_db_clear(p_mgr->p_g2l);
++		memset(p_mgr->used_lids, 0, sizeof(p_mgr->used_lids));
++	} else if (p_mgr->p_subn->coming_out_of_standby == TRUE) {
+ 		osm_db_clear(p_mgr->p_g2l);
+ 		memset(p_mgr->used_lids, 0, sizeof(p_mgr->used_lids));
+ 		if (p_mgr->p_subn->opt.honor_guid2lid_file == FALSE)
+-- 
+1.7.8.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
