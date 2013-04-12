@@ -1,37 +1,68 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: IPOIB-CM MTU
-Date: Fri, 12 Apr 2013 13:29:51 -0700
-Message-ID: <CABgxfbGeRAGMHUwWvHTs4kcoqNyEN3wBRG66n4sHrsKAMTce0g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: [RFC-v4 1/9] target: Add export of target_get_sess_cmd symbol
+Date: Fri, 12 Apr 2013 20:52:34 +0000
+Message-ID: <1365799962-13543-2-git-send-email-nab@linux-iscsi.org>
+References: <1365799962-13543-1-git-send-email-nab@linux-iscsi.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1365799962-13543-1-git-send-email-nab@linux-iscsi.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: target-devel <target-devel@vger.kernel.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Alexander Nezhinsky <alexandern@mellanox.com>, Nicholas Bellinger <nab@linux-iscsi.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We're working on a RHEL based system (2.6.32-279.el6.x86_64) that has
-slower CPUs (vs. bigger Xeon boxes). The IB stacks are on top of OFA
-1.5.4.1 and a mlx adapter (mlx4_0). It is expected that enabling CM
-will boost IPOIB bandwidth (measured by Netpipe) due to larger MTU
-size (65520).  Unfortunately, it does not happen. It, however, does
-show 2x bandwidth gain (CM vs. datagram) on Xeon servers.
+From: Nicholas Bellinger <nab@linux-iscsi.org>
 
-While looking around, it is noticed the MTU reported by "ifconfig"
-command correctly shows ipoib_cm_max_mtu number but the socket buffer
-sent down to ipoib_cm_send() never exceed 2048 bytes on both Xeon and
-the new HW platform. Seeing TSO (driver/firmware semgntation) is off
-with CM mode ... intuitively, TCP/IP on Xeon would do better with
-segmentation while the (segmentation) overhead (and other specific
-platform issues) could weigh down the bandwidth on the subject HW.
+Export target_get_sess_cmd() symbol so that it can be used by
+iscsi-target.
 
-If the guess is right, the question here is "how to make upper layer,
-i.e. IP, send down a bigger (than 2048 bytes) size of fragment ?".
-Any comment and/or help ? Is there any other knobs that I should turn
-with cm mode (by echo "connected" into /sys/class/net/ib0/mode) ?
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+---
+ drivers/target/target_core_transport.c |    4 ++--
+ include/target/target_core_fabric.h    |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-Thanks,
-Wendy
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
+index 493e9e5..f8388b4 100644
+--- a/drivers/target/target_core_transport.c
++++ b/drivers/target/target_core_transport.c
+@@ -65,7 +65,6 @@ static void transport_complete_task_attr(struct se_cmd *cmd);
+ static void transport_handle_queue_full(struct se_cmd *cmd,
+ 		struct se_device *dev);
+ static int transport_generic_get_mem(struct se_cmd *cmd);
+-static int target_get_sess_cmd(struct se_session *, struct se_cmd *, bool);
+ static void transport_put_cmd(struct se_cmd *cmd);
+ static void target_complete_ok_work(struct work_struct *work);
+ 
+@@ -2179,7 +2178,7 @@ EXPORT_SYMBOL(transport_generic_free_cmd);
+  * @se_cmd:	command descriptor to add
+  * @ack_kref:	Signal that fabric will perform an ack target_put_sess_cmd()
+  */
+-static int target_get_sess_cmd(struct se_session *se_sess, struct se_cmd *se_cmd,
++int target_get_sess_cmd(struct se_session *se_sess, struct se_cmd *se_cmd,
+ 			       bool ack_kref)
+ {
+ 	unsigned long flags;
+@@ -2208,6 +2207,7 @@ out:
+ 	spin_unlock_irqrestore(&se_sess->sess_cmd_lock, flags);
+ 	return ret;
+ }
++EXPORT_SYMBOL(target_get_sess_cmd);
+ 
+ static void target_release_cmd_kref(struct kref *kref)
+ {
+diff --git a/include/target/target_core_fabric.h b/include/target/target_core_fabric.h
+index aaa1ee6..ba3471b 100644
+--- a/include/target/target_core_fabric.h
++++ b/include/target/target_core_fabric.h
+@@ -120,7 +120,7 @@ bool	transport_wait_for_tasks(struct se_cmd *);
+ int	transport_check_aborted_status(struct se_cmd *, int);
+ int	transport_send_check_condition_and_sense(struct se_cmd *,
+ 		sense_reason_t, int);
+-
++int	target_get_sess_cmd(struct se_session *, struct se_cmd *, bool);
+ int	target_put_sess_cmd(struct se_session *, struct se_cmd *);
+ void	target_sess_cmd_list_set_waiting(struct se_session *);
+ void	target_wait_for_sess_cmds(struct se_session *, int);
+-- 
+1.7.2.5
+
