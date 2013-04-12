@@ -1,89 +1,57 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [ANNOUNCE] SRP: ProfitBricks publishes its SRP Initiator patches
-Date: Fri, 12 Apr 2013 13:19:36 +0200
-Message-ID: <5167EDC8.3030909@profitbricks.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] Ad IB_MTU_1500|9000 enums.
+Date: Fri, 12 Apr 2013 18:40:49 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4401EEDD@xmb-rcd-x01.cisco.com>
+References: <1364994796-10642-1-git-send-email-jsquyres@cisco.com>
+ <1364994796-10642-2-git-send-email-jsquyres@cisco.com>
+ <CAL1RGDUefwamQ2Gsm9QKC5+jxskxqE5orwNnbS_t060a+YXZDw@mail.gmail.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC43FE1631@xmb-rcd-x01.cisco.com>
+ <515D728B.5010202@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A823736F36B8B5@ORSMSX101.amr.corp.intel.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E0156FC7B@CRSMSX102.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A823736F36B9EA@ORSMSX101.amr.corp.intel.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E0156FCB1@CRSMSX102.amr.corp.intel.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC43FFA8E0@xmb-rcd-x01.cisco.com>
+ <1828884A29C6694DAF28B7E6B8A823736F36CCCA@ORSMSX101.amr.corp.intel.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC43FFDBA8@xmb-rcd-x01.cisco.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E01575317@CRSMSX102.amr.corp.intel.com>
+ <1828884A29C6694DAF28B7E6B8A823736F36D455@ORSMSX101.amr.corp.intel.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E015759CF@CRSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E015759CF-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Content-ID: <4B18E8587015754B95DF2D8AB95F99F3-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello everyone,
+On Apr 9, 2013, at 10:44 PM, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-I'm very proud to announce that we finally publish our SRP initiator
-patches we've been working on for quite some time now.
+> As an aside I like the use of RDMA_MTU_* for these values.  Again to distinguish them from the IBTA values.  But I know that is poor form.
 
-In the first step we publish our way of failing IO fast as we've notice=
-d
-that the way Bart Van Assche does that in his GitHub repository doesn't
-match our requirements completely.
 
-His repo: https://github.com/bvanassche/ib_srp-backport
-Our repo: https://github.com/sriemer/ib_srp
+So what's the right way to move forward on this?  Is it this:
 
-We want to fail IO fast in exactly the time we configure. With our
-patches this works (or please tell us why not). We provide you with ful=
-l
-test descriptions and related shell scripts. Everything is done with as
-little dependencies as possible.
+enum ib_mtu {
+       IB_MTU_256  = 1,
+       IB_MTU_512  = 2,
+       IB_MTU_1024 = 3,
+       IB_MTU_2048 = 4,
+       IB_MTU_4096 = 5,
+       RDMA_MTU_1500 = 1500,
+       RDMA_MTU_9000 =	9000
+};
 
-The shell scripts can also be very useful to show how to configure and
-use SRP with sysfs only. This is why I've added the scst-devel mailing
-list here. We want to be as close as possible to the kernel.
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
 
-We want to combine efforts here and to get valuable feedback from you
-all. Evaluation, testing, criticism, comments, etc more than welcome!
-Hopefully, we can get a really cool solution into the mainline together=
-!
-This would make my job as the maintainer for the ProfitBricks host
-kernels a lot easier! ;-)
-
-You'll notice: We've already adapted patches from Bart and parts of his
-patches. So it is only fair to publish our patches as well. :-)
-
-It is the same as with Bart's patches: This can't be used for
-production, yet. Our patches don't have the reconnect for now. Ideas ho=
-w
-to implement that on top are welcome. Just send your patches directly t=
-o
-me! :-)
-
-Please further notice: There is a major bug in the upstream
-multipath-tools. These read sysfs files cached which leads to IO on
-offline devices. We've fixed it for us and publish the fix for you as
-well. :-)
-
-Git repo:
-https://github.com/sriemer/multipath-tools
-
-Thank you so much for your help in the past and in the future as well!
-Thanks for the patience and reading this!
-
-We'll continue publishing our SRP patches relevant for the mainline.
-If you want to meet me or ProfitBricks in person, we'll have a booth on
-LinuxTag in Berlin/Germany. I'll have a technical talk there about SRP:
-
-http://www.linuxtag.org/2013/en/program/thursday-may-23-2013.html?event=
-id=3D208
-
-Cheers,
-Sebastian
-
---=20
-Sebastian Riemer
-Linux Kernel Developer - Storage
-
-ProfitBricks GmbH =95 Greifswalder Str. 207 =95 10405 Berlin, Germany
-www.profitbricks.com =95 sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Gesch=E4ftsf=FChrer: Andreas Gauger, Achim Weiss
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
