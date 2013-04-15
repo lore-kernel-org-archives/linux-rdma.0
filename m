@@ -1,86 +1,38 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups -
- suggesting BOF during OFA conf to further discuss that
-Date: Mon, 15 Apr 2013 16:21:09 +0300
-Message-ID: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw@mail.gmail.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC/PATCH v3] IPoIB: Leave space in skb linear buffer for IP headers
+Date: Mon, 15 Apr 2013 12:37:36 -0700
+Message-ID: <CAL1RGDURSq9bfS5M-+f-zELapJWVWnwQ3Z=Ga_Wfj0s_H1Mn_w@mail.gmail.com>
+References: <1365457381-10184-1-git-send-email-roland@kernel.org> <CD8A3957.57AC%markus.stockhausen@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CD8A3957.57AC%markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ali Ayoub <ali-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
+On Tue, Apr 9, 2013 at 12:52 PM, Markus Stockhausen
+<markus.stockhausen-Mmb7MZpHnFY@public.gmane.org> wrote:
+> IPOIB_UD_HEAD_SIZE      = IB_GRH_BYTES + IPOIB_ENCAP_LEN + 3072
+>
+> In my 2044 MTU case this brings the netperf & NFS throughput to
+> the same levels as the dirty hack. Of course this no longer
+> reflects a head but equals more or less to something like a
+> new constant IPOIB_UD_FIXED_SKB_SIZE.
 
+After thinking about this, I'm pretty convinced that this is probably
+a good approach.  However it seems that making IPOIB_UD_HEAD_SIZE be
+IB_GRH_BYTES + 2048 should be enough, since that's the size of the
+largest receive buffer needed with a 2K IB MTU.
 
->> RSS child QPs are plain UD or RAW Packet QPs that only have consecutive
->> QPNs which is common requirement of HW for configuring the RSS parent
->> which in networking is called the RSS indirection or dispatching QP. You
->> can send and receive on them.
+I only wonder what the effect on performance would be with an IB MTU
+of 4K active; then full-sized packets would be pretty much exactly
+split between the linear part and the fragment page.  How does GRO
+cope with that?  I guess in the 2K IB MTU case there's no cost in
+having all the data in the linear part of the skb.
 
-> How do you ensure that the QPN's are consecutive?
-
-Quoting from this patch change-log:
-
-<start "A QP group is a set of QPs consists of a parent QP and two disjoint sets
-of RSS and TSS QPs. The creation of a QP group is a two stage process:
-
-In the the 1st stage, the parent QP is created.
-
-In the 2nd stage the children QPs of the parent are created.
-
-Each child QP indicates if its a RSS or TSS QP. Both the TSS
-and RSS sets of QPs should have contiguous QP numbers." end>
-
-When the parent is created we (the driver) are being told by the
-consumer (providing instance of struct  ib_qpg_init_attrib) how many
-child QPs they would need, so we can internally act up front and make
-sure there's a consecutive chain of QPNs reserved for that group.
-
->> If an RSS child goes to the error state it will not receive data.
-
-> If you transition it back to RTS would it start working again?
-
-YES
-
-> Could you remove it and add a new one?  (I guess not because the new QPN
-> would likely not be consecutive.)
-
-NO, its disallowed to destroy any of the child QPs as long as  the
-parent is there, quoting from the change log:
-
-<start "It is forbidden to modify parent QP state before all RSS/TSS children
-were created. In the same manner it is disallowed to destroy the parent
-QP unless all RSS/TSS children were destroyed." end>
-
->> Packets are routed to RSS childs only per the hash function output, not per
->> the state of that child.
-
-> So if the QP chosen by the hash is in error state the packets get lost?
-> Above you said they would not receive data.
-
-indeed, get lost, which means data will not be received, not sure I am
-following what isn't aligned to what I said in that above comment.
-
-Actually these comments and questions on the series come just a week
-before the annual OFA gathering, personally, I will not be there nor
-Shlomo who is the author of the patches, but Tzahi Oved from Mellanox
-who lead the architecture for the QP group concept is planned to
-attend and same for Sean, Roland and I hope you (Ira) too, same for
-Ali Ayoub and Liran Liss from Mellanox who are attending too, all in
-all, nice quorum to get into a room and do white boarding, open
-discussion, laughing, yelling and what ever needed to get a consensus.
-
-It would be good if a BOF would be set to discuss the QP groups
-concept and how to proceed with getting the verbs layer to support
-RSS/TSS so we can finally
-
-1. embed them within the verbs language
-2. support MQ/RSS in the IPoIB network driver
-
-Or.
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
