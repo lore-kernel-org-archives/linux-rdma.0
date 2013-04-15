@@ -1,157 +1,86 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: saquery; add SwitchInfoRecord
-Date: Mon, 15 Apr 2013 08:01:15 -0400
-Message-ID: <516BEC0B.7010107@dev.mellanox.co.il>
-References: <20130414231554.5e2ac986ab2a1a81c52d8656@intel.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups -
+ suggesting BOF during OFA conf to further discuss that
+Date: Mon, 15 Apr 2013 16:21:09 +0300
+Message-ID: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130414231554.5e2ac986ab2a1a81c52d8656-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ali Ayoub <ali-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/15/2013 2:15 AM, Ira Weiny wrote:
-> 
-> This patch is the combination of the 2 patches supplied by Husam kahalah
-> 	[v2] infiniband-diags/saquery.c: switchinfo support added
-> 	switchinfo support added manual
-> 
-> In addition this version changes the field names to match those in Vol1 v1.2.1
-> and Errata.
-> 
-> Signed-off-by: Husam kahalah < hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  doc/man/saquery.8.in     |    1 +
->  doc/rst/saquery.8.in.rst |    1 +
->  src/saquery.c            |   55 ++++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 57 insertions(+), 0 deletions(-)
-> 
-> diff --git a/doc/man/saquery.8.in b/doc/man/saquery.8.in
-> index e9a05cd..84eedd6 100644
-> --- a/doc/man/saquery.8.in
-> +++ b/doc/man/saquery.8.in
-> @@ -183,6 +183,7 @@ MCMemberRecord (MCMR)
->  LFTRecord (LFTR) [[lid]/[block]]
->  MFTRecord (MFTR) [[mlid]/[position]/[block]]
->  GUIDInfoRecord (GIR) [[lid]/[block]]
-> +SwitchInfoRecord (SWIR) [[lid]/[block]]
->  .ft P
->  .fi
->  .UNINDENT
-> diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst
-> index 98f7d1f..7d6ed6f 100644
-> --- a/doc/rst/saquery.8.in.rst
-> +++ b/doc/rst/saquery.8.in.rst
-> @@ -155,6 +155,7 @@ Supported query names (and aliases):
->          LFTRecord (LFTR) [[lid]/[block]]
->          MFTRecord (MFTR) [[mlid]/[position]/[block]]
->          GUIDInfoRecord (GIR) [[lid]/[block]]
-> +        SwitchInfoRecord (SWIR) [[lid]/[block]]
->  
->  
->  
-> diff --git a/src/saquery.c b/src/saquery.c
-> index 72a0fe9..34f3524 100644
-> --- a/src/saquery.c
-> +++ b/src/saquery.c
-> @@ -487,6 +487,41 @@ static void dump_service_record(void *data)
->  	       cl_ntoh64(p_sr->service_data64[1]));
->  }
->  
-> +static void dump_switch_info_record(void *data)
-> +{
-> +	ib_switch_info_record_t *p_sir = data;
-> +
-> +	printf("SwitchInfoRecord dump:\n"
-> +		"\t\tRID\n"
-> +		"\t\tLID.....................................%u\n"
-> +		"\t\tSwitchInfo dump:\n"
-> +		"\t\tLinearFDBCap............................0x%X\n"
-> +		"\t\tRandomFDBCap............................0x%X\n"
-> +		"\t\tMulticastFDBCap.........................0x%X\n"
-> +		"\t\tLinearFDBTop............................0x%X\n"
-> +		"\t\tDefaultPort.............................%u\n"
-> +		"\t\tDefaultMulticastPrimaryPort.............%u\n"
-> +		"\t\tDefaultMulticastNotPrimaryPort..........%u\n"
-> +		"\t\tLifeTimeValue/PortStateChange/OpSL2VL...%u\n"
+Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
 
-Wouldn't this be better as either separate fields or displaying in hex
-so the fields are more easily broken out ?
 
-> +		"\t\tLIDsPerPort.............................0x%X\n"
-> +		"\t\tPartitionEnforcementCap.................0x%X\n"
-> +		"\t\tflags...................................0x%X\n"
-> +		"\t\tMulticastFDBTop.........................0x%X\n",
+>> RSS child QPs are plain UD or RAW Packet QPs that only have consecutive
+>> QPNs which is common requirement of HW for configuring the RSS parent
+>> which in networking is called the RSS indirection or dispatching QP. You
+>> can send and receive on them.
 
-Does this work with SA's not supporting IsMulticastFDBSupported ?
+> How do you ensure that the QPN's are consecutive?
 
-Shouldn't this be based on the returned attribute offset or on whether
-IsMulticastFDBSupported is on in SA ClassPortInfo.CapabilityMask2 ?
+Quoting from this patch change-log:
 
-> +		cl_ntoh16(p_sir->lid),
-> +		cl_ntoh16(p_sir->switch_info.lin_cap),
-> +		cl_ntoh16(p_sir->switch_info.rand_cap),
-> +		cl_ntoh16(p_sir->switch_info.mcast_cap),
-> +		cl_ntoh16(p_sir->switch_info.lin_top),
-> +		p_sir->switch_info.def_port,
-> +		p_sir->switch_info.def_mcast_pri_port,
-> +		p_sir->switch_info.def_mcast_not_port,
-> +		p_sir->switch_info.life_state,
-> +		cl_ntoh16(p_sir->switch_info.lids_per_port),
-> +		cl_ntoh16(p_sir->switch_info.enforce_cap),
-> +		p_sir->switch_info.flags,
-> +		cl_ntoh16(p_sir->switch_info.mcast_top));
-> +}
-> +
->  static void dump_inform_info_record(void *data)
->  {
->  	char gid_str[INET6_ADDRSTRLEN];
-> @@ -1157,6 +1192,24 @@ static int query_service_records(const struct query_cmd *q, struct sa_handle * h
->  					dump_service_record);
->  }
->  
-> +static int query_switchinfo_records(const struct query_cmd *q,
-> +				struct sa_handle * h, struct query_params *p,
-> +				int argc, char *argv[])
-> +{
-> +	ib_switch_info_record_t swir;
-> +	ib_net64_t comp_mask = 0;
-> +	int lid = 0;
-> +
-> +	if (argc > 0)
-> +		parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
-> +
-> +	memset(&swir, 0, sizeof(swir));
-> +	CHECK_AND_SET_VAL(lid, 16, 0, swir.lid, SWIR, LID);
-> +
-> +	return get_and_dump_any_records(h, IB_SA_ATTR_SWITCHINFORECORD, 0, comp_mask,
-> +					&swir, sizeof(swir), dump_switch_info_record);
+<start "A QP group is a set of QPs consists of a parent QP and two disjoint sets
+of RSS and TSS QPs. The creation of a QP group is a two stage process:
 
-Not sure it matters but shouldn't offset parameter (sizeof(swir)) be
-based on whether IsMulticastFDBSupported in SA
-ClassPortInfo.CapabilityMask2 ?
+In the the 1st stage, the parent QP is created.
 
--- Hal
+In the 2nd stage the children QPs of the parent are created.
 
-> +}
-> +
->  static int query_inform_info_records(const struct query_cmd *q,
->  				    struct sa_handle * h, struct query_params *p,
->  				    int argc, char *argv[])
-> @@ -1349,6 +1402,8 @@ static const struct query_cmd query_cmds[] = {
->  	 "[[mlid]/[position]/[block]]", query_mft_records},
->  	{"GUIDInfoRecord", "GIR", IB_SA_ATTR_GUIDINFORECORD,
->  	 "[[lid]/[block]]", query_guidinfo_records},
-> +	{"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
-> +	 "[lid]", query_switchinfo_records},
->  	{0}
->  };
->  
+Each child QP indicates if its a RSS or TSS QP. Both the TSS
+and RSS sets of QPs should have contiguous QP numbers." end>
 
+When the parent is created we (the driver) are being told by the
+consumer (providing instance of struct  ib_qpg_init_attrib) how many
+child QPs they would need, so we can internally act up front and make
+sure there's a consecutive chain of QPNs reserved for that group.
+
+>> If an RSS child goes to the error state it will not receive data.
+
+> If you transition it back to RTS would it start working again?
+
+YES
+
+> Could you remove it and add a new one?  (I guess not because the new QPN
+> would likely not be consecutive.)
+
+NO, its disallowed to destroy any of the child QPs as long as  the
+parent is there, quoting from the change log:
+
+<start "It is forbidden to modify parent QP state before all RSS/TSS children
+were created. In the same manner it is disallowed to destroy the parent
+QP unless all RSS/TSS children were destroyed." end>
+
+>> Packets are routed to RSS childs only per the hash function output, not per
+>> the state of that child.
+
+> So if the QP chosen by the hash is in error state the packets get lost?
+> Above you said they would not receive data.
+
+indeed, get lost, which means data will not be received, not sure I am
+following what isn't aligned to what I said in that above comment.
+
+Actually these comments and questions on the series come just a week
+before the annual OFA gathering, personally, I will not be there nor
+Shlomo who is the author of the patches, but Tzahi Oved from Mellanox
+who lead the architecture for the QP group concept is planned to
+attend and same for Sean, Roland and I hope you (Ira) too, same for
+Ali Ayoub and Liran Liss from Mellanox who are attending too, all in
+all, nice quorum to get into a room and do white boarding, open
+discussion, laughing, yelling and what ever needed to get a consensus.
+
+It would be good if a BOF would be set to discuss the QP groups
+concept and how to proceed with getting the verbs layer to support
+RSS/TSS so we can finally
+
+1. embed them within the verbs language
+2. support MQ/RSS in the IPoIB network driver
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
