@@ -1,38 +1,51 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC/PATCH v3] IPoIB: Leave space in skb linear buffer for IP headers
-Date: Mon, 15 Apr 2013 12:37:36 -0700
-Message-ID: <CAL1RGDURSq9bfS5M-+f-zELapJWVWnwQ3Z=Ga_Wfj0s_H1Mn_w@mail.gmail.com>
-References: <1365457381-10184-1-git-send-email-roland@kernel.org> <CD8A3957.57AC%markus.stockhausen@gmx.de>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: IPOIB-CM MTU
+Date: Mon, 15 Apr 2013 14:10:14 -0700
+Message-ID: <CABgxfbGnDbKfHAiUuh=C1WPPa8OG2Sib_dcbvMvhu4zatC7BqQ@mail.gmail.com>
+References: <CABgxfbGeRAGMHUwWvHTs4kcoqNyEN3wBRG66n4sHrsKAMTce0g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CD8A3957.57AC%markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
+In-Reply-To: <CABgxfbGeRAGMHUwWvHTs4kcoqNyEN3wBRG66n4sHrsKAMTce0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 9, 2013 at 12:52 PM, Markus Stockhausen
-<markus.stockhausen-Mmb7MZpHnFY@public.gmane.org> wrote:
-> IPOIB_UD_HEAD_SIZE      = IB_GRH_BYTES + IPOIB_ENCAP_LEN + 3072
+On Fri, Apr 12, 2013 at 1:29 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> We're working on a RHEL based system (2.6.32-279.el6.x86_64) that has
+> slower CPUs (vs. bigger Xeon boxes). The IB stacks are on top of OFA
+> 1.5.4.1 and a mlx adapter (mlx4_0). It is expected that enabling CM
+> will boost IPOIB bandwidth (measured by Netpipe) due to larger MTU
+> size (65520).  Unfortunately, it does not happen. It, however, does
+> show 2x bandwidth gain (CM vs. datagram) on Xeon servers.
 >
-> In my 2044 MTU case this brings the netperf & NFS throughput to
-> the same levels as the dirty hack. Of course this no longer
-> reflects a head but equals more or less to something like a
-> new constant IPOIB_UD_FIXED_SKB_SIZE.
+> While looking around, it is noticed the MTU reported by "ifconfig"
+> command correctly shows ipoib_cm_max_mtu number but the socket buffer
+> sent down to ipoib_cm_send() never exceed 2048 bytes on both Xeon and
+> the new HW platform. Seeing TSO (driver/firmware semgntation) is off
+> with CM mode ... intuitively, TCP/IP on Xeon would do better with
+> segmentation while the (segmentation) overhead (and other specific
+> platform issues) could weigh down the bandwidth on the subject HW.
+>
+> If the guess is right, the question here is "how to make upper layer,
+> i.e. IP, send down a bigger (than 2048 bytes) size of fragment ?".
+> Any comment and/or help ? Is there any other knobs that I should turn
+> with cm mode (by echo "connected" into /sys/class/net/ib0/mode) ?
+>
 
-After thinking about this, I'm pretty convinced that this is probably
-a good approach.  However it seems that making IPOIB_UD_HEAD_SIZE be
-IB_GRH_BYTES + 2048 should be enough, since that's the size of the
-largest receive buffer needed with a 2K IB MTU.
+Thanks for folks who pointed me to the path MTU RFC. Since this is
+more of a core networking issue (vs. IB's), I may do follow-on
+questions on linux "netdev" instead of linux-rdma. .
 
-I only wonder what the effect on performance would be with an IB MTU
-of 4K active; then full-sized packets would be pretty much exactly
-split between the linear part and the fragment page.  How does GRO
-cope with that?  I guess in the 2K IB MTU case there's no cost in
-having all the data in the linear part of the skb.
+Before closing this thread ..... I see there is a clear warning in
+IPOIB code that enabling connected mode will cause multicast packet to
+drop. I assume this is due to message ordering requirement and the
+multicast packet could fall behind the large packet fragment that ends
+up causing multicast logic to time out. If my assumption is not
+correct, please do kindly correct me.
 
- - R.
+Thanks,
+Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
