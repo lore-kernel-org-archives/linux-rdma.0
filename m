@@ -1,38 +1,41 @@
-From: Or Gerlitz <or.gerlitz@gmail.com>
-Subject: Re: linux-next: Tree for Apr 17 (infiniband/rdma)
-Date: Wed, 17 Apr 2013 21:15:54 +0300
-Message-ID: <CAJZOPZJHJ0qKJo=HyEiJq1rRPXg+8bNh+8U_2WhX6FKbE2Km7A@mail.gmail.com>
-References: <20130417170450.5dd6e5f450de4d5bf197d997@canb.auug.org.au>
-	<516EE4BD.3000200@infradead.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2 0/5] tipc: add TIPC over Infiniband support
+Date: Wed, 17 Apr 2013 14:19:06 -0400 (EDT)
+Message-ID: <20130417.141906.1942482291109662532.davem@davemloft.net>
+References: <1366215509-18500-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <516EE4BD.3000200@infradead.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1366215509-18500-1-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+To: kaber@trash.net
+Cc: jon.maloy@ericsson.com, allan.stephens@windriver.com, netdev@vger.kernel.org, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 17, 2013 at 9:06 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
-> On 04/17/13 00:04, Stephen Rothwell wrote:
->> Changes since 20130416:
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 17 Apr 2013 18:18:24 +0200
 
-> on x86_64:
-> drivers/built-in.o: In function `isert_free_np':
-> ib_isert.c:(.text+0x6e8a77): undefined reference to `rdma_destroy_id'
-[...]
+> The following patchset adds support for running TIPC over InfiniBand.
+> The patchset consists of three parts (+ a minor fix for the ethernet media
+> type):
+> 
+> - Preparation: removal of an the unused str2addr callback and move of the
+>   bcast_addr from struct tipc_media to struct tipc_bearer. This is necessary
+>   because InfiniBand doesn't have a fixed broadcast address like ethernet,
+>   so it needs to be initialized with the device's broadcast address when
+>   the bearer is enabled
+> 
+> - Introduction of a TIPC InfiniBand media type. A new media type is needed
+>   to deal with the different address sizes
+> 
+> - Support for ETH_P_TIPC in IPoIB
+> 
+> Since the last posting I've addressed all feedback I received and rebased
+> to the current net-next tree.
+> 
+> I consider these patches ready for merging. Since they mainly affect TIPC
+> code, I'd propose to have them either go through the TIPC tree or through
+> Dave directly (not sure how TIPC patches are managed).
 
-Nic,
-
-Yep, you need to add
-
-depends on INET &&  INFINIBAND_ADDR_TRANS
-
-
-to the isert Kconfig entry
-
-
-This will make sure to get the rdma_cm to be configured and builts
-whenever isert is
-
-Or.
+All applied to net-next, thanks!
