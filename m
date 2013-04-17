@@ -1,54 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 5/5] IPoIB: add support for TIPC protocol
-Date: Wed, 17 Apr 2013 18:18:29 +0200
-Message-ID: <1366215509-18500-6-git-send-email-kaber@trash.net>
-References: <1366215509-18500-1-git-send-email-kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1366215509-18500-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-To: jon.maloy@ericsson.com
-Cc: davem@davemloft.net, allan.stephens@windriver.com, netdev@vger.kernel.org, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: NFS over RDMA benchmark
+Date: Wed, 17 Apr 2013 10:15:13 -0700
+Message-ID: <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
+References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Support TIPC in the IPoIB driver. Since IPoIB now keeps track of its own
-neighbour entries and doesn't require the packet to have a dst_entry
-anymore, the only necessary changes are to:
+On Wed, Apr 17, 2013 at 7:36 AM, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Hi.
+>
+> I've been trying to do some benchmarks for NFS over RDMA and I seem to only get about half of the bandwidth that the HW can give me.
+> My setup consists of 2 servers each with 16 cores, 32Gb of memory, and Mellanox ConnectX3 QDR card over PCI-e gen3.
+> These servers are connected to a QDR IB switch. The backing storage on the server is tmpfs mounted with noatime.
+> I am running kernel 3.5.7.
+>
+> When running ib_send_bw, I get 4.3-4.5 GB/sec for block sizes 4-512K.
+> When I run fio over rdma mounted nfs, I get 260-2200MB/sec for the same block sizes (4-512K). running over IPoIB-CM, I get 200-980MB/sec.
 
-- not drop multicast TIPC packets because of the unknown ethernet type
-- handle unicast TIPC packets similar to IPv4/IPv6 unicast packets
+Remember there are always gaps between wire speed (that ib_send_bw
+measures) and real world applications.
 
-in ipoib_start_xmit().
+That being said, does your server use default export (sync) option ?
+Export the share with "async" option can bring you closer to wire
+speed. However, the practice (async) is generally not recommended in a
+real production system - as it can cause data integrity issues, e.g.
+you have more chances to lose data when the boxes crash.
 
-An alternative would be to remove all ethertype limitations since they're
-not necessary anymore, all TIPC needs to know about is ARP and RARP since
-it wants to always perform "path find", even if a path is already known.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 8534afd..554b906 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -730,7 +730,8 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 		if ((header->proto != htons(ETH_P_IP)) &&
- 		    (header->proto != htons(ETH_P_IPV6)) &&
- 		    (header->proto != htons(ETH_P_ARP)) &&
--		    (header->proto != htons(ETH_P_RARP))) {
-+		    (header->proto != htons(ETH_P_RARP)) &&
-+		    (header->proto != htons(ETH_P_TIPC))) {
- 			/* ethertype not supported by IPoIB */
- 			++dev->stats.tx_dropped;
- 			dev_kfree_skb_any(skb);
-@@ -751,6 +752,7 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- 	switch (header->proto) {
- 	case htons(ETH_P_IP):
- 	case htons(ETH_P_IPV6):
-+	case htons(ETH_P_TIPC):
- 		neigh = ipoib_neigh_get(dev, cb->hwaddr);
- 		if (unlikely(!neigh)) {
- 			neigh_add_path(skb, cb->hwaddr, dev);
--- 
-1.8.1.4
+-- Wendy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
