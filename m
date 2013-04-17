@@ -1,39 +1,34 @@
-From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: NFS over RDMA benchmark
-Date: Wed, 17 Apr 2013 14:36:23 +0000
-Message-ID: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Subject: [PATCH v2 0/5] tipc: add TIPC over Infiniband support
+Date: Wed, 17 Apr 2013 18:18:24 +0200
+Message-ID: <1366215509-18500-1-git-send-email-kaber@trash.net>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: jon.maloy-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, allan.stephens-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi.
+The following patchset adds support for running TIPC over InfiniBand.
+The patchset consists of three parts (+ a minor fix for the ethernet media
+type):
 
-I've been trying to do some benchmarks for NFS over RDMA and I seem to only get about half of the bandwidth that the HW can give me.
-My setup consists of 2 servers each with 16 cores, 32Gb of memory, and Mellanox ConnectX3 QDR card over PCI-e gen3.
-These servers are connected to a QDR IB switch. The backing storage on the server is tmpfs mounted with noatime.
-I am running kernel 3.5.7.
+- Preparation: removal of an the unused str2addr callback and move of the
+  bcast_addr from struct tipc_media to struct tipc_bearer. This is necessary
+  because InfiniBand doesn't have a fixed broadcast address like ethernet,
+  so it needs to be initialized with the device's broadcast address when
+  the bearer is enabled
 
-When running ib_send_bw, I get 4.3-4.5 GB/sec for block sizes 4-512K.
-When I run fio over rdma mounted nfs, I get 260-2200MB/sec for the same block sizes (4-512K). running over IPoIB-CM, I get 200-980MB/sec.
-I got to these results after the following optimizations:
-1. Setting IRQ affinity to the CPUs that are part of the NUMA node the card is on
-2. Increasing /proc/sys/sunrpc/svc_rdma/max_outbound_read_requests and /proc/sys/sunrpc/svc_rdma/max_requests to 256 on server
-3. Increasing RPCNFSDCOUNT to 32 on server
-4. FIO arguments: --rw=randread --bs=4k --numjobs=2 --iodepth=128 --ioengine=libaio --size=100000k --prioclass=1 --prio=0 --cpumask=255 --loops=25 --direct=1 --invalidate=1 --fsync_on_close=1 --randrepeat=1 --norandommap --group_reporting --exitall --buffered=0
+- Introduction of a TIPC InfiniBand media type. A new media type is needed
+  to deal with the different address sizes
 
-Please advise what can be done to improve bandwidth.
+- Support for ETH_P_TIPC in IPoIB
 
-BTW, I also tried latest net-next tree (3.9-rc5), and when both server and client are 3.9, the client gets IO error when trying to access a file on nfs mount.
-When server is 3.9 and client is 3.5.7, I managed to get through all randread tests with fio, but when I got to randwrite, the server crashes.
+Since the last posting I've addressed all feedback I received and rebased
+to the current net-next tree.
 
-Thanks in advance
-Yan
+I consider these patches ready for merging. Since they mainly affect TIPC
+code, I'd propose to have them either go through the TIPC tree or through
+Dave directly (not sure how TIPC patches are managed).
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
