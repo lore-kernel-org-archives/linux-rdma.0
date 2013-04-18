@@ -1,84 +1,119 @@
-From: Pramod Gunjikar <pramod.gunjikar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] libibmad: To fix big endian problem for both 32-bit &
- 64-bit SPARC
-Date: Thu, 18 Apr 2013 15:58:54 +0530
-Message-ID: <516FCAE6.3010403@oracle.com>
-References: <513F83BD.3050302@oracle.com> <5140759D.1030500@dev.mellanox.co.il> <514077DB.9000703@mellanox.com> <5141FAFD.5070109@oracle.com>
+From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: NFS over RDMA benchmark
+Date: Thu, 18 Apr 2013 12:47:09 +0000
+Message-ID: <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com>
+References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
+	<CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
+	<62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
+ <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5141FAFD.5070109-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
+Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Hal / Or,
 
-Sorry for the delay in getting back on this.
 
-  Solaris specific endian fixes were  applied to OFED 1.3 in order to 
-fix infiniband-diag failures observed
-  on SPARC. Changes to OFED 1.5.3 now make these fixes redundant 
-consequently the patch request
-  is withdrawn.
+> -----Original Message-----
+> From: Wendy Cheng [mailto:s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> Sent: Wednesday, April 17, 2013 21:06
+> To: Atchley, Scott
+> Cc: Yan Burman; J. Bruce Fields; Tom Tucker; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: NFS over RDMA benchmark
+> 
+> On Wed, Apr 17, 2013 at 10:32 AM, Atchley, Scott <atchleyes-1Heg1YXhbW8@public.gmane.org>
+> wrote:
+> > On Apr 17, 2013, at 1:15 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> wrote:
+> >
+> >> On Wed, Apr 17, 2013 at 7:36 AM, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> wrote:
+> >>> Hi.
+> >>>
+> >>> I've been trying to do some benchmarks for NFS over RDMA and I seem to
+> only get about half of the bandwidth that the HW can give me.
+> >>> My setup consists of 2 servers each with 16 cores, 32Gb of memory, and
+> Mellanox ConnectX3 QDR card over PCI-e gen3.
+> >>> These servers are connected to a QDR IB switch. The backing storage on
+> the server is tmpfs mounted with noatime.
+> >>> I am running kernel 3.5.7.
+> >>>
+> >>> When running ib_send_bw, I get 4.3-4.5 GB/sec for block sizes 4-512K.
+> >>> When I run fio over rdma mounted nfs, I get 260-2200MB/sec for the
+> same block sizes (4-512K). running over IPoIB-CM, I get 200-980MB/sec.
+> >
+> > Yan,
+> >
+> > Are you trying to optimize single client performance or server performance
+> with multiple clients?
+> >
 
-Let us know if you have any queries.
+I am trying to get maximum performance from a single server - I used 2 processes in fio test - more than 2 did not show any performance boost.
+I tried running fio from 2 different PCs on 2 different files, but the sum of the two is more or less the same as running from single client PC.
 
-Thanks
-    Pramod
+What I did see is that server is sweating a lot more than the clients and more than that, it has 1 core (CPU5) in 100% softirq tasklet:
+cat /proc/softirqs
+                    CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6       CPU7       CPU8       CPU9       CPU10      CPU11      CPU12      CPU13      CPU14      CPU15
+          HI:          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0
+       TIMER:     418767      46596      43515      44547      50099      34815      40634      40337      39551      93442      73733      42631      42509      41592      40351      61793
+      NET_TX:      28719        309       1421       1294       1730       1243        832        937         11         44         41         20         26         19         15         29
+      NET_RX:     612070         19         22         21          6        235          3          2          9          6         17         16         20         13         16         10
+       BLOCK:       5941          0          0          0          0          0          0          0        519        259       1238        272        253        174        215       2618
+BLOCK_IOPOLL:          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0
+     TASKLET:         28          1          1          1          1    1540653          1          1         29          1          1          1          1          1          1          2
+       SCHED:     364965      26547      16807      18403      22919       8678      14358      14091      16981      64903      47141      18517      19179      18036      17037      38261
+     HRTIMER:         13          0          1          1          0          0          0          0          0          0          0          0          1          1          0          1
+         RCU:     945823     841546     715281     892762     823564      42663     863063     841622     333577     389013     393501     239103     221524     258159     313426     234030
+> >
+> >> Remember there are always gaps between wire speed (that ib_send_bw
+> >> measures) and real world applications.
 
-> Hi Hal and Or,
->
-> We are checking on this and will get back.
->
-> Thanks,
-> Boris
->
-> On 03/13/13 05:58, Or Gerlitz wrote:
->> On 13/03/2013 14:48, Hal Rosenstock wrote:
->>> On 3/12/2013 3:36 PM, Boris Chiu wrote:
->>>> >--- a/src/dump.c
->>>> >+++ b/src/dump.c
->>>> >@@ -46,12 +46,24 @@
->>>> >
->>>> >void mad_dump_int(char *buf, int bufsz, void *val, int valsz)
->>>> >{
->>>> >+    /*
->>>> >+     * the val pointer passed to the dump routines are always 32 bit
->>>> >+     * integers for valsz <= 4 and 64 bit integer for the rest. 
->>>> It is
->>>> >never
->>>> >+     * uint8_t or uint16_t. This is because mad_decode_field always
->>>> >returns
->>>> >+     * the values as 32 bit integer even if they are 8 bit or 16 bit
->>>> >fields.
->>>> >+     */
->>>> >     switch (valsz) {
->>>> >     case 1:
->>>> >-        snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xff);
->>>> >+#if defined(_BIG_ENDIAN)
->>>> >+        val = ((uint8_t *)val) + 3;
->>>> >+#endif /* _BIG_ENDIAN */
->>> I don't understand what's different about SPARC and PPC in terms of
->>> this. These routines all work without this on PPC64 and PPC32.
->>
->> Yep, agree, assuming the code works on other BE archs, we 1st and 
->> most need to understand the problem before going to solutions.
->>
->> Or.
->>
->>
->>
->>>
->>> At a minimum, should this be ifdef'd on something like both __sun and
->>> __SVR4 rather than _BIG_ENDIAN ?
->>
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I realize that, but I don't expect the difference to be more than twice.
+
+> >>
+> >> That being said, does your server use default export (sync) option ?
+> >> Export the share with "async" option can bring you closer to wire
+> >> speed. However, the practice (async) is generally not recommended in
+> >> a real production system - as it can cause data integrity issues, e.g.
+> >> you have more chances to lose data when the boxes crash.
+
+I am running with async export option, but that should not matter too much, since my backing storage is tmpfs mounted with noatime.
+
+> >>
+> >> -- Wendy
+> >
+> >
+> > Wendy,
+> >
+> > It has a been a few years since I looked at RPCRDMA, but I seem to
+> remember that RPCs were limited to 32KB which means that you have to
+> pipeline them to get linerate. In addition to requiring pipelining, the
+> argument from the authors was that the goal was to maximize server
+> performance and not single client performance.
+> >
+
+What I see is that performance increases almost linearly up to block size 256K and falls a little at block size 512K
+
+> > Scott
+> >
+> 
+> That (client count) brings up a good point ...
+> 
+> FIO is really not a good benchmark for NFS. Does anyone have SPECsfs
+> numbers on NFS over RDMA to share ?
+> 
+> -- Wendy
+
+What do you suggest for benchmarking NFS?
+
+Yan
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
