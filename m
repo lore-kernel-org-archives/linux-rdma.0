@@ -1,42 +1,58 @@
-From: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: IPoIB header prefetch for fragmented SKB
-Date: Wed, 17 Apr 2013 15:04:59 -0700
-Message-ID: <CANn89i+CZO1LVFa_zt4NubPWU6hNSRvKziNZeHOZJHMEwvt8ZA@mail.gmail.com>
-References: <CANn89iLopRHCMhYc+BcPvhZJtfL53H3T6JdP=ssfdg=oxh+Waw@mail.gmail.com>
-	<CD94B1E6.588B%markus.stockhausen@gmx.de>
-	<CANn89iLwF9LUohz_c765c4b+6DC0gTH77bN5QzbAkR-4LCcUog@mail.gmail.com>
-	<CAL1RGDWVOPsEe+92sgcz+fDWj8=02CJt40889_cgsQKBX6XJ4A@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the net-next tree with the infiniband
+ tree
+Date: Thu, 18 Apr 2013 13:18:43 +1000
+Message-ID: <20130418131843.bfeb6b1ad5fba1b0f706076e@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWVOPsEe+92sgcz+fDWj8=02CJt40889_cgsQKBX6XJ4A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Thu__18_Apr_2013_13_18_43_+1000_KNU/WCBiq_VN2ZdP"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, Vipul Pandya <vipul@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-alloc_page(GFP_ATOMIC) is safe. it doesnt give you a highmempage
+--Signature=_Thu__18_Apr_2013_13_18_43_+1000_KNU/WCBiq_VN2ZdP
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Not sure about header splitting. If done, it probably should be smart
-as you said (allowing small frames to be in the first part)
+Hi all,
 
-On Wed, Apr 17, 2013 at 2:49 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Wed, Apr 17, 2013 at 12:10 PM, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wrote:
->> +               prefetch(page_address(frag->page.p));
->
-> I guess we would have to change our allocation to __get_free_page()
-> (instead of alloc_page()), so that we make sure never to get a highmem
-> page?
->
-> Other than that, seems fine.
->
-> By the way, is there any value to header splitting -- having the
-> adapter put the TCP/IP headers in the linear part and the payload in
-> the fragment page?  How about in the case where we have a small enough
-> MTU that we could put the whole packet in the linear part?
->
->  - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Today's linux-next merge of the net-next tree got a conflict in
+drivers/infiniband/hw/cxgb4/qp.c between commit 5b0c275926b8
+("RDMA/cxgb4: Fix SQ allocation when on-chip SQ is disabled") from the
+infiniband tree and commit 9919d5bd01b9 ("RDMA/cxgb4: Fix onchip queue
+support for T5") from the net-next tree.
+
+I think that they are 2 different fixes for the same problem, so I just
+used the net-next version and can carry the fix as necessary (no action
+is required).
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+--Signature=_Thu__18_Apr_2013_13_18_43_+1000_KNU/WCBiq_VN2ZdP
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJRb2YTAAoJEECxmPOUX5FEFpcP/jxk88uFsqeNw4wl1AXsa0ql
+B/bW1x/ehp6kumkS1/1YYl8SoACtTr8FnBKJVv3hWKGQ7ZD8iQzqV1kcTnw32M5y
+7gfgalnf+P3Pj156sI9onURhUUglq0u8+aN6skysnB9W4ucvCFq32bpYGn2jA89w
+tVSZZTJS9O7XAMBuKpizEar+nk+gA++T3FKpynFoaZeizyoT6YKaMAuiXxMoGP3O
+0odvLdUFmIalkcn15wkIIinrtgK0nkXy1QBeipxVtBusuuJhxp9fiI+cuXw6whCm
+VWyfN72bh8PT2nri+xjNJI4TO+K4OZKjDN2MVXsRwVApNz/j0ML6TOSTWWemLscR
+mBh2i4XXkhgY2PKHYioeubuCGbI6MAFXky9QQulOIV4GdZqeK16FwxOBYJsxxqc5
+8+23I0V2OHloFe1ss3+gkBz1Niyb83EDRk1+wLGyydvotwpMj0s6P91rfKXO5s8p
+q9AJM7XuNWn8SCsBjr280yfQeyoKoGsG9Be6y6grEZraasBCrVi4tqoKdi/U6SCM
+Rxg5y1sKI2RgIpXlHNKsGzmXpA+tyte0HotPnVMvK/j54PXT7cRpTAo9Xy1o5X8r
+GVMBSq9aw3Mgb0oBDoPufLPwsOmb8dwa2qpGgjpDpYoEx/OWRfZkcQX0ykwt+Ta3
+fgO9YHHVfE9V8LwZP/IN
+=qH0d
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__18_Apr_2013_13_18_43_+1000_KNU/WCBiq_VN2ZdP--
