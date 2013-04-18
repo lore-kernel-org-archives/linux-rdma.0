@@ -1,58 +1,86 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the net-next tree with the infiniband
- tree
-Date: Thu, 18 Apr 2013 13:18:43 +1000
-Message-ID: <20130418131843.bfeb6b1ad5fba1b0f706076e@canb.auug.org.au>
+From: Pramod Gunjikar <pramod.gunjikar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] libibmad: To fix big endian problem for both 32-bit &
+ 64-bit SPARC
+Date: Thu, 18 Apr 2013 15:58:54 +0530
+Message-ID: <516FCAE6.3010403@oracle.com>
+References: <513F83BD.3050302@oracle.com> <5140759D.1030500@dev.mellanox.co.il> <514077DB.9000703@mellanox.com> <5141FAFD.5070109@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Thu__18_Apr_2013_13_18_43_+1000_KNU/WCBiq_VN2ZdP"
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, Vipul Pandya <vipul@chelsio.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5141FAFD.5070109-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Boris Chiu <boris.chiu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ira Weiny <iweiny-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Thu__18_Apr_2013_13_18_43_+1000_KNU/WCBiq_VN2ZdP
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello Hal / Or,
 
-Hi all,
+Sorry for the delay in getting back on this.
 
-Today's linux-next merge of the net-next tree got a conflict in
-drivers/infiniband/hw/cxgb4/qp.c between commit 5b0c275926b8
-("RDMA/cxgb4: Fix SQ allocation when on-chip SQ is disabled") from the
-infiniband tree and commit 9919d5bd01b9 ("RDMA/cxgb4: Fix onchip queue
-support for T5") from the net-next tree.
+  Solaris specific endian fixes were  applied to OFED 1.3 in order to 
+fix infiniband-diag failures observed
+  on SPARC. Changes to OFED 1.5.3 now make these fixes redundant 
+consequently the patch request
+  is withdrawn.
 
-I think that they are 2 different fixes for the same problem, so I just
-used the net-next version and can carry the fix as necessary (no action
-is required).
+Let us know if you have any queries.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+Thanks
+    Pramod
 
---Signature=_Thu__18_Apr_2013_13_18_43_+1000_KNU/WCBiq_VN2ZdP
-Content-Type: application/pgp-signature
+> Hi Hal and Or,
+>
+> We are checking on this and will get back.
+>
+> Thanks,
+> Boris
+>
+> On 03/13/13 05:58, Or Gerlitz wrote:
+>> On 13/03/2013 14:48, Hal Rosenstock wrote:
+>>> On 3/12/2013 3:36 PM, Boris Chiu wrote:
+>>>> >--- a/src/dump.c
+>>>> >+++ b/src/dump.c
+>>>> >@@ -46,12 +46,24 @@
+>>>> >
+>>>> >void mad_dump_int(char *buf, int bufsz, void *val, int valsz)
+>>>> >{
+>>>> >+    /*
+>>>> >+     * the val pointer passed to the dump routines are always 32 bit
+>>>> >+     * integers for valsz <= 4 and 64 bit integer for the rest. 
+>>>> It is
+>>>> >never
+>>>> >+     * uint8_t or uint16_t. This is because mad_decode_field always
+>>>> >returns
+>>>> >+     * the values as 32 bit integer even if they are 8 bit or 16 bit
+>>>> >fields.
+>>>> >+     */
+>>>> >     switch (valsz) {
+>>>> >     case 1:
+>>>> >-        snprintf(buf, bufsz, "%d", *(uint32_t *) val & 0xff);
+>>>> >+#if defined(_BIG_ENDIAN)
+>>>> >+        val = ((uint8_t *)val) + 3;
+>>>> >+#endif /* _BIG_ENDIAN */
+>>> I don't understand what's different about SPARC and PPC in terms of
+>>> this. These routines all work without this on PPC64 and PPC32.
+>>
+>> Yep, agree, assuming the code works on other BE archs, we 1st and 
+>> most need to understand the problem before going to solutions.
+>>
+>> Or.
+>>
+>>
+>>
+>>>
+>>> At a minimum, should this be ifdef'd on something like both __sun and
+>>> __SVR4 rather than _BIG_ENDIAN ?
+>>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJRb2YTAAoJEECxmPOUX5FEFpcP/jxk88uFsqeNw4wl1AXsa0ql
-B/bW1x/ehp6kumkS1/1YYl8SoACtTr8FnBKJVv3hWKGQ7ZD8iQzqV1kcTnw32M5y
-7gfgalnf+P3Pj156sI9onURhUUglq0u8+aN6skysnB9W4ucvCFq32bpYGn2jA89w
-tVSZZTJS9O7XAMBuKpizEar+nk+gA++T3FKpynFoaZeizyoT6YKaMAuiXxMoGP3O
-0odvLdUFmIalkcn15wkIIinrtgK0nkXy1QBeipxVtBusuuJhxp9fiI+cuXw6whCm
-VWyfN72bh8PT2nri+xjNJI4TO+K4OZKjDN2MVXsRwVApNz/j0ML6TOSTWWemLscR
-mBh2i4XXkhgY2PKHYioeubuCGbI6MAFXky9QQulOIV4GdZqeK16FwxOBYJsxxqc5
-8+23I0V2OHloFe1ss3+gkBz1Niyb83EDRk1+wLGyydvotwpMj0s6P91rfKXO5s8p
-q9AJM7XuNWn8SCsBjr280yfQeyoKoGsG9Be6y6grEZraasBCrVi4tqoKdi/U6SCM
-Rxg5y1sKI2RgIpXlHNKsGzmXpA+tyte0HotPnVMvK/j54PXT7cRpTAo9Xy1o5X8r
-GVMBSq9aw3Mgb0oBDoPufLPwsOmb8dwa2qpGgjpDpYoEx/OWRfZkcQX0ykwt+Ta3
-fgO9YHHVfE9V8LwZP/IN
-=qH0d
------END PGP SIGNATURE-----
-
---Signature=_Thu__18_Apr_2013_13_18_43_+1000_KNU/WCBiq_VN2ZdP--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
