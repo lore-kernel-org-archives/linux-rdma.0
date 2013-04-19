@@ -1,135 +1,67 @@
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] infiniband-diags: remove doc/man/ibclearcounters.8.in
-Date: Fri, 19 Apr 2013 10:08:05 -0700
-Message-ID: <20130419100805.b28a693f6a7aa16f09a14d93@intel.com>
+From: Markus Stockhausen <markus.stockhausen-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: IPoIB header prefetch for fragmented SKB
+Date: Fri, 19 Apr 2013 20:07:12 +0200
+Message-ID: <CD975158.5900%markus.stockhausen@gmx.de>
+References: <CANn89iLwF9LUohz_c765c4b+6DC0gTH77bN5QzbAkR-4LCcUog@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANn89iLwF9LUohz_c765c4b+6DC0gTH77bN5QzbAkR-4LCcUog-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-ibclearcounters is part of the compatibility package and the man page remains in
-the man directory.
+Am 17.04.13 21:10 schrieb "Eric Dumazet" unter <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>:
 
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- doc/man/ibclearcounters.8.in |  101 ------------------------------------------
- 1 files changed, 0 insertions(+), 101 deletions(-)
- delete mode 100644 doc/man/ibclearcounters.8.in
+>Please try :
+>
+>diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+>b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+>index 2cfa76f..9bdff21 100644
+>--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+>+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+>@@ -112,6 +112,8 @@ static void ipoib_ud_skb_put_frags(struct
+>ipoib_dev_priv *priv,
+>        if (ipoib_ud_need_sg(priv->max_ib_mtu)) {
+>                skb_frag_t *frag = &skb_shinfo(skb)->frags[0];
+>                unsigned int size;
+>+
+>+               prefetch(page_address(frag->page.p));
+>                /*
+>                 * There is only two buffers needed for max_payload = 4K,
+>                 * first buf size is IPOIB_UD_HEAD_SIZE
 
-diff --git a/doc/man/ibclearcounters.8.in b/doc/man/ibclearcounters.8.in
-deleted file mode 100644
-index 106c643..0000000
---- a/doc/man/ibclearcounters.8.in
-+++ /dev/null
-@@ -1,101 +0,0 @@
--.\" Man page generated from reStructeredText.
--.
--.TH IBCLEARCOUNTERS 8 "@BUILD_DATE@" "" "Open IB Diagnostics"
--.SH NAME
--IBCLEARCOUNTERS \- 
--.
--.nr rst2man-indent-level 0
--.
--.de1 rstReportMargin
--\\$1 \\n[an-margin]
--level \\n[rst2man-indent-level]
--level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
---
--\\n[rst2man-indent0]
--\\n[rst2man-indent1]
--\\n[rst2man-indent2]
--..
--.de1 INDENT
--.\" .rstReportMargin pre:
--. RS \\$1
--. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
--. nr rst2man-indent-level +1
--.\" .rstReportMargin post:
--..
--.de UNINDENT
--. RE
--.\" indent \\n[an-margin]
--.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
--.nr rst2man-indent-level -1
--.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
--.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
--..
--.SH clear port counters in IB subnet
--.SS SYNOPSIS
--.sp
--ibclearcounters [\-h] [<topology\-file> | \-C ca_name \-P ca_port \-t(imeout) timeout_ms]
--.SS DESCRIPTION
--.sp
--ibclearcounters is a script that clears the PMA port counters by either walking
--the IB subnet topology or using an already saved topology file.
--.SS OPTIONS
--.SS Port Selection flags
--.\" Define the common option -C
--.
--.sp
--\fB\-C, \-\-Ca <ca_name>\fP    use the specified ca_name.
--.\" Define the common option -P
--.
--.sp
--\fB\-P, \-\-Port <ca_port>\fP    use the specified ca_port.
--.\" Explanation of local port selection
--.
--.SS Local port Selection
--.sp
--Multiple port/Multiple CA support: when no IB device or port is specified
--(see the "local umad parameters" below), the libibumad library
--selects the port to use by the following criteria:
--.INDENT 0.0
--.INDENT 3.5
--.INDENT 0.0
--.IP 1. 3
--.
--the first port that is ACTIVE.
--.IP 2. 3
--.
--if not found, the first port that is UP (physical link up).
--.UNINDENT
--.sp
--If a port and/or CA name is specified, the libibumad library attempts
--to fulfill the user request, and will fail if it is not possible.
--.sp
--For example:
--.sp
--.nf
--.ft C
--ibaddr                 # use the first port (criteria #1 above)
--ibaddr \-C mthca1       # pick the best port from "mthca1" only.
--ibaddr \-P 2            # use the second (active/up) port from the first available IB device.
--ibaddr \-C mthca0 \-P 2  # use the specified port only.
--.ft P
--.fi
--.UNINDENT
--.UNINDENT
--.SS Configuration flags
--.\" Define the common option -t
--.
--.sp
--\fB\-t, \-\-timeout <timeout_ms>\fP override the default timeout for the solicited mads.
--.SS SEE ALSO
--.sp
--\fBibnetdiscover(8), perfquery(8)\fP
--.SS AUTHOR
--.INDENT 0.0
--.TP
--.B Hal Rosenstock
--.
--< \fI\%halr-smomgflXvOZWk0Htik3J/w@public.gmane.org\fP >
--.UNINDENT
--.\" Generated by docutils manpage writer.
--.\" 
--.
--- 
-1.7.0.7
+Thanks to both of you for spending time on this.
+
+Sorry to tell you that the above patch does not give any performance
+improvements. So I put a debug message inside inside pskb_may_pull()
+just in front of __pskb_pull_tail() to give an idea what happens.
+
+During a netserver/netperf run with an MTU of 2044 bytes I can read
+the following repeating messages:
+
+[   52.909805] 0 bytes inline, 1988 bytes in fragment, pull 20 bytes
+[   52.909807] 20 bytes inline, 1968 bytes in fragment, pull 40 bytes
+[   52.909809] 40 bytes inline, 1948 bytes in fragment, pull 52 bytes
+[   52.909812] 0 bytes inline, 1988 bytes in fragment, pull 20 bytes
+[   52.909814] 20 bytes inline, 1968 bytes in fragment, pull 40 bytes
+[   52.909816] 40 bytes inline, 1948 bytes in fragment, pull 52 bytes
+
+
+Now I'm getting lost somehow. From 2044 bytes 1988 are left in the
+fragment and 112 have to be pulled into the linear part. This is
+achieved by 3 steps. So we are far beyond the cache line size of 64
+bytes.
+
+Any ideas?
+
+Markus
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
