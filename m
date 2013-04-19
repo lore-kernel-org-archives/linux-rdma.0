@@ -1,44 +1,77 @@
-From: Peng Tao <bergwolf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Spencer <spencer.shepler-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: NFS over RDMA benchmark
-Date: Fri, 19 Apr 2013 10:27:50 +0800
-Message-ID: <CA+a=Yy7zruyGbjLyYXtPsYs12xs1uCwXo9BJtU1Fg6OMoC2z6g@mail.gmail.com>
-References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Date: Thu, 18 Apr 2013 20:35:51 -0700
+Message-ID: <3006E759-2578-455B-9647-46B000584E7E@gmail.com>
+References: <51703280.03e9440a.06a6.3f9f@mx.google.com> <CABgxfbF2HSYPF=rAjrKjoMAKqMOzUOUxJbNFspKaZ4ykMyaCbw@mail.gmail.com> <47A54DE8-EBCF-4CE2-80AC-58415B985FD7@ornl.gov>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
+In-Reply-To: <47A54DE8-EBCF-4CE2-80AC-58415B985FD7-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
+Cc: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 17, 2013 at 10:36 PM, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> Hi.
->
-> I've been trying to do some benchmarks for NFS over RDMA and I seem to only get about half of the bandwidth that the HW can give me.
-> My setup consists of 2 servers each with 16 cores, 32Gb of memory, and Mellanox ConnectX3 QDR card over PCI-e gen3.
-> These servers are connected to a QDR IB switch. The backing storage on the server is tmpfs mounted with noatime.
-> I am running kernel 3.5.7.
->
-> When running ib_send_bw, I get 4.3-4.5 GB/sec for block sizes 4-512K.
-> When I run fio over rdma mounted nfs, I get 260-2200MB/sec for the same block sizes (4-512K). running over IPoIB-CM, I get 200-980MB/sec.
-> I got to these results after the following optimizations:
-> 1. Setting IRQ affinity to the CPUs that are part of the NUMA node the card is on
-> 2. Increasing /proc/sys/sunrpc/svc_rdma/max_outbound_read_requests and /proc/sys/sunrpc/svc_rdma/max_requests to 256 on server
-> 3. Increasing RPCNFSDCOUNT to 32 on server
-Did you try to affine nfsd to corresponding CPUs where your IB card
-locates? Given that you see a bottleneck on CPU (as in your later
-email), it might be worth trying.
 
-> 4. FIO arguments: --rw=randread --bs=4k --numjobs=2 --iodepth=128 --ioengine=libaio --size=100000k --prioclass=1 --prio=0 --cpumask=255 --loops=25 --direct=1 --invalidate=1 --fsync_on_close=1 --randrepeat=1 --norandommap --group_reporting --exitall --buffered=0
->
-On client side, it may be good to affine FIO processes and nfsiod to
-CPUs where IB card locates as well, in case client is the bottleneck.
 
---
-Thanks,
-Tao
+On Apr 18, 2013, at 6:03 PM, Atchley, Scott wrote:
+
+> On Apr 18, 2013, at 3:15 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> 
+>> On Thu, Apr 18, 2013 at 10:50 AM, Spencer Shepler
+>> <spencer.shepler-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>> 
+>>> Note that SPEC SFS does not support RDMA.
+>>> 
+>> 
+>> IIRC, the benchmark comes with source code - wondering anyone has
+>> modified it to run on RDMA ?  Or is there any real user to share the
+>> experience ?
+> 
+> I am not familiar with SpecSFS, but if it exercises the filesystem, it does not know which RPC layer that NFS uses, no? Or does it implement its own client and directly access the RPC layer?
+
+
+Yes, the SPEC SFS benchmark implements  its own NFSv3 client, RPC layer, etc.
+
+Spencer
+
+> 
+>> 
+>> -- Wendy
+>> 
+>>> ________________________________
+>>> From: Wendy Cheng
+>>> Sent: 4/18/2013 9:16 AM
+>>> To: Yan Burman
+>>> Cc: Atchley, Scott; J. Bruce Fields; Tom Tucker; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>>> linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz
+>>> 
+>>> Subject: Re: NFS over RDMA benchmark
+>>> 
+>>> On Thu, Apr 18, 2013 at 5:47 AM, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>>> 
+>>>> 
+>>>> What do you suggest for benchmarking NFS?
+>>>> 
+>>> 
+>>> I believe SPECsfs has been widely used by NFS (server) vendors to
+>>> position their product lines. Its workload was based on a real life
+>>> NFS deployment. I think it is more torward office type of workload
+>>> (large client/user count with smaller file sizes e.g. software
+>>> development with build, compile, etc).
+>>> 
+>>> BTW, we're experimenting a similar project and would be interested to
+>>> know your findings.
+>>> 
+>>> -- Wendy
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+>>> 
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
