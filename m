@@ -1,26 +1,35 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [RFC-v4 9/9] iser-target: Add iSCSI Extensions for RDMA (iSER)
- target driver
-Date: Sun, 21 Apr 2013 17:13:37 +0300
-Message-ID: <5173F411.1030806@mellanox.com>
-References: <1365799962-13543-1-git-send-email-nab@linux-iscsi.org> <1365799962-13543-10-git-send-email-nab@linux-iscsi.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1365799962-13543-10-git-send-email-nab@linux-iscsi.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Alexander Nezhinsky <alexandern@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 0/3] mlx4 fixes for 3.10
+Date: Sun, 21 Apr 2013 18:09:58 +0300
+Message-ID: <1366557001-29408-1-git-send-email-ogerlitz@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/04/2013 23:52, Nicholas A. Bellinger wrote:
-> From: Nicholas Bellinger<nab@linux-iscsi.org>
->
-> This patch adds support for iSCSI Extensions for RDMA target mode,
-> and includes CQ pooling per isert_device context distributed across
-> multiple active iser target sessions.
+Hi Roland,
 
-Cool, feel free to ad my S.O.B here
+Here are few mlx4 for 3.10, two that deal with RAW PACKET QPs and
+another ones that clears a verbose print to be a debug one.
 
-Signed-off-by: Or Gerlitz <ogerlitz@mellanox.com>
+Or.
+
+
+Dotan Barak (1):
+  IB/mlx4: Disables VLAN stripping for RAW PACKET QPs
+
+Eli Cohen (1):
+  IB/mlx4: Set link type for RAW PACKET QPs in the QP context
+
+Jack Morgenstein (1):
+  net/mlx4_core: Deprecate warning message for SRQ_LIMIT event to debug level
+
+ drivers/infiniband/hw/mlx4/qp.c         |    6 ++++++
+ drivers/net/ethernet/mellanox/mlx4/eq.c |    4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
