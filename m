@@ -1,61 +1,36 @@
-From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: NFS over RDMA benchmark
-Date: Mon, 22 Apr 2013 11:07:36 +0000
-Message-ID: <0EE9A1CDC8D6434DB00095CD7DB873462CF97E81@MTLDAG01.mtl.com>
-References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
- <CA+a=Yy7zruyGbjLyYXtPsYs12xs1uCwXo9BJtU1Fg6OMoC2z6g@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups -
+ suggesting BOF during OFA conf to further discuss that
+Date: Mon, 22 Apr 2013 19:46:51 +0300
+Message-ID: <CAJZOPZKwH66uEukqDSvV+4-z+RhroOB1a0AiWBvdq7D3mso7gQ@mail.gmail.com>
+References: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+a=Yy7zruyGbjLyYXtPsYs12xs1uCwXo9BJtU1Fg6OMoC2z6g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peng Tao <bergwolf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Diego Crupnicoff <Diego-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUGVuZyBUYW8gW21haWx0
-bzpiZXJnd29sZkBnbWFpbC5jb21dDQo+IFNlbnQ6IEZyaWRheSwgQXByaWwgMTksIDIwMTMgMDU6
-MjgNCj4gVG86IFlhbiBCdXJtYW4NCj4gQ2M6IEouIEJydWNlIEZpZWxkczsgVG9tIFR1Y2tlcjsg
-bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBuZnNAdmdlci5rZXJuZWwub3Jn
-DQo+IFN1YmplY3Q6IFJlOiBORlMgb3ZlciBSRE1BIGJlbmNobWFyaw0KPiANCj4gT24gV2VkLCBB
-cHIgMTcsIDIwMTMgYXQgMTA6MzYgUE0sIFlhbiBCdXJtYW4gPHlhbmJAbWVsbGFub3guY29tPg0K
-PiB3cm90ZToNCj4gPiBIaS4NCj4gPg0KPiA+IEkndmUgYmVlbiB0cnlpbmcgdG8gZG8gc29tZSBi
-ZW5jaG1hcmtzIGZvciBORlMgb3ZlciBSRE1BIGFuZCBJIHNlZW0gdG8NCj4gb25seSBnZXQgYWJv
-dXQgaGFsZiBvZiB0aGUgYmFuZHdpZHRoIHRoYXQgdGhlIEhXIGNhbiBnaXZlIG1lLg0KPiA+IE15
-IHNldHVwIGNvbnNpc3RzIG9mIDIgc2VydmVycyBlYWNoIHdpdGggMTYgY29yZXMsIDMyR2Igb2Yg
-bWVtb3J5LCBhbmQNCj4gTWVsbGFub3ggQ29ubmVjdFgzIFFEUiBjYXJkIG92ZXIgUENJLWUgZ2Vu
-My4NCj4gPiBUaGVzZSBzZXJ2ZXJzIGFyZSBjb25uZWN0ZWQgdG8gYSBRRFIgSUIgc3dpdGNoLiBU
-aGUgYmFja2luZyBzdG9yYWdlIG9uIHRoZQ0KPiBzZXJ2ZXIgaXMgdG1wZnMgbW91bnRlZCB3aXRo
-IG5vYXRpbWUuDQo+ID4gSSBhbSBydW5uaW5nIGtlcm5lbCAzLjUuNy4NCj4gPg0KPiA+IFdoZW4g
-cnVubmluZyBpYl9zZW5kX2J3LCBJIGdldCA0LjMtNC41IEdCL3NlYyBmb3IgYmxvY2sgc2l6ZXMg
-NC01MTJLLg0KPiA+IFdoZW4gSSBydW4gZmlvIG92ZXIgcmRtYSBtb3VudGVkIG5mcywgSSBnZXQg
-MjYwLTIyMDBNQi9zZWMgZm9yIHRoZSBzYW1lDQo+IGJsb2NrIHNpemVzICg0LTUxMkspLiBydW5u
-aW5nIG92ZXIgSVBvSUItQ00sIEkgZ2V0IDIwMC05ODBNQi9zZWMuDQo+ID4gSSBnb3QgdG8gdGhl
-c2UgcmVzdWx0cyBhZnRlciB0aGUgZm9sbG93aW5nIG9wdGltaXphdGlvbnM6DQo+ID4gMS4gU2V0
-dGluZyBJUlEgYWZmaW5pdHkgdG8gdGhlIENQVXMgdGhhdCBhcmUgcGFydCBvZiB0aGUgTlVNQSBu
-b2RlIHRoZQ0KPiA+IGNhcmQgaXMgb24gMi4gSW5jcmVhc2luZw0KPiA+IC9wcm9jL3N5cy9zdW5y
-cGMvc3ZjX3JkbWEvbWF4X291dGJvdW5kX3JlYWRfcmVxdWVzdHMgYW5kDQo+ID4gL3Byb2Mvc3lz
-L3N1bnJwYy9zdmNfcmRtYS9tYXhfcmVxdWVzdHMgdG8gMjU2IG9uIHNlcnZlciAzLiBJbmNyZWFz
-aW5nDQo+ID4gUlBDTkZTRENPVU5UIHRvIDMyIG9uIHNlcnZlcg0KPiBEaWQgeW91IHRyeSB0byBh
-ZmZpbmUgbmZzZCB0byBjb3JyZXNwb25kaW5nIENQVXMgd2hlcmUgeW91ciBJQiBjYXJkIGxvY2F0
-ZXM/DQo+IEdpdmVuIHRoYXQgeW91IHNlZSBhIGJvdHRsZW5lY2sgb24gQ1BVIChhcyBpbiB5b3Vy
-IGxhdGVyIGVtYWlsKSwgaXQgbWlnaHQgYmUNCj4gd29ydGggdHJ5aW5nLg0KDQpJIHRyaWVkIHRv
-IGFmZmluZSBuZnNkIHRvIENQVXMgb24gdGhlIE5VTUEgbm9kZSB0aGUgSUIgY2FyZCBpcyBvbi4N
-CkkgYWxzbyBzZXQgdG1wZnMgbWVtb3J5IHBvbGljeSB0byBhbGxvY2F0ZSBmcm9tIHRoZSBzYW1l
-IE5VTUEgbm9kZS4NCkkgZGlkIG5vdCBzZWUgYmlnIGRpZmZlcmVuY2UuDQoNCj4gDQo+ID4gNC4g
-RklPIGFyZ3VtZW50czogLS1ydz1yYW5kcmVhZCAtLWJzPTRrIC0tbnVtam9icz0yIC0taW9kZXB0
-aD0xMjgNCj4gPiAtLWlvZW5naW5lPWxpYmFpbyAtLXNpemU9MTAwMDAwayAtLXByaW9jbGFzcz0x
-IC0tcHJpbz0wIC0tY3B1bWFzaz0yNTUNCj4gPiAtLWxvb3BzPTI1IC0tZGlyZWN0PTEgLS1pbnZh
-bGlkYXRlPTEgLS1mc3luY19vbl9jbG9zZT0xIC0tcmFuZHJlcGVhdD0xDQo+ID4gLS1ub3JhbmRv
-bW1hcCAtLWdyb3VwX3JlcG9ydGluZyAtLWV4aXRhbGwgLS1idWZmZXJlZD0wDQo+ID4NCj4gT24g
-Y2xpZW50IHNpZGUsIGl0IG1heSBiZSBnb29kIHRvIGFmZmluZSBGSU8gcHJvY2Vzc2VzIGFuZCBu
-ZnNpb2QgdG8gQ1BVcw0KPiB3aGVyZSBJQiBjYXJkIGxvY2F0ZXMgYXMgd2VsbCwgaW4gY2FzZSBj
-bGllbnQgaXMgdGhlIGJvdHRsZW5lY2suDQo+IA0KDQpJIGFtIGRvaW5nIHRoYXQgLSBjcHVtYXNr
-PTI1NSBhZmZpbmVzIGl0IHRvIHRoZSBOVU1BIG5vZGUgbXkgY2FyZCBpcyBvbi4NCkZvciBzb21l
-IHJlYXNvbiBkb2luZyB0YXNrc2V0IG9uIG5mc2lvZCBmYWlscy4NCg0KPiAtLQ0KPiBUaGFua3Ms
-DQo+IFRhbw0K
+On Mon, Apr 15, 2013 at 4:21 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Actually these comments and questions on the series come just a week
+> before the annual OFA gathering, personally, I will not be there nor
+> Shlomo who is the author of the patches, but Tzahi Oved from Mellanox
+> who lead the architecture for the QP group concept is planned to
+> attend and same for Sean, Roland and I hope you (Ira) too, same for
+> Ali Ayoub and Liran Liss from Mellanox who are attending too, all in
+> all, nice quorum to get into a room and do white boarding, open
+> discussion, laughing, yelling and what ever needed to get a consensus.
+[...]
+
+Sean, Tzahi -- I understand now that there have been few talkings @
+the OFA meeting re this patch set. So what's the way to move forward,
+any concrete feedback that needs to be addressed here?  This series is
+hanging since May 2012 and I'd like to see it gets in for 3.10, now if
+indeed Sean is OK with the general framework, please suggest.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
