@@ -1,44 +1,42 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/3] IB/mlx4: Disables VLAN stripping for RAW PACKET QPs
-Date: Sun, 21 Apr 2013 18:10:00 +0300
-Message-ID: <1366557001-29408-3-git-send-email-ogerlitz@mellanox.com>
-References: <1366557001-29408-1-git-send-email-ogerlitz@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1366557001-29408-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Rob Herring <robherring2@gmail.com>
+Subject: [PATCH 0/5] of_platform_driver and OF_DEVICE removal
+Date: Sun, 21 Apr 2013 21:13:13 -0500
+Message-ID: <1366596798-9457-1-git-send-email-robherring2@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <rob.herring@calxeda.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Christoph Raisch <raisch@de.ibm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org, linux-usb@vger.kernel.org, netdev@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Rob Herring <rob.herring@calxeda.com>
 
-Fix the asymmetric behavior w.r.t VLAN insertion/stripping for
-RAW PACKET QPs, we don't insert on send and need not strip
-on receive.
+This series is a relatively straight-forward removal of the last remaining
+user of of_platform_driver (ibmebus) and removal of CONFIG_OF_DEVICE which
+is always enabled when CONFIG_OF is enabled.
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/qp.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Compile tested on powerpc and sparc.
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 35cced2..d4e87c2 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1292,6 +1292,8 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
- 		context->sq_size_stride |= !!qp->sq_no_prefetch << 7;
- 		context->xrcd = cpu_to_be32((u32) qp->xrcdn);
-+		if (ibqp->qp_type == IB_QPT_RAW_PACKET)
-+			context->param3 |= cpu_to_be32(1 << 30);
- 	}
- 
- 	if (qp->ibqp.uobject)
+Rob
+
+Rob Herring (5):
+  ibmebus: convert of_platform_driver to platform_driver
+  driver core: move to_platform_driver to platform_device.h
+  of: remove of_platform_driver
+  usb: chipidea: depend on CONFIG_OF instead of CONFIG_OF_DEVICE
+  of: remove CONFIG_OF_DEVICE
+
+ arch/powerpc/include/asm/ibmebus.h        |    4 ++--
+ arch/powerpc/kernel/ibmebus.c             |   22 ++++++++++-----------
+ drivers/base/platform.c                   |    3 ---
+ drivers/infiniband/hw/ehca/ehca_main.c    |    5 ++---
+ drivers/net/ethernet/ibm/ehea/ehea_main.c |    8 +++-----
+ drivers/of/Kconfig                        |    3 ---
+ drivers/of/Makefile                       |    3 +--
+ drivers/usb/chipidea/Makefile             |    2 +-
+ include/linux/of_device.h                 |    6 +++---
+ include/linux/of_platform.h               |   30 +----------------------------
+ include/linux/platform_device.h           |    3 +++
+ 11 files changed, 26 insertions(+), 63 deletions(-)
+
 -- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.10.4
