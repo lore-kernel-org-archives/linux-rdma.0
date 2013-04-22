@@ -1,27 +1,62 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 0/5] of_platform_driver and OF_DEVICE removal
-Date: Mon, 22 Apr 2013 09:03:54 +0200
-Message-ID: <201304220903.54788.arnd@arndb.de>
-References: <1366596798-9457-1-git-send-email-robherring2@gmail.com>
+From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: NFS over RDMA benchmark
+Date: Mon, 22 Apr 2013 11:07:36 +0000
+Message-ID: <0EE9A1CDC8D6434DB00095CD7DB873462CF97E81@MTLDAG01.mtl.com>
+References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
+ <CA+a=Yy7zruyGbjLyYXtPsYs12xs1uCwXo9BJtU1Fg6OMoC2z6g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1366596798-9457-1-git-send-email-robherring2@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Christoph Raisch <raisch@de.ibm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org, linux-usb@vger.kernel.org, netdev@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CA+a=Yy7zruyGbjLyYXtPsYs12xs1uCwXo9BJtU1Fg6OMoC2z6g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peng Tao <bergwolf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Monday 22 April 2013, Rob Herring wrote:
-> From: Rob Herring <rob.herring@calxeda.com>
-> 
-> This series is a relatively straight-forward removal of the last remaining
-> user of of_platform_driver (ibmebus) and removal of CONFIG_OF_DEVICE which
-> is always enabled when CONFIG_OF is enabled.
-> 
-> Compile tested on powerpc and sparc.
-> 
-
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUGVuZyBUYW8gW21haWx0
+bzpiZXJnd29sZkBnbWFpbC5jb21dDQo+IFNlbnQ6IEZyaWRheSwgQXByaWwgMTksIDIwMTMgMDU6
+MjgNCj4gVG86IFlhbiBCdXJtYW4NCj4gQ2M6IEouIEJydWNlIEZpZWxkczsgVG9tIFR1Y2tlcjsg
+bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBuZnNAdmdlci5rZXJuZWwub3Jn
+DQo+IFN1YmplY3Q6IFJlOiBORlMgb3ZlciBSRE1BIGJlbmNobWFyaw0KPiANCj4gT24gV2VkLCBB
+cHIgMTcsIDIwMTMgYXQgMTA6MzYgUE0sIFlhbiBCdXJtYW4gPHlhbmJAbWVsbGFub3guY29tPg0K
+PiB3cm90ZToNCj4gPiBIaS4NCj4gPg0KPiA+IEkndmUgYmVlbiB0cnlpbmcgdG8gZG8gc29tZSBi
+ZW5jaG1hcmtzIGZvciBORlMgb3ZlciBSRE1BIGFuZCBJIHNlZW0gdG8NCj4gb25seSBnZXQgYWJv
+dXQgaGFsZiBvZiB0aGUgYmFuZHdpZHRoIHRoYXQgdGhlIEhXIGNhbiBnaXZlIG1lLg0KPiA+IE15
+IHNldHVwIGNvbnNpc3RzIG9mIDIgc2VydmVycyBlYWNoIHdpdGggMTYgY29yZXMsIDMyR2Igb2Yg
+bWVtb3J5LCBhbmQNCj4gTWVsbGFub3ggQ29ubmVjdFgzIFFEUiBjYXJkIG92ZXIgUENJLWUgZ2Vu
+My4NCj4gPiBUaGVzZSBzZXJ2ZXJzIGFyZSBjb25uZWN0ZWQgdG8gYSBRRFIgSUIgc3dpdGNoLiBU
+aGUgYmFja2luZyBzdG9yYWdlIG9uIHRoZQ0KPiBzZXJ2ZXIgaXMgdG1wZnMgbW91bnRlZCB3aXRo
+IG5vYXRpbWUuDQo+ID4gSSBhbSBydW5uaW5nIGtlcm5lbCAzLjUuNy4NCj4gPg0KPiA+IFdoZW4g
+cnVubmluZyBpYl9zZW5kX2J3LCBJIGdldCA0LjMtNC41IEdCL3NlYyBmb3IgYmxvY2sgc2l6ZXMg
+NC01MTJLLg0KPiA+IFdoZW4gSSBydW4gZmlvIG92ZXIgcmRtYSBtb3VudGVkIG5mcywgSSBnZXQg
+MjYwLTIyMDBNQi9zZWMgZm9yIHRoZSBzYW1lDQo+IGJsb2NrIHNpemVzICg0LTUxMkspLiBydW5u
+aW5nIG92ZXIgSVBvSUItQ00sIEkgZ2V0IDIwMC05ODBNQi9zZWMuDQo+ID4gSSBnb3QgdG8gdGhl
+c2UgcmVzdWx0cyBhZnRlciB0aGUgZm9sbG93aW5nIG9wdGltaXphdGlvbnM6DQo+ID4gMS4gU2V0
+dGluZyBJUlEgYWZmaW5pdHkgdG8gdGhlIENQVXMgdGhhdCBhcmUgcGFydCBvZiB0aGUgTlVNQSBu
+b2RlIHRoZQ0KPiA+IGNhcmQgaXMgb24gMi4gSW5jcmVhc2luZw0KPiA+IC9wcm9jL3N5cy9zdW5y
+cGMvc3ZjX3JkbWEvbWF4X291dGJvdW5kX3JlYWRfcmVxdWVzdHMgYW5kDQo+ID4gL3Byb2Mvc3lz
+L3N1bnJwYy9zdmNfcmRtYS9tYXhfcmVxdWVzdHMgdG8gMjU2IG9uIHNlcnZlciAzLiBJbmNyZWFz
+aW5nDQo+ID4gUlBDTkZTRENPVU5UIHRvIDMyIG9uIHNlcnZlcg0KPiBEaWQgeW91IHRyeSB0byBh
+ZmZpbmUgbmZzZCB0byBjb3JyZXNwb25kaW5nIENQVXMgd2hlcmUgeW91ciBJQiBjYXJkIGxvY2F0
+ZXM/DQo+IEdpdmVuIHRoYXQgeW91IHNlZSBhIGJvdHRsZW5lY2sgb24gQ1BVIChhcyBpbiB5b3Vy
+IGxhdGVyIGVtYWlsKSwgaXQgbWlnaHQgYmUNCj4gd29ydGggdHJ5aW5nLg0KDQpJIHRyaWVkIHRv
+IGFmZmluZSBuZnNkIHRvIENQVXMgb24gdGhlIE5VTUEgbm9kZSB0aGUgSUIgY2FyZCBpcyBvbi4N
+CkkgYWxzbyBzZXQgdG1wZnMgbWVtb3J5IHBvbGljeSB0byBhbGxvY2F0ZSBmcm9tIHRoZSBzYW1l
+IE5VTUEgbm9kZS4NCkkgZGlkIG5vdCBzZWUgYmlnIGRpZmZlcmVuY2UuDQoNCj4gDQo+ID4gNC4g
+RklPIGFyZ3VtZW50czogLS1ydz1yYW5kcmVhZCAtLWJzPTRrIC0tbnVtam9icz0yIC0taW9kZXB0
+aD0xMjgNCj4gPiAtLWlvZW5naW5lPWxpYmFpbyAtLXNpemU9MTAwMDAwayAtLXByaW9jbGFzcz0x
+IC0tcHJpbz0wIC0tY3B1bWFzaz0yNTUNCj4gPiAtLWxvb3BzPTI1IC0tZGlyZWN0PTEgLS1pbnZh
+bGlkYXRlPTEgLS1mc3luY19vbl9jbG9zZT0xIC0tcmFuZHJlcGVhdD0xDQo+ID4gLS1ub3JhbmRv
+bW1hcCAtLWdyb3VwX3JlcG9ydGluZyAtLWV4aXRhbGwgLS1idWZmZXJlZD0wDQo+ID4NCj4gT24g
+Y2xpZW50IHNpZGUsIGl0IG1heSBiZSBnb29kIHRvIGFmZmluZSBGSU8gcHJvY2Vzc2VzIGFuZCBu
+ZnNpb2QgdG8gQ1BVcw0KPiB3aGVyZSBJQiBjYXJkIGxvY2F0ZXMgYXMgd2VsbCwgaW4gY2FzZSBj
+bGllbnQgaXMgdGhlIGJvdHRsZW5lY2suDQo+IA0KDQpJIGFtIGRvaW5nIHRoYXQgLSBjcHVtYXNr
+PTI1NSBhZmZpbmVzIGl0IHRvIHRoZSBOVU1BIG5vZGUgbXkgY2FyZCBpcyBvbi4NCkZvciBzb21l
+IHJlYXNvbiBkb2luZyB0YXNrc2V0IG9uIG5mc2lvZCBmYWlscy4NCg0KPiAtLQ0KPiBUaGFua3Ms
+DQo+IFRhbw0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
