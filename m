@@ -1,109 +1,131 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ipoib: fix hard_header return value
-Date: Tue, 23 Apr 2013 12:22:12 -0400
-Message-ID: <5176B534.7010105@redhat.com>
-References: <3fde29b99442969e59a7a9cf4f63a26858f00a0a.1364315061.git.dledford@redhat.com> <CAJZOPZKFT6QT_=bfzp0BN42hxgd4A-t0s7d_TBxD=u=Bgcuvgw@mail.gmail.com>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: NFS over RDMA benchmark
+Date: Tue, 23 Apr 2013 17:06:07 -0400
+Message-ID: <20130423210607.GJ3676@fieldses.org>
+References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
+ <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
+ <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
+ <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com>
+ <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZKFT6QT_=bfzp0BN42hxgd4A-t0s7d_TBxD=u=Bgcuvgw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/01/13 17:25, Or Gerlitz wrote:
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> If you have a patched up dhcp server (and dhclient),
+On Thu, Apr 18, 2013 at 12:47:09PM +0000, Yan Burman wrote:
 > 
-> Could you be more specific, I assume you refer to the ISC dhcp bits,
-> which version and which patches?
+> 
+> > -----Original Message-----
+> > From: Wendy Cheng [mailto:s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> > Sent: Wednesday, April 17, 2013 21:06
+> > To: Atchley, Scott
+> > Cc: Yan Burman; J. Bruce Fields; Tom Tucker; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Re: NFS over RDMA benchmark
+> > 
+> > On Wed, Apr 17, 2013 at 10:32 AM, Atchley, Scott <atchleyes-1Heg1YXhbW8@public.gmane.org>
+> > wrote:
+> > > On Apr 17, 2013, at 1:15 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > wrote:
+> > >
+> > >> On Wed, Apr 17, 2013 at 7:36 AM, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > wrote:
+> > >>> Hi.
+> > >>>
+> > >>> I've been trying to do some benchmarks for NFS over RDMA and I seem to
+> > only get about half of the bandwidth that the HW can give me.
+> > >>> My setup consists of 2 servers each with 16 cores, 32Gb of memory, and
+> > Mellanox ConnectX3 QDR card over PCI-e gen3.
+> > >>> These servers are connected to a QDR IB switch. The backing storage on
+> > the server is tmpfs mounted with noatime.
+> > >>> I am running kernel 3.5.7.
+> > >>>
+> > >>> When running ib_send_bw, I get 4.3-4.5 GB/sec for block sizes 4-512K.
+> > >>> When I run fio over rdma mounted nfs, I get 260-2200MB/sec for the
+> > same block sizes (4-512K). running over IPoIB-CM, I get 200-980MB/sec.
+> > >
+> > > Yan,
+> > >
+> > > Are you trying to optimize single client performance or server performance
+> > with multiple clients?
+> > >
+> 
+> I am trying to get maximum performance from a single server - I used 2 processes in fio test - more than 2 did not show any performance boost.
+> I tried running fio from 2 different PCs on 2 different files, but the sum of the two is more or less the same as running from single client PC.
+> 
+> What I did see is that server is sweating a lot more than the clients and more than that, it has 1 core (CPU5) in 100% softirq tasklet:
+> cat /proc/softirqs
 
-Any version of dhcp server, and the improved-xid and lpf-ib patches
-primarily.  We've carried those patches forever, but as far as I know,
-they still have not been taken by ISC.  Without them, dhcp server will
-only work with a cooked socket interface.  You can't use raw as the
-socket type when compiling or else it won't work on IB.  With the
-patches, you can enable the raw socket method, and on IB it will fall
-back to use PACKET instead.
+Would any profiling help figure out which code it's spending time in?
+(E.g. something simple as "perf top" might have useful output.)
 
-> AFAIK they don't give you access to
-> their source repo but rather only to drops plus possibly patches which
-> is a bit more tedious to follow, oh wel...
-> 
->> they will use AF_PACKET/SOCK_DGRAM pair to send dhcp packets over IPoIB.
-> 
-> 
->> This has worked since forever if you use OFED kernels or one of the distribution
->> kernels.  However, when testing an upstream kernel, it has been broken
->> for a very long time (I tested 2.6.34, 2.6.38, 3.0, 3.1, 3.8, HEAD).
-> 
-> IMO doesn't seem relevant to the upstream commit message
+--b.
 
-I disagree.  I don't buy the whole "we are upstream, nothing else
-matters or is relevant" philosophy.  The truth of the matter is that
-there is essentially a fork between upstream and OFED.  I plan on
-spending some time bringing some of the relevant fixes present in OFED
-and not upstream back to upstream.  In the context of attempting to
-manually merge some of that fork back together, I see no reason
-whatsoever to ignore relevant historical information during that process.
-
->> It turns out that the hard_header routine in ipoib is not following
->> the API and is returning 0 even when it pushed data onto the skb.  This
->> then causes af_packet.c to overwrite the header just pushed with data
->> from user space.  This header is immediately referenced in the
->> ipoib_start_xmit routine
+>                     CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6       CPU7       CPU8       CPU9       CPU10      CPU11      CPU12      CPU13      CPU14      CPU15
+>           HI:          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0
+>        TIMER:     418767      46596      43515      44547      50099      34815      40634      40337      39551      93442      73733      42631      42509      41592      40351      61793
+>       NET_TX:      28719        309       1421       1294       1730       1243        832        937         11         44         41         20         26         19         15         29
+>       NET_RX:     612070         19         22         21          6        235          3          2          9          6         17         16         20         13         16         10
+>        BLOCK:       5941          0          0          0          0          0          0          0        519        259       1238        272        253        174        215       2618
+> BLOCK_IOPOLL:          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0
+>      TASKLET:         28          1          1          1          1    1540653          1          1         29          1          1          1          1          1          1          2
+>        SCHED:     364965      26547      16807      18403      22919       8678      14358      14091      16981      64903      47141      18517      19179      18036      17037      38261
+>      HRTIMER:         13          0          1          1          0          0          0          0          0          0          0          0          1          1          0          1
+>          RCU:     945823     841546     715281     892762     823564      42663     863063     841622     333577     389013     393501     239103     221524     258159     313426     234030
+> > >
+> > >> Remember there are always gaps between wire speed (that ib_send_bw
+> > >> measures) and real world applications.
 > 
-> cool, I assume we want this fix to go for -stable after spending some
-> time upstream, e.g probably by the time 3.9 is released and some more
-> testing is done on the patch (I'll advocate for that @ MLNX, copied
-> some folks now) get that to -stable too.
-
-Yes, it can go to -stable.  But, given that no one has noticed before
-now that it doesn't work, I'm guessing not many people are using
-straight upstream (which is something that needs fixed IMO).
-
-> Erez, in the code we use internally which is based on upstream 3.7 do
-> we have DHCP/IPoIB working without this patch?
+> I realize that, but I don't expect the difference to be more than twice.
 > 
->> so I'm wondering how this ever worked in
->> distro/ofed kernels that also have this bug, but fixing the bug here
->> makes things work in upstream kernels.
+> > >>
+> > >> That being said, does your server use default export (sync) option ?
+> > >> Export the share with "async" option can bring you closer to wire
+> > >> speed. However, the practice (async) is generally not recommended in
+> > >> a real production system - as it can cause data integrity issues, e.g.
+> > >> you have more chances to lose data when the boxes crash.
 > 
-> same for the last three lines
+> I am running with async export option, but that should not matter too much, since my backing storage is tmpfs mounted with noatime.
+> 
+> > >>
+> > >> -- Wendy
+> > >
+> > >
+> > > Wendy,
+> > >
+> > > It has a been a few years since I looked at RPCRDMA, but I seem to
+> > remember that RPCs were limited to 32KB which means that you have to
+> > pipeline them to get linerate. In addition to requiring pipelining, the
+> > argument from the authors was that the goal was to maximize server
+> > performance and not single client performance.
+> > >
+> 
+> What I see is that performance increases almost linearly up to block size 256K and falls a little at block size 512K
+> 
+> > > Scott
+> > >
+> > 
+> > That (client count) brings up a good point ...
+> > 
+> > FIO is really not a good benchmark for NFS. Does anyone have SPECsfs
+> > numbers on NFS over RDMA to share ?
+> > 
+> > -- Wendy
+> 
+> What do you suggest for benchmarking NFS?
+> 
+> Yan
 > 
 > 
-> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/
-> ipoib_main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 8534afd..31dd2a7 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -828,7 +828,7 @@ static int ipoib_hard_header(struct sk_buff *skb,
->          */
->         memcpy(cb->hwaddr, daddr, INFINIBAND_ALEN);
-> 
-> -       return 0;
-> +       return sizeof *header;
->  }
-> 
->  static void ipoib_set_mcast_list(struct net_device *dev)
-> 
-
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-	      http://people.redhat.com/dledford
-
-Infiniband specific RPMs available at
-	      http://people.redhat.com/dledford/Infiniband
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
