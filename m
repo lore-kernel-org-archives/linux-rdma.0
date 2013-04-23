@@ -1,132 +1,80 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: NFS over RDMA benchmark
-Date: Tue, 23 Apr 2013 17:06:07 -0400
-Message-ID: <20130423210607.GJ3676@fieldses.org>
-References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
- <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
- <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
- <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com>
- <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH -next] iser-target: fix error return code in
+ isert_connect_request()
+Date: Tue, 23 Apr 2013 14:16:39 -0700
+Message-ID: <1366751799.13769.27.camel@haakon3.risingtidesystems.com>
+References: <CAPgLHd8xrcHNEYOYZ6y6in=oEmkDegKtf_yZa_sF93sHTwp-rQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <CAPgLHd8xrcHNEYOYZ6y6in=oEmkDegKtf_yZa_sF93sHTwp-rQ@mail.gmail.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, yongjun_wei@trendmicro.com.cn, linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 18, 2013 at 12:47:09PM +0000, Yan Burman wrote:
+On Fri, 2013-04-19 at 13:13 +0800, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 > 
+> Fix to return a negative error code from the error handling
+> case instead of 0, as done elsewhere in this function.
 > 
-> > -----Original Message-----
-> > From: Wendy Cheng [mailto:s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> > Sent: Wednesday, April 17, 2013 21:06
-> > To: Atchley, Scott
-> > Cc: Yan Burman; J. Bruce Fields; Tom Tucker; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: NFS over RDMA benchmark
-> > 
-> > On Wed, Apr 17, 2013 at 10:32 AM, Atchley, Scott <atchleyes-1Heg1YXhbW8@public.gmane.org>
-> > wrote:
-> > > On Apr 17, 2013, at 1:15 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > wrote:
-> > >
-> > >> On Wed, Apr 17, 2013 at 7:36 AM, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > wrote:
-> > >>> Hi.
-> > >>>
-> > >>> I've been trying to do some benchmarks for NFS over RDMA and I seem to
-> > only get about half of the bandwidth that the HW can give me.
-> > >>> My setup consists of 2 servers each with 16 cores, 32Gb of memory, and
-> > Mellanox ConnectX3 QDR card over PCI-e gen3.
-> > >>> These servers are connected to a QDR IB switch. The backing storage on
-> > the server is tmpfs mounted with noatime.
-> > >>> I am running kernel 3.5.7.
-> > >>>
-> > >>> When running ib_send_bw, I get 4.3-4.5 GB/sec for block sizes 4-512K.
-> > >>> When I run fio over rdma mounted nfs, I get 260-2200MB/sec for the
-> > same block sizes (4-512K). running over IPoIB-CM, I get 200-980MB/sec.
-> > >
-> > > Yan,
-> > >
-> > > Are you trying to optimize single client performance or server performance
-> > with multiple clients?
-> > >
-> 
-> I am trying to get maximum performance from a single server - I used 2 processes in fio test - more than 2 did not show any performance boost.
-> I tried running fio from 2 different PCs on 2 different files, but the sum of the two is more or less the same as running from single client PC.
-> 
-> What I did see is that server is sweating a lot more than the clients and more than that, it has 1 core (CPU5) in 100% softirq tasklet:
-> cat /proc/softirqs
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> ---
 
-Would any profiling help figure out which code it's spending time in?
-(E.g. something simple as "perf top" might have useful output.)
+Merged into the initial iser-target commit in for-next-merge.
 
---b.
+Thanks Wei!
 
->                     CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6       CPU7       CPU8       CPU9       CPU10      CPU11      CPU12      CPU13      CPU14      CPU15
->           HI:          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0
->        TIMER:     418767      46596      43515      44547      50099      34815      40634      40337      39551      93442      73733      42631      42509      41592      40351      61793
->       NET_TX:      28719        309       1421       1294       1730       1243        832        937         11         44         41         20         26         19         15         29
->       NET_RX:     612070         19         22         21          6        235          3          2          9          6         17         16         20         13         16         10
->        BLOCK:       5941          0          0          0          0          0          0          0        519        259       1238        272        253        174        215       2618
-> BLOCK_IOPOLL:          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0          0
->      TASKLET:         28          1          1          1          1    1540653          1          1         29          1          1          1          1          1          1          2
->        SCHED:     364965      26547      16807      18403      22919       8678      14358      14091      16981      64903      47141      18517      19179      18036      17037      38261
->      HRTIMER:         13          0          1          1          0          0          0          0          0          0          0          0          1          1          0          1
->          RCU:     945823     841546     715281     892762     823564      42663     863063     841622     333577     389013     393501     239103     221524     258159     313426     234030
-> > >
-> > >> Remember there are always gaps between wire speed (that ib_send_bw
-> > >> measures) and real world applications.
+--nab
+
+>  drivers/infiniband/ulp/isert/ib_isert.c | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
 > 
-> I realize that, but I don't expect the difference to be more than twice.
+> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+> index f6f4f58..803b949 100644
+> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+> @@ -329,6 +329,7 @@ static struct isert_device *
+>  isert_device_find_by_ib_dev(struct rdma_cm_id *cma_id)
+>  {
+>  	struct isert_device *device;
+> +	int ret;
+>  
+>  	mutex_lock(&device_list_mutex);
+>  	list_for_each_entry(device, &device_list, dev_node) {
+> @@ -342,16 +343,17 @@ isert_device_find_by_ib_dev(struct rdma_cm_id *cma_id)
+>  	device = kzalloc(sizeof(struct isert_device), GFP_KERNEL);
+>  	if (!device) {
+>  		mutex_unlock(&device_list_mutex);
+> -		return NULL;
+> +		return ERR_PTR(-ENOMEM);
+>  	}
+>  
+>  	INIT_LIST_HEAD(&device->dev_node);
+>  
+>  	device->ib_device = cma_id->device;
+> -	if (isert_create_device_ib_res(device)) {
+> +	ret = isert_create_device_ib_res(device);
+> +	if (ret) {
+>  		kfree(device);
+>  		mutex_unlock(&device_list_mutex);
+> -		return NULL;
+> +		return ERR_PTR(ret);
+>  	}
+>  
+>  	device->refcount++;
+> @@ -434,8 +436,10 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+>  	}
+>  
+>  	device = isert_device_find_by_ib_dev(cma_id);
+> -	if (!device)
+> +	if (IS_ERR(device)) {
+> +		ret = PTR_ERR(device);
+>  		goto out_rsp_dma_map;
+> +	}
+>  
+>  	isert_conn->conn_device = device;
+>  	isert_conn->conn_pd = device->dev_pd;
 > 
-> > >>
-> > >> That being said, does your server use default export (sync) option ?
-> > >> Export the share with "async" option can bring you closer to wire
-> > >> speed. However, the practice (async) is generally not recommended in
-> > >> a real production system - as it can cause data integrity issues, e.g.
-> > >> you have more chances to lose data when the boxes crash.
-> 
-> I am running with async export option, but that should not matter too much, since my backing storage is tmpfs mounted with noatime.
-> 
-> > >>
-> > >> -- Wendy
-> > >
-> > >
-> > > Wendy,
-> > >
-> > > It has a been a few years since I looked at RPCRDMA, but I seem to
-> > remember that RPCs were limited to 32KB which means that you have to
-> > pipeline them to get linerate. In addition to requiring pipelining, the
-> > argument from the authors was that the goal was to maximize server
-> > performance and not single client performance.
-> > >
-> 
-> What I see is that performance increases almost linearly up to block size 256K and falls a little at block size 512K
-> 
-> > > Scott
-> > >
-> > 
-> > That (client count) brings up a good point ...
-> > 
-> > FIO is really not a good benchmark for NFS. Does anyone have SPECsfs
-> > numbers on NFS over RDMA to share ?
-> > 
-> > -- Wendy
-> 
-> What do you suggest for benchmarking NFS?
-> 
-> Yan
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
