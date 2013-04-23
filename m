@@ -1,80 +1,39 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH -next] iser-target: fix error return code in
- isert_connect_request()
-Date: Tue, 23 Apr 2013 14:16:39 -0700
-Message-ID: <1366751799.13769.27.camel@haakon3.risingtidesystems.com>
-References: <CAPgLHd8xrcHNEYOYZ6y6in=oEmkDegKtf_yZa_sF93sHTwp-rQ@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups -
+ suggesting BOF during OFA conf to further discuss that
+Date: Wed, 24 Apr 2013 00:15:22 +0300
+Message-ID: <CAJZOPZL1eminwg+MVAC+8y4Pg3Nff=aeMN9ic57SB3cRAg8Hnw@mail.gmail.com>
+References: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw@mail.gmail.com>
+	<CAJZOPZKwH66uEukqDSvV+4-z+RhroOB1a0AiWBvdq7D3mso7gQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAPgLHd8xrcHNEYOYZ6y6in=oEmkDegKtf_yZa_sF93sHTwp-rQ@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, yongjun_wei@trendmicro.com.cn, linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJZOPZKwH66uEukqDSvV+4-z+RhroOB1a0AiWBvdq7D3mso7gQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org \"Shlomo Pongratz\"" <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2013-04-19 at 13:13 +0800, Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> Fix to return a negative error code from the error handling
-> case instead of 0, as done elsewhere in this function.
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
+On Mon, Apr 22, 2013 at 7:46 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Sean, Tzahi -- I understand now that there have been few talkings @
+> the OFA meeting re this patch set. So what's the way to move forward,
+> any concrete feedback that needs to be addressed here?  This series is
+> hanging since May 2012 and I'd like to see it gets in for 3.10, now if
+> indeed Sean is OK with the general framework, please suggest.
 
-Merged into the initial iser-target commit in for-next-merge.
+Sean,
 
-Thanks Wei!
+I understand that following some conversations help at the OFA
+meetings you kind of took back the concerns you raised regarding the
+concept of the verbs level QP group which is used by this series to
+implement RSS and TSS, can you acknoledge that?
 
---nab
+Roland, this series is been around for about a year now, any feedback
+or comments from your side that we need to address for it to get
+accepted?
 
->  drivers/infiniband/ulp/isert/ib_isert.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> index f6f4f58..803b949 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -329,6 +329,7 @@ static struct isert_device *
->  isert_device_find_by_ib_dev(struct rdma_cm_id *cma_id)
->  {
->  	struct isert_device *device;
-> +	int ret;
->  
->  	mutex_lock(&device_list_mutex);
->  	list_for_each_entry(device, &device_list, dev_node) {
-> @@ -342,16 +343,17 @@ isert_device_find_by_ib_dev(struct rdma_cm_id *cma_id)
->  	device = kzalloc(sizeof(struct isert_device), GFP_KERNEL);
->  	if (!device) {
->  		mutex_unlock(&device_list_mutex);
-> -		return NULL;
-> +		return ERR_PTR(-ENOMEM);
->  	}
->  
->  	INIT_LIST_HEAD(&device->dev_node);
->  
->  	device->ib_device = cma_id->device;
-> -	if (isert_create_device_ib_res(device)) {
-> +	ret = isert_create_device_ib_res(device);
-> +	if (ret) {
->  		kfree(device);
->  		mutex_unlock(&device_list_mutex);
-> -		return NULL;
-> +		return ERR_PTR(ret);
->  	}
->  
->  	device->refcount++;
-> @@ -434,8 +436,10 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
->  	}
->  
->  	device = isert_device_find_by_ib_dev(cma_id);
-> -	if (!device)
-> +	if (IS_ERR(device)) {
-> +		ret = PTR_ERR(device);
->  		goto out_rsp_dma_map;
-> +	}
->  
->  	isert_conn->conn_device = device;
->  	isert_conn->conn_pd = device->dev_pd;
-> 
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
