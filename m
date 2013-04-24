@@ -1,99 +1,67 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: NFS over RDMA benchmark
-Date: Wed, 24 Apr 2013 14:26:40 -0400
-Message-ID: <517823E0.4000402@talpey.com>
-References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com> <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com> <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov> <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com> <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com> <20130423210607.GJ3676@fieldses.org> <0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com> <20130424150540.GB20275@fieldses.org> <20130424152631.GC20275@fieldses.org> <CABgxfbHShU7aEttJ35vdAjXduPFFj8+E4=5LZqOgh4e=5bax5Q@mail.gmail.com> <CABgxfbHpNgQyEjd2OVNMgJoLpt_VyLiOL5hMCLwotMd5kincwg@mail.gmail.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Infiniband use of get_user_pages()
+Date: Wed, 24 Apr 2013 15:25:25 -0700
+Message-ID: <CAL1RGDXqtLPmM0kRofFwTv+jzr2cBGoe9X7oQLO_yoHGErJnxg@mail.gmail.com>
+References: <20130424153810.GA25958@quack.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABgxfbHpNgQyEjd2OVNMgJoLpt_VyLiOL5hMCLwotMd5kincwg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130424153810.GA25958-+0h/O2h83AeN3ZZ/Hiejyg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/24/2013 2:04 PM, Wendy Cheng wrote:
-> On Wed, Apr 24, 2013 at 9:27 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> On Wed, Apr 24, 2013 at 8:26 AM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
->>> On Wed, Apr 24, 2013 at 11:05:40AM -0400, J. Bruce Fields wrote:
->>>> On Wed, Apr 24, 2013 at 12:35:03PM +0000, Yan Burman wrote:
->>>>>
->>>>>
->>>>>
->>>>> Perf top for the CPU with high tasklet count gives:
->>>>>
->>>>>               samples  pcnt         RIP        function                    DSO
->>>>>               _______ _____ ________________ ___________________________ ___________________________________________________________________
->>>>>
->>>>>               2787.00 24.1% ffffffff81062a00 mutex_spin_on_owner         /root/vmlinux
->>>>
->>>> I guess that means lots of contention on some mutex?  If only we knew
->>>> which one.... perf should also be able to collect stack statistics, I
->>>> forget how.
->>>
->>> Googling around....  I think we want:
->>>
->>>          perf record -a --call-graph
->>>          (give it a chance to collect some samples, then ^C)
->>>          perf report --call-graph --stdio
->>>
->>
->> I have not looked at NFS RDMA (and 3.x kernel) source yet. But see
->> that "rb_prev" up in the #7 spot ? Do we have Red Black tree somewhere
->> in the paths ? Trees like that requires extensive lockings.
->>
->
-> So I did a quick read on sunrpc/xprtrdma source (based on OFA 1.5.4.1
-> tar ball) ... Here is a random thought (not related to the rb tree
-> comment).....
->
-> The inflight packet count seems to be controlled by
-> xprt_rdma_slot_table_entries that is currently hard-coded as
-> RPCRDMA_DEF_SLOT_TABLE (32) (?).  I'm wondering whether it could help
-> with the bandwidth number if we pump it up, say 64 instead ? Not sure
-> whether FMR pool size needs to get adjusted accordingly though.
+On Wed, Apr 24, 2013 at 8:38 AM, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org> wrote:
+>   when checking users of get_user_pages() (I'm doing some cleanups in that
+> area to fix filesystem's issues with mmap_sem locking) I've noticed that
+> infiniband drivers add number of pages obtained from get_user_pages() to
+> mm->pinned_vm counter. Although this makes some sence, it doesn't match
+> with any other user of get_user_pages() (e.g. direct IO) so has infiniband
+> some special reason why it does so?
 
-1)
+Direct IO mappings are in some sense ephemeral -- they only need to
+last while the IO is in flight.  In contrast the IB memory pinning is
+controlled by (possibly unprivileged) userspace and might last the
+whole lifetime of a long-lived application.  So we want some
+accounting and resource control.
 
-The client slot count is not hard-coded, it can easily be changed by
-writing a value to /proc and initiating a new mount. But I doubt that
-increasing the slot table will improve performance much, unless this is
-a small-random-read, and spindle-limited workload.
+>   Also that seems to be the only real reason why mmap_sem has to be grabbed
+> in exclusive mode, am I right?
 
-2)
+Most likely that is true.
 
-The observation appears to be that the bandwidth is server CPU limited.
-Increasing the load offered by the client probably won't move the needle,
-until that's addressed.
+>   Another suspicious thing (at least in drivers/infiniband/core/umem.c:
+> ib_umem_get()) is that arguments of get_user_pages() are like:
+>                 ret = get_user_pages(current, current->mm, cur_base,
+>                                      min_t(unsigned long, npages,
+>                                            PAGE_SIZE / sizeof (struct page *)),
+>                                      1, !umem->writable, page_list, vma_list);
+> So we always have write argument set to 1 and force argument is set to
+> !umem->writable. Is that really intentional? My naive guess would be that
+> arguments should be switched... Although even in that case I fail to see
+> why 'force' argument should be set. Can someone please explain?
 
+This confused even me recently.  We had a long discussion (read the
+whole thread starting here: https://lkml.org/lkml/2012/1/26/7) but in
+short the current parameters seem to be needed to trigger COW even
+when the kernel/hardware want to read the memory, to avoid problems
+where we get stale data if userspace triggers COW.
 
->
-> In short, if anyone has benchmark setup handy, bumping up the slot
-> table size as the following might be interesting:
->
-> --- ofa_kernel-1.5.4.1.orig/include/linux/sunrpc/xprtrdma.h
-> 2013-03-21 09:19:36.233006570 -0700
-> +++ ofa_kernel-1.5.4.1/include/linux/sunrpc/xprtrdma.h  2013-04-24
-> 10:52:20.934781304 -0700
-> @@ -59,7 +59,7 @@
->    * a single chunk type per message is supported currently.
->    */
->   #define RPCRDMA_MIN_SLOT_TABLE (2U)
-> -#define RPCRDMA_DEF_SLOT_TABLE (32U)
-> +#define RPCRDMA_DEF_SLOT_TABLE (64U)
->   #define RPCRDMA_MAX_SLOT_TABLE (256U)
->
->   #define RPCRDMA_DEF_INLINE  (1024)     /* default inline max */
->
-> -- Wendy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+I think I better add a comment explaining this.
+
+>   Finally (and here I may show my ignorance ;), I'd like to ask whether
+> there's any reason why ib_umem_get() checks for is_vm_hugetlb_page() and
+> not just whether a page is a huge page?
+
+I'm not sure of the history here.  How would one check directly if a
+page is a huge page?  get_user_pages() actually goes to some trouble
+to return all small pages, even when it has to split a single huge
+page into many entries in the page array.  (Which is actually a bit
+unfortunate for our use here)
+
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
