@@ -1,47 +1,84 @@
-From: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: linux-next: manual merge of the net-next tree with the
- infiniband tree
-Date: Wed, 24 Apr 2013 14:53:04 -0300
-Message-ID: <20130424175304.GA701@oc0268524204.ibm.com>
-References: <20130418131843.bfeb6b1ad5fba1b0f706076e@canb.auug.org.au>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: NFS over RDMA benchmark
+Date: Wed, 24 Apr 2013 11:04:04 -0700
+Message-ID: <CABgxfbHpNgQyEjd2OVNMgJoLpt_VyLiOL5hMCLwotMd5kincwg@mail.gmail.com>
+References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
+	<CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
+	<62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
+	<CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com>
+	<0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com>
+	<20130423210607.GJ3676@fieldses.org>
+	<0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com>
+	<20130424150540.GB20275@fieldses.org>
+	<20130424152631.GC20275@fieldses.org>
+	<CABgxfbHShU7aEttJ35vdAjXduPFFj8+E4=5LZqOgh4e=5bax5Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130418131843.bfeb6b1ad5fba1b0f706076e-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+In-Reply-To: <CABgxfbHShU7aEttJ35vdAjXduPFFj8+E4=5LZqOgh4e=5bax5Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 18, 2013 at 01:18:43PM +1000, Stephen Rothwell wrote:
-> Hi all,
-> 
-> Today's linux-next merge of the net-next tree got a conflict in
-> drivers/infiniband/hw/cxgb4/qp.c between commit 5b0c275926b8
-> ("RDMA/cxgb4: Fix SQ allocation when on-chip SQ is disabled") from the
-> infiniband tree and commit 9919d5bd01b9 ("RDMA/cxgb4: Fix onchip queue
-> support for T5") from the net-next tree.
-> 
-> I think that they are 2 different fixes for the same problem, so I just
-> used the net-next version and can carry the fix as necessary (no action
-> is required).
-> 
-> -- 
-> Cheers,
-> Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+On Wed, Apr 24, 2013 at 9:27 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Wed, Apr 24, 2013 at 8:26 AM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+>> On Wed, Apr 24, 2013 at 11:05:40AM -0400, J. Bruce Fields wrote:
+>>> On Wed, Apr 24, 2013 at 12:35:03PM +0000, Yan Burman wrote:
+>>> >
+>>> >
+>>> >
+>>> > Perf top for the CPU with high tasklet count gives:
+>>> >
+>>> >              samples  pcnt         RIP        function                    DSO
+>>> >              _______ _____ ________________ ___________________________ ___________________________________________________________________
+>>> >
+>>> >              2787.00 24.1% ffffffff81062a00 mutex_spin_on_owner         /root/vmlinux
+>>>
+>>> I guess that means lots of contention on some mutex?  If only we knew
+>>> which one.... perf should also be able to collect stack statistics, I
+>>> forget how.
+>>
+>> Googling around....  I think we want:
+>>
+>>         perf record -a --call-graph
+>>         (give it a chance to collect some samples, then ^C)
+>>         perf report --call-graph --stdio
+>>
+>
+> I have not looked at NFS RDMA (and 3.x kernel) source yet. But see
+> that "rb_prev" up in the #7 spot ? Do we have Red Black tree somewhere
+> in the paths ? Trees like that requires extensive lockings.
+>
 
+So I did a quick read on sunrpc/xprtrdma source (based on OFA 1.5.4.1
+tar ball) ... Here is a random thought (not related to the rb tree
+comment).....
 
-Commit 5b0c275926b8 also keeps the intention of the original patch which
-broke it, which was to return an error code, in case the allocation fails.
-Commit 9919d5bd01b9 fix will return 0 in case the allocation fails.
+The inflight packet count seems to be controlled by
+xprt_rdma_slot_table_entries that is currently hard-coded as
+RPCRDMA_DEF_SLOT_TABLE (32) (?).  I'm wondering whether it could help
+with the bandwidth number if we pump it up, say 64 instead ? Not sure
+whether FMR pool size needs to get adjusted accordingly though.
 
-We should keep the other fix or fix the code again to return the proper
-error code.
+In short, if anyone has benchmark setup handy, bumping up the slot
+table size as the following might be interesting:
 
-Regards.
-Cascardo.
+--- ofa_kernel-1.5.4.1.orig/include/linux/sunrpc/xprtrdma.h
+2013-03-21 09:19:36.233006570 -0700
++++ ofa_kernel-1.5.4.1/include/linux/sunrpc/xprtrdma.h  2013-04-24
+10:52:20.934781304 -0700
+@@ -59,7 +59,7 @@
+  * a single chunk type per message is supported currently.
+  */
+ #define RPCRDMA_MIN_SLOT_TABLE (2U)
+-#define RPCRDMA_DEF_SLOT_TABLE (32U)
++#define RPCRDMA_DEF_SLOT_TABLE (64U)
+ #define RPCRDMA_MAX_SLOT_TABLE (256U)
 
+ #define RPCRDMA_DEF_INLINE  (1024)     /* default inline max */
+
+-- Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
