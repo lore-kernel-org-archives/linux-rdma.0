@@ -1,463 +1,179 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 8/9] IB/core: Export ib_create/destroy_flow through uverbs
-Date: Wed, 24 Apr 2013 16:58:51 +0300
-Message-ID: <1366811932-28199-9-git-send-email-ogerlitz@mellanox.com>
-References: <1366811932-28199-1-git-send-email-ogerlitz@mellanox.com>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: NFS over RDMA benchmark
+Date: Wed, 24 Apr 2013 11:05:40 -0400
+Message-ID: <20130424150540.GB20275@fieldses.org>
+References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
+ <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
+ <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
+ <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com>
+ <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com>
+ <20130423210607.GJ3676@fieldses.org>
+ <0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1366811932-28199-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <0EE9A1CDC8D6434DB00095CD7DB873462CF988C9-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Apr 24, 2013 at 12:35:03PM +0000, Yan Burman wrote:
+> 
+> 
+> > -----Original Message-----
+> > From: J. Bruce Fields [mailto:bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org]
+> > Sent: Wednesday, April 24, 2013 00:06
+> > To: Yan Burman
+> > Cc: Wendy Cheng; Atchley, Scott; Tom Tucker; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz
+> > Subject: Re: NFS over RDMA benchmark
+> > 
+> > On Thu, Apr 18, 2013 at 12:47:09PM +0000, Yan Burman wrote:
+> > >
+> > >
+> > > > -----Original Message-----
+> > > > From: Wendy Cheng [mailto:s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> > > > Sent: Wednesday, April 17, 2013 21:06
+> > > > To: Atchley, Scott
+> > > > Cc: Yan Burman; J. Bruce Fields; Tom Tucker;
+> > > > linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > > Subject: Re: NFS over RDMA benchmark
+> > > >
+> > > > On Wed, Apr 17, 2013 at 10:32 AM, Atchley, Scott
+> > > > <atchleyes-1Heg1YXhbW8@public.gmane.org>
+> > > > wrote:
+> > > > > On Apr 17, 2013, at 1:15 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > > > wrote:
+> > > > >
+> > > > >> On Wed, Apr 17, 2013 at 7:36 AM, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > > wrote:
+> > > > >>> Hi.
+> > > > >>>
+> > > > >>> I've been trying to do some benchmarks for NFS over RDMA and I
+> > > > >>> seem to
+> > > > only get about half of the bandwidth that the HW can give me.
+> > > > >>> My setup consists of 2 servers each with 16 cores, 32Gb of
+> > > > >>> memory, and
+> > > > Mellanox ConnectX3 QDR card over PCI-e gen3.
+> > > > >>> These servers are connected to a QDR IB switch. The backing
+> > > > >>> storage on
+> > > > the server is tmpfs mounted with noatime.
+> > > > >>> I am running kernel 3.5.7.
+> > > > >>>
+> > > > >>> When running ib_send_bw, I get 4.3-4.5 GB/sec for block sizes 4-512K.
+> > > > >>> When I run fio over rdma mounted nfs, I get 260-2200MB/sec for
+> > > > >>> the
+> > > > same block sizes (4-512K). running over IPoIB-CM, I get 200-980MB/sec.
+> > > > >
+> > > > > Yan,
+> > > > >
+> > > > > Are you trying to optimize single client performance or server
+> > > > > performance
+> > > > with multiple clients?
+> > > > >
+> > >
+> > > I am trying to get maximum performance from a single server - I used 2
+> > processes in fio test - more than 2 did not show any performance boost.
+> > > I tried running fio from 2 different PCs on 2 different files, but the sum of
+> > the two is more or less the same as running from single client PC.
+> > >
+> > > What I did see is that server is sweating a lot more than the clients and
+> > more than that, it has 1 core (CPU5) in 100% softirq tasklet:
+> > > cat /proc/softirqs
+> > 
+> > Would any profiling help figure out which code it's spending time in?
+> > (E.g. something simple as "perf top" might have useful output.)
+> > 
+> 
+> 
+> Perf top for the CPU with high tasklet count gives:
+> 
+>              samples  pcnt         RIP        function                    DSO
+>              _______ _____ ________________ ___________________________ ___________________________________________________________________
+> 
+>              2787.00 24.1% ffffffff81062a00 mutex_spin_on_owner         /root/vmlinux
 
-Implement ib_uverbs_create_flow and ib_uverbs_destroy_flow to
-support flow steering for user space applications.
+I guess that means lots of contention on some mutex?  If only we knew
+which one.... perf should also be able to collect stack statistics, I
+forget how.
 
-Signed-off-by: Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs.h      |    3 +
- drivers/infiniband/core/uverbs_cmd.c  |  209 +++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c |   13 ++-
- include/rdma/ib_verbs.h               |    1 +
- include/uapi/rdma/ib_user_verbs.h     |  108 +++++++++++++++++-
- 5 files changed, 332 insertions(+), 2 deletions(-)
+--b.
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 0fcd7aa..ad9d102 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -155,6 +155,7 @@ extern struct idr ib_uverbs_cq_idr;
- extern struct idr ib_uverbs_qp_idr;
- extern struct idr ib_uverbs_srq_idr;
- extern struct idr ib_uverbs_xrcd_idr;
-+extern struct idr ib_uverbs_rule_idr;
- 
- void idr_remove_uobj(struct idr *idp, struct ib_uobject *uobj);
- 
-@@ -215,5 +216,7 @@ IB_UVERBS_DECLARE_CMD(destroy_srq);
- IB_UVERBS_DECLARE_CMD(create_xsrq);
- IB_UVERBS_DECLARE_CMD(open_xrcd);
- IB_UVERBS_DECLARE_CMD(close_xrcd);
-+IB_UVERBS_DECLARE_CMD(create_flow);
-+IB_UVERBS_DECLARE_CMD(destroy_flow);
- 
- #endif /* UVERBS_H */
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index a7d00f6..29c340e 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -54,6 +54,7 @@ static struct uverbs_lock_class qp_lock_class	= { .name = "QP-uobj" };
- static struct uverbs_lock_class ah_lock_class	= { .name = "AH-uobj" };
- static struct uverbs_lock_class srq_lock_class	= { .name = "SRQ-uobj" };
- static struct uverbs_lock_class xrcd_lock_class = { .name = "XRCD-uobj" };
-+static struct uverbs_lock_class rule_lock_class = { .name = "RULE-uobj" };
- 
- #define INIT_UDATA(udata, ibuf, obuf, ilen, olen)			\
- 	do {								\
-@@ -330,6 +331,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	INIT_LIST_HEAD(&ucontext->srq_list);
- 	INIT_LIST_HEAD(&ucontext->ah_list);
- 	INIT_LIST_HEAD(&ucontext->xrcd_list);
-+	INIT_LIST_HEAD(&ucontext->rule_list);
- 	ucontext->closing = 0;
- 
- 	resp.num_comp_vectors = file->device->num_comp_vectors;
-@@ -2587,6 +2589,213 @@ out_put:
- 	return ret ? ret : in_len;
- }
- 
-+static int kern_spec_to_ib_spec(struct ib_kern_spec *kern_spec,
-+				struct _ib_flow_spec *ib_spec)
-+{
-+	ib_spec->type = kern_spec->type;
-+
-+	switch (ib_spec->type) {
-+	case IB_FLOW_SPEC_ETH:
-+		ib_spec->eth.size = sizeof(struct ib_flow_spec_eth);
-+		memcpy(&ib_spec->eth.val, &kern_spec->eth.val,
-+		       sizeof(struct ib_flow_eth_filter));
-+		memcpy(&ib_spec->eth.mask, &kern_spec->eth.mask,
-+		       sizeof(struct ib_flow_eth_filter));
-+		break;
-+	case IB_FLOW_SPEC_IB:
-+		ib_spec->ib.size = sizeof(struct ib_flow_spec_ib);
-+		memcpy(&ib_spec->ib.val, &kern_spec->ib.val,
-+		       sizeof(struct ib_flow_ib_filter));
-+		memcpy(&ib_spec->ib.mask, &kern_spec->ib.mask,
-+		       sizeof(struct ib_flow_ib_filter));
-+		break;
-+	case IB_FLOW_SPEC_IPV4:
-+		ib_spec->ipv4.size = sizeof(struct ib_flow_spec_ipv4);
-+		memcpy(&ib_spec->ipv4.val, &kern_spec->ipv4.val,
-+		       sizeof(struct ib_flow_ipv4_filter));
-+		memcpy(&ib_spec->ipv4.mask, &kern_spec->ipv4.mask,
-+		       sizeof(struct ib_flow_ipv4_filter));
-+		break;
-+	case IB_FLOW_SPEC_TCP:
-+	case IB_FLOW_SPEC_UDP:
-+		ib_spec->tcp_udp.size = sizeof(struct ib_flow_spec_tcp_udp);
-+		memcpy(&ib_spec->tcp_udp.val, &kern_spec->tcp_udp.val,
-+		       sizeof(struct ib_flow_tcp_udp_filter));
-+		memcpy(&ib_spec->tcp_udp.mask, &kern_spec->tcp_udp.mask,
-+		       sizeof(struct ib_flow_tcp_udp_filter));
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
-+			      const char __user *buf, int in_len,
-+			      int out_len)
-+{
-+	struct ib_uverbs_create_flow	  cmd;
-+	struct ib_uverbs_create_flow_resp resp;
-+	struct ib_uobject		  *uobj;
-+	struct ib_flow			  *flow_id;
-+	struct ib_kern_flow_attr	  *kern_flow_attr;
-+	struct ib_flow_attr		  *flow_attr;
-+	struct ib_qp			  *qp;
-+	int err = 0;
-+	void *kern_spec;
-+	void *ib_spec;
-+	int i;
-+
-+	if (out_len < sizeof(resp))
-+		return -ENOSPC;
-+
-+	if (copy_from_user(&cmd, buf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	if ((cmd.flow_attr.type == IB_FLOW_ATTR_SNIFFER &&
-+	     !capable(CAP_NET_ADMIN)) || !capable(CAP_NET_RAW))
-+		return -EPERM;
-+
-+	if (cmd.flow_attr.num_of_specs) {
-+		kern_flow_attr = kmalloc(cmd.flow_attr.size, GFP_KERNEL);
-+		if (!kern_flow_attr)
-+			return -ENOMEM;
-+
-+		memcpy(kern_flow_attr, &cmd.flow_attr, sizeof(*kern_flow_attr));
-+		if (copy_from_user(kern_flow_attr + 1, buf + sizeof(cmd),
-+				   cmd.flow_attr.size - sizeof(cmd))) {
-+			err = -EFAULT;
-+			goto err_free_attr;
-+		}
-+	} else {
-+		kern_flow_attr = &cmd.flow_attr;
-+	}
-+
-+	uobj = kmalloc(sizeof(*uobj), GFP_KERNEL);
-+	if (!uobj) {
-+		err = -ENOMEM;
-+		goto err_free_attr;
-+	}
-+	init_uobj(uobj, 0, file->ucontext, &rule_lock_class);
-+	down_write(&uobj->mutex);
-+
-+	qp = idr_read_qp(cmd.qp_handle, file->ucontext);
-+	if (!qp) {
-+		err = -EINVAL;
-+		goto err_uobj;
-+	}
-+
-+	flow_attr = kmalloc(cmd.flow_attr.size, GFP_KERNEL);
-+	if (!flow_attr) {
-+		err = -ENOMEM;
-+		goto err_put;
-+	}
-+
-+	flow_attr->type = kern_flow_attr->type;
-+	flow_attr->priority = kern_flow_attr->priority;
-+	flow_attr->num_of_specs = kern_flow_attr->num_of_specs;
-+	flow_attr->port = kern_flow_attr->port;
-+	flow_attr->flags = kern_flow_attr->flags;
-+	flow_attr->size = sizeof(*flow_attr);
-+
-+	kern_spec = kern_flow_attr + 1;
-+	ib_spec = flow_attr + 1;
-+	for (i = 0; i < flow_attr->num_of_specs; i++) {
-+		err = kern_spec_to_ib_spec(kern_spec, ib_spec);
-+		if (err)
-+			goto err_free;
-+		flow_attr->size +=
-+			((struct _ib_flow_spec *)ib_spec)->size;
-+		kern_spec += ((struct ib_kern_spec *)kern_spec)->size;
-+		ib_spec += ((struct _ib_flow_spec *)ib_spec)->size;
-+	}
-+	flow_id = ib_create_flow(qp, flow_attr, IB_FLOW_DOMAIN_USER);
-+	if (IS_ERR(flow_id)) {
-+		err = PTR_ERR(flow_id);
-+		goto err_free;
-+	}
-+	flow_id->qp = qp;
-+	flow_id->uobject = uobj;
-+	uobj->object = flow_id;
-+
-+	err = idr_add_uobj(&ib_uverbs_rule_idr, uobj);
-+	if (err)
-+		goto destroy_flow;
-+
-+	memset(&resp, 0, sizeof(resp));
-+	resp.flow_handle = uobj->id;
-+
-+	if (copy_to_user((void __user *)(unsigned long) cmd.response,
-+			 &resp, sizeof(resp))) {
-+		err = -EFAULT;
-+		goto err_copy;
-+	}
-+
-+	put_qp_read(qp);
-+	mutex_lock(&file->mutex);
-+	list_add_tail(&uobj->list, &file->ucontext->rule_list);
-+	mutex_unlock(&file->mutex);
-+
-+	uobj->live = 1;
-+
-+	up_write(&uobj->mutex);
-+	kfree(flow_attr);
-+	if (cmd.flow_attr.num_of_specs)
-+		kfree(kern_flow_attr);
-+	return in_len;
-+err_copy:
-+	idr_remove_uobj(&ib_uverbs_rule_idr, uobj);
-+destroy_flow:
-+	ib_destroy_flow(flow_id);
-+err_free:
-+	kfree(flow_attr);
-+err_put:
-+	put_qp_read(qp);
-+err_uobj:
-+	put_uobj_write(uobj);
-+err_free_attr:
-+	if (cmd.flow_attr.num_of_specs)
-+		kfree(kern_flow_attr);
-+	return err;
-+}
-+
-+ssize_t ib_uverbs_destroy_flow(struct ib_uverbs_file *file,
-+			       const char __user *buf, int in_len,
-+			       int out_len) {
-+	struct ib_uverbs_destroy_flow	cmd;
-+	struct ib_flow			*flow_id;
-+	struct ib_uobject		*uobj;
-+	int				ret;
-+
-+	if (copy_from_user(&cmd, buf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	uobj = idr_write_uobj(&ib_uverbs_rule_idr, cmd.flow_handle,
-+			      file->ucontext);
-+	if (!uobj)
-+		return -EINVAL;
-+	flow_id = uobj->object;
-+
-+	ret = ib_destroy_flow(flow_id);
-+	if (!ret)
-+		uobj->live = 0;
-+
-+	put_uobj_write(uobj);
-+
-+	if (ret)
-+		return ret;
-+
-+	idr_remove_uobj(&ib_uverbs_rule_idr, uobj);
-+
-+	mutex_lock(&file->mutex);
-+	list_del(&uobj->list);
-+	mutex_unlock(&file->mutex);
-+
-+	put_uobj(uobj);
-+
-+	return in_len;
-+}
-+
- static int __uverbs_create_xsrq(struct ib_uverbs_file *file,
- 				struct ib_uverbs_create_xsrq *cmd,
- 				struct ib_udata *udata)
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index e4e7b24..75ad86c 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -73,6 +73,7 @@ DEFINE_IDR(ib_uverbs_cq_idr);
- DEFINE_IDR(ib_uverbs_qp_idr);
- DEFINE_IDR(ib_uverbs_srq_idr);
- DEFINE_IDR(ib_uverbs_xrcd_idr);
-+DEFINE_IDR(ib_uverbs_rule_idr);
- 
- static DEFINE_SPINLOCK(map_lock);
- static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
-@@ -113,7 +114,9 @@ static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_CMD_OPEN_XRCD]		= ib_uverbs_open_xrcd,
- 	[IB_USER_VERBS_CMD_CLOSE_XRCD]		= ib_uverbs_close_xrcd,
- 	[IB_USER_VERBS_CMD_CREATE_XSRQ]		= ib_uverbs_create_xsrq,
--	[IB_USER_VERBS_CMD_OPEN_QP]		= ib_uverbs_open_qp
-+	[IB_USER_VERBS_CMD_OPEN_QP]		= ib_uverbs_open_qp,
-+	[IB_USER_VERBS_CMD_CREATE_FLOW]		= ib_uverbs_create_flow,
-+	[IB_USER_VERBS_CMD_DESTROY_FLOW]	= ib_uverbs_destroy_flow
- };
- 
- static void ib_uverbs_add_one(struct ib_device *device);
-@@ -212,6 +215,14 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
- 		kfree(uobj);
- 	}
- 
-+	list_for_each_entry_safe(uobj, tmp, &context->rule_list, list) {
-+		struct ib_flow *flow_id = uobj->object;
-+
-+		idr_remove_uobj(&ib_uverbs_rule_idr, uobj);
-+		ib_destroy_flow(flow_id);
-+		kfree(uobj);
-+	}
-+
- 	list_for_each_entry_safe(uobj, tmp, &context->qp_list, list) {
- 		struct ib_qp *qp = uobj->object;
- 		struct ib_uqp_object *uqp =
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6f76d62..ed8eba1 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -923,6 +923,7 @@ struct ib_ucontext {
- 	struct list_head	srq_list;
- 	struct list_head	ah_list;
- 	struct list_head	xrcd_list;
-+	struct list_head	rule_list;
- 	int			closing;
- };
- 
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 61535aa..34a21ec 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -86,7 +86,9 @@ enum {
- 	IB_USER_VERBS_CMD_OPEN_XRCD,
- 	IB_USER_VERBS_CMD_CLOSE_XRCD,
- 	IB_USER_VERBS_CMD_CREATE_XSRQ,
--	IB_USER_VERBS_CMD_OPEN_QP
-+	IB_USER_VERBS_CMD_OPEN_QP,
-+	IB_USER_VERBS_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_THRESHOLD,
-+	IB_USER_VERBS_CMD_DESTROY_FLOW
- };
- 
- /*
-@@ -694,6 +696,110 @@ struct ib_uverbs_detach_mcast {
- 	__u64 driver_data[0];
- };
- 
-+struct ib_kern_eth_filter {
-+	__u8  dst_mac[6];
-+	__u8  src_mac[6];
-+	__be16 ether_type;
-+	__be16 vlan_tag;
-+};
-+
-+struct ib_kern_spec_eth {
-+	__u32  type;
-+	__u16  size;
-+	__u16  reserved;
-+	struct ib_kern_eth_filter val;
-+	struct ib_kern_eth_filter mask;
-+};
-+
-+struct ib_kern_ib_filter {
-+	__be32 l3_type_qpn;
-+	__u8  dst_gid[16];
-+};
-+
-+struct ib_kern_spec_ib {
-+	__u32  type;
-+	__u16  size;
-+	__u16  reserved;
-+	struct ib_kern_ib_filter val;
-+	struct ib_kern_ib_filter mask;
-+};
-+
-+struct ib_kern_ipv4_filter {
-+	__be32 src_ip;
-+	__be32 dst_ip;
-+};
-+
-+struct ib_kern_spec_ipv4 {
-+	__u32  type;
-+	__u16  size;
-+	__u16  reserved;
-+	struct ib_kern_ipv4_filter val;
-+	struct ib_kern_ipv4_filter mask;
-+};
-+
-+struct ib_kern_tcp_udp_filter {
-+	__be16 dst_port;
-+	__be16 src_port;
-+};
-+
-+struct ib_kern_spec_tcp_udp {
-+	__u32  type;
-+	__u16  size;
-+	__u16  reserved;
-+	struct ib_kern_tcp_udp_filter val;
-+	struct ib_kern_tcp_udp_filter mask;
-+};
-+
-+struct ib_kern_spec {
-+	union {
-+		struct {
-+			__u32 type;
-+			__u16 size;
-+		};
-+		struct ib_kern_spec_ib	    ib;
-+		struct ib_kern_spec_eth	    eth;
-+		struct ib_kern_spec_ipv4    ipv4;
-+		struct ib_kern_spec_tcp_udp tcp_udp;
-+	};
-+};
-+
-+struct ib_kern_flow_attr {
-+	__u32 type;
-+	__u16 size;
-+	__u16 priority;
-+	__u8  num_of_specs;
-+	__u8  reserved[2];
-+	__u8  port;
-+	__u32 flags;
-+	/* Following are the optional layers according to user request
-+	 * struct ib_flow_spec_xxx
-+	 * struct ib_flow_spec_yyy
-+	 */
-+};
-+
-+struct ib_kern_flow {
-+	struct ib_device  *device;
-+	struct ib_uobject *uobject;
-+	void		  *flow_context;
-+};
-+
-+struct ib_uverbs_create_flow  {
-+	__u32 comp_mask;
-+	__u64 response;
-+	__u32 qp_handle;
-+	struct ib_kern_flow_attr flow_attr;
-+};
-+
-+struct ib_uverbs_create_flow_resp {
-+	__u32 comp_mask;
-+	__u32 flow_handle;
-+};
-+
-+struct ib_uverbs_destroy_flow  {
-+	__u32 comp_mask;
-+	__u32 flow_handle;
-+};
-+
- struct ib_uverbs_create_srq {
- 	__u64 response;
- 	__u64 user_handle;
--- 
-1.7.1
-
+>               978.00  8.4% ffffffff810297f0 clflush_cache_range         /root/vmlinux
+>               445.00  3.8% ffffffff812ea440 __domain_mapping            /root/vmlinux
+>               441.00  3.8% 0000000000018c30 svc_recv                    /lib/modules/3.5.7-dbg/kernel/net/sunrpc/sunrpc.ko
+>               344.00  3.0% ffffffff813a1bc0 _raw_spin_lock_bh           /root/vmlinux
+>               333.00  2.9% ffffffff813a19e0 _raw_spin_lock_irqsave      /root/vmlinux
+>               288.00  2.5% ffffffff813a07d0 __schedule                  /root/vmlinux
+>               249.00  2.1% ffffffff811a87e0 rb_prev                     /root/vmlinux
+>               242.00  2.1% ffffffff813a19b0 _raw_spin_lock              /root/vmlinux
+>               184.00  1.6% 0000000000002e90 svc_rdma_sendto             /lib/modules/3.5.7-dbg/kernel/net/sunrpc/xprtrdma/svcrdma.ko
+>               177.00  1.5% ffffffff810ac820 get_page_from_freelist      /root/vmlinux
+>               174.00  1.5% ffffffff812e6da0 alloc_iova                  /root/vmlinux
+>               165.00  1.4% ffffffff810b1390 put_page                    /root/vmlinux
+>               148.00  1.3% 0000000000014760 sunrpc_cache_lookup         /lib/modules/3.5.7-dbg/kernel/net/sunrpc/sunrpc.ko
+>               128.00  1.1% 0000000000017f20 svc_xprt_enqueue            /lib/modules/3.5.7-dbg/kernel/net/sunrpc/sunrpc.ko
+>               126.00  1.1% ffffffff8139f820 __mutex_lock_slowpath       /root/vmlinux
+>               108.00  0.9% ffffffff811a81d0 rb_insert_color             /root/vmlinux
+>               107.00  0.9% 0000000000004690 svc_rdma_recvfrom           /lib/modules/3.5.7-dbg/kernel/net/sunrpc/xprtrdma/svcrdma.ko
+>               102.00  0.9% 0000000000002640 send_reply                  /lib/modules/3.5.7-dbg/kernel/net/sunrpc/xprtrdma/svcrdma.ko
+>                99.00  0.9% ffffffff810e6490 kmem_cache_alloc            /root/vmlinux
+>                96.00  0.8% ffffffff810e5840 __slab_alloc                /root/vmlinux
+>                91.00  0.8% 0000000000006d30 mlx4_ib_post_send           /lib/modules/3.5.7-dbg/kernel/drivers/infiniband/hw/mlx4/mlx4_ib.ko
+>                88.00  0.8% 0000000000000dd0 svc_rdma_get_context        /lib/modules/3.5.7-dbg/kernel/net/sunrpc/xprtrdma/svcrdma.ko
+>                86.00  0.7% ffffffff813a1a10 _raw_spin_lock_irq          /root/vmlinux
+>                86.00  0.7% 0000000000001530 svc_rdma_send               /lib/modules/3.5.7-dbg/kernel/net/sunrpc/xprtrdma/svcrdma.ko
+>                85.00  0.7% ffffffff81060a80 prepare_creds               /root/vmlinux
+>                83.00  0.7% ffffffff810a5790 find_get_pages_contig       /root/vmlinux
+>                79.00  0.7% ffffffff810e4620 __slab_free                 /root/vmlinux
+>                79.00  0.7% ffffffff813a1a40 _raw_spin_unlock_irqrestore /root/vmlinux
+>                77.00  0.7% ffffffff81065610 finish_task_switch          /root/vmlinux
+>                76.00  0.7% ffffffff812e9270 pfn_to_dma_pte              /root/vmlinux
+>                75.00  0.6% ffffffff810976d0 __call_rcu                  /root/vmlinux
+>                73.00  0.6% ffffffff811a2fa0 _atomic_dec_and_lock        /root/vmlinux
+>                73.00  0.6% 00000000000002e0 svc_rdma_has_wspace         /lib/modules/3.5.7-dbg/kernel/net/sunrpc/xprtrdma/svcrdma.ko
+>                67.00  0.6% ffffffff813a1a70 _raw_read_lock              /root/vmlinux
+>                65.00  0.6% 000000000000f590 svcauth_unix_set_client     /lib/modules/3.5.7-dbg/kernel/net/sunrpc/sunrpc.ko
+>                63.00  0.5% 00000000000180e0 svc_reserve                 /lib/modules/3.5.7-dbg/kernel/net/sunrpc/sunrpc.ko
+>                60.00  0.5% 00000000000064d0 stamp_send_wqe              /lib/modules/3.5.7-dbg/kernel/drivers/infiniband/hw/mlx4/mlx4_ib.ko
+>                57.00  0.5% ffffffff810ac110 free_hot_cold_page          /root/vmlinux
+>                57.00  0.5% ffffffff811ae540 memcpy                      /root/vmlinux
+>                56.00  0.5% ffffffff810ad1a0 __alloc_pages_nodemask      /root/vmlinux
+>                55.00  0.5% ffffffff81118200 splice_to_pipe              /root/vmlinux
+>                53.00  0.5% ffffffff810e3bc0 get_partial_node            /root/vmlinux
+>                49.00  0.4% ffffffff812eb840 __intel_map_single          /root/vmlinux
+> 
+> 
+> > --b.
+> > 
+> > >                     CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6
+> > CPU7       CPU8       CPU9       CPU10      CPU11      CPU12      CPU13      CPU14
+> > CPU15
+> > >           HI:          0          0          0          0          0          0          0          0          0
+> > 0          0          0          0          0          0          0
+> > >        TIMER:     418767      46596      43515      44547      50099      34815
+> > 40634      40337      39551      93442      73733      42631      42509      41592
+> > 40351      61793
+> > >       NET_TX:      28719        309       1421       1294       1730       1243        832
+> > 937         11         44         41         20         26         19         15         29
+> > >       NET_RX:     612070         19         22         21          6        235          3          2
+> > 9          6         17         16         20         13         16         10
+> > >        BLOCK:       5941          0          0          0          0          0          0          0
+> > 519        259       1238        272        253        174        215       2618
+> > > BLOCK_IOPOLL:          0          0          0          0          0          0          0          0
+> > 0          0          0          0          0          0          0          0
+> > >      TASKLET:         28          1          1          1          1    1540653          1          1
+> > 29          1          1          1          1          1          1          2
+> > >        SCHED:     364965      26547      16807      18403      22919       8678
+> > 14358      14091      16981      64903      47141      18517      19179      18036
+> > 17037      38261
+> > >      HRTIMER:         13          0          1          1          0          0          0          0
+> > 0          0          0          0          1          1          0          1
+> > >          RCU:     945823     841546     715281     892762     823564      42663
+> > 863063     841622     333577     389013     393501     239103     221524     258159
+> > 313426     234030
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
