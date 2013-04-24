@@ -1,47 +1,31 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Infiniband use of get_user_pages()
-Date: Wed, 24 Apr 2013 17:38:10 +0200
-Message-ID: <20130424153810.GA25958@quack.suse.cz>
+From: Christoph Lameter <cl@linux.com>
+Subject: Re: Infiniband use of get_user_pages()
+Date: Wed, 24 Apr 2013 15:43:58 +0000
+Message-ID: <0000013e3cb72e66-58330751-246a-4ac4-94d7-897754e59b3d-000000@email.amazonses.com>
+References: <20130424153810.GA25958@quack.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
+In-Reply-To: <20130424153810.GA25958@quack.suse.cz>
 Sender: owner-linux-mm@kvack.org
-To: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, linux-mm@kvack.org
+To: Jan Kara <jack@suse.cz>
+Cc: Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-rdma@vger.kernel.org
 
-  Hello,
+On Wed, 24 Apr 2013, Jan Kara wrote:
 
-  when checking users of get_user_pages() (I'm doing some cleanups in that
-area to fix filesystem's issues with mmap_sem locking) I've noticed that
-infiniband drivers add number of pages obtained from get_user_pages() to
-mm->pinned_vm counter. Although this makes some sence, it doesn't match
-with any other user of get_user_pages() (e.g. direct IO) so has infiniband
-some special reason why it does so?
+>   Hello,
+>
+>   when checking users of get_user_pages() (I'm doing some cleanups in that
+> area to fix filesystem's issues with mmap_sem locking) I've noticed that
+> infiniband drivers add number of pages obtained from get_user_pages() to
+> mm->pinned_vm counter. Although this makes some sence, it doesn't match
+> with any other user of get_user_pages() (e.g. direct IO) so has infiniband
+> some special reason why it does so?
 
-  Also that seems to be the only real reason why mmap_sem has to be grabbed
-in exclusive mode, am I right?
-
-  Another suspicious thing (at least in drivers/infiniband/core/umem.c:
-ib_umem_get()) is that arguments of get_user_pages() are like:
-                ret = get_user_pages(current, current->mm, cur_base,
-                                     min_t(unsigned long, npages,
-                                           PAGE_SIZE / sizeof (struct page *)),
-                                     1, !umem->writable, page_list, vma_list);
-So we always have write argument set to 1 and force argument is set to
-!umem->writable. Is that really intentional? My naive guess would be that
-arguments should be switched... Although even in that case I fail to see
-why 'force' argument should be set. Can someone please explain?
-
-  Finally (and here I may show my ignorance ;), I'd like to ask whether
-there's any reason why ib_umem_get() checks for is_vm_hugetlb_page() and
-not just whether a page is a huge page?
-
-
-								Honza
--- 
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+get_user_pages typically is used to temporarily increase the refcount. The
+Infiniband layer needs to permanently pin the pages for memory
+registration.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
