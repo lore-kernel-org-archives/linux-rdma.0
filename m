@@ -1,43 +1,81 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: [PATCH/for-next 1/3] iscsi-target: Fix solicited NopIN handling with RDMAExtentions=No
-Date: Thu, 25 Apr 2013 07:40:29 +0000
-Message-ID: <1366875631-18795-2-git-send-email-nab@linux-iscsi.org>
-References: <1366875631-18795-1-git-send-email-nab@linux-iscsi.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1366875631-18795-1-git-send-email-nab@linux-iscsi.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: target-devel <target-devel@vger.kernel.org>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Nicholas Bellinger <nab@linux-iscsi.org>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: Infiniband use of get_user_pages()
+Date: Thu, 25 Apr 2013 15:21:57 +0200
+Message-ID: <20130425132157.GA32353@quack.suse.cz>
+References: <20130424153810.GA25958@quack.suse.cz>
+ <CAL1RGDXqtLPmM0kRofFwTv+jzr2cBGoe9X7oQLO_yoHGErJnxg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <CAL1RGDXqtLPmM0kRofFwTv+jzr2cBGoe9X7oQLO_yoHGErJnxg@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Jan Kara <jack@suse.cz>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-mm@kvack.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Nicholas Bellinger <nab@linux-iscsi.org>
+On Wed 24-04-13 15:25:25, Roland Dreier wrote:
+> On Wed, Apr 24, 2013 at 8:38 AM, Jan Kara <jack@suse.cz> wrote:
+> >   when checking users of get_user_pages() (I'm doing some cleanups in that
+> > area to fix filesystem's issues with mmap_sem locking) I've noticed that
+> > infiniband drivers add number of pages obtained from get_user_pages() to
+> > mm->pinned_vm counter. Although this makes some sence, it doesn't match
+> > with any other user of get_user_pages() (e.g. direct IO) so has infiniband
+> > some special reason why it does so?
+> 
+> Direct IO mappings are in some sense ephemeral -- they only need to
+> last while the IO is in flight.  In contrast the IB memory pinning is
+> controlled by (possibly unprivileged) userspace and might last the
+> whole lifetime of a long-lived application.  So we want some
+> accounting and resource control.
+  I see, thanks for explanation.
 
-This patches fixes a regression with solicited NopIN handling
-in traditional iSCSI code introduced during TX immediate queue
-refactoring for v3.10 for-next code.
+> >   Also that seems to be the only real reason why mmap_sem has to be grabbed
+> > in exclusive mode, am I right?
+> 
+> Most likely that is true.
+> 
+> >   Another suspicious thing (at least in drivers/infiniband/core/umem.c:
+> > ib_umem_get()) is that arguments of get_user_pages() are like:
+> >                 ret = get_user_pages(current, current->mm, cur_base,
+> >                                      min_t(unsigned long, npages,
+> >                                            PAGE_SIZE / sizeof (struct page *)),
+> >                                      1, !umem->writable, page_list, vma_list);
+> > So we always have write argument set to 1 and force argument is set to
+> > !umem->writable. Is that really intentional? My naive guess would be that
+> > arguments should be switched... Although even in that case I fail to see
+> > why 'force' argument should be set. Can someone please explain?
+> 
+> This confused even me recently.  We had a long discussion (read the
+> whole thread starting here: https://lkml.org/lkml/2012/1/26/7) but in
+> short the current parameters seem to be needed to trigger COW even
+> when the kernel/hardware want to read the memory, to avoid problems
+> where we get stale data if userspace triggers COW.
+  Thanks for the pointer. That was an interesting read :).
 
-Cc: Or Gerlitz <ogerlitz@mellanox.com>
-Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
----
- drivers/target/iscsi/iscsi_target.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+> I think I better add a comment explaining this.
+> 
+> >   Finally (and here I may show my ignorance ;), I'd like to ask whether
+> > there's any reason why ib_umem_get() checks for is_vm_hugetlb_page() and
+> > not just whether a page is a huge page?
+> 
+> I'm not sure of the history here.  How would one check directly if a
+> page is a huge page?
+  PageHuge(page) should do it (see mm/hugetlb.c).
 
-diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
-index 0148cc3..5eee9b7 100644
---- a/drivers/target/iscsi/iscsi_target.c
-+++ b/drivers/target/iscsi/iscsi_target.c
-@@ -3762,12 +3762,6 @@ check_rsp_state:
- 		break;
- 	case ISTATE_SEND_NOPIN:
- 		ret = iscsit_send_nopin(cmd, conn);
--		if (!ret) {
--			spin_lock_bh(&cmd->istate_lock);
--			cmd->i_state = ISTATE_SENT_STATUS;
--			spin_unlock_bh(&cmd->istate_lock);
--			return 0;
--		}
- 		break;
- 	case ISTATE_SEND_REJECT:
- 		ret = iscsit_send_reject(cmd, conn);
+> get_user_pages() actually goes to some trouble to return all small pages,
+> even when it has to split a single huge page into many entries in the
+> page array.  (Which is actually a bit unfortunate for our use here)
+  Does it? As far as I'm checking get_user_pages() and the fault path I
+don't see where it would be happening...
+
+								Honza  
 -- 
-1.7.2.5
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
