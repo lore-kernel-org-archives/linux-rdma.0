@@ -1,66 +1,42 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Infiniband use of get_user_pages()
-Date: Wed, 24 Apr 2013 15:25:25 -0700
-Message-ID: <CAL1RGDXqtLPmM0kRofFwTv+jzr2cBGoe9X7oQLO_yoHGErJnxg@mail.gmail.com>
-References: <20130424153810.GA25958@quack.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: [PATCH/for-next 0/3] iscsi-target/iser-target: Fix breakage
+Date: Thu, 25 Apr 2013 07:40:28 +0000
+Message-ID: <1366875631-18795-1-git-send-email-nab@linux-iscsi.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130424153810.GA25958-+0h/O2h83AeN3ZZ/Hiejyg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+To: target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 24, 2013 at 8:38 AM, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org> wrote:
->   when checking users of get_user_pages() (I'm doing some cleanups in that
-> area to fix filesystem's issues with mmap_sem locking) I've noticed that
-> infiniband drivers add number of pages obtained from get_user_pages() to
-> mm->pinned_vm counter. Although this makes some sence, it doesn't match
-> with any other user of get_user_pages() (e.g. direct IO) so has infiniband
-> some special reason why it does so?
+From: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 
-Direct IO mappings are in some sense ephemeral -- they only need to
-last while the IO is in flight.  In contrast the IB memory pinning is
-controlled by (possibly unprivileged) userspace and might last the
-whole lifetime of a long-lived application.  So we want some
-accounting and resource control.
+Hi folks,
 
->   Also that seems to be the only real reason why mmap_sem has to be grabbed
-> in exclusive mode, am I right?
+This series addresses two bugs within v3.10 for-next code related to
+the upcoming iscsi-target series adding multi-transport support, along
+with a third iser-target bugfix related to early ISCSI_OP_SCSI_CMD
+exception handling.
 
-Most likely that is true.
+These three patches are being folded into for-next/for-next-merge code
+now..
 
->   Another suspicious thing (at least in drivers/infiniband/core/umem.c:
-> ib_umem_get()) is that arguments of get_user_pages() are like:
->                 ret = get_user_pages(current, current->mm, cur_base,
->                                      min_t(unsigned long, npages,
->                                            PAGE_SIZE / sizeof (struct page *)),
->                                      1, !umem->writable, page_list, vma_list);
-> So we always have write argument set to 1 and force argument is set to
-> !umem->writable. Is that really intentional? My naive guess would be that
-> arguments should be switched... Although even in that case I fail to see
-> why 'force' argument should be set. Can someone please explain?
+Thanks!
 
-This confused even me recently.  We had a long discussion (read the
-whole thread starting here: https://lkml.org/lkml/2012/1/26/7) but in
-short the current parameters seem to be needed to trigger COW even
-when the kernel/hardware want to read the memory, to avoid problems
-where we get stale data if userspace triggers COW.
+--nab
 
-I think I better add a comment explaining this.
+Nicholas Bellinger (3):
+  iscsi-target: Fix solicited NopIN handling with RDMAExtentions=No
+  iscsi-target: Fix iscsit_handle_scsi_cmd() exception se_cmd leak
+  iser-target: Add special case for early ISCSI_OP_SCSI_CMD exception
+    handling
 
->   Finally (and here I may show my ignorance ;), I'd like to ask whether
-> there's any reason why ib_umem_get() checks for is_vm_hugetlb_page() and
-> not just whether a page is a huge page?
+ drivers/infiniband/ulp/isert/ib_isert.c |    7 ++++++
+ drivers/target/iscsi/iscsi_target.c     |   32 ++++++++++++++++++------------
+ 2 files changed, 26 insertions(+), 13 deletions(-)
 
-I'm not sure of the history here.  How would one check directly if a
-page is a huge page?  get_user_pages() actually goes to some trouble
-to return all small pages, even when it has to split a single huge
-page into many entries in the page array.  (Which is actually a bit
-unfortunate for our use here)
+-- 
+1.7.2.5
 
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
