@@ -1,38 +1,63 @@
-From: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/5] ibmebus: convert of_platform_driver to platform_driver
-Date: Thu, 25 Apr 2013 15:45:04 -0500
-Message-ID: <517995D0.8020307@gmail.com>
-References: <1366596798-9457-1-git-send-email-robherring2@gmail.com>  <1366596798-9457-2-git-send-email-robherring2@gmail.com>  <CAL_JsqKDF=hPEM0Jz-zZSXBCXBZ=gBjLWL6QDvq+nFWkqY3DMw@mail.gmail.com>  <1366911329.2869.31.camel@pasglop> <517980B0.3000401@gmail.com> <1366920741.2869.32.camel@pasglop>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups -
+ suggesting BOF during OFA conf to further discuss that
+Date: Thu, 25 Apr 2013 23:56:16 +0300
+Message-ID: <CAJZOPZK8hcfm2OCnsJkhCiRNxOFXOB0xc9i7tmB4qEnkXrXC0Q@mail.gmail.com>
+References: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw@mail.gmail.com>
+	<CAJZOPZKwH66uEukqDSvV+4-z+RhroOB1a0AiWBvdq7D3mso7gQ@mail.gmail.com>
+	<CAJZOPZL1eminwg+MVAC+8y4Pg3Nff=aeMN9ic57SB3cRAg8Hnw@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A823736FD1E64F@ORSMSX109.amr.corp.intel.com>
+	<20130425201255.GB31863@obsidianresearch.com>
+	<1828884A29C6694DAF28B7E6B8A823736FD1EF16@ORSMSX109.amr.corp.intel.com>
+	<20130425204357.GD31863@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1366920741.2869.32.camel@pasglop>
+In-Reply-To: <20130425204357.GD31863-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org \"Shlomo Pongratz\"" <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/25/2013 03:12 PM, Benjamin Herrenschmidt wrote:
-> On Thu, 2013-04-25 at 14:14 -0500, Rob Herring wrote:
->> On 04/25/2013 12:35 PM, Benjamin Herrenschmidt wrote:
+Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-[...]
+> On Thu, Apr 25, 2013 at 08:26:45PM +0000, Hefty, Sean wrote:
+> > After speaking with Tzahi, my understanding is that the receive work
+> > queues all receive on the same QPN, but the send work queues use
+> > different QPNs.  The on-wire packets are affected, specifically the
+> > ipoib header.  This is why the send QPNs must be sequential, so that
+> > a mask can be applied at the receiving side to determine a single
+> > source QPN.
 
->> You need patch 2 of this series to fix this:
->>
->> driver core: move to_platform_driver to platform_device.h
->>
->> which as Arnd pointed out needs to come first. I've fixed that in my
->> tree, but I don't think it warrants another post.
-> 
-> Can I pull you tree from somewhere to test ?
+> Ah, this seems contrary to the IPoIB specification? Someone should probably talk about how sending from the wrong QPN is acceptable..
 
-Here you go:
 
-git://sources.calxeda.com/kernel/linux.git of-platform-removal
 
-Rob
+AFAIK the IPoIB specification doesn't mandate the QPN of the sender
+
+
+> As I said, that is ugly. 'TSS' that changes the on-the-wire packet is not TSS. It is just ganging QPs together.
+>
+> Allocating sequential TSS QPNs is an awful hack, what we really need is a way to force a UD QP's outgoing QPN.
+
+
+INDEED, but this must be supported by the HW. The patch set is already
+supporting the case of HW the knows to do that forcing, quoting  --->
+IB_DEVICE_UD_TSS which is set to indicate that the device supports "HW
+TSS" which means that the HW is capable of over-riding the source UD
+QPN present in sent IB datagram header (DTH) with the parent's QPN
+<--- where over such HW the on-the-wire IPoIB header isn't touched.
+
+BUT for the sake of improving performance and being competitive with
+tons of Linux Ethernet drivers that support TSS/MQ we still need IPoIB
+to support MQ/TSS before such HW is introduced, and as such the chosen
+solution was to use reserved fields of the wire header.
+
+How about we discuss RSS 1st? for RSS no wire change is introduced,
+lets see if/how we can come to an agreement how the RSS related verbs
+should look like and we'll take it from there to TSS.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
