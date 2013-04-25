@@ -1,7 +1,7 @@
 From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: NFS over RDMA benchmark
-Date: Thu, 25 Apr 2013 14:58:48 -0700
-Message-ID: <CABgxfbHnqQyucEpbGhsQ8-pA69peHUza7L7WHKD1K1n9Zv0WXQ@mail.gmail.com>
+Date: Thu, 25 Apr 2013 15:26:24 -0700
+Message-ID: <CABgxfbErgDRi1VeaFWDXZkSmRdM+gSZUcfgm=SPAOpo-XoFdeA@mail.gmail.com>
 References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
 	<CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
 	<62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
@@ -17,31 +17,40 @@ References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
 	<CABgxfbHePAyq6AH9TFKZKUmwEHOupuYUnfc1W99HAuDkYddUqQ@mail.gmail.com>
 	<51798C51.50209@talpey.com>
 	<51799D52.1040903@opengridcomputing.com>
+	<CABgxfbHnqQyucEpbGhsQ8-pA69peHUza7L7WHKD1K1n9Zv0WXQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51799D52.1040903-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <CABgxfbHnqQyucEpbGhsQ8-pA69peHUza7L7WHKD1K1n9Zv0WXQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 25, 2013 at 2:17 PM, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> The Mellanox driver uses red-black trees extensively for resource
-> management, e.g. QP ID, CQ ID, etc... When completions come in from the HW,
-> these are used to find the associated software data structures I believe. It
-> is certainly possible that these trees get hot on lookup when we're pushing
-> a lot of data. I'm surprised, however, to see rb_insert_color there because
-> I'm not aware of any where that resources are being inserted into and/or
-> removed from a red-black tree in the data path.
+On Thu, Apr 25, 2013 at 2:58 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Apr 25, 2013 at 2:17 PM, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+>> The Mellanox driver uses red-black trees extensively for resource
+>> management, e.g. QP ID, CQ ID, etc... When completions come in from the HW,
+>> these are used to find the associated software data structures I believe. It
+>> is certainly possible that these trees get hot on lookup when we're pushing
+>> a lot of data. I'm surprised, however, to see rb_insert_color there because
+>> I'm not aware of any where that resources are being inserted into and/or
+>> removed from a red-black tree in the data path.
+>>
+>
+> I think they (rb calls) are from base kernel, not from any NFS and/or
+> IB module (e.g. RPC, MLX, etc). See the right column ? .... it says
+> "/root/vmlinux". Just a guess - I don't know much about this "perf"
+> command.
 >
 
-I think they (rb calls) are from base kernel, not from any NFS and/or
-IB module (e.g. RPC, MLX, etc). See the right column ? .... it says
-"/root/vmlinux". Just a guess - I don't know much about this "perf"
-command.
 
- -- Wendy
+Oops .. take my words back ! I confused Linux's RB tree w/ BSD's.
+BSD's is a set of macros inside a header file while Linux's
+implementation is a base kernel library. So every KMOD is a suspect
+here :)
+
+-- Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
