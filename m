@@ -1,84 +1,48 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: NFS over RDMA benchmark
-Date: Thu, 25 Apr 2013 16:04:33 -0400
-Message-ID: <51798C51.50209@talpey.com>
-References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com> <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com> <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov> <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com> <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com> <20130423210607.GJ3676@fieldses.org> <0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com> <20130424150540.GB20275@fieldses.org> <20130424152631.GC20275@fieldses.org> <CABgxfbHShU7aEttJ35vdAjXduPFFj8+E4=5LZqOgh4e=5bax5Q@mail.gmail.com> <CABgxfbHpNgQyEjd2OVNMgJoLpt_VyLiOL5hMCLwotMd5kincwg@mail.gmail.com> <517823E0.4000402@talpey.com> <CABgxfbHePAyq6AH9TFKZKUmwEHOupuYUnfc1W99HAuDkYddUqQ@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups -
+ suggesting BOF during OFA conf to further discuss that
+Date: Thu, 25 Apr 2013 14:12:55 -0600
+Message-ID: <20130425201255.GB31863@obsidianresearch.com>
+References: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw@mail.gmail.com>
+ <CAJZOPZKwH66uEukqDSvV+4-z+RhroOB1a0AiWBvdq7D3mso7gQ@mail.gmail.com>
+ <CAJZOPZL1eminwg+MVAC+8y4Pg3Nff=aeMN9ic57SB3cRAg8Hnw@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A823736FD1E64F@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABgxfbHePAyq6AH9TFKZKUmwEHOupuYUnfc1W99HAuDkYddUqQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736FD1E64F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org \"Shlomo Pongratz\"" <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/25/2013 1:18 PM, Wendy Cheng wrote:
-> On Wed, Apr 24, 2013 at 11:26 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
->>> On Wed, Apr 24, 2013 at 9:27 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>> wrote:
->>>>
->>> So I did a quick read on sunrpc/xprtrdma source (based on OFA 1.5.4.1
->>> tar ball) ... Here is a random thought (not related to the rb tree
->>> comment).....
->>>
->>> The inflight packet count seems to be controlled by
->>> xprt_rdma_slot_table_entries that is currently hard-coded as
->>> RPCRDMA_DEF_SLOT_TABLE (32) (?).  I'm wondering whether it could help
->>> with the bandwidth number if we pump it up, say 64 instead ? Not sure
->>> whether FMR pool size needs to get adjusted accordingly though.
->>
->> 1)
->>
->> The client slot count is not hard-coded, it can easily be changed by
->> writing a value to /proc and initiating a new mount. But I doubt that
->> increasing the slot table will improve performance much, unless this is
->> a small-random-read, and spindle-limited workload.
->
-> Hi Tom !
->
-> It was a shot in the dark :)  .. as our test bed has not been setup
-> yet .However, since I'll be working on (very) slow clients, increasing
-> this buffer is still interesting (to me). I don't see where it is
-> controlled by a /proc value (?) - but that is not a concern at this
+On Wed, Apr 24, 2013 at 02:24:45AM +0000, Hefty, Sean wrote:
 
-The entries show up in /proc/sys/sunrpc (IIRC). The one you're looking
-for is called rdma_slot_table_entries.
+> Conceptually, RSS/TSS are a set of send/receive work queues all
+> belonging to the same transport level address.  There's no
+> parent-child relationship or needed pairing of send and receive
+> queues together in order to form a group.
 
-> moment as /proc entry is easy to add. More questions on the server
-> though (see below) ...
->
->>
->> 2)
->>
->> The observation appears to be that the bandwidth is server CPU limited.
->> Increasing the load offered by the client probably won't move the needle,
->> until that's addressed.
->>
->
-> Could you give more hints on which part of the path is CPU limited ?
+This view makes sense to me as well. Can someone also confirm that
+using TSS doesn't affect the on-the-wire packets vs the non-TSS cases?
+I heard a few comments that sounded like TSS users get a per-queue QPN
+in the outgoing packet rather than a single QPN for the group, which
+would be pretty ugly.
 
-Sorry, I don't. The profile showing 25% of the 16-core, 2-socket server
-spinning on locks is a smoking, flaming gun though. Maybe Tom Tucker
-has some ideas on the srv rdma code, but it could also be in the sunrpc
-or infiniband driver layers, can't really tell without the call stacks.
+IMHO, this sort of stuff needs to have a very well defined on-the-wire
+behaviour, even if it is just documented in the ibverbs man pages.
 
-> Is there a known Linux-based filesystem that is reasonbly tuned for
-> NFS-RDMA ? Any specific filesystem features would work well with
-> NFS-RDMA ? I'm wondering when disk+FS are added into the
-> configuration, how much advantages would NFS-RDMA get when compared
-> with a plain TCP/IP, say IPOIB on CM , transport ?
+> Personally, I'd like to see a way that better captures the notion of
+> a 'set of work queues with the same address'.  For example, it makes
+> more sense to me if a user created/destroyed the work queues
+> together, and if the WQs were viewed as being in a single state
+> (INIT, RTR, RTS...).
 
-NFS-RDMA is not really filesystem dependent, but certainly there are
-considerations for filesystems to support NFS, and of course the goal in
-general is performance. NFS-RDMA is a network transport, applicable to
-both client and server. Filesystem choice is a server consideration.
+Yah, an API that made work queues a sub object of the QP seems to make
+much more sense than trying to manage an array of QPs.
 
-I don't have a simple answer to your question about how much better
-NFS-RDMA is over other transports. Architecturally, a lot. In practice,
-there are many, many variables. Have you seen RFC5532, that I cowrote
-with the late Chet Juszczak? You may find it's still quite relevant.
-http://tools.ietf.org/html/rfc5532
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
