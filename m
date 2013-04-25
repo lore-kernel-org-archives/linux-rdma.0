@@ -1,58 +1,54 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH 1/5] ibmebus: convert of_platform_driver to
- platform_driver
-Date: Fri, 26 Apr 2013 06:12:21 +1000
-Message-ID: <1366920741.2869.32.camel@pasglop>
-References: <1366596798-9457-1-git-send-email-robherring2@gmail.com>
-	 <1366596798-9457-2-git-send-email-robherring2@gmail.com>
-	 <CAL_JsqKDF=hPEM0Jz-zZSXBCXBZ=gBjLWL6QDvq+nFWkqY3DMw@mail.gmail.com>
-	 <1366911329.2869.31.camel@pasglop> <517980B0.3000401@gmail.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: NFS over RDMA benchmark
+Date: Thu, 25 Apr 2013 16:14:15 -0400
+Message-ID: <51798E97.1000200@talpey.com>
+References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com> <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com> <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov> <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com> <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com> <20130423210607.GJ3676@fieldses.org> <0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com> <20130424150540.GB20275@fieldses.org> <20130424152631.GC20275@fieldses.org> <CABgxfbHShU7aEttJ35vdAjXduPFFj8+E4=5LZqOgh4e=5bax5Q@mail.gmail.com> <CABgxfbHpNgQyEjd2OVNMgJoLpt_VyLiOL5hMCLwotMd5kincwg@mail.gmail.com> <517823E0.4000402@talpey.com> <CABgxfbHePAyq6AH9TFKZKUmwEHOupuYUnfc1W99HAuDkYddUqQ@mail.gmail.com> <51797D8D.1080302@psu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <517980B0.3000401-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51797D8D.1080302-8DAjSxpRXgY@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Phil Pishioneri <pgp-8DAjSxpRXgY@public.gmane.org>
+Cc: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2013-04-25 at 14:14 -0500, Rob Herring wrote:
-> On 04/25/2013 12:35 PM, Benjamin Herrenschmidt wrote:
-> > On Thu, 2013-04-25 at 10:23 -0500, Rob Herring wrote:
-> >> Ben, Can I have your Ack for this? The change is straightforward and
-> >> neither of the 2 drivers used the id parameter that is removed.
-> > 
-> > Didn't you get my mail about a compile failure caused by this patch ?
-> 
-> No, and I can't find any evidence of a mail in my inbox or in the list
-> archives.
+On 4/25/2013 3:01 PM, Phil Pishioneri wrote:
+> On 4/25/13 1:18 PM, Wendy Cheng wrote:
+>> On Wed, Apr 24, 2013 at 11:26 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
+>>> 1)
+>>>
+>>> The client slot count is not hard-coded, it can easily be changed by
+>>> writing a value to /proc and initiating a new mount. But I doubt that
+>>> increasing the slot table will improve performance much, unless this is
+>>> a small-random-read, and spindle-limited workload.
+>> It was a shot in the dark :)  .. as our test bed has not been setup
+>> yet .However, since I'll be working on (very) slow clients, increasing
+>> this buffer is still interesting (to me). I don't see where it is
+>> controlled by a /proc value (?) - but that is not a concern at this
+>> moment as /proc entry is easy to add. More questions on the server
+>> though (see below) ...
+>
+> Might there be confusion between the RDMA slot table and the TCP/UDP
+> ones (which have proc entries under /proc/sys/sunrpc)?
+>
 
-Odd...
+No, the xprtrdma.ko creates similar slot table controls when it loads.
+See the names below, prefixed with "rdma":
 
-> > 
- .../...
-
-> You need patch 2 of this series to fix this:
-> 
-> driver core: move to_platform_driver to platform_device.h
-> 
-> which as Arnd pointed out needs to come first. I've fixed that in my
-> tree, but I don't think it warrants another post.
-
-Can I pull you tree from somewhere to test ?
-
-Cheers,
-Ben.
-
-> Rob
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> tmt@Home:~$ ls /proc/sys/sunrpc
+> max_resvport  nfsd_debug  nlm_debug  tcp_fin_timeout             tcp_slot_table_entries  udp_slot_table_entries
+> min_resvport  nfs_debug   rpc_debug  tcp_max_slot_table_entries  transports
+> tmt@Home:~$ sudo insmod xprtrdma
+> tmt@Home:~$ ls /proc/sys/sunrpc
+> max_resvport  nlm_debug                  rdma_memreg_strategy     tcp_fin_timeout             udp_slot_table_entries
+> min_resvport  rdma_inline_write_padding  rdma_pad_optimize        tcp_max_slot_table_entries
+> nfsd_debug    rdma_max_inline_read       rdma_slot_table_entries  tcp_slot_table_entries
+> nfs_debug     rdma_max_inline_write      rpc_debug                transports
+> tmt@Home:~$
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
