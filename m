@@ -1,29 +1,61 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] opensm: Fix Q_Key, TClass and limited keys parsing warnings
- in partitions.conf
-Date: Fri, 26 Apr 2013 06:39:08 -0400
-Message-ID: <517A594C.3030905@dev.mellanox.co.il>
-References: <1366726159-19201-1-git-send-email-alexne@mellanox.com>
+From: KOSAKI Motohiro <kosaki.motohiro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Infiniband use of get_user_pages()
+Date: Fri, 26 Apr 2013 13:19:04 -0400
+Message-ID: <CAHGf_=rRomz4r8c5nJ8edX29bpwxA4T4bFOq3rW2FgOuVSkLFw@mail.gmail.com>
+References: <20130424153810.GA25958@quack.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1366726159-19201-1-git-send-email-alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20130424153810.GA25958-+0h/O2h83AeN3ZZ/Hiejyg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/23/2013 10:09 AM, Alex Netes wrote:
-> Parsing these paraters caused 'unrecognized mgroup flag' warning.
-> 
-> Moreover fixed man page/doc for Q_Key/TClass paramters.
-> 
-> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>   when checking users of get_user_pages() (I'm doing some cleanups in that
+> area to fix filesystem's issues with mmap_sem locking) I've noticed that
+> infiniband drivers add number of pages obtained from get_user_pages() to
+> mm->pinned_vm counter. Although this makes some sence, it doesn't match
+> with any other user of get_user_pages() (e.g. direct IO) so has infiniband
+> some special reason why it does so?
 
-Thanks. Applied.
+I'm also puzzled because mm->pinned_vm_counter is only used from /proc. Who
+and how to use this accounting?
 
--- Hal
+
+>   Also that seems to be the only real reason why mmap_sem has to be grabbed
+> in exclusive mode, am I right?
+
+I think so. get_user_pages() doesn't need write lock.
+
+
+>   Another suspicious thing (at least in drivers/infiniband/core/umem.c:
+> ib_umem_get()) is that arguments of get_user_pages() are like:
+>                 ret = get_user_pages(current, current->mm, cur_base,
+>                                      min_t(unsigned long, npages,
+>                                            PAGE_SIZE / sizeof (struct page *)),
+>                                      1, !umem->writable, page_list, vma_list);
+> So we always have write argument set to 1 and force argument is set to
+> !umem->writable. Is that really intentional? My naive guess would be that
+> arguments should be switched... Although even in that case I fail to see
+> why 'force' argument should be set. Can someone please explain?
+
+If I understand correctly, IB and DirectIO have different set sequence.
+
+DirectIO
+ 1. write to buf
+ 2. write(buf). i.e. get_user_pages_fast(write=0)
+
+Infiniband
+ 1. reg_mr. i.e. get_user_pages(write=1)
+ 2. write to buf
+
+I mean, if direct-io is passed zero page, it is user mistake. but user
+process which uses infiniband set up mr before writing IO buffer,
+IIUC.
+
+In this case, I think user process which uses infiniband need to dereg
+mr before fork(). but it is another story.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
