@@ -1,56 +1,79 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: NFS over RDMA benchmark
-Date: Thu, 25 Apr 2013 15:26:24 -0700
-Message-ID: <CABgxfbErgDRi1VeaFWDXZkSmRdM+gSZUcfgm=SPAOpo-XoFdeA@mail.gmail.com>
-References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
-	<CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
-	<62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
-	<CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com>
-	<0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com>
-	<20130423210607.GJ3676@fieldses.org>
-	<0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com>
-	<20130424150540.GB20275@fieldses.org>
-	<20130424152631.GC20275@fieldses.org>
-	<CABgxfbHShU7aEttJ35vdAjXduPFFj8+E4=5LZqOgh4e=5bax5Q@mail.gmail.com>
-	<CABgxfbHpNgQyEjd2OVNMgJoLpt_VyLiOL5hMCLwotMd5kincwg@mail.gmail.com>
-	<517823E0.4000402@talpey.com>
-	<CABgxfbHePAyq6AH9TFKZKUmwEHOupuYUnfc1W99HAuDkYddUqQ@mail.gmail.com>
-	<51798C51.50209@talpey.com>
-	<51799D52.1040903@opengridcomputing.com>
-	<CABgxfbHnqQyucEpbGhsQ8-pA69peHUza7L7WHKD1K1n9Zv0WXQ@mail.gmail.com>
+From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Subject: Re: linux-next: manual merge of the net-next tree with the
+ infiniband tree
+Date: Fri, 26 Apr 2013 13:50:20 +1000
+Message-ID: <20130426135020.1f504f56b6c3412201f4fb9d@canb.auug.org.au>
+References: <20130418131843.bfeb6b1ad5fba1b0f706076e@canb.auug.org.au>
+	<20130424175304.GA701@oc0268524204.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Fri__26_Apr_2013_13_50_20_+1000_zlQAPrdRZwOHWPGC"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABgxfbHnqQyucEpbGhsQ8-pA69peHUza7L7WHKD1K1n9Zv0WXQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20130424175304.GA701-kqNz3JI7O+u3AZEqMmYM8VaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 25, 2013 at 2:58 PM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Thu, Apr 25, 2013 at 2:17 PM, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->> The Mellanox driver uses red-black trees extensively for resource
->> management, e.g. QP ID, CQ ID, etc... When completions come in from the HW,
->> these are used to find the associated software data structures I believe. It
->> is certainly possible that these trees get hot on lookup when we're pushing
->> a lot of data. I'm surprised, however, to see rb_insert_color there because
->> I'm not aware of any where that resources are being inserted into and/or
->> removed from a red-black tree in the data path.
->>
+--Signature=_Fri__26_Apr_2013_13_50_20_+1000_zlQAPrdRZwOHWPGC
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Cascardo,
+
+On Wed, 24 Apr 2013 14:53:04 -0300 Thadeu Lima de Souza Cascardo <cascardo@=
+linux.vnet.ibm.com> wrote:
 >
-> I think they (rb calls) are from base kernel, not from any NFS and/or
-> IB module (e.g. RPC, MLX, etc). See the right column ? .... it says
-> "/root/vmlinux". Just a guess - I don't know much about this "perf"
-> command.
->
+> On Thu, Apr 18, 2013 at 01:18:43PM +1000, Stephen Rothwell wrote:
+> >=20
+> > Today's linux-next merge of the net-next tree got a conflict in
+> > drivers/infiniband/hw/cxgb4/qp.c between commit 5b0c275926b8
+> > ("RDMA/cxgb4: Fix SQ allocation when on-chip SQ is disabled") from the
+> > infiniband tree and commit 9919d5bd01b9 ("RDMA/cxgb4: Fix onchip queue
+> > support for T5") from the net-next tree.
+> >=20
+> > I think that they are 2 different fixes for the same problem, so I just
+> > used the net-next version and can carry the fix as necessary (no action
+> > is required).
+>=20
+> Commit 5b0c275926b8 also keeps the intention of the original patch which
+> broke it, which was to return an error code, in case the allocation fails.
+> Commit 9919d5bd01b9 fix will return 0 in case the allocation fails.
+>=20
+> We should keep the other fix or fix the code again to return the proper
+> error code.
 
+OK, so today I switched the conflict fix to use the version from the
+infiniband tree.
 
-Oops .. take my words back ! I confused Linux's RB tree w/ BSD's.
-BSD's is a set of macros inside a header file while Linux's
-implementation is a base kernel library. So every KMOD is a suspect
-here :)
+--=20
+Cheers,
+Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
 
--- Wendy
+--Signature=_Fri__26_Apr_2013_13_50_20_+1000_zlQAPrdRZwOHWPGC
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJRefl8AAoJEECxmPOUX5FElWYP/0gd5bzIlZAhq1HBEAp4Sv6n
+7OfvDC/0brGRrfRPg7flwVEuzftUmTkFjtQHmntYvw+omke6/Bc55z9u13Z0CnFu
+QYJv2YYgjKiZ4MtXiyZ7yYg/Y4ppIXMalbzTZ3VTx4InXkoDTZUjBd3wghHrD+lP
+eghwlvH2ar2Z6XyKP300fbOGWJLIk+klC8Cr42W/s6DxMgBVUa42vovLo/2XDuNT
+YEoOEGOiEcDHB5sOaFKoKTFQJoxR+J/bbpDDRzfUVMubXiZEvtxmQs1FMDpCBkBD
+o3FGlCYwXqb/Lmxh1lzoSQb538vQrg4XfyDUGU/1eRuRy0aBYIYaq5jVLHfsmNvt
+eHQf9TOUEV/mtJmUyF546UUEp/TNafbVqWdLIHxw2irr/oPC04oCJTx2Sy+lfgju
+k5CRXzZB55NY6+G9qzCUn7UnrFz8Tm0cwHBm38f84LE2U+HuYP15KsurDJfAXNb2
+VCeMk7tSPbldFsSeBov5NUpPz0qGHsw13hgBFySdhY9vmsAAMIPR88dudwyiVLWS
+0QENerBIbcNqDevZnZaQK6l1B8avOzlJOjwzJaQP7YolDhkxxlYdJ15kcHUEtBNY
+XCc3mYlbz//kUnQsQjSWw1MM3AE8STMCjSJbAkWEIWtUqMANaS5cuSVsNt03qMjy
+SgivZhqJsoMhC/1/HCBj
+=25rY
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__26_Apr_2013_13_50_20_+1000_zlQAPrdRZwOHWPGC--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
