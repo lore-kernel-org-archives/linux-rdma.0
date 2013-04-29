@@ -1,42 +1,36 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH for-next 6/9] IB/core: Add receive Flow Steering support
-Date: Mon, 29 Apr 2013 14:16:55 -0500
-Message-ID: <517EC727.7070204@opengridcomputing.com>
-References: <1366811932-28199-1-git-send-email-ogerlitz@mellanox.com> <1366811932-28199-7-git-send-email-ogerlitz@mellanox.com> <CAJZOPZLLxetr5muxWdQZxBZBNf8fUt5ZthTMaVt=Dh9UZ3Uc1w@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups -
+ suggesting BOF during OFA conf to further discuss that
+Date: Mon, 29 Apr 2013 22:49:22 +0300
+Message-ID: <CAJZOPZKdrwReS7Pf_Fr-n=LQ_0zP=GRhggRSEO0XgWQBe9NxKA@mail.gmail.com>
+References: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw@mail.gmail.com>
+	<CAJZOPZKwH66uEukqDSvV+4-z+RhroOB1a0AiWBvdq7D3mso7gQ@mail.gmail.com>
+	<CAJZOPZL1eminwg+MVAC+8y4Pg3Nff=aeMN9ic57SB3cRAg8Hnw@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A823736FD1E64F@ORSMSX109.amr.corp.intel.com>
+	<20130425201255.GB31863@obsidianresearch.com>
+	<1828884A29C6694DAF28B7E6B8A823736FD1EF16@ORSMSX109.amr.corp.intel.com>
+	<20130425204357.GD31863@obsidianresearch.com>
+	<CAJZOPZK8hcfm2OCnsJkhCiRNxOFXOB0xc9i7tmB4qEnkXrXC0Q@mail.gmail.com>
+	<20130425214058.GF31863@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLLxetr5muxWdQZxBZBNf8fUt5ZthTMaVt=Dh9UZ3Uc1w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20130425214058.GF31863-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org \"Shlomo Pongratz\"" <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/29/2013 2:02 PM, Or Gerlitz wrote:
-> On Wed, Apr 24, 2013 at 4:58 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> The RDMA stack allows for applications to create IB_QPT_RAW_PACKET QPs,
->> for which plain Ethernet packets are used, specifically packets which
->> don't carry any QPN to be matched by the receiving side.
->>
->> Applications using these QPs must be provided with a method to
->> program some steering rule with the HW so packets arriving at
->> the local port can be routed to them.
-> Any feedback? we've added RAW PACKET QPs support back on 3.5 or 3.6
-> but without RX flow steering APIs applications can only send packets,
-> but not receive them, which is a bit of a problem for production... so
-> here's a concrete && working suggestion, waiting to be reviewed and
-> hopefully accepted.
->
-> Or.
+On Fri, Apr 26, 2013 at 12:40 AM, Jason Gunthorpe
 
-Hey Or,  This looks good at first glance.  I must confess I cannot tell 
-yet if this will provide everything we need for chelsio's RAW packet 
-requirements.  But I think we should move forward on this, and enhance 
-as needed.
+> Also, I feel what happens inside the kernel is more flexable API
+> wise, so dropping the uverbs component may also be something you want to look at.
 
-Steve.
-
+We didn't submit any uverbs exporting of these verbs on this series. I
+am  OK if the series is accepted for kernel use only (as was
+submitted) and later we open a discussion on the user space API where
+once converges, we can decide if to port the kernel RSS/TSS bits to
+the newly agreed API.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
