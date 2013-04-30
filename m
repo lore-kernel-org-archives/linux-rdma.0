@@ -1,116 +1,84 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: [ANNOUNCE] SRP: ProfitBricks publishes its SRP Initiator patches
-Date: Tue, 30 Apr 2013 11:34:47 +0400
-Message-ID: <CACaajQs0PswMb5KhpSkE1=_Sd1SwX2BznZP9x1FCkEk6ukJYrA@mail.gmail.com>
-References: <5167EDC8.3030909@profitbricks.com>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/5] IB/core: Add RSS and TSS QP groups -
+ suggesting BOF during OFA conf to further discuss that
+Date: Tue, 30 Apr 2013 12:04:25 +0300
+Message-ID: <517F8919.8060108@mellanox.com>
+References: <CAJZOPZLVyYODJ=z6KDfx0UJtaHpA7nUt2kwadEugpV1LWxhEMw@mail.gmail.com> <CAJZOPZKwH66uEukqDSvV+4-z+RhroOB1a0AiWBvdq7D3mso7gQ@mail.gmail.com> <CAJZOPZL1eminwg+MVAC+8y4Pg3Nff=aeMN9ic57SB3cRAg8Hnw@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A823736FD1E64F@ORSMSX109.amr.corp.intel.com> <20130425201255.GB31863@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A823736FD1EF16@ORSMSX109.amr.corp.intel.com> <20130425204357.GD31863@obsidianresearch.com> <CAJZOPZK8hcfm2OCnsJkhCiRNxOFXOB0xc9i7tmB4qEnkXrXC0Q@mail.gmail.com> <20130425214058.GF31863@obsidianresearch.com> <CAJZOPZLMtoxYyQO24F5_2Gr7ye0AFPQ5aZHp4dZFu1LQFK_cYg@mail.gmail.com> <20130429203653.GA25804@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5167EDC8.3030909-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <20130429203653.GA25804-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello!
-What is main difference between  bvanassche repo and sriemer ?
+On 4/29/2013 11:36 PM, Jason Gunthorpe wrote:
+> On Mon, Apr 29, 2013 at 10:52:21PM +0300, Or Gerlitz wrote:
+>> On Fri, Apr 26, 2013 at 12:40 AM, Jason Gunthorpe wrote:
+>>> But I don't follow why the send QPNs have to be sequential for
+>>> IPoIB. It looks like this is being motivated by RSS and RSS QPNs are
+>>> just being reused for TSS?
+>> Go read "It turns out that there are IPoIB drivers used by some
+>> operating-systems
+>> and/or Hypervisors in a para-virtualization (PV) scheme which extract the
+>> source QPN from the CQ WC associated with an incoming packets in order
+>> to.." and what follows in the change-log of patch 4/5
+>> http://marc.info/?l=linux-rdma&m=136412901621797&w=2
+> This is what I said in the first place, the RFC is premised on the
+> src.QPN to be set properly, you can't just mess with it, because stuff
+> needs it.
+>
+> I think you should have split this patch up, there is lots going on
+> here.
+>
+> - Add proper TSS that doesn't change the wire protocol
+> - Add fake TSS that does change the wire protocol, and
+>    properly document those changes so other people can
+>    follow/implement them
+> - Add RSS
+>
+> And.. 'tss_qpn_mask_sz' seems unnecessarily limiting, using
+>   WC.srcQPN + ipoib_header.tss_qpn_offset == real QPN
+>   (ie use a signed offset, not a mask)
+> Seems much better than
+>   Wc.srcQPN & ~((1<<(ipoib_header.tss_qpn_mask_sz >> 12))-1) == real QPN
+>   (Did I even get that right?)
+>
+> Specifically it means the requirements for alignment and
+> contiguous-ness are gone. This means you can implement it without
+> using the QP groups API and it will work immediately with every HCA
+> out there. I think if we are going to actually mess with the wire
+> protocol this sort of broad applicability is important.
+>
+> As for the other two questions: seems reasonable to me. Without a
+> consensus among HW vendors how to do this it makes sense to move ahead
+> *in the kernel* with a minimal API. Userspace is a different question
+> of course..
+>
+> Jason
+Hi Jason,
 
-2013/4/12 Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>:
-> Hello everyone,
->
-> I'm very proud to announce that we finally publish our SRP initiator
-> patches we've been working on for quite some time now.
->
-> In the first step we publish our way of failing IO fast as we've noti=
-ced
-> that the way Bart Van Assche does that in his GitHub repository doesn=
-'t
-> match our requirements completely.
->
-> His repo: https://github.com/bvanassche/ib_srp-backport
-> Our repo: https://github.com/sriemer/ib_srp
->
-> We want to fail IO fast in exactly the time we configure. With our
-> patches this works (or please tell us why not). We provide you with f=
-ull
-> test descriptions and related shell scripts. Everything is done with =
-as
-> little dependencies as possible.
->
-> The shell scripts can also be very useful to show how to configure an=
-d
-> use SRP with sysfs only. This is why I've added the scst-devel mailin=
-g
-> list here. We want to be as close as possible to the kernel.
->
-> We want to combine efforts here and to get valuable feedback from you
-> all. Evaluation, testing, criticism, comments, etc more than welcome!
-> Hopefully, we can get a really cool solution into the mainline togeth=
-er!
-> This would make my job as the maintainer for the ProfitBricks host
-> kernels a lot easier! ;-)
->
-> You'll notice: We've already adapted patches from Bart and parts of h=
-is
-> patches. So it is only fair to publish our patches as well. :-)
->
-> It is the same as with Bart's patches: This can't be used for
-> production, yet. Our patches don't have the reconnect for now. Ideas =
-how
-> to implement that on top are welcome. Just send your patches directly=
- to
-> me! :-)
->
-> Please further notice: There is a major bug in the upstream
-> multipath-tools. These read sysfs files cached which leads to IO on
-> offline devices. We've fixed it for us and publish the fix for you as
-> well. :-)
->
-> Git repo:
-> https://github.com/sriemer/multipath-tools
->
-> Thank you so much for your help in the past and in the future as well=
-!
-> Thanks for the patience and reading this!
->
-> We'll continue publishing our SRP patches relevant for the mainline.
-> If you want to meet me or ProfitBricks in person, we'll have a booth =
-on
-> LinuxTag in Berlin/Germany. I'll have a technical talk there about SR=
-P:
->
-> http://www.linuxtag.org/2013/en/program/thursday-may-23-2013.html?eve=
-ntid=3D208
->
-> Cheers,
-> Sebastian
->
-> --
-> Sebastian Riemer
-> Linux Kernel Developer - Storage
->
-> ProfitBricks GmbH =E2=80=A2 Greifswalder Str. 207 =E2=80=A2 10405 Ber=
-lin, Germany
-> www.profitbricks.com =E2=80=A2 sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
->
-> Sitz der Gesellschaft: Berlin
-> Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-> Gesch=C3=A4ftsf=C3=BChrer: Andreas Gauger, Achim Weiss
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Your suggestion could have been valid if the the IPoIB header was larger.
+Please note that the a QPN occupies 3 octets and thus its value lies in 
+the range of [0..0xFFFFFF].
+On the other hand the reserved field in the IPoIB header occupies only 2 
+octets, so given an arbitrary group of source QPN it may be not possible 
+to recover the "real QPN".
+This is why the "real QPN" should be a power of two and the rest should 
+have consecutive numbers. And since the number of the TSS QP is 
+relatively small, that is, in the order of the number of the cores than 
+masking the lower bits of the "Wc.srcQPN" will recover the "real QPN" 
+number.
+Also by sending only the mask length we don't use the entire reserved 
+filed but only 4 bits leaving 12 bits to future use.
 
+Best regards,
 
+S.P.
 
---=20
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
