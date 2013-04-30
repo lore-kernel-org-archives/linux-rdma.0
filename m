@@ -1,80 +1,116 @@
-From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: NFS over RDMA benchmark
-Date: Tue, 30 Apr 2013 05:09:27 +0000
-Message-ID: <0EE9A1CDC8D6434DB00095CD7DB873462CF9C90C@MTLDAG01.mtl.com>
-References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
- <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
- <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
- <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com>
- <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com>
- <20130423210607.GJ3676@fieldses.org>
- <0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com>
- <20130424150540.GB20275@fieldses.org> <20130424152631.GC20275@fieldses.org>
- <0EE9A1CDC8D6434DB00095CD7DB873462CF9A820@MTLDAG01.mtl.com>
- <20130428144248.GA2037@fieldses.org>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: [ANNOUNCE] SRP: ProfitBricks publishes its SRP Initiator patches
+Date: Tue, 30 Apr 2013 11:34:47 +0400
+Message-ID: <CACaajQs0PswMb5KhpSkE1=_Sd1SwX2BznZP9x1FCkEk6ukJYrA@mail.gmail.com>
+References: <5167EDC8.3030909@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130428144248.GA2037-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <5167EDC8.3030909-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hello!
+What is main difference between  bvanassche repo and sriemer ?
+
+2013/4/12 Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>:
+> Hello everyone,
+>
+> I'm very proud to announce that we finally publish our SRP initiator
+> patches we've been working on for quite some time now.
+>
+> In the first step we publish our way of failing IO fast as we've noti=
+ced
+> that the way Bart Van Assche does that in his GitHub repository doesn=
+'t
+> match our requirements completely.
+>
+> His repo: https://github.com/bvanassche/ib_srp-backport
+> Our repo: https://github.com/sriemer/ib_srp
+>
+> We want to fail IO fast in exactly the time we configure. With our
+> patches this works (or please tell us why not). We provide you with f=
+ull
+> test descriptions and related shell scripts. Everything is done with =
+as
+> little dependencies as possible.
+>
+> The shell scripts can also be very useful to show how to configure an=
+d
+> use SRP with sysfs only. This is why I've added the scst-devel mailin=
+g
+> list here. We want to be as close as possible to the kernel.
+>
+> We want to combine efforts here and to get valuable feedback from you
+> all. Evaluation, testing, criticism, comments, etc more than welcome!
+> Hopefully, we can get a really cool solution into the mainline togeth=
+er!
+> This would make my job as the maintainer for the ProfitBricks host
+> kernels a lot easier! ;-)
+>
+> You'll notice: We've already adapted patches from Bart and parts of h=
+is
+> patches. So it is only fair to publish our patches as well. :-)
+>
+> It is the same as with Bart's patches: This can't be used for
+> production, yet. Our patches don't have the reconnect for now. Ideas =
+how
+> to implement that on top are welcome. Just send your patches directly=
+ to
+> me! :-)
+>
+> Please further notice: There is a major bug in the upstream
+> multipath-tools. These read sysfs files cached which leads to IO on
+> offline devices. We've fixed it for us and publish the fix for you as
+> well. :-)
+>
+> Git repo:
+> https://github.com/sriemer/multipath-tools
+>
+> Thank you so much for your help in the past and in the future as well=
+!
+> Thanks for the patience and reading this!
+>
+> We'll continue publishing our SRP patches relevant for the mainline.
+> If you want to meet me or ProfitBricks in person, we'll have a booth =
+on
+> LinuxTag in Berlin/Germany. I'll have a technical talk there about SR=
+P:
+>
+> http://www.linuxtag.org/2013/en/program/thursday-may-23-2013.html?eve=
+ntid=3D208
+>
+> Cheers,
+> Sebastian
+>
+> --
+> Sebastian Riemer
+> Linux Kernel Developer - Storage
+>
+> ProfitBricks GmbH =E2=80=A2 Greifswalder Str. 207 =E2=80=A2 10405 Ber=
+lin, Germany
+> www.profitbricks.com =E2=80=A2 sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+>
+> Sitz der Gesellschaft: Berlin
+> Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
+> Gesch=C3=A4ftsf=C3=BChrer: Andreas Gauger, Achim Weiss
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-> -----Original Message-----
-> From: J. Bruce Fields [mailto:bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org]
-> Sent: Sunday, April 28, 2013 17:43
-> To: Yan Burman
-> Cc: Wendy Cheng; Atchley, Scott; Tom Tucker; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz
-> Subject: Re: NFS over RDMA benchmark
-> 
-> On Sun, Apr 28, 2013 at 06:28:16AM +0000, Yan Burman wrote:
-> > > > > > > > >> On Wed, Apr 17, 2013 at 7:36 AM, Yan Burman
-> > > > > > > > >> <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > > > > > > >>> I've been trying to do some benchmarks for NFS over
-> > > > > > > > >>> RDMA and I seem to
-> > > > > > > > only get about half of the bandwidth that the HW can give me.
-> > > > > > > > >>> My setup consists of 2 servers each with 16 cores,
-> > > > > > > > >>> 32Gb of memory, and
-> > > > > > > > Mellanox ConnectX3 QDR card over PCI-e gen3.
-> > > > > > > > >>> These servers are connected to a QDR IB switch. The
-> > > > > > > > >>> backing storage on
-> > > > > > > > the server is tmpfs mounted with noatime.
-> > > > > > > > >>> I am running kernel 3.5.7.
-> > > > > > > > >>>
-> > > > > > > > >>> When running ib_send_bw, I get 4.3-4.5 GB/sec for
-> > > > > > > > >>> block sizes 4-
-> > > 512K.
-> > > > > > > > >>> When I run fio over rdma mounted nfs, I get
-> > > > > > > > >>> 260-2200MB/sec for the
-> > > > > > > > same block sizes (4-512K). running over IPoIB-CM, I get
-> > > > > > > > 200-
-> > > 980MB/sec.
-> ...
-> > > > > > > I am trying to get maximum performance from a single server
-> > > > > > > - I used 2
-> > > > > > processes in fio test - more than 2 did not show any performance
-> boost.
-> > > > > > > I tried running fio from 2 different PCs on 2 different
-> > > > > > > files, but the sum of
-> > > > > > the two is more or less the same as running from single client PC.
-> > > > > > >
 
-I finally got up to 4.1GB/sec bandwidth with RDMA (ipoib-CM bandwidth is also way higher now).
-For some reason when I had intel IOMMU enabled, the performance dropped significantly.
-I now get up to ~95K IOPS and 4.1GB/sec bandwidth.
-Now I will take care of the issue that I am running only at 40Gbit/s instead of 56Gbit/s, but that is another unrelated problem (I suspect I have a cable issue).
-
-This is still strange, since ib_send_bw with intel iommu enabled did get up to 4.5GB/sec, so why did intel iommu affect only nfs code?
-
-Yan
-
+--=20
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
