@@ -1,118 +1,73 @@
-From: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: NFS over RDMA benchmark
-Date: Tue, 30 Apr 2013 14:23:13 +0000
-Message-ID: <0EE9A1CDC8D6434DB00095CD7DB873462CF9CBA7@MTLDAG01.mtl.com>
-References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com>
- <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com>
- <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov>
- <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com>
- <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com>
- <20130423210607.GJ3676@fieldses.org>
- <0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com>
- <20130424150540.GB20275@fieldses.org> <20130424152631.GC20275@fieldses.org>
- <0EE9A1CDC8D6434DB00095CD7DB873462CF9A820@MTLDAG01.mtl.com>
- <20130428144248.GA2037@fieldses.org>
- <0EE9A1CDC8D6434DB00095CD7DB873462CF9C90C@MTLDAG01.mtl.com>
- <517FC182.3030703@talpey.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] libibverbs: Use autoreconf in autogen.sh
+Date: Tue, 30 Apr 2013 14:29:38 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4B1CD802@xmb-rcd-x01.cisco.com>
+References: <1366652516-9547-1-git-send-email-jsquyres@cisco.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC44050FB1@xmb-rcd-x01.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <517FC182.3030703-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC44050FB1-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
 Content-Language: en-US
+Content-ID: <881DD34DB368EB48AB6535A61B087F60-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Bump bump.  :-)
+
+On Apr 25, 2013, at 11:38 AM, Jeff Squyres (jsquyres) <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
+
+> Bump.
+> 
+> On Apr 22, 2013, at 1:41 PM, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
+> 
+>> The old sequence of Autotools commands listed in autogen.sh is no
+>> longer correct.  Instead, just use the single "autoreconf" command,
+>> which will invoke all the Right Autotools commands in the correct
+>> order.
+>> 
+>> Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+>> ---
+>> autogen.sh | 6 +-----
+>> 1 file changed, 1 insertion(+), 5 deletions(-)
+>> 
+>> diff --git a/autogen.sh b/autogen.sh
+>> index fd47839..6c9233e 100755
+>> --- a/autogen.sh
+>> +++ b/autogen.sh
+>> @@ -1,8 +1,4 @@
+>> #! /bin/sh
+>> 
+>> set -x
+>> -aclocal -I config
+>> -libtoolize --force --copy
+>> -autoheader
+>> -automake --foreign --add-missing --copy
+>> -autoconf
+>> +autoreconf -ifv -I config
+>> -- 
+>> 1.8.1.1
+>> 
+> 
+> 
+> -- 
+> Jeff Squyres
+> jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+> For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-> -----Original Message-----
-> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
-> Sent: Tuesday, April 30, 2013 16:05
-> To: Yan Burman
-> Cc: J. Bruce Fields; Wendy Cheng; Atchley, Scott; Tom Tucker; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz
-> Subject: Re: NFS over RDMA benchmark
-> 
-> On 4/30/2013 1:09 AM, Yan Burman wrote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: J. Bruce Fields [mailto:bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org]
-> >> Sent: Sunday, April 28, 2013 17:43
-> >> To: Yan Burman
-> >> Cc: Wendy Cheng; Atchley, Scott; Tom Tucker;
-> >> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz
-> >> Subject: Re: NFS over RDMA benchmark
-> >>
-> >> On Sun, Apr 28, 2013 at 06:28:16AM +0000, Yan Burman wrote:
-> >>>>>>>>>>> On Wed, Apr 17, 2013 at 7:36 AM, Yan Burman
-> >>>>>>>>>>> <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>>>>>>>>>>> I've been trying to do some benchmarks for NFS over RDMA
-> >>>>>>>>>>>> and I seem to
-> >>>>>>>>> only get about half of the bandwidth that the HW can give me.
-> >>>>>>>>>>>> My setup consists of 2 servers each with 16 cores, 32Gb of
-> >>>>>>>>>>>> memory, and
-> >>>>>>>>> Mellanox ConnectX3 QDR card over PCI-e gen3.
-> >>>>>>>>>>>> These servers are connected to a QDR IB switch. The backing
-> >>>>>>>>>>>> storage on
-> >>>>>>>>> the server is tmpfs mounted with noatime.
-> >>>>>>>>>>>> I am running kernel 3.5.7.
-> >>>>>>>>>>>>
-> >>>>>>>>>>>> When running ib_send_bw, I get 4.3-4.5 GB/sec for block
-> >>>>>>>>>>>> sizes 4-
-> >>>> 512K.
-> >>>>>>>>>>>> When I run fio over rdma mounted nfs, I get 260-2200MB/sec
-> >>>>>>>>>>>> for the
-> >>>>>>>>> same block sizes (4-512K). running over IPoIB-CM, I get
-> >>>>>>>>> 200-
-> >>>> 980MB/sec.
-> >> ...
-> >>>>>>>> I am trying to get maximum performance from a single server
-> >>>>>>>> - I used 2
-> >>>>>>> processes in fio test - more than 2 did not show any performance
-> >> boost.
-> >>>>>>>> I tried running fio from 2 different PCs on 2 different files,
-> >>>>>>>> but the sum of
-> >>>>>>> the two is more or less the same as running from single client PC.
-> >>>>>>>>
-> >
-> > I finally got up to 4.1GB/sec bandwidth with RDMA (ipoib-CM bandwidth is
-> also way higher now).
-> > For some reason when I had intel IOMMU enabled, the performance
-> dropped significantly.
-> > I now get up to ~95K IOPS and 4.1GB/sec bandwidth.
-> 
-> Excellent, but is that 95K IOPS a typo? At 4KB, that's less than 400MBps.
-> 
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
 
-That is not a typo. I get 95K IOPS with randrw test with block size 4K.
-I get 4.1GBps with block size 256K randread test.
-
-> What is the client CPU percentage you see under this workload, and how
-> different are the NFS/RDMA and NFS/IPoIB overheads?
-
-NFS/RDMA has about more 20-30% CPU usage than NFS/IPoIB, but RDMA has almost twice the bandwidth of IPoIB.
-Overall, CPU usage gets up to about 20% for randread and 50% for randwrite.
-
-> 
-> > Now I will take care of the issue that I am running only at 40Gbit/s instead
-> of 56Gbit/s, but that is another unrelated problem (I suspect I have a cable
-> issue).
-> >
-> > This is still strange, since ib_send_bw with intel iommu enabled did get up
-> to 4.5GB/sec, so why did intel iommu affect only nfs code?
-> 
-> You'll need to do more profiling to track that down. I would suspect that
-> ib_send_bw is using some sort of direct hardware access, bypassing the
-> IOMMU management and possibly performing no dynamic memory
-> registration.
-> 
-> The NFS/RDMA code goes via the standard kernel DMA API, and correctly
-> registers/deregisters memory on a per-i/o basis in order to provide storage
-> data integrity. Perhaps there are overheads in the IOMMU management
-> which can be addressed.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
