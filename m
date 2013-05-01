@@ -1,40 +1,82 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 6/9] IB/core: Add receive Flow Steering support
-Date: Tue, 30 Apr 2013 23:37:55 +0300
-Message-ID: <CAJZOPZ+t8NbrFOWvjEX18A1GpKxUP_H0V6iXJqQ3Neo3+02=Gg@mail.gmail.com>
-References: <1366811932-28199-1-git-send-email-ogerlitz@mellanox.com>
-	<1366811932-28199-7-git-send-email-ogerlitz@mellanox.com>
-	<CAJZOPZLLxetr5muxWdQZxBZBNf8fUt5ZthTMaVt=Dh9UZ3Uc1w@mail.gmail.com>
-	<517EC727.7070204@opengridcomputing.com>
-	<0000013e574fe16f-b841863a-d970-468e-83fa-0fbd31d65ef9-000000@email.amazonses.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-3.10 4/4] IB/iser: Add support for iser CM REQ additional info
+Date: Wed,  1 May 2013 16:25:27 +0300
+Message-ID: <1367414727-22680-5-git-send-email-ogerlitz@mellanox.com>
+References: <1367414727-22680-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0000013e574fe16f-b841863a-d970-468e-83fa-0fbd31d65ef9-000000-p/GC64/jrecnJqMo6gzdpkEOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1367414727-22680-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 29, 2013 at 10:40 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
-> On Mon, 29 Apr 2013, Steve Wise wrote:
+Annex A12 of the IBTA spec defines additional information that needs
+to be provided through the CM exchange and relate to usage of ZBVA
+(Zero Based VAs) and Send With Invalidate over this iser connection.
 
->> Hey Or,  This looks good at first glance.  I must confess I cannot tell yet if
->> this will provide everything we need for chelsio's RAW packet requirements.
->> But I think we should move forward on this, and enhance as needed.
+Currently, the initiator set both to not supported, but does provide
+the header such that existing iser targets can be patched too, so
+they start looking on the private data carried by the CM.
 
-> Well we are using the raw qp s here too and would like to use receive
-> flow steering. Could we please get this merged?
+This is preparation step to enable iser with HW drivers for which
+FMRs are not supported, such as mlx4 VF instances or new HW devices
+which might support only FRWR (Fast Registration Work-Requests) along
+the details of the IB_DEVICE_MEM_MGT_EXTENSIONS device capability.
 
-Steve, Christoph -- thanks for the positive feedback.
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.h |    9 +++++++++
+ drivers/infiniband/ulp/iser/iser_verbs.c |    7 +++++++
+ 2 files changed, 16 insertions(+), 0 deletions(-)
 
-So Roland, not that I expect this double ack to behave as our gerrit
-system where a +2 feedback triggers acceptance... but still,  there's
-real world need here and real patches that address that need - any
-questions or comments on them? if not, are they going to get into
-3.10?
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index f6b8ff0..cae6084 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -140,6 +140,15 @@ struct iser_hdr {
+ 	__be64  read_va;
+ } __attribute__((packed));
+ 
++
++#define ISER_ZBVA_NOT_SUPPORTED		0x80
++#define ISER_SEND_W_INV_NOT_SUPPORTED	0x40
++
++struct iser_cm_hdr {
++	u8      flags;
++	u8      rsvd[3];
++} __packed;
++
+ /* Constant PDU lengths calculations */
+ #define ISER_HEADERS_LEN  (sizeof(struct iser_hdr) + sizeof(struct iscsi_hdr))
+ 
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 13838ad..5278916 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -499,6 +499,7 @@ static int iser_route_handler(struct rdma_cm_id *cma_id)
+ {
+ 	struct rdma_conn_param conn_param;
+ 	int    ret;
++	struct iser_cm_hdr req_hdr;
+ 
+ 	ret = iser_create_ib_conn_res((struct iser_conn *)cma_id->context);
+ 	if (ret)
+@@ -510,6 +511,12 @@ static int iser_route_handler(struct rdma_cm_id *cma_id)
+ 	conn_param.retry_count	       = 7;
+ 	conn_param.rnr_retry_count     = 6;
+ 
++	memset(&req_hdr, 0, sizeof(req_hdr));
++	req_hdr.flags = (ISER_ZBVA_NOT_SUPPORTED |
++			ISER_SEND_W_INV_NOT_SUPPORTED);
++	conn_param.private_data		= (void *)&req_hdr;
++	conn_param.private_data_len	= sizeof(struct iser_cm_hdr);
++
+ 	ret = rdma_connect(cma_id, &conn_param);
+ 	if (ret) {
+ 		iser_err("failure connecting: %d\n", ret);
+-- 
+1.7.1
 
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
