@@ -1,43 +1,34 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.10 3/4] IB/iser: Return error to upper layers on EAGAIN registration failures
-Date: Wed,  1 May 2013 16:25:26 +0300
-Message-ID: <1367414727-22680-4-git-send-email-ogerlitz@mellanox.com>
-References: <1367414727-22680-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-3.10 0/4] iSER initiator updates for 3.10
+Date: Wed,  1 May 2013 16:25:23 +0300
+Message-ID: <1367414727-22680-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1367414727-22680-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 819a087 "IB/iser: Avoid error prints on EAGAIN registration
-failures" not only eliminated the error print on that case, but
-rather also modified the code such that it doesn't return any error
-to upper layers. As a result a wrong mapping was used. Fix this
-such that we do return error on that case.
+Hi Roland,
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iser_memory.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Here are the iser initiator updates for the 3.10 merge window, the 
+"Return error to upper layers on EAGAIN registration failures" patch 
+is marked for -stable fixing a bug that went it in 3.9
 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index be1edb0..68ebb7f 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -416,8 +416,9 @@ int iser_reg_rdma_mem(struct iscsi_iser_task *iser_task,
- 			for (i=0 ; i<ib_conn->page_vec->length ; i++)
- 				iser_err("page_vec[%d] = 0x%llx\n", i,
- 					 (unsigned long long) ib_conn->page_vec->pages[i]);
--			return err;
- 		}
-+		if (err)
-+			return err;
- 	}
- 	return 0;
- }
--- 
-1.7.1
+Or.
+
+Or Gerlitz (2):
+  IB/iser: Return error to upper layers on EAGAIN registration failures
+  IB/iser: Add support for iser CM REQ additional info
+
+Roi Dayan (2):
+  IB/iser: Add module version
+  IB/iser: Move informational messages from error to info level
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c  |   24 +++++++++---------
+ drivers/infiniband/ulp/iser/iscsi_iser.h  |   24 ++++++++++++++++---
+ drivers/infiniband/ulp/iser/iser_memory.c |    3 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c  |   36 +++++++++++++++++-----------
+ 4 files changed, 56 insertions(+), 31 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
