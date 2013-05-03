@@ -1,66 +1,77 @@
-From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: decent performance drop for SCSI LLD / SAN initiator when iommu
-	is turned on
-Date: Fri, 03 May 2013 15:40:28 -0400
-Message-ID: <518412AC.3070507@redhat.com>
-References: <CAJZOPZJ8eF-Q+WFzA-_vvzkpSb41PQjKFo27_Wi3McUccOqs9A@mail.gmail.com>
-	<20130502015603.GC26105@redhat.com>
-	<0EE9A1CDC8D6434DB00095CD7DB873462CF9D73E@MTLDAG01.mtl.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [RFC-v4 7/9] iscsi-target: Refactor TX queue logic + export
+ response PDU creation
+Date: Fri, 3 May 2013 23:04:50 +0200
+Message-ID: <CAMuHMdWVpF9G2v5oSYL642mpWdQCMGBhSQYa=Zw0s9DyoNJLjQ@mail.gmail.com>
+References: <1365799962-13543-1-git-send-email-nab@linux-iscsi.org>
+	<1365799962-13543-8-git-send-email-nab@linux-iscsi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <0EE9A1CDC8D6434DB00095CD7DB873462CF9D73E-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1365799962-13543-8-git-send-email-nab@linux-iscsi.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Alexander Nezhinsky <alexandern@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/02/2013 10:13 AM, Yan Burman wrote:
+Hi Nicholas,
+
+On Fri, Apr 12, 2013 at 10:52 PM, Nicholas A. Bellinger
+<nab@linux-iscsi.org> wrote:
+> --- a/drivers/target/iscsi/iscsi_target.c
+> +++ b/drivers/target/iscsi/iscsi_target.c
+
+>  static int iscsit_send_reject(
+>         struct iscsi_cmd *cmd,
+>         struct iscsi_conn *conn)
+> @@ -3505,18 +3548,9 @@ static int iscsit_send_reject(
+>         struct iscsi_reject *hdr;
+>         struct kvec *iov;
 >
->
->> -----Original Message-----
->> From: Michael S. Tsirkin [mailto:mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
->> Sent: Thursday, May 02, 2013 04:56
->> To: Or Gerlitz
->> Cc: Roland Dreier; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; Yan Burman; linux-
->> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: decent performance drop for SCSI LLD / SAN initiator when
->> iommu is turned on
->>
->> On Thu, May 02, 2013 at 02:11:15AM +0300, Or Gerlitz wrote:
->>> Hi Roland, IOMMU folks,
->>>
->>> So we've noted that when configuring the kernel&&  booting with intel
->>> iommu set to on on a physical node (non VM, and without enabling SRIOV
->>> by the HW device driver) raw performance of the iSER (iSCSI RDMA) SAN
->>> initiator is reduced notably, e.g in the testbed we looked today we
->>> had ~260K 1KB random IOPS and 5.5GBs BW for 128KB IOs with iommu
->>> turned off for single LUN, and ~150K IOPS and 4GBs BW with iommu
->>> turned on. No change on the target node between runs.
->>
->> That's why we have iommu=pt.
->> See definition of iommu_pass_through in arch/x86/kernel/pci-dma.c.
->
-> I tried passing "intel_iommu=on iommu=pt" to 3.8.11 kernel and I still get performance degradation.
-> I get the same numbers with iommu=pt as without it.
->
-> I wanted to send perf output, but currently I seem to have some problem with its output.
-> Will try to get perf differences next week.
->
-> Yan
->
->
-> _______________________________________________
-> iommu mailing list
-> iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-> https://lists.linuxfoundation.org/mailman/listinfo/iommu
-dmesg dump? -- interested to see if x2apic is on, and if MSI is used (or not)
+> -       hdr                     =3D (struct iscsi_reject *) cmd->pdu;
+
+Woops, and now hdr is no longer initialized:
+
+drivers/target/iscsi/iscsi_target.c: In function =E2=80=98iscsit_send_r=
+eject=E2=80=99:
+drivers/target/iscsi/iscsi_target.c:3577: warning: =E2=80=98hdr=E2=80=99=
+ is used
+uninitialized in this function
+
+> -       hdr->opcode             =3D ISCSI_OP_REJECT;
+> -       hdr->flags              |=3D ISCSI_FLAG_CMD_FINAL;
+> -       hton24(hdr->dlength, ISCSI_HDR_LEN);
+> -       hdr->ffffffff           =3D cpu_to_be32(0xffffffff);
+> -       cmd->stat_sn            =3D conn->stat_sn++;
+> -       hdr->statsn             =3D cpu_to_be32(cmd->stat_sn);
+> -       hdr->exp_cmdsn  =3D cpu_to_be32(conn->sess->exp_cmd_sn);
+> -       hdr->max_cmdsn  =3D cpu_to_be32(conn->sess->max_cmd_sn);
+> +       iscsit_build_reject(cmd, conn, (struct iscsi_reject *)&cmd->p=
+du[0]);
+
+Hence it will crash later:
+
+                iscsit_do_crypto_hash_buf(&conn->conn_tx_hash,
+                                (unsigned char *)hdr, ISCSI_HDR_LEN,
+                                0, NULL, (u8 *)header_digest);
+
+and
+
+        pr_debug("Built Reject PDU StatSN: 0x%08x, Reason: 0x%02x,"
+                " CID: %hu\n", ntohl(hdr->statsn), hdr->reason, conn->c=
+id);
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-=
+m68k.org
+
+In personal conversations with technical people, I call myself a hacker=
+=2E But
+when I'm talking to journalists I just say "programmer" or something li=
+ke that.
+                                -- Linus Torvalds
