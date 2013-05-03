@@ -1,38 +1,28 @@
-From: Asias He <asias@redhat.com>
-Subject: Re: initial LIO iSER performance numbers [was: GIT PULL] target
- updates for v3.10-rc1)
-Date: Fri, 3 May 2013 15:40:57 +0800
-Message-ID: <20130503074057.GA20544@hj.localdomain>
-References: <1367290766.16334.77.camel@haakon3.risingtidesystems.com>
- <51827114.9010907@mellanox.com>
- <1367523115.23900.118.camel@haakon3.risingtidesystems.com>
- <CAJZOPZ+9kwqDm5xvxZ8jLDSRnR_f7L7r7SfApNwU6fVN3o8C4g@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [ANNOUNCE] SRP: ProfitBricks publishes its SRP Initiator patches
+Date: Fri, 03 May 2013 13:45:25 +0200
+Message-ID: <5183A355.5090401@acm.org>
+References: <5167EDC8.3030909@profitbricks.com> <CACaajQs0PswMb5KhpSkE1=_Sd1SwX2BznZP9x1FCkEk6ukJYrA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZOPZ+9kwqDm5xvxZ8jLDSRnR_f7L7r7SfApNwU6fVN3o8C4g@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <or.gerlitz@gmail.com>
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Or Gerlitz <ogerlitz@mellanox.com>, "linux-rdma (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Roland Dreier <roland@kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, ewg@lists.openfabrics.org, Shlomi Sasson <shlomis@mellanox.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACaajQs0PswMb5KhpSkE1=_Sd1SwX2BznZP9x1FCkEk6ukJYrA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 03, 2013 at 09:57:20AM +0300, Or Gerlitz wrote:
-> On Thu, May 2, 2013 at 10:31 PM, Nicholas A. Bellinger
-> <nab@linux-iscsi.org> wrote:
-> 
-> >> We used RAMDISK_MCP backend which was patched to act as NULL device, so
-> >> we can test the raw iSER wire performance.
-> 
-> > Btw, I'll be including a similar patch to allow for RAMDISK_NULL to be
-> > configured as a NULL device mode.
-> 
-> yep, that would be very helpful, so people can do that sort of testing
-> without hacks...
+On 04/30/13 09:34, Vasiliy Tolstov wrote:
+> What is main difference between bvanassche repo and sriemer ?
 
-+1, I used to hack drivers/block/brd.c to get a NULL ramdisk.
+Good question. As soon as I have the time I will try to find a single 
+approach that works for everyone and post a new patch series for review 
+on the linux-rdma mailing list such that these can be included in the 
+mainline kernel.
 
-> Or.
-
--- 
-Asias
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
