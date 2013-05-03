@@ -1,53 +1,66 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/1] OpenSM: dfsssp - add support for multicast
-Date: Fri, 03 May 2013 13:45:25 -0400
-Message-ID: <5183F7B5.3010809@dev.mellanox.co.il>
-References: <1367496926-6824-1-git-send-email-domke.j.aa@m.titech.ac.jp>
+From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: decent performance drop for SCSI LLD / SAN initiator when iommu
+	is turned on
+Date: Fri, 03 May 2013 15:40:28 -0400
+Message-ID: <518412AC.3070507@redhat.com>
+References: <CAJZOPZJ8eF-Q+WFzA-_vvzkpSb41PQjKFo27_Wi3McUccOqs9A@mail.gmail.com>
+	<20130502015603.GC26105@redhat.com>
+	<0EE9A1CDC8D6434DB00095CD7DB873462CF9D73E@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1367496926-6824-1-git-send-email-domke.j.aa@m.titech.ac.jp>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jens Domke <domke.j.aa@m.titech.ac.jp>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Torsten Hoefler <htor-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <0EE9A1CDC8D6434DB00095CD7DB873462CF9D73E-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/2/2013 8:15 AM, Jens Domke wrote:
-> Recent tests on a large system revealed a problem with loops in the multicast routing.
-> Using DFSSSP together with the default mcast routing algorithm of OpenSM can
-> produce loops in the fabric.
-> 
-> This patch adds the mcast_build_stree function to the DFSSSP routing algorithm,
-> so that DFSSSP is able to calculate the correct mcast forwarding tables for the
-> subnet.
-> 
-> It almost does the same steps as the default mcast routing, except that it
-> uses the Dijkstra algorithm to generate the spanning tree instead of using the
-> hop count information given by the unicast routing.
-> 
-> General overview of the algorithm in pseudo-code:
-> 1) identify the ports, which are part of the multicast group
-> 2) find the 'best' switch (depending on the hop count) for the mcast group,
->    which can be used as a root of the spanning tree
-> 3) perform a dijkstra step with the root switch as starting point
->    to generate a spanning tree to all other switches in the subnet
-> 4) build the mcast forwarding tables for relevant switches:
->    4.1) select a switch which has mcast member ports connected to it
->    4.2) set the downstream ports for the mcast member ports in the mcft
->    4.3) traverse towards the root of the spanning tree and set up-/downstream
->         ports on this path for all involved switches
->    4.4) goto 4.1 until all switches have been processed
-> 
-> The same mcast algorithm will be used for SSSP, because SSSP has the potential to
-> produce loops in the mcast forwarding table as well.
-> 
-> Signed-off-by: Jens Domke <domke.j.aa@m.titech.ac.jp>
-
-Thanks. Applied.
-
--- Hal
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 05/02/2013 10:13 AM, Yan Burman wrote:
+>
+>
+>> -----Original Message-----
+>> From: Michael S. Tsirkin [mailto:mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
+>> Sent: Thursday, May 02, 2013 04:56
+>> To: Or Gerlitz
+>> Cc: Roland Dreier; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org; Yan Burman; linux-
+>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: decent performance drop for SCSI LLD / SAN initiator when
+>> iommu is turned on
+>>
+>> On Thu, May 02, 2013 at 02:11:15AM +0300, Or Gerlitz wrote:
+>>> Hi Roland, IOMMU folks,
+>>>
+>>> So we've noted that when configuring the kernel&&  booting with intel
+>>> iommu set to on on a physical node (non VM, and without enabling SRIOV
+>>> by the HW device driver) raw performance of the iSER (iSCSI RDMA) SAN
+>>> initiator is reduced notably, e.g in the testbed we looked today we
+>>> had ~260K 1KB random IOPS and 5.5GBs BW for 128KB IOs with iommu
+>>> turned off for single LUN, and ~150K IOPS and 4GBs BW with iommu
+>>> turned on. No change on the target node between runs.
+>>
+>> That's why we have iommu=pt.
+>> See definition of iommu_pass_through in arch/x86/kernel/pci-dma.c.
+>
+> I tried passing "intel_iommu=on iommu=pt" to 3.8.11 kernel and I still get performance degradation.
+> I get the same numbers with iommu=pt as without it.
+>
+> I wanted to send perf output, but currently I seem to have some problem with its output.
+> Will try to get perf differences next week.
+>
+> Yan
+>
+>
+> _______________________________________________
+> iommu mailing list
+> iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+> https://lists.linuxfoundation.org/mailman/listinfo/iommu
+dmesg dump? -- interested to see if x2apic is on, and if MSI is used (or not)
