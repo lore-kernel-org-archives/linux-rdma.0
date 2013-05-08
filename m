@@ -1,49 +1,43 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.10 3/3] MAINTAINERS: Add entry for iSCSI Extensions for RDMA (iSER) initiator
-Date: Wed,  8 May 2013 15:05:45 +0300
-Message-ID: <1368014745-8086-4-git-send-email-ogerlitz@mellanox.com>
-References: <1368014745-8086-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-3.10 0/3] 2nd batch of iSER patches
+Date: Wed,  8 May 2013 15:05:42 +0300
+Message-ID: <1368014745-8086-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1368014745-8086-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add entry for the iSER initiator driver and which is maintained by
-Or Gerlitz and Roi Dayan below the kernel Infiniband subsystem.
+Hi Roland,
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- MAINTAINERS |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+Here's a 2nd batch of iser patches for 3.10, with the hightlight being
+a fix to the device removal flow from Roi Dayan. For some reason the race
+this patch fixes doesn't hit on IB link layer as of different timings 
+(e.g more modules that register with the IB core, such as IPoIB), but
+it was there, thanks for Sean we nailed down the problem and came up
+with a proper fix.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 8bdd7a7..0b895c0 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4378,6 +4378,19 @@ S:	Maintained
- F:	drivers/scsi/*iscsi*
- F:	include/scsi/*iscsi*
- 
-+ISCSI EXTENSIONS FOR RDMA (ISER) INITIATOR
-+M:	Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-+M:	Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+S:	Supported
-+W:	http://www.openfabrics.org
-+W:	www.open-iscsi.org
-+Q:	http://patchwork.kernel.org/project/linux-rdma/list/
-+F:	drivers/infiniband/ulp/iser
-+
-+SCSI SG DRIVER
-+M:	Doug Gilbert <dgilbert-qazKcTl6WRFWk0Htik3J/w@public.gmane.org>
-+
- ISDN SUBSYSTEM
- M:	Karsten Keil <isdn-iHCpqvpFUx0uJkBD2foKsQ@public.gmane.org>
- L:	isdn4linux-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org (subscribers-only)
--- 
-1.7.1
+Also, with the kernel now having iser target support through LIO and the
+increased use cases for iser, I added a MAINTAINERS entry to help people 
+figure out who's involved (and send bugs and flames...) hope you're OK 
+with that.
+
+Or.
+
+Or Gerlitz (2):
+  IB/iser: Add Mellanox copyright
+  MAINTAINERS: Add entry for iSCSI Extensions for RDMA (iSER) initiator
+
+Roi Dayan (1):
+  IB/iser: Fix device removal flow
+
+ MAINTAINERS                                  |   13 +++++++++++++
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |    1 +
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |    1 +
+ drivers/infiniband/ulp/iser/iser_initiator.c |    1 +
+ drivers/infiniband/ulp/iser/iser_memory.c    |    1 +
+ drivers/infiniband/ulp/iser/iser_verbs.c     |   16 +++++++++-------
+ 6 files changed, 26 insertions(+), 7 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
