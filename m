@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-3.10 1/3] IB/iser: Fix device removal flow
-Date: Wed,  8 May 2013 15:05:43 +0300
-Message-ID: <1368014745-8086-2-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-3.10 3/3] MAINTAINERS: Add entry for iSCSI Extensions for RDMA (iSER) initiator
+Date: Wed,  8 May 2013 15:05:45 +0300
+Message-ID: <1368014745-8086-4-git-send-email-ogerlitz@mellanox.com>
 References: <1368014745-8086-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1368014745-8086-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,74 +10,38 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Add entry for the iSER initiator driver and which is maintained by
+Or Gerlitz and Roi Dayan below the kernel Infiniband subsystem.
 
-Change the code to destroy the "last opened" rdma_cm id after making sure
-we released all other objects (QP,CQs,PD,etc) associated with the IB device.
-
-Since iser accesses the IB device using the rdma_cm id, we need to free any
-objects that are related to the device which is associated with the rdma_cm
-id prior to destroying that id. When this isn't ensured, the low level driver
-that created this device can be unloaded before iser has a chance to free
-all the objects and a such a call may invoke code segment which isn't valid
-any more and crash.
-
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iser_verbs.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ MAINTAINERS |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 5278916..f13cc22 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -292,10 +292,10 @@ out_err:
- }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8bdd7a7..0b895c0 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4378,6 +4378,19 @@ S:	Maintained
+ F:	drivers/scsi/*iscsi*
+ F:	include/scsi/*iscsi*
  
- /**
-- * releases the FMR pool, QP and CMA ID objects, returns 0 on success,
-+ * releases the FMR pool and QP objects, returns 0 on success,
-  * -1 on failure
-  */
--static int iser_free_ib_conn_res(struct iser_conn *ib_conn, int can_destroy_id)
-+static int iser_free_ib_conn_res(struct iser_conn *ib_conn)
- {
- 	int cq_index;
- 	BUG_ON(ib_conn == NULL);
-@@ -314,13 +314,9 @@ static int iser_free_ib_conn_res(struct iser_conn *ib_conn, int can_destroy_id)
- 
- 		rdma_destroy_qp(ib_conn->cma_id);
- 	}
--	/* if cma handler context, the caller acts s.t the cma destroy the id */
--	if (ib_conn->cma_id != NULL && can_destroy_id)
--		rdma_destroy_id(ib_conn->cma_id);
- 
- 	ib_conn->fmr_pool = NULL;
- 	ib_conn->qp	  = NULL;
--	ib_conn->cma_id   = NULL;
- 	kfree(ib_conn->page_vec);
- 
- 	if (ib_conn->login_buf) {
-@@ -415,11 +411,16 @@ static void iser_conn_release(struct iser_conn *ib_conn, int can_destroy_id)
- 	list_del(&ib_conn->conn_list);
- 	mutex_unlock(&ig.connlist_mutex);
- 	iser_free_rx_descriptors(ib_conn);
--	iser_free_ib_conn_res(ib_conn, can_destroy_id);
-+	iser_free_ib_conn_res(ib_conn);
- 	ib_conn->device = NULL;
- 	/* on EVENT_ADDR_ERROR there's no device yet for this conn */
- 	if (device != NULL)
- 		iser_device_try_release(device);
-+	/* if cma handler context, the caller actually destroy the id */
-+	if (ib_conn->cma_id != NULL && can_destroy_id) {
-+		rdma_destroy_id(ib_conn->cma_id);
-+		ib_conn->cma_id = NULL;
-+	}
- 	iscsi_destroy_endpoint(ib_conn->ep);
- }
- 
++ISCSI EXTENSIONS FOR RDMA (ISER) INITIATOR
++M:	Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++M:	Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++S:	Supported
++W:	http://www.openfabrics.org
++W:	www.open-iscsi.org
++Q:	http://patchwork.kernel.org/project/linux-rdma/list/
++F:	drivers/infiniband/ulp/iser
++
++SCSI SG DRIVER
++M:	Doug Gilbert <dgilbert-qazKcTl6WRFWk0Htik3J/w@public.gmane.org>
++
+ ISDN SUBSYSTEM
+ M:	Karsten Keil <isdn-iHCpqvpFUx0uJkBD2foKsQ@public.gmane.org>
+ L:	isdn4linux-JX7+OpRa80SjiSfgN6Y1Ib39b6g2fGNp@public.gmane.org (subscribers-only)
 -- 
 1.7.1
 
