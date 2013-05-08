@@ -1,48 +1,37 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RESEND for-3.10 0/3] 2nd batch of iSER patches
-Date: Wed,  8 May 2013 15:21:16 +0300
-Message-ID: <1368015679-15215-1-git-send-email-ogerlitz@mellanox.com>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [ANNOUNCE] SRP: ProfitBricks publishes its SRP Initiator patches
+Date: Wed, 08 May 2013 17:41:39 +0200
+Message-ID: <518A7233.9070400@profitbricks.com>
+References: <5167EDC8.3030909@profitbricks.com> <CACaajQs0PswMb5KhpSkE1=_Sd1SwX2BznZP9x1FCkEk6ukJYrA@mail.gmail.com> <5183A355.5090401@acm.org> <CACaajQtQk0YJ3g0G5PyOue0qG3SzhaW3qmXj_TLqYDVqzKwJXQ@mail.gmail.com> <51876D79.50003@profitbricks.com> <51877B71.3080202@acm.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51877B71.3080202-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>, Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+FYI: I've released version 0.6 of my SRP patches today.
 
-Resending the whole series as of wrong chunk getting into patch #3, sorry
-for that.
+The automatic reconnect is included now. The tests for that will follow
+in the next version. But we already did quite intensive testing for that.
 
-Hi Roland,
+Hard reboot and also soft reboot of the target are possible with that
+reconnect. It just reconnects and everything is fine again.
 
-Here's a 2nd batch of iser patches for 3.10, with the hightlight being
-a fix to the device removal flow from Roi Dayan. For some reason the race
-this patch fixes doesn't hit on IB link layer as of different timings 
-(e.g more modules that register with the IB core, such as IPoIB), but
-it was there, thanks for Sean we nailed down the problem and came up
-with a proper fix.
+With soft reboot I mean: disabling the target, removing the exports,
+rebooting, exporting the same LUNs, re-enabling the target.
 
-Also, with the kernel now having iser target support through LIO and the
-increased use cases for iser, I added a MAINTAINERS entry to help people 
-figure out who's involved (and send bugs and flames...) hope you're OK 
-with that.
+It also has an automatic mechanism to reduce the possibility of a DDoS
+attack reconnect. It automatically reconnects at different intervals.
 
-Or.
+Check it out:
+https://github.com/sriemer/ib_srp
 
-Or Gerlitz (2):
-  IB/iser: Add Mellanox copyright
-  MAINTAINERS: Add entry for iSCSI Extensions for RDMA (iSER) initiator
-
-Roi Dayan (1):
-  IB/iser: Fix device removal flow
-
- MAINTAINERS                                  |   10 ++++++++++
- drivers/infiniband/ulp/iser/iscsi_iser.c     |    1 +
- drivers/infiniband/ulp/iser/iscsi_iser.h     |    1 +
- drivers/infiniband/ulp/iser/iser_initiator.c |    1 +
- drivers/infiniband/ulp/iser/iser_memory.c    |    1 +
- drivers/infiniband/ulp/iser/iser_verbs.c     |   16 +++++++++-------
- 6 files changed, 23 insertions(+), 7 deletions(-)
-
+Cheers,
+Sebastian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
