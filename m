@@ -1,43 +1,52 @@
 From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: [ANNOUNCE] SRP: ProfitBricks publishes its SRP Initiator patches
-Date: Tue, 14 May 2013 14:00:26 +0400
-Message-ID: <CACaajQun61QAM0qqwadWECSFO7UxUaOrdO1-0vGLPQBjdwdMyw@mail.gmail.com>
-References: <5167EDC8.3030909@profitbricks.com> <CACaajQs0PswMb5KhpSkE1=_Sd1SwX2BznZP9x1FCkEk6ukJYrA@mail.gmail.com>
- <5183A355.5090401@acm.org> <CACaajQtQk0YJ3g0G5PyOue0qG3SzhaW3qmXj_TLqYDVqzKwJXQ@mail.gmail.com>
- <51876D79.50003@profitbricks.com> <51877B71.3080202@acm.org> <518A7233.9070400@profitbricks.com>
+Subject: Re: tune ib stack
+Date: Tue, 14 May 2013 14:02:00 +0400
+Message-ID: <CACaajQsMsZL-13aS39Asi7Z+4chXreZk5zy9QNuJM_4GcBFFBA@mail.gmail.com>
+References: <CACaajQs7RHR9Uz_M46o+1zui8x=HneQFW-09V_XQbo8OQV3eoQ@mail.gmail.com>
+ <51640E72.3010202@dev.mellanox.co.il> <516414BD.4020407@profitbricks.com>
+ <516418F4.4040908@dev.mellanox.co.il> <51641E0D.2050009@profitbricks.com>
+ <5164245E.2030208@dev.mellanox.co.il> <51642795.1070208@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <518A7233.9070400-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <51642795.1070208-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-if i need faster reconnects and ability to close session from
-initiator side under qlogic hardware, does it possible? Or this
-patches only covers mallanox cards?
+Sorry for bumping old thread, i'm solve my problems with new firmware.
+I have supermicro servers that rebrand mellanox firmware (recompile
+and change some bits)
+Now all works fine i have 40 gb/s QDR instead of 10 Gb/s
 
-2013/5/8 Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>:
-> FYI: I've released version 0.6 of my SRP patches today.
+2013/4/9 Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>:
+> On 09.04.2013 16:23, Hal Rosenstock wrote:
+>>> So these values are exactly the same as in "ibv_devinfo" and can be set
+>>> in /sys/class/infiniband/mlx4_0/device/mlx4_port1_mtu.
+>>>
+>>> I've found the PortInfo with the command
+>>> "smpquery portinfo -C mlx4_0 3 1"
+>>> where I'm using the first HCA to contact the SM. I tell the SM the
+>>> destination LID ('3' here in my case) and the destination port ('1').
+>>>
+>>> Is there another method to set the max MTU?
+>>
+>> That doesn't set max MTU (MTUCap) but merely reads it (for that port).
 >
-> The automatic reconnect is included now. The tests for that will follow
-> in the next version. But we already did quite intensive testing for that.
+> Sorry, copy and paste error. I've meant the mlx4 file:
+> /sys/class/infiniband/mlx4_0/device/mlx4_port1_mtu
 >
-> Hard reboot and also soft reboot of the target are possible with that
-> reconnect. It just reconnects and everything is fine again.
+> But you've answered that by "vendor specific". Thanks for the valuable
+> information!
 >
-> With soft reboot I mean: disabling the target, removing the exports,
-> rebooting, exporting the same LUNs, re-enabling the target.
->
-> It also has an automatic mechanism to reduce the possibility of a DDoS
-> attack reconnect. It automatically reconnects at different intervals.
->
-> Check it out:
-> https://github.com/sriemer/ib_srp
+> For us most interesting would be if the MTU can be changed live without
+> any service disruption. Looks like the mlx4 driver can't provide that.
+> Perhaps switches can do that.
 >
 > Cheers,
 > Sebastian
+>
 
 
 
