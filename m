@@ -1,59 +1,41 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: tune ib stack
-Date: Tue, 14 May 2013 14:02:00 +0400
-Message-ID: <CACaajQsMsZL-13aS39Asi7Z+4chXreZk5zy9QNuJM_4GcBFFBA@mail.gmail.com>
-References: <CACaajQs7RHR9Uz_M46o+1zui8x=HneQFW-09V_XQbo8OQV3eoQ@mail.gmail.com>
- <51640E72.3010202@dev.mellanox.co.il> <516414BD.4020407@profitbricks.com>
- <516418F4.4040908@dev.mellanox.co.il> <51641E0D.2050009@profitbricks.com>
- <5164245E.2030208@dev.mellanox.co.il> <51642795.1070208@profitbricks.com>
+From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] osm_subnet.c Remove empty syslog message
+Date: Tue, 14 May 2013 04:26:51 -0700 (PDT)
+Message-ID: <c87e39c6-4911-4f23-869c-5c42815bcd86@default>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51642795.1070208-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sorry for bumping old thread, i'm solve my problems with new firmware.
-I have supermicro servers that rebrand mellanox firmware (recompile
-and change some bits)
-Now all works fine i have 40 gb/s QDR instead of 10 Gb/s
+Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-2013/4/9 Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>:
-> On 09.04.2013 16:23, Hal Rosenstock wrote:
->>> So these values are exactly the same as in "ibv_devinfo" and can be set
->>> in /sys/class/infiniband/mlx4_0/device/mlx4_port1_mtu.
->>>
->>> I've found the PortInfo with the command
->>> "smpquery portinfo -C mlx4_0 3 1"
->>> where I'm using the first HCA to contact the SM. I tell the SM the
->>> destination LID ('3' here in my case) and the destination port ('1').
->>>
->>> Is there another method to set the max MTU?
->>
->> That doesn't set max MTU (MTUCap) but merely reads it (for that port).
->
-> Sorry, copy and paste error. I've meant the mlx4 file:
-> /sys/class/infiniband/mlx4_0/device/mlx4_port1_mtu
->
-> But you've answered that by "vendor specific". Thanks for the valuable
-> information!
->
-> For us most interesting would be if the MTU can be changed live without
-> any service disruption. Looks like the mlx4 driver can't provide that.
-> Perhaps switches can do that.
->
-> Cheers,
-> Sebastian
->
+---
 
-
-
--- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index eaf4a47..bd68957 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -6,6 +6,7 @@
+  * Copyright (c) 2009 System Fabric Works, Inc. All rights reserved.
+  * Copyright (c) 2009 HNR Consulting. All rights reserved.
+  * Copyright (c) 2009-2011 ZIH, TU Dresden, Federal Republic of Germany. All rights reserved.
++ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -2080,7 +2081,6 @@ int osm_subn_parse_conf_file(const char *file_name, osm_subn_opt_t * p_opts)
+ 	}
+ 
+ 	printf(" Reading Cached Option File: %s\n", file_name);
+-	cl_log_event("OpenSM", CL_LOG_INFO, line, NULL, 0);
+ 
+ 	p_opts->config_file = file_name;
+ 	if (!p_opts->file_opts && !(p_opts->file_opts = malloc(sizeof(*p_opts)))) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
