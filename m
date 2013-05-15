@@ -1,38 +1,31 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: [ANNOUNCE] SRP: ProfitBricks publishes its SRP Initiator patches
-Date: Wed, 15 May 2013 09:12:57 +0400
-Message-ID: <CACaajQt2V1Y-fQFmXyyAJk57KahbMwBqvEGoF7sug5F1hYyWGw@mail.gmail.com>
-References: <5167EDC8.3030909@profitbricks.com> <CACaajQs0PswMb5KhpSkE1=_Sd1SwX2BznZP9x1FCkEk6ukJYrA@mail.gmail.com>
- <5183A355.5090401@acm.org> <CACaajQtQk0YJ3g0G5PyOue0qG3SzhaW3qmXj_TLqYDVqzKwJXQ@mail.gmail.com>
- <51876D79.50003@profitbricks.com> <51877B71.3080202@acm.org>
- <518A7233.9070400@profitbricks.com> <CACaajQun61QAM0qqwadWECSFO7UxUaOrdO1-0vGLPQBjdwdMyw@mail.gmail.com>
- <519266CA.2010306@acm.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] osm_sa_multipath_record.c Use aliasGUIDs when building
+ responses
+Date: Wed, 15 May 2013 06:22:07 -0400
+Message-ID: <519361CF.2000207@dev.mellanox.co.il>
+References: <3127e9af-32d6-4b07-9468-6c9d950e5c0d@default>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <519266CA.2010306-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <3127e9af-32d6-4b07-9468-6c9d950e5c0d@default>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-2013/5/14 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
-> The ability to close a session from the initiator side went upstream in
-> kernel 3.8 (/sys/class/srp_remote_ports/port-<h>:<n>/delete). Regarding
-> faster reconnects: please keep in mind that after a cable pull it can easily
-> takes 20 seconds before link training and initialization by the subnet
-> manager have finished. It's not possible to make an initiator reconnect in
-> less time than what the hardware and subnet manager need to bring the link
-> back.
+On 5/13/2013 12:30 PM, Line Holen wrote:
+> This patch makes multipath responses use the GUIDs supplied in the request
+> when filling in response packets. Previously it could replace a aliasGUID
+> with the baseGUID (portGUID) of the port.
+> This change makes multipath record handling consistent with path record
+> handling.
+> 
+> Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
+Thanks. Applied.
 
-Thanks. What about close session from target side? For example i need
-to close the srp session and block all access from specific initiator?
-
---
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
