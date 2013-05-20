@@ -1,30 +1,43 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 0/2] update to autotools
-Date: Tue, 21 May 2013 00:39:52 +0200
-Message-ID: <cover.1369089206.git.ydroneaud@opteya.com>
+Subject: [PATCH 2/2] configure: use automake's option "subdir-objects"
+Date: Tue, 21 May 2013 00:39:54 +0200
+Message-ID: <b9e8bb48507dd2bef43334df5b79439dbc06b856.1369089206.git.ydroneaud@opteya.com>
+References: <cover.1369089206.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1369089206.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As part of update to configure.ac, please find two quite simple patches.
+Following advice in "Autotool Mythbuster" [1],
+option subdir-objects can be used to have Makefiles
+create object files in the same directory than
+theirs source files.
 
-It should be applied to bring the build system a bit up to date
-regarding autotools.
+It reduces clobbering in the build directory.
 
-It works on Debian 6.0 (Squeeze) and Fedora 17 (Beefy Miracle),
-but you might want to test on older systems ... I'm looking at you
-Red Hat Enterprise Linux ... But ultimately it depends on the
-release manager's host environment which is probably up to date :)
+[1] "Autotool Mythbuster", by Diego Elio "Flameeyes" Petten`o
+http://www.flameeyes.eu/autotools-mythbuster/automake/nonrecursive.html
 
-Yann Droneaud (2):
-  configure: apply updates proposed by autoupdate
-  configure: use automake's option "subdir-objects"
+Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- configure.ac | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
-
+diff --git a/configure.ac b/configure.ac
+index a1d5365..231083c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([src/ibverbs.h])
+ AC_CONFIG_AUX_DIR(config)
+ AC_CONFIG_MACRO_DIR(config)
+ AC_CONFIG_HEADER(config.h)
+-AM_INIT_AUTOMAKE([foreign])
++AM_INIT_AUTOMAKE([foreign subdir-objects])
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
+ dnl Checks for programs
 -- 
 1.7.11.7
 
