@@ -1,25 +1,29 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH libibverbs v5 5/7] libibverbs: Add ibv_open_qp
-Date: Mon, 20 May 2013 17:59:50 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD293DC@ORSMSX109.amr.corp.intel.com>
-References: <1364332466-22786-1-git-send-email-sean.hefty@intel.com>
- <1364332466-22786-6-git-send-email-sean.hefty@intel.com>
- <519A59B1.9080402@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: libibverbs / libmlx4 release
+Date: Mon, 20 May 2013 14:30:40 -0400
+Message-ID: <519A6BD0.7050105@redhat.com>
+References: <519A1903.5010401@mellanox.com> <CAL1RGDXR+jqTMZ=3FmrK2yJeyp-0cwJmahDnz6PhwbOore2yZg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <519A59B1.9080402-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAL1RGDXR+jqTMZ=3FmrK2yJeyp-0cwJmahDnz6PhwbOore2yZg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> So is it intended that cooperating processes sharing an xrc domain will
-> "choose" one process to create the xrc qp, and the rest will open it?
+On 05/20/2013 12:49 PM, Roland Dreier wrote:
+> On Mon, May 20, 2013 at 5:37 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> Following what we discussed last week during the Linux Foundation EU summit, I think it would be good to follow what you said and have a point release for libibverbs and libmlx4 before we pull in the verbs extensions framework and features that use it (XRC, Flow-Steering, etc more fun).
+>>
+>> I mentioned to you that we have some more libmlx4 patches, but its totally OK for us to submit them after that release, makes sense?
+> 
+> That's fine, I'll do the releases this week.
 
-yes - The QPN of the shared QP must be known between the cooperating processes.
+If you haven't already done so, can you please update to the latest
+autotools and reroll the autotools files when you do the release?
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
