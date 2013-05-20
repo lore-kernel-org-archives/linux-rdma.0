@@ -1,29 +1,39 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: libibverbs / libmlx4 release
-Date: Mon, 20 May 2013 14:30:40 -0400
-Message-ID: <519A6BD0.7050105@redhat.com>
-References: <519A1903.5010401@mellanox.com> <CAL1RGDXR+jqTMZ=3FmrK2yJeyp-0cwJmahDnz6PhwbOore2yZg@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: list corruption in IPOIB
+Date: Mon, 20 May 2013 22:00:40 +0300
+Message-ID: <CAJZOPZKQF-qWLKAtuh8tJvPeMmWJTsXqG5P_0ELBs3EKYDh4sA@mail.gmail.com>
+References: <519686B4.7010300@profitbricks.com>
+	<CAJZOPZJNA7E005x9+XdVMG31fLEZm2mKB1nkpt5m3hA1qh7fYg@mail.gmail.com>
+	<5197F447.5020702@profitbricks.com>
+	<51986A8B.9030806@mellanox.com>
+	<519898B0.1000901@profitbricks.com>
+	<5199E747.3070502@mellanox.com>
+	<CAMGffEn6YwXSB7KDfDRJrJmBaiQEG-zAjEonY=JUxMo=nLRSXQ@mail.gmail.com>
+	<519A01DD.6080906@mellanox.com>
+	<CAMGffEk=PJge4jtdcx8xOKA_3RhcSn9wweULxCE7yctPApSn1g@mail.gmail.com>
+	<519A1C60.4060005@mellanox.com>
+	<CAD+HZHUKU3qq_WbaoW8NfwkoMQWQKeVS1GTGXxBRUEJOridEyg@mail.gmail.com>
+	<519A275B.9070400@mellanox.com>
+	<519A34F9.3080700@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXR+jqTMZ=3FmrK2yJeyp-0cwJmahDnz6PhwbOore2yZg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <519A34F9.3080700-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dongsu Park <dongsu.park-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/20/2013 12:49 PM, Roland Dreier wrote:
-> On Mon, May 20, 2013 at 5:37 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> Following what we discussed last week during the Linux Foundation EU summit, I think it would be good to follow what you said and have a point release for libibverbs and libmlx4 before we pull in the verbs extensions framework and features that use it (XRC, Flow-Steering, etc more fun).
->>
->> I mentioned to you that we have some more libmlx4 patches, but its totally OK for us to submit them after that release, makes sense?
-> 
-> That's fine, I'll do the releases this week.
+On Mon, May 20, 2013 at 5:36 PM, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> wrote:
+> Sorry for confusion. Current list corruption is gone in my preliminary test, after I changed
+> list_del to list_del_init as Or suggested.
+> As Or asked for the original bug, so I just want to show him the whole story.
 
-If you haven't already done so, can you please update to the latest
-autotools and reroll the autotools files when you do the release?
+I am still not clear if  the bug you saw in your production
+environment is gone with the list_del_init patch applied, please
+clarify.
 
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
