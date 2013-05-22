@@ -1,29 +1,22 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: mlx4/xrc problem
-Date: Wed, 22 May 2013 12:38:37 -0500
-Message-ID: <519D029D.8020102@opengridcomputing.com>
-References: <519CEC83.9010501@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A823736FD29FE1@ORSMSX109.amr.corp.intel.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: libibverbs / libmlx4 release
+Date: Wed, 22 May 2013 23:58:05 +0300
+Message-ID: <CAJZOPZ+BHh03rvtxtuNj4JjfNLx11mCW4qZcj1F9DOTQ4arOBg@mail.gmail.com>
+References: <519A1903.5010401@mellanox.com>
+	<CAL1RGDXR+jqTMZ=3FmrK2yJeyp-0cwJmahDnz6PhwbOore2yZg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736FD29FE1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAL1RGDXR+jqTMZ=3FmrK2yJeyp-0cwJmahDnz6PhwbOore2yZg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/22/2013 11:39 AM, Hefty, Sean wrote:
->> [root@hpc-hn1 libibverbs-1.1.4]# ibv_xsrq_pingpong -d mlx4_0 192.168.174.52
->>      local: LID 0001, QPN RECV 98004b SEND 18004c, PSN 5b6d99, SRQN 0042
->>     remote: LID 0002, QPN RECV d4004a SEND 54004b, PSN d7ba7a, SRQN 0042
-> The same SRQN on both sides looks suspicious.
-I confirmed via gdb that 0x42 is in ctx.srq->xrc_srq_num on both sides.
+On Mon, May 20, 2013 at 7:49 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> That's fine, I'll do the releases this week.
 
->> [root@hpc-cn2 libibverbs-1.1.4]# ibv_xsrq_pingpong  -d mlx4_0
->>     remote: LID 0001, QPN RECV 98004b SEND 18004c, PSN 5b6d99, SRQN 0042
->>      local: LID 0002, QPN RECV d4004a SEND 54004b, PSN d7ba7a, SRQN 0042
-
+cool.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
