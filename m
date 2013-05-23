@@ -1,43 +1,29 @@
-From: Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: better understanding rdma-cm UNREACHABLE/ETIMEDOUT scheme
-Date: Thu, 23 May 2013 13:31:40 +0300
-Message-ID: <519DF00C.9010304@mellanox.com>
-References: <519B8DB3.3010500@mellanox.com> <1828884A29C6694DAF28B7E6B8A823736FD29AE3@ORSMSX109.amr.corp.intel.com>
+From: "Webmaster " <saludmental-p5OG7TJ4q98QK8l6caSD86km5W21vHkk@public.gmane.org>
+Subject: warning!
+Date: Thu, 23 May 2013 15:33:55 +0100
+Message-ID: <20130523143414.7FF9CFEAC5__26446.2525411092$1369320369$gmane$org@SrvMailsalud.msaludjujuy.gov.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736FD29AE3-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dina Leventol <dinal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Recipients <saludmental-p5OG7TJ4q98QK8l6caSD86km5W21vHkk@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/21/2013 6:24 PM, Hefty, Sean wrote:
-> My first guess is that the server isn't responding to new requests. - 
-> Sean 
+Your session has been terminated at 2013-5-23 due to inactivity.
+Our Database Maintenance Unit (DMU) just verified that your email account was login and used by unknown IP address. You are instructed to click the link below for proper verification and Upgrade within 24hours with the new webmail account to avoid Virus and slowing down of network.
 
-This is where we're looking now.
-Now testing on 17 server with 8 clients per server.
+Last login of your email: 5-22-2013
+Unknown IP Used: 23.23.199.3 Port: 8080
 
-When disabling all RDMA traffic in the test we get 100% RDMA connection 
-established. So at least we know this is not some fundamental issue with 
-our setup.
+To reset and change your password account, please click on the Admin Link
+below for confirmation and to change your password. 
 
-Modifying our code to increasing the priority of RDMA connection 
-handling to be higher then the RDMA traffic (CQ completions handling) we 
-still see many UNREACHABLE events. But only after quite a few client got 
-connected and started pushing traffic (1GB RDMA WRITEs from server to 
-client).
+ink3updateteamlogin.jimdo.com
 
-We are now adding code (via the conn_attr private data) to compare 
-timestamp between the rdma_conenct, RDMA_CM_EV_CONNECT_REQ, rdma_accept 
-and on the client events of UNREACHABLE or CONNECTED.
-We'll have better understand once we see these results.
-
-thanks,
-
-Alex
+Thanks.
+Webmaster
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
