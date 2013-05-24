@@ -1,88 +1,83 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: BUG: unable to handle kernel paging request at 0000000000070a78
- IPoIB
-Date: Thu, 23 May 2013 14:55:22 -0400
-Message-ID: <519E661A.5090209@redhat.com>
-References: <51963BC6.1050901@profitbricks.com> <519B6DD6.4090502@profitbricks.com> <519B909A.8010004@profitbricks.com> <519E37DE.1080504@profitbricks.com> <519E54D9.1050506@redhat.com> <519E65B5.1090909@profitbricks.com>
+From: Christoph Lameter <cl@linux.com>
+Subject: Re: [RFC][PATCH] mm: Fix RLIMIT_MEMLOCK
+Date: Fri, 24 May 2013 15:40:26 +0000
+Message-ID: <0000013ed732b615-748f574f-ccb8-4de7-bbe4-d85d1cbf0c9d-000000@email.amazonses.com>
+References: <alpine.DEB.2.10.1305221523420.9944@vincent-weaver-1.um.maine.edu> <alpine.DEB.2.10.1305221953370.11450@vincent-weaver-1.um.maine.edu> <alpine.DEB.2.10.1305222344060.12929@vincent-weaver-1.um.maine.edu> <20130523044803.GA25399@ZenIV.linux.org.uk>
+ <20130523104154.GA23650@twins.programming.kicks-ass.net> <0000013ed1b8d0cc-ad2bb878-51bd-430c-8159-629b23ed1b44-000000@email.amazonses.com> <20130523152458.GD23650@twins.programming.kicks-ass.net> <0000013ed2297ba8-467d474a-7068-45b3-9fa3-82641e6aa363-000000@email.amazonses.com>
+ <20130523163901.GG23650@twins.programming.kicks-ass.net> <0000013ed28b638a-066d7dc7-b590-49f8-9423-badb9537b8b6-000000@email.amazonses.com> <20130524140114.GK23650@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="----enig2HPDPUAGRQECOGIGEWNVS"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <519E65B5.1090909-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130524140114.GK23650@twins.programming.kicks-ass.net>
+Sender: owner-linux-mm@kvack.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>, Vince Weaver <vincent.weaver@maine.edu>, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, trinity@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, infinipath@qlogic.com, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Or Gerlitz <or.gerlitz@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
-------enig2HPDPUAGRQECOGIGEWNVS
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Fri, 24 May 2013, Peter Zijlstra wrote:
 
-On 05/23/2013 02:53 PM, Jack Wang wrote:
-> On 2013=E5=B9=B405=E6=9C=8823=E6=97=A5 19:41, Doug Ledford wrote:
->> On 05/23/2013 11:38 AM, Jack Wang wrote:
->>> Tainted: G           O 3.4.23-pserver-hotfix+ #109 System manufacture=
-r
->>                          ^^^^^^^
->>
->> I would try a newer kernel.  There are a couple known issues fixed sin=
-ce
->> this kernel (including a memory corrupter that was involved with
->> neighbor list handling, and some of your traces look vaguely familiar =
-to
->> that old failuer).
->>
->>
->>
->=20
-> Thanks Doug for reply, I tried branch rdma-for-linus, It panic in other=
+> Patch bc3e53f682 ("mm: distinguish between mlocked and pinned pages")
+> broke RLIMIT_MEMLOCK.
 
-> places.
->=20
-> Could you point me which commit do you mean exactly?
->=20
-> Regards,
-> Jack
->=20
+Nope the patch fixed a problem with double accounting.
 
-Just try the official v3.9 kernel from Linus and see how it does.  A
-'git checkout v3.9' will do the trick.
+The problem that we seem to have is to define what mlocked and pinned mean
+and how this relates to RLIMIT_MEMLOCK.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-	      http://people.redhat.com/dledford
+mlocked pages are pages that are movable (not pinned!!!) and that are
+marked in some way by user space actions as mlocked (POSIX semantics).
+They are marked with a special page flag (PG_mlocked).
 
+Pinned pages are pages that have an elevated refcount because the hardware
+needs to use these pages for I/O. The elevated refcount may be temporary
+(then we dont care about this) or for a longer time (such as the memory
+registration of the IB subsystem). That is when we account the memory as
+pinned. The elevated refcount stops page migration and other things from
+trying to move that memory.
 
+Pages can be both pinned and mlocked. Before my patch some pages those two
+issues were conflated since the same counter was used and therefore these
+pages were counted twice. If an RDMA application was running using
+mlockall() and was performing large scale I/O then the counters could show
+extraordinary large numbers and the VM would start to behave erratically.
 
-------enig2HPDPUAGRQECOGIGEWNVS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+It is important for the VM to know which pages cannot be evicted but that
+involves many more pages due to dirty pages etc etc.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.13 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+So far the assumption has been that RLIMIT_MEMLOCK is a limit on the pages
+that userspace has mlocked.
 
-iQIcBAEBAgAGBQJRnmYaAAoJELgmozMOVy/dzd4P/1SHk2pDekz259X4R+z7hm1L
-3meHDgvpeMV4662B1u1O0Lc9KVue12HiK+SHsgoWDR2cv9eY52S3QwWKCu8XpcJ4
-4LEATQp2+oDRpdkCZ/9PkW4lbe7fzLVMGsPhYjSuvHOCEj02MiLcWyJX/asuMqJ4
-6C/EzcQaWrSAvY29xY8+d623fp/E4IRLxfeXeBtcZY+xbwCBrtxGZiB3T++iT++W
-dGIRimDbsG9zQlWxD++4ifsphtSHdlR0wykOfhiUEHlpaM87CCUs9D4jc+4zxgds
-ELK2G1zMAcOuhLB7d13GFmeu0gFZPHl6kZ9q13jqlvIyBOWeAAksdjtFixk0jKpM
-KnxBvMusDWuDgVMyio3dAx3nNPbfRnrlSiNyhvrAOs+NUcaq02spMOgYfN8gSpI6
-19Ow3rzk5a2pQQZAEt5YqUNUs6+8DyQKllv/aErMPcqIswCOY9QFjUnlNFwGPjUY
-INtFniv9GV+eFQao5dhkhAN/8JzwGhCE83cJJ7uD47haufqhLnDOgCMU8u+zWDxm
-3d9YaE26Dm19RoSkAtPeiZu3P4KYiZqnKXbEOwCGzbZAB6a+r5lhbKHh8ownrZRm
-6QByslXbzBp3UMAKqBRO5r7OjESKcMR6/+xth3v8OUypc2f5luce0qayeViUmeEm
-AiwIGSxBRa2Zy1Ypjz7T
-=CzVB
------END PGP SIGNATURE-----
+You want the counter to mean something different it seems. What is it?
 
-------enig2HPDPUAGRQECOGIGEWNVS--
+I think we need to be first clear on what we want to accomplish and what
+these counters actually should count before changing things.
+
+Certainly would appreciate improvements in this area but resurrecting the
+conflation between mlocked and pinned pages is not the way to go.
+
+> This patch proposes to properly fix the problem by introducing
+> VM_PINNED. This also provides the groundwork for a possible mpin()
+> syscall or MADV_PIN -- although these are not included.
+
+Maybe add a new PIN page flag? Pages are not pinned per vma as the patch
+seems to assume.
+
+> It recognises that pinned page semantics are a strict super-set of
+> locked page semantics -- a pinned page will not generate major faults
+> (and thus satisfies mlock() requirements).
+
+Not exactly true. Pinned pages may not have the mlocked flag set and they
+are not managed on the unevictable LRU lists of the MM.
+
+> If people find this approach unworkable, I request we revert the above
+> mentioned patch to at least restore RLIMIT_MEMLOCK to a usable state
+> again.
+
+Cannot do that. This will cause the breakage that the patch was fixing to
+resurface.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
