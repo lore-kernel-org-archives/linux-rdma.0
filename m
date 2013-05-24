@@ -1,40 +1,72 @@
-From: Liu Ginhann <Ginhann.Liu-Omk3PdybHIaN9aS15agKxg@public.gmane.org>
-Subject: ibv_reg_mr call failed
-Date: Fri, 24 May 2013 17:43:06 +0000
-Message-ID: <B78BFEBC60BCD84AABFE4C6AE4239F303631433D@BY2PRD0412MB622.namprd04.prod.outlook.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: Patch: Support for Xeon Phi
+Date: Fri, 24 May 2013 20:16:22 +0200
+Message-ID: <519FAE76.6060804@acm.org>
+References: <20130524170253.GC2591@pyxis.br.cox.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20130524170253.GC2591-3v4vfGR2gegKq2+8A78TPA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bryce Lelbach <blelbach-eiRV2mVQLkiVc3sceRu5cw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We are running into an unexpected problem while registering memory for IB operation. Ibv_reg_mr() call return EFAULT - bad address. 
+On 05/24/13 19:02, Bryce Lelbach wrote:
+> The attached patch modifies the kernel Infiniband drivers to support the Xeon Phi
+> co-processor.
+> 
+> This patch is a modified version of a patch from Intel's MPSS framework
+> (specifically, from the "KNC_gold_update_1-2.1.4982-15-rhel-6.3" package), which
+> will apply to a 3.7.8 kernel (I am about to try it on a 3.8 kernel). To the best
+> of my knowledge, newer RHEL kernels are shipped with this patch.
 
-The pointer passed into ibv_reg_mr call is mmap back from memory allocated in our kernel driver. Our test code is able to use this mapped back virtual address to peek and poke without issue; the size is expected. This memory is a fixed size FIFO buffer designed to be used as our FPGA device buffer and IB transport buffer. There is host software to manage buffer usage. If we just malloc memory from app and pass it into ibv_reg_mr call, memory register call return ok.
+Please have a look at https://www.kernel.org/doc/Documentation/SubmittingPatches and please fix at least the whitespace errors in your patch. This is what checkpatch reports for your patch:
 
-It seems like for some reason, ibv_reg_mr doesn't like the pointer we passed in. Here is how we allocate and map the buffer inside the driver, 
-. 4M memory is created and allocated using the kmem_cache_create, kmem_cache_alloc call during driver initialization.
-. When mmap is called from user application at run-time, remap_pfn_range is called to map the buffer into the process's virtual address space. page_to_pfn(virt_to_page(buffer) is used to convert kernel virtual address into page and pfn.
+WARNING: line over 80 characters
+#8: FILE: drivers/infiniband/core/sysfs.c:613:
++	case RDMA_NODE_MIC:	  return sprintf(buf, "%d: MIC\n", dev->node_type);
 
-We tried to change flags during allocation or mapping, but none of them work.
+WARNING: line over 80 characters
+#103: FILE: drivers/infiniband/core/uverbs_cmd.c:57:
++static int uverbs_copy_from_udata(void *dest, struct ib_udata *udata, size_t len)
 
-Any suggestion how to solve this problem?
+WARNING: Avoid CamelCase: <mthca_MAP_ICM_page>
+#202: FILE: drivers/infiniband/hw/mthca/mthca_memfree.c:503:
++	ret = mthca_MAP_ICM_page(dev, sg_dma_address(&chunk->page_list[0]),
 
-Here is version information of our test chassis,
-64-bit Suse Linux: 3.0.35-rt58-0.5-rt
-OFED Info: MLNX_OFED_LINUX-1.5.3-3.1.0 (OFED-1.5.3-3.1.0)
+WARNING: suspect code indent for conditional statements (8, 7)
+#213: FILE: drivers/infiniband/hw/mthca/mthca_memfree.c:523:
+ 	if (ret) {
+[...]
++       ib_umem_release(db_tab->page[i].umem);
 
-Regards, 
+WARNING: please, no spaces at the start of a line
+#215: FILE: drivers/infiniband/hw/mthca/mthca_memfree.c:525:
++       ib_umem_release(db_tab->page[i].umem);$
 
+WARNING: Avoid CamelCase: <mthca_UNMAP_ICM>
+#238: FILE: drivers/infiniband/hw/mthca/mthca_memfree.c:555:
++		mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1);
 
+ERROR: code indent should use tabs where possible
+#272: FILE: drivers/infiniband/hw/mthca/mthca_memfree.c:611:
++           ib_umem_release(db_tab->page[i].umem);$
 
-Hank Liu
+WARNING: please, no spaces at the start of a line
+#272: FILE: drivers/infiniband/hw/mthca/mthca_memfree.c:611:
++           ib_umem_release(db_tab->page[i].umem);$
 
+WARNING: line over 80 characters
+#322: FILE: include/rdma/ib_verbs.h:893:
++	struct ib_umem_ops     *umem_ops;	/* set to NULL for default ops */
 
+ERROR: Missing Signed-off-by: line(s)
 
+total: 2 errors, 8 warnings, 326 lines checked
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
