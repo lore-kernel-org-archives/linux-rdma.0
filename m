@@ -1,117 +1,36 @@
-From: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] infiniband_diags/src/saquery.c: Add SMInfoRecord support
-Date: Tue, 28 May 2013 15:03:54 +0300
-Message-ID: <51A49D2A.1090602@asaltech.com>
+From: Christoph Lameter <cl@linux.com>
+Subject: Re: [RFC][PATCH] mm: Fix RLIMIT_MEMLOCK
+Date: Tue, 28 May 2013 16:19:25 +0000
+Message-ID: <0000013eebefddd4-ace0f251-cfba-41cf-b48e-266cb13bcebd-000000@email.amazonses.com>
+References: <alpine.DEB.2.10.1305221523420.9944@vincent-weaver-1.um.maine.edu> <alpine.DEB.2.10.1305221953370.11450@vincent-weaver-1.um.maine.edu> <alpine.DEB.2.10.1305222344060.12929@vincent-weaver-1.um.maine.edu> <20130523044803.GA25399@ZenIV.linux.org.uk>
+ <20130523104154.GA23650@twins.programming.kicks-ass.net> <0000013ed1b8d0cc-ad2bb878-51bd-430c-8159-629b23ed1b44-000000@email.amazonses.com> <20130523152458.GD23650@twins.programming.kicks-ass.net> <0000013ed2297ba8-467d474a-7068-45b3-9fa3-82641e6aa363-000000@email.amazonses.com>
+ <20130523163901.GG23650@twins.programming.kicks-ass.net> <0000013ed28b638a-066d7dc7-b590-49f8-9423-badb9537b8b6-000000@email.amazonses.com> <20130524140114.GK23650@twins.programming.kicks-ass.net> <0000013ed732b615-748f574f-ccb8-4de7-bbe4-d85d1cbf0c9d-000000@email.amazonses.com>
+ <CAHGf_=r4sqQKELPh48z=KPyuyAM3uz5Az9RpssUwnK4QRoamHQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAHGf_=r4sqQKELPh48z=KPyuyAM3uz5Az9RpssUwnK4QRoamHQ@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Al Viro <viro@zeniv.linux.org.uk>, Vince Weaver <vincent.weaver@maine.edu>, LKML <linux-kernel@vger.kernel.org>, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, trinity@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Roland Dreier <roland@kernel.org>, infinipath@qlogic.com, "linux-mm@kvack.org" <linux-mm@kvack.org>, linux-rdma@vger.kernel.org, Or Gerlitz <or.gerlitz@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch is the combination of 2 patches
-     infiniband_diags/src/saquery.c: Add SMInfoRecord support
-     infiniband_diags/doc/rst/saquery.8.in.rst: Add support to the manual
+On Sat, 25 May 2013, KOSAKI Motohiro wrote:
 
-Signed-off-by: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+> If pinned and mlocked are totally difference intentionally, why IB uses
+> RLIMIT_MEMLOCK. Why don't IB uses IB specific limit and why only IB raise up
+> number of pinned pages and other gup users don't.
+> I can't guess IB folk's intent.
 
----
-  doc/rst/saquery.8.in.rst |    1 +
-  src/saquery.c            |   45 
-+++++++++++++++++++++++++++++++++++++++++++++
-  2 files changed, 46 insertions(+)
+True another limit would be better. The reason that IB raises the
+pinned pages is because IB permanently pins those pages. Other users of
+gup do that temporarily.
 
-diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst
-index 8d87096..0551917 100644
---- a/doc/rst/saquery.8.in.rst
-+++ b/doc/rst/saquery.8.in.rst
-@@ -156,6 +156,7 @@ Supported query names (and aliases):
-          MFTRecord (MFTR) [[mlid]/[position]/[block]]
-          GUIDInfoRecord (GIR) [[lid]/[block]]
-          SwitchInfoRecord (SWIR) [lid]
-+        SMInfoRecord (SMIR) [lid]
-
-
-
-diff --git a/src/saquery.c b/src/saquery.c
-index a5f9171..d60ac19 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -487,6 +487,30 @@ static void dump_service_record(void *data)
-             cl_ntoh64(p_sr->service_data64[1]));
-  }
-
-+static void dump_sm_info_record(void *data)
-+{
-+    ib_sminfo_record_t *p_smr = data;
-+    const ib_sm_info_t *const p_smi = &p_smr->sm_info;
-+    uint8_t priority, state;
-+    priority = ib_sminfo_get_priority(p_smi);
-+    state = ib_sminfo_get_state(p_smi);
-+
-+    printf("SMInfoRecord dump:\n"
-+           "\t\tRID\n"
-+           "\t\tLID...................%u\n"
-+           "\t\tSMInfo dump:\n"
-+           "\t\tGUID..................0x%016" PRIx64 "\n"
-+           "\t\tSM_Key................0x%016" PRIx64 "\n"
-+           "\t\tActCount..............0x%X\n"
-+           "\t\tPriority..............%u\n"
-+           "\t\tSMState...............%u\n",
-+           cl_ntoh16(p_smr->lid),
-+           cl_ntoh64(p_smr->sm_info.guid),
-+           cl_ntoh64(p_smr->sm_info.sm_key),
-+           cl_ntoh32(p_smr->sm_info.act_count),
-+           priority, state);
-+}
-+
-  static void dump_switch_info_record(void *data)
-  {
-      ib_switch_info_record_t *p_sir = data;
-@@ -1192,6 +1216,25 @@ static int query_service_records(const struct 
-query_cmd *q, struct sa_handle * h
-                      dump_service_record);
-  }
-
-+static int query_sm_info_records(const struct query_cmd *q,
-+                 struct sa_handle * h, struct query_params *p,
-+                 int argc, char *argv[])
-+{
-+    ib_sminfo_record_t smir;
-+    ib_net64_t comp_mask = 0;
-+    int lid = 0;
-+
-+    if (argc > 0)
-+        parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
-+
-+    memset(&smir, 0, sizeof(smir));
-+    CHECK_AND_SET_VAL(lid, 16, 0, smir.lid, SMIR, LID);
-+
-+    return get_and_dump_any_records(h, IB_SA_ATTR_SMINFORECORD, 0,
-+                    comp_mask, &smir, sizeof(smir),
-+                    dump_sm_info_record);
-+}
-+
-  static int query_switchinfo_records(const struct query_cmd *q,
-                  struct sa_handle * h, struct query_params *p,
-                  int argc, char *argv[])
-@@ -1404,6 +1447,8 @@ static const struct query_cmd query_cmds[] = {
-       "[[lid]/[block]]", query_guidinfo_records},
-      {"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
-       "[lid]", query_switchinfo_records},
-+    {"SMInfoRecord", "SMIR", IB_SA_ATTR_SMINFORECORD,
-+    "[lid]", query_sm_info_records},
-      {0}
-  };
-
--- 
-1.7.9.6
-
-
+If there are other users that pin pages permanently should also account
+for it.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
