@@ -1,229 +1,223 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] Add trap details to notice log message
-Date: Tue, 28 May 2013 01:46:37 -0700 (PDT)
-Message-ID: <369a4426-595c-4e7f-a1bc-043f3394a994@default>
+From: <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDMA/ocrdma: removed use_cnt for queues.
+Date: Tue, 28 May 2013 15:42:42 +0530
+Message-ID: <53ab9538-b443-4b0a-ade8-dbecc311182c@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: lnx-roce-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
+Removed use_cnt. Rely on OFED stack to keep track of the use count.
+
+Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
+ drivers/infiniband/hw/ocrdma/ocrdma.h       |  4 ---
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  1 -
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 39 +----------------------------
+ 3 files changed, 1 insertion(+), 43 deletions(-)
 
-diff --git a/include/iba/ib_types.h b/include/iba/ib_types.h
-index 032adc3..d95c96e 100644
---- a/include/iba/ib_types.h
-+++ b/include/iba/ib_types.h
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2009 HNR Consulting. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -7619,6 +7620,23 @@ ib_member_set_join_state(IN OUT ib_member_rec_t * p_mc_rec,
- #define IB_NOTICE_TYPE_INFO				0x04
- #define IB_NOTICE_TYPE_EMPTY				0x7F
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
+index 48970af..21d99f6 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+@@ -97,7 +97,6 @@ struct ocrdma_queue_info {
+ 	u16 id;			/* qid, where to ring the doorbell. */
+ 	u16 head, tail;
+ 	bool created;
+-	atomic_t used;		/* Number of valid elements in the queue */
+ };
  
-+#define SM_GID_IN_SERVICE_TRAP				64
-+#define SM_GID_OUT_OF_SERVICE_TRAP			65
-+#define SM_MGID_CREATED_TRAP				66
-+#define SM_MGID_DESTROYED_TRAP				67
-+#define SM_UNPATH_TRAP					68
-+#define SM_REPATH_TRAP					69
-+#define SM_LINK_STATE_CHANGED_TRAP			128
-+#define SM_LINK_INTEGRITY_THRESHOLD_TRAP		129
-+#define SM_BUFFER_OVERRUN_THRESHOLD_TRAP		130
-+#define SM_WATCHDOG_TIMER_EXPIRED_TRAP			131
-+#define SM_CAP_MASK_CHANGED_TRAP			144
-+#define SM_SYS_IMG_GUID_CHANGED_TRAP			145
-+#define SM_BAD_MKEY_TRAP				256
-+#define SM_BAD_PKEY_TRAP				257
-+#define SM_BAD_QKEY_TRAP				258
-+#define SM_BAD_SWITCH_PKEY_TRAP				259
-+
- #include <complib/cl_packon.h>
- typedef struct _ib_mad_notice_attr	// Total Size calc  Accumulated
+ struct ocrdma_eq {
+@@ -198,7 +197,6 @@ struct ocrdma_cq {
+ 	struct ocrdma_ucontext *ucontext;
+ 	dma_addr_t pa;
+ 	u32 len;
+-	atomic_t use_cnt;
+ 
+ 	/* head of all qp's sq and rq for which cqes need to be flushed
+ 	 * by the software.
+@@ -210,7 +208,6 @@ struct ocrdma_pd {
+ 	struct ib_pd ibpd;
+ 	struct ocrdma_dev *dev;
+ 	struct ocrdma_ucontext *uctx;
+-	atomic_t use_cnt;
+ 	u32 id;
+ 	int num_dpp_qp;
+ 	u32 dpp_page;
+@@ -246,7 +243,6 @@ struct ocrdma_srq {
+ 
+ 	struct ocrdma_qp_hwq_info rq;
+ 	struct ocrdma_pd *pd;
+-	atomic_t use_cnt;
+ 	u32 id;
+ 	u64 *rqe_wr_id_tbl;
+ 	u32 *idx_bit_fields;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 71942af..910b706 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -128,7 +128,6 @@ static inline struct ocrdma_mqe *ocrdma_get_mqe(struct ocrdma_dev *dev)
+ static inline void ocrdma_mq_inc_head(struct ocrdma_dev *dev)
  {
-diff --git a/opensm/osm_inform.c b/opensm/osm_inform.c
-index f5abbc6..3dcd48e 100644
---- a/opensm/osm_inform.c
-+++ b/opensm/osm_inform.c
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2002-2006 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2009 HNR Consulting. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -316,7 +317,8 @@ static ib_api_status_t send_report(IN osm_infr_t * p_infr_rec,	/* the informinfo
+ 	dev->mq.sq.head = (dev->mq.sq.head + 1) & (OCRDMA_MQ_LEN - 1);
+-	atomic_inc(&dev->mq.sq.used);
+ }
  
- 	if (!p_report_madw) {
- 		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0203: "
--			"osm_mad_pool_get failed\n");
-+			"Cannot send report to LID %u, osm_mad_pool_get failed\n",
-+			cl_ntoh16(p_infr_rec->report_addr.dest_lid));
- 		status = IB_ERROR;
- 		goto Exit;
+ static inline void *ocrdma_get_mqe_rsp(struct ocrdma_dev *dev)
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index b29a424..38c145b 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -398,7 +398,6 @@ struct ib_pd *ocrdma_alloc_pd(struct ib_device *ibdev,
+ 		kfree(pd);
+ 		return ERR_PTR(status);
  	}
-@@ -594,14 +596,141 @@ static void log_notice(osm_log_t * log, osm_log_level_t level,
- 			gid = &ntc->data_details.ntc_64_67.gid;
- 		else
- 			gid = &ntc->issuer_gid;
--		OSM_LOG(log, level,
--			"Reporting Generic Notice type:%u num:%u (%s)"
--			" from LID:%u GID:%s\n",
--			ib_notice_get_type(ntc),
--			cl_ntoh16(ntc->g_or_v.generic.trap_num),
--			ib_get_trap_str(ntc->g_or_v.generic.trap_num),
--			cl_ntoh16(ntc->issuer_lid),
--			inet_ntop(AF_INET6, gid->raw, gid_str, sizeof gid_str));
-+
-+		switch (cl_ntoh16(ntc->g_or_v.generic.trap_num)) {
-+		case SM_GID_IN_SERVICE_TRAP:
-+		case SM_GID_OUT_OF_SERVICE_TRAP:
-+			OSM_LOG(log, level,
-+				"Reporting Informational Notice \"%s\", GID:%s\n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				inet_ntop(AF_INET6, gid->raw, gid_str, sizeof gid_str));
-+			break;
-+		case SM_MGID_CREATED_TRAP:
-+		case SM_MGID_DESTROYED_TRAP:
-+			OSM_LOG(log, level,
-+				"Reporting Informational Notice \"%s\", MGID:%s\n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				inet_ntop(AF_INET6, gid->raw, gid_str, sizeof gid_str));
-+			break;
-+		case SM_UNPATH_TRAP:
-+		case SM_REPATH_TRAP:
-+			/* TODO: Fill in details once SM starts to use these traps */
-+			OSM_LOG(log, level,
-+				"Reporting Informational Notice \"%s\"n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num));
-+			break;
-+		case SM_LINK_STATE_CHANGED_TRAP:
-+			OSM_LOG(log, level,
-+				"Reporting Urgent Notice \"%s\" from switch LID %u, "
-+				"GUID 0x%016" PRIx64 "\n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				cl_ntoh16(ntc->issuer_lid),
-+				cl_ntoh64(gid->unicast.interface_id));
-+			break;
-+		case SM_LINK_INTEGRITY_THRESHOLD_TRAP:
-+		case SM_BUFFER_OVERRUN_THRESHOLD_TRAP:
-+		case SM_WATCHDOG_TIMER_EXPIRED_TRAP:
-+			OSM_LOG(log, level,
-+				"Reporting Urgent Notice \"%s\" from LID %u, "
-+				"GUID 0x%016" PRIx64 ", port %u\n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				cl_ntoh16(ntc->issuer_lid),
-+				cl_ntoh64(gid->unicast.interface_id),
-+				ntc->data_details.ntc_129_131.port_num);
-+			break;
-+		case SM_CAP_MASK_CHANGED_TRAP:
-+			if (ntc->data_details.ntc_144.local_changes == 1)
-+				OSM_LOG(log, level,
-+					"Reporting Informational Notice \"%s\" from LID %u, "
-+					"GUID 0x%016" PRIx64 ", ChangeFlags 0x%04x\n",
-+					ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+					cl_ntoh16(ntc->issuer_lid),
-+					cl_ntoh64(gid->unicast.interface_id),
-+					cl_ntoh16(ntc->data_details.ntc_144.change_flgs));
-+			else
-+				OSM_LOG(log, level,
-+					"Reporting Informational Notice \"%s\" from LID %u, "
-+					"GUID 0x%016" PRIx64 ", new CapabilityMask 0x%08x\n",
-+					ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+					cl_ntoh16(ntc->issuer_lid),
-+					cl_ntoh64(gid->unicast.interface_id),
-+					cl_ntoh32(ntc->data_details.ntc_144.new_cap_mask));
-+			break;
-+		case SM_SYS_IMG_GUID_CHANGED_TRAP:
-+			OSM_LOG(log, level,
-+				"Reporting Informational Notice \"%s\" from LID %u, "
-+				"GUID 0x%016" PRIx64 ", new SysImageGUID 0x%016" PRIx64 "\n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				cl_ntoh16(ntc->issuer_lid),
-+				cl_ntoh64(gid->unicast.interface_id),
-+				cl_ntoh64(ntc->data_details.ntc_145.new_sys_guid));
-+			break;
-+		case SM_BAD_MKEY_TRAP:
-+			OSM_LOG(log, level,
-+				"Reporting Security Notice \"%s\" from LID %u, "
-+				"GUID 0x%016" PRIx64 ", Method 0x%x, Attribute 0x%x, "
-+				"AttrMod 0x%x, M_Key 0x%016" PRIx64 "\n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				cl_ntoh16(ntc->issuer_lid),
-+				cl_ntoh64(gid->unicast.interface_id),
-+				ntc->data_details.ntc_256.method,
-+				cl_ntoh16(ntc->data_details.ntc_256.attr_id),
-+				cl_ntoh32(ntc->data_details.ntc_256.attr_mod),
-+				cl_ntoh64(ntc->data_details.ntc_256.mkey));
-+			break;
-+		case SM_BAD_PKEY_TRAP:
-+		case SM_BAD_QKEY_TRAP:
-+			OSM_LOG(log, level,
-+				"Reporting Security Notice \"%s\" from LID %u, "
-+				"GUID 0x%016" PRIx64 " : LID1 %u, LID2 %u, %s 0x%x, "
-+				"SL %d, QP1 0x%x, QP2 0x%x, GUID1 0x%016" PRIx64
-+				", GUID2 0x%016" PRIx64 "\n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				cl_ntoh16(ntc->issuer_lid),
-+				cl_ntoh64(gid->unicast.interface_id),
-+				cl_ntoh16(ntc->data_details.ntc_257_258.lid1),
-+				cl_ntoh16(ntc->data_details.ntc_257_258.lid2),
-+				cl_ntoh16(ntc->g_or_v.generic.trap_num) == SM_BAD_QKEY_TRAP ?
-+					"Q_Key" : "P_Key",
-+				cl_ntoh32(ntc->data_details.ntc_257_258.key),
-+				cl_ntoh32(ntc->data_details.ntc_257_258.qp1) >> 28,
-+				cl_ntoh32(ntc->data_details.ntc_257_258.qp1) & 0xffffff,
-+				cl_ntoh32(ntc->data_details.ntc_257_258.qp2) & 0xffffff,
-+				cl_ntoh64(ntc->data_details.ntc_257_258.gid1.unicast.interface_id),
-+				cl_ntoh64(ntc->data_details.ntc_257_258.gid2.unicast.interface_id));
-+			break;
-+		case SM_BAD_SWITCH_PKEY_TRAP:
-+			OSM_LOG(log, level,
-+				"Reporting Security Notice \"%s\" from switch LID %u, "
-+				"GUID 0x%016" PRIx64 " port %d : data_valid 0x%04x, "
-+				"LID1 %u, LID2 %u, PKey 0x%04x, "
-+				"SL %d, QP1 0x%x, QP2 0x%x, GUID1 0x%016" PRIx64
-+				", GUID2 0x%016" PRIx64 "\n",
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				cl_ntoh16(ntc->issuer_lid),
-+				cl_ntoh64(gid->unicast.interface_id),
-+				ntc->data_details.ntc_259.port_no,
-+				cl_ntoh16(ntc->data_details.ntc_259.data_valid),
-+				cl_ntoh16(ntc->data_details.ntc_259.lid1),
-+				cl_ntoh16(ntc->data_details.ntc_259.lid2),
-+				cl_ntoh16(ntc->data_details.ntc_257_258.key),
-+				cl_ntoh32(ntc->data_details.ntc_259.sl_qp1) >> 28,
-+				cl_ntoh32(ntc->data_details.ntc_259.sl_qp1) & 0xffffff,
-+				cl_ntoh32(ntc->data_details.ntc_259.qp2),
-+				cl_ntoh64(ntc->data_details.ntc_259.gid1.unicast.interface_id),
-+				cl_ntoh64(ntc->data_details.ntc_259.gid2.unicast.interface_id));
-+			break;
-+		default:
-+			OSM_LOG(log, level,
-+				"Reporting Generic Notice type:%u num:%u (%s)"
-+				" from LID:%u GID:%s\n",
-+				ib_notice_get_type(ntc),
-+				cl_ntoh16(ntc->g_or_v.generic.trap_num),
-+				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-+				cl_ntoh16(ntc->issuer_lid),
-+				inet_ntop(AF_INET6, gid->raw, gid_str, sizeof gid_str));
-+			break;
-+		}
- 	} else
- 		OSM_LOG(log, level,
- 			"Reporting Vendor Notice type:%u vend:%u dev:%u"
+-	atomic_set(&pd->use_cnt, 0);
+ 
+ 	if (udata && context) {
+ 		status = ocrdma_copy_pd_uresp(pd, context, udata);
+@@ -419,12 +418,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+ 	int status;
+ 	u64 usr_db;
+ 
+-	if (atomic_read(&pd->use_cnt)) {
+-		ocrdma_err("%s(%d) pd=0x%x is in use.\n",
+-			   __func__, dev->id, pd->id);
+-		status = -EFAULT;
+-		goto dealloc_err;
+-	}
+ 	status = ocrdma_mbx_dealloc_pd(dev, pd);
+ 	if (pd->uctx) {
+ 		u64 dpp_db = dev->nic_info.dpp_unmapped_addr +
+@@ -436,7 +429,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+ 		ocrdma_del_mmap(pd->uctx, usr_db, dev->nic_info.db_page_size);
+ 	}
+ 	kfree(pd);
+-dealloc_err:
+ 	return status;
+ }
+ 
+@@ -474,7 +466,6 @@ static struct ocrdma_mr *ocrdma_alloc_lkey(struct ib_pd *ibpd,
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 	mr->pd = pd;
+-	atomic_inc(&pd->use_cnt);
+ 	mr->ibmr.lkey = mr->hwmr.lkey;
+ 	if (mr->hwmr.remote_wr || mr->hwmr.remote_rd)
+ 		mr->ibmr.rkey = mr->hwmr.lkey;
+@@ -664,7 +655,6 @@ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+ 	if (status)
+ 		goto mbx_err;
+ 	mr->pd = pd;
+-	atomic_inc(&pd->use_cnt);
+ 	mr->ibmr.lkey = mr->hwmr.lkey;
+ 	if (mr->hwmr.remote_wr || mr->hwmr.remote_rd)
+ 		mr->ibmr.rkey = mr->hwmr.lkey;
+@@ -689,7 +679,6 @@ int ocrdma_dereg_mr(struct ib_mr *ib_mr)
+ 	if (mr->hwmr.fr_mr == 0)
+ 		ocrdma_free_mr_pbl_tbl(dev, &mr->hwmr);
+ 
+-	atomic_dec(&mr->pd->use_cnt);
+ 	/* it could be user registered memory. */
+ 	if (mr->umem)
+ 		ib_umem_release(mr->umem);
+@@ -752,7 +741,6 @@ struct ib_cq *ocrdma_create_cq(struct ib_device *ibdev, int entries, int vector,
+ 
+ 	spin_lock_init(&cq->cq_lock);
+ 	spin_lock_init(&cq->comp_handler_lock);
+-	atomic_set(&cq->use_cnt, 0);
+ 	INIT_LIST_HEAD(&cq->sq_head);
+ 	INIT_LIST_HEAD(&cq->rq_head);
+ 	cq->dev = dev;
+@@ -799,9 +787,6 @@ int ocrdma_destroy_cq(struct ib_cq *ibcq)
+ 	struct ocrdma_cq *cq = get_ocrdma_cq(ibcq);
+ 	struct ocrdma_dev *dev = cq->dev;
+ 
+-	if (atomic_read(&cq->use_cnt))
+-		return -EINVAL;
+-
+ 	status = ocrdma_mbx_destroy_cq(dev, cq);
+ 
+ 	if (cq->ucontext) {
+@@ -1023,15 +1008,6 @@ static void ocrdma_set_qp_init_params(struct ocrdma_qp *qp,
+ 	qp->state = OCRDMA_QPS_RST;
+ }
+ 
+-static void ocrdma_set_qp_use_cnt(struct ocrdma_qp *qp, struct ocrdma_pd *pd)
+-{
+-	atomic_inc(&pd->use_cnt);
+-	atomic_inc(&qp->sq_cq->use_cnt);
+-	atomic_inc(&qp->rq_cq->use_cnt);
+-	if (qp->srq)
+-		atomic_inc(&qp->srq->use_cnt);
+-	qp->ibqp.qp_num = qp->id;
+-}
+ 
+ static void ocrdma_store_gsi_qp_cq(struct ocrdma_dev *dev,
+ 				   struct ib_qp_init_attr *attrs)
+@@ -1099,7 +1075,7 @@ struct ib_qp *ocrdma_create_qp(struct ib_pd *ibpd,
+ 			goto cpy_err;
+ 	}
+ 	ocrdma_store_gsi_qp_cq(dev, attrs);
+-	ocrdma_set_qp_use_cnt(qp, pd);
++	qp->ibqp.qp_num = qp->id;
+ 	mutex_unlock(&dev->dev_lock);
+ 	return &qp->ibqp;
+ 
+@@ -1475,11 +1451,6 @@ int ocrdma_destroy_qp(struct ib_qp *ibqp)
+ 
+ 	ocrdma_del_flush_qp(qp);
+ 
+-	atomic_dec(&qp->pd->use_cnt);
+-	atomic_dec(&qp->sq_cq->use_cnt);
+-	atomic_dec(&qp->rq_cq->use_cnt);
+-	if (qp->srq)
+-		atomic_dec(&qp->srq->use_cnt);
+ 	kfree(qp->wqe_wr_id_tbl);
+ 	kfree(qp->rqe_wr_id_tbl);
+ 	kfree(qp);
+@@ -1565,14 +1536,12 @@ struct ib_srq *ocrdma_create_srq(struct ib_pd *ibpd,
+ 			goto arm_err;
+ 	}
+ 
+-	atomic_set(&srq->use_cnt, 0);
+ 	if (udata) {
+ 		status = ocrdma_copy_srq_uresp(srq, udata);
+ 		if (status)
+ 			goto arm_err;
+ 	}
+ 
+-	atomic_inc(&pd->use_cnt);
+ 	return &srq->ibsrq;
+ 
+ arm_err:
+@@ -1618,18 +1587,12 @@ int ocrdma_destroy_srq(struct ib_srq *ibsrq)
+ 
+ 	srq = get_ocrdma_srq(ibsrq);
+ 	dev = srq->dev;
+-	if (atomic_read(&srq->use_cnt)) {
+-		ocrdma_err("%s(%d) err, srq=0x%x in use\n",
+-			   __func__, dev->id, srq->id);
+-		return -EAGAIN;
+-	}
+ 
+ 	status = ocrdma_mbx_destroy_srq(dev, srq);
+ 
+ 	if (srq->pd->uctx)
+ 		ocrdma_del_mmap(srq->pd->uctx, (u64) srq->rq.pa, srq->rq.len);
+ 
+-	atomic_dec(&srq->pd->use_cnt);
+ 	kfree(srq->idx_bit_fields);
+ 	kfree(srq->rqe_wr_id_tbl);
+ 	kfree(srq);
+-- 
+1.8.2.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
