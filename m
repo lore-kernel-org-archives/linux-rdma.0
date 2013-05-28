@@ -1,126 +1,116 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] Segfault in osm_mgrp_delete_port()
-Date: Tue, 28 May 2013 04:20:54 -0700 (PDT)
-Message-ID: <051b06cb-edf4-4b84-9030-1a1108d5fe25@default>
+From: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] infiniband_diags/src/saquery.c: Add SMInfoRecord support
+Date: Tue, 28 May 2013 15:03:54 +0300
+Message-ID: <51A49D2A.1090602@asaltech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Segfaults can occur in osm_mgrp_delete_port() if the last
-full member of a MCG is removed while other non-full members
-still exist.
+This patch is the combination of 2 patches
+     infiniband_diags/src/saquery.c: Add SMInfoRecord support
+     infiniband_diags/doc/rst/saquery.8.in.rst: Add support to the manual
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
 
 ---
+  doc/rst/saquery.8.in.rst |    1 +
+  src/saquery.c            |   45 
++++++++++++++++++++++++++++++++++++++++++++++
+  2 files changed, 46 insertions(+)
 
-diff --git a/include/opensm/osm_multicast.h b/include/opensm/osm_multicast.h
-index 11d789b..e192a72 100644
---- a/include/opensm/osm_multicast.h
-+++ b/include/opensm/osm_multicast.h
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -447,7 +448,7 @@ void osm_mgrp_delete_port(IN osm_subn_t * subn, IN osm_log_t * log,
- * SEE ALSO
- *********/
- 
--void osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
-+boolean_t osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
- 			  osm_mcm_alias_guid_t * mcm_alias_guid,
- 			  ib_member_rec_t * mcmr);
- void osm_mgrp_cleanup(osm_subn_t * subn, osm_mgrp_t * mpgr);
-diff --git a/opensm/osm_multicast.c b/opensm/osm_multicast.c
-index c43d58d..eb93c55 100644
---- a/opensm/osm_multicast.c
-+++ b/opensm/osm_multicast.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -338,12 +339,13 @@ osm_mcm_port_t *osm_mgrp_add_port(IN osm_subn_t * subn, osm_log_t * log,
- 	return mcm_port;
- }
- 
--void osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
-+boolean_t osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
- 			  osm_mcm_alias_guid_t * mcm_alias_guid,
- 			  ib_member_rec_t *mcmr)
- {
- 	uint8_t join_state = mcmr->scope_state & 0xf;
- 	uint8_t port_join_state, new_join_state;
-+	boolean_t mgrp_deleted = FALSE;
- 
- 	/*
- 	 * according to the same o15-0.1.14 we get the stored
-@@ -406,9 +408,12 @@ void osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
- 	    --mgrp->full_members == 0) {
- 		mgrp_send_notice(subn, log, mgrp, 67);
- 		osm_mgrp_cleanup(subn, mgrp);
-+		mgrp_deleted = TRUE;
- 	}
- 
- 	subn->p_osm->sa.dirty = TRUE;
+diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst
+index 8d87096..0551917 100644
+--- a/doc/rst/saquery.8.in.rst
++++ b/doc/rst/saquery.8.in.rst
+@@ -156,6 +156,7 @@ Supported query names (and aliases):
+          MFTRecord (MFTR) [[mlid]/[position]/[block]]
+          GUIDInfoRecord (GIR) [[lid]/[block]]
+          SwitchInfoRecord (SWIR) [lid]
++        SMInfoRecord (SMIR) [lid]
+
+
+
+diff --git a/src/saquery.c b/src/saquery.c
+index a5f9171..d60ac19 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -487,6 +487,30 @@ static void dump_service_record(void *data)
+             cl_ntoh64(p_sr->service_data64[1]));
+  }
+
++static void dump_sm_info_record(void *data)
++{
++    ib_sminfo_record_t *p_smr = data;
++    const ib_sm_info_t *const p_smi = &p_smr->sm_info;
++    uint8_t priority, state;
++    priority = ib_sminfo_get_priority(p_smi);
++    state = ib_sminfo_get_state(p_smi);
 +
-+	return (mgrp_deleted);
- }
- 
- void osm_mgrp_delete_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
-@@ -416,14 +421,16 @@ void osm_mgrp_delete_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
- {
- 	osm_mcm_alias_guid_t *mcm_alias_guid, *next_mcm_alias_guid;
- 	ib_member_rec_t mcmrec;
-+	boolean_t mgrp_deleted = FALSE;
- 
- 	next_mcm_alias_guid = (osm_mcm_alias_guid_t *) cl_qmap_head(&mgrp->mcm_alias_port_tbl);
--	while (next_mcm_alias_guid != (osm_mcm_alias_guid_t *) cl_qmap_end(&mgrp->mcm_alias_port_tbl)) {
-+	while (next_mcm_alias_guid != (osm_mcm_alias_guid_t *) cl_qmap_end(&mgrp->mcm_alias_port_tbl) &&
-+	      !mgrp_deleted) {
- 		mcm_alias_guid = next_mcm_alias_guid;
- 		next_mcm_alias_guid = (osm_mcm_alias_guid_t *) cl_qmap_next(&next_mcm_alias_guid->map_item);
- 		if (mcm_alias_guid->p_base_mcm_port->port == port) {
- 			mcmrec.scope_state = 0xf;
--			osm_mgrp_remove_port(subn, log, mgrp, mcm_alias_guid,
-+			mgrp_deleted = osm_mgrp_remove_port(subn, log, mgrp, mcm_alias_guid,
- 					     &mcmrec);
- 		}
- 	}
-diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
-index 242fcde..4d4070f 100644
---- a/opensm/osm_sa_mcmember_record.c
-+++ b/opensm/osm_sa_mcmember_record.c
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -979,7 +980,7 @@ static void mcmr_rcv_leave_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
- 	}
- 
- 	/* remove port and/or update join state */
--	osm_mgrp_remove_port(sa->p_subn, sa->p_log, p_mgrp, p_mcm_alias_guid,
-+	(void) osm_mgrp_remove_port(sa->p_subn, sa->p_log, p_mgrp, p_mcm_alias_guid,
- 			     &mcmember_rec);
- 	CL_PLOCK_RELEASE(sa->p_lock);
- 
++    printf("SMInfoRecord dump:\n"
++           "\t\tRID\n"
++           "\t\tLID...................%u\n"
++           "\t\tSMInfo dump:\n"
++           "\t\tGUID..................0x%016" PRIx64 "\n"
++           "\t\tSM_Key................0x%016" PRIx64 "\n"
++           "\t\tActCount..............0x%X\n"
++           "\t\tPriority..............%u\n"
++           "\t\tSMState...............%u\n",
++           cl_ntoh16(p_smr->lid),
++           cl_ntoh64(p_smr->sm_info.guid),
++           cl_ntoh64(p_smr->sm_info.sm_key),
++           cl_ntoh32(p_smr->sm_info.act_count),
++           priority, state);
++}
++
+  static void dump_switch_info_record(void *data)
+  {
+      ib_switch_info_record_t *p_sir = data;
+@@ -1192,6 +1216,25 @@ static int query_service_records(const struct 
+query_cmd *q, struct sa_handle * h
+                      dump_service_record);
+  }
+
++static int query_sm_info_records(const struct query_cmd *q,
++                 struct sa_handle * h, struct query_params *p,
++                 int argc, char *argv[])
++{
++    ib_sminfo_record_t smir;
++    ib_net64_t comp_mask = 0;
++    int lid = 0;
++
++    if (argc > 0)
++        parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
++
++    memset(&smir, 0, sizeof(smir));
++    CHECK_AND_SET_VAL(lid, 16, 0, smir.lid, SMIR, LID);
++
++    return get_and_dump_any_records(h, IB_SA_ATTR_SMINFORECORD, 0,
++                    comp_mask, &smir, sizeof(smir),
++                    dump_sm_info_record);
++}
++
+  static int query_switchinfo_records(const struct query_cmd *q,
+                  struct sa_handle * h, struct query_params *p,
+                  int argc, char *argv[])
+@@ -1404,6 +1447,8 @@ static const struct query_cmd query_cmds[] = {
+       "[[lid]/[block]]", query_guidinfo_records},
+      {"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
+       "[lid]", query_switchinfo_records},
++    {"SMInfoRecord", "SMIR", IB_SA_ATTR_SMINFORECORD,
++    "[lid]", query_sm_info_records},
+      {0}
+  };
+
+-- 
+1.7.9.6
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
