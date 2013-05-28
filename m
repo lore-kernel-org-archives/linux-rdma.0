@@ -1,84 +1,231 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re: [RFC][PATCH] mm: Fix RLIMIT_MEMLOCK
-Date: Tue, 28 May 2013 16:37:06 +0000
-Message-ID: <0000013eec0006ee-0f8caf7b-cc94-4f54-ae38-0ca6623b7841-000000@email.amazonses.com>
-References: <alpine.DEB.2.10.1305222344060.12929@vincent-weaver-1.um.maine.edu> <20130523044803.GA25399@ZenIV.linux.org.uk> <20130523104154.GA23650@twins.programming.kicks-ass.net> <0000013ed1b8d0cc-ad2bb878-51bd-430c-8159-629b23ed1b44-000000@email.amazonses.com>
- <20130523152458.GD23650@twins.programming.kicks-ass.net> <0000013ed2297ba8-467d474a-7068-45b3-9fa3-82641e6aa363-000000@email.amazonses.com> <20130523163901.GG23650@twins.programming.kicks-ass.net> <0000013ed28b638a-066d7dc7-b590-49f8-9423-badb9537b8b6-000000@email.amazonses.com>
- <20130524140114.GK23650@twins.programming.kicks-ass.net> <0000013ed732b615-748f574f-ccb8-4de7-bbe4-d85d1cbf0c9d-000000@email.amazonses.com> <20130527064834.GA2781@laptop>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: add optional numa affinity
+Date: Tue, 28 May 2013 12:57:33 -0400
+Message-ID: <20130528165733.30588.71366.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130527064834.GA2781@laptop>
-Sender: owner-linux-mm@kvack.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, Vince Weaver <vincent.weaver@maine.edu>, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, trinity@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, infinipath@qlogic.com, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Or Gerlitz <or.gerlitz@gmail.com>, Hugh Dickins <hughd@google.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 27 May 2013, Peter Zijlstra wrote:
+From: Ramkrishna Vepa <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-> Before your patch pinned was included in locked and thus RLIMIT_MEMLOCK
-> had a single resource counter. After your patch RLIMIT_MEMLOCK is
-> applied separately to both -- more or less.
+This patch adds context relative numa affinity conditioned on the
+module parameter numa_aware. The qib_ctxtdata has an additional
+node_id member and qib_create_ctxtdata() has an addition node_id
+parameter.
 
-Before the patch the count was doubled since a single page was counted
-twice: Once because it was mlocked (marked with PG_mlock) and then again
-because it was also pinned (the refcount was increased). Two different things.
+The allocations within the hdr queue and eager queue setup routines now
+take this additional member and adjust allocations as necesary.  PSM
+will pass the either current numa node or the node closest to the HCA
+depending on numa_aware. Verbs will always use the node closest to
+the HCA.
 
-We have agreed for a long time that mlocked pages are movable. That is not
-true for pinned pages and therefore pinning pages therefore do not fall
-into that category (Hugh? AFAICR you came up with that rule?)
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ramkrishna Vepa <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib.h          |    7 +++++
+ drivers/infiniband/hw/qib/qib_file_ops.c |    6 ++++-
+ drivers/infiniband/hw/qib/qib_init.c     |   39 +++++++++++++++++++++++++-----
+ 3 files changed, 43 insertions(+), 9 deletions(-)
 
-> NO, mlocked pages are pages that do not leave core memory; IOW do not
-> cause major faults. Pinning pages is a perfectly spec compliant mlock()
-> implementation.
-
-That is not the definition that we have used so far.
-
-> Now in an earlier discussion on the issue 'we' (I can't remember if you
-> participated there, I remember Mel and Kosaki-San) agreed that for
-> 'normal' (read not whacky real-time people) mlock can still be useful
-> and we should introduce a pinned user API for the RT people.
-
-Right. I remember that.
-
-> > Pinned pages are pages that have an elevated refcount because the hardware
-> > needs to use these pages for I/O. The elevated refcount may be temporary
-> > (then we dont care about this) or for a longer time (such as the memory
-> > registration of the IB subsystem). That is when we account the memory as
-> > pinned. The elevated refcount stops page migration and other things from
-> > trying to move that memory.
->
-> Again I _know_ that!!!
-
-But then you refuse to acknowledge the difference and want to conflate
-both.
-
-> > Pages can be both pinned and mlocked.
->
-> Right, but apart for mlockall() this is a highly unlikely situation to
-> actually occur. And if you're using mlockall() you've effectively
-> disabled RLIMIT_MEMLOCK and thus nobody cares if the resource counter
-> goes funny.
-
-mlockall() would never be used on all processes. You still need the
-RLIMIT_MLOCK to ensure that the box does not lock up.
-
-> > I think we need to be first clear on what we want to accomplish and what
-> > these counters actually should count before changing things.
->
-> Backward isn't it... _you_ changed it without consideration.
-
-I applied the categorization that we had agreed on before during the
-development of page migratiob. Pinning is not compatible.
-
-> The IB code does a big get_user_pages(), which last time I checked
-> pins a sequential range of pages. Therefore the VMA approach.
-
-The IB code (and other code) can require the pinning of pages in various
-ways.
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 5643ce4..ca740d8 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -154,6 +154,8 @@ struct qib_ctxtdata {
+ 	 */
+ 	/* instead of calculating it */
+ 	unsigned ctxt;
++	/* local node of context */
++	int node_id;
+ 	/* non-zero if ctxt is being shared. */
+ 	u16 subctxt_cnt;
+ 	/* non-zero if ctxt is being shared. */
+@@ -1092,6 +1094,8 @@ struct qib_devdata {
+ 	u16 psxmitwait_check_rate;
+ 	/* high volume overflow errors defered to tasklet */
+ 	struct tasklet_struct error_tasklet;
++
++	int assigned_node_id; /* NUMA node closest to HCA */
+ };
+ 
+ /* hol_state values */
+@@ -1171,7 +1175,7 @@ int qib_create_rcvhdrq(struct qib_devdata *, struct qib_ctxtdata *);
+ int qib_setup_eagerbufs(struct qib_ctxtdata *);
+ void qib_set_ctxtcnt(struct qib_devdata *);
+ int qib_create_ctxts(struct qib_devdata *dd);
+-struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *, u32);
++struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *, u32, int);
+ void qib_init_pportdata(struct qib_pportdata *, struct qib_devdata *, u8, u8);
+ void qib_free_ctxtdata(struct qib_devdata *, struct qib_ctxtdata *);
+ 
+@@ -1462,6 +1466,7 @@ extern unsigned qib_n_krcv_queues;
+ extern unsigned qib_sdma_fetch_arb;
+ extern unsigned qib_compat_ddr_negotiate;
+ extern int qib_special_trigger;
++extern unsigned qib_numa_aware;
+ 
+ extern struct mutex qib_mutex;
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index 4f7aa30..5003440 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -1263,8 +1263,12 @@ static int setup_ctxt(struct qib_pportdata *ppd, int ctxt,
+ 	struct qib_ctxtdata *rcd;
+ 	void *ptmp = NULL;
+ 	int ret;
++	int numa_id;
+ 
+-	rcd = qib_create_ctxtdata(ppd, ctxt);
++	numa_id = qib_numa_aware ? numa_node_id() :
++		dd->assigned_node_id;
++
++	rcd = qib_create_ctxtdata(ppd, ctxt, numa_id);
+ 
+ 	/*
+ 	 * Allocate memory for use in qib_tid_update() at open to
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 6176dfa..8f46fb4 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -67,6 +67,11 @@ ushort qib_cfgctxts;
+ module_param_named(cfgctxts, qib_cfgctxts, ushort, S_IRUGO);
+ MODULE_PARM_DESC(cfgctxts, "Set max number of contexts to use");
+ 
++unsigned qib_numa_aware;
++module_param_named(numa_aware, qib_numa_aware, uint, S_IRUGO);
++MODULE_PARM_DESC(numa_aware,
++	"0 -> PSM allocation close to HCA, 1 -> PSM allocation local to process");
++
+ /*
+  * If set, do not write to any regs if avoidable, hack to allow
+  * check for deranged default register values.
+@@ -124,6 +129,11 @@ int qib_create_ctxts(struct qib_devdata *dd)
+ {
+ 	unsigned i;
+ 	int ret;
++	int local_node_id = pcibus_to_node(dd->pcidev->bus);
++
++	if (local_node_id < 0)
++		local_node_id = numa_node_id();
++	dd->assigned_node_id = local_node_id;
+ 
+ 	/*
+ 	 * Allocate full ctxtcnt array, rather than just cfgctxts, because
+@@ -146,7 +156,8 @@ int qib_create_ctxts(struct qib_devdata *dd)
+ 			continue;
+ 
+ 		ppd = dd->pport + (i % dd->num_pports);
+-		rcd = qib_create_ctxtdata(ppd, i);
++
++		rcd = qib_create_ctxtdata(ppd, i, dd->assigned_node_id);
+ 		if (!rcd) {
+ 			qib_dev_err(dd,
+ 				"Unable to allocate ctxtdata for Kernel ctxt, failing\n");
+@@ -164,14 +175,16 @@ done:
+ /*
+  * Common code for user and kernel context setup.
+  */
+-struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt)
++struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt,
++	int node_id)
+ {
+ 	struct qib_devdata *dd = ppd->dd;
+ 	struct qib_ctxtdata *rcd;
+ 
+-	rcd = kzalloc(sizeof(*rcd), GFP_KERNEL);
++	rcd = kzalloc_node(sizeof(*rcd), GFP_KERNEL, node_id);
+ 	if (rcd) {
+ 		INIT_LIST_HEAD(&rcd->qp_wait_list);
++		rcd->node_id = node_id;
+ 		rcd->ppd = ppd;
+ 		rcd->dd = dd;
+ 		rcd->cnt = 1;
+@@ -1521,6 +1534,7 @@ static void qib_remove_one(struct pci_dev *pdev)
+ int qib_create_rcvhdrq(struct qib_devdata *dd, struct qib_ctxtdata *rcd)
+ {
+ 	unsigned amt;
++	int old_node_id;
+ 
+ 	if (!rcd->rcvhdrq) {
+ 		dma_addr_t phys_hdrqtail;
+@@ -1530,9 +1544,13 @@ int qib_create_rcvhdrq(struct qib_devdata *dd, struct qib_ctxtdata *rcd)
+ 			    sizeof(u32), PAGE_SIZE);
+ 		gfp_flags = (rcd->ctxt >= dd->first_user_ctxt) ?
+ 			GFP_USER : GFP_KERNEL;
++
++		old_node_id = dev_to_node(&dd->pcidev->dev);
++		set_dev_node(&dd->pcidev->dev, rcd->node_id);
+ 		rcd->rcvhdrq = dma_alloc_coherent(
+ 			&dd->pcidev->dev, amt, &rcd->rcvhdrq_phys,
+ 			gfp_flags | __GFP_COMP);
++		set_dev_node(&dd->pcidev->dev, old_node_id);
+ 
+ 		if (!rcd->rcvhdrq) {
+ 			qib_dev_err(dd,
+@@ -1548,9 +1566,11 @@ int qib_create_rcvhdrq(struct qib_devdata *dd, struct qib_ctxtdata *rcd)
+ 		}
+ 
+ 		if (!(dd->flags & QIB_NODMA_RTAIL)) {
++			set_dev_node(&dd->pcidev->dev, rcd->node_id);
+ 			rcd->rcvhdrtail_kvaddr = dma_alloc_coherent(
+ 				&dd->pcidev->dev, PAGE_SIZE, &phys_hdrqtail,
+ 				gfp_flags);
++			set_dev_node(&dd->pcidev->dev, old_node_id);
+ 			if (!rcd->rcvhdrtail_kvaddr)
+ 				goto bail_free;
+ 			rcd->rcvhdrqtailaddr_phys = phys_hdrqtail;
+@@ -1594,6 +1614,7 @@ int qib_setup_eagerbufs(struct qib_ctxtdata *rcd)
+ 	unsigned e, egrcnt, egrperchunk, chunk, egrsize, egroff;
+ 	size_t size;
+ 	gfp_t gfp_flags;
++	int old_node_id;
+ 
+ 	/*
+ 	 * GFP_USER, but without GFP_FS, so buffer cache can be
+@@ -1612,25 +1633,29 @@ int qib_setup_eagerbufs(struct qib_ctxtdata *rcd)
+ 	size = rcd->rcvegrbuf_size;
+ 	if (!rcd->rcvegrbuf) {
+ 		rcd->rcvegrbuf =
+-			kzalloc(chunk * sizeof(rcd->rcvegrbuf[0]),
+-				GFP_KERNEL);
++			kzalloc_node(chunk * sizeof(rcd->rcvegrbuf[0]),
++				GFP_KERNEL, rcd->node_id);
+ 		if (!rcd->rcvegrbuf)
+ 			goto bail;
+ 	}
+ 	if (!rcd->rcvegrbuf_phys) {
+ 		rcd->rcvegrbuf_phys =
+-			kmalloc(chunk * sizeof(rcd->rcvegrbuf_phys[0]),
+-				GFP_KERNEL);
++			kmalloc_node(chunk * sizeof(rcd->rcvegrbuf_phys[0]),
++				GFP_KERNEL, rcd->node_id);
+ 		if (!rcd->rcvegrbuf_phys)
+ 			goto bail_rcvegrbuf;
+ 	}
+ 	for (e = 0; e < rcd->rcvegrbuf_chunks; e++) {
+ 		if (rcd->rcvegrbuf[e])
+ 			continue;
++
++		old_node_id = dev_to_node(&dd->pcidev->dev);
++		set_dev_node(&dd->pcidev->dev, rcd->node_id);
+ 		rcd->rcvegrbuf[e] =
+ 			dma_alloc_coherent(&dd->pcidev->dev, size,
+ 					   &rcd->rcvegrbuf_phys[e],
+ 					   gfp_flags);
++		set_dev_node(&dd->pcidev->dev, old_node_id);
+ 		if (!rcd->rcvegrbuf[e])
+ 			goto bail_rcvegrbuf_phys;
+ 	}
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
