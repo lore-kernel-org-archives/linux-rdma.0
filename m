@@ -1,257 +1,67 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] Add trap details to notice log message
-Date: Tue, 28 May 2013 15:37:52 -0400
-Message-ID: <51A50790.6010001@dev.mellanox.co.il>
-References: <369a4426-595c-4e7f-a1bc-043f3394a994@default>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [ANNOUNCE] libibverbs 1.1.7 is released
+Date: Tue, 28 May 2013 16:10:05 -0700
+Message-ID: <1369782605-2069-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <369a4426-595c-4e7f-a1bc-043f3394a994@default>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Line,
+libibverbs is a library that allows programs to use RDMA "verbs" for
+direct access to RDMA (currently InfiniBand and iWARP) hardware from
+userspace.
 
-Just some nits below:
+The new stable release, 1.1.7, is available from
 
-On 5/28/2013 4:46 AM, Line Holen wrote:
-> Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> 
-> ---
-> 
-> diff --git a/include/iba/ib_types.h b/include/iba/ib_types.h
-> index 032adc3..d95c96e 100644
-> --- a/include/iba/ib_types.h
-> +++ b/include/iba/ib_types.h
-> @@ -3,6 +3,7 @@
->   * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
->   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
->   * Copyright (c) 2009 HNR Consulting. All rights reserved.
-> + * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
->   *
->   * This software is available to you under a choice of one of two
->   * licenses.  You may choose to be licensed under the terms of the GNU
-> @@ -7619,6 +7620,23 @@ ib_member_set_join_state(IN OUT ib_member_rec_t * p_mc_rec,
->  #define IB_NOTICE_TYPE_INFO				0x04
->  #define IB_NOTICE_TYPE_EMPTY				0x7F
->  
-> +#define SM_GID_IN_SERVICE_TRAP				64
-> +#define SM_GID_OUT_OF_SERVICE_TRAP			65
-> +#define SM_MGID_CREATED_TRAP				66
-> +#define SM_MGID_DESTROYED_TRAP				67
-> +#define SM_UNPATH_TRAP					68
-> +#define SM_REPATH_TRAP					69
-> +#define SM_LINK_STATE_CHANGED_TRAP			128
-> +#define SM_LINK_INTEGRITY_THRESHOLD_TRAP		129
-> +#define SM_BUFFER_OVERRUN_THRESHOLD_TRAP		130
-> +#define SM_WATCHDOG_TIMER_EXPIRED_TRAP			131
-> +#define SM_CAP_MASK_CHANGED_TRAP			144
+    http://www.openfabrics.org/downloads/verbs/libibverbs-1.1.7.tar.gz
 
-Would name be better as SM_LOCAL_CHANGES_TRAP ?
+with sha1sum
 
-> +#define SM_SYS_IMG_GUID_CHANGED_TRAP			145
-> +#define SM_BAD_MKEY_TRAP				256
-> +#define SM_BAD_PKEY_TRAP				257
-> +#define SM_BAD_QKEY_TRAP				258
-> +#define SM_BAD_SWITCH_PKEY_TRAP				259
-> +
->  #include <complib/cl_packon.h>
->  typedef struct _ib_mad_notice_attr	// Total Size calc  Accumulated
->  {
-> diff --git a/opensm/osm_inform.c b/opensm/osm_inform.c
-> index f5abbc6..3dcd48e 100644
-> --- a/opensm/osm_inform.c
-> +++ b/opensm/osm_inform.c
-> @@ -3,6 +3,7 @@
->   * Copyright (c) 2002-2006 Mellanox Technologies LTD. All rights reserved.
->   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
->   * Copyright (c) 2009 HNR Consulting. All rights reserved.
-> + * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
->   *
->   * This software is available to you under a choice of one of two
->   * licenses.  You may choose to be licensed under the terms of the GNU
-> @@ -316,7 +317,8 @@ static ib_api_status_t send_report(IN osm_infr_t * p_infr_rec,	/* the informinfo
->  
->  	if (!p_report_madw) {
->  		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0203: "
-> -			"osm_mad_pool_get failed\n");
-> +			"Cannot send report to LID %u, osm_mad_pool_get failed\n",
-> +			cl_ntoh16(p_infr_rec->report_addr.dest_lid));
->  		status = IB_ERROR;
->  		goto Exit;
->  	}
-> @@ -594,14 +596,141 @@ static void log_notice(osm_log_t * log, osm_log_level_t level,
->  			gid = &ntc->data_details.ntc_64_67.gid;
->  		else
->  			gid = &ntc->issuer_gid;
-> -		OSM_LOG(log, level,
-> -			"Reporting Generic Notice type:%u num:%u (%s)"
-> -			" from LID:%u GID:%s\n",
-> -			ib_notice_get_type(ntc),
-> -			cl_ntoh16(ntc->g_or_v.generic.trap_num),
-> -			ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> -			cl_ntoh16(ntc->issuer_lid),
-> -			inet_ntop(AF_INET6, gid->raw, gid_str, sizeof gid_str));
-> +
-> +		switch (cl_ntoh16(ntc->g_or_v.generic.trap_num)) {
-> +		case SM_GID_IN_SERVICE_TRAP:
-> +		case SM_GID_OUT_OF_SERVICE_TRAP:
-> +			OSM_LOG(log, level,
-> +				"Reporting Informational Notice \"%s\", GID:%s\n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				inet_ntop(AF_INET6, gid->raw, gid_str, sizeof gid_str));
-> +			break;
-> +		case SM_MGID_CREATED_TRAP:
-> +		case SM_MGID_DESTROYED_TRAP:
-> +			OSM_LOG(log, level,
-> +				"Reporting Informational Notice \"%s\", MGID:%s\n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				inet_ntop(AF_INET6, gid->raw, gid_str, sizeof gid_str));
-> +			break;
-> +		case SM_UNPATH_TRAP:
-> +		case SM_REPATH_TRAP:
-> +			/* TODO: Fill in details once SM starts to use these traps */
-> +			OSM_LOG(log, level,
-> +				"Reporting Informational Notice \"%s\"n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num));
-> +			break;
-> +		case SM_LINK_STATE_CHANGED_TRAP:
-> +			OSM_LOG(log, level,
-> +				"Reporting Urgent Notice \"%s\" from switch LID %u, "
-> +				"GUID 0x%016" PRIx64 "\n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				cl_ntoh16(ntc->issuer_lid),
-> +				cl_ntoh64(gid->unicast.interface_id));
-> +			break;
-> +		case SM_LINK_INTEGRITY_THRESHOLD_TRAP:
-> +		case SM_BUFFER_OVERRUN_THRESHOLD_TRAP:
-> +		case SM_WATCHDOG_TIMER_EXPIRED_TRAP:
-> +			OSM_LOG(log, level,
-> +				"Reporting Urgent Notice \"%s\" from LID %u, "
-> +				"GUID 0x%016" PRIx64 ", port %u\n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				cl_ntoh16(ntc->issuer_lid),
-> +				cl_ntoh64(gid->unicast.interface_id),
-> +				ntc->data_details.ntc_129_131.port_num);
-> +			break;
-> +		case SM_CAP_MASK_CHANGED_TRAP:
-> +			if (ntc->data_details.ntc_144.local_changes == 1)
-> +				OSM_LOG(log, level,
-> +					"Reporting Informational Notice \"%s\" from LID %u, "
-> +					"GUID 0x%016" PRIx64 ", ChangeFlags 0x%04x\n",
-> +					ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +					cl_ntoh16(ntc->issuer_lid),
-> +					cl_ntoh64(gid->unicast.interface_id),
-> +					cl_ntoh16(ntc->data_details.ntc_144.change_flgs));
+    3def9411b1e443cd3c8dfde761c7c6308cb98e6f  libibverbs-1.1.7.tar.gz
 
-Also, CapabilityMask2 ?
+I also pushed the latest tree and tag out to kernel.org:
 
-> +			else
-> +				OSM_LOG(log, level,
-> +					"Reporting Informational Notice \"%s\" from LID %u, "
-> +					"GUID 0x%016" PRIx64 ", new CapabilityMask 0x%08x\n",
-> +					ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +					cl_ntoh16(ntc->issuer_lid),
-> +					cl_ntoh64(gid->unicast.interface_id),
-> +					cl_ntoh32(ntc->data_details.ntc_144.new_cap_mask));
-> +			break;
-> +		case SM_SYS_IMG_GUID_CHANGED_TRAP:
-> +			OSM_LOG(log, level,
-> +				"Reporting Informational Notice \"%s\" from LID %u, "
-> +				"GUID 0x%016" PRIx64 ", new SysImageGUID 0x%016" PRIx64 "\n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				cl_ntoh16(ntc->issuer_lid),
-> +				cl_ntoh64(gid->unicast.interface_id),
-> +				cl_ntoh64(ntc->data_details.ntc_145.new_sys_guid));
-> +			break;
-> +		case SM_BAD_MKEY_TRAP:
-> +			OSM_LOG(log, level,
-> +				"Reporting Security Notice \"%s\" from LID %u, "
-> +				"GUID 0x%016" PRIx64 ", Method 0x%x, Attribute 0x%x, "
-> +				"AttrMod 0x%x, M_Key 0x%016" PRIx64 "\n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				cl_ntoh16(ntc->issuer_lid),
-> +				cl_ntoh64(gid->unicast.interface_id),
-> +				ntc->data_details.ntc_256.method,
-> +				cl_ntoh16(ntc->data_details.ntc_256.attr_id),
-> +				cl_ntoh32(ntc->data_details.ntc_256.attr_mod),
-> +				cl_ntoh64(ntc->data_details.ntc_256.mkey));
-> +			break;
-> +		case SM_BAD_PKEY_TRAP:
-> +		case SM_BAD_QKEY_TRAP:
-> +			OSM_LOG(log, level,
-> +				"Reporting Security Notice \"%s\" from LID %u, "
-> +				"GUID 0x%016" PRIx64 " : LID1 %u, LID2 %u, %s 0x%x, "
-> +				"SL %d, QP1 0x%x, QP2 0x%x, GUID1 0x%016" PRIx64
-> +				", GUID2 0x%016" PRIx64 "\n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				cl_ntoh16(ntc->issuer_lid),
-> +				cl_ntoh64(gid->unicast.interface_id),
-> +				cl_ntoh16(ntc->data_details.ntc_257_258.lid1),
-> +				cl_ntoh16(ntc->data_details.ntc_257_258.lid2),
-> +				cl_ntoh16(ntc->g_or_v.generic.trap_num) == SM_BAD_QKEY_TRAP ?
-> +					"Q_Key" : "P_Key",
-> +				cl_ntoh32(ntc->data_details.ntc_257_258.key),
-> +				cl_ntoh32(ntc->data_details.ntc_257_258.qp1) >> 28,
-> +				cl_ntoh32(ntc->data_details.ntc_257_258.qp1) & 0xffffff,
-> +				cl_ntoh32(ntc->data_details.ntc_257_258.qp2) & 0xffffff,
-> +				cl_ntoh64(ntc->data_details.ntc_257_258.gid1.unicast.interface_id),
-> +				cl_ntoh64(ntc->data_details.ntc_257_258.gid2.unicast.interface_id));
+    git://git.kernel.org/pub/scm/libs/infiniband/libibverbs.git
 
-Should these be GIDs rather than GUIDs ?
+(the name of the tag is libibverbs-1.1.7).
 
-> +			break;
-> +		case SM_BAD_SWITCH_PKEY_TRAP:
-> +			OSM_LOG(log, level,
-> +				"Reporting Security Notice \"%s\" from switch LID %u, "
-> +				"GUID 0x%016" PRIx64 " port %d : data_valid 0x%04x, "
-> +				"LID1 %u, LID2 %u, PKey 0x%04x, "
-> +				"SL %d, QP1 0x%x, QP2 0x%x, GUID1 0x%016" PRIx64
-> +				", GUID2 0x%016" PRIx64 "\n",
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				cl_ntoh16(ntc->issuer_lid),
-> +				cl_ntoh64(gid->unicast.interface_id),
-> +				ntc->data_details.ntc_259.port_no,
-> +				cl_ntoh16(ntc->data_details.ntc_259.data_valid),
-> +				cl_ntoh16(ntc->data_details.ntc_259.lid1),
-> +				cl_ntoh16(ntc->data_details.ntc_259.lid2),
-> +				cl_ntoh16(ntc->data_details.ntc_257_258.key),
-> +				cl_ntoh32(ntc->data_details.ntc_259.sl_qp1) >> 28,
-> +				cl_ntoh32(ntc->data_details.ntc_259.sl_qp1) & 0xffffff,
-> +				cl_ntoh32(ntc->data_details.ntc_259.qp2),
-> +				cl_ntoh64(ntc->data_details.ntc_259.gid1.unicast.interface_id),
-> +				cl_ntoh64(ntc->data_details.ntc_259.gid2.unicast.interface_id));
+The main new feature in this release is initial support for raw QPs.
+This release is intended as a checkpoint to get pending changes out
+before starting work on general extension support (with XRC support as
+an initial driver).
 
-Should these be GIDs rather than GUIDs ?
+The git shortlog since libibverbs 1.1.6 is:
 
-Thanks.
+Bart Van Assche (1):
+      Fix a compiler warnings with NVALGRIND
 
--- Hal
+Dotan Barak (2):
+      Add helpers to deal with new InfiniBand link speeds
+      Fix resource leaks in the pingpong examples
 
-> +			break;
-> +		default:
-> +			OSM_LOG(log, level,
-> +				"Reporting Generic Notice type:%u num:%u (%s)"
-> +				" from LID:%u GID:%s\n",
-> +				ib_notice_get_type(ntc),
-> +				cl_ntoh16(ntc->g_or_v.generic.trap_num),
-> +				ib_get_trap_str(ntc->g_or_v.generic.trap_num),
-> +				cl_ntoh16(ntc->issuer_lid),
-> +				inet_ntop(AF_INET6, gid->raw, gid_str, sizeof gid_str));
-> +			break;
-> +		}
->  	} else
->  		OSM_LOG(log, level,
->  			"Reporting Vendor Notice type:%u vend:%u dev:%u"
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Doug Ledford (5):
+      devinfo: Give an error when the user specifies an invalid port
+      devinfo: Don't allow port == 0 as an option
+      Fix the compatibility wrapper on PPC
+      ud_pingpong: Don't try to send UD messages larger than MTU
+      Don't print link phys state on iWARP
 
+Jeff Squyres (2):
+      libibverbs: Use autoreconf in autogen.sh
+      .gitignore updates; rename configure.in->.ac
+
+Or Gerlitz (1):
+      Add raw packet QP type
+
+Roland Dreier (1):
+      Roll libibverbs 1.1.7 release
+
+Yann Droneaud (5):
+      memory: use SCNxPTR format to read uintptr_t values
+      memory: comment out unused verify() function
+      Open files with "close on exec" flag
+      configure: Apply updates proposed by autoupdate
+      configure: Use automake's option "subdir-objects"
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
