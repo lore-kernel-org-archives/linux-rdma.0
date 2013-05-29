@@ -1,44 +1,41 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] osm_ucast_dfsssp.c: Fix memory leak in dfsssp_do_dijkstra_routing
-Date: Wed, 29 May 2013 13:26:54 -0400
-Message-ID: <51A63A5E.1070900@dev.mellanox.co.il>
+From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Subject: [RFC][PATCH] mm: Fix RLIMIT_MEMLOCK
+Date: Wed, 29 May 2013 15:53:36 -0400
+Message-ID: <51A65CC0.3050800@gmail.com>
+References: <20130523104154.GA23650@twins.programming.kicks-ass.net> <0000013ed1b8d0cc-ad2bb878-51bd-430c-8159-629b23ed1b44-000000@email.amazonses.com> <20130523152458.GD23650@twins.programming.kicks-ass.net> <0000013ed2297ba8-467d474a-7068-45b3-9fa3-82641e6aa363-000000@email.amazonses.com> <20130523163901.GG23650@twins.programming.kicks-ass.net> <0000013ed28b638a-066d7dc7-b590-49f8-9423-badb9537b8b6-000000@email.amazonses.com> <20130524140114.GK23650@twins.programming.kicks-ass.net> <0000013ed732b615-748f574f-ccb8-4de7-bbe4-d85d1cbf0c9d-000000@email.amazonses.com> <20130527064834.GA2781@laptop> <0000013eec0006ee-0f8caf7b-cc94-4f54-ae38-0ca6623b7841-000000@email.amazonses.com> <20130529075845.GA24506@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jens Domke <domke.j.aa@m.titech.ac.jp>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130529075845.GA24506@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>, Peter Zijlstra <peterz@infradead.org>, Al Viro <viro@ZenIV.linux.org.uk>, Vince Weaver <vincent.weaver@maine.edu>, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, trinity@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, infinipath@qlogic.com, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Or Gerlitz <or.gerlitz@gmail.com>, Hugh Dickins <hughd@google.com>, kosaki.motohiro@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
->From 5c06cdf5029ca79a8c2e684a23b1b7e89a93c3a6 Mon Sep 17 00:00:00 2001
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Wed, 29 May 2013 15:41:41 +0300
-Subject: [PATCH] osm_ucast_dfsssp.c: Fix memory leak in dfsssp_do_dijkstra_routing
+Hi
 
-Variable "sw_list" going out of scope leaks the storage it points to.
+I'm unhappy you guys uses offensive word so much. Please cool down all you guys. :-/
+In fact, _BOTH_ the behavior before and after Cristoph's patch doesn't have cleaner semantics.
+And PeterZ proposed make new cleaner one rather than revert. No need to hassle.
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_ucast_dfsssp.c | 1 +
- 1 file changed, 1 insertion(+)
+I'm 100% sure -rt people need stronger-mlock api. Please join discussion to make better API.
+In my humble opinion is: we should make mlock3(addr, len flags) new syscall (*) and support
+-rt requirement directly. And current strange IB RLIMIT_MEMLOCK usage should gradually migrate
+it.
+(*) or, to enhance mbind() is an option because i expect apps need to pin pages nearby NUMA nodes
+in many case.
 
-diff --git a/opensm/osm_ucast_dfsssp.c b/opensm/osm_ucast_dfsssp.c
-index 95e1627..3972656 100644
---- a/opensm/osm_ucast_dfsssp.c
-+++ b/opensm/osm_ucast_dfsssp.c
-@@ -2181,6 +2181,7 @@ static int dfsssp_do_dijkstra_routing(void *context)
- 		} else {
- 			OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR,
- 				"ERR AD31: corrupted sw_list array in dfsssp_do_dijkstra_routing\n");
-+			free(sw_list);
- 			return 1;
- 		}
- 	}
--- 
-1.7.11.3
+As your know, current IB pinning implementation doesn't guarantee no minor fault when fork
+is used. It's ok for IB. They uses madvise(MADV_NOFORK) too. But I'm not sure *all* of rt
+application are satisfied this. We might need to implement copy-on-fork or might not. I'd
+like hear other people's opinion.
+
+Also, all developer should know this pinning breaks when memory hot-plug is happen likes
+cpu bounding bysched_setaffinity() may break when cpu hot-remove.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
