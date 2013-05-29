@@ -1,41 +1,39 @@
-From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Subject: [RFC][PATCH] mm: Fix RLIMIT_MEMLOCK
-Date: Wed, 29 May 2013 15:53:36 -0400
-Message-ID: <51A65CC0.3050800@gmail.com>
-References: <20130523104154.GA23650@twins.programming.kicks-ass.net> <0000013ed1b8d0cc-ad2bb878-51bd-430c-8159-629b23ed1b44-000000@email.amazonses.com> <20130523152458.GD23650@twins.programming.kicks-ass.net> <0000013ed2297ba8-467d474a-7068-45b3-9fa3-82641e6aa363-000000@email.amazonses.com> <20130523163901.GG23650@twins.programming.kicks-ass.net> <0000013ed28b638a-066d7dc7-b590-49f8-9423-badb9537b8b6-000000@email.amazonses.com> <20130524140114.GK23650@twins.programming.kicks-ass.net> <0000013ed732b615-748f574f-ccb8-4de7-bbe4-d85d1cbf0c9d-000000@email.amazonses.com> <20130527064834.GA2781@laptop> <0000013eec0006ee-0f8caf7b-cc94-4f54-ae38-0ca6623b7841-000000@email.amazonses.com> <20130529075845.GA24506@gmail.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Status of "ummunot" branch?
+Date: Wed, 29 May 2013 22:56:31 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F64AAB7@xmb-rcd-x01.cisco.com>
+References: <EF66BBEB19BADC41AC8CCF5F684F07FC4F643196@xmb-rcd-x01.cisco.com>
+ <CAJZOPZJc2Dq2jQgRspP_2c1j=4aJ40UxcBEcyiY_mhHPX1ptPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130529075845.GA24506@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>, Peter Zijlstra <peterz@infradead.org>, Al Viro <viro@ZenIV.linux.org.uk>, Vince Weaver <vincent.weaver@maine.edu>, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, trinity@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, infinipath@qlogic.com, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Or Gerlitz <or.gerlitz@gmail.com>, Hugh Dickins <hughd@google.com>, kosaki.motohiro@gmail.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJZOPZJc2Dq2jQgRspP_2c1j=4aJ40UxcBEcyiY_mhHPX1ptPw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <E929982BC2F48646AA8547BA126418DC-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi
+On May 29, 2013, at 4:53 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-I'm unhappy you guys uses offensive word so much. Please cool down all you guys. :-/
-In fact, _BOTH_ the behavior before and after Cristoph's patch doesn't have cleaner semantics.
-And PeterZ proposed make new cleaner one rather than revert. No need to hassle.
+> Have you looked on ODP? see
+> https://www.openfabrics.org/resources/document-downloads/presentations/doc_download/568-on-demand-paging-for-user-space-networking.html
 
-I'm 100% sure -rt people need stronger-mlock api. Please join discussion to make better API.
-In my humble opinion is: we should make mlock3(addr, len flags) new syscall (*) and support
--rt requirement directly. And current strange IB RLIMIT_MEMLOCK usage should gradually migrate
-it.
-(*) or, to enhance mbind() is an option because i expect apps need to pin pages nearby NUMA nodes
-in many case.
 
-As your know, current IB pinning implementation doesn't guarantee no minor fault when fork
-is used. It's ok for IB. They uses madvise(MADV_NOFORK) too. But I'm not sure *all* of rt
-application are satisfied this. We might need to implement copy-on-fork or might not. I'd
-like hear other people's opinion.
+Is this upstream?
 
-Also, all developer should know this pinning breaks when memory hot-plug is happen likes
-cpu bounding bysched_setaffinity() may break when cpu hot-remove.
+Has this been run by the MPI implementor community?
+
+The limitation of a max of 2 concurrent page faults seems fairly significant.
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
