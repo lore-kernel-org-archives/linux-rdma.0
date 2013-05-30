@@ -1,52 +1,46 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [ANNOUNCE] libmlx4 1.0.5 is released
-Date: Thu, 30 May 2013 11:18:55 -0700
-Message-ID: <1369937935-21981-1-git-send-email-roland@kernel.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v3] Add trap details to notice log message
+Date: Thu, 30 May 2013 18:24:36 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD2C024@ORSMSX109.amr.corp.intel.com>
+References: <a889a33d-2f26-4432-b912-3d531a60e019@default>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <a889a33d-2f26-4432-b912-3d531a60e019@default>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-libmlx4 is a userspace driver for Mellanox ConnectX InfiniBand/IBoE
-HCAs.  It is a plug-in module for libibverbs that allows programs to
-use Mellanox hardware directly from userspace.
-
-A new stable release is available from
-
-    http://www.openfabrics.org/downloads/mlx4/libmlx4-1.0.5.tar.gz
-
-with sha1sum
-
-    15356e0dfe78f98bf2586c3fa0058b0be6ecfa4f  libmlx4-1.0.5.tar.gz
-
-I also pushed the latest tree and tag out to kernel.org:
-
-    git://git.kernel.org/pub/scm/libs/infiniband/libmlx4.git
-
-(the name of the tags is libmlx4-1.0.5)
-
-The main new features of this release are support for 64-byte CQEs
-(when turned on in the mlx4_core kernel driver via the
-enable_64b_cqe_eqe module parameter) and support for raw QPs.
-
-The git shortlog since libmlx4 1.0.4 is:
-
-Dotan Barak (5):
-      Replace sscanf() with strtol()
-      Allow using the whole Blue Flame buffer
-      Use BlueFlame for RDMA Write [with immediate] without data
-      Change enumeration names for masked atomic opcodes
-      Have ibv_modify_qp() return right value when ibv_query_port() fails
-
-Or Gerlitz (2):
-      Add support for 64B CQEs
-      Add raw packet QP support
-
-Roland Dreier (4):
-      Rename configure.in -> configure.ac
-      Use autoreconf in autogen.sh
-      configure: Minor updates suggested by autoupdate
-      Roll libmlx4 1.0.5 release
+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9pYmEvaWJfdHlwZXMuaCBiL2luY2x1ZGUvaWJhL2liX3R5
+cGVzLmgNCj4gaW5kZXggZDVjZjI4Ny4uNWMyMzhhZSAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9p
+YmEvaWJfdHlwZXMuaA0KPiArKysgYi9pbmNsdWRlL2liYS9pYl90eXBlcy5oDQo+IEBAIC0zLDYg
+KzMsNyBAQA0KPiAgICogQ29weXJpZ2h0IChjKSAyMDAyLTIwMTEgTWVsbGFub3ggVGVjaG5vbG9n
+aWVzIExURC4gQWxsIHJpZ2h0cyByZXNlcnZlZC4NCj4gICAqIENvcHlyaWdodCAoYykgMTk5Ni0y
+MDAzIEludGVsIENvcnBvcmF0aW9uLiBBbGwgcmlnaHRzIHJlc2VydmVkLg0KPiAgICogQ29weXJp
+Z2h0IChjKSAyMDA5IEhOUiBDb25zdWx0aW5nLiBBbGwgcmlnaHRzIHJlc2VydmVkLg0KPiArICog
+Q29weXJpZ2h0IChjKSAyMDEzIE9yYWNsZSBhbmQvb3IgaXRzIGFmZmlsaWF0ZXMuIEFsbCByaWdo
+dHMgcmVzZXJ2ZWQuDQo+ICAgKg0KPiAgICogVGhpcyBzb2Z0d2FyZSBpcyBhdmFpbGFibGUgdG8g
+eW91IHVuZGVyIGEgY2hvaWNlIG9mIG9uZSBvZiB0d28NCj4gICAqIGxpY2Vuc2VzLiAgWW91IG1h
+eSBjaG9vc2UgdG8gYmUgbGljZW5zZWQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUNCj4gQEAg
+LTc2MTksNiArNzYyMCwyMyBAQCBpYl9tZW1iZXJfc2V0X2pvaW5fc3RhdGUoSU4gT1VUIGliX21l
+bWJlcl9yZWNfdCAqDQo+IHBfbWNfcmVjLA0KPiAgI2RlZmluZSBJQl9OT1RJQ0VfVFlQRV9JTkZP
+CQkJCTB4MDQNCj4gICNkZWZpbmUgSUJfTk9USUNFX1RZUEVfRU1QVFkJCQkJMHg3Rg0KPiANCj4g
+KyNkZWZpbmUgU01fR0lEX0lOX1NFUlZJQ0VfVFJBUAkJCQk2NA0KPiArI2RlZmluZSBTTV9HSURf
+T1VUX09GX1NFUlZJQ0VfVFJBUAkJCTY1DQo+ICsjZGVmaW5lIFNNX01HSURfQ1JFQVRFRF9UUkFQ
+CQkJCTY2DQo+ICsjZGVmaW5lIFNNX01HSURfREVTVFJPWUVEX1RSQVAJCQkJNjcNCj4gKyNkZWZp
+bmUgU01fVU5QQVRIX1RSQVAJCQkJCTY4DQo+ICsjZGVmaW5lIFNNX1JFUEFUSF9UUkFQCQkJCQk2
+OQ0KPiArI2RlZmluZSBTTV9MSU5LX1NUQVRFX0NIQU5HRURfVFJBUAkJCTEyOA0KPiArI2RlZmlu
+ZSBTTV9MSU5LX0lOVEVHUklUWV9USFJFU0hPTERfVFJBUAkJMTI5DQo+ICsjZGVmaW5lIFNNX0JV
+RkZFUl9PVkVSUlVOX1RIUkVTSE9MRF9UUkFQCQkxMzANCj4gKyNkZWZpbmUgU01fV0FUQ0hET0df
+VElNRVJfRVhQSVJFRF9UUkFQCQkJMTMxDQo+ICsjZGVmaW5lIFNNX0xPQ0FMX0NIQU5HRVNfVFJB
+UAkJCQkxNDQNCj4gKyNkZWZpbmUgU01fU1lTX0lNR19HVUlEX0NIQU5HRURfVFJBUAkJCTE0NQ0K
+PiArI2RlZmluZSBTTV9CQURfTUtFWV9UUkFQCQkJCTI1Ng0KPiArI2RlZmluZSBTTV9CQURfUEtF
+WV9UUkFQCQkJCTI1Nw0KPiArI2RlZmluZSBTTV9CQURfUUtFWV9UUkFQCQkJCTI1OA0KPiArI2Rl
+ZmluZSBTTV9CQURfU1dJVENIX1BLRVlfVFJBUAkJCQkyNTkNCg0KVGhlc2UgZGVmaW5pdGlvbnMg
+Y291bGQgZ28gaW50byBsaWJ1Ym1hZC9pbmNsdWRlL2luZmluaWJhbmQvdW1hZF9zbS5oLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
