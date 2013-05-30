@@ -1,62 +1,145 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [RFC][PATCH] mm: Fix RLIMIT_MEMLOCK
-Date: Thu, 30 May 2013 08:32:05 +0200
-Message-ID: <20130530063205.GA5310@gmail.com>
-References: <20130523152458.GD23650@twins.programming.kicks-ass.net>
- <0000013ed2297ba8-467d474a-7068-45b3-9fa3-82641e6aa363-000000@email.amazonses.com>
- <20130523163901.GG23650@twins.programming.kicks-ass.net>
- <0000013ed28b638a-066d7dc7-b590-49f8-9423-badb9537b8b6-000000@email.amazonses.com>
- <20130524140114.GK23650@twins.programming.kicks-ass.net>
- <0000013ed732b615-748f574f-ccb8-4de7-bbe4-d85d1cbf0c9d-000000@email.amazonses.com>
- <20130527064834.GA2781@laptop>
- <0000013eec0006ee-0f8caf7b-cc94-4f54-ae38-0ca6623b7841-000000@email.amazonses.com>
- <20130529075845.GA24506@gmail.com>
- <51A65CC0.3050800@gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] Segfault in osm_mgrp_delete_port()
+Date: Thu, 30 May 2013 08:27:29 -0400
+Message-ID: <51A745B1.2000406@dev.mellanox.co.il>
+References: <051b06cb-edf4-4b84-9030-1a1108d5fe25@default>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <51A65CC0.3050800@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>, Peter Zijlstra <peterz@infradead.org>, Al Viro <viro@ZenIV.linux.org.uk>, Vince Weaver <vincent.weaver@maine.edu>, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, trinity@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, infinipath@qlogic.com, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Or Gerlitz <or.gerlitz@gmail.com>, Hugh Dickins <hughd@google.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <051b06cb-edf4-4b84-9030-1a1108d5fe25@default>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-* KOSAKI Motohiro <kosaki.motohiro@gmail.com> wrote:
-
-> Hi
+On 5/28/2013 7:20 AM, Line Holen wrote:
+> Segfaults can occur in osm_mgrp_delete_port() if the last
+> full member of a MCG is removed while other non-full members
+> still exist.
 > 
-> I'm unhappy you guys uses offensive word so much. Please cool down all 
-> you guys. :-/ In fact, _BOTH_ the behavior before and after Cristoph's 
-> patch doesn't have cleaner semantics.
+> Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Erm, this feature _regressed_ after the patch. All other concerns are 
-secondary. What's so difficult to understand about that?
+Thanks. Applied with one minor change noted below.
 
-> And PeterZ proposed make new cleaner one rather than revert. No need to 
-> hassle.
+> ---
+> 
+> diff --git a/include/opensm/osm_multicast.h b/include/opensm/osm_multicast.h
+> index 11d789b..e192a72 100644
+> --- a/include/opensm/osm_multicast.h
+> +++ b/include/opensm/osm_multicast.h
+> @@ -2,6 +2,7 @@
+>   * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+>   * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
+>   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+> + * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+>   *
+>   * This software is available to you under a choice of one of two
+>   * licenses.  You may choose to be licensed under the terms of the GNU
+> @@ -447,7 +448,7 @@ void osm_mgrp_delete_port(IN osm_subn_t * subn, IN osm_log_t * log,
+>  * SEE ALSO
+>  *********/
+>  
+> -void osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+> +boolean_t osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+>  			  osm_mcm_alias_guid_t * mcm_alias_guid,
+>  			  ib_member_rec_t * mcmr);
+>  void osm_mgrp_cleanup(osm_subn_t * subn, osm_mgrp_t * mpgr);
+> diff --git a/opensm/osm_multicast.c b/opensm/osm_multicast.c
+> index c43d58d..eb93c55 100644
+> --- a/opensm/osm_multicast.c
+> +++ b/opensm/osm_multicast.c
+> @@ -2,6 +2,7 @@
+>   * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+>   * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
+>   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+> + * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+>   *
+>   * This software is available to you under a choice of one of two
+>   * licenses.  You may choose to be licensed under the terms of the GNU
+> @@ -338,12 +339,13 @@ osm_mcm_port_t *osm_mgrp_add_port(IN osm_subn_t * subn, osm_log_t * log,
+>  	return mcm_port;
+>  }
+>  
+> -void osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+> +boolean_t osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+>  			  osm_mcm_alias_guid_t * mcm_alias_guid,
+>  			  ib_member_rec_t *mcmr)
+>  {
+>  	uint8_t join_state = mcmr->scope_state & 0xf;
+>  	uint8_t port_join_state, new_join_state;
+> +	boolean_t mgrp_deleted = FALSE;
+>  
+>  	/*
+>  	 * according to the same o15-0.1.14 we get the stored
+> @@ -406,9 +408,12 @@ void osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+>  	    --mgrp->full_members == 0) {
+>  		mgrp_send_notice(subn, log, mgrp, 67);
+>  		osm_mgrp_cleanup(subn, mgrp);
+> +		mgrp_deleted = TRUE;
+>  	}
+>  
+>  	subn->p_osm->sa.dirty = TRUE;
+> +
+> +	return (mgrp_deleted);
+>  }
+>  
+>  void osm_mgrp_delete_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+> @@ -416,14 +421,16 @@ void osm_mgrp_delete_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+>  {
+>  	osm_mcm_alias_guid_t *mcm_alias_guid, *next_mcm_alias_guid;
+>  	ib_member_rec_t mcmrec;
+> +	boolean_t mgrp_deleted = FALSE;
+>  
+>  	next_mcm_alias_guid = (osm_mcm_alias_guid_t *) cl_qmap_head(&mgrp->mcm_alias_port_tbl);
+> -	while (next_mcm_alias_guid != (osm_mcm_alias_guid_t *) cl_qmap_end(&mgrp->mcm_alias_port_tbl)) {
+> +	while (next_mcm_alias_guid != (osm_mcm_alias_guid_t *) cl_qmap_end(&mgrp->mcm_alias_port_tbl) &&
+> +	      !mgrp_deleted) {
+>  		mcm_alias_guid = next_mcm_alias_guid;
+>  		next_mcm_alias_guid = (osm_mcm_alias_guid_t *) cl_qmap_next(&next_mcm_alias_guid->map_item);
+>  		if (mcm_alias_guid->p_base_mcm_port->port == port) {
+>  			mcmrec.scope_state = 0xf;
+> -			osm_mgrp_remove_port(subn, log, mgrp, mcm_alias_guid,
+> +			mgrp_deleted = osm_mgrp_remove_port(subn, log, mgrp, mcm_alias_guid,
+>  					     &mcmrec);
+>  		}
+>  	}
+> diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
+> index 242fcde..4d4070f 100644
+> --- a/opensm/osm_sa_mcmember_record.c
+> +++ b/opensm/osm_sa_mcmember_record.c
+> @@ -3,6 +3,7 @@
+>   * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
+>   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+>   * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
+> + * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+>   *
+>   * This software is available to you under a choice of one of two
+>   * licenses.  You may choose to be licensed under the terms of the GNU
+> @@ -979,7 +980,7 @@ static void mcmr_rcv_leave_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
+>  	}
+>  
+>  	/* remove port and/or update join state */
+> -	osm_mgrp_remove_port(sa->p_subn, sa->p_log, p_mgrp, p_mcm_alias_guid,
+> +	(void) osm_mgrp_remove_port(sa->p_subn, sa->p_log, p_mgrp, p_mcm_alias_guid,
+>  			     &mcmember_rec);
 
-Sorry, that's not how we deal with regressions upstream...
+I did not include this part of the change.
 
-I've been pretty polite in fact, compared to say Linus - someone should 
-put a politically correct summary of:
+Should we fix this "globally" in OpenSM to make it easier for tools
+which complain about unused return values ?
 
-   https://lkml.org/lkml/2013/2/22/456
-   https://lkml.org/lkml/2013/3/26/1113
+-- Hal
 
-into Documentation/, people keep forgetting about it.
-
-I'm sorry if being direct and to the point offends you [no, not really], 
-this discussion got _way_ off the real track it should be on: that this is 
-a _regression_.
-
-Thanks,
-
-	Ingo
+>  	CL_PLOCK_RELEASE(sa->p_lock);
+>  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
