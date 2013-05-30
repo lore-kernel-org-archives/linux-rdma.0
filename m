@@ -1,80 +1,38 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] osm_console_io.c Memory leak when closing console
-Date: Thu, 30 May 2013 07:38:56 -0700 (PDT)
-Message-ID: <66f50a5a-e3dc-452c-ae73-9b07e2c12b3e@default>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Status of "ummunot" branch?
+Date: Thu, 30 May 2013 15:52:26 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F64C38D@xmb-rcd-x01.cisco.com>
+References: <EF66BBEB19BADC41AC8CCF5F684F07FC4F643196@xmb-rcd-x01.cisco.com>
+ <CAJZOPZJc2Dq2jQgRspP_2c1j=4aJ40UxcBEcyiY_mhHPX1ptPw@mail.gmail.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F64AAB7@xmb-rcd-x01.cisco.com>
+ <51A6DEEC.40305@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <51A6DEEC.40305-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <21AC2CD9F617164488E9EA5D7AA15608-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use fclose() rather than close() to avoid memory leaks.
-Also lowered the loglevel of a couple of log messages.
+On May 30, 2013, at 1:09 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Has this been run by the MPI implementor community?
+> 
+> The team that works on this here isn't ready for submission, so community runs were not made yet
 
----
+If this is a solution to an MPI problem, it would seem like a good idea to run the specifics of this proposal to the MPI *implementor* community first (not *users*).
 
-diff --git a/opensm/osm_console_io.c b/opensm/osm_console_io.c
-index 18bd5ef..dfc903f 100644
---- a/opensm/osm_console_io.c
-+++ b/opensm/osm_console_io.c
-@@ -1,6 +1,7 @@
- /*
-  * Copyright (c) 2005-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2008 HNR Consulting. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -107,10 +108,10 @@ int cio_close(osm_console_t * p_oct, osm_log_t * p_log)
- {
- 	int rtnval = -1;
- 	if (p_oct && p_oct->in_fd > 0) {
--		OSM_LOG(p_log, OSM_LOG_INFO,
-+		OSM_LOG(p_log, OSM_LOG_VERBOSE,
- 			"Console connection closed: %s (%s)\n",
- 			p_oct->client_hn, p_oct->client_ip);
--		rtnval = close(p_oct->in_fd);
-+		rtnval = fclose(p_oct->in);
- 		p_oct->in_fd = -1;
- 		p_oct->out_fd = -1;
- 		p_oct->in = NULL;
-@@ -138,9 +139,10 @@ int cio_open(osm_console_t * p_oct, int new_fd, osm_log_t * p_log)
- 			cio_close(p_oct, p_log);
- 		else {
- 			OSM_LOG(p_log, OSM_LOG_INFO,
--				"Console connection aborted: %s (%s)\n",
-+				"Console connection aborted: %s (%s) - "
-+				"already in use\n",
- 				p_oct->client_hn, p_oct->client_ip);
--			close(new_fd);
-+			fclose(file);
- 			free(p_line);
- 			return -1;
- 		}
-@@ -151,7 +153,7 @@ int cio_open(osm_console_t * p_oct, int new_fd, osm_log_t * p_log)
- 	p_oct->in = fdopen(p_oct->in_fd, "w+");
- 	p_oct->out = p_oct->in;
- 	osm_console_prompt(p_oct->out);
--	OSM_LOG(p_log, OSM_LOG_INFO, "Console connection accepted: %s (%s)\n",
-+	OSM_LOG(p_log, OSM_LOG_VERBOSE, "Console connection accepted: %s (%s)\n",
- 		p_oct->client_hn, p_oct->client_ip);
- 
- 	return (p_oct->in == NULL) ? -1 : 0;
-@@ -224,7 +226,7 @@ int osm_console_init(osm_subn_opt_t * opt, osm_console_t * p_oct, osm_log_t * p_
- 		}
- 		if (listen(p_oct->socket, 1) < 0) {
- 			OSM_LOG(p_log, OSM_LOG_ERROR,
--				"ERR 4B03: Failed to listen on socket: %s\n",
-+				"ERR 4B03: Failed to listen on console socket: %s\n",
- 				strerror(errno));
- 			return -1;
- 		}
+I say this because Mellanox also proposed the concept of a "shared send queue" as a solution to MPI RC scalability problems a while ago (around about the time XRC first debuted, IIRC?), and the MPI community universally hated it.
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
