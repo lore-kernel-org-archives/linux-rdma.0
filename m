@@ -1,39 +1,62 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Status of "ummunot" branch?
-Date: Thu, 30 May 2013 08:09:00 +0300
-Message-ID: <51A6DEEC.40305@mellanox.com>
-References: <EF66BBEB19BADC41AC8CCF5F684F07FC4F643196@xmb-rcd-x01.cisco.com> <CAJZOPZJc2Dq2jQgRspP_2c1j=4aJ40UxcBEcyiY_mhHPX1ptPw@mail.gmail.com> <EF66BBEB19BADC41AC8CCF5F684F07FC4F64AAB7@xmb-rcd-x01.cisco.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [RFC][PATCH] mm: Fix RLIMIT_MEMLOCK
+Date: Thu, 30 May 2013 08:32:05 +0200
+Message-ID: <20130530063205.GA5310@gmail.com>
+References: <20130523152458.GD23650@twins.programming.kicks-ass.net>
+ <0000013ed2297ba8-467d474a-7068-45b3-9fa3-82641e6aa363-000000@email.amazonses.com>
+ <20130523163901.GG23650@twins.programming.kicks-ass.net>
+ <0000013ed28b638a-066d7dc7-b590-49f8-9423-badb9537b8b6-000000@email.amazonses.com>
+ <20130524140114.GK23650@twins.programming.kicks-ass.net>
+ <0000013ed732b615-748f574f-ccb8-4de7-bbe4-d85d1cbf0c9d-000000@email.amazonses.com>
+ <20130527064834.GA2781@laptop>
+ <0000013eec0006ee-0f8caf7b-cc94-4f54-ae38-0ca6623b7841-000000@email.amazonses.com>
+ <20130529075845.GA24506@gmail.com>
+ <51A65CC0.3050800@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC4F64AAB7-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <51A65CC0.3050800@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>, Peter Zijlstra <peterz@infradead.org>, Al Viro <viro@ZenIV.linux.org.uk>, Vince Weaver <vincent.weaver@maine.edu>, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, trinity@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, infinipath@qlogic.com, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Or Gerlitz <or.gerlitz@gmail.com>, Hugh Dickins <hughd@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 30/05/2013 01:56, Jeff Squyres (jsquyres) wrote:
-> On May 29, 2013, at 4:53 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
->> Have you looked on ODP? see
->> https://www.openfabrics.org/resources/document-downloads/presentations/doc_download/568-on-demand-paging-for-user-space-networking.html
->
-> Is this upstream?
 
-No
+* KOSAKI Motohiro <kosaki.motohiro@gmail.com> wrote:
 
-> Has this been run by the MPI implementor community?
+> Hi
+> 
+> I'm unhappy you guys uses offensive word so much. Please cool down all 
+> you guys. :-/ In fact, _BOTH_ the behavior before and after Cristoph's 
+> patch doesn't have cleaner semantics.
 
-The team that works on this here isn't ready for submission, so 
-community runs were not made yet
+Erm, this feature _regressed_ after the patch. All other concerns are 
+secondary. What's so difficult to understand about that?
 
+> And PeterZ proposed make new cleaner one rather than revert. No need to 
+> hassle.
 
-> The limitation of a max of 2 concurrent page faults seems fairly significant.
->
+Sorry, that's not how we deal with regressions upstream...
 
-let me check
+I've been pretty polite in fact, compared to say Linus - someone should 
+put a politically correct summary of:
+
+   https://lkml.org/lkml/2013/2/22/456
+   https://lkml.org/lkml/2013/3/26/1113
+
+into Documentation/, people keep forgetting about it.
+
+I'm sorry if being direct and to the point offends you [no, not really], 
+this discussion got _way_ off the real track it should be on: that this is 
+a _regression_.
+
+Thanks,
+
+	Ingo
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
