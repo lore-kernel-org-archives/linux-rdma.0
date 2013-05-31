@@ -1,58 +1,58 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ibv_reg_mr call failed
-Date: Fri, 31 May 2013 09:23:48 +0300
-Message-ID: <CAJZOPZJijePOJh2jPfBD9XjFY5eY=6txhmQq9BQ-e5aSZezMog@mail.gmail.com>
-References: <B78BFEBC60BCD84AABFE4C6AE4239F303631433D@BY2PRD0412MB622.namprd04.prod.outlook.com>
-	<51A20FC0.8070906@mellanox.com>
-	<2AB4BFEB-D0E5-47E5-9E99-024BA7BB16AA@grassvalley.com>
-	<CAJZOPZ+ESd4bq2dG4yYJG4qumaBWfd+4t_bTn4cHmFgCg8AYgw@mail.gmail.com>
-	<B78BFEBC60BCD84AABFE4C6AE4239F303631FD9E@BY2PRD0412MB622.namprd04.prod.outlook.com>
+From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3] Add trap details to notice log message
+Date: Fri, 31 May 2013 10:23:00 +0200
+Message-ID: <51A85DE4.2000506@oracle.com>
+References: <a889a33d-2f26-4432-b912-3d531a60e019@default> <1828884A29C6694DAF28B7E6B8A823736FD2C024@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B78BFEBC60BCD84AABFE4C6AE4239F303631FD9E-PabevnM9DETuy2SDsQ9Xi/nBZW37Ciw+nBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736FD2C024-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liu Ginhann <Ginhann.Liu-Omk3PdybHIaN9aS15agKxg@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 31, 2013 at 2:05 AM, Liu Ginhann
-<Ginhann.Liu-Omk3PdybHIaN9aS15agKxg@public.gmane.org> wrote:
-> Or,
->
-> Tried __get_free_pages, kmalloc, all behave the same - fail in ibv_reg_mr call but the va mapped back is fine for peek and poke.
->
-> Any other suggestion?
+On 05/30/13 20:24, Hefty, Sean wrote:
+>> diff --git a/include/iba/ib_types.h b/include/iba/ib_types.h
+>> index d5cf287..5c238ae 100644
+>> --- a/include/iba/ib_types.h
+>> +++ b/include/iba/ib_types.h
+>> @@ -3,6 +3,7 @@
+>>    * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
+>>    * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+>>    * Copyright (c) 2009 HNR Consulting. All rights reserved.
+>> + * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+>>    *
+>>    * This software is available to you under a choice of one of two
+>>    * licenses.  You may choose to be licensed under the terms of the GNU
+>> @@ -7619,6 +7620,23 @@ ib_member_set_join_state(IN OUT ib_member_rec_t *
+>> p_mc_rec,
+>>   #define IB_NOTICE_TYPE_INFO				0x04
+>>   #define IB_NOTICE_TYPE_EMPTY				0x7F
+>>
+>> +#define SM_GID_IN_SERVICE_TRAP				64
+>> +#define SM_GID_OUT_OF_SERVICE_TRAP			65
+>> +#define SM_MGID_CREATED_TRAP				66
+>> +#define SM_MGID_DESTROYED_TRAP				67
+>> +#define SM_UNPATH_TRAP					68
+>> +#define SM_REPATH_TRAP					69
+>> +#define SM_LINK_STATE_CHANGED_TRAP			128
+>> +#define SM_LINK_INTEGRITY_THRESHOLD_TRAP		129
+>> +#define SM_BUFFER_OVERRUN_THRESHOLD_TRAP		130
+>> +#define SM_WATCHDOG_TIMER_EXPIRED_TRAP			131
+>> +#define SM_LOCAL_CHANGES_TRAP				144
+>> +#define SM_SYS_IMG_GUID_CHANGED_TRAP			145
+>> +#define SM_BAD_MKEY_TRAP				256
+>> +#define SM_BAD_PKEY_TRAP				257
+>> +#define SM_BAD_QKEY_TRAP				258
+>> +#define SM_BAD_SWITCH_PKEY_TRAP				259
+> These definitions could go into libubmad/include/infiniband/umad_sm.h.
+Are you suggesting to do this in addition to ib_types.h or instead of ?
+umad_sm.h seems to hold only a small subset of what's found in ib_types.h.
 
-Yes, tell from where the EFAULT  error originates
+Line
 
->
-> Hank
->
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
->> Sent: Monday, May 27, 2013 12:53 AM
->> To: Liu Ginhann
->> Cc: Or Gerlitz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: ibv_reg_mr call failed
->>
->> On Sun, May 26, 2013 at 4:52 PM, Liu Ginhann
->> <Ginhann.Liu-Omk3PdybHIaN9aS15agKxg@public.gmane.org> wrote:
->> > Will dig into it.Thanks.
->>
->>
->>
->> does this works if you use get_free_pages in the kernel instead of
->> kmem_cache?
->>
->> Or.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
->> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
->> http://vger.kernel.org/majordomo-info.html
->
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
