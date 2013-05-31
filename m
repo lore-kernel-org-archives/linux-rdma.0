@@ -1,59 +1,28 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [RFC][PATCH] mm: Fix RLIMIT_MEMLOCK
-Date: Fri, 31 May 2013 11:27:04 +0200
-Message-ID: <20130531092704.GA30394@gmail.com>
-References: <20130523163901.GG23650@twins.programming.kicks-ass.net>
- <0000013ed28b638a-066d7dc7-b590-49f8-9423-badb9537b8b6-000000@email.amazonses.com>
- <20130524140114.GK23650@twins.programming.kicks-ass.net>
- <0000013ed732b615-748f574f-ccb8-4de7-bbe4-d85d1cbf0c9d-000000@email.amazonses.com>
- <20130527064834.GA2781@laptop>
- <0000013eec0006ee-0f8caf7b-cc94-4f54-ae38-0ca6623b7841-000000@email.amazonses.com>
- <20130529075845.GA24506@gmail.com>
- <51A65CC0.3050800@gmail.com>
- <20130530063205.GA5310@gmail.com>
- <CAHGf_=qkJWEhwKRY4gu0wL4OLU1PhOW3=n6JNmAocSK-T0PhmA@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] osm_console_io.c Memory leak when closing console
+Date: Fri, 31 May 2013 05:48:21 -0400
+Message-ID: <51A871E5.5010507@dev.mellanox.co.il>
+References: <66f50a5a-e3dc-452c-ae73-9b07e2c12b3e@default>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <CAHGf_=qkJWEhwKRY4gu0wL4OLU1PhOW3=n6JNmAocSK-T0PhmA@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>, Peter Zijlstra <peterz@infradead.org>, Al Viro <viro@zeniv.linux.org.uk>, Vince Weaver <vincent.weaver@maine.edu>, LKML <linux-kernel@vger.kernel.org>, Paul Mackerras <paulus@samba.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, trinity@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Roland Dreier <roland@kernel.org>, infinipath@qlogic.com, "linux-mm@kvack.org" <linux-mm@kvack.org>, linux-rdma@vger.kernel.org, Or Gerlitz <or.gerlitz@gmail.com>, Hugh Dickins <hughd@google.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <66f50a5a-e3dc-452c-ae73-9b07e2c12b3e@default>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-* KOSAKI Motohiro <kosaki.motohiro@gmail.com> wrote:
-
-> >> I'm unhappy you guys uses offensive word so much. Please cool down all
-> >> you guys. :-/ In fact, _BOTH_ the behavior before and after Cristoph's
-> >> patch doesn't have cleaner semantics.
-> >
-> > Erm, this feature _regressed_ after the patch. All other concerns are
-> > secondary. What's so difficult to understand about that?
+On 5/30/2013 10:38 AM, Line Holen wrote:
+> Use fclose() rather than close() to avoid memory leaks.
+> Also lowered the loglevel of a couple of log messages.
 > 
-> Because it is not new commit at all. Christoph's patch was introduced
-> 10 releases before.
+> Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-That's indeed sad - resource limits are not typically tested by apps. The 
-lack of Cc:s to people affected also helped hide the effects of the 
-change.
+Thanks. Applied.
 
-> $ git describe bc3e53f682
-> v3.1-7235-gbc3e53f
-> 
-> If we just revert it, we may get another and opposite regression report. 
-> I'm worried about it. Moreover, I don't think discussion better fix is 
-> too difficult for us.
-
-Sure, I agree that a fix is generally better.
-
-Thanks,
-
-	Ingo
-
+-- Hal
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
