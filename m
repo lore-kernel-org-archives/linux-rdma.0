@@ -1,59 +1,58 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] umad_sm.h Add SM trap definitions
-Date: Sun, 2 Jun 2013 23:22:05 -0700 (PDT)
-Message-ID: <ad212e3b-4b92-4a0e-abf3-0cffffb8e0b8@default>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RESEND for-3.10 0/3] 2nd batch of iSER patches
+Date: Mon, 3 Jun 2013 11:36:42 +0300
+Message-ID: <51AC559A.3070706@mellanox.com>
+References: <1368015679-15215-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1368015679-15215-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On 08/05/2013 15:21, Or Gerlitz wrote:
+> Here's a 2nd batch of iser patches for 3.10, with the hightlight being
+> a fix to the device removal flow from Roi Dayan. For some reason the race
+> this patch fixes doesn't hit on IB link layer as of different timings
+> (e.g more modules that register with the IB core, such as IPoIB), but
+> it was there, thanks for Sean we nailed down the problem and came up
+> with a proper fix.
 
----
+Hi Roland,
 
-diff --git a/include/infiniband/umad_sm.h b/include/infiniband/umad_sm.h
-index 0ef3863..297734f 100644
---- a/include/infiniband/umad_sm.h
-+++ b/include/infiniband/umad_sm.h
-@@ -4,6 +4,7 @@
-  * Copyright (c) 2004 Intel Corporation.  All rights reserved.
-  * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
-  * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -77,6 +78,25 @@ enum {
- };
- 
- enum {
-+	UMAD_SM_GID_IN_SERVICE_TRAP		= 64,
-+	UMAD_SM_GID_OUT_OF_SERVICE_TRAP		= 65,
-+	UMAD_SM_MGID_CREATED_TRAP		= 66,
-+	UMAD_SM_MGID_DESTROYED_TRAP		= 67,
-+	UMAD_SM_UNPATH_TRAP			= 68,
-+	UMAD_SM_REPATH_TRAP			= 69,
-+	UMAD_SM_LINK_STATE_CHANGED_TRAP		= 128,
-+	UMAD_SM_LINK_INTEGRITY_THRESHOLD_TRAP	= 129,
-+	UMAD_SM_BUFFER_OVERRUN_THRESHOLD_TRAP	= 130,
-+	UMAD_SM_WATCHDOG_TIMER_EXPIRED_TRAP	= 131,
-+	UMAD_SM_LOCAL_CHANGES_TRAP		= 144,
-+	UMAD_SM_SYS_IMG_GUID_CHANGED_TRAP	= 145,
-+	UMAD_SM_BAD_MKEY_TRAP			= 256,
-+	UMAD_SM_BAD_PKEY_TRAP			= 257,
-+	UMAD_SM_BAD_QKEY_TRAP			= 258,
-+	UMAD_SM_BAD_SWITCH_PKEY_TRAP		= 259
-+};
-+
-+enum {
- 	UMAD_LEN_SMP_DATA		= 64,
- 	UMAD_SMP_MAX_HOPS		= 64
- };
+Are you getting there? (also I saw two rdma-cm patches from  Sean to 
+3.10 that didn't make it for your 1st pull request) - we're @ 3.10-rc3 
+and 3.11 materials start to knock on the door.
+
+Or.
+
+>
+> Also, with the kernel now having iser target support through LIO and the
+> increased use cases for iser, I added a MAINTAINERS entry to help people
+> figure out who's involved (and send bugs and flames...) hope you're OK
+> with that.
+>
+> Or.
+>
+> Or Gerlitz (2):
+>    IB/iser: Add Mellanox copyright
+>    MAINTAINERS: Add entry for iSCSI Extensions for RDMA (iSER) initiator
+>
+> Roi Dayan (1):
+>    IB/iser: Fix device removal flow
+>
+>   MAINTAINERS                                  |   10 ++++++++++
+>   drivers/infiniband/ulp/iser/iscsi_iser.c     |    1 +
+>   drivers/infiniband/ulp/iser/iscsi_iser.h     |    1 +
+>   drivers/infiniband/ulp/iser/iser_initiator.c |    1 +
+>   drivers/infiniband/ulp/iser/iser_memory.c    |    1 +
+>   drivers/infiniband/ulp/iser/iser_verbs.c     |   16 +++++++++-------
+>   6 files changed, 23 insertions(+), 7 deletions(-)
+>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
