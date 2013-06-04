@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH libibverbs v6 2/7] libibverbs: Introduce XRC domains
-Date: Tue,  4 Jun 2013 11:49:46 -0700
-Message-ID: <1370371791-15018-3-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH libibverbs v6 4/7] libibverbs: Add support for XRC QPs
+Date: Tue,  4 Jun 2013 11:49:48 -0700
+Message-ID: <1370371791-15018-5-git-send-email-sean.hefty@intel.com>
 References: <1370371791-15018-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1370371791-15018-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,274 +12,310 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-XRC introduces several new concepts and structures, one of
-which is the XRC domain.
+XRC queue pairs: xrc defines two new types of QPs.  The
+initiator, or send-side, xrc qp behaves similar to a send-
+only RC qp.  xrc send qp's are managed through the existing
+QP functions.  The send_wr structure is extended in a back-
+wards compatible way to support posting sends on a send xrc
+qp, which require specifying the remote xrc srq.
 
-XRC domains: xrcd's are a type of protection domain used to
-associate shared receive queues with xrc queue pairs.  Since
-xrcd are meant to be shared among multiple processes, we
-introduce new APIs to open/close xrcd's.
+The target, or receive-side, xrc qp behaves differently
+than other implemented qp's.  A recv xrc qp can be created,
+modified, and destroyed like other qp's through the existing
+calls.  The qp_init_attr structure is extended for xrc qp's.
 
-The user to kernel ABI is extended to account for opening/
-closing the xrcd.
+Because xrc recv qp's are bound to an xrcd, rather than a pd,
+it is intended to be used among multiple processes.  Any process
+with access to an xrcd may allocate and connect an xrc recv qp.
+The actual xrc recv qp is allocated and managed by the kernel.
+If the owning process explicit destroys the xrc recv qp, it is
+destroyed.  However, if the xrc recv qp is left open when the
+user process exits or closes its device, then the lifetime of
+the xrc recv qp is bound with the lifetime of the xrcd.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/infiniband/driver.h   |   16 +++++++++++++
- include/infiniband/kern-abi.h |   27 +++++++++++++++++++++-
- include/infiniband/verbs.h    |   50 ++++++++++++++++++++++++++++++++++++++--
- src/cmd.c                     |   41 +++++++++++++++++++++++++++++++++
- src/libibverbs.map            |    3 ++
- 5 files changed, 133 insertions(+), 4 deletions(-)
+ include/infiniband/driver.h   |   14 ++++++
+ include/infiniband/kern-abi.h |    5 ++
+ include/infiniband/verbs.h    |   54 ++++++++++++++++++++++-
+ src/cmd.c                     |   94 ++++++++++++++++++++++++++++++++++++++++-
+ src/libibverbs.map            |    1 +
+ 5 files changed, 164 insertions(+), 4 deletions(-)
 
 diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index f22f287..ce88442 100644
+index 05ff730..d43ae07 100644
 --- a/include/infiniband/driver.h
 +++ b/include/infiniband/driver.h
-@@ -53,6 +53,17 @@
-  */
- #define IBV_DEVICE_LIBRARY_EXTENSION rdmav2
+@@ -81,6 +81,16 @@ struct verbs_srq {
+ 	uint32_t		srq_num;
+ };
  
-+enum verbs_xrcd_mask {
-+	VERBS_XRCD_HANDLE	= 1 << 0,
-+	VERBS_XRCD_RESERVED	= 1 << 1
++enum verbs_qp_mask {
++	VERBS_QP_XRCD		= 1 << 0,
++	VERBS_QP_RESERVED	= 1 << 1
 +};
 +
-+struct verbs_xrcd {
-+	struct ibv_xrcd		xrcd;
-+	uint64_t		comp_mask;
-+	uint32_t		handle;
++struct verbs_qp {
++	struct ibv_qp		qp;
++	uint32_t		comp_mask;
++	struct verbs_xrcd       *xrcd;
 +};
-+
  typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
  						   int abi_version);
  typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
-@@ -78,6 +89,11 @@ int ibv_cmd_alloc_pd(struct ibv_context *context, struct ibv_pd *pd,
- 		     struct ibv_alloc_pd *cmd, size_t cmd_size,
- 		     struct ibv_alloc_pd_resp *resp, size_t resp_size);
- int ibv_cmd_dealloc_pd(struct ibv_pd *pd);
-+int ibv_cmd_open_xrcd(struct ibv_context *context, struct verbs_xrcd *xrcd,
-+		      struct ibv_xrcd_init_attr *attr,
-+		      struct ibv_open_xrcd *cmd, size_t cmd_size,
-+		      struct ibv_open_xrcd_resp *resp, size_t resp_size);
-+int ibv_cmd_close_xrcd(struct verbs_xrcd *xrcd);
- #define IBV_CMD_REG_MR_HAS_RESP_PARAMS
- int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 		   uint64_t hca_va, int access,
+@@ -152,6 +162,10 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
+ 		      struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
+ 		      struct ibv_create_qp *cmd, size_t cmd_size,
+ 		      struct ibv_create_qp_resp *resp, size_t resp_size);
++int ibv_cmd_create_qp_ex(struct ibv_context *context,
++			 struct verbs_qp *qp, struct ibv_qp_init_attr_ex *attr_ex,
++			 struct ibv_create_qp *cmd, size_t cmd_size,
++			 struct ibv_create_qp_resp *resp, size_t resp_size);
+ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *qp_attr,
+ 		     int attr_mask,
+ 		     struct ibv_qp_init_attr *qp_init_attr,
 diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index e7f8981..6f40ad2 100644
+index ef93cc3..bad0289 100644
 --- a/include/infiniband/kern-abi.h
 +++ b/include/infiniband/kern-abi.h
-@@ -85,7 +85,9 @@ enum {
- 	IB_USER_VERBS_CMD_MODIFY_SRQ,
- 	IB_USER_VERBS_CMD_QUERY_SRQ,
- 	IB_USER_VERBS_CMD_DESTROY_SRQ,
--	IB_USER_VERBS_CMD_POST_SRQ_RECV
-+	IB_USER_VERBS_CMD_POST_SRQ_RECV,
-+	IB_USER_VERBS_CMD_OPEN_XRCD,
-+	IB_USER_VERBS_CMD_CLOSE_XRCD,
+@@ -617,6 +617,11 @@ struct ibv_kern_send_wr {
+ 			__u32 remote_qkey;
+ 			__u32 reserved;
+ 		} ud;
++		struct {
++			__u64 reserved[3];
++			__u32 reserved2;
++			__u32 remote_srqn;
++		} xrc;
+ 	} wr;
  };
  
- /*
-@@ -246,6 +248,27 @@ struct ibv_dealloc_pd {
- 	__u32 pd_handle;
- };
- 
-+struct ibv_open_xrcd {
-+	__u32 command;
-+	__u16 in_words;
-+	__u16 out_words;
-+	__u64 response;
-+	__u32 fd;
-+	__u32 oflags;
-+	__u64 driver_data[0];
-+};
-+
-+struct ibv_open_xrcd_resp {
-+	__u32 xrcd_handle;
-+};
-+
-+struct ibv_close_xrcd {
-+	__u32 command;
-+	__u16 in_words;
-+	__u16 out_words;
-+	__u32 xrcd_handle;
-+};
-+
- struct ibv_reg_mr {
- 	__u32 command;
- 	__u16 in_words;
-@@ -804,6 +827,8 @@ enum {
- 	 * trick opcodes in IBV_INIT_CMD() doesn't break.
- 	 */
- 	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
-+	IB_USER_VERBS_CMD_OPEN_XRCD_V2 = -1,
-+	IB_USER_VERBS_CMD_CLOSE_XRCD_V2 = -1,
- };
- 
- struct ibv_modify_srq_v3 {
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 975e4d3..4a6f082 100644
+index 4c686d2..86d6ce6 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
-- * Copyright (c) 2004 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2004, 2011-2012 Intel Corporation.  All rights reserved.
-  * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc.  All rights reserved.
-  * Copyright (c) 2005 PathScale, Inc.  All rights reserved.
-  *
-@@ -39,6 +39,7 @@
- #include <stdint.h>
- #include <pthread.h>
- #include <stddef.h>
-+#include <errno.h>
- 
- #ifdef __cplusplus
- #  define BEGIN_C_DECLS extern "C" {
-@@ -312,6 +313,22 @@ struct ibv_pd {
- 	uint32_t		handle;
+@@ -107,7 +107,8 @@ enum ibv_device_cap_flags {
+ 	IBV_DEVICE_SYS_IMAGE_GUID	= 1 << 11,
+ 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
+ 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
+-	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14
++	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
++	IBV_DEVICE_XRC			= 1 << 20
  };
  
-+enum ibv_xrcd_init_attr_mask {
-+	IBV_XRCD_INIT_ATTR_FD	    = 1 << 0,
-+	IBV_XRCD_INIT_ATTR_OFLAGS   = 1 << 1,
-+	IBV_XRCD_INIT_ATTR_RESERVED = 1 << 2
-+};
-+
-+struct ibv_xrcd_init_attr {
-+	uint32_t comp_mask;
-+	int	 fd;
-+	int	 oflags;
-+};
-+
-+struct ibv_xrcd {
-+	struct ibv_context     *context;
-+};
-+
- enum ibv_rereg_mr_flags {
- 	IBV_REREG_MR_CHANGE_TRANSLATION	= (1 << 0),
- 	IBV_REREG_MR_CHANGE_PD		= (1 << 1),
-@@ -750,11 +767,15 @@ struct ibv_context {
+ enum ibv_atomic_cap {
+@@ -476,7 +477,9 @@ enum ibv_qp_type {
+ 	IBV_QPT_RC = 2,
+ 	IBV_QPT_UC,
+ 	IBV_QPT_UD,
+-	IBV_QPT_RAW_PACKET = 8
++	IBV_QPT_RAW_PACKET = 8,
++	IBV_QPT_XRC_SEND = 9,
++	IBV_QPT_XRC_RECV
  };
  
+ struct ibv_qp_cap {
+@@ -497,6 +500,26 @@ struct ibv_qp_init_attr {
+ 	int			sq_sig_all;
+ };
+ 
++enum ibv_qp_init_attr_mask {
++	IBV_QP_INIT_ATTR_PD		= 1 << 0,
++	IBV_QP_INIT_ATTR_XRCD		= 1 << 1,
++	IBV_QP_INIT_ATTR_RESERVED	= 1 << 2
++};
++
++struct ibv_qp_init_attr_ex {
++	void		       *qp_context;
++	struct ibv_cq	       *send_cq;
++	struct ibv_cq	       *recv_cq;
++	struct ibv_srq	       *srq;
++	struct ibv_qp_cap	cap;
++	enum ibv_qp_type	qp_type;
++	int			sq_sig_all;
++
++	uint32_t		comp_mask;
++	struct ibv_pd	       *pd;
++	struct ibv_xrcd	       *xrcd;
++};
++
+ enum ibv_qp_attr_mask {
+ 	IBV_QP_STATE			= 1 << 	0,
+ 	IBV_QP_CUR_STATE		= 1 << 	1,
+@@ -612,6 +635,11 @@ struct ibv_send_wr {
+ 			uint32_t	remote_qpn;
+ 			uint32_t	remote_qkey;
+ 		} ud;
++		struct {
++			uint64_t	reserved[3];
++			uint32_t	reserved2;
++			uint32_t	remote_srqn;
++		} xrc;
+ 	} wr;
+ };
+ 
+@@ -793,11 +821,14 @@ struct ibv_context {
  enum verbs_context_mask {
--	VERBS_CONTEXT_RESERVED = 1 << 0
-+	VERBS_CONTEXT_XRCD	= 1 << 0,
-+	VERBS_CONTEXT_RESERVED	= 1 << 1
+ 	VERBS_CONTEXT_XRCD	= 1 << 0,
+ 	VERBS_CONTEXT_SRQ	= 1 << 1,
+-	VERBS_CONTEXT_RESERVED	= 1 << 2
++	VERBS_CONTEXT_QP	= 1 << 2,
++	VERBS_CONTEXT_RESERVED	= 1 << 3
  };
  
  struct verbs_context {
  	/*  "grows up" - new fields go here */
-+	struct ibv_xrcd *	(*open_xrcd)(struct ibv_context *context,
-+					     struct ibv_xrcd_init_attr *xrcd_init_attr);
-+	int			(*close_xrcd)(struct ibv_xrcd *xrcd);
- 	uint64_t has_comp_mask;
- 	size_t   sz;	/* Must be immediately before struct ibv_context */
- 	struct ibv_context context;/* Must be last field in the struct */
-@@ -857,7 +878,7 @@ static inline int ___ibv_query_port(struct ibv_context *context,
- 				    uint8_t port_num,
- 				    struct ibv_port_attr *port_attr)
- {
--	/* For compatability when running with old libibverbs */
-+	/* For compatibility when running with old libibverbs */
- 	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
- 	port_attr->reserved   = 0;
++	struct ibv_qp *		(*create_qp_ex)(struct ibv_context *context,
++						struct ibv_qp_init_attr_ex *qp_init_attr_ex);
+ 	uint32_t		(*get_srq_num)(struct ibv_srq *srq);
+ 	struct ibv_srq *	(*create_srq_ex)(struct ibv_context *context,
+ 						 struct ibv_srq_init_attr_ex *srq_init_attr_ex);
+@@ -1165,6 +1196,23 @@ static inline int ibv_post_srq_recv(struct ibv_srq *srq,
+ struct ibv_qp *ibv_create_qp(struct ibv_pd *pd,
+ 			     struct ibv_qp_init_attr *qp_init_attr);
  
-@@ -890,6 +911,29 @@ struct ibv_pd *ibv_alloc_pd(struct ibv_context *context);
- int ibv_dealloc_pd(struct ibv_pd *pd);
- 
- /**
-+ * ibv_open_xrcd - Open an extended connection domain
-+ */
-+static inline struct ibv_xrcd *
-+ibv_open_xrcd(struct ibv_context *context, struct ibv_xrcd_init_attr *xrcd_init_attr)
++static inline struct ibv_qp *
++ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_init_attr_ex)
 +{
-+	struct verbs_context *vctx = verbs_get_ctx_op(context, open_xrcd);
-+	if (!vctx) {
++	struct verbs_context *vctx;
++	uint32_t mask = qp_init_attr_ex->comp_mask;
++
++	if (mask == IBV_QP_INIT_ATTR_PD)
++		return ibv_create_qp(qp_init_attr_ex->pd,
++				     (struct ibv_qp_init_attr *) qp_init_attr_ex);
++
++	if (!(vctx = verbs_get_ctx_op(context, create_qp_ex))) {
 +		errno = ENOSYS;
 +		return NULL;
 +	}
-+	return vctx->open_xrcd(context, xrcd_init_attr);
++	return vctx->create_qp_ex(context, qp_init_attr_ex);
 +}
 +
-+/**
-+ * ibv_close_xrcd - Close an extended connection domain
-+ */
-+static inline int ibv_close_xrcd(struct ibv_xrcd *xrcd)
-+{
-+	struct verbs_context *vctx = verbs_get_ctx(xrcd->context);
-+	return vctx->close_xrcd(xrcd);
-+}
-+
-+/**
-  * ibv_reg_mr - Register a memory region
+ /**
+  * ibv_modify_qp - Modify a queue pair.
   */
- struct ibv_mr *ibv_reg_mr(struct ibv_pd *pd, void *addr,
 diff --git a/src/cmd.c b/src/cmd.c
-index 86350fd..fe87723 100644
+index e687a3d..2786bed 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -194,6 +194,47 @@ int ibv_cmd_dealloc_pd(struct ibv_pd *pd)
+@@ -600,6 +600,98 @@ int ibv_cmd_destroy_srq(struct ibv_srq *srq)
  	return 0;
  }
  
-+int ibv_cmd_open_xrcd(struct ibv_context *context, struct verbs_xrcd *xrcd,
-+		      struct ibv_xrcd_init_attr *attr,
-+		      struct ibv_open_xrcd *cmd, size_t cmd_size,
-+		      struct ibv_open_xrcd_resp *resp, size_t resp_size)
++int ibv_cmd_create_qp_ex(struct ibv_context *context,
++			 struct verbs_qp *qp, struct ibv_qp_init_attr_ex *attr_ex,
++			 struct ibv_create_qp *cmd, size_t cmd_size,
++			 struct ibv_create_qp_resp *resp, size_t resp_size)
 +{
-+	IBV_INIT_CMD_RESP(cmd, cmd_size, OPEN_XRCD, resp, resp_size);
++	struct verbs_xrcd *vxrcd = NULL;
 +
-+	if (attr->comp_mask >= IBV_XRCD_INIT_ATTR_RESERVED)
++	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
++
++	if (attr_ex->comp_mask >= IBV_QP_INIT_ATTR_RESERVED)
 +		return ENOSYS;
 +
-+	if (!(attr->comp_mask & IBV_XRCD_INIT_ATTR_FD) ||
-+	    !(attr->comp_mask & IBV_XRCD_INIT_ATTR_OFLAGS))
-+		return EINVAL;
++	cmd->user_handle     = (uintptr_t) qp;
 +
-+	cmd->fd = attr->fd;
-+	cmd->oflags = attr->oflags;
++	if (attr_ex->comp_mask & IBV_QP_INIT_ATTR_XRCD) {
++		vxrcd = container_of(attr_ex->xrcd, struct verbs_xrcd, xrcd);
++		cmd->pd_handle	= vxrcd->handle;
++	} else {
++		if (!(attr_ex->comp_mask & IBV_QP_INIT_ATTR_PD))
++			return EINVAL;
++
++		cmd->pd_handle	= attr_ex->pd->handle;
++		cmd->send_cq_handle = attr_ex->send_cq->handle;
++
++		if (attr_ex->qp_type != IBV_QPT_XRC_SEND) {
++			cmd->recv_cq_handle = attr_ex->recv_cq->handle;
++			cmd->srq_handle = attr_ex->srq ? attr_ex->srq->handle : 0;
++		}
++	}
++
++	cmd->max_send_wr     = attr_ex->cap.max_send_wr;
++	cmd->max_recv_wr     = attr_ex->cap.max_recv_wr;
++	cmd->max_send_sge    = attr_ex->cap.max_send_sge;
++	cmd->max_recv_sge    = attr_ex->cap.max_recv_sge;
++	cmd->max_inline_data = attr_ex->cap.max_inline_data;
++	cmd->sq_sig_all	     = attr_ex->sq_sig_all;
++	cmd->qp_type 	     = attr_ex->qp_type;
++	cmd->is_srq 	     = !!attr_ex->srq;
++	cmd->reserved	     = 0;
++
 +	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
 +		return errno;
 +
-+	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
++	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
 +
-+	xrcd->xrcd.context = context;
-+	xrcd->comp_mask = VERBS_XRCD_HANDLE;
-+	xrcd->handle  = resp->xrcd_handle;
++	if (abi_ver > 3) {
++		attr_ex->cap.max_recv_sge    = resp->max_recv_sge;
++		attr_ex->cap.max_send_sge    = resp->max_send_sge;
++		attr_ex->cap.max_recv_wr     = resp->max_recv_wr;
++		attr_ex->cap.max_send_wr     = resp->max_send_wr;
++		attr_ex->cap.max_inline_data = resp->max_inline_data;
++	}
++
++	if (abi_ver == 4) {
++		struct ibv_create_qp_resp_v4 *resp_v4 =
++			(struct ibv_create_qp_resp_v4 *) resp;
++
++		memmove((void *) resp + sizeof *resp,
++			(void *) resp_v4 + sizeof *resp_v4,
++			resp_size - sizeof *resp);
++	} else if (abi_ver <= 3) {
++		struct ibv_create_qp_resp_v3 *resp_v3 =
++			(struct ibv_create_qp_resp_v3 *) resp;
++
++		memmove((void *) resp + sizeof *resp,
++			(void *) resp_v3 + sizeof *resp_v3,
++			resp_size - sizeof *resp);
++	}
++
++	qp->qp.handle		= resp->qp_handle;
++	qp->qp.qp_num		= resp->qpn;
++	qp->qp.context		= context;
++	qp->qp.qp_context	= attr_ex->qp_context;
++	qp->qp.pd		= attr_ex->pd;
++	qp->qp.send_cq		= attr_ex->send_cq;
++	qp->qp.recv_cq		= attr_ex->recv_cq;
++	qp->qp.srq		= attr_ex->srq;
++	qp->qp.qp_type		= attr_ex->qp_type;
++	qp->qp.state		= IBV_QPS_RESET;
++	qp->qp.events_completed = 0;
++	pthread_mutex_init(&qp->qp.mutex, NULL);
++	pthread_cond_init(&qp->qp.cond, NULL);
++
++	qp->comp_mask = 0;
++	if (attr_ex->comp_mask & IBV_QP_INIT_ATTR_XRCD) {
++		qp->comp_mask |= VERBS_QP_XRCD;
++		qp->xrcd = vxrcd;
++	}
 +
 +	return 0;
 +}
 +
-+int ibv_cmd_close_xrcd(struct verbs_xrcd *xrcd)
-+{
-+	struct ibv_close_xrcd cmd;
-+
-+	IBV_INIT_CMD(&cmd, sizeof cmd, CLOSE_XRCD);
-+	cmd.xrcd_handle = xrcd->handle;
-+
-+	if (write(xrcd->xrcd.context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
-+		return errno;
-+
-+	return 0;
-+}
-+
- int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 		   uint64_t hca_va, int access,
- 		   struct ibv_mr *mr, struct ibv_reg_mr *cmd,
+ int ibv_cmd_create_qp(struct ibv_pd *pd,
+ 		      struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
+ 		      struct ibv_create_qp *cmd, size_t cmd_size,
+@@ -608,7 +700,7 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
+ 
+ 	cmd->user_handle     = (uintptr_t) qp;
+-	cmd->pd_handle 	     = pd->handle;
++	cmd->pd_handle       = pd->handle;
+ 	cmd->send_cq_handle  = attr->send_cq->handle;
+ 	cmd->recv_cq_handle  = attr->recv_cq->handle;
+ 	cmd->srq_handle      = attr->srq ? attr->srq->handle : 0;
 diff --git a/src/libibverbs.map b/src/libibverbs.map
-index 6e35c37..c190eb9 100644
+index 00f9062..8626699 100644
 --- a/src/libibverbs.map
 +++ b/src/libibverbs.map
-@@ -100,4 +100,7 @@ IBVERBS_1.1 {
- 
- 		ibv_rate_to_mbps;
- 		mbps_to_ibv_rate;
-+
-+		ibv_cmd_open_xrcd;
-+		ibv_cmd_close_xrcd;
+@@ -104,5 +104,6 @@ IBVERBS_1.1 {
+ 		ibv_cmd_open_xrcd;
+ 		ibv_cmd_close_xrcd;
+ 		ibv_cmd_create_srq_ex;
++		ibv_cmd_create_qp_ex;
+ 		
  } IBVERBS_1.0;
 -- 
 1.7.3
