@@ -1,33 +1,34 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH libibverbs v5 3/7] livibverbs: Add support for XRC SRQs
-Date: Mon, 3 Jun 2013 23:30:24 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD2CB36@ORSMSX109.amr.corp.intel.com>
-References: <1364332466-22786-1-git-send-email-sean.hefty@intel.com>
- <1364332466-22786-4-git-send-email-sean.hefty@intel.com>
- <51AD0528.6000900@opengridcomputing.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Status of "ummunot" branch?
+Date: Tue, 4 Jun 2013 01:24:57 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F657918@xmb-rcd-x01.cisco.com>
+References: <EF66BBEB19BADC41AC8CCF5F684F07FC4F643196@xmb-rcd-x01.cisco.com>
+ <CAJZOPZJc2Dq2jQgRspP_2c1j=4aJ40UxcBEcyiY_mhHPX1ptPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51AD0528.6000900-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <CAJZOPZJc2Dq2jQgRspP_2c1j=4aJ40UxcBEcyiY_mhHPX1ptPw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
+Content-ID: <89757B515B632B4BAA7C5E753F6C738F-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >   enum verbs_context_mask {
-> >   	VERBS_CONTEXT_XRCD	= 1 << 0,
-> > -	VERBS_CONTEXT_RESERVED	= 1 << 1
-> > +	VERBS_CONTEXT_SRQ	= 1 << 1,
-> > +	VERBS_CONTEXT_RESERVED	= 1 << 2
-> >   };
-> 
-> Would VERBS_CONTEXT_XSRQ or VERBS_CONTEXT_SRQ_EX be more clear?
+On May 29, 2013, at 1:53 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-The structure being extended is ibv_srq, so I think just 'SRQ' is clearer.  The same holds for VERBS_CONTEXT_QP.
+> Have you looked on ODP? see
+> https://www.openfabrics.org/resources/document-downloads/presentations/doc_download/568-on-demand-paging-for-user-space-networking.html
 
-- Sean
+
+Is the idea behind ODP that, at the beginning of time, you register the entire memory space (i.e., NULL to 2^64) and then never worry about registered memory?
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
