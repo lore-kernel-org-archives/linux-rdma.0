@@ -1,36 +1,28 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs v6 6/7] libibverbs: Add man page for
- ibv_open_qp
-Date: Tue, 4 Jun 2013 14:54:13 -0600
-Message-ID: <20130604205413.GB30182@obsidianresearch.com>
-References: <1370371791-15018-1-git-send-email-sean.hefty@intel.com>
- <1370371791-15018-7-git-send-email-sean.hefty@intel.com>
+Subject: Re: [PATCH libmlx4 v6 1/2] libmlx4: Infra-structure changes to
+ support verbs extensions
+Date: Tue, 4 Jun 2013 14:55:38 -0600
+Message-ID: <20130604205538.GC30182@obsidianresearch.com>
+References: <1364332591-22866-1-git-send-email-sean.hefty@intel.com>
+ <51AE4288.4010505@opengridcomputing.com>
+ <1828884A29C6694DAF28B7E6B8A823736FD2CF18@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1370371791-15018-7-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736FD2CF18-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 04, 2013 at 11:49:50AM -0700, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+On Tue, Jun 04, 2013 at 07:46:41PM +0000, Hefty, Sean wrote:
 
-> +struct ibv_qp_open_attr {
-> +.in +8
-> +uint32_t          comp_mask;  /* Identifies valid fields */
+> We should just remove the HAVE_IBV_... check completely, since with
+> this change, libmlx4 requires an updated version of libibverbs.
 
-Since the user is expected to set comp_mask we should clearly document
-what it should be set to.
-
-> +uint32_t          qp_num;     /* QP number */
-> +void             *qp_context; /* Associated context of the QP */
-
-Would be nice to clarify what this value is too. I took a quick peak
-and it wasn't clear to me. The XRC example does not use it.
-
-Is it a user defined cookie? If so can we call it a cookie instead?
+Agree. There is no need to support such old libibverbs at compile time
+anymore.
 
 Jason
 --
