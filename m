@@ -1,61 +1,55 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Status of "ummunot" branch?
-Date: Wed, 5 Jun 2013 16:39:52 +0300
-Message-ID: <51AF3FA8.7000900@mellanox.com>
-References: <EF66BBEB19BADC41AC8CCF5F684F07FC4F643196@xmb-rcd-x01.cisco.com> <CAJZOPZJc2Dq2jQgRspP_2c1j=4aJ40UxcBEcyiY_mhHPX1ptPw@mail.gmail.com> <EF66BBEB19BADC41AC8CCF5F684F07FC4F657918@xmb-rcd-x01.cisco.com> <51ADA761.2080107@mellanox.com> <51ADB948.5080903@mellanox.com> <EF66BBEB19BADC41AC8CCF5F684F07FC4F659155@xmb-rcd-x01.cisco.com> <51ADD489.3020902@mellanox.com> <EF66BBEB19BADC41AC8CCF5F684F07FC4F65AE40@xmb-rcd-x01.cisco.com> <51AEE53C.2090603@mellanox.com> <EF66BBEB19BADC41AC8CCF5F684F07FC4F65C855@xmb-rcd-x01.cisco.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH libmlx4 v6 1/2] libmlx4: Infra-structure changes to support
+ verbs extensions
+Date: Wed, 05 Jun 2013 09:54:33 -0500
+Message-ID: <51AF5129.7020205@opengridcomputing.com>
+References: <1364332591-22866-1-git-send-email-sean.hefty@intel.com> <51AE4288.4010505@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A823736FD2CF18@ORSMSX109.amr.corp.intel.com> <51AE47A3.5060802@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC4F65C855-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
+In-Reply-To: <51AE47A3.5060802-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/06/2013 15:45, Jeff Squyres (jsquyres) wrote:
-> On Jun 5, 2013, at 12:14 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> 
->>> Hmm; I'm confused.  How does this fix the MPI-needs-to-intercept-freed-memory problem?
->> Well, there is no problem if an application frees registered memory (in
->> an on-demand paging memory region) and that memory is returned to the
->> OS. The OS will invalidate these pages, and the HCA will no longer be
->> able to use them. This means that the registration cache doesn't have to
->> de-register memory immediately when it is freed.
-> 
-> 
-> (must... resist... urge... to... throw... furniture...)
-(ducking and taking cover :-) )
+On 6/4/2013 3:01 PM, Steve Wise wrote:
+> On 6/4/2013 2:46 PM, Hefty, Sean wrote:
+>>>> +
+>>>>    #ifdef HAVE_IBV_REGISTER_DRIVER
+>>>>    static __attribute__((constructor)) void mlx4_register_driver(void)
+>>>>    {
+>>>> -    ibv_register_driver("mlx4", mlx4_driver_init);
+>>>> +    verbs_register_driver("mlx4", mlx4_driver_init);
+>>>> +
+>>>>    }
+>>>>    #else
+>>> Shouldn't ibv_register_driver() need to be called in the lib 
+>>> constructor
+>>> function if HAVE_IBV_REGISTER_DRIVER is not defined?
+>> ?  If HAVE_IBV_REGISTER_DRIVER is not defined, then we can't call 
+>> ibv_register_driver...
+>
+> I thought HAVE_IBV_REGISTER_DRIVER was something new for deciding if 
+> the lib should call verbs_register_driver().
+>
+>> We should just remove the HAVE_IBV_... check completely, since with 
+>> this change, libmlx4 requires an updated version of libibverbs.
+>
+> Ah.  I was thinking it would use the old interface if it was compiled 
+> against a libibverbs that didn't support the extensions.
+>
+>
+>
 
-> 
-> This is why features should not be introduced to solve MPI problems without an understanding of what the MPI problems are.  :-)  Please go talk to the Mellanox MPI team.
-> 
-> Forgive me for being frustrated; memory registration and all the pain that it entails was highlighted as ***the #1 problem*** by *5 major MPI implementations* at the Sonoma 2009 workshop (see https://www.openfabrics.org/resources/document-downloads/presentations/doc_download/301-mpi-update-and-requirements-panel-all-presentations.html, starting at slide 7 in the "openmpi" slide deck).  
-Perhaps I'm missing something, but I believe ODP deals with the first
-two problems in the list (slide 8), even if it doesn't solve them
-completely.
 
-You no longer need to do dangerous tricks to catch free, munmap, sbrk.
-As I explained above, these operations can work on an ODP MR without
-allowing the HCA use the invalidated mappings.
+So old provider libs will work with the new libibverbs but new provider 
+libs will not work with the old libibverbs?   Is there no way around 
+this?  That dependency can be painful.
 
-In the future we want to implement an implicit memory region covering
-the entire process address space, thus eliminating the need for memory
-registration almost completely (you might still want memory
-registration, or memory windows, in order to control permissions of
-remote operations).
 
-We can also allow fork to work with our implementation. Copy-on-write
-will work with ODP regions by invalidating the HCA's page tables before
-modifying the pages to be read-only. A page fault from the HCA can then
-refill the pages, or even break COW in case of a write.
 
-> Why don't we have something like ummunotify yet?
-I think that the problem we are trying to solve is better handled inside
-the kernel. If you are going to change the HCA's memory mappings, you'd
-have to go through the kernel anyway.
-
-Haggai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
