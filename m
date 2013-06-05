@@ -1,79 +1,52 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] Log changes related to event subscription and forwarding
-Date: Wed, 5 Jun 2013 04:14:59 -0700 (PDT)
-Message-ID: <8f3f5ded-fc8b-4632-a71a-ef566da9ef91@default>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Status of "ummunot" branch?
+Date: Wed, 5 Jun 2013 12:45:12 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F65C855@xmb-rcd-x01.cisco.com>
+References: <EF66BBEB19BADC41AC8CCF5F684F07FC4F643196@xmb-rcd-x01.cisco.com>
+ <CAJZOPZJc2Dq2jQgRspP_2c1j=4aJ40UxcBEcyiY_mhHPX1ptPw@mail.gmail.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F657918@xmb-rcd-x01.cisco.com>
+ <51ADA761.2080107@mellanox.com> <51ADB948.5080903@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F659155@xmb-rcd-x01.cisco.com>
+ <51ADD489.3020902@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65AE40@xmb-rcd-x01.cisco.com>
+ <51AEE53C.2090603@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <51AEE53C.2090603-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <EA4DD8F8D413A940BFB1860BA2D1BE1E-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On Jun 5, 2013, at 12:14 AM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
----
+>> Hmm; I'm confused.  How does this fix the MPI-needs-to-intercept-freed-memory problem?
+> Well, there is no problem if an application frees registered memory (in
+> an on-demand paging memory region) and that memory is returned to the
+> OS. The OS will invalidate these pages, and the HCA will no longer be
+> able to use them. This means that the registration cache doesn't have to
+> de-register memory immediately when it is freed.
 
-diff --git a/opensm/osm_inform.c b/opensm/osm_inform.c
-index 19bbe72..ef51953 100644
---- a/opensm/osm_inform.c
-+++ b/opensm/osm_inform.c
-@@ -305,10 +305,12 @@ static ib_api_status_t send_report(IN osm_infr_t * p_infr_rec,	/* the informinfo
- 	/* HACK: who switches or uses the src and dest GIDs in the grh_info ?? */
- 
- 	/* it is better to use LIDs since the GIDs might not be there for SMI traps */
--	OSM_LOG(p_log, OSM_LOG_DEBUG, "Forwarding Notice Event from LID:%u"
--		" to InformInfo LID:%u TID:0x%X\n",
-+	OSM_LOG(p_log, OSM_LOG_VERBOSE, "Forwarding Notice Event from LID %u"
-+		" to InformInfo LID %u GUID 0x%" PRIx64 ", TID 0x%X\n",
- 		cl_ntoh16(p_ntc->issuer_lid),
--		cl_ntoh16(p_infr_rec->report_addr.dest_lid), trap_fwd_trans_id);
-+		cl_ntoh16(p_infr_rec->report_addr.dest_lid),
-+		cl_ntoh64(p_infr_rec->inform_record.subscriber_gid.unicast.interface_id),
-+		trap_fwd_trans_id);
- 
- 	/* get the MAD to send */
- 	p_report_madw = osm_mad_pool_get(p_infr_rec->sa->p_mad_pool,
-diff --git a/opensm/osm_sa_informinfo.c b/opensm/osm_sa_informinfo.c
-index 0b3e1f8..f32b88b 100644
---- a/opensm/osm_sa_informinfo.c
-+++ b/opensm/osm_sa_informinfo.c
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2002-2006 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2009 HNR Consulting. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -544,6 +545,10 @@ static void infr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
- 				goto Exit;
- 			}
- 
-+			OSM_LOG(sa->p_log, OSM_LOG_VERBOSE,
-+				"Adding event subscription for port 0x%" PRIx64 "\n",
-+				cl_ntoh64(inform_info_rec.inform_record.subscriber_gid.unicast.interface_id));
-+
- 			/* Add this new osm_infr_t object to subnet object */
- 			osm_infr_insert_to_db(sa->p_subn, sa->p_log, p_infr);
- 		} else
-@@ -561,9 +566,13 @@ static void infr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
- 		p_recvd_inform_info->subscribe = 0;
- 		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
- 		goto Exit;
--	} else
-+	} else {
- 		/* Delete this object from the subnet list of informs */
-+		OSM_LOG(sa->p_log, OSM_LOG_VERBOSE,
-+			"Removing event subscription for port 0x%" PRIx64 "\n",
-+			cl_ntoh64(inform_info_rec.inform_record.subscriber_gid.unicast.interface_id));
- 		osm_infr_remove_from_db(sa->p_subn, sa->p_log, p_infr);
-+	}
- 
- 	cl_plock_release(sa->p_lock);
- 
+
+(must... resist... urge... to... throw... furniture...)
+
+This is why features should not be introduced to solve MPI problems without an understanding of what the MPI problems are.  :-)  Please go talk to the Mellanox MPI team.
+
+Forgive me for being frustrated; memory registration and all the pain that it entails was highlighted as ***the #1 problem*** by *5 major MPI implementations* at the Sonoma 2009 workshop (see https://www.openfabrics.org/resources/document-downloads/presentations/doc_download/301-mpi-update-and-requirements-panel-all-presentations.html, starting at slide 7 in the "openmpi" slide deck).  
+
+Why don't we have something like ummunotify yet?
+Why don't we have non-blocking memory registration yet?
+...etc.
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
