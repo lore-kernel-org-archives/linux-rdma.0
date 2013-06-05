@@ -1,45 +1,54 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs v6 6/7] libibverbs: Add man page for
- ibv_open_qp
-Date: Tue, 4 Jun 2013 16:02:47 -0600
-Message-ID: <20130604220247.GB5733@obsidianresearch.com>
-References: <1370371791-15018-1-git-send-email-sean.hefty@intel.com>
- <1370371791-15018-7-git-send-email-sean.hefty@intel.com>
- <20130604205413.GB30182@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A823736FD2CFAB@ORSMSX109.amr.corp.intel.com>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ib_srpt: fix error return code in srpt_create_ch_ib() and srpt_cm_req_recv()
+Date: Wed, 5 Jun 2013 10:17:54 +0800
+Message-ID: <CAPgLHd-ZupR6bT6-gi8erzU3i7bVwdSGKYkZH_CbCbOqhtAcVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736FD2CFAB-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, standby24x7-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, grundler-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 04, 2013 at 09:49:00PM +0000, Hefty, Sean wrote:
-> > > +uint32_t          qp_num;     /* QP number */
-> > > +void             *qp_context; /* Associated context of the QP */
-> > 
-> > Would be nice to clarify what this value is too. I took a quick peak
-> > and it wasn't clear to me. The XRC example does not use it.
-> > 
-> > Is it a user defined cookie? If so can we call it a cookie instead?
-> 
-> This is similar to qp_context in ibv_qp_init_attr and ibv_qp, which
-> is also consistent with cq_context and srq_context.  It is a user
-> defined context.
+From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-Hum, I honestly had no idea about qp_context in struct ibv_qp, it
-really is not documented well..
+Fix to return a negative error code in some error handling
+case instead of 0, as done elsewhere in this function.
 
-Keep the name, but please clarify what it is:
+Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
- 'User defined opaque value'
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 3f3f041..1d9b019 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2144,6 +2144,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 	if (IS_ERR(ch->thread)) {
+ 		printk(KERN_ERR "failed to create kernel thread %ld\n",
+ 		       PTR_ERR(ch->thread));
++		ret = PTR_ERR(ch->thread);
+ 		ch->thread = NULL;
+ 		goto err_destroy_qp;
+ 	}
+@@ -2589,6 +2590,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		       " configured yet for initiator %s.\n", ch->sess_name);
+ 		rej->reason = __constant_cpu_to_be32(
+ 				SRP_LOGIN_REJ_CHANNEL_LIMIT_REACHED);
++		ret = -ENOENT;
+ 		goto destroy_ib;
+ 	}
+ 
+@@ -2597,6 +2599,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		rej->reason = __constant_cpu_to_be32(
+ 				SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+ 		pr_debug("Failed to create session\n");
++		ret = PTR_ERR(ch->sess);
+ 		goto deregister_session;
+ 	}
+ 	ch->sess->se_node_acl = &nacl->nacl;
 
-Ideally in the other places too..
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
