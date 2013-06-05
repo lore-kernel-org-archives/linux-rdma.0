@@ -1,54 +1,80 @@
 From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libibverbs: A possible solution for allowing arbitrary
- MTU values.
-Date: Wed, 5 Jun 2013 18:23:50 +0000
-Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DD70@xmb-rcd-x01.cisco.com>
-References: <1370437223-14171-1-git-send-email-jsquyres@cisco.com>
- <20130605164639.GA30184@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65D690@xmb-rcd-x01.cisco.com>
- <20130605171916.GD30184@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DB61@xmb-rcd-x01.cisco.com>
- <20130605181122.GA1946@obsidianresearch.com>
+Subject: Re: Status of "ummunot" branch?
+Date: Wed, 5 Jun 2013 18:45:13 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DF6F@xmb-rcd-x01.cisco.com>
+References: <51ADB948.5080903@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F659155@xmb-rcd-x01.cisco.com>
+ <51ADD489.3020902@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65AE40@xmb-rcd-x01.cisco.com>
+ <51AEE53C.2090603@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65C855@xmb-rcd-x01.cisco.com>
+ <51AF3FA8.7000900@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65D5D3@xmb-rcd-x01.cisco.com>
+ <20130605171426.GC30184@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DC0D@xmb-rcd-x01.cisco.com>
+ <20130605181853.GB1946@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130605181122.GA1946-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130605181853.GB1946-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
-Content-ID: <84F33736C7121B41A79F2291B38A3512-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Content-ID: <F3BDAE28B9D21A40A2AE0F822080C2CB-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jun 5, 2013, at 11:11 AM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+On Jun 5, 2013, at 11:18 AM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-> I won't say never, but this is what people want. Bumping the soname is
-> seen as too difficult now.
-
-Gotcha.  
-
-Ok, so my patch is a non-starter.
-
->>> Thoughts:
->>> - 1024 and 3 both mean 1024, the library must accept both values,
->>>  it should only ever return 3 though.
->> 
->> Why?  If the caller can pass in 1024, it seems like 1024 should be
->> able to be passed out, too.
+>> Are you saying that the 2nd malloc will magically be registered
+>> (with the new physical address)?
 > 
-> If the caller passes in 1024 then it is probably OK to return 1024,
-> but you have to keep track of that specially. That seems more complex
-> than just always returning 3. 3 is guarenteed compatible with all
-> users.
-> 
-> Old users will test directly against 3.
-> New users will call ibv_from_mtu which tests against 3 as well.
+> Yes, that is the whole point.
+
+Interesting.
+
+> ODP fundamentally fixes the *bug* where the HCA's view of process
+> memory can become inconsistent with the kernel's view.
+
+Hum.  I was under the impression that with today's code (i.e., not ODP), if you
+
+a = malloc(N);
+ibv_reg_mr(..., a, N, ...);
+free(a);
+
+(assuming that the memory actually left the process at free)
+
+Then the relevant kernel verbs driver was notified, and would unregister that device.  ...but I'm an MPI guy, not a kernel guy -- it seems like you're saying that my impression was wrong (which doesn't currently matter because we intercept free/sbrk and unregister such memory, anyway).
+
+> 'magically be registered' is the wrong way to think about it - the
+> registration of VA=0x100 is simply kept, and any change to the
+> underlying physical mapping of the VA is synchronized with the HCA.
+
+What happens if you:
+
+a = malloc(N * page_size);
+ibv_reg_mr(..., a, N * page_size, ...);
+free(a);
+// incoming RDMA arrives targeted at buffer a
+
+Or if you:
+
+a = malloc(N * page_size);
+ibv_reg_mr(..., a, N * page_size, ...);
+free(a);
+a = malloc(N / 2 * page_size);
+// incoming RDMA arrives targeted at buffer a that is of length (N*page_size)
+
+It does seem quite odd, abstractly speaking, that a registration would survive a free/re-malloc (which is arguably a "different" buffer).
+
+That being said, it still seems like MPI needs a registration cache.  It is several good steps forward if we don't need to intercept free/sbrk/whatever, but when MPI_Send(buf, ...) is invoked, we still have to check that the entire buf is registered.  If ibv_reg_mr(..., 0, 2^64, ...) was supported, that would obviate the entire need for registration caches.  That would be wonderful.
+
+> Right, this was discussed at the Enterprise Summit a few weeks
+> ago. I'm sure Roland would welcome patches...
 
 
-Ok.
-
-I'll take a to-do to work up a new patch -- probably not until next week.
+That's why I asked at the beginning of this thread.  He didn't provide any details about what still needs to be done, though.  :-)
 
 -- 
 Jeff Squyres
