@@ -1,368 +1,164 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH][TRIVIAL] Add attribute information to SA request error
- messages
-Date: Thu, 6 Jun 2013 07:35:45 -0700 (PDT)
-Message-ID: <5c35d4ce-f8db-44f0-ac6f-b61144006d43@default>
+From: Christoph Lameter <cl@gentwo.org>
+Subject: Re: [PATCH] mm: Revert pinned_vm braindamage
+Date: Thu, 6 Jun 2013 18:46:50 +0000
+Message-ID: <0000013f1ad00ec0-9574a936-3a75-4ccc-a84c-4a12a7ea106e-000000@email.amazonses.com>
+References: <20130606124351.GZ27176@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130606124351.GZ27176@twins.programming.kicks-ass.net>
+Sender: owner-linux-mm@kvack.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, mingo@kernel.org, tglx@linutronix.de, kosaki.motohiro@gmail.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On Thu, 6 Jun 2013, Peter Zijlstra wrote:
 
----
+> Since RLIMIT_MEMLOCK is very clearly a limit on the amount of pages the
+> process can 'lock' into memory it should very much include pinned pages
+> as well as mlock()ed pages. Neither can be paged.
 
-diff --git a/opensm/osm_sa_class_port_info.c b/opensm/osm_sa_class_port_info.c
-index 2682505..69abad5 100644
---- a/opensm/osm_sa_class_port_info.c
-+++ b/opensm/osm_sa_class_port_info.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2008 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -201,7 +202,7 @@ void osm_cpi_rcv_process(IN void *context, IN void *data)
- 	/* we only support GET */
- 	if (p_sa_mad->method != IB_MAD_METHOD_GET) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1403: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for ClassPortInfo request\n",
- 			ib_get_sa_method_str(p_sa_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
- 		goto Exit;
-diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
-index a00b257..8323b38 100644
---- a/opensm/osm_sa_guidinfo_record.c
-+++ b/opensm/osm_sa_guidinfo_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2006-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -797,7 +798,7 @@ void osm_gir_rcv_process(IN void *ctx, IN void *data)
- 		break;
- 	default:
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5105: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for GUIDInfoRecord request\n",
- 			ib_get_sa_method_str(p_rcvd_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		break;
-diff --git a/opensm/osm_sa_lft_record.c b/opensm/osm_sa_lft_record.c
-index 3be20f3..cf651ef 100644
---- a/opensm/osm_sa_lft_record.c
-+++ b/opensm/osm_sa_lft_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005,2008 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -197,7 +198,7 @@ void osm_lftr_rcv_process(IN void *ctx, IN void *data)
- 	if (p_rcvd_mad->method != IB_MAD_METHOD_GET &&
- 	    p_rcvd_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4408: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for LFTRecord request\n",
- 			ib_get_sa_method_str(p_rcvd_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_link_record.c b/opensm/osm_sa_link_record.c
-index eec952d..5073f96 100644
---- a/opensm/osm_sa_link_record.c
-+++ b/opensm/osm_sa_link_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2007 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -436,7 +437,7 @@ void osm_lr_rcv_process(IN void *context, IN void *data)
- 	if (p_sa_mad->method != IB_MAD_METHOD_GET &&
- 	    p_sa_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1804: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for LinkRecord request\n",
- 			ib_get_sa_method_str(p_sa_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_mft_record.c b/opensm/osm_sa_mft_record.c
-index 2eca1f0..6f9763f 100644
---- a/opensm/osm_sa_mft_record.c
-+++ b/opensm/osm_sa_mft_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -230,7 +231,7 @@ void osm_mftr_rcv_process(IN void *ctx, IN void *data)
- 	if (p_rcvd_mad->method != IB_MAD_METHOD_GET &&
- 	    p_rcvd_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4A08: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for MFTRecord request\n",
- 			ib_get_sa_method_str(p_rcvd_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_multipath_record.c b/opensm/osm_sa_multipath_record.c
-index bde993c..9030278 100644
---- a/opensm/osm_sa_multipath_record.c
-+++ b/opensm/osm_sa_multipath_record.c
-@@ -1562,7 +1562,7 @@ void osm_mpr_rcv_process(IN void *context, IN void *data)
- 	/* we only support SubnAdmGetMulti method */
- 	if (p_sa_mad->method != IB_MAD_METHOD_GETMULTI) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4513: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for MultiPathRecord request\n",
- 			ib_get_sa_method_str(p_sa_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_node_record.c b/opensm/osm_sa_node_record.c
-index 709d8ad..19c7cc3 100644
---- a/opensm/osm_sa_node_record.c
-+++ b/opensm/osm_sa_node_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -87,7 +88,7 @@ static ib_api_status_t nr_rcv_new_nr(osm_sa_t * sa,
- 
- 	OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
- 		"New NodeRecord: node 0x%016" PRIx64
--		"\n\t\t\t\tport 0x%016" PRIx64 ", lid %u\n",
-+		", port 0x%016" PRIx64 ", lid %u\n",
- 		cl_ntoh64(osm_node_get_node_guid(p_node)),
- 		cl_ntoh64(port_guid), cl_ntoh16(lid));
- 
-@@ -305,7 +306,7 @@ void osm_nr_rcv_process(IN void *ctx, IN void *data)
- 	if (p_rcvd_mad->method != IB_MAD_METHOD_GET &&
- 	    p_rcvd_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1D05: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for NodeRecord request\n",
- 			ib_get_sa_method_str(p_rcvd_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
-index 1bec16d..c14bf15 100644
---- a/opensm/osm_sa_path_record.c
-+++ b/opensm/osm_sa_path_record.c
-@@ -6,6 +6,7 @@
-  * Copyright (c) 2009 HNR Consulting. All rights reserved.
-  * Copyright (c) 2010 Sun Microsystems, Inc. All rights reserved.
-  * Copyright (c) 2009-2011 ZIH, TU Dresden, Federal Republic of Germany. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -1702,7 +1703,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
- 	if (p_sa_mad->method != IB_MAD_METHOD_GET &&
- 	    p_sa_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F17: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for PathRecord request\n",
- 			ib_get_sa_method_str(p_sa_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_pkey_record.c b/opensm/osm_sa_pkey_record.c
-index 4c4dd13..586c3eb 100644
---- a/opensm/osm_sa_pkey_record.c
-+++ b/opensm/osm_sa_pkey_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -237,7 +238,7 @@ void osm_pkey_rec_rcv_process(IN void *ctx, IN void *data)
- 	if (p_rcvd_mad->method != IB_MAD_METHOD_GET &&
- 	    p_rcvd_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4605: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for PKeyRecord request\n",
- 			ib_get_sa_method_str(p_rcvd_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-@@ -251,8 +252,8 @@ void osm_pkey_rec_rcv_process(IN void *ctx, IN void *data)
- 	if (p_rcvd_mad->sm_key != sa->p_subn->opt.sa_key) {
- 		/* This is not a trusted requester! */
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4608: "
--			"Request from non-trusted requester: "
--			"Given SM_Key:0x%016" PRIx64 "\n",
-+			"Ignoring PKeyRecord request from non-trusted requester"
-+			" with SM_Key 0x%016" PRIx64 "\n",
- 			cl_ntoh64(p_rcvd_mad->sm_key));
- 		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
- 		goto Exit;
-diff --git a/opensm/osm_sa_portinfo_record.c b/opensm/osm_sa_portinfo_record.c
-index 39ea51d..78d8d16 100644
---- a/opensm/osm_sa_portinfo_record.c
-+++ b/opensm/osm_sa_portinfo_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -531,7 +532,7 @@ void osm_pir_rcv_process(IN void *ctx, IN void *data)
- 	if (p_rcvd_mad->method != IB_MAD_METHOD_GET &&
- 	    p_rcvd_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 2105: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for PortInfoRecord request\n",
- 			ib_get_sa_method_str(p_rcvd_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-@@ -576,7 +577,7 @@ void osm_pir_rcv_process(IN void *ctx, IN void *data)
- 			sa_pir_by_comp_mask(sa, p_port->p_node, &context);
- 		else
- 			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 2109: "
--				"No port found with LID %u\n",
-+				"No port found with requested LID %u\n",
- 				cl_ntoh16(p_rcvd_rec->lid));
- 	} else
- 		cl_qmap_apply_func(&sa->p_subn->node_guid_tbl,
-diff --git a/opensm/osm_sa_service_record.c b/opensm/osm_sa_service_record.c
-index 6121518..c2c6ea9 100644
---- a/opensm/osm_sa_service_record.c
-+++ b/opensm/osm_sa_service_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -556,7 +557,7 @@ static void sr_rcv_process_set_method(osm_sa_t * sa, IN osm_madw_t * p_madw)
- 			cl_plock_release(sa->p_lock);
- 
- 			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 2411: "
--				"osm_svcr_get_by_rid failed\n");
-+				"Failed to create new service record\n");
- 
- 			osm_sa_send_error(sa, p_madw,
- 					  IB_SA_MAD_STATUS_NO_RESOURCES);
-@@ -711,7 +712,7 @@ void osm_sr_rcv_process(IN void *context, IN void *data)
- 		break;
- 	default:
- 		OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for ServiceRecord request\n",
- 			ib_get_sa_method_str(p_sa_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		break;
-diff --git a/opensm/osm_sa_slvl_record.c b/opensm/osm_sa_slvl_record.c
-index d3b48af..467ac0b 100644
---- a/opensm/osm_sa_slvl_record.c
-+++ b/opensm/osm_sa_slvl_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -225,7 +226,7 @@ void osm_slvl_rec_rcv_process(IN void *ctx, IN void *data)
- 	if (p_rcvd_mad->method != IB_MAD_METHOD_GET &&
- 	    p_rcvd_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 2604: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for SL2VLRecord request\n",
- 			ib_get_sa_method_str(p_rcvd_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_sminfo_record.c b/opensm/osm_sa_sminfo_record.c
-index 99bb5ab..995dc9d 100644
---- a/opensm/osm_sa_sminfo_record.c
-+++ b/opensm/osm_sa_sminfo_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -201,7 +202,7 @@ void osm_smir_rcv_process(IN void *ctx, IN void *data)
- 	if (sad_mad->method != IB_MAD_METHOD_GET &&
- 	    sad_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 2804: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for SMInfoRecord request\n",
- 			ib_get_sa_method_str(sad_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_sw_info_record.c b/opensm/osm_sa_sw_info_record.c
-index 1ce1230..7d518fe 100644
---- a/opensm/osm_sa_sw_info_record.c
-+++ b/opensm/osm_sa_sw_info_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -215,7 +216,7 @@ void osm_sir_rcv_process(IN void *ctx, IN void *data)
- 	if (sad_mad->method != IB_MAD_METHOD_GET &&
- 	    sad_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5305: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for SwithInfoRecord request\n",
- 			ib_get_sa_method_str(sad_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
-diff --git a/opensm/osm_sa_vlarb_record.c b/opensm/osm_sa_vlarb_record.c
-index 24652a0..17b21a5 100644
---- a/opensm/osm_sa_vlarb_record.c
-+++ b/opensm/osm_sa_vlarb_record.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -232,7 +233,7 @@ void osm_vlarb_rec_rcv_process(IN void *ctx, IN void *data)
- 	if (sad_mad->method != IB_MAD_METHOD_GET &&
- 	    sad_mad->method != IB_MAD_METHOD_GETTABLE) {
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 2A05: "
--			"Unsupported Method (%s)\n",
-+			"Unsupported Method (%s) for a VLArbRecord request\n",
- 			ib_get_sa_method_str(sad_mad->method));
- 		osm_sa_send_error(sa, p_madw, IB_MAD_STATUS_UNSUP_METHOD_ATTR);
- 		goto Exit;
+So we we thought that this is the sum of the pages that a process has
+mlocked. Initiated by the process and/or environment explicitly. A user
+space initiated action.
+
+> Since nobody had anything constructive to say about the VM_PINNED
+> approach and the IB code hurts my head too much to make it work I
+> propose we revert said patch.
+
+I said that the use of a PIN page flag would allow correct accounting if
+one wanted to interpret the limit the way you do.
+
+> Once again the rationale; MLOCK(2) is part of POSIX Realtime Extentsion
+> (1003.1b-1993/1003.1i-1995). It states that the specified part of the
+> user address space should stay memory resident until either program exit
+> or a matching munlock() call.
+>
+> This definition basically excludes major faults from happening on the
+> pages -- a major fault being one where IO needs to happen to obtain the
+> page content; the direct implication being that page content must remain
+> in memory.
+
+Exactly that is the definition.
+
+> Linux has taken this literal and made mlock()ed pages subject to page
+> migration (albeit only for the explicit move_pages() syscall; but it
+> would very much like to make them subject to implicit page migration for
+> the purpose of compaction etc.).
+
+Page migration is not a page fault? The ability to move a process
+completely (including its mlocked segments) is important for the manual
+migration of process memory. That is what page migration was made for. If
+mlocked pages are treated as pinnned pages then the complete process can
+no longer be moved from node to node.
+
+> This view disregards the intention of the spec; since mlock() is part of
+> the realtime spec the intention is very much that the user address range
+> generate no faults; neither minor nor major -- any delay is
+> unacceptable.
+
+Where does it say that no faults are generated? Dont we generate COW on
+mlocked ranges?
+
+> This leaves the RT people unhappy -- therefore _if_ we continue with
+> this Linux specific interpretation of mlock() we must introduce new
+> syscalls that implement the intended mlock() semantics.
+
+Intended means Peter's semantics?
+
+> It was found that there are useful purposes for this weaker mlock(), a
+> rationale to indeed have two sets of syscalls. The weaker mlock() can be
+> used in the context of security -- where we avoid sensitive data being
+> written to disk, and in the context of userspace deamons that are part
+> of the IO path -- which would otherwise form IO deadlocks.
+
+Migratable mlocked pages enable complete process migration between nodes
+of a NUMA system for HPC workloads.
+
+> The proposed second set of primitives would be mpin() and munpin() and
+> would implement the intended mlock() semantics.
+
+I agree that we need mpin and munpin. But they should not be called mlock
+semantics.
+
+> Such pages would not be migratable in any way (a possible
+> implementation would be to 'pin' the pages using an extra refcount on
+> the page frame). From the above we can see that any mpin()ed page is
+> also an mlock()ed page, since mpin() will disallow any fault, and thus
+> will also disallow major faults.
+
+That cannot be so since mlocked pages need to be migratable.
+
+> While we still lack the formal mpin() and munpin() syscalls there are a
+> number of sites that have similar 'side effects' and result in user
+> controlled 'pinning' of pages. Namely IB and perf.
+
+Right thats why we need this.
+
+> For the purpose of RLIMIT_MEMLOCK we must use intent only as it is not
+> part of the formal spec. The only useful thing is to limit the amount of
+> pages a user can exempt from paging. This would therefore include all
+> pages either mlock()ed or mpin()ed.
+
+RLIMIT_MEMLOCK is a limit on the pages that a process has mlocked into
+memory. Pinning is not initiated by user space but by the kernel. Either
+temporarily (page count increases are used all over the kernel for this)
+or for longer time frame (IB and Perf and likely more drivers that we have
+not found yet).
+
+
+> > > Back to the patch; a resource limit must have a resource counter to
+> enact the limit upon. Before the patch this was mm_struct::locked_vm.
+> After the patch there is no such thing left.
+
+The limit was not checked correctly before the patch since pinned pages
+were accounted as mlocked.
+
+> I state that since mlockall() disables/invalidates RLIMIT_MEMLOCK the
+> actual resource counter value is irrelevant, and thus the reported
+> problem is a non-problem.
+
+Where does it disable RLIMIT_MEMLOCK?
+
+> However, it would still be possible to observe weirdness in the very
+> unlikely event that a user would indeed call mlock() upon an address
+> range obtained from IB/perf. In this case he would be unduly constrained
+> and find his effective RLIMIT_MEMLOCK limit halved (at worst).
+
+This is weird for other reasons as well since we are using two different
+methods: MLOCK leads to the page be marked as PG_mlock and be put on a
+special LRU list. Pinning is simply an increase in the refcounts. Its
+going to be difficult to keep accounting straight because a page can have
+both.
+
+> I've yet to hear a coherent objection to the above. Christoph is always
+> quick to yell: 'but if fixes a double accounting issue' but is
+> completely deaf to the fact that he changed user visible semantics
+> without mention and regard.
+
+The semantics we agreed upon for mlock were that they are migratable.
+Pinned pages cannot be migrated and therefore are not mlocked pages.
+
+It would be best to have two different mechanisms for this. Note that the
+pinning is always done by the kernel and/or device driver related to some
+other activity whereas mlocking is initiated by userspace. We do not need
+a new API.
+
+If you want to avoid the moving of mlocked pages then disasble the
+mechanisms that need to move processes around. Having the ability in
+general to move processes is a degree of control that we want. Pinning
+could be restricted to where it is required by the hardware.
+
+We could also add a process flag that exempts a certain process from page
+migration which may be the result of NUMA scheduler actions, explict
+requests from the user to migrate a process, defrag or compaction.
+
+Excessive amounts of pinned pages limit the ability of the kernel
+to manage its memory severely which may cause instabilities. mlocked pages
+are better because the kernel still has some options.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
