@@ -1,60 +1,32 @@
-From: Vipul Pandya <vipul@chelsio.com>
-Subject: [PATCH 0/4] Add IPv6 support for iWARP
-Date: Thu,  6 Jun 2013 13:23:17 +0530
-Message-ID: <1370505201-29961-1-git-send-email-vipul@chelsio.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Cc: roland@purestorage.com, davem@davemloft.net, divy@chelsio.com, dm@chelsio.com, swise@opengridcomputing.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, tom@opengridcomputing.com, faisal.latif@intel.com, akpm@linux-foundation.org, sasha.levin@oracle.com, vipul@chelsio.com
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] osm_sa_mcmember_record.c Reduce number of error messages
+ the for same event
+Date: Thu, 06 Jun 2013 06:08:54 -0400
+Message-ID: <51B05FB6.2040507@dev.mellanox.co.il>
+References: <7489621d-6395-4e59-896e-d7419aacbd01@default>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <7489621d-6395-4e59-896e-d7419aacbd01@default>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+On 6/3/2013 7:39 AM, Line Holen wrote:
+> ERR msg 0x1B22 info is put into the error messages of the tests in the
+> same subfunction. No information is lost, but you get one error message
+> instead of two.
+> 
+> Also changed a couple of messages to make them more end user friendly
+> 
+> Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-This patch series adds IPv6 support for iWARP. It enables Chelsio's T4 and T5
-adapters to transmitt RDMA traffic over IPv6 address. It adds new apis and cpl
-messages in cxgb4 to support IPv6 operations and uses them in RDMA/cxgb4.
+Thanks. Applied.
 
-The patch series  modifies the type of local_addr and remote_addr fields in
-struct iw_cm_id from struct sockaddr_in to struct sockaddr_storage to hold IPv6
-and IPv4 addresses uniformly. It changes the references of local_addr and
-remote_addr in RDMA/cxgb4, RDMA/cxgb3, RDMA/nes and amso drivers such that build
-failure is avoided.
-
-We would like to submit this patch series via Roland's infiniband tree for-next
-branch. However the series requires the latest changes pushed in cxgb4 driver in
-David Miller's net-next tree. We request Roland to merge cxgb4 and RDMA/cxgb4
-drivers from net-next tree before applying this series on for-next branch. We
-have created this patch series on top of net-next tree.
-
-We have included all the maintainers of respective drivers. Kindly review the
-change and let us know in case of any review comments.
-
-Thanks,
-Vipul Pandya
-
-Steve Wise (1):
-  RDMA/cma: Add IPv6 support for iWARP.
-
-Vipul Pandya (3):
-  cxgb4: Add routines to create and remove listening IPv6 servers
-  cxgb4: Add CLIP support to store compressed IPv6 address
-  RDMA/cxgb4: Add support for active and passive open connection with
-    IPv6 address
-
- drivers/infiniband/core/cma.c                   |  65 +-
- drivers/infiniband/hw/amso1100/c2_ae.c          |  24 +-
- drivers/infiniband/hw/amso1100/c2_cm.c          |  17 +-
- drivers/infiniband/hw/cxgb3/iwch_cm.c           |  46 +-
- drivers/infiniband/hw/cxgb4/cm.c                | 845 ++++++++++++++++--------
- drivers/infiniband/hw/cxgb4/device.c            | 116 +++-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |   4 +-
- drivers/infiniband/hw/nes/nes_cm.c              | 165 +++--
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c | 278 +++++++-
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h  |   5 +
- drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |  17 +-
- drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h   |  23 +
- include/rdma/iw_cm.h                            |   8 +-
- 13 files changed, 1175 insertions(+), 438 deletions(-)
-
--- 
-1.8.0
+-- Hal
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
