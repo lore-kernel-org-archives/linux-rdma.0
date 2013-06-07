@@ -1,21 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1/4] RDMA/cma: Add IPv6 support for iWARP.
-Date: Fri, 07 Jun 2013 15:01:14 -0700 (PDT)
-Message-ID: <20130607.150114.1324134043100965304.davem@davemloft.net>
-References: <1370505201-29961-1-git-send-email-vipul@chelsio.com>
-	<1370505201-29961-2-git-send-email-vipul@chelsio.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1370505201-29961-2-git-send-email-vipul@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: vipul@chelsio.com
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, roland@purestorage.com, divy@chelsio.com, dm@chelsio.com, swise@opengridcomputing.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, tom@opengridcomputing.com, faisal.latif@intel.com, akpm@linux-foundation.org, sasha.levin@oracle.com
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Fri,  7 Jun 2013 15:28:39 -0700
+Message-ID: <1370644119-15200-1-git-send-email-roland@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Linus,
 
-Please use local variables for the sockaddr_in{,6} pointers instead of
-casting over and over and over and over again.
+Please pull from
 
-Thanks.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+
+----------------------------------------------------------------
+
+InfiniBand fixes for 3.10-rc:
+ - qib RCU/lockdep fix
+ - iser device removal fix, plus doc fixes
+
+----------------------------------------------------------------
+Mike Marciniszyn (1):
+      IB/qib: Fix lockdep splat in qib_alloc_lkey()
+
+Or Gerlitz (2):
+      IB/iser: Add Mellanox copyright
+      MAINTAINERS: Add entry for iSCSI Extensions for RDMA (iSER) initiator
+
+Roi Dayan (1):
+      IB/iser: Fix device removal flow
+
+Roland Dreier (1):
+      Merge branches 'iser' and 'qib' into for-next
+
+ MAINTAINERS                                  | 10 ++++++++++
+ drivers/infiniband/hw/qib/qib_keys.c         |  2 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |  1 +
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |  1 +
+ drivers/infiniband/ulp/iser/iser_initiator.c |  1 +
+ drivers/infiniband/ulp/iser/iser_memory.c    |  1 +
+ drivers/infiniband/ulp/iser/iser_verbs.c     | 16 +++++++++-------
+ 7 files changed, 24 insertions(+), 8 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
