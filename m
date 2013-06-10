@@ -1,7 +1,7 @@
 From: <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/5] RDMA/ocrdma: Changed macros to inline funtions.
-Date: Mon, 10 Jun 2013 10:12:41 +0530
-Message-ID: <638cf842-13a8-4474-8140-60416d290cd3@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH 5/5] RDMA/ocrdma: Reorg structures to avoid padding.
+Date: Mon, 10 Jun 2013 10:12:42 +0530
+Message-ID: <109bf154-09c2-4b68-8f9e-4e0b1a64eab8@CMEXHTCAS2.ad.emulex.com>
 References: <1370839362-3871-1-git-send-email-bgottumukkala@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,113 +14,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Changed macros to inline funtions.
+Reorg structures to better packing to avoid cacheline padding.
 
 Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h       | 43 ++++++++++++++++++++++++++---
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 15 ----------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  2 +-
- 3 files changed, 40 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma.h | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 9d82d09..7aa7f0f 100644
+index 7aa7f0f..d540180 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma.h
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -290,10 +290,6 @@ struct ocrdma_qp {
- 	u8 *ird_q_va;
+@@ -236,15 +236,16 @@ struct ocrdma_srq {
+ 	struct ib_srq ibsrq;
+ 	struct ocrdma_dev *dev;
+ 	u8 __iomem *db;
++	struct ocrdma_qp_hwq_info rq;
++	u64 *rqe_wr_id_tbl;
++	u32 *idx_bit_fields;
++	u32 bit_fields_len;
++
+ 	/* provide synchronization to multiple context(s) posting rqe */
+ 	spinlock_t q_lock ____cacheline_aligned;
+ 
+-	struct ocrdma_qp_hwq_info rq;
+ 	struct ocrdma_pd *pd;
+ 	u32 id;
+-	u64 *rqe_wr_id_tbl;
+-	u32 *idx_bit_fields;
+-	u32 bit_fields_len;
  };
  
--#define OCRDMA_GET_NUM_POSTED_SHIFT_VAL(qp) \
--	(((qp->dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) && \
--		(qp->id < 64)) ? 24 : 16)
--
- struct ocrdma_hw_mr {
+ struct ocrdma_qp {
+@@ -252,8 +253,6 @@ struct ocrdma_qp {
  	struct ocrdma_dev *dev;
- 	u32 lkey;
-@@ -384,4 +380,43 @@ static inline struct ocrdma_srq *get_ocrdma_srq(struct ib_srq *ibsrq)
- 	return container_of(ibsrq, struct ocrdma_srq, ibsrq);
- }
  
+ 	u8 __iomem *sq_db;
+-	/* provide synchronization to multiple context(s) posting wqe, rqe */
+-	spinlock_t q_lock ____cacheline_aligned;
+ 	struct ocrdma_qp_hwq_info sq;
+ 	struct {
+ 		uint64_t wrid;
+@@ -263,6 +262,9 @@ struct ocrdma_qp {
+ 		uint8_t  rsvd[3];
+ 	} *wqe_wr_id_tbl;
+ 	u32 max_inline_data;
 +
-+static inline int ocrdma_get_num_posted_shift(struct ocrdma_qp *qp)
-+{
-+	return ((qp->dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY &&
-+		 qp->id < 64) ? 24 : 16);
-+}
-+
-+static inline int is_cqe_valid(struct ocrdma_cq *cq, struct ocrdma_cqe *cqe)
-+{
-+	int cqe_valid;
-+	cqe_valid = le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_VALID;
-+	return ((cqe_valid == cq->phase) ? 1 : 0);
-+}
-+
-+static inline int is_cqe_for_sq(struct ocrdma_cqe *cqe)
-+{
-+	return (le32_to_cpu(cqe->flags_status_srcqpn) &
-+		OCRDMA_CQE_QTYPE) ? 0 : 1;
-+}
-+
-+static inline int is_cqe_invalidated(struct ocrdma_cqe *cqe)
-+{
-+	return (le32_to_cpu(cqe->flags_status_srcqpn) &
-+		OCRDMA_CQE_INVALIDATE) ? 1 : 0;
-+}
-+
-+static inline int is_cqe_imm(struct ocrdma_cqe *cqe)
-+{
-+	return (le32_to_cpu(cqe->flags_status_srcqpn) &
-+		OCRDMA_CQE_IMM) ? 1 : 0;
-+}
-+
-+static inline int is_cqe_wr_imm(struct ocrdma_cqe *cqe)
-+{
-+	return (le32_to_cpu(cqe->flags_status_srcqpn) &
-+		OCRDMA_CQE_WRITE_IMM) ? 1 : 0;
-+}
-+
-+
- #endif
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index cd0512f..36b062d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -1534,21 +1534,6 @@ struct ocrdma_cqe {
- 	u32 flags_status_srcqpn;	/* w3 */
- } __packed;
- 
--#define is_cqe_valid(cq, cqe) \
--	(((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_VALID)\
--	== cq->phase) ? 1 : 0)
--#define is_cqe_for_sq(cqe) \
--	((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_QTYPE) ? 0 : 1)
--#define is_cqe_for_rq(cqe) \
--	((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_QTYPE) ? 1 : 0)
--#define is_cqe_invalidated(cqe) \
--	((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_INVALIDATE) ? \
--	1 : 0)
--#define is_cqe_imm(cqe) \
--	((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_IMM) ? 1 : 0)
--#define is_cqe_wr_imm(cqe) \
--	((le32_to_cpu(cqe->flags_status_srcqpn) & OCRDMA_CQE_WRITE_IMM) ? 1 : 0)
--
- struct ocrdma_sge {
- 	u32 addr_hi;
- 	u32 addr_lo;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 0621530..dcfbab1 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1819,7 +1819,7 @@ int ocrdma_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 
- static void ocrdma_ring_rq_db(struct ocrdma_qp *qp)
- {
--	u32 val = qp->rq.dbid | (1 << OCRDMA_GET_NUM_POSTED_SHIFT_VAL(qp));
-+	u32 val = qp->rq.dbid | (1 << ocrdma_get_num_posted_shift(qp));
- 
- 	iowrite32(val, qp->rq_db);
- }
++	/* provide synchronization to multiple context(s) posting wqe, rqe */
++	spinlock_t q_lock ____cacheline_aligned;
+ 	struct ocrdma_cq *sq_cq;
+ 	/* list maintained per CQ to flush SQ errors */
+ 	struct list_head sq_entry;
 -- 
 1.8.2.3
 
