@@ -1,125 +1,96 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Status of "ummunot" branch?
-Date: Mon, 10 Jun 2013 09:17:55 +0000
-Message-ID: <D554B471892C914E90E136467281724DAD6956E0@MTLDAG01.mtl.com>
-References: <51AF3FA8.7000900@mellanox.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65D5D3@xmb-rcd-x01.cisco.com>
- <20130605171426.GC30184@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DC0D@xmb-rcd-x01.cisco.com>
- <20130605181853.GB1946@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DF6F@xmb-rcd-x01.cisco.com>
- <20130605190529.GA3044@obsidianresearch.com> <51B023B9.9050000@mellanox.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F66B79C@xmb-rcd-x01.cisco.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F66E403@xmb-rcd-x01.cisco.com>
- <20130607235731.GA25942@obsidianresearch.com>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: How to do replication right with SRP or remote storage?
+Date: Mon, 10 Jun 2013 14:05:28 +0200
+Message-ID: <51B5C108.1030803@profitbricks.com>
+References: <5054492E.1090403@acm.org> <loom.20121120T050107-224@post.gmane.org> <50AB84C1.5090105@acm.org> <loom.20130608T041932-498@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130607235731.GA25942-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <loom.20130608T041932-498-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bruce McKenzie <sales-uUyUjRhFbRmVZhT2dXthUg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Here are a few more clarifications:
-
-1) ODP MRs can cover address ranges that do not have a mapping at registration time.
-
-This means that MPI can register in advance, say, the lower GB's of the address space, covering malloc's primary arena.
-Thus, there is no need to adjust to each increase in sbrk().
-
-Similarly, you can register the stack region up to the maximum size of the stack.
-The stack can grow and shrink, and ODP will always use the current mapping.
-
-2) Virtual addresses covered by an ODP MR must have a valid mapping when they are is accessed (during send/receive WQE processing or as a target of an RDMA/atomic operation).
-So, Jeff, the only thing you need to make sure is that you don't free() a buffer that you posted and haven't got a completion yet - but I guess that this is something that you already do... :)
-
-For example, in the following scenario:
-a. reg_mr(first GB of the address space)
-
-b. p = malloc()
-c. post_send(p)
-d. poll for completion
-e. free(p)
-
-f. p = malloc()
-g. post_send(p)
-h. poll for completion
-i. free(p)
-
-(c) may incur a page fault (if not pre-fetched or faulted-in by another thread).
-(e) happens after the completion, so it is guaranteed that (c), when processed by HW, uses the correct application buffer with the current virt-to-phys mapping (at HW access time)
-
-The reallocation may or may not change the virtual-to-physical mappings.
-The message may or may not be paged out (ODP does not hold a reference on the page).
-In any case, when (g) is processed, it always uses the current mapping.
-
---Liran
-
-
-
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-Sent: Saturday, June 08, 2013 2:58 AM
-To: Jeff Squyres (jsquyres)
-Cc: Haggai Eran; Or Gerlitz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Shachar Raindel
-Subject: Re: Status of "ummunot" branch?
-
-On Fri, Jun 07, 2013 at 10:59:43PM +0000, Jeff Squyres (jsquyres) wrote:
-
-> > I don't think this covers other memory regions, like those added via mmap, right?
->  
-> We talked about this at the MPI Forum this week; it doesn't seem like 
-> ODP fixes any MPI problems.
-
-ODP without 'register all address space' changes the nature of the problem, and fixes only one problem.
-
-You do need to cache registrations, and all the tuning parameters (how much do I cache, how long do I hold it for, etc, etc) all still apply.
-
-What goes away (is fixed) is the need for intercepts and the need to purge address space from the cache because the backing registration has become non-coherent/invalid. Registrations are always coherent/valid with ODP.
-
-This cache, and the associated optimization problem, can never go away. With a 'register all of memory' semantic the cache can move into the kernel, but the performance implication and overheads are all still present, just migrated.
-
-> 2. MPI still has to intercept (at least) munmap().
-
-Curious to know what for? 
-
-If you want to prune registrations (ie to reduce memory footprint), this can be done lazyily at any time (eg in a background thread or something). Read /proc/self/maps and purge all the registrations pointing to unmapped memory. Similar to garbage collection.
-
-There is no harm in keeping a registration for a long period, except for the memory footprint in the kernel.
-
-> 3. Having mmap/malloc/etc. return "new" memory that may already be 
-> registered because of a prior memory registration and subsequent 
-> munmap/free/etc. is just plain weird.  Worse, if we re-register it, 
-> ref counts could go such that the actual registration will never 
-> actually expire until the process dies (which could lead to processes 
-> with abnormally large memory footprints, because they never actually 
-> let go of memory because it's still registered).
-
-This is entirely on the registration cache implementation to sort out, there are lots of performance/memory trade offs.
-
-It is only weird when you think about it in terms of buffers. memory registration has to do with address space, not buffers.
-
-> What MPI wants is:
+On 08.06.2013 04:31, Bruce McKenzie wrote:
+> Hi Bart.
 > 
-> 1. verbs for ummunotify-like functionality 2. non-blocking memory 
-> registration verbs; poll the cq to know when it has completed
+> any advice on using this fix with MD raid 1? a guide or site you know of?
+> 
+> ive compiled ubuntu 13.04 to kernel 3.6.11 with OFED 2 from Mellanox, and it
+> works ok, performance is a little better with SRP.  Some packages dont seem
+> to work, ie srptools and IB-diags some commands fail, which looks like those
+> tools havenet been tested with 3.6.11?  or updated.
+> 
+> Ive tried using DRBD with pacemaker Stonith etc (which also works on 3.6.11)
+> but it only works with iSCSI over IPOIB.  ie virtual nic with mounted LVM
+> using scst to present file i/o.  and pacemaker to fail over the VIP to node
+> 2.  But OFED 2 doesnt seem to support SDP to have to rep via IPOIB which is
+> slow even over dedicated IB_IPOIB nic.  IE DRBD rep is 200MB/s
+> 
+> Any help or direction would be greatfull.
+> Cheers
+> Bruce McKenzie
+> 
 
-To me, ODP with an additional 'register all address space' semantic, plus an asynchronous prefetch does both of these for you.
+(changed subject into something I think is more appropriate)
 
-1. ummunotify functionality and caching is now in the kernel, under
-   ODP. RDMA access to an 'all of memory' registration always does the
-   right thing.
-2. asynchronous prefetch (eg as a work request) triggers ODP and
-   kernel actions to ready a subset of memory for RDMA, including
-   all the work that memory registration does today (get_user_pages,
-   COW break, etc)
-   
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Bruce,
+
+thanks for contacting me privately in parallel. I can answer you the
+replication questions. In order to share experience for others I reply
+here again.
+
+Please evaluate the ib_srp fixes from Bart and from me as well and send
+us your feedback!
+
+We are still negotiating how to do fast IO failing and the automatic
+reconnect right, also together with the Mellanox SRP guys Sagi Grimberg,
+Vu Pham, Oren Duer and others.
+
+You need these patches in order to fail IO in the time you want to the
+upper layers so that dm-multipath can fail over the path first and
+ib_srp continuously tries to reconnect the failed path. If the other
+path also fails, then very likely the storage server is down, so you
+fail the IO further up to MD RAID-1 so that it can fail that replica.
+
+For replication the last slide of my talk on LinuxTag this year could be
+interesting for you:
+
+http://www.slideshare.net/SebastianRiemer/infini-band-rdmaforstoragesrpvsiser-21791250
+
+That slide caused a lot of discussion afterwards. The thing is that
+replication of remote storage is best on the initiator (a single kernel
+manages all replica, parallel network paths, symmetric latency,...).
+
+The bad news is that replication of virtual/remote storage with MD
+RAID-1 is a use case which basically works but has some issues which
+Neil Brown doesn't want to have fixed in mainline. So you need a kernel
+developer for some cool features like e.g. safe VM live migration.
+
+Perhaps, I should collect all guys who require MD RAID-1 for remote
+storage replication in order to put some pressure on Neil. At least some
+things of this use case are easy to merge with mainline behavior like
+e.g. letting MD assembly scale right (mdadm searches the whole /dev
+without a need). I was surprised that he will make the data offset
+settable again so that you can set it to 4 MiB (1 LV extent). We already
+have that by custom patches on top of mdadm 3.2.6.
+
+DRBD is already with iSCSI crap. 200 MB/s with IB sounds familiar. I had
+250 MB/s in primary/secondary setup with DRBD during evaluation. That's
+store&forward writes to the secondary which is slooooow. Chained network
+paths! With Ethernet that hurts even more. People report 70 MB/s with
+that. I've taught them how to use blktrace and it became obvious that
+they were trapped in latency.
+
+I can also recommend you Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>. He also
+uses SRP with MD RAID-1. He could convince Neil to fix the MD data
+offet. OpenSource is all about the right allies,....
+
+Cheers,
+Sebastian
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
