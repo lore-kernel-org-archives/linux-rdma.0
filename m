@@ -1,79 +1,55 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Status of "ummunot" branch?
-Date: Mon, 10 Jun 2013 11:26:27 -0600
-Message-ID: <20130610172627.GC2391@obsidianresearch.com>
-References: <20130605171426.GC30184@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DC0D@xmb-rcd-x01.cisco.com>
- <20130605181853.GB1946@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DF6F@xmb-rcd-x01.cisco.com>
- <20130605190529.GA3044@obsidianresearch.com>
- <51B023B9.9050000@mellanox.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F66B79C@xmb-rcd-x01.cisco.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F66E403@xmb-rcd-x01.cisco.com>
- <20130607235731.GA25942@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F676E59@xmb-rcd-x01.cisco.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v5 01/28] rdma/cm: define native IB address
+Date: Mon, 10 Jun 2013 17:49:02 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD2E0F8@ORSMSX109.amr.corp.intel.com>
+References: <1369847374-12176-1-git-send-email-sean.hefty@intel.com>
+ <1369847374-12176-2-git-send-email-sean.hefty@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC4F676E59-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
+In-Reply-To: <1369847374-12176-2-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David Miller (davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org)" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 10, 2013 at 02:49:24PM +0000, Jeff Squyres (jsquyres) wrote:
-> On Jun 7, 2013, at 4:57 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> Define AF_IB and sockaddr_ib to allow the rdma_cm to use native IB
+> addressing.
 > 
-> >> We talked about this at the MPI Forum this week; it doesn't seem
-> >> like ODP fixes any MPI problems.
-> > 
-> > ODP without 'register all address space' changes the nature of the
-> > problem, and fixes only one problem.
+> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  include/linux/socket.h |    2 +
+>  include/rdma/ib.h      |   89 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 91 insertions(+), 0 deletions(-)
+>  create mode 100644 include/rdma/ib.h
 > 
-> I agree that pushing all registration issues out of the application
-> and (somewhere) into the verbs stack would be a nice solution.
+> diff --git a/include/linux/socket.h b/include/linux/socket.h
+> index 2b9f74b..68f7120 100644
+> --- a/include/linux/socket.h
+> +++ b/include/linux/socket.h
+> @@ -167,6 +167,7 @@ struct ucred {
+>  #define AF_PPPOX	24	/* PPPoX sockets		*/
+>  #define AF_WANPIPE	25	/* Wanpipe API Sockets */
+>  #define AF_LLC		26	/* Linux LLC			*/
+> +#define AF_IB		27	/* Native InfiniBand address	*/
+>  #define AF_CAN		29	/* Controller Area Network      */
+>  #define AF_TIPC		30	/* TIPC sockets			*/
+>  #define AF_BLUETOOTH	31	/* Bluetooth sockets 		*/
+> @@ -211,6 +212,7 @@ struct ucred {
+>  #define PF_PPPOX	AF_PPPOX
+>  #define PF_WANPIPE	AF_WANPIPE
+>  #define PF_LLC		AF_LLC
+> +#define PF_IB		AF_IB
+>  #define PF_CAN		AF_CAN
+>  #define PF_TIPC		AF_TIPC
+>  #define PF_BLUETOOTH	AF_BLUETOOTH
 
-Well, it creates a mess in another sense, because now you've lost
-context. When your MPI goes to do a 1byte send the kernel may well
-prefetch a few megabytes of page tables, whereas an implementation in
-userspace still has the context and can say, no I don't need that..
+Are there any objections from the network maintainers to adding these definitions?
 
-Maybe a prefetch WR can restore the lost context, donno..
+The rest of the changes from this series are restricted to the RDMA subsystem.  Currently, the RDMA stack connects using IP addresses, which must be mapped to IB addresses.  This change allows the RDMA stack to establish connections using native IB addresses.
 
-> That being said, everyone I've talked to about ODP finds it very,
-> very strange that the kernel would keep memory registrations around
-> for memory that is no longer part of a process.  Not only does it
-
-MRs are badly named. They are not 'memory registrations'. They are
-'address registrations'. Don't conflat address === memory in your
-head, then it seems weird :)
-
-The memory the address space points to is flexible.
-
-The address space is tied to the lifetime of the process.
-
-It doesn't matter if there is no memory mapped to the address space,
-the address space is still there.
-
-Liran had a good example. You can register address space and then use
-mmap/munmap/MAP_FIXED to mess around with where it points to.
-
-A practical example of using this would be to avoid the need to send
-scatter buffer pointers to the remote. The remote writes into a memory
-ring and the ring is made 'endless' by clever use of remapping.
-
-> "Register all address space" is the moral equivalent of not having
-> userspace registration, so let's talk about it in those terms.
-> Specifically, there's a subtle difference between:
-> 
-> a) telling verbs to register (0...2^64) 
-> b) telling verbs that the app doesn't want to handle registration
-
-I agree, a verb to do 'B' is a cleaner choice than trying to cram this
-kind of API into A...
-
-Jason
+- Sean 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
