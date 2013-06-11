@@ -1,55 +1,36 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v5 01/28] rdma/cm: define native IB address
-Date: Mon, 10 Jun 2013 17:49:02 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD2E0F8@ORSMSX109.amr.corp.intel.com>
-References: <1369847374-12176-1-git-send-email-sean.hefty@intel.com>
- <1369847374-12176-2-git-send-email-sean.hefty@intel.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: How to do replication right with SRP or remote storage?
+Date: Tue, 11 Jun 2013 13:48:36 +0400
+Message-ID: <CACaajQs4q9q06xPU-_A19SjoZ629-=93-XrRnUQc-7dZs-Wdsw@mail.gmail.com>
+References: <5054492E.1090403@acm.org> <loom.20121120T050107-224@post.gmane.org>
+ <50AB84C1.5090105@acm.org> <loom.20130608T041932-498@post.gmane.org> <51B5C108.1030803@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1369847374-12176-2-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <51B5C108.1030803-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David Miller (davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org)" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Bruce McKenzie <sales-uUyUjRhFbRmVZhT2dXthUg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Define AF_IB and sockaddr_ib to allow the rdma_cm to use native IB
-> addressing.
-> 
-> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  include/linux/socket.h |    2 +
->  include/rdma/ib.h      |   89 ++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 91 insertions(+), 0 deletions(-)
->  create mode 100644 include/rdma/ib.h
-> 
-> diff --git a/include/linux/socket.h b/include/linux/socket.h
-> index 2b9f74b..68f7120 100644
-> --- a/include/linux/socket.h
-> +++ b/include/linux/socket.h
-> @@ -167,6 +167,7 @@ struct ucred {
->  #define AF_PPPOX	24	/* PPPoX sockets		*/
->  #define AF_WANPIPE	25	/* Wanpipe API Sockets */
->  #define AF_LLC		26	/* Linux LLC			*/
-> +#define AF_IB		27	/* Native InfiniBand address	*/
->  #define AF_CAN		29	/* Controller Area Network      */
->  #define AF_TIPC		30	/* TIPC sockets			*/
->  #define AF_BLUETOOTH	31	/* Bluetooth sockets 		*/
-> @@ -211,6 +212,7 @@ struct ucred {
->  #define PF_PPPOX	AF_PPPOX
->  #define PF_WANPIPE	AF_WANPIPE
->  #define PF_LLC		AF_LLC
-> +#define PF_IB		AF_IB
->  #define PF_CAN		AF_CAN
->  #define PF_TIPC		AF_TIPC
->  #define PF_BLUETOOTH	AF_BLUETOOTH
+2013/6/10 Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>:
+> I can also recommend you Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>. He also
+> uses SRP with MD RAID-1. He could convince Neil to fix the MD data
+> offet. OpenSource is all about the right allies,....
 
-Are there any objections from the network maintainers to adding these definitions?
 
-The rest of the changes from this series are restricted to the RDMA subsystem.  Currently, the RDMA stack connects using IP addresses, which must be mapped to IB addresses.  This change allows the RDMA stack to establish connections using native IB addresses.
+Thanks for recommendations... but --data-oofset already fixed.
+Sometime ago Neil add this option when doing operations with raid. But
+when i'm try it it does not works. After my message in LKML and MDADM
+developers list Neil says, that it can be fixed.
+As i see http://git.neil.brown.name/?p=mdadm.git;a=shortlog in May
+this has been fixed.
+May be we need to test this.
 
-- Sean 
+--
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
