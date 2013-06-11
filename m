@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/6] opensm: fix possible double free in osm_ucast_ftree.c
-Date: Tue, 11 Jun 2013 14:13:37 -0400
-Message-ID: <51B768D1.90503@dev.mellanox.co.il>
+Subject: [PATCH 3/6] osm_ucast_ftree.c : fix dereferencing null variable
+Date: Tue, 11 Jun 2013 14:13:43 -0400
+Message-ID: <51B768D7.1000807@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,38 +11,31 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->From 49f1a71299e4aa28a8319334c772525f67cbd1ca Mon Sep 17 00:00:00 2001
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Thu, 16 Aug 2012 16:33:55 +0300
-Subject: [PATCH 2/6] opensm: fix possible double free in osm_ucast_ftree.c
+>From 4d36d6d133c09e45fe394b3519ac9cae5ebbe1c5 Mon Sep 17 00:00:00 2001
+From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Date: Sun, 2 Dec 2012 13:48:47 +0200
+Subject: [PATCH 3/6] osm_ucast_ftree.c : fix dereferencing null variable
 
-Only if cl_ptr_vector_at return "CL_SUCCESS"  ,the pointer "p_port" needed to be freed
+Dereferencing null variable "p_min_port".
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/osm_ucast_ftree.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ opensm/osm_ucast_ftree.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/opensm/osm_ucast_ftree.c b/opensm/osm_ucast_ftree.c
-index fecc902..dfcd418 100644
+index dfcd418..a293803 100644
 --- a/opensm/osm_ucast_ftree.c
 +++ b/opensm/osm_ucast_ftree.c
-@@ -453,10 +453,10 @@ static void port_group_destroy(IN ftree_port_group_t * p_group)
+@@ -2213,6 +2213,8 @@ fabric_route_upgoing_by_going_down(IN ftree_fabric_t * p_ftree,
+ 		/* find the least loaded port of the group (in indexing order) */
+ 		p_min_port = NULL;
+ 		ports_num = (uint16_t) cl_ptr_vector_get_size(&p_group->ports);
++		if(ports_num == 0)
++			continue;
  
- 	/* remove all the elements of p_group->ports vector */
- 	size = cl_ptr_vector_get_size(&p_group->ports);
--	for (i = 0; i < size; i++) {
--		cl_ptr_vector_at(&p_group->ports, i, (void *)&p_port);
--		port_destroy(p_port);
--	}
-+	for (i = 0; i < size; i++)
-+		if (cl_ptr_vector_at(&p_group->ports, i, (void *)&p_port) == CL_SUCCESS)
-+			port_destroy(p_port);
-+
- 	cl_ptr_vector_destroy(&p_group->ports);
- 	free(p_group);
- }				/* port_group_destroy() */
+ 		for (j = 0; j < ports_num; j++) {
+ 			cl_ptr_vector_at(&p_group->ports, j, (void *)&p_port);
 -- 
 1.7.8.2
 
