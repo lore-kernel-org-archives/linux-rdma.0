@@ -1,59 +1,107 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 0/4] Add receive Flow Steering support
-Date: Tue, 11 Jun 2013 14:42:49 +0300
-Message-ID: <1370950973-11716-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 for-next 2/4] IB/core: Infra-structure to support verbs extensions through uverbs
+Date: Tue, 11 Jun 2013 14:42:51 +0300
+Message-ID: <1370950973-11716-3-git-send-email-ogerlitz@mellanox.com>
+References: <1370950973-11716-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1370950973-11716-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland, all
+From: Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>
 
-These patches add Flow Steering support to the kernel IB core, to uverbs and 
-to the mlx4 IB (verbs) driver along with one patch to uverbs which adds 
-some code to support extensions.
+Add Infra-structure to support extended uverbs capabilities in a forward/backward
+manner. Uverbs command opcodes which are based on the verbs extensions approach should
+be greater or equal to IB_USER_VERBS_CMD_THRESHOLD. They have new header format
+and processed a bit differently.
 
-  IB/core: Add receive Flow Steering support
-  IB/core: Infra-structure to support verbs extensions through uverbs
-  IB/core: Export ib_create/destroy_flow through uverbs
-  IB/mlx4: Add receive Flow Steering support
+Signed-off-by: Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_main.c |   29 ++++++++++++++++++++++++-----
+ include/uapi/rdma/ib_user_verbs.h     |   10 ++++++++++
+ 2 files changed, 34 insertions(+), 5 deletions(-)
 
-The main patch which introduces the Flow-Steering API is "IB/core: Add receive Flow 
-Steering support", see its change log. Looking on the "Network Adapter Flow Steering" 
-slides from Tzahi Oved which he presented on the annual OFA 2012 meeting could be helpful
-https://www.openfabrics.org/resources/document-downloads/presentations/doc_download/518-network-adapter-flow-steering.html
-
-V0 has been acknowledged by Steve and Christoph, and was also got positive feedback from 
-Sean and Jason over f2f talks we had during the Linux Foundation EU summit on last month.
-
-V1 changes:
-
- - dropped the five pre-patches which were accepted into 3.10
- - rebased the patches against Roland's for-next / 3.10-rc4
- - in patch #3, ib_uverbs_destroy_flow was returning too quickly when the driver
-   returned failure for ib_destroy_flow, need to free some uverbs resources 1st.
- - in patch #4, check index before accessing the array at mlx4_ib_create/destroy_flow
-
-
-Or.
-
-Hadar Hen Zion (3):
-  IB/core: Add receive Flow Steering support
-  IB/core: Export ib_create/destroy_flow through uverbs
-  IB/mlx4: Add receive Flow Steering support
-
-Igor Ivanov (1):
-  IB/core: Infra-structure to support verbs extensions through uverbs
-
- drivers/infiniband/core/uverbs.h      |    3 +
- drivers/infiniband/core/uverbs_cmd.c  |  206 +++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c |   42 +++++-
- drivers/infiniband/core/verbs.c       |   30 ++++
- drivers/infiniband/hw/mlx4/main.c     |  246 +++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h               |  137 ++++++++++++++++++-
- include/uapi/rdma/ib_user_verbs.h     |  118 ++++++++++++++++-
- 7 files changed, 773 insertions(+), 9 deletions(-)
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 2c6f0f2..e4e7b24 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -583,9 +583,6 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 	if (copy_from_user(&hdr, buf, sizeof hdr))
+ 		return -EFAULT;
+ 
+-	if (hdr.in_words * 4 != count)
+-		return -EINVAL;
+-
+ 	if (hdr.command >= ARRAY_SIZE(uverbs_cmd_table) ||
+ 	    !uverbs_cmd_table[hdr.command])
+ 		return -EINVAL;
+@@ -597,8 +594,30 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 	if (!(file->device->ib_dev->uverbs_cmd_mask & (1ull << hdr.command)))
+ 		return -ENOSYS;
+ 
+-	return uverbs_cmd_table[hdr.command](file, buf + sizeof hdr,
+-					     hdr.in_words * 4, hdr.out_words * 4);
++	if (hdr.command >= IB_USER_VERBS_CMD_THRESHOLD) {
++		struct ib_uverbs_cmd_hdr_ex hdr_ex;
++
++		if (copy_from_user(&hdr_ex, buf, sizeof(hdr_ex)))
++			return -EFAULT;
++
++		if (((hdr_ex.in_words + hdr_ex.provider_in_words) * 4) != count)
++			return -EINVAL;
++
++		return uverbs_cmd_table[hdr.command](file,
++						     buf + sizeof(hdr_ex),
++						     (hdr_ex.in_words +
++						      hdr_ex.provider_in_words) * 4,
++						     (hdr_ex.out_words +
++						      hdr_ex.provider_out_words) * 4);
++	} else {
++		if (hdr.in_words * 4 != count)
++			return -EINVAL;
++
++		return uverbs_cmd_table[hdr.command](file,
++						     buf + sizeof(hdr),
++						     hdr.in_words * 4,
++						     hdr.out_words * 4);
++	}
+ }
+ 
+ static int ib_uverbs_mmap(struct file *filp, struct vm_area_struct *vma)
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 805711e..61535aa 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -43,6 +43,7 @@
+  * compatibility are made.
+  */
+ #define IB_USER_VERBS_ABI_VERSION	6
++#define IB_USER_VERBS_CMD_THRESHOLD    50
+ 
+ enum {
+ 	IB_USER_VERBS_CMD_GET_CONTEXT,
+@@ -123,6 +124,15 @@ struct ib_uverbs_cmd_hdr {
+ 	__u16 out_words;
+ };
+ 
++struct ib_uverbs_cmd_hdr_ex {
++	__u32 command;
++	__u16 in_words;
++	__u16 out_words;
++	__u16 provider_in_words;
++	__u16 provider_out_words;
++	__u32 cmd_hdr_reserved;
++};
++
+ struct ib_uverbs_get_context {
+ 	__u64 response;
+ 	__u64 driver_data[0];
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
