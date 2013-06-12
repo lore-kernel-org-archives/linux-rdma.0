@@ -1,91 +1,56 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags 1/6] ibtracert.c: fix resource leak
-Date: Wed, 12 Jun 2013 17:10:49 -0400
-Message-ID: <51B8E3D9.5090403@dev.mellanox.co.il>
-References: <51B87DCE.4000708@dev.mellanox.co.il> <20130612135424.fa4df60d6837a528cea547dd@intel.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Status of "ummunot" branch?
+Date: Wed, 12 Jun 2013 21:10:57 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F6808D7@xmb-rcd-x01.cisco.com>
+References: <51AF3FA8.7000900@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65D5D3@xmb-rcd-x01.cisco.com>
+ <20130605171426.GC30184@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DC0D@xmb-rcd-x01.cisco.com>
+ <20130605181853.GB1946@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DF6F@xmb-rcd-x01.cisco.com>
+ <20130605190529.GA3044@obsidianresearch.com> <51B023B9.9050000@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F66B79C@xmb-rcd-x01.cisco.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F66E403@xmb-rcd-x01.cisco.com>
+ <20130607235731.GA25942@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F676E59@xmb-rcd-x01.cisco.com>
+ <D554B471892C914E90E136467281724DAD695B50@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130612135424.fa4df60d6837a528cea547dd-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <D554B471892C914E90E136467281724DAD695B50-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <6FBFBBEC9C6AD64C89A6D27A4952DFF4-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/12/2013 4:54 PM, Ira Weiny wrote:
-> On Wed, 12 Jun 2013 09:55:26 -0400
-> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> 
->> From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->>
->> Call return without freeing the buffer.
->>
->> Signed-off-by: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Thanks applied with modifications below.
-> 
->> ---
->>  src/ibtracert.c |   10 +++++++---
->>  1 files changed, 7 insertions(+), 3 deletions(-)
->>
->> diff --git a/src/ibtracert.c b/src/ibtracert.c
->> index 5800e40..cc0ac98 100644
->> --- a/src/ibtracert.c
->> +++ b/src/ibtracert.c
->> @@ -567,13 +567,15 @@ static Node *find_mcpath(ib_portid_t * from, int mlid)
->>  					if (from->drpath.cnt > 0)
->>  						path->drpath.cnt--;
->>  				} else {
->> -					if (!(port = calloc(1, sizeof(Port))))
->> +					if (!(port = calloc(1, sizeof(Port)))) {
->>  						IBERROR("out of memory");
->> -
->> +						return 0;
-> 
-> There is no need for this as IBERROR exits.  
+On Jun 10, 2013, at 11:56 AM, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
-Agreed.
-
-> Did you want to continue execution for some reason?  If so you'll need to change IBERROR to IBWARN and resubmit this hunk as a separate patch.
-
-I think it's consistent to the other memory failure handling without
-this hunk but Dan has the final word as to what he would like done.
-
-Thanks.
-
--- Hal
-
-> Thanks,
-> Ira
+>> "Register all address space" is the moral equivalent of not having userspace
+>> registration, so let's talk about it in those terms.  Specifically, there's a subtle
+>> difference between:
+>> 
+>> a) telling verbs to register (0...2^64)
+>>   --> Which is weird because it tells verbs to register memory that isn't in my
+>> address space
 > 
->> +					}
->>  					if (get_port(port, i, path) < 0) {
->>  						IBWARN
->>  						    ("can't reach node %s port %d",
->>  						     portid2str(path), i);
->> +						free(port);
->>  						return 0;
->>  					}
->>  
->> @@ -585,8 +587,10 @@ static Node *find_mcpath(ib_portid_t * from, int mlid)
->>  					link_port(port, node);
->>  #endif
->>  
->> -					if (extend_dpath(&path->drpath, i) < 0)
->> +					if (extend_dpath(&path->drpath, i) < 0) {
->> +						free(port);
->>  						return 0;
->> +					}
->>  				}
->>  
->>  				if (!(remotenode = calloc(1, sizeof(Node))))
->> -- 
->> 1.7.8.2
->>
-> 
-> 
+> Another way to look at it is "specify IO access permissions" for address space ranges.
+> This could be useful to implement a buffer pool to be used for a specific MR only, yet still map/unmap memory within this pool on the fly to optimize physical memory utilization.
+> In this case, you would provide smaller ranges than 2^64...
+
+
+Hmm; I'm not sure I understand.
+
+Userspace doesn't control what virtual addresses it gets back from mmap/etc.  So how is what you're talking about different than regular/reactive memory registration? (vs. pre-emptively registering a whole pile of memory that doesn't exist yet)
+
+Specifically: I'm confused because you said you could (preemptively) register some small regions (that assumedly don't yet exist in your virtual memory address space) and use them as memory pools.  But given that userspace doesn't control its virtual address ranges, I'm not sure how that's useful.
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
