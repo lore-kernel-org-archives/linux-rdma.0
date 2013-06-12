@@ -1,38 +1,42 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH 1/5] ibmebus: convert of_platform_driver to
- platform_driver
-Date: Wed, 12 Jun 2013 15:29:38 +1000
-Message-ID: <1371014978.8250.175.camel@pasglop>
-References: <1366596798-9457-1-git-send-email-robherring2@gmail.com>
-	 <1366596798-9457-2-git-send-email-robherring2@gmail.com>
-	 <CAL_JsqKDF=hPEM0Jz-zZSXBCXBZ=gBjLWL6QDvq+nFWkqY3DMw@mail.gmail.com>
-	 <1366911329.2869.31.camel@pasglop> <517980B0.3000401@gmail.com>
-	 <1366920741.2869.32.camel@pasglop> <517995D0.8020307@gmail.com>
-	 <CAL_JsqKXt-gFL4y_k-_dFktpk1JD_S2G+hUsoOavw8QugFMOKA@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] osm_sa_sminfo_record.c: fix sminfo sa query returns all sminfo
+ records when filtering by LID in osm_smir_rcv_process
+Date: Wed, 12 Jun 2013 06:33:03 -0400
+Message-ID: <51B84E5F.3090802@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL_JsqKXt-gFL4y_k-_dFktpk1JD_S2G+hUsoOavw8QugFMOKA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2013-05-22 at 07:26 -0500, Rob Herring wrote:
-> > git://sources.calxeda.com/kernel/linux.git of-platform-removal
-> 
-> Ben,
-> 
-> Did you have a chance to test this? I want to get this into -next.
+>From fefee6db5955554ab6cc66da9aef1084f14d7006 Mon Sep 17 00:00:00 2001
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Wed, 5 Jun 2013 14:52:01 +0300
+Subject: [PATCH] osm_sa_sminfo_record.c: fix sminfo sa query returns all sminfo records when filtering by LID in osm_smir_rcv_process
 
-I tested the one in for-next (sorry for the high latency). Works fine.
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_sa_sminfo_record.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Ack.
-
-Cheers,
-Ben.
-
+diff --git a/opensm/osm_sa_sminfo_record.c b/opensm/osm_sa_sminfo_record.c
+index f6bd9be..f73b433 100644
+--- a/opensm/osm_sa_sminfo_record.c
++++ b/opensm/osm_sa_sminfo_record.c
+@@ -310,7 +310,7 @@ void osm_smir_rcv_process(IN void *ctx, IN void *data)
+ 				OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 280A: "
+ 					"No remote SM for GUID 0x%016" PRIx64
+ 					"\n", cl_ntoh64(port_guid));
+-		} else {
++		} else if (!p_port) {
+ 			/* Go over all other known (remote) SMs */
+ 			cl_qmap_apply_func(&sa->p_subn->sm_guid_tbl,
+ 					   sa_smir_by_comp_mask_cb, &context);
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
