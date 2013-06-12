@@ -1,69 +1,61 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: [PATCH 0/14] IB SRP initiator patches for kernel 3.11
-Date: Wed, 12 Jun 2013 15:17:53 +0200
-Message-ID: <51B87501.4070005@acm.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH 01/14] IB/srp: Fix remove_one crash due to resource exhaustion
+Date: Wed, 12 Jun 2013 15:20:36 +0200
+Message-ID: <51B875A4.7040903@acm.org>
+References: <51B87501.4070005@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Roland Dreier <roland@kernel.org>, David Dillow <dillowda@ornl.gov>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51B87501.4070005-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The purpose of this InfiniBand SRP initiator patch series is as follows:
-- Make the SRP initiator driver better suited for use in a H.A. setup.
-   Speed up failover by reducing the IB RC retry count and by notifying
-   multipathd faster about transport layer failures by adding
-   fast_io_fail_tmo and dev_loss_tmo parameters.
-- Make the SRP initiator better suited for use on NUMA systems by
-   making the HCA completion vector configurable.
+If the add_one callback fails during driver load no resources are
+allocated so there isn't a need to release any resources. Trying
+to clean the resource may lead to the following kernel panic:
 
-Some of the patches in this patch series were posted previously as "Make 
-ib_srp better suited for H.A. purposes". The changes compared to version 
-five of that patch series are:
-- Left out patches that are already upstream.
-- Made it possible to set dev_loss_tmo to "off". This is useful in a
-   setup using initiator side mirroring to avoid that new /dev/sd* names
-   are reassigned after a failover or cable pull and reinsert.
-- Added kernel module parameters to ib_srp for configuring default
-   values of the fast_io_fail_tmo and dev_loss_tmo parameters.
-- Added a patch from Dotan Barak that fixes a kernel oops during rmmod
-   triggered by resource allocation failure at module load time.
-- Avoid duplicate connections by refusing relogins instead of dropping
-   duplicate connections, as proposed by Sebastian Riemer.
-- Added a patch from Sebastian Riemer for failing SCSI commands
-   silently.
-- Added a patch from Vu Pham to make the transport layer (IB RC) retry
-   count configurable.
-- Made HCA completion vector configurable.
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP: [<ffffffffa0132331>] srp_remove_one+0x31/0x240 [ib_srp]
+RIP: 0010:[<ffffffffa0132331>]  [<ffffffffa0132331>] srp_remove_one+0x31/0x240 [ib_srp]
+Process rmmod (pid: 4562, threadinfo ffff8800dd738000, task ffff8801167e60c0)
+Call Trace:
+ [<ffffffffa024500e>] ib_unregister_client+0x4e/0x120 [ib_core]
+ [<ffffffffa01361bd>] srp_cleanup_module+0x15/0x71 [ib_srp]
+ [<ffffffff810ac6a4>] sys_delete_module+0x194/0x260
+ [<ffffffff8100b0f2>] system_call_fastpath+0x16/0x1b
 
-Changes since v4:
-- Added a patch for removing SCSI devices upon a port down event
+[bvanassche: Shortened patch description]
+Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Changes since v3:
-- Restored the dev_loss_tmo and fast_io_fail_tmo sysfs attributes.
-- Included a patch to fix an ib_srp crash that could be triggered by
-   cable pulling.
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 7ccf328..368d160 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -2507,6 +2507,8 @@ static void srp_remove_one(struct ib_device *device)
+ 	struct srp_target_port *target;
+ 
+ 	srp_dev = ib_get_client_data(device, &srp_client);
++	if (!srp_dev)
++		return;
+ 
+ 	list_for_each_entry_safe(host, tmp_host, &srp_dev->dev_list, list) {
+ 		device_unregister(&host->dev);
+-- 
+1.7.10.4
 
-Changes since v2:
-- Addressed the v2 review comments.
-- Dropped the patches that have already been merged.
-- Dropped the patches for integration with multipathd.
-- Dropped the micro-optimization of the IB completion handlers.
-
-The individual patches in this series are as follows:
-0001-IB-srp-Fix-remove_one-crash-due-to-resource-exhausti.patch
-0002-IB-srp-Fix-race-between-srp_queuecommand-and-srp_cla.patch
-0003-IB-srp-Avoid-that-srp_reset_host-is-skipped-after-a-.patch
-0004-IB-srp-Skip-host-settle-delay.patch
-0005-IB-srp-Maintain-a-single-connection-per-I_T-nexus.patch
-0006-IB-srp-Keep-rport-as-long-as-the-IB-transport-layer.patch
-0007-scsi_transport_srp-Add-transport-layer-error-handlin.patch
-0008-IB-srp-Add-srp_terminate_io.patch
-0009-IB-srp-Use-SRP-transport-layer-error-recovery.patch
-0010-IB-srp-Start-timers-if-a-transport-layer-error-occur.patch
-0011-IB-srp-Fail-SCSI-commands-silently.patch
-0012-IB-srp-Make-HCA-completion-vector-configurable.patch
-0013-IB-srp-Make-transport-layer-retry-count-configurable.patch
-0014-IB-srp-Bump-driver-version-and-release-date.patch
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
