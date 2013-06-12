@@ -1,51 +1,69 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Maintain a single connection per I_T nexus
-Date: Wed, 12 Jun 2013 13:51:51 +0200
-Message-ID: <51B860D7.9050709@profitbricks.com>
-References: <1371036597-23483-1-git-send-email-sebastian.riemer@profitbricks.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH 0/14] IB SRP initiator patches for kernel 3.11
+Date: Wed, 12 Jun 2013 15:17:53 +0200
+Message-ID: <51B87501.4070005@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1371036597-23483-1-git-send-email-sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Roland Dreier <roland@kernel.org>, David Dillow <dillowda@ornl.gov>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi all,
+The purpose of this InfiniBand SRP initiator patch series is as follows:
+- Make the SRP initiator driver better suited for use in a H.A. setup.
+   Speed up failover by reducing the IB RC retry count and by notifying
+   multipathd faster about transport layer failures by adding
+   fast_io_fail_tmo and dev_loss_tmo parameters.
+- Make the SRP initiator better suited for use on NUMA systems by
+   making the HCA completion vector configurable.
 
-as proposed by Or, let's discuss this on the mailing list.
+Some of the patches in this patch series were posted previously as "Make 
+ib_srp better suited for H.A. purposes". The changes compared to version 
+five of that patch series are:
+- Left out patches that are already upstream.
+- Made it possible to set dev_loss_tmo to "off". This is useful in a
+   setup using initiator side mirroring to avoid that new /dev/sd* names
+   are reassigned after a failover or cable pull and reinsert.
+- Added kernel module parameters to ib_srp for configuring default
+   values of the fast_io_fail_tmo and dev_loss_tmo parameters.
+- Added a patch from Dotan Barak that fixes a kernel oops during rmmod
+   triggered by resource allocation failure at module load time.
+- Avoid duplicate connections by refusing relogins instead of dropping
+   duplicate connections, as proposed by Sebastian Riemer.
+- Added a patch from Sebastian Riemer for failing SCSI commands
+   silently.
+- Added a patch from Vu Pham to make the transport layer (IB RC) retry
+   count configurable.
+- Made HCA completion vector configurable.
 
-This is a fundamental change required for everything related to
-multipathing. It influences automatic reconnect patches which will
-follow. So let's agree on the right solution here first before looking
-at other patches.
+Changes since v4:
+- Added a patch for removing SCSI devices upon a port down event
 
-In my opinion the 'add_target' sysfs attribute shouldn't be used for any
-manual reconnect as well. This is why my patch rejects the double login
-attempt instead of reconnecting an existing connection.
-This can help to find scripting issues and things like this. We can't
-expect that all users are using the srp-tools.
+Changes since v3:
+- Restored the dev_loss_tmo and fast_io_fail_tmo sysfs attributes.
+- Included a patch to fix an ib_srp crash that could be triggered by
+   cable pulling.
 
-Please compare with Bart's version and let's discuss this here.
-https://github.com/bvanassche/ib_srp-backport/commit/7d8774ff58d489858b1c046b2bf01b4e84e8dd9b
+Changes since v2:
+- Addressed the v2 review comments.
+- Dropped the patches that have already been merged.
+- Dropped the patches for integration with multipathd.
+- Dropped the micro-optimization of the IB completion handlers.
 
-Cheers,
-Sebastian
+The individual patches in this series are as follows:
+0001-IB-srp-Fix-remove_one-crash-due-to-resource-exhausti.patch
+0002-IB-srp-Fix-race-between-srp_queuecommand-and-srp_cla.patch
+0003-IB-srp-Avoid-that-srp_reset_host-is-skipped-after-a-.patch
+0004-IB-srp-Skip-host-settle-delay.patch
+0005-IB-srp-Maintain-a-single-connection-per-I_T-nexus.patch
+0006-IB-srp-Keep-rport-as-long-as-the-IB-transport-layer.patch
+0007-scsi_transport_srp-Add-transport-layer-error-handlin.patch
+0008-IB-srp-Add-srp_terminate_io.patch
+0009-IB-srp-Use-SRP-transport-layer-error-recovery.patch
+0010-IB-srp-Start-timers-if-a-transport-layer-error-occur.patch
+0011-IB-srp-Fail-SCSI-commands-silently.patch
+0012-IB-srp-Make-HCA-completion-vector-configurable.patch
+0013-IB-srp-Make-transport-layer-retry-count-configurable.patch
+0014-IB-srp-Bump-driver-version-and-release-date.patch
 
-
-On 12.06.2013 13:29, Sebastian Riemer wrote:
-> The sysfs attribute 'add_target' may not be used for multiple logins to
-> the same target. If doing so with multipathing, this crashes the
-> multipath-tools. Furthermore, we want to prevent the possibility of data
-> corruption here. If manual reconnect is necessary, then the user can use
-> the 'delete' sysfs attribute of the remote port before connecting.
-> 
-> Note: The function srp_conn_unique() has been taken from Bart Van Assche.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
