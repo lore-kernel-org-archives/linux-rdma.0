@@ -1,52 +1,38 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] osm_ucast_cache.c : Fix dereference null return value
-Date: Tue, 11 Jun 2013 14:24:28 -0400
-Message-ID: <51B76B5C.3070108@dev.mellanox.co.il>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH 1/5] ibmebus: convert of_platform_driver to
+ platform_driver
+Date: Wed, 12 Jun 2013 15:29:38 +1000
+Message-ID: <1371014978.8250.175.camel@pasglop>
+References: <1366596798-9457-1-git-send-email-robherring2@gmail.com>
+	 <1366596798-9457-2-git-send-email-robherring2@gmail.com>
+	 <CAL_JsqKDF=hPEM0Jz-zZSXBCXBZ=gBjLWL6QDvq+nFWkqY3DMw@mail.gmail.com>
+	 <1366911329.2869.31.camel@pasglop> <517980B0.3000401@gmail.com>
+	 <1366920741.2869.32.camel@pasglop> <517995D0.8020307@gmail.com>
+	 <CAL_JsqKXt-gFL4y_k-_dFktpk1JD_S2G+hUsoOavw8QugFMOKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL_JsqKXt-gFL4y_k-_dFktpk1JD_S2G+hUsoOavw8QugFMOKA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->From c5ef3da14a22721a09edc5a0d70ca1715b310c6f Mon Sep 17 00:00:00 2001
-From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Date: Tue, 4 Dec 2012 16:44:06 +0200
-Subject: [PATCH] osm_ucast_cache.c : Fix dereference null return value
+On Wed, 2013-05-22 at 07:26 -0500, Rob Herring wrote:
+> > git://sources.calxeda.com/kernel/linux.git of-platform-removal
+> 
+> Ben,
+> 
+> Did you have a chance to test this? I want to get this into -next.
 
-Dereferencing a null pointer "p_remote_port".
+I tested the one in for-next (sorry for the high latency). Works fine.
 
-Signed-off-by: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/osm_ucast_cache.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+Ack.
 
-diff --git a/opensm/osm_ucast_cache.c b/opensm/osm_ucast_cache.c
-index 952622f..78e40f3 100644
---- a/opensm/osm_ucast_cache.c
-+++ b/opensm/osm_ucast_cache.c
-@@ -559,6 +559,17 @@ static void ucast_cache_validate(osm_ucast_mgr_t * p_mgr)
- 					    osm_get_port_by_guid(p_mgr->p_subn,
- 								 osm_physp_get_port_guid
- 								 (p_remote_physp));
-+					if (!p_remote_port) {
-+						OSM_LOG(p_mgr->p_log,
-+							OSM_LOG_ERROR,
-+							"ERR AD04: No port was found for "
-+							"port GUID 0x%" PRIx64 "\n",
-+							cl_ntoh64(osm_physp_get_port_guid
-+								      (p_remote_physp)));
-+						osm_ucast_cache_invalidate
-+						    (p_mgr);
-+						goto Exit;
-+					}
- 					if (p_remote_port->is_new) {
- 						OSM_LOG(p_mgr->p_log,
- 							OSM_LOG_DEBUG,
--- 
-1.7.8.2
+Cheers,
+Ben.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
