@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 3/6] ibstat.c: fix buffer-not-null-terminated
-Date: Wed, 12 Jun 2013 09:55:37 -0400
-Message-ID: <51B87DD9.1080701@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 4/6] ibsysstat.c: fix resource leak
+Date: Wed, 12 Jun 2013 09:55:43 -0400
+Message-ID: <51B87DDF.1090205@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,28 +13,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Buffer may not have a null terminator if the source string's length is
-equal to the buffer size.
+Memory leak.
 
 Signed-off-by: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/ibstat.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ src/ibsysstat.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/src/ibstat.c b/src/ibstat.c
-index acb9e8e..bdc021b 100644
---- a/src/ibstat.c
-+++ b/src/ibstat.c
-@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
- 	int dev_port = -1;
- 	int n, i;
+diff --git a/src/ibsysstat.c b/src/ibsysstat.c
+index eb876d4..c1438c1 100644
+--- a/src/ibsysstat.c
++++ b/src/ibsysstat.c
+@@ -271,8 +271,10 @@ int build_cpuinfo(void)
+ 	while (fgets(line, sizeof(line) - 1, f)) {
+ 		if (!strncmp(line, "processor\t", 10)) {
+ 			ncpu++;
+-			if (ncpu > MAX_CPUS)
++			if (ncpu > MAX_CPUS) {
++				fclose(f);
+ 				return MAX_CPUS;
++			}
+ 			continue;
+ 		}
  
--	memset(names, 0, sizeof(names[0][0] * UMAD_MAX_DEVICES * UMAD_CA_NAME_LEN));
-+	memset(names, 0, sizeof(names[0][0]) * UMAD_MAX_DEVICES * UMAD_CA_NAME_LEN);
- 	const struct ibdiag_opt opts[] = {
- 		{"list_of_cas", 'l', 0, NULL, "list all IB devices"},
- 		{"short", 's', 0, NULL, "short output"},
 -- 
 1.7.8.2
 
