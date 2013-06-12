@@ -1,78 +1,77 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Status of "ummunot" branch?
-Date: Wed, 12 Jun 2013 21:18:34 +0000
-Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F680A2B@xmb-rcd-x01.cisco.com>
-References: <20130605171426.GC30184@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DC0D@xmb-rcd-x01.cisco.com>
- <20130605181853.GB1946@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DF6F@xmb-rcd-x01.cisco.com>
- <20130605190529.GA3044@obsidianresearch.com> <51B023B9.9050000@mellanox.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F66B79C@xmb-rcd-x01.cisco.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F66E403@xmb-rcd-x01.cisco.com>
- <20130607235731.GA25942@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F676E59@xmb-rcd-x01.cisco.com>
- <20130610172627.GC2391@obsidianresearch.com>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags 2/6] ibstat.c: fix
+ buffer-not-null-terminated
+Date: Wed, 12 Jun 2013 14:19:48 -0700
+Message-ID: <20130612141948.c4760f2856d2e4435be2b0a7@intel.com>
+References: <51B87DD4.9040005@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130610172627.GC2391-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <2226CE7DFE1D4148BC4CBCF82D0A109E-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <51B87DD4.9040005-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jun 10, 2013, at 1:26 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+On Wed, 12 Jun 2013 09:55:32 -0400
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
->> I agree that pushing all registration issues out of the application
->> and (somewhere) into the verbs stack would be a nice solution.
+> From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 > 
-> Well, it creates a mess in another sense, because now you've lost
-> context. When your MPI goes to do a 1byte send the kernel may well
-> prefetch a few megabytes of page tables, whereas an implementation in
-> userspace still has the context and can say, no I don't need that..
+> Buffer may not have a null terminator if the source string's length is
+> equal to the buffer size.
 
-It seems like there are Big Problems on either side of this problem (userspace and kernel).
+Good catch, but I think this is an issue in umad_get_cas_names!
 
-I thought that ummunotify was a good balance between the two -- MPI kept its registration caches (which are annoying, but we have long-since understood that *someone* has to maintain them), but it gets a bulletproof way to keep them coherent.  That is what is missing in today's solutions: bulletproofness (plus we have to use the horrid glibc malloc hooks, which are deprecated and are going away).
-
->> That being said, everyone I've talked to about ODP finds it very,
->> very strange that the kernel would keep memory registrations around
->> for memory that is no longer part of a process.  Not only does it
 > 
-> MRs are badly named. They are not 'memory registrations'. They are
-> 'address registrations'. Don't conflat address === memory in your
-> head, then it seems weird :)
+> Signed-off-by: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  src/ibstat.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
 > 
-> The memory the address space points to is flexible.
+> diff --git a/src/ibstat.c b/src/ibstat.c
+> index 665bb0a..acb9e8e 100644
+> --- a/src/ibstat.c
+> +++ b/src/ibstat.c
+> @@ -279,6 +279,7 @@ int main(int argc, char *argv[])
+>  	int dev_port = -1;
+>  	int n, i;
+>  
+> +	memset(names, 0, sizeof(names[0][0] * UMAD_MAX_DEVICES * UMAD_CA_NAME_LEN));
+
+I don't think you need this as it will not fix umad_get_cas_names.
+
+>  	const struct ibdiag_opt opts[] = {
+>  		{"list_of_cas", 'l', 0, NULL, "list all IB devices"},
+>  		{"short", 's', 0, NULL, "short output"},
+> @@ -314,7 +315,7 @@ int main(int argc, char *argv[])
+>  		if (i >= n)
+>  			IBPANIC("'%s' IB device can't be found", argv[0]);
+>  
+> -		strncpy(names[i], argv[0], sizeof names[i]);
+> +		strncpy(names[i], argv[0], sizeof names[i]-1);
+
+This is actually dead code.  IBPANIC exits, if your linking to libibmad.  Do you have a different IBPANIC which does not exit?  Do you have a use case which hits this bug?
+
+[root@iqa-136 sbin]# ./ibstat myverylongca_name_0123456789_0123456789
+ibpanic: [9262] main: 'myverylongca_name_0123456789_0123456789' IB device can't be found: Success
+[root@iqa-136 sbin]# ./ibstat notfoundca
+ibpanic: [9273] main: 'notfoundca' IB device can't be found: Success
+
+Ira
+
+>  		n = 1;
+>  	}
+>  
+> -- 
+> 1.7.8.2
 > 
-> The address space is tied to the lifetime of the process.
-> 
-> It doesn't matter if there is no memory mapped to the address space,
-> the address space is still there.
-> 
-> Liran had a good example. You can register address space and then use
-> mmap/munmap/MAP_FIXED to mess around with where it points to
 
-...but this is not how people write applications.  Real apps use malloc (and some direct mmap, and perhaps even some shared memory).  They don't pay attention to the contiguiousness (is that a word?) of memory/addresses in the large scale.  To be clear: the most tightly bound codes *do* actually care about cache hits and locality, but that's in the small scale -- not in the large scale.  I would find it hard to believe that a real code would pay attention to where in its address range a given malloc() returns, for example.
-
-*That's* what makes this whole concept weird.
-
-It seems like this is a perfect kernel space concept, but is quite foreign to userspace developers.
-
-> A practical example of using this would be to avoid the need to send
-> scatter buffer pointers to the remote. The remote writes into a memory
-> ring and the ring is made 'endless' by clever use of remapping.
-
-I don't understand -- please explain your example a bit more...?
 
 -- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
-
+Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
