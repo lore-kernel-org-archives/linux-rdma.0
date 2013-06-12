@@ -1,143 +1,50 @@
 From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] infiniband_diags/src/saquery.c: Add SMInfoRecord support
-Date: Wed, 12 Jun 2013 17:50:36 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0207C97C@CRSMSX101.amr.corp.intel.com>
-References: <51A49D2A.1090602@asaltech.com>
+Subject: RE: [PATCH infiniband-diags] libibnetdisc/Makefile.am: Add missing
+ makefile dependency
+Date: Wed, 12 Jun 2013 18:25:43 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0207CCEF@CRSMSX101.amr.corp.intel.com>
+References: <51B855AF.1070607@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51A49D2A.1090602-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <51B855AF.1070607-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Husam,
+What is the error which this fixed?
 
-Sorry for the delay but I have to report that this patch is somehow corrupted.
-
-I can't even apply the patch by hand after cleaning up the invalid line wrap.
-
-10:46:39 > patch -p 1 < ../incomming/infiniband_diags-src-saquery.c-Add-SMInfoRecord-support.patch 
-patching file doc/rst/saquery.8.in.rst
-Hunk #1 FAILED at 156.
-1 out of 1 hunk FAILED -- saving rejects to file doc/rst/saquery.8.in.rst.rej
-patching file src/saquery.c
-Hunk #1 FAILED at 487.
-Hunk #2 FAILED at 1192.
-2 out of 2 hunks FAILED -- saving rejects to file src/saquery.c.rej
-
-Could you rebase and try again?
+I would think that the test_testleaks_LDFLAGS would take care of this?
 
 Ira
 
-
-
 > -----Original Message-----
-> From: Husam Kahalah [mailto:hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org]
-> Sent: Tuesday, May 28, 2013 5:04 AM
+> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> Sent: Wednesday, June 12, 2013 4:04 AM
 > To: Weiny, Ira
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org;
-> danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> Subject: [PATCH] infiniband_diags/src/saquery.c: Add SMInfoRecord support
+> Cc: linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org); Doron Tsur
+> Subject: [PATCH infiniband-diags] libibnetdisc/Makefile.am: Add missing
+> makefile dependency
 > 
-> This patch is the combination of 2 patches
->      infiniband_diags/src/saquery.c: Add SMInfoRecord support
->      infiniband_diags/doc/rst/saquery.8.in.rst: Add support to the manual
 > 
-> Signed-off-by: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+> Found-by: Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->   doc/rst/saquery.8.in.rst |    1 +
->   src/saquery.c            |   45
-> +++++++++++++++++++++++++++++++++++++++++++++
->   2 files changed, 46 insertions(+)
+> diff --git a/libibnetdisc/Makefile.am b/libibnetdisc/Makefile.am index
+> d05604f..2cfcc33 100644
+> --- a/libibnetdisc/Makefile.am
+> +++ b/libibnetdisc/Makefile.am
+> @@ -35,6 +35,7 @@ libibnetdiscincludedir = $(includedir)/infiniband
+> test_testleaks_SOURCES = test/testleaks.c  test_testleaks_CFLAGS = -Wall
+> $(DBGFLAGS)  test_testleaks_LDFLAGS = -libnetdisc
+> +test_testleaks_DEPENDENCIES = libibnetdisc.la
 > 
-> diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst index
-> 8d87096..0551917 100644
-> --- a/doc/rst/saquery.8.in.rst
-> +++ b/doc/rst/saquery.8.in.rst
-> @@ -156,6 +156,7 @@ Supported query names (and aliases):
->           MFTRecord (MFTR) [[mlid]/[position]/[block]]
->           GUIDInfoRecord (GIR) [[lid]/[block]]
->           SwitchInfoRecord (SWIR) [lid]
-> +        SMInfoRecord (SMIR) [lid]
-> 
-> 
-> 
-> diff --git a/src/saquery.c b/src/saquery.c index a5f9171..d60ac19 100644
-> --- a/src/saquery.c
-> +++ b/src/saquery.c
-> @@ -487,6 +487,30 @@ static void dump_service_record(void *data)
->              cl_ntoh64(p_sr->service_data64[1]));
->   }
-> 
-> +static void dump_sm_info_record(void *data) {
-> +    ib_sminfo_record_t *p_smr = data;
-> +    const ib_sm_info_t *const p_smi = &p_smr->sm_info;
-> +    uint8_t priority, state;
-> +    priority = ib_sminfo_get_priority(p_smi);
-> +    state = ib_sminfo_get_state(p_smi);
-> +
-> +    printf("SMInfoRecord dump:\n"
-> +           "\t\tRID\n"
-> +           "\t\tLID...................%u\n"
-> +           "\t\tSMInfo dump:\n"
-> +           "\t\tGUID..................0x%016" PRIx64 "\n"
-> +           "\t\tSM_Key................0x%016" PRIx64 "\n"
-> +           "\t\tActCount..............0x%X\n"
-> +           "\t\tPriority..............%u\n"
-> +           "\t\tSMState...............%u\n",
-> +           cl_ntoh16(p_smr->lid),
-> +           cl_ntoh64(p_smr->sm_info.guid),
-> +           cl_ntoh64(p_smr->sm_info.sm_key),
-> +           cl_ntoh32(p_smr->sm_info.act_count),
-> +           priority, state);
-> +}
-> +
->   static void dump_switch_info_record(void *data)
->   {
->       ib_switch_info_record_t *p_sir = data; @@ -1192,6 +1216,25 @@ static
-> int query_service_records(const struct query_cmd *q, struct sa_handle * h
->                       dump_service_record);
->   }
-> 
-> +static int query_sm_info_records(const struct query_cmd *q,
-> +                 struct sa_handle * h, struct query_params *p,
-> +                 int argc, char *argv[]) {
-> +    ib_sminfo_record_t smir;
-> +    ib_net64_t comp_mask = 0;
-> +    int lid = 0;
-> +
-> +    if (argc > 0)
-> +        parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
-> +
-> +    memset(&smir, 0, sizeof(smir));
-> +    CHECK_AND_SET_VAL(lid, 16, 0, smir.lid, SMIR, LID);
-> +
-> +    return get_and_dump_any_records(h, IB_SA_ATTR_SMINFORECORD, 0,
-> +                    comp_mask, &smir, sizeof(smir),
-> +                    dump_sm_info_record); }
-> +
->   static int query_switchinfo_records(const struct query_cmd *q,
->                   struct sa_handle * h, struct query_params *p,
->                   int argc, char *argv[]) @@ -1404,6 +1447,8 @@ static const struct
-> query_cmd query_cmds[] = {
->        "[[lid]/[block]]", query_guidinfo_records},
->       {"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
->        "[lid]", query_switchinfo_records},
-> +    {"SMInfoRecord", "SMIR", IB_SA_ATTR_SMINFORECORD,
-> +    "[lid]", query_sm_info_records},
->       {0}
->   };
-> 
-> --
-> 1.7.9.6
-> 
-> 
-
+>  libibnetdiscinclude_HEADERS = $(srcdir)/include/infiniband/ibnetdisc.h \
+>  				$(srcdir)/include/infiniband/ibnetdisc_osd.h
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
