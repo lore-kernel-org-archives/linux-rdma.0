@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 1/6] ibtracert.c: fix resource leak
-Date: Wed, 12 Jun 2013 09:55:26 -0400
-Message-ID: <51B87DCE.4000708@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 3/6] ibstat.c: fix buffer-not-null-terminated
+Date: Wed, 12 Jun 2013 09:55:37 -0400
+Message-ID: <51B87DD9.1080701@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,48 +13,28 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Call return without freeing the buffer.
+Buffer may not have a null terminator if the source string's length is
+equal to the buffer size.
 
 Signed-off-by: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/ibtracert.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+ src/ibstat.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/src/ibtracert.c b/src/ibtracert.c
-index 5800e40..cc0ac98 100644
---- a/src/ibtracert.c
-+++ b/src/ibtracert.c
-@@ -567,13 +567,15 @@ static Node *find_mcpath(ib_portid_t * from, int mlid)
- 					if (from->drpath.cnt > 0)
- 						path->drpath.cnt--;
- 				} else {
--					if (!(port = calloc(1, sizeof(Port))))
-+					if (!(port = calloc(1, sizeof(Port)))) {
- 						IBERROR("out of memory");
--
-+						return 0;
-+					}
- 					if (get_port(port, i, path) < 0) {
- 						IBWARN
- 						    ("can't reach node %s port %d",
- 						     portid2str(path), i);
-+						free(port);
- 						return 0;
- 					}
+diff --git a/src/ibstat.c b/src/ibstat.c
+index acb9e8e..bdc021b 100644
+--- a/src/ibstat.c
++++ b/src/ibstat.c
+@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
+ 	int dev_port = -1;
+ 	int n, i;
  
-@@ -585,8 +587,10 @@ static Node *find_mcpath(ib_portid_t * from, int mlid)
- 					link_port(port, node);
- #endif
- 
--					if (extend_dpath(&path->drpath, i) < 0)
-+					if (extend_dpath(&path->drpath, i) < 0) {
-+						free(port);
- 						return 0;
-+					}
- 				}
- 
- 				if (!(remotenode = calloc(1, sizeof(Node))))
+-	memset(names, 0, sizeof(names[0][0] * UMAD_MAX_DEVICES * UMAD_CA_NAME_LEN));
++	memset(names, 0, sizeof(names[0][0]) * UMAD_MAX_DEVICES * UMAD_CA_NAME_LEN);
+ 	const struct ibdiag_opt opts[] = {
+ 		{"list_of_cas", 'l', 0, NULL, "list all IB devices"},
+ 		{"short", 's', 0, NULL, "short output"},
 -- 
 1.7.8.2
 
