@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 01/14] IB/srp: Fix remove_one crash due to resource exhaustion
-Date: Wed, 12 Jun 2013 15:20:36 +0200
-Message-ID: <51B875A4.7040903@acm.org>
+Subject: [PATCH 02/14] IB/srp: Fix race between srp_queuecommand() and srp_claim_req()
+Date: Wed, 12 Jun 2013 15:21:50 +0200
+Message-ID: <51B875EE.3030702@acm.org>
 References: <51B87501.4070005@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -10,48 +10,51 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <51B87501.4070005-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If the add_one callback fails during driver load no resources are
-allocated so there isn't a need to release any resources. Trying
-to clean the resource may lead to the following kernel panic:
+Avoid that srp_claim_command() can claim a command while
+srp_queuecommand() is still busy queueing the same command.
+Found this via source reading.
 
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [<ffffffffa0132331>] srp_remove_one+0x31/0x240 [ib_srp]
-RIP: 0010:[<ffffffffa0132331>]  [<ffffffffa0132331>] srp_remove_one+0x31/0x240 [ib_srp]
-Process rmmod (pid: 4562, threadinfo ffff8800dd738000, task ffff8801167e60c0)
-Call Trace:
- [<ffffffffa024500e>] ib_unregister_client+0x4e/0x120 [ib_core]
- [<ffffffffa01361bd>] srp_cleanup_module+0x15/0x71 [ib_srp]
- [<ffffffff810ac6a4>] sys_delete_module+0x194/0x260
- [<ffffffff8100b0f2>] system_call_fastpath+0x16/0x1b
-
-[bvanassche: Shortened patch description]
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 7ccf328..368d160 100644
+index 368d160..9c638dd 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2507,6 +2507,8 @@ static void srp_remove_one(struct ib_device *device)
- 	struct srp_target_port *target;
+@@ -1367,7 +1367,6 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
  
- 	srp_dev = ib_get_client_data(device, &srp_client);
-+	if (!srp_dev)
-+		return;
+ 	req = list_first_entry(&target->free_reqs, struct srp_request, list);
+ 	list_del(&req->list);
+-	spin_unlock_irqrestore(&target->lock, flags);
  
- 	list_for_each_entry_safe(host, tmp_host, &srp_dev->dev_list, list) {
- 		device_unregister(&host->dev);
+ 	dev = target->srp_host->srp_dev->dev;
+ 	ib_dma_sync_single_for_cpu(dev, iu->dma, target->max_iu_len,
+@@ -1401,6 +1400,7 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 		shost_printk(KERN_ERR, target->scsi_host, PFX "Send failed\n");
+ 		goto err_unmap;
+ 	}
++	spin_unlock_irqrestore(&target->lock, flags);
+ 
+ 	return 0;
+ 
+@@ -1409,8 +1409,6 @@ err_unmap:
+ 
+ err_iu:
+ 	srp_put_tx_iu(target, iu, SRP_IU_CMD);
+-
+-	spin_lock_irqsave(&target->lock, flags);
+ 	list_add(&req->list, &target->free_reqs);
+ 
+ err_unlock:
 -- 
 1.7.10.4
 
