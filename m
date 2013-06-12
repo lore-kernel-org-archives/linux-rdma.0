@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 10/14] IB/srp: Start timers if a transport layer error occurs
-Date: Wed, 12 Jun 2013 15:31:24 +0200
-Message-ID: <51B8782C.4040006@acm.org>
+Subject: [PATCH 11/14] IB/srp: Fail SCSI commands silently
+Date: Wed, 12 Jun 2013 15:33:10 +0200
+Message-ID: <51B87896.8020008@acm.org>
 References: <51B87501.4070005@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,89 +13,51 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Start the reconnect timer, fast_io_fail timer and dev_loss timer
-if a transport layer error occurs.
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 
+Avoid that path failover in a multipath setup causes the SCSI layer
+to generate kernel messages about SCSI command failures. This patch
+speeds up SRP initiator operation significantly when monitoring
+kernel messages over a serial port.
+
+[bvanassche: Changed patch description]
+Signed-off-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   19 +++++++++++++++++++
- drivers/infiniband/ulp/srp/ib_srp.h |    1 +
- 2 files changed, 20 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 6f3e0e5..7cf44e1 100644
+index 7cf44e1..dbedac9 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -595,6 +595,7 @@ static void srp_remove_target(struct srp_target_port *target)
- 	srp_disconnect_target(target);
- 	ib_destroy_cm_id(target->cm_id);
- 	srp_free_target_ib(target);
-+	cancel_work_sync(&target->tl_err_work);
- 	srp_rport_put(target->rport);
- 	srp_free_req_data(target);
- 	scsi_host_put(target->scsi_host);
-@@ -1394,6 +1395,21 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
- 			     PFX "Recv failed with error code %d\n", res);
- }
+@@ -787,6 +787,7 @@ static void srp_finish_req(struct srp_target_port *target,
  
-+/**
-+ * srp_tl_err_work() - handle a transport layer error
-+ *
-+ * Note: This function may get invoked before the rport has been created,
-+ * hence the target->rport test.
-+ */
-+static void srp_tl_err_work(struct work_struct *work)
-+{
-+	struct srp_target_port *target;
-+
-+	target = container_of(work, struct srp_target_port, tl_err_work);
-+	if (target->rport)
-+		srp_start_tl_fail_timers(target->rport);
-+}
-+
- static void srp_handle_qp_err(enum ib_wc_status wc_status,
- 			      enum ib_wc_opcode wc_opcode,
- 			      struct srp_target_port *target)
-@@ -1403,6 +1419,7 @@ static void srp_handle_qp_err(enum ib_wc_status wc_status,
- 			     PFX "failed %s status %d\n",
- 			     wc_opcode & IB_WC_RECV ? "receive" : "send",
- 			     wc_status);
-+		queue_work(system_long_wq, &target->tl_err_work);
+ 	if (scmnd) {
+ 		srp_free_req(target, req, scmnd, 0);
++		scmnd->request->cmd_flags |= REQ_QUIET;
+ 		scmnd->result = result;
+ 		scmnd->scsi_done(scmnd);
  	}
- 	target->qp_in_error = true;
- }
-@@ -1763,6 +1780,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 		if (ib_send_cm_drep(cm_id, NULL, 0))
- 			shost_printk(KERN_ERR, target->scsi_host,
- 				     PFX "Sending CM DREP failed\n");
-+		queue_work(system_long_wq, &target->tl_err_work);
- 		break;
+@@ -1467,6 +1468,7 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
  
- 	case IB_CM_TIMEWAIT_EXIT:
-@@ -2374,6 +2392,7 @@ static ssize_t srp_create_target(struct device *dev,
- 			     sizeof (struct srp_indirect_buf) +
- 			     target->cmd_sg_cnt * sizeof (struct srp_direct_buf);
+ 	result = srp_chkready(target->rport);
+ 	if (unlikely(result)) {
++		scmnd->request->cmd_flags |= REQ_QUIET;
+ 		scmnd->result = result;
+ 		scmnd->scsi_done(scmnd);
+ 		return 0;
+@@ -1868,6 +1870,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
+ 	else
+ 		ret = FAILED;
+ 	srp_free_req(target, req, scmnd, 0);
++	scmnd->request->cmd_flags |= REQ_QUIET;
+ 	scmnd->result = DID_ABORT << 16;
+ 	scmnd->scsi_done(scmnd);
  
-+	INIT_WORK(&target->tl_err_work, srp_tl_err_work);
- 	INIT_WORK(&target->remove_work, srp_remove_work);
- 	spin_lock_init(&target->lock);
- 	INIT_LIST_HEAD(&target->free_tx);
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index fda82f7..e45d9d0 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -175,6 +175,7 @@ struct srp_target_port {
- 	struct srp_iu	       *rx_ring[SRP_RQ_SIZE];
- 	struct srp_request	req_ring[SRP_CMD_SQ_SIZE];
- 
-+	struct work_struct	tl_err_work;
- 	struct work_struct	remove_work;
- 
- 	struct list_head	list;
 -- 
 1.7.10.4
 
