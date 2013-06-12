@@ -1,26 +1,81 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH V2 1/4] RDMA/cma: Add IPv6 support for iWARP.
-Date: Wed, 12 Jun 2013 13:33:09 -0700 (PDT)
-Message-ID: <20130612.133309.168331589408295194.davem@davemloft.net>
-References: <1371037302-3586-1-git-send-email-vipul@chelsio.com>
-	<1371037302-3586-2-git-send-email-vipul@chelsio.com>
-	<13AA599688F47243B14FCFCCC2C803BB0D814E35@FMSMSX104.amr.corp.intel.com>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags 1/6] ibtracert.c: fix resource leak
+Date: Wed, 12 Jun 2013 13:54:24 -0700
+Message-ID: <20130612135424.fa4df60d6837a528cea547dd@intel.com>
+References: <51B87DCE.4000708@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <13AA599688F47243B14FCFCCC2C803BB0D814E35-AtyAts71sc864kNsxIetb7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <51B87DCE.4000708-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date: Wed, 12 Jun 2013 19:56:37 +0000
+On Wed, 12 Jun 2013 09:55:26 -0400
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-> I reviewed the iWarp IPv6 nes patch.
+> From: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> 
+> Call return without freeing the buffer.
+> 
+> Signed-off-by: Dan Ben Yosef <danby-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Can you please not top-post and quote the entire patch like this?
+Thanks applied with modifications below.
+
+> ---
+>  src/ibtracert.c |   10 +++++++---
+>  1 files changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/src/ibtracert.c b/src/ibtracert.c
+> index 5800e40..cc0ac98 100644
+> --- a/src/ibtracert.c
+> +++ b/src/ibtracert.c
+> @@ -567,13 +567,15 @@ static Node *find_mcpath(ib_portid_t * from, int mlid)
+>  					if (from->drpath.cnt > 0)
+>  						path->drpath.cnt--;
+>  				} else {
+> -					if (!(port = calloc(1, sizeof(Port))))
+> +					if (!(port = calloc(1, sizeof(Port)))) {
+>  						IBERROR("out of memory");
+> -
+> +						return 0;
+
+There is no need for this as IBERROR exits.  Did you want to continue execution for some reason?  If so you'll need to change IBERROR to IBWARN and resubmit this hunk as a separate patch.
+
+Thanks,
+Ira
+
+> +					}
+>  					if (get_port(port, i, path) < 0) {
+>  						IBWARN
+>  						    ("can't reach node %s port %d",
+>  						     portid2str(path), i);
+> +						free(port);
+>  						return 0;
+>  					}
+>  
+> @@ -585,8 +587,10 @@ static Node *find_mcpath(ib_portid_t * from, int mlid)
+>  					link_port(port, node);
+>  #endif
+>  
+> -					if (extend_dpath(&path->drpath, i) < 0)
+> +					if (extend_dpath(&path->drpath, i) < 0) {
+> +						free(port);
+>  						return 0;
+> +					}
+>  				}
+>  
+>  				if (!(remotenode = calloc(1, sizeof(Node))))
+> -- 
+> 1.7.8.2
+> 
+
+
+-- 
+Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
