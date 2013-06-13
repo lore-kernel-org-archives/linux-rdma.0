@@ -1,90 +1,80 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 4/4] IB/core: Add RoCE IP based addressing
- extensions towards user space
-Date: Thu, 13 Jun 2013 11:09:39 -0600
-Message-ID: <20130613170939.GB21570@obsidianresearch.com>
-References: <1371135704-5712-1-git-send-email-ogerlitz@mellanox.com>
- <1371135704-5712-5-git-send-email-ogerlitz@mellanox.com>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
+Date: Thu, 13 Jun 2013 10:50:13 -0700
+Message-ID: <51BA0655.6090707@mellanox.com>
+References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1371135704-5712-5-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <51B876BF.4070400-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 13, 2013 at 06:01:44PM +0300, Or Gerlitz wrote:
-> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Add support for RoCE (IBoE) IP based addressing extensions towards
-> user space.
-> 
-> Extend INIT_QP_ATTR and QUERY_ROUTE ucma commands.
-> 
-> Extend MODIFY_QP and CREATE_AH uverbs commands.
+Hello Bart,
 
-This is a really big patch Or, there is lots going on here, hard to
-review :(
-
-The rdma cm stuff should probably be split out of this, and Sean
-should look at it of course.
-
-In fact, since the user ABI is so important, every ABI change should
-be a distinct patch, with a good change log, stating the intended
-goals of the change and ABI visible changes it makes.
-
-The changelog above is terrible for a huge patch that makes changes to
-the userspace API.
-
-> diff --git a/include/uapi/rdma/ib_user_sa.h b/include/uapi/rdma/ib_user_sa.h
-> index cfc7c9b..367d66a 100644
-> +++ b/include/uapi/rdma/ib_user_sa.h
-> @@ -48,7 +48,13 @@ enum {
->  struct ib_path_rec_data {
->  	__u32	flags;
->  	__u32	reserved;
-> -	__u32	path_rec[16];
-> +	__u32	path_rec[20];
-> +};
+> +/**
+> + * srp_conn_unique() - check whether the connection to a target is unique
+> + */
+> +static bool srp_conn_unique(struct srp_host *host,
+> +			    struct srp_target_port *target)
+> +{
+> +	struct srp_target_port *t;
+> +	bool ret = false;
 > +
-> +enum ibv_kern_path_rec_attr_mask {
-> +	IB_USER_PATH_REC_ATTR_DMAC = 1ULL << 0,
-> +	IB_USER_PATH_REC_ATTR_SMAC = 1ULL << 1,
-> +	IB_USER_PATH_REC_ATTR_VID  = 1ULL << 2
->  };
+> +	if (target->state == SRP_TARGET_REMOVED)
+> +		goto out;
+> +
+> +	ret = true;
+> +
+> +	spin_lock(&host->target_lock);
+> +	list_for_each_entry(t, &host->target_list, list) {
+> +		if (t != target &&
+> +		    target->id_ext == t->id_ext &&
+>   
 
-So, how is userspace supposed to know what these values are? The
-current system where the MAC address is in the GID seemed
-understandable, assuming you discover the MAC out of band some how...
+Targets may advertise/expose on different pkeys
+You can have multiple connections  (or paths/scsi hosts) to same target 
+with different pkeys.
+We need extra check to detect the uniqueness:
+                                             target->path.pkey == 
+t->path.pkey &&
 
-> +struct ib_uverbs_modify_qp_ex {
-> +	__u32 comp_mask;
-> +	struct ib_uverbs_qp_dest dest;
-> +	struct ib_uverbs_qp_dest alt_dest;
-[...]
-> +	struct ib_uverbs_qp_dest_ex dest_ex;
-> +	struct ib_uverbs_qp_dest_ex alt_dest_ex;
+-vu
+> +		    target->ioc_guid == t->ioc_guid &&
+> +		    target->initiator_ext == t->initiator_ext) {
+> +			ret = false;
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock(&host->target_lock);
+> +
+> +out:
+> +	return ret;
+> +}
+> +
+>  static int srp_connect_target(struct srp_target_port *target)
+>  {
+>  	int retries = 3;
+> @@ -2261,6 +2291,14 @@ static ssize_t srp_create_target(struct device *dev,
+>  	if (ret)
+>  		goto err;
+>  
+> +	if (!srp_conn_unique(target->srp_host, target)) {
+> +		shost_printk(KERN_INFO, target->scsi_host,
+> +			     PFX "Already connected to target port %.*s\n",
+> +			     (int)count, buf);
+> +		ret = -EEXIST;
+> +		goto err;
+> +	}
+> +
+>  	if (!host->srp_dev->fmr_pool && !target->allow_ext_sg &&
+>  				target->cmd_sg_cnt < target->sg_tablesize) {
+>  		pr_warn("No FMR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
+>   
 
-Yuk.. The 'ex' structures don't have to be byte compatible, they just
-have to have a known transform, dest should be the full extended dest,
-not split into two..
-
-> +struct rdma_ucm_query_route_resp_ex {
-> +	__u64 node_guid;
-> +	struct ib_user_path_rec_ex ib_route[2];
-> +	struct sockaddr_in6 src_addr;
-> +	struct sockaddr_in6 dst_addr;
-> +	__u32 num_paths;
-> +	__u8 port_num;
-> +	__u8 reserved[3];
-> +};
-
-Should these be sockaddr_storage? How does this intersect with Sean's
-AF_GID work?
-
-JAson
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
