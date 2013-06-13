@@ -1,144 +1,55 @@
 From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
-Date: Thu, 13 Jun 2013 15:57:23 +0200
-Message-ID: <51B9CFC3.8080008@profitbricks.com>
-References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org>
+Subject: Re: [PATCH] IB/srp: Maintain a single connection per I_T nexus
+Date: Thu, 13 Jun 2013 16:00:57 +0200
+Message-ID: <51B9D099.1040708@profitbricks.com>
+References: <1371036597-23483-1-git-send-email-sebastian.riemer@profitbricks.com> <51B860D7.9050709@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51B876BF.4070400-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <51B860D7.9050709-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
+Bart's version also has the printing of the connection string if the
+double login fails.
 
-thanks for picking up the idea not to use this 'add_target' file for
-manual reconnects. I have only small remarks but basically you've got my
-Acked-by and Tested-by.
+So forget about this version here.
 
-Please find the remarks in-line.
-
-Cheers,
-Sebastian
-
-On 12.06.2013 15:25, Bart Van Assche wrote:
-> An SRP target is required to maintain a single connection between
-> initiator and target. This means that if the 'add_target' attribute
-> is used to create a second connection to a target that the first
-> connection will be logged out and that the SCSI error handler will
-> kick in. The SCSI error handler will cause the SRP initiator to
-> reconnect, which will cause I/O over the second connection to fail.
-> Avoid such ping-pong behavior by disabling relogins. Note: if
-> reconnecting manually is necessary, that is possible by deleting
-> and recreating an rport via sysfs.
+On 12.06.2013 13:51, Sebastian Riemer wrote:
+> Hi all,
 > 
-> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-> Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-> Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/srp/ib_srp.c |   38 +++++++++++++++++++++++++++++++++++
->  1 file changed, 38 insertions(+)
+> as proposed by Or, let's discuss this on the mailing list.
 > 
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index be12780..1a73b24 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -556,6 +556,36 @@ static void srp_rport_delete(struct srp_rport *rport)
->  	srp_queue_remove_work(target);
->  }
->  
-> +/**
-> + * srp_conn_unique() - check whether the connection to a target is unique
-> + */
-> +static bool srp_conn_unique(struct srp_host *host,
-> +			    struct srp_target_port *target)
-> +{
-> +	struct srp_target_port *t;
-> +	bool ret = false;
-> +
-> +	if (target->state == SRP_TARGET_REMOVED)
-> +		goto out;
-> +
-> +	ret = true;
-> +
-> +	spin_lock(&host->target_lock);
-> +	list_for_each_entry(t, &host->target_list, list) {
-> +		if (t != target &&
-> +		    target->id_ext == t->id_ext &&
-> +		    target->ioc_guid == t->ioc_guid &&
-> +		    target->initiator_ext == t->initiator_ext) {
-> +			ret = false;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock(&host->target_lock);
-> +
-> +out:
-> +	return ret;
-> +}
-> +
-
-You've only changed the style of this function. Functionality is still
-the same. Fine for me.
-
-But why do you put it that high in the source code?
-Do you (still) need it for something else?
-
-I would put it directly in front of srp_create_target() or even in front
-of that option parsing stuff for correct bottom-up.
-
->  static int srp_connect_target(struct srp_target_port *target)
->  {
->  	int retries = 3;
-> @@ -2261,6 +2291,14 @@ static ssize_t srp_create_target(struct device *dev,
->  	if (ret)
->  		goto err;
->  
-> +	if (!srp_conn_unique(target->srp_host, target)) {
-> +		shost_printk(KERN_INFO, target->scsi_host,
-> +			     PFX "Already connected to target port %.*s\n",
-> +			     (int)count, buf);
-> +		ret = -EEXIST;
-> +		goto err;
-> +	}
-> +
-
-Yes, this looks good! Nice idea to print the connection string!
-Would be even cooler without trailing '\n' from within 'buf' but that's
-okay.
-
-I was a little bit afraid of overflows here so I did security testing.
-But srp_parse_options() already rejected my evil connection strings. :-)
-
-I've tried things like this:
-id_ext=0002c903004ed0b2,\
-ioc_guid=0002c903004ed0b2,\
-dgid=fe800000000000000002c903004ed0b4,\
-pkey=ffff,service_id=0002c903004ed0b2,\
-xxxxxxxxxxxxxxxxxxxxxxxxx... until 4096 chars
-
-id_ext=0002c903004ed0b2,\
-ioc_guid=0002c903004ed0b2,\
-dgid=fe800000000000000002c903004ed0b4,\
-pkey=ffff,service_id=0002c903004ed0b2,\
-id_ext=0002c903004ed0b2,\
-ioc_guid=0002c903004ed0b2,\
-dgid=fe800000000000000002c903004ed0b4,\
-pkey=ffff,service_id=0002c903004ed0b2,\
-... until 4096 chars
-
-This string looked kind of funny. Also in the kernel message it was a
-little bit longer than usual but the parsing detected that I have too
-many parameters. So everything is fine in terms of security.
-
->  	if (!host->srp_dev->fmr_pool && !target->allow_ext_sg &&
->  				target->cmd_sg_cnt < target->sg_tablesize) {
->  		pr_warn("No FMR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
+> This is a fundamental change required for everything related to
+> multipathing. It influences automatic reconnect patches which will
+> follow. So let's agree on the right solution here first before looking
+> at other patches.
+> 
+> In my opinion the 'add_target' sysfs attribute shouldn't be used for any
+> manual reconnect as well. This is why my patch rejects the double login
+> attempt instead of reconnecting an existing connection.
+> This can help to find scripting issues and things like this. We can't
+> expect that all users are using the srp-tools.
+> 
+> Please compare with Bart's version and let's discuss this here.
+> https://github.com/bvanassche/ib_srp-backport/commit/7d8774ff58d489858b1c046b2bf01b4e84e8dd9b
+> 
+> Cheers,
+> Sebastian
+> 
+> 
+> On 12.06.2013 13:29, Sebastian Riemer wrote:
+>> The sysfs attribute 'add_target' may not be used for multiple logins to
+>> the same target. If doing so with multipathing, this crashes the
+>> multipath-tools. Furthermore, we want to prevent the possibility of data
+>> corruption here. If manual reconnect is necessary, then the user can use
+>> the 'delete' sysfs attribute of the remote port before connecting.
+>>
+>> Note: The function srp_conn_unique() has been taken from Bart Van Assche.
+> 
 > 
 
 --
