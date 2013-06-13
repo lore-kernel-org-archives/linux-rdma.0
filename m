@@ -1,44 +1,90 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 0/4] IP based RoCE GID Addressing
-Date: Thu, 13 Jun 2013 11:00:11 -0600
-Message-ID: <20130613170011.GA21570@obsidianresearch.com>
+Subject: Re: [PATCH for-next 4/4] IB/core: Add RoCE IP based addressing
+ extensions towards user space
+Date: Thu, 13 Jun 2013 11:09:39 -0600
+Message-ID: <20130613170939.GB21570@obsidianresearch.com>
 References: <1371135704-5712-1-git-send-email-ogerlitz@mellanox.com>
+ <1371135704-5712-5-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1371135704-5712-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1371135704-5712-5-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 13, 2013 at 06:01:40PM +0300, Or Gerlitz wrote:
-> Currently, the IB stack (core + drivers) handle RoCE (IBoE) gids as
-> they encode related Ethernet net-device interface MAC address and 
-> possibly VLAN id.
+On Thu, Jun 13, 2013 at 06:01:44PM +0300, Or Gerlitz wrote:
+> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> This series changes RoCE GIDs to encode IP addresses (IPv4 + IPv6)
-> of the that Ethernet interface, under the following reasoning:
+> Add support for RoCE (IBoE) IP based addressing extensions towards
+> user space.
+> 
+> Extend INIT_QP_ATTR and QUERY_ROUTE ucma commands.
+> 
+> Extend MODIFY_QP and CREATE_AH uverbs commands.
 
-Can you talk abit about compatibility please?
+This is a really big patch Or, there is lots going on here, hard to
+review :(
 
-What happens when nodes with this patch are on the same network as
-nodes without it?
+The rdma cm stuff should probably be split out of this, and Sean
+should look at it of course.
 
-Does this patch remove the encoding of the VLAN from the GID?
+In fact, since the user ABI is so important, every ABI change should
+be a distinct patch, with a good change log, stating the intended
+goals of the change and ABI visible changes it makes.
 
-How is the destination MAC derived now?
+The changelog above is terrible for a huge patch that makes changes to
+the userspace API.
 
-There is a RoCE standard, it doesn't say much, but how the MAC and GRH
-GID are related/derived really should be specified...
+> diff --git a/include/uapi/rdma/ib_user_sa.h b/include/uapi/rdma/ib_user_sa.h
+> index cfc7c9b..367d66a 100644
+> +++ b/include/uapi/rdma/ib_user_sa.h
+> @@ -48,7 +48,13 @@ enum {
+>  struct ib_path_rec_data {
+>  	__u32	flags;
+>  	__u32	reserved;
+> -	__u32	path_rec[16];
+> +	__u32	path_rec[20];
+> +};
+> +
+> +enum ibv_kern_path_rec_attr_mask {
+> +	IB_USER_PATH_REC_ATTR_DMAC = 1ULL << 0,
+> +	IB_USER_PATH_REC_ATTR_SMAC = 1ULL << 1,
+> +	IB_USER_PATH_REC_ATTR_VID  = 1ULL << 2
+>  };
 
-Not sure about copying the IP/IPv6 address from the interface into the
-HW, there has always been pressure to keep verbs separate from the net
-stack.. At the very least patch #2 should have its change log updated
-to actually reflect what is in the patch.
+So, how is userspace supposed to know what these values are? The
+current system where the MAC address is in the GID seemed
+understandable, assuming you discover the MAC out of band some how...
 
-Jason
+> +struct ib_uverbs_modify_qp_ex {
+> +	__u32 comp_mask;
+> +	struct ib_uverbs_qp_dest dest;
+> +	struct ib_uverbs_qp_dest alt_dest;
+[...]
+> +	struct ib_uverbs_qp_dest_ex dest_ex;
+> +	struct ib_uverbs_qp_dest_ex alt_dest_ex;
+
+Yuk.. The 'ex' structures don't have to be byte compatible, they just
+have to have a known transform, dest should be the full extended dest,
+not split into two..
+
+> +struct rdma_ucm_query_route_resp_ex {
+> +	__u64 node_guid;
+> +	struct ib_user_path_rec_ex ib_route[2];
+> +	struct sockaddr_in6 src_addr;
+> +	struct sockaddr_in6 dst_addr;
+> +	__u32 num_paths;
+> +	__u8 port_num;
+> +	__u8 reserved[3];
+> +};
+
+Should these be sockaddr_storage? How does this intersect with Sean's
+AF_GID work?
+
+JAson
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
