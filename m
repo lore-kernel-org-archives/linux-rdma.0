@@ -1,57 +1,67 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: recommend setting for dev_loss_tmo and fast_io_fail_tmo
-Date: Thu, 13 Jun 2013 22:21:14 +0400
-Message-ID: <CACaajQvBL_DvBXTaMOisuXUBzezpiQN6fSaio-VCOYYWpiaBHQ@mail.gmail.com>
-References: <CACaajQuhmd8ExRHvQQBES43FNDWKGHxEb0DjmxWJ1K2=ybUuKQ@mail.gmail.com>
- <51BA07DA.40703@acm.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
+Date: Thu, 13 Jun 2013 20:25:19 +0200
+Message-ID: <51BA0E8F.3030104@acm.org>
+References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org> <51BA0655.6090707@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51BA07DA.40703-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <51BA0655.6090707-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2013/6/13 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
-> Hello Vasily,
+On 06/13/13 19:50, Vu Pham wrote:
+> Hello Bart,
 >
+>> +/**
+>> + * srp_conn_unique() - check whether the connection to a target is
+>> unique
+>> + */
+>> +static bool srp_conn_unique(struct srp_host *host,
+>> +                struct srp_target_port *target)
+>> +{
+>> +    struct srp_target_port *t;
+>> +    bool ret = false;
+>> +
+>> +    if (target->state == SRP_TARGET_REMOVED)
+>> +        goto out;
+>> +
+>> +    ret = true;
+>> +
+>> +    spin_lock(&host->target_lock);
+>> +    list_for_each_entry(t, &host->target_list, list) {
+>> +        if (t != target &&
+>> +            target->id_ext == t->id_ext &&
+>
+> Targets may advertise/expose on different pkeys
+> You can have multiple connections  (or paths/scsi hosts) to same target
+> with different pkeys.
+> We need extra check to detect the uniqueness:
+>                                              target->path.pkey ==
+> t->path.pkey &&
 
-Hello, Bart.
+Hello Vu,
 
-> The default value for the reconnect_delay parameter in that version of the
-> SRP initiator is 10 seconds. So if you want to give the SRP initiator a
-> chance to try once to reconnect before failing I/O fast you can set the
-> fast_io_fail_tmo parameter to e.g. 15 seconds. That should limit the time
-> during which I/O is stuck to about 76 seconds (61 seconds IB RC timeout + 15
-> seconds for the fast I/O fail timeout).
+Thanks for the feedback. This is something I have already thinking about 
+myself. Unfortunately I have not found any requirements in the T10 SRP 
+standard with regard to InfiniBand partitions. However, in that document 
+there is a section about single RDMA channel operation. In that section 
+it is explained that an SRP target must log out established sessions 
+upon receipt of a new login request. What I'm not sure about is whether 
+only sessions with the same P_Key must be logged out or all established 
+sessions if a new login request is received. I assume the latter since 
+otherwise that would mean that an SRP target would be required to 
+maintain multiple sessions if it allows connections with more than one 
+P_Key to a target port ? My concern about adding a pkey comparison in 
+the function srp_conn_unique() is that if a target allows an initiator 
+to choose which partition to use when logging in, that this could result 
+in the undesired SRP initiator ping-pong effect this patch tries to avoid.
 
-Hm. Does it mean that if i set fast_io_fail_tmo = 40 i get timeout
-after 61+40 = 101 seconds?
+Bart.
 
->How to configure dev_loss_tmo
-> depends on the configuration at the initiator side. If you are using
-> initiator-side mirroring then it is a good idea to set dev_loss_tmo to a
-> very large value in order to avoid /dev/sd* reassignment. Note: with the
-> patch series I posted earlier this week it is possible to set dev_loss_tmo
-> to "off", something that is not yet possible with the ib_srp-backport
-> project.
-
-Yes, i'm using raid1 on initiator side. That means that in my case
-dev_loss_tmo may be switched off?
-
-P.S. In case of kernel 3.9.5 does i need you backported ib_srp driver
-or i can use mainline kernel drivers for faster reconntects?
-P.P.S. Can you provide me subject of e-mail or link to patches to
-switch off dev_loss_tmo?
-
-
-
-
---
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
