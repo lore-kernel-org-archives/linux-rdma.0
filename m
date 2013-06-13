@@ -1,66 +1,111 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
-Date: Thu, 13 Jun 2013 20:25:19 +0200
-Message-ID: <51BA0E8F.3030104@acm.org>
-References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org> <51BA0655.6090707@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags: ibstat fix strncpy coverity check and
+ -l bug
+Date: Thu, 13 Jun 2013 14:26:29 -0400
+Message-ID: <51BA0ED5.9070202@dev.mellanox.co.il>
+References: <20130612211537.1eef2098a821426c466a83b5@intel.com> <51B9A5CD.4010209@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E02084650@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51BA0655.6090707-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E02084650-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/13/13 19:50, Vu Pham wrote:
-> Hello Bart,
->
->> +/**
->> + * srp_conn_unique() - check whether the connection to a target is
->> unique
->> + */
->> +static bool srp_conn_unique(struct srp_host *host,
->> +                struct srp_target_port *target)
->> +{
->> +    struct srp_target_port *t;
->> +    bool ret = false;
->> +
->> +    if (target->state == SRP_TARGET_REMOVED)
->> +        goto out;
->> +
->> +    ret = true;
->> +
->> +    spin_lock(&host->target_lock);
->> +    list_for_each_entry(t, &host->target_list, list) {
->> +        if (t != target &&
->> +            target->id_ext == t->id_ext &&
->
-> Targets may advertise/expose on different pkeys
-> You can have multiple connections  (or paths/scsi hosts) to same target
-> with different pkeys.
-> We need extra check to detect the uniqueness:
->                                              target->path.pkey ==
-> t->path.pkey &&
+On 6/13/2013 2:20 PM, Weiny, Ira wrote:
+>> -----Original Message-----
+>> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+>> Subject: Re: [PATCH] infiniband-diags: ibstat fix strncpy coverity check and -l
+>> bug
+>>
+>> On 6/13/2013 12:15 AM, Ira Weiny wrote:
+>>>
+>>> Changes since V1:
+>>> 	Fix port parameter usage.
+>>>
+>>> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>> ---
+>>>  src/ibstat.c |   11 +++--------
+>>>  1 files changed, 3 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/src/ibstat.c b/src/ibstat.c index 665bb0a..37f2361 100644
+>>> --- a/src/ibstat.c
+>>> +++ b/src/ibstat.c
+>>> @@ -314,7 +314,8 @@ int main(int argc, char *argv[])
+>>>  		if (i >= n)
+>>>  			IBPANIC("'%s' IB device can't be found", argv[0]);
+>>>
+>>> -		strncpy(names[i], argv[0], sizeof names[i]);
+>>> +		strncpy(names[0], argv[0], sizeof(names[0])-1);
+>>> +		names[0][sizeof(names[0])-1] = '\0';
+>>>  		n = 1;
+>>>  	}
+>>>
+>>> @@ -324,16 +325,10 @@ int main(int argc, char *argv[])
+>>>  		return 0;
+>>>  	}
+>>>
+>>> -	if (!list_only && argc) {
+>>> -		if (ca_stat(argv[0], dev_port, short_format) < 0)
+>>> -			IBPANIC("stat of IB device '%s' failed", argv[0]);
+>>> -		return 0;
+>>> -	}
+>>> -
+>>>  	for (i = 0; i < n; i++) {
+>>>  		if (list_only)
+>>>  			printf("%s\n", names[i]);
+>>> -		else if (ca_stat(names[i], -1, short_format) < 0)
+>>> +		else if (ca_stat(names[i], dev_port, short_format) < 0)
+>>
+>> I don't think this works when ib device is not first one and port is also
+>> supplied.
+> 
+> That is what the change in the first hunk does.  It places argv[0] in name[0] and sets n=1.
+> 
+> This works fine for me:
+> 
+> 11:17:42 > ./ibstat -l         
+> mlx4_0
+> mlx4_1
+> 
+> 11:16:33 > ./ibstat mlx4_1 1
+> CA: 'mlx4_1'
+> Port 1:
+> State: Down
+> Physical state: Polling
+> Rate: 10
+> Base lid: 0
+> LMC: 0
+> SM lid: 0
+> Capability mask: 0x02510868
+> Port GUID: 0x0002c9030003ced7
+> Link layer: InfiniBand
+> 
+> Or are you speaking of some other use case?
 
-Hello Vu,
+No; I missed looking carefully at the first hunk.
 
-Thanks for the feedback. This is something I have already thinking about 
-myself. Unfortunately I have not found any requirements in the T10 SRP 
-standard with regard to InfiniBand partitions. However, in that document 
-there is a section about single RDMA channel operation. In that section 
-it is explained that an SRP target must log out established sessions 
-upon receipt of a new login request. What I'm not sure about is whether 
-only sessions with the same P_Key must be logged out or all established 
-sessions if a new login request is received. I assume the latter since 
-otherwise that would mean that an SRP target would be required to 
-maintain multiple sessions if it allows connections with more than one 
-P_Key to a target port ? My concern about adding a pkey comparison in 
-the function srp_conn_unique() is that if a target allows an initiator 
-to choose which partition to use when logging in, that this could result 
-in the undesired SRP initiator ping-pong effect this patch tries to avoid.
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Bart.
+-- Hal
+
+> 
+> Ira
+> 
+>>
+>> -- Hal
+>>
+>>>  			IBPANIC("stat of IB device '%s' failed", names[i]);
+>>>  	}
+>>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
