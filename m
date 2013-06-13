@@ -1,26 +1,22 @@
 From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH 03/14] IB/srp: Avoid that srp_reset_host() is skipped
- after a TL error
-Date: Thu, 13 Jun 2013 11:30:08 +0200
-Message-ID: <51B99120.9000503@profitbricks.com>
-References: <51B87501.4070005@acm.org> <51B87638.50102@acm.org>
+Subject: Re: [PATCH 04/14] IB/srp: Skip host settle delay
+Date: Thu, 13 Jun 2013 11:53:37 +0200
+Message-ID: <51B996A1.6080604@profitbricks.com>
+References: <51B87501.4070005@acm.org> <51B87689.8030806@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51B87638.50102-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <51B87689.8030806-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12.06.2013 15:23, Bart Van Assche wrote:
-> The SCSI error handler assumes that the transport layer is
-> operational if an eh_abort_handler() returns SUCCESS. Hence let
-> srp_abort() only return SUCCESS if sending the ABORT TASK task
-> management function succeeded. This patch avoids that the SCSI
-> error handler skips the srp_reset_host() call after a transport
-> layer error.
+On 12.06.2013 15:24, Bart Van Assche wrote:
+> The SRP initiator implements host reset by reconnecting to the SRP
+> target. That means that communication with the target is possible
+> as soon as host reset finished. Hence skip the host settle delay.
 > 
 > Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 > Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
@@ -28,53 +24,31 @@ On 12.06.2013 15:23, Bart Van Assche wrote:
 > Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/srp/ib_srp.c |   11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
+>  drivers/infiniband/ulp/srp/ib_srp.c |    1 +
+>  1 file changed, 1 insertion(+)
 > 
 > diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 9c638dd..fb37b47 100644
+> index fb37b47..be12780 100644
 > --- a/drivers/infiniband/ulp/srp/ib_srp.c
 > +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -1742,18 +1742,23 @@ static int srp_abort(struct scsi_cmnd *scmnd)
->  {
->  	struct srp_target_port *target = host_to_target(scmnd->device->host);
->  	struct srp_request *req = (struct srp_request *) scmnd->host_scribble;
-> +	int ret;
->  
->  	shost_printk(KERN_ERR, target->scsi_host, "SRP abort called\n");
->  
->  	if (!req || !srp_claim_req(target, req, scmnd))
->  		return FAILED;
-> -	srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
-> -			  SRP_TSK_ABORT_TASK);
-> +	if (srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
-> +			      SRP_TSK_ABORT_TASK) == 0 ||
-> +	    target->transport_offline)
-> +		ret = SUCCESS;
-
-Here you try to hide a little trick. Returning success upon
-(target->transport_offline == true) is perhaps not the best way. I guess
-you try to fail IO fast here but up to this point
-"target->transport_offline = true" is only set in srp_reset_host().
-
-Please explain for what you need that in this patch!
-
-Furthermore, returning "FAST_IO_FAIL" sounds better to me in this situation.
-
-> +	else
-> +		ret = FAILED;
->  	srp_free_req(target, req, scmnd, 0);
->  	scmnd->result = DID_ABORT << 16;
->  	scmnd->scsi_done(scmnd);
->  
-> -	return SUCCESS;
-> +	return ret;
->  }
->  
->  static int srp_reset_device(struct scsi_cmnd *scmnd)
+> @@ -1949,6 +1949,7 @@ static struct scsi_host_template srp_template = {
+>  	.eh_abort_handler		= srp_abort,
+>  	.eh_device_reset_handler	= srp_reset_device,
+>  	.eh_host_reset_handler		= srp_reset_host,
+> +	.skip_settle_delay		= true,
+>  	.sg_tablesize			= SRP_DEF_SG_TABLESIZE,
+>  	.can_queue			= SRP_CMD_SQ_SIZE,
+>  	.this_id			= -1,
 > 
 
-The rest is okay.
+Signed-off-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Acked-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Tested-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Reviewed-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Reviewed-by: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+
+Choose something, I totally agree. Adding Christoph in CC as he has
+reviewed this as well.
 
 Cheers,
 Sebastian
