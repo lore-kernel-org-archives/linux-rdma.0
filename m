@@ -1,79 +1,47 @@
-From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
-Date: Thu, 13 Jun 2013 10:50:13 -0700
-Message-ID: <51BA0655.6090707@mellanox.com>
-References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: recommend setting for dev_loss_tmo and fast_io_fail_tmo
+Date: Thu, 13 Jun 2013 19:56:42 +0200
+Message-ID: <51BA07DA.40703@acm.org>
+References: <CACaajQuhmd8ExRHvQQBES43FNDWKGHxEb0DjmxWJ1K2=ybUuKQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51B876BF.4070400-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <CACaajQuhmd8ExRHvQQBES43FNDWKGHxEb0DjmxWJ1K2=ybUuKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Bart,
+On 06/13/13 17:52, Vasiliy Tolstov wrote:
+> Hello. I'm using 3.9.5 and ib_srp_backport from github.
+> What is recommended setting for dev_loss_tmo and fast_io_fail_tmo ?
+> Now i have
+> dev_loss_tmo = 60
+> fast_io_fail_tmo = 40
+>
+> Does it right?
+>
+> I need to wait no more 100 seconds for failed path. (i'm use some xen
+> vm on this host and it linux kernels not like to stuck more than 120
+> seconds =))
 
-> +/**
-> + * srp_conn_unique() - check whether the connection to a target is unique
-> + */
-> +static bool srp_conn_unique(struct srp_host *host,
-> +			    struct srp_target_port *target)
-> +{
-> +	struct srp_target_port *t;
-> +	bool ret = false;
-> +
-> +	if (target->state == SRP_TARGET_REMOVED)
-> +		goto out;
-> +
-> +	ret = true;
-> +
-> +	spin_lock(&host->target_lock);
-> +	list_for_each_entry(t, &host->target_list, list) {
-> +		if (t != target &&
-> +		    target->id_ext == t->id_ext &&
->   
+Hello Vasily,
 
-Targets may advertise/expose on different pkeys
-You can have multiple connections  (or paths/scsi hosts) to same target 
-with different pkeys.
-We need extra check to detect the uniqueness:
-                                             target->path.pkey == 
-t->path.pkey &&
+The default value for the reconnect_delay parameter in that version of 
+the SRP initiator is 10 seconds. So if you want to give the SRP 
+initiator a chance to try once to reconnect before failing I/O fast you 
+can set the fast_io_fail_tmo parameter to e.g. 15 seconds. That should 
+limit the time during which I/O is stuck to about 76 seconds (61 seconds 
+IB RC timeout + 15 seconds for the fast I/O fail timeout). How to 
+configure dev_loss_tmo depends on the configuration at the initiator 
+side. If you are using initiator-side mirroring then it is a good idea 
+to set dev_loss_tmo to a very large value in order to avoid /dev/sd* 
+reassignment. Note: with the patch series I posted earlier this week it 
+is possible to set dev_loss_tmo to "off", something that is not yet 
+possible with the ib_srp-backport project.
 
--vu
-> +		    target->ioc_guid == t->ioc_guid &&
-> +		    target->initiator_ext == t->initiator_ext) {
-> +			ret = false;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock(&host->target_lock);
-> +
-> +out:
-> +	return ret;
-> +}
-> +
->  static int srp_connect_target(struct srp_target_port *target)
->  {
->  	int retries = 3;
-> @@ -2261,6 +2291,14 @@ static ssize_t srp_create_target(struct device *dev,
->  	if (ret)
->  		goto err;
->  
-> +	if (!srp_conn_unique(target->srp_host, target)) {
-> +		shost_printk(KERN_INFO, target->scsi_host,
-> +			     PFX "Already connected to target port %.*s\n",
-> +			     (int)count, buf);
-> +		ret = -EEXIST;
-> +		goto err;
-> +	}
-> +
->  	if (!host->srp_dev->fmr_pool && !target->allow_ext_sg &&
->  				target->cmd_sg_cnt < target->sg_tablesize) {
->  		pr_warn("No FMR pool and no external indirect descriptors, limiting sg_tablesize to cmd_sg_cnt\n");
->   
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
