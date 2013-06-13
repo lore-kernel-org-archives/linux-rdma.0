@@ -1,58 +1,42 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] mm: Revert pinned_vm braindamage
-Date: Thu, 13 Jun 2013 14:06:32 -0700
-Message-ID: <20130613140632.15982af2ebc443b24bfff86a@linux-foundation.org>
-References: <20130606124351.GZ27176@twins.programming.kicks-ass.net>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH 1/2] ibsim: Remove parse corner case with full
+	ibnetdiscover output
+Date: Thu, 13 Jun 2013 14:30:40 -0700
+Message-ID: <1371159040.13124.181.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130606124351.GZ27176@twins.programming.kicks-ass.net>
-Sender: owner-linux-mm@kvack.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: torvalds@linux-foundation.org, roland@kernel.org, mingo@kernel.org, tglx@linutronix.de, kosaki.motohiro@gmail.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Let's try to get this wrapped up?
+When feeding in ibnetdiscover full output (i.e. -f option), ibsim
+would not parse the lid and lmc of ports correctly.
 
-On Thu, 6 Jun 2013 14:43:51 +0200 Peter Zijlstra <peterz@infradead.org> wrote:
+Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ ibsim/sim_net.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-> 
-> Patch bc3e53f682 ("mm: distinguish between mlocked and pinned pages")
-> broke RLIMIT_MEMLOCK.
-
-I rather like what bc3e53f682 did, actually.  RLIMIT_MEMLOCK limits the
-amount of memory you can mlock().  Nice and simple.
-
-This pinning thing which infiniband/perf are doing is conceptually
-different and if we care at all, perhaps we should be looking at adding
-RLIMIT_PINNED.
-
-> Before that patch: mm_struct::locked_vm < RLIMIT_MEMLOCK; after that
-> patch we have: mm_struct::locked_vm < RLIMIT_MEMLOCK &&
-> mm_struct::pinned_vm < RLIMIT_MEMLOCK.
-
-But this is a policy decision which was implemented in perf_mmap() and
-perf can alter that decision.  How bad would it be if perf just ignored
-RLIMIT_MEMLOCK?
-
-
-drivers/infiniband/hw/qib/qib_user_pages.c has issues, btw.  It
-compares the amount-to-be-pinned with rlimit(RLIMIT_MEMLOCK), but
-forgets to also look at current->mm->pinned_vm.  Duh.
-
-It also does the pinned accounting in __qib_get_user_pages() but in
-__qib_release_user_pages(), the caller is supposed to do it, which is
-rather awkward.
+diff --git a/ibsim/sim_net.c b/ibsim/sim_net.c
+index 13c3b8c..10820ba 100644
+--- a/ibsim/sim_net.c
++++ b/ibsim/sim_net.c
+@@ -679,7 +679,6 @@ static int parse_port(char *line, Node * node, int type, int maxports)
+ 			IBWARN("bad port option");
+ 			return -1;
+ 		}
+-		line = s + 1;
+ 	}
+ 	if (type != SWITCH_NODE && line && parse_port_lid_and_lmc(port, line) < 0) {
+ 		IBWARN("cannot parse lid, lmc");
+-- 
+1.7.1
 
 
-Longer-term I don't think that inifinband or perf should be dinking
-around with rlimit(RLIMIT_MEMLOCK) or ->pinned_vm.  Those policy
-decisions should be hoisted into a core mm helper where we can do it
-uniformly (and more correctly than infiniband's attempt!).
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
