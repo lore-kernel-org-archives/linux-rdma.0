@@ -1,105 +1,84 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 2/2] ibnetdiscover: Output vlcap in full output format
-Date: Thu, 13 Jun 2013 14:26:48 -0700
-Message-ID: <1371158808.13124.176.camel@auk59.llnl.gov>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
+Date: Thu, 13 Jun 2013 16:27:27 -0700
+Message-ID: <51BA555F.9060807@mellanox.com>
+References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org> <51BA0655.6090707@mellanox.com> <51BA0E8F.3030104@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51BA0E8F.3030104-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The additional vlcap information is useful when simulating a fabric
-in ibsim and fabric VL information is needed.
+Bart Van Assche wrote:
+> On 06/13/13 19:50, Vu Pham wrote:
+>> Hello Bart,
+>>
+>>> +/**
+>>> + * srp_conn_unique() - check whether the connection to a target is
+>>> unique
+>>> + */
+>>> +static bool srp_conn_unique(struct srp_host *host,
+>>> +                struct srp_target_port *target)
+>>> +{
+>>> +    struct srp_target_port *t;
+>>> +    bool ret = false;
+>>> +
+>>> +    if (target->state == SRP_TARGET_REMOVED)
+>>> +        goto out;
+>>> +
+>>> +    ret = true;
+>>> +
+>>> +    spin_lock(&host->target_lock);
+>>> +    list_for_each_entry(t, &host->target_list, list) {
+>>> +        if (t != target &&
+>>> +            target->id_ext == t->id_ext &&
+>>
+>> Targets may advertise/expose on different pkeys
+>> You can have multiple connections  (or paths/scsi hosts) to same target
+>> with different pkeys.
+>> We need extra check to detect the uniqueness:
+>>                                              target->path.pkey ==
+>> t->path.pkey &&
+>
+> Hello Vu,
+>
+> Thanks for the feedback. This is something I have already thinking 
+> about myself. Unfortunately I have not found any requirements in the 
+> T10 SRP standard with regard to InfiniBand partitions. However, in 
+> that document there is a section about single RDMA channel operation. 
+> In that section it is explained that an SRP target must log out 
+> established sessions upon receipt of a new login request. What I'm not 
+> sure about is whether only sessions with the same P_Key must be logged 
+> out or all established sessions if a new login request is received. I 
+> assume the latter since otherwise that would mean that an SRP target 
+> would be required to maintain multiple sessions if it allows 
+> connections with more than one P_Key to a target port ? My concern 
+> about adding a pkey comparison in the function srp_conn_unique() is 
+> that if a target allows an initiator to choose which partition to use 
+> when logging in, that this could result in the undesired SRP initiator 
+> ping-pong effect this patch tries to avoid.
+>
+> Bart.
+>
+Hello Bart,
 
-Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- doc/man/ibnetdiscover.8.in     |    2 +-
- doc/rst/ibnetdiscover.8.in.rst |    2 +-
- src/ibnetdiscover.c            |   10 +++++++---
- 3 files changed, 9 insertions(+), 5 deletions(-)
+Yes, you pointed out the unclear/undefined area.
 
-diff --git a/doc/man/ibnetdiscover.8.in b/doc/man/ibnetdiscover.8.in
-index 0c3d8a4..78e7e52 100644
---- a/doc/man/ibnetdiscover.8.in
-+++ b/doc/man/ibnetdiscover.8.in
-@@ -63,7 +63,7 @@ List of connected routers
- Show progress information during discovery.
- .sp
- \fB\-f, \-\-full\fP
--Show full information (ports\(aq speed and width)
-+Show full information (ports\(aq speed and width, vlcap)
- .sp
- \fB\-p, \-\-ports\fP
- Obtain a ports report which is a
-diff --git a/doc/rst/ibnetdiscover.8.in.rst b/doc/rst/ibnetdiscover.8.in.rst
-index f68db31..61a5667 100644
---- a/doc/rst/ibnetdiscover.8.in.rst
-+++ b/doc/rst/ibnetdiscover.8.in.rst
-@@ -50,7 +50,7 @@ List of connected routers
- Show progress information during discovery.
- 
- **-f, --full**
--Show full information (ports' speed and width)
-+Show full information (ports' speed and width, vlcap)
- 
- **-p, --ports**
- Obtain a ports report which is a
-diff --git a/src/ibnetdiscover.c b/src/ibnetdiscover.c
-index b9fb243..c8c19aa 100644
---- a/src/ibnetdiscover.c
-+++ b/src/ibnetdiscover.c
-@@ -361,6 +361,8 @@ void out_switch_port(ibnd_port_t * port, int group, char *out_prefix)
- 					IB_PORT_LINK_WIDTH_ACTIVE_F);
- 	uint32_t ispeed = mad_get_field(port->info, 0,
- 					IB_PORT_LINK_SPEED_ACTIVE_F);
-+	uint32_t vlcap = mad_get_field(port->info, 0,
-+				       IB_PORT_VL_CAP_F);
- 	uint32_t fdr10 = mad_get_field(port->ext_info, 0,
- 				       IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F);
- 	uint32_t cap_mask, espeed;
-@@ -408,7 +410,7 @@ void out_switch_port(ibnd_port_t * port, int group, char *out_prefix)
- 			dump_linkspeedext_compat(espeed, ispeed, fdr10));
- 
- 	if (full_info)
--		fprintf(f, " s=%d w=%d", ispeed, iwidth);
-+		fprintf(f, " s=%d w=%d v=%d", ispeed, iwidth, vlcap);
- 
- 	if (ibnd_is_xsigo_tca(port->remoteport->guid))
- 		fprintf(f, " slot %d", port->portnum);
-@@ -427,6 +429,8 @@ void out_ca_port(ibnd_port_t * port, int group, char *out_prefix)
- 					IB_PORT_LINK_WIDTH_ACTIVE_F);
- 	uint32_t ispeed = mad_get_field(port->info, 0,
- 					IB_PORT_LINK_SPEED_ACTIVE_F);
-+	uint32_t vlcap = mad_get_field(port->info, 0,
-+				       IB_PORT_VL_CAP_F);
- 	uint32_t fdr10 = mad_get_field(port->ext_info, 0,
- 				       IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F);
- 	uint32_t cap_mask, espeed;
-@@ -464,7 +468,7 @@ void out_ca_port(ibnd_port_t * port, int group, char *out_prefix)
- 			dump_linkspeedext_compat(espeed, ispeed, fdr10));
- 
- 	if (full_info)
--		fprintf(f, " s=%d w=%d", ispeed, iwidth);
-+		fprintf(f, " s=%d w=%d v=%d", ispeed, iwidth, vlcap);
- 	fprintf(f, "\n");
- 
- 	free(rem_nodename);
-@@ -1063,7 +1067,7 @@ int main(int argc, char **argv)
- 	ibnd_fabric_t *diff_fabric = NULL;
- 
- 	const struct ibdiag_opt opts[] = {
--		{"full", 'f', 0, NULL, "show full information (ports' speed and width)"},
-+		{"full", 'f', 0, NULL, "show full information (ports' speed and width, vlcap)"},
- 		{"show", 's', 0, NULL, "show more information"},
- 		{"list", 'l', 0, NULL, "list of connected nodes"},
- 		{"grouping", 'g', 0, NULL, "show grouping"},
--- 
-1.7.1
+If we stick to single RDMA channel per IT Nexus with unique tuple 
+Initiator Port Identier - Target Port Indentifier then newly created 
+connection with same tuple (I_port_id, T_port_id) but with different 
+P_Key or different DGID is not unique.
 
+Sticking to this rule by excluding P_Key and DGID  out of rdma channel 
+indentity, your srp_conn_unique() checking is ok; however, some SRP 
+target implementations may include DGID as part of rdma channel 
+identifier. I'm not sure about different p_key part.
 
-
+-vu
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
