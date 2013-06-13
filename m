@@ -1,67 +1,58 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: ibstat fix strncpy coverity check and
- -l bug
-Date: Thu, 13 Jun 2013 06:58:21 -0400
-Message-ID: <51B9A5CD.4010209@dev.mellanox.co.il>
-References: <20130612211537.1eef2098a821426c466a83b5@intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 04/14] IB/srp: Skip host settle delay
+Date: Thu, 13 Jun 2013 16:06:17 +0300
+Message-ID: <51B9C3C9.80401@mellanox.com>
+References: <51B87501.4070005@acm.org> <51B87689.8030806@acm.org> <51B996A1.6080604@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130612211537.1eef2098a821426c466a83b5-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <51B996A1.6080604-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/13/2013 12:15 AM, Ira Weiny wrote:
-> 
-> Changes since V1:
-> 	Fix port parameter usage.
-> 
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  src/ibstat.c |   11 +++--------
->  1 files changed, 3 insertions(+), 8 deletions(-)
-> 
-> diff --git a/src/ibstat.c b/src/ibstat.c
-> index 665bb0a..37f2361 100644
-> --- a/src/ibstat.c
-> +++ b/src/ibstat.c
-> @@ -314,7 +314,8 @@ int main(int argc, char *argv[])
->  		if (i >= n)
->  			IBPANIC("'%s' IB device can't be found", argv[0]);
->  
-> -		strncpy(names[i], argv[0], sizeof names[i]);
-> +		strncpy(names[0], argv[0], sizeof(names[0])-1);
-> +		names[0][sizeof(names[0])-1] = '\0';
->  		n = 1;
->  	}
->  
-> @@ -324,16 +325,10 @@ int main(int argc, char *argv[])
->  		return 0;
->  	}
->  
-> -	if (!list_only && argc) {
-> -		if (ca_stat(argv[0], dev_port, short_format) < 0)
-> -			IBPANIC("stat of IB device '%s' failed", argv[0]);
-> -		return 0;
-> -	}
-> -
->  	for (i = 0; i < n; i++) {
->  		if (list_only)
->  			printf("%s\n", names[i]);
-> -		else if (ca_stat(names[i], -1, short_format) < 0)
-> +		else if (ca_stat(names[i], dev_port, short_format) < 0)
+On 13/06/2013 12:53, Sebastian Riemer wrote:
+> On 12.06.2013 15:24, Bart Van Assche wrote:
+>> The SRP initiator implements host reset by reconnecting to the SRP
+>> target. That means that communication with the target is possible
+>> as soon as host reset finished. Hence skip the host settle delay.
+>>
+>> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+>> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>> Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+>> Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+>> ---
+>>   drivers/infiniband/ulp/srp/ib_srp.c |    1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+>> index fb37b47..be12780 100644
+>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+>> @@ -1949,6 +1949,7 @@ static struct scsi_host_template srp_template = {
+>>   	.eh_abort_handler		= srp_abort,
+>>   	.eh_device_reset_handler	= srp_reset_device,
+>>   	.eh_host_reset_handler		= srp_reset_host,
+>> +	.skip_settle_delay		= true,
+>>   	.sg_tablesize			= SRP_DEF_SG_TABLESIZE,
+>>   	.can_queue			= SRP_CMD_SQ_SIZE,
+>>   	.this_id			= -1,
+>>
+> Signed-off-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Acked-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Tested-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Reviewed-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Reviewed-by: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+>
+> Choose something,
 
-I don't think this works when ib device is not first one and port is
-also supplied.
+yes, but too many things... else we will end up with one liner patch 
+that has ten yyy-by: credit lines...
 
--- Hal
-
->  			IBPANIC("stat of IB device '%s' failed", names[i]);
->  	}
->  
+Or.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
