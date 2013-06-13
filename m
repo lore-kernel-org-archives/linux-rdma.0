@@ -1,100 +1,57 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] infiniband-diags: ibstat fix strncpy coverity check and
- -l bug
-Date: Thu, 13 Jun 2013 18:20:56 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E02084650@CRSMSX101.amr.corp.intel.com>
-References: <20130612211537.1eef2098a821426c466a83b5@intel.com>
- <51B9A5CD.4010209@dev.mellanox.co.il>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: recommend setting for dev_loss_tmo and fast_io_fail_tmo
+Date: Thu, 13 Jun 2013 22:21:14 +0400
+Message-ID: <CACaajQvBL_DvBXTaMOisuXUBzezpiQN6fSaio-VCOYYWpiaBHQ@mail.gmail.com>
+References: <CACaajQuhmd8ExRHvQQBES43FNDWKGHxEb0DjmxWJ1K2=ybUuKQ@mail.gmail.com>
+ <51BA07DA.40703@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51B9A5CD.4010209-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <51BA07DA.40703-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
-> Subject: Re: [PATCH] infiniband-diags: ibstat fix strncpy coverity check and -l
-> bug
-> 
-> On 6/13/2013 12:15 AM, Ira Weiny wrote:
-> >
-> > Changes since V1:
-> > 	Fix port parameter usage.
-> >
-> > Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > ---
-> >  src/ibstat.c |   11 +++--------
-> >  1 files changed, 3 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/src/ibstat.c b/src/ibstat.c index 665bb0a..37f2361 100644
-> > --- a/src/ibstat.c
-> > +++ b/src/ibstat.c
-> > @@ -314,7 +314,8 @@ int main(int argc, char *argv[])
-> >  		if (i >= n)
-> >  			IBPANIC("'%s' IB device can't be found", argv[0]);
-> >
-> > -		strncpy(names[i], argv[0], sizeof names[i]);
-> > +		strncpy(names[0], argv[0], sizeof(names[0])-1);
-> > +		names[0][sizeof(names[0])-1] = '\0';
-> >  		n = 1;
-> >  	}
-> >
-> > @@ -324,16 +325,10 @@ int main(int argc, char *argv[])
-> >  		return 0;
-> >  	}
-> >
-> > -	if (!list_only && argc) {
-> > -		if (ca_stat(argv[0], dev_port, short_format) < 0)
-> > -			IBPANIC("stat of IB device '%s' failed", argv[0]);
-> > -		return 0;
-> > -	}
-> > -
-> >  	for (i = 0; i < n; i++) {
-> >  		if (list_only)
-> >  			printf("%s\n", names[i]);
-> > -		else if (ca_stat(names[i], -1, short_format) < 0)
-> > +		else if (ca_stat(names[i], dev_port, short_format) < 0)
-> 
-> I don't think this works when ib device is not first one and port is also
-> supplied.
+2013/6/13 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>:
+> Hello Vasily,
+>
 
-That is what the change in the first hunk does.  It places argv[0] in name[0] and sets n=1.
+Hello, Bart.
 
-This works fine for me:
+> The default value for the reconnect_delay parameter in that version of the
+> SRP initiator is 10 seconds. So if you want to give the SRP initiator a
+> chance to try once to reconnect before failing I/O fast you can set the
+> fast_io_fail_tmo parameter to e.g. 15 seconds. That should limit the time
+> during which I/O is stuck to about 76 seconds (61 seconds IB RC timeout + 15
+> seconds for the fast I/O fail timeout).
 
-11:17:42 > ./ibstat -l         
-mlx4_0
-mlx4_1
+Hm. Does it mean that if i set fast_io_fail_tmo = 40 i get timeout
+after 61+40 = 101 seconds?
 
-11:16:33 > ./ibstat mlx4_1 1
-CA: 'mlx4_1'
-Port 1:
-State: Down
-Physical state: Polling
-Rate: 10
-Base lid: 0
-LMC: 0
-SM lid: 0
-Capability mask: 0x02510868
-Port GUID: 0x0002c9030003ced7
-Link layer: InfiniBand
+>How to configure dev_loss_tmo
+> depends on the configuration at the initiator side. If you are using
+> initiator-side mirroring then it is a good idea to set dev_loss_tmo to a
+> very large value in order to avoid /dev/sd* reassignment. Note: with the
+> patch series I posted earlier this week it is possible to set dev_loss_tmo
+> to "off", something that is not yet possible with the ib_srp-backport
+> project.
 
-Or are you speaking of some other use case?
+Yes, i'm using raid1 on initiator side. That means that in my case
+dev_loss_tmo may be switched off?
 
-Ira
+P.S. In case of kernel 3.9.5 does i need you backported ib_srp driver
+or i can use mainline kernel drivers for faster reconntects?
+P.P.S. Can you provide me subject of e-mail or link to patches to
+switch off dev_loss_tmo?
 
-> 
-> -- Hal
-> 
-> >  			IBPANIC("stat of IB device '%s' failed", names[i]);
-> >  	}
-> >
 
+
+
+--
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
