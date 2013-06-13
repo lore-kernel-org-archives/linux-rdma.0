@@ -1,91 +1,808 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 0/4] IP based RoCE GID Addressing
-Date: Thu, 13 Jun 2013 18:01:40 +0300
-Message-ID: <1371135704-5712-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH for-next 2/4] IB/mlx4: RoCE IP based GID addressing
+Date: Thu, 13 Jun 2013 18:01:42 +0300
+Message-ID: <1371135704-5712-3-git-send-email-ogerlitz@mellanox.com>
+References: <1371135704-5712-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1371135704-5712-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, the IB stack (core + drivers) handle RoCE (IBoE) gids as
-they encode related Ethernet net-device interface MAC address and 
-possibly VLAN id.
+From: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
-This series changes RoCE GIDs to encode IP addresses (IPv4 + IPv6)
-of the that Ethernet interface, under the following reasoning:
+Currently, the mlx4 driver set RoCE (IBoE) gids to encode related
+Ethernet netdevice interface MAC address and possibly VLAN id.
 
-1. There are environments where the compute entity that runs the RoCE 
-stack is not aware that its traffic is vlan-tagged. This results with that 
-node to create/assume wrong GIDs from the view point of a peer node which 
-is aware to vlans. 
+Change this scheme such that gids encode interface IP addresses
+(both IP4 and IPv6).
 
-Note that "node" here can be physical node connected to Ethernet switch acting in 
-access mode talking to another node which does vlan insertion/stripping by itself.
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/ah.c      |   21 +-
+ drivers/infiniband/hw/mlx4/cq.c      |    5 +
+ drivers/infiniband/hw/mlx4/main.c    |  461 +++++++++++++++++++++++-----------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |    3 +
+ drivers/infiniband/hw/mlx4/qp.c      |   19 +-
+ include/linux/mlx4/cq.h              |   14 +-
+ 6 files changed, 354 insertions(+), 169 deletions(-)
 
-Or another example is SRIOV Virtual Function which is configured to work in "VST" 
-mode (Virtual-Switch-Tagging) such that the hypervisor configures the HW eSWitch 
-to do vlan insertion for the vPORT representing that function.
-
-2. When RoCE traffic is inspected (mirrored/trapped) in Ethernet switches for 
-monitoring and security purposes. It is much more natural for both humans and 
-automated utilities (...) to observe IP addresses in a certain offset into RoCE 
-frames L3 header vs. MAC/VLANs (which are there anyway in the L2 header of that 
-frame, so they are not gone by this change).
-
-3. Some Bonding/Teaming advanced mode such as balance-alb and balance-tlb 
-are using multiple underlying devices in parallel, and hence packets always 
-carry the bond IP address but different streams have different source MACs.
-The approach brought by this series is part from what would allow to 
-support that for RoCE traffic too.
-
-The 1st patch modified the IB core to cope with the new scheme, and the 2nd does that 
-for the mlx4_ib driver. The 3rd patch sets the foundation for extending uverbs to
-the new scheme which was introduced lately, and the fourth patch adds two extended
-uCMA commands and two extended uVERBS commands which are now exported to user space.
-
-These extended verbs will allow to enhance user space libraries such that they work 
-OK over the modified scheme. All RC applications using librdmacm will not need to be 
-modified at all, since the change will be encapsulated into that library.
-
-The ocrdma driver needs to go through a similar patch as the mlx4_ib one, we can
-surely do that patch, just need to dig there a little further. 
-
-Or.
-
-Igor Ivanov (1):
-  IB/core: Infra-structure to support verbs extensions through uverbs
-
-Matan Barak (1):
-  IB/core: Add RoCE IP based addressing extensions towards user space
-
-Moni Shoua (2):
-  IB/core: RoCE IP based GID addressing
-  IB/mlx4: RoCE IP based GID addressing
-
- drivers/infiniband/core/cm.c              |    3 +
- drivers/infiniband/core/cma.c             |   39 ++-
- drivers/infiniband/core/sa_query.c        |    5 +
- drivers/infiniband/core/ucma.c            |  190 +++++++++++--
- drivers/infiniband/core/uverbs.h          |    2 +
- drivers/infiniband/core/uverbs_cmd.c      |  330 ++++++++++++++++-----
- drivers/infiniband/core/uverbs_main.c     |   33 ++-
- drivers/infiniband/core/uverbs_marshall.c |   94 ++++++-
- drivers/infiniband/core/verbs.c           |    7 +
- drivers/infiniband/hw/mlx4/ah.c           |   21 +-
- drivers/infiniband/hw/mlx4/cq.c           |    5 +
- drivers/infiniband/hw/mlx4/main.c         |  461 ++++++++++++++++++++---------
- drivers/infiniband/hw/mlx4/mlx4_ib.h      |    3 +
- drivers/infiniband/hw/mlx4/qp.c           |   19 +-
- include/linux/mlx4/cq.h                   |   14 +-
- include/rdma/ib_addr.h                    |   45 ++--
- include/rdma/ib_marshall.h                |   12 +
- include/rdma/ib_sa.h                      |    3 +
- include/rdma/ib_verbs.h                   |    4 +
- include/uapi/rdma/ib_user_sa.h            |   34 ++-
- include/uapi/rdma/ib_user_verbs.h         |  130 ++++++++-
- include/uapi/rdma/rdma_user_cm.h          |   21 ++-
- 22 files changed, 1157 insertions(+), 318 deletions(-)
+diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
+index a251bec..3941700 100644
+--- a/drivers/infiniband/hw/mlx4/ah.c
++++ b/drivers/infiniband/hw/mlx4/ah.c
+@@ -92,21 +92,18 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+ {
+ 	struct mlx4_ib_dev *ibdev = to_mdev(pd->device);
+ 	struct mlx4_dev *dev = ibdev->dev;
+-	union ib_gid sgid;
+-	u8 mac[6];
+-	int err;
+ 	int is_mcast;
++	struct in6_addr in6;
+ 	u16 vlan_tag;
+ 
+-	err = mlx4_ib_resolve_grh(ibdev, ah_attr, mac, &is_mcast, ah_attr->port_num);
+-	if (err)
+-		return ERR_PTR(err);
+-
+-	memcpy(ah->av.eth.mac, mac, 6);
+-	err = ib_get_cached_gid(pd->device, ah_attr->port_num, ah_attr->grh.sgid_index, &sgid);
+-	if (err)
+-		return ERR_PTR(err);
+-	vlan_tag = rdma_get_vlan_id(&sgid);
++	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
++	if (rdma_is_multicast_addr(&in6)) {
++		is_mcast = 1;
++		rdma_get_mcast_mac(&in6, ah->av.eth.mac);
++	} else {
++		memcpy(ah->av.eth.mac, ah_attr->dmac, 6);
++	}
++	vlan_tag = ah_attr->vlan;
+ 	if (vlan_tag < 0x1000)
+ 		vlan_tag |= (ah_attr->sl & 7) << 13;
+ 	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index d5e60f4..ba3f85b 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -793,6 +793,11 @@ repoll:
+ 			wc->sl  = be16_to_cpu(cqe->sl_vid) >> 13;
+ 		else
+ 			wc->sl  = be16_to_cpu(cqe->sl_vid) >> 12;
++		if (be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_VLAN_PRESENT_MASK)
++			wc->vlan = be16_to_cpu(cqe->sl_vid) & MLX4_CQE_VID_MASK;
++		else
++			wc->vlan = 0xffff;
++		memcpy(wc->smac, cqe->smac, 6);
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 23d7343..8879b41 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -39,6 +39,8 @@
+ #include <linux/inetdevice.h>
+ #include <linux/rtnetlink.h>
+ #include <linux/if_vlan.h>
++#include <net/ipv6.h>
++#include <net/addrconf.h>
+ 
+ #include <rdma/ib_smi.h>
+ #include <rdma/ib_user_verbs.h>
+@@ -767,7 +769,6 @@ static int add_gid_entry(struct ib_qp *ibqp, union ib_gid *gid)
+ int mlx4_ib_add_mc(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
+ 		   union ib_gid *gid)
+ {
+-	u8 mac[6];
+ 	struct net_device *ndev;
+ 	int ret = 0;
+ 
+@@ -781,11 +782,7 @@ int mlx4_ib_add_mc(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
+ 	spin_unlock(&mdev->iboe.lock);
+ 
+ 	if (ndev) {
+-		rdma_get_mcast_mac((struct in6_addr *)gid, mac);
+-		rtnl_lock();
+-		dev_mc_add(mdev->iboe.netdevs[mqp->port - 1], mac);
+ 		ret = 1;
+-		rtnl_unlock();
+ 		dev_put(ndev);
+ 	}
+ 
+@@ -805,6 +802,8 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	struct mlx4_ib_qp *mqp = to_mqp(ibqp);
+ 	u64 reg_id;
+ 	struct mlx4_ib_steering *ib_steering = NULL;
++	enum mlx4_protocol prot = (gid->raw[1] == 0x0e) ?
++		MLX4_PROT_IB_IPV4 : MLX4_PROT_IB_IPV6;
+ 
+ 	if (mdev->dev->caps.steering_mode ==
+ 	    MLX4_STEERING_MODE_DEVICE_MANAGED) {
+@@ -816,7 +815,7 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	err = mlx4_multicast_attach(mdev->dev, &mqp->mqp, gid->raw, mqp->port,
+ 				    !!(mqp->flags &
+ 				       MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK),
+-				    MLX4_PROT_IB_IPV6, &reg_id);
++				    prot, &reg_id);
+ 	if (err)
+ 		goto err_malloc;
+ 
+@@ -835,7 +834,7 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 
+ err_add:
+ 	mlx4_multicast_detach(mdev->dev, &mqp->mqp, gid->raw,
+-			      MLX4_PROT_IB_IPV6, reg_id);
++			      prot, reg_id);
+ err_malloc:
+ 	kfree(ib_steering);
+ 
+@@ -863,10 +862,11 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	int err;
+ 	struct mlx4_ib_dev *mdev = to_mdev(ibqp->device);
+ 	struct mlx4_ib_qp *mqp = to_mqp(ibqp);
+-	u8 mac[6];
+ 	struct net_device *ndev;
+ 	struct mlx4_ib_gid_entry *ge;
+ 	u64 reg_id = 0;
++	enum mlx4_protocol prot = (gid->raw[1] == 0x0e) ?
++		MLX4_PROT_IB_IPV4 : MLX4_PROT_IB_IPV6;
+ 
+ 	if (mdev->dev->caps.steering_mode ==
+ 	    MLX4_STEERING_MODE_DEVICE_MANAGED) {
+@@ -889,7 +889,7 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	}
+ 
+ 	err = mlx4_multicast_detach(mdev->dev, &mqp->mqp, gid->raw,
+-				    MLX4_PROT_IB_IPV6, reg_id);
++				    prot, reg_id);
+ 	if (err)
+ 		return err;
+ 
+@@ -901,13 +901,8 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 		if (ndev)
+ 			dev_hold(ndev);
+ 		spin_unlock(&mdev->iboe.lock);
+-		rdma_get_mcast_mac((struct in6_addr *)gid, mac);
+-		if (ndev) {
+-			rtnl_lock();
+-			dev_mc_del(mdev->iboe.netdevs[ge->port - 1], mac);
+-			rtnl_unlock();
++		if (ndev)
+ 			dev_put(ndev);
+-		}
+ 		list_del(&ge->list);
+ 		kfree(ge);
+ 	} else
+@@ -1003,20 +998,6 @@ static struct device_attribute *mlx4_class_attributes[] = {
+ 	&dev_attr_board_id
+ };
+ 
+-static void mlx4_addrconf_ifid_eui48(u8 *eui, u16 vlan_id, struct net_device *dev)
+-{
+-	memcpy(eui, dev->dev_addr, 3);
+-	memcpy(eui + 5, dev->dev_addr + 3, 3);
+-	if (vlan_id < 0x1000) {
+-		eui[3] = vlan_id >> 8;
+-		eui[4] = vlan_id & 0xff;
+-	} else {
+-		eui[3] = 0xff;
+-		eui[4] = 0xfe;
+-	}
+-	eui[0] ^= 2;
+-}
+-
+ static void update_gids_task(struct work_struct *work)
+ {
+ 	struct update_gid_work *gw = container_of(work, struct update_gid_work, work);
+@@ -1039,161 +1020,303 @@ static void update_gids_task(struct work_struct *work)
+ 		       MLX4_CMD_WRAPPED);
+ 	if (err)
+ 		pr_warn("set port command failed\n");
+-	else {
+-		memcpy(gw->dev->iboe.gid_table[gw->port - 1], gw->gids, sizeof gw->gids);
++	else
+ 		mlx4_ib_dispatch_event(gw->dev, gw->port, IB_EVENT_GID_CHANGE);
++
++	mlx4_free_cmd_mailbox(dev, mailbox);
++	kfree(gw);
++}
++
++static void reset_gids_task(struct work_struct *work)
++{
++	struct update_gid_work *gw =
++			container_of(work, struct update_gid_work, work);
++	struct mlx4_cmd_mailbox *mailbox;
++	union ib_gid *gids;
++	int err;
++	struct mlx4_dev	*dev = gw->dev->dev;
++
++	mailbox = mlx4_alloc_cmd_mailbox(dev);
++	if (IS_ERR(mailbox)) {
++		pr_warn("reset gid table failed\n");
++		goto free;
+ 	}
+ 
++	gids = mailbox->buf;
++	memcpy(gids, gw->gids, sizeof(gw->gids));
++
++	err = mlx4_cmd(dev, mailbox->dma, MLX4_SET_PORT_GID_TABLE << 8 | 1,
++		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
++		       MLX4_CMD_WRAPPED);
++	if (err)
++		pr_warn(KERN_WARNING "set port 1 command failed\n");
++
++	err = mlx4_cmd(dev, mailbox->dma, MLX4_SET_PORT_GID_TABLE << 8 | 2,
++		       1, MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
++		       MLX4_CMD_WRAPPED);
++	if (err)
++		pr_warn(KERN_WARNING "set port 2 command failed\n");
++
+ 	mlx4_free_cmd_mailbox(dev, mailbox);
++free:
+ 	kfree(gw);
+ }
+ 
+-static int update_ipv6_gids(struct mlx4_ib_dev *dev, int port, int clear)
++static int update_gid_table(struct mlx4_ib_dev *dev, int port,
++			    union ib_gid *gid, int clear)
+ {
+-	struct net_device *ndev = dev->iboe.netdevs[port - 1];
+ 	struct update_gid_work *work;
+-	struct net_device *tmp;
+ 	int i;
+-	u8 *hits;
+-	int ret;
+-	union ib_gid gid;
+-	int free;
+-	int found;
+ 	int need_update = 0;
+-	u16 vid;
++	int free = -1;
++	int found = -1;
++	int max_gids;
++
++	max_gids = dev->dev->caps.gid_table_len[port];
++	for (i = 0; i < max_gids; ++i) {
++		if (!memcmp(&dev->iboe.gid_table[port - 1][i], gid,
++			    sizeof(*gid)))
++			found = i;
++
++		if (clear) {
++			if (found >= 0) {
++				need_update = 1;
++				dev->iboe.gid_table[port - 1][found] = zgid;
++				break;
++			}
++		} else {
++			if (found >= 0)
++				break;
++
++			if (free < 0 && !memcmp(&dev->iboe.gid_table[port - 1][i], &zgid,
++						sizeof(*gid)))
++				free = i;
++		}
++	}
++
++	if (found == -1 && !clear && free >= 0) {
++		dev->iboe.gid_table[port - 1][free] = *gid;
++		need_update = 1;
++	}
++
++	if (!need_update)
++		return 0;
+ 
+ 	work = kzalloc(sizeof *work, GFP_ATOMIC);
+ 	if (!work)
+ 		return -ENOMEM;
+ 
+-	hits = kzalloc(128, GFP_ATOMIC);
+-	if (!hits) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
++	memcpy(work->gids, dev->iboe.gid_table[port - 1], sizeof(work->gids));
++	INIT_WORK(&work->work, update_gids_task);
++	work->port = port;
++	work->dev = dev;
++	queue_work(wq, &work->work);
+ 
+-	rcu_read_lock();
+-	for_each_netdev_rcu(&init_net, tmp) {
+-		if (ndev && (tmp == ndev || rdma_vlan_dev_real_dev(tmp) == ndev)) {
+-			gid.global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
+-			vid = rdma_vlan_dev_vlan_id(tmp);
+-			mlx4_addrconf_ifid_eui48(&gid.raw[8], vid, ndev);
+-			found = 0;
+-			free = -1;
+-			for (i = 0; i < 128; ++i) {
+-				if (free < 0 &&
+-				    !memcmp(&dev->iboe.gid_table[port - 1][i], &zgid, sizeof zgid))
+-					free = i;
+-				if (!memcmp(&dev->iboe.gid_table[port - 1][i], &gid, sizeof gid)) {
+-					hits[i] = 1;
+-					found = 1;
+-					break;
+-				}
+-			}
+-
+-			if (!found) {
+-				if (tmp == ndev &&
+-				    (memcmp(&dev->iboe.gid_table[port - 1][0],
+-					    &gid, sizeof gid) ||
+-				     !memcmp(&dev->iboe.gid_table[port - 1][0],
+-					     &zgid, sizeof gid))) {
+-					dev->iboe.gid_table[port - 1][0] = gid;
+-					++need_update;
+-					hits[0] = 1;
+-				} else if (free >= 0) {
+-					dev->iboe.gid_table[port - 1][free] = gid;
+-					hits[free] = 1;
+-					++need_update;
+-				}
+-			}
+-		}
+-	}
+-	rcu_read_unlock();
++	return 0;
++}
+ 
+-	for (i = 0; i < 128; ++i)
+-		if (!hits[i]) {
+-			if (memcmp(&dev->iboe.gid_table[port - 1][i], &zgid, sizeof zgid))
+-				++need_update;
+-			dev->iboe.gid_table[port - 1][i] = zgid;
+-		}
++static int reset_gid_table(struct mlx4_ib_dev *dev)
++{
++	struct update_gid_work *work;
+ 
+-	if (need_update) {
+-		memcpy(work->gids, dev->iboe.gid_table[port - 1], sizeof work->gids);
+-		INIT_WORK(&work->work, update_gids_task);
+-		work->port = port;
+-		work->dev = dev;
+-		queue_work(wq, &work->work);
+-	} else
+-		kfree(work);
+ 
+-	kfree(hits);
++	work = kzalloc(sizeof(*work), GFP_ATOMIC);
++	if (!work)
++		return -ENOMEM;
++	memset(dev->iboe.gid_table, 0, sizeof(dev->iboe.gid_table));
++	memset(work->gids, 0, sizeof(work->gids));
++	INIT_WORK(&work->work, reset_gids_task);
++	work->dev = dev;
++	queue_work(wq, &work->work);
+ 	return 0;
+-
+-out:
+-	kfree(work);
+-	return ret;
+ }
+ 
+-static void handle_en_event(struct mlx4_ib_dev *dev, int port, unsigned long event)
++static int mlx4_ib_addr_event(int event, struct net_device *event_netdev,
++			      struct mlx4_ib_dev *ibdev, union ib_gid *gid)
+ {
+-	switch (event) {
+-	case NETDEV_UP:
+-	case NETDEV_CHANGEADDR:
+-		update_ipv6_gids(dev, port, 0);
+-		break;
++	struct mlx4_ib_iboe *iboe;
++	int port = 0;
++	struct net_device *real_dev = rdma_vlan_dev_real_dev(event_netdev) ?
++				rdma_vlan_dev_real_dev(event_netdev) : event_netdev;
++
++	if (event != NETDEV_DOWN && event != NETDEV_UP)
++		return 0;
++
++	if ((real_dev != event_netdev) &&
++	    (event == NETDEV_DOWN) &&
++	    rdma_link_local_addr((struct in6_addr *)gid))
++		return 0;
++
++	iboe = &ibdev->iboe;
++	spin_lock(&iboe->lock);
++
++	for (port = 1; port <= MLX4_MAX_PORTS; ++port)
++		if ((netif_is_bond_master(real_dev) && (real_dev == iboe->masters[port - 1])) ||
++		    (!netif_is_bond_master(real_dev) && (real_dev == iboe->netdevs[port - 1])))
++			update_gid_table(ibdev, port, gid, event == NETDEV_DOWN);
++
++	spin_unlock(&iboe->lock);
++	return 0;
+ 
+-	case NETDEV_DOWN:
+-		update_ipv6_gids(dev, port, 1);
+-		dev->iboe.netdevs[port - 1] = NULL;
+-	}
+ }
+ 
+-static void netdev_added(struct mlx4_ib_dev *dev, int port)
++static u8 mlx4_ib_get_dev_port(struct net_device *dev,
++			       struct mlx4_ib_dev *ibdev)
+ {
+-	update_ipv6_gids(dev, port, 0);
++	u8 port = 0;
++	struct mlx4_ib_iboe *iboe;
++	struct net_device *real_dev = rdma_vlan_dev_real_dev(dev) ?
++				rdma_vlan_dev_real_dev(dev) : dev;
++
++	iboe = &ibdev->iboe;
++	spin_lock(&iboe->lock);
++
++	for (port = 1; port <= MLX4_MAX_PORTS; ++port)
++		if ((netif_is_bond_master(real_dev) && (real_dev == iboe->masters[port - 1])) ||
++		    (!netif_is_bond_master(real_dev) && (real_dev == iboe->netdevs[port - 1])))
++			break;
++
++	spin_unlock(&iboe->lock);
++
++	if ((port == 0) || (port > MLX4_MAX_PORTS))
++		return 0;
++	else
++		return port;
+ }
+ 
+-static void netdev_removed(struct mlx4_ib_dev *dev, int port)
++static int mlx4_ib_inet_event(struct notifier_block *this, unsigned long event,
++				void *ptr)
+ {
+-	update_ipv6_gids(dev, port, 1);
++	struct mlx4_ib_dev *ibdev;
++	struct in_ifaddr *ifa = ptr;
++	union ib_gid gid;
++	struct net_device *event_netdev = ifa->ifa_dev->dev;
++
++	ipv6_addr_set_v4mapped(ifa->ifa_address, (struct in6_addr *)&gid);
++
++	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb_inet);
++
++	mlx4_ib_addr_event(event, event_netdev, ibdev, &gid);
++	return NOTIFY_DONE;
+ }
+ 
+-static int mlx4_ib_netdev_event(struct notifier_block *this, unsigned long event,
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++static int mlx4_ib_inet6_event(struct notifier_block *this, unsigned long event,
+ 				void *ptr)
+ {
+-	struct net_device *dev = ptr;
+ 	struct mlx4_ib_dev *ibdev;
+-	struct net_device *oldnd;
++	struct inet6_ifaddr *ifa = ptr;
++	union  ib_gid *gid = (union ib_gid *)&ifa->addr;
++	struct net_device *event_netdev = ifa->idev->dev;
++
++	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb_inet6);
++
++	mlx4_ib_addr_event(event, event_netdev, ibdev, gid);
++	return NOTIFY_DONE;
++}
++#endif
++
++static void mlx4_ib_get_dev_addr(struct net_device *dev, struct mlx4_ib_dev *ibdev, u8 port)
++{
++	struct in_device *in_dev;
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++	struct inet6_dev *in6_dev;
++	union ib_gid  *pgid;
++	struct inet6_ifaddr *ifp;
++#endif
++	union ib_gid gid;
++
++
++	if ((port == 0) || (port > MLX4_MAX_PORTS))
++		return;
++
++	/* IPv4 gids */
++	in_dev = in_dev_get(dev);
++	if (in_dev) {
++		for_ifa(in_dev) {
++			/*ifa->ifa_address;*/
++			ipv6_addr_set_v4mapped(ifa->ifa_address, (struct in6_addr *)&gid);
++			update_gid_table(ibdev, port, &gid, 0);
++		}
++		endfor_ifa(in_dev);
++		in_dev_put(in_dev);
++	}
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++	/* IPv6 gids */
++	in6_dev = in6_dev_get(dev);
++	if (in6_dev) {
++		read_lock_bh(&in6_dev->lock);
++		list_for_each_entry(ifp, &in6_dev->addr_list, if_list) {
++			pgid = (union ib_gid *)&ifp->addr;
++			update_gid_table(ibdev, port, pgid, 0);
++		}
++		read_unlock_bh(&in6_dev->lock);
++		in6_dev_put(in6_dev);
++	}
++#endif
++}
++
++int mlx4_ib_init_gid_table(struct mlx4_ib_dev *ibdev)
++{
++	struct	net_device *dev;
++
++	if (reset_gid_table(ibdev))
++		return -1;
++
++	read_lock(&dev_base_lock);
++
++	for_each_netdev(&init_net, dev) {
++		u8 port = mlx4_ib_get_dev_port(dev, ibdev);
++		if (port)
++			mlx4_ib_get_dev_addr(dev, ibdev, port);
++	}
++
++	read_unlock(&dev_base_lock);
++
++	return 0;
++}
++
++static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev)
++{
+ 	struct mlx4_ib_iboe *iboe;
+ 	int port;
+ 
+-	if (!net_eq(dev_net(dev), &init_net))
+-		return NOTIFY_DONE;
+-
+-	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb);
+ 	iboe = &ibdev->iboe;
+ 
+ 	spin_lock(&iboe->lock);
+ 	mlx4_foreach_ib_transport_port(port, ibdev->dev) {
+-		oldnd = iboe->netdevs[port - 1];
++		struct net_device *old_master = iboe->masters[port - 1];
++		struct net_device *curr_master;
+ 		iboe->netdevs[port - 1] =
+ 			mlx4_get_protocol_dev(ibdev->dev, MLX4_PROT_ETH, port);
+-		if (oldnd != iboe->netdevs[port - 1]) {
+-			if (iboe->netdevs[port - 1])
+-				netdev_added(ibdev, port);
+-			else
+-				netdev_removed(ibdev, port);
++
++		if (iboe->netdevs[port - 1] && netif_is_bond_slave(iboe->netdevs[port - 1])) {
++			rtnl_lock();
++			iboe->masters[port - 1] = netdev_master_upper_dev_get(iboe->netdevs[port - 1]);
++			rtnl_unlock();
+ 		}
+-	}
++		curr_master = iboe->masters[port - 1];
+ 
+-	if (dev == iboe->netdevs[0] ||
+-	    (iboe->netdevs[0] && rdma_vlan_dev_real_dev(dev) == iboe->netdevs[0]))
+-		handle_en_event(ibdev, 1, event);
+-	else if (dev == iboe->netdevs[1]
+-		 || (iboe->netdevs[1] && rdma_vlan_dev_real_dev(dev) == iboe->netdevs[1]))
+-		handle_en_event(ibdev, 2, event);
++		/* if bonding is used it is possible that we add it to masters only after
++		   IP address is assigned to the net bonding interface */
++		if (curr_master && (old_master != curr_master))
++			mlx4_ib_get_dev_addr(curr_master, ibdev, port);
++	}
+ 
+ 	spin_unlock(&iboe->lock);
++}
++
++static int mlx4_ib_netdev_event(struct notifier_block *this, unsigned long event,
++				void *ptr)
++{
++	struct net_device *dev = ptr;
++	struct mlx4_ib_dev *ibdev;
++
++	if (!net_eq(dev_net(dev), &init_net))
++		return NOTIFY_DONE;
++
++	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb);
++	mlx4_ib_scan_netdevs(ibdev);
+ 
+ 	return NOTIFY_DONE;
+ }
+@@ -1490,11 +1613,35 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (mlx4_ib_init_sriov(ibdev))
+ 		goto err_mad;
+ 
+-	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE && !iboe->nb.notifier_call) {
+-		iboe->nb.notifier_call = mlx4_ib_netdev_event;
+-		err = register_netdevice_notifier(&iboe->nb);
+-		if (err)
+-			goto err_sriov;
++	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE) {
++		if (!iboe->nb.notifier_call) {
++			iboe->nb.notifier_call = mlx4_ib_netdev_event;
++			err = register_netdevice_notifier(&iboe->nb);
++			if (err) {
++				iboe->nb.notifier_call = NULL;
++				goto err_notif;
++			}
++		}
++		if (!iboe->nb_inet.notifier_call) {
++			iboe->nb_inet.notifier_call = mlx4_ib_inet_event;
++			err = register_inetaddr_notifier(&iboe->nb_inet);
++			if (err) {
++				iboe->nb_inet.notifier_call = NULL;
++				goto err_notif;
++			}
++		}
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++		if (!iboe->nb_inet6.notifier_call) {
++			iboe->nb_inet6.notifier_call = mlx4_ib_inet6_event;
++			err = register_inet6addr_notifier(&iboe->nb_inet6);
++			if (err) {
++				iboe->nb_inet6.notifier_call = NULL;
++				goto err_notif;
++			}
++		}
++#endif
++		mlx4_ib_scan_netdevs(ibdev);
++		mlx4_ib_init_gid_table(ibdev);
+ 	}
+ 
+ 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
+@@ -1520,11 +1667,25 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	return ibdev;
+ 
+ err_notif:
+-	if (unregister_netdevice_notifier(&ibdev->iboe.nb))
+-		pr_warn("failure unregistering notifier\n");
++	if (ibdev->iboe.nb.notifier_call) {
++		if (unregister_netdevice_notifier(&ibdev->iboe.nb))
++			pr_warn("failure unregistering notifier\n");
++		ibdev->iboe.nb.notifier_call = NULL;
++	}
++	if (ibdev->iboe.nb_inet.notifier_call) {
++		if (unregister_inetaddr_notifier(&ibdev->iboe.nb_inet))
++			pr_warn("failure unregistering notifier\n");
++		ibdev->iboe.nb_inet.notifier_call = NULL;
++	}
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++	if (ibdev->iboe.nb_inet6.notifier_call) {
++		if (unregister_inet6addr_notifier(&ibdev->iboe.nb_inet6))
++			pr_warn("failure unregistering notifier\n");
++		ibdev->iboe.nb_inet6.notifier_call = NULL;
++	}
++#endif
+ 	flush_workqueue(wq);
+ 
+-err_sriov:
+ 	mlx4_ib_close_sriov(ibdev);
+ 
+ err_mad:
+@@ -1566,6 +1727,18 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+ 			pr_warn("failure unregistering notifier\n");
+ 		ibdev->iboe.nb.notifier_call = NULL;
+ 	}
++	if (ibdev->iboe.nb_inet.notifier_call) {
++		if (unregister_inetaddr_notifier(&ibdev->iboe.nb_inet))
++			pr_warn("failure unregistering notifier\n");
++		ibdev->iboe.nb_inet.notifier_call = NULL;
++	}
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++	if (ibdev->iboe.nb_inet6.notifier_call) {
++		if (unregister_inet6addr_notifier(&ibdev->iboe.nb_inet6))
++			pr_warn("failure unregistering notifier\n");
++		ibdev->iboe.nb_inet6.notifier_call = NULL;
++	}
++#endif
+ 	iounmap(ibdev->uar_map);
+ 	for (p = 0; p < ibdev->num_ports; ++p)
+ 		if (ibdev->counters[p] != -1)
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index f61ec26..0c98417 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -422,7 +422,10 @@ struct mlx4_ib_sriov {
+ struct mlx4_ib_iboe {
+ 	spinlock_t		lock;
+ 	struct net_device      *netdevs[MLX4_MAX_PORTS];
++	struct net_device      *masters[MLX4_MAX_PORTS];
+ 	struct notifier_block 	nb;
++	struct notifier_block	nb_inet;
++	struct notifier_block	nb_inet6;
+ 	union ib_gid		gid_table[MLX4_MAX_PORTS][128];
+ };
+ 
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 4f10af2..ddf5a1a 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1147,11 +1147,8 @@ static void mlx4_set_sched(struct mlx4_qp_path *path, u8 port)
+ static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
+ 			 struct mlx4_qp_path *path, u8 port)
+ {
+-	int err;
+ 	int is_eth = rdma_port_get_link_layer(&dev->ib_dev, port) ==
+ 		IB_LINK_LAYER_ETHERNET;
+-	u8 mac[6];
+-	int is_mcast;
+ 	u16 vlan_tag;
+ 	int vidx;
+ 
+@@ -1188,16 +1185,12 @@ static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
+ 		if (!(ah->ah_flags & IB_AH_GRH))
+ 			return -1;
+ 
+-		err = mlx4_ib_resolve_grh(dev, ah, mac, &is_mcast, port);
+-		if (err)
+-			return err;
+-
+-		memcpy(path->dmac, mac, 6);
++		memcpy(path->dmac, ah->dmac, 6);
+ 		path->ackto = MLX4_IB_LINK_TYPE_ETH;
+ 		/* use index 0 into MAC table for IBoE */
+ 		path->grh_mylmc &= 0x80;
+ 
+-		vlan_tag = rdma_get_vlan_id(&dev->iboe.gid_table[port - 1][ah->grh.sgid_index]);
++		vlan_tag = ah->vlan;
+ 		if (vlan_tag < 0x1000) {
+ 			if (mlx4_find_cached_vlan(dev->dev, port, vlan_tag, &vidx))
+ 				return -ENOENT;
+@@ -1236,6 +1229,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 	enum mlx4_qp_optpar optpar = 0;
+ 	int sqd_event;
+ 	int err = -EINVAL;
++	int is_eth;
+ 
+ 	context = kzalloc(sizeof *context, GFP_KERNEL);
+ 	if (!context)
+@@ -1464,6 +1458,13 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		context->pri_path.ackto = (context->pri_path.ackto & 0xf8) |
+ 					MLX4_IB_LINK_TYPE_ETH;
+ 
++	if (ibqp->qp_type == IB_QPT_UD)
++		if (is_eth && (new_state == IB_QPS_RTR)) {
++			context->pri_path.ackto = MLX4_IB_LINK_TYPE_ETH;
++			optpar |= MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH;
++		}
++
++
+ 	if (cur_state == IB_QPS_RTS && new_state == IB_QPS_SQD	&&
+ 	    attr_mask & IB_QP_EN_SQD_ASYNC_NOTIFY && attr->en_sqd_async_notify)
+ 		sqd_event = 1;
+diff --git a/include/linux/mlx4/cq.h b/include/linux/mlx4/cq.h
+index 98fa492..72ba0a9 100644
+--- a/include/linux/mlx4/cq.h
++++ b/include/linux/mlx4/cq.h
+@@ -43,10 +43,15 @@ struct mlx4_cqe {
+ 	__be32			immed_rss_invalid;
+ 	__be32			g_mlpath_rqpn;
+ 	__be16			sl_vid;
+-	__be16			rlid;
+-	__be16			status;
+-	u8			ipv6_ext_mask;
+-	u8			badfcs_enc;
++	union {
++		struct {
++			__be16	rlid;
++			__be16  status;
++			u8      ipv6_ext_mask;
++			u8      badfcs_enc;
++		};
++		u8  smac[6];
++	};
+ 	__be32			byte_cnt;
+ 	__be16			wqe_index;
+ 	__be16			checksum;
+@@ -83,6 +88,7 @@ struct mlx4_ts_cqe {
+ enum {
+ 	MLX4_CQE_VLAN_PRESENT_MASK	= 1 << 29,
+ 	MLX4_CQE_QPN_MASK		= 0xffffff,
++	MLX4_CQE_VID_MASK		= 0xfff,
+ };
+ 
+ enum {
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
