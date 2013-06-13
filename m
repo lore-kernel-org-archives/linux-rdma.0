@@ -1,73 +1,53 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH infiniband-diags 2/6] ibstat.c: fix
- buffer-not-null-terminated
-Date: Wed, 12 Jun 2013 23:21:47 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E0207E8B2@CRSMSX101.amr.corp.intel.com>
-References: <51B87DD4.9040005@dev.mellanox.co.il>
- <20130612141948.c4760f2856d2e4435be2b0a7@intel.com>
- <51B8F03C.8010004@dev.mellanox.co.il> <51B8F0E9.90508@dev.mellanox.co.il>
- <2807E5FD2F6FDA4886F6618EAC48510E0207E124@CRSMSX101.amr.corp.intel.com>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband-diags: ibstat fix strncpy coverity check and -l
+ bug
+Date: Wed, 12 Jun 2013 17:03:07 -0700
+Message-ID: <20130612170307.8eb7f51c4b68512db703615a@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E0207E124-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> Subject: RE: [PATCH infiniband-diags 2/6] ibstat.c: fix buffer-not-null-
-> terminated
-> 
-> > >
-> > > I think the change is to quiet a Coverity detected error but Dan is
-> > > the definitive source for this change.
-> 
-> I think we should remove the dead code and that should fix Coverity.  I
-> thought it detected dead code.  I wonder if I missed something?
 
-That is not dead code.  I misread where the break jumps to.
-	
-However, the code is redundant and there is a bug.[*]
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/ibstat.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
 
-16:16:51 > ibstat -l
-mlx4_0
-mlx4_1
-16:17:57 > ibstat -l mlx4_1
-mlx4_0
+diff --git a/src/ibstat.c b/src/ibstat.c
+index 665bb0a..1ef27f2 100644
+--- a/src/ibstat.c
++++ b/src/ibstat.c
+@@ -314,7 +314,8 @@ int main(int argc, char *argv[])
+ 		if (i >= n)
+ 			IBPANIC("'%s' IB device can't be found", argv[0]);
+ 
+-		strncpy(names[i], argv[0], sizeof names[i]);
++		strncpy(names[0], argv[0], sizeof(names[0])-1);
++		names[0][sizeof(names[0])-1] = '\0';
+ 		n = 1;
+ 	}
+ 
+@@ -324,12 +325,6 @@ int main(int argc, char *argv[])
+ 		return 0;
+ 	}
+ 
+-	if (!list_only && argc) {
+-		if (ca_stat(argv[0], dev_port, short_format) < 0)
+-			IBPANIC("stat of IB device '%s' failed", argv[0]);
+-		return 0;
+-	}
+-
+ 	for (i = 0; i < n; i++) {
+ 		if (list_only)
+ 			printf("%s\n", names[i]);
+-- 
+1.7.1
 
-The intent was to copy argv[0] into names[0] and set n=1.  But that is not happening...
-	
-Ira
-
-[*] not that the above is really a valid use case.
-	
-> 
-> Ira
-> 
-> > >
-> > > -- Hal
-> > >
-> > >> Ira
-> > >>
-> > >>>  		n = 1;
-> > >>>  	}
-> > >>>
-> > >>> --
-> > >>> 1.7.8.2
-> > >>>
-> > >>
-> > >>
-> > >
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
