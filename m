@@ -1,111 +1,181 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
-Date: Fri, 14 Jun 2013 11:38:10 +0200
-Message-ID: <51BAE482.1050304@profitbricks.com>
-References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org> <51BA0655.6090707@mellanox.com> <51BA0E8F.3030104@acm.org> <51BA555F.9060807@mellanox.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH 07/14] scsi_transport_srp: Add transport layer error handling
+Date: Fri, 14 Jun 2013 15:19:19 +0200
+Message-ID: <51BB1857.7040802@acm.org>
+References: <51B87501.4070005@acm.org> <51B8777B.5050201@acm.org> <51BA20ED.6040200@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51BA555F.9060807-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <51BA20ED.6040200@mellanox.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Vu Pham <vuhuong@mellanox.com>
+Cc: Roland Dreier <roland@kernel.org>, David Dillow <dillowda@ornl.gov>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, James Bottomley <jbottomley@parallels.com>
 List-Id: linux-rdma@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-On 14.06.2013 01:27, Vu Pham wrote:
-> Bart Van Assche wrote:
->> On 06/13/13 19:50, Vu Pham wrote:
->>> Hello Bart,
->>> 
->>>> +/** + * srp_conn_unique() - check whether the connection to
->>>> a target is unique + */ +static bool srp_conn_unique(struct
->>>> srp_host *host, +                struct srp_target_port
->>>> *target) +{ +    struct srp_target_port *t; +    bool ret =
->>>> false; + +    if (target->state == SRP_TARGET_REMOVED) +
->>>> goto out; + +    ret = true; + +
->>>> spin_lock(&host->target_lock); +    list_for_each_entry(t,
->>>> &host->target_list, list) { +        if (t != target && +
->>>> target->id_ext == t->id_ext &&
->>> 
->>> Targets may advertise/expose on different pkeys You can have
->>> multiple connections  (or paths/scsi hosts) to same target with
->>> different pkeys. We need extra check to detect the uniqueness: 
->>> target->path.pkey == t->path.pkey &&
->> 
->> Hello Vu,
->> 
->> Thanks for the feedback. This is something I have already
->> thinking about myself. Unfortunately I have not found any
->> requirements in the T10 SRP standard with regard to InfiniBand
->> partitions. However, in that document there is a section about
->> single RDMA channel operation. In that section it is explained
->> that an SRP target must log out established sessions upon receipt
->> of a new login request. What I'm not sure about is whether only
->> sessions with the same P_Key must be logged out or all
->> established sessions if a new login request is received. I assume
->> the latter since otherwise that would mean that an SRP target 
->> would be required to maintain multiple sessions if it allows 
->> connections with more than one P_Key to a target port ? My
->> concern about adding a pkey comparison in the function
->> srp_conn_unique() is that if a target allows an initiator to
->> choose which partition to use when logging in, that this could
->> result in the undesired SRP initiator ping-pong effect this patch
->> tries to avoid.
->> 
->> Bart.
->> 
+On 06/13/13 21:43, Vu Pham wrote:
 > Hello Bart,
 > 
-> Yes, you pointed out the unclear/undefined area.
-> 
-> If we stick to single RDMA channel per IT Nexus with unique tuple 
-> Initiator Port Identier - Target Port Indentifier then newly
-> created connection with same tuple (I_port_id, T_port_id) but with
-> different P_Key or different DGID is not unique.
-> 
-> Sticking to this rule by excluding P_Key and DGID  out of rdma
-> channel indentity, your srp_conn_unique() checking is ok; however,
-> some SRP target implementations may include DGID as part of rdma
-> channel identifier. I'm not sure about different p_key part.
-> 
-> -vu
+>>
+>> +What:        /sys/class/srp_remote_ports/port-<h>:<n>/dev_loss_tmo
+>> +Date:        September 1, 2013
+>> +KernelVersion:    3.11
+>> +Contact:    linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
+>> +Description:    Number of seconds the SCSI layer will wait after a 
+>> transport
+>> +        layer error has been observed before removing a target port.
+>> +        Zero means immediate removal.
+> A negative value will disable the target port removal.
+>
+> <snip>
+>> +
+>> +/**
+>> + * srp_tmo_valid() - check timeout combination validity
+>> + *
+>> + * If no fast I/O fail timeout has been configured then the device 
+>> loss timeout
+>> + * must be below SCSI_DEVICE_BLOCK_MAX_TIMEOUT. If a fast I/O fail 
+>> timeout has
+>> + * been configured then it must be below the device loss timeout.
+>> + */
+>> +int srp_tmo_valid(int fast_io_fail_tmo, int dev_loss_tmo)
+>> +{
+>> +    return (fast_io_fail_tmo < 0 && 1 <= dev_loss_tmo &&
+>> +        dev_loss_tmo <= SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
+>> +        || (0 <= fast_io_fail_tmo &&
+>> +            (dev_loss_tmo < 0 ||
+>> +             (fast_io_fail_tmo < dev_loss_tmo &&
+>> +              dev_loss_tmo < LONG_MAX / HZ))) ? 0 : -EINVAL;
+>> +}
+>> +EXPORT_SYMBOL_GPL(srp_tmo_valid);
+> fast_io_fail_tmo is off, one cannot turn off dev_loss_tmo with negative 
+> value
+> dev_loss_tmo is off, one cannot turn off fast_io_fail_tmo with negative 
+> value
 
-Hi Vu!
+OK, will update the documentation such that it correctly refers to "off" instead of a negative value and I will also mention that dev_loss_tmo can now be disabled.
 
-For what do you need the same target with multiple pkeys on the same
-local SRP port?
+> <snip>
+>>
+>> + * srp_reconnect_rport - reconnect by invoking 
+>> srp_function_template.reconnect()
+>> + *
+>> + * Blocks SCSI command queueing before invoking reconnect() such that 
+>> the
+>> + * scsi_host_template.queuecommand() won't be invoked concurrently with
+>> + * reconnect(). This is important since a reconnect() implementation may
+>> + * reallocate resources needed by queuecommand(). Please note that this
+>> + * function neither waits until outstanding requests have finished 
+>> nor tries
+>> + * to abort these. It is the responsibility of the reconnect() 
+>> function to
+>> + * finish outstanding commands before reconnecting to the target port.
+>> + */
+>> +int srp_reconnect_rport(struct srp_rport *rport)
+>> +{
+>> +    struct Scsi_Host *shost = rport_to_shost(rport);
+>> +    struct srp_internal *i = to_srp_internal(shost->transportt);
+>> +    struct scsi_device *sdev;
+>> +    int res;
+>> +
+>> +    pr_debug("SCSI host %s\n", dev_name(&shost->shost_gendev));
+>> +
+>> +    res = mutex_lock_interruptible(&rport->mutex);
+>> +    if (res) {
+>> +        pr_debug("%s: mutex_lock_interruptible() returned %d\n",
+>> +             dev_name(&shost->shost_gendev), res);
+>> +        goto out;
+>> +    }
+>> +
+>> +    spin_lock_irq(shost->host_lock);
+>> +    scsi_block_requests(shost);
+>> +    spin_unlock_irq(shost->host_lock);
+>> +
+> In scsi_block_requests() definition, no locks are assumed held.
 
-Which other SRP targets exist?
+Good catch :-) However, if you look around in drivers/scsi you will see that several SCSI LLD drivers invoke scsi_block_requests() with the host lock held. I'm not sure whether these LLDs or the scsi_block_requests() documentation is incorrect. Anyway, I'll leave the locking statements out since these are not necessary around this call of scsi_block_requests().
 
-I only know SCST, Solaris COMSTAR and that broken LIO stuff.
-Does SCST still not support to set the pkey?
+> If rport's state is already SRP_RPORT_BLOCKED, I don't think we need to 
+> do extra block with scsi_block_requests()
 
-Why should we check the dgid?
+Please keep in mind that srp_reconnect_rport() can be called from two different contexts: that function can not only be called from inside the SRP transport layer but also from inside the SCSI error handler (see also the srp_reset_device() modifications in a later patch in this series). If this function is invoked from the context of the SCSI error handler the chance is high that the SCSI device will have another state than SDEV_BLOCK. Hence the scsi_block_requests() call in this function.
 
-Doesn't make any sense to me to connect both target ports to the same
-local port. If you do so, the multipath-tools will crash. Note: This
-function is called per local SRP port. Perhaps, a note should be added
-to that function that it only has to be called per local SRP port.
+> Shouldn't we avoid using both scsi_block/unblock_requests() and 
+> scsi_target_block/unblock()?
+> ie. in srp_start_tl_fail_timers()  call scsi_block_requests(), in 
+> __rport_fast_io_fail_timedout() and rport_dev_loss_timedout() call 
+> scsi_unblock_requests()
+> and using scsi_block/unblock_requests in this function.
 
-Cheers,
-Sebastian
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+I agree that using only one of these two mechanisms would be more elegant. However, the advantage of using scsi_target_block() as long as fast_io_fail_tmo has not expired is that this functions set the SDEV_BLOCK state which is recognized by multipathd. The reason scsi_block_requests() is used in the above function is to prevent that a user can reenable requests via sysfs while a new InfiniBand RC connection is being established. A call of srp_queuecommand() concurrently with srp_create_target_ib() can namely result in a kernel crash.
 
-iQEcBAEBAgAGBQJRuuSCAAoJEH4DRb7WXajZcFcH+gKsSs64Js/CUqMSyPeFPQ7u
-7jKHvLr2wqHqSMIg5rEeZxZJpE9rL+wi8k5TMAMBrV+Povdwr8tWHgdq7mh5N1xO
-V517YTgdzrwPIFy9e2uktxx4VYpsFGrV8iw3rdAzXRmcYa5U8feXhiD1VZyKjs4p
-3//wvGAR0po7Pm0WgU9Q+h0arQos8CmeHkpoaNp/nNINXpXlTX21WVvHjwQrMFhC
-Kr8zoCOTd0Sn+WoSs+CT/7Y4oTknukwR5vh6wfKgz2W74YkMKpD658QZozlafyK/
-rwdajV19YYvi8YRTjUXuY5TN0qshYOGDxJDtNFkRGbx+IxIqFkGyyFCp0LPCfto=
-=nlf2
------END PGP SIGNATURE-----
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> +    while (scsi_request_fn_active(shost))
+>> +        msleep(20);
+>> +
+>> +    res = i->f->reconnect(rport);
+>> +    scsi_unblock_requests(shost);
+>> +    pr_debug("%s (state %d): transport.reconnect() returned %d\n",
+>> +         dev_name(&shost->shost_gendev), rport->state, res);
+>> +    if (res == 0) {
+>> +        cancel_delayed_work(&rport->fast_io_fail_work);
+>> +        cancel_delayed_work(&rport->dev_loss_work);
+>> +        rport->failed_reconnects = 0;
+>> +        scsi_target_unblock(&shost->shost_gendev, SDEV_RUNNING);
+>> +        srp_rport_set_state(rport, SRP_RPORT_RUNNING);
+>> +        /*
+>> +         * It can occur that after fast_io_fail_tmo expired and before
+>> +         * dev_loss_tmo expired that the SCSI error handler has
+>> +         * offlined one or more devices. scsi_target_unblock() doesn't
+>> +         * change the state of these devices into running, so do that
+>> +         * explicitly.
+>> +         */
+>> +        spin_lock_irq(shost->host_lock);
+>> +        __shost_for_each_device(sdev, shost)
+>> +            if (sdev->sdev_state == SDEV_OFFLINE)
+>> +                sdev->sdev_state = SDEV_RUNNING;
+>> +        spin_unlock_irq(shost->host_lock);
+>> +    } else if (rport->state == SRP_RPORT_RUNNING) {
+>> +        srp_rport_set_state(rport, SRP_RPORT_FAIL_FAST);
+>> +        scsi_target_unblock(&shost->shost_gendev,
+>> +                    SDEV_TRANSPORT_OFFLINE);
+> Would this unblock override the fast_io_fail_tmo functionality?
+
+Sorry but I don't think so. If something goes wrong with the transport layer then the function srp_start_tl_fail_timers() gets invoked. That function starts with changing the state from SRP_RPORT_RUNNING into SRP_RPORT_BLOCKED. In other words, the code below "if (rport->state == SRP_RPORT_RUNNING)" can only be reached if srp_reconnect_rport() is invoked from the context of the SCSI error handler and not if it is called from inside one of the new SRP transport layer times. In other words, whether or not that code will be reached depends on whether fast_io_fail_tmo is below or above the SCSI command timeout.
+
+>> +static enum blk_eh_timer_return srp_timed_out(struct scsi_cmnd *scmd)
+>> +{
+>> +    struct scsi_device *sdev = scmd->device;
+>> +
+>> +    pr_debug("timeout for sdev %s\n", dev_name(&sdev->sdev_gendev));
+>> +    return scsi_device_blocked(sdev) ? BLK_EH_RESET_TIMER :
+>> +        BLK_EH_NOT_HANDLED;
+> if one turn off fast_io_fail_tmo, rport_fast_io_fail_timedout() won't be 
+> called, and reconnect is failed, scsi_device_blocked remains true, error 
+> recovery cannot happen
+> I think it should be
+> return (scsi_device_blocked(sdev) && rport->fast_io_fail_tmo > 0) ? 
+> BLK_EH_RESET_TIMER : BLK_EH_NOT_HANDLED;
+
+How about the following alternative ?
+
+diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
+index 53b34b3..84574fb 100644
+--- a/drivers/scsi/scsi_transport_srp.c
++++ b/drivers/scsi/scsi_transport_srp.c
+@@ -550,11 +550,12 @@ void srp_start_tl_fail_timers(struct srp_rport *rport)
+                goto out_unlock;
+        pr_debug("%s new state: %d\n", dev_name(&shost->shost_gendev),
+                 rport->state);
+-       scsi_target_block(&shost->shost_gendev);
+ 
+-       if (rport->fast_io_fail_tmo >= 0)
++       if (rport->fast_io_fail_tmo >= 0) {
++               scsi_target_block(&shost->shost_gendev);
+                queue_delayed_work(system_long_wq, &rport->fast_io_fail_work,
+                                   1UL * rport->fast_io_fail_tmo * HZ);
++       }
+        if (rport->dev_loss_tmo >= 0)
+                queue_delayed_work(system_long_wq, &rport->dev_loss_work,
+                                   1UL * rport->dev_loss_tmo * HZ);
+
+Bart.
