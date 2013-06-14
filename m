@@ -1,34 +1,111 @@
-From: Joe Perches <joe@perches.com>
-Subject: [Trivial PATCH 11/33] infiniband: Convert use of typedef ctl_table to struct ctl_table
-Date: Thu, 13 Jun 2013 19:37:36 -0700
-Message-ID: <fac2bd9d6dd26f566c8c09f0e8344822b3feb469.1371177118.git.joe@perches.com>
-References: <cover.1371177118.git.joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1371177118.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
+Date: Fri, 14 Jun 2013 11:38:10 +0200
+Message-ID: <51BAE482.1050304@profitbricks.com>
+References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org> <51BA0655.6090707@mellanox.com> <51BA0E8F.3030104@acm.org> <51BA555F.9060807@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51BA555F.9060807-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This typedef is unnecessary and should just be removed.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/infiniband/core/ucma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 14.06.2013 01:27, Vu Pham wrote:
+> Bart Van Assche wrote:
+>> On 06/13/13 19:50, Vu Pham wrote:
+>>> Hello Bart,
+>>> 
+>>>> +/** + * srp_conn_unique() - check whether the connection to
+>>>> a target is unique + */ +static bool srp_conn_unique(struct
+>>>> srp_host *host, +                struct srp_target_port
+>>>> *target) +{ +    struct srp_target_port *t; +    bool ret =
+>>>> false; + +    if (target->state == SRP_TARGET_REMOVED) +
+>>>> goto out; + +    ret = true; + +
+>>>> spin_lock(&host->target_lock); +    list_for_each_entry(t,
+>>>> &host->target_list, list) { +        if (t != target && +
+>>>> target->id_ext == t->id_ext &&
+>>> 
+>>> Targets may advertise/expose on different pkeys You can have
+>>> multiple connections  (or paths/scsi hosts) to same target with
+>>> different pkeys. We need extra check to detect the uniqueness: 
+>>> target->path.pkey == t->path.pkey &&
+>> 
+>> Hello Vu,
+>> 
+>> Thanks for the feedback. This is something I have already
+>> thinking about myself. Unfortunately I have not found any
+>> requirements in the T10 SRP standard with regard to InfiniBand
+>> partitions. However, in that document there is a section about
+>> single RDMA channel operation. In that section it is explained
+>> that an SRP target must log out established sessions upon receipt
+>> of a new login request. What I'm not sure about is whether only
+>> sessions with the same P_Key must be logged out or all
+>> established sessions if a new login request is received. I assume
+>> the latter since otherwise that would mean that an SRP target 
+>> would be required to maintain multiple sessions if it allows 
+>> connections with more than one P_Key to a target port ? My
+>> concern about adding a pkey comparison in the function
+>> srp_conn_unique() is that if a target allows an initiator to
+>> choose which partition to use when logging in, that this could
+>> result in the undesired SRP initiator ping-pong effect this patch
+>> tries to avoid.
+>> 
+>> Bart.
+>> 
+> Hello Bart,
+> 
+> Yes, you pointed out the unclear/undefined area.
+> 
+> If we stick to single RDMA channel per IT Nexus with unique tuple 
+> Initiator Port Identier - Target Port Indentifier then newly
+> created connection with same tuple (I_port_id, T_port_id) but with
+> different P_Key or different DGID is not unique.
+> 
+> Sticking to this rule by excluding P_Key and DGID  out of rdma
+> channel indentity, your srp_conn_unique() checking is ok; however,
+> some SRP target implementations may include DGID as part of rdma
+> channel identifier. I'm not sure about different p_key part.
+> 
+> -vu
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 5ca44cd..9416280 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -55,7 +55,7 @@ MODULE_LICENSE("Dual BSD/GPL");
- static unsigned int max_backlog = 1024;
- 
- static struct ctl_table_header *ucma_ctl_table_hdr;
--static ctl_table ucma_ctl_table[] = {
-+static struct ctl_table ucma_ctl_table[] = {
- 	{
- 		.procname	= "max_backlog",
- 		.data		= &max_backlog,
--- 
-1.8.1.2.459.gbcd45b4.dirty
+Hi Vu!
+
+For what do you need the same target with multiple pkeys on the same
+local SRP port?
+
+Which other SRP targets exist?
+
+I only know SCST, Solaris COMSTAR and that broken LIO stuff.
+Does SCST still not support to set the pkey?
+
+Why should we check the dgid?
+
+Doesn't make any sense to me to connect both target ports to the same
+local port. If you do so, the multipath-tools will crash. Note: This
+function is called per local SRP port. Perhaps, a note should be added
+to that function that it only has to be called per local SRP port.
+
+Cheers,
+Sebastian
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQEcBAEBAgAGBQJRuuSCAAoJEH4DRb7WXajZcFcH+gKsSs64Js/CUqMSyPeFPQ7u
+7jKHvLr2wqHqSMIg5rEeZxZJpE9rL+wi8k5TMAMBrV+Povdwr8tWHgdq7mh5N1xO
+V517YTgdzrwPIFy9e2uktxx4VYpsFGrV8iw3rdAzXRmcYa5U8feXhiD1VZyKjs4p
+3//wvGAR0po7Pm0WgU9Q+h0arQos8CmeHkpoaNp/nNINXpXlTX21WVvHjwQrMFhC
+Kr8zoCOTd0Sn+WoSs+CT/7Y4oTknukwR5vh6wfKgz2W74YkMKpD658QZozlafyK/
+rwdajV19YYvi8YRTjUXuY5TN0qshYOGDxJDtNFkRGbx+IxIqFkGyyFCp0LPCfto=
+=nlf2
+-----END PGP SIGNATURE-----
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
