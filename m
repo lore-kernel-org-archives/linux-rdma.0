@@ -1,7 +1,7 @@
 From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: Status of "ummunot" branch?
-Date: Fri, 14 Jun 2013 22:48:06 +0000
-Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F688620@xmb-rcd-x01.cisco.com>
+Date: Fri, 14 Jun 2013 22:53:24 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F6886C8@xmb-rcd-x01.cisco.com>
 References: <20130605181853.GB1946@obsidianresearch.com>
  <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DF6F@xmb-rcd-x01.cisco.com>
  <20130605190529.GA3044@obsidianresearch.com> <51B023B9.9050000@mellanox.com>
@@ -9,36 +9,46 @@ References: <20130605181853.GB1946@obsidianresearch.com>
  <EF66BBEB19BADC41AC8CCF5F684F07FC4F66E403@xmb-rcd-x01.cisco.com>
  <20130607235731.GA25942@obsidianresearch.com>
  <EF66BBEB19BADC41AC8CCF5F684F07FC4F676E59@xmb-rcd-x01.cisco.com>
- <D554B471892C914E90E136467281724DAD695B50@MTLDAG01.mtl.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F6808D7@xmb-rcd-x01.cisco.com>
- <20130612211742.GA8625@obsidianresearch.com>
+ <20130610172627.GC2391@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F680A2B@xmb-rcd-x01.cisco.com>
+ <20130612214708.GD8625@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130612211742.GA8625-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130612214708.GD8625-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
-Content-ID: <9446A0A9413A0B4B9141009B87BC909E-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Content-ID: <899D5EC013E58C489ADFCDB4E99B0B4A-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jun 12, 2013, at 5:17 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+On Jun 12, 2013, at 5:47 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-> Yes, it can, via MAP_FIXED. There are lots of fun tricks you can play
-> using that.
+> Someone has to finish the ummunotify rewrite Roland
+> started. Realistically MPI is going to be the only user, can someone
+> from the MPI world do this?
 
+1. I tried to ask what needed to be done at the beginning of this thread and didn't get much of an answer.
 
-You're missing the point.
+2. We've (all) been asking for this functionality *for years*; I even helped with the first implementation.  Can't the verbs community finish it?  :-)  MPI is probably your biggest customer, after all...
 
-Normal users (i.e., MPI users) don't do that.  They call malloc() and they get what they get.
+>> ...but this is not how people write applications.  Real apps use
+>> malloc (and some direct mmap, and perhaps even some shared memory).
+> 
+> *shrug* I used MAP_FIXED for some RDMA regions in my IB verbs apps,
+> specifically to create specalized high-performance memory
+> structures.
 
-The whole point of upper-layer APIs is that they hide all the network stuff from the application programmer.  Verbs is *hard* for the mere mortal to program.  MPI can do a great deal to hide the complexities of verbs from app developers, but one major concession that MPI (intentionally) made is that the *application provides the buffer*, not MPI.
+But you're not a chemist writing Fortran code to effect n-body simulations.
 
-Hence, we're stuck with what buffers the user passes in.
+The target audience for MPI is scientists and engineers who are not (and should not be) network / systems developers.  They're focusing on their formulae and applications -- as they should be.
 
-This is the root of the whole "MPI has a registration cache" issue.
+> It isn't a general purpose technique for non-RDMA apps - but
+> especially when combined with ODP it is useful in some places.
+
+I have no doubt that ODP solves problems for someone.  It just doesn't seem to solve the very-long-standing MPI issues with verbs and registration caches.
 
 -- 
 Jeff Squyres
