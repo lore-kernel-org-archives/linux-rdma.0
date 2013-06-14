@@ -1,106 +1,50 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 4/4] IB/core: Add RoCE IP based addressing
- extensions towards user space
-Date: Fri, 14 Jun 2013 23:42:46 +0300
-Message-ID: <CAJZOPZJ2LQZOx64zbQLMOjGW60h6AN8w0rtU2CCqBKwXuKZmNA@mail.gmail.com>
-References: <1371135704-5712-1-git-send-email-ogerlitz@mellanox.com>
-	<1371135704-5712-5-git-send-email-ogerlitz@mellanox.com>
-	<20130613170939.GB21570@obsidianresearch.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Status of "ummunot" branch?
+Date: Fri, 14 Jun 2013 22:48:06 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F688620@xmb-rcd-x01.cisco.com>
+References: <20130605181853.GB1946@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F65DF6F@xmb-rcd-x01.cisco.com>
+ <20130605190529.GA3044@obsidianresearch.com> <51B023B9.9050000@mellanox.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F66B79C@xmb-rcd-x01.cisco.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F66E403@xmb-rcd-x01.cisco.com>
+ <20130607235731.GA25942@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F676E59@xmb-rcd-x01.cisco.com>
+ <D554B471892C914E90E136467281724DAD695B50@MTLDAG01.mtl.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F6808D7@xmb-rcd-x01.cisco.com>
+ <20130612211742.GA8625@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130613170939.GB21570-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130612211742.GA8625-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <9446A0A9413A0B4B9141009B87BC909E-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 13, 2013 at 8:09 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Thu, Jun 13, 2013 at 06:01:44PM +0300, Or Gerlitz wrote:
->> From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> Add support for RoCE (IBoE) IP based addressing extensions towards
->> user space.
->>
->> Extend INIT_QP_ATTR and QUERY_ROUTE ucma commands.
->>
->> Extend MODIFY_QP and CREATE_AH uverbs commands.
->
-> This is a really big patch Or, there is lots going on here, hard to
-> review :(
->
-> The rdma cm stuff should probably be split out of this, and Sean
-> should look at it of course.
+On Jun 12, 2013, at 5:17 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-sure, will do that, one patch for uverbs and one patch for rdma_ucm
+> Yes, it can, via MAP_FIXED. There are lots of fun tricks you can play
+> using that.
 
 
-> In fact, since the user ABI is so important, every ABI change should
-> be a distinct patch, with a good change log, stating the intended
-> goals of the change and ABI visible changes it makes.
+You're missing the point.
 
-point taken, will do that, thanks for bringing this over.
+Normal users (i.e., MPI users) don't do that.  They call malloc() and they get what they get.
 
->
-> The changelog above is terrible for a huge patch that makes changes to
-> the userspace API.
->
->> diff --git a/include/uapi/rdma/ib_user_sa.h b/include/uapi/rdma/ib_user_sa.h
->> index cfc7c9b..367d66a 100644
->> +++ b/include/uapi/rdma/ib_user_sa.h
->> @@ -48,7 +48,13 @@ enum {
->>  struct ib_path_rec_data {
->>       __u32   flags;
->>       __u32   reserved;
->> -     __u32   path_rec[16];
->> +     __u32   path_rec[20];
->> +};
->> +
->> +enum ibv_kern_path_rec_attr_mask {
->> +     IB_USER_PATH_REC_ATTR_DMAC = 1ULL << 0,
->> +     IB_USER_PATH_REC_ATTR_SMAC = 1ULL << 1,
->> +     IB_USER_PATH_REC_ATTR_VID  = 1ULL << 2
->>  };
->
-> So, how is userspace supposed to know what these values are?
+The whole point of upper-layer APIs is that they hide all the network stuff from the application programmer.  Verbs is *hard* for the mere mortal to program.  MPI can do a great deal to hide the complexities of verbs from app developers, but one major concession that MPI (intentionally) made is that the *application provides the buffer*, not MPI.
 
-Its part of the verbs extensions deal.
+Hence, we're stuck with what buffers the user passes in.
 
-> The current system where the MAC address is in the GID seemed
-> understandable, assuming you discover the MAC out of band some how...
+This is the root of the whole "MPI has a registration cache" issue.
 
-MAC is Ethernet layer 2 address, I don't see why put mac in L3 header
-(GRH) its better understandable vs putting there L3 address (IP).
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
 
->
->> +struct ib_uverbs_modify_qp_ex {
->> +     __u32 comp_mask;
->> +     struct ib_uverbs_qp_dest dest;
->> +     struct ib_uverbs_qp_dest alt_dest;
-> [...]
->> +     struct ib_uverbs_qp_dest_ex dest_ex;
->> +     struct ib_uverbs_qp_dest_ex alt_dest_ex;
->
-> Yuk.. The 'ex' structures don't have to be byte compatible, they just
-> have to have a known transform, dest should be the full extended dest,
-> not split into two..
->
->> +struct rdma_ucm_query_route_resp_ex {
->> +     __u64 node_guid;
->> +     struct ib_user_path_rec_ex ib_route[2];
->> +     struct sockaddr_in6 src_addr;
->> +     struct sockaddr_in6 dst_addr;
->> +     __u32 num_paths;
->> +     __u8 port_num;
->> +     __u8 reserved[3];
->> +};
->
-> Should these be sockaddr_storage? How does this intersect with Sean's AF_GID work?
-
-sockaddr_in6 is OK for extending rdma_ucm_query_route_resp as its OK
-for the non extended version of that command. I don't see any
-intersection with the AF_IB work.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
