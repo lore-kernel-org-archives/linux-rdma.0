@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/4] IB/qib: remove atomic_inc_not_zero from QP RCU
-Date: Sat, 15 Jun 2013 17:06:58 -0400
-Message-ID: <20130615210658.6069.20770.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 2/4] IB/qib: Convert opcode counters to per context
+Date: Sat, 15 Jun 2013 17:07:03 -0400
+Message-ID: <20130615210703.6069.50551.stgit@phlsvslse11.ph.intel.com>
 References: <20130615210633.6069.14865.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,125 +13,517 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Follow Documentation/RCU/rcuref.txt guidance in
-removing atomic_inc_not_zero() from QP RCU
-implementation.
+This fix changes the opcode relative counters for receive
+to per context.
 
-This patch also removes an unneeded synchronize_rcu()
-in the add path.
+Profiling has shown that when mulitple contexts are being
+used there is a lot of cache activity associated with
+these counters.
+
+The code formerly kept these counters per port, but only
+provided the interface to read per HCA.  This patch converts
+the read of counters to per HCA and adds the debugfs hooks to be
+able to read the file as a sequence of opcodes.
 
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_qp.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/qib/Makefile      |    1 
+ drivers/infiniband/hw/qib/qib.h         |   36 ++++---
+ drivers/infiniband/hw/qib/qib_debugfs.c |  166 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/qib/qib_debugfs.h |   45 ++++++++
+ drivers/infiniband/hw/qib/qib_driver.c  |    1 
+ drivers/infiniband/hw/qib/qib_init.c    |   41 +++++++-
+ drivers/infiniband/hw/qib/qib_verbs.c   |    8 +
+ drivers/infiniband/hw/qib/qib_verbs.h   |    9 +-
+ 8 files changed, 284 insertions(+), 23 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_debugfs.c
+ create mode 100644 drivers/infiniband/hw/qib/qib_debugfs.h
 
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index a6a2cc2..c1f573a 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -1,5 +1,5 @@
+diff --git a/drivers/infiniband/hw/qib/Makefile b/drivers/infiniband/hw/qib/Makefile
+index f12d7bb..57f8103 100644
+--- a/drivers/infiniband/hw/qib/Makefile
++++ b/drivers/infiniband/hw/qib/Makefile
+@@ -13,3 +13,4 @@ ib_qib-$(CONFIG_PCI_MSI) += qib_iba6120.o
+ 
+ ib_qib-$(CONFIG_X86_64) += qib_wc_x86_64.o
+ ib_qib-$(CONFIG_PPC64) += qib_wc_ppc64.o
++ib_qib-$(CONFIG_DEBUG_FS) += qib_debugfs.o
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 04a9aad..ce10faf 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -115,6 +115,11 @@ struct qib_eep_log_mask {
  /*
-- * Copyright (c) 2012 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2012, 2013 Intel Corporation.  All rights reserved.
-  * Copyright (c) 2006 - 2012 QLogic Corporation.  * All rights reserved.
-  * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
-  *
-@@ -222,8 +222,8 @@ static void insert_qp(struct qib_ibdev *dev, struct qib_qp *qp)
- 	unsigned long flags;
- 	unsigned n = qpn_hash(dev, qp->ibqp.qp_num);
+  * Below contains all data related to a single context (formerly called port).
+  */
++
++#ifdef CONFIG_DEBUG_FS
++struct qib_opcode_stats_perctx;
++#endif
++
+ struct qib_ctxtdata {
+ 	void **rcvegrbuf;
+ 	dma_addr_t *rcvegrbuf_phys;
+@@ -225,12 +230,15 @@ struct qib_ctxtdata {
+ 	u8 redirect_seq_cnt;
+ 	/* ctxt rcvhdrq head offset */
+ 	u32 head;
+-	u32 pkt_count;
+ 	/* lookaside fields */
+ 	struct qib_qp *lookaside_qp;
+ 	u32 lookaside_qpn;
+ 	/* QPs waiting for context processing */
+ 	struct list_head qp_wait_list;
++#ifdef CONFIG_DEBUG_FS
++	/* verbs stats per CTX */
++	struct qib_opcode_stats_perctx *opstats;
++#endif
+ };
  
--	spin_lock_irqsave(&dev->qpt_lock, flags);
- 	atomic_inc(&qp->refcount);
-+	spin_lock_irqsave(&dev->qpt_lock, flags);
+ struct qib_sge_state;
+@@ -1499,27 +1507,23 @@ extern struct mutex qib_mutex;
+  * first to avoid possible serial port delays from printk.
+  */
+ #define qib_early_err(dev, fmt, ...) \
+-	do { \
+-		dev_err(dev, fmt, ##__VA_ARGS__); \
+-	} while (0)
++	dev_err(dev, fmt, ##__VA_ARGS__)
  
- 	if (qp->ibqp.qp_num == 0)
- 		rcu_assign_pointer(ibp->qp0, qp);
-@@ -235,7 +235,6 @@ static void insert_qp(struct qib_ibdev *dev, struct qib_qp *qp)
- 	}
+ #define qib_dev_err(dd, fmt, ...) \
+-	do { \
+-		dev_err(&(dd)->pcidev->dev, "%s: " fmt, \
+-			qib_get_unit_name((dd)->unit), ##__VA_ARGS__); \
+-	} while (0)
++	dev_err(&(dd)->pcidev->dev, "%s: " fmt, \
++		qib_get_unit_name((dd)->unit), ##__VA_ARGS__)
++
++#define qib_dev_warn(dd, fmt, ...) \
++	dev_warn(&(dd)->pcidev->dev, "%s: " fmt, \
++		qib_get_unit_name((dd)->unit), ##__VA_ARGS__)
  
- 	spin_unlock_irqrestore(&dev->qpt_lock, flags);
--	synchronize_rcu();
- }
+ #define qib_dev_porterr(dd, port, fmt, ...) \
+-	do { \
+-		dev_err(&(dd)->pcidev->dev, "%s: IB%u:%u " fmt, \
+-			qib_get_unit_name((dd)->unit), (dd)->unit, (port), \
+-			##__VA_ARGS__); \
+-	} while (0)
++	dev_err(&(dd)->pcidev->dev, "%s: IB%u:%u " fmt, \
++		qib_get_unit_name((dd)->unit), (dd)->unit, (port), \
++		##__VA_ARGS__)
+ 
+ #define qib_devinfo(pcidev, fmt, ...) \
+-	do { \
+-		dev_info(&(pcidev)->dev, fmt, ##__VA_ARGS__); \
+-	} while (0)
++	dev_info(&(pcidev)->dev, fmt, ##__VA_ARGS__)
  
  /*
-@@ -247,36 +246,39 @@ static void remove_qp(struct qib_ibdev *dev, struct qib_qp *qp)
- 	struct qib_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
- 	unsigned n = qpn_hash(dev, qp->ibqp.qp_num);
- 	unsigned long flags;
-+	int removed = 1;
- 
- 	spin_lock_irqsave(&dev->qpt_lock, flags);
- 
- 	if (rcu_dereference_protected(ibp->qp0,
- 			lockdep_is_held(&dev->qpt_lock)) == qp) {
--		atomic_dec(&qp->refcount);
- 		rcu_assign_pointer(ibp->qp0, NULL);
- 	} else if (rcu_dereference_protected(ibp->qp1,
- 			lockdep_is_held(&dev->qpt_lock)) == qp) {
--		atomic_dec(&qp->refcount);
- 		rcu_assign_pointer(ibp->qp1, NULL);
- 	} else {
- 		struct qib_qp *q;
- 		struct qib_qp __rcu **qpp;
- 
-+		removed = 0;
- 		qpp = &dev->qp_table[n];
- 		for (; (q = rcu_dereference_protected(*qpp,
- 				lockdep_is_held(&dev->qpt_lock))) != NULL;
- 				qpp = &q->next)
- 			if (q == qp) {
--				atomic_dec(&qp->refcount);
- 				rcu_assign_pointer(*qpp,
- 					rcu_dereference_protected(qp->next,
- 					 lockdep_is_held(&dev->qpt_lock)));
-+				removed = 1;
- 				break;
- 			}
- 	}
- 
- 	spin_unlock_irqrestore(&dev->qpt_lock, flags);
--	synchronize_rcu();
-+	if (removed) {
-+		synchronize_rcu();
-+		atomic_dec(&qp->refcount);
+  * this is used for formatting hw error messages...
+diff --git a/drivers/infiniband/hw/qib/qib_debugfs.c b/drivers/infiniband/hw/qib/qib_debugfs.c
+new file mode 100644
+index 0000000..47d0116
+--- /dev/null
++++ b/drivers/infiniband/hw/qib/qib_debugfs.c
+@@ -0,0 +1,166 @@
++#ifdef CONFIG_DEBUG_FS
++/*
++ * Copyright (c) 2013 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++#include <linux/kernel.h>
++#include <linux/export.h>
++
++#include "qib.h"
++#include "qib_verbs.h"
++#include "qib_debugfs.h"
++
++static struct dentry *qib_dbg_root;
++
++#define DEBUGFS_FILE(name) \
++static const struct seq_operations _##name##_seq_ops = { \
++	.start = _##name##_seq_start, \
++	.next  = _##name##_seq_next, \
++	.stop  = _##name##_seq_stop, \
++	.show  = _##name##_seq_show \
++}; \
++static int _##name##_open(struct inode *inode, struct file *s) \
++{ \
++	struct seq_file *seq; \
++	int ret; \
++	ret =  seq_open(s, &_##name##_seq_ops); \
++	if (ret) \
++		return ret; \
++	seq = s->private_data; \
++	seq->private = inode->i_private; \
++	return 0; \
++} \
++static const struct file_operations _##name##_file_ops = { \
++	.owner   = THIS_MODULE, \
++	.open    = _##name##_open, \
++	.read    = seq_read, \
++	.llseek  = seq_lseek, \
++	.release = seq_release \
++};
++
++#define DEBUGFS_FILE_CREATE(name) \
++do { \
++	struct dentry *ent; \
++	ent = debugfs_create_file(#name , 0400, ibd->qib_ibdev_dbg, \
++		ibd, &_##name##_file_ops); \
++	if (!ent) \
++		pr_warn("create of " #name " failed\n"); \
++} while (0)
++
++static void *_opcode_stats_seq_start(struct seq_file *s, loff_t *pos)
++{
++	struct qib_opcode_stats_perctx *opstats;
++
++	if (*pos >= ARRAY_SIZE(opstats->stats))
++		return NULL;
++	return pos;
++}
++
++static void *_opcode_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
++{
++	struct qib_opcode_stats_perctx *opstats;
++
++	++*pos;
++	if (*pos >= ARRAY_SIZE(opstats->stats))
++		return NULL;
++	return pos;
++}
++
++
++static void _opcode_stats_seq_stop(struct seq_file *s, void *v)
++{
++	/* nothing allocated */
++}
++
++static int _opcode_stats_seq_show(struct seq_file *s, void *v)
++{
++	loff_t *spos = v;
++	loff_t i = *spos, j;
++	u64 n_packets = 0, n_bytes = 0;
++	struct qib_ibdev *ibd = (struct qib_ibdev *)s->private;
++	struct qib_devdata *dd = dd_from_dev(ibd);
++
++	for (j = 0; j < dd->first_user_ctxt; j++) {
++		if (!dd->rcd[j])
++			continue;
++		n_packets += dd->rcd[j]->opstats->stats[i].n_packets;
++		n_bytes += dd->rcd[j]->opstats->stats[i].n_bytes;
 +	}
- }
- 
- /**
-@@ -334,26 +336,25 @@ struct qib_qp *qib_lookup_qpn(struct qib_ibport *ibp, u32 qpn)
- {
- 	struct qib_qp *qp = NULL;
- 
-+	rcu_read_lock();
- 	if (unlikely(qpn <= 1)) {
--		rcu_read_lock();
- 		if (qpn == 0)
- 			qp = rcu_dereference(ibp->qp0);
- 		else
- 			qp = rcu_dereference(ibp->qp1);
-+		if (qp)
-+			atomic_inc(&qp->refcount);
- 	} else {
- 		struct qib_ibdev *dev = &ppd_from_ibp(ibp)->dd->verbs_dev;
- 		unsigned n = qpn_hash(dev, qpn);
- 
--		rcu_read_lock();
- 		for (qp = rcu_dereference(dev->qp_table[n]); qp;
- 			qp = rcu_dereference(qp->next))
--			if (qp->ibqp.qp_num == qpn)
-+			if (qp->ibqp.qp_num == qpn) {
-+				atomic_inc(&qp->refcount);
- 				break;
-+			}
++	if (!n_packets && !n_bytes)
++		return SEQ_SKIP;
++	seq_printf(s, "%02llx %llu/%llu\n", i,
++		(unsigned long long) n_packets,
++		(unsigned long long) n_bytes);
++
++	return 0;
++}
++
++DEBUGFS_FILE(opcode_stats)
++
++void qib_dbg_ibdev_init(struct qib_ibdev *ibd)
++{
++	char name[10];
++
++	snprintf(name, sizeof(name), "qib%d", dd_from_dev(ibd)->unit);
++	ibd->qib_ibdev_dbg = debugfs_create_dir(name, qib_dbg_root);
++	if (!ibd->qib_ibdev_dbg) {
++		pr_warn("create of %s failed\n", name);
++		return;
++	}
++	DEBUGFS_FILE_CREATE(opcode_stats);
++	return;
++}
++
++void qib_dbg_ibdev_exit(struct qib_ibdev *ibd)
++{
++	if (!qib_dbg_root)
++		goto out;
++	debugfs_remove_recursive(ibd->qib_ibdev_dbg);
++out:
++	ibd->qib_ibdev_dbg = NULL;
++}
++
++void qib_dbg_init(void)
++{
++	qib_dbg_root = debugfs_create_dir(QIB_DRV_NAME, NULL);
++	if (!qib_dbg_root)
++		pr_warn("init of debugfs failed\n");
++}
++
++void qib_dbg_exit(void)
++{
++	debugfs_remove_recursive(qib_dbg_root);
++	qib_dbg_root = NULL;
++}
++
++#endif
++
+diff --git a/drivers/infiniband/hw/qib/qib_debugfs.h b/drivers/infiniband/hw/qib/qib_debugfs.h
+new file mode 100644
+index 0000000..7ae983a
+--- /dev/null
++++ b/drivers/infiniband/hw/qib/qib_debugfs.h
+@@ -0,0 +1,45 @@
++#ifndef _QIB_DEBUGFS_H
++#define _QIB_DEBUGFS_H
++
++#ifdef CONFIG_DEBUG_FS
++/*
++ * Copyright (c) 2013 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++struct qib_ibdev;
++void qib_dbg_ibdev_init(struct qib_ibdev *ibd);
++void qib_dbg_ibdev_exit(struct qib_ibdev *ibd);
++void qib_dbg_init(void);
++void qib_dbg_exit(void);
++
++#endif
++
++#endif                          /* _QIB_DEBUGFS_H */
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index 2160924..5bee08f 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -558,7 +558,6 @@ move_along:
  	}
--	if (qp)
--		if (unlikely(!atomic_inc_not_zero(&qp->refcount)))
--			qp = NULL;
+ 
+ 	rcd->head = l;
+-	rcd->pkt_count += i;
+ 
+ 	/*
+ 	 * Iterate over all QPs waiting to respond.
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index ff36903..fdae429 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -46,6 +46,10 @@
+ #include "qib.h"
+ #include "qib_common.h"
+ #include "qib_mad.h"
++#ifdef CONFIG_DEBUG_FS
++#include "qib_debugfs.h"
++#include "qib_verbs.h"
++#endif
+ 
+ #undef pr_fmt
+ #define pr_fmt(fmt) QIB_DRV_NAME ": " fmt
+@@ -188,7 +192,18 @@ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt,
+ 		rcd->cnt = 1;
+ 		rcd->ctxt = ctxt;
+ 		dd->rcd[ctxt] = rcd;
 -
- 	rcu_read_unlock();
- 	return qp;
++#ifdef CONFIG_DEBUG_FS
++		if (ctxt < dd->first_user_ctxt) { /* N/A for PSM contexts */
++			rcd->opstats = kzalloc_node(sizeof(*rcd->opstats),
++				GFP_KERNEL, node_id);
++			if (!rcd->opstats) {
++				kfree(rcd);
++				qib_dev_err(dd,
++					"Unable to allocate per ctxt stats buffer\n");
++				return NULL;
++			}
++		}
++#endif
+ 		dd->f_init_ctxt(rcd);
+ 
+ 		/*
+@@ -959,6 +974,10 @@ void qib_free_ctxtdata(struct qib_devdata *dd, struct qib_ctxtdata *rcd)
+ 	vfree(rcd->subctxt_uregbase);
+ 	vfree(rcd->subctxt_rcvegrbuf);
+ 	vfree(rcd->subctxt_rcvhdr_base);
++#ifdef CONFIG_DEBUG_FS
++	kfree(rcd->opstats);
++	rcd->opstats = NULL;
++#endif
+ 	kfree(rcd);
  }
+ 
+@@ -1048,7 +1067,6 @@ done:
+ 	dd->f_set_armlaunch(dd, 1);
+ }
+ 
+-
+ void qib_free_devdata(struct qib_devdata *dd)
+ {
+ 	unsigned long flags;
+@@ -1058,6 +1076,9 @@ void qib_free_devdata(struct qib_devdata *dd)
+ 	list_del(&dd->list);
+ 	spin_unlock_irqrestore(&qib_devs_lock, flags);
+ 
++#ifdef CONFIG_DEBUG_FS
++	qib_dbg_ibdev_exit(&dd->verbs_dev);
++#endif
+ 	ib_dealloc_device(&dd->verbs_dev.ibdev);
+ }
+ 
+@@ -1081,6 +1102,10 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ 		goto bail;
+ 	}
+ 
++#ifdef CONFIG_DEBUG_FS
++	qib_dbg_ibdev_init(&dd->verbs_dev);
++#endif
++
+ 	idr_preload(GFP_KERNEL);
+ 	spin_lock_irqsave(&qib_devs_lock, flags);
+ 
+@@ -1096,6 +1121,9 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ 	if (ret < 0) {
+ 		qib_early_err(&pdev->dev,
+ 			      "Could not allocate unit ID: error %d\n", -ret);
++#ifdef CONFIG_DEBUG_FS
++		qib_dbg_ibdev_exit(&dd->verbs_dev);
++#endif
+ 		ib_dealloc_device(&dd->verbs_dev.ibdev);
+ 		dd = ERR_PTR(ret);
+ 		goto bail;
+@@ -1223,6 +1251,9 @@ static int __init qlogic_ib_init(void)
+ #ifdef CONFIG_INFINIBAND_QIB_DCA
+ 	dca_register_notify(&dca_notifier);
+ #endif
++#ifdef CONFIG_DEBUG_FS
++	qib_dbg_init();
++#endif
+ 	ret = pci_register_driver(&qib_driver);
+ 	if (ret < 0) {
+ 		pr_err("Unable to register driver: error %d\n", -ret);
+@@ -1238,6 +1269,9 @@ bail_dev:
+ #ifdef CONFIG_INFINIBAND_QIB_DCA
+ 	dca_unregister_notify(&dca_notifier);
+ #endif
++#ifdef CONFIG_DEBUG_FS
++	qib_dbg_exit();
++#endif
+ 	idr_destroy(&qib_unit_table);
+ 	qib_dev_cleanup();
+ bail:
+@@ -1263,6 +1297,9 @@ static void __exit qlogic_ib_cleanup(void)
+ 	dca_unregister_notify(&dca_notifier);
+ #endif
+ 	pci_unregister_driver(&qib_driver);
++#ifdef CONFIG_DEBUG_FS
++	qib_dbg_exit();
++#endif
+ 
+ 	qib_cpulist_count = 0;
+ 	kfree(qib_cpulist);
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 904c384..092b0bb 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -645,9 +645,11 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
+ 	} else
+ 		goto drop;
+ 
+-	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
+-	ibp->opstats[opcode & 0x7f].n_bytes += tlen;
+-	ibp->opstats[opcode & 0x7f].n_packets++;
++	opcode = (be32_to_cpu(ohdr->bth[0]) >> 24) & 0x7f;
++#ifdef CONFIG_DEBUG_FS
++	rcd->opstats->stats[opcode].n_bytes += tlen;
++	rcd->opstats->stats[opcode].n_packets++;
++#endif
+ 
+ 	/* Get the destination QP number. */
+ 	qp_num = be32_to_cpu(ohdr->bth[1]) & QIB_QPN_MASK;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index 86c2cb3..4a22a85 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -660,6 +660,10 @@ struct qib_opcode_stats {
+ 	u64 n_bytes;            /* total number of bytes */
+ };
+ 
++struct qib_opcode_stats_perctx {
++	struct qib_opcode_stats stats[128];
++};
++
+ struct qib_ibport {
+ 	struct qib_qp __rcu *qp0;
+ 	struct qib_qp __rcu *qp1;
+@@ -726,7 +730,6 @@ struct qib_ibport {
+ 	u8 vl_high_limit;
+ 	u8 sl_to_vl[16];
+ 
+-	struct qib_opcode_stats opstats[128];
+ };
+ 
+ 
+@@ -770,6 +773,10 @@ struct qib_ibdev {
+ 	spinlock_t n_srqs_lock;
+ 	u32 n_mcast_grps_allocated; /* number of mcast groups allocated */
+ 	spinlock_t n_mcast_grps_lock;
++#ifdef CONFIG_DEBUG_FS
++	/* per HCA debugfs */
++	struct dentry *qib_ibdev_dbg;
++#endif
+ };
+ 
+ struct qib_verbs_counters {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
