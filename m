@@ -1,65 +1,93 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Status of "ummunot" branch?
-Date: Fri, 14 Jun 2013 17:11:17 -0600
-Message-ID: <20130614231117.GA21525@obsidianresearch.com>
-References: <20130605190529.GA3044@obsidianresearch.com>
- <51B023B9.9050000@mellanox.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F66B79C@xmb-rcd-x01.cisco.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F66E403@xmb-rcd-x01.cisco.com>
- <20130607235731.GA25942@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F676E59@xmb-rcd-x01.cisco.com>
- <20130610172627.GC2391@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F680A2B@xmb-rcd-x01.cisco.com>
- <20130612214708.GD8625@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F6886C8@xmb-rcd-x01.cisco.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 07/14] scsi_transport_srp: Add transport layer error handling
+Date: Sat, 15 Jun 2013 11:52:05 +0200
+Message-ID: <51BC3945.9030900@acm.org>
+References: <51B87501.4070005@acm.org> <51B8777B.5050201@acm.org> <51BA20ED.6040200@mellanox.com> <51BB1857.7040802@acm.org> <51BB5A04.3080901@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC4F6886C8-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
+In-Reply-To: <51BB5A04.3080901-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 14, 2013 at 10:53:24PM +0000, Jeff Squyres (jsquyres) wrote:
-> On Jun 12, 2013, at 5:47 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> 
-> > Someone has to finish the ummunotify rewrite Roland
-> > started. Realistically MPI is going to be the only user, can someone
-> > from the MPI world do this?
-> 
-> 1. I tried to ask what needed to be done at the beginning of this
-> thread and didn't get much of an answer.
+On 06/14/13 19:59, Vu Pham wrote:
+>> On 06/13/13 21:43, Vu Pham wrote:
+>>>> +/**
+>>>> + * srp_tmo_valid() - check timeout combination validity
+>>>> + *
+>>>> + * If no fast I/O fail timeout has been configured then the device
+>>>> loss timeout
+>>>> + * must be below SCSI_DEVICE_BLOCK_MAX_TIMEOUT. If a fast I/O fail
+>>>> timeout has
+>>>> + * been configured then it must be below the device loss timeout.
+>>>> + */
+>>>> +int srp_tmo_valid(int fast_io_fail_tmo, int dev_loss_tmo)
+>>>> +{
+>>>> +    return (fast_io_fail_tmo < 0 && 1 <= dev_loss_tmo &&
+>>>> +        dev_loss_tmo <= SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
+>>>> +        || (0 <= fast_io_fail_tmo &&
+>>>> +            (dev_loss_tmo < 0 ||
+>>>> +             (fast_io_fail_tmo < dev_loss_tmo &&
+>>>> +              dev_loss_tmo < LONG_MAX / HZ))) ? 0 : -EINVAL;
+>>>> +}
+>>>> +EXPORT_SYMBOL_GPL(srp_tmo_valid);
+>>> fast_io_fail_tmo is off, one cannot turn off dev_loss_tmo with
+>>> negative value
+>>> dev_loss_tmo is off, one cannot turn off fast_io_fail_tmo with
+>>> negative value
+>>
+>> OK, will update the documentation such that it correctly refers to
+>> "off" instead of a negative value and I will also mention that
+>> dev_loss_tmo can now be disabled.
+>>
+> It's not only the documentation but also the code logic, you cannot turn
+> dev_loss_tmo off if fast_io_fail_tmo already turned off and vice versa
+> with the return statement above.
 
-AFAIK, only Roland knows the state of his rewrite, hopefully he will
-comment.. I told you everything I know about what happened with the
-last attempt :|
+Does this mean that you think it would be useful to disable both the 
+fast_io_fail and the dev_loss mechanisms, and hence rely on the user to 
+remove remote ports that have disappeared and on the SCSI command 
+timeout to detect path failures ? I'll start testing this to see whether 
+that combination does not trigger any adverse behavior.
 
-> 2. We've (all) been asking for this functionality *for years*; I
-> even helped with the first implementation.  Can't the verbs
-> community finish it?  :-) MPI is probably your biggest customer,
-> after all...
+>>> If rport's state is already SRP_RPORT_BLOCKED, I don't think we need
+>>> to do extra block with scsi_block_requests()
+>>
+>> Please keep in mind that srp_reconnect_rport() can be called from two
+>> different contexts: that function can not only be called from inside
+>> the SRP transport layer but also from inside the SCSI error handler
+>> (see also the srp_reset_device() modifications in a later patch in
+>> this series). If this function is invoked from the context of the SCSI
+>> error handler the chance is high that the SCSI device will have
+>> another state than SDEV_BLOCK. Hence the scsi_block_requests() call in
+>> this function.
+> Yes, srp_reconnect_rport() can be called from two contexts; however, it
+> deals with same rport & rport's state.
+> I'm thinking something like this:
+>
+>     if (rport->state != SRP_RPORT_BLOCKED) {
+>      scsi_block_requests(shost);
 
-There isn't much of a verbs community, to be honest. Unless you can
-get a vendor to commit resources to the project, I wouldn't expect
-much.
+Sorry but I'm afraid that that approach would still allow the user to 
+unblock one or more SCSI devices via sysfs during the 
+i->f->reconnect(rport) call, something we do not want.
 
-> I have no doubt that ODP solves problems for someone.  It just
-> doesn't seem to solve the very-long-standing MPI issues with verbs
-> and registration caches.
+> I think that we can use only the pair
+> scsi_block_requests()/scsi_unblock_requests() unless the advantage of
+> multipathd recognizing the SDEV_BLOCK is noticeable.
 
-As we've discussed it helps write a registration cache.
+I think the advantage of multipathd recognizing the SDEV_BLOCK state 
+before the fast_io_fail_tmo timer has expired is important. Multipathd 
+does not queue I/O to paths that are in the SDEV_BLOCK state so setting 
+that state helps I/O to fail over more quickly, especially for large 
+values of fast_io_fail_tmo.
 
-The 'All of address space' varient that Haggai mentioned should also
-be very interesting.
+Hope this helps,
 
-But this is all future stuff.
-
-FWIW, I agree with you that ummunot is something MPI really needs to
-function.
-
-Jason
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
