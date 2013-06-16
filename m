@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 2/8] mlx5: Mellanox Connect-IB driver part 2/8
-Date: Sun, 16 Jun 2013 15:02:23 +0300
-Message-ID: <1371384149-24558-3-git-send-email-eli@dev.mellanox.co.il>
+Subject: [PATCH for-next 3/8] mlx5: Mellanox Connect-IB driver part 3/8
+Date: Sun, 16 Jun 2013 15:02:24 +0300
+Message-ID: <1371384149-24558-4-git-send-email-eli@dev.mellanox.co.il>
 References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1371384149-24558-1-git-send-email-eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
@@ -14,982 +14,32 @@ From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eq.c       | 523 +++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/fw.c       | 187 ++++++++
- drivers/net/ethernet/mellanox/mlx5/core/health.c   | 216 +++++++++
- drivers/net/ethernet/mellanox/mlx5/core/mad.c      |  80 ++++
- drivers/net/ethernet/mellanox/mlx5/core/main.c     | 483 +++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/mcg.c      | 108 +++++
- .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  96 ++++
- drivers/net/ethernet/mellanox/mlx5/core/mr.c       | 138 ++++++
- .../net/ethernet/mellanox/mlx5/core/pagealloc.c    | 438 +++++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/pd.c       | 103 ++++
- drivers/net/ethernet/mellanox/mlx5/core/port.c     | 106 +++++
- drivers/net/ethernet/mellanox/mlx5/core/qp.c       | 303 ++++++++++++
- 12 files changed, 2781 insertions(+)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/eq.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/fw.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/health.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mad.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/main.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mcg.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mr.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/pd.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/port.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/qp.c
+ drivers/net/ethernet/mellanox/mlx5/core/srq.c | 225 +++++++
+ drivers/net/ethernet/mellanox/mlx5/core/uar.c | 225 +++++++
+ include/linux/mlx5/cmd.h                      |  51 ++
+ include/linux/mlx5/cq.h                       | 166 +++++
+ include/linux/mlx5/device.h                   | 886 ++++++++++++++++++++++++++
+ include/linux/mlx5/doorbell.h                 |  81 +++
+ include/linux/mlx5/driver.h                   | 763 ++++++++++++++++++++++
+ include/linux/mlx5/qp.h                       | 467 ++++++++++++++
+ include/linux/mlx5/srq.h                      |  41 ++
+ 9 files changed, 2905 insertions(+)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/srq.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/uar.c
+ create mode 100644 include/linux/mlx5/cmd.h
+ create mode 100644 include/linux/mlx5/cq.h
+ create mode 100644 include/linux/mlx5/device.h
+ create mode 100644 include/linux/mlx5/doorbell.h
+ create mode 100644 include/linux/mlx5/driver.h
+ create mode 100644 include/linux/mlx5/qp.h
+ create mode 100644 include/linux/mlx5/srq.h
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/srq.c b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
 new file mode 100644
-index 0000000..e8860b0
+index 0000000..e754c76
 --- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -0,0 +1,523 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cmd.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_EQ);
-+
-+enum {
-+	MLX5_EQE_SIZE = sizeof(struct mlx5_eqe),
-+};
-+
-+enum {
-+	MLX5_EQ_STATE_ARMED		= 0x9,
-+	MLX5_EQ_STATE_FIRED		= 0xa,
-+	MLX5_EQ_STATE_ALWAYS_ARMED	= 0xb,
-+};
-+
-+enum {
-+	MLX5_NUM_SPARE_EQE	= 0x80,
-+	MLX5_NUM_ASYNC_EQE	= 0x100,
-+	MLX5_NUM_CMD_EQE	= 32,
-+};
-+
-+enum {
-+	MLX5_EQ_DOORBEL_OFFSET	= 0x40,
-+};
-+
-+#define MLX5_ASYNC_EVENT_MASK ((1ull << MLX5_EVENT_TYPE_PATH_MIG)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_COMM_EST)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_SQ_DRAINED)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_CQ_ERROR)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_WQ_CATAS_ERROR)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_PATH_MIG_FAILED)    | \
-+			       (1ull << MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR) | \
-+			       (1ull << MLX5_EVENT_TYPE_WQ_ACCESS_ERROR)    | \
-+			       (1ull << MLX5_EVENT_TYPE_PORT_CHANGE)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_SRQ_CATAS_ERROR)    | \
-+			       (1ull << MLX5_EVENT_TYPE_SRQ_LAST_WQE)	    | \
-+			       (1ull << MLX5_EVENT_TYPE_SRQ_RQ_LIMIT))
-+
-+struct map_eq_in {
-+	u64	mask;
-+	u32	reserved;
-+	u32	unmap_eqn;
-+};
-+
-+struct cre_des_eq {
-+	u8	reserved[15];
-+	u8	eqn;
-+};
-+
-+static int mlx5_cmd_destroy_eq(struct mlx5_core_dev *dev, u8 eqn)
-+{
-+	struct mlx5_destroy_eq_mbox_in in;
-+	struct mlx5_destroy_eq_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DESTROY_EQ);
-+	in.eqn = eqn;
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (!err)
-+		goto ex;
-+
-+	if (out.hdr.status)
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+
-+ex:
-+	return err;
-+}
-+
-+static struct mlx5_eqe *get_eqe(struct mlx5_eq *eq, u32 entry)
-+{
-+	return mlx5_buf_offset(&eq->buf, entry * MLX5_EQE_SIZE);
-+}
-+
-+static struct mlx5_eqe *next_eqe_sw(struct mlx5_eq *eq)
-+{
-+	struct mlx5_eqe *eqe = get_eqe(eq, eq->cons_index & (eq->nent - 1));
-+
-+	return ((eqe->owner & 1) ^ !!(eq->cons_index & eq->nent)) ? NULL : eqe;
-+}
-+
-+static const char *eqe_type_str(u8 type)
-+{
-+	switch (type) {
-+	case MLX5_EVENT_TYPE_COMP:
-+		return "MLX5_EVENT_TYPE_COMP";
-+	case MLX5_EVENT_TYPE_PATH_MIG:
-+		return "MLX5_EVENT_TYPE_PATH_MIG";
-+	case MLX5_EVENT_TYPE_COMM_EST:
-+		return "MLX5_EVENT_TYPE_COMM_EST";
-+	case MLX5_EVENT_TYPE_SQ_DRAINED:
-+		return "MLX5_EVENT_TYPE_SQ_DRAINED";
-+	case MLX5_EVENT_TYPE_SRQ_LAST_WQE:
-+		return "MLX5_EVENT_TYPE_SRQ_LAST_WQE";
-+	case MLX5_EVENT_TYPE_SRQ_RQ_LIMIT:
-+		return "MLX5_EVENT_TYPE_SRQ_RQ_LIMIT";
-+	case MLX5_EVENT_TYPE_CQ_ERROR:
-+		return "MLX5_EVENT_TYPE_CQ_ERROR";
-+	case MLX5_EVENT_TYPE_WQ_CATAS_ERROR:
-+		return "MLX5_EVENT_TYPE_WQ_CATAS_ERROR";
-+	case MLX5_EVENT_TYPE_PATH_MIG_FAILED:
-+		return "MLX5_EVENT_TYPE_PATH_MIG_FAILED";
-+	case MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR:
-+		return "MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR";
-+	case MLX5_EVENT_TYPE_WQ_ACCESS_ERROR:
-+		return "MLX5_EVENT_TYPE_WQ_ACCESS_ERROR";
-+	case MLX5_EVENT_TYPE_SRQ_CATAS_ERROR:
-+		return "MLX5_EVENT_TYPE_SRQ_CATAS_ERROR";
-+	case MLX5_EVENT_TYPE_INTERNAL_ERROR:
-+		return "MLX5_EVENT_TYPE_INTERNAL_ERROR";
-+	case MLX5_EVENT_TYPE_PORT_CHANGE:
-+		return "MLX5_EVENT_TYPE_PORT_CHANGE";
-+	case MLX5_EVENT_TYPE_GPIO_EVENT:
-+		return "MLX5_EVENT_TYPE_GPIO_EVENT";
-+	case MLX5_EVENT_TYPE_REMOTE_CONFIG:
-+		return "MLX5_EVENT_TYPE_REMOTE_CONFIG";
-+	case MLX5_EVENT_TYPE_DB_BF_CONGESTION:
-+		return "MLX5_EVENT_TYPE_DB_BF_CONGESTION";
-+	case MLX5_EVENT_TYPE_STALL_EVENT:
-+		return "MLX5_EVENT_TYPE_STALL_EVENT";
-+	case MLX5_EVENT_TYPE_CMD:
-+		return "MLX5_EVENT_TYPE_CMD";
-+	case MLX5_EVENT_TYPE_PAGE_REQUEST:
-+		return "MLX5_EVENT_TYPE_PAGE_REQUEST";
-+	default:
-+		return "Unrecognized event";
-+	}
-+}
-+
-+static enum mlx5_dev_event port_subtype_event(u8 subtype)
-+{
-+	switch (subtype) {
-+	case MLX5_PORT_CHANGE_SUBTYPE_DOWN:
-+		return MLX5_DEV_EVENT_PORT_DOWN;
-+	case MLX5_PORT_CHANGE_SUBTYPE_ACTIVE:
-+		return MLX5_DEV_EVENT_PORT_UP;
-+	case MLX5_PORT_CHANGE_SUBTYPE_INITIALIZED:
-+		return MLX5_DEV_EVENT_PORT_INITIALIZED;
-+	case MLX5_PORT_CHANGE_SUBTYPE_LID:
-+		return MLX5_DEV_EVENT_LID_CHANGE;
-+	case MLX5_PORT_CHANGE_SUBTYPE_PKEY:
-+		return MLX5_DEV_EVENT_PKEY_CHANGE;
-+	case MLX5_PORT_CHANGE_SUBTYPE_GUID:
-+		return MLX5_DEV_EVENT_GUID_CHANGE;
-+	case MLX5_PORT_CHANGE_SUBTYPE_CLIENT_REREG:
-+		return MLX5_DEV_EVENT_CLIENT_REREG;
-+	}
-+	return -1;
-+}
-+
-+static void eq_update_ci(struct mlx5_eq *eq, int arm)
-+{
-+	__be32 __iomem *addr = eq->doorbell + (arm ? 0 : 2);
-+	u32 val = (eq->cons_index & 0xffffff) | (eq->eqn << 24);
-+	__raw_writel((__force u32) cpu_to_be32(val), addr);
-+	/* We still want ordering, just not swabbing, so add a barrier */
-+	mb();
-+}
-+
-+static int mlx5_eq_int(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
-+{
-+	struct mlx5_eqe *eqe;
-+	int eqes_found = 0;
-+	int set_ci = 0;
-+	u32 cqn;
-+	u32 srqn;
-+	u8 port;
-+
-+	while ((eqe = next_eqe_sw(eq))) {
-+		/*
-+		 * Make sure we read EQ entry contents after we've
-+		 * checked the ownership bit.
-+		 */
-+		rmb();
-+
-+		mlx5_core_dbg(eq->dev, "eqn %d, eqe type %s\n", eq->eqn, eqe_type_str(eqe->type));
-+		switch (eqe->type) {
-+		case MLX5_EVENT_TYPE_COMP:
-+			cqn = be32_to_cpu(eqe->data.comp.cqn) & 0xffffff;
-+			mlx5_cq_completion(dev, cqn);
-+			break;
-+
-+		case MLX5_EVENT_TYPE_PATH_MIG:
-+		case MLX5_EVENT_TYPE_COMM_EST:
-+		case MLX5_EVENT_TYPE_SQ_DRAINED:
-+		case MLX5_EVENT_TYPE_SRQ_LAST_WQE:
-+		case MLX5_EVENT_TYPE_WQ_CATAS_ERROR:
-+		case MLX5_EVENT_TYPE_PATH_MIG_FAILED:
-+		case MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR:
-+		case MLX5_EVENT_TYPE_WQ_ACCESS_ERROR:
-+			mlx5_core_dbg(dev, "event %s(%d) arrived\n",
-+				      eqe_type_str(eqe->type), eqe->type);
-+			mlx5_qp_event(dev, be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff,
-+				      eqe->type);
-+			break;
-+
-+		case MLX5_EVENT_TYPE_SRQ_RQ_LIMIT:
-+		case MLX5_EVENT_TYPE_SRQ_CATAS_ERROR:
-+			srqn = be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff;
-+			mlx5_core_dbg(dev, "SRQ event %s(%d): srqn 0x%x\n",
-+				      eqe_type_str(eqe->type), eqe->type, srqn);
-+			mlx5_srq_event(dev, srqn, eqe->type);
-+			break;
-+
-+		case MLX5_EVENT_TYPE_CMD:
-+			mlx5_cmd_comp_handler(dev, be32_to_cpu(eqe->data.cmd.vector));
-+			break;
-+
-+		case MLX5_EVENT_TYPE_PORT_CHANGE:
-+			port = (eqe->data.port.port >> 4) & 0xf;
-+			switch (eqe->sub_type) {
-+			case MLX5_PORT_CHANGE_SUBTYPE_DOWN:
-+			case MLX5_PORT_CHANGE_SUBTYPE_ACTIVE:
-+			case MLX5_PORT_CHANGE_SUBTYPE_LID:
-+			case MLX5_PORT_CHANGE_SUBTYPE_PKEY:
-+			case MLX5_PORT_CHANGE_SUBTYPE_GUID:
-+			case MLX5_PORT_CHANGE_SUBTYPE_CLIENT_REREG:
-+			case MLX5_PORT_CHANGE_SUBTYPE_INITIALIZED:
-+				dev->event(dev, port_subtype_event(eqe->sub_type), &port);
-+				break;
-+			default:
-+				mlx5_core_warn(dev, "Port event with unrecognized subtype: port %d, sub_type %d\n",
-+					       port, eqe->sub_type);
-+			}
-+			break;
-+		case MLX5_EVENT_TYPE_CQ_ERROR:
-+			cqn = be32_to_cpu(eqe->data.cq_err.cqn) & 0xffffff;
-+			mlx5_core_warn(dev, "CQ error on CQN 0x%x, syndrom 0x%x\n",
-+				       cqn, eqe->data.cq_err.syndrome);
-+			mlx5_cq_event(dev, cqn, eqe->type);
-+			break;
-+
-+		case MLX5_EVENT_TYPE_PAGE_REQUEST:
-+			{
-+				u16 func_id = be16_to_cpu(eqe->data.req_pages.func_id);
-+				s16 npages = be16_to_cpu(eqe->data.req_pages.num_pages);
-+
-+				mlx5_core_dbg(dev, "page request for func 0x%x, napges %d\n", func_id, npages);
-+				mlx5_core_req_pages_handler(dev, func_id, npages);
-+			}
-+			break;
-+
-+
-+		default:
-+			mlx5_core_warn(dev, "Unhandled event 0x%x on EQ 0x%x\n", eqe->type, eq->eqn);
-+			break;
-+		}
-+
-+		++eq->cons_index;
-+		eqes_found = 1;
-+		++set_ci;
-+
-+		/* The HCA will think the queue has overflowed if we
-+		 * don't tell it we've been processing events.  We
-+		 * create our EQs with MLX5_NUM_SPARE_EQE extra
-+		 * entries, so we must update our consumer index at
-+		 * least that often.
-+		 */
-+		if (unlikely(set_ci >= MLX5_NUM_SPARE_EQE)) {
-+			eq_update_ci(eq, 0);
-+			set_ci = 0;
-+		}
-+	}
-+
-+	eq_update_ci(eq, 1);
-+
-+	return eqes_found;
-+}
-+
-+static irqreturn_t mlx5_msix_handler(int irq, void *eq_ptr)
-+{
-+	struct mlx5_eq *eq = eq_ptr;
-+	struct mlx5_core_dev *dev = eq->dev;
-+
-+	mlx5_eq_int(dev, eq);
-+
-+	/* MSI-X vectors always belong to us */
-+	return IRQ_HANDLED;
-+}
-+
-+static void init_eq_buf(struct mlx5_eq *eq)
-+{
-+	struct mlx5_eqe *eqe;
-+	int i;
-+
-+	for (i = 0; i < eq->nent; ++i) {
-+		eqe = get_eqe(eq, i);
-+		eqe->owner = 0x55;
-+	}
-+}
-+
-+int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
-+		       int nent, u64 mask, const char *name, struct mlx5_uar *uar)
-+{
-+	struct mlx5_eq_table *table = &dev->priv.eq_table;
-+	struct mlx5_create_eq_mbox_in *in;
-+	struct mlx5_create_eq_mbox_out out;
-+	int err;
-+	int inlen;
-+
-+	eq->nent = roundup_pow_of_two(nent + MLX5_NUM_SPARE_EQE);
-+	err = mlx5_buf_alloc(dev, eq->nent * MLX5_EQE_SIZE, 2 * PAGE_SIZE,
-+			     &eq->buf);
-+	if (err)
-+		return err;
-+
-+	init_eq_buf(eq);
-+
-+	inlen = sizeof(*in) + sizeof(in->pas[0]) * eq->buf.npages;
-+	in = vzalloc(inlen);
-+	if (!in) {
-+		err = -ENOMEM;
-+		goto err_buf;
-+	}
-+	memset(&out, 0, sizeof(out));
-+
-+	mlx5_fill_page_array(&eq->buf, in->pas);
-+
-+	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_CREATE_EQ);
-+	in->ctx.log_sz_usr_page = cpu_to_be32(ilog2(eq->nent) << 24 | uar->index);
-+	in->ctx.intr = vecidx;
-+	in->ctx.log_page_size = PAGE_SHIFT - 12;
-+	in->events_mask = cpu_to_be64(mask);
-+
-+	err = mlx5_cmd_exec(dev, in, inlen, &out, sizeof(out));
-+	if (err)
-+		goto err_in;
-+
-+	if (out.hdr.status) {
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+		goto err_in;
-+	}
-+
-+	eq->eqn = out.eq_number;
-+	err = request_irq(table->msix_arr[vecidx].vector, mlx5_msix_handler, 0,
-+			  name, eq);
-+	if (err)
-+		goto err_eq;
-+
-+	eq->irqn = vecidx;
-+	eq->dev = dev;
-+	eq->doorbell = uar->map + MLX5_EQ_DOORBEL_OFFSET;
-+
-+	err = mlx5_debug_eq_add(dev, eq);
-+	if (err)
-+		goto err_irq;
-+
-+	/* EQs are created in ARMED state
-+	 */
-+	eq_update_ci(eq, 1);
-+
-+	vfree(in);
-+	return 0;
-+
-+err_irq:
-+	free_irq(table->msix_arr[vecidx].vector, eq);
-+
-+err_eq:
-+	mlx5_cmd_destroy_eq(dev, eq->eqn);
-+
-+err_in:
-+	vfree(in);
-+
-+err_buf:
-+	mlx5_buf_free(dev, &eq->buf);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_create_map_eq);
-+
-+int mlx5_destroy_unmap_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
-+{
-+	struct mlx5_eq_table *table = &dev->priv.eq_table;
-+	int err;
-+
-+	mlx5_debug_eq_remove(dev, eq);
-+	free_irq(table->msix_arr[eq->irqn].vector, eq);
-+	err = mlx5_cmd_destroy_eq(dev, eq->eqn);
-+	if (err)
-+		mlx5_core_warn(dev, "failed to destroy a previously created eq: eqn %d\n",
-+			       eq->eqn);
-+	mlx5_buf_free(dev, &eq->buf);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_destroy_unmap_eq);
-+
-+int mlx5_eq_init(struct mlx5_core_dev *dev)
-+{
-+	int err;
-+
-+	spin_lock_init(&dev->priv.eq_table.lock);
-+
-+	err = mlx5_eq_debugfs_init(dev);
-+
-+	return err;
-+}
-+
-+
-+void mlx5_eq_cleanup(struct mlx5_core_dev *dev)
-+{
-+	mlx5_eq_debugfs_cleanup(dev);
-+}
-+
-+int mlx5_start_eqs(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_eq_table *table = &dev->priv.eq_table;
-+	int err;
-+
-+	err = mlx5_create_map_eq(dev, &table->cmd_eq, MLX5_EQ_VEC_CMD,
-+				 MLX5_NUM_CMD_EQE, 1ull << MLX5_EVENT_TYPE_CMD,
-+				 "mlx5_cmd_eq", &dev->priv.uuari.uars[0]);
-+	if (err) {
-+		mlx5_core_warn(dev, "failed to create cmd EQ %d\n", err);
-+		return err;
-+	}
-+
-+	mlx5_cmd_use_events(dev);
-+
-+	err = mlx5_create_map_eq(dev, &table->async_eq, MLX5_EQ_VEC_ASYNC,
-+				 MLX5_NUM_ASYNC_EQE, MLX5_ASYNC_EVENT_MASK,
-+				 "mlx5_async_eq", &dev->priv.uuari.uars[0]);
-+	if (err) {
-+		mlx5_core_warn(dev, "failed to create async EQ %d\n", err);
-+		goto err1;
-+	}
-+
-+	err = mlx5_create_map_eq(dev, &table->pages_eq,
-+				 MLX5_EQ_VEC_PAGES,
-+				 dev->caps.max_vf + 1,
-+				 1 << MLX5_EVENT_TYPE_PAGE_REQUEST, "mlx5_pages_eq",
-+				 &dev->priv.uuari.uars[0]);
-+	if (err) {
-+		mlx5_core_warn(dev, "failed to create pages EQ %d\n", err);
-+		goto err2;
-+	}
-+
-+	return err;
-+
-+err2:
-+	mlx5_destroy_unmap_eq(dev, &table->async_eq);
-+
-+err1:
-+	mlx5_cmd_use_polling(dev);
-+	mlx5_destroy_unmap_eq(dev, &table->cmd_eq);
-+	return err;
-+}
-+
-+int mlx5_stop_eqs(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_eq_table *table = &dev->priv.eq_table;
-+	int err;
-+
-+	err = mlx5_destroy_unmap_eq(dev, &table->pages_eq);
-+	if (err)
-+		return err;
-+
-+	mlx5_destroy_unmap_eq(dev, &table->async_eq);
-+	mlx5_cmd_use_polling(dev);
-+
-+	err = mlx5_destroy_unmap_eq(dev, &table->cmd_eq);
-+	if (err)
-+		mlx5_cmd_use_events(dev);
-+
-+	return err;
-+}
-+
-+int mlx5_core_eq_query(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
-+		       struct mlx5_query_eq_mbox_out *out, int outlen)
-+{
-+	struct mlx5_query_eq_mbox_in in;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(out, 0, outlen);
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_EQ);
-+	in.eqn = eq->eqn;
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), out, outlen);
-+	if (err)
-+		return err;
-+
-+	if (out->hdr.status)
-+		err = mlx5_cmd_status_to_err(&out->hdr);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_core_eq_query);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-new file mode 100644
-index 0000000..2f8c8c0
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -0,0 +1,187 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cmd.h>
-+#include <linux/module.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_FW);
-+
-+int mlx5_cmd_query_adapter(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_cmd_query_adapter_mbox_out *out;
-+	struct mlx5_cmd_query_adapter_mbox_in in;
-+	int err;
-+
-+	out = kzalloc(sizeof(*out), GFP_KERNEL);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	memset(&in, 0, sizeof(in));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_ADAPTER);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), out, sizeof(*out));
-+	if (err)
-+		goto out_out;
-+
-+	if (out->hdr.status) {
-+		err = mlx5_cmd_status_to_err(&out->hdr);
-+		goto out_out;
-+	}
-+
-+	memcpy(dev->board_id, out->vsd_psid, sizeof(out->vsd_psid));
-+
-+out_out:
-+	kfree(out);
-+
-+	return err;
-+}
-+
-+int mlx5_cmd_query_hca_cap(struct mlx5_core_dev *dev,
-+			   struct mlx5_caps *caps)
-+{
-+	struct mlx5_cmd_query_hca_cap_mbox_out *out;
-+	struct mlx5_cmd_query_hca_cap_mbox_in in;
-+	struct mlx5_query_special_ctxs_mbox_out ctx_out;
-+	struct mlx5_query_special_ctxs_mbox_in ctx_in;
-+	int err;
-+	u16 t16;
-+
-+	out = kzalloc(sizeof(*out), GFP_KERNEL);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	memset(&in, 0, sizeof(in));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_HCA_CAP);
-+	in.hdr.opmod  = cpu_to_be16(0x1);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), out, sizeof(*out));
-+	if (err)
-+		goto out_out;
-+
-+	if (out->hdr.status) {
-+		err = mlx5_cmd_status_to_err(&out->hdr);
-+		goto out_out;
-+	}
-+
-+
-+	caps->log_max_eq = out->hca_cap.log_max_eq & 0xf;
-+	caps->max_cqes = 1 << out->hca_cap.log_max_cq_sz;
-+	caps->max_wqes = 1 << out->hca_cap.log_max_qp_sz;
-+	caps->max_sq_desc_sz = be16_to_cpu(out->hca_cap.max_desc_sz_sq);
-+	caps->max_rq_desc_sz = be16_to_cpu(out->hca_cap.max_desc_sz_rq);
-+	caps->flags = be64_to_cpu(out->hca_cap.flags);
-+	caps->stat_rate_support = be16_to_cpu(out->hca_cap.stat_rate_support);
-+	caps->log_max_msg = out->hca_cap.log_max_msg & 0x1f;
-+	caps->num_ports = out->hca_cap.num_ports & 0xf;
-+	caps->log_max_cq = out->hca_cap.log_max_cq & 0x1f;
-+	if (caps->num_ports > MLX5_MAX_PORTS) {
-+		mlx5_core_err(dev, "device has %d ports while the driver supports max %d ports\n",
-+			      caps->num_ports, MLX5_MAX_PORTS);
-+		err = -EINVAL;
-+		goto out_out;
-+	}
-+	caps->log_max_qp = out->hca_cap.log_max_qp & 0x1f;
-+	caps->log_max_mkey = out->hca_cap.log_max_mkey & 0x3f;
-+	caps->log_max_pd = out->hca_cap.log_max_pd & 0x1f;
-+	caps->log_max_srq = out->hca_cap.log_max_srqs & 0x1f;
-+	caps->local_ca_ack_delay = out->hca_cap.local_ca_ack_delay & 0x1f;
-+	caps->log_max_mcg = out->hca_cap.log_max_mcg;
-+	caps->max_qp_mcg = be16_to_cpu(out->hca_cap.max_qp_mcg);
-+	caps->max_ra_res_qp = 1 << (out->hca_cap.log_max_ra_res_qp & 0x3f);
-+	caps->max_ra_req_qp = 1 << (out->hca_cap.log_max_ra_req_qp & 0x3f);
-+	caps->max_srq_wqes = 1 << out->hca_cap.log_max_srq_sz;
-+	t16 = be16_to_cpu(out->hca_cap.bf_log_bf_reg_size);
-+	if (t16 & 0x8000) {
-+		caps->bf_reg_size = 1 << (t16 & 0x1f);
-+		caps->bf_regs_per_page = MLX5_BF_REGS_PER_PAGE;
-+	} else {
-+		caps->bf_reg_size = 0;
-+		caps->bf_regs_per_page = 0;
-+	}
-+	caps->min_page_sz = ~(u32)((1 << out->hca_cap.log_pg_sz) - 1);
-+
-+	memset(&ctx_in, 0, sizeof(ctx_in));
-+	memset(&ctx_out, 0, sizeof(ctx_out));
-+	ctx_in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS);
-+	err = mlx5_cmd_exec(dev, &ctx_in, sizeof(ctx_in),
-+				 &ctx_out, sizeof(ctx_out));
-+	if (err)
-+		goto out_out;
-+
-+	if (ctx_out.hdr.status)
-+		err = mlx5_cmd_status_to_err(&ctx_out.hdr);
-+
-+	caps->reserved_lkey = be32_to_cpu(ctx_out.reserved_lkey);
-+
-+out_out:
-+	kfree(out);
-+
-+	return err;
-+}
-+
-+int mlx5_cmd_init_hca(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_cmd_init_hca_mbox_in in;
-+	struct mlx5_cmd_init_hca_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_INIT_HCA);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return err;
-+}
-+
-+int mlx5_cmd_teardown_hca(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_cmd_teardown_hca_mbox_in in;
-+	struct mlx5_cmd_teardown_hca_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_TEARDOWN_HCA);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return err;
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
-new file mode 100644
-index 0000000..0949587
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
-@@ -0,0 +1,216 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/random.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cmd.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_HEALTH);
-+
-+enum {
-+	MLX5_HEALTH_POLL_INTERVAL	= 2 * HZ,
-+	MAX_MISSES			= 3,
-+};
-+
-+static DEFINE_SPINLOCK(health_lock);
-+
-+static LIST_HEAD(health_list);
-+static struct work_struct health_work;
-+
-+static health_handler_t reg_handler;
-+int mlx5_register_health_report_handler(health_handler_t handler)
-+{
-+	spin_lock_irq(&health_lock);
-+	if (reg_handler) {
-+		spin_unlock_irq(&health_lock);
-+		return -EEXIST;
-+	}
-+	reg_handler = handler;
-+	spin_unlock_irq(&health_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(mlx5_register_health_report_handler);
-+
-+void mlx5_unregister_health_report_handler(void)
-+{
-+	spin_lock_irq(&health_lock);
-+	reg_handler = NULL;
-+	spin_unlock_irq(&health_lock);
-+}
-+EXPORT_SYMBOL(mlx5_unregister_health_report_handler);
-+
-+static void health_care(struct work_struct *work)
-+{
-+	LIST_HEAD(tlist);
-+	struct mlx5_core_health *health, *n;
-+	struct mlx5_priv *priv;
-+	struct mlx5_core_dev *dev;
-+
-+	spin_lock_irq(&health_lock);
-+	list_splice_init(&health_list, &tlist);
-+
-+	spin_unlock_irq(&health_lock);
-+
-+	list_for_each_entry_safe(health, n, &tlist, list) {
-+		priv = container_of(health, struct mlx5_priv, health);
-+		dev = container_of(priv, struct mlx5_core_dev, priv);
-+		mlx5_core_warn(dev, "handling bad device here\n");
-+		spin_lock_irq(&health_lock);
-+		if (reg_handler)
-+			reg_handler(dev->pdev, health->health,
-+				    sizeof(health->health));
-+
-+		list_del_init(&health->list);
-+		spin_unlock_irq(&health_lock);
-+	}
-+}
-+
-+static const char *hsynd_str(u8 synd)
-+{
-+	switch (synd) {
-+	case 0x1:
-+		return "firmware internal error";
-+	case 0x7:
-+		return "irisc not responding";
-+	case 0x9:
-+		return "firmware CRC error";
-+	case 0xa:
-+		return "ICM fetch PCI error";
-+	case 0xb:
-+		return "HW fatal error\n";
-+	case 0xc:
-+		return "async EQ buffer overrun";
-+	case 0xd:
-+		return "EQ error";
-+	case 0xf:
-+		return "FFSER error";
-+	default:
-+		return "unrecognized error";
-+	}
-+}
-+
-+static void print_health_info(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_core_health *health = &dev->priv.health;
-+	struct health_buffer __iomem *h = health->health;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(h->assert_var); ++i)
-+		pr_info("assert_var[%d] 0x%08x\n", i, be32_to_cpu(h->assert_var[i]));
-+
-+	pr_info("assert_exit_ptr 0x%08x\n", be32_to_cpu(h->assert_exit_ptr));
-+	pr_info("assert_callra 0x%08x\n", be32_to_cpu(h->assert_callra));
-+	pr_info("fw_ver 0x%08x\n", be32_to_cpu(h->fw_ver));
-+	pr_info("hw_id 0x%08x\n", be32_to_cpu(h->hw_id));
-+	pr_info("irisc_index %d\n", h->irisc_index);
-+	pr_info("synd 0x%x: %s\n", h->synd, hsynd_str(h->synd));
-+	pr_info("ext_sync 0x%04x\n", be16_to_cpu(h->ext_sync));
-+}
-+
-+static void poll_health(unsigned long data)
-+{
-+	struct mlx5_core_dev *dev = (struct mlx5_core_dev *)data;
-+	struct mlx5_core_health *health = &dev->priv.health;
-+	u32 count;
-+	unsigned long next;
-+
-+	count = ioread32be(health->health_counter);
-+	if (count == health->prev)
-+		++health->miss_counter;
-+	else
-+		health->miss_counter = 0;
-+
-+	health->prev = count;
-+	if (health->miss_counter == MAX_MISSES) {
-+		mlx5_core_err(dev, "device's health compromised\n");
-+		print_health_info(dev);
-+		spin_lock_irq(&health_lock);
-+		list_add_tail(&health->list, &health_list);
-+		spin_unlock_irq(&health_lock);
-+
-+		queue_work(mlx5_core_wq, &health_work);
-+	} else {
-+		spin_lock_irq(&health_lock);
-+		if (health->active) {
-+			get_random_bytes(&next, sizeof(next));
-+			next %= HZ;
-+			next += jiffies + MLX5_HEALTH_POLL_INTERVAL;
-+			mod_timer(&health->timer, next);
-+		}
-+		spin_unlock_irq(&health_lock);
-+	}
-+}
-+
-+void mlx5_start_health_poll(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_core_health *health = &dev->priv.health;
-+
-+	INIT_LIST_HEAD(&health->list);
-+	init_timer(&health->timer);
-+	health->health = &dev->iseg->health;
-+	health->health_counter = &dev->iseg->health_counter;
-+
-+	health->timer.data = (unsigned long)dev;
-+	health->timer.function = poll_health;
-+	health->timer.expires = round_jiffies(jiffies + MLX5_HEALTH_POLL_INTERVAL);
-+	health->active = 1;
-+	add_timer(&health->timer);
-+}
-+
-+void mlx5_stop_health_poll(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_core_health *health = &dev->priv.health;
-+
-+	spin_lock_irq(&health_lock);
-+	health->active = 0;
-+	spin_unlock_irq(&health_lock);
-+	del_timer_sync(&health->timer);
-+
-+	spin_lock_irq(&health_lock);
-+	if (!list_empty(&health->list))
-+		list_del_init(&health->list);
-+	spin_unlock_irq(&health_lock);
-+}
-+
-+void mlx5_health_cleanup(void)
-+{
-+}
-+
-+void  __init mlx5_health_init(void)
-+{
-+	INIT_WORK(&health_work, health_care);
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mad.c b/drivers/net/ethernet/mellanox/mlx5/core/mad.c
-new file mode 100644
-index 0000000..a0d4f85
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mad.c
-@@ -0,0 +1,80 @@
++++ b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
+@@ -0,0 +1,225 @@
 +/*
 + * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
 + *
@@ -1026,1719 +76,120 @@ index 0000000..a0d4f85
 +#include <linux/module.h>
 +#include <linux/mlx5/driver.h>
 +#include <linux/mlx5/cmd.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_MAD);
-+
-+int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, void *inb, void *outb,
-+		      u16 opmod, int port)
-+{
-+	struct mlx5_mad_ifc_mbox_in *in = NULL;
-+	struct mlx5_mad_ifc_mbox_out *out = NULL;
-+	int err;
-+
-+	in = kzalloc(sizeof(*in), GFP_KERNEL);
-+	if (!in)
-+		return -ENOMEM;
-+
-+	out = kzalloc(sizeof(*out), GFP_KERNEL);
-+	if (!out) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_MAD_IFC);
-+	in->hdr.opmod = cpu_to_be16(opmod);
-+	in->port = port;
-+
-+	memcpy(in->data, inb, sizeof(in->data));
-+
-+	err = mlx5_cmd_exec(dev, in, sizeof(*in), out, sizeof(*out));
-+	if (err)
-+		goto out;
-+
-+	if (out->hdr.status) {
-+		err = mlx5_cmd_status_to_err(&out->hdr);
-+		goto out;
-+	}
-+
-+	memcpy(outb, out->data, sizeof(out->data));
-+
-+out:
-+	kfree(out);
-+	kfree(in);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_core_mad_ifc);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-new file mode 100644
-index 0000000..2718e51
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -0,0 +1,483 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <asm-generic/kmap_types.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/pci.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/slab.h>
-+#include <linux/io-mapping.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cq.h>
-+#include <linux/mlx5/qp.h>
 +#include <linux/mlx5/srq.h>
-+#include <linux/debugfs.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_MAIN);
-+
-+#define DRIVER_NAME "mlx5_core"
-+#define DRIVER_VERSION "1.0"
-+#define DRIVER_RELDATE	"June 2013"
-+
-+MODULE_AUTHOR("Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>");
-+MODULE_DESCRIPTION("Mellanox ConnectX-IB HCA core library");
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_VERSION(DRIVER_VERSION);
-+
-+int mlx5_core_debug_mask;
-+module_param_named(debug_mask, mlx5_core_debug_mask, int, 0644);
-+MODULE_PARM_DESC(debug_mask, "mask of debug sources");
-+
-+struct workqueue_struct *mlx5_core_wq;
-+
-+static int set_dma_caps(struct pci_dev *pdev)
-+{
-+	int err;
-+
-+	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(64));
-+	if (err) {
-+		dev_warn(&pdev->dev, "Warning: couldn't set 64-bit PCI DMA mask.\n");
-+		err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-+		if (err) {
-+			dev_err(&pdev->dev, "Can't set PCI DMA mask, aborting.\n");
-+			return err;
-+		}
-+	}
-+
-+	err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
-+	if (err) {
-+		dev_warn(&pdev->dev,
-+			 "Warning: couldn't set 64-bit consistent PCI DMA mask.\n");
-+		err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
-+		if (err) {
-+			dev_err(&pdev->dev,
-+				"Can't set consistent PCI DMA mask, aborting.\n");
-+			return err;
-+		}
-+	}
-+
-+	dma_set_max_seg_size(&pdev->dev, 2u * 1024 * 1024 * 1024);
-+	return err;
-+}
-+
-+static int request_bar(struct pci_dev *pdev)
-+{
-+	int err = 0;
-+
-+	if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM)) {
-+		dev_err(&pdev->dev, "Missing registers BAR, aborting.\n");
-+		return -ENODEV;
-+	}
-+
-+	err = pci_request_regions(pdev, DRIVER_NAME);
-+	if (err)
-+		dev_err(&pdev->dev, "Couldn't get PCI resources, aborting\n");
-+
-+	return err;
-+}
-+
-+static void release_bar(struct pci_dev *pdev)
-+{
-+	pci_release_regions(pdev);
-+}
-+
-+static int mlx5_enable_msix(struct mlx5_core_dev *dev)
-+{
-+	int nvec;
-+	int num_eqs = 1 << dev->caps.log_max_eq;
-+	struct mlx5_eq_table *table = &dev->priv.eq_table;
-+	int err;
-+	int i;
-+
-+	nvec = dev->caps.num_ports * num_online_cpus() + MLX5_EQ_VEC_COMP_BASE;
-+	nvec = min_t(int, nvec, num_eqs);
-+	if (nvec <= MLX5_EQ_VEC_COMP_BASE)
-+		return -ENOMEM;
-+
-+	table->msix_arr = kzalloc(nvec * sizeof(*table->msix_arr), GFP_KERNEL);
-+	if (!table->msix_arr)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < nvec; ++i)
-+		table->msix_arr[i].entry = i;
-+
-+retry:
-+	table->num_comp_vectors = nvec - MLX5_EQ_VEC_COMP_BASE;
-+	err = pci_enable_msix(dev->pdev, table->msix_arr, nvec);
-+	if (err <= 0) {
-+		return err;
-+	} else if (err > 2) {
-+		nvec = err;
-+		goto retry;
-+	}
-+
-+	mlx5_core_dbg(dev, "received %d MSI vectors out of %d requested\n", err, nvec);
-+
-+	return 0;
-+}
-+
-+static void mlx5_disable_msix(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_eq_table *table = &dev->priv.eq_table;
-+
-+	pci_disable_msix(dev->pdev);
-+	kfree(table->msix_arr);
-+}
-+
-+struct mlx5_reg_host_endianess {
-+	u8	he;
-+	u8      rsvd[15];
-+};
-+
-+static int handle_hca_cap(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_cmd_query_hca_cap_mbox_in query_ctx;
-+	struct mlx5_cmd_query_hca_cap_mbox_out *query_out = NULL;
-+	struct mlx5_cmd_set_hca_cap_mbox_in *set_ctx = NULL;
-+	struct mlx5_cmd_set_hca_cap_mbox_out set_out;
-+	struct mlx5_profile *prof = dev->profile;
-+	int csum = 1;
-+	int err;
-+	u64 flags;
-+
-+	memset(&query_ctx, 0, sizeof(query_ctx));
-+	query_out = kzalloc(sizeof(*query_out), GFP_KERNEL);
-+	if (!query_out)
-+		return -ENOMEM;
-+
-+	set_ctx = kzalloc(sizeof(*set_ctx), GFP_KERNEL);
-+	if (!set_ctx) {
-+		err = -ENOMEM;
-+		goto query_ex;
-+	}
-+
-+	query_ctx.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_HCA_CAP);
-+	query_ctx.hdr.opmod  = cpu_to_be16(0x1);
-+	err = mlx5_cmd_exec(dev, &query_ctx, sizeof(query_ctx),
-+				 query_out, sizeof(*query_out));
-+	if (err)
-+		goto query_ex;
-+
-+	err = mlx5_cmd_status_to_err(&query_out->hdr);
-+	if (err) {
-+		mlx5_core_warn(dev, "query hca cap failed, %d\n", err);
-+		goto query_ex;
-+	}
-+
-+	memcpy(&set_ctx->hca_cap, &query_out->hca_cap,
-+	       sizeof(set_ctx->hca_cap));
-+
-+	if (prof->mask & MLX5_PROF_MASK_CMDIF_CSUM) {
-+		csum = !!prof->cmdif_csum;
-+		flags = be64_to_cpu(set_ctx->hca_cap.flags);
-+		if (csum)
-+			flags |= MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
-+		else
-+			flags &= ~MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
-+
-+		set_ctx->hca_cap.flags = cpu_to_be64(flags);
-+	}
-+
-+	if (dev->profile->mask & MLX5_PROF_MASK_QP_SIZE)
-+		set_ctx->hca_cap.log_max_qp = dev->profile->log_max_qp;
-+
-+	memset(&set_out, 0, sizeof(set_out));
-+	set_ctx->hca_cap.uar_page_sz = cpu_to_be16(PAGE_SHIFT - 12);
-+	set_ctx->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_SET_HCA_CAP);
-+	err = mlx5_cmd_exec(dev, set_ctx, sizeof(*set_ctx),
-+				 &set_out, sizeof(set_out));
-+	if (err) {
-+		mlx5_core_warn(dev, "set hca cap failed, %d\n", err);
-+		goto query_ex;
-+	}
-+
-+	err = mlx5_cmd_status_to_err(&set_out.hdr);
-+	if (err)
-+		goto query_ex;
-+
-+	if (!csum)
-+		dev->cmd.checksum_disabled = 1;
-+
-+query_ex:
-+	kfree(query_out);
-+	kfree(set_ctx);
-+
-+	return err;
-+}
-+
-+static int set_hca_ctrl(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_reg_host_endianess he_in;
-+	struct mlx5_reg_host_endianess he_out;
-+	int err;
-+
-+	memset(&he_in, 0, sizeof(he_in));
-+#if defined(__LITTLE_ENDIAN)
-+	he_in.he = 0x0;
-+#elif defined(__BIG_ENDIAN)
-+	he_in.he = 0x80;
-+#else
-+#error Host endianness not defined
-+#endif
-+	err = mlx5_core_access_reg(dev, &he_in,  sizeof(he_in),
-+					&he_out, sizeof(he_out),
-+					MLX5_REG_HOST_ENDIANESS, 0, 1);
-+	return err;
-+}
-+
-+int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev)
-+{
-+	int err;
-+	struct mlx5_priv *priv = &dev->priv;
-+
-+	dev->pdev = pdev;
-+	pci_set_drvdata(dev->pdev, dev);
-+	strncpy(priv->name, dev_name(&pdev->dev), MLX5_MAX_NAME_LEN);
-+	priv->name[MLX5_MAX_NAME_LEN - 1] = 0;
-+
-+	mutex_init(&priv->pgdir_mutex);
-+	INIT_LIST_HEAD(&priv->pgdir_list);
-+	spin_lock_init(&priv->mkey_lock);
-+
-+	priv->dbg_root = debugfs_create_dir(dev_name(&pdev->dev), mlx5_debugfs_root);
-+	if (!priv->dbg_root)
-+		return -ENOMEM;
-+
-+	err = pci_enable_device(pdev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Cannot enable PCI device, aborting.\n");
-+		goto err_dbg;
-+	}
-+
-+	err = request_bar(pdev);
-+	if (err) {
-+		dev_err(&pdev->dev, "error requesting BARs, aborting.\n");
-+		goto err_disable;
-+	}
-+
-+	pci_set_master(pdev);
-+
-+	err = set_dma_caps(pdev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed setting DMA capabilities mask, aborting\n");
-+		goto err_clr_master;
-+	}
-+
-+	dev->iseg_base = pci_resource_start(dev->pdev, 0);
-+	dev->iseg = ioremap(dev->iseg_base, sizeof(*dev->iseg));
-+	if (!dev->iseg) {
-+		err = -ENOMEM;
-+		dev_err(&pdev->dev, "Failed mapping initialization segment, aborting\n");
-+		goto err_clr_master;
-+	}
-+	dev_info(&pdev->dev, "firmware version: %d.%d.%d\n", fw_rev_maj(dev),
-+		 fw_rev_min(dev), fw_rev_sub(dev));
-+
-+	err = mlx5_cmd_init(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed initializing command interface, aborting\n");
-+		goto err_unmap;
-+	}
-+
-+	mlx5_pagealloc_init(dev);
-+	err = set_hca_ctrl(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "set_hca_ctrl failed\n");
-+		goto err_pagealloc_cleanup;
-+	}
-+
-+	err = handle_hca_cap(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "handle_hca_cap failed\n");
-+		goto err_pagealloc_cleanup;
-+	}
-+
-+	err = mlx5_satisfy_startup_pages(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "failed to allocate startup pages\n");
-+		goto err_pagealloc_cleanup;
-+	}
-+
-+	err = mlx5_pagealloc_start(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "mlx5_pagealloc_start failed\n");
-+		goto err_reclaim_pages;
-+	}
-+
-+	err = mlx5_cmd_init_hca(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "init hca failed\n");
-+		goto err_pagealloc_stop;
-+	}
-+
-+	mlx5_start_health_poll(dev);
-+
-+	err = mlx5_cmd_query_hca_cap(dev, &dev->caps);
-+	if (err) {
-+		dev_err(&pdev->dev, "query hca failed\n");
-+		goto err_stop_poll;
-+	}
-+
-+	err = mlx5_cmd_query_adapter(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "query adapter failed\n");
-+		goto err_stop_poll;
-+	}
-+
-+	err = mlx5_enable_msix(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "enable msix failed\n");
-+		goto err_stop_poll;
-+	}
-+
-+	err = mlx5_eq_init(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "failed to initialize eq\n");
-+		goto disable_msix;
-+	}
-+
-+	err = mlx5_alloc_uuars(dev, &priv->uuari);
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed allocating uar, aborting\n");
-+		goto err_eq_cleanup;
-+	}
-+
-+	err = mlx5_start_eqs(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed to start pages and async EQs\n");
-+		goto err_free_uar;
-+	}
-+
-+	MLX5_INIT_DOORBELL_LOCK(&priv->cq_uar_lock);
-+
-+	mlx5_init_cq_table(dev);
-+	mlx5_init_qp_table(dev);
-+	mlx5_init_srq_table(dev);
-+
-+	return 0;
-+
-+err_free_uar:
-+	mlx5_free_uuars(dev, &priv->uuari);
-+
-+err_eq_cleanup:
-+	mlx5_eq_cleanup(dev);
-+
-+disable_msix:
-+	mlx5_disable_msix(dev);
-+
-+err_stop_poll:
-+	mlx5_stop_health_poll(dev);
-+	mlx5_cmd_teardown_hca(dev);
-+
-+err_pagealloc_stop:
-+	mlx5_pagealloc_stop(dev);
-+
-+err_reclaim_pages:
-+	mlx5_reclaim_startup_pages(dev);
-+
-+err_pagealloc_cleanup:
-+	mlx5_pagealloc_cleanup(dev);
-+	mlx5_cmd_cleanup(dev);
-+
-+err_unmap:
-+	iounmap(dev->iseg);
-+
-+err_clr_master:
-+	pci_clear_master(dev->pdev);
-+	release_bar(dev->pdev);
-+
-+err_disable:
-+	pci_disable_device(dev->pdev);
-+
-+err_dbg:
-+	debugfs_remove(priv->dbg_root);
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_dev_init);
-+
-+void mlx5_dev_cleanup(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_priv *priv = &dev->priv;
-+
-+	mlx5_cleanup_srq_table(dev);
-+	mlx5_cleanup_qp_table(dev);
-+	mlx5_cleanup_cq_table(dev);
-+	mlx5_stop_eqs(dev);
-+	mlx5_free_uuars(dev, &priv->uuari);
-+	mlx5_eq_cleanup(dev);
-+	mlx5_disable_msix(dev);
-+	mlx5_stop_health_poll(dev);
-+	mlx5_cmd_teardown_hca(dev);
-+	mlx5_pagealloc_stop(dev);
-+	mlx5_reclaim_startup_pages(dev);
-+	mlx5_pagealloc_cleanup(dev);
-+	mlx5_cmd_cleanup(dev);
-+	iounmap(dev->iseg);
-+	pci_clear_master(dev->pdev);
-+	release_bar(dev->pdev);
-+	pci_disable_device(dev->pdev);
-+	debugfs_remove(priv->dbg_root);
-+}
-+EXPORT_SYMBOL(mlx5_dev_cleanup);
-+
-+static int __init init(void)
-+{
-+	int err;
-+
-+	mlx5_register_debugfs();
-+	mlx5_core_wq = create_singlethread_workqueue("mlx5_core_wq");
-+	if (!mlx5_core_wq) {
-+		err = -ENOMEM;
-+		goto err_debug;
-+	}
-+	mlx5_health_init();
-+
-+	return 0;
-+
-+	mlx5_health_cleanup();
-+err_debug:
-+	mlx5_unregister_debugfs();
-+	return err;
-+}
-+
-+static void __exit cleanup(void)
-+{
-+	mlx5_health_cleanup();
-+	destroy_workqueue(mlx5_core_wq);
-+	mlx5_unregister_debugfs();
-+}
-+
-+module_init(init);
-+module_exit(cleanup);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mcg.c b/drivers/net/ethernet/mellanox/mlx5/core/mcg.c
-new file mode 100644
-index 0000000..7e49986
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mcg.c
-@@ -0,0 +1,108 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cmd.h>
 +#include <rdma/ib_verbs.h>
 +#include "mlx5_core.h"
 +
-+MLX5_MOD_DBG_MASK(MLX5_MOD_MCG);
++MLX5_MOD_DBG_MASK(MLX5_MOD_SRQ);
 +
-+struct mlx5_attach_mcg_mbox_in {
-+	struct mlx5_inbox_hdr	hdr;
-+	__be32			qpn;
-+	__be32			rsvd;
-+	u8			gid[16];
-+};
-+
-+struct mlx5_attach_mcg_mbox_out {
-+	struct mlx5_outbox_hdr	hdr;
-+	u8			rsvf[8];
-+};
-+
-+struct mlx5_detach_mcg_mbox_in {
-+	struct mlx5_inbox_hdr	hdr;
-+	__be32			qpn;
-+	__be32			rsvd;
-+	u8			gid[16];
-+};
-+
-+struct mlx5_detach_mcg_mbox_out {
-+	struct mlx5_outbox_hdr	hdr;
-+	u8			rsvf[8];
-+};
-+
-+int mlx5_core_attach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn)
++void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type)
 +{
-+	struct mlx5_attach_mcg_mbox_in in;
-+	struct mlx5_attach_mcg_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_ATTACH_TO_MCG);
-+	memcpy(in.gid, mgid, sizeof(*mgid));
-+	in.qpn = cpu_to_be32(qpn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_attach_mcg);
-+
-+int mlx5_core_detach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn)
-+{
-+	struct mlx5_detach_mcg_mbox_in in;
-+	struct mlx5_detach_mcg_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DETACH_FROM_MCG);
-+	memcpy(in.gid, mgid, sizeof(*mgid));
-+	in.qpn = cpu_to_be32(qpn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_detach_mcg);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-new file mode 100644
-index 0000000..0d789e1
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -0,0 +1,96 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef __MLX5_CORE_H__
-+#define __MLX5_CORE_H__
-+
-+#include <linux/types.h>
-+#include <linux/kernel.h>
-+#include <linux/sched.h>
-+
-+extern int mlx5_core_debug_mask;
-+
-+#define mlx5_core_dbg(dev, format, arg...)				       \
-+do {									       \
-+	if (debug_mask & mlx5_core_debug_mask)				       \
-+		pr_debug("%s:%s:%d:(pid %d): " format, (dev)->priv.name,       \
-+			 __func__, __LINE__, current->pid, ##arg);	       \
-+} while (0)
-+
-+#define mlx5_core_dbg_mask(dev, mask, format, arg...)			       \
-+do {									       \
-+	if ((mask) & mlx5_core_debug_mask)				       \
-+		pr_debug("%s:%s:%d:(pid %d): " format, (dev)->priv.name,       \
-+			 __func__, __LINE__, current->pid, ##arg);	       \
-+} while (0)
-+
-+#define mlx5_core_err(dev, format, arg...) \
-+pr_err("%s:%s:%d:(pid %d): " format, (dev)->priv.name, __func__, __LINE__,     \
-+	current->pid, ##arg)
-+
-+#define mlx5_core_warn(dev, format, arg...) \
-+pr_warn("%s:%s:%d:(pid %d): " format, (dev)->priv.name, __func__, __LINE__,    \
-+	current->pid, ##arg)
-+
-+#define MLX5_MOD_DBG_MASK(mod_id)\
-+static const u32 debug_mask = 1 << (mod_id)
-+
-+enum {
-+	MLX5_MOD_MAIN,
-+	MLX5_MOD_CMDIF,
-+	MLX5_MOD_EQ,
-+	MLX5_MOD_QP,
-+	MLX5_MOD_PGALLOC,
-+	MLX5_MOD_FW,
-+	MLX5_MOD_UAR,
-+	MLX5_MOD_ALLOC,
-+	MLX5_MOD_DEBUG,
-+	MLX5_MOD_HEALTH,
-+	MLX5_MOD_MAD,
-+	MLX5_MOD_MCG,
-+	MLX5_MOD_MR,
-+	MLX5_MOD_PD,
-+	MLX5_MOD_PORT,
-+	MLX5_MOD_SRQ,
-+	MLX5_MOD_CQ,
-+	MLX5_MOD_CMD_DATA, /* print command payload only */
-+	MLX5_CMD_DATA_TIME,
-+};
-+
-+
-+int mlx5_cmd_query_hca_cap(struct mlx5_core_dev *dev,
-+			   struct mlx5_caps *caps);
-+int mlx5_cmd_query_adapter(struct mlx5_core_dev *dev);
-+int mlx5_cmd_init_hca(struct mlx5_core_dev *dev);
-+int mlx5_cmd_teardown_hca(struct mlx5_core_dev *dev);
-+
-+#endif /* __MLX5_CORE_H__ */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mr.c b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-new file mode 100644
-index 0000000..1a63eb9
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-@@ -0,0 +1,138 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cmd.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_MR);
-+
-+int mlx5_core_create_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
-+			  struct mlx5_create_mkey_mbox_in *in, int inlen)
-+{
-+	int err;
-+	struct mlx5_create_mkey_mbox_out out;
-+	u8 key;
-+
-+	memset(&out, 0, sizeof(out));
-+	spin_lock(&dev->priv.mkey_lock);
-+	key = dev->priv.mkey_key++;
-+	spin_unlock(&dev->priv.mkey_lock);
-+	in->seg.qpn_mkey7_0 |= cpu_to_be32(key);
-+	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_CREATE_MKEY);
-+	err = mlx5_cmd_exec(dev, in, inlen, &out, sizeof(out));
-+	if (err) {
-+		mlx5_core_dbg(dev, "cmd exec faile %d\n", err);
-+		return err;
-+	}
-+
-+	if (out.hdr.status) {
-+		mlx5_core_dbg(dev, "status %d\n", out.hdr.status);
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+	}
-+
-+	mr->key = mlx5_idx_to_mkey(be32_to_cpu(out.mkey) & 0xffffff) | key;
-+	mlx5_core_dbg(dev, "out 0x%x, key 0x%x, mkey 0x%x\n", be32_to_cpu(out.mkey), key, mr->key);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_create_mkey);
-+
-+int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr)
-+{
-+	struct mlx5_destroy_mkey_mbox_in in;
-+	struct mlx5_destroy_mkey_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DESTROY_MKEY);
-+	in.mkey = cpu_to_be32(mlx5_mkey_to_idx(mr->key));
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_destroy_mkey);
-+
-+int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
-+			 struct mlx5_query_mkey_mbox_out *out, int outlen)
-+{
-+	struct mlx5_destroy_mkey_mbox_in in;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(out, 0, outlen);
-+
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_MKEY);
-+	in.mkey = cpu_to_be32(mlx5_mkey_to_idx(mr->key));
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), out, outlen);
-+	if (err)
-+		return err;
-+
-+	if (out->hdr.status)
-+		return mlx5_cmd_status_to_err(&out->hdr);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_query_mkey);
-+
-+int mlx5_core_dump_fill_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
-+			     u32 *mkey)
-+{
-+	struct mlx5_query_special_ctxs_mbox_in in;
-+	struct mlx5_query_special_ctxs_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+
-+	*mkey = be32_to_cpu(out.dump_fill_mkey);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_dump_fill_mkey);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-new file mode 100644
-index 0000000..fca86bd
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-@@ -0,0 +1,438 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <asm-generic/kmap_types.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cmd.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_PGALLOC);
-+
-+enum {
-+	MLX5_PAGES_CANT_GIVE	= 0,
-+	MLX5_PAGES_GIVE		= 1,
-+	MLX5_PAGES_TAKE		= 2
-+};
-+
-+struct mlx5_pages_req {
-+	struct mlx5_core_dev *dev;
-+	u32	func_id;
-+	s16	npages;
-+	struct work_struct work;
-+};
-+
-+struct fw_page {
-+	struct rb_node	rb_node;
-+	u64		addr;
-+	struct page	*page;
-+	u16		func_id;
-+};
-+
-+struct mlx5_query_pages_inbox {
-+	struct mlx5_inbox_hdr	hdr;
-+	u8			rsvd[8];
-+};
-+
-+struct mlx5_query_pages_outbox {
-+	struct mlx5_outbox_hdr	hdr;
-+	u8			reserved[2];
-+	__be16			func_id;
-+	__be16			init_pages;
-+	__be16			num_pages;
-+};
-+
-+struct mlx5_manage_pages_inbox {
-+	struct mlx5_inbox_hdr	hdr;
-+	__be16			rsvd0;
-+	__be16			func_id;
-+	__be16			rsvd1;
-+	__be16			num_entries;
-+	u8			rsvd2[16];
-+	__be64			pas[0];
-+};
-+
-+struct mlx5_manage_pages_outbox {
-+	struct mlx5_outbox_hdr	hdr;
-+	u8			rsvd0[2];
-+	__be16			num_entries;
-+	u8			rsvd1[20];
-+	__be64			pas[0];
-+};
-+
-+static int insert_page(struct mlx5_core_dev *dev, u64 addr, struct page *page, u16 func_id)
-+{
-+	struct rb_root *root = &dev->priv.page_root;
-+	struct rb_node **new = &root->rb_node;
-+	struct rb_node *parent = NULL;
-+	struct fw_page *nfp;
-+	struct fw_page *tfp;
-+
-+	while (*new) {
-+		parent = *new;
-+		tfp = rb_entry(parent, struct fw_page, rb_node);
-+		if (tfp->addr < addr)
-+			new = &parent->rb_left;
-+		else if (tfp->addr > addr)
-+			new = &parent->rb_right;
-+		else
-+			return -EEXIST;
-+	}
-+
-+	nfp = kmalloc(sizeof(*nfp), GFP_KERNEL);
-+	if (!nfp)
-+		return -ENOMEM;
-+
-+	nfp->addr = addr;
-+	nfp->page = page;
-+	nfp->func_id = func_id;
-+
-+	rb_link_node(&nfp->rb_node, parent, new);
-+	rb_insert_color(&nfp->rb_node, root);
-+
-+	return 0;
-+}
-+
-+static struct page *remove_page(struct mlx5_core_dev *dev, u64 addr)
-+{
-+	struct rb_root *root = &dev->priv.page_root;
-+	struct rb_node *tmp = root->rb_node;
-+	struct fw_page *tfp;
-+	struct page *result = NULL;
-+
-+	while (tmp) {
-+		tfp = rb_entry(tmp, struct fw_page, rb_node);
-+		if (tfp->addr < addr) {
-+			tmp = tmp->rb_left;
-+		} else if (tfp->addr > addr) {
-+			tmp = tmp->rb_right;
-+		} else {
-+			rb_erase(&tfp->rb_node, root);
-+			result = tfp->page;
-+			kfree(tfp);
-+			break;
-+		}
-+	}
-+
-+	return result;
-+}
-+
-+static int mlx5_cmd_query_pages(struct mlx5_core_dev *dev, u16 *func_id,
-+				s16 *pages, s16 *init_pages)
-+{
-+	struct mlx5_query_pages_inbox	in;
-+	struct mlx5_query_pages_outbox	out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_PAGES);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+
-+	if (pages)
-+		*pages = be16_to_cpu(out.num_pages);
-+	if (init_pages)
-+		*init_pages = be16_to_cpu(out.init_pages);
-+	*func_id = be16_to_cpu(out.func_id);
-+
-+	return err;
-+}
-+
-+static int give_pages(struct mlx5_core_dev *dev, u16 func_id, int npages,
-+		      int notify_fail)
-+{
-+	struct mlx5_manage_pages_inbox *in;
-+	struct mlx5_manage_pages_outbox out;
-+	int i;
-+	struct page *page;
-+	u64 addr;
-+	int err;
-+	int inlen;
-+
-+	inlen = sizeof(*in) + npages * sizeof(in->pas[0]);
-+	in = vzalloc(inlen);
-+	if (!in) {
-+		mlx5_core_warn(dev, "vzalloc failed %d\n", inlen);
-+		return -ENOMEM;
-+	}
-+	memset(&out, 0, sizeof(out));
-+
-+	for (i = 0; i < npages; ++i) {
-+		page = alloc_page(GFP_HIGHUSER);
-+		if (!page) {
-+			err = -ENOMEM;
-+			mlx5_core_warn(dev, "failed to allocate page\n");
-+			goto out_alloc;
-+		}
-+		addr = dma_map_page(&dev->pdev->dev, page, 0,
-+				    PAGE_SIZE, DMA_BIDIRECTIONAL);
-+		if (dma_mapping_error(&dev->pdev->dev, addr)) {
-+			mlx5_core_warn(dev, "failed dma mapping page\n");
-+			__free_page(page);
-+			err = -ENOMEM;
-+			goto out_alloc;
-+		}
-+		err = insert_page(dev, addr, page, func_id);
-+		if (err) {
-+			mlx5_core_err(dev, "failed to track allocated page\n");
-+			dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
-+			__free_page(page);
-+			err = -ENOMEM;
-+			goto out_alloc;
-+		}
-+		in->pas[i] = cpu_to_be64(addr);
-+	}
-+
-+	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_MANAGE_PAGES);
-+	in->hdr.opmod = cpu_to_be16(MLX5_PAGES_GIVE);
-+	in->func_id = cpu_to_be16(func_id);
-+	in->num_entries = cpu_to_be16(npages);
-+	err = mlx5_cmd_exec(dev, in, inlen, &out, sizeof(out));
-+	mlx5_core_dbg(dev, "err %d\n", err);
-+	if (err) {
-+		mlx5_core_warn(dev, "func_id 0x%x, npages %d, err %d\n", func_id, npages, err);
-+		goto out_alloc;
-+	}
-+	dev->priv.fw_pages += npages;
-+
-+	if (out.hdr.status) {
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+		if (err) {
-+			mlx5_core_warn(dev, "func_id 0x%x, npages %d, status %d\n", func_id, npages, out.hdr.status);
-+			goto out_alloc;
-+		}
-+	}
-+
-+	mlx5_core_dbg(dev, "err %d\n", err);
-+
-+	goto out_free;
-+
-+out_alloc:
-+	if (notify_fail) {
-+		memset(in, 0, inlen);
-+		memset(&out, 0, sizeof(out));
-+		in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_MANAGE_PAGES);
-+		in->hdr.opmod = cpu_to_be16(MLX5_PAGES_CANT_GIVE);
-+		if (mlx5_cmd_exec(dev, in, sizeof(*in), &out, sizeof(out)))
-+			mlx5_core_warn(dev, "\n");
-+	}
-+	for (--i; i >= 0; --i) {
-+		addr = be64_to_cpu(in->pas[i]);
-+		page = remove_page(dev, addr);
-+		if (!page) {
-+			mlx5_core_err(dev, "BUG: can't remove page at addr 0x%llx\n",
-+				      addr);
-+			continue;
-+		}
-+		dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
-+		__free_page(page);
-+	}
-+
-+out_free:
-+	vfree(in);
-+	return err;
-+}
-+
-+static int reclaim_pages(struct mlx5_core_dev *dev, u32 func_id, int npages,
-+			 int *nclaimed)
-+{
-+	struct mlx5_manage_pages_inbox   in;
-+	struct mlx5_manage_pages_outbox *out;
-+	int i;
-+	struct page *page;
-+	u64 addr;
-+	int err;
-+	int outlen;
-+	int num_claimed;
-+
-+	memset(&in, 0, sizeof(in));
-+	outlen = sizeof(*out) + npages * sizeof(out->pas[0]);
-+	out = vzalloc(outlen);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_MANAGE_PAGES);
-+	in.hdr.opmod = cpu_to_be16(MLX5_PAGES_TAKE);
-+	in.func_id = cpu_to_be16(func_id);
-+	in.num_entries = cpu_to_be16(npages);
-+	mlx5_core_dbg(dev, "npages %d, outlen %d\n", npages, outlen);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), out, outlen);
-+	if (err) {
-+		mlx5_core_err(dev, "failed recliaming pages\n");
-+		goto out_free;
-+	}
-+	dev->priv.fw_pages -= npages;
-+
-+	if (out->hdr.status) {
-+		err = mlx5_cmd_status_to_err(&out->hdr);
-+		goto out_free;
-+	}
-+
-+	num_claimed = be16_to_cpu(out->num_entries);
-+	if (nclaimed)
-+		*nclaimed = num_claimed;
-+
-+	for (i = 0; i < num_claimed; ++i) {
-+		addr = be64_to_cpu(out->pas[i]);
-+		page = remove_page(dev, addr);
-+		if (!page) {
-+			mlx5_core_warn(dev, "FW reported unknown DMA address 0x%llx\n", addr);
-+		} else {
-+			dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
-+			__free_page(page);
-+		}
-+	}
-+
-+out_free:
-+	vfree(out);
-+	return err;
-+}
-+
-+static void pages_work_handler(struct work_struct *work)
-+{
-+	struct mlx5_pages_req *req = container_of(work, struct mlx5_pages_req, work);
-+	struct mlx5_core_dev *dev = req->dev;
-+	int err = 0;
-+
-+	if (req->npages < 0)
-+		err = reclaim_pages(dev, req->func_id, -1 * req->npages, NULL);
-+	else if (req->npages > 0)
-+		err = give_pages(dev, req->func_id, req->npages, 1);
-+
-+	if (err)
-+		mlx5_core_warn(dev, "%s fail %d\n", req->npages < 0 ?
-+			       "reclaim" : "give", err);
-+
-+	kfree(req);
-+}
-+
-+void mlx5_core_req_pages_handler(struct mlx5_core_dev *dev, u16 func_id,
-+				 s16 npages)
-+{
-+	struct mlx5_pages_req *req;
-+
-+	req = kzalloc(sizeof(*req), GFP_ATOMIC);
-+	if (!req) {
-+		mlx5_core_warn(dev, "failed to allocate pages request\n");
-+		return;
-+	}
-+
-+	req->dev = dev;
-+	req->func_id = func_id;
-+	req->npages = npages;
-+	INIT_WORK(&req->work, pages_work_handler);
-+	queue_work(dev->priv.pg_wq, &req->work);
-+}
-+
-+int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev)
-+{
-+	int err;
-+	s16 uninitialized_var(init_pages);
-+	u16 uninitialized_var(func_id);
-+
-+	err = mlx5_cmd_query_pages(dev, &func_id, NULL, &init_pages);
-+	if (err)
-+		return err;
-+
-+	mlx5_core_dbg(dev, "requested %d init pages for func_id 0x%x\n", init_pages, func_id);
-+
-+	return give_pages(dev, func_id, init_pages, 0);
-+}
-+
-+static int optimal_reclaimed_pages(void)
-+{
-+	struct mlx5_cmd_layout *lay;
-+	struct mlx5_cmd_prot_block *block;
-+	int ret;
-+
-+	ret = (sizeof(lay->in) + sizeof(block->data) -
-+	       sizeof(struct mlx5_manage_pages_outbox)) / 8;
-+
-+	return ret;
-+}
-+
-+int mlx5_reclaim_startup_pages(struct mlx5_core_dev *dev)
-+{
-+	struct rb_node *p;
-+	struct fw_page *fwp;
-+	int err;
-+	unsigned long end = jiffies + msecs_to_jiffies(5000);
-+
-+	do {
-+		p = rb_first(&dev->priv.page_root);
-+		if (p) {
-+			fwp = rb_entry(p, struct fw_page, rb_node);
-+			err = reclaim_pages(dev, fwp->func_id, optimal_reclaimed_pages(), NULL);
-+			if (err) {
-+				mlx5_core_warn(dev, "failed reclaiming pages (%d)\n", err);
-+				return err;
-+			}
-+		}
-+		if (time_after(jiffies, end)) {
-+			mlx5_core_warn(dev, "FW did not return all pages. giving up...\n");
-+			break;
-+		}
-+	} while (p);
-+
-+	return 0;
-+}
-+
-+void mlx5_pagealloc_init(struct mlx5_core_dev *dev)
-+{
-+	dev->priv.page_root = RB_ROOT;
-+}
-+
-+void mlx5_pagealloc_cleanup(struct mlx5_core_dev *dev)
-+{
-+	/* nothing */
-+}
-+
-+int mlx5_pagealloc_start(struct mlx5_core_dev *dev)
-+{
-+	dev->priv.pg_wq = create_singlethread_workqueue("mlx5_page_allocator");
-+	if (!dev->priv.pg_wq)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+void mlx5_pagealloc_stop(struct mlx5_core_dev *dev)
-+{
-+	destroy_workqueue(dev->priv.pg_wq);
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pd.c b/drivers/net/ethernet/mellanox/mlx5/core/pd.c
-new file mode 100644
-index 0000000..c081d18
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pd.c
-@@ -0,0 +1,103 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cmd.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_PD);
-+
-+struct mlx5_alloc_pd_mbox_in {
-+	struct mlx5_inbox_hdr	hdr;
-+	u8			rsvd[8];
-+};
-+
-+struct mlx5_alloc_pd_mbox_out {
-+	struct mlx5_outbox_hdr	hdr;
-+	__be32			pdn;
-+	u8			rsvd[4];
-+};
-+
-+struct mlx5_dealloc_pd_mbox_in {
-+	struct mlx5_inbox_hdr	hdr;
-+	__be32			pdn;
-+	u8			rsvd[4];
-+};
-+
-+struct mlx5_dealloc_pd_mbox_out {
-+	struct mlx5_outbox_hdr	hdr;
-+	u8			rsvd[8];
-+};
-+
-+int mlx5_core_alloc_pd(struct mlx5_core_dev *dev, u32 *pdn)
-+{
-+	struct mlx5_alloc_pd_mbox_in	in;
-+	struct mlx5_alloc_pd_mbox_out	out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_ALLOC_PD);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+
-+	*pdn = be32_to_cpu(out.pdn) & 0xffffff;
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_alloc_pd);
-+
-+int mlx5_core_dealloc_pd(struct mlx5_core_dev *dev, u32 pdn)
-+{
-+	struct mlx5_dealloc_pd_mbox_in	in;
-+	struct mlx5_dealloc_pd_mbox_out	out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DEALLOC_PD);
-+	in.pdn = cpu_to_be32(pdn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(mlx5_core_dealloc_pd);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/port.c b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-new file mode 100644
-index 0000000..4cee714
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-@@ -0,0 +1,106 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/cmd.h>
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_PORT);
-+
-+int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
-+			 int size_in, void *data_out, int size_out,
-+			 u16 reg_num, int arg, int write)
-+{
-+	struct mlx5_access_reg_mbox_in *in = NULL;
-+	struct mlx5_access_reg_mbox_out *out = NULL;
-+	int err = -ENOMEM;
-+
-+	in = vzalloc(sizeof(*in) + size_in);
-+	if (!in)
-+		goto ex;
-+
-+	out = vzalloc(sizeof(*out) + size_out);
-+	if (!out)
-+		goto ex;
-+
-+	memcpy(in->data, data_in, size_in);
-+	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_ACCESS_REG);
-+	in->hdr.opmod = cpu_to_be16(!write);
-+	in->arg = cpu_to_be32(arg);
-+	in->register_id = cpu_to_be16(reg_num);
-+	err = mlx5_cmd_exec(dev, in, sizeof(*in) + size_in, out,
-+			    sizeof(out) + size_out);
-+	if (err)
-+		goto ex;
-+
-+	if (out->hdr.status)
-+		err = mlx5_cmd_status_to_err(&out->hdr);
-+
-+	if (!err)
-+		memcpy(data_out, out->data, size_out);
-+
-+ex:
-+	vfree(out);
-+	vfree(in);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_core_access_reg);
-+
-+
-+struct mlx5_reg_pcap {
-+	u8			rsvd0;
-+	u8			port_num;
-+	u8			rsvd1[2];
-+	__be32			caps_127_96;
-+	__be32			caps_95_64;
-+	__be32			caps_63_32;
-+	__be32			caps_31_0;
-+};
-+
-+int mlx5_set_port_caps(struct mlx5_core_dev *dev, int port_num, u32 caps)
-+{
-+	struct mlx5_reg_pcap in;
-+	struct mlx5_reg_pcap out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	in.caps_127_96 = cpu_to_be32(caps);
-+	in.port_num = port_num;
-+
-+	err = mlx5_core_access_reg(dev, &in, sizeof(in), &out,
-+				   sizeof(out), MLX5_REG_PCAP, 0, 1);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_set_port_caps);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-new file mode 100644
-index 0000000..80739f0
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-@@ -0,0 +1,303 @@
-+/*
-+ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+
-+#include <linux/gfp.h>
-+#include <linux/export.h>
-+#include <linux/mlx5/cmd.h>
-+#include <linux/mlx5/qp.h>
-+#include <linux/mlx5/driver.h>
-+
-+#include "mlx5_core.h"
-+
-+MLX5_MOD_DBG_MASK(MLX5_MOD_QP);
-+
-+void mlx5_qp_event(struct mlx5_core_dev *dev, u32 qpn, int event_type)
-+{
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+	struct mlx5_core_qp *qp;
++	struct mlx5_srq_table *table = &dev->priv.srq_table;
++	struct mlx5_core_srq *srq;
 +
 +	spin_lock(&table->lock);
 +
-+	qp = radix_tree_lookup(&table->tree, qpn);
-+	if (qp)
-+		atomic_inc(&qp->refcount);
++	srq = radix_tree_lookup(&table->tree, srqn);
++	if (srq)
++		atomic_inc(&srq->refcount);
 +
 +	spin_unlock(&table->lock);
 +
-+	if (!qp) {
-+		mlx5_core_warn(dev, "Async event for bogus QP 0x%x\n", qpn);
++	if (!srq) {
++		mlx5_core_warn(dev, "Async event for bogus SRQ 0x%08x\n", srqn);
 +		return;
 +	}
 +
-+	qp->event(qp, event_type);
++	srq->event(srq, event_type);
 +
-+	if (atomic_dec_and_test(&qp->refcount))
-+		complete(&qp->free);
++	if (atomic_dec_and_test(&srq->refcount))
++		complete(&srq->free);
 +}
 +
-+int mlx5_core_create_qp(struct mlx5_core_dev *dev,
-+			struct mlx5_core_qp *qp,
-+			struct mlx5_create_qp_mbox_in *in,
-+			int inlen)
++struct mlx5_core_srq *mlx5_core_get_srq(struct mlx5_core_dev *dev, u32 srqn)
++{
++	struct mlx5_srq_table *table = &dev->priv.srq_table;
++	struct mlx5_core_srq *srq;
++
++	spin_lock(&table->lock);
++
++	srq = radix_tree_lookup(&table->tree, srqn);
++	if (srq)
++		atomic_inc(&srq->refcount);
++
++	spin_unlock(&table->lock);
++
++	return srq;
++}
++EXPORT_SYMBOL(mlx5_core_get_srq);
++
++int mlx5_core_create_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
++			 struct mlx5_create_srq_mbox_in *in, int inlen)
 +{
 +	int err;
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+	struct mlx5_create_qp_mbox_out out;
-+	struct mlx5_destroy_qp_mbox_in din;
-+	struct mlx5_destroy_qp_mbox_out dout;
++	struct mlx5_create_srq_mbox_out out;
++	struct mlx5_srq_table *table = &dev->priv.srq_table;
++	struct mlx5_destroy_srq_mbox_in din;
++	struct mlx5_destroy_srq_mbox_out dout;
 +
-+	memset(&dout, 0, sizeof(dout));
-+	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_CREATE_QP);
-+
++	memset(&out, 0, sizeof(out));
++	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_CREATE_SRQ);
 +	err = mlx5_cmd_exec(dev, in, inlen, &out, sizeof(out));
-+	if (err) {
-+		mlx5_core_warn(dev, "ret %d", err);
++	if (err)
 +		return err;
-+	}
 +
-+	if (out.hdr.status) {
-+		pr_warn("current num of QPs 0x%x\n", atomic_read(&dev->num_qps));
++	if (out.hdr.status)
 +		return mlx5_cmd_status_to_err(&out.hdr);
-+	}
 +
-+	qp->qpn = be32_to_cpu(out.qpn) & 0xffffff;
-+	mlx5_core_dbg(dev, "qpn = 0x%x\n", qp->qpn);
++	srq->srqn = be32_to_cpu(out.srqn) & 0xffffff;
++
++	atomic_set(&srq->refcount, 1);
++	init_completion(&srq->free);
 +
 +	spin_lock_irq(&table->lock);
-+	err = radix_tree_insert(&table->tree, qp->qpn, qp);
++	err = radix_tree_insert(&table->tree, srq->srqn, srq);
 +	spin_unlock_irq(&table->lock);
 +	if (err) {
-+		mlx5_core_warn(dev, "err %d", err);
++		mlx5_core_warn(dev, "err %d, srqn 0x%x\n", err, srq->srqn);
 +		goto err_cmd;
 +	}
-+
-+	err = mlx5_debug_qp_add(dev, qp);
-+	if (err)
-+		mlx5_core_dbg(dev, "failed adding QP 0x%x to debug file system\n",
-+			      qp->qpn);
-+
-+	qp->pid = current->pid;
-+	atomic_set(&qp->refcount, 1);
-+	atomic_inc(&dev->num_qps);
-+	init_completion(&qp->free);
 +
 +	return 0;
 +
 +err_cmd:
 +	memset(&din, 0, sizeof(din));
 +	memset(&dout, 0, sizeof(dout));
-+	din.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DESTROY_QP);
-+	din.qpn = cpu_to_be32(qp->qpn);
-+	mlx5_cmd_exec(dev, &din, sizeof(din), &out, sizeof(dout));
-+
++	din.srqn = cpu_to_be32(srq->srqn);
++	din.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DESTROY_SRQ);
++	mlx5_cmd_exec(dev, &din, sizeof(din), &dout, sizeof(dout));
 +	return err;
 +}
-+EXPORT_SYMBOL_GPL(mlx5_core_create_qp);
++EXPORT_SYMBOL(mlx5_core_create_srq);
 +
-+int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
-+			 struct mlx5_core_qp *qp)
++int mlx5_core_destroy_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq)
 +{
++	struct mlx5_destroy_srq_mbox_in in;
++	struct mlx5_destroy_srq_mbox_out out;
 +	int err;
-+	struct mlx5_destroy_qp_mbox_in in;
-+	struct mlx5_destroy_qp_mbox_out out;
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+	unsigned long flags;
++	struct mlx5_srq_table *table = &dev->priv.srq_table;
++	struct mlx5_core_srq *tmp;
 +
-+	mlx5_debug_qp_remove(dev, qp);
-+
-+	spin_lock_irqsave(&table->lock, flags);
-+	radix_tree_delete(&table->tree, qp->qpn);
-+	spin_unlock_irqrestore(&table->lock, flags);
-+
-+	if (atomic_dec_and_test(&qp->refcount))
-+		complete(&qp->free);
-+	wait_for_completion(&qp->free);
++	spin_lock_irq(&table->lock);
++	tmp = radix_tree_delete(&table->tree, srq->srqn);
++	spin_unlock_irq(&table->lock);
++	if (!tmp) {
++		mlx5_core_warn(dev, "srq 0x%x not found in tree\n", srq->srqn);
++		return -EINVAL;
++	}
++	if (tmp != srq) {
++		mlx5_core_warn(dev, "corruption on srqn 0x%x\n", srq->srqn);
++		return -EINVAL;
++	}
 +
 +	memset(&in, 0, sizeof(in));
 +	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DESTROY_QP);
-+	in.qpn = cpu_to_be32(qp->qpn);
++	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DESTROY_SRQ);
++	in.srqn = cpu_to_be32(srq->srqn);
 +	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
 +	if (err)
 +		return err;
@@ -2746,101 +197,26 @@ index 0000000..80739f0
 +	if (out.hdr.status)
 +		return mlx5_cmd_status_to_err(&out.hdr);
 +
-+	atomic_dec(&dev->num_qps);
++	if (atomic_dec_and_test(&srq->refcount))
++		complete(&srq->free);
++	wait_for_completion(&srq->free);
++
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(mlx5_core_destroy_qp);
++EXPORT_SYMBOL(mlx5_core_destroy_srq);
 +
-+int mlx5_core_qp_modify(struct mlx5_core_dev *dev, enum mlx5_qp_state cur_state,
-+			enum mlx5_qp_state new_state,
-+			struct mlx5_modify_qp_mbox_in *in, int sqd_event,
-+			struct mlx5_core_qp *qp)
++int mlx5_core_query_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
++			struct mlx5_query_srq_mbox_out *out)
 +{
-+	static const u16 optab[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE] = {
-+		[MLX5_QP_STATE_RST] = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_RST2INIT_QP,
-+		},
-+		[MLX5_QP_STATE_INIT]  = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_INIT2INIT_QP,
-+			[MLX5_QP_STATE_RTR]	= MLX5_CMD_OP_INIT2RTR_QP,
-+		},
-+		[MLX5_QP_STATE_RTR]   = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTR2RTS_QP,
-+		},
-+		[MLX5_QP_STATE_RTS]   = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTS2RTS_QP,
-+			[MLX5_QP_STATE_SQD]	= MLX5_CMD_OP_RTS2SQD_QP,
-+		},
-+		[MLX5_QP_STATE_SQD] = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_SQD2RTS_QP,
-+			[MLX5_QP_STATE_SQD]	= MLX5_CMD_OP_SQD2SQD_QP,
-+		},
-+		[MLX5_QP_STATE_SQER] = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_SQERR2RTS_QP,
-+		},
-+		[MLX5_QP_STATE_ERR] = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+		}
-+	};
-+
-+	struct mlx5_modify_qp_mbox_out out;
-+	int err = 0;
-+	u16 op;
-+
-+	if (cur_state >= MLX5_QP_NUM_STATE || new_state >= MLX5_QP_NUM_STATE ||
-+	    !optab[cur_state][new_state])
-+		return -EINVAL;
-+
-+	memset(&out, 0, sizeof(out));
-+	op = optab[cur_state][new_state];
-+	in->hdr.opcode = cpu_to_be16(op);
-+	in->qpn = cpu_to_be32(qp->qpn);
-+	err = mlx5_cmd_exec(dev, in, sizeof(*in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	return mlx5_cmd_status_to_err(&out.hdr);
-+}
-+EXPORT_SYMBOL_GPL(mlx5_core_qp_modify);
-+
-+void mlx5_init_qp_table(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+
-+	spin_lock_init(&table->lock);
-+	INIT_RADIX_TREE(&table->tree, GFP_ATOMIC);
-+	mlx5_qp_debugfs_init(dev);
-+}
-+
-+void mlx5_cleanup_qp_table(struct mlx5_core_dev *dev)
-+{
-+	mlx5_qp_debugfs_cleanup(dev);
-+}
-+
-+int mlx5_core_qp_query(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
-+		       struct mlx5_query_qp_mbox_out *out, int outlen)
-+{
-+	struct mlx5_query_qp_mbox_in in;
++	struct mlx5_query_srq_mbox_in in;
 +	int err;
 +
 +	memset(&in, 0, sizeof(in));
-+	memset(out, 0, outlen);
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_QP);
-+	in.qpn = cpu_to_be32(qp->qpn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), out, outlen);
++	memset(out, 0, sizeof(*out));
++
++	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_SRQ);
++	in.srqn = cpu_to_be32(srq->srqn);
++	err = mlx5_cmd_exec(dev, &in, sizeof(in), out, sizeof(*out));
 +	if (err)
 +		return err;
 +
@@ -2849,50 +225,2774 @@ index 0000000..80739f0
 +
 +	return err;
 +}
-+EXPORT_SYMBOL_GPL(mlx5_core_qp_query);
++EXPORT_SYMBOL(mlx5_core_query_srq);
 +
-+int mlx5_core_xrcd_alloc(struct mlx5_core_dev *dev, u32 *xrcdn)
++int mlx5_core_arm_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
++		      u16 lwm, int is_srq)
 +{
-+	struct mlx5_alloc_xrcd_mbox_in in;
-+	struct mlx5_alloc_xrcd_mbox_out out;
++	struct mlx5_arm_srq_mbox_in	in;
++	struct mlx5_arm_srq_mbox_out	out;
 +	int err;
 +
 +	memset(&in, 0, sizeof(in));
 +	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_ALLOC_XRCD);
++
++	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_ARM_RQ);
++	in.hdr.opmod = cpu_to_be16(!!is_srq);
++	in.srqn = cpu_to_be32(srq->srqn);
++	in.lwm = cpu_to_be16(lwm);
++
 +	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
 +	if (err)
 +		return err;
 +
 +	if (out.hdr.status)
++		return mlx5_cmd_status_to_err(&out.hdr);
++
++	return err;
++}
++EXPORT_SYMBOL(mlx5_core_arm_srq);
++
++void mlx5_init_srq_table(struct mlx5_core_dev *dev)
++{
++	struct mlx5_srq_table *table = &dev->priv.srq_table;
++
++	spin_lock_init(&table->lock);
++	INIT_RADIX_TREE(&table->tree, GFP_ATOMIC);
++}
++
++void mlx5_cleanup_srq_table(struct mlx5_core_dev *dev)
++{
++	/* nothing */
++}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/uar.c b/drivers/net/ethernet/mellanox/mlx5/core/uar.c
+new file mode 100644
+index 0000000..8054d49
+--- /dev/null
++++ b/drivers/net/ethernet/mellanox/mlx5/core/uar.c
+@@ -0,0 +1,225 @@
++/*
++ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mlx5/driver.h>
++#include <linux/mlx5/cmd.h>
++#include "mlx5_core.h"
++
++MLX5_MOD_DBG_MASK(MLX5_MOD_UAR);
++
++enum {
++	NUM_DRIVER_UARS		= 4,
++	NUM_LOW_LAT_UUARS	= 4,
++};
++
++
++struct mlx5_alloc_uar_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_alloc_uar_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be32			uarn;
++	u8			rsvd[4];
++};
++
++struct mlx5_free_uar_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			uarn;
++	u8			rsvd[4];
++};
++
++struct mlx5_free_uar_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++int mlx5_cmd_alloc_uar(struct mlx5_core_dev *dev, u32 *uarn)
++{
++	struct mlx5_alloc_uar_mbox_in	in;
++	struct mlx5_alloc_uar_mbox_out	out;
++	int err;
++
++	memset(&in, 0, sizeof(in));
++	memset(&out, 0, sizeof(out));
++	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_ALLOC_UAR);
++	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
++	if (err)
++		goto ex;
++
++	if (out.hdr.status) {
 +		err = mlx5_cmd_status_to_err(&out.hdr);
++		goto ex;
++	}
++
++	*uarn = be32_to_cpu(out.uarn) & 0xffffff;
++
++ex:
++	return err;
++}
++EXPORT_SYMBOL(mlx5_cmd_alloc_uar);
++
++int mlx5_cmd_free_uar(struct mlx5_core_dev *dev, u32 uarn)
++{
++	struct mlx5_free_uar_mbox_in	in;
++	struct mlx5_free_uar_mbox_out	out;
++	int err;
++
++	memset(&in, 0, sizeof(in));
++	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DEALLOC_UAR);
++	in.uarn = cpu_to_be32(uarn);
++	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
++	if (err)
++		goto ex;
++
++	if (out.hdr.status)
++		err = mlx5_cmd_status_to_err(&out.hdr);
++
++ex:
++	return err;
++}
++EXPORT_SYMBOL(mlx5_cmd_free_uar);
++
++static int need_uuar_lock(int uuarn)
++{
++	int tot_uuars = NUM_DRIVER_UARS * MLX5_BF_REGS_PER_PAGE;
++
++	if (uuarn == 0 || tot_uuars - NUM_LOW_LAT_UUARS)
++		return 0;
++
++	return 1;
++}
++
++int mlx5_alloc_uuars(struct mlx5_core_dev *dev, struct mlx5_uuar_info *uuari)
++{
++	int tot_uuars = NUM_DRIVER_UARS * MLX5_BF_REGS_PER_PAGE;
++	int err;
++	int i;
++	phys_addr_t addr;
++	struct mlx5_bf *bf;
++
++	uuari->num_uars = NUM_DRIVER_UARS;
++	uuari->num_low_latency_uuars = NUM_LOW_LAT_UUARS;
++
++	mutex_init(&uuari->lock);
++	uuari->uars = kcalloc(uuari->num_uars, sizeof(*uuari->uars), GFP_KERNEL);
++	if (!uuari->uars)
++		return -ENOMEM;
++
++	uuari->bfs = kcalloc(tot_uuars, sizeof(*uuari->bfs), GFP_KERNEL);
++	if (!uuari->bfs) {
++		err = -ENOMEM;
++		goto out_uars;
++	}
++
++	uuari->bitmap = kcalloc(BITS_TO_LONGS(tot_uuars), sizeof(*uuari->bitmap),
++				GFP_KERNEL);
++	if (!uuari->bitmap) {
++		err = -ENOMEM;
++		goto out_bfs;
++	}
++
++	uuari->count = kcalloc(tot_uuars, sizeof(*uuari->count), GFP_KERNEL);
++	if (!uuari->count) {
++		err = -ENOMEM;
++		goto out_bitmap;
++	}
++
++	for (i = 0; i < uuari->num_uars; ++i) {
++		err = mlx5_cmd_alloc_uar(dev, &uuari->uars[i].index);
++		if (err)
++			goto out_count;
++
++		addr = dev->iseg_base + ((phys_addr_t)(uuari->uars[i].index) << PAGE_SHIFT);
++		uuari->uars[i].map = ioremap(addr, PAGE_SIZE);
++		if (!uuari->uars[i].map) {
++			mlx5_cmd_free_uar(dev, uuari->uars[i].index);
++			goto out_count;
++		}
++		mlx5_core_dbg(dev, "allocated uar index 0x%x, mmaped at %p\n",
++			      uuari->uars[i].index, uuari->uars[i].map);
++	}
++
++	for (i = 0; i < tot_uuars; ++i) {
++		bf = &uuari->bfs[i];
++
++		bf->buf_size = dev->caps.bf_reg_size / 2;
++		bf->uar = &uuari->uars[i / MLX5_BF_REGS_PER_PAGE];
++		bf->regreg = uuari->uars[i / MLX5_BF_REGS_PER_PAGE].map;
++		bf->reg = NULL; /* Add WC support */
++		bf->offset = (i % MLX5_BF_REGS_PER_PAGE) * dev->caps.bf_reg_size +
++			MLX5_BF_OFFSET;
++		bf->need_lock = need_uuar_lock(i);
++		spin_lock_init(&bf->lock);
++		spin_lock_init(&bf->lock32);
++		bf->uuarn = i;
++	}
++
++	return 0;
++
++out_count:
++	for (--i; i >= 0; --i) {
++		iounmap(uuari->uars[i].map);
++		mlx5_cmd_free_uar(dev, uuari->uars[i].index);
++	}
++	kfree(uuari->count);
++
++out_bitmap:
++	kfree(uuari->bitmap);
++
++out_bfs:
++	kfree(uuari->bfs);
++
++out_uars:
++	kfree(uuari->uars);
++	return err;
++}
++
++int mlx5_free_uuars(struct mlx5_core_dev *dev, struct mlx5_uuar_info *uuari)
++{
++	int i = uuari->num_uars;
++
++	for (--i; i >= 0; --i) {
++		iounmap(uuari->uars[i].map);
++		mlx5_cmd_free_uar(dev, uuari->uars[i].index);
++	}
++
++	kfree(uuari->count);
++	kfree(uuari->bitmap);
++	kfree(uuari->bfs);
++	kfree(uuari->uars);
++
++	return 0;
++}
+diff --git a/include/linux/mlx5/cmd.h b/include/linux/mlx5/cmd.h
+new file mode 100644
+index 0000000..2826a4b
+--- /dev/null
++++ b/include/linux/mlx5/cmd.h
+@@ -0,0 +1,51 @@
++/*
++ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef MLX5_CMD_H
++#define MLX5_CMD_H
++
++#include <linux/types.h>
++
++struct manage_pages_layout {
++	u64	ptr;
++	u32	reserved;
++	u16	num_entries;
++	u16	func_id;
++};
++
++
++struct mlx5_cmd_alloc_uar_imm_out {
++	u32	rsvd[3];
++	u32	uarn;
++};
++
++#endif /* MLX5_CMD_H */
+diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
+new file mode 100644
+index 0000000..727e5069
+--- /dev/null
++++ b/include/linux/mlx5/cq.h
+@@ -0,0 +1,166 @@
++/*
++ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef MLX5_CORE_CQ_H
++#define MLX5_CORE_CQ_H
++
++#include <rdma/ib_verbs.h>
++#include <linux/mlx5/driver.h>
++
++
++struct mlx5_core_cq {
++	u32			cqn;
++	int			cqe_sz;
++	__be32		       *set_ci_db;
++	__be32		       *arm_db;
++	atomic_t		refcount;
++	struct completion	free;
++	unsigned		vector;
++	int			irqn;
++	void (*comp)		(struct mlx5_core_cq *);
++	void (*event)		(struct mlx5_core_cq *, enum mlx5_event);
++	struct mlx5_uar	       *uar;
++	u32			cons_index;
++	unsigned		arm_sn;
++	struct mlx5_rsc_debug	*dbg;
++	int			pid;
++};
++
++
++enum {
++	MLX5_CQE_SYNDROME_LOCAL_LENGTH_ERR		= 0x01,
++	MLX5_CQE_SYNDROME_LOCAL_QP_OP_ERR		= 0x02,
++	MLX5_CQE_SYNDROME_LOCAL_PROT_ERR		= 0x04,
++	MLX5_CQE_SYNDROME_WR_FLUSH_ERR			= 0x05,
++	MLX5_CQE_SYNDROME_MW_BIND_ERR			= 0x06,
++	MLX5_CQE_SYNDROME_BAD_RESP_ERR			= 0x10,
++	MLX5_CQE_SYNDROME_LOCAL_ACCESS_ERR		= 0x11,
++	MLX5_CQE_SYNDROME_REMOTE_INVAL_REQ_ERR		= 0x12,
++	MLX5_CQE_SYNDROME_REMOTE_ACCESS_ERR		= 0x13,
++	MLX5_CQE_SYNDROME_REMOTE_OP_ERR			= 0x14,
++	MLX5_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR	= 0x15,
++	MLX5_CQE_SYNDROME_RNR_RETRY_EXC_ERR		= 0x16,
++	MLX5_CQE_SYNDROME_REMOTE_ABORTED_ERR		= 0x22,
++};
++
++enum {
++	MLX5_CQE_OWNER_MASK	= 1,
++	MLX5_CQE_REQ		= 0,
++	MLX5_CQE_RESP_WR_IMM	= 1,
++	MLX5_CQE_RESP_SEND	= 2,
++	MLX5_CQE_RESP_SEND_IMM	= 3,
++	MLX5_CQE_RESP_SEND_INV	= 4,
++	MLX5_CQE_RESIZE_CQ	= 0xff, /* TBD */
++	MLX5_CQE_REQ_ERR	= 13,
++	MLX5_CQE_RESP_ERR	= 14,
++};
++
++enum {
++	MLX5_CQ_MODIFY_RESEIZE = 0,
++	MLX5_CQ_MODIFY_MODER = 1,
++	MLX5_CQ_MODIFY_MAPPING = 2,
++};
++
++struct mlx5_cq_modify_params {
++	int	type;
++	union {
++		struct {
++			u32	page_offset;
++			u8	log_cq_size;
++		} resize;
++
++		struct {
++		} moder;
++
++		struct {
++		} mapping;
++	} params;
++};
++
++enum {
++	CQE_SIZE_64 = 0,
++	CQE_SIZE_128 = 1,
++};
++
++static inline int cqe_sz_to_mlx_sz(u8 size)
++{
++	return size == 64 ? CQE_SIZE_64 : CQE_SIZE_128;
++}
++
++static inline void mlx5_cq_set_ci(struct mlx5_core_cq *cq)
++{
++	*cq->set_ci_db = cpu_to_be32(cq->cons_index & 0xffffff);
++}
++
++enum {
++	MLX5_CQ_DB_REQ_NOT_SOL		= 1 << 24,
++	MLX5_CQ_DB_REQ_NOT		= 0 << 24
++};
++
++static inline void mlx5_cq_arm(struct mlx5_core_cq *cq, u32 cmd,
++			       void __iomem *uar_page,
++			       spinlock_t *doorbell_lock)
++{
++	__be32 doorbell[2];
++	u32 sn;
++	u32 ci;
++
++	sn = cq->arm_sn & 3;
++	ci = cq->cons_index & 0xffffff;
++
++	*cq->arm_db = cpu_to_be32(sn << 28 | cmd | ci);
++
++	/*
++	 * Make sure that the doorbell record in host memory is
++	 * written before ringing the doorbell via PCI MMIO.
++	 */
++	wmb();
++
++	doorbell[0] = cpu_to_be32(sn << 28 | cmd | ci);
++	doorbell[1] = cpu_to_be32(cq->cqn);
++
++	mlx5_write64(doorbell, uar_page + MLX5_CQ_DOORBELL, doorbell_lock);
++}
++
++int mlx5_init_cq_table(struct mlx5_core_dev *dev);
++void mlx5_cleanup_cq_table(struct mlx5_core_dev *dev);
++int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
++			struct mlx5_create_cq_mbox_in *in, int inlen);
++int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
++int mlx5_core_query_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
++		       struct mlx5_query_cq_mbox_out *out);
++int mlx5_core_modify_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
++			int type, struct mlx5_cq_modify_params *params);
++int mlx5_debug_cq_add(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
++void mlx5_debug_cq_remove(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
++
++#endif /* MLX5_CORE_CQ_H */
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+new file mode 100644
+index 0000000..2436aea
+--- /dev/null
++++ b/include/linux/mlx5/device.h
+@@ -0,0 +1,886 @@
++/*
++ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef MLX5_DEVICE_H
++#define MLX5_DEVICE_H
++
++#include <linux/types.h>
++#include <rdma/ib_verbs.h>
++
++enum {
++	MLX5_MAX_COMMANDS		= 32,
++	MLX5_CMD_DATA_BLOCK_SIZE	= 512,
++	MLX5_PCI_CMD_XPORT		= 7,
++};
++
++enum {
++	MLX5_EXTENDED_UD_AV		= 0x80000000,
++};
++
++enum {
++	MLX5_CQ_STATE_ARMED		= 9,
++	MLX5_CQ_STATE_ALWAYS_ARMED	= 0xb,
++	MLX5_CQ_STATE_FIRED		= 0xa,
++};
++
++enum {
++	MLX5_STAT_RATE_OFFSET	= 5,
++};
++
++enum {
++	MLX5_INLINE_SEG = 0x80000000,
++};
++
++enum {
++	MLX5_PERM_LOCAL_READ	= 1 << 2,
++	MLX5_PERM_LOCAL_WRITE	= 1 << 3,
++	MLX5_PERM_REMOTE_READ	= 1 << 4,
++	MLX5_PERM_REMOTE_WRITE	= 1 << 5,
++	MLX5_PERM_ATOMIC	= 1 << 6,
++	MLX5_PERM_UMR_EN	= 1 << 7,
++};
++
++enum {
++	MLX5_PCIE_CTRL_SMALL_FENCE	= 1 << 0,
++	MLX5_PCIE_CTRL_RELAXED_ORDERING	= 1 << 2,
++	MLX5_PCIE_CTRL_NO_SNOOP		= 1 << 3,
++	MLX5_PCIE_CTRL_TLP_PROCE_EN	= 1 << 6,
++	MLX5_PCIE_CTRL_TPH_MASK		= 3 << 4,
++};
++
++enum {
++	MLX5_ACCESS_MODE_PA	= 0,
++	MLX5_ACCESS_MODE_MTT	= 1,
++	MLX5_ACCESS_MODE_KLM	= 2
++};
++
++enum {
++	MLX5_MKEY_REMOTE_INVAL	= 1 << 24,
++	MLX5_MKEY_FLAG_SYNC_UMR = 1 << 29,
++	MLX5_MKEY_BSF_EN	= 1 << 30,
++	MLX5_MKEY_LEN64		= 1 << 31,
++};
++
++enum {
++	MLX5_EN_RD	= (u64)1,
++	MLX5_EN_WR	= (u64)2
++};
++
++enum {
++	MLX5_BF_REGS_PER_PAGE	= 4,
++	MLX5_MAX_UAR_PAGES	= 1 << 8,
++	MLX5_MAX_UUARS		= MLX5_MAX_UAR_PAGES * MLX5_BF_REGS_PER_PAGE,
++};
++
++enum {
++	MLX5_MKEY_MASK_LEN		= 1ull << 0,
++	MLX5_MKEY_MASK_PAGE_SIZE	= 1ull << 1,
++	MLX5_MKEY_MASK_START_ADDR	= 1ull << 6,
++	MLX5_MKEY_MASK_PD		= 1ull << 7,
++	MLX5_MKEY_MASK_EN_RINVAL	= 1ull << 8,
++	MLX5_MKEY_MASK_BSF_EN		= 1ull << 12,
++	MLX5_MKEY_MASK_KEY		= 1ull << 13,
++	MLX5_MKEY_MASK_QPN		= 1ull << 14,
++	MLX5_MKEY_MASK_LR		= 1ull << 17,
++	MLX5_MKEY_MASK_LW		= 1ull << 18,
++	MLX5_MKEY_MASK_RR		= 1ull << 19,
++	MLX5_MKEY_MASK_RW		= 1ull << 20,
++	MLX5_MKEY_MASK_A		= 1ull << 21,
++	MLX5_MKEY_MASK_SMALL_FENCE	= 1ull << 23,
++	MLX5_MKEY_MASK_FREE		= 1ull << 29,
++};
++
++enum mlx5_event {
++	MLX5_EVENT_TYPE_COMP		   = 0x0,
++
++	MLX5_EVENT_TYPE_PATH_MIG	   = 0x01,
++	MLX5_EVENT_TYPE_COMM_EST	   = 0x02,
++	MLX5_EVENT_TYPE_SQ_DRAINED	   = 0x03,
++	MLX5_EVENT_TYPE_SRQ_LAST_WQE	   = 0x13,
++	MLX5_EVENT_TYPE_SRQ_RQ_LIMIT	   = 0x14,
++
++	MLX5_EVENT_TYPE_CQ_ERROR	   = 0x04,
++	MLX5_EVENT_TYPE_WQ_CATAS_ERROR	   = 0x05,
++	MLX5_EVENT_TYPE_PATH_MIG_FAILED	   = 0x07,
++	MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR = 0x10,
++	MLX5_EVENT_TYPE_WQ_ACCESS_ERROR	   = 0x11,
++	MLX5_EVENT_TYPE_SRQ_CATAS_ERROR	   = 0x12,
++
++	MLX5_EVENT_TYPE_INTERNAL_ERROR	   = 0x08,
++	MLX5_EVENT_TYPE_PORT_CHANGE	   = 0x09,
++	MLX5_EVENT_TYPE_GPIO_EVENT	   = 0x15,
++	MLX5_EVENT_TYPE_REMOTE_CONFIG	   = 0x19,
++
++	MLX5_EVENT_TYPE_DB_BF_CONGESTION   = 0x1a,
++	MLX5_EVENT_TYPE_STALL_EVENT	   = 0x1b,
++
++	MLX5_EVENT_TYPE_CMD		   = 0x0a,
++	MLX5_EVENT_TYPE_PAGE_REQUEST	   = 0xb,
++};
++
++enum {
++	MLX5_PORT_CHANGE_SUBTYPE_DOWN		= 1,
++	MLX5_PORT_CHANGE_SUBTYPE_ACTIVE		= 4,
++	MLX5_PORT_CHANGE_SUBTYPE_INITIALIZED	= 5,
++	MLX5_PORT_CHANGE_SUBTYPE_LID		= 6,
++	MLX5_PORT_CHANGE_SUBTYPE_PKEY		= 7,
++	MLX5_PORT_CHANGE_SUBTYPE_GUID		= 8,
++	MLX5_PORT_CHANGE_SUBTYPE_CLIENT_REREG	= 9,
++};
++
++enum {
++	MLX5_DEV_CAP_FLAG_RC		= 1LL <<  0,
++	MLX5_DEV_CAP_FLAG_UC		= 1LL <<  1,
++	MLX5_DEV_CAP_FLAG_UD		= 1LL <<  2,
++	MLX5_DEV_CAP_FLAG_XRC		= 1LL <<  3,
++	MLX5_DEV_CAP_FLAG_SRQ		= 1LL <<  6,
++	MLX5_DEV_CAP_FLAG_BAD_PKEY_CNTR	= 1LL <<  8,
++	MLX5_DEV_CAP_FLAG_BAD_QKEY_CNTR	= 1LL <<  9,
++	MLX5_DEV_CAP_FLAG_APM		= 1LL << 17,
++	MLX5_DEV_CAP_FLAG_ATOMIC	= 1LL << 18,
++	MLX5_DEV_CAP_FLAG_ON_DMND_PG	= 1LL << 24,
++	MLX5_DEV_CAP_FLAG_RESIZE_SRQ	= 1LL << 32,
++	MLX5_DEV_CAP_FLAG_REMOTE_FENCE	= 1LL << 38,
++	MLX5_DEV_CAP_FLAG_TLP_HINTS	= 1LL << 39,
++	MLX5_DEV_CAP_FLAG_SIG_HAND_OVER	= 1LL << 40,
++	MLX5_DEV_CAP_FLAG_DCT		= 1LL << 41,
++	MLX5_DEV_CAP_FLAG_CMDIF_CSUM	= 1LL << 46,
++};
++
++enum {
++	MLX5_OPCODE_NOP			= 0x00,
++	MLX5_OPCODE_SEND_INVAL		= 0x01,
++	MLX5_OPCODE_RDMA_WRITE		= 0x08,
++	MLX5_OPCODE_RDMA_WRITE_IMM	= 0x09,
++	MLX5_OPCODE_SEND		= 0x0a,
++	MLX5_OPCODE_SEND_IMM		= 0x0b,
++	MLX5_OPCODE_RDMA_READ		= 0x10,
++	MLX5_OPCODE_ATOMIC_CS		= 0x11,
++	MLX5_OPCODE_ATOMIC_FA		= 0x12,
++	MLX5_OPCODE_ATOMIC_MASKED_CS	= 0x14,
++	MLX5_OPCODE_ATOMIC_MASKED_FA	= 0x15,
++	MLX5_OPCODE_BIND_MW		= 0x18,
++	MLX5_OPCODE_CONFIG_CMD		= 0x1f,
++
++	MLX5_RECV_OPCODE_RDMA_WRITE_IMM	= 0x00,
++	MLX5_RECV_OPCODE_SEND		= 0x01,
++	MLX5_RECV_OPCODE_SEND_IMM	= 0x02,
++	MLX5_RECV_OPCODE_SEND_INVAL	= 0x03,
++
++	MLX5_CQE_OPCODE_ERROR		= 0x1e,
++	MLX5_CQE_OPCODE_RESIZE		= 0x16,
++
++	MLX5_OPCODE_SET_PSV		= 0x20,
++	MLX5_OPCODE_GET_PSV		= 0x21,
++	MLX5_OPCODE_CHECK_PSV		= 0x22,
++	MLX5_OPCODE_RGET_PSV		= 0x26,
++	MLX5_OPCODE_RCHECK_PSV		= 0x27,
++
++	MLX5_OPCODE_UMR			= 0x25,
++
++};
++
++enum {
++	MLX5_SET_PORT_RESET_QKEY	= 0,
++	MLX5_SET_PORT_GUID0		= 16,
++	MLX5_SET_PORT_NODE_GUID		= 17,
++	MLX5_SET_PORT_SYS_GUID		= 18,
++	MLX5_SET_PORT_GID_TABLE		= 19,
++	MLX5_SET_PORT_PKEY_TABLE	= 20,
++};
++
++enum {
++	MLX5_MAX_PAGE_SHIFT		= 31
++};
++
++struct mlx5_inbox_hdr {
++	__be16		opcode;
++	u8		rsvd[4];
++	__be16		opmod;
++};
++
++struct mlx5_outbox_hdr {
++	u8		status;
++	u8		rsvd[3];
++	__be32		syndrome;
++};
++
++struct mlx5_cmd_query_adapter_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_cmd_query_adapter_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[24];
++	u8			intapin;
++	u8			rsvd1[13];
++	__be16			vsd_vendor_id;
++	u8			vsd[208];
++	u8			vsd_psid[16];
++};
++
++struct mlx5_hca_cap {
++	u8	rsvd1[16];
++	u8	log_max_srq_sz;
++	u8	log_max_qp_sz;
++	u8	rsvd2;
++	u8	log_max_qp;
++	u8	log_max_strq_sz;
++	u8	log_max_srqs;
++	u8	rsvd4[2];
++	u8	rsvd5;
++	u8	log_max_cq_sz;
++	u8	rsvd6;
++	u8	log_max_cq;
++	u8	log_max_eq_sz;
++	u8	log_max_mkey;
++	u8	rsvd7;
++	u8	log_max_eq;
++	u8	max_indirection;
++	u8	log_max_mrw_sz;
++	u8	log_max_bsf_list_sz;
++	u8	log_max_klm_list_sz;
++	u8	rsvd_8_0;
++	u8	log_max_ra_req_dc;
++	u8	rsvd_8_1;
++	u8	log_max_ra_res_dc;
++	u8	rsvd9;
++	u8	log_max_ra_req_qp;
++	u8	rsvd10;
++	u8	log_max_ra_res_qp;
++	u8	rsvd11[4];
++	__be16	max_qp_count;
++	__be16	rsvd12;
++	u8	rsvd13;
++	u8	local_ca_ack_delay;
++	u8	rsvd14;
++	u8	num_ports;
++	u8	log_max_msg;
++	u8	rsvd15[3];
++	__be16	stat_rate_support;
++	u8	rsvd16[2];
++	__be64	flags;
++	u8	rsvd17;
++	u8	uar_sz;
++	u8	rsvd18;
++	u8	log_pg_sz;
++	__be16	bf_log_bf_reg_size;
++	u8	rsvd19[4];
++	__be16	max_desc_sz_sq;
++	u8	rsvd20[2];
++	__be16	max_desc_sz_rq;
++	u8	rsvd21[2];
++	__be16	max_desc_sz_sq_dc;
++	u8	rsvd22[4];
++	__be16	max_qp_mcg;
++	u8	rsvd23;
++	u8	log_max_mcg;
++	u8	rsvd24;
++	u8	log_max_pd;
++	u8	rsvd25;
++	u8	log_max_xrcd;
++	u8	rsvd26[40];
++	__be32  uar_page_sz;
++	u8	rsvd27[28];
++	u8	log_msx_atomic_size_qp;
++	u8	rsvd28[2];
++	u8	log_msx_atomic_size_dc;
++	u8	rsvd29[76];
++};
++
++
++struct mlx5_cmd_query_hca_cap_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++
++struct mlx5_cmd_query_hca_cap_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[8];
++	struct mlx5_hca_cap     hca_cap;
++};
++
++
++struct mlx5_cmd_set_hca_cap_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd[8];
++	struct mlx5_hca_cap     hca_cap;
++};
++
++
++struct mlx5_cmd_set_hca_cap_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[8];
++};
++
++
++struct mlx5_cmd_init_hca_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd0[2];
++	__be16			profile;
++	u8			rsvd1[4];
++};
++
++struct mlx5_cmd_init_hca_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_cmd_teardown_hca_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd0[2];
++	__be16			profile;
++	u8			rsvd1[4];
++};
++
++struct mlx5_cmd_teardown_hca_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_cmd_layout {
++	u8		type;
++	u8		rsvd0[3];
++	__be32		inlen;
++	__be64		in_ptr;
++	__be32		in[4];
++	__be32		out[4];
++	__be64		out_ptr;
++	__be32		outlen;
++	u8		token;
++	u8		sig;
++	u8		rsvd1;
++	u8		status_own;
++};
++
++
++struct health_buffer {
++	__be32		assert_var[5];
++	__be32		rsvd0[3];
++	__be32		assert_exit_ptr;
++	__be32		assert_callra;
++	__be32		rsvd1[2];
++	__be32		fw_ver;
++	__be32		hw_id;
++	__be32		rsvd2;
++	u8		irisc_index;
++	u8		synd;
++	__be16		ext_sync;
++};
++
++struct mlx5_init_seg {
++	__be32			fw_rev;
++	__be32			cmdif_rev_fw_sub;
++	__be32			rsvd0[2];
++	__be32			cmdq_addr_h;
++	__be32			cmdq_addr_l_sz;
++	__be32			cmd_dbell;
++	__be32			rsvd1[121];
++	struct health_buffer	health;
++	__be32			rsvd2[884];
++	__be32			health_counter;
++	__be32			rsvd3[1023];
++	__be64			ieee1588_clk;
++	__be32			ieee1588_clk_type;
++	__be32			clr_intx;
++};
++
++struct mlx5_eqe_comp {
++	__be32	reserved[6];
++	__be32	cqn;
++};
++
++struct mlx5_eqe_qp_srq {
++	__be32	reserved[6];
++	__be32	qp_srq_n;
++};
++
++struct mlx5_eqe_cq_err {
++	__be32	cqn;
++	u8	reserved1[7];
++	u8	syndrome;
++};
++
++struct mlx5_eqe_dropped_packet {
++};
++
++struct mlx5_eqe_port_state {
++	u8	reserved0[8];
++	u8	port;
++};
++
++struct mlx5_eqe_gpio {
++	__be32	reserved0[2];
++	__be64	gpio_event;
++};
++
++struct mlx5_eqe_congestion {
++	u8	type;
++	u8	rsvd0;
++	u8	congestion_level;
++};
++
++struct mlx5_eqe_stall_vl {
++	u8	rsvd0[3];
++	u8	port_vl;
++};
++
++struct mlx5_eqe_cmd {
++	__be32	vector;
++	__be32	rsvd[6];
++};
++
++struct mlx5_eqe_page_req {
++	u8		rsvd0[2];
++	__be16		func_id;
++	u8		rsvd1[2];
++	__be16		num_pages;
++	__be32		rsvd2[5];
++};
++
++union ev_data {
++	__be32				raw[7];
++	struct mlx5_eqe_cmd		cmd;
++	struct mlx5_eqe_comp		comp;
++	struct mlx5_eqe_qp_srq		qp_srq;
++	struct mlx5_eqe_cq_err		cq_err;
++	struct mlx5_eqe_dropped_packet	dp;
++	struct mlx5_eqe_port_state	port;
++	struct mlx5_eqe_gpio		gpio;
++	struct mlx5_eqe_congestion	cong;
++	struct mlx5_eqe_stall_vl	stall_vl;
++	struct mlx5_eqe_page_req	req_pages;
++} __packed;
++
++struct mlx5_eqe {
++	u8		rsvd0;
++	u8		type;
++	u8		rsvd1;
++	u8		sub_type;
++	__be32		rsvd2[7];
++	union ev_data	data;
++	__be16		rsvd3;
++	u8		signature;
++	u8		owner;
++} __packed;
++
++struct mlx5_cmd_prot_block {
++	u8		data[MLX5_CMD_DATA_BLOCK_SIZE];
++	u8		rsvd0[48];
++	__be64		next;
++	__be32		block_num;
++	u8		rsvd1;
++	u8		token;
++	u8		ctrl_sig;
++	u8		sig;
++};
++
++struct mlx5_err_cqe {
++	u8	rsvd0[32];
++	__be32	srqn;
++	u8	rsvd1[18];
++	u8	vendor_err_synd;
++	u8	syndrome;
++	__be32	s_wqe_opcode_qpn;
++	__be16	wqe_counter;
++	u8	signature;
++	u8	op_own;
++};
++
++struct mlx5_cqe64 {
++	u8		rsvd0[17];
++	u8		ml_path;
++	u8		rsvd20[4];
++	__be16		slid;
++	__be32		flags_rqpn;
++	u8		rsvd28[4];
++	__be32		srqn;
++	__be32		imm_inval_pkey;
++	u8		rsvd40[4];
++	__be32		byte_cnt;
++	__be64		timestamp;
++	__be32		sop_drop_qpn;
++	__be16		wqe_counter;
++	u8		signature;
++	u8		op_own;
++};
++
++struct mlx5_wqe_srq_next_seg {
++	u8			rsvd0[2];
++	__be16			next_wqe_index;
++	u8			signature;
++	u8			rsvd1[11];
++};
++
++union mlx5_ext_cqe {
++	struct ib_grh	grh;
++	u8		inl[64];
++};
++
++struct mlx5_cqe128 {
++	union mlx5_ext_cqe	inl_grh;
++	struct mlx5_cqe64	cqe64;
++};
++
++struct mlx5_srq_ctx {
++	u8			state_log_sz;
++	u8			rsvd0[3];
++	__be32			flags_xrcd;
++	__be32			pgoff_cqn;
++	u8			rsvd1[4];
++	u8			log_pg_sz;
++	u8			rsvd2[7];
++	__be32			pd;
++	__be16			lwm;
++	__be16			wqe_cnt;
++	u8			rsvd3[8];
++	__be64			db_record;
++};
++
++struct mlx5_create_srq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			input_srqn;
++	u8			rsvd0[4];
++	struct mlx5_srq_ctx	ctx;
++	u8			rsvd1[208];
++	__be64			pas[0];
++};
++
++struct mlx5_create_srq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be32			srqn;
++	u8			rsvd[4];
++};
++
++struct mlx5_destroy_srq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			srqn;
++	u8			rsvd[4];
++};
++
++struct mlx5_destroy_srq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_query_srq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			srqn;
++	u8			rsvd0[4];
++};
++
++struct mlx5_query_srq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[8];
++	struct mlx5_srq_ctx	ctx;
++	u8			rsvd1[32];
++	__be64			pas[0];
++};
++
++struct mlx5_arm_srq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			srqn;
++	__be16			rsvd;
++	__be16			lwm;
++};
++
++struct mlx5_arm_srq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_cq_context {
++	u8			status;
++	u8			cqe_sz_flags;
++	u8			st;
++	u8			rsvd3;
++	u8			rsvd4[6];
++	__be16			page_offset;
++	__be32			log_sz_usr_page;
++	__be16			cq_period;
++	__be16			cq_max_count;
++	__be16			rsvd20;
++	__be16			c_eqn;
++	u8			log_pg_sz;
++	u8			rsvd25[7];
++	__be32			last_notified_index;
++	__be32			solicit_producer_index;
++	__be32			consumer_counter;
++	__be32			producer_counter;
++	u8			rsvd48[8];
++	__be64			db_record_addr;
++};
++
++struct mlx5_create_cq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			input_cqn;
++	u8			rsvdx[4];
++	struct mlx5_cq_context	ctx;
++	u8			rsvd6[192];
++	__be64			pas[0];
++};
++
++struct mlx5_create_cq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be32			cqn;
++	u8			rsvd0[4];
++};
++
++struct mlx5_destroy_cq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			cqn;
++	u8			rsvd0[4];
++};
++
++struct mlx5_destroy_cq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[8];
++};
++
++struct mlx5_query_cq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			cqn;
++	u8			rsvd0[4];
++};
++
++struct mlx5_query_cq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[8];
++	struct mlx5_cq_context	ctx;
++	u8			rsvd6[16];
++	__be64			pas[0];
++};
++
++struct mlx5_eq_context {
++	u8			status;
++	u8			ec_oi;
++	u8			st;
++	u8			rsvd2[7];
++	__be16			page_pffset;
++	__be32			log_sz_usr_page;
++	u8			rsvd3[7];
++	u8			intr;
++	u8			log_page_size;
++	u8			rsvd4[15];
++	__be32			consumer_counter;
++	__be32			produser_counter;
++	u8			rsvd5[16];
++};
++
++struct mlx5_create_eq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd0[3];
++	u8			input_eqn;
++	u8			rsvd1[4];
++	struct mlx5_eq_context	ctx;
++	u8			rsvd2[8];
++	__be64			events_mask;
++	u8			rsvd3[176];
++	__be64			pas[0];
++};
++
++struct mlx5_create_eq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[3];
++	u8			eq_number;
++	u8			rsvd1[4];
++};
++
++struct mlx5_destroy_eq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd0[3];
++	u8			eqn;
++	u8			rsvd1[4];
++};
++
++struct mlx5_destroy_eq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_map_eq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be64			mask;
++	u8			mu;
++	u8			rsvd0[2];
++	u8			eqn;
++	u8			rsvd1[24];
++};
++
++struct mlx5_map_eq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_query_eq_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd0[3];
++	u8			eqn;
++	u8			rsvd1[4];
++};
++
++struct mlx5_query_eq_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++	struct mlx5_eq_context	ctx;
++};
++
++struct mlx5_mkey_seg {
++	/*
++	 * This is a two bit field occupying bits 31-30.
++	 * bit 31 is always 0,
++	 * bit 30 is zero for regular MRs and 1 (e.g free) for UMRs that do not have tanslation
++	 */
++	u8		status;
++	u8		pcie_control;
++	u8		flags;
++	u8		version;
++	__be32		qpn_mkey7_0;
++	u8		rsvd1[4];
++	__be32		flags_pd;
++	__be64		start_addr;
++	__be64		len;
++	__be32		bsfs_octo_size;
++	u8		rsvd2[16];
++	__be32		xlt_oct_size;
++	u8		rsvd3[3];
++	u8		log2_page_size;
++	u8		rsvd4[4];
++};
++
++struct mlx5_query_special_ctxs_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_query_special_ctxs_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be32			dump_fill_mkey;
++	__be32			reserved_lkey;
++};
++
++struct mlx5_create_mkey_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			input_mkey_index;
++	u8			rsvd0[4];
++	struct mlx5_mkey_seg	seg;
++	u8			rsvd1[16];
++	__be32			xlat_oct_act_size;
++	__be32			bsf_coto_act_size;
++	u8			rsvd2[168];
++	__be64			pas[0];
++};
++
++struct mlx5_create_mkey_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be32			mkey;
++	u8			rsvd[4];
++};
++
++struct mlx5_destroy_mkey_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			mkey;
++	u8			rsvd[4];
++};
++
++struct mlx5_destroy_mkey_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_query_mkey_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			mkey;
++};
++
++struct mlx5_query_mkey_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be64			pas[0];
++};
++
++struct mlx5_modify_mkey_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			mkey;
++	__be64			pas[0];
++};
++
++struct mlx5_modify_mkey_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++};
++
++struct mlx5_dump_mkey_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++};
++
++struct mlx5_dump_mkey_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be32			mkey;
++};
++
++struct mlx5_mad_ifc_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be16			remote_lid;
++	u8			rsvd0;
++	u8			port;
++	u8			rsvd1[4];
++	u8			data[256];
++};
++
++struct mlx5_mad_ifc_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++	u8			data[256];
++};
++
++struct mlx5_access_reg_mbox_in {
++	struct mlx5_inbox_hdr		hdr;
++	u8				rsvd0[2];
++	__be16				register_id;
++	__be32				arg;
++	__be32				data[0];
++};
++
++struct mlx5_access_reg_mbox_out {
++	struct mlx5_outbox_hdr		hdr;
++	u8				rsvd[8];
++	__be32				data[0];
++};
++
++#define MLX5_ATTR_EXTENDED_PORT_INFO	cpu_to_be16(0xff90)
++
++enum {
++	MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO	= 1 <<  0
++};
++
++#endif /* MLX5_DEVICE_H */
+diff --git a/include/linux/mlx5/doorbell.h b/include/linux/mlx5/doorbell.h
+new file mode 100644
+index 0000000..aa81c84
+--- /dev/null
++++ b/include/linux/mlx5/doorbell.h
+@@ -0,0 +1,81 @@
++/*
++ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef MLX5_DOORBELL_H
++#define MLX5_DOORBELL_H
++
++#define MLX5_BF_OFFSET	      0x800
++#define MLX5_CQ_DOORBELL      0x20
++
++#if BITS_PER_LONG == 64
++/*
++ * Assume that we can just write a 64-bit doorbell atomically.  s390
++ * actually doesn't have writeq() but S/390 systems don't even have
++ * PCI so we won't worry about it.
++ */
++
++#define MLX5_DECLARE_DOORBELL_LOCK(name)
++#define MLX5_INIT_DOORBELL_LOCK(ptr)    do { } while (0)
++#define MLX5_GET_DOORBELL_LOCK(ptr)      (NULL)
++
++static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
++				spinlock_t *doorbell_lock)
++{
++	__raw_writeq(*(u64 *)val, dest);
++}
++
++#else
++
++/*
++ * Just fall back to a spinlock to protect the doorbell if
++ * BITS_PER_LONG is 32 -- there's no portable way to do atomic 64-bit
++ * MMIO writes.
++ */
++
++#define MLX5_DECLARE_DOORBELL_LOCK(name) spinlock_t name;
++#define MLX5_INIT_DOORBELL_LOCK(ptr)     spin_lock_init(ptr)
++#define MLX5_GET_DOORBELL_LOCK(ptr)      (ptr)
++
++static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
++				spinlock_t *doorbell_lock)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(doorbell_lock, flags);
++	__raw_writel((__force u32) val[0], dest);
++	__raw_writel((__force u32) val[1], dest + 4);
++	spin_unlock_irqrestore(doorbell_lock, flags);
++}
++
++#endif
++
++#endif /* MLX5_DOORBELL_H */
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+new file mode 100644
+index 0000000..21d65cd
+--- /dev/null
++++ b/include/linux/mlx5/driver.h
+@@ -0,0 +1,763 @@
++/*
++ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef MLX5_DRIVER_H
++#define MLX5_DRIVER_H
++
++#include <linux/kernel.h>
++#include <linux/completion.h>
++#include <linux/pci.h>
++#include <linux/spinlock_types.h>
++#include <linux/semaphore.h>
++#include <linux/radix-tree.h>
++#include <linux/mlx5/device.h>
++#include <linux/mlx5/doorbell.h>
++
++enum {
++	MLX5_BOARD_ID_LEN = 64,
++	MLX5_MAX_NAME_LEN = 16,
++};
++
++enum {
++	/*
++	 * one minute for the sake of bringup. Generally, commands must always
++	 * complete and we may need to increase this timeout value
++	 */
++	MLX5_CMD_TIMEOUT_MSEC	= 7200 * 1000,
++	MLX5_CMD_WQ_MAX_NAME	= 32,
++};
++
++enum {
++	CMD_OWNER_SW		= 0x0,
++	CMD_OWNER_HW		= 0x1,
++	CMD_STATUS_SUCCESS	= 0,
++};
++
++enum mlx5_sqp_t {
++	MLX5_SQP_SMI		= 0,
++	MLX5_SQP_GSI		= 1,
++	MLX5_SQP_IEEE_1588	= 2,
++	MLX5_SQP_SNIFFER	= 3,
++	MLX5_SQP_SYNC_UMR	= 4,
++};
++
++enum {
++	MLX5_MAX_PORTS	= 2,
++};
++
++enum {
++	MLX5_EQ_VEC_PAGES	 = 0,
++	MLX5_EQ_VEC_CMD		 = 1,
++	MLX5_EQ_VEC_ASYNC	 = 2,
++	MLX5_EQ_VEC_COMP_BASE,
++};
++
++enum {
++	MLX5_MAX_EQ_NAME	= 20
++};
++
++enum {
++	MLX5_ATOMIC_MODE_IB_COMP	= 1 << 16,
++	MLX5_ATOMIC_MODE_CX		= 2 << 16,
++	MLX5_ATOMIC_MODE_8B		= 3 << 16,
++	MLX5_ATOMIC_MODE_16B		= 4 << 16,
++	MLX5_ATOMIC_MODE_32B		= 5 << 16,
++	MLX5_ATOMIC_MODE_64B		= 6 << 16,
++	MLX5_ATOMIC_MODE_128B		= 7 << 16,
++	MLX5_ATOMIC_MODE_256B		= 8 << 16,
++};
++
++enum {
++	MLX5_CMD_OP_QUERY_HCA_CAP		= 0x100,
++	MLX5_CMD_OP_QUERY_ADAPTER		= 0x101,
++	MLX5_CMD_OP_INIT_HCA			= 0x102,
++	MLX5_CMD_OP_TEARDOWN_HCA		= 0x103,
++	MLX5_CMD_OP_QUERY_PAGES			= 0x107,
++	MLX5_CMD_OP_MANAGE_PAGES		= 0x108,
++	MLX5_CMD_OP_SET_HCA_CAP			= 0x109,
++
++	MLX5_CMD_OP_CREATE_MKEY			= 0x200,
++	MLX5_CMD_OP_QUERY_MKEY			= 0x201,
++	MLX5_CMD_OP_DESTROY_MKEY		= 0x202,
++	MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS	= 0x203,
++
++	MLX5_CMD_OP_CREATE_EQ			= 0x301,
++	MLX5_CMD_OP_DESTROY_EQ			= 0x302,
++	MLX5_CMD_OP_QUERY_EQ			= 0x303,
++
++	MLX5_CMD_OP_CREATE_CQ			= 0x400,
++	MLX5_CMD_OP_DESTROY_CQ			= 0x401,
++	MLX5_CMD_OP_QUERY_CQ			= 0x402,
++	MLX5_CMD_OP_MODIFY_CQ			= 0x403,
++
++	MLX5_CMD_OP_CREATE_QP			= 0x500,
++	MLX5_CMD_OP_DESTROY_QP			= 0x501,
++	MLX5_CMD_OP_RST2INIT_QP			= 0x502,
++	MLX5_CMD_OP_INIT2RTR_QP			= 0x503,
++	MLX5_CMD_OP_RTR2RTS_QP			= 0x504,
++	MLX5_CMD_OP_RTS2RTS_QP			= 0x505,
++	MLX5_CMD_OP_SQERR2RTS_QP		= 0x506,
++	MLX5_CMD_OP_2ERR_QP			= 0x507,
++	MLX5_CMD_OP_RTS2SQD_QP			= 0x508,
++	MLX5_CMD_OP_SQD2RTS_QP			= 0x509,
++	MLX5_CMD_OP_2RST_QP			= 0x50a,
++	MLX5_CMD_OP_QUERY_QP			= 0x50b,
++	MLX5_CMD_OP_CONF_SQP			= 0x50c,
++	MLX5_CMD_OP_MAD_IFC			= 0x50d,
++	MLX5_CMD_OP_INIT2INIT_QP		= 0x50e,
++	MLX5_CMD_OP_SUSPEND_QP			= 0x50f,
++	MLX5_CMD_OP_UNSUSPEND_QP		= 0x510,
++	MLX5_CMD_OP_SQD2SQD_QP			= 0x511,
++	MLX5_CMD_OP_ALLOC_QP_COUNTER_SET	= 0x512,
++	MLX5_CMD_OP_DEALLOC_QP_COUNTER_SET	= 0x513,
++	MLX5_CMD_OP_QUERY_QP_COUNTER_SET	= 0x514,
++
++	MLX5_CMD_OP_CREATE_PSV			= 0x600,
++	MLX5_CMD_OP_DESTROY_PSV			= 0x601,
++	MLX5_CMD_OP_QUERY_PSV			= 0x602,
++	MLX5_CMD_OP_QUERY_SIG_RULE_TABLE	= 0x603,
++	MLX5_CMD_OP_QUERY_BLOCK_SIZE_TABLE	= 0x604,
++
++	MLX5_CMD_OP_CREATE_SRQ			= 0x700,
++	MLX5_CMD_OP_DESTROY_SRQ			= 0x701,
++	MLX5_CMD_OP_QUERY_SRQ			= 0x702,
++	MLX5_CMD_OP_ARM_RQ			= 0x703,
++	MLX5_CMD_OP_RESIZE_SRQ			= 0x704,
++
++	MLX5_CMD_OP_ALLOC_PD			= 0x800,
++	MLX5_CMD_OP_DEALLOC_PD			= 0x801,
++	MLX5_CMD_OP_ALLOC_UAR			= 0x802,
++	MLX5_CMD_OP_DEALLOC_UAR			= 0x803,
++
++	MLX5_CMD_OP_ATTACH_TO_MCG		= 0x806,
++	MLX5_CMD_OP_DETACH_FROM_MCG		= 0x807,
++
++
++	MLX5_CMD_OP_ALLOC_XRCD			= 0x80e,
++	MLX5_CMD_OP_DEALLOC_XRCD		= 0x80f,
++
++	MLX5_CMD_OP_ACCESS_REG			= 0x805,
++};
++
++enum {
++	MLX5_REG_PCAP		= 0x5001,
++	MLX5_REG_PMTU		= 0x5003,
++	MLX5_REG_PTYS		= 0x5004,
++	MLX5_REG_PAOS		= 0x5006,
++	MLX5_REG_PMAOS		= 0x5012,
++	MLX5_REG_PUDE		= 0x5009,
++	MLX5_REG_PMPE		= 0x5010,
++	MLX5_REG_PELC		= 0x500e,
++	MLX5_REG_PMLP		= 0, /* TBD */
++	MLX5_REG_NODE_DESC	= 0x6001,
++	MLX5_REG_HOST_ENDIANESS = 0x7004,
++};
++
++enum dbg_rsc_type {
++	MLX5_DBG_RSC_QP,
++	MLX5_DBG_RSC_EQ,
++	MLX5_DBG_RSC_CQ,
++};
++
++struct mlx5_field_desc {
++	struct dentry	       *dent;
++	int			i;
++};
++
++struct mlx5_rsc_debug {
++	struct mlx5_core_dev   *dev;
++	void		       *object;
++	enum dbg_rsc_type	type;
++	struct dentry	       *root;
++	struct mlx5_field_desc	fields[0];
++};
++
++enum mlx5_dev_event {
++	MLX5_DEV_EVENT_SYS_ERROR,
++	MLX5_DEV_EVENT_PORT_UP,
++	MLX5_DEV_EVENT_PORT_DOWN,
++	MLX5_DEV_EVENT_PORT_INITIALIZED,
++	MLX5_DEV_EVENT_LID_CHANGE,
++	MLX5_DEV_EVENT_PKEY_CHANGE,
++	MLX5_DEV_EVENT_GUID_CHANGE,
++	MLX5_DEV_EVENT_CLIENT_REREG,
++};
++
++struct mlx5_uuar_info {
++	struct mlx5_uar	       *uars;
++	int			num_uars;
++	int			num_low_latency_uuars;
++	unsigned long	       *bitmap;
++	unsigned int	       *count;
++	struct mlx5_bf	       *bfs;
++
++	/*
++	 * protect uuar allocation data structs
++	 */
++	struct mutex		lock;
++};
++
++struct mlx5_bf {
++	void __iomem	       *reg;
++	void __iomem	       *regreg;
++	int			buf_size;
++	struct mlx5_uar	       *uar;
++	unsigned long		offset;
++	int			need_lock;
++	/*
++	 * protect blue flame buffer selection when needed
++	 */
++	spinlock_t		lock;
++
++	/*
++	 * serialize 64 bit writes when done as two 32 bit accesses
++	 */
++	spinlock_t		lock32;
++	int			uuarn;
++};
++
++struct mlx5_cmd_first {
++	__be32		data[4];
++};
++
++struct mlx5_cmd_msg {
++	struct list_head		list;
++	struct cache_ent	       *cache;
++	u32				len;
++	struct mlx5_cmd_first		first;
++	struct mlx5_cmd_mailbox	       *next;
++};
++
++struct mlx5_cmd_debug {
++	struct dentry	       *dbg_root;
++	struct dentry	       *dbg_in;
++	struct dentry	       *dbg_out;
++	struct dentry	       *dbg_outlen;
++	struct dentry	       *dbg_status;
++	struct dentry	       *dbg_run;
++	void		       *in_msg;
++	void		       *out_msg;
++	u8			status;
++	u16			inlen;
++	u16			outlen;
++};
++
++struct cache_ent {
++	/*
++	 * protect block chain allocations
++	 */
++	spinlock_t		lock;
++	struct list_head	head;
++};
++
++struct cmd_msg_cache {
++	struct cache_ent	large;
++	struct cache_ent	med;
++
++};
++
++struct mlx5_cmd_stats {
++	u64		sum;
++	u64		n;
++	struct dentry  *root;
++	struct dentry  *avg;
++	struct dentry  *count;
++	/*
++	 * protect command average calculations */
++	spinlock_t	spl;
++};
++
++struct mlx5_cmd {
++	void	       *cmd_buf;
++	dma_addr_t	dma;
++	u16		cmdif_rev;
++	u8		log_sz;
++	u8		log_stride;
++	int		max_reg_cmds;
++	int		events;
++	u32 __iomem    *vector;
++
++	/*
++	 * protect command queue allocations
++	 */
++	spinlock_t	alloc_spl;
++
++	/*
++	 * protect token allocations
++	 */
++	spinlock_t	token_spl;
++	u8		token;
++	unsigned long	bitmask;
++	char		wq_name[MLX5_CMD_WQ_MAX_NAME];
++	struct workqueue_struct *wq;
++	struct semaphore sem;
++	struct semaphore pages_sem;
++	int	mode;
++	struct mlx5_cmd_work_ent *ent_arr[MLX5_MAX_COMMANDS];
++	struct pci_pool *pool;
++	struct mlx5_cmd_debug dbg;
++	struct cmd_msg_cache cache;
++	int checksum_disabled;
++	struct mlx5_cmd_stats	stats[0x80a];
++};
++
++struct mlx5_port_caps {
++	int	gid_table_len;
++	int	pkey_table_len;
++};
++
++struct mlx5_caps {
++	u8	log_max_eq;
++	u8	log_max_cq;
++	u8	log_max_qp;
++	u8	log_max_mkey;
++	u8	log_max_pd;
++	u8	log_max_srq;
++	u32	max_cqes;
++	int	max_wqes;
++	int	max_sq_desc_sz;
++	int	max_rq_desc_sz;
++	u64	flags;
++	u16	stat_rate_support;
++	int	log_max_msg;
++	int	num_ports;
++	int	max_ra_res_qp;
++	int	max_ra_req_qp;
++	int	max_srq_wqes;
++	int	bf_reg_size;
++	int	bf_regs_per_page;
++	struct mlx5_port_caps	port[MLX5_MAX_PORTS];
++	u8			ext_port_cap[MLX5_MAX_PORTS];
++	int	max_vf;
++	u32	reserved_lkey;
++	u8	local_ca_ack_delay;
++	u8	log_max_mcg;
++	u16	max_qp_mcg;
++	int	min_page_sz;
++};
++
++struct mlx5_cmd_mailbox {
++	void	       *buf;
++	dma_addr_t	dma;
++	struct mlx5_cmd_mailbox *next;
++};
++
++struct mlx5_buf_list {
++	void		       *buf;
++	dma_addr_t		map;
++};
++
++struct mlx5_buf {
++	struct mlx5_buf_list	direct;
++	struct mlx5_buf_list   *page_list;
++	int			nbufs;
++	int			npages;
++	int			page_shift;
++	int			size;
++};
++
++struct mlx5_eq {
++	struct mlx5_core_dev   *dev;
++	__be32 __iomem	       *doorbell;
++	u32			cons_index;
++	struct mlx5_buf		buf;
++	int			size;
++	u8			irqn;
++	u8			eqn;
++	int			nent;
++	u64			mask;
++	char			name[MLX5_MAX_EQ_NAME];
++	struct list_head	list;
++	int			index;
++	struct mlx5_rsc_debug	*dbg;
++};
++
++
++struct mlx5_core_mr {
++	u64			iova;
++	u64			size;
++	u32			key;
++	u32			pd;
++	u32			access;
++};
++
++struct mlx5_core_srq {
++	u32		srqn;
++	int		max;
++	int		max_gs;
++	int		max_avail_gather;
++	int		wqe_shift;
++	void (*event)	(struct mlx5_core_srq *, enum mlx5_event);
++
++	atomic_t		refcount;
++	struct completion	free;
++};
++
++struct mlx5_eq_table {
++	void __iomem	       *update_ci;
++	void __iomem	       *update_arm_ci;
++	struct list_head       *comp_eq_head;
++	struct mlx5_eq		pages_eq;
++	struct mlx5_eq		async_eq;
++	struct mlx5_eq		cmd_eq;
++	struct msix_entry	*msix_arr;
++	int			num_comp_vectors;
++	/*
++	 * protect EQs list
++	 */
++	spinlock_t		lock;
++};
++
++struct mlx5_uar {
++	u32			index;
++	struct list_head	bf_list;
++	unsigned		free_bf_bmap;
++	void __iomem	       *wc_map;
++	void __iomem	       *map;
++};
++
++
++struct mlx5_core_health {
++	struct health_buffer __iomem   *health;
++	__be32 __iomem		       *health_counter;
++	struct timer_list		timer;
++	struct list_head		list;
++	u32				prev;
++	int				miss_counter;
++	int				active;
++};
++
++struct mlx5_cq_table {
++	/*
++	 * protect radix tree
++	 */
++	spinlock_t		lock;
++	struct radix_tree_root	tree;
++};
++
++struct mlx5_qp_table {
++	/*
++	 * protect radix tree
++	 */
++	spinlock_t		lock;
++	struct radix_tree_root	tree;
++};
++
++struct mlx5_srq_table {
++	/*
++	 * protect radix tree
++	 */
++	spinlock_t		lock;
++	struct radix_tree_root	tree;
++};
++
++struct mlx5_priv {
++	char			name[MLX5_MAX_NAME_LEN];
++	struct mlx5_eq_table	eq_table;
++	struct mlx5_uuar_info	uuari;
++	MLX5_DECLARE_DOORBELL_LOCK(cq_uar_lock);
++
++	/* pages stuff */
++	struct workqueue_struct *pg_wq;
++	struct rb_root		page_root;
++	int			fw_pages;
++	int			reg_pages;
++
++	struct mlx5_core_health health;
++
++	struct mlx5_srq_table	srq_table;
++
++	/* start: qp staff */
++	struct mlx5_qp_table	qp_table;
++	struct dentry	       *qp_debugfs;
++	struct dentry	       *eq_debugfs;
++	struct dentry	       *cq_debugfs;
++	struct dentry	       *cmdif_debugfs;
++	/* end: qp staff */
++
++	/* start: cq staff */
++	struct mlx5_cq_table	cq_table;
++	/* end: cq staff */
++
++	/* start: alloc staff */
++	struct mutex            pgdir_mutex;
++	struct list_head        pgdir_list;
++	/* end: alloc staff */
++	struct dentry	       *dbg_root;
++
++	/*
++	 * protect mkey key part
++	 */
++	spinlock_t		mkey_lock;
++	u8			mkey_key;
++};
++
++struct mlx5_core_dev {
++	struct pci_dev	       *pdev;
++	u8			rev_id;
++	char			board_id[MLX5_BOARD_ID_LEN];
++	struct mlx5_cmd		cmd;
++	struct mlx5_caps	caps;
++	phys_addr_t		iseg_base;
++	struct mlx5_init_seg __iomem *iseg;
++	void			(*event) (struct mlx5_core_dev *dev,
++					  enum mlx5_dev_event event,
++					  void *data);
++	struct mlx5_priv	priv;
++	struct mlx5_profile	*profile;
++	atomic_t		num_qps;
++};
++
++struct mlx5_db {
++	__be32			*db;
++	union {
++		struct mlx5_db_pgdir		*pgdir;
++		struct mlx5_ib_user_db_page	*user_page;
++	}			u;
++	dma_addr_t		dma;
++	int			index;
++};
++
++enum {
++	MLX5_DB_PER_PAGE = PAGE_SIZE / L1_CACHE_BYTES,
++};
++
++enum {
++	MLX5_COMP_EQ_SIZE = 1024,
++};
++
++struct mlx5_db_pgdir {
++	struct list_head	list;
++	DECLARE_BITMAP(bitmap, MLX5_DB_PER_PAGE);
++	__be32		       *db_page;
++	dma_addr_t		db_dma;
++};
++
++typedef void (*mlx5_cmd_cbk_t)(int status, void *context);
++
++struct mlx5_cmd_work_ent {
++	struct mlx5_cmd_msg    *in;
++	struct mlx5_cmd_msg    *out;
++	mlx5_cmd_cbk_t		callback;
++	void		       *context;
++	int idx;
++	struct completion	done;
++	struct mlx5_cmd        *cmd;
++	struct work_struct	work;
++	struct mlx5_cmd_layout *lay;
++	int			ret;
++	int			page_queue;
++	u8			status;
++	u8			token;
++	struct timespec		ts1;
++	struct timespec		ts2;
++};
++
++struct mlx5_pas {
++	u64	pa;
++	u8	log_sz;
++};
++
++static inline void *mlx5_buf_offset(struct mlx5_buf *buf, int offset)
++{
++	if (likely(BITS_PER_LONG == 64 || buf->nbufs == 1))
++		return buf->direct.buf + offset;
 +	else
-+		*xrcdn = be32_to_cpu(out.xrcdn);
-+
-+	return err;
++		return buf->page_list[offset >> PAGE_SHIFT].buf +
++			(offset & (PAGE_SIZE - 1));
 +}
-+EXPORT_SYMBOL_GPL(mlx5_core_xrcd_alloc);
 +
-+int mlx5_core_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn)
++extern struct workqueue_struct *mlx5_core_wq;
++
++#define STRUCT_FIELD(header, field) \
++	.struct_offset_bytes = offsetof(struct ib_unpacked_ ## header, field),      \
++	.struct_size_bytes   = sizeof((struct ib_unpacked_ ## header *)0)->field
++
++struct ib_field {
++	size_t struct_offset_bytes;
++	size_t struct_size_bytes;
++	int    offset_bits;
++	int    size_bits;
++};
++
++static inline struct mlx5_core_dev *pci2mlx5_core_dev(struct pci_dev *pdev)
 +{
-+	struct mlx5_dealloc_xrcd_mbox_in in;
-+	struct mlx5_dealloc_xrcd_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DEALLOC_XRCD);
-+	in.xrcdn = cpu_to_be32(xrcdn);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		err = mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return err;
++	return pci_get_drvdata(pdev);
 +}
-+EXPORT_SYMBOL_GPL(mlx5_core_xrcd_dealloc);
++
++extern struct dentry *mlx5_debugfs_root;
++
++static inline u16 fw_rev_maj(struct mlx5_core_dev *dev)
++{
++	return ioread32be(&dev->iseg->fw_rev) & 0xffff;
++}
++
++static inline u16 fw_rev_min(struct mlx5_core_dev *dev)
++{
++	return ioread32be(&dev->iseg->fw_rev) >> 16;
++}
++
++static inline u16 fw_rev_sub(struct mlx5_core_dev *dev)
++{
++	return ioread32be(&dev->iseg->cmdif_rev_fw_sub) & 0xffff;
++}
++
++static inline u16 cmdif_rev(struct mlx5_core_dev *dev)
++{
++	return ioread32be(&dev->iseg->cmdif_rev_fw_sub) >> 16;
++}
++
++int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev);
++void mlx5_dev_cleanup(struct mlx5_core_dev *dev);
++int mlx5_cmd_init(struct mlx5_core_dev *dev);
++void mlx5_cmd_cleanup(struct mlx5_core_dev *dev);
++void mlx5_cmd_use_events(struct mlx5_core_dev *dev);
++void mlx5_cmd_use_polling(struct mlx5_core_dev *dev);
++int mlx5_cmd_status_to_err(struct mlx5_outbox_hdr *hdr);
++int mlx5_cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
++		  int out_size);
++int mlx5_cmd_alloc_uar(struct mlx5_core_dev *dev, u32 *uarn);
++int mlx5_cmd_free_uar(struct mlx5_core_dev *dev, u32 uarn);
++int mlx5_alloc_uuars(struct mlx5_core_dev *dev, struct mlx5_uuar_info *uuari);
++int mlx5_free_uuars(struct mlx5_core_dev *dev, struct mlx5_uuar_info *uuari);
++void mlx5_health_cleanup(void);
++void  __init mlx5_health_init(void);
++void mlx5_start_health_poll(struct mlx5_core_dev *dev);
++void mlx5_stop_health_poll(struct mlx5_core_dev *dev);
++int mlx5_buf_alloc(struct mlx5_core_dev *dev, int size, int max_direct,
++		   struct mlx5_buf *buf);
++void mlx5_buf_free(struct mlx5_core_dev *dev, struct mlx5_buf *buf);
++struct mlx5_cmd_mailbox *mlx5_alloc_cmd_mailbox_chain(struct mlx5_core_dev *dev,
++						      gfp_t flags, int npages);
++void mlx5_free_cmd_mailbox_chain(struct mlx5_core_dev *dev,
++				 struct mlx5_cmd_mailbox *head);
++int mlx5_core_create_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
++			 struct mlx5_create_srq_mbox_in *in, int inlen);
++int mlx5_core_destroy_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq);
++int mlx5_core_query_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
++			struct mlx5_query_srq_mbox_out *out);
++int mlx5_core_arm_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
++		      u16 lwm, int is_srq);
++int mlx5_core_create_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
++			  struct mlx5_create_mkey_mbox_in *in, int inlen);
++int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr);
++int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
++			 struct mlx5_query_mkey_mbox_out *out, int outlen);
++int mlx5_core_dump_fill_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mr,
++			     u32 *mkey);
++int mlx5_core_alloc_pd(struct mlx5_core_dev *dev, u32 *pdn);
++int mlx5_core_dealloc_pd(struct mlx5_core_dev *dev, u32 pdn);
++int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, void *inb, void *outb,
++		      u16 opmod, int port);
++void mlx5_pagealloc_init(struct mlx5_core_dev *dev);
++void mlx5_pagealloc_cleanup(struct mlx5_core_dev *dev);
++int mlx5_pagealloc_start(struct mlx5_core_dev *dev);
++void mlx5_pagealloc_stop(struct mlx5_core_dev *dev);
++void mlx5_core_req_pages_handler(struct mlx5_core_dev *dev, u16 func_id,
++				 s16 npages);
++int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev);
++int mlx5_reclaim_startup_pages(struct mlx5_core_dev *dev);
++void mlx5_register_debugfs(void);
++void mlx5_unregister_debugfs(void);
++int mlx5_eq_init(struct mlx5_core_dev *dev);
++void mlx5_eq_cleanup(struct mlx5_core_dev *dev);
++void mlx5_fill_page_array(struct mlx5_buf *buf, __be64 *pas);
++void mlx5_cq_completion(struct mlx5_core_dev *dev, u32 cqn);
++void mlx5_qp_event(struct mlx5_core_dev *dev, u32 qpn, int event_type);
++void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type);
++struct mlx5_core_srq *mlx5_core_get_srq(struct mlx5_core_dev *dev, u32 srqn);
++void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, unsigned long vector);
++void mlx5_cq_event(struct mlx5_core_dev *dev, u32 cqn, int event_type);
++int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
++		       int nent, u64 mask, const char *name, struct mlx5_uar *uar);
++int mlx5_destroy_unmap_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq);
++int mlx5_start_eqs(struct mlx5_core_dev *dev);
++int mlx5_stop_eqs(struct mlx5_core_dev *dev);
++int mlx5_core_attach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn);
++int mlx5_core_detach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn);
++
++int mlx5_qp_debugfs_init(struct mlx5_core_dev *dev);
++void mlx5_qp_debugfs_cleanup(struct mlx5_core_dev *dev);
++int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
++			 int size_in, void *data_out, int size_out,
++			 u16 reg_num, int arg, int write);
++int mlx5_set_port_caps(struct mlx5_core_dev *dev, int port_num, u32 caps);
++
++int mlx5_debug_eq_add(struct mlx5_core_dev *dev, struct mlx5_eq *eq);
++void mlx5_debug_eq_remove(struct mlx5_core_dev *dev, struct mlx5_eq *eq);
++int mlx5_core_eq_query(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
++		       struct mlx5_query_eq_mbox_out *out, int outlen);
++int mlx5_eq_debugfs_init(struct mlx5_core_dev *dev);
++void mlx5_eq_debugfs_cleanup(struct mlx5_core_dev *dev);
++int mlx5_cq_debugfs_init(struct mlx5_core_dev *dev);
++void mlx5_cq_debugfs_cleanup(struct mlx5_core_dev *dev);
++int mlx5_db_alloc(struct mlx5_core_dev *dev, struct mlx5_db *db);
++void mlx5_db_free(struct mlx5_core_dev *dev, struct mlx5_db *db);
++
++typedef void (*health_handler_t)(struct pci_dev *pdev, void *buf, int size);
++int mlx5_register_health_report_handler(health_handler_t handler);
++void mlx5_unregister_health_report_handler(void);
++const char *mlx5_command_str(int command);
++int mlx5_cmdif_debugfs_init(struct mlx5_core_dev *dev);
++void mlx5_cmdif_debugfs_cleanup(struct mlx5_core_dev *dev);
++
++static inline u32 mlx5_mkey_to_idx(u32 mkey)
++{
++	return mkey >> 8;
++}
++
++static inline u32 mlx5_idx_to_mkey(u32 mkey_idx)
++{
++	return mkey_idx << 8;
++}
++
++enum {
++	MLX5_PROF_MASK_QP_SIZE		= (u64)1 << 0,
++	MLX5_PROF_MASK_CMDIF_CSUM	= (u64)1 << 1,
++	MLX5_PROF_MASK_MR_CACHE		= (u64)1 << 2,
++};
++
++enum {
++	MAX_MR_CACHE_ENTRIES    = 16,
++};
++
++struct mlx5_profile {
++	u64	mask;
++	u32	log_max_qp;
++	int	cmdif_csum;
++	struct {
++		int	size;
++		int	limit;
++	} mr_cache[MAX_MR_CACHE_ENTRIES];
++};
++
++#endif /* MLX5_DRIVER_H */
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+new file mode 100644
+index 0000000..d9e3eac
+--- /dev/null
++++ b/include/linux/mlx5/qp.h
+@@ -0,0 +1,467 @@
++/*
++ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef MLX5_QP_H
++#define MLX5_QP_H
++
++#include <linux/mlx5/device.h>
++#include <linux/mlx5/driver.h>
++
++#define MLX5_INVALID_LKEY	0x100
++
++enum mlx5_qp_optpar {
++	MLX5_QP_OPTPAR_ALT_ADDR_PATH		= 1 << 0,
++	MLX5_QP_OPTPAR_RRE			= 1 << 1,
++	MLX5_QP_OPTPAR_RAE			= 1 << 2,
++	MLX5_QP_OPTPAR_RWE			= 1 << 3,
++	MLX5_QP_OPTPAR_PKEY_INDEX		= 1 << 4,
++	MLX5_QP_OPTPAR_Q_KEY			= 1 << 5,
++	MLX5_QP_OPTPAR_RNR_TIMEOUT		= 1 << 6,
++	MLX5_QP_OPTPAR_PRIMARY_ADDR_PATH	= 1 << 7,
++	MLX5_QP_OPTPAR_SRA_MAX			= 1 << 8,
++	MLX5_QP_OPTPAR_RRA_MAX			= 1 << 9,
++	MLX5_QP_OPTPAR_PM_STATE			= 1 << 10,
++	MLX5_QP_OPTPAR_RETRY_COUNT		= 1 << 12,
++	MLX5_QP_OPTPAR_RNR_RETRY		= 1 << 13,
++	MLX5_QP_OPTPAR_ACK_TIMEOUT		= 1 << 14,
++	MLX5_QP_OPTPAR_PRI_PORT			= 1 << 16,
++	MLX5_QP_OPTPAR_SRQN			= 1 << 18,
++	MLX5_QP_OPTPAR_CQN_RCV			= 1 << 19,
++	MLX5_QP_OPTPAR_DC_HS			= 1 << 20,
++	MLX5_QP_OPTPAR_DC_KEY			= 1 << 21,
++};
++
++enum mlx5_qp_state {
++	MLX5_QP_STATE_RST			= 0,
++	MLX5_QP_STATE_INIT			= 1,
++	MLX5_QP_STATE_RTR			= 2,
++	MLX5_QP_STATE_RTS			= 3,
++	MLX5_QP_STATE_SQER			= 4,
++	MLX5_QP_STATE_SQD			= 5,
++	MLX5_QP_STATE_ERR			= 6,
++	MLX5_QP_STATE_SQ_DRAINING		= 7,
++	MLX5_QP_STATE_SUSPENDED			= 9,
++	MLX5_QP_NUM_STATE
++};
++
++enum {
++	MLX5_QP_ST_RC				= 0x0,
++	MLX5_QP_ST_UC				= 0x1,
++	MLX5_QP_ST_UD				= 0x2,
++	MLX5_QP_ST_XRC				= 0x3,
++	MLX5_QP_ST_MLX				= 0x4,
++	MLX5_QP_ST_DCI				= 0x5,
++	MLX5_QP_ST_DCT				= 0x6,
++	MLX5_QP_ST_QP0				= 0x7,
++	MLX5_QP_ST_QP1				= 0x8,
++	MLX5_QP_ST_RAW_ETHERTYPE		= 0x9,
++	MLX5_QP_ST_RAW_IPV6			= 0xa,
++	MLX5_QP_ST_SNIFFER			= 0xb,
++	MLX5_QP_ST_SYNC_UMR			= 0xe,
++	MLX5_QP_ST_PTP_1588			= 0xd,
++	MLX5_QP_ST_REG_UMR			= 0xc,
++	MLX5_QP_ST_MAX
++};
++
++enum {
++	MLX5_QP_PM_MIGRATED			= 0x3,
++	MLX5_QP_PM_ARMED			= 0x0,
++	MLX5_QP_PM_REARM			= 0x1
++};
++
++enum {
++	MLX5_NON_ZERO_RQ	= 0 << 24,
++	MLX5_SRQ_RQ		= 1 << 24,
++	MLX5_CRQ_RQ		= 2 << 24,
++	MLX5_ZERO_LEN_RQ	= 3 << 24
++};
++
++enum {
++	/* params1 */
++	MLX5_QP_BIT_SRE				= 1 << 15,
++	MLX5_QP_BIT_SWE				= 1 << 14,
++	MLX5_QP_BIT_SAE				= 1 << 13,
++	/* params2 */
++	MLX5_QP_BIT_RRE				= 1 << 15,
++	MLX5_QP_BIT_RWE				= 1 << 14,
++	MLX5_QP_BIT_RAE				= 1 << 13,
++	MLX5_QP_BIT_RIC				= 1 <<	4,
++};
++
++enum {
++	MLX5_WQE_CTRL_CQ_UPDATE		= 2 << 2,
++	MLX5_WQE_CTRL_SOLICITED		= 1 << 1,
++};
++
++enum {
++	MLX5_SEND_WQE_BB	= 64,
++};
++
++enum {
++	MLX5_WQE_FMR_PERM_LOCAL_READ	= 1 << 27,
++	MLX5_WQE_FMR_PERM_LOCAL_WRITE	= 1 << 28,
++	MLX5_WQE_FMR_PERM_REMOTE_READ	= 1 << 29,
++	MLX5_WQE_FMR_PERM_REMOTE_WRITE	= 1 << 30,
++	MLX5_WQE_FMR_PERM_ATOMIC	= 1 << 31
++};
++
++enum {
++	MLX5_FENCE_MODE_NONE			= 0 << 5,
++	MLX5_FENCE_MODE_INITIATOR_SMALL		= 1 << 5,
++	MLX5_FENCE_MODE_STRONG_ORDERING		= 3 << 5,
++	MLX5_FENCE_MODE_SMALL_AND_FENCE		= 4 << 5,
++};
++
++enum {
++	MLX5_QP_LAT_SENSITIVE	= 1 << 28,
++	MLX5_QP_ENABLE_SIG	= 1 << 31,
++};
++
++enum {
++	MLX5_RCV_DBR	= 0,
++	MLX5_SND_DBR	= 1,
++};
++
++struct mlx5_wqe_fmr_seg {
++	__be32			flags;
++	__be32			mem_key;
++	__be64			buf_list;
++	__be64			start_addr;
++	__be64			reg_len;
++	__be32			offset;
++	__be32			page_size;
++	u32			reserved[2];
++};
++
++struct mlx5_wqe_ctrl_seg {
++	__be32			opmod_idx_opcode;
++	__be32			qpn_ds;
++	u8			signature;
++	u8			rsvd[2];
++	u8			fm_ce_se;
++	__be32			imm;
++};
++
++struct mlx5_wqe_xrc_seg {
++	__be32			xrc_srqn;
++	u8			rsvd[12];
++};
++
++struct mlx5_wqe_masked_atomic_seg {
++	__be64			swap_add;
++	__be64			compare;
++	__be64			swap_add_mask;
++	__be64			compare_mask;
++};
++
++struct mlx5_av {
++	union {
++		struct {
++			__be32	qkey;
++			__be32	reserved;
++		} qkey;
++		__be64	dc_key;
++	} key;
++	__be32	dqp_dct;
++	u8	stat_rate_sl;
++	u8	fl_mlid;
++	__be16	rlid;
++	u8	reserved0[10];
++	u8	tclass;
++	u8	hop_limit;
++	__be32	grh_gid_fl;
++	u8	rgid[16];
++};
++
++struct mlx5_wqe_datagram_seg {
++	struct mlx5_av	av;
++};
++
++struct mlx5_wqe_raddr_seg {
++	__be64			raddr;
++	__be32			rkey;
++	u32			reserved;
++};
++
++struct mlx5_wqe_atomic_seg {
++	__be64			swap_add;
++	__be64			compare;
++};
++
++struct mlx5_wqe_data_seg {
++	__be32			byte_count;
++	__be32			lkey;
++	__be64			addr;
++};
++
++struct mlx5_wqe_umr_ctrl_seg {
++	u8		flags;
++	u8		rsvd0[3];
++	__be16		klm_octowords;
++	__be16		bsf_octowords;
++	__be64		mkey_mask;
++	u8		rsvd1[32];
++};
++
++struct mlx5_seg_set_psv {
++	__be32		psv_num;
++	__be16		syndrome;
++	__be16		status;
++	__be32		transient_sig;
++	__be32		ref_tag;
++};
++
++struct mlx5_seg_get_psv {
++	u8		rsvd[19];
++	u8		num_psv;
++	__be32		l_key;
++	__be64		va;
++	__be32		psv_index[4];
++};
++
++struct mlx5_seg_check_psv {
++	u8		rsvd0[2];
++	__be16		err_coalescing_op;
++	u8		rsvd1[2];
++	__be16		xport_err_op;
++	u8		rsvd2[2];
++	__be16		xport_err_mask;
++	u8		rsvd3[7];
++	u8		num_psv;
++	__be32		l_key;
++	__be64		va;
++	__be32		psv_index[4];
++};
++
++struct mlx5_rwqe_sig {
++	u8	rsvd0[4];
++	u8	signature;
++	u8	rsvd1[11];
++};
++
++struct mlx5_wqe_signature_seg {
++	u8	rsvd0[4];
++	u8	signature;
++	u8	rsvd1[11];
++};
++
++struct mlx5_wqe_inline_seg {
++	__be32	byte_count;
++};
++
++struct mlx5_core_qp {
++	void (*event)		(struct mlx5_core_qp *, int);
++	int			qpn;
++	atomic_t		refcount;
++	struct completion	free;
++	struct mlx5_rsc_debug	*dbg;
++	int			pid;
++};
++
++struct mlx5_qp_path {
++	u8			fl;
++	u8			rsvd3;
++	u8			free_ar;
++	u8			pkey_index;
++	u8			rsvd0;
++	u8			grh_mlid;
++	__be16			rlid;
++	u8			ackto_lt;
++	u8			mgid_index;
++	u8			static_rate;
++	u8			hop_limit;
++	__be32			tclass_flowlabel;
++	u8			rgid[16];
++	u8			rsvd1[4];
++	u8			sl;
++	u8			port;
++	u8			rsvd2[6];
++};
++
++struct mlx5_qp_context {
++	__be32			flags;
++	__be32			flags_pd;
++	u8			mtu_msgmax;
++	u8			rq_size_stride;
++	__be16			sq_crq_size;
++	__be32			qp_counter_set_usr_page;
++	__be32			wire_qpn;
++	__be32			log_pg_sz_remote_qpn;
++	struct			mlx5_qp_path pri_path;
++	struct			mlx5_qp_path alt_path;
++	__be32			params1;
++	u8			reserved2[4];
++	__be32			next_send_psn;
++	__be32			cqn_send;
++	u8			reserved3[8];
++	__be32			last_acked_psn;
++	__be32			ssn;
++	__be32			params2;
++	__be32			rnr_nextrecvpsn;
++	__be32			xrcd;
++	__be32			cqn_recv;
++	__be64			db_rec_addr;
++	__be32			qkey;
++	__be32			rq_type_srqn;
++	__be32			rmsn;
++	__be16			hw_sq_wqe_counter;
++	__be16			sw_sq_wqe_counter;
++	__be16			hw_rcyclic_byte_counter;
++	__be16			hw_rq_counter;
++	__be16			sw_rcyclic_byte_counter;
++	__be16			sw_rq_counter;
++	u8			rsvd0[5];
++	u8			cgs;
++	u8			cs_req;
++	u8			cs_res;
++	__be64			dc_access_key;
++	u8			rsvd1[24];
++};
++
++struct mlx5_create_qp_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			input_qpn;
++	u8			rsvd0[4];
++	__be32			opt_param_mask;
++	u8			rsvd1[4];
++	struct mlx5_qp_context	ctx;
++	u8			rsvd3[16];
++	__be64			pas[0];
++};
++
++struct mlx5_create_qp_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be32			qpn;
++	u8			rsvd0[4];
++};
++
++struct mlx5_destroy_qp_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			qpn;
++	u8			rsvd0[4];
++};
++
++struct mlx5_destroy_qp_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[8];
++};
++
++struct mlx5_modify_qp_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			qpn;
++	u8			rsvd1[4];
++	__be32			optparam;
++	u8			rsvd0[4];
++	struct mlx5_qp_context	ctx;
++};
++
++struct mlx5_modify_qp_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd0[8];
++};
++
++struct mlx5_query_qp_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			qpn;
++	u8			rsvd[4];
++};
++
++struct mlx5_query_qp_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd1[8];
++	__be32			optparam;
++	u8			rsvd0[4];
++	struct mlx5_qp_context	ctx;
++	u8			rsvd2[16];
++	__be64			pas[0];
++};
++
++struct mlx5_conf_sqp_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			qpn;
++	u8			rsvd[3];
++	u8			type;
++};
++
++struct mlx5_conf_sqp_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_alloc_xrcd_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_alloc_xrcd_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	__be32			xrcdn;
++	u8			rsvd[4];
++};
++
++struct mlx5_dealloc_xrcd_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	__be32			xrcdn;
++	u8			rsvd[4];
++};
++
++struct mlx5_dealloc_xrcd_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++static inline struct mlx5_core_qp *__mlx5_qp_lookup(struct mlx5_core_dev *dev, u32 qpn)
++{
++	return radix_tree_lookup(&dev->priv.qp_table.tree, qpn);
++}
++
++int mlx5_core_create_qp(struct mlx5_core_dev *dev,
++			struct mlx5_core_qp *qp,
++			struct mlx5_create_qp_mbox_in *in,
++			int inlen);
++int mlx5_core_qp_modify(struct mlx5_core_dev *dev, enum mlx5_qp_state cur_state,
++			enum mlx5_qp_state new_state,
++			struct mlx5_modify_qp_mbox_in *in, int sqd_event,
++			struct mlx5_core_qp *qp);
++int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
++			 struct mlx5_core_qp *qp);
++int mlx5_core_qp_query(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp,
++		       struct mlx5_query_qp_mbox_out *out, int outlen);
++
++int mlx5_core_xrcd_alloc(struct mlx5_core_dev *dev, u32 *xrcdn);
++int mlx5_core_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn);
++void mlx5_init_qp_table(struct mlx5_core_dev *dev);
++void mlx5_cleanup_qp_table(struct mlx5_core_dev *dev);
++int mlx5_debug_qp_add(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
++void mlx5_debug_qp_remove(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
++
++#endif /* MLX5_QP_H */
+diff --git a/include/linux/mlx5/srq.h b/include/linux/mlx5/srq.h
+new file mode 100644
+index 0000000..e1a363a
+--- /dev/null
++++ b/include/linux/mlx5/srq.h
+@@ -0,0 +1,41 @@
++/*
++ * Copyright (c) 2013, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef MLX5_SRQ_H
++#define MLX5_SRQ_H
++
++#include <linux/mlx5/driver.h>
++
++void mlx5_init_srq_table(struct mlx5_core_dev *dev);
++void mlx5_cleanup_srq_table(struct mlx5_core_dev *dev);
++
++#endif /* MLX5_SRQ_H */
 -- 
 1.8.1.3
 
