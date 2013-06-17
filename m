@@ -1,66 +1,63 @@
-From: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 07/14] scsi_transport_srp: Add transport layer error handling
-Date: Mon, 17 Jun 2013 10:10:41 +0200
-Message-ID: <51BEC481.2030305@suse.de>
-References: <51B87501.4070005@acm.org> <51B8777B.5050201@acm.org> <51BA20ED.6040200@mellanox.com> <51BB1857.7040802@acm.org> <51BB5A04.3080901@mellanox.com> <51BC3945.9030900@acm.org> <51BEAA40.9070908@suse.de> <51BEB4FF.9000607@acm.org> <51BEB770.9030305@suse.de> <51BEBAEA.4080202@acm.org>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
+Date: Mon, 17 Jun 2013 11:41:59 +0200
+Message-ID: <51BED9E7.5070304@profitbricks.com>
+References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org> <51BA0655.6090707@mellanox.com> <51BA0E8F.3030104@acm.org> <51BA555F.9060807@mellanox.com> <51BAE482.1050304@profitbricks.com> <51BB4DBB.4070800@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51BEBAEA.4080202-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <51BB4DBB.4070800-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
+To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/17/2013 09:29 AM, Bart Van Assche wrote:
-> On 06/17/13 09:14, Hannes Reinecke wrote:
->> On 06/17/2013 09:04 AM, Bart Van Assche wrote:
->>> I agree that the value of fast_io_fail_tmo should be kept small.
->>> Although as you explained changing the SCSI device state into
->>> SDEV_BLOCK doesn't help for I/O that has already been queued on a
->>> failed path, I think it's still useful for I/O that is queued after
->>> the fast_io_fail timer has been started and before that timer has
->>> expired.
+On 14.06.2013 19:07, Vu Pham wrote:
+[...]
+>> For what do you need the same target with multiple pkeys on the same
+>> local SRP port?
+>>   
+> There is no need, it's just a gray area that you can choose to have
+> multiple connections to same target using different pkeys (same as dgid)
+>> Which other SRP targets exist?
+>>   
+> 
+> Netapp/LSI/Engenio, DDN, TexasMemorySystem Ramsan (IBM), Nimbus, Violin
+> Memory, StreamScale
+> The last three may be derived from SCST base target.
+> 
+>> I only know SCST, Solaris COMSTAR and that broken LIO stuff.
+>> Does SCST still not support to set the pkey?
 >>
->> Why, but of course.
+>>   
+> Yes, I think so
+> 
+>> Why should we check the dgid?
 >>
->> The typical scenario would be:
->> -> detect link-loss
->> -> call scsi_block_request()
->> -> start dev_loss_tmo and fast_io_fail_tmo
->>
->> -> When fast_io_fail_tmo triggers:
->>     -> Abort all outstanding requests
->>
->> -> When dev_loss_tmo triggers:
->>     -> Abort all outstanding requests
->>     -> Remove/disable the I_T nexus
->>     -> call scsi_unblock_request()
->>
->> However, if and whether multipath detects SDEV_BLOCK doesn't
->> guarantee a fast failover; in fact is was only added rather recently
->> as it's not a big win in most cases.
->=20
-> Even if setting the state SDEV_BLOCK doesn't help much with
-> improving failover time, it still has the advantage over using
-> scsi_block_requests() that it can be overridden by a user via sysfs.
->=20
-Argl. I meant scsi_internal_device_block(), not
-scsi_block_requests(). Of course.
+>>   
+> If you want to have multiple connections/qps to same target, but as I
+> said above, it's a gray area.
+> 
+>> Doesn't make any sense to me to connect both target ports to the same
+>> local port. 
+> What if a target always expose single consistent and unique SRP port
+> with tuple <id_ext, ioc_guid>, the ioc_guid part is not derived from any
+> of its local HCA's GUID, then you can connect to this target thru
+> different HCA ports (different dgid) as different paths to same target.
+>
+Do you have an example for a target which does it like this or a use
+case where this makes sense?
 
-So we're arguing a non-existing point :-)
+I guess you're proposing here to use a driver global list of target
+connections instead of handling this per local SRP port. This would
+result in bigger changes which I wouldn't do without a good reason.
 
-Cheers,
+>> If you do so, the multipath-tools will crash. Note: This
+>> function is called per local SRP port. Perhaps, a note should be added
+>> to that function that it only has to be called per local SRP port.
 
-Hannes
---=20
-Dr. Hannes Reinecke		      zSeries & Storage
-hare-l3A5Bk7waGM@public.gmane.org			      +49 911 74053 688
-SUSE LINUX Products GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: J. Hawn, J. Guild, F. Imend=F6rffer, HRB 16746 (AG N=FCrnberg)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
