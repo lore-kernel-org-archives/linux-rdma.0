@@ -1,70 +1,196 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 0/4] Add receive Flow Steering support
-Date: Mon, 17 Jun 2013 20:33:09 +0300
-Message-ID: <CAJZOPZLwy91C3EpcQDV6yDLz7E5f=Pfo0J9VSJOr78hC+rr3rw@mail.gmail.com>
-References: <1370950973-11716-1-git-send-email-ogerlitz@mellanox.com>
+From: Christoph Lameter <cl@gentwo.org>
+Subject: Re: [PATCH] mm: Revert pinned_vm braindamage
+Date: Mon, 17 Jun 2013 18:36:20 +0000
+Message-ID: <0000013f536c60ee-9a1ca9da-b798-416a-a32e-c896813d3bac-000000@email.amazonses.com>
+References: <20130606124351.GZ27176@twins.programming.kicks-ass.net> <0000013f1ad00ec0-9574a936-3a75-4ccc-a84c-4a12a7ea106e-000000@email.amazonses.com> <20130607110344.GA27176@twins.programming.kicks-ass.net> <0000013f1f1f79d1-2cf8cb8c-7e63-4e83-9f2b-7acc0e0638a1-000000@email.amazonses.com>
+ <20130617110832.GP3204@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1370950973-11716-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130617110832.GP3204@twins.programming.kicks-ass.net>
+Sender: owner-linux-mm@kvack.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, mingo@kernel.org, tglx@linutronix.de, kosaki.motohiro@gmail.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 11, 2013 at 2:42 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-[...]
-> V0 has been acknowledged by Steve and Christoph, and was also got positive
-> feedback from Sean and Jason over f2f talks we had during the Linux Foundation EU
-> summit on last month.
+On Mon, 17 Jun 2013, Peter Zijlstra wrote:
 
-Hi Roland,
+> They did no such thing; being one of those who wrote such code. I
+> expressly used RLIMIT_MEMLOCK for its the one limit userspace has to
+> limit pages that are exempt from paging.
 
-So we're @ -rc6 and there's also other goodies on the plate for the
-coming merge window ... any comment here, is this safe for 3.11?
-taking this? I am asking here, b/c it doesn't seem you update you
-patchwork, so no other choice.
+Dont remember reviewing that. Assumptions were wrong in that patch then.
 
-Or.
+> > Pinned pages are exempted by the kernel. A device driver or some other
+> > kernel process (reclaim, page migration, io etc) increase the page count.
+> > There is currently no consistent accounting for pinned pages. The
+> > vm_pinned counter was introduced to allow the largest pinners to track
+> > what they did.
+>
+> No, not the largest, user space controlled pinnners. The thing that
+> makes all the difference is the _USER_ control.
 
+The pinning *cannot* be done from user space. Here it is the IB subsystem
+that is doing it.
+
+> > Pinning is kernel controlled...
 >
-> V1 changes:
+> That's pure bull; perf and IB have user controlled pinning.
+
+Pinning is a side effect of memory registratin in IB.
+
+> > Ok but this is similar to reclaim and other such things that are unmapping
+> > pages.
 >
->  - dropped the five pre-patches which were accepted into 3.10
->  - rebased the patches against Roland's for-next / 3.10-rc4
->  - in patch #3, ib_uverbs_destroy_flow was returning too quickly when the
-> driver
->    returned failure for ib_destroy_flow, need to free some uverbs
-> resources 1st.
->  - in patch #4, check index before accessing the array at
-> mlx4_ib_create/destroy_flow
+> Which are avoided by mlock() an mlock()ed page will (typically) not get
+> unmapped.
+
+Oh it will get unmapped definitely by page migration and such. Otherwise
+it could not be moved.
+
+> But we don't want to disable defrag, defrag is good for the general
+> health of the system. Also not all applications are RT; we want a kernel
+> that's able to run general purpose stuff along with some RT apps.
+
+Still have no idea what you mean by RT.
+
+> *sigh*.. we have shared goals up to a point. RT bounds and if possible
+> lowers the worst case latency. The worst case is absolutely most
+> important for us.
+
+Ok that differs then.
+
+> By doing so we often also lower the avg latency, but its not the primary
+> goal.
+
+So far we have mostly seen these measures to increase the average latency.
+
+> And argue until your face is blue but IB and perf are very much user
+> controlled pins.
+
+Sure the user controls the memory registred with IB but the pinning is
+done because a device maps the memory. Side effect.
+
+> And while page migration and defrag have CONFIG knobs, reclaim does not;
+> file based reclaim is unconditional (except as already noted when using
+> mlock()).
+
+Yes that is a big problem.
+
+> I just want to be able to have all that enabled and still have
+> applications be able to express their needs and be able to run.
+
+That is not working because these goodies all cause additional latency,
+by taking the processor away and disturbing the caches.
+You cannot have the cake and eat it too.
+
+> But yes, the intention was very much for the page (and mapping) to be
+> left alone by the OS -- its unfortunate the specs wording don't clarify
+> this.
+
+All the talks amount this with the mm developers that I have been with had
+a different impression and we have implemented it according to the
+understanding that mlocked pages are movable. Its not that I am that fond
+of it but I accepted it and worked with that notion.
+
+> > > I'm talking about the proposed mpin() stuff.
+> >
+> > Could you write that up in detail? I am not sure how this could work at
+> > this point.
 >
+> *omg*.. I did. mpin() (and we'll include IB and perf here) is a stronger
+> mlock() in that it must avoid all faults, not only the major faults.
+
+Looked like hand waving to me. How exactly does mpin get implemented and
+how does it interact with the vm? Do we have to create an additional LRU
+for this? Does this do any good given that there is still reclaim and lots
+of other stuff going on?
+
+> But I don't much care about the implementation per-se. All I've been
+> really arguing for is semantics.
+
+Yes you are arguing to change the established semantics for mlocked pages.
+
+> > Both IB and Perf are kernel subsystems that pin as a side effect of
+> > another syscall.
 >
-> Or.
+> Yeah so? You still have user controlled pinning; the kernel can not rid
+> of these resources on its own
+
+Oh there is an mmu_notifier subsystem for this purpose. You can setup a
+callback that can unpin pages. Again this is kernel specific. The device
+driver needs to register the mmu notifier.
+
+> All _user_ controlled pages exempt from paging. This would be mlock() +
+> IB + perf. AFAIK there's nothing else that a user can do to exempt pages
+> from paging.
+
+What about dirtying pages, writeback?
+
+> Our big disconnect seems to be user controlled vs kernel controlled.
 >
-> Hadar Hen Zion (3):
->   IB/core: Add receive Flow Steering support
->   IB/core: Export ib_create/destroy_flow through uverbs
->   IB/mlx4: Add receive Flow Steering support
+> Why do you care about kernel pins? Those are transient are they not?
+
+Nope the pins for page migration, ib etc can be quite long. And I suspect
+that there are multiple subsystems that we are not aware of that also pin
+for a longer time period but do not account for their pinning actions.
+
+> > mlockall does not require CAP_IPC_LOCK. Never had an issue.
 >
-> Igor Ivanov (1):
->   IB/core: Infra-structure to support verbs extensions through uverbs
+> MCL_FUTURE does absolutely require CAP_IPC_LOCK, MCL_CURRENT requires a
+> huge (as opposed to the default 64k) RLIMIT or CAP_IPC_LOCK.
 >
->  drivers/infiniband/core/uverbs.h      |    3 +
->  drivers/infiniband/core/uverbs_cmd.c  |  206 +++++++++++++++++++++++++++
->  drivers/infiniband/core/uverbs_main.c |   42 +++++-
->  drivers/infiniband/core/verbs.c       |   30 ++++
->  drivers/infiniband/hw/mlx4/main.c     |  246
-> +++++++++++++++++++++++++++++++++
->  include/rdma/ib_verbs.h               |  137 ++++++++++++++++++-
->  include/uapi/rdma/ib_user_verbs.h     |  118 ++++++++++++++++-
->  7 files changed, 773 insertions(+), 9 deletions(-)
+> There's no argument there, look at the code.
+
+I am sorry but we have been mlockall() for years now without the
+issues that you are bringing up. AFAICT mlockall does not require
+MCL_FUTURE.
+
+> > The pinned pages do not need to have a separate limit. They are kernel
+> > resources and could be bounded in other ways together with other resources
+> > that could cause danger to the kernel (such as too many dirty pages).
+> > Pinned pages are often not associated with a process.
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> So why is grouping user spaced pinned pages with mlock()ed pages such a
+> bad idea? Both can cause vm deadlocks for not allowing to reclaim pages.
+
+So can other things.
+
+> > What do you exactly mean by realtime guarantees? (Given that "realtime" is
+> > such an overloaded marketing term).
+>
+> Bounded and preferred low as possible worst case latency. The bound
+> gives determinism the second finer resolution.
+
+Well and you still want to run reclaim on the processor etc? What is the
+point of all of that when the OS can come in an take the processor away
+for a much longer time frame.
+
+> So while we want our self driving car to not collide with stuff, we also
+> want to map the road, download maps, track other moving objects etc. Not
+> all of that has the same constraints; sensor data must always precede
+> maps if at all available, mapping/updating maps isn't at all important
+> but nice to have etc.
+
+Well if there is a big boulder on the road (reclaim) then I would worry
+about that rather but extensive effort in to clear the road of small
+stones (like minor faults).
+
+> That's not what I said. Also you failed to provide rationale for your
+> desire to do so. Why would we need to track the transient kernel pins?
+> Those will go away on themselves.
+
+I was not talking about transient pins but the longer term ones.
+
+> The IB/perf/mpin() pins are special in that they're dependent on
+> userspace and will not go away on their own. Also they need to be
+> limited lest userspace would consume too much of them and VM deadlocks
+> might ensure.
+
+Yes that is what I said should be done.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
