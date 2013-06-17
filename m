@@ -1,63 +1,73 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
-Date: Mon, 17 Jun 2013 11:41:59 +0200
-Message-ID: <51BED9E7.5070304@profitbricks.com>
-References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org> <51BA0655.6090707@mellanox.com> <51BA0E8F.3030104@acm.org> <51BA555F.9060807@mellanox.com> <51BAE482.1050304@profitbricks.com> <51BB4DBB.4070800@mellanox.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH] mm: Revert pinned_vm braindamage
+Date: Mon, 17 Jun 2013 11:45:30 +0200
+Message-ID: <20130617094530.GO3204@twins.programming.kicks-ass.net>
+References: <20130606124351.GZ27176@twins.programming.kicks-ass.net>
+ <20130613140632.15982af2ebc443b24bfff86a@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51BB4DBB.4070800-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20130613140632.15982af2ebc443b24bfff86a@linux-foundation.org>
+Sender: owner-linux-mm@kvack.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: torvalds@linux-foundation.org, roland@kernel.org, mingo@kernel.org, tglx@linutronix.de, kosaki.motohiro@gmail.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 14.06.2013 19:07, Vu Pham wrote:
-[...]
->> For what do you need the same target with multiple pkeys on the same
->> local SRP port?
->>   
-> There is no need, it's just a gray area that you can choose to have
-> multiple connections to same target using different pkeys (same as dgid)
->> Which other SRP targets exist?
->>   
+On Thu, Jun 13, 2013 at 02:06:32PM -0700, Andrew Morton wrote:
+> Let's try to get this wrapped up?
 > 
-> Netapp/LSI/Engenio, DDN, TexasMemorySystem Ramsan (IBM), Nimbus, Violin
-> Memory, StreamScale
-> The last three may be derived from SCST base target.
+> On Thu, 6 Jun 2013 14:43:51 +0200 Peter Zijlstra <peterz@infradead.org> wrote:
 > 
->> I only know SCST, Solaris COMSTAR and that broken LIO stuff.
->> Does SCST still not support to set the pkey?
->>
->>   
-> Yes, I think so
+> > 
+> > Patch bc3e53f682 ("mm: distinguish between mlocked and pinned pages")
+> > broke RLIMIT_MEMLOCK.
 > 
->> Why should we check the dgid?
->>
->>   
-> If you want to have multiple connections/qps to same target, but as I
-> said above, it's a gray area.
+> I rather like what bc3e53f682 did, actually.  RLIMIT_MEMLOCK limits the
+> amount of memory you can mlock().  Nice and simple.
 > 
->> Doesn't make any sense to me to connect both target ports to the same
->> local port. 
-> What if a target always expose single consistent and unique SRP port
-> with tuple <id_ext, ioc_guid>, the ioc_guid part is not derived from any
-> of its local HCA's GUID, then you can connect to this target thru
-> different HCA ports (different dgid) as different paths to same target.
->
-Do you have an example for a target which does it like this or a use
-case where this makes sense?
+> This pinning thing which infiniband/perf are doing is conceptually
+> different and if we care at all, perhaps we should be looking at adding
+> RLIMIT_PINNED.
 
-I guess you're proposing here to use a driver global list of target
-connections instead of handling this per local SRP port. This would
-result in bigger changes which I wouldn't do without a good reason.
+We could do that; but I really don't like doing it for the reasons I
+outlined previously. It gives the user another knob to twiddle which is
+pretty much the same as one he already has just slightly different.
 
->> If you do so, the multipath-tools will crash. Note: This
->> function is called per local SRP port. Perhaps, a note should be added
->> to that function that it only has to be called per local SRP port.
+Like said, I see RLIMIT_MEMLOCK to mean the amount of pages the user can
+exempt from paging; since that is what the VM cares about most.
+
+> > Before that patch: mm_struct::locked_vm < RLIMIT_MEMLOCK; after that
+> > patch we have: mm_struct::locked_vm < RLIMIT_MEMLOCK &&
+> > mm_struct::pinned_vm < RLIMIT_MEMLOCK.
+> 
+> But this is a policy decision which was implemented in perf_mmap() and
+> perf can alter that decision.  How bad would it be if perf just ignored
+> RLIMIT_MEMLOCK?
+
+Then it could pin all memory -- seems like something bad.
+
+> drivers/infiniband/hw/qib/qib_user_pages.c has issues, btw.  It
+> compares the amount-to-be-pinned with rlimit(RLIMIT_MEMLOCK), but
+> forgets to also look at current->mm->pinned_vm.  Duh.
+> 
+> It also does the pinned accounting in __qib_get_user_pages() but in
+> __qib_release_user_pages(), the caller is supposed to do it, which is
+> rather awkward.
+> 
+> 
+> Longer-term I don't think that inifinband or perf should be dinking
+> around with rlimit(RLIMIT_MEMLOCK) or ->pinned_vm.  Those policy
+> decisions should be hoisted into a core mm helper where we can do it
+> uniformly (and more correctly than infiniband's attempt!).
+
+Agreed, hence my VM_PINNED proposal that would lift most of that to the
+core VM.
+
+I just got really lost in the IB code :/
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
