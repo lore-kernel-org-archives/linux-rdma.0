@@ -1,36 +1,38 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch] RDMA/cxgb3: timeout condition is never true
-Date: Tue, 18 Jun 2013 10:27:38 +0300
-Message-ID: <20130618072738.GB12329@elgon.mountain>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: config file lost
+Date: Tue, 18 Jun 2013 12:03:37 +0300
+Message-ID: <51C02269.5050105@mellanox.com>
+References: <51BDB769.70107@mellanox.com> <51BF591B.4090002@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <51BF591B.4090002-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a static checker fix.  "count" is unsigned so it's never -1.
-Since "count" is 16 bits and the addition operation is implicitly
-casted to int then there is no wrapping here.
+On 17/06/2013 21:44, Hal Rosenstock wrote:
+> I'm not 100% sure about the origin of those RPMs but I think the 3.3.15
+> one is RedHat packaged and the 3.3.16 appears to be PLD packaged and the
+> processes are a little different. I suspect the 3.3.16 one is packaged
+> with the spec file in the tree whereas RedHat uses their own spec file.
+>
+> FWIW it's simple to generate an up to date config file:
+>
+> opensm -c opensm.conf
 
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Hal,
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-index e5649e8..b57c0be 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-@@ -883,7 +883,8 @@ u16 iwch_rqes_posted(struct iwch_qp *qhp)
- {
- 	union t3_wr *wqe = qhp->wq.queue;
- 	u16 count = 0;
--	while ((count+1) != 0 && fw_riwrh_opcode((struct fw_riwrh *)wqe) == T3_WR_RCV) {
-+
-+	while (count < USHRT_MAX && fw_riwrh_opcode((struct fw_riwrh *)wqe) == T3_WR_RCV) {
- 		count++;
- 		wqe++;
- 	}
+YES for your observations, that 3.3.15 was RHEL packages and the 3.3.16 
+was built from the upstream spec. I know that
+I can generate the config file using the method you suggested, however, 
+does the upstream service scripts uses the location to which this is 
+generated,  so things are plug-and-play, or I need to hack that somehow?
+
+Or.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
