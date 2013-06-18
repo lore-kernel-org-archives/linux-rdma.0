@@ -1,150 +1,82 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] ftree: Allow defining only io_guids file and consider
- rest of nodes as CN nodes
-Date: Tue, 18 Jun 2013 07:03:06 -0400
-Message-ID: <51C03E6A.1030808@dev.mellanox.co.il>
+Subject: Re: Node Description mismatch between saquery & smpquery
+Date: Tue, 18 Jun 2013 07:13:11 -0400
+Message-ID: <51C040C7.9070109@dev.mellanox.co.il>
+References: <1371505093.19017.76.camel@auk59.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1371505093.19017.76.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->From 2068a60399865590aff094738e3350f972c6e9b4 Mon Sep 17 00:00:00 2001
-From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Sun, 9 Jun 2013 18:05:01 +0300
-Subject: [PATCH] ftree: Allow defining only io_guids file and consider rest of nodes as CN nodes
+On 6/17/2013 5:38 PM, Albert Chu wrote:
+> We've recently noticed that the Node Description for a node can
+> mis-mismatch between the output of smpquery and saquery.  For example:
+> 
+> # smpquery NodeDesc 427
+> Node Description:.................sierra1932 qib0
+> 
+> # saquery NodeRecord 427 | grep NodeDesc
+>                 NodeDescription.........QLogic Infiniband HCA
+> 
+> A restart of OpenSM is the current solution to resolve this.
+> 
+> We've noticed it occurring more often on our larger clusters than our
+> smaller clusters, leading to a speculation about why it is happening.
+> 
+> The speculation is when a node comes up, there is a window of time in
+> which the HCA is up, can be scanned by OpenSM, but not yet have its node
+> descriptor set (in RHEL I appears to be set via /etc/init.d/rdma).
+> During this window, OpenSM reads/stores the non-desired node descriptor
+> (in the above case the non-desired "Qlogic Infiniband HCA").
+> 
+> When the node descriptor is changed, a trap should be sent to opensm
+> indicating the change.  Normally OpenSM gets the trap and reads the new
+> node descriptor.
 
-In the current implementation cn_guids and io_guids files
-should be provided in order to separate between
-Compute Nodes and IO Nodes for ftree routing.
-This approach is not optimal when there are several IO Nodes
-the fabric compared to thousands of CNs.
-Provided patch considers all nodes to be Compute nodes by default.
-If some guid is presenting in io_guids file and not presenting in
-cn_guid file the corresponding node will be considered as IO node.
+Are you sure the trap is being issued by those devices when the
+NodeDescription is changed locally ?
 
-Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_subnet.c      |    7 ++++-
- opensm/osm_ucast_ftree.c |   53 +++++++++++++++++++++++----------------------
- 2 files changed, 32 insertions(+), 28 deletions(-)
+Also, if so, do these devices implement timeout/retry on sending the
+trap (e.g. trying to make sure that they receive trap repress before
+giving up on trap) ?
 
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index bc05ae0..5e06d83 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -2879,11 +2879,14 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
- 
- 	fprintf(out,
- 		"# The file holding the fat-tree I/O node guids\n"
--		"# One guid in each line\nio_guid_file %s\n\n",
-+		"# One guid in each line.\n"
-+		"# If only io_guid file is provided, the rest of nodes\n"
-+		"# are considered as compute nodes.\n"
-+		"io_guid_file %s\n\n",
- 		p_opts->io_guid_file ? p_opts->io_guid_file : null_str);
- 
- 	fprintf(out,
--		"# Number of reverse hops allowed for I/O nodes \n"
-+		"# Number of reverse hops allowed for I/O nodes\n"
- 		"# Used for connectivity between I/O nodes connected to Top Switches\nmax_reverse_hops %d\n\n",
- 		p_opts->max_reverse_hops);
- 
-diff --git a/opensm/osm_ucast_ftree.c b/opensm/osm_ucast_ftree.c
-index 58e51d4..a069edb 100644
---- a/opensm/osm_ucast_ftree.c
-+++ b/opensm/osm_ucast_ftree.c
-@@ -3268,8 +3268,11 @@ fabric_construct_hca_ports(IN ftree_fabric_t * p_ftree, IN ftree_hca_t * p_hca)
- 	osm_physp_t *p_remote_osm_port;
- 	uint8_t i;
- 	uint8_t remote_port_num;
--	boolean_t is_cn = FALSE;
-+	boolean_t is_cn = TRUE;
-+	boolean_t is_in_cn_file = FALSE;
- 	boolean_t is_io = FALSE;
-+	boolean_t is_cns_file_provided = fabric_cns_provided(p_ftree);
-+	boolean_t is_ios_file_provided = fabric_ios_provided(p_ftree);
- 	int res = 0;
- 
- 	for (i = 0; i < osm_node_get_num_physp(p_node); i++) {
-@@ -3325,16 +3328,27 @@ fabric_construct_hca_ports(IN ftree_fabric_t * p_ftree, IN ftree_hca_t * p_hca)
- 		/* If CN file is not supplied, then all the CAs considered as Compute Nodes.
- 		   Otherwise all the CAs are not CNs, and only guids that are present in the
- 		   CN file will be marked as compute nodes. */
--		if (!fabric_cns_provided(p_ftree)) {
--			is_cn = TRUE;
--		} else {
-+		if (is_cns_file_provided == TRUE) {
- 			name_map_item_t *p_elem = (name_map_item_t *)
--			    cl_qmap_get(&p_ftree->cn_guid_tbl,
--					cl_ntoh64(osm_physp_get_port_guid
--						  (p_osm_port)));
-+			cl_qmap_get(&p_ftree->cn_guid_tbl,
-+				    cl_ntoh64(osm_physp_get_port_guid
-+					     (p_osm_port)));
-+			if (p_elem == (name_map_item_t *)
-+				cl_qmap_end(&p_ftree->cn_guid_tbl))
-+				is_cn = FALSE;
-+			else
-+				is_in_cn_file = TRUE;
-+		}
-+		if (is_in_cn_file == FALSE && is_ios_file_provided == TRUE) {
-+			name_map_item_t *p_elem = (name_map_item_t *)
-+			cl_qmap_get(&p_ftree->io_guid_tbl,
-+				    cl_ntoh64(osm_physp_get_port_guid
-+					     (p_osm_port)));
- 			if (p_elem != (name_map_item_t *)
--			    cl_qmap_end(&p_ftree->cn_guid_tbl))
--				is_cn = TRUE;
-+				cl_qmap_end(&p_ftree->io_guid_tbl)) {
-+				is_io = TRUE;
-+				is_cn = FALSE;
-+			}
- 		}
- 
- 		if (is_cn) {
-@@ -3343,32 +3357,19 @@ fabric_construct_hca_ports(IN ftree_fabric_t * p_ftree, IN ftree_hca_t * p_hca)
- 			OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
- 				"Marking CN port GUID 0x%016" PRIx64 "\n",
- 				cl_ntoh64(osm_physp_get_port_guid(p_osm_port)));
--		} else {
--			if (fabric_ios_provided(p_ftree)) {
--				name_map_item_t *p_elem = (name_map_item_t *)
--				    cl_qmap_get(&p_ftree->io_guid_tbl,
--						cl_ntoh64
--						(osm_physp_get_port_guid
--						 (p_osm_port)));
--				if (p_elem != (name_map_item_t *)
--				    cl_qmap_end(&p_ftree->io_guid_tbl))
--					is_io = TRUE;
--			}
--
--			if (is_io) {
-+		} else if (is_io) {
- 				OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
- 					"Marking I/O port GUID 0x%016" PRIx64
- 					"\n",
- 					cl_ntoh64(osm_physp_get_port_guid
--						  (p_osm_port)));
-+						 (p_osm_port)));
- 
--			} else {
-+		} else {
- 				OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
- 					"Marking non-CN port GUID 0x%016" PRIx64
- 					"\n",
- 					cl_ntoh64(osm_physp_get_port_guid
--						  (p_osm_port)));
--			}
-+						 (p_osm_port)));
- 		}
- 		p_ftree->ca_ports++;
- 
--- 
-1.7.8.2
+> On our large clusters all nodes are typically brought up at the same
+> time, so there are probably a ton of node descriptor change traps
+> happening at the exact same time.  We speculate a number of these are
+> dropped/lost, and subsequently OpenSM never realizes that the node
+> descriptor has changed.
+
+Do you see any evidence of that traps are being dropped ? Have you
+correlated any VL15Dropped counters in the subnet with this ? Also,
+there is a module parameter in MAD kernel module that might help with
+any unsolicited MAD bursts. You might try increasing that on your SM
+node(s).
+
+> I don't know if the speculation sounds reasonable or not.  Regardless,
+> we're not sure of the best fix.
+> 
+> A trivial fix would be to just make OpenSM re-scan the node descriptor
+> of an HCA, perhaps during a heavy sweep.  But I don't know if this is
+> optimal.  It'll introduce more MADs on the wire.  However if the present
+> solution is to restart OpenSM, we figure this can't be any worse.
+
+Yes, but to add the additional queries in is O(n) there and has been
+resisted in the past.
+
+> Just wondering what peoples thoughts are of if there's another obvious
+> solution we're not seeing.
+
+I think this issue needs better understanding first.
+
+-- Hal
+
+> Al
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
