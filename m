@@ -1,53 +1,37 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] ibsim: Do not return allportselect for non-switches
-Date: Tue, 18 Jun 2013 17:51:08 -0700
-Message-ID: <1371603068.19017.95.camel@auk59.llnl.gov>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/ehca: Fix error return code in ehca_create_slab_caches()
+Date: Wed, 19 Jun 2013 10:40:09 +0800
+Message-ID: <CAPgLHd9qyOZLVgOr=uEX23r8pU7PsGXd0k0ibLOC2RbRaztkwA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-ibsim only supports allportselect (i.e. port 0xff) for switches
-but not HCAs.  However the allportselect flag would be returned
-for all classportinfo requests, leading to unexpected results
-when running some infiniband-diag tools against ibsim.
+From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Fix to return -ENOMEM in the kmem_cache_create() error handling
+case instead of 0, as done elsewhere in this function.
+
+Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 ---
- ibsim/sim_mad.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/ehca/ehca_main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/ibsim/sim_mad.c b/ibsim/sim_mad.c
-index 0b52c52..223d507 100644
---- a/ibsim/sim_mad.c
-+++ b/ibsim/sim_mad.c
-@@ -235,6 +235,7 @@ static int reply_MAD(void *buf, ib_rpc_t * rpc, ib_dr_path_t * path,
- 
- static int do_cpi(Port * port, unsigned op, uint32_t mod, uint8_t * data)
- {
-+	Node *node = port->node;
- 	int status = 0;
- 
- 	if (op != IB_MAD_METHOD_GET)
-@@ -242,7 +243,10 @@ static int do_cpi(Port * port, unsigned op, uint32_t mod, uint8_t * data)
- 	memset(data, 0, IB_SMP_DATA_SIZE);
- 	mad_set_field(data, 0, IB_CPI_BASEVER_F, 1);
- 	mad_set_field(data, 0, IB_CPI_CLASSVER_F, 1);
--	mad_set_field(data, 0, IB_CPI_CAPMASK_F, 0x300);
-+	if (node->type != SWITCH_NODE)
-+		mad_set_field(data, 0, IB_CPI_CAPMASK_F, 0x200);
-+	else
-+		mad_set_field(data, 0, IB_CPI_CAPMASK_F, 0x300);
- 	mad_set_field(data, 0, IB_CPI_RESP_TIME_VALUE_F, 0x12);
- 	return status;
- }
--- 
-1.7.1
-
-
+diff --git a/drivers/infiniband/hw/ehca/ehca_main.c b/drivers/infiniband/hw/ehca/ehca_main.c
+index f8a6291..8f43093 100644
+--- a/drivers/infiniband/hw/ehca/ehca_main.c
++++ b/drivers/infiniband/hw/ehca/ehca_main.c
+@@ -211,6 +211,7 @@ static int ehca_create_slab_caches(void)
+ 	if (!ctblk_cache) {
+ 		ehca_gen_err("Cannot create ctblk SLAB cache.");
+ 		ehca_cleanup_small_qp_cache();
++		ret = -ENOMEM;
+ 		goto create_slab_caches6;
+ 	}
+ #endif
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
