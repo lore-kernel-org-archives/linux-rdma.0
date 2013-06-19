@@ -1,47 +1,30 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 07/14] scsi_transport_srp: Add transport layer error handling
-Date: Wed, 19 Jun 2013 17:27:04 +0200
-Message-ID: <51C1CDC8.4070103@acm.org>
-References: <51C1B5CA.2030302@profitbricks.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] ibsim: Do not return allportselect for non-switches
+Date: Wed, 19 Jun 2013 14:12:30 -0400
+Message-ID: <51C1F48E.9080802@dev.mellanox.co.il>
+References: <1371603068.19017.95.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <51C1B5CA.2030302@profitbricks.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Jack Wang <jinpu.wang@profitbricks.com>
-Cc: David Dillow <dillowda@ornl.gov>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, James Bottomley <jbottomley@parallels.com>, Roland Dreier <roland@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1371603068.19017.95.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/19/13 15:44, Jack Wang wrote:
->> +		/*
->> +		 * It can occur that after fast_io_fail_tmo expired and before
->> +		 * dev_loss_tmo expired that the SCSI error handler has
->> +		 * offlined one or more devices. scsi_target_unblock() doesn't
->> +		 * change the state of these devices into running, so do that
->> +		 * explicitly.
->> +		 */
->> +		spin_lock_irq(shost->host_lock);
->> +		__shost_for_each_device(sdev, shost)
->> +			if (sdev->sdev_state == SDEV_OFFLINE)
->> +				sdev->sdev_state = SDEV_RUNNING;
->> +		spin_unlock_irq(shost->host_lock);
->
-> Do you have test case to verify this behaviour?
+On 6/18/2013 8:51 PM, Albert Chu wrote:
+> ibsim only supports allportselect (i.e. port 0xff) for switches
+> but not HCAs.  However the allportselect flag would be returned
+> for all classportinfo requests, leading to unexpected results
+> when running some infiniband-diag tools against ibsim.
+> 
+> Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 
-Hello Jack,
+Thanks. Applied.
 
-This is what I came up with after analyzing why a so-called "port 
-flapping" test failed. The concept of that test is simple: use 
-ibportstate to disable and reenable the proper IB port on the switch 
-with random intervals and check whether I/O starts running again if the 
-path remains operational long enough. When running such a test for a few 
-days with random intervals between a few seconds and a few minutes 
-sooner or later it will occur that scsi_try_host_reset() succeeds and 
-that scsi_eh_test_devices() fails. That will cause the SCSI error 
-handler to offline devices. Hence the above code to change the offline 
-state into running after a reconnect succeeds. I'm not proud of that 
-code but I couldn't find a better solution. Maybe the above code won't 
-be necessary anymore once we switch to Hannes' new SCSI error handler.
-
-Bart.
+-- Hal
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
