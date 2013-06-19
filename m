@@ -1,65 +1,56 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH][TRIVIAL] osm_sm_state_mgr.c Trivial log changes
-Date: Wed, 19 Jun 2013 03:30:32 -0700 (PDT)
-Message-ID: <51d9d87a-655f-41d1-87fe-ecf5a43fb30d@default>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 07/14] scsi_transport_srp: Add transport layer error handling
+Date: Wed, 19 Jun 2013 15:00:38 +0200
+Message-ID: <51C1AB76.2020200@acm.org>
+References: <51B87501.4070005@acm.org> <51B8777B.5050201@acm.org> <51BA20ED.6040200@mellanox.com> <51BB1857.7040802@acm.org> <51BB5A04.3080901@mellanox.com> <51BC3945.9030900@acm.org> <51C09202.2040503@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <51C09202.2040503-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On 06/18/13 18:59, Vu Pham wrote:
+> Bart Van Assche wrote:
+>> On 06/14/13 19:59, Vu Pham wrote:
+>>>> On 06/13/13 21:43, Vu Pham wrote:
+>>>>> If rport's state is already SRP_RPORT_BLOCKED, I don't think we need
+>>>>> to do extra block with scsi_block_requests()
+>>>>
+>>>> Please keep in mind that srp_reconnect_rport() can be called from two
+>>>> different contexts: that function can not only be called from inside
+>>>> the SRP transport layer but also from inside the SCSI error handler
+>>>> (see also the srp_reset_device() modifications in a later patch in
+>>>> this series). If this function is invoked from the context of the SCSI
+>>>> error handler the chance is high that the SCSI device will have
+>>>> another state than SDEV_BLOCK. Hence the scsi_block_requests() call in
+>>>> this function.
+>>> Yes, srp_reconnect_rport() can be called from two contexts; however, it
+>>> deals with same rport & rport's state.
+>>> I'm thinking something like this:
+>>>
+>>>     if (rport->state != SRP_RPORT_BLOCKED) {
+>>>      scsi_block_requests(shost);
+>>
+>> Sorry but I'm afraid that that approach would still allow the user to
+>> unblock one or more SCSI devices via sysfs during the
+>> i->f->reconnect(rport) call, something we do not want.
+>>
+> I don't think that user can unblock scsi device(s) via sysfs if you use
+> scsi_block_requests(shost) in srp_start_tl_fail_timers().
 
----
+Hello Vu,
 
-diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
-index 11defdd..e2cabd6 100644
---- a/opensm/osm_sm_state_mgr.c
-+++ b/opensm/osm_sm_state_mgr.c
-@@ -157,7 +157,7 @@ static void sm_state_mgr_start_polling(osm_sm_t * sm)
- 	cl_status = cl_timer_start(&sm->polling_timer, timeout);
- 	if (cl_status != CL_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3210: "
--			"Failed to start timer\n");
-+			"Failed to start polling timer\n");
- 
- 	OSM_LOG_EXIT(sm->p_log);
- }
-@@ -201,8 +201,8 @@ void osm_sm_state_mgr_polling_callback(IN void *context)
- 	 * osm_sm_state_mgr_process with signal OSM_SM_SIGNAL_POLLING_TIMEOUT
- 	 */
- 	sm->retry_number++;
--	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE, "Retry number:%d\n",
--		sm->retry_number);
-+	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE, "State %d, Retry number:%d\n",
-+		sm->p_subn->sm_state, sm->retry_number);
- 
- 	if (sm->retry_number >= sm->p_subn->opt.polling_retry_number) {
- 		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
-@@ -219,7 +219,7 @@ void osm_sm_state_mgr_polling_callback(IN void *context)
- 	cl_status = cl_timer_start(&sm->polling_timer, timeout);
- 	if (cl_status != CL_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3211: "
--			"Failed to restart timer\n");
-+			"Failed to restart polling timer\n");
- 
- Exit:
- 	OSM_LOG_EXIT(sm->p_log);
-@@ -414,8 +414,8 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			 * handover from it.
- 			 */
- 			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
--				"Forcing heavy sweep. "
--				"Received OSM_SM_SIGNAL_HANDOVER or OSM_SM_SIGNAL_POLLING_TIMEOUT\n");
-+				"Forcing heavy sweep. Received signal %s\n",
-+				osm_get_sm_mgr_signal_str(signal));
- 			/* Force set_client_rereg_on_sweep, we don't know what the other
- 			 * SM may have configure/done on the fabric.
- 			 */
+If scsi_block_requests() would be used in srp_start_tl_fail_timers() 
+instead of scsi_target_block() then multipathd would no longer be able 
+to notice that a path is blocked after the fast_io_fail and dev_loss 
+timers started and hence wouldn't be able to use the optimization where 
+blocked paths are skipped when queueing a new I/O request.
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
