@@ -1,175 +1,877 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 3/6] IB/mlx4: Handle Ethernet L2 parameters for IP based GID addressing
-Date: Wed, 19 Jun 2013 10:47:08 +0300
-Message-ID: <1371628031-17546-4-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 for-next 5/6] IB/core: Add RoCE IP based addressing extensions for uverbs
+Date: Wed, 19 Jun 2013 10:47:10 +0300
+Message-ID: <1371628031-17546-6-git-send-email-ogerlitz@mellanox.com>
 References: <1371628031-17546-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1371628031-17546-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-IP based RoCE gids don't store Ethernet L2 parameters, MAC and VLAN.
+Add uverbs support for RoCE (IBoE) IP based addressing extensions
+towards user space libraries.
 
-Hence, we need to extract them now from the CQE and place in struct
-ib_wc (to be used for cases were they were taken from the gid).
+Under ip based gid addressing, for RC QPs, QP attributes should contain the
+Ethernet L2 destination. Until now, indicatings GID was sufficient. When
+using ip encoded in gids, the QP attributes should contain extended destination,
+indicating vlan and dmac as well. This is done via a new struct ib_uverbs_qp_dest_ex.
+This new structure is contained in a new struct ib_uverbs_modify_qp_ex that is
+used by MODIFY_QP_EX command. In order to make those changes seamlessly, those
+extended structures were added in the bottom of the current structures.
 
-Also, when modifying a QP or building address handle, instead of
-parsing the dgid to get the MAC and VLAN, take them from the
-address handle attributes.
+Also, when the gid encodes ip address, the AH attributes should contain also
+vlan and dmac. Therefore, ib_uverbs_create_ah was extended to contain those fields.
+When creating an AH, the user indicates the exact L2 ethernet destination
+parameters. This is done by a new CREATE_AH_EX command that uses a new struct
+ib_uverbs_create_ah_ex.
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+struct ib_user_path_rec was extended too, to contain source and destination
+MAC and VLAN ID, this structure is of use by the rdma_ucm driver.
+
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/ah.c |   21 +++++++++------------
- drivers/infiniband/hw/mlx4/cq.c |    5 +++++
- drivers/infiniband/hw/mlx4/qp.c |   19 ++++++++++---------
- include/linux/mlx4/cq.h         |   14 ++++++++++----
- 4 files changed, 34 insertions(+), 25 deletions(-)
+ drivers/infiniband/core/uverbs.h          |    2 +
+ drivers/infiniband/core/uverbs_cmd.c      |  330 ++++++++++++++++++++++-------
+ drivers/infiniband/core/uverbs_main.c     |    4 +-
+ drivers/infiniband/core/uverbs_marshall.c |   94 ++++++++-
+ include/rdma/ib_marshall.h                |   12 +
+ include/uapi/rdma/ib_user_sa.h            |   34 +++-
+ include/uapi/rdma/ib_user_verbs.h         |  120 +++++++++++-
+ 7 files changed, 503 insertions(+), 93 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-index a251bec..3941700 100644
---- a/drivers/infiniband/hw/mlx4/ah.c
-+++ b/drivers/infiniband/hw/mlx4/ah.c
-@@ -92,21 +92,18 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
- {
- 	struct mlx4_ib_dev *ibdev = to_mdev(pd->device);
- 	struct mlx4_dev *dev = ibdev->dev;
--	union ib_gid sgid;
--	u8 mac[6];
--	int err;
- 	int is_mcast;
-+	struct in6_addr in6;
- 	u16 vlan_tag;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 0fcd7aa..1ec4850 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -200,11 +200,13 @@ IB_UVERBS_DECLARE_CMD(create_qp);
+ IB_UVERBS_DECLARE_CMD(open_qp);
+ IB_UVERBS_DECLARE_CMD(query_qp);
+ IB_UVERBS_DECLARE_CMD(modify_qp);
++IB_UVERBS_DECLARE_CMD(modify_qp_ex);
+ IB_UVERBS_DECLARE_CMD(destroy_qp);
+ IB_UVERBS_DECLARE_CMD(post_send);
+ IB_UVERBS_DECLARE_CMD(post_recv);
+ IB_UVERBS_DECLARE_CMD(post_srq_recv);
+ IB_UVERBS_DECLARE_CMD(create_ah);
++IB_UVERBS_DECLARE_CMD(create_ah_ex);
+ IB_UVERBS_DECLARE_CMD(destroy_ah);
+ IB_UVERBS_DECLARE_CMD(attach_mcast);
+ IB_UVERBS_DECLARE_CMD(detach_mcast);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index a7d00f6..eb3e7e6 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1891,6 +1891,58 @@ static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
+ 	}
+ }
  
--	err = mlx4_ib_resolve_grh(ibdev, ah_attr, mac, &is_mcast, ah_attr->port_num);
--	if (err)
--		return ERR_PTR(err);
--
--	memcpy(ah->av.eth.mac, mac, 6);
--	err = ib_get_cached_gid(pd->device, ah_attr->port_num, ah_attr->grh.sgid_index, &sgid);
--	if (err)
--		return ERR_PTR(err);
--	vlan_tag = rdma_get_vlan_id(&sgid);
-+	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
-+	if (rdma_is_multicast_addr(&in6)) {
-+		is_mcast = 1;
-+		rdma_get_mcast_mac(&in6, ah->av.eth.mac);
-+	} else {
-+		memcpy(ah->av.eth.mac, ah_attr->dmac, 6);
-+	}
-+	vlan_tag = ah_attr->vlan;
- 	if (vlan_tag < 0x1000)
- 		vlan_tag |= (ah_attr->sl & 7) << 13;
- 	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index d5e60f4..ba3f85b 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -793,6 +793,11 @@ repoll:
- 			wc->sl  = be16_to_cpu(cqe->sl_vid) >> 13;
- 		else
- 			wc->sl  = be16_to_cpu(cqe->sl_vid) >> 12;
-+		if (be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_VLAN_PRESENT_MASK)
-+			wc->vlan = be16_to_cpu(cqe->sl_vid) & MLX4_CQE_VID_MASK;
-+		else
-+			wc->vlan = 0xffff;
-+		memcpy(wc->smac, cqe->smac, 6);
++static void ib_uverbs_modify_qp_assign(struct ib_uverbs_modify_qp *cmd,
++				       struct ib_qp_attr *attr) {
++	attr->qp_state		  = cmd->qp_state;
++	attr->cur_qp_state	  = cmd->cur_qp_state;
++	attr->path_mtu		  = cmd->path_mtu;
++	attr->path_mig_state	  = cmd->path_mig_state;
++	attr->qkey		  = cmd->qkey;
++	attr->rq_psn		  = cmd->rq_psn;
++	attr->sq_psn		  = cmd->sq_psn;
++	attr->dest_qp_num	  = cmd->dest_qp_num;
++	attr->qp_access_flags	  = cmd->qp_access_flags;
++	attr->pkey_index	  = cmd->pkey_index;
++	attr->alt_pkey_index	  = cmd->alt_pkey_index;
++	attr->en_sqd_async_notify = cmd->en_sqd_async_notify;
++	attr->max_rd_atomic	  = cmd->max_rd_atomic;
++	attr->max_dest_rd_atomic  = cmd->max_dest_rd_atomic;
++	attr->min_rnr_timer	  = cmd->min_rnr_timer;
++	attr->port_num		  = cmd->port_num;
++	attr->timeout		  = cmd->timeout;
++	attr->retry_cnt		  = cmd->retry_cnt;
++	attr->rnr_retry		  = cmd->rnr_retry;
++	attr->alt_port_num	  = cmd->alt_port_num;
++	attr->alt_timeout	  = cmd->alt_timeout;
++
++	memcpy(attr->ah_attr.grh.dgid.raw, cmd->dest.dgid, 16);
++	attr->ah_attr.grh.flow_label        = cmd->dest.flow_label;
++	attr->ah_attr.grh.sgid_index        = cmd->dest.sgid_index;
++	attr->ah_attr.grh.hop_limit         = cmd->dest.hop_limit;
++	attr->ah_attr.grh.traffic_class     = cmd->dest.traffic_class;
++	attr->ah_attr.dlid		    = cmd->dest.dlid;
++	attr->ah_attr.sl		    = cmd->dest.sl;
++	attr->ah_attr.src_path_bits	    = cmd->dest.src_path_bits;
++	attr->ah_attr.static_rate	    = cmd->dest.static_rate;
++	attr->ah_attr.ah_flags		    = cmd->dest.is_global ?
++					      IB_AH_GRH : 0;
++	attr->ah_attr.port_num		    = cmd->dest.port_num;
++
++	memcpy(attr->alt_ah_attr.grh.dgid.raw, cmd->alt_dest.dgid, 16);
++	attr->alt_ah_attr.grh.flow_label    = cmd->alt_dest.flow_label;
++	attr->alt_ah_attr.grh.sgid_index    = cmd->alt_dest.sgid_index;
++	attr->alt_ah_attr.grh.hop_limit     = cmd->alt_dest.hop_limit;
++	attr->alt_ah_attr.grh.traffic_class = cmd->alt_dest.traffic_class;
++	attr->alt_ah_attr.dlid		    = cmd->alt_dest.dlid;
++	attr->alt_ah_attr.sl		    = cmd->alt_dest.sl;
++	attr->alt_ah_attr.src_path_bits     = cmd->alt_dest.src_path_bits;
++	attr->alt_ah_attr.static_rate       = cmd->alt_dest.static_rate;
++	attr->alt_ah_attr.ah_flags	    = cmd->alt_dest.is_global
++					      ? IB_AH_GRH : 0;
++	attr->alt_ah_attr.port_num	    = cmd->alt_dest.port_num;
++}
++
++
+ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
+ 			    const char __user *buf, int in_len,
+ 			    int out_len)
+@@ -1917,51 +1969,11 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
+ 		goto out;
  	}
  
- 	return 0;
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 4f10af2..ddf5a1a 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1147,11 +1147,8 @@ static void mlx4_set_sched(struct mlx4_qp_path *path, u8 port)
- static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
- 			 struct mlx4_qp_path *path, u8 port)
- {
--	int err;
- 	int is_eth = rdma_port_get_link_layer(&dev->ib_dev, port) ==
- 		IB_LINK_LAYER_ETHERNET;
--	u8 mac[6];
--	int is_mcast;
- 	u16 vlan_tag;
- 	int vidx;
- 
-@@ -1188,16 +1185,12 @@ static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
- 		if (!(ah->ah_flags & IB_AH_GRH))
- 			return -1;
- 
--		err = mlx4_ib_resolve_grh(dev, ah, mac, &is_mcast, port);
--		if (err)
--			return err;
+-	attr->qp_state 		  = cmd.qp_state;
+-	attr->cur_qp_state 	  = cmd.cur_qp_state;
+-	attr->path_mtu 		  = cmd.path_mtu;
+-	attr->path_mig_state 	  = cmd.path_mig_state;
+-	attr->qkey 		  = cmd.qkey;
+-	attr->rq_psn 		  = cmd.rq_psn;
+-	attr->sq_psn 		  = cmd.sq_psn;
+-	attr->dest_qp_num 	  = cmd.dest_qp_num;
+-	attr->qp_access_flags 	  = cmd.qp_access_flags;
+-	attr->pkey_index 	  = cmd.pkey_index;
+-	attr->alt_pkey_index 	  = cmd.alt_pkey_index;
+-	attr->en_sqd_async_notify = cmd.en_sqd_async_notify;
+-	attr->max_rd_atomic 	  = cmd.max_rd_atomic;
+-	attr->max_dest_rd_atomic  = cmd.max_dest_rd_atomic;
+-	attr->min_rnr_timer 	  = cmd.min_rnr_timer;
+-	attr->port_num 		  = cmd.port_num;
+-	attr->timeout 		  = cmd.timeout;
+-	attr->retry_cnt 	  = cmd.retry_cnt;
+-	attr->rnr_retry 	  = cmd.rnr_retry;
+-	attr->alt_port_num 	  = cmd.alt_port_num;
+-	attr->alt_timeout 	  = cmd.alt_timeout;
 -
--		memcpy(path->dmac, mac, 6);
-+		memcpy(path->dmac, ah->dmac, 6);
- 		path->ackto = MLX4_IB_LINK_TYPE_ETH;
- 		/* use index 0 into MAC table for IBoE */
- 		path->grh_mylmc &= 0x80;
+-	memcpy(attr->ah_attr.grh.dgid.raw, cmd.dest.dgid, 16);
+-	attr->ah_attr.grh.flow_label        = cmd.dest.flow_label;
+-	attr->ah_attr.grh.sgid_index        = cmd.dest.sgid_index;
+-	attr->ah_attr.grh.hop_limit         = cmd.dest.hop_limit;
+-	attr->ah_attr.grh.traffic_class     = cmd.dest.traffic_class;
+-	attr->ah_attr.dlid 	    	    = cmd.dest.dlid;
+-	attr->ah_attr.sl   	    	    = cmd.dest.sl;
+-	attr->ah_attr.src_path_bits 	    = cmd.dest.src_path_bits;
+-	attr->ah_attr.static_rate   	    = cmd.dest.static_rate;
+-	attr->ah_attr.ah_flags 	    	    = cmd.dest.is_global ? IB_AH_GRH : 0;
+-	attr->ah_attr.port_num 	    	    = cmd.dest.port_num;
+-
+-	memcpy(attr->alt_ah_attr.grh.dgid.raw, cmd.alt_dest.dgid, 16);
+-	attr->alt_ah_attr.grh.flow_label    = cmd.alt_dest.flow_label;
+-	attr->alt_ah_attr.grh.sgid_index    = cmd.alt_dest.sgid_index;
+-	attr->alt_ah_attr.grh.hop_limit     = cmd.alt_dest.hop_limit;
+-	attr->alt_ah_attr.grh.traffic_class = cmd.alt_dest.traffic_class;
+-	attr->alt_ah_attr.dlid 	    	    = cmd.alt_dest.dlid;
+-	attr->alt_ah_attr.sl   	    	    = cmd.alt_dest.sl;
+-	attr->alt_ah_attr.src_path_bits     = cmd.alt_dest.src_path_bits;
+-	attr->alt_ah_attr.static_rate       = cmd.alt_dest.static_rate;
+-	attr->alt_ah_attr.ah_flags 	    = cmd.alt_dest.is_global ? IB_AH_GRH : 0;
+-	attr->alt_ah_attr.port_num 	    = cmd.alt_dest.port_num;
++	ib_uverbs_modify_qp_assign(&cmd, attr);
++	memset(attr->ah_attr.dmac, 0, sizeof(attr->ah_attr.dmac));
++	attr->ah_attr.vlan = 0xFFFF;
++	memset(attr->alt_ah_attr.dmac, 0, sizeof(attr->alt_ah_attr.dmac));
++	attr->alt_ah_attr.vlan = 0xFFFF;
  
--		vlan_tag = rdma_get_vlan_id(&dev->iboe.gid_table[port - 1][ah->grh.sgid_index]);
-+		vlan_tag = ah->vlan;
- 		if (vlan_tag < 0x1000) {
- 			if (mlx4_find_cached_vlan(dev->dev, port, vlan_tag, &vidx))
- 				return -ENOENT;
-@@ -1236,6 +1229,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	enum mlx4_qp_optpar optpar = 0;
- 	int sqd_event;
- 	int err = -EINVAL;
-+	int is_eth;
+ 	if (qp->real_qp == qp) {
+ 		ret = qp->device->modify_qp(qp, attr,
+@@ -1983,6 +1995,80 @@ out:
+ 	return ret;
+ }
  
- 	context = kzalloc(sizeof *context, GFP_KERNEL);
- 	if (!context)
-@@ -1464,6 +1458,13 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 		context->pri_path.ackto = (context->pri_path.ackto & 0xf8) |
- 					MLX4_IB_LINK_TYPE_ETH;
- 
-+	if (ibqp->qp_type == IB_QPT_UD)
-+		if (is_eth && (new_state == IB_QPS_RTR)) {
-+			context->pri_path.ackto = MLX4_IB_LINK_TYPE_ETH;
-+			optpar |= MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH;
-+		}
++ssize_t ib_uverbs_modify_qp_ex(struct ib_uverbs_file *file,
++			       const char __user *buf, int in_len,
++			       int out_len)
++{
++	struct ib_uverbs_modify_qp_ex cmd;
++	struct ib_udata               udata;
++	struct ib_qp                 *qp;
++	struct ib_qp_attr	     *attr;
++	int                           ret;
 +
++	if (copy_from_user(&cmd, buf, sizeof(cmd)))
++		return -EFAULT;
 +
- 	if (cur_state == IB_QPS_RTS && new_state == IB_QPS_SQD	&&
- 	    attr_mask & IB_QP_EN_SQD_ASYNC_NOTIFY && attr->en_sqd_async_notify)
- 		sqd_event = 1;
-diff --git a/include/linux/mlx4/cq.h b/include/linux/mlx4/cq.h
-index 98fa492..72ba0a9 100644
---- a/include/linux/mlx4/cq.h
-+++ b/include/linux/mlx4/cq.h
-@@ -43,10 +43,15 @@ struct mlx4_cqe {
- 	__be32			immed_rss_invalid;
- 	__be32			g_mlpath_rqpn;
- 	__be16			sl_vid;
--	__be16			rlid;
--	__be16			status;
--	u8			ipv6_ext_mask;
--	u8			badfcs_enc;
-+	union {
-+		struct {
-+			__be16	rlid;
-+			__be16  status;
-+			u8      ipv6_ext_mask;
-+			u8      badfcs_enc;
-+		};
-+		u8  smac[6];
-+	};
- 	__be32			byte_cnt;
- 	__be16			wqe_index;
- 	__be16			checksum;
-@@ -83,6 +88,7 @@ struct mlx4_ts_cqe {
- enum {
- 	MLX4_CQE_VLAN_PRESENT_MASK	= 1 << 29,
- 	MLX4_CQE_QPN_MASK		= 0xffffff,
-+	MLX4_CQE_VID_MASK		= 0xfff,
++	INIT_UDATA(&udata, buf + sizeof(cmd), NULL, in_len - sizeof(cmd),
++		   out_len);
++
++	attr = kmalloc(sizeof(*attr), GFP_KERNEL);
++	if (!attr)
++		return -ENOMEM;
++
++	qp = idr_read_qp(cmd.qp_handle, file->ucontext);
++	if (!qp) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	ib_uverbs_modify_qp_assign((struct ib_uverbs_modify_qp *)((void *)&cmd +
++				    sizeof(cmd.comp_mask)), attr);
++
++	if (cmd.comp_mask & IB_UVERBS_MODIFY_QP_EX_DEST_EX_FLAGS) {
++		if (cmd.dest_ex.comp_mask & IBV_QP_DEST_EX_DMAC)
++			memcpy(attr->ah_attr.dmac, cmd.dest_ex.dmac,
++			       sizeof(attr->ah_attr.dmac));
++		else
++			memset(attr->ah_attr.dmac, 0,
++			       sizeof(attr->ah_attr.dmac));
++		if (cmd.dest_ex.comp_mask & IBV_QP_DEST_EX_VID)
++			attr->ah_attr.vlan = cmd.dest_ex.vid;
++		else
++			attr->ah_attr.vlan = 0xFFFF;
++	}
++	if (cmd.comp_mask & IB_UVERBS_MODIFY_QP_EX_ALT_DEST_EX_FLAGS) {
++		if (cmd.alt_dest_ex.comp_mask & IBV_QP_DEST_EX_DMAC)
++			memcpy(attr->alt_ah_attr.dmac, cmd.alt_dest_ex.dmac,
++			       sizeof(attr->alt_ah_attr.dmac));
++		else
++			memset(attr->alt_ah_attr.dmac, 0,
++			       sizeof(attr->alt_ah_attr.dmac));
++		if (cmd.alt_dest_ex.comp_mask & IBV_QP_DEST_EX_VID)
++			attr->alt_ah_attr.vlan = cmd.alt_dest_ex.vid;
++		else
++			attr->alt_ah_attr.vlan = 0xFFFF;
++	}
++
++	if (qp->real_qp == qp) {
++		ret = qp->device->modify_qp(qp, attr,
++			modify_qp_mask(qp->qp_type, cmd.attr_mask), &udata);
++	} else {
++		ret = ib_modify_qp(qp, attr,
++				   modify_qp_mask(qp->qp_type, cmd.attr_mask));
++	}
++
++	put_qp_read(qp);
++
++	if (ret)
++		goto out;
++
++	ret = in_len;
++
++out:
++	kfree(attr);
++
++	return ret;
++}
+ ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
+ 			     const char __user *buf, int in_len,
+ 			     int out_len)
+@@ -2377,48 +2463,51 @@ out:
+ 	return ret ? ret : in_len;
+ }
+ 
+-ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+-			    const char __user *buf, int in_len,
+-			    int out_len)
++struct ib_uobject *ib_uverbs_create_ah_assign(
++		struct ib_uverbs_create_ah_ex *cmd,
++		struct ib_uverbs_ah_attr_ex *src_attr,
++		struct ib_uverbs_file *file)
+ {
+-	struct ib_uverbs_create_ah	 cmd;
+-	struct ib_uverbs_create_ah_resp	 resp;
+-	struct ib_uobject		*uobj;
+ 	struct ib_pd			*pd;
+ 	struct ib_ah			*ah;
+ 	struct ib_ah_attr		attr;
+-	int ret;
+-
+-	if (out_len < sizeof resp)
+-		return -ENOSPC;
+-
+-	if (copy_from_user(&cmd, buf, sizeof cmd))
+-		return -EFAULT;
++	struct ib_uobject		*uobj;
++	long				ret;
+ 
+-	uobj = kmalloc(sizeof *uobj, GFP_KERNEL);
++	uobj = kmalloc(sizeof(*uobj), GFP_KERNEL);
+ 	if (!uobj)
+-		return -ENOMEM;
++		return (void *)-ENOMEM;
+ 
+-	init_uobj(uobj, cmd.user_handle, file->ucontext, &ah_lock_class);
++	init_uobj(uobj, cmd->user_handle, file->ucontext, &ah_lock_class);
+ 	down_write(&uobj->mutex);
+ 
+-	pd = idr_read_pd(cmd.pd_handle, file->ucontext);
++	pd = idr_read_pd(cmd->pd_handle, file->ucontext);
+ 	if (!pd) {
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+ 
+-	attr.dlid 	       = cmd.attr.dlid;
+-	attr.sl 	       = cmd.attr.sl;
+-	attr.src_path_bits     = cmd.attr.src_path_bits;
+-	attr.static_rate       = cmd.attr.static_rate;
+-	attr.ah_flags          = cmd.attr.is_global ? IB_AH_GRH : 0;
+-	attr.port_num 	       = cmd.attr.port_num;
+-	attr.grh.flow_label    = cmd.attr.grh.flow_label;
+-	attr.grh.sgid_index    = cmd.attr.grh.sgid_index;
+-	attr.grh.hop_limit     = cmd.attr.grh.hop_limit;
+-	attr.grh.traffic_class = cmd.attr.grh.traffic_class;
+-	memcpy(attr.grh.dgid.raw, cmd.attr.grh.dgid, 16);
++	attr.dlid	       = src_attr->dlid;
++	attr.sl		       = src_attr->sl;
++	attr.src_path_bits     = src_attr->src_path_bits;
++	attr.static_rate       = src_attr->static_rate;
++	attr.ah_flags          = src_attr->is_global ? IB_AH_GRH : 0;
++	attr.port_num	       = src_attr->port_num;
++	attr.grh.flow_label    = src_attr->grh.flow_label;
++	attr.grh.sgid_index    = src_attr->grh.sgid_index;
++	attr.grh.hop_limit     = src_attr->grh.hop_limit;
++	attr.grh.traffic_class = src_attr->grh.traffic_class;
++	memcpy(attr.grh.dgid.raw, src_attr->grh.dgid, 16);
++
++	if (src_attr->comp_mask & IB_UVERBS_AH_ATTR_DMAC)
++		memcpy(attr.dmac, src_attr->dmac, sizeof(attr.dmac));
++	else
++		memset(attr.dmac, 0, sizeof(attr.dmac));
++
++	if (src_attr->comp_mask & IB_UVERBS_AH_ATTR_VID)
++		attr.vlan = src_attr->vlan;
++	else
++		attr.vlan = 0xFFFF;
+ 
+ 	ah = ib_create_ah(pd, &attr);
+ 	if (IS_ERR(ah)) {
+@@ -2427,22 +2516,62 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 	}
+ 
+ 	ah->uobject  = uobj;
++
+ 	uobj->object = ah;
+ 
+ 	ret = idr_add_uobj(&ib_uverbs_ah_idr, uobj);
+ 	if (ret)
+ 		goto err_destroy;
+ 
++	put_pd_read(pd);
++
++	return uobj;
++
++err_destroy:
++	ib_destroy_ah(ah);
++err_put:
++	put_pd_read(pd);
++err:
++	put_uobj_write(uobj);
++	return (void *)ret;
++}
++
++ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
++			    const char __user *buf, int in_len,
++			    int out_len)
++{
++	struct ib_uverbs_create_ah_ex	 cmd_ex;
++	struct ib_uverbs_create_ah	*cmd = (struct ib_uverbs_create_ah *)
++					       ((void *)&cmd_ex +
++						sizeof(cmd_ex.comp_mask));
++	struct ib_uverbs_ah_attr_ex	 attr_ex;
++	struct ib_uverbs_create_ah_resp	 resp;
++	struct ib_uobject		*uobj;
++	int ret;
++
++	if (out_len < sizeof(resp))
++		return -ENOSPC;
++
++	cmd_ex.comp_mask = 0;
++	if (copy_from_user(cmd, buf, sizeof(*cmd)))
++		return -EFAULT;
++
++	attr_ex.comp_mask = 0;
++	memcpy(((void *)&attr_ex) + sizeof(attr_ex.comp_mask),
++	       &cmd->attr, sizeof(cmd->attr));
++
++	uobj = ib_uverbs_create_ah_assign(&cmd_ex,  &attr_ex, file);
++	if (IS_ERR(uobj))
++		return (ssize_t)uobj;
++
+ 	resp.ah_handle = uobj->id;
+ 
+-	if (copy_to_user((void __user *) (unsigned long) cmd.response,
++	if (copy_to_user((void __user *)(unsigned long) cmd->response,
+ 			 &resp, sizeof resp)) {
+ 		ret = -EFAULT;
+ 		goto err_copy;
+ 	}
+ 
+-	put_pd_read(pd);
+-
+ 	mutex_lock(&file->mutex);
+ 	list_add_tail(&uobj->list, &file->ucontext->ah_list);
+ 	mutex_unlock(&file->mutex);
+@@ -2455,15 +2584,54 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 
+ err_copy:
+ 	idr_remove_uobj(&ib_uverbs_ah_idr, uobj);
++	ib_destroy_ah(uobj->object);
++	put_uobj_write(uobj);
+ 
+-err_destroy:
+-	ib_destroy_ah(ah);
++	return ret;
++}
+ 
+-err_put:
+-	put_pd_read(pd);
++ssize_t ib_uverbs_create_ah_ex(struct ib_uverbs_file *file,
++			       const char __user *buf, int in_len,
++			       int out_len)
++{
++	struct ib_uverbs_create_ah_ex	 cmd_ex;
++	struct ib_uverbs_create_ah_resp	 resp;
++	struct ib_uobject		*uobj;
++	int ret;
+ 
+-err:
++	if (out_len < sizeof(resp))
++		return -ENOSPC;
++
++	if (copy_from_user(&cmd_ex, buf, sizeof(cmd_ex)))
++		return -EFAULT;
++
++	uobj = ib_uverbs_create_ah_assign(&cmd_ex,  &cmd_ex.attr, file);
++	if (IS_ERR(uobj))
++		return (ssize_t)uobj;
++
++	resp.ah_handle = uobj->id;
++
++	if (copy_to_user((void __user *)(unsigned long)cmd_ex.response,
++			 &resp, sizeof(resp))) {
++		ret = -EFAULT;
++		goto err_copy;
++	}
++
++	mutex_lock(&file->mutex);
++	list_add_tail(&uobj->list, &file->ucontext->ah_list);
++	mutex_unlock(&file->mutex);
++
++	uobj->live = 1;
++
++	up_write(&uobj->mutex);
++
++	return in_len;
++
++err_copy:
++	idr_remove_uobj(&ib_uverbs_ah_idr, uobj);
++	ib_destroy_ah(uobj->object);
+ 	put_uobj_write(uobj);
++
+ 	return ret;
+ }
+ 
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index e4e7b24..93264c8 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -113,7 +113,9 @@ static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
+ 	[IB_USER_VERBS_CMD_OPEN_XRCD]		= ib_uverbs_open_xrcd,
+ 	[IB_USER_VERBS_CMD_CLOSE_XRCD]		= ib_uverbs_close_xrcd,
+ 	[IB_USER_VERBS_CMD_CREATE_XSRQ]		= ib_uverbs_create_xsrq,
+-	[IB_USER_VERBS_CMD_OPEN_QP]		= ib_uverbs_open_qp
++	[IB_USER_VERBS_CMD_OPEN_QP]		= ib_uverbs_open_qp,
++	[IB_USER_VERBS_CMD_MODIFY_QP_EX]	= ib_uverbs_modify_qp_ex,
++	[IB_USER_VERBS_CMD_CREATE_AH_EX]	= ib_uverbs_create_ah_ex,
  };
  
- enum {
+ static void ib_uverbs_add_one(struct ib_device *device);
+diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
+index e7bee46..0470407 100644
+--- a/drivers/infiniband/core/uverbs_marshall.c
++++ b/drivers/infiniband/core/uverbs_marshall.c
+@@ -33,6 +33,9 @@
+ #include <linux/export.h>
+ #include <rdma/ib_marshall.h>
+ 
++#define UVERB_EX_TO_UVERB(uverb_ex) ((void *)(uverb_ex) + \
++				     sizeof(uverb_ex->comp_mask))
++
+ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
+ 			     struct ib_ah_attr *src)
+ {
+@@ -52,9 +55,20 @@ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
+ }
+ EXPORT_SYMBOL(ib_copy_ah_attr_to_user);
+ 
+-void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
+-			     struct ib_qp_attr *src)
++void ib_copy_ah_attr_to_user_ex(struct ib_uverbs_ah_attr_ex *dst,
++				struct ib_ah_attr *src)
+ {
++	ib_copy_ah_attr_to_user((struct ib_uverbs_ah_attr *)
++				UVERB_EX_TO_UVERB(dst), src);
++	dst->comp_mask = IB_UVERBS_AH_ATTR_DMAC;
++	memcpy(dst->dmac, src->dmac, sizeof(dst->dmac));
++	dst->comp_mask = IB_UVERBS_AH_ATTR_VID;
++	dst->vlan		   = src->vlan;
++}
++EXPORT_SYMBOL(ib_copy_ah_attr_to_user_ex);
++
++static void ib_copy_qp_attr_to_user_data(struct ib_uverbs_qp_attr *dst,
++					 struct ib_qp_attr *src) {
+ 	dst->qp_state	        = src->qp_state;
+ 	dst->cur_qp_state	= src->cur_qp_state;
+ 	dst->path_mtu		= src->path_mtu;
+@@ -71,9 +85,6 @@ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
+ 	dst->max_recv_sge	= src->cap.max_recv_sge;
+ 	dst->max_inline_data	= src->cap.max_inline_data;
+ 
+-	ib_copy_ah_attr_to_user(&dst->ah_attr, &src->ah_attr);
+-	ib_copy_ah_attr_to_user(&dst->alt_ah_attr, &src->alt_ah_attr);
+-
+ 	dst->pkey_index		= src->pkey_index;
+ 	dst->alt_pkey_index	= src->alt_pkey_index;
+ 	dst->en_sqd_async_notify = src->en_sqd_async_notify;
+@@ -89,8 +100,26 @@ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
+ 	dst->alt_timeout	= src->alt_timeout;
+ 	memset(dst->reserved, 0, sizeof(dst->reserved));
+ }
++
++void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
++			     struct ib_qp_attr *src)
++{
++	ib_copy_qp_attr_to_user_data(dst, src);
++	ib_copy_ah_attr_to_user(&dst->ah_attr, &src->ah_attr);
++	ib_copy_ah_attr_to_user(&dst->alt_ah_attr, &src->alt_ah_attr);
++}
+ EXPORT_SYMBOL(ib_copy_qp_attr_to_user);
+ 
++void ib_copy_qp_attr_to_user_ex(struct ib_uverbs_qp_attr_ex *dst,
++				struct ib_qp_attr *src)
++{
++	ib_copy_qp_attr_to_user_data((struct ib_uverbs_qp_attr *)
++				     UVERB_EX_TO_UVERB(dst), src);
++	ib_copy_ah_attr_to_user_ex(&dst->ah_attr, &src->ah_attr);
++	ib_copy_ah_attr_to_user_ex(&dst->alt_ah_attr, &src->alt_ah_attr);
++}
++EXPORT_SYMBOL(ib_copy_qp_attr_to_user_ex);
++
+ void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
+ 			      struct ib_sa_path_rec *src)
+ {
+@@ -117,11 +146,27 @@ void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
+ }
+ EXPORT_SYMBOL(ib_copy_path_rec_to_user);
+ 
+-void ib_copy_path_rec_from_user(struct ib_sa_path_rec *dst,
+-				struct ib_user_path_rec *src)
++void ib_copy_path_rec_to_user_ex(struct ib_user_path_rec_ex *dst,
++				 struct ib_sa_path_rec *src)
++{
++	ib_copy_path_rec_to_user((struct ib_user_path_rec *)
++				  UVERB_EX_TO_UVERB(dst), src);
++
++	dst->comp_mask = IB_USER_PATH_REC_ATTR_DMAC |
++			 IB_USER_PATH_REC_ATTR_SMAC |
++			 IB_USER_PATH_REC_ATTR_VID;
++
++	memcpy(dst->dmac, src->dmac, sizeof(dst->dmac));
++	memcpy(dst->smac, src->smac, sizeof(dst->smac));
++	dst->vlan = src->vlan;
++}
++EXPORT_SYMBOL(ib_copy_path_rec_to_user_ex);
++
++void ib_copy_path_rec_from_user_assign(struct ib_sa_path_rec *dst,
++				       struct ib_user_path_rec *src)
+ {
+-	memcpy(dst->dgid.raw, src->dgid, sizeof dst->dgid);
+-	memcpy(dst->sgid.raw, src->sgid, sizeof dst->sgid);
++	memcpy(dst->dgid.raw, src->dgid, sizeof(dst->dgid));
++	memcpy(dst->sgid.raw, src->sgid, sizeof(dst->sgid));
+ 
+ 	dst->dlid		= src->dlid;
+ 	dst->slid		= src->slid;
+@@ -141,4 +186,35 @@ void ib_copy_path_rec_from_user(struct ib_sa_path_rec *dst,
+ 	dst->preference		= src->preference;
+ 	dst->packet_life_time_selector = src->packet_life_time_selector;
+ }
++
++void ib_copy_path_rec_from_user(struct ib_sa_path_rec *dst,
++				struct ib_user_path_rec *src) {
++	memset(dst->dmac, 0, sizeof(dst->dmac));
++	memset(dst->smac, 0, sizeof(dst->smac));
++	dst->vlan = 0xFFFF;
++
++	ib_copy_path_rec_from_user_assign(dst, src);
++}
+ EXPORT_SYMBOL(ib_copy_path_rec_from_user);
++
++void ib_copy_path_rec_from_user_ex(struct ib_sa_path_rec *dst,
++				   struct ib_user_path_rec_ex *src) {
++	if (src->comp_mask & IB_USER_PATH_REC_ATTR_DMAC)
++		memcpy(dst->dmac, src->dmac, sizeof(dst->dmac));
++	else
++		memset(dst->dmac, 0, sizeof(dst->dmac));
++
++	if (src->comp_mask & IB_USER_PATH_REC_ATTR_SMAC)
++		memcpy(dst->smac, src->smac, sizeof(dst->smac));
++	else
++		memset(dst->smac, 0, sizeof(dst->smac));
++
++	if (src->comp_mask & IB_USER_PATH_REC_ATTR_VID)
++		dst->vlan = src->vlan;
++	else
++		dst->vlan = 0xFFFF;
++
++	ib_copy_path_rec_from_user_assign(dst, (struct ib_user_path_rec *)
++					  UVERB_EX_TO_UVERB(src));
++}
++EXPORT_SYMBOL(ib_copy_path_rec_from_user_ex);
+diff --git a/include/rdma/ib_marshall.h b/include/rdma/ib_marshall.h
+index db03720..11ab3a8 100644
+--- a/include/rdma/ib_marshall.h
++++ b/include/rdma/ib_marshall.h
+@@ -41,13 +41,25 @@
+ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
+ 			     struct ib_qp_attr *src);
+ 
++void ib_copy_qp_attr_to_user_ex(struct ib_uverbs_qp_attr_ex *dst,
++				struct ib_qp_attr *src);
++
+ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
+ 			     struct ib_ah_attr *src);
+ 
++void ib_copy_ah_attr_to_user_ex(struct ib_uverbs_ah_attr_ex *dst,
++				struct ib_ah_attr *src);
++
+ void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
+ 			      struct ib_sa_path_rec *src);
+ 
++void ib_copy_path_rec_to_user_ex(struct ib_user_path_rec_ex *dst,
++				 struct ib_sa_path_rec *src);
++
+ void ib_copy_path_rec_from_user(struct ib_sa_path_rec *dst,
+ 				struct ib_user_path_rec *src);
+ 
++void ib_copy_path_rec_from_user_ex(struct ib_sa_path_rec *dst,
++				   struct ib_user_path_rec_ex *src);
++
+ #endif /* IB_USER_MARSHALL_H */
+diff --git a/include/uapi/rdma/ib_user_sa.h b/include/uapi/rdma/ib_user_sa.h
+index cfc7c9b..367d66a 100644
+--- a/include/uapi/rdma/ib_user_sa.h
++++ b/include/uapi/rdma/ib_user_sa.h
+@@ -48,7 +48,13 @@ enum {
+ struct ib_path_rec_data {
+ 	__u32	flags;
+ 	__u32	reserved;
+-	__u32	path_rec[16];
++	__u32	path_rec[20];
++};
++
++enum ibv_kern_path_rec_attr_mask {
++	IB_USER_PATH_REC_ATTR_DMAC = 1ULL << 0,
++	IB_USER_PATH_REC_ATTR_SMAC = 1ULL << 1,
++	IB_USER_PATH_REC_ATTR_VID  = 1ULL << 2
+ };
+ 
+ struct ib_user_path_rec {
+@@ -73,4 +79,30 @@ struct ib_user_path_rec {
+ 	__u8	preference;
+ };
+ 
++struct ib_user_path_rec_ex {
++	__u32   comp_mask;
++	__u8	dgid[16];
++	__u8	sgid[16];
++	__be16	dlid;
++	__be16	slid;
++	__u32	raw_traffic;
++	__be32	flow_label;
++	__u32	reversible;
++	__u32	mtu;
++	__be16	pkey;
++	__u8	hop_limit;
++	__u8	traffic_class;
++	__u8	numb_path;
++	__u8	sl;
++	__u8	mtu_selector;
++	__u8	rate_selector;
++	__u8	rate;
++	__u8	packet_life_time_selector;
++	__u8	packet_life_time;
++	__u8	preference;
++	__u8	smac[6];
++	__u8	dmac[6];
++	__be16  vlan;
++};
++
+ #endif /* IB_USER_SA_H */
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 61535aa..954a790 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -86,7 +86,9 @@ enum {
+ 	IB_USER_VERBS_CMD_OPEN_XRCD,
+ 	IB_USER_VERBS_CMD_CLOSE_XRCD,
+ 	IB_USER_VERBS_CMD_CREATE_XSRQ,
+-	IB_USER_VERBS_CMD_OPEN_QP
++	IB_USER_VERBS_CMD_OPEN_QP,
++	IB_USER_VERBS_CMD_MODIFY_QP_EX = IB_USER_VERBS_CMD_THRESHOLD,
++	IB_USER_VERBS_CMD_CREATE_AH_EX,
+ };
+ 
+ /*
+@@ -392,6 +394,25 @@ struct ib_uverbs_ah_attr {
+ 	__u8  reserved;
+ };
+ 
++enum ib_uverbs_ah_attr_mask {
++	IB_UVERBS_AH_ATTR_DMAC,
++	IB_UVERBS_AH_ATTR_VID
++};
++
++struct ib_uverbs_ah_attr_ex {
++	__u32 comp_mask;
++	struct ib_uverbs_global_route grh;
++	__u16 dlid;
++	__u8  sl;
++	__u8  src_path_bits;
++	__u8  static_rate;
++	__u8  is_global;
++	__u8  port_num;
++	__u8  reserved;
++	__u8  dmac[6];
++	__u16 vlan;
++};
++
+ struct ib_uverbs_qp_attr {
+ 	__u32	qp_attr_mask;
+ 	__u32	qp_state;
+@@ -430,6 +451,45 @@ struct ib_uverbs_qp_attr {
+ 	__u8	reserved[5];
+ };
+ 
++struct ib_uverbs_qp_attr_ex {
++	__u32   comp_mask;
++	__u32	qp_attr_mask;
++	__u32	qp_state;
++	__u32	cur_qp_state;
++	__u32	path_mtu;
++	__u32	path_mig_state;
++	__u32	qkey;
++	__u32	rq_psn;
++	__u32	sq_psn;
++	__u32	dest_qp_num;
++	__u32	qp_access_flags;
++
++	struct ib_uverbs_ah_attr_ex ah_attr;
++	struct ib_uverbs_ah_attr_ex alt_ah_attr;
++
++	/* ib_qp_cap */
++	__u32	max_send_wr;
++	__u32	max_recv_wr;
++	__u32	max_send_sge;
++	__u32	max_recv_sge;
++	__u32	max_inline_data;
++
++	__u16	pkey_index;
++	__u16	alt_pkey_index;
++	__u8	en_sqd_async_notify;
++	__u8	sq_draining;
++	__u8	max_rd_atomic;
++	__u8	max_dest_rd_atomic;
++	__u8	min_rnr_timer;
++	__u8	port_num;
++	__u8	timeout;
++	__u8	retry_cnt;
++	__u8	rnr_retry;
++	__u8	alt_port_num;
++	__u8	alt_timeout;
++	__u8	reserved[5];
++};
++
+ struct ib_uverbs_create_qp {
+ 	__u64 response;
+ 	__u64 user_handle;
+@@ -531,6 +591,17 @@ struct ib_uverbs_query_qp_resp {
+ 	__u64 driver_data[0];
+ };
+ 
++enum ib_uverbs_qp_dest_ex_comp_mask {
++	IBV_QP_DEST_EX_DMAC          = (1ULL << 0),
++	IBV_QP_DEST_EX_VID           = (1ULL << 1)
++};
++
++struct ib_uverbs_qp_dest_ex {
++	__u32 comp_mask;
++	__u8  dmac[6];
++	__u16 vid;
++};
++
+ struct ib_uverbs_modify_qp {
+ 	struct ib_uverbs_qp_dest dest;
+ 	struct ib_uverbs_qp_dest alt_dest;
+@@ -561,6 +632,44 @@ struct ib_uverbs_modify_qp {
+ 	__u64 driver_data[0];
+ };
+ 
++enum ib_uverbs_modify_qp_ex_comp_mask {
++	IB_UVERBS_MODIFY_QP_EX_DEST_EX_FLAGS          = (1ULL << 0),
++	IB_UVERBS_MODIFY_QP_EX_ALT_DEST_EX_FLAGS      = (1ULL << 1)
++};
++
++struct ib_uverbs_modify_qp_ex {
++	__u32 comp_mask;
++	struct ib_uverbs_qp_dest dest;
++	struct ib_uverbs_qp_dest alt_dest;
++	__u32 qp_handle;
++	__u32 attr_mask;
++	__u32 qkey;
++	__u32 rq_psn;
++	__u32 sq_psn;
++	__u32 dest_qp_num;
++	__u32 qp_access_flags;
++	__u16 pkey_index;
++	__u16 alt_pkey_index;
++	__u8  qp_state;
++	__u8  cur_qp_state;
++	__u8  path_mtu;
++	__u8  path_mig_state;
++	__u8  en_sqd_async_notify;
++	__u8  max_rd_atomic;
++	__u8  max_dest_rd_atomic;
++	__u8  min_rnr_timer;
++	__u8  port_num;
++	__u8  timeout;
++	__u8  retry_cnt;
++	__u8  rnr_retry;
++	__u8  alt_port_num;
++	__u8  alt_timeout;
++	__u8  reserved[2];
++	struct ib_uverbs_qp_dest_ex dest_ex;
++	struct ib_uverbs_qp_dest_ex alt_dest_ex;
++	__u64 driver_data[0];
++};
++
+ struct ib_uverbs_modify_qp_resp {
+ };
+ 
+@@ -670,6 +779,15 @@ struct ib_uverbs_create_ah {
+ 	struct ib_uverbs_ah_attr attr;
+ };
+ 
++struct ib_uverbs_create_ah_ex {
++	int comp_mask;
++	__u64 response;
++	__u64 user_handle;
++	__u32 pd_handle;
++	__u32 reserved;
++	struct ib_uverbs_ah_attr_ex attr;
++};
++
+ struct ib_uverbs_create_ah_resp {
+ 	__u32 ah_handle;
+ };
 -- 
 1.7.1
 
