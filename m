@@ -1,82 +1,86 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] osm_sm_state_mgr.c Trivial log changes
-Date: Wed, 19 Jun 2013 14:20:50 -0400
-Message-ID: <51C1F682.8010405@dev.mellanox.co.il>
-References: <51d9d87a-655f-41d1-87fe-ecf5a43fb30d@default>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: "Venkat R. Patnala" <patnala1-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH ibsim] Parse and use portguid from input, rather than inferring it.
+Date: Wed, 19 Jun 2013 11:50:53 -0700
+Message-ID: <1371667853-120634-1-git-send-email-patnala1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51d9d87a-655f-41d1-87fe-ecf5a43fb30d@default>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Venkat R. Patnala" <patnala1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/19/2013 6:30 AM, Line Holen wrote:
+Ibsim seems to assume that the portguid is nodeguid + portnum. This is
+observed to be true for Mellanox CAs, however not necessarily for other
+vendors. This is an issue when trying to simulate fabrics when guid inputs
+are used (i.e. opensm ftree routing cn/io guid files).
 
-A couple of nits below:
+ibsim/sim_net.c: Parse and set portguid when parsing non-switch ports.
+ibsim/sim_mad.c: Use portguid instead of constructing it with nodeguid and
+portnum.
 
-> Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> 
-> ---
-> 
-> diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
-> index 11defdd..e2cabd6 100644
-> --- a/opensm/osm_sm_state_mgr.c
-> +++ b/opensm/osm_sm_state_mgr.c
-> @@ -157,7 +157,7 @@ static void sm_state_mgr_start_polling(osm_sm_t * sm)
->  	cl_status = cl_timer_start(&sm->polling_timer, timeout);
->  	if (cl_status != CL_SUCCESS)
->  		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3210: "
-> -			"Failed to start timer\n");
-> +			"Failed to start polling timer\n");
->  
->  	OSM_LOG_EXIT(sm->p_log);
->  }
-> @@ -201,8 +201,8 @@ void osm_sm_state_mgr_polling_callback(IN void *context)
->  	 * osm_sm_state_mgr_process with signal OSM_SM_SIGNAL_POLLING_TIMEOUT
->  	 */
->  	sm->retry_number++;
-> -	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE, "Retry number:%d\n",
-> -		sm->retry_number);
-> +	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE, "State %d, Retry number:%d\n",
-> +		sm->p_subn->sm_state, sm->retry_number);
+Signed-off-by: Venkat R. Patnala <patnala1-i2BcT+NCU+M@public.gmane.org>
+---
+ ibsim/sim_mad.c |    4 ++--
+ ibsim/sim_net.c |   15 +++++++++++++++
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-SM State rather than just State would be better and why not use osm_get_sm_mgr_state_str so:
+diff --git a/ibsim/sim_mad.c b/ibsim/sim_mad.c
+index 223d507..e73d0bd 100644
+--- a/ibsim/sim_mad.c
++++ b/ibsim/sim_mad.c
+@@ -266,7 +266,7 @@ static int do_nodeinfo(Port * port, unsigned op, uint32_t mod, uint8_t * data)
+ {
+ 	Node *node = port->node;
+ 	int status = 0;
+-	uint64_t portguid = node->nodeguid + port->portnum;
++	uint64_t portguid = port->portguid;
+ 
+ 	if (op != IB_MAD_METHOD_GET)
+ 		status = ERR_METHOD_UNSUPPORTED;
+@@ -406,7 +406,7 @@ static int do_guidinfo(Port * port, unsigned op, uint32_t mod, uint8_t * data)
+ {
+ 	Node *node = port->node;
+ 	int status = 0;
+-	uint64_t portguid = node->nodeguid + port->portnum;
++	uint64_t portguid = port->portguid;
+ 
+ 	if (op != IB_MAD_METHOD_GET)    // only get currently supported (non compliant)
+ 		status = ERR_METHOD_UNSUPPORTED;
+diff --git a/ibsim/sim_net.c b/ibsim/sim_net.c
+index 13c3b8c..ba20a75 100644
+--- a/ibsim/sim_net.c
++++ b/ibsim/sim_net.c
+@@ -355,6 +355,18 @@ static int parse_node_ports(char *buf)
+ 	return strtoul(buf, 0, 0);
+ }
+ 
++static char *parse_port_guid(char *buf, char **rest_buf)
++{
++	char *s, *e = 0;
++	
++	if (!(s = strchr(buf, '(')) || !(e = strchr(s + 1, ')')))
++		return 0;
++	*e = 0;
++	if (rest_buf)
++		*rest_buf = e + 1;
++	return s + 1;
++}
++
+ static char *parse_node_id(char *buf, char **rest_buf)
+ {
+ 	char *s, *e = 0;
+@@ -635,6 +647,9 @@ static int parse_port(char *line, Node * node, int type, int maxports)
+ 		return -1;
+ 	}
+ 
++	if (type != SWITCH_NODE && (s = parse_port_guid(line, &line)))
++ 		port->portguid = strtoull(s, 0, 16);
++
+ 	if (!(s = parse_node_id(line, NULL))) {
+ 		IBWARN("invalid remote nodeid: <%s>", line);
+ 		return -1;
+-- 
+1.7.1
 
-	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE, "SM state %d (%s), Retry number:%d\n",
-		sm->p_subn->sm_state, osm_get_sm_mgr_state_str(sm->p_subn->sm_state),
-		sm->retry_number);
-
-?
-
--- Hal
-
->  
->  	if (sm->retry_number >= sm->p_subn->opt.polling_retry_number) {
->  		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
-> @@ -219,7 +219,7 @@ void osm_sm_state_mgr_polling_callback(IN void *context)
->  	cl_status = cl_timer_start(&sm->polling_timer, timeout);
->  	if (cl_status != CL_SUCCESS)
->  		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3211: "
-> -			"Failed to restart timer\n");
-> +			"Failed to restart polling timer\n");
->  
->  Exit:
->  	OSM_LOG_EXIT(sm->p_log);
-> @@ -414,8 +414,8 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
->  			 * handover from it.
->  			 */
->  			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-> -				"Forcing heavy sweep. "
-> -				"Received OSM_SM_SIGNAL_HANDOVER or OSM_SM_SIGNAL_POLLING_TIMEOUT\n");
-> +				"Forcing heavy sweep. Received signal %s\n",
-> +				osm_get_sm_mgr_signal_str(signal));
->  			/* Force set_client_rereg_on_sweep, we don't know what the other
->  			 * SM may have configure/done on the fabric.
->  			 */
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
