@@ -1,102 +1,68 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 0/6] IP based RoCE GID Addressing
-Date: Wed, 19 Jun 2013 10:47:05 +0300
-Message-ID: <1371628031-17546-1-git-send-email-ogerlitz@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 10/10] idr: Rework idr_preload()
+Date: Wed, 19 Jun 2013 01:18:32 -0700
+Message-ID: <20130619081832.GC30681@mtj.dyndns.org>
+References: <1371600150-23557-1-git-send-email-koverstreet@google.com>
+	<1371600150-23557-11-git-send-email-koverstreet@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cluster-devel-bounces@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <1371600150-23557-11-git-send-email-koverstreet@google.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/cluster-devel>
+List-Post: <mailto:cluster-devel@redhat.com>
+List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
+Sender: cluster-devel-bounces@redhat.com
+Errors-To: cluster-devel-bounces@redhat.com
+To: Kent Overstreet <koverstreet@google.com>
+Cc: Dmitry Torokhov <dtor@vmware.com>, David Airlie <airlied@linux.ie>, Davidlohr Bueso <davidlohr.bueso@hp.com>, Trond Myklebust <Trond.Myklebust@netapp.com>, nab@linux-iscsi.org, Sean Hefty <sean.hefty@intel.com>, Michel Lespinasse <walken@google.com>, John McCutchan <john@johnmccutchan.com>, Roland Dreier <roland@kernel.org>, Thomas Hellstrom <thellstrom@vmware.com>, linux1394-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org, Robert Love <rlove@rlove.org>, linux-rdma@vger.kernel.org, cluster-devel@redhat.com, Stefan Richter <stefanr@s5r6.in-berlin.de>, Brian Paul <brianp@vmware.com>, Doug Gilbert <dgilbert@interlog.com>, Dave Airlie <airlied@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Rik van Riel <riel@redhat.com>, Erez Shitrit <erezsh@mellanox.co.il>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, the IB stack (core + drivers) handle RoCE (IBoE) gids as
-they encode related Ethernet net-device interface MAC address and 
-possibly VLAN id.
+Hello, Kent.
 
-This series changes RoCE GIDs to encode IP addresses (IPv4 + IPv6)
-of the that Ethernet interface, under the following reasoning:
+On Tue, Jun 18, 2013 at 05:02:30PM -0700, Kent Overstreet wrote:
+> With the new ida implementation, that doesn't work anymore - the new ida
+> code grows its bitmap tree by reallocating the entire thing in power of
+> two increments. Doh.
 
-1. There are environments where the compute entity that runs the RoCE 
-stack is not aware that its traffic is vlan-tagged. This results with that 
-node to create/assume wrong GIDs from the view point of a peer node which 
-is aware to vlans. 
+So, I'm not sure about the single contiguous array implementation.  It
+introduces some nasty characteristics such as possibly too large
+contiguous allocation, bursty CPU usages, and loss of the ability to
+handle ID allocations clustered in high areas - sure, the old ida
+wasn't great on that part either but this can be much worse.
 
-Note that "node" here can be physical node connected to Ethernet switch acting in 
-access mode talking to another node which does vlan insertion/stripping by itself.
+In addition, I'm not sure what this single contiguous allocation buys
+us.  Let's say each leaf node size is 4k.  Even with in-array tree
+implementation, it should be able to serve 2k IDs per-page, which
+would be enough for most use cases and with a bit of caching it can
+easily achieve both the performance benefits of array implementation
+and the flexibility of allocating each leaf separately.  Even without
+caching, the tree depth would normally be much lower than the current
+implementation and the performance should be better.  If you're
+bothered by having to implement another radix tree for it, it should
+be possible to just implement the leaf node logic and use the existing
+radix tree for internal nodes, right?
 
-Or another example is SRIOV Virtual Function which is configured to work in "VST" 
-mode (Virtual-Switch-Tagging) such that the hypervisor configures the HW eSWitch 
-to do vlan insertion for the vPORT representing that function.
+> So we need a slightly different trick. Note that if all allocations from
+> an idr start by calling idr_prealloc() and disabling premption, at
+> most nr_cpus() allocations can happen before someone calls
+> idr_prealloc() again.
 
-2. When RoCE traffic is inspected (mirrored/trapped) in Ethernet switches for 
-monitoring and security purposes. It is much more natural for both humans and 
-automated utilities (...) to observe IP addresses in a certain offset into RoCE 
-frames L3 header vs. MAC/VLANs (which are there anyway in the L2 header of that 
-frame, so they are not gone by this change).
+But we allow mixing preloaded and normal allocations and users are
+allowed to allocate as many IDs they want after preloading.  It should
+guarantee that the first allocation after preloading follows the
+stronger allocation flag, and the above approach can't guarantee that.
+You can declare that if preload is to work, all allocators of the ida
+should preload and enforce it but that restriction arises only because
+you're using this single array implementation.  It's another drawback
+of this particular approach.  There seem to be a lot of cons and I
+can't really see what the pros are.
 
-3. Some Bonding/Teaming advanced mode such as balance-alb and balance-tlb 
-are using multiple underlying devices in parallel, and hence packets always 
-carry the bond IP address but different streams have different source MACs.
-The approach brought by this series is part from what would allow to 
-support that for RoCE traffic too.
+Thanks.
 
-The 1st patch modified the IB core to cope with the new scheme, and the 2nd/3rd ones
-do that for the mlx4_ib driver. The 4th patch sets the foundation for extending uverbs to
-the new scheme which was introduced lately, and the 5th/6th patches add two extended
-uCMA commands and two extended uVERBS commands which are now exported to user space.
-
-These extended verbs will allow to enhance user space libraries such that they work 
-OK over the modified scheme. All RC applications using librdmacm will not need to be 
-modified at all, since the change will be encapsulated into that library.
-
-The ocrdma driver needs to go through a similar patch as the mlx4_ib one, we can
-surely do that patch, just need to dig there a little further. 
-
-Or.
-
-changes from V0:
-
- - enhanced docuementation of the mlx4_ib, uverbs and ucma patches
- - broke the mlx4_ib patch to two
- - broke the extended user space commands patch to two
-
-
-Igor Ivanov (1):
-  IB/core: Infra-structure to support verbs extensions through uverbs
-
-Matan Barak (2):
-  IB/core: Add RoCE IP based addressing extensions for uverbs
-  IB/core: Add RoCE IP based addressing extensions for rdma_ucm
-
-Moni Shoua (3):
-  IB/core: RoCE IP based GID addressing
-  IB/mlx4: Use RoCE IP based GIDs in the port GID table
-  IB/mlx4: Handle Ethernet L2 parameters for IP based GID addressing
-
- drivers/infiniband/core/cm.c              |    3 +
- drivers/infiniband/core/cma.c             |   39 ++-
- drivers/infiniband/core/sa_query.c        |    5 +
- drivers/infiniband/core/ucma.c            |  190 +++++++++++--
- drivers/infiniband/core/uverbs.h          |    2 +
- drivers/infiniband/core/uverbs_cmd.c      |  330 ++++++++++++++++-----
- drivers/infiniband/core/uverbs_main.c     |   33 ++-
- drivers/infiniband/core/uverbs_marshall.c |   94 ++++++-
- drivers/infiniband/core/verbs.c           |    7 +
- drivers/infiniband/hw/mlx4/ah.c           |   21 +-
- drivers/infiniband/hw/mlx4/cq.c           |    5 +
- drivers/infiniband/hw/mlx4/main.c         |  461 ++++++++++++++++++++---------
- drivers/infiniband/hw/mlx4/mlx4_ib.h      |    3 +
- drivers/infiniband/hw/mlx4/qp.c           |   19 +-
- include/linux/mlx4/cq.h                   |   14 +-
- include/rdma/ib_addr.h                    |   45 ++--
- include/rdma/ib_marshall.h                |   12 +
- include/rdma/ib_sa.h                      |    3 +
- include/rdma/ib_verbs.h                   |    4 +
- include/uapi/rdma/ib_user_sa.h            |   34 ++-
- include/uapi/rdma/ib_user_verbs.h         |  130 ++++++++-
- include/uapi/rdma/rdma_user_cm.h          |   21 ++-
- 22 files changed, 1157 insertions(+), 318 deletions(-)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+tejun
