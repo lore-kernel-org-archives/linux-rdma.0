@@ -1,80 +1,44 @@
-From: Vipul Pandya <vipul@chelsio.com>
-Subject: Re: [PATCH V2 0/4] Add IPv6 support for iWARP
-Date: Thu, 20 Jun 2013 19:07:17 +0530
-Message-ID: <51C3058D.205@chelsio.com>
-References: <1371037302-3586-1-git-send-email-vipul@chelsio.com> <20130619.180120.1989500368231967461.davem@davemloft.net> <51C266A1.2050003@opengridcomputing.com> <20130619.210805.224358826374432656.davem@davemloft.net>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibverbs: Allow arbitrary int values for MTU
+Date: Thu, 20 Jun 2013 13:48:38 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F6939C5@xmb-rcd-x01.cisco.com>
+References: <1371502807-17026-1-git-send-email-jsquyres@cisco.com>
+ <20130618184928.GE2204@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130619.210805.224358826374432656.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: SWise OGC <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "roland@purestorage.com" <roland@purestorage.com>, Divy Le Ray <divy@chelsio.com>, Dimitrios Michailidis <dm@chelsio.com>, "roland@kernel.org" <roland@kernel.org>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, Tom Tucker <tom@opengridcomputing.com>, "faisal.latif@intel.com" <faisal.latif@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "sasha.levin@oracle.com" <sasha.levin@oracle.com>, Nirranjan Kirubaharan <nirranjan@chelsio.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130618184928.GE2204-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <112857EE15E43B468CBD4CF50CE5EFEE-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Jun 18, 2013, at 2:49 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+
+>> +int num_to_ibv_mtu(int num);
+> 
+> Probably should be ibv_num_to_mtu() to keep with the naming pattern..
 
 
-On 20-06-2013 09:38, David Miller wrote:
-> From: Steve Wise <swise@opengridcomputing.com>
-> Date: Wed, 19 Jun 2013 21:19:13 -0500
-> 
->> On 6/19/2013 8:01 PM, David Miller wrote:
->>> From: Vipul Pandya <vipul@chelsio.com>
->>> Date: Wed, 12 Jun 2013 17:11:38 +0530
->>>
->>>> We have included all the maintainers of respective drivers. Kindly
->>>> review the change and let us know in case of any review comments.
->>> I have not seen anyone review v2 of this patch series.
->>>
->>
->> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
-> 
-> You wrote the first patch, and I bet you didn't even read the code in
-> the cxgb4 driver.  So your review is sort of pointless... UNLESS you
-> spotted the obvious bugs in these changes, that would have been
-> interesting.
-> 
-> Because NOBODY, and I mean NOBODY, even looked at the build of the
-> cxgb4 changes.
-> 
-> Tell me what this does:
-> 
->  	struct tid_info *t = dev->rdev.lldi.tids;
->  	int status = GET_AOPEN_STATUS(ntohl(rpl->atid_status));
-> +	struct sockaddr_in *la = (struct sockaddr_in *)&ep->com.local_addr;
-> +	struct sockaddr_in *ra = (struct sockaddr_in *)&ep->com.remote_addr;
-> +	struct sockaddr_in6 *la6 = (struct sockaddr_in6 *)&ep->com.local_addr;
-> +	struct sockaddr_in6 *ra6 = (struct sockaddr_in6 *)&ep->com.remote_addr;
-> +
-> +
->  
->  	ep = lookup_atid(t, atid);
-> 
-> Dereferencing 'ep' before initializing it.
-> 
-> The compiler complains loudly about this, therefore nobody even looked at
-> the build logs from these changes before submitting them to me.
-> 
-> That translates to "don't care", and if the people submitting this
-> code don't care why should I?
-> 
-> Sorry, not impressed.  I'm seriously going to take my time reviewing
-> any future submissions of these changes, because it's obvious that
-> even the people writing and submitting this code DO NOT CARE.
-> 
+New patch coming momentarily, but I wanted to comment on this one: 
 
-I am really very sorry for this. Somehow my compiler is not giving me
-any warnings for this. My compiler is gcc 4.4.6 20120305 (Red Hat
-4.4.6-4). Previously also once it has happened that my compiler did not
-give any warning but your build environment caught. Is there any special
-gcc option I have to pass with make command for this? I am following the
-checklist mentioned in Documentation/SubmitChecklist file.
+I used the name "num_to_ibv_mtu" because it is in the spirit of the other enum-to-int/int-to-enum function pair naming conventions:
 
-We always make sure all our drivers are building cleanly before
-submitting the drivers. We also have unit tested this code. However the
-problematic code gets executed only in error path hence could not catch
-during unit testing.
+int ibv_rate_to_mult(enum ibv_rate rate);
+enum ibv_rate mult_to_ibv_rate(int mult);
 
-I will resubmitt the series with the changes. Your review comments are
-very valuable for us.
+int ibv_rate_to_mbps(enum ibv_rate rate);
+enum ibv_rate mbps_to_ibv_rate(int mbps);
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
