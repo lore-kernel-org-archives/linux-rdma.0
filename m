@@ -1,65 +1,26 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re: [PATCH] mm: Revert pinned_vm braindamage
-Date: Thu, 20 Jun 2013 14:48:56 +0000
-Message-ID: <0000013f620f4699-f484f28e-3d12-4560-adfe-3b00af995fd9-000000@email.amazonses.com>
-References: <20130606124351.GZ27176@twins.programming.kicks-ass.net> <0000013f1ad00ec0-9574a936-3a75-4ccc-a84c-4a12a7ea106e-000000@email.amazonses.com> <20130607110344.GA27176@twins.programming.kicks-ass.net> <0000013f1f1f79d1-2cf8cb8c-7e63-4e83-9f2b-7acc0e0638a1-000000@email.amazonses.com>
- <20130617110832.GP3204@twins.programming.kicks-ass.net> <0000013f536c60ee-9a1ca9da-b798-416a-a32e-c896813d3bac-000000@email.amazonses.com> <20130620114943.GB12125@gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: NFS over RDMA benchmark
+Date: Thu, 20 Jun 2013 17:56:31 +0300
+Message-ID: <51C3181F.5010607@mellanox.com>
+References: <0EE9A1CDC8D6434DB00095CD7DB873462CF96C65@MTLDAG01.mtl.com> <CABgxfbF7c9ktSoMSPV21JU76V5J4iwbJQ257S91Y3z36WJbJVA@mail.gmail.com> <62745258-4F3B-4C05-BFFD-03EA604576E4@ornl.gov> <CABgxfbGxhnKj2n0Z-w87rZ6fwCssO31G009gwej957gv1p8PQQ@mail.gmail.com> <0EE9A1CDC8D6434DB00095CD7DB873462CF9715B@MTLDAG01.mtl.com> <20130423210607.GJ3676@fieldses.org> <0EE9A1CDC8D6434DB00095CD7DB873462CF988C9@MTLDAG01.mtl.com> <20130424150540.GB20275@fieldses.org> <20130424152631.GC20275@fieldses.org> <0EE9A1CDC8D6434DB00095CD7DB873462CF9A820@MTLDAG01.mtl.com> <20130428144248.GA2037@fieldses.org> <0EE9A1CDC8D6434DB00095CD7DB873462CF9C90C@MTLDAG01.mtl.com> <517FD327.3060901@talpey.com> <0EE9A1CDC8D6434DB00095CD7DB873462CF9CBD0@MTLDAG01.mtl.com> <5180145A.5030305@opengridcomputing.com> <CALsNU1MsjH5=p4Wtj2a
+ J5+odC7y7-5oTGhrzOL-=15pXaYYUZw@mail.gmail.com> <CABgxfbFhZTBO81WC5BcRRfQB_YBjE4N=sfS+G9eAzaFHYC_dWw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130620114943.GB12125@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, tglx@linutronix.de, kosaki.motohiro@gmail.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CABgxfbFhZTBO81WC5BcRRfQB_YBjE4N=sfS+G9eAzaFHYC_dWw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Devesh Sharma <devesh28-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Yan Burman <yanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 20 Jun 2013, Ingo Molnar wrote:
+On 19/06/2013 18:47, Wendy Cheng wrote:
+> what kind of HW I would need to run it ?
 
-> Peter clearly pointed it out that in the perf case it's user-space that
-> initiates the pinned memory mapping which is resource-controlled via
-> RLIMIT_MEMLOCK - and this was implemented that way before your commit
-> broke the code.
+The mlx4 driver supports memory windows as of kernel 3.9
 
-There is no way that user space can initiate a page pin right now. Perf is
-pinning the page from the kernel. Similarly the IB subsystem pins memory
-meeded for device I/O.
-
-> You seem to be hell bent on defining 'memory pinning' only as "the thing
-> done via the mlock*() system calls", but that is a nonsensical distinction
-> that actively and incorrectly ignores other system calls that can and do
-> pin memory legitimately.
-
-Nope. I have said that Memory pinning is done by increasing the refcount
-which is different from mlock which sets a page flag.
-
-I have consistently argued that these are two different things. And I am
-a
-bit surprised that this point has not been understood after all these
-repetitions.
-
-Memory pinning these days is done as a side effect of kernel / driver
-needs. I.e. the memory registration done through the IB subsystem and
-elsewhere.
-
-> int can_do_mlock(void)
-> {
->         if (capable(CAP_IPC_LOCK))
->                 return 1;
->         if (rlimit(RLIMIT_MEMLOCK) != 0)
->                 return 1;
->         return 0;
-> }
-> EXPORT_SYMBOL(can_do_mlock);
->
-> Q.E.D.
-
-Argh. Just checked the apps. True. They did set the rlimit to 0 at some
-point in order to make this work. Then they monitor the number of locked
-pages and create alerts so that action can be taking if a system uses too
-many mlocked pages.
-
+Or.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
