@@ -1,151 +1,65 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] Add Mellanox mlx5 driver for Connect-IB
- devices
-Date: Thu, 20 Jun 2013 17:44:49 +0300
-Message-ID: <51C31561.3040507@mellanox.com>
-References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il>
+From: Christoph Lameter <cl@linux.com>
+Subject: Re: [PATCH] mm: Revert pinned_vm braindamage
+Date: Thu, 20 Jun 2013 14:48:56 +0000
+Message-ID: <0000013f620f4699-f484f28e-3d12-4560-adfe-3b00af995fd9-000000@email.amazonses.com>
+References: <20130606124351.GZ27176@twins.programming.kicks-ass.net> <0000013f1ad00ec0-9574a936-3a75-4ccc-a84c-4a12a7ea106e-000000@email.amazonses.com> <20130607110344.GA27176@twins.programming.kicks-ass.net> <0000013f1f1f79d1-2cf8cb8c-7e63-4e83-9f2b-7acc0e0638a1-000000@email.amazonses.com>
+ <20130617110832.GP3204@twins.programming.kicks-ass.net> <0000013f536c60ee-9a1ca9da-b798-416a-a32e-c896813d3bac-000000@email.amazonses.com> <20130620114943.GB12125@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1371384149-24558-1-git-send-email-eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20130620114943.GB12125@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, akpm@linux-foundation.org, torvalds@linux-foundation.org, roland@kernel.org, tglx@linutronix.de, kosaki.motohiro@gmail.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 16/06/2013 15:02, Eli Cohen wrote:
-> From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> The patches that follow constitute the driver for Mellanox's 5th generation
-> of HCAs named Connect-IB.
->
-> The driver is comprised of two kernel modules: mlx5_ib and mlx5_core. This
-> partitioning resembles what we have for mlx4 with the substantial difference
-> that mlx5_ib is the pci device driver and not mlx5_core.
->
-> mlx5_core provides general functionality that is intended to be used by
-> other Mellanox devices that will be introduced in the future. In this sense,
-> it can be perceived as a library. mlx5_ib has a similar role as any hardware
-> device under drivers/infiniband/hw.
+On Thu, 20 Jun 2013, Ingo Molnar wrote:
 
-Hi Dave,
+> Peter clearly pointed it out that in the perf case it's user-space that
+> initiates the pinned memory mapping which is resource-controlled via
+> RLIMIT_MEMLOCK - and this was implemented that way before your commit
+> broke the code.
 
-So we skipped netdev in V0, in an attempt to reduce cross postings... 
-anyway, the mlx5_core driver is similar story as of mlx4_core. So, if 
-looking forward, for the initial merge to be simpler, are you OK for 
-both the core and IB driver to go through Roland's tree?
+There is no way that user space can initiate a page pin right now. Perf is
+pinning the page from the kernel. Similarly the IB subsystem pins memory
+meeded for device I/O.
 
-Or.
+> You seem to be hell bent on defining 'memory pinning' only as "the thing
+> done via the mlock*() system calls", but that is a nonsensical distinction
+> that actively and incorrectly ignores other system calls that can and do
+> pin memory legitimately.
 
+Nope. I have said that Memory pinning is done by increasing the refcount
+which is different from mlock which sets a page flag.
+
+I have consistently argued that these are two different things. And I am
+a
+bit surprised that this point has not been understood after all these
+repetitions.
+
+Memory pinning these days is done as a side effect of kernel / driver
+needs. I.e. the memory registration done through the IB subsystem and
+elsewhere.
+
+> int can_do_mlock(void)
+> {
+>         if (capable(CAP_IPC_LOCK))
+>                 return 1;
+>         if (rlimit(RLIMIT_MEMLOCK) != 0)
+>                 return 1;
+>         return 0;
+> }
+> EXPORT_SYMBOL(can_do_mlock);
 >
-> The patches are partitioned to avoid exceeding the 100KB vger.kernel.org
-> limitation. Only the last patch adds the Makefiles and Kconfigs, to make
-> things robust for future bisections.
->
-> PPC is not yet supported but support will be included in the near future.
->
-> Eli
->
-> Eli Cohen (8):
->    mlx5: Mellanox Connect-IB driver part 1/8
->    mlx5: Mellanox Connect-IB driver part 2/8
->    mlx5: Mellanox Connect-IB driver part 3/8
->    mlx5: Mellanox Connect-IB driver part 4/8
->    mlx5: Mellanox Connect-IB driver part 5/8
->    mlx5: Mellanox Connect-IB driver part 6/8
->    mlx5: Mellanox Connect-IB driver part 7/8
->    mlx5: Mellanox Connect-IB driver part 8/8
->
->   MAINTAINERS                                        |   22 +
->   drivers/infiniband/Kconfig                         |    1 +
->   drivers/infiniband/Makefile                        |    1 +
->   drivers/infiniband/hw/mlx5/Kconfig                 |   10 +
->   drivers/infiniband/hw/mlx5/Makefile                |    4 +
->   drivers/infiniband/hw/mlx5/ah.c                    |   95 +
->   drivers/infiniband/hw/mlx5/cq.c                    |  851 +++++++
->   drivers/infiniband/hw/mlx5/doorbell.c              |  100 +
->   drivers/infiniband/hw/mlx5/mad.c                   |  143 ++
->   drivers/infiniband/hw/mlx5/main.c                  | 1512 ++++++++++++
->   drivers/infiniband/hw/mlx5/mem.c                   |  194 ++
->   drivers/infiniband/hw/mlx5/mlx5_ib.h               |  593 +++++
->   drivers/infiniband/hw/mlx5/mr.c                    | 1025 ++++++++
->   drivers/infiniband/hw/mlx5/qp.c                    | 2549 ++++++++++++++++++++
->   drivers/infiniband/hw/mlx5/srq.c                   |  481 ++++
->   drivers/infiniband/hw/mlx5/user.h                  |  123 +
->   drivers/net/ethernet/mellanox/Kconfig              |    1 +
->   drivers/net/ethernet/mellanox/Makefile             |    1 +
->   drivers/net/ethernet/mellanox/mlx5/core/Kconfig    |   18 +
->   drivers/net/ethernet/mellanox/mlx5/core/Makefile   |    6 +
->   drivers/net/ethernet/mellanox/mlx5/core/alloc.c    |  244 ++
->   drivers/net/ethernet/mellanox/mlx5/core/cmd.c      | 1497 ++++++++++++
->   drivers/net/ethernet/mellanox/mlx5/core/cq.c       |  226 ++
->   drivers/net/ethernet/mellanox/mlx5/core/debugfs.c  |  600 +++++
->   drivers/net/ethernet/mellanox/mlx5/core/eq.c       |  523 ++++
->   drivers/net/ethernet/mellanox/mlx5/core/fw.c       |  187 ++
->   drivers/net/ethernet/mellanox/mlx5/core/health.c   |  216 ++
->   drivers/net/ethernet/mellanox/mlx5/core/mad.c      |   80 +
->   drivers/net/ethernet/mellanox/mlx5/core/main.c     |  483 ++++
->   drivers/net/ethernet/mellanox/mlx5/core/mcg.c      |  108 +
->   .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |   96 +
->   drivers/net/ethernet/mellanox/mlx5/core/mr.c       |  138 ++
->   .../net/ethernet/mellanox/mlx5/core/pagealloc.c    |  438 ++++
->   drivers/net/ethernet/mellanox/mlx5/core/pd.c       |  103 +
->   drivers/net/ethernet/mellanox/mlx5/core/port.c     |  106 +
->   drivers/net/ethernet/mellanox/mlx5/core/qp.c       |  303 +++
->   drivers/net/ethernet/mellanox/mlx5/core/srq.c      |  225 ++
->   drivers/net/ethernet/mellanox/mlx5/core/uar.c      |  225 ++
->   include/linux/mlx5/cmd.h                           |   51 +
->   include/linux/mlx5/cq.h                            |  166 ++
->   include/linux/mlx5/device.h                        |  886 +++++++
->   include/linux/mlx5/doorbell.h                      |   81 +
->   include/linux/mlx5/driver.h                        |  763 ++++++
->   include/linux/mlx5/qp.h                            |  467 ++++
->   include/linux/mlx5/srq.h                           |   41 +
->   45 files changed, 15983 insertions(+)
->   create mode 100644 drivers/infiniband/hw/mlx5/Kconfig
->   create mode 100644 drivers/infiniband/hw/mlx5/Makefile
->   create mode 100644 drivers/infiniband/hw/mlx5/ah.c
->   create mode 100644 drivers/infiniband/hw/mlx5/cq.c
->   create mode 100644 drivers/infiniband/hw/mlx5/doorbell.c
->   create mode 100644 drivers/infiniband/hw/mlx5/mad.c
->   create mode 100644 drivers/infiniband/hw/mlx5/main.c
->   create mode 100644 drivers/infiniband/hw/mlx5/mem.c
->   create mode 100644 drivers/infiniband/hw/mlx5/mlx5_ib.h
->   create mode 100644 drivers/infiniband/hw/mlx5/mr.c
->   create mode 100644 drivers/infiniband/hw/mlx5/qp.c
->   create mode 100644 drivers/infiniband/hw/mlx5/srq.c
->   create mode 100644 drivers/infiniband/hw/mlx5/user.h
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/Kconfig
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/Makefile
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/alloc.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/cmd.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/cq.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/eq.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/fw.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/health.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mad.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/main.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mcg.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mr.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/pd.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/port.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/qp.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/srq.c
->   create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/uar.c
->   create mode 100644 include/linux/mlx5/cmd.h
->   create mode 100644 include/linux/mlx5/cq.h
->   create mode 100644 include/linux/mlx5/device.h
->   create mode 100644 include/linux/mlx5/doorbell.h
->   create mode 100644 include/linux/mlx5/driver.h
->   create mode 100644 include/linux/mlx5/qp.h
->   create mode 100644 include/linux/mlx5/srq.h
->
+> Q.E.D.
+
+Argh. Just checked the apps. True. They did set the rlimit to 0 at some
+point in order to make this work. Then they monitor the number of locked
+pages and create alerts so that action can be taking if a system uses too
+many mlocked pages.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
