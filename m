@@ -1,65 +1,61 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2][TRIVIAL] osm_sm_state_mgr.c Trivial log changes
-Date: Thu, 20 Jun 2013 00:44:02 -0700 (PDT)
-Message-ID: <e0c51638-bc7f-4635-93bc-d04abe38555a@default>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH] mm: Revert pinned_vm braindamage
+Date: Thu, 20 Jun 2013 13:34:31 +0200
+Message-ID: <20130620113431.GA12125@gmail.com>
+References: <20130606124351.GZ27176@twins.programming.kicks-ass.net>
+ <20130613140632.15982af2ebc443b24bfff86a@linux-foundation.org>
+ <alpine.DEB.2.02.1306171417450.4234@ionos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <alpine.DEB.2.02.1306171417450.4234@ionos.tec.linutronix.de>
+Sender: owner-linux-mm@kvack.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <peterz@infradead.org>, torvalds@linux-foundation.org, roland@kernel.org, kosaki.motohiro@gmail.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
----
+* Thomas Gleixner <tglx@linutronix.de> wrote:
 
-diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
-index 11defdd..5d4b651 100644
---- a/opensm/osm_sm_state_mgr.c
-+++ b/opensm/osm_sm_state_mgr.c
-@@ -157,7 +157,7 @@ static void sm_state_mgr_start_polling(osm_sm_t * sm)
- 	cl_status = cl_timer_start(&sm->polling_timer, timeout);
- 	if (cl_status != CL_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3210: "
--			"Failed to start timer\n");
-+			"Failed to start polling timer\n");
- 
- 	OSM_LOG_EXIT(sm->p_log);
- }
-@@ -201,7 +201,8 @@ void osm_sm_state_mgr_polling_callback(IN void *context)
- 	 * osm_sm_state_mgr_process with signal OSM_SM_SIGNAL_POLLING_TIMEOUT
- 	 */
- 	sm->retry_number++;
--	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE, "Retry number:%d\n",
-+	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE, "SM State %d (%s), Retry number:%d\n",
-+		sm->p_subn->sm_state,  osm_get_sm_mgr_state_str(sm->p_subn->sm_state),
- 		sm->retry_number);
- 
- 	if (sm->retry_number >= sm->p_subn->opt.polling_retry_number) {
-@@ -219,7 +220,7 @@ void osm_sm_state_mgr_polling_callback(IN void *context)
- 	cl_status = cl_timer_start(&sm->polling_timer, timeout);
- 	if (cl_status != CL_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3211: "
--			"Failed to restart timer\n");
-+			"Failed to restart polling timer\n");
- 
- Exit:
- 	OSM_LOG_EXIT(sm->p_log);
-@@ -414,8 +415,8 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
- 			 * handover from it.
- 			 */
- 			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
--				"Forcing heavy sweep. "
--				"Received OSM_SM_SIGNAL_HANDOVER or OSM_SM_SIGNAL_POLLING_TIMEOUT\n");
-+				"Forcing heavy sweep. Received signal %s\n",
-+				osm_get_sm_mgr_signal_str(signal));
- 			/* Force set_client_rereg_on_sweep, we don't know what the other
- 			 * SM may have configure/done on the fabric.
- 			 */
+> On Thu, 13 Jun 2013, Andrew Morton wrote:
+> > Let's try to get this wrapped up?
+> > 
+> > On Thu, 6 Jun 2013 14:43:51 +0200 Peter Zijlstra <peterz@infradead.org> wrote:
+> > 
+> > > 
+> > > Patch bc3e53f682 ("mm: distinguish between mlocked and pinned pages")
+> > > broke RLIMIT_MEMLOCK.
+> > 
+> > I rather like what bc3e53f682 did, actually.  RLIMIT_MEMLOCK limits the
+> > amount of memory you can mlock().  Nice and simple.
+> > 
+> > This pinning thing which infiniband/perf are doing is conceptually
+> > different and if we care at all, perhaps we should be looking at adding
+> > RLIMIT_PINNED.
+> 
+> Actually PINNED is just a stronger version of MEMLOCK. PINNED and 
+> MEMLOCK are both preventing the page from being paged out. PINNED adds 
+> the constraint of preventing minor faults as well.
+> 
+> So I think the really important tuning knob is the limitation of pages 
+> which cannot be paged out. And this is what RLIMIT_MEMLOCK is about.
+> 
+> Now if you want to add RLIMIT_PINNED as well, then it only limits the 
+> number of pages which cannot create minor faults, but that does not 
+> affect the limitation of total pages which cannot be paged out.
+
+Agreed.
+
+( Furthermore, the RLIMIT_MEMLOCK semantics change actively broke code so
+  this is not academic and it would be nice to progress with it. )
+
+Thanks,
+
+	Ingo
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
