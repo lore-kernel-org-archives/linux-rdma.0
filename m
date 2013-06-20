@@ -1,107 +1,63 @@
-From: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] mm: Revert pinned_vm braindamage
-Date: Thu, 20 Jun 2013 13:49:43 +0200
-Message-ID: <20130620114943.GB12125@gmail.com>
-References: <20130606124351.GZ27176@twins.programming.kicks-ass.net>
- <0000013f1ad00ec0-9574a936-3a75-4ccc-a84c-4a12a7ea106e-000000@email.amazonses.com>
- <20130607110344.GA27176@twins.programming.kicks-ass.net>
- <0000013f1f1f79d1-2cf8cb8c-7e63-4e83-9f2b-7acc0e0638a1-000000@email.amazonses.com>
- <20130617110832.GP3204@twins.programming.kicks-ass.net>
- <0000013f536c60ee-9a1ca9da-b798-416a-a32e-c896813d3bac-000000@email.amazonses.com>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH V2 0/4] Add IPv6 support for iWARP
+Date: Thu, 20 Jun 2013 08:33:05 -0500
+Message-ID: <51C30491.1050507@opengridcomputing.com>
+References: <1371037302-3586-1-git-send-email-vipul@chelsio.com> <20130619.180120.1989500368231967461.davem@davemloft.net> <51C266A1.2050003@opengridcomputing.com> <20130619.210805.224358826374432656.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <0000013f536c60ee-9a1ca9da-b798-416a-a32e-c896813d3bac-000000-p/GC64/jrecnJqMo6gzdpkEOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
-Cc: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, kosaki.motohiro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, penberg-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130619.210805.224358826374432656.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: vipul@chelsio.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, roland@purestorage.com, divy@chelsio.com, dm@chelsio.com, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, tom@opengridcomputing.com, faisal.latif@intel.com, akpm@linux-foundation.org, sasha.levin@oracle.com, nirranjan@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
+On 6/19/2013 11:08 PM, David Miller wrote:
+> From: Steve Wise <swise@opengridcomputing.com>
+> Date: Wed, 19 Jun 2013 21:19:13 -0500
+>
+>> On 6/19/2013 8:01 PM, David Miller wrote:
+>>> From: Vipul Pandya <vipul@chelsio.com>
+>>> Date: Wed, 12 Jun 2013 17:11:38 +0530
+>>>
+>>>> We have included all the maintainers of respective drivers. Kindly
+>>>> review the change and let us know in case of any review comments.
+>>> I have not seen anyone review v2 of this patch series.
+>>>
+>> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+> You wrote the first patch, and I bet you didn't even read the code in
+> the cxgb4 driver.  So your review is sort of pointless... UNLESS you
+> spotted the obvious bugs in these changes, that would have been
+> interesting.
+>
+> Because NOBODY, and I mean NOBODY, even looked at the build of the
+> cxgb4 changes.
+>
+> Tell me what this does:
+>
+>   	struct tid_info *t = dev->rdev.lldi.tids;
+>   	int status = GET_AOPEN_STATUS(ntohl(rpl->atid_status));
+> +	struct sockaddr_in *la = (struct sockaddr_in *)&ep->com.local_addr;
+> +	struct sockaddr_in *ra = (struct sockaddr_in *)&ep->com.remote_addr;
+> +	struct sockaddr_in6 *la6 = (struct sockaddr_in6 *)&ep->com.local_addr;
+> +	struct sockaddr_in6 *ra6 = (struct sockaddr_in6 *)&ep->com.remote_addr;
+> +
+> +
+>   
+>   	ep = lookup_atid(t, atid);
+>
+> Dereferencing 'ep' before initializing it.
+>
+> The compiler complains loudly about this, therefore nobody even looked at
+> the build logs from these changes before submitting them to me.
+>
+> That translates to "don't care", and if the people submitting this
+> code don't care why should I?
+>
+> Sorry, not impressed.  I'm seriously going to take my time reviewing
+> any future submissions of these changes, because it's obvious that
+> even the people writing and submitting this code DO NOT CARE.
+>
 
-* Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org> wrote:
-
-> On Mon, 17 Jun 2013, Peter Zijlstra wrote:
-> 
-> > They did no such thing; being one of those who wrote such code. I
-> > expressly used RLIMIT_MEMLOCK for its the one limit userspace has to
-> > limit pages that are exempt from paging.
-> 
-> Dont remember reviewing that. Assumptions were wrong in that patch then.
-> 
-> > > Pinned pages are exempted by the kernel. A device driver or some other
-> > > kernel process (reclaim, page migration, io etc) increase the page count.
-> > > There is currently no consistent accounting for pinned pages. The
-> > > vm_pinned counter was introduced to allow the largest pinners to track
-> > > what they did.
-> >
-> > No, not the largest, user space controlled pinnners. The thing that
-> > makes all the difference is the _USER_ control.
-> 
-> The pinning *cannot* be done from user space. Here it is the IB subsystem
-> that is doing it.
-
-Peter clearly pointed it out that in the perf case it's user-space that 
-initiates the pinned memory mapping which is resource-controlled via 
-RLIMIT_MEMLOCK - and this was implemented that way before your commit 
-broke the code.
-
-You seem to be hell bent on defining 'memory pinning' only as "the thing 
-done via the mlock*() system calls", but that is a nonsensical distinction 
-that actively and incorrectly ignores other system calls that can and do 
-pin memory legitimately.
-
-If some other system call results in mapping pinned memory that is at 
-least as restrictively pinned as an mlock()-ed vma (the perf syscall is 
-such) then it's entirely proper design to be resource controlled under 
-RLIMIT_MEMLOCK as well. In fact this worked so before your commit broke 
-it.
-
-> > > mlockall does not require CAP_IPC_LOCK. Never had an issue.
-> >
-> > MCL_FUTURE does absolutely require CAP_IPC_LOCK, MCL_CURRENT requires 
-> > a huge (as opposed to the default 64k) RLIMIT or CAP_IPC_LOCK.
-> >
-> > There's no argument there, look at the code.
-> 
-> I am sorry but we have been mlockall() for years now without the issues 
-> that you are bringing up. AFAICT mlockall does not require MCL_FUTURE.
-
-You only have to read the mlockall() code to see that Peter's claim is 
-correct:
-
-mm/mlock.c:
-
-SYSCALL_DEFINE1(mlockall, int, flags)
-{
-        unsigned long lock_limit;
-        int ret = -EINVAL;
-
-        if (!flags || (flags & ~(MCL_CURRENT | MCL_FUTURE)))
-                goto out;
-
-        ret = -EPERM;
-        if (!can_do_mlock())
-                goto out;
-...
-
-
-int can_do_mlock(void)
-{
-        if (capable(CAP_IPC_LOCK))
-                return 1;
-        if (rlimit(RLIMIT_MEMLOCK) != 0)
-                return 1;
-        return 0;
-}
-EXPORT_SYMBOL(can_do_mlock);
-
-Q.E.D.
-
-Thanks,
-
-	Ingo
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We do care.  We screwed up.
