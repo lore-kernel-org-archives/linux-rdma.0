@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 11/15 ibacm] Add description of preloading GID and LID destination
- caches to acm_notes.txt
-Date: Fri, 21 Jun 2013 07:02:27 -0400
-Message-ID: <51C432C3.9000801@dev.mellanox.co.il>
+Subject: [PATCH 12/15 ibacm] Increase buffer space for inet_ntop from 32 to
+ INET6_ADDRSTRLEN
+Date: Fri, 21 Jun 2013 07:02:36 -0400
+Message-ID: <51C432CC.7010205@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -15,28 +15,45 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- acm_notes.txt |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+ linux/acme_linux.c |    2 +-
+ src/acm.c          |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/acm_notes.txt b/acm_notes.txt
-index 99eaf9a..5c20129 100644
---- a/acm_notes.txt
-+++ b/acm_notes.txt
-@@ -128,3 +128,14 @@ The current implementation of the IB ACM has several additional restrictions:
-   limited to 4.
- - The number of multicast groups that an endpoint can support is limited to 2.
+diff --git a/linux/acme_linux.c b/linux/acme_linux.c
+index 1039645..ef5b107 100644
+--- a/linux/acme_linux.c
++++ b/linux/acme_linux.c
+@@ -149,7 +149,7 @@ int gen_addr_ip(FILE *f)
+ {
+ 	struct ifconf *ifc;
+ 	struct ifreq *ifr;
+-	char ip[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"];
++	char ip[INET6_ADDRSTRLEN];
+ 	int s, ret, dev_index, i, len;
+ 	uint16_t pkey;
+ 	uint8_t port;
+diff --git a/src/acm.c b/src/acm.c
+index 49723ad..55d9e2d 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -2790,7 +2790,7 @@ static int acm_assign_ep_names(struct acm_ep *ep)
+ 	FILE *faddr;
+ 	char *dev_name;
+ 	char s[120];
+-	char dev[32], addr[32], pkey_str[8];
++	char dev[32], addr[INET6_ADDRSTRLEN], pkey_str[8];
+ 	uint16_t pkey;
+ 	uint8_t type;
+ 	int port, index = 0;
+@@ -2809,7 +2809,7 @@ static int acm_assign_ep_names(struct acm_ep *ep)
+ 		if (s[0] == '#')
+ 			continue;
  
-+The ibacm contains several internal caches.  These include  caches  for
-+GID  and  LID  destination  addresses.   These caches can be optionally
-+preloaded. ibacm supports the OpenSM dump_pr plugin  "full"  PathRecord
-+format which is used to preload these caches.  The file format is specified
-+in the ibacm_opts.cfg file via the path_rec_fmt  parameter  which should
-+be  set  to  full_opensm_v1  for  this file format which is the
-+default.  See dump_pr.notes.txt in dump_pr for more information on both
-+this  file  format and how to configure OpenSM to output this file.  By
-+default, if the -p option  is  specified,  the  default  file  used  to
-+preload these caches is ACM_CONF_DIR/ibacm_path_record.dump
-+
+-		if (sscanf(s, "%32s%32s%d%8s", addr, dev, &port, pkey_str) != 4)
++		if (sscanf(s, "%46s%32s%d%8s", addr, dev, &port, pkey_str) != 4)
+ 			continue;
+ 
+ 		acm_log(2, "%s", s);
 -- 
 1.7.8.2
 
