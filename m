@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 12/15 ibacm] Increase buffer space for inet_ntop from 32 to
- INET6_ADDRSTRLEN
-Date: Fri, 21 Jun 2013 07:02:36 -0400
-Message-ID: <51C432CC.7010205@dev.mellanox.co.il>
+Subject: [PATCH 13/15 ibacm] ib_acme.c: Support IPv6 addressing in resolve_ip
+Date: Fri, 21 Jun 2013 07:02:41 -0400
+Message-ID: <51C432D1.9000804@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -15,45 +14,71 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- linux/acme_linux.c |    2 +-
- src/acm.c          |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ src/acme.c |   33 ++++++++++++++++++++++++++++-----
+ 1 files changed, 28 insertions(+), 5 deletions(-)
 
-diff --git a/linux/acme_linux.c b/linux/acme_linux.c
-index 1039645..ef5b107 100644
---- a/linux/acme_linux.c
-+++ b/linux/acme_linux.c
-@@ -149,7 +149,7 @@ int gen_addr_ip(FILE *f)
+diff --git a/src/acme.c b/src/acme.c
+index ea44eb94..db47faa 100644
+--- a/src/acme.c
++++ b/src/acme.c
+@@ -471,29 +471,52 @@ static int resolve_ip(struct ibv_path_record *path)
  {
- 	struct ifconf *ifc;
- 	struct ifreq *ifr;
--	char ip[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"];
-+	char ip[INET6_ADDRSTRLEN];
- 	int s, ret, dev_index, i, len;
- 	uint16_t pkey;
- 	uint8_t port;
-diff --git a/src/acm.c b/src/acm.c
-index 49723ad..55d9e2d 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -2790,7 +2790,7 @@ static int acm_assign_ep_names(struct acm_ep *ep)
- 	FILE *faddr;
- 	char *dev_name;
- 	char s[120];
--	char dev[32], addr[32], pkey_str[8];
-+	char dev[32], addr[INET6_ADDRSTRLEN], pkey_str[8];
- 	uint16_t pkey;
- 	uint8_t type;
- 	int port, index = 0;
-@@ -2809,7 +2809,7 @@ static int acm_assign_ep_names(struct acm_ep *ep)
- 		if (s[0] == '#')
- 			continue;
+ 	struct ibv_path_data *paths;
+ 	struct sockaddr_in src, dest;
++	struct sockaddr_in6 src6, dest6;
+ 	struct sockaddr *saddr;
+ 	int ret, count;
++	int is_ipv6_src, is_ipv6_dest;
  
--		if (sscanf(s, "%32s%32s%d%8s", addr, dev, &port, pkey_str) != 4)
-+		if (sscanf(s, "%46s%32s%d%8s", addr, dev, &port, pkey_str) != 4)
- 			continue;
+ 	if (src_addr) {
++		is_ipv6_src = 0;
+ 		src.sin_family = AF_INET;
+ 		ret = inet_pton(AF_INET, src_addr, &src.sin_addr);
+ 		if (ret <= 0) {
+-			printf("inet_pton error on source address (%s): 0x%x\n", src_addr, ret);
+-			return -1;
++			src6.sin6_family = AF_INET6;
++			ret = inet_pton(AF_INET6, src_addr, &src6.sin6_addr);
++			if (ret <= 0) {
++				printf("inet_pton error on source address (%s): 0x%x\n", src_addr, ret);
++				return -1;
++			}
++			is_ipv6_src = 1;
+ 		}
+-		saddr = (struct sockaddr *) &src;
++		if (is_ipv6_src)
++			saddr = (struct sockaddr *) &src6;
++		else
++			saddr = (struct sockaddr *) &src;
+ 	} else {
+ 		saddr = NULL;
+ 	}
  
- 		acm_log(2, "%s", s);
++	is_ipv6_dest = 0;
+ 	dest.sin_family = AF_INET;
+ 	ret = inet_pton(AF_INET, dest_addr, &dest.sin_addr);
+ 	if (ret <= 0) {
+-		printf("inet_pton error on destination address (%s): 0x%x\n", dest_addr, ret);
++		dest6.sin6_family = AF_INET6;
++		ret = inet_pton(AF_INET6, dest_addr, &dest6.sin6_addr);
++		if (ret <= 0) {
++			printf("inet_pton error on destination address (%s): 0x%x\n", dest_addr, ret);
++			return -1;
++		}
++		is_ipv6_dest = 1;
++	}
++
++	if (src_addr && is_ipv6_src != is_ipv6_dest) {
++		printf("source and destination address families don't match\n");
+ 		return -1;
+ 	}
+ 
+-	ret = ib_acm_resolve_ip(saddr, (struct sockaddr *) &dest,
++	ret = ib_acm_resolve_ip(saddr,
++		(is_ipv6_dest ? (struct sockaddr *) &dest6 : (struct sockaddr *) &dest),
+ 		&paths, &count, get_resolve_flags());
+ 	if (ret) {
+ 		printf("ib_acm_resolve_ip failed: %s\n", strerror(errno));
 -- 
 1.7.8.2
 
