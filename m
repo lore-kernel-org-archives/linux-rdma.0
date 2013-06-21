@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 09/15 ibacm] Update ib_acme.1 and ibacm.1 man pages
-Date: Fri, 21 Jun 2013 07:02:10 -0400
-Message-ID: <51C432B2.6090607@dev.mellanox.co.il>
+Subject: [PATCH 10/15 ibacm] Add the ability to preload the destination GID
+ and LID caches
+Date: Fri, 21 Jun 2013 07:02:20 -0400
+Message-ID: <51C432BC.9020706@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,119 +13,493 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
+Preloading of these caches is supported via a file which is
+produced by OpenSM by the dump_pr plugin which contains
+sufficient SA PathRecord information. Details on this
+file format and configuring OpenSM for this are found in
+dump_pr_notes.txt in dump_pr.
+
+File format is specified in ibacm_opts.cfg as follows:
+path_rec_fnt full_opensm_v1
+
+To preload these caches, ibacm service is started with -p option
+which can also take optional path_rec_file which defaults to
+ACM_CONF_DIR/ibacm_path_records.dump
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- man/ib_acme.1 |   21 +++++++++++++++------
- man/ibacm.1   |   20 +++++++++++++++++---
- 2 files changed, 32 insertions(+), 9 deletions(-)
+ ibacm_opts.cfg |    7 ++
+ linux/osd.h    |    2 +
+ man/ibacm.1    |   18 ++++-
+ src/acm.c      |  274 ++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ src/acme.c     |    7 ++
+ 5 files changed, 299 insertions(+), 9 deletions(-)
 
-diff --git a/man/ib_acme.1 b/man/ib_acme.1
-index d5ac269..6485858 100644
---- a/man/ib_acme.1
-+++ b/man/ib_acme.1
-@@ -1,13 +1,13 @@
--.TH "ib_acme" 7 "2010-12-06" "ib_acme" "ib_acme" ib_acme
-+.TH "ib_acme" 7 "2013-06-15" "ib_acme" "ib_acme" ib_acme
- .SH NAME
- ib_acme \- test and configuration utility for the IB ACM
- .SH SYNOPSIS
- .sp
- .nf
--\fIib_acme\fR [-f addr_format] [-s src_addr] -d dest_addr [-v]
-+\fIib_acme\fR [-f addr_format] [-s src_addr] -d dest_addr [-v] [-c] [-P] [-S svc_addr]
- .fi
- .nf
--\fIib_acme\fR [-G] [-O]
-+\fIib_acme\fR [-A [addr_file]] [-O [opt_file]] [-D dest_dir] [-V]
- .fi
- .SH "DESCRIPTION"
- ib_acme provides assistance configuring and testing the ibacm service.
-@@ -42,17 +42,26 @@ resolved path information is usable given the current cluster configuration.
- Instructs the ACM service to only returned information that currently resides
- in its local cache.
- .TP
--\-A
-+\-P
-+Queries performance data from the destination service
-+.TP
-+\-S svc_addr
-+address of ACM service, default: local service
-+.TP
-+\-A [addr_file]
- With this option, the ib_acme utility automatically generates the address
- configuration file ibacm_addr.cfg.  The generated file is
- constructed using the system host name and any IP addresses that are
- assigned to IPoIB device instances.
- .TP
--\-O
-+\-O [opt_file]
- With this option, the ib_acme utility automatically generates the option
- configuration file ibacm_opts.cfg.  The generated file is currently generated
- using static information.
- .TP
-+\-D dest_dir
-+Specify the destination directory for the output files.
-+.TP
- \-V
- Enables verbose output.  When combined with -A or -O options, ib_acme will
- display additional details, such as generated address information saved
-@@ -78,4 +87,4 @@ numerical ranges inside the brackets using the following example as a
- guide: node[1-3,5,7-8].  This will result in testing node1, node2, node3,
- node5, node7, and node8.   
- .SH "SEE ALSO"
--ibacm(7) ibacm(1)
-+ibacm(7), ibacm(1)
+diff --git a/ibacm_opts.cfg b/ibacm_opts.cfg
+index 87f31d9..a15f317 100644
+--- a/ibacm_opts.cfg
++++ b/ibacm_opts.cfg
+@@ -143,3 +143,10 @@ min_mtu 2048
+ 
+ min_rate 10
+ 
++# path_rec_fmt:
++# Indicates format of optional path records file for preloading ACM cache.
++# Supported formats are:
++# full_opensm_v1 - OpenSM "full" path records dump file format (version 1)
++
++path_rec_fmt full_opensm_v1
++
+diff --git a/linux/osd.h b/linux/osd.h
+index c8278aa..0b6884f 100644
+--- a/linux/osd.h
++++ b/linux/osd.h
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2009 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved.
+  *
+  * This software is available to you under the OpenFabrics.org BSD license
+  * below:
+@@ -57,6 +58,7 @@
+ #define ACM_CONF_DIR  SYSCONFDIR "/" RDMADIR
+ #define ACM_ADDR_FILE "ibacm_addr.cfg"
+ #define ACM_OPTS_FILE "ibacm_opts.cfg"
++#define ACM_PATH_REC_FILE "ibacm_path_records.dump"
+ 
+ #define LIB_DESTRUCTOR __attribute__((destructor))
+ #define CDECL_FUNC
 diff --git a/man/ibacm.1 b/man/ibacm.1
-index 075b98e..35b79c6 100644
+index 35b79c6..382b4c0 100644
 --- a/man/ibacm.1
 +++ b/man/ibacm.1
 @@ -1,10 +1,10 @@
--.TH "ibacm" 1 "2012-03-01" "ibacm" "ibacm" ibacm
-+.TH "ibacm" 1 "2013-06-15" "ibacm" "ibacm" ibacm
+-.TH "ibacm" 1 "2013-06-15" "ibacm" "ibacm" ibacm
++.TH "ibacm" 1 "2013-06-18" "ibacm" "ibacm" ibacm
  .SH NAME
  ibacm \- address and route resolution services for InfiniBand.
  .SH SYNOPSIS
  .sp
  .nf
--\fIibacm\fR
-+\fIibacm\fR [-D] [-P] [-A addr_file] [-O option_file]
+-\fIibacm\fR [-D] [-P] [-A addr_file] [-O option_file]
++\fIibacm\fR [-D] [-P] [-A addr_file] [-O option_file] [-p [path_rec_file]]
  .fi
  .SH "DESCRIPTION"
  The IB ACM implements and provides a framework for name,
-@@ -33,6 +33,19 @@ different fabric topologies.
- The IB ACM package is comprised of two components: the ibacm service
- and a test/configuration utility - ib_acme.  Both are userspace components
- and are available for Linux and Windows.  Additional details are given below.
-+.SH "OPTIONS"
+@@ -46,6 +46,9 @@ address configuration file
+ .TP
+ \-O option_file
+ option configuration file
 +.TP
-+\-D
-+run in daemon mode (default)
-+.TP
-+\-P
-+run as standard process
-+.TP
-+\-A addr_file
-+address configuration file
-+.TP
-+\-O option_file
-+option configuration file
++\-p [path_rec_file]
++optional path records file for preloading ACM cache
  .SH "QUICK START GUIDE"
  1. Prerequisites: libibverbs and libibumad must be installed.
  The IB stack should be running with IPoIB configured.
-@@ -46,6 +59,7 @@ These steps assume that the user has administrative privileges.
- the ibacm service is running.
- .P
- 5. Install librdmacm, using the build option --with-ib_acm if needed.
-+This build option is not needed with librdmacm 1.0.17 or newer.
- The librdmacm will automatically use the ibacm service.
- On failures, the librdmacm will fall back to normal resolution.
- .P
-@@ -132,4 +146,4 @@ limited to 4.
+@@ -145,5 +148,16 @@ request is received from a different QPN than a cached request.
+ limited to 4.
  .P
  - The number of multicast groups that an endpoint can support is limited to 2.
++.P
++The ibacm contains several internal caches.  These include caches for GID
++and LID destination addresses.  These caches can be optionally
++preloaded. ibacm supports the OpenSM dump_pr plugin "full" PathRecord 
++format which is used to preload these caches.
++The file format is specified in the ibacm_opts.cfg file via the
++path_rec_fmt parameter which should be set to full_opensm_v1 for this file
++format which is the default.  See dump_pr.notes.txt in dump_pr for
++more information on both this file format and how to configure OpenSM
++to output this file.  By default, if the -p option is specified, the default
++file used to preload these caches is ACM_CONF_DIR/ibacm_path_record.dump
  .SH "SEE ALSO"
--ibacm(7) ib_acme(1), rdma_cm(7)
-+ibacm(7), ib_acme(1), rdma_cm(7)
+ ibacm(7), ib_acme(1), rdma_cm(7)
+diff --git a/src/acm.c b/src/acm.c
+index a124e93..49723ad 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2009-2012 Intel Corporation. All rights reserved.
++ * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved.
+  *
+  * This software is available to you under the OpenIB.org BSD license
+  * below:
+@@ -49,6 +50,8 @@
+ 
+ #define src_out     data[0]
+ 
++#define IB_LID_MCAST_START 0xc000
++
+ #define MAX_EP_ADDR 4
+ #define MAX_EP_MC   2
+ 
+@@ -74,6 +77,10 @@ enum acm_loopback_prot {
+ 	ACM_LOOPBACK_PROT_LOCAL
+ };
+ 
++enum acm_path_rec_fmt {
++	ACM_PATH_REV_FMT_OSM_FULL_V1
++};
++
+ /*
+  * Nested locking order: dest -> ep, dest -> port
+  */
+@@ -210,6 +217,7 @@ static atomic_t counter[ACM_MAX_COUNTER];
+ static char *acme = BINDIR "/ib_acme -A";
+ static char *opts_file = ACM_CONF_DIR "/" ACM_OPTS_FILE;
+ static char *addr_file = ACM_CONF_DIR "/" ACM_ADDR_FILE;
++static char *path_rec_file = ACM_CONF_DIR "/" ACM_PATH_REC_FILE;
+ static char log_file[128] = "/var/log/ibacm.log";
+ static int log_level = 0;
+ static char lock_file[128] = "/var/run/ibacm.pid";
+@@ -225,8 +233,10 @@ static int resolve_depth = 1;
+ static int sa_depth = 1;
+ static int send_depth = 1;
+ static int recv_depth = 1024;
++static int path_rec_opt = 0;
+ static uint8_t min_mtu = IBV_MTU_2048;
+ static uint8_t min_rate = IBV_RATE_10_GBPS;
++static enum acm_path_rec_fmt path_rec_fmt = ACM_PATH_REV_FMT_OSM_FULL_V1;
+ 
+ #define acm_log(level, format, ...) \
+ 	acm_write(level, "%s: "format, __func__, ## __VA_ARGS__)
+@@ -2444,6 +2454,13 @@ static enum acm_loopback_prot acm_convert_loopback_prot(char *param)
+ 	return loopback_prot;
+ }
+ 
++static enum acm_path_rec_fmt acm_convert_path_rec_fmt(char *param)
++{
++	if (!stricmp("full_opensm_v1", param))
++		return ACM_PATH_REV_FMT_OSM_FULL_V1;
++	return path_rec_fmt;
++}
++
+ static enum ibv_rate acm_get_rate(uint8_t width, uint8_t speed)
+ {
+ 	switch (width) {
+@@ -2553,6 +2570,221 @@ static FILE *acm_open_addr_file(void)
+ 	return fopen(addr_file, "r");
+ }
+ 
++static void acm_parse_path_records_pass1(FILE *f, uint64_t *lid2guid)
++{
++	char s[128];
++	char *p, *ptr, *p_guid, *p_lid;
++	uint64_t guid;
++	uint16_t lid;
++
++	/* Pass 1 - LID to GUID table */
++	while (fgets(s, sizeof s, f)) {
++		if (s[0] == '#')
++			continue;
++		if (!(p = strtok_r(s, " \n", &ptr)))
++			continue;	/* ignore blank lines */
++
++		if (strncmp(p, "Switch", sizeof("Switch") - 1) &&
++		    strncmp(p, "Channel", sizeof("Channel") - 1) &&
++		    strncmp(p, "Router", sizeof("Router") - 1))
++			continue;
++
++		if (!strncmp(p, "Channel", sizeof("Channel") - 1)) {
++			p = strtok_r(NULL, " ", &ptr); /* skip 'Adapter' */
++			if (!p)
++				continue;
++		}
++
++		p_guid = strtok_r(NULL, ",", &ptr);
++		if (!p_guid)
++			continue;
++
++		guid = (uint64_t) strtoull(p_guid, NULL, 16);
++
++		ptr = strstr(ptr, "base LID");
++		if (!ptr)
++			continue;
++		ptr += sizeof("base LID");
++		p_lid = strtok_r(NULL, ",", &ptr);
++		if (!p_lid)
++			continue;
++
++		lid = (uint16_t) strtoul(p_lid, NULL, 0);
++		if (lid >= IB_LID_MCAST_START)
++			continue;
++		if (lid2guid[lid])
++			acm_log(0, "ERROR - duplicate lid %u\n", lid);
++		else
++			lid2guid[lid] = htonll(guid);
++	}
++}
++
++static int acm_parse_path_records_pass2(FILE *f, uint64_t *lid2guid,
++				 	struct acm_ep *ep)
++{
++	union ibv_gid sgid, dgid;
++	struct ibv_port_attr attr = { 0 };
++	struct acm_dest *dest;
++	char s[128];
++	char *p, *ptr, *p_guid, *p_lid;
++	uint64_t guid;
++	uint16_t lid, dlid;
++	int sl, mtu, rate;
++	int ret = 1, i;
++	uint8_t addr[ACM_MAX_ADDRESS];
++	uint8_t addr_type;
++
++	ibv_query_gid(ep->port->dev->verbs, ep->port->port_num, 0, &sgid);
++
++	/* Pass 2 - Path records for source to all destinations */
++
++	while (fgets(s, sizeof s, f)) {
++		if (s[0] == '#')
++			continue;
++		if (!(p = strtok_r(s, " \n", &ptr)))
++			continue;	/* ignore blank lines */
++
++		if (strncmp(p, "Switch", sizeof("Switch") - 1) &&
++		    strncmp(p, "Channel", sizeof("Channel") - 1) &&
++		    strncmp(p, "Router", sizeof("Router") - 1))
++			continue;
++
++		if (!strncmp(p, "Channel", sizeof("Channel") - 1)) {
++			p = strtok_r(NULL, " ", &ptr); /* skip 'Adapter' */
++			if (!p)
++				continue;
++		}
++
++		p_guid = strtok_r(NULL, ",", &ptr);
++		if (!p_guid)
++			continue;
++
++		guid = (uint64_t) strtoull(p_guid, NULL, 16);
++		if (guid != ntohll(sgid.global.interface_id))
++			continue;
++
++		ptr = strstr(ptr, "base LID");
++		if (!ptr)
++			continue;
++		ptr += sizeof("base LID");
++		p_lid = strtok_r(NULL, ",", &ptr);
++		if (!p_lid)
++			continue;
++
++		lid = (uint16_t) strtoul(p_lid, NULL, 0);
++		if (lid != ep->port->lid)
++			continue;
++		ibv_query_port(ep->port->dev->verbs, ep->port->port_num, &attr);
++		ret = 0;
++		break;
++	}
++
++	while (fgets(s, sizeof s, f)) {
++		if (s[0] == '#')
++			continue;
++		if (!(p = strtok_r(s, " \n", &ptr)))
++			continue;	/* ignore blank lines */
++
++		if (!strncmp(p, "Switch", sizeof("Switch") - 1) ||
++		    !strncmp(p, "Channel", sizeof("Channel") - 1) ||
++		    !strncmp(p, "Router", sizeof("Router") - 1))
++			break;
++
++		dlid = strtoul(p, NULL, 0);
++
++		p = strtok_r(NULL, ":", &ptr);
++		if (!p)
++			continue;
++		if (strcmp(p, "UNREACHABLE") == 0)
++			continue;
++		sl = atoi(p);
++
++		p = strtok_r(NULL, ":", &ptr);
++		if (!p)
++			continue;
++		mtu = atoi(p);
++
++		p = strtok_r(NULL, ":", &ptr);
++		if (!p)
++			continue;
++		rate = atoi(p);
++
++		if (!lid2guid[dlid]) {
++			acm_log(0, "ERROR - dlid %u not found in lid2guid table\n", dlid);
++			continue;
++		}
++
++		dgid.global.subnet_prefix = sgid.global.subnet_prefix;
++		dgid.global.interface_id = lid2guid[dlid];
++
++		for (i = 0; i < 2; i++) {
++			memset(addr, 0, ACM_MAX_ADDRESS);
++			if (i == 0) {
++				addr_type = ACM_ADDRESS_LID;
++				*((uint16_t *) addr) = htons(dlid);
++			} else {
++				addr_type = ACM_ADDRESS_GID;
++				memcpy(addr, &dgid, sizeof(dgid));
++			}
++			dest = acm_acquire_dest(ep, addr_type, addr);
++			if (!dest) {
++				acm_log(0, "ERROR - unable to create dest\n");
++				break;
++			}
++
++			dest->path.sgid = sgid;
++			dest->path.slid = htons(ep->port->lid);
++			dest->path.dgid = dgid;
++			dest->path.dlid = htons(dlid);
++			dest->path.reversible_numpath = IBV_PATH_RECORD_REVERSIBLE;
++			dest->path.pkey = htons(ep->pkey);
++			dest->path.mtu = (uint8_t) mtu;
++			dest->path.rate = (uint8_t) rate;
++			dest->path.qosclass_sl = htons((uint16_t) sl & 0xF);
++			if (dlid == ep->port->lid)
++				dest->path.packetlifetime = 0;
++			else
++				dest->path.packetlifetime = attr.subnet_timeout;
++			dest->remote_qpn = 1;
++			dest->addr_timeout = (uint64_t)~0ULL;
++			dest->route_timeout = (uint64_t)~0ULL;
++			dest->state = ACM_READY;
++			acm_put_dest(dest);
++			acm_log(1, "added cached dest %s\n", dest->name);
++		}
++	}
++	return ret;
++}
++
++static int acm_parse_path_records(struct acm_ep *ep)
++{
++	FILE *f;
++	uint64_t *lid2guid;
++	int ret = 1;
++
++	if (!(f = fopen(path_rec_file, "r"))) {
++		acm_log(0, "ERROR - couldn't open %s\n", path_rec_file); 
++		return ret;
++	}
++
++	lid2guid = calloc(IB_LID_MCAST_START, sizeof(*lid2guid));
++	if (!lid2guid) {
++		acm_log(0, "ERROR - no memory for path record parsing\n");
++		goto err;
++	}
++
++	if (path_rec_fmt == ACM_PATH_REV_FMT_OSM_FULL_V1) {
++		acm_parse_path_records_pass1(f, lid2guid);
++		rewind(f);
++		ret = acm_parse_path_records_pass2(f, lid2guid, ep);
++	}
++
++	free(lid2guid);
++err:
++	fclose(f);
++	return ret;
++}
++
+ static int acm_assign_ep_names(struct acm_ep *ep)
+ {
+ 	FILE *faddr;
+@@ -2802,6 +3034,13 @@ static void acm_ep_up(struct acm_port *port, uint16_t pkey_index)
+ 	lock_acquire(&port->lock);
+ 	DListInsertHead(&ep->entry, &port->ep_list);
+ 	lock_release(&port->lock);
++
++	if (path_rec_opt) {
++		ret = acm_parse_path_records(ep);
++		if (ret)
++			acm_log(1, "unable to find ep in path records\n");
++	}
++
+ 	return;
+ 
+ err2:
+@@ -3114,6 +3353,8 @@ static void acm_set_options(void)
+ 			min_mtu = acm_convert_mtu(atoi(value));
+ 		else if (!stricmp("min_rate", opt))
+ 			min_rate = acm_convert_rate(atoi(value));
++		else if (!stricmp("path_rec_fmt", opt))
++			path_rec_fmt = acm_convert_path_rec_fmt(value);
+ 	}
+ 
+ 	fclose(f);
+@@ -3137,6 +3378,7 @@ static void acm_log_options(void)
+ 	acm_log(0, "receive depth %d\n", recv_depth);
+ 	acm_log(0, "minimum mtu %d\n", min_mtu);
+ 	acm_log(0, "minimum rate %d\n", min_rate);
++	acm_log(0, "path record format %d\n", path_rec_fmt);
+ }
+ 
+ static FILE *acm_open_log(void)
+@@ -3197,19 +3439,32 @@ static void daemonize(void)
+ static void show_usage(char *program)
+ {
+ 	printf("usage: %s\n", program);
+-	printf("   [-D]             - run as a daemon (default)\n");
+-	printf("   [-P]             - run as a standard process\n");
+-	printf("   [-A addr_file]   - address configuration file\n");
+-	printf("                      (default %s/%s\n", ACM_CONF_DIR, ACM_ADDR_FILE);
+-	printf("   [-O option_file] - option configuration file\n");
+-	printf("                      (default %s/%s\n", ACM_CONF_DIR, ACM_OPTS_FILE);
++	printf("   [-D]                 - run as a daemon (default)\n");
++	printf("   [-P]                 - run as a standard process\n");
++	printf("   [-A addr_file]       - address configuration file\n");
++	printf("                          (default %s/%s)\n", ACM_CONF_DIR, ACM_ADDR_FILE);
++	printf("   [-O option_file]     - option configuration file\n");
++	printf("                          (default %s/%s)\n", ACM_CONF_DIR, ACM_OPTS_FILE);
++	printf("   [-p [path_rec_file]] - optional path records file\n");
++	printf("                          (default %s/%s)\n", ACM_CONF_DIR, ACM_PATH_REC_FILE); 
++}
++
++static char *opt_arg(int argc, char **argv)
++{
++	if (optarg)
++		return optarg;
++
++	if ((optind < argc) && (argv[optind][0] != '-'))
++		return argv[optind];
++
++	return NULL;
+ }
+ 
+ int CDECL_FUNC main(int argc, char **argv)
+ {
+ 	int i, op, daemon = 1;
+ 
+-	while ((op = getopt(argc, argv, "DPA:O:")) != -1) {
++	while ((op = getopt(argc, argv, "DPA:O:p::")) != -1) {
+ 		switch (op) {
+ 		case 'D':
+ 			/* option no longer required */
+@@ -3223,6 +3478,11 @@ int CDECL_FUNC main(int argc, char **argv)
+ 		case 'O':
+ 			opts_file = optarg;
+ 			break;
++		case 'p':
++			path_rec_opt = 1;
++			if (opt_arg(argc, argv))
++				path_rec_file = opt_arg(argc, argv);
++			break;
+ 		default:
+ 			show_usage(argv[0]);
+ 			exit(1);
+diff --git a/src/acme.c b/src/acme.c
+index d7ad25f..ea44eb94 100644
+--- a/src/acme.c
++++ b/src/acme.c
+@@ -244,6 +244,13 @@ static void gen_opts_temp(FILE *f)
+ 	fprintf(f, "\n");
+ 	fprintf(f, "min_rate 10\n");
+ 	fprintf(f, "\n");
++	fprintf(f, "# path_rec_fmt:\n");
++	fprintf(f, "# Indicates format of optional path records file for preloading ACM cache.\n");
++	fprintf(f, "# Supported formats are:\n");
++	fprintf(f, "# full_opensm_v1 - OpenSM \"full\" path records dump file format (version 1)\n");
++	fprintf(f, "\n");
++	fprintf(f, "path_rec_fmt full_opensm_v1\n");
++	fprintf(f, "\n");
+ }
+ 
+ static int open_dir(void)
 -- 
 1.7.8.2
 
