@@ -1,85 +1,55 @@
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] IB/qib: build issues with qib DCA and some config files
-Date: Fri, 21 Jun 2013 11:23:03 -0400
-Message-ID: <20130621152303.1776.36117.stgit@phlsvslse11.ph.intel.com>
+Subject: [PATCH 2/2] IB/qib; fix static sparse warnings
+Date: Fri, 21 Jun 2013 11:23:09 -0400
+Message-ID: <20130621152309.1776.33246.stgit@phlsvslse11.ph.intel.com>
+References: <20130621152303.1776.36117.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130621152303.1776.36117.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The Kconfig needed some extra tests to avoid:
+From: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-drivers/built-in.o: In function `qib_irq_notifier_notify':
- (.text+0x561510): undefined reference to `dca3_get_tag'
+This patch corrects the following sparse warnings:
 
-and:
+qib_iba7322.c:2746:6: warning: symbol
+'qib_irq_notifier_notify' was not declared. Should it be static?
+qib_iba7322.c:2762:6: warning: symbol
+'qib_irq_notifier_release' was not declared. Should it be static?
 
-In file included from drivers/infiniband/hw/qib/qib_diag.c:53:0:
- drivers/infiniband/hw/qib/qib.h:436:29: error: field 'notify' has
-incomplete type
-     struct irq_affinity_notify notify;
-                               ^
-Reported-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/Kconfig       |    2 +-
- drivers/infiniband/hw/qib/qib.h         |    6 +-----
- drivers/infiniband/hw/qib/qib_iba7322.c |    8 ++++++++
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/qib/qib_iba7322.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/Kconfig b/drivers/infiniband/hw/qib/Kconfig
-index 9d49cfa..d03ca4c 100644
---- a/drivers/infiniband/hw/qib/Kconfig
-+++ b/drivers/infiniband/hw/qib/Kconfig
-@@ -8,7 +8,7 @@ config INFINIBAND_QIB
- 
- config INFINIBAND_QIB_DCA
- 	bool "QIB DCA support"
--	depends on DCA && INFINIBAND_QIB
-+	depends on INFINIBAND_QIB && DCA && SMP && GENERIC_HARDIRQS && !(INFINIBAND_QIB=y && DCA=m)
- 	default y
- 	---help---
- 	Setting this enables DCA support on some Intel chip sets
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index ce10faf..5453e2b 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -441,11 +441,7 @@ struct qib_verbs_txreq {
- #define MAX_NAME_SIZE 64
- 
- #ifdef CONFIG_INFINIBAND_QIB_DCA
--struct qib_irq_notify {
--	int rcv;
--	void *arg;
--	struct irq_affinity_notify notify;
--};
-+struct qib_irq_notify;
- #endif
- 
- struct qib_msix_entry {
 diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 08fd74a..5f266d0 100644
+index 5f266d0..46ffea0 100644
 --- a/drivers/infiniband/hw/qib/qib_iba7322.c
 +++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -522,6 +522,14 @@ static const u8 qib_7322_physportstate[0x20] = {
- 	[0x17] = IB_PHYSPORTSTATE_CFG_TRAIN
- };
+@@ -2751,7 +2751,7 @@ static void qib_setup_dca(struct qib_devdata *dd)
+ 		setup_dca_notifier(dd, &cspec->msix_entries[i]);
+ }
  
-+#ifdef CONFIG_INFINIBAND_QIB_DCA
-+struct qib_irq_notify {
-+	int rcv;
-+	void *arg;
-+	struct irq_affinity_notify notify;
-+};
-+#endif
-+
- struct qib_chip_specific {
- 	u64 __iomem *cregbase;
- 	u64 *cntrs;
+-void qib_irq_notifier_notify(struct irq_affinity_notify *notify,
++static void qib_irq_notifier_notify(struct irq_affinity_notify *notify,
+ 			     const cpumask_t *mask)
+ {
+ 	struct qib_irq_notify *n =
+@@ -2767,7 +2767,7 @@ void qib_irq_notifier_notify(struct irq_affinity_notify *notify,
+ 	}
+ }
+ 
+-void qib_irq_notifier_release(struct kref *ref)
++static void qib_irq_notifier_release(struct kref *ref)
+ {
+ 	struct qib_irq_notify *n =
+ 		container_of(ref, struct qib_irq_notify, notify.kref);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
