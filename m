@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 00/15 ibacm] ACM Cache Preloading (and some cosmetic cleanups)
-Date: Fri, 21 Jun 2013 07:00:55 -0400
-Message-ID: <51C43267.1030301@dev.mellanox.co.il>
+Subject: [PATCH 01/15 ibacm] acm_notes.txt: Change DOS formatting to unix
+ formatting
+Date: Fri, 21 Jun 2013 07:01:06 -0400
+Message-ID: <51C43272.4050707@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,61 +12,277 @@ To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series has 2 purposes: cleanups of documentation and
-configuration files, and cache preloading.
 
-Cache preloading eliminates even the first network query when the
-destination is found in the cache. In order to accomplish this,
-there are 2 new static configuration files added as options. The
-first is an output file for SA PathRecords. The current format
-supported is the one produced by the dump_pr plugin to OpenSM.
-Other formats can readuly be supported in the future. The second
-is a clusters wide file which maps IP address (either IPv4 or
-IPv6) to IB GID.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ acm_notes.txt |  260 ++++++++++++++++++++++++++++----------------------------
+ 1 files changed, 130 insertions(+), 130 deletions(-)
 
-Patches 1-9 clean up documentation and sample config files.
-Patch 10 adds the ability to preload the GID and LID destination caches.
-Patch 11 updates the ACM documentation for this.
-Patch 12 fixes the inet_pton buffer space.
-Patch 13 fixes IPv6 support in acme.
-Patch 14 adds the ability to preload the IPv4 and IPv6 destination caches.
-Patch 15 adds a performance testing option to acme.
-
-Hal Rosenstock (15):
-  acm_notes.txt: Change DOS formatting to unix formatting
-  ibacm_opts.cfg: Fix commentary typo
-  acm.c: Cosmetic formatting change to acm log message
-  ibacm*.cfg: Change DOS formatting to unix formatting
-  ibacm*.cfg: Fix commentary typos
-  ibacm_opts.cfg: Sync default options file with generated output
-  More cosmetic changes for consistency between acme and config files
-  man: Change DOS formatting to unix formatting
-  Update ib_acme.1 and ibacm.1 man pages
-  Add the ability to preload the destination GID and LID caches
-  Add description of preloading GID and LID destination caches to
-    acm_notes.txt
-  Increase buffer space for inet_ntop from 32 to INET6_ADDRSTRLEN
-  ib_acme.c: Support IPv6 addressing in resolve_ip
-  Add support for preloading IPv4 and IPv6 ACM caches
-  Add option to allow for ACM cache lookup performance measurement
-
- Makefile.am        |    2 +-
- acm_notes.txt      |  274 +++++++++++++++++++++-------------------
- ibacm_addr.cfg     |   48 ++++----
- ibacm_hosts.cfg    |   12 ++
- ibacm_opts.cfg     |  282 ++++++++++++++++++++++-------------------
- linux/acme_linux.c |    2 +-
- linux/osd.h        |    3 +
- man/ib_acme.1      |  175 ++++++++++++++------------
- man/ibacm.1        |   41 ++++++-
- man/ibacm.7        |   62 +++++-----
- src/acm.c          |  364 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- src/acme.c         |   96 ++++++++++----
- src/libacm.c       |   20 ++--
- src/libacm.h       |    7 +-
- 14 files changed, 937 insertions(+), 451 deletions(-)
- create mode 100644 ibacm_hosts.cfg
-
+diff --git a/acm_notes.txt b/acm_notes.txt
+index ed519ab..99eaf9a 100644
+--- a/acm_notes.txt
++++ b/acm_notes.txt
+@@ -1,130 +1,130 @@
+-Assistant for InfiniBand Communication Management (IB ACM)
+-
+-Note: The IB ACM should be considered experimental.
+-
+-
+-Overview
+---------
+-The IB ACM package implements and provides a framework for experimental name,
+-address, and route resolution services over InfiniBand.  It is intended to
+-address connection setup scalability issues running MPI applications on
+-large clusters.  The IB ACM provides information needed to establish a
+-connection, but does not implement the CM protocol.
+-
+-The librdmacm can invoke IB ACM services when built using the --with-ib_acm
+-option.  The IB ACM services tie in under the rdma_resolve_addr,
+-rdma_resolve_route, and rdma_getaddrinfo routines.  For maximum benefit,
+-the rdma_getaddrinfo routine should be used, however existing applications
+-should still see significant connection scaling benefits using the calls
+-available in librdmacm 1.0.11 and previous releases.
+-
+-The IB ACM is focused on being scalable and efficient.  The current
+-implementation limits network traffic, SA interactions, and centralized
+-services.  ACM supports multiple resolution protocols in order to handle
+-different fabric topologies.
+-
+-This release is limited in its handling of dynamic changes.
+-
+-The IB ACM package is comprised of two components: the ib_acm service
+-and a test/configuration utility - ib_acme.  Both are userspace components
+-and are available for Linux and Windows.  Additional details are given below.
+-
+-
+-Quick Start Guide
+------------------
+-1. Prerequisites: libibverbs and libibumad must be installed.
+-   The IB stack should be running with IPoIB configured.
+-   These steps assume that the user has administrative privileges.
+-2. Install the IB ACM package
+-   This installs ib_acm, and ib_acme.
+-3. Run ib_acme -A -O
+-   This will generate IB ACM address and options configuration files.
+-   (acm_addr.cfg and acm_opts.cfg)
+-4. Run ib_acm and leave running.
+-   ib_acm will eventually be converted to a service/daemon, but for now
+-   is a userspace application.  Because ib_acm uses the libibumad
+-   interfaces, it should be run with administrative privileges.
+-5. Optionally, run ib_acme -s <source_ip> -d <dest_ip> -v
+-   This will verify that the ib_acm service is running.
+-5. Install librdmacm.
+-   The librdmacm will automatically use the ib_acm service.
+-   On failures, the librdmacm will fall back to normal resolution.
+-
+-
+-Details
+--------
+-ib_acme:
+-The ib_acme program serves a dual role.  It acts as a utility to test
+-ib_acm operation and help verify if the ib_acm service and selected
+-protocol is usable for a given cluster configuration.   Additionally,
+-it automatically generates ib_acm configuration files to assist with
+-or eliminate manual setup.
+-
+-
+-acm configuration files:
+-The ib_acm service relies on two configuration files.
+-
+-The acm_addr.cfg file contains name and address mappings for each IB
+-<device, port, pkey> endpoint.  Although the names in the acm_addr.cfg
+-file can be anything, ib_acme maps the host name and IP addresses to
+-the IB endpoints.
+-
+-The acm_opts.cfg file provides a set of configurable options for the
+-ib_acm service, such as timeout, number of retries, logging level, etc.
+-ib_acme generates the acm_opts.cfg file using static information.  A
+-future enhancement would adjust options based on the current system
+-and cluster size. 
+-
+-
+-ib_acm:
+-The ib_acm service is responsible for resolving names and addresses to
+-InfiniBand path information and caching such data.  It is currently
+-implemented as an executable application, but is a conceptual service
+-or daemon that should execute with administrative privileges.
+-
+-The ib_acm implements a client interface over TCP sockets, which is
+-abstracted by the librdmacm library.  One or more back-end protocols are
+-used by the ib_acm service to satisfy user requests.  Although the
+-ib_acm supports standard SA path record queries on the back-end, it
+-provides an experimental multicast resolution protocol in hope of
+-achieving greater scalability.  The latter is not usable on all fabric
+-topologies, specifically ones that may not have reversible paths.
+-Users should use the ib_acme utility to verify that multicast protocol
+-is usable before running other applications.
+-
+-Conceptually, the ib_acm service implements an ARP like protocol and either
+-uses IB multicast records to construct path record data or queries the
+-SA directly, depending on the selected route protocol.  By default, the
+-ib_acm services uses and caches SA path record queries.
+-
+-Specifically, all IB endpoints join a number of multicast groups.
+-Multicast groups differ based on rates, mtu, sl, etc., and are prioritized.
+-All participating endpoints must be able to communicate on the lowest
+-priority multicast group.  The ib_acm assigns one or more names/addresses
+-to each IB endpoint using the acm_addr.cfg file.  Clients provide source
+-and destination names or addresses as input to the service, and receive
+-as output path record data.
+-
+-The service maps a client's source name/address to a local IB endpoint.
+-If a client does not provide a source address, then the ib_acm service
+-will select one based on the destination and local routing tables.  If the
+-destination name/address is not cached locally, it sends a multicast
+-request out on the lowest priority multicast group on the local endpoint.
+-The request carries a list of multicast groups that the sender can use.
+-The recipient of the request selects the highest priority multicast group
+-that it can use as well and returns that information directly to the sender.
+-The request data is cached by all endpoints that receive the multicast
+-request message.  The source endpoint also caches the response and uses
+-the multicast group that was selected to construct or obtain path record
+-data, which is returned to the client.
+-
+-The current implementation of the IB ACM has several additional restrictions:
+-- The ib_acm is limited in its handling of dynamic changes;
+-  the ib_acm must be stopped and restarted if a cluster is reconfigured.
+-- Cached data does not timed out and is only updated if a new resolution
+-  request is received from a different QPN than a cached request.
+-- Support for IPv6 has not been verified.
+-- The number of addresses that can be assigned to a single endpoint is
+-  limited to 4.
+-- The number of multicast groups that an endpoint can support is limited to 2.
+-
++Assistant for InfiniBand Communication Management (IB ACM)
++
++Note: The IB ACM should be considered experimental.
++
++
++Overview
++--------
++The IB ACM package implements and provides a framework for experimental name,
++address, and route resolution services over InfiniBand.  It is intended to
++address connection setup scalability issues running MPI applications on
++large clusters.  The IB ACM provides information needed to establish a
++connection, but does not implement the CM protocol.
++
++The librdmacm can invoke IB ACM services when built using the --with-ib_acm
++option.  The IB ACM services tie in under the rdma_resolve_addr,
++rdma_resolve_route, and rdma_getaddrinfo routines.  For maximum benefit,
++the rdma_getaddrinfo routine should be used, however existing applications
++should still see significant connection scaling benefits using the calls
++available in librdmacm 1.0.11 and previous releases.
++
++The IB ACM is focused on being scalable and efficient.  The current
++implementation limits network traffic, SA interactions, and centralized
++services.  ACM supports multiple resolution protocols in order to handle
++different fabric topologies.
++
++This release is limited in its handling of dynamic changes.
++
++The IB ACM package is comprised of two components: the ib_acm service
++and a test/configuration utility - ib_acme.  Both are userspace components
++and are available for Linux and Windows.  Additional details are given below.
++
++
++Quick Start Guide
++-----------------
++1. Prerequisites: libibverbs and libibumad must be installed.
++   The IB stack should be running with IPoIB configured.
++   These steps assume that the user has administrative privileges.
++2. Install the IB ACM package
++   This installs ib_acm, and ib_acme.
++3. Run ib_acme -A -O
++   This will generate IB ACM address and options configuration files.
++   (acm_addr.cfg and acm_opts.cfg)
++4. Run ib_acm and leave running.
++   ib_acm will eventually be converted to a service/daemon, but for now
++   is a userspace application.  Because ib_acm uses the libibumad
++   interfaces, it should be run with administrative privileges.
++5. Optionally, run ib_acme -s <source_ip> -d <dest_ip> -v
++   This will verify that the ib_acm service is running.
++5. Install librdmacm.
++   The librdmacm will automatically use the ib_acm service.
++   On failures, the librdmacm will fall back to normal resolution.
++
++
++Details
++-------
++ib_acme:
++The ib_acme program serves a dual role.  It acts as a utility to test
++ib_acm operation and help verify if the ib_acm service and selected
++protocol is usable for a given cluster configuration.   Additionally,
++it automatically generates ib_acm configuration files to assist with
++or eliminate manual setup.
++
++
++acm configuration files:
++The ib_acm service relies on two configuration files.
++
++The acm_addr.cfg file contains name and address mappings for each IB
++<device, port, pkey> endpoint.  Although the names in the acm_addr.cfg
++file can be anything, ib_acme maps the host name and IP addresses to
++the IB endpoints.
++
++The acm_opts.cfg file provides a set of configurable options for the
++ib_acm service, such as timeout, number of retries, logging level, etc.
++ib_acme generates the acm_opts.cfg file using static information.  A
++future enhancement would adjust options based on the current system
++and cluster size. 
++
++
++ib_acm:
++The ib_acm service is responsible for resolving names and addresses to
++InfiniBand path information and caching such data.  It is currently
++implemented as an executable application, but is a conceptual service
++or daemon that should execute with administrative privileges.
++
++The ib_acm implements a client interface over TCP sockets, which is
++abstracted by the librdmacm library.  One or more back-end protocols are
++used by the ib_acm service to satisfy user requests.  Although the
++ib_acm supports standard SA path record queries on the back-end, it
++provides an experimental multicast resolution protocol in hope of
++achieving greater scalability.  The latter is not usable on all fabric
++topologies, specifically ones that may not have reversible paths.
++Users should use the ib_acme utility to verify that multicast protocol
++is usable before running other applications.
++
++Conceptually, the ib_acm service implements an ARP like protocol and either
++uses IB multicast records to construct path record data or queries the
++SA directly, depending on the selected route protocol.  By default, the
++ib_acm services uses and caches SA path record queries.
++
++Specifically, all IB endpoints join a number of multicast groups.
++Multicast groups differ based on rates, mtu, sl, etc., and are prioritized.
++All participating endpoints must be able to communicate on the lowest
++priority multicast group.  The ib_acm assigns one or more names/addresses
++to each IB endpoint using the acm_addr.cfg file.  Clients provide source
++and destination names or addresses as input to the service, and receive
++as output path record data.
++
++The service maps a client's source name/address to a local IB endpoint.
++If a client does not provide a source address, then the ib_acm service
++will select one based on the destination and local routing tables.  If the
++destination name/address is not cached locally, it sends a multicast
++request out on the lowest priority multicast group on the local endpoint.
++The request carries a list of multicast groups that the sender can use.
++The recipient of the request selects the highest priority multicast group
++that it can use as well and returns that information directly to the sender.
++The request data is cached by all endpoints that receive the multicast
++request message.  The source endpoint also caches the response and uses
++the multicast group that was selected to construct or obtain path record
++data, which is returned to the client.
++
++The current implementation of the IB ACM has several additional restrictions:
++- The ib_acm is limited in its handling of dynamic changes;
++  the ib_acm must be stopped and restarted if a cluster is reconfigured.
++- Cached data does not timed out and is only updated if a new resolution
++  request is received from a different QPN than a cached request.
++- Support for IPv6 has not been verified.
++- The number of addresses that can be assigned to a single endpoint is
++  limited to 4.
++- The number of multicast groups that an endpoint can support is limited to 2.
++
 -- 
 1.7.8.2
 
