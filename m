@@ -1,59 +1,25 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2] IB/core: Fix error return code in add_port()
-Date: Fri, 21 Jun 2013 11:24:27 +0800
-Message-ID: <CAPgLHd9zb9j6m_C6FVcQ6-=jgGhne8hV1euQ78UgkDWWmUJy_Q@mail.gmail.com>
-References: <CAPgLHd_iWVTbbJN2XrJMU31wPiKCdZMZwVC0Su=afxKSPo4QvQ@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A823736FD35AD4@ORSMSX109.amr.corp.intel.com>
+From: Roland Dreier <roland@kernel.org>
+Subject: Re: linux-next: just chaeking correctness of the infiniband tree
+Date: Thu, 20 Jun 2013 22:51:47 -0700
+Message-ID: <CAG4TOxNp0h5i2tGwYxVQeV8Yk=QrvtCAp-xTxRfF2-Am44tJ9A@mail.gmail.com>
+References: <20130621100928.36a0ccf45e310f02a4dff53a@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736FD35AD4-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130621100928.36a0ccf45e310f02a4dff53a@canb.auug.org.au>
+Sender: netdev-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Miller <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix to return -ENOMEM in the add_port() error handling
-case instead of 0, as done elsewhere in this function.
+On Thu, Jun 20, 2013 at 5:09 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> I noticed that the infiniband tree is now based on the net-next tree.  I
+> assume that is deliberate?  I do have to question how much testing that
+> tree has had since it is now based on a tree that Dave only released in
+> the last 24 hours ...
 
-Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
----
-v1 -> v2: change patch description
----
- drivers/infiniband/core/sysfs.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+That is intentional since there is work coming that relies on net-next
+prerequisites.
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 246fdc1..d9b78c4 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -545,8 +545,10 @@ static int add_port(struct ib_device *device, int port_num,
- 
- 	p->gid_group.name  = "gids";
- 	p->gid_group.attrs = alloc_group_attrs(show_port_gid, attr.gid_tbl_len);
--	if (!p->gid_group.attrs)
-+	if (!p->gid_group.attrs) {
-+		ret = -ENOMEM;
- 		goto err_remove_pma;
-+	}
- 
- 	ret = sysfs_create_group(&p->kobj, &p->gid_group);
- 	if (ret)
-@@ -555,8 +557,10 @@ static int add_port(struct ib_device *device, int port_num,
- 	p->pkey_group.name  = "pkeys";
- 	p->pkey_group.attrs = alloc_group_attrs(show_port_pkey,
- 						attr.pkey_tbl_len);
--	if (!p->pkey_group.attrs)
-+	if (!p->pkey_group.attrs) {
-+		ret = -ENOMEM;
- 		goto err_remove_gid;
-+	}
- 
- 	ret = sysfs_create_group(&p->kobj, &p->pkey_group);
- 	if (ret)
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The tree hasn't had much testing, but pushing it out a few weeks
+before the merge window is the way it gets testing.
