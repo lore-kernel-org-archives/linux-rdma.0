@@ -1,46 +1,108 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU.
-Date: Sat, 22 Jun 2013 13:13:28 +0000
-Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F69A643@xmb-rcd-x01.cisco.com>
-References: <1371738080-18537-1-git-send-email-jsquyres@cisco.com>
- <51C32EFC.8060202@redhat.com> <20130620165305.GA19800@obsidianresearch.com>
- <51C36692.7000507@redhat.com> <20130620211454.GA2434@obsidianresearch.com>
- <51C39ECB.3040006@redhat.com> <20130621063648.GA27963@obsidianresearch.com>
- <51C48F01.5030103@redhat.com> <20130621182617.GA17700@obsidianresearch.com>
- <51C4BE25.9000501@redhat.com> <20130621212016.GA10637@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCHv3 infiniband-diags] saquery: Add SMInfoRecord support
+Date: Sat, 22 Jun 2013 10:07:27 -0400
+Message-ID: <51C5AF9F.3010102@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130621212016.GA10637-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <A88987FC2F60F849B01E2285CB7FD15B-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Husam Kahalah <HKahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jun 21, 2013, at 5:20 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-> Jeff: If you are still reading -
+This patch is the combination of 2 patches:
+     infiniband_diags/src/saquery.c: Add SMInfoRecord support
+     infiniband_diags/doc/rst/saquery.8.in.rst: Add support to the manual
 
-I am still reading, just didn't have much to contribute until now.  :-)
+Signed-off-by: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+This patch is based on Husam's previous patch for this.
 
-> one concrete suggestion, I think, is
-> to ensure compile-time failure when the new-format MTU variable is
-> touched.  This is trivially done by wrapping it in a struct:
-> 
-> struct ibv_mtu_t {int __mtu;};
-
-Sure, I can work up a patch that does this.
-
-Do others agree?  Roland?
-
--- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
-
+diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst
+index 8d87096..0551917 100644
+--- a/doc/rst/saquery.8.in.rst
++++ b/doc/rst/saquery.8.in.rst
+@@ -156,6 +156,7 @@ Supported query names (and aliases):
+         MFTRecord (MFTR) [[mlid]/[position]/[block]]
+         GUIDInfoRecord (GIR) [[lid]/[block]]
+         SwitchInfoRecord (SWIR) [lid]
++        SMInfoRecord (SMIR) [lid]
+ 
+ 
+ 
+diff --git a/src/saquery.c b/src/saquery.c
+index 26b2a9d..8f59253 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -489,6 +489,30 @@ static void dump_service_record(void *data)
+ 	       cl_ntoh64(p_sr->service_data64[1]));
+ }
+ 
++static void dump_sm_info_record(void *data)
++{
++	ib_sminfo_record_t *p_smr = data;
++	const ib_sm_info_t *const p_smi = &p_smr->sm_info;
++	uint8_t priority, state;
++	priority = ib_sminfo_get_priority(p_smi);
++	state = ib_sminfo_get_state(p_smi);
++
++	printf("SMInfoRecord dump:\n"
++	       "\t\tRID\n"
++	       "\t\tLID...................%u\n"
++	       "\t\tSMInfo dump:\n"
++	       "\t\tGUID..................0x%016" PRIx64 "\n"
++	       "\t\tSM_Key................0x%016" PRIx64 "\n"
++	       "\t\tActCount..............%u\n"
++	       "\t\tPriority..............%u\n"
++	       "\t\tSMState...............%u\n",
++	       cl_ntoh16(p_smr->lid),
++	       cl_ntoh64(p_smr->sm_info.guid),
++	       cl_ntoh64(p_smr->sm_info.sm_key),
++	       cl_ntoh32(p_smr->sm_info.act_count),
++	       priority, state);
++}
++
+ static void dump_switch_info_record(void *data)
+ {
+ 	ib_switch_info_record_t *p_sir = data;
+@@ -1194,6 +1218,25 @@ static int query_service_records(const struct query_cmd *q, struct sa_handle * h
+ 					dump_service_record);
+ }
+ 
++static int query_sm_info_records(const struct query_cmd *q,
++				 struct sa_handle * h, struct query_params *p,
++				 int argc, char *argv[])
++{
++	ib_sminfo_record_t smir;
++	ib_net64_t comp_mask = 0;
++	int lid = 0;
++
++	if (argc > 0)
++		parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
++
++	memset(&smir, 0, sizeof(smir));
++	CHECK_AND_SET_VAL(lid, 16, 0, smir.lid, SMIR, LID);
++
++	return get_and_dump_any_records(h, IB_SA_ATTR_SMINFORECORD, 0,
++					comp_mask, &smir, sizeof(smir),
++					dump_sm_info_record);
++}
++
+ static int query_switchinfo_records(const struct query_cmd *q,
+ 				struct sa_handle * h, struct query_params *p,
+ 				int argc, char *argv[])
+@@ -1406,6 +1449,8 @@ static const struct query_cmd query_cmds[] = {
+ 	 "[[lid]/[block]]", query_guidinfo_records},
+ 	{"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
+ 	 "[lid]", query_switchinfo_records},
++	{"SMInfoRecord", "SMIR", IB_SA_ATTR_SMINFORECORD,
++	 "[lid]", query_sm_info_records},
+ 	{0}
+ };
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
