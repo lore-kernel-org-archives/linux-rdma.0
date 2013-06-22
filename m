@@ -1,108 +1,29 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv3 infiniband-diags] saquery: Add SMInfoRecord support
-Date: Sat, 22 Jun 2013 10:07:27 -0400
-Message-ID: <51C5AF9F.3010102@dev.mellanox.co.il>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/qib: add optional numa affinity
+Date: Sat, 22 Jun 2013 23:45:40 +0300
+Message-ID: <CAJZOPZLpODnwMfiupoBH4FjanUmpo-e1SdTH9H1a2FwP8pAUXw@mail.gmail.com>
+References: <20130528165733.30588.71366.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130528165733.30588.71366.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Husam Kahalah <HKahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>
+> From: Ramkrishna Vepa <ramkrishna.vepa-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>
+> This patch adds context relative numa affinity conditioned on the
+> module parameter numa_aware. The qib_ctxtdata has an additional
+> node_id member and qib_create_ctxtdata() has an addition node_id parameter.
 
-This patch is the combination of 2 patches:
-     infiniband_diags/src/saquery.c: Add SMInfoRecord support
-     infiniband_diags/doc/rst/saquery.8.in.rst: Add support to the manual
+Could you elaborate why making numa awareness be conditioned on module
+parameter?
 
-Signed-off-by: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-This patch is based on Husam's previous patch for this.
-
-diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst
-index 8d87096..0551917 100644
---- a/doc/rst/saquery.8.in.rst
-+++ b/doc/rst/saquery.8.in.rst
-@@ -156,6 +156,7 @@ Supported query names (and aliases):
-         MFTRecord (MFTR) [[mlid]/[position]/[block]]
-         GUIDInfoRecord (GIR) [[lid]/[block]]
-         SwitchInfoRecord (SWIR) [lid]
-+        SMInfoRecord (SMIR) [lid]
- 
- 
- 
-diff --git a/src/saquery.c b/src/saquery.c
-index 26b2a9d..8f59253 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -489,6 +489,30 @@ static void dump_service_record(void *data)
- 	       cl_ntoh64(p_sr->service_data64[1]));
- }
- 
-+static void dump_sm_info_record(void *data)
-+{
-+	ib_sminfo_record_t *p_smr = data;
-+	const ib_sm_info_t *const p_smi = &p_smr->sm_info;
-+	uint8_t priority, state;
-+	priority = ib_sminfo_get_priority(p_smi);
-+	state = ib_sminfo_get_state(p_smi);
-+
-+	printf("SMInfoRecord dump:\n"
-+	       "\t\tRID\n"
-+	       "\t\tLID...................%u\n"
-+	       "\t\tSMInfo dump:\n"
-+	       "\t\tGUID..................0x%016" PRIx64 "\n"
-+	       "\t\tSM_Key................0x%016" PRIx64 "\n"
-+	       "\t\tActCount..............%u\n"
-+	       "\t\tPriority..............%u\n"
-+	       "\t\tSMState...............%u\n",
-+	       cl_ntoh16(p_smr->lid),
-+	       cl_ntoh64(p_smr->sm_info.guid),
-+	       cl_ntoh64(p_smr->sm_info.sm_key),
-+	       cl_ntoh32(p_smr->sm_info.act_count),
-+	       priority, state);
-+}
-+
- static void dump_switch_info_record(void *data)
- {
- 	ib_switch_info_record_t *p_sir = data;
-@@ -1194,6 +1218,25 @@ static int query_service_records(const struct query_cmd *q, struct sa_handle * h
- 					dump_service_record);
- }
- 
-+static int query_sm_info_records(const struct query_cmd *q,
-+				 struct sa_handle * h, struct query_params *p,
-+				 int argc, char *argv[])
-+{
-+	ib_sminfo_record_t smir;
-+	ib_net64_t comp_mask = 0;
-+	int lid = 0;
-+
-+	if (argc > 0)
-+		parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
-+
-+	memset(&smir, 0, sizeof(smir));
-+	CHECK_AND_SET_VAL(lid, 16, 0, smir.lid, SMIR, LID);
-+
-+	return get_and_dump_any_records(h, IB_SA_ATTR_SMINFORECORD, 0,
-+					comp_mask, &smir, sizeof(smir),
-+					dump_sm_info_record);
-+}
-+
- static int query_switchinfo_records(const struct query_cmd *q,
- 				struct sa_handle * h, struct query_params *p,
- 				int argc, char *argv[])
-@@ -1406,6 +1449,8 @@ static const struct query_cmd query_cmds[] = {
- 	 "[[lid]/[block]]", query_guidinfo_records},
- 	{"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
- 	 "[lid]", query_switchinfo_records},
-+	{"SMInfoRecord", "SMIR", IB_SA_ATTR_SMINFORECORD,
-+	 "[lid]", query_sm_info_records},
- 	{0}
- };
- 
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
