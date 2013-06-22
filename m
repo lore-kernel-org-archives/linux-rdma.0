@@ -1,39 +1,46 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: partitions / ib_read_bw
-Date: Sat, 22 Jun 2013 07:56:13 -0400
-Message-ID: <51C590DD.3000704@dev.mellanox.co.il>
-References: <AB9234BD-66C3-4D8E-93CA-5AF8D26818AB@lanl.gov>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU.
+Date: Sat, 22 Jun 2013 13:13:28 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F69A643@xmb-rcd-x01.cisco.com>
+References: <1371738080-18537-1-git-send-email-jsquyres@cisco.com>
+ <51C32EFC.8060202@redhat.com> <20130620165305.GA19800@obsidianresearch.com>
+ <51C36692.7000507@redhat.com> <20130620211454.GA2434@obsidianresearch.com>
+ <51C39ECB.3040006@redhat.com> <20130621063648.GA27963@obsidianresearch.com>
+ <51C48F01.5030103@redhat.com> <20130621182617.GA17700@obsidianresearch.com>
+ <51C4BE25.9000501@redhat.com> <20130621212016.GA10637@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AB9234BD-66C3-4D8E-93CA-5AF8D26818AB-YOWKrPYUwWM@public.gmane.org>
+In-Reply-To: <20130621212016.GA10637-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A88987FC2F60F849B01E2285CB7FD15B-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/21/2013 5:48 PM, Coulter, Susan K wrote:
-> 
-> One of my test clusters is running with multiple partitions.
-> The partitions look correct (using "smpquery pkey") and the path records look correct (using "saquery pr").
-> 
-> I'd like a simple user-level test to validate who is allowed to talk to who; and hoped to use ib_read_bw.
-> Alas, ib_read_bw does not honor partitions.
-> 
-> Below is a patch I wrote to try and add pkey support to ib_read_bw.  No joy.
-> 
-> The server shows it is populating ibv_qp_attr with the pkey(s) of any full partition it is a member of, 
-> but the client does not get that same pkey in ibv_wc.
-> 
-> What am I missing?
+On Jun 21, 2013, at 5:20 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-The QPs need to be bound to the proper pkey index. An additional command
-line pkey parameter is needed on client and maybe also server side.
-Server side pkey parameter could be avoided if QPs are initialized for
-all pkeys configured.
+> Jeff: If you are still reading -
 
--- Hal
+I am still reading, just didn't have much to contribute until now.  :-)
+
+> one concrete suggestion, I think, is
+> to ensure compile-time failure when the new-format MTU variable is
+> touched.  This is trivially done by wrapping it in a struct:
+> 
+> struct ibv_mtu_t {int __mtu;};
+
+Sure, I can work up a patch that does this.
+
+Do others agree?  Roland?
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
