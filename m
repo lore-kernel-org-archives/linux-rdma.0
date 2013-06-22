@@ -1,7 +1,7 @@
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] libibumad: add SA CAP MASK[2] definitions
-Date: Sat, 22 Jun 2013 14:47:11 -0700
-Message-ID: <20130622144711.11814c38b9b4fd65f9598038@intel.com>
+Subject: [PATCH] libibumad: add ClassPortInfo struct
+Date: Sat, 22 Jun 2013 14:47:13 -0700
+Message-ID: <20130622144713.806a3988582a9d1156fbad43@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -13,46 +13,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
+
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/infiniband/umad_sa.h |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+), 0 deletions(-)
+ include/infiniband/umad_types.h |   33 +++++++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+), 0 deletions(-)
 
-diff --git a/include/infiniband/umad_sa.h b/include/infiniband/umad_sa.h
-index eb7812d..a236806 100644
---- a/include/infiniband/umad_sa.h
-+++ b/include/infiniband/umad_sa.h
-@@ -102,6 +102,30 @@ enum {
- 	UMAD_LEN_SA_DATA		= 200
+diff --git a/include/infiniband/umad_types.h b/include/infiniband/umad_types.h
+index 32c747a..2d7c8cd 100644
+--- a/include/infiniband/umad_types.h
++++ b/include/infiniband/umad_types.h
+@@ -167,5 +167,38 @@ enum {
+ 	UMAD_OPENIB_OUI		= 0x001405
  };
  
-+/* CM bits */
 +enum {
-+	UMAD_SA_CAP_MASK_IS_SUBNET_OPT_REC_SUP              = (1 << 8),
-+	UMAD_SA_CAP_MASK_IS_UD_MCAST_SUP                    = (1 << 9),
-+	UMAD_SA_CAP_MASK_IS_MULTIPATH_SUP                   = (1 << 10),
-+	UMAD_SA_CAP_MASK_IS_REINIT_SUP                      = (1 << 11),
-+	UMAD_SA_CAP_MASK_IS_GID_SCOPED_MULTIPATH_SUP        = (1 << 12),
-+	UMAD_SA_CAP_MASK_IS_PORTINFO_CAP_MASK_MATCH_SUP     = (1 << 13),
-+	UMAD_SA_CAP_MASK_IS_LINK_SPEED_WIDTH_PAIRS_REC_SUP  = (1 << 14),
-+	UMAD_SA_CAP_MASK_IS_PA_SERVICES_SUP                 = (1 << 15)
++	UMAD_CLASS_RESP_TIME_MASK = 0x1F
 +};
-+/* CM2 bits */
-+enum {
-+	UMAD_SA_CAP_MASK2_IS_UNPATH_REPATH_SUP              = (1 << 0),
-+	UMAD_SA_CAP_MASK2_IS_QOS_SUP                        = (1 << 1),
-+	UMAD_SA_CAP_MASK2_IS_REV_PATH_PKEY_MEM_BIT_SUP      = (1 << 2),
-+	UMAD_SA_CAP_MASK2_IS_MCAST_TOP_SUP                  = (1 << 3),
-+	UMAD_SA_CAP_MASK2_IS_HIERARCHY_INFO_SUP             = (1 << 4),
-+	UMAD_SA_CAP_MASK2_IS_ADDITIONAL_GUID_SUP            = (1 << 5),
-+	UMAD_SA_CAP_MASK2_IS_FULL_PORTINFO_REC_SUP          = (1 << 6),
-+	UMAD_SA_CAP_MASK2_IS_EXT_SPEEDS_SUP                 = (1 << 7),
-+	UMAD_SA_CAP_MASK2_IS_MCAST_SERVICE_REC_SUP          = (1 << 8)
++struct umad_class_port_info {
++	uint8_t base_ver;
++	uint8_t class_ver;
++	be16_t  cap_mask;
++	be32_t  cap_mask2_resp_time;
++	uint8_t redir_gid[16]; /* network byte order */
++	be32_t  redir_tc_sl_fl;
++	be16_t  redir_lid;
++	be16_t  redir_pkey;
++	be32_t  redir_qp;
++	be32_t  redir_qkey;
++	uint8_t trap_gid[16]; /* network byte order */
++	be32_t  trap_tc_sl_fl;
++	be16_t  trap_lid;
++	be16_t  trap_pkey;
++	be32_t  trap_hop_qp;
++	be32_t  trap_qkey;
 +};
++static inline uint32_t
++umad_class_cap_mask2(struct umad_class_port_info *cpi)
++{
++	return (ntohl(cpi->cap_mask2_resp_time) >> 5);
++}
++static inline uint8_t
++umad_class_resp_time(struct umad_class_port_info *cpi)
++{
++	return (uint8_t)(ntohl(cpi->cap_mask2_resp_time)
++			 & UMAD_CLASS_RESP_TIME_MASK);
++}
 +
- /*
-  *  sm_key is not aligned on an 8-byte boundary, so is defined as a byte array
-  */
+ END_C_DECLS
+ #endif				/* _UMAD_TYPES_H */
 -- 
 1.7.1
 
