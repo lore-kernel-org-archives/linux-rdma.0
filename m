@@ -1,80 +1,27 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: [PATCH 23/45] infiniband: ehca: Use get/put_online_cpus_atomic() to
- prevent CPU offline
-Date: Sun, 23 Jun 2013 19:13:14 +0530
-Message-ID: <20130623134311.19094.9528.stgit@srivatsabhat.in.ibm.com>
-References: <20130623133642.19094.16038.stgit@srivatsabhat.in.ibm.com>
+From: Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [trivial] treewide: Add __GFP_NOWARN to k.alloc calls with
+ v.alloc fallbacks
+Date: Sun, 23 Jun 2013 14:40:51 -0400
+Message-ID: <20130623184051.GA13222@thunk.org>
+References: <1371669353.2038.45.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20130623133642.19094.16038.stgit@srivatsabhat.in.ibm.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: tglx@linutronix.de, peterz@infradead.org, tj@kernel.org, oleg@redhat.com, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au, mingo@kernel.org, akpm@linux-foundation.org, namhyung@kernel.org, walken@google.com, vincent.guittot@linaro.org, laijs@cn.fujitsu.com
-Cc: rostedt@goodmis.org, wangyun@linux.vnet.ibm.com, xiaoguangrong@linux.vnet.ibm.com, sbw@mit.edu, fweisbec@gmail.com, zhong@linux.vnet.ibm.com, nikunj@linux.vnet.ibm.com, srivatsa.bhat@linux.vnet.ibm.com, linux-pm@vger.kernel.org, linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-btrfs-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1371669353.2038.45.camel@joe-AO722>
+Sender: linux-btrfs-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Jiri Kosina <trivial@kernel.org>, Lars Ellenberg <drbd-dev@lists.linbit.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, Dimitris Michailidis <dm@chelsio.com>, "James E.J. Bottomley" <JBottomley@parallels.com>, Chris Mason <chris.mason@fusionio.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Steven Whitehouse <swhiteho@redhat.com>, Jamal Hadi Salim <jhs@mojatatu.com>, "David S. Miller" <davem@davemloft.net>, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, cluster-devel <cluster-devel@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Once stop_machine() is gone from the CPU offline path, we won't be able
-to depend on disabling preemption to prevent CPUs from going offline
-from under us.
+On Wed, Jun 19, 2013 at 12:15:53PM -0700, Joe Perches wrote:
+> Don't emit OOM warnings when k.alloc calls fail when
+> there there is a v.alloc immediately afterwards.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-Use the get/put_online_cpus_atomic() APIs to prevent CPUs from going
-offline, while invoking from atomic context.
+For fs/ext4/super.c:
 
-Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
----
+Acked-by: "Theodore Ts'o" <tytso@mit.edu>
 
- drivers/infiniband/hw/ehca/ehca_irq.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/infiniband/hw/ehca/ehca_irq.c b/drivers/infiniband/hw/ehca/ehca_irq.c
-index 8615d7c..ace901e 100644
---- a/drivers/infiniband/hw/ehca/ehca_irq.c
-+++ b/drivers/infiniband/hw/ehca/ehca_irq.c
-@@ -43,6 +43,7 @@
- 
- #include <linux/slab.h>
- #include <linux/smpboot.h>
-+#include <linux/cpu.h>
- 
- #include "ehca_classes.h"
- #include "ehca_irq.h"
-@@ -703,6 +704,7 @@ static void queue_comp_task(struct ehca_cq *__cq)
- 	int cq_jobs;
- 	unsigned long flags;
- 
-+	get_online_cpus_atomic();
- 	cpu_id = find_next_online_cpu(pool);
- 	BUG_ON(!cpu_online(cpu_id));
- 
-@@ -720,6 +722,7 @@ static void queue_comp_task(struct ehca_cq *__cq)
- 		BUG_ON(!cct || !thread);
- 	}
- 	__queue_comp_task(__cq, cct, thread);
-+	put_online_cpus_atomic();
- }
- 
- static void run_comp_task(struct ehca_cpu_comp_task *cct)
-@@ -759,6 +762,7 @@ static void comp_task_park(unsigned int cpu)
- 	list_splice_init(&cct->cq_list, &list);
- 	spin_unlock_irq(&cct->task_lock);
- 
-+	get_online_cpus_atomic();
- 	cpu = find_next_online_cpu(pool);
- 	target = per_cpu_ptr(pool->cpu_comp_tasks, cpu);
- 	thread = *per_cpu_ptr(pool->cpu_comp_threads, cpu);
-@@ -768,6 +772,7 @@ static void comp_task_park(unsigned int cpu)
- 		__queue_comp_task(cq, target, thread);
- 	}
- 	spin_unlock_irq(&target->task_lock);
-+	put_online_cpus_atomic();
- }
- 
- static void comp_task_stop(unsigned int cpu, bool online)
-
+					- Ted
