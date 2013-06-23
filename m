@@ -1,27 +1,36 @@
-From: Theodore Ts'o <tytso@mit.edu>
-Subject: Re: [trivial] treewide: Add __GFP_NOWARN to k.alloc calls with
- v.alloc fallbacks
-Date: Sun, 23 Jun 2013 14:40:51 -0400
-Message-ID: <20130623184051.GA13222@thunk.org>
-References: <1371669353.2038.45.camel@joe-AO722>
+From: Mike Christie <michaelc@cs.wisc.edu>
+Subject: Re: [PATCH 07/14] scsi_transport_srp: Add transport layer error handling
+Date: Sun, 23 Jun 2013 16:13:31 -0500
+Message-ID: <51C764FB.6070207@cs.wisc.edu>
+References: <51B87501.4070005@acm.org> <51B8777B.5050201@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1371669353.2038.45.camel@joe-AO722>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Jiri Kosina <trivial@kernel.org>, Lars Ellenberg <drbd-dev@lists.linbit.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, Dimitris Michailidis <dm@chelsio.com>, "James E.J. Bottomley" <JBottomley@parallels.com>, Chris Mason <chris.mason@fusionio.com>, Andreas Dilger <adilger.kernel@dilger.ca>, Steven Whitehouse <swhiteho@redhat.com>, Jamal Hadi Salim <jhs@mojatatu.com>, "David S. Miller" <davem@davemloft.net>, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, cluster-devel <cluster-devel@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <51B8777B.5050201@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Roland Dreier <roland@kernel.org>, David Dillow <dillowda@ornl.gov>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, James Bottomley <jbottomley@parallels.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 19, 2013 at 12:15:53PM -0700, Joe Perches wrote:
-> Don't emit OOM warnings when k.alloc calls fail when
-> there there is a v.alloc immediately afterwards.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
+On 06/12/2013 08:28 AM, Bart Van Assche wrote:
+> +		/*
+> +		 * It can occur that after fast_io_fail_tmo expired and before
+> +		 * dev_loss_tmo expired that the SCSI error handler has
+> +		 * offlined one or more devices. scsi_target_unblock() doesn't
+> +		 * change the state of these devices into running, so do that
+> +		 * explicitly.
+> +		 */
+> +		spin_lock_irq(shost->host_lock);
+> +		__shost_for_each_device(sdev, shost)
+> +			if (sdev->sdev_state == SDEV_OFFLINE)
+> +				sdev->sdev_state = SDEV_RUNNING;
+> +		spin_unlock_irq(shost->host_lock);
 
-For fs/ext4/super.c:
+Is it possible for this to race with scsi_eh_offline_sdevs? Can it be
+looping over cmds offlining devices while this is looping over devices
+onlining them?
 
-Acked-by: "Theodore Ts'o" <tytso@mit.edu>
-
-					- Ted
+It seems this can also happen for all transports/drivers. Maybe a a scsi
+eh/lib helper function that syncrhonizes with the scsi eh completion
+would be better.
