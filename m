@@ -1,40 +1,80 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/ocrdma: fix error return code in ocrdma_set_create_qp_rq_cmd()
-Date: Sun, 23 Jun 2013 09:07:19 +0800
-Message-ID: <CAPgLHd-bgyGCH0+i5HJzTmaLZshw9BPO5hf5p3EROxaLwygrQw@mail.gmail.com>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: [PATCH 23/45] infiniband: ehca: Use get/put_online_cpus_atomic() to
+ prevent CPU offline
+Date: Sun, 23 Jun 2013 19:13:14 +0530
+Message-ID: <20130623134311.19094.9528.stgit@srivatsabhat.in.ibm.com>
+References: <20130623133642.19094.16038.stgit@srivatsabhat.in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20130623133642.19094.16038.stgit@srivatsabhat.in.ibm.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: tglx@linutronix.de, peterz@infradead.org, tj@kernel.org, oleg@redhat.com, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au, mingo@kernel.org, akpm@linux-foundation.org, namhyung@kernel.org, walken@google.com, vincent.guittot@linaro.org, laijs@cn.fujitsu.com
+Cc: rostedt@goodmis.org, wangyun@linux.vnet.ibm.com, xiaoguangrong@linux.vnet.ibm.com, sbw@mit.edu, fweisbec@gmail.com, zhong@linux.vnet.ibm.com, nikunj@linux.vnet.ibm.com, srivatsa.bhat@linux.vnet.ibm.com, linux-pm@vger.kernel.org, linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+Once stop_machine() is gone from the CPU offline path, we won't be able
+to depend on disabling preemption to prevent CPUs from going offline
+from under us.
 
-Fix to return -ENOMEM in the alloc dma coherent error
-case instead of 0, as done elsewhere in this function.
+Use the get/put_online_cpus_atomic() APIs to prevent CPUs from going
+offline, while invoking from atomic context.
 
-Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 71942af..672aba2 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1900,7 +1900,7 @@ static int ocrdma_set_create_qp_rq_cmd(struct ocrdma_create_qp_req *cmd,
+ drivers/infiniband/hw/ehca/ehca_irq.c |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/infiniband/hw/ehca/ehca_irq.c b/drivers/infiniband/hw/ehca/ehca_irq.c
+index 8615d7c..ace901e 100644
+--- a/drivers/infiniband/hw/ehca/ehca_irq.c
++++ b/drivers/infiniband/hw/ehca/ehca_irq.c
+@@ -43,6 +43,7 @@
  
- 	qp->rq.va = dma_alloc_coherent(&pdev->dev, len, &pa, GFP_KERNEL);
- 	if (!qp->rq.va)
--		return status;
-+		return -ENOMEM;
- 	memset(qp->rq.va, 0, len);
- 	qp->rq.pa = pa;
- 	qp->rq.len = len;
+ #include <linux/slab.h>
+ #include <linux/smpboot.h>
++#include <linux/cpu.h>
+ 
+ #include "ehca_classes.h"
+ #include "ehca_irq.h"
+@@ -703,6 +704,7 @@ static void queue_comp_task(struct ehca_cq *__cq)
+ 	int cq_jobs;
+ 	unsigned long flags;
+ 
++	get_online_cpus_atomic();
+ 	cpu_id = find_next_online_cpu(pool);
+ 	BUG_ON(!cpu_online(cpu_id));
+ 
+@@ -720,6 +722,7 @@ static void queue_comp_task(struct ehca_cq *__cq)
+ 		BUG_ON(!cct || !thread);
+ 	}
+ 	__queue_comp_task(__cq, cct, thread);
++	put_online_cpus_atomic();
+ }
+ 
+ static void run_comp_task(struct ehca_cpu_comp_task *cct)
+@@ -759,6 +762,7 @@ static void comp_task_park(unsigned int cpu)
+ 	list_splice_init(&cct->cq_list, &list);
+ 	spin_unlock_irq(&cct->task_lock);
+ 
++	get_online_cpus_atomic();
+ 	cpu = find_next_online_cpu(pool);
+ 	target = per_cpu_ptr(pool->cpu_comp_tasks, cpu);
+ 	thread = *per_cpu_ptr(pool->cpu_comp_threads, cpu);
+@@ -768,6 +772,7 @@ static void comp_task_park(unsigned int cpu)
+ 		__queue_comp_task(cq, target, thread);
+ 	}
+ 	spin_unlock_irq(&target->task_lock);
++	put_online_cpus_atomic();
+ }
+ 
+ static void comp_task_stop(unsigned int cpu, bool online)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
