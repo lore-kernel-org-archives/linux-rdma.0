@@ -1,91 +1,93 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH ibsim] sim_client.c: Set issm flag on connect when SIM_SET_ISSM
- set
-Date: Mon, 24 Jun 2013 09:08:10 -0400
-Message-ID: <51C844BA.1050608@dev.mellanox.co.il>
+From: Jack Wang <jinpu.wang@profitbricks.com>
+Subject: RE: [PATCH 07/14] scsi_transport_srp: Add transport layer error handling
+Date: Mon, 24 Jun 2013 15:48:41 +0200
+Message-ID: <51C84E39.80806@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Roland Dreier <roland@kernel.org>, David Dillow <dillowda@ornl.gov>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, James Bottomley <jbottomley@parallels.com>, Mike Christie <michaelc@cs.wisc.edu>
 List-Id: linux-rdma@vger.kernel.org
 
+> I'm not sure it's possible to avoid such a race without introducing
+> a new mutex. How about something like the (untested) SCSI core patch
+> below, and invoking scsi_block_eh() and scsi_unblock_eh() around any
+> reconnect activity not initiated from the SCSI EH thread ?
+> 
+> [PATCH] Add scsi_block_eh() and scsi_unblock_eh()
+> 
+Hi Bart,
 
-When the SIM_SET_ISSM environment variable is set, ibsim did not
-set the issm bit until after an ibsim connection was complete.  This
-allowed multiple SMs to actively run as the SM on the the same port.
+The description doesn't match the code at all, do you mean try to
+serialize the reconnect activity with this new block_eh_mutex?
 
-Slight rework of original patch from Al Chu.
+Cheers,
+Jack
+> ---
+>  drivers/scsi/hosts.c      |    1 +
+>  drivers/scsi/scsi_error.c |   10 ++++++++++
+>  include/scsi/scsi_host.h  |    1 +
+>  3 files changed, 12 insertions(+)
+> 
+> diff --git a/drivers/scsi/hosts.c b/drivers/scsi/hosts.c
+> index 17e2ccb..0df3ec8 100644
+> --- a/drivers/scsi/hosts.c
+> +++ b/drivers/scsi/hosts.c
+> @@ -360,6 +360,7 @@ struct Scsi_Host *scsi_host_alloc(struct scsi_host_template *sht, int privsize)
+>         init_waitqueue_head(&shost->host_wait);
+> 
+>         mutex_init(&shost->scan_mutex);
+> +       mutex_init(&shost->block_eh_mutex);
+> 
+>         /*
+>          * subtract one because we increment first then return, but we need to
+> diff --git a/drivers/scsi/scsi_error.c b/drivers/scsi/scsi_error.c
+> index ab16930..566daaa 100644
+> --- a/drivers/scsi/scsi_error.c
+> +++ b/drivers/scsi/scsi_error.c
+> @@ -551,6 +551,10 @@ static int scsi_begin_eh(struct Scsi_Host *host)
+>  {
+>         int res;
+> 
+> +       res = mutex_lock_interruptible(&host->block_eh_mutex);
+> +       if (res)
+> +               goto out;
+> +
+>         spin_lock_irq(host->host_lock);
+>         switch (host->shost_state) {
+>         case SHOST_DEL:
+> @@ -565,6 +569,10 @@ static int scsi_begin_eh(struct Scsi_Host *host)
+>         }
+>         spin_unlock_irq(host->host_lock);
+> 
+> +       if (res)
+> +               mutex_unlock(&host->block_eh_mutex);
+> +
+> +out:
+>         return res;
+>  }
+> 
+> @@ -579,6 +587,8 @@ static void scsi_end_eh(struct Scsi_Host *host)
+>         if (host->eh_active == 0)
+>                 wake_up(&host->host_wait);
+>         spin_unlock_irq(host->host_lock);
+> +
+> +       mutex_unlock(&host->block_eh_mutex);
+>  }
+> 
+>  /**
+> diff --git a/include/scsi/scsi_host.h b/include/scsi/scsi_host.h
+> index 9785e51..d7ce065 100644
+> --- a/include/scsi/scsi_host.h
+> +++ b/include/scsi/scsi_host.h
+> @@ -573,6 +573,7 @@ struct Scsi_Host {
+>         spinlock_t              *host_lock;
+> 
+>         struct mutex            scan_mutex;/* serialize scanning activity */
+> +       struct mutex            block_eh_mutex; /* block ML LLD EH calls */
+> 
+>         struct list_head        eh_cmd_q;
+>         struct task_struct    * ehandler;  /* Error recovery thread. */
 
-Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> 
----
-diff --git a/umad2sim/sim_client.c b/umad2sim/sim_client.c
-index eb42a7c..cec72d9 100644
---- a/umad2sim/sim_client.c
-+++ b/umad2sim/sim_client.c
-@@ -173,12 +173,16 @@ static int sim_attach(int fd, union name_t *name, size_t size)
- 	return 0;
- }
- 
--static int sim_connect(struct sim_client *sc, int id, int qp, char *nodeid)
-+static int sim_connect(struct sim_client *sc, int id, int qp, char *nodeid,
-+		       char *issm)
- {
- 	struct sim_client_info info = { 0 };
- 
- 	info.id = id;
--	info.issm = 0;
-+	if (issm)
-+		info.issm = 1;
-+	else
-+		info.issm = 0;
- 	info.qp = qp;
- 
- 	if (nodeid)
-@@ -200,7 +204,7 @@ static int sim_disconnect(struct sim_client *sc)
- 	return sim_ctl(sc, SIM_CTL_DISCONNECT, 0, 0);
- }
- 
--static int sim_init(struct sim_client *sc, char *nodeid)
-+static int sim_init(struct sim_client *sc, char *nodeid, char *issm)
- {
- 	union name_t name;
- 	socklen_t size;
-@@ -254,7 +258,7 @@ static int sim_init(struct sim_client *sc, char *nodeid)
- 		IBPANIC("can't read data from bound socket");
- 	port = ntohs(name.name_i.sin_port);
- 
--	sc->clientid = sim_connect(sc, remote_mode ? port : pid, 0, nodeid);
-+	sc->clientid = sim_connect(sc, remote_mode ? port : pid, 0, nodeid, issm);
- 	if (sc->clientid < 0)
- 		IBPANIC("connect failed");
- 
-@@ -284,9 +288,11 @@ int sim_client_set_sm(struct sim_client *sc, unsigned issm)
- int sim_client_init(struct sim_client *sc)
- {
- 	char *nodeid;
-+	char *issm;
- 
- 	nodeid = getenv("SIM_HOST");
--	if (sim_init(sc, nodeid) < 0)
-+	issm = getenv("SIM_SET_ISSM");
-+	if (sim_init(sc, nodeid, issm) < 0)
- 		return -1;
- 	if (sim_ctl(sc, SIM_CTL_GET_VENDOR, &sc->vendor,
- 		    sizeof(sc->vendor)) < 0)
-@@ -301,7 +307,7 @@ int sim_client_init(struct sim_client *sc)
- 		goto _exit;
- 	if (sim_ctl(sc, SIM_CTL_GET_PKEYS, sc->pkeys, sizeof(sc->pkeys)) < 0)
- 		goto _exit;
--	if (getenv("SIM_SET_ISSM"))
-+	if (issm)
- 		sim_client_set_sm(sc, 1);
- 	return 0;
-   _exit:
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
