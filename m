@@ -1,49 +1,48 @@
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH 07/14] scsi_transport_srp: Add transport layer error handling
-Date: Mon, 24 Jun 2013 18:05:15 +0200
-Message-ID: <51C86E3B.7000308@profitbricks.com>
-References: <51C84E39.80806@profitbricks.com> <51C86AB4.1000906@acm.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_ucast_mgr.c: Fix extra copy in set_lft_block routine
+Date: Mon, 24 Jun 2013 12:47:39 -0400
+Message-ID: <51C8782B.6080308@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51C86AB4.1000906-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/24/2013 05:50 PM, Bart Van Assche wrote:
-> On 06/24/13 15:48, Jack Wang wrote:
->>> I'm not sure it's possible to avoid such a race without introducing
->>> a new mutex. How about something like the (untested) SCSI core patch
->>> below, and invoking scsi_block_eh() and scsi_unblock_eh() around any
->>> reconnect activity not initiated from the SCSI EH thread ?
->>>
->>> [PATCH] Add scsi_block_eh() and scsi_unblock_eh()
->>>
->> Hi Bart,
->>
->> The description doesn't match the code at all, do you mean try to
->> serialize the reconnect activity with this new block_eh_mutex?
-> 
-> In case it wasn't clear, the actual scsi_block_eh() and
-> scsi_unblock_eh() calls aren't present in the patch I posted, only their
-> implementation.
-As the patch title is "Add scsi_block_eh() and scsi_unblock_eh()", so I
-asked, thanks for explanation.
-> 
-> P.S.: please fix your e-mail client such that it does not break e-mail
-> threading. There are no "In-Reply-To:" tags in the header of your e-mails.
-> 
-Sorry for inconvenient, will fix it.
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks,
-Jack
-> Thanks,
-> 
-> Bart.
-
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
+index 12db434..f116a51 100644
+--- a/opensm/osm_ucast_mgr.c
++++ b/opensm/osm_ucast_mgr.c
+@@ -967,7 +967,6 @@ static void ucast_mgr_set_fwd_top(IN cl_map_item_t * p_map_item,
+ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
+ 			 IN uint16_t block_id_ho)
+ {
+-	uint8_t block[IB_SMP_DATA_SIZE];
+ 	osm_madw_context_t context;
+ 	osm_dr_path_t *p_path;
+ 	ib_api_status_t status;
+@@ -989,10 +988,10 @@ static int set_lft_block(IN osm_switch_t *p_sw, IN osm_ucast_mgr_t *p_mgr,
+ 	context.lft_context.node_guid = osm_node_get_node_guid(p_sw->p_node);
+ 	context.lft_context.set_method = TRUE;
+ 
+-	if (!osm_switch_get_lft_block(p_sw, block_id_ho, block) ||
+-	    (!p_sw->need_update && !p_mgr->p_subn->need_update &&
+-	     !memcmp(block, p_sw->new_lft + block_id_ho * IB_SMP_DATA_SIZE,
+-		     IB_SMP_DATA_SIZE)))
++	if (!p_sw->need_update && !p_mgr->p_subn->need_update &&
++	    !memcmp(p_sw->new_lft + block_id_ho * IB_SMP_DATA_SIZE,
++		    p_sw->lft + block_id_ho * IB_SMP_DATA_SIZE,
++		    IB_SMP_DATA_SIZE))
+ 		return 0;
+ 
+ 	OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
