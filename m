@@ -1,40 +1,45 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_trap_rcv.c: fix crash in babbling port feature
-Date: Mon, 24 Jun 2013 09:58:31 -0400
-Message-ID: <51C85087.6020307@dev.mellanox.co.il>
+Subject: [PATCH opensm] osm_ucast_mgr.c: Fix duplicated code for fallback
+ routing engine
+Date: Mon, 24 Jun 2013 10:33:05 -0400
+Message-ID: <51C858A1.2050307@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Port number should be less than number of ports (and never equal to).
-
-Found-by: Moawya Wahdan <mwahdan-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_trap_rcv.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ opensm/osm_ucast_mgr.c |    9 +--------
+ 1 files changed, 1 insertions(+), 8 deletions(-)
 
-diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
-index 5682679..df222de 100644
---- a/opensm/osm_trap_rcv.c
-+++ b/opensm/osm_trap_rcv.c
-@@ -91,7 +91,7 @@ static osm_physp_t *get_physp_by_lid_and_num(IN osm_sm_t * sm,
- 	if (!p_port)
- 		return NULL;
+diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
+index 611c5bc..aea69ef 100644
+--- a/opensm/osm_ucast_mgr.c
++++ b/opensm/osm_ucast_mgr.c
+@@ -1537,14 +1537,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
+ 	if (!p_osm->routing_engine_used &&
+ 	    p_osm->no_fallback_routing_engine != TRUE) {
+ 		/* If configured routing algorithm failed, use default MinHop */
+-		struct osm_routing_engine *r = p_osm->default_routing_engine;
+-
+-		r->build_lid_matrices(r->context);
+-		failed = r->ucast_build_fwd_tables(r->context);
+-		if (!failed) {
+-			p_osm->routing_engine_used = r;
+-			osm_ucast_mgr_set_fwd_tables(p_mgr);
+-		}
++		failed = ucast_mgr_route(p_osm->default_routing_engine, p_osm);
+ 	}
  
--	if (osm_node_get_num_physp(p_port->p_node) < num)
-+	if (osm_node_get_num_physp(p_port->p_node) <= num)
- 		return NULL;
- 
- 	return osm_node_get_physp_ptr(p_port->p_node, num);
+ 	/* if for some reason different routing engine is used */
 -- 
 1.7.8.2
 
