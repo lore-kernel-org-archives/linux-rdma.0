@@ -1,125 +1,87 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: New transmitter tunning settings for Dell 1.1
- backplane
-Date: Wed, 26 Jun 2013 10:46:22 -0400
-Message-ID: <20130626144622.8958.90725.stgit@phlsvslse11.ph.intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 2/4] IB/core: Infra-structure to support verbs
+ extensions through uverbs
+Date: Wed, 26 Jun 2013 18:17:07 +0300
+Message-ID: <51CB05F3.3040409@mellanox.com>
+References: <1372251464-13394-1-git-send-email-ogerlitz@mellanox.com> <1372251464-13394-3-git-send-email-ogerlitz@mellanox.com> <CAL1RGDWxmM17W2o_era24A-TTDeKyoL6u3NRu_=t_dhV_ZA9MA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDWxmM17W2o_era24A-TTDeKyoL6u3NRu_=t_dhV_ZA9MA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 26/06/2013 16:05, Roland Dreier wrote:
+> On Wed, Jun 26, 2013 at 5:57 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> Add Infra-structure to support extended uverbs capabilities in a forward/backward manner. Uverbs command opcodes which are based on the verbs extensions approach should be greater or equal to IB_USER_VERBS_CMD_THRESHOLD. They have new header format and processed a bit differently.
+> I think you missed the feedback I gave to the previous version of this patch:
+>
+>   This patch at least doesn't have a sufficient changelog.  I don't
+>   understand what "extended capabilities" are or why we need to change
+>   the header format.
+>
+>   What is the "verbs extensions approach"?  Why does the kernel need to
+>   know about it?  What is different about the processing?  The only
+>   difference I see is that userspace now has a more complicated way to
+>   pass the size in, which the kernel seems to nearly ignore -- it just
+>   adds the sizes together and proceeds as before.
 
-The Dell blade chassis got an updated backplane which requires
-new transmitter tuning settings.
+Roland, you provided the comment to this patch indeed, but it was on 
+another series where the patch was posted, the RoCE IP based addressing 
+one. I posted it twice since its an infrastructure (...) patch used by 
+both series, I wanted to post V2 of the flow steering patches to make 
+sure I addressed your comment on the void pointer OK, and take things 
+from there, never mind.
 
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_iba7322.c |   59 +++++++++++++++++++------------
- 1 file changed, 37 insertions(+), 22 deletions(-)
+To the point, the uverbs extensions construct is basically made from two 
+building blocks
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 08fd74a..16b47ca 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -582,7 +582,7 @@ struct vendor_txdds_ent {
- static void write_tx_serdes_param(struct qib_pportdata *, struct txdds_ent *);
- 
- #define TXDDS_TABLE_SZ 16 /* number of entries per speed in onchip table */
--#define TXDDS_EXTRA_SZ 13 /* number of extra tx settings entries */
-+#define TXDDS_EXTRA_SZ 18 /* number of extra tx settings entries */
- #define TXDDS_MFG_SZ 2    /* number of mfg tx settings entries */
- #define SERDES_CHANS 4 /* yes, it's obvious, but one less magic number */
- 
-@@ -7458,15 +7458,20 @@ static const struct txdds_ent txdds_extra_sdr[TXDDS_EXTRA_SZ] = {
- 	{  0, 0, 0,  1 },	/* QMH7342 backplane settings */
- 	{  0, 0, 0,  2 },	/* QMH7342 backplane settings */
- 	{  0, 0, 0,  2 },	/* QMH7342 backplane settings */
--	{  0, 0, 0, 11 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 11 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 11 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 11 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 11 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 11 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 11 },	/* QME7342 backplane settings */
- 	{  0, 0, 0,  3 },	/* QMH7342 backplane settings */
- 	{  0, 0, 0,  4 },	/* QMH7342 backplane settings */
-+	{  0, 1, 4, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 3, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0, 12 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0, 11 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0,  9 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0, 14 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 2, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0, 11 },       /* QME7342 backplane settings 1.1 */
-+	{  0, 1, 0,  7 },       /* QME7342 backplane settings 1.1 */
-+	{  0, 1, 0,  9 },       /* QME7342 backplane settings 1.1 */
-+	{  0, 1, 0,  6 },       /* QME7342 backplane settings 1.1 */
-+	{  0, 1, 0,  8 },       /* QME7342 backplane settings 1.1 */
- };
- 
- static const struct txdds_ent txdds_extra_ddr[TXDDS_EXTRA_SZ] = {
-@@ -7475,15 +7480,20 @@ static const struct txdds_ent txdds_extra_ddr[TXDDS_EXTRA_SZ] = {
- 	{  0, 0, 0,  7 },	/* QMH7342 backplane settings */
- 	{  0, 0, 0,  8 },	/* QMH7342 backplane settings */
- 	{  0, 0, 0,  8 },	/* QMH7342 backplane settings */
--	{  0, 0, 0, 13 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 13 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 13 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 13 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 13 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 13 },	/* QME7342 backplane settings */
--	{  0, 0, 0, 13 },	/* QME7342 backplane settings */
- 	{  0, 0, 0,  9 },	/* QMH7342 backplane settings */
- 	{  0, 0, 0, 10 },	/* QMH7342 backplane settings */
-+	{  0, 1, 4, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 3, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0, 12 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0, 11 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0,  9 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0, 14 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 2, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1, 0, 11 },       /* QME7342 backplane settings 1.1 */
-+	{  0, 1, 0,  7 },       /* QME7342 backplane settings 1.1 */
-+	{  0, 1, 0,  9 },       /* QME7342 backplane settings 1.1 */
-+	{  0, 1, 0,  6 },       /* QME7342 backplane settings 1.1 */
-+	{  0, 1, 0,  8 },       /* QME7342 backplane settings 1.1 */
- };
- 
- static const struct txdds_ent txdds_extra_qdr[TXDDS_EXTRA_SZ] = {
-@@ -7492,15 +7502,20 @@ static const struct txdds_ent txdds_extra_qdr[TXDDS_EXTRA_SZ] = {
- 	{  0, 1,  0,  5 },	/* QMH7342 backplane settings */
- 	{  0, 1,  0,  6 },	/* QMH7342 backplane settings */
- 	{  0, 1,  0,  8 },	/* QMH7342 backplane settings */
--	{  0, 1, 12, 10 },	/* QME7342 backplane setting */
--	{  0, 1, 12, 11 },	/* QME7342 backplane setting */
--	{  0, 1, 12, 12 },	/* QME7342 backplane setting */
--	{  0, 1, 12, 14 },	/* QME7342 backplane setting */
--	{  0, 1, 12,  6 },	/* QME7342 backplane setting */
--	{  0, 1, 12,  7 },	/* QME7342 backplane setting */
--	{  0, 1, 12,  8 },	/* QME7342 backplane setting */
- 	{  0, 1,  0, 10 },	/* QMH7342 backplane settings */
- 	{  0, 1,  0, 12 },	/* QMH7342 backplane settings */
-+	{  0, 1,  4, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1,  3, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1,  0, 12 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1,  0, 11 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1,  0,  9 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1,  0, 14 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1,  2, 15 },	/* QME7342 backplane settings 1.0 */
-+	{  0, 1,  0, 11 },      /* QME7342 backplane settings 1.1 */
-+	{  0, 1,  0,  7 },      /* QME7342 backplane settings 1.1 */
-+	{  0, 1,  0,  9 },      /* QME7342 backplane settings 1.1 */
-+	{  0, 1,  0,  6 },      /* QME7342 backplane settings 1.1 */
-+	{  0, 1,  0,  8 },      /* QME7342 backplane settings 1.1 */
- };
- 
- static const struct txdds_ent txdds_extra_mfg[TXDDS_MFG_SZ] = {
+1. extended header which explicitly specifies the in/out verbs data size 
+and in/out provider data size
+
+2. a bit mask ("comp mask") which allows to specify what fields in the 
+uverbs command structure are used.
+
+The combination of 1 + 2 will allow to extend commands which are 
+provided along these building blocks without a need to bump the uverbs ABI.
+
+Today, the kernel uverbs layer assumes a given size for each command, so 
+for example, the provider udata IN size is in_words - size_of_cmd.
+
+For commands added along this framework, the kernel could support all 
+the previous "versions" towards user space in parallel, say we added new 
+command cmdX, to both user and kernel, where v0 is the initial version, 
+and later we added few fields to  and have cmdX_v1 and later on more 
+fields and have cmdX_v2
+
+
+> +struct ib_uverbs_cmd_hdr_ex {
+> +	__u32 command;
+> +	__u16 in_words;
+> +	__u16 out_words;
+> +	__u16 provider_in_words;
+> +	__u16 provider_out_words;
+> +	__u32 cmd_hdr_reserved;
+> +};
+> +
+>
+
+Based on the bits set in the comp mask and the in_words field value, the 
+kernel which has cmdX_v2 can work towards older user space 
+libraries/applications e.g cmdX_v1 and cmdX_v0
+
+The comp mask is not part of the header, but rather the 1st field of 
+every uverbs command and response, here, in this series, it was added in 
+patch 3/4 for the uverbs flow-steering structures which are cmdX_v0 in 
+this context.
+
+If we only used (in_words - size_of_cmd) we can't achieve that support.
+
+Or.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
