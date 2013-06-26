@@ -1,43 +1,27 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 2/4] IB/core: Infra-structure to support verbs
- extensions through uverbs
-Date: Wed, 26 Jun 2013 06:05:16 -0700
-Message-ID: <CAL1RGDWxmM17W2o_era24A-TTDeKyoL6u3NRu_=t_dhV_ZA9MA@mail.gmail.com>
-References: <1372251464-13394-1-git-send-email-ogerlitz@mellanox.com> <1372251464-13394-3-git-send-email-ogerlitz@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] osm_sa_mcmember_record.c validate_requested_mgid returning
+ boolean
+Date: Wed, 26 Jun 2013 09:51:11 -0400
+Message-ID: <51CAF1CF.8010105@dev.mellanox.co.il>
+References: <0f65d8e3-ddef-4d04-b00c-9b08038e1df2@default>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1372251464-13394-3-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <0f65d8e3-ddef-4d04-b00c-9b08038e1df2@default>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>
+To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 26, 2013 at 5:57 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> Add Infra-structure to support extended uverbs capabilities in a forward/backward
-> manner. Uverbs command opcodes which are based on the verbs extensions approach should
-> be greater or equal to IB_USER_VERBS_CMD_THRESHOLD. They have new header format
-> and processed a bit differently.
+On 6/26/2013 4:18 AM, Line Holen wrote:
+> Changed return type in function prototype to match actual return type.
+> 
+> Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-I think you missed the feedback I gave to the previous version of this patch:
+Thanks. Applied.
 
- This patch at least doesn't have a sufficient changelog.  I don't
- understand what "extended capabilities" are or why we need to change
- the header format.
-
- What is the "verbs extensions approach"?  Why does the kernel need to
- know about it?  What is different about the processing?  The only
- difference I see is that userspace now has a more complicated way to
- pass the size in, which the kernel seems to nearly ignore -- it just
- adds the sizes together and proceeds as before.
-
-I'm still wondering why the flow steering uverbs commands can't be
-normal uverbs commands.
-
-[And BTW, "infrastructure" is a normal word with no need for
-capitalization or hyphenation]
-
- - R.
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
