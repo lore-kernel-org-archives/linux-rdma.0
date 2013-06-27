@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v2 16/16 ibacm] Add option to allow for ACM cache lookup performance
- measurement
-Date: Thu, 27 Jun 2013 15:14:35 -0400
-Message-ID: <51CC8F1B.8090902@dev.mellanox.co.il>
+Subject: [PATCH v2 15/16 ibacm] Add support for preloading IPv4 and IPv6 ACM
+ caches
+Date: Thu, 27 Jun 2013 15:14:32 -0400
+Message-ID: <51CC8F18.3000509@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,264 +13,248 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
--C option is added for resolution repetition count
+A hosts file (ibacm_hosts.cfg) is configured with tuples of
+IP addresses (either IPv4 or IPv6) and IB GID. This information
+in conjunction with the path record preloading allows
+for the IPv4 and IPv6 ACM caches to be preloaded.
+
+IPv4 was tested with both rping and ucmatose as well as
+acme. IPv6 was tested with ucmatose and acme.
+
+The remaining ACM cache to be preloaded is the name cache.
+This will be added in subsequent patch.
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Change since v1:
-Rebased
+Change from v1:
+Eliminated command line option in favor of option file parameters
 
- man/ib_acme.1 |    8 ++++++--
- src/acme.c    |   52 +++++++++++++++++++++++++++++++---------------------
- src/libacm.c  |   20 +++++++++++---------
- src/libacm.h  |    7 +++++--
- 4 files changed, 53 insertions(+), 34 deletions(-)
+ Makefile.am     |    2 +-
+ acm_notes.txt   |    3 ++
+ ibacm_hosts.cfg |   12 ++++++++
+ ibacm_opts.cfg  |    6 ++++
+ man/ibacm.1     |    4 ++
+ src/acm.c       |   83 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/acme.c      |    6 ++++
+ 7 files changed, 115 insertions(+), 1 deletions(-)
+ create mode 100644 ibacm_hosts.cfg
 
-diff --git a/man/ib_acme.1 b/man/ib_acme.1
-index 6485858..e67a242 100644
---- a/man/ib_acme.1
-+++ b/man/ib_acme.1
-@@ -1,10 +1,10 @@
--.TH "ib_acme" 7 "2013-06-15" "ib_acme" "ib_acme" ib_acme
-+.TH "ib_acme" 7 "2013-06-21" "ib_acme" "ib_acme" ib_acme
- .SH NAME
- ib_acme \- test and configuration utility for the IB ACM
- .SH SYNOPSIS
- .sp
- .nf
--\fIib_acme\fR [-f addr_format] [-s src_addr] -d dest_addr [-v] [-c] [-P] [-S svc_addr]
-+\fIib_acme\fR [-f addr_format] [-s src_addr] -d dest_addr [-v] [-c] [-P] [-S svc_addr] [-C repetitions]
- .fi
- .nf
- \fIib_acme\fR [-A [addr_file]] [-O [opt_file]] [-D dest_dir] [-V]
-@@ -48,6 +48,10 @@ Queries performance data from the destination service
- \-S svc_addr
- address of ACM service, default: local service
- .TP
-+\-C repetitions
-+number of repetitions to perform resolution.  Used to measure
-+performance of ACM cache lookups.  Defaults to 1. 
-+.TP
- \-A [addr_file]
- With this option, the ib_acme utility automatically generates the address
- configuration file ibacm_addr.cfg.  The generated file is
-diff --git a/src/acme.c b/src/acme.c
-index 648e97f..525868e 100644
---- a/src/acme.c
-+++ b/src/acme.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2009-2010 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved. 
-  *
-  * This software is available to you under the OpenIB.org BSD license
-  * below:
-@@ -55,6 +56,7 @@ static char *src_arg;
- static char addr_type = 'u';
- static int verify;
- static int nodelay;
-+static int repetitions = 1;
+diff --git a/Makefile.am b/Makefile.am
+index de035bc..c97326a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -20,7 +20,7 @@ man_MANS = \
  
- enum perf_query_output {
- 	PERF_QUERY_NONE,
-@@ -84,6 +86,7 @@ static void show_usage(char *program)
- 	printf("   [-c]             - read ACM cached data only\n");
- 	printf("   [-P]             - query performance data from destination service\n");
- 	printf("   [-S svc_addr]    - address of ACM service, default: local service\n");
-+	printf("   [-C repetitions] - repeat count for resolution\n");
- 	printf("usage 2: %s\n", program);
- 	printf("Generate default ibacm service configuration and option files\n");
- 	printf("   -A [addr_file]   - generate local address configuration file\n");
-@@ -528,7 +531,7 @@ static int resolve_ip(struct ibv_path_record *path)
+ EXTRA_DIST = src/acm_mad.h src/libacm.h ibacm.init.in \
+ 	     linux/osd.h linux/dlist.h ibacm.spec.in $(man_MANS) ibacm_opts.cfg \
+-	     ibacm_addr.cfg
++	     ibacm_addr.cfg ibacm_hosts.cfg
  
- 	ret = ib_acm_resolve_ip(saddr,
- 		(is_ipv6_dest ? (struct sockaddr *) &dest6 : (struct sockaddr *) &dest),
--		&paths, &count, get_resolve_flags());
-+		&paths, &count, get_resolve_flags(), (repetitions == 1));
- 	if (ret) {
- 		printf("ib_acm_resolve_ip failed: %s\n", strerror(errno));
- 		return ret;
-@@ -544,7 +547,7 @@ static int resolve_name(struct ibv_path_record *path)
- 	struct ibv_path_data *paths;
- 	int ret, count;
+ install-exec-hook:
+ 	install -D -m 755 ibacm.init $(DESTDIR)$(sysconfdir)/init.d/ibacm;
+diff --git a/acm_notes.txt b/acm_notes.txt
+index 50f0286..991b251 100644
+--- a/acm_notes.txt
++++ b/acm_notes.txt
+@@ -138,3 +138,6 @@ none which does not preload these caches.  See dump_pr.notes.txt in dump_pr
+ for more information on the full_opensm_v1 file format and how to configure
+ OpenSM to generate this file.
  
--	ret = ib_acm_resolve_name(src_addr, dest_addr, &paths, &count, get_resolve_flags());
-+	ret = ib_acm_resolve_name(src_addr, dest_addr, &paths, &count, get_resolve_flags(), (repetitions == 1));
- 	if (ret) {
- 		printf("ib_acm_resolve_name failed: %s\n", strerror(errno));
- 		return ret;
-@@ -658,7 +661,7 @@ static void resolve(char *svc)
- {
- 	char **dest_list, **src_list;
- 	struct ibv_path_record path;
--	int ret, d = 0, s = 0;
-+	int ret = 0, d = 0, s = 0, i;
- 	char dest_type;
++Additional IPv4 and IPv6 caches can be be preloaded by using the
++hosts_file option.  The default is "none" which does not preload these
++caches.
+diff --git a/ibacm_hosts.cfg b/ibacm_hosts.cfg
+new file mode 100644
+index 0000000..32b6594
+--- /dev/null
++++ b/ibacm_hosts.cfg
+@@ -0,0 +1,12 @@
++# InfiniBand Communication Management Assistant for clusters hosts file
++#
++# Entry format is:
++# address IB GID
++#
++# address - IPv4 or IPv6 formatted address
++#
++# There can be multiple entries for a single IB GID
++#
++# Samples:
++# 192.168.1.3 fe80::8:f104:39a:169 
++# fe80::208:f104:39a:169 fe80::8:f104:39a:169
+diff --git a/ibacm_opts.cfg b/ibacm_opts.cfg
+index 968a99d..0e21d37 100644
+--- a/ibacm_opts.cfg
++++ b/ibacm_opts.cfg
+@@ -155,3 +155,9 @@ path_rec_fmt none
+ # If path_rec_fmt is other than "none", full pathname of path records file
+ # to use for preloading the ACM cache.  Default is ACM_CONF_DIR/ibacm_path_records.dump
  
- 	dest_list = parse(dest_arg, NULL);
-@@ -678,23 +681,25 @@ static void resolve(char *svc)
- 			printf("Destination: %s\n", dest_addr);
- 			if (src_addr)
- 				printf("Source: %s\n", src_addr);
--			switch (dest_type) {
--			case 'i':
--				ret = resolve_ip(&path);
--				break;
--			case 'n':
--				ret = resolve_name(&path);
--				break;
--			case 'l':
--				memset(&path, 0, sizeof path);
--				ret = resolve_lid(&path);
--				break;
--			case 'g':
--				memset(&path, 0, sizeof path);
--				ret = resolve_gid(&path);
--				break;
--			default:
--				break;
-+			for (i = 0; i < repetitions; i++) {
-+				switch (dest_type) {
-+				case 'i':
-+					ret = resolve_ip(&path);
-+					break;
-+				case 'n':
-+					ret = resolve_name(&path);
-+					break;
-+				case 'l':
-+					memset(&path, 0, sizeof path);
-+					ret = resolve_lid(&path);
-+					break;
-+				case 'g':
-+					memset(&path, 0, sizeof path);
-+					ret = resolve_gid(&path);
-+					break;
-+				default:
-+					break;
-+				}
- 			}
- 
- 			if (!ret)
-@@ -798,7 +803,7 @@ int CDECL_FUNC main(int argc, char **argv)
- 	if (ret)
- 		goto out;
- 
--	while ((op = getopt(argc, argv, "f:s:d:vcA::O::D:P::S:V")) != -1) {
-+	while ((op = getopt(argc, argv, "f:s:d:vcA::O::D:P::S:C:V")) != -1) {
- 		switch (op) {
- 		case 'f':
- 			addr_type = optarg[0];
-@@ -840,6 +845,11 @@ int CDECL_FUNC main(int argc, char **argv)
- 		case 'S':
- 			svc_arg = optarg;
- 			break;
-+		case 'C':
-+			repetitions = atoi(optarg);
-+			if (!repetitions)
-+				repetitions = 1;
-+			break;
- 		case 'V':
- 			verbose = 1;
- 			break;
-diff --git a/src/libacm.c b/src/libacm.c
-index 274eb2d..1bf7030 100644
---- a/src/libacm.c
-+++ b/src/libacm.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2009 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved.
-  *
-  * This software is available to you under the OpenIB.org BSD license
-  * below:
-@@ -113,7 +114,7 @@ void ib_acm_disconnect(void)
- }
- 
- static int acm_format_resp(struct acm_msg *msg,
--	struct ibv_path_data **paths, int *count)
-+	struct ibv_path_data **paths, int *count, int print)
- {
- 	struct ibv_path_data *path_data;
- 	char addr[ACM_MAX_ADDRESS];
-@@ -154,7 +155,8 @@ static int acm_format_resp(struct acm_msg *msg,
- 			default:
- 				goto err;
- 			}
--			printf("Source: %s\n", addr);
-+			if (print)
-+				printf("Source: %s\n", addr);
- 			break;
- 		}
- 	}
-@@ -221,7 +223,7 @@ static int acm_error(uint8_t status)
- }
- 
- static int acm_resolve(uint8_t *src, uint8_t *dest, uint8_t type,
--	struct ibv_path_data **paths, int *count, uint32_t flags)
-+	struct ibv_path_data **paths, int *count, uint32_t flags, int print)
- {
- 	struct acm_msg msg;
- 	int ret, cnt = 0;
-@@ -258,28 +260,28 @@ static int acm_resolve(uint8_t *src, uint8_t *dest, uint8_t type,
- 		goto out;
- 	}
- 
--	ret = acm_format_resp(&msg, paths, count);
-+	ret = acm_format_resp(&msg, paths, count, print);
- out:
- 	lock_release(&lock);
++# hosts_file:
++# none - No hosts file
++# If hosts_file is other than "none", full pathname of hosts file
++
++hosts_file none
++
+diff --git a/man/ibacm.1 b/man/ibacm.1
+index 7c5f83d..7e11393 100644
+--- a/man/ibacm.1
++++ b/man/ibacm.1
+@@ -156,5 +156,9 @@ format.  Default format is none which does not preload these caches.
+ See dump_pr.notes.txt in dump_pr for more information on the
+ full_opensm_v1 file format and how to configure OpenSM to
+ generate this file.
++.P
++Additional IPv4 and IPv6 caches can be be preloaded by using the
++hosts_file option.  The default is "none" which does not preload these
++caches.
+ .SH "SEE ALSO"
+ ibacm(7), ib_acme(1), rdma_cm(7)
+diff --git a/src/acm.c b/src/acm.c
+index 74c99e3..faa851a 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -219,6 +219,7 @@ static char *acme = BINDIR "/ib_acme -A";
+ static char *opts_file = ACM_CONF_DIR "/" ACM_OPTS_FILE;
+ static char *addr_file = ACM_CONF_DIR "/" ACM_ADDR_FILE;
+ static char path_rec_file[128] = ACM_CONF_DIR "/" ACM_PATH_REC_FILE;
++static char hosts_file[128] = "none";
+ static char log_file[128] = "/var/log/ibacm.log";
+ static int log_level = 0;
+ static char lock_file[128] = "/var/run/ibacm.pid";
+@@ -234,6 +235,7 @@ static int resolve_depth = 1;
+ static int sa_depth = 1;
+ static int send_depth = 1;
+ static int recv_depth = 1024;
++static int hosts_opt = 0;
+ static uint8_t min_mtu = IBV_MTU_2048;
+ static uint8_t min_rate = IBV_RATE_10_GBPS;
+ static enum acm_path_rec_fmt path_rec_fmt = ACM_PATH_REV_FMT_NONE;
+@@ -2790,6 +2792,73 @@ err:
  	return ret;
  }
  
- int ib_acm_resolve_name(char *src, char *dest,
--	struct ibv_path_data **paths, int *count, uint32_t flags)
-+	struct ibv_path_data **paths, int *count, uint32_t flags, int print)
++static void acm_parse_hosts_file(struct acm_ep *ep)
++{
++	FILE *f;
++	char s[120];
++	char addr[INET6_ADDRSTRLEN], gid[INET6_ADDRSTRLEN];
++	uint8_t name[ACM_MAX_ADDRESS];
++	struct in6_addr ip_addr, ib_addr;
++	struct acm_dest *dest, *new_dest;
++	uint8_t addr_type;
++
++	if (!(f = fopen(hosts_file, "r"))) {
++		acm_log(0, "ERROR - couldn't open %s\n", hosts_file);
++		return;
++        }
++
++	while (fgets(s, sizeof s, f)) {
++		if (s[0] == '#')
++			continue;
++
++		if (sscanf(s, "%46s%46s", addr, gid) != 2)
++			continue;
++
++		acm_log(2, "%s", s);
++		if (inet_pton(AF_INET6, gid, &ib_addr) <= 0) {
++			acm_log(0, "ERROR - %s is not IB GID\n", gid);
++			continue;
++		}
++		if (inet_pton(AF_INET, addr, &ip_addr) > 0)
++			addr_type = ACM_ADDRESS_IP;
++		else if (inet_pton(AF_INET6, addr, &ip_addr) > 0)
++			addr_type = ACM_ADDRESS_IP6;
++		else {
++			acm_log(0, "ERROR - %s is not IP address\n", addr);
++			continue;
++		}
++
++		memset(name, 0, ACM_MAX_ADDRESS);
++		memcpy(name, &ib_addr, sizeof(ib_addr));
++		dest = acm_get_dest(ep, ACM_ADDRESS_GID, name);
++		if (!dest) {
++			acm_log(0, "ERROR - IB GID %s not found in cache\n", gid);
++			continue;
++		}
++
++		memset(name, 0, ACM_MAX_ADDRESS);
++		if (addr_type == ACM_ADDRESS_IP)
++			memcpy(name, &ip_addr, 4);
++		else
++			memcpy(name, &ip_addr, sizeof(ip_addr));
++		new_dest = acm_acquire_dest(ep, addr_type, name);
++		if (!new_dest) {
++			acm_log(0, "ERROR - unable to create dest %s\n", addr);
++			continue;
++		}
++		new_dest->path = dest->path;
++		new_dest->remote_qpn = dest->remote_qpn;
++		new_dest->addr_timeout = dest->addr_timeout;
++		new_dest->route_timeout = dest->route_timeout;
++		new_dest->state = dest->state;
++		acm_put_dest(new_dest);
++		acm_log(1, "added host %s address type %d IB GID %s\n",
++			addr, addr_type, gid);
++	}
++
++	fclose(f);
++}
++
+ static int acm_assign_ep_names(struct acm_ep *ep)
  {
- 	return acm_resolve((uint8_t *) src, (uint8_t *) dest,
--		ACM_EP_INFO_NAME, paths, count, flags);
-+		ACM_EP_INFO_NAME, paths, count, flags, print);
- }
- 
- int ib_acm_resolve_ip(struct sockaddr *src, struct sockaddr *dest,
--	struct ibv_path_data **paths, int *count, uint32_t flags)
-+	struct ibv_path_data **paths, int *count, uint32_t flags, int print)
- {
- 	if (((struct sockaddr *) dest)->sa_family == AF_INET) {
- 		return acm_resolve((uint8_t *) src, (uint8_t *) dest,
--			ACM_EP_INFO_ADDRESS_IP, paths, count, flags);
-+			ACM_EP_INFO_ADDRESS_IP, paths, count, flags, print);
- 	} else {
- 		return acm_resolve((uint8_t *) src, (uint8_t *) dest,
--			ACM_EP_INFO_ADDRESS_IP6, paths, count, flags);
-+			ACM_EP_INFO_ADDRESS_IP6, paths, count, flags, print);
+ 	FILE *faddr;
+@@ -3046,6 +3115,12 @@ static void acm_ep_up(struct acm_port *port, uint16_t pkey_index)
+ 			acm_log(1, "unable to find ep in path records\n");
  	}
+ 
++	if (hosts_opt) {
++		if (path_rec_fmt == ACM_PATH_REV_FMT_NONE)
++			acm_log(0, "when using hosts file option should also use path records option\n");
++		acm_parse_hosts_file(ep);
++	}
++
+ 	return;
+ 
+ err2:
+@@ -3362,6 +3437,13 @@ static void acm_set_options(void)
+ 			path_rec_fmt = acm_convert_path_rec_fmt(value);
+ 		else if (!stricmp("path_rec_file", opt))
+ 			strcpy(path_rec_file, value);
++		else if (!stricmp("hosts_file", opt)) {
++			strcpy(hosts_file, value);
++			if (!stricmp(hosts_file, "none"))
++				hosts_opt = 0;
++			else
++				hosts_opt = 1;
++		}
+ 	}
+ 
+ 	fclose(f);
+@@ -3387,6 +3469,7 @@ static void acm_log_options(void)
+ 	acm_log(0, "minimum rate %d\n", min_rate);
+ 	acm_log(0, "path record format %d\n", path_rec_fmt);
+ 	acm_log(0, "path record file %s\n", path_rec_file);
++	acm_log(0, "hosts file %s\n", hosts_file);
  }
  
-diff --git a/src/libacm.h b/src/libacm.h
-index 61220d5..9a241aa 100644
---- a/src/libacm.h
-+++ b/src/libacm.h
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2009 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved.
-  *
-  * This software is available to you under the OpenIB.org BSD license
-  * below:
-@@ -36,9 +37,11 @@ int ib_acm_connect(char *dest_svc);
- void ib_acm_disconnect();
+ static FILE *acm_open_log(void)
+diff --git a/src/acme.c b/src/acme.c
+index 5ba5c0a..648e97f 100644
+--- a/src/acme.c
++++ b/src/acme.c
+@@ -256,6 +256,12 @@ static void gen_opts_temp(FILE *f)
+ 	fprintf(f, "# If path_rec_fmt is other than \"none\", full pathname of path records file\n");
+ 	fprintf(f, "# to use for preloading the ACM cache.  Default is ACM_CONF_DIR/ibacm_path_records.dump\n");
+ 	fprintf(f, "\n");
++	fprintf(f, "# hosts_file:\n");
++	fprintf(f, "# none - No hosts file\n");
++	fprintf(f, "# If hosts_file is other than \"none\", full pathname of hosts file\n");
++	fprintf(f, "\n");
++	fprintf(f, "hosts_file none\n");
++	fprintf(f, "\n");
+ }
  
- int ib_acm_resolve_name(char *src, char *dest,
--	struct ibv_path_data **paths, int *count, uint32_t flags);
-+	struct ibv_path_data **paths, int *count, uint32_t flags,
-+	int print);
- int ib_acm_resolve_ip(struct sockaddr *src, struct sockaddr *dest,
--	struct ibv_path_data **paths, int *count, uint32_t flags);
-+	struct ibv_path_data **paths, int *count, uint32_t flags,
-+	int print);
- int ib_acm_resolve_path(struct ibv_path_record *path, uint32_t flags);
- #define ib_acm_free_paths(paths) free(paths)
- 
+ static int open_dir(void)
 -- 
 1.7.8.2
 
