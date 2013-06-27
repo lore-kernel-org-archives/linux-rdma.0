@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 14/16 ibacm] Convert linux header files from DOS to unix
- format
-Date: Thu, 27 Jun 2013 15:14:24 -0400
-Message-ID: <51CC8F10.1000109@dev.mellanox.co.il>
+Subject: [PATCH v2 16/16 ibacm] Add option to allow for ACM cache lookup performance
+ measurement
+Date: Thu, 27 Jun 2013 15:14:35 -0400
+Message-ID: <51CC8F1B.8090902@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,531 +13,264 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
+-C option is added for resolution repetition count
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
 Change since v1:
-New patch since v1 patches
+Rebased
 
- linux/dlist.h |  162 ++++++++++++++--------------
- linux/osd.h   |  344 ++++++++++++++++++++++++++++----------------------------
- 2 files changed, 253 insertions(+), 253 deletions(-)
+ man/ib_acme.1 |    8 ++++++--
+ src/acme.c    |   52 +++++++++++++++++++++++++++++++---------------------
+ src/libacm.c  |   20 +++++++++++---------
+ src/libacm.h  |    7 +++++--
+ 4 files changed, 53 insertions(+), 34 deletions(-)
 
-diff --git a/linux/dlist.h b/linux/dlist.h
-index d08f843..7977d7c 100644
---- a/linux/dlist.h
-+++ b/linux/dlist.h
-@@ -1,81 +1,81 @@
--/*
-- * Copyright (c) 2009 Intel Corporation. All rights reserved.
-- *
-- * This software is available to you under the OpenIB.org BSD license
-- * below:
-- *
-- *     Redistribution and use in source and binary forms, with or
-- *     without modification, are permitted provided that the following
-- *     conditions are met:
-- *
-- *      - Redistributions of source code must retain the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer.
-- *
-- *      - Redistributions in binary form must reproduce the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer in the documentation and/or other materials
-- *        provided with the distribution.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AWV
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-- */
--
--#ifndef _DLIST_H_
--#define _DLIST_H_
--
--#ifdef __cplusplus
--extern "C" {
--#endif
--
--typedef struct _DLIST_ENTRY {
--	struct _DLIST_ENTRY	*Next;
--	struct _DLIST_ENTRY	*Prev;
--
--}	DLIST_ENTRY;
--
--static void DListInit(DLIST_ENTRY *pHead)
--{
--	pHead->Next = pHead;
--	pHead->Prev = pHead;
--}
--
--static int DListEmpty(DLIST_ENTRY *pHead)
--{
--	return pHead->Next == pHead;
--}
--
--static void DListInsertAfter(DLIST_ENTRY *pNew, DLIST_ENTRY *pHead)
--{
--	pNew->Next = pHead->Next;
--	pNew->Prev = pHead;
--	pHead->Next->Prev = pNew;
--	pHead->Next = pNew;
--}
--
--static void DListInsertBefore(DLIST_ENTRY *pNew, DLIST_ENTRY *pHead)
--{
--	DListInsertAfter(pNew, pHead->Prev);
--}
--
--#define DListInsertHead DListInsertAfter
--#define DListInsertTail DListInsertBefore
--
--static void DListRemove(DLIST_ENTRY *pEntry)
--{
--	pEntry->Prev->Next = pEntry->Next;
--	pEntry->Next->Prev = pEntry->Prev;
--}
--
--#ifdef __cplusplus
--}
--#endif
--
--#endif // _DLIST_H_
--
-+/*
-+ * Copyright (c) 2009 Intel Corporation. All rights reserved.
-+ *
-+ * This software is available to you under the OpenIB.org BSD license
-+ * below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AWV
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _DLIST_H_
-+#define _DLIST_H_
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+typedef struct _DLIST_ENTRY {
-+	struct _DLIST_ENTRY	*Next;
-+	struct _DLIST_ENTRY	*Prev;
-+
-+}	DLIST_ENTRY;
-+
-+static void DListInit(DLIST_ENTRY *pHead)
-+{
-+	pHead->Next = pHead;
-+	pHead->Prev = pHead;
-+}
-+
-+static int DListEmpty(DLIST_ENTRY *pHead)
-+{
-+	return pHead->Next == pHead;
-+}
-+
-+static void DListInsertAfter(DLIST_ENTRY *pNew, DLIST_ENTRY *pHead)
-+{
-+	pNew->Next = pHead->Next;
-+	pNew->Prev = pHead;
-+	pHead->Next->Prev = pNew;
-+	pHead->Next = pNew;
-+}
-+
-+static void DListInsertBefore(DLIST_ENTRY *pNew, DLIST_ENTRY *pHead)
-+{
-+	DListInsertAfter(pNew, pHead->Prev);
-+}
-+
-+#define DListInsertHead DListInsertAfter
-+#define DListInsertTail DListInsertBefore
-+
-+static void DListRemove(DLIST_ENTRY *pEntry)
-+{
-+	pEntry->Prev->Next = pEntry->Next;
-+	pEntry->Next->Prev = pEntry->Prev;
-+}
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif // _DLIST_H_
-+
-diff --git a/linux/osd.h b/linux/osd.h
-index 0b6884f..6d42349 100644
---- a/linux/osd.h
-+++ b/linux/osd.h
-@@ -1,172 +1,172 @@
--/*
-- * Copyright (c) 2009 Intel Corporation.  All rights reserved.
-- * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved.
-- *
-- * This software is available to you under the OpenFabrics.org BSD license
-- * below:
-- *
-- *     Redistribution and use in source and binary forms, with or
-- *     without modification, are permitted provided that the following
-- *     conditions are met:
-- *
-- *      - Redistributions of source code must retain the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer.
-- *
-- *      - Redistributions in binary form must reproduce the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer in the documentation and/or other materials
-- *        provided with the distribution.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AWV
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-- */
--
--#if !defined(OSD_H)
--#define OSD_H
--
--#include <stdlib.h>
--#include <string.h>
--#include <stdio.h>
--#include <unistd.h>
--#include <errno.h>
--#include <byteswap.h>
--#include <pthread.h>
--#include <sys/socket.h>
--#include <sys/types.h>
--#include <sys/stat.h>
--#include <malloc.h>
--#include <arpa/inet.h>
--#include <sys/time.h>
--#include <netinet/in.h>
--
--#ifndef SYSCONFDIR
--#define SYSCONFDIR "/etc"
--#endif
--#ifndef BINDIR
--#define BINDIR "/usr/bin"
--#endif
--#ifndef RDMADIR
--#define RDMADIR "rdma"
--#endif
--#define ACM_CONF_DIR  SYSCONFDIR "/" RDMADIR
--#define ACM_ADDR_FILE "ibacm_addr.cfg"
--#define ACM_OPTS_FILE "ibacm_opts.cfg"
--#define ACM_PATH_REC_FILE "ibacm_path_records.dump"
--
--#define LIB_DESTRUCTOR __attribute__((destructor))
--#define CDECL_FUNC
--
--#define container_of(ptr, type, field) \
--	((type *) ((void *) ptr - offsetof(type, field)))
--
--#define min(a, b) (a < b ? a : b)
--#define max(a, b) (a > b ? a : b)
--
--#if __BYTE_ORDER == __LITTLE_ENDIAN
--#define htonll(x) bswap_64(x)
--#else
--#define htonll(x) (x)
--#endif
--#define ntohll(x) htonll(x)
--
--#if DEFINE_ATOMICS
--typedef struct { pthread_mutex_t mut; int val; } atomic_t;
--static inline int atomic_inc(atomic_t *atomic)
--{
--	int v;
--
--	pthread_mutex_lock(&atomic->mut);
--	v = ++(atomic->val);
--	pthread_mutex_unlock(&atomic->mut);
--	return v;
--}
--static inline int atomic_dec(atomic_t *atomic)
--{
--	int v;
--
--	pthread_mutex_lock(&atomic->mut);
--	v = --(atomic->val);
--	pthread_mutex_unlock(&atomic->mut);
--	return v;
--}
--static inline void atomic_init(atomic_t *atomic)
--{
--	pthread_mutex_init(&atomic->mut, NULL);
--	atomic->val = 0;
--}
--#else
--typedef struct { volatile int val; } atomic_t;
--#define atomic_inc(v) (__sync_add_and_fetch(&(v)->val, 1))
--#define atomic_dec(v) (__sync_sub_and_fetch(&(v)->val, 1))
--#define atomic_init(v) ((v)->val = 0)
--#endif
--#define atomic_get(v) ((v)->val)
--#define atomic_set(v, s) ((v)->val = s)
--
--#define stricmp strcasecmp
--#define strnicmp strncasecmp
--
--typedef struct { pthread_cond_t cond; pthread_mutex_t mutex; } event_t;
--static inline void event_init(event_t *e)
--{
--	pthread_cond_init(&e->cond, NULL);
--	pthread_mutex_init(&e->mutex, NULL);
--}
--#define event_signal(e)	pthread_cond_signal(&(e)->cond)
--static inline int event_wait(event_t *e, int timeout) 
--{
--	struct timeval curtime;
--	struct timespec wait;
--	int ret;
--
--	gettimeofday(&curtime, NULL);
--	wait.tv_sec = curtime.tv_sec + ((unsigned) timeout) / 1000;
--	wait.tv_nsec = (curtime.tv_usec + (((unsigned) timeout) % 1000) * 1000) * 1000;
--	pthread_mutex_lock(&e->mutex);
--	ret = pthread_cond_timedwait(&e->cond, &e->mutex, &wait);
--	pthread_mutex_unlock(&e->mutex);
--	return ret;
--}
--
--#define lock_t       pthread_mutex_t
--#define lock_init(x) pthread_mutex_init(x, NULL)
--#define lock_acquire pthread_mutex_lock
--#define lock_release pthread_mutex_unlock
--
--#define osd_init()  0
--#define osd_close()
--
--#define SOCKET         int
--#define SOCKET_ERROR   -1
--#define INVALID_SOCKET -1
--#define socket_errno() errno
--#define closesocket    close
--
--static inline uint64_t time_stamp_us(void)
--{
--	struct timeval curtime;
--	timerclear(&curtime);
--	gettimeofday(&curtime, NULL);
--	return (uint64_t) curtime.tv_sec * 1000000 + (uint64_t) curtime.tv_usec;
--}
--
--#define time_stamp_ms()  (time_stamp_us() / (uint64_t) 1000)
--#define time_stamp_sec() (time_stamp_ms() / (uint64_t) 1000)
--#define time_stamp_min() (time_stamp_sec() / (uint64_t) 60)
--
--#define PER_THREAD __thread
--static inline int beginthread(void (*func)(void *), void *arg)
--{
--	pthread_t thread;
--	return pthread_create(&thread, NULL, (void *(*)(void*)) func, arg);
--}
--
--#endif /* OSD_H */
--
-+/*
-+ * Copyright (c) 2009 Intel Corporation.  All rights reserved.
+diff --git a/man/ib_acme.1 b/man/ib_acme.1
+index 6485858..e67a242 100644
+--- a/man/ib_acme.1
++++ b/man/ib_acme.1
+@@ -1,10 +1,10 @@
+-.TH "ib_acme" 7 "2013-06-15" "ib_acme" "ib_acme" ib_acme
++.TH "ib_acme" 7 "2013-06-21" "ib_acme" "ib_acme" ib_acme
+ .SH NAME
+ ib_acme \- test and configuration utility for the IB ACM
+ .SH SYNOPSIS
+ .sp
+ .nf
+-\fIib_acme\fR [-f addr_format] [-s src_addr] -d dest_addr [-v] [-c] [-P] [-S svc_addr]
++\fIib_acme\fR [-f addr_format] [-s src_addr] -d dest_addr [-v] [-c] [-P] [-S svc_addr] [-C repetitions]
+ .fi
+ .nf
+ \fIib_acme\fR [-A [addr_file]] [-O [opt_file]] [-D dest_dir] [-V]
+@@ -48,6 +48,10 @@ Queries performance data from the destination service
+ \-S svc_addr
+ address of ACM service, default: local service
+ .TP
++\-C repetitions
++number of repetitions to perform resolution.  Used to measure
++performance of ACM cache lookups.  Defaults to 1. 
++.TP
+ \-A [addr_file]
+ With this option, the ib_acme utility automatically generates the address
+ configuration file ibacm_addr.cfg.  The generated file is
+diff --git a/src/acme.c b/src/acme.c
+index 648e97f..525868e 100644
+--- a/src/acme.c
++++ b/src/acme.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2009-2010 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved. 
+  *
+  * This software is available to you under the OpenIB.org BSD license
+  * below:
+@@ -55,6 +56,7 @@ static char *src_arg;
+ static char addr_type = 'u';
+ static int verify;
+ static int nodelay;
++static int repetitions = 1;
+ 
+ enum perf_query_output {
+ 	PERF_QUERY_NONE,
+@@ -84,6 +86,7 @@ static void show_usage(char *program)
+ 	printf("   [-c]             - read ACM cached data only\n");
+ 	printf("   [-P]             - query performance data from destination service\n");
+ 	printf("   [-S svc_addr]    - address of ACM service, default: local service\n");
++	printf("   [-C repetitions] - repeat count for resolution\n");
+ 	printf("usage 2: %s\n", program);
+ 	printf("Generate default ibacm service configuration and option files\n");
+ 	printf("   -A [addr_file]   - generate local address configuration file\n");
+@@ -528,7 +531,7 @@ static int resolve_ip(struct ibv_path_record *path)
+ 
+ 	ret = ib_acm_resolve_ip(saddr,
+ 		(is_ipv6_dest ? (struct sockaddr *) &dest6 : (struct sockaddr *) &dest),
+-		&paths, &count, get_resolve_flags());
++		&paths, &count, get_resolve_flags(), (repetitions == 1));
+ 	if (ret) {
+ 		printf("ib_acm_resolve_ip failed: %s\n", strerror(errno));
+ 		return ret;
+@@ -544,7 +547,7 @@ static int resolve_name(struct ibv_path_record *path)
+ 	struct ibv_path_data *paths;
+ 	int ret, count;
+ 
+-	ret = ib_acm_resolve_name(src_addr, dest_addr, &paths, &count, get_resolve_flags());
++	ret = ib_acm_resolve_name(src_addr, dest_addr, &paths, &count, get_resolve_flags(), (repetitions == 1));
+ 	if (ret) {
+ 		printf("ib_acm_resolve_name failed: %s\n", strerror(errno));
+ 		return ret;
+@@ -658,7 +661,7 @@ static void resolve(char *svc)
+ {
+ 	char **dest_list, **src_list;
+ 	struct ibv_path_record path;
+-	int ret, d = 0, s = 0;
++	int ret = 0, d = 0, s = 0, i;
+ 	char dest_type;
+ 
+ 	dest_list = parse(dest_arg, NULL);
+@@ -678,23 +681,25 @@ static void resolve(char *svc)
+ 			printf("Destination: %s\n", dest_addr);
+ 			if (src_addr)
+ 				printf("Source: %s\n", src_addr);
+-			switch (dest_type) {
+-			case 'i':
+-				ret = resolve_ip(&path);
+-				break;
+-			case 'n':
+-				ret = resolve_name(&path);
+-				break;
+-			case 'l':
+-				memset(&path, 0, sizeof path);
+-				ret = resolve_lid(&path);
+-				break;
+-			case 'g':
+-				memset(&path, 0, sizeof path);
+-				ret = resolve_gid(&path);
+-				break;
+-			default:
+-				break;
++			for (i = 0; i < repetitions; i++) {
++				switch (dest_type) {
++				case 'i':
++					ret = resolve_ip(&path);
++					break;
++				case 'n':
++					ret = resolve_name(&path);
++					break;
++				case 'l':
++					memset(&path, 0, sizeof path);
++					ret = resolve_lid(&path);
++					break;
++				case 'g':
++					memset(&path, 0, sizeof path);
++					ret = resolve_gid(&path);
++					break;
++				default:
++					break;
++				}
+ 			}
+ 
+ 			if (!ret)
+@@ -798,7 +803,7 @@ int CDECL_FUNC main(int argc, char **argv)
+ 	if (ret)
+ 		goto out;
+ 
+-	while ((op = getopt(argc, argv, "f:s:d:vcA::O::D:P::S:V")) != -1) {
++	while ((op = getopt(argc, argv, "f:s:d:vcA::O::D:P::S:C:V")) != -1) {
+ 		switch (op) {
+ 		case 'f':
+ 			addr_type = optarg[0];
+@@ -840,6 +845,11 @@ int CDECL_FUNC main(int argc, char **argv)
+ 		case 'S':
+ 			svc_arg = optarg;
+ 			break;
++		case 'C':
++			repetitions = atoi(optarg);
++			if (!repetitions)
++				repetitions = 1;
++			break;
+ 		case 'V':
+ 			verbose = 1;
+ 			break;
+diff --git a/src/libacm.c b/src/libacm.c
+index 274eb2d..1bf7030 100644
+--- a/src/libacm.c
++++ b/src/libacm.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2009 Intel Corporation.  All rights reserved.
 + * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved.
-+ *
-+ * This software is available to you under the OpenFabrics.org BSD license
-+ * below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AWV
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#if !defined(OSD_H)
-+#define OSD_H
-+
-+#include <stdlib.h>
-+#include <string.h>
-+#include <stdio.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <byteswap.h>
-+#include <pthread.h>
-+#include <sys/socket.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <malloc.h>
-+#include <arpa/inet.h>
-+#include <sys/time.h>
-+#include <netinet/in.h>
-+
-+#ifndef SYSCONFDIR
-+#define SYSCONFDIR "/etc"
-+#endif
-+#ifndef BINDIR
-+#define BINDIR "/usr/bin"
-+#endif
-+#ifndef RDMADIR
-+#define RDMADIR "rdma"
-+#endif
-+#define ACM_CONF_DIR  SYSCONFDIR "/" RDMADIR
-+#define ACM_ADDR_FILE "ibacm_addr.cfg"
-+#define ACM_OPTS_FILE "ibacm_opts.cfg"
-+#define ACM_PATH_REC_FILE "ibacm_path_records.dump"
-+
-+#define LIB_DESTRUCTOR __attribute__((destructor))
-+#define CDECL_FUNC
-+
-+#define container_of(ptr, type, field) \
-+	((type *) ((void *) ptr - offsetof(type, field)))
-+
-+#define min(a, b) (a < b ? a : b)
-+#define max(a, b) (a > b ? a : b)
-+
-+#if __BYTE_ORDER == __LITTLE_ENDIAN
-+#define htonll(x) bswap_64(x)
-+#else
-+#define htonll(x) (x)
-+#endif
-+#define ntohll(x) htonll(x)
-+
-+#if DEFINE_ATOMICS
-+typedef struct { pthread_mutex_t mut; int val; } atomic_t;
-+static inline int atomic_inc(atomic_t *atomic)
-+{
-+	int v;
-+
-+	pthread_mutex_lock(&atomic->mut);
-+	v = ++(atomic->val);
-+	pthread_mutex_unlock(&atomic->mut);
-+	return v;
-+}
-+static inline int atomic_dec(atomic_t *atomic)
-+{
-+	int v;
-+
-+	pthread_mutex_lock(&atomic->mut);
-+	v = --(atomic->val);
-+	pthread_mutex_unlock(&atomic->mut);
-+	return v;
-+}
-+static inline void atomic_init(atomic_t *atomic)
-+{
-+	pthread_mutex_init(&atomic->mut, NULL);
-+	atomic->val = 0;
-+}
-+#else
-+typedef struct { volatile int val; } atomic_t;
-+#define atomic_inc(v) (__sync_add_and_fetch(&(v)->val, 1))
-+#define atomic_dec(v) (__sync_sub_and_fetch(&(v)->val, 1))
-+#define atomic_init(v) ((v)->val = 0)
-+#endif
-+#define atomic_get(v) ((v)->val)
-+#define atomic_set(v, s) ((v)->val = s)
-+
-+#define stricmp strcasecmp
-+#define strnicmp strncasecmp
-+
-+typedef struct { pthread_cond_t cond; pthread_mutex_t mutex; } event_t;
-+static inline void event_init(event_t *e)
-+{
-+	pthread_cond_init(&e->cond, NULL);
-+	pthread_mutex_init(&e->mutex, NULL);
-+}
-+#define event_signal(e)	pthread_cond_signal(&(e)->cond)
-+static inline int event_wait(event_t *e, int timeout) 
-+{
-+	struct timeval curtime;
-+	struct timespec wait;
-+	int ret;
-+
-+	gettimeofday(&curtime, NULL);
-+	wait.tv_sec = curtime.tv_sec + ((unsigned) timeout) / 1000;
-+	wait.tv_nsec = (curtime.tv_usec + (((unsigned) timeout) % 1000) * 1000) * 1000;
-+	pthread_mutex_lock(&e->mutex);
-+	ret = pthread_cond_timedwait(&e->cond, &e->mutex, &wait);
-+	pthread_mutex_unlock(&e->mutex);
-+	return ret;
-+}
-+
-+#define lock_t       pthread_mutex_t
-+#define lock_init(x) pthread_mutex_init(x, NULL)
-+#define lock_acquire pthread_mutex_lock
-+#define lock_release pthread_mutex_unlock
-+
-+#define osd_init()  0
-+#define osd_close()
-+
-+#define SOCKET         int
-+#define SOCKET_ERROR   -1
-+#define INVALID_SOCKET -1
-+#define socket_errno() errno
-+#define closesocket    close
-+
-+static inline uint64_t time_stamp_us(void)
-+{
-+	struct timeval curtime;
-+	timerclear(&curtime);
-+	gettimeofday(&curtime, NULL);
-+	return (uint64_t) curtime.tv_sec * 1000000 + (uint64_t) curtime.tv_usec;
-+}
-+
-+#define time_stamp_ms()  (time_stamp_us() / (uint64_t) 1000)
-+#define time_stamp_sec() (time_stamp_ms() / (uint64_t) 1000)
-+#define time_stamp_min() (time_stamp_sec() / (uint64_t) 60)
-+
-+#define PER_THREAD __thread
-+static inline int beginthread(void (*func)(void *), void *arg)
-+{
-+	pthread_t thread;
-+	return pthread_create(&thread, NULL, (void *(*)(void*)) func, arg);
-+}
-+
-+#endif /* OSD_H */
-+
+  *
+  * This software is available to you under the OpenIB.org BSD license
+  * below:
+@@ -113,7 +114,7 @@ void ib_acm_disconnect(void)
+ }
+ 
+ static int acm_format_resp(struct acm_msg *msg,
+-	struct ibv_path_data **paths, int *count)
++	struct ibv_path_data **paths, int *count, int print)
+ {
+ 	struct ibv_path_data *path_data;
+ 	char addr[ACM_MAX_ADDRESS];
+@@ -154,7 +155,8 @@ static int acm_format_resp(struct acm_msg *msg,
+ 			default:
+ 				goto err;
+ 			}
+-			printf("Source: %s\n", addr);
++			if (print)
++				printf("Source: %s\n", addr);
+ 			break;
+ 		}
+ 	}
+@@ -221,7 +223,7 @@ static int acm_error(uint8_t status)
+ }
+ 
+ static int acm_resolve(uint8_t *src, uint8_t *dest, uint8_t type,
+-	struct ibv_path_data **paths, int *count, uint32_t flags)
++	struct ibv_path_data **paths, int *count, uint32_t flags, int print)
+ {
+ 	struct acm_msg msg;
+ 	int ret, cnt = 0;
+@@ -258,28 +260,28 @@ static int acm_resolve(uint8_t *src, uint8_t *dest, uint8_t type,
+ 		goto out;
+ 	}
+ 
+-	ret = acm_format_resp(&msg, paths, count);
++	ret = acm_format_resp(&msg, paths, count, print);
+ out:
+ 	lock_release(&lock);
+ 	return ret;
+ }
+ 
+ int ib_acm_resolve_name(char *src, char *dest,
+-	struct ibv_path_data **paths, int *count, uint32_t flags)
++	struct ibv_path_data **paths, int *count, uint32_t flags, int print)
+ {
+ 	return acm_resolve((uint8_t *) src, (uint8_t *) dest,
+-		ACM_EP_INFO_NAME, paths, count, flags);
++		ACM_EP_INFO_NAME, paths, count, flags, print);
+ }
+ 
+ int ib_acm_resolve_ip(struct sockaddr *src, struct sockaddr *dest,
+-	struct ibv_path_data **paths, int *count, uint32_t flags)
++	struct ibv_path_data **paths, int *count, uint32_t flags, int print)
+ {
+ 	if (((struct sockaddr *) dest)->sa_family == AF_INET) {
+ 		return acm_resolve((uint8_t *) src, (uint8_t *) dest,
+-			ACM_EP_INFO_ADDRESS_IP, paths, count, flags);
++			ACM_EP_INFO_ADDRESS_IP, paths, count, flags, print);
+ 	} else {
+ 		return acm_resolve((uint8_t *) src, (uint8_t *) dest,
+-			ACM_EP_INFO_ADDRESS_IP6, paths, count, flags);
++			ACM_EP_INFO_ADDRESS_IP6, paths, count, flags, print);
+ 	}
+ }
+ 
+diff --git a/src/libacm.h b/src/libacm.h
+index 61220d5..9a241aa 100644
+--- a/src/libacm.h
++++ b/src/libacm.h
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2009 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2013 Mellanox Technologies LTD. All rights reserved.
+  *
+  * This software is available to you under the OpenIB.org BSD license
+  * below:
+@@ -36,9 +37,11 @@ int ib_acm_connect(char *dest_svc);
+ void ib_acm_disconnect();
+ 
+ int ib_acm_resolve_name(char *src, char *dest,
+-	struct ibv_path_data **paths, int *count, uint32_t flags);
++	struct ibv_path_data **paths, int *count, uint32_t flags,
++	int print);
+ int ib_acm_resolve_ip(struct sockaddr *src, struct sockaddr *dest,
+-	struct ibv_path_data **paths, int *count, uint32_t flags);
++	struct ibv_path_data **paths, int *count, uint32_t flags,
++	int print);
+ int ib_acm_resolve_path(struct ibv_path_record *path, uint32_t flags);
+ #define ib_acm_free_paths(paths) free(paths)
+ 
 -- 
 1.7.8.2
 
