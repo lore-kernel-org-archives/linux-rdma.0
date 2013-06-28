@@ -1,38 +1,57 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH 01/14] IB/srp: Fix remove_one crash due to resource exhaustion
-Date: Fri, 28 Jun 2013 09:41:18 +0200
-Message-ID: <51CD3E1E.6060301@profitbricks.com>
-References: <51B87501.4070005@acm.org> <51B875A4.7040903@acm.org> <1372366870.32164.30.camel@frustration.ornl.gov> <CAL1RGDWVgAKSL-GNZCkP1FEt9r_y5QWp+74NzDcga6+tcvWpXw@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 00/15 ibacm] ACM Cache Preloading (and some cosmetic
+ cleanups)
+Date: Fri, 28 Jun 2013 07:45:02 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD375AE@ORSMSX109.amr.corp.intel.com>
+References: <51C43267.1030301@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWVgAKSL-GNZCkP1FEt9r_y5QWp+74NzDcga6+tcvWpXw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <51C43267.1030301-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 28.06.2013 01:45, Roland Dreier wrote:
-> On Thu, Jun 27, 2013 at 2:01 PM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
->> On Wed, 2013-06-12 at 15:20 +0200, Bart Van Assche wrote:
->>> If the add_one callback fails during driver load no resources are
->>> allocated so there isn't a need to release any resources. Trying
->>> to clean the resource may lead to the following kernel panic:
->>
->> Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-> 
-> Thanks, I've queued up the 1, 3, and 4/14 patches that Dave acked so far.
+I've pulled in this series, with the changes mentioned in a separate email, plus updates to the patches below (mostly renames of functions, variables, enums, etc.).  The updated patches are available from my ibacm.git tree in the preload branch.
 
-Hi Roland,
+Please look over those changes and see if you agree with them.  They should be as listed below:
 
-did you queue 3 without the target->transport_offline check?
+> Patches 1-9 clean up documentation and sample config files.
 
-Otherwise I can't agree on that.
-1 and 4 are also for me okay.
+Removed sample config files from the source tree.
 
-Cheers,
-Sebastian
+> Patch 10 adds the ability to preload the GID and LID destination caches.
+
+I modified the variable names and enums used for preloading, with other naming changes.
+
+route_preload - is now used to indicate if the routing data should be preloaded and the format to be used.
+route_data_file - stores the file name containing the routing data.  The default name is ibacm_route.data
+
+The code to parse the file should be mostly unchanged.
+
+> Patch 11 updates the ACM documentation for this.
+> Patch 12 fixes the inet_pton buffer space.
+> Patch 13 fixes IPv6 support in acme.
+
+Relocated some common functionality into a static function and used sockaddr_storage to store the resulting addresses.
+
+> Patch 14 adds the ability to preload the IPv4 and IPv6 destination caches.
+
+Name changes similar to those done for patch 10.
+
+addr_preload - indicates if the address data should be preloaded and the format to use
+addr_data_file - stores the file name containing the address data.  The default name is ibacm_addr.data.
+
+> Patch 15 adds a performance testing option to acme.
+
+Overall, the changes look good.  I just needed to figure out what to call everything and tried to keep things consistent.  My preload branch has been compile tested, but I have not yet run it.
+
+I only noticed one gap in the implementation, which I commented on directly in the code.  The changes require that the routing data be loaded first before the address data.  This is the opposite of what occurs for normal operation, where the address is resolved before the route.  It would be nice if the address and routing preload data were more independent, but that can be added later, maybe, someday.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
