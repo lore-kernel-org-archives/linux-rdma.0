@@ -1,70 +1,158 @@
-From: David Dillow <dillow-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 12/14] IB/srp: Make HCA completion vector configurable
-Date: Fri, 28 Jun 2013 08:04:01 -0400
-Message-ID: <1372421041.28740.14.camel@haswell.thedillows.org>
-References: <51B87501.4070005@acm.org> <51B87904.1070803@acm.org>
-	 <1372368256.32164.41.camel@frustration.ornl.gov> <51CD46F0.60301@acm.org>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/8] Add Mellanox mlx5 driver for Connect-IB devices
+Date: Fri, 28 Jun 2013 16:22:10 +0300
+Message-ID: <CAJZOPZKLb9k1xXkTnrtzYKpwrSJDQgBpONUVCp3et36JeaEi-Q@mail.gmail.com>
+References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il>
+	<CAJZOPZ+NQa3CWnw3rZQh2UuwdrNhiwtVSyuk9D9YtwfQQ9e1XA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51CD46F0.60301-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <CAJZOPZ+NQa3CWnw3rZQh2UuwdrNhiwtVSyuk9D9YtwfQQ9e1XA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2013-06-28 at 10:18 +0200, Bart Van Assche wrote:
-> On 06/27/13 23:24, David Dillow wrote:
-> > Shouldn't there be some documentation about how to set this? What
-> > happens when you try to set it on an HCA that doesn't support this how
-> > does the user know what's wrong?
-> 
-> Hello Dave,
-> 
-> HCA drivers that support only one completion vector ignore the 
-> comp_vector parameter. See e.g. c2_create_cq() in 
-> drivers/infiniband/hw/amso1100/c2_provider.c for an example. The third 
-> argument of that function, called "vector", is ignored.
-> 
-> What will happen if an out-of-range value is chosen for this parameter 
-> depends on the HCA driver. This is how the mlx4 driver handles the 
-> comp_vector parameter:
-> 	vector = dev->eq_table[vector % ibdev->num_comp_vectors];
-> So an out-of-range value for comp_vector won't cause a failure. And if 
-> ever a HCA driver would be added to the kernel tree that causes 
-> create_cq() to fail if the comp_vector parameter is out of range then 
-> the ib_srp driver will propagate the error code returned by 
-> ib_create_cq() to the process that wrote into the add_target sysfs 
-> attribute.
+> On Sun, Jun 16, 2013 at 3:02 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>>
+>> From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> The patches that follow constitute the driver for Mellanox's 5th generation
+>> of HCAs named Connect-IB.
+>>
+>> The driver is comprised of two kernel modules: mlx5_ib and mlx5_core. This
+>> partitioning resembles what we have for mlx4 with the substantial difference
+>> that mlx5_ib is the pci device driver and not mlx5_core.
 
-I understand that the error code will unwind to the process, at which
-point the user gets an EINVAL without any indication as to why. Our
-error handling here sucks, but that's for another day; it shouldn't hold
-up the patch -- I was more wondering if there was a specific error code
-that would let us know we screwed up the vector, or if it wasn't
-supported, and it appears the answer is no. Somewhat of a bummer, that.
 
-> The procedure for choosing a value for this parameter is as follows:
-> * Look up the interrupt numbers that have been assigned to each HCA
->    completion vector, e.g. via grep mlx4-ib- /proc/interrupts.
-> * Decide which CPU to bind each interrupt to and update
->    /proc/irq/$irq/smp_affinity.
-> * Decide which CPU and completion vector should be used for processing
->    SRP completions and specify that completion vector number in the SRP
->    login string.
-> 
-> To me this looks like a standard procedure that applies to any HCA that 
-> supports multiple MSI-X vectors ?
+Hi Roland,
 
-To you and I, sure, this is relatively standard. And now that google has
-it, newcomers will be able to find it. However, this changes the login
-string and so Documentation/ABI/stable/sysfs-driver-ib_srp needs to be
-updated, with at least minimal text.
+We're on 3.10-rc7 && soon on -rc8, so things warm up for 3.11... today
+will mark two working weeks since the mlx5 driver was posted here, and
+no comment, its marked as new in your patchwork. Is this safe for
+3.11?  any comments or fixes we have to apply? As you probably saw, I
+posted V1 which is essentially almost the same as V0 but with netdev
+copied, to see if there are rejections/comments from there, so far
+nothing. Dave said he wants to see this posted to netdev inorder to
+decide if he's OK for the core driver to be pushed through your tree
+too.
 
-Thanks,
-Dave
+Or.
 
+mlx5_core provides general functionality that is intended to be used by
+>>
+>> other Mellanox devices that will be introduced in the future. In this sense,
+>> it can be perceived as a library. mlx5_ib has a similar role as any hardware
+>> device under drivers/infiniband/hw.
+>>
+>> The patches are partitioned to avoid exceeding the 100KB vger.kernel.org
+>> limitation. Only the last patch adds the Makefiles and Kconfigs, to make
+>> things robust for future bisections.
+>>
+>> PPC is not yet supported but support will be included in the near future.
+>>
+>> Eli
+>>
+>> Eli Cohen (8):
+>>   mlx5: Mellanox Connect-IB driver part 1/8
+>>   mlx5: Mellanox Connect-IB driver part 2/8
+>>   mlx5: Mellanox Connect-IB driver part 3/8
+>>   mlx5: Mellanox Connect-IB driver part 4/8
+>>   mlx5: Mellanox Connect-IB driver part 5/8
+>>   mlx5: Mellanox Connect-IB driver part 6/8
+>>   mlx5: Mellanox Connect-IB driver part 7/8
+>>   mlx5: Mellanox Connect-IB driver part 8/8
+>>
+>>  MAINTAINERS                                        |   22 +
+>>  drivers/infiniband/Kconfig                         |    1 +
+>>  drivers/infiniband/Makefile                        |    1 +
+>>  drivers/infiniband/hw/mlx5/Kconfig                 |   10 +
+>>  drivers/infiniband/hw/mlx5/Makefile                |    4 +
+>>  drivers/infiniband/hw/mlx5/ah.c                    |   95 +
+>>  drivers/infiniband/hw/mlx5/cq.c                    |  851 +++++++
+>>  drivers/infiniband/hw/mlx5/doorbell.c              |  100 +
+>>  drivers/infiniband/hw/mlx5/mad.c                   |  143 ++
+>>  drivers/infiniband/hw/mlx5/main.c                  | 1512 ++++++++++++
+>>  drivers/infiniband/hw/mlx5/mem.c                   |  194 ++
+>>  drivers/infiniband/hw/mlx5/mlx5_ib.h               |  593 +++++
+>>  drivers/infiniband/hw/mlx5/mr.c                    | 1025 ++++++++
+>>  drivers/infiniband/hw/mlx5/qp.c                    | 2549 ++++++++++++++++++++
+>>  drivers/infiniband/hw/mlx5/srq.c                   |  481 ++++
+>>  drivers/infiniband/hw/mlx5/user.h                  |  123 +
+>>  drivers/net/ethernet/mellanox/Kconfig              |    1 +
+>>  drivers/net/ethernet/mellanox/Makefile             |    1 +
+>>  drivers/net/ethernet/mellanox/mlx5/core/Kconfig    |   18 +
+>>  drivers/net/ethernet/mellanox/mlx5/core/Makefile   |    6 +
+>>  drivers/net/ethernet/mellanox/mlx5/core/alloc.c    |  244 ++
+>>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c      | 1497 ++++++++++++
+>>  drivers/net/ethernet/mellanox/mlx5/core/cq.c       |  226 ++
+>>  drivers/net/ethernet/mellanox/mlx5/core/debugfs.c  |  600 +++++
+>>  drivers/net/ethernet/mellanox/mlx5/core/eq.c       |  523 ++++
+>>  drivers/net/ethernet/mellanox/mlx5/core/fw.c       |  187 ++
+>>  drivers/net/ethernet/mellanox/mlx5/core/health.c   |  216 ++
+>>  drivers/net/ethernet/mellanox/mlx5/core/mad.c      |   80 +
+>>  drivers/net/ethernet/mellanox/mlx5/core/main.c     |  483 ++++
+>>  drivers/net/ethernet/mellanox/mlx5/core/mcg.c      |  108 +
+>>  .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |   96 +
+>>  drivers/net/ethernet/mellanox/mlx5/core/mr.c       |  138 ++
+>>  .../net/ethernet/mellanox/mlx5/core/pagealloc.c    |  438 ++++
+>>  drivers/net/ethernet/mellanox/mlx5/core/pd.c       |  103 +
+>>  drivers/net/ethernet/mellanox/mlx5/core/port.c     |  106 +
+>>  drivers/net/ethernet/mellanox/mlx5/core/qp.c       |  303 +++
+>>  drivers/net/ethernet/mellanox/mlx5/core/srq.c      |  225 ++
+>>  drivers/net/ethernet/mellanox/mlx5/core/uar.c      |  225 ++
+>>  include/linux/mlx5/cmd.h                           |   51 +
+>>  include/linux/mlx5/cq.h                            |  166 ++
+>>  include/linux/mlx5/device.h                        |  886 +++++++
+>>  include/linux/mlx5/doorbell.h                      |   81 +
+>>  include/linux/mlx5/driver.h                        |  763 ++++++
+>>  include/linux/mlx5/qp.h                            |  467 ++++
+>>  include/linux/mlx5/srq.h                           |   41 +
+>>  45 files changed, 15983 insertions(+)
+>>  create mode 100644 drivers/infiniband/hw/mlx5/Kconfig
+>>  create mode 100644 drivers/infiniband/hw/mlx5/Makefile
+>>  create mode 100644 drivers/infiniband/hw/mlx5/ah.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/cq.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/doorbell.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/mad.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/main.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/mem.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/mlx5_ib.h
+>>  create mode 100644 drivers/infiniband/hw/mlx5/mr.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/qp.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/srq.c
+>>  create mode 100644 drivers/infiniband/hw/mlx5/user.h
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/Kconfig
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/Makefile
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/cq.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/eq.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/fw.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/health.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mad.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/main.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mcg.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mr.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/pd.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/port.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/qp.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/srq.c
+>>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/uar.c
+>>  create mode 100644 include/linux/mlx5/cmd.h
+>>  create mode 100644 include/linux/mlx5/cq.h
+>>  create mode 100644 include/linux/mlx5/device.h
+>>  create mode 100644 include/linux/mlx5/doorbell.h
+>>  create mode 100644 include/linux/mlx5/driver.h
+>>  create mode 100644 include/linux/mlx5/qp.h
+>>  create mode 100644 include/linux/mlx5/srq.h
+>>
+>> --
+>> 1.8.1.3
+>>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
