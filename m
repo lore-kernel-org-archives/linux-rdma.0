@@ -1,45 +1,38 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 05/14] IB/srp: Maintain a single connection per I_T nexus
-Date: Fri, 28 Jun 2013 09:40:01 +0200
-Message-ID: <51CD3DD1.3000008@acm.org>
-References: <51B87501.4070005@acm.org> <51B876BF.4070400@acm.org> <1372367432.32164.36.camel@frustration.ornl.gov>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH 01/14] IB/srp: Fix remove_one crash due to resource exhaustion
+Date: Fri, 28 Jun 2013 09:41:18 +0200
+Message-ID: <51CD3E1E.6060301@profitbricks.com>
+References: <51B87501.4070005@acm.org> <51B875A4.7040903@acm.org> <1372366870.32164.30.camel@frustration.ornl.gov> <CAL1RGDWVgAKSL-GNZCkP1FEt9r_y5QWp+74NzDcga6+tcvWpXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1372367432.32164.36.camel-zHLflQxYYDO4Hhoo1DtQwJ9G+ZOsUmrO@public.gmane.org>
+In-Reply-To: <CAL1RGDWVgAKSL-GNZCkP1FEt9r_y5QWp+74NzDcga6+tcvWpXw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/27/13 23:10, David Dillow wrote:
-> On Wed, 2013-06-12 at 15:25 +0200, Bart Van Assche wrote:
->> An SRP target is required to maintain a single connection between
->> initiator and target. This means that if the 'add_target' attribute
->> is used to create a second connection to a target that the first
->> connection will be logged out and that the SCSI error handler will
->> kick in. The SCSI error handler will cause the SRP initiator to
->> reconnect, which will cause I/O over the second connection to fail.
->> Avoid such ping-pong behavior by disabling relogins. Note: if
->> reconnecting manually is necessary, that is possible by deleting
->> and recreating an rport via sysfs.
->
-> Will wait for the second version of this as well.
->
-> Was an agreement reached on the pkey issue?
-> I also would rather we mimic the current messages rather than
-> regurgitate the user's login string back at them.
+On 28.06.2013 01:45, Roland Dreier wrote:
+> On Thu, Jun 27, 2013 at 2:01 PM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
+>> On Wed, 2013-06-12 at 15:20 +0200, Bart Van Assche wrote:
+>>> If the add_one callback fails during driver load no resources are
+>>> allocated so there isn't a need to release any resources. Trying
+>>> to clean the resource may lead to the following kernel panic:
+>>
+>> Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+> 
+> Thanks, I've queued up the 1, 3, and 4/14 patches that Dave acked so far.
 
-Hello Dave,
+Hi Roland,
 
-My proposal is to leave out the pkey check.
+did you queue 3 without the target->transport_offline check?
 
-I will update the error message printed when a login gets rejected.
+Otherwise I can't agree on that.
+1 and 4 are also for me okay.
 
-Bart.
-
-
+Cheers,
+Sebastian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
