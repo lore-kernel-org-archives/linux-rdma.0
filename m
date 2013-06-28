@@ -1,57 +1,52 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 00/15 ibacm] ACM Cache Preloading (and some cosmetic
- cleanups)
-Date: Fri, 28 Jun 2013 07:45:02 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD375AE@ORSMSX109.amr.corp.intel.com>
-References: <51C43267.1030301@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] osmtest: Make the "-guid" option's argument mandatory
+Date: Fri, 28 Jun 2013 01:07:00 -0700
+Message-ID: <1372406820-11505-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51C43267.1030301-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I've pulled in this series, with the changes mentioned in a separate email, plus updates to the patches below (mostly renames of functions, variables, enums, etc.).  The updated patches are available from my ibacm.git tree in the preload branch.
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-Please look over those changes and see if you agree with them.  They should be as listed below:
+Currently, the getopt table in osmtest labels the "-guid" option as
+taking an optional argument; however, running osmtest with the -guid
+option but no argument just leads to:
 
-> Patches 1-9 clean up documentation and sample config files.
+    $ /usr/sbin/osmtest -guid
 
-Removed sample config files from the source tree.
+    Command Line Arguments
+    Segmentation fault
 
-> Patch 10 adds the ability to preload the GID and LID destination caches.
+because the handling for the -guid option just passes optarg directly to
+strtoull(), and without and argument, optarg is NULL.  Really, the
+argument should be mandatory.
 
-I modified the variable names and enums used for preloading, with other naming changes.
+This bug was found by the Mayhem tool:
+http://www.forallsecure.com/bug-reports/edea01ceefbb188dcc62b3fc4f59dc743d7429c9/
 
-route_preload - is now used to indicate if the routing data should be preloaded and the format to be used.
-route_data_file - stores the file name containing the routing data.  The default name is ibacm_route.data
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+ osmtest/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The code to parse the file should be mostly unchanged.
+diff --git a/osmtest/main.c b/osmtest/main.c
+index 6129674..f48910b 100644
+--- a/osmtest/main.c
++++ b/osmtest/main.c
+@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
+ 		{"wait", 1, NULL, 'w'},
+ 		{"inventory", 1, NULL, 'i'},
+ 		{"max_lid", 1, NULL, 'm'},
+-		{"guid", 2, NULL, 'g'},
++		{"guid", 1, NULL, 'g'},
+ 		{"port", 0, NULL, 'p'},
+ 		{"help", 0, NULL, 'h'},
+ 		{"stress", 1, NULL, 's'},
+-- 
+1.8.1.2
 
-> Patch 11 updates the ACM documentation for this.
-> Patch 12 fixes the inet_pton buffer space.
-> Patch 13 fixes IPv6 support in acme.
-
-Relocated some common functionality into a static function and used sockaddr_storage to store the resulting addresses.
-
-> Patch 14 adds the ability to preload the IPv4 and IPv6 destination caches.
-
-Name changes similar to those done for patch 10.
-
-addr_preload - indicates if the address data should be preloaded and the format to use
-addr_data_file - stores the file name containing the address data.  The default name is ibacm_addr.data.
-
-> Patch 15 adds a performance testing option to acme.
-
-Overall, the changes look good.  I just needed to figure out what to call everything and tried to keep things consistent.  My preload branch has been compile tested, but I have not yet run it.
-
-I only noticed one gap in the implementation, which I commented on directly in the code.  The changes require that the routing data be loaded first before the address data.  This is the opposite of what occurs for normal operation, where the address is resolved before the route.  It would be nice if the address and routing preload data were more independent, but that can be added later, maybe, someday.
-
-- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
