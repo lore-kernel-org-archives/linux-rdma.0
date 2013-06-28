@@ -1,30 +1,28 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V2 for-next 1/4] IB/core: Add receive Flow Steering
- support
-Date: Fri, 28 Jun 2013 00:10:46 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD374A0@ORSMSX109.amr.corp.intel.com>
-References: <1372251464-13394-1-git-send-email-ogerlitz@mellanox.com>
-	<1372251464-13394-2-git-send-email-ogerlitz@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A823736FD36FF3@ORSMSX109.amr.corp.intel.com>
-	<CAJZOPZK_FkCJZxjyxEdk4WOTvbo8DQpcpqmuPUsqV=bZmU5W_w@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A823736FD37415@ORSMSX109.amr.corp.intel.com>
- <CAJZOPZLf85TaCM9O3yahspRsuD3KcFzAY5b4nXxe46RiZwnk6Q@mail.gmail.com>
+Subject: RE: [PATCH 00/15 ibacm] ACM Cache Preloading (and some cosmetic
+ cleanups)
+Date: Fri, 28 Jun 2013 01:46:36 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD37549@ORSMSX109.amr.corp.intel.com>
+References: <51C43267.1030301@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLf85TaCM9O3yahspRsuD3KcFzAY5b4nXxe46RiZwnk6Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <51C43267.1030301-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Still for the initial set of patches that goes in I tend to just
-> remove the IB filter structure and define the different IB filters
-> along your proposal in a follow-up patches/es, OK?
+> Patches 1-9 clean up documentation and sample config files.
 
-That sounds fine to me.
+Rather than trying to keep the sample ibacm_addr/opts files in sync, I elected to remove them from the git tree.  There's really no use for them, and I don't think they're included with the released package anyway.
+
+Doing this drops patches 2, 4, 5, 6, and part of 7.  I applied 1, 8, 9, and the remainder of 7.  I'll comment on 3 separately.  Patches 10-15 are still pending.
+
+Thanks,
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
