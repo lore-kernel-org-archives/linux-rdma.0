@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH ibacm] Makefile.am: Remove eliminated config files from EXTRA_DIST
-Date: Fri, 28 Jun 2013 11:18:39 -0400
-Message-ID: <51CDA94F.80605@dev.mellanox.co.il>
+Subject: [PATCH ibacm] acme.c: Fix a couple of cosmetic issues with option
+ file generation
+Date: Fri, 28 Jun 2013 11:18:43 -0400
+Message-ID: <51CDA953.5070301@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,22 +13,32 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
+Add route_data_file and addr_data_file option names before full pathname to file
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/Makefile.am b/Makefile.am
-index c97326a..0de7799 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -19,8 +19,7 @@ man_MANS = \
- 	man/ibacm.7
+diff --git a/src/acme.c b/src/acme.c
+index 1109b50..287fd32 100644
+--- a/src/acme.c
++++ b/src/acme.c
+@@ -261,7 +261,7 @@ static void gen_opts_temp(FILE *f)
+ 	fprintf(f, "# the ACM cache.  This option is only valid if route_preload\n");
+ 	fprintf(f, "# indicates that routing data should be read from a file.\n");
+ 	fprintf(f, "# Default is ACM_CONF_DIR/ibacm_route.data\n");
+-	fprintf(f, "# /etc/rdma/ibacm_route.data\n");
++	fprintf(f, "# route data_file /etc/rdma/ibacm_route.data\n");
+ 	fprintf(f, "\n");
+ 	fprintf(f, "# addr_preload:\n");
+ 	fprintf(f, "# Specifies if the ACM address cache should be preloaded, or built on demand.\n");
+@@ -277,7 +277,7 @@ static void gen_opts_temp(FILE *f)
+ 	fprintf(f, "# the ACM cache.  This option is only valid if addr_preload\n");
+ 	fprintf(f, "# indicates that address data should be read from a file.\n");
+ 	fprintf(f, "# Default is ACM_CONF_DIR/ibacm_hosts.data\n");
+-	fprintf(f, "# /etc/rdma/ibacm_hosts.data\n");
++	fprintf(f, "# addr_data_file /etc/rdma/ibacm_hosts.data\n");
+ 	fprintf(f, "\n");
+ }
  
- EXTRA_DIST = src/acm_mad.h src/libacm.h ibacm.init.in \
--	     linux/osd.h linux/dlist.h ibacm.spec.in $(man_MANS) ibacm_opts.cfg \
--	     ibacm_addr.cfg ibacm_hosts.cfg
-+	     linux/osd.h linux/dlist.h ibacm.spec.in $(man_MANS) ibacm_hosts.cfg
- 
- install-exec-hook:
- 	install -D -m 755 ibacm.init $(DESTDIR)$(sysconfdir)/init.d/ibacm;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
