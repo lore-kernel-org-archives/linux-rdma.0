@@ -1,33 +1,86 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 00/15 ibacm] ACM Cache Preloading (and some cosmetic
- cleanups)
-Date: Fri, 28 Jun 2013 17:39:18 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD378A1@ORSMSX109.amr.corp.intel.com>
-References: <51C43267.1030301@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A823736FD375AE@ORSMSX109.amr.corp.intel.com>
- <51CDA942.9070505@dev.mellanox.co.il>
+Subject: RE: [PATCH v2 15/16 ibacm] Add support for preloading IPv4 and IPv6
+ ACM caches
+Date: Fri, 28 Jun 2013 17:50:11 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823736FD378C2@ORSMSX109.amr.corp.intel.com>
+References: <51CC8F18.3000509@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51CDA942.9070505-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <51CC8F18.3000509-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I looked them over and retested this. I have a few minor fixups to
-> follow shortly.
+> +static void acm_parse_hosts_file(struct acm_ep *ep)
+> +{
+> +	FILE *f;
+> +	char s[120];
+> +	char addr[INET6_ADDRSTRLEN], gid[INET6_ADDRSTRLEN];
+> +	uint8_t name[ACM_MAX_ADDRESS];
+> +	struct in6_addr ip_addr, ib_addr;
+> +	struct acm_dest *dest, *new_dest;
+> +	uint8_t addr_type;
+> +
+> +	if (!(f = fopen(hosts_file, "r"))) {
+> +		acm_log(0, "ERROR - couldn't open %s\n", hosts_file);
+> +		return;
+> +        }
+> +
+> +	while (fgets(s, sizeof s, f)) {
+> +		if (s[0] == '#')
+> +			continue;
+> +
+> +		if (sscanf(s, "%46s%46s", addr, gid) != 2)
+> +			continue;
+> +
+> +		acm_log(2, "%s", s);
+> +		if (inet_pton(AF_INET6, gid, &ib_addr) <= 0) {
+> +			acm_log(0, "ERROR - %s is not IB GID\n", gid);
+> +			continue;
+> +		}
+> +		if (inet_pton(AF_INET, addr, &ip_addr) > 0)
+> +			addr_type = ACM_ADDRESS_IP;
+> +		else if (inet_pton(AF_INET6, addr, &ip_addr) > 0)
+> +			addr_type = ACM_ADDRESS_IP6;
+> +		else {
+> +			acm_log(0, "ERROR - %s is not IP address\n", addr);
+> +			continue;
+> +		}
+> +
+> +		memset(name, 0, ACM_MAX_ADDRESS);
+> +		memcpy(name, &ib_addr, sizeof(ib_addr));
+> +		dest = acm_get_dest(ep, ACM_ADDRESS_GID, name);
+> +		if (!dest) {
+> +			acm_log(0, "ERROR - IB GID %s not found in cache\n", gid);
+> +			continue;
+> +		}
 
-I've incorporated your changes into the patch set and updated the preload branch.
- 
-> The one thing I noticed is that the check for using this (address)
-> preload option without the previous (route) preload option was
-> eliminated. This is probably the case in the long run but it is not the
-> case with these current options. Should it be added back in ?
+I just noticed that there's no matching acm_put_dest() to this call.  I'll fix this up.
 
-The check is there, but no error is generated.  It may not be that difficult to avoid this dependency, but I'll respond more directly to affected patch.
+> +
+> +		memset(name, 0, ACM_MAX_ADDRESS);
+> +		if (addr_type == ACM_ADDRESS_IP)
+> +			memcpy(name, &ip_addr, 4);
+> +		else
+> +			memcpy(name, &ip_addr, sizeof(ip_addr));
+> +		new_dest = acm_acquire_dest(ep, addr_type, name);
+> +		if (!new_dest) {
+> +			acm_log(0, "ERROR - unable to create dest %s\n", addr);
+> +			continue;
+> +		}
+> +		new_dest->path = dest->path;
+> +		new_dest->remote_qpn = dest->remote_qpn;
+> +		new_dest->addr_timeout = dest->addr_timeout;
+> +		new_dest->route_timeout = dest->route_timeout;
+> +		new_dest->state = dest->state;
+
+Rather than skipping addresses that we can't lookup the GID for, I *think* it would work to simply add new_dest, but set the state to ACM_ADDR_RESOLVED.
+
+I can quickly throw a patch together to this effect, but won't be able to test it immediately.
 
 - Sean
 --
