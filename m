@@ -1,51 +1,64 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] osmtest: Make the "-guid" option's argument mandatory
-Date: Fri, 28 Jun 2013 01:07:00 -0700
-Message-ID: <1372406820-11505-1-git-send-email-roland@kernel.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 12/14] IB/srp: Make HCA completion vector configurable
+Date: Fri, 28 Jun 2013 10:18:56 +0200
+Message-ID: <51CD46F0.60301@acm.org>
+References: <51B87501.4070005@acm.org> <51B87904.1070803@acm.org> <1372368256.32164.41.camel@frustration.ornl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1372368256.32164.41.camel-zHLflQxYYDO4Hhoo1DtQwJ9G+ZOsUmrO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+On 06/27/13 23:24, David Dillow wrote:
+> On Wed, 2013-06-12 at 15:35 +0200, Bart Van Assche wrote:
+>> Several InfiniBand HCA's allow to configure the completion vector
+>> per queue pair. This allows to spread the workload created by IB
+>> completion interrupts over multiple MSI-X vectors and hence over
+>> multiple CPU cores. In other words, configuring the completion
+>> vector properly not only allows to reduce latency on an initiator
+>> connected to multiple SRP targets but also allows to improve
+>> throughput.
+>
+> Shouldn't there be some documentation about how to set this? What
+> happens when you try to set it on an HCA that doesn't support this how
+> does the user know what's wrong?
 
-Currently, the getopt table in osmtest labels the "-guid" option as
-taking an optional argument; however, running osmtest with the -guid
-option but no argument just leads to:
+Hello Dave,
 
-    $ /usr/sbin/osmtest -guid
+HCA drivers that support only one completion vector ignore the 
+comp_vector parameter. See e.g. c2_create_cq() in 
+drivers/infiniband/hw/amso1100/c2_provider.c for an example. The third 
+argument of that function, called "vector", is ignored.
 
-    Command Line Arguments
-    Segmentation fault
+What will happen if an out-of-range value is chosen for this parameter 
+depends on the HCA driver. This is how the mlx4 driver handles the 
+comp_vector parameter:
+	vector = dev->eq_table[vector % ibdev->num_comp_vectors];
+So an out-of-range value for comp_vector won't cause a failure. And if 
+ever a HCA driver would be added to the kernel tree that causes 
+create_cq() to fail if the comp_vector parameter is out of range then 
+the ib_srp driver will propagate the error code returned by 
+ib_create_cq() to the process that wrote into the add_target sysfs 
+attribute.
 
-because the handling for the -guid option just passes optarg directly to
-strtoull(), and without and argument, optarg is NULL.  Really, the
-argument should be mandatory.
+The procedure for choosing a value for this parameter is as follows:
+* Look up the interrupt numbers that have been assigned to each HCA
+   completion vector, e.g. via grep mlx4-ib- /proc/interrupts.
+* Decide which CPU to bind each interrupt to and update
+   /proc/irq/$irq/smp_affinity.
+* Decide which CPU and completion vector should be used for processing
+   SRP completions and specify that completion vector number in the SRP
+   login string.
 
-This bug was found by the Mayhem tool:
-http://www.forallsecure.com/bug-reports/edea01ceefbb188dcc62b3fc4f59dc743d7429c9/
+To me this looks like a standard procedure that applies to any HCA that 
+supports multiple MSI-X vectors ?
 
-Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
----
- osmtest/main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Bart.
 
-diff --git a/osmtest/main.c b/osmtest/main.c
-index 6129674..f48910b 100644
---- a/osmtest/main.c
-+++ b/osmtest/main.c
-@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
- 		{"wait", 1, NULL, 'w'},
- 		{"inventory", 1, NULL, 'i'},
- 		{"max_lid", 1, NULL, 'm'},
--		{"guid", 2, NULL, 'g'},
-+		{"guid", 1, NULL, 'g'},
- 		{"port", 0, NULL, 'p'},
- 		{"help", 0, NULL, 'h'},
- 		{"stress", 1, NULL, 's'},
--- 
-1.8.1.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
