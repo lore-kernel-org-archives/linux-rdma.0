@@ -1,67 +1,91 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v2 02/15] IB/srp: Fix race between srp_queuecommand()
- and srp_claim_req()
-Date: Fri, 28 Jun 2013 17:08:48 +0200
-Message-ID: <51CDA700.7050009@profitbricks.com>
-References: <51CD856A.3010102@acm.org> <51CD8604.5010801@acm.org> <51CDA0CD.6060504@profitbricks.com> <51CDA2E5.2010704@acm.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 00/15 ibacm] ACM Cache Preloading (and some cosmetic cleanups)
+Date: Fri, 28 Jun 2013 11:18:26 -0400
+Message-ID: <51CDA942.9070505@dev.mellanox.co.il>
+References: <51C43267.1030301@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A823736FD375AE@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51CDA2E5.2010704-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A823736FD375AE-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 28.06.2013 16:51, Bart Van Assche wrote:
->> Nice, that's much less re-acquiring of the target lock in error case in
->> srp_queuecommand().
->> But if we have to change that many locations for srp_put_tx_iu() anyway,
->> wouldn't it make sense to rename it into __srp_put_tx_iu() as well?
->>
->> Then we can also put a little description to it and it looks familiar
->> compared to __srp_get_tx_iu().
->>
->> The description could look like follows:
->> /*
->>   * Return an IU and possible credit to the free pool
->>   *
->>   * Must be called with target->lock held to protect free_tx.
->>   */
->>
->> I'm not sure if we still need that lockdep_assert_held() then. There is
->> no other location with lock debugging in ib_srp.
+On 6/28/2013 3:45 AM, Hefty, Sean wrote:
+> I've pulled in this series, with the changes mentioned in a separate email, plus updates to the patches below (mostly renames of functions, variables, enums, etc.).  The updated patches are available from my ibacm.git tree in the preload branch.
+
+Thanks for getting this done so quickly!
+
+> Please look over those changes and see if you agree with them.  
+
+I looked them over and retested this. I have a few minor fixups to
+follow shortly.
+
+> They should be as listed below:
 > 
-> Hello Sebastian,
+>> Patches 1-9 clean up documentation and sample config files.
 > 
-> I don't have a strong opinion about either of these two topics.
+> Removed sample config files from the source tree.
 > 
-> If a function like __srp_get_tx_iu() would be introduced that would
-> allow to drop only two spin_lock/spin_unlock call pairs. So introducing
-> that function would probably add more lines of code than adding the
-> spin_lock/spin_unlock pairs. Hence my choice not to introduce
-> __srp_get_tx_iu().
+>> Patch 10 adds the ability to preload the GID and LID destination caches.
 > 
-> Regarding the lockdep_assert_held() statement: the reason I introduced
-> it instead of adding a comment above the function telling which locking
-> is required is because a lockdep_assert_held() statement is verified at
-> runtime on a system with a kernel in which lockdep support has been
-> enabled.
+> I modified the variable names and enums used for preloading, with other naming changes.
+> 
+> route_preload - is now used to indicate if the routing data should be preloaded and the format to be used.
+> route_data_file - stores the file name containing the routing data.  The default name is ibacm_route.data
+> 
+> The code to parse the file should be mostly unchanged.
 
-Hi Bart,
+I didn't notice any parsing changes but might have glanced over this.
 
-I just meant a rename into "__srp_put_tx_iu()" to show that locking is
-required and not introducing a further wrapper function.
+>> Patch 11 updates the ACM documentation for this.
+>> Patch 12 fixes the inet_pton buffer space.
+>> Patch 13 fixes IPv6 support in acme.
+> 
+> Relocated some common functionality into a static function and used sockaddr_storage to store the resulting addresses.
+> 
+>> Patch 14 adds the ability to preload the IPv4 and IPv6 destination caches.
+> 
+> Name changes similar to those done for patch 10.
+> 
+> addr_preload - indicates if the address data should be preloaded and the format to use
+> addr_data_file - stores the file name containing the address data.  The default name is ibacm_addr.data.
 
-The other function of that kind "__srp_get_tx_iu()" also doesn't have a
-wrapper function "srp_get_tx_iu()".
+Nit: Default is ibacm_hosts.data rather than ibacm_addr.data.
 
-For me it doesn't make much difference how it is marked that locking is
-required. I just wanted to point out that this method is new to ib_srp.
+The one thing I noticed is that the check for using this (address)
+preload option without the previous (route) preload option was
+eliminated. This is probably the case in the long run but it is not the
+case with these current options. Should it be added back in ?
 
-Cheers,
-Sebastian
+>> Patch 15 adds a performance testing option to acme.
+> 
+> Overall, the changes look good.  I just needed to figure out what to call everything and tried to keep things consistent.  My preload branch has been compile tested, but I have not yet run it.
+> 
+> I only noticed one gap in the implementation, which I commented on directly in the code. 
+> The changes require that the routing data be loaded first before the address data.  This is 
+> the opposite of what occurs for normal operation, where the address is resolved before the route.
+
+Understood. To restate this, it stems from address preload being host/IP
+to IB GID and route preload being GID and LID to PR so the later is
+needed first to populate the former (to PRs).
+
+> It would be nice if the address and routing preload data were more independent, but that can be 
+> added later, maybe, someday.
+
+Agreed. I'll keep this in mind in terms of future changes.
+
+-- Hal
+
+> - Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
