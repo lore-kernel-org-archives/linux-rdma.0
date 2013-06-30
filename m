@@ -1,78 +1,43 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] libibumad: add ClassPortInfo struct
-Date: Sat, 29 Jun 2013 09:54:19 -0400
-Message-ID: <51CEE70B.2000108@dev.mellanox.co.il>
-References: <20130622144713.806a3988582a9d1156fbad43@intel.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH v2 02/15] IB/srp: Fix race between srp_queuecommand()
+ and srp_claim_req()
+Date: Sun, 30 Jun 2013 15:59:07 -0400
+Message-ID: <1372622347.12468.9.camel@haswell.thedillows.org>
+References: <51CD856A.3010102@acm.org> <51CD8604.5010801@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130622144713.806a3988582a9d1156fbad43-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <51CD8604.5010801-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/22/2013 5:47 PM, Ira Weiny wrote:
-> 
-> 
-> 
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
+On Fri, 2013-06-28 at 14:48 +0200, Bart Van Assche wrote:
+> Avoid that srp_claim_command() can claim a command while
 
-Thanks. Applied with one minor name change. See below.
+I think you meant srp_claim_req() ?
 
->  include/infiniband/umad_types.h |   33 +++++++++++++++++++++++++++++++++
->  1 files changed, 33 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/infiniband/umad_types.h b/include/infiniband/umad_types.h
-> index 32c747a..2d7c8cd 100644
-> --- a/include/infiniband/umad_types.h
-> +++ b/include/infiniband/umad_types.h
-> @@ -167,5 +167,38 @@ enum {
->  	UMAD_OPENIB_OUI		= 0x001405
->  };
->  
-> +enum {
-> +	UMAD_CLASS_RESP_TIME_MASK = 0x1F
-> +};
-> +struct umad_class_port_info {
-> +	uint8_t base_ver;
-> +	uint8_t class_ver;
-> +	be16_t  cap_mask;
-> +	be32_t  cap_mask2_resp_time;
-> +	uint8_t redir_gid[16]; /* network byte order */
-> +	be32_t  redir_tc_sl_fl;
-> +	be16_t  redir_lid;
-> +	be16_t  redir_pkey;
-> +	be32_t  redir_qp;
-> +	be32_t  redir_qkey;
-> +	uint8_t trap_gid[16]; /* network byte order */
-> +	be32_t  trap_tc_sl_fl;
-> +	be16_t  trap_lid;
-> +	be16_t  trap_pkey;
-> +	be32_t  trap_hop_qp;
+> srp_queuecommand() is still busy queueing the same command.
+> Found this via source reading.
 
-I changed this to trap_hl_qp to be more consistent with field name in spec.
+The main issue seems to be a broken, possibly malicious, target? I'm not
+sure I see another path to get into this race, as the scsi layer should
+protect us from queue submission and error handling at the same time,
+correct?
 
--- Hal
+I'm not keen on giving up the command submission concurrency we worked
+so hard to get -- you completely serialize command submission again. If
+we really need to protect against this race -- and we probably should,
+to guard against broken targets -- I think we can achieve the
+concurrency and safety by improving the receive and error handling sides
+-- especially if we can push it into error handling, as that's already a
+slow path.
 
-> +	be32_t  trap_qkey;
-> +};
-> +static inline uint32_t
-> +umad_class_cap_mask2(struct umad_class_port_info *cpi)
-> +{
-> +	return (ntohl(cpi->cap_mask2_resp_time) >> 5);
-> +}
-> +static inline uint8_t
-> +umad_class_resp_time(struct umad_class_port_info *cpi)
-> +{
-> +	return (uint8_t)(ntohl(cpi->cap_mask2_resp_time)
-> +			 & UMAD_CLASS_RESP_TIME_MASK);
-> +}
-> +
->  END_C_DECLS
->  #endif				/* _UMAD_TYPES_H */
+Let's push this patch to the back of the pile for any respin; I don't
+think the others rely on it (haven't gotten there yet) and would rather
+not hold them up for this.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
