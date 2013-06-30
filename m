@@ -1,30 +1,30 @@
-From: David Dillow <dave@thedillows.org>
-Subject: Re: [PATCH v2 07/15] IB/srp: Keep rport as long as the IB transport
- layer
-Date: Sun, 30 Jun 2013 17:06:52 -0400
-Message-ID: <1372626412.12468.35.camel@haswell.thedillows.org>
-References: <51CD856A.3010102@acm.org> <51CD8706.5010101@acm.org>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH v2 03/15] IB/srp: Avoid that srp_reset_host() is skipped
+ after a TL error
+Date: Sun, 30 Jun 2013 16:00:30 -0400
+Message-ID: <1372622430.12468.10.camel@haswell.thedillows.org>
+References: <51CD856A.3010102@acm.org> <51CD8644.5080600@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <51CD8706.5010101@acm.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: Roland Dreier <roland@kernel.org>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, James Bottomley <jbottomley@parallels.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51CD8644.5080600-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2013-06-28 at 14:52 +0200, Bart Van Assche wrote:
-> Keep the rport data structure around after srp_remove_host() has
-> finished until cleanup of the IB transport layer has finished
-> completely. This is necessary because later patches use the rport
-> pointer inside the queuecommand callback. Without this patch
-> accessing the rport from inside a queuecommand callback is racy
-> because srp_remove_host() must be invoked before scsi_remove_host()
-> and because the queuecommand callback may get invoked after
-> srp_remove_host() has finished.
+On Fri, 2013-06-28 at 14:49 +0200, Bart Van Assche wrote:
+> The SCSI error handler assumes that the transport layer is
+> operational if an eh_abort_handler() returns SUCCESS. Hence let
+> srp_abort() only return SUCCESS if sending the ABORT TASK task
+> management function succeeded. This patch avoids that the SCSI
+> error handler skips the srp_reset_host() call after a transport
+> layer error.
 
-Assuming the patches that require this are eventually accepted,
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 
-Acked-by: David Dillow <dillowda@ornl.gov>
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
