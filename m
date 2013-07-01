@@ -1,63 +1,53 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v2 04/15] IB/srp: Fail I/O fast if target offline
-Date: Mon, 01 Jul 2013 13:38:33 +0200
-Message-ID: <51D16A39.4050709@acm.org>
-References: <51CD856A.3010102@acm.org> <51CD8676.6080205@acm.org> <51D14AF1.4000803@profitbricks.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for/net-next 3/8] net/mlx5: Mellanox Connect-IB, core driver part 3/3
+Date: Mon, 1 Jul 2013 14:44:54 +0300
+Message-ID: <201307011444.55361.jackm@dev.mellanox.co.il>
+References: <1372256537-21328-1-git-send-email-ogerlitz@mellanox.com> <1372256537-21328-4-git-send-email-ogerlitz@mellanox.com> <20130628.211041.256072234719301298.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D14AF1.4000803-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <20130628.211041.256072234719301298.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/01/13 11:25, Sebastian Riemer wrote:
-> On 28.06.2013 14:49, Bart Van Assche wrote:
->> If reconnecting failed we know that no command completion will
->> be received anymore. Hence let the SCSI error handler fail such
->> commands immediately.
->>
->> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
->> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
->> Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
->> Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
->> Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>   drivers/infiniband/ulp/srp/ib_srp.c |    2 ++
->>   1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
->> index 8c95262..5c91521 100644
->> --- a/drivers/infiniband/ulp/srp/ib_srp.c
->> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
->> @@ -1755,6 +1755,8 @@ static int srp_abort(struct scsi_cmnd *scmnd)
->>   	if (srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
->>   			      SRP_TSK_ABORT_TASK) == 0)
->>   		ret = SUCCESS;
->> +	else if (target->transport_offline)
->> +		ret = FAST_IO_FAIL;
->>   	else
->>   		ret = FAILED;
->>   	srp_free_req(target, req, scmnd, 0);
->
-> I'm also missing the concept for srp_reset_device(). There is a very
-> common case that the SCSI error handling and the transport layer error
-> handling run in parallel: Congestion.
+On Saturday 29 June 2013 07:10, David Miller wrote:
+> From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Wed, 26 Jun 2013 17:22:12 +0300
+> 
+> > +	for (--i; i >= 0; --i) {
+> 
+> Please, "i--" is more canonical in for() loops.
+> 
+> > +	for (--i; i >= 0; --i) {
+> 
+> Likewise.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+Hi Dave,
 
-Can you explain this comment further, and also how this comment relates 
-to patch 04/15 ?
+For the "for" loop initial value, "i" should be decremented before doing any
+for-loop calculations (and it is not at all obvious if this is the ordering if we use
+i--, and not --i).  Using --i in the initial value makes the ordering obvious.
+However, I do agree with respect to the increment that --i and i-- are logically
+identical.
 
-> In congestion some LUNs are blocked while others can still transmit. A
-> little bit later the QP timeout triggers in the middle of the SCSI error
-> handling in srp_abort(), srp_reset_device() or less likely in
-> srp_reset_host().
+Thus, the "for" loop could read:
+	for (--i; i >= 0; i--) {
 
-I am aware this can result in concurrent srp_reconnect_rport() calls. 
-However, such concurrent calls are serialized via rport->mutex.
+However, my own personal opinion is that this is a bit confusing.
+I would prefer to leave these lines as they are.
 
-Bart.
+Is that OK with you?
+
+-Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
