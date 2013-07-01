@@ -1,7 +1,7 @@
 From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Subject: Re: [PATCH v2 04/15] IB/srp: Fail I/O fast if target offline
-Date: Mon, 01 Jul 2013 11:07:58 +0200
-Message-ID: <51D146EE.6010209@profitbricks.com>
+Date: Mon, 01 Jul 2013 11:25:05 +0200
+Message-ID: <51D14AF1.4000803@profitbricks.com>
 References: <51CD856A.3010102@acm.org> <51CD8676.6080205@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -42,10 +42,14 @@ On 28.06.2013 14:49, Bart Van Assche wrote:
 >  	srp_free_req(target, req, scmnd, 0);
 > 
 
-This doesn't give us much speed advantage IMHO. The check for
-target->transport_offline should be before calling srp_send_tsk_mgmt().
+I'm also missing the concept for srp_reset_device(). There is a very
+common case that the SCSI error handling and the transport layer error
+handling run in parallel: Congestion.
 
-This way it would also match the patch description better.
+In congestion some LUNs are blocked while others can still transmit. A
+little bit later the QP timeout triggers in the middle of the SCSI error
+handling in srp_abort(), srp_reset_device() or less likely in
+srp_reset_host().
 
 Cheers,
 Sebastian
