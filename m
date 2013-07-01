@@ -1,55 +1,41 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v2 04/15] IB/srp: Fail I/O fast if target offline
-Date: Mon, 01 Jul 2013 13:53:04 +0200
-Message-ID: <51D16DA0.7070206@profitbricks.com>
-References: <51CD856A.3010102@acm.org> <51CD8676.6080205@acm.org> <51D146EE.6010209@profitbricks.com> <51D16918.60600@acm.org>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH v2 08/15] scsi_transport_srp: Add transport layer error
+ handling
+Date: Mon, 01 Jul 2013 07:19:14 -0400
+Message-ID: <1372677554.12468.53.camel@haswell.thedillows.org>
+References: <51CD856A.3010102@acm.org> <51CD873E.6040208@acm.org>
+	 <1372626334.12468.34.camel@haswell.thedillows.org>
+	 <51D12941.3050105@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D16918.60600-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <51D12941.3050105-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01.07.2013 13:33, Bart Van Assche wrote:
->>> --- a/drivers/infiniband/ulp/srp/ib_srp.c
->>> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
->>> @@ -1755,6 +1755,8 @@ static int srp_abort(struct scsi_cmnd *scmnd)
->>>       if (srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
->>>                     SRP_TSK_ABORT_TASK) == 0)
->>>           ret = SUCCESS;
->>> +    else if (target->transport_offline)
->>> +        ret = FAST_IO_FAIL;
->>>       else
->>>           ret = FAILED;
->>>       srp_free_req(target, req, scmnd, 0);
->>>
->>
->> This doesn't give us much speed advantage IMHO. The check for
->> target->transport_offline should be before calling srp_send_tsk_mgmt().
->>
->> This way it would also match the patch description better.
+On Mon, 2013-07-01 at 09:01 +0200, Bart Van Assche wrote:
+> On 06/30/13 23:05, David Dillow wrote:
+> > On Fri, 2013-06-28 at 14:53 +0200, Bart Van Assche wrote:
+> >> +int srp_tmo_valid(int fast_io_fail_tmo, int dev_loss_tmo)
+> >> +{
+> >> +	return (fast_io_fail_tmo < 0 || dev_loss_tmo < 0 ||
+> >> +		fast_io_fail_tmo < dev_loss_tmo) &&
+> >> +		fast_io_fail_tmo < LONG_MAX / HZ &&
+> >> +		dev_loss_tmo < LONG_MAX / HZ ? 0 : -EINVAL;
+> >> +}
+> >
+> > They should also be capped by SCSI_DEVICE_BLOCK_MAX_TIMEOUT instead of
+> > LONG_MAX / HZ, I think.
 > 
-> Hello Sebastian,
-> 
-> Had you perhaps overlooked the following code at the start of
-> srp_send_tsk_mgmt() ?
-> 
->     if (!target->connected || target->qp_in_error)
->         return -1;
-> 
-> Given this I don't think it matters whether the transport_offline check
-> occurs before or after the srp_send_tsk_mgmt() call.
+> The fast_io_fail_tmo should indeed be capped by that value. However, I'm 
+> not sure about dev_loss_tmo. I think there are several use cases (e.g. 
+> initiator-side mirroring) where it's useful to set dev_loss_tmo to a 
+> larger value than ten minutes.
 
-Hi Bart,
-
-okay, right. So you get an error due to the connected and qp_in_error
-state first. Yes, I've overlooked that. Thanks!
-
-Cheers,
-Sebastian
+Ah, yes, very good point.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
