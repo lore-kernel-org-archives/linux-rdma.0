@@ -1,25 +1,34 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: Re: [PATCH for-next 0/8] Add Mellanox mlx5 driver for Connect-IB devices
-Date: Mon, 1 Jul 2013 11:11:50 -0700
-Message-ID: <CAL1RGDW_Z06ZqpOhz3tAkKn=rpLEZE6hWZkLNd9OQgCbrX6YAg@mail.gmail.com>
-References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il>
- <CAJZOPZ+NQa3CWnw3rZQh2UuwdrNhiwtVSyuk9D9YtwfQQ9e1XA@mail.gmail.com>
- <CAJZOPZKLb9k1xXkTnrtzYKpwrSJDQgBpONUVCp3et36JeaEi-Q@mail.gmail.com>
- <CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw@mail.gmail.com> <1372701839.2481.3.camel@joe-AO722>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH for/net-next 3/8] net/mlx5: Mellanox Connect-IB, core
+ driver part 3/3
+Date: Mon, 01 Jul 2013 12:17:27 -0700 (PDT)
+Message-ID: <20130701.121727.478865363404777778.davem@davemloft.net>
+References: <1372256537-21328-4-git-send-email-ogerlitz@mellanox.com>
+	<20130628.211041.256072234719301298.davem@davemloft.net>
+	<201307011444.55361.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1372701839.2481.3.camel@joe-AO722>
-Sender: netdev-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Or Gerlitz <or.gerlitz@gmail.com>, Eli Cohen <eli@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Eli Cohen <eli@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201307011444.55361.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 1, 2013 at 11:03 AM, Joe Perches <joe@perches.com> wrote:
-> There's some value in block enabling/disabling messages
-> that dynamic_debug doesn't currently offer.
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Date: Mon, 1 Jul 2013 14:44:54 +0300
 
-As far as I can see, the mlx5 stuff ends up being per-file.  Which
-dynamic debug already does offer.
+> Thus, the "for" loop could read:
+> 	for (--i; i >= 0; i--) {
+> 
+> However, my own personal opinion is that this is a bit confusing.
+> I would prefer to leave these lines as they are.
+> 
+> Is that OK with you?
 
- - R.
+Please adjust the right-most increment.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
