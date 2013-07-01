@@ -1,19 +1,19 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Subject: Re: [PATCH v2 04/15] IB/srp: Fail I/O fast if target offline
-Date: Mon, 01 Jul 2013 13:33:44 +0200
-Message-ID: <51D16918.60600@acm.org>
-References: <51CD856A.3010102@acm.org> <51CD8676.6080205@acm.org> <51D146EE.6010209@profitbricks.com>
+Date: Mon, 01 Jul 2013 13:38:33 +0200
+Message-ID: <51D16A39.4050709@acm.org>
+References: <51CD856A.3010102@acm.org> <51CD8676.6080205@acm.org> <51D14AF1.4000803@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D146EE.6010209-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <51D14AF1.4000803-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/01/13 11:07, Sebastian Riemer wrote:
+On 07/01/13 11:25, Sebastian Riemer wrote:
 > On 28.06.2013 14:49, Bart Van Assche wrote:
 >> If reconnecting failed we know that no command completion will
 >> be received anymore. Hence let the SCSI error handler fail such
@@ -41,23 +41,21 @@ On 07/01/13 11:07, Sebastian Riemer wrote:
 >>   	else
 >>   		ret = FAILED;
 >>   	srp_free_req(target, req, scmnd, 0);
->>
 >
-> This doesn't give us much speed advantage IMHO. The check for
-> target->transport_offline should be before calling srp_send_tsk_mgmt().
->
-> This way it would also match the patch description better.
+> I'm also missing the concept for srp_reset_device(). There is a very
+> common case that the SCSI error handling and the transport layer error
+> handling run in parallel: Congestion.
 
-Hello Sebastian,
+Can you explain this comment further, and also how this comment relates 
+to patch 04/15 ?
 
-Had you perhaps overlooked the following code at the start of 
-srp_send_tsk_mgmt() ?
+> In congestion some LUNs are blocked while others can still transmit. A
+> little bit later the QP timeout triggers in the middle of the SCSI error
+> handling in srp_abort(), srp_reset_device() or less likely in
+> srp_reset_host().
 
-	if (!target->connected || target->qp_in_error)
-		return -1;
-
-Given this I don't think it matters whether the transport_offline check 
-occurs before or after the srp_send_tsk_mgmt() call.
+I am aware this can result in concurrent srp_reconnect_rport() calls. 
+However, such concurrent calls are serialized via rport->mutex.
 
 Bart.
 --
