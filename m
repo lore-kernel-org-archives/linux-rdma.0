@@ -1,23 +1,25 @@
-From: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Subject: Re: [PATCH for/net-next 3/8] net/mlx5: Mellanox Connect-IB, core driver part 3/3
-Date: Tue, 2 Jul 2013 11:06:50 +0300
-Message-ID: <201307021106.51349.jackm@dev.mellanox.co.il>
-References: <1372256537-21328-4-git-send-email-ogerlitz@mellanox.com> <201307011444.55361.jackm@dev.mellanox.co.il> <20130701.121854.1781783893978810119.davem@davemloft.net>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH v2 04/15] IB/srp: Fail I/O fast if target offline
+Date: Tue, 02 Jul 2013 10:30:40 +0200
+Message-ID: <51D28FB0.8080402@profitbricks.com>
+References: <51CD856A.3010102@acm.org> <51CD8676.6080205@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20130701.121854.1781783893978810119.davem@davemloft.net>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: ogerlitz@mellanox.com, roland@kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, eli@dev.mellanox.co.il, moshel@mellanox.com, eli@mellanox.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51CD8676.6080205-HInyCGIudOg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Monday 01 July 2013 22:18, David Miller wrote:
-> Actually, you should adjust both decrements to read "i--".
-> 
-OK, will do it.
+On 28.06.2013 14:49, Bart Van Assche wrote:
+> If reconnecting failed we know that no command completion will
+> be received anymore. Hence let the SCSI error handler fail such
+> commands immediately.
 
--Jack
+Acked-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
