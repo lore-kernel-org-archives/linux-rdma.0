@@ -1,37 +1,74 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] Add Mellanox mlx5 driver for Connect-IB
- devices
-Date: Wed, 3 Jul 2013 19:41:45 +0300
-Message-ID: <51D45449.5010604@mellanox.com>
-References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il> <CAJZOPZ+NQa3CWnw3rZQh2UuwdrNhiwtVSyuk9D9YtwfQQ9e1XA@mail.gmail.com> <CAJZOPZKLb9k1xXkTnrtzYKpwrSJDQgBpONUVCp3et36JeaEi-Q@mail.gmail.com> <CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] Add flags to OSM_EVENT_ID_UCAST_ROUTING_DONE
+Date: Wed, 03 Jul 2013 13:05:41 -0400
+Message-ID: <51D459E5.5020709@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/07/2013 20:49, Roland Dreier wrote:
-> - I think the active flag for the health check timer is unnecessary.
-> It can just be stopped with del_timer_sync().
 
-Hi Roland
+to be able to discern between ucast routing done when rerouting
+versus heavy sweep.
 
-Jack looked on this comment/code and he says that the active flag is used
-to prevent re-scheduling the timer from inside the timer handling routine.
-
-In the kernel, the comment header in the source file for del_timer_sync
-explicitly states that re-scheduling the timer must be prevented,
-or the sync is useless:Callers must prevent restarting of the timer, 
-otherwise
-this function is meaningless
-
-So we believe that code should remain.
-
-Or.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/include/opensm/osm_event_plugin.h b/include/opensm/osm_event_plugin.h
+index 6b060e7..ca5a719 100644
+--- a/include/opensm/osm_event_plugin.h
++++ b/include/opensm/osm_event_plugin.h
+@@ -94,6 +94,12 @@ typedef enum {
+ 	LFT_CHANGED_BLOCK = (1 << 1)
+ } osm_epi_lft_change_flags_t;
+ 
++typedef enum {
++	UCAST_ROUTING_NONE,
++	UCAST_ROUTING_HEAVY_SWEEP,
++	UCAST_ROUTING_REROUTE
++} osm_epi_ucast_routing_flags_t;
++
+ typedef struct osm_epi_lft_change_event {
+ 	osm_switch_t *p_sw;
+ 	osm_epi_lft_change_flags_t flags;
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index 1b73834..0cc8162 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -1190,7 +1190,7 @@ static void do_sweep(osm_sm_t * sm)
+ 					"REROUTE COMPLETE");
+ 			osm_opensm_report_event(sm->p_subn->p_osm,
+ 						OSM_EVENT_ID_UCAST_ROUTING_DONE,
+-						NULL);
++						(void *) UCAST_ROUTING_REROUTE);
+ 			return;
+ 		}
+ 	}
+@@ -1387,7 +1387,8 @@ repeat_discovery:
+ 	OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
+ 			"SWITCHES CONFIGURED FOR UNICAST");
+ 	osm_opensm_report_event(sm->p_subn->p_osm,
+-				OSM_EVENT_ID_UCAST_ROUTING_DONE, NULL);
++				OSM_EVENT_ID_UCAST_ROUTING_DONE,
++				(void *) UCAST_ROUTING_HEAVY_SWEEP);
+ 
+ 	if (!sm->p_subn->opt.disable_multicast) {
+ 		osm_mcast_mgr_process(sm, TRUE);
+diff --git a/osmeventplugin/src/osmeventplugin.c b/osmeventplugin/src/osmeventplugin.c
+index c5655fe..1eaf7ea 100644
+--- a/osmeventplugin/src/osmeventplugin.c
++++ b/osmeventplugin/src/osmeventplugin.c
+@@ -195,7 +195,7 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
+ 		fprintf(log->log_file, "Heavy sweep completed\n");
+ 		break;
+ 	case OSM_EVENT_ID_UCAST_ROUTING_DONE:
+-		fprintf(log->log_file, "Unicast routing completed\n");
++		fprintf(log->log_file, "Unicast routing completed %d\n", event_data);
+ 		break;
+ 	case OSM_EVENT_ID_STATE_CHANGE:
+ 		fprintf(log->log_file, "SM state changed\n");
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
