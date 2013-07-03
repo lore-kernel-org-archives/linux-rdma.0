@@ -1,93 +1,92 @@
-From: Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: rtnl_lock deadlock on 3.10
-Date: Wed, 3 Jul 2013 12:22:39 -0500
-Message-ID: <20130703172239.GA3439@sbohrermbp13-local.rgmadvisors.com>
-References: <20130701145456.GA7756@sbohrermbp13-local.rgmadvisors.com>
- <20130702082818.GA26178@order.stressinduktion.org>
- <kqul4h$ib8$1@ger.gmane.org>
- <20130703051152.GA12615@order.stressinduktion.org>
- <20130703053307.GB12615@order.stressinduktion.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: PATCH: opensm enhancements
+Date: Wed, 03 Jul 2013 13:24:27 -0400
+Message-ID: <51D45E4B.6090907@dev.mellanox.co.il>
+References: <51CB5BF1.1090601@nasa.gov> <51D3FBA7.9040604@dev.mellanox.co.il> <51D44F58.1080903@nasa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130703053307.GB12615-5j1vdhnGyZutBveJljeh2VPnkB77EeZ12LY78lusg7I@public.gmane.org>
+In-Reply-To: <51D44F58.1080903-NSQ8wuThN14@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org
+To: Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ciotti, Robert B. (ARC-TNE)" <bob.ciotti-NSQ8wuThN14@public.gmane.org>, "Talcott, Dale R. (ARC-TN)[Computer Sciences Corporation]" <dale.r.talcott-1-NSQ8wuThN14@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 03, 2013 at 07:33:07AM +0200, Hannes Frederic Sowa wrote:
-> On Wed, Jul 03, 2013 at 07:11:52AM +0200, Hannes Frederic Sowa wrote:
-> > On Tue, Jul 02, 2013 at 01:38:26PM +0000, Cong Wang wrote:
-> > > On Tue, 02 Jul 2013 at 08:28 GMT, Hannes Frederic Sowa <hannes-tFNcAqjVMyqKXQKiL6tip0B+6BGkLq7r@public.gmane.org> wrote:
-> > > > On Mon, Jul 01, 2013 at 09:54:56AM -0500, Shawn Bohrer wrote:
-> > > >> I've managed to hit a deadlock at boot a couple times while testing
-> > > >> the 3.10 rc kernels.  It seems to always happen when my network
-> > > >> devices are initializing.  This morning I updated to v3.10 and made a
-> > > >> few config tweaks and so far I've hit it 4 out of 5 reboots.  It looks
-> > > >> like most processes are getting stuck on rtnl_lock.  Below is a boot
-> > > >> log with the soft lockup prints.  Please let know if there is any
-> > > >> other information I can provide:
-> > > >
-> > > > Could you try a build with CONFIG_LOCKDEP enabled?
-> > > >
-> > > 
-> > > The problem is clear: ib_register_device() is called with rtnl_lock,
-> > > but itself needs device_mutex, however, ib_register_client() first
-> > > acquires device_mutex, then indirectly calls register_netdev() which
-> > > takes rtnl_lock. Deadlock!
-> > > 
-> > > One possible fix is always taking rtnl_lock before taking
-> > > device_mutex, something like below:
-> > > 
-> > > diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> > > index 18c1ece..890870b 100644
-> > > --- a/drivers/infiniband/core/device.c
-> > > +++ b/drivers/infiniband/core/device.c
-> > > @@ -381,6 +381,7 @@ int ib_register_client(struct ib_client *client)
-> > >  {
-> > >  	struct ib_device *device;
-> > >  
-> > > +	rtnl_lock();
-> > >  	mutex_lock(&device_mutex);
-> > >  
-> > >  	list_add_tail(&client->list, &client_list);
-> > > @@ -389,6 +390,7 @@ int ib_register_client(struct ib_client *client)
-> > >  			client->add(device);
-> > >  
-> > >  	mutex_unlock(&device_mutex);
-> > > +	rtnl_unlock();
-> > >  
-> > >  	return 0;
-> > >  }
-> > > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > > index b6e049a..5a7a048 100644
-> > > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > > @@ -1609,7 +1609,7 @@ static struct net_device *ipoib_add_port(const char *format,
-> > >  		goto event_failed;
-> > >  	}
-> > >  
-> > > -	result = register_netdev(priv->dev);
-> > > +	result = register_netdevice(priv->dev);
-> > >  	if (result) {
-> > >  		printk(KERN_WARNING "%s: couldn't register ipoib port %d; error %d\n",
-> > >  		       hca->name, port, result);
-> > 
-> > Looks good to me. Shawn, could you test this patch?
+Hi again Jeff,
+
+On 7/3/2013 12:20 PM, Jeff Becker wrote:
+> Hi Hal,
 > 
-> ib_unregister_device/ib_unregister_client would need the same change,
-> too. I have not checked the other ->add() and ->remove() functions. Also
-> cc'ed linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier.
+> I have some testing info about the second patch below.
+> 
+> On 07/03/2013 03:23 AM, Hal Rosenstock wrote:
+>> HI Jeff,
+>>
+>> On 6/26/2013 5:24 PM, Jeff Becker wrote:
+>>> Hi Hal. At the OFA workshop, I mentioned that I've been working on some
+>>> modifications to opensm that we use at NASA. Following extensive testing
+>>> of these applied to opensm 3.3.13 (the version we run here), I have
+>>> ported these to top of tree opensm, and have tested them on a small
+>>> cluster.
+>> Thanks for getting this done! For future reference, patches should be
+>> sent as plain text as this makes it easier to comment.
+> 
+> OK. So I just send the output of git-format-patch directly? It appears
+> to be formatted properly.
+>>
+>>> The first patch modifies the console logflush command to take "on" or
+>>> "off" as an argument for toggling.
+>> Thanks. Applied.
+>>
+>>> The second (more extensive) patch
+>>> adds a command line option to specify a file in which each line contains
+>>> a switch GUID/port pair to be ignored by opensm. The idea is to specify
+>>> this file when you start opensm (it can be empty), and add ports to
+>>> ignore (one per line for each end of a connection) to the file. At the
+>>> next heavy sweep (or HUP) the sm will reprogram the forwarding tables
+>>> without including the ignored links. We use this for replacing cables,
+>>> as well as for system expansion (adding new racks).
+>> I'll comment on this one later.
+> 
+> Dale (cc'd) did some testing with my patch on Pleiades in preparation
+> for a system augmentation (new racks) happening soon. He found that the
+> SM correctly produces routes that do not use links marked to be ignored,
+> but when you then remove or disable the links, the SM re-routes the
+> fabric anyway and comes up with different routes than before. This
+> rerouting causes problems with existing connections. There also appears
+> to be a bookkeeping problem such that some of these links get added to
+> the SM's "light sampling" list and never get removed. This ties up
+> outstanding MAD packet slots, causing the SM to become unresponsive for
+> several seconds every time it reviews its light sampling list.
 
-Cong's patch is missing the #include <linux/rtnetlink.h> but otherwise
-I've had 34 successful reboots with no deadlocks which is a good sign.
-It sounds like there are more paths that need to be audited and a
-proper patch submitted.  I can do more testing later if needed.
+Yes, this is one of several issues with using this approach.
 
-Thanks,
-Shawn
+I plan on detailing these later as well as posting a slightly different
+approach for this but that may take a little longer...
+
+> I'm working on fixing these. I'll take care of the second problem
+> (incorrectly getting added to the light sampling list) first. Is it
+> possible this problem is related to the re-routing on port disable
+> problem? Anyhow, if you have any specific comments about these issues,
+> that would be great. 
+
+> Thanks, and have a great Fourth of July.
+
+Thanks; you too!
+
+-- Hal
+
+> -jeff
+>>
+>> -- Hal
+>>
+>>> Please let me know if you have any questions/issues with these. Thanks.
+>>>
+>>> -jeff
+> 
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
