@@ -1,51 +1,109 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: PATCH: opensm enhancements
-Date: Wed, 03 Jul 2013 06:23:35 -0400
-Message-ID: <51D3FBA7.9040604@dev.mellanox.co.il>
-References: <51CB5BF1.1090601@nasa.gov>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH v3 0/13] IB SRP initiator patches for kernel 3.11
+Date: Wed, 03 Jul 2013 14:41:39 +0200
+Message-ID: <51D41C03.4020607@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51CB5BF1.1090601-NSQ8wuThN14@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ciotti, Robert B. (ARC-TNE)" <bob.ciotti-NSQ8wuThN14@public.gmane.org>, Dale Talcott <Dale.R.Talcott-NSQ8wuThN14@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-HI Jeff,
+The purpose of this InfiniBand SRP initiator patch series is as follows:
+- Make the SRP initiator driver better suited for use in a H.A. setup.
+   Add fast_io_fail_tmo and dev_loss_tmo parameters. These can be used
+   either to speed up failover or to avoid device removal when e.g. using
+   initiator side mirroring.
+- Make the SRP initiator better suited for use on NUMA systems by
+   making the HCA completion vector configurable.
 
-On 6/26/2013 5:24 PM, Jeff Becker wrote:
-> Hi Hal. At the OFA workshop, I mentioned that I've been working on some
-> modifications to opensm that we use at NASA. Following extensive testing
-> of these applied to opensm 3.3.13 (the version we run here), I have
-> ported these to top of tree opensm, and have tested them on a small
-> cluster.
+Changes since the v2 of the "IB SRP initiator patches for kernel 3.11" 
+patch series:
+- Improved documentation of the newly added sysfs parameters.
+- Limit fast_io_fail_tmo to SCSI_DEVICE_BLOCK_MAX_TIMEOUT.
+- Simplified the code for parsing values written into sysfs attributes.
+- Fixed a potential deadlock in the code added in scsi_transport_srp
+   (invoking cancel_delayed_work() with the rport mutex held for work
+    that needs the rport mutex itself).
+- Changed the default retry count back from 2 to 7 since there is not
+   yet agreement about this change.
+- Dropped the patch that silences failed SCSI commands and also the
+   patch that fixes a race between srp_queuecommand() and
+   srp_claim_req() since there is no agreement about these patches.
 
-Thanks for getting this done! For future reference, patches should be
-sent as plain text as this makes it easier to comment.
+Changes since the v1 of the "IB SRP initiator patches for kernel 3.11" 
+patch series:
+- scsi_transport_srp: Allowed both fast_io_fail and dev_loss timeouts
+   to be disabled.
+- scsi_transport_srp, srp_reconnect_rport(): switched from
+   scsi_block_requests() to scsi_target_block() for blocking SCSI command
+   processing temporarily.
+- scsi_transport_srp, srp_start_tl_fail_timers(): only block SCSI device
+   command processing if the fast_io_fail timer is enabled.
+- Changed srp_abort() such that upon transport offline the value
+   FAST_IO_FAIL is returned instead of SUCCESS.
+- Fixed a race condition in the "maintain single connection" patch: a
+   new login after removal had started but before removal had finished
+   still could create a duplicate connection. Fixed this by deferring
+   removal from the target list until removal has finished.
+- Modified the error message in the same patch for reporting that a
+   duplicate connection has been rejected.
+- Modified patch 2/15 such that all possible race conditions with
+   srp_claim_req() are addressed.
+- Documented the comp_vector and tl_retry_count login string parameters.
+- Updated dev_loss_tmo and fast_io_fail_tmo documentation - mentioned
+   "off" is a valid choice.
 
-> The first patch modifies the console logflush command to take "on" or
-> "off" as an argument for toggling. 
+Changes compared to v5 of the "Make ib_srp better suited for H.A. 
+purposes" patch series:
+- Left out patches that are already upstream.
+- Made it possible to set dev_loss_tmo to "off". This is useful in a
+   setup using initiator side mirroring to avoid that new /dev/sd* names
+   are reassigned after a failover or cable pull and reinsert.
+- Added kernel module parameters to ib_srp for configuring default
+   values of the fast_io_fail_tmo and dev_loss_tmo parameters.
+- Added a patch from Dotan Barak that fixes a kernel oops during rmmod
+   triggered by resource allocation failure at module load time.
+- Avoid duplicate connections by refusing relogins instead of dropping
+   duplicate connections, as proposed by Sebastian Riemer.
+- Added a patch from Sebastian Riemer for failing SCSI commands
+   silently.
+- Added a patch from Vu Pham to make the transport layer (IB RC) retry
+   count configurable.
+- Made HCA completion vector configurable.
 
-Thanks. Applied.
+Changes since v4:
+- Added a patch for removing SCSI devices upon a port down event
 
-> The second (more extensive) patch
-> adds a command line option to specify a file in which each line contains
-> a switch GUID/port pair to be ignored by opensm. The idea is to specify
-> this file when you start opensm (it can be empty), and add ports to
-> ignore (one per line for each end of a connection) to the file. At the
-> next heavy sweep (or HUP) the sm will reprogram the forwarding tables
-> without including the ignored links. We use this for replacing cables,
-> as well as for system expansion (adding new racks).
+Changes since v3:
+- Restored the dev_loss_tmo and fast_io_fail_tmo sysfs attributes.
+- Included a patch to fix an ib_srp crash that could be triggered by
+   cable pulling.
 
-I'll comment on this one later.
+Changes since v2:
+- Addressed the v2 review comments.
+- Dropped the patches that have already been merged.
+- Dropped the patches for integration with multipathd.
+- Dropped the micro-optimization of the IB completion handlers.
 
--- Hal
-
-> Please let me know if you have any questions/issues with these. Thanks.
-> 
-> -jeff
+The individual patches in this series are as follows:
+0001-IB-srp-Fix-remove_one-crash-due-to-resource-exhausti.patch
+0002-IB-srp-Fix-race-between-srp_queuecommand-and-srp_cla.patch
+0003-IB-srp-Avoid-that-srp_reset_host-is-skipped-after-a-.patch
+0004-IB-srp-Fail-I-O-fast-if-target-offline.patch
+0005-IB-srp-Skip-host-settle-delay.patch
+0006-IB-srp-Maintain-a-single-connection-per-I_T-nexus.patch
+0007-IB-srp-Keep-rport-as-long-as-the-IB-transport-layer.patch
+0008-scsi_transport_srp-Add-transport-layer-error-handlin.patch
+0009-IB-srp-Add-srp_terminate_io.patch
+0010-IB-srp-Use-SRP-transport-layer-error-recovery.patch
+0011-IB-srp-Start-timers-if-a-transport-layer-error-occur.patch
+0012-IB-srp-Fail-SCSI-commands-silently.patch
+0013-IB-srp-Make-HCA-completion-vector-configurable.patch
+0014-IB-srp-Make-transport-layer-retry-count-configurable.patch
+0015-IB-srp-Bump-driver-version-and-release-date.patch
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
