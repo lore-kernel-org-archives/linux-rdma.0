@@ -1,14 +1,14 @@
 From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH V2 5/9] IB/mlx5: Mellanox Connect-IB, IB driver part 1/5
-Date: Wed, 03 Jul 2013 13:59:28 -0700
-Message-ID: <1372885168.1886.17.camel@joe-AO722>
+Subject: Re: [PATCH V2 7/9] IB/mlx5: Mellanox Connect-IB, IB driver part 3/5
+Date: Wed, 03 Jul 2013 14:10:04 -0700
+Message-ID: <1372885804.1886.22.camel@joe-AO722>
 References: <1372871592-32033-1-git-send-email-ogerlitz@mellanox.com>
-	 <1372871592-32033-6-git-send-email-ogerlitz@mellanox.com>
+	 <1372871592-32033-8-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1372871592-32033-6-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1372871592-32033-8-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -17,72 +17,78 @@ List-Id: linux-rdma@vger.kernel.org
 On Wed, 2013-07-03 at 20:13 +0300, Or Gerlitz wrote:
 > From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-more trivia:
+More trivia:
 
-> diff --git a/drivers/infiniband/hw/mlx5/ah.c b/drivers/infiniband/hw/mlx5/ah.c
+> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
 []
-> +struct ib_ah *create_ib_ah(struct ib_ah_attr *ah_attr,
-> +			   struct mlx5_ib_ah *ah)
+> +#define mlx5_ib_dbg(dev, format, arg...)				\
+> +do {									\
+> +	pr_debug("%s:%s:%d:(pid %d): " format, (dev)->ib_dev.name,	\
+> +		 __func__, __LINE__, current->pid, ##arg);		\
+> +} while (0)
+
+unnecessary do {} while (0)
+
+> +static void clean_keys(struct mlx5_ib_dev *dev, int c)
 > +{
-> +	u32 sgi;
+> +	struct device *ddev = dev->ib_dev.dma_device;
+> +	struct mlx5_mr_cache *cache = &dev->cache;
+> +	struct mlx5_cache_ent *ent = &cache->ent[c];
+> +	struct mlx5_ib_mr *mr;
+> +	int size;
+> +	int err;
+> +
+> +	while (1) {
+> +		spin_lock(&ent->lock);
+> +		if (list_empty(&ent->head)) {
+> +			spin_unlock(&ent->lock);
+> +			return;
+> +		}
+> +		mr = list_first_entry(&ent->head, struct mlx5_ib_mr, list);
+> +		list_del(&mr->list);
+> +		ent->cur--;
+> +		ent->size--;
+> +		spin_unlock(&ent->lock);
+> +		err = mlx5_core_destroy_mkey(&dev->mdev, &mr->mmr);
+> +		if (err) {
+> +			mlx5_ib_warn(dev, "failed destroy mkey\n");
 
-sgi is used once here and looks more confusing than helpful
+Are you leaking anything here by not freeing?
 
-> +
-> +	if (ah_attr->ah_flags & IB_AH_GRH) {
-> +		sgi = ah_attr->grh.sgid_index << 20;
-> +
-> +		memcpy(ah->av.rgid, &ah_attr->grh.dgid, 16);
-> +		ah->av.grh_gid_fl = cpu_to_be32(ah_attr->grh.flow_label |
-> +						(1 << 30) | sgi);
-> +		ah->av.hop_limit = ah_attr->grh.hop_limit;
-> +		ah->av.tclass = ah_attr->grh.traffic_class;
-> +	}
-> +
-> +	ah->av.rlid = cpu_to_be16(ah_attr->dlid);
-> +	ah->av.fl_mlid = ah_attr->src_path_bits & 0x7f;
-> +	ah->av.stat_rate_sl = (ah_attr->static_rate << 4) | (ah_attr->sl & 0xf);
-> +
-> +	return &ah->ibah;
+> +		} else {
+> +			size = ALIGN(sizeof(u64) * (1 << mr->order), 0x40);
+> +			dma_unmap_single(ddev, mr->dma, size, DMA_TO_DEVICE);
+> +			kfree(mr->pas);
+> +			kfree(mr);
+> +		}
+> +	};
 > +}
 
-[]
-
-> +static void *get_sw_cqe(struct mlx5_ib_cq *cq, int n)
+> +static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
+> +				     u64 length, struct ib_umem *umem,
+> +				     int npages, int page_shift,
+> +				     int access_flags)
 > +{
-> +	void *cqe = get_cqe(cq, n & cq->ibcq.cqe);
-> +	struct mlx5_cqe64 *cqe64;
+[]
+> +	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
+> +	if (!mr) {
+> +		mlx5_ib_warn(dev, "allocation failed\n");
+
+Another unnecessary OOM
+
+> +		mr = ERR_PTR(-ENOMEM);
+> +	}
 > +
-> +	cqe64 = (cq->mcq.cqe_sz == 64) ? cqe : cqe + 64;
-> +	return ((cqe64->op_own & MLX5_CQE_OWNER_MASK) ^
-> +		!!(n & (cq->ibcq.cqe + 1))) ? NULL : cqe;
+> +	inlen = sizeof(*in) + sizeof(*in->pas) * ((npages + 1) / 2) * 2;
+> +	in = vzalloc(inlen);
+> +	if (!in) {
+> +		mlx5_ib_warn(dev, "alloc failed\n");
 
-I think "foo ^ !!bar" is excessively tricky.
+here too.
 
-> +static enum ib_wc_opcode get_umr_comp(struct mlx5_ib_wq *wq, int idx)
-> +{
-
-> +		pr_warn("unkonwn completion status\n");
-
-unknown tyop
-
-[]
-
-> +static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
-> +			  struct ib_ucontext *context, struct mlx5_ib_cq *cq,
-> +			  int entries, struct mlx5_create_cq_mbox_in **cqb,
-> +			  int *cqe_size, int *index, int *inlen)
-[]
-> +	*inlen = sizeof **cqb + sizeof *(*cqb)->pas * ncont;
-
-sizeof always uses parentheses
-
-> +	*cqb = vzalloc(*inlen);
-
-Perhaps you may be using vzalloc too often.
-
-Maybe you should have a helper allocating either
-from kmalloc or vmalloc as necessary based on size.
+> +		err = -ENOMEM;
+> +		goto err_1;
+> +	}
 
 
 --
