@@ -1,74 +1,77 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH v3 07/13] scsi_transport_srp: Add transport layer error
- handling
-Date: Wed, 03 Jul 2013 18:00:06 +0200
-Message-ID: <51D44A86.5050000@acm.org>
-References: <51D41C03.4020607@acm.org> <51D41F13.6060203@acm.org> <1372864458.24238.32.camel@frustration.ornl.gov>
+From: Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>
+Subject: Re: PATCH: opensm enhancements
+Date: Wed, 3 Jul 2013 09:20:40 -0700
+Message-ID: <51D44F58.1080903@nasa.gov>
+References: <51CB5BF1.1090601@nasa.gov> <51D3FBA7.9040604@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1372864458.24238.32.camel@frustration.ornl.gov>
-Sender: linux-scsi-owner@vger.kernel.org
-To: David Dillow <dave@thedillows.org>
-Cc: Bart Van Assche <bvanassche@acm.org>, Roland Dreier <roland@kernel.org>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, Jinpu Wang <jinpu.wang@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, James Bottomley <jbottomley@parallels.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51D3FBA7.9040604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ciotti, Robert B. (ARC-TNE)" <bob.ciotti-NSQ8wuThN14@public.gmane.org>, "Talcott, Dale R. (ARC-TN)[Computer Sciences Corporation]" <dale.r.talcott-1-NSQ8wuThN14@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/03/13 17:14, David Dillow wrote:
-> On Wed, 2013-07-03 at 14:54 +0200, Bart Van Assche wrote:
->> +int srp_tmo_valid(int fast_io_fail_tmo, int dev_loss_tmo)
->> +{
->> +	return (fast_io_fail_tmo < 0 || dev_loss_tmo < 0 ||
->> +		fast_io_fail_tmo < dev_loss_tmo) &&
->> +		fast_io_fail_tmo <= SCSI_DEVICE_BLOCK_MAX_TIMEOUT &&
->> +		dev_loss_tmo < LONG_MAX / HZ ? 0 : -EINVAL;
->> +}
->> +EXPORT_SYMBOL_GPL(srp_tmo_valid);
+Hi Hal,
+
+I have some testing info about the second patch below.
+
+On 07/03/2013 03:23 AM, Hal Rosenstock wrote:
+> HI Jeff,
 >
-> This would have been more readable:
+> On 6/26/2013 5:24 PM, Jeff Becker wrote:
+>> Hi Hal. At the OFA workshop, I mentioned that I've been working on some
+>> modifications to opensm that we use at NASA. Following extensive testing
+>> of these applied to opensm 3.3.13 (the version we run here), I have
+>> ported these to top of tree opensm, and have tested them on a small
+>> cluster.
+> Thanks for getting this done! For future reference, patches should be
+> sent as plain text as this makes it easier to comment.
+
+OK. So I just send the output of git-format-patch directly? It appears 
+to be formatted properly.
 >
-> int srp_tmo_valid(int fast_io_fail_tmp, int dev_loss_tmo)
-> {
-> 	/* Fast IO fail must be off, or no greater than the max timeout */
-> 	if (fast_io_fail_tmo > SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
-> 		return -EINVAL;
+>> The first patch modifies the console logflush command to take "on" or
+>> "off" as an argument for toggling.
+> Thanks. Applied.
 >
-> 	/* Device timeout must be off, or fit into jiffies */
-> 	if (dev_loss_tmo >= LONG_MAX / HZ)
-> 		return -EINVAL;
+>> The second (more extensive) patch
+>> adds a command line option to specify a file in which each line contains
+>> a switch GUID/port pair to be ignored by opensm. The idea is to specify
+>> this file when you start opensm (it can be empty), and add ports to
+>> ignore (one per line for each end of a connection) to the file. At the
+>> next heavy sweep (or HUP) the sm will reprogram the forwarding tables
+>> without including the ignored links. We use this for replacing cables,
+>> as well as for system expansion (adding new racks).
+> I'll comment on this one later.
+
+Dale (cc'd) did some testing with my patch on Pleiades in preparation 
+for a system augmentation (new racks) happening soon. He found that the 
+SM correctly produces routes that do not use links marked to be ignored, 
+but when you then remove or disable the links, the SM re-routes the 
+fabric anyway and comes up with different routes than before. This 
+rerouting causes problems with existing connections. There also appears 
+to be a bookkeeping problem such that some of these links get added to 
+the SM's "light sampling" list and never get removed. This ties up 
+outstanding MAD packet slots, causing the SM to become unresponsive for 
+several seconds every time it reviews its light sampling list.
+
+I'm working on fixing these. I'll take care of the second problem 
+(incorrectly getting added to the light sampling list) first. Is it 
+possible this problem is related to the re-routing on port disable 
+problem? Anyhow, if you have any specific comments about these issues, 
+that would be great. Thanks, and have a great Fourth of July.
+
+-jeff
 >
-> 	/* Fast IO must trigger before device loss, or one of the
-> 	 * timeouts must be disabled.
-> 	 */
-> 	if (fast_io_fail_tmo < 0 || dev_loss_tmo < 0)
-> 		return 0;
-> 	if (fast_io_fail < dev_loss_tmo)
-> 		return 0;
+> -- Hal
 >
-> 	return -EINVAL;	
-> }
+>> Please let me know if you have any questions/issues with these. Thanks.
+>>
+>> -jeff
 
-Isn't that a matter of personal taste which of the above two is more 
-clear ? It might also depend on the number of mathematics courses in 
-someones educational background :-)
-
-> Though, now that I've unpacked it -- I don't think it is OK for
-> dev_loss_tmo to be off, but fast IO to be on? That drops another
-> conditional.
-
-The combination of dev_loss_tmo off and reconnect_delay > 0 worked fine 
-in my tests. An I/O failure was detected shortly after the cable to the 
-target was pulled. I/O resumed shortly after the cable to the target was 
-reinserted.
-
-> Also, FC caps dev_loss_tmo at SCSI_DEVICE_BLOCK_MAX_TIMEOUT if
-> fail_io_fast_tmo is off; I agree with your reasoning about leaving it
-> unlimited if fast fail is on, but does that still hold if it is off?
-
-I think setting dev_loss_tmo to a large value only makes sense if the 
-value of reconnect_delay is not too large. Setting both to a large value 
-would result in slow recovery after a transport layer failure has been 
-corrected.
-
-Bart.
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
