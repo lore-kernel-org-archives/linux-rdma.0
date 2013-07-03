@@ -1,46 +1,55 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v3 13/13] IB/srp: Bump driver version and release date
-Date: Wed, 03 Jul 2013 15:00:37 +0200
-Message-ID: <51D42075.4010108@acm.org>
+From: Or Gerlitz <ogerlitz@mellanox.com>
+Subject: Re: [PATCH v3 0/13] IB SRP initiator patches for kernel 3.11
+Date: Wed, 3 Jul 2013 16:38:00 +0300
+Message-ID: <51D42938.3010806@mellanox.com>
 References: <51D41C03.4020607@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D41C03.4020607-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <51D41C03.4020607@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Roland Dreier <roland@kernel.org>, David Dillow <dave@thedillows.org>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, Jinpu Wang <jinpu.wang@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On 03/07/2013 15:41, Bart Van Assche wrote:
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 91b2d04..fa38bc3 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -53,8 +53,8 @@
- 
- #define DRV_NAME	"ib_srp"
- #define PFX		DRV_NAME ": "
--#define DRV_VERSION	"0.2"
--#define DRV_RELDATE	"November 1, 2005"
-+#define DRV_VERSION	"1.0"
-+#define DRV_RELDATE	"July 1, 2013"
- 
- MODULE_AUTHOR("Roland Dreier");
- MODULE_DESCRIPTION("InfiniBand SCSI RDMA Protocol initiator "
--- 
-1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[...]
+
+Bart,
+
+> The individual patches in this series are as follows:
+> 0001-IB-srp-Fix-remove_one-crash-due-to-resource-exhausti.patch
+> 0002-IB-srp-Fix-race-between-srp_queuecommand-and-srp_cla.patch
+> 0003-IB-srp-Avoid-that-srp_reset_host-is-skipped-after-a-.patch
+> 0004-IB-srp-Fail-I-O-fast-if-target-offline.patch
+> 0005-IB-srp-Skip-host-settle-delay.patch
+> 0006-IB-srp-Maintain-a-single-connection-per-I_T-nexus.patch
+> 0007-IB-srp-Keep-rport-as-long-as-the-IB-transport-layer.patch
+> 0008-scsi_transport_srp-Add-transport-layer-error-handlin.patch
+> 0009-IB-srp-Add-srp_terminate_io.patch
+> 0010-IB-srp-Use-SRP-transport-layer-error-recovery.patch
+> 0011-IB-srp-Start-timers-if-a-transport-layer-error-occur.patch
+> 0012-IB-srp-Fail-SCSI-commands-silently.patch
+> 0013-IB-srp-Make-HCA-completion-vector-configurable.patch
+> 0014-IB-srp-Make-transport-layer-retry-count-configurable.patch
+> 0015-IB-srp-Bump-driver-version-and-release-date.patch
+
+Some of these patches were already picked by Roland (SB), I would 
+suggest that you
+post V4 and drop the ones which were accepted.
+
+e8ca413 IB/srp: Bump driver version and release date
+4b5e5f4 IB/srp: Make HCA completion vector configurable
+96fc248 IB/srp: Maintain a single connection per I_T nexus
+99e1c13 IB/srp: Fail I/O fast if target offline
+2742c1d IB/srp: Skip host settle delay
+086f44f IB/srp: Avoid skipping srp_reset_host() after a transport error
+1fe0cb8 IB/srp: Fix remove_one crash due to resource exhaustion
+
+Also, Would help if you use the --cover-letter of git format-patch and
+the resulted cover letter  (patch 0/N) as it has standard content which
+you can enhance and place your additions.
+
