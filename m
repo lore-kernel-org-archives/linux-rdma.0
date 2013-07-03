@@ -1,68 +1,41 @@
-From: Waiman Long <Waiman.Long@hp.com>
-Subject: [PATCH v3 05/25] infiniband: Change how dentry's d_lock field is accessed
-Date: Wed,  3 Jul 2013 16:20:31 -0400
-Message-ID: <1372882831-22671-1-git-send-email-Waiman.Long@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Mike Marciniszyn <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, Waiman Long <Waiman.Long@hp.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andi Kleen <andi@firstfloor.org>, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>
+From: Or Gerlitz <or.gerlitz@gmail.com>
+Subject: Re: [PATCH for-next 0/8] Add Mellanox mlx5 driver for Connect-IB devices
+Date: Wed, 3 Jul 2013 23:25:11 +0300
+Message-ID: <CAJZOPZJLSTaTwp7EBE2OLCpnWZTyEsUF84X0aw9XEzTFN-fW+A@mail.gmail.com>
+References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il>
+	<CAJZOPZ+NQa3CWnw3rZQh2UuwdrNhiwtVSyuk9D9YtwfQQ9e1XA@mail.gmail.com>
+	<CAJZOPZKLb9k1xXkTnrtzYKpwrSJDQgBpONUVCp3et36JeaEi-Q@mail.gmail.com>
+	<CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw@mail.gmail.com>
+	<51D45449.5010604@mellanox.com>
+	<CAL1RGDU0JiGPFEAu87JbxxbHWbgZVsRz1qbz4BvqbCJU9RtRAA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAL1RGDU0JiGPFEAu87JbxxbHWbgZVsRz1qbz4BvqbCJU9RtRAA@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, Eli Cohen <eli@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Eli Cohen <eli@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Jack Morgenstein <jackm@dev.mellanox.co.il>
 List-Id: linux-rdma@vger.kernel.org
 
-Because of the changes made in dcache.h header file, files that
-use the d_lock field of the dentry structure need to be changed
-accordingly. All the d_lock's spin_lock() and spin_unlock() calls
-are replaced by the corresponding d_lock() and d_unlock() calls.
-There is no change in logic and everything should just work.
+On Wed, Jul 3, 2013 at 10:26 PM, Roland Dreier <roland@kernel.org> wrote:
+> On Wed, Jul 3, 2013 at 9:41 AM, Or Gerlitz <ogerlitz@mellanox.com> wrote:
+> > Jack looked on this comment/code and he says that the active flag is used
+> > to prevent re-scheduling the timer from inside the timer handling routine.
+> >
+> > In the kernel, the comment header in the source file for del_timer_sync
+> > explicitly states that re-scheduling the timer must be prevented,
+> > or the sync is useless:Callers must prevent restarting of the timer,
+> > otherwise
+> > this function is meaningless
+> >
+> > So we believe that code should remain.
+>
+> Look at the actual timer code.  del_timer_sync() won't work if
+> something unrelated re-adds the timer, but it will work if the timer
+> itself is what re-adds itself.
 
-Signed-off-by: Waiman Long <Waiman.Long@hp.com>
----
- drivers/infiniband/hw/ipath/ipath_fs.c |    6 +++---
- drivers/infiniband/hw/qib/qib_fs.c     |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+[...]
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_fs.c b/drivers/infiniband/hw/ipath/ipath_fs.c
-index e0c404b..1efee26 100644
---- a/drivers/infiniband/hw/ipath/ipath_fs.c
-+++ b/drivers/infiniband/hw/ipath/ipath_fs.c
-@@ -277,14 +277,14 @@ static int remove_file(struct dentry *parent, char *name)
- 		goto bail;
- 	}
- 
--	spin_lock(&tmp->d_lock);
-+	d_lock(tmp);
- 	if (!(d_unhashed(tmp) && tmp->d_inode)) {
- 		dget_dlock(tmp);
- 		__d_drop(tmp);
--		spin_unlock(&tmp->d_lock);
-+		d_unlock(tmp);
- 		simple_unlink(parent->d_inode, tmp);
- 	} else
--		spin_unlock(&tmp->d_lock);
-+		d_unlock(tmp);
- 
- 	ret = 0;
- bail:
-diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw/qib/qib_fs.c
-index f247fc6..63713ee 100644
---- a/drivers/infiniband/hw/qib/qib_fs.c
-+++ b/drivers/infiniband/hw/qib/qib_fs.c
-@@ -454,14 +454,14 @@ static int remove_file(struct dentry *parent, char *name)
- 		goto bail;
- 	}
- 
--	spin_lock(&tmp->d_lock);
-+	d_lock(tmp);
- 	if (!(d_unhashed(tmp) && tmp->d_inode)) {
- 		dget_dlock(tmp);
- 		__d_drop(tmp);
--		spin_unlock(&tmp->d_lock);
-+		d_unlock(tmp);
- 		simple_unlink(parent->d_inode, tmp);
- 	} else {
--		spin_unlock(&tmp->d_lock);
-+		d_unlock(tmp);
- 	}
- 
- 	ret = 0;
--- 
-1.7.1
+OK, we will re-look into that tomorrow. So how V2 looks?
+
+Or.
