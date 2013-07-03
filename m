@@ -1,56 +1,81 @@
-From: Or Gerlitz <or.gerlitz@gmail.com>
-Subject: Re: [PATCH for-next 0/8] Add Mellanox mlx5 driver for Connect-IB devices
-Date: Wed, 3 Jul 2013 00:36:35 +0300
-Message-ID: <CAJZOPZ+1JKs-rK3kig64qgahVoYenkCR47JM3f4T6LEfhLqPhQ@mail.gmail.com>
-References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il>
-	<CAJZOPZ+NQa3CWnw3rZQh2UuwdrNhiwtVSyuk9D9YtwfQQ9e1XA@mail.gmail.com>
-	<CAJZOPZKLb9k1xXkTnrtzYKpwrSJDQgBpONUVCp3et36JeaEi-Q@mail.gmail.com>
-	<CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw@mail.gmail.com>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: Re: rtnl_lock deadlock on 3.10
+Date: Wed, 3 Jul 2013 07:33:07 +0200
+Message-ID: <20130703053307.GB12615@order.stressinduktion.org>
+References: <20130701145456.GA7756@sbohrermbp13-local.rgmadvisors.com> <20130702082818.GA26178@order.stressinduktion.org> <kqul4h$ib8$1@ger.gmane.org> <20130703051152.GA12615@order.stressinduktion.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20130703051152.GA12615@order.stressinduktion.org>
 Sender: netdev-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Eli Cohen <eli@dev.mellanox.co.il>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Eli Cohen <eli@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Jack Morgenstein <jackm@dev.mellanox.co.il>
+To: Cong Wang <xiyou.wangcong@gmail.com>, netdev@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, roland@purestorage.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 1, 2013 at 8:49 PM, Roland Dreier <roland@kernel.org> wrote:
-> So I'm inclined to apply the mlx5 driver for 3.11, since it's a
-> completely new driver.  However, reading through it so far I had the
-> following comments, and I'd like these cleanups addressed along with Dave Miller's:
+On Wed, Jul 03, 2013 at 07:11:52AM +0200, Hannes Frederic Sowa wrote:
+> On Tue, Jul 02, 2013 at 01:38:26PM +0000, Cong Wang wrote:
+> > On Tue, 02 Jul 2013 at 08:28 GMT, Hannes Frederic Sowa <hannes@stressinduktion.org> wrote:
+> > > On Mon, Jul 01, 2013 at 09:54:56AM -0500, Shawn Bohrer wrote:
+> > >> I've managed to hit a deadlock at boot a couple times while testing
+> > >> the 3.10 rc kernels.  It seems to always happen when my network
+> > >> devices are initializing.  This morning I updated to v3.10 and made a
+> > >> few config tweaks and so far I've hit it 4 out of 5 reboots.  It looks
+> > >> like most processes are getting stuck on rtnl_lock.  Below is a boot
+> > >> log with the soft lockup prints.  Please let know if there is any
+> > >> other information I can provide:
+> > >
+> > > Could you try a build with CONFIG_LOCKDEP enabled?
+> > >
+> > 
+> > The problem is clear: ib_register_device() is called with rtnl_lock,
+> > but itself needs device_mutex, however, ib_register_client() first
+> > acquires device_mutex, then indirectly calls register_netdev() which
+> > takes rtnl_lock. Deadlock!
+> > 
+> > One possible fix is always taking rtnl_lock before taking
+> > device_mutex, something like below:
+> > 
+> > diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+> > index 18c1ece..890870b 100644
+> > --- a/drivers/infiniband/core/device.c
+> > +++ b/drivers/infiniband/core/device.c
+> > @@ -381,6 +381,7 @@ int ib_register_client(struct ib_client *client)
+> >  {
+> >  	struct ib_device *device;
+> >  
+> > +	rtnl_lock();
+> >  	mutex_lock(&device_mutex);
+> >  
+> >  	list_add_tail(&client->list, &client_list);
+> > @@ -389,6 +390,7 @@ int ib_register_client(struct ib_client *client)
+> >  			client->add(device);
+> >  
+> >  	mutex_unlock(&device_mutex);
+> > +	rtnl_unlock();
+> >  
+> >  	return 0;
+> >  }
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > index b6e049a..5a7a048 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > @@ -1609,7 +1609,7 @@ static struct net_device *ipoib_add_port(const char *format,
+> >  		goto event_failed;
+> >  	}
+> >  
+> > -	result = register_netdev(priv->dev);
+> > +	result = register_netdevice(priv->dev);
+> >  	if (result) {
+> >  		printk(KERN_WARNING "%s: couldn't register ipoib port %d; error %d\n",
+> >  		       hca->name, port, result);
+> 
+> Looks good to me. Shawn, could you test this patch?
 
-Roland,
+ib_unregister_device/ib_unregister_client would need the same change,
+too. I have not checked the other ->add() and ->remove() functions. Also
+cc'ed linux-rdma@vger.kernel.org, Roland Dreier.
 
-Working to have all Dave Miller's comments addressed along with yours
-and post V2 later this week, so we will be still on track for a 3.11
-merge of the core and IB driver through your tree.
+Thanks,
 
-
-> - The debug mask complexity seems unnecessary now that pr_debug() is
-> controllable at runtime with the DYNAMIC_DEBUG stuff.  We should get
-> rid of the extra level of indirection.
-
-OK
-
-> - I think the active flag for the health check timer is unnecessary.
-> It can just be stopped with del_timer_sync().
-
-Jack was looking on this today and we're not sure, he will send his
-reading of the matter tomorrow.
-
-> - Many places use "foo_spl" as a name, and in the Linux kernel
-> "foo_lock" would be much more idiomatic and easier to read.
-
-sure, done.
-
->
-> - In:
->
-> +struct mlx5_cmd {
-> ...
-> +    struct mlx5_cmd_stats    stats[0x80a];
->
-> the 0x80a magic number really needs to have a name.
-
-done.
+  Hannes
