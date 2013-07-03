@@ -1,75 +1,89 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] Add flags to OSM_EVENT_ID_UCAST_ROUTING_DONE
-Date: Wed, 03 Jul 2013 13:05:41 -0400
-Message-ID: <51D459E5.5020709@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Or Gerlitz <ogerlitz@mellanox.com>
+Subject: [PATCH V2 4/9] IB/core: Add reserved values to enums for low-level drivers use
+Date: Wed,  3 Jul 2013 20:13:07 +0300
+Message-ID: <1372871592-32033-5-git-send-email-ogerlitz@mellanox.com>
+References: <1372871592-32033-1-git-send-email-ogerlitz@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1372871592-32033-1-git-send-email-ogerlitz@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: roland@kernel.org
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, davem@davemloft.net, jackm@dev.mellanox.co.il, eli@dev.mellanox.co.il, moshel@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
 
-to be able to discern between ucast routing done when rerouting
-versus heavy sweep.
+Continue the approach taken by commit d2b57063e4a "IB/core: Reserve bits in 
+enum ib_qp_create_flags for low-level driver use" and "reserved" entries to 
+the ib_qp_type and ib_wr_opcode enums. The low-level drivers will then define 
+macros to use these reserved values, giving proper names to the macros for 
+readability. Also add a range of reserved flags to enum ib_send_flags.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The mlx5 IB driver uses the new additions.
+
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
 ---
-diff --git a/include/opensm/osm_event_plugin.h b/include/opensm/osm_event_plugin.h
-index 6b060e7..ca5a719 100644
---- a/include/opensm/osm_event_plugin.h
-+++ b/include/opensm/osm_event_plugin.h
-@@ -94,6 +94,12 @@ typedef enum {
- 	LFT_CHANGED_BLOCK = (1 << 1)
- } osm_epi_lft_change_flags_t;
+ include/rdma/ib_verbs.h |   35 +++++++++++++++++++++++++++++++++--
+ 1 files changed, 33 insertions(+), 2 deletions(-)
+
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 98cc4b2..645c3ce 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -610,7 +610,21 @@ enum ib_qp_type {
+ 	IB_QPT_RAW_PACKET = 8,
+ 	IB_QPT_XRC_INI = 9,
+ 	IB_QPT_XRC_TGT,
+-	IB_QPT_MAX
++	IB_QPT_MAX,
++	/* Reserve a range for qp types internal to the low level driver.
++	 * These qp types will not be visible at the IB core layer, so the
++	 * IB_QPT_MAX usages should not be affected in the core layer
++	 */
++	IB_QPT_RESERVED1 = 0x1000,
++	IB_QPT_RESERVED2,
++	IB_QPT_RESERVED3,
++	IB_QPT_RESERVED4,
++	IB_QPT_RESERVED5,
++	IB_QPT_RESERVED6,
++	IB_QPT_RESERVED7,
++	IB_QPT_RESERVED8,
++	IB_QPT_RESERVED9,
++	IB_QPT_RESERVED10,
+ };
  
-+typedef enum {
-+	UCAST_ROUTING_NONE,
-+	UCAST_ROUTING_HEAVY_SWEEP,
-+	UCAST_ROUTING_REROUTE
-+} osm_epi_ucast_routing_flags_t;
+ enum ib_qp_create_flags {
+@@ -766,6 +780,19 @@ enum ib_wr_opcode {
+ 	IB_WR_MASKED_ATOMIC_CMP_AND_SWP,
+ 	IB_WR_MASKED_ATOMIC_FETCH_AND_ADD,
+ 	IB_WR_BIND_MW,
++	/* reserve values for low level drivers' internal use.
++	 * These values will not be used at all in the ib core layer.
++	 */
++	IB_WR_RESERVED1 = 0xf0,
++	IB_WR_RESERVED2,
++	IB_WR_RESERVED3,
++	IB_WR_RESERVED4,
++	IB_WR_RESERVED5,
++	IB_WR_RESERVED6,
++	IB_WR_RESERVED7,
++	IB_WR_RESERVED8,
++	IB_WR_RESERVED9,
++	IB_WR_RESERVED10,
+ };
+ 
+ enum ib_send_flags {
+@@ -773,7 +800,11 @@ enum ib_send_flags {
+ 	IB_SEND_SIGNALED	= (1<<1),
+ 	IB_SEND_SOLICITED	= (1<<2),
+ 	IB_SEND_INLINE		= (1<<3),
+-	IB_SEND_IP_CSUM		= (1<<4)
++	IB_SEND_IP_CSUM		= (1<<4),
 +
- typedef struct osm_epi_lft_change_event {
- 	osm_switch_t *p_sw;
- 	osm_epi_lft_change_flags_t flags;
-diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
-index 1b73834..0cc8162 100644
---- a/opensm/osm_state_mgr.c
-+++ b/opensm/osm_state_mgr.c
-@@ -1190,7 +1190,7 @@ static void do_sweep(osm_sm_t * sm)
- 					"REROUTE COMPLETE");
- 			osm_opensm_report_event(sm->p_subn->p_osm,
- 						OSM_EVENT_ID_UCAST_ROUTING_DONE,
--						NULL);
-+						(void *) UCAST_ROUTING_REROUTE);
- 			return;
- 		}
- 	}
-@@ -1387,7 +1387,8 @@ repeat_discovery:
- 	OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
- 			"SWITCHES CONFIGURED FOR UNICAST");
- 	osm_opensm_report_event(sm->p_subn->p_osm,
--				OSM_EVENT_ID_UCAST_ROUTING_DONE, NULL);
-+				OSM_EVENT_ID_UCAST_ROUTING_DONE,
-+				(void *) UCAST_ROUTING_HEAVY_SWEEP);
++	/* reserve bits 26-31 for low level drivers' internal use */
++	IB_SEND_RESERVED_START	= (1 << 26),
++	IB_SEND_RESERVED_END	= (1 << 31),
+ };
  
- 	if (!sm->p_subn->opt.disable_multicast) {
- 		osm_mcast_mgr_process(sm, TRUE);
-diff --git a/osmeventplugin/src/osmeventplugin.c b/osmeventplugin/src/osmeventplugin.c
-index c5655fe..1eaf7ea 100644
---- a/osmeventplugin/src/osmeventplugin.c
-+++ b/osmeventplugin/src/osmeventplugin.c
-@@ -195,7 +195,7 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
- 		fprintf(log->log_file, "Heavy sweep completed\n");
- 		break;
- 	case OSM_EVENT_ID_UCAST_ROUTING_DONE:
--		fprintf(log->log_file, "Unicast routing completed\n");
-+		fprintf(log->log_file, "Unicast routing completed %d\n", event_data);
- 		break;
- 	case OSM_EVENT_ID_STATE_CHANGE:
- 		fprintf(log->log_file, "SM state changed\n");
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ struct ib_sge {
+-- 
+1.7.1
