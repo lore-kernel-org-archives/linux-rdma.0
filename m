@@ -1,76 +1,37 @@
-From: Jeff Becker <jeffrey.c.becker-NSQ8wuThN14@public.gmane.org>
-Subject: Re: PATCH: opensm enhancements
-Date: Wed, 3 Jul 2013 09:20:40 -0700
-Message-ID: <51D44F58.1080903@nasa.gov>
-References: <51CB5BF1.1090601@nasa.gov> <51D3FBA7.9040604@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/8] Add Mellanox mlx5 driver for Connect-IB
+ devices
+Date: Wed, 3 Jul 2013 19:41:45 +0300
+Message-ID: <51D45449.5010604@mellanox.com>
+References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il> <CAJZOPZ+NQa3CWnw3rZQh2UuwdrNhiwtVSyuk9D9YtwfQQ9e1XA@mail.gmail.com> <CAJZOPZKLb9k1xXkTnrtzYKpwrSJDQgBpONUVCp3et36JeaEi-Q@mail.gmail.com> <CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D3FBA7.9040604-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ciotti, Robert B. (ARC-TNE)" <bob.ciotti-NSQ8wuThN14@public.gmane.org>, "Talcott, Dale R. (ARC-TN)[Computer Sciences Corporation]" <dale.r.talcott-1-NSQ8wuThN14@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hal,
+On 01/07/2013 20:49, Roland Dreier wrote:
+> - I think the active flag for the health check timer is unnecessary.
+> It can just be stopped with del_timer_sync().
 
-I have some testing info about the second patch below.
+Hi Roland
 
-On 07/03/2013 03:23 AM, Hal Rosenstock wrote:
-> HI Jeff,
->
-> On 6/26/2013 5:24 PM, Jeff Becker wrote:
->> Hi Hal. At the OFA workshop, I mentioned that I've been working on some
->> modifications to opensm that we use at NASA. Following extensive testing
->> of these applied to opensm 3.3.13 (the version we run here), I have
->> ported these to top of tree opensm, and have tested them on a small
->> cluster.
-> Thanks for getting this done! For future reference, patches should be
-> sent as plain text as this makes it easier to comment.
+Jack looked on this comment/code and he says that the active flag is used
+to prevent re-scheduling the timer from inside the timer handling routine.
 
-OK. So I just send the output of git-format-patch directly? It appears 
-to be formatted properly.
->
->> The first patch modifies the console logflush command to take "on" or
->> "off" as an argument for toggling.
-> Thanks. Applied.
->
->> The second (more extensive) patch
->> adds a command line option to specify a file in which each line contains
->> a switch GUID/port pair to be ignored by opensm. The idea is to specify
->> this file when you start opensm (it can be empty), and add ports to
->> ignore (one per line for each end of a connection) to the file. At the
->> next heavy sweep (or HUP) the sm will reprogram the forwarding tables
->> without including the ignored links. We use this for replacing cables,
->> as well as for system expansion (adding new racks).
-> I'll comment on this one later.
+In the kernel, the comment header in the source file for del_timer_sync
+explicitly states that re-scheduling the timer must be prevented,
+or the sync is useless:Callers must prevent restarting of the timer, 
+otherwise
+this function is meaningless
 
-Dale (cc'd) did some testing with my patch on Pleiades in preparation 
-for a system augmentation (new racks) happening soon. He found that the 
-SM correctly produces routes that do not use links marked to be ignored, 
-but when you then remove or disable the links, the SM re-routes the 
-fabric anyway and comes up with different routes than before. This 
-rerouting causes problems with existing connections. There also appears 
-to be a bookkeeping problem such that some of these links get added to 
-the SM's "light sampling" list and never get removed. This ties up 
-outstanding MAD packet slots, causing the SM to become unresponsive for 
-several seconds every time it reviews its light sampling list.
+So we believe that code should remain.
 
-I'm working on fixing these. I'll take care of the second problem 
-(incorrectly getting added to the light sampling list) first. Is it 
-possible this problem is related to the re-routing on port disable 
-problem? Anyhow, if you have any specific comments about these issues, 
-that would be great. Thanks, and have a great Fourth of July.
-
--jeff
->
-> -- Hal
->
->> Please let me know if you have any questions/issues with these. Thanks.
->>
->> -jeff
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
