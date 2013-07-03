@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v3 03/13] IB/srp: Fail I/O fast if target offline
-Date: Wed, 03 Jul 2013 14:45:26 +0200
-Message-ID: <51D41CE6.3030702@acm.org>
+Subject: [PATCH v3 04/13] IB/srp: Skip host settle delay
+Date: Wed, 03 Jul 2013 14:50:45 +0200
+Message-ID: <51D41E25.6020106@acm.org>
 References: <51D41C03.4020607@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,32 +13,31 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If reconnecting failed we know that no command completion will
-be received anymore. Hence let the SCSI error handler fail such
-commands immediately.
+The SRP initiator implements host reset by reconnecting to the SRP
+target. That means that communication with the target is possible
+as soon as host reset finished. Hence skip the host settle delay.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Acked-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 0e0a5a2..19279e5 100644
+index 19279e5..2c82b90 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1753,6 +1753,8 @@ static int srp_abort(struct scsi_cmnd *scmnd)
- 	if (srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
- 			      SRP_TSK_ABORT_TASK) == 0)
- 		ret = SUCCESS;
-+	else if (target->transport_offline)
-+		ret = FAST_IO_FAIL;
- 	else
- 		ret = FAILED;
- 	srp_free_req(target, req, scmnd, 0);
+@@ -1952,6 +1952,7 @@ static struct scsi_host_template srp_template = {
+ 	.eh_abort_handler		= srp_abort,
+ 	.eh_device_reset_handler	= srp_reset_device,
+ 	.eh_host_reset_handler		= srp_reset_host,
++	.skip_settle_delay		= true,
+ 	.sg_tablesize			= SRP_DEF_SG_TABLESIZE,
+ 	.can_queue			= SRP_CMD_SQ_SIZE,
+ 	.this_id			= -1,
 -- 
 1.7.10.4
 
