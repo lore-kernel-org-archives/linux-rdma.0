@@ -1,92 +1,102 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: rtnl_lock deadlock on 3.10
-Date: Wed, 3 Jul 2013 20:26:11 +0300
-Message-ID: <51D45EB3.7030404@mellanox.com>
-References: <20130701145456.GA7756@sbohrermbp13-local.rgmadvisors.com> <20130702082818.GA26178@order.stressinduktion.org> <kqul4h$ib8$1@ger.gmane.org> <20130703051152.GA12615@order.stressinduktion.org> <20130703053307.GB12615@order.stressinduktion.org> <20130703172239.GA3439@sbohrermbp13-local.rgmadvisors.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH v3 07/13] scsi_transport_srp: Add transport layer error
+ handling
+Date: Wed, 03 Jul 2013 13:27:54 -0400
+Message-ID: <1372872474.24238.43.camel@frustration.ornl.gov>
+References: <51D41C03.4020607@acm.org> <51D41F13.6060203@acm.org>
+	 <1372864458.24238.32.camel@frustration.ornl.gov> <51D44A86.5050000@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130703172239.GA3439-/vebjAlq/uFE7V8Yqttd03bhEEblAqRIDbRjUBewulXQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <51D44A86.5050000-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/07/2013 20:22, Shawn Bohrer wrote:
-> On Wed, Jul 03, 2013 at 07:33:07AM +0200, Hannes Frederic Sowa wrote:
->> On Wed, Jul 03, 2013 at 07:11:52AM +0200, Hannes Frederic Sowa wrote:
->>> On Tue, Jul 02, 2013 at 01:38:26PM +0000, Cong Wang wrote:
->>>> On Tue, 02 Jul 2013 at 08:28 GMT, Hannes Frederic Sowa <hannes-tFNcAqjVMyqKXQKiL6tip0B+6BGkLq7r@public.gmane.org> wrote:
->>>>> On Mon, Jul 01, 2013 at 09:54:56AM -0500, Shawn Bohrer wrote:
->>>>>> I've managed to hit a deadlock at boot a couple times while testing
->>>>>> the 3.10 rc kernels.  It seems to always happen when my network
->>>>>> devices are initializing.  This morning I updated to v3.10 and made a
->>>>>> few config tweaks and so far I've hit it 4 out of 5 reboots.  It looks
->>>>>> like most processes are getting stuck on rtnl_lock.  Below is a boot
->>>>>> log with the soft lockup prints.  Please let know if there is any
->>>>>> other information I can provide:
->>>>> Could you try a build with CONFIG_LOCKDEP enabled?
->>>>>
->>>> The problem is clear: ib_register_device() is called with rtnl_lock,
->>>> but itself needs device_mutex, however, ib_register_client() first
->>>> acquires device_mutex, then indirectly calls register_netdev() which
->>>> takes rtnl_lock. Deadlock!
->>>>
->>>> One possible fix is always taking rtnl_lock before taking
->>>> device_mutex, something like below:
->>>>
->>>> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
->>>> index 18c1ece..890870b 100644
->>>> --- a/drivers/infiniband/core/device.c
->>>> +++ b/drivers/infiniband/core/device.c
->>>> @@ -381,6 +381,7 @@ int ib_register_client(struct ib_client *client)
->>>>   {
->>>>   	struct ib_device *device;
->>>>   
->>>> +	rtnl_lock();
->>>>   	mutex_lock(&device_mutex);
->>>>   
->>>>   	list_add_tail(&client->list, &client_list);
->>>> @@ -389,6 +390,7 @@ int ib_register_client(struct ib_client *client)
->>>>   			client->add(device);
->>>>   
->>>>   	mutex_unlock(&device_mutex);
->>>> +	rtnl_unlock();
->>>>   
->>>>   	return 0;
->>>>   }
->>>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->>>> index b6e049a..5a7a048 100644
->>>> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
->>>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->>>> @@ -1609,7 +1609,7 @@ static struct net_device *ipoib_add_port(const char *format,
->>>>   		goto event_failed;
->>>>   	}
->>>>   
->>>> -	result = register_netdev(priv->dev);
->>>> +	result = register_netdevice(priv->dev);
->>>>   	if (result) {
->>>>   		printk(KERN_WARNING "%s: couldn't register ipoib port %d; error %d\n",
->>>>   		       hca->name, port, result);
->>> Looks good to me. Shawn, could you test this patch?
->> ib_unregister_device/ib_unregister_client would need the same change,
->> too. I have not checked the other ->add() and ->remove() functions. Also
->> cc'ed linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier.
-> Cong's patch is missing the #include <linux/rtnetlink.h> but otherwise
-> I've had 34 successful reboots with no deadlocks which is a good sign.
-> It sounds like there are more paths that need to be audited and a
-> proper patch submitted.  I can do more testing later if needed.
->
-> Thanks,
-> Shawn
->
+On Wed, 2013-07-03 at 18:00 +0200, Bart Van Assche wrote:
+> On 07/03/13 17:14, David Dillow wrote:
+> > On Wed, 2013-07-03 at 14:54 +0200, Bart Van Assche wrote:
+> >> +int srp_tmo_valid(int fast_io_fail_tmo, int dev_loss_tmo)
+> >> +{
+> >> +	return (fast_io_fail_tmo < 0 || dev_loss_tmo < 0 ||
+> >> +		fast_io_fail_tmo < dev_loss_tmo) &&
+> >> +		fast_io_fail_tmo <= SCSI_DEVICE_BLOCK_MAX_TIMEOUT &&
+> >> +		dev_loss_tmo < LONG_MAX / HZ ? 0 : -EINVAL;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(srp_tmo_valid);
+> >
+> > This would have been more readable:
+> >
+> > int srp_tmo_valid(int fast_io_fail_tmp, int dev_loss_tmo)
+> > {
+> > 	/* Fast IO fail must be off, or no greater than the max timeout */
+> > 	if (fast_io_fail_tmo > SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
+> > 		return -EINVAL;
+> >
+> > 	/* Device timeout must be off, or fit into jiffies */
+> > 	if (dev_loss_tmo >= LONG_MAX / HZ)
+> > 		return -EINVAL;
+> >
+> > 	/* Fast IO must trigger before device loss, or one of the
+> > 	 * timeouts must be disabled.
+> > 	 */
+> > 	if (fast_io_fail_tmo < 0 || dev_loss_tmo < 0)
+> > 		return 0;
+> > 	if (fast_io_fail < dev_loss_tmo)
+> > 		return 0;
+> >
+> > 	return -EINVAL;	
+> > }
+> 
+> Isn't that a matter of personal taste which of the above two is more 
+> clear ?
 
-Guys, I was a bit busy today looking into that, but I don't think we 
-want the IB core layer  (core/device.c) to
-use rtnl locking which is something that belongs to the network stack.
+No, it is quite common in Linux for complicated conditionals to be
+broken up into helper functions, and Vu found logic bugs in previous
+iterations. After unpacking it, I still found behavior that is
+questionable. All of this strongly points to that block being too dense
+for its own good.
 
-Or.
+> It might also depend on the number of mathematics courses in 
+> someones educational background :-)
+
+Or the number of logic courses, or their experience with Lisp. :)
+
+> > Though, now that I've unpacked it -- I don't think it is OK for
+> > dev_loss_tmo to be off, but fast IO to be on? That drops another
+> > conditional.
+> 
+> The combination of dev_loss_tmo off and reconnect_delay > 0 worked fine 
+> in my tests. An I/O failure was detected shortly after the cable to the 
+> target was pulled. I/O resumed shortly after the cable to the target was 
+> reinserted.
+
+Perhaps I don't understand your answer -- I'm asking about dev_loss_tmo
+< 0, and fast_io_fail_tmo >= 0. The other transports do not allow this
+scenario, and I'm asking if it makes sense for SRP to allow it.
+
+But now that you mention reconnect_delay, what is the meaning of that
+when it is negative? That's not in the documentation. And should it be
+considered in srp_tmo_valid() -- are there values of reconnect_delay
+that cause problems?
+
+I'm starting to get a bit concerned about this patch -- can you, Vu, and
+Sebastian comment on the testing you have done?
+
+> > Also, FC caps dev_loss_tmo at SCSI_DEVICE_BLOCK_MAX_TIMEOUT if
+> > fail_io_fast_tmo is off; I agree with your reasoning about leaving it
+> > unlimited if fast fail is on, but does that still hold if it is off?
+> 
+> I think setting dev_loss_tmo to a large value only makes sense if the 
+> value of reconnect_delay is not too large. Setting both to a large value 
+> would result in slow recovery after a transport layer failure has been 
+> corrected.
+
+So you agree it should be capped? I can't tell from your response.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
