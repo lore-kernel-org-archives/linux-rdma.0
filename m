@@ -1,47 +1,58 @@
-From: David Dillow <dave@thedillows.org>
-Subject: Re: [PATCH v3 07/13] scsi_transport_srp: Add transport layer error
- handling
-Date: Wed, 03 Jul 2013 14:57:41 -0400
-Message-ID: <1372877861.24238.64.camel@frustration.ornl.gov>
-References: <51D41C03.4020607@acm.org> <51D41F13.6060203@acm.org>
-	  <1372864458.24238.32.camel@frustration.ornl.gov>
-	 <51D44A86.5050000@acm.org> <1372872474.24238.43.camel@frustration.ornl.gov>
-	 <51D46C54.8060101@acm.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 0/8] Add Mellanox mlx5 driver for Connect-IB devices
+Date: Wed, 3 Jul 2013 12:26:33 -0700
+Message-ID: <CAL1RGDU0JiGPFEAu87JbxxbHWbgZVsRz1qbz4BvqbCJU9RtRAA@mail.gmail.com>
+References: <1371384149-24558-1-git-send-email-eli@dev.mellanox.co.il>
+ <CAJZOPZ+NQa3CWnw3rZQh2UuwdrNhiwtVSyuk9D9YtwfQQ9e1XA@mail.gmail.com>
+ <CAJZOPZKLb9k1xXkTnrtzYKpwrSJDQgBpONUVCp3et36JeaEi-Q@mail.gmail.com>
+ <CAL1RGDX5mHj5oVqFhQ4Ssr25jpL4rV2Tv=zXvLOZfwupJ0gqJw@mail.gmail.com> <51D45449.5010604@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <51D46C54.8060101@acm.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: Roland Dreier <roland@kernel.org>, Vu Pham <vuhuong@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, Jinpu Wang <jinpu.wang@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, James Bottomley <jbottomley@parallels.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51D45449.5010604-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2013-07-03 at 20:24 +0200, Bart Van Assche wrote:
-> On 07/03/13 19:27, David Dillow wrote:
-> > On Wed, 2013-07-03 at 18:00 +0200, Bart Van Assche wrote:
-> >> The combination of dev_loss_tmo off and reconnect_delay > 0 worked fine
-> >> in my tests. An I/O failure was detected shortly after the cable to the
-> >> target was pulled. I/O resumed shortly after the cable to the target was
-> >> reinserted.
-> >
-> > Perhaps I don't understand your answer -- I'm asking about dev_loss_tmo
-> > < 0, and fast_io_fail_tmo >= 0. The other transports do not allow this
-> > scenario, and I'm asking if it makes sense for SRP to allow it.
-> >
-> > But now that you mention reconnect_delay, what is the meaning of that
-> > when it is negative? That's not in the documentation. And should it be
-> > considered in srp_tmo_valid() -- are there values of reconnect_delay
-> > that cause problems?
-> 
-> None of the combinations that can be configured from user space can 
-> bring the kernel in trouble. If reconnect_delay <= 0 that means that the 
-> time-based reconnect mechanism is disabled.
+On Wed, Jul 3, 2013 at 9:41 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Jack looked on this comment/code and he says that the active flag is used
+> to prevent re-scheduling the timer from inside the timer handling routine.
+>
+> In the kernel, the comment header in the source file for del_timer_sync
+> explicitly states that re-scheduling the timer must be prevented,
+> or the sync is useless:Callers must prevent restarting of the timer,
+> otherwise
+> this function is meaningless
+>
+> So we believe that code should remain.
 
-Then it should use the same semantics as the other attributes, and have
-the user store "off" to turn it off.
+Look at the actual timer code.  del_timer_sync() won't work if
+something unrelated re-adds the timer, but it will work if the timer
+itself is what re-adds itself.
 
-And I'm getting the strong sense that the answer to my question about
-fast_io_fail_tmo >= 0 when dev_loss_tmo is that we should not allow that
-combination, even if it doesn't break the kernel. If it doesn't make
-sense, there is no reason to create an opportunity for user confusion.
+Documentation/DocBook/kernel-locking.tmpl says:
+
+      Another common problem is deleting timers which restart
+      themselves (by calling <function>add_timer()</function> at the end
+      of their timer function).  Because this is a fairly common case
+      which is prone to races, you should use
+<function>del_timer_sync()</function>
+      (<filename class="headerfile">include/linux/timer.h</filename>)
+      to handle this case.  It returns the number of times the timer
+      had to be deleted before we finally stopped it from adding itself back
+      in.
+
+which pretty clearly says that del_timer_sync() will work in this case.
+
+Or look at the code using it in arch/sparc/kernel/led.c for example
+(just one of the first hits in my grep, there are many other
+examples).
+
+Not a big deal but I'm pretty sure the flag isn't needed.
+
+ - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
