@@ -1,46 +1,64 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v3 07/13] scsi_transport_srp: Add transport layer error
- handling
-Date: Thu, 04 Jul 2013 10:16:49 +0200
-Message-ID: <51D52F71.8070304@acm.org>
-References: <51D41C03.4020607@acm.org> <51D41F13.6060203@acm.org>   <1372864458.24238.32.camel@frustration.ornl.gov>  <51D44A86.5050000@acm.org> <1372872474.24238.43.camel@frustration.ornl.gov>  <51D46C54.8060101@acm.org> <1372877861.24238.64.camel@frustration.ornl.gov> <51D52BD7.1090506@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH V3 0/4] Add IPv6 support for iWARP
+Date: Thu,  4 Jul 2013 16:10:43 +0530
+Message-ID: <1372934447-16556-1-git-send-email-vipul@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D52BD7.1090506-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/04/13 10:01, Bart Van Assche wrote:
-> On 07/03/13 20:57, David Dillow wrote:
->> And I'm getting the strong sense that the answer to my question about
->> fast_io_fail_tmo >= 0 when dev_loss_tmo is that we should not allow that
->> combination, even if it doesn't break the kernel. If it doesn't make
->> sense, there is no reason to create an opportunity for user confusion.
->
-> Let's take a step back. I think we agree that the only combinations of
-> timeout parameters that are useful are those combinations that guarantee
-> that SCSI commands will be finished in a reasonable time and also that
-> allow multipath to detect failed paths. The first requirement comes down
-> to limiting the value fast_io_fail_tmo can be set to. The second
-> requirement means that either reconnect_delay or fast_io_fail_tmo must
-> be set (please note that a reconnect failure changes the state of all
-> involved SCSI devices into SDEV_TRANSPORT_OFFLINE). So how about
-> modifying srp_tmo_valid() as follows:
-> * Add an argument called "reconnect_delay".
-> * Add the following code in that function:
->      if (reconnect_delay < 0 && fast_io_fail_tmo < 0 && dev_loss_tmo < 0)
->          return -EINVAL;
+Hi All,
 
-(replying to my own e-mail)
+This patch series adds IPv6 support for iWARP. It enables Chelsio's T4 and T5
+adapters to transmitt RDMA traffic over IPv6 address. It adds new apis and cpl
+messages in cxgb4 to support IPv6 operations and uses them in RDMA/cxgb4.
 
-A small correction to what I wrote above: a reconnect failure only 
-causes the SCSI device state to be changed into SDEV_TRANSPORT_OFFLINE 
-if the fast_io_fail mechanism has been disabled.
+The patch series  modifies the type of local_addr and remote_addr fields in
+struct iw_cm_id from struct sockaddr_in to struct sockaddr_storage to hold IPv6
+and IPv4 addresses uniformly. It changes the references of local_addr and
+remote_addr in RDMA/cxgb4, RDMA/cxgb3, RDMA/nes and amso drivers such that build
+failure is avoided.
 
-Bart.
+We would like to submit this patch series via Roland's infiniband tree for-next
+branch.
+
+We have included all the maintainers of respective drivers. Kindly review the
+change and let us know in case of any review comments.
+
+Thanks,
+Vipul Pandya
+
+V2: Used local variables instead of typecasting in patch 1/4.
+V3: Removed dereferencing ep before initializing it in patch 4/4.
+
+Steve Wise (1):
+  RDMA/cma: Add IPv6 support for iWARP.
+
+Vipul Pandya (3):
+  cxgb4: Add routines to create and remove listening IPv6 servers
+  cxgb4: Add CLIP support to store compressed IPv6 address
+  RDMA/cxgb4: Add support for active and passive open connection with
+    IPv6 address
+
+ drivers/infiniband/core/cma.c                   |  44 +-
+ drivers/infiniband/hw/amso1100/c2_ae.c          |  18 +-
+ drivers/infiniband/hw/amso1100/c2_cm.c          |  16 +-
+ drivers/infiniband/hw/cxgb3/iwch_cm.c           |  46 +-
+ drivers/infiniband/hw/cxgb4/cm.c                | 844 ++++++++++++++++--------
+ drivers/infiniband/hw/cxgb4/device.c            | 116 +++-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h          |   4 +-
+ drivers/infiniband/hw/nes/nes_cm.c              | 150 +++--
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |   1 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c | 288 +++++++-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h  |   5 +
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h     |  17 +-
+ drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h   |  23 +
+ include/rdma/iw_cm.h                            |   8 +-
+ 14 files changed, 1136 insertions(+), 444 deletions(-)
+
+-- 
+1.8.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
