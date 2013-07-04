@@ -1,87 +1,73 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V2 5/9] IB/mlx5: Mellanox Connect-IB, IB driver part 1/5
-Date: Thu, 4 Jul 2013 16:15:25 +0300
-Message-ID: <201307041615.25729.jackm@dev.mellanox.co.il>
-References: <1372871592-32033-1-git-send-email-ogerlitz@mellanox.com> <1372871592-32033-6-git-send-email-ogerlitz@mellanox.com> <1372885168.1886.17.camel@joe-AO722>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Subject: Re: [PATCH V2 1/9] net/mlx5: Mellanox Connect-IB, core driver part 1/3
+Date: Thu, 4 Jul 2013 16:26:44 +0300
+Message-ID: <201307041626.45125.jackm@dev.mellanox.co.il>
+References: <1372871592-32033-1-git-send-email-ogerlitz@mellanox.com> <1372871592-32033-2-git-send-email-ogerlitz@mellanox.com> <1372883397.1886.9.camel@joe-AO722>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1372885168.1886.17.camel@joe-AO722>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1372883397.1886.9.camel@joe-AO722>
 Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>, roland@kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, davem@davemloft.net, eli@dev.mellanox.co.il, moshel@mellanox.com, Eli Cohen <eli@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wednesday 03 July 2013 23:59, Joe Perches wrote:
+On Wednesday 03 July 2013 23:29, Joe Perches wrote:
 > On Wed, 2013-07-03 at 20:13 +0300, Or Gerlitz wrote:
-> > From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > diff --git a/drivers/infiniband/hw/mlx5/ah.c b/drivers/infiniband/hw/mlx5/ah.c
+> > From: Eli Cohen <eli@mellanox.com>
+> 
+> trivial comments:
+> 
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
 > []
-> > +struct ib_ah *create_ib_ah(struct ib_ah_attr *ah_attr,
-> > +			   struct mlx5_ib_ah *ah)
+> > +static const char *deliv_status_to_str(u8 status)
 > > +{
-> > +	u32 sgi;
-> 
-> sgi is used once here and looks more confusing than helpful
-> 
-Will fix in V3
-> 
+> > +	switch (status) {
+> > +	case MLX5_CMD_DELIVERY_STAT_OK:
+> > +		return "no errors";
 > []
-> 
-> > +static void *get_sw_cqe(struct mlx5_ib_cq *cq, int n)
+> > +	default:
+> > +		return "unknown status code\n";
+> > +	}
+> > +}
+> Likely unnecessary newline for default case
+All the cases here have newlines between them, to enhance readability.
+(not just the default). If you feel strongly about this, I'll do the change
+for V3.
+
+> > +static struct mlx5_cmd_mailbox *alloc_cmd_box(struct mlx5_core_dev *dev,
+> > +					      gfp_t flags)
 > > +{
-> > +	void *cqe = get_cqe(cq, n & cq->ibcq.cqe);
-> > +	struct mlx5_cqe64 *cqe64;
+> > +	struct mlx5_cmd_mailbox *mailbox;
 > > +
-> > +	cqe64 = (cq->mcq.cqe_sz == 64) ? cqe : cqe + 64;
-> > +	return ((cqe64->op_own & MLX5_CQE_OWNER_MASK) ^
-> > +		!!(n & (cq->ibcq.cqe + 1))) ? NULL : cqe;
+> > +	mailbox = kmalloc(sizeof(*mailbox), flags);
+> > +	if (!mailbox) {
+> > +		mlx5_core_dbg(dev, "failed allocation\n");
+> > +		return ERR_PTR(-ENOMEM);
+> > +	}
 > 
-> I think "foo ^ !!bar" is excessively tricky.
+> unnecessary OOM message.
+
+Will remove these kmalloc failure printouts in V3
 > 
-The mlx4 driver already uses "!!foo ^ !!bar" in several places in the kernel (and this is old code).
-I assume that your problem with the above code is that it uses "foo" and not "!!foo".
-
-Please note, though, that this code is data-path code -- and in this specific case,  foo = !!foo
-(since MLX5_CQE_OWNER_MASK = 1). We decided, therefore, in this specific case, not to add the unnecessary
-"!!", even though at first glance it may look tricky -- performance here IMHO is more important.
-
-> > +static enum ib_wc_opcode get_umr_comp(struct mlx5_ib_wq *wq, int idx)
+> > +static void set_wqname(struct mlx5_core_dev *dev)
 > > +{
+> > +	struct mlx5_cmd *cmd = &dev->cmd;
+> > +
+> > +	strcpy(cmd->wq_name, "mlx5_cmd_");
+> > +	strcat(cmd->wq_name, dev_name(&dev->pdev->dev));
 > 
-> > +		pr_warn("unkonwn completion status\n");
+> More likely snprintf might be better.
 > 
-> unknown tyop
-
-Will fix in V3
-
-> []
+> 	snprintf(cmd->wq_name, sizeof(cmd->wq_name), "mlx5_cmd_%s",
+> 		 dev_name(&dev->pdev->dev));
 > 
-> > +static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
-> > +			  struct ib_ucontext *context, struct mlx5_ib_cq *cq,
-> > +			  int entries, struct mlx5_create_cq_mbox_in **cqb,
-> > +			  int *cqe_size, int *index, int *inlen)
-> []
-> > +	*inlen = sizeof **cqb + sizeof *(*cqb)->pas * ncont;
-> 
-> sizeof always uses parentheses
-> 
-> > +	*cqb = vzalloc(*inlen);
-> 
-> Perhaps you may be using vzalloc too often.
-> 
-> Maybe you should have a helper allocating either
-> from kmalloc or vmalloc as necessary based on size.
-We will look into this.
-
-Thanks for reviewing!
+Will change this for V3
+> How big is wq_name?
+32 bytes. Should be enough to hold dev names. However, to be on the safe side
+I'll do the change.
 
 -Jack
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
