@@ -1,126 +1,60 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCHv3 infiniband-diags] saquery: Add SMInfoRecord support
-Date: Fri, 5 Jul 2013 15:32:31 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E02116E51@CRSMSX101.amr.corp.intel.com>
-References: <51C5AF9F.3010102@dev.mellanox.co.il>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband-diags: umad_init needs to be called before
+ sa_get_handle
+Date: Fri, 5 Jul 2013 08:39:36 -0700
+Message-ID: <20130705083936.f8337074e5e868730069b4ff@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51C5AF9F.3010102-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Husam Kahalah <HKahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> Subject: [PATCHv3 infiniband-diags] saquery: Add SMInfoRecord support
-> 
-> 
-> This patch is the combination of 2 patches:
->      infiniband_diags/src/saquery.c: Add SMInfoRecord support
->      infiniband_diags/doc/rst/saquery.8.in.rst: Add support to the manual
-> 
-> Signed-off-by: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks Applied after rebase'ing against current master branch.
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ include/ibdiag_sa.h |    1 +
+ src/saquery.c       |    4 ++++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-Ira
+diff --git a/include/ibdiag_sa.h b/include/ibdiag_sa.h
+index 41b4a4c..368a829 100644
+--- a/include/ibdiag_sa.h
++++ b/include/ibdiag_sa.h
+@@ -58,6 +58,7 @@ struct sa_query_result {
+ 	void *p_result_madw;
+ };
+ 
++/* NOTE: umad_init must be called prior to sa_get_handle */
+ struct sa_handle * sa_get_handle(void);
+ void sa_free_handle(struct sa_handle * h);
+ 
+diff --git a/src/saquery.c b/src/saquery.c
+index 2ee29ad..b27686b 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -1842,6 +1842,9 @@ int main(int argc, char **argv)
+ 		ibdiag_show_usage();
+ 	}
+ 
++	if (umad_init())
++		IBERROR("Failed to initialized umad library");
++
+ 	h = sa_get_handle();
+ 	if (!h)
+ 		IBPANIC("Failed to bind to the SA");
+@@ -1894,6 +1897,7 @@ error:
+ 	if (src_lid)
+ 		free(src_lid);
+ 	sa_free_handle(h);
++	umad_done();
+ 	close_node_name_map(node_name_map);
+ 	return (status);
+ }
+-- 
+1.7.1
 
-
-> ---
-> This patch is based on Husam's previous patch for this.
-> 
-> diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst index
-> 8d87096..0551917 100644
-> --- a/doc/rst/saquery.8.in.rst
-> +++ b/doc/rst/saquery.8.in.rst
-> @@ -156,6 +156,7 @@ Supported query names (and aliases):
->          MFTRecord (MFTR) [[mlid]/[position]/[block]]
->          GUIDInfoRecord (GIR) [[lid]/[block]]
->          SwitchInfoRecord (SWIR) [lid]
-> +        SMInfoRecord (SMIR) [lid]
-> 
-> 
-> 
-> diff --git a/src/saquery.c b/src/saquery.c index 26b2a9d..8f59253 100644
-> --- a/src/saquery.c
-> +++ b/src/saquery.c
-> @@ -489,6 +489,30 @@ static void dump_service_record(void *data)
->  	       cl_ntoh64(p_sr->service_data64[1]));
->  }
-> 
-> +static void dump_sm_info_record(void *data) {
-> +	ib_sminfo_record_t *p_smr = data;
-> +	const ib_sm_info_t *const p_smi = &p_smr->sm_info;
-> +	uint8_t priority, state;
-> +	priority = ib_sminfo_get_priority(p_smi);
-> +	state = ib_sminfo_get_state(p_smi);
-> +
-> +	printf("SMInfoRecord dump:\n"
-> +	       "\t\tRID\n"
-> +	       "\t\tLID...................%u\n"
-> +	       "\t\tSMInfo dump:\n"
-> +	       "\t\tGUID..................0x%016" PRIx64 "\n"
-> +	       "\t\tSM_Key................0x%016" PRIx64 "\n"
-> +	       "\t\tActCount..............%u\n"
-> +	       "\t\tPriority..............%u\n"
-> +	       "\t\tSMState...............%u\n",
-> +	       cl_ntoh16(p_smr->lid),
-> +	       cl_ntoh64(p_smr->sm_info.guid),
-> +	       cl_ntoh64(p_smr->sm_info.sm_key),
-> +	       cl_ntoh32(p_smr->sm_info.act_count),
-> +	       priority, state);
-> +}
-> +
->  static void dump_switch_info_record(void *data)  {
->  	ib_switch_info_record_t *p_sir = data; @@ -1194,6 +1218,25 @@
-> static int query_service_records(const struct query_cmd *q, struct
-> sa_handle * h
->  					dump_service_record);
->  }
-> 
-> +static int query_sm_info_records(const struct query_cmd *q,
-> +				 struct sa_handle * h, struct query_params
-> *p,
-> +				 int argc, char *argv[])
-> +{
-> +	ib_sminfo_record_t smir;
-> +	ib_net64_t comp_mask = 0;
-> +	int lid = 0;
-> +
-> +	if (argc > 0)
-> +		parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
-> +
-> +	memset(&smir, 0, sizeof(smir));
-> +	CHECK_AND_SET_VAL(lid, 16, 0, smir.lid, SMIR, LID);
-> +
-> +	return get_and_dump_any_records(h,
-> IB_SA_ATTR_SMINFORECORD, 0,
-> +					comp_mask, &smir, sizeof(smir),
-> +					dump_sm_info_record);
-> +}
-> +
->  static int query_switchinfo_records(const struct query_cmd *q,
->  				struct sa_handle * h, struct query_params
-> *p,
->  				int argc, char *argv[])
-> @@ -1406,6 +1449,8 @@ static const struct query_cmd query_cmds[] = {
->  	 "[[lid]/[block]]", query_guidinfo_records},
->  	{"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
->  	 "[lid]", query_switchinfo_records},
-> +	{"SMInfoRecord", "SMIR", IB_SA_ATTR_SMINFORECORD,
-> +	 "[lid]", query_sm_info_records},
->  	{0}
->  };
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
