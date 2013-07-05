@@ -1,33 +1,126 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V2 1/9] net/mlx5: Mellanox Connect-IB, core driver part 1/3
-Date: Thu, 4 Jul 2013 17:55:45 +0300
-Message-ID: <201307041755.45727.jackm@dev.mellanox.co.il>
-References: <1372871592-32033-1-git-send-email-ogerlitz@mellanox.com> <201307041626.45125.jackm@dev.mellanox.co.il> <1372947461.1886.28.camel@joe-AO722>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCHv3 infiniband-diags] saquery: Add SMInfoRecord support
+Date: Fri, 5 Jul 2013 15:32:31 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E02116E51@CRSMSX101.amr.corp.intel.com>
+References: <51C5AF9F.3010102@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1372947461.1886.28.camel@joe-AO722>
-Content-Disposition: inline
+In-Reply-To: <51C5AF9F.3010102-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Husam Kahalah <HKahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>, Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thursday 04 July 2013 17:17, Joe Perches wrote:
-> Not the vertical spacing, the newline inside the quotes.
-> ie: "unknown status code\n" should be "unknown status code"
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> Subject: [PATCHv3 infiniband-diags] saquery: Add SMInfoRecord support
 > 
-You're right!  I misunderstood, and did not notice the newline char.
-Good catch!
+> 
+> This patch is the combination of 2 patches:
+>      infiniband_diags/src/saquery.c: Add SMInfoRecord support
+>      infiniband_diags/doc/rst/saquery.8.in.rst: Add support to the manual
+> 
+> Signed-off-by: Husam Kahalah <hkahalah-DMD6N21cJuFWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-While I was at it, though, I eliminated the blank lines between
-the cases/default -- fewer lines in the file, and readable enough
-this way.
+Thanks Applied after rebase'ing against current master branch.
 
-Thanks!
--Jack
+Ira
+
+
+> ---
+> This patch is based on Husam's previous patch for this.
+> 
+> diff --git a/doc/rst/saquery.8.in.rst b/doc/rst/saquery.8.in.rst index
+> 8d87096..0551917 100644
+> --- a/doc/rst/saquery.8.in.rst
+> +++ b/doc/rst/saquery.8.in.rst
+> @@ -156,6 +156,7 @@ Supported query names (and aliases):
+>          MFTRecord (MFTR) [[mlid]/[position]/[block]]
+>          GUIDInfoRecord (GIR) [[lid]/[block]]
+>          SwitchInfoRecord (SWIR) [lid]
+> +        SMInfoRecord (SMIR) [lid]
+> 
+> 
+> 
+> diff --git a/src/saquery.c b/src/saquery.c index 26b2a9d..8f59253 100644
+> --- a/src/saquery.c
+> +++ b/src/saquery.c
+> @@ -489,6 +489,30 @@ static void dump_service_record(void *data)
+>  	       cl_ntoh64(p_sr->service_data64[1]));
+>  }
+> 
+> +static void dump_sm_info_record(void *data) {
+> +	ib_sminfo_record_t *p_smr = data;
+> +	const ib_sm_info_t *const p_smi = &p_smr->sm_info;
+> +	uint8_t priority, state;
+> +	priority = ib_sminfo_get_priority(p_smi);
+> +	state = ib_sminfo_get_state(p_smi);
+> +
+> +	printf("SMInfoRecord dump:\n"
+> +	       "\t\tRID\n"
+> +	       "\t\tLID...................%u\n"
+> +	       "\t\tSMInfo dump:\n"
+> +	       "\t\tGUID..................0x%016" PRIx64 "\n"
+> +	       "\t\tSM_Key................0x%016" PRIx64 "\n"
+> +	       "\t\tActCount..............%u\n"
+> +	       "\t\tPriority..............%u\n"
+> +	       "\t\tSMState...............%u\n",
+> +	       cl_ntoh16(p_smr->lid),
+> +	       cl_ntoh64(p_smr->sm_info.guid),
+> +	       cl_ntoh64(p_smr->sm_info.sm_key),
+> +	       cl_ntoh32(p_smr->sm_info.act_count),
+> +	       priority, state);
+> +}
+> +
+>  static void dump_switch_info_record(void *data)  {
+>  	ib_switch_info_record_t *p_sir = data; @@ -1194,6 +1218,25 @@
+> static int query_service_records(const struct query_cmd *q, struct
+> sa_handle * h
+>  					dump_service_record);
+>  }
+> 
+> +static int query_sm_info_records(const struct query_cmd *q,
+> +				 struct sa_handle * h, struct query_params
+> *p,
+> +				 int argc, char *argv[])
+> +{
+> +	ib_sminfo_record_t smir;
+> +	ib_net64_t comp_mask = 0;
+> +	int lid = 0;
+> +
+> +	if (argc > 0)
+> +		parse_lid_and_ports(h, argv[0], &lid, NULL, NULL);
+> +
+> +	memset(&smir, 0, sizeof(smir));
+> +	CHECK_AND_SET_VAL(lid, 16, 0, smir.lid, SMIR, LID);
+> +
+> +	return get_and_dump_any_records(h,
+> IB_SA_ATTR_SMINFORECORD, 0,
+> +					comp_mask, &smir, sizeof(smir),
+> +					dump_sm_info_record);
+> +}
+> +
+>  static int query_switchinfo_records(const struct query_cmd *q,
+>  				struct sa_handle * h, struct query_params
+> *p,
+>  				int argc, char *argv[])
+> @@ -1406,6 +1449,8 @@ static const struct query_cmd query_cmds[] = {
+>  	 "[[lid]/[block]]", query_guidinfo_records},
+>  	{"SwitchInfoRecord", "SWIR", IB_SA_ATTR_SWITCHINFORECORD,
+>  	 "[lid]", query_switchinfo_records},
+> +	{"SMInfoRecord", "SMIR", IB_SA_ATTR_SMINFORECORD,
+> +	 "[lid]", query_sm_info_records},
+>  	{0}
+>  };
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
