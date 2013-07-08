@@ -1,24 +1,48 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: wrong email address in mlx5 patch signature
-Date: Mon, 8 Jul 2013 12:47:42 +0300
-Message-ID: <51DA8ABE.8050806@mellanox.com>
+Subject: Re: [infiniband:for-next 769/772] drivers/net/ethernet/mellanox/mlx5/core/cmd.c:894:7-14:
+ WARNING opportunity for memdup_user
+Date: Mon, 8 Jul 2013 12:58:10 +0300
+Message-ID: <51DA8D32.2090504@mellanox.com>
+References: <20130708094047.GC2985@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130708094047.GC2985@localhost>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+On 08/07/2013 12:40, Fengguang Wu wrote:
+> Hi Eli,
+>
+> FYI, there are coccinelle warnings in
+>
+> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-next
+> head:   1af1abad19f6a40d8822cb7a35736e9e102fade6
+> commit: 809d3a921f9047bf575488f410ed12b365fe5cd7 [769/772] mlx5: Add driver for Mellanox Connect-IB adapters
+>
+>>> drivers/net/ethernet/mellanox/mlx5/core/cmd.c:894:7-14: WARNING opportunity for memdup_user
+> --
+>>> drivers/infiniband/hw/mlx5/mr.c:445:2-3: Unneeded semicolon
+>>> drivers/infiniband/hw/mlx5/mr.c:167:2-3: Unneeded semicolon
+> --
+>>> drivers/net/ethernet/mellanox/mlx5/core/cmd.c:98:11-19: WARNING opportunity for simple_open, see also structure on line 938
+>>> drivers/net/ethernet/mellanox/mlx5/core/cmd.c:98:11-19: WARNING opportunity for simple_open, see also structure on line 718
+>>> drivers/net/ethernet/mellanox/mlx5/core/cmd.c:98:11-19: WARNING opportunity for simple_open, see also structure on line 1006
+> --
+>>> drivers/net/ethernet/mellanox/mlx5/core/debugfs.c:145:11-19: WARNING opportunity for simple_open, see also structure on line 470
+>>> drivers/net/ethernet/mellanox/mlx5/core/debugfs.c:145:11-19: WARNING opportunity for simple_open, see also structure on line 203
+> --
+>>> drivers/infiniband/hw/mlx5/mr.c:52:11-20: WARNING opportunity for simple_open, see also structure on line 289
+>>> drivers/infiniband/hw/mlx5/mr.c:52:11-20: WARNING opportunity for simple_open, see also structure on line 227
+> Please consider folding the attached diff with suitable fixups :-)
 
 Hi Roland,
 
-There's a typo in Jack's email address which is our mistake, was in V3 
-9/9, please fix
-it to be Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>  (the error is 
-missing "l" in mellanox)
-
-thanks,
+Eli is still OOO, I have reviewed the four patches and they are OK, 
+please roll into the initial version
 
 Or.
 --
