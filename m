@@ -1,39 +1,26 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/3] iSER initiator updates for 3.11
-Date: Mon,  8 Jul 2013 16:19:17 +0300
-Message-ID: <1373289560-24681-1-git-send-email-ogerlitz@mellanox.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 2/3] IB/iser: Restructure allocation/deallocation of connection
+ resources
+Date: Mon, 08 Jul 2013 15:56:30 +0200
+Message-ID: <51DAC50E.3060406@acm.org>
+References: <1373289560-24681-1-git-send-email-ogerlitz@mellanox.com> <1373289560-24681-3-git-send-email-ogerlitz@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1373289560-24681-3-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+On 07/08/13 15:19, Or Gerlitz wrote:
+> +		iser_err("FMR alloction failed, err %d\n", ret);
 
-Indeed late, but these are some iser initiator updates for 3.11
+I see "alloction" instead of "allocation" - this looks like an 
+(unimportant) typo ?
 
-We have another batch coming which changes the initiator driver such that 
-it can use FRWRs (Fast-Reg-Work-Requests) when FMRs aren't available, e.g 
-on ConnectX (mlx4) VF or Connect-IB (mlx5) - the other batch should 
-be ready by next week.
-
-Or.
-
-
-Or Gerlitz (1):
-  IB/iser: Use proper debug level value for info prints
-
-Shlomo Pongratz (2):
-  IB/iser: Restructure allocation/deallocation of connection resources
-  IB/iser: Accept session->cmds_max from user space
-
- drivers/infiniband/ulp/iser/iscsi_iser.c     |   19 +++--
- drivers/infiniband/ulp/iser/iscsi_iser.h     |   25 ++++--
- drivers/infiniband/ulp/iser/iser_initiator.c |  115 ++++++++++++++++++++---
- drivers/infiniband/ulp/iser/iser_memory.c    |   13 +--
- drivers/infiniband/ulp/iser/iser_verbs.c     |  134 ++++++++++++--------------
- 5 files changed, 202 insertions(+), 104 deletions(-)
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
