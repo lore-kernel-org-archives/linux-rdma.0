@@ -1,126 +1,249 @@
-From: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 2/4] IB/core: Infra-structure to support verbs
- extensions through uverbs
-Date: Tue, 9 Jul 2013 18:00:52 +0300
-Message-ID: <CACZyyF8=dzjktGYAWfHkXdNQycdkP5x0t=rYckTypxj7GLznzw@mail.gmail.com>
-References: <1372251464-13394-1-git-send-email-ogerlitz@mellanox.com>
-	<1372251464-13394-3-git-send-email-ogerlitz@mellanox.com>
-	<CAL1RGDWxmM17W2o_era24A-TTDeKyoL6u3NRu_=t_dhV_ZA9MA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWxmM17W2o_era24A-TTDeKyoL6u3NRu_=t_dhV_ZA9MA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Tue,  9 Jul 2013 10:36:25 -0700
+Message-ID: <1373391385-4978-1-git-send-email-roland@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 26/06/2013 16:05, Roland Dreier wrote:
- >> I don't understand what "extended capabilities" are or why we need
-to change the header format.
+Hi Linus,
 
-=46irst let me clarify the target of *this* patch - allow extending
-uverbs new commands input and output variables. Whenever a specific
-IB_USER_VERBS_CMD_XXX is extended =3D=3D needs to have additional
-arguments, we will be able to add them without creating a completely
-new IB_USER_VERBS_CMD_YYY command or bumping the uverbs ABI version.
-This patch alone doesn=92t provide the whole scheme which is also
-dependent on adding comp_mask to the extended uverbs structs - see my
-explanation below, and do let me know if an actual use case is more of
-self-explaining.
+Please pull from
 
-On 26/06/2013 16:05, Roland Dreier wrote:
- >> What is the "verbs extensions approach"?
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
 
-Similar to the scheme built with Sean and Jason for user verbs
-extension support in libibverbs, that can be reviewed in the XRC
-patches Sean submitted, we=92d like to build a scheme for the kernel
-uverbs as well.
+----------------------------------------------------------------
 
-On 26/06/2013 16:05, Roland Dreier wrote:
- >> Why does the kernel need to know about it?
+Main batch of InfiniBand/RDMA changes for 3.11 merge window:
 
-The kernel uverbs are the ones that we wish to add extension
-capability in this patch (vs. the user verbs which exisit in an
-orthogonal patch).
+ - AF_IB (native IB addressing) for CMA from Sean Hefty
+ - New mlx5 driver for Mellanox Connect-IB adapters
+ - SRP fixes from Bart Van Assche
+ - qib HW driver updates
+ - Resurrection of ocrdma HW driver development
+ - uverbs conversion to create fds with O_CLOEXEC set
+ - Other small changes and fixes
 
-On 26/06/2013 16:05, Roland Dreier wrote:
- >> What is different about the processing?
+----------------------------------------------------------------
+Bart Van Assche (5):
+      IB/srp: Avoid skipping srp_reset_host() after a transport error
+      IB/srp: Skip host settle delay
+      IB/srp: Fail I/O fast if target offline
+      IB/srp: Maintain a single connection per I_T nexus
+      IB/srp: Make HCA completion vector configurable
 
-Ok, so we want to allow future extension of the CMD arguments
-(ib_uverbs_cmd_hdr.in_words, ib_uverbs_cmd_hdr.out_words) for an
-existing new command (=3D a command that supports the new uverbs comman=
-d
-header format suggested in this patch) w/o bumping ABI ver and with
-maintaining backward and formward compatibility to new and old
-libibverbs versions.
-In the uverbs command we are passing both uverbs arguments and the
-provider arguments (mlx4_ib in our case), for example take the
-create_cq call:
-Uverbs gets struct ibv_create_cq, mlx4_ib gets struct mlx4_create_cq
-(which includes struct ibv_create_cq), and In_words =3D
-sizeof(mlx4_create_cq)/4.
-Thus ib_uverbs_cmd_hdr.in_words carry both uverbs plus mlx4_ib input
-argument sizes, where uverbs assumes it knows the size of its input
-argument - struct ibv_create_cq.
-Now, if we wish to add a variable to struct ibv_create_cq, we can add
-a comp_mask field to the struct which is basically bit field
-indicating which fields exists in the struct (as done for the
-libibverbs API extension), but we need a way to tell what is the total
-size of the struct and not assume the struct size is predefined (since
-we may get different struct sizes from different user libibverbs
-vers), so we know at which point the provider input argument (struct
-mlx4_create_cq ) begins. Same goes for extending the provider struct
-mlx4_create_cq. Thus we split the ib_uverbs_cmd_hdr.in_words to
-ib_uverbs_cmd_hdr.in_words which will now carry only uverbs input
-argument struct size and ib_uverbs_cmd_hdr.provider_in_words that will
-carry the provider (mlx4_ib) input argument size. Same goes for the
-response (the uverbs CMD output argument).
+Dan Carpenter (1):
+      RDMA/cxgb3: Timeout condition is never true
 
-Tzahi
+Dotan Barak (1):
+      IB/srp: Fix remove_one crash due to resource exhaustion
 
+Eli Cohen (1):
+      mlx5: Add driver for Mellanox Connect-IB adapters
 
-On Wed, Jun 26, 2013 at 4:05 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrot=
-e:
-> On Wed, Jun 26, 2013 at 5:57 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> w=
-rote:
->> Add Infra-structure to support extended uverbs capabilities in a for=
-ward/backward
->> manner. Uverbs command opcodes which are based on the verbs extensio=
-ns approach should
->> be greater or equal to IB_USER_VERBS_CMD_THRESHOLD. They have new he=
-ader format
->> and processed a bit differently.
->
-> I think you missed the feedback I gave to the previous version of thi=
-s patch:
->
->  This patch at least doesn't have a sufficient changelog.  I don't
->  understand what "extended capabilities" are or why we need to change
->  the header format.
->
->  What is the "verbs extensions approach"?  Why does the kernel need t=
-o
->  know about it?  What is different about the processing?  The only
->  difference I see is that userspace now has a more complicated way to
->  pass the size in, which the kernel seems to nearly ignore -- it just
->  adds the sizes together and proceeds as before.
->
-> I'm still wondering why the flow steering uverbs commands can't be
-> normal uverbs commands.
->
-> [And BTW, "infrastructure" is a normal word with no need for
-> capitalization or hyphenation]
->
->  - R.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Gottumukkala, Naresh (1):
+      RDMA/ocrdma: Remove use_cnt for queues
+
+Jack Morgenstein (1):
+      IB/core: Add reserved values to enums for low-level driver use
+
+Mike Marciniszyn (6):
+      IB/qib: Add DCA support
+      IB/qib: Remove atomic_inc_not_zero() from QP RCU
+      IB/qib: Optimize CQ callbacks
+      IB/qib: Convert opcode counters to per-context
+      IB/qib: Add per-context stats interface
+      IB/qib: Add qp_stats debug file
+
+Mitko Haralanov (1):
+      IB/qib: New transmitter tunning settings for Dell 1.1 backplane
+
+Naresh Gottumukkala (5):
+      RDMA/ocrdma: Use MCC_CREATE_EXT_V1 for MCC create
+      RDMA/ocrdma: Replace ocrdma_err with pr_err
+      RDMA/ocrdma: Set bad_wr in error case
+      RDMA/ocrdma: Change macros to inline funtions
+      RDMA/ocrdma: Reorg structures to avoid padding
+
+Ramkrishna Vepa (2):
+      IB/qib: Add optional NUMA affinity
+      IB/qib: Add dual-rail NUMA awareness for PSM processes
+
+Roland Dreier (5):
+      mlx5: Fix parameter type of health_handler_t
+      IB/mlx5: Make profile[] static in main.c
+      mlx5_core: Fixes for sparse warnings
+      IB/uverbs: Use get_unused_fd_flags(O_CLOEXEC) instead of get_unused_fd()
+      Merge branches 'af_ib', 'cxgb4', 'misc', 'mlx5', 'ocrdma', 'qib' and 'srp' into for-next
+
+Sean Hefty (28):
+      RDMA/cma: Define native IB address
+      RDMA/cma: Allow enabling reuseaddr in any state
+      RDMA/cma: Include AF_IB in loopback and any address checks
+      IB/addr: Add AF_IB support to ip_addr_size
+      RDMA/cma: Update port reservation to support AF_IB
+      RDMA/cma: Allow user to specify AF_IB when binding
+      RDMA/cma: Do not modify sa_family when setting loopback address
+      RDMA/cma: Add helper functions to return id address information
+      RDMA/cma: Restrict AF_IB loopback to binding to IB devices only
+      RDMA/cma: Verify that source and dest sa_family are the same
+      RDMA/cma: Add support for AF_IB to rdma_resolve_addr()
+      RDMA/cma: Add support for AF_IB to rdma_resolve_route()
+      RDMA/cma: Add support for AF_IB to cma_get_service_id()
+      RDMA/cma: Remove unused SDP related code
+      RDMA/cma: Merge cma_get/save_net_info
+      RDMA/cma: Expose private data when using AF_IB
+      RDMA/cma: Set qkey for AF_IB
+      RDMA/cma: Only listen on IB devices when using AF_IB
+      RDMA/ucma: Support querying for AF_IB addresses
+      IB/sa: Export function to pack a path record into wire format
+      RDMA/ucma: Support querying when IB paths are not reversible
+      RDMA/cma: Export cma_get_service_id()
+      RDMA/ucma: Add ability to query GID addresses
+      RDMA/ucma: Name changes to indicate only IP addresses supported
+      RDMA/ucma: Allow user space to bind to AF_IB
+      RDMA/ucma: Allow user space to pass AF_IB into resolve
+      RDMA/ucma: Allow user space to specify AF_IB when joining multicast
+      RDMA/cma: Export AF_IB statistics
+
+Vinit Agnihotri (1):
+      IB/qib: Update minor version number
+
+Vu Pham (1):
+      IB/srp: Bump driver version and release date
+
+Wei Yongjun (3):
+      IB/ehca: Fix error return code in ehca_create_slab_caches()
+      RDMA/ocrdma: Fix error return code in ocrdma_set_create_qp_rq_cmd()
+      IB/core: Fix error return code in add_port()
+
+ Documentation/ABI/stable/sysfs-driver-ib_srp        |    7 +
+ MAINTAINERS                                         |   22 ++
+ drivers/infiniband/Kconfig                          |    1 +
+ drivers/infiniband/Makefile                         |    1 +
+ drivers/infiniband/core/addr.c                      |   20 +-
+ drivers/infiniband/core/cma.c                       |  906 ++++++++++++++++++++++++++++++++++-------------------------
+ drivers/infiniband/core/sa_query.c                  |    6 +
+ drivers/infiniband/core/sysfs.c                     |    8 +-
+ drivers/infiniband/core/ucma.c                      |  321 ++++++++++++++++++---
+ drivers/infiniband/core/uverbs_cmd.c                |    4 +-
+ drivers/infiniband/hw/cxgb3/iwch_qp.c               |    3 +-
+ drivers/infiniband/hw/ehca/ehca_main.c              |    1 +
+ drivers/infiniband/hw/mlx5/Kconfig                  |   10 +
+ drivers/infiniband/hw/mlx5/Makefile                 |    3 +
+ drivers/infiniband/hw/mlx5/ah.c                     |   92 ++++++
+ drivers/infiniband/hw/mlx5/cq.c                     |  843 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/doorbell.c               |  100 +++++++
+ drivers/infiniband/hw/mlx5/mad.c                    |  139 +++++++++
+ drivers/infiniband/hw/mlx5/main.c                   | 1504 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mem.c                    |  162 +++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h                |  545 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mr.c                     | 1007 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/qp.c                     | 2524 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/srq.c                    |  473 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/user.h                   |  121 ++++++++
+ drivers/infiniband/hw/ocrdma/ocrdma.h               |   63 +++--
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c            |   86 +++---
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c          |    6 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_sli.h           |   35 +--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c         |  135 ++++-----
+ drivers/infiniband/hw/qib/Kconfig                   |    8 +
+ drivers/infiniband/hw/qib/Makefile                  |    1 +
+ drivers/infiniband/hw/qib/qib.h                     |   61 ++--
+ drivers/infiniband/hw/qib/qib_common.h              |    2 +-
+ drivers/infiniband/hw/qib/qib_cq.c                  |   67 ++++-
+ drivers/infiniband/hw/qib/qib_debugfs.c             |  283 +++++++++++++++++++
+ drivers/infiniband/hw/qib/qib_debugfs.h             |   45 +++
+ drivers/infiniband/hw/qib/qib_driver.c              |    1 -
+ drivers/infiniband/hw/qib/qib_file_ops.c            |  176 ++++++++----
+ drivers/infiniband/hw/qib/qib_iba6120.c             |   10 +
+ drivers/infiniband/hw/qib/qib_iba7220.c             |   10 +
+ drivers/infiniband/hw/qib/qib_iba7322.c             |  393 +++++++++++++++++++++++---
+ drivers/infiniband/hw/qib/qib_init.c                |  139 +++++++--
+ drivers/infiniband/hw/qib/qib_qp.c                  |  123 +++++++-
+ drivers/infiniband/hw/qib/qib_verbs.c               |    8 +-
+ drivers/infiniband/hw/qib/qib_verbs.h               |   33 ++-
+ drivers/infiniband/ulp/srp/ib_srp.c                 |   90 +++++-
+ drivers/infiniband/ulp/srp/ib_srp.h                 |    1 +
+ drivers/net/ethernet/mellanox/Kconfig               |    1 +
+ drivers/net/ethernet/mellanox/Makefile              |    1 +
+ drivers/net/ethernet/mellanox/mlx5/core/Kconfig     |   18 ++
+ drivers/net/ethernet/mellanox/mlx5/core/Makefile    |    5 +
+ drivers/net/ethernet/mellanox/mlx5/core/alloc.c     |  238 ++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c       | 1515 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c        |  224 +++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/debugfs.c   |  587 ++++++++++++++++++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c        |  521 ++++++++++++++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c        |  185 ++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/health.c    |  227 +++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/mad.c       |   78 ++++++
+ drivers/net/ethernet/mellanox/mlx5/core/main.c      |  475 +++++++++++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/mcg.c       |  106 +++++++
+ drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h |   73 +++++
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c        |  136 +++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c |  435 ++++++++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/pd.c        |  101 +++++++
+ drivers/net/ethernet/mellanox/mlx5/core/port.c      |  104 +++++++
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c        |  301 ++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/srq.c       |  223 +++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/uar.c       |  223 +++++++++++++++
+ include/linux/mlx5/cmd.h                            |   51 ++++
+ include/linux/mlx5/cq.h                             |  165 +++++++++++
+ include/linux/mlx5/device.h                         |  893 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mlx5/doorbell.h                       |   79 ++++++
+ include/linux/mlx5/driver.h                         |  769 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mlx5/qp.h                             |  467 ++++++++++++++++++++++++++++++
+ include/linux/mlx5/srq.h                            |   41 +++
+ include/linux/socket.h                              |    2 +
+ include/rdma/ib.h                                   |   89 ++++++
+ include/rdma/ib_addr.h                              |    6 +-
+ include/rdma/ib_sa.h                                |    7 +
+ include/rdma/ib_verbs.h                             |   35 ++-
+ include/rdma/rdma_cm.h                              |   13 +
+ include/uapi/rdma/rdma_user_cm.h                    |   73 ++++-
+ 84 files changed, 18267 insertions(+), 799 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mlx5/Kconfig
+ create mode 100644 drivers/infiniband/hw/mlx5/Makefile
+ create mode 100644 drivers/infiniband/hw/mlx5/ah.c
+ create mode 100644 drivers/infiniband/hw/mlx5/cq.c
+ create mode 100644 drivers/infiniband/hw/mlx5/doorbell.c
+ create mode 100644 drivers/infiniband/hw/mlx5/mad.c
+ create mode 100644 drivers/infiniband/hw/mlx5/main.c
+ create mode 100644 drivers/infiniband/hw/mlx5/mem.c
+ create mode 100644 drivers/infiniband/hw/mlx5/mlx5_ib.h
+ create mode 100644 drivers/infiniband/hw/mlx5/mr.c
+ create mode 100644 drivers/infiniband/hw/mlx5/qp.c
+ create mode 100644 drivers/infiniband/hw/mlx5/srq.c
+ create mode 100644 drivers/infiniband/hw/mlx5/user.h
+ create mode 100644 drivers/infiniband/hw/qib/qib_debugfs.c
+ create mode 100644 drivers/infiniband/hw/qib/qib_debugfs.h
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/Kconfig
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/Makefile
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/cq.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/eq.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/fw.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/health.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mad.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/main.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mcg.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mr.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/pd.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/port.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/qp.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/srq.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/uar.c
+ create mode 100644 include/linux/mlx5/cmd.h
+ create mode 100644 include/linux/mlx5/cq.h
+ create mode 100644 include/linux/mlx5/device.h
+ create mode 100644 include/linux/mlx5/doorbell.h
+ create mode 100644 include/linux/mlx5/driver.h
+ create mode 100644 include/linux/mlx5/qp.h
+ create mode 100644 include/linux/mlx5/srq.h
+ create mode 100644 include/rdma/ib.h
