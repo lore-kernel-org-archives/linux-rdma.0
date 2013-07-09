@@ -1,132 +1,126 @@
-From: Yann Droneaud <ydroneaud@opteya.com>
-Subject: Re: [PATCH 03/13] infiniband: use =?UTF-8?Q?get=5Funused=5Ffd=5Ff?=
- =?UTF-8?Q?lags=28=30=29=20instead=20of=20get=5Funused=5Ffd=28=29?=
-Date: Mon, 08 Jul 2013 23:26:26 +0200
-Message-ID: <f58540dc64fec1ac0e496dfcd3cc1af7@meuh.org>
-References: <cover.1372777600.git.ydroneaud@opteya.com>
- <651e35493f6a970610d35785e1972ec9e2426abf.1372777600.git.ydroneaud@opteya.com>
- <CAL1RGDXV1_BjSLrQDFdVQ1_D75+bMtOtikHOUp8VBiy_OJUf=w@mail.gmail.com>
+From: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 2/4] IB/core: Infra-structure to support verbs
+ extensions through uverbs
+Date: Tue, 9 Jul 2013 18:00:52 +0300
+Message-ID: <CACZyyF8=dzjktGYAWfHkXdNQycdkP5x0t=rYckTypxj7GLznzw@mail.gmail.com>
+References: <1372251464-13394-1-git-send-email-ogerlitz@mellanox.com>
+	<1372251464-13394-3-git-send-email-ogerlitz@mellanox.com>
+	<CAL1RGDWxmM17W2o_era24A-TTDeKyoL6u3NRu_=t_dhV_ZA9MA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL1RGDXV1_BjSLrQDFdVQ1_D75+bMtOtikHOUp8VBiy_OJUf=w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@purestorage.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, ydroneaud@opteya.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDWxmM17W2o_era24A-TTDeKyoL6u3NRu_=t_dhV_ZA9MA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le 08.07.2013 20:23, Roland Dreier a =C3=A9crit=C2=A0:
-> Thanks, I just applied a patch to convert to
-> get_unused_fd_flags(O_CLOEXEC) in uverbs, since there isn't anything
-> useful that can be done with uverbs fds across an exec.
->=20
+On 26/06/2013 16:05, Roland Dreier wrote:
+ >> I don't understand what "extended capabilities" are or why we need
+to change the header format.
 
-Thanks.
+=46irst let me clarify the target of *this* patch - allow extending
+uverbs new commands input and output variables. Whenever a specific
+IB_USER_VERBS_CMD_XXX is extended =3D=3D needs to have additional
+arguments, we will be able to add them without creating a completely
+new IB_USER_VERBS_CMD_YYY command or bumping the uverbs ABI version.
+This patch alone doesn=92t provide the whole scheme which is also
+dependent on adding comp_mask to the extended uverbs structs - see my
+explanation below, and do let me know if an actual use case is more of
+self-explaining.
 
-In fact, InfiniBand was my main target and I kept this change (setting=20
-O_CLOEXEC)
-for another batch.
+On 26/06/2013 16:05, Roland Dreier wrote:
+ >> What is the "verbs extensions approach"?
 
-It's following my patch on libibverbs "[PATCH] open files with close on=
-=20
-exec flag"
-http://thread.gmane.org/gmane.linux.drivers.rdma/15727
-http://marc.info/?l=3Dlinux-rdma&m=3D136908991102575&w=3D2
+Similar to the scheme built with Sean and Jason for user verbs
+extension support in libibverbs, that can be reviewed in the XRC
+patches Sean submitted, we=92d like to build a scheme for the kernel
+uverbs as well.
 
-This patch was already quoting Dan Walsh, "Excuse me son, but your code=
-=20
-is leaking !!!"
-http://danwalsh.livejournal.com/53603.html but I couldn't resist to pos=
-t=20
-it again.
+On 26/06/2013 16:05, Roland Dreier wrote:
+ >> Why does the kernel need to know about it?
 
-BTW, I was working on the rationnal/commit message for setting flags to=
-=20
-O_CLOEXEC
-on kernel side, please find the draft if revelant.
+The kernel uverbs are the ones that we wish to add extension
+capability in this patch (vs. the user verbs which exisit in an
+orthogonal patch).
 
---------------------8<----------------------
+On 26/06/2013 16:05, Roland Dreier wrote:
+ >> What is different about the processing?
 
-InfiniBand verbs/RDMA: use O_CLOEXEC
+Ok, so we want to allow future extension of the CMD arguments
+(ib_uverbs_cmd_hdr.in_words, ib_uverbs_cmd_hdr.out_words) for an
+existing new command (=3D a command that supports the new uverbs comman=
+d
+header format suggested in this patch) w/o bumping ABI ver and with
+maintaining backward and formward compatibility to new and old
+libibverbs versions.
+In the uverbs command we are passing both uverbs arguments and the
+provider arguments (mlx4_ib in our case), for example take the
+create_cq call:
+Uverbs gets struct ibv_create_cq, mlx4_ib gets struct mlx4_create_cq
+(which includes struct ibv_create_cq), and In_words =3D
+sizeof(mlx4_create_cq)/4.
+Thus ib_uverbs_cmd_hdr.in_words carry both uverbs plus mlx4_ib input
+argument sizes, where uverbs assumes it knows the size of its input
+argument - struct ibv_create_cq.
+Now, if we wish to add a variable to struct ibv_create_cq, we can add
+a comp_mask field to the struct which is basically bit field
+indicating which fields exists in the struct (as done for the
+libibverbs API extension), but we need a way to tell what is the total
+size of the struct and not assume the struct size is predefined (since
+we may get different struct sizes from different user libibverbs
+vers), so we know at which point the provider input argument (struct
+mlx4_create_cq ) begins. Same goes for extending the provider struct
+mlx4_create_cq. Thus we split the ib_uverbs_cmd_hdr.in_words to
+ib_uverbs_cmd_hdr.in_words which will now carry only uverbs input
+argument struct size and ib_uverbs_cmd_hdr.provider_in_words that will
+carry the provider (mlx4_ib) input argument size. Same goes for the
+response (the uverbs CMD output argument).
 
-This subsystem is allocating new file descriptor through the InfiniBand=
-=20
-verbs / RDMA API.
-
-Thoses file descriptors are created after a write() from userspace to a=
-=20
-special device file.
-No read operation is needed to get the file descriptor: it is returned=20
-to userspace
-in a buffer whose address was stored as part of the buffer passed to=20
-write().
-If the write() succeed, the response buffer is updated and the new file=
-=20
-descriptor is available.
-
-But such file descriptors are mostly hidden to application developpers
-by libibverbs / librdma_cm libraries API.
-In fact, application developpers could use InfiniBand verbs / RDMA=20
-without
-using directly the file descriptors.
-
-Here's how are created the two file descriptors (using mlx4 as example)=
-:
-
-- ibv_context.async_fd:
-
-   ---- kernel ----
-
-   ib_uverbs_get_context() : linux/drivers/infiniband/core/uverbs_cmd.c
-   uverbs_cmd_table[IB_USER_VERBS_CMD_GET_CONTEXT]() :=20
-linux/drivers/infiniband/core/uverbs_main.c
-   ib_uverbs_write() : linux/drivers/infiniband/core/uverbs_main.c
-   uverbs_mmap_fops.write : linux/drivers/infiniband/core/uverbs_main.c
-
-   ---- userspace ----
-
-   ibv_cmd_get_context() : libibverbs/src/cmd.c
-   mlx4_alloc_context() : libmlx4/src/mlx4.c
-   mlx4_dev_ops.alloc_context : libmlx4/src/mlx4.c
-   __ibv_open_device() : libibverbs/src/device.c
-
-- ibv_comp_channel.fd:
-
-   ---- kernel ----
-
-   ib_uverbs_create_comp_channel() :=20
-linux/drivers/infiniband/core/uverbs_cmd.c
-   uverbs_cmd_table[IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL]() :=20
-linux/drivers/infiniband/core/uverbs_main.c
-   ib_uverbs_write() : linux/drivers/infiniband/core/uverbs_main.c
-   uverbs_mmap_fops.write : linux/drivers/infiniband/core/uverbs_main.c
-
-   ---- userspace ----
-
-   ibv_create_comp_channel() : libibverbs/src/verbs.c
-
-But those file descriptors are of no use for another program executed=20
-through exec():
-
-- without the memory mappings for special memory pages,
-   the file descriptor are of no use ...
-
-- the userland libraries/drivers are not ready to
-   found the devices already opened.
-
-[ In fact, supporting fork() is already a challenge for thoses API. ]
-
-So those file descriptors can safely be opened with O_CLOEXEC without
-disturbing users of InfiniBand verbs /RDMA
+Tzahi
 
 
---------------------8<----------------------
-
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+On Wed, Jun 26, 2013 at 4:05 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrot=
+e:
+> On Wed, Jun 26, 2013 at 5:57 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> w=
+rote:
+>> Add Infra-structure to support extended uverbs capabilities in a for=
+ward/backward
+>> manner. Uverbs command opcodes which are based on the verbs extensio=
+ns approach should
+>> be greater or equal to IB_USER_VERBS_CMD_THRESHOLD. They have new he=
+ader format
+>> and processed a bit differently.
+>
+> I think you missed the feedback I gave to the previous version of thi=
+s patch:
+>
+>  This patch at least doesn't have a sufficient changelog.  I don't
+>  understand what "extended capabilities" are or why we need to change
+>  the header format.
+>
+>  What is the "verbs extensions approach"?  Why does the kernel need t=
+o
+>  know about it?  What is different about the processing?  The only
+>  difference I see is that userspace now has a more complicated way to
+>  pass the size in, which the kernel seems to nearly ignore -- it just
+>  adds the sizes together and proceeds as before.
+>
+> I'm still wondering why the flow steering uverbs commands can't be
+> normal uverbs commands.
+>
+> [And BTW, "infrastructure" is a normal word with no need for
+> capitalization or hyphenation]
+>
+>  - R.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
