@@ -1,70 +1,71 @@
-From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [patch -next] mlx5_core: return -EFAULT if copy_to_user() fails
-Date: Wed, 10 Jul 2013 14:37:03 +0300
-Message-ID: <51DD475F.4060402@mellanox.com>
-References: <20130710105714.GC31232@longonot.mountain>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU
+Date: Wed, 10 Jul 2013 12:14:18 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83@xmb-rcd-x01.cisco.com>
+References: <1372768306-6786-1-git-send-email-jsquyres@cisco.com>
+ <CAL1RGDVU9otyMtoit1PJR5JkVy4XvU=4xjL1rN1QB7pq0rVcxA@mail.gmail.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F6F31A6@xmb-rcd-x01.cisco.com>
+ <CAL1RGDU+4CSJyF0TAfAv-YYcjA4FG+XNeg5pGCHPeW5iqhvwpA@mail.gmail.com>
+ <20130708172621.GA3852@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20130710105714.GC31232@longonot.mountain>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Eli Cohen <eli@mellanox.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>, Moshe Lazer <moshel@mellanox.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130708172621.GA3852-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <9062A2EE4AB7CA4AAEF2D1124AFBD206-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/07/2013 13:57, Dan Carpenter wrote:
-> This should return an error code instead of the number of bytes
-> remaining to be copied.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-> index a550a8e..4273c06 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-> @@ -148,7 +148,6 @@ static ssize_t average_read(struct file *filp, char __user *buf, size_t count,
->   	struct mlx5_cmd_stats *stats;
->   	u64 field = 0;
->   	int ret;
-> -	int err;
->   	char tbuf[22];
->   
->   	if (*pos)
-> @@ -161,9 +160,8 @@ static ssize_t average_read(struct file *filp, char __user *buf, size_t count,
->   	spin_unlock(&stats->lock);
->   	ret = snprintf(tbuf, sizeof(tbuf), "%llu\n", field);
->   	if (ret > 0) {
-> -		err = copy_to_user(buf, tbuf, ret);
-> -		if (err)
-> -			return err;
-> +		if (copy_to_user(buf, tbuf, ret))
-> +			return -EFAULT;
->   	}
->   
->   	*pos += ret;
-> @@ -418,7 +416,6 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
->   	char tbuf[18];
->   	u64 field;
->   	int ret;
-> -	int err;
->   
->   	if (*pos)
->   		return 0;
-> @@ -445,9 +442,8 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
->   
->   	ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
->   	if (ret > 0) {
-> -		err = copy_to_user(buf, tbuf, ret);
-> -		if (err)
-> -			return err;
-> +		if (copy_to_user(buf, tbuf, ret))
-> +			return -EFAULT;
->   	}
->   
->   	*pos += ret;
->
-
-ditto here
-
-Acked-by: Or Gerlitz <ogerlitz@mellanox.com>
+T24gSnVsIDgsIDIwMTMsIGF0IDE6MjYgUE0sIEphc29uIEd1bnRob3JwZSA8amd1bnRob3JwZUBv
+YnNpZGlhbnJlc2VhcmNoLmNvbT4gd3JvdGU6DQoNCj4gSmVmZidzIHBhdGNoIGRvZXNuJ3QgYnJl
+YWsgb2xkIGJpbmFyaWVzLCBvbGQgYmluYXJpZXMsIHJ1bm5pbmcgd2l0aA0KPiBub3JtYWwgSUIg
+TVRVcyB3b3JrIGZpbmUuIFRoZSBzdHJ1Y3R1cmUgbGF5b3V0cyBhbGwgc3RheSB0aGUgc2FtZSwN
+Cj4gZXRjLg0KDQoNCkZXSVcsIEkgZGlkIGEgc2ltcGxlIHRlc3QgdG8gY29uZmlybSB0aGlzLiAg
+SSBpbnN0YWxsZWQgYSBzdG9jayBnaXQgSEVBRCBsaWJpYnZlcmJzIGludG8gJEhPTUUvbGliaWJ2
+ZXJicy1IRUFEIGFuZCBhIGxpYmlidmVyYnMgd2l0aCB0aGUgTVRVIHBhdGNoIGluICRIT01FL2xp
+YmlidmVyYnMtbXR1LXBhdGNoLiAgVGhlIG1seDQgZHJpdmVyIHdhcyBpbnN0YWxsZWQgaW50byBi
+b3RoIHRyZWVzIChJIHVzZWQgc29tZSBmYWlybHkgb2xkIE1lbGxhbm94IEhDQXMrRGVsbCBzZXJ2
+ZXJzIGZvciB0aGlzIHRlc3QpLg0KDQpUaGlzIGlzIHRoZSBiYXNlIGNhc2U6DQoNCi0tLS0tDQpb
+NTowNl0gZGVsbDAxMjp+IOKdr+Kdr+KdryBjZCBsaWJpYnZlcmJzLUhFQUQNCls1OjA3XSBkZWxs
+MDEyOn4vbGliaWJ2ZXJicy1IRUFEIOKdr+Kdr+KdryBsZGQgYmluL2lidl9yY19waW5ncG9uZw0K
+CWxpbnV4LXZkc28uc28uMSA9PiAgKDB4MDAwMDJhYWFhYWFjYjAwMCkNCglsaWJpYnZlcmJzLnNv
+LjEgPT4gL2hvbWUvanNxdXlyZXMvbGliaWJ2ZXJicy1IRUFEL2xpYi9saWJpYnZlcmJzLnNvLjEg
+KDB4MDAwMDJhYWFhYWNjZDAwMCkNCglsaWJwdGhyZWFkLnNvLjAgPT4gL2xpYjY0L2xpYnB0aHJl
+YWQuc28uMCAoMHgwMDAwMmFhYWFhZWVjMDAwKQ0KCWxpYmRsLnNvLjIgPT4gL2xpYjY0L2xpYmRs
+LnNvLjIgKDB4MDAwMDJhYWFhYjEwOTAwMCkNCglsaWJjLnNvLjYgPT4gL2xpYjY0L2xpYmMuc28u
+NiAoMHgwMDAwMmFhYWFiMzBlMDAwKQ0KCS9saWI2NC9sZC1saW51eC14ODYtNjQuc28uMiAoMHgw
+MDAwMmFhYWFhYWFiMDAwKQ0KWzU6MDddIGRlbGwwMTI6fi9saWJpYnZlcmJzLUhFQUQg4p2v4p2v
+4p2vIC4vYmluL2lidl9yY19waW5ncG9uZyBkZWxsMDExDQogIGxvY2FsIGFkZHJlc3M6ICBMSUQg
+MHgwMDA0LCBRUE4gMHgwNDAwNGEsIFBTTiAweGMwODc0MiwgR0lEIDo6DQogIHJlbW90ZSBhZGRy
+ZXNzOiBMSUQgMHgwMDE5LCBRUE4gMHgyMDAwNGEsIFBTTiAweDQ0YzQ4ZSwgR0lEIDo6DQo4MTky
+MDAwIGJ5dGVzIGluIDAuMDIgc2Vjb25kcyA9IDQxNzAuMjggTWJpdC9zZWMNCjEwMDAgaXRlcnMg
+aW4gMC4wMiBzZWNvbmRzID0gMTUuNzIgdXNlYy9pdGVyDQotLS0tLQ0KDQpXb3JrcyBmaW5lLiAg
+Tm93IGxldCdzIHVzZSB0aGUgc2FtZSBsaWJpYnZlcmJzLUhFQUQgcmMgcGluZ3BvbmcgYmluYXJ5
+LCBidXQgd2l0aCB0aGUgTVRVLXBhdGNoZWQgbGliaWJ2ZXJicy5zbzoNCg0KLS0tLS0NCls1OjA3
+XSBkZWxsMDEyOn4vbGliaWJ2ZXJicy1IRUFEIOKdr+Kdr+KdryBtdiBsaWIvbGliaWJ2ZXJicy5z
+by4xIGxpYi9saWJpYnZlcmJzLnNvLjEtYm9ndXMNCls1OjA3XSBkZWxsMDEyOn4vbGliaWJ2ZXJi
+cy1IRUFEIOKdr+Kdr+KdryBleHBvcnQgTERfTElCUkFSWV9QQVRIPSRIT01FL2xpYmlidmVyYnMt
+bXR1LXBhdGNoL2xpYg0KWzU6MDhdIGRlbGwwMTI6fi9saWJpYnZlcmJzLUhFQUQg4p2v4p2v4p2v
+IGxkZCBiaW4vaWJ2X3JjX3Bpbmdwb25nDQoJbGludXgtdmRzby5zby4xID0+ICAoMHgwMDAwMmFh
+YWFhYWNiMDAwKQ0KCWxpYmlidmVyYnMuc28uMSA9PiAvaG9tZS9qc3F1eXJlcy9saWJpYnZlcmJz
+LW10dS1wYXRjaC9saWIvbGliaWJ2ZXJicy5zby4xICgweDAwMDAyYWFhYWFjY2QwMDApDQoJbGli
+cHRocmVhZC5zby4wID0+IC9saWI2NC9saWJwdGhyZWFkLnNvLjAgKDB4MDAwMDJhYWFhYWVlZDAw
+MCkNCglsaWJkbC5zby4yID0+IC9saWI2NC9saWJkbC5zby4yICgweDAwMDAyYWFhYWIxMGEwMDAp
+DQoJbGliYy5zby42ID0+IC9saWI2NC9saWJjLnNvLjYgKDB4MDAwMDJhYWFhYjMwZTAwMCkNCgkv
+bGliNjQvbGQtbGludXgteDg2LTY0LnNvLjIgKDB4MDAwMDJhYWFhYWFhYjAwMCkNCls1OjA4XSBk
+ZWxsMDEyOn4vbGliaWJ2ZXJicy1IRUFEIOKdr+Kdr+KdryAuL2Jpbi9pYnZfcmNfcGluZ3Bvbmcg
+ZGVsbDAxMQ0KICBsb2NhbCBhZGRyZXNzOiAgTElEIDB4MDAwNCwgUVBOIDB4MDgwMDRhLCBQU04g
+MHg2NTM5MWMsIEdJRCA6Og0KICByZW1vdGUgYWRkcmVzczogTElEIDB4MDAxOSwgUVBOIDB4MjQw
+MDRhLCBQU04gMHg3ZDEzN2UsIEdJRCA6Og0KODE5MjAwMCBieXRlcyBpbiAwLjAyIHNlY29uZHMg
+PSA0MTYzLjM5IE1iaXQvc2VjDQoxMDAwIGl0ZXJzIGluIDAuMDIgc2Vjb25kcyA9IDE1Ljc0IHVz
+ZWMvaXRlcg0KLS0tLS0NCg0KU3RpbGwgd29ya3MgZmluZS4NCg0KLS0gDQpKZWZmIFNxdXlyZXMN
+CmpzcXV5cmVzQGNpc2NvLmNvbQ0KRm9yIGNvcnBvcmF0ZSBsZWdhbCBpbmZvcm1hdGlvbiBnbyB0
+bzogaHR0cDovL3d3dy5jaXNjby5jb20vd2ViL2Fib3V0L2RvaW5nX2J1c2luZXNzL2xlZ2FsL2Ny
+aS8NCg0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
