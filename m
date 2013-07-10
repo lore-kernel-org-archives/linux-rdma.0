@@ -1,46 +1,58 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: re: mlx5: Add driver for Mellanox Connect-IB adapters
-Date: Wed, 10 Jul 2013 13:54:15 +0300
-Message-ID: <20130710105415.GA31232@longonot.mountain>
+Date: Wed, 10 Jul 2013 13:55:38 +0300
+Message-ID: <20130710105538.GB31232@longonot.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sparse-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-sparse-owner@vger.kernel.org
-To: eli@mellanox.com
-Cc: linux-rdma@vger.kernel.org, linux-sparse@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
-
----
-Side note: Sparse should warn about endian bugs but in linux-next
-endian checking is disabled because we hit:
-
-include/uapi/linux/swab.h:71:16: error: undefined identifier '__builtin_bswap64'
-include/uapi/linux/swab.h:71:33: error: not a function <noident>
-
-do_error() in Sparse disables warning messages.  I feel like we
-shouldn't do that.
-
-        /* Shut up warnings after an error */
-        max_warnings = 0;
----
 
 Hello Eli Cohen,
 
-The patch e126ba97dba9: "mlx5: Add driver for Mellanox Connect-IB 
-adapters" from Jul 7, 2013, has an endian related bug:
+The patch e126ba97dba9: "mlx5: Add driver for Mellanox Connect-IB
+adapters" from Jul 7, 2013, leads to the following Smatch warning:
+"drivers/net/ethernet/mellanox/mlx5/core/cmd.c:822
+mlx5_alloc_cmd_msg()
+	 warn: use 'flags' here instead of GFP_XXX?"
 
-drivers/net/ethernet/mellanox/mlx5/core/main.c
-   214          memset(&set_out, 0, sizeof(set_out));
-   215          set_ctx->hca_cap.uar_page_sz = cpu_to_be16(PAGE_SHIFT - 12);
-                         ^^^^^^^^^^^^^^^^^^^
-This is defined in the header as be32 but we are saving a be16 to it.
-My guess is the header is correct and the be16 is wrong.
+   811  static struct mlx5_cmd_msg *mlx5_alloc_cmd_msg(struct mlx5_core_dev *dev,
+   812                                                 gfp_t flags, int size)
+                                                       ^^^^^^^^^^^
 
-   216          set_ctx->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_SET_HCA_CAP);
-   217          err = mlx5_cmd_exec(dev, set_ctx, sizeof(*set_ctx),
-   218                                   &set_out, sizeof(set_out));
+   813  {
+   814          struct mlx5_cmd_mailbox *tmp, *head = NULL;
+   815          struct mlx5_cmd_prot_block *block;
+   816          struct mlx5_cmd_msg *msg;
+   817          int blen;
+   818          int err;
+   819          int n;
+   820          int i;
+   821  
+   822          msg = kzalloc(sizeof(*msg), GFP_KERNEL);
+                                            ^^^^^^^^^^
+   823          if (!msg)
+   824                  return ERR_PTR(-ENOMEM);
+   825  
+   826          blen = size - min_t(int, sizeof(msg->first.data), size);
+   827          n = (blen + MLX5_CMD_DATA_BLOCK_SIZE - 1) / MLX5_CMD_DATA_BLOCK_SIZE;
+   828  
+   829          for (i = 0; i < n; i++) {
+   830                  tmp = alloc_cmd_box(dev, flags);
+                                                 ^^^^^
+There is a kmalloc() in alloc_cmd_box() that uses flags as well as a
+pci_pool_alloc() that uses it.
+
+   831                  if (IS_ERR(tmp)) {
+   832                          mlx5_core_warn(dev, "failed allocating block\n");
 
 regards,
 dan carpenter
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
