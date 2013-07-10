@@ -1,114 +1,70 @@
 From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: Re: [patch -next] mlx5: return -EFAULT instead of -EPERM
-Date: Wed, 10 Jul 2013 14:34:06 +0300
-Message-ID: <51DD46AE.9030200@mellanox.com>
-References: <20130710105859.GD31232@longonot.mountain>
+Subject: Re: [patch -next] mlx5_core: return -EFAULT if copy_to_user() fails
+Date: Wed, 10 Jul 2013 14:37:03 +0300
+Message-ID: <51DD475F.4060402@mellanox.com>
+References: <20130710105714.GC31232@longonot.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20130710105859.GD31232@longonot.mountain>
+In-Reply-To: <20130710105714.GC31232@longonot.mountain>
 Sender: kernel-janitors-owner@vger.kernel.org
 To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Eli Cohen <eli@mellanox.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, Roland Dreier <roland@kernel.org>, Moshe Lazer <moshel@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>
+Cc: Eli Cohen <eli@mellanox.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>, Moshe Lazer <moshel@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/07/2013 13:58, Dan Carpenter wrote:
-> For copy_to/from_user() failure, the correct error code is -EFAULT not
-> -EPERM.
+On 10/07/2013 13:57, Dan Carpenter wrote:
+> This should return an error code instead of the number of bytes
+> remaining to be copied.
 >
 > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 >
-> diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-> index e2daa8f..bd41df9 100644
-> --- a/drivers/infiniband/hw/mlx5/mr.c
-> +++ b/drivers/infiniband/hw/mlx5/mr.c
-> @@ -171,7 +171,7 @@ static ssize_t size_write(struct file *filp, const char __user *buf,
->   	int c;
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+> index a550a8e..4273c06 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+> @@ -148,7 +148,6 @@ static ssize_t average_read(struct file *filp, char __user *buf, size_t count,
+>   	struct mlx5_cmd_stats *stats;
+>   	u64 field = 0;
+>   	int ret;
+> -	int err;
+>   	char tbuf[22];
 >   
->   	if (copy_from_user(lbuf, buf, sizeof(lbuf)))
-> -		return -EPERM;
-> +		return -EFAULT;
->   
->   	c = order2idx(dev, ent->order);
->   	lbuf[sizeof(lbuf) - 1] = 0;
-> @@ -208,7 +208,7 @@ static ssize_t size_read(struct file *filp, char __user *buf, size_t count,
->   		return err;
->   
->   	if (copy_to_user(buf, lbuf, err))
-> -		return -EPERM;
-> +		return -EFAULT;
->   
->   	*pos += err;
->   
-> @@ -233,7 +233,7 @@ static ssize_t limit_write(struct file *filp, const char __user *buf,
->   	int c;
->   
->   	if (copy_from_user(lbuf, buf, sizeof(lbuf)))
-> -		return -EPERM;
-> +		return -EFAULT;
->   
->   	c = order2idx(dev, ent->order);
->   	lbuf[sizeof(lbuf) - 1] = 0;
-> @@ -270,7 +270,7 @@ static ssize_t limit_read(struct file *filp, char __user *buf, size_t count,
->   		return err;
->   
->   	if (copy_to_user(buf, lbuf, err))
-> -		return -EPERM;
-> +		return -EFAULT;
->   
->   	*pos += err;
->   
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-> index c1c0eef..205753a 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-> @@ -693,7 +693,7 @@ static ssize_t dbg_write(struct file *filp, const char __user *buf,
->   		return -ENOMEM;
->   
->   	if (copy_from_user(lbuf, buf, sizeof(lbuf)))
-> -		return -EPERM;
-> +		return -EFAULT;
->   
->   	lbuf[sizeof(lbuf) - 1] = 0;
->   
-> @@ -889,7 +889,7 @@ static ssize_t data_write(struct file *filp, const char __user *buf,
->   		return -ENOMEM;
->   
->   	if (copy_from_user(ptr, buf, count)) {
-> -		err = -EPERM;
-> +		err = -EFAULT;
->   		goto out;
+>   	if (*pos)
+> @@ -161,9 +160,8 @@ static ssize_t average_read(struct file *filp, char __user *buf, size_t count,
+>   	spin_unlock(&stats->lock);
+>   	ret = snprintf(tbuf, sizeof(tbuf), "%llu\n", field);
+>   	if (ret > 0) {
+> -		err = copy_to_user(buf, tbuf, ret);
+> -		if (err)
+> -			return err;
+> +		if (copy_to_user(buf, tbuf, ret))
+> +			return -EFAULT;
 >   	}
->   	dbg->in_msg = ptr;
-> @@ -919,7 +919,7 @@ static ssize_t data_read(struct file *filp, char __user *buf, size_t count,
 >   
->   	copy = min_t(int, count, dbg->outlen);
->   	if (copy_to_user(buf, dbg->out_msg, copy))
-> -		return -EPERM;
-> +		return -EFAULT;
+>   	*pos += ret;
+> @@ -418,7 +416,6 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
+>   	char tbuf[18];
+>   	u64 field;
+>   	int ret;
+> -	int err;
 >   
->   	*pos += copy;
+>   	if (*pos)
+>   		return 0;
+> @@ -445,9 +442,8 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
 >   
-> @@ -949,7 +949,7 @@ static ssize_t outlen_read(struct file *filp, char __user *buf, size_t count,
->   		return err;
+>   	ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
+>   	if (ret > 0) {
+> -		err = copy_to_user(buf, tbuf, ret);
+> -		if (err)
+> -			return err;
+> +		if (copy_to_user(buf, tbuf, ret))
+> +			return -EFAULT;
+>   	}
 >   
->   	if (copy_to_user(buf, &outlen, err))
-> -		return -EPERM;
-> +		return -EFAULT;
->   
->   	*pos += err;
->   
-> @@ -974,7 +974,7 @@ static ssize_t outlen_write(struct file *filp, const char __user *buf,
->   	dbg->outlen = 0;
->   
->   	if (copy_from_user(outlen_str, buf, count))
-> -		return -EPERM;
-> +		return -EFAULT;
->   
->   	outlen_str[7] = 0;
+>   	*pos += ret;
 >
 
-As Eli is still OOO (coming back soon...)
+ditto here
 
 Acked-by: Or Gerlitz <ogerlitz@mellanox.com>
