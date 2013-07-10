@@ -1,58 +1,62 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: mlx5: Add driver for Mellanox Connect-IB adapters
-Date: Wed, 10 Jul 2013 13:55:38 +0300
-Message-ID: <20130710105538.GB31232@longonot.mountain>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch -next] mlx5_core: return -EFAULT if copy_to_user() fails
+Date: Wed, 10 Jul 2013 13:57:14 +0300
+Message-ID: <20130710105714.GC31232@longonot.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Eli Cohen <eli@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Eli Cohen,
+This should return an error code instead of the number of bytes
+remaining to be copied.
 
-The patch e126ba97dba9: "mlx5: Add driver for Mellanox Connect-IB
-adapters" from Jul 7, 2013, leads to the following Smatch warning:
-"drivers/net/ethernet/mellanox/mlx5/core/cmd.c:822
-mlx5_alloc_cmd_msg()
-	 warn: use 'flags' here instead of GFP_XXX?"
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-   811  static struct mlx5_cmd_msg *mlx5_alloc_cmd_msg(struct mlx5_core_dev *dev,
-   812                                                 gfp_t flags, int size)
-                                                       ^^^^^^^^^^^
-
-   813  {
-   814          struct mlx5_cmd_mailbox *tmp, *head = NULL;
-   815          struct mlx5_cmd_prot_block *block;
-   816          struct mlx5_cmd_msg *msg;
-   817          int blen;
-   818          int err;
-   819          int n;
-   820          int i;
-   821  
-   822          msg = kzalloc(sizeof(*msg), GFP_KERNEL);
-                                            ^^^^^^^^^^
-   823          if (!msg)
-   824                  return ERR_PTR(-ENOMEM);
-   825  
-   826          blen = size - min_t(int, sizeof(msg->first.data), size);
-   827          n = (blen + MLX5_CMD_DATA_BLOCK_SIZE - 1) / MLX5_CMD_DATA_BLOCK_SIZE;
-   828  
-   829          for (i = 0; i < n; i++) {
-   830                  tmp = alloc_cmd_box(dev, flags);
-                                                 ^^^^^
-There is a kmalloc() in alloc_cmd_box() that uses flags as well as a
-pci_pool_alloc() that uses it.
-
-   831                  if (IS_ERR(tmp)) {
-   832                          mlx5_core_warn(dev, "failed allocating block\n");
-
-regards,
-dan carpenter
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+index a550a8e..4273c06 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
+@@ -148,7 +148,6 @@ static ssize_t average_read(struct file *filp, char __user *buf, size_t count,
+ 	struct mlx5_cmd_stats *stats;
+ 	u64 field = 0;
+ 	int ret;
+-	int err;
+ 	char tbuf[22];
+ 
+ 	if (*pos)
+@@ -161,9 +160,8 @@ static ssize_t average_read(struct file *filp, char __user *buf, size_t count,
+ 	spin_unlock(&stats->lock);
+ 	ret = snprintf(tbuf, sizeof(tbuf), "%llu\n", field);
+ 	if (ret > 0) {
+-		err = copy_to_user(buf, tbuf, ret);
+-		if (err)
+-			return err;
++		if (copy_to_user(buf, tbuf, ret))
++			return -EFAULT;
+ 	}
+ 
+ 	*pos += ret;
+@@ -418,7 +416,6 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
+ 	char tbuf[18];
+ 	u64 field;
+ 	int ret;
+-	int err;
+ 
+ 	if (*pos)
+ 		return 0;
+@@ -445,9 +442,8 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
+ 
+ 	ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
+ 	if (ret > 0) {
+-		err = copy_to_user(buf, tbuf, ret);
+-		if (err)
+-			return err;
++		if (copy_to_user(buf, tbuf, ret))
++			return -EFAULT;
+ 	}
+ 
+ 	*pos += ret;
