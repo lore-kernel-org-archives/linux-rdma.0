@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V7 libibverbs 2/7] Introduce XRC domains
-Date: Thu, 11 Jul 2013 18:04:18 +0300
-Message-ID: <1373555063-31790-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V7 libibverbs 3/7] Add support for XRC SRQs
+Date: Thu, 11 Jul 2013 18:04:19 +0300
+Message-ID: <1373555063-31790-4-git-send-email-yishaih@mellanox.com>
 References: <1373555063-31790-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1373555063-31790-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,287 +12,332 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-XRC introduces several new concepts and structures, one of
-which is the XRC domain.
+XRC support requires the use of a new type of SRQ.
+XRC shared receive queues: xrc srq's are similar to normal
+srq's, except that they are bound to an xrcd, rather
+than to a protection domain.  Based on the current spec
+and implementation, they are only usable with xrc qps.  To
+support xrc srq's, we define a new srq_init_attr structure
+to include an srq type and other needed information.
 
-XRC domains: xrcd's are a type of protection domain used to
-associate shared receive queues with xrc queue pairs.  Since
-xrcd are meant to be shared among multiple processes, we
-introduce new APIs to open/close xrcd's.
-
-The user to kernel ABI is extended to account for opening/
-closing the xrcd.
+The kernel ABI is also updated to allow creating extended
+SRQs.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
 
 Changes from V6:
-verbs_xrcd - use uint32 for comp_mask. 
-verbs_context - save place for ABI compatibility with OFED.
-ibv_cmd_open_xrcd - verify input size.
+ibv_cmd_create_srq_ex - verify input size, deleted redundant check.
+verbs_get_srq_num - use srq_num as in/out, 0 may be valid value,
+ function returns fail/success.
 
- include/infiniband/driver.h   |   17 +++++++++++++
- include/infiniband/kern-abi.h |   27 +++++++++++++++++++++-
- include/infiniband/verbs.h    |   51 ++++++++++++++++++++++++++++++++++++++--
- src/cmd.c                     |   45 ++++++++++++++++++++++++++++++++++++
- src/libibverbs.map            |    3 ++
- 5 files changed, 139 insertions(+), 4 deletions(-)
+ include/infiniband/driver.h   |   32 +++++++++++++++++
+ include/infiniband/kern-abi.h |   21 +++++++++++-
+ include/infiniband/verbs.h    |   62 +++++++++++++++++++++++++++++++++-
+ src/cmd.c                     |   75 +++++++++++++++++++++++++++++++++++++++++
+ src/libibverbs.map            |    2 +
+ 5 files changed, 190 insertions(+), 2 deletions(-)
 
 diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index f22f287..08d8a82 100644
+index 08d8a82..11f52c2 100644
 --- a/include/infiniband/driver.h
 +++ b/include/infiniband/driver.h
-@@ -53,6 +53,17 @@
-  */
- #define IBV_DEVICE_LIBRARY_EXTENSION rdmav2
+@@ -64,6 +64,23 @@ struct verbs_xrcd {
+ 	uint32_t		handle;
+ };
  
-+enum verbs_xrcd_mask {
-+	VERBS_XRCD_HANDLE	= 1 << 0,
-+	VERBS_XRCD_RESERVED	= 1 << 1
++enum verbs_srq_mask {
++	VERBS_SRQ_TYPE		= 1 << 0,
++	VERBS_SRQ_XRCD		= 1 << 1,
++	VERBS_SRQ_CQ		= 1 << 2,
++	VERBS_SRQ_NUM		= 1 << 3,
++	VERBS_SRQ_RESERVED	= 1 << 4
 +};
 +
-+struct verbs_xrcd {
-+	struct ibv_xrcd		xrcd;
++struct verbs_srq {
++	struct ibv_srq		srq;
 +	uint32_t		comp_mask;
-+	uint32_t		handle;
++	enum ibv_srq_type	srq_type;
++	struct verbs_xrcd      *xrcd;
++	struct ibv_cq	       *cq;
++	uint32_t		srq_num;
 +};
 +
  typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
  						   int abi_version);
  typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
-@@ -78,6 +89,12 @@ int ibv_cmd_alloc_pd(struct ibv_context *context, struct ibv_pd *pd,
- 		     struct ibv_alloc_pd *cmd, size_t cmd_size,
- 		     struct ibv_alloc_pd_resp *resp, size_t resp_size);
- int ibv_cmd_dealloc_pd(struct ibv_pd *pd);
-+int ibv_cmd_open_xrcd(struct ibv_context *context, struct verbs_xrcd *xrcd,
-+		      int vxrcd_size,
-+		      struct ibv_xrcd_init_attr *attr,
-+		      struct ibv_open_xrcd *cmd, size_t cmd_size,
-+		      struct ibv_open_xrcd_resp *resp, size_t resp_size);
-+int ibv_cmd_close_xrcd(struct verbs_xrcd *xrcd);
- #define IBV_CMD_REG_MR_HAS_RESP_PARAMS
- int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 		   uint64_t hca_va, int access,
+@@ -119,6 +136,11 @@ int ibv_cmd_create_srq(struct ibv_pd *pd,
+ 		       struct ibv_srq *srq, struct ibv_srq_init_attr *attr,
+ 		       struct ibv_create_srq *cmd, size_t cmd_size,
+ 		       struct ibv_create_srq_resp *resp, size_t resp_size);
++int ibv_cmd_create_srq_ex(struct ibv_context *context,
++			  struct verbs_srq *srq, int vsrq_sz,
++			  struct ibv_srq_init_attr_ex *attr_ex,
++			  struct ibv_create_xsrq *cmd, size_t cmd_size,
++			  struct ibv_create_srq_resp *resp, size_t resp_size);
+ int ibv_cmd_modify_srq(struct ibv_srq *srq,
+ 		       struct ibv_srq_attr *srq_attr,
+ 		       int srq_attr_mask,
+@@ -163,4 +185,14 @@ const char *ibv_get_sysfs_path(void);
+ int ibv_read_sysfs_file(const char *dir, const char *file,
+ 			char *buf, size_t size);
+ 
++static inline int verbs_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
++{
++	struct verbs_srq *vsrq = container_of(srq, struct verbs_srq, srq);
++	if (vsrq->comp_mask & VERBS_SRQ_NUM) {
++		*srq_num = vsrq->srq_num;
++		return 0;
++	}
++	return ENOSYS;
++}
++
+ #endif /* INFINIBAND_DRIVER_H */
 diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index e7f8981..6f40ad2 100644
+index 6f40ad2..ef93cc3 100644
 --- a/include/infiniband/kern-abi.h
 +++ b/include/infiniband/kern-abi.h
-@@ -85,7 +85,9 @@ enum {
- 	IB_USER_VERBS_CMD_MODIFY_SRQ,
- 	IB_USER_VERBS_CMD_QUERY_SRQ,
- 	IB_USER_VERBS_CMD_DESTROY_SRQ,
--	IB_USER_VERBS_CMD_POST_SRQ_RECV
-+	IB_USER_VERBS_CMD_POST_SRQ_RECV,
-+	IB_USER_VERBS_CMD_OPEN_XRCD,
-+	IB_USER_VERBS_CMD_CLOSE_XRCD,
+@@ -88,6 +88,7 @@ enum {
+ 	IB_USER_VERBS_CMD_POST_SRQ_RECV,
+ 	IB_USER_VERBS_CMD_OPEN_XRCD,
+ 	IB_USER_VERBS_CMD_CLOSE_XRCD,
++	IB_USER_VERBS_CMD_CREATE_XSRQ
  };
  
  /*
-@@ -246,6 +248,27 @@ struct ibv_dealloc_pd {
- 	__u32 pd_handle;
+@@ -730,11 +731,28 @@ struct ibv_create_srq {
+ 	__u64 driver_data[0];
  };
  
-+struct ibv_open_xrcd {
++struct ibv_create_xsrq {
 +	__u32 command;
 +	__u16 in_words;
 +	__u16 out_words;
 +	__u64 response;
-+	__u32 fd;
-+	__u32 oflags;
++	__u64 user_handle;
++	__u32 srq_type;
++	__u32 pd_handle;
++	__u32 max_wr;
++	__u32 max_sge;
++	__u32 srq_limit;
++	__u32 reserved;
++	__u32 xrcd_handle;
++	__u32 cq_handle;
 +	__u64 driver_data[0];
 +};
 +
-+struct ibv_open_xrcd_resp {
-+	__u32 xrcd_handle;
-+};
-+
-+struct ibv_close_xrcd {
-+	__u32 command;
-+	__u16 in_words;
-+	__u16 out_words;
-+	__u32 xrcd_handle;
-+};
-+
- struct ibv_reg_mr {
- 	__u32 command;
- 	__u16 in_words;
-@@ -804,6 +827,8 @@ enum {
- 	 * trick opcodes in IBV_INIT_CMD() doesn't break.
- 	 */
+ struct ibv_create_srq_resp {
+ 	__u32 srq_handle;
+ 	__u32 max_wr;
+ 	__u32 max_sge;
+-	__u32 reserved;
++	__u32 srqn;
+ };
+ 
+ struct ibv_modify_srq {
+@@ -829,6 +847,7 @@ enum {
  	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
-+	IB_USER_VERBS_CMD_OPEN_XRCD_V2 = -1,
-+	IB_USER_VERBS_CMD_CLOSE_XRCD_V2 = -1,
+ 	IB_USER_VERBS_CMD_OPEN_XRCD_V2 = -1,
+ 	IB_USER_VERBS_CMD_CLOSE_XRCD_V2 = -1,
++	IB_USER_VERBS_CMD_CREATE_XSRQ_V2 = -1
  };
  
  struct ibv_modify_srq_v3 {
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 429beae..ae57296 100644
+index ae57296..8a7b2c4 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
-- * Copyright (c) 2004 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2004, 2011-2012 Intel Corporation.  All rights reserved.
-  * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc.  All rights reserved.
-  * Copyright (c) 2005 PathScale, Inc.  All rights reserved.
-  *
-@@ -39,6 +39,7 @@
- #include <stdint.h>
- #include <pthread.h>
- #include <stddef.h>
-+#include <errno.h>
- 
- #ifdef __cplusplus
- #  define BEGIN_C_DECLS extern "C" {
-@@ -314,6 +315,22 @@ struct ibv_pd {
- 	uint32_t		handle;
+@@ -450,6 +450,30 @@ struct ibv_srq_init_attr {
+ 	struct ibv_srq_attr	attr;
  };
  
-+enum ibv_xrcd_init_attr_mask {
-+	IBV_XRCD_INIT_ATTR_FD	    = 1 << 0,
-+	IBV_XRCD_INIT_ATTR_OFLAGS   = 1 << 1,
-+	IBV_XRCD_INIT_ATTR_RESERVED = 1 << 2
++enum ibv_srq_type {
++	IBV_SRQT_BASIC,
++	IBV_SRQT_XRC
 +};
 +
-+struct ibv_xrcd_init_attr {
-+	uint32_t comp_mask;
-+	int	 fd;
-+	int	 oflags;
++enum ibv_srq_init_attr_mask {
++	IBV_SRQ_INIT_ATTR_TYPE		= 1 << 0,
++	IBV_SRQ_INIT_ATTR_PD		= 1 << 1,
++	IBV_SRQ_INIT_ATTR_XRCD		= 1 << 2,
++	IBV_SRQ_INIT_ATTR_CQ		= 1 << 3,
++	IBV_SRQ_INIT_ATTR_RESERVED	= 1 << 4
 +};
 +
-+struct ibv_xrcd {
-+	struct ibv_context     *context;
++struct ibv_srq_init_attr_ex {
++	void		       *srq_context;
++	struct ibv_srq_attr	attr;
++
++	uint32_t		comp_mask;
++	enum ibv_srq_type	srq_type;
++	struct ibv_pd	       *pd;
++	struct ibv_xrcd	       *xrcd;
++	struct ibv_cq	       *cq;
 +};
 +
- enum ibv_rereg_mr_flags {
- 	IBV_REREG_MR_CHANGE_TRANSLATION	= (1 << 0),
- 	IBV_REREG_MR_CHANGE_PD		= (1 << 1),
-@@ -752,11 +769,16 @@ struct ibv_context {
- };
+ enum ibv_qp_type {
+ 	IBV_QPT_RC = 2,
+ 	IBV_QPT_UC,
+@@ -770,11 +794,15 @@ struct ibv_context {
  
  enum verbs_context_mask {
--	VERBS_CONTEXT_RESERVED = 1 << 0
-+	VERBS_CONTEXT_XRCD	= 1 << 0,
-+	VERBS_CONTEXT_RESERVED	= 1 << 1
+ 	VERBS_CONTEXT_XRCD	= 1 << 0,
+-	VERBS_CONTEXT_RESERVED	= 1 << 1
++	VERBS_CONTEXT_SRQ	= 1 << 1,
++	VERBS_CONTEXT_RESERVED	= 1 << 2
  };
  
  struct verbs_context {
  	/*  "grows up" - new fields go here */
-+	struct ibv_xrcd *	(*open_xrcd)(struct ibv_context *context,
-+					     struct ibv_xrcd_init_attr *xrcd_init_attr);
-+	int			(*close_xrcd)(struct ibv_xrcd *xrcd);
-+	void	*func_reserved[6]; /* Save place for ABI compatibility with OFED */
- 	uint64_t has_comp_mask;
- 	size_t   sz;	/* Must be immediately before struct ibv_context */
- 	struct ibv_context context;/* Must be last field in the struct */
-@@ -859,7 +881,7 @@ static inline int ___ibv_query_port(struct ibv_context *context,
- 				    uint8_t port_num,
- 				    struct ibv_port_attr *port_attr)
- {
--	/* For compatability when running with old libibverbs */
-+	/* For compatibility when running with old libibverbs */
- 	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
- 	port_attr->reserved   = 0;
++	int (*get_srq_num)(struct ibv_srq *srq, uint32_t *srq_num);
++	struct ibv_srq *	(*create_srq_ex)(struct ibv_context *context,
++						 struct ibv_srq_init_attr_ex *srq_init_attr_ex);
+ 	struct ibv_xrcd *	(*open_xrcd)(struct ibv_context *context,
+ 					     struct ibv_xrcd_init_attr *xrcd_init_attr);
+ 	int			(*close_xrcd)(struct ibv_xrcd *xrcd);
+@@ -1059,6 +1087,28 @@ static inline int ibv_req_notify_cq(struct ibv_cq *cq, int solicited_only)
+ struct ibv_srq *ibv_create_srq(struct ibv_pd *pd,
+ 			       struct ibv_srq_init_attr *srq_init_attr);
  
-@@ -892,6 +914,29 @@ struct ibv_pd *ibv_alloc_pd(struct ibv_context *context);
- int ibv_dealloc_pd(struct ibv_pd *pd);
- 
- /**
-+ * ibv_open_xrcd - Open an extended connection domain
-+ */
-+static inline struct ibv_xrcd *
-+ibv_open_xrcd(struct ibv_context *context, struct ibv_xrcd_init_attr *xrcd_init_attr)
++static inline struct ibv_srq *
++ibv_create_srq_ex(struct ibv_context *context,
++		  struct ibv_srq_init_attr_ex *srq_init_attr_ex)
 +{
-+	struct verbs_context *vctx = verbs_get_ctx_op(context, open_xrcd);
++	struct verbs_context *vctx;
++	uint32_t mask = srq_init_attr_ex->comp_mask;
++
++	if (!(mask & ~(IBV_SRQ_INIT_ATTR_PD | IBV_SRQ_INIT_ATTR_TYPE)) &&
++	    (mask & IBV_SRQ_INIT_ATTR_PD) &&
++	    (!(mask & IBV_SRQ_INIT_ATTR_TYPE) ||
++	     (srq_init_attr_ex->srq_type == IBV_SRQT_BASIC)))
++		return ibv_create_srq(srq_init_attr_ex->pd,
++				      (struct ibv_srq_init_attr *)srq_init_attr_ex);
++
++	vctx = verbs_get_ctx_op(context, create_srq_ex);
 +	if (!vctx) {
 +		errno = ENOSYS;
 +		return NULL;
 +	}
-+	return vctx->open_xrcd(context, xrcd_init_attr);
++	return vctx->create_srq_ex(context, srq_init_attr_ex);
 +}
 +
-+/**
-+ * ibv_close_xrcd - Close an extended connection domain
-+ */
-+static inline int ibv_close_xrcd(struct ibv_xrcd *xrcd)
-+{
-+	struct verbs_context *vctx = verbs_get_ctx(xrcd->context);
-+	return vctx->close_xrcd(xrcd);
-+}
-+
-+/**
-  * ibv_reg_mr - Register a memory region
+ /**
+  * ibv_modify_srq - Modifies the attributes for the specified SRQ.
+  * @srq: The SRQ to modify.
+@@ -1083,6 +1133,16 @@ int ibv_modify_srq(struct ibv_srq *srq,
   */
- struct ibv_mr *ibv_reg_mr(struct ibv_pd *pd, void *addr,
+ int ibv_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr);
+ 
++static inline int ibv_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
++{
++	struct verbs_context *vctx = verbs_get_ctx_op(srq->context, get_srq_num);
++
++	if (!vctx)
++		return ENOSYS;
++
++	return vctx->get_srq_num(srq, srq_num);
++}
++
+ /**
+  * ibv_destroy_srq - Destroys the specified SRQ.
+  * @srq: The SRQ to destroy.
 diff --git a/src/cmd.c b/src/cmd.c
-index 86350fd..f3d590a 100644
+index f3d590a..fae2846 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -194,6 +194,51 @@ int ibv_cmd_dealloc_pd(struct ibv_pd *pd)
+@@ -442,6 +442,81 @@ int ibv_cmd_create_srq(struct ibv_pd *pd,
  	return 0;
  }
  
-+int ibv_cmd_open_xrcd(struct ibv_context *context, struct verbs_xrcd *xrcd,
-+		      int vxrcd_size,
-+		      struct ibv_xrcd_init_attr *attr,
-+		      struct ibv_open_xrcd *cmd, size_t cmd_size,
-+		      struct ibv_open_xrcd_resp *resp, size_t resp_size)
++int ibv_cmd_create_srq_ex(struct ibv_context *context,
++			  struct verbs_srq *srq, int vsrq_sz,
++			  struct ibv_srq_init_attr_ex *attr_ex,
++			  struct ibv_create_xsrq *cmd, size_t cmd_size,
++			  struct ibv_create_srq_resp *resp, size_t resp_size)
 +{
-+	IBV_INIT_CMD_RESP(cmd, cmd_size, OPEN_XRCD, resp, resp_size);
++	struct verbs_xrcd *vxrcd = NULL;
 +
-+	if (attr->comp_mask >= IBV_XRCD_INIT_ATTR_RESERVED)
++	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_XSRQ, resp, resp_size);
++
++	if (attr_ex->comp_mask >= IBV_SRQ_INIT_ATTR_RESERVED)
 +		return ENOSYS;
 +
-+	if (!(attr->comp_mask & IBV_XRCD_INIT_ATTR_FD) ||
-+	    !(attr->comp_mask & IBV_XRCD_INIT_ATTR_OFLAGS))
++	if (!(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_PD))
 +		return EINVAL;
 +
-+	cmd->fd = attr->fd;
-+	cmd->oflags = attr->oflags;
++	cmd->user_handle = (uintptr_t) srq;
++	cmd->pd_handle   = attr_ex->pd->handle;
++	cmd->max_wr      = attr_ex->attr.max_wr;
++	cmd->max_sge     = attr_ex->attr.max_sge;
++	cmd->srq_limit   = attr_ex->attr.srq_limit;
++
++	cmd->srq_type = (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ?
++			attr_ex->srq_type : IBV_SRQT_BASIC;
++	if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) {
++		if (!(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ))
++			return EINVAL;
++
++		vxrcd = container_of(attr_ex->xrcd, struct verbs_xrcd, xrcd);
++		cmd->xrcd_handle = vxrcd->handle;
++		cmd->cq_handle   = attr_ex->cq->handle;
++	}
++
 +	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
 +		return errno;
 +
 +	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
 +
-+	xrcd->xrcd.context = context;
-+	xrcd->comp_mask = 0;
-+	if (vext_field_avail(struct verbs_xrcd, handle, vxrcd_size)) {
-+		xrcd->comp_mask = VERBS_XRCD_HANDLE;
-+		xrcd->handle  = resp->xrcd_handle;
++	srq->srq.handle           = resp->srq_handle;
++	srq->srq.context          = context;
++	srq->srq.srq_context      = attr_ex->srq_context;
++	srq->srq.pd               = attr_ex->pd;
++	srq->srq.events_completed = 0;
++	pthread_mutex_init(&srq->srq.mutex, NULL);
++	pthread_cond_init(&srq->srq.cond, NULL);
++
++	/*
++	 * check that the last field is available.
++	 * If it is than all the others exist as well
++	 */
++	if (vext_field_avail(struct verbs_srq, srq_num, vsrq_sz)) {
++		srq->comp_mask = IBV_SRQ_INIT_ATTR_TYPE;
++		srq->srq_type = (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ?
++				attr_ex->srq_type : IBV_SRQT_BASIC;
++		if (srq->srq_type == IBV_SRQT_XRC) {
++			srq->comp_mask |= VERBS_SRQ_NUM;
++			srq->srq_num = resp->srqn;
++		}
++		if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) {
++			srq->comp_mask |= VERBS_SRQ_XRCD;
++			srq->xrcd = vxrcd;
++		}
++		if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ) {
++			srq->comp_mask |= VERBS_SRQ_CQ;
++			srq->cq = attr_ex->cq;
++		}
 +	}
 +
-+	return 0;
-+}
-+
-+int ibv_cmd_close_xrcd(struct verbs_xrcd *xrcd)
-+{
-+	struct ibv_close_xrcd cmd;
-+
-+	IBV_INIT_CMD(&cmd, sizeof cmd, CLOSE_XRCD);
-+	cmd.xrcd_handle = xrcd->handle;
-+
-+	if (write(xrcd->xrcd.context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
-+		return errno;
++	attr_ex->attr.max_wr = resp->max_wr;
++	attr_ex->attr.max_sge = resp->max_sge;
 +
 +	return 0;
 +}
 +
- int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 		   uint64_t hca_va, int access,
- 		   struct ibv_mr *mr, struct ibv_reg_mr *cmd,
++
+ static int ibv_cmd_modify_srq_v3(struct ibv_srq *srq,
+ 				 struct ibv_srq_attr *srq_attr,
+ 				 int srq_attr_mask,
 diff --git a/src/libibverbs.map b/src/libibverbs.map
-index 6e35c37..c190eb9 100644
+index c190eb9..a4b089f 100644
 --- a/src/libibverbs.map
 +++ b/src/libibverbs.map
-@@ -100,4 +100,7 @@ IBVERBS_1.1 {
+@@ -103,4 +103,6 @@ IBVERBS_1.1 {
  
- 		ibv_rate_to_mbps;
- 		mbps_to_ibv_rate;
+ 		ibv_cmd_open_xrcd;
+ 		ibv_cmd_close_xrcd;
++		ibv_cmd_create_srq_ex;
 +
-+		ibv_cmd_open_xrcd;
-+		ibv_cmd_close_xrcd;
  } IBVERBS_1.0;
 -- 
 1.7.1
