@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V7 libibverbs 6/7] XRC man pages
-Date: Thu, 11 Jul 2013 18:04:22 +0300
-Message-ID: <1373555063-31790-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V7 libibverbs 4/7] Add support for XRC QPs
+Date: Thu, 11 Jul 2013 18:04:20 +0300
+Message-ID: <1373555063-31790-5-git-send-email-yishaih@mellanox.com>
 References: <1373555063-31790-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1373555063-31790-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,401 +12,322 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+XRC queue pairs: xrc defines two new types of QPs.  The
+initiator, or send-side, xrc qp behaves similar to a send-
+only RC qp.  xrc send qp's are managed through the existing
+QP functions.  The send_wr structure is extended in a back-
+wards compatible way to support posting sends on a send xrc
+qp, which require specifying the remote xrc srq.
+
+The target, or receive-side, xrc qp behaves differently
+than other implemented qp's.  A recv xrc qp can be created,
+modified, and destroyed like other qp's through the existing
+calls.  The qp_init_attr structure is extended for xrc qp's.
+
+Because xrc recv qp's are bound to an xrcd, rather than a pd,
+it is intended to be used among multiple processes.  Any process
+with access to an xrcd may allocate and connect an xrc recv qp.
+The actual xrc recv qp is allocated and managed by the kernel.
+If the owning process explicit destroys the xrc recv qp, it is
+destroyed.  However, if the xrc recv qp is left open when the
+user process exits or closes its device, then the lifetime of
+the xrc recv qp is bound with the lifetime of the xrcd.
+
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
 
 Changes from V6:
-Fixed ibv_open_qp man page to match latest API.
-Added missing man pages.
-Put man pages as part of installation.
+ibv_cmd_create_qp_ex - verify input size.
+struct ibv_send_wr - use union named qp_type for holding XRC remote_srqn.
+struct ibv_kern_send_wr - use union named qp_type for holding XRC remote_srqn.
 
- Makefile.am             |    8 +++-
- man/ibv_create_qp_ex.3  |   83 +++++++++++++++++++++++++++++++++++++++++++++++
- man/ibv_create_srq_ex.3 |   71 ++++++++++++++++++++++++++++++++++++++++
- man/ibv_get_srq_num.3   |   32 ++++++++++++++++++
- man/ibv_open_qp.3       |   51 +++++++++++++++++++++++++++++
- man/ibv_open_xrcd.3     |   76 +++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 319 insertions(+), 2 deletions(-)
- create mode 100644 man/ibv_create_qp_ex.3
- create mode 100644 man/ibv_create_srq_ex.3
- create mode 100644 man/ibv_get_srq_num.3
- create mode 100644 man/ibv_open_qp.3
- create mode 100644 man/ibv_open_xrcd.3
+ include/infiniband/driver.h   |   15 ++++++
+ include/infiniband/kern-abi.h |    5 ++
+ include/infiniband/verbs.h    |   55 ++++++++++++++++++++++-
+ src/cmd.c                     |   96 ++++++++++++++++++++++++++++++++++++++++-
+ src/libibverbs.map            |    1 +
+ 5 files changed, 168 insertions(+), 4 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 40e83be..aa6097a 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -54,7 +54,9 @@ man_MANS = man/ibv_asyncwatch.1 man/ibv_devices.1 man/ibv_devinfo.1	\
-     man/ibv_post_srq_recv.3 man/ibv_query_device.3 man/ibv_query_gid.3	\
-     man/ibv_query_pkey.3 man/ibv_query_port.3 man/ibv_query_qp.3	\
-     man/ibv_query_srq.3 man/ibv_rate_to_mult.3 man/ibv_reg_mr.3		\
--    man/ibv_req_notify_cq.3 man/ibv_resize_cq.3 man/ibv_rate_to_mbps.3
-+    man/ibv_req_notify_cq.3 man/ibv_resize_cq.3 man/ibv_rate_to_mbps.3  \
-+    man/ibv_create_qp_ex.3 man/ibv_create_srq_ex.3 man/ibv_open_xrcd.3  \
-+    man/ibv_get_srq_num.3 man/ibv_open_qp.3
+diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+index 11f52c2..91b5b12 100644
+--- a/include/infiniband/driver.h
++++ b/include/infiniband/driver.h
+@@ -81,6 +81,16 @@ struct verbs_srq {
+ 	uint32_t		srq_num;
+ };
  
- DEBIAN = debian/changelog debian/compat debian/control debian/copyright \
-     debian/ibverbs-utils.install debian/libibverbs1.install \
-@@ -89,6 +91,7 @@ install-data-hook:
- 	$(RM) ibv_node_type_str.3 && \
- 	$(RM) ibv_port_state_str.3 && \
- 	$(RM) mbps_to_ibv_rate.3 && \
-+	$(RM) ibv_close_xrcd.3 && \
- 	$(LN_S) ibv_get_async_event.3 ibv_ack_async_event.3 && \
- 	$(LN_S) ibv_get_cq_event.3 ibv_ack_cq_events.3 && \
- 	$(LN_S) ibv_open_device.3 ibv_close_device.3 && \
-@@ -105,4 +108,5 @@ install-data-hook:
- 	$(LN_S) ibv_rate_to_mult.3 mult_to_ibv_rate.3 && \
- 	$(LN_S) ibv_event_type_str.3 ibv_node_type_str.3 && \
- 	$(LN_S) ibv_event_type_str.3 ibv_port_state_str.3 && \
--	$(LN_S) ibv_rate_to_mbps.3 mbps_to_ibv_rate.3
-+	$(LN_S) ibv_rate_to_mbps.3 mbps_to_ibv_rate.3 && \
-+	$(LN_S) ibv_open_xrcd.3 ibv_close_xrcd.3
-diff --git a/man/ibv_create_qp_ex.3 b/man/ibv_create_qp_ex.3
-new file mode 100644
-index 0000000..f772a57
---- /dev/null
-+++ b/man/ibv_create_qp_ex.3
-@@ -0,0 +1,83 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_CREATE_QP_EX 3 2013-06-26 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_create_qp_ex, ibv_destroy_qp \- create or destroy a queue pair (QP)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_qp *ibv_create_qp_ex(struct ibv_context " "*context" ,
-+.BI "                                struct ibv_qp_init_attr_ex " "*qp_init_attr" );
-+.sp
-+.BI "int ibv_destroy_qp(struct ibv_qp " "*qp" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_create_qp_ex()
-+creates a queue pair (QP) associated with the protection domain
-+.I pd\fR.
-+The argument
-+.I qp_init_attr_ex
-+is an ibv_qp_init_attr_ex struct, as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
++enum verbs_qp_mask {
++	VERBS_QP_XRCD		= 1 << 0,
++	VERBS_QP_RESERVED	= 1 << 1
++};
++
++struct verbs_qp {
++	struct ibv_qp		qp;
++	uint32_t		comp_mask;
++	struct verbs_xrcd       *xrcd;
++};
+ typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
+ 						   int abi_version);
+ typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
+@@ -154,6 +164,11 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
+ 		      struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
+ 		      struct ibv_create_qp *cmd, size_t cmd_size,
+ 		      struct ibv_create_qp_resp *resp, size_t resp_size);
++int ibv_cmd_create_qp_ex(struct ibv_context *context,
++			 struct verbs_qp *qp, int vqp_sz,
++			 struct ibv_qp_init_attr_ex *attr_ex,
++			 struct ibv_create_qp *cmd, size_t cmd_size,
++			 struct ibv_create_qp_resp *resp, size_t resp_size);
+ int ibv_cmd_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *qp_attr,
+ 		     int attr_mask,
+ 		     struct ibv_qp_init_attr *qp_init_attr,
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index ef93cc3..65f3ffd 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -618,6 +618,11 @@ struct ibv_kern_send_wr {
+ 			__u32 reserved;
+ 		} ud;
+ 	} wr;
++	union {
++		struct {
++			__u32 remote_srqn;
++		} xrc;
++	} qp_type;
+ };
+ 
+ struct ibv_post_send {
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 8a7b2c4..d459202 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -109,7 +109,8 @@ enum ibv_device_cap_flags {
+ 	IBV_DEVICE_SYS_IMAGE_GUID	= 1 << 11,
+ 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
+ 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
+-	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14
++	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
++	IBV_DEVICE_XRC			= 1 << 20
+ };
+ 
+ enum ibv_atomic_cap {
+@@ -478,7 +479,9 @@ enum ibv_qp_type {
+ 	IBV_QPT_RC = 2,
+ 	IBV_QPT_UC,
+ 	IBV_QPT_UD,
+-	IBV_QPT_RAW_PACKET = 8
++	IBV_QPT_RAW_PACKET = 8,
++	IBV_QPT_XRC_SEND = 9,
++	IBV_QPT_XRC_RECV
+ };
+ 
+ struct ibv_qp_cap {
+@@ -499,6 +502,26 @@ struct ibv_qp_init_attr {
+ 	int			sq_sig_all;
+ };
+ 
++enum ibv_qp_init_attr_mask {
++	IBV_QP_INIT_ATTR_PD		= 1 << 0,
++	IBV_QP_INIT_ATTR_XRCD		= 1 << 1,
++	IBV_QP_INIT_ATTR_RESERVED	= 1 << 2
++};
++
 +struct ibv_qp_init_attr_ex {
-+.in +8
-+void                   *qp_context;     /* Associated context of the QP */
-+struct ibv_cq          *send_cq;        /* CQ to be associated with the Send Queue (SQ) */
-+struct ibv_cq          *recv_cq;        /* CQ to be associated with the Receive Queue (RQ) */
-+struct ibv_srq         *srq;            /* SRQ handle if QP is to be associated with an SRQ, otherwise NULL */
-+struct ibv_qp_cap       cap;            /* QP capabilities */
-+enum ibv_qp_type        qp_type;        /* QP Transport Service Type: IBV_QPT_RC, IBV_QPT_UC, IBV_QPT_UD or IBV_QPT_RAW_PACKET */
-+int                     sq_sig_all;     /* If set, each Work Request (WR) submitted to the SQ generates a completion entry */
-+uint32_t                comp_mask;	/* Identifies valid fields */
-+struct ibv_pd          *pd;		/* PD to be associated with the QP */
-+struct ibv_xrcd        *xrcd;		/* XRC domain to be associated with the target QP */
-+enum ibv_qp_create_flags create_flags;	/* Creation flags for this QP */
-+.in -8
++	void		       *qp_context;
++	struct ibv_cq	       *send_cq;
++	struct ibv_cq	       *recv_cq;
++	struct ibv_srq	       *srq;
++	struct ibv_qp_cap	cap;
++	enum ibv_qp_type	qp_type;
++	int			sq_sig_all;
++
++	uint32_t		comp_mask;
++	struct ibv_pd	       *pd;
++	struct ibv_xrcd	       *xrcd;
 +};
-+.sp
-+.nf
-+struct ibv_qp_cap {
-+.in +8
-+uint32_t                max_send_wr;    /* Requested max number of outstanding WRs in the SQ */
-+uint32_t                max_recv_wr;    /* Requested max number of outstanding WRs in the RQ */
-+uint32_t                max_send_sge;   /* Requested max number of scatter/gather (s/g) elements in a WR in the SQ */
-+uint32_t                max_recv_sge;   /* Requested max number of s/g elements in a WR in the SQ */
-+uint32_t                max_inline_data;/* Requested max number of data (bytes) that can be posted inline to the SQ, otherwise 0 */
-+.in -8
-+};
-+.fi
-+.PP
-+The function
-+.B ibv_create_qp_ex()
-+will update the
-+.I qp_init_attr_ex\fB\fR->cap
-+struct with the actual \s-1QP\s0 values of the QP that was created;
-+the values will be greater than or equal to the values requested.
-+.PP
-+.B ibv_destroy_qp()
-+destroys the QP
-+.I qp\fR.
-+.SH "RETURN VALUE"
-+.B ibv_create_qp_ex()
-+returns a pointer to the created QP, or NULL if the request fails.
-+Check the QP number (\fBqp_num\fR) in the returned QP.
-+.PP
-+.B ibv_destroy_qp()
-+returns 0 on success, or the value of errno on failure (which indicates the failure reason).
-+.SH "NOTES"
-+.PP
-+The attributes max_recv_wr and max_recv_sge are ignored by
-+.B ibv_create_qp_ex()
-+if the QP is to be associated with an SRQ.
-+.PP
-+.B ibv_destroy_qp()
-+fails if the QP is attached to a multicast group.
-+.SH "SEE ALSO"
-+.BR ibv_alloc_pd (3),
-+.BR ibv_modify_qp (3),
-+.BR ibv_query_qp (3)
-+.SH "AUTHORS"
-+.TP
-+Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/man/ibv_create_srq_ex.3 b/man/ibv_create_srq_ex.3
-new file mode 100644
-index 0000000..9151d6e
---- /dev/null
-+++ b/man/ibv_create_srq_ex.3
-@@ -0,0 +1,71 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_CREATE_SRQ_EX 3 2013-06-26 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_create_srq_ex, ibv_destroy_srq \- create or destroy a shared receive queue (SRQ)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_srq *ibv_create_srq_ex(struct ibv_context " "*context" ", struct "
-+.BI "                               ibv_srq_init_attr_ex " "*srq_init_attr_ex" );
-+.sp
-+.BI "int ibv_destroy_srq(struct ibv_srq " "*srq" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_create_srq_ex()
-+creates a shared receive queue (SRQ) supporting both basic and xrc modes.
-+The argument
-+.I srq_init_attr_ex
-+is an ibv_srq_init_attr_ex struct, as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
-+struct ibv_srq_init_attr_ex {
-+.in +8
-+void                   *srq_context;    /* Associated context of the SRQ */
-+struct ibv_srq_attr     attr;           /* SRQ attributes */
-+uint32_t                comp_mask;      /* Identifies valid fields */
-+enum ibv_srq_type       srq_type;       /* Basic / XRC */
-+struct ibv_pd          *pd;             /* PD associated with the SRQ */
-+struct ibv_xrcd        *xrcd;           /* XRC domain to associate with the SRQ */
-+struct ibv_cq          *cq;             /* CQ to associate with the SRQ for XRC mode */
-+.in -8
-+};
-+.sp
-+.nf
-+struct ibv_srq_attr {
-+.in +8
-+uint32_t                max_wr;         /* Requested max number of outstanding work requests (WRs) in the SRQ */
-+uint32_t                max_sge;        /* Requested max number of scatter elements per WR */
-+uint32_t                srq_limit;      /* The limit value of the SRQ */
-+.in -8
-+};
-+.fi
-+.PP
-+The function
-+.B ibv_create_srq_ex()
-+will update the
-+.I srq_init_attr_ex
-+struct with the original values of the SRQ that was created; the
-+values of max_wr and max_sge will be greater than or equal to the
-+values requested.
-+.PP
-+.B ibv_destroy_srq()
-+destroys the SRQ
-+.I srq\fR.
-+.SH "RETURN VALUE"
-+.B ibv_create_srq_ex()
-+returns a pointer to the created SRQ, or NULL if the request fails.
-+.PP
-+.B ibv_destroy_srq()
-+returns 0 on success, or the value of errno on failure (which indicates the failure reason).
-+.SH "NOTES"
-+.B ibv_destroy_srq()
-+fails if any queue pair is still associated with this SRQ.
-+.SH "SEE ALSO"
-+.BR ibv_alloc_pd (3),
-+.BR ibv_modify_srq (3),
-+.BR ibv_query_srq (3)
-+.SH "AUTHORS"
-+.TP
-+Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/man/ibv_get_srq_num.3 b/man/ibv_get_srq_num.3
-new file mode 100644
-index 0000000..00e4fb4
---- /dev/null
-+++ b/man/ibv_get_srq_num.3
-@@ -0,0 +1,32 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_GET_SRQ_NUM 3 2013-06-26 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_get_srq_num  \- return srq number associated with the given shared receive queue (SRQ)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "int ibv_get_srq_num(struct ibv_srq " "*srq" ,
-+.BI "                    uint32_t " "*srq_num" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_get_srq_num()
-+return srq number associated with the given shared receive queue
-+The argument
-+.I srq
-+is an ibv_srq struct, as defined in <infiniband/verbs.h>.
-+.I srq_num
-+is an output parameter that holds the returned srq number.
-+.PP
-+.nf
-+.SH "RETURN VALUE"
-+.B ibv_get_srq_num()
-+returns 0 on success, or the value of errno on failure (which indicates the failure reason).
-+.SH "SEE ALSO"
-+.BR ibv_alloc_pd (3),
-+.BR ibv_modify_srq (3),
-+.BR ibv_create_srq_ex (3)
-+.SH "AUTHORS"
-+.TP
-+Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/man/ibv_open_qp.3 b/man/ibv_open_qp.3
-new file mode 100644
-index 0000000..71b5d46
---- /dev/null
-+++ b/man/ibv_open_qp.3
-@@ -0,0 +1,51 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_OPEN_QP 3 2011-08-12 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_open_qp \- open a shareable queue pair (QP)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_qp *ibv_open_qp(struct ibv_context " "*context" ,
-+.BI "                           struct ibv_qp_open_attr " "*qp_open_attr" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_open_qp()
-+opens an existing queue pair (QP) associated with the extended protection domain
-+.I xrcd\fR.
-+The argument
-+.I qp_open_attr
-+is an ibv_qp_open_attr struct, as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
-+struct ibv_qp_open_attr {
-+.in +8
-+uint32_t          comp_mask;  /* Identifies valid fields */
-+uint32_t          qp_num;     /* QP number */
-+struct            *ibv_xrcd;  /* XRC domain */
-+void             *qp_context; /* User defined opaque value */
-+enum ibv_qp_type  qp_type;    /* QP transport service type */
-+.fi
-+.PP
-+.B ibv_destroy_qp()
-+closes the opened QP and destroys the underlying QP if it has no
-+other references.
-+.I qp\fR.
-+.SH "RETURN VALUE"
-+.B ibv_open_qp()
-+returns a pointer to the opened QP, or NULL if the request fails.
-+Check the QP number (\fBqp_num\fR) in the returned QP.
-+.SH "NOTES"
-+.B ibv_open_qp()
-+will fail if a it is asked to open a QP that does not exist within
-+the xrcd with the specified qp_num and qp_type.
-+.SH "SEE ALSO"
-+.BR ibv_alloc_pd (3),
-+.BR ibv_create_qp (3),
-+.BR ibv_create_qp_ex (3),
-+.BR ibv_modify_qp (3),
-+.BR ibv_query_qp (3)
-+.SH "AUTHORS"
-+.TP
-+Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-diff --git a/man/ibv_open_xrcd.3 b/man/ibv_open_xrcd.3
-new file mode 100644
-index 0000000..b9724bf
---- /dev/null
-+++ b/man/ibv_open_xrcd.3
-@@ -0,0 +1,76 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_OPEN_XRCD 3 2011-06-17 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_open_xrcd, ibv_close_xrcd \- open or close an XRC protection domain (XRCDs)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_xrcd *ibv_open_xrcd(struct ibv_context " "*context" ","
-+.BI "                               struct ibv_xrcd_init_attr " "*xrcd_init_attr" );
-+.sp
-+.BI "int ibv_close_xrcd(struct ibv_xrcd " "*xrcd" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_open_xrcd()
-+open an XRC domain for the RDMA device context
-+.I context
-+.I xrcd_init_attr
-+is an ibv_xrcd_init_attr struct, as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
-+struct ibv_xrcd_init_attr {
-+.in +8
-+uint32_t         comp_mask;  /* Identifies valid fields */
-+int              fd;
-+int              oflag;
-+.fi
-+.PP
-+.I fd
-+is the file descriptor to associate with the XRCD.
-+.I oflag
-+describes the desired creation attributes.  It is a bitwise OR of zero or more
-+of the following flags:
-+.PP
-+.TP
-+.B O_CREAT
-+Indicates that an XRCD should be created and associated with the inode referenced
-+by the given fd.  If the XRCD exists, this flag has no effect except as noted under
-+.BR O_EXCL
-+below.\fR
-+.TP
-+.B O_EXCL
-+If
-+.BR O_EXCL
-+and
-+.BR O_CREAT
-+are set, open will fail if an XRCD associated with the inode exists.
-+.PP
-+If
-+.I fd
-+equals -1, no inode is associated with the XRCD. To indicate that XRCD should be created, use
-+.I oflag
-+=
-+.B O_CREAT\fR.
-+.PP
-+.B ibv_close_xrcd()
-+closes the XRCD
-+.I xrcd\fR.
-+If this is the last reference, the XRCD will be destroyed.
-+.SH "RETURN VALUE"
-+.B ibv_open_xrcd()
-+returns a pointer to the opened XRCD, or NULL if the request fails.
-+.PP
-+.B ibv_close_xrcd()
-+returns 0 on success, or the value of errno on failure (which indicates the
-+failure reason).
-+.SH "NOTES"
-+.B ibv_close_xrcd()
-+may fail if any other resource is still associated with the XRCD being closed.
-+.SH "SEE ALSO"
-+.BR ibv_create_srq_ex (3),
-+.BR ibv_create_qp_ex (3),
-+.SH "AUTHORS"
-+.TP
-+Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
++
+ enum ibv_qp_attr_mask {
+ 	IBV_QP_STATE			= 1 << 	0,
+ 	IBV_QP_CUR_STATE		= 1 << 	1,
+@@ -615,6 +638,11 @@ struct ibv_send_wr {
+ 			uint32_t	remote_qkey;
+ 		} ud;
+ 	} wr;
++	union {
++		struct {
++			uint32_t    remote_srqn;
++		} xrc;
++	} qp_type;
+ };
+ 
+ struct ibv_recv_wr {
+@@ -795,11 +823,14 @@ struct ibv_context {
+ enum verbs_context_mask {
+ 	VERBS_CONTEXT_XRCD	= 1 << 0,
+ 	VERBS_CONTEXT_SRQ	= 1 << 1,
+-	VERBS_CONTEXT_RESERVED	= 1 << 2
++	VERBS_CONTEXT_QP	= 1 << 2,
++	VERBS_CONTEXT_RESERVED	= 1 << 3
+ };
+ 
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
++	struct ibv_qp *(*create_qp_ex)(struct ibv_context *context,
++			struct ibv_qp_init_attr_ex *qp_init_attr_ex);
+ 	int (*get_srq_num)(struct ibv_srq *srq, uint32_t *srq_num);
+ 	struct ibv_srq *	(*create_srq_ex)(struct ibv_context *context,
+ 						 struct ibv_srq_init_attr_ex *srq_init_attr_ex);
+@@ -1169,6 +1200,24 @@ static inline int ibv_post_srq_recv(struct ibv_srq *srq,
+ struct ibv_qp *ibv_create_qp(struct ibv_pd *pd,
+ 			     struct ibv_qp_init_attr *qp_init_attr);
+ 
++static inline struct ibv_qp *
++ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_init_attr_ex)
++{
++	struct verbs_context *vctx;
++	uint32_t mask = qp_init_attr_ex->comp_mask;
++
++	if (mask == IBV_QP_INIT_ATTR_PD)
++		return ibv_create_qp(qp_init_attr_ex->pd,
++				     (struct ibv_qp_init_attr *)qp_init_attr_ex);
++
++	vctx = verbs_get_ctx_op(context, create_qp_ex);
++	if (!vctx) {
++		errno = ENOSYS;
++		return NULL;
++	}
++	return vctx->create_qp_ex(context, qp_init_attr_ex);
++}
++
+ /**
+  * ibv_modify_qp - Modify a queue pair.
+  */
+diff --git a/src/cmd.c b/src/cmd.c
+index fae2846..463b95b 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -610,6 +610,100 @@ int ibv_cmd_destroy_srq(struct ibv_srq *srq)
+ 	return 0;
+ }
+ 
++int ibv_cmd_create_qp_ex(struct ibv_context *context,
++			 struct verbs_qp *qp, int vqp_sz,
++			 struct ibv_qp_init_attr_ex *attr_ex,
++			 struct ibv_create_qp *cmd, size_t cmd_size,
++			 struct ibv_create_qp_resp *resp, size_t resp_size)
++{
++	struct verbs_xrcd *vxrcd = NULL;
++
++	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
++
++	if (attr_ex->comp_mask >= IBV_QP_INIT_ATTR_RESERVED)
++		return ENOSYS;
++
++	cmd->user_handle     = (uintptr_t) qp;
++
++	if (attr_ex->comp_mask & IBV_QP_INIT_ATTR_XRCD) {
++		vxrcd = container_of(attr_ex->xrcd, struct verbs_xrcd, xrcd);
++		cmd->pd_handle	= vxrcd->handle;
++	} else {
++		if (!(attr_ex->comp_mask & IBV_QP_INIT_ATTR_PD))
++			return EINVAL;
++
++		cmd->pd_handle	= attr_ex->pd->handle;
++		cmd->send_cq_handle = attr_ex->send_cq->handle;
++
++		if (attr_ex->qp_type != IBV_QPT_XRC_SEND) {
++			cmd->recv_cq_handle = attr_ex->recv_cq->handle;
++			cmd->srq_handle = attr_ex->srq ? attr_ex->srq->handle : 0;
++		}
++	}
++
++	cmd->max_send_wr     = attr_ex->cap.max_send_wr;
++	cmd->max_recv_wr     = attr_ex->cap.max_recv_wr;
++	cmd->max_send_sge    = attr_ex->cap.max_send_sge;
++	cmd->max_recv_sge    = attr_ex->cap.max_recv_sge;
++	cmd->max_inline_data = attr_ex->cap.max_inline_data;
++	cmd->sq_sig_all	     = attr_ex->sq_sig_all;
++	cmd->qp_type         = attr_ex->qp_type;
++	cmd->is_srq	     = !!attr_ex->srq;
++	cmd->reserved	     = 0;
++
++	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
++		return errno;
++
++	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
++
++	if (abi_ver > 3) {
++		attr_ex->cap.max_recv_sge    = resp->max_recv_sge;
++		attr_ex->cap.max_send_sge    = resp->max_send_sge;
++		attr_ex->cap.max_recv_wr     = resp->max_recv_wr;
++		attr_ex->cap.max_send_wr     = resp->max_send_wr;
++		attr_ex->cap.max_inline_data = resp->max_inline_data;
++	}
++
++	if (abi_ver == 4) {
++		struct ibv_create_qp_resp_v4 *resp_v4 =
++			(struct ibv_create_qp_resp_v4 *)resp;
++
++		memmove((void *)resp + sizeof *resp,
++			(void *)resp_v4 + sizeof *resp_v4,
++			resp_size - sizeof *resp);
++	} else if (abi_ver <= 3) {
++		struct ibv_create_qp_resp_v3 *resp_v3 =
++			(struct ibv_create_qp_resp_v3 *)resp;
++
++		memmove((void *)resp + sizeof *resp,
++			(void *)resp_v3 + sizeof *resp_v3,
++			resp_size - sizeof *resp);
++	}
++
++	qp->qp.handle		= resp->qp_handle;
++	qp->qp.qp_num		= resp->qpn;
++	qp->qp.context		= context;
++	qp->qp.qp_context	= attr_ex->qp_context;
++	qp->qp.pd		= attr_ex->pd;
++	qp->qp.send_cq		= attr_ex->send_cq;
++	qp->qp.recv_cq		= attr_ex->recv_cq;
++	qp->qp.srq		= attr_ex->srq;
++	qp->qp.qp_type		= attr_ex->qp_type;
++	qp->qp.state		= IBV_QPS_RESET;
++	qp->qp.events_completed = 0;
++	pthread_mutex_init(&qp->qp.mutex, NULL);
++	pthread_cond_init(&qp->qp.cond, NULL);
++
++	qp->comp_mask = 0;
++	if (vext_field_avail(struct verbs_qp, xrcd, vqp_sz) &&
++			    (attr_ex->comp_mask & IBV_QP_INIT_ATTR_XRCD)) {
++		qp->comp_mask |= VERBS_QP_XRCD;
++		qp->xrcd = vxrcd;
++	}
++
++	return 0;
++}
++
+ int ibv_cmd_create_qp(struct ibv_pd *pd,
+ 		      struct ibv_qp *qp, struct ibv_qp_init_attr *attr,
+ 		      struct ibv_create_qp *cmd, size_t cmd_size,
+@@ -618,7 +712,7 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
+ 
+ 	cmd->user_handle     = (uintptr_t) qp;
+-	cmd->pd_handle 	     = pd->handle;
++	cmd->pd_handle       = pd->handle;
+ 	cmd->send_cq_handle  = attr->send_cq->handle;
+ 	cmd->recv_cq_handle  = attr->recv_cq->handle;
+ 	cmd->srq_handle      = attr->srq ? attr->srq->handle : 0;
+diff --git a/src/libibverbs.map b/src/libibverbs.map
+index a4b089f..6db5291 100644
+--- a/src/libibverbs.map
++++ b/src/libibverbs.map
+@@ -104,5 +104,6 @@ IBVERBS_1.1 {
+ 		ibv_cmd_open_xrcd;
+ 		ibv_cmd_close_xrcd;
+ 		ibv_cmd_create_srq_ex;
++		ibv_cmd_create_qp_ex;
+ 
+ } IBVERBS_1.0;
 -- 
 1.7.1
 
