@@ -1,270 +1,143 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 2/8] IB/CMA: RoCE IP based GID addressing
-Date: Thu, 11 Jul 2013 18:40:43 +0300
-Message-ID: <1373557249-20374-3-git-send-email-ogerlitz@mellanox.com>
-References: <1373557249-20374-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V2 0/8] IP based RoCE GID Addressing
+Date: Thu, 11 Jul 2013 18:40:41 +0300
+Message-ID: <1373557249-20374-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1373557249-20374-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Currently, the IB stack (core + drivers) handle RoCE (IBoE) gids as
+they encode related Ethernet net-device interface MAC address and 
+possibly VLAN id.
 
-Currently, the IB core and specifically the RDMA-CM assumes that 
-RoCE (IBoE) gids encode related Ethernet netdevice interface 
-MAC address and possibly VLAN id.
+This series changes RoCE GIDs to encode IP addresses (IPv4 + IPv6)
+of the that Ethernet interface, under the following reasoning:
 
-Change gids to be treated as they encode interface IP address.
+1. There are environments where the compute entity that runs the RoCE 
+stack is not aware that its traffic is vlan-tagged. This results with that 
+node to create/assume wrong GIDs from the view point of a peer node which 
+is aware to vlans. 
 
-Since Ethernet layer 2 address parameters are not longer encoded 
-within gids, had to extend the Infiniband address structures (e.g. 
-ib_ah_attr) with layer 2 address parameters, namely mac and vlan.
+Note that "node" here can be physical node connected to Ethernet switch acting in 
+access mode talking to another node which does vlan insertion/stripping by itself.
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/cma.c  |   40 +++++++++++++++++--------
- drivers/infiniband/core/ucma.c |   18 ++---------
- include/rdma/ib_addr.h         |   61 +++++++++++++++++++++++++++------------
- 3 files changed, 73 insertions(+), 46 deletions(-)
+Or another example is SRIOV Virtual Function which is configured to work in "VST" 
+mode (Virtual-Switch-Tagging) such that the hypervisor configures the HW eSWitch 
+to do vlan insertion for the vPORT representing that function.
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 07a7aeb..2162a7a 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -386,7 +386,9 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
- 		return -EINVAL;
+2. When RoCE traffic is inspected (mirrored/trapped) in Ethernet switches for 
+monitoring and security purposes. It is much more natural for both humans and 
+automated utilities (...) to observe IP addresses in a certain offset into RoCE 
+frames L3 header vs. MAC/VLANs (which are there anyway in the L2 header of that 
+frame, so they are not gone by this change).
+
+3. Some Bonding/Teaming advanced mode such as balance-alb and balance-tlb 
+are using multiple underlying devices in parallel, and hence packets always 
+carry the bond IP address but different streams have different source MACs.
+The approach brought by this series is part from what would allow to 
+support that for RoCE traffic too.
+
+The 1st patch adds explicit handling of Ethernet L2 attributes, source/dest 
+mac and vlan_id to the kernel IB core, in data-structures and CMA/CM code. 
+Previously, with MAC/VLAN based addressing, they were encoded in the GIDs, 
+where now they have to be resolved and placed separately from the IP based GIDs.
+
+The 2nd patch modifies the CMA to cope with IP based GIDs, the 3rd/4th ones do 
+that for the mlx4_ib driver.  
+
+The 5th patch sets the foundation for extending uverbs to the new scheme which 
+was introduced lately, and the 6th/7th patches add two extended uverbs and 
+respectively two extended ucma commands which are now exported to user space.
+The last patch denotes mlx4 support for the uverbs extended modify qp command.
+
+These extended verbs will allow to enhance user space libraries such that they work 
+OK over the modified scheme. All RC applications using librdmacm will not need to be 
+modified at all, since the change will be encapsulated into that library.
+
+Or.
+
+changes from V1:
+
+ - rebased the series against the latest kernel bits, which include Sean's 
+   AF_IB changes to the rdma-cm
  
- 	mutex_lock(&lock);
--	iboe_addr_get_sgid(dev_addr, &iboe_gid);
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-+		    &iboe_gid);
-+
- 	memcpy(&gid, dev_addr->src_dev_addr +
- 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
- 	list_for_each_entry(cma_dev, &dev_list, list) {
-@@ -601,11 +603,23 @@ EXPORT_SYMBOL(rdma_destroy_qp);
- static int cma_find_smac_by_sgid(union ib_gid *sgid, u8 *smac)
- {
- 	int ret = 0;
--	struct in6_addr in6;
-+	struct rdma_dev_addr dev_addr;
-+	union {
-+		struct sockaddr     _sockaddr;
-+		struct sockaddr_in  _sockaddr_in;
-+		struct sockaddr_in6 _sockaddr_in6;
-+	} gid_addr;
-+
-+	ret = rdma_gid2ip(&gid_addr._sockaddr, sgid);
+ - fixed bug in mlx4_ib where reset of the gid table was done for IB ports too
  
--	memcpy(&in6, sgid, sizeof(in6));
--	rdma_get_ll_mac(&in6, smac);
-+	if (ret)
-+		return ret;
-+	memset(&dev_addr, 0, sizeof(dev_addr));
-+	ret = rdma_translate_ip(&gid_addr._sockaddr, &dev_addr);
-+	if (ret)
-+		return ret;
- 
-+	memcpy(smac, dev_addr.src_dev_addr, ETH_ALEN);
- 	return ret;
- }
- 
-@@ -1936,10 +1950,10 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- 	memcpy(route->path_rec->dmac, addr->dev_addr.dst_dev_addr, ETH_ALEN);
- 	memcpy(route->path_rec->smac, ndev->dev_addr, ndev->addr_len);
- 
--	iboe_mac_vlan_to_ll(&route->path_rec->sgid, addr->dev_addr.src_dev_addr,
--			    be16_to_cpu(route->path_rec->vlan_id));
--	iboe_mac_vlan_to_ll(&route->path_rec->dgid, addr->dev_addr.dst_dev_addr,
--			    be16_to_cpu(route->path_rec->vlan_id));
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-+		    &route->path_rec->sgid);
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.dst_addr,
-+		    &route->path_rec->dgid);
- 
- 	route->path_rec->hop_limit = 1;
- 	route->path_rec->reversible = 1;
-@@ -2106,6 +2120,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
- 			   RDMA_CM_ADDR_RESOLVED))
- 		goto out;
- 
-+	memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
- 	if (!status && !id_priv->cma_dev)
- 		status = cma_acquire_dev(id_priv);
- 
-@@ -2115,10 +2130,8 @@ static void addr_handler(int status, struct sockaddr *src_addr,
- 			goto out;
- 		event.event = RDMA_CM_EVENT_ADDR_ERROR;
- 		event.status = status;
--	} else {
--		memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
-+	} else
- 		event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
--	}
- 
- 	if (id_priv->id.event_handler(&id_priv->id, &event)) {
- 		cma_exch(id_priv, RDMA_CM_DESTROYING);
-@@ -2599,6 +2612,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 	if (ret)
- 		goto err1;
- 
-+	memcpy(cma_src_addr(id_priv), addr, rdma_addr_size(addr));
- 	if (!cma_any_addr(addr)) {
- 		ret = cma_translate_addr(addr, &id->route.addr.dev_addr);
- 		if (ret)
-@@ -2609,7 +2623,6 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 			goto err1;
- 	}
- 
--	memcpy(cma_src_addr(id_priv), addr, rdma_addr_size(addr));
- 	if (!(id_priv->options & (1 << CMA_OPTION_AFONLY))) {
- 		if (addr->sa_family == AF_INET)
- 			id_priv->afonly = 1;
-@@ -3337,7 +3350,8 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
- 		err = -EINVAL;
- 		goto out2;
- 	}
--	iboe_addr_get_sgid(dev_addr, &mc->multicast.ib->rec.port_gid);
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-+		    &mc->multicast.ib->rec.port_gid);
- 	work->id = id_priv;
- 	work->mc = mc;
- 	INIT_WORK(&work->work, iboe_mcast_work_handler);
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index b0f189b..7e7da86 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -655,24 +655,14 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
- static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
- 				 struct rdma_route *route)
- {
--	struct rdma_dev_addr *dev_addr;
--	struct net_device *dev;
--	u16 vid = 0;
- 
- 	resp->num_paths = route->num_paths;
- 	switch (route->num_paths) {
- 	case 0:
--		dev_addr = &route->addr.dev_addr;
--		dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
--			if (dev) {
--				vid = rdma_vlan_dev_vlan_id(dev);
--				dev_put(dev);
--			}
--
--		iboe_mac_vlan_to_ll((union ib_gid *) &resp->ib_route[0].dgid,
--				    dev_addr->dst_dev_addr, vid);
--		iboe_addr_get_sgid(dev_addr,
--				   (union ib_gid *) &resp->ib_route[0].sgid);
-+		rdma_ip2gid((struct sockaddr *)&route->addr.dst_addr,
-+			    (union ib_gid *)&resp->ib_route[0].dgid);
-+		rdma_ip2gid((struct sockaddr *)&route->addr.src_addr,
-+			    (union ib_gid *)&resp->ib_route[0].sgid);
- 		resp->ib_route[0].pkey = cpu_to_be16(0xffff);
- 		break;
- 	case 2:
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index f3ac0f2..f3d91cc 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -38,8 +38,12 @@
- #include <linux/in6.h>
- #include <linux/if_arp.h>
- #include <linux/netdevice.h>
-+#include <linux/inetdevice.h>
- #include <linux/socket.h>
- #include <linux/if_vlan.h>
-+#include <net/ipv6.h>
-+#include <net/if_inet6.h>
-+#include <net/ip.h>
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_pack.h>
- 
-@@ -126,41 +130,60 @@ static inline int rdma_addr_gid_offset(struct rdma_dev_addr *dev_addr)
- 	return dev_addr->dev_type == ARPHRD_INFINIBAND ? 4 : 0;
- }
- 
--static inline void iboe_mac_vlan_to_ll(union ib_gid *gid, u8 *mac, u16 vid)
-+static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
- {
--	memset(gid->raw, 0, 16);
--	*((__be32 *) gid->raw) = cpu_to_be32(0xfe800000);
--	if (vid < 0x1000) {
--		gid->raw[12] = vid & 0xff;
--		gid->raw[11] = vid >> 8;
--	} else {
--		gid->raw[12] = 0xfe;
--		gid->raw[11] = 0xff;
-+	return dev->priv_flags & IFF_802_1Q_VLAN ?
-+		vlan_dev_vlan_id(dev) : 0xffff;
-+}
-+
-+static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
-+{
-+	switch (addr->sa_family) {
-+	case AF_INET:
-+		ipv6_addr_set_v4mapped(((struct sockaddr_in *)
-+					addr)->sin_addr.s_addr,
-+				       (struct in6_addr *)gid);
-+		break;
-+	case AF_INET6:
-+		memcpy(gid->raw, &((struct sockaddr_in6 *)addr)->sin6_addr, 16);
-+		break;
-+	default:
-+		return -EINVAL;
- 	}
--	memcpy(gid->raw + 13, mac + 3, 3);
--	memcpy(gid->raw + 8, mac, 3);
--	gid->raw[8] ^= 2;
-+	return 0;
- }
- 
--static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
-+/* Important - sockaddr should be a union of sockaddr_in and sockaddr_in6 */
-+static inline int rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
- {
--	return dev->priv_flags & IFF_802_1Q_VLAN ?
--		vlan_dev_vlan_id(dev) : 0xffff;
-+	if (ipv6_addr_v4mapped((struct in6_addr *)gid)) {
-+		struct sockaddr_in *out_in = (struct sockaddr_in *)out;
-+		memset(out_in, 0, sizeof(*out_in));
-+		out_in->sin_family = AF_INET;
-+		memcpy(&out_in->sin_addr.s_addr, gid->raw + 12, 4);
-+	} else {
-+		struct sockaddr_in6 *out_in = (struct sockaddr_in6 *)out;
-+		memset(out_in, 0, sizeof(*out_in));
-+		out_in->sin6_family = AF_INET6;
-+		memcpy(&out_in->sin6_addr.s6_addr, gid->raw, 16);
-+	}
-+	return 0;
- }
- 
- static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
- 				      union ib_gid *gid)
- {
- 	struct net_device *dev;
--	u16 vid = 0xffff;
-+	struct in_device *ip4;
- 
- 	dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
- 	if (dev) {
--		vid = rdma_vlan_dev_vlan_id(dev);
-+		ip4 = (struct in_device *)dev->ip_ptr;
-+		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
-+			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
-+					       (struct in6_addr *)gid);
- 		dev_put(dev);
- 	}
--
--	iboe_mac_vlan_to_ll(gid, dev_addr->src_dev_addr, vid);
- }
- 
- static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
--- 
-1.7.1
+ - fixed build warnings and issues pointed by sparse
+
+ - introduced patch #1 which does the explicit handling of Ethernet L2 attributes, 
+   source/dest mac and vlan_id in the kernel data-structures and CMA/CM code. 
+
+ - use smac when modifying a QP --> find smac in passive side + additional fields 
+   to adress structures
+
+ - add support to new QP atrr in ib_modify_qp_is_ok() special for ll = ETH
+  and modified all low-level drivers to keep working after that change
+
+ -- changes around uverbs:
+ - use ah_ext as pointer in qp_attr passed from user space, so this 
+   field by itself can be extended in the future
+ - for kernel to user command respnses comp_mask is moved into the 
+   right place which is after the non-extended command respond fields
+ - fixed bug in copy_qp_attr_ex under which some fields were copied to
+   wrong locations
+ - use new structure rdma_ucm_init_qp_attr_ex which is extendable (ucma)
+
+changes from V0:
+
+ - enhanced documentation of the mlx4_ib, uverbs and ucma patches
+ - broke the mlx4_ib patch to two
+ - broke the extended user space commands patch to two
+
+Igor Ivanov (1):
+  IB/core: Infra-structure to support verbs extensions through uverbs
+
+Matan Barak (4):
+  IB/core: Ethernet L2 attributes in verbs/cm structures
+  IB/core: Add RoCE IP based addressing extensions for uverbs
+  IB/core: Add RoCE IP based addressing extensions for rdma_ucm
+  IB/mlx4: Enable mlx4_ib support for MODIFY_QP_EX
+
+Moni Shoua (3):
+  IB/CMA: RoCE IP based GID addressing
+  IB/mlx4: Use RoCE IP based GIDs in the port GID table
+  IB/mlx4: Handle Ethernet L2 parameters for IP based GID addressing
+
+ drivers/infiniband/core/cm.c                |   58 ++++
+ drivers/infiniband/core/cma.c               |   85 ++++-
+ drivers/infiniband/core/sa_query.c          |    8 +-
+ drivers/infiniband/core/ucma.c              |  193 ++++++++++-
+ drivers/infiniband/core/uverbs.h            |    2 +
+ drivers/infiniband/core/uverbs_cmd.c        |  359 ++++++++++++++++-----
+ drivers/infiniband/core/uverbs_main.c       |   33 ++-
+ drivers/infiniband/core/uverbs_marshall.c   |  128 +++++++-
+ drivers/infiniband/core/verbs.c             |   29 ++-
+ drivers/infiniband/hw/ehca/ehca_qp.c        |    2 +-
+ drivers/infiniband/hw/ipath/ipath_qp.c      |    2 +-
+ drivers/infiniband/hw/mlx4/ah.c             |   24 +-
+ drivers/infiniband/hw/mlx4/cq.c             |    6 +
+ drivers/infiniband/hw/mlx4/main.c           |  479 +++++++++++++++++++--------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h        |    3 +
+ drivers/infiniband/hw/mlx4/qp.c             |   98 +++++-
+ drivers/infiniband/hw/mlx5/qp.c             |    3 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c      |    3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    3 +-
+ drivers/infiniband/hw/qib/qib_qp.c          |    2 +-
+ drivers/net/ethernet/mellanox/mlx4/port.c   |   20 ++
+ include/linux/mlx4/cq.h                     |   15 +-
+ include/linux/mlx4/device.h                 |    1 +
+ include/rdma/ib_addr.h                      |   61 +++-
+ include/rdma/ib_cm.h                        |    1 +
+ include/rdma/ib_marshall.h                  |   12 +
+ include/rdma/ib_pack.h                      |    1 +
+ include/rdma/ib_sa.h                        |    3 +
+ include/rdma/ib_verbs.h                     |   20 +-
+ include/uapi/rdma/ib_user_sa.h              |   34 ++-
+ include/uapi/rdma/ib_user_verbs.h           |  170 ++++++++++-
+ include/uapi/rdma/rdma_user_cm.h            |   29 ++-
+ 32 files changed, 1546 insertions(+), 341 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
