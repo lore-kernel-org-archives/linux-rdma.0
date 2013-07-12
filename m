@@ -1,37 +1,60 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: add err_decode() call for ring dump
-Date: Fri, 12 Jul 2013 09:24:56 -0400
-Message-ID: <20130712132456.20233.16851.stgit@phlsvslse11.ph.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 1/3 opensm] Fix test scenario in cl_event_wheel
+Date: Fri, 12 Jul 2013 09:31:01 -0400
+Message-ID: <51E00515.4050009@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit b3ddf380 ("Log all SDMA errors unconditionally") missed
-part of the patch.
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The testing code is missing complib init/destroy functions and use
+incorrect callback function prototype.
+
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_iba7322.c |    2 ++
- 1 file changed, 2 insertions(+)
+ complib/cl_event_wheel.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 21e8b09..016e742 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -1596,6 +1596,8 @@ static void sdma_7322_p_errors(struct qib_pportdata *ppd, u64 errs)
- 	struct qib_devdata *dd = ppd->dd;
+diff --git a/complib/cl_event_wheel.c b/complib/cl_event_wheel.c
+index d3caa03..21d1ed1 100644
+--- a/complib/cl_event_wheel.c
++++ b/complib/cl_event_wheel.c
+@@ -503,7 +503,7 @@ void __cl_event_wheel_dump(IN cl_event_wheel_t * const p_event_wheel)
  
- 	errs &= QIB_E_P_SDMAERRS;
-+	err_decode(ppd->cpspec->sdmamsgbuf, sizeof(ppd->cpspec->sdmamsgbuf),
-+		   errs, qib_7322p_error_msgs);
+ /* The callback for aging event */
+ /* We assume we pass a text context */
+-void __test_event_aging(uint64_t key, void *context)
++static uint64_t __test_event_aging(uint64_t key, uint32_t num_regs, void *context)
+ {
+ 	printf("*****************************************************\n");
+ 	printf("Aged key: 0x%" PRIx64 " Context:%s\n", key, (char *)context);
+@@ -514,6 +514,9 @@ int main()
+ 	cl_event_wheel_t event_wheel;
+ 	/*  uint64_t key; */
  
- 	if (errs & QIB_E_P_SDMAUNEXPDATA)
- 		qib_dev_err(dd, "IB%u:%u SDmaUnexpData\n", dd->unit,
++	/* init complib */
++	complib_init();
++
+ 	/* construct */
+ 	cl_event_wheel_construct(&event_wheel);
+ 
+@@ -560,6 +563,8 @@ int main()
+ 	/* destroy */
+ 	cl_event_wheel_destroy(&event_wheel);
+ 
++	complib_exit();
++
+ 	return (0);
+ }
+ 
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
