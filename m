@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 3/3 opensm] complib/cl_event_wheel.c: Add print of num_regs
- in cl_event_wheel_dump
-Date: Fri, 12 Jul 2013 09:31:14 -0400
-Message-ID: <51E00522.3060204@dev.mellanox.co.il>
+Subject: [PATCH 2/3 opensm] complib/cl_event_wheel.c: Fix duplicate error
+ codes
+Date: Fri, 12 Jul 2013 09:31:08 -0400
+Message-ID: <51E0051C.6030409@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -14,7 +14,7 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-num_regs is important information in debug mode.
+New prefix is 62XX.
 
 Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
@@ -22,20 +22,27 @@ Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
  1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/complib/cl_event_wheel.c b/complib/cl_event_wheel.c
-index 901ef8e..365804e 100644
+index 21d1ed1..901ef8e 100644
 --- a/complib/cl_event_wheel.c
 +++ b/complib/cl_event_wheel.c
-@@ -238,8 +238,8 @@ void cl_event_wheel_dump(IN cl_event_wheel_t * const p_event_wheel)
- 		    PARENT_STRUCT(p_list_item, cl_event_wheel_reg_info_t,
- 				  list_item);
- 		CL_DBG("cl_event_wheel_dump: Found event key:<0x%"
--		       PRIx64 ">, aging time:%" PRIu64 "\n",
--		       p_event->key, p_event->aging_time);
-+		       PRIx64 ">, num_regs:%d, aging time:%" PRIu64 "\n",
-+		       p_event->key, p_event->num_regs, p_event->aging_time);
- 		p_list_item = cl_qlist_next(p_list_item);
+@@ -173,7 +173,7 @@ static void __cl_event_wheel_callback(IN void *context)
+ 		       "%u [msec]\n", new_timeout);
+ 		cl_status = cl_timer_start(&p_event_wheel->timer, new_timeout);
+ 		if (cl_status != CL_SUCCESS) {
+-			CL_DBG("__cl_event_wheel_callback : ERR 6100: "
++			CL_DBG("__cl_event_wheel_callback : ERR 6200: "
+ 			       "Failed to start timer\n");
+ 		}
  	}
- }
+@@ -371,7 +371,7 @@ cl_status_t cl_event_wheel_reg(IN cl_event_wheel_t * const p_event_wheel,
+ 		/* start the timer to the timeout [msec] */
+ 		cl_status = cl_timer_start(&p_event_wheel->timer, to);
+ 		if (cl_status != CL_SUCCESS) {
+-			CL_DBG("cl_event_wheel_reg : ERR 6103: "
++			CL_DBG("cl_event_wheel_reg : ERR 6203: "
+ 			       "Failed to start timer\n");
+ 			goto Exit;
+ 		}
 -- 
 1.7.8.2
 
