@@ -1,50 +1,78 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/3 opensm] complib/cl_event_wheel.c: Fix duplicate error
- codes
-Date: Fri, 12 Jul 2013 09:31:08 -0400
-Message-ID: <51E0051C.6030409@dev.mellanox.co.il>
+Subject: Re: [PATCH] opensm: update internal PortInfo state for any ports
+Date: Fri, 12 Jul 2013 09:37:57 -0400
+Message-ID: <51E006B5.3060808@dev.mellanox.co.il>
+References: <20130707205219.GA6084@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130707205219.GA6084-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sasha Khapyorsky <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 7/7/2013 4:56 PM, Sasha Khapyorsky wrote:
+> Should not be matter to keep internal SM's PortInfo data for ports
+> in any states.
 
-New prefix is 62XX.
+What difference does it make ? Does this patch fix some operational
+issue ? Is there any harm in not keeping the complete PortInfo when port
+is DOWN ?
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- complib/cl_event_wheel.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+At worst, the current implementation is a minor efficiency improvement:
+to only copy the 2 required to be valid fields rather than all 64 bytes
+in PortInfo. Also, it seems safer to only save the guaranteed valid fields.
 
-diff --git a/complib/cl_event_wheel.c b/complib/cl_event_wheel.c
-index 21d1ed1..901ef8e 100644
---- a/complib/cl_event_wheel.c
-+++ b/complib/cl_event_wheel.c
-@@ -173,7 +173,7 @@ static void __cl_event_wheel_callback(IN void *context)
- 		       "%u [msec]\n", new_timeout);
- 		cl_status = cl_timer_start(&p_event_wheel->timer, new_timeout);
- 		if (cl_status != CL_SUCCESS) {
--			CL_DBG("__cl_event_wheel_callback : ERR 6100: "
-+			CL_DBG("__cl_event_wheel_callback : ERR 6200: "
- 			       "Failed to start timer\n");
- 		}
- 	}
-@@ -371,7 +371,7 @@ cl_status_t cl_event_wheel_reg(IN cl_event_wheel_t * const p_event_wheel,
- 		/* start the timer to the timeout [msec] */
- 		cl_status = cl_timer_start(&p_event_wheel->timer, to);
- 		if (cl_status != CL_SUCCESS) {
--			CL_DBG("cl_event_wheel_reg : ERR 6103: "
-+			CL_DBG("cl_event_wheel_reg : ERR 6203: "
- 			       "Failed to start timer\n");
- 			goto Exit;
- 		}
--- 
-1.7.8.2
+-- Hal
+
+> Signed-off-by: Sasha Khapyorsky <sashakh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> 
+> 
+> diff --git a/opensm/osm_port.c b/opensm/osm_port.c
+> index 6e73e66..d59d404 100644
+> --- a/opensm/osm_port.c
+> +++ b/opensm/osm_port.c
+> @@ -669,25 +669,16 @@ void osm_physp_set_port_info(IN osm_physp_t * p_physp,
+>  	CL_ASSERT(p_pi);
+>  	CL_ASSERT(osm_physp_is_valid(p_physp));
+>  
+> -	if (ib_port_info_get_port_state(p_pi) == IB_LINK_DOWN) {
+> -		/* If PortState is down, only copy PortState */
+> -		/* and PortPhysicalState per C14-24-2.1 */
+> -		ib_port_info_set_port_state(&p_physp->port_info, IB_LINK_DOWN);
+> -		ib_port_info_set_port_phys_state
+> -		    (ib_port_info_get_port_phys_state(p_pi),
+> -		     &p_physp->port_info);
+> -	} else {
+> -		p_physp->port_info = *p_pi;
+> -
+> -		/* The MKey in p_pi can only be considered valid if it's
+> -		 * for a HCA/router or switch port 0, and it's either
+> -		 * non-zero or the MKeyProtect bits are also zero.
+> -		 */
+> -		if ((osm_node_get_type(p_physp->p_node) !=
+> -		     IB_NODE_TYPE_SWITCH || p_physp->port_num == 0) &&
+> -		    (p_pi->m_key != 0 || ib_port_info_get_mpb(p_pi) == 0))
+> -			osm_db_guid2mkey_set(p_sm->p_subn->p_g2m,
+> -					     cl_ntoh64(p_physp->port_guid),
+> -					     cl_ntoh64(p_pi->m_key));
+> -	}
+> +	p_physp->port_info = *p_pi;
+> +
+> +	/* The MKey in p_pi can only be considered valid if it's
+> +	 * for a HCA/router or switch port 0, and it's either
+> +	 * non-zero or the MKeyProtect bits are also zero.
+> +	 */
+> +	if ((osm_node_get_type(p_physp->p_node) != IB_NODE_TYPE_SWITCH ||
+> +	     p_physp->port_num == 0) &&
+> +	    (p_pi->m_key != 0 || ib_port_info_get_mpb(p_pi) == 0))
+> +		osm_db_guid2mkey_set(p_sm->p_subn->p_g2m,
+> +				     cl_ntoh64(p_physp->port_guid),
+> +				     cl_ntoh64(p_pi->m_key));
+>  }
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
