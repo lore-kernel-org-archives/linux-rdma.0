@@ -1,102 +1,69 @@
-From: Shawn Bohrer <sbohrer@rgmadvisors.com>
-Subject: Re: rtnl_lock deadlock on 3.10
-Date: Mon, 15 Jul 2013 09:38:19 -0500
-Message-ID: <20130715143819.GA3084@sbohrermbp13-local.rgmadvisors.com>
-References: <20130701145456.GA7756@sbohrermbp13-local.rgmadvisors.com>
- <20130702082818.GA26178@order.stressinduktion.org>
- <kqul4h$ib8$1@ger.gmane.org>
- <20130703051152.GA12615@order.stressinduktion.org>
- <20130703053307.GB12615@order.stressinduktion.org>
- <20130703172239.GA3439@sbohrermbp13-local.rgmadvisors.com>
- <51D45EB3.7030404@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: mlx5: Add driver for Mellanox Connect-IB adapters
+Date: Mon, 15 Jul 2013 17:29:15 +0300
+Message-ID: <51E4073B.9080500@mellanox.com>
+References: <20130710105538.GB31232@longonot.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <51D45EB3.7030404@mellanox.com>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Shawn Bohrer <shawn.bohrer@gmail.com>, Cong Wang <xiyou.wangcong@gmail.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, roland@purestorage.com
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130710105538.GB31232-dZEljifmRObu9KfB+GxooP8+0UxHXcjY@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 03, 2013 at 08:26:11PM +0300, Or Gerlitz wrote:
-> On 03/07/2013 20:22, Shawn Bohrer wrote:
-> >On Wed, Jul 03, 2013 at 07:33:07AM +0200, Hannes Frederic Sowa wrote:
-> >>On Wed, Jul 03, 2013 at 07:11:52AM +0200, Hannes Frederic Sowa wrote:
-> >>>On Tue, Jul 02, 2013 at 01:38:26PM +0000, Cong Wang wrote:
-> >>>>On Tue, 02 Jul 2013 at 08:28 GMT, Hannes Frederic Sowa <hannes@stressinduktion.org> wrote:
-> >>>>>On Mon, Jul 01, 2013 at 09:54:56AM -0500, Shawn Bohrer wrote:
-> >>>>>>I've managed to hit a deadlock at boot a couple times while testing
-> >>>>>>the 3.10 rc kernels.  It seems to always happen when my network
-> >>>>>>devices are initializing.  This morning I updated to v3.10 and made a
-> >>>>>>few config tweaks and so far I've hit it 4 out of 5 reboots.  It looks
-> >>>>>>like most processes are getting stuck on rtnl_lock.  Below is a boot
-> >>>>>>log with the soft lockup prints.  Please let know if there is any
-> >>>>>>other information I can provide:
-> >>>>>Could you try a build with CONFIG_LOCKDEP enabled?
-> >>>>>
-> >>>>The problem is clear: ib_register_device() is called with rtnl_lock,
-> >>>>but itself needs device_mutex, however, ib_register_client() first
-> >>>>acquires device_mutex, then indirectly calls register_netdev() which
-> >>>>takes rtnl_lock. Deadlock!
-> >>>>
-> >>>>One possible fix is always taking rtnl_lock before taking
-> >>>>device_mutex, something like below:
-> >>>>
-> >>>>diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> >>>>index 18c1ece..890870b 100644
-> >>>>--- a/drivers/infiniband/core/device.c
-> >>>>+++ b/drivers/infiniband/core/device.c
-> >>>>@@ -381,6 +381,7 @@ int ib_register_client(struct ib_client *client)
-> >>>>  {
-> >>>>  	struct ib_device *device;
-> >>>>+	rtnl_lock();
-> >>>>  	mutex_lock(&device_mutex);
-> >>>>  	list_add_tail(&client->list, &client_list);
-> >>>>@@ -389,6 +390,7 @@ int ib_register_client(struct ib_client *client)
-> >>>>  			client->add(device);
-> >>>>  	mutex_unlock(&device_mutex);
-> >>>>+	rtnl_unlock();
-> >>>>  	return 0;
-> >>>>  }
-> >>>>diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> >>>>index b6e049a..5a7a048 100644
-> >>>>--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> >>>>+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> >>>>@@ -1609,7 +1609,7 @@ static struct net_device *ipoib_add_port(const char *format,
-> >>>>  		goto event_failed;
-> >>>>  	}
-> >>>>-	result = register_netdev(priv->dev);
-> >>>>+	result = register_netdevice(priv->dev);
-> >>>>  	if (result) {
-> >>>>  		printk(KERN_WARNING "%s: couldn't register ipoib port %d; error %d\n",
-> >>>>  		       hca->name, port, result);
-> >>>Looks good to me. Shawn, could you test this patch?
-> >>ib_unregister_device/ib_unregister_client would need the same change,
-> >>too. I have not checked the other ->add() and ->remove() functions. Also
-> >>cc'ed linux-rdma@vger.kernel.org, Roland Dreier.
-> >Cong's patch is missing the #include <linux/rtnetlink.h> but otherwise
-> >I've had 34 successful reboots with no deadlocks which is a good sign.
-> >It sounds like there are more paths that need to be audited and a
-> >proper patch submitted.  I can do more testing later if needed.
-> >
-> >Thanks,
-> >Shawn
-> >
-> 
-> Guys, I was a bit busy today looking into that, but I don't think we
-> want the IB core layer  (core/device.c) to
-> use rtnl locking which is something that belongs to the network stack.
+On 10/07/2013 13:55, Dan Carpenter wrote:
+> Hello Eli Cohen,
+>
+> The patch e126ba97dba9: "mlx5: Add driver for Mellanox Connect-IB
+> adapters" from Jul 7, 2013, leads to the following Smatch warning:
+> "drivers/net/ethernet/mellanox/mlx5/core/cmd.c:822
+> mlx5_alloc_cmd_msg()
+> 	 warn: use 'flags' here instead of GFP_XXX?"
+>
+>     811  static struct mlx5_cmd_msg *mlx5_alloc_cmd_msg(struct mlx5_core_dev *dev,
+>     812                                                 gfp_t flags, int size)
+>                                                         ^^^^^^^^^^^
+>
+>     813  {
+>     814          struct mlx5_cmd_mailbox *tmp, *head = NULL;
+>     815          struct mlx5_cmd_prot_block *block;
+>     816          struct mlx5_cmd_msg *msg;
+>     817          int blen;
+>     818          int err;
+>     819          int n;
+>     820          int i;
+>     821
+>     822          msg = kzalloc(sizeof(*msg), GFP_KERNEL);
+>                                              ^^^^^^^^^^
+>     823          if (!msg)
+>     824                  return ERR_PTR(-ENOMEM);
+>     825
+>     826          blen = size - min_t(int, sizeof(msg->first.data), size);
+>     827          n = (blen + MLX5_CMD_DATA_BLOCK_SIZE - 1) / MLX5_CMD_DATA_BLOCK_SIZE;
+>     828
+>     829          for (i = 0; i < n; i++) {
+>     830                  tmp = alloc_cmd_box(dev, flags);
+>                                                   ^^^^^
+> There is a kmalloc() in alloc_cmd_box() that uses flags as well as a
+> pci_pool_alloc() that uses it.
+>
+>     831                  if (IS_ERR(tmp)) {
+>     832                          mlx5_core_warn(dev, "failed allocating block\n");
+>
+>
 
-Has anymore thought been put into a proper fix for this issue?
+Hi,
 
-Thanks,
-Shawn
+I think Eli has some problems with his email account for mailing lists, 
+so sorry for the delay. Once this is fixed, he should
+be addressing your email.
 
--- 
+Or.
 
----------------------------------------------------------------
-This email, along with any attachments, is confidential. If you 
-believe you received this message in error, please contact the 
-sender immediately and delete all copies of the message.  
-Thank you.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
