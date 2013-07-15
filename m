@@ -1,69 +1,69 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: mlx5: Add driver for Mellanox Connect-IB adapters
-Date: Mon, 15 Jul 2013 17:29:15 +0300
-Message-ID: <51E4073B.9080500@mellanox.com>
-References: <20130710105538.GB31232@longonot.mountain>
+From: lokesh agarwal <lokesh.agarwal1986-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Repeated Stale Connection errors on successive reconnect attempt with
+ new cmid/QPs..
+Date: Mon, 15 Jul 2013 07:45:20 -0700
+Message-ID: <CABqF1pak6PG=gnuDPgj+pY4cSqGcASTyKdhezALTWtEvnSHFwA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130710105538.GB31232-dZEljifmRObu9KfB+GxooP8+0UxHXcjY@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/07/2013 13:55, Dan Carpenter wrote:
-> Hello Eli Cohen,
->
-> The patch e126ba97dba9: "mlx5: Add driver for Mellanox Connect-IB
-> adapters" from Jul 7, 2013, leads to the following Smatch warning:
-> "drivers/net/ethernet/mellanox/mlx5/core/cmd.c:822
-> mlx5_alloc_cmd_msg()
-> 	 warn: use 'flags' here instead of GFP_XXX?"
->
->     811  static struct mlx5_cmd_msg *mlx5_alloc_cmd_msg(struct mlx5_core_dev *dev,
->     812                                                 gfp_t flags, int size)
->                                                         ^^^^^^^^^^^
->
->     813  {
->     814          struct mlx5_cmd_mailbox *tmp, *head = NULL;
->     815          struct mlx5_cmd_prot_block *block;
->     816          struct mlx5_cmd_msg *msg;
->     817          int blen;
->     818          int err;
->     819          int n;
->     820          int i;
->     821
->     822          msg = kzalloc(sizeof(*msg), GFP_KERNEL);
->                                              ^^^^^^^^^^
->     823          if (!msg)
->     824                  return ERR_PTR(-ENOMEM);
->     825
->     826          blen = size - min_t(int, sizeof(msg->first.data), size);
->     827          n = (blen + MLX5_CMD_DATA_BLOCK_SIZE - 1) / MLX5_CMD_DATA_BLOCK_SIZE;
->     828
->     829          for (i = 0; i < n; i++) {
->     830                  tmp = alloc_cmd_box(dev, flags);
->                                                   ^^^^^
-> There is a kmalloc() in alloc_cmd_box() that uses flags as well as a
-> pci_pool_alloc() that uses it.
->
->     831                  if (IS_ERR(tmp)) {
->     832                          mlx5_core_warn(dev, "failed allocating block\n");
->
->
+Hello,
+I am using rdmacm as my connection manager and I have N processes tryin=
+g to
+establish a complete mesh of connections over RC protocol.
 
-Hi,
+I am receiving Connection rejected event with error 10.  As per the
+IBTA, the Connection Server
+is rejecting the connection requests thinking that it is a stale connec=
+tion.
 
-I think Eli has some problems with his email account for mailing lists, 
-so sorry for the delay. Once this is fixed, he should
-be addressing your email.
+I read an earlier response from Sean stating that it is advisable to
+recreate the QP and retry
+the connection. That is exactly what I am doing.
+Everytime I get err 10, I destroy the cmid and the attached QP, and go
+through the entire
+connection management again. (create a new cmid, resolve addr/resolve
+route/ connect)
 
-Or.
+The reconnect attempt succeeds until the Route resolve step, at which
+point I create a new QP, and issue the connect.
+I am stuck in this loop where I keep getting Rejects (err 10) after
+repeated attempts.
+It almost seems as if the underlying QP number is being recycled and
+the remote Connection server keeps rejecting the connection requests.
+
+As per the IBTA:
+"A CM may receive a REQ/REP specifying a remote QPN in
+=93REQ:local QPN=94/=94REP:local QPN=94 that the CM already considers c=
+onnected
+to a local QP. A local CM may receive such a REQ/REP if its local
+QP has a stale connection, as described in section 12.4.1. When a CM
+receives such a REQ/REP it shall abort the connection establishment by
+issuing REJ to the REQ/REP. It shall then issue DREQ, with =93DREQ:remo=
+te
+QPN=94 set to the remote QPN from the REQ/REP, until DREP is received
+or Max Retries is exceeded, and place the local QP in the TimeWait stat=
+e"
+
+So, the connection Server should issue a disconnect request. But the co=
+nnecting
+client does not get any disconnect requests..? Should librdmacm be
+sending out this
+disconnect..? Could this be a bug in the kernel driver..?
 
 
+I scanned the source for cm.c, and I dont see the kernel driver
+issuing a disconnect when it detects a stale connection...
+
+
+-Lokesh
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
