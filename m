@@ -1,60 +1,80 @@
-From: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
-Subject: [PATCH] RDMA/cma: silence GCC warning
-Date: Mon, 15 Jul 2013 13:03:59 +0200
-Message-ID: <1373886239.2591.26.camel@x61.thuisdomein>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH v3 11/13] IB/srp: Make HCA completion vector configurable
+Date: Mon, 15 Jul 2013 05:06:05 -0600
+Message-ID: <51E3D79D.9070808@acm.org>
+References: <51D41C03.4020607@acm.org> <51D41FFC.6070105@acm.org> <51E272A4.5030707@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <51E272A4.5030707-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Building cma.o triggers this GCC warning:
-    drivers/infiniband/core/cma.c: In function =E2=80=98rdma_resolve_ad=
-dr=E2=80=99:
-    drivers/infiniband/core/cma.c:465:23: warning: =E2=80=98port=E2=80=99=
- may be used uninitialized in this function [-Wmaybe-uninitialized]
-    drivers/infiniband/core/cma.c:426:5: note: =E2=80=98port=E2=80=99 w=
-as declared here
+On 14/07/2013 3:43, Sagi Grimberg wrote:
+> On 7/3/2013 3:58 PM, Bart Van Assche wrote:
+>> Several InfiniBand HCA's allow to configure the completion vector
+>> per queue pair. This allows to spread the workload created by IB
+>> completion interrupts over multiple MSI-X vectors and hence over
+>> multiple CPU cores. In other words, configuring the completion
+>> vector properly not only allows to reduce latency on an initiator
+>> connected to multiple SRP targets but also allows to improve
+>> throughput.
+>
+> Hey Bart,
+> Just wrote a small patch to allow srp_daemon spread connection across
+> HCA's completion vectors.
+> But re-thinking on this, is it really a good idea to give the user
+> control over completion
+> vectors for CQs he doesn't really owns. This way the user must retrieve
+> the maximum completion
+> vectors from the ib_device and consider this when adding a connection
+> and In addition will need to set proper IRQ affinity.
+>
+> Perhaps the driver can manage this on it's own without involving the
+> user, take the mlx4_en driver for
+> example, it spreads it's CQs across HCAs completion vectors without
+> involving the user. the user that
+> opens a socket has no influence of the underlying cq<->comp-vector
+> assignment.
+>
+> The only use-case I can think of is where the user will want to use only
+> a subset of the completion-vectors
+> if the user will want to reserve some completion-vectors for native IB
+> applications but I don't know
+> how common it is.
+>
+> Other from that, I think it is always better to spread the CQs across
+> HCA completion-vectors, so perhaps the driver
+> just assign connection CQs across comp-vecs without getting args from
+> the user, but simply iterate over comp_vectors.
+>
+> What do you think?
 
-This is a false positive, as "port" will always be initialized if we're
-at "found".
+Hello Sagi,
 
-Help GCC by initializing "port" to 0. Since valid port numbers
-apparently start at 1, this is an invalid value. That could help in
-analyzing the code and tracking down errors.
+Sorry but I do not think it is a good idea to let srp_daemon assign the 
+completion vector. While this might work well on single-socket systems 
+this will result in suboptimal results on NUMA systems. For certain 
+workloads on NUMA systems, and when a NUMA initiator system is connected 
+to multiple target systems, the optimal configuration is to make sure 
+that all processing that is associated with a single SCSI host occurs on 
+the same NUMA node. This means configuring the completion vector value 
+such that IB interrupts are generated on the same NUMA node where the 
+associated SCSI host and applications are running.
 
-Signed-off-by: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
----
-0) Compile tested only.
+More in general, performance tuning on NUMA systems requires system-wide 
+knowledge of all applications that are running and also of which 
+interrupt is processed by which NUMA node. So choosing a proper value 
+for the completion vector is only possible once the system topology and 
+the IRQ affinity masks are known. I don't think we should build 
+knowledge of all this in srp_daemon.
 
-1) Perhaps a better way to silence GCC is to drop "port" entirely, and
-assign to "id_priv->id.port_num" directly. Would that be acceptable?
-
- drivers/infiniband/core/cma.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cm=
-a.c
-index f1c279f..c6c0a5f 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -426,6 +426,7 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
-e *id_priv)
- 	u8 port, p;
- 	int i;
-=20
-+	port =3D 0; /* silence GCC */
- 	cma_dev =3D NULL;
- 	addr =3D (struct sockaddr_ib *) cma_dst_addr(id_priv);
- 	dgid =3D (union ib_gid *) &addr->sib_addr;
---=20
-1.8.1.4
+Bart.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
