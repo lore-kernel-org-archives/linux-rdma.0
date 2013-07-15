@@ -1,7 +1,7 @@
 From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH] IB/srp: Let srp_abort() return FAST_IO_FAIL if TL offline
-Date: Mon, 15 Jul 2013 09:33:33 -0700
-Message-ID: <51E4245D.8020700@mellanox.com>
+Date: Mon, 15 Jul 2013 09:34:08 -0700
+Message-ID: <51E42480.8060008@mellanox.com>
 References: <1373391385-4978-1-git-send-email-roland@kernel.org> <51DD714D.4080001@profitbricks.com> <CAG4TOxNeJWDWdZv+8nXzE1ektybkTEX0xNYh_S64-Gh4ocTD_A@mail.gmail.com> <51DD7F10.1040104@acm.org> <51DD7F83.4070402@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
@@ -43,7 +43,7 @@ Bart Van Assche wrote:
 >   
 Hello Bart,
 
-With this path on top of v3, the test have  run well with my fail-over test.
+With this patch applied on top of v3, my fail-over test have run well.
 Please queue it up with v4.
 
 thanks,
