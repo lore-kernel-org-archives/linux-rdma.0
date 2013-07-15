@@ -1,53 +1,65 @@
-From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Let srp_abort() return FAST_IO_FAIL if TL offline
-Date: Mon, 15 Jul 2013 09:34:08 -0700
-Message-ID: <51E42480.8060008@mellanox.com>
-References: <1373391385-4978-1-git-send-email-roland@kernel.org> <51DD714D.4080001@profitbricks.com> <CAG4TOxNeJWDWdZv+8nXzE1ektybkTEX0xNYh_S64-Gh4ocTD_A@mail.gmail.com> <51DD7F10.1040104@acm.org> <51DD7F83.4070402@acm.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH v3 11/13] IB/srp: Make HCA completion vector configurable
+Date: Mon, 15 Jul 2013 12:23:30 -0600
+Message-ID: <51E43E22.2060502@acm.org>
+References: <51D41C03.4020607@acm.org> <51D41FFC.6070105@acm.org> <51E272A4.5030707@mellanox.com> <51E3D79D.9070808@acm.org> <51E3F931.9080903@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51DD7F83.4070402-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <51E3F931.9080903-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Bart Van Assche wrote:
-> If the transport layer is offline it is more appropriate to let
-> srp_abort() return FAST_IO_FAIL instead of SUCCESS.
+On 15/07/2013 7:29, Sagi Grimberg wrote:
+> srp_daemon is a package designated for the customer to automatically
+> detect targets in the IB fabric. From our experience here in Mellanox,
+> customers/users like automatic "plug&play" tools.
+> They are reluctant to build their own scriptology to enhance performance
+> and settle with srp_daemon which is preferred over use of ibsrpdm and
+> manual adding new targets.
+> Regardless, the completion vectors assignment is meaningless without
+> setting proper IRQ affinity, so in the worst case where the user didn't
+> set his IRQ affinity,
+> this assignment will perform like the default completion vector
+> assignment as all IRQs are directed without any masking i.e. core 0.
 >
-> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-> Reported-by: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-> Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/srp/ib_srp.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+> From my experiments in NUMA systems, optimal performance is gained
+> where all IRQs are directed to half of the cores on the NUMA node close
+> to the HCA, and all traffic generators share the other half of the cores
+> on the same NUMA node. So based on that knowledge, I thought that
+> srp_daemon/srp driver will assign it's CQs across the HCAs completion
+> vectors, and the user is encouraged to set the IRQ affinity as described
+> above to gain optimal performance.
+> Adding connections over the far NUMA node don't seem to benefit
+> performance too much...
 >
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 9d8b46e..f93baf8 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -1753,8 +1753,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
->  	if (!req || !srp_claim_req(target, req, scmnd))
->  		return FAILED;
->  	if (srp_send_tsk_mgmt(target, req->index, scmnd->device->lun,
-> -			      SRP_TSK_ABORT_TASK) == 0 ||
-> -	    target->transport_offline)
-> +			      SRP_TSK_ABORT_TASK) == 0)
->  		ret = SUCCESS;
->  	else if (target->transport_offline)
->  		ret = FAST_IO_FAIL;
->   
-Hello Bart,
+> As I mentioned, a use-case I see that may raise a problem here, is if
+> the user would like to maintain multiple SRP connections and reserve
+> some completion vectors for other IB applications on the system.
+> in this case the user will be able to disable srp_daemon/srp driver
+> completion vectors assignment.
+>
+> So, this was just an idea, and easy implementation that would
+> potentially give the user semi-automatic performance optimized
+> configuration...
 
-With this patch applied on top of v3, my fail-over test have run well.
-Please queue it up with v4.
+Hello Sagi,
 
-thanks,
--vu
+I agree with you that it would help a lot if completion vector 
+assignment could be automated such that end users do not have to care 
+about assigning completion vector numbers. The challenge is to find an 
+approach that is general enough such that it works for all possible use 
+cases. One possible approach is to let a tool that has knowledge about 
+the application fill in completion vector numbers in srp_daemon.conf and 
+let srp_daemon use the values generated by this tool. That approach 
+would avoid that srp_daemon has to have any knowledge about the 
+application but would still allow srp_daemon to assign the completion 
+vector numbers.
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
