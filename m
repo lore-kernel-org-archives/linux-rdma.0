@@ -1,184 +1,214 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 11/13] IB/srp: Make HCA completion vector configurable
-Date: Sun, 14 Jul 2013 12:43:00 +0300
-Message-ID: <51E272A4.5030707@mellanox.com>
-References: <51D41C03.4020607@acm.org> <51D41FFC.6070105@acm.org>
+From: Pramod Gunjikar <pramod.gunjikar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: ibdiagnet: ibdiagnet /tmp clobbering vulnerability
+Date: Mon, 15 Jul 2013 10:49:24 +0530
+Message-ID: <51E3865C.7080105@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------070809000502040601060507"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51D41FFC.6070105-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/3/2013 3:58 PM, Bart Van Assche wrote:
-> Several InfiniBand HCA's allow to configure the completion vector
-> per queue pair. This allows to spread the workload created by IB
-> completion interrupts over multiple MSI-X vectors and hence over
-> multiple CPU cores. In other words, configuring the completion
-> vector properly not only allows to reduce latency on an initiator
-> connected to multiple SRP targets but also allows to improve
-> throughput.
+This is a multi-part message in MIME format.
+--------------070809000502040601060507
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hey Bart,
-Just wrote a small patch to allow srp_daemon spread connection across 
-HCA's completion vectors.
-But re-thinking on this, is it really a good idea to give the user 
-control over completion
-vectors for CQs he doesn't really owns. This way the user must retrieve 
-the maximum completion
-vectors from the ib_device and consider this when adding a connection 
-and In addition will need to set proper IRQ affinity.
+Sending this on behalf of Rajkumar Sivaprakasam.
 
-Perhaps the driver can manage this on it's own without involving the 
-user, take the mlx4_en driver for
-example, it spreads it's CQs across HCAs completion vectors without 
-involving the user. the user that
-opens a socket has no influence of the underlying cq<->comp-vector 
-assignment.
+   Pramod
+<--------------------------------------------------------------------------------------> 
 
-The only use-case I can think of is where the user will want to use only 
-a subset of the completion-vectors
-if the user will want to reserve some completion-vectors for native IB 
-applications but I don't know
-how common it is.
 
-Other from that, I think it is always better to spread the CQs across 
-HCA completion-vectors, so perhaps the driver
-just assign connection CQs across comp-vecs without getting args from 
-the user, but simply iterate over comp_vectors.
+The diff of the proposed changes for fixing the CVE 2013-2561 is in
+the  attachment to this mail. The diffs are based on ~kliteyn/ibutils.git.
+Please review the proposed changes for the fix. See below for the
+details about the issue and the proposed fix.
 
-What do you think?
+Synopsis:
+      CVE-2013-2561: ibdiagnet /tmp clobbering vulnerability
 
-> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-> Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-> Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> ---
->   Documentation/ABI/stable/sysfs-driver-ib_srp |    7 +++++++
->   drivers/infiniband/ulp/srp/ib_srp.c          |   26 ++++++++++++++++++++++++--
->   drivers/infiniband/ulp/srp/ib_srp.h          |    1 +
->   3 files changed, 32 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/ABI/stable/sysfs-driver-ib_srp b/Documentation/ABI/stable/sysfs-driver-ib_srp
-> index 481aae9..5c53d28 100644
-> --- a/Documentation/ABI/stable/sysfs-driver-ib_srp
-> +++ b/Documentation/ABI/stable/sysfs-driver-ib_srp
-> @@ -54,6 +54,13 @@ Description:	Interface for making ib_srp connect to a new target.
->   		  ib_srp. Specifying a value that exceeds cmd_sg_entries is
->   		  only safe with partial memory descriptor list support enabled
->   		  (allow_ext_sg=1).
-> +		* comp_vector, a number in the range 0..n-1 specifying the
-> +		  MSI-X completion vector. Some HCA's allocate multiple (n)
-> +		  MSI-X vectors per HCA port. If the IRQ affinity masks of
-> +		  these interrupts have been configured such that each MSI-X
-> +		  interrupt is handled by a different CPU then the comp_vector
-> +		  parameter can be used to spread the SRP completion workload
-> +		  over multiple CPU's.
->   
->   What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/ibdev
->   Date:		January 2, 2006
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 2557b7a..6c164f6 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -294,14 +294,16 @@ static int srp_create_target_ib(struct srp_target_port *target)
->   		return -ENOMEM;
->   
->   	recv_cq = ib_create_cq(target->srp_host->srp_dev->dev,
-> -			       srp_recv_completion, NULL, target, SRP_RQ_SIZE, 0);
-> +			       srp_recv_completion, NULL, target, SRP_RQ_SIZE,
-> +			       target->comp_vector);
->   	if (IS_ERR(recv_cq)) {
->   		ret = PTR_ERR(recv_cq);
->   		goto err;
->   	}
->   
->   	send_cq = ib_create_cq(target->srp_host->srp_dev->dev,
-> -			       srp_send_completion, NULL, target, SRP_SQ_SIZE, 0);
-> +			       srp_send_completion, NULL, target, SRP_SQ_SIZE,
-> +			       target->comp_vector);
->   	if (IS_ERR(send_cq)) {
->   		ret = PTR_ERR(send_cq);
->   		goto err_recv_cq;
-> @@ -1976,6 +1978,14 @@ static ssize_t show_local_ib_device(struct device *dev,
->   	return sprintf(buf, "%s\n", target->srp_host->srp_dev->dev->name);
->   }
->   
-> +static ssize_t show_comp_vector(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct srp_target_port *target = host_to_target(class_to_shost(dev));
-> +
-> +	return sprintf(buf, "%d\n", target->comp_vector);
-> +}
-> +
->   static ssize_t show_cmd_sg_entries(struct device *dev,
->   				   struct device_attribute *attr, char *buf)
->   {
-> @@ -2002,6 +2012,7 @@ static DEVICE_ATTR(req_lim,         S_IRUGO, show_req_lim,         NULL);
->   static DEVICE_ATTR(zero_req_lim,    S_IRUGO, show_zero_req_lim,	   NULL);
->   static DEVICE_ATTR(local_ib_port,   S_IRUGO, show_local_ib_port,   NULL);
->   static DEVICE_ATTR(local_ib_device, S_IRUGO, show_local_ib_device, NULL);
-> +static DEVICE_ATTR(comp_vector,     S_IRUGO, show_comp_vector,     NULL);
->   static DEVICE_ATTR(cmd_sg_entries,  S_IRUGO, show_cmd_sg_entries,  NULL);
->   static DEVICE_ATTR(allow_ext_sg,    S_IRUGO, show_allow_ext_sg,    NULL);
->   
-> @@ -2016,6 +2027,7 @@ static struct device_attribute *srp_host_attrs[] = {
->   	&dev_attr_zero_req_lim,
->   	&dev_attr_local_ib_port,
->   	&dev_attr_local_ib_device,
-> +	&dev_attr_comp_vector,
->   	&dev_attr_cmd_sg_entries,
->   	&dev_attr_allow_ext_sg,
->   	NULL
-> @@ -2140,6 +2152,7 @@ enum {
->   	SRP_OPT_CMD_SG_ENTRIES	= 1 << 9,
->   	SRP_OPT_ALLOW_EXT_SG	= 1 << 10,
->   	SRP_OPT_SG_TABLESIZE	= 1 << 11,
-> +	SRP_OPT_COMP_VECTOR	= 1 << 12,
->   	SRP_OPT_ALL		= (SRP_OPT_ID_EXT	|
->   				   SRP_OPT_IOC_GUID	|
->   				   SRP_OPT_DGID		|
-> @@ -2160,6 +2173,7 @@ static const match_table_t srp_opt_tokens = {
->   	{ SRP_OPT_CMD_SG_ENTRIES,	"cmd_sg_entries=%u"	},
->   	{ SRP_OPT_ALLOW_EXT_SG,		"allow_ext_sg=%u"	},
->   	{ SRP_OPT_SG_TABLESIZE,		"sg_tablesize=%u"	},
-> +	{ SRP_OPT_COMP_VECTOR,		"comp_vector=%u"	},
->   	{ SRP_OPT_ERR,			NULL 			}
->   };
->   
-> @@ -2315,6 +2329,14 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
->   			target->sg_tablesize = token;
->   			break;
->   
-> +		case SRP_OPT_COMP_VECTOR:
-> +			if (match_int(args, &token) || token < 0) {
-> +				pr_warn("bad comp_vector parameter '%s'\n", p);
-> +				goto out;
-> +			}
-> +			target->comp_vector = token;
-> +			break;
-> +
->   		default:
->   			pr_warn("unknown parameter or missing value '%s' in target creation request\n",
->   				p);
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-> index e45d9d0..cbc0b14 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.h
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-> @@ -156,6 +156,7 @@ struct srp_target_port {
->   	char			target_name[32];
->   	unsigned int		scsi_id;
->   	unsigned int		sg_tablesize;
-> +	int			comp_vector;
->   
->   	struct ib_sa_path_rec	path;
->   	__be16			orig_dgid[8];
+Problem statement:
+      The ibdiagnet  utility creates many files in the /tmp/ directory.
+If  any  of  these  files  exist  already,  they  are  deleted during
+initialization of the command except for,
 
+      ibdiagnet.log
+      ibdiagnet.db
+      ibdiagnet_ibis.log
+
+      These files, if  present, are  truncated to zero  length  and the
+relevant data written to it.
+
+      A malicious user (non-privileged) can create a soft link with one
+or more of the above three files pointing to an important  system file
+(example /etc/shadow), since /tmp/ has write  access by  everyone. The
+next time  ibdiagnet  is  run  as root, the command will just open the
+symlink  truncating the system file and  writing the ibdiagnet data in
+those file, possibly bringing down the system.
+
+Fix Summary:
+      Remove  the  above  files  too  in a way that does not impair the
+functionality.  This  breaks  any  symlink  that  was  created  by the
+malicious user  preventing the data  corruption. Since these files are
+always  opened  with  the  access  mode 'w'  (write,  with  file size
+truncated  to  0)  it  is  safe  to delete these files and treats them
+similar to the other files.
+
+Fix Details:
+      The  ibdiagnet  utility  at  the  initialization path of the code
+(StartIBDIAG() in  ibdebug.tcl) calls  DeleteOldFiles()  routine which
+deletes  all  the  files  that will be created by the utility, if they
+already  exist. This  routine  however  skips  the  ibdiagnet.log and
+ibdiagnet.db files.
+
+      The  ibdiagnet.log  file  is  opened  as soon as the command line
+arguments  are  parsed  (in  ParseArgv())  much  before StartIBDIAG()
+routine is executed. This is done to log any errors encountered during
+the early  initialization phase. If the  DeleteOldFiles()  deletes the
+log file  latter, the  utility will  continue to write to the file but
+the  entry  will  be  removed  from  the directory name space. It will
+likely be deleted (inode and disk blocks) once we close the file. This
+is  the  reason  DeleteOldFiles()  explicitly  skips  this  file. The
+proposed  fix  deletes any pre-existing file with the same name before
+the file is opened for logging in ParseArgv().
+
+      The  ibdiagnet.db  file  contains  the IB  subnet database in tcl
+source-able  array  format. This  file  can be used latter to load the
+subnet database without going  through the subnet discovery phase. The
+sourcing of the subnet database file is done after the DeleteOldFiles()
+routine  is   executed.  So  if  the   input   file  is  the default
+/tmp/ibdiagnet.db  file and if we  delete it, then the sourcing of the
+subnet database will fail. To  prevent this  from happening, currently
+the  subnet  database  file is explicitly skipped by DeleteOldFiles().
+This  opens the  window for  the symlink based system  file clobbering
+when the  file is  written. The  fix is  to  delete  the ibdiagnet.db
+file  just  before  opening for  write. The  file  is  deleted only if
+-load_db  option is not given, since we do not want to delete the file
+unless  we  have done  subnet discovery and need to write out the new
+subnet database.
+
+      The  ibdiagnet_ibis.log is the log file setup for IB interactive
+scripting  interpreter (ibis) to log its  messages. This  is done very
+early in InitializeIBIS(). Also, this is not part of the list of files
+maintained  by   ibdiagnet   utility.  Hence  it  is  not  deleted by
+DeleteOldFiles().  The  fix  is  to  delete the file just before it is
+setup by ibdiagnet for ibis.
+
+
+Thanks
+Raj
+
+--------------070809000502040601060507
+Content-Type: text/x-patch;
+ name="ibdiagnet_CVE-2013-2561.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="ibdiagnet_CVE-2013-2561.patch"
+
+>From eef53577ad675b0ffbfd7b47aa58f7170c0fab11 Mon Sep 17 00:00:00 2001
+From: Rajkumar Sivaprakasam <rajkumar.sivaprakasam-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Date: Thu, 11 Jul 2013 02:46:36 -0700
+Subject: [PATCH] ibdiagnet /tmp clobbering vulnerability CVE-2013-2561
+
+---
+ ibdiag/src/ibdebug.tcl    |   25 +++++++++++++++++++------
+ ibdiag/src/ibdebug_if.tcl |   18 ++++++++++++++++++
+ 2 files changed, 37 insertions(+), 6 deletions(-)
+
+diff --git a/ibdiag/src/ibdebug.tcl b/ibdiag/src/ibdebug.tcl
+index 1527f9e..9bf473d 100644
+--- a/ibdiag/src/ibdebug.tcl
++++ b/ibdiag/src/ibdebug.tcl
+@@ -352,13 +352,16 @@ proc InitializeIBIS {} {
+     if {[file exists $ibisOutDir/$ibisLogFile] && (![file writable $ibisOutDir/$ibisLogFile])} {
+ 	set ibisLogFile $ibisLogFile.[pid]
+     }
++
++    ## Check if the file exists. If it does delete it. The log file is opened with the 'w' access
++    ## mode which truncates the file to zero length, so the contents are not preserved. Deleting
++    ## the file prevents any softlink based system file clobbering issues.
+     if {[file exists $ibisOutDir/$ibisLogFile]} {
+-	if {![file writable $ibisOutDir/$ibisLogFile]} {
+-	    if {![file writable $ibisOutDir/$ibisLogFile]} {
+-		catch {set ibisLogFd [open $ibisOutDir/$ibisLogFile w]} errMsg
+-		inform "-E-ibis:file.not.writable" -value $ibisOutDir/$ibisLogFile -errMsg $errMsg
+-	    }
+-	}
++        ## Since we have already verified the directory is writable and open with 'w' option
++        ## truncates the file, it is safe to delete the file if it exists.
++        if {[catch {file delete $ibisOutDir/$ibisLogFile} errMsg]} {
++            inform "-E-ibis:could.not.delete.file" -value $ibisOutDir/$ibisLogFile
++        }
+     }
+     inform "-V-ibis.ibis.log.file" -value $ibisOutDir/$ibisLogFile
+ 
+@@ -5123,6 +5126,16 @@ proc writeDBFile {} {
+         return 1
+     }
+ 
++    ## If the file exists delete the file to prevent any symlink
++    ## system file clobbering. The file is about to be opened with
++    ## the access mode of 'w', which will truncate the file to zero
++    ## length anyway. So, it is safe to delete the file now.
++    if {[file exists $G(outfiles,.db)]} {
++        if {[catch {file delete $G(outfiles,.db)} errMsg]} {
++           return 1
++        }
++    }
++
+     set FileID [InitializeOutputFile $G(var:tool.name).db]
+ 
+     foreach {array_name data} {G data* Neighbor *} {
+diff --git a/ibdiag/src/ibdebug_if.tcl b/ibdiag/src/ibdebug_if.tcl
+index f0586a1..5cddb6b 100644
+--- a/ibdiag/src/ibdebug_if.tcl
++++ b/ibdiag/src/ibdebug_if.tcl
+@@ -675,6 +675,16 @@ proc ParseArgv {} {
+     }
+ 
+     ## Command line check - Test5.0: log file
++
++    ## The directory has been verified to be writable, delete the file if it exists since
++    ## we anyway open it with 'w' which will truncate it to zero length. Deleting the file
++    ## will prevent symlink based system file clobbering.
++    if {[file exists $G(outfiles,.log)]} {
++        if {[catch {file delete $G(outfiles,.log)} errMsg]} {
++            ## Print the delete failure error message and exit
++            inform "-E-loading:cannot.delete.file" $G(outfiles,.log) -fn $G(outfiles,.log) -errMsg $errMsg
++        }
++    }
+     if {[catch {set G(logFileID) [open $G(outfiles,.log) w]} errMsg]} {
+ 	 inform "-E-loading:cannot.open.file" $G(outfiles,.log) -fn $G(outfiles,.log) -errMsg $errMsg
+     }
+@@ -1229,6 +1239,10 @@ proc inform { msgCode args } {
+ 	    append msgText "IBIS: The following file is write protected: $msgF(value)%n"
+ 	    append msgText "Error message: \"$msgF(errMsg)\""
+ 	}
++	"-E-ibis:could.not.delete.file" {
++	    append msgText "IBIS: Could not delete the file : $msgF(value)%n"
++	    append msgText "Error message: \"$msgF(errMsg)\""
++	}
+ 	"-V-ibis:ibis_get_local_ports_info" {
+ 	    append msgText "IBIS: ibis_get_local_ports_info:%n$msgF(value)"
+ 	}
+@@ -1260,6 +1274,10 @@ proc inform { msgCode args } {
+ 	    append msgText "Failed to load ibdiag external DB from: $msgF(fn)%n"
+ 	    append msgText "Error message: \"$msgF(errMsg)\""
+ 	}
++	"-E-loading:cannot.delete.file" {
++	    append msgText "Could not delete the file : $msgF(fn)%n"
++	    append msgText "Error message: \"$msgF(errMsg)\""
++	}
+         "-W-loading:old.osm.version" {
+ 	    append msgText "OSM: The current OSM version is not up-to-date"
+ 	}
+-- 
+1.7.9.2
+
+
+--------------070809000502040601060507--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
