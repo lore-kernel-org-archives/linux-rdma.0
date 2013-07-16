@@ -1,116 +1,43 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH librdmacm 8/8] Open files with "close on exec" flag
-Date: Tue, 16 Jul 2013 23:59:52 +0200
-Message-ID: <432090a25b96bd650c66f1f330a50b0ae818395f.1374011243.git.ydroneaud@opteya.com>
+Subject: [PATCH librdmacm 3/8] autogen.sh: Use autoreconf in autogen.sh
+Date: Tue, 16 Jul 2013 23:59:47 +0200
+Message-ID: <317ae98daf0eec49ffb297a5fc59b3738366af6d.1374011243.git.ydroneaud@opteya.com>
 References: <cover.1374011243.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1374011243.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-File opened by librdmacm are not supposed to be inherited across
-exec*(), most of the files are of no use for another program, and
-others cannot be used without the associated memory mapping.
+From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 
-This patch changes fopen() open() and socket() to always set
-close on exec flag.
+The old sequence of Autotools commands listed in autogen.sh is no
+longer correct.  Instead, just use the single "autoreconf" command,
+which will invoke all the Right Autotools commands in the correct
+order.
 
-This patch also add checks to configure to guess if fopen() supports
-"e" flag. If O_CLOEXEC and SOCK_CLOEXEC are supported, fopen() should
-support "e". If not supported, its discarded according to POSIX. Many
-operating systems have support for fopen("e").
-
-You might find more information about close on exec in the following articles:
-
-- "Excuse me son, but your code is leaking !!!" by Dan Walsh
-  http://danwalsh.livejournal.com/53603.html
-
-- "Secure File Descriptor Handling" by Ulrich Drepper
-  http://udrepper.livejournal.com/20407.html
-
-Note: this patch won't set close on exec flag on file descriptors
-created by the kernel for completion channel and such.
-This is addressed by another kernel patch.
-
+Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- configure.ac | 24 ++++++++++++++++++++++++
- src/acm.c    |  4 ++--
- src/cma.c    |  2 +-
- 3 files changed, 27 insertions(+), 3 deletions(-)
+ autogen.sh | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 807470f..31b1a0e 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -78,6 +78,30 @@ AC_CHECK_HEADER(infiniband/acm.h,
- 		AC_DEFINE(DEFINE_ACM_MSG, 1, [adding ACM message definition]),
- 			[#include <infiniband/acm.h>]), [])
+diff --git a/autogen.sh b/autogen.sh
+index f433312..6c9233e 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,9 +1,4 @@
+ #! /bin/sh
  
-+dnl Checks close on exec support
-+AC_CHECK_HEADERS([fcntl.h sys/socket.h])
-+
-+AC_CHECK_DECLS([O_CLOEXEC],,[AC_DEFINE([O_CLOEXEC],[0], [Defined to 0 if not provided])],
-+[[
-+#ifdef HAVE_FCNTL_H
-+# include <fcntl.h>
-+#endif
-+]])
-+AC_CHECK_DECLS([SOCK_CLOEXEC],,[AC_DEFINE([SOCK_CLOEXEC],[0],[Defined to 0 if not provided])],
-+[[
-+#ifdef HAVE_SYS_SOCKET_H
-+# include <sys/socket.h>
-+#endif
-+]])
-+
-+AC_CACHE_CHECK(for close on exec modifier for fopen(), ac_cv_feature_stream_cloexec_flag,
-+   [if test $ac_cv_have_decl_O_CLOEXEC = yes ; then
-+        if test $ac_cv_have_decl_SOCK_CLOEXEC = yes ; then
-+            ac_cv_feature_stream_cloexec_flag="e"
-+        fi
-+    fi])
-+AC_DEFINE_UNQUOTED([STREAM_CLOEXEC], "$ac_cv_feature_stream_cloexec_flag", [fopen() modifier for setting close on exec flag])
-+
- AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
-     if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
-         ac_cv_version_script=yes
-diff --git a/src/acm.c b/src/acm.c
-index c9ca5b5..6e8e173 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -80,7 +80,7 @@ static int ucma_set_server_port(void)
- {
- 	FILE *f;
- 
--	if ((f = fopen("/var/run/ibacm.port", "r"))) {
-+	if ((f = fopen("/var/run/ibacm.port", "r" STREAM_CLOEXEC))) {
- 		fscanf(f, "%hu", (unsigned short *) &server_port);
- 		fclose(f);
- 	}
-@@ -100,7 +100,7 @@ void ucma_ib_init(void)
- 	if (!ucma_set_server_port())
- 		goto out;
- 
--	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-+	sock = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, IPPROTO_TCP);
- 	if (sock < 0)
- 		goto out;
- 
-diff --git a/src/cma.c b/src/cma.c
-index 2fb9913..baebecd 100644
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -328,7 +328,7 @@ struct rdma_event_channel *rdma_create_event_channel(void)
- 	if (!channel)
- 		return NULL;
- 
--	channel->fd = open("/dev/infiniband/rdma_cm", O_RDWR);
-+	channel->fd = open("/dev/infiniband/rdma_cm", O_RDWR | O_CLOEXEC);
- 	if (channel->fd < 0) {
- 		fprintf(stderr, PFX "Fatal: unable to open /dev/infiniband/rdma_cm\n");
- 		goto err;
+ set -x
+-test -d ./config || mkdir ./config
+-aclocal -I config
+-libtoolize --force --copy
+-autoheader
+-automake --foreign --add-missing --copy
+-autoconf
++autoreconf -ifv -I config
 -- 
 1.8.3.1
 
