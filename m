@@ -1,37 +1,45 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH 3.11-rc1] mlx5 core: Fix __udivdi3 when compiling for
- 32 bit arches
-Date: Tue, 16 Jul 2013 12:36:58 -0700 (PDT)
-Message-ID: <20130716.123658.1660201783834013788.davem@davemloft.net>
-References: <1373900205-69711-1-git-send-email-tim.gardner@canonical.com>
-	<51E41AB2.3020905@infradead.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH librdmacm 5/8] configure: Use automake's option "subdir-objects"
+Date: Tue, 16 Jul 2013 23:59:49 +0200
+Message-ID: <dd979f73267d169be990a757907f3351fec49b78.1374011243.git.ydroneaud@opteya.com>
+References: <cover.1374011243.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51E41AB2.3020905-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <cover.1374011243.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
-Cc: tim.gardner-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Date: Mon, 15 Jul 2013 08:52:18 -0700
+Following advice in "Autotool Mythbuster" [1], option subdir-objects
+can be used to have Makefiles create object files in the same
+directory than theirs source files.
 
-> On 07/15/13 07:56, Tim Gardner wrote:
->> Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Tim Gardner <tim.gardner-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> 
-> I reported this last week and Eli wrote:
-> 
-> "I have this fixed in my tree and we run the driver on i386. I will check on Sunday why it is not in the patches submitted."
-> 
-> Anyway, the patch works for me.
-> 
-> Acked-by: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-> Reported-by: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+It reduces clobbering in the build directory.
 
-Applied, thanks.
+[1] "Autotool Mythbuster", by Diego Elio "Flameeyes" Petten`o
+http://www.flameeyes.eu/autotools-mythbuster/automake/nonrecursive.html
+
+Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index a9e95c0..807470f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([src/cma.c])
+ AC_CONFIG_AUX_DIR(config)
+ AC_CONFIG_MACRO_DIR(config)
+ AC_CONFIG_HEADERS([config.h])
+-AM_INIT_AUTOMAKE([foreign])
++AM_INIT_AUTOMAKE([foreign subdir-objects])
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
+ LT_INIT
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
