@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH librdmacm 1/8] Add "foreign" option to AM_INIT_AUTOMAKE
-Date: Tue, 16 Jul 2013 23:59:45 +0200
-Message-ID: <60e5e0ae4524153d31389554a7d9c601a75427ad.1374011243.git.ydroneaud@opteya.com>
+Subject: [PATCH librdmacm 2/8] Makefile.am: Fix an automake warning
+Date: Tue, 16 Jul 2013 23:59:46 +0200
+Message-ID: <6806d5660d8e00f9c0a8c241c3c5d908cf9d85ec.1374011243.git.ydroneaud@opteya.com>
 References: <cover.1374011243.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1374011243.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,30 +12,34 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
-Switch to the modern form of the AM_INIT_AUTOMAKE macro and tell
-automake that the librdmacm package does not follow the GNU
-standards. This change makes it possible to use 'autoreconf' for the
-librdmacm package.
+Fix the following automake warning message:
+
+    Makefile.am:1: `INCLUDES' is the old name for `AM_CPPFLAGS' (or `*_CPPFLAGS')
+
+A quote from the automake manual:
+
+    INCLUDES
+        This does the same job as AM_CPPFLAGS (or any per-target _CPPFLAGS variable
+        if it is used). It is an older name for the same functionality. This
+        variable is deprecated; we suggest using AM_CPPFLAGS and per-target
+        _CPPFLAGS instead.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- configure.ac | 2 +-
+ Makefile.am | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index 35d79dd..20c2f94 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([src/cma.c])
- AC_CONFIG_AUX_DIR(config)
- AC_CONFIG_MACRO_DIR(config)
- AC_CONFIG_HEADERS(config.h)
--AM_INIT_AUTOMAKE(librdmacm, 1.0.17)
-+AM_INIT_AUTOMAKE([foreign])
- m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+diff --git a/Makefile.am b/Makefile.am
+index 3198165..e1be9f3 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,4 +1,4 @@
+-INCLUDES = -I$(srcdir)/include
++AM_CPPFLAGS = -I$(srcdir)/include
  
- AM_PROG_LIBTOOL
+ rslibdir = $(libdir)/rsocket
+ lib_LTLIBRARIES = src/librdmacm.la
 -- 
 1.8.3.1
 
