@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH librdmacm 6/8] Add .gitignore rules
-Date: Tue, 16 Jul 2013 23:59:50 +0200
-Message-ID: <a8b2d85df2639fdfc2b4fcb892d08755fc2ebab8.1374011243.git.ydroneaud@opteya.com>
+Subject: [PATCH librdmacm 8/8] Open files with "close on exec" flag
+Date: Tue, 16 Jul 2013 23:59:52 +0200
+Message-ID: <432090a25b96bd650c66f1f330a50b0ae818395f.1374011243.git.ydroneaud@opteya.com>
 References: <cover.1374011243.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1374011243.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -10,132 +10,107 @@ To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add the list of files/patterns to be exclueded from git status output.
-Additionally it will prevent such files/patterns to be added and committed.
+File opened by librdmacm are not supposed to be inherited across
+exec*(), most of the files are of no use for another program, and
+others cannot be used without the associated memory mapping.
+
+This patch changes fopen() open() and socket() to always set
+close on exec flag.
+
+This patch also add checks to configure to guess if fopen() supports
+"e" flag. If O_CLOEXEC and SOCK_CLOEXEC are supported, fopen() should
+support "e". If not supported, its discarded according to POSIX. Many
+operating systems have support for fopen("e").
+
+You might find more information about close on exec in the following articles:
+
+- "Excuse me son, but your code is leaking !!!" by Dan Walsh
+  http://danwalsh.livejournal.com/53603.html
+
+- "Secure File Descriptor Handling" by Ulrich Drepper
+  http://udrepper.livejournal.com/20407.html
+
+Note: this patch won't set close on exec flag on file descriptors
+created by the kernel for completion channel and such.
+This is addressed by another kernel patch.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- .gitignore          | 64 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- examples/.gitignore | 22 ++++++++++++++++++
- src/.gitignore      |  9 ++++++++
- 3 files changed, 95 insertions(+)
- create mode 100644 .gitignore
- create mode 100644 examples/.gitignore
- create mode 100644 src/.gitignore
+ configure.ac | 24 ++++++++++++++++++++++++
+ src/acm.c    |  4 ++--
+ src/cma.c    |  2 +-
+ 3 files changed, 27 insertions(+), 3 deletions(-)
 
-diff --git a/.gitignore b/.gitignore
-new file mode 100644
-index 0000000..cea1f71
---- /dev/null
-+++ b/.gitignore
-@@ -0,0 +1,64 @@
-+# - see gitignore(5)
-+#
-+# http://www.kernel.org/pub/software/scm/git/docs/gitignore.html
-+# http://git-scm.com/docs/gitignore.html
-+#
-+# - ignore files in this current directory with a leading /
-+# so that files with the same name is a subdirectory
-+# would not be ignored by mistake.
-+#
-+# per directory .gitignore would be used to ignore specific
-+# files/patterns
-+#
-+# - more examples can be found at
-+#
-+# https://github.com/github/gitignore
-+# http://git-scm.com/book/en/Git-Basics-Recording-Changes-to-the-Repository#Ignoring-Files
-+#
+diff --git a/configure.ac b/configure.ac
+index 807470f..31b1a0e 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -78,6 +78,30 @@ AC_CHECK_HEADER(infiniband/acm.h,
+ 		AC_DEFINE(DEFINE_ACM_MSG, 1, [adding ACM message definition]),
+ 			[#include <infiniband/acm.h>]), [])
+ 
++dnl Checks close on exec support
++AC_CHECK_HEADERS([fcntl.h sys/socket.h])
 +
-+# global ignore rules:
-+#
-+# backup files
-+#
-+*~
++AC_CHECK_DECLS([O_CLOEXEC],,[AC_DEFINE([O_CLOEXEC],[0], [Defined to 0 if not provided])],
++[[
++#ifdef HAVE_FCNTL_H
++# include <fcntl.h>
++#endif
++]])
++AC_CHECK_DECLS([SOCK_CLOEXEC],,[AC_DEFINE([SOCK_CLOEXEC],[0],[Defined to 0 if not provided])],
++[[
++#ifdef HAVE_SYS_SOCKET_H
++# include <sys/socket.h>
++#endif
++]])
 +
-+# local (eg. current directory) rules:
-+#
-+# /<pattern>
++AC_CACHE_CHECK(for close on exec modifier for fopen(), ac_cv_feature_stream_cloexec_flag,
++   [if test $ac_cv_have_decl_O_CLOEXEC = yes ; then
++        if test $ac_cv_have_decl_SOCK_CLOEXEC = yes ; then
++            ac_cv_feature_stream_cloexec_flag="e"
++        fi
++    fi])
++AC_DEFINE_UNQUOTED([STREAM_CLOEXEC], "$ac_cv_feature_stream_cloexec_flag", [fopen() modifier for setting close on exec flag])
 +
-+#
-+# files created by autoreconf (autoconf, automake, libtool)
-+#
-+
-+/INSTALL
-+/config.guess
-+/config.sub
-+/missing
-+/depcomp
-+/install-sh
-+/configure
-+/aclocal.m4
-+/autom4te.cache/
-+/config.h.in
-+/Makefile.in
-+/compile
-+/config
-+
-+#
-+# files created by autoscan
-+#
-+
-+/autoscan.log
-+/configure.scan
-+
-+#
-+# files created by ./configure
-+#
-+
-+/config.h
-+/config.status
-+/config.log
-+/Makefile
-+/stamp-h1
-+/libtool
-+/librdmacm.spec
-diff --git a/examples/.gitignore b/examples/.gitignore
-new file mode 100644
-index 0000000..ed17494
---- /dev/null
-+++ b/examples/.gitignore
-@@ -0,0 +1,22 @@
-+# files produced by ./configure
-+/.deps
-+
-+# files produced by make (libtool)
-+/*.o
-+/*.lo
-+/*.la
-+/.libs
-+/.dirstamp
-+
-+/mckey
-+/rcopy
-+/rdma_client
-+/rdma_server
-+/rdma_xclient
-+/rdma_xserver
-+/riostream
-+/rping
-+/rstream
-+/ucmatose
-+/udaddy
-+/udpong
-diff --git a/src/.gitignore b/src/.gitignore
-new file mode 100644
-index 0000000..139417a
---- /dev/null
-+++ b/src/.gitignore
-@@ -0,0 +1,9 @@
-+# files produced by ./configure
-+/.deps
-+
-+# files produced by make (libtool)
-+/*.o
-+/*.lo
-+/*.la
-+/.libs
-+/.dirstamp
+ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+     if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
+         ac_cv_version_script=yes
+diff --git a/src/acm.c b/src/acm.c
+index c9ca5b5..6e8e173 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -80,7 +80,7 @@ static int ucma_set_server_port(void)
+ {
+ 	FILE *f;
+ 
+-	if ((f = fopen("/var/run/ibacm.port", "r"))) {
++	if ((f = fopen("/var/run/ibacm.port", "r" STREAM_CLOEXEC))) {
+ 		fscanf(f, "%hu", (unsigned short *) &server_port);
+ 		fclose(f);
+ 	}
+@@ -100,7 +100,7 @@ void ucma_ib_init(void)
+ 	if (!ucma_set_server_port())
+ 		goto out;
+ 
+-	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
++	sock = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, IPPROTO_TCP);
+ 	if (sock < 0)
+ 		goto out;
+ 
+diff --git a/src/cma.c b/src/cma.c
+index 2fb9913..baebecd 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -328,7 +328,7 @@ struct rdma_event_channel *rdma_create_event_channel(void)
+ 	if (!channel)
+ 		return NULL;
+ 
+-	channel->fd = open("/dev/infiniband/rdma_cm", O_RDWR);
++	channel->fd = open("/dev/infiniband/rdma_cm", O_RDWR | O_CLOEXEC);
+ 	if (channel->fd < 0) {
+ 		fprintf(stderr, PFX "Fatal: unable to open /dev/infiniband/rdma_cm\n");
+ 		goto err;
 -- 
 1.8.3.1
 
