@@ -1,45 +1,75 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH librdmacm 2/8] Makefile.am: Fix an automake warning
-Date: Tue, 16 Jul 2013 23:59:46 +0200
-Message-ID: <6806d5660d8e00f9c0a8c241c3c5d908cf9d85ec.1374011243.git.ydroneaud@opteya.com>
-References: <cover.1374011243.git.ydroneaud@opteya.com>
+Subject: [PATCH librdmacm 0/8] librdmacm "synchronisation" against libibverbs
+Date: Tue, 16 Jul 2013 23:59:44 +0200
+Message-ID: <cover.1374011243.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1374011243.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Hi,
 
-Fix the following automake warning message:
+Please find a few patches to bring librdmacm up to date regarding
+autotools support and some others fixes ...
 
-    Makefile.am:1: `INCLUDES' is the old name for `AM_CPPFLAGS' (or `*_CPPFLAGS')
+I've used patches from libibverbs to update autoconf/automake
+support: I reused commit messages and author of libibverbs commit,
+I hope it's ok for you to get credit about those patches to librdmacm.
 
-A quote from the automake manual:
+I've added .gitignore files to the sources and cleanup file modes.
 
-    INCLUDES
-        This does the same job as AM_CPPFLAGS (or any per-target _CPPFLAGS variable
-        if it is used). It is an older name for the same functionality. This
-        variable is deprecated; we suggest using AM_CPPFLAGS and per-target
-        _CPPFLAGS instead.
+At last, I've added support for close on exec, just like I did
+for libibverbs. It might be good to add support for close on exec
+since I've managed to get the change applied in the kernel
+(Thanks Roland :).
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
----
- Makefile.am | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 3198165..e1be9f3 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,4 +1,4 @@
--INCLUDES = -I$(srcdir)/include
-+AM_CPPFLAGS = -I$(srcdir)/include
- 
- rslibdir = $(libdir)/rsocket
- lib_LTLIBRARIES = src/librdmacm.la
+Bart Van Assche (2):
+  Add "foreign" option to AM_INIT_AUTOMAKE
+  Makefile.am: Fix an automake warning
+
+Jeff Squyres (1):
+  autogen.sh: Use autoreconf in autogen.sh
+
+Yann Droneaud (5):
+  configure: Apply updates proposed by autoupdate
+  configure: Use automake's option "subdir-objects"
+  Add .gitignore rules
+  Remove executable mode bit on plain text files
+  Open files with "close on exec" flag
+
+ .gitignore                | 64 +++++++++++++++++++++++++++++++++++++++++++++++
+ Makefile.am               |  2 +-
+ autogen.sh                |  7 +-----
+ configure.ac              | 40 +++++++++++++++++++++++------
+ examples/.gitignore       | 22 ++++++++++++++++
+ include/rdma/rdma_cma.h   |  0
+ man/rdma_accept.3         |  0
+ man/rdma_connect.3        |  0
+ man/rdma_create_qp.3      |  0
+ man/rdma_getaddrinfo.3    |  0
+ man/rdma_join_multicast.3 |  0
+ man/rdma_notify.3         |  0
+ src/.gitignore            |  9 +++++++
+ src/acm.c                 |  4 +--
+ src/addrinfo.c            |  0
+ src/cma.c                 |  2 +-
+ 16 files changed, 132 insertions(+), 18 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 examples/.gitignore
+ mode change 100755 => 100644 include/rdma/rdma_cma.h
+ mode change 100755 => 100644 man/rdma_accept.3
+ mode change 100755 => 100644 man/rdma_connect.3
+ mode change 100755 => 100644 man/rdma_create_qp.3
+ mode change 100755 => 100644 man/rdma_getaddrinfo.3
+ mode change 100755 => 100644 man/rdma_join_multicast.3
+ mode change 100755 => 100644 man/rdma_notify.3
+ create mode 100644 src/.gitignore
+ mode change 100755 => 100644 src/acm.c
+ mode change 100755 => 100644 src/addrinfo.c
+ mode change 100755 => 100644 src/cma.c
+
 -- 
 1.8.3.1
 
