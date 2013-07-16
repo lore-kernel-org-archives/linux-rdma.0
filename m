@@ -1,36 +1,80 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V2] libibverbs: Allow arbitrary int values for MTU
-Date: Tue, 16 Jul 2013 08:04:08 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373805AAB74@ORSMSX109.amr.corp.intel.com>
-References: <1372768306-6786-1-git-send-email-jsquyres@cisco.com>
- <CAL1RGDVU9otyMtoit1PJR5JkVy4XvU=4xjL1rN1QB7pq0rVcxA@mail.gmail.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F6F31A6@xmb-rcd-x01.cisco.com>
- <CAL1RGDU+4CSJyF0TAfAv-YYcjA4FG+XNeg5pGCHPeW5iqhvwpA@mail.gmail.com>
- <20130708172621.GA3852@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83@xmb-rcd-x01.cisco.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 11/13] IB/srp: Make HCA completion vector configurable
+Date: Tue, 16 Jul 2013 13:11:34 +0300
+Message-ID: <51E51C56.50906@mellanox.com>
+References: <51D41C03.4020607@acm.org> <51D41FFC.6070105@acm.org> <51E272A4.5030707@mellanox.com> <51E3D79D.9070808@acm.org> <51E3F931.9080903@mellanox.com> <51E43E22.2060502@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <51E43E22.2060502-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IEplZmYncyBwYXRjaCBkb2Vzbid0IGJyZWFrIG9sZCBiaW5hcmllcywgb2xkIGJpbmFyaWVz
-LCBydW5uaW5nIHdpdGgNCj4gPiBub3JtYWwgSUIgTVRVcyB3b3JrIGZpbmUuIFRoZSBzdHJ1Y3R1
-cmUgbGF5b3V0cyBhbGwgc3RheSB0aGUgc2FtZSwNCj4gPiBldGMuDQo+IA0KPiANCj4gRldJVywg
-SSBkaWQgYSBzaW1wbGUgdGVzdCB0byBjb25maXJtIHRoaXMuICBJIGluc3RhbGxlZCBhIHN0b2Nr
-IGdpdCBIRUFEDQo+IGxpYmlidmVyYnMgaW50byAkSE9NRS9saWJpYnZlcmJzLUhFQUQgYW5kIGEg
-bGliaWJ2ZXJicyB3aXRoIHRoZSBNVFUgcGF0Y2ggaW4NCj4gJEhPTUUvbGliaWJ2ZXJicy1tdHUt
-cGF0Y2guICBUaGUgbWx4NCBkcml2ZXIgd2FzIGluc3RhbGxlZCBpbnRvIGJvdGggdHJlZXMgKEkN
-Cj4gdXNlZCBzb21lIGZhaXJseSBvbGQgTWVsbGFub3ggSENBcytEZWxsIHNlcnZlcnMgZm9yIHRo
-aXMgdGVzdCkuDQoNClRoaXMgY3JlYXRlcyBhIGJpdCBvZiBwYWluIGZvciBhbnlvbmUgKGxpa2Us
-IGh5cG90aGV0aWNhbGx5LCBzYXksIGZvciBleGFtcGxlLCBtZSkgd2hvIHdhbnRzIHRvIHJlbGVh
-c2Ugc291cmNlIHRoYXQgc3VwcG9ydHMgYm90aCB0aGUgb2xkZXIgYW5kIG5ld2VyIHZlcnNpb24g
-b2YgbGliaWJ2ZXJicy4NCg==
+On 7/15/2013 9:23 PM, Bart Van Assche wrote:
+> On 15/07/2013 7:29, Sagi Grimberg wrote:
+>> srp_daemon is a package designated for the customer to automatically
+>> detect targets in the IB fabric. From our experience here in Mellanox,
+>> customers/users like automatic "plug&play" tools.
+>> They are reluctant to build their own scriptology to enhance performance
+>> and settle with srp_daemon which is preferred over use of ibsrpdm and
+>> manual adding new targets.
+>> Regardless, the completion vectors assignment is meaningless without
+>> setting proper IRQ affinity, so in the worst case where the user didn't
+>> set his IRQ affinity,
+>> this assignment will perform like the default completion vector
+>> assignment as all IRQs are directed without any masking i.e. core 0.
+>>
+>> From my experiments in NUMA systems, optimal performance is gained
+>> where all IRQs are directed to half of the cores on the NUMA node close
+>> to the HCA, and all traffic generators share the other half of the cores
+>> on the same NUMA node. So based on that knowledge, I thought that
+>> srp_daemon/srp driver will assign it's CQs across the HCAs completion
+>> vectors, and the user is encouraged to set the IRQ affinity as described
+>> above to gain optimal performance.
+>> Adding connections over the far NUMA node don't seem to benefit
+>> performance too much...
+>>
+>> As I mentioned, a use-case I see that may raise a problem here, is if
+>> the user would like to maintain multiple SRP connections and reserve
+>> some completion vectors for other IB applications on the system.
+>> in this case the user will be able to disable srp_daemon/srp driver
+>> completion vectors assignment.
+>>
+>> So, this was just an idea, and easy implementation that would
+>> potentially give the user semi-automatic performance optimized
+>> configuration...
+>
+> Hello Sagi,
+>
+> I agree with you that it would help a lot if completion vector 
+> assignment could be automated such that end users do not have to care 
+> about assigning completion vector numbers. The challenge is to find an 
+> approach that is general enough such that it works for all possible 
+> use cases. One possible approach is to let a tool that has knowledge 
+> about the application fill in completion vector numbers in 
+> srp_daemon.conf and let srp_daemon use the values generated by this 
+> tool. That approach would avoid that srp_daemon has to have any 
+> knowledge about the application but would still allow srp_daemon to 
+> assign the completion vector numbers.
+>
+> Bart.
+
+Hey Bart,
+This sounds like a nice Idea, but there an inherent problem about 
+applications coming and going while the connections are static (somewhat),
+how can you control pinning an arbitrary application running (over SRP 
+devices of-course) at certain point of time.
+
+So will you agree at least to give target->comp_vector a default of 
+IB_CQ_VECTOR_LEAST_ATTACHED?
+ From my point of view, a user that don't have a slightest clue about 
+completion vectors and performance optimization, this is somewhat better 
+than doing nothing...
+
+-Sagi
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
