@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH REPOST FIXES for-3.11 4/4] IB/ipoib: Fix pkey-change flow for Virtualization environments
-Date: Wed, 17 Jul 2013 17:22:42 +0300
-Message-ID: <1374070962-328-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH REPOST FIXES for-3.11 1/4] IB/core: Create QP1 using the pkey index which contains the default pkey
+Date: Wed, 17 Jul 2013 17:22:39 +0300
+Message-ID: <1374070962-328-2-git-send-email-ogerlitz@mellanox.com>
 References: <1374070962-328-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1374070962-328-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,150 +10,74 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-IPoIB's required behaviour w.r.t to the pkey used by the device is the following:
+Currently, QP1 is created using pkey index 0. This patch simply looks for
+the index containing the default pkey, rather than hard-coding pkey index 0.
 
-- For "parent" interfaces (e.g ib0, ib1, etc) who are created automatically as a
-  result of hot-plug events from the IB core, the driver needs to take whatever
-  pkey vlaue it finds in index 0, and stick to that index.
+This change will have no effect in Native mode, since QP0 and QP1 are created
+before the SM configures the port, so pkey table will still be the default
+table defined by the IB Spec, in C10-123: "If non-volatile storage is not used
+to hold P_Key Table contents, then if a PM (Partition Manager) is not present,
+and prior to PM initialization of the P_Key Table, the P_Key Table must act as
+if it contains a single valid entry, at P_Key_ix = 0, containing the default
+partition key. All other entries in the P_Key Table must be invalid."
 
-- For child interfaces (e.g ib0.8001, etc) created by admin directive, the driver
-  needs to use and stick to the value provided during its creation.
+Thus, in the native mode case, the driver will find the default pkey
+at index 0 (so it will be no different than the hard-coding).
 
-In SR-IOV environment its possible for the VF probe to take place before the
-cloud management software provisions the suitable pkey for the VF in the
-paravirtualed PKEY table index 0. When this is the case, the VF IB stack will
-find in index 0 an invalide pkey, which is all zeros.
+However, in SRIOV mode, for VFs, the pkey table may be paravirtualized, so
+that the VF's pkey index zero may not necessarily be mapped to the real pkey
+index 0. For VFs, therefore, it is important to find the virtual index which
+maps to the real default pkey.
 
-Moreover, the cloud managment can assign the pkey value at index 0 at any
-time of the guest life cycle.
+This commit does the following for QP1 creation:
 
-The correct behavior for IPoIB to address these requirements for parent
-interfaces is to use PKEY_CHANGE event as trigger to optionally re-init the
-device pkey value and re-create all the relevant resources accordingly, if
-the value of the pkey in index 0 has changed (from invalid to valid or from
-valid value X to invalid value Y).
+1. Find the pkey index containing the default pkey, and use that index if found.
+   ib_find_pkey() returns the index of the limited-membership default pkey
+   (0x7FFF) if the full-member default pkey is not in the table.
 
-This patch enhances the heavy flushing code which is triggered by pkey change
-event, to behave correctly for parent devices. For child devices, the code
-remains the same, namely chases pkey value and not index.
+2. If neither form of the default pkey is found, use pkey index 0 (previous behavior).
 
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   76 +++++++++++++++++++++++++-----
- 1 files changed, 63 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/mad.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 2cfa76f..196b1d1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -932,12 +932,47 @@ int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
- 	return 0;
- }
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index dc3fd1e..9be6754 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -2663,6 +2663,7 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
+ 	int ret, i;
+ 	struct ib_qp_attr *attr;
+ 	struct ib_qp *qp;
++	u16 pkey_index = 0;
  
-+/*
-+ * Takes whatever value which is in pkey index 0 and updates priv->pkey
-+ * returns 0 if the pkey value was changed.
-+ */
-+static inline int update_parent_pkey(struct ipoib_dev_priv *priv)
-+{
-+	int result;
-+	u16 prev_pkey;
-+
-+	prev_pkey = priv->pkey;
-+	result = ib_query_pkey(priv->ca, priv->port, 0, &priv->pkey);
-+	if (result) {
-+		ipoib_warn(priv, "ib_query_pkey port %d failed (ret = %d)\n",
-+			   priv->port, result);
-+		return result;
-+	}
-+
-+	priv->pkey |= 0x8000;
-+
-+	if (prev_pkey != priv->pkey) {
-+		ipoib_dbg(priv, "pkey changed from 0x%x to 0x%x\n",
-+			  prev_pkey, priv->pkey);
-+		/*
-+		 * Update the pkey in the broadcast address, while making sure to set
-+		 * the full membership bit, so that we join the right broadcast group.
-+		 */
-+		priv->dev->broadcast[8] = priv->pkey >> 8;
-+		priv->dev->broadcast[9] = priv->pkey & 0xff;
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
- static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 				enum ipoib_flush_level level)
- {
- 	struct ipoib_dev_priv *cpriv;
- 	struct net_device *dev = priv->dev;
- 	u16 new_index;
-+	int result;
- 
- 	mutex_lock(&priv->vlan_mutex);
- 
-@@ -951,6 +986,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 	mutex_unlock(&priv->vlan_mutex);
- 
- 	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
-+		/* for non-child devices must check/update the pkey value here */
-+		if (level == IPOIB_FLUSH_HEAVY &&
-+		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
-+			update_parent_pkey(priv);
- 		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
- 		return;
- 	}
-@@ -961,21 +1000,32 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 	attr = kmalloc(sizeof *attr, GFP_KERNEL);
+ 	if (!attr) {
+@@ -2670,6 +2671,11 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
+ 		return -ENOMEM;
  	}
  
- 	if (level == IPOIB_FLUSH_HEAVY) {
--		if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &new_index)) {
--			clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
--			ipoib_ib_dev_down(dev, 0);
--			ipoib_ib_dev_stop(dev, 0);
--			if (ipoib_pkey_dev_delay_open(dev))
-+		/* child devices chase their origin pkey value, while non-child
-+		 * (parent) devices should always takes what present in pkey index 0
-+		 */
-+		if (test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
-+			if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &new_index)) {
-+				clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+				ipoib_ib_dev_down(dev, 0);
-+				ipoib_ib_dev_stop(dev, 0);
-+				if (ipoib_pkey_dev_delay_open(dev))
-+					return;
-+			}
-+			/* restart QP only if P_Key index is changed */
-+			if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
-+			    new_index == priv->pkey_index) {
-+				ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
- 				return;
-+			}
-+			priv->pkey_index = new_index;
-+		} else {
-+			result = update_parent_pkey(priv);
-+			/* restart QP only if P_Key value changed */
-+			if (result) {
-+				ipoib_dbg(priv, "Not flushing - P_Key value not changed.\n");
-+				return;
-+			}
- 		}
--
--		/* restart QP only if P_Key index is changed */
--		if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
--		    new_index == priv->pkey_index) {
--			ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
--			return;
--		}
--		priv->pkey_index = new_index;
- 	}
- 
- 	if (level == IPOIB_FLUSH_LIGHT) {
++	ret = ib_find_pkey(port_priv->device, port_priv->port_num,
++			   IB_DEFAULT_PKEY_FULL, &pkey_index);
++	if (ret)
++		pkey_index = 0;
++
+ 	for (i = 0; i < IB_MAD_QPS_CORE; i++) {
+ 		qp = port_priv->qp_info[i].qp;
+ 		if (!qp)
+@@ -2680,7 +2686,7 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
+ 		 * one is needed for the Reset to Init transition
+ 		 */
+ 		attr->qp_state = IB_QPS_INIT;
+-		attr->pkey_index = 0;
++		attr->pkey_index = pkey_index;
+ 		attr->qkey = (qp->qp_num == 0) ? 0 : IB_QP1_QKEY;
+ 		ret = ib_modify_qp(qp, attr, IB_QP_STATE |
+ 					     IB_QP_PKEY_INDEX | IB_QP_QKEY);
 -- 
 1.7.1
 
