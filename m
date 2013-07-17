@@ -1,120 +1,84 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH librdmacm 3/8] autogen.sh: Use autoreconf in autogen.sh
-Date: Wed, 17 Jul 2013 09:58:46 +0300
-Message-ID: <51E640A6.9070902@mellanox.com>
-References: <cover.1374011243.git.ydroneaud@opteya.com> <317ae98daf0eec49ffb297a5fc59b3738366af6d.1374011243.git.ydroneaud@opteya.com> <1828884A29C6694DAF28B7E6B8A82373805AECD6@ORSMSX109.amr.corp.intel.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: [PATCH v2] RDMA/cma: silence GCC warning
+Date: Wed, 17 Jul 2013 10:40:53 +0200
+Message-ID: <1374050453.26384.41.camel@x61.thuisdomein>
+References: <1373886239.2591.26.camel@x61.thuisdomein>
+	 <1828884A29C6694DAF28B7E6B8A82373805A65C0@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373805AECD6-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373805A65C0@ORSMSX110.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 17/07/2013 07:22, Hefty, Sean wrote:
-> Thanks - I pulled in these patches, but see below:
+Building cma.o triggers this GCC warning:
+    drivers/infiniband/core/cma.c: In function =E2=80=98rdma_resolve_ad=
+dr=E2=80=99:
+    drivers/infiniband/core/cma.c:465:23: warning: =E2=80=98port=E2=80=99=
+ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    drivers/infiniband/core/cma.c:426:5: note: =E2=80=98port=E2=80=99 w=
+as declared here
 
-Hi Sean,
+This is a false positive, as "port" will always be initialized if we're
+at "found". But if we assign to "id_priv->id.port_num" directly, we can
+drop "port". That will, obviously, silence GCC.
 
-If you do this house cleanup, could you also address the below build 
-warnings. I can see them
-when I build rpm from the 1.0.17 tar ball, but not when doing plain make 
-on the latest git, probably
-b/c the build through the spec uses some more build/warnings flags.
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+0) v2: assign to "id_priv->id.port_num" directly, instead of
+initializing "port" to 0, as discussed with Sean.
 
-Or.
+1) Still only compile tested.
 
+ drivers/infiniband/core/cma.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-configure: creating ./config.status
-config.status: creating Makefile
-config.status: creating librdmacm.spec
-config.status: creating config.h
-config.status: executing depfiles commands
-config.status: executing libtool commands
-+ make -j2
-make  all-am
-make[1]: Entering directory `/usr/src/redhat/BUILD/librdmacm-1.0.17'
-   CC     src_librdmacm_la-cma.lo
-   CC     src_librdmacm_la-addrinfo.lo
-src/addrinfo.c: In function 'ucma_convert_to_rai':
-src/addrinfo.c:193: warning: dereferencing type-punned pointer will 
-break strict-aliasing rules
-src/addrinfo.c:210: warning: dereferencing type-punned pointer will 
-break strict-aliasing rules
-   CC     src_librdmacm_la-acm.lo
-   CC     src_librdmacm_la-rsocket.lo
-src/rsocket.c: In function 'rs_modify_svcs':
-src/rsocket.c:403: warning: ignoring return value of 'write', declared 
-with attribute warn_unused_result
-src/rsocket.c:404: warning: ignoring return value of 'read', declared 
-with attribute warn_unused_result
-src/rsocket.c: In function 'rs_configure':
-src/rsocket.c:460: warning: ignoring return value of 'fscanf', declared 
-with attribute warn_unused_result
-src/rsocket.c:465: warning: ignoring return value of 'fscanf', declared 
-with attribute warn_unused_result
-src/rsocket.c:473: warning: ignoring return value of 'fscanf', declared 
-with attribute warn_unused_result
-src/rsocket.c:478: warning: ignoring return value of 'fscanf', declared 
-with attribute warn_unused_result
-src/rsocket.c:483: warning: ignoring return value of 'fscanf', declared 
-with attribute warn_unused_result
-src/rsocket.c:491: warning: ignoring return value of 'fscanf', declared 
-with attribute warn_unused_result
-src/rsocket.c:498: warning: ignoring return value of 'fscanf', declared 
-with attribute warn_unused_result
-src/rsocket.c: In function 'rs_svc_process_sock':
-src/rsocket.c:3623: warning: ignoring return value of 'read', declared 
-with attribute warn_unused_result
-src/rsocket.c:3632: warning: ignoring return value of 'write', declared 
-with attribute warn_unused_result
-src/rsocket.c: In function 'rs_svc_run':
-src/rsocket.c:3805: warning: ignoring return value of 'write', declared 
-with attribute warn_unused_result
-src/rsocket.c: In function 'ds_get_dest':
-src/rsocket.c:1451: warning: 'qp' may be used uninitialized in this function
-src/rsocket.c: In function 'rs_send_iomaps':
-src/rsocket.c:2305: warning: 'ret' may be used uninitialized in this 
-function
-   CC     src_librdmacm_la-indexer.lo
-   CC     src_librspreload_la-preload.lo
-src/preload.c: In function 'dup2':
-src/preload.c:1020: warning: value computed is not used
-   CC     src_librspreload_la-indexer.lo
-   CC     cmatose.o
-   CC     common.o
-   CC     rping.o
-   CC     udaddy.o
-   CC     mckey.o
-   CC     rdma_client.o
-   CC     rdma_server.o
-   CC     rdma_xclient.o
-   CC     rdma_xserver.o
-   CC     rstream.o
-   CC     rcopy.o
-   CC     riostream.o
-   CC     udpong.o
-   CCLD   src/librdmacm.la
-   CCLD   src/librspreload.la
-   CCLD   examples/ucmatose
-   CCLD   examples/rping
-   CCLD   examples/udaddy
-   CCLD   examples/mckey
-   CCLD   examples/rdma_client
-   CCLD   examples/rdma_server
-   CCLD   examples/rdma_xclient
-   CCLD   examples/rdma_xserver
-   CCLD   examples/rstream
-   CCLD   examples/rcopy
-   CCLD   examples/riostream
-   CCLD   examples/udpong
-make[1]: Leaving directory `/usr/src/redhat/BUILD/librdmacm-1.0.17'
-+ exit 0
-Executing(%install): /bin/sh -e /var/tmp/rpm-tmp.10929
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cm=
+a.c
+index f1c279f..84487a2 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -423,7 +423,7 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
+e *id_priv)
+ 	struct sockaddr_ib *addr;
+ 	union ib_gid gid, sgid, *dgid;
+ 	u16 pkey, index;
+-	u8 port, p;
++	u8 p;
+ 	int i;
+=20
+ 	cma_dev =3D NULL;
+@@ -443,7 +443,7 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
+e *id_priv)
+ 				if (!memcmp(&gid, dgid, sizeof(gid))) {
+ 					cma_dev =3D cur_dev;
+ 					sgid =3D gid;
+-					port =3D p;
++					id_priv->id.port_num =3D p;
+ 					goto found;
+ 				}
+=20
+@@ -451,7 +451,7 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
+e *id_priv)
+ 						 dgid->global.subnet_prefix)) {
+ 					cma_dev =3D cur_dev;
+ 					sgid =3D gid;
+-					port =3D p;
++					id_priv->id.port_num =3D p;
+ 				}
+ 			}
+ 		}
+@@ -462,7 +462,6 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
+e *id_priv)
+=20
+ found:
+ 	cma_attach_to_dev(id_priv, cma_dev);
+-	id_priv->id.port_num =3D port;
+ 	addr =3D (struct sockaddr_ib *) cma_src_addr(id_priv);
+ 	memcpy(&addr->sib_addr, &sgid, sizeof sgid);
+ 	cma_translate_ib(addr, &id_priv->id.route.addr.dev_addr);
+--=20
+1.8.1.4
