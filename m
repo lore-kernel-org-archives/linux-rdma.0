@@ -1,60 +1,120 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH librdmacm 3/8] autogen.sh: Use autoreconf in autogen.sh
-Date: Wed, 17 Jul 2013 08:21:09 +0200
-Message-ID: <a0fbc005839e5d4fd1ad13be59be3fae@meuh.org>
-References: <cover.1374011243.git.ydroneaud@opteya.com>
- <317ae98daf0eec49ffb297a5fc59b3738366af6d.1374011243.git.ydroneaud@opteya.com>
- <1828884A29C6694DAF28B7E6B8A82373805AECD6@ORSMSX109.amr.corp.intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH librdmacm 3/8] autogen.sh: Use autoreconf in autogen.sh
+Date: Wed, 17 Jul 2013 09:58:46 +0300
+Message-ID: <51E640A6.9070902@mellanox.com>
+References: <cover.1374011243.git.ydroneaud@opteya.com> <317ae98daf0eec49ffb297a5fc59b3738366af6d.1374011243.git.ydroneaud@opteya.com> <1828884A29C6694DAF28B7E6B8A82373805AECD6@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373805AECD6-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-
-Le 17.07.2013 06:22, Hefty, Sean a =C3=A9crit=C2=A0:
+On 17/07/2013 07:22, Hefty, Sean wrote:
 > Thanks - I pulled in these patches, but see below:
->=20
 
-Thanks.
+Hi Sean,
 
->> diff --git a/autogen.sh b/autogen.sh
->> index f433312..6c9233e 100755
->> --- a/autogen.sh
->> +++ b/autogen.sh
->> @@ -1,9 +1,4 @@
->>  #! /bin/sh
->>=20
->>  set -x
->> -test -d ./config || mkdir ./config
->=20
-> Without the above line, the build fails.  I added it back in.  If
-> there's some other way of ensuring that this directory exists, please
-> let me know.
->=20
+If you do this house cleanup, could you also address the below build 
+warnings. I can see them
+when I build rpm from the 1.0.17 tar ball, but not when doing plain make 
+on the latest git, probably
+b/c the build through the spec uses some more build/warnings flags.
 
-Sorry for the inconvenience.
+Or.
 
-I've checked libibverbs: it has a .gitignore in ./config so that git=20
-kept the empty directory.
 
-It's a different solution for the same problem, I'm not able to say if=20
-it's a better one.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating librdmacm.spec
+config.status: creating config.h
+config.status: executing depfiles commands
+config.status: executing libtool commands
++ make -j2
+make  all-am
+make[1]: Entering directory `/usr/src/redhat/BUILD/librdmacm-1.0.17'
+   CC     src_librdmacm_la-cma.lo
+   CC     src_librdmacm_la-addrinfo.lo
+src/addrinfo.c: In function 'ucma_convert_to_rai':
+src/addrinfo.c:193: warning: dereferencing type-punned pointer will 
+break strict-aliasing rules
+src/addrinfo.c:210: warning: dereferencing type-punned pointer will 
+break strict-aliasing rules
+   CC     src_librdmacm_la-acm.lo
+   CC     src_librdmacm_la-rsocket.lo
+src/rsocket.c: In function 'rs_modify_svcs':
+src/rsocket.c:403: warning: ignoring return value of 'write', declared 
+with attribute warn_unused_result
+src/rsocket.c:404: warning: ignoring return value of 'read', declared 
+with attribute warn_unused_result
+src/rsocket.c: In function 'rs_configure':
+src/rsocket.c:460: warning: ignoring return value of 'fscanf', declared 
+with attribute warn_unused_result
+src/rsocket.c:465: warning: ignoring return value of 'fscanf', declared 
+with attribute warn_unused_result
+src/rsocket.c:473: warning: ignoring return value of 'fscanf', declared 
+with attribute warn_unused_result
+src/rsocket.c:478: warning: ignoring return value of 'fscanf', declared 
+with attribute warn_unused_result
+src/rsocket.c:483: warning: ignoring return value of 'fscanf', declared 
+with attribute warn_unused_result
+src/rsocket.c:491: warning: ignoring return value of 'fscanf', declared 
+with attribute warn_unused_result
+src/rsocket.c:498: warning: ignoring return value of 'fscanf', declared 
+with attribute warn_unused_result
+src/rsocket.c: In function 'rs_svc_process_sock':
+src/rsocket.c:3623: warning: ignoring return value of 'read', declared 
+with attribute warn_unused_result
+src/rsocket.c:3632: warning: ignoring return value of 'write', declared 
+with attribute warn_unused_result
+src/rsocket.c: In function 'rs_svc_run':
+src/rsocket.c:3805: warning: ignoring return value of 'write', declared 
+with attribute warn_unused_result
+src/rsocket.c: In function 'ds_get_dest':
+src/rsocket.c:1451: warning: 'qp' may be used uninitialized in this function
+src/rsocket.c: In function 'rs_send_iomaps':
+src/rsocket.c:2305: warning: 'ret' may be used uninitialized in this 
+function
+   CC     src_librdmacm_la-indexer.lo
+   CC     src_librspreload_la-preload.lo
+src/preload.c: In function 'dup2':
+src/preload.c:1020: warning: value computed is not used
+   CC     src_librspreload_la-indexer.lo
+   CC     cmatose.o
+   CC     common.o
+   CC     rping.o
+   CC     udaddy.o
+   CC     mckey.o
+   CC     rdma_client.o
+   CC     rdma_server.o
+   CC     rdma_xclient.o
+   CC     rdma_xserver.o
+   CC     rstream.o
+   CC     rcopy.o
+   CC     riostream.o
+   CC     udpong.o
+   CCLD   src/librdmacm.la
+   CCLD   src/librspreload.la
+   CCLD   examples/ucmatose
+   CCLD   examples/rping
+   CCLD   examples/udaddy
+   CCLD   examples/mckey
+   CCLD   examples/rdma_client
+   CCLD   examples/rdma_server
+   CCLD   examples/rdma_xclient
+   CCLD   examples/rdma_xserver
+   CCLD   examples/rstream
+   CCLD   examples/rcopy
+   CCLD   examples/riostream
+   CCLD   examples/udpong
+make[1]: Leaving directory `/usr/src/redhat/BUILD/librdmacm-1.0.17'
++ exit 0
+Executing(%install): /bin/sh -e /var/tmp/rpm-tmp.10929
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
