@@ -1,145 +1,161 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH REPOST FIXES for-3.11 0/4] Pkey fixes for IB core and IPoIB
-Date: Wed, 17 Jul 2013 17:22:38 +0300
-Message-ID: <1374070962-328-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH REPOST FIXES for-3.11 4/4] IB/ipoib: Fix pkey-change flow for Virtualization environments
+Date: Wed, 17 Jul 2013 17:22:42 +0300
+Message-ID: <1374070962-328-5-git-send-email-ogerlitz@mellanox.com>
+References: <1374070962-328-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1374070962-328-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-- Did quick reposting as of one hunk in the last patch that went by mistake 
-  from ipoib_ib.c to ipoib_multicast.c, sorry for the spam
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hi Roland,
+IPoIB's required behaviour w.r.t to the pkey used by the device is the following:
 
-This set of fixes is critical for Virtualization environments when the VM 
-para-virtualized PKEY table isn't fully configured at the time the 
-VF is probed, or when the management pkey is provisioned to non-zero index
-in the VF pkey table.
+- For "parent" interfaces (e.g ib0, ib1, etc) who are created automatically as a
+  result of hot-plug events from the IB core, the driver needs to take whatever
+  pkey vlaue it finds in index 0, and stick to that index.
 
-The first three patches are pretty much few liners (two of them with somehow 
-long change log...). The forth one a bit larger. Would be happy to see them 
-all going to -stable, either by you adding a Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org when 
-you push them or I can send them to Greg after they spend some time upstream.
+- For child interfaces (e.g ib0.8001, etc) created by admin directive, the driver
+  needs to use and stick to the value provided during its creation.
 
+In SR-IOV environment its possible for the VF probe to take place before the
+cloud management software provisions the suitable pkey for the VF in the
+paravirtualed PKEY table index 0. When this is the case, the VF IB stack will
+find in index 0 an invalide pkey, which is all zeros.
 
+Moreover, the cloud managment can assign the pkey value at index 0 at any
+time of the guest life cycle.
 
-Or.
+The correct behavior for IPoIB to address these requirements for parent
+interfaces is to use PKEY_CHANGE event as trigger to optionally re-init the
+device pkey value and re-create all the relevant resources accordingly, if
+the value of the pkey in index 0 has changed (from invalid to valid or from
+valid value X to invalid value Y).
 
+This patch enhances the heavy flushing code which is triggered by pkey change
+event, to behave correctly for parent devices. For child devices, the code
+remains the same, namely chases pkey value and not index.
 
-Erez Shitrit (1):
-  IB/ipoib: Fix pkey-change flow for Virtualization environments
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |   76 +++++++++++++++++++++++++-----
+ 1 files changed, 63 insertions(+), 13 deletions(-)
 
-Jack Morgenstein (2):
-  IB/core: Create QP1 using the pkey index which contains the default pkey
-  IB/mlx4: Use default pkey when creating tunnel QPs
-
-Or Gerlitz (1):
-  IB/ipoib: Make sure child devices use valid/proper pkeys
-
- drivers/infiniband/core/mad.c                |    8 +++-
- drivers/infiniband/hw/mlx4/mad.c             |   10 +++-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c      |   76 +++++++++++++++++++++-----
- drivers/infiniband/ulp/ipoib/ipoib_main.c    |    2 +-
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c |    9 +++
- 5 files changed, 88 insertions(+), 17 deletions(-)
-
-
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c   |    3 +
- 6 files changed, 85 insertions(+), 18 deletions(-)
-
-This is the sequence of events when the IPoIB patch is applied at the guest:
-
-<-- the VM pkey table contains 0x0000 in index 0, and hence the mgid has 0x8000 as the pkey
-
-[root@xena017-3 infiniband]# cat /sys/class/infiniband/mlx4_0/ports/1/pkeys/0
-
-0x0000
-
-[root@xena017-3 ~]# ip addr show ib0
-22: ib0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc pfifo_fast state DOWN qlen 256
-    link/infiniband 80:00:05:8b:fe:80:00:00:00:00:00:00:00:14:05:00:00:00:04:f9 brd 00:ff:ff:ff:ff:12:40:1b:80:00:00:00:00:00:00:00:ff:ff:ff:ff
-    inet 192.168.20.199/24 brd 192.168.20.255 scope global ib0
-
-<--  the hypervisor changed pkey value in index 0  of the VM pkey table to contain 0x8001
-
-[root@xena017-3 infiniband]# cat /sys/class/infiniband/mlx4_0/ports/1/pkeys/0
-
-0x8001
-
-[root@xena017-3 ~]# dmesg
-ib0: bringing up interface
-IPv6: ADDRCONF(NETDEV_UP): ib0: link is not ready
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-[...]
-ib0: Event 12 on device mlx4_0 port 1
-ib0: pkey changed from 0x8000 to 0x8001
-ib0: downing ib_dev
-ib0: All sends and receives done.
-ib0: Created ah ffff88011a11f4e0
-IPv6: ADDRCONF(NETDEV_CHANGE): ib0: link becomes ready
-ib0: Created ah ffff88011a11f660
-ib0: Created ah ffff88011a11f780
-
-<--- mgid changed to use 0x8001
-
-[root@xena017-3 ~]# ip addr show ib0
-22: ib0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast state UP qlen 256
-    link/infiniband 80:00:05:8b:fe:80:00:00:00:00:00:00:00:14:05:00:00:00:04:f9 brd 00:ff:ff:ff:ff:12:40:1b:80:01:00:00:00:00:00:00:ff:ff:ff:ff
-    inet 192.168.20.199/24 brd 192.168.20.255 scope global ib0
-
-
-ping works etc
-
---> when the mlx4 patch isn't applied on the host we see these errors
-
-<mlx4_ib> create_pv_sqp: Couldn't change tunnel qp state to INIT (-22)
-<mlx4_ib> create_pv_resources: Couldn't create tunnel for QP1 (-22)
-
---> this is the sequence of events when the IPoIB patch is not applied at the guest:
-
-<-- the VM pkey table contains 0x0000 in index 0, and hence the mgid has 0x8000 as the pkey
-
-[root@xena017-3 infiniband]# cat /sys/class/infiniband/mlx4_0/ports/1/pkeys/0
-
-0x0000
-
-[root@xena017-3 infiniband]# modprobe ib_ipoib debug_level=1
-
-[root@xena017-3 infiniband]# ip a s ib0
-
-30: ib0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc pfifo_fast state DOWN qlen 256
-    link/infiniband 80:00:05:93:fe:80:00:00:00:00:00:00:00:14:05:00:00:00:04:f9 brd 00:ff:ff:ff:ff:12:40:1b:80:00:00:00:00:00:00:00:ff:ff:ff:ff
-
-[root@xena017-3 infiniband]# cat /sys/class/infiniband/mlx4_0/ports/1/pkeys/0
-
-0x8001
-
-<-- ipoib got the event, but nothing changed
-
-[root@xena017-3 infiniband]# ip a s ib0
-
-30: ib0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc pfifo_fast state DOWN qlen 256
-    link/infiniband 80:00:05:93:fe:80:00:00:00:00:00:00:00:14:05:00:00:00:04:f9 brd 00:ff:ff:ff:ff:12:40:1b:80:00:00:00:00:00:00:00:ff:ff:ff:ff
-    inet 192.168.20.199/24 brd 192.168.20.255 scope global ib0
-
-[root@xena017-3 infiniband]# dmesg
-ib%d: max_srq_sge=31
-ib%d: max_cm_mtu = 0xfff0, num_frags=16
-ib%d: max_srq_sge=31
-ib%d: max_cm_mtu = 0xfff0, num_frags=16
-ib0: bringing up interface
-IPv6: ADDRCONF(NETDEV_UP): ib0: link is not ready
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: Event 12 on device mlx4_0 port 1
-ib0: downing ib_dev
-ib0: All sends and receives done.
-
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 2cfa76f..196b1d1 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -932,12 +932,47 @@ int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ 	return 0;
+ }
+ 
++/*
++ * Takes whatever value which is in pkey index 0 and updates priv->pkey
++ * returns 0 if the pkey value was changed.
++ */
++static inline int update_parent_pkey(struct ipoib_dev_priv *priv)
++{
++	int result;
++	u16 prev_pkey;
++
++	prev_pkey = priv->pkey;
++	result = ib_query_pkey(priv->ca, priv->port, 0, &priv->pkey);
++	if (result) {
++		ipoib_warn(priv, "ib_query_pkey port %d failed (ret = %d)\n",
++			   priv->port, result);
++		return result;
++	}
++
++	priv->pkey |= 0x8000;
++
++	if (prev_pkey != priv->pkey) {
++		ipoib_dbg(priv, "pkey changed from 0x%x to 0x%x\n",
++			  prev_pkey, priv->pkey);
++		/*
++		 * Update the pkey in the broadcast address, while making sure to set
++		 * the full membership bit, so that we join the right broadcast group.
++		 */
++		priv->dev->broadcast[8] = priv->pkey >> 8;
++		priv->dev->broadcast[9] = priv->pkey & 0xff;
++		return 0;
++	}
++
++	return 1;
++}
++
+ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 				enum ipoib_flush_level level)
+ {
+ 	struct ipoib_dev_priv *cpriv;
+ 	struct net_device *dev = priv->dev;
+ 	u16 new_index;
++	int result;
+ 
+ 	mutex_lock(&priv->vlan_mutex);
+ 
+@@ -951,6 +986,10 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 	mutex_unlock(&priv->vlan_mutex);
+ 
+ 	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags)) {
++		/* for non-child devices must check/update the pkey value here */
++		if (level == IPOIB_FLUSH_HEAVY &&
++		    !test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags))
++			update_parent_pkey(priv);
+ 		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
+ 		return;
+ 	}
+@@ -961,21 +1000,32 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
+ 	}
+ 
+ 	if (level == IPOIB_FLUSH_HEAVY) {
+-		if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &new_index)) {
+-			clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
+-			ipoib_ib_dev_down(dev, 0);
+-			ipoib_ib_dev_stop(dev, 0);
+-			if (ipoib_pkey_dev_delay_open(dev))
++		/* child devices chase their origin pkey value, while non-child
++		 * (parent) devices should always takes what present in pkey index 0
++		 */
++		if (test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
++			if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &new_index)) {
++				clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
++				ipoib_ib_dev_down(dev, 0);
++				ipoib_ib_dev_stop(dev, 0);
++				if (ipoib_pkey_dev_delay_open(dev))
++					return;
++			}
++			/* restart QP only if P_Key index is changed */
++			if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
++			    new_index == priv->pkey_index) {
++				ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
+ 				return;
++			}
++			priv->pkey_index = new_index;
++		} else {
++			result = update_parent_pkey(priv);
++			/* restart QP only if P_Key value changed */
++			if (result) {
++				ipoib_dbg(priv, "Not flushing - P_Key value not changed.\n");
++				return;
++			}
+ 		}
+-
+-		/* restart QP only if P_Key index is changed */
+-		if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
+-		    new_index == priv->pkey_index) {
+-			ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
+-			return;
+-		}
+-		priv->pkey_index = new_index;
+ 	}
+ 
+ 	if (level == IPOIB_FLUSH_LIGHT) {
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
