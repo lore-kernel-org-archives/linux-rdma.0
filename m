@@ -1,10 +1,8 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH librdmacm 3/3] init: Remove USE_IB_ACM configuration option
-Date: Thu, 18 Jul 2013 12:52:13 -0700
-Message-ID: <1374177133-802-3-git-send-email-sean.hefty@intel.com>
-References: <1374177133-802-1-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH librdmacm 1/3] cmatose: Allow user to specify address format
+Date: Thu, 18 Jul 2013 12:52:11 -0700
+Message-ID: <1374177133-802-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1374177133-802-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,71 +10,213 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When the librdmacm is configured, it sets the USE_IB_ACM option
-if infininband/acm.h is found.  We can remove this option with
-very little overhead, which would allow a user to install
-ACM after installing the librdmacm, and the librdmacm would be
-able to make use of ACM.
+Provide an option for the user to indicate the type of
+addresses used as input.  Support hostname, IPv4, IPv6,
+and GIDs.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- configure.ac |    3 ---
- src/acm.c    |    3 ---
- src/cma.h    |    6 ------
- 3 files changed, 0 insertions(+), 12 deletions(-)
+ examples/cmatose.c |   44 +++++++++++++++++++++++++++++++-------------
+ examples/common.c  |    4 ++--
+ examples/common.h  |    1 +
+ man/ucmatose.1     |   22 ++++++++++++++++++----
+ 4 files changed, 52 insertions(+), 19 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index b4303c6..59c5eb1 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -70,9 +70,6 @@ AC_CHECK_HEADER(valgrind/memcheck.h, [],
- fi
- fi
+diff --git a/examples/cmatose.c b/examples/cmatose.c
+index 2b6b2b1..ab3e746 100644
+--- a/examples/cmatose.c
++++ b/examples/cmatose.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2005-2006,2011 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2005-2006,2011-2012 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -81,6 +81,7 @@ static uint8_t tos;
+ static uint8_t migrate = 0;
+ static char *dst_addr;
+ static char *src_addr;
++static struct rdma_addrinfo hints;
  
--AC_CHECK_HEADER(infiniband/acm.h, 
--      AC_DEFINE([USE_IB_ACM], 1, [setting IBACM support]), [])
--
- dnl Checks close on exec support
- AC_CHECK_HEADERS([fcntl.h sys/socket.h])
+ static int create_message(struct cmatest_node *node)
+ {
+@@ -385,7 +386,7 @@ static int alloc_nodes(void)
+ 		if (dst_addr) {
+ 			ret = rdma_create_id(test.channel,
+ 					     &test.nodes[i].cma_id,
+-					     &test.nodes[i], RDMA_PS_TCP);
++					     &test.nodes[i], hints.ai_port_space);
+ 			if (ret)
+ 				goto err;
+ 		}
+@@ -497,19 +498,15 @@ static int migrate_channel(struct rdma_cm_id *listen_id)
+ static int run_server(void)
+ {
+ 	struct rdma_cm_id *listen_id;
+-	struct rdma_addrinfo hints;
+ 	int i, ret;
  
-diff --git a/src/acm.c b/src/acm.c
-index 09c5d4e..04cddee 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -45,7 +45,6 @@
- #include <infiniband/ib.h>
- #include <infiniband/sa.h>
+ 	printf("cmatose: starting server\n");
+-	ret = rdma_create_id(test.channel, &listen_id, &test, RDMA_PS_TCP);
++	ret = rdma_create_id(test.channel, &listen_id, &test, hints.ai_port_space);
+ 	if (ret) {
+ 		perror("cmatose: listen request failed");
+ 		return ret;
+ 	}
  
--#ifdef USE_IB_ACM
- #define ACM_VERSION             1
+-	memset(&hints, 0, sizeof hints);
+-	hints.ai_flags = RAI_PASSIVE;
+-	hints.ai_port_space = RDMA_PS_TCP;
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+ 	if (ret) {
+ 		perror("cmatose: getrdmaaddr error");
+@@ -579,13 +576,10 @@ out:
  
- #define ACM_OP_RESOLVE          0x01
-@@ -453,5 +452,3 @@ void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints)
- 	if (af_ib_support && !(hints->ai_flags & RAI_ROUTEONLY) && (*rai)->ai_route_len)
- 		ucma_resolve_af_ib(rai);
- }
--
--#endif /* USE_IB_ACM */
-diff --git a/src/cma.h b/src/cma.h
-index b575b9b..e6fba8b 100644
---- a/src/cma.h
-+++ b/src/cma.h
-@@ -162,15 +162,9 @@ extern int af_ib_support;
+ static int run_client(void)
+ {
+-	struct rdma_addrinfo hints;
+ 	int i, ret, ret2;
  
- #define RAI_ROUTEONLY		0x01000000
+ 	printf("cmatose: starting client\n");
  
--#ifdef USE_IB_ACM
- void ucma_ib_init();
- void ucma_ib_cleanup();
- void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints);
--#else
--#define ucma_ib_init()
--#define ucma_ib_cleanup()
--#define ucma_ib_resolve(x, y)
--#endif
+-	memset(&hints, 0, sizeof hints);
+-	hints.ai_port_space = RDMA_PS_TCP;
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+ 	if (ret) {
+ 		perror("cmatose: getaddrinfo error");
+@@ -642,7 +636,8 @@ int main(int argc, char **argv)
+ {
+ 	int op, ret;
  
- /* Define path record definition if using older version of libibverbs */
- #ifdef DEFINE_PATH_RECORD
+-	while ((op = getopt(argc, argv, "s:b:c:C:S:t:p:m")) != -1) {
++	hints.ai_port_space = RDMA_PS_TCP;
++	while ((op = getopt(argc, argv, "s:b:f:P:c:C:S:t:p:m")) != -1) {
+ 		switch (op) {
+ 		case 's':
+ 			dst_addr = optarg;
+@@ -650,6 +645,23 @@ int main(int argc, char **argv)
+ 		case 'b':
+ 			src_addr = optarg;
+ 			break;
++		case 'f':
++			if (!strncasecmp("ip", optarg, 2)) {
++				hints.ai_flags = RAI_NUMERICHOST;
++			} else if (!strncasecmp("gid", optarg, 3)) {
++				hints.ai_flags = RAI_NUMERICHOST | RAI_FAMILY;
++				hints.ai_family = AF_IB;
++			} else if (strncasecmp("name", optarg, 4)) {
++				fprintf(stderr, "Warning: unknown address format\n");
++			}
++			break;
++		case 'P':
++			if (!strncasecmp("ib", optarg, 2)) {
++				hints.ai_port_space = RDMA_PS_IB;
++			} else if (strncasecmp("tcp", optarg, 3)) {
++				fprintf(stderr, "Warning: unknown port space format\n");
++			}
++			break;
+ 		case 'c':
+ 			connections = atoi(optarg);
+ 			break;
+@@ -673,6 +685,10 @@ int main(int argc, char **argv)
+ 			printf("usage: %s\n", argv[0]);
+ 			printf("\t[-s server_address]\n");
+ 			printf("\t[-b bind_address]\n");
++			printf("\t[-f address_format]\n");
++			printf("\t    name, ip, ipv6, or gid\n");
++			printf("\t[-P port_space]\n");
++			printf("\t    tcp or ib\n");
+ 			printf("\t[-c connections]\n");
+ 			printf("\t[-C message_count]\n");
+ 			printf("\t[-S message_size]\n");
+@@ -694,10 +710,12 @@ int main(int argc, char **argv)
+ 	if (alloc_nodes())
+ 		exit(1);
+ 
+-	if (dst_addr)
++	if (dst_addr) {
+ 		ret = run_client();
+-	else
++	} else {
++		hints.ai_flags |= RAI_PASSIVE;
+ 		ret = run_server();
++	}
+ 
+ 	printf("test complete\n");
+ 	destroy_nodes();
+diff --git a/examples/common.c b/examples/common.c
+index 4eb5bbe..0b6428c 100644
+--- a/examples/common.c
++++ b/examples/common.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2005-2006 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2005-2006,2012 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -58,7 +58,7 @@ int get_rdma_addr(char *src, char *dst, char *port,
+ 
+ 	rai_hints = *hints;
+ 	if (src) {
+-		rai_hints.ai_flags = RAI_PASSIVE;
++		rai_hints.ai_flags |= RAI_PASSIVE;
+ 		ret = rdma_getaddrinfo(src, NULL, &rai_hints, &res);
+ 		if (ret)
+ 			return ret;
+diff --git a/examples/common.h b/examples/common.h
+index 7cf16d2..f7511f0 100644
+--- a/examples/common.h
++++ b/examples/common.h
+@@ -39,6 +39,7 @@
+ 
+ #include <rdma/rdma_cma.h>
+ #include <rdma/rsocket.h>
++#include <infiniband/ib.h>
+ 
+ #if __BYTE_ORDER == __BIG_ENDIAN
+ static inline uint64_t cpu_to_be64(uint64_t x) { return x; }
+diff --git a/man/ucmatose.1 b/man/ucmatose.1
+index 73477ea..95dc2d6 100644
+--- a/man/ucmatose.1
++++ b/man/ucmatose.1
+@@ -4,10 +4,12 @@ ucmatose \- RDMA CM connection and simple ping-pong test.
+ .SH SYNOPSIS
+ .sp
+ .nf
+-\fIucmatose\fR [-s server_address] [-b bind_address] [-c connections]
+-		[-C message_count] [-S message_size]
+-\fIucmatose\fR -s server_address [-b bind_address] [-c connections]
+-		[-C message_count] [-S message_size] [-t tos]
++\fIucmatose\fR [-s server_address] [-b bind_address]
++		[-f address_format] [-P port_space]
++		[-c connections] [-C message_count] [-S message_size]
++\fIucmatose\fR -s server_address [-b bind_address]
++		[-f address_format] [-P port_space]
++		[-c connections] [-C message_count] [-S message_size] [-t tos]
+ .fi
+ .SH "DESCRIPTION"
+ Establishes a set of reliable RDMA connections between two nodes using the
+@@ -22,6 +24,18 @@ This option must be specified by the client.
+ \-b bind_address
+ The local network address to bind to.
+ .TP
++\-f address_format
++Specifies the format of the server and bind address.  Be default, the
++format is determined by getaddrinfo() as either being a hostname, an IPv4
++address, or an IPv6 address.  This option may be used to indicate that
++a specific address format has been provided.  Supported address_format
++values are: name, ip, ipv6, and gid.
++.TP
++\-P port_space
++Specifies the port space for the connection.  Be default, the port space
++is the RDMA TCP port space. (Note that the RDMA port space may be separate
++from that used for IP.)  Supported port_space values are: tcp and ib.
++.TP
+ \-c connections
+ The number of connections to establish between the client and server.
+ (default 1)
 -- 
 1.7.3
 
