@@ -1,53 +1,57 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V7 libibverbs 0/7] Add extension and XRC QP support
-Date: Thu, 18 Jul 2013 23:06:20 +0300
-Message-ID: <CAJZOPZ+Dre0atS6Oho_N-XPvXMi=SvbROhm73qWwh0i4mj-qwQ@mail.gmail.com>
-References: <1373555063-31790-1-git-send-email-yishaih@mellanox.com>
-	<20130711170710.GB27357@obsidianresearch.com>
-	<51E3EDCF.2050007@dev.mellanox.co.il>
-	<20130716001046.GA9237@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: non-symmetric MFT
+Date: Thu, 18 Jul 2013 17:18:07 -0400
+Message-ID: <51E85B8F.7010109@dev.mellanox.co.il>
+References: <CABOsP2O8s7nrACmWOj5FHCVUemc-XJP2pLyN5Fk_zLRJx6byzg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130716001046.GA9237-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CABOsP2O8s7nrACmWOj5FHCVUemc-XJP2pLyN5Fk_zLRJx6byzg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Jul 15, 2013 at 03:40:47PM +0300, Yishai Hadas wrote:
+On 7/18/2013 1:50 PM, Michael Di Domenico wrote:
+> i;ve run ibdiagnet -r on my infiniband network, i have a few errors
+> showing up with this
+> 
+> Found a non symmetric MFT on MLID:0x0CBB 
 
->> Let me clarify the place holder reservation mentioned in the cover
->> letter.  The entries I was referring to are not proprietary vendor
->> verbs but rather user space verbs who are on their way to be
->> submitted upstream for inclusion in libibverbs/libmlx4.
+Is that the real MLID or a typo ? MLIDs start at 0xC000.
 
-> I get that.
+> got to node:<guid> through
+> port:17 which does not point back to node, etc etc...
+> 
+> what does this mean?
 
-> But it doesn't make one difference. Until they reach Roland's tree *nobody*
-> gets to use indexes in the extension structure with the 'libibverbs.so.1' SONAME.
+It means that for some MLID on current switch, there is a port mask bit
+set to go to a neighbor switch but when looking at same MLID in MFT on
+neighbor switch, there isn't a port mask bit set pointing back to this
+switch.
 
-Hi Jason, after a thorough internal discussion we concluded that your
-point is indeed valid one. So in that respect, will resubmit the
-patches and do the index allocation the way it was intended. This will
-cost us with some field/upgrade issues but we agree that this is for
-the greater && good.
+> i tried to look at the source but the comment a
+> few lines above is not clear english, so i'm not sure what this is
+> trying to tell me
+> 
+> my fabric is up, 
 
-[...]
+Does IPoIB have full connectivity ?
 
-> Frankly, this nonsense makes me question if the extension mechanism is
-> even a sane idea if this is the sort of abuse it is going to be subject too.
+> so i'm assuming this is a routing issue, 
 
-So if not abusing... can you now review && acknowledge this series
-which is a respin + fixes in the series Sean posted earlier this year,
-Sean ditto for you, any feedback or ack on the series sans the pointer
-reservation which we will remove.
+It could be a multicast routing issue or tool issue.
 
-As Yishai wrote, he's OOO for a week so work might be resumed only
-when he's back, and once this is done will re-submit ASAP
+-- Hal
 
-Or
+> but i'm not sure how
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
