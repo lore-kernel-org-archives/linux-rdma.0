@@ -1,225 +1,53 @@
-From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH librdmacm 1/3] cmatose: Allow user to specify address format
-Date: Thu, 18 Jul 2013 12:52:11 -0700
-Message-ID: <1374177133-802-1-git-send-email-sean.hefty@intel.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V7 libibverbs 0/7] Add extension and XRC QP support
+Date: Thu, 18 Jul 2013 23:06:20 +0300
+Message-ID: <CAJZOPZ+Dre0atS6Oho_N-XPvXMi=SvbROhm73qWwh0i4mj-qwQ@mail.gmail.com>
+References: <1373555063-31790-1-git-send-email-yishaih@mellanox.com>
+	<20130711170710.GB27357@obsidianresearch.com>
+	<51E3EDCF.2050007@dev.mellanox.co.il>
+	<20130716001046.GA9237@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130716001046.GA9237-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Mon, Jul 15, 2013 at 03:40:47PM +0300, Yishai Hadas wrote:
 
-Provide an option for the user to indicate the type of
-addresses used as input.  Support hostname, IPv4, IPv6,
-and GIDs.
+>> Let me clarify the place holder reservation mentioned in the cover
+>> letter.  The entries I was referring to are not proprietary vendor
+>> verbs but rather user space verbs who are on their way to be
+>> submitted upstream for inclusion in libibverbs/libmlx4.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- examples/cmatose.c |   44 +++++++++++++++++++++++++++++++-------------
- examples/common.c  |    4 ++--
- examples/common.h  |    1 +
- man/ucmatose.1     |   22 ++++++++++++++++++----
- 4 files changed, 52 insertions(+), 19 deletions(-)
+> I get that.
 
-diff --git a/examples/cmatose.c b/examples/cmatose.c
-index 2b6b2b1..ab3e746 100644
---- a/examples/cmatose.c
-+++ b/examples/cmatose.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2005-2006,2011 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2005-2006,2011-2012 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -81,6 +81,7 @@ static uint8_t tos;
- static uint8_t migrate = 0;
- static char *dst_addr;
- static char *src_addr;
-+static struct rdma_addrinfo hints;
- 
- static int create_message(struct cmatest_node *node)
- {
-@@ -385,7 +386,7 @@ static int alloc_nodes(void)
- 		if (dst_addr) {
- 			ret = rdma_create_id(test.channel,
- 					     &test.nodes[i].cma_id,
--					     &test.nodes[i], RDMA_PS_TCP);
-+					     &test.nodes[i], hints.ai_port_space);
- 			if (ret)
- 				goto err;
- 		}
-@@ -497,19 +498,15 @@ static int migrate_channel(struct rdma_cm_id *listen_id)
- static int run_server(void)
- {
- 	struct rdma_cm_id *listen_id;
--	struct rdma_addrinfo hints;
- 	int i, ret;
- 
- 	printf("cmatose: starting server\n");
--	ret = rdma_create_id(test.channel, &listen_id, &test, RDMA_PS_TCP);
-+	ret = rdma_create_id(test.channel, &listen_id, &test, hints.ai_port_space);
- 	if (ret) {
- 		perror("cmatose: listen request failed");
- 		return ret;
- 	}
- 
--	memset(&hints, 0, sizeof hints);
--	hints.ai_flags = RAI_PASSIVE;
--	hints.ai_port_space = RDMA_PS_TCP;
- 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
- 	if (ret) {
- 		perror("cmatose: getrdmaaddr error");
-@@ -579,13 +576,10 @@ out:
- 
- static int run_client(void)
- {
--	struct rdma_addrinfo hints;
- 	int i, ret, ret2;
- 
- 	printf("cmatose: starting client\n");
- 
--	memset(&hints, 0, sizeof hints);
--	hints.ai_port_space = RDMA_PS_TCP;
- 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
- 	if (ret) {
- 		perror("cmatose: getaddrinfo error");
-@@ -642,7 +636,8 @@ int main(int argc, char **argv)
- {
- 	int op, ret;
- 
--	while ((op = getopt(argc, argv, "s:b:c:C:S:t:p:m")) != -1) {
-+	hints.ai_port_space = RDMA_PS_TCP;
-+	while ((op = getopt(argc, argv, "s:b:f:P:c:C:S:t:p:m")) != -1) {
- 		switch (op) {
- 		case 's':
- 			dst_addr = optarg;
-@@ -650,6 +645,23 @@ int main(int argc, char **argv)
- 		case 'b':
- 			src_addr = optarg;
- 			break;
-+		case 'f':
-+			if (!strncasecmp("ip", optarg, 2)) {
-+				hints.ai_flags = RAI_NUMERICHOST;
-+			} else if (!strncasecmp("gid", optarg, 3)) {
-+				hints.ai_flags = RAI_NUMERICHOST | RAI_FAMILY;
-+				hints.ai_family = AF_IB;
-+			} else if (strncasecmp("name", optarg, 4)) {
-+				fprintf(stderr, "Warning: unknown address format\n");
-+			}
-+			break;
-+		case 'P':
-+			if (!strncasecmp("ib", optarg, 2)) {
-+				hints.ai_port_space = RDMA_PS_IB;
-+			} else if (strncasecmp("tcp", optarg, 3)) {
-+				fprintf(stderr, "Warning: unknown port space format\n");
-+			}
-+			break;
- 		case 'c':
- 			connections = atoi(optarg);
- 			break;
-@@ -673,6 +685,10 @@ int main(int argc, char **argv)
- 			printf("usage: %s\n", argv[0]);
- 			printf("\t[-s server_address]\n");
- 			printf("\t[-b bind_address]\n");
-+			printf("\t[-f address_format]\n");
-+			printf("\t    name, ip, ipv6, or gid\n");
-+			printf("\t[-P port_space]\n");
-+			printf("\t    tcp or ib\n");
- 			printf("\t[-c connections]\n");
- 			printf("\t[-C message_count]\n");
- 			printf("\t[-S message_size]\n");
-@@ -694,10 +710,12 @@ int main(int argc, char **argv)
- 	if (alloc_nodes())
- 		exit(1);
- 
--	if (dst_addr)
-+	if (dst_addr) {
- 		ret = run_client();
--	else
-+	} else {
-+		hints.ai_flags |= RAI_PASSIVE;
- 		ret = run_server();
-+	}
- 
- 	printf("test complete\n");
- 	destroy_nodes();
-diff --git a/examples/common.c b/examples/common.c
-index 4eb5bbe..0b6428c 100644
---- a/examples/common.c
-+++ b/examples/common.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2005-2006 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2005-2006,2012 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -58,7 +58,7 @@ int get_rdma_addr(char *src, char *dst, char *port,
- 
- 	rai_hints = *hints;
- 	if (src) {
--		rai_hints.ai_flags = RAI_PASSIVE;
-+		rai_hints.ai_flags |= RAI_PASSIVE;
- 		ret = rdma_getaddrinfo(src, NULL, &rai_hints, &res);
- 		if (ret)
- 			return ret;
-diff --git a/examples/common.h b/examples/common.h
-index 7cf16d2..f7511f0 100644
---- a/examples/common.h
-+++ b/examples/common.h
-@@ -39,6 +39,7 @@
- 
- #include <rdma/rdma_cma.h>
- #include <rdma/rsocket.h>
-+#include <infiniband/ib.h>
- 
- #if __BYTE_ORDER == __BIG_ENDIAN
- static inline uint64_t cpu_to_be64(uint64_t x) { return x; }
-diff --git a/man/ucmatose.1 b/man/ucmatose.1
-index 73477ea..95dc2d6 100644
---- a/man/ucmatose.1
-+++ b/man/ucmatose.1
-@@ -4,10 +4,12 @@ ucmatose \- RDMA CM connection and simple ping-pong test.
- .SH SYNOPSIS
- .sp
- .nf
--\fIucmatose\fR [-s server_address] [-b bind_address] [-c connections]
--		[-C message_count] [-S message_size]
--\fIucmatose\fR -s server_address [-b bind_address] [-c connections]
--		[-C message_count] [-S message_size] [-t tos]
-+\fIucmatose\fR [-s server_address] [-b bind_address]
-+		[-f address_format] [-P port_space]
-+		[-c connections] [-C message_count] [-S message_size]
-+\fIucmatose\fR -s server_address [-b bind_address]
-+		[-f address_format] [-P port_space]
-+		[-c connections] [-C message_count] [-S message_size] [-t tos]
- .fi
- .SH "DESCRIPTION"
- Establishes a set of reliable RDMA connections between two nodes using the
-@@ -22,6 +24,18 @@ This option must be specified by the client.
- \-b bind_address
- The local network address to bind to.
- .TP
-+\-f address_format
-+Specifies the format of the server and bind address.  Be default, the
-+format is determined by getaddrinfo() as either being a hostname, an IPv4
-+address, or an IPv6 address.  This option may be used to indicate that
-+a specific address format has been provided.  Supported address_format
-+values are: name, ip, ipv6, and gid.
-+.TP
-+\-P port_space
-+Specifies the port space for the connection.  Be default, the port space
-+is the RDMA TCP port space. (Note that the RDMA port space may be separate
-+from that used for IP.)  Supported port_space values are: tcp and ib.
-+.TP
- \-c connections
- The number of connections to establish between the client and server.
- (default 1)
--- 
-1.7.3
+> But it doesn't make one difference. Until they reach Roland's tree *nobody*
+> gets to use indexes in the extension structure with the 'libibverbs.so.1' SONAME.
 
+Hi Jason, after a thorough internal discussion we concluded that your
+point is indeed valid one. So in that respect, will resubmit the
+patches and do the index allocation the way it was intended. This will
+cost us with some field/upgrade issues but we agree that this is for
+the greater && good.
+
+[...]
+
+> Frankly, this nonsense makes me question if the extension mechanism is
+> even a sane idea if this is the sort of abuse it is going to be subject too.
+
+So if not abusing... can you now review && acknowledge this series
+which is a respin + fixes in the series Sean posted earlier this year,
+Sean ditto for you, any feedback or ack on the series sans the pointer
+reservation which we will remove.
+
+As Yishai wrote, he's OOO for a week so work might be resumed only
+when he's back, and once this is done will re-submit ASAP
+
+Or
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
