@@ -1,140 +1,86 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 FIXES for-3.11 0/4] Pkey fixes for IB core and IPoIB
-Date: Thu, 18 Jul 2013 14:02:28 +0300
-Message-ID: <1374145352-27816-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 FIXES for-3.11 1/4] IB/core: Create QP1 using the pkey index which contains the default pkey
+Date: Thu, 18 Jul 2013 14:02:29 +0300
+Message-ID: <1374145352-27816-2-git-send-email-ogerlitz@mellanox.com>
+References: <1374145352-27816-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1374145352-27816-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-This set of fixes is critical for Virtualization environments when the VM 
-para-virtualized PKEY table isn't fully configured at the time the 
-VF is probed, or when the management pkey is provisioned to non-zero index
-in the VF pkey table.
+Currently, QP1 is created using pkey index 0. This patch simply looks for
+the index containing the default pkey, rather than hard-coding pkey index 0.
 
-The first three patches are pretty much few liners (two of them with somehow 
-long change log...). The forth one a bit larger. Would be happy to see them 
-all going to -stable, either by you adding a Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org when 
-you push them or I can send them to Greg after they spend some time upstream.
+This change will have no effect in Native mode, since QP0 and QP1 are created
+before the SM configures the port, so pkey table will still be the default
+table defined by the IB Spec, in C10-123: "If non-volatile storage is not used
+to hold P_Key Table contents, then if a PM (Partition Manager) is not present,
+and prior to PM initialization of the P_Key Table, the P_Key Table must act as
+if it contains a single valid entry, at P_Key_ix = 0, containing the default
+partition key. All other entries in the P_Key Table must be invalid."
 
-Changes from V0: 
-  - applied feedback from Sean on the IB core patch and added his review-by
+Thus, in the native mode case, the driver will find the default pkey
+at index 0 (so it will be no different than the hard-coding).
 
+However, in SRIOV mode, for VFs, the pkey table may be paravirtualized, so
+that the VF's pkey index zero may not necessarily be mapped to the real pkey
+index 0. For VFs, therefore, it is important to find the virtual index which
+maps to the real default pkey.
 
-Or.
+This commit does the following for QP1 creation:
 
-Erez Shitrit (1):
-  IB/ipoib: Fix pkey-change flow for Virtualization environments
+1. Find the pkey index containing the default pkey, and use that index if found.
+   ib_find_pkey() returns the index of the limited-membership default pkey
+   (0x7FFF) if the full-member default pkey is not in the table.
 
-Jack Morgenstein (2):
-  IB/core: Create QP1 using the pkey index which contains the default pkey
-  IB/mlx4: Use default pkey when creating tunnel QPs
+2. If neither form of the default pkey is found, use pkey index 0 (previous behavior).
 
-Or Gerlitz (1):
-  IB/ipoib: Make sure child devices use valid/proper pkeys
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
- drivers/infiniband/core/mad.c                |    8 +++-
- drivers/infiniband/hw/mlx4/mad.c             |   10 +++-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c      |   76 +++++++++++++++++++++-----
- drivers/infiniband/ulp/ipoib/ipoib_main.c    |    2 +-
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c |    9 +++
- 5 files changed, 88 insertions(+), 17 deletions(-)
-
-
-This is the sequence of events when the IPoIB patch is applied at the guest:
-
-<-- the VM pkey table contains 0x0000 in index 0, and hence the mgid has 0x8000 as the pkey
-
-[root@xena017-3 infiniband]# cat /sys/class/infiniband/mlx4_0/ports/1/pkeys/0
-
-0x0000
-
-[root@xena017-3 ~]# ip addr show ib0
-22: ib0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc pfifo_fast state DOWN qlen 256
-    link/infiniband 80:00:05:8b:fe:80:00:00:00:00:00:00:00:14:05:00:00:00:04:f9 brd 00:ff:ff:ff:ff:12:40:1b:80:00:00:00:00:00:00:00:ff:ff:ff:ff
-    inet 192.168.20.199/24 brd 192.168.20.255 scope global ib0
-
-<--  the hypervisor changed pkey value in index 0  of the VM pkey table to contain 0x8001
-
-[root@xena017-3 infiniband]# cat /sys/class/infiniband/mlx4_0/ports/1/pkeys/0
-
-0x8001
-
-[root@xena017-3 ~]# dmesg
-ib0: bringing up interface
-IPv6: ADDRCONF(NETDEV_UP): ib0: link is not ready
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-[...]
-ib0: Event 12 on device mlx4_0 port 1
-ib0: pkey changed from 0x8000 to 0x8001
-ib0: downing ib_dev
-ib0: All sends and receives done.
-ib0: Created ah ffff88011a11f4e0
-IPv6: ADDRCONF(NETDEV_CHANGE): ib0: link becomes ready
-ib0: Created ah ffff88011a11f660
-ib0: Created ah ffff88011a11f780
-
-<--- mgid changed to use 0x8001
-
-[root@xena017-3 ~]# ip addr show ib0
-22: ib0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 2044 qdisc pfifo_fast state UP qlen 256
-    link/infiniband 80:00:05:8b:fe:80:00:00:00:00:00:00:00:14:05:00:00:00:04:f9 brd 00:ff:ff:ff:ff:12:40:1b:80:01:00:00:00:00:00:00:ff:ff:ff:ff
-    inet 192.168.20.199/24 brd 192.168.20.255 scope global ib0
-
-
-ping works etc
-
---> when the mlx4 patch isn't applied on the host we see these errors
-
-<mlx4_ib> create_pv_sqp: Couldn't change tunnel qp state to INIT (-22)
-<mlx4_ib> create_pv_resources: Couldn't create tunnel for QP1 (-22)
-
---> this is the sequence of events when the IPoIB patch is not applied at the guest:
-
-<-- the VM pkey table contains 0x0000 in index 0, and hence the mgid has 0x8000 as the pkey
-
-[root@xena017-3 infiniband]# cat /sys/class/infiniband/mlx4_0/ports/1/pkeys/0
-
-0x0000
-
-[root@xena017-3 infiniband]# modprobe ib_ipoib debug_level=1
-
-[root@xena017-3 infiniband]# ip a s ib0
-
-30: ib0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc pfifo_fast state DOWN qlen 256
-    link/infiniband 80:00:05:93:fe:80:00:00:00:00:00:00:00:14:05:00:00:00:04:f9 brd 00:ff:ff:ff:ff:12:40:1b:80:00:00:00:00:00:00:00:ff:ff:ff:ff
-
-[root@xena017-3 infiniband]# cat /sys/class/infiniband/mlx4_0/ports/1/pkeys/0
-
-0x8001
-
-<-- ipoib got the event, but nothing changed
-
-[root@xena017-3 infiniband]# ip a s ib0
-
-30: ib0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 2044 qdisc pfifo_fast state DOWN qlen 256
-    link/infiniband 80:00:05:93:fe:80:00:00:00:00:00:00:00:14:05:00:00:00:04:f9 brd 00:ff:ff:ff:ff:12:40:1b:80:00:00:00:00:00:00:00:ff:ff:ff:ff
-    inet 192.168.20.199/24 brd 192.168.20.255 scope global ib0
-
-[root@xena017-3 infiniband]# dmesg
-ib%d: max_srq_sge=31
-ib%d: max_cm_mtu = 0xfff0, num_frags=16
-ib%d: max_srq_sge=31
-ib%d: max_cm_mtu = 0xfff0, num_frags=16
-ib0: bringing up interface
-IPv6: ADDRCONF(NETDEV_UP): ib0: link is not ready
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: multicast join failed for ff12:401b:8000:0000:0000:0000:ffff:ffff, status -22
-ib0: Event 12 on device mlx4_0 port 1
-ib0: downing ib_dev
-ib0: All sends and receives done.
-
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index dc3fd1e..4c837e6 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -2663,6 +2663,7 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
+ 	int ret, i;
+ 	struct ib_qp_attr *attr;
+ 	struct ib_qp *qp;
++	u16 pkey_index;
+ 
+ 	attr = kmalloc(sizeof *attr, GFP_KERNEL);
+ 	if (!attr) {
+@@ -2670,6 +2671,11 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
+ 		return -ENOMEM;
+ 	}
+ 
++	ret = ib_find_pkey(port_priv->device, port_priv->port_num,
++			   IB_DEFAULT_PKEY_FULL, &pkey_index);
++	if (ret)
++		pkey_index = 0;
++
+ 	for (i = 0; i < IB_MAD_QPS_CORE; i++) {
+ 		qp = port_priv->qp_info[i].qp;
+ 		if (!qp)
+@@ -2680,7 +2686,7 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
+ 		 * one is needed for the Reset to Init transition
+ 		 */
+ 		attr->qp_state = IB_QPS_INIT;
+-		attr->pkey_index = 0;
++		attr->pkey_index = pkey_index;
+ 		attr->qkey = (qp->qp_num == 0) ? 0 : IB_QP1_QKEY;
+ 		ret = ib_modify_qp(qp, attr, IB_QP_STATE |
+ 					     IB_QP_PKEY_INDEX | IB_QP_QKEY);
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
