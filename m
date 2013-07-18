@@ -1,301 +1,468 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] mlx5: Implement new initialization sequence
-Date: Thu, 18 Jul 2013 15:31:08 +0300
-Message-ID: <20130718123108.GA6777@mtldesk30>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-3.11 7/7] IB/iser: Introduce fast memory registration model (FRWR)
+Date: Thu, 18 Jul 2013 16:25:31 +0300
+Message-ID: <1374153931-7313-8-git-send-email-ogerlitz@mellanox.com>
+References: <1374153931-7313-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1374153931-7313-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce enbale_hca and disable_hca commands to signify when the driver starts
-or ceases to operate on the device.
-In addition the driver will use boot and init pages count; boot pages is
-required to allow firmware to complete boot commands and the other to complete
-init hca. Command interface revision is bumped to 4 to enforce using supported
-firmware.
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Newer HCAs and Virtual functions may not support FMRs but rather a fast
+registration model, which we call FRWR - "Fast Registration Work Requests".
+
+This model was introduced in 00f7ec36c "RDMA/core: Add memory management
+extensions support" and works when the IB device supports the
+IB_DEVICE_MEM_MGT_EXTENSIONS capability.
+
+Upon creating the iser device iser will test wether the HCA supports FMRs.
+if no support for FMRs, check if IB_DEVICE_MEM_MGT_EXTENSIONS is supported and
+assign function handles that handle fast registration and allocation of
+appropriate resources (fast_reg descriptors).
+
+Registration is done using posting IB_WR_FAST_REG_MR to the QP and
+invalidations using posting IB_WR_LOCAL_INV.
+
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Roland,
-this patch breaks compatibility with old versions of firmware (< 4), however,
-the first GA firmware we will publish will support version 4 so this should not
-be a problem.
+ drivers/infiniband/ulp/iser/iscsi_iser.h  |   21 ++++-
+ drivers/infiniband/ulp/iser/iser_memory.c |  140 ++++++++++++++++++++++++++++-
+ drivers/infiniband/ulp/iser/iser_verbs.c  |  138 ++++++++++++++++++++++++++--
+ 3 files changed, 287 insertions(+), 12 deletions(-)
 
-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |  8 ++-
- drivers/net/ethernet/mellanox/mlx5/core/main.c     | 69 +++++++++++++++++++---
- .../net/ethernet/mellanox/mlx5/core/pagealloc.c    | 20 +++++--
- include/linux/mlx5/device.h                        | 20 +++++++
- include/linux/mlx5/driver.h                        |  4 +-
- 5 files changed, 106 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 205753a..f9cde08 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -46,7 +46,7 @@
- #include "mlx5_core.h"
- 
- enum {
--	CMD_IF_REV = 3,
-+	CMD_IF_REV = 4,
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
+index 75c5352..6791402 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.h
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
+@@ -211,7 +211,7 @@ struct iser_mem_reg {
+ 	u64  va;
+ 	u64  len;
+ 	void *mem_h;
+-	int  is_fmr;
++	int  is_mr;
  };
  
- enum {
-@@ -282,6 +282,12 @@ const char *mlx5_command_str(int command)
- 	case MLX5_CMD_OP_TEARDOWN_HCA:
- 		return "TEARDOWN_HCA";
- 
-+	case MLX5_CMD_OP_ENABLE_HCA:
-+		return "MLX5_CMD_OP_ENABLE_HCA";
-+
-+	case MLX5_CMD_OP_DISABLE_HCA:
-+		return "MLX5_CMD_OP_DISABLE_HCA";
-+
- 	case MLX5_CMD_OP_QUERY_PAGES:
- 		return "QUERY_PAGES";
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index f21cc39..5e07642 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -249,6 +249,44 @@ static int set_hca_ctrl(struct mlx5_core_dev *dev)
- 	return err;
- }
- 
-+static int mlx5_core_enable_hca(struct mlx5_core_dev *dev)
-+{
-+	int err;
-+	struct mlx5_enable_hca_mbox_in in;
-+	struct mlx5_enable_hca_mbox_out out;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_ENABLE_HCA);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return 0;
-+}
-+
-+static int mlx5_core_disable_hca(struct mlx5_core_dev *dev)
-+{
-+	int err;
-+	struct mlx5_disable_hca_mbox_in in;
-+	struct mlx5_disable_hca_mbox_out out;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DISABLE_HCA);
-+	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	if (out.hdr.status)
-+		return mlx5_cmd_status_to_err(&out.hdr);
-+
-+	return 0;
-+}
-+
- int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev)
- {
- 	struct mlx5_priv *priv = &dev->priv;
-@@ -304,28 +342,41 @@ int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev)
- 	}
- 
- 	mlx5_pagealloc_init(dev);
-+
-+	err = mlx5_core_enable_hca(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "enable hca failed\n");
-+		goto err_pagealloc_cleanup;
-+	}
-+
-+	err = mlx5_satisfy_startup_pages(dev, 1);
-+	if (err) {
-+		dev_err(&pdev->dev, "failed to allocate boot pages\n");
-+		goto err_disable_hca;
-+	}
-+
- 	err = set_hca_ctrl(dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "set_hca_ctrl failed\n");
--		goto err_pagealloc_cleanup;
-+		goto reclaim_boot_pages;
- 	}
- 
- 	err = handle_hca_cap(dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "handle_hca_cap failed\n");
--		goto err_pagealloc_cleanup;
-+		goto reclaim_boot_pages;
- 	}
- 
--	err = mlx5_satisfy_startup_pages(dev);
-+	err = mlx5_satisfy_startup_pages(dev, 0);
- 	if (err) {
--		dev_err(&pdev->dev, "failed to allocate startup pages\n");
--		goto err_pagealloc_cleanup;
-+		dev_err(&pdev->dev, "failed to allocate init pages\n");
-+		goto reclaim_boot_pages;
- 	}
- 
- 	err = mlx5_pagealloc_start(dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "mlx5_pagealloc_start failed\n");
--		goto err_reclaim_pages;
-+		goto reclaim_boot_pages;
- 	}
- 
- 	err = mlx5_cmd_init_hca(dev);
-@@ -396,9 +447,12 @@ err_stop_poll:
- err_pagealloc_stop:
- 	mlx5_pagealloc_stop(dev);
- 
--err_reclaim_pages:
-+reclaim_boot_pages:
- 	mlx5_reclaim_startup_pages(dev);
- 
-+err_disable_hca:
-+	mlx5_core_disable_hca(dev);
-+
- err_pagealloc_cleanup:
- 	mlx5_pagealloc_cleanup(dev);
- 	mlx5_cmd_cleanup(dev);
-@@ -434,6 +488,7 @@ void mlx5_dev_cleanup(struct mlx5_core_dev *dev)
- 	mlx5_cmd_teardown_hca(dev);
- 	mlx5_pagealloc_stop(dev);
- 	mlx5_reclaim_startup_pages(dev);
-+	mlx5_core_disable_hca(dev);
- 	mlx5_pagealloc_cleanup(dev);
- 	mlx5_cmd_cleanup(dev);
- 	iounmap(dev->iseg);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-index f0bf463..4a3e137 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-@@ -64,7 +64,7 @@ struct mlx5_query_pages_inbox {
- 
- struct mlx5_query_pages_outbox {
- 	struct mlx5_outbox_hdr	hdr;
--	u8			reserved[2];
-+	__be16			num_boot_pages;
- 	__be16			func_id;
- 	__be16			init_pages;
- 	__be16			num_pages;
-@@ -146,7 +146,7 @@ static struct page *remove_page(struct mlx5_core_dev *dev, u64 addr)
- }
- 
- static int mlx5_cmd_query_pages(struct mlx5_core_dev *dev, u16 *func_id,
--				s16 *pages, s16 *init_pages)
-+				s16 *pages, s16 *init_pages, u16 *boot_pages)
- {
- 	struct mlx5_query_pages_inbox	in;
- 	struct mlx5_query_pages_outbox	out;
-@@ -164,8 +164,13 @@ static int mlx5_cmd_query_pages(struct mlx5_core_dev *dev, u16 *func_id,
- 
- 	if (pages)
- 		*pages = be16_to_cpu(out.num_pages);
-+
- 	if (init_pages)
- 		*init_pages = be16_to_cpu(out.init_pages);
-+
-+	if (boot_pages)
-+		*boot_pages = be16_to_cpu(out.num_boot_pages);
-+
- 	*func_id = be16_to_cpu(out.func_id);
- 
- 	return err;
-@@ -357,19 +362,22 @@ void mlx5_core_req_pages_handler(struct mlx5_core_dev *dev, u16 func_id,
- 	queue_work(dev->priv.pg_wq, &req->work);
- }
- 
--int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev)
-+int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev, int boot)
- {
-+	u16 uninitialized_var(boot_pages);
- 	s16 uninitialized_var(init_pages);
- 	u16 uninitialized_var(func_id);
- 	int err;
- 
--	err = mlx5_cmd_query_pages(dev, &func_id, NULL, &init_pages);
-+	err = mlx5_cmd_query_pages(dev, &func_id, NULL, &init_pages,
-+				   &boot_pages);
- 	if (err)
- 		return err;
- 
--	mlx5_core_dbg(dev, "requested %d init pages for func_id 0x%x\n", init_pages, func_id);
- 
--	return give_pages(dev, func_id, init_pages, 0);
-+	mlx5_core_dbg(dev, "requested %d init pages and %d boot pages for func_id 0x%x\n",
-+		      init_pages, boot_pages, func_id);
-+	return give_pages(dev, func_id, boot ? boot_pages : init_pages, 0);
- }
- 
- static int optimal_reclaimed_pages(void)
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 5139091..e43bd0d 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -690,6 +690,26 @@ struct mlx5_query_cq_mbox_out {
- 	__be64			pas[0];
+ struct iser_regd_buf {
+@@ -277,6 +277,15 @@ struct iser_device {
+ 							    enum iser_data_dir cmd_dir);
  };
  
-+struct mlx5_enable_hca_mbox_in {
-+	struct mlx5_inbox_hdr	hdr;
-+	u8			rsvd[8];
++struct fast_reg_descriptor {
++	struct list_head		  list;
++	/* For fast registration - FRWR */
++	struct ib_mr			 *data_mr;
++	struct ib_fast_reg_page_list     *data_frpl;
++	/* Valid for fast registration flag */
++	bool				  valid;
 +};
 +
-+struct mlx5_enable_hca_mbox_out {
-+	struct mlx5_outbox_hdr	hdr;
-+	u8			rsvd[8];
-+};
+ struct iser_conn {
+ 	struct iscsi_iser_conn       *iser_conn; /* iser conn for upcalls  */
+ 	struct iscsi_endpoint	     *ep;
+@@ -307,6 +316,10 @@ struct iser_conn {
+ 			struct iser_page_vec	*page_vec; /* represents SG to fmr maps*
+ 							    * maps serialized as tx is*/
+ 		} fmr;
++		struct {
++			struct list_head	pool;
++			int			pool_size;
++		} frwr;
+ 	} fastreg;
+ };
+ 
+@@ -393,6 +406,8 @@ void iser_finalize_rdma_unaligned_sg(struct iscsi_iser_task *task,
+ 
+ int  iser_reg_rdma_mem_fmr(struct iscsi_iser_task *task,
+ 			   enum iser_data_dir cmd_dir);
++int  iser_reg_rdma_mem_frwr(struct iscsi_iser_task *task,
++			    enum iser_data_dir cmd_dir);
+ 
+ int  iser_connect(struct iser_conn   *ib_conn,
+ 		  struct sockaddr_in *src_addr,
+@@ -405,6 +420,8 @@ int  iser_reg_page_vec(struct iser_conn     *ib_conn,
+ 
+ void iser_unreg_mem_fmr(struct iscsi_iser_task *iser_task,
+ 			enum iser_data_dir cmd_dir);
++void iser_unreg_mem_frwr(struct iscsi_iser_task *iser_task,
++			 enum iser_data_dir cmd_dir);
+ 
+ int  iser_post_recvl(struct iser_conn *ib_conn);
+ int  iser_post_recvm(struct iser_conn *ib_conn, int count);
+@@ -421,4 +438,6 @@ int  iser_initialize_task_headers(struct iscsi_task *task,
+ int iser_alloc_rx_descriptors(struct iser_conn *ib_conn, struct iscsi_session *session);
+ int iser_create_fmr_pool(struct iser_conn *ib_conn, unsigned cmds_max);
+ void iser_free_fmr_pool(struct iser_conn *ib_conn);
++int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max);
++void iser_free_frwr_pool(struct iser_conn *ib_conn);
+ #endif
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index 1985e90..1ce0c97 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -395,8 +395,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	regd_buf = &iser_task->rdma_regd[cmd_dir];
+ 
+ 	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
+-	if (aligned_len != mem->dma_nents ||
+-	    (!ib_conn->fastreg.fmr.pool && mem->dma_nents > 1)) {
++	if (aligned_len != mem->dma_nents) {
+ 		err = fall_to_bounce_buf(iser_task, ibdev,
+ 					 cmd_dir, aligned_len);
+ 		if (err) {
+@@ -414,7 +413,7 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 		regd_buf->reg.rkey = device->mr->rkey;
+ 		regd_buf->reg.len  = ib_sg_dma_len(ibdev, &sg[0]);
+ 		regd_buf->reg.va   = ib_sg_dma_address(ibdev, &sg[0]);
+-		regd_buf->reg.is_fmr = 0;
++		regd_buf->reg.is_mr = 0;
+ 
+ 		iser_dbg("PHYSICAL Mem.register: lkey: 0x%08X rkey: 0x%08X  "
+ 			 "va: 0x%08lX sz: %ld]\n",
+@@ -444,3 +443,138 @@ int iser_reg_rdma_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	}
+ 	return 0;
+ }
 +
-+struct mlx5_disable_hca_mbox_in {
-+	struct mlx5_inbox_hdr	hdr;
-+	u8			rsvd[8];
-+};
++static int iser_fast_reg_mr(struct fast_reg_descriptor *desc,
++			    struct iser_conn *ib_conn,
++			    struct iser_regd_buf *regd_buf,
++			    u32 offset, unsigned int data_size,
++			    unsigned int page_list_len)
++{
++	struct ib_send_wr fastreg_wr, inv_wr;
++	struct ib_send_wr *bad_wr, *wr = NULL;
++	u8 key;
++	int ret;
 +
-+struct mlx5_disable_hca_mbox_out {
-+	struct mlx5_outbox_hdr	hdr;
-+	u8			rsvd[8];
-+};
++	if (!desc->valid) {
++		memset(&inv_wr, 0, sizeof(inv_wr));
++		inv_wr.opcode = IB_WR_LOCAL_INV;
++		inv_wr.send_flags = IB_SEND_SIGNALED;
++		inv_wr.ex.invalidate_rkey = desc->data_mr->rkey;
++		wr = &inv_wr;
++		/* Bump the key */
++		key = (u8)(desc->data_mr->rkey & 0x000000FF);
++		ib_update_fast_reg_key(desc->data_mr, ++key);
++	}
 +
- struct mlx5_eq_context {
- 	u8			status;
- 	u8			ec_oi;
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index f22e441..2aa258b 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -101,6 +101,8 @@ enum {
- 	MLX5_CMD_OP_QUERY_ADAPTER		= 0x101,
- 	MLX5_CMD_OP_INIT_HCA			= 0x102,
- 	MLX5_CMD_OP_TEARDOWN_HCA		= 0x103,
-+	MLX5_CMD_OP_ENABLE_HCA			= 0x104,
-+	MLX5_CMD_OP_DISABLE_HCA			= 0x105,
- 	MLX5_CMD_OP_QUERY_PAGES			= 0x107,
- 	MLX5_CMD_OP_MANAGE_PAGES		= 0x108,
- 	MLX5_CMD_OP_SET_HCA_CAP			= 0x109,
-@@ -690,7 +692,7 @@ int mlx5_pagealloc_start(struct mlx5_core_dev *dev);
- void mlx5_pagealloc_stop(struct mlx5_core_dev *dev);
- void mlx5_core_req_pages_handler(struct mlx5_core_dev *dev, u16 func_id,
- 				 s16 npages);
--int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev);
-+int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev, int boot);
- int mlx5_reclaim_startup_pages(struct mlx5_core_dev *dev);
- void mlx5_register_debugfs(void);
- void mlx5_unregister_debugfs(void);
++	/* Prepare FASTREG WR */
++	memset(&fastreg_wr, 0, sizeof(fastreg_wr));
++	fastreg_wr.opcode = IB_WR_FAST_REG_MR;
++	fastreg_wr.send_flags = IB_SEND_SIGNALED;
++	fastreg_wr.wr.fast_reg.iova_start = desc->data_frpl->page_list[0] + offset;
++	fastreg_wr.wr.fast_reg.page_list = desc->data_frpl;
++	fastreg_wr.wr.fast_reg.page_list_len = page_list_len;
++	fastreg_wr.wr.fast_reg.page_shift = SHIFT_4K;
++	fastreg_wr.wr.fast_reg.length = data_size;
++	fastreg_wr.wr.fast_reg.rkey = desc->data_mr->rkey;
++	fastreg_wr.wr.fast_reg.access_flags = (IB_ACCESS_LOCAL_WRITE  |
++					       IB_ACCESS_REMOTE_WRITE |
++					       IB_ACCESS_REMOTE_READ);
++
++	if (!wr) {
++		wr = &fastreg_wr;
++		atomic_inc(&ib_conn->post_send_buf_count);
++	} else {
++		wr->next = &fastreg_wr;
++		atomic_add(2, &ib_conn->post_send_buf_count);
++	}
++
++	ret = ib_post_send(ib_conn->qp, wr, &bad_wr);
++	if (ret) {
++		if (bad_wr->next)
++			atomic_sub(2, &ib_conn->post_send_buf_count);
++		else
++			atomic_dec(&ib_conn->post_send_buf_count);
++		iser_err("fast registration failed, ret:%d\n", ret);
++		return ret;
++	}
++	desc->valid = false;
++
++	regd_buf->reg.mem_h = desc;
++	regd_buf->reg.lkey = desc->data_mr->lkey;
++	regd_buf->reg.rkey = desc->data_mr->rkey;
++	regd_buf->reg.va = desc->data_frpl->page_list[0] + offset;
++	regd_buf->reg.len = data_size;
++	regd_buf->reg.is_mr = 1;
++
++	return ret;
++}
++
++/**
++ * iser_reg_rdma_mem_frwr - Registers memory intended for RDMA,
++ * using Fast Registration WR (if possible) obtaining rkey and va
++ *
++ * returns 0 on success, errno code on failure
++ */
++int iser_reg_rdma_mem_frwr(struct iscsi_iser_task *iser_task,
++			   enum iser_data_dir cmd_dir)
++{
++	struct iser_conn *ib_conn = iser_task->iser_conn->ib_conn;
++	struct iser_device *device = ib_conn->device;
++	struct ib_device *ibdev = device->ib_device;
++	struct iser_data_buf *mem = &iser_task->data[cmd_dir];
++	struct iser_regd_buf *regd_buf = &iser_task->rdma_regd[cmd_dir];
++	struct fast_reg_descriptor *desc;
++	unsigned int data_size, page_list_len;
++	int err, aligned_len;
++	unsigned long flags;
++	u32 offset;
++
++	aligned_len = iser_data_buf_aligned_len(mem, ibdev);
++	if (aligned_len != mem->dma_nents) {
++		err = fall_to_bounce_buf(iser_task, ibdev,
++					 cmd_dir, aligned_len);
++		if (err) {
++			iser_err("failed to allocate bounce buffer\n");
++			return err;
++		}
++		mem = &iser_task->data_copy[cmd_dir];
++	}
++
++	/* if there a single dma entry, dma mr suffices */
++	if (mem->dma_nents == 1) {
++		struct scatterlist *sg = (struct scatterlist *)mem->buf;
++
++		regd_buf->reg.lkey = device->mr->lkey;
++		regd_buf->reg.rkey = device->mr->rkey;
++		regd_buf->reg.len  = ib_sg_dma_len(ibdev, &sg[0]);
++		regd_buf->reg.va   = ib_sg_dma_address(ibdev, &sg[0]);
++		regd_buf->reg.is_mr = 0;
++	} else {
++		spin_lock_irqsave(&ib_conn->lock, flags);
++		desc = list_first_entry(&ib_conn->fastreg.frwr.pool,
++					struct fast_reg_descriptor, list);
++		list_del(&desc->list);
++		spin_unlock_irqrestore(&ib_conn->lock, flags);
++		page_list_len = iser_sg_to_page_vec(mem, device->ib_device,
++						    desc->data_frpl->page_list,
++						    &offset, &data_size);
++
++		if (page_list_len * SIZE_4K < data_size) {
++			iser_err("fast reg page_list too short to hold this SG\n");
++			err = -EINVAL;
++			goto err_reg;
++		}
++
++		err = iser_fast_reg_mr(desc, ib_conn, regd_buf,
++				       offset, data_size, page_list_len);
++		if (err)
++			goto err_reg;
++	}
++
++	return 0;
++err_reg:
++	spin_lock_irqsave(&ib_conn->lock, flags);
++	list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
++	spin_unlock_irqrestore(&ib_conn->lock, flags);
++	return err;
++}
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index d9a47b9..a0ea8de 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -73,12 +73,36 @@ static int iser_create_device_ib_res(struct iser_device *device)
+ {
+ 	int i, j;
+ 	struct iser_cq_desc *cq_desc;
++	struct ib_device_attr *dev_attr;
+ 
+-	/* Assign function handles */
+-	device->iser_alloc_rdma_reg_res = iser_create_fmr_pool;
+-	device->iser_free_rdma_reg_res = iser_free_fmr_pool;
+-	device->iser_reg_rdma_mem = iser_reg_rdma_mem_fmr;
+-	device->iser_unreg_rdma_mem = iser_unreg_mem_fmr;
++	dev_attr = kmalloc(sizeof *dev_attr, GFP_KERNEL);
++	if (!dev_attr)
++		return -ENOMEM;
++
++	if (ib_query_device(device->ib_device, dev_attr)) {
++		pr_warn("Query device failed for %s\n", device->ib_device->name);
++		goto dev_attr_err;
++	}
++
++	/* Assign function handles  - based on FMR support */
++	if (device->ib_device->alloc_fmr && device->ib_device->dealloc_fmr &&
++	    device->ib_device->map_phys_fmr && device->ib_device->unmap_fmr) {
++		iser_info("FMR supported, using FMR for registration\n");
++		device->iser_alloc_rdma_reg_res = iser_create_fmr_pool;
++		device->iser_free_rdma_reg_res = iser_free_fmr_pool;
++		device->iser_reg_rdma_mem = iser_reg_rdma_mem_fmr;
++		device->iser_unreg_rdma_mem = iser_unreg_mem_fmr;
++	} else
++	if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS) {
++		iser_info("FRWR supported, using FRWR for registration\n");
++		device->iser_alloc_rdma_reg_res = iser_create_frwr_pool;
++		device->iser_free_rdma_reg_res = iser_free_frwr_pool;
++		device->iser_reg_rdma_mem = iser_reg_rdma_mem_frwr;
++		device->iser_unreg_rdma_mem = iser_unreg_mem_frwr;
++	} else {
++		iser_err("IB device does not support FMRs nor FRWRs, can't register memory\n");
++		goto dev_attr_err;
++	}
+ 
+ 	device->cqs_used = min(ISER_MAX_CQ, device->ib_device->num_comp_vectors);
+ 	iser_info("using %d CQs, device %s supports %d vectors\n",
+@@ -134,6 +158,7 @@ static int iser_create_device_ib_res(struct iser_device *device)
+ 	if (ib_register_event_handler(&device->event_handler))
+ 		goto handler_err;
+ 
++	kfree(dev_attr);
+ 	return 0;
+ 
+ handler_err:
+@@ -153,6 +178,8 @@ pd_err:
+ 	kfree(device->cq_desc);
+ cq_desc_err:
+ 	iser_err("failed to allocate an IB resource\n");
++dev_attr_err:
++	kfree(dev_attr);
+ 	return -1;
+ }
+ 
+@@ -253,6 +280,80 @@ void iser_free_fmr_pool(struct iser_conn *ib_conn)
+ }
+ 
+ /**
++ * iser_create_frwr_pool - Creates pool of fast_reg descriptors
++ * for fast registration work requests.
++ * returns 0 on success, or errno code on failure
++ */
++int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max)
++{
++	struct iser_device	*device = ib_conn->device;
++	struct fast_reg_descriptor	*desc;
++	int i, ret;
++
++	INIT_LIST_HEAD(&ib_conn->fastreg.frwr.pool);
++	ib_conn->fastreg.frwr.pool_size = 0;
++	for (i = 0; i < cmds_max; i++) {
++		desc = kmalloc(sizeof(*desc), GFP_KERNEL);
++		if (!desc) {
++			iser_err("Failed to allocate a new fast_reg descriptor\n");
++			ret = -ENOMEM;
++			goto err;
++		}
++
++		desc->data_frpl = ib_alloc_fast_reg_page_list(device->ib_device,
++							 ISCSI_ISER_SG_TABLESIZE + 1);
++		if (IS_ERR(desc->data_frpl)) {
++			iser_err("Failed to allocate ib_fast_reg_page_list err=%ld\n",
++				 PTR_ERR(desc->data_frpl));
++			goto err;
++		}
++
++		desc->data_mr = ib_alloc_fast_reg_mr(device->pd,
++						     ISCSI_ISER_SG_TABLESIZE + 1);
++		if (IS_ERR(desc->data_mr)) {
++			iser_err("Failed to allocate ib_fast_reg_mr err=%ld\n",
++				 PTR_ERR(desc->data_mr));
++			ib_free_fast_reg_page_list(desc->data_frpl);
++			goto err;
++		}
++		desc->valid = true;
++		list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
++		ib_conn->fastreg.frwr.pool_size++;
++	}
++
++	return 0;
++err:
++	iser_free_frwr_pool(ib_conn);
++	return ret;
++}
++
++/**
++ * iser_free_frwr_pool - releases the pool of fast_reg descriptors
++ */
++void iser_free_frwr_pool(struct iser_conn *ib_conn)
++{
++	struct fast_reg_descriptor *desc, *tmp;
++	int i = 0;
++
++	if (list_empty(&ib_conn->fastreg.frwr.pool))
++		return;
++
++	iser_err("freeing conn %p frwr pool\n", ib_conn);
++
++	list_for_each_entry_safe(desc, tmp, &ib_conn->fastreg.frwr.pool, list) {
++		list_del(&desc->list);
++		ib_free_fast_reg_page_list(desc->data_frpl);
++		ib_dereg_mr(desc->data_mr);
++		kfree(desc);
++		++i;
++	}
++
++	if (i < ib_conn->fastreg.frwr.pool_size)
++		iser_warn("pool still has %d regions registered\n",
++			  ib_conn->fastreg.frwr.pool_size - i);
++}
++
++/**
+  * iser_create_ib_conn_res - Queue-Pair (QP)
+  *
+  * returns 0 on success, -1 on failure
+@@ -707,7 +808,7 @@ int iser_reg_page_vec(struct iser_conn     *ib_conn,
+ 	mem_reg->rkey  = mem->fmr->rkey;
+ 	mem_reg->len   = page_vec->length * SIZE_4K;
+ 	mem_reg->va    = io_addr;
+-	mem_reg->is_fmr = 1;
++	mem_reg->is_mr = 1;
+ 	mem_reg->mem_h = (void *)mem;
+ 
+ 	mem_reg->va   += page_vec->offset;
+@@ -734,7 +835,7 @@ void iser_unreg_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	struct iser_mem_reg *reg = &iser_task->rdma_regd[cmd_dir].reg;
+ 	int ret;
+ 
+-	if (!reg->is_fmr)
++	if (!reg->is_mr)
+ 		return;
+ 
+ 	iser_dbg("PHYSICAL Mem.Unregister mem_h %p\n",reg->mem_h);
+@@ -746,6 +847,23 @@ void iser_unreg_mem_fmr(struct iscsi_iser_task *iser_task,
+ 	reg->mem_h = NULL;
+ }
+ 
++void iser_unreg_mem_frwr(struct iscsi_iser_task *iser_task,
++			 enum iser_data_dir cmd_dir)
++{
++	struct iser_mem_reg *reg = &iser_task->rdma_regd[cmd_dir].reg;
++	struct iser_conn *ib_conn = iser_task->iser_conn->ib_conn;
++	struct fast_reg_descriptor *desc = reg->mem_h;
++
++	if (!reg->is_mr)
++		return;
++
++	reg->mem_h = NULL;
++	reg->is_mr = 0;
++	spin_lock_bh(&ib_conn->lock);
++	list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
++	spin_unlock_bh(&ib_conn->lock);
++}
++
+ int iser_post_recvl(struct iser_conn *ib_conn)
+ {
+ 	struct ib_recv_wr rx_wr, *rx_wr_failed;
+@@ -867,7 +985,11 @@ static int iser_drain_tx_cq(struct iser_device  *device, int cq_index)
+ 		if (wc.status == IB_WC_SUCCESS) {
+ 			if (wc.opcode == IB_WC_SEND)
+ 				iser_snd_completion(tx_desc, ib_conn);
+-			else
++			else if (wc.opcode == IB_WC_LOCAL_INV ||
++				 wc.opcode == IB_WC_FAST_REG_MR) {
++				atomic_dec(&ib_conn->post_send_buf_count);
++				continue;
++			} else
+ 				iser_err("expected opcode %d got %d\n",
+ 					IB_WC_SEND, wc.opcode);
+ 		} else {
 -- 
-1.8.1.3
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
