@@ -1,46 +1,34 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU
-Date: Thu, 18 Jul 2013 02:32:05 +0000
-Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F727D11@xmb-rcd-x01.cisco.com>
-References: <1372768306-6786-1-git-send-email-jsquyres@cisco.com>
- <CAL1RGDVU9otyMtoit1PJR5JkVy4XvU=4xjL1rN1QB7pq0rVcxA@mail.gmail.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F6F31A6@xmb-rcd-x01.cisco.com>
- <CAL1RGDU+4CSJyF0TAfAv-YYcjA4FG+XNeg5pGCHPeW5iqhvwpA@mail.gmail.com>
- <20130708172621.GA3852@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805AAB74@ORSMSX109.amr.corp.intel.com>
- <20130716144747.GA7304@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F7211E6@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805AECC0@ORSMSX109.amr.corp.intel.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F725B8C@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805B941D@ORSMSX109.amr.corp.intel.com>
- <51E71023.2060006@opengridcomputing.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH REPOST FIXES for-3.11 1/4] IB/core: Create QP1 using the
+ pkey index which contains the default pkey
+Date: Thu, 18 Jul 2013 09:29:43 +0300
+Message-ID: <51E78B57.7000303@mellanox.com>
+References: <1374070962-328-1-git-send-email-ogerlitz@mellanox.com> <1374070962-328-2-git-send-email-ogerlitz@mellanox.com> <1828884A29C6694DAF28B7E6B8A82373805B82BE@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51E71023.2060006-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-US
-Content-ID: <78DA122715C1D1409281A2DC2CA1D818-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373805B82BE-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jul 17, 2013, at 5:44 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-
-> The iwarp drivers just report the nearest mtu enum.  Apps don't need it for iwarp like they do for ib.
-
-
-For RC, it doesn't matter much.  So the fact that RoCE and iWARP lie about their MTU isn't a huge deal.  It's wrong, but it doesn't matter much.
-
-We need it for UD for our upcoming device, however, because the MTU is the only way to get the max message size.
-
--- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
-
+On 17/07/2013 19:31, Hefty, Sean wrote:
+>> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+>> index dc3fd1e..9be6754 100644
+>> --- a/drivers/infiniband/core/mad.c
+>> +++ b/drivers/infiniband/core/mad.c
+>> @@ -2663,6 +2663,7 @@ static int ib_mad_port_start(struct ib_mad_port_private
+>> *port_priv)
+>>   	int ret, i;
+>>   	struct ib_qp_attr *attr;
+>>   	struct ib_qp *qp;
+>> +	u16 pkey_index = 0;
+> This shouldn't need to be initialized, as it is always set further down in the patch.
+>
+> Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+OK, for V1 will fix && will add your Reviewed-by
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
