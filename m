@@ -1,45 +1,44 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU
-Date: Thu, 18 Jul 2013 10:50:03 -0600
-Message-ID: <20130718165003.GB9237@obsidianresearch.com>
-References: <20130708172621.GA3852@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805AAB74@ORSMSX109.amr.corp.intel.com>
- <20130716144747.GA7304@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F7211E6@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805AECC0@ORSMSX109.amr.corp.intel.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F725B8C@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805B941D@ORSMSX109.amr.corp.intel.com>
- <51E71023.2060006@opengridcomputing.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F727D11@xmb-rcd-x01.cisco.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH V3 for-next 3/4] IB/core: Export ib_create/destroy_flow
+ through uverbs
+Date: Thu, 18 Jul 2013 17:06:38 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373805B97AC@ORSMSX109.amr.corp.intel.com>
+References: <1372873336-13694-1-git-send-email-ogerlitz@mellanox.com>
+ <1372873336-13694-4-git-send-email-ogerlitz@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373805B9484@ORSMSX109.amr.corp.intel.com>
+ <51E8001B.5000506@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC4F727D11-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
+In-Reply-To: <51E8001B.5000506-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 18, 2013 at 02:32:05AM +0000, Jeff Squyres (jsquyres) wrote:
-> On Jul 17, 2013, at 5:44 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> 
-> > The iwarp drivers just report the nearest mtu enum.  Apps don't need it for iwarp like they do for ib.
+> >> +	kern_spec = kern_flow_attr + 1;
+> >> +	ib_spec = flow_attr + 1;
+> >> +	for (i = 0; i < flow_attr->num_of_specs; i++) {
+> >> +		err = kern_spec_to_ib_spec(kern_spec, ib_spec);
+> >> +		if (err)
+> >> +			goto err_free;
+> >> +		flow_attr->size +=
+> >> +			((struct _ib_flow_spec *)ib_spec)->size;
+> >> +		kern_spec += ((struct ib_kern_spec *)kern_spec)->size;
+> >> +		ib_spec += ((struct _ib_flow_spec *)ib_spec)->size;
+> > I didn't see where the ib_kern_spec size field was validated.  Maybe add this
+> check to kern_spec_to_ib_spec?
+> It wasn't validated. The function could be written in a more secured
+> way. Meaning, we should only loop until we met flow_attr->num_of_specs
+> or we exhausted all the bytes we copied from the user.
+> Furthermore, as you said, it'll be more secured to add a new check in
+> kern_spec_to_ib_spec that verifies that the size that the user sent
+> matches the size of the kernel's struct.
 
-> For RC, it doesn't matter much.  So the fact that RoCE and iWARP lie
-> about their MTU isn't a huge deal.  It's wrong, but it doesn't
-> matter much.
-> 
-> We need it for UD for our upcoming device, however, because the MTU
-> is the only way to get the max message size.
+It needs to be validated, otherwise the code above will walk off into random memory.
 
-.. and UD is the least abstracted transport, so existing apps won't
-support Jeff's new NIC anyhow, MTU is the least of their problems.
-
-Existing apps with existing transports see the same old values.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
