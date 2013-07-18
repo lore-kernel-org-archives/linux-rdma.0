@@ -1,61 +1,301 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 FIXES for-3.11 3/4] IB/ipoib: Make sure child devices use valid/proper pkeys
-Date: Thu, 18 Jul 2013 14:02:31 +0300
-Message-ID: <1374145352-27816-4-git-send-email-ogerlitz@mellanox.com>
-References: <1374145352-27816-1-git-send-email-ogerlitz@mellanox.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] mlx5: Implement new initialization sequence
+Date: Thu, 18 Jul 2013 15:31:08 +0300
+Message-ID: <20130718123108.GA6777@mtldesk30>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1374145352-27816-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Make sure that the IB invalid pkey (0x0000 or 0x8000) isn't used for child devices.
+Introduce enbale_hca and disable_hca commands to signify when the driver starts
+or ceases to operate on the device.
+In addition the driver will use boot and init pages count; boot pages is
+required to allow firmware to complete boot commands and the other to complete
+init hca. Command interface revision is bumped to 4 to enforce using supported
+firmware.
 
-Also, make sure to always set the full membership bit for the pkey of devices
-created by rtnl link ops.
-
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c    |    2 +-
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c |    9 +++++++++
- 2 files changed, 10 insertions(+), 1 deletions(-)
+Roland,
+this patch breaks compatibility with old versions of firmware (< 4), however,
+the first GA firmware we will publish will support version 4 so this should not
+be a problem.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index b6e049a..c6f71a8 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1461,7 +1461,7 @@ static ssize_t create_child(struct device *dev,
- 	if (sscanf(buf, "%i", &pkey) != 1)
- 		return -EINVAL;
+
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |  8 ++-
+ drivers/net/ethernet/mellanox/mlx5/core/main.c     | 69 +++++++++++++++++++---
+ .../net/ethernet/mellanox/mlx5/core/pagealloc.c    | 20 +++++--
+ include/linux/mlx5/device.h                        | 20 +++++++
+ include/linux/mlx5/driver.h                        |  4 +-
+ 5 files changed, 106 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 205753a..f9cde08 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -46,7 +46,7 @@
+ #include "mlx5_core.h"
  
--	if (pkey < 0 || pkey > 0xffff)
-+	if (pkey <= 0 || pkey > 0xffff || pkey == 0x8000)
- 		return -EINVAL;
+ enum {
+-	CMD_IF_REV = 3,
++	CMD_IF_REV = 4,
+ };
  
- 	/*
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-index 7468593..f81abe1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-@@ -119,6 +119,15 @@ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
- 	} else
- 		child_pkey  = nla_get_u16(data[IFLA_IPOIB_PKEY]);
+ enum {
+@@ -282,6 +282,12 @@ const char *mlx5_command_str(int command)
+ 	case MLX5_CMD_OP_TEARDOWN_HCA:
+ 		return "TEARDOWN_HCA";
  
-+	if (child_pkey == 0 || child_pkey == 0x8000)
-+		return -EINVAL;
++	case MLX5_CMD_OP_ENABLE_HCA:
++		return "MLX5_CMD_OP_ENABLE_HCA";
 +
-+	/*
-+	 * Set the full membership bit, so that we join the right
-+	 * broadcast group, etc.
-+	 */
-+	child_pkey |= 0x8000;
++	case MLX5_CMD_OP_DISABLE_HCA:
++		return "MLX5_CMD_OP_DISABLE_HCA";
 +
- 	err = __ipoib_vlan_add(ppriv, netdev_priv(dev), child_pkey, IPOIB_RTNL_CHILD);
+ 	case MLX5_CMD_OP_QUERY_PAGES:
+ 		return "QUERY_PAGES";
  
- 	if (!err && data)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index f21cc39..5e07642 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -249,6 +249,44 @@ static int set_hca_ctrl(struct mlx5_core_dev *dev)
+ 	return err;
+ }
+ 
++static int mlx5_core_enable_hca(struct mlx5_core_dev *dev)
++{
++	int err;
++	struct mlx5_enable_hca_mbox_in in;
++	struct mlx5_enable_hca_mbox_out out;
++
++	memset(&in, 0, sizeof(in));
++	memset(&out, 0, sizeof(out));
++	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_ENABLE_HCA);
++	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
++	if (err)
++		return err;
++
++	if (out.hdr.status)
++		return mlx5_cmd_status_to_err(&out.hdr);
++
++	return 0;
++}
++
++static int mlx5_core_disable_hca(struct mlx5_core_dev *dev)
++{
++	int err;
++	struct mlx5_disable_hca_mbox_in in;
++	struct mlx5_disable_hca_mbox_out out;
++
++	memset(&in, 0, sizeof(in));
++	memset(&out, 0, sizeof(out));
++	in.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_DISABLE_HCA);
++	err = mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
++	if (err)
++		return err;
++
++	if (out.hdr.status)
++		return mlx5_cmd_status_to_err(&out.hdr);
++
++	return 0;
++}
++
+ int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev)
+ {
+ 	struct mlx5_priv *priv = &dev->priv;
+@@ -304,28 +342,41 @@ int mlx5_dev_init(struct mlx5_core_dev *dev, struct pci_dev *pdev)
+ 	}
+ 
+ 	mlx5_pagealloc_init(dev);
++
++	err = mlx5_core_enable_hca(dev);
++	if (err) {
++		dev_err(&pdev->dev, "enable hca failed\n");
++		goto err_pagealloc_cleanup;
++	}
++
++	err = mlx5_satisfy_startup_pages(dev, 1);
++	if (err) {
++		dev_err(&pdev->dev, "failed to allocate boot pages\n");
++		goto err_disable_hca;
++	}
++
+ 	err = set_hca_ctrl(dev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "set_hca_ctrl failed\n");
+-		goto err_pagealloc_cleanup;
++		goto reclaim_boot_pages;
+ 	}
+ 
+ 	err = handle_hca_cap(dev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "handle_hca_cap failed\n");
+-		goto err_pagealloc_cleanup;
++		goto reclaim_boot_pages;
+ 	}
+ 
+-	err = mlx5_satisfy_startup_pages(dev);
++	err = mlx5_satisfy_startup_pages(dev, 0);
+ 	if (err) {
+-		dev_err(&pdev->dev, "failed to allocate startup pages\n");
+-		goto err_pagealloc_cleanup;
++		dev_err(&pdev->dev, "failed to allocate init pages\n");
++		goto reclaim_boot_pages;
+ 	}
+ 
+ 	err = mlx5_pagealloc_start(dev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "mlx5_pagealloc_start failed\n");
+-		goto err_reclaim_pages;
++		goto reclaim_boot_pages;
+ 	}
+ 
+ 	err = mlx5_cmd_init_hca(dev);
+@@ -396,9 +447,12 @@ err_stop_poll:
+ err_pagealloc_stop:
+ 	mlx5_pagealloc_stop(dev);
+ 
+-err_reclaim_pages:
++reclaim_boot_pages:
+ 	mlx5_reclaim_startup_pages(dev);
+ 
++err_disable_hca:
++	mlx5_core_disable_hca(dev);
++
+ err_pagealloc_cleanup:
+ 	mlx5_pagealloc_cleanup(dev);
+ 	mlx5_cmd_cleanup(dev);
+@@ -434,6 +488,7 @@ void mlx5_dev_cleanup(struct mlx5_core_dev *dev)
+ 	mlx5_cmd_teardown_hca(dev);
+ 	mlx5_pagealloc_stop(dev);
+ 	mlx5_reclaim_startup_pages(dev);
++	mlx5_core_disable_hca(dev);
+ 	mlx5_pagealloc_cleanup(dev);
+ 	mlx5_cmd_cleanup(dev);
+ 	iounmap(dev->iseg);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+index f0bf463..4a3e137 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+@@ -64,7 +64,7 @@ struct mlx5_query_pages_inbox {
+ 
+ struct mlx5_query_pages_outbox {
+ 	struct mlx5_outbox_hdr	hdr;
+-	u8			reserved[2];
++	__be16			num_boot_pages;
+ 	__be16			func_id;
+ 	__be16			init_pages;
+ 	__be16			num_pages;
+@@ -146,7 +146,7 @@ static struct page *remove_page(struct mlx5_core_dev *dev, u64 addr)
+ }
+ 
+ static int mlx5_cmd_query_pages(struct mlx5_core_dev *dev, u16 *func_id,
+-				s16 *pages, s16 *init_pages)
++				s16 *pages, s16 *init_pages, u16 *boot_pages)
+ {
+ 	struct mlx5_query_pages_inbox	in;
+ 	struct mlx5_query_pages_outbox	out;
+@@ -164,8 +164,13 @@ static int mlx5_cmd_query_pages(struct mlx5_core_dev *dev, u16 *func_id,
+ 
+ 	if (pages)
+ 		*pages = be16_to_cpu(out.num_pages);
++
+ 	if (init_pages)
+ 		*init_pages = be16_to_cpu(out.init_pages);
++
++	if (boot_pages)
++		*boot_pages = be16_to_cpu(out.num_boot_pages);
++
+ 	*func_id = be16_to_cpu(out.func_id);
+ 
+ 	return err;
+@@ -357,19 +362,22 @@ void mlx5_core_req_pages_handler(struct mlx5_core_dev *dev, u16 func_id,
+ 	queue_work(dev->priv.pg_wq, &req->work);
+ }
+ 
+-int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev)
++int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev, int boot)
+ {
++	u16 uninitialized_var(boot_pages);
+ 	s16 uninitialized_var(init_pages);
+ 	u16 uninitialized_var(func_id);
+ 	int err;
+ 
+-	err = mlx5_cmd_query_pages(dev, &func_id, NULL, &init_pages);
++	err = mlx5_cmd_query_pages(dev, &func_id, NULL, &init_pages,
++				   &boot_pages);
+ 	if (err)
+ 		return err;
+ 
+-	mlx5_core_dbg(dev, "requested %d init pages for func_id 0x%x\n", init_pages, func_id);
+ 
+-	return give_pages(dev, func_id, init_pages, 0);
++	mlx5_core_dbg(dev, "requested %d init pages and %d boot pages for func_id 0x%x\n",
++		      init_pages, boot_pages, func_id);
++	return give_pages(dev, func_id, boot ? boot_pages : init_pages, 0);
+ }
+ 
+ static int optimal_reclaimed_pages(void)
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 5139091..e43bd0d 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -690,6 +690,26 @@ struct mlx5_query_cq_mbox_out {
+ 	__be64			pas[0];
+ };
+ 
++struct mlx5_enable_hca_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_enable_hca_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_disable_hca_mbox_in {
++	struct mlx5_inbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
++struct mlx5_disable_hca_mbox_out {
++	struct mlx5_outbox_hdr	hdr;
++	u8			rsvd[8];
++};
++
+ struct mlx5_eq_context {
+ 	u8			status;
+ 	u8			ec_oi;
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index f22e441..2aa258b 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -101,6 +101,8 @@ enum {
+ 	MLX5_CMD_OP_QUERY_ADAPTER		= 0x101,
+ 	MLX5_CMD_OP_INIT_HCA			= 0x102,
+ 	MLX5_CMD_OP_TEARDOWN_HCA		= 0x103,
++	MLX5_CMD_OP_ENABLE_HCA			= 0x104,
++	MLX5_CMD_OP_DISABLE_HCA			= 0x105,
+ 	MLX5_CMD_OP_QUERY_PAGES			= 0x107,
+ 	MLX5_CMD_OP_MANAGE_PAGES		= 0x108,
+ 	MLX5_CMD_OP_SET_HCA_CAP			= 0x109,
+@@ -690,7 +692,7 @@ int mlx5_pagealloc_start(struct mlx5_core_dev *dev);
+ void mlx5_pagealloc_stop(struct mlx5_core_dev *dev);
+ void mlx5_core_req_pages_handler(struct mlx5_core_dev *dev, u16 func_id,
+ 				 s16 npages);
+-int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev);
++int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev, int boot);
+ int mlx5_reclaim_startup_pages(struct mlx5_core_dev *dev);
+ void mlx5_register_debugfs(void);
+ void mlx5_unregister_debugfs(void);
 -- 
-1.7.1
+1.8.1.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
