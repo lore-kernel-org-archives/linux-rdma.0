@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH librdmacm 2/3] acm: Define needed ACM protocol messages
-Date: Thu, 18 Jul 2013 12:52:12 -0700
-Message-ID: <1374177133-802-2-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH librdmacm 3/3] init: Remove USE_IB_ACM configuration option
+Date: Thu, 18 Jul 2013 12:52:13 -0700
+Message-ID: <1374177133-802-3-git-send-email-sean.hefty@intel.com>
 References: <1374177133-802-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1374177133-802-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,144 +12,71 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The librdmacm needs message definitions used to communicate
-with the ibacm.  It currently pulls these from infiniband/acm.h,
-which is installed by ibacm.  This creates an install order
-dependency on ibacm.  However, work on the scalable SA has
-the ibacm using the librdmacm (via rsockets) for communication
-between the different SSA components.
-
-To resolve this issue, have the librdmacm define the message
-structures that it needs to communicate with ibacm.  The
-librdmacm already defines some ACM messages through configuration
-checks.  We just expand that capability, which isolates the librdmacm
-package from the ibacm package.
+When the librdmacm is configured, it sets the USE_IB_ACM option
+if infininband/acm.h is found.  We can remove this option with
+very little overhead, which would allow a user to install
+ACM after installing the librdmacm, and the librdmacm would be
+able to make use of ACM.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- configure.ac |    7 +-----
- src/acm.c    |   70 ++++++++++++++++++++++++++++++++++++++++++++++++++-------
- 2 files changed, 62 insertions(+), 15 deletions(-)
+ configure.ac |    3 ---
+ src/acm.c    |    3 ---
+ src/cma.h    |    6 ------
+ 3 files changed, 0 insertions(+), 12 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 31b1a0e..b4303c6 100644
+index b4303c6..59c5eb1 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -71,12 +71,7 @@ fi
+@@ -70,9 +70,6 @@ AC_CHECK_HEADER(valgrind/memcheck.h, [],
+ fi
  fi
  
- AC_CHECK_HEADER(infiniband/acm.h, 
--	AC_DEFINE([USE_IB_ACM], 1, [setting IBACM support]), [])
+-AC_CHECK_HEADER(infiniband/acm.h, 
+-      AC_DEFINE([USE_IB_ACM], 1, [setting IBACM support]), [])
 -
--AC_CHECK_HEADER(infiniband/acm.h,
--	AC_CHECK_MEMBER(struct acm_msg.resolve_data, [],
--		AC_DEFINE(DEFINE_ACM_MSG, 1, [adding ACM message definition]),
--			[#include <infiniband/acm.h>]), [])
-+      AC_DEFINE([USE_IB_ACM], 1, [setting IBACM support]), [])
- 
  dnl Checks close on exec support
  AC_CHECK_HEADERS([fcntl.h sys/socket.h])
+ 
 diff --git a/src/acm.c b/src/acm.c
-index 6e8e173..09c5d4e 100644
+index 09c5d4e..04cddee 100644
 --- a/src/acm.c
 +++ b/src/acm.c
-@@ -46,19 +46,71 @@
+@@ -45,7 +45,6 @@
+ #include <infiniband/ib.h>
  #include <infiniband/sa.h>
  
- #ifdef USE_IB_ACM
--#include <infiniband/acm.h>
-+#define ACM_VERSION             1
-+
-+#define ACM_OP_RESOLVE          0x01
-+#define ACM_OP_ACK              0x80
-+
-+#define ACM_STATUS_SUCCESS      0
-+#define ACM_STATUS_ENOMEM       1
-+#define ACM_STATUS_EINVAL       2
-+#define ACM_STATUS_ENODATA      3
-+#define ACM_STATUS_ENOTCONN     5
-+#define ACM_STATUS_ETIMEDOUT    6
-+#define ACM_STATUS_ESRCADDR     7
-+#define ACM_STATUS_ESRCTYPE     8
-+#define ACM_STATUS_EDESTADDR    9
-+#define ACM_STATUS_EDESTTYPE    10
-+
-+#define ACM_FLAGS_NODELAY	(1<<30)
-+
-+#define ACM_MSG_HDR_LENGTH      16
-+#define ACM_MAX_ADDRESS         64
-+#define ACM_MSG_EP_LENGTH       72
-+#define ACM_MSG_DATA_LENGTH     (ACM_MSG_EP_LENGTH * 8)
-+
-+struct acm_hdr {
-+	uint8_t                 version;
-+	uint8_t                 opcode;
-+	uint8_t                 status;
-+	uint8_t		        data[3];
-+	uint16_t                length;
-+	uint64_t                tid;
-+};
-+
-+#define ACM_EP_INFO_NAME        0x0001
-+#define ACM_EP_INFO_ADDRESS_IP  0x0002
-+#define ACM_EP_INFO_ADDRESS_IP6 0x0003
-+#define ACM_EP_INFO_PATH        0x0010
-+
-+union acm_ep_info {
-+	uint8_t                 addr[ACM_MAX_ADDRESS];
-+	uint8_t                 name[ACM_MAX_ADDRESS];
-+	struct ibv_path_record  path;
-+};
-+
-+#define ACM_EP_FLAG_SOURCE      (1<<0)
-+#define ACM_EP_FLAG_DEST        (1<<1)
+-#ifdef USE_IB_ACM
+ #define ACM_VERSION             1
  
--#if DEFINE_ACM_MSG
--typedef struct cma_acm_msg {
-+struct acm_ep_addr_data {
-+	uint32_t                flags;
-+	uint16_t                type;
-+	uint16_t                reserved;
-+	union acm_ep_info       info;
-+};
-+
-+struct acm_resolve_msg {
-+	struct acm_hdr          hdr;
-+	struct acm_ep_addr_data data[0];
-+};
-+
-+struct acm_msg {
- 	struct acm_hdr                  hdr;
- 	union{
- 		uint8_t                 data[ACM_MSG_DATA_LENGTH];
- 		struct acm_ep_addr_data resolve_data[0];
- 	};
--} cma_acm_msg_t;
--#else
--typedef struct acm_msg cma_acm_msg_t;
--#endif
-+};
- 
- static pthread_mutex_t acm_lock = PTHREAD_MUTEX_INITIALIZER;
- static int sock = -1;
-@@ -242,7 +294,7 @@ err:
- 	rdma_freeaddrinfo(ib_rai);
+ #define ACM_OP_RESOLVE          0x01
+@@ -453,5 +452,3 @@ void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints)
+ 	if (af_ib_support && !(hints->ai_flags & RAI_ROUTEONLY) && (*rai)->ai_route_len)
+ 		ucma_resolve_af_ib(rai);
  }
+-
+-#endif /* USE_IB_ACM */
+diff --git a/src/cma.h b/src/cma.h
+index b575b9b..e6fba8b 100644
+--- a/src/cma.h
++++ b/src/cma.h
+@@ -162,15 +162,9 @@ extern int af_ib_support;
  
--static void ucma_ib_save_resp(struct rdma_addrinfo *rai, cma_acm_msg_t *msg)
-+static void ucma_ib_save_resp(struct rdma_addrinfo *rai, struct acm_msg *msg)
- {
- 	struct acm_ep_addr_data *ep_data;
- 	struct ibv_path_data *path_data = NULL;
-@@ -326,7 +378,7 @@ static int ucma_ib_addr(struct sockaddr *addr, socklen_t len)
+ #define RAI_ROUTEONLY		0x01000000
  
- void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints)
- {
--	cma_acm_msg_t msg;
-+	struct acm_msg msg;
- 	struct acm_ep_addr_data *data;
- 	int ret;
+-#ifdef USE_IB_ACM
+ void ucma_ib_init();
+ void ucma_ib_cleanup();
+ void ucma_ib_resolve(struct rdma_addrinfo **rai, struct rdma_addrinfo *hints);
+-#else
+-#define ucma_ib_init()
+-#define ucma_ib_cleanup()
+-#define ucma_ib_resolve(x, y)
+-#endif
  
+ /* Define path record definition if using older version of libibverbs */
+ #ifdef DEFINE_PATH_RECORD
 -- 
 1.7.3
 
