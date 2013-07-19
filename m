@@ -1,88 +1,290 @@
-From: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] infiniband: replace strict_strtoul() with kstrtoul()
-Date: Fri, 19 Jul 2013 16:15:12 +0900
-Message-ID: <001301ce844f$b5e52820$21af7860$@samsung.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibverbs: Add the use of IBV_SEND_INLINE to example
+ pingpong programs
+Date: Fri, 19 Jul 2013 11:09:24 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F72CA1D@xmb-rcd-x01.cisco.com>
+References: <1373488359-11413-1-git-send-email-jsquyres@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-language: ko
+In-Reply-To: <1373488359-11413-1-git-send-email-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <35B6DAABC7E02D4ABD621E773EC82416-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+To: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The usage of strict_strtoul() is not preferred, because
-strict_strtoul() is obsolete. Thus, kstrtoul() should be
-used.
+Bump bump.
 
-Signed-off-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+On Jul 10, 2013, at 4:32 PM, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 653ac6b..9245fe4 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -3678,10 +3678,10 @@ static ssize_t srpt_tpg_attrib_store_srp_max_rdma_size(
- 	unsigned long val;
- 	int ret;
- 
--	ret = strict_strtoul(page, 0, &val);
-+	ret = kstrtoul(page, 0, &val);
- 	if (ret < 0) {
--		pr_err("strict_strtoul() failed with ret: %d\n", ret);
--		return -EINVAL;
-+		pr_err("kstrtoul() failed with ret: %d\n", ret);
-+		return ret;
- 	}
- 	if (val > MAX_SRPT_RDMA_SIZE) {
- 		pr_err("val: %lu exceeds MAX_SRPT_RDMA_SIZE: %d\n", val,
-@@ -3718,10 +3718,10 @@ static ssize_t srpt_tpg_attrib_store_srp_max_rsp_size(
- 	unsigned long val;
- 	int ret;
- 
--	ret = strict_strtoul(page, 0, &val);
-+	ret = kstrtoul(page, 0, &val);
- 	if (ret < 0) {
--		pr_err("strict_strtoul() failed with ret: %d\n", ret);
--		return -EINVAL;
-+		pr_err("kstrtoul() failed with ret: %d\n", ret);
-+		return ret;
- 	}
- 	if (val > MAX_SRPT_RSP_SIZE) {
- 		pr_err("val: %lu exceeds MAX_SRPT_RSP_SIZE: %d\n", val,
-@@ -3758,10 +3758,10 @@ static ssize_t srpt_tpg_attrib_store_srp_sq_size(
- 	unsigned long val;
- 	int ret;
- 
--	ret = strict_strtoul(page, 0, &val);
-+	ret = kstrtoul(page, 0, &val);
- 	if (ret < 0) {
--		pr_err("strict_strtoul() failed with ret: %d\n", ret);
--		return -EINVAL;
-+		pr_err("kstrtoul() failed with ret: %d\n", ret);
-+		return ret;
- 	}
- 	if (val > MAX_SRPT_SRQ_SIZE) {
- 		pr_err("val: %lu exceeds MAX_SRPT_SRQ_SIZE: %d\n", val,
-@@ -3805,10 +3805,10 @@ static ssize_t srpt_tpg_store_enable(
- 	unsigned long tmp;
-         int ret;
- 
--	ret = strict_strtoul(page, 0, &tmp);
-+	ret = kstrtoul(page, 0, &tmp);
- 	if (ret < 0) {
- 		printk(KERN_ERR "Unable to extract srpt_tpg_store_enable\n");
--		return -EINVAL;
-+		return ret;
- 	}
- 
- 	if ((tmp != 0) && (tmp != 1)) {
+> If the send size is less than the cap.max_inline_data reported by the
+> qp, use the IBV_SEND_INLINE flag.  This now only shows the example of
+> using ibv_query_qp(), it also reduces the latency time shown by the
+> pingpong programs when the sends can be inlined.
+> 
+> Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> ---
+> examples/rc_pingpong.c  | 18 +++++++++++++-----
+> examples/srq_pingpong.c | 19 +++++++++++++------
+> examples/uc_pingpong.c  | 17 ++++++++++++-----
+> examples/ud_pingpong.c  | 18 +++++++++++++-----
+> 4 files changed, 51 insertions(+), 21 deletions(-)
+> 
+> diff --git a/examples/rc_pingpong.c b/examples/rc_pingpong.c
+> index 15494a1..a8637a5 100644
+> --- a/examples/rc_pingpong.c
+> +++ b/examples/rc_pingpong.c
+> @@ -65,6 +65,7 @@ struct pingpong_context {
+> 	struct ibv_qp		*qp;
+> 	void			*buf;
+> 	int			 size;
+> +	int			 send_flags;
+> 	int			 rx_depth;
+> 	int			 pending;
+> 	struct ibv_port_attr     portinfo;
+> @@ -319,8 +320,9 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 	if (!ctx)
+> 		return NULL;
+> 
+> -	ctx->size     = size;
+> -	ctx->rx_depth = rx_depth;
+> +	ctx->size       = size;
+> +	ctx->send_flags = IBV_SEND_SIGNALED;
+> +	ctx->rx_depth   = rx_depth;
+> 
+> 	ctx->buf = memalign(page_size, size);
+> 	if (!ctx->buf) {
+> @@ -367,7 +369,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 	}
+> 
+> 	{
+> -		struct ibv_qp_init_attr attr = {
+> +		struct ibv_qp_attr attr;
+> +		struct ibv_qp_init_attr init_attr = {
+> 			.send_cq = ctx->cq,
+> 			.recv_cq = ctx->cq,
+> 			.cap     = {
+> @@ -379,11 +382,16 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 			.qp_type = IBV_QPT_RC
+> 		};
+> 
+> -		ctx->qp = ibv_create_qp(ctx->pd, &attr);
+> +		ctx->qp = ibv_create_qp(ctx->pd, &init_attr);
+> 		if (!ctx->qp)  {
+> 			fprintf(stderr, "Couldn't create QP\n");
+> 			goto clean_cq;
+> 		}
+> +
+> +		ibv_query_qp(ctx->qp, &attr, IBV_QP_CAP, &init_attr);
+> +		if (init_attr.cap.max_inline_data >= size) {
+> +			ctx->send_flags |= IBV_SEND_INLINE;
+> +		}
+> 	}
+> 
+> 	{
+> @@ -508,7 +516,7 @@ static int pp_post_send(struct pingpong_context *ctx)
+> 		.sg_list    = &list,
+> 		.num_sge    = 1,
+> 		.opcode     = IBV_WR_SEND,
+> -		.send_flags = IBV_SEND_SIGNALED,
+> +		.send_flags = ctx->send_flags,
+> 	};
+> 	struct ibv_send_wr *bad_wr;
+> 
+> diff --git a/examples/srq_pingpong.c b/examples/srq_pingpong.c
+> index 6e00f8c..552a144 100644
+> --- a/examples/srq_pingpong.c
+> +++ b/examples/srq_pingpong.c
+> @@ -68,6 +68,7 @@ struct pingpong_context {
+> 	struct ibv_qp		*qp[MAX_QP];
+> 	void			*buf;
+> 	int			 size;
+> +	int			 send_flags;
+> 	int			 num_qp;
+> 	int			 rx_depth;
+> 	int			 pending[MAX_QP];
+> @@ -350,9 +351,10 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 	if (!ctx)
+> 		return NULL;
+> 
+> -	ctx->size     = size;
+> -	ctx->num_qp   = num_qp;
+> -	ctx->rx_depth = rx_depth;
+> +	ctx->size       = size;
+> +	ctx->send_flags = IBV_SEND_SIGNALED;
+> +	ctx->num_qp     = num_qp;
+> +	ctx->rx_depth   = rx_depth;
+> 
+> 	ctx->buf = memalign(page_size, size);
+> 	if (!ctx->buf) {
+> @@ -413,7 +415,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 	}
+> 
+> 	for (i = 0; i < num_qp; ++i) {
+> -		struct ibv_qp_init_attr attr = {
+> +		struct ibv_qp_attr attr;
+> +		struct ibv_qp_init_attr init_attr = {
+> 			.send_cq = ctx->cq,
+> 			.recv_cq = ctx->cq,
+> 			.srq     = ctx->srq,
+> @@ -424,11 +427,15 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 			.qp_type = IBV_QPT_RC
+> 		};
+> 
+> -		ctx->qp[i] = ibv_create_qp(ctx->pd, &attr);
+> +		ctx->qp[i] = ibv_create_qp(ctx->pd, &init_attr);
+> 		if (!ctx->qp[i])  {
+> 			fprintf(stderr, "Couldn't create QP[%d]\n", i);
+> 			goto clean_qps;
+> 		}
+> +		ibv_query_qp(ctx->qp[i], &attr, IBV_QP_CAP, &init_attr);
+> +		if (init_attr.cap.max_inline_data >= size) {
+> +			ctx->send_flags |= IBV_SEND_INLINE;
+> +		}
+> 	}
+> 
+> 	for (i = 0; i < num_qp; ++i) {
+> @@ -568,7 +575,7 @@ static int pp_post_send(struct pingpong_context *ctx, int qp_index)
+> 		.sg_list    = &list,
+> 		.num_sge    = 1,
+> 		.opcode     = IBV_WR_SEND,
+> -		.send_flags = IBV_SEND_SIGNALED,
+> +		.send_flags = ctx->send_flags,
+> 	};
+> 	struct ibv_send_wr *bad_wr;
+> 
+> diff --git a/examples/uc_pingpong.c b/examples/uc_pingpong.c
+> index 52c6c28..58cc3cc 100644
+> --- a/examples/uc_pingpong.c
+> +++ b/examples/uc_pingpong.c
+> @@ -65,6 +65,7 @@ struct pingpong_context {
+> 	struct ibv_qp		*qp;
+> 	void			*buf;
+> 	int			 size;
+> +	int			 send_flags;
+> 	int			 rx_depth;
+> 	int			 pending;
+> 	struct ibv_port_attr     portinfo;
+> @@ -307,8 +308,9 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 	if (!ctx)
+> 		return NULL;
+> 
+> -	ctx->size     = size;
+> -	ctx->rx_depth = rx_depth;
+> +	ctx->size       = size;
+> +	ctx->send_flags = IBV_SEND_SIGNALED;
+> +	ctx->rx_depth   = rx_depth;
+> 
+> 	ctx->buf = memalign(page_size, size);
+> 	if (!ctx->buf) {
+> @@ -355,7 +357,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 	}
+> 
+> 	{
+> -		struct ibv_qp_init_attr attr = {
+> +		struct ibv_qp_attr attr;
+> +		struct ibv_qp_init_attr init_attr = {
+> 			.send_cq = ctx->cq,
+> 			.recv_cq = ctx->cq,
+> 			.cap     = {
+> @@ -367,11 +370,15 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 			.qp_type = IBV_QPT_UC
+> 		};
+> 
+> -		ctx->qp = ibv_create_qp(ctx->pd, &attr);
+> +		ctx->qp = ibv_create_qp(ctx->pd, &init_attr);
+> 		if (!ctx->qp)  {
+> 			fprintf(stderr, "Couldn't create QP\n");
+> 			goto clean_cq;
+> 		}
+> +		ibv_query_qp(ctx->qp, &attr, IBV_QP_CAP, &init_attr);
+> +		if (init_attr.cap.max_inline_data >= size) {
+> +			ctx->send_flags |= IBV_SEND_INLINE;
+> +		}
+> 	}
+> 
+> 	{
+> @@ -496,7 +503,7 @@ static int pp_post_send(struct pingpong_context *ctx)
+> 		.sg_list    = &list,
+> 		.num_sge    = 1,
+> 		.opcode     = IBV_WR_SEND,
+> -		.send_flags = IBV_SEND_SIGNALED,
+> +		.send_flags = ctx->send_flags,
+> 	};
+> 	struct ibv_send_wr *bad_wr;
+> 
+> diff --git a/examples/ud_pingpong.c b/examples/ud_pingpong.c
+> index 21c551d..9102241 100644
+> --- a/examples/ud_pingpong.c
+> +++ b/examples/ud_pingpong.c
+> @@ -66,6 +66,7 @@ struct pingpong_context {
+> 	struct ibv_ah		*ah;
+> 	void			*buf;
+> 	int			 size;
+> +	int			 send_flags;
+> 	int			 rx_depth;
+> 	int			 pending;
+> 	struct ibv_port_attr     portinfo;
+> @@ -305,8 +306,9 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 	if (!ctx)
+> 		return NULL;
+> 
+> -	ctx->size     = size;
+> -	ctx->rx_depth = rx_depth;
+> +	ctx->size       = size;
+> +	ctx->send_flags = IBV_SEND_SIGNALED;
+> +	ctx->rx_depth   = rx_depth;
+> 
+> 	ctx->buf = memalign(page_size, size + 40);
+> 	if (!ctx->buf) {
+> @@ -368,7 +370,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 	}
+> 
+> 	{
+> -		struct ibv_qp_init_attr attr = {
+> +		struct ibv_qp_attr attr;
+> +		struct ibv_qp_init_attr init_attr = {
+> 			.send_cq = ctx->cq,
+> 			.recv_cq = ctx->cq,
+> 			.cap     = {
+> @@ -380,11 +383,16 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+> 			.qp_type = IBV_QPT_UD,
+> 		};
+> 
+> -		ctx->qp = ibv_create_qp(ctx->pd, &attr);
+> +		ctx->qp = ibv_create_qp(ctx->pd, &init_attr);
+> 		if (!ctx->qp)  {
+> 			fprintf(stderr, "Couldn't create QP\n");
+> 			goto clean_cq;
+> 		}
+> +
+> +		ibv_query_qp(ctx->qp, &attr, IBV_QP_CAP, &init_attr);
+> +		if (init_attr.cap.max_inline_data >= size) {
+> +			ctx->send_flags |= IBV_SEND_INLINE;
+> +		}
+> 	}
+> 
+> 	{
+> @@ -514,7 +522,7 @@ static int pp_post_send(struct pingpong_context *ctx, uint32_t qpn)
+> 		.sg_list    = &list,
+> 		.num_sge    = 1,
+> 		.opcode     = IBV_WR_SEND,
+> -		.send_flags = IBV_SEND_SIGNALED,
+> +		.send_flags = ctx->send_flags,
+> 		.wr         = {
+> 			.ud = {
+> 				 .ah          = ctx->ah,
+> -- 
+> 1.8.2.1
+> 
+
+
 -- 
-1.7.10.4
-
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
