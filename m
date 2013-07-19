@@ -1,98 +1,89 @@
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] infiniband-diags: Eliminate unneeded
- clean_nodedesc calls
-Date: Thu, 18 Jul 2013 15:14:51 -0700
-Message-ID: <20130718151451.97f72b6601246725d8249130@intel.com>
-References: <51E40808.4040907@dev.mellanox.co.il>
+From: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] infiniband: replace strict_strtoul() with kstrtoul()
+Date: Fri, 19 Jul 2013 16:15:12 +0900
+Message-ID: <001301ce844f$b5e52820$21af7860$@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51E40808.4040907-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-language: ko
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 15 Jul 2013 10:32:40 -0400
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+The usage of strict_strtoul() is not preferred, because
+strict_strtoul() is obsolete. Thus, kstrtoul() should be
+used.
 
-> 
-> in ibroute and dump_fts
-> clean_nodedesc is called if needed within remap_node_name
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-Thanks, accepted,
-Ira
-
-> ---
-> diff --git a/src/dump_fts.c b/src/dump_fts.c
-> index 89f0dce..5383c9d 100644
-> --- a/src/dump_fts.c
-> +++ b/src/dump_fts.c
-> @@ -154,7 +154,7 @@ void dump_multicast_tables(ibnd_node_t * node, unsigned startlid,
->  		endlid = IB_MAX_MCAST_LID;
->  	}
->  
-> -	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-> +	mapnd = remap_node_name(node_name_map, nodeguid, nd);
->  
->  	printf("Multicast mlids [0x%x-0x%x] of switch %s guid 0x%016" PRIx64
->  	       " (%s):\n", startlid, endlid, portid2str(portid), nodeguid,
-> @@ -289,7 +289,7 @@ int dump_lid(char *str, int str_len, int lid, int valid,
->  		*last_port_lid = baselid + (1 << lmc) - 1;
->  	}
->  
-> -	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-> +	mapnd = remap_node_name(node_name_map, nodeguid, nd);
->   
->  	rc = snprintf(str, str_len, ": (%s portguid %s: '%s')",
->  		      mad_dump_val(IB_NODE_TYPE_F, ntype, sizeof ntype,
-> @@ -331,7 +331,7 @@ void dump_unicast_tables(ibnd_node_t * node, int startlid, int endlid,
->  		endlid = IB_MAX_UCAST_LID;
->  	}
->  
-> -	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-> +	mapnd = remap_node_name(node_name_map, nodeguid, nd);
->  
->  	printf("Unicast lids [0x%x-0x%x] of switch %s guid 0x%016" PRIx64
->  	       " (%s):\n", startlid, endlid, portid2str(portid), nodeguid,
-> diff --git a/src/ibroute.c b/src/ibroute.c
-> index d4827c9..350a557 100644
-> --- a/src/ibroute.c
-> +++ b/src/ibroute.c
-> @@ -178,7 +178,7 @@ char *dump_multicast_tables(ib_portid_t * portid, unsigned startlid,
->  		endlid = IB_MAX_MCAST_LID;
->  	}
->  
-> -	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-> +	mapnd = remap_node_name(node_name_map, nodeguid, nd);
->  
->  	printf("Multicast mlids [0x%x-0x%x] of switch %s guid 0x%016" PRIx64
->  	       " (%s):\n", startlid, endlid, portid2str(portid), nodeguid,
-> @@ -309,7 +309,7 @@ int dump_lid(char *str, int strlen, int lid, int valid)
->  		last_port_lid = baselid + (1 << lmc) - 1;
->  	}
->  
-> -	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-> +	mapnd = remap_node_name(node_name_map, nodeguid, nd);
->   
->  	rc = snprintf(str, strlen, ": (%s portguid %s: '%s')",
->  		      mad_dump_val(IB_NODE_TYPE_F, ntype, sizeof ntype,
-> @@ -348,7 +348,7 @@ char *dump_unicast_tables(ib_portid_t * portid, int startlid, int endlid)
->  		endlid = IB_MAX_UCAST_LID;
->  	}
->  
-> -	mapnd = remap_node_name(node_name_map, nodeguid, clean_nodedesc(nd));
-> +	mapnd = remap_node_name(node_name_map, nodeguid, nd);
->  
->  	printf("Unicast lids [0x%x-0x%x] of switch %s guid 0x%016" PRIx64
->  	       " (%s):\n", startlid, endlid, portid2str(portid), nodeguid,
-
-
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 653ac6b..9245fe4 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -3678,10 +3678,10 @@ static ssize_t srpt_tpg_attrib_store_srp_max_rdma_size(
+ 	unsigned long val;
+ 	int ret;
+ 
+-	ret = strict_strtoul(page, 0, &val);
++	ret = kstrtoul(page, 0, &val);
+ 	if (ret < 0) {
+-		pr_err("strict_strtoul() failed with ret: %d\n", ret);
+-		return -EINVAL;
++		pr_err("kstrtoul() failed with ret: %d\n", ret);
++		return ret;
+ 	}
+ 	if (val > MAX_SRPT_RDMA_SIZE) {
+ 		pr_err("val: %lu exceeds MAX_SRPT_RDMA_SIZE: %d\n", val,
+@@ -3718,10 +3718,10 @@ static ssize_t srpt_tpg_attrib_store_srp_max_rsp_size(
+ 	unsigned long val;
+ 	int ret;
+ 
+-	ret = strict_strtoul(page, 0, &val);
++	ret = kstrtoul(page, 0, &val);
+ 	if (ret < 0) {
+-		pr_err("strict_strtoul() failed with ret: %d\n", ret);
+-		return -EINVAL;
++		pr_err("kstrtoul() failed with ret: %d\n", ret);
++		return ret;
+ 	}
+ 	if (val > MAX_SRPT_RSP_SIZE) {
+ 		pr_err("val: %lu exceeds MAX_SRPT_RSP_SIZE: %d\n", val,
+@@ -3758,10 +3758,10 @@ static ssize_t srpt_tpg_attrib_store_srp_sq_size(
+ 	unsigned long val;
+ 	int ret;
+ 
+-	ret = strict_strtoul(page, 0, &val);
++	ret = kstrtoul(page, 0, &val);
+ 	if (ret < 0) {
+-		pr_err("strict_strtoul() failed with ret: %d\n", ret);
+-		return -EINVAL;
++		pr_err("kstrtoul() failed with ret: %d\n", ret);
++		return ret;
+ 	}
+ 	if (val > MAX_SRPT_SRQ_SIZE) {
+ 		pr_err("val: %lu exceeds MAX_SRPT_SRQ_SIZE: %d\n", val,
+@@ -3805,10 +3805,10 @@ static ssize_t srpt_tpg_store_enable(
+ 	unsigned long tmp;
+         int ret;
+ 
+-	ret = strict_strtoul(page, 0, &tmp);
++	ret = kstrtoul(page, 0, &tmp);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "Unable to extract srpt_tpg_store_enable\n");
+-		return -EINVAL;
++		return ret;
+ 	}
+ 
+ 	if ((tmp != 0) && (tmp != 1)) {
 -- 
-Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+1.7.10.4
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
