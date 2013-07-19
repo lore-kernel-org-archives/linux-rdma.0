@@ -1,290 +1,1433 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libibverbs: Add the use of IBV_SEND_INLINE to example
- pingpong programs
-Date: Fri, 19 Jul 2013 11:09:24 +0000
-Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F72CA1D@xmb-rcd-x01.cisco.com>
-References: <1373488359-11413-1-git-send-email-jsquyres@cisco.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: This patch improves SDMA performance
+Date: Fri, 19 Jul 2013 13:57:21 -0400
+Message-ID: <20130719175720.8674.29250.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1373488359-11413-1-git-send-email-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <35B6DAABC7E02D4ABD621E773EC82416-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Bump bump.
+From: CQ Tang <cq.tang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-On Jul 10, 2013, at 4:32 PM, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
+1. The code accepts chunks of messages, and splits the chunk into
+packets when converting packets into sdma queue entries, adjacent
+packets will use user buffer pages smartly to avoid pinning the
+same page multiple times.
 
-> If the send size is less than the cap.max_inline_data reported by the
-> qp, use the IBV_SEND_INLINE flag.  This now only shows the example of
-> using ibv_query_qp(), it also reduces the latency time shown by the
-> pingpong programs when the sends can be inlined.
-> 
-> Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> ---
-> examples/rc_pingpong.c  | 18 +++++++++++++-----
-> examples/srq_pingpong.c | 19 +++++++++++++------
-> examples/uc_pingpong.c  | 17 ++++++++++++-----
-> examples/ud_pingpong.c  | 18 +++++++++++++-----
-> 4 files changed, 51 insertions(+), 21 deletions(-)
-> 
-> diff --git a/examples/rc_pingpong.c b/examples/rc_pingpong.c
-> index 15494a1..a8637a5 100644
-> --- a/examples/rc_pingpong.c
-> +++ b/examples/rc_pingpong.c
-> @@ -65,6 +65,7 @@ struct pingpong_context {
-> 	struct ibv_qp		*qp;
-> 	void			*buf;
-> 	int			 size;
-> +	int			 send_flags;
-> 	int			 rx_depth;
-> 	int			 pending;
-> 	struct ibv_port_attr     portinfo;
-> @@ -319,8 +320,9 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 	if (!ctx)
-> 		return NULL;
-> 
-> -	ctx->size     = size;
-> -	ctx->rx_depth = rx_depth;
-> +	ctx->size       = size;
-> +	ctx->send_flags = IBV_SEND_SIGNALED;
-> +	ctx->rx_depth   = rx_depth;
-> 
-> 	ctx->buf = memalign(page_size, size);
-> 	if (!ctx->buf) {
-> @@ -367,7 +369,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 	}
-> 
-> 	{
-> -		struct ibv_qp_init_attr attr = {
-> +		struct ibv_qp_attr attr;
-> +		struct ibv_qp_init_attr init_attr = {
-> 			.send_cq = ctx->cq,
-> 			.recv_cq = ctx->cq,
-> 			.cap     = {
-> @@ -379,11 +382,16 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 			.qp_type = IBV_QPT_RC
-> 		};
-> 
-> -		ctx->qp = ibv_create_qp(ctx->pd, &attr);
-> +		ctx->qp = ibv_create_qp(ctx->pd, &init_attr);
-> 		if (!ctx->qp)  {
-> 			fprintf(stderr, "Couldn't create QP\n");
-> 			goto clean_cq;
-> 		}
-> +
-> +		ibv_query_qp(ctx->qp, &attr, IBV_QP_CAP, &init_attr);
-> +		if (init_attr.cap.max_inline_data >= size) {
-> +			ctx->send_flags |= IBV_SEND_INLINE;
-> +		}
-> 	}
-> 
-> 	{
-> @@ -508,7 +516,7 @@ static int pp_post_send(struct pingpong_context *ctx)
-> 		.sg_list    = &list,
-> 		.num_sge    = 1,
-> 		.opcode     = IBV_WR_SEND,
-> -		.send_flags = IBV_SEND_SIGNALED,
-> +		.send_flags = ctx->send_flags,
-> 	};
-> 	struct ibv_send_wr *bad_wr;
-> 
-> diff --git a/examples/srq_pingpong.c b/examples/srq_pingpong.c
-> index 6e00f8c..552a144 100644
-> --- a/examples/srq_pingpong.c
-> +++ b/examples/srq_pingpong.c
-> @@ -68,6 +68,7 @@ struct pingpong_context {
-> 	struct ibv_qp		*qp[MAX_QP];
-> 	void			*buf;
-> 	int			 size;
-> +	int			 send_flags;
-> 	int			 num_qp;
-> 	int			 rx_depth;
-> 	int			 pending[MAX_QP];
-> @@ -350,9 +351,10 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 	if (!ctx)
-> 		return NULL;
-> 
-> -	ctx->size     = size;
-> -	ctx->num_qp   = num_qp;
-> -	ctx->rx_depth = rx_depth;
-> +	ctx->size       = size;
-> +	ctx->send_flags = IBV_SEND_SIGNALED;
-> +	ctx->num_qp     = num_qp;
-> +	ctx->rx_depth   = rx_depth;
-> 
-> 	ctx->buf = memalign(page_size, size);
-> 	if (!ctx->buf) {
-> @@ -413,7 +415,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 	}
-> 
-> 	for (i = 0; i < num_qp; ++i) {
-> -		struct ibv_qp_init_attr attr = {
-> +		struct ibv_qp_attr attr;
-> +		struct ibv_qp_init_attr init_attr = {
-> 			.send_cq = ctx->cq,
-> 			.recv_cq = ctx->cq,
-> 			.srq     = ctx->srq,
-> @@ -424,11 +427,15 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 			.qp_type = IBV_QPT_RC
-> 		};
-> 
-> -		ctx->qp[i] = ibv_create_qp(ctx->pd, &attr);
-> +		ctx->qp[i] = ibv_create_qp(ctx->pd, &init_attr);
-> 		if (!ctx->qp[i])  {
-> 			fprintf(stderr, "Couldn't create QP[%d]\n", i);
-> 			goto clean_qps;
-> 		}
-> +		ibv_query_qp(ctx->qp[i], &attr, IBV_QP_CAP, &init_attr);
-> +		if (init_attr.cap.max_inline_data >= size) {
-> +			ctx->send_flags |= IBV_SEND_INLINE;
-> +		}
-> 	}
-> 
-> 	for (i = 0; i < num_qp; ++i) {
-> @@ -568,7 +575,7 @@ static int pp_post_send(struct pingpong_context *ctx, int qp_index)
-> 		.sg_list    = &list,
-> 		.num_sge    = 1,
-> 		.opcode     = IBV_WR_SEND,
-> -		.send_flags = IBV_SEND_SIGNALED,
-> +		.send_flags = ctx->send_flags,
-> 	};
-> 	struct ibv_send_wr *bad_wr;
-> 
-> diff --git a/examples/uc_pingpong.c b/examples/uc_pingpong.c
-> index 52c6c28..58cc3cc 100644
-> --- a/examples/uc_pingpong.c
-> +++ b/examples/uc_pingpong.c
-> @@ -65,6 +65,7 @@ struct pingpong_context {
-> 	struct ibv_qp		*qp;
-> 	void			*buf;
-> 	int			 size;
-> +	int			 send_flags;
-> 	int			 rx_depth;
-> 	int			 pending;
-> 	struct ibv_port_attr     portinfo;
-> @@ -307,8 +308,9 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 	if (!ctx)
-> 		return NULL;
-> 
-> -	ctx->size     = size;
-> -	ctx->rx_depth = rx_depth;
-> +	ctx->size       = size;
-> +	ctx->send_flags = IBV_SEND_SIGNALED;
-> +	ctx->rx_depth   = rx_depth;
-> 
-> 	ctx->buf = memalign(page_size, size);
-> 	if (!ctx->buf) {
-> @@ -355,7 +357,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 	}
-> 
-> 	{
-> -		struct ibv_qp_init_attr attr = {
-> +		struct ibv_qp_attr attr;
-> +		struct ibv_qp_init_attr init_attr = {
-> 			.send_cq = ctx->cq,
-> 			.recv_cq = ctx->cq,
-> 			.cap     = {
-> @@ -367,11 +370,15 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 			.qp_type = IBV_QPT_UC
-> 		};
-> 
-> -		ctx->qp = ibv_create_qp(ctx->pd, &attr);
-> +		ctx->qp = ibv_create_qp(ctx->pd, &init_attr);
-> 		if (!ctx->qp)  {
-> 			fprintf(stderr, "Couldn't create QP\n");
-> 			goto clean_cq;
-> 		}
-> +		ibv_query_qp(ctx->qp, &attr, IBV_QP_CAP, &init_attr);
-> +		if (init_attr.cap.max_inline_data >= size) {
-> +			ctx->send_flags |= IBV_SEND_INLINE;
-> +		}
-> 	}
-> 
-> 	{
-> @@ -496,7 +503,7 @@ static int pp_post_send(struct pingpong_context *ctx)
-> 		.sg_list    = &list,
-> 		.num_sge    = 1,
-> 		.opcode     = IBV_WR_SEND,
-> -		.send_flags = IBV_SEND_SIGNALED,
-> +		.send_flags = ctx->send_flags,
-> 	};
-> 	struct ibv_send_wr *bad_wr;
-> 
-> diff --git a/examples/ud_pingpong.c b/examples/ud_pingpong.c
-> index 21c551d..9102241 100644
-> --- a/examples/ud_pingpong.c
-> +++ b/examples/ud_pingpong.c
-> @@ -66,6 +66,7 @@ struct pingpong_context {
-> 	struct ibv_ah		*ah;
-> 	void			*buf;
-> 	int			 size;
-> +	int			 send_flags;
-> 	int			 rx_depth;
-> 	int			 pending;
-> 	struct ibv_port_attr     portinfo;
-> @@ -305,8 +306,9 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 	if (!ctx)
-> 		return NULL;
-> 
-> -	ctx->size     = size;
-> -	ctx->rx_depth = rx_depth;
-> +	ctx->size       = size;
-> +	ctx->send_flags = IBV_SEND_SIGNALED;
-> +	ctx->rx_depth   = rx_depth;
-> 
-> 	ctx->buf = memalign(page_size, size + 40);
-> 	if (!ctx->buf) {
-> @@ -368,7 +370,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 	}
-> 
-> 	{
-> -		struct ibv_qp_init_attr attr = {
-> +		struct ibv_qp_attr attr;
-> +		struct ibv_qp_init_attr init_attr = {
-> 			.send_cq = ctx->cq,
-> 			.recv_cq = ctx->cq,
-> 			.cap     = {
-> @@ -380,11 +383,16 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
-> 			.qp_type = IBV_QPT_UD,
-> 		};
-> 
-> -		ctx->qp = ibv_create_qp(ctx->pd, &attr);
-> +		ctx->qp = ibv_create_qp(ctx->pd, &init_attr);
-> 		if (!ctx->qp)  {
-> 			fprintf(stderr, "Couldn't create QP\n");
-> 			goto clean_cq;
-> 		}
-> +
-> +		ibv_query_qp(ctx->qp, &attr, IBV_QP_CAP, &init_attr);
-> +		if (init_attr.cap.max_inline_data >= size) {
-> +			ctx->send_flags |= IBV_SEND_INLINE;
-> +		}
-> 	}
-> 
-> 	{
-> @@ -514,7 +522,7 @@ static int pp_post_send(struct pingpong_context *ctx, uint32_t qpn)
-> 		.sg_list    = &list,
-> 		.num_sge    = 1,
-> 		.opcode     = IBV_WR_SEND,
-> -		.send_flags = IBV_SEND_SIGNALED,
-> +		.send_flags = ctx->send_flags,
-> 		.wr         = {
-> 			.ud = {
-> 				 .ah          = ctx->ah,
-> -- 
-> 1.8.2.1
-> 
+2. Instead of discarding all the work when SDMA queue is full, the
+work is saved in a pending queue, whenever there is enough SDMA
+queue free entries, pending queue is directly put onto SDMA queue.
 
+3. An interrupt handler is used to progress this pending queue.
 
--- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: CQ Tang <cq.tang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib.h           |    4 
+ drivers/infiniband/hw/qib/qib_common.h    |   32 +
+ drivers/infiniband/hw/qib/qib_file_ops.c  |    2 
+ drivers/infiniband/hw/qib/qib_sdma.c      |    8 
+ drivers/infiniband/hw/qib/qib_user_sdma.c |  909 ++++++++++++++++++++++-------
+ 5 files changed, 728 insertions(+), 227 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 4a9af79..ae3e4fe 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -576,11 +576,13 @@ struct qib_pportdata {
+ 	/* read/write using lock */
+ 	spinlock_t            sdma_lock ____cacheline_aligned_in_smp;
+ 	struct list_head      sdma_activelist;
++	struct list_head      sdma_userpending;
+ 	u64                   sdma_descq_added;
+ 	u64                   sdma_descq_removed;
+ 	u16                   sdma_descq_tail;
+ 	u16                   sdma_descq_head;
+ 	u8                    sdma_generation;
++	u8                    sdma_intrequest;
+ 
+ 	struct tasklet_struct sdma_sw_clean_up_task
+ 		____cacheline_aligned_in_smp;
+@@ -1326,6 +1328,8 @@ int qib_setup_sdma(struct qib_pportdata *);
+ void qib_teardown_sdma(struct qib_pportdata *);
+ void __qib_sdma_intr(struct qib_pportdata *);
+ void qib_sdma_intr(struct qib_pportdata *);
++void qib_user_sdma_send_desc(struct qib_pportdata *dd,
++			struct list_head *pktlist);
+ int qib_sdma_verbs_send(struct qib_pportdata *, struct qib_sge_state *,
+ 			u32, struct qib_verbs_txreq *);
+ /* ppd->sdma_lock should be locked before calling this. */
+diff --git a/drivers/infiniband/hw/qib/qib_common.h b/drivers/infiniband/hw/qib/qib_common.h
+index 4f255b7..5670ace 100644
+--- a/drivers/infiniband/hw/qib/qib_common.h
++++ b/drivers/infiniband/hw/qib/qib_common.h
+@@ -279,7 +279,7 @@ struct qib_base_info {
+  * may not be implemented; the user code must deal with this if it
+  * cares, or it must abort after initialization reports the difference.
+  */
+-#define QIB_USER_SWMINOR 12
++#define QIB_USER_SWMINOR 13
+ 
+ #define QIB_USER_SWVERSION ((QIB_USER_SWMAJOR << 16) | QIB_USER_SWMINOR)
+ 
+@@ -701,7 +701,37 @@ struct qib_message_header {
+ 	__be32 bth[3];
+ 	/* fields below this point are in host byte order */
+ 	struct qib_header iph;
++	/* fields below are simplified, but should match PSM */
++	/* some are accessed by driver when packet spliting is needed */
+ 	__u8 sub_opcode;
++	__u8 flags;
++	__u16 commidx;
++	__u32 ack_seq_num;
++	__u8 flowid;
++	__u8 hdr_dlen;
++	__u16 mqhdr;
++	__u32 uwords[4];
++};
++
++/* sequence number bits for message */
++union qib_seqnum {
++	struct {
++		__u32 seq:11;
++		__u32 gen:8;
++		__u32 flow:5;
++	};
++	struct {
++		__u32 pkt:16;
++		__u32 msg:8;
++	};
++	__u32 val;
++};
++
++/* qib receiving-dma tid-session-member */
++struct qib_tid_session_member {
++	__u16 tid;
++	__u16 offset;
++	__u16 length;
+ };
+ 
+ /* IB - LRH header consts */
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index df3808a..d06e33a 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -1220,7 +1220,7 @@ static int qib_compatible_subctxts(int user_swmajor, int user_swminor)
+ 			return user_swminor == 3;
+ 		default:
+ 			/* >= 4 are compatible (or are expected to be) */
+-			return user_swminor >= 4;
++			return user_swminor <= QIB_USER_SWMINOR;
+ 		}
+ 	}
+ 	/* make no promises yet for future major versions */
+diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
+index 32162d3..f63b2ac 100644
+--- a/drivers/infiniband/hw/qib/qib_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_sdma.c
+@@ -423,8 +423,11 @@ void qib_sdma_intr(struct qib_pportdata *ppd)
+ 
+ void __qib_sdma_intr(struct qib_pportdata *ppd)
+ {
+-	if (__qib_sdma_running(ppd))
++	if (__qib_sdma_running(ppd)) {
+ 		qib_sdma_make_progress(ppd);
++		if (!list_empty(&ppd->sdma_userpending))
++			qib_user_sdma_send_desc(ppd, &ppd->sdma_userpending);
++	}
+ }
+ 
+ int qib_setup_sdma(struct qib_pportdata *ppd)
+@@ -452,6 +455,9 @@ int qib_setup_sdma(struct qib_pportdata *ppd)
+ 	ppd->sdma_descq_removed = 0;
+ 	ppd->sdma_descq_added = 0;
+ 
++	ppd->sdma_intrequest = 0;
++	INIT_LIST_HEAD(&ppd->sdma_userpending);
++
+ 	INIT_LIST_HEAD(&ppd->sdma_activelist);
+ 
+ 	tasklet_init(&ppd->sdma_sw_clean_up_task, sdma_sw_clean_up_task,
+diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+index 8244208..0544166 100644
+--- a/drivers/infiniband/hw/qib/qib_user_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+@@ -53,20 +53,36 @@
+ #define QIB_USER_SDMA_DRAIN_TIMEOUT 500
+ 
+ struct qib_user_sdma_pkt {
+-	u8 naddr;               /* dimension of addr (1..3) ... */
++	struct list_head list;  /* list element */
++
++	u8  tiddma;		/* if this is NEW tid-sdma */
++	u8  largepkt;		/* this is large pkt from kmalloc */
++	u16 frag_size;		/* frag size used by PSM */
++	u16 index;              /* last header index or push index */
++	u16 naddr;              /* dimension of addr (1..3) ... */
++	u16 addrlimit;		/* addr array size */
++	u16 tidsmidx;		/* current tidsm index */
++	u16 tidsmcount;		/* tidsm array item count */
++	u16 payload_size;	/* payload size so far for header */
++	u32 bytes_togo;		/* bytes for processing */
+ 	u32 counter;            /* sdma pkts queued counter for this entry */
++	struct qib_tid_session_member *tidsm;	/* tid session member array */
++	struct qib_user_sdma_queue *pq;	/* which pq this pkt belongs to */
+ 	u64 added;              /* global descq number of entries */
+ 
+ 	struct {
+-		u32 offset;                     /* offset for kvaddr, addr */
+-		u32 length;                     /* length in page */
+-		u8  put_page;                   /* should we put_page? */
+-		u8  dma_mapped;                 /* is page dma_mapped? */
++		u16 offset;                     /* offset for kvaddr, addr */
++		u16 length;                     /* length in page */
++		u16 first_desc;			/* first desc */
++		u16 last_desc;			/* last desc */
++		u16 put_page;                   /* should we put_page? */
++		u16 dma_mapped;                 /* is page dma_mapped? */
++		u16 dma_length;			/* for dma_unmap_page() */
++		u16 padding;
+ 		struct page *page;              /* may be NULL (coherent mem) */
+ 		void *kvaddr;                   /* FIXME: only for pio hack */
+ 		dma_addr_t addr;
+ 	} addr[4];   /* max pages, any more and we coalesce */
+-	struct list_head list;  /* list element */
+ };
+ 
+ struct qib_user_sdma_queue {
+@@ -77,6 +93,12 @@ struct qib_user_sdma_queue {
+ 	 */
+ 	struct list_head sent;
+ 
++	/*
++	 * Because above list will be accessed by both process and
++	 * signal handler, we need a spinlock for it.
++	 */
++	spinlock_t sent_lock ____cacheline_aligned_in_smp;
++
+ 	/* headers with expected length are allocated from here... */
+ 	char header_cache_name[64];
+ 	struct dma_pool *header_cache;
+@@ -88,6 +110,12 @@ struct qib_user_sdma_queue {
+ 	/* as packets go on the queued queue, they are counted... */
+ 	u32 counter;
+ 	u32 sent_counter;
++	/* pending packets, not sending yet */
++	u32 num_pending;
++	/* sending packets, not complete yet */
++	u32 num_sending;
++	/* global descq number of entry of last sending packet */
++	u64 added;
+ 
+ 	/* dma page table */
+ 	struct rb_root dma_pages_root;
+@@ -107,8 +135,12 @@ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+ 
+ 	pq->counter = 0;
+ 	pq->sent_counter = 0;
+-	INIT_LIST_HEAD(&pq->sent);
++	pq->num_pending = 0;
++	pq->num_sending = 0;
++	pq->added = 0;
+ 
++	INIT_LIST_HEAD(&pq->sent);
++	spin_lock_init(&pq->sent_lock);
+ 	mutex_init(&pq->lock);
+ 
+ 	snprintf(pq->pkt_slab_name, sizeof(pq->pkt_slab_name),
+@@ -144,34 +176,310 @@ done:
+ }
+ 
+ static void qib_user_sdma_init_frag(struct qib_user_sdma_pkt *pkt,
+-				    int i, size_t offset, size_t len,
+-				    int put_page, int dma_mapped,
+-				    struct page *page,
+-				    void *kvaddr, dma_addr_t dma_addr)
++				    int i, u16 offset, u16 len,
++				    u16 first_desc, u16 last_desc,
++				    u16 put_page, u16 dma_mapped,
++				    struct page *page, void *kvaddr,
++				    dma_addr_t dma_addr, u16 dma_length)
+ {
+ 	pkt->addr[i].offset = offset;
+ 	pkt->addr[i].length = len;
++	pkt->addr[i].first_desc = first_desc;
++	pkt->addr[i].last_desc = last_desc;
+ 	pkt->addr[i].put_page = put_page;
+ 	pkt->addr[i].dma_mapped = dma_mapped;
+ 	pkt->addr[i].page = page;
+ 	pkt->addr[i].kvaddr = kvaddr;
+ 	pkt->addr[i].addr = dma_addr;
++	pkt->addr[i].dma_length = dma_length;
+ }
+ 
+-static void qib_user_sdma_init_header(struct qib_user_sdma_pkt *pkt,
+-				      u32 counter, size_t offset,
+-				      size_t len, int dma_mapped,
+-				      struct page *page,
+-				      void *kvaddr, dma_addr_t dma_addr)
++static void *qib_user_sdma_alloc_header(struct qib_user_sdma_queue *pq,
++				size_t len, dma_addr_t *dma_addr)
+ {
+-	pkt->naddr = 1;
+-	pkt->counter = counter;
+-	qib_user_sdma_init_frag(pkt, 0, offset, len, 0, dma_mapped, page,
+-				kvaddr, dma_addr);
++	void *hdr;
++
++	if (len == QIB_USER_SDMA_EXP_HEADER_LENGTH)
++		hdr = dma_pool_alloc(pq->header_cache, GFP_KERNEL,
++					     dma_addr);
++	else
++		hdr = NULL;
++
++	if (!hdr) {
++		hdr = kmalloc(len, GFP_KERNEL);
++		if (!hdr)
++			return NULL;
++
++		*dma_addr = 0;
++	}
++
++	return hdr;
++}
++
++static int qib_user_sdma_page_to_frags(const struct qib_devdata *dd,
++				       struct qib_user_sdma_queue *pq,
++				       struct qib_user_sdma_pkt *pkt,
++				       struct page *page, u16 put,
++				       u16 offset, u16 len, void *kvaddr)
++{
++	u16 *pbc16;
++	void *pbcvaddr;
++	struct qib_message_header *hdr;
++	u16 newlen, pbclen, lastdesc, dma_mapped;
++	u32 vcto;
++	union qib_seqnum seqnum;
++	dma_addr_t pbcdaddr;
++	dma_addr_t dma_addr =
++		dma_map_page(&dd->pcidev->dev,
++			page, offset, len, DMA_TO_DEVICE);
++	int ret = 0;
++
++	if (dma_mapping_error(&dd->pcidev->dev, dma_addr)) {
++		/*
++		 * dma mapping error, pkt has not managed
++		 * this page yet, return the page here so
++		 * the caller can ignore this page.
++		 */
++		if (put) {
++			put_page(page);
++		} else {
++			/* coalesce case */
++			kunmap(page);
++			__free_page(page);
++		}
++		ret = -ENOMEM;
++		goto done;
++	}
++	offset = 0;
++	dma_mapped = 1;
++
++
++next_fragment:
++
++	/*
++	 * In tid-sdma, the transfer length is restricted by
++	 * receiver side current tid page length.
++	 */
++	if (pkt->tiddma && len > pkt->tidsm[pkt->tidsmidx].length)
++		newlen = pkt->tidsm[pkt->tidsmidx].length;
++	else
++		newlen = len;
++
++	/*
++	 * Then the transfer length is restricted by MTU.
++	 * the last descriptor flag is determined by:
++	 * 1. the current packet is at frag size length.
++	 * 2. the current tid page is done if tid-sdma.
++	 * 3. there is no more byte togo if sdma.
++	 */
++	lastdesc = 0;
++	if ((pkt->payload_size + newlen) >= pkt->frag_size) {
++		newlen = pkt->frag_size - pkt->payload_size;
++		lastdesc = 1;
++	} else if (pkt->tiddma) {
++		if (newlen == pkt->tidsm[pkt->tidsmidx].length)
++			lastdesc = 1;
++	} else {
++		if (newlen == pkt->bytes_togo)
++			lastdesc = 1;
++	}
++
++	/* fill the next fragment in this page */
++	qib_user_sdma_init_frag(pkt, pkt->naddr, /* index */
++		offset, newlen,		/* offset, len */
++		0, lastdesc,		/* first last desc */
++		put, dma_mapped,	/* put page, dma mapped */
++		page, kvaddr,		/* struct page, virt addr */
++		dma_addr, len);		/* dma addr, dma length */
++	pkt->bytes_togo -= newlen;
++	pkt->payload_size += newlen;
++	pkt->naddr++;
++	if (pkt->naddr == pkt->addrlimit) {
++		ret = -EFAULT;
++		goto done;
++	}
++
++	/* If there is no more byte togo. (lastdesc==1) */
++	if (pkt->bytes_togo == 0) {
++		/* The packet is done, header is not dma mapped yet.
++		 * it should be from kmalloc */
++		if (!pkt->addr[pkt->index].addr) {
++			pkt->addr[pkt->index].addr =
++				dma_map_single(&dd->pcidev->dev,
++					pkt->addr[pkt->index].kvaddr,
++					pkt->addr[pkt->index].dma_length,
++					DMA_TO_DEVICE);
++			if (dma_mapping_error(&dd->pcidev->dev,
++					pkt->addr[pkt->index].addr)) {
++				ret = -ENOMEM;
++				goto done;
++			}
++			pkt->addr[pkt->index].dma_mapped = 1;
++		}
++
++		goto done;
++	}
++
++	/* If tid-sdma, advance tid info. */
++	if (pkt->tiddma) {
++		pkt->tidsm[pkt->tidsmidx].length -= newlen;
++		if (pkt->tidsm[pkt->tidsmidx].length) {
++			pkt->tidsm[pkt->tidsmidx].offset += newlen;
++		} else {
++			pkt->tidsmidx++;
++			if (pkt->tidsmidx == pkt->tidsmcount) {
++				ret = -EFAULT;
++				goto done;
++			}
++		}
++	}
++
++	/*
++	 * If this is NOT the last descriptor. (newlen==len)
++	 * the current packet is not done yet, but the current
++	 * send side page is done.
++	 */
++	if (lastdesc == 0)
++		goto done;
++
++	/*
++	 * If running this driver under PSM with message size
++	 * fitting into one transfer unit, it is not possible
++	 * to pass this line. otherwise, it is a buggggg.
++	 */
++
++	/*
++	 * Since the current packet is done, and there are more
++	 * bytes togo, we need to create a new sdma header, copying
++	 * from previous sdma header and modify both.
++	 */
++	pbclen = pkt->addr[pkt->index].length;
++	pbcvaddr = qib_user_sdma_alloc_header(pq, pbclen, &pbcdaddr);
++	if (!pbcvaddr) {
++		ret = -ENOMEM;
++		goto done;
++	}
++	/* Copy the previous sdma header to new sdma header */
++	pbc16 = (__le16 *)pkt->addr[pkt->index].kvaddr;
++	memcpy(pbcvaddr, pbc16, pbclen);
++
++	/* Modify the previous sdma header */
++	hdr = (struct qib_message_header *)&pbc16[4];
++
++	/* New pbc length */
++	pbc16[0] = cpu_to_le16(le16_to_cpu(pbc16[0])-(pkt->bytes_togo>>2));
++
++	/* New packet length */
++	hdr->lrh[2] = cpu_to_be16(le16_to_cpu(pbc16[0]));
++
++	if (pkt->tiddma) {
++		/* turn on the header suppression */
++		hdr->iph.pkt_flags =
++			cpu_to_le16(le16_to_cpu(hdr->iph.pkt_flags)|0x2);
++		/* turn off ACK_REQ: 0x04 and EXPECTED_DONE: 0x20 */
++		hdr->flags &= ~(0x04|0x20);
++	} else {
++		/* turn off extra bytes: 20-21 bits */
++		hdr->bth[0] = cpu_to_be32(be32_to_cpu(hdr->bth[0])&0xFFCFFFFF);
++		/* turn off ACK_REQ: 0x04 */
++		hdr->flags &= ~(0x04);
++	}
++
++	/* New kdeth checksum */
++	vcto = le32_to_cpu(hdr->iph.ver_ctxt_tid_offset);
++	hdr->iph.chksum = cpu_to_le16(QIB_LRH_BTH +
++		be16_to_cpu(hdr->lrh[2]) -
++		((vcto>>16)&0xFFFF) - (vcto&0xFFFF) -
++		le16_to_cpu(hdr->iph.pkt_flags));
++
++	/* The packet is done, header is not dma mapped yet.
++	 * it should be from kmalloc */
++	if (!pkt->addr[pkt->index].addr) {
++		pkt->addr[pkt->index].addr =
++			dma_map_single(&dd->pcidev->dev,
++				pkt->addr[pkt->index].kvaddr,
++				pkt->addr[pkt->index].dma_length,
++				DMA_TO_DEVICE);
++		if (dma_mapping_error(&dd->pcidev->dev,
++				pkt->addr[pkt->index].addr)) {
++			ret = -ENOMEM;
++			goto done;
++		}
++		pkt->addr[pkt->index].dma_mapped = 1;
++	}
++
++	/* Modify the new sdma header */
++	pbc16 = (__le16 *)pbcvaddr;
++	hdr = (struct qib_message_header *)&pbc16[4];
++
++	/* New pbc length */
++	pbc16[0] = cpu_to_le16(le16_to_cpu(pbc16[0])-(pkt->payload_size>>2));
++
++	/* New packet length */
++	hdr->lrh[2] = cpu_to_be16(le16_to_cpu(pbc16[0]));
++
++	if (pkt->tiddma) {
++		/* Set new tid and offset for new sdma header */
++		hdr->iph.ver_ctxt_tid_offset = cpu_to_le32(
++			(le32_to_cpu(hdr->iph.ver_ctxt_tid_offset)&0xFF000000) +
++			(pkt->tidsm[pkt->tidsmidx].tid<<QLOGIC_IB_I_TID_SHIFT) +
++			(pkt->tidsm[pkt->tidsmidx].offset>>2));
++	} else {
++		/* Middle protocol new packet offset */
++		hdr->uwords[2] += pkt->payload_size;
++	}
++
++	/* New kdeth checksum */
++	vcto = le32_to_cpu(hdr->iph.ver_ctxt_tid_offset);
++	hdr->iph.chksum = cpu_to_le16(QIB_LRH_BTH +
++		be16_to_cpu(hdr->lrh[2]) -
++		((vcto>>16)&0xFFFF) - (vcto&0xFFFF) -
++		le16_to_cpu(hdr->iph.pkt_flags));
++
++	/* Next sequence number in new sdma header */
++	seqnum.val = be32_to_cpu(hdr->bth[2]);
++	if (pkt->tiddma)
++		seqnum.seq++;
++	else
++		seqnum.pkt++;
++	hdr->bth[2] = cpu_to_be32(seqnum.val);
++
++	/* Init new sdma header. */
++	qib_user_sdma_init_frag(pkt, pkt->naddr, /* index */
++		0, pbclen,		/* offset, len */
++		1, 0,			/* first last desc */
++		0, 0,			/* put page, dma mapped */
++		NULL, pbcvaddr,		/* struct page, virt addr */
++		pbcdaddr, pbclen);	/* dma addr, dma length */
++	pkt->index = pkt->naddr;
++	pkt->payload_size = 0;
++	pkt->naddr++;
++	if (pkt->naddr == pkt->addrlimit) {
++		ret = -EFAULT;
++		goto done;
++	}
++
++	/* Prepare for next fragment in this page */
++	if (newlen != len) {
++		if (dma_mapped) {
++			put = 0;
++			dma_mapped = 0;
++			page = NULL;
++			kvaddr = NULL;
++		}
++		len -= newlen;
++		offset += newlen;
++
++		goto next_fragment;
++	}
++
++done:
++	return ret;
+ }
+ 
+ /* we've too many pages in the iovec, coalesce to a single page */
+ static int qib_user_sdma_coalesce(const struct qib_devdata *dd,
++				  struct qib_user_sdma_queue *pq,
+ 				  struct qib_user_sdma_pkt *pkt,
+ 				  const struct iovec *iov,
+ 				  unsigned long niov)
+@@ -182,7 +490,6 @@ static int qib_user_sdma_coalesce(const struct qib_devdata *dd,
+ 	char *mpage;
+ 	int i;
+ 	int len = 0;
+-	dma_addr_t dma_addr;
+ 
+ 	if (!page) {
+ 		ret = -ENOMEM;
+@@ -205,17 +512,8 @@ static int qib_user_sdma_coalesce(const struct qib_devdata *dd,
+ 		len += iov[i].iov_len;
+ 	}
+ 
+-	dma_addr = dma_map_page(&dd->pcidev->dev, page, 0, len,
+-				DMA_TO_DEVICE);
+-	if (dma_mapping_error(&dd->pcidev->dev, dma_addr)) {
+-		ret = -ENOMEM;
+-		goto free_unmap;
+-	}
+-
+-	qib_user_sdma_init_frag(pkt, 1, 0, len, 0, 1, page, mpage_save,
+-				dma_addr);
+-	pkt->naddr = 2;
+-
++	ret = qib_user_sdma_page_to_frags(dd, pq, pkt,
++			page, 0, 0, len, mpage_save);
+ 	goto done;
+ 
+ free_unmap:
+@@ -238,16 +536,6 @@ static int qib_user_sdma_num_pages(const struct iovec *iov)
+ 	return 1 + ((epage - spage) >> PAGE_SHIFT);
+ }
+ 
+-/*
+- * Truncate length to page boundary.
+- */
+-static int qib_user_sdma_page_length(unsigned long addr, unsigned long len)
+-{
+-	const unsigned long offset = addr & ~PAGE_MASK;
+-
+-	return ((offset + len) > PAGE_SIZE) ? (PAGE_SIZE - offset) : len;
+-}
+-
+ static void qib_user_sdma_free_pkt_frag(struct device *dev,
+ 					struct qib_user_sdma_queue *pq,
+ 					struct qib_user_sdma_pkt *pkt,
+@@ -256,10 +544,11 @@ static void qib_user_sdma_free_pkt_frag(struct device *dev,
+ 	const int i = frag;
+ 
+ 	if (pkt->addr[i].page) {
++		/* only user data has page */
+ 		if (pkt->addr[i].dma_mapped)
+ 			dma_unmap_page(dev,
+ 				       pkt->addr[i].addr,
+-				       pkt->addr[i].length,
++				       pkt->addr[i].dma_length,
+ 				       DMA_TO_DEVICE);
+ 
+ 		if (pkt->addr[i].kvaddr)
+@@ -269,55 +558,81 @@ static void qib_user_sdma_free_pkt_frag(struct device *dev,
+ 			put_page(pkt->addr[i].page);
+ 		else
+ 			__free_page(pkt->addr[i].page);
+-	} else if (pkt->addr[i].kvaddr)
+-		/* free coherent mem from cache... */
+-		dma_pool_free(pq->header_cache,
++	} else if (pkt->addr[i].kvaddr) {
++		/* for headers */
++		if (pkt->addr[i].dma_mapped) {
++			/* from kmalloc & dma mapped */
++			dma_unmap_single(dev,
++				       pkt->addr[i].addr,
++				       pkt->addr[i].dma_length,
++				       DMA_TO_DEVICE);
++			kfree(pkt->addr[i].kvaddr);
++		} else if (pkt->addr[i].addr) {
++			/* free coherent mem from cache... */
++			dma_pool_free(pq->header_cache,
+ 			      pkt->addr[i].kvaddr, pkt->addr[i].addr);
++		} else {
++			/* from kmalloc but not dma mapped */
++			kfree(pkt->addr[i].kvaddr);
++		}
++	}
+ }
+ 
+ /* return number of pages pinned... */
+ static int qib_user_sdma_pin_pages(const struct qib_devdata *dd,
++				   struct qib_user_sdma_queue *pq,
+ 				   struct qib_user_sdma_pkt *pkt,
+ 				   unsigned long addr, int tlen, int npages)
+ {
+-	struct page *pages[2];
+-	int j;
+-	int ret;
+-
+-	ret = get_user_pages(current, current->mm, addr,
+-			     npages, 0, 1, pages, NULL);
+-
+-	if (ret != npages) {
+-		int i;
+-
+-		for (i = 0; i < ret; i++)
+-			put_page(pages[i]);
+-
+-		ret = -ENOMEM;
+-		goto done;
+-	}
++	struct page *pages[8];
++	int i, j;
++	int ret = 0;
+ 
+-	for (j = 0; j < npages; j++) {
+-		/* map the pages... */
+-		const int flen = qib_user_sdma_page_length(addr, tlen);
+-		dma_addr_t dma_addr =
+-			dma_map_page(&dd->pcidev->dev,
+-				     pages[j], 0, flen, DMA_TO_DEVICE);
+-		unsigned long fofs = addr & ~PAGE_MASK;
++	while (npages) {
++		if (npages > 8)
++			j = 8;
++		else
++			j = npages;
+ 
+-		if (dma_mapping_error(&dd->pcidev->dev, dma_addr)) {
++		ret = get_user_pages(current, current->mm, addr,
++			     j, 0, 1, pages, NULL);
++		if (ret != j) {
++			i = 0;
++			j = ret;
+ 			ret = -ENOMEM;
+-			goto done;
++			goto free_pages;
+ 		}
+ 
+-		qib_user_sdma_init_frag(pkt, pkt->naddr, fofs, flen, 1, 1,
+-					pages[j], kmap(pages[j]), dma_addr);
++		for (i = 0; i < j; i++) {
++			/* map the pages... */
++			unsigned long fofs = addr & ~PAGE_MASK;
++			int flen = ((fofs + tlen) > PAGE_SIZE) ?
++				(PAGE_SIZE - fofs) : tlen;
++
++			ret = qib_user_sdma_page_to_frags(dd, pq, pkt,
++				pages[i], 1, fofs, flen, 0);
++			if (ret < 0) {
++				/* current page has beed taken
++				 * care of inside above call.
++				 */
++				i++;
++				goto free_pages;
++			}
+ 
+-		pkt->naddr++;
+-		addr += flen;
+-		tlen -= flen;
++			addr += flen;
++			tlen -= flen;
++		}
++
++		npages -= j;
+ 	}
+ 
++	goto done;
++
++	/* if error, return all pages not managed by pkt */
++free_pages:
++	while (i < j)
++		put_page(pages[i++]);
++
+ done:
+ 	return ret;
+ }
+@@ -335,7 +650,7 @@ static int qib_user_sdma_pin_pkt(const struct qib_devdata *dd,
+ 		const int npages = qib_user_sdma_num_pages(iov + idx);
+ 		const unsigned long addr = (unsigned long) iov[idx].iov_base;
+ 
+-		ret = qib_user_sdma_pin_pages(dd, pkt, addr,
++		ret = qib_user_sdma_pin_pages(dd, pq, pkt, addr,
+ 					      iov[idx].iov_len, npages);
+ 		if (ret < 0)
+ 			goto free_pkt;
+@@ -344,9 +659,22 @@ static int qib_user_sdma_pin_pkt(const struct qib_devdata *dd,
+ 	goto done;
+ 
+ free_pkt:
+-	for (idx = 0; idx < pkt->naddr; idx++)
++	/* we need to ignore the first entry here */
++	for (idx = 1; idx < pkt->naddr; idx++)
+ 		qib_user_sdma_free_pkt_frag(&dd->pcidev->dev, pq, pkt, idx);
+ 
++	/* need to dma unmap the first entry, this is to restore to
++	 * the original state so that caller can free the memory in
++	 * error condition. Caller does not know if dma mapped or not*/
++	if (pkt->addr[0].dma_mapped) {
++		dma_unmap_single(&dd->pcidev->dev,
++		       pkt->addr[0].addr,
++		       pkt->addr[0].dma_length,
++		       DMA_TO_DEVICE);
++		pkt->addr[0].addr = 0;
++		pkt->addr[0].dma_mapped = 0;
++	}
++
+ done:
+ 	return ret;
+ }
+@@ -359,8 +687,9 @@ static int qib_user_sdma_init_payload(const struct qib_devdata *dd,
+ {
+ 	int ret = 0;
+ 
+-	if (npages >= ARRAY_SIZE(pkt->addr))
+-		ret = qib_user_sdma_coalesce(dd, pkt, iov, niov);
++	if (pkt->frag_size == pkt->bytes_togo &&
++			npages >= ARRAY_SIZE(pkt->addr))
++		ret = qib_user_sdma_coalesce(dd, pq, pkt, iov, niov);
+ 	else
+ 		ret = qib_user_sdma_pin_pkt(dd, pq, pkt, iov, niov);
+ 
+@@ -380,7 +709,10 @@ static void qib_user_sdma_free_pkt_list(struct device *dev,
+ 		for (i = 0; i < pkt->naddr; i++)
+ 			qib_user_sdma_free_pkt_frag(dev, pq, pkt, i);
+ 
+-		kmem_cache_free(pq->pkt_slab, pkt);
++		if (pkt->largepkt)
++			kfree(pkt);
++		else
++			kmem_cache_free(pq->pkt_slab, pkt);
+ 	}
+ 	INIT_LIST_HEAD(list);
+ }
+@@ -393,63 +725,48 @@ static void qib_user_sdma_free_pkt_list(struct device *dev,
+  * as, if there is an error we clean it...
+  */
+ static int qib_user_sdma_queue_pkts(const struct qib_devdata *dd,
++				    struct qib_pportdata *ppd,
+ 				    struct qib_user_sdma_queue *pq,
+-				    struct list_head *list,
+ 				    const struct iovec *iov,
+ 				    unsigned long niov,
+-				    int maxpkts)
++				    struct list_head *list,
++				    int *maxpkts, int *ndesc)
+ {
+ 	unsigned long idx = 0;
+ 	int ret = 0;
+ 	int npkts = 0;
+-	struct page *page = NULL;
+ 	__le32 *pbc;
+ 	dma_addr_t dma_addr;
+ 	struct qib_user_sdma_pkt *pkt = NULL;
+ 	size_t len;
+ 	size_t nw;
+ 	u32 counter = pq->counter;
+-	int dma_mapped = 0;
++	u16 frag_size;
+ 
+-	while (idx < niov && npkts < maxpkts) {
++	while (idx < niov && npkts < *maxpkts) {
+ 		const unsigned long addr = (unsigned long) iov[idx].iov_base;
+ 		const unsigned long idx_save = idx;
+ 		unsigned pktnw;
+ 		unsigned pktnwc;
+ 		int nfrags = 0;
+ 		int npages = 0;
++		int bytes_togo = 0;
++		int tiddma = 0;
+ 		int cfur;
+ 
+-		dma_mapped = 0;
+ 		len = iov[idx].iov_len;
+ 		nw = len >> 2;
+-		page = NULL;
+-
+-		pkt = kmem_cache_alloc(pq->pkt_slab, GFP_KERNEL);
+-		if (!pkt) {
+-			ret = -ENOMEM;
+-			goto free_list;
+-		}
+ 
+ 		if (len < QIB_USER_SDMA_MIN_HEADER_LENGTH ||
+ 		    len > PAGE_SIZE || len & 3 || addr & 3) {
+ 			ret = -EINVAL;
+-			goto free_pkt;
++			goto free_list;
+ 		}
+ 
+-		if (len == QIB_USER_SDMA_EXP_HEADER_LENGTH)
+-			pbc = dma_pool_alloc(pq->header_cache, GFP_KERNEL,
+-					     &dma_addr);
+-		else
+-			pbc = NULL;
+-
++		pbc = qib_user_sdma_alloc_header(pq, len, &dma_addr);
+ 		if (!pbc) {
+-			page = alloc_page(GFP_KERNEL);
+-			if (!page) {
+-				ret = -ENOMEM;
+-				goto free_pkt;
+-			}
+-			pbc = kmap(page);
++			ret = -ENOMEM;
++			goto free_list;
+ 		}
+ 
+ 		cfur = copy_from_user(pbc, iov[idx].iov_base, len);
+@@ -474,8 +791,8 @@ static int qib_user_sdma_queue_pkts(const struct qib_devdata *dd,
+ 		 * we can verify that the packet is consistent with the
+ 		 * iovec lengths.
+ 		 */
+-		pktnw = le32_to_cpu(*pbc) & QIB_PBC_LENGTH_MASK;
+-		if (pktnw < pktnwc || pktnw > pktnwc + (PAGE_SIZE >> 2)) {
++		pktnw = le32_to_cpu(*pbc) & 0xFFFF;
++		if (pktnw < pktnwc) {
+ 			ret = -EINVAL;
+ 			goto free_pbc;
+ 		}
+@@ -486,17 +803,14 @@ static int qib_user_sdma_queue_pkts(const struct qib_devdata *dd,
+ 			const unsigned long faddr =
+ 				(unsigned long) iov[idx].iov_base;
+ 
+-			if (slen & 3 || faddr & 3 || !slen ||
+-			    slen > PAGE_SIZE) {
++			if (slen & 3 || faddr & 3 || !slen) {
+ 				ret = -EINVAL;
+ 				goto free_pbc;
+ 			}
+ 
+-			npages++;
+-			if ((faddr & PAGE_MASK) !=
+-			    ((faddr + slen - 1) & PAGE_MASK))
+-				npages++;
++			npages += qib_user_sdma_num_pages(&iov[idx]);
+ 
++			bytes_togo += slen;
+ 			pktnwc += slen >> 2;
+ 			idx++;
+ 			nfrags++;
+@@ -507,48 +821,139 @@ static int qib_user_sdma_queue_pkts(const struct qib_devdata *dd,
+ 			goto free_pbc;
+ 		}
+ 
+-		if (page) {
+-			dma_addr = dma_map_page(&dd->pcidev->dev,
+-						page, 0, len, DMA_TO_DEVICE);
+-			if (dma_mapping_error(&dd->pcidev->dev, dma_addr)) {
++		frag_size = ((le32_to_cpu(*pbc))>>16) & 0xFFFF;
++		if (((frag_size ? frag_size : bytes_togo) + len) >
++						ppd->ibmaxlen) {
++			ret = -EINVAL;
++			goto free_pbc;
++		}
++
++		if (frag_size) {
++			int pktsize, tidsmsize, n;
++
++			n = npages*((2*PAGE_SIZE/frag_size)+1);
++			pktsize = sizeof(*pkt) + sizeof(pkt->addr[0])*n;
++
++			/*
++			 * Determine if this is tid-sdma or just sdma.
++			 */
++			tiddma = (((le32_to_cpu(pbc[7])>>
++				QLOGIC_IB_I_TID_SHIFT)&
++				QLOGIC_IB_I_TID_MASK) !=
++				QLOGIC_IB_I_TID_MASK);
++
++			if (tiddma)
++				tidsmsize = iov[idx].iov_len;
++			else
++				tidsmsize = 0;
++
++			pkt = kmalloc(pktsize+tidsmsize, GFP_KERNEL);
++			if (!pkt) {
+ 				ret = -ENOMEM;
+ 				goto free_pbc;
+ 			}
++			pkt->largepkt = 1;
++			pkt->frag_size = frag_size;
++			pkt->addrlimit = n + ARRAY_SIZE(pkt->addr);
++
++			if (tiddma) {
++				char *tidsm = (char *)pkt + pktsize;
++				cfur = copy_from_user(tidsm,
++					iov[idx].iov_base, tidsmsize);
++				if (cfur) {
++					ret = -EFAULT;
++					goto free_pkt;
++				}
++				pkt->tidsm =
++					(struct qib_tid_session_member *)tidsm;
++				pkt->tidsmcount = tidsmsize/
++					sizeof(struct qib_tid_session_member);
++				pkt->tidsmidx = 0;
++				idx++;
++			}
+ 
+-			dma_mapped = 1;
++			/*
++			 * pbc 'fill1' field is borrowed to pass frag size,
++			 * we need to clear it after picking frag size, the
++			 * hardware requires this field to be zero.
++			 */
++			*pbc = cpu_to_le32(le32_to_cpu(*pbc) & 0x0000FFFF);
++		} else {
++			pkt = kmem_cache_alloc(pq->pkt_slab, GFP_KERNEL);
++			if (!pkt) {
++				ret = -ENOMEM;
++				goto free_pbc;
++			}
++			pkt->largepkt = 0;
++			pkt->frag_size = bytes_togo;
++			pkt->addrlimit = ARRAY_SIZE(pkt->addr);
+ 		}
+-
+-		qib_user_sdma_init_header(pkt, counter, 0, len, dma_mapped,
+-					  page, pbc, dma_addr);
++		pkt->bytes_togo = bytes_togo;
++		pkt->payload_size = 0;
++		pkt->counter = counter;
++		pkt->tiddma = tiddma;
++
++		/* setup the first header */
++		qib_user_sdma_init_frag(pkt, 0, /* index */
++			0, len,		/* offset, len */
++			1, 0,		/* first last desc */
++			0, 0,		/* put page, dma mapped */
++			NULL, pbc,	/* struct page, virt addr */
++			dma_addr, len);	/* dma addr, dma length */
++		pkt->index = 0;
++		pkt->naddr = 1;
+ 
+ 		if (nfrags) {
+ 			ret = qib_user_sdma_init_payload(dd, pq, pkt,
+ 							 iov + idx_save + 1,
+ 							 nfrags, npages);
+ 			if (ret < 0)
+-				goto free_pbc_dma;
++				goto free_pkt;
++		} else {
++			/* since there is no payload, mark the
++			 * header as the last desc. */
++			pkt->addr[0].last_desc = 1;
++
++			if (dma_addr == 0) {
++				/*
++				 * the header is not dma mapped yet.
++				 * it should be from kmalloc.
++				 */
++				dma_addr = dma_map_single(&dd->pcidev->dev,
++					pbc, len, DMA_TO_DEVICE);
++				if (dma_mapping_error(&dd->pcidev->dev,
++								dma_addr)) {
++					ret = -ENOMEM;
++					goto free_pkt;
++				}
++				pkt->addr[0].addr = dma_addr;
++				pkt->addr[0].dma_mapped = 1;
++			}
+ 		}
+ 
+ 		counter++;
+ 		npkts++;
++		pkt->pq = pq;
++		pkt->index = 0; /* reset index for push on hw */
++		*ndesc += pkt->naddr;
+ 
+ 		list_add_tail(&pkt->list, list);
+ 	}
+ 
++	*maxpkts = npkts;
+ 	ret = idx;
+ 	goto done;
+ 
+-free_pbc_dma:
+-	if (dma_mapped)
+-		dma_unmap_page(&dd->pcidev->dev, dma_addr, len, DMA_TO_DEVICE);
++free_pkt:
++	if (pkt->largepkt)
++		kfree(pkt);
++	else
++		kmem_cache_free(pq->pkt_slab, pkt);
+ free_pbc:
+-	if (page) {
+-		kunmap(page);
+-		__free_page(page);
+-	} else
++	if (dma_addr)
+ 		dma_pool_free(pq->header_cache, pbc, dma_addr);
+-free_pkt:
+-	kmem_cache_free(pq->pkt_slab, pkt);
++	else
++		kfree(pbc);
+ free_list:
+ 	qib_user_sdma_free_pkt_list(&dd->pcidev->dev, pq, list);
+ done:
+@@ -569,10 +974,20 @@ static int qib_user_sdma_queue_clean(struct qib_pportdata *ppd,
+ 	struct list_head free_list;
+ 	struct qib_user_sdma_pkt *pkt;
+ 	struct qib_user_sdma_pkt *pkt_prev;
++	unsigned long flags;
+ 	int ret = 0;
+ 
++	if (!pq->num_sending)
++		return 0;
++
+ 	INIT_LIST_HEAD(&free_list);
+ 
++	/*
++	 * We need this spin lock here because interrupt handler
++	 * might modify this list in qib_user_sdma_send_desc(), also
++	 * we can not get interrupted, otherwise it is a deadlock.
++	 */
++	spin_lock_irqsave(&pq->sent_lock, flags);
+ 	list_for_each_entry_safe(pkt, pkt_prev, &pq->sent, list) {
+ 		s64 descd = ppd->sdma_descq_removed - pkt->added;
+ 
+@@ -583,7 +998,9 @@ static int qib_user_sdma_queue_clean(struct qib_pportdata *ppd,
+ 
+ 		/* one more packet cleaned */
+ 		ret++;
++		pq->num_sending--;
+ 	}
++	spin_unlock_irqrestore(&pq->sent_lock, flags);
+ 
+ 	if (!list_empty(&free_list)) {
+ 		u32 counter;
+@@ -627,6 +1044,7 @@ void qib_user_sdma_queue_drain(struct qib_pportdata *ppd,
+ 			       struct qib_user_sdma_queue *pq)
+ {
+ 	struct qib_devdata *dd = ppd->dd;
++	unsigned long flags;
+ 	int i;
+ 
+ 	if (!pq)
+@@ -634,7 +1052,7 @@ void qib_user_sdma_queue_drain(struct qib_pportdata *ppd,
+ 
+ 	for (i = 0; i < QIB_USER_SDMA_DRAIN_TIMEOUT; i++) {
+ 		mutex_lock(&pq->lock);
+-		if (list_empty(&pq->sent)) {
++		if (!pq->num_pending && !pq->num_sending) {
+ 			mutex_unlock(&pq->lock);
+ 			break;
+ 		}
+@@ -644,29 +1062,44 @@ void qib_user_sdma_queue_drain(struct qib_pportdata *ppd,
+ 		msleep(10);
+ 	}
+ 
+-	if (!list_empty(&pq->sent)) {
++	if (pq->num_pending || pq->num_sending) {
++		struct qib_user_sdma_pkt *pkt;
++		struct qib_user_sdma_pkt *pkt_prev;
+ 		struct list_head free_list;
+ 
++		mutex_lock(&pq->lock);
++		spin_lock_irqsave(&ppd->sdma_lock, flags);
++		/*
++		 * Since we hold sdma_lock, it is safe without sent_lock.
++		 */
++		if (pq->num_pending) {
++			list_for_each_entry_safe(pkt, pkt_prev,
++					&ppd->sdma_userpending, list) {
++				if (pkt->pq == pq) {
++					list_move_tail(&pkt->list, &pq->sent);
++					pq->num_pending--;
++					pq->num_sending++;
++				}
++			}
++		}
++		spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++
+ 		qib_dev_err(dd, "user sdma lists not empty: forcing!\n");
+ 		INIT_LIST_HEAD(&free_list);
+-		mutex_lock(&pq->lock);
+ 		list_splice_init(&pq->sent, &free_list);
++		pq->num_sending = 0;
+ 		qib_user_sdma_free_pkt_list(&dd->pcidev->dev, pq, &free_list);
+ 		mutex_unlock(&pq->lock);
+ 	}
+ }
+ 
+-static inline __le64 qib_sdma_make_desc0(struct qib_pportdata *ppd,
++static inline __le64 qib_sdma_make_desc0(u8 gen,
+ 					 u64 addr, u64 dwlen, u64 dwoffset)
+ {
+-	u8 tmpgen;
+-
+-	tmpgen = ppd->sdma_generation;
+-
+ 	return cpu_to_le64(/* SDmaPhyAddr[31:0] */
+ 			   ((addr & 0xfffffffcULL) << 32) |
+ 			   /* SDmaGeneration[1:0] */
+-			   ((tmpgen & 3ULL) << 30) |
++			   ((gen & 3ULL) << 30) |
+ 			   /* SDmaDwordCount[10:0] */
+ 			   ((dwlen & 0x7ffULL) << 16) |
+ 			   /* SDmaBufOffset[12:2] */
+@@ -692,7 +1125,7 @@ static inline __le64 qib_sdma_make_desc1(u64 addr)
+ 
+ static void qib_user_sdma_send_frag(struct qib_pportdata *ppd,
+ 				    struct qib_user_sdma_pkt *pkt, int idx,
+-				    unsigned ofs, u16 tail)
++				    unsigned ofs, u16 tail, u8 gen)
+ {
+ 	const u64 addr = (u64) pkt->addr[idx].addr +
+ 		(u64) pkt->addr[idx].offset;
+@@ -702,104 +1135,132 @@ static void qib_user_sdma_send_frag(struct qib_pportdata *ppd,
+ 
+ 	descqp = &ppd->sdma_descq[tail].qw[0];
+ 
+-	descq0 = qib_sdma_make_desc0(ppd, addr, dwlen, ofs);
+-	if (idx == 0)
++	descq0 = qib_sdma_make_desc0(gen, addr, dwlen, ofs);
++	if (pkt->addr[idx].first_desc)
+ 		descq0 = qib_sdma_make_first_desc0(descq0);
+-	if (idx == pkt->naddr - 1)
++	if (pkt->addr[idx].last_desc) {
+ 		descq0 = qib_sdma_make_last_desc0(descq0);
++		if (ppd->sdma_intrequest) {
++			descq0 |= cpu_to_le64(1ULL << 15);
++			ppd->sdma_intrequest = 0;
++		}
++	}
+ 
+ 	descqp[0] = descq0;
+ 	descqp[1] = qib_sdma_make_desc1(addr);
+ }
+ 
+-/* pq->lock must be held, get packets on the wire... */
+-static int qib_user_sdma_push_pkts(struct qib_pportdata *ppd,
+-				   struct qib_user_sdma_queue *pq,
+-				   struct list_head *pktlist)
++void qib_user_sdma_send_desc(struct qib_pportdata *ppd,
++				struct list_head *pktlist)
+ {
+ 	struct qib_devdata *dd = ppd->dd;
+-	int ret = 0;
+-	unsigned long flags;
+-	u16 tail;
+-	u8 generation;
+-	u64 descq_added;
+-
+-	if (list_empty(pktlist))
+-		return 0;
++	u16 nfree, nsent;
++	u16 tail, tail_c;
++	u8 gen, gen_c;
+ 
+-	if (unlikely(!(ppd->lflags & QIBL_LINKACTIVE)))
+-		return -ECOMM;
+-
+-	spin_lock_irqsave(&ppd->sdma_lock, flags);
+-
+-	/* keep a copy for restoring purposes in case of problems */
+-	generation = ppd->sdma_generation;
+-	descq_added = ppd->sdma_descq_added;
+-
+-	if (unlikely(!__qib_sdma_running(ppd))) {
+-		ret = -ECOMM;
+-		goto unlock;
+-	}
++	nfree = qib_sdma_descq_freecnt(ppd);
++	if (!nfree)
++		return;
+ 
+-	tail = ppd->sdma_descq_tail;
++retry:
++	nsent = 0;
++	tail_c = tail = ppd->sdma_descq_tail;
++	gen_c = gen = ppd->sdma_generation;
+ 	while (!list_empty(pktlist)) {
+ 		struct qib_user_sdma_pkt *pkt =
+ 			list_entry(pktlist->next, struct qib_user_sdma_pkt,
+ 				   list);
+-		int i;
++		int i, j, c = 0;
+ 		unsigned ofs = 0;
+ 		u16 dtail = tail;
+ 
+-		if (pkt->naddr > qib_sdma_descq_freecnt(ppd))
+-			goto unlock_check_tail;
+-
+-		for (i = 0; i < pkt->naddr; i++) {
+-			qib_user_sdma_send_frag(ppd, pkt, i, ofs, tail);
++		for (i = pkt->index; i < pkt->naddr && nfree; i++) {
++			qib_user_sdma_send_frag(ppd, pkt, i, ofs, tail, gen);
+ 			ofs += pkt->addr[i].length >> 2;
+ 
+ 			if (++tail == ppd->sdma_descq_cnt) {
+ 				tail = 0;
+-				++ppd->sdma_generation;
++				++gen;
++				ppd->sdma_intrequest = 1;
++			} else if (tail == (ppd->sdma_descq_cnt>>1)) {
++				ppd->sdma_intrequest = 1;
+ 			}
+-		}
++			nfree--;
++			if (pkt->addr[i].last_desc == 0)
++				continue;
+ 
+-		if ((ofs << 2) > ppd->ibmaxlen) {
+-			ret = -EMSGSIZE;
+-			goto unlock;
+-		}
+-
+-		/*
+-		 * If the packet is >= 2KB mtu equivalent, we have to use
+-		 * the large buffers, and have to mark each descriptor as
+-		 * part of a large buffer packet.
+-		 */
+-		if (ofs > dd->piosize2kmax_dwords) {
+-			for (i = 0; i < pkt->naddr; i++) {
+-				ppd->sdma_descq[dtail].qw[0] |=
+-					cpu_to_le64(1ULL << 14);
+-				if (++dtail == ppd->sdma_descq_cnt)
+-					dtail = 0;
++			/*
++			 * If the packet is >= 2KB mtu equivalent, we
++			 * have to use the large buffers, and have to
++			 * mark each descriptor as part of a large
++			 * buffer packet.
++			 */
++			if (ofs > dd->piosize2kmax_dwords) {
++				for (j = pkt->index; j <= i; j++) {
++					ppd->sdma_descq[dtail].qw[0] |=
++						cpu_to_le64(1ULL << 14);
++					if (++dtail == ppd->sdma_descq_cnt)
++						dtail = 0;
++				}
+ 			}
++			c += i + 1 - pkt->index;
++			pkt->index = i + 1; /* index for next first */
++			tail_c = dtail = tail;
++			gen_c = gen;
++			ofs = 0;  /* reset for next packet */
+ 		}
+ 
+-		ppd->sdma_descq_added += pkt->naddr;
+-		pkt->added = ppd->sdma_descq_added;
+-		list_move_tail(&pkt->list, &pq->sent);
+-		ret++;
++		ppd->sdma_descq_added += c;
++		nsent += c;
++		if (pkt->index == pkt->naddr) {
++			pkt->added = ppd->sdma_descq_added;
++			pkt->pq->added = pkt->added;
++			pkt->pq->num_pending--;
++			spin_lock(&pkt->pq->sent_lock);
++			pkt->pq->num_sending++;
++			list_move_tail(&pkt->list, &pkt->pq->sent);
++			spin_unlock(&pkt->pq->sent_lock);
++		}
++		if (!nfree || (nsent<<2) > ppd->sdma_descq_cnt)
++			break;
+ 	}
+ 
+-unlock_check_tail:
+ 	/* advance the tail on the chip if necessary */
+-	if (ppd->sdma_descq_tail != tail)
+-		dd->f_sdma_update_tail(ppd, tail);
++	if (ppd->sdma_descq_tail != tail_c) {
++		ppd->sdma_generation = gen_c;
++		dd->f_sdma_update_tail(ppd, tail_c);
++	}
+ 
+-unlock:
+-	if (unlikely(ret < 0)) {
+-		ppd->sdma_generation = generation;
+-		ppd->sdma_descq_added = descq_added;
++	if (nfree && !list_empty(pktlist))
++		goto retry;
++
++	return;
++}
++
++/* pq->lock must be held, get packets on the wire... */
++static int qib_user_sdma_push_pkts(struct qib_pportdata *ppd,
++				 struct qib_user_sdma_queue *pq,
++				 struct list_head *pktlist, int count)
++{
++	int ret = 0;
++	unsigned long flags;
++
++	if (unlikely(!(ppd->lflags & QIBL_LINKACTIVE)))
++		return -ECOMM;
++
++	spin_lock_irqsave(&ppd->sdma_lock, flags);
++
++	if (unlikely(!__qib_sdma_running(ppd))) {
++		ret = -ECOMM;
++		goto unlock;
+ 	}
+-	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
+ 
++	pq->num_pending += count;
++	list_splice_tail_init(pktlist, &ppd->sdma_userpending);
++	qib_user_sdma_send_desc(ppd, &ppd->sdma_userpending);
++
++unlock:
++	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
+ 	return ret;
+ }
+ 
+@@ -822,19 +1283,23 @@ int qib_user_sdma_writev(struct qib_ctxtdata *rcd,
+ 	if (!qib_sdma_running(ppd))
+ 		goto done_unlock;
+ 
+-	if (ppd->sdma_descq_added != ppd->sdma_descq_removed) {
++	/* if I have packets not complete yet */
++	if (pq->added > ppd->sdma_descq_removed)
+ 		qib_user_sdma_hwqueue_clean(ppd);
++	/* if I have complete packets to be freed */
++	if (pq->num_sending)
+ 		qib_user_sdma_queue_clean(ppd, pq);
+-	}
+ 
+ 	while (dim) {
+-		const int mxp = 8;
++		int mxp = 8;
++		int ndesc = 0;
+ 
+ 		down_write(&current->mm->mmap_sem);
+-		ret = qib_user_sdma_queue_pkts(dd, pq, &list, iov, dim, mxp);
++		ret = qib_user_sdma_queue_pkts(dd, ppd, pq,
++				iov, dim, &list, &mxp, &ndesc);
+ 		up_write(&current->mm->mmap_sem);
+ 
+-		if (ret <= 0)
++		if (ret < 0)
+ 			goto done_unlock;
+ 		else {
+ 			dim -= ret;
+@@ -844,24 +1309,20 @@ int qib_user_sdma_writev(struct qib_ctxtdata *rcd,
+ 		/* force packets onto the sdma hw queue... */
+ 		if (!list_empty(&list)) {
+ 			/*
+-			 * Lazily clean hw queue.  the 4 is a guess of about
+-			 * how many sdma descriptors a packet will take (it
+-			 * doesn't have to be perfect).
++			 * Lazily clean hw queue.
+ 			 */
+-			if (qib_sdma_descq_freecnt(ppd) < ret * 4) {
++			if (qib_sdma_descq_freecnt(ppd) < ndesc) {
+ 				qib_user_sdma_hwqueue_clean(ppd);
+-				qib_user_sdma_queue_clean(ppd, pq);
++				if (pq->num_sending)
++					qib_user_sdma_queue_clean(ppd, pq);
+ 			}
+ 
+-			ret = qib_user_sdma_push_pkts(ppd, pq, &list);
++			ret = qib_user_sdma_push_pkts(ppd, pq, &list, mxp);
+ 			if (ret < 0)
+ 				goto done_unlock;
+ 			else {
+-				npkts += ret;
+-				pq->counter += ret;
+-
+-				if (!list_empty(&list))
+-					goto done_unlock;
++				npkts += mxp;
++				pq->counter += mxp;
+ 			}
+ 		}
+ 	}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
