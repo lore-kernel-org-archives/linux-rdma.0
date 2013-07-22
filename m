@@ -1,67 +1,41 @@
 From: Sasha Khapyorsky <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/3] opensm: update internal PortInfo state for any ports
-Date: Mon, 22 Jul 2013 18:54:59 +0300
-Message-ID: <20130722155457.GB23909@gmail.com>
+Subject: [PATCH 2/3] OpenSM: don't remove our own SM port.
+Date: Mon, 22 Jul 2013 19:09:49 +0300
+Message-ID: <20130722160948.GB24222@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: halr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roy.Koren-mb1K0bWo544@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Should not be matter to keep internal SM's PortInfo data for ports
-in any states.
+When cleaning up remotes of non reachable ports anymore. Make exception
+for our own local SM port. In that case port still be in SM DB and
+running single port mode is possible.
 
 Signed-off-by: Sasha Khapyorsky <sashakh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- opensm/osm_port.c | 33 ++++++++++++---------------------
- 1 file changed, 12 insertions(+), 21 deletions(-)
+ opensm/osm_drop_mgr.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/opensm/osm_port.c b/opensm/osm_port.c
-index 6e73e66..d59d404 100644
---- a/opensm/osm_port.c
-+++ b/opensm/osm_port.c
-@@ -669,25 +669,16 @@ void osm_physp_set_port_info(IN osm_physp_t * p_physp,
- 	CL_ASSERT(p_pi);
- 	CL_ASSERT(osm_physp_is_valid(p_physp));
- 
--	if (ib_port_info_get_port_state(p_pi) == IB_LINK_DOWN) {
--		/* If PortState is down, only copy PortState */
--		/* and PortPhysicalState per C14-24-2.1 */
--		ib_port_info_set_port_state(&p_physp->port_info, IB_LINK_DOWN);
--		ib_port_info_set_port_phys_state
--		    (ib_port_info_get_port_phys_state(p_pi),
--		     &p_physp->port_info);
--	} else {
--		p_physp->port_info = *p_pi;
--
--		/* The MKey in p_pi can only be considered valid if it's
--		 * for a HCA/router or switch port 0, and it's either
--		 * non-zero or the MKeyProtect bits are also zero.
--		 */
--		if ((osm_node_get_type(p_physp->p_node) !=
--		     IB_NODE_TYPE_SWITCH || p_physp->port_num == 0) &&
--		    (p_pi->m_key != 0 || ib_port_info_get_mpb(p_pi) == 0))
--			osm_db_guid2mkey_set(p_sm->p_subn->p_g2m,
--					     cl_ntoh64(p_physp->port_guid),
--					     cl_ntoh64(p_pi->m_key));
--	}
-+	p_physp->port_info = *p_pi;
-+
-+	/* The MKey in p_pi can only be considered valid if it's
-+	 * for a HCA/router or switch port 0, and it's either
-+	 * non-zero or the MKeyProtect bits are also zero.
-+	 */
-+	if ((osm_node_get_type(p_physp->p_node) != IB_NODE_TYPE_SWITCH ||
-+	     p_physp->port_num == 0) &&
-+	    (p_pi->m_key != 0 || ib_port_info_get_mpb(p_pi) == 0))
-+		osm_db_guid2mkey_set(p_sm->p_subn->p_g2m,
-+				     cl_ntoh64(p_physp->port_guid),
-+				     cl_ntoh64(p_pi->m_key));
- }
+diff --git a/opensm/osm_drop_mgr.c b/opensm/osm_drop_mgr.c
+index b309273..5113fa2 100644
+--- a/opensm/osm_drop_mgr.c
++++ b/opensm/osm_drop_mgr.c
+@@ -114,7 +114,9 @@ static void drop_mgr_clean_physp(osm_sm_t * sm, IN osm_physp_t * p_physp)
+ 			   the remote port, since it is no longer reachable.
+ 			   This can be done if we reset the discovery count
+ 			   of the remote port. */
+-			if (!p_remote_physp->p_node->sw) {
++			if (!p_remote_physp->p_node->sw &&
++			    p_remote_physp->port_guid !=
++			    sm->p_subn->sm_port_guid) {
+ 				p_remote_port->discovery_count = 0;
+ 				OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
+ 					"Resetting discovery count of node: "
 -- 
 1.8.1.2
 
