@@ -1,31 +1,43 @@
-From: Or Gerlitz <or.gerlitz@gmail.com>
-Subject: Re: infiniband build warning
-Date: Tue, 23 Jul 2013 21:40:17 +0300
-Message-ID: <CAJZOPZ+AUacLM_3u4tRMdRWOiW1=CgObwRe_3KnQCTmMgVtZRA@mail.gmail.com>
-References: <20130722013758.GA14337@google.com>
-	<1828884A29C6694DAF28B7E6B8A82373805BA08A@ORSMSX109.amr.corp.intel.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] dapl-2.0.38
+Date: Tue, 23 Jul 2013 23:30:55 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F972D7D98E@ORSMSX104.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373805BA08A@ORSMSX109.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Michel Lespinasse <walken@google.com>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "Hefty, Sean" <sean.hefty@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Rupert Dance (rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org)" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 22, 2013 at 8:40 AM, Hefty, Sean <sean.hefty@intel.com> wrote:
->> I am seeing build warnings in drivers/infiniband/core/cma.c starting with
->> v3.11-rc1. These can be reproduced with gcc 4.6.3.
->> Would you consider applying the following fix ?
+Rupert, please pull new dapl-2.0.38 released package into OFED 3.5.2
 
-> A patch to fix this was submitted to the linux-rdma list last week.
+Thanks, Arlin
+------------------
 
-Hi Roland,
+Latest Packages (see ChangeLog for recent changes):
 
-There is a nice set of patches (IPoIB virtualization fixes, mlx5
-fixes, iser patches to cope with Connect-IB no FMR, etc, etc) posted
-to linux-rdma little before && after 3.11-rc1 was out, and we are @
-rc2 now. I think we need to get them upstreamed around this time such
-that its early enough in the cycle, makes sense?
+md5sum: 21b933fb24ed86d5c5413d9a269f913d dapl-2.0.38.tar.gz 
 
-Or.
+For v2.0 package install RPM packages as follow: 
+
+dapl-2.0.38-1 
+dapl-utils-2.0.38-1 
+dapl-devel-2.0.38-1 
+dapl-debuginfo-2.0.38-1 
+
+Summary of v2.0 changes: 
+
+Release 2.0.38 fixes (OFED 3.5.2) 
+
+dapltest: add -n parameter to override default server port number (45278) 
+ucm,scm: UD mode creates many CR objects per EP that needs cleaned up 
+cma: add DAPL_CM_TOS environment variable to enable passing a TOS to the RDMA CM 
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
