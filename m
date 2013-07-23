@@ -1,48 +1,52 @@
-From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU
-Date: Tue, 23 Jul 2013 13:26:06 +0000
-Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F749B82@xmb-rcd-x01.cisco.com>
-References: <20130708172621.GA3852@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805AAB74@ORSMSX109.amr.corp.intel.com>
- <20130716144747.GA7304@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F7211E6@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805AECC0@ORSMSX109.amr.corp.intel.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F725B8C@xmb-rcd-x01.cisco.com>
- <1828884A29C6694DAF28B7E6B8A82373805B941D@ORSMSX109.amr.corp.intel.com>
- <51E71023.2060006@opengridcomputing.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F727D11@xmb-rcd-x01.cisco.com>
- <20130718165003.GB9237@obsidianresearch.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-3.11 7/7] IB/iser: Introduce fast memory registration
+ model (FRWR)
+Date: Tue, 23 Jul 2013 17:21:26 +0300
+Message-ID: <CAJZOPZ+1TLQ-vwsZG8dgxhP332CQeDNOWfzGRdTbwRxLRhL95w@mail.gmail.com>
+References: <1374153931-7313-1-git-send-email-ogerlitz@mellanox.com>
+	<1374153931-7313-8-git-send-email-ogerlitz@mellanox.com>
+	<51ED1B8E.7070703@acm.org>
+	<51ED2F97.2080400@mellanox.com>
+	<51EE6FFE.8040802@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130718165003.GB9237-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <A7BEFFD444D60E4A8AB65FDE08A1964B-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <51EE6FFE.8040802-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Jul 18, 2013, at 12:50 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-
->> We need it for UD for our upcoming device, however, because the MTU
->> is the only way to get the max message size.
-> 
-> .. and UD is the least abstracted transport, so existing apps won't
-> support Jeff's new NIC anyhow, MTU is the least of their problems.
-> 
-> Existing apps with existing transports see the same old values.
+On Tue, Jul 23, 2013 at 2:58 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+>
+> [...]
+> Hello Sagi and Or,
+>
+> Thanks for the clarifications. I have one more question though. My interpretation of section "10.6 Memory Management" in the IB specification is that memory registration maps a memory region that either has contiguous virtual addresses or contiguous physical addresses. However, there is no such requirement for an sg-list. As an example, for direct I/O to a block device with a sector size of 512 bytes it is only required that I/O occurs in multiples of 512 bytes and from memory aligned on 512-byte boundaries. So the use of direct I/O can result in an sg-list where the second and subsequent sg-list elements have a non-zero offset. Do you agree with this ?
 
 
-...so how do we move forward?
 
--- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
+YES, this can happen.
 
+
+
+>
+> Are such sg-lists mapped correctly by the FRWR code ?
+
+
+
+Bart, iSER's FMR and FRWR code works under the assumption that an SG
+list is "4K aligned". For SGs which don't obey that assumption we're
+using bounce buffer.
+
+Note that the SG "page" size used by FMRs/FRWRs doesn't have to be 1:1
+with the OS page size, so in that respect && down the road, we will
+get rid of the bounce buffer thing with having another FMR/FRWR pool
+whose "page" size is 512B and will be used for SG which are not "4K
+aligned".
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
