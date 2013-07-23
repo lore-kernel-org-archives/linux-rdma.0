@@ -1,56 +1,31 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] opensm/osm_db_pack.c: Removed uneeded asserts
-Date: Tue, 23 Jul 2013 11:17:03 -0400
-Message-ID: <51EE9E6F.8000402@dev.mellanox.co.il>
+From: Or Gerlitz <or.gerlitz@gmail.com>
+Subject: Re: infiniband build warning
+Date: Tue, 23 Jul 2013 21:40:17 +0300
+Message-ID: <CAJZOPZ+AUacLM_3u4tRMdRWOiW1=CgObwRe_3KnQCTmMgVtZRA@mail.gmail.com>
+References: <20130722013758.GA14337@google.com>
+	<1828884A29C6694DAF28B7E6B8A82373805BA08A@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373805BA08A@ORSMSX109.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: Michel Lespinasse <walken@google.com>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "Hefty, Sean" <sean.hefty@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Jul 22, 2013 at 8:40 AM, Hefty, Sean <sean.hefty@intel.com> wrote:
+>> I am seeing build warnings in drivers/infiniband/core/cma.c starting with
+>> v3.11-rc1. These can be reproduced with gcc 4.6.3.
+>> Would you consider applying the following fix ?
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> A patch to fix this was submitted to the linux-rdma list last week.
 
-Out of range lids isn't a fatal event and SM code just ignores these
-lids.
+Hi Roland,
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_db_pack.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+There is a nice set of patches (IPoIB virtualization fixes, mlx5
+fixes, iser patches to cope with Connect-IB no FMR, etc, etc) posted
+to linux-rdma little before && after 3.11-rc1 was out, and we are @
+rc2 now. I think we need to get them upstreamed around this time such
+that its early enough in the cycle, makes sense?
 
-diff --git a/opensm/osm_db_pack.c b/opensm/osm_db_pack.c
-index 708a875..8cddd06 100644
---- a/opensm/osm_db_pack.c
-+++ b/opensm/osm_db_pack.c
-@@ -73,14 +73,18 @@ static inline int unpack_lids(IN char *p_lid_str, OUT uint16_t * p_min_lid,
- 	if (!p_num)
- 		return 1;
- 	tmp = strtoul(p_num, NULL, 0);
--	CL_ASSERT(tmp < 0x10000);
-+	if (tmp >= 0xC000)
-+		return 1;
-+
- 	*p_min_lid = (uint16_t) tmp;
- 
- 	p_num = strtok_r(NULL, " \t", &p_next);
- 	if (!p_num)
- 		return 1;
- 	tmp = strtoul(p_num, NULL, 0);
--	CL_ASSERT(tmp < 0x10000);
-+	if (tmp >= 0xC000)
-+		return 1;
-+
- 	*p_max_lid = (uint16_t) tmp;
- 
- 	return 0;
--- 
-1.7.8.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Or.
