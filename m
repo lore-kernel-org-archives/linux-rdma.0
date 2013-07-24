@@ -1,10 +1,11 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH for-3.11 3/3] rdma/cm: Only call cma_save_ib_info for CM REQs
-Date: Wed, 24 Jul 2013 15:06:09 -0700
-Message-ID: <1374703569-16668-4-git-send-email-sean.hefty@intel.com>
-References: <1374703569-16668-1-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH for-3.11 0/3] rdma/cm: Fixes for AF_IB patch series
+Date: Wed, 24 Jul 2013 15:06:06 -0700
+Message-ID: <1374703569-16668-1-git-send-email-sean.hefty@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1374703569-16668-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,28 +13,24 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Calling cma_save_ib_info for CM SIDR REQs results in a crash
-accessing an invalid path record pointer.
+Additional testing of the latest AF_IB patch series showed that bugs
+were introduced when mixing AF_IB with UD QPs.  Full support for
+AF_IB with UD QPs is limited, but we should at least avoid crashing
+the kernel!  Please apply two fixes for crashes to 3.11, plus one
+minor fix to silence a compiler warning.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/cma.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 4314655..7c0f953 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -879,7 +879,8 @@ static int cma_save_net_info(struct rdma_cm_id *id, struct rdma_cm_id *listen_id
- {
- 	struct cma_hdr *hdr;
- 
--	if (listen_id->route.addr.src_addr.ss_family == AF_IB) {
-+	if ((listen_id->route.addr.src_addr.ss_family == AF_IB) &&
-+	    (ib_event->event == IB_CM_REQ_RECEIVED)) {
- 		cma_save_ib_info(id, listen_id, ib_event->param.req_rcvd.primary_path);
- 		return 0;
- 	}
+Paul Bolle (1):
+  [v2] RDMA/cma: silence GCC warning
+
+Sean Hefty (2):
+  rdma/cm: Fix accessing invalid private data for UD
+  rdma/cm: Only call cma_save_ib_info for CM REQs
+
+ drivers/infiniband/core/cma.c |   29 ++++++++++++++++-------------
+ 1 files changed, 16 insertions(+), 13 deletions(-)
+
 -- 
 1.7.3
 
