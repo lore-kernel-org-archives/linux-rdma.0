@@ -1,44 +1,87 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] ib/mad: remove Device Mgmt from RMPP class list
-Date: Wed, 24 Jul 2013 17:59:09 -0400
-Message-ID: <51F04E2D.9060708@dev.mellanox.co.il>
-References: <20130724144426.5a63669ea6107c8a3e6c1867@intel.com>
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH for-3.11 1/3] [v2] RDMA/cma: silence GCC warning
+Date: Wed, 24 Jul 2013 15:06:07 -0700
+Message-ID: <1374703569-16668-2-git-send-email-sean.hefty@intel.com>
+References: <1374703569-16668-1-git-send-email-sean.hefty@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130724144426.5a63669ea6107c8a3e6c1867-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1374703569-16668-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/24/2013 5:44 PM, Ira Weiny wrote:
-> The specification does not indicate that Device Mgmt is an RMPP class.
+=46rom: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
 
-See Annex 8; DevMgt class version 2 rather than 1 is currently supported.
+Building cma.o triggers this GCC warning:
+    drivers/infiniband/core/cma.c: In function =E2=80=98rdma_resolve_ad=
+dr=E2=80=99:
+    drivers/infiniband/core/cma.c:465:23: warning: =E2=80=98port=E2=80=99=
+ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    drivers/infiniband/core/cma.c:426:5: note: =E2=80=98port=E2=80=99 w=
+as declared here
 
--- Hal
+This is a false positive, as "port" will always be initialized if we're
+at "found". But if we assign to "id_priv->id.port_num" directly, we can
+drop "port". That will, obviously, silence GCC.
 
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/core/mad.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-> index dc3fd1e..309b507 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -943,7 +943,6 @@ EXPORT_SYMBOL(ib_get_mad_data_offset);
->  int ib_is_mad_class_rmpp(u8 mgmt_class)
->  {
->  	if ((mgmt_class == IB_MGMT_CLASS_SUBN_ADM) ||
-> -	    (mgmt_class == IB_MGMT_CLASS_DEVICE_MGMT) ||
->  	    (mgmt_class == IB_MGMT_CLASS_DEVICE_ADM) ||
->  	    (mgmt_class == IB_MGMT_CLASS_BIS) ||
->  	    ((mgmt_class >= IB_MGMT_CLASS_VENDOR_RANGE2_START) &&
+Signed-off-by: Paul Bolle <pebolle-IWqWACnzNjzz+pZb47iToQ@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cm=
+a.c
+index f1c279f..84487a2 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -423,7 +423,7 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
+e *id_priv)
+ 	struct sockaddr_ib *addr;
+ 	union ib_gid gid, sgid, *dgid;
+ 	u16 pkey, index;
+-	u8 port, p;
++	u8 p;
+ 	int i;
+=20
+ 	cma_dev =3D NULL;
+@@ -443,7 +443,7 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
+e *id_priv)
+ 				if (!memcmp(&gid, dgid, sizeof(gid))) {
+ 					cma_dev =3D cur_dev;
+ 					sgid =3D gid;
+-					port =3D p;
++					id_priv->id.port_num =3D p;
+ 					goto found;
+ 				}
+=20
+@@ -451,7 +451,7 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
+e *id_priv)
+ 						 dgid->global.subnet_prefix)) {
+ 					cma_dev =3D cur_dev;
+ 					sgid =3D gid;
+-					port =3D p;
++					id_priv->id.port_num =3D p;
+ 				}
+ 			}
+ 		}
+@@ -462,7 +462,6 @@ static int cma_resolve_ib_dev(struct rdma_id_privat=
+e *id_priv)
+=20
+ found:
+ 	cma_attach_to_dev(id_priv, cma_dev);
+-	id_priv->id.port_num =3D port;
+ 	addr =3D (struct sockaddr_ib *) cma_src_addr(id_priv);
+ 	memcpy(&addr->sib_addr, &sgid, sizeof sgid);
+ 	cma_translate_ib(addr, &id_priv->id.route.addr.dev_addr);
+--=20
+1.7.3
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
