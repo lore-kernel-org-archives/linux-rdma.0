@@ -1,22 +1,59 @@
-From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Dual star topology
-Date: Wed, 24 Jul 2013 17:20:42 +0200
-Message-ID: <CAJH6TXipMaLMcwuBbR+Jvb3KueZ1gBW7ohcb5Ke8ixO1bCEWAw@mail.gmail.com>
+From: Eli Cohen <eli@dev.mellanox.co.il>
+Subject: Re: [patch] mlx5: use after free in mlx5_cmd_comp_handler()
+Date: Wed, 24 Jul 2013 19:35:44 +0300
+Message-ID: <20130724163544.GA29427@mtldesk30>
+References: <20130722080201.GG14617@longonot.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130722080201.GG14617@longonot.mountain>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, moshel@mellanox.com
+Cc: Eli Cohen <eli@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi to all
-i'm probably OT but I don't know where to ask
-I'm searching for some advice creating a dual-star topology to get
-full path redundancy.
-I have one dual-port DDR card on each server and two switches.
-I'll connect one port to each switch, but should I also interconnect
-both switches like in a standard ethernet network ?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This race has been spotted and fixed by Moshe Lazer two weeks ago.
+Anyways,
+
+Acked by Eli Cohen <eli@mellanox.com>
+
+On Mon, Jul 22, 2013 at 11:02:01AM +0300, Dan Carpenter wrote:
+> We can't dereference "ent" after passing it to free_cmd().
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+> index 205753a..4037406 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+> @@ -1113,7 +1113,13 @@ void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, unsigned long vector)
+>  
+>  	for (i = 0; i < (1 << cmd->log_sz); i++) {
+>  		if (test_bit(i, &vector)) {
+> +			struct semaphore *sem;
+> +
+>  			ent = cmd->ent_arr[i];
+> +			if (ent->page_queue)
+> +				sem = &cmd->pages_sem;
+> +			else
+> +				sem = &cmd->sem;
+>  			ktime_get_ts(&ent->ts2);
+>  			memcpy(ent->out->first.data, ent->lay->out, sizeof(ent->lay->out));
+>  			dump_command(dev, ent, 0);
+> @@ -1136,10 +1142,7 @@ void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, unsigned long vector)
+>  			} else {
+>  				complete(&ent->done);
+>  			}
+> -			if (ent->page_queue)
+> -				up(&cmd->pages_sem);
+> -			else
+> -				up(&cmd->sem);
+> +			up(sem);
+>  		}
+>  	}
+>  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
