@@ -1,35 +1,38 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch] RDMA/cxgb3: stack info leak in iwch_craete_cq()
-Date: Thu, 25 Jul 2013 20:04:09 +0300
-Message-ID: <20130725170409.GB7026@elgon.mountain>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] RDMA/nes: info leaks in nes_create_qp() and nes_create_cq()
+Date: Thu, 25 Jul 2013 20:04:59 +0300
+Message-ID: <20130725170459.GD7026@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Faisal Latif <faisal.latif@intel.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The "uresp.reserved" field isn't initialized.  It's at the end, of the
-struct here so we don't need to copy it to the user.
+We pass a few bytes of uninitialized stack memory to the user here.
 
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index e87f220..b8e26f2 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -226,7 +226,7 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
- 			mm->len = PAGE_ALIGN(((1UL << uresp.size_log2) + 1) *
- 					     sizeof(struct t3_cqe));
- 			uresp.memsize = mm->len;
--			resplen = sizeof uresp;
-+			resplen = sizeof uresp - sizeof uresp.reserved;
- 		}
- 		if (ib_copy_to_udata(udata, &uresp, resplen)) {
- 			kfree(mm);
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 8f67fe2..5b53ca5 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -1384,6 +1384,7 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
+ 
+ 			if (ibpd->uobject) {
+ 				uresp.mmap_sq_db_index = nesqp->mmap_sq_db_index;
++				uresp.mmap_rq_db_index = 0;
+ 				uresp.actual_sq_size = sq_size;
+ 				uresp.actual_rq_size = rq_size;
+ 				uresp.qp_id = nesqp->hwqp.qp_id;
+@@ -1767,7 +1768,7 @@ static struct ib_cq *nes_create_cq(struct ib_device *ibdev, int entries,
+ 		resp.cq_id = nescq->hw_cq.cq_number;
+ 		resp.cq_size = nescq->hw_cq.cq_size;
+ 		resp.mmap_db_index = 0;
+-		if (ib_copy_to_udata(udata, &resp, sizeof resp)) {
++		if (ib_copy_to_udata(udata, &resp, sizeof resp - sizeof resp.reserved)) {
+ 			nes_free_resource(nesadapter, nesadapter->allocated_cqs, cq_num);
+ 			kfree(nescq);
+ 			return ERR_PTR(-EFAULT);
