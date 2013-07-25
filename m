@@ -1,55 +1,29 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ib/mad: remove Device Mgmt from RMPP class list
-Date: Wed, 24 Jul 2013 23:05:31 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E021B1166@CRSMSX101.amr.corp.intel.com>
-References: <20130724144426.5a63669ea6107c8a3e6c1867@intel.com>
- <51F04E2D.9060708@dev.mellanox.co.il>
- <2807E5FD2F6FDA4886F6618EAC48510E021B0B9D@CRSMSX101.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A8237384567CA1@ORSMSX109.amr.corp.intel.com>
- <2807E5FD2F6FDA4886F6618EAC48510E021B1099@CRSMSX101.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A8237384567D00@ORSMSX109.amr.corp.intel.com>
+From: xrg.dev-8HG2SOrYmURWk0Htik3J/w@public.gmane.org
+Subject: (unknown)
+Date: Wed, 24 Jul 2013 20:12:17 -0400
+Message-ID: <20130725001217.5780660126@smtp.hushmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237384567D00-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Hefty, Sean
-> Subject: RE: [PATCH] ib/mad: remove Device Mgmt from RMPP class list
-> 
-> > > > > See Annex 8; DevMgt class version 2 rather than 1 is currently
-> supported.
-> > > >
-> > > > Could older devices still return version 1?  If so the kernel
-> > > > should allow DevMgt without RMPP, correct?
-> > >
-> > > This check has been this way since 2.6.17.  I think it's reasonable
-> > > to say
-> > that
-> > > there aren't any devices using version 1 that are running with Linux.
-> >
-> > FWIW the ib_srpt module uses a class version of 1:
-> >
-> > Ib_srpt.c:
-> >
-> > ...
-> > 		reg_req.mgmt_class_version = IB_MGMT_BASE_VERSION;
-> ...
-> 
-> So, then this just happens to work because of some other check?  If that's so,
-> then I agree with Hal, in that we can add the class version to the check.
+Hi list,
 
-I think this works because the MAD stack triggers off of rmpp_version (in the agent) and RMPP_ACTIVE (in the individual MAD's).  Since rmpp_version == 0 in this registration and likely all the MAD sent have a 0'ed out RMPP Header  (ie the MAD stack thinks all MADs are RMPP _in_active) I think the stack passes all the MAD's without invoking the RMPP processing.
+I am moving my work environment on P/Linux, and I am having trouble register large amount of memories. The device I have are ConnectX-3 EN (RoCE). i am trying to register 16GB of memory, mmap and mlock succeeded, but ibv_reg_mr returns ENOMEM.
 
-But I have never run this ib_srpt code...
+Concurrently, the kernel log reports the following while trying to ibb_reg_mr :
 
-Ira
+kernel: iommu_alloc failed, tbl c000001f33e4a680 vaddr c000001ebd7b0000 npages 10
+
+I set log_num_mtt = 20 and log_mtts_per_seg=7, and the page size on that architecture is 64KB.
+
+Any clue at what might be wrong ?
+
+Thanks,
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
