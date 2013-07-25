@@ -1,54 +1,62 @@
-From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Fwd: Dual star topology
-Date: Thu, 25 Jul 2013 09:16:07 +0200
-Message-ID: <CAJH6TXgOTbfBqqatMQOxtgnUUt=p9c4mkqaq3s-ujh5hLZJ5Zw@mail.gmail.com>
-References: <CAJH6TXipMaLMcwuBbR+Jvb3KueZ1gBW7ohcb5Ke8ixO1bCEWAw@mail.gmail.com>
-	<51F01724.7010504@dev.mellanox.co.il>
-	<CAJH6TXgJGALyCcyPo+GvAninXQkZ+Md8c0NPmi_PUoU4XKDUHA@mail.gmail.com>
-	<CAJH6TXjYW8w=RafoXgFiYNcFHc8ub+o-2v0_NsD8efoB0vyHpA@mail.gmail.com>
-	<CAJH6TXg3+ZzQAK1Wbf2HtfymrToHY7bSVWTpxP3_Ddi6CL0BbQ@mail.gmail.com>
-	<51F044B0.305@dev.mellanox.co.il>
-	<CAJH6TXiQNc_y8KHO79aOY0A9-PJ7bm54URyhNhVFkd18ZmyM5Q@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] ib/mad: remove Device Mgmt from RMPP class list
+Date: Thu, 25 Jul 2013 10:20:14 +0200
+Message-ID: <51F0DFBE.10608@acm.org>
+References: <20130724144426.5a63669ea6107c8a3e6c1867@intel.com> <51F04E2D.9060708@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E021B0B9D@CRSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237384567CA1@ORSMSX109.amr.corp.intel.com> <2807E5FD2F6FDA4886F6618EAC48510E021B1099@CRSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237384567D00@ORSMSX109.amr.corp.intel.com> <2807E5FD2F6FDA4886F6618EAC48510E021B1166@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJH6TXiQNc_y8KHO79aOY0A9-PJ7bm54URyhNhVFkd18ZmyM5Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E021B1166-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IPoIB is very slow, I prefere to try with rsockets and the preloader library.
+On 07/25/13 01:05, Weiny, Ira wrote:
+>> -----Original Message-----
+>> From: Hefty, Sean
+>> Subject: RE: [PATCH] ib/mad: remove Device Mgmt from RMPP class list
+>>
+>>>>>> See Annex 8; DevMgt class version 2 rather than 1 is currently
+>> supported.
+>>>>>
+>>>>> Could older devices still return version 1?  If so the kernel
+>>>>> should allow DevMgt without RMPP, correct?
+>>>>
+>>>> This check has been this way since 2.6.17.  I think it's reasonable
+>>>> to say
+>>> that
+>>>> there aren't any devices using version 1 that are running with Linux.
+>>>
+>>> FWIW the ib_srpt module uses a class version of 1:
+>>>
+>>> Ib_srpt.c:
+>>>
+>>> ...
+>>> 		reg_req.mgmt_class_version = IB_MGMT_BASE_VERSION;
+>> ...
+>>
+>> So, then this just happens to work because of some other check?  If that's so,
+>> then I agree with Hal, in that we can add the class version to the check.
+>
+> I think this works because the MAD stack triggers off of rmpp_version (in the
+> agent) and RMPP_ACTIVE (in the individual MAD's).  Since rmpp_version
+ > == 0 in this registration and likely all the MAD sent have a 0'ed out
+ > RMPP Header (ie the MAD stack thinks all MADs are RMPP _in_active) I
+> think  the stack passes all the MAD's without invoking the RMPP
+ > processing.
 
-Il giorno 24/lug/2013 23:18, "Hal Rosenstock" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-ha scritto:
+Changing the mgmt_class_version in ib_srpt.c from 1 into 2 would break 
+existing SRP device management clients (srp_daemon and ibsrpdm) since 
+these set mgmt_class_version to 1.
 
-> On 7/24/2013 4:56 PM, Gandalf Corvotempesta wrote:
-> > 2013/7/24 Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> >> I have to configure ceph on these subnets and ceph doesn't allow to
-> >> set multiple addresses for each service.
-> >
-> > Let me try to explain in a better way.
-> > I would like to create a ceph cluster over an infiniband network.
-> > Each server has a signle dual-port HBA.
-> > Ceph is running with a *single* IP address on each server.
-> >
-> > In a standard IP network, I have to interconnect both switches or i'll
-> > loose some traffic in case of a single port failure:
-> >
-> > server1.port1      ib switch 1 <--> server2.port1
-> > server1.port2 <-> ib switch 2
-> >
-> >
-> > in this case, server1 will not be able to reach server2, because of split brain.
-> > An interconnection between both switches will solve this in a standard
-> > IP network.
->
-> So does ceph run on top of IP ? If so, could you use IPoIB bonding (and
-> interconnect the switches with some number of links) ?
->
-> -- Hal
->
-> > How can I archieve this in an infiniband network?
+I'm not sure changing the rmpp_version argument in the 
+ib_register_mad_agent() call in ib_srpt.c would be sufficient to enable 
+RMPP for DM MAD's. Wouldn't the clients (srp_daemon and ibsrpdm) have to 
+be updated as well to set the rmpp_version in the MAD header as well ?
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
