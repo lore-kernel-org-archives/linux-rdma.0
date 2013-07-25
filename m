@@ -1,209 +1,40 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V8 libmlx4 1/2] Infra-structure changes to support verbs extensions
-Date: Thu, 25 Jul 2013 11:40:17 +0300
-Message-ID: <1374741618-890-2-git-send-email-yishaih@mellanox.com>
-References: <1374741618-890-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V8 libmlx4 0/2] Add extension and XRC QP support
+Date: Thu, 25 Jul 2013 11:40:16 +0300
+Message-ID: <1374741618-890-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1374741618-890-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch implements the infrastructure for working with verbs extension.
-It registers with libibverbs with verbs_register_driver function to indicate
-supporting verbs extension, supplying its verbs_init_func for further initialization.
-Later on worked based on verbs extension scheme as was defined by libibverbs.
+Extend XRC support to user space. Because XRC requires
+new verbs and extensions to existing verbs, we first implement the
+infra-structure changes needed to support verbs extensions matching to
+libibverbs scheme, later XRC support is built on top of that infrastructure.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/mlx4.c |   77 ++++++++++++++++++++++++++++++++----------------------------
- src/mlx4.h |    8 ++++-
- 2 files changed, 47 insertions(+), 38 deletions(-)
+Changes from V7:
+Adapted code to use the new helper macro verbs_set_ctx_op from V8 of libibverbs.
 
-diff --git a/src/mlx4.c b/src/mlx4.c
-index 4cef2b9..ec7b2f7 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -120,7 +120,8 @@ static struct ibv_context_ops mlx4_ctx_ops = {
- 	.detach_mcast  = ibv_cmd_detach_mcast
- };
- 
--static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_fd)
-+static int mlx4_init_context(struct verbs_device *v_device,
-+				struct ibv_context *ibv_ctx, int cmd_fd)
- {
- 	struct mlx4_context	       *context;
- 	struct ibv_get_context		cmd;
-@@ -128,26 +129,30 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
- 	int				i;
- 	struct mlx4_alloc_ucontext_resp_v3 resp_v3;
- 	__u16				bf_reg_size;
--	struct mlx4_device		*dev = to_mdev(ibdev);
-+	struct mlx4_device              *dev = to_mdev(&v_device->device);
-+	/* verbs_context should be used for new verbs
-+	* struct verbs_context *verbs_ctx = verbs_get_ctx(ibv_ctx);
-+	*/
- 
--	context = calloc(1, sizeof *context);
--	if (!context)
--		return NULL;
- 
--	context->ibv_ctx.cmd_fd = cmd_fd;
-+	/* memory footprint of mlx4_context and verbs_context share
-+	* struct ibv_context.
-+	*/
-+	context = to_mctx(ibv_ctx);
-+	ibv_ctx->cmd_fd = cmd_fd;
- 
- 	if (dev->abi_version <= MLX4_UVERBS_NO_DEV_CAPS_ABI_VERSION) {
--		if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof cmd,
-+		if (ibv_cmd_get_context(ibv_ctx, &cmd, sizeof cmd,
- 					&resp_v3.ibv_resp, sizeof resp_v3))
--			goto err_free;
-+			return errno;
- 
- 		context->num_qps  = resp_v3.qp_tab_size;
- 		bf_reg_size	  = resp_v3.bf_reg_size;
- 		context->cqe_size = sizeof (struct mlx4_cqe);
- 	} else  {
--		if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof cmd,
-+		if (ibv_cmd_get_context(ibv_ctx, &cmd, sizeof cmd,
- 					&resp.ibv_resp, sizeof resp))
--			goto err_free;
-+			return errno;
- 
- 		context->num_qps  = resp.qp_tab_size;
- 		bf_reg_size	  = resp.bf_reg_size;
-@@ -169,15 +174,15 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
- 
- 	pthread_mutex_init(&context->db_list_mutex, NULL);
- 
--	context->uar = mmap(NULL, to_mdev(ibdev)->page_size, PROT_WRITE,
-+	context->uar = mmap(NULL, dev->page_size, PROT_WRITE,
- 			    MAP_SHARED, cmd_fd, 0);
- 	if (context->uar == MAP_FAILED)
--		goto err_free;
-+		return errno;
- 
- 	if (bf_reg_size) {
--		context->bf_page = mmap(NULL, to_mdev(ibdev)->page_size,
-+		context->bf_page = mmap(NULL, dev->page_size,
- 					PROT_WRITE, MAP_SHARED, cmd_fd,
--					to_mdev(ibdev)->page_size);
-+					dev->page_size);
- 		if (context->bf_page == MAP_FAILED) {
- 			fprintf(stderr, PFX "Warning: BlueFlame available, "
- 				"but failed to mmap() BlueFlame page.\n");
-@@ -194,32 +199,26 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
- 	}
- 
- 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
-+	ibv_ctx->ops = mlx4_ctx_ops;
-+	/* New verbs should be added as below
-+	* verbs_ctx->drv_new_func1 = mlx4_new_func1;
-+	*/
-+	return 0;
- 
--	context->ibv_ctx.ops = mlx4_ctx_ops;
--
--	return &context->ibv_ctx;
--
--err_free:
--	free(context);
--	return NULL;
- }
- 
--static void mlx4_free_context(struct ibv_context *ibctx)
-+static void mlx4_uninit_context(struct verbs_device *v_device,
-+					struct ibv_context *ibv_ctx)
- {
--	struct mlx4_context *context = to_mctx(ibctx);
-+	struct mlx4_context *context = to_mctx(ibv_ctx);
- 
--	munmap(context->uar, to_mdev(ibctx->device)->page_size);
-+	munmap(context->uar, to_mdev(&v_device->device)->page_size);
- 	if (context->bf_page)
--		munmap(context->bf_page, to_mdev(ibctx->device)->page_size);
--	free(context);
--}
-+		munmap(context->bf_page, to_mdev(&v_device->device)->page_size);
- 
--static struct ibv_device_ops mlx4_dev_ops = {
--	.alloc_context = mlx4_alloc_context,
--	.free_context  = mlx4_free_context
--};
-+}
- 
--static struct ibv_device *mlx4_driver_init(const char *uverbs_sys_path, int abi_version)
-+static struct verbs_device *mlx4_driver_init(const char *uverbs_sys_path, int abi_version)
- {
- 	char			value[8];
- 	struct mlx4_device    *dev;
-@@ -254,24 +253,30 @@ found:
- 		return NULL;
- 	}
- 
--	dev = malloc(sizeof *dev);
-+	dev = calloc(1, sizeof *dev);
- 	if (!dev) {
- 		fprintf(stderr, PFX "Fatal: couldn't allocate device for %s\n",
- 			uverbs_sys_path);
- 		return NULL;
- 	}
- 
--	dev->ibv_dev.ops = mlx4_dev_ops;
- 	dev->page_size   = sysconf(_SC_PAGESIZE);
- 	dev->abi_version = abi_version;
- 
--	return &dev->ibv_dev;
-+	dev->verbs_dev.sz = sizeof(*dev);
-+	dev->verbs_dev.size_of_context =
-+		sizeof(struct mlx4_context) - sizeof(struct ibv_context);
-+	/* mlx4_init_context will initialize provider calls */
-+	dev->verbs_dev.init_context = mlx4_init_context;
-+	dev->verbs_dev.uninit_context = mlx4_uninit_context;
-+
-+	return &dev->verbs_dev;
- }
- 
- #ifdef HAVE_IBV_REGISTER_DRIVER
- static __attribute__((constructor)) void mlx4_register_driver(void)
- {
--	ibv_register_driver("mlx4", mlx4_driver_init);
-+	verbs_register_driver("mlx4", mlx4_driver_init);
- }
- #else
- /*
-diff --git a/src/mlx4.h b/src/mlx4.h
-index be7a632..183e08c 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -131,7 +131,7 @@ enum {
- };
- 
- struct mlx4_device {
--	struct ibv_device		ibv_dev;
-+	struct verbs_device		verbs_dev;
- 	int				page_size;
- 	int				abi_version;
- };
-@@ -276,7 +276,11 @@ static inline unsigned long align(unsigned long val, unsigned long align)
- 
- static inline struct mlx4_device *to_mdev(struct ibv_device *ibdev)
- {
--	return to_mxxx(dev, device);
-+	/* ibv_device is first field of verbs_device
-+	  * see try_driver in libibverbs.
-+	*/
-+	return ((struct mlx4_device *)
-+	 ((void *)ibdev - offsetof(struct mlx4_device, verbs_dev)));
- }
- 
- static inline struct mlx4_context *to_mctx(struct ibv_context *ibctx)
--- 
-1.7.1
+Changes from V6:
+Adapted to latest master branch.
+Bug fixes, details in relevant patches.
+
+Sean Hefty (1):
+  Add support for XRC QPs
+
+Yishai Hadas (1):
+  Infra-structure changes to support verbs extensions
+
+ src/buf.c      |    6 +-
+ src/cq.c       |   42 ++++++++---
+ src/mlx4-abi.h |    6 ++
+ src/mlx4.c     |   79 +++++++++++---------
+ src/mlx4.h     |   70 ++++++++++++++++--
+ src/qp.c       |   39 ++++++----
+ src/srq.c      |  153 ++++++++++++++++++++++++++++++++++++++
+ src/verbs.c    |  224 +++++++++++++++++++++++++++++++++++++++++--------------
+ 8 files changed, 493 insertions(+), 126 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
