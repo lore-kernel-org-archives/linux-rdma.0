@@ -1,38 +1,36 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] RDMA/nes: info leaks in nes_create_qp() and nes_create_cq()
-Date: Thu, 25 Jul 2013 20:04:59 +0300
-Message-ID: <20130725170459.GD7026@elgon.mountain>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] IB/mlx5: stack info leak in mlx5_ib_alloc_ucontext()
+Date: Thu, 25 Jul 2013 20:04:36 +0300
+Message-ID: <20130725170436.GC7026@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We pass a few bytes of uninitialized stack memory to the user here.
+We don't set "resp.reserved".  Since it's at the end of the struct that
+means we don't have to copy it to the user.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 8f67fe2..5b53ca5 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -1384,6 +1384,7 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 8000fff..43dfb84 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -619,7 +619,8 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
  
- 			if (ibpd->uobject) {
- 				uresp.mmap_sq_db_index = nesqp->mmap_sq_db_index;
-+				uresp.mmap_rq_db_index = 0;
- 				uresp.actual_sq_size = sq_size;
- 				uresp.actual_rq_size = rq_size;
- 				uresp.qp_id = nesqp->hwqp.qp_id;
-@@ -1767,7 +1768,7 @@ static struct ib_cq *nes_create_cq(struct ib_device *ibdev, int entries,
- 		resp.cq_id = nescq->hw_cq.cq_number;
- 		resp.cq_size = nescq->hw_cq.cq_size;
- 		resp.mmap_db_index = 0;
--		if (ib_copy_to_udata(udata, &resp, sizeof resp)) {
-+		if (ib_copy_to_udata(udata, &resp, sizeof resp - sizeof resp.reserved)) {
- 			nes_free_resource(nesadapter, nesadapter->allocated_cqs, cq_num);
- 			kfree(nescq);
- 			return ERR_PTR(-EFAULT);
+ 	resp.tot_uuars = req.total_num_uuars;
+ 	resp.num_ports = dev->mdev.caps.num_ports;
+-	err = ib_copy_to_udata(udata, &resp, sizeof(resp));
++	err = ib_copy_to_udata(udata, &resp,
++			       sizeof(resp) - sizeof(resp.reserved));
+ 	if (err)
+ 		goto out_uars;
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
