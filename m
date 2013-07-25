@@ -1,77 +1,96 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] RDMA/ocrdma: several stack info leaks
-Date: Thu, 25 Jul 2013 20:05:32 +0300
-Message-ID: <20130725170532.GE7026@elgon.mountain>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V8 libibverbs 1/7] Infrastructure to support verbs
+ extensions
+Date: Thu, 25 Jul 2013 11:14:08 -0600
+Message-ID: <20130725171408.GA17616@obsidianresearch.com>
+References: <1374741488-30895-1-git-send-email-yishaih@mellanox.com>
+ <1374741488-30895-2-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Naresh Gottumukkala <bgottumukkala@emulex.com>, Parav Pandit <parav.pandit@emulex.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <1374741488-30895-2-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A grab bag of places which don't properly initialize stack data.  If the
-struct member was at the end of the struct then I fixed the issue by not
-passing the uninitialized bits to the user.  This seems like the
-prefered thing in infiniband drivers.
+On Thu, Jul 25, 2013 at 11:38:02AM +0300, Yishai Hadas wrote:
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> +#ifndef container_of
+> +/**
+> +  * container_of - cast a member of a structure out to the containing structure
+> +  * @ptr:        the pointer to the member.
+> +  * @type:       the type of the container struct this is embedded in.
+> +  * @member:     the name of the member within the struct.
+> +  *
+> + */
+> +#define container_of(ptr, type, member) \
+> +	((type *) ((char *)(ptr) - offsetof(type, member)))
+                 ^^^^^^^^^^^^
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index dcfbab1..78bada7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -256,7 +256,8 @@ struct ib_ucontext *ocrdma_alloc_ucontext(struct ib_device *ibdev,
- 	resp.rsvd = 0;
- 
- 	memcpy(resp.fw_ver, dev->attr.fw_ver, sizeof(resp.fw_ver));
--	status = ib_copy_to_udata(udata, &resp, sizeof(resp));
-+	status = ib_copy_to_udata(udata, &resp,
-+				  sizeof(resp) - sizeof(resp.rsvd1));
- 	if (status)
- 		goto cpy_err;
- 	return &ctx->ibucontext;
-@@ -357,9 +358,12 @@ static int ocrdma_copy_pd_uresp(struct ocrdma_pd *pd,
- 			goto dpp_map_err;
- 		rsp.dpp_page_addr_hi = upper_32_bits(dpp_page_addr);
- 		rsp.dpp_page_addr_lo = dpp_page_addr;
-+	} else {
-+		rsp.dpp_page_addr_hi = 0;
-+		rsp.dpp_page_addr_lo = 0;
- 	}
- 
--	status = ib_copy_to_udata(udata, &rsp, sizeof(rsp));
-+	status = ib_copy_to_udata(udata, &rsp, sizeof(rsp) - sizeof(rsp.rsvd1));
- 	if (status)
- 		goto ucopy_err;
- 
-@@ -700,7 +704,8 @@ static int ocrdma_copy_cq_uresp(struct ocrdma_cq *cq, struct ib_udata *udata,
- 	uresp.db_page_addr = cq->dev->nic_info.unmapped_db;
- 	uresp.db_page_size = cq->dev->nic_info.db_page_size;
- 	uresp.phase_change = cq->phase_change ? 1 : 0;
--	status = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
-+	status = ib_copy_to_udata(udata, &uresp,
-+				  sizeof(uresp) - sizeof(u64) * 2);
- 	if (status) {
- 		pr_err("%s(%d) copy error cqid=0x%x.\n",
- 		       __func__, cq->dev->id, cq->id);
-@@ -1461,6 +1466,8 @@ static int ocrdma_copy_srq_uresp(struct ocrdma_srq *srq, struct ib_udata *udata)
- 	struct ocrdma_create_srq_uresp uresp;
- 
- 	uresp.rq_dbid = srq->rq.dbid;
-+	uresp.resv0 = 0;
-+	uresp.resv1 = 0;
- 	uresp.num_rq_pages = 1;
- 	uresp.rq_page_addr[0] = srq->rq.pa;
- 	uresp.rq_page_size = srq->rq.len;
-@@ -1476,7 +1483,8 @@ static int ocrdma_copy_srq_uresp(struct ocrdma_srq *srq, struct ib_udata *udata)
- 		uresp.db_shift = 16;
- 	}
- 
--	status = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
-+	status = ib_copy_to_udata(udata, &uresp,
-+				  sizeof(uresp) - sizeof(u64) * 2);
- 	if (status)
- 		return status;
- 	status = ocrdma_add_mmap(srq->pd->uctx, uresp.rq_page_addr[0],
+This should be 'uint8_t'
+
+> +#define vext_field_avail(type, fld, sz) (offsetof(type, fld) < (sz))
+
+This is never used? Should it be? Ditch it?
+
+> +static inline struct verbs_context *verbs_get_ctx(
+> +					const struct ibv_context *ctx)
+                  ^^^^^^^^^^^^^
+const goes in, const goes out. Should be:
+
+static inline const struct verbs_context *verbs_get_ctx(const struct ibv_context *ctx)
+
+> +{
+> +	return (ctx->abi_compat != ((uint8_t *)NULL) - 1) ?
+                               ^^^^^^^^^^^^^^^^^^^^^^
+
+Should this be a constant? __VERBS_ABI_IS_EXTENDED or something?
+
+> +#define verbs_get_ctx_op(ctx, op) ({ \
+> +	struct verbs_context *vctx = verbs_get_ctx(ctx); \
+           ^^^^ const
+> +	(!vctx || (vctx->sz < sizeof(*vctx) - offsetof(struct verbs_context, op)) || \
+> +	 !vctx->op) ? NULL : vctx; })
+
+An inline would be nicer, it will let the compiler merge these when
+using -Os.
+
+static inline const struct verbs_context *__verbs_get_ctx_op(const struct ibv_context *ctx, size_t off)
+{
+    const struct verbs_context *vctx = verbs_get_ctx(ctx);
+    if (vctx && vctx->sz < sizeof(*vctx) - off && *(void **)((uint8_t *)vctx + off))
+        return vctx;
+    return null
+}
+#define verbs_get_ctx_op(ctx, op) __verbs_get_ctx_op(ctx, offsetof(struct verbs_context, op))
+
+This also solves the problems the macro has with missing ()
+
+> +#define verbs_set_ctx_op(vctx, op, ptr) ({ \
+> +	if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
+> +		vctx->op = ptr; })
+
+Lots of missing (), and no type check on vctx. This is better and
+centralizes the tricky check into __verbs_get_ctx_op:
+
+#define verbs_set_ctx_op(vctx, op, ptr) ({ \
+   struct verbs_context *__vctx = (struct verbs_context *)verbs_get_ctx_op((vctx)->context, op); \
+   if (__vctx) __vctx->op = ptr; })
+
+> +		context_ex->context.abi_compat  = ((uint8_t *)NULL) - 1;
+                                                ^^^^^^^^^^^^^^^^^^^^^^
+Constant?
+
+Otherwise this appears to be as we discussed and agreed last year, so
+you can add my Ack to this patch.
+
+Please confirm you have done testing with extending and shrinking
+verbs_context to test that verbs_get_ctx_op truely works properly.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
