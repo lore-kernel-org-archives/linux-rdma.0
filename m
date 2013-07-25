@@ -1,31 +1,35 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] RDMA/cxgb4: stack info leak in c4iw_create_qp()
-Date: Thu, 25 Jul 2013 19:48:32 +0300
-Message-ID: <20130725164832.GA7026@elgon.mountain>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] RDMA/cxgb3: stack info leak in iwch_craete_cq()
+Date: Thu, 25 Jul 2013 20:04:09 +0300
+Message-ID: <20130725170409.GB7026@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Steve Wise <swise@chelsio.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-"uresp.ma_sync_key" doesn't get set on this path so we leak 8 bytes of
-data.
+The "uresp.reserved" field isn't initialized.  It's at the end, of the
+struct here so we don't need to copy it to the user.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 2320404..a4975e1 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1657,6 +1657,8 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 		if (mm5) {
- 			uresp.ma_sync_key = ucontext->key;
- 			ucontext->key += PAGE_SIZE;
-+		} else {
-+			uresp.ma_sync_key =  0;
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index e87f220..b8e26f2 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -226,7 +226,7 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
+ 			mm->len = PAGE_ALIGN(((1UL << uresp.size_log2) + 1) *
+ 					     sizeof(struct t3_cqe));
+ 			uresp.memsize = mm->len;
+-			resplen = sizeof uresp;
++			resplen = sizeof uresp - sizeof uresp.reserved;
  		}
- 		uresp.sq_key = ucontext->key;
- 		ucontext->key += PAGE_SIZE;
+ 		if (ib_copy_to_udata(udata, &uresp, resplen)) {
+ 			kfree(mm);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
