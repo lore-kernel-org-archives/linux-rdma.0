@@ -1,62 +1,720 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] ib/mad: remove Device Mgmt from RMPP class list
-Date: Thu, 25 Jul 2013 10:20:14 +0200
-Message-ID: <51F0DFBE.10608@acm.org>
-References: <20130724144426.5a63669ea6107c8a3e6c1867@intel.com> <51F04E2D.9060708@dev.mellanox.co.il> <2807E5FD2F6FDA4886F6618EAC48510E021B0B9D@CRSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237384567CA1@ORSMSX109.amr.corp.intel.com> <2807E5FD2F6FDA4886F6618EAC48510E021B1099@CRSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237384567D00@ORSMSX109.amr.corp.intel.com> <2807E5FD2F6FDA4886F6618EAC48510E021B1166@CRSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V8 libibverbs 1/7] Infrastructure to support verbs extensions
+Date: Thu, 25 Jul 2013 11:38:02 +0300
+Message-ID: <1374741488-30895-2-git-send-email-yishaih@mellanox.com>
+References: <1374741488-30895-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E021B1166-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1374741488-30895-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/25/13 01:05, Weiny, Ira wrote:
->> -----Original Message-----
->> From: Hefty, Sean
->> Subject: RE: [PATCH] ib/mad: remove Device Mgmt from RMPP class list
->>
->>>>>> See Annex 8; DevMgt class version 2 rather than 1 is currently
->> supported.
->>>>>
->>>>> Could older devices still return version 1?  If so the kernel
->>>>> should allow DevMgt without RMPP, correct?
->>>>
->>>> This check has been this way since 2.6.17.  I think it's reasonable
->>>> to say
->>> that
->>>> there aren't any devices using version 1 that are running with Linux.
->>>
->>> FWIW the ib_srpt module uses a class version of 1:
->>>
->>> Ib_srpt.c:
->>>
->>> ...
->>> 		reg_req.mgmt_class_version = IB_MGMT_BASE_VERSION;
->> ...
->>
->> So, then this just happens to work because of some other check?  If that's so,
->> then I agree with Hal, in that we can add the class version to the check.
->
-> I think this works because the MAD stack triggers off of rmpp_version (in the
-> agent) and RMPP_ACTIVE (in the individual MAD's).  Since rmpp_version
- > == 0 in this registration and likely all the MAD sent have a 0'ed out
- > RMPP Header (ie the MAD stack thinks all MADs are RMPP _in_active) I
-> think  the stack passes all the MAD's without invoking the RMPP
- > processing.
+Infrastructure to support extended verbs capabilities in a forward/backward
+manner.
 
-Changing the mgmt_class_version in ib_srpt.c from 1 into 2 would break 
-existing SRP device management clients (srp_daemon and ibsrpdm) since 
-these set mgmt_class_version to 1.
+Support for extensions is determeind by the provider calling
+verbs_register_driver in place of ibv_register_driver.  When
+extensions are enabled, ibverbs sets the current alloc_context /
+free_context device operations to NULL.  These are used to
+indicate that the struct ibv_device may be cast to struct
+verbs_device.
 
-I'm not sure changing the rmpp_version argument in the 
-ib_register_mad_agent() call in ib_srpt.c would be sufficient to enable 
-RMPP for DM MAD's. Wouldn't the clients (srp_daemon and ibsrpdm) have to 
-be updated as well to set the rmpp_version in the MAD header as well ?
+With extensions, ibverbs allocates the ibv_context structure
+and calls into the provider to initialize it.  The init call
+is part of the verbs_device struct.
 
-Bart.
+The abi_compat field of struct ibv_context is used to determine
+support of verbs extensions.  As a result, support for ABI version <
+2 is removed (corresponds to kernel releases 2.6.11-2.6.14 no
+longer being supported).  The lowest ABI now supported is 3 (really
+4 since 2.6.15 was ABI 4, I don't see that ABI 3 was in a release).
+
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+
+Change from v7:
+Added an helper macro for v.ext, named verbs_set_ctx_op, being used in
+farther patches.
+Fixed "container_of" to match c99 standard.
+
+ include/infiniband/driver.h   |    3 +
+ include/infiniband/kern-abi.h |   43 +--------------
+ include/infiniband/verbs.h    |   60 ++++++++++++++++++++
+ src/cmd.c                     |  125 +----------------------------------------
+ src/device.c                  |   53 +++++++++++++----
+ src/init.c                    |   41 +++++++++++--
+ src/kern_abi.h                |  101 ---------------------------------
+ src/libibverbs.map            |    1 +
+ 8 files changed, 142 insertions(+), 285 deletions(-)
+ delete mode 100644 src/kern_abi.h
+
+diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+index 9a81416..f22f287 100644
+--- a/include/infiniband/driver.h
++++ b/include/infiniband/driver.h
+@@ -55,8 +55,11 @@
+ 
+ typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
+ 						   int abi_version);
++typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
++						       int abi_version);
+ 
+ void ibv_register_driver(const char *name, ibv_driver_init_func init_func);
++void verbs_register_driver(const char *name, verbs_driver_init_func init_func);
+ int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
+ 			size_t cmd_size, struct ibv_get_context_resp *resp,
+ 			size_t resp_size);
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index 619ea7e..e7f8981 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -45,7 +45,7 @@
+ /*
+  * The minimum and maximum kernel ABI that we can handle.
+  */
+-#define IB_USER_VERBS_MIN_ABI_VERSION	1
++#define IB_USER_VERBS_MIN_ABI_VERSION	3
+ #define IB_USER_VERBS_MAX_ABI_VERSION	6
+ 
+ enum {
+@@ -806,47 +806,6 @@ enum {
+ 	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
+ };
+ 
+-struct ibv_destroy_cq_v1 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u32 cq_handle;
+-};
+-
+-struct ibv_destroy_qp_v1 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u32 qp_handle;
+-};
+-
+-struct ibv_destroy_srq_v1 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u32 srq_handle;
+-};
+-
+-struct ibv_get_context_v2 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u64 response;
+-	__u64 cq_fd_tab;
+-	__u64 driver_data[0];
+-};
+-
+-struct ibv_create_cq_v2 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u64 response;
+-	__u64 user_handle;
+-	__u32 cqe;
+-	__u32 event_handler;
+-	__u64 driver_data[0];
+-};
+-
+ struct ibv_modify_srq_v3 {
+ 	__u32 command;
+ 	__u16 in_words;
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 4b1ab57..ca300af 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -38,6 +38,7 @@
+ 
+ #include <stdint.h>
+ #include <pthread.h>
++#include <stddef.h>
+ 
+ #ifdef __cplusplus
+ #  define BEGIN_C_DECLS extern "C" {
+@@ -63,6 +64,20 @@ union ibv_gid {
+ 	} global;
+ };
+ 
++#ifndef container_of
++/**
++  * container_of - cast a member of a structure out to the containing structure
++  * @ptr:        the pointer to the member.
++  * @type:       the type of the container struct this is embedded in.
++  * @member:     the name of the member within the struct.
++  *
++ */
++#define container_of(ptr, type, member) \
++	((type *) ((char *)(ptr) - offsetof(type, member)))
++#endif
++
++#define vext_field_avail(type, fld, sz) (offsetof(type, fld) < (sz))
++
+ enum ibv_node_type {
+ 	IBV_NODE_UNKNOWN	= -1,
+ 	IBV_NODE_CA 		= 1,
+@@ -656,6 +671,17 @@ struct ibv_device {
+ 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
+ };
+ 
++struct verbs_device {
++	struct ibv_device device; /* Must be first */
++	size_t	sz;
++	size_t	size_of_context;
++	int	(*init_context)(struct verbs_device *device,
++				struct ibv_context *ctx, int cmd_fd);
++	void	(*uninit_context)(struct verbs_device *device,
++				struct ibv_context *ctx);
++	/* future fields added here */
++};
++
+ struct ibv_context_ops {
+ 	int			(*query_device)(struct ibv_context *context,
+ 					      struct ibv_device_attr *device_attr);
+@@ -724,6 +750,40 @@ struct ibv_context {
+ 	void		       *abi_compat;
+ };
+ 
++enum verbs_context_mask {
++	VERBS_CONTEXT_RESERVED = 1 << 0
++};
++
++struct verbs_context {
++	/*  "grows up" - new fields go here */
++	uint64_t has_comp_mask;
++	size_t   sz;	/* Must be immediately before struct ibv_context */
++	struct ibv_context context;/* Must be last field in the struct */
++};
++
++static inline struct verbs_context *verbs_get_ctx(
++					const struct ibv_context *ctx)
++{
++	return (ctx->abi_compat != ((uint8_t *)NULL) - 1) ?
++		NULL : container_of(ctx, struct verbs_context, context);
++}
++
++#define verbs_get_ctx_op(ctx, op) ({ \
++	struct verbs_context *vctx = verbs_get_ctx(ctx); \
++	(!vctx || (vctx->sz < sizeof(*vctx) - offsetof(struct verbs_context, op)) || \
++	 !vctx->op) ? NULL : vctx; })
++
++#define verbs_set_ctx_op(vctx, op, ptr) ({ \
++	if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
++		vctx->op = ptr; })
++
++static inline struct verbs_device *verbs_get_device(
++					const struct ibv_device *dev)
++{
++	return (dev->ops.alloc_context) ?
++		NULL : container_of(dev, struct verbs_device, device);
++}
++
+ /**
+  * ibv_get_device_list - Get list of IB devices currently available
+  * @num_devices: optional.  if non-NULL, set to the number of devices
+diff --git a/src/cmd.c b/src/cmd.c
+index 9789092..86350fd 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -45,52 +45,13 @@
+ 
+ #include "ibverbs.h"
+ 
+-static int ibv_cmd_get_context_v2(struct ibv_context *context,
+-				  struct ibv_get_context *new_cmd,
+-				  size_t new_cmd_size,
+-				  struct ibv_get_context_resp *resp,
+-				  size_t resp_size)
+-{
+-	struct ibv_abi_compat_v2 *t;
+-	struct ibv_get_context_v2 *cmd;
+-	size_t cmd_size;
+-	uint32_t cq_fd;
+-
+-	t = malloc(sizeof *t);
+-	if (!t)
+-		return ENOMEM;
+-	pthread_mutex_init(&t->in_use, NULL);
+-
+-	cmd_size = sizeof *cmd + new_cmd_size - sizeof *new_cmd;
+-	cmd      = alloca(cmd_size);
+-	memcpy(cmd->driver_data, new_cmd->driver_data, new_cmd_size - sizeof *new_cmd);
+-
+-	IBV_INIT_CMD_RESP(cmd, cmd_size, GET_CONTEXT, resp, resp_size);
+-	cmd->cq_fd_tab = (uintptr_t) &cq_fd;
+-
+-	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size) {
+-		free(t);
+-		return errno;
+-	}
+-
+-	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+-
+-	context->async_fd         = resp->async_fd;
+-	context->num_comp_vectors = 1;
+-	t->channel.context        = context;
+-	t->channel.fd		  = cq_fd;
+-	t->channel.refcnt	  = 0;
+-	context->abi_compat       = t;
+-
+-	return 0;
+-}
+ 
+ int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
+ 			size_t cmd_size, struct ibv_get_context_resp *resp,
+ 			size_t resp_size)
+ {
+-	if (abi_ver <= 2)
+-		return ibv_cmd_get_context_v2(context, cmd, cmd_size, resp, resp_size);
++	if (abi_ver < IB_USER_VERBS_MIN_ABI_VERSION)
++		return ENOSYS;
+ 
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, GET_CONTEXT, resp, resp_size);
+ 
+@@ -274,45 +235,12 @@ int ibv_cmd_dereg_mr(struct ibv_mr *mr)
+ 	return 0;
+ }
+ 
+-static int ibv_cmd_create_cq_v2(struct ibv_context *context, int cqe,
+-				struct ibv_cq *cq,
+-				struct ibv_create_cq *new_cmd, size_t new_cmd_size,
+-				struct ibv_create_cq_resp *resp, size_t resp_size)
+-{
+-	struct ibv_create_cq_v2 *cmd;
+-	size_t cmd_size;
+-
+-	cmd_size = sizeof *cmd + new_cmd_size - sizeof *new_cmd;
+-	cmd      = alloca(cmd_size);
+-	memcpy(cmd->driver_data, new_cmd->driver_data, new_cmd_size - sizeof *new_cmd);
+-
+-	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_CQ, resp, resp_size);
+-	cmd->user_handle   = (uintptr_t) cq;
+-	cmd->cqe           = cqe;
+-	cmd->event_handler = 0;
+-
+-	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
+-		return errno;
+-
+-	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+-
+-	cq->handle  = resp->cq_handle;
+-	cq->cqe     = resp->cqe;
+-	cq->context = context;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_create_cq(struct ibv_context *context, int cqe,
+ 		      struct ibv_comp_channel *channel,
+ 		      int comp_vector, struct ibv_cq *cq,
+ 		      struct ibv_create_cq *cmd, size_t cmd_size,
+ 		      struct ibv_create_cq_resp *resp, size_t resp_size)
+ {
+-	if (abi_ver <= 2)
+-		return ibv_cmd_create_cq_v2(context, cqe, cq,
+-					    cmd, cmd_size, resp, resp_size);
+-
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_CQ, resp, resp_size);
+ 	cmd->user_handle   = (uintptr_t) cq;
+ 	cmd->cqe           = cqe;
+@@ -397,7 +325,6 @@ int ibv_cmd_resize_cq(struct ibv_cq *cq, int cqe,
+ 		      struct ibv_resize_cq *cmd, size_t cmd_size,
+ 		      struct ibv_resize_cq_resp *resp, size_t resp_size)
+ {
+-
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, RESIZE_CQ, resp, resp_size);
+ 	cmd->cq_handle = cq->handle;
+ 	cmd->cqe       = cqe;
+@@ -412,27 +339,11 @@ int ibv_cmd_resize_cq(struct ibv_cq *cq, int cqe,
+ 	return 0;
+ }
+ 
+-static int ibv_cmd_destroy_cq_v1(struct ibv_cq *cq)
+-{
+-	struct ibv_destroy_cq_v1 cmd;
+-
+-	IBV_INIT_CMD(&cmd, sizeof cmd, DESTROY_CQ);
+-	cmd.cq_handle = cq->handle;
+-
+-	if (write(cq->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+-		return errno;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_destroy_cq(struct ibv_cq *cq)
+ {
+ 	struct ibv_destroy_cq      cmd;
+ 	struct ibv_destroy_cq_resp resp;
+ 
+-	if (abi_ver == 1)
+-		return ibv_cmd_destroy_cq_v1(cq);
+-
+ 	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, DESTROY_CQ, &resp, sizeof resp);
+ 	cmd.cq_handle = cq->handle;
+ 	cmd.reserved  = 0;
+@@ -557,27 +468,11 @@ int ibv_cmd_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr,
+ 	return 0;
+ }
+ 
+-static int ibv_cmd_destroy_srq_v1(struct ibv_srq *srq)
+-{
+-	struct ibv_destroy_srq_v1 cmd;
+-
+-	IBV_INIT_CMD(&cmd, sizeof cmd, DESTROY_SRQ);
+-	cmd.srq_handle = srq->handle;
+-
+-	if (write(srq->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+-		return errno;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_destroy_srq(struct ibv_srq *srq)
+ {
+ 	struct ibv_destroy_srq      cmd;
+ 	struct ibv_destroy_srq_resp resp;
+ 
+-	if (abi_ver == 1)
+-		return ibv_cmd_destroy_srq_v1(srq);
+-
+ 	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, DESTROY_SRQ, &resp, sizeof resp);
+ 	cmd.srq_handle = srq->handle;
+ 	cmd.reserved   = 0;
+@@ -799,19 +694,6 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 	return 0;
+ }
+ 
+-static int ibv_cmd_destroy_qp_v1(struct ibv_qp *qp)
+-{
+-	struct ibv_destroy_qp_v1 cmd;
+-
+-	IBV_INIT_CMD(&cmd, sizeof cmd, DESTROY_QP);
+-	cmd.qp_handle = qp->handle;
+-
+-	if (write(qp->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+-		return errno;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		      struct ibv_send_wr **bad_wr)
+ {
+@@ -1074,9 +956,6 @@ int ibv_cmd_destroy_qp(struct ibv_qp *qp)
+ 	struct ibv_destroy_qp      cmd;
+ 	struct ibv_destroy_qp_resp resp;
+ 
+-	if (abi_ver == 1)
+-		return ibv_cmd_destroy_qp_v1(qp);
+-
+ 	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, DESTROY_QP, &resp, sizeof resp);
+ 	cmd.qp_handle = qp->handle;
+ 	cmd.reserved  = 0;
+diff --git a/src/device.c b/src/device.c
+index 1923fa5..970375e 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -124,9 +124,11 @@ default_symver(__ibv_get_device_guid, ibv_get_device_guid);
+ 
+ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ {
++	struct verbs_device *verbs_device = verbs_get_device(device);
+ 	char *devpath;
+-	int cmd_fd;
++	int cmd_fd, ret;
+ 	struct ibv_context *context;
++	struct verbs_context *context_ex;
+ 
+ 	if (asprintf(&devpath, "/dev/infiniband/%s", device->dev_name) < 0)
+ 		return NULL;
+@@ -141,9 +143,33 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 	if (cmd_fd < 0)
+ 		return NULL;
+ 
+-	context = device->ops.alloc_context(device, cmd_fd);
+-	if (!context)
+-		goto err;
++	if (!verbs_device) {
++		context = device->ops.alloc_context(device, cmd_fd);
++		if (!context)
++			goto err;
++	} else {
++		/* Library now allocates the context */
++		context_ex = calloc(1, sizeof(*context_ex) +
++				       verbs_device->size_of_context);
++		if (!context_ex) {
++			errno = ENOMEM;
++			goto err;
++		}
++
++		context_ex->context.abi_compat  = ((uint8_t *)NULL) - 1;
++		context_ex->sz = sizeof(*context_ex);
++
++		context = &context_ex->context;
++		ret = verbs_device->init_context(verbs_device, context, cmd_fd);
++		if (ret)
++			goto verbs_err;
++
++		/* initialize *all* library ops to either lib calls or
++		 * directly to provider calls.
++		 * context_ex->lib_new_func1 = __verbs_new_func1;
++		 * context_ex->lib_new_func2 = __verbs_new_func2;
++		 */
++	}
+ 
+ 	context->device = device;
+ 	context->cmd_fd = cmd_fd;
+@@ -151,9 +177,10 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 
+ 	return context;
+ 
++verbs_err:
++	free(context_ex);
+ err:
+ 	close(cmd_fd);
+-
+ 	return NULL;
+ }
+ default_symver(__ibv_open_device, ibv_open_device);
+@@ -163,15 +190,17 @@ int __ibv_close_device(struct ibv_context *context)
+ 	int async_fd = context->async_fd;
+ 	int cmd_fd   = context->cmd_fd;
+ 	int cq_fd    = -1;
+-
+-	if (abi_ver <= 2) {
+-		struct ibv_abi_compat_v2 *t = context->abi_compat;
+-		cq_fd = t->channel.fd;
+-		free(context->abi_compat);
++	struct verbs_context *context_ex;
++
++	context_ex = verbs_get_ctx(context);
++	if (context_ex) {
++		struct verbs_device *verbs_device = verbs_get_device(context->device);
++		verbs_device->uninit_context(verbs_device, context);
++		free(context_ex);
++	} else {
++		context->device->ops.free_context(context);
+ 	}
+ 
+-	context->device->ops.free_context(context);
+-
+ 	close(async_fd);
+ 	close(cmd_fd);
+ 	if (abi_ver <= 2)
+diff --git a/src/init.c b/src/init.c
+index 8e93f3f..9fcb1ee 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -70,6 +70,7 @@ struct ibv_driver_name {
+ struct ibv_driver {
+ 	const char	       *name;
+ 	ibv_driver_init_func	init_func;
++	verbs_driver_init_func	verbs_init_func;
+ 	struct ibv_driver      *next;
+ };
+ 
+@@ -153,7 +154,8 @@ static int find_sysfs_devs(void)
+ 	return ret;
+ }
+ 
+-void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
++static void register_driver(const char *name, ibv_driver_init_func init_func,
++			    verbs_driver_init_func verbs_init_func)
+ {
+ 	struct ibv_driver *driver;
+ 
+@@ -163,9 +165,10 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
+ 		return;
+ 	}
+ 
+-	driver->name      = name;
+-	driver->init_func = init_func;
+-	driver->next      = NULL;
++	driver->name            = name;
++	driver->init_func	= init_func;
++	driver->verbs_init_func = verbs_init_func;
++	driver->next            = NULL;
+ 
+ 	if (tail_driver)
+ 		tail_driver->next = driver;
+@@ -174,6 +177,19 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
+ 	tail_driver = driver;
+ }
+ 
++void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
++{
++	register_driver(name, init_func, NULL);
++}
++
++/* New registration symbol with same functionality - used by providers to
++  * validate that library supports verbs extension.
++  */
++void verbs_register_driver(const char *name, verbs_driver_init_func init_func)
++{
++	register_driver(name, NULL, init_func);
++}
++
+ static void load_driver(const char *name)
+ {
+ 	char *so_name;
+@@ -333,12 +349,23 @@ out:
+ static struct ibv_device *try_driver(struct ibv_driver *driver,
+ 				     struct ibv_sysfs_dev *sysfs_dev)
+ {
++	struct verbs_device *vdev;
+ 	struct ibv_device *dev;
+ 	char value[8];
+ 
+-	dev = driver->init_func(sysfs_dev->sysfs_path, sysfs_dev->abi_ver);
+-	if (!dev)
+-		return NULL;
++	if (driver->init_func) {
++		dev = driver->init_func(sysfs_dev->sysfs_path, sysfs_dev->abi_ver);
++		if (!dev)
++			return NULL;
++	} else {
++		vdev = driver->verbs_init_func(sysfs_dev->sysfs_path, sysfs_dev->abi_ver);
++		if (!vdev)
++			return NULL;
++
++		dev = &vdev->device;
++		dev->ops.alloc_context = NULL;
++		dev->ops.free_context = NULL;
++	}
+ 
+ 	if (ibv_read_sysfs_file(sysfs_dev->ibdev_path, "node_type", value, sizeof value) < 0) {
+ 		fprintf(stderr, PFX "Warning: no node_type attr under %s.\n",
+diff --git a/src/kern_abi.h b/src/kern_abi.h
+deleted file mode 100644
+index e055e75..0000000
+--- a/src/kern_abi.h
++++ /dev/null
+@@ -1,101 +0,0 @@
+-/*
+- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#ifndef KERN_ABI_H
+-#define KERN_ABI_H
+-
+-#include <linux/types.h>
+-
+-/*
+- * Increment this value if any changes that break userspace ABI
+- * compatibility are made.
+- */
+-#define IB_USER_VERBS_ABI_VERSION	1
+-
+-enum {
+-	IB_USER_VERBS_CMD_GET_CONTEXT,
+-	IB_USER_VERBS_CMD_GET_EVENT_FDS,
+-	IB_USER_VERBS_CMD_ALLOC_PD,
+-	IB_USER_VERBS_CMD_DEALLOC_PD,
+-	IB_USER_VERBS_CMD_REG_MR,
+-	IB_USER_VERBS_CMD_DEREG_MR
+-};
+-
+-/*
+- * Make sure that all structs defined in this file remain laid out so
+- * that they pack the same way on 32-bit and 64-bit architectures (to
+- * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+- * In particular do not use pointer types -- pass pointers in __u64
+- * instead.
+- */
+-
+-struct ibv_kern_async_event {
+-	__u32 event_type;
+-	__u32 element;
+-};
+-
+-struct ibv_comp_event {
+-	__u32 cq_handle;
+-};
+-
+-/*
+- * All commands from userspace should start with a __u32 command field
+- * followed by __u16 in_words and out_words fields (which give the
+- * length of the command block and response buffer if any in 32-bit
+- * words).  The kernel driver will read these fields first and read
+- * the rest of the command struct based on these value.
+- */
+-
+-struct ibv_get_context {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u64 response;
+-};
+-
+-struct ibv_get_context_resp {
+-	__u32 num_cq_events;
+-};
+-
+-struct ibv_get_event_fds {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u64 response;
+-};
+-
+-struct ibv_get_event_fds_resp {
+-	__u32 async_fd;
+-	__u32 cq_fd[1];
+-};
+-
+-#endif /* KERN_ABI_H */
+diff --git a/src/libibverbs.map b/src/libibverbs.map
+index 7e722f4..6e35c37 100644
+--- a/src/libibverbs.map
++++ b/src/libibverbs.map
+@@ -91,6 +91,7 @@ IBVERBS_1.1 {
+ 		ibv_dontfork_range;
+ 		ibv_dofork_range;
+ 		ibv_register_driver;
++		verbs_register_driver;
+ 
+ 		ibv_node_type_str;
+ 		ibv_port_state_str;
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
