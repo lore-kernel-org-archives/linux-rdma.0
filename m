@@ -1,36 +1,34 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V3 1/4] RDMA/cma: Add IPv6 support for iWARP.
-Date: Fri, 26 Jul 2013 05:42:53 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823738456826E@ORSMSX109.amr.corp.intel.com>
-References: <1372934447-16556-1-git-send-email-vipul@chelsio.com>
- <1372934447-16556-2-git-send-email-vipul@chelsio.com>
+From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Dual star topology
+Date: Fri, 26 Jul 2013 09:22:20 +0200
+Message-ID: <CAJH6TXjnZ=c5X5JzKynuUf4niiAs=A0oQZ9erEMh570L06eZ-g@mail.gmail.com>
+References: <CAJH6TXipMaLMcwuBbR+Jvb3KueZ1gBW7ohcb5Ke8ixO1bCEWAw@mail.gmail.com>
+	<51F01724.7010504@dev.mellanox.co.il>
+	<CAJH6TXgJGALyCcyPo+GvAninXQkZ+Md8c0NPmi_PUoU4XKDUHA@mail.gmail.com>
+	<CAJH6TXjYW8w=RafoXgFiYNcFHc8ub+o-2v0_NsD8efoB0vyHpA@mail.gmail.com>
+	<CAJH6TXg3+ZzQAK1Wbf2HtfymrToHY7bSVWTpxP3_Ddi6CL0BbQ@mail.gmail.com>
+	<51F044B0.305@dev.mellanox.co.il>
+	<CAJH6TXiQNc_y8KHO79aOY0A9-PJ7bm54URyhNhVFkd18ZmyM5Q@mail.gmail.com>
+	<CAJH6TXgOTbfBqqatMQOxtgnUUt=p9c4mkqaq3s-ujh5hLZJ5Zw@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237384567F02@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1372934447-16556-2-git-send-email-vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237384567F02-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> 
-> This patch modifies the type of local_addr and remote_addr fields in struct
-> iw_cm_id from struct sockaddr_in to struct sockaddr_storage to hold IPv6 and
-> IPv4 addresses uniformly. It changes the references of local_addr and
-> remote_addr in RDMA/cxgb4, RDMA/cxgb3, RDMA/nes and amso drivers such that
-> build
-> failure is avoided. However to be able to actully run the traffic over IPv6
-> address respective drivers have to add supportive code.
-> 
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+2013/7/25 Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
+> Currently, rsockets cannot fail over between local HCA ports.  This is an implementation restriction resulting from no automatic path migration support.
 
-For the rdma_cm portion:
+So, currently there is not way to have a fully redundant IB network
+with dual-port HCA ?
 
-Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
+In case of IPoIB, how can I use multiple ports for interconnecting
+both switches? In a standard IP network I have to bond them toghether
+to avoid loops. In IB should I do the same ?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
