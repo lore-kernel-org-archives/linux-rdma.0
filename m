@@ -1,55 +1,39 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] RDMA/cxgb3: stack info leak in iwch_craete_cq()
-Date: Fri, 26 Jul 2013 11:47:08 +0300
-Message-ID: <20130726084708.GA5636@mwanda>
-References: <20130725170409.GB7026@elgon.mountain>
- <51F171D0.7050204@opengridcomputing.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH for-3.11 7/7] IB/iser: Introduce fast memory registration
+ model (FRWR)
+Date: Fri, 26 Jul 2013 11:27:05 +0200
+Message-ID: <51F240E9.5000600@acm.org>
+References: <1374153931-7313-1-git-send-email-ogerlitz@mellanox.com> <1374153931-7313-8-git-send-email-ogerlitz@mellanox.com> <51ED1B8E.7070703@acm.org> <51ED2F97.2080400@mellanox.com> <51EE6FFE.8040802@acm.org> <CAJZOPZ+1TLQ-vwsZG8dgxhP332CQeDNOWfzGRdTbwRxLRhL95w@mail.gmail.com> <51EE9773.9050003@acm.org> <51F000CB.3050808@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <51F171D0.7050204-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <51F000CB.3050808-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 25, 2013 at 01:43:28PM -0500, Steve Wise wrote:
-> On 7/25/2013 12:04 PM, Dan Carpenter wrote:
-> >The "uresp.reserved" field isn't initialized.  It's at the end, of the
-> >struct here so we don't need to copy it to the user.
-> >
-> >Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >
-> >diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-> >index e87f220..b8e26f2 100644
-> >--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-> >+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-> >@@ -226,7 +226,7 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
-> >  			mm->len = PAGE_ALIGN(((1UL << uresp.size_log2) + 1) *
-> >  					     sizeof(struct t3_cqe));
-> >  			uresp.memsize = mm->len;
-> >-			resplen = sizeof uresp;
-> >+			resplen = sizeof uresp - sizeof uresp.reserved;
-> >  		}
-> >  		if (ib_copy_to_udata(udata, &uresp, resplen)) {
-> >  			kfree(mm);
-> 
-> How did you find this?
+On 07/24/13 18:28, Or Gerlitz wrote:
+> On 23/07/2013 17:47, Bart Van Assche wrote:
+>> Still regarding page sizes: shouldn't ib_alloc_fast_reg_page_list()
+>> and ib_alloc_fast_reg_mr() multiply the SG list length by PAGE_SIZE /
+>> SIZE_4K to compensate for page size differences on architectures where
+>> virtual memory pages are larger than 4KB ?
+>
+> My understanding of the API is that it assumes that the HW is capable to
+> change the page shift (size) associated with certain fast_reg MR for
+> each mapping.
 
-This is some incoming Smatch stuff.
+I think you have a point here. Although I'm not sure this is what you 
+had in mind, using PAGE_SIZE / PAGE_SHIFT instead of SIZE_4K / SHIFT_4K 
+should work better on architectures with a page size larger than 4KB. On 
+mlx4 the largest supported page list length is 511 
+(MLX4_MAX_FAST_REG_PAGES). So the former option should allow to support 
+larger sg lists on such architectures (up to length 511) compared to the 
+latter (up to length 511/(64/4) = 31 for 64KB pages).
 
-> 
-> What if, in the future, the iwch_create_cq_resp struct is changed
-> and stuff added to the end?  I'm not sure this optimization is worth
-> it?
-
-Yeah.  I'm not sure either.  I wouldn't do it outside infiniband
-code because I was copying other code from there.  I can redo this.
-
-regards,
-dan carpenter
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
