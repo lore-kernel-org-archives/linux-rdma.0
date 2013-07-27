@@ -1,44 +1,27 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Failover support in IB?
-Date: Fri, 26 Jul 2013 13:41:41 -0400
-Message-ID: <51F2B4D5.2090607@dev.mellanox.co.il>
-References: <B78BFEBC60BCD84AABFE4C6AE4239F303639A7B2@BY2PRD0412MB622.namprd04.prod.outlook.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [trivial PATCH] treewide: Add __GFP_NOWARN to k.alloc calls
+ with v.alloc fallbacks
+Date: Fri, 26 Jul 2013 21:22:39 -0700
+Message-ID: <1374898959.3686.10.camel@joe-AO722>
+References: <1371669353.2038.45.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B78BFEBC60BCD84AABFE4C6AE4239F303639A7B2-PabevnM9DETuy2SDsQ9Xi/nBZW37Ciw+nBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liu Ginhann <Ginhann.Liu-Omk3PdybHIaN9aS15agKxg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-ext4-owner@vger.kernel.org>
+In-Reply-To: <1371669353.2038.45.camel@joe-AO722>
+Sender: linux-ext4-owner@vger.kernel.org
+To: Jiri Kosina <trivial@kernel.org>
+Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, Dimitris Michailidis <dm@chelsio.com>, "James E.J. Bottomley" <JBottomley@parallels.com>, Chris Mason <chris.mason@fusionio.com>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger.kernel@dilger.ca>, Steven Whitehouse <swhiteho@redhat.com>, Jamal Hadi Salim <jhs@mojatatu.com>, "David S. Miller" <davem@davemloft.net>, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, cluster-devel <cluster-devel@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/26/2013 12:58 PM, Liu Ginhann wrote:
-> Does anyone know if IB support failover? For example, OpenSM can automatically reroute when a fault is detected in the 
-> "active" path. 
-
-Yes.
-
-> If it does, is this support apply to multicast too?  
-
-Yes both unicast and multicast is rerouted.
-
--- Hal
-
+On Wed, 2013-06-19 at 12:15 -0700, Joe Perches wrote:
+> Don't emit OOM warnings when k.alloc calls fail when
+> there there is a v.alloc immediately afterwards.
 > 
-> 
-> Hank Liu
-> 503 526-8144
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Converted a kmalloc/vmalloc with memset to kzalloc/vzalloc.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hey Jiri.
+
+What's your schedule for accepting or rejecting
+these sorts of patches?
+
