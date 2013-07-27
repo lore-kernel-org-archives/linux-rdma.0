@@ -1,27 +1,48 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [trivial PATCH] treewide: Add __GFP_NOWARN to k.alloc calls
- with v.alloc fallbacks
-Date: Fri, 26 Jul 2013 21:22:39 -0700
-Message-ID: <1374898959.3686.10.camel@joe-AO722>
-References: <1371669353.2038.45.camel@joe-AO722>
+From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Dual star topology
+Date: Sat, 27 Jul 2013 12:47:49 +0200
+Message-ID: <CAJH6TXgzQC_jPy+hi=R3kAwYdj6Nh3O0sJix==yEPcZ89N+hNQ@mail.gmail.com>
+References: <CAJH6TXipMaLMcwuBbR+Jvb3KueZ1gBW7ohcb5Ke8ixO1bCEWAw@mail.gmail.com>
+	<51F01724.7010504@dev.mellanox.co.il>
+	<CAJH6TXgJGALyCcyPo+GvAninXQkZ+Md8c0NPmi_PUoU4XKDUHA@mail.gmail.com>
+	<CAJH6TXjYW8w=RafoXgFiYNcFHc8ub+o-2v0_NsD8efoB0vyHpA@mail.gmail.com>
+	<CAJH6TXg3+ZzQAK1Wbf2HtfymrToHY7bSVWTpxP3_Ddi6CL0BbQ@mail.gmail.com>
+	<51F044B0.305@dev.mellanox.co.il>
+	<CAJH6TXiQNc_y8KHO79aOY0A9-PJ7bm54URyhNhVFkd18ZmyM5Q@mail.gmail.com>
+	<CAJH6TXgOTbfBqqatMQOxtgnUUt=p9c4mkqaq3s-ujh5hLZJ5Zw@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237384567F02@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ext4-owner@vger.kernel.org>
-In-Reply-To: <1371669353.2038.45.camel@joe-AO722>
-Sender: linux-ext4-owner@vger.kernel.org
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, Dimitris Michailidis <dm@chelsio.com>, "James E.J. Bottomley" <JBottomley@parallels.com>, Chris Mason <chris.mason@fusionio.com>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger.kernel@dilger.ca>, Steven Whitehouse <swhiteho@redhat.com>, Jamal Hadi Salim <jhs@mojatatu.com>, "David S. Miller" <davem@davemloft.net>, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-ext4@vger.kernel.org, cluster-devel <cluster-devel@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237384567F02-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2013-06-19 at 12:15 -0700, Joe Perches wrote:
-> Don't emit OOM warnings when k.alloc calls fail when
-> there there is a v.alloc immediately afterwards.
-> 
-> Converted a kmalloc/vmalloc with memset to kzalloc/vzalloc.
+2013/7/25 Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
+> Currently, rsockets cannot fail over between local HCA ports.  This is an implementation restriction resulting from no automatic path migration support.
 
-Hey Jiri.
+This is still unclear.
+>From the README (
+http://git.openfabrics.org/git?p=~shefty/librdmacm.git;a=blob;f=README;h=e1f222740144ed8f7d8bc935ea6643355b077bcd;hb=refs/heads/master
+) I can read:
+"Using multiple interfaces
+  The librdmacm does support multiple interfaces."
 
-What's your schedule for accepting or rejecting
-these sorts of patches?
+so, multiple interfaces are supported. Why I can't use both port? Each
+port is threathed as a single interface.
 
+Next question: rsockets addressing is done by IPoIB ? How can I reach
+a remote IP address without IPoIB ?
+If yes, I think that I could use a bonded IPoIB interface to have an
+"always-on" path.
+
+English is not my primary language, so, i repeat: today, is not
+possible to use librdma_cm in a fault tollerance architecture ? I
+don't need bandwidth aggregation, but just a fault tollerance across 2
+switches.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
