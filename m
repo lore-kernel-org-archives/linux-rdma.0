@@ -1,214 +1,371 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-3.11 4/7] IB/iser: Generalize rdma memory registration
-Date: Sun, 28 Jul 2013 12:35:39 +0300
-Message-ID: <1375004142-22559-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V1 for-3.11 2/7] IB/iser: Restructure allocation/deallocation of connection resources
+Date: Sun, 28 Jul 2013 12:35:37 +0300
+Message-ID: <1375004142-22559-3-git-send-email-ogerlitz@mellanox.com>
 References: <1375004142-22559-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1375004142-22559-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently the driver uses FMRs as the only means to register the memory
-pointed by SG provided by the SCSI mid-layer with the RDMA device.
+This is a preparation step to a patch that accepts the number of max SCSI
+commands to be supported for the session from the user space iSCSI tools.
 
-As perperation step for adding more methods for fast path memory
-registrarion, make the alloc/free and reg/unreg calls be function
-pointers which are now just set to the existing FMR ones.
+Move the allocation of the login buffer, FMR pool and its associated
+page vector from iser_create_ib_conn_res() which is called prior to
+a point in time where we actually know how many commands should be
+supported to iser_alloc_rx_descriptors() which is called during the
+iscsi connection bind step where this quantity is known.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Also do small refactoring around the deallocation to make that path
+similar to the allocation one.
+
+Signed-off-by: Shlomo Pongratz <shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h     |   13 +++++++++-
- drivers/infiniband/ulp/iser/iser_initiator.c |   34 ++++++++++++-------------
- drivers/infiniband/ulp/iser/iser_verbs.c     |   13 +++++++++-
- 3 files changed, 40 insertions(+), 20 deletions(-)
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |    2 +
+ drivers/infiniband/ulp/iser/iser_initiator.c |   92 ++++++++++++++++++-
+ drivers/infiniband/ulp/iser/iser_verbs.c     |  128 ++++++++++++--------------
+ 3 files changed, 151 insertions(+), 71 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index d2fc55a..78117be 100644
+index d694bcd..fee8829 100644
 --- a/drivers/infiniband/ulp/iser/iscsi_iser.h
 +++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -252,6 +252,9 @@ struct iser_rx_desc {
- 
- #define ISER_MAX_CQ 4
- 
-+struct iser_conn;
-+struct iscsi_iser_task;
-+
- struct iser_device {
- 	struct ib_device             *ib_device;
- 	struct ib_pd	             *pd;
-@@ -265,6 +268,13 @@ struct iser_device {
- 	int                          cq_active_qps[ISER_MAX_CQ];
- 	int			     cqs_used;
- 	struct iser_cq_desc	     *cq_desc;
-+	int                          (*iser_alloc_rdma_reg_res)(struct iser_conn *ib_conn,
-+								unsigned cmds_max);
-+	void                         (*iser_free_rdma_reg_res)(struct iser_conn *ib_conn);
-+	int                          (*iser_reg_rdma_mem)(struct iscsi_iser_task *iser_task,
-+							  enum iser_data_dir cmd_dir);
-+	void                         (*iser_unreg_rdma_mem)(struct iscsi_iser_task *iser_task,
-+							    enum iser_data_dir cmd_dir);
- };
- 
- struct iser_conn {
-@@ -389,7 +399,8 @@ int  iser_reg_page_vec(struct iser_conn     *ib_conn,
- 		       struct iser_page_vec *page_vec,
- 		       struct iser_mem_reg  *mem_reg);
- 
--void iser_unreg_mem(struct iser_mem_reg *mem_reg);
-+void iser_unreg_mem(struct iscsi_iser_task *iser_task,
-+		    enum iser_data_dir cmd_dir);
- 
- int  iser_post_recvl(struct iser_conn *ib_conn);
- int  iser_post_recvm(struct iser_conn *ib_conn, int count);
+@@ -395,4 +395,6 @@ void iser_dma_unmap_task_data(struct iscsi_iser_task *iser_task);
+ int  iser_initialize_task_headers(struct iscsi_task *task,
+ 			struct iser_tx_desc *tx_desc);
+ int iser_alloc_rx_descriptors(struct iser_conn *ib_conn);
++int iser_create_fmr_pool(struct iser_conn *ib_conn);
++void iser_free_fmr_pool(struct iser_conn *ib_conn);
+ #endif
 diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 5c2b142..bdc38f4 100644
+index b6d81a8..626d950 100644
 --- a/drivers/infiniband/ulp/iser/iser_initiator.c
 +++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -49,6 +49,7 @@ static int iser_prepare_read_cmd(struct iscsi_task *task,
- 
- {
- 	struct iscsi_iser_task *iser_task = task->dd_data;
-+	struct iser_device  *device = iser_task->iser_conn->ib_conn->device;
- 	struct iser_regd_buf *regd_buf;
- 	int err;
- 	struct iser_hdr *hdr = &iser_task->desc.iser_header;
-@@ -69,7 +70,7 @@ static int iser_prepare_read_cmd(struct iscsi_task *task,
- 		return -EINVAL;
+@@ -170,6 +170,76 @@ static void iser_create_send_desc(struct iser_conn	*ib_conn,
  	}
+ }
  
--	err = iser_reg_rdma_mem(iser_task,ISER_DIR_IN);
-+	err = device->iser_reg_rdma_mem(iser_task, ISER_DIR_IN);
- 	if (err) {
- 		iser_err("Failed to set up Data-IN RDMA\n");
- 		return err;
-@@ -98,6 +99,7 @@ iser_prepare_write_cmd(struct iscsi_task *task,
- 		       unsigned int edtl)
++static void iser_free_login_buf(struct iser_conn *ib_conn)
++{
++	if (!ib_conn->login_buf)
++		return;
++
++	if (ib_conn->login_req_dma)
++		ib_dma_unmap_single(ib_conn->device->ib_device,
++				    ib_conn->login_req_dma,
++				    ISCSI_DEF_MAX_RECV_SEG_LEN, DMA_TO_DEVICE);
++
++	if (ib_conn->login_resp_dma)
++		ib_dma_unmap_single(ib_conn->device->ib_device,
++				    ib_conn->login_resp_dma,
++				    ISER_RX_LOGIN_SIZE, DMA_FROM_DEVICE);
++
++	kfree(ib_conn->login_buf);
++
++	/* make sure we never redo any unmapping */
++	ib_conn->login_req_dma = 0;
++	ib_conn->login_resp_dma = 0;
++	ib_conn->login_buf = NULL;
++}
++
++static int iser_alloc_login_buf(struct iser_conn *ib_conn)
++{
++	struct iser_device	*device;
++	int			req_err, resp_err;
++
++	BUG_ON(ib_conn->device == NULL);
++
++	device = ib_conn->device;
++
++	ib_conn->login_buf = kmalloc(ISCSI_DEF_MAX_RECV_SEG_LEN +
++				     ISER_RX_LOGIN_SIZE, GFP_KERNEL);
++	if (!ib_conn->login_buf)
++		goto out_err;
++
++	ib_conn->login_req_buf  = ib_conn->login_buf;
++	ib_conn->login_resp_buf = ib_conn->login_buf +
++						ISCSI_DEF_MAX_RECV_SEG_LEN;
++
++	ib_conn->login_req_dma = ib_dma_map_single(ib_conn->device->ib_device,
++				(void *)ib_conn->login_req_buf,
++				ISCSI_DEF_MAX_RECV_SEG_LEN, DMA_TO_DEVICE);
++
++	ib_conn->login_resp_dma = ib_dma_map_single(ib_conn->device->ib_device,
++				(void *)ib_conn->login_resp_buf,
++				ISER_RX_LOGIN_SIZE, DMA_FROM_DEVICE);
++
++	req_err  = ib_dma_mapping_error(device->ib_device,
++					ib_conn->login_req_dma);
++	resp_err = ib_dma_mapping_error(device->ib_device,
++					ib_conn->login_resp_dma);
++
++	if (req_err || resp_err) {
++		if (req_err)
++			ib_conn->login_req_dma = 0;
++		if (resp_err)
++			ib_conn->login_resp_dma = 0;
++		goto free_login_buf;
++	}
++	return 0;
++
++free_login_buf:
++	iser_free_login_buf(ib_conn);
++
++out_err:
++	iser_err("unable to alloc or map login buf\n");
++	return -ENOMEM;
++}
+ 
+ int iser_alloc_rx_descriptors(struct iser_conn *ib_conn)
  {
- 	struct iscsi_iser_task *iser_task = task->dd_data;
-+	struct iser_device  *device = iser_task->iser_conn->ib_conn->device;
- 	struct iser_regd_buf *regd_buf;
- 	int err;
- 	struct iser_hdr *hdr = &iser_task->desc.iser_header;
-@@ -119,7 +121,7 @@ iser_prepare_write_cmd(struct iscsi_task *task,
- 		return -EINVAL;
- 	}
+@@ -179,6 +249,12 @@ int iser_alloc_rx_descriptors(struct iser_conn *ib_conn)
+ 	struct ib_sge       *rx_sg;
+ 	struct iser_device  *device = ib_conn->device;
  
--	err = iser_reg_rdma_mem(iser_task,ISER_DIR_OUT);
-+	err = device->iser_reg_rdma_mem(iser_task, ISER_DIR_OUT);
- 	if (err != 0) {
- 		iser_err("Failed to register write cmd RDMA mem\n");
- 		return err;
-@@ -253,8 +255,8 @@ int iser_alloc_rx_descriptors(struct iser_conn *ib_conn, struct iscsi_session *s
- 	ib_conn->qp_max_recv_dtos_mask = session->cmds_max - 1; /* cmds_max is 2^N */
- 	ib_conn->min_posted_rx = ib_conn->qp_max_recv_dtos >> 2;
- 
--	if (iser_create_fmr_pool(ib_conn, session->scsi_cmds_max))
--		goto create_fmr_pool_failed;
-+	if (device->iser_alloc_rdma_reg_res(ib_conn, session->scsi_cmds_max))
-+		goto create_rdma_reg_res_failed;
- 
- 	if (iser_alloc_login_buf(ib_conn))
- 		goto alloc_login_buf_fail;
-@@ -293,8 +295,8 @@ rx_desc_dma_map_failed:
++	if (iser_create_fmr_pool(ib_conn))
++		goto create_fmr_pool_failed;
++
++	if (iser_alloc_login_buf(ib_conn))
++		goto alloc_login_buf_fail;
++
+ 	ib_conn->rx_descs = kmalloc(ISER_QP_MAX_RECV_DTOS *
+ 				sizeof(struct iser_rx_desc), GFP_KERNEL);
+ 	if (!ib_conn->rx_descs)
+@@ -207,10 +283,14 @@ rx_desc_dma_map_failed:
+ 	rx_desc = ib_conn->rx_descs;
+ 	for (j = 0; j < i; j++, rx_desc++)
+ 		ib_dma_unmap_single(device->ib_device, rx_desc->dma_addr,
+-			ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
++				    ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
+ 	kfree(ib_conn->rx_descs);
+ 	ib_conn->rx_descs = NULL;
  rx_desc_alloc_fail:
- 	iser_free_login_buf(ib_conn);
- alloc_login_buf_fail:
--	iser_free_fmr_pool(ib_conn);
--create_fmr_pool_failed:
-+	device->iser_free_rdma_reg_res(ib_conn);
-+create_rdma_reg_res_failed:
++	iser_free_login_buf(ib_conn);
++alloc_login_buf_fail:
++	iser_free_fmr_pool(ib_conn);
++create_fmr_pool_failed:
  	iser_err("failed allocating rx descriptors / data buffers\n");
  	return -ENOMEM;
  }
-@@ -308,6 +310,9 @@ void iser_free_rx_descriptors(struct iser_conn *ib_conn)
+@@ -222,13 +302,19 @@ void iser_free_rx_descriptors(struct iser_conn *ib_conn)
+ 	struct iser_device *device = ib_conn->device;
+ 
  	if (!ib_conn->rx_descs)
- 		goto free_login_buf;
+-		return;
++		goto free_login_buf;
  
-+	if (device && device->iser_free_rdma_reg_res)
-+		device->iser_free_rdma_reg_res(ib_conn);
-+
  	rx_desc = ib_conn->rx_descs;
- 	for (i = 0; i < ib_conn->qp_max_recv_dtos; i++, rx_desc++)
+ 	for (i = 0; i < ISER_QP_MAX_RECV_DTOS; i++, rx_desc++)
  		ib_dma_unmap_single(device->ib_device, rx_desc->dma_addr,
-@@ -318,7 +323,6 @@ void iser_free_rx_descriptors(struct iser_conn *ib_conn)
- 
- free_login_buf:
- 	iser_free_login_buf(ib_conn);
--	iser_free_fmr_pool(ib_conn);
+-			ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
++				    ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
+ 	kfree(ib_conn->rx_descs);
++	/* make sure we never redo any unmapping */
++	ib_conn->rx_descs = NULL;
++
++free_login_buf:
++	iser_free_login_buf(ib_conn);
++	iser_free_fmr_pool(ib_conn);
  }
  
  static int iser_post_rx_bufs(struct iscsi_conn *conn, struct iscsi_hdr *req)
-@@ -629,8 +633,8 @@ void iser_task_rdma_init(struct iscsi_iser_task *iser_task)
- 
- void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
- {
-+	struct iser_device *device = iser_task->iser_conn->ib_conn->device;
- 	int is_rdma_aligned = 1;
--	struct iser_regd_buf *regd;
- 
- 	/* if we were reading, copy back to unaligned sglist,
- 	 * anyway dma_unmap and free the copy
-@@ -644,17 +648,11 @@ void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
- 		iser_finalize_rdma_unaligned_sg(iser_task, ISER_DIR_OUT);
- 	}
- 
--	if (iser_task->dir[ISER_DIR_IN]) {
--		regd = &iser_task->rdma_regd[ISER_DIR_IN];
--		if (regd->reg.is_fmr)
--			iser_unreg_mem(&regd->reg);
--	}
-+	if (iser_task->dir[ISER_DIR_IN])
-+		device->iser_unreg_rdma_mem(iser_task, ISER_DIR_IN);
- 
--	if (iser_task->dir[ISER_DIR_OUT]) {
--		regd = &iser_task->rdma_regd[ISER_DIR_OUT];
--		if (regd->reg.is_fmr)
--			iser_unreg_mem(&regd->reg);
--	}
-+	if (iser_task->dir[ISER_DIR_OUT])
-+		device->iser_unreg_rdma_mem(iser_task, ISER_DIR_OUT);
- 
-        /* if the data was unaligned, it was already unmapped and then copied */
-        if (is_rdma_aligned)
 diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 5e49a36..5b53428 100644
+index 2c4941d..b72e349 100644
 --- a/drivers/infiniband/ulp/iser/iser_verbs.c
 +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -74,6 +74,12 @@ static int iser_create_device_ib_res(struct iser_device *device)
- 	int i, j;
- 	struct iser_cq_desc *cq_desc;
+@@ -178,56 +178,23 @@ static void iser_free_device_ib_res(struct iser_device *device)
+ }
  
-+	/* Assign function handles */
-+	device->iser_alloc_rdma_reg_res = iser_create_fmr_pool;
-+	device->iser_free_rdma_reg_res = iser_free_fmr_pool;
-+	device->iser_reg_rdma_mem = iser_reg_rdma_mem;
-+	device->iser_unreg_rdma_mem = iser_unreg_mem;
-+
- 	device->cqs_used = min(ISER_MAX_CQ, device->ib_device->num_comp_vectors);
- 	iser_info("using %d CQs, device %s supports %d vectors\n",
- 		  device->cqs_used, device->ib_device->name,
-@@ -721,10 +727,15 @@ int iser_reg_page_vec(struct iser_conn     *ib_conn,
  /**
-  * Unregister (previosuly registered) memory.
+- * iser_create_ib_conn_res - Creates FMR pool and Queue-Pair (QP)
++ * iser_create_fmr_pool - Creates FMR pool and page_vector
+  *
+- * returns 0 on success, -1 on failure
++ * returns 0 on success, or errno code on failure
   */
--void iser_unreg_mem(struct iser_mem_reg *reg)
-+void iser_unreg_mem(struct iscsi_iser_task *iser_task,
-+		    enum iser_data_dir cmd_dir)
+-static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
++int iser_create_fmr_pool(struct iser_conn *ib_conn)
  {
-+	struct iser_mem_reg *reg = &iser_task->rdma_regd[cmd_dir].reg;
- 	int ret;
+-	struct iser_device	*device;
+-	struct ib_qp_init_attr	init_attr;
+-	int			req_err, resp_err, ret = -ENOMEM;
++	struct iser_device *device = ib_conn->device;
+ 	struct ib_fmr_pool_param params;
+-	int index, min_index = 0;
+-
+-	BUG_ON(ib_conn->device == NULL);
+-
+-	device = ib_conn->device;
+-
+-	ib_conn->login_buf = kmalloc(ISCSI_DEF_MAX_RECV_SEG_LEN +
+-					ISER_RX_LOGIN_SIZE, GFP_KERNEL);
+-	if (!ib_conn->login_buf)
+-		goto out_err;
+-
+-	ib_conn->login_req_buf  = ib_conn->login_buf;
+-	ib_conn->login_resp_buf = ib_conn->login_buf + ISCSI_DEF_MAX_RECV_SEG_LEN;
+-
+-	ib_conn->login_req_dma = ib_dma_map_single(ib_conn->device->ib_device,
+-				(void *)ib_conn->login_req_buf,
+-				ISCSI_DEF_MAX_RECV_SEG_LEN, DMA_TO_DEVICE);
+-
+-	ib_conn->login_resp_dma = ib_dma_map_single(ib_conn->device->ib_device,
+-				(void *)ib_conn->login_resp_buf,
+-				ISER_RX_LOGIN_SIZE, DMA_FROM_DEVICE);
+-
+-	req_err  = ib_dma_mapping_error(device->ib_device, ib_conn->login_req_dma);
+-	resp_err = ib_dma_mapping_error(device->ib_device, ib_conn->login_resp_dma);
+-
+-	if (req_err || resp_err) {
+-		if (req_err)
+-			ib_conn->login_req_dma = 0;
+-		if (resp_err)
+-			ib_conn->login_resp_dma = 0;
+-		goto out_err;
+-	}
++	int ret = -ENOMEM;
  
-+	if (!reg->is_fmr)
-+		return;
+ 	ib_conn->page_vec = kmalloc(sizeof(struct iser_page_vec) +
+-				    (sizeof(u64) * (ISCSI_ISER_SG_TABLESIZE +1)),
++				    (sizeof(u64)*(ISCSI_ISER_SG_TABLESIZE+1)),
+ 				    GFP_KERNEL);
+ 	if (!ib_conn->page_vec)
+-		goto out_err;
++		return ret;
+ 
+-	ib_conn->page_vec->pages = (u64 *) (ib_conn->page_vec + 1);
++	ib_conn->page_vec->pages = (u64 *)(ib_conn->page_vec + 1);
+ 
+ 	params.page_shift        = SHIFT_4K;
+ 	/* when the first/last SG element are not start/end *
+@@ -244,15 +211,56 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
+ 				    IB_ACCESS_REMOTE_READ);
+ 
+ 	ib_conn->fmr_pool = ib_create_fmr_pool(device->pd, &params);
++	if (!IS_ERR(ib_conn->fmr_pool))
++		return 0;
 +
- 	iser_dbg("PHYSICAL Mem.Unregister mem_h %p\n",reg->mem_h);
++	/* no FMR => no need for page_vec */
++	kfree(ib_conn->page_vec);
++	ib_conn->page_vec = NULL;
++
+ 	ret = PTR_ERR(ib_conn->fmr_pool);
+-	if (IS_ERR(ib_conn->fmr_pool) && ret != -ENOSYS) {
+-		ib_conn->fmr_pool = NULL;
+-		goto out_err;
+-	} else if (ret == -ENOSYS) {
+-		ib_conn->fmr_pool = NULL;
++	ib_conn->fmr_pool = NULL;
++	if (ret != -ENOSYS) {
++		iser_err("FMR allocation failed, err %d\n", ret);
++		return ret;
++	} else {
+ 		iser_warn("FMRs are not supported, using unaligned mode\n");
+-		ret = 0;
++		return 0;
+ 	}
++}
++
++/**
++ * iser_free_fmr_pool - releases the FMR pool and page vec
++ */
++void iser_free_fmr_pool(struct iser_conn *ib_conn)
++{
++	iser_info("freeing conn %p fmr pool %p\n",
++		  ib_conn, ib_conn->fmr_pool);
++
++	if (ib_conn->fmr_pool != NULL)
++		ib_destroy_fmr_pool(ib_conn->fmr_pool);
++
++	ib_conn->fmr_pool = NULL;
++
++	kfree(ib_conn->page_vec);
++	ib_conn->page_vec = NULL;
++}
++
++/**
++ * iser_create_ib_conn_res - Queue-Pair (QP)
++ *
++ * returns 0 on success, -1 on failure
++ */
++static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
++{
++	struct iser_device	*device;
++	struct ib_qp_init_attr	init_attr;
++	int			ret = -ENOMEM;
++	int index, min_index = 0;
++
++	BUG_ON(ib_conn->device == NULL);
++
++	device = ib_conn->device;
  
- 	ret = ib_fmr_pool_unmap((struct ib_pool_fmr *)reg->mem_h);
+ 	memset(&init_attr, 0, sizeof init_attr);
+ 
+@@ -282,9 +290,9 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
+ 		goto out_err;
+ 
+ 	ib_conn->qp = ib_conn->cma_id->qp;
+-	iser_info("setting conn %p cma_id %p: fmr_pool %p qp %p\n",
++	iser_info("setting conn %p cma_id %p qp %p\n",
+ 		  ib_conn, ib_conn->cma_id,
+-		  ib_conn->fmr_pool, ib_conn->cma_id->qp);
++		  ib_conn->cma_id->qp);
+ 	return ret;
+ 
+ out_err:
+@@ -293,7 +301,7 @@ out_err:
+ }
+ 
+ /**
+- * releases the FMR pool and QP objects, returns 0 on success,
++ * releases the QP objects, returns 0 on success,
+  * -1 on failure
+  */
+ static int iser_free_ib_conn_res(struct iser_conn *ib_conn)
+@@ -301,13 +309,11 @@ static int iser_free_ib_conn_res(struct iser_conn *ib_conn)
+ 	int cq_index;
+ 	BUG_ON(ib_conn == NULL);
+ 
+-	iser_info("freeing conn %p cma_id %p fmr pool %p qp %p\n",
++	iser_info("freeing conn %p cma_id %p qp %p\n",
+ 		  ib_conn, ib_conn->cma_id,
+-		  ib_conn->fmr_pool, ib_conn->qp);
++		  ib_conn->qp);
+ 
+ 	/* qp is created only once both addr & route are resolved */
+-	if (ib_conn->fmr_pool != NULL)
+-		ib_destroy_fmr_pool(ib_conn->fmr_pool);
+ 
+ 	if (ib_conn->qp != NULL) {
+ 		cq_index = ((struct iser_cq_desc *)ib_conn->qp->recv_cq->cq_context)->cq_index;
+@@ -316,21 +322,7 @@ static int iser_free_ib_conn_res(struct iser_conn *ib_conn)
+ 		rdma_destroy_qp(ib_conn->cma_id);
+ 	}
+ 
+-	ib_conn->fmr_pool = NULL;
+ 	ib_conn->qp	  = NULL;
+-	kfree(ib_conn->page_vec);
+-
+-	if (ib_conn->login_buf) {
+-		if (ib_conn->login_req_dma)
+-			ib_dma_unmap_single(ib_conn->device->ib_device,
+-				ib_conn->login_req_dma,
+-				ISCSI_DEF_MAX_RECV_SEG_LEN, DMA_TO_DEVICE);
+-		if (ib_conn->login_resp_dma)
+-			ib_dma_unmap_single(ib_conn->device->ib_device,
+-				ib_conn->login_resp_dma,
+-				ISER_RX_LOGIN_SIZE, DMA_FROM_DEVICE);
+-		kfree(ib_conn->login_buf);
+-	}
+ 
+ 	return 0;
+ }
 -- 
 1.7.1
 
