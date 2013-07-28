@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 2/4] cma: Remove the unused variable 'id_priv'
-Date: Sun, 28 Jul 2013 11:19:15 +0200
-Message-ID: <51F4E213.60805@acm.org>
+Subject: [PATCH 3/4] rsocket: Remove the unused variable 'ret'
+Date: Sun, 28 Jul 2013 11:19:48 +0200
+Message-ID: <51F4E234.9050504@acm.org>
 References: <51F4E1B2.7070203@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,34 +13,37 @@ To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The variable 'id_priv' is assigned a value but is never used.
+The variable 'ret' is assigned a value but that value is never used.
 This triggers the following compiler warning:
 
-src/cma.c:1178:25: warning: variable 'id_priv' set but not used [-Wunused-but-set-variable]
+src/rsocket.c:3720:9: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
 
 Hence remove this variable.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- src/cma.c |    2 --
- 1 file changed, 2 deletions(-)
+ src/rsocket.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/src/cma.c b/src/cma.c
-index baebecd..374844c 100644
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -1175,11 +1175,9 @@ err:
- int rdma_create_srq(struct rdma_cm_id *id, struct ibv_pd *pd,
- 		    struct ibv_srq_init_attr *attr)
+diff --git a/src/rsocket.c b/src/rsocket.c
+index abdd392..ef24dfb 100644
+--- a/src/rsocket.c
++++ b/src/rsocket.c
+@@ -3717,11 +3717,11 @@ static void rs_svc_process_sock(void)
+ static uint8_t rs_svc_sgid_index(struct ds_dest *dest, union ibv_gid *sgid)
  {
--	struct cma_id_private *id_priv;
- 	struct ibv_srq *srq;
- 	int ret;
+ 	union ibv_gid gid;
+-	int i, ret;
++	int i;
  
--	id_priv = container_of(id, struct cma_id_private, id);
- 	if (!pd)
- 		pd = id->pd;
- 
+ 	for (i = 0; i < 16; i++) {
+-		ret = ibv_query_gid(dest->qp->cm_id->verbs, dest->qp->cm_id->port_num,
+-				    i, &gid);
++		ibv_query_gid(dest->qp->cm_id->verbs, dest->qp->cm_id->port_num,
++			      i, &gid);
+ 		if (!memcmp(sgid, &gid, sizeof gid))
+ 			return i;
+ 	}
 -- 
 1.7.10.4
 
