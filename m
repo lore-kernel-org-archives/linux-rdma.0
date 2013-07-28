@@ -1,93 +1,61 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-3.11 7/7] IB/iser: Introduce fast memory registration
- model (FRWR)
-Date: Sun, 28 Jul 2013 12:26:23 +0300
-Message-ID: <51F4E3BF.1050204@mellanox.com>
-References: <1374153931-7313-1-git-send-email-ogerlitz@mellanox.com> <1374153931-7313-8-git-send-email-ogerlitz@mellanox.com> <51F2AEB6.6090000@mellanox.com> <51F4D305.7090700@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 for-3.11 0/7] Add Fast-Reg support to the iser initiator driver
+Date: Sun, 28 Jul 2013 12:35:35 +0300
+Message-ID: <1375004142-22559-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51F4D305.7090700-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/28/2013 11:15 AM, Or Gerlitz wrote:
-> On 26/07/2013 20:15, Vu Pham wrote:
->> Hello Or/Sagi,
->>
->> Just a minor
->>>  /**
->>> + * iser_create_frwr_pool - Creates pool of fast_reg descriptors
->>> + * for fast registration work requests.
->>> + * returns 0 on success, or errno code on failure
->>> + */
->>> +int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned 
->>> cmds_max)
->>> +{
->>> +    struct iser_device    *device = ib_conn->device;
->>> +    struct fast_reg_descriptor    *desc;
->>> +    int i, ret;
->>> +
->>> + INIT_LIST_HEAD(&ib_conn->fastreg.frwr.pool);
->>> +    ib_conn->fastreg.frwr.pool_size = 0;
->>> +    for (i = 0; i < cmds_max; i++) {
->>> +        desc = kmalloc(sizeof(*desc), GFP_KERNEL);
->>> +        if (!desc) {
->>> +            iser_err("Failed to allocate a new fast_reg 
->>> descriptor\n");
->>> +            ret = -ENOMEM;
->>> +            goto err;
->>> +        }
->>> +
->>> +        desc->data_frpl = 
->>> ib_alloc_fast_reg_page_list(device->ib_device,
->>> +                             ISCSI_ISER_SG_TABLESIZE + 1);
->>> +        if (IS_ERR(desc->data_frpl)) {
->> ret = PTR_ERR(desc->data_frpl);
->>> +            iser_err("Failed to allocate ib_fast_reg_page_list 
->>> err=%ld\n",
->>> +                 PTR_ERR(desc->data_frpl));
->> using ret
->>> +            goto err;
->>> +        }
->>> +
->>> +        desc->data_mr = ib_alloc_fast_reg_mr(device->pd,
->>> +                             ISCSI_ISER_SG_TABLESIZE + 1);
->>> +        if (IS_ERR(desc->data_mr)) {
->> ret = PTR_ERR(desc->data_mr);
->>> +            iser_err("Failed to allocate ib_fast_reg_mr err=%ld\n",
->>> +                 PTR_ERR(desc->data_mr));
->> using ret
->>> + ib_free_fast_reg_page_list(desc->data_frpl);
->>> +            goto err;
->>> +        }
->>> +        desc->valid = true;
->>> +        list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
->>> +        ib_conn->fastreg.frwr.pool_size++;
->>> +    }
->>> +
->>> +    return 0;
->>> +err:
->>> +    iser_free_frwr_pool(ib_conn);
->>> +    return ret;
->>> +}
->>
->
->
-> Nice catch!
->
-> I see that Roland hasn't yet picked this series so I will re-submit it 
-> with fixes to the issues you have found here.
->
-> Or.
->
+changes from V0:
 
-Nice catch indeed, thanks Vu.
+  - fixed error flow in iser_create_frwr_pool() to return correct value, as
+    pointed out by Vu Pham through code-review.
 
--Sagi
+  - changed iser_free_rx_descriptors() so it handles properly failures which
+    take place early in the connection establishment process. E.g need to check
+    if the device exists and it has iser_free_rdma_reg_res function pointer set,
+    before calling it over (found using error injection during regression).
+
+Hi Roland,
+
+Here's the FRWR (Fast Reg WR) patch series for iser from Sagi Grimberg.
+
+This is kind of critical so we can avoid using bounce buffers when running
+over Connect-IB (the newly introduced mlx5 driver) and ConnectX VF which both
+don't support FMRs.
+
+Patches 1-3 are the other iser updates for 3.11, which reposted here for ease
+of merging, I have submitted them earlier for 3.11 but you missed picking them.
+
+Patches 4-6 are simple pre-steps for allowing more registration models such as
+FastReg WRs except for FMR, and the last patch adds the actual support for fastreg.
+
+
+Or.
+
+
+Or Gerlitz (1):
+  IB/iser: Use proper debug level value for info prints
+
+Sagi Grimberg (4):
+  IB/iser: Generalize rdma memory registration
+  IB/iser: Handle unaligned SG in separate function
+  IB/iser: Place the fmr pool into a union in iser's IB conn struct
+  IB/iser: Introduce fast memory registration model (FRWR)
+
+Shlomo Pongratz (2):
+  IB/iser: Restructure allocation/deallocation of connection resources
+  IB/iser: Accept session->cmds_max from user space
+
+ drivers/infiniband/ulp/iser/iscsi_iser.c     |   19 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h     |   73 ++++++--
+ drivers/infiniband/ulp/iser/iser_initiator.c |  139 ++++++++++---
+ drivers/infiniband/ulp/iser/iser_memory.c    |  231 +++++++++++++++++----
+ drivers/infiniband/ulp/iser/iser_verbs.c     |  288 ++++++++++++++++++-------
+ 5 files changed, 585 insertions(+), 165 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
