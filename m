@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 1/4] acm: Remove the unused variable 'pri_path'
-Date: Sun, 28 Jul 2013 11:18:36 +0200
-Message-ID: <51F4E1EC.5050705@acm.org>
+Subject: [PATCH 2/4] cma: Remove the unused variable 'id_priv'
+Date: Sun, 28 Jul 2013 11:19:15 +0200
+Message-ID: <51F4E213.60805@acm.org>
 References: <51F4E1B2.7070203@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -9,43 +9,38 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <51F4E1B2.7070203-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The variable 'pri_path' is assigned a value but is never used.
+The variable 'id_priv' is assigned a value but is never used.
 This triggers the following compiler warning:
 
-src/acm.c:301:26: warning: variable 'pri_path' set but not used [-Wunused-but-set-variable]
+src/cma.c:1178:25: warning: variable 'id_priv' set but not used [-Wunused-but-set-variable]
 
 Hence remove this variable.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- src/acm.c |    4 ----
- 1 file changed, 4 deletions(-)
+ src/cma.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/src/acm.c b/src/acm.c
-index 04cddee..49bda48 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -297,7 +297,6 @@ static void ucma_ib_save_resp(struct rdma_addrinfo *rai, struct acm_msg *msg)
+diff --git a/src/cma.c b/src/cma.c
+index baebecd..374844c 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -1175,11 +1175,9 @@ err:
+ int rdma_create_srq(struct rdma_cm_id *id, struct ibv_pd *pd,
+ 		    struct ibv_srq_init_attr *attr)
  {
- 	struct acm_ep_addr_data *ep_data;
- 	struct ibv_path_data *path_data = NULL;
--	struct ibv_path_record *pri_path = NULL;
- 	struct sockaddr_in *sin;
- 	struct sockaddr_in6 *sin6;
- 	int i, cnt, path_cnt = 0;
-@@ -311,9 +310,6 @@ static void ucma_ib_save_resp(struct rdma_addrinfo *rai, struct acm_msg *msg)
- 			if (!path_data)
- 				path_data = (struct ibv_path_data *) ep_data;
- 			path_cnt++;
--			if (ep_data->flags |
--			    (IBV_PATH_FLAG_PRIMARY | IBV_PATH_FLAG_OUTBOUND))
--				pri_path = &path_data[i].path;
- 			break;
- 		case ACM_EP_INFO_ADDRESS_IP:
- 			if (!(ep_data->flags & ACM_EP_FLAG_SOURCE) || rai->ai_src_len)
+-	struct cma_id_private *id_priv;
+ 	struct ibv_srq *srq;
+ 	int ret;
+ 
+-	id_priv = container_of(id, struct cma_id_private, id);
+ 	if (!pd)
+ 		pd = id->pd;
+ 
 -- 
 1.7.10.4
 
