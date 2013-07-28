@@ -1,59 +1,93 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 4/4] Declare 'server_port' as an unsigned variable
-Date: Sun, 28 Jul 2013 11:20:54 +0200
-Message-ID: <51F4E276.2090800@acm.org>
-References: <51F4E1B2.7070203@acm.org>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-3.11 7/7] IB/iser: Introduce fast memory registration
+ model (FRWR)
+Date: Sun, 28 Jul 2013 12:26:23 +0300
+Message-ID: <51F4E3BF.1050204@mellanox.com>
+References: <1374153931-7313-1-git-send-email-ogerlitz@mellanox.com> <1374153931-7313-8-git-send-email-ogerlitz@mellanox.com> <51F2AEB6.6090000@mellanox.com> <51F4D305.7090700@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51F4E1B2.7070203-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <51F4D305.7090700-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Change the data type of the 'server_port' variable from signed to
-unsigned such that the cast in the fscanf() call can be removed.
+On 7/28/2013 11:15 AM, Or Gerlitz wrote:
+> On 26/07/2013 20:15, Vu Pham wrote:
+>> Hello Or/Sagi,
+>>
+>> Just a minor
+>>>  /**
+>>> + * iser_create_frwr_pool - Creates pool of fast_reg descriptors
+>>> + * for fast registration work requests.
+>>> + * returns 0 on success, or errno code on failure
+>>> + */
+>>> +int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned 
+>>> cmds_max)
+>>> +{
+>>> +    struct iser_device    *device = ib_conn->device;
+>>> +    struct fast_reg_descriptor    *desc;
+>>> +    int i, ret;
+>>> +
+>>> + INIT_LIST_HEAD(&ib_conn->fastreg.frwr.pool);
+>>> +    ib_conn->fastreg.frwr.pool_size = 0;
+>>> +    for (i = 0; i < cmds_max; i++) {
+>>> +        desc = kmalloc(sizeof(*desc), GFP_KERNEL);
+>>> +        if (!desc) {
+>>> +            iser_err("Failed to allocate a new fast_reg 
+>>> descriptor\n");
+>>> +            ret = -ENOMEM;
+>>> +            goto err;
+>>> +        }
+>>> +
+>>> +        desc->data_frpl = 
+>>> ib_alloc_fast_reg_page_list(device->ib_device,
+>>> +                             ISCSI_ISER_SG_TABLESIZE + 1);
+>>> +        if (IS_ERR(desc->data_frpl)) {
+>> ret = PTR_ERR(desc->data_frpl);
+>>> +            iser_err("Failed to allocate ib_fast_reg_page_list 
+>>> err=%ld\n",
+>>> +                 PTR_ERR(desc->data_frpl));
+>> using ret
+>>> +            goto err;
+>>> +        }
+>>> +
+>>> +        desc->data_mr = ib_alloc_fast_reg_mr(device->pd,
+>>> +                             ISCSI_ISER_SG_TABLESIZE + 1);
+>>> +        if (IS_ERR(desc->data_mr)) {
+>> ret = PTR_ERR(desc->data_mr);
+>>> +            iser_err("Failed to allocate ib_fast_reg_mr err=%ld\n",
+>>> +                 PTR_ERR(desc->data_mr));
+>> using ret
+>>> + ib_free_fast_reg_page_list(desc->data_frpl);
+>>> +            goto err;
+>>> +        }
+>>> +        desc->valid = true;
+>>> +        list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
+>>> +        ib_conn->fastreg.frwr.pool_size++;
+>>> +    }
+>>> +
+>>> +    return 0;
+>>> +err:
+>>> +    iser_free_frwr_pool(ib_conn);
+>>> +    return ret;
+>>> +}
+>>
+>
+>
+> Nice catch!
+>
+> I see that Roland hasn't yet picked this series so I will re-submit it 
+> with fixes to the issues you have found here.
+>
+> Or.
+>
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
----
- src/acm.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Nice catch indeed, thanks Vu.
 
-diff --git a/src/acm.c b/src/acm.c
-index 49bda48..33379cf 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -35,6 +35,7 @@
- #endif /* HAVE_CONFIG_H */
- 
- #include <stdio.h>
-+#include <inttypes.h>
- #include <sys/types.h>
- #include <sys/socket.h>
- #include <netdb.h>
-@@ -113,7 +114,7 @@ struct acm_msg {
- 
- static pthread_mutex_t acm_lock = PTHREAD_MUTEX_INITIALIZER;
- static int sock = -1;
--static short server_port;
-+static uint16_t server_port;
- 
- struct ib_connect_hdr {
- 	uint8_t  cma_version;
-@@ -132,7 +133,7 @@ static int ucma_set_server_port(void)
- 	FILE *f;
- 
- 	if ((f = fopen("/var/run/ibacm.port", "r" STREAM_CLOEXEC))) {
--		fscanf(f, "%hu", (unsigned short *) &server_port);
-+		fscanf(f, "%" SCNu16, &server_port);
- 		fclose(f);
- 	}
- 	return server_port;
--- 
-1.7.10.4
-
+-Sagi
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
