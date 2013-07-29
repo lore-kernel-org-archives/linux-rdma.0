@@ -1,34 +1,21 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch v2] RDMA/cxgb3: stack info leak in iwch_craete_cq()
-Date: Mon, 29 Jul 2013 22:19:14 +0300
-Message-ID: <20130729191914.GA11977@elgon.mountain>
-References: <51F171D0.7050204@opengridcomputing.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [patch v2] RDMA/cxgb3: stack info leak in iwch_craete_cq()
+Date: Mon, 29 Jul 2013 14:26:41 -0500
+Message-ID: <51F6C1F1.1090406@opengridcomputing.com>
+References: <20130729191914.GA11977@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <51F171D0.7050204@opengridcomputing.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Steve Wise <swise@chelsio.com>
-Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130729191914.GA11977-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The "uresp.reserved" field isn't initialized on this path so it could
-leak uninitialized stack information to the user.
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-v2: different approach to fixing the problem
-
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index e87f220..d228383 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -226,6 +226,7 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
- 			mm->len = PAGE_ALIGN(((1UL << uresp.size_log2) + 1) *
- 					     sizeof(struct t3_cqe));
- 			uresp.memsize = mm->len;
-+			uresp.reserved = 0;
- 			resplen = sizeof uresp;
- 		}
- 		if (ib_copy_to_udata(udata, &uresp, resplen)) {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
