@@ -1,43 +1,34 @@
-From: Eli Cohen <eli@dev.mellanox.co.il>
-Subject: Re: [patch] IB/mlx5: stack info leak in mlx5_ib_alloc_ucontext()
-Date: Mon, 29 Jul 2013 15:02:28 +0300
-Message-ID: <20130729120228.GA20064@mtldesk30>
-References: <20130725170436.GC7026@elgon.mountain>
- <20130728072336.GB29427@mtldesk30>
- <20130728202323.GA5053@mwanda>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch v2] RDMA/cxgb3: stack info leak in iwch_craete_cq()
+Date: Mon, 29 Jul 2013 22:19:14 +0300
+Message-ID: <20130729191914.GA11977@elgon.mountain>
+References: <51F171D0.7050204@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130728202323.GA5053@mwanda>
+In-Reply-To: <51F171D0.7050204@opengridcomputing.com>
 Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Eli Cohen <eli@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Steve Wise <swise@chelsio.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jul 28, 2013 at 11:24:43PM +0300, Dan Carpenter wrote:
-> 
-> First let me say that I don't know how this code is called, it may
-> be root only, but even in that case I think it's still worth
-> applying my patch.
+The "uresp.reserved" field isn't initialized on this path so it could
+leak uninitialized stack information to the user.
 
-It can be called by non root users as well.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: different approach to fixing the problem
 
-> 
-> These info leak problems are a well known security problem so I
-> didn't put a long explanation.  What you do is you fill the stack
-> with function pointers, then you call the function that leaks.  Then
-> you have a potentially useful pointer which was supposed to be
-> secret.  Something like that anyway.
-> 
-> There are probably lots of other easier ways to defeat address space
-> randomization.  There may be other ways you can use info leaks as
-> well...
-> 
-> Anyway, regardless, static checkers and code auditors look for these
-> leaks so applying the patch makes sense just to silence a warning.
-> 
-
-OK, I am convinced that it's worth applying.
-
-Acked by Eli Cohen <eli@mellanox.com>
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index e87f220..d228383 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -226,6 +226,7 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
+ 			mm->len = PAGE_ALIGN(((1UL << uresp.size_log2) + 1) *
+ 					     sizeof(struct t3_cqe));
+ 			uresp.memsize = mm->len;
++			uresp.reserved = 0;
+ 			resplen = sizeof uresp;
+ 		}
+ 		if (ib_copy_to_udata(udata, &uresp, resplen)) {
