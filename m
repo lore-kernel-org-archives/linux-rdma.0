@@ -1,39 +1,25 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_sa_path_record.c: Fix rate setting issue in SA
- PR handling
-Date: Tue, 30 Jul 2013 11:13:06 -0400
-Message-ID: <51F7D802.9070208@dev.mellanox.co.il>
+From: Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU
+Date: Tue, 30 Jul 2013 16:44:41 +0000
+Message-ID: <0000014030779fed-e7bdfc9a-6714-4473-b093-4b247ab940b6-000000@email.amazonses.com>
+References: <1372768306-6786-1-git-send-email-jsquyres@cisco.com> <CAL1RGDVU9otyMtoit1PJR5JkVy4XvU=4xjL1rN1QB7pq0rVcxA@mail.gmail.com> <EF66BBEB19BADC41AC8CCF5F684F07FC4F6F31A6@xmb-rcd-x01.cisco.com> <CAL1RGDU+4CSJyF0TAfAv-YYcjA4FG+XNeg5pGCHPeW5iqhvwpA@mail.gmail.com>
+ <20130708172621.GA3852@obsidianresearch.com> <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83@xmb-rcd-x01.cisco.com> <EF66BBEB19BADC41AC8CCF5F684F07FC4F71CB0F@xmb-rcd-x01.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EF66BBEB19BADC41AC8CCF5F684F07FC4F71CB0F-nsZYYkk5h5QQ2GdVW7+PtKBKnGwkPULj@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, 15 Jul 2013, Jeff Squyres (jsquyres) wrote:
 
-For switch egress ports, fix rate setting for an extended speed port
+> Bump.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_sa_path_record.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
-index 02aeb9f..e7ac607 100644
---- a/opensm/osm_sa_path_record.c
-+++ b/opensm/osm_sa_path_record.c
-@@ -385,7 +385,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
- 					  ib_port_info_compute_rate(p_pi,
- 								    p_pi0->capability_mask & IB_PORT_CAP_HAS_EXT_SPEEDS)) > 0)
- 			rate = ib_port_info_compute_rate(p_pi,
--							 p_pi->capability_mask & IB_PORT_CAP_HAS_EXT_SPEEDS);
-+							 p_pi0->capability_mask & IB_PORT_CAP_HAS_EXT_SPEEDS);
- 
- 		if (sa->p_subn->opt.qos) {
- 			/*
--- 
-1.7.8.2
+What in the world does that mean? I am an oldtimer I guess. Seems that
+this is something that can be done in the newfangled forum? How does this
+affect mailing lists?
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
