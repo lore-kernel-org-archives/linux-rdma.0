@@ -1,52 +1,31 @@
-From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU
-Date: Tue, 30 Jul 2013 14:45:50 -0400
-Message-ID: <17370FDF-C64B-4D74-A848-79C1438E6283@ornl.gov>
-References: <1372768306-6786-1-git-send-email-jsquyres@cisco.com>
- <CAL1RGDVU9otyMtoit1PJR5JkVy4XvU=4xjL1rN1QB7pq0rVcxA@mail.gmail.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F6F31A6@xmb-rcd-x01.cisco.com>
- <CAL1RGDU+4CSJyF0TAfAv-YYcjA4FG+XNeg5pGCHPeW5iqhvwpA@mail.gmail.com>
- <20130708172621.GA3852@obsidianresearch.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83@xmb-rcd-x01.cisco.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F71CB0F@xmb-rcd-x01.cisco.com>
- <0000014030779fed-e7bdfc9a-6714-4473-b093-4b247ab940b6-000000@email.amazonses.com>
- <EF66BBEB19BADC41AC8CCF5F684F07FC4F7883AD@xmb-rcd-x01.cisco.com>
- <0000014030d9bc3d-2916693b-9669-4017-a724-75b51c6dc3dc-000000@email.amazonses.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] mlx5: Implement new initialization sequence
+Date: Wed, 31 Jul 2013 00:03:56 +0300
+Message-ID: <CAJZOPZLj63B6F5zR=KTHSSg9+50sus2bTHCqfD7Lss8uftfOug@mail.gmail.com>
+References: <20130718123108.GA6777@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0000014030d9bc3d-2916693b-9669-4017-a724-75b51c6dc3dc-000000-p/GC64/jrecnJqMo6gzdpkEOCMrvLtNR@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20130718123108.GA6777@mtldesk30>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
-Cc: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Roland Dreier\"" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jul 30, 2013, at 2:31 PM, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org> wrote:
+On Thu, Jul 18, 2013 at 3:31 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> Introduce enbale_hca and disable_hca commands to signify when the driver starts
+> or ceases to operate on the device.
+> In addition the driver will use boot and init pages count; boot pages is
+> required to allow firmware to complete boot commands and the other to complete
+> init hca. Command interface revision is bumped to 4 to enforce using supported
+> firmware.
 
-> On Tue, 30 Jul 2013, Jeff Squyres (jsquyres) wrote:
-> 
->> On Jul 30, 2013, at 12:44 PM, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org> wrote:
->> 
->>> What in the world does that mean? I am an oldtimer I guess. Seems that
->>> this is something that can be done in the newfangled forum? How does this
->>> affect mailing lists?
->> 
->> 
->> I'm not sure what you're asking me; please see the prior posts on this
->> thread that describes the MTU issue and why we still need a solution.
-> 
-> What does "bump" mean? You keep sending replies that just says "bump".
+Roland, haven't seen a response from you for about 2 weeks. Its
+critical that the first upstream release that includes the mlx5 driver
+will use this initilization sequence. Its mlx5_core patch, do you want
+it to go through netdev/Dave?
 
-http://en.wikipedia.org/wiki/Internet_forum#Thread
-
-"When a member posts in a thread it will jump to the top since it is the latest updated thread. Similarly, other threads will jump in front of it when they receive posts. When a member posts in a thread for no reason but to have it go to the top, it is referred to as a bump or bumping."
-
-He is trying to bring it back to everyone's attention.
-
-Scott
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
