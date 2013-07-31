@@ -1,49 +1,61 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V8 libmlx4 1/2] Infra-structure changes to support verbs
- extensions
-Date: Wed, 31 Jul 2013 10:44:53 +0300
-Message-ID: <51F8C075.5020602@dev.mellanox.co.il>
-References: <1374741618-890-1-git-send-email-yishaih@mellanox.com> <1374741618-890-2-git-send-email-yishaih@mellanox.com> <20130725171956.GB17616@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] update man page and usage explanation for --lfts_file
+Date: Wed, 31 Jul 2013 08:42:03 -0400
+Message-ID: <51F9061B.4030009@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130725171956.GB17616-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/25/2013 8:19 PM, Jason Gunthorpe wrote:
-> On Thu, Jul 25, 2013 at 11:40:17AM +0300, Yishai Hadas wrote:
->>   	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
->> +	ibv_ctx->ops = mlx4_ctx_ops;
->> +	/* New verbs should be added as below
->> +	* verbs_ctx->drv_new_func1 = mlx4_new_func1;
->> +	*/
-> The comment needs revising to refer to verbs_set_ctx_op
->
->>   static inline struct mlx4_device *to_mdev(struct ibv_device *ibdev)
->>   {
->> -	return to_mxxx(dev, device);
->> +	/* ibv_device is first field of verbs_device
->> +	  * see try_driver in libibverbs.
->> +	*/
->> +	return ((struct mlx4_device *)
->> +	 ((void *)ibdev - offsetof(struct mlx4_device, verbs_dev)));
->           ^^^^^^^^^^^^^^
->
-> container_of please
->
-> Also this can have my ack after these changes.
-     Thanks, I accept both comments, will handle as part of V9.
-     Once we agree on V8 comments of libibverbs will re-send both V9.
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Add explanation that --lfts_file is relevant when using 'file' routing
+engine.
+
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ man/opensm.8.in | 3 ++-
+ opensm/main.c   | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/man/opensm.8.in b/man/opensm.8.in
+index aa4a34b..d689230 100644
+--- a/man/opensm.8.in
++++ b/man/opensm.8.in
+@@ -204,7 +204,8 @@ loaded.
+ .TP
+ \fB\-U\fR, \fB\-\-lfts_file\fR <file name>
+ This option specifies the name of the LFTs file
+-from where switch forwarding tables will be loaded.
++from where switch forwarding tables will be loaded when using "file"
+routing
++engine.
+ .TP
+ \fB\-S\fR, \fB\-\-sadb_file\fR <file name>
+ This option specifies the name of the SA DB dump file
+diff --git a/opensm/main.c b/opensm/main.c
+index 74dd24f..1c8ce4c 100644
+--- a/opensm/main.c
++++ b/opensm/main.c
+@@ -217,7 +217,8 @@ static void show_usage(void)
+ 	       "          loaded.\n\n");
+ 	printf("--lfts_file, -U <file name>\n"
+ 	       "          This option specifies the name of the LFTs file\n"
+-	       "          from where switch forwarding tables will be
+loaded.\n\n");
++	       "          from where switch forwarding tables will be loaded
+when using \"file\"\n"
++	       "          routing engine.\n\n");
+ 	printf("--sadb_file, -S <file name>\n"
+ 	       "          This option specifies the name of the SA DB dump file\n"
+ 	       "          from where SA database will be loaded.\n\n");
+-- 
+1.7.11.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
