@@ -1,132 +1,95 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH librdmacm 3/8] autogen.sh: Use autoreconf in autogen.sh
-Date: Wed, 31 Jul 2013 09:58:57 +0300
-Message-ID: <51F8B5B1.3010003@mellanox.com>
-References: <cover.1374011243.git.ydroneaud@opteya.com> <317ae98daf0eec49ffb297a5fc59b3738366af6d.1374011243.git.ydroneaud@opteya.com> <1828884A29C6694DAF28B7E6B8A82373805AECD6@ORSMSX109.amr.corp.intel.com> <51E640A6.9070902@mellanox.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V8 libibverbs 1/7] Infrastructure to support verbs extensions
+Date: Wed, 31 Jul 2013 10:27:06 +0300
+Message-ID: <51F8BC4A.5010102@dev.mellanox.co.il>
+References: <1374741488-30895-1-git-send-email-yishaih@mellanox.com> <1374741488-30895-2-git-send-email-yishaih@mellanox.com> <20130725171408.GA17616@obsidianresearch.com> <51F268B1.9040003@dev.mellanox.co.il> <20130729233056.GB4439@obsidianresearch.com> <51F821A3.1010507@dev.mellanox.co.il> <20130730221548.GA14439@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51E640A6.9070902-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20130730221548.GA14439-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 17/07/2013 09:58, Or Gerlitz wrote:
-> On 17/07/2013 07:22, Hefty, Sean wrote:
->> Thanks - I pulled in these patches, but see below:
+On 7/31/2013 1:15 AM, Jason Gunthorpe wrote:
+> On Tue, Jul 30, 2013 at 11:27:15PM +0300, Yishai Hadas wrote:
 >
-> Hi Sean,
+>> Can accept it, however as it's a const pointer may need some casting later
+>> which is not fully clean.
+> Drop the const from the definition then.
 >
-> If you do this house cleanup, could you also address the below build 
-> warnings. I can see them
-> when I build rpm from the 1.0.17 tar ball, but not when doing plain 
-> make on the latest git, probably
-> b/c the build through the spec uses some more build/warnings flags.
+>>      Your suggestion for verbs_set_ctx_op can't not work as it calls internally
+>> to verbs_get_ctx_op and will may fail as
+>>      at that step function pointer was not set and *(void **)((uint8_t *)vctx +
+>> off) will be NULL.
+> Yes, that is too bad in that case, but the old macro is still flawed:
 >
+> +#define verbs_set_ctx_op(vctx, op, ptr) ({ \
+> +       if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
+> +               vctx->op = ptr; })
 >
+> - Missing () on all vctx usages
+> - Missing type enforcement on vctx
+>
+> Something like this:
+>
+> #define verbs_set_ctx_op(_vctx, op, ptr) ({ \
+>         struct verbs_context *vctx = _vctx; \
+>         if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
+>                 vctx->op = ptr; })
+>
+>>      In addition changing to use const as part of returning from
+>> __verbs_get_ctx_op causes some necessary casting to non const in some places
+>> which
+>>      is not fully clean. (e.g. free((void *)context_ex); as part of
+>> __ibv_close_device, verbs_ctx->has_comp_mask = VERBS_CONTEXT_XRCD |
+>> VERBS_CONTEXT_SRQ |
+>>                      VERBS_CONTEXT_QP; as part of mlx4_init_context)
+> It is virtually impossible to do const-correctness fully and
+> transparently in C, since the language has no feature to silently
+> propogate the const.
+>
+> If you want to be 100% clean then provide a non-const version --
+> verbs_get_ctx_nc that takes non-const input.
+     Looking around ibv_context usage, it's used as non const input, in 
+that case we can have only one version which takes non-const input and 
+return
+     non-const one, preventing any silent casting as below, can we agree 
+on ?
 
-Hi Sean,
+static inline struct verbs_context *verbs_get_ctx(
+                     struct ibv_context *ctx)
+     {
+     return (!ctx || (ctx->abi_compat != ((uint8_t *)NULL) - 1)) ?
+         NULL : container_of(ctx, struct verbs_context, context);
+     }
 
-Did you had the chance to look on cleaning these warnings too? I don't 
-think its the one Bart was fixing, correct?
-
-Or.
-
+#define verbs_get_ctx_op(ctx, op) ({ \
+     struct verbs_context *vctx = verbs_get_ctx(ctx); \
+     (!vctx || (vctx->sz < sizeof(*vctx) - offsetof(struct 
+verbs_context, op)) || \
+     !vctx->op) ? NULL : vctx; })
 >
-> configure: creating ./config.status
-> config.status: creating Makefile
-> config.status: creating librdmacm.spec
-> config.status: creating config.h
-> config.status: executing depfiles commands
-> config.status: executing libtool commands
-> + make -j2
-> make  all-am
-> make[1]: Entering directory `/usr/src/redhat/BUILD/librdmacm-1.0.17'
->   CC     src_librdmacm_la-cma.lo
->   CC     src_librdmacm_la-addrinfo.lo
-> src/addrinfo.c: In function 'ucma_convert_to_rai':
-> src/addrinfo.c:193: warning: dereferencing type-punned pointer will 
-> break strict-aliasing rules
-> src/addrinfo.c:210: warning: dereferencing type-punned pointer will 
-> break strict-aliasing rules
->   CC     src_librdmacm_la-acm.lo
->   CC     src_librdmacm_la-rsocket.lo
-> src/rsocket.c: In function 'rs_modify_svcs':
-> src/rsocket.c:403: warning: ignoring return value of 'write', declared 
-> with attribute warn_unused_result
-> src/rsocket.c:404: warning: ignoring return value of 'read', declared 
-> with attribute warn_unused_result
-> src/rsocket.c: In function 'rs_configure':
-> src/rsocket.c:460: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:465: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:473: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:478: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:483: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:491: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c:498: warning: ignoring return value of 'fscanf', 
-> declared with attribute warn_unused_result
-> src/rsocket.c: In function 'rs_svc_process_sock':
-> src/rsocket.c:3623: warning: ignoring return value of 'read', declared 
-> with attribute warn_unused_result
-> src/rsocket.c:3632: warning: ignoring return value of 'write', 
-> declared with attribute warn_unused_result
-> src/rsocket.c: In function 'rs_svc_run':
-> src/rsocket.c:3805: warning: ignoring return value of 'write', 
-> declared with attribute warn_unused_result
-> src/rsocket.c: In function 'ds_get_dest':
-> src/rsocket.c:1451: warning: 'qp' may be used uninitialized in this 
-> function
-> src/rsocket.c: In function 'rs_send_iomaps':
-> src/rsocket.c:2305: warning: 'ret' may be used uninitialized in this 
-> function
->   CC     src_librdmacm_la-indexer.lo
->   CC     src_librspreload_la-preload.lo
-> src/preload.c: In function 'dup2':
-> src/preload.c:1020: warning: value computed is not used
->   CC     src_librspreload_la-indexer.lo
->   CC     cmatose.o
->   CC     common.o
->   CC     rping.o
->   CC     udaddy.o
->   CC     mckey.o
->   CC     rdma_client.o
->   CC     rdma_server.o
->   CC     rdma_xclient.o
->   CC     rdma_xserver.o
->   CC     rstream.o
->   CC     rcopy.o
->   CC     riostream.o
->   CC     udpong.o
->   CCLD   src/librdmacm.la
->   CCLD   src/librspreload.la
->   CCLD   examples/ucmatose
->   CCLD   examples/rping
->   CCLD   examples/udaddy
->   CCLD   examples/mckey
->   CCLD   examples/rdma_client
->   CCLD   examples/rdma_server
->   CCLD   examples/rdma_xclient
->   CCLD   examples/rdma_xserver
->   CCLD   examples/rstream
->   CCLD   examples/rcopy
->   CCLD   examples/riostream
->   CCLD   examples/udpong
-> make[1]: Leaving directory `/usr/src/redhat/BUILD/librdmacm-1.0.17'
-> + exit 0
-> Executing(%install): /bin/sh -e /var/tmp/rpm-tmp.10929
+> Functions that silently discard const are bad since it silently
+> defeats static analysis around const.
 >
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>      I recommend staying with V8 suggestion for both macros, in case
+>> you think there is any problem with missing () for the set operation
+>> please point on and may handle.
+> Using the inline to help the -Os case is definitely desirable, and the
+> fix to the () at least.
+>   
+     Will stay with the macro, improved to your suggestion above.
+     Are you fine with below definition ? any other () needed ?
+
+   #define verbs_set_ctx_op(_vctx, op, ptr) ({ \
+        struct verbs_context *vctx = _vctx; \
+        if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
+                vctx->op = ptr; })
+
+> Jason
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
