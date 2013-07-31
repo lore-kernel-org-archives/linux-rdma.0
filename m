@@ -1,28 +1,39 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH librdmacm 3/8] autogen.sh: Use autoreconf in autogen.sh
-Date: Wed, 31 Jul 2013 20:20:45 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CA1FCB@ORSMSX109.amr.corp.intel.com>
-References: <cover.1374011243.git.ydroneaud@opteya.com>
- <317ae98daf0eec49ffb297a5fc59b3738366af6d.1374011243.git.ydroneaud@opteya.com>
- <1828884A29C6694DAF28B7E6B8A82373805AECD6@ORSMSX109.amr.corp.intel.com>
- <51E640A6.9070902@mellanox.com> <51F8B5B1.3010003@mellanox.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V1 FIXES for-3.11 0/4] Pkey fixes for IB core and IPoIB
+Date: Wed, 31 Jul 2013 23:29:45 +0300
+Message-ID: <CAJZOPZLVQhZtWyCJLt3W-COdHZnsrBaN+KOpj83d0GyS+RY+QA@mail.gmail.com>
+References: <1374145352-27816-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51F8B5B1.3010003-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1374145352-27816-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Did you had the chance to look on cleaning these warnings too? I don't
-> think its the one Bart was fixing, correct?
+On Thu, Jul 18, 2013 at 2:02 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> This set of fixes is critical for Virtualization environments when the VM
+> para-virtualized PKEY table isn't fully configured at the time the
+> VF is probed, or when the management pkey is provisioned to non-zero index
+> in the VF pkey table.
 
-I have not.  I saved your email, but have not had time to try fixing the warnings.
+Roland,
 
-- Sean
+So what's about this series, any reason not to push it for 3.11 too
+with the other changes you have picked into the for-next branch? ditto
+for the iser patches to use fast-reg.
+
+Or.
+
+> The first three patches are pretty much few liners (two of them with somehow
+> long change log...). The forth one a bit larger. Would be happy to see them
+> all going to -stable, either by you adding a Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org when
+> you push them or I can send them to Greg after they spend some time upstream.
+
+> Changes from V0:
+>   - applied feedback from Sean on the IB core patch and added his
+> review-by
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
