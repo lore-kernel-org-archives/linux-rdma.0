@@ -1,21 +1,26 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 4/4] Declare 'server_port' as an unsigned variable
-Date: Wed, 31 Jul 2013 01:24:13 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CA1DE7@ORSMSX109.amr.corp.intel.com>
-References: <51F4E1B2.7070203@acm.org> <51F4E276.2090800@acm.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] mlx5: fix error return code in mlx5_alloc_uuars()
+Date: Tue, 30 Jul 2013 19:34:02 -0700 (PDT)
+Message-ID: <20130730.193402.158391859266321153.davem@davemloft.net>
+References: <CAPgLHd-BWzEPhH=Otzyc5p-MEm7MXQNvEPTyYhRLzq4d=FT2tg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51F4E276.2090800-HInyCGIudOg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAPgLHd-BWzEPhH=Otzyc5p-MEm7MXQNvEPTyYhRLzq4d=FT2tg@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: weiyj.lk@gmail.com
+Cc: eli@mellanox.com, yongjun_wei@trendmicro.com.cn, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks - applied all 4
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Date: Tue, 30 Jul 2013 07:57:06 +0800
+
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> Fix to return -ENOMEM from the ioremap error handling
+> case instead of 0, as done elsewhere in this function.
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+
+Applied, thanks.
