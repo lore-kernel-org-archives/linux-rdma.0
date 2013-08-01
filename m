@@ -1,338 +1,211 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V9 libibverbs 3/7] Add support for XRC SRQs
-Date: Thu,  1 Aug 2013 18:04:15 +0300
-Message-ID: <1375369459-9231-4-git-send-email-yishaih@mellanox.com>
-References: <1375369459-9231-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V9 libmlx4 1/2] Infra-structure changes to support verbs extensions
+Date: Thu,  1 Aug 2013 18:05:54 +0300
+Message-ID: <1375369555-11416-2-git-send-email-yishaih@mellanox.com>
+References: <1375369555-11416-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1375369459-9231-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1375369555-11416-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This patch implements the infrastructure for working with verbs extension.
+It registers with libibverbs with verbs_register_driver function to indicate
+supporting verbs extension, supplying its verbs_init_func for further initialization.
+Later on worked based on verbs extension scheme as was defined by libibverbs.
 
-XRC support requires the use of a new type of SRQ.
-XRC shared receive queues: xrc srq's are similar to normal
-srq's, except that they are bound to an xrcd, rather
-than to a protection domain.  Based on the current spec
-and implementation, they are only usable with xrc qps.  To
-support xrc srq's, we define a new srq_init_attr structure
-to include an srq type and other needed information.
-
-The kernel ABI is also updated to allow creating extended
-SRQs.
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Acked-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/driver.h   |   32 +++++++++++++++++
- include/infiniband/kern-abi.h |   21 +++++++++++-
- include/infiniband/verbs.h    |   62 +++++++++++++++++++++++++++++++++-
- src/cmd.c                     |   75 +++++++++++++++++++++++++++++++++++++++++
- src/libibverbs.map            |    2 +
- 5 files changed, 190 insertions(+), 2 deletions(-)
 
-diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index 08d8a82..11f52c2 100644
---- a/include/infiniband/driver.h
-+++ b/include/infiniband/driver.h
-@@ -64,6 +64,23 @@ struct verbs_xrcd {
- 	uint32_t		handle;
+Changes from V8:
+to_mdev - moved to use container_of
+mlx4_alloc_context - fixed comment to use verbs_set_ctx_op
+
+
+ src/mlx4.c |   74 +++++++++++++++++++++++++++++++----------------------------
+ src/mlx4.h |    7 ++++-
+ 2 files changed, 44 insertions(+), 37 deletions(-)
+
+diff --git a/src/mlx4.c b/src/mlx4.c
+index 4cef2b9..04e6681 100644
+--- a/src/mlx4.c
++++ b/src/mlx4.c
+@@ -120,7 +120,8 @@ static struct ibv_context_ops mlx4_ctx_ops = {
+ 	.detach_mcast  = ibv_cmd_detach_mcast
  };
  
-+enum verbs_srq_mask {
-+	VERBS_SRQ_TYPE		= 1 << 0,
-+	VERBS_SRQ_XRCD		= 1 << 1,
-+	VERBS_SRQ_CQ		= 1 << 2,
-+	VERBS_SRQ_NUM		= 1 << 3,
-+	VERBS_SRQ_RESERVED	= 1 << 4
-+};
-+
-+struct verbs_srq {
-+	struct ibv_srq		srq;
-+	uint32_t		comp_mask;
-+	enum ibv_srq_type	srq_type;
-+	struct verbs_xrcd      *xrcd;
-+	struct ibv_cq	       *cq;
-+	uint32_t		srq_num;
-+};
-+
- typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
- 						   int abi_version);
- typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
-@@ -119,6 +136,11 @@ int ibv_cmd_create_srq(struct ibv_pd *pd,
- 		       struct ibv_srq *srq, struct ibv_srq_init_attr *attr,
- 		       struct ibv_create_srq *cmd, size_t cmd_size,
- 		       struct ibv_create_srq_resp *resp, size_t resp_size);
-+int ibv_cmd_create_srq_ex(struct ibv_context *context,
-+			  struct verbs_srq *srq, int vsrq_sz,
-+			  struct ibv_srq_init_attr_ex *attr_ex,
-+			  struct ibv_create_xsrq *cmd, size_t cmd_size,
-+			  struct ibv_create_srq_resp *resp, size_t resp_size);
- int ibv_cmd_modify_srq(struct ibv_srq *srq,
- 		       struct ibv_srq_attr *srq_attr,
- 		       int srq_attr_mask,
-@@ -163,4 +185,14 @@ const char *ibv_get_sysfs_path(void);
- int ibv_read_sysfs_file(const char *dir, const char *file,
- 			char *buf, size_t size);
+-static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_fd)
++static int mlx4_init_context(struct verbs_device *v_device,
++				struct ibv_context *ibv_ctx, int cmd_fd)
+ {
+ 	struct mlx4_context	       *context;
+ 	struct ibv_get_context		cmd;
+@@ -128,26 +129,30 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
+ 	int				i;
+ 	struct mlx4_alloc_ucontext_resp_v3 resp_v3;
+ 	__u16				bf_reg_size;
+-	struct mlx4_device		*dev = to_mdev(ibdev);
++	struct mlx4_device              *dev = to_mdev(&v_device->device);
++	/* verbs_context should be used for new verbs
++	* struct verbs_context *verbs_ctx = verbs_get_ctx(ibv_ctx);
++	*/
  
-+static inline int verbs_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
-+{
-+	struct verbs_srq *vsrq = container_of(srq, struct verbs_srq, srq);
-+	if (vsrq->comp_mask & VERBS_SRQ_NUM) {
-+		*srq_num = vsrq->srq_num;
-+		return 0;
-+	}
-+	return ENOSYS;
-+}
-+
- #endif /* INFINIBAND_DRIVER_H */
-diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index 6f40ad2..ef93cc3 100644
---- a/include/infiniband/kern-abi.h
-+++ b/include/infiniband/kern-abi.h
-@@ -88,6 +88,7 @@ enum {
- 	IB_USER_VERBS_CMD_POST_SRQ_RECV,
- 	IB_USER_VERBS_CMD_OPEN_XRCD,
- 	IB_USER_VERBS_CMD_CLOSE_XRCD,
-+	IB_USER_VERBS_CMD_CREATE_XSRQ
- };
+-	context = calloc(1, sizeof *context);
+-	if (!context)
+-		return NULL;
  
- /*
-@@ -730,11 +731,28 @@ struct ibv_create_srq {
- 	__u64 driver_data[0];
- };
+-	context->ibv_ctx.cmd_fd = cmd_fd;
++	/* memory footprint of mlx4_context and verbs_context share
++	* struct ibv_context.
++	*/
++	context = to_mctx(ibv_ctx);
++	ibv_ctx->cmd_fd = cmd_fd;
  
-+struct ibv_create_xsrq {
-+	__u32 command;
-+	__u16 in_words;
-+	__u16 out_words;
-+	__u64 response;
-+	__u64 user_handle;
-+	__u32 srq_type;
-+	__u32 pd_handle;
-+	__u32 max_wr;
-+	__u32 max_sge;
-+	__u32 srq_limit;
-+	__u32 reserved;
-+	__u32 xrcd_handle;
-+	__u32 cq_handle;
-+	__u64 driver_data[0];
-+};
-+
- struct ibv_create_srq_resp {
- 	__u32 srq_handle;
- 	__u32 max_wr;
- 	__u32 max_sge;
--	__u32 reserved;
-+	__u32 srqn;
- };
+ 	if (dev->abi_version <= MLX4_UVERBS_NO_DEV_CAPS_ABI_VERSION) {
+-		if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof cmd,
++		if (ibv_cmd_get_context(ibv_ctx, &cmd, sizeof cmd,
+ 					&resp_v3.ibv_resp, sizeof resp_v3))
+-			goto err_free;
++			return errno;
  
- struct ibv_modify_srq {
-@@ -829,6 +847,7 @@ enum {
- 	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
- 	IB_USER_VERBS_CMD_OPEN_XRCD_V2 = -1,
- 	IB_USER_VERBS_CMD_CLOSE_XRCD_V2 = -1,
-+	IB_USER_VERBS_CMD_CREATE_XSRQ_V2 = -1
- };
+ 		context->num_qps  = resp_v3.qp_tab_size;
+ 		bf_reg_size	  = resp_v3.bf_reg_size;
+ 		context->cqe_size = sizeof (struct mlx4_cqe);
+ 	} else  {
+-		if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof cmd,
++		if (ibv_cmd_get_context(ibv_ctx, &cmd, sizeof cmd,
+ 					&resp.ibv_resp, sizeof resp))
+-			goto err_free;
++			return errno;
  
- struct ibv_modify_srq_v3 {
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index ad4ab6d..1048d5d 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -451,6 +451,30 @@ struct ibv_srq_init_attr {
- 	struct ibv_srq_attr	attr;
- };
+ 		context->num_qps  = resp.qp_tab_size;
+ 		bf_reg_size	  = resp.bf_reg_size;
+@@ -169,15 +174,15 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
  
-+enum ibv_srq_type {
-+	IBV_SRQT_BASIC,
-+	IBV_SRQT_XRC
-+};
-+
-+enum ibv_srq_init_attr_mask {
-+	IBV_SRQ_INIT_ATTR_TYPE		= 1 << 0,
-+	IBV_SRQ_INIT_ATTR_PD		= 1 << 1,
-+	IBV_SRQ_INIT_ATTR_XRCD		= 1 << 2,
-+	IBV_SRQ_INIT_ATTR_CQ		= 1 << 3,
-+	IBV_SRQ_INIT_ATTR_RESERVED	= 1 << 4
-+};
-+
-+struct ibv_srq_init_attr_ex {
-+	void		       *srq_context;
-+	struct ibv_srq_attr	attr;
-+
-+	uint32_t		comp_mask;
-+	enum ibv_srq_type	srq_type;
-+	struct ibv_pd	       *pd;
-+	struct ibv_xrcd	       *xrcd;
-+	struct ibv_cq	       *cq;
-+};
-+
- enum ibv_qp_type {
- 	IBV_QPT_RC = 2,
- 	IBV_QPT_UC,
-@@ -771,11 +795,15 @@ struct ibv_context {
+ 	pthread_mutex_init(&context->db_list_mutex, NULL);
  
- enum verbs_context_mask {
- 	VERBS_CONTEXT_XRCD	= 1 << 0,
--	VERBS_CONTEXT_RESERVED	= 1 << 1
-+	VERBS_CONTEXT_SRQ	= 1 << 1,
-+	VERBS_CONTEXT_RESERVED	= 1 << 2
- };
+-	context->uar = mmap(NULL, to_mdev(ibdev)->page_size, PROT_WRITE,
++	context->uar = mmap(NULL, dev->page_size, PROT_WRITE,
+ 			    MAP_SHARED, cmd_fd, 0);
+ 	if (context->uar == MAP_FAILED)
+-		goto err_free;
++		return errno;
  
- struct verbs_context {
- 	/*  "grows up" - new fields go here */
-+	int (*get_srq_num)(struct ibv_srq *srq, uint32_t *srq_num);
-+	struct ibv_srq *	(*create_srq_ex)(struct ibv_context *context,
-+						 struct ibv_srq_init_attr_ex *srq_init_attr_ex);
- 	struct ibv_xrcd *	(*open_xrcd)(struct ibv_context *context,
- 					     struct ibv_xrcd_init_attr *xrcd_init_attr);
- 	int			(*close_xrcd)(struct ibv_xrcd *xrcd);
-@@ -1063,6 +1091,28 @@ static inline int ibv_req_notify_cq(struct ibv_cq *cq, int solicited_only)
- struct ibv_srq *ibv_create_srq(struct ibv_pd *pd,
- 			       struct ibv_srq_init_attr *srq_init_attr);
+ 	if (bf_reg_size) {
+-		context->bf_page = mmap(NULL, to_mdev(ibdev)->page_size,
++		context->bf_page = mmap(NULL, dev->page_size,
+ 					PROT_WRITE, MAP_SHARED, cmd_fd,
+-					to_mdev(ibdev)->page_size);
++					dev->page_size);
+ 		if (context->bf_page == MAP_FAILED) {
+ 			fprintf(stderr, PFX "Warning: BlueFlame available, "
+ 				"but failed to mmap() BlueFlame page.\n");
+@@ -194,32 +199,25 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
+ 	}
  
-+static inline struct ibv_srq *
-+ibv_create_srq_ex(struct ibv_context *context,
-+		  struct ibv_srq_init_attr_ex *srq_init_attr_ex)
-+{
-+	struct verbs_context *vctx;
-+	uint32_t mask = srq_init_attr_ex->comp_mask;
-+
-+	if (!(mask & ~(IBV_SRQ_INIT_ATTR_PD | IBV_SRQ_INIT_ATTR_TYPE)) &&
-+	    (mask & IBV_SRQ_INIT_ATTR_PD) &&
-+	    (!(mask & IBV_SRQ_INIT_ATTR_TYPE) ||
-+	     (srq_init_attr_ex->srq_type == IBV_SRQT_BASIC)))
-+		return ibv_create_srq(srq_init_attr_ex->pd,
-+				      (struct ibv_srq_init_attr *)srq_init_attr_ex);
-+
-+	vctx = verbs_get_ctx_op(context, create_srq_ex);
-+	if (!vctx) {
-+		errno = ENOSYS;
-+		return NULL;
-+	}
-+	return vctx->create_srq_ex(context, srq_init_attr_ex);
-+}
-+
- /**
-  * ibv_modify_srq - Modifies the attributes for the specified SRQ.
-  * @srq: The SRQ to modify.
-@@ -1087,6 +1137,16 @@ int ibv_modify_srq(struct ibv_srq *srq,
-  */
- int ibv_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr);
+ 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
++	ibv_ctx->ops = mlx4_ctx_ops;
++	/* New verbs should be added by using verbs_set_ctx_op */
  
-+static inline int ibv_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
-+{
-+	struct verbs_context *vctx = verbs_get_ctx_op(srq->context, get_srq_num);
-+
-+	if (!vctx)
-+		return ENOSYS;
-+
-+	return vctx->get_srq_num(srq, srq_num);
-+}
-+
- /**
-  * ibv_destroy_srq - Destroys the specified SRQ.
-  * @srq: The SRQ to destroy.
-diff --git a/src/cmd.c b/src/cmd.c
-index f3d590a..fae2846 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -442,6 +442,81 @@ int ibv_cmd_create_srq(struct ibv_pd *pd,
- 	return 0;
+-	context->ibv_ctx.ops = mlx4_ctx_ops;
+-
+-	return &context->ibv_ctx;
++	return 0;
+ 
+-err_free:
+-	free(context);
+-	return NULL;
  }
  
-+int ibv_cmd_create_srq_ex(struct ibv_context *context,
-+			  struct verbs_srq *srq, int vsrq_sz,
-+			  struct ibv_srq_init_attr_ex *attr_ex,
-+			  struct ibv_create_xsrq *cmd, size_t cmd_size,
-+			  struct ibv_create_srq_resp *resp, size_t resp_size)
-+{
-+	struct verbs_xrcd *vxrcd = NULL;
-+
-+	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_XSRQ, resp, resp_size);
-+
-+	if (attr_ex->comp_mask >= IBV_SRQ_INIT_ATTR_RESERVED)
-+		return ENOSYS;
-+
-+	if (!(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_PD))
-+		return EINVAL;
-+
-+	cmd->user_handle = (uintptr_t) srq;
-+	cmd->pd_handle   = attr_ex->pd->handle;
-+	cmd->max_wr      = attr_ex->attr.max_wr;
-+	cmd->max_sge     = attr_ex->attr.max_sge;
-+	cmd->srq_limit   = attr_ex->attr.srq_limit;
-+
-+	cmd->srq_type = (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ?
-+			attr_ex->srq_type : IBV_SRQT_BASIC;
-+	if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) {
-+		if (!(attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ))
-+			return EINVAL;
-+
-+		vxrcd = container_of(attr_ex->xrcd, struct verbs_xrcd, xrcd);
-+		cmd->xrcd_handle = vxrcd->handle;
-+		cmd->cq_handle   = attr_ex->cq->handle;
-+	}
-+
-+	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
-+		return errno;
-+
-+	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
-+
-+	srq->srq.handle           = resp->srq_handle;
-+	srq->srq.context          = context;
-+	srq->srq.srq_context      = attr_ex->srq_context;
-+	srq->srq.pd               = attr_ex->pd;
-+	srq->srq.events_completed = 0;
-+	pthread_mutex_init(&srq->srq.mutex, NULL);
-+	pthread_cond_init(&srq->srq.cond, NULL);
-+
-+	/*
-+	 * check that the last field is available.
-+	 * If it is than all the others exist as well
-+	 */
-+	if (vext_field_avail(struct verbs_srq, srq_num, vsrq_sz)) {
-+		srq->comp_mask = IBV_SRQ_INIT_ATTR_TYPE;
-+		srq->srq_type = (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_TYPE) ?
-+				attr_ex->srq_type : IBV_SRQT_BASIC;
-+		if (srq->srq_type == IBV_SRQT_XRC) {
-+			srq->comp_mask |= VERBS_SRQ_NUM;
-+			srq->srq_num = resp->srqn;
-+		}
-+		if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_XRCD) {
-+			srq->comp_mask |= VERBS_SRQ_XRCD;
-+			srq->xrcd = vxrcd;
-+		}
-+		if (attr_ex->comp_mask & IBV_SRQ_INIT_ATTR_CQ) {
-+			srq->comp_mask |= VERBS_SRQ_CQ;
-+			srq->cq = attr_ex->cq;
-+		}
-+	}
-+
-+	attr_ex->attr.max_wr = resp->max_wr;
-+	attr_ex->attr.max_sge = resp->max_sge;
-+
-+	return 0;
-+}
-+
-+
- static int ibv_cmd_modify_srq_v3(struct ibv_srq *srq,
- 				 struct ibv_srq_attr *srq_attr,
- 				 int srq_attr_mask,
-diff --git a/src/libibverbs.map b/src/libibverbs.map
-index c190eb9..a4b089f 100644
---- a/src/libibverbs.map
-+++ b/src/libibverbs.map
-@@ -103,4 +103,6 @@ IBVERBS_1.1 {
+-static void mlx4_free_context(struct ibv_context *ibctx)
++static void mlx4_uninit_context(struct verbs_device *v_device,
++					struct ibv_context *ibv_ctx)
+ {
+-	struct mlx4_context *context = to_mctx(ibctx);
++	struct mlx4_context *context = to_mctx(ibv_ctx);
  
- 		ibv_cmd_open_xrcd;
- 		ibv_cmd_close_xrcd;
-+		ibv_cmd_create_srq_ex;
+-	munmap(context->uar, to_mdev(ibctx->device)->page_size);
++	munmap(context->uar, to_mdev(&v_device->device)->page_size);
+ 	if (context->bf_page)
+-		munmap(context->bf_page, to_mdev(ibctx->device)->page_size);
+-	free(context);
+-}
++		munmap(context->bf_page, to_mdev(&v_device->device)->page_size);
+ 
+-static struct ibv_device_ops mlx4_dev_ops = {
+-	.alloc_context = mlx4_alloc_context,
+-	.free_context  = mlx4_free_context
+-};
++}
+ 
+-static struct ibv_device *mlx4_driver_init(const char *uverbs_sys_path, int abi_version)
++static struct verbs_device *mlx4_driver_init(const char *uverbs_sys_path, int abi_version)
+ {
+ 	char			value[8];
+ 	struct mlx4_device    *dev;
+@@ -254,24 +252,30 @@ found:
+ 		return NULL;
+ 	}
+ 
+-	dev = malloc(sizeof *dev);
++	dev = calloc(1, sizeof *dev);
+ 	if (!dev) {
+ 		fprintf(stderr, PFX "Fatal: couldn't allocate device for %s\n",
+ 			uverbs_sys_path);
+ 		return NULL;
+ 	}
+ 
+-	dev->ibv_dev.ops = mlx4_dev_ops;
+ 	dev->page_size   = sysconf(_SC_PAGESIZE);
+ 	dev->abi_version = abi_version;
+ 
+-	return &dev->ibv_dev;
++	dev->verbs_dev.sz = sizeof(*dev);
++	dev->verbs_dev.size_of_context =
++		sizeof(struct mlx4_context) - sizeof(struct ibv_context);
++	/* mlx4_init_context will initialize provider calls */
++	dev->verbs_dev.init_context = mlx4_init_context;
++	dev->verbs_dev.uninit_context = mlx4_uninit_context;
 +
- } IBVERBS_1.0;
++	return &dev->verbs_dev;
+ }
+ 
+ #ifdef HAVE_IBV_REGISTER_DRIVER
+ static __attribute__((constructor)) void mlx4_register_driver(void)
+ {
+-	ibv_register_driver("mlx4", mlx4_driver_init);
++	verbs_register_driver("mlx4", mlx4_driver_init);
+ }
+ #else
+ /*
+diff --git a/src/mlx4.h b/src/mlx4.h
+index be7a632..0380883 100644
+--- a/src/mlx4.h
++++ b/src/mlx4.h
+@@ -131,7 +131,7 @@ enum {
+ };
+ 
+ struct mlx4_device {
+-	struct ibv_device		ibv_dev;
++	struct verbs_device		verbs_dev;
+ 	int				page_size;
+ 	int				abi_version;
+ };
+@@ -276,7 +276,10 @@ static inline unsigned long align(unsigned long val, unsigned long align)
+ 
+ static inline struct mlx4_device *to_mdev(struct ibv_device *ibdev)
+ {
+-	return to_mxxx(dev, device);
++	/* ibv_device is first field of verbs_device
++	  * see try_driver in libibverbs.
++	*/
++	return container_of(ibdev, struct mlx4_device, verbs_dev);
+ }
+ 
+ static inline struct mlx4_context *to_mctx(struct ibv_context *ibctx)
 -- 
 1.7.1
 
