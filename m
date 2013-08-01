@@ -1,39 +1,32 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 FIXES for-3.11 0/4] Pkey fixes for IB core and IPoIB
-Date: Wed, 31 Jul 2013 23:29:45 +0300
-Message-ID: <CAJZOPZLVQhZtWyCJLt3W-COdHZnsrBaN+KOpj83d0GyS+RY+QA@mail.gmail.com>
-References: <1374145352-27816-1-git-send-email-ogerlitz@mellanox.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH for-3.11 2/3] rdma/cm: Fix accessing invalid private
+ data for UD
+Date: Thu, 1 Aug 2013 05:46:54 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CA214E@ORSMSX109.amr.corp.intel.com>
+References: <1374703569-16668-1-git-send-email-sean.hefty@intel.com>
+ <1374703569-16668-3-git-send-email-sean.hefty@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1374145352-27816-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1374703569-16668-3-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 18, 2013 at 2:02 PM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> This set of fixes is critical for Virtualization environments when the VM
-> para-virtualized PKEY table isn't fully configured at the time the
-> VF is probed, or when the management pkey is provisioned to non-zero index
-> in the VF pkey table.
+> If a application is using AF_IB with a UD QP, but does not
+> provide any private data, we will end up accessing invalid
+> memory.  Check for this case and handle it appropriately.
+> 
+> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Roland,
+Roland, hold off on this patch, but please push the other 2 for 3-11.
 
-So what's about this series, any reason not to push it for 3.11 too
-with the other changes you have picked into the for-next branch? ditto
-for the iser patches to use fast-reg.
+After looking at this patch again, it doesn't end up doing much more than introducing a stack variable as an alias for the private data.  The problem I was trying to fix (conn_param->private_data_len too small) shouldn't result in a crash.
 
-Or.
+- Sean
 
-> The first three patches are pretty much few liners (two of them with somehow
-> long change log...). The forth one a bit larger. Would be happy to see them
-> all going to -stable, either by you adding a Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org when
-> you push them or I can send them to Greg after they spend some time upstream.
-
-> Changes from V0:
->   - applied feedback from Sean on the IB core patch and added his
-> review-by
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
