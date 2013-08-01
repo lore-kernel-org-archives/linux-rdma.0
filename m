@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V9 libibverbs 6/7] XRC man pages
-Date: Thu,  1 Aug 2013 18:04:18 +0300
-Message-ID: <1375369459-9231-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V9 libibverbs 1/7] Infrastructure to support verbs extensions
+Date: Thu,  1 Aug 2013 18:04:13 +0300
+Message-ID: <1375369459-9231-2-git-send-email-yishaih@mellanox.com>
 References: <1375369459-9231-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1375369459-9231-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,397 +10,720 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPg
 Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Infrastructure to support extended verbs capabilities in a forward/backward
+manner.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Support for extensions is determeind by the provider calling
+verbs_register_driver in place of ibv_register_driver.  When
+extensions are enabled, ibverbs sets the current alloc_context /
+free_context device operations to NULL.  These are used to
+indicate that the struct ibv_device may be cast to struct
+verbs_device.
+
+With extensions, ibverbs allocates the ibv_context structure
+and calls into the provider to initialize it.  The init call
+is part of the verbs_device struct.
+
+The abi_compat field of struct ibv_context is used to determine
+support of verbs extensions.  As a result, support for ABI version <
+2 is removed (corresponds to kernel releases 2.6.11-2.6.14 no
+longer being supported).  The lowest ABI now supported is 3 (really
+4 since 2.6.15 was ABI 4, I don't see that ABI 3 was in a release).
+
+Acked-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- Makefile.am             |    8 +++-
- man/ibv_create_qp_ex.3  |   83 +++++++++++++++++++++++++++++++++++++++++++++++
- man/ibv_create_srq_ex.3 |   71 ++++++++++++++++++++++++++++++++++++++++
- man/ibv_get_srq_num.3   |   32 ++++++++++++++++++
- man/ibv_open_qp.3       |   51 +++++++++++++++++++++++++++++
- man/ibv_open_xrcd.3     |   76 +++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 319 insertions(+), 2 deletions(-)
- create mode 100644 man/ibv_create_qp_ex.3
- create mode 100644 man/ibv_create_srq_ex.3
- create mode 100644 man/ibv_get_srq_num.3
- create mode 100644 man/ibv_open_qp.3
- create mode 100644 man/ibv_open_xrcd.3
 
-diff --git a/Makefile.am b/Makefile.am
-index 40e83be..aa6097a 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -54,7 +54,9 @@ man_MANS = man/ibv_asyncwatch.1 man/ibv_devices.1 man/ibv_devinfo.1	\
-     man/ibv_post_srq_recv.3 man/ibv_query_device.3 man/ibv_query_gid.3	\
-     man/ibv_query_pkey.3 man/ibv_query_port.3 man/ibv_query_qp.3	\
-     man/ibv_query_srq.3 man/ibv_rate_to_mult.3 man/ibv_reg_mr.3		\
--    man/ibv_req_notify_cq.3 man/ibv_resize_cq.3 man/ibv_rate_to_mbps.3
-+    man/ibv_req_notify_cq.3 man/ibv_resize_cq.3 man/ibv_rate_to_mbps.3  \
-+    man/ibv_create_qp_ex.3 man/ibv_create_srq_ex.3 man/ibv_open_xrcd.3  \
-+    man/ibv_get_srq_num.3 man/ibv_open_qp.3
+Changes from v8:
+
+container_of - changed macro to use uint_8* instead of char* .
+__VERBS_ABI_IS_EXTENDED - new macro to indicate that verbs extended is used.
+verbs_set_ctx_op - improved to include type checking.
+verbs_get_ctx - changed to use non-const in ibv_context as used all around, now it's
+ in/out const consistent.
+
+
+Change from v7:
+Added an helper macro for v.ext, named verbs_set_ctx_op, being used in
+farther patches.
+Fixed "container_of" to match c99 standard.
+
+ include/infiniband/driver.h   |    3 +
+ include/infiniband/kern-abi.h |   43 +--------------
+ include/infiniband/verbs.h    |   62 ++++++++++++++++++++
+ src/cmd.c                     |  125 +----------------------------------------
+ src/device.c                  |   53 +++++++++++++----
+ src/init.c                    |   41 +++++++++++--
+ src/kern_abi.h                |  101 ---------------------------------
+ src/libibverbs.map            |    1 +
+ 8 files changed, 144 insertions(+), 285 deletions(-)
+ delete mode 100644 src/kern_abi.h
+
+diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+index 9a81416..f22f287 100644
+--- a/include/infiniband/driver.h
++++ b/include/infiniband/driver.h
+@@ -55,8 +55,11 @@
  
- DEBIAN = debian/changelog debian/compat debian/control debian/copyright \
-     debian/ibverbs-utils.install debian/libibverbs1.install \
-@@ -89,6 +91,7 @@ install-data-hook:
- 	$(RM) ibv_node_type_str.3 && \
- 	$(RM) ibv_port_state_str.3 && \
- 	$(RM) mbps_to_ibv_rate.3 && \
-+	$(RM) ibv_close_xrcd.3 && \
- 	$(LN_S) ibv_get_async_event.3 ibv_ack_async_event.3 && \
- 	$(LN_S) ibv_get_cq_event.3 ibv_ack_cq_events.3 && \
- 	$(LN_S) ibv_open_device.3 ibv_close_device.3 && \
-@@ -105,4 +108,5 @@ install-data-hook:
- 	$(LN_S) ibv_rate_to_mult.3 mult_to_ibv_rate.3 && \
- 	$(LN_S) ibv_event_type_str.3 ibv_node_type_str.3 && \
- 	$(LN_S) ibv_event_type_str.3 ibv_port_state_str.3 && \
--	$(LN_S) ibv_rate_to_mbps.3 mbps_to_ibv_rate.3
-+	$(LN_S) ibv_rate_to_mbps.3 mbps_to_ibv_rate.3 && \
-+	$(LN_S) ibv_open_xrcd.3 ibv_close_xrcd.3
-diff --git a/man/ibv_create_qp_ex.3 b/man/ibv_create_qp_ex.3
-new file mode 100644
-index 0000000..f772a57
---- /dev/null
-+++ b/man/ibv_create_qp_ex.3
-@@ -0,0 +1,83 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_CREATE_QP_EX 3 2013-06-26 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_create_qp_ex, ibv_destroy_qp \- create or destroy a queue pair (QP)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_qp *ibv_create_qp_ex(struct ibv_context " "*context" ,
-+.BI "                                struct ibv_qp_init_attr_ex " "*qp_init_attr" );
-+.sp
-+.BI "int ibv_destroy_qp(struct ibv_qp " "*qp" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_create_qp_ex()
-+creates a queue pair (QP) associated with the protection domain
-+.I pd\fR.
-+The argument
-+.I qp_init_attr_ex
-+is an ibv_qp_init_attr_ex struct, as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
-+struct ibv_qp_init_attr_ex {
-+.in +8
-+void                   *qp_context;     /* Associated context of the QP */
-+struct ibv_cq          *send_cq;        /* CQ to be associated with the Send Queue (SQ) */
-+struct ibv_cq          *recv_cq;        /* CQ to be associated with the Receive Queue (RQ) */
-+struct ibv_srq         *srq;            /* SRQ handle if QP is to be associated with an SRQ, otherwise NULL */
-+struct ibv_qp_cap       cap;            /* QP capabilities */
-+enum ibv_qp_type        qp_type;        /* QP Transport Service Type: IBV_QPT_RC, IBV_QPT_UC, IBV_QPT_UD or IBV_QPT_RAW_PACKET */
-+int                     sq_sig_all;     /* If set, each Work Request (WR) submitted to the SQ generates a completion entry */
-+uint32_t                comp_mask;	/* Identifies valid fields */
-+struct ibv_pd          *pd;		/* PD to be associated with the QP */
-+struct ibv_xrcd        *xrcd;		/* XRC domain to be associated with the target QP */
-+enum ibv_qp_create_flags create_flags;	/* Creation flags for this QP */
-+.in -8
+ typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
+ 						   int abi_version);
++typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
++						       int abi_version);
+ 
+ void ibv_register_driver(const char *name, ibv_driver_init_func init_func);
++void verbs_register_driver(const char *name, verbs_driver_init_func init_func);
+ int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
+ 			size_t cmd_size, struct ibv_get_context_resp *resp,
+ 			size_t resp_size);
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index 619ea7e..e7f8981 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -45,7 +45,7 @@
+ /*
+  * The minimum and maximum kernel ABI that we can handle.
+  */
+-#define IB_USER_VERBS_MIN_ABI_VERSION	1
++#define IB_USER_VERBS_MIN_ABI_VERSION	3
+ #define IB_USER_VERBS_MAX_ABI_VERSION	6
+ 
+ enum {
+@@ -806,47 +806,6 @@ enum {
+ 	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
+ };
+ 
+-struct ibv_destroy_cq_v1 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u32 cq_handle;
+-};
+-
+-struct ibv_destroy_qp_v1 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u32 qp_handle;
+-};
+-
+-struct ibv_destroy_srq_v1 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u32 srq_handle;
+-};
+-
+-struct ibv_get_context_v2 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u64 response;
+-	__u64 cq_fd_tab;
+-	__u64 driver_data[0];
+-};
+-
+-struct ibv_create_cq_v2 {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u64 response;
+-	__u64 user_handle;
+-	__u32 cqe;
+-	__u32 event_handler;
+-	__u64 driver_data[0];
+-};
+-
+ struct ibv_modify_srq_v3 {
+ 	__u32 command;
+ 	__u16 in_words;
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 4b1ab57..55ab1a4 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -38,6 +38,7 @@
+ 
+ #include <stdint.h>
+ #include <pthread.h>
++#include <stddef.h>
+ 
+ #ifdef __cplusplus
+ #  define BEGIN_C_DECLS extern "C" {
+@@ -63,6 +64,22 @@ union ibv_gid {
+ 	} global;
+ };
+ 
++#ifndef container_of
++/**
++  * container_of - cast a member of a structure out to the containing structure
++  * @ptr:        the pointer to the member.
++  * @type:       the type of the container struct this is embedded in.
++  * @member:     the name of the member within the struct.
++  *
++ */
++#define container_of(ptr, type, member) \
++	((type *) ((uint8_t *)(ptr) - offsetof(type, member)))
++#endif
++
++#define vext_field_avail(type, fld, sz) (offsetof(type, fld) < (sz))
++
++static void *__VERBS_ABI_IS_EXTENDED = ((uint8_t *)NULL) - 1;
++
+ enum ibv_node_type {
+ 	IBV_NODE_UNKNOWN	= -1,
+ 	IBV_NODE_CA 		= 1,
+@@ -656,6 +673,17 @@ struct ibv_device {
+ 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
+ };
+ 
++struct verbs_device {
++	struct ibv_device device; /* Must be first */
++	size_t	sz;
++	size_t	size_of_context;
++	int	(*init_context)(struct verbs_device *device,
++				struct ibv_context *ctx, int cmd_fd);
++	void	(*uninit_context)(struct verbs_device *device,
++				struct ibv_context *ctx);
++	/* future fields added here */
 +};
-+.sp
-+.nf
-+struct ibv_qp_cap {
-+.in +8
-+uint32_t                max_send_wr;    /* Requested max number of outstanding WRs in the SQ */
-+uint32_t                max_recv_wr;    /* Requested max number of outstanding WRs in the RQ */
-+uint32_t                max_send_sge;   /* Requested max number of scatter/gather (s/g) elements in a WR in the SQ */
-+uint32_t                max_recv_sge;   /* Requested max number of s/g elements in a WR in the SQ */
-+uint32_t                max_inline_data;/* Requested max number of data (bytes) that can be posted inline to the SQ, otherwise 0 */
-+.in -8
++
+ struct ibv_context_ops {
+ 	int			(*query_device)(struct ibv_context *context,
+ 					      struct ibv_device_attr *device_attr);
+@@ -724,6 +752,40 @@ struct ibv_context {
+ 	void		       *abi_compat;
+ };
+ 
++enum verbs_context_mask {
++	VERBS_CONTEXT_RESERVED = 1 << 0
 +};
-+.fi
-+.PP
-+The function
-+.B ibv_create_qp_ex()
-+will update the
-+.I qp_init_attr_ex\fB\fR->cap
-+struct with the actual \s-1QP\s0 values of the QP that was created;
-+the values will be greater than or equal to the values requested.
-+.PP
-+.B ibv_destroy_qp()
-+destroys the QP
-+.I qp\fR.
-+.SH "RETURN VALUE"
-+.B ibv_create_qp_ex()
-+returns a pointer to the created QP, or NULL if the request fails.
-+Check the QP number (\fBqp_num\fR) in the returned QP.
-+.PP
-+.B ibv_destroy_qp()
-+returns 0 on success, or the value of errno on failure (which indicates the failure reason).
-+.SH "NOTES"
-+.PP
-+The attributes max_recv_wr and max_recv_sge are ignored by
-+.B ibv_create_qp_ex()
-+if the QP is to be associated with an SRQ.
-+.PP
-+.B ibv_destroy_qp()
-+fails if the QP is attached to a multicast group.
-+.SH "SEE ALSO"
-+.BR ibv_alloc_pd (3),
-+.BR ibv_modify_qp (3),
-+.BR ibv_query_qp (3)
-+.SH "AUTHORS"
-+.TP
-+Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/man/ibv_create_srq_ex.3 b/man/ibv_create_srq_ex.3
-new file mode 100644
-index 0000000..9151d6e
---- /dev/null
-+++ b/man/ibv_create_srq_ex.3
-@@ -0,0 +1,71 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_CREATE_SRQ_EX 3 2013-06-26 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_create_srq_ex, ibv_destroy_srq \- create or destroy a shared receive queue (SRQ)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_srq *ibv_create_srq_ex(struct ibv_context " "*context" ", struct "
-+.BI "                               ibv_srq_init_attr_ex " "*srq_init_attr_ex" );
-+.sp
-+.BI "int ibv_destroy_srq(struct ibv_srq " "*srq" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_create_srq_ex()
-+creates a shared receive queue (SRQ) supporting both basic and xrc modes.
-+The argument
-+.I srq_init_attr_ex
-+is an ibv_srq_init_attr_ex struct, as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
-+struct ibv_srq_init_attr_ex {
-+.in +8
-+void                   *srq_context;    /* Associated context of the SRQ */
-+struct ibv_srq_attr     attr;           /* SRQ attributes */
-+uint32_t                comp_mask;      /* Identifies valid fields */
-+enum ibv_srq_type       srq_type;       /* Basic / XRC */
-+struct ibv_pd          *pd;             /* PD associated with the SRQ */
-+struct ibv_xrcd        *xrcd;           /* XRC domain to associate with the SRQ */
-+struct ibv_cq          *cq;             /* CQ to associate with the SRQ for XRC mode */
-+.in -8
++
++struct verbs_context {
++	/*  "grows up" - new fields go here */
++	uint64_t has_comp_mask;
++	size_t   sz;	/* Must be immediately before struct ibv_context */
++	struct ibv_context context;/* Must be last field in the struct */
 +};
-+.sp
-+.nf
-+struct ibv_srq_attr {
-+.in +8
-+uint32_t                max_wr;         /* Requested max number of outstanding work requests (WRs) in the SRQ */
-+uint32_t                max_sge;        /* Requested max number of scatter elements per WR */
-+uint32_t                srq_limit;      /* The limit value of the SRQ */
-+.in -8
-+};
-+.fi
-+.PP
-+The function
-+.B ibv_create_srq_ex()
-+will update the
-+.I srq_init_attr_ex
-+struct with the original values of the SRQ that was created; the
-+values of max_wr and max_sge will be greater than or equal to the
-+values requested.
-+.PP
-+.B ibv_destroy_srq()
-+destroys the SRQ
-+.I srq\fR.
-+.SH "RETURN VALUE"
-+.B ibv_create_srq_ex()
-+returns a pointer to the created SRQ, or NULL if the request fails.
-+.PP
-+.B ibv_destroy_srq()
-+returns 0 on success, or the value of errno on failure (which indicates the failure reason).
-+.SH "NOTES"
-+.B ibv_destroy_srq()
-+fails if any queue pair is still associated with this SRQ.
-+.SH "SEE ALSO"
-+.BR ibv_alloc_pd (3),
-+.BR ibv_modify_srq (3),
-+.BR ibv_query_srq (3)
-+.SH "AUTHORS"
-+.TP
-+Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/man/ibv_get_srq_num.3 b/man/ibv_get_srq_num.3
-new file mode 100644
-index 0000000..00e4fb4
---- /dev/null
-+++ b/man/ibv_get_srq_num.3
-@@ -0,0 +1,32 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_GET_SRQ_NUM 3 2013-06-26 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_get_srq_num  \- return srq number associated with the given shared receive queue (SRQ)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "int ibv_get_srq_num(struct ibv_srq " "*srq" ,
-+.BI "                    uint32_t " "*srq_num" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_get_srq_num()
-+return srq number associated with the given shared receive queue
-+The argument
-+.I srq
-+is an ibv_srq struct, as defined in <infiniband/verbs.h>.
-+.I srq_num
-+is an output parameter that holds the returned srq number.
-+.PP
-+.nf
-+.SH "RETURN VALUE"
-+.B ibv_get_srq_num()
-+returns 0 on success, or the value of errno on failure (which indicates the failure reason).
-+.SH "SEE ALSO"
-+.BR ibv_alloc_pd (3),
-+.BR ibv_modify_srq (3),
-+.BR ibv_create_srq_ex (3)
-+.SH "AUTHORS"
-+.TP
-+Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-diff --git a/man/ibv_open_qp.3 b/man/ibv_open_qp.3
-new file mode 100644
-index 0000000..71b5d46
---- /dev/null
-+++ b/man/ibv_open_qp.3
-@@ -0,0 +1,51 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_OPEN_QP 3 2011-08-12 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_open_qp \- open a shareable queue pair (QP)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_qp *ibv_open_qp(struct ibv_context " "*context" ,
-+.BI "                           struct ibv_qp_open_attr " "*qp_open_attr" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_open_qp()
-+opens an existing queue pair (QP) associated with the extended protection domain
-+.I xrcd\fR.
-+The argument
-+.I qp_open_attr
-+is an ibv_qp_open_attr struct, as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
-+struct ibv_qp_open_attr {
-+.in +8
-+uint32_t          comp_mask;  /* Identifies valid fields */
-+uint32_t          qp_num;     /* QP number */
-+struct            *ibv_xrcd;  /* XRC domain */
-+void             *qp_context; /* User defined opaque value */
-+enum ibv_qp_type  qp_type;    /* QP transport service type */
-+.fi
-+.PP
-+.B ibv_destroy_qp()
-+closes the opened QP and destroys the underlying QP if it has no
-+other references.
-+.I qp\fR.
-+.SH "RETURN VALUE"
-+.B ibv_open_qp()
-+returns a pointer to the opened QP, or NULL if the request fails.
-+Check the QP number (\fBqp_num\fR) in the returned QP.
-+.SH "NOTES"
-+.B ibv_open_qp()
-+will fail if a it is asked to open a QP that does not exist within
-+the xrcd with the specified qp_num and qp_type.
-+.SH "SEE ALSO"
-+.BR ibv_alloc_pd (3),
-+.BR ibv_create_qp (3),
-+.BR ibv_create_qp_ex (3),
-+.BR ibv_modify_qp (3),
-+.BR ibv_query_qp (3)
-+.SH "AUTHORS"
-+.TP
-+Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-diff --git a/man/ibv_open_xrcd.3 b/man/ibv_open_xrcd.3
-new file mode 100644
-index 0000000..b9724bf
---- /dev/null
-+++ b/man/ibv_open_xrcd.3
-@@ -0,0 +1,76 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_OPEN_XRCD 3 2011-06-17 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_open_xrcd, ibv_close_xrcd \- open or close an XRC protection domain (XRCDs)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_xrcd *ibv_open_xrcd(struct ibv_context " "*context" ","
-+.BI "                               struct ibv_xrcd_init_attr " "*xrcd_init_attr" );
-+.sp
-+.BI "int ibv_close_xrcd(struct ibv_xrcd " "*xrcd" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_open_xrcd()
-+open an XRC domain for the RDMA device context
-+.I context
-+.I xrcd_init_attr
-+is an ibv_xrcd_init_attr struct, as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
-+struct ibv_xrcd_init_attr {
-+.in +8
-+uint32_t         comp_mask;  /* Identifies valid fields */
-+int              fd;
-+int              oflag;
-+.fi
-+.PP
-+.I fd
-+is the file descriptor to associate with the XRCD.
-+.I oflag
-+describes the desired creation attributes.  It is a bitwise OR of zero or more
-+of the following flags:
-+.PP
-+.TP
-+.B O_CREAT
-+Indicates that an XRCD should be created and associated with the inode referenced
-+by the given fd.  If the XRCD exists, this flag has no effect except as noted under
-+.BR O_EXCL
-+below.\fR
-+.TP
-+.B O_EXCL
-+If
-+.BR O_EXCL
-+and
-+.BR O_CREAT
-+are set, open will fail if an XRCD associated with the inode exists.
-+.PP
-+If
-+.I fd
-+equals -1, no inode is associated with the XRCD. To indicate that XRCD should be created, use
-+.I oflag
-+=
-+.B O_CREAT\fR.
-+.PP
-+.B ibv_close_xrcd()
-+closes the XRCD
-+.I xrcd\fR.
-+If this is the last reference, the XRCD will be destroyed.
-+.SH "RETURN VALUE"
-+.B ibv_open_xrcd()
-+returns a pointer to the opened XRCD, or NULL if the request fails.
-+.PP
-+.B ibv_close_xrcd()
-+returns 0 on success, or the value of errno on failure (which indicates the
-+failure reason).
-+.SH "NOTES"
-+.B ibv_close_xrcd()
-+may fail if any other resource is still associated with the XRCD being closed.
-+.SH "SEE ALSO"
-+.BR ibv_create_srq_ex (3),
-+.BR ibv_create_qp_ex (3),
-+.SH "AUTHORS"
-+.TP
-+Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
++
++static inline struct verbs_context *verbs_get_ctx(struct ibv_context *ctx)
++{
++	return (ctx->abi_compat != __VERBS_ABI_IS_EXTENDED) ?
++		NULL : container_of(ctx, struct verbs_context, context);
++}
++
++#define verbs_get_ctx_op(ctx, op) ({ \
++	struct verbs_context *vctx = verbs_get_ctx(ctx); \
++	(!vctx || (vctx->sz < sizeof(*vctx) - offsetof(struct verbs_context, op)) || \
++	 !vctx->op) ? NULL : vctx; })
++
++#define verbs_set_ctx_op(_vctx, op, ptr) ({ \
++	struct verbs_context *vctx = _vctx; \
++	if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
++		vctx->op = ptr; })
++
++static inline struct verbs_device *verbs_get_device(
++					const struct ibv_device *dev)
++{
++	return (dev->ops.alloc_context) ?
++		NULL : container_of(dev, struct verbs_device, device);
++}
++
+ /**
+  * ibv_get_device_list - Get list of IB devices currently available
+  * @num_devices: optional.  if non-NULL, set to the number of devices
+diff --git a/src/cmd.c b/src/cmd.c
+index 9789092..86350fd 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -45,52 +45,13 @@
+ 
+ #include "ibverbs.h"
+ 
+-static int ibv_cmd_get_context_v2(struct ibv_context *context,
+-				  struct ibv_get_context *new_cmd,
+-				  size_t new_cmd_size,
+-				  struct ibv_get_context_resp *resp,
+-				  size_t resp_size)
+-{
+-	struct ibv_abi_compat_v2 *t;
+-	struct ibv_get_context_v2 *cmd;
+-	size_t cmd_size;
+-	uint32_t cq_fd;
+-
+-	t = malloc(sizeof *t);
+-	if (!t)
+-		return ENOMEM;
+-	pthread_mutex_init(&t->in_use, NULL);
+-
+-	cmd_size = sizeof *cmd + new_cmd_size - sizeof *new_cmd;
+-	cmd      = alloca(cmd_size);
+-	memcpy(cmd->driver_data, new_cmd->driver_data, new_cmd_size - sizeof *new_cmd);
+-
+-	IBV_INIT_CMD_RESP(cmd, cmd_size, GET_CONTEXT, resp, resp_size);
+-	cmd->cq_fd_tab = (uintptr_t) &cq_fd;
+-
+-	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size) {
+-		free(t);
+-		return errno;
+-	}
+-
+-	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+-
+-	context->async_fd         = resp->async_fd;
+-	context->num_comp_vectors = 1;
+-	t->channel.context        = context;
+-	t->channel.fd		  = cq_fd;
+-	t->channel.refcnt	  = 0;
+-	context->abi_compat       = t;
+-
+-	return 0;
+-}
+ 
+ int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
+ 			size_t cmd_size, struct ibv_get_context_resp *resp,
+ 			size_t resp_size)
+ {
+-	if (abi_ver <= 2)
+-		return ibv_cmd_get_context_v2(context, cmd, cmd_size, resp, resp_size);
++	if (abi_ver < IB_USER_VERBS_MIN_ABI_VERSION)
++		return ENOSYS;
+ 
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, GET_CONTEXT, resp, resp_size);
+ 
+@@ -274,45 +235,12 @@ int ibv_cmd_dereg_mr(struct ibv_mr *mr)
+ 	return 0;
+ }
+ 
+-static int ibv_cmd_create_cq_v2(struct ibv_context *context, int cqe,
+-				struct ibv_cq *cq,
+-				struct ibv_create_cq *new_cmd, size_t new_cmd_size,
+-				struct ibv_create_cq_resp *resp, size_t resp_size)
+-{
+-	struct ibv_create_cq_v2 *cmd;
+-	size_t cmd_size;
+-
+-	cmd_size = sizeof *cmd + new_cmd_size - sizeof *new_cmd;
+-	cmd      = alloca(cmd_size);
+-	memcpy(cmd->driver_data, new_cmd->driver_data, new_cmd_size - sizeof *new_cmd);
+-
+-	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_CQ, resp, resp_size);
+-	cmd->user_handle   = (uintptr_t) cq;
+-	cmd->cqe           = cqe;
+-	cmd->event_handler = 0;
+-
+-	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
+-		return errno;
+-
+-	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+-
+-	cq->handle  = resp->cq_handle;
+-	cq->cqe     = resp->cqe;
+-	cq->context = context;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_create_cq(struct ibv_context *context, int cqe,
+ 		      struct ibv_comp_channel *channel,
+ 		      int comp_vector, struct ibv_cq *cq,
+ 		      struct ibv_create_cq *cmd, size_t cmd_size,
+ 		      struct ibv_create_cq_resp *resp, size_t resp_size)
+ {
+-	if (abi_ver <= 2)
+-		return ibv_cmd_create_cq_v2(context, cqe, cq,
+-					    cmd, cmd_size, resp, resp_size);
+-
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_CQ, resp, resp_size);
+ 	cmd->user_handle   = (uintptr_t) cq;
+ 	cmd->cqe           = cqe;
+@@ -397,7 +325,6 @@ int ibv_cmd_resize_cq(struct ibv_cq *cq, int cqe,
+ 		      struct ibv_resize_cq *cmd, size_t cmd_size,
+ 		      struct ibv_resize_cq_resp *resp, size_t resp_size)
+ {
+-
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, RESIZE_CQ, resp, resp_size);
+ 	cmd->cq_handle = cq->handle;
+ 	cmd->cqe       = cqe;
+@@ -412,27 +339,11 @@ int ibv_cmd_resize_cq(struct ibv_cq *cq, int cqe,
+ 	return 0;
+ }
+ 
+-static int ibv_cmd_destroy_cq_v1(struct ibv_cq *cq)
+-{
+-	struct ibv_destroy_cq_v1 cmd;
+-
+-	IBV_INIT_CMD(&cmd, sizeof cmd, DESTROY_CQ);
+-	cmd.cq_handle = cq->handle;
+-
+-	if (write(cq->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+-		return errno;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_destroy_cq(struct ibv_cq *cq)
+ {
+ 	struct ibv_destroy_cq      cmd;
+ 	struct ibv_destroy_cq_resp resp;
+ 
+-	if (abi_ver == 1)
+-		return ibv_cmd_destroy_cq_v1(cq);
+-
+ 	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, DESTROY_CQ, &resp, sizeof resp);
+ 	cmd.cq_handle = cq->handle;
+ 	cmd.reserved  = 0;
+@@ -557,27 +468,11 @@ int ibv_cmd_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr,
+ 	return 0;
+ }
+ 
+-static int ibv_cmd_destroy_srq_v1(struct ibv_srq *srq)
+-{
+-	struct ibv_destroy_srq_v1 cmd;
+-
+-	IBV_INIT_CMD(&cmd, sizeof cmd, DESTROY_SRQ);
+-	cmd.srq_handle = srq->handle;
+-
+-	if (write(srq->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+-		return errno;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_destroy_srq(struct ibv_srq *srq)
+ {
+ 	struct ibv_destroy_srq      cmd;
+ 	struct ibv_destroy_srq_resp resp;
+ 
+-	if (abi_ver == 1)
+-		return ibv_cmd_destroy_srq_v1(srq);
+-
+ 	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, DESTROY_SRQ, &resp, sizeof resp);
+ 	cmd.srq_handle = srq->handle;
+ 	cmd.reserved   = 0;
+@@ -799,19 +694,6 @@ int ibv_cmd_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 	return 0;
+ }
+ 
+-static int ibv_cmd_destroy_qp_v1(struct ibv_qp *qp)
+-{
+-	struct ibv_destroy_qp_v1 cmd;
+-
+-	IBV_INIT_CMD(&cmd, sizeof cmd, DESTROY_QP);
+-	cmd.qp_handle = qp->handle;
+-
+-	if (write(qp->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+-		return errno;
+-
+-	return 0;
+-}
+-
+ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		      struct ibv_send_wr **bad_wr)
+ {
+@@ -1074,9 +956,6 @@ int ibv_cmd_destroy_qp(struct ibv_qp *qp)
+ 	struct ibv_destroy_qp      cmd;
+ 	struct ibv_destroy_qp_resp resp;
+ 
+-	if (abi_ver == 1)
+-		return ibv_cmd_destroy_qp_v1(qp);
+-
+ 	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, DESTROY_QP, &resp, sizeof resp);
+ 	cmd.qp_handle = qp->handle;
+ 	cmd.reserved  = 0;
+diff --git a/src/device.c b/src/device.c
+index 1923fa5..beb7b3c 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -124,9 +124,11 @@ default_symver(__ibv_get_device_guid, ibv_get_device_guid);
+ 
+ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ {
++	struct verbs_device *verbs_device = verbs_get_device(device);
+ 	char *devpath;
+-	int cmd_fd;
++	int cmd_fd, ret;
+ 	struct ibv_context *context;
++	struct verbs_context *context_ex;
+ 
+ 	if (asprintf(&devpath, "/dev/infiniband/%s", device->dev_name) < 0)
+ 		return NULL;
+@@ -141,9 +143,33 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 	if (cmd_fd < 0)
+ 		return NULL;
+ 
+-	context = device->ops.alloc_context(device, cmd_fd);
+-	if (!context)
+-		goto err;
++	if (!verbs_device) {
++		context = device->ops.alloc_context(device, cmd_fd);
++		if (!context)
++			goto err;
++	} else {
++		/* Library now allocates the context */
++		context_ex = calloc(1, sizeof(*context_ex) +
++				       verbs_device->size_of_context);
++		if (!context_ex) {
++			errno = ENOMEM;
++			goto err;
++		}
++
++		context_ex->context.abi_compat  = __VERBS_ABI_IS_EXTENDED;
++		context_ex->sz = sizeof(*context_ex);
++
++		context = &context_ex->context;
++		ret = verbs_device->init_context(verbs_device, context, cmd_fd);
++		if (ret)
++			goto verbs_err;
++
++		/* initialize *all* library ops to either lib calls or
++		 * directly to provider calls.
++		 * context_ex->lib_new_func1 = __verbs_new_func1;
++		 * context_ex->lib_new_func2 = __verbs_new_func2;
++		 */
++	}
+ 
+ 	context->device = device;
+ 	context->cmd_fd = cmd_fd;
+@@ -151,9 +177,10 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 
+ 	return context;
+ 
++verbs_err:
++	free(context_ex);
+ err:
+ 	close(cmd_fd);
+-
+ 	return NULL;
+ }
+ default_symver(__ibv_open_device, ibv_open_device);
+@@ -163,15 +190,17 @@ int __ibv_close_device(struct ibv_context *context)
+ 	int async_fd = context->async_fd;
+ 	int cmd_fd   = context->cmd_fd;
+ 	int cq_fd    = -1;
+-
+-	if (abi_ver <= 2) {
+-		struct ibv_abi_compat_v2 *t = context->abi_compat;
+-		cq_fd = t->channel.fd;
+-		free(context->abi_compat);
++	struct verbs_context *context_ex;
++
++	context_ex = verbs_get_ctx(context);
++	if (context_ex) {
++		struct verbs_device *verbs_device = verbs_get_device(context->device);
++		verbs_device->uninit_context(verbs_device, context);
++		free(context_ex);
++	} else {
++		context->device->ops.free_context(context);
+ 	}
+ 
+-	context->device->ops.free_context(context);
+-
+ 	close(async_fd);
+ 	close(cmd_fd);
+ 	if (abi_ver <= 2)
+diff --git a/src/init.c b/src/init.c
+index 8e93f3f..9fcb1ee 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -70,6 +70,7 @@ struct ibv_driver_name {
+ struct ibv_driver {
+ 	const char	       *name;
+ 	ibv_driver_init_func	init_func;
++	verbs_driver_init_func	verbs_init_func;
+ 	struct ibv_driver      *next;
+ };
+ 
+@@ -153,7 +154,8 @@ static int find_sysfs_devs(void)
+ 	return ret;
+ }
+ 
+-void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
++static void register_driver(const char *name, ibv_driver_init_func init_func,
++			    verbs_driver_init_func verbs_init_func)
+ {
+ 	struct ibv_driver *driver;
+ 
+@@ -163,9 +165,10 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
+ 		return;
+ 	}
+ 
+-	driver->name      = name;
+-	driver->init_func = init_func;
+-	driver->next      = NULL;
++	driver->name            = name;
++	driver->init_func	= init_func;
++	driver->verbs_init_func = verbs_init_func;
++	driver->next            = NULL;
+ 
+ 	if (tail_driver)
+ 		tail_driver->next = driver;
+@@ -174,6 +177,19 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
+ 	tail_driver = driver;
+ }
+ 
++void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
++{
++	register_driver(name, init_func, NULL);
++}
++
++/* New registration symbol with same functionality - used by providers to
++  * validate that library supports verbs extension.
++  */
++void verbs_register_driver(const char *name, verbs_driver_init_func init_func)
++{
++	register_driver(name, NULL, init_func);
++}
++
+ static void load_driver(const char *name)
+ {
+ 	char *so_name;
+@@ -333,12 +349,23 @@ out:
+ static struct ibv_device *try_driver(struct ibv_driver *driver,
+ 				     struct ibv_sysfs_dev *sysfs_dev)
+ {
++	struct verbs_device *vdev;
+ 	struct ibv_device *dev;
+ 	char value[8];
+ 
+-	dev = driver->init_func(sysfs_dev->sysfs_path, sysfs_dev->abi_ver);
+-	if (!dev)
+-		return NULL;
++	if (driver->init_func) {
++		dev = driver->init_func(sysfs_dev->sysfs_path, sysfs_dev->abi_ver);
++		if (!dev)
++			return NULL;
++	} else {
++		vdev = driver->verbs_init_func(sysfs_dev->sysfs_path, sysfs_dev->abi_ver);
++		if (!vdev)
++			return NULL;
++
++		dev = &vdev->device;
++		dev->ops.alloc_context = NULL;
++		dev->ops.free_context = NULL;
++	}
+ 
+ 	if (ibv_read_sysfs_file(sysfs_dev->ibdev_path, "node_type", value, sizeof value) < 0) {
+ 		fprintf(stderr, PFX "Warning: no node_type attr under %s.\n",
+diff --git a/src/kern_abi.h b/src/kern_abi.h
+deleted file mode 100644
+index e055e75..0000000
+--- a/src/kern_abi.h
++++ /dev/null
+@@ -1,101 +0,0 @@
+-/*
+- * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#ifndef KERN_ABI_H
+-#define KERN_ABI_H
+-
+-#include <linux/types.h>
+-
+-/*
+- * Increment this value if any changes that break userspace ABI
+- * compatibility are made.
+- */
+-#define IB_USER_VERBS_ABI_VERSION	1
+-
+-enum {
+-	IB_USER_VERBS_CMD_GET_CONTEXT,
+-	IB_USER_VERBS_CMD_GET_EVENT_FDS,
+-	IB_USER_VERBS_CMD_ALLOC_PD,
+-	IB_USER_VERBS_CMD_DEALLOC_PD,
+-	IB_USER_VERBS_CMD_REG_MR,
+-	IB_USER_VERBS_CMD_DEREG_MR
+-};
+-
+-/*
+- * Make sure that all structs defined in this file remain laid out so
+- * that they pack the same way on 32-bit and 64-bit architectures (to
+- * avoid incompatibility between 32-bit userspace and 64-bit kernels).
+- * In particular do not use pointer types -- pass pointers in __u64
+- * instead.
+- */
+-
+-struct ibv_kern_async_event {
+-	__u32 event_type;
+-	__u32 element;
+-};
+-
+-struct ibv_comp_event {
+-	__u32 cq_handle;
+-};
+-
+-/*
+- * All commands from userspace should start with a __u32 command field
+- * followed by __u16 in_words and out_words fields (which give the
+- * length of the command block and response buffer if any in 32-bit
+- * words).  The kernel driver will read these fields first and read
+- * the rest of the command struct based on these value.
+- */
+-
+-struct ibv_get_context {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u64 response;
+-};
+-
+-struct ibv_get_context_resp {
+-	__u32 num_cq_events;
+-};
+-
+-struct ibv_get_event_fds {
+-	__u32 command;
+-	__u16 in_words;
+-	__u16 out_words;
+-	__u64 response;
+-};
+-
+-struct ibv_get_event_fds_resp {
+-	__u32 async_fd;
+-	__u32 cq_fd[1];
+-};
+-
+-#endif /* KERN_ABI_H */
+diff --git a/src/libibverbs.map b/src/libibverbs.map
+index 7e722f4..6e35c37 100644
+--- a/src/libibverbs.map
++++ b/src/libibverbs.map
+@@ -91,6 +91,7 @@ IBVERBS_1.1 {
+ 		ibv_dontfork_range;
+ 		ibv_dofork_range;
+ 		ibv_register_driver;
++		verbs_register_driver;
+ 
+ 		ibv_node_type_str;
+ 		ibv_port_state_str;
 -- 
 1.7.1
 
