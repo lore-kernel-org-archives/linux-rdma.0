@@ -1,7 +1,7 @@
 From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH librdmacm 3/5] rsockets: Add ability to set the IB route directly
-Date: Fri,  2 Aug 2013 15:20:20 -0700
-Message-ID: <1375482022-5953-4-git-send-email-sean.hefty@intel.com>
+Subject: [PATCH librdmacm 2/5] examples: Add support for native IB addressing to samples
+Date: Fri,  2 Aug 2013 15:20:19 -0700
+Message-ID: <1375482022-5953-3-git-send-email-sean.hefty@intel.com>
 References: <1375482022-5953-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1375482022-5953-1-git-send-email-sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,90 +12,288 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add an RDMA specific rsocket option that allows the user
-to program the RDMA route directly.  This is useful
-for apps that have path record data available, e.g. from
-ibacm.
+Allow the user to specify GID addresses (AF_IB) into
+udaddy and rstream.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/rdma/rsocket.h |    3 ++-
- src/rsocket.c          |   30 +++++++++++++++++++++++++++---
- 2 files changed, 29 insertions(+), 4 deletions(-)
+ examples/rstream.c |   62 +++++++++++++++++++++++++++++++++++++++++-----------
+ examples/udaddy.c  |   49 ++++++++++++++++++++++++++++------------
+ 2 files changed, 83 insertions(+), 28 deletions(-)
 
-diff --git a/include/rdma/rsocket.h b/include/rdma/rsocket.h
-index f220c13..efd0db5 100644
---- a/include/rdma/rsocket.h
-+++ b/include/rdma/rsocket.h
-@@ -78,7 +78,8 @@ enum {
- 	RDMA_SQSIZE,
- 	RDMA_RQSIZE,
- 	RDMA_INLINE,
--	RDMA_IOMAPSIZE
-+	RDMA_IOMAPSIZE,
-+	RDMA_ROUTE
- };
+diff --git a/examples/rstream.c b/examples/rstream.c
+index a408b9e..e27ddcd 100644
+--- a/examples/rstream.c
++++ b/examples/rstream.c
+@@ -93,6 +93,8 @@ static char *dst_addr;
+ static char *src_addr;
+ static struct timeval start, end;
+ static void *buf;
++static struct rdma_addrinfo rai_hints;
++static struct addrinfo ai_hints;
  
- int rsetsockopt(int socket, int level, int optname,
-diff --git a/src/rsocket.c b/src/rsocket.c
-index e2b1cc7..57df290 100644
---- a/src/rsocket.c
-+++ b/src/rsocket.c
-@@ -329,6 +329,8 @@ struct rsocket {
- 	long		  fd_flags;
- 	uint64_t	  so_opts;
- 	uint64_t	  ipv6_opts;
-+	void		  *optval;
-+	size_t		  optlen;
- 	int		  state;
- 	int		  cq_armed;
- 	int		  retries;
-@@ -1243,13 +1245,26 @@ resolve_addr:
- 		rs->retries = 0;
- resolve_route:
- 		to = 1000 << rs->retries++;
--		ret = rdma_resolve_route(rs->cm_id, to);
--		if (!ret)
--			goto do_connect;
-+		if (rs->optval) {
-+			ret = rdma_set_option(rs->cm_id,  RDMA_OPTION_IB,
-+					      RDMA_OPTION_IB_PATH, rs->optval,
-+					      rs->optlen);
-+			free(rs->optval);
-+			rs->optval = NULL;
-+			if (!ret) {
-+				rs->state = rs_resolving_route;
-+				goto resolving_route;
-+			}
-+		} else {
-+			ret = rdma_resolve_route(rs->cm_id, to);
-+			if (!ret)
-+				goto do_connect;
-+		}
- 		if (errno == EAGAIN || errno == EWOULDBLOCK)
- 			rs->state = rs_resolving_route;
- 		break;
- 	case rs_resolving_route:
-+resolving_route:
- 		ret = ucma_complete(rs->cm_id);
- 		if (ret) {
- 			if (errno == ETIMEDOUT && rs->retries <= RS_CONN_RETRIES)
-@@ -3312,6 +3327,15 @@ int rsetsockopt(int socket, int level, int optname,
- 			rs->target_iomap_size = (uint16_t) rs_scale_to_value(
- 				(uint8_t) rs_value_to_scale(*(int *) optval, 8), 8);
+ static void show_perf(void)
+ {
+@@ -285,18 +287,25 @@ static void set_options(int rs)
+ 
+ static int server_listen(void)
+ {
+-	struct addrinfo hints, *res;
++	struct rdma_addrinfo *rai;
++	struct addrinfo *ai;
+ 	int val, ret;
+ 
+-	memset(&hints, 0, sizeof hints);
+-	hints.ai_flags = AI_PASSIVE;
+- 	ret = getaddrinfo(src_addr, port, &hints, &res);
++	if (rai_hints.ai_flags) {
++		rai_hints.ai_flags |= RAI_PASSIVE;
++		ret = rdma_getaddrinfo(src_addr, port, &rai_hints, &rai);
++	} else {
++		ai_hints.ai_flags |= AI_PASSIVE;
++		ret = getaddrinfo(src_addr, port, &ai_hints, &ai);
++	}
+ 	if (ret) {
+ 		perror("getaddrinfo");
+ 		return ret;
+ 	}
+ 
+-	lrs = rs_socket(res->ai_family, res->ai_socktype, res->ai_protocol);
++	lrs = rai_hints.ai_flags ?
++	      rs_socket(rai->ai_family, SOCK_STREAM, 0) :
++	      rs_socket(ai->ai_family, SOCK_STREAM, 0);
+ 	if (lrs < 0) {
+ 		perror("rsocket");
+ 		ret = lrs;
+@@ -310,7 +319,9 @@ static int server_listen(void)
+ 		goto close;
+ 	}
+ 
+-	ret = rs_bind(lrs, res->ai_addr, res->ai_addrlen);
++	ret = rai_hints.ai_flags ?
++	      rs_bind(lrs, rai->ai_src_addr, rai->ai_src_len) :
++	      rs_bind(lrs, ai->ai_addr, ai->ai_addrlen);
+ 	if (ret) {
+ 		perror("rbind");
+ 		goto close;
+@@ -324,7 +335,10 @@ close:
+ 	if (ret)
+ 		rs_close(lrs);
+ free:
+-	freeaddrinfo(res);
++	if (rai_hints.ai_flags)
++		rdma_freeaddrinfo(rai);
++	else
++		freeaddrinfo(ai);
+ 	return ret;
+ }
+ 
+@@ -362,18 +376,23 @@ static int server_connect(void)
+ 
+ static int client_connect(void)
+ {
+-	struct addrinfo *res;
++	struct rdma_addrinfo *rai;
++	struct addrinfo *ai;
+ 	struct pollfd fds;
+ 	int ret, err;
+ 	socklen_t len;
+ 
+- 	ret = getaddrinfo(dst_addr, port, NULL, &res);
++ 	ret = rai_hints.ai_flags ?
++ 	      rdma_getaddrinfo(dst_addr, port, &rai_hints, &rai) :
++ 	      getaddrinfo(dst_addr, port, &ai_hints, &ai);
+ 	if (ret) {
+ 		perror("getaddrinfo");
+ 		return ret;
+ 	}
+ 
+-	rs = rs_socket(res->ai_family, res->ai_socktype, res->ai_protocol);
++	rs = rai_hints.ai_flags ?
++	     rs_socket(rai->ai_family, SOCK_STREAM, 0) :
++	     rs_socket(ai->ai_family, SOCK_STREAM, 0);
+ 	if (rs < 0) {
+ 		perror("rsocket");
+ 		ret = rs;
+@@ -383,7 +402,9 @@ static int client_connect(void)
+ 	set_options(rs);
+ 	/* TODO: bind client to src_addr */
+ 
+-	ret = rs_connect(rs, res->ai_addr, res->ai_addrlen);
++	ret = rai_hints.ai_flags ?
++	      rs_connect(rs, rai->ai_dst_addr, rai->ai_dst_len) :
++	      rs_connect(rs, ai->ai_addr, ai->ai_addrlen);
+ 	if (ret && (errno != EINPROGRESS)) {
+ 		perror("rconnect");
+ 		goto close;
+@@ -411,7 +432,10 @@ close:
+ 	if (ret)
+ 		rs_close(rs);
+ free:
+-	freeaddrinfo(res);
++	if (rai_hints.ai_flags)
++		rdma_freeaddrinfo(rai);
++	else
++		freeaddrinfo(ai);
+ 	return ret;
+ }
+ 
+@@ -534,7 +558,9 @@ int main(int argc, char **argv)
+ {
+ 	int op, ret;
+ 
+-	while ((op = getopt(argc, argv, "s:b:B:I:C:S:p:T:")) != -1) {
++	ai_hints.ai_socktype = SOCK_STREAM;
++	rai_hints.ai_port_space = RDMA_PS_TCP;
++	while ((op = getopt(argc, argv, "s:b:f:B:I:C:S:p:T:")) != -1) {
+ 		switch (op) {
+ 		case 's':
+ 			dst_addr = optarg;
+@@ -542,6 +568,14 @@ int main(int argc, char **argv)
+ 		case 'b':
+ 			src_addr = optarg;
  			break;
-+		case RDMA_ROUTE:
-+			if ((rs->optval = calloc(optlen, 1))) {
-+				memcpy(rs->optval, optval, optlen);
-+				rs->optlen = optlen;
-+				ret = 0;
-+			} else {
-+				ret = ERR(ENOMEM);
++		case 'f':
++			if (!strncasecmp("ip", optarg, 2)) {
++				ai_hints.ai_flags = AI_NUMERICHOST;
++			} else if (!strncasecmp("gid", optarg, 3)) {
++				rai_hints.ai_flags = RAI_NUMERICHOST | RAI_FAMILY;
++				rai_hints.ai_family = AF_IB;
 +			}
 +			break;
- 		default:
+ 		case 'B':
+ 			buffer_size = atoi(optarg);
  			break;
+@@ -572,6 +606,8 @@ int main(int argc, char **argv)
+ 			printf("usage: %s\n", argv[0]);
+ 			printf("\t[-s server_address]\n");
+ 			printf("\t[-b bind_address]\n");
++			printf("\t[-f address_format]\n");
++			printf("\t    name, ip, ipv6, or gid\n");
+ 			printf("\t[-B buffer_size]\n");
+ 			printf("\t[-I iterations]\n");
+ 			printf("\t[-C transfer_count]\n");
+diff --git a/examples/udaddy.c b/examples/udaddy.c
+index 7360d60..031b0b6 100644
+--- a/examples/udaddy.c
++++ b/examples/udaddy.c
+@@ -77,7 +77,7 @@ static uint8_t set_tos = 0;
+ static uint8_t tos;
+ static char *dst_addr;
+ static char *src_addr;
+-static enum rdma_port_space port_space = RDMA_PS_UDP;
++static struct rdma_addrinfo hints;
+ 
+ static int create_message(struct cmatest_node *node)
+ {
+@@ -429,7 +429,7 @@ static int alloc_nodes(void)
+ 		if (dst_addr) {
+ 			ret = rdma_create_id(test.channel,
+ 					     &test.nodes[i].cma_id,
+-					     &test.nodes[i], port_space);
++					     &test.nodes[i], hints.ai_port_space);
+ 			if (ret)
+ 				goto err;
  		}
+@@ -505,19 +505,15 @@ static int connect_events(void)
+ static int run_server(void)
+ {
+ 	struct rdma_cm_id *listen_id;
+-	struct rdma_addrinfo hints;
+ 	int i, ret;
+ 
+ 	printf("udaddy: starting server\n");
+-	ret = rdma_create_id(test.channel, &listen_id, &test, port_space);
++	ret = rdma_create_id(test.channel, &listen_id, &test, hints.ai_port_space);
+ 	if (ret) {
+ 		perror("udaddy: listen request failed");
+ 		return ret;
+ 	}
+ 
+-	memset(&hints, 0, sizeof hints);
+-	hints.ai_flags = RAI_PASSIVE;
+-	hints.ai_port_space = port_space;
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+ 	if (ret) {
+ 		perror("cmatose: getrdmaaddr error");
+@@ -563,13 +559,10 @@ out:
+ 
+ static int run_client(void)
+ {
+-	struct rdma_addrinfo hints;
+ 	int i, ret;
+ 
+ 	printf("udaddy: starting client\n");
+ 
+-	memset(&hints, 0, sizeof hints);
+-	hints.ai_port_space = port_space;
+ 	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &test.rai);
+ 	if (ret) {
+ 		perror("udaddy: getaddrinfo error");
+@@ -613,7 +606,8 @@ int main(int argc, char **argv)
+ {
+ 	int op, ret;
+ 
+-	while ((op = getopt(argc, argv, "s:b:c:C:S:t:p:")) != -1) {
++	hints.ai_port_space = RDMA_PS_UDP;
++	while ((op = getopt(argc, argv, "s:b:c:C:S:t:p:P:f:")) != -1) {
+ 		switch (op) {
+ 		case 's':
+ 			dst_addr = optarg;
+@@ -634,13 +628,36 @@ int main(int argc, char **argv)
+ 			set_tos = 1;
+ 			tos = (uint8_t) strtoul(optarg, NULL, 0);
+ 			break;
+-		case 'p':
+-			port_space = strtol(optarg, NULL, 0);
++		case 'p': /* for backwards compatibility - use -P */
++			hints.ai_port_space = strtol(optarg, NULL, 0);
++			break;
++		case 'f':
++			if (!strncasecmp("ip", optarg, 2)) {
++				hints.ai_flags = RAI_NUMERICHOST;
++			} else if (!strncasecmp("gid", optarg, 3)) {
++				hints.ai_flags = RAI_NUMERICHOST | RAI_FAMILY;
++				hints.ai_family = AF_IB;
++			} else if (strncasecmp("name", optarg, 4)) {
++				fprintf(stderr, "Warning: unknown address format\n");
++			}
++			break;
++		case 'P':
++			if (!strncasecmp("ib", optarg, 2)) {
++				hints.ai_port_space = RDMA_PS_IB;
++			} else if (!strncasecmp("ipoib", optarg, 5)) {
++				hints.ai_port_space = RDMA_PS_IPOIB;
++			} else if (strncasecmp("udp", optarg, 3)) {
++				fprintf(stderr, "Warning: unknown port space format\n");
++			}
+ 			break;
+ 		default:
+ 			printf("usage: %s\n", argv[0]);
+ 			printf("\t[-s server_address]\n");
+ 			printf("\t[-b bind_address]\n");
++			printf("\t[-f address_format]\n");
++			printf("\t    name, ip, ipv6, or gid\n");
++			printf("\t[-P port_space]\n");
++			printf("\t    udp, ipoib, or ib\n");
+ 			printf("\t[-c connections]\n");
+ 			printf("\t[-C message_count]\n");
+ 			printf("\t[-S message_size]\n");
+@@ -662,10 +679,12 @@ int main(int argc, char **argv)
+ 	if (alloc_nodes())
+ 		exit(1);
+ 
+-	if (dst_addr)
++	if (dst_addr) {
+ 		ret = run_client();
+-	else
++	} else {
++		hints.ai_flags |= RAI_PASSIVE;
+ 		ret = run_server();
++	}
+ 
+ 	printf("test complete\n");
+ 	destroy_nodes();
 -- 
 1.7.3
 
