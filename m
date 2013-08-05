@@ -1,30 +1,61 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 FIXES for-3.11 0/4] Pkey fixes for IB core and IPoIB
-Date: Tue, 6 Aug 2013 00:02:18 +0300
-Message-ID: <CAJZOPZJbjAC=u0vJdUFGO66KBunoZhX1b=y6UudTEgpi9mbA0g@mail.gmail.com>
-References: <1374145352-27816-1-git-send-email-ogerlitz@mellanox.com>
-	<CAJZOPZLVQhZtWyCJLt3W-COdHZnsrBaN+KOpj83d0GyS+RY+QA@mail.gmail.com>
-	<51FA2D98.5000707@mellanox.com>
-	<CAJZOPZ+_MbfUVjvdjuBBWexGx-++PRoW=7rb8bofaeTNGZqVPQ@mail.gmail.com>
-	<CAL1RGDWoiO+eTjheA-CZrK_O0LrhbpDFxDn-vSWxZda3j9e+oQ@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V2] libibverbs: Allow arbitrary int values for MTU
+Date: Mon, 5 Aug 2013 16:22:50 -0600
+Message-ID: <20130805222250.GA4486@obsidianresearch.com>
+References: <20130708172621.GA3852@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F70BF83@xmb-rcd-x01.cisco.com>
+ <1828884A29C6694DAF28B7E6B8A82373805AAB74@ORSMSX109.amr.corp.intel.com>
+ <20130716144747.GA7304@obsidianresearch.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F7211E6@xmb-rcd-x01.cisco.com>
+ <CAL1RGDWKmecLXsqphwdP9XG=4Y=65Z_ACSdRBhEqVQb6Q4LrUg@mail.gmail.com>
+ <51E6DB11.9050906@redhat.com>
+ <CAL1RGDVuuQU-NZ2o+T0_kuxPMRadGPeqzO1J9iuW=DRuFMMYfQ@mail.gmail.com>
+ <20130805190238.GA14356@obsidianresearch.com>
+ <CAL1RGDWPHWzAWx7XXxGGCVQQ1xHU6QDVybrttnvoqUPrzqzvWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWoiO+eTjheA-CZrK_O0LrhbpDFxDn-vSWxZda3j9e+oQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAL1RGDWPHWzAWx7XXxGGCVQQ1xHU6QDVybrttnvoqUPrzqzvWA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 5, 2013 at 9:40 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On Mon, Aug 05, 2013 at 01:06:36PM -0700, Roland Dreier wrote:
+> On Mon, Aug 5, 2013 at 12:02 PM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> >> Wouldn't the following be a better path forward:
+> >>
+> >>  - Add a new API (ibv_get_max_datagram_size() or some such) that
+> >> returns the real value as an int, based on the true MTU
+> >>  - Have old query verbs continue to return only old MTU values, but
+> >> deprecate that field with the idea of removing it in a few years
+> 
+> > It isn't that easy, one API certainly doesn't cover it. The MTU is in
+> > two structs:
+> 
+> > struct ibv_port_attr
+> > struct ibv_qp_attr
+> 
+> > Which touch ibv_query_port, ibv_modify_qp and ibv_query_qp. All of
+> > which need to be changed, and you can't change the _qp functions just
+> > by adding a new call.
+> 
+> Well, for full generality I agree we would have to handle the QP
+> stuff.  But for now at least the only QPs that need (or allow) MTU to
+> be set are connected (RC, UC and XRC) QPs.  The current motivation for
+> allowing extended MTU is for datagrams.  So strictly speaking we only
+> need to deal with the query port verb.
 
-> Yes, the iSER stuff looks fine for the 3.12 merge window.
+Okay, but if you want to narrow things to just be Jeff's application
+like that, then do we even need this to be part of verbs?
 
-OK, good. So we're post 3.11-rc4 now, which means the merge window can
-be three weeks away. Are you planning to pick 3.12 materials such as
-the iser series and more into your for-next branch any time soon?
+IP path MTU should be discovered by a netlink routing query to lookup
+the target IP(s), the device maximum should not really be used by
+apps..
 
-Or.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
