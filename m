@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH ibacm 2/8] acm.c: In acm_port_up, handle noncontiguous pkeys
-Date: Tue, 06 Aug 2013 07:45:17 -0400
-Message-ID: <5200E1CD.6070705@dev.mellanox.co.il>
+Subject: [PATCH ibacm 3/8] acm.c: Invalid pkey has low order 15 bits 0
+Date: Tue, 06 Aug 2013 07:45:22 -0400
+Message-ID: <5200E1D2.2030407@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,46 +12,26 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-There can be "holes" in pkey table although this is not usually the case
-but since IBA spec allows for this, it should be handled.
+so add in handling for pkey 0x8000 as well as 0 for invalid
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/acm.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ src/acm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/src/acm.c b/src/acm.c
-index 81aeeb4..a15f094 100644
+index a15f094..7de5873 100644
 --- a/src/acm.c
 +++ b/src/acm.c
-@@ -3192,11 +3192,6 @@ static void acm_port_up(struct acm_port *port)
- 			break;
- 	}
- 
--	for (port->pkey_cnt = 0;; port->pkey_cnt++) {
--		ret = ibv_query_pkey(port->dev->verbs, port->port_num, port->pkey_cnt, &pkey);
--		if (ret || !pkey)
--			break;
--	}
- 	port->lid = attr.lid;
- 	port->lid_mask = 0xffff - ((1 << attr.lmc) - 1);
- 
-@@ -3214,8 +3209,13 @@ static void acm_port_up(struct acm_port *port)
- 		return;
- 
+@@ -3211,7 +3211,7 @@ static void acm_port_up(struct acm_port *port)
  	atomic_set(&port->sa_dest.refcnt, 1);
--	for (i = 0; i < port->pkey_cnt; i++)
--		 acm_ep_up(port, (uint16_t) i);
-+	for (i = 0; i < attr.pkey_tbl_len; i++) {
-+		ret = ibv_query_pkey(port->dev->verbs, port->port_num, i, &pkey);
-+		if (ret || !pkey)
-+			continue;
-+		port->pkey_cnt++;
-+		acm_ep_up(port, (uint16_t) i);
-+	}
- 
- 	acm_port_join(port);
- 	port->state = IBV_PORT_ACTIVE;
+ 	for (i = 0; i < attr.pkey_tbl_len; i++) {
+ 		ret = ibv_query_pkey(port->dev->verbs, port->port_num, i, &pkey);
+-		if (ret || !pkey)
++		if (ret || !(ntohs(pkey) & 0x7fff))
+ 			continue;
+ 		port->pkey_cnt++;
+ 		acm_ep_up(port, (uint16_t) i);
 -- 
 1.7.8.2
 
