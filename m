@@ -1,46 +1,29 @@
-From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 8/8] RDMA/cxgb4: Issue RI.FINI before closing when entering TERM
-Date: Tue,  6 Aug 2013 21:04:40 +0530
-Message-ID: <1375803280-7916-9-git-send-email-vipul@chelsio.com>
-References: <1375803280-7916-1-git-send-email-vipul@chelsio.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V1 FIXES for-3.11 0/4] Pkey fixes for IB core and IPoIB
+Date: Tue, 6 Aug 2013 10:40:10 -0700
+Message-ID: <CAL1RGDWtz4Ku+1KCphYEmg95tUw8BuKTWKOrRfgJ_3gUJOA8Lw@mail.gmail.com>
+References: <1374145352-27816-1-git-send-email-ogerlitz@mellanox.com>
+ <CAJZOPZLVQhZtWyCJLt3W-COdHZnsrBaN+KOpj83d0GyS+RY+QA@mail.gmail.com>
+ <51FA2D98.5000707@mellanox.com> <CAJZOPZ+_MbfUVjvdjuBBWexGx-++PRoW=7rb8bofaeTNGZqVPQ@mail.gmail.com>
+ <CAL1RGDWoiO+eTjheA-CZrK_O0LrhbpDFxDn-vSWxZda3j9e+oQ@mail.gmail.com>
+ <CAJZOPZJbjAC=u0vJdUFGO66KBunoZhX1b=y6UudTEgpi9mbA0g@mail.gmail.com>
+ <CAL1RGDWz81ZqkTjf74ske-i3U5yKH0z3aBr_cSxgcKeHo7Y1Lw@mail.gmail.com> <CAJZOPZ+6Lq8bMmzWttKQufuoZ2er9hejvT-Zz_CFxbfOvsmbOw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1375803280-7916-1-git-send-email-vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <CAJZOPZ+6Lq8bMmzWttKQufuoZ2er9hejvT-Zz_CFxbfOvsmbOw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+On Tue, Aug 6, 2013 at 6:14 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Any time estimate for when you start accepting 3.12 patches into your
+> for-next branch?
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Signed-off-by: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/qp.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+No.
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 22d1f01..5829367 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1350,9 +1350,14 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
- 			qhp->attr.ecode = attrs->ecode;
- 			t4_set_wq_in_error(&qhp->wq);
- 			ep = qhp->ep;
-+			disconnect = 1;
- 			if (!internal)
- 				terminate = 1;
--			disconnect = 1;
-+			else {
-+				ret = rdma_fini(rhp, qhp, ep);
-+				if (ret)
-+					goto err;
-+			}
- 			c4iw_get_ep(&qhp->ep->com);
- 			break;
- 		case C4IW_QP_STATE_ERROR:
--- 
-1.8.0
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
