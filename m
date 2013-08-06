@@ -1,37 +1,39 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH ibacm 8/8] acm.c: In acm_join_group, no need to set qkey in
- umad addr to send to SA
-Date: Tue, 06 Aug 2013 07:45:43 -0400
-Message-ID: <5200E1E7.4070907@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V3 for-next 0/4] Add receive Flow Steering support
+Date: Tue, 6 Aug 2013 16:11:41 +0300
+Message-ID: <5200F60D.8060500@mellanox.com>
+References: <1372873336-13694-1-git-send-email-ogerlitz@mellanox.com> <20130805205437.GA7488@sbohrermbp13-local.rgmadvisors.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130805205437.GA7488-/vebjAlq/uFE7V8Yqttd03bhEEblAqRIDbRjUBewulXQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 05/08/2013 23:54, Shawn Bohrer wrote:
+> The problem with running and testing this code is that many of these
+> features are posted in incomplete (from the user point of view)
+> chunks.  As an example I don't really see how anyone is currently
+> using raw QPs on upstream code since this flow steering patch set is
+> missing, I still haven't seen the corresponding patches to libibverbs,
+> and IP checksum support is still missing from the send side.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/acm.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Hi Shawn,
 
-diff --git a/src/acm.c b/src/acm.c
-index 83c6b70..30129f7 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -1524,7 +1524,6 @@ static void acm_join_group(struct acm_ep *ep, union ibv_gid *port_gid,
- 
- 	port = ep->port;
- 	umad->addr.qpn = htonl(port->sa_dest.remote_qpn);
--	umad->addr.qkey = htonl(ACM_QKEY);
- 	umad->addr.pkey_index = port->default_pkey_ix;
- 	umad->addr.lid = htons(port->sa_dest.av.dlid);
- 	umad->addr.sl = port->sa_dest.av.sl;
--- 
-1.7.8.2
+Its common for features to be submitted in bottom/up manner, that is 1st
+the kernel part with the API to user space and only later the user space 
+implementation.
+
+Still, your input and testing is very much valuable, I will send you 
+user space
+patches for libmlx4 and libibverbs so you can test the kernel patches.
+
+
+Or.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
