@@ -1,28 +1,32 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V1 FIXES for-3.11 0/4] Pkey fixes for IB core and IPoIB
-Date: Mon, 5 Aug 2013 20:13:23 -0700
-Message-ID: <CAL1RGDWz81ZqkTjf74ske-i3U5yKH0z3aBr_cSxgcKeHo7Y1Lw@mail.gmail.com>
-References: <1374145352-27816-1-git-send-email-ogerlitz@mellanox.com>
- <CAJZOPZLVQhZtWyCJLt3W-COdHZnsrBaN+KOpj83d0GyS+RY+QA@mail.gmail.com>
- <51FA2D98.5000707@mellanox.com> <CAJZOPZ+_MbfUVjvdjuBBWexGx-++PRoW=7rb8bofaeTNGZqVPQ@mail.gmail.com>
- <CAL1RGDWoiO+eTjheA-CZrK_O0LrhbpDFxDn-vSWxZda3j9e+oQ@mail.gmail.com> <CAJZOPZJbjAC=u0vJdUFGO66KBunoZhX1b=y6UudTEgpi9mbA0g@mail.gmail.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v3.10.y 0/4] IB/IPoIB fixes for SRIOV / cloud environment
+Date: Tue, 6 Aug 2013 17:38:37 +0800
+Message-ID: <20130806093837.GC27889@kroah.com>
+References: <1375778322-24408-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJbjAC=u0vJdUFGO66KBunoZhX1b=y6UudTEgpi9mbA0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1375778322-24408-1-git-send-email-ogerlitz@mellanox.com>
+Sender: stable-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: roland@kernel.org, stable@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 5, 2013 at 2:02 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> OK, good. So we're post 3.11-rc4 now, which means the merge window can
-> be three weeks away. Are you planning to pick 3.12 materials such as
-> the iser series and more into your for-next branch any time soon?
+On Tue, Aug 06, 2013 at 11:38:38AM +0300, Or Gerlitz wrote:
+> Hi Greg,
+> 
+> This series contains few fixes to the IB core, mlx4 IB driver and IPoIB. 
+> 
+> The patches enable working properly with IPoIB devices set over SRIOV 
+> Virtual Functions probed to VMs in cloud environment when the cloud 
+> management system uses non trivial settings of IB PKEYs (Partition-Keys
+> , sort of Ethernet vlans equivalent).
 
+That really sounds like a new feature, and not a bugfix, for these
+devices, right?
 
-yes
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I need an agreement from the IB maintainers that this really is stable
+material before I can accept it.
+
+greg k-h
