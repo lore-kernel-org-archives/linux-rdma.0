@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH ibacm 0/8} PKey and QKey related ACM fixes
-Date: Tue, 06 Aug 2013 07:45:06 -0400
-Message-ID: <5200E1C2.4010300@dev.mellanox.co.il>
+Subject: [PATCH ibacm 1/8] libacm.c: Remove unneeded structures
+Date: Tue, 06 Aug 2013 07:45:14 -0400
+Message-ID: <5200E1CA.509@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,23 +12,39 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-Miscellaneous fixes for P_Key and Q_Key handling in ACM.
+acm_port and acm_device are not used/needed
 
-Hal Rosenstock (8):
-  libacm.c: Remove unneeded structures
-  acm.c: In acm_port_up, handle noncontiguous pkeys
-  acm.c: Invalid pkey has low order 15 bits 0
-  acm.c: Fix endian of transaction ID
-  acm.c: Make sure MGID has full member pkey bit on
-  acm.c: Send multicast joins to SA on default partition
-  acm.c: Fix endian of qkey in MCMemberRecord in acm_init_join
-  acm.c: In acm_join_group, no need to set qkey in umad addr to send to
-    SA
-
- src/acm.c    |   38 ++++++++++++++++++++++++--------------
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
  src/libacm.c |   15 ---------------
- 2 files changed, 24 insertions(+), 29 deletions(-)
+ 1 files changed, 0 insertions(+), 15 deletions(-)
 
+diff --git a/src/libacm.c b/src/libacm.c
+index 1bf7030..4e42233 100644
+--- a/src/libacm.c
++++ b/src/libacm.c
+@@ -40,21 +40,6 @@
+ #include <netdb.h>
+ #include <arpa/inet.h>
+ 
+-struct acm_port {
+-	uint8_t           port_num;
+-	uint16_t          lid;
+-	union ibv_gid     gid;
+-	int               pkey_cnt;
+-	uint16_t          pkey[4];
+-};
+-
+-struct acm_device {
+-	struct ibv_context *verbs;
+-	uint64_t           guid;
+-	int                port_cnt;
+-	struct acm_port    *ports;
+-};
+-
+ extern lock_t lock;
+ static SOCKET sock = INVALID_SOCKET;
+ static short server_port = 6125;
 -- 
 1.7.8.2
 
