@@ -1,23 +1,32 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V9 libmlx4 0/2] Add extension and XRC QP support
-Date: Tue, 6 Aug 2013 10:40:38 -0700
-Message-ID: <CAG4TOxP2CUgUsu-061XZpEgY89k0Xf4+jfTOmq=b_h0Q1Ccs0w@mail.gmail.com>
-References: <1375369555-11416-1-git-send-email-yishaih@mellanox.com> <CAJZOPZJ9gr=4Z-9XK0JRcojsXEwzXV9Hn+1h-vcu3fcvbWxM-Q@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH 0/8] Critical bug fixes for RDMA/cxgb4
+Date: Tue, 6 Aug 2013 10:42:30 -0700
+Message-ID: <CAL1RGDXuigeKkMawuRZ_5GVnkQ0Mm0FiMk4eqZ5jthHHDx1v=g@mail.gmail.com>
+References: <1375803280-7916-1-git-send-email-vipul@chelsio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJ9gr=4Z-9XK0JRcojsXEwzXV9Hn+1h-vcu3fcvbWxM-Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1375803280-7916-1-git-send-email-vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 6, 2013 at 8:03 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Could you finally-long-lastish post some comments on how you see this?
-> any bugs or flames you find here, is this going to be accepted? when?
+On Tue, Aug 6, 2013 at 8:34 AM, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> wrote:
 
+> This series is on top of previously submitted series "Add IPv6 support for
+> iWARP" which can be found at following location:
+> http://comments.gmane.org/gmane.linux.network/272124
+> We request Roland to merge above series first and then apply this series on top
+> of it.
 
-Have you read the patches?  Any comments?
+I can do that, and in fact I should be able to start queueing 3.12
+material soon.  However, if these are really critical bug fixes, do
+you want them to wait for 3.12 as well?
+
+Which are really critical bug fixes?  For example, just from the
+subject line, I can't see advertising the wrong MR size as a critical
+bug.
 
  - R.
 --
