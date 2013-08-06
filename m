@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH ibacm 1/8] libacm.c: Remove unneeded structures
-Date: Tue, 06 Aug 2013 07:45:14 -0400
-Message-ID: <5200E1CA.509@dev.mellanox.co.il>
+Subject: [PATCH ibacm 2/8] acm.c: In acm_port_up, handle noncontiguous pkeys
+Date: Tue, 06 Aug 2013 07:45:17 -0400
+Message-ID: <5200E1CD.6070705@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,39 +12,46 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-acm_port and acm_device are not used/needed
+There can be "holes" in pkey table although this is not usually the case
+but since IBA spec allows for this, it should be handled.
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/libacm.c |   15 ---------------
- 1 files changed, 0 insertions(+), 15 deletions(-)
+ src/acm.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/src/libacm.c b/src/libacm.c
-index 1bf7030..4e42233 100644
---- a/src/libacm.c
-+++ b/src/libacm.c
-@@ -40,21 +40,6 @@
- #include <netdb.h>
- #include <arpa/inet.h>
+diff --git a/src/acm.c b/src/acm.c
+index 81aeeb4..a15f094 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -3192,11 +3192,6 @@ static void acm_port_up(struct acm_port *port)
+ 			break;
+ 	}
  
--struct acm_port {
--	uint8_t           port_num;
--	uint16_t          lid;
--	union ibv_gid     gid;
--	int               pkey_cnt;
--	uint16_t          pkey[4];
--};
--
--struct acm_device {
--	struct ibv_context *verbs;
--	uint64_t           guid;
--	int                port_cnt;
--	struct acm_port    *ports;
--};
--
- extern lock_t lock;
- static SOCKET sock = INVALID_SOCKET;
- static short server_port = 6125;
+-	for (port->pkey_cnt = 0;; port->pkey_cnt++) {
+-		ret = ibv_query_pkey(port->dev->verbs, port->port_num, port->pkey_cnt, &pkey);
+-		if (ret || !pkey)
+-			break;
+-	}
+ 	port->lid = attr.lid;
+ 	port->lid_mask = 0xffff - ((1 << attr.lmc) - 1);
+ 
+@@ -3214,8 +3209,13 @@ static void acm_port_up(struct acm_port *port)
+ 		return;
+ 
+ 	atomic_set(&port->sa_dest.refcnt, 1);
+-	for (i = 0; i < port->pkey_cnt; i++)
+-		 acm_ep_up(port, (uint16_t) i);
++	for (i = 0; i < attr.pkey_tbl_len; i++) {
++		ret = ibv_query_pkey(port->dev->verbs, port->port_num, i, &pkey);
++		if (ret || !pkey)
++			continue;
++		port->pkey_cnt++;
++		acm_ep_up(port, (uint16_t) i);
++	}
+ 
+ 	acm_port_join(port);
+ 	port->state = IBV_PORT_ACTIVE;
 -- 
 1.7.8.2
 
