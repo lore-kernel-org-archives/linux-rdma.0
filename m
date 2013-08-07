@@ -1,7 +1,7 @@
 From: <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 3/6] RDMA/ocrdma: Don't allow zero/invalid sgid usage.
-Date: Wed, 7 Aug 2013 12:52:34 +0530
-Message-ID: <b400e330-3605-4ac5-9f41-846f73459264@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH 4/6] RDMA/ocrdma: Removed driver QP state machine.
+Date: Wed, 7 Aug 2013 12:52:35 +0530
+Message-ID: <c627cbc1-836d-4219-b2af-fec2d1241777@CMEXHTCAS1.ad.emulex.com>
 References: <1375860157-10588-1-git-send-email-bgottumukkala@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,41 +14,176 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Dont allow zero/invalid sgid usage.
+Remove qp state machine and depend on stack's service.
 
 Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 101 +++-------------------------
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |   2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |   4 +-
+ 3 files changed, 11 insertions(+), 96 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 6bbcc78..af01ba2 100644
+index af01ba2..c4bb29c 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2124,9 +2124,10 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
+@@ -654,7 +654,7 @@ static void ocrdma_process_qpcat_error(struct ocrdma_dev *dev,
+ 
+ 	if (qp == NULL)
+ 		BUG();
+-	ocrdma_qp_state_machine(qp, new_ib_qps, &old_ib_qps);
++	ocrdma_qp_state_change(qp, new_ib_qps, &old_ib_qps);
+ }
+ 
+ static void ocrdma_dispatch_ibevent(struct ocrdma_dev *dev,
+@@ -1676,8 +1676,8 @@ void ocrdma_flush_qp(struct ocrdma_qp *qp)
+ 	spin_unlock_irqrestore(&qp->dev->flush_q_lock, flags);
+ }
+ 
+-int ocrdma_qp_state_machine(struct ocrdma_qp *qp, enum ib_qp_state new_ib_state,
+-			    enum ib_qp_state *old_ib_state)
++int ocrdma_qp_state_change(struct ocrdma_qp *qp, enum ib_qp_state new_ib_state,
++			   enum ib_qp_state *old_ib_state)
  {
- 	int status;
- 	struct ib_ah_attr *ah_attr = &attrs->ah_attr;
--	union ib_gid sgid;
-+	union ib_gid sgid, zgid;
- 	u32 vlan_id;
- 	u8 mac_addr[6];
+ 	unsigned long flags;
+ 	int status = 0;
+@@ -1694,96 +1694,11 @@ int ocrdma_qp_state_machine(struct ocrdma_qp *qp, enum ib_qp_state new_ib_state,
+ 		return 1;
+ 	}
+ 
+-	switch (qp->state) {
+-	case OCRDMA_QPS_RST:
+-		switch (new_state) {
+-		case OCRDMA_QPS_RST:
+-		case OCRDMA_QPS_INIT:
+-			break;
+-		default:
+-			status = -EINVAL;
+-			break;
+-		};
+-		break;
+-	case OCRDMA_QPS_INIT:
+-		/* qps: INIT->XXX */
+-		switch (new_state) {
+-		case OCRDMA_QPS_INIT:
+-		case OCRDMA_QPS_RTR:
+-			break;
+-		case OCRDMA_QPS_ERR:
+-			ocrdma_flush_qp(qp);
+-			break;
+-		default:
+-			status = -EINVAL;
+-			break;
+-		};
+-		break;
+-	case OCRDMA_QPS_RTR:
+-		/* qps: RTS->XXX */
+-		switch (new_state) {
+-		case OCRDMA_QPS_RTS:
+-			break;
+-		case OCRDMA_QPS_ERR:
+-			ocrdma_flush_qp(qp);
+-			break;
+-		default:
+-			status = -EINVAL;
+-			break;
+-		};
+-		break;
+-	case OCRDMA_QPS_RTS:
+-		/* qps: RTS->XXX */
+-		switch (new_state) {
+-		case OCRDMA_QPS_SQD:
+-		case OCRDMA_QPS_SQE:
+-			break;
+-		case OCRDMA_QPS_ERR:
+-			ocrdma_flush_qp(qp);
+-			break;
+-		default:
+-			status = -EINVAL;
+-			break;
+-		};
+-		break;
+-	case OCRDMA_QPS_SQD:
+-		/* qps: SQD->XXX */
+-		switch (new_state) {
+-		case OCRDMA_QPS_RTS:
+-		case OCRDMA_QPS_SQE:
+-		case OCRDMA_QPS_ERR:
+-			break;
+-		default:
+-			status = -EINVAL;
+-			break;
+-		};
+-		break;
+-	case OCRDMA_QPS_SQE:
+-		switch (new_state) {
+-		case OCRDMA_QPS_RTS:
+-		case OCRDMA_QPS_ERR:
+-			break;
+-		default:
+-			status = -EINVAL;
+-			break;
+-		};
+-		break;
+-	case OCRDMA_QPS_ERR:
+-		/* qps: ERR->XXX */
+-		switch (new_state) {
+-		case OCRDMA_QPS_RST:
+-			break;
+-		default:
+-			status = -EINVAL;
+-			break;
+-		};
+-		break;
+-	default:
+-		status = -EINVAL;
+-		break;
+-	};
+-	if (!status)
+-		qp->state = new_state;
 +
- 	if ((ah_attr->ah_flags & IB_AH_GRH) == 0)
- 		return -EINVAL;
- 	cmd->params.tclass_sq_psn |=
-@@ -2142,6 +2143,11 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 			 ah_attr->grh.sgid_index, &sgid);
- 	if (status)
- 		return status;
++	if (new_state == OCRDMA_QPS_ERR)
++		ocrdma_flush_qp(qp);
 +
-+	memset(&zgid, 0, sizeof(zgid));
-+	if (!memcmp(&sgid, &zgid, sizeof(zgid)))
-+		return -EINVAL;
-+
- 	qp->sgid_idx = ah_attr->grh.sgid_index;
- 	memcpy(&cmd->params.sgid[0], &sgid.raw[0], sizeof(cmd->params.sgid));
- 	ocrdma_resolve_dgid(qp->dev, &ah_attr->grh.dgid, &mac_addr[0]);
++	qp->state = new_state;
+ 
+ 	spin_unlock_irqrestore(&qp->q_lock, flags);
+ 	return status;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.h b/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
+index 5d8e6f5..cc90ac3 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
+@@ -122,7 +122,7 @@ int ocrdma_mbx_destroy_srq(struct ocrdma_dev *, struct ocrdma_srq *);
+ int ocrdma_alloc_av(struct ocrdma_dev *, struct ocrdma_ah *);
+ int ocrdma_free_av(struct ocrdma_dev *, struct ocrdma_ah *);
+ 
+-int ocrdma_qp_state_machine(struct ocrdma_qp *, enum ib_qp_state new_state,
++int ocrdma_qp_state_change(struct ocrdma_qp *, enum ib_qp_state new_state,
+ 			    enum ib_qp_state *old_ib_state);
+ bool ocrdma_is_qp_in_sq_flushlist(struct ocrdma_cq *, struct ocrdma_qp *);
+ bool ocrdma_is_qp_in_rq_flushlist(struct ocrdma_cq *, struct ocrdma_qp *);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 2df980b..40d2c1c 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1099,7 +1099,7 @@ int _ocrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	qp = get_ocrdma_qp(ibqp);
+ 	dev = qp->dev;
+ 	if (attr_mask & IB_QP_STATE)
+-		status = ocrdma_qp_state_machine(qp, attr->qp_state, &old_qps);
++		status = ocrdma_qp_state_change(qp, attr->qp_state, &old_qps);
+ 	/* if new and previous states are same hw doesn't need to
+ 	 * know about it.
+ 	 */
+@@ -2103,7 +2103,7 @@ static bool ocrdma_update_err_cqe(struct ib_wc *ibwc, struct ocrdma_cqe *cqe,
+ 	ibwc->status = ocrdma_to_ibwc_err(status);
+ 
+ 	ocrdma_flush_qp(qp);
+-	ocrdma_qp_state_machine(qp, IB_QPS_ERR, NULL);
++	ocrdma_qp_state_change(qp, IB_QPS_ERR, NULL);
+ 
+ 	/* if wqe/rqe pending for which cqe needs to be returned,
+ 	 * trigger inflating it.
 -- 
 1.8.2.3
 
