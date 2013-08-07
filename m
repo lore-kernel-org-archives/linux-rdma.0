@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3 for-next 4/9] IB/mlx4: Handle Ethernet L2 parameters for IP based GID addressing
-Date: Wed,  7 Aug 2013 18:34:57 +0300
-Message-ID: <1375889702-14818-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V3 for-next 2/9] IB/CMA: RoCE IP based GID addressing
+Date: Wed,  7 Aug 2013 18:34:55 +0300
+Message-ID: <1375889702-14818-3-git-send-email-ogerlitz@mellanox.com>
 References: <1375889702-14818-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1375889702-14818-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,331 +12,257 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-IP based RoCE gids don't store Ethernet L2 parameters, MAC and VLAN.
+Currently, the IB core and specifically the RDMA-CM assumes that
+RoCE (IBoE) gids encode related Ethernet netdevice interface
+MAC address and possibly VLAN id.
 
-Hence, we need to extract them now from the CQE and place in struct
-ib_wc (to be used for cases were they were taken from the gid).
+Change gids to be treated as they encode interface IP address.
 
-Also, when modifying a QP or building address handle, instead of
-parsing the dgid to get the MAC and VLAN, take them from the
-address handle attributes.
+Since Ethernet layer 2 address parameters are not longer encoded
+within gids, had to extend the Infiniband address structures (e.g.
+ib_ah_attr) with layer 2 address parameters, namely mac and vlan.
 
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/ah.c           |   24 +++-----
- drivers/infiniband/hw/mlx4/cq.c           |    6 ++
- drivers/infiniband/hw/mlx4/qp.c           |   99 ++++++++++++++++++++++-------
- drivers/net/ethernet/mellanox/mlx4/port.c |   20 ++++++
- include/linux/mlx4/cq.h                   |   15 +++-
- 5 files changed, 122 insertions(+), 42 deletions(-)
+ drivers/infiniband/core/cma.c  |   40 +++++++++++++++++--------
+ drivers/infiniband/core/ucma.c |   18 ++---------
+ include/rdma/ib_addr.h         |   61 +++++++++++++++++++++++++++------------
+ 3 files changed, 73 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-index a251bec..987fcbe 100644
---- a/drivers/infiniband/hw/mlx4/ah.c
-+++ b/drivers/infiniband/hw/mlx4/ah.c
-@@ -92,26 +92,18 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 4b82e27..e25d5da 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -386,7 +386,9 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&lock);
+-	iboe_addr_get_sgid(dev_addr, &iboe_gid);
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
++		    &iboe_gid);
++
+ 	memcpy(&gid, dev_addr->src_dev_addr +
+ 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
+ 	list_for_each_entry(cma_dev, &dev_list, list) {
+@@ -600,11 +602,23 @@ EXPORT_SYMBOL(rdma_destroy_qp);
+ static int cma_find_smac_by_sgid(union ib_gid *sgid, u8 *smac)
  {
- 	struct mlx4_ib_dev *ibdev = to_mdev(pd->device);
- 	struct mlx4_dev *dev = ibdev->dev;
--	union ib_gid sgid;
--	u8 mac[6];
--	int err;
- 	int is_mcast;
--	u16 vlan_tag;
--
--	err = mlx4_ib_resolve_grh(ibdev, ah_attr, mac, &is_mcast, ah_attr->port_num);
--	if (err)
--		return ERR_PTR(err);
--
--	memcpy(ah->av.eth.mac, mac, 6);
--	err = ib_get_cached_gid(pd->device, ah_attr->port_num, ah_attr->grh.sgid_index, &sgid);
--	if (err)
--		return ERR_PTR(err);
--	vlan_tag = rdma_get_vlan_id(&sgid);
--	if (vlan_tag < 0x1000)
--		vlan_tag |= (ah_attr->sl & 7) << 13;
-+	struct in6_addr in6;
-+
-+	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
-+	if (rdma_is_multicast_addr(&in6)) {
-+		is_mcast = 1;
-+		rdma_get_mcast_mac(&in6, ah->av.eth.mac);
-+	} else {
-+		memcpy(ah->av.eth.mac, ah_attr->dmac, ETH_ALEN);
-+	}
- 	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
- 	ah->av.eth.gid_index = ah_attr->grh.sgid_index;
--	ah->av.eth.vlan = cpu_to_be16(vlan_tag);
- 	if (ah_attr->static_rate) {
- 		ah->av.eth.stat_rate = ah_attr->static_rate + MLX4_STAT_RATE_OFFSET;
- 		while (ah->av.eth.stat_rate > IB_RATE_2_5_GBPS + MLX4_STAT_RATE_OFFSET &&
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index d5e60f4..2d40fa4 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -793,6 +793,12 @@ repoll:
- 			wc->sl  = be16_to_cpu(cqe->sl_vid) >> 13;
- 		else
- 			wc->sl  = be16_to_cpu(cqe->sl_vid) >> 12;
-+		if (be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_VLAN_PRESENT_MASK)
-+			wc->vlan_id = be16_to_cpu(cqe->sl_vid) &
-+				MLX4_CQE_VID_MASK;
-+		else
-+			wc->vlan_id = 0xffff;
-+		memcpy(wc->smac, cqe->smac, ETH_ALEN);
- 	}
- 
- 	return 0;
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index da6f5fa..d4cfda6 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -90,6 +90,21 @@ enum {
- 	MLX4_RAW_QP_MSGMAX	= 31,
- };
- 
-+#ifndef ETH_ALEN
-+#define ETH_ALEN        6
-+#endif
-+static inline u64 mlx4_mac_to_u64(u8 *addr)
-+{
-+	u64 mac = 0;
-+	int i;
-+
-+	for (i = 0; i < ETH_ALEN; i++) {
-+		mac <<= 8;
-+		mac |= addr[i];
-+	}
-+	return mac;
-+}
-+
- static const __be32 mlx4_ib_opcode[] = {
- 	[IB_WR_SEND]				= cpu_to_be32(MLX4_OPCODE_SEND),
- 	[IB_WR_LSO]				= cpu_to_be32(MLX4_OPCODE_LSO),
-@@ -1144,16 +1159,15 @@ static void mlx4_set_sched(struct mlx4_qp_path *path, u8 port)
- 	path->sched_queue = (path->sched_queue & 0xbf) | ((port - 1) << 6);
- }
- 
--static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
--			 struct mlx4_qp_path *path, u8 port)
-+static int _mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
-+			  u64 smac, u16 vlan_tag, struct mlx4_qp_path *path,
-+			  u8 port)
- {
--	int err;
- 	int is_eth = rdma_port_get_link_layer(&dev->ib_dev, port) ==
- 		IB_LINK_LAYER_ETHERNET;
--	u8 mac[6];
--	int is_mcast;
--	u16 vlan_tag;
- 	int vidx;
-+	int smac_index;
-+
- 
- 	path->grh_mylmc     = ah->src_path_bits & 0x7f;
- 	path->rlid	    = cpu_to_be16(ah->dlid);
-@@ -1188,22 +1202,27 @@ static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
- 		if (!(ah->ah_flags & IB_AH_GRH))
- 			return -1;
- 
--		err = mlx4_ib_resolve_grh(dev, ah, mac, &is_mcast, port);
--		if (err)
--			return err;
--
--		memcpy(path->dmac, mac, 6);
-+		memcpy(path->dmac, ah->dmac, ETH_ALEN);
- 		path->ackto = MLX4_IB_LINK_TYPE_ETH;
--		/* use index 0 into MAC table for IBoE */
--		path->grh_mylmc &= 0x80;
-+		/* find the index  into MAC table for IBoE */
-+		if (!is_zero_ether_addr((const u8 *)&smac)) {
-+			if (mlx4_find_cached_mac(dev->dev, port, smac,
-+						 &smac_index))
-+				return -ENOENT;
-+		} else {
-+			smac_index = 0;
-+		}
-+
-+		path->grh_mylmc &= 0x80 | smac_index;
- 
--		vlan_tag = rdma_get_vlan_id(&dev->iboe.gid_table[port - 1][ah->grh.sgid_index]);
-+		path->feup |= MLX4_FEUP_FORCE_ETH_UP;
- 		if (vlan_tag < 0x1000) {
- 			if (mlx4_find_cached_vlan(dev->dev, port, vlan_tag, &vidx))
- 				return -ENOENT;
- 
- 			path->vlan_index = vidx;
- 			path->fl = 1 << 6;
-+			path->feup |= MLX4_FVL_FORCE_ETH_VLAN;
- 		}
- 	} else
- 		path->sched_queue = MLX4_IB_DEFAULT_SCHED_QUEUE |
-@@ -1212,6 +1231,28 @@ static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
- 	return 0;
- }
- 
-+static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_qp_attr *qp,
-+			 enum ib_qp_attr_mask qp_attr_mask,
-+			 struct mlx4_qp_path *path, u8 port)
-+{
-+	return _mlx4_set_path(dev, &qp->ah_attr,
-+			      mlx4_mac_to_u64((u8 *)qp->smac),
-+			      (qp_attr_mask & IB_QP_VID) ? qp->vlan_id : 0xffff,
-+			      path, port);
-+}
-+
-+static int mlx4_set_alt_path(struct mlx4_ib_dev *dev,
-+			     const struct ib_qp_attr *qp,
-+			     enum ib_qp_attr_mask qp_attr_mask,
-+			     struct mlx4_qp_path *path, u8 port)
-+{
-+	return _mlx4_set_path(dev, &qp->alt_ah_attr,
-+			      mlx4_mac_to_u64((u8 *)qp->alt_smac),
-+			      (qp_attr_mask & IB_QP_ALT_VID) ?
-+			      qp->alt_vlan_id : 0xffff,
-+			      path, port);
-+}
-+
- static void update_mcg_macs(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
- {
- 	struct mlx4_ib_gid_entry *ge, *tmp;
-@@ -1329,7 +1370,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 	}
- 
- 	if (attr_mask & IB_QP_AV) {
--		if (mlx4_set_path(dev, &attr->ah_attr, &context->pri_path,
-+		if (mlx4_set_path(dev, attr, attr_mask, &context->pri_path,
- 				  attr_mask & IB_QP_PORT ?
- 				  attr->port_num : qp->port))
- 			goto out;
-@@ -1352,8 +1393,8 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 		    dev->dev->caps.pkey_table_len[attr->alt_port_num])
- 			goto out;
- 
--		if (mlx4_set_path(dev, &attr->alt_ah_attr, &context->alt_path,
--				  attr->alt_port_num))
-+		if (mlx4_set_alt_path(dev, attr, attr_mask, &context->alt_path,
-+				      attr->alt_port_num))
- 			goto out;
- 
- 		context->alt_path.pkey_index = attr->alt_pkey_index;
-@@ -1464,6 +1505,17 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
- 		context->pri_path.ackto = (context->pri_path.ackto & 0xf8) |
- 					MLX4_IB_LINK_TYPE_ETH;
- 
-+	if (ibqp->qp_type == IB_QPT_UD && (new_state == IB_QPS_RTR)) {
-+		int is_eth = rdma_port_get_link_layer(
-+				&dev->ib_dev, qp->port) ==
-+				IB_LINK_LAYER_ETHERNET;
-+		if (is_eth) {
-+			context->pri_path.ackto = MLX4_IB_LINK_TYPE_ETH;
-+			optpar |= MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH;
-+		}
-+	}
-+
-+
- 	if (cur_state == IB_QPS_RTS && new_state == IB_QPS_SQD	&&
- 	    attr_mask & IB_QP_EN_SQD_ASYNC_NOTIFY && attr->en_sqd_async_notify)
- 		sqd_event = 1;
-@@ -1561,18 +1613,21 @@ int mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	struct mlx4_ib_qp *qp = to_mqp(ibqp);
- 	enum ib_qp_state cur_state, new_state;
- 	int err = -EINVAL;
--	int p = attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
-+	int ll;
- 	mutex_lock(&qp->mutex);
- 
- 	cur_state = attr_mask & IB_QP_CUR_STATE ? attr->cur_qp_state : qp->state;
- 	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
- 
--	if (cur_state == new_state && cur_state == IB_QPS_RESET)
--		p = IB_LINK_LAYER_UNSPECIFIED;
-+	if (cur_state == new_state && cur_state == IB_QPS_RESET) {
-+		ll = IB_LINK_LAYER_UNSPECIFIED;
-+	} else {
-+		int port = attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
-+		ll = rdma_port_get_link_layer(&dev->ib_dev, port);
-+	}
- 
- 	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type,
--				attr_mask,
--				rdma_port_get_link_layer(&dev->ib_dev, p))) {
-+				attr_mask, ll)) {
- 		pr_debug("qpn 0x%x: invalid attribute mask specified "
- 			 "for transition %d to %d. qp_type %d,"
- 			 " attr_mask 0x%x\n",
-diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
-index 946e0af..fbe76f9 100644
---- a/drivers/net/ethernet/mellanox/mlx4/port.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/port.c
-@@ -123,6 +123,26 @@ static int mlx4_set_port_mac_table(struct mlx4_dev *dev, u8 port,
- 	return err;
- }
- 
-+int mlx4_find_cached_mac(struct mlx4_dev *dev, u8 port, u64 mac, int *idx)
-+{
-+	struct mlx4_port_info *info = &mlx4_priv(dev)->port[port];
-+	struct mlx4_mac_table *table = &info->mac_table;
-+	int i;
-+
-+	for (i = 0; i < MLX4_MAX_MAC_NUM; i++) {
-+		if (!table->refs[i])
-+			continue;
-+
-+		if (mac == (MLX4_MAC_MASK & be64_to_cpu(table->entries[i]))) {
-+			*idx = i;
-+			return 0;
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL_GPL(mlx4_find_cached_mac);
-+
- int __mlx4_register_mac(struct mlx4_dev *dev, u8 port, u64 mac)
- {
- 	struct mlx4_port_info *info = &mlx4_priv(dev)->port[port];
-diff --git a/include/linux/mlx4/cq.h b/include/linux/mlx4/cq.h
-index 98fa492..e186299 100644
---- a/include/linux/mlx4/cq.h
-+++ b/include/linux/mlx4/cq.h
-@@ -34,6 +34,7 @@
- #define MLX4_CQ_H
- 
- #include <linux/types.h>
-+#include <uapi/linux/if_ether.h>
- 
- #include <linux/mlx4/device.h>
- #include <linux/mlx4/doorbell.h>
-@@ -43,10 +44,15 @@ struct mlx4_cqe {
- 	__be32			immed_rss_invalid;
- 	__be32			g_mlpath_rqpn;
- 	__be16			sl_vid;
--	__be16			rlid;
--	__be16			status;
--	u8			ipv6_ext_mask;
--	u8			badfcs_enc;
+ 	int ret = 0;
+-	struct in6_addr in6;
++	struct rdma_dev_addr dev_addr;
 +	union {
-+		struct {
-+			__be16	rlid;
-+			__be16  status;
-+			u8      ipv6_ext_mask;
-+			u8      badfcs_enc;
-+		};
-+		u8  smac[ETH_ALEN];
-+	};
- 	__be32			byte_cnt;
- 	__be16			wqe_index;
- 	__be16			checksum;
-@@ -83,6 +89,7 @@ struct mlx4_ts_cqe {
- enum {
- 	MLX4_CQE_VLAN_PRESENT_MASK	= 1 << 29,
- 	MLX4_CQE_QPN_MASK		= 0xffffff,
-+	MLX4_CQE_VID_MASK		= 0xfff,
- };
++		struct sockaddr     _sockaddr;
++		struct sockaddr_in  _sockaddr_in;
++		struct sockaddr_in6 _sockaddr_in6;
++	} gid_addr;
++
++	ret = rdma_gid2ip(&gid_addr._sockaddr, sgid);
  
- enum {
+-	memcpy(&in6, sgid, sizeof(in6));
+-	rdma_get_ll_mac(&in6, smac);
++	if (ret)
++		return ret;
++	memset(&dev_addr, 0, sizeof(dev_addr));
++	ret = rdma_translate_ip(&gid_addr._sockaddr, &dev_addr);
++	if (ret)
++		return ret;
+ 
++	memcpy(smac, dev_addr.src_dev_addr, ETH_ALEN);
+ 	return ret;
+ }
+ 
+@@ -1941,10 +1955,10 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	memcpy(route->path_rec->dmac, addr->dev_addr.dst_dev_addr, ETH_ALEN);
+ 	memcpy(route->path_rec->smac, ndev->dev_addr, ndev->addr_len);
+ 
+-	iboe_mac_vlan_to_ll(&route->path_rec->sgid, addr->dev_addr.src_dev_addr,
+-			    be16_to_cpu(route->path_rec->vlan_id));
+-	iboe_mac_vlan_to_ll(&route->path_rec->dgid, addr->dev_addr.dst_dev_addr,
+-			    be16_to_cpu(route->path_rec->vlan_id));
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
++		    &route->path_rec->sgid);
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.dst_addr,
++		    &route->path_rec->dgid);
+ 
+ 	route->path_rec->hop_limit = 1;
+ 	route->path_rec->reversible = 1;
+@@ -2111,6 +2125,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 			   RDMA_CM_ADDR_RESOLVED))
+ 		goto out;
+ 
++	memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
+ 	if (!status && !id_priv->cma_dev)
+ 		status = cma_acquire_dev(id_priv);
+ 
+@@ -2120,10 +2135,8 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 			goto out;
+ 		event.event = RDMA_CM_EVENT_ADDR_ERROR;
+ 		event.status = status;
+-	} else {
+-		memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
++	} else
+ 		event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
+-	}
+ 
+ 	if (id_priv->id.event_handler(&id_priv->id, &event)) {
+ 		cma_exch(id_priv, RDMA_CM_DESTROYING);
+@@ -2604,6 +2617,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 	if (ret)
+ 		goto err1;
+ 
++	memcpy(cma_src_addr(id_priv), addr, rdma_addr_size(addr));
+ 	if (!cma_any_addr(addr)) {
+ 		ret = cma_translate_addr(addr, &id->route.addr.dev_addr);
+ 		if (ret)
+@@ -2614,7 +2628,6 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 			goto err1;
+ 	}
+ 
+-	memcpy(cma_src_addr(id_priv), addr, rdma_addr_size(addr));
+ 	if (!(id_priv->options & (1 << CMA_OPTION_AFONLY))) {
+ 		if (addr->sa_family == AF_INET)
+ 			id_priv->afonly = 1;
+@@ -3345,7 +3358,8 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
+ 		err = -EINVAL;
+ 		goto out2;
+ 	}
+-	iboe_addr_get_sgid(dev_addr, &mc->multicast.ib->rec.port_gid);
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
++		    &mc->multicast.ib->rec.port_gid);
+ 	work->id = id_priv;
+ 	work->mc = mc;
+ 	INIT_WORK(&work->work, iboe_mcast_work_handler);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index b0f189b..7e7da86 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -655,24 +655,14 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
+ static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
+ 				 struct rdma_route *route)
+ {
+-	struct rdma_dev_addr *dev_addr;
+-	struct net_device *dev;
+-	u16 vid = 0;
+ 
+ 	resp->num_paths = route->num_paths;
+ 	switch (route->num_paths) {
+ 	case 0:
+-		dev_addr = &route->addr.dev_addr;
+-		dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
+-			if (dev) {
+-				vid = rdma_vlan_dev_vlan_id(dev);
+-				dev_put(dev);
+-			}
+-
+-		iboe_mac_vlan_to_ll((union ib_gid *) &resp->ib_route[0].dgid,
+-				    dev_addr->dst_dev_addr, vid);
+-		iboe_addr_get_sgid(dev_addr,
+-				   (union ib_gid *) &resp->ib_route[0].sgid);
++		rdma_ip2gid((struct sockaddr *)&route->addr.dst_addr,
++			    (union ib_gid *)&resp->ib_route[0].dgid);
++		rdma_ip2gid((struct sockaddr *)&route->addr.src_addr,
++			    (union ib_gid *)&resp->ib_route[0].sgid);
+ 		resp->ib_route[0].pkey = cpu_to_be16(0xffff);
+ 		break;
+ 	case 2:
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index f3ac0f2..f3d91cc 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -38,8 +38,12 @@
+ #include <linux/in6.h>
+ #include <linux/if_arp.h>
+ #include <linux/netdevice.h>
++#include <linux/inetdevice.h>
+ #include <linux/socket.h>
+ #include <linux/if_vlan.h>
++#include <net/ipv6.h>
++#include <net/if_inet6.h>
++#include <net/ip.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_pack.h>
+ 
+@@ -126,41 +130,60 @@ static inline int rdma_addr_gid_offset(struct rdma_dev_addr *dev_addr)
+ 	return dev_addr->dev_type == ARPHRD_INFINIBAND ? 4 : 0;
+ }
+ 
+-static inline void iboe_mac_vlan_to_ll(union ib_gid *gid, u8 *mac, u16 vid)
++static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
+ {
+-	memset(gid->raw, 0, 16);
+-	*((__be32 *) gid->raw) = cpu_to_be32(0xfe800000);
+-	if (vid < 0x1000) {
+-		gid->raw[12] = vid & 0xff;
+-		gid->raw[11] = vid >> 8;
+-	} else {
+-		gid->raw[12] = 0xfe;
+-		gid->raw[11] = 0xff;
++	return dev->priv_flags & IFF_802_1Q_VLAN ?
++		vlan_dev_vlan_id(dev) : 0xffff;
++}
++
++static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
++{
++	switch (addr->sa_family) {
++	case AF_INET:
++		ipv6_addr_set_v4mapped(((struct sockaddr_in *)
++					addr)->sin_addr.s_addr,
++				       (struct in6_addr *)gid);
++		break;
++	case AF_INET6:
++		memcpy(gid->raw, &((struct sockaddr_in6 *)addr)->sin6_addr, 16);
++		break;
++	default:
++		return -EINVAL;
+ 	}
+-	memcpy(gid->raw + 13, mac + 3, 3);
+-	memcpy(gid->raw + 8, mac, 3);
+-	gid->raw[8] ^= 2;
++	return 0;
+ }
+ 
+-static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
++/* Important - sockaddr should be a union of sockaddr_in and sockaddr_in6 */
++static inline int rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
+ {
+-	return dev->priv_flags & IFF_802_1Q_VLAN ?
+-		vlan_dev_vlan_id(dev) : 0xffff;
++	if (ipv6_addr_v4mapped((struct in6_addr *)gid)) {
++		struct sockaddr_in *out_in = (struct sockaddr_in *)out;
++		memset(out_in, 0, sizeof(*out_in));
++		out_in->sin_family = AF_INET;
++		memcpy(&out_in->sin_addr.s_addr, gid->raw + 12, 4);
++	} else {
++		struct sockaddr_in6 *out_in = (struct sockaddr_in6 *)out;
++		memset(out_in, 0, sizeof(*out_in));
++		out_in->sin6_family = AF_INET6;
++		memcpy(&out_in->sin6_addr.s6_addr, gid->raw, 16);
++	}
++	return 0;
+ }
+ 
+ static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
+ 				      union ib_gid *gid)
+ {
+ 	struct net_device *dev;
+-	u16 vid = 0xffff;
++	struct in_device *ip4;
+ 
+ 	dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
+ 	if (dev) {
+-		vid = rdma_vlan_dev_vlan_id(dev);
++		ip4 = (struct in_device *)dev->ip_ptr;
++		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
++			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
++					       (struct in6_addr *)gid);
+ 		dev_put(dev);
+ 	}
+-
+-	iboe_mac_vlan_to_ll(gid, dev_addr->src_dev_addr, vid);
+ }
+ 
+ static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
 -- 
 1.7.1
 
