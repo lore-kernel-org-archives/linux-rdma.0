@@ -1,53 +1,82 @@
-From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/8] Critical bug fixes for RDMA/cxgb4
-Date: Thu, 08 Aug 2013 14:01:06 +0530
-Message-ID: <5203574A.5090603@chelsio.com>
-References: <1375803280-7916-1-git-send-email-vipul@chelsio.com> <CAJZOPZJnxOGbRmWJiajkaDGFVhVT6NVCLq96KA72eyY=ny8AKQ@mail.gmail.com>
+From: Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 13/16] qib: clean up unnecessary MSI/MSI-X capability find
+Date: Thu, 8 Aug 2013 21:11:56 +0800
+Message-ID: <1375967516-21316-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJnxOGbRmWJiajkaDGFVhVT6NVCLq96KA72eyY=ny8AKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Nirranjan Kirubaharan <nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, jiang.liu-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+PCI core will initialize device MSI/MSI-X capability in
+pci_msi_init_pci_dev(). So device driver should use
+pci_dev->msi_cap/msix_cap to determine whether the device
+support MSI/MSI-X instead of using
+pci_find_capability(pci_dev, PCI_CAP_ID_MSI/MSIX).
+Access to PCIe device config space again will consume more time.
+
+Signed-off-by: Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+ drivers/infiniband/hw/qib/qib_pcie.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index c574ec7..3f14009 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -283,12 +283,12 @@ int qib_pcie_params(struct qib_devdata *dd, u32 minw, u32 *nent,
+ 		goto bail;
+ 	}
+ 
+-	pos = pci_find_capability(dd->pcidev, PCI_CAP_ID_MSIX);
++	pos = dd->pcidev->msix_cap;
+ 	if (nent && *nent && pos) {
+ 		qib_msix_setup(dd, pos, nent, entry);
+ 		ret = 0; /* did it, either MSIx or INTx */
+ 	} else {
+-		pos = pci_find_capability(dd->pcidev, PCI_CAP_ID_MSI);
++		pos = dd->pcidev->msi_cap;
+ 		if (pos)
+ 			ret = qib_msi_setup(dd, pos);
+ 		else
+@@ -357,7 +357,7 @@ int qib_reinit_intr(struct qib_devdata *dd)
+ 	if (!dd->msi_lo)
+ 		goto bail;
+ 
+-	pos = pci_find_capability(dd->pcidev, PCI_CAP_ID_MSI);
++	pos = dd->pcidev->msi_cap;
+ 	if (!pos) {
+ 		qib_dev_err(dd,
+ 			"Can't find MSI capability, can't restore MSI settings\n");
+@@ -426,7 +426,7 @@ void qib_enable_intx(struct pci_dev *pdev)
+ 	if (new != cw)
+ 		pci_write_config_word(pdev, PCI_COMMAND, new);
+ 
+-	pos = pci_find_capability(pdev, PCI_CAP_ID_MSI);
++	pos = pdev->msi_cap;
+ 	if (pos) {
+ 		/* then turn off MSI */
+ 		pci_read_config_word(pdev, pos + PCI_MSI_FLAGS, &cw);
+@@ -434,7 +434,7 @@ void qib_enable_intx(struct pci_dev *pdev)
+ 		if (new != cw)
+ 			pci_write_config_word(pdev, pos + PCI_MSI_FLAGS, new);
+ 	}
+-	pos = pci_find_capability(pdev, PCI_CAP_ID_MSIX);
++	pos = pdev->msix_cap;
+ 	if (pos) {
+ 		/* then turn off MSIx */
+ 		pci_read_config_word(pdev, pos + PCI_MSIX_FLAGS, &cw);
+-- 
+1.7.1
 
 
-On 07-08-2013 01:45, Or Gerlitz wrote:
-> On Tue, Aug 6, 2013 at 6:34 PM, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org> wrote:
-> 
-> [...]
-> 
->> The patch-series is based on Roland's infiniband tree for-next branch.
->> This series is on top of previously submitted series "Add IPv6 support for iWARP"
->> We request Roland to merge above series first and then apply this series on top of it.
-> 
-> [...]
-> 
->> This patch series fixes critical bugs for RDMA/cxgb4. It fixes bugs in QP flush
->> path, handles newer firmware changes, deals with wrap around issue of the queue,
->> sets arp error handler etc.
-> 
-> Hey Vipul, its unclear if this series has fixes to bugs introduced in
-> the iwarp/ipv6 series, or unrelated fixes which are just rebased on
-> the other series. But this way or another, in this form it  can't work
-> for the current cycle, since the iwarp/ipv6 series suits merge window
-> and can't be accepted just to let few other fixes to get it. What you
-> can do is wait for the iwarp/ipv6 + this series to get into 3.12-rc
-> and then backport (adjust) the fixes which are really critical to 3.11
-> and get them into 3.11.y (and to 3.x.y for x < 11 as well if you want
-> that) through the -stable process. I think Divy/Steve should be
-> familiar with all this stuff, isn't that? but anyway, just for the
-> sake of you and others learning something from this little 101
-> 
-> Or.
-> 
-
-Thanks Or Gerlitz for the insights. This series has unrelated fixes
-which are just based on IPv6 series. As you have suggested we would like
-to wait for iwarp/ipv6 and this series to get merge in 3.12-rc.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
