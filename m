@@ -1,47 +1,50 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs v2 02/11] read_config(): ignore directory entry
- with backup suffix (~)
-Date: Thu,  8 Aug 2013 21:40:45 +0200
-Message-ID: <ed6d04a8d0fe2ccc3751422e3364acede8869483.1375952089.git.ydroneaud@opteya.com>
-References: <cover.1375952089.git.ydroneaud@opteya.com>
-Mime-Version: 1.0
+From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH librdmacm] cmtime: Add example program that times rdma cm calls
+Date: Thu,  8 Aug 2013 16:18:04 -0700
+Message-ID: <1376003884-28471-1-git-send-email-sean.hefty@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1375952089.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.1375952089.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-References: <cover.1375952089.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Files ending with a tilde '~' are likely backup files
-so they should not be considered as valid configuration files.
+From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch makes read_config() skip backup files in order
-to protect libibverbs from using hand modified configuration
-files.
+cmtime is a new sample program that measures how long it
+takes for each step in the connection process to complete.
+It can be used to analyze the performance of the various
+CM steps.
 
-Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/init.c | 3 +++
- 1 file changed, 3 insertions(+)
+ Makefile.am |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/src/init.c b/src/init.c
-index ce9e1c0..e67469e 100644
---- a/src/init.c
-+++ b/src/init.c
-@@ -309,6 +309,9 @@ static void read_config(void)
- 		if (dent->d_name[0] == '.')
- 			continue;
+diff --git a/Makefile.am b/Makefile.am
+index e1be9f3..4e3dee7 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -29,7 +29,7 @@ src_librspreload_la_LIBADD = $(top_builddir)/src/librdmacm.la
+ bin_PROGRAMS = examples/ucmatose examples/rping examples/udaddy examples/mckey \
+ 	       examples/rdma_client examples/rdma_server examples/rdma_xclient \
+ 	       examples/rdma_xserver examples/rstream examples/rcopy \
+-	       examples/riostream examples/udpong
++	       examples/riostream examples/udpong examples/cmtime
+ examples_ucmatose_SOURCES = examples/cmatose.c examples/common.c
+ examples_ucmatose_LDADD = $(top_builddir)/src/librdmacm.la
+ examples_rping_SOURCES = examples/rping.c
+@@ -54,6 +54,8 @@ examples_rcopy_SOURCES = examples/rcopy.c
+ examples_rcopy_LDADD = $(top_builddir)/src/librdmacm.la
+ examples_udpong_SOURCES = examples/udpong.c examples/common.c
+ examples_udpong_LDADD = $(top_builddir)/src/librdmacm.la
++examples_cmtime_SOURCES = examples/cmtime.c examples/common.c
++examples_cmtime_LDADD = $(top_builddir)/src/librdmacm.la
  
-+		if (dent->d_name[0] == '\0' || dent->d_name[strlen(dent->d_name) - 1] == '~')
-+			continue;
-+
- 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
- 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
- 				IBV_CONFIG_DIR, dent->d_name);
+ librdmacmincludedir = $(includedir)/rdma
+ infinibandincludedir = $(includedir)/infiniband
 -- 
-1.8.3.1
+1.7.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
