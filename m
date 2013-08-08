@@ -1,8 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs v2 11/11] read_config_file(): refuse to open
- configuration file if it's symlink
-Date: Thu,  8 Aug 2013 21:40:54 +0200
-Message-ID: <841fe809c4767b67b850c2cce4ea5d66160266c1.1375952089.git.ydroneaud@opteya.com>
+Subject: [PATCH libibverbs v2 06/11] read_config_file(): check opened file
+Date: Thu,  8 Aug 2013 21:40:49 +0200
+Message-ID: <bf328dc9243fd70a41942c1ad101c065783319cf.1375952089.git.ydroneaud@opteya.com>
 References: <cover.1375952089.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -14,20 +13,11 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-O_NOFOLLOW is an option to open() that allows application
-to not follow symlinks when opening a path.
-
-Using this option, openat() will fail if the configuration file is a symlink.
-
-See open()[1][2] for more information on O_NOFOLLOW.
+Use fstat() to check the parameters of the opened file instead
+of checking the path. This is basic Time-Of-Check / Time-Of-Use
+(TOCTOU) issue.
 
 Weakness addressed:
-
-- CWE-59: Improper Link Resolution Before File Access ('Link Following')
-<http://cwe.mitre.org/data/definitions/59.html>
-
-- CWE-61: UNIX Symbolic Link (Symlink) Following
-<http://cwe.mitre.org/data/definitions/61.html>
 
 - CWE-363: Race Condition Enabling Link Following
 <http://cwe.mitre.org/data/definitions/363.html>
@@ -37,56 +27,51 @@ Weakness addressed:
 
 Secure coding:
 
-- POS01-C. Check for the existence of links when dealing with files
-<https://www.securecoding.cert.org/confluence/display/seccode/POS01-C.+Check+for+the+existence+of+links+when+dealing+with+files>
-
-- POS35-C. Avoid race conditions while checking for the existence of a symbolic link
-<https://www.securecoding.cert.org/confluence/display/seccode/POS35-C.+Avoid+race+conditions+while+checking+for+the+existence+of+a+symbolic+link>
-
-Links:
-
-- [1] open
-<http://pubs.opengroup.org/onlinepubs/9699919799/functions/open.html>
-
-- [2] open(2)
-<http://man7.org/linux/man-pages/man2/open.2.html>
+- FIO01-C. Be careful using functions that use file names for identification
+<https://www.securecoding.cert.org/confluence/display/seccode/FIO01-C.+Be+careful+using+functions+that+use+file+names+for+identification>
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- configure.ac | 6 ++++++
- src/init.c   | 2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ src/init.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 9544726..7e7bc63 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -52,6 +52,12 @@ AC_CHECK_DECLS([O_DIRECTORY],,[AC_DEFINE([O_DIRECTORY],[0], [Defined to 0 if not
- # include <fcntl.h>
- #endif
- ]])
-+AC_CHECK_DECLS([O_NOFOLLOW],,[AC_DEFINE([O_NOFOLLOW],[0], [Defined to 0 if not provided])],
-+[[
-+#ifdef HAVE_FCNTL_H
-+# include <fcntl.h>
-+#endif
-+]])
- AC_CHECK_DECLS([O_CLOEXEC],,[AC_DEFINE([O_CLOEXEC],[0], [Defined to 0 if not provided])],
- [[
- #ifdef HAVE_FCNTL_H
 diff --git a/src/init.c b/src/init.c
-index 0b46b78..0af6c47 100644
+index c260628..150adcf 100644
 --- a/src/init.c
 +++ b/src/init.c
-@@ -269,7 +269,7 @@ static void read_config_file(int conf_dirfd, const char *name)
+@@ -246,23 +246,23 @@ static void read_config_file(int conf_dirfd, const char *name)
  	ssize_t len;
  	struct stat buf;
  
--	fd = openat(conf_dirfd, name, O_RDONLY | O_CLOEXEC);
-+	fd = openat(conf_dirfd, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
- 	if (fd == -1) {
- 		fprintf(stderr, PFX "Warning: couldn't read config file '%s/%s'.\n",
+-	if (fstatat(conf_dirfd, name, &buf, 0)) {
+-		fprintf(stderr, PFX "Warning: couldn't stat config file '%s/%s'.\n",
++	fd = openat(conf_dirfd, name, O_RDONLY | O_CLOEXEC);
++	if (fd == -1) {
++		fprintf(stderr, PFX "Warning: couldn't read config file '%s/%s'.\n",
  			IBV_CONFIG_DIR, name);
+ 		return;
+ 	}
+ 
+-	if (!S_ISREG(buf.st_mode)) {
+-		fprintf(stderr, PFX "Warning: invalid config file '%s/%s'.\n",
++	if (fstat(fd, &buf)) {
++		fprintf(stderr, PFX "Warning: couldn't stat config file '%s/%s'.\n",
+ 			IBV_CONFIG_DIR, name);
+-		return;
++		goto out;
+ 	}
+ 
+-	fd = openat(conf_dirfd, name, O_RDONLY | O_CLOEXEC);
+-	if (fd == -1) {
+-		fprintf(stderr, PFX "Warning: couldn't read config file '%s/%s'.\n",
++	if (!S_ISREG(buf.st_mode)) {
++		fprintf(stderr, PFX "Warning: invalid config file '%s/%s'.\n",
+ 			IBV_CONFIG_DIR, name);
+-		return;
++		goto out;
+ 	}
+ 
+ 	conf = fdopen(fd, "r" STREAM_CLOEXEC);
 -- 
 1.8.3.1
 --
