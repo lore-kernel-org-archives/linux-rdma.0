@@ -1,8 +1,8 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs v2 01/11] read_config(): ignore files beginning
- with '.'
-Date: Thu,  8 Aug 2013 21:40:44 +0200
-Message-ID: <51be8e667556fbbed2e68d1041890bd1372325a0.1375952089.git.ydroneaud@opteya.com>
+Subject: [PATCH libibverbs v2 11/11] read_config_file(): refuse to open
+ configuration file if it's symlink
+Date: Thu,  8 Aug 2013 21:40:54 +0200
+Message-ID: <841fe809c4767b67b850c2cce4ea5d66160266c1.1375952089.git.ydroneaud@opteya.com>
 References: <cover.1375952089.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -14,31 +14,79 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Files beginning with a dot '.' are likely the current and parent
-directories, or, hidden files ignored by 'ls'.
+O_NOFOLLOW is an option to open() that allows application
+to not follow symlinks when opening a path.
 
-Those paths are already skipped in find_sysfs_dev()
-they should probably be skipped here too.
+Using this option, openat() will fail if the configuration file is a symlink.
+
+See open()[1][2] for more information on O_NOFOLLOW.
+
+Weakness addressed:
+
+- CWE-59: Improper Link Resolution Before File Access ('Link Following')
+<http://cwe.mitre.org/data/definitions/59.html>
+
+- CWE-61: UNIX Symbolic Link (Symlink) Following
+<http://cwe.mitre.org/data/definitions/61.html>
+
+- CWE-363: Race Condition Enabling Link Following
+<http://cwe.mitre.org/data/definitions/363.html>
+
+- CWE-367: Time-of-check Time-of-use (TOCTOU) Race Condition
+<http://cwe.mitre.org/data/definitions/367.html>
+
+Secure coding:
+
+- POS01-C. Check for the existence of links when dealing with files
+<https://www.securecoding.cert.org/confluence/display/seccode/POS01-C.+Check+for+the+existence+of+links+when+dealing+with+files>
+
+- POS35-C. Avoid race conditions while checking for the existence of a symbolic link
+<https://www.securecoding.cert.org/confluence/display/seccode/POS35-C.+Avoid+race+conditions+while+checking+for+the+existence+of+a+symbolic+link>
+
+Links:
+
+- [1] open
+<http://pubs.opengroup.org/onlinepubs/9699919799/functions/open.html>
+
+- [2] open(2)
+<http://man7.org/linux/man-pages/man2/open.2.html>
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- src/init.c | 3 +++
- 1 file changed, 3 insertions(+)
+ configure.ac | 6 ++++++
+ src/init.c   | 2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
+diff --git a/configure.ac b/configure.ac
+index 9544726..7e7bc63 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -52,6 +52,12 @@ AC_CHECK_DECLS([O_DIRECTORY],,[AC_DEFINE([O_DIRECTORY],[0], [Defined to 0 if not
+ # include <fcntl.h>
+ #endif
+ ]])
++AC_CHECK_DECLS([O_NOFOLLOW],,[AC_DEFINE([O_NOFOLLOW],[0], [Defined to 0 if not provided])],
++[[
++#ifdef HAVE_FCNTL_H
++# include <fcntl.h>
++#endif
++]])
+ AC_CHECK_DECLS([O_CLOEXEC],,[AC_DEFINE([O_CLOEXEC],[0], [Defined to 0 if not provided])],
+ [[
+ #ifdef HAVE_FCNTL_H
 diff --git a/src/init.c b/src/init.c
-index 8e93f3f..ce9e1c0 100644
+index 0b46b78..0af6c47 100644
 --- a/src/init.c
 +++ b/src/init.c
-@@ -306,6 +306,9 @@ static void read_config(void)
- 	while ((dent = readdir(conf_dir))) {
- 		struct stat buf;
+@@ -269,7 +269,7 @@ static void read_config_file(int conf_dirfd, const char *name)
+ 	ssize_t len;
+ 	struct stat buf;
  
-+		if (dent->d_name[0] == '.')
-+			continue;
-+
- 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
- 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
- 				IBV_CONFIG_DIR, dent->d_name);
+-	fd = openat(conf_dirfd, name, O_RDONLY | O_CLOEXEC);
++	fd = openat(conf_dirfd, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
+ 	if (fd == -1) {
+ 		fprintf(stderr, PFX "Warning: couldn't read config file '%s/%s'.\n",
+ 			IBV_CONFIG_DIR, name);
 -- 
 1.8.3.1
 --
