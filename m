@@ -1,65 +1,47 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/3] read_config: skip file/directory with unsecure
- permissions
-Date: Thu, 08 Aug 2013 12:12:38 +0200
-Message-ID: <1375956758.27609.5.camel@localhost.localdomain>
-References: <cover.1369085762.git.ydroneaud@opteya.com>
-	<0a6888edc9d7899fe3b4af249c4f25088e196422.1369085762.git.ydroneaud@opteya.com>
-	<CAL1RGDX+XTMmwDQicztdJoq0oE0VfXvg5dhW8k-YEk38-vg6fw@mail.gmail.com>
+Subject: [PATCH libibverbs v2 01/11] read_config(): ignore files beginning
+ with '.'
+Date: Thu,  8 Aug 2013 21:40:44 +0200
+Message-ID: <51be8e667556fbbed2e68d1041890bd1372325a0.1375952089.git.ydroneaud@opteya.com>
+References: <cover.1375952089.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDX+XTMmwDQicztdJoq0oE0VfXvg5dhW8k-YEk38-vg6fw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <cover.1375952089.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1375952089.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+References: <cover.1375952089.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Files beginning with a dot '.' are likely the current and parent
+directories, or, hidden files ignored by 'ls'.
 
-Le mercredi 22 mai 2013 =C3=A0 14:32 -0700, Roland Dreier a =C3=A9crit =
-:
-> On Mon, May 20, 2013 at 2:43 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>=
- wrote:
-> > libibverbs must refuse to load arbitrary shared objects.
-> >
-> > This patch check the configuration directory and files for
-> > - being owned by root;
-> > - not being writable by others.
->=20
-> uverbs is an unprivileged interface.  Right now I can develop and tes=
-t
-> libibverbs and driver code as an unprivileged user.  If I'm
-> understanding correctly, this patch would break that -- I'd have to
-> install to a root-owned directory to test.
->=20
+Those paths are already skipped in find_sysfs_dev()
+they should probably be skipped here too.
 
-I've missed this use case.
-Indeed user should be able to use his own version of libibverbs and
-configuration files.
+Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+---
+ src/init.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> What's the exploit this protects against?
-
-The configuration mechanism allow loading arbitrary shared object: this
-should be done with care when running setuid binaries / running program
-as root.
-
-Adding some basic sanity check is welcome to protect from someone
-tampering the configuration files.
-
-I'm going to post an updated patchset which will secure (in-depth)
-access to configuration files while allowing user to use their own
-files.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
+diff --git a/src/init.c b/src/init.c
+index 8e93f3f..ce9e1c0 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -306,6 +306,9 @@ static void read_config(void)
+ 	while ((dent = readdir(conf_dir))) {
+ 		struct stat buf;
+ 
++		if (dent->d_name[0] == '.')
++			continue;
++
+ 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
+ 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
+ 				IBV_CONFIG_DIR, dent->d_name);
+-- 
+1.8.3.1
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
