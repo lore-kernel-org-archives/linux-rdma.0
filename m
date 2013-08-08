@@ -1,8 +1,8 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs v2 04/11] read_config(): move file type check in
- read_config_file()
-Date: Thu,  8 Aug 2013 21:40:47 +0200
-Message-ID: <22fb4f5dcc4e545dfcc9168429e50c11bd3611ab.1375952089.git.ydroneaud@opteya.com>
+Subject: [PATCH libibverbs v2 02/11] read_config(): ignore directory entry
+ with backup suffix (~)
+Date: Thu,  8 Aug 2013 21:40:45 +0200
+Message-ID: <ed6d04a8d0fe2ccc3751422e3364acede8869483.1375952089.git.ydroneaud@opteya.com>
 References: <cover.1375952089.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -14,65 +14,32 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Check the configuration file inside the function
-parsing it.
+Files ending with a tilde '~' are likely backup files
+so they should not be considered as valid configuration files.
+
+This patch makes read_config() skip backup files in order
+to protect libibverbs from using hand modified configuration
+files.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- src/init.c | 25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ src/init.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/src/init.c b/src/init.c
-index 34150b5..953ed9f 100644
+index ce9e1c0..e67469e 100644
 --- a/src/init.c
 +++ b/src/init.c
-@@ -243,6 +243,19 @@ static void read_config_file(const char *path)
- 	char *field;
- 	size_t buflen = 0;
- 	ssize_t len;
-+	struct stat buf;
-+
-+	if (stat(path, &buf)) {
-+		fprintf(stderr, PFX "Warning: couldn't stat config file '%s'.\n",
-+			path);
-+		return;
-+	}
-+
-+	if (!S_ISREG(buf.st_mode)) {
-+		fprintf(stderr, PFX "Warning: invalid config file '%s'.\n",
-+			path);
-+		return;
-+	}
- 
- 	conf = fopen(path, "r" STREAM_CLOEXEC);
- 	if (!conf) {
-@@ -314,7 +327,6 @@ static void read_config(void)
- 	}
- 
- 	while ((dent = readdir(conf_dir))) {
--		struct stat buf;
- 
+@@ -309,6 +309,9 @@ static void read_config(void)
  		if (dent->d_name[0] == '.')
  			continue;
-@@ -328,17 +340,8 @@ static void read_config(void)
- 			goto out;
- 		}
  
--		if (stat(path, &buf)) {
--			fprintf(stderr, PFX "Warning: couldn't stat config file '%s'.\n",
--				path);
--			goto next;
--		}
--
--		if (!S_ISREG(buf.st_mode))
--			goto next;
--
- 		read_config_file(path);
--next:
++		if (dent->d_name[0] == '\0' || dent->d_name[strlen(dent->d_name) - 1] == '~')
++			continue;
 +
- 		free(path);
- 	}
- 
+ 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
+ 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
+ 				IBV_CONFIG_DIR, dent->d_name);
 -- 
 1.8.3.1
 --
