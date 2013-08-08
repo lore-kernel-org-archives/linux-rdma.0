@@ -1,8 +1,8 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs v2 03/11] read_config(): open configuration
- directory with open()
-Date: Thu,  8 Aug 2013 21:40:46 +0200
-Message-ID: <1481ee18014b5df0f80cf2d5196e1b6c3465600e.1375952089.git.ydroneaud@opteya.com>
+Subject: [PATCH libibverbs v2 04/11] read_config(): move file type check in
+ read_config_file()
+Date: Thu,  8 Aug 2013 21:40:47 +0200
+Message-ID: <22fb4f5dcc4e545dfcc9168429e50c11bd3611ab.1375952089.git.ydroneaud@opteya.com>
 References: <cover.1375952089.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -14,65 +14,63 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Get a file descriptor pointing to the IBV_CONFIG_DIR,
-so that it could be used with fstatat() and openat() later.
-
-Use fdopendir()[1][2] after open()'ing the directory instead
-of opendir().
-
-Compatibility note:
-
-- According to Gnulib, fdopendir() is not available on older systems.
-<http://www.gnu.org/software/gnulib/manual/html_node/fdopendir.html>
-
-Links:
-
-- [1] fdopendir
-<http://pubs.opengroup.org/onlinepubs/9699919799/functions/fdopendir.html>
-
-- [2] fdopendir(3)
-<http://man7.org/linux/man-pages/man3/fdopendir.3.html>
+Check the configuration file inside the function
+parsing it.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- src/init.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ src/init.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
 diff --git a/src/init.c b/src/init.c
-index e67469e..34150b5 100644
+index 34150b5..953ed9f 100644
 --- a/src/init.c
 +++ b/src/init.c
-@@ -45,6 +45,7 @@
- #include <sys/types.h>
- #include <sys/time.h>
- #include <sys/resource.h>
-+#include <fcntl.h>
- #include <dirent.h>
- #include <errno.h>
- 
-@@ -292,14 +293,23 @@ static void read_config_file(const char *path)
- 
- static void read_config(void)
- {
-+	int conf_dirfd;
- 	DIR *conf_dir;
- 	struct dirent *dent;
- 	char *path;
- 
--	conf_dir = opendir(IBV_CONFIG_DIR);
-+	conf_dirfd = open(IBV_CONFIG_DIR, O_RDONLY | O_CLOEXEC);
-+	if (conf_dirfd == -1) {
-+		fprintf(stderr, PFX "Warning: couldn't open config directory '%s'.\n",
-+			IBV_CONFIG_DIR);
+@@ -243,6 +243,19 @@ static void read_config_file(const char *path)
+ 	char *field;
+ 	size_t buflen = 0;
+ 	ssize_t len;
++	struct stat buf;
++
++	if (stat(path, &buf)) {
++		fprintf(stderr, PFX "Warning: couldn't stat config file '%s'.\n",
++			path);
 +		return;
 +	}
 +
-+	conf_dir = fdopendir(conf_dirfd);
- 	if (!conf_dir) {
- 		fprintf(stderr, PFX "Warning: couldn't open config directory '%s'.\n",
- 			IBV_CONFIG_DIR);
-+		close(conf_dirfd);
- 		return;
++	if (!S_ISREG(buf.st_mode)) {
++		fprintf(stderr, PFX "Warning: invalid config file '%s'.\n",
++			path);
++		return;
++	}
+ 
+ 	conf = fopen(path, "r" STREAM_CLOEXEC);
+ 	if (!conf) {
+@@ -314,7 +327,6 @@ static void read_config(void)
+ 	}
+ 
+ 	while ((dent = readdir(conf_dir))) {
+-		struct stat buf;
+ 
+ 		if (dent->d_name[0] == '.')
+ 			continue;
+@@ -328,17 +340,8 @@ static void read_config(void)
+ 			goto out;
+ 		}
+ 
+-		if (stat(path, &buf)) {
+-			fprintf(stderr, PFX "Warning: couldn't stat config file '%s'.\n",
+-				path);
+-			goto next;
+-		}
+-
+-		if (!S_ISREG(buf.st_mode))
+-			goto next;
+-
+ 		read_config_file(path);
+-next:
++
+ 		free(path);
  	}
  
 -- 
