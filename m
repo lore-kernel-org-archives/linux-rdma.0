@@ -1,8 +1,8 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs v2 08/11] read_config(): refuse to open
- IBV_CONFIG_DIR if it's not a directory
-Date: Thu,  8 Aug 2013 21:40:51 +0200
-Message-ID: <64fd9c35244a9d3ed56f77b049accb00b9ec95e9.1375952089.git.ydroneaud@opteya.com>
+Subject: [PATCH libibverbs v2 03/11] read_config(): open configuration
+ directory with open()
+Date: Thu,  8 Aug 2013 21:40:46 +0200
+Message-ID: <1481ee18014b5df0f80cf2d5196e1b6c3465600e.1375952089.git.ydroneaud@opteya.com>
 References: <cover.1375952089.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -14,59 +14,67 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-O_DIRECTORY is an option to open() to ensure the given path
-is a directory. If IBV_CONFIG_DIR path is not pointing
-to a directory, open() will failed.
+Get a file descriptor pointing to the IBV_CONFIG_DIR,
+so that it could be used with fstatat() and openat() later.
 
-Note: if IBV_CONFIG_DIR is a symlink, it will be followed.
-O_DIRECTORY doesn't disable path resolution.
+Use fdopendir()[1][2] after open()'ing the directory instead
+of opendir().
 
-See open()[1][2] for more information.
+Compatibility note:
+
+- According to Gnulib, fdopendir() is not available on older systems.
+<http://www.gnu.org/software/gnulib/manual/html_node/fdopendir.html>
 
 Links:
 
-- [1] open
-<http://pubs.opengroup.org/onlinepubs/9699919799/functions/open.html>
+- [1] fdopendir
+<http://pubs.opengroup.org/onlinepubs/9699919799/functions/fdopendir.html>
 
-- [2] open(2)
-<http://man7.org/linux/man-pages/man2/open.2.html>
+- [2] fdopendir(3)
+<http://man7.org/linux/man-pages/man3/fdopendir.3.html>
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- configure.ac | 6 ++++++
- src/init.c   | 2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ src/init.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index b8d4cea..9544726 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -46,6 +46,12 @@ AC_CHECK_HEADERS([fcntl.h sys/socket.h])
- 
- dnl Checks for typedefs, structures, and compiler characteristics.
- AC_C_CONST
-+AC_CHECK_DECLS([O_DIRECTORY],,[AC_DEFINE([O_DIRECTORY],[0], [Defined to 0 if not provided])],
-+[[
-+#ifdef HAVE_FCNTL_H
-+# include <fcntl.h>
-+#endif
-+]])
- AC_CHECK_DECLS([O_CLOEXEC],,[AC_DEFINE([O_CLOEXEC],[0], [Defined to 0 if not provided])],
- [[
- #ifdef HAVE_FCNTL_H
 diff --git a/src/init.c b/src/init.c
-index 0e3cdf0..c2e7bfb 100644
+index e67469e..34150b5 100644
 --- a/src/init.c
 +++ b/src/init.c
-@@ -325,7 +325,7 @@ static void read_config(void)
- 	struct dirent *dent;
- 	struct stat buf;
+@@ -45,6 +45,7 @@
+ #include <sys/types.h>
+ #include <sys/time.h>
+ #include <sys/resource.h>
++#include <fcntl.h>
+ #include <dirent.h>
+ #include <errno.h>
  
--	conf_dirfd = open(IBV_CONFIG_DIR, O_RDONLY | O_CLOEXEC);
-+	conf_dirfd = open(IBV_CONFIG_DIR, O_RDONLY | O_DIRECTORY | O_CLOEXEC);
- 	if (conf_dirfd == -1) {
+@@ -292,14 +293,23 @@ static void read_config_file(const char *path)
+ 
+ static void read_config(void)
+ {
++	int conf_dirfd;
+ 	DIR *conf_dir;
+ 	struct dirent *dent;
+ 	char *path;
+ 
+-	conf_dir = opendir(IBV_CONFIG_DIR);
++	conf_dirfd = open(IBV_CONFIG_DIR, O_RDONLY | O_CLOEXEC);
++	if (conf_dirfd == -1) {
++		fprintf(stderr, PFX "Warning: couldn't open config directory '%s'.\n",
++			IBV_CONFIG_DIR);
++		return;
++	}
++
++	conf_dir = fdopendir(conf_dirfd);
+ 	if (!conf_dir) {
  		fprintf(stderr, PFX "Warning: couldn't open config directory '%s'.\n",
  			IBV_CONFIG_DIR);
++		close(conf_dirfd);
+ 		return;
+ 	}
+ 
 -- 
 1.8.3.1
 --
