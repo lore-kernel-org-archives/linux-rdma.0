@@ -1,555 +1,134 @@
-From: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH librdmacm] cmtime: Add example program that times rdma cm calls
-Date: Thu,  8 Aug 2013 16:22:45 -0700
-Message-ID: <1376004165-29921-1-git-send-email-sean.hefty@intel.com>
+From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] IPoIB: Fix race in deleting ipoib_neigh entries
+Date: Thu,  8 Aug 2013 17:44:22 -0700
+Message-ID: <1376009062-3049-1-git-send-email-foraker1@llnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In several places, this snippet is used when removing neigh entries:
 
-cmtime is a new sample program that measures how long it
-takes for each step in the connection process to complete.
-It can be used to analyze the performance of the various
-CM steps.
+	list_del(&neigh->list);
+	ipoib_neigh_free(neigh);
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The list_del() removes neigh from the associated struct ipoib_path, while
+ipoib_neigh_free() removes neigh from the device's neigh entry lookup
+table.  Both of these operations are protected by the priv->lock
+spinlock.  The table however is also protected via RCU, and so naturally
+the lock is not held when doing reads.
+
+This leads to a race condition, in which a thread may successfully look
+up a neigh entry that has already been deleted from neigh->list.  Since
+the previous deletion will have marked the entry with poison, a second
+list_del() on the object will cause a panic:
+
+  #5 [ffff8802338c3c70] general_protection at ffffffff815108c5
+     [exception RIP: list_del+16]
+     RIP: ffffffff81289020  RSP: ffff8802338c3d20  RFLAGS: 00010082
+     RAX: dead000000200200  RBX: ffff880433e60c88  RCX: 0000000000009e6c
+     RDX: 0000000000000246  RSI: ffff8806012ca298  RDI: ffff880433e60c88
+     RBP: ffff8802338c3d30   R8: ffff8806012ca2e8   R9: 00000000ffffffff
+     R10: 0000000000000001  R11: 0000000000000000  R12: ffff8804346b2020
+     R13: ffff88032a3e7540  R14: ffff8804346b26e0  R15: 0000000000000246
+     ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0000
+  #6 [ffff8802338c3d38] ipoib_cm_tx_handler at ffffffffa066fe0a [ib_ipoib]
+  #7 [ffff8802338c3d98] cm_process_work at ffffffffa05149a7 [ib_cm]
+  #8 [ffff8802338c3de8] cm_work_handler at ffffffffa05161aa [ib_cm]
+  #9 [ffff8802338c3e38] worker_thread at ffffffff81090e10
+ #10 [ffff8802338c3ee8] kthread at ffffffff81096c66
+ #11 [ffff8802338c3f48] kernel_thread at ffffffff8100c0ca
+
+We move the list_del() into ipoib_neigh_free(), so that deletion happens
+only once, after the entry has been successfully removed from the lookup
+table.  This same behavior is already used in ipoib_del_neighs_by_gid()
+and __ipoib_reap_neigh().
+
+Signed-off-by: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
 ---
- Makefile.am       |    4 +-
- examples/cmtime.c |  498 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 501 insertions(+), 1 deletions(-)
- create mode 100644 examples/cmtime.c
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c   |    3 ---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    9 +++------
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index e1be9f3..4e3dee7 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -29,7 +29,7 @@ src_librspreload_la_LIBADD = $(top_builddir)/src/librdmacm.la
- bin_PROGRAMS = examples/ucmatose examples/rping examples/udaddy examples/mckey \
- 	       examples/rdma_client examples/rdma_server examples/rdma_xclient \
- 	       examples/rdma_xserver examples/rstream examples/rcopy \
--	       examples/riostream examples/udpong
-+	       examples/riostream examples/udpong examples/cmtime
- examples_ucmatose_SOURCES = examples/cmatose.c examples/common.c
- examples_ucmatose_LDADD = $(top_builddir)/src/librdmacm.la
- examples_rping_SOURCES = examples/rping.c
-@@ -54,6 +54,8 @@ examples_rcopy_SOURCES = examples/rcopy.c
- examples_rcopy_LDADD = $(top_builddir)/src/librdmacm.la
- examples_udpong_SOURCES = examples/udpong.c examples/common.c
- examples_udpong_LDADD = $(top_builddir)/src/librdmacm.la
-+examples_cmtime_SOURCES = examples/cmtime.c examples/common.c
-+examples_cmtime_LDADD = $(top_builddir)/src/librdmacm.la
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 3eceb61..7a31754 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -817,7 +817,6 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
  
- librdmacmincludedir = $(includedir)/rdma
- infinibandincludedir = $(includedir)/infiniband
-diff --git a/examples/cmtime.c b/examples/cmtime.c
-new file mode 100644
-index 0000000..f97ab9e
---- /dev/null
-+++ b/examples/cmtime.c
-@@ -0,0 +1,498 @@
-+/*
-+ * Copyright (c) 2013 Intel Corporation.  All rights reserved.
-+ *
-+ * This software is available to you under the OpenIB.org BSD license
-+ * below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AWV
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <strings.h>
-+#include <errno.h>
-+#include <getopt.h>
-+#include <sys/types.h>
-+#include <sys/socket.h>
-+#include <sys/time.h>
-+#include <sys/wait.h>
-+#include <netdb.h>
-+#include <fcntl.h>
-+#include <unistd.h>
-+#include <netinet/in.h>
-+#include <netinet/tcp.h>
-+
-+#include <rdma/rdma_cma.h>
-+#include "common.h"
-+
-+static struct rdma_addrinfo hints, *rai;
-+static struct rdma_event_channel *channel;
-+static char *port = "7471";
-+static char *dst_addr;
-+static char *src_addr;
-+
-+enum step {
-+	STEP_CREATE_ID,
-+	STEP_RESOLVE_ADDR,
-+	STEP_RESOLVE_ROUTE,
-+	STEP_CREATE_QP,
-+	STEP_CONNECT,
-+	STEP_DISCONNECT,
-+	STEP_DESTROY,
-+	STEP_CNT
-+};
-+
-+static char *step_str[] = {
-+	"create id",
-+	"resolve addr",
-+	"resolve route",
-+	"create qp",
-+	"connect",
-+	"disconnect",
-+	"destroy"
-+};
-+
-+struct node {
-+	struct rdma_cm_id *id;
-+	struct timeval times[STEP_CNT][2];
-+	int error;
-+};
-+
-+static struct node *nodes;
-+static struct timeval times[STEP_CNT][2];
-+static int connections = 100;
-+static int left[STEP_CNT];
-+static struct ibv_qp_init_attr init_qp_attr;
-+static struct rdma_conn_param conn_param;
-+
-+#define start_perf(n, s)	gettimeofday(&((n)->times[s][0]), NULL)
-+#define end_perf(n, s)		gettimeofday(&((n)->times[s][1]), NULL)
-+#define start_time(s)		gettimeofday(&times[s][0], NULL)
-+#define end_time(s)		gettimeofday(&times[s][1], NULL)
-+
-+static int zero_time(struct timeval *t)
-+{
-+	return !(t->tv_sec || t->tv_usec);
-+}
-+
-+static float diff_us(struct timeval *end, struct timeval *start)
-+{
-+	return (end->tv_sec - start->tv_sec) * 1000000. + (end->tv_usec - start->tv_usec);
-+}
-+
-+static void show_perf(void)
-+{
-+	int c, i;
-+	float us, max[STEP_CNT], min[STEP_CNT];
-+
-+	for (i = 0; i < STEP_CNT; i++) {
-+		max[i] = 0;
-+		min[i] = 999999999.;
-+		for (c = 0; c < connections; c++) {
-+			if (!zero_time(&nodes[c].times[i][0]) &&
-+			    !zero_time(&nodes[c].times[i][1])) {
-+				us = diff_us(&nodes[c].times[i][1], &nodes[c].times[i][0]);
-+				if (us > max[i])
-+					max[i] = us;
-+				if (us < min[i])
-+					min[i] = us;
-+			}
-+		}
-+	}
-+
-+	printf("step              total ms     max ms     min us  us / conn\n");
-+	for (i = 0; i < STEP_CNT; i++) {
-+		us = diff_us(&times[i][1], &times[i][0]);
-+		printf("%-13s: %11.2f%11.2f%11.2f%11.2f\n", step_str[i], us / 1000.,
-+			max[i] / 1000., min[i], us / connections);
-+	}
-+}
-+
-+static void addr_handler(struct node *n)
-+{
-+	end_perf(n, STEP_RESOLVE_ADDR);
-+	left[STEP_RESOLVE_ADDR]--;
-+}
-+
-+static void route_handler(struct node *n)
-+{
-+	end_perf(n, STEP_RESOLVE_ROUTE);
-+	left[STEP_RESOLVE_ROUTE]--;
-+}
-+
-+static void conn_handler(struct node *n)
-+{
-+	end_perf(n, STEP_CONNECT);
-+	left[STEP_CONNECT]--;
-+}
-+
-+static void disc_handler(struct node *n)
-+{
-+	end_perf(n, STEP_DISCONNECT);
-+	left[STEP_DISCONNECT]--;
-+}
-+
-+static int req_handler(struct rdma_cm_id *id)
-+{
-+	int ret;
-+
-+	ret = rdma_create_qp(id, NULL, &init_qp_attr);
-+	if (ret) {
-+		perror("failure creating qp");
-+		goto err;
-+	}
-+
-+	ret = rdma_accept(id, NULL);
-+	if (ret) {
-+		perror("failure accepting");
-+		goto err;
-+	}
-+	return 0;
-+
-+err:
-+	printf("failing connection request\n");
-+	rdma_reject(id, NULL, 0);
-+	return ret;
-+}
-+
-+static void cma_handler(struct rdma_cm_id *id, struct rdma_cm_event *event)
-+{
-+	struct node *n = id->context;
-+
-+	switch (event->event) {
-+	case RDMA_CM_EVENT_ADDR_RESOLVED:
-+		addr_handler(n);
-+		break;
-+	case RDMA_CM_EVENT_ROUTE_RESOLVED:
-+		route_handler(n);
-+		break;
-+	case RDMA_CM_EVENT_CONNECT_REQUEST:
-+		if (req_handler(id)) {
-+			rdma_ack_cm_event(event);
-+			rdma_destroy_id(id);
-+			return;
-+		}
-+		break;
-+	case RDMA_CM_EVENT_ESTABLISHED:
-+		if (n)
-+			conn_handler(n);
-+		break;
-+	case RDMA_CM_EVENT_ADDR_ERROR:
-+		printf("RDMA_CM_EVENT_ADDR_ERROR, error: %d\n", event->status);
-+		addr_handler(n);
-+		n->error = 1;
-+		break;
-+	case RDMA_CM_EVENT_ROUTE_ERROR:
-+		printf("RDMA_CM_EVENT_ROUTE_ERROR, error: %d\n", event->status);
-+		route_handler(n);
-+		n->error = 1;
-+		break;
-+	case RDMA_CM_EVENT_CONNECT_ERROR:
-+	case RDMA_CM_EVENT_UNREACHABLE:
-+	case RDMA_CM_EVENT_REJECTED:
-+		printf("event: %s, error: %d\n",
-+		       rdma_event_str(event->event), event->status);
-+		conn_handler(n);
-+		n->error = 1;
-+		break;
-+	case RDMA_CM_EVENT_DISCONNECTED:
-+		if (!n) {
-+			rdma_disconnect(id);
-+			rdma_ack_cm_event(event);
-+			rdma_destroy_id(id);
-+			return;
-+		}
-+		disc_handler(n);
-+		break;
-+	case RDMA_CM_EVENT_DEVICE_REMOVAL:
-+		/* Cleanup will occur after test completes. */
-+		break;
-+	default:
-+		break;
-+	}
-+	rdma_ack_cm_event(event);
-+}
-+
-+static int alloc_nodes(void)
-+{
-+	int ret, i;
-+
-+	nodes = calloc(sizeof *nodes, connections);
-+	if (!nodes)
-+		return -ENOMEM;
-+
-+	printf("creating id\n");
-+	start_time(STEP_CREATE_ID);
-+	for (i = 0; i < connections; i++) {
-+		start_perf(&nodes[i], STEP_CREATE_ID);
-+		if (dst_addr) {
-+			ret = rdma_create_id(channel, &nodes[i].id, &nodes[i],
-+					     hints.ai_port_space);
-+			if (ret)
-+				goto err;
-+		}
-+		end_perf(&nodes[i], STEP_CREATE_ID);
-+	}
-+	end_time(STEP_CREATE_ID);
-+	return 0;
-+
-+err:
-+	while (--i >= 0)
-+		rdma_destroy_id(nodes[i].id);
-+	free(nodes);
-+	return ret;
-+}
-+
-+static void cleanup_nodes(void)
-+{
-+	int i;
-+
-+	printf("destroying id\n");
-+	start_time(STEP_DESTROY);
-+	for (i = 0; i < connections; i++) {
-+		start_perf(&nodes[i], STEP_DESTROY);
-+		if (nodes[i].id)
-+			rdma_destroy_id(nodes[i].id);
-+		end_perf(&nodes[i], STEP_DESTROY);
-+	}
-+	end_time(STEP_DESTROY);
-+}
-+
-+static int process_events(int *left)
-+{
-+	struct rdma_cm_event *event;
-+	int ret = 0;
-+
-+	while ((!left || *left) && !ret) {
-+		ret = rdma_get_cm_event(channel, &event);
-+		if (!ret) {
-+			cma_handler(event->id, event);
-+		} else {
-+			perror("failure in rdma_get_cm_event in connect events");
-+			ret = errno;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+static int run_server(void)
-+{
-+	struct rdma_cm_id *listen_id;
-+	int ret;
-+
-+	ret = rdma_create_id(channel, &listen_id, NULL, hints.ai_port_space);
-+	if (ret) {
-+		perror("listen request failed");
-+		return ret;
-+	}
-+
-+	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &rai);
-+	if (ret) {
-+		perror("getrdmaaddr error");
-+		goto out;
-+	}
-+
-+	ret = rdma_bind_addr(listen_id, rai->ai_src_addr);
-+	if (ret) {
-+		perror("bind address failed");
-+		goto out;
-+	}
-+
-+	ret = rdma_listen(listen_id, 0);
-+	if (ret) {
-+		perror("failure trying to listen");
-+		goto out;
-+	}
-+
-+	process_events(NULL);
-+ out:
-+	rdma_destroy_id(listen_id);
-+	return ret;
-+}
-+
-+static int run_client(void)
-+{
-+	int i, ret;
-+
-+	ret = get_rdma_addr(src_addr, dst_addr, port, &hints, &rai);
-+	if (ret) {
-+		perror("getaddrinfo error");
-+		return ret;
-+	}
-+
-+	conn_param.responder_resources = 1;
-+	conn_param.initiator_depth = 1;
-+	conn_param.retry_count = 5;
-+	conn_param.private_data = rai->ai_connect;
-+	conn_param.private_data_len = rai->ai_connect_len;
-+
-+	printf("resolving address\n");
-+	start_time(STEP_RESOLVE_ADDR);
-+	for (i = 0; i < connections; i++) {
-+		start_perf(&nodes[i], STEP_RESOLVE_ADDR);
-+		ret = rdma_resolve_addr(nodes[i].id, rai->ai_src_addr,
-+					rai->ai_dst_addr, 2000);
-+		if (ret) {
-+			perror("failure getting addr");
-+			nodes[i].error = 1;
-+			continue;
-+		}
-+		left[STEP_RESOLVE_ADDR]++;
-+	}
-+	ret = process_events(&left[STEP_RESOLVE_ADDR]);
-+	if (ret)
-+		return ret;
-+	end_time(STEP_RESOLVE_ADDR);
-+
-+	printf("resolving route\n");
-+	start_time(STEP_RESOLVE_ROUTE);
-+	for (i = 0; i < connections; i++) {
-+		if (nodes[i].error)
-+			continue;
-+		start_perf(&nodes[i], STEP_RESOLVE_ROUTE);
-+		ret = rdma_resolve_route(nodes[i].id, 2000);
-+		if (ret) {
-+			perror("failure resolving route");
-+			nodes[i].error = 1;
-+			continue;
-+		}
-+		left[STEP_RESOLVE_ROUTE]++;
-+	}
-+	ret = process_events(&left[STEP_RESOLVE_ROUTE]);
-+	if (ret)
-+		return ret;
-+	end_time(STEP_RESOLVE_ROUTE);
-+
-+	printf("creating qp\n");
-+	start_time(STEP_CREATE_QP);
-+	for (i = 0; i < connections; i++) {
-+		if (nodes[i].error)
-+			continue;
-+		start_perf(&nodes[i], STEP_CREATE_QP);
-+		ret = rdma_create_qp(nodes[i].id, NULL, &init_qp_attr);
-+		if (ret) {
-+			perror("failure creating qp");
-+			nodes[i].error = 1;
-+			continue;
-+		}
-+		end_perf(&nodes[i], STEP_CREATE_QP);
-+	}
-+	end_time(STEP_CREATE_QP);
-+
-+	printf("connecting\n");
-+	start_time(STEP_CONNECT);
-+	for (i = 0; i < connections; i++) {
-+		if (nodes[i].error)
-+			continue;
-+		start_perf(&nodes[i], STEP_CONNECT);
-+		ret = rdma_connect(nodes[i].id, &conn_param);
-+		if (ret) {
-+			perror("failure rconnecting");
-+			nodes[i].error = 1;
-+			continue;
-+		}
-+		left[STEP_CONNECT]++;
-+	}
-+	ret = process_events(&left[STEP_CONNECT]);
-+	if (ret)
-+		return ret;
-+	end_time(STEP_CONNECT);
-+
-+	printf("disconnecting\n");
-+	start_time(STEP_DISCONNECT);
-+	for (i = 0; i < connections; i++) {
-+		if (nodes[i].error)
-+			continue;
-+		start_perf(&nodes[i], STEP_DISCONNECT);
-+		rdma_disconnect(nodes[i].id);
-+		left[STEP_DISCONNECT]++;
-+	}
-+	ret = process_events(&left[STEP_DISCONNECT]);
-+	if (ret)
-+		return ret;
-+	end_time(STEP_DISCONNECT);
-+
-+	return ret;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int op, ret;
-+
-+	hints.ai_port_space = RDMA_PS_TCP;
-+	hints.ai_qp_type = IBV_QPT_RC;
-+	while ((op = getopt(argc, argv, "s:b:c:p:")) != -1) {
-+		switch (op) {
-+		case 's':
-+			dst_addr = optarg;
-+			break;
-+		case 'b':
-+			src_addr = optarg;
-+			break;
-+		case 'c':
-+			connections = atoi(optarg);
-+			break;
-+		case 'p':
-+			port = optarg;
-+			break;
-+		default:
-+			printf("usage: %s\n", argv[0]);
-+			printf("\t[-s server_address]\n");
-+			printf("\t[-b bind_address]\n");
-+			printf("\t[-c connections]\n");
-+			printf("\t[-p port_number]\n");
-+			exit(1);
-+		}
-+	}
-+
-+	init_qp_attr.cap.max_send_wr = 1;
-+	init_qp_attr.cap.max_recv_wr = 1;
-+	init_qp_attr.cap.max_send_sge = 1;
-+	init_qp_attr.cap.max_recv_sge = 1;
-+	init_qp_attr.qp_type = IBV_QPT_RC;
-+
-+	channel = rdma_create_event_channel();
-+	if (!channel) {
-+		printf("failed to create event channel\n");
-+		exit(1);
-+	}
-+
-+	if (dst_addr) {
-+		alloc_nodes();
-+		ret = run_client();
-+	} else {
-+		hints.ai_flags |= RAI_PASSIVE;
-+		ret = run_server();
-+	}
-+
-+	cleanup_nodes();
-+	rdma_destroy_event_channel(channel);
-+	if (rai)
-+		rdma_freeaddrinfo(rai);
-+
-+	show_perf();
-+	free(nodes);
-+	return ret;
-+}
+ 		if (neigh) {
+ 			neigh->cm = NULL;
+-			list_del(&neigh->list);
+ 			ipoib_neigh_free(neigh);
+ 
+ 			tx->neigh = NULL;
+@@ -1234,7 +1233,6 @@ static int ipoib_cm_tx_handler(struct ib_cm_id *cm_id,
+ 
+ 		if (neigh) {
+ 			neigh->cm = NULL;
+-			list_del(&neigh->list);
+ 			ipoib_neigh_free(neigh);
+ 
+ 			tx->neigh = NULL;
+@@ -1325,7 +1323,6 @@ static void ipoib_cm_tx_start(struct work_struct *work)
+ 			neigh = p->neigh;
+ 			if (neigh) {
+ 				neigh->cm = NULL;
+-				list_del(&neigh->list);
+ 				ipoib_neigh_free(neigh);
+ 			}
+ 			list_del(&p->list);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index c6f71a8..82cec1a 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -493,7 +493,6 @@ static void path_rec_completion(int status,
+ 									       path,
+ 									       neigh));
+ 				if (!ipoib_cm_get(neigh)) {
+-					list_del(&neigh->list);
+ 					ipoib_neigh_free(neigh);
+ 					continue;
+ 				}
+@@ -618,7 +617,6 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
+ 			if (!ipoib_cm_get(neigh))
+ 				ipoib_cm_set(neigh, ipoib_cm_create_tx(dev, path, neigh));
+ 			if (!ipoib_cm_get(neigh)) {
+-				list_del(&neigh->list);
+ 				ipoib_neigh_free(neigh);
+ 				goto err_drop;
+ 			}
+@@ -639,7 +637,7 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
+ 		neigh->ah  = NULL;
+ 
+ 		if (!path->query && path_rec_start(dev, path))
+-			goto err_list;
++			goto err_path;
+ 
+ 		__skb_queue_tail(&neigh->queue, skb);
+ 	}
+@@ -648,9 +646,6 @@ static void neigh_add_path(struct sk_buff *skb, u8 *daddr,
+ 	ipoib_neigh_put(neigh);
+ 	return;
+ 
+-err_list:
+-	list_del(&neigh->list);
+-
+ err_path:
+ 	ipoib_neigh_free(neigh);
+ err_drop:
+@@ -1098,6 +1093,8 @@ void ipoib_neigh_free(struct ipoib_neigh *neigh)
+ 			rcu_assign_pointer(*np,
+ 					   rcu_dereference_protected(neigh->hnext,
+ 								     lockdep_is_held(&priv->lock)));
++			/* remove from parent list */
++			list_del(&neigh->list);
+ 			call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
+ 			return;
+ 		} else {
 -- 
-1.7.3
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
