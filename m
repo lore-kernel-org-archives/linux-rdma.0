@@ -1,39 +1,36 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2 00/11] make read_config() more robust
-Date: Mon, 12 Aug 2013 13:26:54 -0600
-Message-ID: <20130812192654.GC7968@obsidianresearch.com>
+Subject: Re: [PATCH libibverbs v2 08/11] read_config(): refuse to open
+ IBV_CONFIG_DIR if it's not a directory
+Date: Mon, 12 Aug 2013 13:29:43 -0600
+Message-ID: <20130812192943.GD7968@obsidianresearch.com>
 References: <cover.1375952089.git.ydroneaud@opteya.com>
+ <64fd9c35244a9d3ed56f77b049accb00b9ec95e9.1375952089.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1375952089.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <64fd9c35244a9d3ed56f77b049accb00b9ec95e9.1375952089.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 08, 2013 at 09:40:43PM +0200, Yann Droneaud wrote:
-> Please find patches to protect libibverbs from using invalid,
-> unsecure configuration files.
+On Thu, Aug 08, 2013 at 09:40:51PM +0200, Yann Droneaud wrote:
+> @@ -325,7 +325,7 @@ static void read_config(void)
+>  	struct dirent *dent;
+>  	struct stat buf;
+>  
+> -	conf_dirfd = open(IBV_CONFIG_DIR, O_RDONLY | O_CLOEXEC);
+> +	conf_dirfd = open(IBV_CONFIG_DIR, O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+>  	if (conf_dirfd == -1) {
+>  		fprintf(stderr, PFX "Warning: couldn't open config directory '%s'.\n",
+>  			IBV_CONFIG_DIR);
 
-I really don't think any of this is necessary.
+It is much better to keep the original opendir code and then use dirfd
+to get the directory file no for later use with fstat/openat/etc.
 
-The expected installation for verbs is:
- / is secure
- /etc is secure
- /etc/ibverbs.d is secure
- /etc/ibverbs.d/* is seucure and contains the correct contents.
-[and similar statements about the shared libaries]
-
-If these installation expectations are met then your patches are not
-needed because all the path components are controlled exclusively by
-root.
-
-If you mis-install parts of your system with the wrong security
-permissions then you will have a security problem.
-
-It isn't the job of verbs to self-check the installation.
+glibc already knows to use non-portable things like O_DIRECTORY and
+O_CLOEXEC inside opendir.
 
 Jason
 --
