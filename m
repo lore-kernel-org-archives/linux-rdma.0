@@ -1,54 +1,27 @@
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] perfquery.c: Fix dumping of
- PortSamplesControl
-Date: Sun, 11 Aug 2013 23:23:20 -0700
-Message-ID: <20130811232320.aa3972ee702a0f33d805207f@intel.com>
-References: <51FAA4BA.7080800@dev.mellanox.co.il>
+From: Ernst Gunnar Gran <ernstgr-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Subject: IB SR-IOV
+Date: Mon, 12 Aug 2013 09:01:49 +0200
+Message-ID: <CAKY8vKrJ=BDOKd5hnZjiS7XO_u-Sz+PsOuymaDxJbHBP2RCEEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <51FAA4BA.7080800-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 1 Aug 2013 14:11:06 -0400
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+Hi
 
-> 
-> was stopping after CounterSelect10 field as insufficient buffer size for
-> dumping this attribute.
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+I=92m about to start experimenting with SR-IOV and IB (ConnectX-2 G2, H=
+P
+DL360p Gen8, E5-2609). Is it OK to just download the latest OFED
+release and start playing, or are there any known issues that I should
+know of when it comes to SR-IOV with the current release?
 
-Thanks, applied,
-Ira
-
-> ---
-> diff --git a/src/perfquery.c b/src/perfquery.c
-> index 9a69ee1..112d92c 100644
-> --- a/src/perfquery.c
-> +++ b/src/perfquery.c
-> @@ -566,7 +566,7 @@ static void vlxmittimecc_query(ib_portid_t * portid, int port, int mask)
->  
->  void dump_portsamples_control(ib_portid_t * portid, int port)
->  {
-> -	char buf[1024];
-> +	char buf[1280];
->  
->  	memset(pc, 0, sizeof(pc));
->  	if (!pma_query_via(pc, portid, port, ibd_timeout,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Thanks,
+Ernst Gunnar
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
