@@ -1,57 +1,57 @@
-From: "Foraker, Jim" <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] IPoIB: Fix race in deleting ipoib_neigh entries
-Date: Mon, 12 Aug 2013 17:28:17 +0000
-Message-ID: <CFAC33911979AD4C8D88DE3515E8FE3615F4587A@PRDEXMBX-03.the-lab.llnl.gov>
-References: <32E1700B9017364D9B60AED9960492BC21170384@FMSMSX107.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 3/3] read_config: skip file/directory with unsecure
+ permissions
+Date: Mon, 12 Aug 2013 13:05:45 -0600
+Message-ID: <20130812190545.GA7968@obsidianresearch.com>
+References: <cover.1369085762.git.ydroneaud@opteya.com>
+ <0a6888edc9d7899fe3b4af249c4f25088e196422.1369085762.git.ydroneaud@opteya.com>
+ <20130521205713.GB11318@obsidianresearch.com>
+ <1375989856.27609.10.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC21170384-AtyAts71sc9zLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Content-ID: <7DE83B62A34B6E4DA01077AC3CD20EE7-i2BcT+NCU+M@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1375989856.27609.10.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/12/13 9:04 AM, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+On Thu, Aug 08, 2013 at 09:24:16PM +0200, Yann Droneaud wrote:
+> Hi,
+> 
+> Le mardi 21 mai 2013 ?? 14:57 -0600, Jason Gunthorpe a ??crit :
+> > On Mon, May 20, 2013 at 11:43:05PM +0200, Yann Droneaud wrote:
+> > > libibverbs must refuse to load arbitrary shared objects.
+> > > 
+> > > This patch check the configuration directory and files for
+> > > - being owned by root;
+> > > - not being writable by others.
+> > 
+> > I really don't like this. Is there some exploit against /etc/ now that
+> > requires this sort of checking?
+> > 
+> 
+> Loading shared object as part of a setuid binary should be handled
+> with extra care.  Adding checks to the configuration loader is
+> required so that only trusted shared object get loaded.
 
->> +			/* remove from parent list */
->> +			list_del(&neigh->list);
->>  			call_rcu(&neigh->rcu, ipoib_neigh_reclaim);
->
->Should the list_del be a list_del_rcu()?
-     I don't believe so, as it's the neighbor hash table
-(priv->ntbl->htbl) that is RCU protected and not neigh->list.
+Well, still, I'm not sure this is required. IBV_CONFIG_DIR is
+hardwired and not overriable (via environment, etc), so it is a simple
+installation error to have the wrong permissions for your environment
+on these files.
 
-     Jim
+But lots of files need to have the correct permissions for setuid to
+be secure (the binary, the library itself, the libraries it dlopens,
+the directories that contain all of these things, etc) - not sure it
+makes any sense at all to single out the config files for special
+checking.
 
->
->From Documentation/RCU/listRCU.txt:
->
->Following are the RCU equivalents for these two functions:
->
->        static inline int audit_del_rule(struct audit_rule *rule,
->                                         struct list_head *list)
->        {
->                struct audit_entry  *e;
->
->                /* Do not use the _rcu iterator here, since this is the
->only
->                 * deletion routine. */
->                list_for_each_entry(e, list, list) {
->                        if (!audit_compare_rule(rule, &e->rule)) {
->                                list_del_rcu(&e->list);
->                                call_rcu(&e->rcu, audit_free_rule);
->                                return 0;
->                        }
->                }
->                return -EFAULT;         /* No matching rule */
->        }
->
+In any event, if these checks really are necessary they should be only
+done if running in a setuid context, and they almost certainly need to
+extend to the dlopen paths as well..
 
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
