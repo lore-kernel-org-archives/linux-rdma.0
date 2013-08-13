@@ -1,51 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/3] read_config: skip file/directory with unsecure
- permissions
-Date: Mon, 12 Aug 2013 17:43:21 -0600
-Message-ID: <20130812234321.GA18341@obsidianresearch.com>
-References: <cover.1369085762.git.ydroneaud@opteya.com>
- <0a6888edc9d7899fe3b4af249c4f25088e196422.1369085762.git.ydroneaud@opteya.com>
- <20130521205713.GB11318@obsidianresearch.com>
- <1375989856.27609.10.camel@localhost.localdomain>
- <20130812190545.GA7968@obsidianresearch.com>
- <8d276f12593ddc79233fa41abdaf0d41@meuh.org>
- <20130812203935.GA8990@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237388CA54FE@ORSMSX109.amr.corp.intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: IB SR-IOV
+Date: Tue, 13 Aug 2013 09:56:51 +0300
+Message-ID: <5209D8B3.7030309@mellanox.com>
+References: <CAKY8vKrJ=BDOKd5hnZjiS7XO_u-Sz+PsOuymaDxJbHBP2RCEEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CA54FE-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAKY8vKrJ=BDOKd5hnZjiS7XO_u-Sz+PsOuymaDxJbHBP2RCEEQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ernst Gunnar Gran <ernstgr-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 12, 2013 at 08:59:10PM +0000, Hefty, Sean wrote:
+On 12/08/2013 10:01, Ernst Gunnar Gran wrote:
+> I=92m about to start experimenting with SR-IOV and IB (ConnectX-2 G2,=
+ HP DL360p Gen8, E5-2609). Is it OK to just download the latest OFED re=
+lease and start playing, or are there any known issues that I should kn=
+ow of when it comes to SR-IOV with the current release?
 
-> This is slightly off topic, but what is the underlying reason for
-> having the libibverbs config directory?  Is it simply to support the
-> library name being different than the device name, or is there
-> something more?
+I would recommend using the IB/RDMA stack from the upstream kernel or=20
+the one provided with one of the distros that picked SRIOV support from=
+=20
+upstream into the bits they ship. Note that IB and Ethernet are=20
+supported for ConnectX VFs, but not yet RoCE.
 
-I use it quite frequently to setup ibverbs to use non-system paths to
-find the libaries.
+Or.
 
-It seems to me the whole idea of this system is that a vendor could
-ship a binary interface blob in /opt/foo/lib/ and just drop one file
-into libibverbs.d to configure that blob.
-
-Frankly, I'm not really sure there is much value in this whole
-loadable mechanism. I'm unaware of people actually using the dynamic
-load in a meaningful way and it seems many of the drivers would be
-better maintained if they were part of verbs directly...
-
-The realities of the kernel GPL seem to preclude having a binary
-user-space, and drivers are not really being shipped separately from
-verbs..
-
-Jason
+Also note you need to do some preparations at the node (bios, kernel=20
+boot command line) level and card (re-burn the firmware with sriov=20
+support enabled, see the web or your mellanox rep) level.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
