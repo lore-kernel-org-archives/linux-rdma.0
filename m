@@ -1,34 +1,50 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 2/4] IB/core: Infra-structure to support verbs
- extensions through uverbs
-Date: Wed, 14 Aug 2013 13:13:33 +0300
-Message-ID: <520B584D.6000600@mellanox.com>
-References: <1375873322-19384-1-git-send-email-ogerlitz@mellanox.com> <1375873322-19384-3-git-send-email-ogerlitz@mellanox.com> <CAL1RGDXJtrc849M6_XNZT5xO1+ybKtLWGq6yg6LhoSsKpsmkYA@mail.gmail.com>
+From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] osm_port_info_rcv.c Issue a log message if we cannot read the
+ MKey of a port
+Date: Wed, 14 Aug 2013 03:26:42 -0700 (PDT)
+Message-ID: <e5b46785-f443-42ef-bf16-660f9e7df190@default>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXJtrc849M6_XNZT5xO1+ybKtLWGq6yg6LhoSsKpsmkYA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 13/08/2013 22:18, Roland Dreier wrote:
-> Yes, you have tried to answer those questions separately but do you
-> think git writes changelogs magically when a patch is applied?  If you
-> don't supply a good enough changelog, you're expecting me to write it
-> for you.
+Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-I never expected you to write our change logs, even though many times 
-the editing you do helps for changelogs written or edited by non native 
-English speaker like me...  After we sent replies to your comment, there 
-is no way on earth other from you responding back for us to know where 
-things are, we can't read it elsewhere.
+---
 
-Anyway, I will enhance the change log according to Tzahi's reply and send V5
-
-Or.
+diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
+index 7dcd15e..961b376 100644
+--- a/opensm/osm_port_info_rcv.c
++++ b/opensm/osm_port_info_rcv.c
+@@ -85,7 +85,7 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 	osm_madw_context_t context;
+ 	ib_api_status_t status;
+ 	ib_net64_t port_guid;
+-	uint8_t rate, mtu;
++	uint8_t rate, mtu, mpb;
+ 	unsigned data_vls;
+ 	cl_qmap_t *p_sm_tbl;
+ 	osm_remote_sm_t *p_sm;
+@@ -126,6 +126,14 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 		}
+ 	}
+ 
++	/* Check M_Key vs M_Key protect, can we control the port ? */
++	mpb = ib_port_info_get_mpb(p_pi);
++	if (mpb > 0 && p_pi->m_key == 0) {
++		OSM_LOG(sm->p_log, OSM_LOG_INFO,
++			"Port 0x%" PRIx64 " has unknown M_Key, protection level %u\n",
++			cl_ntoh64(port_guid), mpb);
++	}
++
+ 	if (port_guid != sm->p_subn->sm_port_guid) {
+ 		p_sm_tbl = &sm->p_subn->sm_guid_tbl;
+ 		if (p_pi->capability_mask & IB_PORT_CAP_IS_SM) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
