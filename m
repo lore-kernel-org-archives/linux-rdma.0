@@ -1,49 +1,42 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IB/iser: Generalize rdma memory registration
-Date: Wed, 14 Aug 2013 22:52:01 +0300
-Message-ID: <20130814195201.GB16390@elgon.mountain>
+From: =?iso-8859-1?Q?David_No=EBl?= <dave-xp/UPtcxzmOfElnAKkSmxw@public.gmane.org>
+Subject: Product Request {Unit Price and MOQ}
+Date: Wed, 14 Aug 2013 13:49:17 -0700
+Message-ID: <aAxFWhKOAvEP2IuXChFfe9qRjP0U9cnTQr5UNcJcfv2N@duxmachinery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "umich.edu," <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Sagi Grimberg,
+Sir/Madam,
+We are interested in the following items:
+http://dux-corporation.trade-e.com/productid=3D7986570.htm
+Login your valid email address and password to view requested items on =
+DUX website.
+Kindly advice:
 
-This is a semi-automatic email about new static checker warnings.
+1. Shippment:
+2. Unit price:
+3. MOQ:
+4. Payment: TT, Western Union, PayPal, Bank
+5. Lead time:
 
-The patch b4e155ffbbd6: "IB/iser: Generalize rdma memory 
-registration" from Jul 28, 2013, leads to the following Smatch 
-complaint:
+Your early reply'd be highly appreciated.
 
-drivers/infiniband/ulp/iser/iser_initiator.c:318 iser_free_rx_descriptors()
-	 error: we previously assumed 'device' could be null (see line 313)
 
-drivers/infiniband/ulp/iser/iser_initiator.c
-   312	
-   313		if (device && device->iser_free_rdma_reg_res)
-                    ^^^^^^
-New check.
+David No=EBl=20
+DUX Corporation
+615 Lavoisier
+Repentigny, Quebec
+Canada J6A 7N2
+Tel:1.450.581.8341
+=46ax:1.450.581.5138
 
-   314			device->iser_free_rdma_reg_res(ib_conn);
-   315	
-   316		rx_desc = ib_conn->rx_descs;
-   317		for (i = 0; i < ib_conn->qp_max_recv_dtos; i++, rx_desc++)
-   318			ib_dma_unmap_single(device->ib_device, rx_desc->dma_addr,
-                                            ^^^^^^^^^^^^^^^^^
-Old dererference.
-
-   319					    ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-   320		kfree(ib_conn->rx_descs);
-
-Has the code changed so that we need to check now?
-
-regards,
-dan carpenter
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
