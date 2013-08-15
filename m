@@ -1,53 +1,64 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V5 for-next 2/4] IB/core: Infrastructure to support verbs
- extensions through uverbs
-Date: Thu, 15 Aug 2013 09:34:18 +0300
-Message-ID: <520C766A.6090605@mellanox.com>
-References: <1376477911-13828-1-git-send-email-ogerlitz@mellanox.com> <1376477911-13828-3-git-send-email-ogerlitz@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: IB/iser: Generalize rdma memory registration
+Date: Thu, 15 Aug 2013 11:45:00 +0300
+Message-ID: <520C950C.4060507@mellanox.com>
+References: <20130814195201.GB16390@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1376477911-13828-3-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20130814195201.GB16390-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 14/08/2013 13:58, Or Gerlitz wrote:
-> From: Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>
+On 8/14/2013 10:52 PM, Dan Carpenter wrote:
+> Hello Sagi Grimberg,
 >
-> Add infra-structure to support extended uverbs capabilities in a forward/backward
-> manner. Uverbs command opcodes which are based on the verbs extensions approach should
-> be greater or equal to IB_USER_VERBS_CMD_THRESHOLD. They have new header format
-> and processed a bit differently.
+> This is a semi-automatic email about new static checker warnings.
 >
-> Whenever a specific IB_USER_VERBS_CMD_XXX is extended, which practically means
-> it needs to have additional arguments, we will be able to add them without creating
-> a completely new IB_USER_VERBS_CMD_YYY command or bumping the uverbs ABI version.
+> The patch b4e155ffbbd6: "IB/iser: Generalize rdma memory
+> registration" from Jul 28, 2013, leads to the following Smatch
+> complaint:
 >
-> This patch for itself doesn't provide the whole scheme which is also dependent
-> on adding a comp_mask field to each extended uverbs command struct.
+> drivers/infiniband/ulp/iser/iser_initiator.c:318 iser_free_rx_descriptors()
+> 	 error: we previously assumed 'device' could be null (see line 313)
 >
-> The new header framework allows for future extension of the CMD arguments
-> (ib_uverbs_cmd_hdr.in_words, ib_uverbs_cmd_hdr.out_words) for an existing
-> new command (that is a command that supports the new uverbs command header format
-> suggested in this patch) w/o bumping ABI version and with maintaining backward
-> and formward compatibility to new and old libibverbs versions.
+> drivers/infiniband/ulp/iser/iser_initiator.c
+>     312	
+>     313		if (device && device->iser_free_rdma_reg_res)
+>                      ^^^^^^
+> New check.
 >
-> In the uverbs command we are passing both uverbs arguments and the provider arguments.
-> We split the ib_uverbs_cmd_hdr.in_words to ib_uverbs_cmd_hdr.in_words which will now carry only uverbs input argument struct size and  ib_uverbs_cmd_hdr.provider_in_words that will carry the provider input argument size. Same goes for the response (the uverbs CMD output argument).
+>     314			device->iser_free_rdma_reg_res(ib_conn);
+>     315	
+>     316		rx_desc = ib_conn->rx_descs;
+>     317		for (i = 0; i < ib_conn->qp_max_recv_dtos; i++, rx_desc++)
+>     318			ib_dma_unmap_single(device->ib_device, rx_desc->dma_addr,
+>                                              ^^^^^^^^^^^^^^^^^
+> Old dererference.
+>
+>     319					    ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
+>     320		kfree(ib_conn->rx_descs);
+>
+> Has the code changed so that we need to check now?
+>
+> regards,
+> dan carpenter
 
-Roland,
+Hey Dan,
 
-So how's this change-log, clear enough?
+Thanks for the input!
+The case here is that for some weird error flows we can end-up in this 
+function with device == NULL, but if you pass the first condition if 
+(!ib_conn->rx_descs) you are safe...
 
-Anything else re this patch set? its around since April 2013 and missed 
-2-3 merged windows, lets make sure we get it in this time.
+I'll fire up a fix for that asap.
 
-Or.
+Cheers,
 
-
+-Sagi
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
