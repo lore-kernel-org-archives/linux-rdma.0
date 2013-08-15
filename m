@@ -1,41 +1,48 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/iser: Fix redundant pointer check in dealloc flow
-Date: Thu, 15 Aug 2013 17:04:42 +0300
-Message-ID: <1376575482-21098-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Helps to Decode rpc_debug Output
+Date: Thu, 15 Aug 2013 11:08:45 -0700
+Message-ID: <CABgxfbFixDTUy4e1EQty86dvNeisG7+hd2QdVSQvv4T2tokFoQ@mail.gmail.com>
+References: <CABgxfbGFHv2n5=78_irkxXnX9BFDFPzZvqgs_iDn64AR_3cf5w@mail.gmail.com>
+	<520CCDBB.1020501@talpey.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <520CCDBB.1020501-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This bug was discovered by Smatch static checker ran by
-Dan Carpenter. If in free_rx_descriptors rx_descs are not NULL
-the iser device is definately not NULL as it was created before,
-so no need to check it before dereferencing it.
+On Thu, Aug 15, 2013 at 5:46 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
+> On 8/14/2013 8:14 PM, Wendy Cheng wrote:
+>>
+>> Longer version of the question:
+>> I'm trying to enable NFS-RDMA on an embedded system (based on 2.6.38
+>> kernel) as a client. The IB stacks are taken from OFED 1.5.4. NFS
+>> server is a RHEL 6.3 Xeon box. The connection uses mellox-4 driver.
+>> Memory registration is "RPCRDMA_ALLPHYSICAL". There are many issues so
+>> far but I do manage to get nfs mount working. Simple file operations
+>> (such as "ls", file read/write, "scp", etc) seem to work as well.
+>
+[snip]
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iser_initiator.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Why did you replace the Linux IB stack with OFED? Did you also take the
+> NFS/RDMA from that package, and if so are you sure that it all is
+> is working properly? Doesn't 2.6.38 already have all this?
+>
 
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index bdc38f4..5f01da9 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -310,7 +310,7 @@ void iser_free_rx_descriptors(struct iser_conn *ib_conn)
- 	if (!ib_conn->rx_descs)
- 		goto free_login_buf;
- 
--	if (device && device->iser_free_rdma_reg_res)
-+	if (device->iser_free_rdma_reg_res)
- 		device->iser_free_rdma_reg_res(ib_conn);
- 
- 	rx_desc = ib_conn->rx_descs;
--- 
-1.7.1
+Other part of the cluster runs OFED 1.5.4 on top of RHEL 6.3 - it was
+a product decision. Ditto for the 2.6.38 based uOS.
 
+OFED 1.5.4 based NFS/RDMA (i.e. xprtrdma) does not run on both
+platforms. It took a while to understand the setup. I believe issues
+with RHEL boxes have been fixed - at least iozone runs thru (as client
+and server) w/out trouble. Now the issue is with this 2.6.38 uOS (as
+client) that talks to RHEL 6.3 (as server). I don't know much about
+NFS V4 so the focus is on V3.
+
+-- Wendy
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
