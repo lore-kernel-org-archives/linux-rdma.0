@@ -1,62 +1,33 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] osm_port_info_rcv.c Issue a log message if we cannot
- read the MKey of a port
-Date: Fri, 16 Aug 2013 09:47:50 -0400
-Message-ID: <520E2D86.6080903@dev.mellanox.co.il>
-References: <e5b46785-f443-42ef-bf16-660f9e7df190@default>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH libibverbs] XRC - Sample application issues
+Date: Fri, 16 Aug 2013 15:10:42 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CA64F6@ORSMSX109.amr.corp.intel.com>
+References: <1375974336-26314-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e5b46785-f443-42ef-bf16-660f9e7df190@default>
+In-Reply-To: <1375974336-26314-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Sternberg, Jay E" <jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/14/2013 6:26 AM, Line Holen wrote:
-> Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> @@ -884,6 +884,13 @@ int main(int argc, char *argv[])
+>  	if (ctx.use_event)
+>  		ibv_ack_cq_events(ctx.recv_cq, num_cq_events);
 > 
-> ---
-> 
-> diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
-> index 7dcd15e..961b376 100644
-> --- a/opensm/osm_port_info_rcv.c
-> +++ b/opensm/osm_port_info_rcv.c
-> @@ -85,7 +85,7 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
->  	osm_madw_context_t context;
->  	ib_api_status_t status;
->  	ib_net64_t port_guid;
-> -	uint8_t rate, mtu;
-> +	uint8_t rate, mtu, mpb;
->  	unsigned data_vls;
->  	cl_qmap_t *p_sm_tbl;
->  	osm_remote_sm_t *p_sm;
-> @@ -126,6 +126,14 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
->  		}
->  	}
->  
-> +	/* Check M_Key vs M_Key protect, can we control the port ? */
-> +	mpb = ib_port_info_get_mpb(p_pi);
-> +	if (mpb > 0 && p_pi->m_key == 0) {
-> +		OSM_LOG(sm->p_log, OSM_LOG_INFO,
-> +			"Port 0x%" PRIx64 " has unknown M_Key, protection level %u\n",
-> +			cl_ntoh64(port_guid), mpb);
-> +	}
-> +
+> +	/* Process should wait before closing its resources to make sure
+> +	  * latest daemon's response sent via its target QP destined to an XSRQ
+> +	  * created by another client won't be lost.
+> +	  * Failure to do so will cause the client to wait for that sent message
+> forever.
+> +	  * See comment on pp_post_send.
+> +	*/
+> +	sleep(1);
 
-It looks to me like the only case here is when protect bits is 1 for
-gets; all others fail. Is it more than that ?
-
-Also, would this spam the OpenSM log ?
-
--- Hal
-
->  	if (port_guid != sm->p_subn->sm_port_guid) {
->  		p_sm_tbl = &sm->p_subn->sm_guid_tbl;
->  		if (p_pi->capability_mask & IB_PORT_CAP_IS_SM) {
-> 
-
+I dislike adding sleep calls into code.  Isn't there a more robust way to handle this?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
