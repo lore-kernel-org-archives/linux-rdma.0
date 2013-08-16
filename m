@@ -1,48 +1,40 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Helps to Decode rpc_debug Output
-Date: Thu, 15 Aug 2013 11:08:45 -0700
-Message-ID: <CABgxfbFixDTUy4e1EQty86dvNeisG7+hd2QdVSQvv4T2tokFoQ@mail.gmail.com>
-References: <CABgxfbGFHv2n5=78_irkxXnX9BFDFPzZvqgs_iDn64AR_3cf5w@mail.gmail.com>
-	<520CCDBB.1020501@talpey.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] IB/mthca: make type explicit in mthca_INIT_HCA()
+Date: Fri, 16 Aug 2013 10:19:15 +0300
+Message-ID: <20130816071915.GB6053@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <520CCDBB.1020501-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 15, 2013 at 5:46 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
-> On 8/14/2013 8:14 PM, Wendy Cheng wrote:
->>
->> Longer version of the question:
->> I'm trying to enable NFS-RDMA on an embedded system (based on 2.6.38
->> kernel) as a client. The IB stacks are taken from OFED 1.5.4. NFS
->> server is a RHEL 6.3 Xeon box. The connection uses mellox-4 driver.
->> Memory registration is "RPCRDMA_ALLPHYSICAL". There are many issues so
->> far but I do manage to get nfs mount working. Simple file operations
->> (such as "ls", file read/write, "scp", etc) seem to work as well.
->
-[snip]
+The type of the second argument to the MTHCA_PUT() macro determines how
+many bytes will be written to inbox.  Judging from the context, the
+current code is doing the right thing by writing an int of data.  But I
+would feel more comfortable making it explicit that we are writing 32
+bits.
 
-> Why did you replace the Linux IB stack with OFED? Did you also take the
-> NFS/RDMA from that package, and if so are you sure that it all is
-> is working properly? Doesn't 2.6.38 already have all this?
->
+This is just a cleanup.
 
-Other part of the cluster runs OFED 1.5.4 on top of RHEL 6.3 - it was
-a product decision. Ditto for the 2.6.38 based uOS.
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-OFED 1.5.4 based NFS/RDMA (i.e. xprtrdma) does not run on both
-platforms. It took a while to understand the setup. I believe issues
-with RHEL boxes have been fixed - at least iozone runs thru (as client
-and server) w/out trouble. Now the issue is with this 2.6.38 uOS (as
-client) that talks to RHEL 6.3 (as server). I don't know much about
-NFS V4 so the focus is on V3.
-
--- Wendy
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index 9d3e5c1..2d2a401 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -1359,7 +1359,7 @@ int mthca_INIT_HCA(struct mthca_dev *dev,
+ 	memset(inbox, 0, INIT_HCA_IN_SIZE);
+ 
+ 	if (dev->mthca_flags & MTHCA_FLAG_SINAI_OPT)
+-		MTHCA_PUT(inbox, 0x1, INIT_HCA_FLAGS1_OFFSET);
++		MTHCA_PUT(inbox, (u32)0x1, INIT_HCA_FLAGS1_OFFSET);
+ 
+ #if defined(__LITTLE_ENDIAN)
+ 	*(inbox + INIT_HCA_FLAGS2_OFFSET / 4) &= ~cpu_to_be32(1 << 1);
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
