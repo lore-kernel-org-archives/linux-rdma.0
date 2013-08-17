@@ -1,107 +1,55 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: =?UTF-8?Q?ibv=5Fcreate=5Fqp=28=29=20and=20max=5Finline=5Fdata=20b?=
- =?UTF-8?Q?ehavior?=
-Date: Sat, 17 Aug 2013 14:22:06 +0200
-Message-ID: <d7685e13978f93890b2939c5ac2d5c7f@meuh.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH librdmacm 0/3] no IBV_SEND_INLINE thus memory registration required on QLogic/Intel HCA
+Date: Sat, 17 Aug 2013 15:38:13 +0200
+Message-ID: <cover.1376746185.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dotan-Hqos5LYUzRNWk0Htik3J/w@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+While doing some tests, I've found that rdma_client failed
+on my QLogic/Intel QLE7340 / QLE7342 HCA:
 
-I'm facing a little odd behavior when trying to use IBV_SEND_INLINE fla=
-g=20
-in ibv_post_send().
+    # rdma_client
+    rdma_client: start
+    rdma_post_send 22
+    rdma_client: end -1
+ 
+I had a deeper look on the examples and found that max_inline_data was returned as 0,
+thus IBV_SEND_INLINE is not available and memory must be registered to provide a valid
+lkey in WR.
 
-I'm testing with QLogic InfiniPath HCA / Intel True Scale Fabric HCA,
-QLE7340-CK, QL7342-CK, using driver ipath (libipathverbs), module qib,
-on Fedora 18, Fedora 19 with kernel v3.11-rc5,
-using libipathverbs 1.2,
-       libibverbs 1.1.17
-       librdmacm 1.0.17.
+[BTW, having registered the memory and still use IBV_SEND_INLINE was OK,
+ that should be an error, isn't it ?]
 
-The test program creates a QP using ibv_create_qp() and=20
-init_attr.cap.max_inline_data set to 16.
-The QP creation is OK but init_attr.cap.max_inline_data is set to 0 on=20
-return.
+Please find some patches to
+- document IBV_SEND_INLINE and memory registration,
+- add a query function to check max_inline_data on QP created by cma,
+- fix the examples to not use IBV_SEND_INLINE if max_inline_data is less than expected.
 
-According to man page: http://linux.die.net/man/3/ibv_create_qp
-                       =20
-http://git.kernel.org/cgit/libs/infiniband/libibverbs.git/tree/man/ibv_=
-create_qp.3
+Yann Droneaud (3):
+  man: rdma_post_*(): memory region is optional only with
+    IBV_SEND_INLINE.
+  adds rdma_query_qp() function.
+  examples: use IBV_SEND_INLINE if supported
 
-     The function ibv_create_qp() will update the qp_init_attr->cap=20
-struct with the actual QP values
-     of the QP that was created; the values will be greater than or equ=
-al=20
-to the values requested.
+ examples/rdma_client.c  | 25 +++++++++++++++++++------
+ examples/rdma_server.c  | 31 +++++++++++++++++++++++++------
+ examples/rdma_xclient.c | 42 ++++++++++++++++++++++++++++++++++--------
+ examples/rdma_xserver.c | 39 +++++++++++++++++++++++++++++----------
+ include/rdma/rdma_cma.h | 16 ++++++++++++++++
+ man/rdma_post_send.3    |  2 +-
+ man/rdma_post_ud_send.3 |  2 +-
+ man/rdma_post_write.3   |  2 +-
+ src/cma.c               | 24 ++++++++++++++++++++++++
+ src/librdmacm.map       |  1 +
+ 10 files changed, 151 insertions(+), 33 deletions(-)
 
-According to Dotan blog:=20
-http://www.rdmamojo.com/2012/12/21/ibv_create_qp/
-
-     max_inline_data  The maximum message size (in bytes) that can be=20
-posted inline to the Send Queue.
-                      0, if no inline message is requested
-
-     Sending inline=E2=80=99d data is an implementation extension that =
-isn=E2=80=99t=20
-defined in any RDMA specification:
-     it allows send the data itself in the Work Request (instead the=20
-scatter/gather entries)
-     that is posted to the RDMA device. The memory that holds this=20
-message doesn=E2=80=99t have to be registered.
-     There isn=E2=80=99t any verb that specifies the maximum message si=
-ze that=20
-can be sent inline=E2=80=99d in a QP.
-     Some of the RDMA devices support it. In some RDMA devices creating=
- a=20
-QP with will set the value of max_inline_data
-     to the size of message that can be sent using the requested number=
-=20
-of scatter/gather elements of the Send Queue.
-     If others, one should specify explicitly the message size to be se=
-nt=20
-inline before the creation of a QP.
-     [F]or those devices, it is advised to try to create the QP with th=
-e=20
-required message size and continue decrease it
-     if the QP creation fails.
-
-
-I'd like the behavior of ibv_create_qp() regarding cap.max_inline_data=20
-be clearer:
-
-1) Should ibv_create_qp() failed if max_inline_data requested being=20
-greater than supported ?
-
-If not
-
-2) Should ibv_create_qp() be allowed to return a value less than the=20
-value requested ?
-
-The fix would be different:
-
-1) will require a small change to __ibv_create_qp() to enforce this=20
-behavor.
-
-2) will only require a small update to the documentation to allow=20
-max_inline_data to be lower than requested.
-
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
+-- 
+1.8.1.4
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
