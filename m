@@ -1,51 +1,67 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH librdmacm 0/3] no IBV_SEND_INLINE thus memory registration required on QLogic/Intel HCA
-Date: Sat, 17 Aug 2013 15:38:13 +0200
-Message-ID: <cover.1376746185.git.ydroneaud@opteya.com>
+Subject: [PATCH librdmacm 1/3] man: rdma_post_*(): memory region is optional only with IBV_SEND_INLINE.
+Date: Sat, 17 Aug 2013 15:38:14 +0200
+Message-ID: <dfe767c849fc9472bd87c723c401052b89d40d7c.1376746185.git.ydroneaud@opteya.com>
+References: <cover.1376746185.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1376746185.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1376746185.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+References: <cover.1376746185.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-While doing some tests, I've found that rdma_client failed
-on my QLogic/Intel QLE7340 / QLE7342 HCA:
+State explicitly when MR argument is optional.
 
-    # rdma_client
-    rdma_client: start
-    rdma_post_send 22
-    rdma_client: end -1
- 
-I had a deeper look on the examples and found that max_inline_data was returned as 0,
-thus IBV_SEND_INLINE is not available and memory must be registered to provide a valid
-lkey in WR.
+MR should be a mandatory argument to rdma_post_*() functions.
 
-[BTW, having registered the memory and still use IBV_SEND_INLINE was OK,
- that should be an error, isn't it ?]
+Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+---
+ man/rdma_post_send.3    | 2 +-
+ man/rdma_post_ud_send.3 | 2 +-
+ man/rdma_post_write.3   | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Please find some patches to
-- document IBV_SEND_INLINE and memory registration,
-- add a query function to check max_inline_data on QP created by cma,
-- fix the examples to not use IBV_SEND_INLINE if max_inline_data is less than expected.
-
-Yann Droneaud (3):
-  man: rdma_post_*(): memory region is optional only with
-    IBV_SEND_INLINE.
-  adds rdma_query_qp() function.
-  examples: use IBV_SEND_INLINE if supported
-
- examples/rdma_client.c  | 25 +++++++++++++++++++------
- examples/rdma_server.c  | 31 +++++++++++++++++++++++++------
- examples/rdma_xclient.c | 42 ++++++++++++++++++++++++++++++++++--------
- examples/rdma_xserver.c | 39 +++++++++++++++++++++++++++++----------
- include/rdma/rdma_cma.h | 16 ++++++++++++++++
- man/rdma_post_send.3    |  2 +-
- man/rdma_post_ud_send.3 |  2 +-
- man/rdma_post_write.3   |  2 +-
- src/cma.c               | 24 ++++++++++++++++++++++++
- src/librdmacm.map       |  1 +
- 10 files changed, 151 insertions(+), 33 deletions(-)
-
+diff --git a/man/rdma_post_send.3 b/man/rdma_post_send.3
+index 82bcf37..bf35716 100644
+--- a/man/rdma_post_send.3
++++ b/man/rdma_post_send.3
+@@ -22,7 +22,7 @@ The address of the memory buffer to post.
+ .IP "length" 12
+ The length of the memory buffer.
+ .IP "mr" 12
+-Optional registered memory region associated with the posted buffer.
++Registered memory region associated with the posted buffer. Optional if IBV_SEND_INLINE flag is used.
+ .IP "flags" 12
+ Optional flags used to control the send operation.
+ .SH "DESCRIPTION"
+diff --git a/man/rdma_post_ud_send.3 b/man/rdma_post_ud_send.3
+index f8e2ada..dd40b8a 100644
+--- a/man/rdma_post_ud_send.3
++++ b/man/rdma_post_ud_send.3
+@@ -24,7 +24,7 @@ The address of the memory buffer to post.
+ .IP "length" 12
+ The length of the memory buffer.
+ .IP "mr" 12
+-Optional registered memory region associated with the posted buffer.
++Registered memory region associated with the posted buffer. Optional if IBV_SEND_INLINE_FLAG is used.
+ .IP "flags" 12
+ Optional flags used to control the send operation.
+ .IP "ah" 12
+diff --git a/man/rdma_post_write.3 b/man/rdma_post_write.3
+index 896996c..3fbd8a1 100644
+--- a/man/rdma_post_write.3
++++ b/man/rdma_post_write.3
+@@ -24,7 +24,7 @@ The local address of the source of the write request.
+ .IP "length" 12
+ The length of the write operation.
+ .IP "mr" 12
+-Optional memory region associated with the local buffer.
++Registered memory region associated with the local buffer. Optional if IBV_SEND_INLINE flag is used.
+ .IP "flags" 12
+ Optional flags used to control the write operation.
+ .IP "remote_addr" 12
 -- 
 1.8.1.4
 
