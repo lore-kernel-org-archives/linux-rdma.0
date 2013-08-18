@@ -1,48 +1,37 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH for infiniband-diags] get_lid_from_name(): Remove an unused
- variable
-Date: Sun, 18 Aug 2013 10:57:07 +0200
-Message-ID: <52108C63.9080101@acm.org>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH libibverbs] XRC - Sample application issues
+Date: Sun, 18 Aug 2013 12:05:48 +0300
+Message-ID: <52108E6C.9070908@dev.mellanox.co.il>
+References: <1375974336-26314-1-git-send-email-yishaih@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CA64F6@ORSMSX109.amr.corp.intel.com> <63247C4015478741AE4981C62DF608835683DDC8@MTLDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <63247C4015478741AE4981C62DF608835683DDC8-fViJhHBwANKuSA5JZHE7gA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch avoids that the following compiler warning is triggered:
+On 8/16/2013 06:11 PM, Sean Hefty wrote:
+>> @@ -884,6 +884,13 @@ int main(int argc, char *argv[])
+>>   	if (ctx.use_event)
+>>   		ibv_ack_cq_events(ctx.recv_cq, num_cq_events);
+>>
+>> +	/* Process should wait before closing its resources to make sure
+>> +	  * latest daemon's response sent via its target QP destined to an XSRQ
+>> +	  * created by another client won't be lost.
+>> +	  * Failure to do so will cause the client to wait for that sent message
+>> forever.
+>> +	  * See comment on pp_post_send.
+>> +	*/
+>> +	sleep(1);
+> I dislike adding sleep calls into code.  Isn't there a more robust way to handle this?
 
-src/saquery.c:869:18: warning: variable 'p_ni' set but not used [-Wunused-but-set-variable]
+     In general I agree this sleep is a workaround that comes to solve a synchronization hole in this sample application.
+     For that reason I put 5 lines comment to describe the problem and the reason for that sleep statement.
+     Long term you could think of synchronizing all the processes through the sockets mechanism to assure they terminate when all packets are received.
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
----
- src/saquery.c |    2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/src/saquery.c b/src/saquery.c
-index e4fbc87..d6fd017 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -866,7 +866,6 @@ static int get_and_dump_all_records(struct sa_handle * h, uint16_t attr_id,
- static int get_lid_from_name(struct sa_handle * h, const char *name, uint16_t * lid)
- {
- 	ib_node_record_t *node_record = NULL;
--	ib_node_info_t *p_ni = NULL;
- 	unsigned i;
- 	int ret;
- 	struct sa_query_result result;
-@@ -878,7 +877,6 @@ static int get_lid_from_name(struct sa_handle * h, const char *name, uint16_t *
- 	ret = ENONET;
- 	for (i = 0; i < result.result_cnt; i++) {
- 		node_record = sa_get_query_rec(result.p_result_madw, i);
--		p_ni = &(node_record->node_info);
- 		if (name
- 		    && strncmp(name, (char *)node_record->node_desc.description,
- 			       sizeof(node_record->node_desc.description)) ==
--- 
-1.7.10.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
