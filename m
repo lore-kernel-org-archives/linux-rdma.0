@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 04/22] infiniband: ib_copy_to_udata(): check output length
-Date: Sun, 18 Aug 2013 20:28:40 +0200
-Message-ID: <d27716a3a1c180f832d153a7402f65ea8a75b734.1376847403.git.ydroneaud@opteya.com>
+Subject: [PATCH 11/22] ucm: ib_ucm_write(): strict userspace buffer length check
+Date: Sun, 18 Aug 2013 20:28:47 +0200
+Message-ID: <714cf2aeb7cfd12e3e3290b9391a1e8a46d4e759.1376847403.git.ydroneaud@opteya.com>
 References: <cover.1376847403.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,29 +12,28 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch makes ib_copy_to_udata() check the output length
-before writing to userspace buffer to prevent out of bound access.
+Like uverbs, strictly check the length parameter:
+this prevent ucm from processing truncated buffer.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Link: http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 ---
- include/rdma/ib_verbs.h | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/core/ucm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e5551ac..c59a365 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1363,6 +1363,9 @@ static inline int ib_copy_from_udata(void *dest, const struct ib_udata *udata, s
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 49bf680..81dc068 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -1178,7 +1178,7 @@ static ssize_t ib_ucm_write(struct file *filp, const char __user *buf,
+ 	if (copy_from_user(&hdr, buf, sizeof(hdr)))
+ 		return -EFAULT;
  
- static inline int ib_copy_to_udata(struct ib_udata *udata, const void *src, size_t len)
- {
-+	if (udata->outlen < len) {
-+		return -ENOSPC;
-+	}
- 	return copy_to_user(udata->outbuf, src, len) ? -EFAULT : 0;
- }
+-	if (hdr.in + sizeof(hdr) > len)
++	if (hdr.in + sizeof(hdr) != len)
+ 		return -EINVAL;
  
+ 	if (hdr.cmd >= ARRAY_SIZE(ucm_cmd_table))
 -- 
 1.8.3.1
 
