@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 05/22] ucm: ib_ucm_event(): returns ENOSPC instead of ENOMEM
-Date: Sun, 18 Aug 2013 20:28:41 +0200
-Message-ID: <d79df5b0063f1e2e9d448b3d712bbc050cf7ebc1.1376847403.git.ydroneaud@opteya.com>
+Subject: [PATCH 03/22] infiniband: ib_copy_from_udata(): check input length
+Date: Sun, 18 Aug 2013 20:28:39 +0200
+Message-ID: <2bf102a41c51f61965ee09df827abe8fefb523a9.1376847403.git.ydroneaud@opteya.com>
 References: <cover.1376847403.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,39 +12,29 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When output buffer is too small, others infiniband functions returns
-ENOSPC.
-This patch changes ib_ucm_event() to returns ENOSPC just like others
-functions.
+This patch makes ib_copy_from_udata() check the input length
+before reading from userspace buffer to prevent out of bound access.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Link: http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 ---
- drivers/infiniband/core/ucm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/rdma/ib_verbs.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index f2f6393..e462208 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -432,7 +432,7 @@ static ssize_t ib_ucm_event(struct ib_ucm_file *file,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 21dbc42..e5551ac 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1355,6 +1355,9 @@ void  ib_set_client_data(struct ib_device *device, struct ib_client *client,
  
- 	if (uevent->data) {
- 		if (cmd.data_len < uevent->data_len) {
--			result = -ENOMEM;
-+			result = -ENOSPC;
- 			goto done;
- 		}
- 		if (copy_to_user((void __user *)(unsigned long)cmd.data,
-@@ -444,7 +444,7 @@ static ssize_t ib_ucm_event(struct ib_ucm_file *file,
+ static inline int ib_copy_from_udata(void *dest, const struct ib_udata *udata, size_t len)
+ {
++	if (udata->inlen < len) {
++		return -EINVAL;
++	}
+ 	return copy_from_user(dest, udata->inbuf, len) ? -EFAULT : 0;
+ }
  
- 	if (uevent->info) {
- 		if (cmd.info_len < uevent->info_len) {
--			result = -ENOMEM;
-+			result = -ENOSPC;
- 			goto done;
- 		}
- 		if (copy_to_user((void __user *)(unsigned long)cmd.info,
 -- 
 1.8.3.1
 
