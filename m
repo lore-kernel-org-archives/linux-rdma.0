@@ -1,51 +1,48 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] libibmad 1.3.10 release
-Date: Sun, 18 Aug 2013 07:44:25 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E022343FA@CRSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH for libibmad] mad_rpc(): Fail with EINVAL if max_retries <=
+ 0
+Date: Sun, 18 Aug 2013 10:37:11 +0200
+Message-ID: <521087B7.9090208@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new release of libibmad.
-Tarball available in:
+Set errno to EINVAL instead of an undefined value if max_retries <= 0.
+This patch avoids that the following compiler warning is triggered:
 
-http://www.openfabrics.org/downloads/management/
-       
-(listed in http://www.openfabrics.org/downloads/management/latest.txt)
+src/rpc.c:187:8: warning: 'status' may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-md5sum:
-2df6e87a707801b05c51d0c25872d69b  libibmad-1.3.10.tar.gz
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+---
+ src/rpc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-All component versions are from recent master branch. Full list of
-changes is below.
+diff --git a/src/rpc.c b/src/rpc.c
+index 08b6c19..8d961f2 100644
+--- a/src/rpc.c
++++ b/src/rpc.c
+@@ -144,6 +144,13 @@ _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int agentid, int len,
+ 		save_mad = 0;
+ 	}
+ 
++	if (max_retries <= 0) {
++		errno = EINVAL;
++		*p_error = EINVAL;
++		ERRS("max_retries %d <= 0", max_retries);
++		return -1;
++	}
++
+ 	trid =
+ 	    (uint32_t) mad_get_field64(umad_get_mad(sndbuf), 0, IB_MAD_TRID_F);
+ 
+-- 
+1.7.10.4
 
-Author: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-    Update README and version to 1.3.10 release
-    libibmad: update emails
-
-Author: Brendan Doyle <brendan.doyle-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-    libibmad: Add setting of errno on function failure
-    libibmad: mask off the kernel transaction id bits
-    libibmad: To handle null dev_name in madrpc_init
-    libibmad: Conversion specifier; %m is not supported on Solaris
-    libibmad: To fix compilation warning: need typecasts
-
-Author: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-
-    libibmad: Add support for PortSamplesResult
-    libibmad: Add NodeRecord query API
-    libibmad/dump.c: In mad_dump_mtu, don't set buf[0] to 0
-
-Author: Huang, Perry <huang32-i2BcT+NCU+M@public.gmane.org>
-
-    libibmad: Add comment notes for various PortSelect and CounterSelect fields.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
