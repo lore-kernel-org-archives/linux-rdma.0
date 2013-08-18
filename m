@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 10/22] ucm: ib_ucm_write(): check userspace buffer length first
-Date: Sun, 18 Aug 2013 20:28:46 +0200
-Message-ID: <d1c1bdb0aacfdb8a4a831654015593c8a8ff3dd2.1376847403.git.ydroneaud@opteya.com>
+Subject: [PATCH 20/22] uverbs: ib_uverbs_poll_cq(): check output length against number of wc
+Date: Sun, 18 Aug 2013 20:28:56 +0200
+Message-ID: <f0888d98500b93eeef0a528b2091c16cf0303679.1376847403.git.ydroneaud@opteya.com>
 References: <cover.1376847403.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,31 +12,29 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Like uverbs, check the length parameter before the command type.
+Makes ib_uverbs_poll_cq() check the length of the output buffer:
+this will prevent the function from writing past userspace provided buffer.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Link: http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 ---
- drivers/infiniband/core/ucm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 8f8a0a8..49bf680 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1178,10 +1178,10 @@ static ssize_t ib_ucm_write(struct file *filp, const char __user *buf,
- 	if (copy_from_user(&hdr, buf, sizeof(hdr)))
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index dc0574f..5981604 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1436,6 +1436,9 @@ ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
  		return -EFAULT;
  
--	if (hdr.cmd >= ARRAY_SIZE(ucm_cmd_table))
-+	if (hdr.in + sizeof(hdr) > len)
++	if ((out_len - sizeof resp)/(sizeof(struct ib_uverbs_wc)) < cmd.ne)
++		return -ENOSPC;
++
+ 	cq = idr_read_cq(cmd.cq_handle, file->ucontext, 0);
+ 	if (!cq)
  		return -EINVAL;
- 
--	if (hdr.in + sizeof(hdr) > len)
-+	if (hdr.cmd >= ARRAY_SIZE(ucm_cmd_table))
- 		return -EINVAL;
- 
- 	result = ucm_cmd_table[hdr.cmd](file, buf + sizeof(hdr),
 -- 
 1.8.3.1
 
