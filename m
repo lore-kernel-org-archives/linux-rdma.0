@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 08/22] ucm: check userspace input length
-Date: Sun, 18 Aug 2013 20:28:44 +0200
-Message-ID: <254b9fcdfbee703e8f5fe33fc2e8b280018263c1.1376847403.git.ydroneaud@opteya.com>
+Subject: [PATCH 06/22] ucm: changes ib_ucm_alloc_data() src arg to be a pointer
+Date: Sun, 18 Aug 2013 20:28:42 +0200
+Message-ID: <ff9087ecefcf4a8dc67c8cb912851dec9ffd043d.1376847403.git.ydroneaud@opteya.com>
 References: <cover.1376847403.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,170 +12,140 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Makes ucm functions check the length of the input buffer
-before reading the command content: this will detect
-truncated command and will prevent ucm from reading past
-userspace provided buffer.
+ib_icm_alloc_data() is a function to allocate a buffer to
+copy a userspace provided buffer.
+This patch makes 'src' argument to be an explicit pointer
+to userspace buffer, so that static analysis won't get fooled
+by 'src' being currently an integer without annotation.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Link: http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 ---
- drivers/infiniband/core/ucm.c | 45 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ drivers/infiniband/core/ucm.c | 43 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index b53e59b..7a35520 100644
+index e462208..d336a1b 100644
 --- a/drivers/infiniband/core/ucm.c
 +++ b/drivers/infiniband/core/ucm.c
-@@ -390,6 +390,9 @@ static ssize_t ib_ucm_event(struct ib_ucm_file *file,
- 	struct ib_ucm_event *uevent;
- 	int result = 0;
+@@ -685,7 +685,7 @@ static ssize_t ib_ucm_notify(struct ib_ucm_file *file,
+ 	return result;
+ }
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(struct ib_ucm_event_resp))
- 		return -ENOSPC;
+-static int ib_ucm_alloc_data(const void **dest, u64 src, u32 len)
++static int ib_ucm_alloc_data(const void **dest, const void __user *src, u32 len)
+ {
+ 	void *data;
  
-@@ -475,6 +478,9 @@ static ssize_t ib_ucm_create_id(struct ib_ucm_file *file,
- 	struct ib_ucm_context *ctx;
- 	int result;
+@@ -694,7 +694,7 @@ static int ib_ucm_alloc_data(const void **dest, u64 src, u32 len)
+ 	if (!len)
+ 		return 0;
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
+-	data = memdup_user((void __user *)(unsigned long)src, len);
++	data = memdup_user(src, len);
+ 	if (IS_ERR(data))
+ 		return PTR_ERR(data);
  
-@@ -522,6 +528,9 @@ static ssize_t ib_ucm_destroy_id(struct ib_ucm_file *file,
- 	struct ib_ucm_context *ctx;
- 	int result = 0;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
- 
-@@ -567,6 +576,9 @@ static ssize_t ib_ucm_attr_id(struct ib_ucm_file *file,
- 	struct ib_ucm_context *ctx;
- 	int result = 0;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
- 
-@@ -600,6 +612,9 @@ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
- 	struct ib_qp_attr qp_attr;
- 	int result = 0;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
- 
-@@ -647,6 +662,9 @@ static ssize_t ib_ucm_listen(struct ib_ucm_file *file,
- 	struct ib_ucm_context *ctx;
- 	int result;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
+@@ -744,7 +744,9 @@ static ssize_t ib_ucm_send_req(struct ib_ucm_file *file,
  	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
  		return -EFAULT;
  
-@@ -673,6 +691,9 @@ static ssize_t ib_ucm_notify(struct ib_ucm_file *file,
- 	struct ib_ucm_context *ctx;
- 	int result;
+-	result = ib_ucm_alloc_data(&param.private_data, cmd.data, cmd.len);
++	result = ib_ucm_alloc_data(&param.private_data,
++				   (const void __user *)(unsigned long)cmd.data,
++				   cmd.len);
+ 	if (result)
+ 		goto done;
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
+@@ -800,7 +802,9 @@ static ssize_t ib_ucm_send_rep(struct ib_ucm_file *file,
  	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
  		return -EFAULT;
  
-@@ -740,6 +761,9 @@ static ssize_t ib_ucm_send_req(struct ib_ucm_file *file,
- 	param.primary_path   = NULL;
- 	param.alternate_path = NULL;
+-	result = ib_ucm_alloc_data(&param.private_data, cmd.data, cmd.len);
++	result = ib_ucm_alloc_data(&param.private_data,
++				   (const void __user *)(unsigned long)cmd.data,
++				   cmd.len);
+ 	if (result)
+ 		return result;
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
+@@ -840,7 +844,9 @@ static ssize_t ib_ucm_send_private_data(struct ib_ucm_file *file,
  	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
  		return -EFAULT;
  
-@@ -800,6 +824,9 @@ static ssize_t ib_ucm_send_rep(struct ib_ucm_file *file,
+-	result = ib_ucm_alloc_data(&private_data, cmd.data, cmd.len);
++	result = ib_ucm_alloc_data(&private_data,
++				   (const void __user *)(unsigned long)cmd.data,
++				   cmd.len);
+ 	if (result)
+ 		return result;
  
- 	param.private_data = NULL;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
+@@ -894,11 +900,15 @@ static ssize_t ib_ucm_send_info(struct ib_ucm_file *file,
  	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
  		return -EFAULT;
  
-@@ -842,6 +869,9 @@ static ssize_t ib_ucm_send_private_data(struct ib_ucm_file *file,
- 	const void *private_data = NULL;
- 	int result;
+-	result = ib_ucm_alloc_data(&data, cmd.data, cmd.data_len);
++	result = ib_ucm_alloc_data(&data,
++				   (const void __user *)(unsigned long)cmd.data,
++				   cmd.data_len);
+ 	if (result)
+ 		goto done;
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
+-	result = ib_ucm_alloc_data(&info, cmd.info, cmd.info_len);
++	result = ib_ucm_alloc_data(&info,
++				   (const void __user *)(unsigned long)cmd.info,
++				   cmd.info_len);
+ 	if (result)
+ 		goto done;
+ 
+@@ -942,7 +952,9 @@ static ssize_t ib_ucm_send_mra(struct ib_ucm_file *file,
  	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
  		return -EFAULT;
  
-@@ -898,6 +928,9 @@ static ssize_t ib_ucm_send_info(struct ib_ucm_file *file,
- 	const void *info = NULL;
- 	int result;
+-	result = ib_ucm_alloc_data(&data, cmd.data, cmd.len);
++	result = ib_ucm_alloc_data(&data,
++				   (const void __user *)(unsigned long)cmd.data,
++				   cmd.len);
+ 	if (result)
+ 		return result;
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
+@@ -970,7 +982,9 @@ static ssize_t ib_ucm_send_lap(struct ib_ucm_file *file,
  	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
  		return -EFAULT;
  
-@@ -950,6 +983,9 @@ static ssize_t ib_ucm_send_mra(struct ib_ucm_file *file,
- 	const void *data = NULL;
- 	int result;
+-	result = ib_ucm_alloc_data(&data, cmd.data, cmd.len);
++	result = ib_ucm_alloc_data(&data,
++				   (const void __user *)(unsigned long)cmd.data,
++				   cmd.len);
+ 	if (result)
+ 		goto done;
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
+@@ -1006,7 +1020,9 @@ static ssize_t ib_ucm_send_sidr_req(struct ib_ucm_file *file,
  	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
  		return -EFAULT;
  
-@@ -980,6 +1016,9 @@ static ssize_t ib_ucm_send_lap(struct ib_ucm_file *file,
- 	const void *data = NULL;
- 	int result;
+-	result = ib_ucm_alloc_data(&param.private_data, cmd.data, cmd.len);
++	result = ib_ucm_alloc_data(&param.private_data,
++				   (const void __user *)(unsigned long)cmd.data,
++				   cmd.len);
+ 	if (result)
+ 		goto done;
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+@@ -1047,11 +1063,14 @@ static ssize_t ib_ucm_send_sidr_rep(struct ib_ucm_file *file,
  		return -EFAULT;
  
-@@ -1019,6 +1058,9 @@ static ssize_t ib_ucm_send_sidr_req(struct ib_ucm_file *file,
- 	param.private_data = NULL;
- 	param.path = NULL;
+ 	result = ib_ucm_alloc_data(&param.private_data,
+-				   cmd.data, cmd.data_len);
++				   (void __user *)(unsigned long)cmd.data,
++				   cmd.data_len);
+ 	if (result)
+ 		goto done;
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -1062,6 +1104,9 @@ static ssize_t ib_ucm_send_sidr_rep(struct ib_ucm_file *file,
- 
- 	param.info = NULL;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
+-	result = ib_ucm_alloc_data(&param.info, cmd.info, cmd.info_len);
++	result = ib_ucm_alloc_data(&param.info,
++				   (void __user *)(unsigned long)cmd.info,
++				   cmd.info_len);
+ 	if (result)
+ 		goto done;
  
 -- 
 1.8.3.1
