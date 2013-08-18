@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 12/22] ucma: check userspace input length
-Date: Sun, 18 Aug 2013 20:28:48 +0200
-Message-ID: <609d01c8b8d1b5fd121222b5fda4072f18239130.1376847403.git.ydroneaud@opteya.com>
+Subject: [PATCH 09/22] ucm: use size_t for userspace buffer input and output length
+Date: Sun, 18 Aug 2013 20:28:45 +0200
+Message-ID: <5232566ded3a0270f7c1a0997a27842147da8c88.1376847403.git.ydroneaud@opteya.com>
 References: <cover.1376847403.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,241 +12,211 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Makes ucma functions check the length of the input buffer
-before reading the command content: this will detect
-truncated command and will prevent ucma from reading past
-userspace provided buffer.
+There's no reason to use a signed type for userspace buffer length.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Link: http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 ---
- drivers/infiniband/core/ucma.c | 66 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ drivers/infiniband/core/ucm.c | 45 ++++++++++++++++++++++---------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index b0f189b..9e9e899 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -297,6 +297,9 @@ static ssize_t ucma_get_event(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_event *uevent;
- 	int ret = 0;
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 7a35520..8f8a0a8 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -383,7 +383,7 @@ err1:
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof uevent->resp)
- 		return -ENOSPC;
- 
-@@ -374,6 +377,9 @@ static ssize_t ucma_create_id(struct ucma_file *file, const char __user *inbuf,
- 	enum ib_qp_type qp_type;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
- 
-@@ -486,6 +492,9 @@ static ssize_t ucma_destroy_id(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret = 0;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
- 
-@@ -519,6 +528,9 @@ static ssize_t ucma_bind_ip(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -539,6 +551,9 @@ static ssize_t ucma_bind(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -563,6 +578,9 @@ static ssize_t ucma_resolve_ip(struct ucma_file *file,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -586,6 +604,9 @@ static ssize_t ucma_resolve_addr(struct ucma_file *file,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -612,6 +633,9 @@ static ssize_t ucma_resolve_route(struct ucma_file *file,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -708,6 +732,9 @@ static ssize_t ucma_query_route(struct ucma_file *file,
- 	struct sockaddr *addr;
- 	int ret = 0;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
- 
-@@ -889,6 +916,9 @@ static ssize_t ucma_query(struct ucma_file *file,
- 	void __user *response;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -940,6 +970,9 @@ static ssize_t ucma_connect(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -963,6 +996,9 @@ static ssize_t ucma_listen(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -985,6 +1021,9 @@ static ssize_t ucma_accept(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -1013,6 +1052,9 @@ static ssize_t ucma_reject(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -1032,6 +1074,9 @@ static ssize_t ucma_disconnect(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -1054,6 +1099,9 @@ static ssize_t ucma_init_qp_attr(struct ucma_file *file,
- 	struct ib_qp_attr qp_attr;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
- 
-@@ -1187,6 +1235,9 @@ static ssize_t ucma_set_option(struct ucma_file *file, const char __user *inbuf,
- 	void *optval;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -1217,6 +1268,9 @@ static ssize_t ucma_notify(struct ucma_file *file, const char __user *inbuf,
- 	struct ucma_context *ctx;
- 	int ret;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -1295,6 +1349,9 @@ static ssize_t ucma_join_ip_multicast(struct ucma_file *file,
- 	struct rdma_ucm_join_ip_mcast cmd;
- 	struct rdma_ucm_join_mcast join_cmd;
- 
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
- 
-@@ -1314,6 +1371,9 @@ static ssize_t ucma_join_multicast(struct ucma_file *file,
+ static ssize_t ib_ucm_event(struct ib_ucm_file *file,
+ 			    const char __user *inbuf,
+-			    int in_len, int out_len)
++			    size_t in_len, size_t out_len)
  {
- 	struct rdma_ucm_join_mcast cmd;
+ 	struct ib_ucm_context *ctx;
+ 	struct ib_ucm_event_get cmd;
+@@ -471,7 +471,7 @@ done:
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
+ static ssize_t ib_ucm_create_id(struct ib_ucm_file *file,
+ 				const char __user *inbuf,
+-				int in_len, int out_len)
++				size_t in_len, size_t out_len)
+ {
+ 	struct ib_ucm_create_id cmd;
+ 	struct ib_ucm_create_id_resp resp;
+@@ -521,7 +521,7 @@ err1:
  
-@@ -1329,6 +1389,9 @@ static ssize_t ucma_leave_multicast(struct ucma_file *file,
- 	struct ucma_multicast *mc;
- 	int ret = 0;
+ static ssize_t ib_ucm_destroy_id(struct ib_ucm_file *file,
+ 				 const char __user *inbuf,
+-				 int in_len, int out_len)
++				 size_t in_len, size_t out_len)
+ {
+ 	struct ib_ucm_destroy_id cmd;
+ 	struct ib_ucm_destroy_id_resp resp;
+@@ -569,7 +569,7 @@ static ssize_t ib_ucm_destroy_id(struct ib_ucm_file *file,
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
+ static ssize_t ib_ucm_attr_id(struct ib_ucm_file *file,
+ 			      const char __user *inbuf,
+-			      int in_len, int out_len)
++			      size_t in_len, size_t out_len)
+ {
+ 	struct ib_ucm_attr_id_resp resp;
+ 	struct ib_ucm_attr_id cmd;
+@@ -604,7 +604,7 @@ static ssize_t ib_ucm_attr_id(struct ib_ucm_file *file,
  
-@@ -1412,6 +1475,9 @@ static ssize_t ucma_migrate_id(struct ucma_file *new_file,
- 	struct ucma_file *cur_file;
- 	int ret = 0;
+ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
+ 				   const char __user *inbuf,
+-				   int in_len, int out_len)
++				   size_t in_len, size_t out_len)
+ {
+ 	struct ib_uverbs_qp_attr resp;
+ 	struct ib_ucm_init_qp_attr cmd;
+@@ -656,7 +656,7 @@ static int ucm_validate_listen(__be64 service_id, __be64 service_mask)
  
-+	if (in_len < sizeof(cmd))
-+		return -EINVAL;
-+
- 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
- 		return -EFAULT;
+ static ssize_t ib_ucm_listen(struct ib_ucm_file *file,
+ 			     const char __user *inbuf,
+-			     int in_len, int out_len)
++			     size_t in_len, size_t out_len)
+ {
+ 	struct ib_ucm_listen cmd;
+ 	struct ib_ucm_context *ctx;
+@@ -685,7 +685,7 @@ out:
  
+ static ssize_t ib_ucm_notify(struct ib_ucm_file *file,
+ 			     const char __user *inbuf,
+-			     int in_len, int out_len)
++			     size_t in_len, size_t out_len)
+ {
+ 	struct ib_ucm_notify cmd;
+ 	struct ib_ucm_context *ctx;
+@@ -706,7 +706,7 @@ static ssize_t ib_ucm_notify(struct ib_ucm_file *file,
+ 	return result;
+ }
+ 
+-static int ib_ucm_alloc_data(const void **dest, const void __user *src, u32 len)
++static int ib_ucm_alloc_data(const void **dest, const void __user *src, size_t len)
+ {
+ 	void *data;
+ 
+@@ -750,7 +750,7 @@ static int ib_ucm_path_get(struct ib_sa_path_rec **path, const void __user *src)
+ 
+ static ssize_t ib_ucm_send_req(struct ib_ucm_file *file,
+ 			       const char __user *inbuf,
+-			       int in_len, int out_len)
++			       size_t in_len, size_t out_len)
+ {
+ 	struct ib_cm_req_param param;
+ 	struct ib_ucm_context *ctx;
+@@ -815,7 +815,7 @@ done:
+ 
+ static ssize_t ib_ucm_send_rep(struct ib_ucm_file *file,
+ 			       const char __user *inbuf,
+-			       int in_len, int out_len)
++			       size_t in_len, size_t out_len)
+ {
+ 	struct ib_cm_rep_param param;
+ 	struct ib_ucm_context *ctx;
+@@ -859,7 +859,7 @@ static ssize_t ib_ucm_send_rep(struct ib_ucm_file *file,
+ }
+ 
+ static ssize_t ib_ucm_send_private_data(struct ib_ucm_file *file,
+-					const char __user *inbuf, int in_len,
++					const char __user *inbuf, size_t in_len,
+ 					int (*func)(struct ib_cm_id *cm_id,
+ 						    const void *private_data,
+ 						    u8 private_data_len))
+@@ -894,27 +894,27 @@ static ssize_t ib_ucm_send_private_data(struct ib_ucm_file *file,
+ 
+ static ssize_t ib_ucm_send_rtu(struct ib_ucm_file *file,
+ 			       const char __user *inbuf,
+-			       int in_len, int out_len)
++			       size_t in_len, size_t out_len)
+ {
+ 	return ib_ucm_send_private_data(file, inbuf, in_len, ib_send_cm_rtu);
+ }
+ 
+ static ssize_t ib_ucm_send_dreq(struct ib_ucm_file *file,
+ 				const char __user *inbuf,
+-				int in_len, int out_len)
++				size_t in_len, size_t out_len)
+ {
+ 	return ib_ucm_send_private_data(file, inbuf, in_len, ib_send_cm_dreq);
+ }
+ 
+ static ssize_t ib_ucm_send_drep(struct ib_ucm_file *file,
+ 				const char __user *inbuf,
+-				int in_len, int out_len)
++				size_t in_len, size_t out_len)
+ {
+ 	return ib_ucm_send_private_data(file, inbuf, in_len, ib_send_cm_drep);
+ }
+ 
+ static ssize_t ib_ucm_send_info(struct ib_ucm_file *file,
+-				const char __user *inbuf, int in_len,
++				const char __user *inbuf, size_t in_len,
+ 				int (*func)(struct ib_cm_id *cm_id,
+ 					    int status,
+ 					    const void *info,
+@@ -962,21 +962,21 @@ done:
+ 
+ static ssize_t ib_ucm_send_rej(struct ib_ucm_file *file,
+ 			       const char __user *inbuf,
+-			       int in_len, int out_len)
++			       size_t in_len, size_t out_len)
+ {
+ 	return ib_ucm_send_info(file, inbuf, in_len, (void *)ib_send_cm_rej);
+ }
+ 
+ static ssize_t ib_ucm_send_apr(struct ib_ucm_file *file,
+ 			       const char __user *inbuf,
+-			       int in_len, int out_len)
++			       size_t in_len, size_t out_len)
+ {
+ 	return ib_ucm_send_info(file, inbuf, in_len, (void *)ib_send_cm_apr);
+ }
+ 
+ static ssize_t ib_ucm_send_mra(struct ib_ucm_file *file,
+ 			       const char __user *inbuf,
+-			       int in_len, int out_len)
++			       size_t in_len, size_t out_len)
+ {
+ 	struct ib_ucm_context *ctx;
+ 	struct ib_ucm_mra cmd;
+@@ -1008,7 +1008,7 @@ static ssize_t ib_ucm_send_mra(struct ib_ucm_file *file,
+ 
+ static ssize_t ib_ucm_send_lap(struct ib_ucm_file *file,
+ 			       const char __user *inbuf,
+-			       int in_len, int out_len)
++			       size_t in_len, size_t out_len)
+ {
+ 	struct ib_ucm_context *ctx;
+ 	struct ib_sa_path_rec *path = NULL;
+@@ -1048,7 +1048,7 @@ done:
+ 
+ static ssize_t ib_ucm_send_sidr_req(struct ib_ucm_file *file,
+ 				    const char __user *inbuf,
+-				    int in_len, int out_len)
++				    size_t in_len, size_t out_len)
+ {
+ 	struct ib_cm_sidr_req_param param;
+ 	struct ib_ucm_context *ctx;
+@@ -1095,7 +1095,7 @@ done:
+ 
+ static ssize_t ib_ucm_send_sidr_rep(struct ib_ucm_file *file,
+ 				    const char __user *inbuf,
+-				    int in_len, int out_len)
++				    size_t in_len, size_t out_len)
+ {
+ 	struct ib_cm_sidr_rep_param param;
+ 	struct ib_ucm_sidr_rep cmd;
+@@ -1143,7 +1143,8 @@ done:
+ 
+ static ssize_t (*ucm_cmd_table[])(struct ib_ucm_file *file,
+ 				  const char __user *inbuf,
+-				  int in_len, int out_len) = {
++				  size_t in_len,
++				  size_t out_len) = {
+ 	[IB_USER_CM_CMD_CREATE_ID]     = ib_ucm_create_id,
+ 	[IB_USER_CM_CMD_DESTROY_ID]    = ib_ucm_destroy_id,
+ 	[IB_USER_CM_CMD_ATTR_ID]       = ib_ucm_attr_id,
 -- 
 1.8.3.1
 
