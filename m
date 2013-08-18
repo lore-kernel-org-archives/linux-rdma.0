@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 07/22] ucm: changes ib_ucm_path_get() src arg to be a pointer
-Date: Sun, 18 Aug 2013 20:28:43 +0200
-Message-ID: <662a8b92d9bd5bef52e90173ecda1cbfcbc4beb5.1376847403.git.ydroneaud@opteya.com>
+Subject: [PATCH 19/22] uverbs: check output length
+Date: Sun, 18 Aug 2013 20:28:55 +0200
+Message-ID: <8fd74e036ebaab25266672aa8097af44c4cb35c3.1376847403.git.ydroneaud@opteya.com>
 References: <cover.1376847403.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,75 +12,108 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ib_icm_path_get() is a function that read data from userspace buffer.
-This patch makes 'src' argument to be an explicit pointer
-to userspace buffer, so that static analysis won't get fooled
-by 'src' being currently an integer without annotation.
+Makes uverbs functions check the length of the output buffer:
+this will prevent uverbs from writing past userspace provided buffer.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Link: http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 ---
- drivers/infiniband/core/ucm.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index d336a1b..b53e59b 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -702,7 +702,7 @@ static int ib_ucm_alloc_data(const void **dest, const void __user *src, u32 len)
- 	return 0;
- }
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index d0f9854..dc0574f 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1359,6 +1359,9 @@ ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
  
--static int ib_ucm_path_get(struct ib_sa_path_rec **path, u64 src)
-+static int ib_ucm_path_get(struct ib_sa_path_rec **path, const void __user *src)
- {
- 	struct ib_user_path_rec upath;
- 	struct ib_sa_path_rec  *sa_path;
-@@ -716,8 +716,7 @@ static int ib_ucm_path_get(struct ib_sa_path_rec **path, u64 src)
- 	if (!sa_path)
- 		return -ENOMEM;
- 
--	if (copy_from_user(&upath, (void __user *)(unsigned long)src,
--			   sizeof(upath))) {
-+	if (copy_from_user(&upath, src, sizeof(upath))) {
- 
- 		kfree(sa_path);
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
  		return -EFAULT;
-@@ -750,11 +749,13 @@ static ssize_t ib_ucm_send_req(struct ib_ucm_file *file,
- 	if (result)
- 		goto done;
  
--	result = ib_ucm_path_get(&param.primary_path, cmd.primary_path);
-+	result = ib_ucm_path_get(&param.primary_path,
-+				 (const void __user *)(unsigned long)cmd.primary_path);
- 	if (result)
- 		goto done;
+@@ -1427,6 +1430,9 @@ ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
  
--	result = ib_ucm_path_get(&param.alternate_path, cmd.alternate_path);
-+	result = ib_ucm_path_get(&param.alternate_path,
-+				 (const void __user *)(unsigned long)cmd.alternate_path);
- 	if (result)
- 		goto done;
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
  
-@@ -988,7 +989,8 @@ static ssize_t ib_ucm_send_lap(struct ib_ucm_file *file,
- 	if (result)
- 		goto done;
+@@ -1506,6 +1512,9 @@ ssize_t ib_uverbs_destroy_cq(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
  
--	result = ib_ucm_path_get(&path, cmd.path);
-+	result = ib_ucm_path_get(&path,
-+				 (const void __user *)(unsigned long)cmd.path);
- 	if (result)
- 		goto done;
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
  
-@@ -1026,7 +1028,8 @@ static ssize_t ib_ucm_send_sidr_req(struct ib_ucm_file *file,
- 	if (result)
- 		goto done;
+@@ -1855,6 +1864,9 @@ ssize_t ib_uverbs_query_qp(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
  
--	result = ib_ucm_path_get(&param.path, cmd.path);
-+	result = ib_ucm_path_get(&param.path,
-+				 (const void __user *)(unsigned long)cmd.path);
- 	if (result)
- 		goto done;
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+@@ -2067,6 +2079,9 @@ ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
+ 
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+@@ -2130,6 +2145,9 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
+ 
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+@@ -2371,6 +2389,9 @@ ssize_t ib_uverbs_post_recv(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
+ 
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+@@ -2423,6 +2444,9 @@ ssize_t ib_uverbs_post_srq_recv(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
+ 
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+@@ -2975,6 +2999,9 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
+ 	if (in_len < sizeof cmd)
+ 		return -EINVAL;
+ 
++	if (out_len < sizeof resp)
++		return -ENOSPC;
++
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
  
 -- 
 1.8.3.1
