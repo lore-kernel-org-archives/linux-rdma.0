@@ -1,73 +1,58 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] osm_port_info_rcv.c Issue a log message if we cannot
- read the MKey of a port
-Date: Mon, 19 Aug 2013 12:46:04 +0200
-Message-ID: <5211F76C.6020501@oracle.com>
-References: <e5b46785-f443-42ef-bf16-660f9e7df190@default> <520E2D86.6080903@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/iser: fix possible memory leak in iser_create_frwr_pool
+Date: Mon, 19 Aug 2013 16:41:51 +0300
+Message-ID: <1376919711-23732-1-git-send-email-roid@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <520E2D86.6080903-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/16/13 15:47, Hal Rosenstock wrote:
-> On 8/14/2013 6:26 AM, Line Holen wrote:
->> Signed-off-by: Line Holen<Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>
->> ---
->>
->> diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
->> index 7dcd15e..961b376 100644
->> --- a/opensm/osm_port_info_rcv.c
->> +++ b/opensm/osm_port_info_rcv.c
->> @@ -85,7 +85,7 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
->>   	osm_madw_context_t context;
->>   	ib_api_status_t status;
->>   	ib_net64_t port_guid;
->> -	uint8_t rate, mtu;
->> +	uint8_t rate, mtu, mpb;
->>   	unsigned data_vls;
->>   	cl_qmap_t *p_sm_tbl;
->>   	osm_remote_sm_t *p_sm;
->> @@ -126,6 +126,14 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
->>   		}
->>   	}
->>
->> +	/* Check M_Key vs M_Key protect, can we control the port ? */
->> +	mpb = ib_port_info_get_mpb(p_pi);
->> +	if (mpb>  0&&  p_pi->m_key == 0) {
->> +		OSM_LOG(sm->p_log, OSM_LOG_INFO,
->> +			"Port 0x%" PRIx64 " has unknown M_Key, protection level %u\n",
->> +			cl_ntoh64(port_guid), mpb);
->> +	}
->> +
-> It looks to me like the only case here is when protect bits is 1 for
-> gets; all others fail. Is it more than that ?
-You are probably right - have to admit I haven't tried a higher 
-protection level.
->
-> Also, would this spam the OpenSM log ?
-It would print one additional message per heavy sweep.
-But if you have a system with unknown MKeys configured you would get 
-many error
-messages as it is. With protection level 2 every MAD operation will generate
-an error I guess (either 3111 or 3120). And with protection level 1 set 
-operations
-will fail, but this new message will let you know why it failed.
+where desc is not being freed in error flows.
 
-Line
+Signed-off-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iser_verbs.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
->
-> -- Hal
->
->>   	if (port_guid != sm->p_subn->sm_port_guid) {
->>   		p_sm_tbl =&sm->p_subn->sm_guid_tbl;
->>   		if (p_pi->capability_mask&  IB_PORT_CAP_IS_SM) {
->>
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 28badac..afe9567 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -305,7 +305,7 @@ int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max)
+ 		if (IS_ERR(desc->data_frpl)) {
+ 			ret = PTR_ERR(desc->data_frpl);
+ 			iser_err("Failed to allocate ib_fast_reg_page_list err=%d\n", ret);
+-			goto err;
++			goto fast_reg_page_failure;
+ 		}
+ 
+ 		desc->data_mr = ib_alloc_fast_reg_mr(device->pd,
+@@ -313,8 +313,7 @@ int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max)
+ 		if (IS_ERR(desc->data_mr)) {
+ 			ret = PTR_ERR(desc->data_mr);
+ 			iser_err("Failed to allocate ib_fast_reg_mr err=%d\n", ret);
+-			ib_free_fast_reg_page_list(desc->data_frpl);
+-			goto err;
++			goto fast_reg_mr_failure;
+ 		}
+ 		desc->valid = true;
+ 		list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
+@@ -322,6 +321,11 @@ int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max)
+ 	}
+ 
+ 	return 0;
++
++fast_reg_mr_failure:
++	ib_free_fast_reg_page_list(desc->data_frpl);
++fast_reg_page_failure:
++	kfree(desc);
+ err:
+ 	iser_free_frwr_pool(ib_conn);
+ 	return ret;
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
