@@ -1,67 +1,58 @@
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for infiniband-diags] Fix errors triggered by
- autoregen.sh
-Date: Sun, 18 Aug 2013 23:25:13 -0700
-Message-ID: <20130818232513.866115fcdd8f1b021fc3282f@intel.com>
-References: <52108B26.5070407@acm.org>
+Subject: Re: [PATCH for infiniband-diags] get_lid_from_name(): Remove an
+ unused variable
+Date: Sun, 18 Aug 2013 23:25:32 -0700
+Message-ID: <20130818232532.6bc55ec66d8e9ad739d12c35@intel.com>
+References: <52108C63.9080101@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52108B26.5070407-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <52108C63.9080101-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 18 Aug 2013 10:51:50 +0200
+On Sun, 18 Aug 2013 10:57:07 +0200
 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
 
-> Avoid that running autoregen.sh with recent versions of autoconf and
-> automake triggers the following errors:
+> This patch avoids that the following compiler warning is triggered:
 > 
-> libibnetdisc/Makefile.am:35: compiling `testleaks.c' with per-target flags requires `AM_PROG_CC_C_O' in `configure.in'
-> Makefile.am: installing `./INSTALL'
-> Makefile.am: required file `./NEWS' not found
+> src/saquery.c:869:18: warning: variable 'p_ni' set but not used [-Wunused-but-set-variable]
 > 
 > Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
 Thanks applied,
 Ira
 
-
 > ---
->  configure.ac |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  src/saquery.c |    2 --
+>  1 file changed, 2 deletions(-)
 > 
-> diff --git a/configure.ac b/configure.ac
-> index 02e4592..4c37259 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -5,7 +5,7 @@ AC_INIT(infiniband-diags, 1.6.2, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
->  AC_CONFIG_AUX_DIR(config)
->  AC_CONFIG_MACRO_DIR(config)
->  AM_CONFIG_HEADER(config.h)
-> -AM_INIT_AUTOMAKE
-> +AM_INIT_AUTOMAKE([foreign])
->  
->  AC_SUBST(RELEASE, ${RELEASE:-unknown})
->  AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
-> @@ -22,6 +22,7 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
->  
->  dnl Checks for programs
->  AC_PROG_CC
-> +AM_PROG_CC_C_O
->  AC_PROG_LIBTOOL
->  
->  AC_CHECK_PROG(have_dash, [dash], true, false)
+> diff --git a/src/saquery.c b/src/saquery.c
+> index e4fbc87..d6fd017 100644
+> --- a/src/saquery.c
+> +++ b/src/saquery.c
+> @@ -866,7 +866,6 @@ static int get_and_dump_all_records(struct sa_handle * h, uint16_t attr_id,
+>  static int get_lid_from_name(struct sa_handle * h, const char *name, uint16_t * lid)
+>  {
+>  	ib_node_record_t *node_record = NULL;
+> -	ib_node_info_t *p_ni = NULL;
+>  	unsigned i;
+>  	int ret;
+>  	struct sa_query_result result;
+> @@ -878,7 +877,6 @@ static int get_lid_from_name(struct sa_handle * h, const char *name, uint16_t *
+>  	ret = ENONET;
+>  	for (i = 0; i < result.result_cnt; i++) {
+>  		node_record = sa_get_query_rec(result.p_result_madw, i);
+> -		p_ni = &(node_record->node_info);
+>  		if (name
+>  		    && strncmp(name, (char *)node_record->node_desc.description,
+>  			       sizeof(node_record->node_desc.description)) ==
 > -- 
 > 1.7.10.4
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 -- 
