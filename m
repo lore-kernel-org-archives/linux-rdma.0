@@ -1,49 +1,74 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH libibverbs] XRC - Sample application issues
-Date: Mon, 19 Aug 2013 10:27:37 -0500
-Message-ID: <00a001ce9cf0$a2b55540$e81fffc0$@opengridcomputing.com>
-References: <1375974336-26314-1-git-send-email-yishaih@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CA64F6@ORSMSX109.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ceph-users] Help needed porting Ceph to RSockets
+Date: Mon, 19 Aug 2013 17:10:11 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CA6C27@ORSMSX109.amr.corp.intel.com>
+References: <CAJA05UmTDGze7S50_j8RgHmPFYonk2Z94Fi6CQtxND9QxgRr3g@mail.gmail.com>
+	<CAJA05Umgio7XftGZtQdRzyWq70pXBb3oEx2jrT3BxcBr6MLoVQ@mail.gmail.com>
+	<20130812075513.43c338e1@andylap>
+	<CAJA05U=i22jHy2xbvCUk+UVN0+hOFDgt-JMSHTWKmr1+DZu0Dg@mail.gmail.com>
+	<20130812180644.447ca089@andylap>
+	<CAJA05U=KqzYis14sYXusbpk-T-F=uqvNz1XPurutmdeRz6BAdg@mail.gmail.com>
+	<20130813075312.7cac0d46@andylap>	<20130813160612.037ea9f2@andylap>
+	<1978D1F9-C675-4A37-AA57-C7E1158B2F72@ornl.gov>
+	<1828884A29C6694DAF28B7E6B8A8237388CA5A0F@ORSMSX109.amr.corp.intel.com>
+ <20130814092124.3f8c3b03@doppio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CA64F6-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20130814092124.3f8c3b03@doppio>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "'Sternberg, Jay E'" <jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Eli Cohen' <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Andreas Bluemle <andreas.bluemle-jy6uzZffzV0b1SvskN2V4Q@public.gmane.org>
+Cc: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, Matthew Anderson <manderson8787-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Can you see if the patch below fixes the hang?
 
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/rsocket.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of
-> Hefty, Sean
-> Sent: Friday, August 16, 2013 10:11 AM
-> To: Yishai Hadas; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-> Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; Sternberg, Jay E; Eli Cohen
-> Subject: RE: [PATCH libibverbs] XRC - Sample application issues
-> 
-> > @@ -884,6 +884,13 @@ int main(int argc, char *argv[])
-> >  	if (ctx.use_event)
-> >  		ibv_ack_cq_events(ctx.recv_cq, num_cq_events);
-> >
-> > +	/* Process should wait before closing its resources to make sure
-> > +	  * latest daemon's response sent via its target QP destined to an XSRQ
-> > +	  * created by another client won't be lost.
-> > +	  * Failure to do so will cause the client to wait for that sent message
-> > forever.
-> > +	  * See comment on pp_post_send.
-> > +	*/
-> > +	sleep(1);
-> 
-> I dislike adding sleep calls into code.  Isn't there a more robust way to handle this?
-
-Perhaps you could synchronize between the processes using the TCP socket  used to exchange the QP
-info...
-
-Steve.
+diff --git a/src/rsocket.c b/src/rsocket.c
+index d544dd0..e45b26d 100644
+--- a/src/rsocket.c
++++ b/src/rsocket.c
+@@ -2948,10 +2948,12 @@ static int rs_poll_events(struct pollfd *rfds, struct pollfd *fds, nfds_t nfds)
+ 
+ 		rs = idm_lookup(&idm, fds[i].fd);
+ 		if (rs) {
++			fastlock_acquire(&rs->cq_wait_lock);
+ 			if (rs->type == SOCK_STREAM)
+ 				rs_get_cq_event(rs);
+ 			else
+ 				ds_get_cq_event(rs);
++			fastlock_release(&rs->cq_wait_lock);
+ 			fds[i].revents = rs_poll_rs(rs, fds[i].events, 1, rs_poll_all);
+ 		} else {
+ 			fds[i].revents = rfds[i].revents;
+@@ -3098,7 +3100,8 @@ int rselect(int nfds, fd_set *readfds, fd_set *writefds,
+ 
+ /*
+  * For graceful disconnect, notify the remote side that we're
+- * disconnecting and wait until all outstanding sends complete.
++ * disconnecting and wait until all outstanding sends complete, provided
++ * that the remote side has not sent a disconnect message.
+  */
+ int rshutdown(int socket, int how)
+ {
+@@ -3138,6 +3141,12 @@ int rshutdown(int socket, int how)
+ 	if (rs->state & rs_connected)
+ 		rs_process_cq(rs, 0, rs_conn_all_sends_done);
+ 
++	if (rs->state & rs_disconnected) {
++		/* Generate event by flushing receives to unblock rpoll */
++		ibv_req_notify_cq(rs->cm_id->recv_cq, 0);
++		rdma_disconnect(rs->cm_id);
++	}
++
+ 	if ((rs->fd_flags & O_NONBLOCK) && (rs->state & rs_connected))
+ 		rs_set_nonblocking(rs, rs->fd_flags);
  
 
 
