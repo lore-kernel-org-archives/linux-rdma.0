@@ -1,57 +1,67 @@
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for libibmad] mad_rpc(): Fail with EINVAL if max_retries
- <= 0
-Date: Sun, 18 Aug 2013 23:24:56 -0700
-Message-ID: <20130818232456.afc45b6a170bb5f8cd34872e@intel.com>
-References: <521087B7.9090208@acm.org>
+Subject: Re: [PATCH for infiniband-diags] Fix errors triggered by
+ autoregen.sh
+Date: Sun, 18 Aug 2013 23:25:13 -0700
+Message-ID: <20130818232513.866115fcdd8f1b021fc3282f@intel.com>
+References: <52108B26.5070407@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <521087B7.9090208-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <52108B26.5070407-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 18 Aug 2013 10:37:11 +0200
+On Sun, 18 Aug 2013 10:51:50 +0200
 Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
 
-> Set errno to EINVAL instead of an undefined value if max_retries <= 0.
-> This patch avoids that the following compiler warning is triggered:
+> Avoid that running autoregen.sh with recent versions of autoconf and
+> automake triggers the following errors:
 > 
-> src/rpc.c:187:8: warning: 'status' may be used uninitialized in this function [-Wmaybe-uninitialized]
+> libibnetdisc/Makefile.am:35: compiling `testleaks.c' with per-target flags requires `AM_PROG_CC_C_O' in `configure.in'
+> Makefile.am: installing `./INSTALL'
+> Makefile.am: required file `./NEWS' not found
 > 
 > Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
-Thanks Applied,
+Thanks applied,
 Ira
 
+
 > ---
->  src/rpc.c |    7 +++++++
->  1 file changed, 7 insertions(+)
+>  configure.ac |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/src/rpc.c b/src/rpc.c
-> index 08b6c19..8d961f2 100644
-> --- a/src/rpc.c
-> +++ b/src/rpc.c
-> @@ -144,6 +144,13 @@ _do_madrpc(int port_id, void *sndbuf, void *rcvbuf, int agentid, int len,
->  		save_mad = 0;
->  	}
+> diff --git a/configure.ac b/configure.ac
+> index 02e4592..4c37259 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -5,7 +5,7 @@ AC_INIT(infiniband-diags, 1.6.2, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+>  AC_CONFIG_AUX_DIR(config)
+>  AC_CONFIG_MACRO_DIR(config)
+>  AM_CONFIG_HEADER(config.h)
+> -AM_INIT_AUTOMAKE
+> +AM_INIT_AUTOMAKE([foreign])
 >  
-> +	if (max_retries <= 0) {
-> +		errno = EINVAL;
-> +		*p_error = EINVAL;
-> +		ERRS("max_retries %d <= 0", max_retries);
-> +		return -1;
-> +	}
-> +
->  	trid =
->  	    (uint32_t) mad_get_field64(umad_get_mad(sndbuf), 0, IB_MAD_TRID_F);
+>  AC_SUBST(RELEASE, ${RELEASE:-unknown})
+>  AC_SUBST(TARBALL, ${TARBALL:-${PACKAGE}-${VERSION}.tar.gz})
+> @@ -22,6 +22,7 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 >  
+>  dnl Checks for programs
+>  AC_PROG_CC
+> +AM_PROG_CC_C_O
+>  AC_PROG_LIBTOOL
+>  
+>  AC_CHECK_PROG(have_dash, [dash], true, false)
 > -- 
 > 1.7.10.4
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 -- 
