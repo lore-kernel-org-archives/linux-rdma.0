@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 6/8] IB/srp: Make transport layer retry count configurable
-Date: Tue, 20 Aug 2013 14:47:42 +0200
-Message-ID: <5213656E.8030003@acm.org>
+Subject: [PATCH 7/8] IB/srp: Introduce srp_alloc_req_data()
+Date: Tue, 20 Aug 2013 14:48:19 +0200
+Message-ID: <52136593.1010603@acm.org>
 References: <521363EA.8080906@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,131 +13,106 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow the InfiniBand RC retry count to be configured by the user
-as an option in the target login string. Reducing this retry count
-helps with reducing path failover time.
+This patch does not change any functionality.
 
-[bvanassche: Rewrote patch description / changed default retry count]
-Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- Documentation/ABI/stable/sysfs-driver-ib_srp |    2 ++
- drivers/infiniband/ulp/srp/ib_srp.c          |   24 +++++++++++++++++++++++-
- drivers/infiniband/ulp/srp/ib_srp.h          |    1 +
- 3 files changed, 26 insertions(+), 1 deletion(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   64 ++++++++++++++++++++++-------------
+ 1 file changed, 40 insertions(+), 24 deletions(-)
 
-diff --git a/Documentation/ABI/stable/sysfs-driver-ib_srp b/Documentation/ABI/stable/sysfs-driver-ib_srp
-index 5c53d28..18e9b27 100644
---- a/Documentation/ABI/stable/sysfs-driver-ib_srp
-+++ b/Documentation/ABI/stable/sysfs-driver-ib_srp
-@@ -61,6 +61,8 @@ Description:	Interface for making ib_srp connect to a new target.
- 		  interrupt is handled by a different CPU then the comp_vector
- 		  parameter can be used to spread the SRP completion workload
- 		  over multiple CPU's.
-+		* tl_retry_count, a number in the range 2..7 specifying the
-+		  IB RC retry count.
- 
- What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/ibdev
- Date:		January 2, 2006
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 2b7ef6b..de4c3b7 100644
+index de4c3b7..ece1f2d 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -458,7 +458,7 @@ static int srp_send_req(struct srp_target_port *target)
- 	req->param.responder_resources	      = 4;
- 	req->param.remote_cm_response_timeout = 20;
- 	req->param.local_cm_response_timeout  = 20;
--	req->param.retry_count 		      = 7;
-+	req->param.retry_count                = target->tl_retry_count;
- 	req->param.rnr_retry_count 	      = 7;
- 	req->param.max_cm_retries 	      = 15;
- 
-@@ -1991,6 +1991,14 @@ static ssize_t show_comp_vector(struct device *dev,
- 	return sprintf(buf, "%d\n", target->comp_vector);
+@@ -576,6 +576,42 @@ static void srp_free_req_data(struct srp_target_port *target)
+ 	}
  }
  
-+static ssize_t show_tl_retry_count(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
++static int srp_alloc_req_data(struct srp_target_port *target)
 +{
-+	struct srp_target_port *target = host_to_target(class_to_shost(dev));
++	struct srp_device *srp_dev = target->srp_host->srp_dev;
++	struct ib_device *ibdev = srp_dev->dev;
++	struct srp_request *req;
++	dma_addr_t dma_addr;
++	int i, ret = -ENOMEM;
 +
-+	return sprintf(buf, "%d\n", target->tl_retry_count);
++	INIT_LIST_HEAD(&target->free_reqs);
++
++	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
++		req = &target->req_ring[i];
++		req->fmr_list = kmalloc(target->cmd_sg_cnt * sizeof(void *),
++					GFP_KERNEL);
++		req->map_page = kmalloc(SRP_FMR_SIZE * sizeof(void *),
++					GFP_KERNEL);
++		req->indirect_desc = kmalloc(target->indirect_size, GFP_KERNEL);
++		if (!req->fmr_list || !req->map_page || !req->indirect_desc)
++			goto out;
++
++		dma_addr = ib_dma_map_single(ibdev, req->indirect_desc,
++					     target->indirect_size,
++					     DMA_TO_DEVICE);
++		if (ib_dma_mapping_error(ibdev, dma_addr))
++			goto out;
++
++		req->indirect_dma_addr = dma_addr;
++		req->index = i;
++		list_add_tail(&req->list, &target->free_reqs);
++	}
++	ret = 0;
++
++out:
++	return ret;
 +}
 +
- static ssize_t show_cmd_sg_entries(struct device *dev,
- 				   struct device_attribute *attr, char *buf)
- {
-@@ -2018,6 +2026,7 @@ static DEVICE_ATTR(zero_req_lim,    S_IRUGO, show_zero_req_lim,	   NULL);
- static DEVICE_ATTR(local_ib_port,   S_IRUGO, show_local_ib_port,   NULL);
- static DEVICE_ATTR(local_ib_device, S_IRUGO, show_local_ib_device, NULL);
- static DEVICE_ATTR(comp_vector,     S_IRUGO, show_comp_vector,     NULL);
-+static DEVICE_ATTR(tl_retry_count,  S_IRUGO, show_tl_retry_count,  NULL);
- static DEVICE_ATTR(cmd_sg_entries,  S_IRUGO, show_cmd_sg_entries,  NULL);
- static DEVICE_ATTR(allow_ext_sg,    S_IRUGO, show_allow_ext_sg,    NULL);
+ /**
+  * srp_del_scsi_host_attr() - Remove attributes defined in the host template.
+  * @shost: SCSI host whose attributes to remove from sysfs.
+@@ -2393,8 +2429,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 	struct Scsi_Host *target_host;
+ 	struct srp_target_port *target;
+ 	struct ib_device *ibdev = host->srp_dev->dev;
+-	dma_addr_t dma_addr;
+-	int i, ret;
++	int ret;
  
-@@ -2033,6 +2042,7 @@ static struct device_attribute *srp_host_attrs[] = {
- 	&dev_attr_local_ib_port,
- 	&dev_attr_local_ib_device,
- 	&dev_attr_comp_vector,
-+	&dev_attr_tl_retry_count,
- 	&dev_attr_cmd_sg_entries,
- 	&dev_attr_allow_ext_sg,
- 	NULL
-@@ -2158,6 +2168,7 @@ enum {
- 	SRP_OPT_ALLOW_EXT_SG	= 1 << 10,
- 	SRP_OPT_SG_TABLESIZE	= 1 << 11,
- 	SRP_OPT_COMP_VECTOR	= 1 << 12,
-+	SRP_OPT_TL_RETRY_COUNT	= 1 << 13,
- 	SRP_OPT_ALL		= (SRP_OPT_ID_EXT	|
- 				   SRP_OPT_IOC_GUID	|
- 				   SRP_OPT_DGID		|
-@@ -2179,6 +2190,7 @@ static const match_table_t srp_opt_tokens = {
- 	{ SRP_OPT_ALLOW_EXT_SG,		"allow_ext_sg=%u"	},
- 	{ SRP_OPT_SG_TABLESIZE,		"sg_tablesize=%u"	},
- 	{ SRP_OPT_COMP_VECTOR,		"comp_vector=%u"	},
-+	{ SRP_OPT_TL_RETRY_COUNT,	"tl_retry_count=%u"	},
- 	{ SRP_OPT_ERR,			NULL 			}
- };
+ 	target_host = scsi_host_alloc(&srp_template,
+ 				      sizeof (struct srp_target_port));
+@@ -2450,28 +2485,9 @@ static ssize_t srp_create_target(struct device *dev,
+ 	INIT_WORK(&target->remove_work, srp_remove_work);
+ 	spin_lock_init(&target->lock);
+ 	INIT_LIST_HEAD(&target->free_tx);
+-	INIT_LIST_HEAD(&target->free_reqs);
+-	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
+-		struct srp_request *req = &target->req_ring[i];
+-
+-		req->fmr_list = kmalloc(target->cmd_sg_cnt * sizeof (void *),
+-					GFP_KERNEL);
+-		req->map_page = kmalloc(SRP_FMR_SIZE * sizeof (void *),
+-					GFP_KERNEL);
+-		req->indirect_desc = kmalloc(target->indirect_size, GFP_KERNEL);
+-		if (!req->fmr_list || !req->map_page || !req->indirect_desc)
+-			goto err_free_mem;
+-
+-		dma_addr = ib_dma_map_single(ibdev, req->indirect_desc,
+-					     target->indirect_size,
+-					     DMA_TO_DEVICE);
+-		if (ib_dma_mapping_error(ibdev, dma_addr))
+-			goto err_free_mem;
+-
+-		req->indirect_dma_addr = dma_addr;
+-		req->index = i;
+-		list_add_tail(&req->list, &target->free_reqs);
+-	}
++	ret = srp_alloc_req_data(target);
++	if (ret)
++		goto err_free_mem;
  
-@@ -2342,6 +2354,15 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 			target->comp_vector = token;
- 			break;
+ 	ib_query_gid(ibdev, host->port, 0, &target->path.sgid);
  
-+		case SRP_OPT_TL_RETRY_COUNT:
-+			if (match_int(args, &token) || token < 2 || token > 7) {
-+				pr_warn("bad tl_retry_count parameter '%s' (must be a number between 2 and 7)\n",
-+					p);
-+				goto out;
-+			}
-+			target->tl_retry_count = token;
-+			break;
-+
- 		default:
- 			pr_warn("unknown parameter or missing value '%s' in target creation request\n",
- 				p);
-@@ -2396,6 +2417,7 @@ static ssize_t srp_create_target(struct device *dev,
- 	target->cmd_sg_cnt	= cmd_sg_entries;
- 	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
- 	target->allow_ext_sg	= allow_ext_sg;
-+	target->tl_retry_count	= 7;
- 
- 	ret = srp_parse_options(buf, target);
- 	if (ret)
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index cbc0b14..446b045 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -157,6 +157,7 @@ struct srp_target_port {
- 	unsigned int		scsi_id;
- 	unsigned int		sg_tablesize;
- 	int			comp_vector;
-+	int			tl_retry_count;
- 
- 	struct ib_sa_path_rec	path;
- 	__be16			orig_dgid[8];
 -- 
 1.7.10.4
 
