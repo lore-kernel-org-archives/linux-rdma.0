@@ -1,392 +1,95 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 8/8] IB/srp: Make queue size configurable
-Date: Tue, 20 Aug 2013 14:50:17 +0200
-Message-ID: <52136609.3090406@acm.org>
-References: <521363EA.8080906@acm.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] osm_port_info_rcv.c Issue a log message if we cannot
+ read the MKey of a port
+Date: Tue, 20 Aug 2013 08:59:15 -0400
+Message-ID: <52136823.8010104@dev.mellanox.co.il>
+References: <e5b46785-f443-42ef-bf16-660f9e7df190@default> <520E2D86.6080903@dev.mellanox.co.il> <5211F76C.6020501@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <521363EA.8080906-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <5211F76C.6020501-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Konrad Grzybowski <konradg-XLFqaoR9dsI@public.gmane.org>
+To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Certain storage configurations, e.g. a sufficiently large array of
-hard disks in a RAID configuration, need a queue depth above 64 to
-achieve optimal performance. Hence make the queue depth configurable.
+On 8/19/2013 6:46 AM, Line Holen wrote:
+> On 08/16/13 15:47, Hal Rosenstock wrote:
+>> On 8/14/2013 6:26 AM, Line Holen wrote:
+>>> Signed-off-by: Line Holen<Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>
+>>> ---
+>>>
+>>> diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
+>>> index 7dcd15e..961b376 100644
+>>> --- a/opensm/osm_port_info_rcv.c
+>>> +++ b/opensm/osm_port_info_rcv.c
+>>> @@ -85,7 +85,7 @@ static void pi_rcv_process_endport(IN osm_sm_t *
+>>> sm, IN osm_physp_t * p_physp,
+>>>       osm_madw_context_t context;
+>>>       ib_api_status_t status;
+>>>       ib_net64_t port_guid;
+>>> -    uint8_t rate, mtu;
+>>> +    uint8_t rate, mtu, mpb;
+>>>       unsigned data_vls;
+>>>       cl_qmap_t *p_sm_tbl;
+>>>       osm_remote_sm_t *p_sm;
+>>> @@ -126,6 +126,14 @@ static void pi_rcv_process_endport(IN osm_sm_t *
+>>> sm, IN osm_physp_t * p_physp,
+>>>           }
+>>>       }
+>>>
+>>> +    /* Check M_Key vs M_Key protect, can we control the port ? */
+>>> +    mpb = ib_port_info_get_mpb(p_pi);
+>>> +    if (mpb > 0 && p_pi->m_key == 0) {
+>>> +        OSM_LOG(sm->p_log, OSM_LOG_INFO,
+>>> +            "Port 0x%" PRIx64 " has unknown M_Key, protection level
+>>> %u\n",
+>>> +            cl_ntoh64(port_guid), mpb);
+>>> +    }
+>>> +
+>> It looks to me like the only case here is when protect bits is 1 for
+>> gets; all others fail. Is it more than that ?
+> You are probably right - 
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: Konrad Grzybowski <konradg-XLFqaoR9dsI@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c |  125 ++++++++++++++++++++++++++---------
- drivers/infiniband/ulp/srp/ib_srp.h |   17 +++--
- 2 files changed, 103 insertions(+), 39 deletions(-)
+I was referring to that only for protect bits of 1 does this seem to
+have potential value for gets as gets with protect bits of 1 with wrong
+Mkey return port info with 0 MKey. All other mpb cases fail.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index ece1f2d..6de2323 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -299,16 +299,16 @@ static int srp_create_target_ib(struct srp_target_port *target)
- 		return -ENOMEM;
- 
- 	recv_cq = ib_create_cq(target->srp_host->srp_dev->dev,
--			       srp_recv_completion, NULL, target, SRP_RQ_SIZE,
--			       target->comp_vector);
-+			       srp_recv_completion, NULL, target,
-+			       target->queue_size, target->comp_vector);
- 	if (IS_ERR(recv_cq)) {
- 		ret = PTR_ERR(recv_cq);
- 		goto err;
- 	}
- 
- 	send_cq = ib_create_cq(target->srp_host->srp_dev->dev,
--			       srp_send_completion, NULL, target, SRP_SQ_SIZE,
--			       target->comp_vector);
-+			       srp_send_completion, NULL, target,
-+			       target->queue_size, target->comp_vector);
- 	if (IS_ERR(send_cq)) {
- 		ret = PTR_ERR(send_cq);
- 		goto err_recv_cq;
-@@ -317,8 +317,8 @@ static int srp_create_target_ib(struct srp_target_port *target)
- 	ib_req_notify_cq(recv_cq, IB_CQ_NEXT_COMP);
- 
- 	init_attr->event_handler       = srp_qp_event;
--	init_attr->cap.max_send_wr     = SRP_SQ_SIZE;
--	init_attr->cap.max_recv_wr     = SRP_RQ_SIZE;
-+	init_attr->cap.max_send_wr     = target->queue_size;
-+	init_attr->cap.max_recv_wr     = target->queue_size;
- 	init_attr->cap.max_recv_sge    = 1;
- 	init_attr->cap.max_send_sge    = 1;
- 	init_attr->sq_sig_type         = IB_SIGNAL_ALL_WR;
-@@ -364,6 +364,10 @@ err:
- 	return ret;
- }
- 
-+/*
-+ * Note: this function may be called without srp_alloc_iu_bufs() having been
-+ * invoked. Hence the target->[rt]x_ring checks.
-+ */
- static void srp_free_target_ib(struct srp_target_port *target)
- {
- 	int i;
-@@ -375,10 +379,18 @@ static void srp_free_target_ib(struct srp_target_port *target)
- 	target->qp = NULL;
- 	target->send_cq = target->recv_cq = NULL;
- 
--	for (i = 0; i < SRP_RQ_SIZE; ++i)
--		srp_free_iu(target->srp_host, target->rx_ring[i]);
--	for (i = 0; i < SRP_SQ_SIZE; ++i)
--		srp_free_iu(target->srp_host, target->tx_ring[i]);
-+	if (target->rx_ring) {
-+		for (i = 0; i < target->queue_size; ++i)
-+			srp_free_iu(target->srp_host, target->rx_ring[i]);
-+		kfree(target->rx_ring);
-+		target->rx_ring = NULL;
-+	}
-+	if (target->tx_ring) {
-+		for (i = 0; i < target->queue_size; ++i)
-+			srp_free_iu(target->srp_host, target->tx_ring[i]);
-+		kfree(target->tx_ring);
-+		target->tx_ring = NULL;
-+	}
- }
- 
- static void srp_path_rec_completion(int status,
-@@ -564,7 +576,11 @@ static void srp_free_req_data(struct srp_target_port *target)
- 	struct srp_request *req;
- 	int i;
- 
--	for (i = 0, req = target->req_ring; i < SRP_CMD_SQ_SIZE; ++i, ++req) {
-+	if (!target->req_ring)
-+		return;
-+
-+	for (i = 0; i < target->req_ring_size; ++i) {
-+		req = &target->req_ring[i];
- 		kfree(req->fmr_list);
- 		kfree(req->map_page);
- 		if (req->indirect_dma_addr) {
-@@ -574,6 +590,9 @@ static void srp_free_req_data(struct srp_target_port *target)
- 		}
- 		kfree(req->indirect_desc);
- 	}
-+
-+	kfree(target->req_ring);
-+	target->req_ring = NULL;
- }
- 
- static int srp_alloc_req_data(struct srp_target_port *target)
-@@ -586,7 +605,12 @@ static int srp_alloc_req_data(struct srp_target_port *target)
- 
- 	INIT_LIST_HEAD(&target->free_reqs);
- 
--	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
-+	target->req_ring = kzalloc(target->req_ring_size *
-+				   sizeof(*target->req_ring), GFP_KERNEL);
-+	if (!target->req_ring)
-+		goto out;
-+
-+	for (i = 0; i < target->req_ring_size; ++i) {
- 		req = &target->req_ring[i];
- 		req->fmr_list = kmalloc(target->cmd_sg_cnt * sizeof(void *),
- 					GFP_KERNEL);
-@@ -810,7 +834,7 @@ static void srp_terminate_io(struct srp_rport *rport)
- 	struct srp_target_port *target = rport->lld_data;
- 	int i;
- 
--	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
-+	for (i = 0; i < target->req_ring_size; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
- 		srp_finish_req(target, req, DID_TRANSPORT_FAILFAST << 16);
- 	}
-@@ -847,13 +871,13 @@ static int srp_rport_reconnect(struct srp_rport *rport)
- 	else
- 		srp_create_target_ib(target);
- 
--	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
-+	for (i = 0; i < target->req_ring_size; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
- 		srp_finish_req(target, req, DID_RESET << 16);
- 	}
- 
- 	INIT_LIST_HEAD(&target->free_tx);
--	for (i = 0; i < SRP_SQ_SIZE; ++i)
-+	for (i = 0; i < target->queue_size; ++i)
- 		list_add(&target->tx_ring[i]->list, &target->free_tx);
- 
- 	if (ret == 0)
-@@ -1544,11 +1568,24 @@ err_unlock:
- 	return SCSI_MLQUEUE_HOST_BUSY;
- }
- 
-+/*
-+ * Note: the resources allocated in this function are freed in
-+ * srp_free_target_ib().
-+ */
- static int srp_alloc_iu_bufs(struct srp_target_port *target)
- {
- 	int i;
- 
--	for (i = 0; i < SRP_RQ_SIZE; ++i) {
-+	target->rx_ring = kzalloc(target->queue_size * sizeof(*target->rx_ring),
-+				  GFP_KERNEL);
-+	if (!target->rx_ring)
-+		goto err_no_ring;
-+	target->tx_ring = kzalloc(target->queue_size * sizeof(*target->tx_ring),
-+				  GFP_KERNEL);
-+	if (!target->tx_ring)
-+		goto err_no_ring;
-+
-+	for (i = 0; i < target->queue_size; ++i) {
- 		target->rx_ring[i] = srp_alloc_iu(target->srp_host,
- 						  target->max_ti_iu_len,
- 						  GFP_KERNEL, DMA_FROM_DEVICE);
-@@ -1556,7 +1593,7 @@ static int srp_alloc_iu_bufs(struct srp_target_port *target)
- 			goto err;
- 	}
- 
--	for (i = 0; i < SRP_SQ_SIZE; ++i) {
-+	for (i = 0; i < target->queue_size; ++i) {
- 		target->tx_ring[i] = srp_alloc_iu(target->srp_host,
- 						  target->max_iu_len,
- 						  GFP_KERNEL, DMA_TO_DEVICE);
-@@ -1569,16 +1606,18 @@ static int srp_alloc_iu_bufs(struct srp_target_port *target)
- 	return 0;
- 
- err:
--	for (i = 0; i < SRP_RQ_SIZE; ++i) {
-+	for (i = 0; i < target->queue_size; ++i) {
- 		srp_free_iu(target->srp_host, target->rx_ring[i]);
--		target->rx_ring[i] = NULL;
--	}
--
--	for (i = 0; i < SRP_SQ_SIZE; ++i) {
- 		srp_free_iu(target->srp_host, target->tx_ring[i]);
--		target->tx_ring[i] = NULL;
- 	}
- 
-+
-+err_no_ring:
-+	kfree(target->tx_ring);
-+	target->tx_ring = NULL;
-+	kfree(target->rx_ring);
-+	target->rx_ring = NULL;
-+
- 	return -ENOMEM;
- }
- 
-@@ -1629,6 +1668,9 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 		target->scsi_host->can_queue
- 			= min(target->req_lim - SRP_TSK_MGMT_SQ_SIZE,
- 			      target->scsi_host->can_queue);
-+		target->scsi_host->cmd_per_lun
-+			= min_t(int, target->scsi_host->can_queue,
-+				target->scsi_host->cmd_per_lun);
- 	} else {
- 		shost_printk(KERN_WARNING, target->scsi_host,
- 			     PFX "Unhandled RSP opcode %#x\n", lrsp->opcode);
-@@ -1636,7 +1678,7 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 		goto error;
- 	}
- 
--	if (!target->rx_ring[0]) {
-+	if (!target->rx_ring) {
- 		ret = srp_alloc_iu_bufs(target);
- 		if (ret)
- 			goto error;
-@@ -1656,7 +1698,7 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
- 	if (ret)
- 		goto error_free;
- 
--	for (i = 0; i < SRP_RQ_SIZE; i++) {
-+	for (i = 0; i < target->queue_size; i++) {
- 		struct srp_iu *iu = target->rx_ring[i];
- 		ret = srp_post_recv(target, iu);
- 		if (ret)
-@@ -1903,7 +1945,7 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
- 	if (target->tsk_mgmt_status)
- 		return FAILED;
- 
--	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
-+	for (i = 0; i < target->req_ring_size; ++i) {
- 		struct srp_request *req = &target->req_ring[i];
- 		if (req->scmnd && req->scmnd->device == scmnd->device)
- 			srp_finish_req(target, req, DID_RESET << 16);
-@@ -2096,9 +2138,9 @@ static struct scsi_host_template srp_template = {
- 	.eh_host_reset_handler		= srp_reset_host,
- 	.skip_settle_delay		= true,
- 	.sg_tablesize			= SRP_DEF_SG_TABLESIZE,
--	.can_queue			= SRP_CMD_SQ_SIZE,
-+	.can_queue			= SRP_DEFAULT_CMD_SQ_SIZE,
- 	.this_id			= -1,
--	.cmd_per_lun			= SRP_CMD_SQ_SIZE,
-+	.cmd_per_lun			= SRP_DEFAULT_CMD_SQ_SIZE,
- 	.use_clustering			= ENABLE_CLUSTERING,
- 	.shost_attrs			= srp_host_attrs
- };
-@@ -2205,6 +2247,7 @@ enum {
- 	SRP_OPT_SG_TABLESIZE	= 1 << 11,
- 	SRP_OPT_COMP_VECTOR	= 1 << 12,
- 	SRP_OPT_TL_RETRY_COUNT	= 1 << 13,
-+	SRP_OPT_CAN_QUEUE	= 1 << 14,
- 	SRP_OPT_ALL		= (SRP_OPT_ID_EXT	|
- 				   SRP_OPT_IOC_GUID	|
- 				   SRP_OPT_DGID		|
-@@ -2227,6 +2270,7 @@ static const match_table_t srp_opt_tokens = {
- 	{ SRP_OPT_SG_TABLESIZE,		"sg_tablesize=%u"	},
- 	{ SRP_OPT_COMP_VECTOR,		"comp_vector=%u"	},
- 	{ SRP_OPT_TL_RETRY_COUNT,	"tl_retry_count=%u"	},
-+	{ SRP_OPT_CAN_QUEUE,		"can_queue=%d"		},
- 	{ SRP_OPT_ERR,			NULL 			}
- };
- 
-@@ -2321,13 +2365,25 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 			target->scsi_host->max_sectors = token;
- 			break;
- 
-+		case SRP_OPT_CAN_QUEUE:
-+			if (match_int(args, &token) || token < 1) {
-+				pr_warn("bad can_queue parameter '%s'\n", p);
-+				goto out;
-+			}
-+			target->scsi_host->can_queue = token;
-+			target->queue_size = token + SRP_RSP_SQ_SIZE +
-+					     SRP_TSK_MGMT_SQ_SIZE;
-+			if (!(opt_mask & SRP_OPT_MAX_CMD_PER_LUN))
-+				target->scsi_host->cmd_per_lun = token;
-+			break;
-+
- 		case SRP_OPT_MAX_CMD_PER_LUN:
--			if (match_int(args, &token)) {
-+			if (match_int(args, &token) || token < 1) {
- 				pr_warn("bad max cmd_per_lun parameter '%s'\n",
- 					p);
- 				goto out;
- 			}
--			target->scsi_host->cmd_per_lun = min(token, SRP_CMD_SQ_SIZE);
-+			target->scsi_host->cmd_per_lun = token;
- 			break;
- 
- 		case SRP_OPT_IO_CLASS:
-@@ -2415,6 +2471,12 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				pr_warn("target creation request is missing parameter '%s'\n",
- 					srp_opt_tokens[i].pattern);
- 
-+	if (target->scsi_host->cmd_per_lun > target->scsi_host->can_queue
-+	    && (opt_mask & SRP_OPT_MAX_CMD_PER_LUN))
-+		pr_warn("cmd_per_lun = %d > can_queue = %d\n",
-+			target->scsi_host->cmd_per_lun,
-+			target->scsi_host->can_queue);
-+
- out:
- 	kfree(options);
- 	return ret;
-@@ -2453,11 +2515,14 @@ static ssize_t srp_create_target(struct device *dev,
- 	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
- 	target->allow_ext_sg	= allow_ext_sg;
- 	target->tl_retry_count	= 7;
-+	target->queue_size	= SRP_DEFAULT_QUEUE_SIZE;
- 
- 	ret = srp_parse_options(buf, target);
- 	if (ret)
- 		goto err;
- 
-+	target->req_ring_size = target->queue_size - SRP_TSK_MGMT_SQ_SIZE;
-+
- 	if (!srp_conn_unique(target->srp_host, target)) {
- 		shost_printk(KERN_INFO, target->scsi_host,
- 			     PFX "Already connected to target port with id_ext=%016llx;ioc_guid=%016llx;initiator_ext=%016llx\n",
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 446b045..5756810 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -57,14 +57,11 @@ enum {
- 	SRP_MAX_LUN		= 512,
- 	SRP_DEF_SG_TABLESIZE	= 12,
- 
--	SRP_RQ_SHIFT    	= 6,
--	SRP_RQ_SIZE		= 1 << SRP_RQ_SHIFT,
--
--	SRP_SQ_SIZE		= SRP_RQ_SIZE,
-+	SRP_DEFAULT_QUEUE_SIZE	= 1 << 6,
- 	SRP_RSP_SQ_SIZE		= 1,
--	SRP_REQ_SQ_SIZE		= SRP_SQ_SIZE - SRP_RSP_SQ_SIZE,
- 	SRP_TSK_MGMT_SQ_SIZE	= 1,
--	SRP_CMD_SQ_SIZE		= SRP_REQ_SQ_SIZE - SRP_TSK_MGMT_SQ_SIZE,
-+	SRP_DEFAULT_CMD_SQ_SIZE = SRP_DEFAULT_QUEUE_SIZE - SRP_RSP_SQ_SIZE -
-+				  SRP_TSK_MGMT_SQ_SIZE,
- 
- 	SRP_TAG_NO_REQ		= ~0U,
- 	SRP_TAG_TSK_MGMT	= 1U << 31,
-@@ -156,6 +153,8 @@ struct srp_target_port {
- 	char			target_name[32];
- 	unsigned int		scsi_id;
- 	unsigned int		sg_tablesize;
-+	int			queue_size;
-+	int			req_ring_size;
- 	int			comp_vector;
- 	int			tl_retry_count;
- 
-@@ -173,9 +172,9 @@ struct srp_target_port {
- 
- 	int			zero_req_lim;
- 
--	struct srp_iu	       *tx_ring[SRP_SQ_SIZE];
--	struct srp_iu	       *rx_ring[SRP_RQ_SIZE];
--	struct srp_request	req_ring[SRP_CMD_SQ_SIZE];
-+	struct srp_iu	       **tx_ring;
-+	struct srp_iu	       **rx_ring;
-+	struct srp_request	*req_ring;
- 
- 	struct work_struct	tl_err_work;
- 	struct work_struct	remove_work;
--- 
-1.7.10.4
+> have to admit I haven't tried a higher
+> protection level.
+
+What protection level(s) have you tried ?
+
+>>
+>> Also, would this spam the OpenSM log ?
+> It would print one additional message per heavy sweep.
+> But if you have a system with unknown MKeys configured you would get
+> many error
+> messages as it is. With protection level 2 every MAD operation will
+> generate
+> an error I guess (either 3111 or 3120). And with protection level 1 set
+> operations
+> will fail, but this new message will let you know why it failed.
+
+I think it would be a 3120 error (timeout) rather than bad status. I
+think that is what is meant in the IBA spec by fail (fail = no
+response). Have you see 3111 or other than 3120 errors for this ?
+
+-- Hal
+
+> Line
+> 
+>>
+>> -- Hal
+>>
+>>>       if (port_guid != sm->p_subn->sm_port_guid) {
+>>>           p_sm_tbl =&sm->p_subn->sm_guid_tbl;
+>>>           if (p_pi->capability_mask&  IB_PORT_CAP_IS_SM) {
+>>>
+> 
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
