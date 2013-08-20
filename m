@@ -1,42 +1,46 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_db_files.c: Fix memory leak when deleting entries
- from osm db
-Date: Tue, 20 Aug 2013 11:43:32 -0400
-Message-ID: <52138EA4.7080505@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 8/8] IB/srp: Make queue size configurable
+Date: Tue, 20 Aug 2013 17:55:39 +0200
+Message-ID: <5213917B.3020403@acm.org>
+References: <521363EA.8080906@acm.org> <52136609.3090406@acm.org> <52138C6E.6080201@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52138C6E.6080201-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Konrad Grzybowski <konradg-XLFqaoR9dsI@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 08/20/13 17:34, Sagi Grimberg wrote:
+> On 8/20/2013 3:50 PM, Bart Van Assche wrote:
+>> Certain storage configurations, e.g. a sufficiently large array of
+>> hard disks in a RAID configuration, need a queue depth above 64 to
+>> achieve optimal performance. Hence make the queue depth configurable.
+>> [ ... ]
+>
+> I noticed this patch in your github and played with it, I agree that
+> this patch is needed for a long time...
+>
+> Question,
+> If srp now will allow larger queues while using a single global FMR pool
+> of size 1024, isn't it more likely now that in stress environment srp
+> will run out of FMRs to handle IO commands?
+> I mean that let's say that you have x scsi hosts with can_queue size of
+> 512 (+-) and all of them are running IO stress, is it possible that all
+> FMRs will be inuse and no FMR is available to register the next IO SG-list?
+> Did you try out such a scenario?
+>
+> I guess that in such a case IB core will return EAGAIN and SRP will
+> return SCSI_MLQUEUE_HOST_BUSY.
+> I think it is a good Idea to move FMR pools to be per connection rather
+> than a global pool, what do you think?
 
-The key also should be freed.
+That makes sense to me. And as long as the above has not yet been 
+implemented I'm fine with dropping patch 8/8 from this patch set.
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_db_files.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/opensm/osm_db_files.c b/opensm/osm_db_files.c
-index 94dc11c..0eef1d4 100644
---- a/opensm/osm_db_files.c
-+++ b/opensm/osm_db_files.c
-@@ -608,6 +608,7 @@ int osm_db_delete(IN osm_db_domain_t * p_domain, IN char *p_key)
- 				p_key, p_domain_imp->file_name, p_prev_val);
- 			res = 1;
- 		} else {
-+			free(p_key);
- 			free(p_prev_val);
- 			res = 0;
- 		}
--- 
-1.7.8.2
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
