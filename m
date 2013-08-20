@@ -1,57 +1,104 @@
-From: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH libibverbs] XRC - Sample application issues
-Date: Tue, 20 Aug 2013 08:16:39 +0300
-Message-ID: <5212FBB7.4010708@dev.mellanox.co.il>
-References: <1375974336-26314-1-git-send-email-yishaih@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CA64F6@ORSMSX109.amr.corp.intel.com> <63247C4015478741AE4981C62DF608835683DDC8@MTLDAG01.mtl.com> <52108E6C.9070908@dev.mellanox.co.il> <20130819191216.GA29493@obsidianresearch.com>
+From: Andreas Bluemle <andreas.bluemle@itxperts.de>
+Subject: Re: [ceph-users] Help needed porting Ceph to RSockets
+Date: Tue, 20 Aug 2013 09:21:13 +0200
+Message-ID: <20130820092113.612cf7a2@andylap>
+References: <CAJA05UmTDGze7S50_j8RgHmPFYonk2Z94Fi6CQtxND9QxgRr3g@mail.gmail.com>
+	<CAJA05Umgio7XftGZtQdRzyWq70pXBb3oEx2jrT3BxcBr6MLoVQ@mail.gmail.com>
+	<20130812075513.43c338e1@andylap>
+	<CAJA05U=i22jHy2xbvCUk+UVN0+hOFDgt-JMSHTWKmr1+DZu0Dg@mail.gmail.com>
+	<20130812180644.447ca089@andylap>
+	<CAJA05U=KqzYis14sYXusbpk-T-F=uqvNz1XPurutmdeRz6BAdg@mail.gmail.com>
+	<20130813075312.7cac0d46@andylap>
+	<20130813160612.037ea9f2@andylap>
+	<1978D1F9-C675-4A37-AA57-C7E1158B2F72@ornl.gov>
+	<1828884A29C6694DAF28B7E6B8A8237388CA5A0F@ORSMSX109.amr.corp.intel.com>
+	<20130814092124.3f8c3b03@doppio>
+	<1828884A29C6694DAF28B7E6B8A8237388CA6C27@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130819191216.GA29493-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <ceph-devel-owner@vger.kernel.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CA6C27@ORSMSX109.amr.corp.intel.com>
+Sender: ceph-devel-owner@vger.kernel.org
+To: "Hefty, Sean" <sean.hefty@intel.com>
+Cc: "Atchley, Scott" <atchleyes@ornl.gov>, Matthew Anderson <manderson8787@gmail.com>, "ceph-devel@vger.kernel.org" <ceph-devel@vger.kernel.org>, "linux-rdma@vger.kernel.org (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Sean,
 
-On 8/19/2013 10:12 PM, Jason Gunthorpe wrote:
-> On Sun, Aug 18, 2013 at 12:05:48PM +0300, Yishai Hadas wrote:
->> On 8/16/2013 06:11 PM, Sean Hefty wrote:
->>>> @@ -884,6 +884,13 @@ int main(int argc, char *argv[])
->>>>   	if (ctx.use_event)
->>>>   		ibv_ack_cq_events(ctx.recv_cq, num_cq_events);
->>>>
->>>> +	/* Process should wait before closing its resources to make sure
->>>> +	  * latest daemon's response sent via its target QP destined to an XSRQ
->>>> +	  * created by another client won't be lost.
->>>> +	  * Failure to do so will cause the client to wait for that sent message
->>>> forever.
->>>> +	  * See comment on pp_post_send.
->>>> +	*/
->>>> +	sleep(1);
->>> I dislike adding sleep calls into code.  Isn't there a more robust way to handle this?
->> In general I agree this sleep is a workaround that comes to solve a
->> synchronization hole in this sample application.  For that reason I
->> put 5 lines comment to describe the problem and the reason for that
->> sleep statement.  Long term you could think of synchronizing all the
->> processes through the sockets mechanism to assure they terminate
->> when all packets are received.
-> This example is very close to the only code that people will have
-> access to when trying to work with XRC.
-Latest perftest package also contains a use case of XRC.
-No sleep.
+I will re-check until the end of the week; there is
+some test scheduling issue with our test system, which
+affects my access times.
 
-Ido
-> It should be complete and correct under all cases. So no sleeps, IMHO.
->
-> Jason
+Thanks
+
+Andreas
+
+
+On Mon, 19 Aug 2013 17:10:11 +0000
+"Hefty, Sean" <sean.hefty@intel.com> wrote:
+
+> Can you see if the patch below fixes the hang?
+> 
+> Signed-off-by: Sean Hefty <sean.hefty@intel.com>
+> ---
+>  src/rsocket.c |   11 ++++++++++-
+>  1 files changed, 10 insertions(+), 1 deletions(-)
+> 
+> diff --git a/src/rsocket.c b/src/rsocket.c
+> index d544dd0..e45b26d 100644
+> --- a/src/rsocket.c
+> +++ b/src/rsocket.c
+> @@ -2948,10 +2948,12 @@ static int rs_poll_events(struct pollfd
+> *rfds, struct pollfd *fds, nfds_t nfds) 
+>  		rs = idm_lookup(&idm, fds[i].fd);
+>  		if (rs) {
+> +			fastlock_acquire(&rs->cq_wait_lock);
+>  			if (rs->type == SOCK_STREAM)
+>  				rs_get_cq_event(rs);
+>  			else
+>  				ds_get_cq_event(rs);
+> +			fastlock_release(&rs->cq_wait_lock);
+>  			fds[i].revents = rs_poll_rs(rs,
+> fds[i].events, 1, rs_poll_all); } else {
+>  			fds[i].revents = rfds[i].revents;
+> @@ -3098,7 +3100,8 @@ int rselect(int nfds, fd_set *readfds, fd_set
+> *writefds, 
+>  /*
+>   * For graceful disconnect, notify the remote side that we're
+> - * disconnecting and wait until all outstanding sends complete.
+> + * disconnecting and wait until all outstanding sends complete,
+> provided
+> + * that the remote side has not sent a disconnect message.
+>   */
+>  int rshutdown(int socket, int how)
+>  {
+> @@ -3138,6 +3141,12 @@ int rshutdown(int socket, int how)
+>  	if (rs->state & rs_connected)
+>  		rs_process_cq(rs, 0, rs_conn_all_sends_done);
+>  
+> +	if (rs->state & rs_disconnected) {
+> +		/* Generate event by flushing receives to unblock
+> rpoll */
+> +		ibv_req_notify_cq(rs->cm_id->recv_cq, 0);
+> +		rdma_disconnect(rs->cm_id);
+> +	}
+> +
+>  	if ((rs->fd_flags & O_NONBLOCK) && (rs->state &
+> rs_connected)) rs_set_nonblocking(rs, rs->fd_flags);
+>  
+> 
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> 
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Andreas Bluemle                     mailto:Andreas.Bluemle@itxperts.de
+Heinrich Boell Strasse 88           Phone: (+49) 89 4317582
+D-81829 Muenchen (Germany)          Mobil: (+49) 177 522 0151
