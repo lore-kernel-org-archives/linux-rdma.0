@@ -1,44 +1,39 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v2 opensm] osm_subnet.c: Fix memory leak caused by commit
- dc0760cb8088fbe079e19682570a884ba01e94ff
-Date: Tue, 20 Aug 2013 10:28:49 -0400
-Message-ID: <52137D21.1080806@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty@intel.com>
+Subject: RE: [ceph-users] Help needed porting Ceph to RSockets
+Date: Tue, 20 Aug 2013 15:04:42 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CA6F25@ORSMSX109.amr.corp.intel.com>
+References: <CAJA05UmTDGze7S50_j8RgHmPFYonk2Z94Fi6CQtxND9QxgRr3g@mail.gmail.com>
+	<CAJA05Umgio7XftGZtQdRzyWq70pXBb3oEx2jrT3BxcBr6MLoVQ@mail.gmail.com>
+	<20130812075513.43c338e1@andylap>
+	<CAJA05U=i22jHy2xbvCUk+UVN0+hOFDgt-JMSHTWKmr1+DZu0Dg@mail.gmail.com>
+	<20130812180644.447ca089@andylap>
+	<CAJA05U=KqzYis14sYXusbpk-T-F=uqvNz1XPurutmdeRz6BAdg@mail.gmail.com>
+	<20130813075312.7cac0d46@andylap>	<20130813160612.037ea9f2@andylap>
+	<1978D1F9-C675-4A37-AA57-C7E1158B2F72@ornl.gov>
+	<1828884A29C6694DAF28B7E6B8A8237388CA5A0F@ORSMSX109.amr.corp.intel.com>
+	<20130814092124.3f8c3b03@doppio>
+	<1828884A29C6694DAF28B7E6B8A8237388CA6C27@ORSMSX109.amr.corp.intel.com>
+	<20130820092113.612cf7a2@andylap> <20130820123046.2ceb5e77@andylap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <ceph-devel-owner@vger.kernel.org>
+In-Reply-To: <20130820123046.2ceb5e77@andylap>
+Content-Language: en-US
+Sender: ceph-devel-owner@vger.kernel.org
+To: Andreas Bluemle <andreas.bluemle@itxperts.de>
+Cc: "Atchley, Scott" <atchleyes@ornl.gov>, Matthew Anderson <manderson8787@gmail.com>, "ceph-devel@vger.kernel.org" <ceph-devel@vger.kernel.org>, "linux-rdma@vger.kernel.org (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> I have added the patch and re-tested: I still encounter
+> hangs of my application. I am not quite sure whether the
+> I hit the same error on the shutdown because now I don't hit
+> the error always, but only every now and then.
 
-double strdup for p_opt->dump_files_dir is causing memory leak
+I guess this is at least some progress... :/
+ 
+> WHen adding the patch to my code base (git tag v1.0.17) I notice
+> an offset of "-34 lines". Which code base are you using?
 
-Approach from Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+This patch was generated against the tip of the git tree. 
 
-Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Change since v1:
-Eliminate cast by doing separate strdup
-
-diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-index 7ab1671..d0835b9 100644
---- a/opensm/osm_subnet.c
-+++ b/opensm/osm_subnet.c
-@@ -1499,7 +1499,8 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
- 	p_opt->dump_files_dir = getenv("OSM_TMP_DIR");
- 	if (!p_opt->dump_files_dir || !(*p_opt->dump_files_dir))
- 		p_opt->dump_files_dir = strdup(OSM_DEFAULT_TMP_DIR);
--	p_opt->dump_files_dir = strdup(p_opt->dump_files_dir);
-+	else
-+		p_opt->dump_files_dir = strdup(p_opt->dump_files_dir);
- 	p_opt->log_file = strdup(OSM_DEFAULT_LOG_FILE);
- 	p_opt->log_max_size = 0;
- 	p_opt->partition_config_file = strdup(OSM_DEFAULT_PARTITION_CONFIG_FILE);
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
