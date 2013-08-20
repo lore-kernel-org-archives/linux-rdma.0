@@ -1,48 +1,40 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH opensm] osm_subnet.c: Fix memory leak caused by commit
- dc0760cb8088fbe079e19682570a884ba01e94ff
-Date: Tue, 20 Aug 2013 15:13:38 +0200
-Message-ID: <52136B82.6010506@acm.org>
-References: <52136886.7090905@dev.mellanox.co.il>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Add new verb: uv_query_port_max_datagram()
+Date: Tue, 20 Aug 2013 13:41:26 +0000
+Message-ID: <EF66BBEB19BADC41AC8CCF5F684F07FC4F80DB8E@xmb-rcd-x01.cisco.com>
+References: <1376942704-25270-1-git-send-email-jsquyres@cisco.com>
+ <1828884A29C6694DAF28B7E6B8A8237388CA6D9F@ORSMSX109.amr.corp.intel.com>
+ <EF66BBEB19BADC41AC8CCF5F684F07FC4F80AF3E@xmb-rcd-x01.cisco.com>
+ <1828884A29C6694DAF28B7E6B8A8237388CA6DF1@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52136886.7090905-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CA6DF1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Content-ID: <9BAB3707B456C643BA22DBE6541B734E-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/20/13 15:00, Hal Rosenstock wrote:
-> From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> double strdup for p_opt->dump_files_dir is causing memory leak
->
-> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-> index 7ab1671..4b5ef38 100644
-> --- a/opensm/osm_subnet.c
-> +++ b/opensm/osm_subnet.c
-> @@ -1498,7 +1498,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t *
-> p_opt)
->    	p_opt->dump_files_dir = getenv("OSM_TMP_DIR");
->   	if (!p_opt->dump_files_dir || !(*p_opt->dump_files_dir))
-> -		p_opt->dump_files_dir = strdup(OSM_DEFAULT_TMP_DIR);
-> +		p_opt->dump_files_dir = (char *) OSM_DEFAULT_TMP_DIR;
->   	p_opt->dump_files_dir = strdup(p_opt->dump_files_dir);
->   	p_opt->log_file = strdup(OSM_DEFAULT_LOG_FILE);
->   	p_opt->log_max_size = 0;
+On Aug 19, 2013, at 8:59 PM, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-How about avoiding the memory leak via the construct below, which has 
-the advantage that no cast is necessary ?
+>> Any suggestions on how one adds a new driver call without breaking ABI?
+> 
+> It could be built on the verbs extension mechanism.
 
-   	if (!p_opt->dump_files_dir || !(*p_opt->dump_files_dir))
-		p_opt->dump_files_dir = strdup(OSM_DEFAULT_TMP_DIR);
-	else
-	   	p_opt->dump_files_dir = strdup(p_opt->dump_files_dir);
+Where is the documentation for this?  Multiple people have referred to it, but I don't see any mention of it in libibverbs.git.
+
+> Is it necessary to call into a provider library, versus simply dropping into the kernel?
+
+
+I don't think I have much of an opinion here, other than: it would seem weird to not call the provider library, given that all other verbs do that.
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to: http://www.cisco.com/web/about/doing_business/legal/cri/
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
