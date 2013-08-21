@@ -1,197 +1,55 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libibverbs] XRC - Sample application issues
-Date: Wed, 21 Aug 2013 15:48:57 +0300
-Message-ID: <1377089337-30187-1-git-send-email-yishaih@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Helps to Decode rpc_debug Output
+Date: Wed, 21 Aug 2013 08:55:49 -0700
+Message-ID: <CABgxfbH3uA2WzQ2DgOgRrCMhcJ1J6E2NCh13FtDfRzDWje9vWQ@mail.gmail.com>
+References: <CABgxfbGFHv2n5=78_irkxXnX9BFDFPzZvqgs_iDn64AR_3cf5w@mail.gmail.com>
+	<520CCDBB.1020501@talpey.com>
+	<CABgxfbFixDTUy4e1EQty86dvNeisG7+hd2QdVSQvv4T2tokFoQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CABgxfbFixDTUy4e1EQty86dvNeisG7+hd2QdVSQvv4T2tokFoQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix sync issue when clients go down, it comes to prevent a case when
-client misses a response from the daemon then wait forever.
+On Thu, Aug 15, 2013 at 11:08 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Aug 15, 2013 at 5:46 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
+>> On 8/14/2013 8:14 PM, Wendy Cheng wrote:
+>>>
+>>> Longer version of the question:
+>>> I'm trying to enable NFS-RDMA on an embedded system (based on 2.6.38
+>>> kernel) as a client. The IB stacks are taken from OFED 1.5.4. NFS
+>>> server is a RHEL 6.3 Xeon box. The connection uses mellox-4 driver.
+>>> Memory registration is "RPCRDMA_ALLPHYSICAL". There are many issues so
+>>> far but I do manage to get nfs mount working. Simple file operations
+>>> (such as "ls", file read/write, "scp", etc) seem to work as well.
+>>
 
-Fix typo in error message.
+Yay ... got this up .. amazingly on a uOS that does not have much of
+the conventional kernel debug facilities.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+The hang was caused by auto disconnect, triggered by xprt->timer. The
+task was carried out by xprt_init_autodisconnect(). It silently
+disconnects the xprt w/out sensible warning. The uOS is on a
+small-core (slower) hardware. Instead of a hard number, this timeout
+value needs to be at least a "proc" tunable. Will check newer kernels
+to see whether it's been improved and/or draft a patch later.
 
-This patch is on top of V9 of XRC series that was already sent.
-It should be squashed into latest patch #7 named 'Add XRC sample application'.
+One thing I'm still scratching my head is that ... by looking at the
+raw IOPS, I don't see dramatic difference between NFS-RDMA vs. NFS
+over IPOIB (TCP). However, the total run time differs greatly. NFS
+over RDMA seems to take a much longer time to finish (vs. NFS over
+IPOIB). Not sure why is that .... Maybe by the constant
+connect/disconnect triggered by reestablish_timeout ? The connection
+re-establish is known to be expensive on this uOS. Why do we need two
+sets of timeout where
+1. xprt->timer disconnects (w/out reconnect) ?
+2. reestablish_timeout constantly disconnect/re-connect ?
 
-Changes from v0 of that patch:
-Used a socket based synchronization instead of sleep.
-
- examples/xsrq_pingpong.c |   96 +++++++++++++++++++++++++++++++++++++++++++---
- 1 files changed, 90 insertions(+), 6 deletions(-)
-
-diff --git a/examples/xsrq_pingpong.c b/examples/xsrq_pingpong.c
-index 984740d..74205ec 100644
---- a/examples/xsrq_pingpong.c
-+++ b/examples/xsrq_pingpong.c
-@@ -57,6 +57,9 @@
- #define MSG_SSCAN  "%x:%x:%x:%x:%x"
- #define ADDR_FORMAT \
- 	"%8s: LID %04x, QPN RECV %06x SEND %06x, PSN %06x, SRQN %04x\n"
-+#define TERMINATION_FORMAT "%s"
-+#define TERMINATION_MSG_SIZE 4
-+#define TERMINATION_MSG "END"
- static int page_size;
- 
- struct pingpong_dest {
-@@ -67,6 +70,7 @@ struct pingpong_dest {
- 	int send_psn;
- 	int srqn;
- 	int pp_cnt;
-+	int sockfd;
- };
- 
- struct pingpong_context {
-@@ -303,6 +307,74 @@ static int pp_init_ctx(char *ib_devname)
- 	return 0;
- }
- 
-+static int recv_termination_ack(int index)
-+{
-+	char msg[TERMINATION_MSG_SIZE];
-+	int n = 0, r;
-+	int sockfd = ctx.rem_dest[index].sockfd;
-+
-+	while (n < TERMINATION_MSG_SIZE) {
-+		r = read(sockfd, msg + n, TERMINATION_MSG_SIZE - n);
-+		if (r < 0) {
-+			perror("client read");
-+			fprintf(stderr,
-+				"%d/%d: Couldn't read remote termination ack\n",
-+				n, TERMINATION_MSG_SIZE);
-+			return 1;
-+		}
-+		n += r;
-+	}
-+
-+	if (strcmp(msg, TERMINATION_MSG)) {
-+		fprintf(stderr, "Invalid termination ack was accepted\n");
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int send_termination_ack(int index)
-+{
-+	char msg[TERMINATION_MSG_SIZE];
-+	int sockfd = ctx.rem_dest[index].sockfd;
-+
-+	sprintf(msg, TERMINATION_FORMAT, TERMINATION_MSG);
-+
-+	if (write(sockfd, msg, TERMINATION_MSG_SIZE) != TERMINATION_MSG_SIZE) {
-+		fprintf(stderr, "Couldn't send termination ack\n");
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int pp_client_termination()
-+{
-+	if (send_termination_ack(0))
-+		return 1;
-+	if (recv_termination_ack(0))
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static int pp_server_termination()
-+{
-+	int i;
-+
-+	for (i = 0; i < ctx.num_clients; i++) {
-+		if (recv_termination_ack(i))
-+			return 1;
-+	}
-+
-+	for (i = 0; i < ctx.num_clients; i++) {
-+		if (send_termination_ack(i))
-+			return 1;
-+	}
-+
-+	return 0;
-+}
-+
- static int send_local_dest(int sockfd, int index)
- {
- 	char msg[MSG_SIZE];
-@@ -355,6 +427,7 @@ static int recv_remote_dest(int sockfd, int index)
- 	printf(ADDR_FORMAT, "remote", rem_dest->lid, rem_dest->recv_qpn,
- 	       rem_dest->send_qpn, rem_dest->send_psn, rem_dest->srqn);
- 
-+	rem_dest->sockfd = sockfd;
- 	return 0;
- }
- 
-@@ -376,7 +449,7 @@ static int connect_qps(int index)
- 			  IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU |
- 			  IBV_QP_DEST_QPN | IBV_QP_RQ_PSN |
- 			  IBV_QP_MAX_DEST_RD_ATOMIC | IBV_QP_MIN_RNR_TIMER)) {
--		fprintf(stderr, "Failed to modify send QP[%d] to RTR\n", index);
-+		fprintf(stderr, "Failed to modify recv QP[%d] to RTR\n", index);
- 		return 1;
- 	}
- 
-@@ -472,8 +545,6 @@ static int pp_client_connect(const char *servername, int port)
- 	if (connect_qps(0))
- 		return 1;
- 
--	shutdown(sockfd, SHUT_RDWR);
--	close(sockfd);
- 	return 0;
- }
- 
-@@ -536,9 +607,6 @@ static int pp_server_connect(int port)
- 
- 		if (connect_qps(i))
- 			return 1;
--
--		shutdown(connfd, SHUT_RDWR);
--		close(connfd);
- 	}
- 
- 	close(sockfd);
-@@ -561,6 +629,9 @@ static int pp_close_ctx(void)
- 			fprintf(stderr, "Couldn't destroy TGT QP[%d]\n", i);
- 			return 1;
- 		}
-+
-+		if (ctx.rem_dest[i].sockfd)
-+			close(ctx.rem_dest[i].sockfd);
- 	}
- 
- 	if (ibv_destroy_srq(ctx.srq)) {
-@@ -884,6 +955,19 @@ int main(int argc, char *argv[])
- 	if (ctx.use_event)
- 		ibv_ack_cq_events(ctx.recv_cq, num_cq_events);
- 
-+	/* Process should get an ack from the daemon to close its resources to
-+	  * make sure latest daemon's response sent via its target QP destined
-+	  * to an XSRQ created by another client won't be lost.
-+	  * Failure to do so may cause the other client to wait for that sent
-+	  * message forever. See comment on pp_post_send.
-+	*/
-+	if (servername) {
-+		if (pp_client_termination())
-+			return 1;
-+	} else if (pp_server_termination()) {
-+		return 1;
-+	}
-+
- 	if (pp_close_ctx())
- 		return 1;
- 
--- 
-1.7.1
-
+-- Wendy
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
