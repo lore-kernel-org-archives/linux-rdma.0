@@ -1,53 +1,196 @@
-From: Matthew Anderson <manderson8787-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ceph-users] Help needed porting Ceph to RSockets
-Date: Wed, 21 Aug 2013 19:44:27 +0800
-Message-ID: <CAJA05U=hROsNESLXjpSgTuZfLLofXF7CzYW+=i0nvy6Y-cDDHw@mail.gmail.com>
-References: <CAJA05UmTDGze7S50_j8RgHmPFYonk2Z94Fi6CQtxND9QxgRr3g@mail.gmail.com>
-	<CAJA05Umgio7XftGZtQdRzyWq70pXBb3oEx2jrT3BxcBr6MLoVQ@mail.gmail.com>
-	<20130812075513.43c338e1@andylap>
-	<CAJA05U=i22jHy2xbvCUk+UVN0+hOFDgt-JMSHTWKmr1+DZu0Dg@mail.gmail.com>
-	<20130812180644.447ca089@andylap>
-	<CAJA05U=KqzYis14sYXusbpk-T-F=uqvNz1XPurutmdeRz6BAdg@mail.gmail.com>
-	<20130813075312.7cac0d46@andylap>
-	<20130813160612.037ea9f2@andylap>
-	<1978D1F9-C675-4A37-AA57-C7E1158B2F72@ornl.gov>
-	<1828884A29C6694DAF28B7E6B8A8237388CA5A0F@ORSMSX109.amr.corp.intel.com>
-	<20130814092124.3f8c3b03@doppio>
-	<1828884A29C6694DAF28B7E6B8A8237388CA6C27@ORSMSX109.amr.corp.intel.com>
-	<20130820092113.612cf7a2@andylap>
-	<20130820123046.2ceb5e77@andylap>
-	<1828884A29C6694DAF28B7E6B8A8237388CA6F25@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 libibverbs] XRC - Sample application issues
+Date: Wed, 21 Aug 2013 15:48:57 +0300
+Message-ID: <1377089337-30187-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CA6F25-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andreas Bluemle <andreas.bluemle-jy6uzZffzV0b1SvskN2V4Q@public.gmane.org>, "ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jay.e.sternberg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sean,
+Fix sync issue when clients go down, it comes to prevent a case when
+client misses a response from the daemon then wait forever.
 
-I tested out the patch and unfortunately had the same results as
-Andreas. About 50% of the time the rpoll() thread in Ceph still hangs
-when rshutdown() is called. I saw a similar behaviour when increasing
-the poll time on the pre-patched version if that's of any relevance.
+Fix typo in error message.
 
-Thanks
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-On Tue, Aug 20, 2013 at 11:04 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> I have added the patch and re-tested: I still encounter
->> hangs of my application. I am not quite sure whether the
->> I hit the same error on the shutdown because now I don't hit
->> the error always, but only every now and then.
->
-> I guess this is at least some progress... :/
->
->> WHen adding the patch to my code base (git tag v1.0.17) I notice
->> an offset of "-34 lines". Which code base are you using?
->
-> This patch was generated against the tip of the git tree.
->
+This patch is on top of V9 of XRC series that was already sent.
+It should be squashed into latest patch #7 named 'Add XRC sample application'.
+
+Changes from v0 of that patch:
+Used a socket based synchronization instead of sleep.
+
+ examples/xsrq_pingpong.c |   96 +++++++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 90 insertions(+), 6 deletions(-)
+
+diff --git a/examples/xsrq_pingpong.c b/examples/xsrq_pingpong.c
+index 984740d..74205ec 100644
+--- a/examples/xsrq_pingpong.c
++++ b/examples/xsrq_pingpong.c
+@@ -57,6 +57,9 @@
+ #define MSG_SSCAN  "%x:%x:%x:%x:%x"
+ #define ADDR_FORMAT \
+ 	"%8s: LID %04x, QPN RECV %06x SEND %06x, PSN %06x, SRQN %04x\n"
++#define TERMINATION_FORMAT "%s"
++#define TERMINATION_MSG_SIZE 4
++#define TERMINATION_MSG "END"
+ static int page_size;
+ 
+ struct pingpong_dest {
+@@ -67,6 +70,7 @@ struct pingpong_dest {
+ 	int send_psn;
+ 	int srqn;
+ 	int pp_cnt;
++	int sockfd;
+ };
+ 
+ struct pingpong_context {
+@@ -303,6 +307,74 @@ static int pp_init_ctx(char *ib_devname)
+ 	return 0;
+ }
+ 
++static int recv_termination_ack(int index)
++{
++	char msg[TERMINATION_MSG_SIZE];
++	int n = 0, r;
++	int sockfd = ctx.rem_dest[index].sockfd;
++
++	while (n < TERMINATION_MSG_SIZE) {
++		r = read(sockfd, msg + n, TERMINATION_MSG_SIZE - n);
++		if (r < 0) {
++			perror("client read");
++			fprintf(stderr,
++				"%d/%d: Couldn't read remote termination ack\n",
++				n, TERMINATION_MSG_SIZE);
++			return 1;
++		}
++		n += r;
++	}
++
++	if (strcmp(msg, TERMINATION_MSG)) {
++		fprintf(stderr, "Invalid termination ack was accepted\n");
++		return 1;
++	}
++
++	return 0;
++}
++
++static int send_termination_ack(int index)
++{
++	char msg[TERMINATION_MSG_SIZE];
++	int sockfd = ctx.rem_dest[index].sockfd;
++
++	sprintf(msg, TERMINATION_FORMAT, TERMINATION_MSG);
++
++	if (write(sockfd, msg, TERMINATION_MSG_SIZE) != TERMINATION_MSG_SIZE) {
++		fprintf(stderr, "Couldn't send termination ack\n");
++		return 1;
++	}
++
++	return 0;
++}
++
++static int pp_client_termination()
++{
++	if (send_termination_ack(0))
++		return 1;
++	if (recv_termination_ack(0))
++		return 1;
++
++	return 0;
++}
++
++static int pp_server_termination()
++{
++	int i;
++
++	for (i = 0; i < ctx.num_clients; i++) {
++		if (recv_termination_ack(i))
++			return 1;
++	}
++
++	for (i = 0; i < ctx.num_clients; i++) {
++		if (send_termination_ack(i))
++			return 1;
++	}
++
++	return 0;
++}
++
+ static int send_local_dest(int sockfd, int index)
+ {
+ 	char msg[MSG_SIZE];
+@@ -355,6 +427,7 @@ static int recv_remote_dest(int sockfd, int index)
+ 	printf(ADDR_FORMAT, "remote", rem_dest->lid, rem_dest->recv_qpn,
+ 	       rem_dest->send_qpn, rem_dest->send_psn, rem_dest->srqn);
+ 
++	rem_dest->sockfd = sockfd;
+ 	return 0;
+ }
+ 
+@@ -376,7 +449,7 @@ static int connect_qps(int index)
+ 			  IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU |
+ 			  IBV_QP_DEST_QPN | IBV_QP_RQ_PSN |
+ 			  IBV_QP_MAX_DEST_RD_ATOMIC | IBV_QP_MIN_RNR_TIMER)) {
+-		fprintf(stderr, "Failed to modify send QP[%d] to RTR\n", index);
++		fprintf(stderr, "Failed to modify recv QP[%d] to RTR\n", index);
+ 		return 1;
+ 	}
+ 
+@@ -472,8 +545,6 @@ static int pp_client_connect(const char *servername, int port)
+ 	if (connect_qps(0))
+ 		return 1;
+ 
+-	shutdown(sockfd, SHUT_RDWR);
+-	close(sockfd);
+ 	return 0;
+ }
+ 
+@@ -536,9 +607,6 @@ static int pp_server_connect(int port)
+ 
+ 		if (connect_qps(i))
+ 			return 1;
+-
+-		shutdown(connfd, SHUT_RDWR);
+-		close(connfd);
+ 	}
+ 
+ 	close(sockfd);
+@@ -561,6 +629,9 @@ static int pp_close_ctx(void)
+ 			fprintf(stderr, "Couldn't destroy TGT QP[%d]\n", i);
+ 			return 1;
+ 		}
++
++		if (ctx.rem_dest[i].sockfd)
++			close(ctx.rem_dest[i].sockfd);
+ 	}
+ 
+ 	if (ibv_destroy_srq(ctx.srq)) {
+@@ -884,6 +955,19 @@ int main(int argc, char *argv[])
+ 	if (ctx.use_event)
+ 		ibv_ack_cq_events(ctx.recv_cq, num_cq_events);
+ 
++	/* Process should get an ack from the daemon to close its resources to
++	  * make sure latest daemon's response sent via its target QP destined
++	  * to an XSRQ created by another client won't be lost.
++	  * Failure to do so may cause the other client to wait for that sent
++	  * message forever. See comment on pp_post_send.
++	*/
++	if (servername) {
++		if (pp_client_termination())
++			return 1;
++	} else if (pp_server_termination()) {
++		return 1;
++	}
++
+ 	if (pp_close_ctx())
+ 		return 1;
+ 
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
