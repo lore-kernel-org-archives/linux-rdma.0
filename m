@@ -1,43 +1,53 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 8/8] IB/srp: Make queue size configurable
-Date: Wed, 21 Aug 2013 10:19:36 +0300
-Message-ID: <52146A08.8090802@mellanox.com>
-References: <521363EA.8080906@acm.org> <52136609.3090406@acm.org>  <52138C6E.6080201@mellanox.com> <5213917B.3020403@acm.org> <1377020595.22321.6.camel@frustration.ornl.gov>
+From: Matthew Anderson <manderson8787-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ceph-users] Help needed porting Ceph to RSockets
+Date: Wed, 21 Aug 2013 19:44:27 +0800
+Message-ID: <CAJA05U=hROsNESLXjpSgTuZfLLofXF7CzYW+=i0nvy6Y-cDDHw@mail.gmail.com>
+References: <CAJA05UmTDGze7S50_j8RgHmPFYonk2Z94Fi6CQtxND9QxgRr3g@mail.gmail.com>
+	<CAJA05Umgio7XftGZtQdRzyWq70pXBb3oEx2jrT3BxcBr6MLoVQ@mail.gmail.com>
+	<20130812075513.43c338e1@andylap>
+	<CAJA05U=i22jHy2xbvCUk+UVN0+hOFDgt-JMSHTWKmr1+DZu0Dg@mail.gmail.com>
+	<20130812180644.447ca089@andylap>
+	<CAJA05U=KqzYis14sYXusbpk-T-F=uqvNz1XPurutmdeRz6BAdg@mail.gmail.com>
+	<20130813075312.7cac0d46@andylap>
+	<20130813160612.037ea9f2@andylap>
+	<1978D1F9-C675-4A37-AA57-C7E1158B2F72@ornl.gov>
+	<1828884A29C6694DAF28B7E6B8A8237388CA5A0F@ORSMSX109.amr.corp.intel.com>
+	<20130814092124.3f8c3b03@doppio>
+	<1828884A29C6694DAF28B7E6B8A8237388CA6C27@ORSMSX109.amr.corp.intel.com>
+	<20130820092113.612cf7a2@andylap>
+	<20130820123046.2ceb5e77@andylap>
+	<1828884A29C6694DAF28B7E6B8A8237388CA6F25@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377020595.22321.6.camel-zHLflQxYYDO4Hhoo1DtQwJ9G+ZOsUmrO@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CA6F25-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Konrad Grzybowski <konradg-XLFqaoR9dsI@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andreas Bluemle <andreas.bluemle-jy6uzZffzV0b1SvskN2V4Q@public.gmane.org>, "ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/20/2013 8:43 PM, David Dillow wrote:
-> On Tue, 2013-08-20 at 17:55 +0200, Bart Van Assche wrote:
->> On 08/20/13 17:34, Sagi Grimberg wrote:
->>> Question,
->>> If srp now will allow larger queues while using a single global FMR pool
->>> of size 1024, isn't it more likely now that in stress environment srp
->>> will run out of FMRs to handle IO commands?
->>> I mean that let's say that you have x scsi hosts with can_queue size of
->>> 512 (+-) and all of them are running IO stress, is it possible that all
->>> FMRs will be inuse and no FMR is available to register the next IO SG-list?
->>> Did you try out such a scenario?
->>>
->>> I guess that in such a case IB core will return EAGAIN and SRP will
->>> return SCSI_MLQUEUE_HOST_BUSY.
->>> I think it is a good Idea to move FMR pools to be per connection rather
->>> than a global pool, what do you think?
->> That makes sense to me. And as long as the above has not yet been
->> implemented I'm fine with dropping patch 8/8 from this patch set.
-> Don't drop it; most configs won't have all that many connections and
-> shouldn't have an issue; even those that do will only see a potential
-> slowdown when running with everything at once.
->
-> We can address the FMR/BMME issues on top of this patch.
+Hi Sean,
 
-Agree.
+I tested out the patch and unfortunately had the same results as
+Andreas. About 50% of the time the rpoll() thread in Ceph still hangs
+when rshutdown() is called. I saw a similar behaviour when increasing
+the poll time on the pre-patched version if that's of any relevance.
+
+Thanks
+
+On Tue, Aug 20, 2013 at 11:04 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> I have added the patch and re-tested: I still encounter
+>> hangs of my application. I am not quite sure whether the
+>> I hit the same error on the shutdown because now I don't hit
+>> the error always, but only every now and then.
+>
+> I guess this is at least some progress... :/
+>
+>> WHen adding the patch to my code base (git tag v1.0.17) I notice
+>> an offset of "-34 lines". Which code base are you using?
+>
+> This patch was generated against the tip of the git tree.
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
