@@ -1,55 +1,28 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Helps to Decode rpc_debug Output
-Date: Wed, 21 Aug 2013 08:55:49 -0700
-Message-ID: <CABgxfbH3uA2WzQ2DgOgRrCMhcJ1J6E2NCh13FtDfRzDWje9vWQ@mail.gmail.com>
-References: <CABgxfbGFHv2n5=78_irkxXnX9BFDFPzZvqgs_iDn64AR_3cf5w@mail.gmail.com>
-	<520CCDBB.1020501@talpey.com>
-	<CABgxfbFixDTUy4e1EQty86dvNeisG7+hd2QdVSQvv4T2tokFoQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABgxfbFixDTUy4e1EQty86dvNeisG7+hd2QdVSQvv4T2tokFoQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Michal Schmidt <mschmidt-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] drivers/infiniband: fix too big NAPI weights
+Date: Wed, 21 Aug 2013 18:50:20 +0200
+Message-ID: <1377103822-1752-1-git-send-email-mschmidt@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 15, 2013 at 11:08 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Thu, Aug 15, 2013 at 5:46 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
->> On 8/14/2013 8:14 PM, Wendy Cheng wrote:
->>>
->>> Longer version of the question:
->>> I'm trying to enable NFS-RDMA on an embedded system (based on 2.6.38
->>> kernel) as a client. The IB stacks are taken from OFED 1.5.4. NFS
->>> server is a RHEL 6.3 Xeon box. The connection uses mellox-4 driver.
->>> Memory registration is "RPCRDMA_ALLPHYSICAL". There are many issues so
->>> far but I do manage to get nfs mount working. Simple file operations
->>> (such as "ls", file read/write, "scp", etc) seem to work as well.
->>
+Some drivers request too big NAPI weights and would trigger the error
+message in netif_napi_add() added in commit 82dc3c63. Let's fix them.
 
-Yay ... got this up .. amazingly on a uOS that does not have much of
-the conventional kernel debug facilities.
+Michal Schmidt (2):
+  IB/nes: lower NAPI weight
+  IB/ipoib: lower NAPI weight
 
-The hang was caused by auto disconnect, triggered by xprt->timer. The
-task was carried out by xprt_init_autodisconnect(). It silently
-disconnects the xprt w/out sensible warning. The uOS is on a
-small-core (slower) hardware. Instead of a hard number, this timeout
-value needs to be at least a "proc" tunable. Will check newer kernels
-to see whether it's been improved and/or draft a patch later.
+ drivers/infiniband/hw/nes/nes_nic.c       | 2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-One thing I'm still scratching my head is that ... by looking at the
-raw IOPS, I don't see dramatic difference between NFS-RDMA vs. NFS
-over IPOIB (TCP). However, the total run time differs greatly. NFS
-over RDMA seems to take a much longer time to finish (vs. NFS over
-IPOIB). Not sure why is that .... Maybe by the constant
-connect/disconnect triggered by reestablish_timeout ? The connection
-re-establish is known to be expensive on this uOS. Why do we need two
-sets of timeout where
-1. xprt->timer disconnects (w/out reconnect) ?
-2. reestablish_timeout constantly disconnect/re-connect ?
+-- 
+1.8.3.1
 
--- Wendy
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
