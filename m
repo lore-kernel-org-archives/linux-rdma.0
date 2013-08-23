@@ -1,33 +1,50 @@
-From: Rui Xiang <rui.xiang@huawei.com>
-Subject: Re: [PATCH 0/2] fs: supply inode uid/gid setting interface
-Date: Fri, 23 Aug 2013 15:32:30 +0800
-Message-ID: <5217100E.6080506@huawei.com>
-References: <1377226118-43756-1-git-send-email-rui.xiang@huawei.com> <20130823041010.GA12296@kroah.com>
+From: lokesh agarwal <lokesh.agarwal1986-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: RDMA CM EVENT rejected with status = 4 (timeout)
+Date: Fri, 23 Aug 2013 11:34:28 -0700
+Message-ID: <CABqF1pZSmv1S-07pGxwoSaLB7zYWRhuFxiAtz6S-hFYtyEOY5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20130823041010.GA12296@kroah.com>
-Sender: owner-linux-mm@kvack.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, linux-usb@vger.kernel.org, v9fs-developer@lists.sourceforge.net, linux-mm@kvack.org, cgroups@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2013/8/23 12:10, Greg KH wrote:
-> On Fri, Aug 23, 2013 at 10:48:36AM +0800, Rui Xiang wrote:
->> This patchset implements an accessor functions to set uid/gid
->> in inode struct. Just finish code clean up.
-> 
-> Why?
-> 
-It can introduce a new function to reduce some codes. 
- Just clean up. 
+Hello,
+I am looking at a very peculiar race condition and dont quite
+understand why rdma cm
+is generating a certain event.
+
+The race is as follows.
+Lets say Process P1 is connection to Process P2 (RC connection) using RDMA CM.
+Also the connection is asynchronous, i.e the fd associated with the cm
+event channel has been converted to non blocking.
+
+Consider Time along the vertical access.
+
+P1-> addr_resolve()
+      select(cm_event_fd)
+      gets RDMA_CM_ADDR_RESOLVED
+
+       rout_resolve()
+       gets RDMA_CM_ROUTE_RESOLVE
+
+       connect():
+
+P2: Gets Connect request
+
+P1: -> Dies
+
+P2: create_qp() -> Fails -> deletes the cmid associated
+
+P2: select(cm_fd)
+
+P2: gets RDMA_CM_EVENT_REJECTED -> event->status = 4...
 
 
-Thanks.
-
+P2 does not have ANY outstanding connections. It is not trying to connect to
+anything. It is just passively accepting connections.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
