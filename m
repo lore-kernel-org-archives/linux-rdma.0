@@ -1,50 +1,76 @@
-From: <bgottumukka-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 14/14] RDMA/ocrdma: Fix passing wrong opcode to modify_srq.
-Date: Mon, 26 Aug 2013 15:27:51 +0530
-Message-ID: <ef68ed35-e4ac-493c-b2a3-13f8d7685086@CMEXHTCAS1.ad.emulex.com>
-References: <1377511071-16967-1-git-send-email-bgottumukka@emulex.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 02/14] RDMA/ocrdma: Add support for FRMR.
+Date: Mon, 26 Aug 2013 12:08:52 +0200
+Message-ID: <521B2934.3050008@acm.org>
+References: <1377511071-16967-1-git-send-email-bgottumukka@emulex.com> <2eee7e35-504e-4f2a-a364-527e90669108@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377511071-16967-1-git-send-email-bgottumukka-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <2eee7e35-504e-4f2a-a364-527e90669108-3RiH6ntJJkP8BX6JNMqfyFjyZtpTMMwT@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: bgottumukka-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+On 08/26/13 11:57, bgottumukka-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org wrote:
+> From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> 
+> Also get the max_srq value from query_config mailbox response.
+> 
+> Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Fix passing wrong opcode to ocrdma_modify_srq and query SRQ.
+There are already a few drivers upstream in which the fast register
+memory region work request is abbreviated as FRWR. Please consider
+renaming FRMR into FRWR in order to avoid confusion and in order to
+make it easier to find related code with grep in the kernel tree.
 
-Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks,
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index acf5441..4ed8235 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2393,7 +2393,7 @@ int ocrdma_mbx_modify_srq(struct ocrdma_srq *srq, struct ib_srq_attr *srq_attr)
- 	struct ocrdma_pd *pd = srq->pd;
- 	struct ocrdma_dev *dev = get_ocrdma_dev(pd->ibpd.device);
- 
--	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_CREATE_SRQ, sizeof(*cmd));
-+	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_MODIFY_SRQ, sizeof(*cmd));
- 	if (!cmd)
- 		return status;
- 	cmd->id = srq->id;
-@@ -2410,7 +2410,7 @@ int ocrdma_mbx_query_srq(struct ocrdma_srq *srq, struct ib_srq_attr *srq_attr)
- 	struct ocrdma_query_srq *cmd;
- 	struct ocrdma_dev *dev = get_ocrdma_dev(srq->ibsrq.device);
- 
--	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_CREATE_SRQ, sizeof(*cmd));
-+	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_QUERY_SRQ, sizeof(*cmd));
- 	if (!cmd)
- 		return status;
- 	cmd->id = srq->rq.dbid;
--- 
-1.8.2.3
+Bart.
+
+$ git grep -i '[^r]frwr' rdreier-infiniband/for-next | cat
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:static __be64 frwr_mkey_mask(void)
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:static void set_frwr_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:    umr->mkey_mask = frwr_mkey_mask();
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:static void set_frwr_pages(struct mlx5_wqe_data_seg *dseg,
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:static int set_frwr_li_wr(void **seg, struct ib_send_wr *wr, int *size,
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:    set_frwr_umr_segment(*seg, wr, li);
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:            set_frwr_pages(*seg, wr, mdev, pd, writ);
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:                            err = set_frwr_li_wr(&seg, wr, &size, mdev, to_mpd(ibqp->pd), qp);
+rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:                            err = set_frwr_li_wr(&seg, wr, &size, mdev, to_mpd(ibqp->pd), qp);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:   /* For fast registration - FRWR */
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:           } frwr;
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:int  iser_reg_rdma_mem_frwr(struct iscsi_iser_task *task,
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:void iser_unreg_mem_frwr(struct iscsi_iser_task *iser_task,
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:void iser_free_frwr_pool(struct iser_conn *ib_conn);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_memory.c: * iser_reg_rdma_mem_frwr - Registers memory intended for RDMA,
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_memory.c:int iser_reg_rdma_mem_frwr(struct iscsi_iser_task *iser_task,
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_memory.c:          desc = list_first_entry(&ib_conn->fastreg.frwr.pool,
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_memory.c:  list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           iser_info("FRWR supported, using FRWR for registration\n");
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           device->iser_alloc_rdma_reg_res = iser_create_frwr_pool;
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           device->iser_free_rdma_reg_res = iser_free_frwr_pool;
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           device->iser_reg_rdma_mem = iser_reg_rdma_mem_frwr;
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           device->iser_unreg_rdma_mem = iser_unreg_mem_frwr;
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           iser_err("IB device does not support FMRs nor FRWRs, can't register memory\n");
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c: * iser_create_frwr_pool - Creates pool of fast_reg descriptors
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max)
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   INIT_LIST_HEAD(&ib_conn->fastreg.frwr.pool);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   ib_conn->fastreg.frwr.pool_size = 0;
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           ib_conn->fastreg.frwr.pool_size++;
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   iser_free_frwr_pool(ib_conn);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c: * iser_free_frwr_pool - releases the pool of fast_reg descriptors
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:void iser_free_frwr_pool(struct iser_conn *ib_conn)
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   if (list_empty(&ib_conn->fastreg.frwr.pool))
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   iser_info("freeing conn %p frwr pool\n", ib_conn);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   list_for_each_entry_safe(desc, tmp, &ib_conn->fastreg.frwr.pool, list) {
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   if (i < ib_conn->fastreg.frwr.pool_size)
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:                     ib_conn->fastreg.frwr.pool_size - i);
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:void iser_unreg_mem_frwr(struct iscsi_iser_task *iser_task,
+rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
