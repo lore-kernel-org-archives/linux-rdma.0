@@ -1,63 +1,79 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Helps to Decode rpc_debug Output
-Date: Mon, 26 Aug 2013 10:08:19 -0700
-Message-ID: <CABgxfbEkgH4f86G2K8SXXQuLsE_R6+Wk_jw294Kcu3vT8Y8WMg@mail.gmail.com>
-References: <CABgxfbGFHv2n5=78_irkxXnX9BFDFPzZvqgs_iDn64AR_3cf5w@mail.gmail.com>
-	<520CCDBB.1020501@talpey.com>
-	<CABgxfbFixDTUy4e1EQty86dvNeisG7+hd2QdVSQvv4T2tokFoQ@mail.gmail.com>
-	<CABgxfbH3uA2WzQ2DgOgRrCMhcJ1J6E2NCh13FtDfRzDWje9vWQ@mail.gmail.com>
-	<521B56A9.9090003@talpey.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Handling incoming RDMA CM connections when there is more than
+ one IB HCA in a system
+Date: Mon, 26 Aug 2013 11:48:44 -0600
+Message-ID: <20130826174844.GD12296@obsidianresearch.com>
+References: <CACyXjPzPJ=cZ1WkjYJ_o_4uLE50mn-TX93Answz7nw2rn619-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <521B56A9.9090003-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CACyXjPzPJ=cZ1WkjYJ_o_4uLE50mn-TX93Answz7nw2rn619-Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Richard Sharpe <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 26, 2013 at 6:22 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
-> On 8/21/2013 11:55 AM, Wendy Cheng wrote:
->>
->> On Thu, Aug 15, 2013 at 11:08 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> wrote:
->>>
->>> On Thu, Aug 15, 2013 at 5:46 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
->>>>
->>>> On 8/14/2013 8:14 PM, Wendy Cheng wrote:
->>>>>
->>>>>
->>>>> Longer version of the question:
->>>>> I'm trying to enable NFS-RDMA on an embedded system (based on 2.6.38
->>>>> kernel) as a client. The IB stacks are taken from OFED 1.5.4. NFS
->>>>> server is a RHEL 6.3 Xeon box. The connection uses mellox-4 driver.
->>>>> Memory registration is "RPCRDMA_ALLPHYSICAL". There are many issues so
->>>>> far but I do manage to get nfs mount working. Simple file operations
->>>>> (such as "ls", file read/write, "scp", etc) seem to work as well.
->>>>
+On Sun, Aug 25, 2013 at 04:41:59AM -0700, Richard Sharpe wrote:
+> Hi folks,
+> 
+> I am attempting to implement SMB Direct (aka SMB over RDMA) for Samba.
+> 
+> For historical, protocol and performance reasons I believe that I need
+> to write a character driver that offloads RDMA stuff to the kernel.
+> 
+> Briefly, these reasons are:
+> 
+> 1. Samba forks a new smbd when each incoming SMB connection arrives
+> 
+> 2. SMB Over RDMA operates by first connecting to the server over TCP,
+> bringing up SMB, determining that the server supports RDMA and then
+> establishing an RDMA connection, bringing up SMB Direct and then
+> transporting SMB PDUs over that.
+> 
+> 3. The current Windows client implementation pays no attention to the
+> port supplied to it by the server and always connects on port 4554.
 
->> One thing I'm still scratching my head is that ... by looking at the
->> raw IOPS, I don't see dramatic difference between NFS-RDMA vs. NFS
->> over IPOIB (TCP).
->
->
-> Sounds like your bottleneck lies in some other component. What's the
-> storage, for example? RDMA won't do a thing to improve a slow disk.
-> Or, what kind of IOPS rate are you seeing? If these systems aren't
-> generating enough load to push a CPU limit, then shifting the protocol
-> on the same link might not yield much.
+So your issue is that when the transport is upgraded SMB performs a
+whole new connection setup to the common port and the server is
+expected to associate the new connection to the old based on a GUID in
+the first messages?
 
-There is no kernel profiling tool with this uOS (yet) so it is hard to
-identify the bottleneck. Looking from the surface, the slow down seems
-to be from SUNRPC's Van Jacobson congestion control
-(xprt_reserve_xprt_cong()) where it either creates a race condition
-for the transmissions (write/commit) to miss their wake-up(s); or the
-algorithm itself is not a right choice for this client system that
-consists of many (244 on my system) slower cores (CPU).
+How about this for a flow?
+ - The master process listens on all relavent TCP and RDMA ports for
+   incoming connections
+ - At each incomming connection it forks and constructs a sub process
+   for that connection. I think we can do this today with RDMA, but if
+   not it should be doable with less effort than making your own
+   kernel driver :) Sean might know for sure..
+ - The new smbd is now either a from scratch new connection (normal
+   case today) or an 'upgrade' to an prior connection
+ - If it is an upgrade, use some scheme to transfer the samba internal
+   state from the old connection smbd to the new connection smbd
 
-Solid state drives are used on the RHEL server.
+That keeps your per-process model..
 
--- Wendy
+> However, I figure that I will eventually need to support situations
+> where there are multiple IB HCAs in a system, and I wondered if
+> there are any abstractions that allow me to do an ib_cm_listen
+> across multiple devices at once?
+
+Not really, you need to listen on every device.
+
+And you almost certainly need to use the RDMA CM interfaces (as Or
+mentioned), that will be mandatory to support iWarp, and it looks like
+MS is using the RDMA-CM protocol on IB as well.
+
+> 3. When I get a callback on one listen, cancel the others.
+
+Why? Wouldn't you listen for RDMA connections permanently, like for
+the TCP listen?
+
+>From what I read about the SMB protocol it looks completely valid to
+bypass the TCP first stage and go directly to RDMA. Or go from TCP to
+TCP, or RDMA to TCP, or whatever.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
