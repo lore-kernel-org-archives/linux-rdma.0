@@ -1,219 +1,63 @@
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH] IB/srp: add change_queue_depth and change_queue_type support
-Date: Mon, 26 Aug 2013 15:53:25 +0200
-Message-ID: <521B5DD5.3020804@profitbricks.com>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Helps to Decode rpc_debug Output
+Date: Mon, 26 Aug 2013 10:08:19 -0700
+Message-ID: <CABgxfbEkgH4f86G2K8SXXQuLsE_R6+Wk_jw294Kcu3vT8Y8WMg@mail.gmail.com>
+References: <CABgxfbGFHv2n5=78_irkxXnX9BFDFPzZvqgs_iDn64AR_3cf5w@mail.gmail.com>
+	<520CCDBB.1020501@talpey.com>
+	<CABgxfbFixDTUy4e1EQty86dvNeisG7+hd2QdVSQvv4T2tokFoQ@mail.gmail.com>
+	<CABgxfbH3uA2WzQ2DgOgRrCMhcJ1J6E2NCh13FtDfRzDWje9vWQ@mail.gmail.com>
+	<521B56A9.9090003@talpey.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000302020102090501040607"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <521B56A9.9090003-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000302020102090501040607
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Mon, Aug 26, 2013 at 6:22 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
+> On 8/21/2013 11:55 AM, Wendy Cheng wrote:
+>>
+>> On Thu, Aug 15, 2013 at 11:08 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> wrote:
+>>>
+>>> On Thu, Aug 15, 2013 at 5:46 AM, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org> wrote:
+>>>>
+>>>> On 8/14/2013 8:14 PM, Wendy Cheng wrote:
+>>>>>
+>>>>>
+>>>>> Longer version of the question:
+>>>>> I'm trying to enable NFS-RDMA on an embedded system (based on 2.6.38
+>>>>> kernel) as a client. The IB stacks are taken from OFED 1.5.4. NFS
+>>>>> server is a RHEL 6.3 Xeon box. The connection uses mellox-4 driver.
+>>>>> Memory registration is "RPCRDMA_ALLPHYSICAL". There are many issues so
+>>>>> far but I do manage to get nfs mount working. Simple file operations
+>>>>> (such as "ls", file read/write, "scp", etc) seem to work as well.
+>>>>
 
-Attached patch add change_queue_depth/change_queue_type function support
-for srp driver, as what most modern scsi host driver does.
+>> One thing I'm still scratching my head is that ... by looking at the
+>> raw IOPS, I don't see dramatic difference between NFS-RDMA vs. NFS
+>> over IPOIB (TCP).
+>
+>
+> Sounds like your bottleneck lies in some other component. What's the
+> storage, for example? RDMA won't do a thing to improve a slow disk.
+> Or, what kind of IOPS rate are you seeing? If these systems aren't
+> generating enough load to push a CPU limit, then shifting the protocol
+> on the same link might not yield much.
 
->From 10445c9fd9e24d03269e43680bcd2504c713b622 Mon Sep 17 00:00:00 2001
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Date: Mon, 26 Aug 2013 15:50:03 +0200
-Subject: [PATCH] IB/srp: add change_queue_depth/change_queue_type support
+There is no kernel profiling tool with this uOS (yet) so it is hard to
+identify the bottleneck. Looking from the surface, the slow down seems
+to be from SUNRPC's Van Jacobson congestion control
+(xprt_reserve_xprt_cong()) where it either creates a race condition
+for the transmissions (write/commit) to miss their wake-up(s); or the
+algorithm itself is not a right choice for this client system that
+consists of many (244 on my system) slower cores (CPU).
 
-Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c |   53
-+++++++++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
+Solid state drives are used on the RHEL server.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-b/drivers/infiniband/ulp/srp/ib_srp.c
-index f93baf8..e2c2781 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -46,6 +46,7 @@
- #include <scsi/scsi.h>
- #include <scsi/scsi_device.h>
- #include <scsi/scsi_dbg.h>
-+#include <scsi/scsi_tcq.h>
- #include <scsi/srp.h>
- #include <scsi/scsi_transport_srp.h>
-
-@@ -1697,6 +1698,56 @@ static int srp_cm_handler(struct ib_cm_id *cm_id,
-struct ib_cm_event *event)
-
- 	return 0;
- }
-+/**
-+ * srp_change_queue_type - changing device queue tag type
-+ * @sdev: scsi device struct
-+ * @tag_type: requested tag type
-+ *
-+ * Returns queue tag type.
-+ */
-+static int
-+srp_change_queue_type(struct scsi_device *sdev, int tag_type)
-+{
-+	if (sdev->tagged_supported) {
-+		scsi_set_tag_type(sdev, tag_type);
-+		if (tag_type)
-+			scsi_activate_tcq(sdev, sdev->queue_depth);
-+		else
-+			scsi_deactivate_tcq(sdev, sdev->queue_depth);
-+	} else
-+		tag_type = 0;
-+
-+	return tag_type;
-+}
-+
-+/**
-+ * srp_change_queue_depth - setting device queue depth
-+ * @sdev: scsi device struct
-+ * @qdepth: requested queue depth
-+ * @reason: SCSI_QDEPTH_DEFAULT/SCSI_QDEPTH_QFULL/SCSI_QDEPTH_RAMP_UP
-+ * (see include/scsi/scsi_host.h for definition)
-+ *
-+ * Returns queue depth.
-+ */
-+static int
-+srp_change_queue_depth(struct scsi_device *sdev, int qdepth, int reason)
-+{
-+	if (reason == SCSI_QDEPTH_DEFAULT || reason == SCSI_QDEPTH_RAMP_UP) {
-+		struct Scsi_Host *shost = sdev->host;
-+		int max_depth;
-+		max_depth = shost->can_queue;
-+		if (!sdev->tagged_supported)
-+			max_depth = 1;
-+		if (qdepth > max_depth)
-+			qdepth = max_depth;
-+		scsi_adjust_queue_depth(sdev, scsi_get_tag_type(sdev), qdepth);
-+	} else if (reason == SCSI_QDEPTH_QFULL)
-+		scsi_track_queue_full(sdev, qdepth);
-+	else
-+		return -EOPNOTSUPP;
-+
-+	return sdev->queue_depth;
-+}
-
- static int srp_send_tsk_mgmt(struct srp_target_port *target,
- 			     u64 req_tag, unsigned int lun, u8 func)
-@@ -1961,6 +2012,8 @@ static struct scsi_host_template srp_template = {
- 	.slave_configure		= srp_slave_configure,
- 	.info				= srp_target_info,
- 	.queuecommand			= srp_queuecommand,
-+	.change_queue_depth             = srp_change_queue_depth,
-+	.change_queue_type              = srp_change_queue_type,
- 	.eh_abort_handler		= srp_abort,
- 	.eh_device_reset_handler	= srp_reset_device,
- 	.eh_host_reset_handler		= srp_reset_host,
--- 
-1.7.10.4
-
---------------000302020102090501040607
-Content-Type: text/x-patch;
- name="0001-IB-srp-add-change_queue_depth-change_queue_type-supp.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-IB-srp-add-change_queue_depth-change_queue_type-supp.pa";
- filename*1="tch"
-
->From 10445c9fd9e24d03269e43680bcd2504c713b622 Mon Sep 17 00:00:00 2001
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Date: Mon, 26 Aug 2013 15:50:03 +0200
-Subject: [PATCH] IB/srp: add change_queue_depth/change_queue_type support
-
-Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c |   53 +++++++++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index f93baf8..e2c2781 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -46,6 +46,7 @@
- #include <scsi/scsi.h>
- #include <scsi/scsi_device.h>
- #include <scsi/scsi_dbg.h>
-+#include <scsi/scsi_tcq.h>
- #include <scsi/srp.h>
- #include <scsi/scsi_transport_srp.h>
- 
-@@ -1697,6 +1698,56 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 
- 	return 0;
- }
-+/**
-+ * srp_change_queue_type - changing device queue tag type
-+ * @sdev: scsi device struct
-+ * @tag_type: requested tag type
-+ *
-+ * Returns queue tag type.
-+ */
-+static int
-+srp_change_queue_type(struct scsi_device *sdev, int tag_type)
-+{
-+	if (sdev->tagged_supported) {
-+		scsi_set_tag_type(sdev, tag_type);
-+		if (tag_type)
-+			scsi_activate_tcq(sdev, sdev->queue_depth);
-+		else
-+			scsi_deactivate_tcq(sdev, sdev->queue_depth);
-+	} else
-+		tag_type = 0;
-+
-+	return tag_type;
-+}
-+
-+/**
-+ * srp_change_queue_depth - setting device queue depth
-+ * @sdev: scsi device struct
-+ * @qdepth: requested queue depth
-+ * @reason: SCSI_QDEPTH_DEFAULT/SCSI_QDEPTH_QFULL/SCSI_QDEPTH_RAMP_UP
-+ * (see include/scsi/scsi_host.h for definition)
-+ *
-+ * Returns queue depth.
-+ */
-+static int
-+srp_change_queue_depth(struct scsi_device *sdev, int qdepth, int reason)
-+{
-+	if (reason == SCSI_QDEPTH_DEFAULT || reason == SCSI_QDEPTH_RAMP_UP) {
-+		struct Scsi_Host *shost = sdev->host;
-+		int max_depth;
-+		max_depth = shost->can_queue;
-+		if (!sdev->tagged_supported)
-+			max_depth = 1;
-+		if (qdepth > max_depth)
-+			qdepth = max_depth;
-+		scsi_adjust_queue_depth(sdev, scsi_get_tag_type(sdev), qdepth);
-+	} else if (reason == SCSI_QDEPTH_QFULL)
-+		scsi_track_queue_full(sdev, qdepth);
-+	else
-+		return -EOPNOTSUPP;
-+
-+	return sdev->queue_depth;
-+}
- 
- static int srp_send_tsk_mgmt(struct srp_target_port *target,
- 			     u64 req_tag, unsigned int lun, u8 func)
-@@ -1961,6 +2012,8 @@ static struct scsi_host_template srp_template = {
- 	.slave_configure		= srp_slave_configure,
- 	.info				= srp_target_info,
- 	.queuecommand			= srp_queuecommand,
-+	.change_queue_depth             = srp_change_queue_depth,
-+	.change_queue_type              = srp_change_queue_type,
- 	.eh_abort_handler		= srp_abort,
- 	.eh_device_reset_handler	= srp_reset_device,
- 	.eh_host_reset_handler		= srp_reset_host,
--- 
-1.7.10.4
-
-
---------------000302020102090501040607--
+-- Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
