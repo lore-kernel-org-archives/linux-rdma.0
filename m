@@ -1,55 +1,49 @@
-From: "David Laight" <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 0/2] fs: supply inode uid/gid setting interface
-Date: Tue, 27 Aug 2013 10:20:50 +0100
-Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6026B7307@saturn3.aculab.com>
-References: <1377226118-43756-1-git-send-email-rui.xiang@huawei.com> <20130823041010.GA12296@kroah.com> <5217100E.6080506@huawei.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V5 for-next 3/4] IB/core: Export ib_create/destroy_flow
+ through uverbs
+Date: Tue, 27 Aug 2013 15:37:17 +0300
+Message-ID: <521C9D7D.5010304@mellanox.com>
+References: <1376477911-13828-1-git-send-email-ogerlitz@mellanox.com> <1376477911-13828-4-git-send-email-ogerlitz@mellanox.com> <CAL1RGDX=ppDWfzVmcFyKOSqYJ-JecPpmdxj+unzL4gWBEKS1vg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <5217100E.6080506@huawei.com>
-Sender: owner-linux-mm@kvack.org
-To: Rui Xiang <rui.xiang@huawei.com>, Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, viro@zeniv.linux.org.uk, cgroups@vger.kernel.org, linux-fsdevel@vger.kernel.org, v9fs-developer@lists.sourceforge.net, linuxppc-dev@lists.ozlabs.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDX=ppDWfzVmcFyKOSqYJ-JecPpmdxj+unzL4gWBEKS1vg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: Re: [PATCH 0/2] fs: supply inode uid/gid setting interface
->=20
-> On 2013/8/23 12:10, Greg KH wrote:
-> > On Fri, Aug 23, 2013 at 10:48:36AM +0800, Rui Xiang wrote:
-> >> This patchset implements an accessor functions to set uid/gid
-> >> in inode struct. Just finish code clean up.
-> >
-> > Why?
-> >
-> It can introduce a new function to reduce some codes.
->  Just clean up.
+On 26/8/2013 10:01 PM, Roland Dreier wrote:
+> On Wed, Aug 14, 2013 at 3:58 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> +       if (cmd.flow_attr.num_of_specs) {
+>> +               kern_flow_attr = kmalloc(cmd.flow_attr.size, GFP_KERNEL);
+>> +               if (!kern_flow_attr)
+>> +                       return -ENOMEM;
+>> +
+>> +               memcpy(kern_flow_attr, &cmd.flow_attr, sizeof(*kern_flow_attr));
+>> +               kern_attr_size = cmd.flow_attr.size - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr_ex);
+>> +               if (copy_from_user(kern_flow_attr + 1, buf + sizeof(cmd),
+>> +                                  kern_attr_size)) {
+>> +                       err = -EFAULT;
+>> +                       goto err_free_attr;
+>> +               }
+>> +       } else {
+>
+> This looks risky... it's basically taking size fields passed in from
+> userspace and trusting them enough to pass directly to kmalloc.  In
+> fact kern_attr_size is a plain int and I don't see even enogh checking
+> to make sure it's positive (nothing I see enforces that
+> cmd.flow_attr.size > sizeof(cmd) + sizeof(struct
+> ib_uverbs_cmd_hdr_ex)).
+>
+>   - R.
+>
 
-In what sense is it a 'cleanup' ?
+You are correct. We'll fix it in V6.
 
-To my mind it just means that anyone reading the code has
-to go and look at another file in order to see what the
-function does (it might be expected to be more complex).
-
-It also adds run time cost, while probably not directly
-measurable I suspect it more than doubles the execution
-time of that code fragment - do that everywhere and the
-system will run like a sick pig.
-
-The only real use for accessor functions is when you
-don't want the structure offset to be public.
-In this case that is obviously not the case since
-all the drivers are directly accessing other members
-of the structure.
-
-	David
-
-
-
+     - Matan
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
