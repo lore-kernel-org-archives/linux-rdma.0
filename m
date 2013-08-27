@@ -1,81 +1,82 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the scsi tree with the infiniband tree
-Date: Tue, 27 Aug 2013 17:43:17 +1000
-Message-ID: <20130827174317.10e4f4b7a244f2bf640a9b59@canb.auug.org.au>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] IB/srp: add change_queue_depth and change_queue_type
+ support
+Date: Tue, 27 Aug 2013 10:31:54 +0200
+Message-ID: <521C63FA.3070709@acm.org>
+References: <521B5DD5.3020804@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Tue__27_Aug_2013_17_43_17_+1000_Yr5m4xcjOCaPAzWS"
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Shlomo Pongratz <shlomop@mellanox.com>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <521B5DD5.3020804-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Tue__27_Aug_2013_17_43_17_+1000_Yr5m4xcjOCaPAzWS
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 08/26/13 15:53, Jack Wang wrote:
+> From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> Date: Mon, 26 Aug 2013 15:50:03 +0200
+> Subject: [PATCH] IB/srp: add change_queue_depth/change_queue_type support
+>
+> Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 
-Hi James,
+Hello Jack,
 
-Today's linux-next merge of the scsi tree got a conflict in
-drivers/infiniband/ulp/iser/iser_initiator.c between commit b7f04513090c
-("IB/iser: Accept session->cmds_max from user space") from the infiniband
-tree and commit 6a06a4b8cff8 ("[SCSI] IB/iser: Add Discovery support")
-from the scsi tree.
+When posting a Linux kernel patch it is not only expected that the 
+commit message explains what is changed but also why these changes have 
+been made. What made you look into adding dynamic queue depth support ? 
+Had you perhaps run into a performance issue, an issue that is solved by 
+this patch ? If so, did it occur with all storage types or only with 
+certain storage types (e.g. hard disks or hard disk arrays) ? How much 
+did this patch improve performance ?
 
-I fixed it up (see below) and can carry the fix as necessary (no action
-is required).
+> @@ -1697,6 +1698,56 @@ static int srp_cm_handler(struct ib_cm_id *cm_id,
+> struct ib_cm_event *event)
+>
+>   	return 0;
+>   }
+> +/**
+> + * srp_change_queue_type - changing device queue tag type
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+Please leave a blank line between the end of one function and the header 
+of the next function.
 
-diff --cc drivers/infiniband/ulp/iser/iser_initiator.c
-index bdc38f4,b31fa1d..0000000
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@@ -342,10 -249,15 +343,16 @@@ static int iser_post_rx_bufs(struct isc
-  	WARN_ON(iser_conn->ib_conn->post_recv_buf_count !=3D 1);
-  	WARN_ON(atomic_read(&iser_conn->ib_conn->post_send_buf_count) !=3D 0);
- =20
-- 	iser_dbg("Initially post: %d\n", iser_conn->ib_conn->min_posted_rx);
-+ 	if (session->discovery_sess) {
-+ 		iser_info("Discovery session, re-using login RX buffer\n");
-+ 		return 0;
-+ 	} else
-+ 		iser_info("Normal session, posting batch of RX %d buffers\n",
- -			  ISER_MIN_POSTED_RX);
-++			  iser_conn->ib_conn->min_posted_rx);
-+=20
-  	/* Initial post receive buffers */
- -	if (iser_post_recvm(iser_conn->ib_conn, ISER_MIN_POSTED_RX))
- +	if (iser_post_recvm(iser_conn->ib_conn,
- +			    iser_conn->ib_conn->min_posted_rx))
-  		return -ENOMEM;
- =20
-  	return 0;
+> +
+> +/**
+> + * srp_change_queue_depth - setting device queue depth
+> + * @sdev: scsi device struct
+> + * @qdepth: requested queue depth
+> + * @reason: SCSI_QDEPTH_DEFAULT/SCSI_QDEPTH_QFULL/SCSI_QDEPTH_RAMP_UP
+> + * (see include/scsi/scsi_host.h for definition)
+> + *
+> + * Returns queue depth.
+> + */
+> +static int
+> +srp_change_queue_depth(struct scsi_device *sdev, int qdepth, int reason)
+> +{
+> +	if (reason == SCSI_QDEPTH_DEFAULT || reason == SCSI_QDEPTH_RAMP_UP) {
+> +		struct Scsi_Host *shost = sdev->host;
+> +		int max_depth;
 
---Signature=_Tue__27_Aug_2013_17_43_17_+1000_Yr5m4xcjOCaPAzWS
-Content-Type: application/pgp-signature
+Nothing important, but I think in the Linux kernel there is a preference 
+to declare variables at the outermost scope.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+ > +		if (!sdev->tagged_supported)
+ > +			max_depth = 1;
 
-iQIcBAEBCAAGBQJSHFiaAAoJEECxmPOUX5FE8wIP/3p66oVR07GoiJ/SOQ6MHjd8
-KsDEm88hO7BS8ERBW66QpW0jqSYJzFCzf8KSRA7pJ/ky88iNnpkkHzNZrqSyZdpF
-DOFR/FaBYdVm1xRD/TdizviZt5qMRRcdMLPlfXPKLgzWhaMeokz2FfgjOfg66nU3
-eDSaaRmg+YlnDWYmBKxRfpOgmocPa7g+dgpB0HdLvf56oHCh0jUyO10gIuC5ik3m
-2+MMTnS954z1N4BP8gLdS5nPzTmTbCJbamPnP0QfLF+W4Ao89Ueiu71UvdkyoIwM
-yLBDMdGtycqHxMC+PDLgWE5ZGHAeKuykaV818bXgbmf3vZ1VPNu9AayHd6L7ouDh
-HMXEys7gOlhTc3Z8HhMqM5sU81fhaWhMKY/7RgpIjDkImaE6jUF0wHwoURFQJADv
-Kr5h60bH6h6tm0yEDnyrDO/indnWNBg9RH3KwF7/LqlHhj8lyfnzMjUv0icZ4Svq
-HO89hH4zVCCCcExNyRvZIq17RLiTvraBtZ5vX7iVqEKt6XT6wNtFn3WI+AVP9v5Q
-JHtSfXE5494immJKeBwwridqqA1O/FjTS0rX9nQITTHFRcbd5Ky7KT2BraLK3rlG
-/lRtWgNdmUd289JkjTvrMeEvrFEp5Q91vL/dCAVqli2aUoahDuVUUd+Z4wIJ1kMr
-J2WtVevaC0Y75iVojFab
-=uio2
------END PGP SIGNATURE-----
+This code seems incorrect to me for the SRP protocol. In the SRP 
+protocol, although there is no TCQ support, queue depths above one are 
+supported.
 
---Signature=_Tue__27_Aug_2013_17_43_17_+1000_Yr5m4xcjOCaPAzWS--
+I also have a more general remark. There is no TCQ support in the SRP 
+protocol, which means that sdev->tagged_supported is always 0 (false). 
+So my recommendation is to leave out all code that depends on "if 
+(sdev->tagged_supported)" and to remove the "if 
+(!sdev->tagged_supported)" tests.
+
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
