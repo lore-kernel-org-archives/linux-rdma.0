@@ -1,46 +1,92 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V5 for-next 1/4] IB/core: Add receive Flow Steering support
-Date: Tue, 27 Aug 2013 20:10:05 +0300
-Message-ID: <521CDD6D.3000404@mellanox.com>
-References: <1376477911-13828-1-git-send-email-ogerlitz@mellanox.com> <1376477911-13828-2-git-send-email-ogerlitz@mellanox.com> <CAL1RGDUp7Tmak=b_Ttqm=WWoS5vvA1r0HCGKR7y6MJ4th44=pQ@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 02/14] RDMA/ocrdma: Add support for FRMR.
+Date: Tue, 27 Aug 2013 20:29:08 +0200
+Message-ID: <521CEFF4.9010706@acm.org>
+References: <1377511071-16967-1-git-send-email-bgottumukka@emulex.com> <2eee7e35-504e-4f2a-a364-527e90669108@CMEXHTCAS1.ad.emulex.com> <521B2934.3050008@acm.org> <6470282467066849AFF7BC0EABE2518C25FE5057@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUp7Tmak=b_Ttqm=WWoS5vvA1r0HCGKR7y6MJ4th44=pQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <6470282467066849AFF7BC0EABE2518C25FE5057-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "B.A.L.N.Raju Gottumukkala" <B.A.L.NRaju.Gottumukkala-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Cc: "bgottumukka-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org" <bgottumukka-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 26/8/2013 10:07 PM, Roland Dreier wrote:
-> On Wed, Aug 14, 2013 at 3:58 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> +struct _ib_flow_spec {
+Hello Naresh,
+
+Good question. I'm not sure though what Roland prefers.
+
+Bart.
+
+On 08/27/13 16:33, B.A.L.N.Raju Gottumukkala wrote:
+> Hi Bert,
 >
-> Just out of curiousity, why does this structure name start with "_"?
-> In fact why have the struct at all, since all it's doing is wrapping
-> an anonymous union?  Does the following work:
+> Sure I will change that.
 >
-> +union ib_flow_spec {
-> +               struct {
-> +                       enum ib_flow_spec_type  type;
-> +                       u16                     size;
-> +               };
-> +               struct ib_flow_spec_eth eth;
-> +               struct ib_flow_spec_ipv4 ipv4;
-> +               struct ib_flow_spec_tcp_udp tcp_udp;
-> +       };
-> +};
+> Some of the patches in this patch series will also get affected because of that.
 >
-> If that works, then that seems a lot nicer to me...
+> It will be easy for us to address that as a separate patch on top of this patch series.  Does this sound Ok ?
 >
->   - R.
+> Thanks!!
+> Naresh.
+>
+> -----Original Message-----
+> From: Bart Van Assche [mailto:bvanassche-HInyCGIudOg@public.gmane.org]
+> Sent: Monday, August 26, 2013 3:39 PM
+> To: bgottumukka-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; B.A.L.N.Raju Gottumukkala
+> Subject: Re: [PATCH 02/14] RDMA/ocrdma: Add support for FRMR.
+>
+> On 08/26/13 11:57, bgottumukka-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org wrote:
+>> From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+>>
+>> Also get the max_srq value from query_config mailbox response.
+>>
+>> Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+>
+> There are already a few drivers upstream in which the fast register memory region work request is abbreviated as FRWR. Please consider renaming FRMR into FRWR in order to avoid confusion and in order to make it easier to find related code with grep in the kernel tree.
+>
+> Thanks,
+>
+> Bart.
+>
+> $ git grep -i '[^r]frwr' rdreier-infiniband/for-next | cat rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:static __be64 frwr_mkey_mask(void) rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:static void set_frwr_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
+> rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:    umr->mkey_mask = frwr_mkey_mask();
+> rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:static void set_frwr_pages(struct mlx5_wqe_data_seg *dseg, rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:static int set_frwr_li_wr(void **seg, struct ib_send_wr *wr, int *size,
+> rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:    set_frwr_umr_segment(*seg, wr, li);
+> rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:            set_frwr_pages(*seg, wr, mdev, pd, writ);
+> rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:                            err = set_frwr_li_wr(&seg, wr, &size, mdev, to_mpd(ibqp->pd), qp);
+> rdreier-infiniband/for-next:drivers/infiniband/hw/mlx5/qp.c:                            err = set_frwr_li_wr(&seg, wr, &size, mdev, to_mpd(ibqp->pd), qp);
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:   /* For fast registration - FRWR */
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:           } frwr;
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:int  iser_reg_rdma_mem_frwr(struct iscsi_iser_task *task, rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:void iser_unreg_mem_frwr(struct iscsi_iser_task *iser_task, rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max); rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iscsi_iser.h:void iser_free_frwr_pool(struct iser_conn *ib_conn);
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_memory.c: * iser_reg_rdma_mem_frwr - Registers memory intended for RDMA, rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_memory.c:int iser_reg_rdma_mem_frwr(struct iscsi_iser_task *iser_task,
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_memory.c:          desc = list_first_entry(&ib_conn->fastreg.frwr.pool,
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_memory.c:  list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           iser_info("FRWR supported, using FRWR for registration\n");
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           device->iser_alloc_rdma_reg_res = iser_create_frwr_pool;
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           device->iser_free_rdma_reg_res = iser_free_frwr_pool;
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           device->iser_reg_rdma_mem = iser_reg_rdma_mem_frwr;
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           device->iser_unreg_rdma_mem = iser_unreg_mem_frwr;
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           iser_err("IB device does not support FMRs nor FRWRs, can't register memory\n");
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c: * iser_create_frwr_pool - Creates pool of fast_reg descriptors rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:int iser_create_frwr_pool(struct iser_conn *ib_conn, unsigned cmds_max)
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   INIT_LIST_HEAD(&ib_conn->fastreg.frwr.pool);
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   ib_conn->fastreg.frwr.pool_size = 0;
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:           ib_conn->fastreg.frwr.pool_size++;
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   iser_free_frwr_pool(ib_conn);
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c: * iser_free_frwr_pool - releases the pool of fast_reg descriptors rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:void iser_free_frwr_pool(struct iser_conn *ib_conn)
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   if (list_empty(&ib_conn->fastreg.frwr.pool))
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   iser_info("freeing conn %p frwr pool\n", ib_conn);
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   list_for_each_entry_safe(desc, tmp, &ib_conn->fastreg.frwr.pool, list) {
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   if (i < ib_conn->fastreg.frwr.pool_size)
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:                     ib_conn->fastreg.frwr.pool_size - i);
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:void iser_unreg_mem_frwr(struct iscsi_iser_task *iser_task,
+> rdreier-infiniband/for-next:drivers/infiniband/ulp/iser/iser_verbs.c:   list_add_tail(&desc->list, &ib_conn->fastreg.frwr.pool);
+>
 >
 
-There's no real good reason for that. The struct isn't needed and we'll 
-definitely change that for V6.
-
-     - Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
