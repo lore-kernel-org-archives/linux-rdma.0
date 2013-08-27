@@ -1,35 +1,81 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Handling incoming RDMA CM connections when there is more than
- one IB HCA in a system
-Date: Mon, 26 Aug 2013 13:35:33 -0600
-Message-ID: <20130826193533.GB20192@obsidianresearch.com>
-References: <CACyXjPzPJ=cZ1WkjYJ_o_4uLE50mn-TX93Answz7nw2rn619-Q@mail.gmail.com>
- <20130826174844.GD12296@obsidianresearch.com>
- <CACyXjPxyU6LO_31EVf9D_CwsX-aohEh_UbAQx97jJFh6PaLfgw@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the scsi tree with the infiniband tree
+Date: Tue, 27 Aug 2013 17:43:17 +1000
+Message-ID: <20130827174317.10e4f4b7a244f2bf640a9b59@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CACyXjPxyU6LO_31EVf9D_CwsX-aohEh_UbAQx97jJFh6PaLfgw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Richard Sharpe <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Tue__27_Aug_2013_17_43_17_+1000_Yr5m4xcjOCaPAzWS"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Shlomo Pongratz <shlomop@mellanox.com>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 26, 2013 at 12:17:11PM -0700, Richard Sharpe wrote:
-> > From what I read about the SMB protocol it looks completely valid to
-> > bypass the TCP first stage and go directly to RDMA. Or go from TCP to
-> > TCP, or RDMA to TCP, or whatever.
-> 
-> Microsoft tells me that they never do an RDMA-only connection. It is
-> always TCP first then RDMA.
+--Signature=_Tue__27_Aug_2013_17_43_17_+1000_Yr5m4xcjOCaPAzWS
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Sure, but the SMB protocol allows for more than just that one case. Be
-careful not to architect yourself into a corner that can't do things
-allowed by the spec, but not performed by clients of the day..
+Hi James,
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Today's linux-next merge of the scsi tree got a conflict in
+drivers/infiniband/ulp/iser/iser_initiator.c between commit b7f04513090c
+("IB/iser: Accept session->cmds_max from user space") from the infiniband
+tree and commit 6a06a4b8cff8 ("[SCSI] IB/iser: Add Discovery support")
+from the scsi tree.
+
+I fixed it up (see below) and can carry the fix as necessary (no action
+is required).
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --cc drivers/infiniband/ulp/iser/iser_initiator.c
+index bdc38f4,b31fa1d..0000000
+--- a/drivers/infiniband/ulp/iser/iser_initiator.c
++++ b/drivers/infiniband/ulp/iser/iser_initiator.c
+@@@ -342,10 -249,15 +343,16 @@@ static int iser_post_rx_bufs(struct isc
+  	WARN_ON(iser_conn->ib_conn->post_recv_buf_count !=3D 1);
+  	WARN_ON(atomic_read(&iser_conn->ib_conn->post_send_buf_count) !=3D 0);
+ =20
+- 	iser_dbg("Initially post: %d\n", iser_conn->ib_conn->min_posted_rx);
++ 	if (session->discovery_sess) {
++ 		iser_info("Discovery session, re-using login RX buffer\n");
++ 		return 0;
++ 	} else
++ 		iser_info("Normal session, posting batch of RX %d buffers\n",
+ -			  ISER_MIN_POSTED_RX);
+++			  iser_conn->ib_conn->min_posted_rx);
++=20
+  	/* Initial post receive buffers */
+ -	if (iser_post_recvm(iser_conn->ib_conn, ISER_MIN_POSTED_RX))
+ +	if (iser_post_recvm(iser_conn->ib_conn,
+ +			    iser_conn->ib_conn->min_posted_rx))
+  		return -ENOMEM;
+ =20
+  	return 0;
+
+--Signature=_Tue__27_Aug_2013_17_43_17_+1000_Yr5m4xcjOCaPAzWS
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSHFiaAAoJEECxmPOUX5FE8wIP/3p66oVR07GoiJ/SOQ6MHjd8
+KsDEm88hO7BS8ERBW66QpW0jqSYJzFCzf8KSRA7pJ/ky88iNnpkkHzNZrqSyZdpF
+DOFR/FaBYdVm1xRD/TdizviZt5qMRRcdMLPlfXPKLgzWhaMeokz2FfgjOfg66nU3
+eDSaaRmg+YlnDWYmBKxRfpOgmocPa7g+dgpB0HdLvf56oHCh0jUyO10gIuC5ik3m
+2+MMTnS954z1N4BP8gLdS5nPzTmTbCJbamPnP0QfLF+W4Ao89Ueiu71UvdkyoIwM
+yLBDMdGtycqHxMC+PDLgWE5ZGHAeKuykaV818bXgbmf3vZ1VPNu9AayHd6L7ouDh
+HMXEys7gOlhTc3Z8HhMqM5sU81fhaWhMKY/7RgpIjDkImaE6jUF0wHwoURFQJADv
+Kr5h60bH6h6tm0yEDnyrDO/indnWNBg9RH3KwF7/LqlHhj8lyfnzMjUv0icZ4Svq
+HO89hH4zVCCCcExNyRvZIq17RLiTvraBtZ5vX7iVqEKt6XT6wNtFn3WI+AVP9v5Q
+JHtSfXE5494immJKeBwwridqqA1O/FjTS0rX9nQITTHFRcbd5Ky7KT2BraLK3rlG
+/lRtWgNdmUd289JkjTvrMeEvrFEp5Q91vL/dCAVqli2aUoahDuVUUd+Z4wIJ1kMr
+J2WtVevaC0Y75iVojFab
+=uio2
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__27_Aug_2013_17_43_17_+1000_Yr5m4xcjOCaPAzWS--
