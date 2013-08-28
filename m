@@ -1,27 +1,28 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Slow performance with librspreload.so
-Date: Wed, 28 Aug 2013 15:50:07 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CA937E@ORSMSX109.amr.corp.intel.com>
-References: <CAJH6TXgf2LeMH+1L290w_KZ5tTN7NWpQxntF58Z506G3h_qKVw@mail.gmail.com>
+Subject: RE: [PATCH librdmacm 0/3] no IBV_SEND_INLINE thus memory
+ registration required on QLogic/Intel HCA
+Date: Wed, 28 Aug 2013 16:00:32 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CA95B6@ORSMSX109.amr.corp.intel.com>
+References: <cover.1376746185.git.ydroneaud@opteya.com>
+ <1828884A29C6694DAF28B7E6B8A8237388CA890E@ORSMSX109.amr.corp.intel.com>
+ <32E1700B9017364D9B60AED9960492BC21193FDB@FMSMSX107.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJH6TXgf2LeMH+1L290w_KZ5tTN7NWpQxntF58Z506G3h_qKVw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC21193FDB-AtyAts71sc9zLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Gandalf Corvotempesta' <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Yann Droneaud' <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> i've connected just one port between two hosts.
-> Ports is detected properly as 20Gb/s  (4x DDR) but i'm unable to reach
-> speed over 5Gbit/s:
+> Perhaps it would be best to have ULP's ask for 0 and have providers return
+> their >= 0 max, which would implement this as the man page suggests?
 
-It's possible that this is falling back to using normal TCP sockets.
+Based on performance tests, increasing the maximum inline can result in a significant decrease in overall bandwidth.  So, I don't believe that we want providers to increase max_inline automatically to what could be supported.
 
-Can you run the rstream test program to verify that you can get faster than 5 Gbps?
-
-rstream without any options will use rsockets directly.  If you use the -T s option, it will use standard TCP sockets.  You can use LD_PRELOAD with -T s to verify that the preload brings your per performance to the same level as using rsockets directly.
+I'm not sure what to do here, given that the documentation and behaviors do not match.  But having a consistent behavior would help.  I guess user space providers could work around the issue by allocating internal buffers, registering them, and copying the user data into them on inline sends.
 
 - Sean
 --
