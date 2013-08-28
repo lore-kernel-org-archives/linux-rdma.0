@@ -1,235 +1,95 @@
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCHv2] IB/srp: add change_queue_depth and change_queue_type support
-Date: Wed, 28 Aug 2013 10:19:24 +0200
-Message-ID: <521DB28C.9020803@profitbricks.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020708020404020000020004"
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V4 for-next 0/4] Add receive Flow Steering support
+Date: Wed, 28 Aug 2013 15:47:51 +0300
+Message-ID: <1377694075-29287-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hadar Har-Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020708020404020000020004
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi Roland,
 
-Hi,
+V6 changes:
+  - Addressed comments from Roland on patch #1 and #3
+  - Don't allow unsupported comp_mask values
+  - Added a check in ib_uverbs_create_flow to verify
+    the size passed from the user space.
+  - Cosmetic changes: don't use anonymous union as the only field in a struct.
 
-Below patch is new version which address comments from Bart.
+V5 changes: 
+  - Addressed comments from Roland on patch #2 -- enhanced the change-log
 
+V4 changes:
+  - Addressed comments from Sean on the uverbs code that copies the 
+    flow specifications from user space. Now we make sure that passed sizes
+    match the kernel flow specs, and in any case, don't look on addresses 
+    which are beyond the overall size passed by the write system call.
 
->From 62d87b4d546066b251e44a3cb468b16783df7ee4 Mon Sep 17 00:00:00 2001
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Date: Mon, 26 Aug 2013 15:50:03 +0200
-Subject: [PATCH] IB/srp: add change_queue_depth/change_queue_type support
+V3 changes:
+  - Addressed comments from Sean:
+  - modified the change-log of patch #1 to be clearer on the priority and domain
+    semantics and usage
+  - re-arranged the fields of struct ib_flow_attr
+  - removed check from ib_flow_destroy
+  - removed the IB flow spec which wasn't inline with the L2/L3/L4 approach
+    done for Ethernet/IP/TCP|UDP, will use proper IB flow specs when adding
+    the support for IPoIB flow steering
 
-Currently, it's not possible to change queue depth for device
-behind SRP host. Sometimes, we need to adjust queue_depth for
-performance reason(eg storage busy, we need lower queue_depth
-to avoid running into SCSI error handler), so this patch add
-support for SRP driver.
+     
+V2 changes:
+  - dropped struct ib_kern_flow from patch #3, this structure wasn't 
+    used and was left there by mistake (bug, thanks Roland)
+  - removed the void *flow_context field from struct ib_flow, this was 
+    pointing to driver private data for that flow, but doesn't belong here, 
+    i.e need not be seen by the verbs consumer but rather hidden.
+  - renamed struct mlx4_flow_handle to mlx4_ib_flow, a structure that contains 
+    the verbs level struct ib_flow and the mlx4 registeration ID for that flow
 
-Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c |   54
-+++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+V1 changes:
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-b/drivers/infiniband/ulp/srp/ib_srp.c
-index 06a3e4b..2713e02 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -47,6 +47,7 @@
- #include <scsi/scsi.h>
- #include <scsi/scsi_device.h>
- #include <scsi/scsi_dbg.h>
-+#include <scsi/scsi_tcq.h>
- #include <scsi/srp.h>
- #include <scsi/scsi_transport_srp.h>
+ - dropped the five pre-patches which were accepted into 3.10
+ - rebased the patches against Roland's for-next / 3.10-rc4
+ - in patch #3, ib_uverbs_destroy_flow was returning too quickly when the driver
+   returned failure for ib_destroy_flow, need to free some uverbs resources 1st.
+ - in patch #4, check index before accessing the array at mlx4_ib_create/destroy_flow
 
-@@ -1875,6 +1876,57 @@ static int srp_cm_handler(struct ib_cm_id *cm_id,
-struct ib_cm_event *event)
- 	return 0;
- }
+These patches add Flow Steering support to the kernel IB core, to uverbs and 
+to the mlx4 IB (verbs) driver along with one patch to uverbs which adds 
+some code to support extensions.
 
-+/**
-+ * srp_change_queue_type - changing device queue tag type
-+ * @sdev: scsi device struct
-+ * @tag_type: requested tag type
-+ *
-+ * Returns queue tag type.
-+ */
-+static int
-+srp_change_queue_type(struct scsi_device *sdev, int tag_type)
-+{
-+	if (sdev->tagged_supported) {
-+		scsi_set_tag_type(sdev, tag_type);
-+		if (tag_type)
-+			scsi_activate_tcq(sdev, sdev->queue_depth);
-+		else
-+			scsi_deactivate_tcq(sdev, sdev->queue_depth);
-+	} else
-+		tag_type = 0;
-+
-+	return tag_type;
-+}
-+
-+/**
-+ * srp_change_queue_depth - setting device queue depth
-+ * @sdev: scsi device struct
-+ * @qdepth: requested queue depth
-+ * @reason: SCSI_QDEPTH_DEFAULT/SCSI_QDEPTH_QFULL/SCSI_QDEPTH_RAMP_UP
-+ * (see include/scsi/scsi_host.h for definition)
-+ *
-+ * Returns queue depth.
-+ */
-+static int
-+srp_change_queue_depth(struct scsi_device *sdev, int qdepth, int reason)
-+{
-+	struct Scsi_Host *shost = sdev->host;
-+	int max_depth;
-+	if (reason == SCSI_QDEPTH_DEFAULT || reason == SCSI_QDEPTH_RAMP_UP) {
-+		max_depth = shost->can_queue;
-+		if (!sdev->tagged_supported)
-+			max_depth = 1;
-+		if (qdepth > max_depth)
-+			qdepth = max_depth;
-+		scsi_adjust_queue_depth(sdev, scsi_get_tag_type(sdev), qdepth);
-+	} else if (reason == SCSI_QDEPTH_QFULL)
-+		scsi_track_queue_full(sdev, qdepth);
-+	else
-+		return -EOPNOTSUPP;
-+
-+	return sdev->queue_depth;
-+}
-+
- static int srp_send_tsk_mgmt(struct srp_target_port *target,
- 			     u64 req_tag, unsigned int lun, u8 func)
- {
-@@ -2260,6 +2312,8 @@ static struct scsi_host_template srp_template = {
- 	.slave_configure		= srp_slave_configure,
- 	.info				= srp_target_info,
- 	.queuecommand			= srp_queuecommand,
-+	.change_queue_depth             = srp_change_queue_depth,
-+	.change_queue_type              = srp_change_queue_type,
- 	.eh_abort_handler		= srp_abort,
- 	.eh_device_reset_handler	= srp_reset_device,
- 	.eh_host_reset_handler		= srp_reset_host,
--- 
-1.7.10.4
+  IB/core: Add receive Flow Steering support
+  IB/core: Infra-structure to support verbs extensions through uverbs
+  IB/core: Export ib_create/destroy_flow through uverbs
+  IB/mlx4: Add receive Flow Steering support
 
---------------020708020404020000020004
-Content-Type: text/x-patch;
- name="0001-IB-srp-add-change_queue_depth-change_queue_type-supp.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-IB-srp-add-change_queue_depth-change_queue_type-supp.pa";
- filename*1="tch"
+The main patch which introduces the Flow-Steering API is "IB/core: Add receive Flow 
+Steering support", see its change log. Looking on the "Network Adapter Flow Steering" 
+slides from Tzahi Oved which he presented on the annual OFA 2012 meeting could be helpful
+https://www.openfabrics.org/resources/document-downloads/presentations/doc_download/518-network-adapter-flow-steering.html
 
->From e8d655fec4ac74a6af6a0b2471173c74e7c13f51 Mon Sep 17 00:00:00 2001
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Date: Mon, 26 Aug 2013 15:50:03 +0200
-Subject: [PATCH] IB/srp: add change_queue_depth/change_queue_type support
-
-Currently, it's not possible to change queue depth for device
-behind SRP host. Sometimes, we need to adjust queue_depth for
-performance reason(eg storage busy, we need lower queue_depth
-to avoid running into SCSI error handler), so this patch add
-support for SRP driver.
-
-Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c |   54 +++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 06a3e4b..2713e02 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -47,6 +47,7 @@
- #include <scsi/scsi.h>
- #include <scsi/scsi_device.h>
- #include <scsi/scsi_dbg.h>
-+#include <scsi/scsi_tcq.h>
- #include <scsi/srp.h>
- #include <scsi/scsi_transport_srp.h>
- 
-@@ -1875,6 +1876,57 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 	return 0;
- }
- 
-+/**
-+ * srp_change_queue_type - changing device queue tag type
-+ * @sdev: scsi device struct
-+ * @tag_type: requested tag type
-+ *
-+ * Returns queue tag type.
-+ */
-+static int
-+srp_change_queue_type(struct scsi_device *sdev, int tag_type)
-+{
-+	if (sdev->tagged_supported) {
-+		scsi_set_tag_type(sdev, tag_type);
-+		if (tag_type)
-+			scsi_activate_tcq(sdev, sdev->queue_depth);
-+		else
-+			scsi_deactivate_tcq(sdev, sdev->queue_depth);
-+	} else
-+		tag_type = 0;
-+
-+	return tag_type;
-+}
-+
-+/**
-+ * srp_change_queue_depth - setting device queue depth
-+ * @sdev: scsi device struct
-+ * @qdepth: requested queue depth
-+ * @reason: SCSI_QDEPTH_DEFAULT/SCSI_QDEPTH_QFULL/SCSI_QDEPTH_RAMP_UP
-+ * (see include/scsi/scsi_host.h for definition)
-+ *
-+ * Returns queue depth.
-+ */
-+static int
-+srp_change_queue_depth(struct scsi_device *sdev, int qdepth, int reason)
-+{
-+	struct Scsi_Host *shost = sdev->host;
-+	int max_depth;
-+	if (reason == SCSI_QDEPTH_DEFAULT || reason == SCSI_QDEPTH_RAMP_UP) {
-+		max_depth = shost->can_queue;
-+		if (!sdev->tagged_supported)
-+			max_depth = 1;
-+		if (qdepth > max_depth)
-+			qdepth = max_depth;
-+		scsi_adjust_queue_depth(sdev, scsi_get_tag_type(sdev), qdepth);
-+	} else if (reason == SCSI_QDEPTH_QFULL)
-+		scsi_track_queue_full(sdev, qdepth);
-+	else
-+		return -EOPNOTSUPP;
-+
-+	return sdev->queue_depth;
-+}
-+
- static int srp_send_tsk_mgmt(struct srp_target_port *target,
- 			     u64 req_tag, unsigned int lun, u8 func)
- {
-@@ -2260,6 +2312,8 @@ static struct scsi_host_template srp_template = {
- 	.slave_configure		= srp_slave_configure,
- 	.info				= srp_target_info,
- 	.queuecommand			= srp_queuecommand,
-+	.change_queue_depth             = srp_change_queue_depth,
-+	.change_queue_type              = srp_change_queue_type,
- 	.eh_abort_handler		= srp_abort,
- 	.eh_device_reset_handler	= srp_reset_device,
- 	.eh_host_reset_handler		= srp_reset_host,
--- 
-1.7.10.4
+Or and Matan.
 
 
---------------020708020404020000020004--
+Hadar Hen Zion (3):
+  IB/core: Add receive Flow Steering support
+  IB/core: Export ib_create/destroy_flow through uverbs
+  IB/mlx4: Add receive Flow Steering support
+
+Igor Ivanov (1):
+  IB/core: Infrastructure to support verbs extensions through uverbs
+
+ drivers/infiniband/core/uverbs.h      |    3 +
+ drivers/infiniband/core/uverbs_cmd.c  |  228 ++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c |   42 +++++-
+ drivers/infiniband/core/verbs.c       |   27 ++++
+ drivers/infiniband/hw/mlx4/main.c     |  235 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h  |   12 ++
+ include/linux/mlx4/device.h           |    5 -
+ include/rdma/ib_verbs.h               |  122 +++++++++++++++++-
+ include/uapi/rdma/ib_user_verbs.h     |   99 ++++++++++++++-
+ 9 files changed, 759 insertions(+), 14 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
