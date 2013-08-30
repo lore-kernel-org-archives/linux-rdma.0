@@ -1,41 +1,53 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCHv2] IB/srp: add change_queue_depth and change_queue_type
- support
-Date: Fri, 30 Aug 2013 11:51:03 +0200
-Message-ID: <52206B07.8030501@acm.org>
-References: <521DB28C.9020803@profitbricks.com>
+From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Slow performance with librspreload.so
+Date: Fri, 30 Aug 2013 12:29:56 +0200
+Message-ID: <CAJH6TXidOVJDTokOwxjCT9RRTOO6E_xbyG_K++YVkFx8NbhMTA@mail.gmail.com>
+References: <CAJH6TXgf2LeMH+1L290w_KZ5tTN7NWpQxntF58Z506G3h_qKVw@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237388CA937E@ORSMSX109.amr.corp.intel.com>
+	<CAJH6TXjEx+41G_7wvQybMXzb60tu-ha2d2Bu_J_erNDPJRbQFw@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237388CA96AD@ORSMSX109.amr.corp.intel.com>
+	<CAJH6TXhAuSDytS5O1cJMg3iatq+STkwhPUG2zmexJ5tmt3Foqg@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237388CA9865@ORSMSX109.amr.corp.intel.com>
+	<CAJH6TXgA0ghKX1P8UUAMFKY9o0xBJ0j4-kFa_M4a4ecdzoD0HA@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237388CA9C6B@ORSMSX109.amr.corp.intel.com>
+	<CAJH6TXiYLKt3b1UFsZt7uFwDbWcDFnHNnS8CTO24Gt-2zn+Qiw@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237388CA9D8A@ORSMSX109.amr.corp.intel.com>
+	<CAJH6TXhWWMBbopDLZY2+rrNOm2m5gcmObj7Sr16u2qrNW_NHgw@mail.gmail.com>
+	<CAJH6TXgR=wVGyyHrpTKkBw-5M=A9-tGzjpYcV6NWpk8uKvFn8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <521DB28C.9020803-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <CAJH6TXgR=wVGyyHrpTKkBw-5M=A9-tGzjpYcV6NWpk8uKvFn8Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/28/13 10:19, Jack Wang wrote:
-> Hi,
->
-> Below patch is new version which address comments from Bart.
->
->
->>From 62d87b4d546066b251e44a3cb468b16783df7ee4 Mon Sep 17 00:00:00 2001
-> From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> Date: Mon, 26 Aug 2013 15:50:03 +0200
-> Subject: [PATCH] IB/srp: add change_queue_depth/change_queue_type support
->
-> Currently, it's not possible to change queue depth for device
-> behind SRP host. Sometimes, we need to adjust queue_depth for
-> performance reason(eg storage busy, we need lower queue_depth
-> to avoid running into SCSI error handler), so this patch add
-> support for SRP driver.
->
-> Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+2013/8/30 Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+> Is iperf affected by IPoIB MTU size when used with librspreload.so ?
 
-Tested-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Another strange issue:
 
-Bart.
+$ sudo LD_PRELOAD=/usr/local/lib/rsocket/librspreload.so iperf -c 172.17.0.2
+------------------------------------------------------------
+Client connecting to 172.17.0.2, TCP port 5001
+TCP window size:  128 KByte (default)
+------------------------------------------------------------
+[  3] local 172.17.0.1 port 57926 connected with 172.17.0.2 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  12.2 GBytes  10.4 Gbits/sec
+
+$ iperf -c 172.17.0.2
+------------------------------------------------------------
+Client connecting to 172.17.0.2, TCP port 5001
+TCP window size:  648 KByte (default)
+------------------------------------------------------------
+[  3] local 172.17.0.1 port 58113 connected with 172.17.0.2 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  14.5 GBytes  12.5 Gbits/sec
+
+
+
+rsocket slower than IPoIB ?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
