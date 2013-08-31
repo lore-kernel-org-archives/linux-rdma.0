@@ -1,7 +1,8 @@
 From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/4] RDMA/nes and RDMA/cxgb4: iWARP Port Mapper Overview
-Date: Sat, 31 Aug 2013 14:41:28 -0500
-Message-ID: <20130831194127.GA22152@TENIKOLO-MOBL1>
+Subject: [PATCH 1/4] RDMA/core: Add support for iWARP Port Mapper user space
+ service
+Date: Sat, 31 Aug 2013 14:43:03 -0500
+Message-ID: <20130831194303.GA15920@TENIKOLO-MOBL1>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,84 +12,242 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello All,
+Add netlink support for iWARP Port Mapper (IWPM) user space service:
 
-This patch series adds iWARP Port Mapper (IWPM) service support in RDMA/core,
-RDMA/nes driver and RDMA/cxgb4 driver. The iWARP Port Mapper implementation is
-based on the port mapper specification section in the Sockets Direct Protocol
-paper - http://www.rdmaconsortium.org/home/draft-pinkerton-iwarp-sdp-v1.0.pdf 
+1) Netlink interface functions are added: ibnl_unicast() and ibnl_mulitcast()
+   for sending netlink messages
 
-Existing iWARP RDMA providers use the same IP address as the native TCP/IP
-stack when creating RDMA connections. They need to ensure a mechanism to claim 
-the TCP ports used for RDMA connections, thereby preventing TCP port collisions
-when other host applications are consuming TCP ports. The iWARP Port Mapper
-provides a standard mechanism to accomplish this. Without this service it is
-possible for RDMA application to bind/listen on the same port which is already
-being used by native TCP host application. If that happens the incoming TCP
-connection data can be passed to the RDMA stack with error.
+2) The signature of the existing ibnl_put_msg() is changed to more generic
 
-The iWARP Port Mapper solution doesn't contain any changes to the existing
-network stack in the kernel space. All the changes are contained with the
-infiniband tree and also in user space.
+3) Three netlink clients are added: RDMA_NL_NES, RDMA_NL_C4IW,
+   RDMA_NL_GROUP_IWPM 
 
-The iWARP Port Mapper service is implemented as a user space daemon process.
-Interested readers could look at the source code of the IWPM service located at
-http://git.openfabrics.org/git?p=~tnikolova/libiwpm-1.0.0/.git;a=summary
+4) Enums are added to enumerate the attributes in the netlink messages, which
+   are exchanged between the user space IWPM service and the iWARP drivers
 
-The iWARP driver (port mapper client) sends to the IWPM service the local IP
-address and TCP port it has received from the RDMA application, when starting a
-connection. The IWPM service performs a socket bind from user space to get
-an available TCP port, called a mapped port, and communicates it back to the
-client. In that sense, the IWPM service is used to map the TCP port, which the
-RDMA application uses to any port available from the host TCP port space. The
-mapped ports are used in iWARP RDMA connections to avoid collisions with native
-TCP stack which is aware that these ports are taken. When an RDMA connection
-using a mapped port is terminated, the client notifies the IWPM service, which
-then releases the TCP port.
 
-The message exchange between the IWPM service and the iWARP drivers
-(between user space and kernel space) is implemented using netlink sockets.
-This patch series adds driver support for sending/receiving/parsing netlink
-messages, to make the communication with the IWPM service possible.
+Signed-off-by: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Robert Sharp <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c     |  2 +-
+ drivers/infiniband/core/netlink.c | 18 +++++++-
+ include/rdma/rdma_netlink.h       | 23 +++++++++-
+ include/uapi/rdma/rdma_netlink.h  | 94 ++++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 132 insertions(+), 5 deletions(-)
 
-The patches are built against Roland's infiniband tree for-next branch.
-We would like this series to get in the linux-3.12 merge window.
-
-Kindly review it and provide feedback.
-Thanks,
-
-Tatyana Nikolova (3):
-  RDMA/core: Add support for iWARP Port Mapper user space service
-  RDMA/nes: Add support for iWARP Port Mapper user space service
-  RDMA/nes: Change the nes driver version to reflect added IWPM functionality
-
-Vipul Pandya (1):
-  RDMA/cxgb4: Add support for iWARP Port Mapper user space service
-
- drivers/infiniband/core/cma.c              |    2 +-
- drivers/infiniband/core/netlink.c          |   18 +-
- drivers/infiniband/hw/cxgb4/Makefile       |    2 +-
- drivers/infiniband/hw/cxgb4/c4iw_netlink.c | 1021 +++++++++++++++++++++++
- drivers/infiniband/hw/cxgb4/c4iw_netlink.h |  273 +++++++
- drivers/infiniband/hw/cxgb4/cm.c           |  138 +++-
- drivers/infiniband/hw/cxgb4/device.c       |   24 +-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h     |   16 +
- drivers/infiniband/hw/nes/Makefile         |    2 +-
- drivers/infiniband/hw/nes/nes.c            |   16 +-
- drivers/infiniband/hw/nes/nes.h            |    4 +-
- drivers/infiniband/hw/nes/nes_cm.c         |  189 ++++--
- drivers/infiniband/hw/nes/nes_cm.h         |   12 +-
- drivers/infiniband/hw/nes/nes_netlink.c    | 1223 ++++++++++++++++++++++++++++
- drivers/infiniband/hw/nes/nes_netlink.h    |  108 +++
- drivers/infiniband/hw/nes/nes_nic.c        |    5 +
- include/rdma/rdma_netlink.h                |   23 +-
- include/uapi/rdma/rdma_netlink.h           |   94 +++-
- 18 files changed, 3083 insertions(+), 87 deletions(-)
- create mode 100644 drivers/infiniband/hw/cxgb4/c4iw_netlink.c
- create mode 100644 drivers/infiniband/hw/cxgb4/c4iw_netlink.h
- create mode 100644 drivers/infiniband/hw/nes/nes_netlink.c
- create mode 100644 drivers/infiniband/hw/nes/nes_netlink.h
-
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 3a2c3c3..e1bae73 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -3568,7 +3568,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
+ 
+ 			id_stats = ibnl_put_msg(skb, &nlh, cb->nlh->nlmsg_seq,
+ 						sizeof *id_stats, RDMA_NL_RDMA_CM,
+-						RDMA_NL_RDMA_CM_ID_STATS);
++						RDMA_NL_RDMA_CM_ID_STATS, NLM_F_MULTI);
+ 			if (!id_stats)
+ 				goto out;
+ 
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index da06abd..e64e10b 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -103,13 +103,13 @@ int ibnl_remove_client(int index)
+ EXPORT_SYMBOL(ibnl_remove_client);
+ 
+ void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq,
+-		   int len, int client, int op)
++		   int len, int client, int op, int flags)
+ {
+ 	unsigned char *prev_tail;
+ 
+ 	prev_tail = skb_tail_pointer(skb);
+ 	*nlh = nlmsg_put(skb, 0, seq, RDMA_NL_GET_TYPE(client, op),
+-			 len, NLM_F_MULTI);
++			 len, flags);
+ 	if (!*nlh)
+ 		goto out_nlmsg_trim;
+ 	(*nlh)->nlmsg_len = skb_tail_pointer(skb) - prev_tail;
+@@ -172,6 +172,20 @@ static void ibnl_rcv(struct sk_buff *skb)
+ 	mutex_unlock(&ibnl_mutex);
+ }
+ 
++int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
++			__u32 pid)
++{
++	return nlmsg_unicast(nls, skb, pid);
++}
++EXPORT_SYMBOL(ibnl_unicast);
++
++int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
++			unsigned int group, gfp_t flags)
++{
++	return nlmsg_multicast(nls, skb, 0, group, flags);
++}
++EXPORT_SYMBOL(ibnl_multicast);
++
+ int __init ibnl_init(void)
+ {
+ 	struct netlink_kernel_cfg cfg = {
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index e38de79..0790882 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -43,7 +43,7 @@ int ibnl_remove_client(int index);
+  * Returns the allocated buffer on success and NULL on failure.
+  */
+ void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq,
+-		   int len, int client, int op);
++		   int len, int client, int op, int flags);
+ /**
+  * Put a new attribute in a supplied skb.
+  * @skb: The netlink skb.
+@@ -56,4 +56,25 @@ void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq,
+ int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		  int len, void *data, int type);
+ 
++/**
++ * Send the supplied skb to a specific userspace PID.
++ * @skb: The netlink skb
++ * @nlh: Header of the netlink message to send
++ * @pid: Userspace netlink process ID
++ * Returns 0 on success or a negative error code.
++ */
++int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
++		__u32 pid);
++
++/**
++ * Send the supplied skb to a netlink group.
++ * @skb: The netlink skb
++ * @nlh: Header of the netlink message to send
++ * @group: Netlink group ID
++ * @flags: allocation flags
++ * Returns 0 on success or a negative error code.
++ */
++int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
++		unsigned int group, gfp_t flags);
++
+ #endif /* _RDMA_NETLINK_H */
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index 8297285..bcd0a5c 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -4,7 +4,15 @@
+ #include <linux/types.h>
+ 
+ enum {
+-	RDMA_NL_RDMA_CM = 1
++	RDMA_NL_RDMA_CM = 1,
++	RDMA_NL_NES,
++	RDMA_NL_C4IW
++};
++
++enum {
++	RDMA_NL_GROUP_CM = 1,
++	RDMA_NL_GROUP_IWPM,
++	RDMA_NL_NUM_GROUPS
+ };
+ 
+ #define RDMA_NL_GET_CLIENT(type) ((type & (((1 << 6) - 1) << 10)) >> 10)
+@@ -22,6 +30,18 @@ enum {
+ 	RDMA_NL_RDMA_CM_NUM_ATTR,
+ };
+ 
++/* iwarp port mapper op-codes */
++enum {
++	RDMA_NL_IWPM_REG_PID = 0,
++	RDMA_NL_IWPM_ADD_MAPPING,
++	RDMA_NL_IWPM_QUERY_MAPPING,
++	RDMA_NL_IWPM_REMOVE_MAPPING,
++	RDMA_NL_IWPM_HANDLE_ERR,
++	RDMA_NL_IWPM_MAP_INFO,
++	RDMA_NL_IWPM_MAP_INFO_NUM,
++	RDMA_NL_IWPM_NUM_OPS
++};
++
+ struct rdma_cm_id_stats {
+ 	__u32	qp_num;
+ 	__u32	bound_dev_if;
+@@ -33,5 +53,77 @@ struct rdma_cm_id_stats {
+ 	__u8	qp_type;
+ };
+ 
++enum {
++	IWPM_NLA_REG_PID_UNSPEC = 0,
++	IWPM_NLA_REG_PID_SEQ,
++	IWPM_NLA_REG_IF_NAME,
++	IWPM_NLA_REG_IBDEV_NAME,
++	IWPM_NLA_REG_ULIB_NAME,
++	IWPM_NLA_REG_PID_MAX
++};
++
++enum {
++	IWPM_NLA_RREG_PID_UNSPEC = 0,
++	IWPM_NLA_RREG_PID_SEQ,
++	IWPM_NLA_RREG_IBDEV_NAME,
++	IWPM_NLA_RREG_ULIB_NAME,
++	IWPM_NLA_RREG_ULIB_VER,
++	IWPM_NLA_RREG_PID_ERR,
++	IWPM_NLA_RREG_PID_MAX
++
++};
++
++enum {
++	IWPM_NLA_MANAGE_MAPPING_UNSPEC = 0,
++	IWPM_NLA_MANAGE_MAPPING_SEQ,
++	IWPM_NLA_MANAGE_ADDR,
++	IWPM_NLA_MANAGE_MAPPED_LOC_ADDR,
++	IWPM_NLA_RMANAGE_MAPPING_ERR,
++	IWPM_NLA_RMANAGE_MAPPING_MAX
++};
++
++#define IWPM_NLA_MANAGE_MAPPING_MAX    3
++#define IWPM_NLA_REPORT_MAPPING_MAX    4
++#define IWPM_NLA_QUERY_MAPPING_MAX     4
++
++enum {
++	IWPM_NLA_QUERY_MAPPING_UNSPEC = 0,
++	IWPM_NLA_QUERY_MAPPING_SEQ,
++	IWPM_NLA_QUERY_LOCAL_ADDR,
++	IWPM_NLA_QUERY_REMOTE_ADDR,
++	IWPM_NLA_RQUERY_MAPPED_LOC_ADDR,
++	IWPM_NLA_RQUERY_MAPPED_REM_ADDR,
++	IWPM_NLA_RQUERY_MAPPING_ERR,
++	IWPM_NLA_RQUERY_MAPPING_MAX
++};
++
++enum {
++	IWPM_NLA_MAPINFO_REQ_UNSPEC = 0,
++	IWPM_NLA_MAPINFO_ULIB_NAME,
++	IWPM_NLA_MAPINFO_ULIB_VER,
++	IWPM_NLA_MAPINFO_REQ_MAX
++};
++
++enum {
++	IWPM_NLA_MAPINFO_UNSPEC = 0,
++	IWPM_NLA_MAPINFO_LOCAL_ADDR,
++	IWPM_NLA_MAPINFO_MAPPED_ADDR,
++	IWPM_NLA_MAPINFO_MAX
++};
++
++enum {
++	IWPM_NLA_MAPINFO_COUNT_UNSPEC = 0,
++	IWPM_NLA_MAPINFO_SEQ,
++	IWPM_NLA_MAPINFO_NUMBER,
++	IWPM_NLA_MAPINFO_COUNT_MAX
++};
++
++enum {
++	IWPM_NLA_ERR_UNSPEC = 0,
++	IWPM_NLA_ERR_SEQ,
++	IWPM_NLA_ERR_CODE,
++	IWPM_NLA_ERR_MAX
++};
++
+ 
+ #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 1.8.0
 
