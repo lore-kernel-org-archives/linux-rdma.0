@@ -1,73 +1,96 @@
-From: "Rupert Dance" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
-Subject: RE: Slow performance with librspreload.so
-Date: Sat, 31 Aug 2013 07:34:55 -0400
-Message-ID: <000c01cea63e$1e20eae0$5a62c0a0$@soft-forge.com>
-References: <CAJH6TXgf2LeMH+1L290w_KZ5tTN7NWpQxntF58Z506G3h_qKVw@mail.gmail.com>	<1828884A29C6694DAF28B7E6B8A8237388CA937E@ORSMSX109.amr.corp.intel.com>	<CAJH6TXjEx+41G_7wvQybMXzb60tu-ha2d2Bu_J_erNDPJRbQFw@mail.gmail.com>	<1828884A29C6694DAF28B7E6B8A8237388CA96AD@ORSMSX109.amr.corp.intel.com>	<CAJH6TXhAuSDytS5O1cJMg3iatq+STkwhPUG2zmexJ5tmt3Foqg@mail.gmail.com>	<1828884A29C6694DAF28B7E6B8A8237388CA9865@ORSMSX109.amr.corp.intel.com>	<CAJH6TXgA0ghKX1P8UUAMFKY9o0xBJ0j4-kFa_M4a4ecdzoD0HA@mail.gmail.com>	<1828884A29C6694DAF28B7E6B8A8237388CA9C6B@ORSMSX109.amr.corp.intel.com>	<CAJH6TXiYLKt3b1UFsZt7uFwDbWcDFnHNnS8CTO24Gt-2zn+Qiw@mail.gmail.com>	<1828884A29C6694DAF28B7E6B8A8237388CA9D8A@ORSMSX109.amr.corp.intel.com>	<CAJH6TXhWWMBbopDLZY2+rrNOm2m5gcmObj7Sr16u2qrNW_NHgw@mail.gmail.com>	<CAJH6TXgR=wVG
- yyHrpTKkBw-5M=A9-tGzjpYcV6NWpk8uKvFn8Q@mail.gmail.com>	<1828884A29C6694DAF28B7E6B8A8237388CAA11B@ORSMSX109.amr.corp.intel.com>	<CAJH6TXgvViraH4SEcYydCerGyM6kK61eoiaENCy6PSf_1ocSVA@mail.gmai!
- l.com>	<00ac01cea5ad$8c
-	e92d20$a6bb8760$@soft-forge.com> <CAJH6TXgu4L8gnqQX1fKZ=ioZDxUMnj=s3h0qkYh1_35VWpMJ1g@mail.gmail.com>
+From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/4] RDMA/nes and RDMA/cxgb4: iWARP Port Mapper Overview
+Date: Sat, 31 Aug 2013 14:41:28 -0500
+Message-ID: <20130831194127.GA22152@TENIKOLO-MOBL1>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJH6TXgu4L8gnqQX1fKZ=ioZDxUMnj=s3h0qkYh1_35VWpMJ1g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Gandalf Corvotempesta' <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The Vendor ID indicates that this is a Voltaire card which probably means it
-is an older card. Some of the early Mellanox based cards did not support
-anything bigger than 2048. 
+Hello All,
 
-  00-08-F1   (hex)		Voltaire
-  0008F1     (base 16)		Voltaire
-  				9 Hamenofim st.
-				Herzelia  46725
-				ISRAEL
+This patch series adds iWARP Port Mapper (IWPM) service support in RDMA/core,
+RDMA/nes driver and RDMA/cxgb4 driver. The iWARP Port Mapper implementation is
+based on the port mapper specification section in the Sockets Direct Protocol
+paper - http://www.rdmaconsortium.org/home/draft-pinkerton-iwarp-sdp-v1.0.pdf 
 
-Checking for FW updates cannot hurt but you may well be restricted to 2048
+Existing iWARP RDMA providers use the same IP address as the native TCP/IP
+stack when creating RDMA connections. They need to ensure a mechanism to claim 
+the TCP ports used for RDMA connections, thereby preventing TCP port collisions
+when other host applications are consuming TCP ports. The iWARP Port Mapper
+provides a standard mechanism to accomplish this. Without this service it is
+possible for RDMA application to bind/listen on the same port which is already
+being used by native TCP host application. If that happens the incoming TCP
+connection data can be passed to the RDMA stack with error.
 
------Original Message-----
-From: Gandalf Corvotempesta [mailto:gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] 
-Sent: Saturday, August 31, 2013 5:21 AM
-To: Rupert Dance
-Cc: Hefty, Sean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: Slow performance with librspreload.so
+The iWARP Port Mapper solution doesn't contain any changes to the existing
+network stack in the kernel space. All the changes are contained with the
+infiniband tree and also in user space.
 
-2013/8/30 Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>:
-> One way to set or check mtu is with the ibportstate utility:
->
-> Usage: ibportstate [options] <dest dr_path|lid|guid> <portnum> [<op>] 
-> Supported ops: enable, disable, reset, speed, width, query, down, arm, 
-> active, vls, mtu, lid, smlid, lmc
+The iWARP Port Mapper service is implemented as a user space daemon process.
+Interested readers could look at the source code of the IWPM service located at
+http://git.openfabrics.org/git?p=~tnikolova/libiwpm-1.0.0/.git;a=summary
 
-I've tried but max MTU is 2048 on one device:
+The iWARP driver (port mapper client) sends to the IWPM service the local IP
+address and TCP port it has received from the RDMA application, when starting a
+connection. The IWPM service performs a socket bind from user space to get
+an available TCP port, called a mapped port, and communicates it back to the
+client. In that sense, the IWPM service is used to map the TCP port, which the
+RDMA application uses to any port available from the host TCP port space. The
+mapped ports are used in iWARP RDMA connections to avoid collisions with native
+TCP stack which is aware that these ports are taken. When an RDMA connection
+using a mapped port is terminated, the client notifies the IWPM service, which
+then releases the TCP port.
 
-$ sudo ibv_devinfo
-hca_id: mthca0
-transport: InfiniBand (0)
-fw_ver: 4.7.600
-node_guid: 0008:f104:0398:14cc
-sys_image_guid: 0008:f104:0398:14cf
-vendor_id: 0x08f1
-vendor_part_id: 25208
-hw_ver: 0xA0
-board_id: VLT0040010001
-phys_port_cnt: 2
-port: 1
-state: PORT_ACTIVE (4)
-max_mtu: 2048 (4)
-active_mtu: 2048 (4)
-sm_lid: 1
-port_lid: 2
-port_lmc: 0x00
-link_layer: InfiniBand
+The message exchange between the IWPM service and the iWARP drivers
+(between user space and kernel space) is implemented using netlink sockets.
+This patch series adds driver support for sending/receiving/parsing netlink
+messages, to make the communication with the IWPM service possible.
 
-any workaround? Maybe a firmware update ?
+The patches are built against Roland's infiniband tree for-next branch.
+We would like this series to get in the linux-3.12 merge window.
 
+Kindly review it and provide feedback.
+Thanks,
+
+Tatyana Nikolova (3):
+  RDMA/core: Add support for iWARP Port Mapper user space service
+  RDMA/nes: Add support for iWARP Port Mapper user space service
+  RDMA/nes: Change the nes driver version to reflect added IWPM functionality
+
+Vipul Pandya (1):
+  RDMA/cxgb4: Add support for iWARP Port Mapper user space service
+
+ drivers/infiniband/core/cma.c              |    2 +-
+ drivers/infiniband/core/netlink.c          |   18 +-
+ drivers/infiniband/hw/cxgb4/Makefile       |    2 +-
+ drivers/infiniband/hw/cxgb4/c4iw_netlink.c | 1021 +++++++++++++++++++++++
+ drivers/infiniband/hw/cxgb4/c4iw_netlink.h |  273 +++++++
+ drivers/infiniband/hw/cxgb4/cm.c           |  138 +++-
+ drivers/infiniband/hw/cxgb4/device.c       |   24 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h     |   16 +
+ drivers/infiniband/hw/nes/Makefile         |    2 +-
+ drivers/infiniband/hw/nes/nes.c            |   16 +-
+ drivers/infiniband/hw/nes/nes.h            |    4 +-
+ drivers/infiniband/hw/nes/nes_cm.c         |  189 ++++--
+ drivers/infiniband/hw/nes/nes_cm.h         |   12 +-
+ drivers/infiniband/hw/nes/nes_netlink.c    | 1223 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/nes/nes_netlink.h    |  108 +++
+ drivers/infiniband/hw/nes/nes_nic.c        |    5 +
+ include/rdma/rdma_netlink.h                |   23 +-
+ include/uapi/rdma/rdma_netlink.h           |   94 +++-
+ 18 files changed, 3083 insertions(+), 87 deletions(-)
+ create mode 100644 drivers/infiniband/hw/cxgb4/c4iw_netlink.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/c4iw_netlink.h
+ create mode 100644 drivers/infiniband/hw/nes/nes_netlink.c
+ create mode 100644 drivers/infiniband/hw/nes/nes_netlink.h
+
+-- 
+1.8.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
