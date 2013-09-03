@@ -1,63 +1,95 @@
-From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Slow performance with librspreload.so
-Date: Tue, 3 Sep 2013 14:21:56 +0200
-Message-ID: <CAJH6TXhSoxFshtuE0YqdVShQKSgX_wNwxekjy1+ZcGHR0vjC9w@mail.gmail.com>
-References: <CAJH6TXgf2LeMH+1L290w_KZ5tTN7NWpQxntF58Z506G3h_qKVw@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237388CA96AD@ORSMSX109.amr.corp.intel.com>
-	<CAJH6TXhAuSDytS5O1cJMg3iatq+STkwhPUG2zmexJ5tmt3Foqg@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237388CA9865@ORSMSX109.amr.corp.intel.com>
-	<CAJH6TXgA0ghKX1P8UUAMFKY9o0xBJ0j4-kFa_M4a4ecdzoD0HA@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237388CA9C6B@ORSMSX109.amr.corp.intel.com>
-	<CAJH6TXiYLKt3b1UFsZt7uFwDbWcDFnHNnS8CTO24Gt-2zn+Qiw@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237388CA9D8A@ORSMSX109.amr.corp.intel.com>
-	<CAJH6TXhWWMBbopDLZY2+rrNOm2m5gcmObj7Sr16u2qrNW_NHgw@mail.gmail.com>
-	<CAJH6TXgR=wVGyyHrpTKkBw-5M=A9-tGzjpYcV6NWpk8uKvFn8Q@mail.gmail.com>
-	<1828884A29C6694DAF28B7E6B8A8237388CAA11B@ORSMSX109.amr.corp.intel.com>
-	<CAJH6TXgu4L8gnqQX1fKZ=ioZDxUMnj=s3h0qkYh1_35VWpMJ1g@mail.gmail.com>
-	<000c01cea63e$1e20eae0$5a62c0a0$@soft-forge.com>
-	<CAJH6TXiOToa2-EOj6Hz-rkVHt3tCSh4jnLbKZs69GhT7dFeH0A@mail.gmail.com>
-	<5225D0DD.7060803@dev.mellanox.co.il>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 3/4] IB/core: Export ib_create/destroy_flow
+ through uverbs
+Date: Tue, 3 Sep 2013 16:36:38 +0300
+Message-ID: <5225E5E6.2000503@mellanox.com>
+References: <1377694075-29287-1-git-send-email-matanb@mellanox.com> <1377694075-29287-4-git-send-email-matanb@mellanox.com> <20130828162050.GA31381@obsidianresearch.com> <52230648.5000302@mellanox.com> <20130901222304.GB3422@obsidianresearch.com> <522459AE.9070107@mellanox.com> <20130903041636.GA3875@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5225D0DD.7060803-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20130903041636.GA3875-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Rupert Dance <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2013/9/3 Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
-> With mthca, due to quirk, optimal performance is achieved at 1K MTU.
-> OpenSM can reduce the MTU in returned PathRecords to 1K when one end of
-> the path is mthca and actual path MTU is > 1K. This is controlled by
-> enable_quirks config parameter which defaults to FALSE (don't do this).
+On 3/9/2013 7:16 AM, Jason Gunthorpe wrote:
+> On Mon, Sep 02, 2013 at 12:26:06PM +0300, Matan Barak wrote:
+>
+>>> The correct comp_mask should always match the fields that are
+>>> initialized by the caller. That is simple to explain and easy to audit
+>>> for correctness.
+>
+>> I agree, but the request could be rejected if an unsupported
+>> comp_mask field was given. The user should query the device
+>
+> No, that is the exact opposite of what I said.
+>
+> You are trying to make comp_mask indicate if the command should use
+> the data, I only want the comp_mask to indicate that the data has been
+> initialized (all new members must have a no-action value), they are
+> completely different things.
+>
 
-I'll try.
+If the kernel treats unprovided fields as "no action" by default (for 
+new kernel with old user space), why does it matter if the user 
+initialized them with "no action" or the kernel just assumes so ? Why do 
+we need a comp_mask for this ?
 
-Actually these are my results, from node1 to node2
+I think that comp_mask should be used only for fields with an "action" 
+value that the user requests the kernel to handle.
 
-$ sudo qperf -ub  172.17.0.2 rc_bi_bw rc_lat rc_bw rc_rdma_read_lat
-rc_rdma_read_bw rc_rdma_write_lat rc_rdma_write_bw tcp_lat tcp_bw
-rc_bi_bw:
-    bw  =  20.5 Gb/sec
-rc_lat:
-    latency  =  15.4 us
-rc_bw:
-    bw  =  13.7 Gb/sec
-rc_rdma_read_lat:
-    latency  =  12.9 us
-rc_rdma_read_bw:
-    bw  =  11.5 Gb/sec
-rc_rdma_write_lat:
-    latency  =  15.2 us
-rc_rdma_write_bw:
-    bw  =  13.7 Gb/sec
-tcp_lat:
-    latency  =  48.8 us
-tcp_bw:
-    bw  =  12.5 Gb/sec
+> We already have commands that don't touch every member of an input
+> structure depending on context. eg commands acting on a UD QP don't
+> touch fields that are used only by RC QPs.
+>
 
-I don't know if they are good for a DDR fabric.
+We use attr_mask and the QP type in order to know which fields should be 
+treated.
+
+>> capabilities, see if the feature he wants is supported and set the
+>> fields accordingly. It's simple, it's like every other stack and
+>> it's robust.
+>
+> It is certainly not robust. You are relying on userspace to set the
+> correct value for the kernel version being used, and there is no way
+> for developers to test this because the latest kernel will accept all
+> values in comp_mask.
+
+If treating comp_mask as "action" fields (instead of "initialized" 
+fields), comp_mask = 0 is always valid. It means that all extended 
+fields have their default/"older" values. In other words, the kernel 
+always knows how to support "older" user space.
+
+>
+> That is horrible. Our carefully designed ABI compatability is worth
+> nothing in practice if commands return EINVAL on old kerenls!
+>
+> Old and new kernels must behave consistently.
+>
+> The way to handle comp_mask is to have new kernels *VALIDATE* and old
+> kernels ignore. New kernels will require a *no action* value in all
+> situations where the feature is not supported (eg an older HCA,
+> feature not enabled, feature not present in device caps, etc).
+>
+> This way the new kernel runtime tests the input, in a manner that is
+> consistent with the handling of old kernels (old kernel treat
+> unsupported members as no-action). Testing your app on a new
+> kernel, with a HCA that does not support the feature is sufficent to
+> show that it will work on past kernels that do not support the
+> feature.
+>
+
+Basically, I think I understand the ABI you suggest. I think it could 
+lead to a situation that an old kernel will ignore an "action" field and 
+process the command differently than expected.
+Saying that, I'm opened to other opinions.
+
+> Jason
+>
+
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
