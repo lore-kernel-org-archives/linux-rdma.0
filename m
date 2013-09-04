@@ -1,72 +1,110 @@
 From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC][PATCH 0/4] Add driver for Cisco's VIC series adapters
-Date: Wed, 4 Sep 2013 03:47:02 +0000
-Message-ID: <47A33601BBFF7E4B8F0D5D0C96F3022C013BC77A@xmb-rcd-x09.cisco.com>
+Subject: [RFC][PATCH 4/4] IB/usnic: Cisco VIC - driver part 3/3
+Date: Wed, 4 Sep 2013 03:47:25 +0000
+Message-ID: <47A33601BBFF7E4B8F0D5D0C96F3022C013BC7C5@xmb-rcd-x09.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
-Content-ID: <E2816C645A023B4FBB57EBCD263FCA2F-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Content-ID: <32BD59DC465B174C81FD82F2621125EE-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Christian Benvenuti (benve)" <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC is the kernel driver for userspace bypass networking on Cisco's
-VIC series adapters.  usNIC devices are advertised as SRIOV VFs by the
-VIC adapters and these VFs are owned by usNIC.  The driver works in
-conjuction with Cisco's ethernet driver, which owns the PFs, and does
-priviledged firmware operations via the PF driver.
+Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+MAINTAINERS                          |    5 +++++
+drivers/infiniband/Kconfig           |    1 +
+drivers/infiniband/Makefile          |    1 +
+drivers/infiniband/hw/usnic/Kconfig  |   11 +++++++++++
+drivers/infiniband/hw/usnic/Makefile |   15 +++++++++++++++
+5 files changed, 33 insertions(+), 0 deletions(-)
+create mode 100644 drivers/infiniband/hw/usnic/Kconfig
+create mode 100644 drivers/infiniband/hw/usnic/Makefile
 
-This patch won't build on infiniband tree because the corresponding
-patches for Cisco's ethernet devices are being worked out in net-next
-tree. We will re-submit for formal inclusion in the tree after all the
-corresponding patches are in net-next tree.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index defc053..ff41f0d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2077,6 +2077,11 @@ M:	Nishank Trivedi <nistrive-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+S:	Supported
+F:	drivers/net/ethernet/cisco/enic/
 
-This patch is being partitioned to avoid 100KB vger.kernel.org
-limitation.
++CISCO VIC LOW LATENCY NIC DRIVER
++M:      Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
++S:      Supported
++F:      drivers/infiniband/hw/usnic
++
+CIRRUS LOGIC EP93XX ETHERNET DRIVER
+M:	Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>
+L:	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 5ceda71..10219ee 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -53,6 +53,7 @@ source "drivers/infiniband/hw/mlx4/Kconfig"
+source "drivers/infiniband/hw/mlx5/Kconfig"
+source "drivers/infiniband/hw/nes/Kconfig"
+source "drivers/infiniband/hw/ocrdma/Kconfig"
++source "drivers/infiniband/hw/usnic/Kconfig"
 
-IB/core: Cisco VIC - usNIC rdma node and transport
-IB/usnic: Cisco VIC - driver part 1/3
-IB/usnic: Cisco VIC - driver part 2/3
-IB/usnic: Cisco VIC - driver part 3/3
+source "drivers/infiniband/ulp/ipoib/Kconfig"
 
-drivers/infiniband/core/sysfs.c                    |    1
-drivers/infiniband/core/verbs.c                    |    3
-include/rdma/ib_verbs.h                            |    6
-drivers/infiniband/hw/usnic/usnic_abi.h            |   55 +
-drivers/infiniband/hw/usnic/usnic_ib.h             |  115 +++
-drivers/infiniband/hw/usnic/usnic_ib_main.c        |  600 ++++++++++++++++
-drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c      |  542 +++++++++++++++
-drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h      |   97 +++
-drivers/infiniband/hw/usnic/usnic_ib_sysfs.c       |  349 ++++++++++
-drivers/infiniband/hw/usnic/usnic_ib_sysfs.h       |   29 +
-drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |  734 ++++++++++++++++++++
-drivers/infiniband/hw/usnic/usnic_ib_verbs.h       |   72 ++
-drivers/infiniband/hw/usnic/usnic.h                |   29 +
-drivers/infiniband/hw/usnic/usnic_common_pkt_hdr.h |   27 +
-drivers/infiniband/hw/usnic/usnic_common_util.h    |   51 +
-drivers/infiniband/hw/usnic/usnic_debugfs.c        |   70 ++
-drivers/infiniband/hw/usnic/usnic_debugfs.h        |   25 +
-drivers/infiniband/hw/usnic/usnic_fwd.c            |  244 +++++++
-drivers/infiniband/hw/usnic/usnic_fwd.h            |   58 ++
-drivers/infiniband/hw/usnic/usnic_log.h            |   58 ++
-drivers/infiniband/hw/usnic/usnic_transport.c      |  125 +++
-drivers/infiniband/hw/usnic/usnic_transport.h      |   27 +
-drivers/infiniband/hw/usnic/usnic_uiom.c           |  602 ++++++++++++++++
-drivers/infiniband/hw/usnic/usnic_uiom.h           |   80 ++
-.../infiniband/hw/usnic/usnic_uiom_interval_tree.c |  234 ++++++
-.../infiniband/hw/usnic/usnic_uiom_interval_tree.h |   74 ++
-drivers/infiniband/hw/usnic/usnic_vnic.c           |  473 +++++++++++++
-drivers/infiniband/hw/usnic/usnic_vnic.h           |  105 +++
-MAINTAINERS                                        |    5
-drivers/infiniband/Kconfig                         |    1
-drivers/infiniband/Makefile                        |    1
-drivers/infiniband/hw/usnic/Kconfig                |   11
-drivers/infiniband/hw/usnic/Makefile               |   15
-33 files changed, 4916 insertions(+), 2 deletions(-)
-----
+diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
+index 1fe6988..bf508b5 100644
+--- a/drivers/infiniband/Makefile
++++ b/drivers/infiniband/Makefile
+@@ -10,6 +10,7 @@ obj-$(CONFIG_MLX4_INFINIBAND)		+= hw/mlx4/
+obj-$(CONFIG_MLX5_INFINIBAND)		+= hw/mlx5/
+obj-$(CONFIG_INFINIBAND_NES)		+= hw/nes/
+obj-$(CONFIG_INFINIBAND_OCRDMA)		+= hw/ocrdma/
++obj-$(CONFIG_INFINIBAND_USNIC)		+= hw/usnic/
+obj-$(CONFIG_INFINIBAND_IPOIB)		+= ulp/ipoib/
+obj-$(CONFIG_INFINIBAND_SRP)		+= ulp/srp/
+obj-$(CONFIG_INFINIBAND_SRPT)		+= ulp/srpt/
+diff --git a/drivers/infiniband/hw/usnic/Kconfig b/drivers/infiniband/hw/usnic/Kconfig
+new file mode 100644
+index 0000000..0f14b6d
+--- /dev/null
++++ b/drivers/infiniband/hw/usnic/Kconfig
+@@ -0,0 +1,11 @@
++config INFINIBAND_USNIC
++	tristate "Verbs support for Cisco VIC"
++	depends on NETDEVICES && ETHERNET && PCI
++	select ENIC
++	select NET_VENDOR_CISCO
++	select PCI_IOV
++	select IOMMU_SUPPORT
++	select INFINIBAND_USER_ACCESS
++	---help---
++	  This is a low-level driver for Cisco's Virtual Interface
++	  Cards (VICs), including the VIC 1240 and 1280 cards.
+diff --git a/drivers/infiniband/hw/usnic/Makefile b/drivers/infiniband/hw/usnic/Makefile
+new file mode 100644
+index 0000000..99fb2db
+--- /dev/null
++++ b/drivers/infiniband/hw/usnic/Makefile
+@@ -0,0 +1,15 @@
++ccflags-y := -Idrivers/net/ethernet/cisco/enic
++
++obj-$(CONFIG_INFINIBAND_USNIC)+= usnic_verbs.o
++
++usnic_verbs-y=\
++usnic_fwd.o \
++usnic_transport.o \
++usnic_uiom.o \
++usnic_uiom_interval_tree.o \
++usnic_vnic.o \
++usnic_ib_main.o \
++usnic_ib_qp_grp.o \
++usnic_ib_sysfs.o \
++usnic_ib_verbs.o \
++usnic_debugfs.o \
+--
+1.7.1
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
