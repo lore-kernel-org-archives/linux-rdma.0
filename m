@@ -1,105 +1,80 @@
-From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Strange NFS client ACK behaviour
-Date: Thu, 5 Sep 2013 09:42:42 -0700
-Message-ID: <CABgxfbF6iWsDei3De0ePsrVnA-a3vYuUbD07Bog6m1Mquy6Ecw@mail.gmail.com>
-References: <12EF8D94C6F8734FB2FF37B9FBEDD173585722AA@EXCHANGE.collogia.de>
+From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH V1 0/4] Add driver for Cisco's VIC series adapters
+Date: Thu, 5 Sep 2013 17:45:00 +0000
+Message-ID: <47A33601BBFF7E4B8F0D5D0C96F3022C013C7BA5@xmb-rcd-x09.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <12EF8D94C6F8734FB2FF37B9FBEDD173585722AA-Xnr6BND5kcg29+KCeZIpYi5l6jQMEky5@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <FD010C1A821E074696BDDEAFCE7533AF-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Christian Benvenuti (benve)" <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-CC linux-nfs .. maybe this is obvious to someone there ... Two
-comments inlined below.
+usNIC is the kernel driver for userspace bypass networking on Cisco's
+VIC series adapters.  usNIC devices are advertised as SRIOV VFs by the
+VIC adapters and these VFs are owned by usNIC.  The driver works in
+conjuction with Cisco's ethernet driver, which owns the PFs, and does
+priviledged firmware operations via the PF driver.
 
-On Tue, Sep 3, 2013 at 11:28 AM, Markus Stockhausen
-<stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org> wrote:
-> Hello,
->
-> we observed a performance drop in our IPoIB NFS backup
-> infrastructure since we switched to machines with newer
-> kernels. As I do not know where to start I hope someone
-> on this list can give me hint where to dig for more details.
+The Cisco driver patches - driver part 1,2, 3 below - depend on the 
+following patches - in order - in the net-next tree at 
+git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git:
+1) f13bbc2f9aba00c7a37b499d23060616b9a4ef9e
+2) 92e2b4696202934b4cbf1d6b8fb8729e8d7202e1
+3) 0b038566c0ea9f8daceae879bb7ad748ab8c95f0
+4) d765bb41fde311b57de32bdc9d17965debe8b7af
+5) 4a50ddfda72881d5d67a2b25f9b8a120b2765125
 
-In case of no other reply, I would start w/ a socket program (or a
-network performance measuring tool) on the interface that does similar
-logic as "dd" you described below; that is, send a 256K message in a
-fixed number of loops (so total transfer size somewhere close to your
-file size) between client and server, followed by comparing the
-interrupt counters (cat /proc/interrtups) on both kernels. If the
-interrupt count differs as you described, the problem is most likely
-with the IB driver, not NFS layer.
+This patch is being partitioned to avoid 100KB vger.kernel.org
+limitation.
 
->
-> To make a long story short. We use ConnectX cards with the
-> standard kernel drivers on version 2.6.32 (Ubuntu 10.04), 3.5
-> (Ubuntu 12.04) and 3.10 (Fedora 19). The very simple and not
-> scientific test consists of mounting a NFS share using IPoIB UD
-> network interfaces at MTU of 2044. Afterwards read a large file
-> on the client side with dd if=file of=/dev/null bs=256K.
-> During the transfer we run a tcpdump on the ibX interface on
-> the NFS server side. No special settings for kernel parameters
-> until now.
+Changes from previous V0:
+ - We are now asking for inclusion in the infiniband tree because
+   all dependencies of this driver on the Cisco ethernet driver are 
+   now in the net-next tree.
 
-I don't know much about ConnectX. Not sure what "IPoIB UD" means ?
-"Datagram vs. CM" or "TCP vs. UDP" ?
+IB/core: Cisco VIC - usNIC rdma node and transport
+IB/usnic: Cisco VIC - driver part 1/3
+IB/usnic: Cisco VIC - driver part 2/3
+IB/usnic: Cisco VIC - driver part 3/3
 
->
-> When doing the test with a 2.6.32 kernel based client we see the
-> following packet sequence. More or less a lot of transferd blocks
-> from the NFS server to the client with sometimes an ACK package
-> from the client to the server:
->
-> 16:16:45.050930 IP server.nfs > cli_2_6_32.896:
->   Flags [.], seq 8909853:8913837, ack 1154149,
->   win 604, options [nop,nop,TS val 1640401415
->   ecr 3881919089], length 3984
-> 16:16:45.050936 IP server.nfs > cli_2_6_32.896:
->   Flags [.], seq 8913837:8917821, ack 1154149,
->   win 604, options [nop,nop,TS val 1640401415
->   ecr 3881919089], length 3984
->
-> ... 8 more ...
->
-> 16:16:45.050976 IP cli_2_6_32.896 > server.nfs:
->   Flags [.], ack 8909853, win 24574, options
->   [nop,nop,TS val 3881919089 ecr 1640401415],
->   length 0
-> ...
->
-> After switchng to a client with a newer kernel (3.5 or 3.10) the
-> sequence all of a sudden gives just the opposite behaviour.
-> One should note that this is the same server as in the test
-> above. The server sends bigger packets (I guess TSO is doing
-> the rest of the work). After each packet the client sends
-> several ACK packages back.
->
-> 16:15:21.038782 IP server.nfs > cli_3_5_0.928:
->   Flags [.], seq 9612429:9652269, ack 372776,
->   win 5815, options [nop,nop,TS val 1640380412
->   ecr 560111379], length 39840
-> 16:15:21.038806 IP cli_3_5_0.928 > server.nfs:
->   Flags [.], ack 9542205, win 16384, options
->   [nop,nop,TS val 560111379 ecr 1640380412],
->   length 0
-> 16:15:21.038812 IP cli_3_5_0.928 > server.nfs:
->   Flags [.], ack 9546077, win 16384, options
->   [nop,nop,TS val 560111379 ecr 1640380412],
-> length 0
->
-> ... 6-8 more ...
->
-> The visible side effects of this changed processing include:
-> - NIC interrupts on the NFS servers raise by a factor of 8.
-> - Transfer speed lowers by 50% (400->200 MB/sec)
->
-> Best regards.
->
-> Markus
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+drivers/infiniband/core/sysfs.c                    |    1
+drivers/infiniband/core/verbs.c                    |    3
+include/rdma/ib_verbs.h                            |    6
+drivers/infiniband/hw/usnic/usnic_abi.h            |   55 +
+drivers/infiniband/hw/usnic/usnic_ib.h             |  115 +++
+drivers/infiniband/hw/usnic/usnic_ib_main.c        |  600 ++++++++++++++++
+drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c      |  542 +++++++++++++++
+drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h      |   97 +++
+drivers/infiniband/hw/usnic/usnic_ib_sysfs.c       |  349 ++++++++++
+drivers/infiniband/hw/usnic/usnic_ib_sysfs.h       |   29 +
+drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |  734 ++++++++++++++++++++
+drivers/infiniband/hw/usnic/usnic_ib_verbs.h       |   72 ++
+drivers/infiniband/hw/usnic/usnic.h                |   29 +
+drivers/infiniband/hw/usnic/usnic_common_pkt_hdr.h |   27 +
+drivers/infiniband/hw/usnic/usnic_common_util.h    |   51 +
+drivers/infiniband/hw/usnic/usnic_debugfs.c        |   70 ++
+drivers/infiniband/hw/usnic/usnic_debugfs.h        |   25 +
+drivers/infiniband/hw/usnic/usnic_fwd.c            |  244 +++++++
+drivers/infiniband/hw/usnic/usnic_fwd.h            |   58 ++
+drivers/infiniband/hw/usnic/usnic_log.h            |   58 ++
+drivers/infiniband/hw/usnic/usnic_transport.c      |  125 +++
+drivers/infiniband/hw/usnic/usnic_transport.h      |   27 +
+drivers/infiniband/hw/usnic/usnic_uiom.c           |  602 ++++++++++++++++
+drivers/infiniband/hw/usnic/usnic_uiom.h           |   80 ++
+.../infiniband/hw/usnic/usnic_uiom_interval_tree.c |  234 ++++++
+.../infiniband/hw/usnic/usnic_uiom_interval_tree.h |   74 ++
+drivers/infiniband/hw/usnic/usnic_vnic.c           |  473 +++++++++++++
+drivers/infiniband/hw/usnic/usnic_vnic.h           |  105 +++
+MAINTAINERS                                        |    5
+drivers/infiniband/Kconfig                         |    1
+drivers/infiniband/Makefile                        |    1
+drivers/infiniband/hw/usnic/Kconfig                |   11
+drivers/infiniband/hw/usnic/Makefile               |   15
+33 files changed, 4916 insertions(+), 2 deletions(-)--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
