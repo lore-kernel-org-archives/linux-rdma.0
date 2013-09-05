@@ -1,71 +1,66 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH opensm] osm_sa_guidinfo_record.c: False duplicate GUID
- error messages
-Date: Thu, 05 Sep 2013 21:15:45 +0200
-Message-ID: <5228D861.3070206@oracle.com>
-References: <522892BE.7070002@dev.mellanox.co.il>
+From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/4] RDMA/nes and RDMA/cxgb4: iWARP Port Mapper Overview
+Date: Thu, 5 Sep 2013 21:03:17 +0000
+Message-ID: <13AA599688F47243B14FCFCCC2C803BB0D836DC0@FMSMSX104.amr.corp.intel.com>
+References: <20130831194127.GA22152@TENIKOLO-MOBL1>
+ <52260168.8030706@opengridcomputing.com>
+ <1828884A29C6694DAF28B7E6B8A8237388CAA713@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <522892BE.7070002-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CAA713-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Sharp, Robert O" <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Looks good to me. Thanks,
-Line
+Hello Sean,
 
-On 09/05/13 16:18, Hal Rosenstock wrote:
-> If the same request is received twice then the second one will cause
-> error messages indicating duplicate alias GUIDs. In this case this is
-> a false warning. The second request should be treated as a void and
-> return success to the requester.
->
-> Signed-off-by: Line Holen<Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Hal Rosenstock<hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
-> index 8323b38..28f6c0f 100644
-> --- a/opensm/osm_sa_guidinfo_record.c
-> +++ b/opensm/osm_sa_guidinfo_record.c
-> @@ -653,15 +653,21 @@ add_alias_guid:
->   							    p_alias_guid->alias_guid,
->   							&p_alias_guid->map_item);
->   		if (p_alias_guid_check != p_alias_guid) {
-> -			/* alias GUID is a duplicate */
-> -			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5108: "
-> -				"Duplicate alias port GUID 0x%" PRIx64
-> -				" index %d base port GUID 0x%" PRIx64 "\n",
-> -				cl_ntoh64(p_alias_guid->alias_guid), i,
-> -				cl_ntoh64(p_alias_guid->p_base_port->guid));
-> -			osm_alias_guid_delete(&p_alias_guid);
-> -			/* clear response guid at index to indicate duplicate */
-> -			p_rcvd_rec->guid_info.guid[i % 8] = 0;
-> +			/* alias GUID is a duplicate if it exists on another port or on the same port but at another index */
-> +			if (p_alias_guid_check->p_base_port != p_port ||
-> +			    (*p_port->p_physp->p_guids)[i] != set_alias_guid) {
-> +				OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5108: "
-> +					"Duplicate alias port GUID 0x%" PRIx64
-> +					" index %d base port GUID 0x%" PRIx64
-> +					", alias GUID already assigned to "
-> +					"base port GUID 0x%" PRIx64 "\n",
-> +					cl_ntoh64(p_alias_guid->alias_guid), i,
-> +					cl_ntoh64(p_alias_guid->p_base_port->guid),
-> +					cl_ntoh64(p_alias_guid_check->p_base_port->guid));
-> +				osm_alias_guid_delete(&p_alias_guid);
-> +				/* clear response guid at index to indicate duplicate */
-> +				p_rcvd_rec->guid_info.guid[i % 8] = 0;
-> +			}
->   		} else {
->   			del_alias_guid = (*p_port->p_physp->p_guids)[i];
->   			if (del_alias_guid) {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
++	RDMA_NL_NES,
++	RDMA_NL_C4IW
 
+>> Why is the communication with the daemon device specific?  
+
+These enums are necessary. The communication with the IWPM daemon is device specific, because each device is a different netlink client and needs to register with netlink a set of callback functions. The drivers nes and cxgb4 are consuming two netlink clients, using the following 
+
+ibnl_add_client(RDMA_NL_NES, RDMA_NL_IWPM_NUM_OPS, nes_nl_cb_table)
+ibnl_add_client(RDMA_NL_C4IW, RDMA_NL_IWPM_NUM_OPS, c4iw_nl_cb_table)
+
+The current implementation will work with two iwarp providers (nes and cxgb4) on the same system and the user space iwarp port mapper will be servicing two clients at the same time.
+
+>> Can the iwarp cm fully encapsulate these changes?
+This needs more consideration, because it may not be a trivial change.
+
+Thank you,
+Tatyana
+
+-----Original Message-----
+From: Hefty, Sean 
+Sent: Tuesday, September 03, 2013 12:22 PM
+To: Steve Wise; Nikolova, Tatyana E
+Cc: Roland Dreier; Sharp, Robert O; Lacombe, John S; vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: RE: [PATCH 0/4] RDMA/nes and RDMA/cxgb4: iWARP Port Mapper Overview
+
+> I think there are lots of #defines and enums replicated in both 
+> nes_netlink.h and c4iw_netlink.h.  For example, the IWPM_* defines and 
+> enums.  It seems like we could put all this in a common header file to 
+> be included by all iwarp providers?  Say include/rdma/iw_portmap.h or 
+> something.  Basically the interface to the user mode daemon is the 
+> same for all providers, no?  Those bits should be in a common header.  
+> (and maybe even a common core module if there is enough common functions).
+> 
+> Thoughts?
+
+I agree.  This enum change looks off:
+
++	RDMA_NL_NES,
++	RDMA_NL_C4IW
+
+Why is the communication with the daemon device specific?  Can the iwarp cm fully encapsulate these changes?
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
