@@ -1,146 +1,124 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] opensm: Clean up event subscriptions if a port goes away
-Date: Thu, 5 Sep 2013 01:55:48 -0700 (PDT)
-Message-ID: <5757eac9-e734-4f39-a828-03a9f95e6835@default>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: rtnl_lock deadlock on 3.10
+Date: Thu, 05 Sep 2013 12:02:12 +0200
+Message-ID: <522856A4.8040800@acm.org>
+References: <20130701145456.GA7756@sbohrermbp13-local.rgmadvisors.com> <20130702082818.GA26178@order.stressinduktion.org> <kqul4h$ib8$1@ger.gmane.org> <20130703051152.GA12615@order.stressinduktion.org> <20130703053307.GB12615@order.stressinduktion.org> <20130703172239.GA3439@sbohrermbp13-local.rgmadvisors.com> <51D45EB3.7030404@mellanox.com> <20130715143819.GA3084@sbohrermbp13-local.rgmadvisors.com> <20130729230216.GB4396@sbohrermbp13-local.rgmadvisors.com> <51F7B792.7030803@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <51F7B792.7030803-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux-Rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Shawn Bohrer <sbohrer-EgGFQ3RFNTIP7C3xziwOQw@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shawn Bohrer <shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Event subscriptions needs to be cleaned up if a port goes away.
-If the port comes online again later it may no longer want to
-receive the events on the same QPN. If the "old" QPN is used for
-something else the SM forwarding events may cause QKey violations.
+On 07/30/13 14:54, Steve Wise wrote:
+> On 7/29/2013 6:02 PM, Shawn Bohrer wrote:
+>> On Mon, Jul 15, 2013 at 09:38:19AM -0500, Shawn Bohrer wrote:
+>>> On Wed, Jul 03, 2013 at 08:26:11PM +0300, Or Gerlitz wrote:
+>>>> On 03/07/2013 20:22, Shawn Bohrer wrote:
+>>>>> On Wed, Jul 03, 2013 at 07:33:07AM +0200, Hannes Frederic Sowa wrote:
+>>>>>> On Wed, Jul 03, 2013 at 07:11:52AM +0200, Hannes Frederic Sowa wrote:
+>>>>>>> On Tue, Jul 02, 2013 at 01:38:26PM +0000, Cong Wang wrote:
+>>>>>>>> On Tue, 02 Jul 2013 at 08:28 GMT, Hannes Frederic Sowa
+>>>>>>>> <hannes-tFNcAqjVMyqKXQKiL6tip0B+6BGkLq7r@public.gmane.org> wrote:
+>>>>>>>>> On Mon, Jul 01, 2013 at 09:54:56AM -0500, Shawn Bohrer wrote:
+>>>>>>>>>> I've managed to hit a deadlock at boot a couple times while
+>>>>>>>>>> testing
+>>>>>>>>>> the 3.10 rc kernels.  It seems to always happen when my network
+>>>>>>>>>> devices are initializing.  This morning I updated to v3.10 and
+>>>>>>>>>> made a
+>>>>>>>>>> few config tweaks and so far I've hit it 4 out of 5 reboots.
+>>>>>>>>>> It looks
+>>>>>>>>>> like most processes are getting stuck on rtnl_lock.  Below is
+>>>>>>>>>> a boot
+>>>>>>>>>> log with the soft lockup prints.  Please let know if there is any
+>>>>>>>>>> other information I can provide:
+>>>>>>>>> Could you try a build with CONFIG_LOCKDEP enabled?
+>>>>>>>>>
+>>>>>>>> The problem is clear: ib_register_device() is called with
+>>>>>>>> rtnl_lock,
+>>>>>>>> but itself needs device_mutex, however, ib_register_client() first
+>>>>>>>> acquires device_mutex, then indirectly calls register_netdev()
+>>>>>>>> which
+>>>>>>>> takes rtnl_lock. Deadlock!
+>>>>>>>>
+>>>>>>>> One possible fix is always taking rtnl_lock before taking
+>>>>>>>> device_mutex, something like below:
+>>>>>>>>
+>>>>>>>> diff --git a/drivers/infiniband/core/device.c
+>>>>>>>> b/drivers/infiniband/core/device.c
+>>>>>>>> index 18c1ece..890870b 100644
+>>>>>>>> --- a/drivers/infiniband/core/device.c
+>>>>>>>> +++ b/drivers/infiniband/core/device.c
+>>>>>>>> @@ -381,6 +381,7 @@ int ib_register_client(struct ib_client
+>>>>>>>> *client)
+>>>>>>>>   {
+>>>>>>>>       struct ib_device *device;
+>>>>>>>> +    rtnl_lock();
+>>>>>>>>       mutex_lock(&device_mutex);
+>>>>>>>>       list_add_tail(&client->list, &client_list);
+>>>>>>>> @@ -389,6 +390,7 @@ int ib_register_client(struct ib_client
+>>>>>>>> *client)
+>>>>>>>>               client->add(device);
+>>>>>>>>       mutex_unlock(&device_mutex);
+>>>>>>>> +    rtnl_unlock();
+>>>>>>>>       return 0;
+>>>>>>>>   }
+>>>>>>>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>>>>>>>> b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>>>>>>>> index b6e049a..5a7a048 100644
+>>>>>>>> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>>>>>>>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>>>>>>>> @@ -1609,7 +1609,7 @@ static struct net_device
+>>>>>>>> *ipoib_add_port(const char *format,
+>>>>>>>>           goto event_failed;
+>>>>>>>>       }
+>>>>>>>> -    result = register_netdev(priv->dev);
+>>>>>>>> +    result = register_netdevice(priv->dev);
+>>>>>>>>       if (result) {
+>>>>>>>>           printk(KERN_WARNING "%s: couldn't register ipoib port
+>>>>>>>> %d; error %d\n",
+>>>>>>>>                  hca->name, port, result);
+>>>>>>> Looks good to me. Shawn, could you test this patch?
+>>>>>> ib_unregister_device/ib_unregister_client would need the same change,
+>>>>>> too. I have not checked the other ->add() and ->remove()
+>>>>>> functions. Also
+>>>>>> cc'ed linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier.
+>>>>> Cong's patch is missing the #include <linux/rtnetlink.h> but otherwise
+>>>>> I've had 34 successful reboots with no deadlocks which is a good sign.
+>>>>> It sounds like there are more paths that need to be audited and a
+>>>>> proper patch submitted.  I can do more testing later if needed.
+>>>>>
+>>>>> Thanks,
+>>>>> Shawn
+>>>>>
+>>>> Guys, I was a bit busy today looking into that, but I don't think we
+>>>> want the IB core layer  (core/device.c) to
+>>>> use rtnl locking which is something that belongs to the network stack.
+>>> Has anymore thought been put into a proper fix for this issue?
+>> I'm no expert in this area but I'm having a hard time seeing a
+>> different solution than the one Cong suggested.  Just to be clear the
+>> deadlock I hit was between cxgb3 and the ipoib module, so I've Cc'd
+>> Steve Wise in case he has a better solution from the Chelsio side.
+>
+> I don't know of another way to resolve this.   The rtnl lock is used in
+> ipoib and mlx4 already.  I think we should go forward with the proposed
+> patch.
 
-Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+(replying to an e-mail of one month ago)
 
----
+Hello,
 
-diff --git a/include/opensm/osm_inform.h b/include/opensm/osm_inform.h
-index f737441..8cefc20 100644
---- a/include/opensm/osm_inform.h
-+++ b/include/opensm/osm_inform.h
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -200,6 +201,35 @@ void osm_infr_insert_to_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
- void osm_infr_remove_from_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
- 			     IN osm_infr_t * p_infr);
- 
-+/****f* OpenSM: Inform Record/osm_infr_remove_subscriptions
-+* NAME
-+*	osm_infr_remove_subscriptions
-+*
-+* DESCRIPTION
-+*	Remove all event subscriptions of a port
-+*
-+* SYNOPSIS
-+*/
-+ib_api_status_t
-+osm_infr_remove_subscriptions(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
-+			      IN ib_net64_t port_guid);
-+/*
-+* PARAMETERS
-+*	p_subn
-+*		[in] Pointer to the subnet object
-+*
-+*	p_log
-+*		[in] Pointer to the log object
-+*
-+*	port_guid
-+*		[in] PortGUID of the subscriber that should be removed
-+*
-+* RETURN
-+*	CL_SUCCESS if port_guid had any subscriptions being removed
-+*	CL_NOT_FOUND if port_guid did not have any active subscriptions
-+* SEE ALSO
-+*********/
-+
- /****f* OpenSM: Inform Record/osm_report_notice
- * NAME
- *	osm_report_notice
-diff --git a/opensm/osm_drop_mgr.c b/opensm/osm_drop_mgr.c
-index b309273..5f9181a 100644
---- a/opensm/osm_drop_mgr.c
-+++ b/opensm/osm_drop_mgr.c
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
-+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -276,6 +277,13 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
- 
- 	drop_mgr_clean_physp(sm, p_port->p_physp);
- 
-+	/* Delete event forwarding subscriptions */
-+	if (osm_infr_remove_subscriptions(sm->p_subn, sm->p_log, port_guid)
-+	    == CL_SUCCESS)
-+		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
-+		    "Removed event subscriptions for port 0x%016" PRIx64 "\n",
-+		    cl_ntoh64(port_guid));
-+
- 	/* initialize the p_node - may need to get node_desc later */
- 	p_node = p_port->p_node;
- 
-diff --git a/opensm/osm_inform.c b/opensm/osm_inform.c
-index 804c414..6318700 100644
---- a/opensm/osm_inform.c
-+++ b/opensm/osm_inform.c
-@@ -282,6 +282,41 @@ void osm_infr_remove_from_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
- 	OSM_LOG_EXIT(p_log);
- }
- 
-+ib_api_status_t osm_infr_remove_subscriptions(IN osm_subn_t * p_subn,
-+					      IN osm_log_t * p_log,
-+					      IN ib_net64_t port_guid)
-+{
-+	ib_gid_t gid;
-+	cl_list_item_t *p_list_item;
-+	osm_infr_t *p_infr;
-+	ib_api_status_t status = CL_NOT_FOUND;
-+
-+	OSM_LOG_ENTER(p_log);
-+
-+	gid.unicast.interface_id = port_guid;
-+	gid.unicast.prefix = p_subn->opt.subnet_prefix;
-+
-+	/* go over all inform info available at the subnet */
-+	/* match to the given GID and delete subscriptions if match */
-+	p_list_item = cl_qlist_head(&p_subn->sa_infr_list);
-+	while (p_list_item != cl_qlist_end(&p_subn->sa_infr_list)) {
-+
-+		p_infr = (osm_infr_t *)p_list_item;
-+		p_list_item = cl_qlist_next(p_list_item);
-+
-+		if (memcmp(&(p_infr->inform_record.subscriber_gid), &gid, sizeof(ib_gid_t)))
-+			continue;
-+
-+		/* Remove this event subscription */
-+		osm_infr_remove_from_db(p_subn, p_log, p_infr);
-+
-+		status = CL_SUCCESS;
-+	}
-+
-+	OSM_LOG_EXIT(p_log);
-+	return (status);
-+}
-+
- /**********************************************************************
-  * Send a report:
-  * Given a target address to send to and the notice.
+It would be appreciated if anyone could report what the current status 
+of this issue is. I think a deadlock I ran into with kernels 3.10 and 
+3.11 and PCI pass-through is related to this issue. See also 
+http://bugzilla.kernel.org/show_bug.cgi?id=60856 for the lockdep report.
+
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
