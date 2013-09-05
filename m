@@ -1,80 +1,50 @@
-From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V1 0/4] Add driver for Cisco's VIC series adapters
-Date: Thu, 5 Sep 2013 17:45:00 +0000
-Message-ID: <47A33601BBFF7E4B8F0D5D0C96F3022C013C7BA5@xmb-rcd-x09.cisco.com>
+From: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/4] RDMA/nes and RDMA/cxgb4: iWARP Port Mapper Overview
+Date: Thu, 5 Sep 2013 17:54:51 +0000
+Message-ID: <13AA599688F47243B14FCFCCC2C803BB0D836D04@FMSMSX104.amr.corp.intel.com>
+References: <20130831194127.GA22152@TENIKOLO-MOBL1>
+	<CAJZOPZK-zO5tnAg4vPXuvkf=vNWqk1A-Y8nNsu4LnW7toZXNzw@mail.gmail.com>
+ <CAJZOPZLQ_QnRM7xmajU7RZOGmUYAPSOuPzpefMyJjS9GfWZvzA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJZOPZLQ_QnRM7xmajU7RZOGmUYAPSOuPzpefMyJjS9GfWZvzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
-Content-ID: <FD010C1A821E074696BDDEAFCE7533AF-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Christian Benvenuti (benve)" <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Sharp, Robert O" <robert.o.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Lacombe, John S" <john.s.lacombe-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC is the kernel driver for userspace bypass networking on Cisco's
-VIC series adapters.  usNIC devices are advertised as SRIOV VFs by the
-VIC adapters and these VFs are owned by usNIC.  The driver works in
-conjuction with Cisco's ethernet driver, which owns the PFs, and does
-priviledged firmware operations via the PF driver.
+Hello Or,
 
-The Cisco driver patches - driver part 1,2, 3 below - depend on the 
-following patches - in order - in the net-next tree at 
-git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git:
-1) f13bbc2f9aba00c7a37b499d23060616b9a4ef9e
-2) 92e2b4696202934b4cbf1d6b8fb8729e8d7202e1
-3) 0b038566c0ea9f8daceae879bb7ad748ab8c95f0
-4) d765bb41fde311b57de32bdc9d17965debe8b7af
-5) 4a50ddfda72881d5d67a2b25f9b8a120b2765125
+>> Does this series follows the netconf 2011session e.g from this link http://vger.kernel.org/netconf2011_slides/pj_netconf2011.ppt?
+Yes
 
-This patch is being partitioned to avoid 100KB vger.kernel.org
-limitation.
+Thanks,
+Tatyana
 
-Changes from previous V0:
- - We are now asking for inclusion in the infiniband tree because
-   all dependencies of this driver on the Cisco ethernet driver are 
-   now in the net-next tree.
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
+Sent: Wednesday, September 04, 2013 5:19 AM
+To: Nikolova, Tatyana E
+Cc: Roland Dreier; Sharp, Robert O; Lacombe, John S; Vipul Pandya; Steve Wise; linux-rdma
+Subject: Re: [PATCH 0/4] RDMA/nes and RDMA/cxgb4: iWARP Port Mapper Overview
 
-IB/core: Cisco VIC - usNIC rdma node and transport
-IB/usnic: Cisco VIC - driver part 1/3
-IB/usnic: Cisco VIC - driver part 2/3
-IB/usnic: Cisco VIC - driver part 3/3
+On Sat, Aug 31 2013, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+[...]
+> The patches are built against Roland's infiniband tree for-next branch.
+> We would like this series to get in the linux-3.12 merge window.
 
-drivers/infiniband/core/sysfs.c                    |    1
-drivers/infiniband/core/verbs.c                    |    3
-include/rdma/ib_verbs.h                            |    6
-drivers/infiniband/hw/usnic/usnic_abi.h            |   55 +
-drivers/infiniband/hw/usnic/usnic_ib.h             |  115 +++
-drivers/infiniband/hw/usnic/usnic_ib_main.c        |  600 ++++++++++++++++
-drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c      |  542 +++++++++++++++
-drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h      |   97 +++
-drivers/infiniband/hw/usnic/usnic_ib_sysfs.c       |  349 ++++++++++
-drivers/infiniband/hw/usnic/usnic_ib_sysfs.h       |   29 +
-drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |  734 ++++++++++++++++++++
-drivers/infiniband/hw/usnic/usnic_ib_verbs.h       |   72 ++
-drivers/infiniband/hw/usnic/usnic.h                |   29 +
-drivers/infiniband/hw/usnic/usnic_common_pkt_hdr.h |   27 +
-drivers/infiniband/hw/usnic/usnic_common_util.h    |   51 +
-drivers/infiniband/hw/usnic/usnic_debugfs.c        |   70 ++
-drivers/infiniband/hw/usnic/usnic_debugfs.h        |   25 +
-drivers/infiniband/hw/usnic/usnic_fwd.c            |  244 +++++++
-drivers/infiniband/hw/usnic/usnic_fwd.h            |   58 ++
-drivers/infiniband/hw/usnic/usnic_log.h            |   58 ++
-drivers/infiniband/hw/usnic/usnic_transport.c      |  125 +++
-drivers/infiniband/hw/usnic/usnic_transport.h      |   27 +
-drivers/infiniband/hw/usnic/usnic_uiom.c           |  602 ++++++++++++++++
-drivers/infiniband/hw/usnic/usnic_uiom.h           |   80 ++
-.../infiniband/hw/usnic/usnic_uiom_interval_tree.c |  234 ++++++
-.../infiniband/hw/usnic/usnic_uiom_interval_tree.h |   74 ++
-drivers/infiniband/hw/usnic/usnic_vnic.c           |  473 +++++++++++++
-drivers/infiniband/hw/usnic/usnic_vnic.h           |  105 +++
-MAINTAINERS                                        |    5
-drivers/infiniband/Kconfig                         |    1
-drivers/infiniband/Makefile                        |    1
-drivers/infiniband/hw/usnic/Kconfig                |   11
-drivers/infiniband/hw/usnic/Makefile               |   15
-33 files changed, 4916 insertions(+), 2 deletions(-)--
+So why submitting it only 48 hours before the merge window opens up?
+
+Does this series follows the netconf 2011session e.g from this link http://vger.kernel.org/netconf2011_slides/pj_netconf2011.ppt ?
+Personally, I will not be able to review the concept and core patches before next week, but if others here can and are OK for this to 3.12, let it be.
+
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
