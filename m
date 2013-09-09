@@ -1,33 +1,57 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Subject: [PATCH 0/6] Simplify some mps and mrrs setting related code
-Date: Mon, 9 Sep 2013 21:13:02 +0800
-Message-ID: <1378732388-4508-1-git-send-email-wangyijing@huawei.com>
+Subject: [PATCH 6/6] radeon: Use pcie_get_readrq() and pcie_set_readrq() to simplify code
+Date: Mon, 9 Sep 2013 21:13:08 +0800
+Message-ID: <1378732388-4508-7-git-send-email-wangyijing@huawei.com>
+References: <1378732388-4508-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1378732388-4508-1-git-send-email-wangyijing@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Chris Metcalf <cmetcalf@tilera.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Airlie <airlied@linux.ie>, Mike Marciniszyn <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, Roland Dreier <roland@purestorage.com>
 Cc: linux-kernel@vger.kernel.org, Mark Einon <mark.einon@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This series simplify mps and mrrs setting related code in drivers.
-Export the pcie_set/get_mps() like pcie_set/get_readrq(). So drivers
-can use these interfaces to simplify code that set mps and mrrs.
-Patch 2 use pci_is_root_bus() instead of if (bus->parent) statement
-for better readability.
+Use pcie_get_readrq() and pcie_set_readrq() functions to simplify code.
 
-Yijing Wang (6):
-  PCI: Export pcie_set_mps() and pcie_get_mps()
-  title/pci: use cached pci_dev->pcie_mpss to simplify code
-  IB/qib: Use pci_is_root_bus() to check whether it is a root bus
-  IB/qib: Use pcie_set_mps() and pcie_get_mps() to simplify code
-  staging/et131x: Use cached pci_dev->pcie_mpss and pcie_set_readrq()
-    to simplif code
-  radeon: Use pcie_get_readrq() and pcie_set_readrq() to simplify code
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ drivers/gpu/drm/radeon/evergreen.c |   19 ++++++-------------
+ 1 files changed, 6 insertions(+), 13 deletions(-)
 
- arch/tile/kernel/pci.c               |    7 +--
- drivers/gpu/drm/radeon/evergreen.c   |   19 ++-----
- drivers/infiniband/hw/qib/qib_pcie.c |   98 +++++++++++-----------------------
- drivers/pci/pci.c                    |    2 +
- drivers/staging/et131x/et131x.c      |   14 +----
- 5 files changed, 44 insertions(+), 96 deletions(-)
+diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
+index d5b49e3..b191f92 100644
+--- a/drivers/gpu/drm/radeon/evergreen.c
++++ b/drivers/gpu/drm/radeon/evergreen.c
+@@ -1169,23 +1169,16 @@ int evergreen_set_uvd_clocks(struct radeon_device *rdev, u32 vclk, u32 dclk)
+ 
+ void evergreen_fix_pci_max_read_req_size(struct radeon_device *rdev)
+ {
+-	u16 ctl, v;
+-	int err;
+-
+-	err = pcie_capability_read_word(rdev->pdev, PCI_EXP_DEVCTL, &ctl);
+-	if (err)
+-		return;
+-
+-	v = (ctl & PCI_EXP_DEVCTL_READRQ) >> 12;
++	int readrq;
++	u16 v;
+ 
++	readrq = pcie_get_readrq(rdev->pdev);
++	v = ffs(readrq) - 8;
+ 	/* if bios or OS sets MAX_READ_REQUEST_SIZE to an invalid value, fix it
+ 	 * to avoid hangs or perfomance issues
+ 	 */
+-	if ((v == 0) || (v == 6) || (v == 7)) {
+-		ctl &= ~PCI_EXP_DEVCTL_READRQ;
+-		ctl |= (2 << 12);
+-		pcie_capability_write_word(rdev->pdev, PCI_EXP_DEVCTL, ctl);
+-	}
++	if ((v == 0) || (v == 6) || (v == 7))
++		pcie_set_readrq(rdev->pdev, 512);
+ }
+ 
+ static bool dce4_is_in_vblank(struct radeon_device *rdev, int crtc)
+-- 
+1.7.1
