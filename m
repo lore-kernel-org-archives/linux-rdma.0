@@ -1,23 +1,40 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] libmlx5 1.0.0 released
-Date: Mon, 9 Sep 2013 16:19:58 +0200
-Message-ID: <20130909141958.GA28760@mtldesk30>
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [PATCHv2] IB/srp: add change_queue_depth and change_queue_type
+ support
+Date: Mon, 09 Sep 2013 10:37:24 -0400
+Message-ID: <1378737444.2050.0.camel@haswell.thedillows.org>
+References: <521DB28C.9020803@profitbricks.com>
+	 <522DBB2F.8080905@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <522DBB2F.8080905-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-I would like to announce the availability of libmlx5, the provider
-library for Mellanox Connect-IB devices.
-The library can be found here:
-www.openfabrics.org/downloads/mlx5/libmlx5-1.0.0.tar.gz
+On Mon, 2013-09-09 at 14:12 +0200, Jack Wang wrote:
+> On 08/28/2013 10:19 AM, Jack Wang wrote:
+> > Hi,
+> > 
+> > Below patch is new version which address comments from Bart.
+> > 
+> 
+> Hi Roland,
+> 
+> Could you included this in your tree or do you need me resend it?
 
-Thanks,
-Eli
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+
+I expect to get through Bart's patches later today.
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
