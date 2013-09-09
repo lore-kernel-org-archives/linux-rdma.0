@@ -1,7 +1,7 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Subject: [PATCH 6/6] radeon: Use pcie_get_readrq() and pcie_set_readrq() to simplify code
-Date: Mon, 9 Sep 2013 21:13:08 +0800
-Message-ID: <1378732388-4508-7-git-send-email-wangyijing@huawei.com>
+Subject: [PATCH 5/6] staging/et131x: Use cached pci_dev->pcie_mpss and pcie_set_readrq() to simplif code
+Date: Mon, 9 Sep 2013 21:13:07 +0800
+Message-ID: <1378732388-4508-6-git-send-email-wangyijing@huawei.com>
 References: <1378732388-4508-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,46 +12,49 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Chris Metcalf <cmetcalf@tilera.com>, Gr
 Cc: linux-kernel@vger.kernel.org, Mark Einon <mark.einon@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Use pcie_get_readrq() and pcie_set_readrq() functions to simplify code.
+The PCI core caches the "PCI-E Max Payload Size Supported" in
+pci_dev->pcie_mpss, so use that instead of pcie_capability_read_dword().
+Also use pcie_set_readrq() instead of pcie_capability_clear_and_set_word()
+to simplify code.
 
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- drivers/gpu/drm/radeon/evergreen.c |   19 ++++++-------------
- 1 files changed, 6 insertions(+), 13 deletions(-)
+ drivers/staging/et131x/et131x.c |   14 +++-----------
+ 1 files changed, 3 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
-index d5b49e3..b191f92 100644
---- a/drivers/gpu/drm/radeon/evergreen.c
-+++ b/drivers/gpu/drm/radeon/evergreen.c
-@@ -1169,23 +1169,16 @@ int evergreen_set_uvd_clocks(struct radeon_device *rdev, u32 vclk, u32 dclk)
+diff --git a/drivers/staging/et131x/et131x.c b/drivers/staging/et131x/et131x.c
+index f73e58f..876881d 100644
+--- a/drivers/staging/et131x/et131x.c
++++ b/drivers/staging/et131x/et131x.c
+@@ -3605,17 +3605,10 @@ static int et131x_pci_init(struct et131x_adapter *adapter,
+ 		goto err_out;
+ 	}
  
- void evergreen_fix_pci_max_read_req_size(struct radeon_device *rdev)
- {
--	u16 ctl, v;
--	int err;
--
--	err = pcie_capability_read_word(rdev->pdev, PCI_EXP_DEVCTL, &ctl);
--	if (err)
--		return;
--
--	v = (ctl & PCI_EXP_DEVCTL_READRQ) >> 12;
-+	int readrq;
-+	u16 v;
- 
-+	readrq = pcie_get_readrq(rdev->pdev);
-+	v = ffs(readrq) - 8;
- 	/* if bios or OS sets MAX_READ_REQUEST_SIZE to an invalid value, fix it
- 	 * to avoid hangs or perfomance issues
- 	 */
--	if ((v == 0) || (v == 6) || (v == 7)) {
--		ctl &= ~PCI_EXP_DEVCTL_READRQ;
--		ctl |= (2 << 12);
--		pcie_capability_write_word(rdev->pdev, PCI_EXP_DEVCTL, ctl);
+-	/* Let's set up the PORT LOGIC Register.  First we need to know what
+-	 * the max_payload_size is
+-	 */
+-	if (pcie_capability_read_word(pdev, PCI_EXP_DEVCAP, &max_payload)) {
+-		dev_err(&pdev->dev,
+-		    "Could not read PCI config space for Max Payload Size\n");
+-		goto err_out;
 -	}
-+	if ((v == 0) || (v == 6) || (v == 7))
-+		pcie_set_readrq(rdev->pdev, 512);
- }
++	/* Let's set up the PORT LOGIC Register. */
  
- static bool dce4_is_in_vblank(struct radeon_device *rdev, int crtc)
+ 	/* Program the Ack/Nak latency and replay timers */
+-	max_payload &= 0x07;
++	max_payload = pdev->pcie_mpss;
+ 
+ 	if (max_payload < 2) {
+ 		static const u16 acknak[2] = { 0x76, 0xD0 };
+@@ -3645,8 +3638,7 @@ static int et131x_pci_init(struct et131x_adapter *adapter,
+ 	}
+ 
+ 	/* Change the max read size to 2k */
+-	if (pcie_capability_clear_and_set_word(pdev, PCI_EXP_DEVCTL,
+-				PCI_EXP_DEVCTL_READRQ, 0x4 << 12)) {
++	if (pcie_set_readrq(pdev, 2048)) {
+ 		dev_err(&pdev->dev,
+ 			"Couldn't change PCI config space for Max read size\n");
+ 		goto err_out;
 -- 
 1.7.1
