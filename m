@@ -1,7 +1,7 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Subject: [PATCH 2/6] title/pci: use cached pci_dev->pcie_mpss to simplify code
-Date: Mon, 9 Sep 2013 21:13:04 +0800
-Message-ID: <1378732388-4508-3-git-send-email-wangyijing@huawei.com>
+Subject: [PATCH 3/6] IB/qib: Use pci_is_root_bus() to check whether it is a root bus
+Date: Mon, 9 Sep 2013 21:13:05 +0800
+Message-ID: <1378732388-4508-4-git-send-email-wangyijing@huawei.com>
 References: <1378732388-4508-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,26 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Chris Metcalf <cmetcalf@tilera.com>, Gr
 Cc: linux-kernel@vger.kernel.org, Mark Einon <mark.einon@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The PCI core caches the "PCI-E Max Payload Size Supported" in
-pci_dev->pcie_mpss, so use that instead of pcie_capability_read_dword().
+Use pci_is_root_bus() instead of "if (bus->parent)" statement
+for better readability.
 
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/tile/kernel/pci.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/qib/qib_pcie.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/tile/kernel/pci.c b/arch/tile/kernel/pci.c
-index 67237d3..692a799 100644
---- a/arch/tile/kernel/pci.c
-+++ b/arch/tile/kernel/pci.c
-@@ -246,15 +246,12 @@ static void fixup_read_and_payload_sizes(void)
- 	/* Scan for the smallest maximum payload size. */
- 	for_each_pci_dev(dev) {
- 		u32 devcap;
--		int max_payload;
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index c574ec7..3a5b99b 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -590,7 +590,7 @@ static int qib_tune_pcie_caps(struct qib_devdata *dd)
  
- 		if (!pci_is_pcie(dev))
- 			continue;
- 
--		pcie_capability_read_dword(dev, PCI_EXP_DEVCAP, &devcap);
--		max_payload = devcap & PCI_EXP_DEVCAP_PAYLOAD;
--		if (max_payload < smallest_max_payload)
--			smallest_max_payload = max_payload;
-+		if (dev->pcie_mpss < smallest_max_payload)
-+			smallest_max_payload = dev->pcie_mpss;
+ 	/* Find out supported and configured values for parent (root) */
+ 	parent = dd->pcidev->bus->self;
+-	if (parent->bus->parent) {
++	if (!pci_is_root_bus(parent->bus)) {
+ 		qib_devinfo(dd->pcidev, "Parent not root\n");
+ 		goto bail;
  	}
- 
- 	/* Now, set the max_payload_size for all devices to that value. */
 -- 
 1.7.1
