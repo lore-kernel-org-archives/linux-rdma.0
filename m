@@ -1,111 +1,123 @@
-From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2 4/4] IB/usnic: Cisco VIC - driver part 3/3
-Date: Tue, 10 Sep 2013 03:39:35 +0000
-Message-ID: <47A33601BBFF7E4B8F0D5D0C96F3022C013CF3AE@xmb-rcd-x09.cisco.com>
+From: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
+Subject: AW: Strange NFS client ACK behaviour
+Date: Tue, 10 Sep 2013 06:51:58 +0000
+Message-ID: <12EF8D94C6F8734FB2FF37B9FBEDD1735857537F@EXCHANGE.collogia.de>
+References: <12EF8D94C6F8734FB2FF37B9FBEDD173585722AA@EXCHANGE.collogia.de>
+	<CABgxfbF6iWsDei3De0ePsrVnA-a3vYuUbD07Bog6m1Mquy6Ecw@mail.gmail.com>
+	<12EF8D94C6F8734FB2FF37B9FBEDD17358574B51@EXCHANGE.collogia.de>,<CABgxfbHYMi6z-7OHgfQnMNrihHPcqcipCnXZ65q5yXDJzK7rrg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+	boundary="----=_NextPartTM-000-f44df226-f931-441b-8355-9b10abed19f8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <59DFF029E1C6CF4CB134CA7E376DF847-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <CABgxfbHYMi6z-7OHgfQnMNrihHPcqcipCnXZ65q5yXDJzK7rrg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: de-DE
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
----
- MAINTAINERS                          |  5 +++++
- drivers/infiniband/Kconfig           |  1 +
- drivers/infiniband/Makefile          |  1 +
- drivers/infiniband/hw/usnic/Kconfig  | 11 +++++++++++
- drivers/infiniband/hw/usnic/Makefile | 15 +++++++++++++++
- 5 files changed, 33 insertions(+)
- create mode 100644 drivers/infiniband/hw/usnic/Kconfig
- create mode 100644 drivers/infiniband/hw/usnic/Makefile
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index defc053..ff41f0d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2077,6 +2077,11 @@ M:	Nishank Trivedi <nistrive-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
- S:	Supported
- F:	drivers/net/ethernet/cisco/enic/
+This is a multi-part message in MIME format.
 
-+CISCO VIC LOW LATENCY NIC DRIVER
-+M:      Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-+S:      Supported
-+F:      drivers/infiniband/hw/usnic
-+
- CIRRUS LOGIC EP93XX ETHERNET DRIVER
- M:	Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>
- L:	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 5ceda71..10219ee9 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -53,6 +53,7 @@ source "drivers/infiniband/hw/mlx4/Kconfig"
- source "drivers/infiniband/hw/mlx5/Kconfig"
- source "drivers/infiniband/hw/nes/Kconfig"
- source "drivers/infiniband/hw/ocrdma/Kconfig"
-+source "drivers/infiniband/hw/usnic/Kconfig"
+------=_NextPartTM-000-f44df226-f931-441b-8355-9b10abed19f8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
- source "drivers/infiniband/ulp/ipoib/Kconfig"
+> Von: Wendy Cheng [s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]=0A=
+> Gesendet: Montag, 9. September 2013 22:03=0A=
+> An: Markus Stockhausen=0A=
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=0A=
+> Betreff: Re: Strange NFS client ACK behaviour=0A=
+> =0A=
+> On Sun, Sep 8, 2013 at 11:24 AM, Markus Stockhausen=0A=
+> <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org> wrote:=0A=
+> =0A=
+> >> > we observed a performance drop in our IPoIB NFS backup=0A=
+> >> > infrastructure since we switched to machines with newer=0A=
+> >> > kernels.=0A=
+> >=0A=
+> =0A=
+> Not sure how your backup infrastructure works but the symptoms seem to=0A=
+> match with this discussion:=0A=
+> http://www.spinics.net/lists/linux-nfs/msg38980.html=0A=
+> =0A=
+> If you know how to recompile nfs kmod, Trond's patch does worth a try.=0A=
+> Or open an Ubuntu support ticket, let them build you a test kmod.=0A=
+> =0A=
+> -- Wendy=0A=
+=0A=
+Thanks for pointing into that direction. From my understanding this=0A=
+patch goes into the NFS client side. I built a patched module for my=0A=
+Fedora 19 client (3.10 kernel). Nevertheless the behaviour ist still=0A=
+the same.  If I get the patch right it is about forked childs that=0A=
+access a page of a mmapped file round robin and the kernel issues =0A=
+tons of write requests to the file.=0A=
+=0A=
+My case is only about ACK transmissions for a single writer.=0A=
+=0A=
+Markus=0A=
+ =
+------=_NextPartTM-000-f44df226-f931-441b-8355-9b10abed19f8
+Content-Type: text/plain;
+	name="InterScan_Disclaimer.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="InterScan_Disclaimer.txt"
 
-diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
-index 1fe6988..bf508b5 100644
---- a/drivers/infiniband/Makefile
-+++ b/drivers/infiniband/Makefile
-@@ -10,6 +10,7 @@ obj-$(CONFIG_MLX4_INFINIBAND)		+= hw/mlx4/
- obj-$(CONFIG_MLX5_INFINIBAND)		+= hw/mlx5/
- obj-$(CONFIG_INFINIBAND_NES)		+= hw/nes/
- obj-$(CONFIG_INFINIBAND_OCRDMA)		+= hw/ocrdma/
-+obj-$(CONFIG_INFINIBAND_USNIC)		+= hw/usnic/
- obj-$(CONFIG_INFINIBAND_IPOIB)		+= ulp/ipoib/
- obj-$(CONFIG_INFINIBAND_SRP)		+= ulp/srp/
- obj-$(CONFIG_INFINIBAND_SRPT)		+= ulp/srpt/
-diff --git a/drivers/infiniband/hw/usnic/Kconfig b/drivers/infiniband/hw/usnic/Kconfig
-new file mode 100644
-index 0000000..0f14b6d
---- /dev/null
-+++ b/drivers/infiniband/hw/usnic/Kconfig
-@@ -0,0 +1,11 @@
-+config INFINIBAND_USNIC
-+	tristate "Verbs support for Cisco VIC"
-+	depends on NETDEVICES && ETHERNET && PCI
-+	select ENIC
-+	select NET_VENDOR_CISCO
-+	select PCI_IOV
-+	select IOMMU_SUPPORT
-+	select INFINIBAND_USER_ACCESS
-+	---help---
-+	  This is a low-level driver for Cisco's Virtual Interface
-+	  Cards (VICs), including the VIC 1240 and 1280 cards.
-diff --git a/drivers/infiniband/hw/usnic/Makefile b/drivers/infiniband/hw/usnic/Makefile
-new file mode 100644
-index 0000000..99fb2db
---- /dev/null
-+++ b/drivers/infiniband/hw/usnic/Makefile
-@@ -0,0 +1,15 @@
-+ccflags-y := -Idrivers/net/ethernet/cisco/enic
-+
-+obj-$(CONFIG_INFINIBAND_USNIC)+= usnic_verbs.o
-+
-+usnic_verbs-y=\
-+usnic_fwd.o \
-+usnic_transport.o \
-+usnic_uiom.o \
-+usnic_uiom_interval_tree.o \
-+usnic_vnic.o \
-+usnic_ib_main.o \
-+usnic_ib_qp_grp.o \
-+usnic_ib_sysfs.o \
-+usnic_ib_verbs.o \
-+usnic_debugfs.o \
---
-1.8.1
+****************************************************************************
+Diese E-Mail enthält vertrauliche und/oder rechtlich geschützte
+Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail
+irrtümlich erhalten haben, informieren Sie bitte sofort den Absender und
+vernichten Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte
+Weitergabe dieser Mail ist nicht gestattet.
 
+Über das Internet versandte E-Mails können unter fremden Namen erstellt oder
+manipuliert werden. Deshalb ist diese als E-Mail verschickte Nachricht keine
+rechtsverbindliche Willenserklärung.
 
+Collogia
+Unternehmensberatung AG
+Ubierring 11
+D-50678 Köln
+
+Vorstand:
+Kadir Akin
+Dr. Michael Höhnerbach
+
+Vorsitzender des Aufsichtsrates:
+Hans Kristian Langva
+
+Registergericht: Amtsgericht Köln
+Registernummer: HRB 52 497
+
+This e-mail may contain confidential and/or privileged information. If you
+are not the intended recipient (or have received this e-mail in error)
+please notify the sender immediately and destroy this e-mail. Any
+unauthorized copying, disclosure or distribution of the material in this
+e-mail is strictly forbidden.
+
+e-mails sent over the internet may have been written under a wrong name or
+been manipulated. That is why this message sent as an e-mail is not a
+legally binding declaration of intention.
+
+Collogia
+Unternehmensberatung AG
+Ubierring 11
+D-50678 Köln
+
+executive board:
+Kadir Akin
+Dr. Michael Höhnerbach
+
+President of the supervisory board:
+Hans Kristian Langva
+
+Registry office: district court Cologne
+Register number: HRB 52 497
+
+****************************************************************************
+
+------=_NextPartTM-000-f44df226-f931-441b-8355-9b10abed19f8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
