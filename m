@@ -1,43 +1,61 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 9/9] IB/mlx4: Enable mlx4_ib support for MODIFY_QP_EX
-Date: Tue, 10 Sep 2013 17:41:39 +0300
-Message-ID: <1378824099-22150-10-git-send-email-ogerlitz@mellanox.com>
-References: <1378824099-22150-1-git-send-email-ogerlitz@mellanox.com>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Strange NFS client ACK behaviour
+Date: Tue, 10 Sep 2013 08:50:46 -0700
+Message-ID: <CABgxfbHBSoDmjru7zfG9keKJffSsDabWRimqhSf2VwhwT=v=VQ@mail.gmail.com>
+References: <12EF8D94C6F8734FB2FF37B9FBEDD173585722AA@EXCHANGE.collogia.de>
+	<CABgxfbF6iWsDei3De0ePsrVnA-a3vYuUbD07Bog6m1Mquy6Ecw@mail.gmail.com>
+	<12EF8D94C6F8734FB2FF37B9FBEDD17358574B51@EXCHANGE.collogia.de>
+	<CABgxfbHYMi6z-7OHgfQnMNrihHPcqcipCnXZ65q5yXDJzK7rrg@mail.gmail.com>
+	<12EF8D94C6F8734FB2FF37B9FBEDD1735857537F@EXCHANGE.collogia.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1378824099-22150-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <12EF8D94C6F8734FB2FF37B9FBEDD1735857537F-Xnr6BND5kcg29+KCeZIpYi5l6jQMEky5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, Sep 9, 2013 at 11:51 PM, Markus Stockhausen
+<stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org> wrote:
+>> Von: Wendy Cheng [s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+>> Gesendet: Montag, 9. September 2013 22:03
+>> An: Markus Stockhausen
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Betreff: Re: Strange NFS client ACK behaviour
+>>
+>> On Sun, Sep 8, 2013 at 11:24 AM, Markus Stockhausen
+>> <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org> wrote:
+>>
+>> >> > we observed a performance drop in our IPoIB NFS backup
+>> >> > infrastructure since we switched to machines with newer
+>> >> > kernels.
+>> >
+>>
+>> Not sure how your backup infrastructure works but the symptoms seem to
+>> match with this discussion:
+>> http://www.spinics.net/lists/linux-nfs/msg38980.html
+>>
+>> If you know how to recompile nfs kmod, Trond's patch does worth a try.
+>> Or open an Ubuntu support ticket, let them build you a test kmod.
+>>
+>> -- Wendy
+>
+> Thanks for pointing into that direction. From my understanding this
+> patch goes into the NFS client side. I built a patched module for my
+> Fedora 19 client (3.10 kernel). Nevertheless the behaviour ist still
+> the same.  If I get the patch right it is about forked childs that
+> access a page of a mmapped file round robin and the kernel issues
+> tons of write requests to the file.
+>
+> My case is only about ACK transmissions for a single writer.
+>
+> Markus
+>
 
-mlx4_ib driver should indicate that it supports
-MODIFY_QP_EX user verbs extended command.
+So you have to go back to the drawing board :(. Have you tried to profile it ?
+http://oprofile.sourceforge.net/about/
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/main.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 7a29ad5..77c87d0 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1755,7 +1755,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
--		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
-+		(1ull << IB_USER_VERBS_CMD_OPEN_QP)		|
-+		(1ull << IB_USER_VERBS_CMD_MODIFY_QP_EX);
- 
- 	ibdev->ib_dev.query_device	= mlx4_ib_query_device;
- 	ibdev->ib_dev.query_port	= mlx4_ib_query_port;
--- 
-1.7.1
-
+-- Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
