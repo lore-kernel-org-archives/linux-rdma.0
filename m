@@ -1,136 +1,314 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 6/9] IB/ocrdma: Handle Ethernet L2 parameters for IP based GID addressing
-Date: Tue, 10 Sep 2013 17:41:36 +0300
-Message-ID: <1378824099-22150-7-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V4 8/9] IB/core: Add RoCE IP based addressing extensions for rdma_ucm
+Date: Tue, 10 Sep 2013 17:41:38 +0300
+Message-ID: <1378824099-22150-9-git-send-email-ogerlitz@mellanox.com>
 References: <1378824099-22150-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1378824099-22150-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch is similar in spirit to the "IB/mlx4: Handle Ethernet L2 parameters for
-IP based GID addressing" from series. It handles the fact that IP based RoCE gids
-don't store Ethernet L2 parameters, MAC and VLAN.
+Add rdma_ucm support for RoCE (IBoE) IP based addressing extensions
+towards librdmacm
 
-When building an address handle, instead of parsing the dgid to
-get the MAC and VLAN, take them from the address handle attributes.
+Extend INIT_QP_ATTR and QUERY_ROUTE ucma commands.
 
-Cc: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+INIT_QP_ATTR_EX uses struct ib_uverbs_qp_attr_ex
+
+QUERY_ROUTE_EX uses struct rdma_ucm_query_route_resp_ex which in turn
+uses ib_user_path_rec_ex
+
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h    |   12 ++++++++++++
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c |    5 +++--
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c |   21 ++-------------------
- drivers/infiniband/hw/ocrdma/ocrdma_hw.h |    1 -
- 4 files changed, 17 insertions(+), 22 deletions(-)
+ drivers/infiniband/core/ucma.c   |  175 ++++++++++++++++++++++++++++++++++++-
+ include/uapi/rdma/rdma_user_cm.h |   29 ++++++-
+ 2 files changed, 198 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index adc11d1..d544292 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -422,5 +422,17 @@ static inline int is_cqe_wr_imm(struct ocrdma_cqe *cqe)
- 		OCRDMA_CQE_WRITE_IMM) ? 1 : 0;
- }
- 
-+static inline int ocrdma_resolve_dmac(struct ocrdma_dev *dev,
-+		struct ib_ah_attr *ah_attr, u8 *mac_addr)
-+{
-+	struct in6_addr in6;
-+
-+	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
-+	if (rdma_is_multicast_addr(&in6))
-+		rdma_get_mcast_mac(&in6, mac_addr);
-+	else
-+		memcpy(mac_addr, ah_attr->dmac, ETH_ALEN);
-+	return 0;
-+}
- 
- #endif
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index ee499d9..bbb7962 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -49,7 +49,7 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 
- 	ah->sgid_index = attr->grh.sgid_index;
- 
--	vlan_tag = rdma_get_vlan_id(&attr->grh.dgid);
-+	vlan_tag = attr->vlan_id;
- 	if (!vlan_tag || (vlan_tag > 0xFFF))
- 		vlan_tag = dev->pvid;
- 	if (vlan_tag && (vlan_tag < 0x1000)) {
-@@ -64,7 +64,8 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 		eth_sz = sizeof(struct ocrdma_eth_basic);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 7e7da86..4d59e88 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -652,6 +652,35 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
  	}
- 	memcpy(&eth.smac[0], &dev->nic_info.mac_addr[0], ETH_ALEN);
--	status = ocrdma_resolve_dgid(dev, &attr->grh.dgid, &eth.dmac[0]);
-+	memcpy(&eth.dmac[0], attr->dmac, ETH_ALEN);
-+	status = ocrdma_resolve_dmac(dev, attr, &eth.dmac[0]);
- 	if (status)
- 		return status;
- 	status = ocrdma_query_gid(&dev->ibdev, 1, attr->grh.sgid_index,
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 4ed8235..69c82b1 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2076,23 +2076,6 @@ mbx_err:
- 	return status;
  }
  
--int ocrdma_resolve_dgid(struct ocrdma_dev *dev, union ib_gid *dgid,
--			u8 *mac_addr)
--{
--	struct in6_addr in6;
--
--	memcpy(&in6, dgid, sizeof in6);
--	if (rdma_is_multicast_addr(&in6)) {
--		rdma_get_mcast_mac(&in6, mac_addr);
--	} else if (rdma_link_local_addr(&in6)) {
--		rdma_get_ll_mac(&in6, mac_addr);
--	} else {
--		pr_err("%s() fail to resolve mac_addr.\n", __func__);
--		return -EINVAL;
--	}
--	return 0;
--}
--
- static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 				struct ocrdma_modify_qp *cmd,
- 				struct ib_qp_attr *attrs)
-@@ -2126,14 +2109,14 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
++static void ucma_copy_ib_route_ex(struct rdma_ucm_query_route_resp_ex *resp,
++				  struct rdma_route *route)
++{
++	struct rdma_dev_addr *dev_addr;
++
++	resp->num_paths = route->num_paths;
++	switch (route->num_paths) {
++	case 0:
++		dev_addr = &route->addr.dev_addr;
++		rdma_addr_get_dgid(dev_addr,
++				   (union ib_gid *)&resp->ib_route[0].dgid);
++		rdma_addr_get_sgid(dev_addr,
++				   (union ib_gid *)&resp->ib_route[0].sgid);
++		resp->ib_route[0].pkey =
++			cpu_to_be16(ib_addr_get_pkey(dev_addr));
++		break;
++	case 2:
++		ib_copy_path_rec_to_user_ex(&resp->ib_route[1],
++					    &route->path_rec[1]);
++		/* fall through */
++	case 1:
++		ib_copy_path_rec_to_user_ex(&resp->ib_route[0],
++					    &route->path_rec[0]);
++		break;
++	default:
++		break;
++	}
++}
++
+ static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
+ 				 struct rdma_route *route)
+ {
+@@ -678,14 +707,39 @@ static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
+ 	}
+ }
  
- 	qp->sgid_idx = ah_attr->grh.sgid_index;
- 	memcpy(&cmd->params.sgid[0], &sgid.raw[0], sizeof(cmd->params.sgid));
--	ocrdma_resolve_dgid(qp->dev, &ah_attr->grh.dgid, &mac_addr[0]);
-+	ocrdma_resolve_dmac(qp->dev, ah_attr, &mac_addr[0]);
- 	cmd->params.dmac_b0_to_b3 = mac_addr[0] | (mac_addr[1] << 8) |
- 				(mac_addr[2] << 16) | (mac_addr[3] << 24);
- 	/* convert them to LE format. */
- 	ocrdma_cpu_to_le32(&cmd->params.dgid[0], sizeof(cmd->params.dgid));
- 	ocrdma_cpu_to_le32(&cmd->params.sgid[0], sizeof(cmd->params.sgid));
- 	cmd->params.vlan_dmac_b4_to_b5 = mac_addr[4] | (mac_addr[5] << 8);
--	vlan_id = rdma_get_vlan_id(&sgid);
-+	vlan_id = ah_attr->vlan_id;
- 	if (vlan_id && (vlan_id < 0x1000)) {
- 		cmd->params.vlan_dmac_b4_to_b5 |=
- 		    vlan_id << OCRDMA_QP_PARAMS_VLAN_SHIFT;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.h b/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
-index f2a89d4..82fe332 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
-@@ -94,7 +94,6 @@ void ocrdma_ring_cq_db(struct ocrdma_dev *, u16 cq_id, bool armed,
- int ocrdma_mbx_get_link_speed(struct ocrdma_dev *dev, u8 *lnk_speed);
- int ocrdma_query_config(struct ocrdma_dev *,
- 			struct ocrdma_mbx_query_config *config);
--int ocrdma_resolve_dgid(struct ocrdma_dev *, union ib_gid *dgid, u8 *mac_addr);
+-static void ucma_copy_iw_route(struct rdma_ucm_query_route_resp *resp,
++static void ucma_copy_iboe_route_ex(struct rdma_ucm_query_route_resp_ex *resp,
++				    struct rdma_route *route)
++{
++	resp->num_paths = route->num_paths;
++	switch (route->num_paths) {
++	case 0:
++		rdma_ip2gid((struct sockaddr *)&route->addr.dst_addr,
++			    (union ib_gid *)&resp->ib_route[0].dgid);
++		rdma_ip2gid((struct sockaddr *)&route->addr.src_addr,
++			    (union ib_gid *)&resp->ib_route[0].sgid);
++		resp->ib_route[0].pkey = cpu_to_be16(0xffff);
++		break;
++	case 2:
++		ib_copy_path_rec_to_user_ex(&resp->ib_route[1],
++					    &route->path_rec[1]);
++		/* fall through */
++	case 1:
++		ib_copy_path_rec_to_user_ex(&resp->ib_route[0],
++					    &route->path_rec[0]);
++		break;
++	default:
++		break;
++	}
++}
++
++static void ucma_copy_iw_route(struct ib_user_path_rec *resp_path,
+ 			       struct rdma_route *route)
+ {
+ 	struct rdma_dev_addr *dev_addr;
  
- int ocrdma_mbx_alloc_pd(struct ocrdma_dev *, struct ocrdma_pd *);
- int ocrdma_mbx_dealloc_pd(struct ocrdma_dev *, struct ocrdma_pd *);
+ 	dev_addr = &route->addr.dev_addr;
+-	rdma_addr_get_dgid(dev_addr, (union ib_gid *) &resp->ib_route[0].dgid);
+-	rdma_addr_get_sgid(dev_addr, (union ib_gid *) &resp->ib_route[0].sgid);
++	rdma_addr_get_dgid(dev_addr, (union ib_gid *)&resp_path->dgid);
++	rdma_addr_get_sgid(dev_addr, (union ib_gid *)&resp_path->sgid);
+ }
+ 
+ static ssize_t ucma_query_route(struct ucma_file *file,
+@@ -737,7 +791,74 @@ static ssize_t ucma_query_route(struct ucma_file *file,
+ 		}
+ 		break;
+ 	case RDMA_TRANSPORT_IWARP:
+-		ucma_copy_iw_route(&resp, &ctx->cm_id->route);
++		ucma_copy_iw_route(&resp.ib_route[0], &ctx->cm_id->route);
++		break;
++	default:
++		break;
++	}
++
++out:
++	if (copy_to_user((void __user *)(unsigned long)cmd.response,
++			 &resp, sizeof(resp)))
++		ret = -EFAULT;
++
++	ucma_put_ctx(ctx);
++	return ret;
++}
++
++static ssize_t ucma_query_route_ex(struct ucma_file *file,
++				   const char __user *inbuf,
++				   int in_len, int out_len)
++{
++	struct rdma_ucm_query_route_ex cmd;
++	struct rdma_ucm_query_route_resp_ex resp;
++	struct ucma_context *ctx;
++	struct sockaddr *addr;
++	int ret = 0;
++
++	if (out_len < sizeof(resp))
++		return -ENOSPC;
++
++	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
++		return -EFAULT;
++
++	ctx = ucma_get_ctx(file, cmd.id);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++
++	memset(&resp, 0, sizeof(resp));
++	addr = (struct sockaddr *)&ctx->cm_id->route.addr.src_addr;
++	memcpy(&resp.src_addr, addr, addr->sa_family == AF_INET ?
++				     sizeof(struct sockaddr_in) :
++				     sizeof(struct sockaddr_in6));
++	addr = (struct sockaddr *)&ctx->cm_id->route.addr.dst_addr;
++	memcpy(&resp.dst_addr, addr, addr->sa_family == AF_INET ?
++				     sizeof(struct sockaddr_in) :
++				     sizeof(struct sockaddr_in6));
++	if (!ctx->cm_id->device)
++		goto out;
++
++	resp.node_guid = (__force __u64) ctx->cm_id->device->node_guid;
++	resp.port_num = ctx->cm_id->port_num;
++	switch (rdma_node_get_transport(ctx->cm_id->device->node_type)) {
++	case RDMA_TRANSPORT_IB:
++		switch (rdma_port_get_link_layer(ctx->cm_id->device,
++			ctx->cm_id->port_num)) {
++		case IB_LINK_LAYER_INFINIBAND:
++			ucma_copy_ib_route_ex(&resp, &ctx->cm_id->route);
++			break;
++		case IB_LINK_LAYER_ETHERNET:
++			ucma_copy_iboe_route_ex(&resp, &ctx->cm_id->route);
++			break;
++		default:
++			break;
++		}
++		break;
++	case RDMA_TRANSPORT_IWARP:
++		ucma_copy_iw_route((struct ib_user_path_rec *)
++				   ((void *)&resp.ib_route[0] +
++				    sizeof(resp.ib_route[0].comp_mask)),
++				   &ctx->cm_id->route);
+ 		break;
+ 	default:
+ 		break;
+@@ -1071,6 +1192,48 @@ out:
+ 	return ret;
+ }
+ 
++static ssize_t ucma_init_qp_attr_ex(struct ucma_file *file,
++				    const char __user *inbuf,
++				    int in_len, int out_len)
++{
++	struct rdma_ucm_init_qp_attr_ex cmd;
++	struct ib_uverbs_qp_attr_ex resp;
++	struct ucma_context *ctx;
++	struct ib_qp_attr qp_attr;
++	int ret;
++
++	if (out_len < sizeof(resp))
++		return -ENOSPC;
++
++	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
++		return -EFAULT;
++
++	if (copy_from_user(&resp, (void __user *)(unsigned long)cmd.response,
++			   sizeof(resp)))
++		return -EFAULT;
++
++	ctx = ucma_get_ctx(file, cmd.id);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++
++	resp.comp_mask = cmd.comp_mask;
++	resp.qp_attr_mask = 0;
++	memset(&qp_attr, 0, sizeof(qp_attr));
++	qp_attr.qp_state = cmd.qp_state;
++	ret = rdma_init_qp_attr(ctx->cm_id, &qp_attr, &resp.qp_attr_mask);
++	if (ret)
++		goto out;
++
++	ib_copy_qp_attr_to_user_ex(&resp, &qp_attr);
++	if (copy_to_user((void __user *)(unsigned long)cmd.response,
++			 &resp, sizeof(resp)))
++		ret = -EFAULT;
++
++out:
++	ucma_put_ctx(ctx);
++	return ret;
++}
++
+ static int ucma_set_option_id(struct ucma_context *ctx, int optname,
+ 			      void *optval, size_t optlen)
+ {
+@@ -1474,7 +1637,9 @@ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
+ 	[RDMA_USER_CM_CMD_QUERY]	 = ucma_query,
+ 	[RDMA_USER_CM_CMD_BIND]		 = ucma_bind,
+ 	[RDMA_USER_CM_CMD_RESOLVE_ADDR]	 = ucma_resolve_addr,
+-	[RDMA_USER_CM_CMD_JOIN_MCAST]	 = ucma_join_multicast
++	[RDMA_USER_CM_CMD_JOIN_MCAST]	 = ucma_join_multicast,
++	[RDMA_USER_CM_CMD_QUERY_ROUTE_EX] = ucma_query_route_ex,
++	[RDMA_USER_CM_CMD_INIT_QP_ATTR_EX] = ucma_init_qp_attr_ex
+ };
+ 
+ static ssize_t ucma_write(struct file *filp, const char __user *buf,
+diff --git a/include/uapi/rdma/rdma_user_cm.h b/include/uapi/rdma/rdma_user_cm.h
+index 99b80ab..ceb7f1f 100644
+--- a/include/uapi/rdma/rdma_user_cm.h
++++ b/include/uapi/rdma/rdma_user_cm.h
+@@ -65,7 +65,9 @@ enum {
+ 	RDMA_USER_CM_CMD_QUERY,
+ 	RDMA_USER_CM_CMD_BIND,
+ 	RDMA_USER_CM_CMD_RESOLVE_ADDR,
+-	RDMA_USER_CM_CMD_JOIN_MCAST
++	RDMA_USER_CM_CMD_JOIN_MCAST,
++	RDMA_USER_CM_CMD_QUERY_ROUTE_EX,
++	RDMA_USER_CM_CMD_INIT_QP_ATTR_EX
+ };
+ 
+ /*
+@@ -146,6 +148,13 @@ struct rdma_ucm_query {
+ 	__u32 option;
+ };
+ 
++struct rdma_ucm_query_route_ex {
++	__u32 comp_mask;
++	__u64 response;
++	__u32 id;
++	__u32 reserved;
++};
++
+ struct rdma_ucm_query_route_resp {
+ 	__u64 node_guid;
+ 	struct ib_user_path_rec ib_route[2];
+@@ -173,6 +182,16 @@ struct rdma_ucm_query_path_resp {
+ 	struct ib_path_rec_data path_data[0];
+ };
+ 
++struct rdma_ucm_query_route_resp_ex {
++	__u64 node_guid;
++	struct ib_user_path_rec_ex ib_route[2];
++	struct sockaddr_in6 src_addr;
++	struct sockaddr_in6 dst_addr;
++	__u32 num_paths;
++	__u8 port_num;
++	__u8 reserved[3];
++};
++
+ struct rdma_ucm_conn_param {
+ 	__u32 qp_num;
+ 	__u32 qkey;
+@@ -231,6 +250,14 @@ struct rdma_ucm_init_qp_attr {
+ 	__u32 qp_state;
+ };
+ 
++struct rdma_ucm_init_qp_attr_ex {
++	__u32 comp_mask;
++	__u32 reserved;
++	__u64 response;
++	__u32 id;
++	__u32 qp_state;
++};
++
+ struct rdma_ucm_notify {
+ 	__u32 id;
+ 	__u32 event;
 -- 
 1.7.1
 
