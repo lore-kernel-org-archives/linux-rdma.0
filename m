@@ -1,82 +1,86 @@
 From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2 0/4] Add driver for Cisco's VIC series adapters
-Date: Tue, 10 Sep 2013 03:36:07 +0000
-Message-ID: <47A33601BBFF7E4B8F0D5D0C96F3022C013CF2ED@xmb-rcd-x09.cisco.com>
+Subject: [PATCH V2 1/4] IB/core: Cisco VIC - usNIC rdma node and transport
+Date: Tue, 10 Sep 2013 03:36:59 +0000
+Message-ID: <47A33601BBFF7E4B8F0D5D0C96F3022C013CF304@xmb-rcd-x09.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
-Content-ID: <111BD5CEE44A9846A247076525524518-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+Content-ID: <E1C0ADD9443FE147ACF7D6A8EFAB90E7-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Christian Benvenuti (benve)" <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC is the kernel driver for userspace bypass networking on Cisco's
-VIC series adapters.  usNIC devices are advertised as SRIOV VFs by the
-VIC adapters and these VFs are owned by usNIC.  The driver works in
-conjuction with Cisco's ethernet driver, which owns the PFs, and does
-priviledged firmware operations via the PF driver.
+This patch adds new rdma node and new rdma transport, and supporting
+code used by Cisco's low latency driver called usNIC.  usNIC uses its
+own transport, distinct from IB and iWARP.
 
-The Cisco driver patches - driver part 1,2, 3 below - depend on the 
-following patches - in order - in the net-next tree at 
-git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git:
-1) f13bbc2f9aba00c7a37b499d23060616b9a4ef9e
-2) 92e2b4696202934b4cbf1d6b8fb8729e8d7202e1
-3) 0b038566c0ea9f8daceae879bb7ad748ab8c95f0
-4) d765bb41fde311b57de32bdc9d17965debe8b7af
-5) 4a50ddfda72881d5d67a2b25f9b8a120b2765125
+Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/sysfs.c | 1 +
+ drivers/infiniband/core/verbs.c | 3 +++
+ include/rdma/ib_verbs.h         | 6 ++++--
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-This patch is being partitioned to avoid 100KB vger.kernel.org
-limitation.
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index cde1e7b..faad2ca 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -612,6 +612,7 @@ static ssize_t show_node_type(struct device *device,
+ 	switch (dev->node_type) {
+ 	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
+ 	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
++	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
+ 	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
+ 	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
+ 	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 22192de..84cef2e 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -114,6 +114,8 @@ rdma_node_get_transport(enum rdma_node_type node_type)
+ 		return RDMA_TRANSPORT_IB;
+ 	case RDMA_NODE_RNIC:
+ 		return RDMA_TRANSPORT_IWARP;
++	case RDMA_NODE_USNIC:
++		return RDMA_TRANSPORT_USNIC;
+ 	default:
+ 		BUG();
+ 		return 0;
+@@ -130,6 +132,7 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
+ 	case RDMA_TRANSPORT_IB:
+ 		return IB_LINK_LAYER_INFINIBAND;
+ 	case RDMA_TRANSPORT_IWARP:
++	case RDMA_TRANSPORT_USNIC:
+ 		return IB_LINK_LAYER_ETHERNET;
+ 	default:
+ 		return IB_LINK_LAYER_UNSPECIFIED;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 645c3ce..880d83d 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -67,12 +67,14 @@ enum rdma_node_type {
+ 	RDMA_NODE_IB_CA 	= 1,
+ 	RDMA_NODE_IB_SWITCH,
+ 	RDMA_NODE_IB_ROUTER,
+-	RDMA_NODE_RNIC
++	RDMA_NODE_RNIC,
++	RDMA_NODE_USNIC,
+ };
 
-Changes from previous V1:
-- Added comment describing ABI
-- Make event2str array const in *netdev_event_to_string
-- Used ARRAY_SIZE instead of sizeof in *netdev_event_to_string
-- Few white space changes
-- Bug fix: Work queue is destroyed at module unload time
+ enum rdma_transport_type {
+ 	RDMA_TRANSPORT_IB,
+-	RDMA_TRANSPORT_IWARP
++	RDMA_TRANSPORT_IWARP,
++	RDMA_TRANSPORT_USNIC
+ };
 
-IB/core: Cisco VIC - usNIC rdma node and transport
-IB/usnic: Cisco VIC - driver part 1/3
-IB/usnic: Cisco VIC - driver part 2/3
-IB/usnic: Cisco VIC - driver part 3/3
-
- drivers/infiniband/core/sysfs.c                    |    1 
- drivers/infiniband/core/verbs.c                    |    3 
- include/rdma/ib_verbs.h                            |    6 
- drivers/infiniband/hw/usnic/usnic_abi.h            |   56 ++
- drivers/infiniband/hw/usnic/usnic_ib.h             |  115 +++
- drivers/infiniband/hw/usnic/usnic_ib_main.c        |  598 ++++++++++++++++
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c      |  541 +++++++++++++++
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h      |   97 +++
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.c       |  351 ++++++++++
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.h       |   29 +
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c       |  734 ++++++++++++++++++++
- drivers/infiniband/hw/usnic/usnic_ib_verbs.h       |   72 ++
- drivers/infiniband/hw/usnic/usnic.h                |   29 +
- drivers/infiniband/hw/usnic/usnic_common_pkt_hdr.h |   27 +
- drivers/infiniband/hw/usnic/usnic_common_util.h    |   51 +
- drivers/infiniband/hw/usnic/usnic_debugfs.c        |   71 ++
- drivers/infiniband/hw/usnic/usnic_debugfs.h        |   25 +
- drivers/infiniband/hw/usnic/usnic_fwd.c            |  243 +++++++
- drivers/infiniband/hw/usnic/usnic_fwd.h            |   58 ++
- drivers/infiniband/hw/usnic/usnic_log.h            |   58 ++
- drivers/infiniband/hw/usnic/usnic_transport.c      |  125 +++
- drivers/infiniband/hw/usnic/usnic_transport.h      |   27 +
- drivers/infiniband/hw/usnic/usnic_uiom.c           |  599 ++++++++++++++++
- drivers/infiniband/hw/usnic/usnic_uiom.h           |   80 ++
- .../infiniband/hw/usnic/usnic_uiom_interval_tree.c |  237 ++++++
- .../infiniband/hw/usnic/usnic_uiom_interval_tree.h |   74 ++
- drivers/infiniband/hw/usnic/usnic_vnic.c           |  473 +++++++++++++
- drivers/infiniband/hw/usnic/usnic_vnic.h           |  105 +++
- MAINTAINERS                                        |    5 
- drivers/infiniband/Kconfig                         |    1 
- drivers/infiniband/Makefile                        |    1 
- drivers/infiniband/hw/usnic/Kconfig                |   11 
- drivers/infiniband/hw/usnic/Makefile               |   15 
- 33 files changed, 4916 insertions(+), 2 deletions(-)
+ enum rdma_transport_type
+--
+1.8.1
 
 
 --
