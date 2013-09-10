@@ -1,123 +1,212 @@
-From: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
-Subject: AW: Strange NFS client ACK behaviour
-Date: Tue, 10 Sep 2013 06:51:58 +0000
-Message-ID: <12EF8D94C6F8734FB2FF37B9FBEDD1735857537F@EXCHANGE.collogia.de>
-References: <12EF8D94C6F8734FB2FF37B9FBEDD173585722AA@EXCHANGE.collogia.de>
-	<CABgxfbF6iWsDei3De0ePsrVnA-a3vYuUbD07Bog6m1Mquy6Ecw@mail.gmail.com>
-	<12EF8D94C6F8734FB2FF37B9FBEDD17358574B51@EXCHANGE.collogia.de>,<CABgxfbHYMi6z-7OHgfQnMNrihHPcqcipCnXZ65q5yXDJzK7rrg@mail.gmail.com>
+From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2] opensm: Clean up event subscriptions if a port goes away
+Date: Tue, 10 Sep 2013 03:50:12 -0700 (PDT)
+Message-ID: <dbf27ce6-a17f-4913-acf2-accd2bdb1103@default>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPartTM-000-f44df226-f931-441b-8355-9b10abed19f8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABgxfbHYMi6z-7OHgfQnMNrihHPcqcipCnXZ65q5yXDJzK7rrg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: de-DE
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux-Rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Event subscriptions needs to be cleaned up if a port goes away.
+If the port comes online again later it may no longer want to
+receive the events on the same QPN. If the "old" QPN is used for
+something else the SM forwarding events may cause QKey violations.
 
-This is a multi-part message in MIME format.
+This behavior is made configurable and it needs to be explicitly
+enabled (default is off).
 
-------=_NextPartTM-000-f44df226-f931-441b-8355-9b10abed19f8
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Line Holen <Line.Holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-> Von: Wendy Cheng [s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]=0A=
-> Gesendet: Montag, 9. September 2013 22:03=0A=
-> An: Markus Stockhausen=0A=
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=0A=
-> Betreff: Re: Strange NFS client ACK behaviour=0A=
-> =0A=
-> On Sun, Sep 8, 2013 at 11:24 AM, Markus Stockhausen=0A=
-> <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org> wrote:=0A=
-> =0A=
-> >> > we observed a performance drop in our IPoIB NFS backup=0A=
-> >> > infrastructure since we switched to machines with newer=0A=
-> >> > kernels.=0A=
-> >=0A=
-> =0A=
-> Not sure how your backup infrastructure works but the symptoms seem to=0A=
-> match with this discussion:=0A=
-> http://www.spinics.net/lists/linux-nfs/msg38980.html=0A=
-> =0A=
-> If you know how to recompile nfs kmod, Trond's patch does worth a try.=0A=
-> Or open an Ubuntu support ticket, let them build you a test kmod.=0A=
-> =0A=
-> -- Wendy=0A=
-=0A=
-Thanks for pointing into that direction. From my understanding this=0A=
-patch goes into the NFS client side. I built a patched module for my=0A=
-Fedora 19 client (3.10 kernel). Nevertheless the behaviour ist still=0A=
-the same.  If I get the patch right it is about forked childs that=0A=
-access a page of a mmapped file round robin and the kernel issues =0A=
-tons of write requests to the file.=0A=
-=0A=
-My case is only about ACK transmissions for a single writer.=0A=
-=0A=
-Markus=0A=
- =
-------=_NextPartTM-000-f44df226-f931-441b-8355-9b10abed19f8
-Content-Type: text/plain;
-	name="InterScan_Disclaimer.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="InterScan_Disclaimer.txt"
+---
 
-****************************************************************************
-Diese E-Mail enthält vertrauliche und/oder rechtlich geschützte
-Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail
-irrtümlich erhalten haben, informieren Sie bitte sofort den Absender und
-vernichten Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte
-Weitergabe dieser Mail ist nicht gestattet.
-
-Über das Internet versandte E-Mails können unter fremden Namen erstellt oder
-manipuliert werden. Deshalb ist diese als E-Mail verschickte Nachricht keine
-rechtsverbindliche Willenserklärung.
-
-Collogia
-Unternehmensberatung AG
-Ubierring 11
-D-50678 Köln
-
-Vorstand:
-Kadir Akin
-Dr. Michael Höhnerbach
-
-Vorsitzender des Aufsichtsrates:
-Hans Kristian Langva
-
-Registergericht: Amtsgericht Köln
-Registernummer: HRB 52 497
-
-This e-mail may contain confidential and/or privileged information. If you
-are not the intended recipient (or have received this e-mail in error)
-please notify the sender immediately and destroy this e-mail. Any
-unauthorized copying, disclosure or distribution of the material in this
-e-mail is strictly forbidden.
-
-e-mails sent over the internet may have been written under a wrong name or
-been manipulated. That is why this message sent as an e-mail is not a
-legally binding declaration of intention.
-
-Collogia
-Unternehmensberatung AG
-Ubierring 11
-D-50678 Köln
-
-executive board:
-Kadir Akin
-Dr. Michael Höhnerbach
-
-President of the supervisory board:
-Hans Kristian Langva
-
-Registry office: district court Cologne
-Register number: HRB 52 497
-
-****************************************************************************
-
-------=_NextPartTM-000-f44df226-f931-441b-8355-9b10abed19f8--
+diff --git a/include/opensm/osm_inform.h b/include/opensm/osm_inform.h
+index f737441..8cefc20 100644
+--- a/include/opensm/osm_inform.h
++++ b/include/opensm/osm_inform.h
+@@ -2,6 +2,7 @@
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
++ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -200,6 +201,35 @@ void osm_infr_insert_to_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
+ void osm_infr_remove_from_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
+ 			     IN osm_infr_t * p_infr);
+ 
++/****f* OpenSM: Inform Record/osm_infr_remove_subscriptions
++* NAME
++*	osm_infr_remove_subscriptions
++*
++* DESCRIPTION
++*	Remove all event subscriptions of a port
++*
++* SYNOPSIS
++*/
++ib_api_status_t
++osm_infr_remove_subscriptions(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
++			      IN ib_net64_t port_guid);
++/*
++* PARAMETERS
++*	p_subn
++*		[in] Pointer to the subnet object
++*
++*	p_log
++*		[in] Pointer to the log object
++*
++*	port_guid
++*		[in] PortGUID of the subscriber that should be removed
++*
++* RETURN
++*	CL_SUCCESS if port_guid had any subscriptions being removed
++*	CL_NOT_FOUND if port_guid did not have any active subscriptions
++* SEE ALSO
++*********/
++
+ /****f* OpenSM: Inform Record/osm_report_notice
+ * NAME
+ *	osm_report_notice
+diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
+index 463ffea..19f2079 100644
+--- a/include/opensm/osm_subnet.h
++++ b/include/opensm/osm_subnet.h
+@@ -5,6 +5,7 @@
+  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
+  * Copyright (c) 2009 System Fabric Works, Inc. All rights reserved.
+  * Copyright (c) 2009 HNR Consulting. All rights reserved.
++ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -325,6 +326,7 @@ typedef struct osm_subn_opt {
+ 	boolean_t daemon;
+ 	boolean_t sm_inactive;
+ 	boolean_t babbling_port_policy;
++	boolean_t drop_event_subscriptions;
+ 	boolean_t use_optimized_slvl;
+ 	osm_qos_options_t qos_options;
+ 	osm_qos_options_t qos_ca_options;
+@@ -595,6 +597,9 @@ typedef struct osm_subn_opt {
+ *	babbling_port_policy
+ *		OpenSM will enforce its "babbling" port policy.
+ *
++*	drop_event_subscriptions
++*		OpenSM will drop event subscriptions if the port goes away.
++*
+ *	use_optimized_slvl
+ *		Use optimized SLtoVLMappingTable programming if
+ *		device indicates it supports this.
+diff --git a/opensm/osm_drop_mgr.c b/opensm/osm_drop_mgr.c
+index b309273..4276fe9 100644
+--- a/opensm/osm_drop_mgr.c
++++ b/opensm/osm_drop_mgr.c
+@@ -3,6 +3,7 @@
+  * Copyright (c) 2002-2012 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
++ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -276,6 +277,15 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
+ 
+ 	drop_mgr_clean_physp(sm, p_port->p_physp);
+ 
++	/* Delete event forwarding subscriptions */
++	if (sm->p_subn->opt.drop_event_subscriptions) {
++		if (osm_infr_remove_subscriptions(sm->p_subn, sm->p_log, port_guid)
++		    == CL_SUCCESS)
++			OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
++			    "Removed event subscriptions for port 0x%016" PRIx64 "\n",
++			    cl_ntoh64(port_guid));
++	}
++
+ 	/* initialize the p_node - may need to get node_desc later */
+ 	p_node = p_port->p_node;
+ 
+diff --git a/opensm/osm_inform.c b/opensm/osm_inform.c
+index 804c414..716a124 100644
+--- a/opensm/osm_inform.c
++++ b/opensm/osm_inform.c
+@@ -282,6 +282,37 @@ void osm_infr_remove_from_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
+ 	OSM_LOG_EXIT(p_log);
+ }
+ 
++ib_api_status_t osm_infr_remove_subscriptions(IN osm_subn_t * p_subn,
++					      IN osm_log_t * p_log,
++					      IN ib_net64_t port_guid)
++{
++	cl_list_item_t *p_list_item;
++	osm_infr_t *p_infr;
++	ib_api_status_t status = CL_NOT_FOUND;
++
++	OSM_LOG_ENTER(p_log);
++
++	/* go over all inform info available at the subnet */
++	/* match to the given GID and delete subscriptions if match */
++	p_list_item = cl_qlist_head(&p_subn->sa_infr_list);
++	while (p_list_item != cl_qlist_end(&p_subn->sa_infr_list)) {
++
++		p_infr = (osm_infr_t *)p_list_item;
++		p_list_item = cl_qlist_next(p_list_item);
++
++		if (port_guid != p_infr->inform_record.subscriber_gid.unicast.interface_id)
++			continue;
++
++		/* Remove this event subscription */
++		osm_infr_remove_from_db(p_subn, p_log, p_infr);
++
++		status = CL_SUCCESS;
++	}
++
++	OSM_LOG_EXIT(p_log);
++	return (status);
++}
++
+ /**********************************************************************
+  * Send a report:
+  * Given a target address to send to and the notice.
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 0ad8ed6..9fc670b 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -776,6 +776,7 @@ static const opt_rec_t opt_tbl[] = {
+ 	{ "daemon", OPT_OFFSET(daemon), opts_parse_boolean, NULL, 0 },
+ 	{ "sm_inactive", OPT_OFFSET(sm_inactive), opts_parse_boolean, NULL, 1 },
+ 	{ "babbling_port_policy", OPT_OFFSET(babbling_port_policy), opts_parse_boolean, NULL, 1 },
++	{ "drop_event_subscriptions", OPT_OFFSET(drop_event_subscriptions), opts_parse_boolean, NULL, 1 },
+ 	{ "use_optimized_slvl", OPT_OFFSET(use_optimized_slvl), opts_parse_boolean, NULL, 1 },
+ #ifdef ENABLE_OSM_PERF_MGR
+ 	{ "perfmgr", OPT_OFFSET(perfmgr), opts_parse_boolean, NULL, 0 },
+@@ -1480,6 +1481,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->daemon = FALSE;
+ 	p_opt->sm_inactive = FALSE;
+ 	p_opt->babbling_port_policy = FALSE;
++	p_opt->drop_event_subscriptions = FALSE;
+ 	p_opt->use_optimized_slvl = FALSE;
+ #ifdef ENABLE_OSM_PERF_MGR
+ 	p_opt->perfmgr = FALSE;
+@@ -2533,11 +2535,14 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		"sm_inactive %s\n\n"
+ 		"# Babbling Port Policy\n"
+ 		"babbling_port_policy %s\n\n"
++		"# Drop event subscriptions if the port goes away\n"
++		"drop_event_subscriptions %s\n\n"
+ 		"# Use Optimized SLtoVLMapping programming if supported by device\n"
+ 		"use_optimized_slvl %s\n\n",
+ 		p_opts->daemon ? "TRUE" : "FALSE",
+ 		p_opts->sm_inactive ? "TRUE" : "FALSE",
+ 		p_opts->babbling_port_policy ? "TRUE" : "FALSE",
++		p_opts->drop_event_subscriptions ? "TRUE" : "FALSE",
+ 		p_opts->use_optimized_slvl ? "TRUE" : "FALSE");
+ 
+ #ifdef ENABLE_OSM_PERF_MGR
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
