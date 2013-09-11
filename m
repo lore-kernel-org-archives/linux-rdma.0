@@ -1,30 +1,34 @@
-From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2 2/4] IB/usnic: Cisco VIC - driver part 1/3
-Date: Wed, 11 Sep 2013 21:07:07 +0000
-Message-ID: <47A33601BBFF7E4B8F0D5D0C96F3022C013D700A@xmb-rcd-x09.cisco.com>
-References: <47A33601BBFF7E4B8F0D5D0C96F3022C013CF35A@xmb-rcd-x09.cisco.com>
- <CAJZOPZJjXFh2KU-cpq5_=C7tA0i_gSYNtUo=T-gSttUKRychaw@mail.gmail.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH 8/8] IB/srp: Make queue size configurable
+Date: Wed, 11 Sep 2013 18:16:36 -0400
+Message-ID: <1378937796.6649.5.camel@haswell.thedillows.org>
+References: <521363EA.8080906@acm.org> <52136609.3090406@acm.org>
+	 <1378782080.3794.6.camel@feather.ornl.gov> <522F5A81.8040101@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJjXFh2KU-cpq5_=C7tA0i_gSYNtUo=T-gSttUKRychaw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Content-ID: <EC865D3E9C83CE4385C583AF458E3FBC-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <522F5A81.8040101-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Christian Benvenuti (benve)" <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: David Dillow <dad-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Konrad Grzybowski <konradg-XLFqaoR9dsI@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Or,
-	The GRH is emulated by software.  That is, when the app receives a packet, the first 40 bytes contain the GRH.
+On Tue, 2013-09-10 at 19:44 +0200, Bart Van Assche wrote:
+> If this name was not yet in use in any interface that is visible in user 
+> space, I would agree that we should come up with a better name. However, 
+> the SCSI mid-layer already uses that name today to export the queue 
+> size. To me this looks like a good reason to use the name "can_queue" ? 
+> An example:
+> 
+> $ cat /sys/class/scsi_host/host93/can_queue
+> 62
 
-Upinder
+Yes, I know it has been used before, but I'm torn between not furthering
+a bad naming choice and consistency. Foolish consistency and all that...
 
-On Sep 11, 2013, at 12:19 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-
-> So you are supporting UD QPs but these QPs don't generate IBTA UD
-> headers nor iWARP headers, correct?
+I really don't like "can_queue", but I'll not complain if Roland decides
+to take it as-is.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
