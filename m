@@ -1,54 +1,96 @@
-From: Alex Tabachnik <alext-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH krping 0/2] krping fixes to work with latest kernels
-Date: Wed, 11 Sep 2013 14:57:42 +0000
-Message-ID: <E0DE287374A53F4D8E7F8D5523F86CDB735CB1E4@MTLDAG01.mtl.com>
-References: <1378909224-27399-1-git-send-email-ogerlitz@mellanox.com>
- <5230832F.6020502@opengridcomputing.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 3/4] IB/core: Export ib_create/destroy_flow
+ through uverbs
+Date: Wed, 11 Sep 2013 18:10:06 +0300
+Message-ID: <523087CE.4080007@mellanox.com>
+References: <1377694075-29287-1-git-send-email-matanb@mellanox.com>  <1377694075-29287-4-git-send-email-matanb@mellanox.com> <1378908269.2258.31.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5230832F.6020502-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1378908269.2258.31.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hadar Har-Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, shawn.bohrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-Also credit should be given to Roi Dayan (roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org) - it was our joint work.
+On 11/09/2013 17:04, Yann Droneaud wrote:
 
-Thank you,
+[...]
+>> +	int i;
+>> +	int kern_attr_size;
+>> +
+>> +	if (out_len < sizeof(resp))
+>> +		return -ENOSPC;
+>> +
+>> +	if (copy_from_user(&cmd, buf, sizeof(cmd)))
+>> +		return -EFAULT;
+>> +
+>> +	if (cmd.comp_mask)
+>> +		return -EINVAL;
+>> +
+>> +	if ((cmd.flow_attr.type == IB_FLOW_ATTR_SNIFFER &&
+>> +	     !capable(CAP_NET_ADMIN)) || !capable(CAP_NET_RAW))
+>> +		return -EPERM;
+>> +
+>> +	if (cmd.flow_attr.num_of_specs < 0 ||
+> num_of_specs is unsigned ...
 
-Alex
-
------Original Message-----
-From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org] 
-Sent: Wednesday, September 11, 2013 5:50 PM
-To: Or Gerlitz
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Alex Tabachnik
-Subject: Re: [PATCH krping 0/2] krping fixes to work with latest kernels
-
-On 9/11/2013 9:20 AM, Or Gerlitz wrote:
-> Hi Steve,
+sure, will send fix that eliminates this redundant check
 >
-> This little series from Alex makes krping from 
-> git://git.openfabrics.org/~swise/krping.git
-> usable for latest upstream kernels, something we find very useful for 
-> testing the upstream RDMA stack when developing variuos features.
->
-> Or.
->
-> Alex Tabachnik (2):
->    Fixes and changes to support latest kernels
->    Update Makefile
->
->   Makefile |   33 +++------------------------------
->   krping.c |   33 +++++++++++++++++++--------------
->   2 files changed, 22 insertions(+), 44 deletions(-)
+>> +	    cmd.flow_attr.num_of_specs > IB_FLOW_SPEC_SUPPORT_LAYERS)
+>> +		return -EINVAL;
+>> +
+>> +	kern_attr_size = cmd.flow_attr.size - sizeof(cmd) -
+>> +			 sizeof(struct ib_uverbs_cmd_hdr_ex);
+>> +
+> Please, no under/overflow. Check that cmd.flow_attr.size is bigger than
+> sizeof(cmd) + sizeof(struct ib_uverbs_cmd_hdr_ex) before computing kern_attr_size.
 
-Applied, thanks!
+We've got feedback on this code from Sean and Roland and Matan Barak 
+from our team addressed it to the bit.
+Matan is OOO for couple of days, plus we're having few holidays here.  
+This way or another (accepting the comments
+and sending fixes or arguing with you over the list), all your feedback 
+will be addressed before 3.12-rc2 is out, thanks for
+looking over this!
 
+>
+>> +	if (cmd.flow_attr.size < 0 || cmd.flow_attr.size > in_len ||
+> just like num_of_specs, it's unsigned !
+
+ditto here, will fix.
+
+[...]
+
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 61535aa..0b233c5 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -86,7 +86,9 @@ enum {
+
+>> +struct ib_kern_spec {
+>> +	union {
+>> +		struct {
+>> +			__u32 type;
+>> +			__u16 size;
+>> +			__u16 reserved;
+>> +		};
+>> +		struct ib_kern_spec_eth	    eth;
+>> +		struct ib_kern_spec_ipv4    ipv4;
+>> +		struct ib_kern_spec_tcp_udp tcp_udp;
+>> +	};
+>> +};
+>> +
+> [Aside note: no IPv6 spec ?]
+
+indeed, but note that the way the specs are defines allow for adding 
+future spec types w.o breaking anything,
+its done in TLV (Type-Length-Value) manner, see the change log of the IB 
+core main patch  for flow steering
+319a441 IB/core: Add receive flow steering support
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
