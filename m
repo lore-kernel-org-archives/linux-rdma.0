@@ -1,59 +1,178 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH fixes-3.12 00/15] Mellanox mlx5 driver fixes
-Date: Wed, 11 Sep 2013 16:35:21 +0300
-Message-ID: <1378906536-6925-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH fixes-3.12 05/15] IB/mlx5: Decrease memory consumption of mr caches
+Date: Wed, 11 Sep 2013 16:35:26 +0300
+Message-ID: <1378906536-6925-6-git-send-email-ogerlitz@mellanox.com>
+References: <1378906536-6925-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1378906536-6925-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, elic-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, elic-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This series from Eli and Co contains batch of bug fixes to mlx5 issues we've stumbled 
-on during various regression tests. Few other fixes which are more of cleanups and 
-enhancements will be sent for-next/3.13 once this series gets into 3.12
+Change the logic so we do not allocate memory nor map the device before
+actually posting to the REG_UMR QP. In addition, unmap and free the memory
+after we get completion.
 
-One or two patches need to go into -stable to for 3.11.y, lets do that after 
-they spend some time in the 3.12 cycle.
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/mr.c |   57 +++++++++++++++------------------------
+ 1 files changed, 22 insertions(+), 35 deletions(-)
 
-thanks,
-
-Or.
-
-
-Eli Cohen (12):
-  IB/mlx5: Fix send work queue size calculation
-  mlx5: Remove checksum on command interface commands
-  IB/mlx5: Decrease memory consumption of mr caches
-  IB/mlx5: Avoid async events on invalid port number
-  mlx5: Keep polling to reclaim pages while any returned
-  mlx5: Fix layout of struct mlx5_init_seg
-  IB/mlx5: Disable atomic operations
-  mlx5: Fix opt param mask for sq err to rts transition
-  IB/mlx5: Fix opt param mask according to firmware spec
-  mlx5: Fix error code translation from firmware to driver
-  IB/mlx5: Fix alignment of reg umr gather buffers
-  IB/mlx5: Ensure proper synchronization accessing memory
-
-Moshe Lazer (2):
-  IB/mlx5: Flush cache workqueue before destroying it
-  IB/mlx5: Fix memory leak in mlx5_ib_create_srq
-
-Sagi Grimberg (1):
-  IB/mlx5: Fix eq names to display nicely in /proc/interrupts
-
- drivers/infiniband/hw/mlx5/main.c                  |   16 +++--
- drivers/infiniband/hw/mlx5/mr.c                    |   71 ++++++++---------
- drivers/infiniband/hw/mlx5/qp.c                    |   80 +++++++------------
- drivers/infiniband/hw/mlx5/srq.c                   |    4 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |   28 ++++---
- drivers/net/ethernet/mellanox/mlx5/core/eq.c       |    4 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c     |   21 +----
- .../net/ethernet/mellanox/mlx5/core/pagealloc.c    |   16 ++++-
- include/linux/mlx5/device.h                        |    4 +-
- include/linux/mlx5/driver.h                        |    6 +-
- 10 files changed, 118 insertions(+), 132 deletions(-)
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index cfe0812..09d94a3 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -61,13 +61,11 @@ static int order2idx(struct mlx5_ib_dev *dev, int order)
+ 
+ static int add_keys(struct mlx5_ib_dev *dev, int c, int num)
+ {
+-	struct device *ddev = dev->ib_dev.dma_device;
+ 	struct mlx5_mr_cache *cache = &dev->cache;
+ 	struct mlx5_cache_ent *ent = &cache->ent[c];
+ 	struct mlx5_create_mkey_mbox_in *in;
+ 	struct mlx5_ib_mr *mr;
+ 	int npages = 1 << ent->order;
+-	int size = sizeof(u64) * npages;
+ 	int err = 0;
+ 	int i;
+ 
+@@ -83,21 +81,6 @@ static int add_keys(struct mlx5_ib_dev *dev, int c, int num)
+ 		}
+ 		mr->order = ent->order;
+ 		mr->umred = 1;
+-		mr->pas = kmalloc(size + 0x3f, GFP_KERNEL);
+-		if (!mr->pas) {
+-			kfree(mr);
+-			err = -ENOMEM;
+-			goto out;
+-		}
+-		mr->dma = dma_map_single(ddev, mr_align(mr->pas, 0x40), size,
+-					 DMA_TO_DEVICE);
+-		if (dma_mapping_error(ddev, mr->dma)) {
+-			kfree(mr->pas);
+-			kfree(mr);
+-			err = -ENOMEM;
+-			goto out;
+-		}
+-
+ 		in->seg.status = 1 << 6;
+ 		in->seg.xlt_oct_size = cpu_to_be32((npages + 1) / 2);
+ 		in->seg.qpn_mkey7_0 = cpu_to_be32(0xffffff << 8);
+@@ -108,8 +91,6 @@ static int add_keys(struct mlx5_ib_dev *dev, int c, int num)
+ 					    sizeof(*in));
+ 		if (err) {
+ 			mlx5_ib_warn(dev, "create mkey failed %d\n", err);
+-			dma_unmap_single(ddev, mr->dma, size, DMA_TO_DEVICE);
+-			kfree(mr->pas);
+ 			kfree(mr);
+ 			goto out;
+ 		}
+@@ -129,11 +110,9 @@ out:
+ 
+ static void remove_keys(struct mlx5_ib_dev *dev, int c, int num)
+ {
+-	struct device *ddev = dev->ib_dev.dma_device;
+ 	struct mlx5_mr_cache *cache = &dev->cache;
+ 	struct mlx5_cache_ent *ent = &cache->ent[c];
+ 	struct mlx5_ib_mr *mr;
+-	int size;
+ 	int err;
+ 	int i;
+ 
+@@ -149,14 +128,10 @@ static void remove_keys(struct mlx5_ib_dev *dev, int c, int num)
+ 		ent->size--;
+ 		spin_unlock(&ent->lock);
+ 		err = mlx5_core_destroy_mkey(&dev->mdev, &mr->mmr);
+-		if (err) {
++		if (err)
+ 			mlx5_ib_warn(dev, "failed destroy mkey\n");
+-		} else {
+-			size = ALIGN(sizeof(u64) * (1 << mr->order), 0x40);
+-			dma_unmap_single(ddev, mr->dma, size, DMA_TO_DEVICE);
+-			kfree(mr->pas);
++		else
+ 			kfree(mr);
+-		}
+ 	}
+ }
+ 
+@@ -408,11 +383,9 @@ static void free_cached_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ 
+ static void clean_keys(struct mlx5_ib_dev *dev, int c)
+ {
+-	struct device *ddev = dev->ib_dev.dma_device;
+ 	struct mlx5_mr_cache *cache = &dev->cache;
+ 	struct mlx5_cache_ent *ent = &cache->ent[c];
+ 	struct mlx5_ib_mr *mr;
+-	int size;
+ 	int err;
+ 
+ 	cancel_delayed_work(&ent->dwork);
+@@ -428,14 +401,10 @@ static void clean_keys(struct mlx5_ib_dev *dev, int c)
+ 		ent->size--;
+ 		spin_unlock(&ent->lock);
+ 		err = mlx5_core_destroy_mkey(&dev->mdev, &mr->mmr);
+-		if (err) {
++		if (err)
+ 			mlx5_ib_warn(dev, "failed destroy mkey\n");
+-		} else {
+-			size = ALIGN(sizeof(u64) * (1 << mr->order), 0x40);
+-			dma_unmap_single(ddev, mr->dma, size, DMA_TO_DEVICE);
+-			kfree(mr->pas);
++		else
+ 			kfree(mr);
+-		}
+ 	}
+ }
+ 
+@@ -679,10 +648,12 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 				  int page_shift, int order, int access_flags)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
++	struct device *ddev = dev->ib_dev.dma_device;
+ 	struct umr_common *umrc = &dev->umrc;
+ 	struct ib_send_wr wr, *bad;
+ 	struct mlx5_ib_mr *mr;
+ 	struct ib_sge sg;
++	int size = sizeof(u64) * npages;
+ 	int err;
+ 	int i;
+ 
+@@ -701,6 +672,19 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	if (!mr)
+ 		return ERR_PTR(-EAGAIN);
+ 
++	mr->pas = kmalloc(size + 0x3f, GFP_KERNEL);
++	if (!mr->pas) {
++		err = -ENOMEM;
++		goto error;
++	}
++	mr->dma = dma_map_single(ddev, mr_align(mr->pas, 0x40), size,
++				 DMA_TO_DEVICE);
++	if (dma_mapping_error(ddev, mr->dma)) {
++		kfree(mr->pas);
++		err = -ENOMEM;
++		goto error;
++	}
++
+ 	mlx5_ib_populate_pas(dev, umem, page_shift, mr_align(mr->pas, 0x40), 1);
+ 
+ 	memset(&wr, 0, sizeof(wr));
+@@ -722,6 +706,9 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	wait_for_completion(&mr->done);
+ 	up(&umrc->sem);
+ 
++	dma_unmap_single(ddev, mr->dma, size, DMA_TO_DEVICE);
++	kfree(mr->pas);
++
+ 	if (mr->status != IB_WC_SUCCESS) {
+ 		mlx5_ib_warn(dev, "reg umr failed\n");
+ 		err = -EFAULT;
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
