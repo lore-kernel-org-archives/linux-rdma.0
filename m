@@ -1,58 +1,61 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V4 8/9] IB/core: Add RoCE IP based addressing extensions
- for rdma_ucm
-Date: Wed, 11 Sep 2013 14:32:10 +0300
-Message-ID: <523054BA.2040608@mellanox.com>
-References: <1378824099-22150-1-git-send-email-ogerlitz@mellanox.com> <1378824099-22150-9-git-send-email-ogerlitz@mellanox.com> <26c47667e463e65dd79caaa4bddc437b@meuh.org>
+Subject: Re: [PATCH V4 7/9] IB/core: Add RoCE IP based addressing extensions
+ for uverbs
+Date: Wed, 11 Sep 2013 14:38:26 +0300
+Message-ID: <52305632.1030604@mellanox.com>
+References: <1378824099-22150-1-git-send-email-ogerlitz@mellanox.com> <1378824099-22150-8-git-send-email-ogerlitz@mellanox.com> <6d494aa8d403e0c50b16f09fbd2c3ab6@meuh.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <26c47667e463e65dd79caaa4bddc437b-zgzEX58YAwA@public.gmane.org>
+In-Reply-To: <6d494aa8d403e0c50b16f09fbd2c3ab6-zgzEX58YAwA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: meuh-zgzEX58YAwA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/09/2013 12:52, Yann Droneaud wrote:
-> Le 10.09.2013 16:41, Or Gerlitz a =C3=A9crit :
->> +static ssize_t ucma_init_qp_attr_ex(struct ucma_file *file,
->> +                    const char __user *inbuf,
->> +                    int in_len, int out_len)
->> +{
->> +    struct rdma_ucm_init_qp_attr_ex cmd;
->> +    struct ib_uverbs_qp_attr_ex resp;
->> +    struct ucma_context *ctx;
->> +    struct ib_qp_attr qp_attr;
->> +    int ret;
->> +
->> +    if (out_len < sizeof(resp))
->> +        return -ENOSPC;
->> +
->> +    if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
->> +        return -EFAULT;
->> +
->> +    if (copy_from_user(&resp, (void __user *)(unsigned=20
->> long)cmd.response,
->> +               sizeof(resp)))
->> +        return -EFAULT;
->> +
+On 11/09/2013 13:06, meuh-zgzEX58YAwA@public.gmane.org wrote:
+>> @@ -672,6 +821,15 @@ struct ib_uverbs_create_ah {
+>>      struct ib_uverbs_ah_attr attr;
+>>  };
+>>
+>> +struct ib_uverbs_create_ah_ex {
+>> +    __u32 comp_mask;
 >
 >
-> Reading from the response buffer ? I haven't seen that before in=20
-> IB/core before.
+> This create a hole or introduced unaligned access depending on the 
+> 64bits ABI.
 
-The intent here is to use copy_from_user just to make sure the user spa=
-ce
-provided buffer has enough room to hold the kernel response structure. =
-This
-this command may be extended in the future without bumping the overall=20
-uverbs ABI
-version we wanted to add this extra protection.
+Matan is OOO for couple of days, but this seems to me as good catch.
+
+Anyway, note that the current upstream providers of RoCE (ocrdma, mlx4) 
+don't support
+IB_USER_VERBS_CMD_CREATE_AH. This means their user space library need 
+not access
+the kernel for AH creation, we will drop the extended version of the 
+this command from
+the patch series altogether to reduce the volume of kernel changes and
+ease with the review, thanks for the feedback so far!
+
+Or.
+
+
+>
+> The way this structure is used to map a struct ib_uverbs_create_ah 
+> seems wrong.
+>
+>> +    __u64 response;
+>> +    __u64 user_handle;
+>> +    __u32 pd_handle;
+>> +    __u32 reserved;
+>> +    struct ib_uverbs_ah_attr_ex attr;
+>> +};
+>> +
+>>  struct ib_uverbs_create_ah_resp {
+>>      __u32 ah_handle;
+>>  }; 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
