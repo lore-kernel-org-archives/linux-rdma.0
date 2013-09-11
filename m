@@ -1,185 +1,84 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH fixes-3.12 04/15] mlx5: Remove checksum on command interface commands
-Date: Wed, 11 Sep 2013 16:35:25 +0300
-Message-ID: <1378906536-6925-5-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH fixes-3.12 13/15] IB/mlx5: Fix eq names to display nicely in /proc/interrupts
+Date: Wed, 11 Sep 2013 16:35:34 +0300
+Message-ID: <1378906536-6925-14-git-send-email-ogerlitz@mellanox.com>
 References: <1378906536-6925-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1378906536-6925-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, elic-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, elic-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Checksum calculations consume CPU resources and can be significant to the rate
-of resource creation/destruction.
+It is normal for a device to display the pci slot name along with it's IRQs, so
+the user which will check /proc/interrupts will see the pci slot of the device.
 
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c  |   26 ++++++++++++-----------
- drivers/net/ethernet/mellanox/mlx5/core/main.c |   21 ++++--------------
- include/linux/mlx5/device.h                    |    2 +-
- include/linux/mlx5/driver.h                    |    4 +--
- 4 files changed, 21 insertions(+), 32 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c            |    6 +++---
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c |    4 +++-
+ include/linux/mlx5/driver.h                  |    2 +-
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index c571de8..d4a3b4e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -180,28 +180,32 @@ static int verify_block_sig(struct mlx5_cmd_prot_block *block)
- 	return 0;
- }
- 
--static void calc_block_sig(struct mlx5_cmd_prot_block *block, u8 token)
-+static void calc_block_sig(struct mlx5_cmd_prot_block *block, u8 token,
-+			   int csum)
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index b267c65..b1a6cb3 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -164,6 +164,7 @@ int mlx5_vector2eqn(struct mlx5_ib_dev *dev, int vector, int *eqn, int *irqn)
+ static int alloc_comp_eqs(struct mlx5_ib_dev *dev)
  {
- 	block->token = token;
--	block->ctrl_sig = ~xor8_buf(block->rsvd0, sizeof(*block) - sizeof(block->data) - 2);
--	block->sig = ~xor8_buf(block, sizeof(*block) - 1);
-+	if (csum) {
-+		block->ctrl_sig = ~xor8_buf(block->rsvd0, sizeof(*block) -
-+					    sizeof(block->data) - 2);
-+		block->sig = ~xor8_buf(block, sizeof(*block) - 1);
-+	}
- }
+ 	struct mlx5_eq_table *table = &dev->mdev.priv.eq_table;
++	char name[MLX5_MAX_EQ_NAME];
+ 	struct mlx5_eq *eq, *n;
+ 	int ncomp_vec;
+ 	int nent;
+@@ -180,11 +181,10 @@ static int alloc_comp_eqs(struct mlx5_ib_dev *dev)
+ 			goto clean;
+ 		}
  
--static void calc_chain_sig(struct mlx5_cmd_msg *msg, u8 token)
-+static void calc_chain_sig(struct mlx5_cmd_msg *msg, u8 token, int csum)
- {
- 	struct mlx5_cmd_mailbox *next = msg->next;
- 
- 	while (next) {
--		calc_block_sig(next->buf, token);
-+		calc_block_sig(next->buf, token, csum);
- 		next = next->next;
- 	}
- }
- 
--static void set_signature(struct mlx5_cmd_work_ent *ent)
-+static void set_signature(struct mlx5_cmd_work_ent *ent, int csum)
- {
- 	ent->lay->sig = ~xor8_buf(ent->lay, sizeof(*ent->lay));
--	calc_chain_sig(ent->in, ent->token);
--	calc_chain_sig(ent->out, ent->token);
-+	calc_chain_sig(ent->in, ent->token, csum);
-+	calc_chain_sig(ent->out, ent->token, csum);
- }
- 
- static void poll_timeout(struct mlx5_cmd_work_ent *ent)
-@@ -539,8 +543,7 @@ static void cmd_work_handler(struct work_struct *work)
- 	lay->type = MLX5_PCI_CMD_XPORT;
- 	lay->token = ent->token;
- 	lay->status_own = CMD_OWNER_HW;
--	if (!cmd->checksum_disabled)
--		set_signature(ent);
-+	set_signature(ent, !cmd->checksum_disabled);
- 	dump_command(dev, ent, 1);
- 	ktime_get_ts(&ent->ts1);
- 
-@@ -773,8 +776,6 @@ static int mlx5_copy_from_msg(void *to, struct mlx5_cmd_msg *from, int size)
- 
- 		copy = min_t(int, size, MLX5_CMD_DATA_BLOCK_SIZE);
- 		block = next->buf;
--		if (xor8_buf(block, sizeof(*block)) != 0xff)
--			return -EINVAL;
- 
- 		memcpy(to, block->data, copy);
- 		to += copy;
-@@ -1361,6 +1362,7 @@ int mlx5_cmd_init(struct mlx5_core_dev *dev)
- 		goto err_map;
+-		snprintf(eq->name, MLX5_MAX_EQ_NAME, "mlx5_comp%d", i);
++		snprintf(name, MLX5_MAX_EQ_NAME, "mlx5_comp%d", i);
+ 		err = mlx5_create_map_eq(&dev->mdev, eq,
+ 					 i + MLX5_EQ_VEC_COMP_BASE, nent, 0,
+-					 eq->name,
+-					 &dev->mdev.priv.uuari.uars[0]);
++					 name, &dev->mdev.priv.uuari.uars[0]);
+ 		if (err) {
+ 			kfree(eq);
+ 			goto clean;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index c02cbcf..f3a5862 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -366,9 +366,11 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
+ 		goto err_in;
  	}
  
-+	cmd->checksum_disabled = 1;
- 	cmd->max_reg_cmds = (1 << cmd->log_sz) - 1;
- 	cmd->bitmask = (1 << cmd->max_reg_cmds) - 1;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index b47739b..bc0f5fb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -165,9 +165,7 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 	struct mlx5_cmd_set_hca_cap_mbox_in *set_ctx = NULL;
- 	struct mlx5_cmd_query_hca_cap_mbox_in query_ctx;
- 	struct mlx5_cmd_set_hca_cap_mbox_out set_out;
--	struct mlx5_profile *prof = dev->profile;
- 	u64 flags;
--	int csum = 1;
- 	int err;
- 
- 	memset(&query_ctx, 0, sizeof(query_ctx));
-@@ -197,20 +195,14 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 	memcpy(&set_ctx->hca_cap, &query_out->hca_cap,
- 	       sizeof(set_ctx->hca_cap));
- 
--	if (prof->mask & MLX5_PROF_MASK_CMDIF_CSUM) {
--		csum = !!prof->cmdif_csum;
--		flags = be64_to_cpu(set_ctx->hca_cap.flags);
--		if (csum)
--			flags |= MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
--		else
--			flags &= ~MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
--
--		set_ctx->hca_cap.flags = cpu_to_be64(flags);
--	}
--
- 	if (dev->profile->mask & MLX5_PROF_MASK_QP_SIZE)
- 		set_ctx->hca_cap.log_max_qp = dev->profile->log_max_qp;
- 
-+	flags = be64_to_cpu(query_out->hca_cap.flags);
-+	/* disable checksum */
-+	flags &= ~MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
-+
-+	set_ctx->hca_cap.flags = cpu_to_be64(flags);
- 	memset(&set_out, 0, sizeof(set_out));
- 	set_ctx->hca_cap.log_uar_page_sz = cpu_to_be16(PAGE_SHIFT - 12);
- 	set_ctx->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_SET_HCA_CAP);
-@@ -225,9 +217,6 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
++	snprintf(eq->name, MLX5_MAX_EQ_NAME, "%s@pci:%s",
++		 name, pci_name(dev->pdev));
+ 	eq->eqn = out.eq_number;
+ 	err = request_irq(table->msix_arr[vecidx].vector, mlx5_msix_handler, 0,
+-			  name, eq);
++			  eq->name, eq);
  	if (err)
- 		goto query_ex;
+ 		goto err_eq;
  
--	if (!csum)
--		dev->cmd.checksum_disabled = 1;
--
- query_ex:
- 	kfree(query_out);
- 	kfree(set_ctx);
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 737685e..83f2ee7 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -181,7 +181,7 @@ enum {
- 	MLX5_DEV_CAP_FLAG_TLP_HINTS	= 1LL << 39,
- 	MLX5_DEV_CAP_FLAG_SIG_HAND_OVER	= 1LL << 40,
- 	MLX5_DEV_CAP_FLAG_DCT		= 1LL << 41,
--	MLX5_DEV_CAP_FLAG_CMDIF_CSUM	= 1LL << 46,
-+	MLX5_DEV_CAP_FLAG_CMDIF_CSUM	= 3LL << 46,
- };
- 
- enum {
 diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 2aa258b..171b599 100644
+index 171b599..f685663 100644
 --- a/include/linux/mlx5/driver.h
 +++ b/include/linux/mlx5/driver.h
-@@ -750,8 +750,7 @@ static inline u32 mlx5_idx_to_mkey(u32 mkey_idx)
- 
- enum {
- 	MLX5_PROF_MASK_QP_SIZE		= (u64)1 << 0,
--	MLX5_PROF_MASK_CMDIF_CSUM	= (u64)1 << 1,
--	MLX5_PROF_MASK_MR_CACHE		= (u64)1 << 2,
-+	MLX5_PROF_MASK_MR_CACHE		= (u64)1 << 1,
+@@ -82,7 +82,7 @@ enum {
  };
  
  enum {
-@@ -761,7 +760,6 @@ enum {
- struct mlx5_profile {
- 	u64	mask;
- 	u32	log_max_qp;
--	int	cmdif_csum;
- 	struct {
- 		int	size;
- 		int	limit;
+-	MLX5_MAX_EQ_NAME	= 20
++	MLX5_MAX_EQ_NAME	= 32
+ };
+ 
+ enum {
 -- 
 1.7.1
 
