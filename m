@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH fixes-3.12 15/15] IB/mlx5: Ensure proper synchronization accessing memory
-Date: Wed, 11 Sep 2013 16:35:36 +0300
-Message-ID: <1378906536-6925-16-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH fixes-3.12 04/15] mlx5: Remove checksum on command interface commands
+Date: Wed, 11 Sep 2013 16:35:25 +0300
+Message-ID: <1378906536-6925-5-git-send-email-ogerlitz@mellanox.com>
 References: <1378906536-6925-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1378906536-6925-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,40 +12,174 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Call mlx5_ib_populate_pas() before mapping the DMA buffer to ensure the
-hardware reads the values written by the CPU.
+Checksum calculations consume CPU resources and can be significant to the rate
+of resource creation/destruction.
 
-Found by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mr.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c  |   26 ++++++++++++-----------
+ drivers/net/ethernet/mellanox/mlx5/core/main.c |   21 ++++--------------
+ include/linux/mlx5/device.h                    |    2 +-
+ include/linux/mlx5/driver.h                    |    4 +--
+ 4 files changed, 21 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 798ce19..4987f0f 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -681,6 +681,10 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 		err = -ENOMEM;
- 		goto error;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index c571de8..d4a3b4e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -180,28 +180,32 @@ static int verify_block_sig(struct mlx5_cmd_prot_block *block)
+ 	return 0;
+ }
+ 
+-static void calc_block_sig(struct mlx5_cmd_prot_block *block, u8 token)
++static void calc_block_sig(struct mlx5_cmd_prot_block *block, u8 token,
++			   int csum)
+ {
+ 	block->token = token;
+-	block->ctrl_sig = ~xor8_buf(block->rsvd0, sizeof(*block) - sizeof(block->data) - 2);
+-	block->sig = ~xor8_buf(block, sizeof(*block) - 1);
++	if (csum) {
++		block->ctrl_sig = ~xor8_buf(block->rsvd0, sizeof(*block) -
++					    sizeof(block->data) - 2);
++		block->sig = ~xor8_buf(block, sizeof(*block) - 1);
++	}
+ }
+ 
+-static void calc_chain_sig(struct mlx5_cmd_msg *msg, u8 token)
++static void calc_chain_sig(struct mlx5_cmd_msg *msg, u8 token, int csum)
+ {
+ 	struct mlx5_cmd_mailbox *next = msg->next;
+ 
+ 	while (next) {
+-		calc_block_sig(next->buf, token);
++		calc_block_sig(next->buf, token, csum);
+ 		next = next->next;
  	}
-+
-+	mlx5_ib_populate_pas(dev, umem, page_shift,
-+			     mr_align(mr->pas, MLX5_UMR_ALIGN), 1);
-+
- 	mr->dma = dma_map_single(ddev, mr_align(mr->pas, MLX5_UMR_ALIGN), size,
- 				 DMA_TO_DEVICE);
- 	if (dma_mapping_error(ddev, mr->dma)) {
-@@ -689,9 +693,6 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 		goto error;
+ }
+ 
+-static void set_signature(struct mlx5_cmd_work_ent *ent)
++static void set_signature(struct mlx5_cmd_work_ent *ent, int csum)
+ {
+ 	ent->lay->sig = ~xor8_buf(ent->lay, sizeof(*ent->lay));
+-	calc_chain_sig(ent->in, ent->token);
+-	calc_chain_sig(ent->out, ent->token);
++	calc_chain_sig(ent->in, ent->token, csum);
++	calc_chain_sig(ent->out, ent->token, csum);
+ }
+ 
+ static void poll_timeout(struct mlx5_cmd_work_ent *ent)
+@@ -539,8 +543,7 @@ static void cmd_work_handler(struct work_struct *work)
+ 	lay->type = MLX5_PCI_CMD_XPORT;
+ 	lay->token = ent->token;
+ 	lay->status_own = CMD_OWNER_HW;
+-	if (!cmd->checksum_disabled)
+-		set_signature(ent);
++	set_signature(ent, !cmd->checksum_disabled);
+ 	dump_command(dev, ent, 1);
+ 	ktime_get_ts(&ent->ts1);
+ 
+@@ -773,8 +776,6 @@ static int mlx5_copy_from_msg(void *to, struct mlx5_cmd_msg *from, int size)
+ 
+ 		copy = min_t(int, size, MLX5_CMD_DATA_BLOCK_SIZE);
+ 		block = next->buf;
+-		if (xor8_buf(block, sizeof(*block)) != 0xff)
+-			return -EINVAL;
+ 
+ 		memcpy(to, block->data, copy);
+ 		to += copy;
+@@ -1361,6 +1362,7 @@ int mlx5_cmd_init(struct mlx5_core_dev *dev)
+ 		goto err_map;
  	}
  
--	mlx5_ib_populate_pas(dev, umem, page_shift,
--			     mr_align(mr->pas, MLX5_UMR_ALIGN), 1);
++	cmd->checksum_disabled = 1;
+ 	cmd->max_reg_cmds = (1 << cmd->log_sz) - 1;
+ 	cmd->bitmask = (1 << cmd->max_reg_cmds) - 1;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index b47739b..bc0f5fb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -165,9 +165,7 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ 	struct mlx5_cmd_set_hca_cap_mbox_in *set_ctx = NULL;
+ 	struct mlx5_cmd_query_hca_cap_mbox_in query_ctx;
+ 	struct mlx5_cmd_set_hca_cap_mbox_out set_out;
+-	struct mlx5_profile *prof = dev->profile;
+ 	u64 flags;
+-	int csum = 1;
+ 	int err;
+ 
+ 	memset(&query_ctx, 0, sizeof(query_ctx));
+@@ -197,20 +195,14 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ 	memcpy(&set_ctx->hca_cap, &query_out->hca_cap,
+ 	       sizeof(set_ctx->hca_cap));
+ 
+-	if (prof->mask & MLX5_PROF_MASK_CMDIF_CSUM) {
+-		csum = !!prof->cmdif_csum;
+-		flags = be64_to_cpu(set_ctx->hca_cap.flags);
+-		if (csum)
+-			flags |= MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
+-		else
+-			flags &= ~MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
 -
- 	memset(&wr, 0, sizeof(wr));
- 	wr.wr_id = (u64)(unsigned long)mr;
- 	prep_umr_reg_wqe(pd, &wr, &sg, mr->dma, npages, mr->mmr.key, page_shift, virt_addr, len, access_flags);
+-		set_ctx->hca_cap.flags = cpu_to_be64(flags);
+-	}
+-
+ 	if (dev->profile->mask & MLX5_PROF_MASK_QP_SIZE)
+ 		set_ctx->hca_cap.log_max_qp = dev->profile->log_max_qp;
+ 
++	flags = be64_to_cpu(query_out->hca_cap.flags);
++	/* disable checksum */
++	flags &= ~MLX5_DEV_CAP_FLAG_CMDIF_CSUM;
++
++	set_ctx->hca_cap.flags = cpu_to_be64(flags);
+ 	memset(&set_out, 0, sizeof(set_out));
+ 	set_ctx->hca_cap.log_uar_page_sz = cpu_to_be16(PAGE_SHIFT - 12);
+ 	set_ctx->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_SET_HCA_CAP);
+@@ -225,9 +217,6 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ 	if (err)
+ 		goto query_ex;
+ 
+-	if (!csum)
+-		dev->cmd.checksum_disabled = 1;
+-
+ query_ex:
+ 	kfree(query_out);
+ 	kfree(set_ctx);
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 737685e..83f2ee7 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -181,7 +181,7 @@ enum {
+ 	MLX5_DEV_CAP_FLAG_TLP_HINTS	= 1LL << 39,
+ 	MLX5_DEV_CAP_FLAG_SIG_HAND_OVER	= 1LL << 40,
+ 	MLX5_DEV_CAP_FLAG_DCT		= 1LL << 41,
+-	MLX5_DEV_CAP_FLAG_CMDIF_CSUM	= 1LL << 46,
++	MLX5_DEV_CAP_FLAG_CMDIF_CSUM	= 3LL << 46,
+ };
+ 
+ enum {
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 2aa258b..171b599 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -750,8 +750,7 @@ static inline u32 mlx5_idx_to_mkey(u32 mkey_idx)
+ 
+ enum {
+ 	MLX5_PROF_MASK_QP_SIZE		= (u64)1 << 0,
+-	MLX5_PROF_MASK_CMDIF_CSUM	= (u64)1 << 1,
+-	MLX5_PROF_MASK_MR_CACHE		= (u64)1 << 2,
++	MLX5_PROF_MASK_MR_CACHE		= (u64)1 << 1,
+ };
+ 
+ enum {
+@@ -761,7 +760,6 @@ enum {
+ struct mlx5_profile {
+ 	u64	mask;
+ 	u32	log_max_qp;
+-	int	cmdif_csum;
+ 	struct {
+ 		int	size;
+ 		int	limit;
 -- 
 1.7.1
 
