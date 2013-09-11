@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: Re: [PATCH krping 0/2] krping fixes to work with latest kernels
-Date: Wed, 11 Sep 2013 09:32:13 -0500
-Message-ID: <52307EED.9070008@opengridcomputing.com>
+Date: Wed, 11 Sep 2013 09:50:23 -0500
+Message-ID: <5230832F.6020502@opengridcomputing.com>
 References: <1378909224-27399-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -29,14 +29,9 @@ On 9/11/2013 9:20 AM, Or Gerlitz wrote:
 >   Makefile |   33 +++------------------------------
 >   krping.c |   33 +++++++++++++++++++--------------
 >   2 files changed, 22 insertions(+), 44 deletions(-)
->
->
 
-Hey Or/Alex,
+Applied, thanks!
 
-Thanks for these fixes.  What HW did you test on?
-
-Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
