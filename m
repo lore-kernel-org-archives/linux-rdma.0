@@ -1,58 +1,47 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH librdmacm] examples: Remove unneeded include of header file
- when using rocket.h
-Date: Thu, 12 Sep 2013 08:53:35 -0400
-Message-ID: <5231B94F.1080606@dev.mellanox.co.il>
+Subject: [PATCH opensm] osm_db_files.c: Add osm_db_domain_init failure handling
+ into test program
+Date: Thu, 12 Sep 2013 09:44:23 -0400
+Message-ID: <5231C537.3070102@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-as it's included in rsocket.h
+Also, improve error 6100 log message
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/examples/riostream.c b/examples/riostream.c
-index a1d3671..6587707 100644
---- a/examples/riostream.c
-+++ b/examples/riostream.c
-@@ -43,7 +43,6 @@
- #include <netinet/in.h>
- #include <netinet/tcp.h>
+diff --git a/opensm/osm_db_files.c b/opensm/osm_db_files.c
+index 9219722..10389da 100644
+--- a/opensm/osm_db_files.c
++++ b/opensm/osm_db_files.c
+@@ -162,7 +162,8 @@ int osm_db_init(IN osm_db_t * p_db, IN osm_log_t * p_log)
  
--#include <rdma/rdma_cma.h>
- #include <rdma/rsocket.h>
- #include "common.h"
+ 	p_db_imp = malloc(sizeof(osm_db_imp_t));
+ 	if (!p_db_imp) {
+-		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6100: No memory.\n");
++		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6100: "
++			"Failed to allocate db memory\n");
+ 		return -1;
+ 	}
  
-diff --git a/examples/rstream.c b/examples/rstream.c
-index 278437f..4e50f94 100644
---- a/examples/rstream.c
-+++ b/examples/rstream.c
-@@ -43,7 +43,6 @@
- #include <netinet/in.h>
- #include <netinet/tcp.h>
+@@ -668,6 +669,10 @@ int main(int argc, char **argv)
+ 	}
  
--#include <rdma/rdma_cma.h>
- #include <rdma/rsocket.h>
- #include "common.h"
+ 	p_dbd = osm_db_domain_init(&db, "lid_by_guid");
++	if (!p_dbd) {
++		printf("db domain init failed\n");
++		exit(1);
++	}
  
-diff --git a/examples/udpong.c b/examples/udpong.c
-index af8deb9..58e3d4e 100644
---- a/examples/udpong.c
-+++ b/examples/udpong.c
-@@ -44,7 +44,6 @@
- #include <netinet/tcp.h>
- #include <arpa/inet.h>
- 
--#include <rdma/rdma_cma.h>
- #include <rdma/rsocket.h>
- #include "common.h"
- 
+ 	if (osm_db_restore(p_dbd)) {
+ 		printf("failed to restore\n");
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
