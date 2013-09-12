@@ -1,22 +1,34 @@
-From: Gandalf Corvotempesta <gandalf.corvotempesta@gmail.com>
-Subject: Re: [ceph-users] Help needed porting Ceph to RSockets
-Date: Thu, 12 Sep 2013 12:20:03 +0200
-Message-ID: <CAJH6TXg94x+jcc=1MQQoQaF5JcGKuxbG_SzLEMt3EVQOrFeNjw@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237388CA7C88@ORSMSX109.amr.corp.intel.com>
-	<20130910154847.3fb7dd02@doppio>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V4 9/9] IB/mlx4: Enable mlx4_ib support for MODIFY_QP_EX
+Date: Thu, 12 Sep 2013 13:45:12 +0300
+Message-ID: <52319B38.5070807@mellanox.com>
+References: <1378824099-22150-1-git-send-email-ogerlitz@mellanox.com> <1378824099-22150-10-git-send-email-ogerlitz@mellanox.com> <CAGgPuS1tAiyA3TZ5_fpua3ue6JrZ9ruS+O+QU-7t28i0dZ7cUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <ceph-devel-owner@vger.kernel.org>
-In-Reply-To: <20130910154847.3fb7dd02@doppio>
-Sender: ceph-devel-owner@vger.kernel.org
-To: Andreas Bluemle <andreas.bluemle@itxperts.de>
-Cc: "Hefty, Sean" <sean.hefty@intel.com>, Matthew Anderson <manderson8787@gmail.com>, "ceph-devel@vger.kernel.org" <ceph-devel@vger.kernel.org>, "linux-rdma@vger.kernel.org (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAGgPuS1tAiyA3TZ5_fpua3ue6JrZ9ruS+O+QU-7t28i0dZ7cUw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <desh.t2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-2013/9/10 Andreas Bluemle <andreas.bluemle@itxperts.de>:
-> Since I have added these workarounds to my version of the librdmacm
-> library, I can at least start up ceph using LD_PRELOAD and end up in
-> a healthy ceph cluster state.
+On 12/09/2013 08:26, Devesh Sharma wrote:
+> I don't see any patches to librdmacm/libibverbs git to call _EX version of uverbs commands.
 
-Have you seen any performance improvement by using LD_PRELOAD with ceph?
-Which throughput are you able to archive with rsocket and ceph?
+We've posted the kernel patches, that should be enough for the review. 
+If you have any specific questions re user
+space aspects of this series, feel free to send them now.
+
+> The patch you have pointed in v4-0 patch still seems to be incomplete. Are these broken?
+
+I don't understand the question. During the review of V4 we were pointed 
+to a part missing in patch 5/9
+and this will be fixed in V5, sure.
+
+Or.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
