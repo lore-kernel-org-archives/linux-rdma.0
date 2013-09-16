@@ -1,29 +1,42 @@
-From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ceph-users] Help needed porting Ceph to RSockets
-Date: Mon, 16 Sep 2013 15:29:08 +0200
-Message-ID: <CAJH6TXhXkK1WiPAzrQCFLZfZj1TQhaJ7A+1RTVZ3azFVEXH39A@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237388CA7C88@ORSMSX109.amr.corp.intel.com>
-	<20130910154847.3fb7dd02@doppio>
-	<CAJH6TXg94x+jcc=1MQQoQaF5JcGKuxbG_SzLEMt3EVQOrFeNjw@mail.gmail.com>
-	<20130912141254.0a1642de@doppio>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH infiniband-diags] ibdiag_sa.c: Output attribute ID in hex
+ rather than decimal
+Date: Mon, 16 Sep 2013 10:19:58 -0400
+Message-ID: <5237138E.9060705@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130912141254.0a1642de@doppio>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andreas Bluemle <andreas.bluemle-jy6uzZffzV0b1SvskN2V4Q@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Anderson <manderson8787-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2013/9/12 Andreas Bluemle <andreas.bluemle-jy6uzZffzV0b1SvskN2V4Q@public.gmane.org>:
-> I have not yet done any performance testing.
->
-> The next step I have to take is more related to setting up
-> a larger cluster with sth. like 150 osd's without hitting any
-> resource limitations.
 
-How do you manage failover ? Will you use mulitple HBA (or dual-port
-HBA) on each node or just a single IB fabric ?
+so that it's easier to correlate to IBA spec
+
+For example:
+saquery PKTR 20/1/0 --smkey 1
+ibwarn: sa_query: umad_send failed: attr 51: Bad file description
+
+0x33 would be easier than 51 as no conversion is required to
+look it up in IBA spec.
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/ibdiag_sa.c b/src/ibdiag_sa.c
+index 7a5014c..018a428 100644
+--- a/src/ibdiag_sa.c
++++ b/src/ibdiag_sa.c
+@@ -112,7 +112,7 @@ int sa_query(struct sa_handle * h, uint8_t method,
+ 
+ 	ret = umad_send(h->fd, h->agent, umad, len, ibd_timeout, 0);
+ 	if (ret < 0) {
+-		IBWARN("umad_send failed: attr %u: %s\n",
++		IBWARN("umad_send failed: attr 0x%x: %s\n",
+ 			attr, strerror(errno));
+ 		free(umad);
+ 		return (-ret);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
