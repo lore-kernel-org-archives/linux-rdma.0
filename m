@@ -1,25 +1,24 @@
-From: Eva Mishra <eva.mishra2007-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: memory registration using zero based virtual address
-Date: Mon, 16 Sep 2013 17:39:14 +0530
-Message-ID: <CAAcPZE5q9HY7CWcMhMSQceo4URSr8cOPpA9ZtkvW_izjGQLVDw@mail.gmail.com>
+From: Gandalf Corvotempesta <gandalf.corvotempesta-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: rsockets addressing
+Date: Mon, 16 Sep 2013 15:25:59 +0200
+Message-ID: <CAJH6TXhY---UhpvsquYrNXBc5ji_hYp7zJ+CwRrfy-naM_aGaA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-i understood following steps for memory registration using zero based
-virtual address
+Hi to all,
+which kind of system is used by rsockets to address the remote host?
+Is using IPoIB ?
 
-step 1:  allocate a buffer. return address is a virtual address.
-step 2:  in memory registration verb, provide virtual address returned
-in step 1 and set Type of VA as zbva.
-step 3:  in the verb for posting operation, address of zero can be
-passed, since first memory location of returned MR has virtual address
-of zero as per IB spec
-
-is the above understanding of zbva correct.
+Will I be able to support two redundant fabrics with failover managed
+by OpenSM with rsockets ?
+For example, two nodes connected (with 2 HBA on each) to two different
+IB fabrics.
+In case of an HBA failure, will rsocket be able to re-establish a
+connected using the second fabric ?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
