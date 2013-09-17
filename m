@@ -1,35 +1,28 @@
-From: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: infiniband: remove self-assignment from nes_query_qp()
-Date: Tue, 17 Sep 2013 17:45:54 -0400
-Message-ID: <20130917214554.GA357@redhat.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V4 9/9] IB/mlx4: Enable mlx4_ib support for MODIFY_QP_EX
+Date: Tue, 17 Sep 2013 16:10:24 -0700
+Message-ID: <CAG4TOxOtsy+vtmtYciREk0bOC=o9-ME1T=cqvt46CNssCU57zA@mail.gmail.com>
+References: <CAJZOPZJ_F06xORoQyt-6_SK5P5Y7LXekQuNKHHYSt+oJ8sV1GA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <CAJZOPZJ_F06xORoQyt-6_SK5P5Y7LXekQuNKHHYSt+oJ8sV1GA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Devesh Sharma <desh.t2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Assigning a value to itself is pointless.
+On Tue, Sep 17, 2013 at 1:49 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> To begin with, we don't break the whole stack -- using the current
+> patch set, for ports whose link is IB, all biz as usual, and this is
+> the in the port resolution, that is if for a given device one port is
+> IB and one port Eth, existing librdmacm keep working on the IB por.
 
-Spotted with coverity, no hardware to test.
+Sure, and people using USB webcams and wifi are also unaffected by
+changes to the RoCE stack.   For anyone using RoCE the impact is
+pretty big.
 
-Signed-off-by: Dave Jones <davej-rxtnV0ftBwyoClj4AeEUq9i2O/JbrIOy@public.gmane.org>
-
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 5b53ca5..8308e36 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -2834,7 +2834,7 @@ static int nes_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	init_attr->qp_context = nesqp->ibqp.qp_context;
- 	init_attr->send_cq = nesqp->ibqp.send_cq;
- 	init_attr->recv_cq = nesqp->ibqp.recv_cq;
--	init_attr->srq = nesqp->ibqp.srq = nesqp->ibqp.srq;
-+	init_attr->srq = nesqp->ibqp.srq;
- 	init_attr->cap = attr->cap;
- 
- 	return 0;
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
