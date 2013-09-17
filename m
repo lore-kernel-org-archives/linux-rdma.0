@@ -1,116 +1,54 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V4 8/9] IB/core: Add RoCE IP based addressing extensions
- for =?UTF-8?Q?rdma=5Fucm?=
-Date: Tue, 17 Sep 2013 17:43:49 +0200
-Message-ID: <8bb85d86eca247afa5786b7c7e4c737a@meuh.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V4 9/9] IB/mlx4: Enable mlx4_ib support for MODIFY_QP_EX
+Date: Tue, 17 Sep 2013 10:50:17 -0700
+Message-ID: <CAL1RGDUmv_+z8eMJHQ4ksh4Ai-Xspcv5y0+EUxkaX220ZJLWkg@mail.gmail.com>
 References: <1378824099-22150-1-git-send-email-ogerlitz@mellanox.com>
- <1378824099-22150-9-git-send-email-ogerlitz@mellanox.com>
- <26c47667e463e65dd79caaa4bddc437b@meuh.org> <523054BA.2040608@mellanox.com>
- <97104d76028c356b458509ce95b08c92@meuh.org> <5238289D.40608@mellanox.com>
- <bcec9d3a9a72ed1d612a4dd49b670800@meuh.org> <523871A2.8010109@mellanox.com>
+ <1378824099-22150-10-git-send-email-ogerlitz@mellanox.com>
+ <CAGgPuS1tAiyA3TZ5_fpua3ue6JrZ9ruS+O+QU-7t28i0dZ7cUw@mail.gmail.com>
+ <52319B38.5070807@mellanox.com> <CAGgPuS07Vp6Zrd=cXmZeNps_S6wOswOoXHbp5Ec14tAy5aS5=A@mail.gmail.com>
+ <5231B28E.4090605@mellanox.com> <20130912172252.GA4611@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <523871A2.8010109-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20130912172252.GA4611-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Devesh Sharma <desh.t2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le 17.09.2013 17:13, Matan Barak a =C3=A9crit=C2=A0:
-> On 17/9/2013 1:25 PM, Yann Droneaud wrote:
->> Hi,
->>=20
->> Le 17.09.2013 12:02, Matan Barak a =C3=A9crit :
->>>=20
->>> That's right - we're not checking anything here.
->>> struct ib_uverbs_qp_attr_ex contains 2 user pointers:
->>> +       /* represents: struct ib_uverbs_ah_attr_ex * __user */
->>> +       void __user *ah_attr_ex;
->>> +       /* represents: struct ib_uverbs_ah_attr_ex * __user */
->>> +       void __user *alt_ah_attr_ex;
->>>=20
->>> Those pointers should be given to rdma_init_qp_attr in order to
->>> initialize them.
->>>=20
->>> We are using pointers here in order to maintain future extendabilit=
-y
->>> of the address handle structures.
->>>=20
->>=20
->> First: you can't put pointer asis in public data structure. Look to=20
->> all
->> others "command" structures
->> declared in include/uapi/rdma/ib_user_verbs.h
->=20
-> Thanks for the review. Looking at other commands, I see that pointers
-> (such a the response) are passed as __u64 at the command structure.
+On Thu, Sep 12, 2013 at 10:22 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-Indeed. So that 32bits and 64bits binaries use the same layout.
+> On Thu, Sep 12, 2013 at 03:24:46PM +0300, Or Gerlitz wrote:
+> > Let me clarify this. The idea is that current RoCE applications will
+> > run as is after they update "their" librdmacm, since its this
+> > library that works with the new uverbs entries.
 
-> Is that what you mean ? I think it's a bit odd to pass those pointers=
-=20
-> as
-> a part of the command, as they are output only attributes. Though,
-> I'll change the code to use __u64 instead of the actual __user
-> pointers.
->=20
+> Or, we are not supposed to break userspace. You can't insist that a
+> user space library be updated in-sync with the kernel.
 
-How can those pointers be output parameters ? Does kernel allocate some=
-=20
-pages
-and putting the addresses of those in the ah_attr_ex and alt_ah_attr_ex=
-=20
-pointers ?
+Agree.  This "IP based addressing" for RoCE looks like a big problem
+at the moment.  Let me reiterate my understanding, and you guys can
+correct me if I get something wrong:
 
-I don't buy the "maintain future extendability" argument for such=20
-specific cruft.
-It's not enough generic to fall in the extensible pattern.
+ - current addressing scheme is broken for virtualization use cases,
+because VMs may not know about what VLANs are in use.  (also there are
+issues around bonding modes that use different Ethernet addresses)
 
->>=20
->> Second: if you're duplicating struct ib_uverbs_qp_attr, why not=20
->> include
->> it in struct ib_uverbs_qp_attr_ex
->> it will reduce maintenance burden, clutter, etc.
->> Or drop the unused fields in the _ex version while taking care of=20
->> being
->> at least equal size than
->> the original version.
->=20
-> The extension verbs approach should be an evolution. Instead of using
-> a cumbersome extended.basic.field notation, extended.field is more
-> compact and readable. Using this notation will allow us to deprecate
-> the basic structures when they won't be in use anymore.
-> Since the basic structures shouldn't change anymore as user
-> applications relay on them, I don't see a burden in maintainability
-> doing it this way.
->=20
+ - proposed change requires:
 
-Oh ... I'm waiting to see qp_attr being deprecated</sarcasm>
+   * all systems must update kernel at the same time, because old and
+new kernels cannot talk to each other
 
->>=20
->> Same apply to struct ib_uverbs_modify_qp_ex, but struct
->> ib_uverbs_modify_qp_ex has the comp_mask as first field (introducing=
- a
->> hole).
->=20
-> We'll add a reserved field to fix this hole. Thanks for that catch!
->=20
+   * all systems must update librdmacm when they update the kernel,
+because old librdmacm does not work with new kernel
 
-Why not putting that field after the struct ib_uverbs_modify_qp field ?
-(even if I don't like the comp_mask things, I waiting for a real world=20
-example).
+I understand that we want to fix the issue around VLAN tagged traffic
+from VMs, but I don't see how we can break the whole stack to
+accomplish that.  Isn't there some incremental way forward?
 
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
