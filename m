@@ -1,27 +1,62 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ceph-users] Help needed porting Ceph to RSockets
-Date: Fri, 20 Sep 2013 23:47:46 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CD7E04@ORSMSX109.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237388CA7C88@ORSMSX109.amr.corp.intel.com>
- <20130910154847.3fb7dd02@doppio>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130910154847.3fb7dd02@doppio>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andreas Bluemle <andreas.bluemle-jy6uzZffzV0b1SvskN2V4Q@public.gmane.org>
-Cc: Matthew Anderson <manderson8787-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 03/19] infiniband: Change variable type to bool
+Date: Sun, 22 Sep 2013 00:27:35 +0200
+Message-ID: <1379802471-30252-3-git-send-email-peter.senna@gmail.com>
+References: <1379802471-30252-1-git-send-email-peter.senna@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1379802471-30252-1-git-send-email-peter.senna@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: roland@kernel.org
+Cc: sean.hefty@intel.com, hal.rosenstock@gmail.com, bgottumukkala@emulex.com, tj@kernel.org, peter.senna@gmail.com, dan.carpenter@oracle.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> I would not call these workarounds a real fix, but they should point
-> out the problems which I am trying to solve.
+The variables found and is_uctx_pd are only assigned the values true
+and false. Change its type to bool.
 
-Thanks for the update.  I haven't had the time to investigate this, but did want to at least acknowledge that this hasn't gotten lost.
+The simplified semantic patch that find this problem is as
+follows (http://coccinelle.lip6.fr/):
 
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+@exists@
+type T;
+identifier b;
+@@
+- T
++ bool
+  b = ...;
+  ... when any
+  b = \(true\|false\)
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  | 2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 56e0049..e30e342 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -120,7 +120,7 @@ static bool ocrdma_add_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
+ static bool ocrdma_del_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
+ 			    bool is_vlan, u16 vlan_id)
+ {
+-	int found = false;
++	bool found = false;
+ 	int i;
+ 	union ib_gid sgid;
+ 	unsigned long flags;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 6e982bb..843d18b 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -537,7 +537,7 @@ struct ib_pd *ocrdma_alloc_pd(struct ib_device *ibdev,
+ 	struct ocrdma_pd *pd;
+ 	struct ocrdma_ucontext *uctx = NULL;
+ 	int status;
+-	u8 is_uctx_pd = false;
++	bool is_uctx_pd = false;
+ 
+ 	if (udata && context) {
+ 		uctx = get_ocrdma_ucontext(context);
+-- 
+1.8.3.1
