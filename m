@@ -1,23 +1,35 @@
 From: Richard Sharpe <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Can I call routines like ib_post_{send,recv} from completion queue callbacks?
-Date: Mon, 23 Sep 2013 05:02:00 -0700
-Message-ID: <CACyXjPxMsw=dMGzH7pycit5=1oEv4dOUjiWbQFz5+LjwuVRS6Q@mail.gmail.com>
+Subject: Re: Can I call routines like ib_post_{send,recv} from completion
+ queue callbacks?
+Date: Mon, 23 Sep 2013 10:55:22 -0700
+Message-ID: <CACyXjPyGBC=bBZ6fWGe_LeHMNpHqDk+hPttA6RFDBaVC=5BZ-Q@mail.gmail.com>
+References: <CACyXjPxMsw=dMGzH7pycit5=1oEv4dOUjiWbQFz5+LjwuVRS6Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=Big5
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CACyXjPxMsw=dMGzH7pycit5=1oEv4dOUjiWbQFz5+LjwuVRS6Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi folks,
+On Mon, Sep 23, 2013 at 5:02 AM, Richard Sharpe
+<realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Hi folks,
+>
+> I am trying to figure out the reason for the latest hang in my SMB
+> Direct driver for Linux.
+>
+> Should I be calling ib_post_{send,recv} from completion queue
+> callbacks or should I be doing it from a different context, like a
+> work queue?
 
-I am trying to figure out the reason for the latest hang in my SMB
-Direct driver for Linux.
+Just to clarify, calling ib_post_recv from a CM callback seems fine.
 
-Should I be calling ib_post_{send,recv} from completion queue
-callbacks or should I be doing it from a different context, like a
-work queue?
+My problem has been with calling ib_post_send from within the callback
+resulting from the completion of a RECV.
+
+Is that appropriate to do?
 
 --=20
 Regards,
