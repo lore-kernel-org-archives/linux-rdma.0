@@ -1,7 +1,7 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [Patch v2 3/3] IB/cache: don't fill the cache with junk
-Date: Tue, 24 Sep 2013 17:16:29 -0400
-Message-ID: <4c88e00f5211787a98fa980a4d42c5c6374ab868.1380056994.git.dledford@redhat.com>
+Subject: [Patch v2 2/3] IB/cma: Check for GID on listening device first
+Date: Tue, 24 Sep 2013 17:16:28 -0400
+Message-ID: <aa1e1e21c41fc6aa287aeb99d71fa257557d40b2.1380056994.git.dledford@redhat.com>
 References: <cover.1380056994.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1380056994.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -12,287 +12,116 @@ To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Drie
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We keep a cache of the GIDs and PKeys on an IB device, but when we get
-the props for the card, the table length returned is the overall table
-size and not related to how many valid entries there are in the table.
-As a result, we end up with things like 128 entries for GIDs that are 3
-valid GIDs and 125 empty GIDs.  Then when we call find_cache_gid, we
-search through all 128 GID cache entries using memcmp.  This is
-needlessly expensive.  So when we update the cache, check each item we
-get from the card to see if it's valid and only save it into the cache
-if it is.  We make sure to preserve the index from the card's table with
-each cache item so the correct index in the card's table is returned
-on any lookup that requests the index.
+As a simple optimization that should speed up the vast majority of
+connect attemps on IB devices, when we are searching for the GID of an
+incoming connection in the cached GID lists of devices, search the
+device that received the incoming connection request first.  If we don't
+find it there, then move on to other devices.
 
-I have performance numbers on this change, but they aren't really
-conclusive.  I made this change after the previous two patches, and
-while conceptually it is obvious that search 3 or 4 GIDs is better than
-searching through 128 empty GIDs using memcmp, the fact of the matter is
-that we normally find our result quickly and so the benefit of this
-change is not seen, at least not by using the cmtime application.  In
-addition, the immediately previous patch optimized the connect routine's
-selection of device to search first, again hiding the benefit of this
-change.  It would require a very complex setup with lots of valid GIDs
-and connect attempts that were accessing GIDs late in the table to
-demonstrate the benefit of this patch clearly, and the cmtime utilitity
-from librdmacm does not do that.
+This reduces the time to perform 10,000 connections considerably.
+Prior to this patch, a bad run of cmtime would look like this:
+
+connect      :    12399.26   12351.10    8609.00    1239.93
+
+With this patch, it looks more like this:
+
+connect      :     5864.86    5799.80    8876.00     586.49
 
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/cache.c | 132 +++++++++++++++++++++++++++++++---------
- 1 file changed, 103 insertions(+), 29 deletions(-)
+ drivers/infiniband/core/cma.c | 36 ++++++++++++++++++++++++++++++------
+ 1 file changed, 30 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 80f6cf2..d31972d 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -44,12 +44,18 @@
- 
- struct ib_pkey_cache {
- 	int             table_len;
--	u16             table[0];
-+	struct pkey_cache_table_entry {
-+		u16             pkey;
-+		unsigned char	index;
-+	}		entry[0];
- };
- 
- struct ib_gid_cache {
- 	int             table_len;
--	union ib_gid    table[0];
-+	struct gid_cache_table_entry {
-+		union ib_gid    gid;
-+		unsigned char	index;
-+	}		entry[0];
- };
- 
- struct ib_update_work {
-@@ -76,7 +82,7 @@ int ib_get_cached_gid(struct ib_device *device,
- {
- 	struct ib_gid_cache *cache;
- 	unsigned long flags;
--	int ret = 0;
-+	int i, ret = 0;
- 
- 	if (port_num < start_port(device) || port_num > end_port(device))
- 		return -EINVAL;
-@@ -85,13 +91,26 @@ int ib_get_cached_gid(struct ib_device *device,
- 
- 	cache = device->cache.gid_cache[port_num - start_port(device)];
- 
--	if (index < 0 || index >= cache->table_len)
-+	if (index < 0 || index >= cache->table_len) {
- 		ret = -EINVAL;
--	else
--		*gid = cache->table[index];
-+		goto out_unlock;
-+	}
- 
--	read_unlock_irqrestore(&device->cache.lock, flags);
-+	for (i = 0; i < cache->table_len; ++i)
-+		if (cache->entry[i].index == index)
-+			break;
-+
-+	if (i < cache->table_len)
-+		*gid = cache->entry[i].gid;
-+	else {
-+		ret = ib_query_gid(device, port_num, index, gid);
-+		if (ret)
-+			printk(KERN_WARNING "ib_query_gid failed (%d) for %s (index %d)\n",
-+			       ret, device->name, index);
-+	}
- 
-+out_unlock:
-+	read_unlock_irqrestore(&device->cache.lock, flags);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index c62ff9e..dadc486 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -349,7 +349,8 @@ static int cma_translate_addr(struct sockaddr *addr, struct rdma_dev_addr *dev_a
  	return ret;
  }
- EXPORT_SYMBOL(ib_get_cached_gid);
-@@ -115,18 +134,18 @@ int ib_find_cached_gid(struct ib_device *device,
- 	for (p = 0; p <= end_port(device) - start_port(device); ++p) {
- 		cache = device->cache.gid_cache[p];
- 		for (i = 0; i < cache->table_len; ++i) {
--			if (!memcmp(gid, &cache->table[i], sizeof *gid)) {
-+			if (!memcmp(gid, &cache->entry[i].gid, sizeof *gid)) {
- 				*port_num = p + start_port(device);
- 				if (index)
--					*index = i;
-+					*index = cache->entry[i].index;
- 				ret = 0;
- 				goto found;
+ 
+-static int cma_acquire_dev(struct rdma_id_private *id_priv)
++static int cma_acquire_dev(struct rdma_id_private *id_priv,
++			   struct rdma_id_private *listen_id_priv)
+ {
+ 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+ 	struct cma_device *cma_dev;
+@@ -367,8 +368,30 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
+ 	iboe_addr_get_sgid(dev_addr, &iboe_gid);
+ 	memcpy(&gid, dev_addr->src_dev_addr +
+ 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
++	if (listen_id_priv &&
++	    rdma_port_get_link_layer(listen_id_priv->id.device,
++				     listen_id_priv->id.port_num) == dev_ll) {
++		cma_dev = listen_id_priv->cma_dev;
++		port = listen_id_priv->id.port_num;
++		if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
++		    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
++			ret = ib_find_cached_gid(cma_dev->device, &iboe_gid,
++						 &found_port, NULL);
++		else
++			ret = ib_find_cached_gid(cma_dev->device, &gid,
++						 &found_port, NULL);
++
++		if (!ret && (port  == found_port)) {
++			id_priv->id.port_num = found_port;
++			goto out;
++		}
++	}
+ 	list_for_each_entry(cma_dev, &dev_list, list) {
+-		for (port = 1; port <= cma_dev->device->phys_port_cnt; ++port)
++		for (port = 1; port <= cma_dev->device->phys_port_cnt; ++port) {
++			if (listen_id_priv &&
++			    listen_id_priv->cma_dev == cma_dev &&
++			    listen_id_priv->id.port_num == port)
++				continue;
+ 			if (rdma_port_get_link_layer(cma_dev->device, port) == dev_ll) {
+ 				if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
+ 				    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
+@@ -381,6 +404,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
+ 					goto out;
+ 				}
  			}
- 		}
- 	}
-+
- found:
- 	read_unlock_irqrestore(&device->cache.lock, flags);
--
- 	return ret;
- }
- EXPORT_SYMBOL(ib_find_cached_gid);
-@@ -138,7 +157,7 @@ int ib_get_cached_pkey(struct ib_device *device,
- {
- 	struct ib_pkey_cache *cache;
- 	unsigned long flags;
--	int ret = 0;
-+	int i, ret = 0;
- 
- 	if (port_num < start_port(device) || port_num > end_port(device))
- 		return -EINVAL;
-@@ -147,13 +166,22 @@ int ib_get_cached_pkey(struct ib_device *device,
- 
- 	cache = device->cache.pkey_cache[port_num - start_port(device)];
- 
--	if (index < 0 || index >= cache->table_len)
-+	if (index < 0 || index >= cache->table_len) {
- 		ret = -EINVAL;
-+		goto out_unlock;
-+	}
-+
-+	for (i = 0; i < cache->table_len; ++i)
-+		if (cache->entry[i].index == index)
-+			break;
-+
-+	if (i < cache->table_len)
-+		*pkey = cache->entry[i].pkey;
- 	else
--		*pkey = cache->table[index];
-+		*pkey = 0x0000;
- 
-+out_unlock:
- 	read_unlock_irqrestore(&device->cache.lock, flags);
--
- 	return ret;
- }
- EXPORT_SYMBOL(ib_get_cached_pkey);
-@@ -179,13 +207,13 @@ int ib_find_cached_pkey(struct ib_device *device,
- 	*index = -1;
- 
- 	for (i = 0; i < cache->table_len; ++i)
--		if ((cache->table[i] & 0x7fff) == (pkey & 0x7fff)) {
--			if (cache->table[i] & 0x8000) {
--				*index = i;
-+		if ((cache->entry[i].pkey & 0x7fff) == (pkey & 0x7fff)) {
-+			if (cache->entry[i].pkey & 0x8000) {
-+				*index = cache->entry[i].index;
- 				ret = 0;
- 				break;
- 			} else
--				partial_ix = i;
-+				partial_ix = cache->entry[i].index;
- 		}
- 
- 	if (ret && partial_ix >= 0) {
-@@ -219,8 +247,8 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
- 	*index = -1;
- 
- 	for (i = 0; i < cache->table_len; ++i)
--		if (cache->table[i] == pkey) {
--			*index = i;
-+		if (cache->entry[i].pkey == pkey) {
-+			*index = cache->entry[i].index;
- 			ret = 0;
- 			break;
- 		}
-@@ -255,8 +283,10 @@ static void ib_cache_update(struct ib_device *device,
- 	struct ib_port_attr       *tprops = NULL;
- 	struct ib_pkey_cache      *pkey_cache = NULL, *old_pkey_cache;
- 	struct ib_gid_cache       *gid_cache = NULL, *old_gid_cache;
--	int                        i;
-+	int                        i, j;
- 	int                        ret;
-+	union ib_gid		   gid, empty_gid;
-+	u16			   pkey;
- 
- 	tprops = kmalloc(sizeof *tprops, GFP_KERNEL);
- 	if (!tprops)
-@@ -270,35 +300,79 @@ static void ib_cache_update(struct ib_device *device,
- 	}
- 
- 	pkey_cache = kmalloc(sizeof *pkey_cache + tprops->pkey_tbl_len *
--			     sizeof *pkey_cache->table, GFP_KERNEL);
-+			     sizeof *pkey_cache->entry, GFP_KERNEL);
- 	if (!pkey_cache)
- 		goto err;
- 
--	pkey_cache->table_len = tprops->pkey_tbl_len;
-+	pkey_cache->table_len = 0;
- 
- 	gid_cache = kmalloc(sizeof *gid_cache + tprops->gid_tbl_len *
--			    sizeof *gid_cache->table, GFP_KERNEL);
-+			    sizeof *gid_cache->entry, GFP_KERNEL);
- 	if (!gid_cache)
- 		goto err;
- 
--	gid_cache->table_len = tprops->gid_tbl_len;
-+	gid_cache->table_len = 0;
- 
--	for (i = 0; i < pkey_cache->table_len; ++i) {
--		ret = ib_query_pkey(device, port, i, pkey_cache->table + i);
-+	for (i = 0, j = 0; i < tprops->pkey_tbl_len; ++i) {
-+		ret = ib_query_pkey(device, port, i, &pkey);
- 		if (ret) {
- 			printk(KERN_WARNING "ib_query_pkey failed (%d) for %s (index %d)\n",
- 			       ret, device->name, i);
- 			goto err;
- 		}
-+		/* pkey 0xffff must be the default pkeyand 0x0000 must be the invalid
-+		 * pkey per IBTA spec */
-+		if (pkey) {
-+			pkey_cache->entry[j].index = i;
-+			pkey_cache->entry[j++].pkey = pkey;
 +		}
  	}
-+	pkey_cache->table_len = j;
  
--	for (i = 0; i < gid_cache->table_len; ++i) {
--		ret = ib_query_gid(device, port, i, gid_cache->table + i);
-+	memset(&empty_gid, 0, sizeof empty_gid);
-+	for (i = 0, j = 0; i < tprops->gid_tbl_len; ++i) {
-+		ret = ib_query_gid(device, port, i, &gid);
- 		if (ret) {
- 			printk(KERN_WARNING "ib_query_gid failed (%d) for %s (index %d)\n",
- 			       ret, device->name, i);
- 			goto err;
- 		}
-+		/* if the lower 8 bytes the device GID entry is all 0,
-+		 * our entry is a blank, invalid entry...
-+		 * depending on device, the upper 8 bytes might or might
-+		 * not be prefilled with a valid subnet prefix, so
-+		 * don't rely on them for determining a valid gid
-+		 * entry
-+		 */
-+		if (memcmp(&gid + 8, &empty_gid + 8, sizeof gid - 8)) {
-+			gid_cache->entry[j].index = i;
-+			gid_cache->entry[j++].gid = gid;
-+		}
-+	}
-+	gid_cache->table_len = j;
-+
-+	old_pkey_cache = pkey_cache;
-+	pkey_cache = kmalloc(sizeof *pkey_cache + old_pkey_cache->table_len *
-+			     sizeof *pkey_cache->entry, GFP_KERNEL);
-+	if (!pkey_cache)
-+		pkey_cache = old_pkey_cache;
-+	else {
-+		pkey_cache->table_len = old_pkey_cache->table_len;
-+		memcpy(&pkey_cache->entry[0], &old_pkey_cache->entry[0],
-+		       pkey_cache->table_len * sizeof *pkey_cache->entry);
-+		kfree(old_pkey_cache);
-+	}
-+
-+	old_gid_cache = gid_cache;
-+	gid_cache = kmalloc(sizeof *gid_cache + old_gid_cache->table_len *
-+			    sizeof *gid_cache->entry, GFP_KERNEL);
-+	if (!gid_cache)
-+		gid_cache = old_gid_cache;
-+	else {
-+		gid_cache->table_len = old_gid_cache->table_len;
-+		memcpy(&gid_cache->entry[0], &old_gid_cache->entry[0],
-+		       gid_cache->table_len * sizeof *gid_cache->entry);
-+		kfree(old_gid_cache);
+ out:
+@@ -1269,7 +1293,7 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
  	}
  
- 	write_lock_irq(&device->cache.lock);
+ 	mutex_lock_nested(&conn_id->handler_mutex, SINGLE_DEPTH_NESTING);
+-	ret = cma_acquire_dev(conn_id);
++	ret = cma_acquire_dev(conn_id, listen_id);
+ 	if (ret)
+ 		goto err2;
+ 
+@@ -1458,7 +1482,7 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
+ 		goto out;
+ 	}
+ 
+-	ret = cma_acquire_dev(conn_id);
++	ret = cma_acquire_dev(conn_id, listen_id);
+ 	if (ret) {
+ 		mutex_unlock(&conn_id->handler_mutex);
+ 		rdma_destroy_id(new_cm_id);
+@@ -2027,7 +2051,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 		goto out;
+ 
+ 	if (!status && !id_priv->cma_dev)
+-		status = cma_acquire_dev(id_priv);
++		status = cma_acquire_dev(id_priv, NULL);
+ 
+ 	if (status) {
+ 		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_RESOLVED,
+@@ -2524,7 +2548,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 		if (ret)
+ 			goto err1;
+ 
+-		ret = cma_acquire_dev(id_priv);
++		ret = cma_acquire_dev(id_priv, NULL);
+ 		if (ret)
+ 			goto err1;
+ 	}
 -- 
 1.8.3.1
 
