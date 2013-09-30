@@ -1,27 +1,39 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] opensm: Fix GUIDInfo SET function
-Date: Mon, 30 Sep 2013 14:50:03 -0400
-Message-ID: <5249C7DB.6040205@dev.mellanox.co.il>
-References: <20130930140555.GA3668@calypso.mtr.labs.mlnx>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Mathias Krause <minipli-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: [PATCH] IB/netlink: remove superfluous RDMA_NL_GET_OP() masking
+Date: Mon, 30 Sep 2013 22:03:54 +0200
+Message-ID: <1380571434-15391-1-git-send-email-minipli@googlemail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130930140555.GA3668-iQai9MGU/dwDyJZ7l8Lk7nI+JuX82XLG@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mathias Krause <minipli-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/30/2013 10:05 AM, Alex Netes wrote:
-> osm_req_set parameters order is incorrect. Because of this only block 0
-> is incorrectly altered.
-> 
-> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+'op' is the already RDMA_NL_GET_OP() masked 'type'. No need to mask it
+again.
 
-Nice catch! Thanks. Applied.
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mathias Krause <minipli-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+---
+ drivers/infiniband/core/netlink.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- Hal
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index da06abd..a1e9cba 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -148,7 +148,7 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 	list_for_each_entry(client, &client_list, list) {
+ 		if (client->index == index) {
+ 			if (op < 0 || op >= client->nops ||
+-			    !client->cb_table[RDMA_NL_GET_OP(op)].dump)
++			    !client->cb_table[op].dump)
+ 				return -EINVAL;
+ 
+ 			{
+-- 
+1.7.10.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
