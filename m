@@ -1,44 +1,118 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_sa_mcmember_record.c: Fix incorrect comparison
- of IPv6 MGID when searching for SNM MLID
-Date: Tue, 01 Oct 2013 08:46:24 -0400
-Message-ID: <524AC420.1040602@dev.mellanox.co.il>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] An improved infrastructure for uverbs commands (My take
+ at designing extensible scheme)
+Date: Tue, 01 Oct 2013 14:54:20 +0200
+Message-ID: <bcaf46a61582cb83547b0cc1ee5edfb4@meuh.org>
+References: <1380039392-15480-1-git-send-email-ydroneaud@opteya.com>
+ <524AAAE6.3040508@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <524AAAE6.3040508-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Igor Ivanov <Igor.Ivanov-wN0M4riKYwLQT0dZR+AlfA@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi,
 
-The whole MGID except of the last 3 bytes should be compared.
+Le 01.10.2013 12:58, Or Gerlitz a =C3=A9crit=C2=A0:
+> On 24/09/2013 19:16, Yann Droneaud wrote:
+>> PS: I haven't tested the create_flow() commands, (hopefully)
+>> there's no libibverbs support yet for the new commands for the momen=
+t.
+>> I will try to provide patches to improve create_flow()/destroy_flow(=
+)
+>> and the way its data structures are expressed.
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_sa_mcmember_record.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Yan, nice doing!
 
-diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
-index 82e3542..5f8e179 100644
---- a/opensm/osm_sa_mcmember_record.c
-+++ b/opensm/osm_sa_mcmember_record.c
-@@ -164,7 +164,7 @@ static unsigned match_ipv4_mux_mgid(ib_gid_t * mgid)
- 
- static int compare_ipv6_snm_mgids(const void *m1, const void *m2)
- {
--	return memcmp(m1, m2, sizeof(ib_gid_t) - 6);
-+	return memcmp(m1, m2, sizeof(ib_gid_t) - 3);
- }
- 
- static ib_net16_t find_ipv6_snm_mlid(osm_subn_t *subn, ib_gid_t *mgid)
--- 
-1.7.8.2
+Thanks.
+
+> I am not sure to follow your last comment, this patch do touch
+> ib_uverbs_create_flow and ib_uverbs_destroy_flow, what else remains t=
+o=20
+> do there?
+>=20
+
+I have some propositions to try to improve the way flow data structure
+are declared (and used). I hope to find time during "Open World=20
+=46orum"[1]
+to clean-up my patchset in order to send it before the end of v3.12=20
+cycle.
+
+> Also, to help acceptance of the patch, could you please re-send it
+> with removing all
+> the references to emails and the hemisphere summer comment into the
+> section below the
+> "---"  line at the end of the git formatted patch header? they are al=
+l
+> irrelevant for long term
+> git logging and "git am" will take them off when Roland applies  the=20
+> patch.
+>=20
+
+It was thought to be a RFC ... but loose the [PATCH RFC] tag while=20
+playing
+with git am/git format-patch to check the patch.
+
+I feel it was important to record somewhere the history of the patch,
+just to be able to search for comments.
+
+I think the current extensible scheme was included too early
+despite being proposed for review during many months:
+it's currently not needed asis.
+
+I'm sorry to not have enough time to provide some more reviewer=20
+bandwidth,
+and not being able to provide my reviews on time.
+
+But once started, I had to look back in the patch history to look for
+other reviews/comments to understand how this patch was included.
+
+> Matan from Mellanox is reviewing the patch and will send ack or
+> comments later today.
+>=20
+
+Thanks a lot. But don't take too much time on this version.
+
+I've made more changes on the patch and hope to make it a proper=20
+patchset.
+I've stalled working on it after the end of "Kernel Recipes" [2],=20
+waiting to find
+time to look at libibverbs support for the extended commands: in=20
+particular
+how is split response between core/hw (eg. libibverbs/provider).
+
+The proposed change will include a header for the response to include,
+for all extended command, the "comp_mask" and the size of the response
+from core/  and from hw/ (eg. provider).
+
+> The patch should be titled as follows
+>=20
+> IB/core:  An improved infrastructure for extending uverbs commands
+>=20
+
+OK.
+
+PS: You might have understood I have little time to work on this=20
+features,
+     mostly doing this work during conferences ;)
+
+[1] http://www.openworldforum.org/en/
+[2] https://kernel-recipes.org/en/
+
+
+Regards
+
+--=20
+Yann Droneaud
+OPTEYA
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
