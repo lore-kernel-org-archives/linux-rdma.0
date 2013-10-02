@@ -1,136 +1,81 @@
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 23/26] ib: Convert qib_get_user_pages() to get_user_pages_unlocked()
-Date: Wed,  2 Oct 2013 16:28:04 +0200
-Message-ID: <1380724087-13927-24-git-send-email-jack@suse.cz>
-References: <1380724087-13927-1-git-send-email-jack@suse.cz>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1380724087-13927-1-git-send-email-jack@suse.cz>
-Sender: owner-linux-mm@kvack.org
+Subject: [PATCH 0/26] get_user_pages() cleanup
+Date: Wed,  2 Oct 2013 16:27:41 +0200
+Message-ID: <1380724087-13927-1-git-send-email-jack@suse.cz>
+Return-path: <owner-linux-aio@kvack.org>
+Sender: owner-linux-aio@kvack.org
 To: LKML <linux-kernel@vger.kernel.org>
-Cc: linux-mm@kvack.org, Jan Kara <jack@suse.cz>, Mike Marciniszyn <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
+Cc: linux-mm@kvack.org, Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <andreas.dilger@intel.com>, Andy Walls <awalls@md.metrocast.net>, Arnd Bergmann <arnd@arndb.de>, Benjamin LaHaise <bcrl@kvack.org>, ceph-devel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org, Gleb Natapov <gleb@redhat.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, hpdd-discuss@lists.01.org, Jarod Wilson <jarod@wilsonet.com>, Jayant Mangalampalli <jayant.mangalampalli@intel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Kai Makisara <Kai.Makisara@kolumbus.fi>, kvm@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-aio@kvack.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.
 List-Id: linux-rdma@vger.kernel.org
 
-Convert qib_get_user_pages() to use get_user_pages_unlocked().  This
-shortens the section where we hold mmap_sem for writing and also removes
-the knowledge about get_user_pages() locking from ipath driver. We also
-fix a bug in testing pinned number of pages when changing the code.
+  Hello,
 
-CC: Mike Marciniszyn <infinipath@intel.com>
-CC: Roland Dreier <roland@kernel.org>
+  In my quest for changing locking around page faults to make things easier for
+filesystems I found out get_user_pages() users could use a cleanup.  The
+knowledge about necessary locking for get_user_pages() is in tons of places in
+drivers and quite a few of them actually get it wrong (don't have mmap_sem when
+calling get_user_pages() or hold mmap_sem when calling copy_from_user() in the
+surrounding code). Rather often this actually doesn't seem necessary. This
+patch series converts lots of places to use either get_user_pages_fast()
+or a new simple wrapper get_user_pages_unlocked() to remove the knowledge
+of mmap_sem from the drivers. I'm still looking into converting a few remaining
+drivers (most notably v4l2) which are more complex.
+
+As I already wrote, in some cases I actually think drivers were buggy (and I
+note that in corresponding changelogs). I would really like to ask respective
+maintainers to have a look at the patches in their area. Also any other
+comments are welcome. Thanks.
+
+								Honza
+
+PS: Sorry for the huge recipient list but I don't really know how to trim it
+    down...
+
+CC: Alexander Viro <viro@zeniv.linux.org.uk>
+CC: Andreas Dilger <andreas.dilger@intel.com>
+CC: Andy Walls <awalls@md.metrocast.net>
+CC: Arnd Bergmann <arnd@arndb.de>
+CC: Benjamin LaHaise <bcrl@kvack.org>
+CC: ceph-devel@vger.kernel.org
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: David Airlie <airlied@linux.ie>
+CC: dri-devel@lists.freedesktop.org
+CC: Gleb Natapov <gleb@redhat.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC: hpdd-discuss@lists.01.org
+CC: Jarod Wilson <jarod@wilsonet.com>
+CC: Jayant Mangalampalli <jayant.mangalampalli@intel.com>
+CC: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+CC: Jesper Nilsson <jesper.nilsson@axis.com>
+CC: Kai Makisara <Kai.Makisara@kolumbus.fi>
+CC: kvm@vger.kernel.org
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-aio@kvack.org
+CC: linux-cris-kernel@axis.com
+CC: linux-fbdev@vger.kernel.org
+CC: linux-fsdevel@vger.kernel.org
+CC: linux-ia64@vger.kernel.org
+CC: linux-media@vger.kernel.org
+CC: linux-nfs@vger.kernel.org
 CC: linux-rdma@vger.kernel.org
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/infiniband/hw/qib/qib_user_pages.c | 62 +++++++++++++-----------------
- 1 file changed, 26 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
-index 2bc1d2b96298..57ce83c2d1d9 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -48,39 +48,55 @@ static void __qib_release_user_pages(struct page **p, size_t num_pages,
- 	}
- }
- 
--/*
-- * Call with current->mm->mmap_sem held.
-+/**
-+ * qib_get_user_pages - lock user pages into memory
-+ * @start_page: the start page
-+ * @num_pages: the number of pages
-+ * @p: the output page structures
-+ *
-+ * This function takes a given start page (page aligned user virtual
-+ * address) and pins it and the following specified number of pages.  For
-+ * now, num_pages is always 1, but that will probably change at some point
-+ * (because caller is doing expected sends on a single virtually contiguous
-+ * buffer, so we can do all pages at once).
-  */
--static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
--				struct page **p, struct vm_area_struct **vma)
-+int qib_get_user_pages(unsigned long start_page, size_t num_pages,
-+		       struct page **p)
- {
- 	unsigned long lock_limit;
- 	size_t got;
- 	int ret;
-+	struct mm_struct *mm = current->mm;
- 
-+	down_write(&mm->mmap_sem);
- 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
- 
--	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
-+	if (mm->pinned_vm + num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
-+		up_write(&mm->mmap_sem);
- 		ret = -ENOMEM;
- 		goto bail;
- 	}
-+	mm->pinned_vm += num_pages;
-+	up_write(&mm->mmap_sem);
- 
- 	for (got = 0; got < num_pages; got += ret) {
--		ret = get_user_pages(current, current->mm,
--				     start_page + got * PAGE_SIZE,
--				     num_pages - got, 1, 1,
--				     p + got, vma);
-+		ret = get_user_pages_unlocked(current, mm,
-+					      start_page + got * PAGE_SIZE,
-+					      num_pages - got, 1, 1,
-+					      p + got);
- 		if (ret < 0)
- 			goto bail_release;
- 	}
- 
--	current->mm->pinned_vm += num_pages;
- 
- 	ret = 0;
- 	goto bail;
- 
- bail_release:
- 	__qib_release_user_pages(p, got, 0);
-+	down_write(&mm->mmap_sem);
-+	mm->pinned_vm -= num_pages;
-+	up_write(&mm->mmap_sem);
- bail:
- 	return ret;
- }
-@@ -117,32 +133,6 @@ dma_addr_t qib_map_page(struct pci_dev *hwdev, struct page *page,
- 	return phys;
- }
- 
--/**
-- * qib_get_user_pages - lock user pages into memory
-- * @start_page: the start page
-- * @num_pages: the number of pages
-- * @p: the output page structures
-- *
-- * This function takes a given start page (page aligned user virtual
-- * address) and pins it and the following specified number of pages.  For
-- * now, num_pages is always 1, but that will probably change at some point
-- * (because caller is doing expected sends on a single virtually contiguous
-- * buffer, so we can do all pages at once).
-- */
--int qib_get_user_pages(unsigned long start_page, size_t num_pages,
--		       struct page **p)
--{
--	int ret;
--
--	down_write(&current->mm->mmap_sem);
--
--	ret = __qib_get_user_pages(start_page, num_pages, p, NULL);
--
--	up_write(&current->mm->mmap_sem);
--
--	return ret;
--}
--
- void qib_release_user_pages(struct page **p, size_t num_pages)
- {
- 	if (current->mm) /* during close after signal, mm can be NULL */
--- 
-1.8.1.4
+CC: linux-scsi@vger.kernel.org
+CC: Manu Abraham <abraham.manu@gmail.com>
+CC: Mark Allyn <mark.a.allyn@intel.com>
+CC: Mikael Starvik <starvik@axis.com>
+CC: Mike Marciniszyn <infinipath@intel.com>
+CC: Naren Sankar <nsankar@broadcom.com>
+CC: Paolo Bonzini <pbonzini@redhat.com>
+CC: Peng Tao <tao.peng@emc.com>
+CC: Roland Dreier <roland@kernel.org>
+CC: Sage Weil <sage@inktank.com>
+CC: Scott Davilla <davilla@4pi.com>
+CC: Timur Tabi <timur@freescale.com>
+CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
+CC: Tony Luck <tony.luck@intel.com>
+CC: Trond Myklebust <Trond.Myklebust@netapp.com>
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe, send a message with 'unsubscribe linux-aio' in
+the body to majordomo@kvack.org.  For more info on Linux AIO,
+see: http://www.kvack.org/aio/
+Don't email: <a href=mailto:"aart@kvack.org">aart@kvack.org</a>
