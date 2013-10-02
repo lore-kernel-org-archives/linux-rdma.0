@@ -1,7 +1,7 @@
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 21/26] ib: Convert ipath_get_user_pages() to get_user_pages_unlocked()
-Date: Wed,  2 Oct 2013 16:28:02 +0200
-Message-ID: <1380724087-13927-22-git-send-email-jack@suse.cz>
+Subject: [PATCH 23/26] ib: Convert qib_get_user_pages() to get_user_pages_unlocked()
+Date: Wed,  2 Oct 2013 16:28:04 +0200
+Message-ID: <1380724087-13927-24-git-send-email-jack@suse.cz>
 References: <1380724087-13927-1-git-send-email-jack@suse.cz>
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1380724087-13927-1-git-send-email-jack@suse.cz>
@@ -10,7 +10,7 @@ To: LKML <linux-kernel@vger.kernel.org>
 Cc: linux-mm@kvack.org, Jan Kara <jack@suse.cz>, Mike Marciniszyn <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Convert ipath_get_user_pages() to use get_user_pages_unlocked(). This
+Convert qib_get_user_pages() to use get_user_pages_unlocked().  This
 shortens the section where we hold mmap_sem for writing and also removes
 the knowledge about get_user_pages() locking from ipath driver. We also
 fix a bug in testing pinned number of pages when changing the code.
@@ -20,22 +20,21 @@ CC: Roland Dreier <roland@kernel.org>
 CC: linux-rdma@vger.kernel.org
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/infiniband/hw/ipath/ipath_user_pages.c | 62 +++++++++++---------------
- 1 file changed, 27 insertions(+), 35 deletions(-)
+ drivers/infiniband/hw/qib/qib_user_pages.c | 62 +++++++++++++-----------------
+ 1 file changed, 26 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_user_pages.c b/drivers/infiniband/hw/ipath/ipath_user_pages.c
-index dc66c4506916..a89af9654112 100644
---- a/drivers/infiniband/hw/ipath/ipath_user_pages.c
-+++ b/drivers/infiniband/hw/ipath/ipath_user_pages.c
-@@ -52,40 +52,58 @@ static void __ipath_release_user_pages(struct page **p, size_t num_pages,
+diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
+index 2bc1d2b96298..57ce83c2d1d9 100644
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c
++++ b/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -48,39 +48,55 @@ static void __qib_release_user_pages(struct page **p, size_t num_pages,
  	}
  }
  
--/* call with current->mm->mmap_sem held */
--static int __ipath_get_user_pages(unsigned long start_page, size_t num_pages,
--				  struct page **p, struct vm_area_struct **vma)
+-/*
+- * Call with current->mm->mmap_sem held.
 +/**
-+ * ipath_get_user_pages - lock user pages into memory
++ * qib_get_user_pages - lock user pages into memory
 + * @start_page: the start page
 + * @num_pages: the number of pages
 + * @p: the output page structures
@@ -45,36 +44,35 @@ index dc66c4506916..a89af9654112 100644
 + * now, num_pages is always 1, but that will probably change at some point
 + * (because caller is doing expected sends on a single virtually contiguous
 + * buffer, so we can do all pages at once).
-+ */
-+int ipath_get_user_pages(unsigned long start_page, size_t num_pages,
-+			 struct page **p)
+  */
+-static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
+-				struct page **p, struct vm_area_struct **vma)
++int qib_get_user_pages(unsigned long start_page, size_t num_pages,
++		       struct page **p)
  {
  	unsigned long lock_limit;
  	size_t got;
  	int ret;
++	struct mm_struct *mm = current->mm;
  
-+	down_write(&current->mm->mmap_sem);
++	down_write(&mm->mmap_sem);
  	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
  
--	if (num_pages > lock_limit) {
-+	if (current->mm->pinned_vm + num_pages > lock_limit && 
-+	    !capable(CAP_IPC_LOCK)) {
-+		up_write(&current->mm->mmap_sem);
+-	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
++	if (mm->pinned_vm + num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
++		up_write(&mm->mmap_sem);
  		ret = -ENOMEM;
  		goto bail;
  	}
-+	current->mm->pinned_vm += num_pages;
-+	up_write(&current->mm->mmap_sem);
- 
- 	ipath_cdbg(VERBOSE, "pin %lx pages from vaddr %lx\n",
- 		   (unsigned long) num_pages, start_page);
++	mm->pinned_vm += num_pages;
++	up_write(&mm->mmap_sem);
  
  	for (got = 0; got < num_pages; got += ret) {
 -		ret = get_user_pages(current, current->mm,
 -				     start_page + got * PAGE_SIZE,
 -				     num_pages - got, 1, 1,
 -				     p + got, vma);
-+		ret = get_user_pages_unlocked(current, current->mm,
++		ret = get_user_pages_unlocked(current, mm,
 +					      start_page + got * PAGE_SIZE,
 +					      num_pages - got, 1, 1,
 +					      p + got);
@@ -88,19 +86,19 @@ index dc66c4506916..a89af9654112 100644
  	goto bail;
  
  bail_release:
- 	__ipath_release_user_pages(p, got, 0);
-+	down_write(&current->mm->mmap_sem);
-+	current->mm->pinned_vm -= num_pages;
-+	up_write(&current->mm->mmap_sem);
+ 	__qib_release_user_pages(p, got, 0);
++	down_write(&mm->mmap_sem);
++	mm->pinned_vm -= num_pages;
++	up_write(&mm->mmap_sem);
  bail:
  	return ret;
  }
-@@ -146,32 +164,6 @@ dma_addr_t ipath_map_single(struct pci_dev *hwdev, void *ptr, size_t size,
+@@ -117,32 +133,6 @@ dma_addr_t qib_map_page(struct pci_dev *hwdev, struct page *page,
  	return phys;
  }
  
 -/**
-- * ipath_get_user_pages - lock user pages into memory
+- * qib_get_user_pages - lock user pages into memory
 - * @start_page: the start page
 - * @num_pages: the number of pages
 - * @p: the output page structures
@@ -111,23 +109,23 @@ index dc66c4506916..a89af9654112 100644
 - * (because caller is doing expected sends on a single virtually contiguous
 - * buffer, so we can do all pages at once).
 - */
--int ipath_get_user_pages(unsigned long start_page, size_t num_pages,
--			 struct page **p)
+-int qib_get_user_pages(unsigned long start_page, size_t num_pages,
+-		       struct page **p)
 -{
 -	int ret;
 -
 -	down_write(&current->mm->mmap_sem);
 -
--	ret = __ipath_get_user_pages(start_page, num_pages, p, NULL);
+-	ret = __qib_get_user_pages(start_page, num_pages, p, NULL);
 -
 -	up_write(&current->mm->mmap_sem);
 -
 -	return ret;
 -}
 -
- void ipath_release_user_pages(struct page **p, size_t num_pages)
+ void qib_release_user_pages(struct page **p, size_t num_pages)
  {
- 	down_write(&current->mm->mmap_sem);
+ 	if (current->mm) /* during close after signal, mm can be NULL */
 -- 
 1.8.1.4
 
