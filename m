@@ -1,75 +1,47 @@
-From: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
-Subject: Re: [PATCH RFC 00/77] Re-design MSI/MSI-X interrupts enablement
- pattern
-Date: Thu, 3 Oct 2013 23:49:45 +0100
-Message-ID: <1380840585.3419.50.camel@bwh-desktop.uk.level5networks.com>
-References: <cover.1380703262.git.agordeev@redhat.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] DAPL v2.0: dapltest: fix endian swap issue with performance
+ test
+Date: Thu, 3 Oct 2013 22:59:47 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F972DB4497@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1380703262.git.agordeev-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Gordeev <agordeev-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Michael Ellerman <michael-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Martin Schwidefsky <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andy King <acking-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Jon Mason <jon.mason-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Porter <mporter-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iss_storagedev-VXdhtT5mjnY@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-driver-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers@solarfla>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2013-10-02 at 12:48 +0200, Alexander Gordeev wrote:
-> This series is against "next" branch in Bjorn's repo:
-> git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git
-> 
-> Currently pci_enable_msi_block() and pci_enable_msix() interfaces
-> return a error code in case of failure, 0 in case of success and a
-> positive value which indicates the number of MSI-X/MSI interrupts
-> that could have been allocated. The latter value should be passed
-> to a repeated call to the interfaces until a failure or success:
->
-> 
-> 	for (i = 0; i < FOO_DRIVER_MAXIMUM_NVEC; i++)
-> 		adapter->msix_entries[i].entry = i;
-> 
-> 	while (nvec >= FOO_DRIVER_MINIMUM_NVEC) {
-> 		rc = pci_enable_msix(adapter->pdev,
-> 				     adapter->msix_entries, nvec);
-> 		if (rc > 0)
-> 			nvec = rc;
-> 		else
-> 			return rc;
-> 	}
-> 
-> 	return -ENOSPC;
-> 
-> 
-> This technique proved to be confusing and error-prone. Vast share
-> of device drivers simply fail to follow the described guidelines.
-> 
-> This update converts pci_enable_msix() and pci_enable_msi_block()
-> interfaces to canonical kernel functions and makes them return a
-> error code in case of failure or 0 in case of success.
-[...]
-
-I think this is fundamentally flawed: pci_msix_table_size() and
-pci_get_msi_cap() can only report the limits of the *device* (which the
-driver usually already knows), whereas MSI allocation can also be
-constrained due to *global* limits on the number of distinct IRQs.
-
-Currently pci_enable_msix() will report a positive value if it fails due
-to the global limit.  Your patch 7 removes that.  pci_enable_msi_block()
-unfortunately doesn't appear to do this.
-
-It seems to me that a more useful interface would take a minimum and
-maximum number of vectors from the driver.  This wouldn't allow the
-driver to specify that it could only accept, say, any even number within
-a certain range, but you could still leave the current functions
-available for any driver that needs that.
-
-Ben.
-
--- 
-Ben Hutchings, Staff Engineer, Solarflare
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
-
+DQpTaWduZWQtb2ZmLWJ5OiBBcmxpbiBEYXZpcyA8YXJsaW4uci5kYXZpc0BpbnRlbC5jb20+DQot
+LS0NCiB0ZXN0L2RhcGx0ZXN0L3Rlc3QvZGFwbF9wZXJmb3JtYW5jZV9jbGllbnQuYyB8ICAgIDIg
+Ky0NCiB0ZXN0L2RhcGx0ZXN0L3Rlc3QvZGFwbF9wZXJmb3JtYW5jZV9zZXJ2ZXIuYyB8ICAgIDIg
+Ky0NCiAyIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCg0K
+ZGlmZiAtLWdpdCBhL3Rlc3QvZGFwbHRlc3QvdGVzdC9kYXBsX3BlcmZvcm1hbmNlX2NsaWVudC5j
+IGIvdGVzdC9kYXBsdGVzdC90ZXN0L2RhcGxfcGVyZm9ybWFuY2VfY2xpZW50LmMNCmluZGV4IDk2
+ZDViNDcuLjE2OWEyMTIgMTAwNjQ0DQotLS0gYS90ZXN0L2RhcGx0ZXN0L3Rlc3QvZGFwbF9wZXJm
+b3JtYW5jZV9jbGllbnQuYw0KKysrIGIvdGVzdC9kYXBsdGVzdC90ZXN0L2RhcGxfcGVyZm9ybWFu
+Y2VfY2xpZW50LmMNCkBAIC00MjcsNyArNDI3LDcgQEAgRFRfUGVyZm9ybWFuY2VfVGVzdF9DbGll
+bnRfRXhjaGFuZ2UoUGFyYW1zX3QgKiBwYXJhbXNfcHRyLA0KIAkgKiB3ZSBwYXNzIHRvIHRoZSBv
+dGhlciBzaWRlLiAgVGhlIG90aGVyIHNpZGUgY2Fubm90IChhbmQNCiAJICogYmV0dGVyIG5vdCkg
+aW50ZXJwcmV0IHRoZXNlIHZhbHVlcy4NCiAJICovDQotCWlmIChEVF9sb2NhbF9pc19saXR0bGVf
+ZW5kaWFuICE9IHRlc3RfcHRyLT5pc19yZW1vdGVfbGl0dGxlX2VuZGlhbikgew0KKwlpZiAoRFRf
+bG9jYWxfaXNfbGl0dGxlX2VuZGlhbiAmJiAhdGVzdF9wdHItPmlzX3JlbW90ZV9saXR0bGVfZW5k
+aWFuKSB7DQogCQlybWktPnJtcl9jb250ZXh0ID0gRFRfRW5kaWFuTWVtSGFuZGxlKHJtaS0+cm1y
+X2NvbnRleHQpOw0KIAkJcm1pLT5tZW1fYWRkcmVzcy5hc182NCA9DQogCQkgICAgRFRfRW5kaWFu
+TWVtQWRkcmVzcyhybWktPm1lbV9hZGRyZXNzLmFzXzY0KTsNCmRpZmYgLS1naXQgYS90ZXN0L2Rh
+cGx0ZXN0L3Rlc3QvZGFwbF9wZXJmb3JtYW5jZV9zZXJ2ZXIuYyBiL3Rlc3QvZGFwbHRlc3QvdGVz
+dC9kYXBsX3BlcmZvcm1hbmNlX3NlcnZlci5jDQppbmRleCA1MDgzOTY3Li40NzVhNWZlIDEwMDY0
+NA0KLS0tIGEvdGVzdC9kYXBsdGVzdC90ZXN0L2RhcGxfcGVyZm9ybWFuY2Vfc2VydmVyLmMNCisr
+KyBiL3Rlc3QvZGFwbHRlc3QvdGVzdC9kYXBsX3BlcmZvcm1hbmNlX3NlcnZlci5jDQpAQCAtMzI4
+LDcgKzMyOCw3IEBAIERUX1BlcmZvcm1hbmNlX1Rlc3RfU2VydmVyX0V4Y2hhbmdlKERUX1RkZXBf
+UHJpbnRfSGVhZCAqIHBoZWFkLA0KIAkgKiB3ZSBwYXNzIHRvIHRoZSBvdGhlciBzaWRlLiAgVGhl
+IG90aGVyIHNpZGUgY2Fubm90IChhbmQNCiAJICogYmV0dGVyIG5vdCkgaW50ZXJwcmV0IHRoZXNl
+IHZhbHVlcy4NCiAJICovDQotCWlmIChEVF9sb2NhbF9pc19saXR0bGVfZW5kaWFuICE9IHRlc3Rf
+cHRyLT5pc19yZW1vdGVfbGl0dGxlX2VuZGlhbikgew0KKwlpZiAoRFRfbG9jYWxfaXNfbGl0dGxl
+X2VuZGlhbiAmJiAhdGVzdF9wdHItPmlzX3JlbW90ZV9saXR0bGVfZW5kaWFuKSB7DQogCQlybWkt
+PnJtcl9jb250ZXh0ID0gRFRfRW5kaWFuTWVtSGFuZGxlKHJtaS0+cm1yX2NvbnRleHQpOw0KIAkJ
+cm1pLT5tZW1fYWRkcmVzcy5hc182NCA9DQogCQkgICAgRFRfRW5kaWFuTWVtQWRkcmVzcyhybWkt
+Pm1lbV9hZGRyZXNzLmFzXzY0KTsNCi0tIA0KMS43LjMNCg0KDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
