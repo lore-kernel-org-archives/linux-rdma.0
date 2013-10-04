@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Subject: [PATCH 0/2] ipath/qib deadlock
-Date: Fri, 04 Oct 2013 09:28:10 -0400
-Message-ID: <20131004132754.29116.76211.stgit@phlsvslse11.ph.intel.com>
+Date: Fri, 04 Oct 2013 09:29:01 -0400
+Message-ID: <20131004132821.29162.46169.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -12,7 +12,7 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVL
 List-Id: linux-rdma@vger.kernel.org
 
 These two patches fix flaws that have been
-observed in the with qib.
+observed in the wild with qib.
 
 The issue has also been code inspected by
 Jan Kara in his get_user_pages_unlocked()
@@ -33,7 +33,7 @@ Jan Kara (2):
  2 files changed, 2 insertions(+), 11 deletions(-)
 
 -- 
-Signature
+Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
