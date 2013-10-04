@@ -1,157 +1,97 @@
-From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 4/6] IB/qib: Use pcie_set_mps() and pcie_get_mps() to
- simplify code
-Date: Fri, 4 Oct 2013 14:51:46 -0600
-Message-ID: <CAErSpo5zsO5H40US7KYiF=uQSrZe=rjszygzB-HfJF3h34kfQg@mail.gmail.com>
-References: <1378732388-4508-1-git-send-email-wangyijing@huawei.com>
- <1378732388-4508-5-git-send-email-wangyijing@huawei.com> <20130924203910.GB9302@google.com>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [PATCH RFC 00/77] Re-design MSI/MSI-X interrupts enablement
+ pattern
+Date: Fri, 4 Oct 2013 22:29:16 +0100
+Message-ID: <1380922156.3214.49.camel@bwh-desktop.uk.level5networks.com>
+References: <cover.1380703262.git.agordeev@redhat.com>
+	 <1380840585.3419.50.camel@bwh-desktop.uk.level5networks.com>
+	 <20131004082920.GA4536@dhcp-26-207.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130924203910.GB9302-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20131004082920.GA4536@dhcp-26-207.brq.redhat.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Alexander Gordeev <agordeev@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Tejun Heo <tj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Jon Mason <jon.mason@intel.com>, Matt Porter <mporter@kernel.crashing.org>, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, linux-driver@qlogic.com, Solarflare linux maintainers <linux-net-drivers@solarfla>
 List-Id: linux-rdma@vger.kernel.org
 
-[-cc extra folks]
+On Fri, 2013-10-04 at 10:29 +0200, Alexander Gordeev wrote:
+> On Thu, Oct 03, 2013 at 11:49:45PM +0100, Ben Hutchings wrote:
+> > On Wed, 2013-10-02 at 12:48 +0200, Alexander Gordeev wrote:
+> > > This update converts pci_enable_msix() and pci_enable_msi_block()
+> > > interfaces to canonical kernel functions and makes them return a
+> > > error code in case of failure or 0 in case of success.
+> > [...]
+> > 
+> > I think this is fundamentally flawed: pci_msix_table_size() and
+> > pci_get_msi_cap() can only report the limits of the *device* (which the
+> > driver usually already knows), whereas MSI allocation can also be
+> > constrained due to *global* limits on the number of distinct IRQs.
+> 
+> Even the current implementation by no means addresses it. Although it
+> might seem a case for architectures to report the number of IRQs available
+> for a driver to retry, in fact they all just fail. The same applies to
+> *any* other type of resource involved: irq_desc's, CPU interrupt vector
+> space, msi_desc's etc. No platform cares about it and just bails out once
+> a constrain met (please correct me if I am wrong here). Given that Linux
+> has been doing well even on embedded I think we should not change it.
+>
+> The only exception to the above is pSeries platform which takes advantage
+> of the current design (to implement MSI quota). There are indications we
+> can satisfy pSeries requirements, but the design proposed in this RFC
+> is not going to change drastically anyway. The start of the discusstion
+> is here: https://lkml.org/lkml/2013/9/5/293
 
-On Tue, Sep 24, 2013 at 2:39 PM, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wrote:
-> On Mon, Sep 09, 2013 at 09:13:06PM +0800, Yijing Wang wrote:
->> Refactor qib_tune_pcie_caps() function, use pcie_set_mps()
->> and pcie_get_mps() to simply code. Because pci core caches
->> the "PCI-E Max Payload Size Supported" in pci_dev->pcie_mpss,
->> so use that instead of pcie_capability_read_word(). Remove
->> the unused val2fld() and fld2val().
->
-> I propose the following patch on top of this one:
+All I can see there is that Tejun didn't think that the global limits
+and positive return values were implemented by any architecture.  But
+you have a counter-example, so I'm not sure what your point is.
 
-I applied this to my pci/yijing-mps-v1 branch, Mike:
+It has been quite a while since I saw this happen on x86.  But I just
+checked on a test system running RHEL 5 i386 (Linux 2.6.18).  If I ask
+for 16 MSI-X vectors on a device that supports 1024, the return value is
+8, and indeed I can then successfully allocate 8.
 
-http://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/commit/?h=pci/yijing-mps-v1&id=03078633a6eb86fdb6ea2f40e6352de4b1181bbf
+Now that's going quite a way back, and it may be that global limits
+aren't a significant problem any more.  With the x86_64 build of RHEL 5
+on an identical system, I can allocate 16 or even 32, so this is
+apparently not a hardware limit in this case.
 
-It's the same as the patch below, with your ack added.  Let me know if
-I need to tweak/change/drop anything.  Thanks!
+> > Currently pci_enable_msix() will report a positive value if it fails due
+> > to the global limit.  Your patch 7 removes that.  pci_enable_msi_block()
+> > unfortunately doesn't appear to do this.
+> 
+> pci_enable_msi_block() can do more than one MSI only on x86 (with IOMMU),
+> but it does not bother to return positive numbers, indeed.
+> 
+> > It seems to me that a more useful interface would take a minimum and
+> > maximum number of vectors from the driver.  This wouldn't allow the
+> > driver to specify that it could only accept, say, any even number within
+> > a certain range, but you could still leave the current functions
+> > available for any driver that needs that.
+> 
+> Mmmm.. I am not sure I am getting it. Could you please rephrase?
 
-Bjorn
+Most drivers seem to either:
+(a) require exactly a certain number of MSI vectors, or
+(b) require a minimum number of MSI vectors, usually want to allocate
+more, and work with any number in between
 
-> IB/qib: Drop qib_tune_pcie_caps() and qib_tune_pcie_coalesce() return values
->
-> From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->
-> The callers of qib_tune_pcie_caps() and qib_tune_pcie_coalesce() don't
-> check the return values, so this patch drops the return values altogether.
->
-> Signed-off-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/qib/qib_pcie.c |   28 ++++++++++++----------------
->  1 file changed, 12 insertions(+), 16 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
-> index 24973c8..c8d9c4a 100644
-> --- a/drivers/infiniband/hw/qib/qib_pcie.c
-> +++ b/drivers/infiniband/hw/qib/qib_pcie.c
-> @@ -51,8 +51,8 @@
->   * file calls, even though this violates some
->   * expectations of harmlessness.
->   */
-> -static int qib_tune_pcie_caps(struct qib_devdata *);
-> -static int qib_tune_pcie_coalesce(struct qib_devdata *);
-> +static void qib_tune_pcie_caps(struct qib_devdata *);
-> +static void qib_tune_pcie_coalesce(struct qib_devdata *);
->
->  /*
->   * Do all the common PCIe setup and initialization.
-> @@ -487,7 +487,7 @@ MODULE_PARM_DESC(pcie_coalesce, "tune PCIe colescing on some Intel chipsets");
->   * of these chipsets, with some BIOS settings, and enabling it on those
->   * systems may result in the system crashing, and/or data corruption.
->   */
-> -static int qib_tune_pcie_coalesce(struct qib_devdata *dd)
-> +static void qib_tune_pcie_coalesce(struct qib_devdata *dd)
->  {
->         int r;
->         struct pci_dev *parent;
-> @@ -495,18 +495,18 @@ static int qib_tune_pcie_coalesce(struct qib_devdata *dd)
->         u32 mask, bits, val;
->
->         if (!qib_pcie_coalesce)
-> -               return 0;
-> +               return;
->
->         /* Find out supported and configured values for parent (root) */
->         parent = dd->pcidev->bus->self;
->         if (parent->bus->parent) {
->                 qib_devinfo(dd->pcidev, "Parent not root\n");
-> -               return 1;
-> +               return;
->         }
->         if (!pci_is_pcie(parent))
-> -               return 1;
-> +               return;
->         if (parent->vendor != 0x8086)
-> -               return 1;
-> +               return;
->
->         /*
->          *  - bit 12: Max_rdcmp_Imt_EN: need to set to 1
-> @@ -539,13 +539,12 @@ static int qib_tune_pcie_coalesce(struct qib_devdata *dd)
->                 mask = (3U << 24) | (7U << 10);
->         } else {
->                 /* not one of the chipsets that we know about */
-> -               return 1;
-> +               return;
->         }
->         pci_read_config_dword(parent, 0x48, &val);
->         val &= ~mask;
->         val |= bits;
->         r = pci_write_config_dword(parent, 0x48, val);
-> -       return 0;
->  }
->
->  /*
-> @@ -556,9 +555,8 @@ static int qib_pcie_caps;
->  module_param_named(pcie_caps, qib_pcie_caps, int, S_IRUGO);
->  MODULE_PARM_DESC(pcie_caps, "Max PCIe tuning: Payload (0..3), ReadReq (4..7)");
->
-> -static int qib_tune_pcie_caps(struct qib_devdata *dd)
-> +static void qib_tune_pcie_caps(struct qib_devdata *dd)
->  {
-> -       int ret = 1; /* Assume the worst */
->         struct pci_dev *parent;
->         u16 rc_mpss, rc_mps, ep_mpss, ep_mps;
->         u16 rc_mrrs, ep_mrrs, max_mrrs;
-> @@ -567,18 +565,18 @@ static int qib_tune_pcie_caps(struct qib_devdata *dd)
->         parent = dd->pcidev->bus->self;
->         if (!pci_is_root_bus(parent->bus)) {
->                 qib_devinfo(dd->pcidev, "Parent not root\n");
-> -               goto bail;
-> +               return;
->         }
->
->         if (!pci_is_pcie(parent) || !pci_is_pcie(dd->pcidev))
-> -               goto bail;
-> +               return;
-> +
->         rc_mpss = parent->pcie_mpss;
->         rc_mps = ffs(pcie_get_mps(parent)) - 8;
->         /* Find out supported and configured values for endpoint (us) */
->         ep_mpss = dd->pcidev->pcie_mpss;
->         ep_mps = ffs(pcie_get_mps(dd->pcidev)) - 8;
->
-> -       ret = 0;
->         /* Find max payload supported by root, endpoint */
->         if (rc_mpss > ep_mpss)
->                 rc_mpss = ep_mpss;
-> @@ -618,8 +616,6 @@ static int qib_tune_pcie_caps(struct qib_devdata *dd)
->                 ep_mrrs = max_mrrs;
->                 pcie_set_readrq(dd->pcidev, ep_mrrs);
->         }
-> -bail:
-> -       return ret;
->  }
->  /* End of PCIe capability tuning */
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We can support drivers in both classes by adding new allocation
+functions that allow specifying a minimum (required) and maximum
+(wanted) number of MSI vectors.  Those in class (a) would just specify
+the same value for both.  These new functions can take account of any
+global limit or allocation policy without any further changes to the
+drivers that use them.
+
+The few drivers with more specific requirements would still need to
+implement the currently recommended loop, using the old allocation
+functions.
+
+Ben.
+
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
+
