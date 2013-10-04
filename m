@@ -1,69 +1,53 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] IB/qib: Convert qib_user_sdma_pin_pages() to use
- get_user_pages_fast()
-Date: Fri, 04 Oct 2013 09:29:12 -0400
-Message-ID: <20131004132911.29162.55257.stgit@phlsvslse11.ph.intel.com>
-References: <20131004132821.29162.46169.stgit@phlsvslse11.ph.intel.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 23/26] ib: Convert qib_get_user_pages() to
+ get_user_pages_unlocked()
+Date: Fri, 4 Oct 2013 13:39:03 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC211B0123@FMSMSX107.amr.corp.intel.com>
+References: <1380724087-13927-1-git-send-email-jack@suse.cz>
+ <1380724087-13927-24-git-send-email-jack@suse.cz>
+ <32E1700B9017364D9B60AED9960492BC211AEF75@FMSMSX107.amr.corp.intel.com>
+ <20131002152811.GC32181@quack.suse.cz>
+ <32E1700B9017364D9B60AED9960492BC211AF005@FMSMSX107.amr.corp.intel.com>
+ <20131002153842.GD32181@quack.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131004132821.29162.46169.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <20131002153842.GD32181-+0h/O2h83AeN3ZZ/Hiejyg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+To: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
 
-Function qib_user_sdma_queue_pkts() gets called with mmap_sem held for
-writing. Except for get_user_pages() deep down in
-qib_user_sdma_pin_pages() we don't seem to need mmap_sem at all.  Even
-more interestingly the function qib_user_sdma_queue_pkts() (and also
-qib_user_sdma_coalesce() called somewhat later) call copy_from_user()
-which can hit a page fault and we deadlock on trying to get mmap_sem
-when handling that fault. So just make qib_user_sdma_pin_pages() use
-get_user_pages_fast() and leave mmap_sem locking for mm.
 
-This deadlock has actually been observed in the wild when the node
-is under memory pressure.
-
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_user_sdma.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
-index d0a0ea0..165aee2 100644
---- a/drivers/infiniband/hw/qib/qib_user_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
-@@ -594,8 +594,7 @@ static int qib_user_sdma_pin_pages(const struct qib_devdata *dd,
- 		else
- 			j = npages;
- 
--		ret = get_user_pages(current, current->mm, addr,
--			     j, 0, 1, pages, NULL);
-+		ret = get_user_pages_fast(addr, j, 0, pages);
- 		if (ret != j) {
- 			i = 0;
- 			j = ret;
-@@ -1294,11 +1293,8 @@ int qib_user_sdma_writev(struct qib_ctxtdata *rcd,
- 		int mxp = 8;
- 		int ndesc = 0;
- 
--		down_write(&current->mm->mmap_sem);
- 		ret = qib_user_sdma_queue_pkts(dd, ppd, pq,
- 				iov, dim, &list, &mxp, &ndesc);
--		up_write(&current->mm->mmap_sem);
--
- 		if (ret < 0)
- 			goto done_unlock;
- 		else {
-
+> -----Original Message-----
+> From: Jan Kara [mailto:jack-AlSwsSmVLrQ@public.gmane.org]
+> Sent: Wednesday, October 02, 2013 11:39 AM
+> To: Marciniszyn, Mike
+> Cc: Jan Kara; LKML; linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org; infinipath; Roland Dreier; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH 23/26] ib: Convert qib_get_user_pages() to
+> get_user_pages_unlocked()
+> 
+> On Wed 02-10-13 15:32:47, Marciniszyn, Mike wrote:
+> > > > The risk of GUP fast is the loss of the "force" arg on GUP fast,
+> > > > which I don't see as significant give our use case.
+> > >   Yes. I was discussing with Roland some time ago whether the force
+> > > argument is needed and he said it is. So I kept the arguments of
+> > > get_user_pages() intact and just simplified the locking...
+> >
+> > The PSM side of the code is a more traditional use of GUP (like direct
+> > I/O), so I think it is a different use case than the locking for IB
+> > memory regions.
+>   Ah, I see. Whatever suits you best. I don't really care as long as
+> get_user_pages() locking doesn't leak into IB drivers :)
+> 
+> 								Honza
+> --
+> Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+> SUSE Labs, CR
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
