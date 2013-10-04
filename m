@@ -1,38 +1,32 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH 23/26] ib: Convert qib_get_user_pages() to
- get_user_pages_unlocked()
-Date: Fri, 4 Oct 2013 13:44:10 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC211B0135@FMSMSX107.amr.corp.intel.com>
-References: <1380724087-13927-1-git-send-email-jack@suse.cz>
- <1380724087-13927-24-git-send-email-jack@suse.cz>
- <32E1700B9017364D9B60AED9960492BC211AEF75@FMSMSX107.amr.corp.intel.com>
- <20131002152811.GC32181@quack.suse.cz>
- <32E1700B9017364D9B60AED9960492BC211AF005@FMSMSX107.amr.corp.intel.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/2] IB/ipath: Convert ipath_user_sdma_pin_pages() to
+ use get_user_pages_fast()
+Date: Fri, 4 Oct 2013 13:45:50 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC211B0148@FMSMSX107.amr.corp.intel.com>
+References: <20131004132821.29162.46169.stgit@phlsvslse11.ph.intel.com>
+ <20131004132906.29162.1038.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC211AF005@FMSMSX107.amr.corp.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131004132906.29162.1038.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Jan Kara <jack@suse.cz>
-Cc: LKML <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, infinipath <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The PSM side of the code is a more traditional use of GUP (like direct I/=
-O), so
-> I think it is a different use case than the locking for IB memory regions=
-.
-
-I have resubmitted the two deadlock fixes using get_user_pages_fast() and m=
-arked them stable.
-
-See http://marc.info/?l=3Dlinux-rdma&m=3D138089335506355&w=3D2
-
-Mike
-
+PiBFdmVuIG1vcmUgaW50ZXJlc3RpbmdseSB0aGUgZnVuY3Rpb24gaXBhdGhfdXNlcl9zZG1hX3F1
+ZXVlX3BrdHMoKSAoYW5kDQo+IGFsc28NCj4gaXBhdGhfdXNlcl9zZG1hX2NvYWxlc2NlKCkgY2Fs
+bGVkIHNvbWV3aGF0IGxhdGVyKSBjYWxsIGNvcHlfZnJvbV91c2VyKCkNCj4gd2hpY2ggY2FuIGhp
+dCBhIHBhZ2UgZmF1bHQgYW5kIHdlIGRlYWRsb2NrIG9uIHRyeWluZyB0byBnZXQgbW1hcF9zZW0N
+Cj4gd2hlbiBoYW5kbGluZyB0aGF0IGZhdWx0LiBTbyBqdXN0IG1ha2UgaXBhdGhfdXNlcl9zZG1h
+X3Bpbl9wYWdlcygpIHVzZQ0KPiBnZXRfdXNlcl9wYWdlc19mYXN0KCkgYW5kIGxlYXZlIG1tYXBf
+c2VtIGxvY2tpbmcgZm9yIG1tLg0KPiANCj4gVGhpcyBkZWFkbG9jayBoYXMgYWN0dWFsbHkgYmVl
+biBvYnNlcnZlZCBpbiB0aGUgd2lsZCB3aGVuIHRoZSBub2RlIGlzIHVuZGVyDQo+IG1lbW9yeSBw
+cmVzc3VyZS4NCg0KVGhpcyBwYXRjaCBoYXMgYmVlbiByZS1zdWJtaXRlZCBpbiBodHRwOi8vbWFy
+Yy5pbmZvLz9sPWxpbnV4LXJkbWEmbT0xMzgwODkzMzUxMDYzNTMmdz0yLg0KDQpNaWtlDQo=
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
