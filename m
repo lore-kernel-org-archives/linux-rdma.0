@@ -1,31 +1,68 @@
 From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] IB/ipath: Convert ipath_user_sdma_pin_pages() to
- use get_user_pages_fast()
-Date: Fri, 4 Oct 2013 13:45:50 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC211B0148@FMSMSX107.amr.corp.intel.com>
-References: <20131004132821.29162.46169.stgit@phlsvslse11.ph.intel.com>
- <20131004132906.29162.1038.stgit@phlsvslse11.ph.intel.com>
+Subject: RE: [PATCH 23/26] ib: Convert qib_get_user_pages() to
+ get_user_pages_unlocked()
+Date: Fri, 4 Oct 2013 13:46:57 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC211B015E@FMSMSX107.amr.corp.intel.com>
+References: <1380724087-13927-1-git-send-email-jack@suse.cz>
+ <1380724087-13927-24-git-send-email-jack@suse.cz>
+ <32E1700B9017364D9B60AED9960492BC211AEF75@FMSMSX107.amr.corp.intel.com>
+ <20131002152811.GC32181@quack.suse.cz>
+ <32E1700B9017364D9B60AED9960492BC211AF005@FMSMSX107.amr.corp.intel.com>
+ <20131002153842.GD32181@quack.suse.cz>
+ <32E1700B9017364D9B60AED9960492BC211B0123@FMSMSX107.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131004132906.29162.1038.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC211B0123-AtyAts71sc9zLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+To: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBFdmVuIG1vcmUgaW50ZXJlc3RpbmdseSB0aGUgZnVuY3Rpb24gaXBhdGhfdXNlcl9zZG1hX3F1
-ZXVlX3BrdHMoKSAoYW5kDQo+IGFsc28NCj4gaXBhdGhfdXNlcl9zZG1hX2NvYWxlc2NlKCkgY2Fs
-bGVkIHNvbWV3aGF0IGxhdGVyKSBjYWxsIGNvcHlfZnJvbV91c2VyKCkNCj4gd2hpY2ggY2FuIGhp
-dCBhIHBhZ2UgZmF1bHQgYW5kIHdlIGRlYWRsb2NrIG9uIHRyeWluZyB0byBnZXQgbW1hcF9zZW0N
-Cj4gd2hlbiBoYW5kbGluZyB0aGF0IGZhdWx0LiBTbyBqdXN0IG1ha2UgaXBhdGhfdXNlcl9zZG1h
-X3Bpbl9wYWdlcygpIHVzZQ0KPiBnZXRfdXNlcl9wYWdlc19mYXN0KCkgYW5kIGxlYXZlIG1tYXBf
-c2VtIGxvY2tpbmcgZm9yIG1tLg0KPiANCj4gVGhpcyBkZWFkbG9jayBoYXMgYWN0dWFsbHkgYmVl
-biBvYnNlcnZlZCBpbiB0aGUgd2lsZCB3aGVuIHRoZSBub2RlIGlzIHVuZGVyDQo+IG1lbW9yeSBw
-cmVzc3VyZS4NCg0KVGhpcyBwYXRjaCBoYXMgYmVlbiByZS1zdWJtaXRlZCBpbiBodHRwOi8vbWFy
-Yy5pbmZvLz9sPWxpbnV4LXJkbWEmbT0xMzgwODkzMzUxMDYzNTMmdz0yLg0KDQpNaWtlDQo=
+Inadvertent send!
+
+Mike
+
+> -----Original Message-----
+> From: Marciniszyn, Mike
+> Sent: Friday, October 04, 2013 9:39 AM
+> To: Jan Kara
+> Cc: LKML; linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org; infinipath; Roland Dreier; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: RE: [PATCH 23/26] ib: Convert qib_get_user_pages() to
+> get_user_pages_unlocked()
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Jan Kara [mailto:jack-AlSwsSmVLrQ@public.gmane.org]
+> > Sent: Wednesday, October 02, 2013 11:39 AM
+> > To: Marciniszyn, Mike
+> > Cc: Jan Kara; LKML; linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org; infinipath; Roland Dreier;
+> > linux- rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: Re: [PATCH 23/26] ib: Convert qib_get_user_pages() to
+> > get_user_pages_unlocked()
+> >
+> > On Wed 02-10-13 15:32:47, Marciniszyn, Mike wrote:
+> > > > > The risk of GUP fast is the loss of the "force" arg on GUP fast,
+> > > > > which I don't see as significant give our use case.
+> > > >   Yes. I was discussing with Roland some time ago whether the
+> > > > force argument is needed and he said it is. So I kept the
+> > > > arguments of
+> > > > get_user_pages() intact and just simplified the locking...
+> > >
+> > > The PSM side of the code is a more traditional use of GUP (like
+> > > direct I/O), so I think it is a different use case than the locking
+> > > for IB memory regions.
+> >   Ah, I see. Whatever suits you best. I don't really care as long as
+> > get_user_pages() locking doesn't leak into IB drivers :)
+> >
+> > 								Honza
+> > --
+> > Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+> > SUSE Labs, CR
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
