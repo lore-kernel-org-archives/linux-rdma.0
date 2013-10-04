@@ -1,48 +1,29 @@
-From: Jon Mason <jon.mason@intel.com>
-Subject: Re: [PATCH RFC 01/77] PCI/MSI: Fix return value when
- populate_msi_sysfs() failed
-Date: Thu, 3 Oct 2013 17:59:13 -0700
-Message-ID: <20131004005912.GB4787@jonmason-lab>
-References: <cover.1380703262.git.agordeev@redhat.com>
- <3ff5236944aae69f2cd934b5b6da7c1c269df7c1.1380703262.git.agordeev@redhat.com>
- <20131003003905.GK6768@jonmason-lab>
- <1380836781.3419.17.camel@bwh-desktop.uk.level5networks.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Mellanox VPI
+Date: Fri, 4 Oct 2013 08:33:17 +0400
+Message-ID: <CACaajQtgK1OC1_2QwY_DK7nnxcxCJh0sbs-fM7vvYjvEF8b5Zg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1380836781.3419.17.camel@bwh-desktop.uk.level5networks.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Ben Hutchings <bhutchings@solarflare.com>
-Cc: Alexander Gordeev <agordeev@redhat.com>, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Tejun Heo <tj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Matt Porter <mporter@kernel.crashing.org>, stable@vger.kernel.org, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, linux-driver@qlogic.com, Solarflare linux maintainers <linux-net-drivers@solarf>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 03, 2013 at 10:46:21PM +0100, Ben Hutchings wrote:
-> On Wed, 2013-10-02 at 17:39 -0700, Jon Mason wrote:
-> > On Wed, Oct 02, 2013 at 12:48:17PM +0200, Alexander Gordeev wrote:
-> > > Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
-> > 
-> > Since you are changing the behavior of the msix_capability_init
-> > function on populate_msi_sysfs error, a comment describing why in this
-> > commit would be nice.
-> [...]
-> 
-> This function was already treating that error as fatal, and freeing the
-> MSIs.  The change in behaviour is that it now returns the error code in
-> this case, rather than 0.  This is obviously correct and properly
-> described by the one-line summary.
+Hi All.
 
-If someone dumb, like me, is looking at this commit and trying to
-figure out what is happening, having ANY commit message is good.  "Fix
-the return value" doesn't tell me anything.  Documenting what issue(s)
-would've been seen had the error case been encountered and what will
-now been seen would be very nice.
+I'm interesting of mellanox ConnectX-3 cards that support VPI.
+As a read from
+http://www.openfabrics.org/downloads/OFED/ofed-1.4/OFED-1.4-docs/mlx4_release_notes.txt
+VPI provide ability to autodetect link type or control which type to
+use. But does it possible to have on one port 10Gb ethernet and
+infiniband together?
 
-> 
-> Ben.
-> 
-> -- 
-> Ben Hutchings, Staff Engineer, Solarflare
-> Not speaking for my employer; that's the marketing department's job.
-> They asked us to note that Solarflare product names are trademarked.
-> 
+
+-- 
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
