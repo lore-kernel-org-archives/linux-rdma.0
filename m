@@ -1,44 +1,48 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] dapl-2.0.39
-Date: Fri, 4 Oct 2013 00:41:50 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F972DB455F@ORSMSX101.amr.corp.intel.com>
+From: Jon Mason <jon.mason@intel.com>
+Subject: Re: [PATCH RFC 01/77] PCI/MSI: Fix return value when
+ populate_msi_sysfs() failed
+Date: Thu, 3 Oct 2013 17:59:13 -0700
+Message-ID: <20131004005912.GB4787@jonmason-lab>
+References: <cover.1380703262.git.agordeev@redhat.com>
+ <3ff5236944aae69f2cd934b5b6da7c1c269df7c1.1380703262.git.agordeev@redhat.com>
+ <20131003003905.GK6768@jonmason-lab>
+ <1380836781.3419.17.camel@bwh-desktop.uk.level5networks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1380836781.3419.17.camel@bwh-desktop.uk.level5networks.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Alexander Gordeev <agordeev@redhat.com>, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Tejun Heo <tj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Matt Porter <mporter@kernel.crashing.org>, stable@vger.kernel.org, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, linux-driver@qlogic.com, Solarflare linux maintainers <linux-net-drivers@solarf>
 List-Id: linux-rdma@vger.kernel.org
 
-Rupert, 
+On Thu, Oct 03, 2013 at 10:46:21PM +0100, Ben Hutchings wrote:
+> On Wed, 2013-10-02 at 17:39 -0700, Jon Mason wrote:
+> > On Wed, Oct 02, 2013 at 12:48:17PM +0200, Alexander Gordeev wrote:
+> > > Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
+> > 
+> > Since you are changing the behavior of the msix_capability_init
+> > function on populate_msi_sysfs error, a comment describing why in this
+> > commit would be nice.
+> [...]
+> 
+> This function was already treating that error as fatal, and freeing the
+> MSIs.  The change in behaviour is that it now returns the error code in
+> this case, rather than 0.  This is obviously correct and properly
+> described by the one-line summary.
 
-Please pull new dapl-2.0.39 package into OFED 3.5-2 RC2
+If someone dumb, like me, is looking at this commit and trying to
+figure out what is happening, having ANY commit message is good.  "Fix
+the return value" doesn't tell me anything.  Documenting what issue(s)
+would've been seen had the error case been encountered and what will
+now been seen would be very nice.
 
-Thanks, Arlin
-------------------
-
-Latest Packages (see ChangeLog for recent changes):
-
-md5sum: 9858bd36c4c21846a9c8a72bc0ad1339 dapl-2.0.39.tar.gz 
-
-Install RPM packages as follow: 
-
-dapl-2.0.39-1 
-dapl-utils-2.0.39-1 
-dapl-devel-2.0.39-1 
-dapl-debuginfo-2.0.39-1 
-
-Release 2.0.39 fixes (OFED 3.5-2) 
-
-dapltest: fix endian swap issue with performance test
-SCM: getifaddrs modfications for better out of the box experience
-ucm, scm: UD mode triggers list_head assert with large scale alltoall test
+> 
+> Ben.
+> 
+> -- 
+> Ben Hutchings, Staff Engineer, Solarflare
+> Not speaking for my employer; that's the marketing department's job.
+> They asked us to note that Solarflare product names are trademarked.
+> 
