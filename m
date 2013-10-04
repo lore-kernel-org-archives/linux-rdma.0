@@ -1,53 +1,66 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH 23/26] ib: Convert qib_get_user_pages() to
- get_user_pages_unlocked()
-Date: Fri, 4 Oct 2013 20:33:15 +0200
-Message-ID: <20131004183315.GA19557@quack.suse.cz>
-References: <1380724087-13927-1-git-send-email-jack@suse.cz>
- <1380724087-13927-24-git-send-email-jack@suse.cz>
- <32E1700B9017364D9B60AED9960492BC211B0176@FMSMSX107.amr.corp.intel.com>
+From: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Subject: Re: [PATCH 0/26] get_user_pages() cleanup
+Date: Fri, 04 Oct 2013 16:31:14 -0400
+Message-ID: <524F2592.1040305@gmail.com>
+References: <1380724087-13927-1-git-send-email-jack@suse.cz> <20131002162009.GA5778@infradead.org> <20131002202941.GF16998@quack.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC211B0176-AtyAts71sc9zLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, infinipath <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20131002202941.GF16998@quack.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>, LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <andreas.dilger@intel.com>, Andy Walls <awalls@md.metrocast.net>, Arnd Bergmann <arnd@arndb.de>, Benjamin LaHaise <bcrl@kvack.org>, ceph-devel@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org, Gleb Natapov <gleb@redhat.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, hpdd-discuss@ml01.01.org, Jarod Wilson <jarod@wilsonet.com>, Jayant Mangalampalli <jayant.mangalampalli@intel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Kai Makisara <Kai.Makisara@kolumbus.fi>, kvm@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-aio@kvack.org, linux-cris-kernel@
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri 04-10-13 13:52:49, Marciniszyn, Mike wrote:
-> > Convert qib_get_user_pages() to use get_user_pages_unlocked().  This
-> > shortens the section where we hold mmap_sem for writing and also removes
-> > the knowledge about get_user_pages() locking from ipath driver. We also fix
-> > a bug in testing pinned number of pages when changing the code.
-> > 
-> 
-> This patch and the sibling ipath patch will nominally take the mmap_sem
-> twice where the old routine only took it once.   This is a performance
-> issue.
-  It will take mmap_sem only once during normal operation. Only if
-get_user_pages_unlocked() fail, we have to take mmap_sem again to undo
-the change of mm->pinned_vm.
+(10/2/13 4:29 PM), Jan Kara wrote:
+> On Wed 02-10-13 09:20:09, Christoph Hellwig wrote:
+>> On Wed, Oct 02, 2013 at 04:27:41PM +0200, Jan Kara wrote:
+>>>    Hello,
+>>>
+>>>    In my quest for changing locking around page faults to make things easier for
+>>> filesystems I found out get_user_pages() users could use a cleanup.  The
+>>> knowledge about necessary locking for get_user_pages() is in tons of places in
+>>> drivers and quite a few of them actually get it wrong (don't have mmap_sem when
+>>> calling get_user_pages() or hold mmap_sem when calling copy_from_user() in the
+>>> surrounding code). Rather often this actually doesn't seem necessary. This
+>>> patch series converts lots of places to use either get_user_pages_fast()
+>>> or a new simple wrapper get_user_pages_unlocked() to remove the knowledge
+>>> of mmap_sem from the drivers. I'm still looking into converting a few remaining
+>>> drivers (most notably v4l2) which are more complex.
+>>
+>> Even looking over the kerneldoc comment next to it I still fail to
+>> understand when you'd want to use get_user_pages_fast and when not.
+>    AFAIU get_user_pages_fast() should be used
+> 1) if you don't need any special get_user_pages() arguments (like calling
+>     it for mm of a different process, forcing COW, or similar).
+> 2) you don't expect pages to be unmapped (then get_user_pages_fast() is
+> actually somewhat slower because it walks page tables twice).
 
-> Is the intent here to deprecate get_user_pages()?
-  Well, as much as I'd like to, there are really places in mm code which
-need to call get_user_pages() while holding mmap_sem to be able to inspect
-corresponding vmas etc. So I want to reduce get_user_pages() use as much as
-possible but I'm not really hoping in completely removing it.
+If target page point to anon or private mapping pages, get_user_pages_fast()
+is fork unsafe. O_DIRECT man pages describe a bit about this.
 
-> I agree, the old code's lock limit test is broke and needs to be fixed.
-> I like the elimination of the silly wrapper routine!
-> 
-> Could the lock limit test be pushed into another version of the wrapper
-> so that there is only one set of mmap_sem transactions?
-  I'm sorry, I don't understand what you mean here...
 
-								Honza
--- 
-Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-SUSE Labs, CR
+see http://man7.org/linux/man-pages/man2/open.2.html
+
+>       O_DIRECT I/Os should never be run concurrently with the fork(2)
+>       system call, if the memory buffer is a private mapping (i.e., any
+>       mapping created with the mmap(2) MAP_PRIVATE flag; this includes
+>       memory allocated on the heap and statically allocated buffers).  Any
+>       such I/Os, whether submitted via an asynchronous I/O interface or
+>       from another thread in the process, should be completed before
+>       fork(2) is called.  Failure to do so can result in data corruption
+>       and undefined behavior in parent and child processes.  This
+>       restriction does not apply when the memory buffer for the O_DIRECT
+>       I/Os was created using shmat(2) or mmap(2) with the MAP_SHARED flag.
+>       Nor does this restriction apply when the memory buffer has been
+>       advised as MADV_DONTFORK with madvise(2), ensuring that it will not
+>       be available to the child after fork(2).
+
+Thanks.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
