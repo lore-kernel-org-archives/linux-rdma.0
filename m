@@ -1,57 +1,90 @@
-From: Jon Mason <jon.mason@intel.com>
-Subject: Re: [PATCH RFC 54/77] ntb: Ensure number of MSIs on SNB is enough
- for the link interrupt
-Date: Mon, 7 Oct 2013 09:50:57 -0700
-Message-ID: <20131007165056.GA24536@jonmason-lab>
-References: <cover.1380703262.git.agordeev@redhat.com>
- <5d9c5b2d3bbc444ff32bddeece7a239d046bd79c.1380703263.git.agordeev@redhat.com>
- <20131003004805.GL6768@jonmason-lab>
- <20131005214303.GA21589@dhcp-26-207.brq.redhat.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 23/26] ib: Convert qib_get_user_pages() to
+ get_user_pages_unlocked()
+Date: Mon, 7 Oct 2013 19:26:04 +0200
+Message-ID: <20131007172604.GD30441@quack.suse.cz>
+References: <1380724087-13927-1-git-send-email-jack@suse.cz>
+ <1380724087-13927-24-git-send-email-jack@suse.cz>
+ <32E1700B9017364D9B60AED9960492BC211B0176@FMSMSX107.amr.corp.intel.com>
+ <20131004183315.GA19557@quack.suse.cz>
+ <32E1700B9017364D9B60AED9960492BC211B07B7@FMSMSX107.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20131005214303.GA21589@dhcp-26-207.brq.redhat.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Alexander Gordeev <agordeev@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Tejun Heo <tj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Matt Porter <mporter@kernel.crashing.org>, stable@vger.kernel.org, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, linux-driver@qlogic.com, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, "VMware, Inc." <pv-drivers@vmw>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC211B07B7@FMSMSX107.amr.corp.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Cc: Jan Kara <jack@suse.cz>, LKML <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, infinipath <infinipath@intel.com>, Roland Dreier <roland@kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Oct 05, 2013 at 11:43:04PM +0200, Alexander Gordeev wrote:
-> On Wed, Oct 02, 2013 at 05:48:05PM -0700, Jon Mason wrote:
-> > On Wed, Oct 02, 2013 at 12:49:10PM +0200, Alexander Gordeev wrote:
-> > > Signed-off-by: Alexander Gordeev <agordeev@redhat.com>
-> > > ---
-> > >  drivers/ntb/ntb_hw.c |    2 +-
-> > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/drivers/ntb/ntb_hw.c b/drivers/ntb/ntb_hw.c
-> > > index de2062c..eccd5e5 100644
-> > > --- a/drivers/ntb/ntb_hw.c
-> > > +++ b/drivers/ntb/ntb_hw.c
-> > > @@ -1066,7 +1066,7 @@ static int ntb_setup_msix(struct ntb_device *ndev)
-> > >  		/* On SNB, the link interrupt is always tied to 4th vector.  If
-> > >  		 * we can't get all 4, then we can't use MSI-X.
-> > >  		 */
-> > > -		if (ndev->hw_type != BWD_HW) {
-> > > +		if ((rc < SNB_MSIX_CNT) && (ndev->hw_type != BWD_HW)) {
+On Mon 07-10-13 15:38:24, Marciniszyn, Mike wrote:
+> > > This patch and the sibling ipath patch will nominally take the mmap_sem
+> > > twice where the old routine only took it once.   This is a performance
+> > > issue.
+> >   It will take mmap_sem only once during normal operation. Only if
+> > get_user_pages_unlocked() fail, we have to take mmap_sem again to undo
+> > the change of mm->pinned_vm.
 > > 
-> > Nack, this check is unnecessary.
+> > > Is the intent here to deprecate get_user_pages()?
 > 
-> If SNB can do more than SNB_MSIX_CNT MSI-Xs then this check is needed
-> to enable less than maximum MSI-Xs in case the maximum was not allocated.
-> Otherwise SNB will fallback to single MSI instead of multiple MSI-Xs.
+> The old code looked like:
+> __qib_get_user_pages()
+> 	(broken) ulimit test
+>              for (...)
+> 		get_user_pages()
+> 
+> qib_get_user_pages()
+> 	mmap_sem lock
+> 	__qib_get_user_pages()
+>              mmap_sem() unlock
+> 
+> The new code is:
+> 
+> get_user_pages_unlocked()
+> 	mmap_sem  lock
+> 	get_user_pages()
+> 	mmap_sem unlock
+> 
+> qib_get_user_pages()
+> 	mmap_sem lock
+>              ulimit test and locked pages maintenance
+>              mmap_sem unlock
+> 	for (...)
+> 		get_user_pages_unlocked()
+> 
+> I count an additional pair of mmap_sem transactions in the normal case.
+  Ah, sorry, you are right.
 
-Per the comment in the code snippet above, "If we can't get all 4,
-then we can't use MSI-X".  There is already a check to see if more
-than 4 were acquired.  So it's not possible to hit this.  Even if it
-was, don't use SNB_MSIX_CNT here (limits.msix_cnt is the preferred
-variable).  Also, the "()" are unnecessary.
+> > > Could the lock limit test be pushed into another version of the
+> > > wrapper so that there is only one set of mmap_sem transactions?
+> >   I'm sorry, I don't understand what you mean here...
+> > 
+> 
+> This is what I had in mind:
+> 
+> get_user_pages_ulimit_unlocked()
+> 	mmap_sem  lock
+> 	ulimit test and locked pages maintenance (from qib/ipath)
+>              for (...)
+> 	       get_user_pages_unlocked()	
+> 	mmap_sem unlock
+> 	
+> qib_get_user_pages()
+> 	get_user_pages_ulimit_unlocked()
+> 
+> This really pushes the code into a new wrapper common to ipath/qib and
+> any others that might want to combine locking with ulimit enforcement.
+  We could do that but frankly, I'd rather change ulimit enforcement to not
+require mmap_sem and use atomic counter instead. I'll see what I can do.
 
-Thanks,
-Jon
+								Honza
+-- 
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
 
-> -- 
-> Regards,
-> Alexander Gordeev
-> agordeev@redhat.com
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
