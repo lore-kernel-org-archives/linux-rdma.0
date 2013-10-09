@@ -1,40 +1,58 @@
-From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: OpenSM 3.3.16 at 100% CPU load, "console off"
-Date: Wed, 09 Oct 2013 17:52:47 +0200
-Message-ID: <52557BCF.6030302@profitbricks.com>
-References: <525539A4.8090700@profitbricks.com> <52555A04.8080606@dev.mellanox.co.il> <52556172.2070707@dev.mellanox.co.il> <52556BEE.5070409@profitbricks.com> <525572FE.5080805@dev.mellanox.co.il>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH RFC 07/77] PCI/MSI: Re-design MSI/MSI-X interrupts
+ enablement pattern
+Date: Wed, 9 Oct 2013 11:54:13 -0400
+Message-ID: <20131009155413.GD22495@htj.dyndns.org>
+References: <cover.1380703262.git.agordeev@redhat.com>
+ <d8c36203ada6efbfa9f7ce92c2f713ee3b6d6b8d.1380703262.git.agordeev@redhat.com>
+ <20131007181749.GB27396@htj.dyndns.org>
+ <20131008074826.GD10669@dhcp-26-207.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <525572FE.5080805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131008074826.GD10669@dhcp-26-207.brq.redhat.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Alexander Gordeev <agordeev@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Jon Mason <jon.mason@intel.com>, Matt Porter <mporter@kernel.crashing.org>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, linux-driver@qlogic.com, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, "VMware, Inc." <pv-dr>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09.10.2013 17:15, Hal Rosenstock wrote:
-> What does service restart do in terms of OpenSM ?
+Hello, Alexander.
+
+On Tue, Oct 08, 2013 at 09:48:26AM +0200, Alexander Gordeev wrote:
+> > If there are many which duplicate the above pattern, it'd probably be
+> > worthwhile to provide a helper?  It's usually a good idea to reduce
+> > the amount of boilerplate code in drivers.
 > 
-> Note that the console parameter is _not_ changeable "on the fly" right
-> now so if OpenSM is being SIGHUP'd by service restart then this is a
-> current limitation (and is clearly not detected/protected against in the
-> current code base). It sounds like that may be what is going on.
+> I wanted to limit discussion in v1 to as little changes as possible.
+> I 'planned' those helper(s) for a separate effort if/when the most
+> important change is accepted and soaked a bit.
 
-Yes, it emits SIGHUP. Thanks for the information! The opensm is a
-critical component. So IMHO it needs to be fixed in a way that it either
-protects itself against such changes by ignoring them on the fly or it
-needs to support these changes.
+The thing is doing it this way generates more churns and noises.  Once
+the simpler ones live behind a wrapper which can be built on the
+existing interface, we can have both reduced cost and more latitude on
+the complex cases.
 
-The current situation is not really acceptable and the opensm stability
-is crucial. So I'll think about fixing it.
-Are you interested in patches in this regard?
+> > If we do things this way, it breaks all drivers using this interface
+> > until they're converted, right?
+> 
+> Right. And the rest of the series does it.
 
-Cheers,
-Sebastian
+Which breaks bisection which we shouldn't do.
 
+> > Also, it probably isn't the best idea
+> > to flip the behavior like this as this can go completely unnoticed (no
+> > compiler warning or anything, the same function just behaves
+> > differently).  Maybe it'd be a better idea to introduce a simpler
+> > interface that most can be converted to?
+> 
+> Well, an *other* interface is a good idea. What do you mean with the
+> simpler here?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm still talking about a simpler wrapper for common cases, which is
+the important part anyway.
+
+Thanks.
+
+-- 
+tejun
