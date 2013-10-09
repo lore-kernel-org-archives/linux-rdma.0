@@ -1,39 +1,40 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH RFC 00/77] Re-design MSI/MSI-X interrupts enablement
- pattern
-Date: Wed, 9 Oct 2013 11:46:06 -0400
-Message-ID: <20131009154606.GC22495@htj.dyndns.org>
-References: <cover.1380703262.git.agordeev@redhat.com>
- <1380840585.3419.50.camel@bwh-desktop.uk.level5networks.com>
- <20131004082920.GA4536@dhcp-26-207.brq.redhat.com>
- <1380922156.3214.49.camel@bwh-desktop.uk.level5networks.com>
- <20131005142054.GA11270@dhcp-26-207.brq.redhat.com>
- <1381009586.645.141.camel@pasglop>
- <20131006060243.GB28142@dhcp-26-207.brq.redhat.com>
- <1381040386.645.143.camel@pasglop>
- <20131006071027.GA29143@dhcp-26-207.brq.redhat.com>
- <1381178881.1536.28.camel@bwh-desktop.uk.level5networks.com>
+From: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: OpenSM 3.3.16 at 100% CPU load, "console off"
+Date: Wed, 09 Oct 2013 17:52:47 +0200
+Message-ID: <52557BCF.6030302@profitbricks.com>
+References: <525539A4.8090700@profitbricks.com> <52555A04.8080606@dev.mellanox.co.il> <52556172.2070707@dev.mellanox.co.il> <52556BEE.5070409@profitbricks.com> <525572FE.5080805@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1381178881.1536.28.camel@bwh-desktop.uk.level5networks.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ben Hutchings <bhutchings@solarflare.com>
-Cc: Alexander Gordeev <agordeev@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Jon Mason <jon.mason@intel.com>, Matt Porter <mporter@kernel.crashing.org>, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, linux-driver@qlogic.com, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, VMwar
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <525572FE.5080805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 07, 2013 at 09:48:01PM +0100, Ben Hutchings wrote:
-> > There is one major flaw in min-max approach - the generic MSI layer
-> > will have to take decisions on exact number of MSIs to request, not
-> > device drivers.
-> [...
+On 09.10.2013 17:15, Hal Rosenstock wrote:
+> What does service restart do in terms of OpenSM ?
 > 
-> No, the min-max functions should be implemented using the same loop that
-> drivers are expected to use now.
+> Note that the console parameter is _not_ changeable "on the fly" right
+> now so if OpenSM is being SIGHUP'd by service restart then this is a
+> current limitation (and is clearly not detected/protected against in the
+> current code base). It sounds like that may be what is going on.
 
-Wheee... earlier in the thread I thought you guys were referring to
-yourselves in the third person and was getting a bit worried. :)
+Yes, it emits SIGHUP. Thanks for the information! The opensm is a
+critical component. So IMHO it needs to be fixed in a way that it either
+protects itself against such changes by ignoring them on the fly or it
+needs to support these changes.
 
--- 
-tejun
+The current situation is not really acceptable and the opensm stability
+is crucial. So I'll think about fixing it.
+Are you interested in patches in this regard?
+
+Cheers,
+Sebastian
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
