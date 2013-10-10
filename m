@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 06/10] scsi_transport_srp: Add periodic reconnect support
-Date: Thu, 10 Oct 2013 14:15:49 +0200
-Message-ID: <52569A75.30200@acm.org>
+Subject: [PATCH 07/10] IB/srp: Add periodic reconnect functionality
+Date: Thu, 10 Oct 2013 14:16:59 +0200
+Message-ID: <52569ABB.4060205@acm.org>
 References: <52569806.9080201@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -9,272 +9,190 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <52569806.9080201-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support for periodically reconnecting to an SRP target until
-the dev_loss timer expires. After the tenth reconnection attempt,
-gradually slow down subsequent reconnect attempts.
+After a transport layer occurred, periodically try to reconnect
+to the target until the dev_loss timer expires.  Protect the
+callback functions that can be invoked from inside the SCSI EH
+against concurrent invocation with srp_reconnect_rport() via the
+rport mutex. Change the default dev_loss_tmo from 60s into 600s
+to give the reconnect mechanism a chance to kick in.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: James Bottomley <JBottomley-MU7nAjRaF3makBO8gow8eQ@public.gmane.org>
 Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/scsi/scsi_transport_srp.c | 106 +++++++++++++++++++++++++++++++++++---
- include/scsi/scsi_transport_srp.h |  11 +++-
- 2 files changed, 108 insertions(+), 9 deletions(-)
+ Documentation/ABI/stable/sysfs-transport-srp |  8 +++++
+ drivers/infiniband/ulp/srp/ib_srp.c          | 52 ++++++++++++++++++++++++----
+ 2 files changed, 54 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
-index 675e203..04a97b6 100644
---- a/drivers/scsi/scsi_transport_srp.c
-+++ b/drivers/scsi/scsi_transport_srp.c
-@@ -41,7 +41,7 @@ struct srp_host_attrs {
- #define to_srp_host_attrs(host)	((struct srp_host_attrs *)(host)->shost_data)
+diff --git a/Documentation/ABI/stable/sysfs-transport-srp b/Documentation/ABI/stable/sysfs-transport-srp
+index 178a44d..21bd480 100644
+--- a/Documentation/ABI/stable/sysfs-transport-srp
++++ b/Documentation/ABI/stable/sysfs-transport-srp
+@@ -30,6 +30,14 @@ Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ Description:	16-byte local SRP port identifier in hexadecimal format. An
+ 		example: 4c:49:4e:55:58:20:56:49:4f:00:00:00:00:00:00:00.
  
- #define SRP_HOST_ATTRS 0
--#define SRP_RPORT_ATTRS 6
-+#define SRP_RPORT_ATTRS 8
++What:		/sys/class/srp_remote_ports/port-<h>:<n>/reconnect_delay
++Date:		December 1, 2013
++KernelVersion:	3.12
++Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++Description:	Number of seconds the SCSI layer will wait after a reconnect
++		attempt failed before retrying. Setting this attribute to
++		"off" will disable time-based reconnecting.
++
+ What:		/sys/class/srp_remote_ports/port-<h>:<n>/roles
+ Date:		June 27, 2007
+ KernelVersion:	2.6.24
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index ceb84b6..4be3eb8 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -88,6 +88,11 @@ MODULE_PARM_DESC(topspin_workarounds,
  
- struct srp_internal {
- 	struct scsi_transport_template t;
-@@ -69,11 +69,13 @@ static inline struct Scsi_Host *rport_to_shost(struct srp_rport *r)
-  * are finished in a reasonable time. Hence do not allow the fast I/O fail
-  * timeout to exceed SCSI_DEVICE_BLOCK_MAX_TIMEOUT. Furthermore, these
-  * parameters must be such that multipath can detect failed paths timely.
-- * Hence do not allow both parameters to be disabled simultaneously.
-+ * Hence do not allow all three parameters to be disabled simultaneously.
-  */
--int srp_tmo_valid(int fast_io_fail_tmo, int dev_loss_tmo)
-+int srp_tmo_valid(int reconnect_delay, int fast_io_fail_tmo, int dev_loss_tmo)
- {
--	if (fast_io_fail_tmo < 0 && dev_loss_tmo < 0)
-+	if (reconnect_delay < 0 && fast_io_fail_tmo < 0 && dev_loss_tmo < 0)
-+		return -EINVAL;
-+	if (reconnect_delay == 0)
- 		return -EINVAL;
- 	if (fast_io_fail_tmo > SCSI_DEVICE_BLOCK_MAX_TIMEOUT)
- 		return -EINVAL;
-@@ -202,6 +204,56 @@ static int srp_parse_tmo(int *tmo, const char *buf)
- 	return res;
- }
+ static struct kernel_param_ops srp_tmo_ops;
  
-+static ssize_t show_reconnect_delay(struct device *dev,
-+				    struct device_attribute *attr, char *buf)
-+{
-+	struct srp_rport *rport = transport_class_to_srp_rport(dev);
++static int srp_reconnect_delay = 10;
++module_param_cb(reconnect_delay, &srp_tmo_ops, &srp_reconnect_delay,
++		S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(reconnect_delay, "Time between successive reconnect attempts");
 +
-+	return srp_show_tmo(buf, rport->reconnect_delay);
-+}
-+
-+static ssize_t store_reconnect_delay(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, const size_t count)
-+{
-+	struct srp_rport *rport = transport_class_to_srp_rport(dev);
-+	int res, delay;
-+
-+	res = srp_parse_tmo(&delay, buf);
-+	if (res)
-+		goto out;
-+	res = srp_tmo_valid(delay, rport->fast_io_fail_tmo,
-+			    rport->dev_loss_tmo);
-+	if (res)
-+		goto out;
-+
-+	if (rport->reconnect_delay <= 0 && delay > 0 &&
-+	    rport->state != SRP_RPORT_RUNNING) {
-+		queue_delayed_work(system_long_wq, &rport->reconnect_work,
-+				   delay * HZ);
-+	} else if (delay <= 0) {
-+		cancel_delayed_work(&rport->reconnect_work);
-+	}
-+	rport->reconnect_delay = delay;
-+	res = count;
-+
-+out:
-+	return res;
-+}
-+
-+static DEVICE_ATTR(reconnect_delay, S_IRUGO | S_IWUSR, show_reconnect_delay,
-+		   store_reconnect_delay);
-+
-+static ssize_t show_failed_reconnects(struct device *dev,
-+				      struct device_attribute *attr, char *buf)
-+{
-+	struct srp_rport *rport = transport_class_to_srp_rport(dev);
-+
-+	return sprintf(buf, "%d\n", rport->failed_reconnects);
-+}
-+
-+static DEVICE_ATTR(failed_reconnects, S_IRUGO, show_failed_reconnects, NULL);
-+
- static ssize_t show_srp_rport_fast_io_fail_tmo(struct device *dev,
- 					       struct device_attribute *attr,
- 					       char *buf)
-@@ -222,7 +274,8 @@ static ssize_t store_srp_rport_fast_io_fail_tmo(struct device *dev,
- 	res = srp_parse_tmo(&fast_io_fail_tmo, buf);
- 	if (res)
- 		goto out;
--	res = srp_tmo_valid(fast_io_fail_tmo, rport->dev_loss_tmo);
-+	res = srp_tmo_valid(rport->reconnect_delay, fast_io_fail_tmo,
-+			    rport->dev_loss_tmo);
- 	if (res)
- 		goto out;
- 	rport->fast_io_fail_tmo = fast_io_fail_tmo;
-@@ -256,7 +309,8 @@ static ssize_t store_srp_rport_dev_loss_tmo(struct device *dev,
- 	res = srp_parse_tmo(&dev_loss_tmo, buf);
- 	if (res)
- 		goto out;
--	res = srp_tmo_valid(rport->fast_io_fail_tmo, dev_loss_tmo);
-+	res = srp_tmo_valid(rport->reconnect_delay, rport->fast_io_fail_tmo,
-+			    dev_loss_tmo);
- 	if (res)
- 		goto out;
- 	rport->dev_loss_tmo = dev_loss_tmo;
-@@ -312,6 +366,29 @@ invalid:
- 	return -EINVAL;
- }
+ static int srp_fast_io_fail_tmo = 15;
+ module_param_cb(fast_io_fail_tmo, &srp_tmo_ops, &srp_fast_io_fail_tmo,
+ 		S_IRUGO | S_IWUSR);
+@@ -96,7 +101,7 @@ MODULE_PARM_DESC(fast_io_fail_tmo,
+ 		 " layer error and failing all I/O. \"off\" means that this"
+ 		 " functionality is disabled.");
  
-+/**
-+ * srp_reconnect_work() - reconnect and schedule a new attempt if necessary
-+ */
-+static void srp_reconnect_work(struct work_struct *work)
-+{
-+	struct srp_rport *rport = container_of(to_delayed_work(work),
-+					struct srp_rport, reconnect_work);
-+	struct Scsi_Host *shost = rport_to_shost(rport);
-+	int delay, res;
-+
-+	res = srp_reconnect_rport(rport);
-+	if (res != 0) {
-+		shost_printk(KERN_ERR, shost,
-+			     "reconnect attempt %d failed (%d)\n",
-+			     ++rport->failed_reconnects, res);
-+		delay = rport->reconnect_delay *
-+			min(100, max(1, rport->failed_reconnects - 10));
-+		if (delay > 0)
-+			queue_delayed_work(system_long_wq,
-+					   &rport->reconnect_work, delay * HZ);
-+	}
-+}
-+
- static void __rport_fail_io_fast(struct srp_rport *rport)
- {
- 	struct Scsi_Host *shost = rport_to_shost(rport);
-@@ -370,16 +447,21 @@ static void rport_dev_loss_timedout(struct work_struct *work)
- static void __srp_start_tl_fail_timers(struct srp_rport *rport)
- {
- 	struct Scsi_Host *shost = rport_to_shost(rport);
--	int fast_io_fail_tmo, dev_loss_tmo;
-+	int delay, fast_io_fail_tmo, dev_loss_tmo;
- 
- 	lockdep_assert_held(&rport->mutex);
- 
- 	if (!rport->deleted) {
-+		delay = rport->reconnect_delay;
- 		fast_io_fail_tmo = rport->fast_io_fail_tmo;
- 		dev_loss_tmo = rport->dev_loss_tmo;
- 		pr_debug("%s current state: %d\n",
- 			 dev_name(&shost->shost_gendev), rport->state);
- 
-+		if (delay > 0)
-+			queue_delayed_work(system_long_wq,
-+					   &rport->reconnect_work,
-+					   1UL * delay * HZ);
- 		if (fast_io_fail_tmo >= 0 &&
- 		    srp_rport_set_state(rport, SRP_RPORT_BLOCKED) == 0) {
- 			pr_debug("%s new state: %d\n",
-@@ -480,6 +562,7 @@ int srp_reconnect_rport(struct srp_rport *rport)
- 		cancel_delayed_work(&rport->fast_io_fail_work);
- 		cancel_delayed_work(&rport->dev_loss_work);
- 
-+		rport->failed_reconnects = 0;
- 		srp_rport_set_state(rport, SRP_RPORT_RUNNING);
- 		scsi_target_unblock(&shost->shost_gendev, SDEV_RUNNING);
- 		/*
-@@ -538,6 +621,7 @@ static void srp_rport_release(struct device *dev)
- {
- 	struct srp_rport *rport = dev_to_rport(dev);
- 
-+	cancel_delayed_work_sync(&rport->reconnect_work);
- 	cancel_delayed_work_sync(&rport->fast_io_fail_work);
- 	cancel_delayed_work_sync(&rport->dev_loss_work);
- 
-@@ -634,6 +718,10 @@ struct srp_rport *srp_rport_add(struct Scsi_Host *shost,
- 	memcpy(rport->port_id, ids->port_id, sizeof(rport->port_id));
- 	rport->roles = ids->roles;
- 
-+	if (i->f->reconnect)
-+		rport->reconnect_delay = i->f->reconnect_delay ?
-+			*i->f->reconnect_delay : 10;
-+	INIT_DELAYED_WORK(&rport->reconnect_work, srp_reconnect_work);
- 	rport->fast_io_fail_tmo = i->f->fast_io_fail_tmo ?
- 		*i->f->fast_io_fail_tmo : 15;
- 	rport->dev_loss_tmo = i->f->dev_loss_tmo ? *i->f->dev_loss_tmo : 60;
-@@ -772,6 +860,10 @@ srp_attach_transport(struct srp_function_template *ft)
- 		i->rport_attrs[count++] = &dev_attr_fast_io_fail_tmo;
- 		i->rport_attrs[count++] = &dev_attr_dev_loss_tmo;
+-static int srp_dev_loss_tmo = 60;
++static int srp_dev_loss_tmo = 600;
+ module_param_cb(dev_loss_tmo, &srp_tmo_ops, &srp_dev_loss_tmo,
+ 		S_IRUGO | S_IWUSR);
+ MODULE_PARM_DESC(dev_loss_tmo,
+@@ -144,10 +149,14 @@ static int srp_tmo_set(const char *val, const struct kernel_param *kp)
+ 	} else {
+ 		tmo = -1;
  	}
-+	if (ft->reconnect) {
-+		i->rport_attrs[count++] = &dev_attr_reconnect_delay;
-+		i->rport_attrs[count++] = &dev_attr_failed_reconnects;
+-	if (kp->arg == &srp_fast_io_fail_tmo)
+-		res = srp_tmo_valid(tmo, srp_dev_loss_tmo);
++	if (kp->arg == &srp_reconnect_delay)
++		res = srp_tmo_valid(tmo, srp_fast_io_fail_tmo,
++				    srp_dev_loss_tmo);
++	else if (kp->arg == &srp_fast_io_fail_tmo)
++		res = srp_tmo_valid(srp_reconnect_delay, tmo, srp_dev_loss_tmo);
+ 	else
+-		res = srp_tmo_valid(srp_fast_io_fail_tmo, tmo);
++		res = srp_tmo_valid(srp_reconnect_delay, srp_fast_io_fail_tmo,
++				    tmo);
+ 	if (res)
+ 		goto out;
+ 	*(int *)kp->arg = tmo;
+@@ -1426,18 +1435,29 @@ static void srp_send_completion(struct ib_cq *cq, void *target_ptr)
+ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ {
+ 	struct srp_target_port *target = host_to_target(shost);
++	struct srp_rport *rport = target->rport;
+ 	struct srp_request *req;
+ 	struct srp_iu *iu;
+ 	struct srp_cmd *cmd;
+ 	struct ib_device *dev;
+ 	unsigned long flags;
+ 	int len, result;
++	const bool in_scsi_eh = !in_interrupt() && current == shost->ehandler;
++
++	/*
++	 * The SCSI EH thread is the only context from which srp_queuecommand()
++	 * can get invoked for blocked devices (SDEV_BLOCK /
++	 * SDEV_CREATED_BLOCK). Avoid racing with srp_reconnect_rport() by
++	 * locking the rport mutex if invoked from inside the SCSI EH.
++	 */
++	if (in_scsi_eh)
++		mutex_lock(&rport->mutex);
+ 
+ 	result = srp_chkready(target->rport);
+ 	if (unlikely(result)) {
+ 		scmnd->result = result;
+ 		scmnd->scsi_done(scmnd);
+-		return 0;
++		goto unlock_rport;
+ 	}
+ 
+ 	spin_lock_irqsave(&target->lock, flags);
+@@ -1482,6 +1502,10 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
+ 		goto err_unmap;
+ 	}
+ 
++unlock_rport:
++	if (in_scsi_eh)
++		mutex_unlock(&rport->mutex);
++
+ 	return 0;
+ 
+ err_unmap:
+@@ -1496,6 +1520,9 @@ err_iu:
+ err_unlock:
+ 	spin_unlock_irqrestore(&target->lock, flags);
+ 
++	if (in_scsi_eh)
++		mutex_unlock(&rport->mutex);
++
+ 	return SCSI_MLQUEUE_HOST_BUSY;
+ }
+ 
+@@ -1780,6 +1807,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ static int srp_send_tsk_mgmt(struct srp_target_port *target,
+ 			     u64 req_tag, unsigned int lun, u8 func)
+ {
++	struct srp_rport *rport = target->rport;
+ 	struct ib_device *dev = target->srp_host->srp_dev->dev;
+ 	struct srp_iu *iu;
+ 	struct srp_tsk_mgmt *tsk_mgmt;
+@@ -1789,12 +1817,20 @@ static int srp_send_tsk_mgmt(struct srp_target_port *target,
+ 
+ 	init_completion(&target->tsk_mgmt_done);
+ 
++	/*
++	 * Lock the rport mutex to avoid that srp_create_target_ib() is
++	 * invoked while a task management function is being sent.
++	 */
++	mutex_lock(&rport->mutex);
+ 	spin_lock_irq(&target->lock);
+ 	iu = __srp_get_tx_iu(target, SRP_IU_TSK_MGMT);
+ 	spin_unlock_irq(&target->lock);
+ 
+-	if (!iu)
++	if (!iu) {
++		mutex_unlock(&rport->mutex);
++
+ 		return -1;
 +	}
- 	if (ft->rport_delete)
- 		i->rport_attrs[count++] = &dev_attr_delete;
- 	i->rport_attrs[count++] = NULL;
-diff --git a/include/scsi/scsi_transport_srp.h b/include/scsi/scsi_transport_srp.h
-index ee70016..4ebf691 100644
---- a/include/scsi/scsi_transport_srp.h
-+++ b/include/scsi/scsi_transport_srp.h
-@@ -31,7 +31,8 @@ enum srp_rport_state {
- /**
-  * struct srp_rport
-  * @lld_data: LLD private data.
-- * @mutex:    Protects against concurrent rport fast_io_fail / dev_loss_tmo.
-+ * @mutex:    Protects against concurrent rport reconnect / fast_io_fail /
-+ *   dev_loss_tmo activity.
-  */
- struct srp_rport {
- 	/* for initiator and target drivers */
-@@ -48,6 +49,9 @@ struct srp_rport {
- 	struct mutex		mutex;
- 	enum srp_rport_state	state;
- 	bool			deleted;
-+	int			reconnect_delay;
-+	int			failed_reconnects;
-+	struct delayed_work	reconnect_work;
- 	int			fast_io_fail_tmo;
- 	int			dev_loss_tmo;
- 	struct delayed_work	fast_io_fail_work;
-@@ -60,6 +64,7 @@ struct srp_rport {
-  *     dev_loss_tmo sysfs attribute for an rport.
-  * @reset_timer_if_blocked: Whether or srp_timed_out() should reset the command
-  *     timer if the device on which it has been queued is blocked.
-+ * @reconnect_delay: If not NULL, points to the default reconnect_delay value.
-  * @fast_io_fail_tmo: If not NULL, points to the default fast_io_fail_tmo value.
-  * @dev_loss_tmo: If not NULL, points to the default dev_loss_tmo value.
-  * @reconnect: Callback function for reconnecting to the target. See also
-@@ -71,6 +76,7 @@ struct srp_function_template {
- 	/* for initiator drivers */
- 	bool has_rport_state;
- 	bool reset_timer_if_blocked;
-+	int *reconnect_delay;
- 	int *fast_io_fail_tmo;
- 	int *dev_loss_tmo;
- 	int (*reconnect)(struct srp_rport *rport);
-@@ -90,7 +96,8 @@ extern void srp_rport_put(struct srp_rport *rport);
- extern struct srp_rport *srp_rport_add(struct Scsi_Host *,
- 				       struct srp_rport_identifiers *);
- extern void srp_rport_del(struct srp_rport *);
--extern int srp_tmo_valid(int fast_io_fail_tmo, int dev_loss_tmo);
-+extern int srp_tmo_valid(int reconnect_delay, int fast_io_fail_tmo,
-+			 int dev_loss_tmo);
- extern int srp_reconnect_rport(struct srp_rport *rport);
- extern void srp_start_tl_fail_timers(struct srp_rport *rport);
- extern void srp_remove_host(struct Scsi_Host *);
+ 
+ 	ib_dma_sync_single_for_cpu(dev, iu->dma, sizeof *tsk_mgmt,
+ 				   DMA_TO_DEVICE);
+@@ -1811,8 +1847,11 @@ static int srp_send_tsk_mgmt(struct srp_target_port *target,
+ 				      DMA_TO_DEVICE);
+ 	if (srp_post_send(target, iu, sizeof *tsk_mgmt)) {
+ 		srp_put_tx_iu(target, iu, SRP_IU_TSK_MGMT);
++		mutex_unlock(&rport->mutex);
++
+ 		return -1;
+ 	}
++	mutex_unlock(&rport->mutex);
+ 
+ 	if (!wait_for_completion_timeout(&target->tsk_mgmt_done,
+ 					 msecs_to_jiffies(SRP_ABORT_TIMEOUT_MS)))
+@@ -2713,6 +2752,7 @@ static void srp_remove_one(struct ib_device *device)
+ static struct srp_function_template ib_srp_transport_functions = {
+ 	.has_rport_state	 = true,
+ 	.reset_timer_if_blocked	 = true,
++	.reconnect_delay	 = &srp_reconnect_delay,
+ 	.fast_io_fail_tmo	 = &srp_fast_io_fail_tmo,
+ 	.dev_loss_tmo		 = &srp_dev_loss_tmo,
+ 	.reconnect		 = srp_rport_reconnect,
 -- 
 1.8.1.4
 
