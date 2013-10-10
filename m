@@ -1,76 +1,69 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: temporarily disable =?UTF-8?Q?create=5Fflow/?=
- =?UTF-8?Q?destroy=5Fflow=20uverbs?=
-Date: Thu, 10 Oct 2013 12:12:03 +0200
-Message-ID: <5e07fcdfc494de9f83b56336b5c1aefa@meuh.org>
-References: <1381396255-13005-1-git-send-email-ydroneaud@opteya.com>
- <525673BB.7020900@mellanox.com>
+From: Alexander Gordeev <agordeev@redhat.com>
+Subject: Re: [PATCH RFC 00/77] Re-design MSI/MSI-X interrupts enablement
+ pattern
+Date: Thu, 10 Oct 2013 12:17:05 +0200
+Message-ID: <20131010101704.GC11874@dhcp-26-207.brq.redhat.com>
+References: <cover.1380703262.git.agordeev@redhat.com>
+ <5254D397.9030307@zytor.com>
+ <1381292648.645.259.camel@pasglop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <525673BB.7020900-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mips-bounce@linux-mips.org>
+Content-Disposition: inline
+In-Reply-To: <1381292648.645.259.camel@pasglop>
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+List-help: <mailto:ecartis@linux-mips.org?Subject=help>
+List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
+List-software: Ecartis version 1.0.0
+List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
+List-owner: <mailto:ralf@linux-mips.org>
+List-post: <mailto:linux-mips@linux-mips.org>
+List-archive: <http://www.linux-mips.org/archives/linux-mips/>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Tejun Heo <tj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Jon Mason <jon.mason@intel.com>, Matt Porter <mporter@kernel.crashing.org>, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, linux-driver@qlogic.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Wed, Oct 09, 2013 at 03:24:08PM +1100, Benjamin Herrenschmidt wrote:
+> On Tue, 2013-10-08 at 20:55 -0700, H. Peter Anvin wrote:
+> > Why not add a minimum number to pci_enable_msix(), i.e.:
+> > 
+> > pci_enable_msix(pdev, msix_entries, nvec, minvec)
+> > 
+> > ... which means "nvec" is the number of interrupts *requested*, and
+> > "minvec" is the minimum acceptable number (otherwise fail).
+> 
+> Which is exactly what Ben (the other Ben :-) suggested and that I
+> supports...
 
-Le 10.10.2013 11:30, Or Gerlitz a =C3=A9crit=C2=A0:
-> On 10/10/2013 12:10, Yann Droneaud wrote:
->> create_flow/destroy_flow uverbs are under review and should
->> be considered too experimental at this point.
->>=20
->> To not expose to userspace such experimental feature,
->> the data structure and code is temporarily disabled for v3.12.
->>=20
->> The feature will be enabled after proper cleanup for v3.13.
->=20
-> NAK
->=20
-> The patches were on the list from April and went through review of
-> Sean, Jason, Roland, Shawn and others.
->=20
-> You started your review few months after the point in time we
-> submitted them, and after they were accepted.
->=20
-> We were very happy **and**  responsive for your feedback -- Matan sen=
-t
-> patch on Sep 22nd to fix few issues you pointed on.
->=20
+Ok, this suggestion sounded in one or another form by several people.
+What about name it pcim_enable_msix_range() and wrap in couple more
+helpers to complete an API:
 
-I'm also very happy and looking forward to continue working with you
-so I'm very sorry to provide the reviews so late (back in April I becam=
-e
-father for the second time).
+int pcim_enable_msix_range(pdev, msix_entries, nvec, minvec);
+	<0 - error code
+	>0 - number of MSIs allocated, where minvec >= result <= nvec
 
-I'm also very sorry bring such patch now but I feel I won't be able to
-find the needed time to do the patchset rework before the deadline.
-I will try to do this before the end of the week (12th october) but no=20
-promise.
+int pcim_enable_msix(pdev, msix_entries, nvec);
+	<0 - error code
+	>0 - number of MSIs allocated, where 1 >= result <= nvec 
 
-> If you have more point fixes, we're **before** rc5 and 2-3 patches
-> that fix things can get it, Matan review your prev
-> patchset which contained four patches and acked three of them.
->=20
-> So you now need to re-prepare a smaller patch set advocate for Roland
-> to pick it up.
->=20
+int pcim_enable_msix_exact(pdev, msix_entries, nvec);
+	<0 - error code
+	>0 - number of MSIs allocated, where result == nvec
 
-I'm also afraid that the whole patchset with extended command + public=20
-API fix
-would be too big for v3.12-rc5 ... v3.12.
+The latter's return value seems odd, but I can not help to make
+it consistent with the first two.
 
-Regards.
 
---=20
-Yann Droneaud
-OPTEYA
+(Sorry if you see this message twice - my MUA seems struggle with one of CC).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Cheers,
+> Ben.
+> 
+> 
+
+-- 
+Regards,
+Alexander Gordeev
+agordeev@redhat.com
