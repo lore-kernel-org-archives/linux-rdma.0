@@ -1,66 +1,35 @@
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] iblinkinfo: Remove "-R" option from man page
-Date: Thu, 10 Oct 2013 16:21:12 +0200
-Message-ID: <20131010142112.GA22757@r-ufm5-17.mtr.labs.mlnx>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH RFC 50/77] mlx5: Update MSI/MSI-X interrupts enablement
+ code
+Date: Thu, 10 Oct 2013 18:29:45 +0300
+Message-ID: <20131010152945.GC7299@mtldesk30>
+References: <cover.1380703262.git.agordeev@redhat.com>
+ <9650a7dfbcfd5f1da21f7b093665abf4b1041071.1380703263.git.agordeev@redhat.com>
+ <20131003071433.GA7299@mtldesk30>
+ <20131003194837.GA27636@dhcp-26-207.brq.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20131003194837.GA27636-hdGaXg0bp3uRXgp2RCiI5R/sF2h8X+2i0E9HWUfgJXw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexander Gordeev <agordeev-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Michael Ellerman <michael-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Martin Schwidefsky <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andy King <acking-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Jon Mason <jon.mason-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Porter <mporter-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iss_storagedev-VXdhtT5mjnY@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-driver-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, "VMware, Inc." <pv-dr>
 List-Id: linux-rdma@vger.kernel.org
 
-remove "-R" option from iblinkinfo man
+On Thu, Oct 03, 2013 at 09:48:39PM +0200, Alexander Gordeev wrote:
+> 
+> pci_enable_msix() may fail, but it can not return a positive number.
+>
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- doc/man/iblinkinfo.8.in     |    1 -
- doc/rst/iblinkinfo.8.in.rst |    2 --
- src/iblinkinfo.c            |    2 --
- 3 files changed, 0 insertions(+), 5 deletions(-)
+That is true according to the current logic but the comment on top of
+pci_enable_msix() still says:
+"A return of < 0 indicates a failure.  Or a return of > 0 indicates
+that driver request is exceeding the number of irqs or MSI-X vectors
+available"
 
-diff --git a/doc/man/iblinkinfo.8.in b/doc/man/iblinkinfo.8.in
-index cf7aad7..7f89ec5 100644
---- a/doc/man/iblinkinfo.8.in
-+++ b/doc/man/iblinkinfo.8.in
-@@ -244,7 +244,6 @@ May be used several times (\-vv or \-v \-v \-v)
- .sp
- \fB\-V, \-\-version\fP     show the version info.
- .sp
--\fB\-R\fP (This option is obsolete and does nothing)
- .SH EXIT STATUS
- .sp
- 0 on success, \-1 on failure to scan the fabric, 1 if check mode is used and
-diff --git a/doc/rst/iblinkinfo.8.in.rst b/doc/rst/iblinkinfo.8.in.rst
-index bfdaada..ee2aefb 100644
---- a/doc/rst/iblinkinfo.8.in.rst
-+++ b/doc/rst/iblinkinfo.8.in.rst
-@@ -109,8 +109,6 @@ Debugging flags
- .. include:: common/opt_v.rst
- .. include:: common/opt_V.rst
- 
--**-R** (This option is obsolete and does nothing)
--
- EXIT STATUS
- ===========
- 
-diff --git a/src/iblinkinfo.c b/src/iblinkinfo.c
-index deffbd1..92ff3c6 100644
---- a/src/iblinkinfo.c
-+++ b/src/iblinkinfo.c
-@@ -629,8 +629,6 @@ int main(int argc, char **argv)
- 		 "Output only switches"},
- 		{"cas-only", 7, 0, NULL,
- 		 "Output only CAs"},
--		{"GNDN", 'R', 0, NULL,
--		 "(This option is obsolete and does nothing)"},
- 		{0}
- 	};
- 	char usage_args[] = "";
--- 
-1.7.1
-
+So you're counting on an implementation that may change in the future.
+I think leaving the code as it is now is safer.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
