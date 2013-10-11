@@ -1,70 +1,32 @@
-From: Mark Lord <kernel@start.ca>
-Subject: Re: [PATCH RFC 00/77] Re-design MSI/MSI-X interrupts enablement pattern
-Date: Fri, 11 Oct 2013 16:29:39 -0400
-Message-ID: <52585FB3.7080508@start.ca>
-References: <cover.1380703262.git.agordeev@redhat.com> <5254D397.9030307@zytor.com> <1381292648.645.259.camel@pasglop> <20131010101704.GC11874@dhcp-26-207.brq.redhat.com> <5256D5AB.4050105@zytor.com> <20131010180704.GA15719@dhcp-26-207.brq.redhat.com> <5257357E.8080506@start.ca> <20131011084108.GA25702@dhcp-26-207.brq.redhat.com>
+From: Supini Thrunkul <fjimeneza-kT1CHsD1lU53d8j8NnRlXg@public.gmane.org>
+Subject: Compliments and good day to you and your family
+Date: Fri, 11 Oct 2013 18:41:54 -0500 (PET)
+Message-ID: <7101527.377470.1381534914321.JavaMail.root@mail.municomas.gob.pe>
+Reply-To: Supini Thrunkul <supini.thrunkul08-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <20131011084108.GA25702@dhcp-26-207.brq.redhat.com>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Alexander Gordeev <agordeev@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Tejun Heo <tj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Jon Mason <jon.mason@intel.com>, Matt Porter <mporter@kernel.crashing.org>, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-dev
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 13-10-11 04:41 AM, Alexander Gordeev wrote:
-> On Thu, Oct 10, 2013 at 07:17:18PM -0400, Mark Lord wrote:
->> Just to help us all understand "the loop" issue..
->>
->> Here's an example of driver code which uses the existing MSI-X interfaces,
->> for a device which can work with either 16, 8, 4, 2, or 1 MSI-X interrupt.
->> This is from a new driver I'm working on right now:
-..
-> Now, this is a loop-free alternative:
-> 
-> static int xx_alloc_msix_irqs(struct xx_dev *dev, int nvec)
-> {
-> 	nvec = roundup_pow_of_two(nvec);	/* assume 0 > nvec <= 16 */
-> 
-> 	xx_disable_all_irqs(dev);
-> 
-> 	pci_lock_msi(dev->pdev);
-> 
-> 	rc = pci_get_msix_limit(dev->pdev, nvec);
-> 	if (rc < 0)
-> 		goto err;
-> 
-> 	nvec = min(nvec, rc);		/* if limit is more than requested */
-> 	nvec = rounddown_pow_of_two(nvec);	/* (a) */
-> 
-> 	xx_prep_for_msix_vectors(dev, nvec);
-> 
-> 	rc = pci_enable_msix(dev->pdev, dev->irqs, nvec);	/* (b)	*/
-> 	if (rc < 0)
-> 		goto err;
-> 
-> 	pci_unlock_msi(dev->pdev);
-> 
-> 	dev->num_vectors = nvec;		/* (b) */
-> 	return 0;
-> 
-> err:
-> 	pci_unlock_msi(dev->pdev);
-> 
->         kerr(dev->name, "pci_enable_msix() failed, err=%d", rc);
->         dev->num_vectors = 0;
->         return rc;
-> }
+ Hello,
 
-That would still need a loop, to handle the natural race between
-the calls to pci_get_msix_limit() and pci_enable_msix() -- the driver and device
-can and should fall back to a smaller number of vectors when pci_enable_msix() fails.
+Compliments and good day to you and your family.
+
+I write you this mail as a reminder once more having waited patiently for your  response to my initial contact with you through snail mail.
+
+However since I assume you did not get it I want to use this medium even though it  might not be the best form of communication in matters like this due to the ever  growing disbelief and illicit scams and fraud associated with it, I seem to have no  choice than to make use of it, coupled with the fact that it might be just perfect  due to the ability to redeem time.
+
+Without wasting much of your time I am Mrs. Supini Thrunkul, an accountant with  China Minsheng Banking Corporation Limited I want to bring you into a business  venture which I think should be of interest and concern to you, since it has to do  with a perceived late family member of yours this is because there is a substantial  amount of funds which I suspect is tied to a distant family member of yours.
+
+However I need to be sure that you must have received this communication so I will  not divulge much information about it until i get a response from you.
+
+Kindly respond back to me.
+
+Best Regards,
+Mrs.Supini Thrunkul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
