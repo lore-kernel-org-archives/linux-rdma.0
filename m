@@ -1,78 +1,138 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] iblinkinfo: Remove "-R" option from man page
-Date: Fri, 11 Oct 2013 00:52:35 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E047B2EBD@CRSMSX101.amr.corp.intel.com>
-References: <20131010142112.GA22757@r-ufm5-17.mtr.labs.mlnx>
+From: Alexander Gordeev <agordeev@redhat.com>
+Subject: Re: [PATCH RFC 00/77] Re-design MSI/MSI-X interrupts enablement
+ pattern
+Date: Fri, 11 Oct 2013 10:41:09 +0200
+Message-ID: <20131011084108.GA25702@dhcp-26-207.brq.redhat.com>
+References: <cover.1380703262.git.agordeev@redhat.com>
+ <5254D397.9030307@zytor.com>
+ <1381292648.645.259.camel@pasglop>
+ <20131010101704.GC11874@dhcp-26-207.brq.redhat.com>
+ <5256D5AB.4050105@zytor.com>
+ <20131010180704.GA15719@dhcp-26-207.brq.redhat.com>
+ <5257357E.8080506@start.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131010142112.GA22757-Kyg1NGsloJ8bMuq+TCmafCexzy7lsfyC@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mips-bounce@linux-mips.org>
+Content-Disposition: inline
+In-Reply-To: <5257357E.8080506@start.ca>
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+List-help: <mailto:ecartis@linux-mips.org?Subject=help>
+List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
+List-software: Ecartis version 1.0.0
+List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
+List-owner: <mailto:ralf@linux-mips.org>
+List-post: <mailto:linux-mips@linux-mips.org>
+List-archive: <http://www.linux-mips.org/archives/linux-mips/>
+To: Mark Lord <kernel@start.ca>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Tejun Heo <tj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Jon Mason <jon.mason@intel.com>, Matt Porter <mporter@kernel.crashing.org>, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-dev
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Dan Ben Yosef [mailto:danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-> Sent: Thursday, October 10, 2013 7:21 AM
-> To: Weiny, Ira
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH] iblinkinfo: Remove "-R" option from man page
+On Thu, Oct 10, 2013 at 07:17:18PM -0400, Mark Lord wrote:
+> Just to help us all understand "the loop" issue..
 > 
-> remove "-R" option from iblinkinfo man
+> Here's an example of driver code which uses the existing MSI-X interfaces,
+> for a device which can work with either 16, 8, 4, 2, or 1 MSI-X interrupt.
+> This is from a new driver I'm working on right now:
 > 
-> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> static int xx_alloc_msix_irqs (struct xx_dev *dev, int nvec)
+> {
+>         xx_disable_all_irqs(dev);
+>         do {
+>                 if (nvec < 2)
+>                         xx_prep_for_1_msix_vector(dev);
+>                 else if (nvec < 4)
+>                         xx_prep_for_2_msix_vectors(dev);
+>                 else if (nvec < 8)
+>                         xx_prep_for_4_msix_vectors(dev);
+>                 else if (nvec < 16)
+>                         xx_prep_for_8_msix_vectors(dev);
+>                 else
+>                         xx_prep_for_16_msix_vectors(dev);
+>                 nvec = pci_enable_msix(dev->pdev, dev->irqs, dev->num_vectors);
+>         } while (nvec > 0);
+> 
+>         if (nvec) {
+>                 kerr(dev->name, "pci_enable_msix() failed, err=%d", nvec);
+>                 dev->num_vectors = 0;
+>                 return nvec;
+>         }
+>         return 0;       /* success */
+> }
 
-Thanks applied,
-Ira
+Yeah, that is a very good example.
 
+I would move all xx_prep_for_<pow2>_msix_vector() functions to a single
+helper i.e. xx_prep_msix_vectors(dev, ndev).
 
-> ---
->  doc/man/iblinkinfo.8.in     |    1 -
->  doc/rst/iblinkinfo.8.in.rst |    2 --
->  src/iblinkinfo.c            |    2 --
->  3 files changed, 0 insertions(+), 5 deletions(-)
-> 
-> diff --git a/doc/man/iblinkinfo.8.in b/doc/man/iblinkinfo.8.in index
-> cf7aad7..7f89ec5 100644
-> --- a/doc/man/iblinkinfo.8.in
-> +++ b/doc/man/iblinkinfo.8.in
-> @@ -244,7 +244,6 @@ May be used several times (\-vv or \-v \-v \-v)  .sp
->  \fB\-V, \-\-version\fP     show the version info.
->  .sp
-> -\fB\-R\fP (This option is obsolete and does nothing)  .SH EXIT STATUS  .sp
->  0 on success, \-1 on failure to scan the fabric, 1 if check mode is used and diff
-> --git a/doc/rst/iblinkinfo.8.in.rst b/doc/rst/iblinkinfo.8.in.rst index
-> bfdaada..ee2aefb 100644
-> --- a/doc/rst/iblinkinfo.8.in.rst
-> +++ b/doc/rst/iblinkinfo.8.in.rst
-> @@ -109,8 +109,6 @@ Debugging flags
->  .. include:: common/opt_v.rst
->  .. include:: common/opt_V.rst
-> 
-> -**-R** (This option is obsolete and does nothing)
-> -
->  EXIT STATUS
->  ===========
-> 
-> diff --git a/src/iblinkinfo.c b/src/iblinkinfo.c index deffbd1..92ff3c6 100644
-> --- a/src/iblinkinfo.c
-> +++ b/src/iblinkinfo.c
-> @@ -629,8 +629,6 @@ int main(int argc, char **argv)
->  		 "Output only switches"},
->  		{"cas-only", 7, 0, NULL,
->  		 "Output only CAs"},
-> -		{"GNDN", 'R', 0, NULL,
-> -		 "(This option is obsolete and does nothing)"},
->  		{0}
->  	};
->  	char usage_args[] = "";
-> --
-> 1.7.1
+Considering also (a) we do not want to waste unused platform resources
+associated with MSI-Xs and pull more quota than needed and (b) fixing
+couple of bugs, this function could look like this:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+static int xx_alloc_msix_irqs(struct xx_dev *dev, int nvec_in)
+{
+	int nvec = roundup_pow_of_two(nvec_in);	/* assume 0 > nvec_in <= 16 */
+	int rc;
+
+	xx_disable_all_irqs(dev);
+
+retry:
+       	xx_prep_for_msix_vectors(dev, nvec);
+
+	rc = pci_enable_msix(dev->pdev, dev->irqs, nvec);	/* (b) */
+	if (rc > 0) {
+		nvec = rounddown_pow_of_two(nvec);		/* (a) */
+		goto retry;
+	}
+
+	if (rc) {
+		kerr(dev->name, "pci_enable_msix() failed, err=%d", rc);
+		dev->num_vectors = 0;
+		return rc;
+	}
+
+	dev->num_vectors = nvec;				/* (b) */
+	return 0;       /* success */
+}
+
+Now, this is a loop-free alternative:
+
+static int xx_alloc_msix_irqs(struct xx_dev *dev, int nvec)
+{
+	nvec = roundup_pow_of_two(nvec);	/* assume 0 > nvec <= 16 */
+
+	xx_disable_all_irqs(dev);
+
+	pci_lock_msi(dev->pdev);
+
+	rc = pci_get_msix_limit(dev->pdev, nvec);
+	if (rc < 0)
+		goto err;
+
+	nvec = min(nvec, rc);		/* if limit is more than requested */
+	nvec = rounddown_pow_of_two(nvec);	/* (a) */
+
+	xx_prep_for_msix_vectors(dev, nvec);
+
+	rc = pci_enable_msix(dev->pdev, dev->irqs, nvec);	/* (b)	*/
+	if (rc < 0)
+		goto err;
+
+	pci_unlock_msi(dev->pdev);
+
+	dev->num_vectors = nvec;		/* (b) */
+	return 0;
+
+err:
+	pci_unlock_msi(dev->pdev);
+
+        kerr(dev->name, "pci_enable_msix() failed, err=%d", rc);
+        dev->num_vectors = 0;
+        return rc;
+}
+
+-- 
+Regards,
+Alexander Gordeev
+agordeev@redhat.com
