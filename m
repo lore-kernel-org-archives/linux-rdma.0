@@ -1,54 +1,71 @@
-From: Mark Lord <kernel@start.ca>
-Subject: Re: [PATCH RFC 00/77] Re-design MSI/MSI-X interrupts enablement pattern
-Date: Thu, 10 Oct 2013 19:17:18 -0400
-Message-ID: <5257357E.8080506@start.ca>
-References: <cover.1380703262.git.agordeev@redhat.com> <5254D397.9030307@zytor.com> <1381292648.645.259.camel@pasglop> <20131010101704.GC11874@dhcp-26-207.brq.redhat.com> <5256D5AB.4050105@zytor.com> <20131010180704.GA15719@dhcp-26-207.brq.redhat.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ibaddr: Add missing -t option to manpage
+Date: Fri, 11 Oct 2013 00:52:22 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E047B2EA5@CRSMSX101.amr.corp.intel.com>
+References: <20131010132912.GA21069@r-ufm5-17.mtr.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <20131010180704.GA15719@dhcp-26-207.brq.redhat.com>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Alexander Gordeev <agordeev@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <michael@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Tejun Heo <tj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andy King <acking@vmware.com>, Jon Mason <jon.mason@intel.com>, Matt Porter <mporter@kernel.crashing.org>, linux-pci@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux390@de.ibm.com, linux-s390@vger.kernel.org, x86@kernel.org, linux-ide@vger.kernel.org, iss_storagedev@hp.com, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, e1000-devel@lists.sourceforge.net, linux-dr
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131010132912.GA21069-Kyg1NGsloJ8bMuq+TCmafCexzy7lsfyC@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Just to help us all understand "the loop" issue..
+> -----Original Message-----
+> From: Dan Ben Yosef [mailto:danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+> Sent: Thursday, October 10, 2013 6:29 AM
+> To: Weiny, Ira
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH] ibaddr: Add missing -t option to manpage
+> 
+> Add missing 'timeout' option
+> 
+> Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Here's an example of driver code which uses the existing MSI-X interfaces,
-for a device which can work with either 16, 8, 4, 2, or 1 MSI-X interrupt.
-This is from a new driver I'm working on right now:
+Thanks, applied.
+Ira
 
+> ---
+>  doc/man/ibaddr.8.in     |    4 ++++
+>  doc/rst/ibaddr.8.in.rst |    1 +
+>  2 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/doc/man/ibaddr.8.in b/doc/man/ibaddr.8.in index
+> 8a804d7..9e25223 100644
+> --- a/doc/man/ibaddr.8.in
+> +++ b/doc/man/ibaddr.8.in
+> @@ -155,6 +155,10 @@ ibaddr \-C mthca0 \-P 2  # use the specified port
+> only.
+>  .UNINDENT
+>  .UNINDENT
+>  .SS Configuration flags
+> +.\" Define the common option -t
+> +.
+> +.sp
+> +\fB\-t, \-\-timeout <timeout_ms>\fP override the default timeout for the
+> solicited mads.
+>  .\" Define the common option -y
+>  .
+>  .INDENT 0.0
+> diff --git a/doc/rst/ibaddr.8.in.rst b/doc/rst/ibaddr.8.in.rst index
+> 6713fcf..ac18bbf 100644
+> --- a/doc/rst/ibaddr.8.in.rst
+> +++ b/doc/rst/ibaddr.8.in.rst
+> @@ -69,6 +69,7 @@ Configuration flags
+>  -------------------
+> 
+>  .. include:: common/opt_y.rst
+> +.. include:: common/opt_t.rst
+>  .. include:: common/opt_z-config.rst
+> 
+>  FILES
+> --
+> 1.7.1
 
-static int xx_alloc_msix_irqs (struct xx_dev *dev, int nvec)
-{
-        xx_disable_all_irqs(dev);
-        do {
-                if (nvec < 2)
-                        xx_prep_for_1_msix_vector(dev);
-                else if (nvec < 4)
-                        xx_prep_for_2_msix_vectors(dev);
-                else if (nvec < 8)
-                        xx_prep_for_4_msix_vectors(dev);
-                else if (nvec < 16)
-                        xx_prep_for_8_msix_vectors(dev);
-                else
-                        xx_prep_for_16_msix_vectors(dev);
-                nvec = pci_enable_msix(dev->pdev, dev->irqs, dev->num_vectors);
-        } while (nvec > 0);
-
-        if (nvec) {
-                kerr(dev->name, "pci_enable_msix() failed, err=%d", nvec);
-                dev->num_vectors = 0;
-                return nvec;
-        }
-        return 0;       /* success */
-}
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
