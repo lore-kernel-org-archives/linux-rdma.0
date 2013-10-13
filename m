@@ -1,31 +1,58 @@
-From: Supini Thrunkul <fjimeneza-kT1CHsD1lU53d8j8NnRlXg@public.gmane.org>
-Subject: Compliments and good day to you and your family
-Date: Fri, 11 Oct 2013 18:41:54 -0500 (PET)
-Message-ID: <7101527.377470.1381534914321.JavaMail.root@mail.municomas.gob.pe>
-Reply-To: Supini Thrunkul <supini.thrunkul08-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org>
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] ibtracert.c: Add 'force' flag to man page
+Date: Sun, 13 Oct 2013 09:48:36 +0200
+Message-ID: <20131013074836.GA11041@r-ufm5-17.mtr.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- Hello,
+Add 'force' route option to man page.
 
-Compliments and good day to you and your family.
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ doc/man/ibtracert.8.in     |    7 +++++++
+ doc/rst/ibtracert.8.in.rst |    2 ++
+ 2 files changed, 9 insertions(+), 0 deletions(-)
 
-I write you this mail as a reminder once more having waited patiently for your  response to my initial contact with you through snail mail.
+diff --git a/doc/man/ibtracert.8.in b/doc/man/ibtracert.8.in
+index 9bc0317..4ca938e 100644
+--- a/doc/man/ibtracert.8.in
++++ b/doc/man/ibtracert.8.in
+@@ -108,6 +108,13 @@ ibaddr \-C mthca0 \-P 2  # use the specified port only.
+ .UNINDENT
+ .UNINDENT
+ .SS Debugging flags
++.\" Define the common option -f
++.
++.INDENT 0.0
++.TP
++.B \-f
++force route to destination port.
++.UNINDENT
+ .\" Define the common option -d
+ .
+ .INDENT 0.0
+diff --git a/doc/rst/ibtracert.8.in.rst b/doc/rst/ibtracert.8.in.rst
+index e6b9823..76fe568 100644
+--- a/doc/rst/ibtracert.8.in.rst
++++ b/doc/rst/ibtracert.8.in.rst
+@@ -34,6 +34,8 @@ OPTIONS
+ **-m**
+         show the multicast trace of the specified mlid
+ 
++**-f, --force**
++        force route to destination port
+ 
+ 
+ Addressing Flags
+-- 
+1.7.1
 
-However since I assume you did not get it I want to use this medium even though it  might not be the best form of communication in matters like this due to the ever  growing disbelief and illicit scams and fraud associated with it, I seem to have no  choice than to make use of it, coupled with the fact that it might be just perfect  due to the ability to redeem time.
-
-Without wasting much of your time I am Mrs. Supini Thrunkul, an accountant with  China Minsheng Banking Corporation Limited I want to bring you into a business  venture which I think should be of interest and concern to you, since it has to do  with a perceived late family member of yours this is because there is a substantial  amount of funds which I suspect is tied to a distant family member of yours.
-
-However I need to be sure that you must have received this communication so I will  not divulge much information about it until i get a response from you.
-
-Kindly respond back to me.
-
-Best Regards,
-Mrs.Supini Thrunkul
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
