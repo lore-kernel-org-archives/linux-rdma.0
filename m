@@ -1,90 +1,33 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/9] IB/core: Don't include command header size in
- uverbs =?UTF-8?Q?create=5Fflow?=
-Date: Tue, 15 Oct 2013 19:07:56 +0200
-Message-ID: <f3777e997bd9642e3fd692e59f34486a@meuh.org>
-References: <cover.1381510045.git.ydroneaud@opteya.com>
- <ca92c22d0aea21d559d57e6152cb313729a11274.1381510045.git.ydroneaud@opteya.com>
- <525C0BF2.2060201@mellanox.com> <72b95284386dc57dfa1c7c883b4f45af@meuh.org>
- <CAL1RGDWarJPu_6u5oaL6NgZZJXBuB09vTi9xhxHALfiY_W9Sgg@mail.gmail.com>
- <122f1a29d6fe45449a6a153a3a9ba8b1@meuh.org>
- <CAL1RGDXP3+X=go4GiW_SsvSvC_VS-B7uacJN0u5wVtU3NWfvQA@mail.gmail.com>
+From: Roland Dreier <roland@kernel.org>
+Subject: Re: [GIT PULL] please pull infiniband.git
+Date: Tue, 15 Oct 2013 10:48:07 -0700
+Message-ID: <CAG4TOxPdUHSQpkTNZ_JO67qdcnHuqiYaf+9cCMiz2vb1QzTtVw@mail.gmail.com>
+References: <1381774575-8817-1-git-send-email-roland@kernel.org> <CA+55aFw151GyGbAEStnvj41pokNfUegQW2uGWFw59FCvT--jRA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXP3+X=go4GiW_SsvSvC_VS-B7uacJN0u5wVtU3NWfvQA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFw151GyGbAEStnvj41pokNfUegQW2uGWFw59FCvT--jRA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Eli Cohen <eli@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+On Mon, Oct 14, 2013 at 5:52 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> So get your act together, and push back on the people you are supposed
+> to manage. Because this is *not* acceptable for post-rc5, and I'm
+> giving this single warning. Next time, I'll just ignore the sh*t you
+> send me.
+>
+> Comprende?
 
-Le 15.10.2013 18:44, Roland Dreier a =C3=A9crit=C2=A0:
-> On Tue, Oct 15, 2013 at 7:08 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>=
-=20
-> wrote:
->> But, in the mean time, we failed at providing the required=20
->> fixes/cleanups
->> before v3.12-rc5.
->> We have not agreed on a definitive, small, urgent patchset for=20
->> v3.12-rc5.
->> And I think, and it's easy to think so, that Linus will be very upse=
-t=20
->> to see
->> more
->> than a couple of patches for the Infiniband subsystem for v3.12-rc6.=
-=20
->> If
->> there's a v3.12-rc6.
->>=20
->> So instead of fighting to squeeze the last good patch hunk for v3.12=
-,=20
->> we
->> should think
->> on what command/response scheme we need for v3.13.
->=20
-> I agree.  So as I said before, I think the best idea is just to
-> disable the half-baked command extension stuff before 3.12, and get
-> things right for 3.13.
->=20
+Fair enough.  I've been AWOL for a month due to real life / non-kernel
+stuff, and I didn't want the Mellanox guys to miss a kernel cycle just
+because I couldn't get my act together.  So this one is totally on me
+-- I know it's late in the cycle and I tried to sneak it in.
 
-At least, every voices seems to acknowledge that the current command
-extension scheme need some work. But I have the feeling the amount
-of work is not known.
+I do expect to send one more patch turning off a not-fully-baked new
+feature for 3.12, but other than that everything else will wait for
+3.13.
 
-> Do you still think the patch you provided to disable the new stuff is=
-=20
-> good?
->=20
-
-This one : https://patchwork.kernel.org/patch/3015021/
-
-I don't think is good ... adding a bunch of #if 0 / #endif is never=20
-good.
-But it's smaller than a revert and, perhaps, politically more appealing=
-=2E
-
-Regarding the technical details, the kernel compiles without warning.
-
-It was "NACK"'ed by Or Gerlitz who would like to see my improvements=20
-applied
-ASAP. But in the mean time Matan Barack expressed concerns over the=20
-scheme as
-it is currently, even with my improvements.
-
-YMMV.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ - R.
