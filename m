@@ -1,72 +1,51 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC 0/9] Introduce Signature feature
-Date: Tue, 15 Oct 2013 18:38:21 +0300
-Message-ID: <1381851510-17290-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH RFC 6/9] IB/mlx5: remove MTT access mode from umr flags helper function
+Date: Tue, 15 Oct 2013 18:38:27 +0300
+Message-ID: <1381851510-17290-7-git-send-email-sagig@mellanox.com>
+References: <1381851510-17290-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1381851510-17290-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset Introduces Verbs level support for signature handover
-feature. Siganture is intended to implement end-to-end data integrity
-on a transactional basis in a completely offloaded manner.
-A signature handover operation is basically a translation of
-the data layout between the so called memory domain and wire domain
-in the context of data integrity support.
+get_umr_flags helper function might be used for types
+of access modes other than ACCESS_MODE_MTT, such as
+ACCESS_MODE_KLM. so remove it from helper and caller
+will add it's own access mode flag.
 
-There are several end-to-end data integrity methods used today in various
-applications and/or upper layer protocols such as T10-DIF defined by SCSI
-specifications (SBC), CRC32, XOR8 and more. This patchset adds verbs
-support only for T10-DIF. The proposed framework allows adding more
-signature methods.
+This commit does not add/change functionality.
 
-The way that data integrity is performed is by registering a protected
-region with siganture handover attributes and memory domain layout and
-in addition define the wire domain layout. defining both domains is
-equivalent to determining the signature hanover operation which can be
-strip/add/pass and validate data integrity when performing data transfer
-from input space and output space. When the data transfer is completed,
-the user may check the signature status of the handover operation and
-in case some data integrity error has occured receive a signature error
-item providing the relevant info on the error.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/qp.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-This feature shall be used in storage upper layer protocols iSER/SRP
-implementing end-to-end data integrity T10-DIF. Following this patchset,
-we will soon submit krping activation code which will demonstrate
-the usage and activation of protected RDMA transactions using signature verbs.
-
-Patchset summary:
-- Intoduce verbs for create/destroy memory regions supporting signature.
-- Introduce IB core signature verbs API.
-- Implement mr create/destroy verbs in mlx5 driver.
-- Preperation patches for signature support in mlx5 driver.
-- Implement signature handover work request in mlx5 driver.
-- Implement signature error collection and handling in mlx5 driver.
-
-Sagi Grimberg (9):
-  IB/core: Introduce indirect and protected memory regions
-  IB/core: Introduce Signature Verbs API
-  IB/mlx5, mlx5_core: Support for create_mr and destroy_mr
-  IB/mlx5: Initialize mlx5_ib_qp signature related
-  IB/mlx5: Break wqe handling to begin & finish routines
-  IB/mlx5: remove MTT access mode from umr flags helper function
-  IB/mlx5: Support IB_WR_REG_SIG_MR
-  IB/mlx5: Collect signature error completion
-  IB/mlx5: Publish support in signature feature
-
- drivers/infiniband/core/verbs.c              |   47 +++
- drivers/infiniband/hw/mlx5/cq.c              |   49 +++
- drivers/infiniband/hw/mlx5/main.c            |   12 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h         |   11 +
- drivers/infiniband/hw/mlx5/mr.c              |  154 ++++++++
- drivers/infiniband/hw/mlx5/qp.c              |  532 ++++++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx5/core/mr.c |   64 +++
- include/linux/mlx5/cq.h                      |    1 +
- include/linux/mlx5/device.h                  |   42 ++
- include/linux/mlx5/driver.h                  |   24 ++
- include/linux/mlx5/qp.h                      |   57 +++
- include/rdma/ib_verbs.h                      |  186 +++++++++-
- 12 files changed, 1140 insertions(+), 39 deletions(-)
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 57733a5..2517fb3 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1775,7 +1775,7 @@ static u8 get_umr_flags(int acc)
+ 	       (acc & IB_ACCESS_REMOTE_WRITE  ? MLX5_PERM_REMOTE_WRITE : 0) |
+ 	       (acc & IB_ACCESS_REMOTE_READ   ? MLX5_PERM_REMOTE_READ  : 0) |
+ 	       (acc & IB_ACCESS_LOCAL_WRITE   ? MLX5_PERM_LOCAL_WRITE  : 0) |
+-		MLX5_PERM_LOCAL_READ | MLX5_PERM_UMR_EN | MLX5_ACCESS_MODE_MTT;
++		MLX5_PERM_LOCAL_READ | MLX5_PERM_UMR_EN;
+ }
+ 
+ static void set_mkey_segment(struct mlx5_mkey_seg *seg, struct ib_send_wr *wr,
+@@ -1787,7 +1787,8 @@ static void set_mkey_segment(struct mlx5_mkey_seg *seg, struct ib_send_wr *wr,
+ 		return;
+ 	}
+ 
+-	seg->flags = get_umr_flags(wr->wr.fast_reg.access_flags);
++	seg->flags = get_umr_flags(wr->wr.fast_reg.access_flags) |
++		     MLX5_ACCESS_MODE_MTT;
+ 	*writ = seg->flags & (MLX5_PERM_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE);
+ 	seg->qpn_mkey7_0 = cpu_to_be32((wr->wr.fast_reg.rkey & 0xff) | 0xffffff00);
+ 	seg->flags_pd = cpu_to_be32(MLX5_MKEY_REMOTE_INVAL);
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
