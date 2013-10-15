@@ -1,33 +1,37 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: Re: [GIT PULL] please pull infiniband.git
-Date: Tue, 15 Oct 2013 10:48:07 -0700
-Message-ID: <CAG4TOxPdUHSQpkTNZ_JO67qdcnHuqiYaf+9cCMiz2vb1QzTtVw@mail.gmail.com>
-References: <1381774575-8817-1-git-send-email-roland@kernel.org> <CA+55aFw151GyGbAEStnvj41pokNfUegQW2uGWFw59FCvT--jRA@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/9] IB/core: Don't include command header size in uverbs create_flow
+Date: Wed, 16 Oct 2013 00:34:21 +0300
+Message-ID: <CAJZOPZLr41MGb7qPHcFVQxNcwwAB8i4vnGQhEcu0oZ-BOiMBcg@mail.gmail.com>
+References: <cover.1381510045.git.ydroneaud@opteya.com>
+	<ca92c22d0aea21d559d57e6152cb313729a11274.1381510045.git.ydroneaud@opteya.com>
+	<525C0BF2.2060201@mellanox.com>
+	<72b95284386dc57dfa1c7c883b4f45af@meuh.org>
+	<CAL1RGDWarJPu_6u5oaL6NgZZJXBuB09vTi9xhxHALfiY_W9Sgg@mail.gmail.com>
+	<122f1a29d6fe45449a6a153a3a9ba8b1@meuh.org>
+	<CAL1RGDXP3+X=go4GiW_SsvSvC_VS-B7uacJN0u5wVtU3NWfvQA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFw151GyGbAEStnvj41pokNfUegQW2uGWFw59FCvT--jRA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Eli Cohen <eli@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDXP3+X=go4GiW_SsvSvC_VS-B7uacJN0u5wVtU3NWfvQA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 14, 2013 at 5:52 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> So get your act together, and push back on the people you are supposed
-> to manage. Because this is *not* acceptable for post-rc5, and I'm
-> giving this single warning. Next time, I'll just ignore the sh*t you
-> send me.
->
-> Comprende?
+On Tue, Oct 15, 2013 at 7:44 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
 
-Fair enough.  I've been AWOL for a month due to real life / non-kernel
-stuff, and I didn't want the Mellanox guys to miss a kernel cycle just
-because I couldn't get my act together.  So this one is totally on me
--- I know it's late in the cycle and I tried to sneak it in.
+> I agree.  So as I said before, I think the best idea is just to
+> disable the half-baked command extension stuff before 3.12, and get
+> things right for 3.13.
 
-I do expect to send one more patch turning off a not-fully-baked new
-feature for 3.12, but other than that everything else will wait for
-3.13.
-
- - R.
+Roland, after applying a small fix which was sent to you by Matan on
+Sep 22nd + another tiny fix by Yann to Matan's patch (the two can be
+surely squashed into one small patch), things are working OK. Yann is
+suggesting to enhance them to work and look even better and for some
+reasons (life) he didn't get to do that on the 3-4 months the patches
+spent on the list and went through review of Sean/Jason/Shawn and you
+(RD). I don't see how/why you use the term half-baked here.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
