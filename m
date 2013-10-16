@@ -1,38 +1,75 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH 3/9] IB/core: Don't include command header size in uverbs create_flow
-Date: Tue, 15 Oct 2013 17:04:41 -0700
-Message-ID: <CAL1RGDW7KwSOmmsRxDokUHR-Mh1OzaQvDege5Rq7JsSU8AgEHQ@mail.gmail.com>
-References: <cover.1381510045.git.ydroneaud@opteya.com> <ca92c22d0aea21d559d57e6152cb313729a11274.1381510045.git.ydroneaud@opteya.com>
- <525C0BF2.2060201@mellanox.com> <72b95284386dc57dfa1c7c883b4f45af@meuh.org>
- <CAL1RGDWarJPu_6u5oaL6NgZZJXBuB09vTi9xhxHALfiY_W9Sgg@mail.gmail.com>
- <122f1a29d6fe45449a6a153a3a9ba8b1@meuh.org> <CAL1RGDXP3+X=go4GiW_SsvSvC_VS-B7uacJN0u5wVtU3NWfvQA@mail.gmail.com>
- <CAJZOPZLr41MGb7qPHcFVQxNcwwAB8i4vnGQhEcu0oZ-BOiMBcg@mail.gmail.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/netlink: remove superfluous =?UTF-8?Q?RDMA=5FNL=5F?=
+ =?UTF-8?Q?GET=5FOP=28=29=20masking?=
+Date: Wed, 16 Oct 2013 10:08:09 +0200
+Message-ID: <109afe07b19a529bd9e5001fa5324838@meuh.org>
+References: <1380571434-15391-1-git-send-email-minipli@googlemail.com>
+ <CA+rthh87D+yLE-nTQwVG-LGar_e8sYUKievWUnmk30RH-q7=GA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLr41MGb7qPHcFVQxNcwwAB8i4vnGQhEcu0oZ-BOiMBcg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CA+rthh87D+yLE-nTQwVG-LGar_e8sYUKievWUnmk30RH-q7=GA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mathias Krause <minipli-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 15, 2013 at 2:34 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Roland, after applying a small fix which was sent to you by Matan on
-> Sep 22nd + another tiny fix by Yann to Matan's patch (the two can be
-> surely squashed into one small patch), things are working OK. Yann is
-> suggesting to enhance them to work and look even better and for some
-> reasons (life) he didn't get to do that on the 3-4 months the patches
-> spent on the list and went through review of Sean/Jason/Shawn and you
-> (RD). I don't see how/why you use the term half-baked here.
+Hi,
 
-Unless I'm misunderstanding, Yann's suggestion for enhancement is not
-user/kernel ABI compatible with what is in the tree now.  Given that
-we should really try to find an ABI that lasts for a long time, and
-that we already have a proposal to improve things, shouldn't we hold
-off on freezing the new ABI for one more kernel cycle?
+Le 15.10.2013 18:10, Mathias Krause a =C3=A9crit=C2=A0:
+> On 30 September 2013 22:03, Mathias Krause <minipli-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>=20
+> wrote:
+>> 'op' is the already RDMA_NL_GET_OP() masked 'type'. No need to mask =
+it
+>> again.
+>>=20
+>> Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Signed-off-by: Mathias Krause <minipli-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/netlink.c |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>=20
+>> diff --git a/drivers/infiniband/core/netlink.c=20
+>> b/drivers/infiniband/core/netlink.c
+>> index da06abd..a1e9cba 100644
+>> --- a/drivers/infiniband/core/netlink.c
+>> +++ b/drivers/infiniband/core/netlink.c
+>> @@ -148,7 +148,7 @@ static int ibnl_rcv_msg(struct sk_buff *skb,=20
+>> struct nlmsghdr *nlh)
+>>         list_for_each_entry(client, &client_list, list) {
+>>                 if (client->index =3D=3D index) {
+>>                         if (op < 0 || op >=3D client->nops ||
+>> -                          =20
+>> !client->cb_table[RDMA_NL_GET_OP(op)].dump)
+>> +                           !client->cb_table[op].dump)
+>>                                 return -EINVAL;
+>>=20
+>>                         {
+>> --
+>> 1.7.10.4
+>>=20
+>=20
 
- - R.
+> Ping. Comments, anybody?
+>=20
+
+I confirm RDMA_NL_GET_OP() is already applied on op.
+
+Reviewed-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
