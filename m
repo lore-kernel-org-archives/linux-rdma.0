@@ -1,109 +1,51 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: [Scst-devel] Can't see exported disks
-Date: Thu, 17 Oct 2013 09:40:11 +0400
-Message-ID: <CACaajQuPPwd39y+sGG46+yPYNPqT1TY5emjC_-156VPueLsnWQ@mail.gmail.com>
-References: <C514BDBF78B34BDE8337C0F009522A9C@aylium.net>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V9 libmlx4 0/2] Add extension and XRC QP support
+Date: Thu, 17 Oct 2013 12:03:24 +0300
+Message-ID: <525FA7DC.5090805@mellanox.com>
+References: <1375369555-11416-1-git-send-email-yishaih@mellanox.com> <CAJZOPZJ9gr=4Z-9XK0JRcojsXEwzXV9Hn+1h-vcu3fcvbWxM-Q@mail.gmail.com> <CAG4TOxP2CUgUsu-061XZpEgY89k0Xf4+jfTOmq=b_h0Q1Ccs0w@mail.gmail.com> <CAJZOPZKJzkiVqaHPx1Zvs0boxyy0P=KJSkq-7ZuA6FMJwbh-4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <C514BDBF78B34BDE8337C0F009522A9C-w/L3Ro8pDhisTnJN9+BGXg@public.gmane.org>
+In-Reply-To: <CAJZOPZKJzkiVqaHPx1Zvs0boxyy0P=KJSkq-7ZuA6FMJwbh-4Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Egor Medvedev <methodx-w/L3Ro8pDhisTnJN9+BGXg@public.gmane.org>
-Cc: scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I'm working too on this issue. As we see with on initiator side lvm
-info not updated at all. It does not sees any changes on exported disk
-that contains lvm.
-Does it possible that lvm cache info or scst cache it?
-I'm try to remove /etc/lvm/.cache dir but this not change anything.
-
-2013/10/16 Egor Medvedev <methodx-w/L3Ro8pDhisTnJN9+BGXg@public.gmane.org>:
-> Hello everyone.
+On 06/08/2013 23:32, Or Gerlitz wrote:
+> On Tue, Aug 6, 2013 at 8:40 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> On Tue, Aug 6, 2013 at 8:03 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>> Could you finally-long-lastish post some comments on how you see this?
+>>> any bugs or flames you find here, is this going to be accepted? when?
+>>
+>> Have you read the patches?  Any comments?
+> The XRC patches, YES, I have looked on them and along the ..v9 trail I
+> provided Yishai and earlier to Sean some comments that were fixed.
+> Also Shlomo from our team tested the patches with iSER target (tgt,
+> user space) and initiator (kernel) experimental code that uses XRC and
+> we provided few patches to bugs in the IB core and mlx4 driver,
+> stepped on the way. Also I posted earlier this week few more XRC
+> patches to kernel bugs found by Yishai and team while they tested this
+> series for the last round of submission.
 >
+> As for the user space verbs extensions framework/impl., I (&& Eli
+> Cohen too) did go to some level through the design and architecture
+> set by Tzahi, Jason and Sean, but you know what, one can't master it
+> all. So I in that respect, OTOH I am OK with the proposed design and
+> code, but if you wake me up in the middle of the night, I can't sing
+> it out loud. But OTOH, I don't wear the maintainer hat, and you said
+> no need for co-maintainer to libibverbs last time we talked, so after
+> the folks worked on that for > year, its about time for you to do so
+> too, makes sense?
 >
-> I have a strange problem with scst v3 and lvm.
->
->
-> Lets say, I have 2 nodes.
->
->
-> node-1, that have some lv's. I export them to other nodes with srp.
->
-> node-2 work machine, connects to node-1
->
->
-> After upgrading to scst 3 on node-1, I can't see new LV's.
->
->
-> Here is an example:
->
->
-> ====
->
-> root@node-1:~# lvs | grep 63161
->
->   1_63161_1      node-1 -wi-a---   5.00g
->
->   1_63161_2      node-1 -wi-a---   5.00g
->
->   2_63161_1      node-1 -wi-a---   5.00g
->
->   2_63161_3      node-1 -wi-a---   5.00g
->
->   3_63161_1      node-1 -wi-a---   5.00g
->
-> ====
->
-> 3_63161_1 was created after upgrade
->
->
-> output on node-2:
->
-> ====
->
-> root@node-2:~ # lvs | grep 63161
->
->   1_63161_1      node-1 -wi---   5.00G
->
->   1_63161_2      node-1 -wi---   5.00G
->
->   2_63161_1      node-1 -wi---   5.00G
->
->   2_63161_3      node-1 -wi---   5.00G
->
->
-> ====
->
-> Can't find any useful information with dmesg.
->
->
-> Any ideas?
->
->
-> --
-> Best Regards,
-> Egor
->
->
-> ------------------------------------------------------------------------------
-> October Webinars: Code for Performance
-> Free Intel webinars can help you accelerate application performance.
-> Explore tips for MPI, OpenMP, advanced profiling, and more. Get the most
-> from
-> the latest Intel processors and coprocessors. See abstracts and register >
-> http://pubads.g.doubleclick.net/gampad/clk?id=60135031&iu=/4140/ostg.clktrk
-> _______________________________________________
-> Scst-devel mailing list
-> https://lists.sourceforge.net/lists/listinfo/scst-devel
 >
 
+Hi Roland, another two months elapsed and not a word from you here, how 
+can we make progress?
+do you need any further feedback from maybe Sean or Jason?
 
-
--- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-jabber: vase-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
