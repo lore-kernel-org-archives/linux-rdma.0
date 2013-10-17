@@ -1,38 +1,117 @@
 From: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Subject: [PATCH 0/2] opensm partition.conf issues
-Date: Thu, 17 Oct 2013 13:10:41 +0200
-Message-ID: <20131017111041.177713.61634.stgit@fsdevel2>
+Subject: [PATCH opensm 2/2] Try default parition config if parsing the
+ partitions.conf failed
+Date: Thu, 17 Oct 2013 13:10:52 +0200
+Message-ID: <20131017111052.177713.67832.stgit@fsdevel2>
+References: <20131017111041.177713.61634.stgit@fsdevel2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131017111041.177713.61634.stgit@fsdevel2>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Without an partition.conf file opensm filled the log file with error messages
-on every sweep.
+If partitions.conf is for some reasons invalid or empty, try again
+with the default configuration.
 
-Sep 27 18:21:47 917409 [6A60D700] 0x01 -> osm_prtn_make_partitions: Partition configuration /etc/opensm/partitions.conf is not accessible (No such file or directory)
-Sep 27 18:21:47 918994 [6A60D700] 0x02 -> SUBNET UP
-Sep 27 18:22:07 917436 [6A60D700] 0x01 -> osm_prtn_make_partitions: Partition configuration /etc/opensm/partitions.conf is not accessible (No such file or directory)
-Sep 27 18:22:07 918979 [6A60D700] 0x02 -> SUBNET UP
+This will re-use the default configuration created by prtn_make_default(),
+but osm_prtn_make_new() will automatically overwrite the initial default.
 
-With an empty partition file opensm didn't bring up the fabric properly, resulting
-in endless kernel messages
-ib0: multicast join failed for ff12:401b:ffff:0000:0000:0000:ffff:ffff, status -22
+Signed-off-by: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
+---
+ opensm/osm_prtn.c        |   11 ++++++++++-
+ opensm/osm_prtn_config.c |   11 ++++++++++-
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
-opensm.log file had lots of these message
-Oct 17 09:31:38 461345 [67EC4700] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B11: method = SubnAdmSet, scope_state = 0x1, component mask = 0x0000000000010083, expected comp mask = 0x000000
-00000130c7, MGID: ff12:401b:ffff::ffff:ffff from port 0x0002c9030036dd21 (MT25408 ConnectX Mellanox Technologies)
-Oct 17 09:31:38 505122 [66EC2700] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B11: method = SubnAdmSet, scope_state = 0x1, component mask = 0x0000000000010083, expected comp mask = 0x000000
-00000130c7, MGID: ff12:401b:ffff::ffff:ffff from port 0x0002c90300f4d6d1 (MT25408 ConnectX Mellanox Technologies)
-Oct 17 09:31:46 294201 [5D6AF700] 0x02 -> SUBNET UP
-
-So here are two patches to reduce the log level and to try the default 
-partition configuration if there is not a single valid config line.
-
+diff --git a/opensm/osm_prtn.c b/opensm/osm_prtn.c
+index e76e2e1..4db7e7a 100644
+--- a/opensm/osm_prtn.c
++++ b/opensm/osm_prtn.c
+@@ -376,6 +376,7 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
+ 	struct stat statbuf;
+ 	const char *file_name;
+ 	boolean_t is_config = TRUE;
++	boolean_t is_wrong_config = FALSE;
+ 	ib_api_status_t status = IB_SUCCESS;
+ 	cl_map_item_t *p_next;
+ 	osm_prtn_t *p;
+@@ -389,6 +390,7 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
+ 		is_config = FALSE;
+ 	}
+ 
++retry_default:
+ 	/* clean up current port maps */
+ 	p_next = cl_qmap_head(&p_subn->prtn_pkey_tbl);
+ 	while (p_next != cl_qmap_end(&p_subn->prtn_pkey_tbl)) {
+@@ -404,9 +406,11 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
+ 	if (status != IB_SUCCESS)
+ 		goto _err;
+ 
+-	if (is_config && osm_prtn_config_parse_file(p_log, p_subn, file_name))
++	if (is_config && osm_prtn_config_parse_file(p_log, p_subn, file_name)) {
+ 		OSM_LOG(p_log, OSM_LOG_VERBOSE, "Partition configuration "
+ 			"was not fully processed\n");
++		is_wrong_config = TRUE;
++	}
+ 
+ 	/* and now clean up empty partitions */
+ 	p_next = cl_qmap_head(&p_subn->prtn_pkey_tbl);
+@@ -421,6 +425,11 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
+ 		}
+ 	}
+ 
++	if (is_config && is_wrong_config) {
++		is_config = FALSE;
++		goto retry_default;
++	}
++
+ _err:
+ 	return status;
+ }
+diff --git a/opensm/osm_prtn_config.c b/opensm/osm_prtn_config.c
+index 8f4a673..e916582 100644
+--- a/opensm/osm_prtn_config.c
++++ b/opensm/osm_prtn_config.c
+@@ -696,6 +696,9 @@ done:
+ 	return len;
+ }
+ 
++/**
++ * @return -1 on error, 0 on success
++ */
+ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 			       const char *file_name)
+ {
+@@ -703,6 +706,7 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 	struct part_conf *conf = NULL;
+ 	FILE *file;
+ 	int lineno;
++	boolean_t is_parse_success = FALSE;
+ 
+ 	file = fopen(file_name, "r");
+ 	if (!file) {
+@@ -753,6 +757,8 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 				break;
+ 			}
+ 
++			is_parse_success = TRUE;
++
+ 			p += len;
+ 
+ 			if (q) {
+@@ -764,5 +770,8 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
+ 
+ 	fclose(file);
+ 
+-	return 0;
++	if (is_parse_success)
++		return 0;
++	else
++		return -1;
+ }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
