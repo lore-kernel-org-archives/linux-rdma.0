@@ -1,70 +1,77 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm]  osm_pkey.c: Fix find common pkey bug fix
-Date: Sun, 20 Oct 2013 08:30:08 -0400
-Message-ID: <5263CCD0.2010605@dev.mellanox.co.il>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RFC 2/9] IB/core: Introduce Signature Verbs API
+Date: Sun, 20 Oct 2013 15:55:58 +0300
+Message-ID: <5263D2DE.8010500@mellanox.com>
+References: <1381851510-17290-1-git-send-email-sagig@mellanox.com> <1381851510-17290-3-git-send-email-sagig@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CE2BFF@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CE2BFF-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 10/18/2013 1:51 AM, Hefty, Sean wrote:
+>> @@ -885,6 +901,19 @@ struct ib_send_wr {
+>>   			u32                      rkey;
+>>   			struct ib_mw_bind_info   bind_info;
+>>   		} bind_mw;
+>> +		struct {
+>> +			struct ib_sig_attrs    *sig_attrs;
+>> +			struct ib_mr	       *sig_mr;
+>> +			int			access_flags;
+>> +			/* Registered data mr */
+>> +			struct ib_mr	       *data_mr;
+>> +			u32			data_size;
+>> +			u64			data_va;
+>> +			/* Registered protection mr */
+>> +			struct ib_mr	       *prot_mr;
+>> +			u32			prot_size;
+>> +			u64			prot_va;
+>> +		} sig_handover;
+> At what point do we admit that this is a ridiculous structure?
 
-When OpenSM supports keeping both full and limited membership pkeys
-for same port, search common pkey algorithm might miss a pkey shared
-by two ports.
+If you are referring to ib_send_wr, I agree, shall we modify it to a 
+union of typedefs so it becomes more readable?
 
-OpenSM iterates over pkey table of both ports, trying to find a
-matching pkey, where the pkeys are sorted by network order value of
-the pkeys (including membership bit).
+> Help me understand what this WR is doing.  Is this telling the HCA to copy data between local MRs?  What is a 'data MR' versus a 'protected MR'?  (I'm not hip on T10-DIF.)
 
-When OpenSM searches for the shared pkey, it advances the iterator with
-the lower key value. when comparing the keys without ignoring the
-membership bit, OpenSM might miss a shared pkey.
+No data copy, god forbids... :)
 
-For example:
-Port 1 pkeys : 0x0081 0x0082
-Port 2 pkeys : 0x0002 0x0003
+Let me start by giving a short intro on signature (and T10-DIF).
+In signature world, data may exist with protection information which is 
+the guarding the data. In T10-DIF (Data Integrity Fields) for example, 
+these are 8-byte guards which includes CRC for each 512 bytes of data 
+(block).
+An HCA which support signature offload, is expected to validate that the 
+data is intact (each block matches its guard) and send it correctly over 
+the wire (in T10-DIF case the data and protection should be interleaved 
+i.e. 512B of data followed by 8B of protection guard) or alternatively, 
+validate data (+ protection) coming from the wire and write it to the 
+associated memory areas.
+In the general case, the data and the protection guards may lie in 
+different memory areas. SCSI mid-layer for instance, passes the 
+transport driver 2 buffers using 2 scatterlists.
+The transport driver (or application in the general case), is expected 
+to register each buffer (as it normally would in order to use RDMA) 
+using 2 MRs.
 
-Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_pkey.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+The signature handover operation is binding all the necessary 
+information for the HCA together: where is the data (data_mr), where is 
+the protection information (prot_mr), what are the signature properties 
+(sig_attrs).
+Once this step is taken (WR is posted), a single MR (sig_mr) describes 
+the signature handover operation and can be used to perform RDMA under 
+signature presence.
+Once the HCA will perform RDMA over this MR, it will take into account 
+the signature context of the transaction and will follow the signature 
+attributes configured.
 
-diff --git a/opensm/osm_pkey.c b/opensm/osm_pkey.c
-index 4f5aa73..7a24156 100644
---- a/opensm/osm_pkey.c
-+++ b/opensm/osm_pkey.c
-@@ -430,8 +430,8 @@ ib_net16_t osm_physp_find_common_pkey(IN const osm_physp_t * p_physp1,
- 			return *pkey1;
- 
- 		/* advance the lower value if they are not equal */
--		pkey1_base = cl_map_key(map_iter1);
--		pkey2_base = cl_map_key(map_iter2);
-+		pkey1_base = ib_pkey_get_base(cl_map_key(map_iter1));
-+		pkey2_base = ib_pkey_get_base(cl_map_key(map_iter2));
- 		if (pkey2_base == pkey1_base) {
- 			map_iter1 = cl_map_next(map_iter1);
- 			map_iter2 = cl_map_next(map_iter2);
-@@ -463,8 +463,8 @@ ib_net16_t osm_physp_find_common_pkey(IN const osm_physp_t * p_physp1,
- 			return *pkey1;
- 
- 		/* advance the lower value if they are not equal */
--		pkey1_base = cl_map_key(map_iter1);
--		pkey2_base = cl_map_key(map_iter2);
-+		pkey1_base = ib_pkey_get_base(cl_map_key(map_iter1));
-+		pkey2_base = ib_pkey_get_base(cl_map_key(map_iter2));
- 		if (pkey2_base == pkey1_base) {
- 			map_iter1 = cl_map_next(map_iter1);
- 			map_iter2 = cl_map_next(map_iter2);
--- 
-1.7.1
+Hope this helps,
 
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
