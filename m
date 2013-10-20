@@ -1,44 +1,68 @@
-From: Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>
-Subject: [PATCH] IB/core: Pass imm_data from ib_uverbs_send_wr to ib_send_wr
- correctly when sending UD messages
-Date: Sat, 19 Oct 2013 15:55:41 -0600
-Message-ID: <20131019215540.GA8544@moria>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [Patch v2 3/3] IB/cache: don't fill the cache with junk
+Date: Sun, 20 Oct 2013 08:51:49 +0200
+Message-ID: <20131020085149.6e719ad2@jpm-OptiPlex-GX620>
+References: <cover.1380056994.git.dledford@redhat.com>
+	<4c88e00f5211787a98fa980a4d42c5c6374ab868.1380056994.git.dledford@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4c88e00f5211787a98fa980a4d42c5c6374ab868.1380056994.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Drier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, the infiniband subsystem doesn't copy the immediate data
-from the userspace struct to the kernel one when UD messages are being
-sent.
+On Tue, 24 Sep 2013 17:16:29 -0400
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
 
-This patch makes sure that the immediate data is set correctly.
+> @@ -85,13 +91,26 @@ int ib_get_cached_gid(struct ib_device *device,
+>  
+>  	cache = device->cache.gid_cache[port_num -
+> start_port(device)]; 
+> -	if (index < 0 || index >= cache->table_len)
+> +	if (index < 0 || index >= cache->table_len) {
+>  		ret = -EINVAL;
+> -	else
+> -		*gid = cache->table[index];
+> +		goto out_unlock;
+> +	}
+>  
+> -	read_unlock_irqrestore(&device->cache.lock, flags);
+> +	for (i = 0; i < cache->table_len; ++i)
+> +		if (cache->entry[i].index == index)
+> +			break;
+> +
+> +
 
-Signed-off-by: Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c | 3 +++
- 1 file changed, 3 insertions(+)
+Hi Doug,
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index f2b81b9..ba207e1 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2126,6 +2126,9 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 			}
- 			next->wr.ud.remote_qpn  = user_wr->wr.ud.remote_qpn;
- 			next->wr.ud.remote_qkey = user_wr->wr.ud.remote_qkey;
-+			if (next->opcode == IB_WR_SEND_WITH_IMM)
-+				next->ex.imm_data =
-+					(__be32 __force) user_wr->ex.imm_data;
- 		} else {
- 			switch (next->opcode) {
- 			case IB_WR_RDMA_WRITE_WITH_IMM:
--- 
-1.8.1.2
+I am a bit concerned about this patch, because where before
+ib_get_cached_gid just returned the GID at the given index, with your
+suggested change, ib_get_cached_gid() requires a search of the new gid
+table (to find the entry with the requested index value).
 
+ib_get_cached_gid is called by cm_req_handler, for the gid at index 0.
+There is no guarantee that this will be the first entry in the new
+scheme.
+
+Furthermore, ib_get_cached_gid is also called in MAD packet handling,
+with the specific gid index that is required.
+
+Thus, the savings for ib_find_cached_gid might possibly be offset by a
+performance loss in ib_get_cached_gid.
+
+A simpler optimization would be to simply keep a count of the number of
+valid GIDS in the gid table -- and break off the search when the last
+valid GID has been seen.  This would optimize cases where, for example,
+you are searching for a GID that is not in the table, and only the
+first 3 gids in the table are valid (so you would not needlessly access
+125 invalid GIDs).  Clearly, such an optimization is only useful when
+there are a lot of invalid gids bunched together at the end of the
+table.  Still, something to think about.
+
+-Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
