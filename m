@@ -1,61 +1,40 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC 2/9] IB/core: Introduce Signature Verbs API
-Date: Mon, 21 Oct 2013 19:12:50 +0300
-Message-ID: <52655282.1000505@mellanox.com>
-References: <1381851510-17290-1-git-send-email-sagig@mellanox.com> <1381851510-17290-3-git-send-email-sagig@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CE2BFF@ORSMSX109.amr.corp.intel.com> <5263D2DE.8010500@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CEA91E@ORSMSX109.amr.corp.intel.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH 3/9] IB/core: Don't include command header size in uverbs create_flow
+Date: Mon, 21 Oct 2013 09:46:32 -0700
+Message-ID: <CAL1RGDUV1QX4ekbUYiwVs6iOu6+_0JubBq77zcjn0UqD_H7c-A@mail.gmail.com>
+References: <cover.1381510045.git.ydroneaud@opteya.com> <ca92c22d0aea21d559d57e6152cb313729a11274.1381510045.git.ydroneaud@opteya.com>
+ <525C0BF2.2060201@mellanox.com> <72b95284386dc57dfa1c7c883b4f45af@meuh.org>
+ <CAL1RGDWarJPu_6u5oaL6NgZZJXBuB09vTi9xhxHALfiY_W9Sgg@mail.gmail.com>
+ <122f1a29d6fe45449a6a153a3a9ba8b1@meuh.org> <CAL1RGDXP3+X=go4GiW_SsvSvC_VS-B7uacJN0u5wVtU3NWfvQA@mail.gmail.com>
+ <CAJZOPZLr41MGb7qPHcFVQxNcwwAB8i4vnGQhEcu0oZ-BOiMBcg@mail.gmail.com>
+ <CAL1RGDW7KwSOmmsRxDokUHR-Mh1OzaQvDege5Rq7JsSU8AgEHQ@mail.gmail.com>
+ <525FABA2.6000507@mellanox.com> <80c62f070af55a176923315b3fbb7b0d@meuh.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CEA91E-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <80c62f070af55a176923315b3fbb7b0d-zgzEX58YAwA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/21/2013 5:34 PM, Hefty, Sean wrote:
->> The signature handover operation is binding all the necessary
->> information for the HCA together: where is the data (data_mr), where is
->> the protection information (prot_mr), what are the signature properties
->> (sig_attrs).
->> Once this step is taken (WR is posted), a single MR (sig_mr) describes
->> the signature handover operation and can be used to perform RDMA under
->> signature presence.
->> Once the HCA will perform RDMA over this MR, it will take into account
->> the signature context of the transaction and will follow the signature
->> attributes configured.
-> It seems like this changes loses the ability to use an SGL.
+On Thu, Oct 17, 2013 at 8:29 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
+>> Just to double check, by no means we are talking on reverting the
+>> whole series, flow-steering will be in
+>> 3.12 in the IB core and mlx4_ib
 
-I don't think so,
-Signature MR simply describes a "signature associated" memory region 
-i.e. it is a memory region that
-also defines some signature operation offload aside from normal RDMA 
-(for example validate & strip).
-SGL are used to publish several rkeys for the server/target/peer to 
-perform RDMA on each.
-In this case the user previously registered each MR which he wishes it's 
-peer to RDMA over.
-Same story here, if user has several signature associated MRs, where he 
-wish his peer to RDMA over (in a protected manner),
-he can use these rkeys to construct SGL.
+Correct, just hiding the unstable userspace ABI for now.
 
->    Why are the signature properties separate from the protection information?
+> I believe it will disable by #if 0 / #endif.
+> It could be protected by #ifdef
+> CONFIG_INFINIBAND_EXPERIMENTAL_UVERBS_FLOW_STEERING
+> instead, but I don't know if it's acceptable practice for such piece of code
+> that should be exposed in its current state.
 
-Well,
-Protection information is the actual protection block guards of the data 
-(i.e. CRCs, XORs, DIFs etc..), while the signature properties
-structure is the descriptor telling the HCA how to 
-treat/validate/generate the protection information.
+I like the Kconfig option -- I just made a patch that does that (and
+made the option depend on STAGING), I'll post it for comments.
 
-Note that signature support requires the HCA to be able to support 
-INSERT operations.
-This means that there is no protection information and the HCA is asked 
-to generate it and add it to the data stream
-(which may be incoming or outgoing...),
-
-Hope this helps.
-
-Sagi.
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
