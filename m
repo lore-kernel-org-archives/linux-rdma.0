@@ -1,153 +1,123 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC 1/9] IB/core: Introduce indirect and protected memory
- regions
-Date: Sun, 20 Oct 2013 16:05:57 +0300
-Message-ID: <5263D535.3010409@mellanox.com>
-References: <1381851510-17290-1-git-send-email-sagig@mellanox.com> <1381851510-17290-2-git-send-email-sagig@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CE2BE0@ORSMSX109.amr.corp.intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Patch v2 3/3] IB/cache: don't fill the cache with junk
+Date: Mon, 21 Oct 2013 00:12:54 -0400
+Message-ID: <5264A9C6.6000807@redhat.com>
+References: <cover.1380056994.git.dledford@redhat.com>	<4c88e00f5211787a98fa980a4d42c5c6374ab868.1380056994.git.dledford@redhat.com> <20131020085149.6e719ad2@jpm-OptiPlex-GX620>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CE2BE0-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20131020085149.6e719ad2@jpm-OptiPlex-GX620>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Drier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/18/2013 1:43 AM, Hefty, Sean wrote:
->> This commit introduces verbs for creating memory regions
->> which will allow new types of memory key operations such
->> as indirect memory registration and protected memory
->> registration.
+On 10/20/2013 02:51 AM, Jack Morgenstein wrote:
+> On Tue, 24 Sep 2013 17:16:29 -0400
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+>> @@ -85,13 +91,26 @@ int ib_get_cached_gid(struct ib_device *device,
 >>
->> Indirect memory registration is registering several (one
->> of more) pre-registered memory regions in a specific layout.
->> The Indirect region may potentialy describe several regions
->> and some repitition format between them.
-> I didn't follow this direct versus indirect difference.  See below.
->   
-
-Hey Sean, thanks for looking into this!
-
-Indirect memory registration feature will be submitted in the future. 
-Signature feature is using it "under the hood".
-I'll remove it from v2 as it creates a source of confusion and I want to 
-concentrate on signature.
-
-Now since you opened this door, briefly,
-unlike direct (known) MRs which are associated with a page-list, 
-indirect MRs can be associated with other MRs in the form of a list of 
-tuples {lkey, addr, len} providing more flexible memory registrations.
-
->> +struct ib_mr *ib_create_mr(struct ib_pd *pd,
->> +			   struct ib_mr_init_attr *mr_init_attr)
->> +{
->> +	struct ib_mr *mr;
->> +
->> +	if (!pd->device->create_mr)
->> +		return ERR_PTR(-ENOSYS);
->> +
->> +	mr = pd->device->create_mr(pd, mr_init_attr);
->> +
->> +	if (!IS_ERR(mr)) {
->> +		mr->device  = pd->device;
->> +		mr->pd      = pd;
->> +		mr->uobject = NULL;
->> +		atomic_inc(&pd->usecnt);
->> +		atomic_set(&mr->usecnt, 0);
+>>   	cache = device->cache.gid_cache[port_num -
+>> start_port(device)];
+>> -	if (index < 0 || index >= cache->table_len)
+>> +	if (index < 0 || index >= cache->table_len) {
+>>   		ret = -EINVAL;
+>> -	else
+>> -		*gid = cache->table[index];
+>> +		goto out_unlock;
 >> +	}
->> +
->> +	return mr;
->> +}
->> +EXPORT_SYMBOL(ib_create_mr);
->> +
->> +int ib_destroy_mr(struct ib_mr *mr)
->> +{
->> +	struct ib_pd *pd;
->> +	int ret;
->> +
->> +	if (atomic_read(&mr->usecnt))
->> +		return -EBUSY;
->> +
->> +	pd = mr->pd;
->> +	ret = mr->device->destroy_mr(mr);
->> +	if (!ret)
->> +		atomic_dec(&pd->usecnt);
->> +
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL(ib_destroy_mr);
->> +
->>   struct ib_mr *ib_alloc_fast_reg_mr(struct ib_pd *pd, int
->> max_page_list_len)
->>   {
->>   	struct ib_mr *mr;
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index 645c3ce..65b7e79 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -925,6 +925,30 @@ enum ib_mr_rereg_flags {
->>   	IB_MR_REREG_ACCESS	= (1<<2)
->>   };
 >>
->> +enum ib_mr_create_flags {
->> +		IB_MR_SIGNATURE_EN = 1,
->> +};
+>> -	read_unlock_irqrestore(&device->cache.lock, flags);
+>> +	for (i = 0; i < cache->table_len; ++i)
+>> +		if (cache->entry[i].index == index)
+>> +			break;
 >> +
->> +enum ib_mr_reg_type {
->> +	IB_MR_REG_DIRECT,
->> +	IB_MR_REG_INDIRECT,
->> +};
 >> +
->> +/**
->> + * ib_mr_init_attr - Memory region init attributes passed to routine
->> + *	ib_create_mr.
->> + * @reg_type: requested mapping type, this can be direct/indirect
->> + *   registration or repetitive structure registration.
->> + * @max_reg_descriptors: max number of registration units that
->> + *   may be used with UMR work requests.
->> + * @flags: MR creation flags bit mask.
->> + */
->> +struct ib_mr_init_attr {
->> +	enum ib_mr_reg_type	reg_type;
->> +	int			max_reg_descriptors;
->> +	enum ib_mr_create_flags	flags;
->> +};
->> +
->>   /**
->>    * struct ib_mw_bind - Parameters for a type 1 memory window bind
->> operation.
->>    * @wr_id:      Work request id.
->> @@ -1257,6 +1281,9 @@ struct ib_device {
->>   	int                        (*query_mr)(struct ib_mr *mr,
->>   					       struct ib_mr_attr *mr_attr);
->>   	int                        (*dereg_mr)(struct ib_mr *mr);
->> +	int                        (*destroy_mr)(struct ib_mr *mr);
->> +	struct ib_mr *		   (*create_mr)(struct ib_pd *pd,
->> +						struct ib_mr_init_attr *mr_init_attr);
-> These create and destroy something called an 'MR', but are not actually associated with any memory buffers.  Is this some sort of conceptual sub-protection domain?  Why is this needed, versus defining new ib_mr_attr fields?
+>
+> Hi Doug,
+>
+> I am a bit concerned about this patch, because where before
+> ib_get_cached_gid just returned the GID at the given index, with your
+> suggested change, ib_get_cached_gid() requires a search of the new gid
+> table (to find the entry with the requested index value).
 
-This MR can be perceived as a generalization of fast_reg MR. When using 
-fast memory registration the verbs user will call ib_alloc_fast_reg_mr() 
-in order to allocate an MR that may be used for fast registration method 
-by posting
-a fast registration work-request on the send-queue (FRWR). The user does 
-not pass any memory buffers to ib_alloc_fast_reg_mr() as the actual 
-registration is done via posting WR. This follows the same notation, but 
-allows new functionality (such as signature enable).
+Yes, I agree.  That was a consideration in things.
 
-As things are today, No MR creation method (fast_reg, dma, phys, 
-user...) allows passing initialization parameters. signature feature 
-requires some internal resources management, and we need some kind of 
-indication that signature is requested for this MR. I'm suggesting that 
-this verb will cover the general case and later on, it is possible to 
-extend this method to cover all existing flavors of MR creation 
-(implement the existing ones with it).
+> ib_get_cached_gid is called by cm_req_handler, for the gid at index 0.
+> There is no guarantee that this will be the first entry in the new
+> scheme.
 
-Do you agree? or do you prefer to extend other MR allocation methods to 
-receive initialization parameters?
+If it's valid, then yes it is.  Only if GID index 0 is invalid will it 
+not be the first entry (and then it won't be an entry at all).  This is 
+due to how the update of the gid table works (it scans each entry, 
+starting at 0 and going to table length, and puts them into a table in 
+ascending order).
 
-> - Sean
+Which points out that a valid optimization not present in this patch 
+would be to break if the current table index is > than the requested index.
+
+I had also thought about doing a bitmap for the valid entries. 
+Realistically, most machines only have 1 or 2 ports of IB devices.  For 
+common devices, the maximum pkey table length is 128 entries.  So, 2 
+ports at 128 entries per port is a pretty miserly 256 bytes of memory. 
+We could just allocate a full table and use a bitmap to represent the 
+valid entries, and then in the find_cached* cases use the bitmap to 
+limit our search.  That would allow us to go back to O(1) for get_cached*.
+
+> Furthermore, ib_get_cached_gid is also called in MAD packet handling,
+> with the specific gid index that is required.
+>
+> Thus, the savings for ib_find_cached_gid might possibly be offset by a
+> performance loss in ib_get_cached_gid.
+
+Doubtful.  Given that the common case is trading a single lookup 
+increase to a 3 to 5 GID long chain search versus searching 128 entries 
+of which 123 to 125 are invalid down to a similar 3 to 5 long chain 
+search, the obvious big gain is getting rid of that 123 to 125 wasted 
+memcmp's.  And ib_find_cached_gid is used in cma_acquire_dev(), which in 
+turn is called by cma_req_handler, iw_conn_req_handler, addr_handler, 
+and rdma_bind_addr.  So it sees plenty of use as well.
+
+Now, one thing I haven't tested yet and wish to, is a situation when we 
+have lots of SRIOV devices and a GID table on the PF that is highly 
+populated.  In that case, further refinement will likely be necessary. 
+If so, that will be my next patch, but I'll leave these patches to stand 
+as they do now.
+
+> A simpler optimization would be to simply keep a count of the number of
+> valid GIDS in the gid table -- and break off the search when the last
+> valid GID has been seen.
+
+My understanding, according to the PKey change flow patches that Or 
+posted, is that the GID table can have invalid entries prior to valid 
+entries, and so that optimization would break.
+
+>  This would optimize cases where, for example,
+> you are searching for a GID that is not in the table, and only the
+> first 3 gids in the table are valid (so you would not needlessly access
+> 125 invalid GIDs).  Clearly, such an optimization is only useful when
+> there are a lot of invalid gids bunched together at the end of the
+> table.  Still, something to think about.
+
+As you point out, it only works if all the invalid entries are at the 
+end, and we can't guarantee that.
+
+I think I like my suggestion better: go back to having a full table, but 
+use a bitmap to indicate valid entries and then use the bitmap to limit 
+our comparisons in the find_cached* functions, and put the get_* 
+funtions back to being O(1).  But I would still do that incrementally 
+from here I think.
+
+But I'm not totally convinced of that either.  The exact sitiation I 
+listed above, lots of GIDs on an SRIOV PF, makes me concerned that we 
+can get back to a horrible situation in the find_cached* functions once 
+we actually have lots of valid entries.  It makes me think we need 
+something better than just a linear search of all valid entries when you 
+take SRIOV into account.  Whether hash chains or ranges or something to 
+make the lots of valid GIDs case faster, I suspect something needs to be 
+done, but because things simply aren't in common use yet we don't know it.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
