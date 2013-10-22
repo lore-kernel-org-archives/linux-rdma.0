@@ -1,136 +1,52 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH opensm 2/2] Try default parition config if parsing the
- partitions.conf failed
-Date: Tue, 22 Oct 2013 02:08:08 -0400
-Message-ID: <52661648.3020204@dev.mellanox.co.il>
-References: <20131017111041.177713.61634.stgit@fsdevel2> <20131017111052.177713.67832.stgit@fsdevel2>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [Patch v2 3/3] IB/cache: don't fill the cache with junk
+Date: Tue, 22 Oct 2013 08:35:05 +0200
+Message-ID: <20131022083505.1d530531@jpm-OptiPlex-GX620>
+References: <cover.1380056994.git.dledford@redhat.com>
+	<4c88e00f5211787a98fa980a4d42c5c6374ab868.1380056994.git.dledford@redhat.com>
+	<20131020085149.6e719ad2@jpm-OptiPlex-GX620>
+	<5264A9C6.6000807@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131017111052.177713.67832.stgit@fsdevel2>
+In-Reply-To: <5264A9C6.6000807-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Drier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bernd,
+On Mon, 21 Oct 2013 00:12:54 -0400
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
 
-On 10/17/2013 7:10 AM, Bernd Schubert wrote:
-> If partitions.conf is for some reasons invalid or empty, try again
-> with the default configuration.
+> I think I like my suggestion better: go back to having a full table,
+> but use a bitmap to indicate valid entries and then use the bitmap to
+> limit our comparisons in the find_cached* functions, and put the
+> get_* funtions back to being O(1).  But I would still do that
+> incrementally from here I think.
 > 
-> This will re-use the default configuration created by prtn_make_default(),
-> but osm_prtn_make_new() will automatically overwrite the initial default.
+> But I'm not totally convinced of that either.  The exact sitiation I 
+> listed above, lots of GIDs on an SRIOV PF, makes me concerned that we 
+> can get back to a horrible situation in the find_cached* functions
+> once we actually have lots of valid entries.  It makes me think we
+> need something better than just a linear search of all valid entries
+> when you take SRIOV into account.  Whether hash chains or ranges or
+> something to make the lots of valid GIDs case faster, I suspect
+> something needs to be done, but because things simply aren't in
+> common use yet we don't know it.
 
-This seems like a better "policy". The admin now will need to notice
-that he might not have gotten the partitioning he was trying to instill
-in the subnet. Before he would not miss this because the result was more
-severe.
+Doug, I like your suggestion regarding bitmaps. I would rather hold off
+on patch #3, though, because as you say, patches 1 and 2 do most of the
+work and the patch #3 optimization won't do much if the GID table is
+very populated (which will be the case under SRIOV).
 
-> Signed-off-by: Bernd Schubert <bernd.schubert-mPn0NPGs4xGatNDF+KUbs4QuADTiUCJX@public.gmane.org>
-> ---
->  opensm/osm_prtn.c        |   11 ++++++++++-
->  opensm/osm_prtn_config.c |   11 ++++++++++-
->  2 files changed, 20 insertions(+), 2 deletions(-)
-> 
-> diff --git a/opensm/osm_prtn.c b/opensm/osm_prtn.c
-> index e76e2e1..4db7e7a 100644
-> --- a/opensm/osm_prtn.c
-> +++ b/opensm/osm_prtn.c
-> @@ -376,6 +376,7 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
->  	struct stat statbuf;
->  	const char *file_name;
->  	boolean_t is_config = TRUE;
-> +	boolean_t is_wrong_config = FALSE;
->  	ib_api_status_t status = IB_SUCCESS;
->  	cl_map_item_t *p_next;
->  	osm_prtn_t *p;
-> @@ -389,6 +390,7 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
->  		is_config = FALSE;
->  	}
->  
-> +retry_default:
->  	/* clean up current port maps */
->  	p_next = cl_qmap_head(&p_subn->prtn_pkey_tbl);
->  	while (p_next != cl_qmap_end(&p_subn->prtn_pkey_tbl)) {
-> @@ -404,9 +406,11 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
->  	if (status != IB_SUCCESS)
->  		goto _err;
->  
-> -	if (is_config && osm_prtn_config_parse_file(p_log, p_subn, file_name))
-> +	if (is_config && osm_prtn_config_parse_file(p_log, p_subn, file_name)) {
->  		OSM_LOG(p_log, OSM_LOG_VERBOSE, "Partition configuration "
->  			"was not fully processed\n");
-> +		is_wrong_config = TRUE;
-> +	}
->  
->  	/* and now clean up empty partitions */
->  	p_next = cl_qmap_head(&p_subn->prtn_pkey_tbl);
-> @@ -421,6 +425,11 @@ ib_api_status_t osm_prtn_make_partitions(osm_log_t * p_log, osm_subn_t * p_subn)
->  		}
->  	}
->  
-> +	if (is_config && is_wrong_config) {
-> +		is_config = FALSE;
-> +		goto retry_default;
-> +	}
-> +
->  _err:
->  	return status;
->  }
-> diff --git a/opensm/osm_prtn_config.c b/opensm/osm_prtn_config.c
-> index 8f4a673..e916582 100644
-> --- a/opensm/osm_prtn_config.c
-> +++ b/opensm/osm_prtn_config.c
-> @@ -696,6 +696,9 @@ done:
->  	return len;
->  }
->  
-> +/**
-> + * @return -1 on error, 0 on success
-> + */
->  int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
->  			       const char *file_name)
->  {
-> @@ -703,6 +706,7 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
->  	struct part_conf *conf = NULL;
->  	FILE *file;
->  	int lineno;
-> +	boolean_t is_parse_success = FALSE;
->  
->  	file = fopen(file_name, "r");
->  	if (!file) {
-> @@ -753,6 +757,8 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
->  				break;
->  			}
->  
-> +			is_parse_success = TRUE;
+I think what you say is correct, a linear search through a populated
+table will be expensive -- and we need to come up with a better
+strategy here.
 
-Doesn't this set is_parse_success on first good parseable line in
-partition config ? I think easiest change is to set is_parse_success to
-TRUE at top of routine and in the 2 places in this routine where parsing
-can fail set it to FALSE. Does that make sense ?
+ACK for first 2 patches, please hold off on the third.
 
--- Hal
-
-> +
->  			p += len;
->  
->  			if (q) {
-> @@ -764,5 +770,8 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
->  
->  	fclose(file);
->  
-> -	return 0;
-> +	if (is_parse_success)
-> +		return 0;
-> +	else
-> +		return -1;
->  }
-> 
-> 
-
+-Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
