@@ -1,117 +1,43 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 8/9] mlx5: Clear reserved area in set_hca_cap
-Date: Wed, 23 Oct 2013 09:53:20 +0300
-Message-ID: <1382511201-7061-9-git-send-email-eli@mellanox.com>
-References: <1382511201-7061-1-git-send-email-eli@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RFC 2/9] IB/core: Introduce Signature Verbs API
+Date: Wed, 23 Oct 2013 13:42:12 +0300
+Message-ID: <5267A804.6060804@mellanox.com>
+References: <1381851510-17290-1-git-send-email-sagig@mellanox.com> <1381851510-17290-3-git-send-email-sagig@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CE2BFF@ORSMSX109.amr.corp.intel.com> <5263D2DE.8010500@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CEA91E@ORSMSX109.amr.corp.intel.com> <52655282.1000505@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CEE1C7@ORSMSX109.amr.corp.intel.com> <5266BA11.6090300@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CEE286@ORSMSX109.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1382511201-7061-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CEE286-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Firmware spec requires reserved fields to be cleared when calling set_hca_cap.
-Current code queries and copy to the set area, possibly resulting in reserved
-bits not cleared. This patch copies only writable fields to the set area.
+On 10/22/2013 9:20 PM, Hefty, Sean wrote:
+>>> Would we lose anything making this a new operation for the QP, versus
+>> trying to hook it into the existing ib_post_send call?
+>>
+>> If I understand correctly you are suggesting making it a verb? Well this
+>> operation is a fast-path operation - so I guess we will loose it in this
+>> case.
+>> Take SCSI for example, for each IO operation submitted by SCSI
+>> mid-layer, transport layer should perform any protection policy that
+>> SCSI asked for.
+>>   From this point of view, signature operation resembles fast
+>> registration (since the transport does not own the IOP data buffers, so
+>> it uses fast registration methods).
+>> That is why we are hooking into ib_post_send.
+> I'm suggesting multiple calls that can post to the send queue, rather than one call that does a giant switch statement at the beginning based on the opcode.
 
-Fix also typo - msx => max
+Although I understand where you are coming from, We also lose in this case.
+If we go down this rode, we block the user from saving a HW doorbell by 
+concatenating signature and RDMA WRs to a post list.
+I assume this is why fast_reg is also an extension of ib_post_send.
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 35 +++++++++++++++++++++++---
- include/linux/mlx5/device.h                    |  9 +++++--
- 2 files changed, 39 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index bc0f5fb..40a9f5e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -159,6 +159,36 @@ struct mlx5_reg_host_endianess {
- 	u8      rsvd[15];
- };
- 
-+
-+#define CAP_MASK(pos, size) ((u64)((1 << (size)) - 1) << (pos))
-+
-+enum {
-+	MLX5_CAP_BITS_RW_MASK	= CAP_MASK(MLX5_CAP_OFF_CMDIF_CSUM, 2) |
-+				  CAP_MASK(MLX5_CAP_OFF_DCT, 1),
-+};
-+
-+/* selectively copy writable fields clearing any reserved area
-+ */
-+static void copy_rw_fields(struct mlx5_hca_cap *to, struct mlx5_hca_cap *from)
-+{
-+	u64 v64;
-+
-+	to->log_max_qp = from->log_max_qp & 0x1f;
-+	to->log_max_ra_req_dc = from->log_max_ra_req_dc & 0x3f;
-+	to->log_max_ra_res_dc = from->log_max_ra_res_dc & 0x3f;
-+	to->log_max_ra_req_qp = from->log_max_ra_req_qp & 0x3f;
-+	to->log_max_ra_res_qp = from->log_max_ra_res_qp & 0x3f;
-+	to->log_max_atomic_size_qp = from->log_max_atomic_size_qp;
-+	to->log_max_atomic_size_dc = from->log_max_atomic_size_dc;
-+	v64 = be64_to_cpu(from->flags) & MLX5_CAP_BITS_RW_MASK;
-+	to->flags = cpu_to_be64(v64);
-+}
-+
-+enum {
-+	HCA_CAP_OPMOD_GET_MAX	= 0,
-+	HCA_CAP_OPMOD_GET_CUR	= 1,
-+};
-+
- static int handle_hca_cap(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_cmd_query_hca_cap_mbox_out *query_out = NULL;
-@@ -180,7 +210,7 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 	}
- 
- 	query_ctx.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_HCA_CAP);
--	query_ctx.hdr.opmod  = cpu_to_be16(0x1);
-+	query_ctx.hdr.opmod  = cpu_to_be16(HCA_CAP_OPMOD_GET_CUR);
- 	err = mlx5_cmd_exec(dev, &query_ctx, sizeof(query_ctx),
- 				 query_out, sizeof(*query_out));
- 	if (err)
-@@ -192,8 +222,7 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 		goto query_ex;
- 	}
- 
--	memcpy(&set_ctx->hca_cap, &query_out->hca_cap,
--	       sizeof(set_ctx->hca_cap));
-+	copy_rw_fields(&set_ctx->hca_cap, &query_out->hca_cap);
- 
- 	if (dev->profile->mask & MLX5_PROF_MASK_QP_SIZE)
- 		set_ctx->hca_cap.log_max_qp = dev->profile->log_max_qp;
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 5eb4e31..3d789f4 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -230,6 +230,11 @@ enum {
- 	MLX5_MAX_PAGE_SHIFT		= 31
- };
- 
-+enum {
-+	MLX5_CAP_OFF_DCT		= 41,
-+	MLX5_CAP_OFF_CMDIF_CSUM		= 46,
-+};
-+
- struct mlx5_inbox_hdr {
- 	__be16		opcode;
- 	u8		rsvd[4];
-@@ -319,9 +324,9 @@ struct mlx5_hca_cap {
- 	u8	rsvd25[42];
- 	__be16  log_uar_page_sz;
- 	u8	rsvd26[28];
--	u8	log_msx_atomic_size_qp;
-+	u8	log_max_atomic_size_qp;
- 	u8	rsvd27[2];
--	u8	log_msx_atomic_size_dc;
-+	u8	log_max_atomic_size_dc;
- 	u8	rsvd28[76];
- };
- 
--- 
-1.8.1.3
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
