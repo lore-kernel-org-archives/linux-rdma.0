@@ -1,49 +1,38 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 0/9] Mellanox mlx5 driver updates for 3.13
-Date: Wed, 23 Oct 2013 09:53:12 +0300
-Message-ID: <1382511201-7061-1-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 3/9] IB/mlx5: Fix overflow check in IB_WR_FAST_REG_MR
+Date: Wed, 23 Oct 2013 09:53:15 +0300
+Message-ID: <1382511201-7061-4-git-send-email-eli@mellanox.com>
+References: <1382511201-7061-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1382511201-7061-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+Make sure not to overflow when reading the page list from struct
+ib_fast_reg_page_list.
 
-The following set of patches contains fixes and enhancements to the mlx5 driver
-for the 3.13 merge window.
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/qp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Eli  
-
-Eli Cohen (7):
-  IB/mlx5: Fix check of number of entries in create CQ
-  IB/mlx5: Multithreaded create mr
-  IB/mlx5: Fix overflow check in IB_WR_FAST_REG_MR
-  IB/mlx5: Simplify mlx5_ib_destroy_srq
-  mlx5: Fix cleanup flow when DMA mapping fails
-  mlx5: Support arbitrary page size to firmware
-  mlx5: Clear reserved area in set_hca_cap
-
-Moshe Lazer (2):
-  IB/mlx5: Fix srq free in destroy qp
-  mlx5_core: Change optimal_reclaimed_pages for better performance
-
- drivers/infiniband/hw/mlx5/cq.c                    |  23 +--
- drivers/infiniband/hw/mlx5/main.c                  |   3 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h               |   6 +
- drivers/infiniband/hw/mlx5/mr.c                    | 163 +++++++++++++----
- drivers/infiniband/hw/mlx5/qp.c                    |  12 +-
- drivers/infiniband/hw/mlx5/srq.c                   |   8 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c      | 106 ++++++++---
- drivers/net/ethernet/mellanox/mlx5/core/debugfs.c  |   8 +-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c       |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c     |  35 +++-
- drivers/net/ethernet/mellanox/mlx5/core/mr.c       |  32 ++--
- .../net/ethernet/mellanox/mlx5/core/pagealloc.c    | 195 +++++++++++++++------
- include/linux/mlx5/device.h                        |   9 +-
- include/linux/mlx5/driver.h                        |  18 +-
- 14 files changed, 451 insertions(+), 169 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index e388143..8a36fd7 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1915,6 +1915,10 @@ static int set_frwr_li_wr(void **seg, struct ib_send_wr *wr, int *size,
+ 	if (unlikely((*seg == qp->sq.qend)))
+ 		*seg = mlx5_get_send_wqe(qp, 0);
+ 	if (!li) {
++		if (unlikely(wr->wr.fast_reg.page_list_len >
++			     wr->wr.fast_reg.page_list->max_page_list_len))
++			return	-ENOMEM;
++
+ 		set_frwr_pages(*seg, wr, mdev, pd, writ);
+ 		*seg += sizeof(struct mlx5_wqe_data_seg);
+ 		*size += (sizeof(struct mlx5_wqe_data_seg) / 16);
 -- 
 1.8.1.3
 
