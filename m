@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-next 7/9] mlx5: Support arbitrary page size to firmware
-Date: Wed, 23 Oct 2013 09:53:19 +0300
-Message-ID: <1382511201-7061-8-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 8/9] mlx5: Clear reserved area in set_hca_cap
+Date: Wed, 23 Oct 2013 09:53:20 +0300
+Message-ID: <1382511201-7061-9-git-send-email-eli@mellanox.com>
 References: <1382511201-7061-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1382511201-7061-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,395 +10,105 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Connect-IB firmware requires 4K pages to be communicated with the driver. This
-patch breaks larger pages to 4K units to enable support for architectures
-utilizing larger page size, such as PowerPC.
-This patch also fixes several places that referred to PAGE_SHIFT instead of
-explicit 12 which is the inherent page shift on Connect-IB.
+Firmware spec requires reserved fields to be cleared when calling set_hca_cap.
+Current code queries and copy to the set area, possibly resulting in reserved
+bits not cleared. This patch copies only writable fields to the set area.
+
+Fix also typo - msx => max
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/cq.c                    |   2 +-
- drivers/infiniband/hw/mlx5/qp.c                    |   4 +-
- drivers/infiniband/hw/mlx5/srq.c                   |   4 +-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c       |   2 +-
- .../net/ethernet/mellanox/mlx5/core/pagealloc.c    | 174 ++++++++++++++-------
- include/linux/mlx5/driver.h                        |   1 +
- 6 files changed, 127 insertions(+), 60 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 35 +++++++++++++++++++++++---
+ include/linux/mlx5/device.h                    |  9 +++++--
+ 2 files changed, 39 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 8459186..eecac7b 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -620,7 +620,7 @@ static int create_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
- 	}
- 	mlx5_fill_page_array(&cq->buf.buf, (*cqb)->pas);
- 
--	(*cqb)->ctx.log_pg_sz = cq->buf.buf.page_shift - PAGE_SHIFT;
-+	(*cqb)->ctx.log_pg_sz = cq->buf.buf.page_shift - 12;
- 	*index = dev->mdev.priv.uuari.uars[0].index;
- 
- 	return 0;
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 8a36fd7..ce14008 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -551,7 +551,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	}
- 	mlx5_ib_populate_pas(dev, qp->umem, page_shift, (*in)->pas, 0);
- 	(*in)->ctx.log_pg_sz_remote_qpn =
--		cpu_to_be32((page_shift - PAGE_SHIFT) << 24);
-+		cpu_to_be32((page_shift - 12) << 24);
- 	(*in)->ctx.params2 = cpu_to_be32(offset << 6);
- 
- 	(*in)->ctx.qp_counter_set_usr_page = cpu_to_be32(uar_index);
-@@ -648,7 +648,7 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
- 		goto err_buf;
- 	}
- 	(*in)->ctx.qp_counter_set_usr_page = cpu_to_be32(uar_index);
--	(*in)->ctx.log_pg_sz_remote_qpn = cpu_to_be32((qp->buf.page_shift - PAGE_SHIFT) << 24);
-+	(*in)->ctx.log_pg_sz_remote_qpn = cpu_to_be32((qp->buf.page_shift - 12) << 24);
- 	/* Set "fast registration enabled" for all kernel QPs */
- 	(*in)->ctx.params1 |= cpu_to_be32(1 << 11);
- 	(*in)->ctx.sq_crq_size |= cpu_to_be16(1 << 4);
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index f1e5845..dbc2c71 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -123,7 +123,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 		goto err_in;
- 	}
- 
--	(*in)->ctx.log_pg_sz = page_shift - PAGE_SHIFT;
-+	(*in)->ctx.log_pg_sz = page_shift - 12;
- 	(*in)->ctx.pgoff_cqn = cpu_to_be32(offset << 26);
- 
- 	return 0;
-@@ -192,7 +192,7 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
- 	}
- 	srq->wq_sig = !!srq_signature;
- 
--	(*in)->ctx.log_pg_sz = page_shift - PAGE_SHIFT;
-+	(*in)->ctx.log_pg_sz = page_shift - 12;
- 
- 	return 0;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index 2231d93..6b4b436 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -354,7 +354,7 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
- 	in->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_CREATE_EQ);
- 	in->ctx.log_sz_usr_page = cpu_to_be32(ilog2(eq->nent) << 24 | uar->index);
- 	in->ctx.intr = vecidx;
--	in->ctx.log_page_size = PAGE_SHIFT - 12;
-+	in->ctx.log_page_size = eq->buf.page_shift - 12;
- 	in->events_mask = cpu_to_be64(mask);
- 
- 	err = mlx5_cmd_exec(dev, in, inlen, &out, sizeof(out));
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-index a0d0da3..013aa42 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
-@@ -57,10 +57,13 @@ struct mlx5_pages_req {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index bc0f5fb..40a9f5e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -159,6 +159,36 @@ struct mlx5_reg_host_endianess {
+ 	u8      rsvd[15];
  };
  
- struct fw_page {
--	struct rb_node	rb_node;
--	u64		addr;
--	struct page	*page;
--	u16		func_id;
-+	struct rb_node		rb_node;
-+	u64			addr;
-+	struct page	       *page;
-+	u16			func_id;
-+	unsigned long		bitmask;
-+	struct list_head	list;
-+	unsigned		free_count;
- };
++
++#define CAP_MASK(pos, size) ((u64)((1 << (size)) - 1) << (pos))
++
++enum {
++	MLX5_CAP_BITS_RW_MASK	= CAP_MASK(MLX5_CAP_OFF_CMDIF_CSUM, 2) |
++				  CAP_MASK(MLX5_CAP_OFF_DCT, 1),
++};
++
++/* selectively copy writable fields clearing any reserved area
++ */
++static void copy_rw_fields(struct mlx5_hca_cap *to, struct mlx5_hca_cap *from)
++{
++	u64 v64;
++
++	to->log_max_qp = from->log_max_qp & 0x1f;
++	to->log_max_ra_req_dc = from->log_max_ra_req_dc & 0x3f;
++	to->log_max_ra_res_dc = from->log_max_ra_res_dc & 0x3f;
++	to->log_max_ra_req_qp = from->log_max_ra_req_qp & 0x3f;
++	to->log_max_ra_res_qp = from->log_max_ra_res_qp & 0x3f;
++	to->log_max_atomic_size_qp = from->log_max_atomic_size_qp;
++	to->log_max_atomic_size_dc = from->log_max_atomic_size_dc;
++	v64 = be64_to_cpu(from->flags) & MLX5_CAP_BITS_RW_MASK;
++	to->flags = cpu_to_be64(v64);
++}
++
++enum {
++	HCA_CAP_OPMOD_GET_MAX	= 0,
++	HCA_CAP_OPMOD_GET_CUR	= 1,
++};
++
+ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_cmd_query_hca_cap_mbox_out *query_out = NULL;
+@@ -180,7 +210,7 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ 	}
  
- struct mlx5_query_pages_inbox {
-@@ -94,6 +97,11 @@ enum {
- 	MAX_RECLAIM_TIME_MSECS	= 5000,
+ 	query_ctx.hdr.opcode = cpu_to_be16(MLX5_CMD_OP_QUERY_HCA_CAP);
+-	query_ctx.hdr.opmod  = cpu_to_be16(0x1);
++	query_ctx.hdr.opmod  = cpu_to_be16(HCA_CAP_OPMOD_GET_CUR);
+ 	err = mlx5_cmd_exec(dev, &query_ctx, sizeof(query_ctx),
+ 				 query_out, sizeof(*query_out));
+ 	if (err)
+@@ -192,8 +222,7 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ 		goto query_ex;
+ 	}
+ 
+-	memcpy(&set_ctx->hca_cap, &query_out->hca_cap,
+-	       sizeof(set_ctx->hca_cap));
++	copy_rw_fields(&set_ctx->hca_cap, &query_out->hca_cap);
+ 
+ 	if (dev->profile->mask & MLX5_PROF_MASK_QP_SIZE)
+ 		set_ctx->hca_cap.log_max_qp = dev->profile->log_max_qp;
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 5eb4e31..3d789f4 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -230,6 +230,11 @@ enum {
+ 	MLX5_MAX_PAGE_SHIFT		= 31
  };
  
 +enum {
-+	MLX5_MAX_RECLAIM_TIME_MILI	= 5000,
-+	MLX5_NUM_4K_IN_PAGE		= PAGE_SIZE / 4096,
++	MLX5_CAP_OFF_DCT		= 41,
++	MLX5_CAP_OFF_CMDIF_CSUM		= 46,
 +};
 +
- static int insert_page(struct mlx5_core_dev *dev, u64 addr, struct page *page, u16 func_id)
- {
- 	struct rb_root *root = &dev->priv.page_root;
-@@ -101,6 +109,7 @@ static int insert_page(struct mlx5_core_dev *dev, u64 addr, struct page *page, u
- 	struct rb_node *parent = NULL;
- 	struct fw_page *nfp;
- 	struct fw_page *tfp;
-+	int i;
- 
- 	while (*new) {
- 		parent = *new;
-@@ -113,25 +122,29 @@ static int insert_page(struct mlx5_core_dev *dev, u64 addr, struct page *page, u
- 			return -EEXIST;
- 	}
- 
--	nfp = kmalloc(sizeof(*nfp), GFP_KERNEL);
-+	nfp = kzalloc(sizeof(*nfp), GFP_KERNEL);
- 	if (!nfp)
- 		return -ENOMEM;
- 
- 	nfp->addr = addr;
- 	nfp->page = page;
- 	nfp->func_id = func_id;
-+	nfp->free_count = MLX5_NUM_4K_IN_PAGE;
-+	for (i = 0; i < MLX5_NUM_4K_IN_PAGE; i++)
-+		set_bit(i, &nfp->bitmask);
- 
- 	rb_link_node(&nfp->rb_node, parent, new);
- 	rb_insert_color(&nfp->rb_node, root);
-+	list_add(&nfp->list, &dev->priv.free_list);
- 
- 	return 0;
- }
- 
--static struct page *remove_page(struct mlx5_core_dev *dev, u64 addr)
-+static struct fw_page *find_fw_page(struct mlx5_core_dev *dev, u64 addr)
- {
- 	struct rb_root *root = &dev->priv.page_root;
- 	struct rb_node *tmp = root->rb_node;
--	struct page *result = NULL;
-+	struct fw_page *result = NULL;
- 	struct fw_page *tfp;
- 
- 	while (tmp) {
-@@ -141,9 +154,7 @@ static struct page *remove_page(struct mlx5_core_dev *dev, u64 addr)
- 		} else if (tfp->addr > addr) {
- 			tmp = tmp->rb_right;
- 		} else {
--			rb_erase(&tfp->rb_node, root);
--			result = tfp->page;
--			kfree(tfp);
-+			result = tfp;
- 			break;
- 		}
- 	}
-@@ -176,13 +187,97 @@ static int mlx5_cmd_query_pages(struct mlx5_core_dev *dev, u16 *func_id,
- 	return err;
- }
- 
-+static int alloc_4k(struct mlx5_core_dev *dev, u64 *addr)
-+{
-+	struct fw_page *fp;
-+	unsigned n;
-+
-+	if (list_empty(&dev->priv.free_list)) {
-+		return -ENOMEM;
-+		mlx5_core_warn(dev, "\n");
-+	}
-+
-+	fp = list_entry(dev->priv.free_list.next, struct fw_page, list);
-+	n = find_first_bit(&fp->bitmask, 8 * sizeof(fp->bitmask));
-+	if (n >= MLX5_NUM_4K_IN_PAGE) {
-+		mlx5_core_warn(dev, "alloc 4k bug\n");
-+		return -ENOENT;
-+	}
-+	clear_bit(n, &fp->bitmask);
-+	fp->free_count--;
-+	if (!fp->free_count)
-+		list_del(&fp->list);
-+
-+	*addr = fp->addr + n * 4096;
-+
-+	return 0;
-+}
-+
-+static void free_4k(struct mlx5_core_dev *dev, u64 addr)
-+{
-+	struct fw_page *fwp;
-+	int n;
-+
-+	fwp = find_fw_page(dev, addr & PAGE_MASK);
-+	if (!fwp) {
-+		mlx5_core_warn(dev, "page not found\n");
-+		return;
-+	}
-+
-+	n = (addr & ~PAGE_MASK) % 4096;
-+	fwp->free_count++;
-+	set_bit(n, &fwp->bitmask);
-+	if (fwp->free_count == MLX5_NUM_4K_IN_PAGE) {
-+		rb_erase(&fwp->rb_node, &dev->priv.page_root);
-+		list_del(&fwp->list);
-+		dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
-+		__free_page(fwp->page);
-+		kfree(fwp);
-+	} else if (fwp->free_count == 1) {
-+		list_add(&fwp->list, &dev->priv.free_list);
-+	}
-+}
-+
-+static int alloc_system_page(struct mlx5_core_dev *dev, u16 func_id)
-+{
-+	struct page *page;
-+	u64 addr;
-+	int err;
-+
-+	page = alloc_page(GFP_HIGHUSER);
-+	if (!page) {
-+		mlx5_core_warn(dev, "failed to allocate page\n");
-+		return -ENOMEM;
-+	}
-+	addr = dma_map_page(&dev->pdev->dev, page, 0,
-+			    PAGE_SIZE, DMA_BIDIRECTIONAL);
-+	if (dma_mapping_error(&dev->pdev->dev, addr)) {
-+		mlx5_core_warn(dev, "failed dma mapping page\n");
-+		err = -ENOMEM;
-+		goto out_alloc;
-+	}
-+	err = insert_page(dev, addr, page, func_id);
-+	if (err) {
-+		mlx5_core_err(dev, "failed to track allocated page\n");
-+		goto out_mapping;
-+	}
-+
-+	return 0;
-+
-+out_mapping:
-+	dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
-+
-+out_alloc:
-+	__free_page(page);
-+
-+	return err;
-+}
- static int give_pages(struct mlx5_core_dev *dev, u16 func_id, int npages,
- 		      int notify_fail)
- {
- 	struct mlx5_manage_pages_inbox *in;
- 	struct mlx5_manage_pages_outbox out;
- 	struct mlx5_manage_pages_inbox *nin;
--	struct page *page;
- 	int inlen;
- 	u64 addr;
- 	int err;
-@@ -197,27 +292,15 @@ static int give_pages(struct mlx5_core_dev *dev, u16 func_id, int npages,
- 	memset(&out, 0, sizeof(out));
- 
- 	for (i = 0; i < npages; i++) {
--		page = alloc_page(GFP_HIGHUSER);
--		if (!page) {
--			err = -ENOMEM;
--			mlx5_core_warn(dev, "failed to allocate page\n");
--			goto out_alloc;
--		}
--		addr = dma_map_page(&dev->pdev->dev, page, 0,
--				    PAGE_SIZE, DMA_BIDIRECTIONAL);
--		if (dma_mapping_error(&dev->pdev->dev, addr)) {
--			mlx5_core_warn(dev, "failed dma mapping page\n");
--			__free_page(page);
--			err = -ENOMEM;
--			goto out_alloc;
--		}
--		err = insert_page(dev, addr, page, func_id);
-+retry:
-+		err = alloc_4k(dev, &addr);
- 		if (err) {
--			mlx5_core_err(dev, "failed to track allocated page\n");
--			dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
--			__free_page(page);
--			err = -ENOMEM;
--			goto out_alloc;
-+			if (err == -ENOMEM)
-+				err = alloc_system_page(dev, func_id);
-+			if (err)
-+				goto out_4k;
-+
-+			goto retry;
- 		}
- 		in->pas[i] = cpu_to_be64(addr);
- 	}
-@@ -227,7 +310,6 @@ static int give_pages(struct mlx5_core_dev *dev, u16 func_id, int npages,
- 	in->func_id = cpu_to_be16(func_id);
- 	in->num_entries = cpu_to_be32(npages);
- 	err = mlx5_cmd_exec(dev, in, inlen, &out, sizeof(out));
--	mlx5_core_dbg(dev, "err %d\n", err);
- 	if (err) {
- 		mlx5_core_warn(dev, "func_id 0x%x, npages %d, err %d\n", func_id, npages, err);
- 		goto out_alloc;
-@@ -251,7 +333,7 @@ out_alloc:
- 		nin = kzalloc(sizeof(*nin), GFP_KERNEL);
- 		if (!nin) {
- 			mlx5_core_warn(dev, "allocation failed\n");
--			goto unmap;
-+			goto out_4k;
- 		}
- 		memset(&out, 0, sizeof(out));
- 		nin->hdr.opcode = cpu_to_be16(MLX5_CMD_OP_MANAGE_PAGES);
-@@ -261,19 +343,9 @@ out_alloc:
- 		kfree(nin);
- 	}
- 
--unmap:
--	for (i--; i >= 0; i--) {
--		addr = be64_to_cpu(in->pas[i]);
--		page = remove_page(dev, addr);
--		if (!page) {
--			mlx5_core_err(dev, "BUG: can't remove page at addr 0x%llx\n",
--				      addr);
--			continue;
--		}
--		dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
--		__free_page(page);
--	}
--
-+out_4k:
-+	for (i--; i >= 0; i--)
-+		free_4k(dev, be64_to_cpu(in->pas[i]));
- out_free:
- 	mlx5_vfree(in);
- 	return err;
-@@ -284,7 +356,6 @@ static int reclaim_pages(struct mlx5_core_dev *dev, u32 func_id, int npages,
- {
- 	struct mlx5_manage_pages_inbox   in;
- 	struct mlx5_manage_pages_outbox *out;
--	struct page *page;
- 	int num_claimed;
- 	int outlen;
- 	u64 addr;
-@@ -323,13 +394,7 @@ static int reclaim_pages(struct mlx5_core_dev *dev, u32 func_id, int npages,
- 
- 	for (i = 0; i < num_claimed; i++) {
- 		addr = be64_to_cpu(out->pas[i]);
--		page = remove_page(dev, addr);
--		if (!page) {
--			mlx5_core_warn(dev, "FW reported unknown DMA address 0x%llx\n", addr);
--		} else {
--			dma_unmap_page(&dev->pdev->dev, addr, PAGE_SIZE, DMA_BIDIRECTIONAL);
--			__free_page(page);
--		}
-+		free_4k(dev, addr);
- 	}
- 
- out_free:
-@@ -435,6 +500,7 @@ int mlx5_reclaim_startup_pages(struct mlx5_core_dev *dev)
- void mlx5_pagealloc_init(struct mlx5_core_dev *dev)
- {
- 	dev->priv.page_root = RB_ROOT;
-+	INIT_LIST_HEAD(&dev->priv.free_list);
- }
- 
- void mlx5_pagealloc_cleanup(struct mlx5_core_dev *dev)
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 513619a..554548c 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -483,6 +483,7 @@ struct mlx5_priv {
- 	struct rb_root		page_root;
- 	int			fw_pages;
- 	int			reg_pages;
-+	struct list_head	free_list;
- 
- 	struct mlx5_core_health health;
+ struct mlx5_inbox_hdr {
+ 	__be16		opcode;
+ 	u8		rsvd[4];
+@@ -319,9 +324,9 @@ struct mlx5_hca_cap {
+ 	u8	rsvd25[42];
+ 	__be16  log_uar_page_sz;
+ 	u8	rsvd26[28];
+-	u8	log_msx_atomic_size_qp;
++	u8	log_max_atomic_size_qp;
+ 	u8	rsvd27[2];
+-	u8	log_msx_atomic_size_dc;
++	u8	log_max_atomic_size_dc;
+ 	u8	rsvd28[76];
+ };
  
 -- 
 1.8.1.3
