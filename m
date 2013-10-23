@@ -1,43 +1,60 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC 2/9] IB/core: Introduce Signature Verbs API
-Date: Wed, 23 Oct 2013 13:42:12 +0300
-Message-ID: <5267A804.6060804@mellanox.com>
-References: <1381851510-17290-1-git-send-email-sagig@mellanox.com> <1381851510-17290-3-git-send-email-sagig@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CE2BFF@ORSMSX109.amr.corp.intel.com> <5263D2DE.8010500@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CEA91E@ORSMSX109.amr.corp.intel.com> <52655282.1000505@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CEE1C7@ORSMSX109.amr.corp.intel.com> <5266BA11.6090300@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CEE286@ORSMSX109.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] Resend trap 144 when detecting remote MASTER SM with
+ lower priority
+Date: Wed, 23 Oct 2013 10:38:17 -0400
+Message-ID: <5267DF59.7000809@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CEE286-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/22/2013 9:20 PM, Hefty, Sean wrote:
->>> Would we lose anything making this a new operation for the QP, versus
->> trying to hook it into the existing ib_post_send call?
->>
->> If I understand correctly you are suggesting making it a verb? Well this
->> operation is a fast-path operation - so I guess we will loose it in this
->> case.
->> Take SCSI for example, for each IO operation submitted by SCSI
->> mid-layer, transport layer should perform any protection policy that
->> SCSI asked for.
->>   From this point of view, signature operation resembles fast
->> registration (since the transport does not own the IOP data buffers, so
->> it uses fast registration methods).
->> That is why we are hooking into ib_post_send.
-> I'm suggesting multiple calls that can post to the send queue, rather than one call that does a giant switch statement at the beginning based on the opcode.
 
-Although I understand where you are coming from, We also lose in this case.
-If we go down this rode, we block the user from saving a HW doorbell by 
-concatenating signature and RDMA WRs to a post list.
-I assume this is why fast_reg is also an extension of ib_post_send.
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Remote MASTER SM might not get trap 144 and therefore never perform a HANDOVER.
+The patch solves this by resending trap 144 when receiving GetResp(SMInfo) to
+a remote MASTER SM after polling timeout expires.
+
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_sminfo_rcv.c |   17 +++++++++++++----
+ 1 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/opensm/osm_sminfo_rcv.c b/opensm/osm_sminfo_rcv.c
+index 2fee359..16d2a4c 100644
+--- a/opensm/osm_sminfo_rcv.c
++++ b/opensm/osm_sminfo_rcv.c
+@@ -383,11 +383,20 @@ static void smi_rcv_process_get_sm(IN osm_sm_t * sm,
+ 		switch (ib_sminfo_get_state(p_smi)) {
+ 		case IB_SMINFO_STATE_MASTER:
+ 			/* If this is a response due to our polling, this means that we are
+-			   waiting for a handover from this SM, and it is still alive -
+-			   signal that. */
+-			if (sm->p_polling_sm)
++			 * waiting for a handover from this SM, and it is still alive -
++			 * signal that. If we detected the remote SM with higher priority
++			 * we should init a heavy sweep in order to go STANDBY. If we
++			 * detected a remote SM with lower priority, we should resend trap144
++			 * as it might not get it and we don't want to wait for a HANDOVER
++			 * forever.
++			 */
++			if (sm->p_polling_sm) {
++				if (smi_rcv_remote_sm_is_higher(sm, p_smi))
++					sm->p_subn->force_heavy_sweep = TRUE;
++				else
++					osm_send_trap144(sm, TRAP_144_MASK_SM_PRIORITY_CHANGE);
+ 				osm_sm_state_mgr_signal_master_is_alive(sm);
+-			else {
++			} else {
+ 				/* This is a response we got while sweeping the subnet.
+ 				 *
+ 				 * If this is during a heavy sweep, we will handle a case of
+-- 
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
