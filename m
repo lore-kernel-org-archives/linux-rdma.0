@@ -1,60 +1,35 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: Fix txselect regression
-Date: Fri, 25 Oct 2013 11:17:59 -0400
-Message-ID: <20131025151759.22484.58987.stgit@phlsvslse11.ph.intel.com>
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [PATCH 0/3] IB/srp patches for the stable tree
+Date: Fri, 25 Oct 2013 18:16:36 -0400
+Message-ID: <1382739396.17280.5.camel@frustration.ornl.gov>
+References: <5256941A.3040506@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5256941A.3040506-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 7fac3301("IB/qib: checkpatch fixes") was over
-zealous in removing a simple_strtoul for a parse
-routine, setup_txselect().  That routine is required
-to handle a multi-value string.
+On Thu, 2013-10-10 at 13:48 +0200, Bart Van Assche wrote:
+> The new rules for stable kernel tree patches require these patches to
+> be posted separately from patches introducing new features. Hence a 
+> short patch series with the following three patches:
+> 
+> 0001-IB-srp-Remove-target-from-list-before-freeing-Scsi_H.patch
+> 0002-IB-srp-Avoid-offlining-operational-SCSI-devices.patch
+> 0003-IB-srp-Report-receive-errors-correctly.patch
 
-Unwind that aspect of the fix.
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_iba7322.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 016e742..5bfc02f 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -6190,21 +6190,20 @@ static int setup_txselect(const char *str, struct kernel_param *kp)
- {
- 	struct qib_devdata *dd;
- 	unsigned long val;
--	int ret;
--
-+	char *n;
- 	if (strlen(str) >= MAX_ATTEN_LEN) {
- 		pr_info("txselect_values string too long\n");
- 		return -ENOSPC;
- 	}
--	ret = kstrtoul(str, 0, &val);
--	if (ret || val >= (TXDDS_TABLE_SZ + TXDDS_EXTRA_SZ +
-+	val = simple_strtoul(str, &n, 0);
-+	if (n == str || val >= (TXDDS_TABLE_SZ + TXDDS_EXTRA_SZ +
- 				TXDDS_MFG_SZ)) {
- 		pr_info("txselect_values must start with a number < %d\n",
- 			TXDDS_TABLE_SZ + TXDDS_EXTRA_SZ + TXDDS_MFG_SZ);
--		return ret ? ret : -EINVAL;
-+		return -EINVAL;
- 	}
--
- 	strcpy(txselect_list, str);
-+
- 	list_for_each_entry(dd, &qib_dev_list, list)
- 		if (dd->deviceid == PCI_DEVICE_ID_QLOGIC_IB_7322)
- 			set_no_qsfp_atten(dd, 1);
+for all three. Thanks Bart!
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
