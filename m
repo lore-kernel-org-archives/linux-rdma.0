@@ -1,32 +1,22 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 03/10] scsi_transport_srp: Add transport layer error handling
-Date: Sat, 26 Oct 2013 08:30:27 +0200
-Message-ID: <526B6183.3040601@acm.org>
-References: <52569806.9080201@acm.org> <525699A9.6090802@acm.org>	 <5262AF8D.7070700@acm.org> <1382740925.17280.6.camel@frustration.ornl.gov>
+From: "Mr. X" <jul217-aS/ZkD1dPfJTpBK7XY6O9JZ3qXmFLfmx@public.gmane.org>
+Subject: my subject
+Date: Sat, 26 Oct 2013 14:09:19 +0530
+Message-ID: <fe74dc64-bf9c-4818-900c-ac7971d48fc9__41000.8173589178$1382776806$gmane$org@HKNPR06MB067.apcprd06.prod.outlook.com>
+Reply-To: <guaranteeloancompany1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1382740925.17280.6.camel@frustration.ornl.gov>
-Sender: linux-scsi-owner@vger.kernel.org
-To: David Dillow <dillowda@ornl.gov>
-Cc: Roland Dreier <roland@kernel.org>, Vu Pham <vu@mellanox.com>, Sebastian Riemer <sebastian.riemer@profitbricks.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, James Bottomley <jbottomley@parallels.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Description: Mail message body
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Recipients <jul217-aS/ZkD1dPfJTpBK7XY6O9JZ3qXmFLfmx@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/26/13 00:42, David Dillow wrote:
-> On Sat, 2013-10-19 at 18:13 +0200, Bart Van Assche wrote:
->> Since it takes some work to figure out the state transitions from the
->> source code, I have tried to draw a diagram representing all state
->> transitions. I have attached that diagram to this e-mail. That diagram
->> probably will make it easier to review this code.
->
-> This is handy, Bart -- could you put it in a patch? I suppose it belongs
-> under Documentation/infiniband...
 
-Hello Dave,
+Need a Loan, Loans from $5000 - $10,000,000 00. Get your no obligation FREE quote now! Repayments up to 54 Months. No Collateral, Money paid into your account within 24 hours after approval. For more Info contact us today  guaranteeloancompany1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
-That sounds like a good idea to me. I will post such a patch as soon as 
-possible - the coming two weeks I will be traveling.
 
-Bart.
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
