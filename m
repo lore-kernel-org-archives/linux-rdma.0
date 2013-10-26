@@ -1,36 +1,34 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH 03/10] scsi_transport_srp: Add transport layer error
- handling
-Date: Fri, 25 Oct 2013 18:42:05 -0400
-Message-ID: <1382740925.17280.6.camel@frustration.ornl.gov>
-References: <52569806.9080201@acm.org> <525699A9.6090802@acm.org>
-	 <5262AF8D.7070700@acm.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 10/10] IB/srp: Make queue size configurable
+Date: Sat, 26 Oct 2013 08:13:42 +0200
+Message-ID: <526B5D96.4000302@acm.org>
+References: <52569806.9080201@acm.org> <52569B6A.30301@acm.org> <1382739213.17280.3.camel@frustration.ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5262AF8D.7070700-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <1382739213.17280.3.camel-zHLflQxYYDO4Hhoo1DtQwJ9G+ZOsUmrO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, James Bottomley <jbottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Konrad Grzybowski <konradg-XLFqaoR9dsI@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2013-10-19 at 18:13 +0200, Bart Van Assche wrote:
-> Since it takes some work to figure out the state transitions from the 
-> source code, I have tried to draw a diagram representing all state 
-> transitions. I have attached that diagram to this e-mail. That diagram 
-> probably will make it easier to review this code.
+On 10/26/13 00:13, David Dillow wrote:
+> On Thu, 2013-10-10 at 14:19 +0200, Bart Van Assche wrote:
+>> @@ -2267,6 +2310,7 @@ static const match_table_t srp_opt_tokens = {
+>>          { SRP_OPT_SG_TABLESIZE,         "sg_tablesize=%u"       },
+>>          { SRP_OPT_COMP_VECTOR,          "comp_vector=%u"        },
+>>          { SRP_OPT_TL_RETRY_COUNT,       "tl_retry_count=%u"     },
+>> +       { SRP_OPT_CAN_QUEUE,            "can_queue=%d"          },
+>>          { SRP_OPT_ERR,                  NULL                    }
+>
+> Minor question -- I thought you had ended up suggesting queue_size
+> instead of can_queue here?
 
-This is handy, Bart -- could you put it in a patch? I suppose it belongs
-under Documentation/infiniband...
+Sorry, forgot to change that. Will post an update.
 
-Thanks!
+Bart.
 
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
