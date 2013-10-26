@@ -1,192 +1,146 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH v2 0/10] IB SRP initiator patches for kernel 3.13
-Date: Sat, 26 Oct 2013 14:29:32 +0200
-Message-ID: <526BB5AC.7010601@acm.org>
+Subject: [PATCH v2 01/10] IB/srp: Make transport layer retry count configurable
+Date: Sat, 26 Oct 2013 14:31:27 +0200
+Message-ID: <526BB61F.4080104@acm.org>
+References: <526BB5AC.7010601@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <526BB5AC.7010601-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The purpose of this InfiniBand SRP initiator patch series is as follows:
-- Make the SRP initiator driver better suited for use in a H.A. setup.
-  Add fast_io_fail_tmo, dev_loss_tmo and reconnect_delay parameters.
-  With the default values of these parameters failover happens
-  significantly faster. The dev_loss mechanism can be disabled which
-  makes it possible to avoid device removal which is necessary when
-  e.g. using initiator side mirroring.
-- Improve performance by making the queue size configurable.
-- Make it possible to figure out which SCSI host corresponds to which
-  SRP initiator port by making the SGID (source GID) available in sysfs.
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The changes since the previous version of this patch series are as follows
-(see also http://thread.gmane.org/gmane.linux.drivers.rdma/17693):
-- Renamed the "can_queue" parameter into "queue_size".
-- Corrected the title of the introductory e-mail - changed kernel version
-  "3.12" into "3.13".
-- Corrected the description of /sys/class/srp_remote_ports/port-<h>:<n>/state.
-- Corrected sysfs kernel version and date for the newly introduced sysfs
-  attributes.
-- Fixed a hard to trigger race condition that could be triggered only with
-  identical values of reconnect_delay and fast_io_fail_tmo and that could
-  cause failback not to occur (see also rport_fast_io_fail_timedout()). Note:
-  I don't think it's useful for anyone to set reconnect_delay identical to
-  fast_io_fail_tmo.
+Allow the InfiniBand RC retry count to be configured by the user
+as an option in the target login string. Reducing this retry count
+allows to reduce the path failover time.
 
-The individual patches in this series are:
-0001-IB-srp-Make-transport-layer-retry-count-configurable.patch
-0002-IB-srp-Keep-rport-as-long-as-the-IB-transport-layer.patch
-0003-scsi_transport_srp-Add-transport-layer-error-handlin.patch
-0004-IB-srp-Use-SRP-transport-layer-error-recovery.patch
-0005-IB-srp-Start-timers-if-a-transport-layer-error-occur.patch
-0006-scsi_transport_srp-Add-periodic-reconnect-support.patch
-0007-IB-srp-Add-periodic-reconnect-functionality.patch
-0008-IB-srp-Export-sgid-to-sysfs.patch
-0009-IB-srp-Introduce-srp_alloc_req_data.patch
-0010-IB-srp-Make-queue-size-configurable.patch
+Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+[bvanassche: Rewrote patch description / changed default retry count]
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ Documentation/ABI/stable/sysfs-driver-ib_srp |  2 ++
+ drivers/infiniband/ulp/srp/ib_srp.c          | 24 +++++++++++++++++++++++-
+ drivers/infiniband/ulp/srp/ib_srp.h          |  1 +
+ 3 files changed, 26 insertions(+), 1 deletion(-)
 
-The full diff compared with the previous version is as follows:
 diff --git a/Documentation/ABI/stable/sysfs-driver-ib_srp b/Documentation/ABI/stable/sysfs-driver-ib_srp
-index ab8efd5..b9688de 100644
+index 5c53d28..18e9b27 100644
 --- a/Documentation/ABI/stable/sysfs-driver-ib_srp
 +++ b/Documentation/ABI/stable/sysfs-driver-ib_srp
-@@ -63,6 +63,10 @@ Description:	Interface for making ib_srp connect to a new target.
+@@ -61,6 +61,8 @@ Description:	Interface for making ib_srp connect to a new target.
+ 		  interrupt is handled by a different CPU then the comp_vector
+ 		  parameter can be used to spread the SRP completion workload
  		  over multiple CPU's.
- 		* tl_retry_count, a number in the range 2..7 specifying the
- 		  IB RC retry count.
-+		* queue_size, the maximum number of commands that the
-+		  initiator is allowed to queue per SCSI host. The default
-+		  value for this parameter is 62. The lowest supported value
-+		  is 2.
++		* tl_retry_count, a number in the range 2..7 specifying the
++		  IB RC retry count.
  
  What:		/sys/class/infiniband_srp/srp-<hca>-<port_number>/ibdev
  Date:		January 2, 2006
-@@ -156,8 +160,8 @@ Description:	InfiniBand service ID used for establishing communication with
- 		the SRP	target.
- 
- What:		/sys/class/scsi_host/host<n>/sgid
--Date:		December 1, 2013
--KernelVersion:	3.12
-+Date:		February 1, 2014
-+KernelVersion:	3.13
- Contact:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- Description:	InfiniBand GID of the source port used for communication with
- 		the SRP target.
-diff --git a/Documentation/ABI/stable/sysfs-transport-srp b/Documentation/ABI/stable/sysfs-transport-srp
-index 21bd480..ec7af69 100644
---- a/Documentation/ABI/stable/sysfs-transport-srp
-+++ b/Documentation/ABI/stable/sysfs-transport-srp
-@@ -6,8 +6,8 @@ Description:	Instructs an SRP initiator to disconnect from a target and to
- 		remove all LUNs imported from that target.
- 
- What:		/sys/class/srp_remote_ports/port-<h>:<n>/dev_loss_tmo
--Date:		December 1, 2013
--KernelVersion:	3.12
-+Date:		February 1, 2014
-+KernelVersion:	3.13
- Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- Description:	Number of seconds the SCSI layer will wait after a transport
- 		layer error has been observed before removing a target port.
-@@ -15,8 +15,8 @@ Description:	Number of seconds the SCSI layer will wait after a transport
- 		will disable the dev_loss timer.
- 
- What:		/sys/class/srp_remote_ports/port-<h>:<n>/fast_io_fail_tmo
--Date:		December 1, 2013
--KernelVersion:	3.12
-+Date:		February 1, 2014
-+KernelVersion:	3.13
- Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- Description:	Number of seconds the SCSI layer will wait after a transport
- 		layer error has been observed before failing I/O. Zero means
-@@ -31,8 +31,8 @@ Description:	16-byte local SRP port identifier in hexadecimal format. An
- 		example: 4c:49:4e:55:58:20:56:49:4f:00:00:00:00:00:00:00.
- 
- What:		/sys/class/srp_remote_ports/port-<h>:<n>/reconnect_delay
--Date:		December 1, 2013
--KernelVersion:	3.12
-+Date:		February 1, 2014
-+KernelVersion:	3.13
- Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- Description:	Number of seconds the SCSI layer will wait after a reconnect
- 		attempt failed before retrying. Setting this attribute to
-@@ -45,14 +45,14 @@ Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- Description:	Role of the remote port. Either "SRP Initiator" or "SRP Target".
- 
- What:		/sys/class/srp_remote_ports/port-<h>:<n>/state
--Date:		December 1, 2013
--KernelVersion:	3.12
-+Date:		February 1, 2014
-+KernelVersion:	3.13
- Contact:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- Description:	State of the transport layer used for communication with the
- 		remote port. "running" if the transport layer is operational;
- 		"blocked" if a transport layer error has been encountered but
--		the fail_io_fast_tmo timer has not yet fired; "fail-fast"
--		after the fail_io_fast_tmo timer has fired and before the
-+		the fast_io_fail_tmo timer has not yet fired; "fail-fast"
-+		after the fast_io_fail_tmo timer has fired and before the
- 		"dev_loss_tmo" timer has fired; "lost" after the
- 		"dev_loss_tmo" timer has fired and before the port is finally
- 		removed.
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index e158f59..b4bd903 100644
+index 17b58f4..aed5b75 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2579,7 +2579,7 @@ enum {
- 	SRP_OPT_SG_TABLESIZE	= 1 << 11,
- 	SRP_OPT_COMP_VECTOR	= 1 << 12,
- 	SRP_OPT_TL_RETRY_COUNT	= 1 << 13,
--	SRP_OPT_CAN_QUEUE	= 1 << 14,
-+	SRP_OPT_QUEUE_SIZE	= 1 << 14,
- 	SRP_OPT_USE_FAST_REG	= 1 << 15,
- 	SRP_OPT_ALL		= (SRP_OPT_ID_EXT	|
- 				   SRP_OPT_IOC_GUID	|
-@@ -2603,7 +2603,7 @@ static const match_table_t srp_opt_tokens = {
- 	{ SRP_OPT_SG_TABLESIZE,		"sg_tablesize=%u"	},
- 	{ SRP_OPT_COMP_VECTOR,		"comp_vector=%u"	},
- 	{ SRP_OPT_TL_RETRY_COUNT,	"tl_retry_count=%u"	},
--	{ SRP_OPT_CAN_QUEUE,		"can_queue=%d"		},
-+	{ SRP_OPT_QUEUE_SIZE,		"queue_size=%d"		},
- 	{ SRP_OPT_USE_FAST_REG,		"use_fast_reg=%d"	},
- 	{ SRP_OPT_ERR,			NULL 			}
- };
-@@ -2699,9 +2699,9 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 			target->scsi_host->max_sectors = token;
- 			break;
+@@ -390,7 +390,7 @@ static int srp_send_req(struct srp_target_port *target)
+ 	req->param.responder_resources	      = 4;
+ 	req->param.remote_cm_response_timeout = 20;
+ 	req->param.local_cm_response_timeout  = 20;
+-	req->param.retry_count 		      = 7;
++	req->param.retry_count                = target->tl_retry_count;
+ 	req->param.rnr_retry_count 	      = 7;
+ 	req->param.max_cm_retries 	      = 15;
  
--		case SRP_OPT_CAN_QUEUE:
-+		case SRP_OPT_QUEUE_SIZE:
- 			if (match_int(args, &token) || token < 1) {
--				pr_warn("bad can_queue parameter '%s'\n", p);
-+				pr_warn("bad queue_size parameter '%s'\n", p);
- 				goto out;
- 			}
- 			target->scsi_host->can_queue = token;
-@@ -2816,7 +2816,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 
- 	if (target->scsi_host->cmd_per_lun > target->scsi_host->can_queue
- 	    && (opt_mask & SRP_OPT_MAX_CMD_PER_LUN))
--		pr_warn("cmd_per_lun = %d > can_queue = %d\n",
-+		pr_warn("cmd_per_lun = %d > queue_size = %d\n",
- 			target->scsi_host->cmd_per_lun,
- 			target->scsi_host->can_queue);
- 
-diff --git a/drivers/scsi/scsi_transport_srp.c b/drivers/scsi/scsi_transport_srp.c
-index 8f66ed4..8b9cb22 100644
---- a/drivers/scsi/scsi_transport_srp.c
-+++ b/drivers/scsi/scsi_transport_srp.c
-@@ -423,7 +423,8 @@ static void rport_fast_io_fail_timedout(struct work_struct *work)
- 		dev_name(&rport->dev), dev_name(&shost->shost_gendev));
- 
- 	mutex_lock(&rport->mutex);
--	__rport_fail_io_fast(rport);
-+	if (rport->state == SRP_RPORT_BLOCKED)
-+		__rport_fail_io_fast(rport);
- 	mutex_unlock(&rport->mutex);
+@@ -1907,6 +1907,14 @@ static ssize_t show_comp_vector(struct device *dev,
+ 	return sprintf(buf, "%d\n", target->comp_vector);
  }
  
++static ssize_t show_tl_retry_count(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	struct srp_target_port *target = host_to_target(class_to_shost(dev));
++
++	return sprintf(buf, "%d\n", target->tl_retry_count);
++}
++
+ static ssize_t show_cmd_sg_entries(struct device *dev,
+ 				   struct device_attribute *attr, char *buf)
+ {
+@@ -1934,6 +1942,7 @@ static DEVICE_ATTR(zero_req_lim,    S_IRUGO, show_zero_req_lim,	   NULL);
+ static DEVICE_ATTR(local_ib_port,   S_IRUGO, show_local_ib_port,   NULL);
+ static DEVICE_ATTR(local_ib_device, S_IRUGO, show_local_ib_device, NULL);
+ static DEVICE_ATTR(comp_vector,     S_IRUGO, show_comp_vector,     NULL);
++static DEVICE_ATTR(tl_retry_count,  S_IRUGO, show_tl_retry_count,  NULL);
+ static DEVICE_ATTR(cmd_sg_entries,  S_IRUGO, show_cmd_sg_entries,  NULL);
+ static DEVICE_ATTR(allow_ext_sg,    S_IRUGO, show_allow_ext_sg,    NULL);
+ 
+@@ -1949,6 +1958,7 @@ static struct device_attribute *srp_host_attrs[] = {
+ 	&dev_attr_local_ib_port,
+ 	&dev_attr_local_ib_device,
+ 	&dev_attr_comp_vector,
++	&dev_attr_tl_retry_count,
+ 	&dev_attr_cmd_sg_entries,
+ 	&dev_attr_allow_ext_sg,
+ 	NULL
+@@ -2073,6 +2083,7 @@ enum {
+ 	SRP_OPT_ALLOW_EXT_SG	= 1 << 10,
+ 	SRP_OPT_SG_TABLESIZE	= 1 << 11,
+ 	SRP_OPT_COMP_VECTOR	= 1 << 12,
++	SRP_OPT_TL_RETRY_COUNT	= 1 << 13,
+ 	SRP_OPT_ALL		= (SRP_OPT_ID_EXT	|
+ 				   SRP_OPT_IOC_GUID	|
+ 				   SRP_OPT_DGID		|
+@@ -2094,6 +2105,7 @@ static const match_table_t srp_opt_tokens = {
+ 	{ SRP_OPT_ALLOW_EXT_SG,		"allow_ext_sg=%u"	},
+ 	{ SRP_OPT_SG_TABLESIZE,		"sg_tablesize=%u"	},
+ 	{ SRP_OPT_COMP_VECTOR,		"comp_vector=%u"	},
++	{ SRP_OPT_TL_RETRY_COUNT,	"tl_retry_count=%u"	},
+ 	{ SRP_OPT_ERR,			NULL 			}
+ };
+ 
+@@ -2257,6 +2269,15 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 			target->comp_vector = token;
+ 			break;
+ 
++		case SRP_OPT_TL_RETRY_COUNT:
++			if (match_int(args, &token) || token < 2 || token > 7) {
++				pr_warn("bad tl_retry_count parameter '%s' (must be a number between 2 and 7)\n",
++					p);
++				goto out;
++			}
++			target->tl_retry_count = token;
++			break;
++
+ 		default:
+ 			pr_warn("unknown parameter or missing value '%s' in target creation request\n",
+ 				p);
+@@ -2311,6 +2332,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 	target->cmd_sg_cnt	= cmd_sg_entries;
+ 	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
+ 	target->allow_ext_sg	= allow_ext_sg;
++	target->tl_retry_count	= 7;
+ 
+ 	ret = srp_parse_options(buf, target);
+ 	if (ret)
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index e641088..84d821b 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -157,6 +157,7 @@ struct srp_target_port {
+ 	unsigned int		scsi_id;
+ 	unsigned int		sg_tablesize;
+ 	int			comp_vector;
++	int			tl_retry_count;
+ 
+ 	struct ib_sa_path_rec	path;
+ 	__be16			orig_dgid[8];
+-- 
+1.8.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
