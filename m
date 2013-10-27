@@ -1,77 +1,85 @@
 From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
-Subject: [PATCH 0/8] Fix minor address type errors
-Date: Sun, 27 Oct 2013 21:47:17 +0000
-Message-ID: <1382910437.2994.43.camel@deadeye.wl.decadent.org.uk>
+Subject: [PATCH 1/8] IB/cxgb4: Fix formatting of physical address
+Date: Sun, 27 Oct 2013 21:50:45 +0000
+Message-ID: <1382910645.2994.45.camel@deadeye.wl.decadent.org.uk>
+References: <1382910437.2994.43.camel@deadeye.wl.decadent.org.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-aenbMtIN47UiBrAVHmxj"
+	protocol="application/pgp-signature"; boundary="=-i6e8HgC6/uJhDTKxHWUS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1382910437.2994.43.camel-nDn/Rdv9kqW9Jme8/bJn5UCKIB8iOfG2tUK59QYPAWc@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-aenbMtIN47UiBrAVHmxj
+--=-i6e8HgC6/uJhDTKxHWUS
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Various bits of code are mixing making assumptions about the size of
-dma_addr_t or resource_size_t, or mixing up pointer and integer types.
+Physical addresses may be wider than virtual addresses (e.g. on i386
+with PAE) and must not be formatted with %p.
 
-All these fixes are based on compiler warnings and so far as I can see
-the bugs are practically harmless.
+Compile-tested only.
+
+Signed-off-by: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+---
+The resource could also be printed using '%pR' or '%pr', but that makes
+a bigger change to the output.
 
 Ben.
 
-Ben Hutchings (8):
-  IB/cxgb4: Fix formatting of physical address
-  farsync: Fix confusion about DMA address and buffer offset types
-  drm: Do not include page offset in argument to virt_to_page()
-  drm: Pass pointers to virt_to_page()
-  [SCSI] tgt: Pass pointers to virt_to_page(), not integers
-  uio: Pass pointers to virt_to_page(), not integers
-  rds: Pass pointers to virt_to_page(), not integers
-  [SCSI] pmcraid: Pass pointers to access_ok(), not integers
+ drivers/infiniband/hw/cxgb4/device.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- drivers/gpu/drm/drm_pci.c            |  4 ++--
- drivers/gpu/drm/drm_vm.c             |  2 +-
- drivers/infiniband/hw/cxgb4/device.c |  4 ++--
- drivers/net/wan/farsync.c            | 19 +++++++------------
- drivers/scsi/pmcraid.c               |  3 ++-
- drivers/scsi/scsi_tgt_if.c           |  2 +-
- drivers/uio/uio.c                    |  6 ++++--
- net/rds/message.c                    |  2 +-
- 8 files changed, 20 insertions(+), 22 deletions(-)
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/c=
+xgb4/device.c
+index 33d2cc6..4a03385 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -602,10 +602,10 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 	     rdev->lldi.vr->qp.size,
+ 	     rdev->lldi.vr->cq.start,
+ 	     rdev->lldi.vr->cq.size);
+-	PDBG("udb len 0x%x udb base %p db_reg %p gts_reg %p qpshift %lu "
++	PDBG("udb len 0x%x udb base %llx db_reg %p gts_reg %p qpshift %lu "
+ 	     "qpmask 0x%x cqshift %lu cqmask 0x%x\n",
+ 	     (unsigned)pci_resource_len(rdev->lldi.pdev, 2),
+-	     (void *)(unsigned long)pci_resource_start(rdev->lldi.pdev, 2),
++	     (u64)pci_resource_start(rdev->lldi.pdev, 2),
+ 	     rdev->lldi.db_reg,
+ 	     rdev->lldi.gts_reg,
+ 	     rdev->qpshift, rdev->qpmask,
 
 
 --=20
 Ben Hutchings
 If at first you don't succeed, you're doing about average.
 
---=-aenbMtIN47UiBrAVHmxj
+--=-i6e8HgC6/uJhDTKxHWUS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIVAwUAUm2J5ee/yOyVhhEJAQqGvA/9GzMeGBFRDv9lMX/TsSlwFqMeODg9ZXbI
-MMWTYKi+h5aiKrniDjtSKb7ilx0nVNnR8BEFCQcZBr4DOd+97kMEbxrZZTBKE1F6
-Nhy419nEivQcWzmVAw4q6uqQ+ozfVz5XX/bqOUvdYZtSBLkw3py6DyCnWnLHsr8Y
-QQqF9bDaa8cJWeN59moFUduSKDUHSHSgJFMNF6j1oB0n3BdaVzuqVmwNCwLG/AXk
-Zly1V6lvKj1QPzgDO3P3RDEVrOaOx6GKfuoVqj5gbqNAw1nXlnqg5myRYC7FqNnN
-EKta5bUHgkwpS867jaIMalnjVXIDgf0p2TgfgsxCgTdF6F4hirL6DZaLjIHxK7OO
-Hr22hkX64W/CppwP5653sjO2xuPwcqiVlHZdVRhhYckRldRaEaB63mwkIdRsRolW
-i8OrbYGZvUTXJ2gcCgxoYNMXYAO+EFAK4YVEM4vc7CSzi018Zz0TEapi+4abNdWp
-ckUzC8+P5uk1fBTGziOdH+derBwDo6GS9qscdIrXCbkA4zKMn+JaKynTmncFNtGn
-0uKVD/TW3ds2+tUlbuwlikWrLk7rTU+8186+K0q3xcaArPt3uLnlqSsrq6Th1r9D
-zsbWvsZAvs7yWsa+sUOla25T++Z2/o+k6IQYKNmhAWVqWVJuAF0OZ1YK5yu0NWq0
-9/1fnbEoDMw=
-=ZTmh
+iQIVAwUAUm2Ktee/yOyVhhEJAQoZmQ//Ul0hZhPFiii98nH641LDoSmUquR0xPJv
+pCWiLD63G3X+SFUuPRi8ydNyqRoGNKLS17w7DxrAr9E7X+52tXldFVUgyOAsY1we
+1sVyY2j3gRG00nHaVcIGQZZs/IA+zflCIbfAltT0db20OqroNDUewlLNsayTmzJn
+zfIkzdZcIBxbEGN7wdJ560+G24CmM5/6mqvnLNEhx1mzZut+GVk6ri5uP22iC9FI
+2YMGz28O7lf37Rm1so7HyiGCF3HnhMNUOgjHvu0eSm2B7x9xIZiJUGQfzbCb0fMQ
+3/qjI+wwpsV+V2uTmDueEjfiCJZy6msxZTRiVbUPCqSPSQeGyorVSUQ29uh13c0H
+DwnVMcbguPjxxQQha1Jc8COXsxrkhNxWctge5KNpngAapblUeEohg3arc0Ftmf2P
+b+5OmTKAuWwtRLz07+T5h+UsV9+TTYY2K4ZrK24gPRKOzY4Wc7bUpta5NaNHOscI
+1Zm6UrbFY41DYBkI9/nmm+hFWPy1dlJ3+7CAyEjmshUKuNtG/uRF6sUVvKvRPBUV
+h0poUPSSWBRDczfTnyEgVqlCpON+mTSA4CLIBrOhno/oEeLkRHSBxUP29T+2I2Vs
+AZn12bgoWx0UYX68FF2zbEnFkJxx2JU+YegPTRl38g6zuq7qrd7Nr8ge3DL/Jfc9
++gxv5+ynjuY=
+=mDnF
 -----END PGP SIGNATURE-----
 
---=-aenbMtIN47UiBrAVHmxj--
+--=-i6e8HgC6/uJhDTKxHWUS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
