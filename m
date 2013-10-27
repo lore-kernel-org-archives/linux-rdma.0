@@ -1,40 +1,43 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [PATCH v2 0/10] IB SRP initiator patches for kernel 3.13
-Date: Sat, 26 Oct 2013 12:28:14 -0400
-Message-ID: <1382804894.7223.0.camel@haswell.thedillows.org>
-References: <526BB5AC.7010601@acm.org>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: smatch  warnings on the IB core
+Date: Sun, 27 Oct 2013 08:45:25 +0200
+Message-ID: <526CB685.40607@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <526BB5AC.7010601-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2013-10-26 at 14:29 +0200, Bart Van Assche wrote:
-> The changes since the previous version of this patch series are as follows
-> (see also http://thread.gmane.org/gmane.linux.drivers.rdma/17693):
-> - Renamed the "can_queue" parameter into "queue_size".
-> - Corrected the title of the introductory e-mail - changed kernel version
->   "3.12" into "3.13".
-> - Corrected the description of /sys/class/srp_remote_ports/port-<h>:<n>/state.
-> - Corrected sysfs kernel version and date for the newly introduced sysfs
->   attributes.
-> - Fixed a hard to trigger race condition that could be triggered only with
->   identical values of reconnect_delay and fast_io_fail_tmo and that could
->   cause failback not to occur (see also rport_fast_io_fail_timedout()). Note:
->   I don't think it's useful for anyone to set reconnect_delay identical to
->   fast_io_fail_tmo.
+Hi Dan,
 
-Looks good to me, thanks for the inter-diff.
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
+With the latest smatch I still see these hits on the IB core, basically, 
+I would be happy to see the IB stack free from such warnings and then we 
+can easily require each new patch not to introduce them... can you shed 
+some light on the problem and possible solutions?
 
+> drivers/infiniband/core/user_mad.c:912 ib_umad_sm_open() warn: 
+> inconsistent returns sem:&port->sm_sem: locked (908) unlocked (886 
+> [(-6)], 912 [s32min-(-1),1-s32max], 912 [(-512)], 912 [(-11)])
+>
+> drivers/infiniband/core/cma.c:1336 cma_req_handler() warn: 
+> inconsistent returns mutex:&listen_id->handler_mutex: locked (1271 
+> [(-22)], 1274 [(-103)]) unlocked (1323 [0], 1336 
+> [s32min-(-1),1-s32max], 1336 [(-12)])
+>
+> drivers/infiniband/core/cma.c:1535 iw_conn_req_handler() warn: 
+> inconsistent returns mutex:&listen_id->handler_mutex: locked (1463 
+> [(-103)]) unlocked (1535 [0], 1535 [s32min-(-1),1-s32max], 1535 
+> [s32min-(-1),1-s32max], 1535 [s32min-(-1),1-s32max], 1535 
+> [s32min-(-1),1-s32max], 1535 [(-12)])
+
+Sean, if you want to reproduce clone git://repo.or.cz/smatch.git and use 
+this command
+
+$ make C=2 CHECK="/patch/to/smatch/smatch_scripts/../smatch 
+--project=kernel"  drivers/infiniband/core/ -j 12
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
