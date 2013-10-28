@@ -1,55 +1,35 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_ucast_cache.c: Fix memory leak in ucast_cache
-Date: Mon, 28 Oct 2013 11:09:54 -0400
-Message-ID: <526E7E42.8060302@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: smatch  warnings on the IB core
+Date: Mon, 28 Oct 2013 16:32:55 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CF16CC@ORSMSX109.amr.corp.intel.com>
+References: <526CB685.40607@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <526CB685.40607-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> > drivers/infiniband/core/cma.c:1336 cma_req_handler() warn:
+> > inconsistent returns mutex:&listen_id->handler_mutex: locked (1271
+> > [(-22)], 1274 [(-103)]) unlocked (1323 [0], 1336
+> > [s32min-(-1),1-s32max], 1336 [(-12)])
+> >
+> > drivers/infiniband/core/cma.c:1535 iw_conn_req_handler() warn:
+> > inconsistent returns mutex:&listen_id->handler_mutex: locked (1463
+> > [(-103)]) unlocked (1535 [0], 1535 [s32min-(-1),1-s32max], 1535
+> > [s32min-(-1),1-s32max], 1535 [s32min-(-1),1-s32max], 1535
+> > [s32min-(-1),1-s32max], 1535 [(-12)])
 
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Visually inspecting the code for both of these, I don't see anything wrong.  In both cases the listen mutex is acquired near the top of the function and released at the end.  I don't see how you exit either function with the mutex locked.
 
-When invalidating cache p_sw->hops[i] arrays aren't cleared.
+In the top case, line 1271 is a return statement that occurs before we've acquired the mutex.  Line 1274 is an abort case where we acquire the mutex, check a state, release the mutex, and return.
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_ucast_cache.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
-
-diff --git a/opensm/osm_ucast_cache.c b/opensm/osm_ucast_cache.c
-index e3f7c7b..2238ba3 100644
---- a/opensm/osm_ucast_cache.c
-+++ b/opensm/osm_ucast_cache.c
-@@ -114,13 +114,19 @@ static cache_switch_t *cache_sw_new(uint16_t lid_ho, unsigned num_ports)
- 
- static void cache_sw_destroy(cache_switch_t * p_sw)
- {
-+	unsigned i;
-+
- 	if (!p_sw)
- 		return;
- 
- 	if (p_sw->lft)
- 		free(p_sw->lft);
--	if (p_sw->hops)
-+	if (p_sw->hops) {
-+		for (i = 0; i < p_sw->num_hops; i++)
-+			if (p_sw->hops[i])
-+				free(p_sw->hops[i]);
- 		free(p_sw->hops);
-+	}
- 	free(p_sw);
- }
- 
--- 
-1.7.8.2
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
