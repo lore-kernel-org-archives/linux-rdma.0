@@ -1,46 +1,44 @@
-From: <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/2] RDMA/ocrdma: Remove redundant check in ocrdma_build_fr.
-Date: Mon, 28 Oct 2013 17:29:34 +0530
-Message-ID: <66d12edd-f1ba-464d-a86e-11c2b9a6e09d@CMEXHTCAS1.ad.emulex.com>
-References: <1382961575-22253-1-git-send-email-bgottumukkala@emulex.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_link_mgr.c: active_transition parameter in PortInfo(Set)
+ context may not be initialized
+Date: Mon, 28 Oct 2013 08:12:05 -0400
+Message-ID: <526E5495.6070402@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1382961575-22253-1-git-send-email-bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Remove the redundant check of comparing if 32 bit value is greater
-than 0xffffffffULL.
-
-This is reported by Dan Carpenter.
-
-Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ opensm/osm_link_mgr.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 69f1d12..9704931 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1981,9 +1981,7 @@ static int ocrdma_build_fr(struct ocrdma_qp *qp, struct ocrdma_hdr_wqe *hdr,
+diff --git a/opensm/osm_link_mgr.c b/opensm/osm_link_mgr.c
+index 98126f1..0d00984 100644
+--- a/opensm/osm_link_mgr.c
++++ b/opensm/osm_link_mgr.c
+@@ -440,13 +440,12 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 	}
  
- 	wqe_size = roundup(wqe_size, OCRDMA_WQE_ALIGN_BYTES);
+ Send:
++	context.pi_context.active_transition = FALSE;
+ 	if (port_state != IB_LINK_NO_CHANGE &&
+ 	    port_state != ib_port_info_get_port_state(p_old_pi)) {
+ 		send_set = TRUE;
+ 		if (port_state == IB_LINK_ACTIVE)
+ 			context.pi_context.active_transition = TRUE;
+-		else
+-			context.pi_context.active_transition = FALSE;
+ 	}
  
--	if ((wr->wr.fast_reg.page_list_len >
--		qp->dev->attr.max_pages_per_frmr) ||
--		(wr->wr.fast_reg.length > 0xffffffffULL))
-+	if (wr->wr.fast_reg.page_list_len > qp->dev->attr.max_pages_per_frmr)
- 		return -EINVAL;
- 
- 	hdr->cw |= (OCRDMA_FR_MR << OCRDMA_WQE_OPCODE_SHIFT);
+ 	context.pi_context.node_guid = osm_node_get_node_guid(p_node);
 -- 
-1.8.2.3
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
