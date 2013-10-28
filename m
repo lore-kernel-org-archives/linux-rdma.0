@@ -1,7 +1,7 @@
 From: <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDMA/ocrdma: Fix the driver crash during rmmod.
-Date: Mon, 28 Oct 2013 17:06:25 +0530
-Message-ID: <88bfa9eb-4579-4394-a2ae-8ea6370c55ce@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH 0/2] Fixe for rmmod crash and warnings.
+Date: Mon, 28 Oct 2013 17:29:33 +0530
+Message-ID: <5994768f-1112-47df-8367-a3397b67c951@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,42 +12,16 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-ocrdma_remove_free funtion can be called in a bottom-half context.
-So the code in this funtion should not sleep.
+Please neglect my last two patches. I am resending those.
 
-Moved the resource cleanup code to ocrdma_remove instead of
-ocrdma_remove_free.
+Naresh Gottumukkala (2):
+  RDMA/ocrdma: Remove redundant check in ocrdma_build_fr.
+  RDMA/ocrdma: Fix the driver crash during rmmod.
 
-Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  | 7 ++++---
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 4 +---
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 0ce7674..91443bc 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -452,9 +452,6 @@ static void ocrdma_remove_free(struct rcu_head *rcu)
- {
- 	struct ocrdma_dev *dev = container_of(rcu, struct ocrdma_dev, rcu);
- 
--	ocrdma_free_resources(dev);
--	ocrdma_cleanup_hw(dev);
--
- 	idr_remove(&ocrdma_dev_id, dev->id);
- 	kfree(dev->mbx_cmd);
- 	ib_dealloc_device(&dev->ibdev);
-@@ -470,6 +467,10 @@ static void ocrdma_remove(struct ocrdma_dev *dev)
- 	spin_lock(&ocrdma_devlist_lock);
- 	list_del_rcu(&dev->entry);
- 	spin_unlock(&ocrdma_devlist_lock);
-+
-+	ocrdma_free_resources(dev);
-+	ocrdma_cleanup_hw(dev);
-+
- 	call_rcu(&dev->rcu, ocrdma_remove_free);
- }
- 
 -- 
 1.8.2.3
 
