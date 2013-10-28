@@ -1,7 +1,7 @@
 From: <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/2] RDMA/ocrdma: Fix the driver crash during rmmod.
-Date: Mon, 28 Oct 2013 17:29:35 +0530
-Message-ID: <75d878d4-23d5-498e-93cf-37bb240213fe@CMEXHTCAS1.ad.emulex.com>
+Subject: [PATCH 1/2] RDMA/ocrdma: Remove redundant check in ocrdma_build_fr.
+Date: Mon, 28 Oct 2013 17:29:34 +0530
+Message-ID: <66d12edd-f1ba-464d-a86e-11c2b9a6e09d@CMEXHTCAS1.ad.emulex.com>
 References: <1382961575-22253-1-git-send-email-bgottumukkala@emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,42 +14,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-ocrdma_remove_free funtion can be called in a bottom-half context.
-So the code in this funtion should not sleep.
+Remove the redundant check of comparing if 32 bit value is greater
+than 0xffffffffULL.
 
-Moved the resource cleanup code to ocrdma_remove instead of
-ocrdma_remove_free.
+This is reported by Dan Carpenter.
 
 Signed-off-by: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_main.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 0ce7674..91443bc 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -452,9 +452,6 @@ static void ocrdma_remove_free(struct rcu_head *rcu)
- {
- 	struct ocrdma_dev *dev = container_of(rcu, struct ocrdma_dev, rcu);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 69f1d12..9704931 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1981,9 +1981,7 @@ static int ocrdma_build_fr(struct ocrdma_qp *qp, struct ocrdma_hdr_wqe *hdr,
  
--	ocrdma_free_resources(dev);
--	ocrdma_cleanup_hw(dev);
--
- 	idr_remove(&ocrdma_dev_id, dev->id);
- 	kfree(dev->mbx_cmd);
- 	ib_dealloc_device(&dev->ibdev);
-@@ -470,6 +467,10 @@ static void ocrdma_remove(struct ocrdma_dev *dev)
- 	spin_lock(&ocrdma_devlist_lock);
- 	list_del_rcu(&dev->entry);
- 	spin_unlock(&ocrdma_devlist_lock);
-+
-+	ocrdma_free_resources(dev);
-+	ocrdma_cleanup_hw(dev);
-+
- 	call_rcu(&dev->rcu, ocrdma_remove_free);
- }
+ 	wqe_size = roundup(wqe_size, OCRDMA_WQE_ALIGN_BYTES);
  
+-	if ((wr->wr.fast_reg.page_list_len >
+-		qp->dev->attr.max_pages_per_frmr) ||
+-		(wr->wr.fast_reg.length > 0xffffffffULL))
++	if (wr->wr.fast_reg.page_list_len > qp->dev->attr.max_pages_per_frmr)
+ 		return -EINVAL;
+ 
+ 	hdr->cw |= (OCRDMA_FR_MR << OCRDMA_WQE_OPCODE_SHIFT);
 -- 
 1.8.2.3
 
