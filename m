@@ -1,64 +1,25 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] iser-target: fix error return code in isert_create_device_ib_res()
-Date: Tue, 29 Oct 2013 09:56:34 +0800
-Message-ID: <CAPgLHd8eEFhMyfieCULgj+OzCRrTMN9G60pAvTP0+zOhBeK=qw@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: smatch  warnings on the IB core
+Date: Tue, 29 Oct 2013 09:03:16 +0200
+Message-ID: <526F5DB4.9020401@mellanox.com>
+References: <526CB685.40607@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CF16CC@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CF16CC-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jkosina-AlSwsSmVLrQ@public.gmane.org
-Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+On 28/10/2013 18:32, Hefty, Sean wrote:
+> Visually inspecting the code for both of these, I don't see anything wrong.  In both cases the listen mutex is acquired near the top of the function and released at the end.  I don't see how you exit either function with the mutex locked.
+>
+> In the top case, line 1271 is a return statement that occurs before we've acquired the mutex.  Line 1274 is an abort case where we acquire the mutex, check a state, release the mutex, and return.
 
-Fix to return a negative error code from the error handling
-case instead of 0, as done elsewhere in this function.
-
-Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 6df2350..2ba71c0 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -263,21 +263,29 @@ isert_create_device_ib_res(struct isert_device *device)
- 						isert_cq_event_callback,
- 						(void *)&cq_desc[i],
- 						ISER_MAX_RX_CQ_LEN, i);
--		if (IS_ERR(device->dev_rx_cq[i]))
-+		if (IS_ERR(device->dev_rx_cq[i])) {
-+			ret = PTR_ERR(device->dev_rx_cq[i]);
-+			device->dev_rx_cq[i] = NULL;
- 			goto out_cq;
-+		}
- 
- 		device->dev_tx_cq[i] = ib_create_cq(device->ib_device,
- 						isert_cq_tx_callback,
- 						isert_cq_event_callback,
- 						(void *)&cq_desc[i],
- 						ISER_MAX_TX_CQ_LEN, i);
--		if (IS_ERR(device->dev_tx_cq[i]))
-+		if (IS_ERR(device->dev_tx_cq[i])) {
-+			ret = PTR_ERR(device->dev_tx_cq[i]);
-+			device->dev_tx_cq[i] = NULL;
- 			goto out_cq;
-+		}
- 
--		if (ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP))
-+		ret = ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP);
-+		if (ret)
- 			goto out_cq;
- 
--		if (ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP))
-+		ret = ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP);
-+		if (ret)
- 			goto out_cq;
- 	}
- 
-
+Dan, do you agree this is false-positive? anything we can do to teach 
+smatch not to shout on that?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
