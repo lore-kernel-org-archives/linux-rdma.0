@@ -1,36 +1,52 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH RFC v1 01/10] IB/core: Introduce protected memory regions
-Date: Mon, 28 Oct 2013 21:22:24 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CF1CDD@ORSMSX109.amr.corp.intel.com>
-References: <1382970376-13776-1-git-send-email-sagig@mellanox.com>
- <1382970376-13776-2-git-send-email-sagig@mellanox.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: RDMA reads/writes per second
+Date: Mon, 28 Oct 2013 20:28:17 -0400
+Message-ID: <CADPSxAiDtn+2JR_q=HAEi8ezEKvn8JBT4VUcKomA4PX=vM5s=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1382970376-13776-2-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> +enum ib_mr_create_flags {
-> +		IB_MR_SIGNATURE_EN = 1,
-> +};
-> +
-> +/**
-> + * ib_mr_init_attr - Memory region init attributes passed to routine
-> + *	ib_create_mr.
-> + * @max_reg_descriptors: max number of registration units that
-> + *   may be used with UMR work requests.
-> + * @flags: MR creation flags bit mask.
-> + */
-> +struct ib_mr_init_attr {
-> +	int			max_reg_descriptors;
-> +	enum ib_mr_create_flags	flags;
+Hi.
 
-Assuming that flags will be a bitwise OR of values, they should be an int, not an enum.
+I'm measuring the number of RDMA reads and writes per second. In my
+experimental setup I have one server connected to several clients and
+I want to extract the maximum IOs from the server. I had two questions
+regarding this:
+
+1. What is the expected number of small (16 byte values) RDMA reads
+for ConnectX 3 cards? Currently, I've seen a maximum of 9 million
+reads per second with my code. However, several websites report much
+higher messages per second. For
+example,http://www.marketwatch.com/story/mellanox-fdr-56gbs-infiniband-solutions-deliver-leading-application-performance-and-scalability-2013-06-17talks
+about 137 messages per second.
+http://www.mellanox.com/pdf/products/oem/RG_HP.pdf reports 40 million
+MPI messages per second. What sort optimizations could I do to reach
+similar numbers?
+
+2. The number of IOPS drops when the size of the registered region
+increases. For a 1 KB registered region, the maximum random reads per
+second that the server can provide is around 9 million. It drops to 2
+million when I increase the registered size to 1 GB.
+What is the reason behind this? Does the HCA perform caching for
+reads? That could be a possible explanation. Another possible reason
+is TLB misses in the HCA.
+Further, I'm seeing even greater variation with writes. I can think of
+2 possible explanations for that:
+a. As my writes are to random locations, there could be more TLB
+misses for larger registered regions.
+b. The HCA buffers writes locally and does not transfer them into the
+CPU memory immediately (this can be done only for small registered
+regions).
+
+Thanks for your time!
+I'm sorry if the list receives more than one copy of this email. I've
+been running into a HTML rejection error.
+
+Anuj Kalia,
+Carnegie Mellon University
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
