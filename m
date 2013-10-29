@@ -1,50 +1,38 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: smatch  warnings on the IB core
-Date: Tue, 29 Oct 2013 10:53:49 +0300
-Message-ID: <20131029075349.GD20521@mwanda>
-References: <526CB685.40607@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RFC v1 01/10] IB/core: Introduce protected memory regions
+Date: Tue, 29 Oct 2013 10:15:17 +0200
+Message-ID: <526F6E95.5080100@mellanox.com>
+References: <1382970376-13776-1-git-send-email-sagig@mellanox.com> <1382970376-13776-2-git-send-email-sagig@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CF1CDD@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <526CB685.40607-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CF1CDD-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 27, 2013 at 08:45:25AM +0200, Or Gerlitz wrote:
-> Hi Dan,
-> 
-> With the latest smatch I still see these hits on the IB core,
-> basically, I would be happy to see the IB stack free from such
-> warnings and then we can easily require each new patch not to
-> introduce them... can you shed some light on the problem and
-> possible solutions?
-> 
+On 10/28/2013 11:22 PM, Hefty, Sean wrote:
+>> +enum ib_mr_create_flags {
+>> +		IB_MR_SIGNATURE_EN = 1,
+>> +};
+>> +
+>> +/**
+>> + * ib_mr_init_attr - Memory region init attributes passed to routine
+>> + *	ib_create_mr.
+>> + * @max_reg_descriptors: max number of registration units that
+>> + *   may be used with UMR work requests.
+>> + * @flags: MR creation flags bit mask.
+>> + */
+>> +struct ib_mr_init_attr {
+>> +	int			max_reg_descriptors;
+>> +	enum ib_mr_create_flags	flags;
+> Assuming that flags will be a bitwise OR of values, they should be an int, not an enum.
 
-The first one is because it thinks nonseekable_open() can fail.
-If you build the cross function database first:
+Right, will fix. The same applies to signature caps in ib_device.
 
-~/path/to/smatch/smatch_scripts/build_kernel_data.sh
-
-Then the warning should go away.  But building the database takes three
-hours on my system.  The database is around 4GB.
-
-The other two are because smatch isn't doing cross function analysis of
-locks.  It doesn't see that we take the lock in cma_disable_callback().
-I want to add this at some point but I haven't got around to it.
-
-In the end, what I do is I only look at new warnings.  With Smatch, I've
-deliberately set it to have more false positives than GCC.  It's always
-a tradeoff.
-
-I wish there were a way to carry a list of false positives in the smatch
-git tree and filter them out automatically...
-
-regards,
-dan carpenter
-
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
