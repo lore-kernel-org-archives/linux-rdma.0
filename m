@@ -1,50 +1,63 @@
-From: akalia-OM76b2Iv3yLQjUSlxSEPGw@public.gmane.org
-Subject: RDMA reads/writes per second
-Date: Mon, 28 Oct 2013 20:05:12 -0400
-Message-ID: <7eec6832a608f6a78639c833af1473fd.squirrel@webmail.andrew.cmu.edu>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] iser-target: fix error return code in isert_create_device_ib_res()
+Date: Tue, 29 Oct 2013 09:56:34 +0800
+Message-ID: <CAPgLHd8eEFhMyfieCULgj+OzCRrTMN9G60pAvTP0+zOhBeK=qw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jkosina-AlSwsSmVLrQ@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi.
+From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-I'm measuring the number of RDMA reads and writes per second. In my
-experimental setup I have one server connected to several clients and I
-want to extract the maximum IOs from the server. I had two questions
-regarding this:
+Fix to return a negative error code from the error handling
+case instead of 0, as done elsewhere in this function.
 
-1. What is the expected number of small (16 byte values) RDMA reads for
-ConnectX 3 cards? Currently, I've seen a maximum of 9 million reads per
-second with my code. However, several websites report much higher messages
-per second. For example,
-http://www.marketwatch.com/story/mellanox-fdr-56gbs-infiniband-solutions-deliver-leading-application-performance-and-scalability-2013-06-17
-talks about 137 messages per second.
-http://www.mellanox.com/pdf/products/oem/RG_HP.pdf reports 40 million MPI
-messages per second. What sort optimizations could I do to reach similar
-numbers?
+Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+---
+ drivers/infiniband/ulp/isert/ib_isert.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-2. The number of IOPS drops when the size of the registered region
-increases. For a 1 KB registered region, the maximum random reads per
-second that the server can provide is around 9 million. It drops to 2
-million when I increase the registered size to 1 GB.
-What is the reason behind this? Does the HCA perform caching for reads?
-That could be a possible explanation. Another possible reason is TLB
-misses in the HCA.
-Further, I'm seeing even greater variation with writes. I can think of 2
-possible explanations for that:
-a. As my writes are to random locations, there could be more TLB misses
-for larger registered regions.
-b. The HCA buffers writes locally and does not transfer them into the CPU
-memory immediately (this can be done only for small registered regions).
-
-Thanks for your time!
-
-Anuj Kalia,
-Carnegie Mellon University
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 6df2350..2ba71c0 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -263,21 +263,29 @@ isert_create_device_ib_res(struct isert_device *device)
+ 						isert_cq_event_callback,
+ 						(void *)&cq_desc[i],
+ 						ISER_MAX_RX_CQ_LEN, i);
+-		if (IS_ERR(device->dev_rx_cq[i]))
++		if (IS_ERR(device->dev_rx_cq[i])) {
++			ret = PTR_ERR(device->dev_rx_cq[i]);
++			device->dev_rx_cq[i] = NULL;
+ 			goto out_cq;
++		}
+ 
+ 		device->dev_tx_cq[i] = ib_create_cq(device->ib_device,
+ 						isert_cq_tx_callback,
+ 						isert_cq_event_callback,
+ 						(void *)&cq_desc[i],
+ 						ISER_MAX_TX_CQ_LEN, i);
+-		if (IS_ERR(device->dev_tx_cq[i]))
++		if (IS_ERR(device->dev_tx_cq[i])) {
++			ret = PTR_ERR(device->dev_tx_cq[i]);
++			device->dev_tx_cq[i] = NULL;
+ 			goto out_cq;
++		}
+ 
+-		if (ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP))
++		ret = ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP);
++		if (ret)
+ 			goto out_cq;
+ 
+-		if (ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP))
++		ret = ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP);
++		if (ret)
+ 			goto out_cq;
+ 	}
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
