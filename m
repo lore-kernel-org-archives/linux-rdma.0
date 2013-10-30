@@ -1,179 +1,138 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V1 3/8] IB/core: Rename 'flow' structs to match other uverbs structs
-Date: Wed, 30 Oct 2013 11:52:46 +0200
-Message-ID: <1383126771-7658-4-git-send-email-matanb@mellanox.com>
-References: <1383126771-7658-1-git-send-email-matanb@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RFC v1 00/10] Introduce Signature feature
+Date: Wed, 30 Oct 2013 12:29:36 +0200
+Message-ID: <5270DF90.8000802@mellanox.com>
+References: <1382970376-13776-1-git-send-email-sagig@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1383126771-7658-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1382970376-13776-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+On 28/10/2013 16:26, Sagi Grimberg wrote:
+> This patchset Introduces Verbs level support for signature handover
+> feature. Siganture is intended to implement end-to-end data integrity
+> on a transactional basis in a completely offloaded manner.
 
-Commit 436f2ad added public data structures to support
-receive flow steering. The new structs are not following
-the 'uverbs' pattern: they're lacking the common prefix
-'ib_uverbs'.
+Hi Roland, Sean
 
-This patch replaces ib_kern prefix by ib_uverbs.
+These patches are around for few weeks, they set the grounds for 
+implementing accelerated/support for T10 DIF in the upstream SCSI target 
+LIO iser driver and the upstream iser initiator. For that end, we expect 
+some changes to take place in each of the domains/sub-systems and don't 
+want to makeit a three/four way (e.g 
+LIO/iSCSI/iser_i/iser_t/verbs/driver) merge.
 
+The team here enhanced krping to fully cover (and test...) the proposed 
+API and driver implementation, its (free) under
+git://beany.openfabrics.org/~sgrimberg/krping.git
 
-Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Link: http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-Link: http://mid.gmane.org/cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
----
- drivers/infiniband/core/uverbs_cmd.c | 14 +++++++-------
- include/uapi/rdma/ib_user_verbs.h    | 36 ++++++++++++++++++------------------
- 2 files changed, 25 insertions(+), 25 deletions(-)
+We'd like to see this landing in 3.13 such that the development of the 
+upper layers can run for 3.14 and and later kernels. Sagi will postV2 
+with the two minor changes that came up in Sean's review of V1, thoughts?
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 98f1746..85f8b5f 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2602,7 +2602,7 @@ out_put:
- 	return ret ? ret : in_len;
- }
- 
--static int kern_spec_to_ib_spec(struct ib_kern_spec *kern_spec,
-+static int kern_spec_to_ib_spec(struct ib_uverbs_spec *kern_spec,
- 				union ib_flow_spec *ib_spec)
- {
- 	ib_spec->type = kern_spec->type;
-@@ -2650,7 +2650,7 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
- 	struct ib_uverbs_create_flow_resp resp;
- 	struct ib_uobject		  *uobj;
- 	struct ib_flow			  *flow_id;
--	struct ib_kern_flow_attr	  *kern_flow_attr;
-+	struct ib_uverbs_flow_attr	  *kern_flow_attr;
- 	struct ib_flow_attr		  *flow_attr;
- 	struct ib_qp			  *qp;
- 	int err = 0;
-@@ -2676,7 +2676,7 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
- 
- 	if (cmd.flow_attr.size > (in_len - sizeof(cmd)) ||
- 	    cmd.flow_attr.size >
--	    (cmd.flow_attr.num_of_specs * sizeof(struct ib_kern_spec)))
-+	    (cmd.flow_attr.num_of_specs * sizeof(struct ib_uverbs_spec)))
- 		return -EINVAL;
- 
- 	if (cmd.flow_attr.num_of_specs) {
-@@ -2725,16 +2725,16 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
- 	kern_spec = kern_flow_attr + 1;
- 	ib_spec = flow_attr + 1;
- 	for (i = 0; i < flow_attr->num_of_specs &&
--	     cmd.flow_attr.size > offsetof(struct ib_kern_spec, reserved) &&
-+	     cmd.flow_attr.size > offsetof(struct ib_uverbs_spec, reserved) &&
- 	     cmd.flow_attr.size >=
--	     ((struct ib_kern_spec *)kern_spec)->size; i++) {
-+	     ((struct ib_uverbs_spec *)kern_spec)->size; i++) {
- 		err = kern_spec_to_ib_spec(kern_spec, ib_spec);
- 		if (err)
- 			goto err_free;
- 		flow_attr->size +=
- 			((union ib_flow_spec *) ib_spec)->size;
--		cmd.flow_attr.size -= ((struct ib_kern_spec *)kern_spec)->size;
--		kern_spec += ((struct ib_kern_spec *) kern_spec)->size;
-+		cmd.flow_attr.size -= ((struct ib_uverbs_spec *)kern_spec)->size;
-+		kern_spec += ((struct ib_uverbs_spec *) kern_spec)->size;
- 		ib_spec += ((union ib_flow_spec *) ib_spec)->size;
- 	}
- 	if (cmd.flow_attr.size || (i != flow_attr->num_of_specs)) {
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 71e994b..6a8fd43 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -696,61 +696,61 @@ struct ib_uverbs_detach_mcast {
- 	__u64 driver_data[0];
- };
- 
--struct ib_kern_eth_filter {
-+struct ib_uverbs_eth_filter {
- 	__u8  dst_mac[6];
- 	__u8  src_mac[6];
- 	__be16 ether_type;
- 	__be16 vlan_tag;
- };
- 
--struct ib_kern_spec_eth {
-+struct ib_uverbs_spec_eth {
- 	__u32  type;
- 	__u16  size;
- 	__u16  reserved;
--	struct ib_kern_eth_filter val;
--	struct ib_kern_eth_filter mask;
-+	struct ib_uverbs_eth_filter val;
-+	struct ib_uverbs_eth_filter mask;
- };
- 
--struct ib_kern_ipv4_filter {
-+struct ib_uverbs_ipv4_filter {
- 	__be32 src_ip;
- 	__be32 dst_ip;
- };
- 
--struct ib_kern_spec_ipv4 {
-+struct ib_uverbs_spec_ipv4 {
- 	__u32  type;
- 	__u16  size;
- 	__u16  reserved;
--	struct ib_kern_ipv4_filter val;
--	struct ib_kern_ipv4_filter mask;
-+	struct ib_uverbs_ipv4_filter val;
-+	struct ib_uverbs_ipv4_filter mask;
- };
- 
--struct ib_kern_tcp_udp_filter {
-+struct ib_uverbs_tcp_udp_filter {
- 	__be16 dst_port;
- 	__be16 src_port;
- };
- 
--struct ib_kern_spec_tcp_udp {
-+struct ib_uverbs_spec_tcp_udp {
- 	__u32  type;
- 	__u16  size;
- 	__u16  reserved;
--	struct ib_kern_tcp_udp_filter val;
--	struct ib_kern_tcp_udp_filter mask;
-+	struct ib_uverbs_tcp_udp_filter val;
-+	struct ib_uverbs_tcp_udp_filter mask;
- };
- 
--struct ib_kern_spec {
-+struct ib_uverbs_spec {
- 	union {
- 		struct {
- 			__u32 type;
- 			__u16 size;
- 			__u16 reserved;
- 		};
--		struct ib_kern_spec_eth	    eth;
--		struct ib_kern_spec_ipv4    ipv4;
--		struct ib_kern_spec_tcp_udp tcp_udp;
-+		struct ib_uverbs_spec_eth	    eth;
-+		struct ib_uverbs_spec_ipv4    ipv4;
-+		struct ib_uverbs_spec_tcp_udp tcp_udp;
- 	};
- };
- 
--struct ib_kern_flow_attr {
-+struct ib_uverbs_flow_attr {
- 	__u32 type;
- 	__u16 size;
- 	__u16 priority;
-@@ -769,7 +769,7 @@ struct ib_uverbs_create_flow  {
- 	__u32 reserved;
- 	__u64 response;
- 	__u32 qp_handle;
--	struct ib_kern_flow_attr flow_attr;
-+	struct ib_uverbs_flow_attr flow_attr;
- };
- 
- struct ib_uverbs_create_flow_resp {
--- 
-1.8.3.2
+Or.
+>
+> There are several end-to-end data integrity methods used today in various
+> applications and/or upper layer protocols such as T10-DIF defined by SCSI
+> specifications (SBC), CRC32, XOR8 and more. This patchset adds verbs
+> support only for T10-DIF. The proposed framework allows adding more
+> signature methods in the future.
+>
+> In T10-DIF, when a series of 512-byte data blocks are transferred, each
+> block is followed by an 8-byte guard. The guard consists of CRC that
+> protects the integrity of the data in the block, and some other tags
+> that protects against mis-directed IOs.
+>
+> Data can be protected when transferred over the wire, but can also be
+> protected in the memory of the sender/receiver. This allows true end-
+> to-end protection against bits flipping either over the wire, through
+> gateways, in memory, over PCI, etc.
+>
+> While T10-DIF clearly defines that over the wire protection guards are
+> interleaved into the data stream (each 512-Byte block followed by 8-byte
+> guard), when in memory, the protection guards may reside in a buffer
+> separated from the data. Depending on the application, it is usually
+> easier to handle the data when it is contiguous. In this case the data
+> buffer will be of size 512xN and the protection buffer will be of size
+> 8xN (where N is the number of blocks in the transaction).
+>
+> There are 3 kinds of signature handover operation:
+> 1. Take unprotected data (from wire or memory) and ADD protection
+>     guards.
+> 2. Take protetected data (from wire or memory), validate the data
+>     integrity against the protection guards and STRIP the protection
+>     guards.
+> 3. Take protected data (from wire or memory), validate the data
+>     integrity against the protection guards and PASS the data with
+>     the guards as-is.
+>
+> This translates to defining to the HCA how/if data protection exists
+> in memory domain, and how/if data protection exists is wire domain.
+>
+> The way that data integrity is performed is by using a new kind of
+> memory region: signature-enabled MR, and a new kind of work request:
+> REG_SIG_MR. The REG_SIG_MR WR operates on the signature-enabled MR,
+> and defines all the needed information for the signature handover
+> (data buffer, protection buffer if needed and signature attributes).
+> The result is an MR that can be used for data transfer as usual,
+> that will also add/validate/strip/pass protection guards.
+>
+> When the data transfer is successfully completed, it does not mean
+> that there are no integrity errors. The user must afterwards check
+> the signature status of the handover operation using a new light-weight
+> verb.
+>
+> This feature shall be used in storage upper layer protocols iSER/SRP
+> implementing end-to-end data integrity T10-DIF. Following this patchset,
+> we will soon submit krping patches which will demonstrate the usage of
+> these signature verbs.
+>
+> Patchset summary:
+> - Intoduce verbs for create/destroy memory regions supporting signature.
+> - Introduce IB core signature verbs API.
+> - Implement mr create/destroy verbs in mlx5 driver.
+> - Preperation patches for signature support in mlx5 driver.
+> - Implement signature handover work request in mlx5 driver.
+> - Implement signature error collection and handling in mlx5 driver.
+>
+> Changes from v0:
+> - Commit messages: Added more detailed explanation for signature work request.
+> - IB/core: Remove indirect memory registration enablement from create_mr.
+>             Keep only signature enablement.
+> - IB/mlx5: Changed signature error processing via MR radix lookup.
+>
+> Sagi Grimberg (10):
+>    IB/core: Introduce protected memory regions
+>    IB/core: Introduce Signature Verbs API
+>    IB/mlx5, mlx5_core: Support for create_mr and destroy_mr
+>    IB/mlx5: Initialize mlx5_ib_qp signature related
+>    IB/mlx5: Break wqe handling to begin & finish routines
+>    IB/mlx5: remove MTT access mode from umr flags helper function
+>    IB/mlx5: Keep mlx5 MRs in a radix tree under device
+>    IB/mlx5: Support IB_WR_REG_SIG_MR
+>    IB/mlx5: Collect signature error completion
+>    IB/mlx5: Publish support in signature feature
+>
+>   drivers/infiniband/core/verbs.c                |   47 +++
+>   drivers/infiniband/hw/mlx5/cq.c                |   53 +++
+>   drivers/infiniband/hw/mlx5/main.c              |   12 +
+>   drivers/infiniband/hw/mlx5/mlx5_ib.h           |   14 +
+>   drivers/infiniband/hw/mlx5/mr.c                |  138 +++++++
+>   drivers/infiniband/hw/mlx5/qp.c                |  525 ++++++++++++++++++++++--
+>   drivers/net/ethernet/mellanox/mlx5/core/main.c |    1 +
+>   drivers/net/ethernet/mellanox/mlx5/core/mr.c   |   84 ++++
+>   include/linux/mlx5/cq.h                        |    1 +
+>   include/linux/mlx5/device.h                    |   43 ++
+>   include/linux/mlx5/driver.h                    |   35 ++
+>   include/linux/mlx5/qp.h                        |   62 +++
+>   include/rdma/ib_verbs.h                        |  172 ++++++++-
+>   13 files changed, 1148 insertions(+), 39 deletions(-)
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
