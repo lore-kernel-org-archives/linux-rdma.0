@@ -1,42 +1,40 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC v2 00/10] Introduce Signature feature
-Date: Thu, 31 Oct 2013 15:20:48 +0200
-Message-ID: <52725930.7030702@mellanox.com>
-References: <1383222255-22699-1-git-send-email-sagig@mellanox.com> <5272535D.4090805@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH for-next 0/6] mlx5 and mlx4 drivers updates and fixes for 3.13
+Date: Thu, 31 Oct 2013 15:26:30 +0200
+Message-ID: <1383225996-14828-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5272535D.4090805-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/31/2013 2:55 PM, Jack Wang wrote:
-> Hi Sagi,
->
-> I wander what's the performance overhead with this DIF support?
-> And is there a roadmap for support SRP/ISER and target side for DIF?
->
-> Regards,
-> Jack
+Hi Roland,
 
-Well, all DIF operations are fully offloaded by the HCA so we don't expect
-any performance degradation other than the obvious 8-bytes integrity 
-overhead.
-We have yet to take benchmarks on this and we definitely plan to do so.
+Here are some some fixes to mlx4 and mlx5 driver for the 3.13 merge window.
 
-Regarding our roadmap, we plan to support iSER target (LIO) and 
-initiator first.
-Some prior support for DIF needs to be added in target core level,
-then transport implementation is pretty straight-forward (iSER/SRP).
+Thanks,
+Eli
 
-So I aim for iSER DIF support (target+initiator) to make it into v3.14.
+Eli Cohen (6):
+  IB/mlx5: Remove dead code
+  IB/core: Encorce MR access rights rules on kernel consumers
+  IB/mlx5: Fix list_del of empty list
+  IB/mlx4: Fix device max capabilities check
+  IB/mlx4: Fix endless loop in resize CQ
+  IB/mlx5: Fix page shift in create CQ for userspace
 
-Hope this helps,
+ drivers/infiniband/core/uverbs_cmd.c                | 10 +++-------
+ drivers/infiniband/core/verbs.c                     | 14 ++++++++++++++
+ drivers/infiniband/hw/mlx4/cq.c                     |  9 +++++++--
+ drivers/infiniband/hw/mlx5/cq.c                     |  2 +-
+ drivers/infiniband/hw/mlx5/mr.c                     |  5 -----
+ drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c |  3 ++-
+ include/rdma/ib_verbs.h                             | 13 +++++++++++++
+ 7 files changed, 40 insertions(+), 16 deletions(-)
 
-Sagi.
+-- 
+1.8.4.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
