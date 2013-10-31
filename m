@@ -1,46 +1,31 @@
-From: Jack Wang <xjtuwjp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RFC v2 00/10] Introduce Signature feature
-Date: Thu, 31 Oct 2013 14:29:09 +0100
-Message-ID: <52725B25.9070708@gmail.com>
-References: <1383222255-22699-1-git-send-email-sagig@mellanox.com> <5272535D.4090805@gmail.com> <52725930.7030702@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 0/2] Fix build warnings
+Date: Thu, 31 Oct 2013 18:21:49 +0200
+Message-ID: <1383236511-4337-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52725930.7030702-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/31/2013 02:20 PM, Sagi Grimberg wrote:
-> On 10/31/2013 2:55 PM, Jack Wang wrote:
->> Hi Sagi,
->>
->> I wander what's the performance overhead with this DIF support?
->> And is there a roadmap for support SRP/ISER and target side for DIF?
->>
->> Regards,
->> Jack
-> 
-> Well, all DIF operations are fully offloaded by the HCA so we don't expect
-> any performance degradation other than the obvious 8-bytes integrity
-> overhead.
-> We have yet to take benchmarks on this and we definitely plan to do so.
-> 
-> Regarding our roadmap, we plan to support iSER target (LIO) and
-> initiator first.
-> Some prior support for DIF needs to be added in target core level,
-> then transport implementation is pretty straight-forward (iSER/SRP).
-> 
-> So I aim for iSER DIF support (target+initiator) to make it into v3.14.
-> 
-> Hope this helps,
-> 
-> Sagi.
-Good to know, thanks
+Hi Roland,
 
-Jack
+This little patch set removes the current "make W=1" build warnings from the IB core
+and the mlx4_ib driver, which would help when we examine new patches to make sure they
+don't add any warnings..
+
+Or.
+
+Or Gerlitz (2):
+  IB/core: Fix build warnings
+  IB/mlx4: Fix build warnings
+
+ drivers/infiniband/core/iwcm.c  |    2 --
+ drivers/infiniband/core/sysfs.c |    2 +-
+ drivers/infiniband/core/verbs.c |    3 +--
+ drivers/infiniband/hw/mlx4/qp.c |    2 +-
+ 4 files changed, 3 insertions(+), 6 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
