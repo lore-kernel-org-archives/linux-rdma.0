@@ -1,119 +1,158 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC v2 00/10] Introduce Signature feature
-Date: Thu, 31 Oct 2013 14:24:05 +0200
-Message-ID: <1383222255-22699-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH RFC v2 01/10] IB/core: Introduce protected memory regions
+Date: Thu, 31 Oct 2013 14:24:06 +0200
+Message-ID: <1383222255-22699-2-git-send-email-sagig@mellanox.com>
+References: <1383222255-22699-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1383222255-22699-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset Introduces Verbs level support for signature handover
-feature. Siganture is intended to implement end-to-end data integrity
-on a transactional basis in a completely offloaded manner.
+This commit introduces verbs for creating/destoying memory
+regions which will allow new types of memory key operations such
+as protected memory registration.
 
-There are several end-to-end data integrity methods used today in various
-applications and/or upper layer protocols such as T10-DIF defined by SCSI
-specifications (SBC), CRC32, XOR8 and more. This patchset adds verbs
-support only for T10-DIF. The proposed framework allows adding more
-signature methods in the future.
+Indirect memory registration is registering several (one
+of more) pre-registered memory regions in a specific layout.
+The Indirect region may potentialy describe several regions
+and some repitition format between them.
 
-In T10-DIF, when a series of 512-byte data blocks are transferred, each
-block is followed by an 8-byte guard. The guard consists of CRC that
-protects the integrity of the data in the block, and some other tags
-that protects against mis-directed IOs.
+Protected Memory registration is registering a memory region
+with various data integrity attributes which will describe protection
+schemes that will be handled by the HCA in an offloaded manner.
+These memory regions will be applicable for a new REG_SIG_MR
+work request introduced later in this patchset.
 
-Data can be protected when transferred over the wire, but can also be
-protected in the memory of the sender/receiver. This allows true end-
-to-end protection against bits flipping either over the wire, through
-gateways, in memory, over PCI, etc.
+In the future these routines may replace or implement current memory
+regions creation routines existing today:
+- ib_reg_user_mr
+- ib_alloc_fast_reg_mr
+- ib_get_dma_mr
+- ib_dereg_mr
 
-While T10-DIF clearly defines that over the wire protection guards are
-interleaved into the data stream (each 512-Byte block followed by 8-byte
-guard), when in memory, the protection guards may reside in a buffer
-separated from the data. Depending on the application, it is usually
-easier to handle the data when it is contiguous. In this case the data
-buffer will be of size 512xN and the protection buffer will be of size
-8xN (where N is the number of blocks in the transaction).
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/verbs.c |   39 +++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         |   38 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 77 insertions(+), 0 deletions(-)
 
-There are 3 kinds of signature handover operation:
-1. Take unprotected data (from wire or memory) and ADD protection
-   guards.
-2. Take protetected data (from wire or memory), validate the data
-   integrity against the protection guards and STRIP the protection
-   guards.
-3. Take protected data (from wire or memory), validate the data
-   integrity against the protection guards and PASS the data with
-   the guards as-is.
-
-This translates to defining to the HCA how/if data protection exists
-in memory domain, and how/if data protection exists is wire domain.
-
-The way that data integrity is performed is by using a new kind of
-memory region: signature-enabled MR, and a new kind of work request:
-REG_SIG_MR. The REG_SIG_MR WR operates on the signature-enabled MR,
-and defines all the needed information for the signature handover
-(data buffer, protection buffer if needed and signature attributes).
-The result is an MR that can be used for data transfer as usual,
-that will also add/validate/strip/pass protection guards.
-
-When the data transfer is successfully completed, it does not mean
-that there are no integrity errors. The user must afterwards check
-the signature status of the handover operation using a new light-weight
-verb.
-
-This feature shall be used in storage upper layer protocols iSER/SRP
-implementing end-to-end data integrity T10-DIF. Following this patchset,
-we will soon submit krping patches which will demonstrate the usage of
-these signature verbs.
-
-Patchset summary:
-- Intoduce verbs for create/destroy memory regions supporting signature.
-- Introduce IB core signature verbs API.
-- Implement mr create/destroy verbs in mlx5 driver.
-- Preperation patches for signature support in mlx5 driver.
-- Implement signature handover work request in mlx5 driver.
-- Implement signature error collection and handling in mlx5 driver.
-
-Changes from v1:
-- IB/core: Reduced sizeof ib_send_wr by using wr->sg_list for data
-	   and dedicated ib_sge for protection guards buffer.
-           Currently sig_handover extension does not increase sizeof ib_send_wr
-- IB/core: Change enum to int for container variables.
-- IB/mlx5: Validate wr->num_sge=1 for REG_SIG_MR work request.
-
-Changes from v0:
-- Commit messages: Added more detailed explanation for signature work request.
-- IB/core: Remove indirect memory registration enablement from create_mr.
-           Keep only signature enablement.
-- IB/mlx5: Changed signature error processing via MR radix lookup.
-
-Sagi Grimberg (10):
-  IB/core: Introduce protected memory regions
-  IB/core: Introduce Signature Verbs API
-  IB/mlx5, mlx5_core: Support for create_mr and destroy_mr
-  IB/mlx5: Initialize mlx5_ib_qp signature related
-  IB/mlx5: Break wqe handling to begin & finish routines
-  IB/mlx5: remove MTT access mode from umr flags helper function
-  IB/mlx5: Keep mlx5 MRs in a radix tree under device
-  IB/mlx5: Support IB_WR_REG_SIG_MR
-  IB/mlx5: Collect signature error completion
-  IB/mlx5: Publish support in signature feature
-
- drivers/infiniband/core/verbs.c                |   47 +++
- drivers/infiniband/hw/mlx5/cq.c                |   53 +++
- drivers/infiniband/hw/mlx5/main.c              |   12 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h           |   14 +
- drivers/infiniband/hw/mlx5/mr.c                |  138 +++++++
- drivers/infiniband/hw/mlx5/qp.c                |  525 ++++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx5/core/main.c |    1 +
- drivers/net/ethernet/mellanox/mlx5/core/mr.c   |   84 ++++
- include/linux/mlx5/cq.h                        |    1 +
- include/linux/mlx5/device.h                    |   43 ++
- include/linux/mlx5/driver.h                    |   35 ++
- include/linux/mlx5/qp.h                        |   62 +++
- include/rdma/ib_verbs.h                        |  165 ++++++++-
- 13 files changed, 1141 insertions(+), 39 deletions(-)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 22192de..1d94a5c 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1052,6 +1052,45 @@ int ib_dereg_mr(struct ib_mr *mr)
+ }
+ EXPORT_SYMBOL(ib_dereg_mr);
+ 
++struct ib_mr *ib_create_mr(struct ib_pd *pd,
++			   struct ib_mr_init_attr *mr_init_attr)
++{
++	struct ib_mr *mr;
++
++	if (!pd->device->create_mr)
++		return ERR_PTR(-ENOSYS);
++
++	mr = pd->device->create_mr(pd, mr_init_attr);
++
++	if (!IS_ERR(mr)) {
++		mr->device  = pd->device;
++		mr->pd      = pd;
++		mr->uobject = NULL;
++		atomic_inc(&pd->usecnt);
++		atomic_set(&mr->usecnt, 0);
++	}
++
++	return mr;
++}
++EXPORT_SYMBOL(ib_create_mr);
++
++int ib_destroy_mr(struct ib_mr *mr)
++{
++	struct ib_pd *pd;
++	int ret;
++
++	if (atomic_read(&mr->usecnt))
++		return -EBUSY;
++
++	pd = mr->pd;
++	ret = mr->device->destroy_mr(mr);
++	if (!ret)
++		atomic_dec(&pd->usecnt);
++
++	return ret;
++}
++EXPORT_SYMBOL(ib_destroy_mr);
++
+ struct ib_mr *ib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
+ {
+ 	struct ib_mr *mr;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 645c3ce..53f065d 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -925,6 +925,22 @@ enum ib_mr_rereg_flags {
+ 	IB_MR_REREG_ACCESS	= (1<<2)
+ };
+ 
++enum ib_mr_create_flags {
++		IB_MR_SIGNATURE_EN = 1,
++};
++
++/**
++ * ib_mr_init_attr - Memory region init attributes passed to routine
++ *	ib_create_mr.
++ * @max_reg_descriptors: max number of registration units that
++ *   may be used with UMR work requests.
++ * @flags: MR creation flags bit mask.
++ */
++struct ib_mr_init_attr {
++	int	    max_reg_descriptors;
++	int	    flags;
++};
++
+ /**
+  * struct ib_mw_bind - Parameters for a type 1 memory window bind operation.
+  * @wr_id:      Work request id.
+@@ -1257,6 +1273,9 @@ struct ib_device {
+ 	int                        (*query_mr)(struct ib_mr *mr,
+ 					       struct ib_mr_attr *mr_attr);
+ 	int                        (*dereg_mr)(struct ib_mr *mr);
++	int                        (*destroy_mr)(struct ib_mr *mr);
++	struct ib_mr *		   (*create_mr)(struct ib_pd *pd,
++						struct ib_mr_init_attr *mr_init_attr);
+ 	struct ib_mr *		   (*alloc_fast_reg_mr)(struct ib_pd *pd,
+ 					       int max_page_list_len);
+ 	struct ib_fast_reg_page_list * (*alloc_fast_reg_page_list)(struct ib_device *device,
+@@ -2092,6 +2111,25 @@ int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr);
+  */
+ int ib_dereg_mr(struct ib_mr *mr);
+ 
++
++/**
++ * ib_create_mr - creates memory region that may be used for
++ *   direct or indirect registration models via UMR WR.
++ * @pd: The protection domain associated with the region.
++ * @mr_init_attr: memory region init attributes.
++ */
++struct ib_mr *ib_create_mr(struct ib_pd *pd,
++			   struct ib_mr_init_attr *mr_init_attr);
++
++/**
++ * ib_destroy_mr - Destroys a memory region that was created using
++ * 	ib_create_mr and removes it from HW translation tables.
++ * @mr: The memory region to destroy.
++ *
++ * This function can fail, if the memory region has memory windows bound to it.
++ */
++int ib_destroy_mr(struct ib_mr *mr);
++
+ /**
+  * ib_alloc_fast_reg_mr - Allocates memory region usable with the
+  *   IB_WR_FAST_REG_MR send work request.
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
