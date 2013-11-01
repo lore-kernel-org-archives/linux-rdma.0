@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] Fix handling of get P_KeyTable on timeout
-Date: Fri, 01 Nov 2013 08:10:23 -0400
-Message-ID: <52739A2F.9050508@dev.mellanox.co.il>
+Subject: [PATCH opensm] Fix possible use of lid 0 when sending set PortInfo
+ after failure of the first PortInfo set
+Date: Fri, 01 Nov 2013 09:17:57 -0400
+Message-ID: <5273AA05.8090409@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,116 +14,136 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-if the get of pkey tbl times out, remove the node from the subnet
-and indicate subnet initialization error so subnet is reswept
-
 Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/include/opensm/osm_pkey.h b/include/opensm/osm_pkey.h
-index 54888e6..2ba80b3 100644
---- a/include/opensm/osm_pkey.h
-+++ b/include/opensm/osm_pkey.h
-@@ -90,6 +90,7 @@ typedef struct osm_pkeybl {
- 	uint16_t last_pkey_idx;
- 	uint16_t used_blocks;
- 	uint16_t max_blocks;
-+	uint16_t rcv_blocks_cnt;
- } osm_pkey_tbl_t;
+diff --git a/include/opensm/osm_port.h b/include/opensm/osm_port.h
+index 8e34b84..f1edcf9 100644
+--- a/include/opensm/osm_port.h
++++ b/include/opensm/osm_port.h
+@@ -1166,6 +1166,7 @@ typedef struct osm_port {
+ 	unsigned int cc_timeout_count;
+ 	int cc_unavailable_flag;
+ 	void *priv;
++	ib_net16_t lid;
+ } osm_port_t;
  /*
  * FIELDS
-@@ -119,6 +120,11 @@ typedef struct osm_pkeybl {
- *		switch_info updated on receiving the node_info or switch_info
- *		GetResp
- *
-+*	rcv_blocks_cnt
-+*		Counter for the received GetPKeyTable mads.
-+*		For every GetPKeyTable mad we send, increase the counter,
-+*		and for every GetRespPKeyTable we decrease the counter.
-+*
- * NOTES
- * 'blocks' vector should be used to store pkey values obtained from
- * the port and SM pkey manager should not change it directly, for this
-diff --git a/opensm/osm_drop_mgr.c b/opensm/osm_drop_mgr.c
-index 4276fe9..85a6f58 100644
---- a/opensm/osm_drop_mgr.c
-+++ b/opensm/osm_drop_mgr.c
-@@ -500,6 +500,9 @@ void osm_drop_mgr_process(osm_sm_t * sm)
- 	cl_qmap_t *p_node_guid_tbl, *p_port_guid_tbl;
- 	osm_port_t *p_port, *p_next_port;
- 	osm_node_t *p_node, *p_next_node;
-+	int max_ports, port_num;
-+	osm_physp_t *p_physp;
-+	ib_net64_t port_guid;
+diff --git a/opensm/osm_lid_mgr.c b/opensm/osm_lid_mgr.c
+index ae8d234..99080d7 100644
+--- a/opensm/osm_lid_mgr.c
++++ b/opensm/osm_lid_mgr.c
+@@ -879,6 +879,7 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
+ 		   sizeof(p_pi->subnet_prefix)))
+ 		send_set = TRUE;
  
- 	CL_ASSERT(sm);
++	p_port->lid = lid;
+ 	p_pi->base_lid = lid;
+ 	if (memcmp(&p_pi->base_lid, &p_old_pi->base_lid,
+ 		   sizeof(p_pi->base_lid)))
+diff --git a/opensm/osm_link_mgr.c b/opensm/osm_link_mgr.c
+index e0f0fff..2420e4f 100644
+--- a/opensm/osm_link_mgr.c
++++ b/opensm/osm_link_mgr.c
+@@ -107,6 +107,7 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 	ib_net32_t attr_mod, cap_mask;
+ 	boolean_t update_mkey = FALSE;
+ 	ib_net64_t m_key = 0;
++	osm_port_t *p_port;
  
-@@ -530,6 +533,28 @@ void osm_drop_mgr_process(osm_sm_t * sm)
- 		 */
- 		if (p_node->discovery_count == 0)
- 			drop_mgr_process_node(sm, p_node);
-+		else {
-+			/*
-+			 * Drop port if there was timeout for GetPKeyTable
-+			 */
-+			if (osm_node_get_type(p_node) == IB_NODE_TYPE_SWITCH)
-+				port_num = 0;
-+			else
-+				port_num = 1;
-+			max_ports = osm_node_get_num_physp(p_node);
-+			for (; port_num < max_ports; port_num++) {
-+				p_physp = osm_node_get_physp_ptr(p_node, port_num);
-+				if (!p_physp || p_physp->pkeys.rcv_blocks_cnt == 0)
-+					continue;
-+				sm->p_subn->subnet_initialization_error = TRUE;
-+				if (!port_num || osm_node_get_type(p_node) != IB_NODE_TYPE_SWITCH) {
-+					port_guid = osm_physp_get_port_guid(p_physp);
-+					p_port = osm_get_port_by_guid(sm->p_subn, port_guid);
-+					p_port->discovery_count = 0;
-+				} else
-+					p_node->physp_discovered[port_num] = 0;
-+			}
+ 	OSM_LOG_ENTER(sm->p_log);
+ 
+@@ -116,6 +117,24 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 
+ 	port_num = osm_physp_get_port_num(p_physp);
+ 
++	memcpy(payload, p_old_pi, sizeof(ib_port_info_t));
++
++	if (osm_node_get_type(p_node) != IB_NODE_TYPE_SWITCH ||
++	    port_num == 0) {
++		/* Need to make sure LID and SMLID fields in PortInfo are not 0 */
++		if (!p_pi->base_lid) {
++			p_port = osm_get_port_by_guid(sm->p_subn,
++						      osm_physp_get_port_guid(p_physp));
++			p_pi->base_lid = p_port->lid;
++			send_set = TRUE;
 +		}
++
++		/* we are initializing the ports with our local sm_base_lid */
++		p_pi->master_sm_base_lid = sm->p_subn->sm_base_lid;
++		if (p_pi->master_sm_base_lid != p_old_pi->master_sm_base_lid)
++			send_set = TRUE;
++	}
++
+ 	if (port_num == 0) {
+ 		/*
+ 		   CAs don't have a port 0, and for switch port 0,
+@@ -143,7 +162,8 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 					PRIx64 "\n", smsl,
+ 					cl_ntoh64(osm_physp_get_port_guid
+ 						  (p_physp)));
+-			} else {
++			/* Enter if base lid and master_sm_lid didn't change */
++			} else if (send_set == FALSE) {
+ 				/* This means the switch doesn't support
+ 				   enhanced port 0 and we don't need to
+ 				   change SMSL. Can skip it. */
+@@ -158,8 +178,6 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 			esp0 = TRUE;
  	}
  
+-	memcpy(payload, p_old_pi, sizeof(ib_port_info_t));
+-
  	/*
-diff --git a/opensm/osm_pkey.c b/opensm/osm_pkey.c
-index 9e4bdd4..7a8ac0a 100644
---- a/opensm/osm_pkey.c
-+++ b/opensm/osm_pkey.c
-@@ -98,6 +98,7 @@ ib_api_status_t osm_pkey_tbl_init(IN osm_pkey_tbl_t * p_pkey_tbl)
- 	p_pkey_tbl->last_pkey_idx = 0;
- 	p_pkey_tbl->used_blocks = 0;
- 	p_pkey_tbl->max_blocks = 0;
-+	p_pkey_tbl->rcv_blocks_cnt = 0;
- 	return IB_SUCCESS;
- }
+ 	   Should never write back a value that is bigger then 3 in
+ 	   the PortPhysicalState field - so can not simply copy!
+@@ -208,18 +226,6 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 				   sizeof(p_pi->subnet_prefix)))
+ 				send_set = TRUE;
  
-diff --git a/opensm/osm_port.c b/opensm/osm_port.c
-index 6e73e66..4c42fe9 100644
---- a/opensm/osm_port.c
-+++ b/opensm/osm_port.c
-@@ -639,6 +639,8 @@ void osm_physp_set_pkey_tbl(IN osm_log_t * p_log, IN const osm_subn_t * p_subn,
- 		return;
- 	}
+-			p_pi->base_lid = osm_physp_get_base_lid(p_physp);
+-			if (memcmp(&p_pi->base_lid, &p_old_pi->base_lid,
+-				   sizeof(p_pi->base_lid)))
+-				send_set = TRUE;
+-
+-			/* we are initializing the ports with our local sm_base_lid */
+-			p_pi->master_sm_base_lid = sm->p_subn->sm_base_lid;
+-			if (memcmp(&p_pi->master_sm_base_lid,
+-				   &p_old_pi->master_sm_base_lid,
+-				   sizeof(p_pi->master_sm_base_lid)))
+-				send_set = TRUE;
+-
+ 			smsl = link_mgr_get_smsl(sm, p_physp);
+ 			if (smsl != ib_port_info_get_master_smsl(p_old_pi)) {
  
-+	/* decrement block received counter */
-+	p_physp->pkeys.rcv_blocks_cnt--;
- 	osm_pkey_tbl_set(&p_physp->pkeys, block_num, p_pkey_tbl,
- 			 p_subn->opt.allow_both_pkeys);
- }
-diff --git a/opensm/osm_port_info_rcv.c b/opensm/osm_port_info_rcv.c
-index 1a7377a..30cd096 100644
---- a/opensm/osm_port_info_rcv.c
-+++ b/opensm/osm_port_info_rcv.c
-@@ -431,6 +431,7 @@ static void get_pkey_table(IN osm_log_t * p_log, IN osm_sm_t * sm,
- 			      1) / IB_NUM_PKEY_ELEMENTS_IN_BLOCK;
- 	}
+diff --git a/opensm/osm_trap_rcv.c b/opensm/osm_trap_rcv.c
+index 9b1d271..bfeb203 100644
+--- a/opensm/osm_trap_rcv.c
++++ b/opensm/osm_trap_rcv.c
+@@ -217,6 +217,7 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
+ 	osm_madw_context_t context;
+ 	ib_port_info_t *pi = (ib_port_info_t *)payload;
+ 	osm_physp_t *physp0;
++	osm_port_t *p_port;
+ 	ib_net64_t m_key;
+ 	ib_api_status_t status;
  
-+	p_physp->pkeys.rcv_blocks_cnt = max_blocks;
- 	for (block_num = 0; block_num < max_blocks; block_num++) {
- 		if (osm_node_get_type(p_node) != IB_NODE_TYPE_SWITCH ||
- 		    osm_physp_get_port_num(p_physp) == 0) {
+@@ -247,6 +248,15 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
+ 	} else
+ 		m_key = ib_port_info_get_m_key(&p->port_info);
+ 
++	if (osm_node_get_type(p->p_node) != IB_NODE_TYPE_SWITCH) {
++		if (!pi->base_lid) {
++			p_port = osm_get_port_by_guid(sm->p_subn,
++						      osm_physp_get_port_guid(p));
++			pi->base_lid = p_port->lid;
++		}
++		pi->master_sm_base_lid = sm->p_subn->sm_base_lid;
++	}
++
+ 	CL_PLOCK_ACQUIRE(sm->p_lock);
+ 	status = osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
+ 			   payload, sizeof(payload), IB_MAD_ATTR_PORT_INFO,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
