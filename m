@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH RFC v2 00/10] Introduce Signature feature
-Date: Sun, 3 Nov 2013 14:13:13 +0200
-Message-ID: <52763DD9.3050503@mellanox.com>
+Date: Sun, 3 Nov 2013 14:14:29 +0200
+Message-ID: <52763E25.1080905@mellanox.com>
 References: <1383222255-22699-1-git-send-email-sagig@mellanox.com> <527425DA.7040609@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
@@ -30,13 +30,10 @@ On 11/2/2013 12:06 AM, Bart Van Assche wrote:
 > Bart.
 >
 
-Hey Bart, I was expecting your input on this
-Thanks for the insightful comments!
-
-The explanation here is an attempt to Introduce T10-DIF to the 
-mailing-list as simple as possible, so I tried not to dive into SBC-3/SPC-4.
-You are correct, the 8-byte protection guards will follow the protection 
-interval which won't necessarily be 512 (only for DIF types 2,3).
+This is true, but signature verbs interface supports also data and 
+protection interleaving in memory space.
+A user wishes to do so will pass the same ib_sge both for data and 
+protection. In fact this was a requirement we got from customers.
 
 Sagi.
 --
