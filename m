@@ -1,67 +1,37 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH RFC v2 02/10] IB/core: Introduce Signature Verbs API
-Date: Sun, 3 Nov 2013 14:15:16 +0200
-Message-ID: <52763E54.6000607@mellanox.com>
-References: <1383222255-22699-1-git-send-email-sagig@mellanox.com> <1383222255-22699-3-git-send-email-sagig@mellanox.com> <5273C4FC.4070708@acm.org>
+Date: Sun, 3 Nov 2013 14:15:36 +0200
+Message-ID: <52763E68.2040605@mellanox.com>
+References: <1383222255-22699-1-git-send-email-sagig@mellanox.com> <1383222255-22699-3-git-send-email-sagig@mellanox.com> <5273F6F4.3000300@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5273C4FC.4070708-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <5273F6F4.3000300-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/1/2013 5:13 PM, Bart Van Assche wrote:
+On 11/1/2013 8:46 PM, Bart Van Assche wrote:
 > On 31/10/2013 5:24, Sagi Grimberg wrote:
 >> +/**
->> + * struct ib_sig_domain - Parameters specific for T10-DIF
->> + *     domain.
->> + * @sig_type: specific signauture type
->> + * @sig: union of all signature domain attributes that may
->> + *      be used to set domain layout.
->> + *      @dif:
->> + *         @type: T10-DIF type (0|1|2|3)
->> + *         @bg_type: T10-DIF block guard type (CRC|CSUM)
->> + *         @block_size: block size in signature domain.
->> + *         @app_tag: if app_tag is owned be the user,
->> + *             HCA will take this value to be app_tag.
->> + *         @ref_tag: initial ref_tag of signature handover.
->> + *         @type3_inc_reftag: T10-DIF type 3 does not state
->> + *            about the reference tag, it is the user
->> + *            choice to increment it or not.
+>> + * Signature T10-DIF block-guard types
 >> + */
->> +struct ib_sig_domain {
->> +    enum ib_signature_type     sig_type;
->> +    union {
->> +        struct {
->> +            enum ib_t10_dif_type    type;
->> +            enum ib_t10_dif_bg_type bg_type;
->> +            u16            block_size;
->> +            u16            bg;
->> +            u16            app_tag;
->> +            u32            ref_tag;
->> +            bool            type3_inc_reftag;
->> +        } dif;
->> +    } sig;
+>> +enum ib_t10_dif_bg_type {
+>> +    IB_T10DIF_CRC,
+>> +    IB_T10DIF_CSUM
 >> +};
 >
-> My understanding from SPC-4 is that in that when using protection 
-> information such information is inserted after every protection 
-> interval. A protection interval can be smaller than a logical block. 
-> Shouldn't the name "block_size" be changed into something like 
-> "pi_interval" to avoid confusion with the logical block size ?
+> In SPC-4 paragraph 4.22.4 I found that the T10-PI guard is the CRC 
+> computed from the generator polynomial x^16 + x^15 + x^11 + x^9 + x^8 
+> + x^7 + x^5 + x^4 + x^2 + x + 1. Could you tell me where I can find 
+> which guard computation method IB_T10DIF_CSUM corresponds to ?
 >
 > Bart.
->
 
-True, for DIF types 2,3 protection interval is not restricted to be 
-logical block length and may be smaller.
-I agree with pi_interval naming.
-
-Note that pi_intervals smaller than 512 bytes are not supported at the 
-moment.
+The IB_T10DIF_CSUM  computation method corresponds to IP checksum rules. 
+this is aligned with SHOST_DIX_GUARD_IP guard type.
 
 Sagi.
 --
