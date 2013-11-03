@@ -1,40 +1,43 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC v2 02/10] IB/core: Introduce Signature Verbs API
-Date: Sun, 3 Nov 2013 14:16:00 +0200
-Message-ID: <52763E80.4000801@mellanox.com>
-References: <1383222255-22699-1-git-send-email-sagig@mellanox.com> <1383222255-22699-3-git-send-email-sagig@mellanox.com> <527429E7.7010705@acm.org>
+Subject: Re: [PATCH RFC v2 07/10] IB/mlx5: Keep mlx5 MRs in a radix tree under
+ device
+Date: Sun, 3 Nov 2013 14:16:08 +0200
+Message-ID: <52763E88.4050300@mellanox.com>
+References: <1383222255-22699-1-git-send-email-sagig@mellanox.com> <1383222255-22699-8-git-send-email-sagig@mellanox.com> <5274131C.90601@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <527429E7.7010705-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <5274131C.90601-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/2/2013 12:23 AM, Bart Van Assche wrote:
+On 11/1/2013 10:46 PM, Bart Van Assche wrote:
 > On 31/10/2013 5:24, Sagi Grimberg wrote:
->> + *         @type3_inc_reftag: T10-DIF type 3 does not state
->> + *            about the reference tag, it is the user
->> + *            choice to increment it or not.
+>> +    /* connect to MR tree */
+>> +    write_lock_irq(&table->lock);
+>> +    err = radix_tree_insert(&table->tree, mr->key & 0xffffff00, mr);
+>> +    write_unlock_irq(&table->lock);
 >
-> Can you explain this further ? Does this mean that the HCA can check 
-> whether the reference tags are increasing when receiving data for TYPE 
-> 3 protection mode ? My understanding of SPC-4 is that the application 
-> is free to use the reference tag in any way when using TYPE 3 
-> protection and hence that the HCA must not check whether the reference 
-> tag is increasing for TYPE 3 protection. See e.g. 
-> sd_dif_type3_get_tag() in drivers/scsi/sd_dif.c.
+> The conversion from MR key into radix tree index occurs three times so 
+> maybe it's worth to introduce an (inline) helper function for this 
+> conversion.
+>
+> Another comment about this conversion: is the mlx5 driver supported on 
+> 32-bit platforms ? I think that 0xffffff00 should be changed into 
+> 0xffffff00u to avoid that a compiler warning is triggered on 32-bit 
+> platforms.
+>
+> Thanks,
 >
 > Bart.
+>
 
-As I understand TYPE 3, the reference tag is free for the application to 
-use - which may choose to inc it each PI or not. This option allows the 
-application to inc ref_tag in type 3.
-The DIF check is determined via check_mask. As I see it, correct use in 
-case of DIF TYPE 3 is not to validate reference tag i.e. set REF_TAG 
-bits in check_mask to zero.
+Thanks for the hint.
+Although mlx5 currently doesn't support 32-bit platforms, I'll take your 
+suggestion.
 
 Sagi.
 --
