@@ -1,67 +1,47 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC v2 02/10] IB/core: Introduce Signature Verbs API
-Date: Sun, 3 Nov 2013 18:30:50 +0200
-Message-ID: <52767A3A.50802@mellanox.com>
-References: <1383222255-22699-1-git-send-email-sagig@mellanox.com> <1383222255-22699-3-git-send-email-sagig@mellanox.com> <5273F6F4.3000300@acm.org> <52763E68.2040605@mellanox.com> <5276608D.2020605@acm.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [patch -next] mlx5_core: warn if no space left in alloc_4k()
+Date: Mon, 4 Nov 2013 02:16:12 +0300
+Message-ID: <20131103231612.GS20521@mwanda>
+References: <20131101102044.GB29795@longonot.mountain>
+ <20131103070326.GA3051@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5276608D.2020605-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131103070326.GA3051@mtldesk30>
+Sender: netdev-owner@vger.kernel.org
+To: Eli Cohen <eli@dev.mellanox.co.il>
+Cc: Eli Cohen <eli@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/3/2013 4:41 PM, Bart Van Assche wrote:
-> On 3/11/2013 4:15, Sagi Grimberg wrote:
->> On 11/1/2013 8:46 PM, Bart Van Assche wrote:
->>> On 31/10/2013 5:24, Sagi Grimberg wrote:
->>>> +/**
->>>> + * Signature T10-DIF block-guard types
->>>> + */
->>>> +enum ib_t10_dif_bg_type {
->>>> +    IB_T10DIF_CRC,
->>>> +    IB_T10DIF_CSUM
->>>> +};
->>>
->>> In SPC-4 paragraph 4.22.4 I found that the T10-PI guard is the CRC
->>> computed from the generator polynomial x^16 + x^15 + x^11 + x^9 + x^8
->>> + x^7 + x^5 + x^4 + x^2 + x + 1. Could you tell me where I can find
->>> which guard computation method IB_T10DIF_CSUM corresponds to ?
->>>
->>> Bart.
->>
->> The IB_T10DIF_CSUM  computation method corresponds to IP checksum rules.
->> this is aligned with SHOST_DIX_GUARD_IP guard type.
->
-> Since the declarations added in <rdma/ib_verbs.h> constitute an 
-> interface definition I think it would help if it would be made more 
-> clear what these two symbols stand for. How about mentioning the names 
-> of the standards these two guard computation methods come from ? An 
-> alternative is to add a comment like the one above 
-> scsi_host_guard_type in <scsi/scsi_host.h> which explains the two 
-> guard computation methods well:
->
-> /*
->  * All DIX-capable initiators must support the T10-mandated CRC
->  * checksum.  Controllers can optionally implement the IP checksum
->  * scheme which has much lower impact on system performance.  Note
->  * that the main rationale for the checksum is to match integrity
->  * metadata with data.  Detecting bit errors are a job for ECC memory
->  * and buses.
->  */
->
-> Bart.
->
+On Sun, Nov 03, 2013 at 09:03:27AM +0200, Eli Cohen wrote:
+> On Fri, Nov 01, 2013 at 01:20:44PM +0300, Dan Carpenter wrote:
+> > The warning was unreachable.  In the original code, it would print the
+> > line number and the function but I have added an error message.
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > ---
+> > I haven't tested this, hopefully the warning is not annoying.
+> > 
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+> > index ba816c2..cb86265 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
+> > @@ -193,8 +193,8 @@ static int alloc_4k(struct mlx5_core_dev *dev, u64 *addr)
+> >  	unsigned n;
+> >  
+> >  	if (list_empty(&dev->priv.free_list)) {
+> > +		mlx5_core_warn(dev, "no available space\n");
+> >  		return -ENOMEM;
+> > -		mlx5_core_warn(dev, "\n");
+> >  	}
+> 
+> What we really need to do here is silently return -ENOMEM. The list
+> can be found empty on a regular basis so we don't want to flood dmesg
+> with annoying messages. The statement was probably left there from a
+> previous debug cycle.
 
-Agreed,
+Ah, ok.  Thanks for the review.  I will remove the message.
 
-I'll comment on each type correspondence (T10-DIF CRC checksum and IP 
-checksum).
-
-Sagi.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+dan carpenter
