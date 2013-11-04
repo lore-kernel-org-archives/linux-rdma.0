@@ -1,114 +1,119 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: IPoIB GRO
-Date: Mon, 04 Nov 2013 10:24:38 +0200
-Message-ID: <527759C6.3070009@dev.mellanox.co.il>
-References: <12EF8D94C6F8734FB2FF37B9FBEDD173585A3E3B@EXCHANGE.collogia.de>
+From: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
+Subject: AW: IPoIB GRO
+Date: Mon, 4 Nov 2013 08:40:01 +0000
+Message-ID: <12EF8D94C6F8734FB2FF37B9FBEDD173585A4301@EXCHANGE.collogia.de>
+References: <12EF8D94C6F8734FB2FF37B9FBEDD173585A3E3B@EXCHANGE.collogia.de>,<527759C6.3070009@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_NextPartTM-000-b04fa503-5e9d-499b-a579-9720aced2a77"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <12EF8D94C6F8734FB2FF37B9FBEDD173585A3E3B-Xnr6BND5kcg29+KCeZIpYi5l6jQMEky5@public.gmane.org>
+In-Reply-To: <527759C6.3070009-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: de-DE
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Markus,
 
-As Or already mentioned, it seems that we have accumulations of ip 
-packets, when GRO is enabled over ib interface, from tcpdump in the 
-recieve side we can see:
+This is a multi-part message in MIME format.
 
-10:09:27.336951 IP 11.134.33.1.41377 > 11.134.41.1.35957: Flags [.], seq 
-3795959253:3796023381, ack 2, win 110, length 64128
-10:09:27.336987 IP 11.134.41.1.35957 > 11.134.33.1.41377: Flags [.], ack 
-3796023381, win 2036, length 0
-10:09:27.337022 IP 11.134.33.1.41377 > 11.134.41.1.35957: Flags [.], seq 
-3796023381:3796087509, ack 2, win 110, length 64128
-10:09:27.337044 IP 11.134.41.1.35957 > 11.134.33.1.41377: Flags [.], ack 
-3796087509, win 3038, length 0
-10:09:27.337083 IP 11.134.33.1.41377 > 11.134.41.1.35957: Flags [.], seq 
-3796087509:3796151637, ack 2, win 110, length 64128
-10:09:27.337107 IP 11.134.41.1.35957 > 11.134.33.1.41377: Flags [.], ack 
-3796151637, win 4040, length 0
-10:09:27.337142 IP 11.134.33.1.41377 > 11.134.41.1.35957: Flags [.], seq 
-3796151637:3796215765, ack 2, win 110, length 64128
-.....
-....
+------=_NextPartTM-000-b04fa503-5e9d-499b-a579-9720aced2a77
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-don't you see that behaviour in tcpdump? what kernel are you using?
+Hi Erez,=0A=
+=0A=
+> don't you see that behaviour in tcpdump? what kernel are you using?=0A=
+=0A=
+On server side we have a 3.5 on client side a 3.11 kernel each of them with=
+=0A=
+kernel standard drivers/modules. I can see the same pattern of GRO =0A=
+aggregation on the client that you mention but only if I disable TSO for =
+=0A=
+ib0 on the server side. =0A=
+=0A=
+The test I'm running on the client is like this. The second and third read=
+=0A=
+run are definetly served by the NFS server side cache.=0A=
+=0A=
+sysctl -w net.ipv4.tcp_mem=3D"4096 65536 4194304"=0A=
+sysctl -w net.ipv4.tcp_rmem=3D"4096 65536 4194304"=0A=
+sysctl -w net.ipv4.tcp_wmem=3D"4096 65536 4194304"=0A=
+sysctl -w net.core.rmem_max=3D8388608=0A=
+sysctl -w net.core.wmem_max=3D8388608=0A=
+=0A=
+mount -o nfsvers=3D3,rsize=3D262144,wsize=3D262144 10.10.30.251:/export /mn=
+t=0A=
+echo 3 > /proc/sys/vm/drop_caches=0A=
+dd if=3D/mnt/xxx.iso of=3D/dev/null bs=3D1M count=3D5000=0A=
+echo 3 > /proc/sys/vm/drop_caches=0A=
+dd if=3D/mnt/xxx.iso of=3D/dev/null bs=3D1M count=3D5000=0A=
+echo 3 > /proc/sys/vm/drop_caches=0A=
+dd if=3D/mnt/xxx.iso of=3D/dev/null bs=3D1M count=3D5000=0A=
+umount /mnt=0A=
+=0A=
+Markus=0A=
+------=_NextPartTM-000-b04fa503-5e9d-499b-a579-9720aced2a77
+Content-Type: text/plain;
+	name="InterScan_Disclaimer.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="InterScan_Disclaimer.txt"
 
-I will take a look into the gro/our code to check if we missed 
-something, and update.
+****************************************************************************
+Diese E-Mail enthält vertrauliche und/oder rechtlich geschützte
+Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail
+irrtümlich erhalten haben, informieren Sie bitte sofort den Absender und
+vernichten Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte
+Weitergabe dieser Mail ist nicht gestattet.
 
-Thanks, Erez
+Über das Internet versandte E-Mails können unter fremden Namen erstellt oder
+manipuliert werden. Deshalb ist diese als E-Mail verschickte Nachricht keine
+rechtsverbindliche Willenserklärung.
 
-> Hello,
->
-> I have a little update to the unlucky GRO IPoIB behaviour I observed
-> in the last weeks in datagram mode on our ConnectX cards. In the
-> GRO receive path the kernel steps into the inet_gro_receive() function
-> of net/ipv4/af_inet.c. If I read the code right it compares two
-> IP packets and decides if they come from the same "flow".
-> Further checks are included in some subroutines that narrow
-> down the comparison to IPv4 and so on.
->
-> I put a debugging message into the following comparison that
-> seems to be the culprit of it all.
->
-> inet_gro_receive()
->    ...
->    /* All fields must match except length and checksum. */
->    NAPI_GRO_CB(p)->flush |=
->      (iph->ttl ^ iph2->ttl) |
->      (iph->tos ^ iph2->tos) |
->      (__force int)((iph->frag_off ^ iph2->frag_off) & htons(IP_DF)) |
->      ((u16)(ntohs(iph2->id) + NAPI_GRO_CB(p)->count) ^ id);
->    /* Do some debug */
->    printk("%i %i %i\n",ntohs(iph2->id),NAPI_GRO_CB(p)->count,id);
->    ...
->
-> On a normal GBit Intel card the kernel output reads:
->
-> 32933 12 32945
-> 32933 13 32946
-> 32946 1 32947
-> 32946 2 32948
-> ...
-> 32946 15 32961
-> 32964 3 32967
-> 32964 4 32968
-> ...
->
-> The interpretation of it all should be that packet ids must match
-> the sum of the initial packet id plus its count field. Then
-> we have a GRO candidate.
->
-> On our ib0 interface the count field of a received packet seems
-> to be 1 most of the time and the packet id always matches the
-> initial packet id:
->
-> 35754 1 35754
-> 35754 1 35754
-> 35754 1 35754
-> ...
-> 35754 1 35786
-> 35786 1 35786
-> 35786 1 35786
-> ...
->
-> Thats why the flush flag is always set and the GRO stack does
-> not work at all. I'm willing to dig deeper into this but I'm unsure
-> if those fields are filled on sender or receiver side and especially
-> where in the IPoIB stack. Maybe someone can point me into the
-> right direction so that I can dig deeper and provide some more
-> information.
->
-> Bet regards.
->
-> Markus
->
+Collogia
+Unternehmensberatung AG
+Ubierring 11
+D-50678 Köln
 
+Vorstand:
+Kadir Akin
+Dr. Michael Höhnerbach
+
+Vorsitzender des Aufsichtsrates:
+Hans Kristian Langva
+
+Registergericht: Amtsgericht Köln
+Registernummer: HRB 52 497
+
+This e-mail may contain confidential and/or privileged information. If you
+are not the intended recipient (or have received this e-mail in error)
+please notify the sender immediately and destroy this e-mail. Any
+unauthorized copying, disclosure or distribution of the material in this
+e-mail is strictly forbidden.
+
+e-mails sent over the internet may have been written under a wrong name or
+been manipulated. That is why this message sent as an e-mail is not a
+legally binding declaration of intention.
+
+Collogia
+Unternehmensberatung AG
+Ubierring 11
+D-50678 Köln
+
+executive board:
+Kadir Akin
+Dr. Michael Höhnerbach
+
+President of the supervisory board:
+Hans Kristian Langva
+
+Registry office: district court Cologne
+Register number: HRB 52 497
+
+****************************************************************************
+
+------=_NextPartTM-000-b04fa503-5e9d-499b-a579-9720aced2a77--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
