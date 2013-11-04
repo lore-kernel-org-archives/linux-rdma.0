@@ -1,64 +1,114 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: linux-next: build warning after merge of the infiniband tree
-Date: Mon, 4 Nov 2013 15:55:26 +1100
-Message-ID: <20131104155526.10e5aed0cd9512c47a82529f@canb.auug.org.au>
+From: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
+Subject: AW: IPoIB GRO
+Date: Mon, 4 Nov 2013 08:12:48 +0000
+Message-ID: <12EF8D94C6F8734FB2FF37B9FBEDD173585A42C7@EXCHANGE.collogia.de>
+References: <12EF8D94C6F8734FB2FF37B9FBEDD173585A3E3B@EXCHANGE.collogia.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Mon__4_Nov_2013_15_55_26_+1100_TFsx_mP4jFPg50uV"
+Content-Type: multipart/mixed;
+	boundary="----=_NextPartTM-000-a6be6c64-bb3b-4a4d-918d-3eeb001038d8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <12EF8D94C6F8734FB2FF37B9FBEDD173585A3E3B-Xnr6BND5kcg29+KCeZIpYi5l6jQMEky5@public.gmane.org>
+Content-Language: de-DE
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Mon__4_Nov_2013_15_55_26_+1100_TFsx_mP4jFPg50uV
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
+
+This is a multi-part message in MIME format.
+
+------=_NextPartTM-000-a6be6c64-bb3b-4a4d-918d-3eeb001038d8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+> Thats why the flush flag is always set and the GRO stack does=0A=
+> not work at all. I'm willing to dig deeper into this but I'm unsure=0A=
+> if those fields are filled on sender or receiver side and especially=0A=
+> where in the IPoIB stack. =0A=
+=0A=
+Maybe I got the reason for that strange ack behaviour during=0A=
+large NFS over IPoIB reads and hopefully someone can confirm this=0A=
+=0A=
+If I turn on TSO for an IPoIB datagram interface on the sender side =0A=
+GRO on the receiver side is totally broken. This due to the fact that =0A=
+TSO "generates" large 60k packets that are offloaded into =0A=
+fragments. Each of these fragments has the same ID in the packet =0A=
+header. GRO expects IDs to be in incremental order and issues a =0A=
+flush after each package. Each flush results in an ACK packet back =0A=
+to the server.=0A=
+=0A=
+With TSO disabled GRO can kick in. Packets are build with =0A=
+sequential IDs. GRO only acknowledges every few packets.=0A=
+=0A=
+For a fully cached file read of 6GB the numbers read:=0A=
+=0A=
+TSO on: ~220MByte/s - 1,522,679 MLX4 Interrupts on server=0A=
+TSO off: ~550MByte/s - 318,322 MLX4 Interrupts on server=0A=
+=0A=
+Is there any chance IPoIB TSO handling can be optimized?=0A=
+=0A=
+Markus=0A=
+------=_NextPartTM-000-a6be6c64-bb3b-4a4d-918d-3eeb001038d8
+Content-Type: text/plain;
+	name="InterScan_Disclaimer.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="InterScan_Disclaimer.txt"
 
-After merging the infiniband tree, today's linux-next build (x86_64
-allmodconfig) produced this warning:
+****************************************************************************
+Diese E-Mail enthält vertrauliche und/oder rechtlich geschützte
+Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail
+irrtümlich erhalten haben, informieren Sie bitte sofort den Absender und
+vernichten Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte
+Weitergabe dieser Mail ist nicht gestattet.
 
-drivers/infiniband/hw/ipath/ipath_user_sdma.c: In function 'ipath_user_sdma=
-_pin_pages':
-drivers/infiniband/hw/ipath/ipath_user_sdma.c:283:6: warning: 'j' is used u=
-ninitialized in this function [-Wuninitialized]
-  ret =3D get_user_pages_fast(addr, j, 0, pages);
-      ^
+Über das Internet versandte E-Mails können unter fremden Namen erstellt oder
+manipuliert werden. Deshalb ist diese als E-Mail verschickte Nachricht keine
+rechtsverbindliche Willenserklärung.
 
-Introduced by commit 18fec3c6bdcb ("IB/ipath: Convert
-ipath_user_sdma_pin_pages() to use get_user_pages_fast()").  How did that
-pass review or testing?
+Collogia
+Unternehmensberatung AG
+Ubierring 11
+D-50678 Köln
 
---=20
-Cheers,
-Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+Vorstand:
+Kadir Akin
+Dr. Michael Höhnerbach
 
---Signature=_Mon__4_Nov_2013_15_55_26_+1100_TFsx_mP4jFPg50uV
-Content-Type: application/pgp-signature
+Vorsitzender des Aufsichtsrates:
+Hans Kristian Langva
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Registergericht: Amtsgericht Köln
+Registernummer: HRB 52 497
 
-iQIcBAEBCAAGBQJSdyjCAAoJEMDTa8Ir7ZwVpUAP/1PJ2JlCkkQzdQLxm0X5+qrY
-GmvlI0Y8JZGc7ntnrn34IXRuwZBtRjhHeNEDtSgGhWvyUhhzycs/HLYiN1qj51S8
-X+v6MgCQsOHr8SEDBWK1BcSbqjfRu39FJgqokMBZe3pkBbsRtSLu/CeSkJsUSLm9
-bBt0sF5d3evwHkHmlrq+8EpCo9Yx9V477JWMZQXpjzV4Uo4ymFXHMvosY0Y8fsCj
-djQu/7JXwIFEvNFpt+m5JoPdischM4yA4754hDDywBIzGd0+EPH/Ww7+09NCicl6
-7rSBDFExXSVnBSN/52TwmhFoGGnlwB3By+NcCEo6YHJuiviQBOuBZczDh3LQKd89
-hihZtvCn2yRpoddmiMQ9ryfaSEuJNAZE8tni1ekZHxrmjUbo+/pjIdoZ+UL8E2xU
-o3ZLapT+RUd1GtZJmeF/OsDfUQLb5wVCCpwIxYdN/2xSlPsOeei6SzkKOFxlhg0h
-EMwG6p4qCKFOHE4it24hjMWwtHQihVsvUXmVoqzzDmllLoMUg7tFpF/A834ywFhF
-8V9svBURg7sdCtCbekqUMORYsJrIbcFAg6Y00zMi4ig/i6BWMaW+1iAvD0uK7s+0
-LwsaCpnLoHP2osQ4HEjFq7pqKsZQCuXkbLRcO9PlRdOS2x8DARAUoHAIlsRjSpUa
-W/PoffsPy6aCrSX7JDDx
-=oP+q
------END PGP SIGNATURE-----
+This e-mail may contain confidential and/or privileged information. If you
+are not the intended recipient (or have received this e-mail in error)
+please notify the sender immediately and destroy this e-mail. Any
+unauthorized copying, disclosure or distribution of the material in this
+e-mail is strictly forbidden.
 
---Signature=_Mon__4_Nov_2013_15_55_26_+1100_TFsx_mP4jFPg50uV--
+e-mails sent over the internet may have been written under a wrong name or
+been manipulated. That is why this message sent as an e-mail is not a
+legally binding declaration of intention.
+
+Collogia
+Unternehmensberatung AG
+Ubierring 11
+D-50678 Köln
+
+executive board:
+Kadir Akin
+Dr. Michael Höhnerbach
+
+President of the supervisory board:
+Hans Kristian Langva
+
+Registry office: district court Cologne
+Register number: HRB 52 497
+
+****************************************************************************
+
+------=_NextPartTM-000-a6be6c64-bb3b-4a4d-918d-3eeb001038d8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
