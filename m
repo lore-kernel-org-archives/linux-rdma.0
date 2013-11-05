@@ -1,57 +1,83 @@
-From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] librdmacm: Some fixes to man pages
-Date: Tue,  5 Nov 2013 19:52:20 +0200
-Message-ID: <1383673940-15683-1-git-send-email-guysh@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] Fix dropping node after setPkey mad
+Date: Tue, 05 Nov 2013 13:05:28 -0500
+Message-ID: <52793368.3090908@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Dan Ben-Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix the man pages of rdma_destroy_ep & rdma_destroy_qp to the correct return value (void).
----
- man/rdma_destroy_ep.3 |    5 +----
- man/rdma_destroy_qp.3 |    3 ---
- 2 files changed, 1 insertions(+), 7 deletions(-)
 
-diff --git a/man/rdma_destroy_ep.3 b/man/rdma_destroy_ep.3
-index b48a1e5..750702a 100644
---- a/man/rdma_destroy_ep.3
-+++ b/man/rdma_destroy_ep.3
-@@ -5,16 +5,13 @@ rdma_destroy_ep \- Release a communication identifier.
- .SH SYNOPSIS
- .B "#include <rdma/rdma_cma.h>"
- .P
--.B "int" rdma_destroy_ep
-+.B "void" rdma_destroy_ep
- .BI "(struct rdma_cm_id *" id ");"
- .SH ARGUMENTS
- .IP "id" 12
- The communication identifier to destroy.
- .SH "DESCRIPTION"
- Destroys the specified rdma_cm_id and all associated resources
--.SH "RETURN VALUE"
--Returns 0 on success, or -1 on error.  If an error occurs, errno will be
--set to indicate the failure reason.
- .SH "NOTES"
- rdma_destroy_ep will automatically destroy any QP and SRQ associated with
- the rdma_cm_id.
-diff --git a/man/rdma_destroy_qp.3 b/man/rdma_destroy_qp.3
-index aeff667..bb1360e 100644
---- a/man/rdma_destroy_qp.3
-+++ b/man/rdma_destroy_qp.3
-@@ -11,9 +11,6 @@ rdma_destroy_qp \- Deallocate a QP.
- RDMA identifier.
- .SH "DESCRIPTION"
- Destroy a QP allocated on the rdma_cm_id.
--.SH "RETURN VALUE"
--Returns 0 on success, or -1 on error.  If an error occurs, errno will be
--set to indicate the failure reason.
- .SH "NOTES"
- Users must destroy any QP associated with an rdma_cm_id before
- destroying the ID.
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Need to check pkey received counter flag only
+after get mads and not set.
+
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/opensm/osm_port.h |    3 ++-
+ opensm/osm_pkey_rcv.c     |    3 ++-
+ opensm/osm_port.c         |    6 ++++--
+ 3 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/include/opensm/osm_port.h b/include/opensm/osm_port.h
+index a1efc97..f4b7efd 100644
+--- a/include/opensm/osm_port.h
++++ b/include/opensm/osm_port.h
+@@ -558,7 +558,8 @@ void osm_physp_set_port_info(IN osm_physp_t * p_physp,
+ void osm_physp_set_pkey_tbl(IN osm_log_t * p_log, IN const osm_subn_t * p_subn,
+ 			    IN osm_physp_t * p_physp,
+ 			    IN ib_pkey_table_t * p_pkey_tbl,
+-			    IN uint16_t block_num);
++			    IN uint16_t block_num,
++			    IN boolean_t is_set);
+ /*
+ * PARAMETERS
+ *	p_log
+diff --git a/opensm/osm_pkey_rcv.c b/opensm/osm_pkey_rcv.c
+index 81da39c..6650766 100644
+--- a/opensm/osm_pkey_rcv.c
++++ b/opensm/osm_pkey_rcv.c
+@@ -186,7 +186,8 @@ void osm_pkey_rcv_process(IN void *context, IN void *data)
+ 			       p_pkey_tbl, FILE_ID, OSM_LOG_DEBUG);
+ 
+ 	osm_physp_set_pkey_tbl(sm->p_log, sm->p_subn,
+-			       p_physp, p_pkey_tbl, block_num);
++			       p_physp, p_pkey_tbl, block_num,
++			       p_context->set_method);
+ 
+ Exit:
+ 	cl_plock_release(sm->p_lock);
+diff --git a/opensm/osm_port.c b/opensm/osm_port.c
+index 9dd7992..46152c5 100644
+--- a/opensm/osm_port.c
++++ b/opensm/osm_port.c
+@@ -646,7 +646,8 @@ boolean_t osm_link_is_healthy(IN const osm_physp_t * p_physp)
+ void osm_physp_set_pkey_tbl(IN osm_log_t * p_log, IN const osm_subn_t * p_subn,
+ 			    IN osm_physp_t * p_physp,
+ 			    IN ib_pkey_table_t * p_pkey_tbl,
+-			    IN uint16_t block_num)
++			    IN uint16_t block_num,
++			    IN boolean_t is_set)
+ {
+ 	uint16_t max_blocks;
+ 
+@@ -687,7 +688,8 @@ void osm_physp_set_pkey_tbl(IN osm_log_t * p_log, IN const osm_subn_t * p_subn,
+ 	}
+ 
+ 	/* decrement block received counter */
+-	p_physp->pkeys.rcv_blocks_cnt--;
++	if(!is_set)
++		p_physp->pkeys.rcv_blocks_cnt--;
+ 	osm_pkey_tbl_set(&p_physp->pkeys, block_num, p_pkey_tbl,
+ 			 p_subn->opt.allow_both_pkeys);
+ }
 -- 
-1.7.1
+1.7.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
