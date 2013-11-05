@@ -1,41 +1,58 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: AW: AW: AW: IPoIB GRO
-Date: Tue, 5 Nov 2013 10:24:31 -0700
-Message-ID: <20131105172431.GA14706@obsidianresearch.com>
-References: <12EF8D94C6F8734FB2FF37B9FBEDD173585A3E3B@EXCHANGE.collogia.de>
- <527759C6.3070009@dev.mellanox.co.il>
- <12EF8D94C6F8734FB2FF37B9FBEDD173585A4301@EXCHANGE.collogia.de>
- <52779612.9020103@dev.mellanox.co.il>
- <12EF8D94C6F8734FB2FF37B9FBEDD173585A45CF@EXCHANGE.collogia.de>
- <5278A757.2070406@mellanox.com>
- <12EF8D94C6F8734FB2FF37B9FBEDD173585A4B3D@EXCHANGE.collogia.de>
- <5278B0CA.9080305@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] librdmacm: Some fixes to man pages
+Date: Tue,  5 Nov 2013 19:52:20 +0200
+Message-ID: <1383673940-15683-1-git-send-email-guysh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5278B0CA.9080305-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 05, 2013 at 10:48:10AM +0200, Erez Shitrit wrote:
+Fix the man pages of rdma_destroy_ep & rdma_destroy_qp to the correct return value (void).
+---
+ man/rdma_destroy_ep.3 |    5 +----
+ man/rdma_destroy_qp.3 |    3 ---
+ 2 files changed, 1 insertions(+), 7 deletions(-)
 
-> so, to summarize:
-> The HW does the work (truncates the big ip packet to series of ip
-> packets, each with the relevant mtu size and increases the ip-id for
-> each)
-> The FW enables that work on the HW
-> the FW in A0 card doesn't enable that option for the HW.
+diff --git a/man/rdma_destroy_ep.3 b/man/rdma_destroy_ep.3
+index b48a1e5..750702a 100644
+--- a/man/rdma_destroy_ep.3
++++ b/man/rdma_destroy_ep.3
+@@ -5,16 +5,13 @@ rdma_destroy_ep \- Release a communication identifier.
+ .SH SYNOPSIS
+ .B "#include <rdma/rdma_cma.h>"
+ .P
+-.B "int" rdma_destroy_ep
++.B "void" rdma_destroy_ep
+ .BI "(struct rdma_cm_id *" id ");"
+ .SH ARGUMENTS
+ .IP "id" 12
+ The communication identifier to destroy.
+ .SH "DESCRIPTION"
+ Destroys the specified rdma_cm_id and all associated resources
+-.SH "RETURN VALUE"
+-Returns 0 on success, or -1 on error.  If an error occurs, errno will be
+-set to indicate the failure reason.
+ .SH "NOTES"
+ rdma_destroy_ep will automatically destroy any QP and SRQ associated with
+ the rdma_cm_id.
+diff --git a/man/rdma_destroy_qp.3 b/man/rdma_destroy_qp.3
+index aeff667..bb1360e 100644
+--- a/man/rdma_destroy_qp.3
++++ b/man/rdma_destroy_qp.3
+@@ -11,9 +11,6 @@ rdma_destroy_qp \- Deallocate a QP.
+ RDMA identifier.
+ .SH "DESCRIPTION"
+ Destroy a QP allocated on the rdma_cm_id.
+-.SH "RETURN VALUE"
+-Returns 0 on success, or -1 on error.  If an error occurs, errno will be
+-set to indicate the failure reason.
+ .SH "NOTES"
+ Users must destroy any QP associated with an rdma_cm_id before
+ destroying the ID.
+-- 
+1.7.1
 
-Sounds like this bug causes a performance regression, and it sounds
-like it puts incorrect packets on the wire.
-
-This should be patched, have the driver disable TSO for cards that
-can't support it...
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
