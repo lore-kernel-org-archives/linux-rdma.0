@@ -1,114 +1,69 @@
-From: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>
-Subject: AW: AW: AW: AW: IPoIB GRO
-Date: Tue, 5 Nov 2013 18:08:30 +0000
-Message-ID: <12EF8D94C6F8734FB2FF37B9FBEDD173585A508B@EXCHANGE.collogia.de>
-References: <12EF8D94C6F8734FB2FF37B9FBEDD173585A3E3B@EXCHANGE.collogia.de>
- <527759C6.3070009@dev.mellanox.co.il>
- <12EF8D94C6F8734FB2FF37B9FBEDD173585A4301@EXCHANGE.collogia.de>
- <52779612.9020103@dev.mellanox.co.il>
- <12EF8D94C6F8734FB2FF37B9FBEDD173585A45CF@EXCHANGE.collogia.de>
- <5278A757.2070406@mellanox.com>
- <12EF8D94C6F8734FB2FF37B9FBEDD173585A4B3D@EXCHANGE.collogia.de>
- <5278B0CA.9080305@dev.mellanox.co.il>,<20131105172431.GA14706@obsidianresearch.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH RFC v2 00/10] Introduce Signature feature
+Date: Tue, 05 Nov 2013 10:30:47 -0800
+Message-ID: <1383676247.4216.60.camel@haakon3.risingtidesystems.com>
+References: <1383222255-22699-1-git-send-email-sagig@mellanox.com>
+	 <5273C2B6.7010901@acm.org>
+	 <1383356167.4216.16.camel@haakon3.risingtidesystems.com>
+	 <52757555.6090907@acm.org>
+	 <1383590471.4216.22.camel@haakon3.risingtidesystems.com>
+	 <5278B6B2.1010006@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPartTM-000-5cbeff7b-6080-4989-8e0a-7574e767fb35"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131105172431.GA14706-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: de-DE
+In-Reply-To: <5278B6B2.1010006-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 2013-11-05 at 11:13 +0200, Sagi Grimberg wrote:
+> On 11/4/2013 8:41 PM, Nicholas A. Bellinger wrote:
+> > On Sat, 2013-11-02 at 14:57 -0700, Bart Van Assche wrote:
+> >> On 1/11/2013 18:36, Nicholas A. Bellinger wrote:
+> >>> On Fri, 2013-11-01 at 08:03 -0700, Bart Van Assche wrote:
+> >>>> On 31/10/2013 5:24, Sagi Grimberg wrote:
+> >>>>> In T10-DIF, when a series of 512-byte data blocks are transferred, each
+> >>>>> block is followed by an 8-byte guard. The guard consists of CRC that
+> >>>>> protects the integrity of the data in the block, and some other tags
+> >>>>> that protects against mis-directed IOs.
+> >>>> Shouldn't that read "logical block length divided by 2**(protection
+> >>>> interval exponent)" instead of "512" ? From the SPC-4 FORMAT UNIT
+> >>>> section:
+> >>> Why should the protection interval in FORMAT_UNIT be mentioned when it's
+> >>> not supported by the hardware, nor by drivers/scsi/sd_dif.c itself..?
+> >> Hello Nick,
+> >>
+> >> My understanding is that this patch series is not only intended for
+> >> initiator drivers but also for target drivers like ib_srpt and ib_isert.
+> >> As you know target drivers do not restrict the initiator operating
+> >> system to Linux. Although I do not know whether there are already
+> >> operating systems that support the "protection interval exponent",
+> > It's my understanding that Linux is still the only stack that supports
+> > DIF, so AFAICT no one is actually supporting this.
+> >
+> >>   I think it is a good idea to stay as close as possible to the terminology
+> >> of the SPC-4 standard.
+> >>
+> > No, in this context it only adds pointless misdirection because 1) The
+> > hardware in question doesn't support it, and 2) Linux itself doesn't
+> > support it.
+> 
+> I think that Bart is suggesting renaming block_size as pi_interval in 
+> ib_sig_domain.
+> I tend to agree since even if support for that does not exist yet, it 
+> might be in the future.
+> I think it is not a misdirection because it does represent the 
+> protection information interval.
+> 
 
-This is a multi-part message in MIME format.
+The point is that changing the description from what the patch actually
+does, to something it does not do in order to 'stay as close as possible
+to the terminology of the SPC-4 standard' is pointlessly confusing.
 
-------=_NextPartTM-000-5cbeff7b-6080-4989-8e0a-7574e767fb35
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+--nab
 
-> > so, to summarize:=0A=
-> > The HW does the work (truncates the big ip packet to series of ip=0A=
-> > packets, each with the relevant mtu size and increases the ip-id for=0A=
-> > each)=0A=
-> > The FW enables that work on the HW=0A=
-> > the FW in A0 card doesn't enable that option for the HW.=0A=
-> =0A=
-> Sounds like this bug causes a performance regression, and it sounds=0A=
-> like it puts incorrect packets on the wire.=0A=
-> =0A=
-> This should be patched, have the driver disable TSO for cards that=0A=
-> can't support it...=0A=
-> =0A=
-> Jason=0A=
-=0A=
-Incredible how a card that does not support TSO can bring big packets=0A=
-on the wire that somehow get reassembled on the client side :) Maybe =0A=
-a two liner in mlx4_ib_query_device() could prevent further discussions.=0A=
-=0A=
-Markus=0A=
-------=_NextPartTM-000-5cbeff7b-6080-4989-8e0a-7574e767fb35
-Content-Type: text/plain;
-	name="InterScan_Disclaimer.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="InterScan_Disclaimer.txt"
-
-****************************************************************************
-Diese E-Mail enthält vertrauliche und/oder rechtlich geschützte
-Informationen. Wenn Sie nicht der richtige Adressat sind oder diese E-Mail
-irrtümlich erhalten haben, informieren Sie bitte sofort den Absender und
-vernichten Sie diese Mail. Das unerlaubte Kopieren sowie die unbefugte
-Weitergabe dieser Mail ist nicht gestattet.
-
-Über das Internet versandte E-Mails können unter fremden Namen erstellt oder
-manipuliert werden. Deshalb ist diese als E-Mail verschickte Nachricht keine
-rechtsverbindliche Willenserklärung.
-
-Collogia
-Unternehmensberatung AG
-Ubierring 11
-D-50678 Köln
-
-Vorstand:
-Kadir Akin
-Dr. Michael Höhnerbach
-
-Vorsitzender des Aufsichtsrates:
-Hans Kristian Langva
-
-Registergericht: Amtsgericht Köln
-Registernummer: HRB 52 497
-
-This e-mail may contain confidential and/or privileged information. If you
-are not the intended recipient (or have received this e-mail in error)
-please notify the sender immediately and destroy this e-mail. Any
-unauthorized copying, disclosure or distribution of the material in this
-e-mail is strictly forbidden.
-
-e-mails sent over the internet may have been written under a wrong name or
-been manipulated. That is why this message sent as an e-mail is not a
-legally binding declaration of intention.
-
-Collogia
-Unternehmensberatung AG
-Ubierring 11
-D-50678 Köln
-
-executive board:
-Kadir Akin
-Dr. Michael Höhnerbach
-
-President of the supervisory board:
-Hans Kristian Langva
-
-Registry office: district court Cologne
-Register number: HRB 52 497
-
-****************************************************************************
-
-------=_NextPartTM-000-5cbeff7b-6080-4989-8e0a-7574e767fb35--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
