@@ -1,70 +1,29 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH RFC v2 00/10] Introduce Signature feature
-Date: Tue, 05 Nov 2013 10:30:47 -0800
-Message-ID: <1383676247.4216.60.camel@haakon3.risingtidesystems.com>
-References: <1383222255-22699-1-git-send-email-sagig@mellanox.com>
-	 <5273C2B6.7010901@acm.org>
-	 <1383356167.4216.16.camel@haakon3.risingtidesystems.com>
-	 <52757555.6090907@acm.org>
-	 <1383590471.4216.22.camel@haakon3.risingtidesystems.com>
-	 <5278B6B2.1010006@mellanox.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [patch v2] mlx5_core: delete some dead code
+Date: Tue, 05 Nov 2013 15:51:53 -0500 (EST)
+Message-ID: <20131105.155153.1035193448394208433.davem@davemloft.net>
+References: <20131103070326.GA3051@mtldesk30>
+	<20131104222056.GA4248@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5278B6B2.1010006-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20131104222056.GA4248@elgon.mountain>
+Sender: netdev-owner@vger.kernel.org
+To: dan.carpenter@oracle.com
+Cc: eli@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2013-11-05 at 11:13 +0200, Sagi Grimberg wrote:
-> On 11/4/2013 8:41 PM, Nicholas A. Bellinger wrote:
-> > On Sat, 2013-11-02 at 14:57 -0700, Bart Van Assche wrote:
-> >> On 1/11/2013 18:36, Nicholas A. Bellinger wrote:
-> >>> On Fri, 2013-11-01 at 08:03 -0700, Bart Van Assche wrote:
-> >>>> On 31/10/2013 5:24, Sagi Grimberg wrote:
-> >>>>> In T10-DIF, when a series of 512-byte data blocks are transferred, each
-> >>>>> block is followed by an 8-byte guard. The guard consists of CRC that
-> >>>>> protects the integrity of the data in the block, and some other tags
-> >>>>> that protects against mis-directed IOs.
-> >>>> Shouldn't that read "logical block length divided by 2**(protection
-> >>>> interval exponent)" instead of "512" ? From the SPC-4 FORMAT UNIT
-> >>>> section:
-> >>> Why should the protection interval in FORMAT_UNIT be mentioned when it's
-> >>> not supported by the hardware, nor by drivers/scsi/sd_dif.c itself..?
-> >> Hello Nick,
-> >>
-> >> My understanding is that this patch series is not only intended for
-> >> initiator drivers but also for target drivers like ib_srpt and ib_isert.
-> >> As you know target drivers do not restrict the initiator operating
-> >> system to Linux. Although I do not know whether there are already
-> >> operating systems that support the "protection interval exponent",
-> > It's my understanding that Linux is still the only stack that supports
-> > DIF, so AFAICT no one is actually supporting this.
-> >
-> >>   I think it is a good idea to stay as close as possible to the terminology
-> >> of the SPC-4 standard.
-> >>
-> > No, in this context it only adds pointless misdirection because 1) The
-> > hardware in question doesn't support it, and 2) Linux itself doesn't
-> > support it.
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Tue, 5 Nov 2013 01:20:56 +0300
+
+> The printk() looks like it is left over debug code.  I have removed it.
 > 
-> I think that Bart is suggesting renaming block_size as pi_interval in 
-> ib_sig_domain.
-> I tend to agree since even if support for that does not exist yet, it 
-> might be in the future.
-> I think it is not a misdirection because it does represent the 
-> protection information interval.
-> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> v2:  Remove the printk instead of moving it infront of the return.
 
-The point is that changing the description from what the patch actually
-does, to something it does not do in order to 'stay as close as possible
-to the terminology of the SPC-4 standard' is pointlessly confusing.
+This doesn't apply to the current tree, I suspect some recent changes made
+this fix no longer applicable.  Please take a look.
 
---nab
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks!
