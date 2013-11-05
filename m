@@ -1,55 +1,41 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next V1 0/8] uverbs extensions fixes
-Date: Tue, 5 Nov 2013 15:23:15 +0200
-Message-ID: <5278F143.5070001@mellanox.com>
-References: <1383126771-7658-1-git-send-email-matanb@mellanox.com> <1383642320.18301.46.camel@localhost.localdomain>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: AW: AW: AW: IPoIB GRO
+Date: Tue, 5 Nov 2013 10:24:31 -0700
+Message-ID: <20131105172431.GA14706@obsidianresearch.com>
+References: <12EF8D94C6F8734FB2FF37B9FBEDD173585A3E3B@EXCHANGE.collogia.de>
+ <527759C6.3070009@dev.mellanox.co.il>
+ <12EF8D94C6F8734FB2FF37B9FBEDD173585A4301@EXCHANGE.collogia.de>
+ <52779612.9020103@dev.mellanox.co.il>
+ <12EF8D94C6F8734FB2FF37B9FBEDD173585A45CF@EXCHANGE.collogia.de>
+ <5278A757.2070406@mellanox.com>
+ <12EF8D94C6F8734FB2FF37B9FBEDD173585A4B3D@EXCHANGE.collogia.de>
+ <5278B0CA.9080305@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1383642320.18301.46.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5278B0CA.9080305-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Markus Stockhausen <stockhausen-FhFLwxQf9jkb1SvskN2V4Q@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/11/2013 11:05, Yann Droneaud wrote:
-> Thanks Matan for carrying on the patchset.
->
-> I've quite the same patchset, but the other way around, eg. enabling
-> the flow steering verbs after cleanup on the new ABI. I thought it would
-> make more sense this way. Would you like me to send the patchset this
-> way, with my others patches to rename the function, which was dropped
-> from my latest attempt in order to squeeze the patchset to bare minimal ?
+On Tue, Nov 05, 2013 at 10:48:10AM +0200, Erez Shitrit wrote:
 
-good! lets do that asap, please make sure to mark the series as V2 and 
-list the changes from V1 in the cover-letter
+> so, to summarize:
+> The HW does the work (truncates the big ip packet to series of ip
+> packets, each with the relevant mtu size and increases the ip-id for
+> each)
+> The FW enables that work on the HW
+> the FW in A0 card doesn't enable that option for the HW.
 
-> Regarding the extensible framework, I haven't found time to design a new
-> proposal for the interface.
->
-> I keep in my mind that something built around writev(2) (struct iovec)
-> and/or cmsg(3) / netlink(3) would be preferable to ease sending
-> multipart command to uverbs subsystem.
+Sounds like this bug causes a performance regression, and it sounds
+like it puts incorrect packets on the wire.
 
-Well, we do want the solution to use the uverbs framework and not 
-involve another paradigm for user/kernel verbs interaction. With this in 
-mind && as Matan and Tzahi wrote you earlier on the list, we do think 
-the current proposal is good enough to carry on with.
+This should be patched, have the driver disable TSO for cards that
+can't support it...
 
-
-> BTW, I think we should drop the patch that adds the comp_mask in the
-> header. As you wrote in a previous mail, a comp_mask could be present
-> in the "provider" part of the command. This make handling of comp_mask
-> from header very different, very specific, while it's not, since there
-> could be more "comp_mask": one in command, one in provider, one in
-> response and one in the provider response parts. So I would prefer not
-> have the command comp_mask being treated differently than the other.
-
-makes sense.
-
-Matan and Or.
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
