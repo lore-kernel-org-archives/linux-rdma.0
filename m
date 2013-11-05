@@ -1,60 +1,80 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC v2 00/10] Introduce Signature feature
-Date: Tue, 5 Nov 2013 11:13:22 +0200
-Message-ID: <5278B6B2.1010006@mellanox.com>
-References: <1383222255-22699-1-git-send-email-sagig@mellanox.com>	 <5273C2B6.7010901@acm.org>	 <1383356167.4216.16.camel@haakon3.risingtidesystems.com>	 <52757555.6090907@acm.org> <1383590471.4216.22.camel@haakon3.risingtidesystems.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next V1 0/8] uverbs extensions fixes
+Date: Tue, 05 Nov 2013 10:05:20 +0100
+Message-ID: <1383642320.18301.46.camel@localhost.localdomain>
+References: <1383126771-7658-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1383590471.4216.22.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+In-Reply-To: <1383126771-7658-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/4/2013 8:41 PM, Nicholas A. Bellinger wrote:
-> On Sat, 2013-11-02 at 14:57 -0700, Bart Van Assche wrote:
->> On 1/11/2013 18:36, Nicholas A. Bellinger wrote:
->>> On Fri, 2013-11-01 at 08:03 -0700, Bart Van Assche wrote:
->>>> On 31/10/2013 5:24, Sagi Grimberg wrote:
->>>>> In T10-DIF, when a series of 512-byte data blocks are transferred, each
->>>>> block is followed by an 8-byte guard. The guard consists of CRC that
->>>>> protects the integrity of the data in the block, and some other tags
->>>>> that protects against mis-directed IOs.
->>>> Shouldn't that read "logical block length divided by 2**(protection
->>>> interval exponent)" instead of "512" ? From the SPC-4 FORMAT UNIT
->>>> section:
->>> Why should the protection interval in FORMAT_UNIT be mentioned when it's
->>> not supported by the hardware, nor by drivers/scsi/sd_dif.c itself..?
->> Hello Nick,
->>
->> My understanding is that this patch series is not only intended for
->> initiator drivers but also for target drivers like ib_srpt and ib_isert.
->> As you know target drivers do not restrict the initiator operating
->> system to Linux. Although I do not know whether there are already
->> operating systems that support the "protection interval exponent",
-> It's my understanding that Linux is still the only stack that supports
-> DIF, so AFAICT no one is actually supporting this.
->
->>   I think it is a good idea to stay as close as possible to the terminology
->> of the SPC-4 standard.
->>
-> No, in this context it only adds pointless misdirection because 1) The
-> hardware in question doesn't support it, and 2) Linux itself doesn't
-> support it.
+Hi,
 
-I think that Bart is suggesting renaming block_size as pi_interval in 
-ib_sig_domain.
-I tend to agree since even if support for that does not exist yet, it 
-might be in the future.
-I think it is not a misdirection because it does represent the 
-protection information interval.
+Le mercredi 30 octobre 2013 =C3=A0 11:52 +0200, Matan Barak a =C3=A9cri=
+t :
+> This series is a continuous improvement for the uverbs extension mech=
+anism
+> that was introduced as an experimental feature for v3.12.
+>=20
+> Yann Droneaud suggested and implemented the following improvements:
+> - structure renaming to match others uverbs public structs;
+> - changes usage of the flow_attr.size to not count the
+>   "extended command header" but to describe only the size
+>   of the flow specs following flow_attr;
+> - removed unneeded flow_spec structure that don't need to be
+>   exposed to userspace.
+> - ensure 64bits alignment
+>=20
+> This series is actually Yann's series with a bug fix.
+>=20
+> Changes from Yann's series
+> (V0 http://marc.info/?l=3Dlinux-rdma&m=3D138151196022025):
+> 1. Re-enable flow steering verbs and the extension verbs mechanism.
+> 2. Squashed patches 1 and 2 from the original series
+> 3. ib_uverbs_write should return the number of bytes including the
+>    header's size (Patch 7).
+>=20
 
-> --nab
->
+Thanks Matan for carrying on the patchset.
+
+I've quite the same patchset, but the other way around, eg. enabling
+the flow steering verbs after cleanup on the new ABI. I thought it woul=
+d
+make more sense this way. Would you like me to send the patchset this
+way, with my others patches to rename the function, which was dropped
+from my latest attempt in order to squeeze the patchset to bare
+minimal ?
+
+Regarding the extensible framework, I haven't found time to design a ne=
+w
+proposal for the interface.
+
+I keep in my mind that something built around writev(2) (struct iovec)
+and/or cmsg(3) / netlink(3) would be preferable to ease sending
+multipart command to uverbs subsystem.
+
+BTW, I think we should drop the patch that adds the comp_mask in the
+header. As you wrote in a previous mail, a comp_mask could be present
+in the "provider" part of the command. This make handling of comp_mask
+from header very different, very specific, while it's not, since there
+could be more "comp_mask": one in command, one in provider, one in
+response and one in the provider response parts. So I would prefer not
+have the command comp_mask being treated differently than the other.
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
