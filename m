@@ -1,92 +1,125 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next v2 0/7] uverbs extensions fixes
-Date: Wed,  6 Nov 2013 23:21:43 +0100
-Message-ID: <cover.1383773832.git.ydroneaud@opteya.com>
+Subject: [PATCH for -next v2 4/7] IB/core: Uses a common header for uverbs flow_specs
+Date: Wed,  6 Nov 2013 23:21:47 +0100
+Message-ID: <9e31aac91473946cc5e47ea04cbf5e3bcb2deb37.1383773832.git.ydroneaud@opteya.com>
+References: <cover.1383773832.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+References: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This series is a continuous improvement for the uverbs
-extension mechanism and flow steering uverbs that were
-introduced as an experimental features for v3.12.
+A common header will allows better checking of
+flow specs size, while ensuring strict alignment
+to 64bits.
 
-I suggested and implemented the following improvements:
-- improved extensible/extended command infrastructure
-  with clear split between core/ (eg. uverbs) and hw/ (eg. provider)
-  portion of command and response;
-- structure renaming to match others uverbs public structs;
-- changes usage of the flow_attr.size to not count the
-  "extended command header" but to describe only the size
-  of the flow specs following flow_attr;
-- removed unneeded flow_spec structure that don't need to be
-  exposed to userspace.
-- ensure 64bits alignment
+Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Link: http://marc.info/?i=cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+---
+ include/uapi/rdma/ib_user_verbs.h | 53 +++++++++++++++++++++++++++++----------
+ 1 file changed, 40 insertions(+), 13 deletions(-)
 
-Changes from v1 (patchset [1]):
-
-- re-enable patch by Matan Barack as the last step
-- patch moving comp_mask in command header dropped following
-  discussion about having comp_mask for provider data and response.
-- moved variable written_count in an inner block
-
-Changes from v0 (patchset [2]):
-
-- Re-enable flow steering verbs and the extension verbs mechanism.
-- Squashed patches 1 and 2 from the original series
-- ib_uverbs_write should return the number of bytes including the
-   header's size (Patch 7).
-
-Changes from v(-1) (patchset [3] and patchset [4]):
-
-- merge infrastructure and uverbs flow fixes
-- rebased against Matan Barack fixes
-- removed changes on function name
-
-Changes from initial (patchset [5]):
-
-- move "comp_mask" in the command header
-- add a response header
-- add strict command length check
-
-[1] [PATCH for-next V1 0/8] uverbs extensions fixes
-    http://marc.info/?i=1383126771-7658-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-
-[2] [PATCH 0/9] IB/core: batch of fix against create/destroy_flow uverbs for v3.12
-    http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-[3] [PATCH 00/10] IB/core: more fixes for create_flow uverbs (for v3.12)
-    http://marc.info/?i=cover.1381351016.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-[4] [PATCH v2 0/4] IB/core: an improved infrastructure for uverbs commands
-    http://marc.info/?i=cover.1381177342.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-[5] [PATCH] An improved infrastructure for uverbs commands (My take at designing extensible scheme)
-    http://marc.info/?i=1380039392-15480-1-git-send-email-ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-Matan Barak (2):
-  IB/core: clarify overflow/underflow checks on ib_create/destroy_flow
-  IB/core: re-enable create_flow/destroy_flow uverbs
-
-Yann Droneaud (5):
-  IB/core: Rename 'flow' structs to match other uverbs structs
-  IB/core: Makes uverbs flow structure using names more similar to verbs
-    ones
-  IB/core: Uses a common header for uverbs flow_specs
-  IB/core: Remove ib_uverbs_flow_spec structure from userspace
-  IB/core: extended command: an improved infrastructure for uverbs
-    commands
-
- drivers/infiniband/Kconfig            |  11 ---
- drivers/infiniband/core/uverbs.h      |  36 ++++++++--
- drivers/infiniband/core/uverbs_cmd.c  |  96 ++++++++++++-------------
- drivers/infiniband/core/uverbs_main.c | 128 +++++++++++++++++++++++++---------
- drivers/infiniband/hw/mlx4/main.c     |   8 +--
- include/rdma/ib_verbs.h               |   1 +
- include/uapi/rdma/ib_user_verbs.h     |  95 ++++++++++++++-----------
- 7 files changed, 228 insertions(+), 147 deletions(-)
-
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index ef2be64..4301498 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -701,6 +701,14 @@ struct ib_uverbs_detach_mcast {
+ };
+ 
+ #ifdef CONFIG_INFINIBAND_EXPERIMENTAL_UVERBS_FLOW_STEERING
++struct ib_uverbs_flow_spec_hdr {
++	__u32 type;
++	__u16 size;
++	__u16 reserved;
++	/* followed by flow_spec */
++	__u64 flow_spec_data[0];
++};
++
+ struct ib_uverbs_flow_eth_filter {
+ 	__u8  dst_mac[6];
+ 	__u8  src_mac[6];
+@@ -709,9 +717,14 @@ struct ib_uverbs_flow_eth_filter {
+ };
+ 
+ struct ib_uverbs_flow_spec_eth {
+-	__u32  type;
+-	__u16  size;
+-	__u16  reserved;
++	union {
++		struct ib_uverbs_flow_spec_hdr hdr;
++		struct {
++			__u32 type;
++			__u16 size;
++			__u16 reserved;
++		};
++	};
+ 	struct ib_uverbs_flow_eth_filter val;
+ 	struct ib_uverbs_flow_eth_filter mask;
+ };
+@@ -722,9 +735,14 @@ struct ib_uverbs_flow_ipv4_filter {
+ };
+ 
+ struct ib_uverbs_flow_spec_ipv4 {
+-	__u32  type;
+-	__u16  size;
+-	__u16  reserved;
++	union {
++		struct ib_uverbs_flow_spec_hdr hdr;
++		struct {
++			__u32 type;
++			__u16 size;
++			__u16 reserved;
++		};
++	};
+ 	struct ib_uverbs_flow_ipv4_filter val;
+ 	struct ib_uverbs_flow_ipv4_filter mask;
+ };
+@@ -735,19 +753,27 @@ struct ib_uverbs_flow_tcp_udp_filter {
+ };
+ 
+ struct ib_uverbs_flow_spec_tcp_udp {
+-	__u32  type;
+-	__u16  size;
+-	__u16  reserved;
++	union {
++		struct ib_uverbs_flow_spec_hdr hdr;
++		struct {
++			__u32 type;
++			__u16 size;
++			__u16 reserved;
++		};
++	};
+ 	struct ib_uverbs_flow_tcp_udp_filter val;
+ 	struct ib_uverbs_flow_tcp_udp_filter mask;
+ };
+ 
+ struct ib_uverbs_flow_spec {
+ 	union {
+-		struct {
+-			__u32 type;
+-			__u16 size;
+-			__u16 reserved;
++		union {
++			struct ib_uverbs_flow_spec_hdr hdr;
++			struct {
++				__u32 type;
++				__u16 size;
++				__u16 reserved;
++			};
+ 		};
+ 		struct ib_uverbs_flow_spec_eth	    eth;
+ 		struct ib_uverbs_flow_spec_ipv4    ipv4;
+@@ -767,6 +793,7 @@ struct ib_uverbs_flow_attr {
+ 	 * struct ib_flow_spec_xxx
+ 	 * struct ib_flow_spec_yyy
+ 	 */
++	struct ib_uverbs_flow_spec_hdr flow_specs[0];
+ };
+ 
+ struct ib_uverbs_create_flow  {
 -- 
 1.8.3.1
 
