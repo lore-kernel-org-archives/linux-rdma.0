@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for -next v2 5/7] IB/core: Remove ib_uverbs_flow_spec structure from userspace
-Date: Wed,  6 Nov 2013 23:21:48 +0100
-Message-ID: <502cabd3ee9cf3902372b24a2105eb51f788b9c9.1383773832.git.ydroneaud@opteya.com>
+Subject: [PATCH for -next v2 2/7] IB/core: Rename 'flow' structs to match other uverbs structs
+Date: Wed,  6 Nov 2013 23:21:45 +0100
+Message-ID: <70091b55855ccb44fc60362959cb70b75dd4d395.1383773832.git.ydroneaud@opteya.com>
 References: <cover.1383773832.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,84 +12,164 @@ To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreie
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The structure holding any types of flow_spec is of no use to userspace.
-It would be wrong for userspace to do:
+Commit 436f2ad added public data structures to support
+receive flow steering. The new structs are not following
+the 'uverbs' pattern: they're lacking the common prefix
+'ib_uverbs'.
 
-  struct ib_uverbs_flow_spec flow_spec;
-
-  flow_spec.type = IB_FLOW_SPEC_TCP;
-  flow_spec.size = sizeof(flow_spec);
-
-Instead, userspace should use the dedicated flow_spec structure for
-  - Ethernet : struct ib_uverbs_flow_spec_eth,
-  - IPv4     : struct ib_uverbs_flow_spec_ipv4,
-  - TCP/UDP  : struct ib_uverbs_flow_spec_tcp_udp.
-
-In other words, struct ib_uverbs_flow_spec is a "virtual"
-data structure that can only be use by the kernel as an alias
-to the other.
+This patch replaces ib_kern prefix by ib_uverbs.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Link: http://marc.info/?i=cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 ---
- drivers/infiniband/core/uverbs.h  | 16 ++++++++++++++++
- include/uapi/rdma/ib_user_verbs.h | 16 ----------------
- 2 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 14 +++++++-------
+ include/uapi/rdma/ib_user_verbs.h    | 36 ++++++++++++++++++------------------
+ 2 files changed, 25 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index d8f9c6c..777954f 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -178,6 +178,22 @@ void ib_uverbs_event_handler(struct ib_event_handler *handler,
- 			     struct ib_event *event);
- void ib_uverbs_dealloc_xrcd(struct ib_uverbs_device *dev, struct ib_xrcd *xrcd);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 26ee2d2..f83c1dc 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2602,7 +2602,7 @@ out_put:
+ }
  
-+struct ib_uverbs_flow_spec {
-+	union {
-+		union {
-+			struct ib_uverbs_flow_spec_hdr hdr;
-+			struct {
-+				__u32 type;
-+				__u16 size;
-+				__u16 reserved;
-+			};
-+		};
-+		struct ib_uverbs_flow_spec_eth     eth;
-+		struct ib_uverbs_flow_spec_ipv4    ipv4;
-+		struct ib_uverbs_flow_spec_tcp_udp tcp_udp;
-+	};
-+};
-+
- #define IB_UVERBS_DECLARE_CMD(name)					\
- 	ssize_t ib_uverbs_##name(struct ib_uverbs_file *file,		\
- 				 const char __user *buf, int in_len,	\
+ #ifdef CONFIG_INFINIBAND_EXPERIMENTAL_UVERBS_FLOW_STEERING
+-static int kern_spec_to_ib_spec(struct ib_kern_spec *kern_spec,
++static int kern_spec_to_ib_spec(struct ib_uverbs_spec *kern_spec,
+ 				union ib_flow_spec *ib_spec)
+ {
+ 	ib_spec->type = kern_spec->type;
+@@ -2650,7 +2650,7 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
+ 	struct ib_uverbs_create_flow_resp resp;
+ 	struct ib_uobject		  *uobj;
+ 	struct ib_flow			  *flow_id;
+-	struct ib_kern_flow_attr	  *kern_flow_attr;
++	struct ib_uverbs_flow_attr	  *kern_flow_attr;
+ 	struct ib_flow_attr		  *flow_attr;
+ 	struct ib_qp			  *qp;
+ 	int err = 0;
+@@ -2676,7 +2676,7 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
+ 
+ 	if (cmd.flow_attr.size > (in_len - sizeof(cmd)) ||
+ 	    cmd.flow_attr.size >
+-	    (cmd.flow_attr.num_of_specs * sizeof(struct ib_kern_spec)))
++	    (cmd.flow_attr.num_of_specs * sizeof(struct ib_uverbs_spec)))
+ 		return -EINVAL;
+ 
+ 	if (cmd.flow_attr.num_of_specs) {
+@@ -2725,16 +2725,16 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
+ 	kern_spec = kern_flow_attr + 1;
+ 	ib_spec = flow_attr + 1;
+ 	for (i = 0; i < flow_attr->num_of_specs &&
+-	     cmd.flow_attr.size > offsetof(struct ib_kern_spec, reserved) &&
++	     cmd.flow_attr.size > offsetof(struct ib_uverbs_spec, reserved) &&
+ 	     cmd.flow_attr.size >=
+-	     ((struct ib_kern_spec *)kern_spec)->size; i++) {
++	     ((struct ib_uverbs_spec *)kern_spec)->size; i++) {
+ 		err = kern_spec_to_ib_spec(kern_spec, ib_spec);
+ 		if (err)
+ 			goto err_free;
+ 		flow_attr->size +=
+ 			((union ib_flow_spec *) ib_spec)->size;
+-		cmd.flow_attr.size -= ((struct ib_kern_spec *)kern_spec)->size;
+-		kern_spec += ((struct ib_kern_spec *) kern_spec)->size;
++		cmd.flow_attr.size -= ((struct ib_uverbs_spec *)kern_spec)->size;
++		kern_spec += ((struct ib_uverbs_spec *) kern_spec)->size;
+ 		ib_spec += ((union ib_flow_spec *) ib_spec)->size;
+ 	}
+ 	if (cmd.flow_attr.size || (i != flow_attr->num_of_specs)) {
 diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 4301498..fc9bbe3 100644
+index 99a58bd..96a6605 100644
 --- a/include/uapi/rdma/ib_user_verbs.h
 +++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -765,22 +765,6 @@ struct ib_uverbs_flow_spec_tcp_udp {
- 	struct ib_uverbs_flow_tcp_udp_filter mask;
+@@ -701,61 +701,61 @@ struct ib_uverbs_detach_mcast {
  };
  
--struct ib_uverbs_flow_spec {
--	union {
--		union {
--			struct ib_uverbs_flow_spec_hdr hdr;
--			struct {
--				__u32 type;
--				__u16 size;
--				__u16 reserved;
--			};
--		};
--		struct ib_uverbs_flow_spec_eth	    eth;
--		struct ib_uverbs_flow_spec_ipv4    ipv4;
--		struct ib_uverbs_flow_spec_tcp_udp tcp_udp;
--	};
--};
--
- struct ib_uverbs_flow_attr {
+ #ifdef CONFIG_INFINIBAND_EXPERIMENTAL_UVERBS_FLOW_STEERING
+-struct ib_kern_eth_filter {
++struct ib_uverbs_eth_filter {
+ 	__u8  dst_mac[6];
+ 	__u8  src_mac[6];
+ 	__be16 ether_type;
+ 	__be16 vlan_tag;
+ };
+ 
+-struct ib_kern_spec_eth {
++struct ib_uverbs_spec_eth {
+ 	__u32  type;
+ 	__u16  size;
+ 	__u16  reserved;
+-	struct ib_kern_eth_filter val;
+-	struct ib_kern_eth_filter mask;
++	struct ib_uverbs_eth_filter val;
++	struct ib_uverbs_eth_filter mask;
+ };
+ 
+-struct ib_kern_ipv4_filter {
++struct ib_uverbs_ipv4_filter {
+ 	__be32 src_ip;
+ 	__be32 dst_ip;
+ };
+ 
+-struct ib_kern_spec_ipv4 {
++struct ib_uverbs_spec_ipv4 {
+ 	__u32  type;
+ 	__u16  size;
+ 	__u16  reserved;
+-	struct ib_kern_ipv4_filter val;
+-	struct ib_kern_ipv4_filter mask;
++	struct ib_uverbs_ipv4_filter val;
++	struct ib_uverbs_ipv4_filter mask;
+ };
+ 
+-struct ib_kern_tcp_udp_filter {
++struct ib_uverbs_tcp_udp_filter {
+ 	__be16 dst_port;
+ 	__be16 src_port;
+ };
+ 
+-struct ib_kern_spec_tcp_udp {
++struct ib_uverbs_spec_tcp_udp {
+ 	__u32  type;
+ 	__u16  size;
+ 	__u16  reserved;
+-	struct ib_kern_tcp_udp_filter val;
+-	struct ib_kern_tcp_udp_filter mask;
++	struct ib_uverbs_tcp_udp_filter val;
++	struct ib_uverbs_tcp_udp_filter mask;
+ };
+ 
+-struct ib_kern_spec {
++struct ib_uverbs_spec {
+ 	union {
+ 		struct {
+ 			__u32 type;
+ 			__u16 size;
+ 			__u16 reserved;
+ 		};
+-		struct ib_kern_spec_eth	    eth;
+-		struct ib_kern_spec_ipv4    ipv4;
+-		struct ib_kern_spec_tcp_udp tcp_udp;
++		struct ib_uverbs_spec_eth	    eth;
++		struct ib_uverbs_spec_ipv4    ipv4;
++		struct ib_uverbs_spec_tcp_udp tcp_udp;
+ 	};
+ };
+ 
+-struct ib_kern_flow_attr {
++struct ib_uverbs_flow_attr {
  	__u32 type;
  	__u16 size;
+ 	__u16 priority;
+@@ -774,7 +774,7 @@ struct ib_uverbs_create_flow  {
+ 	__u32 reserved;
+ 	__u64 response;
+ 	__u32 qp_handle;
+-	struct ib_kern_flow_attr flow_attr;
++	struct ib_uverbs_flow_attr flow_attr;
+ };
+ 
+ struct ib_uverbs_create_flow_resp {
 -- 
 1.8.3.1
 
