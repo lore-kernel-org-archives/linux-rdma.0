@@ -1,132 +1,92 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for -next v2 1/7] IB/core: clarify overflow/underflow checks on ib_create/destroy_flow
-Date: Wed,  6 Nov 2013 23:21:44 +0100
-Message-ID: <5ba88c1178b3d9548e4016f28fab36de747b1a90.1383773832.git.ydroneaud@opteya.com>
-References: <cover.1383773832.git.ydroneaud@opteya.com>
+Subject: [PATCH for-next v2 0/7] uverbs extensions fixes
+Date: Wed,  6 Nov 2013 23:21:43 +0100
+Message-ID: <cover.1383773832.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-References: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This series is a continuous improvement for the uverbs
+extension mechanism and flow steering uverbs that were
+introduced as an experimental features for v3.12.
 
-This patch fixes the following issues:
-1. Unneeded checks were removed
-2. Removed the fixed size out of flow_attr.size and by thus
-   simplifying the checks.
-3. Remove a 32bit hole on 64bit systems with strict alignment
-   in struct ib_kern_flow_att by adding a reserved field.
+I suggested and implemented the following improvements:
+- improved extensible/extended command infrastructure
+  with clear split between core/ (eg. uverbs) and hw/ (eg. provider)
+  portion of command and response;
+- structure renaming to match others uverbs public structs;
+- changes usage of the flow_attr.size to not count the
+  "extended command header" but to describe only the size
+  of the flow specs following flow_attr;
+- removed unneeded flow_spec structure that don't need to be
+  exposed to userspace.
+- ensure 64bits alignment
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c | 32 +++++++++++++++-----------------
- include/uapi/rdma/ib_user_verbs.h    |  1 +
- 2 files changed, 16 insertions(+), 17 deletions(-)
+Changes from v1 (patchset [1]):
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 2f0f01b..26ee2d2 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2657,7 +2657,6 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
- 	void *kern_spec;
- 	void *ib_spec;
- 	int i;
--	int kern_attr_size;
- 
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
-@@ -2672,32 +2671,28 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
- 	     !capable(CAP_NET_ADMIN)) || !capable(CAP_NET_RAW))
- 		return -EPERM;
- 
--	if (cmd.flow_attr.num_of_specs < 0 ||
--	    cmd.flow_attr.num_of_specs > IB_FLOW_SPEC_SUPPORT_LAYERS)
-+	if (cmd.flow_attr.num_of_specs > IB_FLOW_SPEC_SUPPORT_LAYERS)
- 		return -EINVAL;
- 
--	kern_attr_size = cmd.flow_attr.size - sizeof(cmd) -
--			 sizeof(struct ib_uverbs_cmd_hdr_ex);
--
--	if (cmd.flow_attr.size < 0 || cmd.flow_attr.size > in_len ||
--	    kern_attr_size < 0 || kern_attr_size >
-+	if (cmd.flow_attr.size > (in_len - sizeof(cmd)) ||
-+	    cmd.flow_attr.size >
- 	    (cmd.flow_attr.num_of_specs * sizeof(struct ib_kern_spec)))
- 		return -EINVAL;
- 
- 	if (cmd.flow_attr.num_of_specs) {
--		kern_flow_attr = kmalloc(cmd.flow_attr.size, GFP_KERNEL);
-+		kern_flow_attr = kmalloc(sizeof(*kern_flow_attr) + cmd.flow_attr.size,
-+					 GFP_KERNEL);
- 		if (!kern_flow_attr)
- 			return -ENOMEM;
- 
- 		memcpy(kern_flow_attr, &cmd.flow_attr, sizeof(*kern_flow_attr));
- 		if (copy_from_user(kern_flow_attr + 1, buf + sizeof(cmd),
--				   kern_attr_size)) {
-+				   cmd.flow_attr.size)) {
- 			err = -EFAULT;
- 			goto err_free_attr;
- 		}
- 	} else {
- 		kern_flow_attr = &cmd.flow_attr;
--		kern_attr_size = sizeof(cmd.flow_attr);
- 	}
- 
- 	uobj = kmalloc(sizeof(*uobj), GFP_KERNEL);
-@@ -2714,7 +2709,7 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
- 		goto err_uobj;
- 	}
- 
--	flow_attr = kmalloc(cmd.flow_attr.size, GFP_KERNEL);
-+	flow_attr = kmalloc(sizeof(*flow_attr) + cmd.flow_attr.size, GFP_KERNEL);
- 	if (!flow_attr) {
- 		err = -ENOMEM;
- 		goto err_put;
-@@ -2729,19 +2724,22 @@ ssize_t ib_uverbs_create_flow(struct ib_uverbs_file *file,
- 
- 	kern_spec = kern_flow_attr + 1;
- 	ib_spec = flow_attr + 1;
--	for (i = 0; i < flow_attr->num_of_specs && kern_attr_size > 0; i++) {
-+	for (i = 0; i < flow_attr->num_of_specs &&
-+	     cmd.flow_attr.size > offsetof(struct ib_kern_spec, reserved) &&
-+	     cmd.flow_attr.size >=
-+	     ((struct ib_kern_spec *)kern_spec)->size; i++) {
- 		err = kern_spec_to_ib_spec(kern_spec, ib_spec);
- 		if (err)
- 			goto err_free;
- 		flow_attr->size +=
- 			((union ib_flow_spec *) ib_spec)->size;
--		kern_attr_size -= ((struct ib_kern_spec *) kern_spec)->size;
-+		cmd.flow_attr.size -= ((struct ib_kern_spec *)kern_spec)->size;
- 		kern_spec += ((struct ib_kern_spec *) kern_spec)->size;
- 		ib_spec += ((union ib_flow_spec *) ib_spec)->size;
- 	}
--	if (kern_attr_size) {
--		pr_warn("create flow failed, %d bytes left from uverb cmd\n",
--			kern_attr_size);
-+	if (cmd.flow_attr.size || (i != flow_attr->num_of_specs)) {
-+		pr_warn("create flow failed, flow %d: %d bytes left from uverb cmd\n",
-+			i, cmd.flow_attr.size);
- 		goto err_free;
- 	}
- 	flow_id = ib_create_flow(qp, flow_attr, IB_FLOW_DOMAIN_USER);
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index e3ddd86..99a58bd 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -771,6 +771,7 @@ struct ib_kern_flow_attr {
- 
- struct ib_uverbs_create_flow  {
- 	__u32 comp_mask;
-+	__u32 reserved;
- 	__u64 response;
- 	__u32 qp_handle;
- 	struct ib_kern_flow_attr flow_attr;
+- re-enable patch by Matan Barack as the last step
+- patch moving comp_mask in command header dropped following
+  discussion about having comp_mask for provider data and response.
+- moved variable written_count in an inner block
+
+Changes from v0 (patchset [2]):
+
+- Re-enable flow steering verbs and the extension verbs mechanism.
+- Squashed patches 1 and 2 from the original series
+- ib_uverbs_write should return the number of bytes including the
+   header's size (Patch 7).
+
+Changes from v(-1) (patchset [3] and patchset [4]):
+
+- merge infrastructure and uverbs flow fixes
+- rebased against Matan Barack fixes
+- removed changes on function name
+
+Changes from initial (patchset [5]):
+
+- move "comp_mask" in the command header
+- add a response header
+- add strict command length check
+
+[1] [PATCH for-next V1 0/8] uverbs extensions fixes
+    http://marc.info/?i=1383126771-7658-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+
+[2] [PATCH 0/9] IB/core: batch of fix against create/destroy_flow uverbs for v3.12
+    http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+[3] [PATCH 00/10] IB/core: more fixes for create_flow uverbs (for v3.12)
+    http://marc.info/?i=cover.1381351016.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+[4] [PATCH v2 0/4] IB/core: an improved infrastructure for uverbs commands
+    http://marc.info/?i=cover.1381177342.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+[5] [PATCH] An improved infrastructure for uverbs commands (My take at designing extensible scheme)
+    http://marc.info/?i=1380039392-15480-1-git-send-email-ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+Matan Barak (2):
+  IB/core: clarify overflow/underflow checks on ib_create/destroy_flow
+  IB/core: re-enable create_flow/destroy_flow uverbs
+
+Yann Droneaud (5):
+  IB/core: Rename 'flow' structs to match other uverbs structs
+  IB/core: Makes uverbs flow structure using names more similar to verbs
+    ones
+  IB/core: Uses a common header for uverbs flow_specs
+  IB/core: Remove ib_uverbs_flow_spec structure from userspace
+  IB/core: extended command: an improved infrastructure for uverbs
+    commands
+
+ drivers/infiniband/Kconfig            |  11 ---
+ drivers/infiniband/core/uverbs.h      |  36 ++++++++--
+ drivers/infiniband/core/uverbs_cmd.c  |  96 ++++++++++++-------------
+ drivers/infiniband/core/uverbs_main.c | 128 +++++++++++++++++++++++++---------
+ drivers/infiniband/hw/mlx4/main.c     |   8 +--
+ include/rdma/ib_verbs.h               |   1 +
+ include/uapi/rdma/ib_user_verbs.h     |  95 ++++++++++++++-----------
+ 7 files changed, 228 insertions(+), 147 deletions(-)
+
 -- 
 1.8.3.1
 
