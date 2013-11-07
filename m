@@ -1,215 +1,158 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 5/6] IB/mlx4_ib: Add mechanism to support flow-steering over IB links
-Date: Thu,  7 Nov 2013 15:25:16 +0200
-Message-ID: <1383830717-17312-6-git-send-email-ogerlitz@mellanox.com>
-References: <1383830717-17312-1-git-send-email-ogerlitz@mellanox.com>
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v3 01/10] IB/core: Introduce protected memory regions
+Date: Thu,  7 Nov 2013 17:53:59 +0200
+Message-ID: <1383839648-19000-2-git-send-email-sagig@mellanox.com>
+References: <1383839648-19000-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1383830717-17312-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1383839648-19000-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This commit introduces verbs for creating/destoying memory
+regions which will allow new types of memory key operations such
+as protected memory registration.
 
-The mlx4 device requires adding IB flow spec to rules that apply over
-infiniband link layer. This patch adds a mechanism to add such a rule.
+Indirect memory registration is registering several (one
+of more) pre-registered memory regions in a specific layout.
+The Indirect region may potentialy describe several regions
+and some repitition format between them.
 
-If higher levels e.g. IP/UDP/TCP flow specs are provided, the device
-require us to add an empty wildecarded IB rule. Furthermore, the device
-requires the qpn to be put in the rule.
+Protected Memory registration is registering a memory region
+with various data integrity attributes which will describe protection
+schemes that will be handled by the HCA in an offloaded manner.
+These memory regions will be applicable for a new REG_SIG_MR
+work request introduced later in this patchset.
 
-Add here specific parsing support for IB empty rules and the
-ability to self-generate missing specs based on existing ones.
+In the future these routines may replace or implement current memory
+regions creation routines existing today:
+- ib_reg_user_mr
+- ib_alloc_fast_reg_mr
+- ib_get_dma_mr
+- ib_dereg_mr
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+issue: 333508
+Change-Id: Id3d221a002af9a95716a44d0163ca0de1c6dbbb8
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c |  135 ++++++++++++++++++++++++++++++++++++-
- 1 files changed, 134 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/verbs.c |   39 +++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         |   38 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 77 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 093fc85..ecfd48b 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -55,6 +55,7 @@
- #define DRV_RELDATE	"April 4, 2008"
- 
- #define MLX4_IB_FLOW_MAX_PRIO 0xFFF
-+#define MLX4_IB_FLOW_QPN_MASK 0xFFFFFF
- 
- MODULE_AUTHOR("Roland Dreier");
- MODULE_DESCRIPTION("Mellanox ConnectX HCA InfiniBand driver");
-@@ -828,6 +829,7 @@ struct mlx4_ib_steering {
- };
- 
- static int parse_flow_attr(struct mlx4_dev *dev,
-+			   u32 qp_num,
- 			   union ib_flow_spec *ib_spec,
- 			   struct _rule_hw *mlx4_spec)
- {
-@@ -843,6 +845,14 @@ static int parse_flow_attr(struct mlx4_dev *dev,
- 		mlx4_spec->eth.vlan_tag = ib_spec->eth.val.vlan_tag;
- 		mlx4_spec->eth.vlan_tag_msk = ib_spec->eth.mask.vlan_tag;
- 		break;
-+	case IB_FLOW_SPEC_IB:
-+		type = MLX4_NET_TRANS_RULE_ID_IB;
-+		mlx4_spec->ib.l3_qpn =
-+			cpu_to_be32(qp_num);
-+		mlx4_spec->ib.qpn_mask =
-+			cpu_to_be32(MLX4_IB_FLOW_QPN_MASK);
-+		break;
-+
- 
- 	case IB_FLOW_SPEC_IPV4:
- 		type = MLX4_NET_TRANS_RULE_ID_IPV4;
-@@ -874,6 +884,115 @@ static int parse_flow_attr(struct mlx4_dev *dev,
- 	return mlx4_hw_rule_sz(dev, type);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index a321df2..ef47667 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1055,6 +1055,45 @@ int ib_dereg_mr(struct ib_mr *mr)
  }
+ EXPORT_SYMBOL(ib_dereg_mr);
  
-+struct default_rules {
-+	__u32 mandatory_fields[IB_FLOW_SPEC_SUPPORT_LAYERS];
-+	__u32 mandatory_not_fields[IB_FLOW_SPEC_SUPPORT_LAYERS];
-+	__u32 rules_create_list[IB_FLOW_SPEC_SUPPORT_LAYERS];
-+	__u8  link_layer;
-+};
-+static const struct default_rules default_table[] = {
-+	{
-+		.mandatory_fields = {IB_FLOW_SPEC_IPV4},
-+		.mandatory_not_fields = {IB_FLOW_SPEC_ETH},
-+		.rules_create_list = {IB_FLOW_SPEC_IB},
-+		.link_layer = IB_LINK_LAYER_INFINIBAND
-+	}
-+};
-+
-+static int __mlx4_ib_default_rules_match(struct ib_qp *qp,
-+					 struct ib_flow_attr *flow_attr)
++struct ib_mr *ib_create_mr(struct ib_pd *pd,
++			   struct ib_mr_init_attr *mr_init_attr)
 +{
-+	int i, j, k;
-+	void *ib_flow;
-+	const struct default_rules *pdefault_rules = default_table;
-+	u8 link_layer = rdma_port_get_link_layer(qp->device, flow_attr->port);
++	struct ib_mr *mr;
 +
-+	for (i = 0; i < sizeof(default_table)/sizeof(default_table[0]); i++,
-+	     pdefault_rules++) {
-+		__u32 field_types[IB_FLOW_SPEC_SUPPORT_LAYERS];
-+		memset(&field_types, 0, sizeof(field_types));
++	if (!pd->device->create_mr)
++		return ERR_PTR(-ENOSYS);
 +
-+		if (link_layer != pdefault_rules->link_layer)
-+			continue;
++	mr = pd->device->create_mr(pd, mr_init_attr);
 +
-+		ib_flow = flow_attr + 1;
-+		/* we assume the specs are sorted */
-+		for (j = 0, k = 0; k < IB_FLOW_SPEC_SUPPORT_LAYERS &&
-+		     j < flow_attr->num_of_specs; k++) {
-+			union ib_flow_spec *current_flow =
-+				(union ib_flow_spec *)ib_flow;
-+
-+			/* same layer but different type */
-+			if (((current_flow->type & IB_FLOW_SPEC_LAYER_MASK) ==
-+			     (pdefault_rules->mandatory_fields[k] &
-+			      IB_FLOW_SPEC_LAYER_MASK)) &&
-+			    (current_flow->type !=
-+			     pdefault_rules->mandatory_fields[k]))
-+				goto out;
-+
-+			/* same layer, try match next one */
-+			if (current_flow->type ==
-+			    pdefault_rules->mandatory_fields[k]) {
-+				j++;
-+				ib_flow +=
-+					((union ib_flow_spec *)ib_flow)->size;
-+			}
-+		}
-+
-+		ib_flow = flow_attr + 1;
-+		for (j = 0; j < flow_attr->num_of_specs;
-+		     j++, ib_flow += ((union ib_flow_spec *)ib_flow)->size)
-+			for (k = 0; k < IB_FLOW_SPEC_SUPPORT_LAYERS; k++)
-+				/* same layer and same type */
-+				if (((union ib_flow_spec *)ib_flow)->type ==
-+				    pdefault_rules->mandatory_not_fields[k])
-+					goto out;
-+
-+		return i;
++	if (!IS_ERR(mr)) {
++		mr->device  = pd->device;
++		mr->pd      = pd;
++		mr->uobject = NULL;
++		atomic_inc(&pd->usecnt);
++		atomic_set(&mr->usecnt, 0);
 +	}
-+out:
-+	return -1;
++
++	return mr;
 +}
++EXPORT_SYMBOL(ib_create_mr);
 +
-+static int __mlx4_ib_create_default_rules(
-+		struct mlx4_ib_dev *mdev,
-+		struct ib_qp *qp,
-+		const struct default_rules *pdefault_rules,
-+		struct _rule_hw *mlx4_spec) {
-+	int size = 0;
-+	int i;
++int ib_destroy_mr(struct ib_mr *mr)
++{
++	struct ib_pd *pd;
++	int ret;
 +
-+	for (i = 0; i < sizeof(pdefault_rules->rules_create_list)/
-+			sizeof(pdefault_rules->rules_create_list[0]); i++) {
-+		int ret;
-+		union ib_flow_spec ib_spec;
-+		switch (pdefault_rules->rules_create_list[i]) {
-+		case 0:
-+			/* no rule */
-+			continue;
-+		case IB_FLOW_SPEC_IB:
-+			ib_spec.type = IB_FLOW_SPEC_IB;
-+			ib_spec.size = sizeof(struct ib_flow_spec_ib);
++	if (atomic_read(&mr->usecnt))
++		return -EBUSY;
 +
-+			break;
-+		default:
-+			/* invalid rule */
-+			return -EINVAL;
-+		}
-+		/* We must put empty rule, qpn is being ignored */
-+		ret = parse_flow_attr(mdev->dev, 0, &ib_spec,
-+				      mlx4_spec);
-+		if (ret < 0) {
-+			pr_info("invalid parsing\n");
-+			return -EINVAL;
-+		}
++	pd = mr->pd;
++	ret = mr->device->destroy_mr(mr);
++	if (!ret)
++		atomic_dec(&pd->usecnt);
 +
-+		mlx4_spec = (void *)mlx4_spec + ret;
-+		size += ret;
-+	}
-+	return size;
++	return ret;
 +}
++EXPORT_SYMBOL(ib_destroy_mr);
 +
- static int __mlx4_ib_create_flow(struct ib_qp *qp, struct ib_flow_attr *flow_attr,
- 			  int domain,
- 			  enum mlx4_net_trans_promisc_mode flow_type,
-@@ -887,6 +1006,7 @@ static int __mlx4_ib_create_flow(struct ib_qp *qp, struct ib_flow_attr *flow_att
- 	struct mlx4_net_trans_rule_hw_ctrl *ctrl;
- 	size_t rule_size = sizeof(struct mlx4_net_trans_rule_hw_ctrl) +
- 			   (sizeof(struct _rule_hw) * flow_attr->num_of_specs);
-+	int default_flow;
+ struct ib_mr *ib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
+ {
+ 	struct ib_mr *mr;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index e393171..af1bd1a 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -455,6 +455,22 @@ int ib_rate_to_mult(enum ib_rate rate) __attribute_const__;
+  */
+ int ib_rate_to_mbps(enum ib_rate rate) __attribute_const__;
  
- 	static const u16 __mlx4_domain[] = {
- 		[IB_FLOW_DOMAIN_USER] = MLX4_DOMAIN_UVERBS,
-@@ -922,8 +1042,21 @@ static int __mlx4_ib_create_flow(struct ib_qp *qp, struct ib_flow_attr *flow_att
++enum ib_mr_create_flags {
++		IB_MR_SIGNATURE_EN = 1,
++};
++
++/**
++ * ib_mr_init_attr - Memory region init attributes passed to routine
++ *     ib_create_mr.
++ * @max_reg_descriptors: max number of registration descriptors that
++ *     may be used with registration work requests.
++ * @flags: MR creation flags bit mask.
++ */
++struct ib_mr_init_attr {
++	int	    max_reg_descriptors;
++	u32	    flags;
++};
++
+ /**
+  * mult_to_ib_rate - Convert a multiple of 2.5 Gbit/sec to an IB rate
+  * enum.
+@@ -1372,6 +1388,9 @@ struct ib_device {
+ 	int                        (*query_mr)(struct ib_mr *mr,
+ 					       struct ib_mr_attr *mr_attr);
+ 	int                        (*dereg_mr)(struct ib_mr *mr);
++	int                        (*destroy_mr)(struct ib_mr *mr);
++	struct ib_mr *		   (*create_mr)(struct ib_pd *pd,
++						struct ib_mr_init_attr *mr_init_attr);
+ 	struct ib_mr *		   (*alloc_fast_reg_mr)(struct ib_pd *pd,
+ 					       int max_page_list_len);
+ 	struct ib_fast_reg_page_list * (*alloc_fast_reg_page_list)(struct ib_device *device,
+@@ -2212,6 +2231,25 @@ int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr);
+  */
+ int ib_dereg_mr(struct ib_mr *mr);
  
- 	ib_flow = flow_attr + 1;
- 	size += sizeof(struct mlx4_net_trans_rule_hw_ctrl);
-+	/* Add default flows */
-+	default_flow = __mlx4_ib_default_rules_match(qp, flow_attr);
-+	if (default_flow >= 0) {
-+		ret = __mlx4_ib_create_default_rules(
-+				mdev, qp, default_table + default_flow,
-+				mailbox->buf + size);
-+		if (ret < 0) {
-+			mlx4_free_cmd_mailbox(mdev->dev, mailbox);
-+			return -EINVAL;
-+		}
-+		size += ret;
-+	}
- 	for (i = 0; i < flow_attr->num_of_specs; i++) {
--		ret = parse_flow_attr(mdev->dev, ib_flow, mailbox->buf + size);
-+		ret = parse_flow_attr(mdev->dev, qp->qp_num, ib_flow,
-+				      mailbox->buf + size);
- 		if (ret < 0) {
- 			mlx4_free_cmd_mailbox(mdev->dev, mailbox);
- 			return -EINVAL;
++
++/**
++ * ib_create_mr - Allocates a memory region that may be used for
++ *     signature handover operations.
++ * @pd: The protection domain associated with the region.
++ * @mr_init_attr: memory region init attributes.
++ */
++struct ib_mr *ib_create_mr(struct ib_pd *pd,
++			   struct ib_mr_init_attr *mr_init_attr);
++
++/**
++ * ib_destroy_mr - Destroys a memory region that was created using
++ *     ib_create_mr and removes it from HW translation tables.
++ * @mr: The memory region to destroy.
++ *
++ * This function can fail, if the memory region has memory windows bound to it.
++ */
++int ib_destroy_mr(struct ib_mr *mr);
++
+ /**
+  * ib_alloc_fast_reg_mr - Allocates memory region usable with the
+  *   IB_WR_FAST_REG_MR send work request.
 -- 
 1.7.1
 
