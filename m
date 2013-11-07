@@ -1,20 +1,103 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] librdmacm: Some fixes to man pages
-Date: Thu, 7 Nov 2013 03:06:57 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CF5A23@ORSMSX109.amr.corp.intel.com>
-References: <1383673940-15683-1-git-send-email-guysh@mellanox.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next v2 0/7] uverbs extensions fixes
+Date: Thu, 7 Nov 2013 11:33:13 +0200
+Message-ID: <527B5E59.5000901@mellanox.com>
+References: <cover.1383773832.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1383673940-15683-1-git-send-email-guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks - applied
+On 7/11/2013 12:21 AM, Yann Droneaud wrote:
+> This series is a continuous improvement for the uverbs
+> extension mechanism and flow steering uverbs that were
+> introduced as an experimental features for v3.12.
+>
+> I suggested and implemented the following improvements:
+> - improved extensible/extended command infrastructure
+>    with clear split between core/ (eg. uverbs) and hw/ (eg. provider)
+>    portion of command and response;
+> - structure renaming to match others uverbs public structs;
+> - changes usage of the flow_attr.size to not count the
+>    "extended command header" but to describe only the size
+>    of the flow specs following flow_attr;
+> - removed unneeded flow_spec structure that don't need to be
+>    exposed to userspace.
+> - ensure 64bits alignment
+>
+> Changes from v1 (patchset [1]):
+>
+> - re-enable patch by Matan Barack as the last step
+> - patch moving comp_mask in command header dropped following
+>    discussion about having comp_mask for provider data and response.
+> - moved variable written_count in an inner block
+>
+> Changes from v0 (patchset [2]):
+>
+> - Re-enable flow steering verbs and the extension verbs mechanism.
+> - Squashed patches 1 and 2 from the original series
+> - ib_uverbs_write should return the number of bytes including the
+>     header's size (Patch 7).
+>
+> Changes from v(-1) (patchset [3] and patchset [4]):
+>
+> - merge infrastructure and uverbs flow fixes
+> - rebased against Matan Barack fixes
+> - removed changes on function name
+>
+> Changes from initial (patchset [5]):
+>
+> - move "comp_mask" in the command header
+> - add a response header
+> - add strict command length check
+>
+> [1] [PATCH for-next V1 0/8] uverbs extensions fixes
+>      http://marc.info/?i=1383126771-7658-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+>
+> [2] [PATCH 0/9] IB/core: batch of fix against create/destroy_flow uverbs for v3.12
+>      http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+>
+> [3] [PATCH 00/10] IB/core: more fixes for create_flow uverbs (for v3.12)
+>      http://marc.info/?i=cover.1381351016.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+>
+> [4] [PATCH v2 0/4] IB/core: an improved infrastructure for uverbs commands
+>      http://marc.info/?i=cover.1381177342.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+>
+> [5] [PATCH] An improved infrastructure for uverbs commands (My take at designing extensible scheme)
+>      http://marc.info/?i=1380039392-15480-1-git-send-email-ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+>
+> Matan Barak (2):
+>    IB/core: clarify overflow/underflow checks on ib_create/destroy_flow
+>    IB/core: re-enable create_flow/destroy_flow uverbs
+>
+> Yann Droneaud (5):
+>    IB/core: Rename 'flow' structs to match other uverbs structs
+>    IB/core: Makes uverbs flow structure using names more similar to verbs
+>      ones
+>    IB/core: Uses a common header for uverbs flow_specs
+>    IB/core: Remove ib_uverbs_flow_spec structure from userspace
+>    IB/core: extended command: an improved infrastructure for uverbs
+>      commands
+>
+>   drivers/infiniband/Kconfig            |  11 ---
+>   drivers/infiniband/core/uverbs.h      |  36 ++++++++--
+>   drivers/infiniband/core/uverbs_cmd.c  |  96 ++++++++++++-------------
+>   drivers/infiniband/core/uverbs_main.c | 128 +++++++++++++++++++++++++---------
+>   drivers/infiniband/hw/mlx4/main.c     |   8 +--
+>   include/rdma/ib_verbs.h               |   1 +
+>   include/uapi/rdma/ib_user_verbs.h     |  95 ++++++++++++++-----------
+>   7 files changed, 228 insertions(+), 147 deletions(-)
+>
+
+Thanks Yann for sending the updated patches. They look good to me.
+
+Regards,
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
