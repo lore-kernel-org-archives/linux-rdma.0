@@ -1,103 +1,239 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next v2 0/7] uverbs extensions fixes
-Date: Thu, 7 Nov 2013 11:33:13 +0200
-Message-ID: <527B5E59.5000901@mellanox.com>
-References: <cover.1383773832.git.ydroneaud@opteya.com>
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCHv3] IB/srp: add change_queue_depth and change_queue_type support
+Date: Thu, 07 Nov 2013 11:37:37 +0100
+Message-ID: <527B6D71.3020805@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------020201080405020504000106"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/11/2013 12:21 AM, Yann Droneaud wrote:
-> This series is a continuous improvement for the uverbs
-> extension mechanism and flow steering uverbs that were
-> introduced as an experimental features for v3.12.
->
-> I suggested and implemented the following improvements:
-> - improved extensible/extended command infrastructure
->    with clear split between core/ (eg. uverbs) and hw/ (eg. provider)
->    portion of command and response;
-> - structure renaming to match others uverbs public structs;
-> - changes usage of the flow_attr.size to not count the
->    "extended command header" but to describe only the size
->    of the flow specs following flow_attr;
-> - removed unneeded flow_spec structure that don't need to be
->    exposed to userspace.
-> - ensure 64bits alignment
->
-> Changes from v1 (patchset [1]):
->
-> - re-enable patch by Matan Barack as the last step
-> - patch moving comp_mask in command header dropped following
->    discussion about having comp_mask for provider data and response.
-> - moved variable written_count in an inner block
->
-> Changes from v0 (patchset [2]):
->
-> - Re-enable flow steering verbs and the extension verbs mechanism.
-> - Squashed patches 1 and 2 from the original series
-> - ib_uverbs_write should return the number of bytes including the
->     header's size (Patch 7).
->
-> Changes from v(-1) (patchset [3] and patchset [4]):
->
-> - merge infrastructure and uverbs flow fixes
-> - rebased against Matan Barack fixes
-> - removed changes on function name
->
-> Changes from initial (patchset [5]):
->
-> - move "comp_mask" in the command header
-> - add a response header
-> - add strict command length check
->
-> [1] [PATCH for-next V1 0/8] uverbs extensions fixes
->      http://marc.info/?i=1383126771-7658-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
->
-> [2] [PATCH 0/9] IB/core: batch of fix against create/destroy_flow uverbs for v3.12
->      http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
->
-> [3] [PATCH 00/10] IB/core: more fixes for create_flow uverbs (for v3.12)
->      http://marc.info/?i=cover.1381351016.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
->
-> [4] [PATCH v2 0/4] IB/core: an improved infrastructure for uverbs commands
->      http://marc.info/?i=cover.1381177342.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
->
-> [5] [PATCH] An improved infrastructure for uverbs commands (My take at designing extensible scheme)
->      http://marc.info/?i=1380039392-15480-1-git-send-email-ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
->
-> Matan Barak (2):
->    IB/core: clarify overflow/underflow checks on ib_create/destroy_flow
->    IB/core: re-enable create_flow/destroy_flow uverbs
->
-> Yann Droneaud (5):
->    IB/core: Rename 'flow' structs to match other uverbs structs
->    IB/core: Makes uverbs flow structure using names more similar to verbs
->      ones
->    IB/core: Uses a common header for uverbs flow_specs
->    IB/core: Remove ib_uverbs_flow_spec structure from userspace
->    IB/core: extended command: an improved infrastructure for uverbs
->      commands
->
->   drivers/infiniband/Kconfig            |  11 ---
->   drivers/infiniband/core/uverbs.h      |  36 ++++++++--
->   drivers/infiniband/core/uverbs_cmd.c  |  96 ++++++++++++-------------
->   drivers/infiniband/core/uverbs_main.c | 128 +++++++++++++++++++++++++---------
->   drivers/infiniband/hw/mlx4/main.c     |   8 +--
->   include/rdma/ib_verbs.h               |   1 +
->   include/uapi/rdma/ib_user_verbs.h     |  95 ++++++++++++++-----------
->   7 files changed, 228 insertions(+), 147 deletions(-)
->
+This is a multi-part message in MIME format.
+--------------020201080405020504000106
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Thanks Yann for sending the updated patches. They look good to me.
+Hi Roland,
 
-Regards,
-Matan
+Could you include this patch? I update with tested-by from Bart and
+acked-by from David.
+
+>From e8d655fec4ac74a6af6a0b2471173c74e7c13f51 Mon Sep 17 00:00:00 2001
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date: Mon, 26 Aug 2013 15:50:03 +0200
+Subject: [PATCH] IB/srp: add change_queue_depth/change_queue_type support
+
+Currently, it's not possible to change queue depth for device
+behind SRP host. Sometimes, we need to adjust queue_depth for
+performance reason(eg storage busy, we need lower queue_depth
+to avoid running into SCSI error handler), so this patch add
+support for SRP driver.
+
+Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Tested-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |   54
++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
+b/drivers/infiniband/ulp/srp/ib_srp.c
+index 06a3e4b..2713e02 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -47,6 +47,7 @@
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_device.h>
+ #include <scsi/scsi_dbg.h>
++#include <scsi/scsi_tcq.h>
+ #include <scsi/srp.h>
+ #include <scsi/scsi_transport_srp.h>
+
+@@ -1875,6 +1876,57 @@ static int srp_cm_handler(struct ib_cm_id *cm_id,
+struct ib_cm_event *event)
+ 	return 0;
+ }
+
++/**
++ * srp_change_queue_type - changing device queue tag type
++ * @sdev: scsi device struct
++ * @tag_type: requested tag type
++ *
++ * Returns queue tag type.
++ */
++static int
++srp_change_queue_type(struct scsi_device *sdev, int tag_type)
++{
++	if (sdev->tagged_supported) {
++		scsi_set_tag_type(sdev, tag_type);
++		if (tag_type)
++			scsi_activate_tcq(sdev, sdev->queue_depth);
++		else
++			scsi_deactivate_tcq(sdev, sdev->queue_depth);
++	} else
++		tag_type = 0;
++
++	return tag_type;
++}
++
++/**
++ * srp_change_queue_depth - setting device queue depth
++ * @sdev: scsi device struct
++ * @qdepth: requested queue depth
++ * @reason: SCSI_QDEPTH_DEFAULT/SCSI_QDEPTH_QFULL/SCSI_QDEPTH_RAMP_UP
++ * (see include/scsi/scsi_host.h for definition)
++ *
++ * Returns queue depth.
++ */
++static int
++srp_change_queue_depth(struct scsi_device *sdev, int qdepth, int reason)
++{
++	struct Scsi_Host *shost = sdev->host;
++	int max_depth;
++	if (reason == SCSI_QDEPTH_DEFAULT || reason == SCSI_QDEPTH_RAMP_UP) {
++		max_depth = shost->can_queue;
++		if (!sdev->tagged_supported)
++			max_depth = 1;
++		if (qdepth > max_depth)
++			qdepth = max_depth;
++		scsi_adjust_queue_depth(sdev, scsi_get_tag_type(sdev), qdepth);
++	} else if (reason == SCSI_QDEPTH_QFULL)
++		scsi_track_queue_full(sdev, qdepth);
++	else
++		return -EOPNOTSUPP;
++
++	return sdev->queue_depth;
++}
++
+ static int srp_send_tsk_mgmt(struct srp_target_port *target,
+ 			     u64 req_tag, unsigned int lun, u8 func)
+ {
+@@ -2260,6 +2312,8 @@ static struct scsi_host_template srp_template = {
+ 	.slave_configure		= srp_slave_configure,
+ 	.info				= srp_target_info,
+ 	.queuecommand			= srp_queuecommand,
++	.change_queue_depth             = srp_change_queue_depth,
++	.change_queue_type              = srp_change_queue_type,
+ 	.eh_abort_handler		= srp_abort,
+ 	.eh_device_reset_handler	= srp_reset_device,
+ 	.eh_host_reset_handler		= srp_reset_host,
+-- 
+1.7.10.4
+
+--------------020201080405020504000106
+Content-Type: text/x-patch;
+ name="0001-IB-srp-add-change_queue_depth-change_queue_type-supp.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-IB-srp-add-change_queue_depth-change_queue_type-supp.pa";
+ filename*1="tch"
+
+>From e8d655fec4ac74a6af6a0b2471173c74e7c13f51 Mon Sep 17 00:00:00 2001
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Date: Mon, 26 Aug 2013 15:50:03 +0200
+Subject: [PATCH] IB/srp: add change_queue_depth/change_queue_type support
+
+Currently, it's not possible to change queue depth for device
+behind SRP host. Sometimes, we need to adjust queue_depth for
+performance reason(eg storage busy, we need lower queue_depth
+to avoid running into SCSI error handler), so this patch add
+support for SRP driver.
+
+Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Tested-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Acked-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |   54 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 06a3e4b..2713e02 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -47,6 +47,7 @@
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_device.h>
+ #include <scsi/scsi_dbg.h>
++#include <scsi/scsi_tcq.h>
+ #include <scsi/srp.h>
+ #include <scsi/scsi_transport_srp.h>
+ 
+@@ -1875,6 +1876,57 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 	return 0;
+ }
+ 
++/**
++ * srp_change_queue_type - changing device queue tag type
++ * @sdev: scsi device struct
++ * @tag_type: requested tag type
++ *
++ * Returns queue tag type.
++ */
++static int
++srp_change_queue_type(struct scsi_device *sdev, int tag_type)
++{
++	if (sdev->tagged_supported) {
++		scsi_set_tag_type(sdev, tag_type);
++		if (tag_type)
++			scsi_activate_tcq(sdev, sdev->queue_depth);
++		else
++			scsi_deactivate_tcq(sdev, sdev->queue_depth);
++	} else
++		tag_type = 0;
++
++	return tag_type;
++}
++
++/**
++ * srp_change_queue_depth - setting device queue depth
++ * @sdev: scsi device struct
++ * @qdepth: requested queue depth
++ * @reason: SCSI_QDEPTH_DEFAULT/SCSI_QDEPTH_QFULL/SCSI_QDEPTH_RAMP_UP
++ * (see include/scsi/scsi_host.h for definition)
++ *
++ * Returns queue depth.
++ */
++static int
++srp_change_queue_depth(struct scsi_device *sdev, int qdepth, int reason)
++{
++	struct Scsi_Host *shost = sdev->host;
++	int max_depth;
++	if (reason == SCSI_QDEPTH_DEFAULT || reason == SCSI_QDEPTH_RAMP_UP) {
++		max_depth = shost->can_queue;
++		if (!sdev->tagged_supported)
++			max_depth = 1;
++		if (qdepth > max_depth)
++			qdepth = max_depth;
++		scsi_adjust_queue_depth(sdev, scsi_get_tag_type(sdev), qdepth);
++	} else if (reason == SCSI_QDEPTH_QFULL)
++		scsi_track_queue_full(sdev, qdepth);
++	else
++		return -EOPNOTSUPP;
++
++	return sdev->queue_depth;
++}
++
+ static int srp_send_tsk_mgmt(struct srp_target_port *target,
+ 			     u64 req_tag, unsigned int lun, u8 func)
+ {
+@@ -2260,6 +2312,8 @@ static struct scsi_host_template srp_template = {
+ 	.slave_configure		= srp_slave_configure,
+ 	.info				= srp_target_info,
+ 	.queuecommand			= srp_queuecommand,
++	.change_queue_depth             = srp_change_queue_depth,
++	.change_queue_type              = srp_change_queue_type,
+ 	.eh_abort_handler		= srp_abort,
+ 	.eh_device_reset_handler	= srp_reset_device,
+ 	.eh_host_reset_handler		= srp_reset_host,
+-- 
+1.7.10.4
+
+
+--------------020201080405020504000106--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
