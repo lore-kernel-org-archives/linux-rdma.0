@@ -1,42 +1,32 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma_reg_read()
-Date: Fri, 8 Nov 2013 01:04:52 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CF6429@ORSMSX109.amr.corp.intel.com>
-References: <527C2D99.9050407@opengridcomputing.com>
- <1828884A29C6694DAF28B7E6B8A8237388CF63E9@ORSMSX109.amr.corp.intel.com>
- <527C316E.50805@opengridcomputing.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH] mlx5: shift wrapping bug in mlx5_ib_get_buf_offset()
+Date: Fri, 8 Nov 2013 12:52:59 +0300
+Message-ID: <20131108095259.GK27977@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <527C316E.50805-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Troy Leedberg <troy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Felix Marti <felix-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Eli Cohen <eli@mellanox.com>
+Cc: Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On 11/7/2013 6:21 PM, Hefty, Sean wrote:
-> >> static inline struct ibv_mr *
-> >> rdma_reg_read(struct rdma_cm_id *id, void *addr, size_t length)
-> >> {
-> >>           return ibv_reg_mr(id->pd, addr, length, IBV_ACCESS_LOCAL_WRITE
-> |
-> >> IBV_ACCESS_REMOTE_READ);
-> >> }
-> >>
-> >> Should this be used for the registering sink memory of an rdma read?  If
-> >> so, it won't work for iWARP, which requires REMOTE_WRITE for the sink.
-> >> Should this code look at the transport type and set REMOTE_WRITE for
-> >> iwarp transports?
-> > This is to register memory as the target of an RDMA read operation.  I.e.
-> the memory being read.  Is that the same as your 'sink'?
-> 
-> No, I would call that the 'source' of the read.    Basically the mr
-> to-which the read data is placed needs REMOTE_WRITE for iWARP.
+"page_size" is declared as u64 but the (1 << page_shift) shift will wrap
+at 32 bits.
 
-Then I think that maps to the rdma_reg_write() call.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fixes: e126ba97dba9 ('mlx5: Add driver for Mellanox Connect-IB adapters')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index 3a53228..3020ec2 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -148,7 +148,7 @@ int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
+ 	u64 off_mask;
+ 	u64 buf_off;
+ 
+-	page_size = 1 << page_shift;
++	page_size = 1ULL << page_shift;
+ 	page_mask = page_size - 1;
+ 	buf_off = addr & page_mask;
+ 	off_size = page_size >> 6;
