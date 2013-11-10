@@ -1,26 +1,44 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH for -next v2 6/7] IB/core: extended command: an improved
- infrastructure for uverbs commands
-Date: Fri, 8 Nov 2013 14:22:21 -0800
-Message-ID: <CAL1RGDXkY5uW5YEhc++R_tziK6K5jgb5fr2zi4oW8JYVffoOqA@mail.gmail.com>
-References: <cover.1383773832.git.ydroneaud@opteya.com> <2c3b64e8b42c3bd7434b03e3439c58df874992f2.1383773832.git.ydroneaud@opteya.com>
- <956216e98357e13fd39cf8ed3dd0cc2a@meuh.org>
+From: Eli Cohen <eli@dev.mellanox.co.il>
+Subject: Re: [PATCH] mlx5: shift wrapping bug in mlx5_ib_get_buf_offset()
+Date: Sun, 10 Nov 2013 09:09:13 +0200
+Message-ID: <20131110070913.GA30354@mtldesk30>
+References: <20131108095259.GK27977@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <956216e98357e13fd39cf8ed3dd0cc2a-zgzEX58YAwA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131108095259.GK27977@elgon.mountain>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Eli Cohen <eli@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 8, 2013 at 2:01 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
-> Will roll a v3 if Roland have not yet picked the patchset.
+On Fri, Nov 08, 2013 at 12:52:59PM +0300, Dan Carpenter wrote:
+> "page_size" is declared as u64 but the (1 << page_shift) shift will wrap
+> at 32 bits.
 
-I'll roll that cleanup into this patch as I apply it (now).
+I hope to live when this happnes :-)
+I prefer to be explicit and use:
+        page_size = (u64)1 << page_shift;
 
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Fixes: e126ba97dba9 ('mlx5: Add driver for Mellanox Connect-IB adapters')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+> index 3a53228..3020ec2 100644
+> --- a/drivers/infiniband/hw/mlx5/mem.c
+> +++ b/drivers/infiniband/hw/mlx5/mem.c
+> @@ -148,7 +148,7 @@ int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
+>  	u64 off_mask;
+>  	u64 buf_off;
+>  
+> -	page_size = 1 << page_shift;
+> +	page_size = 1ULL << page_shift;
+>  	page_mask = page_size - 1;
+>  	buf_off = addr & page_mask;
+>  	off_size = page_size >> 6;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
