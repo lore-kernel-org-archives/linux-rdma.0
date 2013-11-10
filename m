@@ -1,44 +1,42 @@
-From: Eli Cohen <eli@dev.mellanox.co.il>
-Subject: Re: [PATCH] mlx5: shift wrapping bug in mlx5_ib_get_buf_offset()
-Date: Sun, 10 Nov 2013 09:09:13 +0200
-Message-ID: <20131110070913.GA30354@mtldesk30>
-References: <20131108095259.GK27977@elgon.mountain>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: RDMA and memory ordering
+Date: Sun, 10 Nov 2013 06:46:30 -0400
+Message-ID: <CADPSxAhAGYZude8CM65-UDvfiPscStgcNsAfs=2XBbntg-wL0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131108095259.GK27977@elgon.mountain>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Eli Cohen <eli@mellanox.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 08, 2013 at 12:52:59PM +0300, Dan Carpenter wrote:
-> "page_size" is declared as u64 but the (1 << page_shift) shift will wrap
-> at 32 bits.
+Hi.
 
-I hope to live when this happnes :-)
-I prefer to be explicit and use:
-        page_size = (u64)1 << page_shift;
+I am running a server which essentially does the following operations in a loop:
 
-> 
-> Fixes: e126ba97dba9 ('mlx5: Add driver for Mellanox Connect-IB adapters')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
-> index 3a53228..3020ec2 100644
-> --- a/drivers/infiniband/hw/mlx5/mem.c
-> +++ b/drivers/infiniband/hw/mlx5/mem.c
-> @@ -148,7 +148,7 @@ int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
->  	u64 off_mask;
->  	u64 buf_off;
->  
-> -	page_size = 1 << page_shift;
-> +	page_size = 1ULL << page_shift;
->  	page_mask = page_size - 1;
->  	buf_off = addr & page_mask;
->  	off_size = page_size >> 6;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A[i].value = counter;  //It's actually something else
+asm volatile ("" : : : "memory");
+asm volatile("mfence" ::: "memory");
+A[i].counter = counter;
+printf("%d %d\n", A[i].value, A[i].counter);
+counter ++;
+
+Basically, I want a fresh value of A[i].counter to indicate a fresh A[i].value.
+
+I have a remote client which reads the struct A[i] from the server
+(via RDMA) in a loop. Sometimes in the value that the client reads,
+A[i].counter is larger than A[i].value. i.e., I see the newer value of
+A[i].counter but A[i].value corresponds to a previous iteration of the
+server's loop.
+
+How can this happen in the presence of memory barriers? With barriers,
+A[i].counter should be updated later and therefore should always be
+smaller than A[i].value.
+
+Thanks for your help!
+
+Anuj Kalia,
+Carnegie Mellon University
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
