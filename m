@@ -1,31 +1,52 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for -next v2 6/7] IB/core: extended command: an improved
- infrastructure for uverbs commands
-Date: Sun, 10 Nov 2013 22:27:15 +0200
-Message-ID: <CAJZOPZKMtdb3OBYe3USxab_t8s5hdGDL-cwUYHxpiyViSHU-Zw@mail.gmail.com>
-References: <cover.1383773832.git.ydroneaud@opteya.com>
-	<2c3b64e8b42c3bd7434b03e3439c58df874992f2.1383773832.git.ydroneaud@opteya.com>
-	<956216e98357e13fd39cf8ed3dd0cc2a@meuh.org>
-	<CAL1RGDXkY5uW5YEhc++R_tziK6K5jgb5fr2zi4oW8JYVffoOqA@mail.gmail.com>
+From: <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] Added inline data support for Emulex SkyHawk controller.
+Date: Mon, 11 Nov 2013 03:22:52 -0500
+Message-ID: <6f48df92-8bd8-486e-b173-1aeee9ed3ed6@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXkY5uW5YEhc++R_tziK6K5jgb5fr2zi4oW8JYVffoOqA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Naresh <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Nov 9, 2013 at 12:22 AM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
-> On Fri, Nov 8, 2013 at 2:01 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
->> Will roll a v3 if Roland have not yet picked the patchset.
->
-> I'll roll that cleanup into this patch as I apply it (now).
+From: Naresh <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-Hi Roland, I don't see this series in your kernel.org clone, anything
-went wrong or its work in progress?
+Signed-off-by: Naresh <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ src/perftest_parameters.c |    1 +
+ src/perftest_parameters.h |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
-Or.
+diff --git a/src/perftest_parameters.c b/src/perftest_parameters.c
+index 084f16f..a2a5ca7 100755
+--- a/src/perftest_parameters.c
++++ b/src/perftest_parameters.c
+@@ -732,6 +732,7 @@ static enum ctx_device ib_dev_name(struct ibv_context *context) {
+ 			case 25418 : dev_fname = CONNECTX;  break;
+ 			case 25428 : dev_fname = CONNECTX;  break;
+ 			case 25448 : dev_fname = CONNECTX;  break;
++			case 1824  : dev_fname = SKYHAWK;  break;
+ 			default	   : dev_fname = UNKNOWN;
+ 		}
+ 	}
+diff --git a/src/perftest_parameters.h b/src/perftest_parameters.h
+index 42f6966..4c5b57c 100755
+--- a/src/perftest_parameters.h
++++ b/src/perftest_parameters.h
+@@ -214,7 +214,8 @@ enum ctx_device {
+ 	LEGACY 			= 5,
+ 	CHELSIO_T4 		= 6,
+ 	CHELSIO_T5 		= 7,
+-	CONNECTX3_PRO	= 8
++	CONNECTX3_PRO		= 8,
++	SKYHAWK			= 9
+ };
+ 
+ struct perftest_parameters {
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
