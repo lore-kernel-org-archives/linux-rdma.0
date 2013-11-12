@@ -1,67 +1,60 @@
-From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: RDMA and memory ordering
-Date: Tue, 12 Nov 2013 06:31:04 -0400
-Message-ID: <CADPSxAh6i74j8JVmWncttN6W4ithTGmsMgqWWpoBy2Z8RRb=_g@mail.gmail.com>
-References: <CADPSxAhAGYZude8CM65-UDvfiPscStgcNsAfs=2XBbntg-wL0w@mail.gmail.com>
-	<5281FFF9.5070705@gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] Remove unused lid matrix calculation in Torus_2Qos
+ routing
+Date: Tue, 12 Nov 2013 06:18:36 -0500
+Message-ID: <52820E8C.40509@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5281FFF9.5070705-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Gabriele Svelto <gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Gabriel,
 
-Thanks for your reply.
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-That makes sense. This way, we have no consistency between the CPU's
-view and the HCA's view - it all depends when the cache gets flushed
-to RAM.
-
-However, if the HCA performs reads from L3 cache, then everything
-should be consistent, right? While ordering the writes, I think we can
-assume that they are ordered till the cache hierarchy (with no
-guarantees for when they appear in RAM). Ido Shamai (@Mellanox) told
-me that RDMA writes go to L3 cache. This, plus on-chip memory
-controllers make me think that reads should come from L3 cache too.
-
-I believe the atomic operations would be a lot more expensive than
-reads/writes. I'm targetting maximum performance so I don't want to
-look that way yet.
-
---Anuj
-
-
-On Tue, Nov 12, 2013 at 6:16 AM, Gabriele Svelto
-<gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->  Hi Anuj,
->
->
-> On 10/11/2013 11:46, Anuj Kalia wrote:
->>
->> How can this happen in the presence of memory barriers? With barriers,
->> A[i].counter should be updated later and therefore should always be
->> smaller than A[i].value.
->
->
-> memory barriers such as mfence synchronize memory operations from the point
-> of view of CPUs only. Practically this means that the stores you wrote might
-> go out to memory in a different order than what the processor sees and
-> external devices such as a PCIe HCAs might thus see a different ordering
-> even in the presence of memory barriers.
->
-> To ensure that an external devices sees your store in the order you meant
-> you will need some form of external barrier though I do not know if it is
-> possible at all in userspace and besides it will be a fragile solution.
->
-> Instead I would suggest you to use verbs atomic operations such as
-> IBV_WR_ATOMIC_CMP_AND_SWP and IBV_WR_ATOMIC_FETCH_AND_ADD to implement what
-> you have in mind.
->
->  Gabriele
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/include/opensm/osm_ucast_mgr.h b/include/opensm/osm_ucast_mgr.h
+index c534b7e..b9c1ca1 100644
+--- a/include/opensm/osm_ucast_mgr.h
++++ b/include/opensm/osm_ucast_mgr.h
+@@ -296,5 +296,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr);
+ * SEE ALSO
+ *	Unicast Manager, Node Info Response Controller
+ *********/
++
++int ucast_dummy_build_lid_matrices(void *context);
+ END_C_DECLS
+ #endif				/* _OSM_UCAST_MGR_H_ */
+diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
+index 8139f1a..71753cf 100644
+--- a/opensm/osm_torus.c
++++ b/opensm/osm_torus.c
+@@ -9550,6 +9550,7 @@ int osm_ucast_torus2QoS_setup(struct osm_routing_engine *r,
+ 
+ 	r->context = ctx;
+ 	r->ucast_build_fwd_tables = torus_build_lfts;
++	r->build_lid_matrices = ucast_dummy_build_lid_matrices;
+ 	r->update_sl2vl = torus_update_osm_sl2vl;
+ 	r->update_vlarb = torus_update_osm_vlarb;
+ 	r->path_sl = torus_path_sl;
+diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
+index 6384362..9ef7947 100644
+--- a/opensm/osm_ucast_mgr.c
++++ b/opensm/osm_ucast_mgr.c
+@@ -1182,3 +1182,8 @@ int osm_ucast_dor_setup(struct osm_routing_engine *r, osm_opensm_t * osm)
+ 	r->ucast_build_fwd_tables = ucast_dor_build_lfts;
+ 	return 0;
+ }
++
++int ucast_dummy_build_lid_matrices(void *context)
++{
++	return 0;
++}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
