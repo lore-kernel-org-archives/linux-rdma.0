@@ -1,44 +1,55 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RDMA and memory ordering
-Date: Mon, 11 Nov 2013 23:13:57 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388CF721E@ORSMSX109.amr.corp.intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: failure to get gid with rdma_bind_addr with >= 3.10 kernels
+Date: Tue, 12 Nov 2013 09:08:16 +0200
+Message-ID: <5281D3E0.70203@mellanox.com>
+References: <527F6896.1080802@mellanox.com> <527F69B1.9070701@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237388CF6F78@ORSMSX109.amr.corp.intel.com> <00000142485f86e5-c3027528-9892-4d5c-8d72-0ed5f98666c4-000000@email.amazonses.com> <1828884A29C6694DAF28B7E6B8A8237388CF6FD0@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388CF6FD0-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I am running a server which essentially does the following operations in a
-> loop:
-> 
-> A[i].value = counter;  //It's actually something else
-> asm volatile ("" : : : "memory");
-> asm volatile("mfence" ::: "memory");
-> A[i].counter = counter;
-> printf("%d %d\n", A[i].value, A[i].counter);
-> counter ++;
-> 
-> Basically, I want a fresh value of A[i].counter to indicate a fresh
-> A[i].value.
-> 
-> I have a remote client which reads the struct A[i] from the server
-> (via RDMA) in a loop. Sometimes in the value that the client reads,
-> A[i].counter is larger than A[i].value. i.e., I see the newer value of
-> A[i].counter but A[i].value corresponds to a previous iteration of the
-> server's loop.
-> 
-> How can this happen in the presence of memory barriers? With barriers,
-> A[i].counter should be updated later and therefore should always be
-> smaller than A[i].value.
-> 
-> Thanks for your help!
+On 11/11/2013 20:46, Hefty, Sean wrote:
+> Yes - something like this patch should help, but I don't think this is the correct behavior when the IP address is 'any' addresss.
+>
+> Retrieve SGID after calling rdma_bind_addr
+>
+> From: Sean Hefty<sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>
+> A change was made to rdma_bind_addr when AF_IB is enabled
+> to only retrieve the resulting bound address.  Previously,
+> rdma_bind_addr would retrieve the corresponding SGID as
+> well.  This breaks some apps which were checking the
+> SGID after binding to an IP address.  Revert to the
+> previous behavior of also retrieving the SGID after
+> calling rdma_bind_addr.
+> ---
+>   src/cma.c |    5 ++++-
+>   1 files changed, 4 insertions(+), 1 deletions(-)
+>
+> diff --git a/src/cma.c b/src/cma.c
+> index 4f41879..0cf4203 100644
+> --- a/src/cma.c
+> +++ b/src/cma.c
+> @@ -753,7 +753,10 @@ static int rdma_bind_addr2(struct rdma_cm_id *id, struct sockaddr *addr,
+>   	if (ret != sizeof cmd)
+>   		return (ret >= 0) ? ERR(ENODATA) : -1;
+>   
+> -	return ucma_query_addr(id);
+> +	ret = ucma_query_addr(id);
+> +	if (!ret)
+> +		ret = ucma_query_gid(id);
+> +	return ret;
+>   }
+>   
+>   int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
 
-It seems possible for a remote read to start retrieving memory before an update, such that A[i].value is read and placed on the wire, the server modifies the memory, and then A[i].counter is read and placed on the wire.  It may depend on how large the data is that's being read and the RDMA read implementation.
-
-- Sean
+Sean, how do we continue here? the patch worked for Christoph, so are 
+going to merge it into librdmacm or it needs more work?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
