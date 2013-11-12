@@ -1,60 +1,111 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] Remove unused lid matrix calculation in Torus_2Qos
- routing
-Date: Tue, 12 Nov 2013 06:18:36 -0500
-Message-ID: <52820E8C.40509@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: RDMA and memory ordering
+Date: Tue, 12 Nov 2013 11:31:42 -0700
+Message-ID: <20131112183142.GB6639@obsidianresearch.com>
+References: <CADPSxAhAGYZude8CM65-UDvfiPscStgcNsAfs=2XBbntg-wL0w@mail.gmail.com>
+ <5281FFF9.5070705@gmail.com>
+ <CADPSxAh6i74j8JVmWncttN6W4ithTGmsMgqWWpoBy2Z8RRb=_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CADPSxAh6i74j8JVmWncttN6W4ithTGmsMgqWWpoBy2Z8RRb=_g@mail.gmail.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Gabriele Svelto <gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Nov 12, 2013 at 06:31:04AM -0400, Anuj Kalia wrote:
 
-From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> That makes sense. This way, we have no consistency between the CPU's
+> view and the HCA's view - it all depends when the cache gets flushed
+> to RAM.
 
-Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/include/opensm/osm_ucast_mgr.h b/include/opensm/osm_ucast_mgr.h
-index c534b7e..b9c1ca1 100644
---- a/include/opensm/osm_ucast_mgr.h
-+++ b/include/opensm/osm_ucast_mgr.h
-@@ -296,5 +296,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr);
- * SEE ALSO
- *	Unicast Manager, Node Info Response Controller
- *********/
-+
-+int ucast_dummy_build_lid_matrices(void *context);
- END_C_DECLS
- #endif				/* _OSM_UCAST_MGR_H_ */
-diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
-index 8139f1a..71753cf 100644
---- a/opensm/osm_torus.c
-+++ b/opensm/osm_torus.c
-@@ -9550,6 +9550,7 @@ int osm_ucast_torus2QoS_setup(struct osm_routing_engine *r,
- 
- 	r->context = ctx;
- 	r->ucast_build_fwd_tables = torus_build_lfts;
-+	r->build_lid_matrices = ucast_dummy_build_lid_matrices;
- 	r->update_sl2vl = torus_update_osm_sl2vl;
- 	r->update_vlarb = torus_update_osm_vlarb;
- 	r->path_sl = torus_path_sl;
-diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
-index 6384362..9ef7947 100644
---- a/opensm/osm_ucast_mgr.c
-+++ b/opensm/osm_ucast_mgr.c
-@@ -1182,3 +1182,8 @@ int osm_ucast_dor_setup(struct osm_routing_engine *r, osm_opensm_t * osm)
- 	r->ucast_build_fwd_tables = ucast_dor_build_lfts;
- 	return 0;
- }
-+
-+int ucast_dummy_build_lid_matrices(void *context)
-+{
-+	return 0;
-+}
+What you are talking about is firmly in undefined territory. You might
+be able to get something to work today, but tomorrows CPUs and HCAs
+might mess it up.
+
+You will never reliably get the guarentee you desired with the scheme
+you have. Even with two CPUs it is not going to happen.
+
+> I have a remote client which reads the struct A[i] from the server
+> (via RDMA) in a loop. Sometimes in the value that the client reads,
+> A[i].counter is larger than A[i].value. i.e., I see the newer value of
+> A[i].counter but A[i].value corresponds to a previous iteration of the
+> server's loop.
+
+This is a fundamental mis-understanding of what FENCE does, it just
+makes the writes happen in-order, it doesn't alter the reader side
+
+CPU1                         CPU2
+                             read avalue
+value = counter
+FENCE
+a.counter = counter
+                             read a.counter
+
+value < counter
+
+
+CPU1                         CPU2
+a.value = counter
+                             read a.value
+FENCE
+a.counter = counter
+                             read a.coutner
+
+value < counter
+
+
+CPU1                         CPU2
+a.value = counter
+FENCE
+                             read a.value
+< SCHEDULE >
+a.counter = counter
+                             read a.coutner
+
+value < counter
+
+etc.
+
+This stuff is hard, if you want a crazy scheme to be reliable you need
+to have really detailed understanding of what is actually being
+guarenteed.
+
+> However, if the HCA performs reads from L3 cache, then everything
+> should be consistent, right? While ordering the writes, I think we
+> can
+
+No. The cache makes no difference. Fundamentally you aren't atomically
+writing cache lines. You are writing single values.
+
+99% of the time it might look like atomic cache line writes, but there
+is a 1% where that assumption will break.
+
+Probably the best you can do is a collision detect scheme:
+
+uint64_t counter
+void data[];
+
+writer
+ counter++
+ FENCE
+ data = [.....];
+ FENCE
+ counter++
+
+reader:
+  read counter
+   if counter % 2 == 1: retry
+  read data
+  read counter
+   if counter != last_counter: retry
+
+But even something as simple as that probably has scary races - I only
+thought about it for a few moments. :)
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
