@@ -1,61 +1,55 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: RDMA and memory ordering
-Date: Tue, 12 Nov 2013 14:11:23 -0700
-Message-ID: <20131112211123.GA29132@obsidianresearch.com>
-References: <CADPSxAhAGYZude8CM65-UDvfiPscStgcNsAfs=2XBbntg-wL0w@mail.gmail.com>
- <5281FFF9.5070705@gmail.com>
- <CADPSxAh6i74j8JVmWncttN6W4ithTGmsMgqWWpoBy2Z8RRb=_g@mail.gmail.com>
- <20131112183142.GB6639@obsidianresearch.com>
- <CADPSxAgF1CAiYoYbxbCON4NCD-tH8cAsJFRtECkTGJJQC4MXCg@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_link_mgr.c: Fix uninitialized value (physp0)
+Date: Tue, 12 Nov 2013 16:27:42 -0500
+Message-ID: <52829D4E.9070802@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CADPSxAgF1CAiYoYbxbCON4NCD-tH8cAsJFRtECkTGJJQC4MXCg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Gabriele Svelto <gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 12, 2013 at 04:59:19PM -0400, Anuj Kalia wrote:
 
-> Thanks again. So we conclude there is nothing like an atomic cacheline
-> read. Then my current design is a dud. But there should be 8 byte
-> atomicity, right? I think I can leverage that to get what I want.
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-64 bit CPUs do have 64 bit atomic stores, so you can rely on DMAs
-seeing only values you've written and not some combination of old/new
-bits.
+physp0 might be uninitialized
 
-> This part is interesting (from Jason's reply):
-> "If you burst read from the HCA value and counter then the result is
-> undefined, you don't know if counter was read before value, or the
-> other way around."
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_link_mgr.c b/opensm/osm_link_mgr.c
+index 44bfbe6..6bcfbf6 100644
+--- a/opensm/osm_link_mgr.c
++++ b/opensm/osm_link_mgr.c
+@@ -135,6 +135,9 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 			send_set = TRUE;
+ 	}
  
-> Is there a way of knowing the order in which they are read - for
-> example, I heard in a talk that there is a left-to-right ordering
-> when
-
-So, this I don't know. I don't think anyone has ever had a need to
-look into that, it is certainly not defined. What you are asking is
-how does memory write ordering interact with a burst read.
-
-> a HCA reads a contiguous buffer. This could be totally architecture
-> specific, for example, I just want the answer for Mellanox ConnectX-3
-> cards. I think I can check this experimentally, but a definitive
-> answer would be great.
-
-The talk you heard about left-to-write ordering was probably in the
-context of DMA burst writes and MPI polling.
-
-In this case the DMA would write DDDDDP, and the MPI would poll on
-P. Once P is written it assumes that D is visible.
-
-This is undefined in general, but ensured in some cases on Intel and
-Mellanox. I'm not sure if D and P have to be in the same cache line,
-but you probably need a fence after reading P..
-
-Jason
++	if (osm_node_get_type(p_node) == IB_NODE_TYPE_SWITCH)
++		physp0 = osm_node_get_physp_ptr(p_node, 0);
++
+ 	if (port_num == 0) {
+ 		/*
+ 		   CAs don't have a port 0, and for switch port 0,
+@@ -149,8 +152,6 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 			goto Exit;
+ 		}
+ 
+-		physp0 = osm_node_get_physp_ptr(p_physp->p_node, 0);
+-
+ 		if (ib_switch_info_is_enhanced_port0(&p_node->sw->switch_info)
+ 		    == FALSE) {
+ 
+@@ -193,7 +194,7 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 	ib_port_info_set_port_state(p_pi, port_state);
+ 
+ 	/* Determine ports' M_Key */
+-	if (osm_node_get_type(p_physp->p_node) == IB_NODE_TYPE_SWITCH &&
++	if (osm_node_get_type(p_node) == IB_NODE_TYPE_SWITCH &&
+ 	    osm_physp_get_port_num(p_physp) != 0)
+ 		m_key = ib_port_info_get_m_key(&physp0->port_info);
+ 	else
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
