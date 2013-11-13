@@ -1,217 +1,276 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V5 2/8] IB/CMA: IBoE (RoCE) IP based GID addressing
-Date: Thu, 14 Nov 2013 00:29:46 +0200
-Message-ID: <1384381792-2023-3-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V5 6/8] IB/ocrdma: Populate GID table with IP based gids
+Date: Thu, 14 Nov 2013 00:29:50 +0200
+Message-ID: <1384381792-2023-7-git-send-email-ogerlitz@mellanox.com>
 References: <1384381792-2023-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1384381792-2023-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently, the IB core and specifically the RDMA-CM assumes that
-IBoE (RoCE) gids encode related Ethernet netdevice interface
-MAC address and possibly VLAN id.
+This patch is similar in spirit to the "IB/mlx4: Use IBoE (RoCE) IP based GIDs
+in the port GID table" patch.
 
-Change gids to be treated as they encode interface IP address.
+Changes to inet4 and inet6 addresses for the host are monitored and if the
+address is associated with an ocrdma device then a gid is added or deleted
+from the device's gid table. The gid format will be a IPv4 to IPv6 mapped or
+the IPv6 address.
 
-Since Ethernet layer 2 address parameters are not longer encoded
-within gids, had to extend the Infiniband address structures (e.g.
-ib_ah_attr) with layer 2 address parameters, namely mac and vlan.
-
+Cc: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c  |   22 ++++++++++++----------
- drivers/infiniband/core/ucma.c |   18 ++++--------------
- include/rdma/ib_addr.h         |   35 ++++++++++++-----------------------
- 3 files changed, 28 insertions(+), 47 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  138 ++++++++-------------------
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
+ 2 files changed, 41 insertions(+), 99 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 45a4010..86adf07 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -365,7 +365,9 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
- 		return -EINVAL;
- 
- 	mutex_lock(&lock);
--	iboe_addr_get_sgid(dev_addr, &iboe_gid);
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-+		    &iboe_gid);
-+
- 	memcpy(&gid, dev_addr->src_dev_addr +
- 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
- 	if (listen_id_priv &&
-@@ -1923,10 +1925,10 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- 	memcpy(route->path_rec->dmac, addr->dev_addr.dst_dev_addr, ETH_ALEN);
- 	memcpy(route->path_rec->smac, ndev->dev_addr, ndev->addr_len);
- 
--	iboe_mac_vlan_to_ll(&route->path_rec->sgid, addr->dev_addr.src_dev_addr,
--			    route->path_rec->vlan_id);
--	iboe_mac_vlan_to_ll(&route->path_rec->dgid, addr->dev_addr.dst_dev_addr,
--			    route->path_rec->vlan_id);
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-+		    &route->path_rec->sgid);
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.dst_addr,
-+		    &route->path_rec->dgid);
- 
- 	route->path_rec->hop_limit = 1;
- 	route->path_rec->reversible = 1;
-@@ -2093,6 +2095,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
- 			   RDMA_CM_ADDR_RESOLVED))
- 		goto out;
- 
-+	memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
- 	if (!status && !id_priv->cma_dev)
- 		status = cma_acquire_dev(id_priv, NULL);
- 
-@@ -2102,10 +2105,8 @@ static void addr_handler(int status, struct sockaddr *src_addr,
- 			goto out;
- 		event.event = RDMA_CM_EVENT_ADDR_ERROR;
- 		event.status = status;
--	} else {
--		memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
-+	} else
- 		event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
--	}
- 
- 	if (id_priv->id.event_handler(&id_priv->id, &event)) {
- 		cma_exch(id_priv, RDMA_CM_DESTROYING);
-@@ -2586,6 +2587,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 	if (ret)
- 		goto err1;
- 
-+	memcpy(cma_src_addr(id_priv), addr, rdma_addr_size(addr));
- 	if (!cma_any_addr(addr)) {
- 		ret = cma_translate_addr(addr, &id->route.addr.dev_addr);
- 		if (ret)
-@@ -2596,7 +2598,6 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 			goto err1;
- 	}
- 
--	memcpy(cma_src_addr(id_priv), addr, rdma_addr_size(addr));
- 	if (!(id_priv->options & (1 << CMA_OPTION_AFONLY))) {
- 		if (addr->sa_family == AF_INET)
- 			id_priv->afonly = 1;
-@@ -3325,7 +3326,8 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
- 		err = -EINVAL;
- 		goto out2;
- 	}
--	iboe_addr_get_sgid(dev_addr, &mc->multicast.ib->rec.port_gid);
-+	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
-+		    &mc->multicast.ib->rec.port_gid);
- 	work->id = id_priv;
- 	work->mc = mc;
- 	INIT_WORK(&work->work, iboe_mcast_work_handler);
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 826016b..5443d33 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -655,24 +655,14 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
- static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
- 				 struct rdma_route *route)
- {
--	struct rdma_dev_addr *dev_addr;
--	struct net_device *dev;
--	u16 vid = 0;
- 
- 	resp->num_paths = route->num_paths;
- 	switch (route->num_paths) {
- 	case 0:
--		dev_addr = &route->addr.dev_addr;
--		dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
--			if (dev) {
--				vid = rdma_vlan_dev_vlan_id(dev);
--				dev_put(dev);
--			}
--
--		iboe_mac_vlan_to_ll((union ib_gid *) &resp->ib_route[0].dgid,
--				    dev_addr->dst_dev_addr, vid);
--		iboe_addr_get_sgid(dev_addr,
--				   (union ib_gid *) &resp->ib_route[0].sgid);
-+		rdma_ip2gid((struct sockaddr *)&route->addr.dst_addr,
-+			    (union ib_gid *)&resp->ib_route[0].dgid);
-+		rdma_ip2gid((struct sockaddr *)&route->addr.src_addr,
-+			    (union ib_gid *)&resp->ib_route[0].sgid);
- 		resp->ib_route[0].pkey = cpu_to_be16(0xffff);
- 		break;
- 	case 2:
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index a071560..ce55906 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -38,8 +38,12 @@
- #include <linux/in6.h>
- #include <linux/if_arp.h>
- #include <linux/netdevice.h>
-+#include <linux/inetdevice.h>
- #include <linux/socket.h>
- #include <linux/if_vlan.h>
-+#include <net/ipv6.h>
-+#include <net/if_inet6.h>
-+#include <net/ip.h>
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_pack.h>
- #include <net/ipv6.h>
-@@ -132,20 +136,10 @@ static inline int rdma_addr_gid_offset(struct rdma_dev_addr *dev_addr)
- 	return dev_addr->dev_type == ARPHRD_INFINIBAND ? 4 : 0;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 91443bc..47187bf 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -67,46 +67,24 @@ void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
+ 	guid[7] = mac_addr[5];
  }
  
--static inline void iboe_mac_vlan_to_ll(union ib_gid *gid, u8 *mac, u16 vid)
-+static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
- {
--	memset(gid->raw, 0, 16);
--	*((__be32 *) gid->raw) = cpu_to_be32(0xfe800000);
--	if (vid < 0x1000) {
--		gid->raw[12] = vid & 0xff;
--		gid->raw[11] = vid >> 8;
--	} else {
--		gid->raw[12] = 0xfe;
--		gid->raw[11] = 0xff;
--	}
--	memcpy(gid->raw + 13, mac + 3, 3);
--	memcpy(gid->raw + 8, mac, 3);
--	gid->raw[8] ^= 2;
-+	return dev->priv_flags & IFF_802_1Q_VLAN ?
-+		vlan_dev_vlan_id(dev) : 0xffff;
- }
- 
- static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
-@@ -182,25 +176,20 @@ static inline int rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
- 	return 0;
- }
- 
--static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
+-static void ocrdma_build_sgid_mac(union ib_gid *sgid, unsigned char *mac_addr,
+-				  bool is_vlan, u16 vlan_id)
 -{
--	return dev->priv_flags & IFF_802_1Q_VLAN ?
--		vlan_dev_vlan_id(dev) : 0xffff;
+-	sgid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
+-	sgid->raw[8] = mac_addr[0] ^ 2;
+-	sgid->raw[9] = mac_addr[1];
+-	sgid->raw[10] = mac_addr[2];
+-	if (is_vlan) {
+-		sgid->raw[11] = vlan_id >> 8;
+-		sgid->raw[12] = vlan_id & 0xff;
+-	} else {
+-		sgid->raw[11] = 0xff;
+-		sgid->raw[12] = 0xfe;
+-	}
+-	sgid->raw[13] = mac_addr[3];
+-	sgid->raw[14] = mac_addr[4];
+-	sgid->raw[15] = mac_addr[5];
 -}
 -
- static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
- 				      union ib_gid *gid)
+-static bool ocrdma_add_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
+-			    bool is_vlan, u16 vlan_id)
++static bool ocrdma_add_sgid(struct ocrdma_dev *dev, union ib_gid *new_sgid)
  {
- 	struct net_device *dev;
--	u16 vid = 0xffff;
-+	struct in_device *ip4;
+ 	int i;
+-	union ib_gid new_sgid;
+ 	unsigned long flags;
  
- 	dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
- 	if (dev) {
--		vid = rdma_vlan_dev_vlan_id(dev);
-+		ip4 = (struct in_device *)dev->ip_ptr;
-+		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
-+			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
-+					       (struct in6_addr *)gid);
- 		dev_put(dev);
- 	}
--
--	iboe_mac_vlan_to_ll(gid, dev_addr->src_dev_addr, vid);
+ 	memset(&ocrdma_zero_sgid, 0, sizeof(union ib_gid));
+ 
+-	ocrdma_build_sgid_mac(&new_sgid, mac_addr, is_vlan, vlan_id);
+ 
+ 	spin_lock_irqsave(&dev->sgid_lock, flags);
+ 	for (i = 0; i < OCRDMA_MAX_SGID; i++) {
+ 		if (!memcmp(&dev->sgid_tbl[i], &ocrdma_zero_sgid,
+ 			    sizeof(union ib_gid))) {
+ 			/* found free entry */
+-			memcpy(&dev->sgid_tbl[i], &new_sgid,
++			memcpy(&dev->sgid_tbl[i], new_sgid,
+ 			       sizeof(union ib_gid));
+ 			spin_unlock_irqrestore(&dev->sgid_lock, flags);
+ 			return true;
+-		} else if (!memcmp(&dev->sgid_tbl[i], &new_sgid,
++		} else if (!memcmp(&dev->sgid_tbl[i], new_sgid,
+ 				   sizeof(union ib_gid))) {
+ 			/* entry already present, no addition is required. */
+ 			spin_unlock_irqrestore(&dev->sgid_lock, flags);
+@@ -117,20 +95,17 @@ static bool ocrdma_add_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
+ 	return false;
  }
  
- static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
+-static bool ocrdma_del_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
+-			    bool is_vlan, u16 vlan_id)
++static bool ocrdma_del_sgid(struct ocrdma_dev *dev, union ib_gid *sgid)
+ {
+ 	int found = false;
+ 	int i;
+-	union ib_gid sgid;
+ 	unsigned long flags;
+ 
+-	ocrdma_build_sgid_mac(&sgid, mac_addr, is_vlan, vlan_id);
+ 
+ 	spin_lock_irqsave(&dev->sgid_lock, flags);
+ 	/* first is default sgid, which cannot be deleted. */
+ 	for (i = 1; i < OCRDMA_MAX_SGID; i++) {
+-		if (!memcmp(&dev->sgid_tbl[i], &sgid, sizeof(union ib_gid))) {
++		if (!memcmp(&dev->sgid_tbl[i], sgid, sizeof(union ib_gid))) {
+ 			/* found matching entry */
+ 			memset(&dev->sgid_tbl[i], 0, sizeof(union ib_gid));
+ 			found = true;
+@@ -141,75 +116,18 @@ static bool ocrdma_del_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
+ 	return found;
+ }
+ 
+-static void ocrdma_add_default_sgid(struct ocrdma_dev *dev)
+-{
+-	/* GID Index 0 - Invariant manufacturer-assigned EUI-64 */
+-	union ib_gid *sgid = &dev->sgid_tbl[0];
+-
+-	sgid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
+-	ocrdma_get_guid(dev, &sgid->raw[8]);
+-}
+-
+-#if IS_ENABLED(CONFIG_VLAN_8021Q)
+-static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
+-{
+-	struct net_device *netdev, *tmp;
+-	u16 vlan_id;
+-	bool is_vlan;
+-
+-	netdev = dev->nic_info.netdev;
+-
+-	rcu_read_lock();
+-	for_each_netdev_rcu(&init_net, tmp) {
+-		if (netdev == tmp || vlan_dev_real_dev(tmp) == netdev) {
+-			if (!netif_running(tmp) || !netif_oper_up(tmp))
+-				continue;
+-			if (netdev != tmp) {
+-				vlan_id = vlan_dev_vlan_id(tmp);
+-				is_vlan = true;
+-			} else {
+-				is_vlan = false;
+-				vlan_id = 0;
+-				tmp = netdev;
+-			}
+-			ocrdma_add_sgid(dev, tmp->dev_addr, is_vlan, vlan_id);
+-		}
+-	}
+-	rcu_read_unlock();
+-}
+-#else
+-static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
+-{
+-
+-}
+-#endif /* VLAN */
+-
+-static int ocrdma_build_sgid_tbl(struct ocrdma_dev *dev)
++static int ocrdma_addr_event(unsigned long event, struct net_device *netdev,
++			     union ib_gid *gid)
+ {
+-	ocrdma_add_default_sgid(dev);
+-	ocrdma_add_vlan_sgids(dev);
+-	return 0;
+-}
+-
+-#if IS_ENABLED(CONFIG_IPV6)
+-
+-static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+-				  unsigned long event, void *ptr)
+-{
+-	struct inet6_ifaddr *ifa = (struct inet6_ifaddr *)ptr;
+-	struct net_device *netdev = ifa->idev->dev;
+ 	struct ib_event gid_event;
+ 	struct ocrdma_dev *dev;
+ 	bool found = false;
+ 	bool updated = false;
+ 	bool is_vlan = false;
+-	u16 vid = 0;
+ 
+ 	is_vlan = netdev->priv_flags & IFF_802_1Q_VLAN;
+-	if (is_vlan) {
+-		vid = vlan_dev_vlan_id(netdev);
++	if (is_vlan)
+ 		netdev = vlan_dev_real_dev(netdev);
+-	}
+ 
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(dev, &ocrdma_dev_list, entry) {
+@@ -222,16 +140,14 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+ 
+ 	if (!found)
+ 		return NOTIFY_DONE;
+-	if (!rdma_link_local_addr((struct in6_addr *)&ifa->addr))
+-		return NOTIFY_DONE;
+ 
+ 	mutex_lock(&dev->dev_lock);
+ 	switch (event) {
+ 	case NETDEV_UP:
+-		updated = ocrdma_add_sgid(dev, netdev->dev_addr, is_vlan, vid);
++		updated = ocrdma_add_sgid(dev, gid);
+ 		break;
+ 	case NETDEV_DOWN:
+-		updated = ocrdma_del_sgid(dev, netdev->dev_addr, is_vlan, vid);
++		updated = ocrdma_del_sgid(dev, gid);
+ 		break;
+ 	default:
+ 		break;
+@@ -247,6 +163,32 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+ 	return NOTIFY_OK;
+ }
+ 
++static int ocrdma_inetaddr_event(struct notifier_block *notifier,
++				  unsigned long event, void *ptr)
++{
++	struct in_ifaddr *ifa = ptr;
++	union ib_gid gid;
++	struct net_device *netdev = ifa->ifa_dev->dev;
++
++	ipv6_addr_set_v4mapped(ifa->ifa_address, (struct in6_addr *)&gid);
++	return ocrdma_addr_event(event, netdev, &gid);
++}
++
++#if IS_ENABLED(CONFIG_IPV6)
++
++static int ocrdma_inet6addr_event(struct notifier_block *notifier,
++				  unsigned long event, void *ptr)
++{
++	struct inet6_ifaddr *ifa = (struct inet6_ifaddr *)ptr;
++	union  ib_gid *gid = (union ib_gid *)&ifa->addr;
++	struct net_device *netdev = ifa->idev->dev;
++	return ocrdma_addr_event(event, netdev, gid);
++}
++
++static struct notifier_block ocrdma_inetaddr_notifier = {
++	.notifier_call = ocrdma_inetaddr_event
++};
++
+ static struct notifier_block ocrdma_inet6addr_notifier = {
+ 	.notifier_call = ocrdma_inet6addr_event
+ };
+@@ -423,10 +365,6 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
+ 	if (status)
+ 		goto alloc_err;
+ 
+-	status = ocrdma_build_sgid_tbl(dev);
+-	if (status)
+-		goto alloc_err;
+-
+ 	status = ocrdma_register_device(dev);
+ 	if (status)
+ 		goto alloc_err;
+@@ -553,6 +491,10 @@ static int __init ocrdma_init_module(void)
+ {
+ 	int status;
+ 
++	status = register_inetaddr_notifier(&ocrdma_inetaddr_notifier);
++	if (status)
++		return status;
++
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	status = register_inet6addr_notifier(&ocrdma_inet6addr_notifier);
+ 	if (status)
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index a0f1c47..aa92f40 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1327,7 +1327,7 @@ int ocrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	spin_unlock_irqrestore(&qp->q_lock, flags);
+ 
+ 	if (!ib_modify_qp_is_ok(old_qps, new_qps, ibqp->qp_type, attr_mask,
+-				IB_LINK_LAYER_UNSPECIFIED)) {
++				IB_LINK_LAYER_ETHERNET)) {
+ 		pr_err("%s(%d) invalid attribute mask=0x%x specified for\n"
+ 		       "qpn=0x%x of type=0x%x old_qps=0x%x, new_qps=0x%x\n",
+ 		       __func__, dev->id, attr_mask, qp->id, ibqp->qp_type,
 -- 
 1.7.1
 
