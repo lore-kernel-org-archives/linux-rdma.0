@@ -1,68 +1,80 @@
-From: "Xiaoyi Lu-DXvelMOp12CVc3sceRu5cw@public.gmane.org" <luxi-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
-Subject: RDMA (InfiniBand and RoCE) Support for Hadoop 1.2.1
-Date: Tue, 12 Nov 2013 23:42:19 -0500
-Message-ID: <CAO+LYDWk+vUQvfd=1q1UKwvJzbbDkqMsQWb_7LMGiccHLf4K6Q@mail.gmail.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMA and memory ordering
+Date: Wed, 13 Nov 2013 02:55:53 -0400
+Message-ID: <CADPSxAhzmaut9s9L1fv5urhzX8xKU9GbL6z1TkOX3FuM4NUsww@mail.gmail.com>
+References: <CADPSxAhAGYZude8CM65-UDvfiPscStgcNsAfs=2XBbntg-wL0w@mail.gmail.com>
+	<5281FFF9.5070705@gmail.com>
+	<CADPSxAh6i74j8JVmWncttN6W4ithTGmsMgqWWpoBy2Z8RRb=_g@mail.gmail.com>
+	<20131112183142.GB6639@obsidianresearch.com>
+	<CADPSxAgF1CAiYoYbxbCON4NCD-tH8cAsJFRtECkTGJJQC4MXCg@mail.gmail.com>
+	<20131112211123.GA29132@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131112211123.GA29132-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Gabriele Svelto <gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The Hadoop-RDMA team is pleased to announce the release of Hadoop-RDMA 0.9.8
-(technology preview) package with the following features and bug-fixes:
+On Tue, Nov 12, 2013 at 5:11 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Tue, Nov 12, 2013 at 04:59:19PM -0400, Anuj Kalia wrote:
+>
+>> Thanks again. So we conclude there is nothing like an atomic cacheline
+>> read. Then my current design is a dud. But there should be 8 byte
+>> atomicity, right? I think I can leverage that to get what I want.
+>
+> 64 bit CPUs do have 64 bit atomic stores, so you can rely on DMAs
+> seeing only values you've written and not some combination of old/new
+> bits.
+That's a relief :).
+>> This part is interesting (from Jason's reply):
+>> "If you burst read from the HCA value and counter then the result is
+>> undefined, you don't know if counter was read before value, or the
+>> other way around."
+>
+>> Is there a way of knowing the order in which they are read - for
+>> example, I heard in a talk that there is a left-to-right ordering
+>> when
+>
+> So, this I don't know. I don't think anyone has ever had a need to
+> look into that, it is certainly not defined. What you are asking is
+> how does memory write ordering interact with a burst read.
 
-* Hadoop-RDMA 0.9.8 Features
+OK. I'll do some experiments to figure out the order in which
+cacheline words are read by the HCA. I'll post my findings if they're
+interesting.
 
-   - Based on Apache Hadoop 1.2.1
-   - High performance design with native InfiniBand and RoCE support
-     at the verbs-level for HDFS, MapReduce, and RPC components
-   - Compliant with Apache Hadoop 1.2.1 APIs and applications
-   - Easily configurable for native InfiniBand, RoCE and the traditional
-     sockets-based support (Ethernet and InfiniBand with IPoIB)
-   - HDFS over native InfiniBand and RoCE
-       - RDMA-based write
-       - RDMA-based replication
-       - Tuned packet size
-   - MapReduce over native InfiniBand and RoCE
-       - RDMA-based shuffle
-       - Pre-fetching and caching of map outputs
-       - In-memory merge
-       - Overlapping of merge and reduce
-   - RPC over native InfiniBand and RoCE
-       - JVM-bypassed buffer management
-       - On-demand InfiniBand connection setup
-       - RDMA or send/recv based adaptive communication
-   - Tested with
-       - Mellanox InfiniBand adapters (DDR, QDR, and FDR)
-       - RoCE
-       - Various multi-core platforms
-       - Different file systems with disks and SSDs
+>> a HCA reads a contiguous buffer. This could be totally architecture
+>> specific, for example, I just want the answer for Mellanox ConnectX-3
+>> cards. I think I can check this experimentally, but a definitive
+>> answer would be great.
+>
+> The talk you heard about left-to-write ordering was probably in the
+> context of DMA burst writes and MPI polling.
+>
+> In this case the DMA would write DDDDDP, and the MPI would poll on
+> P. Once P is written it assumes that D is visible.
 
-* Bug Fixes (since 0.9.1)
+The talk wasn't about MPI but you're right. It was about RDMA writes
+and CPU polls. Thanks for making that clear.
 
-   - MapReduce over InfiniBand
-     - Reducing the waiting time for the pre-fetch cache read
-     - Enabling Reduce tasks to randomize the shuffle pattern
-   - HDFS over InfiniBand
-     - Fix an issue in processing multiple blocks concurrently in a
-       single task
+I don't know what you meant by burst writes: do you mean several RDMA
+writes or one large write? I'm concered with the order in which data
+is written out in one large RDMA write (I'm concerned with RDMA reads
+too). For example, if I read/write 64 bytes addressed from "buf" to
+"buf+64", does [buf, buf+7] get read/written first or does [buf+56,
+buf+63]?
 
-For downloading Hadoop-RDMA 0.9.8 package and the associated user guide,
-please visit the following URL:
+I guess now is the time I run lots of micro experiments. Thanks a lot
+for the help everyone.
 
-http://hadoop-rdma.cse.ohio-state.edu
-
-Sample performance numbers for benchmarks using Hadoop-RDMA 0.9.8
-version can be viewed by visiting the `Performance' tab of the above website.
-
-All questions, feedbacks and bug reports are welcome. Please post it
-to the hadoop-rdma-discuss mailing list (hadoop-rdma-discuss at
-cse.ohio-state.edu).
-
-Thanks,
-
-The Hadoop-RDMA Team
+> This is undefined in general, but ensured in some cases on Intel and
+> Mellanox. I'm not sure if D and P have to be in the same cache line,
+> but you probably need a fence after reading P..
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
