@@ -1,82 +1,43 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH opensm] Implement atomic update operation for sa_db_file
-Date: Wed, 13 Nov 2013 19:00:18 +0100
-Message-ID: <5283BE32.5070804@acm.org>
-References: <5283A88D.9020608@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: RDMA and memory ordering
+Date: Wed, 13 Nov 2013 11:09:15 -0700
+Message-ID: <20131113180915.GA6597@obsidianresearch.com>
+References: <CADPSxAhAGYZude8CM65-UDvfiPscStgcNsAfs=2XBbntg-wL0w@mail.gmail.com>
+ <5281FFF9.5070705@gmail.com>
+ <CADPSxAh6i74j8JVmWncttN6W4ithTGmsMgqWWpoBy2Z8RRb=_g@mail.gmail.com>
+ <20131112183142.GB6639@obsidianresearch.com>
+ <CADPSxAgF1CAiYoYbxbCON4NCD-tH8cAsJFRtECkTGJJQC4MXCg@mail.gmail.com>
+ <20131112211123.GA29132@obsidianresearch.com>
+ <CADPSxAhzmaut9s9L1fv5urhzX8xKU9GbL6z1TkOX3FuM4NUsww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5283A88D.9020608-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CADPSxAhzmaut9s9L1fv5urhzX8xKU9GbL6z1TkOX3FuM4NUsww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Gabriele Svelto <gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/13/13 17:27, Hal Rosenstock wrote:
->
-> From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   opensm/osm_sa.c |   20 ++++++++++++++++----
->   1 files changed, 16 insertions(+), 4 deletions(-)
->
-> diff --git a/opensm/osm_sa.c b/opensm/osm_sa.c
-> index 8c5ef5d..d5c1275 100644
-> --- a/opensm/osm_sa.c
-> +++ b/opensm/osm_sa.c
-> @@ -525,25 +525,37 @@ opensm_dump_to_file(osm_opensm_t * p_osm, const char *file_name,
->   		    void (*dump_func) (osm_opensm_t * p_osm, FILE * file))
->   {
->   	char path[1024];
-> +	char path_tmp[1032];
->   	FILE *file;
-> +	int status = 0;
->
->   	snprintf(path, sizeof(path), "%s/%s",
->   		 p_osm->subn.opt.dump_files_dir, file_name);
->
-> -	file = fopen(path, "w");
-> +	snprintf(path_tmp, sizeof(path_tmp), "%s.tmp", path);
-> +
-> +	file = fopen(path_tmp, "w");
->   	if (!file) {
->   		OSM_LOG(&p_osm->log, OSM_LOG_ERROR, "ERR 4C01: "
->   			"cannot open file \'%s\': %s\n",
-> -			file_name, strerror(errno));
-> +			path_tmp, strerror(errno));
->   		return -1;
->   	}
->
-> -	chmod(path, S_IRUSR | S_IWUSR);
-> +	chmod(path_tmp, S_IRUSR | S_IWUSR);
->
->   	dump_func(p_osm, file);
->
->   	fclose(file);
-> -	return 0;
-> +
-> +	status = rename(path_tmp, path);
-> +	if (status) {
-> +		OSM_LOG(&p_osm->log, OSM_LOG_ERROR, "ERR 4C0B: "
-> +			"Failed to rename file:%s (err:%s)\n",
-> +			path_tmp, strerror(errno));
-> +	}
-> +
-> +	return status;
->   }
->
->   static void mcast_mgr_dump_one_port(cl_map_item_t * p_map_item, void *cxt)
+On Wed, Nov 13, 2013 at 02:55:53AM -0400, Anuj Kalia wrote:
 
-Isn't an fdatasync() call missing after dump_func() and before fclose() 
-? According to Theodore Ts'o calling fdatasync() or fsync() before 
-fclose() is essential during an atomic update. See also 
-http://thunk.org/tytso/blog/2009/03/15/dont-fear-the-fsync/ for more 
-information.
+> I don't know what you meant by burst writes: do you mean several RDMA
+> writes or one large write? I'm concered with the order in which data
 
-Bart.
+A RDMA write will be split up by the HCA into a burst of PCI MemoryWr
+operations.
 
+> I guess now is the time I run lots of micro experiments. Thanks a lot
+> for the help everyone.
+
+Carefull, experiments can't prove that order is guranteed to be
+present, they can only show if it certainly isn't.
+
+Intel hardware is very good at hiding ordering issues 99% of the time,
+but in many cases there can be a stress'd condition that will show a
+different result.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
