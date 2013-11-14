@@ -1,36 +1,76 @@
-From: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/CMA: Initialize hop_limit to a known default macro instead of 1 as is done currently.
-Date: Thu, 14 Nov 2013 11:46:50 +0530
-Message-ID: <07f80ed7-7ea4-4c30-afe5-3f9fc7dd37fb@CMEXHTCAS2.ad.emulex.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 00/10] Introduce Signature feature
+Date: Thu, 14 Nov 2013 09:30:00 +0200
+Message-ID: <52847BF8.60401@mellanox.com>
+References: <1828884A29C6694DAF28B7E6B8A8237388D031C4@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D031C4-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/cma.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On 14/11/2013 02:19, Hefty, Sean wrote:
+>> The patch series is around for couple of weeks already and went through the review of Sean and Bart, with all their feedback being applied. Also Sagi and Co enhanced krping to fully cover (and test...) the proposed API and driver implementation
+> Somewhat separate from this specific patch, this is my concern.
+>
+> There are continual requests to modify the kernel verbs interfaces.  These requests boil down to exposing proprietary capabilities to the latest version of some vendor's hardware.  In turn, these hardware specific knobs bleed into the kernel clients.
+>
+> At the very least, it seems that there should be some sort of discussion if this is a desirable property of the kernel verbs interface, and if this is the architecture that the kernel should continue to pursue.  Or, is there an alternative way of providing the same ability of coding ULPs to specific HW features, versus plugging every new feature into 'post send'?
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 5c9f1ad..2c03db2 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1884,7 +1884,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- 	iboe_mac_vlan_to_ll(&route->path_rec->sgid, addr->dev_addr.src_dev_addr, vid);
- 	iboe_mac_vlan_to_ll(&route->path_rec->dgid, addr->dev_addr.dst_dev_addr, vid);
- 
--	route->path_rec->hop_limit = 1;
-+	route->path_rec->hop_limit = IPV6_DEFAULT_HOPLIMIT;
- 	route->path_rec->reversible = 1;
- 	route->path_rec->pkey = cpu_to_be16(0xffff);
- 	route->path_rec->mtu_selector = IB_SA_EQ;
--- 
-1.7.1
+Sean,
 
+Being concrete + re-iterating  and expanding what I wrote you earlier on 
+the V1 thread @ http://marc.info/?l=linux-rdma&m=138314853203389&w=2when 
+you said
+
+Sean > Maybe we should rethink the approach of exposing low-level 
+hardware constructs to every
+Sean > distinct feature of every vendor's latest hardware directly to 
+the kernel ULPs.
+
+To begin with T10 DIF **is** industry standard, which is to be used in 
+production storage systems, the feature here is T10 DIF acceleration for 
+upstream kernel storage drivers such as iSER/SRP/FCoE initiator/targets 
+that use RDMA and are included in commercial distributions which are 
+used by customers. Note that this/similar feature is supported by some 
+FC cards too, so we want RDMA to be competitive.
+
+This work is part of larger efforts which are done nowadays in other 
+parts of the kernel such as the block layer, the upstream kernel target 
+and more to support T10, its "just" the RDMA part.
+
+Sagi and team made great effort to expose API which isn't tied to 
+specific HW/Firmware API. And in that respect, the verbs API is coupled 
+with industry standards and by no means with specific HW features. Just 
+as quick example, the specific driver/card (mlx5 / ConnectIB) for which 
+the news verbs are implemented uses three objects for its T10 support, 
+named BSF, KLM and PSV - you can be sure, and please check us  that 
+there is no sign for them in the verbs API, they only live within the 
+mlx5 driver.
+
+If you see a vendor specific feature/construct that appears in the 
+proposed verbs API changes, let us know.
+
+ > [...] versus plugging every new feature into 'post send'?
+
+Its a new feature indeed but its a feature which comes into play when 
+submitting RDMA work-requests to the HCA and
+for performance reasons must be subject to pipe-lining in the form of 
+batched posting and hence has very good fit as
+a sub operation of post-send.
+
+Sean > There are continual requests to modify the kernel verbs 
+interfaces. These requests boil down to exposing proprietary capabilities
+Sean >  to the latest version of some vendor's hardware. In turn, these 
+hardware specific knobs bleed into the kernel clients.
+
+non-T10 examples (please) ?!
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
