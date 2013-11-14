@@ -1,53 +1,71 @@
 From: Tzahi Oved <tzahio.lists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 00/10] Introduce Signature feature
-Date: Thu, 14 Nov 2013 23:39:13 +0200
-Message-ID: <52854301.8060509@gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237388D031C4@ORSMSX109.amr.corp.intel.com>
+Subject: Re: [PATCH V9 libmlx4 0/2] Add extension and XRC QP support
+Date: Thu, 14 Nov 2013 23:57:10 +0200
+Message-ID: <52854736.5000602@gmail.com>
+References: <1375369555-11416-1-git-send-email-yishaih@mellanox.com> <CAJZOPZJ9gr=4Z-9XK0JRcojsXEwzXV9Hn+1h-vcu3fcvbWxM-Q@mail.gmail.com> <CAG4TOxP2CUgUsu-061XZpEgY89k0Xf4+jfTOmq=b_h0Q1Ccs0w@mail.gmail.com> <CAJZOPZKJzkiVqaHPx1Zvs0boxyy0P=KJSkq-7ZuA6FMJwbh-4Q@mail.gmail.com> <525FA7DC.5090805@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D031C4-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <525FA7DC.5090805-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 14/11/2013 02:19, Hefty, Sean wrote:
->> The patch series is around for couple of weeks already and went
->> through the review of Sean and Bart, with all their feedback being
->> applied. Also Sagi and Co enhanced krping to fully cover (and test...)
->> the proposed API and driver implementation @
->> git://beany.openfabrics.org/~sgrimberg/krping.git
-> Somewhat separate from this specific patch, this is my concern.
+On 17/10/2013 12:03, Or Gerlitz wrote:
+> On 06/08/2013 23:32, Or Gerlitz wrote:
+>> On Tue, Aug 6, 2013 at 8:40 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>>> On Tue, Aug 6, 2013 at 8:03 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> 
+>>> wrote:
+>>>> Could you finally-long-lastish post some comments on how you see this?
+>>>> any bugs or flames you find here, is this going to be accepted? when?
+>>>
+>>> Have you read the patches?  Any comments?
+>> The XRC patches, YES, I have looked on them and along the ..v9 trail I
+>> provided Yishai and earlier to Sean some comments that were fixed.
+>> Also Shlomo from our team tested the patches with iSER target (tgt,
+>> user space) and initiator (kernel) experimental code that uses XRC and
+>> we provided few patches to bugs in the IB core and mlx4 driver,
+>> stepped on the way. Also I posted earlier this week few more XRC
+>> patches to kernel bugs found by Yishai and team while they tested this
+>> series for the last round of submission.
+>>
+>> As for the user space verbs extensions framework/impl., I (&& Eli
+>> Cohen too) did go to some level through the design and architecture
+>> set by Tzahi, Jason and Sean, but you know what, one can't master it
+>> all. So I in that respect, OTOH I am OK with the proposed design and
+>> code, but if you wake me up in the middle of the night, I can't sing
+>> it out loud. But OTOH, I don't wear the maintainer hat, and you said
+>> no need for co-maintainer to libibverbs last time we talked, so after
+>> the folks worked on that for > year, its about time for you to do so
+>> too, makes sense?
+>>
+>>
 >
-> There are continual requests to modify the kernel verbs interfaces.  These requests boil down to exposing proprietary capabilities to the latest version of some vendor's hardware.  In turn, these hardware specific knobs bleed into the kernel clients.
-Disagree, the verbs changes proposal in the signature case where 
-submitted as an RFC for few weeks so all vendors may comments and ask 
-for changes. Isn't that what open source development is all about. We 
-can't stop progress, we open new functionalists and features for 
-everyone to comment and agree on mutual interface. Is there other way u 
-had in mind we should define non vendor specific API? we will be glad to 
-collaborate but please come with alternate process u think is best. Such 
-comments only hold back new functionalities from being accepted and 
-backs down Verbs API progress.
-> At the very least, it seems that there should be some sort of discussion if this is a desirable property of the kernel verbs interface, and if this is the architecture that the kernel should continue to pursue.  Or, is there an alternative way of providing the same ability of coding ULPs to specific HW features, versus plugging every new feature into 'post send'?
-Current Verbs semantics define post send as the operation aggregator 
-that enables posting list of WQE in single call so users can serialize 
-multiple operation requests and post in single API call. Since signature 
-is mainly an enhancement of existing RDMA operation, seems like it fits 
-best there. Defining more specific APIs per application type: Storage, 
-Cloud, HPC, .. is indeed important and in the process of being defined 
-as part of the Open Framework working group u r co-chairing. Thus, it 
-doesn't make sense to break the post send verbs semantics in this case.
-
-Tzahi
+> Hi Roland, another two months elapsed and not a word from you here, 
+> how can we make progress?
+> do you need any further feedback from maybe Sean or Jason?
 >
-> - Sean
-> --
+> Or.
+> -- 
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Roland - what is that status here, why r u holding this submission back 
+for so long?
+
+These patches originally posted by Sean and product of long process of 
+definition with both Jason and Sean with constant updating you. They r 
+out for comments for *very* long while with adoption of all changes 
+proposed by open source work along the way.
+Please comment if anything is missing, we have more patches dependent on 
+the verbs extension concepts presented in this series which we can not 
+submit due to the hold up.
+
+Thanks,
+Tzahi
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
