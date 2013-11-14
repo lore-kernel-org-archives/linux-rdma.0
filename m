@@ -1,30 +1,46 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3 00/10] Introduce Signature feature
-Date: Thu, 14 Nov 2013 00:19:26 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237388D031C4@ORSMSX109.amr.corp.intel.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMA and memory ordering
+Date: Wed, 13 Nov 2013 22:11:46 -0400
+Message-ID: <CADPSxAi71wpxS+sUpFoVgyWwiP1KHYqz+_m1e-vgXG+mRKuUMA@mail.gmail.com>
+References: <CADPSxAhAGYZude8CM65-UDvfiPscStgcNsAfs=2XBbntg-wL0w@mail.gmail.com>
+	<5281FFF9.5070705@gmail.com>
+	<CADPSxAh6i74j8JVmWncttN6W4ithTGmsMgqWWpoBy2Z8RRb=_g@mail.gmail.com>
+	<5283C3B2.6010106@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <5283C3B2.6010106-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Gabriele Svelto <gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The patch series is around for couple of weeks already and went
-> through the review of Sean and Bart, with all their feedback being
-> applied. Also Sagi and Co enhanced krping to fully cover (and test...)
-> the proposed API and driver implementation @
-> git://beany.openfabrics.org/~sgrimberg/krping.git
+On Wed, Nov 13, 2013 at 2:23 PM, Gabriele Svelto
+<gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On 12/11/2013 11:31, Anuj Kalia wrote:
+>>
+>> I believe the atomic operations would be a lot more expensive than
+>> reads/writes. I'm targetting maximum performance so I don't want to
+>> look that way yet.
+>
+>
+> This sounds like premature optimization to me which as you know is the root
+> of all evil :)
+> Try using the atomic primitives, they have been designed specifically for
+> this kind of scenario, and then measure their performance in the real world
+> before spending time on optimizing something that might just be fast enough
+> for your purposes (and far more robust). If you're already polling your CQs
+> those operations will be *very* fast.
+>
 
-Somewhat separate from this specific patch, this is my concern.
+I'm working on a project where I'm trying to extract the maximum IOPS
+from a server for an application. If atomic operations are even 2-X
+slower than RDMA writes (which I'd expect because they involve a read
+and a write), I can't use them. However, it would be interesting to
+find their performance. I'll try that.
 
-There are continual requests to modify the kernel verbs interfaces.  These requests boil down to exposing proprietary capabilities to the latest version of some vendor's hardware.  In turn, these hardware specific knobs bleed into the kernel clients.
-
-At the very least, it seems that there should be some sort of discussion if this is a desirable property of the kernel verbs interface, and if this is the architecture that the kernel should continue to pursue.  Or, is there an alternative way of providing the same ability of coding ULPs to specific HW features, versus plugging every new feature into 'post send'?
-
-- Sean
+Thanks!
+>  Gabriele
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
