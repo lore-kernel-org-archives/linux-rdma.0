@@ -1,95 +1,57 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 00/10] Introduce Signature feature
-Date: Thu, 14 Nov 2013 22:11:58 +0200
-Message-ID: <CAJZOPZLpy8a-uUFhT+bvzd51T7jyV0Osdpz-Muc-1q0du7td3Q@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237388D031C4@ORSMSX109.amr.corp.intel.com>
-	<52847BF8.60401@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237388D0463F@ORSMSX109.amr.corp.intel.com>
+From: "Prindeville, Philip" <philip.prindeville-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [PATCH] IB/CMA: Fix to handle global/non-linklocal IPv6 address
+ in cma_check_linklocal()
+Date: Thu, 14 Nov 2013 20:42:12 +0000
+Message-ID: <03234339-6425-4D1A-A4E6-775887EF6463@hp.com>
+References: <c469605a-bda9-4248-82f0-0da03bf3ce3d@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D0463F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <c469605a-bda9-4248-82f0-0da03bf3ce3d-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
+Content-Language: en-US
+Content-ID: <E6CED12B7F5FAC41B11C5E7D6EB45E2F-V1Jw8CMlhmbQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 14, 2013 at 9:03 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> To begin with T10 DIF **is** industry standard, which is to be used in
->> production storage systems, the feature here is T10 DIF acceleration for
->> upstream kernel storage drivers such as iSER/SRP/FCoE initiator/targets
->> that use RDMA and are included in commercial distributions which are
->> used by customers. Note that this/similar feature is supported by some
->> FC cards too, so we want RDMA to be competitive.
+Do you need to check it twice?
 
-> I wasn't talking about whether T10 DIF is a standard.  I was talking about *how* it is exposed through verbs.  That 'how' is what's vendor specific.  The same is true of flow steering, SRQ is standard but IB specific, the same with XRC - which was vendor specific first then standardized, the IP CSUM send flag is vendor specific, 'fast' registration is vendor specific...
+Is the second test now redundant?
 
-Again, for T10 we claim that nothing in how its exposed through the
-proposed verbs is specific to vendor (e.g Mellanox) or to a specific
-hardware brand (e.g ConnectIB) of a vendor, and if you think
-otherwise, we'll love to hear that.
-
-As for the other examples (and yes it makes sense to chase them one by
-one here even if we end up little lengthy):
-
-SRQ is for all IB cards and IB/IBoE are central enough in the RDMA
-stack... such that even if (say) 5-10 features (and there are less)
-features are IB/IBoE specific it makes sense to expose them through
-the verbs API. We have device capabilities for that end, so the
-ULP/Application never asks "hey, what vendor/card is that?" but rather
-"is the driver supporting feature X?".
-
-As you said XRC was standardized through IBTA so nothing to bother.
-
-I don't see why you consider IP CSUM to be vendor specific. To compete
-with any Ethernet card dated to the last 10 years, if IB HW vendor
-wants to support TCP/IP networking ala IPoIB they pretty much need to
-implement TCP/IP stateless offloads, namely TX/RX checksum, LSO and
-RSS. And same goes for drivers that support RAW_PACKET Ethernet QP for
-user space applications that offloads TCP/IP.
-
-Fast registration is all but vendor specific being part of both iWARP
-and IB specs (see the BMME - Base Memory Management Extensions section
-in the IBTA spec).
+-Philip
 
 
-> I'm not suggesting that these features shouldn't exist, I'm just questioning if the goal of verbs should simply be to expose every hardware knob that a ULP can fiddle.  Maybe the answer is yes, but let's at least ask the question.
+On Nov 13, 2013, at 10:28 PM, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
 
-Indeed some HW special knobs might not play well into verbs and in
-that case the vendor might need to give them away or support them only
-on prop. stacks or whatever solution we can think of, but not T10...
+> Even if the addr is not a linklocal address, the code treats it as such
+> and assigns the bound dev addr to the scope id of the address which is invalid.
+> Fix by checking if it's a link local address first and return 0 if not.
+> 
+> Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> ---
+> drivers/infiniband/core/cma.c |    3 +++
+> 1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index dab4b41..5c9f1ad 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -2466,6 +2466,9 @@ static int cma_check_linklocal(struct rdma_dev_addr *dev_addr,
+> 		return 0;
+> 
+> 	sin6 = (struct sockaddr_in6 *) addr;
+> +
+> +	if (!(ipv6_addr_type(&sin6->sin6_addr) & IPV6_ADDR_LINKLOCAL))
+> +		return 0;
+> 	if ((ipv6_addr_type(&sin6->sin6_addr) & IPV6_ADDR_LINKLOCAL) &&
+> 	    !sin6->sin6_scope_id)
+> 			return -EINVAL;
+> -- 
+> 1.7.1
+> 
 
-> As a random, made up on the spot thought, what if IPoIB were architected so that there was a device specific component to it, instead of it pretending that some vendor feature exposed through verbs was a generic RDMA capability?  IPoIB acceleration features could still be used.
-
-Could be, IPoIB is there for almost ten years (since 2.6.12) and if we
-don't make it to bring the driver into providing 56/100/200Gbs in the
-next 1-2 years this could be nice out of the box direction to go to.
-
-But I don't think it applies to the T10 case, at least where it stands
-now. Its a new feature whose related verbs are not tied to some
-vendor, so lets get it in, and if after some time we see some
-performance drawbacks who originate in the embedding into verbs, we
-can do this possible breakdown you suggest.
-
-
->> This work is part of larger efforts which are done nowadays in other
->> parts of the kernel such as the block layer, the upstream kernel target
->> and more to support T10, its "just" the RDMA part.
-
-> How does the RDMA part tie into any of the other work being done in other parts of the kernel?
-
-T10 touches few areas in the storage stack, T10 && RDMA is when you
-look on  SAN (Storage Area Networks) drivers. E.g in the same manner
-that FC driver needs to play well with back-end storage drivers when
-the FC code submits the the pages received from the network that
-contain data and signature blocks into the block layer, RDMA has to do
-that too. Since this area is under development and things need to play
-well, there is interaction between the RDMA T10 developer to the
-upstream SCSI target maintainer to folks which are involved with the
-block layer and more storage drivers.
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
