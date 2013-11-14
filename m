@@ -1,56 +1,53 @@
-From: "Prindeville, Philip" <philip.prindeville-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [PATCH] IB/CMA: Fix to handle global/non-linklocal IPv6 address
- in cma_check_linklocal()
-Date: Thu, 14 Nov 2013 20:42:12 +0000
-Message-ID: <03234339-6425-4D1A-A4E6-775887EF6463@hp.com>
-References: <c469605a-bda9-4248-82f0-0da03bf3ce3d@CMEXHTCAS2.ad.emulex.com>
+From: Tzahi Oved <tzahio.lists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 00/10] Introduce Signature feature
+Date: Thu, 14 Nov 2013 23:39:13 +0200
+Message-ID: <52854301.8060509@gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237388D031C4@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c469605a-bda9-4248-82f0-0da03bf3ce3d-3RiH6ntJJkOPfaB/Gd0HpljyZtpTMMwT@public.gmane.org>
-Content-Language: en-US
-Content-ID: <E6CED12B7F5FAC41B11C5E7D6EB45E2F-V1Jw8CMlhmbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237388D031C4-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Do you need to check it twice?
+On 14/11/2013 02:19, Hefty, Sean wrote:
+>> The patch series is around for couple of weeks already and went
+>> through the review of Sean and Bart, with all their feedback being
+>> applied. Also Sagi and Co enhanced krping to fully cover (and test...)
+>> the proposed API and driver implementation @
+>> git://beany.openfabrics.org/~sgrimberg/krping.git
+> Somewhat separate from this specific patch, this is my concern.
+>
+> There are continual requests to modify the kernel verbs interfaces.  These requests boil down to exposing proprietary capabilities to the latest version of some vendor's hardware.  In turn, these hardware specific knobs bleed into the kernel clients.
+Disagree, the verbs changes proposal in the signature case where 
+submitted as an RFC for few weeks so all vendors may comments and ask 
+for changes. Isn't that what open source development is all about. We 
+can't stop progress, we open new functionalists and features for 
+everyone to comment and agree on mutual interface. Is there other way u 
+had in mind we should define non vendor specific API? we will be glad to 
+collaborate but please come with alternate process u think is best. Such 
+comments only hold back new functionalities from being accepted and 
+backs down Verbs API progress.
+> At the very least, it seems that there should be some sort of discussion if this is a desirable property of the kernel verbs interface, and if this is the architecture that the kernel should continue to pursue.  Or, is there an alternative way of providing the same ability of coding ULPs to specific HW features, versus plugging every new feature into 'post send'?
+Current Verbs semantics define post send as the operation aggregator 
+that enables posting list of WQE in single call so users can serialize 
+multiple operation requests and post in single API call. Since signature 
+is mainly an enhancement of existing RDMA operation, seems like it fits 
+best there. Defining more specific APIs per application type: Storage, 
+Cloud, HPC, .. is indeed important and in the process of being defined 
+as part of the Open Framework working group u r co-chairing. Thus, it 
+doesn't make sense to break the post send verbs semantics in this case.
 
-Is the second test now redundant?
-
--Philip
-
-
-On Nov 13, 2013, at 10:28 PM, Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-
-> Even if the addr is not a linklocal address, the code treats it as such
-> and assigns the bound dev addr to the scope id of the address which is invalid.
-> Fix by checking if it's a link local address first and return 0 if not.
-> 
-> Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-> ---
-> drivers/infiniband/core/cma.c |    3 +++
-> 1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index dab4b41..5c9f1ad 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -2466,6 +2466,9 @@ static int cma_check_linklocal(struct rdma_dev_addr *dev_addr,
-> 		return 0;
-> 
-> 	sin6 = (struct sockaddr_in6 *) addr;
-> +
-> +	if (!(ipv6_addr_type(&sin6->sin6_addr) & IPV6_ADDR_LINKLOCAL))
-> +		return 0;
-> 	if ((ipv6_addr_type(&sin6->sin6_addr) & IPV6_ADDR_LINKLOCAL) &&
-> 	    !sin6->sin6_scope_id)
-> 			return -EINVAL;
-> -- 
-> 1.7.1
-> 
+Tzahi
+>
+> - Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
