@@ -1,39 +1,47 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [rfc][heads-up] more unpleasant bugs in ipathfs
-Date: Fri, 15 Nov 2013 14:01:25 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC211C9445@FMSMSX107.amr.corp.intel.com>
-References: <20131114011047.GG13318@ZenIV.linux.org.uk>
- <32E1700B9017364D9B60AED9960492BC211C9165@FMSMSX107.amr.corp.intel.com>
- <20131114203313.GI13318@ZenIV.linux.org.uk>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/CMA: Initialize hop_limit to a known default macro
+ instead of 1 as is done currently.
+Date: Fri, 15 Nov 2013 18:58:00 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237388D05F2C@ORSMSX109.amr.corp.intel.com>
+References: <07f80ed7-7ea4-4c30-afe5-3f9fc7dd37fb@CMEXHTCAS2.ad.emulex.com>,<1828884A29C6694DAF28B7E6B8A8237388D046BC@ORSMSX109.amr.corp.intel.com>
+ <7F44EA5110810A40B7DAFB605C41975D2C8AB76A@CMEXMB1.ad.emulex.com>
+ <1828884A29C6694DAF28B7E6B8A8237388D05B18@ORSMSX109.amr.corp.intel.com>
+ <7F44EA5110810A40B7DAFB605C41975D2C8AB8C4@CMEXMB1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131114203313.GI13318-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+In-Reply-To: <7F44EA5110810A40B7DAFB605C41975D2C8AB8C4-DWYeeINJQrxExQ8dmkPuX0M9+F4ksjoh@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Fair warning: debugfs suffers the same problems - its use for any dynamic
-> objects will require the same kind of protection against IO after the underlying
-> object goes away.  As I said, we really need generic revoke infrastructure; as it
-> is, procfs and sysfs have it special-cased and everything else pretty much ad-hoc.
-> Some things manage to do it right, some do not and since debugfs is greatly
-> oversold as easy solution to all problems... pretty much all of its users are badly
-> broken whenever you have objects with non-static lifetime.
-> 
+> Just wondering if it'd scale better if we start off with a known bigger
+> default hop limit and set it to 1 only if we know that we are _not_ going
+> out of the subnet ?
 
-So how about this general approach:
+Let me back up.  If this is doing RDMA over IP, then we're no longer RoCE and more significant changes may be needed throughout the stack.  For example, what does it even mean to have a path record over IP?
 
-1. Move all ipathfs handling to debugfs.
-2. Input on dynamic objects referencing dd/ibd increment a refcount (inited to zero) in the "start" method
-3. The "end" method decrements the ref count
+> In any case, I'm still trying to understand how best to do what you are
+> suggesting i.e take into account the src/dst addresses on different subnets
+> , and so far the only piece
+> Of code that I could find that does something close to that would be the
+> ib_init_ah_from_path() , in particular the snippet (and my comment )below.
+> Would you suggest modifying it here?  Is my understanding correct or am I
+> missing something ?
 
-The entrance in debugfs to do the recursive remove waits for refcount to drive to zero.
+I would first look at the network stack to see what it does, but I was suggesting something like this:
 
-Mike
+if (src and dst IP address are on the same subnet)
+	hop_limit = 1;
+else
+	hop_limit = something else;
+
+But it seems that this sort of change needs to be placed in context of some larger patch set that introduces RoIP (or IBoIP), assuming that's what 'routable RoCE' really is.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
