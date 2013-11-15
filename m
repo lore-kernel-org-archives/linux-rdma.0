@@ -1,35 +1,39 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] osm_mcast_mgr.c Add block number to error message
-Date: Fri, 15 Nov 2013 04:53:31 -0800 (PST)
-Message-ID: <80393bcc-37d5-4977-b59a-7021c791fd23@default>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [rfc][heads-up] more unpleasant bugs in ipathfs
+Date: Fri, 15 Nov 2013 14:01:25 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC211C9445@FMSMSX107.amr.corp.intel.com>
+References: <20131114011047.GG13318@ZenIV.linux.org.uk>
+ <32E1700B9017364D9B60AED9960492BC211C9165@FMSMSX107.amr.corp.intel.com>
+ <20131114203313.GI13318@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20131114203313.GI13318-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Linux-Rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by : Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Fair warning: debugfs suffers the same problems - its use for any dynamic
+> objects will require the same kind of protection against IO after the underlying
+> object goes away.  As I said, we really need generic revoke infrastructure; as it
+> is, procfs and sysfs have it special-cased and everything else pretty much ad-hoc.
+> Some things manage to do it right, some do not and since debugfs is greatly
+> oversold as easy solution to all problems... pretty much all of its users are badly
+> broken whenever you have objects with non-static lifetime.
+> 
 
----
+So how about this general approach:
 
-diff --git a/opensm/osm_mcast_mgr.c b/opensm/osm_mcast_mgr.c
-index 7993150..19d7e30 100644
---- a/opensm/osm_mcast_mgr.c
-+++ b/opensm/osm_mcast_mgr.c
-@@ -397,7 +397,8 @@ static int mcast_mgr_set_mft_block(osm_sm_t * sm, IN osm_switch_t * p_sw,
- 				     CL_DISP_MSGID_NONE, &context);
- 		if (status != IB_SUCCESS) {
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0A02: "
--				"Sending multicast fwd. tbl. block to %s failed (%s)\n",
-+				"Sending multicast fwd. tbl. block 0x%X to %s "
-+				"failed (%s)\n", block_id_ho,
- 				p_node->print_desc, ib_get_err_str(status));
- 			ret = -1;
- 		}
+1. Move all ipathfs handling to debugfs.
+2. Input on dynamic objects referencing dd/ibd increment a refcount (inited to zero) in the "start" method
+3. The "end" method decrements the ref count
+
+The entrance in debugfs to do the recursive remove waits for refcount to drive to zero.
+
+Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
