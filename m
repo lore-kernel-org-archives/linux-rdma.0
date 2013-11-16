@@ -1,53 +1,65 @@
-From: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Subject: [patch 1/1] drivers/infiniband/core/cm.c: convert to using idr_alloc_cyclic()
-Date: Fri, 15 Nov 2013 14:16:37 -0800
-Message-ID: <20131115221638.B53C31E418F@corp2gmr1-2.eem.corp.google.com>
+From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] IB/CMA: Fix to handle global/non-linklocal IPv6 address
+ in cma_check_linklocal()
+Date: Sat, 16 Nov 2013 04:00:29 +0000
+Message-ID: <7F44EA5110810A40B7DAFB605C41975D2C8ABEC5@CMEXMB1.ad.emulex.com>
+References: <1384492032-17288-1-git-send-email-somnath.kotur@emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1384492032-17288-1-git-send-email-somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, zhaohongjiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Zhao Hongjiang <zhaohongjiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: drivers/infiniband/core/cm.c: convert to using idr_alloc_cyclic()
+Please ignore this , re-sending this as I forgot to mark this patch as V1 and mention the fact that this was a re-spin born out of review comments from Philip and Sean Hefty.
 
-commit 3e6628c4b347 ("idr: introduce idr_alloc_cyclic()") adds a new
-idr_alloc_cyclic routine and converts several of these users to it.  This
-is just a missed one - add it.
+Thanks
+Som
 
-Signed-off-by: Zhao Hongjiang <zhaohongjiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
----
+> -----Original Message-----
+> From: Somnath Kotur
+> Sent: Friday, November 15, 2013 10:37 AM
+> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Somnath Kotur
+> Subject: [PATCH] IB/CMA: Fix to handle global/non-linklocal IPv6 address in
+> cma_check_linklocal()
+> 
+> Even if the addr is not a linklocal address, the code treats it as such and
+> assigns the bound dev addr to the scope id of the address which is invalid.
+> Fix by checking if it's a link local address first and return 0 if not.
+> 
+> Signed-off-by: Somnath Kotur <somnath.kotur-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cma.c |    7 +++++--
+>  1 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index dab4b41..7f8ee93 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -2466,8 +2466,11 @@ static int cma_check_linklocal(struct
+> rdma_dev_addr *dev_addr,
+>  		return 0;
+> 
+>  	sin6 = (struct sockaddr_in6 *) addr;
+> -	if ((ipv6_addr_type(&sin6->sin6_addr) & IPV6_ADDR_LINKLOCAL)
+> &&
+> -	    !sin6->sin6_scope_id)
+> +
+> +	if (!(ipv6_addr_type(&sin6->sin6_addr) & IPV6_ADDR_LINKLOCAL))
+> +		return 0;
+> +
+> +	if (!sin6->sin6_scope_id)
+>  			return -EINVAL;
+> 
+>  	dev_addr->bound_dev_if = sin6->sin6_scope_id;
+> --
+> 1.7.1
 
- drivers/infiniband/core/cm.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff -puN drivers/infiniband/core/cm.c~drivers-infiniband-core-cmc-convert-to-using-idr_alloc_cyclic drivers/infiniband/core/cm.c
---- a/drivers/infiniband/core/cm.c~drivers-infiniband-core-cmc-convert-to-using-idr_alloc_cyclic
-+++ a/drivers/infiniband/core/cm.c
-@@ -383,14 +383,11 @@ static int cm_alloc_id(struct cm_id_priv
- {
- 	unsigned long flags;
- 	int id;
--	static int next_id;
- 
- 	idr_preload(GFP_KERNEL);
- 	spin_lock_irqsave(&cm.lock, flags);
- 
--	id = idr_alloc(&cm.local_id_table, cm_id_priv, next_id, 0, GFP_NOWAIT);
--	if (id >= 0)
--		next_id = max(id + 1, 0);
-+	id = idr_alloc_cyclic(&cm.local_id_table, cm_id_priv, 0, 0, GFP_NOWAIT);
- 
- 	spin_unlock_irqrestore(&cm.lock, flags);
- 	idr_preload_end();
-_
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
