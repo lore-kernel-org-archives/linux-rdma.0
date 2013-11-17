@@ -1,32 +1,43 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V5 0/8] IP based RoCE GID Addressing
-Date: Sat, 16 Nov 2013 21:52:26 +0200
-Message-ID: <CAJZOPZKR=r+OP34ZaJ3PR4=SUxTkHcR60D0MB12ij0v2tic9JA@mail.gmail.com>
-References: <1384381792-2023-1-git-send-email-ogerlitz@mellanox.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/6] Add flow steering support for IPoIB
+Date: Sun, 17 Nov 2013 08:53:46 +0200
+Message-ID: <528867FA.60604@mellanox.com>
+References: <1383830717-17312-1-git-send-email-ogerlitz@mellanox.com> <CAJZOPZK=mRXakostsuFt3XzP3ZF5FW+4YurTSRz1JbPBgzurCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1384381792-2023-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAJZOPZK=mRXakostsuFt3XzP3ZF5FW+4YurTSRz1JbPBgzurCg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 14, 2013 at 12:29 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> changes from V4:
+On 16/11/2013 21:35, Or Gerlitz wrote:
+> On Thu, Nov 7,Or Gerlitz<ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>  wrote:
 >
->  - addressed feedback re the need to be compatible with non modified user
->    space applications/libraries, by adding code in uverbs which does address
->    resolution when dealing with Ethernet ports. This is patch #7
+>> >This series adds on the flow-steering patches that were merged in 3.12
+>> >Now flow steering rules can be set such that they steer UD
+>> >traffic targeted to IPoIB netdevice into applications IB UD QP.
+>> >For that end, IPoIB provides hint to the low-level device through
+>> >a QP creation flag that this QP may be subject to flow-steering.
+>> >FWIW, this patch set has nothing to do with the uverbs extensions series.
+> Any comment?! is this going in for 3.13?
+>
+> Note that without this series which enables flow-steering also on IB
+> ports, folks that have VPI environments, e.g dual ported HCA with one
+> port playing Ethernet and the 2nd port IB, can't enjoy flow-steering
+> since we have only one dev cap bit and the flow-steering patches that
+> went into 3.12 only implemented the feature for raw qps, so the driver
+> (mlx4) could enable the device capability when both ports are IB.
+that was late nightish comment with a typos, to make it clear: the flow 
+steering patches
+that were merge in 3.12 lack the support for IB UD QPs and hence the low 
+level driver could
+enable the verbs level dev cap bit for flow steering only when both 
+ports are Ethernet.
 
-Does this address your concerns on compatibility so we can move
-forward and merge the patches for 3.13?
-
->
->  - removed the patches that deal with uverbs extended commands, they will
->    added later on, such that new applications/libraries can be coded to them.
->
->  - added patch fixing mlx4_en to have correct IPv6 link local address.
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
