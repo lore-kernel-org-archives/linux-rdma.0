@@ -1,99 +1,52 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: drivers/infiniband/core/uverbs_main.c:683:17: sparse: Using
- plain integer as NULL pointer
-Date: Tue, 19 Nov 2013 14:13:01 +0100
-Message-ID: <1384866781.20207.7.camel@localhost.localdomain>
-References: <528b3984.SVGs20ZWpcuR/Jls%fengguang.wu@intel.com>
+Subject: [PATCH for-next 0/2] Fix "drivers/infiniband/core/uverbs_main.c:683:17: sparse: Using plain integer as NULL pointer" warning
+Date: Tue, 19 Nov 2013 15:22:10 +0100
+Message-ID: <cover.1384869925.git.ydroneaud@opteya.com>
+References: <1384866781.20207.7.camel@localhost.localdomain> <528b3984.SVGs20ZWpcuR/Jls%fengguang.wu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <528b3984.SVGs20ZWpcuR/Jls%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1384866781.20207.7.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,=20
+Please find two patches to fix the issue reported by kbuild test
+robot[1].
 
-Just received this warning[1] report:
+The first patch was already sent[2] as part of my on going
+work to improve checks on commands[3].
 
-Le mardi 19 novembre 2013 =C3=A0 18:12 +0800, kbuild test robot a =C3=A9=
-crit :
-> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.=
-git master
-> head:   801a76050bcf8d4e500eb8d048ff6265f37a61c8
-> commit: f21519b23c1b6fa25366be4114ccf7fcf1c190f9 IB/core: extended co=
-mmand: an improved infrastructure for uverbs commands
-> date:   2 days ago
-> reproduce: make C=3D1 CF=3D-D__CHECK_ENDIAN__
->=20
->=20
-> sparse warnings: (new ones prefixed by >>)
->=20
-> >> drivers/infiniband/core/uverbs_main.c:683:17: sparse: Using plain =
-integer as NULL pointer
-> >> drivers/infiniband/core/uverbs_main.c:689:17: sparse: Using plain =
-integer as NULL pointer
->=20
-> vim +683 drivers/infiniband/core/uverbs_main.c
->=20
->    677					return -EINVAL;
->    678			} else {
->    679				if (hdr.out_words || ex_hdr.provider_out_words)
->    680					return -EINVAL;
->    681			}
->    682=09
->  > 683			INIT_UDATA(&ucore,
->    684				   (hdr.in_words) ? buf : 0,
->    685				   (unsigned long)ex_hdr.response,
->    686				   hdr.in_words * 8,
->    687				   hdr.out_words * 8);
->    688=09
->  > 689			INIT_UDATA(&uhw,
->    690				   (ex_hdr.provider_in_words) ? buf + ucore.inlen : 0,
->    691				   (ex_hdr.provider_out_words) ? (unsigned long)ex_hdr.resp=
-onse + ucore.outlen : 0,
->    692				   ex_hdr.provider_in_words * 8,
->=20
+The second patch address the sparse warning while allowing
+warnings to be reported by the compiler (and that's why first
+patch is needed, so it seems to me it's quite useful to have such
+warnings and code should not hide them from the developer).
 
-This warning is not reported by compiler (gcc) since an explicit cast i=
-s
-present in INIT_UDATA(): see drivers/infiniband/core/uverbs.h[2]:
+[1] https://lists.01.org/pipermail/kbuild-all/2013-November/002120.html
+    http://marc.info/?i=1384866781.20207.7.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org
 
-#define INIT_UDATA(udata, ibuf, obuf, ilen, olen)		\
-	do {							\
-		(udata)->inbuf  =3D (void __user *) (ibuf);	\
-		(udata)->outbuf =3D (void __user *) (obuf);	\
-		(udata)->inlen  =3D (ilen);			\
-		(udata)->outlen =3D (olen);			\
-	} while (0)
+[2] https://patchwork.kernel.org/patch/2846202/
+    http://marc.info/?i=3050a98379b4342ea59d59aeaf1ce162171df928.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 
+[3] http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+    http://marc.info/?i=cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 
-I'm going to submit a patch to fix the sparse warning by removing
-implicit cast, adding explicit casts where appropriate and replace
-0 by NULL in uverbs_main.c
+Yann Droneaud (2):
+  IB/core: const'ify inbuf in struct ib_udata
+  IB/uverbs: remove implicit cast in INIT_UDATA()
 
-[1] kbuild-all archives
-https://lists.01.org/pipermail/kbuild-all/2013-November/002120.html
+ drivers/infiniband/core/uverbs.h      | 12 ++++++------
+ drivers/infiniband/core/uverbs_cmd.c  | 20 ++++++++++----------
+ drivers/infiniband/core/uverbs_main.c | 13 ++++++++-----
+ include/rdma/ib_verbs.h               |  2 +-
+ 4 files changed, 25 insertions(+), 22 deletions(-)
 
-[2] uverbs.h
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dri=
-vers/infiniband/core/uverbs.h#n50
-
-> ---
-> 0-DAY kernel build testing backend              Open Source Technolog=
-y Center
-> http://lists.01.org/mailman/listinfo/kbuild                 Intel Cor=
-poration
-
---=20
-Yann Droneaud
-OPTEYA
-
+-- 
+1.8.4.2
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
