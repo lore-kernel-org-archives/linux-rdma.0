@@ -1,43 +1,35 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [GIT PULL] please pull infiniband.git
-Date: Tue, 19 Nov 2013 19:25:10 +0200
-Message-ID: <528B9EF6.3090708@mellanox.com>
-References: <1384800032-14755-1-git-send-email-roland@kernel.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when
+ modifying QP
+Date: Tue, 19 Nov 2013 10:08:54 -0800
+Message-ID: <CAG4TOxOUFfPMU+q1yKy6S7v3QiLVgMQwxNC-_vw-7UeUb7LoBg@mail.gmail.com>
+References: <1384381792-2023-1-git-send-email-ogerlitz@mellanox.com> <1384381792-2023-8-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1384800032-14755-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1384381792-2023-8-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 18/11/2013 20:40, Roland Dreier wrote:
-> Hi Linus,
->
-> Please pull from
->
->      git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
->
-> ----------------------------------------------------------------
->
-> Main batch of InfiniBand/RDMA changes for 3.13:
->
->   - Re-enable flow steering verbs with new improved userspace ABI
->   - Fixes for slow connection due to GID lookup scalability
->   - IPoIB fixes
->   - Many fixes to HW drivers including mlx4, mlx5, ocrdma and qib
->   - Further improvements to SRP error handling
->   - Add new transport type for Cisco usNIC
+> Existing user space applications provide only IBoE L3 address attributes
+> to the kernel when they issue QP modify. To comply with them and let such
+> apps to keep work transparently under the IBoE GID IP addressing changes,
+> added Eth L2 address resolution in the user-kernel linking piece - uverbs.
 
-Hi Roland, can you spare few words on how you see the RoCE IP based Addressing V5 series? we have addressed the concerns you raised re compatibility and also simplified the series to avoid using uverbs extensions @ this point, anything else left there?
+I don't get why this belongs in uverbs.  In the current design serves
+as a transport between userspace and kernel and the kernel verbs are
+the same as user verbs.  The only exception to this that introduces
+complexity is the stuff related to sharing XRCs and that makes sense
+because multiple processes etc. is definitely a userspace-only
+concern.
 
-This series is pre-step for submitting SRIOV support to RoCE (the code is ready!) and hence no Cloud RoCE upstream solution for VMs before we nail that, it deserves your response. I have posted reply on Sep 17th, to your concerns http://marc.info/?l=linux-rdma&m=137945099714426&w=2 and didn't really hear from you. So went ahead and addressed the feedback as we captured it.
+However in this case I don't see why address resolution is something
+only userspace cares about.  Wouldn't it make sense to put this
+resolution in core verbs?
 
-Or.
-
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
