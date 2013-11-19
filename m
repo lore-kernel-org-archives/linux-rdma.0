@@ -1,48 +1,57 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 0/2] Fix "drivers/infiniband/core/uverbs_main.c:683:17: sparse: Using plain integer as NULL pointer" warning
-Date: Tue, 19 Nov 2013 15:22:10 +0100
-Message-ID: <cover.1384869925.git.ydroneaud@opteya.com>
-References: <1384866781.20207.7.camel@localhost.localdomain> <528b3984.SVGs20ZWpcuR/Jls%fengguang.wu@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH for-next 1/2] IB/core: const'ify inbuf in struct ib_udata
+Date: Tue, 19 Nov 2013 15:22:11 +0100
+Message-ID: <d581225074f4b1fcae2cf0b861b0ec1a841d5b7a.1384869925.git.ydroneaud@opteya.com>
+References: <cover.1384869925.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1384866781.20207.7.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <cover.1384869925.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1384869925.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+References: <1384866781.20207.7.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org> <cover.1384869925.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> <528b3984.SVGs20ZWpcuR/Jls%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Please find two patches to fix the issue reported by kbuild test
-robot[1].
+Userspace input buffer is not modified by kernel,
+let it be 'const'.
 
-The first patch was already sent[2] as part of my on going
-work to improve checks on commands[3].
+It also a prerequisite to remove the implicit cast
+from INIT_UDATA().
 
-The second patch address the sparse warning while allowing
-warnings to be reported by the compiler (and that's why first
-patch is needed, so it seems to me it's quite useful to have such
-warnings and code should not hide them from the developer).
+Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Link: http://marc.info/?i=cover.1384869925.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+Link: http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+---
+ drivers/infiniband/core/uverbs.h | 2 +-
+ include/rdma/ib_verbs.h          | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-[1] https://lists.01.org/pipermail/kbuild-all/2013-November/002120.html
-    http://marc.info/?i=1384866781.20207.7.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org
-
-[2] https://patchwork.kernel.org/patch/2846202/
-    http://marc.info/?i=3050a98379b4342ea59d59aeaf1ce162171df928.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-[3] http://mid.gmane.org/cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-    http://marc.info/?i=cover.1376847403.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-Yann Droneaud (2):
-  IB/core: const'ify inbuf in struct ib_udata
-  IB/uverbs: remove implicit cast in INIT_UDATA()
-
- drivers/infiniband/core/uverbs.h      | 12 ++++++------
- drivers/infiniband/core/uverbs_cmd.c  | 20 ++++++++++----------
- drivers/infiniband/core/uverbs_main.c | 13 ++++++++-----
- include/rdma/ib_verbs.h               |  2 +-
- 4 files changed, 25 insertions(+), 22 deletions(-)
-
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index bdc842e..9879568 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -49,7 +49,7 @@
+ 
+ #define INIT_UDATA(udata, ibuf, obuf, ilen, olen)			\
+ 	do {								\
+-		(udata)->inbuf  = (void __user *) (ibuf);		\
++		(udata)->inbuf  = (const void __user *) (ibuf);		\
+ 		(udata)->outbuf = (void __user *) (obuf);		\
+ 		(udata)->inlen  = (ilen);				\
+ 		(udata)->outlen = (olen);				\
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 979874c..61e1935 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -978,7 +978,7 @@ struct ib_uobject {
+ };
+ 
+ struct ib_udata {
+-	void __user *inbuf;
++	const void __user *inbuf;
+ 	void __user *outbuf;
+ 	size_t       inlen;
+ 	size_t       outlen;
 -- 
 1.8.4.2
 
