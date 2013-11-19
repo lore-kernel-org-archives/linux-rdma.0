@@ -1,54 +1,42 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next] IB/uverbs: set ucore.outbuf to NULL if core response space is omitted
-Date: Tue, 19 Nov 2013 15:48:47 +0100
-Message-ID: <1384872527-26154-1-git-send-email-ydroneaud@opteya.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [GIT PULL] please pull infiniband.git
+Date: Tue, 19 Nov 2013 19:25:10 +0200
+Message-ID: <528B9EF6.3090708@mellanox.com>
+References: <1384800032-14755-1-git-send-email-roland@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1384800032-14755-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In the currently uncommon case of core (eg. uverbs) response
-space being omitted, but hw (eg. provider) response space being
-available, outbuf get defined to "response" while it must be NULL.
+On 18/11/2013 20:40, Roland Dreier wrote:
+> Hi Linus,
+>
+> Please pull from
+>
+>      git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git tags/rdma-for-linus
+>
+> ----------------------------------------------------------------
+>
+> Main batch of InfiniBand/RDMA changes for 3.13:
+>
+>   - Re-enable flow steering verbs with new improved userspace ABI
+>   - Fixes for slow connection due to GID lookup scalability
+>   - IPoIB fixes
+>   - Many fixes to HW drivers including mlx4, mlx5, ocrdma and qib
+>   - Further improvements to SRP error handling
+>   - Add new transport type for Cisco usNIC
 
-This patch takes care of setting ucore.outbuf to NULL
-if hdr.out_words is equal to 0.
+Hi Roland, can you spare few words on how you see the RoCE IP based Addressing V5 series? we have addressed the concerns you raised re compatibility and also simplified the series to avoid using uverbs extensions @ this point, anything else left there?
 
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
----
+This series is pre-step for submitting SRIOV support to RoCE (the code is ready!) and hence no Cloud RoCE upstream solution for VMs before we nail that, it deserves your response. I have posted reply on Sep 17th, to your concerns http://marc.info/?l=linux-rdma&m=137945099714426&w=2 and didn't really hear from you. So went ahead and addressed the feedback as we captured it.
 
-Hi Roland,
+Or.
 
-This one apply on top of my previous patch to fix sparse warning[1][2]:
-rewritting the line make it obvious I missed this rather unseen before
-case, but the new improved extensible command scheme allows it,
-so it must done right.
-
-[1] http://marc.info/?i=cover.1384869925.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-[2] https://patchwork.kernel.org/patch/3202411/
-
-Regards.
-
- drivers/infiniband/core/uverbs_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 14d8643..6c4fc63 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -681,7 +681,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 
- 		INIT_UDATA(&ucore,
- 			   (hdr.in_words) ? buf : NULL,
--			   response,
-+			   (hdr.out_words) ? response : NULL,
- 			   hdr.in_words * 8,
- 			   hdr.out_words * 8);
- 
--- 
-1.8.4.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
