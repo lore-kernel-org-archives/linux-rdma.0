@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when
  modifying QP
-Date: Wed, 20 Nov 2013 12:07:55 +0200
-Message-ID: <528C89FB.6050005@mellanox.com>
+Date: Wed, 20 Nov 2013 12:08:11 +0200
+Message-ID: <528C8A0B.3030700@mellanox.com>
 References: <1384381792-2023-1-git-send-email-ogerlitz@mellanox.com>	<1384381792-2023-8-git-send-email-ogerlitz@mellanox.com>	<CAG4TOxOUFfPMU+q1yKy6S7v3QiLVgMQwxNC-_vw-7UeUb7LoBg@mail.gmail.com> <CAJZOPZ+5UJCAObzFjK5w=bnnSjRM102vR5Ft1nd4nO48Lr2HOg@mail.gmail.com> <EE7902D3F51F404C82415C4803930ACD3FD8348A@CMEXMB1.ad.emulex.com> <dad4986f-4b34-47dc-b6bb-b4882ad1405a@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
@@ -20,7 +20,7 @@ On 20/11/2013 09:15, Somnath Kotur wrote:
 >> >resolve l2 addresses in its own way.
 > This I am not sure if it's a good idea for each vendor driver to implement L2 address resolution in it's own way? Not sure if that was the intent behind Roland's statement ?
 
-I agree with Somnat, I don't see the point in putting L3 --> L2 address 
+I agree with Somnath, I don't see the point in putting L3 --> L2 address 
 resolution within vendor drivers. This will create huge code 
 duplication, and more problems. Again, with the proposed patches all 
 kernel ULPs that are applicable to RoCE are covered and hence there's no 
