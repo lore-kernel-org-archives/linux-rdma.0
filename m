@@ -1,54 +1,24 @@
-From: Devesh Sharma <Devesh.Sharma-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when
- modifying QP
-Date: Wed, 20 Nov 2013 12:22:58 +0000
-Message-ID: <19529960-a428-43a2-b2ef-a4216335ccf2@CMEXHTCAS2.ad.emulex.com>
-References: <1384381792-2023-1-git-send-email-ogerlitz@mellanox.com>
-	<1384381792-2023-8-git-send-email-ogerlitz@mellanox.com>
-	<CAG4TOxOUFfPMU+q1yKy6S7v3QiLVgMQwxNC-_vw-7UeUb7LoBg@mail.gmail.com>
- <CAJZOPZ+5UJCAObzFjK5w=bnnSjRM102vR5Ft1nd4nO48Lr2HOg@mail.gmail.com>
- <EE7902D3F51F404C82415C4803930ACD3FD8348A@CMEXMB1.ad.emulex.com>
- <dad4986f-4b34-47dc-b6bb-b4882ad1405a@CMEXHTCAS2.ad.emulex.com>,<528C8A0B.3030700@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] osm_mcast_mgr.c Add block number to error message
+Date: Wed, 20 Nov 2013 18:13:31 -0500
+Message-ID: <528D421B.3090704@dev.mellanox.co.il>
+References: <80393bcc-37d5-4977-b59a-7021c791fd23@default>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <528C8A0B.3030700-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <80393bcc-37d5-4977-b59a-7021c791fd23@default>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Hal <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux-Rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Okay, got it, I think I got confused. putting the changes in verbs.c/modify_qp and verbs.c/create_ah make sense for me.
+On 11/15/2013 7:53 AM, Line Holen wrote:
+> Signed-off-by : Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Agree with Som and Or.
+Thanks. Applied.
 
--Regards
- Devesh
-________________________________________
-From: Or Gerlitz [ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
-Sent: Wednesday, November 20, 2013 3:38 PM
-To: Somnath Kotur; Devesh Sharma; Or Gerlitz; Roland Dreier
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; monis; matanb; Tzahi Oved; Moni Shoua
-Subject: Re: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when modifying QP
-
-On 20/11/2013 09:15, Somnath Kotur wrote:
->> However, in the approach to move address resolution to core verbs i.e.
->> >ib_modify_qp() and ib_create_ah(), vendor driver will have freedom to
->> >resolve l2 addresses in its own way.
-> This I am not sure if it's a good idea for each vendor driver to implement L2 address resolution in it's own way? Not sure if that was the intent behind Roland's statement ?
-
-I agree with Somnath, I don't see the point in putting L3 --> L2 address
-resolution within vendor drivers. This will create huge code
-duplication, and more problems. Again, with the proposed patches all
-kernel ULPs that are applicable to RoCE are covered and hence there's no
-address resolution for kernel session. To comply with non-modified user
-space applications/libraries V5 added a code to do address resolution
-and Roland just pointed out it may makes more sense to put that small
-code piece in the core verbs modify_qp function and not in the uverbs call.
-
-Or.
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
