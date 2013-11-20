@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH opensm] osm_mcast_mgr.c: Fix wrong comparison in mcast_mgr_subdivide()
-Date: Wed, 20 Nov 2013 18:26:23 -0500
-Message-ID: <528D451F.3040404@dev.mellanox.co.il>
+Subject: [PATCH opensm] osm_state_mgr.c: Fix error print in state_mgr_check_tbl_consistency()
+Date: Wed, 20 Nov 2013 18:26:36 -0500
+Message-ID: <528D452C.1030405@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -14,35 +14,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-port_num must be less than array_size (num of ports on a node).
+Need to print NodeDesc and PortNum for both p_port_ref and
+p_port_stored.
 
 Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_mcast_mgr.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ opensm/osm_state_mgr.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/opensm/osm_mcast_mgr.c b/opensm/osm_mcast_mgr.c
-index 837428b..029ba40 100644
---- a/opensm/osm_mcast_mgr.c
-+++ b/opensm/osm_mcast_mgr.c
-@@ -605,7 +605,7 @@ static void mcast_mgr_subdivide(osm_sm_t * sm, uint16_t mlid_ho,
- 			continue;
- 		}
+diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
+index bf6181a..36e9f6c 100644
+--- a/opensm/osm_state_mgr.c
++++ b/opensm/osm_state_mgr.c
+@@ -1312,8 +1312,8 @@ static void state_mgr_check_tbl_consistency(IN osm_sm_t * sm)
+ 				p_port_ref->p_node->print_desc,
+ 				p_port_ref->p_physp->port_num,
+ 				cl_ntoh64(osm_port_get_guid(p_port_stored)),
+-				p_port_ref->p_node->print_desc,
+-				p_port_ref->p_physp->port_num);
++				p_port_stored->p_node->print_desc,
++				p_port_stored->p_physp->port_num);
  
--		if (port_num > array_size) {
-+		if (port_num >= array_size) {
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0A04: "
- 				"Error routing MLID 0x%X through switch 0x%"
- 				PRIx64 " %s\n"
-@@ -616,8 +616,6 @@ static void mcast_mgr_subdivide(osm_sm_t * sm, uint16_t mlid_ho,
- 				cl_ntoh16(osm_port_get_base_lid
- 					  (p_wobj->p_port)));
- 			mcast_work_obj_delete(p_wobj);
--			/* This is means OpenSM has a bug. */
--			CL_ASSERT(FALSE);
- 			continue;
- 		}
- 
+ 		/* In any of these cases we want to set NULL in the
+ 		 * port_lid_tbl, since this entry is invalid. Also, make sure
 -- 
 1.7.8.2
 
