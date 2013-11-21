@@ -1,54 +1,41 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] iwcm: rem_ref() - don't touch cm_id after deref.
-Date: Thu, 21 Nov 2013 15:40:14 -0600
-Message-ID: <20131121214014.27527.79925.stgit@build.ogc.int>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: PCIe 2.0 motherboard + ConnectX-3 cards
+Date: Thu, 21 Nov 2013 17:26:33 -0500
+Message-ID: <CADPSxAhPhtMegUYmjVS6qZGsWVAbYKeOGRKz1CG9oK3S-pgD7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-rem_ref() calls iwcm_deref_id(), which will wake up any blockers on
-cm_id_priv->destroy_comp if the refcnt hits 0.  That will unblock someone
-in iw_destroy_cm_id() which will free the cmid.  If that happens before
-rem_ref() calls test_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags),
-then the test_bit() will touch freed memory.
+I have machines with Mellanox ConnectX-3 cards connected to a
+motherboard with PCIe 2.0. I had some questions regarding performance
+of this system:
 
-The fix is to read the bit first, then deref.
+1. When multiple clients issue small (32 byte) RDMA writes to the
+server, the combined throughput is about 22 million operations per
+second. With ConnectX-3 I should be able to get 35 million (quote from
+Mellanox).
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+Is 22 million DMAs per second a PCIe 2.0 bottleneck?
 
- drivers/infiniband/core/iwcm.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+2. When one client machine issues RDMA writes to multiple server
+machines, it can issue at most 10-11 million writes per second. Is
+this a PCIe bottleneck again?
 
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index c47c203..0717940 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -181,9 +181,16 @@ static void add_ref(struct iw_cm_id *cm_id)
- static void rem_ref(struct iw_cm_id *cm_id)
- {
- 	struct iwcm_id_private *cm_id_priv;
-+	int cb_destroy;
-+
- 	cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
--	if (iwcm_deref_id(cm_id_priv) &&
--	    test_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags)) {
-+
-+	/*
-+	 * Test bit before deref in case the cm_id gets freed on another
-+	 * thread.
-+	 */
-+	cb_destroy = test_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags);
-+	if (iwcm_deref_id(cm_id_priv) && cb_destroy) {
- 		BUG_ON(!list_empty(&cm_id_priv->work_list));
- 		free_cm_id(cm_id_priv);
- 	}
+I believe it's a PCIe issue because an RDMA operation should involve 2
+(or more) PCIe operations at the active side:
+a. Write the work request to the HCA (or maybe the HCA reads the request).
+b. The HCA reads the payload from the processor.
 
+Does this reasoning sound correct?
+
+3. Is there a way to reduce the number of PCIe operations at the
+active side? I don't think that posting a linked list of WQEs will
+help because the HCA should read them one by one.
+
+--Anuj
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
