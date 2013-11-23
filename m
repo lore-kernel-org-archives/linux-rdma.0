@@ -1,79 +1,22 @@
-From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: PCIe 2.0 motherboard + ConnectX-3 cards
-Date: Fri, 22 Nov 2013 23:13:45 -0500
-Message-ID: <CADPSxAjCqk8GqQ9cQiceZk2fbrPuQdRWDoBSfkgLesVpVOc-fg@mail.gmail.com>
-References: <CADPSxAhPhtMegUYmjVS6qZGsWVAbYKeOGRKz1CG9oK3S-pgD7w@mail.gmail.com>
-	<CADPSxAi06+_zjJ50v7CgCDzv+abDowN0pxBEgAZKwKBGPCe1ig@mail.gmail.com>
+From: OSBORNES SOLICITORS LLP <djholditch-BLwr+g8IyiSHShGzjllgjw@public.gmane.org>
+Subject: PRIVATE MESSAGE
+Date: Sat, 23 Nov 2013 11:36:37 +0100
+Message-ID: <CAES10a717CqU=CM7sp160n9k2z+rs7xRjJ1-0ygc_+a+ofv0Lw__17238.2571654909$1385203075$gmane$org@mail.gmail.com>
+Reply-To: Osbornes-+NbaIjSFD8nd8Zgiw/MPxQ@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAi06+_zjJ50v7CgCDzv+abDowN0pxBEgAZKwKBGPCe1ig-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Update: I found ways to improve active side performance from 10
-million RDMA writes per second to 20 million (which I believe is the
-PCIe bottleneck):
+-- 
+This is to inform you that an inheritance was bequeathed in your
+favour. Letters were posted to you to this regards, but returned
+undelivered. Kindly contact me once you recieve this email for more
+information.
 
-1. Use inline payload - I think this reduces PCIe traffic.
-2. Use non-signalled RDMA writes + don't poll for completion for every
-write - I don't know if ibv_poll_cq() uses the PCIe much.
-
-I'd appreciate any other ideas to reduce PCIe traffic or any
-affirmation that my explanation for the bottleneck and improvements
-are correct.
-
---Anuj
-
-
-On Fri, Nov 22, 2013 at 2:59 AM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> I had a related question regarding PCIe usage.
->
-> How exactly does the userspace driver interact with the HCA? I'm
-> reading the code for libmlx4 but I can't find any code for interaction
-> with PCIe. There are some references to 'ringing a doorbell via PCI
-> MMIO' - can someone please tell me how that works?
->
-> In general, it would be great if someone could explain the CPU-HCA
-> communication steps involved in doing an RDMA operation. If there is
-> an online resource from where I can read about this, I'd appreciate a
-> pointer.
->
-> Thanks for your time!
->
-> --Anuj
->
->
->
-> On Thu, Nov 21, 2013 at 5:26 PM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> I have machines with Mellanox ConnectX-3 cards connected to a
->> motherboard with PCIe 2.0. I had some questions regarding performance
->> of this system:
->>
->> 1. When multiple clients issue small (32 byte) RDMA writes to the
->> server, the combined throughput is about 22 million operations per
->> second. With ConnectX-3 I should be able to get 35 million (quote from
->> Mellanox).
->>
->> Is 22 million DMAs per second a PCIe 2.0 bottleneck?
->>
->> 2. When one client machine issues RDMA writes to multiple server
->> machines, it can issue at most 10-11 million writes per second. Is
->> this a PCIe bottleneck again?
->>
->> I believe it's a PCIe issue because an RDMA operation should involve 2
->> (or more) PCIe operations at the active side:
->> a. Write the work request to the HCA (or maybe the HCA reads the request).
->> b. The HCA reads the payload from the processor.
->>
->> Does this reasoning sound correct?
->>
->> 3. Is there a way to reduce the number of PCIe operations at the
->> active side? I don't think that posting a linked list of WQEs will
->> help because the HCA should read them one by one.
->>
->> --Anuj
+Sincerely
+Barr Mark Freedman
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
