@@ -1,22 +1,37 @@
-From: OSBORNES SOLICITORS LLP <djholditch-BLwr+g8IyiSHShGzjllgjw@public.gmane.org>
-Subject: PRIVATE MESSAGE
-Date: Sat, 23 Nov 2013 11:36:37 +0100
-Message-ID: <CAES10a717CqU=CM7sp160n9k2z+rs7xRjJ1-0ygc_+a+ofv0Lw__17238.2571654909$1385203075$gmane$org@mail.gmail.com>
-Reply-To: Osbornes-+NbaIjSFD8nd8Zgiw/MPxQ@public.gmane.org
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: PCIe 2.0 motherboard + ConnectX-3 cards
+Date: Sun, 24 Nov 2013 11:57:47 -0600
+Message-ID: <52923E1B.6000003@opengridcomputing.com>
+References: <CADPSxAhPhtMegUYmjVS6qZGsWVAbYKeOGRKz1CG9oK3S-pgD7w@mail.gmail.com>	<CADPSxAi06+_zjJ50v7CgCDzv+abDowN0pxBEgAZKwKBGPCe1ig@mail.gmail.com> <CADPSxAjCqk8GqQ9cQiceZk2fbrPuQdRWDoBSfkgLesVpVOc-fg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CADPSxAjCqk8GqQ9cQiceZk2fbrPuQdRWDoBSfkgLesVpVOc-fg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
--- 
-This is to inform you that an inheritance was bequeathed in your
-favour. Letters were posted to you to this regards, but returned
-undelivered. Kindly contact me once you recieve this email for more
-information.
+On 11/22/2013 10:13 PM, Anuj Kalia wrote:
+> Update: I found ways to improve active side performance from 10
+> million RDMA writes per second to 20 million (which I believe is the
+> PCIe bottleneck):
+>
+> 1. Use inline payload - I think this reduces PCIe traffic.
 
-Sincerely
-Barr Mark Freedman
+Yes, without inline, each IO requires 2 PCIe transactions:  1 to fetch 
+(or push) the work request, and one to fetch the payload/data.  If you 
+use inline, the data is included in the work request.  So you cut the 
+required transactions in half.
+
+> 2. Use non-signalled RDMA writes + don't poll for completion for every
+> write - I don't know if ibv_poll_cq() uses the PCIe much.
+
+Each signaled work request generates a completion entry (CQE) which is 
+pushed from the adapter into the CQ in host memory.  So reducing the 
+number of these required also reduces the PCIe transactions.
+
+Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
