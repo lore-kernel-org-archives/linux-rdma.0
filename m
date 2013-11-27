@@ -1,82 +1,22 @@
-From: Line Holen <line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] osm_sm_state_mgr.c Fix handling of polling retry number
-Date: Wed, 27 Nov 2013 15:42:03 +0100
-Message-ID: <529604BB.4010001@oracle.com>
-References: <3b0cb098-1e00-417d-8a5b-0aa766926867@default> <5295E2AF.2050909@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Hannes Weisbach <hannes_weisbach-hi6Y0CQ0nG0@public.gmane.org>
+Subject: non-const pointer void * addr in rdma_reg_* and rdma_post_[send|write]
+Date: Wed, 27 Nov 2013 19:00:02 +0100
+Message-ID: <9A0BFE48-9AED-4C41-80C8-F943D1C64E99@gmx.net>
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5295E2AF.2050909-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux-Rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/27/13 13:16, Hal Rosenstock wrote:
-> On 11/15/2013 7:15 AM, Line Holen wrote:
->> The retry counter is now only updated if a packet is actually sent.
->> (But as before the initial request is also counted.)
->>
->> Prior to this change the actual maximum number of packets sent were
->> polling retry number minus one.
->>
->> Signed-off-by: Line Holen<line.holen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>
->> ---
->>
->> diff --git a/opensm/osm_sm_state_mgr.c b/opensm/osm_sm_state_mgr.c
->> index 596ad8f..6eff9ee 100644
->> --- a/opensm/osm_sm_state_mgr.c
->> +++ b/opensm/osm_sm_state_mgr.c
->> @@ -197,16 +197,14 @@ void osm_sm_state_mgr_polling_callback(IN void *context)
->>   	}
->>
->>   	/*
->> -	 * Incr the retry number.
->> -	 * If it reached the max_retry_number in the subnet opt - call
->> +	 * If retry number reached the max_retry_number in the subnet opt - call
->>   	 * osm_sm_state_mgr_process with signal OSM_SM_SIGNAL_POLLING_TIMEOUT
->>   	 */
->> -	sm->retry_number++;
->>   	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE, "SM State %d (%s), Retry number:%d\n",
->>   		sm->p_subn->sm_state,  osm_get_sm_mgr_state_str(sm->p_subn->sm_state),
->>   		sm->retry_number);
->>
->> -	if (sm->retry_number>= sm->p_subn->opt.polling_retry_number) {
->> +	if (sm->retry_number>  sm->p_subn->opt.polling_retry_number) {
->>   		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
->>   			"Reached polling_retry_number value in retry_number. "
->>   			"Go to DISCOVERY state\n");
->> @@ -214,6 +212,9 @@ void osm_sm_state_mgr_polling_callback(IN void *context)
->>   		goto Exit;
->>   	}
->>
->> +	/* Increment the retry number */
->> +	sm->retry_number++;
-> Would it be better to increment retry number if
-> sm_state_mgr_send_master_sm_info_req call just below this succeeds ?
->
-> -- Hal
-I'm not sure really. The current placement was to avoid potential race 
-with response handling
-and the clearing of the counter there (incrementing after the response 
-were received). Seemed
-to me that this could happen with the current locking.
+Hi,
 
-Line
->
->> +
->>   	/* Send a SubnGet(SMInfo) request to the remote sm (depends on our state) */
->>   	sm_state_mgr_send_master_sm_info_req(sm);
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+I just started working with librdmacm and I was wondering if there is a specific reason why rdma_reg_* functions and rdma_post_send/write functions take the local memory address as non-const pointer "void * addr". These functions shouldn't and don't change the memory pointed to by addr. I think this should be made explicit by using the type const void * for addr.
+In case you agree, I would volunteer to make the necessary changes.
 
---
+Best regards,
+Hannes Weisbach--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
