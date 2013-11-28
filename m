@@ -1,54 +1,31 @@
-From: Yann Droneaud <yann-WYdEh2jsUj5Wj0EZb7rXcA@public.gmane.org>
-Subject: Re: non-const pointer void * addr in rdma_reg_* and
- rdma_post_[send|write]
-Date: Thu, 28 Nov 2013 10:23:10 +0100
-Message-ID: <1385630590.21498.14.camel@localhost.localdomain>
-References: <9A0BFE48-9AED-4C41-80C8-F943D1C64E99@gmx.net>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: CQEs in unreliable connection
+Date: Thu, 28 Nov 2013 17:54:13 +0530
+Message-ID: <CADPSxAhQKoKOQVbixMXvQRpp0_h1iQCtChrF0v1UUR1cZsPZvA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9A0BFE48-9AED-4C41-80C8-F943D1C64E99-hi6Y0CQ0nG0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hannes Weisbach <hannes_weisbach-hi6Y0CQ0nG0@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hi.
 
-Le mercredi 27 novembre 2013 =C3=A0 19:00 +0100, Hannes Weisbach a =C3=A9=
-crit :
+I had 2 questions related to RDMA operations (reads and writes) over
+unreliable connections:
 
-> I just started working with librdmacm and I was wondering if there is=
- a specific reason why rdma_reg_* functions and rdma_post_send/write fu=
-nctions take the local memory address as non-const pointer "void * addr=
-". These functions shouldn't and don't change the memory pointed to by =
-addr. I think this should be made explicit by using the type const void=
- * for addr.
-> In case you agree, I would volunteer to make the necessary changes.
->=20
+1. Are WQEs issued over an unreliable connection supposed to generate
+CQEs? The Infiniband spec says that such WQEs may not generate an
+'ACK'. I'm confused if ACK refers to CQE.
 
-:)
+2. If the status of the work completion (fetched using ibv_poll_cq())
+is IBV_WC_SUCCESS, does it mean that the operation was successful at
+the remote host (even though we used an unreliable connection)?
 
-Two days ago I started to work on a kernel patchset to address similar
-concerns on the verbs/RDMA APIs
+Thanks for your help!
 
-BTW, it's easier to change the kernel "internal" API than the public
-userspace API of the library. But adding "const" should not break
-compilation of existing userspace program.
-
-PS: this issue could also be raised against libibverbs, so once you've
-fixed librdmacm, why not fix libibverbs after ?
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
+--Anuj
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
