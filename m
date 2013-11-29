@@ -1,210 +1,79 @@
-From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: CQEs in unreliable connection
-Date: Fri, 29 Nov 2013 07:58:28 +0200
-Message-ID: <52982D04.70503@gmail.com>
-References: <CADPSxAhQKoKOQVbixMXvQRpp0_h1iQCtChrF0v1UUR1cZsPZvA@mail.gmail.com> <52979E37.3080000@gmail.com> <CADPSxAj-d+yP0=xs33bJPpXLv=8K0edJAvH6-ttdH2CvVcXtPQ@mail.gmail.com> <CAGUk2tHz6AE6WdmJAXnAj8Q=StaZ1V75i5ho0=kmRdSqOVd==g@mail.gmail.com> <CADPSxAjc-a0+icNH_MwVyCni9DkuyZvS_pcuWQ0x18mVDXWzvg@mail.gmail.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: IETF draft: RDMA Protocol Extensions
+Date: Fri, 29 Nov 2013 11:16:45 +0100
+Message-ID: <f1e78b8b394ddacf82f0358b1400e6d6@meuh.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAjc-a0+icNH_MwVyCni9DkuyZvS_pcuWQ0x18mVDXWzvg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Hari Subramoni <subramoni.1-ZbGKxL/pcrQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 29/11/2013 05:11, Anuj Kalia wrote:
-> Hari,
->
-> Thanks for your reply. Yes, I'm talking about the Unreliable
-> Connection transport type
->
-> I'm concerned with small messages (128 byte RDMA writes or reads), so
-> I assume that my messages fit inside one packet.
->
-> I'm confused with this: "Receiver detects and drops out of order
-> packets.". For example, if the packet sequence at the receiver is {P1=
-,
-> P2, P4, P3, P5}, where the numbers denote PSNs, then what are the
-> packets that get dropped?
->
-> Does P4 get dropped because it is after P2 (and not P3)? Or is P4
-> preserved (because it's still in the increasing order), and P3 droppe=
-d
-> later?
->
-> I guess I'm confused between packets and messages..
+Hi,
 
-Here are some Quotes form the IB spec:
+I've just seen the following IETF drafts:
 
-C9-186: For an HCA responder using Unreliable Connection service, if a
-multi-packet message is in progress at the time that an out of order pa=
-cket
-is detected, the current message shall be silently dropped. The respond=
-er
-then waits for the first packet of a new message. It is possible that t=
-he
-present packet (the out of order packet) is the first packet of a new=20
-message.
-If so, it shall be treated as a new message.
+- "RDMA Protocol Extensions", draft-ietf-storm-rdmap-ext-08.txt, by
+Hemal Shah, Felix Marti, Wael Noureddine, Asgeir Eiriksson and Robert 
+Sharp:
 
-A =93new message=94 is denoted by an inbound request packet with an Op-
-Code in the BTH of =93first=94 or =93only=94.
+http://tools.ietf.org/html/draft-ietf-storm-rdmap-ext-08
 
-=93Current message=94 means all the packets received since the most rec=
-ently
-received =93first=94 or =93only=94 OpCode, excluding the present packet=
-=2E
+"Abstract
 
+    This document specifies extensions to the IETF Remote Direct Memory
+    Access Protocol (RDMAP [RFC5040]). RDMAP provides read and write
+    services directly to applications and enables data to be transferred
+    directly into Upper Layer Protocol (ULP) Buffers without
+    intermediate data copies. The extensions specified in this document
+    provide the following capabilities and/or improvements: Atomic
+    Operations and Immediate Data."
+"
 
- From this, one can understand that the message will be dropped because=
-=20
-P4 was detected,
-while P3 was received.
+5. Atomic Operations
+http://tools.ietf.org/html/draft-ietf-storm-rdmap-ext-08#section-5
 
-But just remember, that Out Of Sequence (OOS) shouldn't happen in IB, s=
-o=20
-usually if an OOS packet
-was received, this means that a packet was dropped in the way...
+6. Immediate Data
+http://tools.ietf.org/html/draft-ietf-storm-rdmap-ext-08#section-6
 
+- "RDMA Protocol Extensions V2", draft-wood-storm-rdmap-ext-v2-00.txt, 
+by
+Donald Wood, Robert Sharp and Kenneth Keels:
 
-I hope that I helped you with this.
+http://tools.ietf.org/html/draft-wood-storm-rdmap-ext-v2-00
 
-Thanks
-Dotan
+"
+Abstract
 
->
-> --Anuj
->
->
-> On Fri, Nov 29, 2013 at 8:30 AM, Hari Subramoni <subramoni.1-ZbGKxL/pcrQ@public.gmane.org>=
- wrote:
->> Hi Anuj,
->>
->> When you say "unreliable connection", I am assuming that you are sti=
-ll
->> talking about the "Unreliable Connection" transport type. Are you?
->>
->> If so, here are some characteristics of an unreliable connection as =
-stated
->> by the IB spec
->>
->>   - No delivery guarantees to the sender. Receiver may drop messages=
-=2E
->>   - No ordering guarantee. Sender / Receiver cannot rely on msgs arr=
-iving in
->> order.
->>   - Receiver detects and drops out of order packets.
->>   - Dropped packets may cause the message to be dropped.
->>   - After dropping a packet, receiver resumes with the first packet =
-of a new
->> message.
->>
->> Now, to answer you - There is no ordering guarantee and if one packe=
-t in a
->> message is lost, the entire message "could" be lost.
->>
->> Thanks,
->> Hari.
->>
->>
->> On Thu, Nov 28, 2013 at 8:37 PM, Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org=
-> wrote:
->>> Dotan,
->>>
->>> Thanks a lot for your reply. All my CQEs had status IBV_WC_SUCCESS
->>> even when the responder was heavily loaded and I was wondering why
->>> nothing was getting dropped...
->>>
->>> I read your blog post and it was really helpful for understanding t=
-he
->>> queue pair types. I had one small question though.
->>>
->>> You say that: "There isn=92t any guaranteed that the messages will =
-be
->>> received by the other side: corrupted or out of sequence packets ar=
-e
->>> silently dropped. If a packet is being dropped, the whole message t=
-hat
->>> it belongs to will be dropped. In this case, the responder won=92t =
-stop,
->>> but continues to receive incoming packets. There isn=92t any guaran=
-tee
->>> about the packet ordering."
->>>
->>> Here's my question: if out of sequence packets are dropped, isn't
->>> there an ordering guarantee? I assume that dropping of out of seque=
-nce
->>> packets means that if the responder receives packets {2, 1, 3} (in
->>> this order), then it drops packet number {1} and keeps {2, 3}.
->>>
->>> Thanks again!
->>> --Anuj
->>>
->>> On Fri, Nov 29, 2013 at 1:19 AM, Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wr=
-ote:
->>>> Hi Anuj.
->>>>
->>>>
->>>> On 28/11/2013 14:24, Anuj Kalia wrote:
->>>>> Hi.
->>>>>
->>>>> I had 2 questions related to RDMA operations (reads and writes) o=
-ver
->>>>> unreliable connections:
->>>>>
->>>>> 1. Are WQEs issued over an unreliable connection supposed to gene=
-rate
->>>>> CQEs? The Infiniband spec says that such WQEs may not generate an
->>>>> 'ACK'. I'm confused if ACK refers to CQE.
->>>> ACK is an acknowledgment that was sent over the wire that the mess=
-age
->>>> was
->>>> received by the remote side.
->>>> CQE is a mechanism to indicate that a Work Request isn't outstandi=
-ng
->>>> anymore.
->>>>
->>>> In RC QP, a CQE with successful status of a Send Request means tha=
-t an
->>>> ACK
->>>> was received by the sender.
->>>> However, In UC QP, a CQE with successful status of a Send Request =
-means
->>>> that
->>>> the message was sent;
->>>> it isn't indicate that the message was received by the remote side=
- ...
->>>> (You will get a successful CQE even if the remote side didn't rece=
-ive
->>>> this
->>>> message)
->>>>
->>>>
->>>>> 2. If the status of the work completion (fetched using ibv_poll_c=
-q())
->>>>> is IBV_WC_SUCCESS, does it mean that the operation was successful=
- at
->>>>> the remote host (even though we used an unreliable connection)?
->>>> I answered your answer above ...
->>>>
->>>> If you want some more information, you are welcome to read it in:
->>>> http://www.rdmamojo.com/2013/06/01/which-queue-pair-type-to-use/
->>>>
->>>>
->>>> Thanks
->>>> Dotan
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdm=
-a" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
+    This document specifies extensions to the IETF Remote Direct Memory
+    Access Protocol and RDMA Protocol Extensions. RDMAP provides read
+    and write services directly to applications and enables data to be
+    transferred directly into Upper Layer Protocol (ULP) Buffers without
+    intermediate data copies. The extensions specified in this document
+    provide the following capabilities and/or improvements to eliminate
+    application visible differences with other RDMA technologies: Send
+    with Immediate Data Operations and a new form of RDMA Read
+    Operation.
+"
+
+5. Send with Immediate Data Operations:
+http://tools.ietf.org/html/draft-wood-storm-rdmap-ext-v2-00#section-5
+
+6. RDMA Read V2:
+http://tools.ietf.org/html/draft-wood-storm-rdmap-ext-v2-00#section-6
+
+Is there someone involved in these drafts on the list that could explain
+how it will impact Linux RDMA implementation ?
+
+Regards.
+
+-- 
+Yann Droneaud
+OPTEYA
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
