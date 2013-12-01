@@ -1,30 +1,65 @@
-From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: CQEs in unreliable connection
-Date: Sat, 30 Nov 2013 10:01:02 +0200
-Message-ID: <52999B3E.8090008@gmail.com>
-References: <CADPSxAhQKoKOQVbixMXvQRpp0_h1iQCtChrF0v1UUR1cZsPZvA@mail.gmail.com> <52979E37.3080000@gmail.com> <CADPSxAj-d+yP0=xs33bJPpXLv=8K0edJAvH6-ttdH2CvVcXtPQ@mail.gmail.com> <CAGUk2tHz6AE6WdmJAXnAj8Q=StaZ1V75i5ho0=kmRdSqOVd==g@mail.gmail.com> <CADPSxAjc-a0+icNH_MwVyCni9DkuyZvS_pcuWQ0x18mVDXWzvg@mail.gmail.com> <52982D04.70503@gmail.com> <CADPSxAh1_iea41miuYpv4dzvfud3AqxCgUDsr8jUeTSrxMfVpA@mail.gmail.com> <5298F97E.4030004@gmail.com> <CADPSxAjeU2u0nesuA=Go8WRufDcvztutR92dwuQyqgS1bcEeug@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 librdmacm] Add directives on binding to IPv6 any address to man pages
+Date: Sun,  1 Dec 2013 09:31:38 +0200
+Message-ID: <1385883098-22307-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAjeU2u0nesuA=Go8WRufDcvztutR92dwuQyqgS1bcEeug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Hari Subramoni <subramoni.1-ZbGKxL/pcrQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mrhines-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 29/11/2013 22:50, Anuj Kalia wrote:
-> Dotan,
->
-> Thanks for your reply again.
->
-> I just wanted to confirm about the order in which messages are sent
-> and received. I'm not worried about the memory policy.
->
+Explain how to bind to IPv6 any address in the man pages for the examples
 
-If you are talking about InfiniBand then this is the case ...
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-Dotan
+changes from V0:
+ - fixed cut && paste error in the bind directive for ucmatose/udaddy
+
+ man/rping.1    |    1 +
+ man/ucmatose.1 |    1 +
+ man/udaddy.1   |    1 +
+ 3 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/man/rping.1 b/man/rping.1
+index a2b7b6b..127d290 100644
+--- a/man/rping.1
++++ b/man/rping.1
+@@ -23,6 +23,7 @@ Run as the client.
+ .TP
+ \-a address
+ On the server, specifies the network address to bind the connection to.
++To bind to any address with IPv6 use -a ::0 .
+ On the client, specifies the server address to connect to.
+ .TP
+ \-p
+diff --git a/man/ucmatose.1 b/man/ucmatose.1
+index 95dc2d6..57e2c1b 100644
+--- a/man/ucmatose.1
++++ b/man/ucmatose.1
+@@ -23,6 +23,7 @@ This option must be specified by the client.
+ .TP
+ \-b bind_address
+ The local network address to bind to.
++To bind to any address with IPv6 use -b ::0 .
+ .TP
+ \-f address_format
+ Specifies the format of the server and bind address.  Be default, the
+diff --git a/man/udaddy.1 b/man/udaddy.1
+index 2f56b46..022018e 100644
+--- a/man/udaddy.1
++++ b/man/udaddy.1
+@@ -22,6 +22,7 @@ This option must be specified by the client.
+ .TP
+ \-b bind_address
+ The local network address to bind to.
++To bind to any address with IPv6 use -b ::0 .
+ .TP
+ \-c connections
+ The number of communication paths to establish between the client and server.
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
