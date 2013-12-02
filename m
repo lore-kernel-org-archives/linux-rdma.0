@@ -1,79 +1,44 @@
-From: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH] iser-target: fix error return code in
- isert_create_device_ib_res()
-Date: Mon, 2 Dec 2013 15:00:14 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1312021459400.24931@pobox.suse.cz>
-References: <CAPgLHd8eEFhMyfieCULgj+OzCRrTMN9G60pAvTP0+zOhBeK=qw@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] osm_mcast_mgr.c: fixed missing error message number
+Date: Mon, 02 Dec 2013 10:04:13 -0500
+Message-ID: <529CA16D.3070507@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPgLHd8eEFhMyfieCULgj+OzCRrTMN9G60pAvTP0+zOhBeK=qw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 29 Oct 2013, Wei Yongjun wrote:
 
-> From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
-> 
-> Fix to return a negative error code from the error handling
-> case instead of 0, as done elsewhere in this function.
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+From: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This one has been sitting in my queue for quite some time, but I'd like 
-the actual infiniband maintainers to be acted upon by.
+Added number to error message on osm_mcast_mgr.c\mcast_mgr_branch
+when multicast tree depth is more than 64.
 
-Roland, please?
+Signed-off-by: Daniel Klein <danielk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_mcast_mgr.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> ---
->  drivers/infiniband/ulp/isert/ib_isert.c | 16 ++++++++++++----
->  1 file changed, 12 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> index 6df2350..2ba71c0 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -263,21 +263,29 @@ isert_create_device_ib_res(struct isert_device *device)
->  						isert_cq_event_callback,
->  						(void *)&cq_desc[i],
->  						ISER_MAX_RX_CQ_LEN, i);
-> -		if (IS_ERR(device->dev_rx_cq[i]))
-> +		if (IS_ERR(device->dev_rx_cq[i])) {
-> +			ret = PTR_ERR(device->dev_rx_cq[i]);
-> +			device->dev_rx_cq[i] = NULL;
->  			goto out_cq;
-> +		}
->  
->  		device->dev_tx_cq[i] = ib_create_cq(device->ib_device,
->  						isert_cq_tx_callback,
->  						isert_cq_event_callback,
->  						(void *)&cq_desc[i],
->  						ISER_MAX_TX_CQ_LEN, i);
-> -		if (IS_ERR(device->dev_tx_cq[i]))
-> +		if (IS_ERR(device->dev_tx_cq[i])) {
-> +			ret = PTR_ERR(device->dev_tx_cq[i]);
-> +			device->dev_tx_cq[i] = NULL;
->  			goto out_cq;
-> +		}
->  
-> -		if (ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP))
-> +		ret = ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP);
-> +		if (ret)
->  			goto out_cq;
->  
-> -		if (ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP))
-> +		ret = ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP);
-> +		if (ret)
->  			goto out_cq;
->  	}
->  
-> 
-
+diff --git a/opensm/osm_mcast_mgr.c b/opensm/osm_mcast_mgr.c
+index 65df552..a3c6185 100644
+--- a/opensm/osm_mcast_mgr.c
++++ b/opensm/osm_mcast_mgr.c
+@@ -811,7 +811,7 @@ static osm_mtree_node_t *mcast_mgr_branch(osm_sm_t * sm, uint16_t mlid_ho,
+ 	depth++;
+ 
+ 	if (depth >= 64) {
+-		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
++		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0A21: "
+ 			"Maximal hops number is reached for MLID 0x%x."
+ 			" Break processing.", mlid_ho);
+ 		mcast_mgr_purge_list(sm, p_list);
 -- 
-Jiri Kosina
-SUSE Labs
+1.7.8.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
