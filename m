@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for v3.13 4/8] IB/uverbs: check reserved field in extended command header
-Date: Mon,  2 Dec 2013 12:12:46 +0100
-Message-ID: <75adf09c5258445b66fc4e516199841b795d0f5e.1385981934.git.ydroneaud@opteya.com>
+Subject: [PATCH v2 for v3.13 5/8] IB/uverbs: check comp_mask in destroy_flow
+Date: Mon,  2 Dec 2013 12:12:47 +0100
+Message-ID: <221a1e815abf34a6597b8c39cd4c8c03e53e939e.1385981934.git.ydroneaud@opteya.com>
 References: <cover.1385981934.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1385981934.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,46 +12,45 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u
 Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As noted by Daniel Vetter in its article "Botching up ioctls"[1]
+Just like the check added to create_flow in 22878dbc9173,
+comp_mask must be checked in destroy_flow too.
 
-  "Check *all* unused fields and flags and all the padding for
-   whether it's 0, and reject the ioctl if that's not the case.
-   Otherwise your nice plan for future extensions is going right
-   down the gutters since someone *will* submit an ioctl struct
-   with random stack garbage in the yet unused parts. Which then
-   bakes in the ABI that those fields can never be used for
-   anything else but garbage."
+Since only empty comp_mask is currently supported,
+any other value must be rejected.
 
-It's important to ensure that reserved fields are set to known
-value, so that it will be possible to use them latter to extend
-the ABI.
+This check was silently added in a previous patch[1] to move
+comp_mask in extended command header, part of previous patchset[2]
+against create/destroy_flow uverbs. The idea of moving comp_mask
+to the header was discarded for the final patchset[3].
 
-The same reasonning apply to comp_mask field present in newer
-uverbs command: per commit 22878dbc9173, unsupported values in
-comp_mask are rejected.
+Unfortunately the check added in destroy_flow uverb was not
+integrated in the final patchset.
 
-[1] http://blog.ffwll.ch/2013/11/botching-up-ioctls.html
+[1] http://marc.info/?i=40175eda10d670d098204da6aa4c327a0171ae5f.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+[2] http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+[3] http://marc.info/?i=cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 
 Link: http://marc.info/?i=cover.1385981934.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 3 +++
+ drivers/infiniband/core/uverbs_cmd.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 6c4fc6338b26..8652c13f6ea2 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -669,6 +669,9 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		if ((hdr.in_words + ex_hdr.provider_in_words) * 8 != count)
- 			return -EINVAL;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index d9d91c412628..f1ba441cd2ed 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2795,6 +2795,9 @@ int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
+ 	if (ret)
+ 		return ret;
  
-+		if (ex_hdr.cmd_hdr_reserved)
-+			return -EINVAL;
++	if (cmd.comp_mask)
++		return -EINVAL;
 +
- 		response = (char __user *)(unsigned long)ex_hdr.response;
- 
- 		if (response) {
+ 	uobj = idr_write_uobj(&ib_uverbs_rule_idr, cmd.flow_handle,
+ 			      file->ucontext);
+ 	if (!uobj)
 -- 
 1.8.4.2
 
