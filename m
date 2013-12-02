@@ -1,86 +1,58 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: IETF draft: RDMA Protocol Extensions
-Date: Mon, 02 Dec 2013 11:23:11 -0600
-Message-ID: <529CC1FF.7010101@opengridcomputing.com>
-References: <f1e78b8b394ddacf82f0358b1400e6d6@meuh.org>
+From: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 12/39] IB: remove DEFINE_PCI_DEVICE_TABLE macro
+Date: Tue, 03 Dec 2013 08:12:11 +0900
+Message-ID: <002101ceefb3$ee0ac230$ca204690$%han@samsung.com>
+References: <001501ceefb1$69c96820$3d5c3860$%han@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f1e78b8b394ddacf82f0358b1400e6d6-zgzEX58YAwA@public.gmane.org>
+In-reply-to: <001501ceefb1$69c96820$3d5c3860$%han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-language: ko
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Greg Kroah-Hartman' <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Jingoo Han' <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, 'Roland Dreier' <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Samuel Iglesias Gonsalvez' <siglesias-wEGTBA9jqPzQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/29/2013 4:16 AM, Yann Droneaud wrote:
-> Hi,
->
-> I've just seen the following IETF drafts:
->
-> - "RDMA Protocol Extensions", draft-ietf-storm-rdmap-ext-08.txt, by
-> Hemal Shah, Felix Marti, Wael Noureddine, Asgeir Eiriksson and Robert 
-> Sharp:
->
-> http://tools.ietf.org/html/draft-ietf-storm-rdmap-ext-08
->
-> "Abstract
->
->    This document specifies extensions to the IETF Remote Direct Memory
->    Access Protocol (RDMAP [RFC5040]). RDMAP provides read and write
->    services directly to applications and enables data to be transferred
->    directly into Upper Layer Protocol (ULP) Buffers without
->    intermediate data copies. The extensions specified in this document
->    provide the following capabilities and/or improvements: Atomic
->    Operations and Immediate Data."
-> "
->
-> 5. Atomic Operations
-> http://tools.ietf.org/html/draft-ietf-storm-rdmap-ext-08#section-5
->
-> 6. Immediate Data
-> http://tools.ietf.org/html/draft-ietf-storm-rdmap-ext-08#section-6
->
-> - "RDMA Protocol Extensions V2", draft-wood-storm-rdmap-ext-v2-00.txt, by
-> Donald Wood, Robert Sharp and Kenneth Keels:
->
-> http://tools.ietf.org/html/draft-wood-storm-rdmap-ext-v2-00
->
-> "
-> Abstract
->
->    This document specifies extensions to the IETF Remote Direct Memory
->    Access Protocol and RDMA Protocol Extensions. RDMAP provides read
->    and write services directly to applications and enables data to be
->    transferred directly into Upper Layer Protocol (ULP) Buffers without
->    intermediate data copies. The extensions specified in this document
->    provide the following capabilities and/or improvements to eliminate
->    application visible differences with other RDMA technologies: Send
->    with Immediate Data Operations and a new form of RDMA Read
->    Operation.
-> "
->
-> 5. Send with Immediate Data Operations:
-> http://tools.ietf.org/html/draft-wood-storm-rdmap-ext-v2-00#section-5
->
-> 6. RDMA Read V2:
-> http://tools.ietf.org/html/draft-wood-storm-rdmap-ext-v2-00#section-6
->
-> Is there someone involved in these drafts on the list that could explain
-> how it will impact Linux RDMA implementation ?
->
+Don't use DEFINE_PCI_DEVICE_TABLE macro, because this macro
+is not preferred.
 
-Any iWARP providers that support these will be impacted probably in 
-device-specific ways in order to support these new operations.   The 
-core iwcm might be impacted, but I can't think of how it would be at 
-this point.  I wouldn't think any other core modules will be impacted.
+Signed-off-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c    |    2 +-
+ drivers/infiniband/hw/qib/qib_init.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Probably we'll have to come up with some way to allow applications to 
-know whether the device supports these features.  Currently most 
-applications key on the transport type to decide about whether these 
-features are supported or not.  We should allow them to key on the 
-feature support instead perhaps.
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 3065341..8d021f3 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1484,7 +1484,7 @@ static void remove_one(struct pci_dev *pdev)
+ 	ib_dealloc_device(&dev->ib_dev);
+ }
+ 
+-static DEFINE_PCI_DEVICE_TABLE(mlx5_ib_pci_table) = {
++static const struct pci_device_id mlx5_ib_pci_table[] = {
+ 	{ PCI_VDEVICE(MELLANOX, 4113) }, /* MT4113 Connect-IB */
+ 	{ 0, }
+ };
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 24e802f..fcd322c 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -1184,7 +1184,7 @@ static int qib_init_one(struct pci_dev *, const struct pci_device_id *);
+ #define DRIVER_LOAD_MSG "Intel " QIB_DRV_NAME " loaded: "
+ #define PFX QIB_DRV_NAME ": "
+ 
+-static DEFINE_PCI_DEVICE_TABLE(qib_pci_tbl) = {
++static const struct pci_device_id qib_pci_tbl[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_PATHSCALE, PCI_DEVICE_ID_QLOGIC_IB_6120) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_QLOGIC, PCI_DEVICE_ID_QLOGIC_IB_7220) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_QLOGIC, PCI_DEVICE_ID_QLOGIC_IB_7322) },
+-- 
+1.7.10.4
 
-Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
