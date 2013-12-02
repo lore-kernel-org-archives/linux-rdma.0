@@ -1,54 +1,79 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for v3.13 8/8] IB/uverbs: check access to userspace response buffer in extended command
-Date: Mon,  2 Dec 2013 12:12:50 +0100
-Message-ID: <6e858490596722a55c648abd8add25cd6343e0cf.1385981934.git.ydroneaud@opteya.com>
-References: <cover.1385981934.git.ydroneaud@opteya.com>
+From: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [PATCH] iser-target: fix error return code in
+ isert_create_device_ib_res()
+Date: Mon, 2 Dec 2013 15:00:14 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1312021459400.24931@pobox.suse.cz>
+References: <CAPgLHd8eEFhMyfieCULgj+OzCRrTMN9G60pAvTP0+zOhBeK=qw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1385981934.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.1385981934.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-References: <cover.1385981934.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAPgLHd8eEFhMyfieCULgj+OzCRrTMN9G60pAvTP0+zOhBeK=qw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Just like vfs_read(), uverbs_write() must check output buffer
-(eg. response) with access_ok(VERIFY_WRITE,...) to ensure
-it's in userspace memory before using the pointer in uverbs
-functions.
+On Tue, 29 Oct 2013, Wei Yongjun wrote:
 
-If the buffer or a subset of the buffer is not valid,
-returns -EFAULT.
+> From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+> 
+> Fix to return a negative error code from the error handling
+> case instead of 0, as done elsewhere in this function.
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-Note: there's no need to check input buffer (eg. command)
-since vfs_write() does the check access_ok(VERIFY_READ, ...)
-as part of write() syscall.
+This one has been sitting in my queue for quite some time, but I'd like 
+the actual infiniband maintainers to be acted upon by.
 
-Link: http://marc.info/?i=cover.1385981934.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/uverbs_main.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Roland, please?
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 8652c13f6ea2..0be1dd86f768 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -677,6 +677,11 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		if (response) {
- 			if (!hdr.out_words && !ex_hdr.provider_out_words)
- 				return -EINVAL;
-+
-+			if (!access_ok(VERIFY_WRITE,
-+				       response,
-+				       (hdr.out_words + ex_hdr.provider_out_words) * 8))
-+				return -EFAULT;
- 		} else {
- 			if (hdr.out_words || ex_hdr.provider_out_words)
- 				return -EINVAL;
+> ---
+>  drivers/infiniband/ulp/isert/ib_isert.c | 16 ++++++++++++----
+>  1 file changed, 12 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+> index 6df2350..2ba71c0 100644
+> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+> @@ -263,21 +263,29 @@ isert_create_device_ib_res(struct isert_device *device)
+>  						isert_cq_event_callback,
+>  						(void *)&cq_desc[i],
+>  						ISER_MAX_RX_CQ_LEN, i);
+> -		if (IS_ERR(device->dev_rx_cq[i]))
+> +		if (IS_ERR(device->dev_rx_cq[i])) {
+> +			ret = PTR_ERR(device->dev_rx_cq[i]);
+> +			device->dev_rx_cq[i] = NULL;
+>  			goto out_cq;
+> +		}
+>  
+>  		device->dev_tx_cq[i] = ib_create_cq(device->ib_device,
+>  						isert_cq_tx_callback,
+>  						isert_cq_event_callback,
+>  						(void *)&cq_desc[i],
+>  						ISER_MAX_TX_CQ_LEN, i);
+> -		if (IS_ERR(device->dev_tx_cq[i]))
+> +		if (IS_ERR(device->dev_tx_cq[i])) {
+> +			ret = PTR_ERR(device->dev_tx_cq[i]);
+> +			device->dev_tx_cq[i] = NULL;
+>  			goto out_cq;
+> +		}
+>  
+> -		if (ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP))
+> +		ret = ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP);
+> +		if (ret)
+>  			goto out_cq;
+>  
+> -		if (ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP))
+> +		ret = ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP);
+> +		if (ret)
+>  			goto out_cq;
+>  	}
+>  
+> 
+
 -- 
-1.8.4.2
-
+Jiri Kosina
+SUSE Labs
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
