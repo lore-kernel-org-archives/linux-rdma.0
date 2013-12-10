@@ -1,63 +1,43 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH for-next] mlx4_core: Roll back round robin bitmap
- allocation commit for CQs, SRQs, and MPTs
-Date: Mon, 09 Dec 2013 21:12:33 -0500 (EST)
-Message-ID: <20131209.211233.415056494606198185.davem@davemloft.net>
-References: <1386514217-23739-1-git-send-email-ogerlitz@mellanox.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH V2 2/4] IB/usnic: Cisco VIC - driver part 1/3
+Date: Tue, 10 Dec 2013 13:14:06 -0800
+Message-ID: <CAL1RGDXh1yUk1p9gXC9DztpF4X8XbvHAxqZudwCSLa1xtBvr8w@mail.gmail.com>
+References: <47A33601BBFF7E4B8F0D5D0C96F3022C013CF35A@xmb-rcd-x09.cisco.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1386514217-23739-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <47A33601BBFF7E4B8F0D5D0C96F3022C013CF35A-nsZYYkk5h5QoZIgnCEkqtaBKnGwkPULj@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Christian Benvenuti (benve)" <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Sun,  8 Dec 2013 16:50:17 +0200
+On Mon, Sep 9, 2013 at 8:38 PM, Upinder Malhi (umalhi) <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
+> +/*TODO: Future - usnic_modify_qp needs to pass in generic filters */
+> +struct usnic_ib_create_qp_resp {
+> +       u32                             vfid;
+> +       u32                             qp_grp_id;
+> +       u64                             bar_bus_addr;
+> +       u32                             bar_len;
+> +/*
+> + * WQ, RQ, CQ are explicity specified bc exposing a generic resources inteface
+> + * expands the scope of ABI to many files.
+> + */
+> +       u32                             wq_cnt;
+> +       u32                             rq_cnt;
+> +       u32                             cq_cnt;
+> +       u32                             wq_idx[USNIC_QP_GRP_MAX_WQS];
+> +       u32                             rq_idx[USNIC_QP_GRP_MAX_RQS];
+> +       u32                             cq_idx[USNIC_QP_GRP_MAX_CQS];
+> +       u32                             transport;
 
-> From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> 
-> Commit f4ec9e9 "mlx4_core: Change bitmap allocator to work in round-robin fashion" 
-> introduced round-robin allocation (via bitmap) for all resources which allocate 
-> via a bitmap.
-> 
-> Round robin allocation is desirable for mcgs, counters, pd's, UARs, and xrcds.
-> These are simply numbers, with no involvement of ICM memory mapping.
-> 
-> Round robin is required for QPs, since we had a problem with immediate
-> reuse of a 24-bit QP number (commit f4ec9e9).
-> 
-> However, for other resources which use the bitmap allocator and involve
-> mapping ICM memory -- MPTs, CQs, SRQs -- round-robin is not desirable.
-> 
-> What happens in these cases is the following:
-> 
-> ICM memory is allocated and mapped in chunks of 256K.
-> 
-> Since the resource allocation index goes up monotonically, the allocator
-> will eventually require mapping a new chunk. Now, chunks are also unmapped
-> when their reference count goes back to zero.  Thus, if a single app is
-> running and starts/exits frequently we will have the following situation:
-> 
-> When the app starts, a new chunk must be allocated and mapped.
-> 
-> When the app exits, the chunk reference count goes back to zero, and the
-> chunk is unmapped and freed. Therefore, the app must pay the cost of allocation
-> and mapping of ICM memory each time it runs (although the price is paid only when
-> allocating the initial entry in the new chunk).
-> 
-> For apps which allocate MPTs/SRQs/CQs and which operate as described above,
-> this presented a performance problem.
-> 
-> We therefore roll back the round-robin allocator modification for MPTs, CQs, SRQs.
-> 
-> Reported-by: Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Unless I'm misreading this, the u64 reserved field will have different
+alignment on platforms that align u64 to 4 bytes (eg 32-bit x86) and
+to 8 bytes (eg 64-bit x86) which means you'll have problems running
+32-bit userspace on a 64-bit kernel.
 
-Applied, thanks.
+> +       u64                             reserved;
+> +};
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
