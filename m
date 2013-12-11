@@ -1,7 +1,7 @@
 From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: re: IB/usnic: Add Cisco VIC low-level hardware driver
-Date: Thu, 12 Dec 2013 01:40:19 +0300
-Message-ID: <20131211224019.GC3955@elgon.mountain>
+Date: Thu, 12 Dec 2013 01:43:30 +0300
+Message-ID: <20131211224330.GD3955@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -14,43 +14,29 @@ List-Id: linux-rdma@vger.kernel.org
 Hello Upinder Malhi,
 
 The patch b1819c455542: "IB/usnic: Add Cisco VIC low-level hardware
-driver" from Sep 10, 2013, leads to the following Smatch
+driver" from Sep 10, 2013, leads to the following static checker
 warning:
-	drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c:467
-	usnic_ib_qp_grp_create()
-	error: scheduling with locks held: 'spin_lock:lock'
+	drivers/infiniband/hw/usnic/usnic_ib_verbs.c:114
+	usnic_ib_fill_create_qp_resp()
+	warn: check that 'resp' doesn't leak information (struct has
+	a hole after 'transport')
 
-drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-   449          BUG_ON(!spin_is_locked(&vf->lock));
-                        ^^^^^^^^^^^^^^^^^^^^^^^^
-Holding lock.
-Don't call BUG_ON(), use WARN_ON()?
+drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+   109          WARN_ON(chunk->type != USNIC_VNIC_RES_TYPE_CQ);
+   110          resp.cq_cnt = chunk->cnt;
+   111          for (i = 0; i < chunk->cnt; i++)
+   112                  resp.cq_idx[i] = chunk->res[i]->vnic_idx;
+   113  
+   114          err = ib_copy_to_udata(udata, &resp, sizeof(resp));
+                                              ^^^^^
+The "resp" struct has a struct hole and uninitialized struct members so
+it leaks uninitialized stack information to the user (information
+disclosure security bug).
 
-   450  
-   451          err = usnic_vnic_res_spec_satisfied(&min_transport_spec[transport],
-   452                                                  res_spec);
-   453          if (err) {
-   454                  usnic_err("Spec does not meet miniumum req for transport %d\n",
-   455                                  transport);
-   456                  log_spec(res_spec);
-   457                  return ERR_PTR(err);
-   458          }
-   459  
-   460          port_num = usnic_transport_rsrv_port(transport, 0);
-   461          if (!port_num) {
-   462                  usnic_err("Unable to allocate port for %s\n",
-   463                                  netdev_name(ufdev->netdev));
-   464                  return ERR_PTR(-EINVAL);
-   465          }
-   466  
-   467          qp_grp = kzalloc(sizeof(*qp_grp), GFP_KERNEL);
-                                                  ^^^^^^^^^^
-Sleeping allocation.
-
-   468          if (!qp_grp) {
-   469                  usnic_err("Unable to alloc qp_grp - Out of memory\n");
-   470                  return NULL;
-   471          }
+   115          if (err) {
+   116                  usnic_err("Failed to copy udata for %s", us_ibdev->ib_dev.name);
+   117                  return err;
+   118          }
 
 regards,
 dan carpenter
