@@ -1,36 +1,62 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when
- modifying QP
-Date: Wed, 11 Dec 2013 09:59:49 -0800
-Message-ID: <CAG4TOxMgHuC=rzB+8stotaeKqwxipz06s_B2zogMMqNn3ZWTOA@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH opensm] osm_sa_path_record.c: path_sl may return SL different
+ from requested SL
+Date: Wed, 11 Dec 2013 13:36:20 -0500
+Message-ID: <52A8B0A4.9040402@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 19, 2013 at 8:09 PM, Devesh Sharma <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
-> Hi Roland,
->
-> I agree with Or. RDMA-CM takes care of resolving l2 addresses for kernel ULP and there are no _non-rdma-cm_ ULP right now in the IB-kernel-stack. On the other hand, for the user-space applications, which uses RDMA-CM V5 is a simplified approach. All the patches =< v4 was an effort to change RDMA-CM and it changed entire user/kernel interface of rdma-cm and verbs, this was not acceptable.
->
-> With V5 patch-set I still have a concern about those user apps which does not use rdma-cm (e.g. ib_send_bw without -R option) how DMAC and SMAC will be resolved?
+From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-OK, I guess I'm still confused.  Do we have two ways of resolving
-addresses, one way for consumers that use the RDMA CM and another way
-for consumers that don't?  Does that mean we end up having two
-different paths through core verbs?  Even if we put address resolution
-in uverbs, how do user apps that *do* use librdmacm work?
+Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_sa_path_record.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
 
-Also the statement that there are no non-rdma-cm consumers in the
-kernel is definitely false -- the SRP initiator does not use IP
-addressing, and it does seem like a legitimate and useful application
-to run SRP over ethernet.
+diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
+index d2ff93b..8384ece 100644
+--- a/opensm/osm_sa_path_record.c
++++ b/opensm/osm_sa_path_record.c
+@@ -839,10 +839,28 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	 * send the currently computed SL value as a hint and let the routing
+ 	 * engine override it.
+ 	 */
+-	if (p_re && p_re->path_sl)
++	if (p_re && p_re->path_sl) {
++		uint8_t pr_sl;
++		pr_sl = sl;
++
+ 		sl = p_re->path_sl(p_re->context, sl,
+ 				   cl_hton16(src_lid_ho), cl_hton16(dest_lid_ho));
+ 
++		if ((comp_mask & IB_PR_COMPMASK_SL) && (sl != pr_sl)) {
++			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F2A: "
++				"Requested SL (%u) doesn't match SL calculated"
++				"by routing engine (%u) "
++				"[%s port %d <-> %s port %d]\n",
++				pr_sl,
++				sl,
++				p_src_alias_guid->p_base_port->p_node->print_desc,
++				p_src_alias_guid->p_base_port->p_physp->port_num,
++				p_dest_alias_guid->p_base_port->p_node->print_desc,
++				p_dest_alias_guid->p_base_port->p_physp->port_num);
++			status = IB_NOT_FOUND;
++			goto Exit;
++		}
++	}
+ 	/* reset pkey when raw traffic */
+ 	if (comp_mask & IB_PR_COMPMASK_RAWTRAFFIC &&
+ 	    cl_ntoh32(p_pr->hop_flow_raw) & (1 << 31))
+-- 
+1.7.8.2
 
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
