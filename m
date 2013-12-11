@@ -1,305 +1,114 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 3/3] scsi_transport_srp: Add rport state diagram
-Date: Wed, 11 Dec 2013 17:08:43 +0100
-Message-ID: <52A88E0B.5050600@acm.org>
-References: <52A88CF9.206@acm.org>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 00/10] Introduce Signature feature
+Date: Wed, 11 Dec 2013 19:26:17 +0200
+Message-ID: <CAJZOPZLctOXBJN596gr5sCWQ8F=QQPJ_9VpoZmMhJVc2XwS9qA@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237388D031C4@ORSMSX109.amr.corp.intel.com>
+	<52847BF8.60401@mellanox.com>
+	<1828884A29C6694DAF28B7E6B8A8237388D0463F@ORSMSX109.amr.corp.intel.com>
+	<CAJZOPZLpy8a-uUFhT+bvzd51T7jyV0Osdpz-Muc-1q0du7td3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020708080506060601090809"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52A88CF9.206-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <CAJZOPZLpy8a-uUFhT+bvzd51T7jyV0Osdpz-Muc-1q0du7td3Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, James Bottomley <JBottomley-MU7nAjRaF3makBO8gow8eQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020708080506060601090809
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Thu, Nov 14, 2013 at 10:11 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Nov 14, 2013 at 9:03 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>>> To begin with T10 DIF **is** industry standard, which is to be used in
+>>> production storage systems, the feature here is T10 DIF acceleration for
+>>> upstream kernel storage drivers such as iSER/SRP/FCoE initiator/targets
+>>> that use RDMA and are included in commercial distributions which are
+>>> used by customers. Note that this/similar feature is supported by some
+>>> FC cards too, so we want RDMA to be competitive.
+>
+>> I wasn't talking about whether T10 DIF is a standard.  I was talking about *how* it is exposed through verbs.  That 'how' is what's vendor specific.  The same is true of flow steering, SRQ is standard but IB specific, the same with XRC - which was vendor specific first then standardized, the IP CSUM send flag is vendor specific, 'fast' registration is vendor specific...
+>
+> Again, for T10 we claim that nothing in how its exposed through the
+> proposed verbs is specific to vendor (e.g Mellanox) or to a specific
+> hardware brand (e.g ConnectIB) of a vendor, and if you think
+> otherwise, we'll love to hear that.
 
-Add a diagram in Documentation/scsi/scsi_transport_srp that
-illustrates the rport state transitions.
+Hi Roland, these patches are in the air for two months (V0 posted Oct
+15th http://marc.info/?l=linux-rdma&m=138185152212490&w=2)
+and not a word from you. Sean raised some concerns for which we
+replied in detail and we'd like to get your maintainer say, 3.14 is
+coming
+closer, if something needs to be changed/fixed we need to know that
+asap so there's enough time to do that  for 3.14, if its helps
+this is the V3 thread with the latest discussion
+http://marc.info/?t=138383972100009&r=1&w=2 , we have some minor fixes
+which
+can be posted in the form of V4, but I don't see the point to do that
+before we get any feedback from you on the current debate.
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sebastian Riemer <sebastian.riemer-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: James Bottomley <JBottomley-MU7nAjRaF3makBO8gow8eQ@public.gmane.org>
----
- Documentation/scsi/scsi_transport_srp/Makefile     |  7 ++++++
- .../scsi_transport_srp/rport_state_diagram.dot     | 26 ++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
- create mode 100644 Documentation/scsi/scsi_transport_srp/Makefile
- create mode 100644 Documentation/scsi/scsi_transport_srp/rport_state_diagram.dot
-
-diff --git a/Documentation/scsi/scsi_transport_srp/Makefile b/Documentation/scsi/scsi_transport_srp/Makefile
-new file mode 100644
-index 0000000..5f6b567
---- /dev/null
-+++ b/Documentation/scsi/scsi_transport_srp/Makefile
-@@ -0,0 +1,7 @@
-+all: rport_state_diagram.svg rport_state_diagram.png
-+
-+rport_state_diagram.svg: rport_state_diagram.dot
-+	dot -Tsvg -o $@ $<
-+
-+rport_state_diagram.png: rport_state_diagram.dot
-+	dot -Tpng -o $@ $<
-diff --git a/Documentation/scsi/scsi_transport_srp/rport_state_diagram.dot b/Documentation/scsi/scsi_transport_srp/rport_state_diagram.dot
-new file mode 100644
-index 0000000..75d610d
---- /dev/null
-+++ b/Documentation/scsi/scsi_transport_srp/rport_state_diagram.dot
-@@ -0,0 +1,26 @@
-+digraph srp_initiator {
-+	node [shape = doublecircle]; running lost;
-+	node [shape = circle];
-+
-+	{
-+	  rank = min;
-+	  running_rta	[ label = "running;\nreconnect\ntimer\nactive" ];
-+	};
-+	running		[ label = "running;\nreconnect\ntimer\nstopped" ];
-+	blocked;
-+	failfast	[ label = "fail I/O\nfast" ];
-+	lost;
-+
-+	running -> running_rta		[ label = "fast_io_fail_tmo = off and\ndev_loss_tmo = off;\nsrp_start_tl_fail_timers()" ];
-+	running_rta -> running		[ label = "fast_io_fail_tmo = off and\ndev_loss_tmo = off;\nreconnecting succeeded" ];
-+	running -> blocked		[ label = "fast_io_fail_tmo >= 0 or\ndev_loss_tmo >= 0;\nsrp_start_tl_fail_timers()" ];
-+	running -> failfast		[ label = "fast_io_fail_tmo = off and\ndev_loss_tmo = off;\nreconnecting failed\n" ];
-+	blocked -> failfast		[ label = "fast_io_fail_tmo\nexpired or\nreconnecting\nfailed" ];
-+	blocked -> lost			[ label = "dev_loss_tmo\nexpired or\nsrp_stop_rport_timers()" ];
-+	failfast -> lost		[ label = "dev_loss_tmo\nexpired or\nsrp_stop_rport_timers()" ];
-+	blocked -> running		[ label = "reconnecting\nsucceeded" ];
-+	failfast -> failfast		[ label = "reconnecting\nfailed" ];
-+	failfast -> running		[ label = "reconnecting\nsucceeded" ];
-+	running -> lost			[ label = "srp_stop_rport_timers()" ];
-+	running_rta -> lost		[ label = "srp_stop_rport_timers()" ];
-+}
--- 
-1.8.1.4
+Or.
 
 
---------------020708080506060601090809
-Content-Type: image/svg+xml;
- name="rport_state_diagram.svg"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="rport_state_diagram.svg"
-
-PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+
-CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIKICJodHRw
-Oi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPgo8IS0tIEdl
-bmVyYXRlZCBieSBncmFwaHZpeiB2ZXJzaW9uIDIuMjguMCAoMjAxMzA5MjcuMTEwOSkKIC0t
-Pgo8IS0tIFRpdGxlOiBzcnBfaW5pdGlhdG9yIFBhZ2VzOiAxIC0tPgo8c3ZnIHdpZHRoPSI3
-MjFwdCIgaGVpZ2h0PSI3ODZwdCIKIHZpZXdCb3g9IjAuMDAgMC4wMCA3MjEuMjAgNzg2LjAw
-IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRw
-Oi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KPGcgaWQ9ImdyYXBoMSIgY2xhc3M9ImdyYXBo
-IiB0cmFuc2Zvcm09InNjYWxlKDEgMSkgcm90YXRlKDApIHRyYW5zbGF0ZSg0IDc4MikiPgo8
-dGl0bGU+c3JwX2luaXRpYXRvcjwvdGl0bGU+Cjxwb2x5Z29uIGZpbGw9IndoaXRlIiBzdHJv
-a2U9IndoaXRlIiBwb2ludHM9Ii00LDUgLTQsLTc4MiA3MTguMjAzLC03ODIgNzE4LjIwMyw1
-IC00LDUiLz4KPCEtLSBydW5uaW5nIC0tPgo8ZyBpZD0ibm9kZTEiIGNsYXNzPSJub2RlIj48
-dGl0bGU+cnVubmluZzwvdGl0bGU+CjxlbGxpcHNlIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxh
-Y2siIGN4PSIyMjEuMjAzIiBjeT0iLTUzNiIgcng9IjUxLjQ0MTUiIHJ5PSI1MS43MjkzIi8+
-CjxlbGxpcHNlIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIGN4PSIyMjEuMjAzIiBjeT0i
-LTUzNiIgcng9IjU1LjQyNzgiIHJ5PSI1NS43Mzc4Ii8+Cjx0ZXh0IHRleHQtYW5jaG9yPSJt
-aWRkbGUiIHg9IjIyMS4yMDMiIHk9Ii01NTQuOCIgZm9udC1mYW1pbHk9IlRpbWVzLHNlcmlm
-IiBmb250LXNpemU9IjE0LjAwIj5ydW5uaW5nOzwvdGV4dD4KPHRleHQgdGV4dC1hbmNob3I9
-Im1pZGRsZSIgeD0iMjIxLjIwMyIgeT0iLTUzOS44IiBmb250LWZhbWlseT0iVGltZXMsc2Vy
-aWYiIGZvbnQtc2l6ZT0iMTQuMDAiPnJlY29ubmVjdDwvdGV4dD4KPHRleHQgdGV4dC1hbmNo
-b3I9Im1pZGRsZSIgeD0iMjIxLjIwMyIgeT0iLTUyNC44IiBmb250LWZhbWlseT0iVGltZXMs
-c2VyaWYiIGZvbnQtc2l6ZT0iMTQuMDAiPnRpbWVyPC90ZXh0Pgo8dGV4dCB0ZXh0LWFuY2hv
-cj0ibWlkZGxlIiB4PSIyMjEuMjAzIiB5PSItNTA5LjgiIGZvbnQtZmFtaWx5PSJUaW1lcyxz
-ZXJpZiIgZm9udC1zaXplPSIxNC4wMCI+c3RvcHBlZDwvdGV4dD4KPC9nPgo8IS0tIGxvc3Qg
-LS0+CjxnIGlkPSJub2RlMiIgY2xhc3M9Im5vZGUiPjx0aXRsZT5sb3N0PC90aXRsZT4KPGVs
-bGlwc2UgZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgY3g9IjIwMS4yMDMiIGN5PSItMjgi
-IHJ4PSIyNC4wNjg0IiByeT0iMjQuMDg5Ii8+CjxlbGxpcHNlIGZpbGw9Im5vbmUiIHN0cm9r
-ZT0iYmxhY2siIGN4PSIyMDEuMjAzIiBjeT0iLTI4IiByeD0iMjguMDcxOCIgcnk9IjI4LjA5
-NTgiLz4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMjAxLjIwMyIgeT0iLTI0LjMi
-IGZvbnQtZmFtaWx5PSJUaW1lcyxzZXJpZiIgZm9udC1zaXplPSIxNC4wMCI+bG9zdDwvdGV4
-dD4KPC9nPgo8IS0tIHJ1bm5pbmcmIzQ1OyZndDtsb3N0IC0tPgo8ZyBpZD0iZWRnZTIzIiBj
-bGFzcz0iZWRnZSI+PHRpdGxlPnJ1bm5pbmcmIzQ1OyZndDtsb3N0PC90aXRsZT4KPHBhdGgg
-ZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgZD0iTTE2NS45NjcsLTUzMC44MDhDMTE5LjYx
-MiwtNTI0LjEwNSA1NS43NDYzLC01MDYuNzYyIDIyLjIwMzMsLTQ2MiAtMjEuNjA0MiwtNDAz
-LjU0IDEzLjY0OTEsLTM3MS4wMTIgMTEuMjAzMywtMjk4IDEwLjMxMDUsLTI3MS4zNDggMS44
-MDI0MiwtMjYyLjk1NSAxMS4yMDMzLC0yMzggNDUuMzk4NywtMTQ3LjIyOCA4OC40ODYzLC0x
-NDQuNDEgMTU1LjIwMywtNzQgMTYxLjE2OCwtNjcuNzA0OSAxNjcuNzQ1LC02MS4wOSAxNzQu
-MDE0LC01NC45Mjc5Ii8+Cjxwb2x5Z29uIGZpbGw9ImJsYWNrIiBzdHJva2U9ImJsYWNrIiBw
-b2ludHM9IjE3Ni40NTgsLTU3LjQzNCAxODEuMTc4LC00Ny45NDg2IDE3MS41NzMsLTUyLjQy
-MDMgMTc2LjQ1OCwtNTcuNDM0Ii8+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9Ijc3
-LjcwMzMiIHk9Ii0yNjQuMyIgZm9udC1mYW1pbHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9
-IjE0LjAwIj5zcnBfc3RvcF9ycG9ydF90aW1lcnMoKTwvdGV4dD4KPC9nPgo8IS0tIHJ1bm5p
-bmdfcnRhIC0tPgo8ZyBpZD0ibm9kZTQiIGNsYXNzPSJub2RlIj48dGl0bGU+cnVubmluZ19y
-dGE8L3RpdGxlPgo8ZWxsaXBzZSBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBjeD0iMzky
-LjIwMyIgY3k9Ii03MjYiIHJ4PSI1MS40Mjc4IiByeT0iNTEuNzM3OSIvPgo8dGV4dCB0ZXh0
-LWFuY2hvcj0ibWlkZGxlIiB4PSIzOTIuMjAzIiB5PSItNzQ0LjgiIGZvbnQtZmFtaWx5PSJU
-aW1lcyxzZXJpZiIgZm9udC1zaXplPSIxNC4wMCI+cnVubmluZzs8L3RleHQ+Cjx0ZXh0IHRl
-eHQtYW5jaG9yPSJtaWRkbGUiIHg9IjM5Mi4yMDMiIHk9Ii03MjkuOCIgZm9udC1mYW1pbHk9
-IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5yZWNvbm5lY3Q8L3RleHQ+Cjx0ZXh0
-IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjM5Mi4yMDMiIHk9Ii03MTQuOCIgZm9udC1mYW1p
-bHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj50aW1lcjwvdGV4dD4KPHRleHQg
-dGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzkyLjIwMyIgeT0iLTY5OS44IiBmb250LWZhbWls
-eT0iVGltZXMsc2VyaWYiIGZvbnQtc2l6ZT0iMTQuMDAiPmFjdGl2ZTwvdGV4dD4KPC9nPgo8
-IS0tIHJ1bm5pbmcmIzQ1OyZndDtydW5uaW5nX3J0YSAtLT4KPGcgaWQ9ImVkZ2UzIiBjbGFz
-cz0iZWRnZSI+PHRpdGxlPnJ1bm5pbmcmIzQ1OyZndDtydW5uaW5nX3J0YTwvdGl0bGU+Cjxw
-YXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIGQ9Ik0yNzQuODczLC01NTAuMTUzQzMw
-Ny4zNDgsLTU2MC44OTcgMzQ2Ljg2NSwtNTc5LjQzNiAzNzAuMjAzLC02MTAgMzgxLjk2Nywt
-NjI1LjQwNyAzODguMDIsLTY0NS4yOTMgMzkwLjk4MywtNjY0LjE4MyIvPgo8cG9seWdvbiBm
-aWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgcG9pbnRzPSIzODcuNTMxLC02NjQuNzc3IDM5
-Mi4yOTcsLTY3NC4yNCAzOTQuNDcyLC02NjMuODcxIDM4Ny41MzEsLTY2NC43NzciLz4KPHRl
-eHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iNDYzLjIwMyIgeT0iLTY0NC4zIiBmb250LWZh
-bWlseT0iVGltZXMsc2VyaWYiIGZvbnQtc2l6ZT0iMTQuMDAiPmZhc3RfaW9fZmFpbF90bW8g
-PSBvZmYgYW5kPC90ZXh0Pgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSI0NjMuMjAz
-IiB5PSItNjI5LjMiIGZvbnQtZmFtaWx5PSJUaW1lcyxzZXJpZiIgZm9udC1zaXplPSIxNC4w
-MCI+ZGV2X2xvc3NfdG1vID0gb2ZmOzwvdGV4dD4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRs
-ZSIgeD0iNDYzLjIwMyIgeT0iLTYxNC4zIiBmb250LWZhbWlseT0iVGltZXMsc2VyaWYiIGZv
-bnQtc2l6ZT0iMTQuMDAiPnNycF9zdGFydF90bF9mYWlsX3RpbWVycygpPC90ZXh0Pgo8L2c+
-CjwhLS0gYmxvY2tlZCAtLT4KPGcgaWQ9Im5vZGU1IiBjbGFzcz0ibm9kZSI+PHRpdGxlPmJs
-b2NrZWQ8L3RpdGxlPgo8ZWxsaXBzZSBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBjeD0i
-MTYxLjIwMyIgY3k9Ii0zNTciIHJ4PSI0MC40MjAyIiByeT0iNDAuODkyOCIvPgo8dGV4dCB0
-ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSIxNjEuMjAzIiB5PSItMzUzLjMiIGZvbnQtZmFtaWx5
-PSJUaW1lcyxzZXJpZiIgZm9udC1zaXplPSIxNC4wMCI+YmxvY2tlZDwvdGV4dD4KPC9nPgo8
-IS0tIHJ1bm5pbmcmIzQ1OyZndDtibG9ja2VkIC0tPgo8ZyBpZD0iZWRnZTciIGNsYXNzPSJl
-ZGdlIj48dGl0bGU+cnVubmluZyYjNDU7Jmd0O2Jsb2NrZWQ8L3RpdGxlPgo8cGF0aCBmaWxs
-PSJub25lIiBzdHJva2U9ImJsYWNrIiBkPSJNMTY1Ljg1OCwtNTI5Ljg3NEMxMjIuMDM3LC01
-MjIuNTczIDYzLjQ5NDcsLTUwNC44NzkgMzQuMjAzMywtNDYyIDIyLjY3MTIsLTQ0NS4xMTgg
-MjMuMTUwMywtNDMzLjE5OSAzNC4yMDMzLC00MTYgNTEuMTg1LC0zODkuNTc2IDgzLjUxNjMs
-LTM3NS4wNDIgMTExLjMwNiwtMzY3LjEzMSIvPgo8cG9seWdvbiBmaWxsPSJibGFjayIgc3Ry
-b2tlPSJibGFjayIgcG9pbnRzPSIxMTIuNTE5LC0zNzAuNDMxIDEyMS4zMDIsLTM2NC41MDYg
-MTEwLjc0MSwtMzYzLjY2MSAxMTIuNTE5LC0zNzAuNDMxIi8+Cjx0ZXh0IHRleHQtYW5jaG9y
-PSJtaWRkbGUiIHg9IjEwMy43MDMiIHk9Ii00NTAuMyIgZm9udC1mYW1pbHk9IlRpbWVzLHNl
-cmlmIiBmb250LXNpemU9IjE0LjAwIj5mYXN0X2lvX2ZhaWxfdG1vICZndDs9IDAgb3I8L3Rl
-eHQ+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjEwMy43MDMiIHk9Ii00MzUuMyIg
-Zm9udC1mYW1pbHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5kZXZfbG9zc190
-bW8gJmd0Oz0gMDs8L3RleHQ+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjEwMy43
-MDMiIHk9Ii00MjAuMyIgZm9udC1mYW1pbHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0
-LjAwIj5zcnBfc3RhcnRfdGxfZmFpbF90aW1lcnMoKTwvdGV4dD4KPC9nPgo8IS0tIGZhaWxm
-YXN0IC0tPgo8ZyBpZD0ibm9kZTYiIGNsYXNzPSJub2RlIj48dGl0bGU+ZmFpbGZhc3Q8L3Rp
-dGxlPgo8ZWxsaXBzZSBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBjeD0iMzM2LjIwMyIg
-Y3k9Ii0xNzkiIHJ4PSIzOS45NTkzIiByeT0iNDAuMTExMSIvPgo8dGV4dCB0ZXh0LWFuY2hv
-cj0ibWlkZGxlIiB4PSIzMzYuMjAzIiB5PSItMTgyLjgiIGZvbnQtZmFtaWx5PSJUaW1lcyxz
-ZXJpZiIgZm9udC1zaXplPSIxNC4wMCI+ZmFpbCBJL088L3RleHQ+Cjx0ZXh0IHRleHQtYW5j
-aG9yPSJtaWRkbGUiIHg9IjMzNi4yMDMiIHk9Ii0xNjcuOCIgZm9udC1mYW1pbHk9IlRpbWVz
-LHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5mYXN0PC90ZXh0Pgo8L2c+CjwhLS0gcnVubmlu
-ZyYjNDU7Jmd0O2ZhaWxmYXN0IC0tPgo8ZyBpZD0iZWRnZTkiIGNsYXNzPSJlZGdlIj48dGl0
-bGU+cnVubmluZyYjNDU7Jmd0O2ZhaWxmYXN0PC90aXRsZT4KPHBhdGggZmlsbD0ibm9uZSIg
-c3Ryb2tlPSJibGFjayIgZD0iTTI1NC45NjcsLTQ5MS44OTZDMjYxLjEzLC00ODIuNDQ5IDI2
-Ni45NDcsLTQ3Mi4yMDggMjcxLjIwMywtNDYyIDI5Ni42MjksLTQwMS4wMTcgMjg0LjI5OCwt
-MzgwLjM2OCAyOTkuMjAzLC0zMTYgMzA2LjAyNiwtMjg2LjUzNyAzMTQuODg1LC0yNTMuODIz
-IDMyMi4yMjQsLTIyNy44NjUiLz4KPHBvbHlnb24gZmlsbD0iYmxhY2siIHN0cm9rZT0iYmxh
-Y2siIHBvaW50cz0iMzI1LjY4NiwtMjI4LjQ4NCAzMjUuMDU4LC0yMTcuOTA4IDMxOC45NTQs
-LTIyNi41NjggMzI1LjY4NiwtMjI4LjQ4NCIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxl
-IiB4PSIzNzMuMjAzIiB5PSItMzY4LjMiIGZvbnQtZmFtaWx5PSJUaW1lcyxzZXJpZiIgZm9u
-dC1zaXplPSIxNC4wMCI+ZmFzdF9pb19mYWlsX3RtbyA9IG9mZiBhbmQ8L3RleHQ+Cjx0ZXh0
-IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjM3My4yMDMiIHk9Ii0zNTMuMyIgZm9udC1mYW1p
-bHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5kZXZfbG9zc190bW8gPSBvZmY7
-PC90ZXh0Pgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSIzNzMuMjAzIiB5PSItMzM4
-LjMiIGZvbnQtZmFtaWx5PSJUaW1lcyxzZXJpZiIgZm9udC1zaXplPSIxNC4wMCI+cmVjb25u
-ZWN0aW5nIGZhaWxlZDwvdGV4dD4KPC9nPgo8IS0tIHJ1bm5pbmdfcnRhJiM0NTsmZ3Q7cnVu
-bmluZyAtLT4KPGcgaWQ9ImVkZ2U1IiBjbGFzcz0iZWRnZSI+PHRpdGxlPnJ1bm5pbmdfcnRh
-JiM0NTsmZ3Q7cnVubmluZzwvdGl0bGU+CjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxh
-Y2siIGQ9Ik0zNDEuMDksLTcxOS45NzdDMzAwLjI1NiwtNzEyLjk3IDI0NS41LC02OTYuMTg5
-IDIxOC4yMDMsLTY1NiAyMDcuMjI4LC02MzkuODQgMjA0Ljc2NiwtNjE5LjM5MSAyMDYuMDI4
-LC02MDAuMDIyIi8+Cjxwb2x5Z29uIGZpbGw9ImJsYWNrIiBzdHJva2U9ImJsYWNrIiBwb2lu
-dHM9IjIwOS41MTYsLTYwMC4zMTIgMjA3LjAwMSwtNTkwLjAyIDIwMi41NDksLTU5OS42MzQg
-MjA5LjUxNiwtNjAwLjMxMiIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSIyOTIu
-MjAzIiB5PSItNjQ0LjMiIGZvbnQtZmFtaWx5PSJUaW1lcyxzZXJpZiIgZm9udC1zaXplPSIx
-NC4wMCI+ZmFzdF9pb19mYWlsX3RtbyA9IG9mZiBhbmQ8L3RleHQ+Cjx0ZXh0IHRleHQtYW5j
-aG9yPSJtaWRkbGUiIHg9IjI5Mi4yMDMiIHk9Ii02MjkuMyIgZm9udC1mYW1pbHk9IlRpbWVz
-LHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5kZXZfbG9zc190bW8gPSBvZmY7PC90ZXh0Pgo8
-dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSIyOTIuMjAzIiB5PSItNjE0LjMiIGZvbnQt
-ZmFtaWx5PSJUaW1lcyxzZXJpZiIgZm9udC1zaXplPSIxNC4wMCI+cmVjb25uZWN0aW5nIHN1
-Y2NlZWRlZDwvdGV4dD4KPC9nPgo8IS0tIHJ1bm5pbmdfcnRhJiM0NTsmZ3Q7bG9zdCAtLT4K
-PGcgaWQ9ImVkZ2UyNSIgY2xhc3M9ImVkZ2UiPjx0aXRsZT5ydW5uaW5nX3J0YSYjNDU7Jmd0
-O2xvc3Q8L3RpdGxlPgo8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBkPSJNNDQy
-LjAzNCwtNzEzLjA1QzQ3NC40MDIsLTcwMi44OTIgNTE1LjI0OSwtNjg1LjE4MyA1NDEuMjAz
-LC02NTYgNTc4LjE5MSwtNjE0LjQxMSA1ODAuMjAzLC01OTIuNjU3IDU4MC4yMDMsLTUzNyA1
-ODAuMjAzLC01MzcgNTgwLjIwMywtNTM3IDU4MC4yMDMsLTE3OCA1ODAuMjAzLC05Mi40NDAx
-IDQ5Ny40MTYsLTEwNi4zMzggNDE4LjIwMywtNzQgMzU4LjM0OSwtNDkuNTY0OSAyODMuNTgx
-LC0zNy44MTk4IDIzOS4yNjIsLTMyLjYzMzIiLz4KPHBvbHlnb24gZmlsbD0iYmxhY2siIHN0
-cm9rZT0iYmxhY2siIHBvaW50cz0iMjM5LjU0MSwtMjkuMTQyNiAyMjkuMjE0LC0zMS41MDkx
-IDIzOC43NjMsLTM2LjA5OTIgMjM5LjU0MSwtMjkuMTQyNiIvPgo8dGV4dCB0ZXh0LWFuY2hv
-cj0ibWlkZGxlIiB4PSI2NDYuNzAzIiB5PSItMzUzLjMiIGZvbnQtZmFtaWx5PSJUaW1lcyxz
-ZXJpZiIgZm9udC1zaXplPSIxNC4wMCI+c3JwX3N0b3BfcnBvcnRfdGltZXJzKCk8L3RleHQ+
-CjwvZz4KPCEtLSBibG9ja2VkJiM0NTsmZ3Q7cnVubmluZyAtLT4KPGcgaWQ9ImVkZ2UxNyIg
-Y2xhc3M9ImVkZ2UiPjx0aXRsZT5ibG9ja2VkJiM0NTsmZ3Q7cnVubmluZzwvdGl0bGU+Cjxw
-YXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIGQ9Ik0xNzMuOTU1LC0zOTYuMDUxQzE4
-MC41NjgsLTQxNS43NDUgMTg4Ljc5MywtNDQwLjE3MiAxOTYuMjAzLC00NjIgMTk3LjQ3NSwt
-NDY1Ljc0NiAxOTguNzg2LC00NjkuNTk5IDIwMC4xMSwtNDczLjQ4NSIvPgo8cG9seWdvbiBm
-aWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgcG9pbnRzPSIxOTYuODczLC00NzQuODM1IDIw
-My40MTUsLTQ4My4xNjkgMjAzLjQ5OCwtNDcyLjU3NCAxOTYuODczLC00NzQuODM1Ii8+Cjx0
-ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIzMy43MDMiIHk9Ii00NDIuOCIgZm9udC1m
-YW1pbHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5yZWNvbm5lY3Rpbmc8L3Rl
-eHQ+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIzMy43MDMiIHk9Ii00MjcuOCIg
-Zm9udC1mYW1pbHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5zdWNjZWVkZWQ8
-L3RleHQ+CjwvZz4KPCEtLSBibG9ja2VkJiM0NTsmZ3Q7bG9zdCAtLT4KPGcgaWQ9ImVkZ2Ux
-MyIgY2xhc3M9ImVkZ2UiPjx0aXRsZT5ibG9ja2VkJiM0NTsmZ3Q7bG9zdDwvdGl0bGU+Cjxw
-YXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIGQ9Ik0xNTQuNDQ4LC0zMTYuNTQxQzE0
-OC4xNzIsLTI3Mi41MDYgMTQxLjUzNSwtMTk5LjM3NiAxNTQuMjAzLC0xMzggMTU5LjczMSwt
-MTExLjIyMiAxNzIuMTUzLC04Mi45MjIxIDE4Mi44MzksLTYxLjg3MDciLz4KPHBvbHlnb24g
-ZmlsbD0iYmxhY2siIHN0cm9rZT0iYmxhY2siIHBvaW50cz0iMTg2LjA4LC02My4yMjU5IDE4
-Ny41OTYsLTUyLjc0MDEgMTc5Ljg3MiwtNTkuOTkxOCAxODYuMDgsLTYzLjIyNTkiLz4KPHRl
-eHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMjIwLjcwMyIgeT0iLTE5MC4zIiBmb250LWZh
-bWlseT0iVGltZXMsc2VyaWYiIGZvbnQtc2l6ZT0iMTQuMDAiPmRldl9sb3NzX3RtbzwvdGV4
-dD4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMjIwLjcwMyIgeT0iLTE3NS4zIiBm
-b250LWZhbWlseT0iVGltZXMsc2VyaWYiIGZvbnQtc2l6ZT0iMTQuMDAiPmV4cGlyZWQgb3I8
-L3RleHQ+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjIyMC43MDMiIHk9Ii0xNjAu
-MyIgZm9udC1mYW1pbHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5zcnBfc3Rv
-cF9ycG9ydF90aW1lcnMoKTwvdGV4dD4KPC9nPgo8IS0tIGJsb2NrZWQmIzQ1OyZndDtmYWls
-ZmFzdCAtLT4KPGcgaWQ9ImVkZ2UxMSIgY2xhc3M9ImVkZ2UiPjx0aXRsZT5ibG9ja2VkJiM0
-NTsmZ3Q7ZmFpbGZhc3Q8L3RpdGxlPgo8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNr
-IiBkPSJNMTU2LjM3NSwtMzE2LjA4NEMxNTUuNjE1LC0yOTAuNDIzIDE1OS40MTksLTI1OC4y
-MTcgMTc5LjIwMywtMjM4IDIxMS43MDYsLTIwNC43ODYgMjM5LjQ5NiwtMjM4LjMyMyAyODIu
-MjAzLC0yMjAgMjg3LjU2MSwtMjE3LjcwMSAyOTIuODg0LC0yMTQuNzc2IDI5Ny45ODMsLTIx
-MS41NTciLz4KPHBvbHlnb24gZmlsbD0iYmxhY2siIHN0cm9rZT0iYmxhY2siIHBvaW50cz0i
-Mjk5Ljk5NSwtMjE0LjQyMSAzMDYuMzE3LC0yMDUuOTE5IDI5Ni4wNzMsLTIwOC42MjMgMjk5
-Ljk5NSwtMjE0LjQyMSIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSIyMjUuMjAz
-IiB5PSItMjg2LjgiIGZvbnQtZmFtaWx5PSJUaW1lcyxzZXJpZiIgZm9udC1zaXplPSIxNC4w
-MCI+ZmFzdF9pb19mYWlsX3RtbzwvdGV4dD4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIg
-eD0iMjI1LjIwMyIgeT0iLTI3MS44IiBmb250LWZhbWlseT0iVGltZXMsc2VyaWYiIGZvbnQt
-c2l6ZT0iMTQuMDAiPmV4cGlyZWQgb3I8L3RleHQ+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRk
-bGUiIHg9IjIyNS4yMDMiIHk9Ii0yNTYuOCIgZm9udC1mYW1pbHk9IlRpbWVzLHNlcmlmIiBm
-b250LXNpemU9IjE0LjAwIj5yZWNvbm5lY3Rpbmc8L3RleHQ+Cjx0ZXh0IHRleHQtYW5jaG9y
-PSJtaWRkbGUiIHg9IjIyNS4yMDMiIHk9Ii0yNDEuOCIgZm9udC1mYW1pbHk9IlRpbWVzLHNl
-cmlmIiBmb250LXNpemU9IjE0LjAwIj5mYWlsZWQ8L3RleHQ+CjwvZz4KPCEtLSBmYWlsZmFz
-dCYjNDU7Jmd0O3J1bm5pbmcgLS0+CjxnIGlkPSJlZGdlMjEiIGNsYXNzPSJlZGdlIj48dGl0
-bGU+ZmFpbGZhc3QmIzQ1OyZndDtydW5uaW5nPC90aXRsZT4KPHBhdGggZmlsbD0ibm9uZSIg
-c3Ryb2tlPSJibGFjayIgZD0iTTM2Ni43MDUsLTIwNS44NzRDNDExLjQzMSwtMjQ3LjA4IDQ4
-NS41NTEsLTMyOS45MSA0NDcuMjAzLC0zOTggNDEyLjUyOSwtNDU5LjU2OCAzMzcuNzg1LC00
-OTYuNjM5IDI4My43MywtNTE2LjQwNyIvPgo8cG9seWdvbiBmaWxsPSJibGFjayIgc3Ryb2tl
-PSJibGFjayIgcG9pbnRzPSIyODIuNDgxLC01MTMuMTM2IDI3NC4yMywtNTE5Ljc4MiAyODQu
-ODI1LC01MTkuNzMyIDI4Mi40ODEsLTUxMy4xMzYiLz4KPHRleHQgdGV4dC1hbmNob3I9Im1p
-ZGRsZSIgeD0iNDk0LjcwMyIgeT0iLTM2MC44IiBmb250LWZhbWlseT0iVGltZXMsc2VyaWYi
-IGZvbnQtc2l6ZT0iMTQuMDAiPnJlY29ubmVjdGluZzwvdGV4dD4KPHRleHQgdGV4dC1hbmNo
-b3I9Im1pZGRsZSIgeD0iNDk0LjcwMyIgeT0iLTM0NS44IiBmb250LWZhbWlseT0iVGltZXMs
-c2VyaWYiIGZvbnQtc2l6ZT0iMTQuMDAiPnN1Y2NlZWRlZDwvdGV4dD4KPC9nPgo8IS0tIGZh
-aWxmYXN0JiM0NTsmZ3Q7bG9zdCAtLT4KPGcgaWQ9ImVkZ2UxNSIgY2xhc3M9ImVkZ2UiPjx0
-aXRsZT5mYWlsZmFzdCYjNDU7Jmd0O2xvc3Q8L3RpdGxlPgo8cGF0aCBmaWxsPSJub25lIiBz
-dHJva2U9ImJsYWNrIiBkPSJNMzA5LjUzMiwtMTQ4LjU2MkMyODUuNDM3LC0xMjEuOTY5IDI1
-MC4yMjQsLTgzLjEwNDcgMjI2LjU0OSwtNTYuOTczOSIvPgo8cG9seWdvbiBmaWxsPSJibGFj
-ayIgc3Ryb2tlPSJibGFjayIgcG9pbnRzPSIyMjguOTA1LC01NC4zNjE1IDIxOS41OTcsLTQ5
-LjMwMDkgMjIzLjcxNywtNTkuMDYxNSAyMjguOTA1LC01NC4zNjE1Ii8+Cjx0ZXh0IHRleHQt
-YW5jaG9yPSJtaWRkbGUiIHg9IjM0Ny43MDMiIHk9Ii0xMDguMyIgZm9udC1mYW1pbHk9IlRp
-bWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5kZXZfbG9zc190bW88L3RleHQ+Cjx0ZXh0
-IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjM0Ny43MDMiIHk9Ii05My4zIiBmb250LWZhbWls
-eT0iVGltZXMsc2VyaWYiIGZvbnQtc2l6ZT0iMTQuMDAiPmV4cGlyZWQgb3I8L3RleHQ+Cjx0
-ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjM0Ny43MDMiIHk9Ii03OC4zIiBmb250LWZh
-bWlseT0iVGltZXMsc2VyaWYiIGZvbnQtc2l6ZT0iMTQuMDAiPnNycF9zdG9wX3Jwb3J0X3Rp
-bWVycygpPC90ZXh0Pgo8L2c+CjwhLS0gZmFpbGZhc3QmIzQ1OyZndDtmYWlsZmFzdCAtLT4K
-PGcgaWQ9ImVkZ2UxOSIgY2xhc3M9ImVkZ2UiPjx0aXRsZT5mYWlsZmFzdCYjNDU7Jmd0O2Zh
-aWxmYXN0PC90aXRsZT4KPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgZD0iTTM3
-My41NzksLTE5NC4zNkMzODUuMTMxLC0xOTQuMDUgMzk0LjIwMywtMTg4LjkzIDM5NC4yMDMs
-LTE3OSAzOTQuMjAzLC0xNzIuMTczIDM4OS45MTUsLTE2Ny42MiAzODMuNDgxLC0xNjUuMzQi
-Lz4KPHBvbHlnb24gZmlsbD0iYmxhY2siIHN0cm9rZT0iYmxhY2siIHBvaW50cz0iMzg0LjAy
-NywtMTYxLjg4MyAzNzMuNTc5LC0xNjMuNjQgMzgyLjg0MiwtMTY4Ljc4MiAzODQuMDI3LC0x
-NjEuODgzIi8+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjQzMS43MDMiIHk9Ii0x
-ODIuOCIgZm9udC1mYW1pbHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAwIj5yZWNv
-bm5lY3Rpbmc8L3RleHQ+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjQzMS43MDMi
-IHk9Ii0xNjcuOCIgZm9udC1mYW1pbHk9IlRpbWVzLHNlcmlmIiBmb250LXNpemU9IjE0LjAw
-Ij5mYWlsZWQ8L3RleHQ+CjwvZz4KPC9nPgo8L3N2Zz4K
---------------020708080506060601090809--
+>
+> As for the other examples (and yes it makes sense to chase them one by
+> one here even if we end up little lengthy):
+>
+> SRQ is for all IB cards and IB/IBoE are central enough in the RDMA
+> stack... such that even if (say) 5-10 features (and there are less)
+> features are IB/IBoE specific it makes sense to expose them through
+> the verbs API. We have device capabilities for that end, so the
+> ULP/Application never asks "hey, what vendor/card is that?" but rather
+> "is the driver supporting feature X?".
+>
+> As you said XRC was standardized through IBTA so nothing to bother.
+>
+> I don't see why you consider IP CSUM to be vendor specific. To compete
+> with any Ethernet card dated to the last 10 years, if IB HW vendor
+> wants to support TCP/IP networking ala IPoIB they pretty much need to
+> implement TCP/IP stateless offloads, namely TX/RX checksum, LSO and
+> RSS. And same goes for drivers that support RAW_PACKET Ethernet QP for
+> user space applications that offloads TCP/IP.
+>
+> Fast registration is all but vendor specific being part of both iWARP
+> and IB specs (see the BMME - Base Memory Management Extensions section
+> in the IBTA spec).
+>
+>
+>> I'm not suggesting that these features shouldn't exist, I'm just questioning if the goal of verbs should simply be to expose every hardware knob that a ULP can fiddle.  Maybe the answer is yes, but let's at least ask the question.
+>
+> Indeed some HW special knobs might not play well into verbs and in
+> that case the vendor might need to give them away or support them only
+> on prop. stacks or whatever solution we can think of, but not T10...
+>
+>> As a random, made up on the spot thought, what if IPoIB were architected so that there was a device specific component to it, instead of it pretending that some vendor feature exposed through verbs was a generic RDMA capability?  IPoIB acceleration features could still be used.
+>
+> Could be, IPoIB is there for almost ten years (since 2.6.12) and if we
+> don't make it to bring the driver into providing 56/100/200Gbs in the
+> next 1-2 years this could be nice out of the box direction to go to.
+>
+> But I don't think it applies to the T10 case, at least where it stands
+> now. Its a new feature whose related verbs are not tied to some
+> vendor, so lets get it in, and if after some time we see some
+> performance drawbacks who originate in the embedding into verbs, we
+> can do this possible breakdown you suggest.
+>
+>
+>>> This work is part of larger efforts which are done nowadays in other
+>>> parts of the kernel such as the block layer, the upstream kernel target
+>>> and more to support T10, its "just" the RDMA part.
+>
+>> How does the RDMA part tie into any of the other work being done in other parts of the kernel?
+>
+> T10 touches few areas in the storage stack, T10 && RDMA is when you
+> look on  SAN (Storage Area Networks) drivers. E.g in the same manner
+> that FC driver needs to play well with back-end storage drivers when
+> the FC code submits the the pages received from the network that
+> contain data and signature blocks into the block layer, RDMA has to do
+> that too. Since this area is under development and things need to play
+> well, there is interaction between the RDMA T10 developer to the
+> upstream SCSI target maintainer to folks which are involved with the
+> block layer and more storage drivers.
+>
+> Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
