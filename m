@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv3 for-3.13 4/9] IB/uverbs: check reserved field in extended command header
-Date: Wed, 11 Dec 2013 23:01:47 +0100
-Message-ID: <49b0607ea0a3e7bcc6333de36867f2dbd376650a.1386798254.git.ydroneaud@opteya.com>
+Subject: [PATCHv3 for-3.13 6/9] IB/uverbs: check reserved fields in create_flow
+Date: Wed, 11 Dec 2013 23:01:49 +0100
+Message-ID: <54a91f14383e6441fe209a37a324905a9467af56.1386798254.git.ydroneaud@opteya.com>
 References: <cover.1386798254.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -35,23 +35,34 @@ comp_mask are rejected.
 Link: http://marc.info/?i=cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/core/uverbs_cmd.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 6c4fc6338b26..8652c13f6ea2 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -669,6 +669,9 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		if ((hdr.in_words + ex_hdr.provider_in_words) * 8 != count)
- 			return -EINVAL;
- 
-+		if (ex_hdr.cmd_hdr_reserved)
-+			return -EINVAL;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index f1ba441cd2ed..dd1c5b6ab019 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2593,6 +2593,9 @@ out_put:
+ static int kern_spec_to_ib_spec(struct ib_uverbs_flow_spec *kern_spec,
+ 				union ib_flow_spec *ib_spec)
+ {
++	if (kern_spec->reserved)
++		return -EINVAL;
 +
- 		response = (char __user *)(unsigned long)ex_hdr.response;
+ 	ib_spec->type = kern_spec->type;
  
- 		if (response) {
+ 	switch (ib_spec->type) {
+@@ -2671,6 +2674,10 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 	    (cmd.flow_attr.num_of_specs * sizeof(struct ib_uverbs_flow_spec)))
+ 		return -EINVAL;
+ 
++	if (cmd.flow_attr.reserved[0] ||
++	    cmd.flow_attr.reserved[1])
++		return -EINVAL;
++
+ 	if (cmd.flow_attr.num_of_specs) {
+ 		kern_flow_attr = kmalloc(sizeof(*kern_flow_attr) + cmd.flow_attr.size,
+ 					 GFP_KERNEL);
 -- 
 1.8.4.2
 
