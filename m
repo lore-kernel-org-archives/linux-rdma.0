@@ -1,70 +1,89 @@
-From: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: Re: [EXTERNAL] [PATCH opensm] osm_sa_path_record.c: path_sl may return
- SL different from requested SL
-Date: Wed, 11 Dec 2013 12:29:43 -0700
-Message-ID: <52A8BD27.3020009@sandia.gov>
-References: <52A8B0A4.9040402@dev.mellanox.co.il>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH] iser-target: fix error return code in
+ isert_create_device_ib_res()
+Date: Wed, 11 Dec 2013 11:57:48 -0800
+Message-ID: <1386791868.20247.104.camel@haakon3.risingtidesystems.com>
+References: <CAPgLHd8eEFhMyfieCULgj+OzCRrTMN9G60pAvTP0+zOhBeK=qw@mail.gmail.com>
+	 <alpine.LNX.2.00.1312021459400.24931@pobox.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52A8B0A4.9040402-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.1312021459400.24931@pobox.suse.cz>
+Sender: target-devel-owner@vger.kernel.org
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Wei Yongjun <weiyj.lk@gmail.com>, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, vu@mellanox.com, sagig@mellanox.com, ogerlitz@mellanox.com, yongjun_wei@trendmicro.com.cn, linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/11/2013 11:36 AM, Hal Rosenstock wrote:
-> From: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, 2013-12-02 at 15:00 +0100, Jiri Kosina wrote:
+> On Tue, 29 Oct 2013, Wei Yongjun wrote:
+> 
+> > From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> > 
+> > Fix to return a negative error code from the error handling
+> > case instead of 0, as done elsewhere in this function.
+> > 
+> > Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> This one has been sitting in my queue for quite some time, but I'd like 
+> the actual infiniband maintainers to be acted upon by.
+> 
+> Roland, please?
 
-Nice catch!
+Hi Jiri, Wei & Co,
 
-Acked-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Apologies for missing this one earlier..
+
+This patch has been queued with a CC' for v3.10+ stable to
+target-pending/master, and will be included in the next for-v3.13 fixes
+PULL request.
+
+Thank you,
+
+--nab
 
 > 
-> Signed-off-by: Vladimir Koushnir <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  opensm/osm_sa_path_record.c |   20 +++++++++++++++++++-
->  1 files changed, 19 insertions(+), 1 deletions(-)
+> > ---
+> >  drivers/infiniband/ulp/isert/ib_isert.c | 16 ++++++++++++----
+> >  1 file changed, 12 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+> > index 6df2350..2ba71c0 100644
+> > --- a/drivers/infiniband/ulp/isert/ib_isert.c
+> > +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+> > @@ -263,21 +263,29 @@ isert_create_device_ib_res(struct isert_device *device)
+> >  						isert_cq_event_callback,
+> >  						(void *)&cq_desc[i],
+> >  						ISER_MAX_RX_CQ_LEN, i);
+> > -		if (IS_ERR(device->dev_rx_cq[i]))
+> > +		if (IS_ERR(device->dev_rx_cq[i])) {
+> > +			ret = PTR_ERR(device->dev_rx_cq[i]);
+> > +			device->dev_rx_cq[i] = NULL;
+> >  			goto out_cq;
+> > +		}
+> >  
+> >  		device->dev_tx_cq[i] = ib_create_cq(device->ib_device,
+> >  						isert_cq_tx_callback,
+> >  						isert_cq_event_callback,
+> >  						(void *)&cq_desc[i],
+> >  						ISER_MAX_TX_CQ_LEN, i);
+> > -		if (IS_ERR(device->dev_tx_cq[i]))
+> > +		if (IS_ERR(device->dev_tx_cq[i])) {
+> > +			ret = PTR_ERR(device->dev_tx_cq[i]);
+> > +			device->dev_tx_cq[i] = NULL;
+> >  			goto out_cq;
+> > +		}
+> >  
+> > -		if (ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP))
+> > +		ret = ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP);
+> > +		if (ret)
+> >  			goto out_cq;
+> >  
+> > -		if (ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP))
+> > +		ret = ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP);
+> > +		if (ret)
+> >  			goto out_cq;
+> >  	}
+> >  
+> > 
 > 
-> diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
-> index d2ff93b..8384ece 100644
-> --- a/opensm/osm_sa_path_record.c
-> +++ b/opensm/osm_sa_path_record.c
-> @@ -839,10 +839,28 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
->  	 * send the currently computed SL value as a hint and let the routing
->  	 * engine override it.
->  	 */
-> -	if (p_re && p_re->path_sl)
-> +	if (p_re && p_re->path_sl) {
-> +		uint8_t pr_sl;
-> +		pr_sl = sl;
-> +
->  		sl = p_re->path_sl(p_re->context, sl,
->  				   cl_hton16(src_lid_ho), cl_hton16(dest_lid_ho));
->  
-> +		if ((comp_mask & IB_PR_COMPMASK_SL) && (sl != pr_sl)) {
-> +			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F2A: "
-> +				"Requested SL (%u) doesn't match SL calculated"
-> +				"by routing engine (%u) "
-> +				"[%s port %d <-> %s port %d]\n",
-> +				pr_sl,
-> +				sl,
-> +				p_src_alias_guid->p_base_port->p_node->print_desc,
-> +				p_src_alias_guid->p_base_port->p_physp->port_num,
-> +				p_dest_alias_guid->p_base_port->p_node->print_desc,
-> +				p_dest_alias_guid->p_base_port->p_physp->port_num);
-> +			status = IB_NOT_FOUND;
-> +			goto Exit;
-> +		}
-> +	}
->  	/* reset pkey when raw traffic */
->  	if (comp_mask & IB_PR_COMPMASK_RAWTRAFFIC &&
->  	    cl_ntoh32(p_pr->hop_flow_raw) & (1 << 31))
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
