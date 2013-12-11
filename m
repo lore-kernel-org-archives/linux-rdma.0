@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv3 for-3.13 8/9] IB/uverbs: check access to userspace response buffer in extended command
-Date: Wed, 11 Dec 2013 23:01:51 +0100
-Message-ID: <701fc3ee1136bbb4a0fd3d560c3ec1ee3bb3b828.1386798254.git.ydroneaud@opteya.com>
+Subject: [PATCHv3 for-3.13 9/9] IB/uverbs: check input length in flow steering uverbs
+Date: Wed, 11 Dec 2013 23:01:52 +0100
+Message-ID: <171ccedab8531844b9a3186d70be029650ee1d3e.1386798254.git.ydroneaud@opteya.com>
 References: <cover.1386798254.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,40 +12,47 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreie
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Just like vfs_read(), uverbs_write() must check output buffer
-(eg. response) with access_ok(VERIFY_WRITE,...) to ensure
-it's in userspace memory before using the pointer in uverbs
-functions.
+Since ib_copy_from_udata() doesn't check yet the available
+input data length before accessing userspace memory,
+an explicit check of this length is required to prevent:
 
-If the buffer or a subset of the buffer is not valid,
-returns -EFAULT.
+- reading past the user provided buffer,
+- underflow when subtracting the expected command size
+  from the input length.
 
-Note: there's no need to check input buffer (eg. command)
-since vfs_write() does the check access_ok(VERIFY_READ, ...)
-as part of write() syscall.
+This will ensure the newly added flow steering uverbs
+don't try to process truncated commands.
 
 Link: http://marc.info/?i=cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/infiniband/core/uverbs_cmd.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 8652c13f6ea2..0be1dd86f768 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -677,6 +677,11 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 		if (response) {
- 			if (!hdr.out_words && !ex_hdr.provider_out_words)
- 				return -EINVAL;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 5976d885f408..d39062466a7a 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2649,6 +2649,9 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 	void *ib_spec;
+ 	int i;
+ 
++	if (ucore->inlen < sizeof(cmd))
++		return -EINVAL;
 +
-+			if (!access_ok(VERIFY_WRITE,
-+				       response,
-+				       (hdr.out_words + ex_hdr.provider_out_words) * 8))
-+				return -EFAULT;
- 		} else {
- 			if (hdr.out_words || ex_hdr.provider_out_words)
- 				return -EINVAL;
+ 	if (ucore->outlen < sizeof(resp))
+ 		return -ENOSPC;
+ 
+@@ -2799,6 +2802,9 @@ int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
+ 	struct ib_uobject		*uobj;
+ 	int				ret;
+ 
++	if (ucore->inlen < sizeof(cmd))
++		return -EINVAL;
++
+ 	ret = ib_copy_from_udata(&cmd, ucore, sizeof(cmd));
+ 	if (ret)
+ 		return ret;
 -- 
 1.8.4.2
 
