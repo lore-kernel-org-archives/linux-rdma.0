@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv3 for-3.13 1/9] IB/core: const'ify inbuf in struct ib_udata
-Date: Wed, 11 Dec 2013 23:01:44 +0100
-Message-ID: <d86eaa4bb6ebd62eede410327dab5a64721d8ade.1386798254.git.ydroneaud@opteya.com>
+Subject: [PATCHv3 for-3.13 5/9] IB/uverbs: check comp_mask in destroy_flow
+Date: Wed, 11 Dec 2013 23:01:48 +0100
+Message-ID: <746a71be0f897273ffcc3ac9c75816134e5536ee.1386798254.git.ydroneaud@opteya.com>
 References: <cover.1386798254.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -9,48 +9,48 @@ In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane
 References: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Userspace input buffer is not modified by kernel,
-let it be 'const'.
+Just like the check added to create_flow in 22878dbc9173,
+comp_mask must be checked in destroy_flow too.
 
-It's also a prerequisite to remove the implicit cast
-from INIT_UDATA().
+Since only empty comp_mask is currently supported,
+any other value must be rejected.
 
+This check was silently added in a previous patch[1] to move
+comp_mask in extended command header, part of previous patchset[2]
+against create/destroy_flow uverbs. The idea of moving comp_mask
+to the header was discarded for the final patchset[3].
+
+Unfortunately the check added in destroy_flow uverb was not
+integrated in the final patchset.
+
+[1] http://marc.info/?i=40175eda10d670d098204da6aa4c327a0171ae5f.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+[2] http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+[3] http://marc.info/?i=cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Link: http://marc.info/?i=cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h | 2 +-
- include/rdma/ib_verbs.h          | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index bdc842e9faef..9879568aed8c 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -49,7 +49,7 @@
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index d9d91c412628..f1ba441cd2ed 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2795,6 +2795,9 @@ int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
+ 	if (ret)
+ 		return ret;
  
- #define INIT_UDATA(udata, ibuf, obuf, ilen, olen)			\
- 	do {								\
--		(udata)->inbuf  = (void __user *) (ibuf);		\
-+		(udata)->inbuf  = (const void __user *) (ibuf);		\
- 		(udata)->outbuf = (void __user *) (obuf);		\
- 		(udata)->inlen  = (ilen);				\
- 		(udata)->outlen = (olen);				\
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 979874c627ee..61e1935c91b1 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -978,7 +978,7 @@ struct ib_uobject {
- };
- 
- struct ib_udata {
--	void __user *inbuf;
-+	const void __user *inbuf;
- 	void __user *outbuf;
- 	size_t       inlen;
- 	size_t       outlen;
++	if (cmd.comp_mask)
++		return -EINVAL;
++
+ 	uobj = idr_write_uobj(&ib_uverbs_rule_idr, cmd.flow_handle,
+ 			      file->ucontext);
+ 	if (!uobj)
 -- 
 1.8.4.2
 
