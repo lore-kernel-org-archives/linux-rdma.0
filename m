@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv3 for-3.13 5/9] IB/uverbs: check comp_mask in destroy_flow
-Date: Wed, 11 Dec 2013 23:01:48 +0100
-Message-ID: <746a71be0f897273ffcc3ac9c75816134e5536ee.1386798254.git.ydroneaud@opteya.com>
+Subject: [PATCHv3 for-3.13 8/9] IB/uverbs: check access to userspace response buffer in extended command
+Date: Wed, 11 Dec 2013 23:01:51 +0100
+Message-ID: <701fc3ee1136bbb4a0fd3d560c3ec1ee3bb3b828.1386798254.git.ydroneaud@opteya.com>
 References: <cover.1386798254.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -9,48 +9,43 @@ In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane
 References: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Just like the check added to create_flow in 22878dbc9173,
-comp_mask must be checked in destroy_flow too.
+Just like vfs_read(), uverbs_write() must check output buffer
+(eg. response) with access_ok(VERIFY_WRITE,...) to ensure
+it's in userspace memory before using the pointer in uverbs
+functions.
 
-Since only empty comp_mask is currently supported,
-any other value must be rejected.
+If the buffer or a subset of the buffer is not valid,
+returns -EFAULT.
 
-This check was silently added in a previous patch[1] to move
-comp_mask in extended command header, part of previous patchset[2]
-against create/destroy_flow uverbs. The idea of moving comp_mask
-to the header was discarded for the final patchset[3].
+Note: there's no need to check input buffer (eg. command)
+since vfs_write() does the check access_ok(VERIFY_READ, ...)
+as part of write() syscall.
 
-Unfortunately the check added in destroy_flow uverb was not
-integrated in the final patchset.
-
-[1] http://marc.info/?i=40175eda10d670d098204da6aa4c327a0171ae5f.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-[2] http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-[3] http://marc.info/?i=cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Link: http://marc.info/?i=cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/core/uverbs_main.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index d9d91c412628..f1ba441cd2ed 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2795,6 +2795,9 @@ int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
- 	if (ret)
- 		return ret;
- 
-+	if (cmd.comp_mask)
-+		return -EINVAL;
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 8652c13f6ea2..0be1dd86f768 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -677,6 +677,11 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 		if (response) {
+ 			if (!hdr.out_words && !ex_hdr.provider_out_words)
+ 				return -EINVAL;
 +
- 	uobj = idr_write_uobj(&ib_uverbs_rule_idr, cmd.flow_handle,
- 			      file->ucontext);
- 	if (!uobj)
++			if (!access_ok(VERIFY_WRITE,
++				       response,
++				       (hdr.out_words + ex_hdr.provider_out_words) * 8))
++				return -EFAULT;
+ 		} else {
+ 			if (hdr.out_words || ex_hdr.provider_out_words)
+ 				return -EINVAL;
 -- 
 1.8.4.2
 
