@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv3 for-3.13 6/9] IB/uverbs: check reserved fields in create_flow
-Date: Wed, 11 Dec 2013 23:01:49 +0100
-Message-ID: <54a91f14383e6441fe209a37a324905a9467af56.1386798254.git.ydroneaud@opteya.com>
+Subject: [PATCHv3 for-3.13 1/9] IB/core: const'ify inbuf in struct ib_udata
+Date: Wed, 11 Dec 2013 23:01:44 +0100
+Message-ID: <d86eaa4bb6ebd62eede410327dab5a64721d8ade.1386798254.git.ydroneaud@opteya.com>
 References: <cover.1386798254.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,57 +12,45 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreie
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As noted by Daniel Vetter in its article "Botching up ioctls"[1]
+Userspace input buffer is not modified by kernel,
+let it be 'const'.
 
-  "Check *all* unused fields and flags and all the padding for
-   whether it's 0, and reject the ioctl if that's not the case.
-   Otherwise your nice plan for future extensions is going right
-   down the gutters since someone *will* submit an ioctl struct
-   with random stack garbage in the yet unused parts. Which then
-   bakes in the ABI that those fields can never be used for
-   anything else but garbage."
-
-It's important to ensure that reserved fields are set to known
-value, so that it will be possible to use them latter to extend
-the ABI.
-
-The same reasonning apply to comp_mask field present in newer
-uverbs command: per commit 22878dbc9173, unsupported values in
-comp_mask are rejected.
-
-[1] http://blog.ffwll.ch/2013/11/botching-up-ioctls.html
+It's also a prerequisite to remove the implicit cast
+from INIT_UDATA().
 
 Link: http://marc.info/?i=cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/infiniband/core/uverbs.h | 2 +-
+ include/rdma/ib_verbs.h          | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index f1ba441cd2ed..dd1c5b6ab019 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2593,6 +2593,9 @@ out_put:
- static int kern_spec_to_ib_spec(struct ib_uverbs_flow_spec *kern_spec,
- 				union ib_flow_spec *ib_spec)
- {
-+	if (kern_spec->reserved)
-+		return -EINVAL;
-+
- 	ib_spec->type = kern_spec->type;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index bdc842e9faef..9879568aed8c 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -49,7 +49,7 @@
  
- 	switch (ib_spec->type) {
-@@ -2671,6 +2674,10 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 	    (cmd.flow_attr.num_of_specs * sizeof(struct ib_uverbs_flow_spec)))
- 		return -EINVAL;
+ #define INIT_UDATA(udata, ibuf, obuf, ilen, olen)			\
+ 	do {								\
+-		(udata)->inbuf  = (void __user *) (ibuf);		\
++		(udata)->inbuf  = (const void __user *) (ibuf);		\
+ 		(udata)->outbuf = (void __user *) (obuf);		\
+ 		(udata)->inlen  = (ilen);				\
+ 		(udata)->outlen = (olen);				\
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 979874c627ee..61e1935c91b1 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -978,7 +978,7 @@ struct ib_uobject {
+ };
  
-+	if (cmd.flow_attr.reserved[0] ||
-+	    cmd.flow_attr.reserved[1])
-+		return -EINVAL;
-+
- 	if (cmd.flow_attr.num_of_specs) {
- 		kern_flow_attr = kmalloc(sizeof(*kern_flow_attr) + cmd.flow_attr.size,
- 					 GFP_KERNEL);
+ struct ib_udata {
+-	void __user *inbuf;
++	const void __user *inbuf;
+ 	void __user *outbuf;
+ 	size_t       inlen;
+ 	size_t       outlen;
 -- 
 1.8.4.2
 
