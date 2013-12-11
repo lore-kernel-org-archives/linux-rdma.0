@@ -1,50 +1,76 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when
- modifying QP
-Date: Wed, 11 Dec 2013 22:41:57 +0200
-Message-ID: <CAJZOPZ+d9xsCQ4nKq5iEaR6tenqvG7spBXKiJBcHjL22c3ePRw@mail.gmail.com>
-References: <CAG4TOxMgHuC=rzB+8stotaeKqwxipz06s_B2zogMMqNn3ZWTOA@mail.gmail.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCHv3 for-3.13 0/9] create_flow/destroy_flow fixes for v3.13
+Date: Wed, 11 Dec 2013 23:01:43 +0100
+Message-ID: <cover.1386798254.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxMgHuC=rzB+8stotaeKqwxipz06s_B2zogMMqNn3ZWTOA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Devesh Sharma <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 11, 2013 at 7:59 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+Hi Roland,
 
-> OK, I guess I'm still confused.  Do we have two ways of resolving
-> addresses, one way for consumers that use the RDMA CM and another way
-> for consumers that don't?  Does that mean we end up having two
-> different paths through core verbs?  Even if we put address resolution
-> in uverbs, how do user apps that *do* use librdmacm work?
+Please find the third revision of a patchset against create_flow/destroy_flow
+and associated extended command scheme.
 
-Let me clarify -- with V5 it doesn't matter how the application does
-address resolution in the 1st place. The kernel uverbs layer is
-provided with local/remote GIDs in the modify qp uverb entry and for
-Ethernet ports issues address resolution through the relevant
-netdevice etc. This is works the same for applications that use
-librdmacm and for applications who don't.
+These are fixes that *must* be applied before making the new uverbs
+widely available in v3.13:
 
-With your comment/insight, we will move that small logic within the
-ib_core module from uverbs to verbs.c which means this step will be
-applied when needed on kernel non rdma-cm consumers too such as SRP
-which you referred too below.
+- patches 1 and 2 address a warning reported by sparse.
+- patch 3 handle an uncommon type of extended command.
+- patch 4, 5 and 6 ensure that commands will be extensible:
+  - one patch add a missing check of comp_mask;
+  - the other patches add checks on reserved fields.
+- patch 7 fix an error path which was not setting the error code.
+- patch 8 ensure the response buffer of an extended command
+  is a valid memory region for userspace. Doing the check earlier,
+  on the *full* response buffer, might be safer.
+- patch 9 prevent out of bound access and underflow.
 
-When needed means when the relevant qp attributes (== L2 ethernet
-construcsts, source/destination MACs, and vlan ID) are missing. Kernel
-rdma-cm consumers would have these fill in their qp attr since its
-filled by the rdma-cm / ib-addr module throughout the ARP address
-resolution, non rdma-cm consumers will not and the rest follows.
+Please review and apply for v3.13.
 
-> Also the statement that there are no non-rdma-cm consumers in the
-> kernel is definitely false -- the SRP initiator does not use IP
-> addressing, and it does seem like a legitimate and useful application
-> to run SRP over ethernet.
+Changes from patchset v2 [1]:
 
-fair-enough, so with the change you proposed, this will be supported!
+- add a patch to check the input length in extended uverbs,
+  create_flow and destroy_flow.
+
+Changes from patchset v1 [2]:
+
+- add patch to verify early response buffer using access_ok(),
+  just like vfs_read().
+
+Regards.
+
+[1] [PATCH v2 for v3.13 0/8] create_flow/destroy_flow fixes for v3.13
+    http://marc.info/?i=cover.1385981934.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+[2] [PATCH for v3.13 0/7] create_flow/destroy_flow fixes for v3.13
+    http://marc.info/?i=cover.1385501822.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+Yann Droneaud (9):
+  IB/core: const'ify inbuf in struct ib_udata
+  IB/uverbs: remove implicit cast in INIT_UDATA()
+  IB/uverbs: set outbuf to NULL when no core response space is provided
+  IB/uverbs: check reserved field in extended command header
+  IB/uverbs: check comp_mask in destroy_flow
+  IB/uverbs: check reserved fields in create_flow
+  IB/uverbs: set error code when fail to consume all flow_spec items
+  IB/uverbs: check access to userspace response buffer in extended
+    command
+  IB/uverbs: check input length in flow steering uverbs
+
+ drivers/infiniband/core/uverbs.h      | 12 ++++++------
+ drivers/infiniband/core/uverbs_cmd.c  | 37 +++++++++++++++++++++++++----------
+ drivers/infiniband/core/uverbs_main.c | 21 +++++++++++++++-----
+ include/rdma/ib_verbs.h               |  2 +-
+ 4 files changed, 50 insertions(+), 22 deletions(-)
+
+-- 
+1.8.4.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
