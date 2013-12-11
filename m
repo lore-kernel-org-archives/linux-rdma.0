@@ -1,49 +1,76 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv3 for-3.13 7/9] IB/uverbs: set error code when fail to consume all flow_spec items
-Date: Wed, 11 Dec 2013 23:01:50 +0100
-Message-ID: <0f0c4cf17cd7b2f302d0fd6761fac390568c3a13.1386798254.git.ydroneaud@opteya.com>
-References: <cover.1386798254.git.ydroneaud@opteya.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: IB/usnic: Add Cisco VIC low-level hardware driver
+Date: Thu, 12 Dec 2013 01:38:35 +0300
+Message-ID: <20131211223834.GA3955@elgon.mountain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-References: <cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the flow_spec items parsed count does not match the number
-of items declared in the flow_attr command, or if not all
-bytes are used for flow_spec items (eg. trailing garbage),
-a log message is reported and the function leave through
-the error path. Unfortunately the error code is currently
-not set.
+Hello Upinder Malhi,
 
-This patch set error code to -EINVAL in such cases, so
-that the error is reported to userspace instead of silently
-fail.
+The patch b1819c455542: "IB/usnic: Add Cisco VIC low-level hardware
+driver" from Sep 10, 2013, leads to the following static checker
+warning:
+	drivers/infiniband/hw/usnic/usnic_uiom.c:47 usnic_uiom_alloc_pd()
+	warn: passing zero to 'PTR_ERR'"
 
-Link: http://marc.info/?i=cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c | 1 +
- 1 file changed, 1 insertion(+)
+drivers/infiniband/hw/usnic/usnic_uiom.c
+   469          pd->domain = domain = iommu_domain_alloc(&pci_bus_type);
+                                      ^^^^^^^^^^^^^^^^^^^
+This function returns NULL on error not error pointers.
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index dd1c5b6ab019..5976d885f408 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2738,6 +2738,7 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 	if (cmd.flow_attr.size || (i != flow_attr->num_of_specs)) {
- 		pr_warn("create flow failed, flow %d: %d bytes left from uverb cmd\n",
- 			i, cmd.flow_attr.size);
-+		err = -EINVAL;
- 		goto err_free;
- 	}
- 	flow_id = ib_create_flow(qp, flow_attr, IB_FLOW_DOMAIN_USER);
--- 
-1.8.4.2
+   470          if (IS_ERR_OR_NULL(domain)) {
+   471                  usnic_err("Failed to allocate IOMMU domain with err %ld\n",
+   472                                  PTR_ERR(pd->domain));
+   473                  kfree(pd);
+   474                  return ERR_PTR(domain ? PTR_ERR(domain) : -ENOMEM);
+   475          }
 
+Similar harmless but crappy slop in:
+
+vers/infiniband/hw/usnic/usnic_ib_main.c
+   249          us_ibdev = (struct usnic_ib_dev *)ib_alloc_device(sizeof(*us_ibdev));
+   250          if (IS_ERR_OR_NULL(us_ibdev)) {
+                    ^^^^^^^^^^^^^^^^^^^^^^^^
+   251                  usnic_err("Device %s context alloc failed\n",
+   252                                  netdev_name(pci_get_drvdata(dev)));
+   253                  return ERR_PTR(us_ibdev ? PTR_ERR(us_ibdev) : -EFAULT);
+   254          }
+   255  
+   256          us_ibdev->ufdev = usnic_fwd_dev_alloc(dev);
+   257          if (IS_ERR_OR_NULL(us_ibdev->ufdev)) {
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   258                  usnic_err("Failed to alloc ufdev for %s with err %ld\n",
+   259                                  pci_name(dev), PTR_ERR(us_ibdev->ufdev));
+   260                  goto err_dealloc;
+   261          }
+
+The general confusing about what return values are leads to a bug later
+on:
+
+vers/infiniband/hw/usnic/usnic_ib_main.c
+   462          pf = usnic_ib_discover_pf(vf->vnic);
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This function returns ERR_PTRs.  Also it has a bug and can return freed
+pointers.  Oops...  :(
+
+   463          if (!pf) {
+   464                  usnic_err("Failed to discover pf of vnic %s with err%d\n",
+   465                                  pci_name(pdev), err);
+   466                  goto out_clean_vnic;
+   467          }
+   468  
+   469          vf->pf = pf;
+   470          spin_lock_init(&vf->lock);
+   471          mutex_lock(&pf->usdev_lock);
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
