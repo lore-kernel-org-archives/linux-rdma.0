@@ -1,89 +1,51 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH] iser-target: fix error return code in
- isert_create_device_ib_res()
-Date: Wed, 11 Dec 2013 11:57:48 -0800
-Message-ID: <1386791868.20247.104.camel@haakon3.risingtidesystems.com>
-References: <CAPgLHd8eEFhMyfieCULgj+OzCRrTMN9G60pAvTP0+zOhBeK=qw@mail.gmail.com>
-	 <alpine.LNX.2.00.1312021459400.24931@pobox.suse.cz>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when
+ modifying QP
+Date: Wed, 11 Dec 2013 22:41:57 +0200
+Message-ID: <CAJZOPZ+d9xsCQ4nKq5iEaR6tenqvG7spBXKiJBcHjL22c3ePRw@mail.gmail.com>
+References: <CAG4TOxMgHuC=rzB+8stotaeKqwxipz06s_B2zogMMqNn3ZWTOA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1312021459400.24931@pobox.suse.cz>
-Sender: target-devel-owner@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Wei Yongjun <weiyj.lk@gmail.com>, roland@kernel.org, sean.hefty@intel.com, hal.rosenstock@gmail.com, vu@mellanox.com, sagig@mellanox.com, ogerlitz@mellanox.com, yongjun_wei@trendmicro.com.cn, linux-rdma@vger.kernel.org, target-devel <target-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG4TOxMgHuC=rzB+8stotaeKqwxipz06s_B2zogMMqNn3ZWTOA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Devesh Sharma <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2013-12-02 at 15:00 +0100, Jiri Kosina wrote:
-> On Tue, 29 Oct 2013, Wei Yongjun wrote:
-> 
-> > From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> > 
-> > Fix to return a negative error code from the error handling
-> > case instead of 0, as done elsewhere in this function.
-> > 
-> > Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> This one has been sitting in my queue for quite some time, but I'd like 
-> the actual infiniband maintainers to be acted upon by.
-> 
-> Roland, please?
+On Wed, Dec 11, 2013 at 7:59 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 
-Hi Jiri, Wei & Co,
+> OK, I guess I'm still confused.  Do we have two ways of resolving
+> addresses, one way for consumers that use the RDMA CM and another way
+> for consumers that don't?  Does that mean we end up having two
+> different paths through core verbs?  Even if we put address resolution
+> in uverbs, how do user apps that *do* use librdmacm work?
 
-Apologies for missing this one earlier..
+Let me clarify -- with V5 it doesn't matter how the application does
+address resolution in the 1st place. The kernel uverbs layer is
+provided with local/remote GIDs in the modify qp uverb entry and for
+Ethernet ports issues address resolution through the relevant
+netdevice etc. This is works the same for applications that use
+librdmacm and for applications who don't.
 
-This patch has been queued with a CC' for v3.10+ stable to
-target-pending/master, and will be included in the next for-v3.13 fixes
-PULL request.
+With your comment/insight, we will move that small logic within the
+ib_core module from uverbs to verbs.c which means this step will be
+applied when needed on kernel non rdma-cm consumers too such as SRP
+which you referred too below.
 
-Thank you,
+When needed means when the relevant qp attributes (== L2 ethernet
+construcsts, source/destination MACs, and vlan ID) are missing. Kernel
+rdma-cm consumers would have these fill in their qp attr since its
+filled by the rdma-cm / ib-addr module throughout the ARP address
+resolution, non rdma-cm consumers will not and the rest follows.
 
---nab
+> Also the statement that there are no non-rdma-cm consumers in the
+> kernel is definitely false -- the SRP initiator does not use IP
+> addressing, and it does seem like a legitimate and useful application
+> to run SRP over ethernet.
 
-> 
-> > ---
-> >  drivers/infiniband/ulp/isert/ib_isert.c | 16 ++++++++++++----
-> >  1 file changed, 12 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> > index 6df2350..2ba71c0 100644
-> > --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> > +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> > @@ -263,21 +263,29 @@ isert_create_device_ib_res(struct isert_device *device)
-> >  						isert_cq_event_callback,
-> >  						(void *)&cq_desc[i],
-> >  						ISER_MAX_RX_CQ_LEN, i);
-> > -		if (IS_ERR(device->dev_rx_cq[i]))
-> > +		if (IS_ERR(device->dev_rx_cq[i])) {
-> > +			ret = PTR_ERR(device->dev_rx_cq[i]);
-> > +			device->dev_rx_cq[i] = NULL;
-> >  			goto out_cq;
-> > +		}
-> >  
-> >  		device->dev_tx_cq[i] = ib_create_cq(device->ib_device,
-> >  						isert_cq_tx_callback,
-> >  						isert_cq_event_callback,
-> >  						(void *)&cq_desc[i],
-> >  						ISER_MAX_TX_CQ_LEN, i);
-> > -		if (IS_ERR(device->dev_tx_cq[i]))
-> > +		if (IS_ERR(device->dev_tx_cq[i])) {
-> > +			ret = PTR_ERR(device->dev_tx_cq[i]);
-> > +			device->dev_tx_cq[i] = NULL;
-> >  			goto out_cq;
-> > +		}
-> >  
-> > -		if (ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP))
-> > +		ret = ib_req_notify_cq(device->dev_rx_cq[i], IB_CQ_NEXT_COMP);
-> > +		if (ret)
-> >  			goto out_cq;
-> >  
-> > -		if (ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP))
-> > +		ret = ib_req_notify_cq(device->dev_tx_cq[i], IB_CQ_NEXT_COMP);
-> > +		if (ret)
-> >  			goto out_cq;
-> >  	}
-> >  
-> > 
-> 
+fair-enough, so with the change you proposed, this will be supported!
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
