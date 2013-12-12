@@ -1,78 +1,88 @@
-From: "Nicholas A. Bellinger" <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>
-Subject: [PATCH] iser-target: Move INIT_WORK setup into isert_create_device_ib_res
-Date: Thu, 12 Dec 2013 00:05:12 +0000
-Message-ID: <1386806712-18686-1-git-send-email-nab@daterainc.com>
+From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: IB/usnic: Add Cisco VIC low-level hardware driver
+Date: Thu, 12 Dec 2013 01:59:00 +0000
+Message-ID: <BC9EAC3B-33A6-482B-9CF4-DF1E1353AB3B@cisco.com>
+References: <20131211223834.GA3955@elgon.mountain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131211223834.GA3955-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <49B2232AAED81846A0AA0CABFBEABE23-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Hi Dan,
+	Can I ask what static checker you are using for these?
 
-This patch moves INIT_WORK setup for cq_desc->cq_[rx,tx]_work into
-isert_create_device_ib_res(), instead of being done each callback
-invocation in isert_cq_[rx,tx]_callback().
+See Inline for rest.
+On Dec 11, 2013, at 2:38 PM, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-This also fixes a 'INFO: trying to register non-static key' warning
-when cancel_work_sync() is called before INIT_WORK has setup the
-struct work_struct.
-
-Reported-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
----
- drivers/infiniband/ulp/isert/ib_isert.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 78f6e92..9804fca 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -207,7 +207,9 @@ isert_free_rx_descriptors(struct isert_conn *isert_conn)
- 	isert_conn->conn_rx_descs = NULL;
- }
- 
-+static void isert_cq_tx_work(struct work_struct *);
- static void isert_cq_tx_callback(struct ib_cq *, void *);
-+static void isert_cq_rx_work(struct work_struct *);
- static void isert_cq_rx_callback(struct ib_cq *, void *);
- 
- static int
-@@ -259,6 +261,7 @@ isert_create_device_ib_res(struct isert_device *device)
- 		cq_desc[i].device = device;
- 		cq_desc[i].cq_index = i;
- 
-+		INIT_WORK(&cq_desc[i].cq_rx_work, isert_cq_rx_work);
- 		device->dev_rx_cq[i] = ib_create_cq(device->ib_device,
- 						isert_cq_rx_callback,
- 						isert_cq_event_callback,
-@@ -270,6 +273,7 @@ isert_create_device_ib_res(struct isert_device *device)
- 			goto out_cq;
- 		}
- 
-+		INIT_WORK(&cq_desc[i].cq_tx_work, isert_cq_tx_work);
- 		device->dev_tx_cq[i] = ib_create_cq(device->ib_device,
- 						isert_cq_tx_callback,
- 						isert_cq_event_callback,
-@@ -1732,7 +1736,6 @@ isert_cq_tx_callback(struct ib_cq *cq, void *context)
- {
- 	struct isert_cq_desc *cq_desc = (struct isert_cq_desc *)context;
- 
--	INIT_WORK(&cq_desc->cq_tx_work, isert_cq_tx_work);
- 	queue_work(isert_comp_wq, &cq_desc->cq_tx_work);
- }
- 
-@@ -1776,7 +1779,6 @@ isert_cq_rx_callback(struct ib_cq *cq, void *context)
- {
- 	struct isert_cq_desc *cq_desc = (struct isert_cq_desc *)context;
- 
--	INIT_WORK(&cq_desc->cq_rx_work, isert_cq_rx_work);
- 	queue_work(isert_rx_wq, &cq_desc->cq_rx_work);
- }
- 
--- 
-1.7.10.4
+> Hello Upinder Malhi,
+> 
+> The patch b1819c455542: "IB/usnic: Add Cisco VIC low-level hardware
+> driver" from Sep 10, 2013, leads to the following static checker
+> warning:
+> 	drivers/infiniband/hw/usnic/usnic_uiom.c:47 usnic_uiom_alloc_pd()
+> 	warn: passing zero to 'PTR_ERR'"
+> 
+> drivers/infiniband/hw/usnic/usnic_uiom.c
+>   469          pd->domain = domain = iommu_domain_alloc(&pci_bus_type);
+>                                      ^^^^^^^^^^^^^^^^^^^
+> This function returns NULL on error not error pointers.
+> 
+>   470          if (IS_ERR_OR_NULL(domain)) {
+>   471                  usnic_err("Failed to allocate IOMMU domain with err %ld\n",
+>   472                                  PTR_ERR(pd->domain));
+>   473                  kfree(pd);
+>   474                  return ERR_PTR(domain ? PTR_ERR(domain) : -ENOMEM);
+>   475          }
+> 
+> Similar harmless but crappy slop in:
+[UM] - Unless I'm missing something, I think this is OK and preferred in case iommu_domain_alloc in future starts returning ERR_PTRs.
+> 
+> vers/infiniband/hw/usnic/usnic_ib_main.c
+>   249          us_ibdev = (struct usnic_ib_dev *)ib_alloc_device(sizeof(*us_ibdev));
+>   250          if (IS_ERR_OR_NULL(us_ibdev)) {
+>                    ^^^^^^^^^^^^^^^^^^^^^^^^
+>   251                  usnic_err("Device %s context alloc failed\n",
+>   252                                  netdev_name(pci_get_drvdata(dev)));
+>   253                  return ERR_PTR(us_ibdev ? PTR_ERR(us_ibdev) : -EFAULT);
+>   254          }
+>   255  
+>   256          us_ibdev->ufdev = usnic_fwd_dev_alloc(dev);
+>   257          if (IS_ERR_OR_NULL(us_ibdev->ufdev)) {
+>                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>   258                  usnic_err("Failed to alloc ufdev for %s with err %ld\n",
+>   259                                  pci_name(dev), PTR_ERR(us_ibdev->ufdev));
+>   260                  goto err_dealloc;
+>   261          }
+> 
+> The general confusing about what return values are leads to a bug later
+> on:
+> 
+> vers/infiniband/hw/usnic/usnic_ib_main.c
+>   462          pf = usnic_ib_discover_pf(vf->vnic);
+>                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> This function returns ERR_PTRs.  Also it has a bug and can return freed
+> pointers.  Oops...  :(
+[UM] - Yes, that is oops indeed.  Will fix.
+> 
+>   463          if (!pf) {
+>   464                  usnic_err("Failed to discover pf of vnic %s with err%d\n",
+>   465                                  pci_name(pdev), err);
+>   466                  goto out_clean_vnic;
+>   467          }
+>   468  
+>   469          vf->pf = pf;
+>   470          spin_lock_init(&vf->lock);
+>   471          mutex_lock(&pf->usdev_lock);
+> 
+> regards,
+> dan carpenter
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
