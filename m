@@ -1,73 +1,61 @@
-From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: IB/usnic: Add Cisco VIC low-level hardware driver
-Date: Thu, 12 Dec 2013 03:03:15 +0000
-Message-ID: <7E785E0E-85C8-498D-9269-46C95110BF53@cisco.com>
-References: <20131211224019.GC3955@elgon.mountain>
+From: Devesh Sharma <desh.t2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when
+ modifying QP
+Date: Thu, 12 Dec 2013 11:19:09 +0530
+Message-ID: <CAGgPuS3RuNxXMHXSsjyP+4Lwv1rwxCChyFauD04cDkVAjnz8DA@mail.gmail.com>
+References: <CAG4TOxMgHuC=rzB+8stotaeKqwxipz06s_B2zogMMqNn3ZWTOA@mail.gmail.com>
+	<CAJZOPZ+d9xsCQ4nKq5iEaR6tenqvG7spBXKiJBcHjL22c3ePRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131211224019.GC3955-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <8F0F73BC8A6A134988230E3D992D26CE-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
+In-Reply-To: <CAJZOPZ+d9xsCQ4nKq5iEaR6tenqvG7spBXKiJBcHjL22c3ePRw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Devesh Sharma <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Why not?  
+On Thu, Dec 12, 2013 at 2:11 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Wed, Dec 11, 2013 at 7:59 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>
+>> OK, I guess I'm still confused.  Do we have two ways of resolving
+>> addresses, one way for consumers that use the RDMA CM and another way
+>> for consumers that don't?  Does that mean we end up having two
+>> different paths through core verbs?  Even if we put address resolution
+>> in uverbs, how do user apps that *do* use librdmacm work?
+>
+> Let me clarify -- with V5 it doesn't matter how the application does
+> address resolution in the 1st place. The kernel uverbs layer is
+> provided with local/remote GIDs in the modify qp uverb entry and for
+> Ethernet ports issues address resolution through the relevant
+> netdevice etc. This is works the same for applications that use
+> librdmacm and for applications who don't.
 
-We can switch to WARN_ON.  The kernel provides this macro - assert_spin_locked - which does asserts via BUG_ON that spin_is_locked, which makes me think that using BUG_ON in conjunction with spin_is_locked is legal.  We should use this macro instead of manually asserting, unless that it is not legal, in which case WARN_ON will do.
-
-Upinder
-
-On Dec 11, 2013, at 2:40 PM, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-
-> Hello Upinder Malhi,
-> 
-> The patch b1819c455542: "IB/usnic: Add Cisco VIC low-level hardware
-> driver" from Sep 10, 2013, leads to the following Smatch
-> warning:
-> 	drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c:467
-> 	usnic_ib_qp_grp_create()
-> 	error: scheduling with locks held: 'spin_lock:lock'
-> 
-> drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
->   449          BUG_ON(!spin_is_locked(&vf->lock));
->                        ^^^^^^^^^^^^^^^^^^^^^^^^
-> Holding lock.
-> Don't call BUG_ON(), use WARN_ON()?
-> 
->   450  
->   451          err = usnic_vnic_res_spec_satisfied(&min_transport_spec[transport],
->   452                                                  res_spec);
->   453          if (err) {
->   454                  usnic_err("Spec does not meet miniumum req for transport %d\n",
->   455                                  transport);
->   456                  log_spec(res_spec);
->   457                  return ERR_PTR(err);
->   458          }
->   459  
->   460          port_num = usnic_transport_rsrv_port(transport, 0);
->   461          if (!port_num) {
->   462                  usnic_err("Unable to allocate port for %s\n",
->   463                                  netdev_name(ufdev->netdev));
->   464                  return ERR_PTR(-EINVAL);
->   465          }
->   466  
->   467          qp_grp = kzalloc(sizeof(*qp_grp), GFP_KERNEL);
->                                                  ^^^^^^^^^^
-> Sleeping allocation.
-> 
->   468          if (!qp_grp) {
->   469                  usnic_err("Unable to alloc qp_grp - Out of memory\n");
->   470                  return NULL;
->   471          }
-> 
-> regards,
-> dan carpenter
-> 
-
+Yes, ib_send_bw type of apps will work seamlessly with V5. Thanks Or
+for the illustration.
+>
+> With your comment/insight, we will move that small logic within the
+> ib_core module from uverbs to verbs.c which means this step will be
+> applied when needed on kernel non rdma-cm consumers too such as SRP
+> which you referred too below.
+>
+> When needed means when the relevant qp attributes (== L2 ethernet
+> construcsts, source/destination MACs, and vlan ID) are missing. Kernel
+> rdma-cm consumers would have these fill in their qp attr since its
+> filled by the rdma-cm / ib-addr module throughout the ARP address
+> resolution, non rdma-cm consumers will not and the rest follows.
+Yes, me too agree with Or.
+>
+>> Also the statement that there are no non-rdma-cm consumers in the
+>> kernel is definitely false -- the SRP initiator does not use IP
+>> addressing, and it does seem like a legitimate and useful application
+>> to run SRP over ethernet.
+>
+> fair-enough, so with the change you proposed, this will be supported!
+proposal from Roland make sense to me too.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
