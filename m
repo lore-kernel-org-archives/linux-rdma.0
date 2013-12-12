@@ -1,136 +1,217 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V6 for-next 5/7] IB/ocrdma: Handle Ethernet L2 parameters for IP based GID addressing
-Date: Thu, 12 Dec 2013 18:03:15 +0200
-Message-ID: <1386864197-10591-6-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V6 for-next 2/7] IB/CMA: IBoE (RoCE) IP based GID addressing
+Date: Thu, 12 Dec 2013 18:03:12 +0200
+Message-ID: <1386864197-10591-3-git-send-email-ogerlitz@mellanox.com>
 References: <1386864197-10591-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1386864197-10591-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch is similar in spirit to the "IB/mlx4: Handle Ethernet L2 parameters for
-IP based GID addressing". It handles the fact that IP based RoCE gids
-don't store Ethernet L2 parameters, MAC and VLAN.
+Currently, the IB core and specifically the RDMA-CM assumes that
+IBoE (RoCE) gids encode related Ethernet netdevice interface
+MAC address and possibly VLAN id.
 
-When building an address handle, instead of parsing the dgid to
-get the MAC and VLAN, take them from the address handle attributes.
+Change gids to be treated as they encode interface IP address.
 
-Cc: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Since Ethernet layer 2 address parameters are not longer encoded
+within gids, had to extend the Infiniband address structures (e.g.
+ib_ah_attr) with layer 2 address parameters, namely mac and vlan.
+
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h    |   12 ++++++++++++
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c |    5 +++--
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c |   21 ++-------------------
- drivers/infiniband/hw/ocrdma/ocrdma_hw.h |    1 -
- 4 files changed, 17 insertions(+), 22 deletions(-)
+ drivers/infiniband/core/cma.c  |   22 ++++++++++++----------
+ drivers/infiniband/core/ucma.c |   18 ++++--------------
+ include/rdma/ib_addr.h         |   35 ++++++++++++-----------------------
+ 3 files changed, 28 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 294dd27..7c001b9 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -423,5 +423,17 @@ static inline int is_cqe_wr_imm(struct ocrdma_cqe *cqe)
- 		OCRDMA_CQE_WRITE_IMM) ? 1 : 0;
- }
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 0caf465..907f3d3 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -365,7 +365,9 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv,
+ 		return -EINVAL;
  
-+static inline int ocrdma_resolve_dmac(struct ocrdma_dev *dev,
-+		struct ib_ah_attr *ah_attr, u8 *mac_addr)
-+{
-+	struct in6_addr in6;
+ 	mutex_lock(&lock);
+-	iboe_addr_get_sgid(dev_addr, &iboe_gid);
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
++		    &iboe_gid);
 +
-+	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
-+	if (rdma_is_multicast_addr(&in6))
-+		rdma_get_mcast_mac(&in6, mac_addr);
-+	else
-+		memcpy(mac_addr, ah_attr->dmac, ETH_ALEN);
-+	return 0;
-+}
+ 	memcpy(&gid, dev_addr->src_dev_addr +
+ 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
+ 	if (listen_id_priv &&
+@@ -1943,10 +1945,10 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	memcpy(route->path_rec->dmac, addr->dev_addr.dst_dev_addr, ETH_ALEN);
+ 	memcpy(route->path_rec->smac, ndev->dev_addr, ndev->addr_len);
  
- #endif
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index ee499d9..bbb7962 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -49,7 +49,7 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+-	iboe_mac_vlan_to_ll(&route->path_rec->sgid, addr->dev_addr.src_dev_addr,
+-			    route->path_rec->vlan_id);
+-	iboe_mac_vlan_to_ll(&route->path_rec->dgid, addr->dev_addr.dst_dev_addr,
+-			    route->path_rec->vlan_id);
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
++		    &route->path_rec->sgid);
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.dst_addr,
++		    &route->path_rec->dgid);
  
- 	ah->sgid_index = attr->grh.sgid_index;
+ 	route->path_rec->hop_limit = 1;
+ 	route->path_rec->reversible = 1;
+@@ -2109,6 +2111,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 			   RDMA_CM_ADDR_RESOLVED))
+ 		goto out;
  
--	vlan_tag = rdma_get_vlan_id(&attr->grh.dgid);
-+	vlan_tag = attr->vlan_id;
- 	if (!vlan_tag || (vlan_tag > 0xFFF))
- 		vlan_tag = dev->pvid;
- 	if (vlan_tag && (vlan_tag < 0x1000)) {
-@@ -64,7 +64,8 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
- 		eth_sz = sizeof(struct ocrdma_eth_basic);
++	memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
+ 	if (!status && !id_priv->cma_dev)
+ 		status = cma_acquire_dev(id_priv, NULL);
+ 
+@@ -2118,10 +2121,8 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 			goto out;
+ 		event.event = RDMA_CM_EVENT_ADDR_ERROR;
+ 		event.status = status;
+-	} else {
+-		memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
++	} else
+ 		event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
+-	}
+ 
+ 	if (id_priv->id.event_handler(&id_priv->id, &event)) {
+ 		cma_exch(id_priv, RDMA_CM_DESTROYING);
+@@ -2602,6 +2603,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 	if (ret)
+ 		goto err1;
+ 
++	memcpy(cma_src_addr(id_priv), addr, rdma_addr_size(addr));
+ 	if (!cma_any_addr(addr)) {
+ 		ret = cma_translate_addr(addr, &id->route.addr.dev_addr);
+ 		if (ret)
+@@ -2612,7 +2614,6 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 			goto err1;
  	}
- 	memcpy(&eth.smac[0], &dev->nic_info.mac_addr[0], ETH_ALEN);
--	status = ocrdma_resolve_dgid(dev, &attr->grh.dgid, &eth.dmac[0]);
-+	memcpy(&eth.dmac[0], attr->dmac, ETH_ALEN);
-+	status = ocrdma_resolve_dmac(dev, attr, &eth.dmac[0]);
- 	if (status)
- 		return status;
- 	status = ocrdma_query_gid(&dev->ibdev, 1, attr->grh.sgid_index,
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 56bf32f..1664d64 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2076,23 +2076,6 @@ mbx_err:
- 	return status;
+ 
+-	memcpy(cma_src_addr(id_priv), addr, rdma_addr_size(addr));
+ 	if (!(id_priv->options & (1 << CMA_OPTION_AFONLY))) {
+ 		if (addr->sa_family == AF_INET)
+ 			id_priv->afonly = 1;
+@@ -3341,7 +3342,8 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
+ 		err = -EINVAL;
+ 		goto out2;
+ 	}
+-	iboe_addr_get_sgid(dev_addr, &mc->multicast.ib->rec.port_gid);
++	rdma_ip2gid((struct sockaddr *)&id_priv->id.route.addr.src_addr,
++		    &mc->multicast.ib->rec.port_gid);
+ 	work->id = id_priv;
+ 	work->mc = mc;
+ 	INIT_WORK(&work->work, iboe_mcast_work_handler);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index ab8b1c3..56a4b7c 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -655,24 +655,14 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
+ static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
+ 				 struct rdma_route *route)
+ {
+-	struct rdma_dev_addr *dev_addr;
+-	struct net_device *dev;
+-	u16 vid = 0;
+ 
+ 	resp->num_paths = route->num_paths;
+ 	switch (route->num_paths) {
+ 	case 0:
+-		dev_addr = &route->addr.dev_addr;
+-		dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
+-			if (dev) {
+-				vid = rdma_vlan_dev_vlan_id(dev);
+-				dev_put(dev);
+-			}
+-
+-		iboe_mac_vlan_to_ll((union ib_gid *) &resp->ib_route[0].dgid,
+-				    dev_addr->dst_dev_addr, vid);
+-		iboe_addr_get_sgid(dev_addr,
+-				   (union ib_gid *) &resp->ib_route[0].sgid);
++		rdma_ip2gid((struct sockaddr *)&route->addr.dst_addr,
++			    (union ib_gid *)&resp->ib_route[0].dgid);
++		rdma_ip2gid((struct sockaddr *)&route->addr.src_addr,
++			    (union ib_gid *)&resp->ib_route[0].sgid);
+ 		resp->ib_route[0].pkey = cpu_to_be16(0xffff);
+ 		break;
+ 	case 2:
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index a071560..ce55906 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -38,8 +38,12 @@
+ #include <linux/in6.h>
+ #include <linux/if_arp.h>
+ #include <linux/netdevice.h>
++#include <linux/inetdevice.h>
+ #include <linux/socket.h>
+ #include <linux/if_vlan.h>
++#include <net/ipv6.h>
++#include <net/if_inet6.h>
++#include <net/ip.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_pack.h>
+ #include <net/ipv6.h>
+@@ -132,20 +136,10 @@ static inline int rdma_addr_gid_offset(struct rdma_dev_addr *dev_addr)
+ 	return dev_addr->dev_type == ARPHRD_INFINIBAND ? 4 : 0;
  }
  
--int ocrdma_resolve_dgid(struct ocrdma_dev *dev, union ib_gid *dgid,
--			u8 *mac_addr)
--{
--	struct in6_addr in6;
--
--	memcpy(&in6, dgid, sizeof in6);
--	if (rdma_is_multicast_addr(&in6)) {
--		rdma_get_mcast_mac(&in6, mac_addr);
--	} else if (rdma_link_local_addr(&in6)) {
--		rdma_get_ll_mac(&in6, mac_addr);
+-static inline void iboe_mac_vlan_to_ll(union ib_gid *gid, u8 *mac, u16 vid)
++static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
+ {
+-	memset(gid->raw, 0, 16);
+-	*((__be32 *) gid->raw) = cpu_to_be32(0xfe800000);
+-	if (vid < 0x1000) {
+-		gid->raw[12] = vid & 0xff;
+-		gid->raw[11] = vid >> 8;
 -	} else {
--		pr_err("%s() fail to resolve mac_addr.\n", __func__);
--		return -EINVAL;
+-		gid->raw[12] = 0xfe;
+-		gid->raw[11] = 0xff;
 -	}
--	return 0;
+-	memcpy(gid->raw + 13, mac + 3, 3);
+-	memcpy(gid->raw + 8, mac, 3);
+-	gid->raw[8] ^= 2;
++	return dev->priv_flags & IFF_802_1Q_VLAN ?
++		vlan_dev_vlan_id(dev) : 0xffff;
+ }
+ 
+ static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
+@@ -182,25 +176,20 @@ static inline int rdma_gid2ip(struct sockaddr *out, union ib_gid *gid)
+ 	return 0;
+ }
+ 
+-static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
+-{
+-	return dev->priv_flags & IFF_802_1Q_VLAN ?
+-		vlan_dev_vlan_id(dev) : 0xffff;
 -}
 -
- static int ocrdma_set_av_params(struct ocrdma_qp *qp,
- 				struct ocrdma_modify_qp *cmd,
- 				struct ib_qp_attr *attrs)
-@@ -2126,14 +2109,14 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
+ static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
+ 				      union ib_gid *gid)
+ {
+ 	struct net_device *dev;
+-	u16 vid = 0xffff;
++	struct in_device *ip4;
  
- 	qp->sgid_idx = ah_attr->grh.sgid_index;
- 	memcpy(&cmd->params.sgid[0], &sgid.raw[0], sizeof(cmd->params.sgid));
--	ocrdma_resolve_dgid(qp->dev, &ah_attr->grh.dgid, &mac_addr[0]);
-+	ocrdma_resolve_dmac(qp->dev, ah_attr, &mac_addr[0]);
- 	cmd->params.dmac_b0_to_b3 = mac_addr[0] | (mac_addr[1] << 8) |
- 				(mac_addr[2] << 16) | (mac_addr[3] << 24);
- 	/* convert them to LE format. */
- 	ocrdma_cpu_to_le32(&cmd->params.dgid[0], sizeof(cmd->params.dgid));
- 	ocrdma_cpu_to_le32(&cmd->params.sgid[0], sizeof(cmd->params.sgid));
- 	cmd->params.vlan_dmac_b4_to_b5 = mac_addr[4] | (mac_addr[5] << 8);
--	vlan_id = rdma_get_vlan_id(&sgid);
-+	vlan_id = ah_attr->vlan_id;
- 	if (vlan_id && (vlan_id < 0x1000)) {
- 		cmd->params.vlan_dmac_b4_to_b5 |=
- 		    vlan_id << OCRDMA_QP_PARAMS_VLAN_SHIFT;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.h b/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
-index f2a89d4..82fe332 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.h
-@@ -94,7 +94,6 @@ void ocrdma_ring_cq_db(struct ocrdma_dev *, u16 cq_id, bool armed,
- int ocrdma_mbx_get_link_speed(struct ocrdma_dev *dev, u8 *lnk_speed);
- int ocrdma_query_config(struct ocrdma_dev *,
- 			struct ocrdma_mbx_query_config *config);
--int ocrdma_resolve_dgid(struct ocrdma_dev *, union ib_gid *dgid, u8 *mac_addr);
+ 	dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
+ 	if (dev) {
+-		vid = rdma_vlan_dev_vlan_id(dev);
++		ip4 = (struct in_device *)dev->ip_ptr;
++		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
++			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
++					       (struct in6_addr *)gid);
+ 		dev_put(dev);
+ 	}
+-
+-	iboe_mac_vlan_to_ll(gid, dev_addr->src_dev_addr, vid);
+ }
  
- int ocrdma_mbx_alloc_pd(struct ocrdma_dev *, struct ocrdma_pd *);
- int ocrdma_mbx_dealloc_pd(struct ocrdma_dev *, struct ocrdma_pd *);
+ static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
 -- 
 1.7.1
 
