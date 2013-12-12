@@ -1,61 +1,38 @@
-From: Devesh Sharma <desh.t2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V5 7/8] IB/uverbs: Resolve Ethernet L2 addresses when
- modifying QP
-Date: Thu, 12 Dec 2013 11:19:09 +0530
-Message-ID: <CAGgPuS3RuNxXMHXSsjyP+4Lwv1rwxCChyFauD04cDkVAjnz8DA@mail.gmail.com>
-References: <CAG4TOxMgHuC=rzB+8stotaeKqwxipz06s_B2zogMMqNn3ZWTOA@mail.gmail.com>
-	<CAJZOPZ+d9xsCQ4nKq5iEaR6tenqvG7spBXKiJBcHjL22c3ePRw@mail.gmail.com>
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH -next] IB/usnic: use GFP_ATOMIC under spin lock
+Date: Thu, 12 Dec 2013 14:49:28 +0800
+Message-ID: <CAPgLHd83+trVvgG1qK8YWLCEGotnWeQjcpXtv+aM72P+Tyj80Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZ+d9xsCQ4nKq5iEaR6tenqvG7spBXKiJBcHjL22c3ePRw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Devesh Sharma <Devesh.Sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 12, 2013 at 2:11 AM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Wed, Dec 11, 2013 at 7:59 PM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->
->> OK, I guess I'm still confused.  Do we have two ways of resolving
->> addresses, one way for consumers that use the RDMA CM and another way
->> for consumers that don't?  Does that mean we end up having two
->> different paths through core verbs?  Even if we put address resolution
->> in uverbs, how do user apps that *do* use librdmacm work?
->
-> Let me clarify -- with V5 it doesn't matter how the application does
-> address resolution in the 1st place. The kernel uverbs layer is
-> provided with local/remote GIDs in the modify qp uverb entry and for
-> Ethernet ports issues address resolution through the relevant
-> netdevice etc. This is works the same for applications that use
-> librdmacm and for applications who don't.
+From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-Yes, ib_send_bw type of apps will work seamlessly with V5. Thanks Or
-for the illustration.
->
-> With your comment/insight, we will move that small logic within the
-> ib_core module from uverbs to verbs.c which means this step will be
-> applied when needed on kernel non rdma-cm consumers too such as SRP
-> which you referred too below.
->
-> When needed means when the relevant qp attributes (== L2 ethernet
-> construcsts, source/destination MACs, and vlan ID) are missing. Kernel
-> rdma-cm consumers would have these fill in their qp attr since its
-> filled by the rdma-cm / ib-addr module throughout the ARP address
-> resolution, non rdma-cm consumers will not and the rest follows.
-Yes, me too agree with Or.
->
->> Also the statement that there are no non-rdma-cm consumers in the
->> kernel is definitely false -- the SRP initiator does not use IP
->> addressing, and it does seem like a legitimate and useful application
->> to run SRP over ethernet.
->
-> fair-enough, so with the change you proposed, this will be supported!
-proposal from Roland make sense to me too.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A spin lock is taken here so we should use GFP_ATOMIC.
+
+Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+---
+ drivers/infiniband/hw/usnic/usnic_uiom.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+index c44acbc..d76ea56 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -557,7 +557,7 @@ struct device **usnic_uiom_get_dev_list(struct usnic_uiom_pd *pd)
+ 	int i = 0;
+ 
+ 	spin_lock(&pd->lock);
+-	devs = kzalloc(sizeof(*devs)*(pd->dev_cnt + 1), GFP_KERNEL);
++	devs = kzalloc(sizeof(*devs)*(pd->dev_cnt + 1), GFP_ATOMIC);
+ 	if (!devs) {
+ 		devs = ERR_PTR(-ENOMEM);
+ 		goto out;
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
