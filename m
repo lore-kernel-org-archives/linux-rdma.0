@@ -1,276 +1,394 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V6 for-next 6/7] IB/ocrdma: Populate GID table with IP based gids
-Date: Thu, 12 Dec 2013 18:03:16 +0200
-Message-ID: <1386864197-10591-7-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH V6 for-next 4/7] IB/mlx4: Handle Ethernet L2 parameters for IP based GID addressing
+Date: Thu, 12 Dec 2013 18:03:14 +0200
+Message-ID: <1386864197-10591-5-git-send-email-ogerlitz@mellanox.com>
 References: <1386864197-10591-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1386864197-10591-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch is similar in spirit to the "IB/mlx4: Use IBoE (RoCE) IP based GIDs
-in the port GID table" patch.
+IP based RoCE gids don't store Ethernet L2 parameters, MAC and VLAN.
 
-Changes to inet4 and inet6 addresses for the host are monitored and if the
-address is associated with an ocrdma device then a gid is added or deleted
-from the device's gid table. The gid format will be a IPv4 to IPv6 mapped or
-the IPv6 address.
+Hence, we need to extract them now from the CQE and place in struct
+ib_wc (to be used for cases were they were taken from the gid).
 
-Cc: Naresh Gottumukkala <bgottumukkala-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Also, when modifying a QP or building address handle, instead of
+parsing the dgid to get the MAC and VLAN, take them from the
+address handle attributes.
+
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  138 ++++++++-------------------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
- 2 files changed, 41 insertions(+), 99 deletions(-)
+ drivers/infiniband/hw/mlx4/ah.c           |   40 +++---------
+ drivers/infiniband/hw/mlx4/cq.c           |    9 +++
+ drivers/infiniband/hw/mlx4/mlx4_ib.h      |    3 -
+ drivers/infiniband/hw/mlx4/qp.c           |  105 ++++++++++++++++++++++-------
+ drivers/net/ethernet/mellanox/mlx4/port.c |   20 ++++++
+ include/linux/mlx4/cq.h                   |   15 +++-
+ 6 files changed, 130 insertions(+), 62 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 91443bc..47187bf 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -67,46 +67,24 @@ void ocrdma_get_guid(struct ocrdma_dev *dev, u8 *guid)
- 	guid[7] = mac_addr[5];
- }
+diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
+index a251bec..170dca6 100644
+--- a/drivers/infiniband/hw/mlx4/ah.c
++++ b/drivers/infiniband/hw/mlx4/ah.c
+@@ -39,25 +39,6 @@
  
--static void ocrdma_build_sgid_mac(union ib_gid *sgid, unsigned char *mac_addr,
--				  bool is_vlan, u16 vlan_id)
+ #include "mlx4_ib.h"
+ 
+-int mlx4_ib_resolve_grh(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah_attr,
+-			u8 *mac, int *is_mcast, u8 port)
 -{
--	sgid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
--	sgid->raw[8] = mac_addr[0] ^ 2;
--	sgid->raw[9] = mac_addr[1];
--	sgid->raw[10] = mac_addr[2];
--	if (is_vlan) {
--		sgid->raw[11] = vlan_id >> 8;
--		sgid->raw[12] = vlan_id & 0xff;
--	} else {
--		sgid->raw[11] = 0xff;
--		sgid->raw[12] = 0xfe;
--	}
--	sgid->raw[13] = mac_addr[3];
--	sgid->raw[14] = mac_addr[4];
--	sgid->raw[15] = mac_addr[5];
--}
+-	struct in6_addr in6;
 -
--static bool ocrdma_add_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
--			    bool is_vlan, u16 vlan_id)
-+static bool ocrdma_add_sgid(struct ocrdma_dev *dev, union ib_gid *new_sgid)
- {
- 	int i;
--	union ib_gid new_sgid;
- 	unsigned long flags;
- 
- 	memset(&ocrdma_zero_sgid, 0, sizeof(union ib_gid));
- 
--	ocrdma_build_sgid_mac(&new_sgid, mac_addr, is_vlan, vlan_id);
- 
- 	spin_lock_irqsave(&dev->sgid_lock, flags);
- 	for (i = 0; i < OCRDMA_MAX_SGID; i++) {
- 		if (!memcmp(&dev->sgid_tbl[i], &ocrdma_zero_sgid,
- 			    sizeof(union ib_gid))) {
- 			/* found free entry */
--			memcpy(&dev->sgid_tbl[i], &new_sgid,
-+			memcpy(&dev->sgid_tbl[i], new_sgid,
- 			       sizeof(union ib_gid));
- 			spin_unlock_irqrestore(&dev->sgid_lock, flags);
- 			return true;
--		} else if (!memcmp(&dev->sgid_tbl[i], &new_sgid,
-+		} else if (!memcmp(&dev->sgid_tbl[i], new_sgid,
- 				   sizeof(union ib_gid))) {
- 			/* entry already present, no addition is required. */
- 			spin_unlock_irqrestore(&dev->sgid_lock, flags);
-@@ -117,20 +95,17 @@ static bool ocrdma_add_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
- 	return false;
- }
- 
--static bool ocrdma_del_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
--			    bool is_vlan, u16 vlan_id)
-+static bool ocrdma_del_sgid(struct ocrdma_dev *dev, union ib_gid *sgid)
- {
- 	int found = false;
- 	int i;
--	union ib_gid sgid;
- 	unsigned long flags;
- 
--	ocrdma_build_sgid_mac(&sgid, mac_addr, is_vlan, vlan_id);
- 
- 	spin_lock_irqsave(&dev->sgid_lock, flags);
- 	/* first is default sgid, which cannot be deleted. */
- 	for (i = 1; i < OCRDMA_MAX_SGID; i++) {
--		if (!memcmp(&dev->sgid_tbl[i], &sgid, sizeof(union ib_gid))) {
-+		if (!memcmp(&dev->sgid_tbl[i], sgid, sizeof(union ib_gid))) {
- 			/* found matching entry */
- 			memset(&dev->sgid_tbl[i], 0, sizeof(union ib_gid));
- 			found = true;
-@@ -141,75 +116,18 @@ static bool ocrdma_del_sgid(struct ocrdma_dev *dev, unsigned char *mac_addr,
- 	return found;
- }
- 
--static void ocrdma_add_default_sgid(struct ocrdma_dev *dev)
--{
--	/* GID Index 0 - Invariant manufacturer-assigned EUI-64 */
--	union ib_gid *sgid = &dev->sgid_tbl[0];
+-	*is_mcast = 0;
 -
--	sgid->global.subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
--	ocrdma_get_guid(dev, &sgid->raw[8]);
--}
+-	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof in6);
+-	if (rdma_link_local_addr(&in6))
+-		rdma_get_ll_mac(&in6, mac);
+-	else if (rdma_is_multicast_addr(&in6)) {
+-		rdma_get_mcast_mac(&in6, mac);
+-		*is_mcast = 1;
+-	} else
+-		return -EINVAL;
 -
--#if IS_ENABLED(CONFIG_VLAN_8021Q)
--static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
--{
--	struct net_device *netdev, *tmp;
--	u16 vlan_id;
--	bool is_vlan;
--
--	netdev = dev->nic_info.netdev;
--
--	rcu_read_lock();
--	for_each_netdev_rcu(&init_net, tmp) {
--		if (netdev == tmp || vlan_dev_real_dev(tmp) == netdev) {
--			if (!netif_running(tmp) || !netif_oper_up(tmp))
--				continue;
--			if (netdev != tmp) {
--				vlan_id = vlan_dev_vlan_id(tmp);
--				is_vlan = true;
--			} else {
--				is_vlan = false;
--				vlan_id = 0;
--				tmp = netdev;
--			}
--			ocrdma_add_sgid(dev, tmp->dev_addr, is_vlan, vlan_id);
--		}
--	}
--	rcu_read_unlock();
--}
--#else
--static void ocrdma_add_vlan_sgids(struct ocrdma_dev *dev)
--{
--
--}
--#endif /* VLAN */
--
--static int ocrdma_build_sgid_tbl(struct ocrdma_dev *dev)
-+static int ocrdma_addr_event(unsigned long event, struct net_device *netdev,
-+			     union ib_gid *gid)
- {
--	ocrdma_add_default_sgid(dev);
--	ocrdma_add_vlan_sgids(dev);
 -	return 0;
 -}
 -
--#if IS_ENABLED(CONFIG_IPV6)
+ static struct ib_ah *create_ib_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
+ 				  struct mlx4_ib_ah *ah)
+ {
+@@ -92,21 +73,18 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr
+ {
+ 	struct mlx4_ib_dev *ibdev = to_mdev(pd->device);
+ 	struct mlx4_dev *dev = ibdev->dev;
+-	union ib_gid sgid;
+-	u8 mac[6];
+-	int err;
+ 	int is_mcast;
++	struct in6_addr in6;
+ 	u16 vlan_tag;
+ 
+-	err = mlx4_ib_resolve_grh(ibdev, ah_attr, mac, &is_mcast, ah_attr->port_num);
+-	if (err)
+-		return ERR_PTR(err);
 -
--static int ocrdma_inet6addr_event(struct notifier_block *notifier,
--				  unsigned long event, void *ptr)
--{
--	struct inet6_ifaddr *ifa = (struct inet6_ifaddr *)ptr;
--	struct net_device *netdev = ifa->idev->dev;
- 	struct ib_event gid_event;
- 	struct ocrdma_dev *dev;
- 	bool found = false;
- 	bool updated = false;
- 	bool is_vlan = false;
--	u16 vid = 0;
+-	memcpy(ah->av.eth.mac, mac, 6);
+-	err = ib_get_cached_gid(pd->device, ah_attr->port_num, ah_attr->grh.sgid_index, &sgid);
+-	if (err)
+-		return ERR_PTR(err);
+-	vlan_tag = rdma_get_vlan_id(&sgid);
++	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
++	if (rdma_is_multicast_addr(&in6)) {
++		is_mcast = 1;
++		rdma_get_mcast_mac(&in6, ah->av.eth.mac);
++	} else {
++		memcpy(ah->av.eth.mac, ah_attr->dmac, ETH_ALEN);
++	}
++	vlan_tag = ah_attr->vlan_id;
+ 	if (vlan_tag < 0x1000)
+ 		vlan_tag |= (ah_attr->sl & 7) << 13;
+ 	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 66dbf80..cc40f08 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -798,6 +798,15 @@ repoll:
+ 			wc->sl  = be16_to_cpu(cqe->sl_vid) >> 13;
+ 		else
+ 			wc->sl  = be16_to_cpu(cqe->sl_vid) >> 12;
++		if (be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_VLAN_PRESENT_MASK) {
++			wc->vlan_id = be16_to_cpu(cqe->sl_vid) &
++				MLX4_CQE_VID_MASK;
++		} else {
++			wc->vlan_id = 0xffff;
++		}
++		wc->wc_flags |= IB_WC_WITH_VLAN;
++		memcpy(wc->smac, cqe->smac, ETH_ALEN);
++		wc->wc_flags |= IB_WC_WITH_SMAC;
+ 	}
  
- 	is_vlan = netdev->priv_flags & IFF_802_1Q_VLAN;
--	if (is_vlan) {
--		vid = vlan_dev_vlan_id(netdev);
-+	if (is_vlan)
- 		netdev = vlan_dev_real_dev(netdev);
--	}
+ 	return 0;
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 133f41f..c06f571 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -678,9 +678,6 @@ int __mlx4_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+ int __mlx4_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+ 			union ib_gid *gid, int netw_view);
  
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(dev, &ocrdma_dev_list, entry) {
-@@ -222,16 +140,14 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
+-int mlx4_ib_resolve_grh(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah_attr,
+-			u8 *mac, int *is_mcast, u8 port);
+-
+ static inline bool mlx4_ib_ah_grh_present(struct mlx4_ib_ah *ah)
+ {
+ 	u8 port = be32_to_cpu(ah->av.ib.port_pd) >> 24 & 3;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index da6f5fa..e0c2186 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -90,6 +90,21 @@ enum {
+ 	MLX4_RAW_QP_MSGMAX	= 31,
+ };
  
- 	if (!found)
- 		return NOTIFY_DONE;
--	if (!rdma_link_local_addr((struct in6_addr *)&ifa->addr))
--		return NOTIFY_DONE;
- 
- 	mutex_lock(&dev->dev_lock);
- 	switch (event) {
- 	case NETDEV_UP:
--		updated = ocrdma_add_sgid(dev, netdev->dev_addr, is_vlan, vid);
-+		updated = ocrdma_add_sgid(dev, gid);
- 		break;
- 	case NETDEV_DOWN:
--		updated = ocrdma_del_sgid(dev, netdev->dev_addr, is_vlan, vid);
-+		updated = ocrdma_del_sgid(dev, gid);
- 		break;
- 	default:
- 		break;
-@@ -247,6 +163,32 @@ static int ocrdma_inet6addr_event(struct notifier_block *notifier,
- 	return NOTIFY_OK;
++#ifndef ETH_ALEN
++#define ETH_ALEN        6
++#endif
++static inline u64 mlx4_mac_to_u64(u8 *addr)
++{
++	u64 mac = 0;
++	int i;
++
++	for (i = 0; i < ETH_ALEN; i++) {
++		mac <<= 8;
++		mac |= addr[i];
++	}
++	return mac;
++}
++
+ static const __be32 mlx4_ib_opcode[] = {
+ 	[IB_WR_SEND]				= cpu_to_be32(MLX4_OPCODE_SEND),
+ 	[IB_WR_LSO]				= cpu_to_be32(MLX4_OPCODE_LSO),
+@@ -1144,16 +1159,15 @@ static void mlx4_set_sched(struct mlx4_qp_path *path, u8 port)
+ 	path->sched_queue = (path->sched_queue & 0xbf) | ((port - 1) << 6);
  }
  
-+static int ocrdma_inetaddr_event(struct notifier_block *notifier,
-+				  unsigned long event, void *ptr)
-+{
-+	struct in_ifaddr *ifa = ptr;
-+	union ib_gid gid;
-+	struct net_device *netdev = ifa->ifa_dev->dev;
-+
-+	ipv6_addr_set_v4mapped(ifa->ifa_address, (struct in6_addr *)&gid);
-+	return ocrdma_addr_event(event, netdev, &gid);
-+}
-+
-+#if IS_ENABLED(CONFIG_IPV6)
-+
-+static int ocrdma_inet6addr_event(struct notifier_block *notifier,
-+				  unsigned long event, void *ptr)
-+{
-+	struct inet6_ifaddr *ifa = (struct inet6_ifaddr *)ptr;
-+	union  ib_gid *gid = (union ib_gid *)&ifa->addr;
-+	struct net_device *netdev = ifa->idev->dev;
-+	return ocrdma_addr_event(event, netdev, gid);
-+}
-+
-+static struct notifier_block ocrdma_inetaddr_notifier = {
-+	.notifier_call = ocrdma_inetaddr_event
-+};
-+
- static struct notifier_block ocrdma_inet6addr_notifier = {
- 	.notifier_call = ocrdma_inet6addr_event
- };
-@@ -423,10 +365,6 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
- 	if (status)
- 		goto alloc_err;
- 
--	status = ocrdma_build_sgid_tbl(dev);
--	if (status)
--		goto alloc_err;
--
- 	status = ocrdma_register_device(dev);
- 	if (status)
- 		goto alloc_err;
-@@ -553,6 +491,10 @@ static int __init ocrdma_init_module(void)
+-static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
+-			 struct mlx4_qp_path *path, u8 port)
++static int _mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
++			  u64 smac, u16 vlan_tag, struct mlx4_qp_path *path,
++			  u8 port)
  {
- 	int status;
- 
-+	status = register_inetaddr_notifier(&ocrdma_inetaddr_notifier);
-+	if (status)
-+		return status;
+-	int err;
+ 	int is_eth = rdma_port_get_link_layer(&dev->ib_dev, port) ==
+ 		IB_LINK_LAYER_ETHERNET;
+-	u8 mac[6];
+-	int is_mcast;
+-	u16 vlan_tag;
+ 	int vidx;
++	int smac_index;
 +
- #if IS_ENABLED(CONFIG_IPV6)
- 	status = register_inet6addr_notifier(&ocrdma_inet6addr_notifier);
- 	if (status)
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index a0f1c47..aa92f40 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1327,7 +1327,7 @@ int ocrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	spin_unlock_irqrestore(&qp->q_lock, flags);
  
- 	if (!ib_modify_qp_is_ok(old_qps, new_qps, ibqp->qp_type, attr_mask,
--				IB_LINK_LAYER_UNSPECIFIED)) {
-+				IB_LINK_LAYER_ETHERNET)) {
- 		pr_err("%s(%d) invalid attribute mask=0x%x specified for\n"
- 		       "qpn=0x%x of type=0x%x old_qps=0x%x, new_qps=0x%x\n",
- 		       __func__, dev->id, attr_mask, qp->id, ibqp->qp_type,
+ 	path->grh_mylmc     = ah->src_path_bits & 0x7f;
+ 	path->rlid	    = cpu_to_be16(ah->dlid);
+@@ -1188,22 +1202,27 @@ static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
+ 		if (!(ah->ah_flags & IB_AH_GRH))
+ 			return -1;
+ 
+-		err = mlx4_ib_resolve_grh(dev, ah, mac, &is_mcast, port);
+-		if (err)
+-			return err;
+-
+-		memcpy(path->dmac, mac, 6);
++		memcpy(path->dmac, ah->dmac, ETH_ALEN);
+ 		path->ackto = MLX4_IB_LINK_TYPE_ETH;
+-		/* use index 0 into MAC table for IBoE */
+-		path->grh_mylmc &= 0x80;
++		/* find the index  into MAC table for IBoE */
++		if (!is_zero_ether_addr((const u8 *)&smac)) {
++			if (mlx4_find_cached_mac(dev->dev, port, smac,
++						 &smac_index))
++				return -ENOENT;
++		} else {
++			smac_index = 0;
++		}
++
++		path->grh_mylmc &= 0x80 | smac_index;
+ 
+-		vlan_tag = rdma_get_vlan_id(&dev->iboe.gid_table[port - 1][ah->grh.sgid_index]);
++		path->feup |= MLX4_FEUP_FORCE_ETH_UP;
+ 		if (vlan_tag < 0x1000) {
+ 			if (mlx4_find_cached_vlan(dev->dev, port, vlan_tag, &vidx))
+ 				return -ENOENT;
+ 
+ 			path->vlan_index = vidx;
+ 			path->fl = 1 << 6;
++			path->feup |= MLX4_FVL_FORCE_ETH_VLAN;
+ 		}
+ 	} else
+ 		path->sched_queue = MLX4_IB_DEFAULT_SCHED_QUEUE |
+@@ -1212,6 +1231,28 @@ static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_ah_attr *ah,
+ 	return 0;
+ }
+ 
++static int mlx4_set_path(struct mlx4_ib_dev *dev, const struct ib_qp_attr *qp,
++			 enum ib_qp_attr_mask qp_attr_mask,
++			 struct mlx4_qp_path *path, u8 port)
++{
++	return _mlx4_set_path(dev, &qp->ah_attr,
++			      mlx4_mac_to_u64((u8 *)qp->smac),
++			      (qp_attr_mask & IB_QP_VID) ? qp->vlan_id : 0xffff,
++			      path, port);
++}
++
++static int mlx4_set_alt_path(struct mlx4_ib_dev *dev,
++			     const struct ib_qp_attr *qp,
++			     enum ib_qp_attr_mask qp_attr_mask,
++			     struct mlx4_qp_path *path, u8 port)
++{
++	return _mlx4_set_path(dev, &qp->alt_ah_attr,
++			      mlx4_mac_to_u64((u8 *)qp->alt_smac),
++			      (qp_attr_mask & IB_QP_ALT_VID) ?
++			      qp->alt_vlan_id : 0xffff,
++			      path, port);
++}
++
+ static void update_mcg_macs(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
+ {
+ 	struct mlx4_ib_gid_entry *ge, *tmp;
+@@ -1329,7 +1370,7 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 	}
+ 
+ 	if (attr_mask & IB_QP_AV) {
+-		if (mlx4_set_path(dev, &attr->ah_attr, &context->pri_path,
++		if (mlx4_set_path(dev, attr, attr_mask, &context->pri_path,
+ 				  attr_mask & IB_QP_PORT ?
+ 				  attr->port_num : qp->port))
+ 			goto out;
+@@ -1352,8 +1393,8 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		    dev->dev->caps.pkey_table_len[attr->alt_port_num])
+ 			goto out;
+ 
+-		if (mlx4_set_path(dev, &attr->alt_ah_attr, &context->alt_path,
+-				  attr->alt_port_num))
++		if (mlx4_set_alt_path(dev, attr, attr_mask, &context->alt_path,
++				      attr->alt_port_num))
+ 			goto out;
+ 
+ 		context->alt_path.pkey_index = attr->alt_pkey_index;
+@@ -1464,6 +1505,17 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		context->pri_path.ackto = (context->pri_path.ackto & 0xf8) |
+ 					MLX4_IB_LINK_TYPE_ETH;
+ 
++	if (ibqp->qp_type == IB_QPT_UD && (new_state == IB_QPS_RTR)) {
++		int is_eth = rdma_port_get_link_layer(
++				&dev->ib_dev, qp->port) ==
++				IB_LINK_LAYER_ETHERNET;
++		if (is_eth) {
++			context->pri_path.ackto = MLX4_IB_LINK_TYPE_ETH;
++			optpar |= MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH;
++		}
++	}
++
++
+ 	if (cur_state == IB_QPS_RTS && new_state == IB_QPS_SQD	&&
+ 	    attr_mask & IB_QP_EN_SQD_ASYNC_NOTIFY && attr->en_sqd_async_notify)
+ 		sqd_event = 1;
+@@ -1561,18 +1613,21 @@ int mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	struct mlx4_ib_qp *qp = to_mqp(ibqp);
+ 	enum ib_qp_state cur_state, new_state;
+ 	int err = -EINVAL;
+-	int p = attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
++	int ll;
+ 	mutex_lock(&qp->mutex);
+ 
+ 	cur_state = attr_mask & IB_QP_CUR_STATE ? attr->cur_qp_state : qp->state;
+ 	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
+ 
+-	if (cur_state == new_state && cur_state == IB_QPS_RESET)
+-		p = IB_LINK_LAYER_UNSPECIFIED;
++	if (cur_state == new_state && cur_state == IB_QPS_RESET) {
++		ll = IB_LINK_LAYER_UNSPECIFIED;
++	} else {
++		int port = attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
++		ll = rdma_port_get_link_layer(&dev->ib_dev, port);
++	}
+ 
+ 	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type,
+-				attr_mask,
+-				rdma_port_get_link_layer(&dev->ib_dev, p))) {
++				attr_mask, ll)) {
+ 		pr_debug("qpn 0x%x: invalid attribute mask specified "
+ 			 "for transition %d to %d. qp_type %d,"
+ 			 " attr_mask 0x%x\n",
+@@ -1789,8 +1844,10 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
+ 				return err;
+ 		}
+ 
+-		vlan = rdma_get_vlan_id(&sgid);
+-		is_vlan = vlan < 0x1000;
++		if (ah->av.eth.vlan != 0xffff) {
++			vlan = be16_to_cpu(ah->av.eth.vlan) & 0x0fff;
++			is_vlan = 1;
++		}
+ 	}
+ 	ib_ud_header_init(send_size, !is_eth, is_eth, is_vlan, is_grh, 0, &sqp->ud_header);
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+index 97d342f..f50ef6a 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/port.c
++++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+@@ -123,6 +123,26 @@ static int mlx4_set_port_mac_table(struct mlx4_dev *dev, u8 port,
+ 	return err;
+ }
+ 
++int mlx4_find_cached_mac(struct mlx4_dev *dev, u8 port, u64 mac, int *idx)
++{
++	struct mlx4_port_info *info = &mlx4_priv(dev)->port[port];
++	struct mlx4_mac_table *table = &info->mac_table;
++	int i;
++
++	for (i = 0; i < MLX4_MAX_MAC_NUM; i++) {
++		if (!table->refs[i])
++			continue;
++
++		if (mac == (MLX4_MAC_MASK & be64_to_cpu(table->entries[i]))) {
++			*idx = i;
++			return 0;
++		}
++	}
++
++	return -ENOENT;
++}
++EXPORT_SYMBOL_GPL(mlx4_find_cached_mac);
++
+ int __mlx4_register_mac(struct mlx4_dev *dev, u8 port, u64 mac)
+ {
+ 	struct mlx4_port_info *info = &mlx4_priv(dev)->port[port];
+diff --git a/include/linux/mlx4/cq.h b/include/linux/mlx4/cq.h
+index 98fa492..e186299 100644
+--- a/include/linux/mlx4/cq.h
++++ b/include/linux/mlx4/cq.h
+@@ -34,6 +34,7 @@
+ #define MLX4_CQ_H
+ 
+ #include <linux/types.h>
++#include <uapi/linux/if_ether.h>
+ 
+ #include <linux/mlx4/device.h>
+ #include <linux/mlx4/doorbell.h>
+@@ -43,10 +44,15 @@ struct mlx4_cqe {
+ 	__be32			immed_rss_invalid;
+ 	__be32			g_mlpath_rqpn;
+ 	__be16			sl_vid;
+-	__be16			rlid;
+-	__be16			status;
+-	u8			ipv6_ext_mask;
+-	u8			badfcs_enc;
++	union {
++		struct {
++			__be16	rlid;
++			__be16  status;
++			u8      ipv6_ext_mask;
++			u8      badfcs_enc;
++		};
++		u8  smac[ETH_ALEN];
++	};
+ 	__be32			byte_cnt;
+ 	__be16			wqe_index;
+ 	__be16			checksum;
+@@ -83,6 +89,7 @@ struct mlx4_ts_cqe {
+ enum {
+ 	MLX4_CQE_VLAN_PRESENT_MASK	= 1 << 29,
+ 	MLX4_CQE_QPN_MASK		= 0xffffff,
++	MLX4_CQE_VID_MASK		= 0xfff,
+ };
+ 
+ enum {
 -- 
 1.7.1
 
