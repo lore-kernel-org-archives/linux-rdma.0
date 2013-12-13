@@ -1,28 +1,38 @@
-From: Somnath Kotur <Somnath.Kotur-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v1] IB/CMA: Fix to handle global/non-linklocal IPv6
- address in cma_check_linklocal()
-Date: Fri, 13 Dec 2013 05:38:45 +0000
-Message-ID: <7F44EA5110810A40B7DAFB605C41975D2C96ECF7@CMEXMB1.ad.emulex.com>
-References: <490f7bb9-cfb2-4225-abd7-c0441878330f@CMEXHTCAS1.ad.emulex.com>
- <7F44EA5110810A40B7DAFB605C41975D2C95A164@CMEXMB1.ad.emulex.com>
- <1828884A29C6694DAF28B7E6B8A8237388D07CB6@ORSMSX109.amr.corp.intel.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: linux-next: Tree for Dec 13 (infiniband/hw/usnic)
+Date: Fri, 13 Dec 2013 09:20:29 -0800
+Message-ID: <52AB41DD.9040001@infradead.org>
+References: <20131213161039.623d3caf832560b4aa81f4b0@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20131213161039.623d3caf832560b4aa81f4b0@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Upinder Malhi <umalhi@cisco.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
-Any idea/ETA on when you will be picking this up?
+On 12/12/13 21:10, Stephen Rothwell wrote:
+> Hi all,
+> 
+> Changes since 20131212:
+> 
 
-Thanks
-Som
+for linux-next of 2013-Dec-11,12,13:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+drivers/infiniband/hw/usnic/usnic_uiom.c: In function 'usnic_uiom_put_pages':
+drivers/infiniband/hw/usnic/usnic_uiom.c:91:4: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 2 has type 'dma_addr_t' [-Wformat]
+drivers/infiniband/hw/usnic/usnic_uiom.c: In function 'usnic_uiom_get_pages':
+drivers/infiniband/hw/usnic/usnic_uiom.c:170:5: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 3 has type 'dma_addr_t' [-Wformat]
+drivers/infiniband/hw/usnic/usnic_uiom.c: In function 'usnic_uiom_map_sorted_intervals':
+drivers/infiniband/hw/usnic/usnic_uiom.c:279:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 4 has type 'size_t' [-Wformat]
+drivers/infiniband/hw/usnic/usnic_uiom.c:296:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 4 has type 'size_t' [-Wformat]
+drivers/infiniband/hw/usnic/usnic_uiom.c: In function 'usnic_uiom_attach_dev_to_pd':
+drivers/infiniband/hw/usnic/usnic_uiom.c:505:2: error: implicit declaration of function 'iommu_domain_has_cap' [-Werror=implicit-function-declaration]
+
+
+
+-- 
+~Randy
