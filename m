@@ -1,7 +1,7 @@
 From: <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/1] RDMA/ocrdma: read ASIC_ID register to select asic_gen
-Date: Sat, 14 Dec 2013 12:53:05 +0530
-Message-ID: <5d603dd9-df72-4469-bb14-8ce1614bc717@CMEXHTCAS2.ad.emulex.com>
+Subject: [PATCH V1 1/2] RDMA/ocrdma: read ASIC_ID register to select asic_gen
+Date: Sat, 14 Dec 2013 14:35:13 +0530
+Message-ID: <79bacedd-020c-4c36-85fc-a87c05a46b75@CMEXHTCAS1.ad.emulex.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
