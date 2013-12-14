@@ -1,90 +1,52 @@
-From: <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V1 2/2] RDMA/ocrdma: read ASIC_ID register to select asic_gen
-Date: Sat, 14 Dec 2013 14:35:14 +0530
-Message-ID: <f2280bab-542e-4b38-9cde-17c18c9b122b@CMEXHTCAS1.ad.emulex.com>
-References: <1387011914-15046-1-git-send-email-devesh.sharma@emulex.com>
+From: Rashika Kheria <rashika.kheria-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] drivers: infiniband: Mark function _c4iw_write_mem_dma() as
+ static in mem.c
+Date: Sat, 14 Dec 2013 18:42:14 +0530
+Message-ID: <20131214131214.GA8459@rashika>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1387011914-15046-1-git-send-email-devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+This patch marks the function _c4iw_write_mem_dma() as static in
+hw/cxgb4/mem.c because it is not used outside this file.
 
-compilation error fix
+Thus, it also eliminates the following warning in hw/cxgb4/mem.c:
+drivers/infiniband/hw/cxgb4/mem.c:176:5: warning: no previous prototype=
+ for =E2=80=98_c4iw_write_mem_dma=E2=80=99 [-Wmissing-prototypes]
 
-Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Rashika Kheria <rashika.kheria-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma.h       |   17 +++++++----------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    2 +-
- 2 files changed, 8 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/cxgb4/mem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 24157f0..0c9ec79 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -385,13 +385,6 @@ static inline struct ocrdma_srq *get_ocrdma_srq(struct ib_srq *ibsrq)
- 	return container_of(ibsrq, struct ocrdma_srq, ibsrq);
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/=
+cxgb4/mem.c
+index 4cb8eb2..84e4500 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -173,7 +173,7 @@ static int _c4iw_write_mem_inline(struct c4iw_rdev =
+*rdev, u32 addr, u32 len,
+ 	return ret;
  }
- 
--
--static inline int ocrdma_get_num_posted_shift(struct ocrdma_qp *qp)
--{
--	return ((qp->dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY &&
--		 qp->id < 128) ? 24 : 16);
--}
--
- static inline int is_cqe_valid(struct ocrdma_cq *cq, struct ocrdma_cqe *cqe)
+=20
+-int _c4iw_write_mem_dma(struct c4iw_rdev *rdev, u32 addr, u32 len, voi=
+d *data)
++static int _c4iw_write_mem_dma(struct c4iw_rdev *rdev, u32 addr, u32 l=
+en, void *data)
  {
- 	int cqe_valid;
-@@ -423,15 +416,13 @@ static inline int is_cqe_wr_imm(struct ocrdma_cqe *cqe)
- 		OCRDMA_CQE_WRITE_IMM) ? 1 : 0;
- }
- 
--
- static inline u8 ocrdma_get_asic_type(struct ocrdma_dev *dev)
- {
- 	u32 asic_id;
- 	u8 asic_gen = 0xF;
- 	if (dev->nic_info.dev_family == 0xF) {
- 		pci_read_config_dword(dev->nic_info.pdev,
--						OCRDMA_SLI_ASIC_ID_OFFSET,
--						&asic_id);
-+					OCRDMA_SLI_ASIC_ID_OFFSET, &asic_id);
- 		asic_gen = (asic_id & OCRDMA_SLI_ASIC_GEN_NUM_MASK) >>
- 				OCRDMA_SLI_ASIC_GEN_NUM_SHIFT;
- 	}
-@@ -439,4 +430,10 @@ static inline u8 ocrdma_get_asic_type(struct ocrdma_dev *dev)
- 	return asic_gen;
- }
- 
-+static inline int ocrdma_get_num_posted_shift(struct ocrdma_qp *qp)
-+{
-+	return ((ocrdma_get_asic_type(qp->dev) == OCRDMA_ASIC_GEN_SKH_R &&
-+		 qp->id < 128) ? 24 : 16);
-+}
-+
- #endif
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 2edbda6..a8f7ccd 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1092,7 +1092,7 @@ static int ocrdma_copy_qp_uresp(struct ocrdma_qp *qp,
- 	}
- 	uresp.db_page_addr = usr_db;
- 	uresp.db_page_size = dev->nic_info.db_page_size;
--	if (dev->nic_info.dev_family == OCRDMA_GEN2_FAMILY) {
-+	if (ocrdma_get_asic_type(qp->dev) == OCRDMA_ASIC_GEN_SKH_R) {
- 		uresp.db_sq_offset = OCRDMA_DB_GEN2_SQ_OFFSET;
- 		uresp.db_rq_offset = OCRDMA_DB_GEN2_RQ_OFFSET;
- 		uresp.db_shift = 24;
--- 
-1.7.1
+ 	u32 remain =3D len;
+ 	u32 dmalen;
+--=20
+1.7.9.5
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
