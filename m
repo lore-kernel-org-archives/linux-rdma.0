@@ -1,38 +1,54 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: linux-next: Tree for Dec 13 (infiniband/hw/usnic)
-Date: Fri, 13 Dec 2013 09:20:29 -0800
-Message-ID: <52AB41DD.9040001@infradead.org>
-References: <20131213161039.623d3caf832560b4aa81f4b0@canb.auug.org.au>
+From: <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/2] RDMA/ocrdma: ABI versioning between ocrdma and be2net
+Date: Sat, 14 Dec 2013 11:44:16 +0530
+Message-ID: <e1f4bf5a-2dda-4537-804e-8e2280d4cc71@CMEXHTCAS2.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20131213161039.623d3caf832560b4aa81f4b0@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Upinder Malhi <umalhi@cisco.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/12/13 21:10, Stephen Rothwell wrote:
-> Hi all,
-> 
-> Changes since 20131212:
-> 
+From: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 
-for linux-next of 2013-Dec-11,12,13:
+While loading RoCE driver be2net driver should check for ABI version to catch
+functional incompatibilities.
 
+Signed-off-by: Devesh Sharma <devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_abi.h  |    1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-drivers/infiniband/hw/usnic/usnic_uiom.c: In function 'usnic_uiom_put_pages':
-drivers/infiniband/hw/usnic/usnic_uiom.c:91:4: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 2 has type 'dma_addr_t' [-Wformat]
-drivers/infiniband/hw/usnic/usnic_uiom.c: In function 'usnic_uiom_get_pages':
-drivers/infiniband/hw/usnic/usnic_uiom.c:170:5: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 3 has type 'dma_addr_t' [-Wformat]
-drivers/infiniband/hw/usnic/usnic_uiom.c: In function 'usnic_uiom_map_sorted_intervals':
-drivers/infiniband/hw/usnic/usnic_uiom.c:279:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 4 has type 'size_t' [-Wformat]
-drivers/infiniband/hw/usnic/usnic_uiom.c:296:5: warning: format '%lx' expects argument of type 'long unsigned int', but argument 4 has type 'size_t' [-Wformat]
-drivers/infiniband/hw/usnic/usnic_uiom.c: In function 'usnic_uiom_attach_dev_to_pd':
-drivers/infiniband/hw/usnic/usnic_uiom.c:505:2: error: implicit declaration of function 'iommu_domain_has_cap' [-Werror=implicit-function-declaration]
-
-
-
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h b/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
+index fbac8eb..2a14d4a 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_abi.h
+@@ -29,6 +29,7 @@
+ #define __OCRDMA_ABI_H__
+ 
+ #define OCRDMA_ABI_VERSION 1
++#define OCRDMA_BE_ROCE_ABI_VERSION 1
+ /* user kernel communication data structures. */
+ 
+ struct ocrdma_alloc_ucontext_resp {
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 91443bc..bdecfcc 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -540,6 +540,7 @@ static struct ocrdma_driver ocrdma_drv = {
+ 	.add			= ocrdma_add,
+ 	.remove			= ocrdma_remove,
+ 	.state_change_handler	= ocrdma_event_handler,
++	.be_abi_version		= OCRDMA_BE_ROCE_ABI_VERSION,
+ };
+ 
+ static void ocrdma_unregister_inet6addr_notifier(void)
 -- 
-~Randy
+1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
