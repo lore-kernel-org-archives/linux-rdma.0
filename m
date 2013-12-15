@@ -1,38 +1,29 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 00/10] Introduce Signature feature
-Date: Sun, 15 Dec 2013 15:59:24 +0200
-Message-ID: <52ADB5BC.5070401@mellanox.com>
-References: <1828884A29C6694DAF28B7E6B8A8237388D031C4@ORSMSX109.amr.corp.intel.com>	<52847BF8.60401@mellanox.com>	<1828884A29C6694DAF28B7E6B8A8237388D0463F@ORSMSX109.amr.corp.intel.com>	<CAJZOPZLpy8a-uUFhT+bvzd51T7jyV0Osdpz-Muc-1q0du7td3Q@mail.gmail.com> <CAJZOPZLctOXBJN596gr5sCWQ8F=QQPJ_9VpoZmMhJVc2XwS9qA@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCHv3 for-3.13 8/9] IB/uverbs: check access to userspace
+ response buffer in extended command
+Date: Sun, 15 Dec 2013 08:21:14 -0800
+Message-ID: <CAL1RGDVThe_=F3EOCzYfxB8zCgv+4Z_PXiYEPqnphMEOi-drbw@mail.gmail.com>
+References: <cover.1386798254.git.ydroneaud@opteya.com> <701fc3ee1136bbb4a0fd3d560c3ec1ee3bb3b828.1386798254.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZLctOXBJN596gr5sCWQ8F=QQPJ_9VpoZmMhJVc2XwS9qA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <701fc3ee1136bbb4a0fd3d560c3ec1ee3bb3b828.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/12/2013 19:26, Or Gerlitz wrote:
-> Hi Roland, these patches are in the air for two months (V0 posted Oct 
-> 15th http://marc.info/?l=linux-rdma&m=138185152212490&w=2) and not a 
-> word from you. 
+On Wed, Dec 11, 2013 at 2:01 PM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
+> Just like vfs_read(), uverbs_write() must check output buffer
+> (eg. response) with access_ok(VERIFY_WRITE,...) to ensure
+> it's in userspace memory before using the pointer in uverbs
+> functions.
 
-Sagi will be posting V4 soon with the latest cut of the code, rebased to 
-3.13-rc and containing some minor fixes and changes we've stepped on 
-throughout deeper testing.
+Is there any place where we use this pointer through something other
+than copy_to_user()?  I don't think there is or ever should be, in
+which case this check is redundant.
 
-Or.
-
-> Sean raised some concerns for which we replied in detail and we'd like 
-> to get your maintainer say, 3.14 is coming closer, if something needs 
-> to be changed/fixed we need to know that asap so there's enough time 
-> to do that for 3.14, if its helps this is the V3 thread with the 
-> latest discussion http://marc.info/?t=138383972100009&r=1&w=2 , we 
-> have some minor fixes which can be posted in the form of V4, but I 
-> don't see the point to do that before we get any feedback from you on 
-> the current debate.
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
