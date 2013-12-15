@@ -1,57 +1,39 @@
-From: Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
-Subject: Re: [PATCH] drivers: infiniband: Mark function _c4iw_write_mem_dma()
- as static in mem.c
-Date: Sat, 14 Dec 2013 12:24:45 -0800
-Message-ID: <20131214202444.GB17601@leaf>
-References: <20131214131214.GA8459@rashika>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 00/10] Introduce Signature feature
+Date: Sun, 15 Dec 2013 15:59:24 +0200
+Message-ID: <52ADB5BC.5070401@mellanox.com>
+References: <1828884A29C6694DAF28B7E6B8A8237388D031C4@ORSMSX109.amr.corp.intel.com>	<52847BF8.60401@mellanox.com>	<1828884A29C6694DAF28B7E6B8A8237388D0463F@ORSMSX109.amr.corp.intel.com>	<CAJZOPZLpy8a-uUFhT+bvzd51T7jyV0Osdpz-Muc-1q0du7td3Q@mail.gmail.com> <CAJZOPZLctOXBJN596gr5sCWQ8F=QQPJ_9VpoZmMhJVc2XwS9qA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20131214131214.GA8459@rashika>
+In-Reply-To: <CAJZOPZLctOXBJN596gr5sCWQ8F=QQPJ_9VpoZmMhJVc2XwS9qA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rashika Kheria <rashika.kheria-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nicholas Bellinger <nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Dec 14, 2013 at 06:42:14PM +0530, Rashika Kheria wrote:
-> This patch marks the function _c4iw_write_mem_dma() as static in
-> hw/cxgb4/mem.c because it is not used outside this file.
->=20
-> Thus, it also eliminates the following warning in hw/cxgb4/mem.c:
-> drivers/infiniband/hw/cxgb4/mem.c:176:5: warning: no previous prototy=
-pe for =E2=80=98_c4iw_write_mem_dma=E2=80=99 [-Wmissing-prototypes]
->=20
-> Signed-off-by: Rashika Kheria <rashika.kheria-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+On 11/12/2013 19:26, Or Gerlitz wrote:
+> Hi Roland, these patches are in the air for two months (V0 posted Oct 
+> 15th http://marc.info/?l=linux-rdma&m=138185152212490&w=2) and not a 
+> word from you. 
 
-Reviewed-by: Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
+Sagi will be posting V4 soon with the latest cut of the code, rebased to 
+3.13-rc and containing some minor fixes and changes we've stepped on 
+throughout deeper testing.
 
->  drivers/infiniband/hw/cxgb4/mem.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/h=
-w/cxgb4/mem.c
-> index 4cb8eb2..84e4500 100644
-> --- a/drivers/infiniband/hw/cxgb4/mem.c
-> +++ b/drivers/infiniband/hw/cxgb4/mem.c
-> @@ -173,7 +173,7 @@ static int _c4iw_write_mem_inline(struct c4iw_rde=
-v *rdev, u32 addr, u32 len,
->  	return ret;
->  }
-> =20
-> -int _c4iw_write_mem_dma(struct c4iw_rdev *rdev, u32 addr, u32 len, v=
-oid *data)
-> +static int _c4iw_write_mem_dma(struct c4iw_rdev *rdev, u32 addr, u32=
- len, void *data)
->  {
->  	u32 remain =3D len;
->  	u32 dmalen;
-> --=20
-> 1.7.9.5
->=20
+Or.
+
+> Sean raised some concerns for which we replied in detail and we'd like 
+> to get your maintainer say, 3.14 is coming closer, if something needs 
+> to be changed/fixed we need to know that asap so there's enough time 
+> to do that for 3.14, if its helps this is the V3 thread with the 
+> latest discussion http://marc.info/?t=138383972100009&r=1&w=2 , we 
+> have some minor fixes which can be posted in the form of V4, but I 
+> don't see the point to do that before we get any feedback from you on 
+> the current debate.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
