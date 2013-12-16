@@ -1,48 +1,29 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] iwcm: rem_ref() - don't touch cm_id after deref.
-Date: Sun, 15 Dec 2013 16:45:43 -0800
-Message-ID: <CAG4TOxP0zhkGpASSnXA2dR808ponPULyF=ngyQyPgVqsNju8Ug@mail.gmail.com>
-References: <20131121214014.27527.79925.stgit@build.ogc.int>
+From: Johnson Clitton <JohnsonClitton501875401-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: =?UTF-8?Q?Hello,_Greeting_From_Johnson_Clitton.=E2=80=8F?=
+Date: Mon, 16 Dec 2013 04:14:30 +0100 (CET)
+Message-ID: <2090985662.5122721387163670996.JavaMail.defaultUser@defaultHost>
+Reply-To: johnsonclitton323-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131121214014.27527.79925.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 21, 2013 at 1:40 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->  static void rem_ref(struct iw_cm_id *cm_id)
->  {
->         struct iwcm_id_private *cm_id_priv;
-> +       int cb_destroy;
-> +
->         cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
-> -       if (iwcm_deref_id(cm_id_priv) &&
-> -           test_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags)) {
+Hello ,
 
-Don't we have bigger problems if iwcm_deref_id() returns 1 (meaning
-this thread is the one dropping the last reference) but then another
-thread frees the cm_id_priv?  For one thing we go on to call
-free_cm_id() which does kfree(cm_id_priv), which is no good if another
-thread has already freed it.
+I hope this e-mail find you in good health. i am Johnson Clitton an America 
+military. seeking for true friendship and partner. as i was searching i saw 
+your profile here and i move to contact you.
 
-Is the point that CALLBACK_DESTROY will never be set in that case?
-OIC there is a BUG_ON iw_destroy_cm_id, got it.
+I will give you further details about myself when i read from you. please 
+write me on my personal e-mail address (johnsonclitton323-/E1597aS9LQAvxtiuMwx3w@public.gmane.org)for 
+security purpose
 
-Looks good.
+I await your response
 
-> +
-> +       /*
-> +        * Test bit before deref in case the cm_id gets freed on another
-> +        * thread.
-> +        */
-> +       cb_destroy = test_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags);
-> +       if (iwcm_deref_id(cm_id_priv) && cb_destroy) {
->                 BUG_ON(!list_empty(&cm_id_priv->work_list));
->                 free_cm_id(cm_id_priv);
->         }
+Thank you
+Johnson Clitton
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
