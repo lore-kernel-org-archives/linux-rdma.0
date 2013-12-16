@@ -1,139 +1,175 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 00/10] Introduce Signature feature
-Date: Mon, 16 Dec 2013 13:26:20 +0200
-Message-ID: <1387193190-8837-1-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v4 05/10] IB/mlx5: Break wqe handling to begin & finish routines
+Date: Mon, 16 Dec 2013 13:26:25 +0200
+Message-ID: <1387193190-8837-6-git-send-email-sagig@mellanox.com>
+References: <1387193190-8837-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1387193190-8837-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset Introduces Verbs level support for signature handover feature.
-Siganture is intended to implement end-to-end data integrity on a transactional
-basis in a completely offloaded manner.
+As a preliminary step for signature feature which will
+reuqire posting multiple (3) WQEs for a single WR, we
+break post_send routine WQE indexing into begin and
+finish routines.
 
-There are several end-to-end data integrity methods used today in various
-applications and/or upper layer protocols such as T10-DIF defined by SCSI
-specifications (SBC), CRC32, XOR8 and more. This patchset adds verbs support
-only for T10-DIF. The proposed framework allows adding more signature methods
-in the future.
+This patch does not change any functionality.
 
-In T10-DIF, when a series of 512-byte data blocks are transferred, each block
-is followed by an 8-byte guard (note that other protection intervals may be used
-other then 512-bytes). The guard consists of CRC that protects the integrity of
-the data in the block, and tag that protects against mis-directed IOs and a free
-tag for application use.
+Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/qp.c |   97 ++++++++++++++++++++++++--------------
+ 1 files changed, 61 insertions(+), 36 deletions(-)
 
-Data can be protected when transferred over the wire, but can also be protected
-in the memory of the sender/receiver. This allows true end- to-end protection
-against bits flipping either over the wire, through gateways, in memory, over PCI, etc.
-
-While T10-DIF clearly defines that over the wire protection guards are interleaved
-into the data stream (each 512-Byte block followed by 8-byte guard), when in memory,
-the protection guards may reside in a buffer separated from the data. Depending on the
-application, it is usually easier to handle the data when it is contiguous.
-In this case the data buffer will be of size 512xN and the protection buffer will
-be of size 8xN (where N is the number of blocks in the transaction).
-
-There are 3 kinds of signature handover operation:
-1. Take unprotected data (from wire or memory) and ADD protection
-   guards.
-2. Take protetected data (from wire or memory), validate the data
-   integrity against the protection guards and STRIP the protection
-   guards.
-3. Take protected data (from wire or memory), validate the data
-   integrity against the protection guards and PASS the data with
-   the guards as-is.
-
-This translates to defining to the HCA how/if data protection exists in memory domain,
-and how/if data protection exists is wire domain.
-
-The way that data integrity is performed is by using a new kind of memory
-region: signature-enabled MR, and a new kind of work request: REG_SIG_MR.
-The REG_SIG_MR WR operates on the signature-enabled MR, and defines all the
-needed information for the signature handover (data buffer, protection buffer
-if needed and signature attributes). The result is an MR that can be used for
-data transfer as usual, that will also add/validate/strip/pass protection guards.
-
-When the data transfer is successfully completed, it does not mean that there are
-no integrity errors. The user must afterwards check the signature status of the
-handover operation using a new light-weight verb.
-
-This feature shall be used in storage upper layer protocols iSER/SRP implementing
-end-to-end data integrity T10-DIF. Following this patchset, ib_iser/ib_isert
-will use these verbs for T10-PI offload support.
-
-Patchset summary:
-- Intoduce verbs for create/destroy memory regions supporting signature.
-- Introduce IB core signature verbs API.
-- Implement mr create/destroy verbs in mlx5 driver.
-- Preperation patches for signature support in mlx5 driver.
-- Implement signature handover work request in mlx5 driver.
-- Implement signature error collection and handling in mlx5 driver.
-
-Changes from v3 (mostly bug fixes):
-- IB/core: Generalized ib_check_sig_status to a general ib_check_mr_status
-           for other light-weight status checks that may be used on ib_mr.
-- IB/core: Changed ib_sig_err to inform only expected and actual values
-           of the corrupted field (block guard, reference tag or application tag).
-- IB/mlx5: Fail un-supported protection intervals.
-- IB/mlx5: Fxied possible SQ corruption in REG_SIG_MR.
-- IB/mlx5: Fixed wr iterator wrong incrementation in mlx5_ib_post_send.
-- IB/mlx5: Avoid expanding the SQ depth for signature when wqe_size is
-           sufficient.
-
-Changes from v2 (mostly CR comments):
-- IB/core: Added comment on IB_T10DIF_CRC/CSUM declarations.
-- IB/core: Renamed block_size as pi_interval in ib_sig_attrs.
-- IB/core: Took t10_dif domain out of sig union (ib_sig_domain).
-- IB/mlx5: Fixed memory leak in create_mr
-- IB/mlx5: Remove redundant assignment in WQE initialization.
-- IB/mlx5: Fixed possible NULL dereference in check_sig_status
-           and set_sig_wr.
-- IB/mlx5: Added helper function to convert mkey to base key.
-- IB/mlx5: Reduced Fencing in compund REG_SIG_MR WR.
-- Resolved checkpatch warnings.
-
-Changes from v1:
-- IB/core: Reduced sizeof ib_send_wr by using wr->sg_list for data
-           and dedicated ib_sge for protection guards buffer.
-           Currently sig_handover extension does not increase sizeof ib_send_wr
-- IB/core: Change enum to int for container variables.
-- IB/mlx5: Validate wr->num_sge=1 for REG_SIG_MR work request.
-
-Changes from v0:
-- Commit messages: Added more detailed explanation for signature work request.
-- IB/core: Remove indirect memory registration enablement from create_mr.
-           Keep only signature enablement.
-- IB/mlx5: Changed signature error processing via MR radix lookup.
-
-Sagi Grimberg (10):
-  IB/core: Introduce protected memory regions
-  IB/core: Introduce Signature Verbs API
-  IB/mlx5, mlx5_core: Support for create_mr and destroy_mr
-  IB/mlx5: Initialize mlx5_ib_qp signature related
-  IB/mlx5: Break wqe handling to begin & finish routines
-  IB/mlx5: remove MTT access mode from umr flags helper function
-  IB/mlx5: Keep mlx5 MRs in a radix tree under device
-  IB/mlx5: Support IB_WR_REG_SIG_MR
-  IB/mlx5: Collect signature error completion
-  IB/mlx5: Publish support in signature feature
-
- drivers/infiniband/core/verbs.c                |   47 ++
- drivers/infiniband/hw/mlx5/cq.c                |   64 +++
- drivers/infiniband/hw/mlx5/main.c              |   12 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h           |   14 +
- drivers/infiniband/hw/mlx5/mr.c                |  158 +++++++
- drivers/infiniband/hw/mlx5/qp.c                |  559 ++++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx5/core/main.c |    1 +
- drivers/net/ethernet/mellanox/mlx5/core/mr.c   |   85 ++++
- include/linux/mlx5/cq.h                        |    1 +
- include/linux/mlx5/device.h                    |   47 ++
- include/linux/mlx5/driver.h                    |   41 ++
- include/linux/mlx5/qp.h                        |   67 +++
- include/rdma/ib_verbs.h                        |  187 ++++++++-
- 13 files changed, 1242 insertions(+), 41 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 07aa3ca..e135d71 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1990,6 +1990,59 @@ static u8 get_fence(u8 fence, struct ib_send_wr *wr)
+ 	}
+ }
+ 
++static int begin_wqe(struct mlx5_ib_qp *qp, void **seg,
++		     struct mlx5_wqe_ctrl_seg **ctrl,
++		     struct ib_send_wr *wr, int *idx,
++		     int *size, int nreq)
++{
++	int err = 0;
++
++	if (unlikely(mlx5_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq))) {
++		err = -ENOMEM;
++		return err;
++	}
++
++	*idx = qp->sq.cur_post & (qp->sq.wqe_cnt - 1);
++	*seg = mlx5_get_send_wqe(qp, *idx);
++	*ctrl = *seg;
++	*(uint32_t *)(*seg + 8) = 0;
++	(*ctrl)->imm = send_ieth(wr);
++	(*ctrl)->fm_ce_se = qp->sq_signal_bits |
++		(wr->send_flags & IB_SEND_SIGNALED ?
++		 MLX5_WQE_CTRL_CQ_UPDATE : 0) |
++		(wr->send_flags & IB_SEND_SOLICITED ?
++		 MLX5_WQE_CTRL_SOLICITED : 0);
++
++	*seg += sizeof(**ctrl);
++	*size = sizeof(**ctrl) / 16;
++
++	return err;
++}
++
++static void finish_wqe(struct mlx5_ib_qp *qp,
++		       struct mlx5_wqe_ctrl_seg *ctrl,
++		       u8 size, unsigned idx, u64 wr_id,
++		       int nreq, u8 fence, u8 next_fence,
++		       u32 mlx5_opcode)
++{
++	u8 opmod = 0;
++
++	ctrl->opmod_idx_opcode = cpu_to_be32(((u32)(qp->sq.cur_post) << 8) |
++					     mlx5_opcode | ((u32)opmod << 24));
++	ctrl->qpn_ds = cpu_to_be32(size | (qp->mqp.qpn << 8));
++	ctrl->fm_ce_se |= fence;
++	qp->fm_cache = next_fence;
++	if (unlikely(qp->wq_sig))
++		ctrl->signature = wq_sig(ctrl);
++
++	qp->sq.wrid[idx] = wr_id;
++	qp->sq.w_list[idx].opcode = mlx5_opcode;
++	qp->sq.wqe_head[idx] = qp->sq.head + nreq;
++	qp->sq.cur_post += DIV_ROUND_UP(size * 16, MLX5_SEND_WQE_BB);
++	qp->sq.w_list[idx].next = qp->sq.cur_post;
++}
++
++
+ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		      struct ib_send_wr **bad_wr)
+ {
+@@ -2003,7 +2056,6 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 	int uninitialized_var(size);
+ 	void *qend = qp->sq.qend;
+ 	unsigned long flags;
+-	u32 mlx5_opcode;
+ 	unsigned idx;
+ 	int err = 0;
+ 	int inl = 0;
+@@ -2012,7 +2064,6 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 	int nreq;
+ 	int i;
+ 	u8 next_fence = 0;
+-	u8 opmod = 0;
+ 	u8 fence;
+ 
+ 	spin_lock_irqsave(&qp->sq.lock, flags);
+@@ -2025,36 +2076,23 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			goto out;
+ 		}
+ 
+-		if (unlikely(mlx5_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq))) {
++		fence = qp->fm_cache;
++		num_sge = wr->num_sge;
++		if (unlikely(num_sge > qp->sq.max_gs)) {
+ 			mlx5_ib_warn(dev, "\n");
+ 			err = -ENOMEM;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+ 
+-		fence = qp->fm_cache;
+-		num_sge = wr->num_sge;
+-		if (unlikely(num_sge > qp->sq.max_gs)) {
++		err = begin_wqe(qp, &seg, &ctrl, wr, &idx, &size, nreq);
++		if (err) {
+ 			mlx5_ib_warn(dev, "\n");
+ 			err = -ENOMEM;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+ 
+-		idx = qp->sq.cur_post & (qp->sq.wqe_cnt - 1);
+-		seg = mlx5_get_send_wqe(qp, idx);
+-		ctrl = seg;
+-		*(uint32_t *)(seg + 8) = 0;
+-		ctrl->imm = send_ieth(wr);
+-		ctrl->fm_ce_se = qp->sq_signal_bits |
+-			(wr->send_flags & IB_SEND_SIGNALED ?
+-			 MLX5_WQE_CTRL_CQ_UPDATE : 0) |
+-			(wr->send_flags & IB_SEND_SOLICITED ?
+-			 MLX5_WQE_CTRL_SOLICITED : 0);
+-
+-		seg += sizeof(*ctrl);
+-		size = sizeof(*ctrl) / 16;
+-
+ 		switch (ibqp->qp_type) {
+ 		case IB_QPT_XRC_INI:
+ 			xrc = seg;
+@@ -2187,22 +2225,9 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			}
+ 		}
+ 
+-		mlx5_opcode = mlx5_ib_opcode[wr->opcode];
+-		ctrl->opmod_idx_opcode = cpu_to_be32(((u32)(qp->sq.cur_post) << 8)	|
+-						     mlx5_opcode			|
+-						     ((u32)opmod << 24));
+-		ctrl->qpn_ds = cpu_to_be32(size | (qp->mqp.qpn << 8));
+-		ctrl->fm_ce_se |= get_fence(fence, wr);
+-		qp->fm_cache = next_fence;
+-		if (unlikely(qp->wq_sig))
+-			ctrl->signature = wq_sig(ctrl);
+-
+-		qp->sq.wrid[idx] = wr->wr_id;
+-		qp->sq.w_list[idx].opcode = mlx5_opcode;
+-		qp->sq.wqe_head[idx] = qp->sq.head + nreq;
+-		qp->sq.cur_post += DIV_ROUND_UP(size * 16, MLX5_SEND_WQE_BB);
+-		qp->sq.w_list[idx].next = qp->sq.cur_post;
+-
++		finish_wqe(qp, ctrl, size, idx, wr->wr_id, nreq,
++			   get_fence(fence, wr), next_fence,
++			   mlx5_ib_opcode[wr->opcode]);
+ 		if (0)
+ 			dump_wqe(qp, idx, size);
+ 	}
 -- 
 1.7.8.2
 
