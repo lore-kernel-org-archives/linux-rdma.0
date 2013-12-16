@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 05/10] IB/mlx5: Break wqe handling to begin & finish routines
-Date: Mon, 16 Dec 2013 13:26:25 +0200
-Message-ID: <1387193190-8837-6-git-send-email-sagig@mellanox.com>
+Subject: [PATCH v4 01/10] IB/core: Introduce protected memory regions
+Date: Mon, 16 Dec 2013 13:26:21 +0200
+Message-ID: <1387193190-8837-2-git-send-email-sagig@mellanox.com>
 References: <1387193190-8837-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1387193190-8837-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,166 +10,149 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nab-PEzghdH756F8UrSeD/g0lQ@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-As a preliminary step for signature feature which will
-reuqire posting multiple (3) WQEs for a single WR, we
-break post_send routine WQE indexing into begin and
-finish routines.
+This commit introduces verbs for creating/destoying memory
+regions which will allow new types of memory key operations such
+as protected memory registration.
 
-This patch does not change any functionality.
+Indirect memory registration is registering several (one
+of more) pre-registered memory regions in a specific layout.
+The Indirect region may potentialy describe several regions
+and some repitition format between them.
+
+Protected Memory registration is registering a memory region
+with various data integrity attributes which will describe protection
+schemes that will be handled by the HCA in an offloaded manner.
+A protected region will describe pre-registered regions for data,
+protection block guards and the repetitive stride of them.
+These memory regions will be applicable for a new REG_SIG_MR
+work request introduced later in this patchset.
+
+In the future these routines may replace or implement current memory
+regions creation routines existing today:
+- ib_reg_user_mr
+- ib_alloc_fast_reg_mr
+- ib_get_dma_mr
+- ib_dereg_mr
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c |   97 ++++++++++++++++++++++++--------------
- 1 files changed, 61 insertions(+), 36 deletions(-)
+ drivers/infiniband/core/verbs.c |   39 +++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         |   38 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 77 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 07aa3ca..e135d71 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1990,6 +1990,59 @@ static u8 get_fence(u8 fence, struct ib_send_wr *wr)
- 	}
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index d4f6ddf..f4c3bfb 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1072,6 +1072,45 @@ int ib_dereg_mr(struct ib_mr *mr)
  }
+ EXPORT_SYMBOL(ib_dereg_mr);
  
-+static int begin_wqe(struct mlx5_ib_qp *qp, void **seg,
-+		     struct mlx5_wqe_ctrl_seg **ctrl,
-+		     struct ib_send_wr *wr, int *idx,
-+		     int *size, int nreq)
++struct ib_mr *ib_create_mr(struct ib_pd *pd,
++			   struct ib_mr_init_attr *mr_init_attr)
 +{
-+	int err = 0;
++	struct ib_mr *mr;
 +
-+	if (unlikely(mlx5_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq))) {
-+		err = -ENOMEM;
-+		return err;
++	if (!pd->device->create_mr)
++		return ERR_PTR(-ENOSYS);
++
++	mr = pd->device->create_mr(pd, mr_init_attr);
++
++	if (!IS_ERR(mr)) {
++		mr->device  = pd->device;
++		mr->pd      = pd;
++		mr->uobject = NULL;
++		atomic_inc(&pd->usecnt);
++		atomic_set(&mr->usecnt, 0);
 +	}
 +
-+	*idx = qp->sq.cur_post & (qp->sq.wqe_cnt - 1);
-+	*seg = mlx5_get_send_wqe(qp, *idx);
-+	*ctrl = *seg;
-+	*(uint32_t *)(*seg + 8) = 0;
-+	(*ctrl)->imm = send_ieth(wr);
-+	(*ctrl)->fm_ce_se = qp->sq_signal_bits |
-+		(wr->send_flags & IB_SEND_SIGNALED ?
-+		 MLX5_WQE_CTRL_CQ_UPDATE : 0) |
-+		(wr->send_flags & IB_SEND_SOLICITED ?
-+		 MLX5_WQE_CTRL_SOLICITED : 0);
-+
-+	*seg += sizeof(**ctrl);
-+	*size = sizeof(**ctrl) / 16;
-+
-+	return err;
++	return mr;
 +}
++EXPORT_SYMBOL(ib_create_mr);
 +
-+static void finish_wqe(struct mlx5_ib_qp *qp,
-+		       struct mlx5_wqe_ctrl_seg *ctrl,
-+		       u8 size, unsigned idx, u64 wr_id,
-+		       int nreq, u8 fence, u8 next_fence,
-+		       u32 mlx5_opcode)
++int ib_destroy_mr(struct ib_mr *mr)
 +{
-+	u8 opmod = 0;
++	struct ib_pd *pd;
++	int ret;
 +
-+	ctrl->opmod_idx_opcode = cpu_to_be32(((u32)(qp->sq.cur_post) << 8) |
-+					     mlx5_opcode | ((u32)opmod << 24));
-+	ctrl->qpn_ds = cpu_to_be32(size | (qp->mqp.qpn << 8));
-+	ctrl->fm_ce_se |= fence;
-+	qp->fm_cache = next_fence;
-+	if (unlikely(qp->wq_sig))
-+		ctrl->signature = wq_sig(ctrl);
++	if (atomic_read(&mr->usecnt))
++		return -EBUSY;
 +
-+	qp->sq.wrid[idx] = wr_id;
-+	qp->sq.w_list[idx].opcode = mlx5_opcode;
-+	qp->sq.wqe_head[idx] = qp->sq.head + nreq;
-+	qp->sq.cur_post += DIV_ROUND_UP(size * 16, MLX5_SEND_WQE_BB);
-+	qp->sq.w_list[idx].next = qp->sq.cur_post;
++	pd = mr->pd;
++	ret = mr->device->destroy_mr(mr);
++	if (!ret)
++		atomic_dec(&pd->usecnt);
++
++	return ret;
 +}
++EXPORT_SYMBOL(ib_destroy_mr);
 +
-+
- int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		      struct ib_send_wr **bad_wr)
+ struct ib_mr *ib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
  {
-@@ -2003,7 +2056,6 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 	int uninitialized_var(size);
- 	void *qend = qp->sq.qend;
- 	unsigned long flags;
--	u32 mlx5_opcode;
- 	unsigned idx;
- 	int err = 0;
- 	int inl = 0;
-@@ -2012,7 +2064,6 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 	int nreq;
- 	int i;
- 	u8 next_fence = 0;
--	u8 opmod = 0;
- 	u8 fence;
+ 	struct ib_mr *mr;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 979874c..81d1406 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -457,6 +457,22 @@ int ib_rate_to_mult(enum ib_rate rate) __attribute_const__;
+  */
+ int ib_rate_to_mbps(enum ib_rate rate) __attribute_const__;
  
- 	spin_lock_irqsave(&qp->sq.lock, flags);
-@@ -2025,36 +2076,23 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			goto out;
- 		}
++enum ib_mr_create_flags {
++		IB_MR_SIGNATURE_EN = 1,
++};
++
++/**
++ * ib_mr_init_attr - Memory region init attributes passed to routine
++ *     ib_create_mr.
++ * @max_reg_descriptors: max number of registration descriptors that
++ *     may be used with registration work requests.
++ * @flags: MR creation flags bit mask.
++ */
++struct ib_mr_init_attr {
++	int	    max_reg_descriptors;
++	u32	    flags;
++};
++
+ /**
+  * mult_to_ib_rate - Convert a multiple of 2.5 Gbit/sec to an IB rate
+  * enum.
+@@ -1374,6 +1390,9 @@ struct ib_device {
+ 	int                        (*query_mr)(struct ib_mr *mr,
+ 					       struct ib_mr_attr *mr_attr);
+ 	int                        (*dereg_mr)(struct ib_mr *mr);
++	int                        (*destroy_mr)(struct ib_mr *mr);
++	struct ib_mr *		   (*create_mr)(struct ib_pd *pd,
++						struct ib_mr_init_attr *mr_init_attr);
+ 	struct ib_mr *		   (*alloc_fast_reg_mr)(struct ib_pd *pd,
+ 					       int max_page_list_len);
+ 	struct ib_fast_reg_page_list * (*alloc_fast_reg_page_list)(struct ib_device *device,
+@@ -2215,6 +2234,25 @@ int ib_query_mr(struct ib_mr *mr, struct ib_mr_attr *mr_attr);
+  */
+ int ib_dereg_mr(struct ib_mr *mr);
  
--		if (unlikely(mlx5_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq))) {
-+		fence = qp->fm_cache;
-+		num_sge = wr->num_sge;
-+		if (unlikely(num_sge > qp->sq.max_gs)) {
- 			mlx5_ib_warn(dev, "\n");
- 			err = -ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
- 		}
- 
--		fence = qp->fm_cache;
--		num_sge = wr->num_sge;
--		if (unlikely(num_sge > qp->sq.max_gs)) {
-+		err = begin_wqe(qp, &seg, &ctrl, wr, &idx, &size, nreq);
-+		if (err) {
- 			mlx5_ib_warn(dev, "\n");
- 			err = -ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
- 		}
- 
--		idx = qp->sq.cur_post & (qp->sq.wqe_cnt - 1);
--		seg = mlx5_get_send_wqe(qp, idx);
--		ctrl = seg;
--		*(uint32_t *)(seg + 8) = 0;
--		ctrl->imm = send_ieth(wr);
--		ctrl->fm_ce_se = qp->sq_signal_bits |
--			(wr->send_flags & IB_SEND_SIGNALED ?
--			 MLX5_WQE_CTRL_CQ_UPDATE : 0) |
--			(wr->send_flags & IB_SEND_SOLICITED ?
--			 MLX5_WQE_CTRL_SOLICITED : 0);
--
--		seg += sizeof(*ctrl);
--		size = sizeof(*ctrl) / 16;
--
- 		switch (ibqp->qp_type) {
- 		case IB_QPT_XRC_INI:
- 			xrc = seg;
-@@ -2187,22 +2225,9 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			}
- 		}
- 
--		mlx5_opcode = mlx5_ib_opcode[wr->opcode];
--		ctrl->opmod_idx_opcode = cpu_to_be32(((u32)(qp->sq.cur_post) << 8)	|
--						     mlx5_opcode			|
--						     ((u32)opmod << 24));
--		ctrl->qpn_ds = cpu_to_be32(size | (qp->mqp.qpn << 8));
--		ctrl->fm_ce_se |= get_fence(fence, wr);
--		qp->fm_cache = next_fence;
--		if (unlikely(qp->wq_sig))
--			ctrl->signature = wq_sig(ctrl);
--
--		qp->sq.wrid[idx] = wr->wr_id;
--		qp->sq.w_list[idx].opcode = mlx5_opcode;
--		qp->sq.wqe_head[idx] = qp->sq.head + nreq;
--		qp->sq.cur_post += DIV_ROUND_UP(size * 16, MLX5_SEND_WQE_BB);
--		qp->sq.w_list[idx].next = qp->sq.cur_post;
--
-+		finish_wqe(qp, ctrl, size, idx, wr->wr_id, nreq,
-+			   get_fence(fence, wr), next_fence,
-+			   mlx5_ib_opcode[wr->opcode]);
- 		if (0)
- 			dump_wqe(qp, idx, size);
- 	}
++
++/**
++ * ib_create_mr - Allocates a memory region that may be used for
++ *     signature handover operations.
++ * @pd: The protection domain associated with the region.
++ * @mr_init_attr: memory region init attributes.
++ */
++struct ib_mr *ib_create_mr(struct ib_pd *pd,
++			   struct ib_mr_init_attr *mr_init_attr);
++
++/**
++ * ib_destroy_mr - Destroys a memory region that was created using
++ *     ib_create_mr and removes it from HW translation tables.
++ * @mr: The memory region to destroy.
++ *
++ * This function can fail, if the memory region has memory windows bound to it.
++ */
++int ib_destroy_mr(struct ib_mr *mr);
++
+ /**
+  * ib_alloc_fast_reg_mr - Allocates memory region usable with the
+  *   IB_WR_FAST_REG_MR send work request.
 -- 
 1.7.8.2
 
