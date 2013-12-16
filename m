@@ -1,29 +1,59 @@
-From: Johnson Clitton <JohnsonClitton501875401-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Subject: =?UTF-8?Q?Hello,_Greeting_From_Johnson_Clitton.=E2=80=8F?=
-Date: Mon, 16 Dec 2013 04:14:30 +0100 (CET)
-Message-ID: <2090985662.5122721387163670996.JavaMail.defaultUser@defaultHost>
-Reply-To: johnsonclitton323-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH -next] IB/usnic: fix some error return code
+Date: Mon, 16 Dec 2013 13:50:01 +0800
+Message-ID: <CAPgLHd_evqPnt2rjTX3B=jhfD5qmvDk_QdKBgTE2iSZiWw7mOg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello ,
+From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-I hope this e-mail find you in good health. i am Johnson Clitton an America 
-military. seeking for true friendship and partner. as i was searching i saw 
-your profile here and i move to contact you.
+This patch make usnic_ib_discover_pf() only return ERR_PTR()
+only and fix to return a negative error code from the error
+handling case instead of 0.
 
-I will give you further details about myself when i read from you. please 
-write me on my personal e-mail address (johnsonclitton323-/E1597aS9LQAvxtiuMwx3w@public.gmane.org)for 
-security purpose
+Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+---
+ drivers/infiniband/hw/usnic/usnic_ib_main.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-I await your response
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index 2bbfa09..e07cccc 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -406,6 +406,7 @@ static struct usnic_ib_dev *usnic_ib_discover_pf(struct usnic_vnic *vnic)
+ 	err = usnic_ib_sysfs_register_usdev(us_ibdev);
+ 	if (err) {
+ 		usnic_ib_device_remove(us_ibdev);
++		us_ibdev = ERR_PTR(err);
+ 		goto out;
+ 	}
+ 
+@@ -460,7 +461,8 @@ int usnic_ib_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	}
+ 
+ 	pf = usnic_ib_discover_pf(vf->vnic);
+-	if (!pf) {
++	if (IS_ERR(pf)) {
++		err = PTR_ERR(pf);
+ 		usnic_err("Failed to discover pf of vnic %s with err%d\n",
+ 				pci_name(pdev), err);
+ 		goto out_clean_vnic;
+@@ -543,7 +545,8 @@ static int __init usnic_ib_init(void)
+ 		return err;
+ 	}
+ 
+-	if (pci_register_driver(&usnic_ib_pci_driver)) {
++	err = pci_register_driver(&usnic_ib_pci_driver);
++	if (err) {
+ 		usnic_err("Unable to register with PCI\n");
+ 		goto out_umem_fini;
+ 	}
 
-Thank you
-Johnson Clitton
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
