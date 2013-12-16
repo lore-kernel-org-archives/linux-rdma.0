@@ -1,8 +1,8 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH v2] ssa_smdb.[c h]: remove 'osm_header.h' dependency from
  'ssa_smdb.h'
-Date: Mon, 16 Dec 2013 08:37:34 -0500
-Message-ID: <52AF021E.6060002@dev.mellanox.co.il>
+Date: Mon, 16 Dec 2013 15:44:17 +0200
+Message-ID: <52AF03B1.5060407@dev.mellanox.co.il>
 References: <52AF0075.3070709@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -10,11 +10,13 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <52AF0075.3070709-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ilya Nelkenbaum <ilyan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sasha Kotchubievsky <sashakot-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sasha Kotchubievsky <sashakot-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/16/2013 8:30 AM, Ilya Nelkenbaum wrote:
+Please ignore.
+
+On 12/16/2013 3:30 PM, Ilya Nelkenbaum wrote:
 > 
 > Signed-off-by: Ilya Nelkenbaum <ilyan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
@@ -94,11 +96,6 @@ On 12/16/2013 8:30 AM, Ilya Nelkenbaum wrote:
 > +				      struct ep_lft_block_tbl_rec * p_rec);
 > +extern void ep_lft_top_tbl_rec_init(uint16_t lid, uint16_t lft_top,
 > +				    struct ep_lft_top_tbl_rec * p_rec);
-
-Rather than extern these routines, they should be put into new header file.
-
--- Hal
-
 > +
 >  /** =========================================================================
 >   */
@@ -116,6 +113,7 @@ Rather than extern these routines, they should be put into new header file.
 >  
 >  static const struct db_table_def def_tbl[] = {
 > 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
