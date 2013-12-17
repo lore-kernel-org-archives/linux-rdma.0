@@ -1,73 +1,107 @@
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] infiniband-diags/vendstat: Fix GeneralInfo SW version
-Date: Tue, 17 Dec 2013 17:27:24 +0200
-Message-ID: <20131217152724.GA8696@r-ufm5-17.mtr.labs.mlnx>
+From: "Upinder Malhi (umalhi)" <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] libibverbs: Add support for usNIC node and transport
+Date: Tue, 17 Dec 2013 16:56:55 +0000
+Message-ID: <3A16F43E-69AF-42D7-959E-9A979D2974E4@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+Content-Language: en-US
+Content-ID: <2AC9CD628CE52D40B8C765ADFBE04AB0-WwaMAgPkaIIluPl5bxqUMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "<linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix the offset for GeneralInfo SWInfo for IS4
+180771a3707a4c0577cbf4f830c754dbabfdfccb adds core support for
+usNIC node and transport in the kernel.  This patch adds
+the corresponding support to libibverbs.
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- src/vendstat.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+ examples/devinfo.c         | 1 +
+ include/infiniband/verbs.h | 6 ++++--
+ src/enum_strs.c            | 5 +++--
+ src/init.c                 | 5 ++++-
+ 4 files changed, 12 insertions(+), 5 deletions(-)
 
-diff --git a/src/vendstat.c b/src/vendstat.c
-index a53e80d..f28ff02 100644
---- a/src/vendstat.c
-+++ b/src/vendstat.c
-@@ -87,6 +87,7 @@ typedef struct {
- 	uint32_t ext_major;
- 	uint32_t ext_minor;
- 	uint32_t ext_sub_minor;
-+	uint32_t reserved[4];
- } is4_fw_ext_info_t;
+diff --git a/examples/devinfo.c b/examples/devinfo.c
+index ff078e4..479c513 100644
+--- a/examples/devinfo.c
++++ b/examples/devinfo.c
+@@ -72,6 +72,7 @@ static const char *transport_str(enum ibv_transport_type transport)
+ 	switch (transport) {
+ 	case IBV_TRANSPORT_IB:    return "InfiniBand";
+ 	case IBV_TRANSPORT_IWARP: return "iWARP";
++	case IBV_TRANSPORT_USNIC: return "usNIC";
+ 	default:		  return "invalid transport";
+ 	}
+ }
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 4b1ab57..38cea25 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -68,13 +68,15 @@ enum ibv_node_type {
+ 	IBV_NODE_CA 		= 1,
+ 	IBV_NODE_SWITCH,
+ 	IBV_NODE_ROUTER,
+-	IBV_NODE_RNIC
++	IBV_NODE_RNIC,
++	IBV_NODE_USNIC,
+ };
  
- typedef struct {
-@@ -324,6 +325,7 @@ int main(int argc, char **argv)
- 	uint32_t fw_ver_major = 0;
- 	uint32_t fw_ver_minor = 0;
- 	uint32_t fw_ver_sub_minor = 0;
-+	uint8_t sw_ver_major = 0, sw_ver_minor = 0, sw_ver_sub_minor = 0;
- 	is3_general_info_t *gi_is3;
- 	is4_general_info_t *gi_is4;
- 	const struct ibdiag_opt opts[] = {
-@@ -415,10 +417,16 @@ int main(int argc, char **argv)
- 		fw_ver_major = ntohl(gi_is4->ext_fw_info.ext_major);
- 		fw_ver_minor = ntohl(gi_is4->ext_fw_info.ext_minor);
- 		fw_ver_sub_minor = ntohl(gi_is4->ext_fw_info.ext_sub_minor);
-+		sw_ver_major = gi_is4->sw_info.major;
-+		sw_ver_minor = gi_is4->sw_info.minor;
-+		sw_ver_sub_minor = gi_is4->sw_info.sub_minor;
+ enum ibv_transport_type {
+ 	IBV_TRANSPORT_UNKNOWN	= -1,
+ 	IBV_TRANSPORT_IB	= 0,
+-	IBV_TRANSPORT_IWARP
++	IBV_TRANSPORT_IWARP,
++	IBV_TRANSPORT_USNIC,
+ };
+ 
+ enum ibv_device_cap_flags {
+diff --git a/src/enum_strs.c b/src/enum_strs.c
+index 54d71a6..971a82f 100644
+--- a/src/enum_strs.c
++++ b/src/enum_strs.c
+@@ -38,10 +38,11 @@ const char *ibv_node_type_str(enum ibv_node_type node_type)
+ 		[IBV_NODE_CA]		= "InfiniBand channel adapter",
+ 		[IBV_NODE_SWITCH]	= "InfiniBand switch",
+ 		[IBV_NODE_ROUTER]	= "InfiniBand router",
+-		[IBV_NODE_RNIC]		= "iWARP NIC"
++		[IBV_NODE_RNIC]		= "iWARP NIC",
++		[IBV_NODE_USNIC]	= "usNIC",
+ 	};
+ 
+-	if (node_type < IBV_NODE_CA || node_type > IBV_NODE_RNIC)
++	if (node_type < IBV_NODE_CA || node_type > IBV_NODE_USNIC)
+ 		return "unknown";
+ 
+ 	return node_type_str[node_type];
+diff --git a/src/init.c b/src/init.c
+index 8e93f3f..3583955 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -346,7 +346,7 @@ static struct ibv_device *try_driver(struct ibv_driver *driver,
+ 			dev->node_type = IBV_NODE_UNKNOWN;
  	} else {
- 		fw_ver_major = gi_is3->fw_info.major;
- 		fw_ver_minor = gi_is3->fw_info.minor;
- 		fw_ver_sub_minor = gi_is3->fw_info.sub_minor;
-+		sw_ver_major = gi_is3->sw_info.major;
-+		sw_ver_minor = gi_is3->sw_info.minor;
-+		sw_ver_sub_minor = gi_is3->sw_info.sub_minor;
+ 		dev->node_type = strtol(value, NULL, 10);
+-		if (dev->node_type < IBV_NODE_CA || dev->node_type > IBV_NODE_RNIC)
++		if (dev->node_type < IBV_NODE_CA || dev->node_type > IBV_NODE_USNIC)
+ 			dev->node_type = IBV_NODE_UNKNOWN;
  	}
  
- 	if (general_info) {
-@@ -435,8 +443,8 @@ int main(int argc, char **argv)
- 		printf("fw_psid:     '%s'\n", gi_is3->fw_info.psid);
- 		printf("fw_ini_ver:  %d\n",
- 		       ntohl(gi_is3->fw_info.ini_file_version));
--		printf("sw_version:  %02d.%02d.%02d\n", gi_is3->sw_info.major,
--		       gi_is3->sw_info.minor, gi_is3->sw_info.sub_minor);
-+		printf("sw_version:  %02d.%02d.%02d\n", sw_ver_major,
-+		       sw_ver_minor, sw_ver_sub_minor);
- 	}
- 
- 	if (xmit_wait) {
+@@ -359,6 +359,9 @@ static struct ibv_device *try_driver(struct ibv_driver *driver,
+ 	case IBV_NODE_RNIC:
+ 		dev->transport_type = IBV_TRANSPORT_IWARP;
+ 		break;
++	case IBV_NODE_USNIC:
++		dev->transport_type = IBV_TRANSPORT_USNIC;
++		break;
+ 	default:
+ 		dev->transport_type = IBV_TRANSPORT_UNKNOWN;
+ 		break;
 -- 
-1.7.1
+1.8.1
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
