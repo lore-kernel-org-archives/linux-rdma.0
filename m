@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv4 for-3.13 06/10] IB/uverbs: check comp_mask in destroy_flow
-Date: Tue, 17 Dec 2013 10:58:55 +0100
-Message-ID: <9ddd51161f52165abe05a39763f13bd81d232d70.1387273677.git.ydroneaud@opteya.com>
+Subject: [PATCHv4 for-3.13 07/10] IB/uverbs: check reserved fields in create_flow
+Date: Tue, 17 Dec 2013 10:58:56 +0100
+Message-ID: <4f165ed32e0ac694b8de926eb6d2dbbc9e04bab6.1387273677.git.ydroneaud@opteya.com>
 References: <cover.1387273677.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1387273677.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -9,48 +9,60 @@ In-Reply-To: <cover.1387273677.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane
 References: <cover.1387273677.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Just like the check added to create_flow in 22878dbc9173,
-comp_mask must be checked in destroy_flow too.
+As noted by Daniel Vetter in its article "Botching up ioctls"[1]
 
-Since only empty comp_mask is currently supported,
-any other value must be rejected.
+  "Check *all* unused fields and flags and all the padding for
+   whether it's 0, and reject the ioctl if that's not the case.
+   Otherwise your nice plan for future extensions is going right
+   down the gutters since someone *will* submit an ioctl struct
+   with random stack garbage in the yet unused parts. Which then
+   bakes in the ABI that those fields can never be used for
+   anything else but garbage."
 
-This check was silently added in a previous patch[1] to move
-comp_mask in extended command header, part of previous patchset[2]
-against create/destroy_flow uverbs. The idea of moving comp_mask
-to the header was discarded for the final patchset[3].
+It's important to ensure that reserved fields are set to known
+value, so that it will be possible to use them latter to extend
+the ABI.
 
-Unfortunately the check added in destroy_flow uverb was not
-integrated in the final patchset.
+The same reasonning apply to comp_mask field present in newer
+uverbs command: per commit 22878dbc9173, unsupported values in
+comp_mask are rejected.
 
-[1] http://marc.info/?i=40175eda10d670d098204da6aa4c327a0171ae5f.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-[2] http://marc.info/?i=cover.1381510045.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-[3] http://marc.info/?i=cover.1383773832.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+[1] http://blog.ffwll.ch/2013/11/botching-up-ioctls.html
 
 Link: http://marc.info/?i=cover.1387273677.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/core/uverbs_cmd.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 971e16c970b9..a23874e959a1 100644
+index a23874e959a1..f50f1f3dc509 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2833,6 +2833,9 @@ int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
- 	if (ret)
- 		return ret;
- 
-+	if (cmd.comp_mask)
+@@ -2631,6 +2631,9 @@ out_put:
+ static int kern_spec_to_ib_spec(struct ib_uverbs_flow_spec *kern_spec,
+ 				union ib_flow_spec *ib_spec)
+ {
++	if (kern_spec->reserved)
 +		return -EINVAL;
 +
- 	uobj = idr_write_uobj(&ib_uverbs_rule_idr, cmd.flow_handle,
- 			      file->ucontext);
- 	if (!uobj)
+ 	ib_spec->type = kern_spec->type;
+ 
+ 	switch (ib_spec->type) {
+@@ -2709,6 +2712,10 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 	    (cmd.flow_attr.num_of_specs * sizeof(struct ib_uverbs_flow_spec)))
+ 		return -EINVAL;
+ 
++	if (cmd.flow_attr.reserved[0] ||
++	    cmd.flow_attr.reserved[1])
++		return -EINVAL;
++
+ 	if (cmd.flow_attr.num_of_specs) {
+ 		kern_flow_attr = kmalloc(sizeof(*kern_flow_attr) + cmd.flow_attr.size,
+ 					 GFP_KERNEL);
 -- 
 1.8.4.2
 
