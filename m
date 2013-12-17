@@ -1,31 +1,30 @@
-From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Question regarding max_rd_atomic
-Date: Tue, 17 Dec 2013 16:23:14 -0500
-Message-ID: <CADPSxAgR8PRXPfMgTEKp0=f8uGNLs4nSDLpKubPMH8RRV9VzxA@mail.gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net 0/9] Fixes for server entries and server filter
+ entries for Chelsio T4/T5
+Date: Tue, 17 Dec 2013 16:29:33 -0500 (EST)
+Message-ID: <20131217.162933.204709940918878458.davem@davemloft.net>
+References: <1387195938-3531-1-git-send-email-hariprasad@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1387195938-3531-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, santosh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi.
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Date: Mon, 16 Dec 2013 17:42:09 +0530
 
-I wanted to understand the max_rd_atomic parameter better. The man
-page describes this parameter as "Number of outstanding RDMA reads &
-atomic operations on the destination QP". The maximum value of this
-parameter is a HCA specific value, which is 16 for my system.
+> This patch series provides miscelleneous fixes for Chelsio T4/T5 adapters
+> related to server entries and server filter entries.
 
-I have the following specific questions:
+You add the sftids_in_use counter, but it is never tested by any code.
+It is only initialized to zero, incremented, and decremented.  It
+serves no real purpose at all.
 
-1. Why doesn't this exist for other operations like RDMA write or SEND?
-2. Why is the maximum value so small i.e 16?
-
-Any other information about this would be really helpful.
-
-Thanks!
-
---Anuj
+Please don't add things like this.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
