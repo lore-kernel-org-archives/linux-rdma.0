@@ -1,7 +1,7 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 7/9] IB/usnic: Fix printk format warnings
-Date: Tue, 17 Dec 2013 08:48:35 -0800
-Message-ID: <1387298917-7365-8-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 9/9] IB/usnic: Fix sparse should be static warnings
+Date: Tue, 17 Dec 2013 08:48:37 -0800
+Message-ID: <1387298917-7365-10-git-send-email-umalhi@cisco.com>
 References: <1387298917-7365-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1387298917-7365-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
@@ -10,147 +10,121 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-dma_addr_t is formatted as %llx and size_t as %lx at few places
-in usNIC. Change these to %pa and %zx, respectively.
+Sparse spit out few functions should be static warnings.  This
+patch provides a fix for the warnings.
 
 Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  6 +++---
- drivers/infiniband/hw/usnic/usnic_uiom.c     | 32 ++++++++++++++++------------
- drivers/infiniband/hw/usnic/usnic_vnic.c     |  4 ++--
- 3 files changed, 23 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_ib_main.c   | 4 +++-
+ drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 4 ++--
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  | 2 +-
+ drivers/infiniband/hw/usnic/usnic_transport.c | 4 ++--
+ drivers/infiniband/hw/usnic/usnic_transport.h | 1 +
+ drivers/infiniband/hw/usnic/usnic_uiom.c      | 2 +-
+ 6 files changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index 9f0945a..8f8dfa2 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -592,7 +592,7 @@ int usnic_ib_dereg_mr(struct ib_mr *ibmr)
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index 7200861..76bd097 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -423,7 +423,8 @@ static DEFINE_PCI_DEVICE_TABLE(usnic_ib_pci_ids) = {
+ 	{0,}
+ };
+ 
+-int usnic_ib_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
++static int usnic_ib_pci_probe(struct pci_dev *pdev,
++				const struct pci_device_id *id)
  {
- 	struct usnic_ib_mr *mr = to_umr(ibmr);
+ 	int err;
+ 	struct usnic_ib_dev *pf;
+@@ -579,6 +580,7 @@ static void __exit usnic_ib_destroy(void)
+ {
+ 	usnic_dbg("\n");
+ 	usnic_debugfs_exit();
++	usnic_transport_fini();
+ 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
+ 	pci_unregister_driver(&usnic_ib_pci_driver);
+ 	usnic_uiom_fini();
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+index b5fb4d4..788f47a 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
+@@ -331,7 +331,7 @@ int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
+ 	return status;
+ }
  
--	usnic_dbg("va 0x%lx length 0x%lx\n", mr->umem->va, mr->umem->length);
-+	usnic_dbg("va 0x%lx length 0x%zx\n", mr->umem->va, mr->umem->length);
+-struct usnic_vnic_res_chunk**
++static struct usnic_vnic_res_chunk**
+ alloc_res_chunk_list(struct usnic_vnic *vnic,
+ 			struct usnic_vnic_res_spec *res_spec, void *owner_obj)
+ {
+@@ -377,7 +377,7 @@ out_free_res:
+ 	return ERR_PTR(err);
+ }
  
- 	usnic_uiom_reg_release(mr->umem, ibmr->pd->uobject->context->closing);
- 	kfree(mr);
-@@ -667,8 +667,8 @@ int usnic_ib_mmap(struct ib_ucontext *context,
- 			}
- 			bus_addr = bar->bus_addr;
- 			len = bar->len;
--			usnic_dbg("bus: 0x%llx vaddr: %p size: %ld\n",
--					bus_addr, bar->vaddr, bar->len);
-+			usnic_dbg("bus: %pa vaddr: %p size: %ld\n",
-+					&bus_addr, bar->vaddr, bar->len);
- 			mutex_unlock(&us_ibdev->usdev_lock);
+-void free_qp_grp_res(struct usnic_vnic_res_chunk **res_chunk_list)
++static void free_qp_grp_res(struct usnic_vnic_res_chunk **res_chunk_list)
+ {
+ 	int i;
+ 	for (i = 0; res_chunk_list[i]; i++)
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
+index e7925e4..bad985e 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
+@@ -282,7 +282,7 @@ static struct attribute *usnic_ib_qpn_default_attrs[] = {
+ 	NULL
+ };
  
- 			return remap_pfn_range(vma,
+-struct kobj_type usnic_ib_qpn_type = {
++static struct kobj_type usnic_ib_qpn_type = {
+ 	.sysfs_ops = &usnic_ib_qpn_sysfs_ops,
+ 	.default_attrs = usnic_ib_qpn_default_attrs
+ };
+diff --git a/drivers/infiniband/hw/usnic/usnic_transport.c b/drivers/infiniband/hw/usnic/usnic_transport.c
+index 6f3d245..723bd6c 100644
+--- a/drivers/infiniband/hw/usnic/usnic_transport.c
++++ b/drivers/infiniband/hw/usnic/usnic_transport.c
+@@ -26,7 +26,7 @@
+ static unsigned long *roce_bitmap;
+ static u16 roce_next_port = 1;
+ #define ROCE_BITMAP_SZ ((1 << (8 /*CHAR_BIT*/ * sizeof(u16)))/8 /*CHAR BIT*/)
+-DEFINE_SPINLOCK(roce_bitmap_lock);
++static DEFINE_SPINLOCK(roce_bitmap_lock);
+ 
+ static const char *transport_to_str(enum usnic_transport_type type)
+ {
+@@ -106,7 +106,7 @@ out_roce_custom:
+ 	}
+ }
+ 
+-int usnic_transport_init()
++int usnic_transport_init(void)
+ {
+ 	roce_bitmap = kzalloc(ROCE_BITMAP_SZ, GFP_KERNEL);
+ 	if (!roce_bitmap) {
+diff --git a/drivers/infiniband/hw/usnic/usnic_transport.h b/drivers/infiniband/hw/usnic/usnic_transport.h
+index e4c924e..091fdaf 100644
+--- a/drivers/infiniband/hw/usnic/usnic_transport.h
++++ b/drivers/infiniband/hw/usnic/usnic_transport.h
+@@ -24,4 +24,5 @@
+ u16 usnic_transport_rsrv_port(enum usnic_transport_type type, u16 port_num);
+ void usnic_transport_unrsrv_port(enum usnic_transport_type type, u16 port_num);
+ int usnic_transport_init(void);
++void usnic_transport_fini(void);
+ #endif /* !USNIC_TRANSPORT_H */
 diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 359897d..0477d70 100644
+index 0477d70..200941f 100644
 --- a/drivers/infiniband/hw/usnic/usnic_uiom.c
 +++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -81,15 +81,16 @@ static void usnic_uiom_put_pages(struct list_head *chunk_list, int dirty)
- 	struct usnic_uiom_chunk *chunk, *tmp;
- 	struct page *page;
- 	int i;
-+	dma_addr_t pa;
+@@ -46,7 +46,7 @@
+ #include "usnic_uiom.h"
+ #include "usnic_uiom_interval_tree.h"
  
- 	list_for_each_entry_safe(chunk, tmp, chunk_list, list) {
- 		for (i = 0; i < chunk->nents; i++) {
- 			page = sg_page(&chunk->page_list[i]);
-+			pa = sg_phys(&chunk->page_list[i]);
- 			if (dirty)
- 				set_page_dirty_lock(page);
- 			put_page(page);
--			usnic_dbg("pa: 0x%llx\n",
--					sg_phys(&chunk->page_list[i]));
-+			usnic_dbg("pa: %pa\n", &pa);
- 		}
- 		kfree(chunk);
- 	}
-@@ -108,6 +109,7 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
- 	int off;
- 	int i;
- 	int flags;
-+	dma_addr_t pa;
- 	DEFINE_DMA_ATTRS(attrs);
+-struct workqueue_struct *usnic_uiom_wq;
++static struct workqueue_struct *usnic_uiom_wq;
  
- 	if (dmasync)
-@@ -167,9 +169,9 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
- 				sg_set_page(&chunk->page_list[i],
- 							page_list[i + off],
- 							PAGE_SIZE, 0);
--				usnic_dbg("va: 0x%lx pa: 0x%llx\n",
--						cur_base + i*PAGE_SIZE,
--						sg_phys(&chunk->page_list[i]));
-+				pa = sg_phys(&chunk->page_list[i]);
-+				usnic_dbg("va: 0x%lx pa: %pa\n",
-+						cur_base + i*PAGE_SIZE, &pa);
- 			}
- 			cur_base += chunk->nents * PAGE_SIZE;
- 			ret -= chunk->nents;
-@@ -247,7 +249,9 @@ static int usnic_uiom_map_sorted_intervals(struct list_head *intervals,
- 	size_t size;
- 	struct usnic_uiom_chunk *chunk;
- 	struct usnic_uiom_interval_node *interval_node;
--	long int pa, pa_start, pa_end;
-+	dma_addr_t pa;
-+	dma_addr_t pa_start = 0;
-+	dma_addr_t pa_end = 0;
- 	long int va_start = -EINVAL;
- 	struct usnic_uiom_pd *pd = uiomr->pd;
- 	long int va = uiomr->va & PAGE_MASK;
-@@ -276,13 +280,13 @@ iter_chunk:
- 					(pa != pa_start)) {
- 				/* PAs are not contiguous */
- 				size = pa_end - pa_start + PAGE_SIZE;
--				usnic_dbg("va 0x%lx pa 0x%lx size 0x%lx flags 0x%x",
--					va_start, pa_start, size, flags);
-+				usnic_dbg("va 0x%lx pa %pa size 0x%zx flags 0x%x",
-+					va_start, &pa_start, size, flags);
- 				err = iommu_map(pd->domain, va_start, pa_start,
- 							size, flags);
- 				if (err) {
--					usnic_err("Failed to map va 0x%lx pa 0x%lx size 0x%zx with err %d\n",
--						va_start, pa_start, size, err);
-+					usnic_err("Failed to map va 0x%lx pa 0x%pa size 0x%zx with err %d\n",
-+						va_start, &pa_start, size, err);
- 					goto err_out;
- 				}
- 				va_start = va;
-@@ -293,13 +297,13 @@ iter_chunk:
- 			if ((va >> PAGE_SHIFT) == interval_node->last) {
- 				/* Last page of the interval */
- 				size = pa - pa_start + PAGE_SIZE;
--				usnic_dbg("va 0x%lx pa 0x%lx size 0x%lx flags 0x%x\n",
--					va_start, pa_start, size, flags);
-+				usnic_dbg("va 0x%lx pa %pa size 0x%zx flags 0x%x\n",
-+					va_start, &pa_start, size, flags);
- 				err = iommu_map(pd->domain, va_start, pa_start,
- 						size, flags);
- 				if (err) {
--					usnic_err("Failed to map va 0x%lx pa 0x%lx size 0x%zx with err %d\n",
--						va_start, pa_start, size, err);
-+					usnic_err("Failed to map va 0x%lx pa %pa size 0x%zx with err %d\n",
-+						va_start, &pa_start, size, err);
- 					goto err_out;
- 				}
- 				break;
-diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.c b/drivers/infiniband/hw/usnic/usnic_vnic.c
-index ff0b32d..02d66d9 100644
---- a/drivers/infiniband/hw/usnic/usnic_vnic.c
-+++ b/drivers/infiniband/hw/usnic/usnic_vnic.c
-@@ -86,9 +86,9 @@ int usnic_vnic_dump(struct usnic_vnic *vnic, char *buf,
- 	offset = 0;
- 	bar0 = usnic_vnic_get_bar(vnic, 0);
- 	offset += scnprintf(buf + offset, buf_sz - offset,
--			"VF:%hu BAR0 bus_addr=0x%llx vaddr=0x%p size=%ld ",
-+			"VF:%hu BAR0 bus_addr=%pa vaddr=0x%p size=%ld ",
- 			usnic_vnic_get_index(vnic),
--			bar0->bus_addr,
-+			&bar0->bus_addr,
- 			bar0->vaddr, bar0->len);
- 	if (printtitle)
- 		offset += printtitle(hdr_obj, buf + offset, buf_sz - offset);
+ #define USNIC_UIOM_PAGE_CHUNK						\
+ 	((PAGE_SIZE - offsetof(struct usnic_uiom_chunk, page_list))	/\
 -- 
 1.8.1
 
