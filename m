@@ -1,117 +1,31 @@
-From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 5/9] IB/usnic: Change BUG_ON to WARN_ON
-Date: Tue, 17 Dec 2013 08:48:33 -0800
-Message-ID: <1387298917-7365-6-git-send-email-umalhi@cisco.com>
-References: <1387298917-7365-1-git-send-email-umalhi@cisco.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Question regarding max_rd_atomic
+Date: Tue, 17 Dec 2013 16:23:14 -0500
+Message-ID: <CADPSxAgR8PRXPfMgTEKp0=f8uGNLs4nSDLpKubPMH8RRV9VzxA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1387298917-7365-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usNIC calls BUG_ON(spinlock_is_held..) at few places.  In some of these
-instances, the call is made with another spinlock already held.  Change
-all such calls in usNIC to WARN_ON to make it fool-proof.
+Hi.
 
-Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 16 ++++++++--------
- drivers/infiniband/hw/usnic/usnic_uiom.c      |  2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+I wanted to understand the max_rd_atomic parameter better. The man
+page describes this parameter as "Number of outstanding RDMA reads &
+atomic operations on the destination QP". The maximum value of this
+parameter is a HCA specific value, which is 16 for my system.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index f647b6b..ad57a77 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -82,7 +82,7 @@ static int add_fwd_filter(struct usnic_ib_qp_grp *qp_grp,
- 	struct usnic_vnic_res_chunk *chunk;
- 	int rq_idx;
- 
--	BUG_ON(!spin_is_locked(&qp_grp->lock));
-+	WARN_ON(!spin_is_locked(&qp_grp->lock));
- 
- 	chunk = usnic_ib_qp_grp_get_chunk(qp_grp, USNIC_VNIC_RES_TYPE_RQ);
- 	if (IS_ERR_OR_NULL(chunk) || chunk->cnt < 1) {
-@@ -119,7 +119,7 @@ static int del_all_filters(struct usnic_ib_qp_grp *qp_grp)
- 	int err, status;
- 	struct usnic_fwd_filter_hndl *filter_hndl, *tmp;
- 
--	BUG_ON(!spin_is_locked(&qp_grp->lock));
-+	WARN_ON(!spin_is_locked(&qp_grp->lock));
- 
- 	status = 0;
- 
-@@ -145,7 +145,7 @@ static int enable_qp_grp(struct usnic_ib_qp_grp *qp_grp)
- 	struct usnic_vnic_res_chunk *res_chunk;
- 	struct usnic_vnic_res *res;
- 
--	BUG_ON(!spin_is_locked(&qp_grp->lock));
-+	WARN_ON(!spin_is_locked(&qp_grp->lock));
- 
- 	vnic_idx = usnic_vnic_get_index(qp_grp->vf->vnic);
- 
-@@ -189,7 +189,7 @@ static int disable_qp_grp(struct usnic_ib_qp_grp *qp_grp)
- 	struct usnic_vnic_res *res;
- 	int status = 0;
- 
--	BUG_ON(!spin_is_locked(&qp_grp->lock));
-+	WARN_ON(!spin_is_locked(&qp_grp->lock));
- 	vnic_idx = usnic_vnic_get_index(qp_grp->vf->vnic);
- 
- 	res_chunk = usnic_ib_qp_grp_get_chunk(qp_grp, USNIC_VNIC_RES_TYPE_RQ);
-@@ -392,7 +392,7 @@ static int qp_grp_and_vf_bind(struct usnic_ib_vf *vf,
- 	int err;
- 	struct pci_dev *pdev;
- 
--	BUG_ON(!spin_is_locked(&vf->lock));
-+	WARN_ON(!spin_is_locked(&vf->lock));
- 
- 	pdev = usnic_vnic_get_pdev(vf->vnic);
- 	if (vf->qp_grp_ref_cnt++ == 0) {
-@@ -416,7 +416,7 @@ static void qp_grp_and_vf_unbind(struct usnic_ib_qp_grp *qp_grp)
- 	struct pci_dev *pdev;
- 	struct usnic_ib_pd *pd;
- 
--	BUG_ON(!spin_is_locked(&qp_grp->vf->lock));
-+	WARN_ON(!spin_is_locked(&qp_grp->vf->lock));
- 
- 	pd = qp_grp->vf->pd;
- 	pdev = usnic_vnic_get_pdev(qp_grp->vf->vnic);
-@@ -446,7 +446,7 @@ struct usnic_ib_qp_grp *usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
- 	u16 port_num;
- 	int err;
- 
--	BUG_ON(!spin_is_locked(&vf->lock));
-+	WARN_ON(!spin_is_locked(&vf->lock));
- 
- 	err = usnic_vnic_res_spec_satisfied(&min_transport_spec[transport],
- 						res_spec);
-@@ -514,7 +514,7 @@ void usnic_ib_qp_grp_destroy(struct usnic_ib_qp_grp *qp_grp)
- 	enum usnic_transport_type transport;
- 
- 	WARN_ON(qp_grp->state != IB_QPS_RESET);
--	BUG_ON(!spin_is_locked(&qp_grp->vf->lock));
-+	WARN_ON(!spin_is_locked(&qp_grp->vf->lock));
- 
- 	transport = qp_grp->filters[DFLT_FILTER_IDX].transport;
- 	default_port_num = qp_grp->filters[DFLT_FILTER_IDX].port_num;
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index c44acbc..359897d 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -270,7 +270,7 @@ iter_chunk:
- 				pa_end = pa;
- 			}
- 
--			BUG_ON(va_start == -EINVAL);
-+			WARN_ON(va_start == -EINVAL);
- 
- 			if ((pa_end + PAGE_SIZE != pa) &&
- 					(pa != pa_start)) {
--- 
-1.8.1
+I have the following specific questions:
 
+1. Why doesn't this exist for other operations like RDMA write or SEND?
+2. Why is the maximum value so small i.e 16?
+
+Any other information about this would be really helpful.
+
+Thanks!
+
+--Anuj
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
