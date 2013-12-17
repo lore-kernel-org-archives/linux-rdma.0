@@ -1,212 +1,88 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V6 for-next 0/7] IP based RoCE GID Addressing
-Date: Mon, 16 Dec 2013 22:47:01 +0200
-Message-ID: <CAJZOPZ+nkucytw6z971HbNasBiNPjLoVabZBiL7RFrS07Pkzdg@mail.gmail.com>
-References: <1386864197-10591-1-git-send-email-ogerlitz@mellanox.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCHv4 for-3.13 00/10] create_flow/destroy_flow fixes for v3.13
+Date: Tue, 17 Dec 2013 10:58:49 +0100
+Message-ID: <cover.1387273677.git.ydroneaud@opteya.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1386864197-10591-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
-
-On Thu, Dec 12, 2013, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> Changes from V5:
->
->  - moved the address resolution helper from the uverbs layer to the
->    ib_core module where it belongs. This will also allow to run kernel
->    consumers who don't use the rdma-cm
 
 Hi Roland,
 
-Anything else, or we are all set? please let us know, this series has
-lost at least two kernel cycles just b/c of slowness in getting us
-feedback on things that needed to change, so lets not have another one
-to get lost.
+Please find the fourth revision of a patchset against create_flow/destroy_flow
+and associated extended command scheme.
 
-Or.
+These are fixes that *must* be applied before making the new uverbs
+widely available in v3.13:
+
+- patches 1, 2 and 3 address a warning reported by sparse.
+- patch 4 handle an uncommon type of extended command.
+- patch 5, 6 and 7 ensure that commands will be extensible:
+  - one patch add a missing check of comp_mask;
+  - the other patches add checks on reserved fields.
+- patch 8 fix an error path which was not setting the error code.
+- patch 9 ensure the response buffer of an extended command
+  is a valid memory region for userspace. Doing the check earlier,
+  on the *full* response buffer, might be safer.
+- patch 10 prevent out of bound access and underflow.
+
+Please review, test and apply for v3.13.
+
+Changes from patchset v3 [1]:
+
+- add a patch to hold 'response' pointer to remove the redundant cast
+  introduced by patch to remove implicit cast from INIT_UDATA()
+- rework some commit messages to address review made by Roland.
+
+Changes from patchset v2 [2]:
+
+- add a patch to check the input length in extended uverbs,
+  create_flow and destroy_flow.
+
+Changes from patchset v1 [3]:
+
+- add patch to verify early response buffer using access_ok(),
+  just like vfs_read().
+
+Regards.
+
+[1] [PATCHv3 for-3.13 0/9] create_flow/destroy_flow fixes for v3.13
+    http://marc.info/?i=cover.1386798254.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+[2] [PATCH v2 for v3.13 0/8] create_flow/destroy_flow fixes for v3.13
+    http://marc.info/?i=cover.1385981934.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
+
+[3] [PATCH for v3.13 0/7] create_flow/destroy_flow fixes for v3.13
+    http://marc.info/?i=cover.1385501822.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org
 
 
+Yann Droneaud (10):
+  IB/uverbs: move cast from u64 to void __user pointer to it's own
+    variable
+  IB/core: const'ify inbuf in struct ib_udata
+  IB/uverbs: remove implicit cast in INIT_UDATA()
+  IB/uverbs: set outbuf to NULL when no core response space is provided
+  IB/uverbs: check reserved field in extended command header
+  IB/uverbs: check comp_mask in destroy_flow
+  IB/uverbs: check reserved fields in create_flow
+  IB/uverbs: set error code when fail to consume all flow_spec items
+  IB/uverbs: check access to userspace response buffer in extended
+    command
+  IB/uverbs: check input length in flow steering uverbs
 
->
->  - added entries for XRC QPs in the IB core verbs.c qp state table
->
->  - dropped the last patch which is one liner change in the mlx4_en
->    driver. Can be pushed through netdev once this is accepted
->
-> See below full listing of change-history.
->
-> Currently, the IB stack (core + drivers) handle RoCE (IBoE) gids as
-> they encode related Ethernet net-device interface MAC address and
-> possibly VLAN id.
->
-> This series changes RoCE GIDs to encode IP addresses (IPv4 + IPv6)
-> of the that Ethernet interface, under the following reasoning:
->
-> 1. There are environments where the compute entity that runs the RoCE
-> stack is not aware that its traffic is vlan-tagged. This results with that
-> node to create/assume wrong GIDs from the view point of a peer node which
-> is aware to vlans.
->
-> Note that "node" here can be physical node connected to Ethernet switch acting in
-> access mode talking to another node which does vlan insertion/stripping by itself.
->
-> Or another example is SRIOV Virtual Function which is configured to work in "VST"
-> mode (Virtual-Switch-Tagging) such that the hypervisor configures the HW eSWitch
-> to do vlan insertion for the vPORT representing that function.
->
-> 2. When RoCE traffic is inspected (mirrored/trapped) in Ethernet switches for
-> monitoring and security purposes. It is much more natural for both humans and
-> automated utilities (...) to observe IP addresses in a certain offset into RoCE
-> frames L3 header vs. MAC/VLANs (which are there anyway in the L2 header of that
-> frame, so they are not gone by this change).
->
-> 3. Some Bonding/Teaming advanced mode such as balance-alb and balance-tlb
-> are using multiple underlying devices in parallel, and hence packets always
-> carry the bond IP address but different streams have different source MACs.
-> The approach brought by this series is part from what would allow to
-> support that for RoCE traffic too.
->
-> The 1st patch adds explicit handling of Ethernet L2 attributes, source/dest
-> mac and vlan_id to the kernel IB core, in data-structures and CMA/CM code.
-> Previously, with MAC/VLAN based addressing, they were encoded in the GIDs,
-> where now they have to be resolved and placed separately from the IP based GIDs.
->
-> The 2nd patch modifies the CMA to cope with IP based GIDs, the 3rd/4th ones do
-> that for the mlx4_ib driver, and the 5th/6th patches to the ocrdma driver.
->
-> The 7th patch adds address resolution to user space applications for RoCE
-> ports such that these application keep working unmodified.
->
-> The 8th/last patch fixes the mlx4_en driver such that it has correct IPv6 link local address.
->
-> Or.
->
-> Full listing of change-history:
->
-> changes from V5:
->
->  - moved the address resolution helper from the uverbs layer to the
->    ib_core module where it belongs. This will also allow to run kernel
->    consumers who don't use the rdma-cm
->
->  - added entries for XRC QPs in the IB core verbs.c qp state table
->
->
-> changes from V4:
->
->  - addressed feedback re the need to be compatible with non modified user
->    space applications/libraries, by adding code in uverbs which does address
->    resolution when dealing with Ethernet ports.
->
->  - removed the patches that deal with uverbs extended commands, they will
->    added later on, such that new applications/libraries can be coded to them.
->
-> changes from V3:
->
->   - dropped the uverbs Infrastructure patch for extensions which is now upstream
->     400dbc9 "IB/core: Infrastructure for extensible uverbs commands"
->
->   - added ocrdma patch to handle Ethernet L2 parameters, similar to the mlx4 patch.
->
->   - removed the assumption that the low level driver can provide the source mac
->     and vlan in the struct ib_wc returned by ib_poll_cq, and adjusted the
->     ib_init_ah_from_wc helper of the IB core accordingly.
->
->   - fixed some vlan related issues in the mlx4 driver
->
-> changes from V2:
->
->   - added handling of IP based GIDs in the ocrdma driver - patch #5,
->     as a result patches #5-8 of V1 became patches #6-9
->
-> changes from V1:
->
->  - rebased the series against the latest kernel bits, which include Sean's
->    AF_IB changes to the rdma-cm
->
->  - fixed bug in mlx4_ib where reset of the gid table was done for IB ports too
->
->  - fixed build warnings and issues pointed by sparse
->
->  - introduced patch #1 which does the explicit handling of Ethernet L2 attributes,
->    source/dest mac and vlan_id in the kernel data-structures and CMA/CM code.
->
->  - use smac when modifying a QP --> find smac in passive side + additional fields
->    to adress structures
->
->  - add support to new QP atrr in ib_modify_qp_is_ok() special for ll = ETH
->   and modified all low-level drivers to keep working after that change
->
->  -- changes around uverbs:
->  - use ah_ext as pointer in qp_attr passed from user space, so this
->    field by itself can be extended in the future
->  - for kernel to user command respnses comp_mask is moved into the
->    right place which is after the non-extended command respond fields
->  - fixed bug in copy_qp_attr_ex under which some fields were copied to
->    wrong locations
->  - use new structure rdma_ucm_init_qp_attr_ex which is extendable (ucma)
->
-> changes from V0:
->
->  - enhanced documentation of the mlx4_ib, uverbs and ucma patches
->  - broke the mlx4_ib patch to two
->  - broke the extended user space commands patch to two
->
->
-> Matan Barak (1):
->   IB/core: Ethernet L2 attributes in verbs/cm structures
->
-> Moni Shoua (5):
->   IB/CMA: IBoE (RoCE) IP based GID addressing
->   IB/mlx4: Use IBoE (RoCE) IP based GIDs in the port GID table
->   IB/mlx4: Handle Ethernet L2 parameters for IP based GID addressing
->   IB/ocrdma: Handle Ethernet L2 parameters for IP based GID addressing
->   IB/ocrdma: Populate GID table with IP based gids
->
-> Or Gerlitz (1):
->   IB/core: Resolve Ethernet L2 addresses when modifying QP
->
->  drivers/infiniband/core/addr.c              |   97 ++++++-
->  drivers/infiniband/core/cm.c                |   50 +++
->  drivers/infiniband/core/cma.c               |   74 ++++-
->  drivers/infiniband/core/core_priv.h         |    2 +
->  drivers/infiniband/core/sa_query.c          |   12 +-
->  drivers/infiniband/core/ucma.c              |   18 +-
->  drivers/infiniband/core/uverbs_cmd.c        |    4 +
->  drivers/infiniband/core/verbs.c             |   98 ++++++-
->  drivers/infiniband/hw/ehca/ehca_qp.c        |    2 +-
->  drivers/infiniband/hw/ipath/ipath_qp.c      |    2 +-
->  drivers/infiniband/hw/mlx4/ah.c             |   40 +--
->  drivers/infiniband/hw/mlx4/cq.c             |    9 +
->  drivers/infiniband/hw/mlx4/main.c           |  474 +++++++++++++++++++--------
->  drivers/infiniband/hw/mlx4/mlx4_ib.h        |    6 +-
->  drivers/infiniband/hw/mlx4/qp.c             |  104 +++++--
->  drivers/infiniband/hw/mlx5/qp.c             |    3 +-
->  drivers/infiniband/hw/mthca/mthca_qp.c      |    3 +-
->  drivers/infiniband/hw/ocrdma/ocrdma.h       |   12 +
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |    5 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |   21 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.h    |    1 -
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  138 +++------
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |    3 +-
->  drivers/infiniband/hw/qib/qib_qp.c          |    2 +-
->  drivers/net/ethernet/mellanox/mlx4/port.c   |   20 ++
->  include/linux/mlx4/cq.h                     |   15 +-
->  include/linux/mlx4/device.h                 |    1 +
->  include/rdma/ib_addr.h                      |   69 +++--
->  include/rdma/ib_cm.h                        |    1 +
->  include/rdma/ib_pack.h                      |    1 +
->  include/rdma/ib_sa.h                        |    3 +
->  include/rdma/ib_verbs.h                     |   21 +-
->  32 files changed, 928 insertions(+), 383 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/infiniband/core/uverbs.h      |  12 +--
+ drivers/infiniband/core/uverbs_cmd.c  | 175 +++++++++++++++++++++++-----------
+ drivers/infiniband/core/uverbs_main.c |  21 +++-
+ include/rdma/ib_verbs.h               |   2 +-
+ 4 files changed, 144 insertions(+), 66 deletions(-)
+
+-- 
+1.8.4.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
