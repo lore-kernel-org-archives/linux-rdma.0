@@ -1,78 +1,57 @@
 From: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/9] IB/usnic: Fix format not a string literal warnings
-Date: Tue, 17 Dec 2013 08:48:30 -0800
-Message-ID: <1387298917-7365-3-git-send-email-umalhi@cisco.com>
-References: <1387298917-7365-1-git-send-email-umalhi@cisco.com>
+Subject: [PATCH for-next 0/9] IB/usnic: Fix kbuild robot, sparse and smatch errs
+Date: Tue, 17 Dec 2013 08:48:28 -0800
+Message-ID: <1387298917-7365-1-git-send-email-umalhi@cisco.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1387298917-7365-1-git-send-email-umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Few printks in usnic are called w/o a string literal.
-Intel GCC is throwing warnings and this patch provides a fix
-for these.
+This patch series fixes these kbuild robot, sparse and smatch errors:
+https://lists.01.org/pipermail/kbuild/2013-December/000877.html
+https://lists.01.org/pipermail/kbuild-all/2013-December/002354.html
+https://lists.01.org/pipermail/kbuild-all/2013-December/002335.html
+https://lists.01.org/pipermail/kbuild-all/2013-December/002337.html
+http://www.spinics.net/lists/linux-rdma/msg18047.html
+http://www.spinics.net/lists/linux-rdma/msg18048.html
+http://www.spinics.net/lists/linux-rdma/msg18049.html
+http://www.spinics.net/lists/linux-rdma/msg18050.html
 
-Signed-off-by: Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/usnic/usnic_ib_main.c   | 5 ++---
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c | 2 +-
- drivers/infiniband/hw/usnic/usnic_vnic.c      | 2 --
- 3 files changed, 3 insertions(+), 6 deletions(-)
+IB/usnic: Fix stack frame size exceed warnings
+IB/usnic: Fix format not a string literal
+IB/usnic: Make usNIC built depend on Intel IOMMU
+IB/usnic: Fix error handling with IS_ERR_OR_NULL
+IB/usnic: Change BUG_ON to WARN_ON
+IB/usnic: Initialize all of the data returned to
+IB/usnic: Fix printk format warnings
+IB/usnic: Remove duplicate and unnecessary
+IB/usnic: Fix sparse should be static warnings
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 1771eec..4d8cadc 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -75,7 +75,7 @@ void usnic_ib_log_vf(struct usnic_ib_vf *vf)
- {
- 	char buf[1000];
- 	usnic_ib_dump_vf(vf, buf, sizeof(buf));
--	usnic_dbg(buf);
-+	usnic_dbg("%s\n", buf);
- }
-
- /* Start of netdev section */
-@@ -372,8 +372,7 @@ static void usnic_ib_undiscover_pf(struct kref *kref)
- 		}
- 	}
-
--	if (!found)
--		WARN("Failed to remove PF %s\n", pci_name(dev));
-+	WARN(found, "Failed to remove PF %s\n", pci_name(dev));
-
- 	mutex_unlock(&usnic_ib_ibdev_list_lock);
- }
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-index 5ba8678..f647b6b 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c
-@@ -432,7 +432,7 @@ static void log_spec(const struct usnic_vnic_res_spec
- {
- 	char buf[512];
- 	usnic_vnic_spec_dump(buf, sizeof(buf), res_spec);
--	usnic_dbg(buf);
-+	usnic_dbg("%s\n", buf);
- }
-
- struct usnic_ib_qp_grp *usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev,
-diff --git a/drivers/infiniband/hw/usnic/usnic_vnic.c b/drivers/infiniband/hw/usnic/usnic_vnic.c
-index 11c2449..ff0b32d 100644
---- a/drivers/infiniband/hw/usnic/usnic_vnic.c
-+++ b/drivers/infiniband/hw/usnic/usnic_vnic.c
-@@ -182,8 +182,6 @@ int usnic_vnic_spec_dump(char *buf, int buf_sz, const struct usnic_vnic_res_spec
- 				res_cnt);
- 	}
-
--	offset += scnprintf(buf + offset, buf_sz - offset,
--				"\n");
- 	return offset;
- }
-
---
-1.8.1
-
+drivers/infiniband/hw/usnic/usnic_ib_main.c   |    2 +-
+drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c |    2 +-
+drivers/infiniband/hw/usnic/usnic_ib_main.c   |    5 ++--
+drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c |    2 +-
+drivers/infiniband/hw/usnic/usnic_vnic.c      |    2 --
+drivers/infiniband/hw/usnic/Kconfig           |    3 +-
+drivers/infiniband/hw/usnic/usnic_ib_main.c   |   10 +++++---
+drivers/infiniband/hw/usnic/usnic_ib_verbs.c  |    2 +-
+drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c |   16 ++++++-------
+drivers/infiniband/hw/usnic/usnic_uiom.c      |    2 +-
+drivers/infiniband/hw/usnic/usnic_ib_verbs.c  |    2 ++
+drivers/infiniband/hw/usnic/usnic_ib_verbs.c  |    6 ++---
+drivers/infiniband/hw/usnic/usnic_uiom.c      |   32 ++++++++++++++-----------
+drivers/infiniband/hw/usnic/usnic_vnic.c      |    4 ++-
+drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c |   19 +++++++--------
+drivers/infiniband/hw/usnic/usnic_ib_qp_grp.h |   12 ++++-----
+drivers/infiniband/hw/usnic/usnic_vnic.c      |   12 ++++-----
+drivers/infiniband/hw/usnic/usnic_vnic.h      |   12 ++++-----
+drivers/infiniband/hw/usnic/usnic_ib_main.c   |    4 ++-
+drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c |    4 ++-
+drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  |    2 +-
+drivers/infiniband/hw/usnic/usnic_transport.c |    4 ++-
+drivers/infiniband/hw/usnic/usnic_transport.h |    1 +
+drivers/infiniband/hw/usnic/usnic_uiom.c      |    2 +-
+24 files changed, 81 insertions(+), 81 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
